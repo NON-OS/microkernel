@@ -20,32 +20,7 @@
 
 extern crate alloc;
 
-#[path = "../../nonos_route_link/src/answer.rs"]
-pub mod answer;
-#[path = "../../nonos_route_link/src/bounds.rs"]
-pub mod bounds;
-#[path = "../../nonos_route_link/src/carrier.rs"]
-pub mod carrier;
-#[path = "../../nonos_route_link/src/describe.rs"]
-pub mod describe;
-#[path = "../../nonos_route_link/src/direct_only.rs"]
-pub mod direct_only;
-#[path = "../../nonos_route_link/src/frame.rs"]
-pub mod frame;
-#[path = "../../nonos_route_link/src/opening.rs"]
-pub mod opening;
-#[path = "../../nonos_route_link/src/pick.rs"]
-pub mod pick;
-#[path = "../../nonos_route_link/src/refusal.rs"]
-pub mod refusal;
-#[path = "../../nonos_route_link/src/slice.rs"]
-pub mod slice;
-#[path = "../../nonos_route_link/src/socks.rs"]
-pub mod socks;
-#[path = "../../nonos_route_link/src/tunnel.rs"]
-pub mod tunnel;
-#[path = "../../nonos_route_link/src/tunnel_io.rs"]
-pub mod tunnel_io;
+include!("modules.rs");
 
 /* net.ntp's decision, made from the rule above before every exchange. */
 #[path = "../../capsule_net_ntp/src/decide.rs"]
