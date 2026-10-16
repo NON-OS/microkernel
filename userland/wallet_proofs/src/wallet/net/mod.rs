@@ -33,3 +33,5 @@ pub mod snapshot_fields;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/snapshot_parse.rs"]
 pub mod snapshot_parse;
 pub mod step;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/wallet_route.rs"]
+pub mod wallet_route;
