@@ -15,3 +15,4 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_devmodel = { path = "../nonos_devmodel" }
+nonos_libc = { package = "bga_proofs_libc_shim", path = "libc_shim" }
