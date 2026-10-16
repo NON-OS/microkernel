@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The Intel LPSS SPI host: spawned after the I2C host, asking for its
-//! own function and MMIO but no IRQ, DMA or PIO, and held to no one until
-//! a client exists; its raw transfers reach whatever device is on the bus.
+//! own function and MMIO but no IRQ, DMA or PIO, and held to the one
+//! driver above it; its raw transfers reach whatever device is on the bus.
 
 use super::common::owner;
 use super::held::{callers_of, endpoint_admits};
@@ -44,8 +44,9 @@ fn the_spi_host_starts_after_the_i2c_host_with_no_irq_dma_or_pio() {
 }
 
 #[test]
-fn nothing_reaches_the_spi_host() {
-    assert_eq!(callers_of("driver.spi0"), Some(&[][..]));
+fn only_the_spi_hid_driver_reaches_the_spi_host() {
+    assert_eq!(callers_of("driver.spi0"), Some(&["driver.spi_hid0"][..]));
+    assert!(endpoint_admits("driver.spi0", owner(&["driver.spi_hid0"])));
     let others = owner(&["app.terminal", "app.browser", "driver.i2c_hid0", "compositor"]);
-    assert!(!endpoint_admits("driver.spi0", others), "a capsule reaches it");
+    assert!(!endpoint_admits("driver.spi0", others), "another capsule reaches it");
 }

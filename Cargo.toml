@@ -177,6 +177,7 @@ nonos-capsule-driver-usb-mic    = []
 nonos-capsule-driver-ccid       = []
 nonos-capsule-driver-fido       = []
 nonos-capsule-driver-spi        = []
+nonos-capsule-driver-spi-hid    = []
 nonos-capsule-driver-cdc-ecm    = []
 nonos-capsule-driver-cdc-ncm    = []
 nonos-capsule-driver-rndis      = []
@@ -598,6 +599,11 @@ microkernel-driver-spi = [
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-spi",
+]
+
+microkernel-driver-spi-hid = [
+  "microkernel-driver-spi",
+  "nonos-capsule-driver-spi-hid",
 ]
 
 microkernel-driver-usb-audio = [

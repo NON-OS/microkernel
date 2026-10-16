@@ -29,7 +29,8 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.virtio_rng", KERNEL_ONLY),
     ("driver.ccid0", KERNEL_ONLY),
     ("driver.fido0", KERNEL_ONLY),
-    ("driver.spi0", KERNEL_ONLY),
+    ("driver.spi0", &["driver.spi_hid0"]),
+    ("driver.spi_hid0", KERNEL_ONLY),
     (USB_HOSTS[0], USB_CLIENTS),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
@@ -50,8 +51,8 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
 /// bus, so it is opened to one when one exists. A smart card signs and
 /// decrypts for whoever reaches its reader, and a security key signs for
 /// whoever reaches it once its user touches it: the owner names who.
-/// The SPI host moves raw bytes to whatever device sits on its bus; it is
-/// opened to the one driver above it when that driver exists.
+/// The SPI host moves raw bytes to any device on its bus: only the HID
+/// driver above it reaches it, and that driver posts input, serving no one.
 const KERNEL_ONLY: &[&str] = &[];
 
 /// The hub walker and the class drivers above every USB host (usb_hosts.rs),

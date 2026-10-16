@@ -1,8 +1,8 @@
 # spi — the Intel LPSS SPI host driver. Proves an LPSS function is an SPI
 # host by its capabilities before writing to it, and serves raw transfers
 # to one client. Never the firmware's flash controller: the broker refuses
-# that claim to every capsule. Its endpoint is held to no one until a
-# client exists.
+# that claim to every capsule. Its endpoint is held to driver.spi_hid0
+# alone.
 
 CAPSULE_SLUG             := driver-spi
 CAPSULE_HANDLE           := driver.spi0

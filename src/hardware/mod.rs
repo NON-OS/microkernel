@@ -45,6 +45,7 @@ pub mod rtl8821ce_capsule;
 pub mod sdhci_capsule;
 pub mod smbus_capsule;
 pub mod spi_capsule;
+pub mod spi_hid_capsule;
 pub mod ufs_capsule;
 pub mod uhci_capsule;
 pub mod usb_audio_capsule;

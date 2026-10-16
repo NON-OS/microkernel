@@ -16,7 +16,7 @@
 //! driver.spi0: an Intel LPSS SPI host, its raw transfers served to one
 //! client. Never the firmware's flash controller: the broker refuses that
 //! claim, and this driver binds only a function whose LPSS capabilities
-//! name SPI. Its endpoint is held to no one until a client exists.
+//! name SPI. Its endpoint is held to driver.spi_hid0 alone.
 
 #![no_std]
 #![no_main]

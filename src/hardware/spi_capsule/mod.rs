@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Kernel-side glue for the Intel LPSS SPI host driver: embed and spawn
-//! it. Its endpoint is held to no one until a client exists
+//! it. Its endpoint is held to driver.spi_hid0 alone
 //! (`services/registry/held_table.rs`).
 
 mod embed;

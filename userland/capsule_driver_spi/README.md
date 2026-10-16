@@ -1,8 +1,8 @@
 # capsule_driver_spi
 
-Status: wired, not yet signed, and held to no one. The kernel mirror
+Status: wired, not yet signed. The kernel mirror
 (`src/hardware/spi_capsule`) embeds and spawns it under
-`KERNEL_ONLY` until a client exists (driver.spi_hid0, next).
+to `driver.spi_hid0`, the HID-over-SPI driver above it, alone.
 
 ## Role
 
@@ -113,7 +113,8 @@ recalled from the PCH datasheets' LPSS chapter, unverified.
 
 ## Release checklist
 
-- A client (driver.spi_hid0) and the held table opened to it.
+- driver.gpio0 admitting this driver to its EVENTS (F's table), for the
+  doorbell.
 - The register rows verified against a published Intel datasheet.
 
 ## Explicit non-goals today
