@@ -1,15 +1,15 @@
+//! The review screen: every answer, and what was not saved.
+
+use super::super::review_lines::{local_line, mode_line, name_line, net_line, route_line};
+use super::super::{appearance, keyboard, timezone};
 use crate::render;
+use crate::render::layout::REVIEW_VALUE_AT;
 use crate::render::theme::{FG, HINT};
 use crate::render::widgets::{lines, text::cat};
-use crate::server::step::{default_key, Outcome, K_ENTER, K_ENTER_LF};
 use crate::state::Context;
 
-use super::review_lines::{local_line, mode_line, name_line, net_line, route_line};
-use super::{appearance, keyboard, timezone};
-use crate::render::layout::REVIEW_VALUE_AT;
-
 pub fn draw(ctx: &Context) {
-    let then: &[u8] = if super::mode::keeps(ctx) {
+    let then: &[u8] = if super::super::mode::keeps(ctx) {
         b"ENTER applies these and opens the installer"
     } else {
         b"ENTER applies these and starts the desktop"
@@ -25,7 +25,7 @@ pub fn draw(ctx: &Context) {
     let (mut name, mut qwen, mut wall) = ([0u8; 64], [0u8; 64], [0u8; 64]);
     let empty: &[u8] = if ctx.name.len == 0 { b" (left empty)" } else { b"" };
     let name = cat(&mut name, &[ctx.name.shown(), empty]);
-    let qwen: &[u8] = match ctx.qwen.chosen(super::mode::keeps(ctx)) {
+    let qwen: &[u8] = match ctx.qwen.chosen(super::super::mode::keeps(ctx)) {
         Some(tier) => cat(&mut qwen, &[crate::qwen::label(tier), b" (", tier, b")"]),
         None => b"None for now",
     };
@@ -58,26 +58,10 @@ pub fn draw(ctx: &Context) {
     ];
     let y = lines::text(buf, spx, w, h, x, y + l.gap, &said, FG);
     let (mut first, mut rest) = ([0u8; 96], [0u8; 96]);
-    let (a, b) = super::unsaved::said(ctx.unsaved, &mut first, &mut rest);
+    let (a, b) = super::super::unsaved::said(ctx.unsaved, &mut first, &mut rest);
     if ctx.unsaved_told && a > 0 {
-        let told: [&[u8]; 3] = [&first[..a], &rest[..b], super::unsaved::THEN];
+        let told: [&[u8]; 3] = [&first[..a], &rest[..b], super::super::unsaved::THEN];
         let shown: &[&[u8]] = if b == 0 { &[told[0], told[2]] } else { &told };
         lines::text(buf, spx, w, h, x, y + l.gap, shown, FG);
     }
-}
-
-pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
-    if code == K_ENTER || code == K_ENTER_LF {
-        /*
-         * Answers the settings service refused are named before setup goes
-         * on, once: the second Enter asks again and goes on either way.
-         */
-        super::commit::commit(ctx);
-        if ctx.unsaved != 0 && !ctx.unsaved_told {
-            ctx.unsaved_told = true;
-            return Outcome::Stay;
-        }
-        return Outcome::Advance;
-    }
-    default_key(code)
 }
