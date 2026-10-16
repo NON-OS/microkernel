@@ -16,11 +16,10 @@
 
 use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 
-use crate::clients::wm;
 use crate::state::Context;
 
 use super::deliver::deliver_one;
-use super::pointer::shell_pid;
+use super::keyboard_target::{release_in, target};
 
 pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     let is_up = event.kind == INPUT_KIND_KEY_UP;
@@ -36,24 +35,7 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     // A system key's release with no press on record (the press went before
     // the shell was up) still goes to the shell, never to a window that did
     // not see the key go down.
-    let pid = if is_up {
-        let pressed_in = ctx.key_targets.take(event.code).filter(|&p| p != 0);
-        match pressed_in {
-            Some(pid) => pid,
-            None if system => shell_pid(ctx),
-            None => fallback_focus(ctx),
-        }
-    } else if chord || system {
-        shell_pid(ctx)
-    } else {
-        let rid = ctx.issue_request_id();
-        let answer = wm::query_focus(&mut ctx.wm_port, rid);
-        if let Some(focused) = answer {
-            ctx.last_focus_pid = focused;
-        }
-        let shell = shell_pid(ctx);
-        super::key_target::press_target(answer, ctx.last_focus_pid, shell)
-    };
+    let pid = target(ctx, event, is_up, chord || system, system);
     // A held key repeats as more presses. One that now goes to another window
     // than the press before it is first released where it went down: that
     // window would otherwise hold the key for good, and a client that repeats
@@ -77,20 +59,4 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     }
     ctx.record(delivered);
     delivered
-}
-
-fn release_in(ctx: &mut Context, pid: u32, press: &InputEvent) {
-    let mut release = *press;
-    release.kind = INPUT_KIND_KEY_UP;
-    if ctx.subscriptions.allows(pid, release.kind) && deliver_one(pid, &release) == 0 {
-        ctx.forget_pid(pid);
-    }
-}
-
-fn fallback_focus(ctx: &mut Context) -> u32 {
-    if ctx.last_focus_pid != 0 {
-        ctx.last_focus_pid
-    } else {
-        shell_pid(ctx)
-    }
 }
