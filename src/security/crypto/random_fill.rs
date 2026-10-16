@@ -17,7 +17,6 @@
 //! Buffers and narrow integers filled from the hardware sources.
 
 use super::random::{secure_random_u64, try_secure_random_u64};
-use super::random_pool::consume_entropy;
 
 pub fn fill_random(buf: &mut [u8]) {
     let mut off = 0;
@@ -35,7 +34,6 @@ pub fn try_fill_random(buf: &mut [u8]) -> Result<(), &'static str> {
     let mut off = 0;
     while off < buf.len() {
         let v = try_secure_random_u64()?;
-        consume_entropy(64);
         let chunk = v.to_le_bytes();
         let take = core::cmp::min(buf.len() - off, chunk.len());
         buf[off..off + take].copy_from_slice(&chunk[..take]);

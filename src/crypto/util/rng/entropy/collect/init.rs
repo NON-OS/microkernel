@@ -16,12 +16,11 @@
 
 use super::super::error::EntropyError;
 use super::super::hardware::{has_cpu_entropy, has_cpu_random};
-use super::super::state::{BOOTLOADER_ENTROPY_PROVIDED, HARDWARE_ENTROPY_VERIFIED};
+use super::super::state::BOOTLOADER_ENTROPY_PROVIDED;
 use core::sync::atomic::Ordering;
 
 pub fn init_entropy() -> Result<(), EntropyError> {
     if has_cpu_random() || has_cpu_entropy() {
-        HARDWARE_ENTROPY_VERIFIED.store(true, Ordering::SeqCst);
         return Ok(());
     }
     if BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::SeqCst) {
@@ -32,19 +31,4 @@ pub fn init_entropy() -> Result<(), EntropyError> {
 
 pub fn mark_bootloader_entropy_provided() {
     BOOTLOADER_ENTROPY_PROVIDED.store(true, Ordering::SeqCst);
-}
-
-#[inline]
-pub fn has_adequate_entropy() -> bool {
-    has_cpu_random() || has_cpu_entropy() || BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire)
-}
-
-pub fn verify_entropy_sources() -> Result<(), EntropyError> {
-    if has_cpu_random() || has_cpu_entropy() {
-        return Ok(());
-    }
-    if BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire) {
-        return Ok(());
-    }
-    Err(EntropyError::NoHardwareSource)
 }
