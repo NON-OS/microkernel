@@ -34,7 +34,8 @@ pub struct Port<'a, R: Radio> {
 
 impl<R: Radio> LinkPort for Port<'_, R> {
     fn mac(&self) -> Option<[u8; 6]> {
-        self.link_up().then(|| self.radio.mac())
+        // The session's own, which its frames name, whatever the chip holds.
+        self.session.as_ref().filter(|s| s.is_up()).map(|s| s.mac())
     }
 
     fn link_up(&self) -> bool {

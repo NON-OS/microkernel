@@ -35,7 +35,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         let Some(kit) = s.kit.as_mut() else { return false };
         let Some(look) = self.look.as_mut() else {
             if kit.due(now) {
-                let (home, link) = ((s.band, s.channel), (r.mac(), s.bssid));
+                let (home, link) = ((s.band, s.channel), (s.mac(), s.bssid));
                 self.look = Some(Look::new(self.domain, r.bands(), home, link.0, link.1));
             }
             return false;
