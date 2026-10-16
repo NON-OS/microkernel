@@ -33,7 +33,7 @@ mod prove;
 mod statement;
 
 pub use circuit::{build, shape, Built};
-pub use params::{EXTRA_BLOWUP_BITS, GRIND_BITS, LOG_TRACE, QUERIES, WORDS};
+pub use params::{LOG_TRACE, QUERIES, STATEMENT_BLOWUP_BITS, STATEMENT_GRIND_BITS, WORDS};
 #[cfg(feature = "forge")]
 pub use prove::forge;
 pub use prove::{prove, verify, Error};
