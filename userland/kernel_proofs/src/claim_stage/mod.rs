@@ -22,7 +22,9 @@
 
 #![allow(dead_code)]
 
+mod model_reclaim_tests;
 mod model_tests;
+mod reclaim_world;
 #[path = "../../../../src/hardware/broker/claim/stage_rule.rs"]
 mod stage_rule;
 mod tests;

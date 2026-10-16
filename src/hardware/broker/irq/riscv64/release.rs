@@ -45,14 +45,16 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
     Ok(())
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     let mut n = 0;
     for e in SLOTS.iter() {
         if e.source.load(Ordering::Acquire) == 0 {
             continue;
         }
-        if e.pid.load(Ordering::Acquire) == pid && e.device_id.load(Ordering::Acquire) == device_id
-        {
+        let ours = e.pid.load(Ordering::Acquire) == pid
+            && e.device_id.load(Ordering::Acquire) == device_id
+            && e.claim_epoch.load(Ordering::Acquire) == epoch;
+        if ours {
             tear_down(e);
             n += 1;
         }
