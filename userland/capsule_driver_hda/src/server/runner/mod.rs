@@ -19,10 +19,13 @@ mod jack_schedule;
 mod max_tx_body;
 mod poll_irq;
 mod refill;
+mod refill_log;
 mod run;
 #[cfg(feature = "nonos-driver-hda-smoketest")]
 mod selftest;
+mod serve;
 mod status;
+mod stream;
 
 pub use run::run;
 pub use status::run_status;

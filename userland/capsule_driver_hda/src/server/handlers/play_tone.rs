@@ -25,7 +25,13 @@ use crate::setup::Driver;
 /// the refill overwrites the ring with whatever the queue holds (silence when
 /// it is empty) after the first pass, and OP_STREAM_STOP ends it and closes
 /// the outputs. A tone left looping on its own never stops.
-pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8], played: &mut bool, running: &mut bool) {
+pub fn handle(
+    driver: &mut Driver,
+    req: &Request,
+    tx: &mut [u8],
+    played: &mut bool,
+    running: &mut bool,
+) {
     audio::fill(driver.sample.user_va, driver.sample.length as usize);
     flush(driver.sample.user_va, driver.sample.length);
     let ok = restart(driver) && open(driver, true);

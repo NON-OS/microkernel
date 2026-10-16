@@ -20,6 +20,6 @@ pub mod controller_info;
 pub mod health;
 pub mod output_status;
 pub mod play_tone;
-pub mod stream_layout;
 pub mod stream;
+pub mod stream_layout;
 pub mod write_pcm;
