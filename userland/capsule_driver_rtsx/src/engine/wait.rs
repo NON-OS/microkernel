@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Waiting for TRANS_OK or TRANS_FAIL in BIPR, on the clock. What Linux's
-//! ISR does on the way is done here: the bits are written back to clear
-//! them, and a failed or timed-out run is stopped (rtsx_pci_stop_cmd).
+//! Waiting for TRANS_OK or TRANS_FAIL in BIPR, on the clock, parked between
+//! polls once past the first millisecond (C7). What Linux's ISR does on the
+//! way is done here: the bits are written back to clear them, and a run
+//! that failed, timed out, lost its card or found the reader gone is
+//! stopped (rtsx_pci_stop_cmd), so no engine is left running against the
+//! buffers (C1). A card-detect change is left latched for the slot's
+//! watcher (serve/slot.rs) to see.
 
 use super::stop::stop;
-use crate::clock::{now, Budget};
+use crate::clock::{now, pause, Budget};
 use crate::error::{Result, RtsxError};
 use crate::regs::host::BIPR;
 use crate::setup::Driver;
@@ -29,22 +33,25 @@ pub fn wait(drv: &Driver, timeout_ms: u64, timeout: RtsxError, fail: RtsxError) 
     let budget = Budget::begin(now(), timeout_ms);
     loop {
         let bipr = drv.regs.r32(BIPR);
-        match classify(bipr) {
+        let ended = match classify(bipr, drv.card_on) {
+            Outcome::Pending => None,
             Outcome::Ok => {
                 drv.regs.w32(BIPR, bipr);
                 return Ok(());
             }
             Outcome::Fail => {
                 drv.regs.w32(BIPR, bipr);
-                stop(drv);
-                return Err(fail);
+                Some(fail)
             }
-            Outcome::Gone => return Err(RtsxError::Gone),
-            Outcome::Pending => {}
-        }
-        if budget.spent(now()) {
+            Outcome::Gone => Some(RtsxError::Gone),
+            Outcome::Removed => Some(RtsxError::Removed),
+        };
+        let t = now();
+        let ended = ended.or(budget.spent(t).then_some(timeout));
+        if let Some(e) = ended {
             stop(drv);
-            return Err(timeout);
+            return Err(e);
         }
+        pause(&budget, t);
     }
 }

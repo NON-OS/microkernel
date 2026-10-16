@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Starting an ADMA read into the data buffer: one scatter-gather entry
-//! after the command area, then HDBAR and HDBCTLR (rtsx_pci_dma_transfer).
+//! Starting an ADMA transfer between the data buffer and the card: one
+//! scatter-gather entry after the command area, then HDBAR and HDBCTLR
+//! (rtsx_pci_dma_transfer).
 
 use crate::regs::host::{HDBAR, HDBCTLR, HOST_CMDS_BUF_LEN};
 use crate::setup::Driver;
-use crate::wire::{hdbctlr_read, sg_entry};
+use crate::wire::{hdbctlr, sg_entry};
 
-/// `len` bytes from the card into the data buffer, which holds them all.
-pub fn start_read(drv: &Driver, len: u32) {
+/// `len` bytes, from the card into the data buffer when `to_host`, from
+/// the data buffer to the card otherwise. The buffer holds them all.
+pub fn start_dma(drv: &Driver, len: u32, to_host: bool) {
     let entry = sg_entry(drv.data.device_addr(), len, true);
     drv.resv.write_u32(HOST_CMDS_BUF_LEN, entry as u32);
     drv.resv.write_u32(HOST_CMDS_BUF_LEN + 4, (entry >> 32) as u32);
     drv.regs.w32(HDBAR, drv.resv.device_addr() + HOST_CMDS_BUF_LEN as u32);
-    drv.regs.w32(HDBCTLR, hdbctlr_read());
+    drv.regs.w32(HDBCTLR, hdbctlr(to_host));
 }

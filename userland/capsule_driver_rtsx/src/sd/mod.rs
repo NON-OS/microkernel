@@ -16,17 +16,19 @@
 
 //! The SD card protocol the driver speaks once the reader is up, from the
 //! SD Physical Layer Simplified Specification: commands, the operating
-//! conditions register, the CSD and the card status. Pure.
+//! conditions register, the CID and CSD, and the card status. Pure.
 
 pub mod bits;
+mod cid;
 mod command;
 mod csd;
 pub mod ocr;
 mod rsp;
 mod status;
 
+pub use cid::Cid;
 pub use command::Command;
-pub use csd::capacity_blocks;
+pub use csd::{addressable, capacity_blocks};
 pub use ocr::{if_cond_echoed, ocr_high_capacity, ocr_ready};
 pub use rsp::Rsp;
-pub use status::{r1_app_cmd, r6_rca};
+pub use status::{r1_app_cmd, r1_error, r1_ready, r6_rca};

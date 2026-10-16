@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The lines a photo of `log rtsx` should show: the reader up, and for each
-//! card its size and whether its first block read, or where it stopped.
+//! The lines a photo of `log rtsx` should show: the reader up, each card
+//! served with its size, and what happened in the slot since. A card is
+//! named by its size and nothing else: its CID, serial included, stays off
+//! the console (C5).
 
-use crate::card::{read_blocks, Card};
+use crate::card::{present, write_protected, Card};
 use crate::chip::Family;
-use crate::error::Result;
-use crate::log::{emit, failed, Line};
+use crate::log::{emit, Line};
+use crate::protocol::SERVICE_NAME;
 use crate::setup::Driver;
 
 pub fn up(drv: &Driver) {
@@ -31,15 +33,11 @@ pub fn up(drv: &Driver) {
     let mut line = Line::start();
     line.text(name).text(b" (10ec:").hex(drv.device as u64, 4).text(b") up, IC version ");
     line.dec(drv.ic_version as u64);
-    let slot: &[u8] = if crate::card::present(drv) { b"; card in slot" } else { b"; slot empty" };
+    let slot: &[u8] = if present(drv) { b"; card in slot" } else { b"; slot empty" };
     emit(line.text(slot));
 }
 
-pub fn card(drv: &Driver, card: Result<Card>) {
-    let card = match card {
-        Ok(c) => c,
-        Err(e) => return failed(b"card bring-up stopped", e),
-    };
+pub fn served(drv: &Driver, card: &Card) {
     let mut line = Line::start();
     line.text(b"SD card ").dec(card.blocks).text(b" blocks (").dec(card.blocks / 2048);
     line.text(if card.high_capacity {
@@ -47,20 +45,10 @@ pub fn card(drv: &Driver, card: Result<Card>) {
     } else {
         b" MiB, byte addressed)"
     });
-    emit(line.text(b", rca ").hex(card.rca as u64, 4));
-    if let Err(e) = read_blocks(drv, &card, 0, 1) {
-        return failed(b"block 0 read", e);
-    }
-    let (a, b) = (drv.data.read_u8(510), drv.data.read_u8(511));
-    let mut line = Line::start();
-    line.text(b"block 0 read, last two bytes ").hex(a as u64, 2).hex(b as u64, 2);
-    let mbr: &[u8] = if (a, b) == (0x55, 0xAA) { b" (partition table)" } else { b"" };
-    emit(line.text(mbr));
+    let wp: &[u8] = if write_protected(drv) == Ok(true) { b", write-protected" } else { b"" };
+    emit(line.text(wp).text(b", served as ").text(SERVICE_NAME.as_bytes()));
 }
 
-pub fn removed(off: Result<()>) {
-    match off {
-        Ok(()) => emit(Line::start().text(b"card removed, slot powered down")),
-        Err(e) => failed(b"card removed; slot power-down", e),
-    }
+pub fn said(what: &[u8]) {
+    emit(Line::start().text(what));
 }

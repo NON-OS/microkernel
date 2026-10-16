@@ -19,6 +19,7 @@
 //! stage so the in-rush current stays low, then the outputs on and the clock
 //! left toggling so the card sees its 74 initial clocks.
 
+use super::limits::REGS_MS;
 use super::pull::pull_enable;
 use super::select::select_sd;
 use crate::clock::sleep_ms;
@@ -36,20 +37,20 @@ pub fn power_on(drv: &Driver) -> Result<()> {
     let mut buf = CmdBuf::new();
     select_sd(&mut buf);
     buf.write(CARD_CLK_EN, SD_CLK_EN, SD_CLK_EN);
-    crate::engine::send(drv, &buf, 100)?;
+    crate::engine::send(drv, &buf, REGS_MS)?;
     pull_enable(drv)?;
     enable_ocp(drv)?;
     let mut buf = CmdBuf::new();
     buf.write(CARD_PWR_CTL, SD_POWER_MASK, SD_PARTIAL_POWER_ON);
     buf.write(PWR_GATE_CTRL, LDO3318_PWR_MASK, 0x02);
-    crate::engine::send(drv, &buf, 100)?;
+    crate::engine::send(drv, &buf, REGS_MS)?;
     sleep_ms(20);
     let mut buf = CmdBuf::new();
     buf.write(CARD_PWR_CTL, SD_POWER_MASK, SD_POWER_ON);
     buf.write(PWR_GATE_CTRL, LDO3318_PWR_MASK, 0x06);
     buf.write(CARD_OE, SD_OUTPUT_EN, SD_OUTPUT_EN);
     buf.write(CARD_OE, MS_OUTPUT_EN, MS_OUTPUT_EN);
-    crate::engine::send(drv, &buf, 100)?;
+    crate::engine::send(drv, &buf, REGS_MS)?;
     sleep_ms(1);
     write_register(drv.regs, CARD_OE, SD_OUTPUT_EN, SD_OUTPUT_EN)?;
     write_register(drv.regs, SD_BUS_STAT, SD_CLK_TOGGLE_EN, SD_CLK_TOGGLE_EN)

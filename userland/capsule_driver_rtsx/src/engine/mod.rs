@@ -24,8 +24,8 @@ mod send;
 mod stop;
 mod wait;
 
-pub use adma::start_read;
+pub use adma::start_dma;
 pub use results::results;
 pub use send::{send, start};
-pub use stop::clear_error;
+pub use stop::{clear_error, stop, stopped};
 pub use wait::wait;
