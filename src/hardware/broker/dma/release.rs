@@ -17,7 +17,8 @@
 //! DMA grant revocation. Three triggers:
 //!
 //!   * `MkDmaUnmap` — explicit holder request
-//!   * `MkDeviceRelease` — drains every grant tied to the device
+//!   * a device retiring (claim/retire.rs) — takes its grants, frees
+//!     them after the reset (`take_for_device`, `free_taken`)
 //!   * process exit — drains every grant the dying pid owns
 //!
 //! Revocation order: unmap user pages (when the holder's CR3 is
@@ -28,20 +29,12 @@
 use super::drain;
 use super::records;
 use super::teardown::teardown;
-use super::types::DmaError;
+use super::types::{DmaError, DmaGrant};
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), DmaError> {
     let g = records::remove(pid, grant_id)?;
     teardown(&g, true);
     Ok(())
-}
-
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    let drained = drain::drain_for_device(pid, device_id);
-    for g in &drained {
-        teardown(g, true);
-    }
-    drained.len()
 }
 
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
@@ -50,4 +43,15 @@ pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
         teardown(g, unmap_pages);
     }
     drained.len()
+}
+
+/// The device's grants out of the table, so no other path can free them,
+/// while the device is reset. Freed after, by `free_taken`.
+pub(crate) fn take_for_device(pid: u32, device_id: u64) -> alloc::vec::Vec<DmaGrant> {
+    drain::drain_for_device(pid, device_id)
+}
+
+/// Frees grants `take_for_device` took, once their device is reset.
+pub(crate) fn free_taken(taken: &[DmaGrant], unmap_pages: bool) {
+    taken.iter().for_each(|g| teardown(g, unmap_pages));
 }
