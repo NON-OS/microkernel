@@ -259,6 +259,7 @@ microkernel-core = [
   "nonos-arch-iommu",
   "nonos-iommu-enforce",
   "nonos-iommu-intremap",
+  "nonos-iommu-amdvi",
 ]
 
 # Runtime baseline: core + the three live capsule embeds.
@@ -895,11 +896,11 @@ nonos-iommu-enforce  = ["nonos-arch-iommu"]
 # without it claims no PCI device but under the development opt-in.
 nonos-iommu-intremap = ["nonos-iommu-enforce"]
 
-# Drive AMD-Vi units (AMD IOMMU spec 48882): a shared device table with every
-# enumerated device identity mapped and every other requester id denied, a
-# command buffer and event log per unit, and capsule domains behind the same
-# broker calls as VT-d. Off by default until QEMU amd-iommu and a real AMD
-# machine show the units in service.
+# Drive AMD-Vi units (AMD IOMMU spec 48882): a shared device table in which
+# every requester id starts blocked, its interrupts refused, a device with
+# IVMD ranges keeping only those; a command buffer and event log per unit;
+# capsule domains and per-device interrupt tables behind the same broker
+# calls as VT-d. In microkernel-core.
 nonos-iommu-amdvi = ["nonos-arch-iommu"]
 
 # In-tree crypto, audit-anchored constant-time implementations.
