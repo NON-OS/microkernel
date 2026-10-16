@@ -2,7 +2,7 @@
 //! Slot changes read from NotifySlotChange and kept until asked once; the
 //! slots powered remembered so they are powered off at the end.
 
-use crate::ccid::Slots;
+use crate::ccid::{served, Slots};
 
 #[test]
 fn a_change_is_kept_until_asked_once() {
@@ -37,4 +37,11 @@ fn powered_slots_are_listed_until_powered_off() {
     assert_eq!(s.each_powered().collect::<Vec<_>>(), [0, 5]);
     s.power(0, false);
     assert_eq!(s.each_powered().collect::<Vec<_>>(), [5]);
+}
+
+#[test]
+fn only_slots_the_reader_has_and_the_driver_remembers_are_served() {
+    assert!(served(0, 0) && served(63, 255));
+    assert!(!served(1, 0), "past the reader's last");
+    assert!(!served(64, 255) && !served(255, 255), "past what is remembered");
 }
