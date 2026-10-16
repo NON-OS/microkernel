@@ -24,6 +24,7 @@ mod clock;
 mod discover;
 mod dma_pair;
 mod error;
+mod gone;
 mod frames;
 mod frames_drop;
 mod handles;
@@ -52,5 +53,6 @@ pub unsafe extern "C" fn _start() -> ! {
         Ok(driver) => driver,
         Err(code) => mk_exit(code),
     };
-    serve::run(&mut driver.server)
+    let device_id = driver.handles.device_id;
+    serve::run(&mut driver.server, device_id)
 }

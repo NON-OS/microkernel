@@ -23,6 +23,7 @@ mod dispi;
 mod display;
 mod edid;
 mod error;
+mod gone;
 mod handles;
 mod regs;
 mod serve;
@@ -46,5 +47,6 @@ pub unsafe extern "C" fn _start() -> ! {
         Ok(driver) => driver,
         Err(code) => mk_exit(code),
     };
-    serve::run(&mut driver.server)
+    let device_id = driver.handles.device_id();
+    serve::run(&mut driver.server, device_id)
 }

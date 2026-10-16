@@ -26,6 +26,11 @@ impl BrokerHandles {
     pub const fn new(device_id: u64, reg_grant_id: u64, fb_grant_id: u64) -> Self {
         Self { device_id, reg_grant_id, fb_grant_id }
     }
+
+    /// The broker's id of the adapter, which a DGON names when it leaves.
+    pub fn device_id(&self) -> u64 {
+        self.device_id
+    }
 }
 
 impl Drop for BrokerHandles {
