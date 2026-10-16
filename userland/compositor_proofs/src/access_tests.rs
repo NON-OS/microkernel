@@ -44,3 +44,11 @@ fn anything_else_is_refused() {
     }
     assert_eq!(parse(&body([0, 0, 0, 4, 0])[..16], 4), None, "short");
 }
+
+#[test]
+fn what_get_answers_is_what_set_takes() {
+    let a = Access { filter: 3, contrast: true, magnify: 24, follow: 0 };
+    let mut b = 1u32.to_le_bytes().to_vec();
+    b.extend_from_slice(&crate::display::access_rule::encode(&a));
+    assert_eq!(parse(&b, 4), Some((1, a)));
+}
