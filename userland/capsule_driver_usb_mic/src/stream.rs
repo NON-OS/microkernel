@@ -34,7 +34,7 @@ pub fn pump(d: &mut Dev, resp: &mut [u8; REPLY_LEN]) {
     };
     d.losses = 0;
     for p in payloads(&resp[DATA_AT..DATA_AT + n.min(REPLY_LEN - DATA_AT)]) {
-        d.ring.put(p);
+        d.ring.put_packet(p);
     }
 }
 

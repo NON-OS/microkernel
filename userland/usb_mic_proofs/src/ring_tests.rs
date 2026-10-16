@@ -34,3 +34,14 @@ fn a_put_larger_than_the_ring_keeps_its_newest_frames() {
     assert_eq!((overrun, all.len()), (6, RING_CAP));
     assert_eq!(all.last(), big.last());
 }
+
+#[test]
+fn a_packet_of_part_frames_keeps_its_whole_ones_and_stays_in_step() {
+    let mut r = Ring::new(4);
+    r.put_packet(&[1, 2, 3, 4, 5, 6]);
+    assert_eq!(r.take(100), (2, vec![1, 2, 3, 4]), "the part frame is lost, counted");
+    r.put_packet(&[7, 8, 9, 10]);
+    assert_eq!(r.take(100), (0, vec![7, 8, 9, 10]), "the next packet reads in step");
+    r.put_packet(&[1, 2, 3]);
+    assert_eq!(r.take(100), (3, vec![]));
+}

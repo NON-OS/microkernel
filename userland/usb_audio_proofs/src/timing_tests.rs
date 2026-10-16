@@ -35,9 +35,11 @@ fn a_packet_larger_than_the_endpoint_is_refused() {
 
 #[test]
 fn a_batch_fits_one_isoch_request() {
-    for speed in [FULL, HIGH] {
+    // The largest endpoint each speed may have: 1023 bytes, and 1024 with
+    // two transactions added.
+    for (speed, most) in [(FULL, 0x03FF), (HIGH, 0x1400)] {
         for interval in 1..=16 {
-            if let Some(t) = timing(speed, interval, 0x1fff, 2) {
+            if let Some(t) = timing(speed, interval, most, 2) {
                 assert!(t.batch_bytes() <= 4032 && t.packets as usize <= 31 && t.packets > 0);
             }
         }

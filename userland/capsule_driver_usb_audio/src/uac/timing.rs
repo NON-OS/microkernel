@@ -18,6 +18,7 @@
 //! frames 48 kHz moves in it, and a batch of them per isoch request.
 
 use super::format::{RATE_HZ, SAMPLE_BYTES};
+use super::packet::per_interval;
 
 /// Port speed ids (xHCI PORTSC bits 13:10).
 pub const SPEED_HIGH: u8 = 3;
@@ -45,8 +46,8 @@ impl Timing {
 }
 
 /// `None` when the endpoint cannot carry 48 kHz of `channels` at its
-/// interval: a fraction of a frame per interval, or more than its packets
-/// hold.
+/// interval: a fraction of a frame per interval, more than its packets
+/// hold, or a wMaxPacketSize no endpoint may have (packet.rs).
 pub fn timing(speed: u8, b_interval: u8, max_packet: u16, channels: u8) -> Option<Timing> {
     let exp = b_interval.clamp(1, 16) as u32 - 1;
     // Full speed counts 1 ms frames, faster buses 125 us microframes.
@@ -57,8 +58,7 @@ pub fn timing(speed: u8, b_interval: u8, max_packet: u16, channels: u8) -> Optio
         return None;
     }
     let packet = (frames_e6 / 1_000_000) as u32 * SAMPLE_BYTES * channels as u32;
-    let transactions = if speed == SPEED_HIGH { ((max_packet >> 11) & 0x3) as u32 + 1 } else { 1 };
-    if packet == 0 || packet > (max_packet & 0x7FF) as u32 * transactions {
+    if packet == 0 || packet > per_interval(speed, max_packet)? {
         return None;
     }
     let packets =

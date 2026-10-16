@@ -27,6 +27,8 @@ mod answer_tests;
 #[cfg(test)]
 mod ask;
 #[cfg(test)]
+mod hostile_tests;
+#[cfg(test)]
 mod loss_tests;
 #[cfg(test)]
 mod peer_tests;
