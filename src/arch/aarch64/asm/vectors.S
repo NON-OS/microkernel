@@ -51,40 +51,16 @@
     stp     x0, x1,   [sp, #272]
 .endm
 
-/* Speculation work on entry from EL0, as security::spectre decided for the
- * CPUs (entry_word.rs): bit 3 CLRBHB, bits 15:8 the history loop's branch
- * count, bits 1:0 a firmware call (1 ARCH_WORKAROUND_1, 2 _3) by SMC, or HVC
- * where bit 2 is set. It runs before the handler's first indirect branch,
- * which is what EL0's branch history must not steer; the frame holds every
- * register already, so x0-x3 and x9-x10 are free. CLRBHB is HINT #22, a NOP
- * where not implemented. The loop, `k` taken branches then DSB and ISB, and
- * the function ids are from Arm's Spectre-BHB guidance and SMCCC (DEN0028). */
+#include "spectre_work.h"
+
+/* Speculation work on entry from EL0 (spectre_work.h), before the handler's
+ * first indirect branch, which is what EL0's branch history must not steer.
+ * The frame holds every register already, so x0-x3 and x9-x10 are free. */
 .macro SPECTRE_FROM_EL0
     adrp    x9, NONOS_SPECTRE_EL0_ENTRY
     ldr     w9, [x9, :lo12:NONOS_SPECTRE_EL0_ENTRY]
     cbz     w9, 9f
-    tbz     w9, #3, 1f
-    hint    #22                         /* CLRBHB */
-    isb
-1:  ubfx    w10, w9, #8, #8
-    cbz     w10, 3f
-2:  b       . + 4
-    subs    w10, w10, #1
-    b.ne    2b
-    dsb     nsh
-    isb
-3:  and     w10, w9, #3
-    cbz     w10, 9f
-    mov     w0, #0x8000                 /* SMCCC_ARCH_WORKAROUND_1 */
-    cmp     w10, #2
-    b.ne    4f
-    mov     w0, #0x3fff                 /* SMCCC_ARCH_WORKAROUND_3 */
-4:  movk    w0, #0x8000, lsl #16
-    tbnz    w9, #2, 5f
-    smc     #0
-    b       9f
-5:  hvc     #0
-9:
+    SPECTRE_WORK w9, w10
 .endm
 
 #include "epd1.h"
@@ -202,7 +178,8 @@ __aarch64_vectors_el1:
 
 /* Where the EPD1 trampoline's slots land, in the same order as the table
  * above: x30 back from TPIDRRO_EL0, which is cleared, then the same entry
- * the table's slot takes. Reached by BR from the trampoline, hence `bti j`. */
+ * the table's slot takes, through its `_scrubbed` door for an entry from
+ * EL0 (LOWER_ENTRY). Reached by BR from the trampoline, hence `bti j`. */
 .macro TRAMP_TARGET handler
     .balign 0x80
     hint    #36                         /* BTI j */
@@ -222,10 +199,10 @@ __aarch64_tramp_targets:
     TRAMP_TARGET __aarch64_irq_current
     TRAMP_TARGET __aarch64_fiq_current
     TRAMP_TARGET __aarch64_serror_current
-    TRAMP_TARGET __aarch64_sync_lower
-    TRAMP_TARGET __aarch64_irq_lower
-    TRAMP_TARGET __aarch64_fiq_lower
-    TRAMP_TARGET __aarch64_serror_lower
+    TRAMP_TARGET __aarch64_sync_lower_scrubbed
+    TRAMP_TARGET __aarch64_irq_lower_scrubbed
+    TRAMP_TARGET __aarch64_fiq_lower_scrubbed
+    TRAMP_TARGET __aarch64_serror_lower_scrubbed
     TRAMP_TARGET __aarch64_invalid_aarch32_sync
     TRAMP_TARGET __aarch64_invalid_aarch32_irq
     TRAMP_TARGET __aarch64_invalid_aarch32_fiq
@@ -275,57 +252,34 @@ __aarch64_serror_current:
     RESTORE_GPRS
     eret
 
+/* Entries from EL0. Each has a second door, `_scrubbed`, which only the
+ * EPD1 trampoline's targets use: the trampoline has already run the
+ * speculation work before its own indirect branch, so doing it again here
+ * would only cost time. Everything else is the same path. */
+.macro LOWER_ENTRY name, handler
 .balign 16
-__aarch64_sync_lower:
+\name\()_scrubbed:
+    SAVE_GPRS
+    SAVE_SYSREGS_USER
+    b       8f
+.balign 16
+\name:
     SAVE_GPRS
     SAVE_SYSREGS_USER
     SPECTRE_FROM_EL0
-    PAC_FROM_EL0
+8:  PAC_FROM_EL0
     mov     x0, sp
-    bl      aarch64_exc_sync_lower
+    bl      \handler
     RESTORE_SYSREGS_USER
     PAC_TO_EL0
     RESTORE_GPRS
     EXIT_TO_EL0
+.endm
 
-.balign 16
-__aarch64_irq_lower:
-    SAVE_GPRS
-    SAVE_SYSREGS_USER
-    SPECTRE_FROM_EL0
-    PAC_FROM_EL0
-    mov     x0, sp
-    bl      aarch64_exc_irq_lower
-    RESTORE_SYSREGS_USER
-    PAC_TO_EL0
-    RESTORE_GPRS
-    EXIT_TO_EL0
-
-.balign 16
-__aarch64_fiq_lower:
-    SAVE_GPRS
-    SAVE_SYSREGS_USER
-    SPECTRE_FROM_EL0
-    PAC_FROM_EL0
-    mov     x0, sp
-    bl      aarch64_exc_fiq_lower
-    RESTORE_SYSREGS_USER
-    PAC_TO_EL0
-    RESTORE_GPRS
-    EXIT_TO_EL0
-
-.balign 16
-__aarch64_serror_lower:
-    SAVE_GPRS
-    SAVE_SYSREGS_USER
-    SPECTRE_FROM_EL0
-    PAC_FROM_EL0
-    mov     x0, sp
-    bl      aarch64_exc_serror_lower
-    RESTORE_SYSREGS_USER
-    PAC_TO_EL0
-    RESTORE_GPRS
-    EXIT_TO_EL0
+LOWER_ENTRY __aarch64_sync_lower, aarch64_exc_sync_lower
+LOWER_ENTRY __aarch64_irq_lower, aarch64_exc_irq_lower
+LOWER_ENTRY __aarch64_fiq_lower, aarch64_exc_fiq_lower
+LOWER_ENTRY __aarch64_serror_lower, aarch64_exc_serror_lower
 
 /* The two groups the kernel never uses. Each slot gets its own entry so
  * the handler knows which kind of exception it was: ESR_EL1 and FAR_EL1
