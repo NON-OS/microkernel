@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The class requests an NCM function takes (NCM 1.0, 6.2, table 6-2, as
-//! Linux include/uapi/linux/usb/cdc.h numbers them), all sent to the
-//! communications interface, and the capability bits that gate them.
+//! The class requests an NCM function takes (NCM 1.0, 6.2, table 6-2), all
+//! sent to the communications interface, and the capability bits that
+//! gate them.
 
-/// CDC ECM 1.2, 6.2.4; cdc_ncm_info sends it through its set_rx_mode,
-/// usbnet_cdc_update_filter.
+/// CDC ECM 1.2, 6.2.4; an NCM function takes it too (NCM 1.0, table 6-2).
 pub const SET_ETHERNET_PACKET_FILTER: u8 = 0x43;
 pub const GET_NTB_PARAMETERS: u8 = 0x80;
 pub const SET_NTB_FORMAT: u8 = 0x84;
@@ -34,12 +33,12 @@ pub const NTB16_FORMAT: u16 = 0x0000;
 pub const CRC_NOT_APPENDED: u16 = 0x0000;
 
 /// bmNetworkCapabilities of the NCM functional descriptor (NCM 1.0,
-/// 5.2.1, table 5-2; Linux USB_CDC_NCM_NCAP_*).
+/// 5.2.1, table 5-2).
 pub const CAP_MAX_DATAGRAM_SIZE: u8 = 1 << 3;
 pub const CAP_CRC_MODE: u8 = 1 << 4;
 /// The device takes the 8-byte form of SET_NTB_INPUT_SIZE.
 pub const CAP_NTB_INPUT_SIZE_8: u8 = 1 << 5;
 
-/// The packet filter usbnet_cdc_update_filter sets with IFF_ALLMULTI:
-/// directed, broadcast and all multicast (CDC ECM 1.2, table 8).
+/// The packet filter: directed, broadcast and all multicast (CDC ECM 1.2,
+/// table 8), what the stack receives; never promiscuous.
 pub const FILTER: u16 = 0x0004 | 0x0008 | 0x0002;

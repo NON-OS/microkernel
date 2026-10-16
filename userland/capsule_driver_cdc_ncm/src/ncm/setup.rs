@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Telling the device the sizes this host takes, as Linux cdc_ncm_setup
-//! does: the NTB input size (cdc_ncm_update_rxtx_max) and the largest
-//! datagram (cdc_ncm_set_dgram_size).
+//! Telling the device the sizes this host takes (NCM 1.0, 6.2.7 and 6.2.9):
+//! the NTB input size and the largest datagram.
 
 use nonos_usbnet::xhci::BULK_MAX;
 use nonos_usbnet::{Bus, Setup};
@@ -27,7 +26,8 @@ use super::params::NtbParams;
 use super::requests::{CAP_MAX_DATAGRAM_SIZE, CAP_NTB_INPUT_SIZE_8, GET_MAX_DATAGRAM_SIZE};
 use super::requests::{SET_MAX_DATAGRAM_SIZE, SET_NTB_INPUT_SIZE};
 
-/// CDC_NCM_MIN_DATAGRAM_SIZE and CDC_NCM_MAX_DATAGRAM_SIZE.
+/// The datagram size asked for: at least a full Ethernet frame, and no
+/// more than a jumbo frame the stack could still take whole.
 const DGRAM_MIN: u16 = 1514;
 const DGRAM_MAX: u16 = 8192;
 
@@ -57,8 +57,9 @@ pub(super) fn setup<B: Bus>(
     Ok(rx)
 }
 
-/// Only for a device that offers it; Linux reads the size first and
-/// writes it only when it differs, and a failure changes nothing.
+/// Only for a device that offers it. The size is read first and written
+/// only when it differs, so a device already right is not disturbed; a
+/// failure changes nothing.
 fn max_datagram<B: Bus>(bus: &mut B, f: &NcmFunction) {
     if f.caps & CAP_MAX_DATAGRAM_SIZE == 0 {
         return;
