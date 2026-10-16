@@ -16,8 +16,8 @@
 
 //! The fixed bounds every walk of a blob works within.
 
-/// Largest blob accepted. Linux stops at 2 MiB as well; a header claiming more
-/// is far likelier corrupt than a real board.
+/// Largest blob accepted, our own cap: real trees sit far below it (recalled,
+/// unverified), so a header claiming more is far likelier corrupt than real.
 pub const MAX_BLOB: usize = 2 << 20;
 
 /// Deepest node nesting accepted, the root at depth 0. Real trees stop around
