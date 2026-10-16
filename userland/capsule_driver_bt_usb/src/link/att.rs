@@ -58,6 +58,9 @@ impl Session {
                 let k: &[u8] = if keyboard { b" keyboard" } else { b"" };
                 let m: &[u8] = if mouse { b" mouse" } else { b"" };
                 env.say(&[b"HID ready:", k, m]);
+                if self.hid.as_ref().is_some_and(|h| h.services_past()) {
+                    env.say(&[b"HID services past the first four left unread"]);
+                }
                 env.ready(keyboard, mouse, self.may_type());
                 if keyboard && !self.may_type() {
                     env.say(&[b"keys not posted: paired with no passkey typed"]);
