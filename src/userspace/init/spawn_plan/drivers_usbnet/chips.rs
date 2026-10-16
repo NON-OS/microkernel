@@ -19,7 +19,6 @@
 
 pub(super) fn spawn() {
     spawn_ax88179();
-    spawn_rtl8153();
 }
 
 #[cfg(feature = "nonos-capsule-driver-ax88179")]
@@ -30,12 +29,3 @@ fn spawn_ax88179() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-ax88179"))]
 fn spawn_ax88179() {}
-
-#[cfg(feature = "nonos-capsule-driver-rtl8153")]
-fn spawn_rtl8153() {
-    use crate::hardware::rtl8153_capsule as c;
-    let spawn = c::spawn_driver_rtl8153_capsule;
-    super::super::boot::capsule("DRIVER-RTL8153", "driver_rtl8153", spawn, c::shared_state);
-}
-#[cfg(not(feature = "nonos-capsule-driver-rtl8153"))]
-fn spawn_rtl8153() {}
