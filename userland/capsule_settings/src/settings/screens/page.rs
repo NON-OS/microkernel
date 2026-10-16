@@ -17,7 +17,8 @@
 //! A key on one of the displays' rows. Choosing which display the scale is
 //! for is the page's own; a new arrangement or scale is sent at once, then
 //! read back, so the rows say what the screens do, and is taken back when
-//! the shell or the compositor refuses it.
+//! the shell or the compositor refuses it. One taken is kept for the next
+//! start.
 
 use crate::settings::access::shell::{call, OP_DISPLAY_LAYOUT, OP_DISPLAY_SCALE};
 use crate::settings::schema::access_knob::Knob;
@@ -25,6 +26,7 @@ use crate::settings::state::status::StatusKind;
 use crate::settings::state::State;
 
 use super::arrange::step;
+use super::keep_call::store;
 use super::read::read;
 use super::wire::{layout, scale};
 
@@ -45,8 +47,13 @@ pub fn adjust(state: &mut State, knob: Knob, delta: i32) {
     };
     match sent {
         Ok(()) => {
+            let said: &[u8] = if store(state.policy_port, &p, knob) {
+                b"applied to the displays"
+            } else {
+                b"applied to the displays; not kept for the next start"
+            };
             // Read after: a read that fails says so over the success.
-            state.status.set(StatusKind::Ok, b"applied to the displays");
+            state.status.set(StatusKind::Ok, said);
             read(state);
         }
         Err(_) => {
