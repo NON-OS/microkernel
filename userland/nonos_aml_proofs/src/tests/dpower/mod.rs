@@ -20,6 +20,7 @@ mod pci_tests;
 mod refusal_tests;
 mod reveal_tests;
 mod rig;
+mod sleep_facts_tests;
 mod wake_depart_tests;
 mod wake_event_tests;
 mod wake_gone_tests;
