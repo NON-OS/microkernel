@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// # Safety
+/// `port` lies in a port grant the broker resolved for this access.
 #[inline]
 pub(in super::super::super) unsafe fn raw_out32(port: u16, value: u32) {
     core::arch::asm!("out dx, eax", in("dx") port, in("eax") value, options(nostack, preserves_flags));
