@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every interrupt a resource template names and how it signals: one per
-//! mask bit of a small IRQ descriptor (ACPI 6.5, 6.4.2.1), one per number
-//! of an Extended Interrupt descriptor (6.4.3.6). `interrupts` keeps one.
+//! Every interrupt a template names and how it signals: one per mask bit
+//! of an IRQ descriptor (ACPI 6.5, 6.4.2.1), one per number of an Extended
+//! Interrupt descriptor (6.4.3.6). `interrupts` keeps one.
 
 use alloc::vec::Vec;
 
@@ -45,12 +45,12 @@ fn small(body: &[u8], out: &mut Vec<Interrupt>) {
     out.extend((0..16).filter(|b| mask & (1 << b) != 0).map(|n| entry(n, f, [1, 8, 16, 32])));
 }
 
+/// A count its length cannot hold is a lie: none is taken, not the few.
 fn extended(body: &[u8], out: &mut Vec<Interrupt>) {
     let (f, n) = (body[0], body[1] as usize);
-    let numbers = body[2..].chunks_exact(4).take(n);
-    out.extend(
-        numbers.map(|c| entry(u32::from_le_bytes([c[0], c[1], c[2], c[3]]), f, [2, 4, 8, 16])),
-    );
+    let Some(numbers) = body.get(2..2 + 4 * n) else { return };
+    let gsiv = |c: &[u8]| u32::from_le_bytes([c[0], c[1], c[2], c[3]]);
+    out.extend(numbers.chunks_exact(4).map(|c| entry(gsiv(c), f, [2, 4, 8, 16])));
 }
 
 pub fn interrupt_entries(t: &[u8]) -> Vec<Interrupt> {
@@ -65,7 +65,7 @@ pub fn interrupt_entries(t: &[u8]) -> Vec<Interrupt> {
         let Some(body) = t.get(i + head..i + head + len) else { break };
         match kind {
             SMALL_END => break,
-            SMALL_IRQ if len >= 2 => small(body, &mut out),
+            SMALL_IRQ if (2..=3).contains(&len) => small(body, &mut out),
             k if k == LARGE_EXTENDED_IRQ | 0x80 && len >= 2 => extended(body, &mut out),
             _ => {}
         }

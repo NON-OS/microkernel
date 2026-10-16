@@ -62,7 +62,7 @@ pub use osc_claim::offer_then_claim;
 pub use osc_status::{OscError, MASKED, QUERY};
 pub use pci_path::{function_of, SECONDARY_BUS};
 pub use pic::{set_pic, PIC_8259, PIC_APIC};
-pub use prt::{routes, Route};
+pub use prt::{entry as prt_entry, routes, Route, Source as PrtSource};
 pub use pxm::pxm;
 pub use refs::{listed, references};
 pub use resource::interrupts;
