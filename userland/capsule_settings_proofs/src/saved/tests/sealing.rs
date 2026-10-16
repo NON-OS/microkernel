@@ -25,6 +25,9 @@ fn a_sealed_record_opens_under_its_key_only() {
     bent[0] = b'X';
     assert!(matches!(open_file(&bent, &KEY), Err(SavedError::Damaged)));
     assert!(matches!(open_file(&file[..FILE_LEN - 1], &KEY), Err(SavedError::Damaged)));
+    // The store reads one byte past the record; a longer file is refused.
+    let longer = [file.as_slice(), &[0]].concat();
+    assert!(matches!(open_file(&longer, &KEY), Err(SavedError::Damaged)), "FILE_LEN + 1");
 }
 
 #[test]
