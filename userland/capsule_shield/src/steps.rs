@@ -23,6 +23,13 @@
 
 use std::sync::Mutex;
 
+mod preview;
+mod serial;
+
+pub use preview::{preview, previewed};
+pub use serial::serial;
+use serial::uptime;
+
 /// The step running now, the uptime it began, and each finished step with
 /// the milliseconds it took.
 struct Steps {
@@ -31,35 +38,6 @@ struct Steps {
 }
 
 static STEPS: Mutex<Steps> = Mutex::new(Steps { now: None, took: Vec::new() });
-
-/// The private address of the open under way, derived from its words or key before the store
-/// is made, so the wallet shows it while the rest runs. Public by nature: it is the address
-/// others pay to.
-static PREVIEW: Mutex<Option<String>> = Mutex::new(None);
-
-/// Keep the private address the open under way will answer.
-pub fn preview(address: Option<String>) {
-    if let Ok(mut p) = PREVIEW.lock() {
-        *p = address;
-    }
-}
-
-/// The private address of the open under way, once derived.
-pub fn previewed() -> Option<String> {
-    PREVIEW.lock().ok().and_then(|p| p.clone())
-}
-
-/// One line on the serial console: what the service is doing, and when.
-/// Names and times only, never a field of a request: no words, key or
-/// address reaches the console.
-pub fn serial(what: &str) {
-    let line = format!("[shield {} ms] {what}\n", uptime());
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-}
-
-fn uptime() -> u64 {
-    nonos_libc::mk_uptime_ms().max(0) as u64
-}
 
 /// A new open: nothing done yet.
 pub fn begin() {
