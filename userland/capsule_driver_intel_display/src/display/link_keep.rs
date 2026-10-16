@@ -32,7 +32,12 @@ use crate::engine::route::{self, Link};
 /// None while the link holds (or the output is not DisplayPort with mode
 /// setting); Some(true) when it was lost and is back, Some(false) when it
 /// was lost and could not be brought back.
-pub fn keep_link<F: Frames>(m: &mut dyn Mmio, clock: &dyn Clock, h: &mut Head<F>) -> Option<bool> {
+pub fn keep_link<F: Frames>(
+    m: &mut dyn Mmio,
+    clock: &dyn Clock,
+    h: &mut Head<F>,
+    held: bool,
+) -> Option<bool> {
     let ms = h.modeset?;
     let Link::Dp { lanes } = route::read(m, ms.lit.t)?.link else { return None };
     let ddi = [Ddi::A, Ddi::B, Ddi::C, Ddi::D].get(ms.lit.ddi as usize).copied()?;
@@ -41,5 +46,5 @@ pub fn keep_link<F: Frames>(m: &mut dyn Mmio, clock: &dyn Clock, h: &mut Head<F>
         return None;
     }
     let size = (h.scan.width, h.scan.height);
-    Some(light(m, clock, &mut h.scan, (&ms, &ms.now), size, h.bases).is_ok())
+    Some(light(m, clock, &mut h.scan, (&ms, &ms.now), size, h.bases, held).is_ok())
 }
