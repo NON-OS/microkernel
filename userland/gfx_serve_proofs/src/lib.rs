@@ -50,4 +50,6 @@ pub mod surface;
 #[cfg(test)]
 mod model;
 #[cfg(test)]
+mod sweep;
+#[cfg(test)]
 mod tests;

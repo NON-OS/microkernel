@@ -23,3 +23,4 @@ mod op_tests;
 mod output_retire_tests;
 mod output_tests;
 mod surface_tests;
+mod sweep_tests;
