@@ -15,17 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::state::Context;
-use core::sync::atomic::{fence, Ordering};
 
+use super::show::show;
 use super::to_screen::to_screen;
 
-/// MkSurfacePresent's EBUSY: driver.bootfb0 holds the boot framebuffer.
-const GOP_HELD: i64 = -16;
-
 pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
-    if super::first_frame::holding(ctx) {
+    // A dark lid presents nothing; its damage waits for the wake, which
+    // damages the whole canvas anyway (state/lid_rule.rs).
+    if super::first_frame::holding(ctx) || !ctx.lid.presents() {
         return Ok(());
     }
+    let done = frame(ctx);
+    ctx.lid = ctx.lid.after_frame(done.is_err());
+    done
+}
+
+fn frame(ctx: &mut Context) -> Result<(), &'static str> {
     super::band_watch::watch(ctx);
     super::lens::refresh(ctx);
     // Composite every damaged rectangle this frame. Each is small and separate,
@@ -45,31 +50,4 @@ pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
         return done;
     }
     super::drain_damage::drain_damage(ctx, |ctx| &mut ctx.damage, show)
-}
-
-/// Compose `rect` of the canvas and put it on the display.
-fn show(ctx: &mut Context, rect: crate::state::damage::Rect) -> Result<(), &'static str> {
-    let Some(rect) = to_screen(ctx, rect) else {
-        return Ok(());
-    };
-    if ctx.gop_mode {
-        // The kernel copies whatever it is handed with the CPU, so give it
-        // the rectangle that changed, not the screen.
-        let Some(r) = super::clip::clip_to_screen(ctx, rect) else {
-            return Ok(());
-        };
-        fence(Ordering::Release);
-        let rc =
-            nonos_libc::mk_surface_present_rect(ctx.surface_handle, r.x, r.y, r.width, r.height);
-        if rc == GOP_HELD {
-            // bootfb took the framebuffer: the next upkeep finds it.
-            ctx.gop_held = true;
-        }
-        if rc < 0 {
-            return Err("gop present rejected");
-        }
-        Ok(())
-    } else {
-        super::present_virtio::present_rect(ctx, rect)
-    }
 }

@@ -39,6 +39,7 @@ pub mod night_tint;
 pub mod own_look;
 pub mod present_virtio;
 pub mod present_wire;
+pub mod show;
 pub mod show_band;
 pub mod slice_view;
 pub mod tick;

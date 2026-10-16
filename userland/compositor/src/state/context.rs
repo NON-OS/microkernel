@@ -39,11 +39,10 @@ pub struct Context {
     pub focus: FocusTable,
     pub cursor: CursorTracker,
     pub attach: AttachCache,
-    /// Screen pixels per canvas pixel, each way. `width`, `height`, `stride`
-    /// and the backing above are the canvas clients draw for; `screen` is
-    /// what is presented, the canvas itself when this is one.
-    /// Quarters of a screen pixel per canvas pixel on output 0 (4 one to
-    /// one, 6 one and a half), and the shell's choice per output.
+    /// `width`, `height`, `stride` and the backing above are the canvas
+    /// clients draw for; `screen` is what is presented, the canvas itself
+    /// when this is one. Quarters of a screen pixel per canvas pixel on
+    /// output 0 (4 one to one, 6 one and a half), and the shell's per output.
     pub scale_q: u32,
     pub output_scale: [Option<u32>; 4],
     pub screen: Surface,
@@ -71,4 +70,6 @@ pub struct Context {
     pub looks: super::looks::Looks,
     /// When the first frame's hold began; None once it was let go.
     pub first_frame_since: Option<i64>,
+    /// The shell's lid: closed, every output is dark and nothing presented.
+    pub lid: super::lid_rule::Lid,
 }
