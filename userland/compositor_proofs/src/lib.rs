@@ -103,6 +103,8 @@ pub mod protocol;
 pub mod display {
     #[path = "../../compositor/src/display/access_rule.rs"]
     pub mod access_rule;
+    #[path = "../../compositor/src/display/access_wire.rs"]
+    pub mod access_wire;
     #[path = "../../compositor/src/display/backoff.rs"]
     pub mod backoff;
     #[path = "../../compositor/src/display/colour_rule.rs"]
@@ -156,6 +158,8 @@ mod access_tests;
 mod attach_tests;
 #[cfg(test)]
 mod backoff_tests;
+#[cfg(test)]
+mod band_remove_tests;
 #[cfg(test)]
 mod band_tests;
 #[cfg(test)]

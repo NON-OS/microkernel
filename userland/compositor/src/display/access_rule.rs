@@ -53,17 +53,4 @@ impl Access {
     }
 }
 
-/// The output and its settings, or None for a body that is not one.
-pub fn parse(body: &[u8], outputs: usize) -> Option<(usize, Access)> {
-    if body.len() != BODY_LEN {
-        return None;
-    }
-    let u = |i: usize| u32::from_le_bytes([body[i], body[i + 1], body[i + 2], body[i + 3]]);
-    let (out, filter, contrast, magnify, follow) = (u(0) as usize, u(4), u(8), u(12), u(16));
-    let ok = out < outputs
-        && filter <= FILTER_TRITAN
-        && contrast <= 1
-        && MAG_STEPS.contains(&magnify)
-        && follow <= FOLLOW_FOCUS;
-    ok.then_some((out, Access { filter, contrast: contrast == 1, magnify, follow }))
-}
+pub use super::access_wire::{encode, parse};

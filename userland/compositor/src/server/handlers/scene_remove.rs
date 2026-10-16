@@ -19,6 +19,8 @@ use crate::server::respond;
 use crate::state::attach_kernel::Kernel;
 use crate::state::{scene_remove, Context};
 
+pub const BAND_ONLY: u32 = 1;
+
 pub fn handle(
     ctx: &mut Context,
     sender_pid: u32,
@@ -31,6 +33,13 @@ pub fn handle(
     }
     if sender_pid == 0 {
         return respond::status(sender_pid, req, E_INVAL, tx);
+    }
+    // Body: z u32, flags u32. BAND_ONLY drops the sender's layer in band z
+    // alone (the shell moving its chrome in or out of the trusted band);
+    // without it every layer the sender holds goes, as before.
+    let (z, flags) = (super::u32_at(body, 0).unwrap_or(0), super::u32_at(body, 4).unwrap_or(0));
+    if flags & BAND_ONLY != 0 {
+        return super::scene_remove_band::handle(ctx, sender_pid, z, req, tx);
     }
     let owner_pid = sender_pid;
     let mut gone = [0u64; 32];
