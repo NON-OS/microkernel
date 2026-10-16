@@ -13,17 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use core::cell::Cell;
-
 use nonos_libc::mk_device_release;
 
+use super::unbound::unbound;
 use super::unlisted_gate::unlisted_gate;
 use crate::discover::Found;
 use crate::driver::Driver;
 use crate::init::{bring_up, BusSetup};
 use crate::regs::Regs;
 use crate::setup::{claim, mmio, pci};
-use crate::transaction::{BusState, Reach};
 
 /// Claim, map and bring up one controller. No interrupt is bound: the
 /// engine polls, and a bound line would be authority the capsule never uses.
@@ -42,29 +40,7 @@ pub(super) fn bring_up_one(dev: Found, standard_mode: bool) -> Result<Driver, &'
     let lpss_base = dev.is_lpss().then_some(dev.bar0_base);
     let setup = BusSetup { clock_hz: dev.clock_hz, lpss_base, standard_mode };
     let init = bring_up(regs, setup).map_err(|e| release(dev.device_id, e))?;
-    Ok(Driver {
-        device_id: dev.device_id,
-        pci_device: dev.pci_device,
-        claim_epoch,
-        mmio_grant: mmio.grant_id,
-        setup,
-        family: dev.family,
-        comp_type: init.comp_type,
-        comp_param: init.comp_param,
-        tx_depth: init.tx_depth,
-        rx_depth: init.rx_depth,
-        enabled: init.enabled,
-        status: init.status,
-        bound_by_probe: false,
-        bound_addr: 0,
-        bound_desc_reg: 0,
-        bound_pin: 0,
-        bound_info: 0,
-        reach: Cell::new(Reach::default()),
-        bus: Cell::new(BusState::Ready),
-        doorbell: None,
-        regs,
-    })
+    Ok(unbound(&dev, claim_epoch, mmio.grant_id, setup, init, regs))
 }
 
 /// Give the controller back when bringing it up fails: the kernel cascades

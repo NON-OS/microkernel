@@ -51,6 +51,7 @@ pub fn driver(clock_hz: u32, bound_addr: u8) -> Result<Driver, &'static str> {
         bound_pin: 0,
         bound_info: 0,
         reach: Cell::new(Reach::declared([(bound_addr, 0x0001)])),
+        acpi_hid_asks: Cell::new(0),
         bus: Cell::new(BusState::Ready),
         doorbell: None,
         regs,
