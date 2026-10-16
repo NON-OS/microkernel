@@ -43,6 +43,7 @@ pub fn eth() -> Vec<u8> {
 fn a_hardware_station_frames_plaintext_and_recovers_it() {
     let mut sta = LinkStation::new(OUR);
     sta.associate(BSSID, Ccmp::Hardware);
+    sta.chip_keys(true);
     let mpdu = sta.tx_frame(&eth()).expect("tx");
 
     // The radio does the crypto, so the station must hand it a plaintext frame.
