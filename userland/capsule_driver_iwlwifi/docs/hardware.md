@@ -28,7 +28,7 @@ detail, CSR_HW_REV, CSR_HW_RF_ID, counters) and the Settings Wi-Fi panel.
   detail 0x61 means it never came. With a PNVM file in the tree, the line
   `platform NVM section ... given` or `no platform NVM section for this SKU`
   says which happened.
-- Up: `[iwlwifi] up: 51 channels, tx ant 3, regulatory 0x....`, then
+- Up: `[iwlwifi] up: 38 channels, tx ant 3, regulatory 0x....`, then
   `[iwlwifi] radio up; passive scanning`. A failure names the group and
   command that went unanswered in its detail word.
 - RF-kill: with the switch off, `the hardware RF-kill switch has the radio
