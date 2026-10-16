@@ -21,6 +21,7 @@
 //! read TPIDR_EL1.
 
 use core::arch::asm;
+use core::mem::size_of;
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use crate::arch::aarch64::boot::stack::MAX_CPUS;
@@ -59,9 +60,11 @@ pub(super) fn set_user(key: [u64; 2]) {
     if at == 0 {
         return;
     }
-    // SAFETY: only `bind` writes TPIDR_EL1, with the address of a `Slot` in
-    // `SLOTS`, which is static.
-    let slot = unsafe { &*(at as *const Slot) };
+    // Only `bind` writes TPIDR_EL1, with the address of a slot in `SLOTS`;
+    // found again by its index, so no number is taken for a pointer.
+    let off = at.checked_sub(SLOTS.as_ptr() as usize).filter(|off| off % size_of::<Slot>() == 0);
+    let index = off.map(|off| off / size_of::<Slot>());
+    let Some(slot) = index.and_then(|i| SLOTS.get(i)) else { return };
     for (word, value) in slot.user.iter().zip(key) {
         word.store(value, Ordering::Relaxed);
     }

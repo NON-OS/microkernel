@@ -22,6 +22,8 @@
 //! empty. A message is a 16-byte aligned bus address with the channel in
 //! its low four bits.
 
+use crate::arch::aarch64::mmu::pointer::mapped;
+
 const READ: u64 = 0x00;
 const READ_STATUS: u64 = 0x18;
 const WRITE: u64 = 0x20;
@@ -31,10 +33,10 @@ const EMPTY: u32 = 1 << 30;
 /// Polls before a mailbox that never moves is given up on.
 const SPINS: u32 = 50_000_000;
 
-fn read(at: u64) -> u32 {
-    // SAFETY: `at` is a mailbox register, mapped Device for the kernel's
-    // lifetime by `state::regs`.
-    unsafe { core::ptr::read_volatile(at as *const u32) }
+fn read(regs: u64, offset: u64) -> u32 {
+    // SAFETY: `offset` names a mailbox register in the window `state` mapped
+    // Device at `regs` for the kernel's lifetime.
+    unsafe { core::ptr::read_volatile(mapped::<u32>(regs, offset)) }
 }
 
 fn wait(mut ready: impl FnMut() -> bool) -> bool {
@@ -46,11 +48,11 @@ fn wait(mut ready: impl FnMut() -> bool) -> bool {
 
 /// Hand the VideoCore `message`, once mailbox 1 has room for it.
 pub(super) fn send(regs: u64, message: u32) -> bool {
-    if !wait(|| read(regs + WRITE_STATUS) & FULL == 0) {
+    if !wait(|| read(regs, WRITE_STATUS) & FULL == 0) {
         return false;
     }
     // SAFETY: as for `read`.
-    unsafe { core::ptr::write_volatile((regs + WRITE) as *mut u32, message) };
+    unsafe { core::ptr::write_volatile(mapped::<u32>(regs, WRITE), message) };
     true
 }
 
@@ -59,10 +61,10 @@ pub(super) fn send(regs: u64, message: u32) -> bool {
 pub(super) fn receive(regs: u64, channel: u32) -> Option<u32> {
     let mut found = None;
     let arrived = wait(|| {
-        if read(regs + READ_STATUS) & EMPTY != 0 {
+        if read(regs, READ_STATUS) & EMPTY != 0 {
             return false;
         }
-        let message = read(regs + READ);
+        let message = read(regs, READ);
         found = Some(message);
         message & 0xf == channel
     });
