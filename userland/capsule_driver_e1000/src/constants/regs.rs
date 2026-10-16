@@ -23,7 +23,6 @@
 
 pub const REG_CTRL: usize = 0x0000;
 pub const REG_STATUS: usize = 0x0008;
-pub const REG_EERD: usize = 0x0014;
 
 pub const REG_ICR: usize = 0x00C0;
 pub const REG_IMC: usize = 0x00D8;
@@ -49,3 +48,8 @@ pub const MTA_ENTRY_COUNT: usize = 128;
 
 pub const REG_RAL0: usize = 0x5400;
 pub const REG_RAH0: usize = 0x5404;
+
+/// The highest register the bring-up writes (RAH0) plus one register,
+/// rounded up to a page: a BAR0 smaller than this is not one of these parts,
+/// and every store past it would land outside the mapped window.
+pub const BAR0_MIN_BYTES: u64 = 0x6000;

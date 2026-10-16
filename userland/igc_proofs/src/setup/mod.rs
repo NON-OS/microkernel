@@ -14,13 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The driver's live state and its PCI command value, without the broker
-//! sequence that builds them. The tests build a driver over host memory and
-//! a window instead.
+//! The driver's live state, the BAR map, its PCI command value and write,
+//! and the release, without the broker sequence that builds the state. The
+//! tests build a driver over host memory and a window instead.
 
 #[path = "../../../capsule_driver_igc/src/setup/driver.rs"]
 mod driver;
+#[path = "../../../capsule_driver_igc/src/setup/mmio.rs"]
+pub mod mmio;
+#[path = "../../../capsule_driver_igc/src/setup/pci.rs"]
+mod pci;
 #[path = "../../../capsule_driver_igc/src/setup/pci_command.rs"]
 pub mod pci_command;
+#[path = "../../../capsule_driver_igc/src/setup/rollback.rs"]
+pub mod rollback;
 
 pub use driver::Driver;
+pub use pci::command;

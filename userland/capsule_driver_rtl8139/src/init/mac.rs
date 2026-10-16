@@ -20,23 +20,30 @@ use crate::constants::regs::{CFG9346_LOCK, CFG9346_UNLOCK, REG_CFG9346, REG_MAC0
 use crate::constants::MAC_LEN;
 use crate::pio::Pio;
 
-/// Draw a station address and program it into the IDR registers.
+/// Draw a station address.
 ///
-/// Replaces reading the factory address out of them: that address is unique to
-/// the chip and every network the machine joins would log it. Fails closed, as
-/// the other drivers do; the factory address is not a fallback.
-pub fn program(pio: &Pio) -> Result<[u8; MAC_LEN], &'static str> {
+/// Replaces reading the factory address out of the IDR registers: that
+/// address is unique to the chip and every network the machine joins would
+/// log it. Fails closed, as the other drivers do; the factory address is not
+/// a fallback.
+pub fn draw() -> Result<[u8; MAC_LEN], &'static str> {
     let mut mac = [0u8; MAC_LEN];
     let rc = nonos_libc::crypto_random(mac.as_mut_ptr(), MAC_LEN);
     if rc < 0 || (rc as usize) != MAC_LEN {
         return Err("rtl8139 no entropy for station address");
     }
     apply(&mut mac);
+    Ok(mac)
+}
 
+/// Program `mac` into the IDR registers and read it back. A reset leaves
+/// IDR alone, but it is written on every start all the same, so the part
+/// filters on this address whatever an earlier owner left there.
+pub fn program(pio: &Pio, mac: &[u8; MAC_LEN]) -> Result<(), &'static str> {
     // IDR takes writes only with the config lock open, as dwords, the way
     // 8139too's set_mac_address writes it; the lock closes on every path.
     pio.w8(REG_CFG9346, CFG9346_UNLOCK)?;
-    let wrote = write_idr(pio, &mac);
+    let wrote = write_idr(pio, mac);
     pio.w8(REG_CFG9346, CFG9346_LOCK)?;
     wrote?;
 
@@ -44,10 +51,10 @@ pub fn program(pio: &Pio) -> Result<[u8; MAC_LEN], &'static str> {
     for (i, byte) in readback.iter_mut().enumerate() {
         *byte = pio.r8(REG_MAC0 + i as u16)?;
     }
-    if readback != mac {
+    if &readback != mac {
         return Err("rtl8139 station address did not take");
     }
-    Ok(mac)
+    Ok(())
 }
 
 fn write_idr(pio: &Pio, mac: &[u8; MAC_LEN]) -> Result<(), &'static str> {

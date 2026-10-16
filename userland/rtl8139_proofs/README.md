@@ -29,9 +29,12 @@ lengths. Larger outputs are covered by the runnable tests with 64-byte and
 
 The gate above the primitives (`read_frame`) rejects bad status words, short
 raw lengths, and frames larger than the Ethernet maximum or the caller's
-buffer before any copy. It reaches the hardware through PIO syscalls, so it
-is not host-runnable; a constant-relation test pins the gate
-bound inside the ring size.
+buffer before any copy. It reaches the part through PIO syscalls, which the
+shim answers from a modelled part, so it runs on the host against good and
+hostile headers (`recv_tests`); a constant-relation test pins the gate bound
+inside the ring size. The bring-up, the setup sequence's claim-time Command
+word, the Bus Master order, the transmit watchdog and the IPC handlers run
+the same way.
 
 ## Wire header
 

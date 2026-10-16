@@ -20,8 +20,13 @@ The capsule uses the broker for all hardware access:
 
 - `MkDeviceList` locates the Realtek gigabit NIC.
 - `MkDeviceClaim` owns the NIC claim.
+- `MkPciConfigWrite` writes the PCI Command word: Memory Space on, Bus Master
+  off at the claim and on only after the reset, once both rings name the
+  driver's own memory.
 - `MkMmioMap` maps the register BAR.
-- `MkDmaMap` and `MkDmaUnmap` allocate RX/TX descriptors and packet buffers.
+- `MkDmaMap` allocates RX/TX descriptors and packet buffers.
+- `MkDeviceRelease` gives the device back. It clears Bus Master and reads it
+  back before it frees every grant, so the driver unmaps nothing by hand.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.rtl8169_0` on
   `service:4214:driver.rtl8169_0`.
 - `CryptoRandom` draws the station address each boot (`src/init/mac.rs`).
@@ -45,8 +50,10 @@ endpoint to them (`src/services/registry/held.rs`), by name and by pid.
 
 The manifest grants `IPC`, `Memory`, `Crypto`, `Driver`, `DeviceEnum`, `Mmio`
 and `Dma` (`CAPSULE_REQUIRED_CAPS = 0xB8038`). Crypto draws the per-boot station
-address; the driver polls, so no `Irq`. It has no PIO, socket,
-filesystem, admin, debug, or routing authority.
+address; the driver polls, so no `Irq`. `CAPSULE_OPTIONAL_CAPS = 0x100`
+(Debug) is granted only by a `capsule-serial-debug` build; without it the
+`rtl8169:` lines are dropped. It has no PIO, socket, filesystem, admin, or
+routing authority.
 
 ```text
 allowed:   NIC claim, MMIO, DMA rings, kernel randomness, raw-frame IPC
@@ -61,10 +68,18 @@ identity, or implement analytics.
 
 ## Runtime lifecycle
 
-The capsule claims the NIC, turns on bus mastering, maps MMIO, allocates RX/TX
-DMA rings, programs the device, draws a station address, and serves raw-frame
-IPC. It binds no interrupt. Teardown disables the device path and releases
-DMA, MMIO, and claim grants.
+The capsule claims the NIC with Bus Master off, maps MMIO, identifies the
+chip, allocates RX/TX DMA rings, stops and resets the part, draws a station
+address, names both rings, turns Bus Master on, enables both engines, and
+serves raw-frame IPC. It binds no interrupt.
+
+A transmit watchdog runs on every send: the next slot still the part's with
+the link up for 6 s is a hung transmitter, and the part is reset and both
+rings restarted under the same station address, Bus Master staying on.
+
+lands; the broker ORs Command bits today), then `MkDeviceRelease`, which is
+the real guard: it clears Bus Master with a read-back before freeing every
+grant.
 
 ## Failure model
 
@@ -74,8 +89,10 @@ setup or programming gives back every grant, and the attempt is repeated on
 the shared bounded schedule (`nonos_libc::bring_up`: seven tries, sleeping
 between them); running out exits `EXIT_GAVE_UP` (6).
 
-Setup failure rolls back previous grants. Runtime TX/RX errors are reported to
-callers as device faults. Empty RX and link-down are ordinary reported states,
+A failure once the DMA grants are taken gives the device back as teardown
+does. A hung transmitter is logged (`tx hang, reset: done` or the step that
+failed), and a failed reset is tried again a whole watchdog bound later.
+Runtime TX/RX errors are reported to callers as device faults. Empty RX and link-down are ordinary reported states,
 not kernel events.
 
 ## Current implemented surface
@@ -137,7 +154,7 @@ behavior.
 
 What only a boot on real silicon can confirm. The host proofs cover the parsers, the bring-up sequence against a model, and the bounded retry; these do not.
 
-- On a machine without the device: the broker log shows no claim for it and the capsule exits at once with `EXIT_ABSENT` (2); the capsule's own `no controller present, not started` line needs the Debug capability, which this manifest does not grant, so the kernel prints `[EXIT] <service> status 2: no device present, not started` for it (`src/process/exit/end_note.rs`).
+- On a machine without the device: the broker log shows no claim for it and the capsule exits at once with `EXIT_ABSENT` (2); the capsule's own `no controller present, not started` line needs the Debug capability, which only a `capsule-serial-debug` build grants, so otherwise the kernel prints `[EXIT] <service> status 2: no device present, not started` for it (`src/process/exit/end_note.rs`).
 - With the device present but failing (disabled in firmware, or a forced setup error): at most seven claim and release rounds in the broker log over about six seconds, then one `device present, bring-up failed` line naming the last cause (with the Debug capability), and exit `EXIT_GAVE_UP` (6), which the kernel names as `[EXIT] <service> status 6: device present, bring-up failed and was given up`. The capsule holds no core while it waits.
 - The reset bit self-clears; TE and RE take before RxConfig and TxConfig on the real 8168/8169 variant.
 - The station address in use is the drawn one and changes on every boot.

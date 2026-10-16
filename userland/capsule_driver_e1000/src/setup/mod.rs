@@ -18,8 +18,10 @@ mod claim;
 mod dma;
 mod driver;
 mod mmio;
+mod pci;
 mod rollback;
 mod sequence;
 
 pub use driver::Driver;
+pub use pci::command;
 pub use sequence::run;

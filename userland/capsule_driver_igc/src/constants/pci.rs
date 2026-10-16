@@ -43,3 +43,7 @@ pub const IGC_DEVICE_IDS: &[u16] = &[
 /// igc_probe maps pci_resource_start(pdev, 0): the register file is BAR0.
 pub const BAR_INDEX: u32 = 0;
 pub const BAR_OFFSET: u64 = 0;
+
+/// The register file reaches TXDCTL(0) at 0xE028; a BAR0 smaller than the
+/// 64 KiB that holds it is not one of these parts.
+pub const BAR0_MIN_BYTES: u64 = 0x1_0000;

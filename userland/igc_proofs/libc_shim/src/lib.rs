@@ -15,20 +15,32 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The things the included igc driver files take from `nonos_libc`, on the
-//! host: a millisecond clock and sleep, the entropy source the station
-//! address is drawn from, the console the "igc:" lines go to, and the broker
-//! releases a failed attempt must make.
+//! host: a millisecond clock and sleep (and a test's part acting on each
+//! look at the clock), the entropy source the station address is drawn
+//! from, the console the "igc:" lines go to, the PCI Command register, the
+//! broker releases a failed attempt must make, and the IPC calls the server
+//! loop makes.
 
 mod broker;
 mod clock;
 mod console;
+mod devices;
 mod entropy;
+mod ipc;
+mod look;
+mod mmio;
+mod pci;
+mod steps;
 
 pub use broker::{given_back, mk_device_release, mk_dma_unmap, mk_mmio_unmap};
-pub use clock::{mk_idle_ms, Deadline};
+pub use clock::{mk_idle_ms, uptime_ms, Deadline};
 pub use console::{mk_debug, said};
+pub use devices::{mk_device_list, present, Bar, DeviceRecord};
+pub use devices::{BAR_KIND_MMIO, BAR_KIND_PIO, BUS_KIND_PCI};
 pub use entropy::{crypto_random, entropy, Entropy};
-
-/// The PCI Command bits, as nonos_libc broker/pci.rs defines them.
-pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
-pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
+pub use ipc::{line_up_requests, mk_ipc_recv_from, mk_ipc_reply, recv_ready, replies, SERVED};
+pub use look::{on_clock, OnClock};
+pub use mmio::{map_at_most, mk_mmio_map, MmioMapOut};
+pub use pci::{command, mk_pci_config_write, refuse_bus_master, set_command};
+pub use pci::{MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE};
+pub use steps::{seen, watch, Part, Seen, Step};

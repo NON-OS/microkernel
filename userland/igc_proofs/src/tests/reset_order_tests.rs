@@ -40,6 +40,9 @@ fn the_reset_never_lands_while_bus_mastering_is_on() {
         if ctrl & CTRL_RST != 0 && mastering {
             seen.store(true, Ordering::SeqCst);
         }
+        if ctrl & CTRL_RST != 0 {
+            b.present32(REG_CTRL, ctrl & !CTRL_RST);
+        }
         if ctrl & CTRL_GIO_MASTER_DISABLE != 0 {
             b.present32(REG_STATUS, 0);
         }

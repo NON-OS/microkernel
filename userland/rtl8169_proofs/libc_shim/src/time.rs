@@ -59,7 +59,8 @@ impl Deadline {
         }
         if let Some(seen) = nonos_devmodel::turns() {
             let give_up = Instant::now() + std::time::Duration::from_secs(5);
-            while nonos_devmodel::turns().is_some_and(|t| t < seen + 2) && Instant::now() < give_up {
+            while nonos_devmodel::turns().is_some_and(|t| t < seen + 2) && Instant::now() < give_up
+            {
                 std::thread::yield_now();
             }
         }
