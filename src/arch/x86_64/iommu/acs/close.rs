@@ -23,32 +23,23 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::pick::downstream_ports;
 use super::port::close;
-use crate::bus::pci::listed_through;
 use crate::drivers::pci::config::access::read8;
-use crate::drivers::pci::types::{PciDevice, PcieDeviceType};
+use crate::drivers::pci::types::PciDevice;
 use crate::hardware::broker::{set_acs_groups, AcsPort as Port};
 
+/// `devices` is the whole boot scan, every bus, so no switch is left half
+/// read (L76).
 pub(crate) fn close_switches(devices: &[PciDevice]) {
-    let down = |d: &&PciDevice| {
-        let kind = d.pcie.map(|p| p.device_type);
-        d.address.segment == 0 && kind == Some(PcieDeviceType::DownstreamPort)
-    };
     let mut ports: Vec<Port> = Vec::new();
-    for d in devices.iter().filter(down) {
+    for d in downstream_ports(devices) {
         let (bus, dev, f) = (d.address.bus, d.address.device, d.address.function);
         let below = match (read8(bus, dev, f, 0x19), read8(bus, dev, f, 0x1A)) {
             (Ok(first), Ok(last)) => Some((first, last)),
             _ => None,
         };
         ports.push(Port { bus, below, closed: close(bus, dev, f) });
-    }
-    // A switch whose bus the table did not list whole may have a port left
-    // out, open for all that is known: its group reaches every later bus.
-    for bus in ports.iter().map(|p| p.bus).collect::<Vec<_>>() {
-        if !listed_through(bus.saturating_add(1)) {
-            ports.push(Port { bus, below: None, closed: false });
-        }
     }
     let groups = set_acs_groups(&ports);
     for &(first, last) in &groups {
