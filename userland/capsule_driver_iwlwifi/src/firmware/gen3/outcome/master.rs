@@ -38,6 +38,16 @@ pub enum MasterError {
     Refused,
 }
 
+impl MasterError {
+    /// One phrase for the boot console.
+    pub fn text(&self) -> &'static str {
+        match self {
+            MasterError::NotStopped => "the device's bus master never stopped",
+            MasterError::Refused => "the broker refused Bus Master",
+        }
+    }
+}
+
 /// Stop the device and see it stopped, then `enable` Bus Master.
 pub fn master_on<M: Mmio, C: Clock>(
     m: &M,

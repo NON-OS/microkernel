@@ -24,6 +24,7 @@ pub(super) fn wait_code(w: WaitError) -> u32 {
         WaitError::TimedOut => 1,
         WaitError::FirmwareError => 2,
         WaitError::TooLarge => 3,
+        WaitError::Busy => 4,
     }
 }
 
