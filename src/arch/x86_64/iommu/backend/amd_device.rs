@@ -47,6 +47,6 @@ pub(super) fn translates(device: DeviceAddress) -> bool {
     segment0(device).is_ok_and(|(bus, dev, function)| {
         unit_covers(bus, dev, function)
             && !amd_iommu_aliased(device_id(bus, dev, function))
-            && super::own_id_read::own_id(bus, dev, function)
+            && crate::arch::x86_64::iommu::own_id_read::own_id(bus, dev, function)
     })
 }
