@@ -7,8 +7,20 @@ extern crate alloc;
 pub mod ecm;
 
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod bind_tests;
+#[cfg(test)]
+mod device;
 #[cfg(test)]
 mod frame_tests;
 #[cfg(test)]
+mod function_tests;
+#[cfg(test)]
+mod hold_tests;
+#[cfg(test)]
+mod notice_tests;
+#[cfg(test)]
 mod qemu;
+#[cfg(test)]
+mod receive_tests;
