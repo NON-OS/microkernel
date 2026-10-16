@@ -41,6 +41,8 @@ pub struct Peripheral {
     pub repeat: bool,
     /// Answer Find Information past the end of the range asked for.
     pub wide: bool,
+    /// Answer a Read Blob at the end of a value with this error.
+    pub blob_end: Option<u8>,
     pub requests: usize,
 }
 
@@ -56,6 +58,7 @@ impl Peripheral {
             mute: None,
             repeat: false,
             wide: false,
+            blob_end: None,
             requests: 0,
         }
     }
