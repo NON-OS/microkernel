@@ -26,7 +26,7 @@ use super::quirk_bits::Ident;
 use super::types::{PciWriteError, PciWriteRequest, WriteAction};
 
 pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
-    let handle = resolve(pid, &req)?;
+    let (handle, _held) = resolve(pid, &req)?;
     let cfg = ConfigSpace::new(handle.address);
     let (register, _) = split(req.offset).ok_or(PciWriteError::OffsetNotAllowed)?;
     let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;

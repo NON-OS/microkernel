@@ -27,6 +27,8 @@ pub(super) struct Claimed {
     pub(super) epoch: u64,
     pub(super) device: DeviceRecord,
     pub(super) bar: Bar,
+    /// The claim, held until the grant is recorded (L66).
+    pub(super) held: claim::InUse,
 }
 
 pub(super) fn claimed_bar(pid: u32, req: &MmioMapRequest) -> Result<Claimed, MmioMapError> {
@@ -49,5 +51,5 @@ pub(super) fn claimed_bar(pid: u32, req: &MmioMapRequest) -> Result<Claimed, Mmi
     if bar.kind != BAR_KIND_MMIO {
         return Err(MmioMapError::NotMmioBar);
     }
-    Ok(Claimed { epoch: claim.epoch, device, bar })
+    Ok(Claimed { epoch: claim.epoch, device, bar, held: claim })
 }

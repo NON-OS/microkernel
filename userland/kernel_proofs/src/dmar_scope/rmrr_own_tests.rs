@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use super::dmar_rmrr::{parse_rmrr, Rmrr};
 use super::dmar_rmrr_names::{rmrr_own, rmrr_sole};
 use super::rmrr_tests::{rmrr, scope};
