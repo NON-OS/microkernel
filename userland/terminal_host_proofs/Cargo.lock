@@ -7,6 +7,10 @@ name = "nonos_base64"
 version = "0.3.0"
 
 [[package]]
+name = "nonos_git"
+version = "0.2.0"
+
+[[package]]
 name = "nonos_inflate"
 version = "0.3.0"
 
@@ -19,6 +23,7 @@ name = "terminal_host_proofs"
 version = "0.1.0"
 dependencies = [
  "nonos_base64",
+ "nonos_git",
  "nonos_inflate",
  "nonos_policy_proto",
 ]
