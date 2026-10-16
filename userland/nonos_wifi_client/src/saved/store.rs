@@ -22,7 +22,9 @@ pub fn load() -> Result<SavedList, SavedError> {
     if !vfs::store_has_disk() {
         return Err(SavedError::NoStore);
     }
-    let Ok(raw) = vfs::read_file(mk_getpid(), PATH, FILE_LEN as u32) else {
+    // One byte past the record, so a longer file fails open_file's length
+    // check rather than being cut to the record's size.
+    let Ok(raw) = vfs::read_file(mk_getpid(), PATH, FILE_LEN as u32 + 1) else {
         return Ok(SavedList::new());
     };
     if is_withdrawn(&raw) {
