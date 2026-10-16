@@ -48,5 +48,7 @@ pub mod same_group;
 pub mod slot_rule;
 #[path = "../../../../../../src/hardware/broker/acpi/slot_wire.rs"]
 pub mod slot_wire;
+#[path = "../../../../../../src/hardware/broker/acpi/table_measure.rs"]
+pub mod table_measure;
 #[path = "../../../../../../src/hardware/broker/acpi/usb_port_wire.rs"]
 pub mod usb_port_wire;
