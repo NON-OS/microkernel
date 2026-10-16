@@ -17,6 +17,7 @@
 use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 
 use crate::clients::wm;
+use crate::state::key_targets::key_of;
 use crate::state::Context;
 
 use super::deliver::deliver_one;
@@ -32,7 +33,7 @@ pub(super) fn target(
     system: bool,
 ) -> u32 {
     if is_up {
-        let pressed_in = ctx.key_targets.take(event.code).filter(|&p| p != 0);
+        let pressed_in = ctx.key_targets.take(key_of(event.flags, event.code)).filter(|&p| p != 0);
         match pressed_in {
             Some(pid) => pid,
             None if system => shell_pid(ctx),
