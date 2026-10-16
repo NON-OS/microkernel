@@ -16,6 +16,7 @@
 
 mod claim;
 mod held;
+mod leaving;
 mod lookup;
 mod no_snoop;
 mod quiesce;
@@ -27,12 +28,14 @@ mod reset_restore;
 mod reset_rule;
 mod reset_run;
 mod reset_wait;
+mod retire;
+mod retire_io;
 mod scope_check;
 mod state;
 mod types;
 
 pub use claim::claim;
 pub use lookup::lookup;
-pub use held::{quiesce_all, quiesce_held};
+pub use held::quiesce_all;
 pub use release::{release, release_all_for_pid};
 pub use types::{Claim, ClaimError};
