@@ -498,6 +498,19 @@ a64_ptr_count="$( { grep -rn 'allow(fuzzy_provenance_casts)' src/arch/aarch64 --
 run_baseline 'aarch64 integer-to-pointer casts outside mmu/pointer.rs' "${baselines_dir}/aarch64-pointer-casts.txt" "${a64_ptr_count}"
 unset a64_ptr_file a64_ptr_inner a64_ptr_apis a64_ptr_count
 
+# aarch64: TPIDR_EL1 has one meaning, the address of this CPU's per-CPU block
+# (smp::percpu), which the vectors read the PAC keys out of at fixed offsets
+# (asm/percpu.h). It was once also a key-slot pointer, and the two writers
+# took turns. Only the per-CPU base setter may write it.
+tpidr_writers="$( { grep -rniE 'msr[[:space:]]+tpidr_el1' src --include='*.rs' --include='*.S' --include='*.h' || true; } | { grep -v '^src/arch/percpu_base.rs:' || true; } )"
+if [ -n "${tpidr_writers}" ]; then
+    fail_with "TPIDR_EL1 written outside src/arch/percpu_base.rs"
+    printf '%s\n' "${tpidr_writers}" >&2
+else
+    note ok "TPIDR_EL1 written only by the per-CPU base setter"
+fi
+unset tpidr_writers
+
 # Driver capsule isolation. The userland virtio-rng driver capsule
 # must reach hardware only through the broker. Pulling kernel
 # driver modules in (`crate::drivers::*`) would defeat the
