@@ -34,7 +34,8 @@ impl Display for Heads {
     }
     fn state(&mut self, o: u16) -> Result<State, Errno> {
         let h = &mut self.heads[o as usize];
-        let flags = SCANNING_OUT | if std::mem::take(&mut h.lost) { LOST } else { 0 };
+        let lost = if std::mem::take(&mut h.lost) { LOST } else { 0 };
+        let flags = if h.dark { 0 } else { SCANNING_OUT | lost };
         let (width, height) = h.size;
         Ok(State { generation: 1, width, height, flags, ..State::default() })
     }

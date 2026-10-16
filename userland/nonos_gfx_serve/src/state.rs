@@ -20,7 +20,9 @@
 //! answer, so the repaint the compositor does on LOST lands on a live
 //! picture, with no restart of the driver. While that fails the output
 //! answers LOST without SCANNING_OUT on every STATE and is tried again,
-//! and the compositor may pick another mode from MODES meanwhile.
+//! and the compositor may pick another mode from MODES meanwhile. An
+//! output the device answers dark (neither flag: its monitor pulled) has
+//! nothing to put the mode back on, so it rests until the device says LOST.
 
 use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 use nonos_gfx_wire::{Errno, State};
@@ -35,6 +37,9 @@ impl<D: Display, P: Platform> Server<D, P> {
         let slot = self.slot(output)?;
         let cur = slot.current;
         st.serial = cur.map_or(0, |c| c.serial);
+        if st.flags & (LOST | SCANNING_OUT) == 0 {
+            slot.lost = false;
+        }
         if st.flags & LOST == 0 && !slot.lost {
             return Ok(st);
         }
