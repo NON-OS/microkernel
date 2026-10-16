@@ -369,12 +369,14 @@ other op: no one.
   D3hot, 100 ms from D3cold (a reset), or less when its host bridge's
   function 9 says so; never more (`src/dpower/ready.rs`). The same
   selector covers D1 (none) and D2 (200 us). A PCI function is moved only
-  for its claim's holder, and the broker puts a claimed function's BARs
-  back once it is in D0 again (L62), so D3hot is allowed whether or not
-  it keeps No_Soft_Reset; decoding and bus mastering are the driver's to
-  turn back on after the reset. D3cold is refused (ELOSES, -95) until the
-  bridge and the link above it are handled too (`src/dpower/keep.rs`).
-  Layout in `src/dpower/wire.rs`.
+  for its claim's holder. D3cold is refused (ELOSES, -95) until the bridge
+  and the link above it are handled too. D3hot without No_Soft_Reset is
+  allowed only while the kernel offers `MkAcpiRestoreFunction` (asked once
+  at the first move), which puts a claimed function's BARs back (L62)
+  after any move into D0 from D3, before the holder is answered; EIO if it
+  would not. Without the call such a D3hot is refused too. Decoding and bus
+  mastering are the driver's to turn back on after the reset
+  (`src/dpower/keep.rs`). Layout in `src/dpower/wire.rs`.
   Its holder may also arm the device to wake while the system runs
   (verbs 2 and 3, runtime wake): `_PRW`'s power resources taken through
   the shared pool, `_DSW(1, 0, D)` or `_PSW(1)`, then the wake GPE

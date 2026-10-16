@@ -33,7 +33,7 @@ pub fn current(acpi: &mut Acpi, dev: Id) -> Option<DState> {
     psc(aml, &mut evaluator(host), dev).or((!power_managed(aml, dev)).then_some(DState::D0))
 }
 
-pub fn move_to(acpi: &mut Acpi, dev: Id, to: DState, pid: u32) -> i32 {
+pub fn move_to(acpi: &mut Acpi, dev: Id, to: DState, (pid, id): (u32, u64)) -> i32 {
     // A device firmware left in an unknown state is taken to be off, so
     // its D0 runs every step.
     let from = current(acpi, dev).unwrap_or(DState::D3Cold);
@@ -52,10 +52,16 @@ pub fn move_to(acpi: &mut Acpi, dev: Id, to: DState, pid: u32) -> i32 {
         None => l,
     };
     match r {
-        Ok(()) => {
-            l.end();
-            0
-        }
+        Ok(()) => match super::keep::restore_after(acpi, dev, id, from, to) {
+            Ok(()) => {
+                l.end();
+                0
+            }
+            Err(e) => {
+                l.str(b": BARs not put back, errno ").dec(e.unsigned_abs()).end();
+                EIO
+            }
+        },
         Err(MoveError::Fault(f)) => {
             l.str(b": failed at ").hex(u64::from(f.at)).end();
             EIO
