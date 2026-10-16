@@ -17,8 +17,9 @@
 //! Two ops beside F 12's brightness bytes, for an external monitor's own
 //! controls over DDC/CI, in the same framing (an i32 status, then the
 //! body). VCP (23): panel u32 and a control code u8; the body is the value
-//! now and the most it takes, u16 each; from the compositor alone, since a
-//! monitor's values are a small fingerprint. SET_VCP (24): panel u32, code
+//! now and the most it takes, u16 each, then the values the display's
+//! capabilities list for the code (`vcp_body.rs`); from the compositor
+//! alone, since a monitor's values are a small fingerprint. SET_VCP (24): panel u32, code
 //! u8, value u16, from the compositor alone, which takes it from the shell.
 //! The numbers are F's: on the acpi port 5 and 6 are PREPARE_SLEEP and
 //! POWER, so a SET_VCP sent to the wrong server meets an unknown op there,
@@ -36,6 +37,8 @@ pub const OP_SET_VCP: u8 = 24;
 pub trait Controls {
     fn vcp(&mut self, output: u16, code: u8) -> Result<(u16, u16), Errno>;
     fn set_vcp(&mut self, output: u16, code: u8, value: u16) -> Result<(), Errno>;
+    /// The values the output's capabilities list for `code`.
+    fn listed(&self, output: u16, code: u8) -> &[u8];
 }
 
 /// The status, and the body written into `out`.
@@ -53,15 +56,9 @@ pub fn answer<B: Controls>(
     match req {
         [OP_VCP, ..] if !may.read_controls => (EPERM, 0),
         [OP_VCP, p @ .., code] if p.len() == 4 => {
-            let got = output(p).and_then(|o| b.vcp(o, *code));
-            match (got, out.get_mut(..4)) {
-                (Ok((now, max)), Some(body)) => {
-                    body[..2].copy_from_slice(&now.to_le_bytes());
-                    body[2..].copy_from_slice(&max.to_le_bytes());
-                    (0, 4)
-                }
-                (Err(e), _) => (e, 0),
-                (Ok(_), None) => (EINVAL, 0),
+            match output(p).and_then(|o| Ok((o, b.vcp(o, *code)?))) {
+                Ok((o, now_max)) => super::vcp_body::reading(now_max, b.listed(o, *code), out),
+                Err(e) => (e, 0),
             }
         }
         [OP_SET_VCP, p @ .., code, lo, hi] if p.len() == 4 => match output(p) {

@@ -38,6 +38,11 @@ impl<M: Mmio, F: Frames, C: Clock> Controls for Intel<M, F, C> {
     fn set_vcp(&mut self, output: u16, code: u8, value: u16) -> Result<(), Errno> {
         self.vcp_write(output, code, value)
     }
+
+    fn listed(&self, output: u16, code: u8) -> &[u8] {
+        let caps = self.ddc.get(output as usize).and_then(|p| p.caps.caps().ok());
+        caps.map_or(&[], |c| c.listed(code))
+    }
 }
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {

@@ -48,6 +48,7 @@ mod plug_watch;
 mod red_first;
 mod rights;
 mod timing_pick;
+mod vcp_body;
 mod vcp_wire;
 mod wire;
 

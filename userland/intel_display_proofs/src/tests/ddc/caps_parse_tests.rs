@@ -31,6 +31,10 @@ fn the_vcp_list_gives_its_codes_and_listed_values() {
     assert_eq!(codes(&c), [0x02, 0x10, 0x12, 0x14, 0x60, 0xD6], "values are not codes");
     assert!(c.lists(0x60, 0x11) && !c.lists(0x60, 0x10) && !c.lists(0x60, 0x0111));
     assert!(c.lists(0xD6, 5) && !c.lists(0x14, 5), "values kept for two codes alone");
+    assert_eq!(
+        (c.listed(0x60), c.listed(0xD6), c.listed(0x14)),
+        (&[0x0F, 0x11, 0x12][..], &[1, 4, 5][..], &[][..])
+    );
     let tight = Caps::parse(b"(VCP(021012)mccs_ver(2.1))").unwrap();
     assert_eq!(codes(&tight), [0x02, 0x10, 0x12], "no spacing, upper case key");
 }
@@ -56,4 +60,5 @@ fn values_past_sixteen_are_dropped_not_overrun() {
     let many: String = (0..40).map(|v| format!("{v:02X} ")).collect();
     let c = Caps::parse(format!("(vcp(60({many})))").as_bytes()).unwrap();
     assert!(c.lists(0x60, 0x0F) && !c.lists(0x60, 0x10));
+    assert_eq!(c.listed(0x60), (0..16).collect::<Vec<u8>>());
 }

@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a capabilities string says this driver may use: the codes its vcp
-//! list names, and for the input source and the power mode the values
-//! listed after each. The string is a parenthesised list of keys, each a
-//! word and its parenthesised value (`vcp(10 12 60(0F 11) D6(01 04))`);
-//! only the vcp key at the top level is read, codes and values as pairs
-//! of hex digits with any spacing. A string with no vcp list gives nothing.
+//! list names, and the values listed after the input source and the power
+//! mode. Only the top-level vcp key (`vcp(10 12 60(0F 11) D6(01 04))`) is
+//! read, codes and values as hex pairs with any spacing; no list, nothing.
 
 use super::vcp::{INPUT_SOURCE, POWER_MODE};
 
@@ -41,15 +39,19 @@ impl Caps {
         self.codes[code as usize / 64] & 1 << (code % 64) != 0
     }
 
-    /// Whether `code` lists `value` among its values (input source and
-    /// power mode only; anything else lists none).
+    /// The values listed after `code`: the input source's and the power
+    /// mode's; any other code lists none.
+    pub fn listed(&self, code: u8) -> &[u8] {
+        match code {
+            INPUT_SOURCE => &self.input[..self.inputs as usize],
+            POWER_MODE => &self.power[..self.powers as usize],
+            _ => &[],
+        }
+    }
+
+    /// Whether `code` lists `value` among its values.
     pub fn lists(&self, code: u8, value: u16) -> bool {
-        let (list, n) = match code {
-            INPUT_SOURCE => (&self.input, self.inputs),
-            POWER_MODE => (&self.power, self.powers),
-            _ => return false,
-        };
-        u8::try_from(value).is_ok_and(|v| list[..n as usize].contains(&v))
+        u8::try_from(value).is_ok_and(|v| self.listed(code).contains(&v))
     }
 
     /// The vcp list of `s`, if it has one that closes.
