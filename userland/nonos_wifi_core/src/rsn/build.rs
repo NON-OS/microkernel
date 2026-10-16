@@ -31,6 +31,18 @@ pub const RSNE_LEN: usize = 22;
 /// The RSN element id.
 pub const EID_RSN: u8 = 48;
 
+/// The element with a one-entry PMKID list after the RSN capabilities
+/// (802.11-2020, 9.4.2.24.1): the count, 1, then the PMKID. The group
+/// management cipher is still left to its default, so nothing follows.
+pub fn station_rsne_pmkid(sel: &Selection, pmkid: &[u8; 16]) -> [u8; RSNE_LEN + 18] {
+    let mut e = [0u8; RSNE_LEN + 18];
+    e[..RSNE_LEN].copy_from_slice(&station_rsne(sel));
+    e[1] = (RSNE_LEN + 18 - 2) as u8;
+    e[22..24].copy_from_slice(&1u16.to_le_bytes());
+    e[24..].copy_from_slice(pmkid);
+    e
+}
+
 /// Build the station's RSN element for `sel`.
 pub fn station_rsne(sel: &Selection) -> [u8; RSNE_LEN] {
     let caps = match sel.pmf {
