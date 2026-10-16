@@ -39,7 +39,7 @@ A process receives an event only when it has subscribed to that kind of event, a
 Two groups of keys never reach the focused window:
 
 - Ctrl+Alt+Esc goes to `desktop_shell`, which brings Process Manager forward to end a window that misbehaves (`is_reserved_chord`, `userland/capsule_input_router/src/route/chord.rs:34-36`).
-- Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has focus (`is_shell_key`, `userland/capsule_input_router/src/route/shell_keys.rs:32-34`). [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do. The Power key, from a keyboard or from the [ACPI power button](../platform.md#the-power-button), only shows the notice `Power off is not available from the desktop`: the desktop has no way to power off in 0.9.2 (`POWER_OFF_UNAVAILABLE`, `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+- Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has focus (`is_shell_key`, `userland/capsule_input_router/src/route/shell_keys.rs:32-34`). [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do. The Power key, from a keyboard or from the [ACPI power button](../platform-acpi-power-button.md#the-power-button), only shows the notice `Power off is not available from the desktop`: the desktop has no way to power off in 0.9.2 (`POWER_OFF_UNAVAILABLE`, `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
 
 ## Keyboard layouts
 
@@ -92,7 +92,7 @@ The QEMU run target gives the guest its keyboard and mouse through the q35 machi
 - [I2C-HID touchpads](i2c-hid.md)
 - [USB keyboards and mice](../usb/hid.md)
 - [Audio](../audio.md)
-- [Platform: the power button](../platform.md#the-power-button)
+- [Platform: the power button](../platform-acpi-power-button.md#the-power-button)
 - [Keyboard layouts](../../using/keyboard-layouts.md)
 - [Hardware broker](../../kernel/hardware-broker.md)
 - [Support matrix](../../hardware/MATRIX.md)

@@ -111,7 +111,7 @@ With Debug granted the driver writes `[HDA]` lines and the server `[AUDIO]` line
 - [Drivers](README.md)
 - [Input drivers](input/README.md)
 - [Sound and media](../using/audio.md)
-- [Platform: the volume keys](platform.md#the-volume-keys)
+- [Platform: the volume keys](platform-acpi-power-button.md#the-volume-keys)
 - [Broker API](broker-api.md)
 - [Support matrix](../hardware/MATRIX.md)
 - [Reporting a machine](../hardware/report.md)
