@@ -19,6 +19,9 @@ license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "Disk writer for the NONOS installer"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 
 [dependencies]
