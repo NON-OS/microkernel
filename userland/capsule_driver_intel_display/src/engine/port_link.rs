@@ -54,4 +54,8 @@ impl Link for Port<'_> {
     fn stop(&mut self) {
         let _ = self.take_down();
     }
+
+    fn now_us(&self) -> Option<u64> {
+        self.clock.now_us()
+    }
 }
