@@ -25,6 +25,7 @@
 //! An unknown op is EINVAL with no body.
 
 use super::brightness::Brightness;
+pub use super::rights::Rights;
 use super::vcp_wire::{Controls, OP_SET_VCP, OP_VCP};
 
 pub const OP_BRIGHTNESS: u8 = 3;
@@ -41,13 +42,12 @@ pub fn identity(output: u16) -> u32 {
     0x8000_0000 | output as u32
 }
 
-/// Answer `req` into `out`; `may_set` is whether the sender is one that
-/// may change brightness (power, desktop_shell). The bytes written.
+/// Answer `req` into `out` for a sender with `may`. The bytes written.
 pub fn answer<B: Brightness + Controls>(
     b: &mut B,
     outputs: u16,
     req: &[u8],
-    may_set: bool,
+    may: Rights,
     out: &mut [u8],
 ) -> usize {
     let (status, body) = match req {
@@ -60,13 +60,11 @@ pub fn answer<B: Brightness + Controls>(
             };
             match panel {
                 None => (EINVAL, 0),
-                Some(_) if !may_set => (EPERM, 0),
+                Some(_) if !may.set => (EPERM, 0),
                 Some(p) => (super::brightness_ops::set(b, outputs, *pct, p), 0),
             }
         }
-        [OP_VCP | OP_SET_VCP, ..] => {
-            super::vcp_wire::answer(b, outputs, req, may_set, &mut out[4..])
-        }
+        [OP_VCP | OP_SET_VCP, ..] => super::vcp_wire::answer(b, outputs, req, may, &mut out[4..]),
         _ => (EINVAL, 0),
     };
     out[..4].copy_from_slice(&status.to_le_bytes());
