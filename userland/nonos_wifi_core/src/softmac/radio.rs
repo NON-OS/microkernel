@@ -21,6 +21,7 @@
 //! chip driver is its registers and rings and nothing else.
 
 use super::assoc::Association;
+pub use super::env::Env;
 use crate::regdom::Band;
 use crate::rsn::Ciphers;
 
@@ -37,6 +38,10 @@ pub struct RxInfo {
 pub trait Radio {
     /// The station address the radio transmits from.
     fn mac(&self) -> [u8; 6];
+    /// Transmit from, and receive for, `mac` from now on; false if the chip
+    /// could not take it. The station gives each network and each scan that
+    /// transmits its own address (`crate::address`).
+    fn set_mac(&mut self, mac: [u8; 6]) -> bool;
     /// Which bands the radio has: 2.4 GHz, 5 GHz.
     fn bands(&self) -> (bool, bool);
     /// Retune to a 20 MHz channel; false if the chip refused it.
@@ -64,11 +69,4 @@ pub trait Radio {
     fn diag(&self) -> [u32; 5] {
         [0; 5]
     }
-}
-
-pub trait Env {
-    /// Milliseconds of uptime; a broken clock should read as far in the future.
-    fn now_ms(&self) -> u64;
-    /// Fill `out` with fresh randomness; false if none was available.
-    fn random(&mut self, out: &mut [u8]) -> bool;
 }

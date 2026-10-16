@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod address;
 mod announce;
 mod attempt;
 mod cached;
@@ -23,6 +24,7 @@ mod extra;
 mod feed;
 mod finish;
 mod hunt;
+mod joined;
 mod joining;
 mod listen;
 mod report;
@@ -39,9 +41,10 @@ pub use counters::Counters;
 pub use drive::drive;
 pub use extra::Extra;
 pub use hunt::hunt;
+pub use joined::{JoinError, Joined};
 pub use joining::Joining;
 pub use report::{Outcome, Report};
 pub use request::{parse_connect, ConnectRequest, FLAG_HIDDEN, FLAG_WPA3_ONLY};
-pub use run::{join, JoinError, Joined};
+pub use run::join;
 pub use send::{RETX_AFTER_MS, RETX_SAE_AFTER_MS};
 pub use visit::{Found, PROBE_RATES};

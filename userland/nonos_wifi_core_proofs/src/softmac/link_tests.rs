@@ -19,8 +19,6 @@
 //! the link reads down and the background scan resumes.
 
 use crate::ap_sim::AA;
-use crate::soft::air::STA;
-use crate::soft::frames::mgmt;
 use crate::soft::join::{joined, ticks};
 use crate::soft::rig::Station;
 use crate::soft::wire::{code, control, netif};
@@ -34,7 +32,7 @@ fn link_up(st: &mut Station) -> bool {
 fn the_aps_deauthentication_ends_the_session() {
     let mut st = joined();
     assert!(link_up(&mut st));
-    st.radio_mut().unwrap().inbox.push_back(mgmt(12, STA, &[3, 0]));
+    crate::soft::join::deauth_from_ap(&mut st);
     ticks(&mut st, 1);
     assert!(!link_up(&mut st));
     assert_eq!(control(&mut st, 5, &[])[0], 0);

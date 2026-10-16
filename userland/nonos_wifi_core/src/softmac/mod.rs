@@ -16,6 +16,7 @@
 pub mod assoc;
 pub mod control;
 pub mod engine;
+mod env;
 pub mod join;
 pub mod radio;
 pub mod roam;
