@@ -40,7 +40,7 @@
 //! each in its own buffer, so a buffer is never rewritten while the device
 //! may still read it.
 
-mod answered;
+pub mod answered;
 mod layout;
 mod queue;
 mod send;
