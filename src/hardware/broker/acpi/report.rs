@@ -15,20 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the owner reads on serial: one `[ACPI] region` line per window the
-//! capsule was granted or refused, and after each the posture line with the
-//! counts, which the boot matrix reads from the last one in a log.
+//! capsule was granted or refused (each refusal once, `refusal_told`), and
+//! after each the posture line with the counts, which the boot matrix reads
+//! from the last one in a log.
 
 use core::sync::atomic::{AtomicU64, Ordering};
-
 use super::kernel::records::Space;
-use super::rule::Refusal;
+use super::rule::{Refusal, Tell};
 use crate::sys::serial::Line;
+
+#[path = "refusal_told.rs"]
+mod told;
 
 static GRANTED: AtomicU64 = AtomicU64::new(0);
 static REFUSED: AtomicU64 = AtomicU64::new(0);
-/// Refusals past this are counted and not printed: firmware retrying a
-/// refused access in a loop would otherwise bury the log.
-const REFUSALS_PRINTED: u64 = 64;
 
 pub(super) fn granted(space: Space, base: u64, len: u64) {
     GRANTED.fetch_add(1, Ordering::Relaxed);
@@ -37,25 +37,26 @@ pub(super) fn granted(space: Space, base: u64, len: u64) {
 }
 
 pub(super) fn refused(space: Space, base: u64, len: u64, why: Refusal) {
-    if REFUSED.fetch_add(1, Ordering::Relaxed) < REFUSALS_PRINTED {
-        region(space, base, len).str(b" refused: ").str(why.reason().as_bytes()).end();
+    REFUSED.fetch_add(1, Ordering::Relaxed);
+    let verdict = told::told(space as u8, base, len);
+    if verdict != Tell::Quiet {
+        told::say(verdict, region(space, base, len), why.reason().as_bytes());
     }
     posture();
 }
 
 fn region(space: Space, base: u64, len: u64) -> Line {
-    let mut line = Line::new();
     let name: &[u8] = match space {
         Space::Memory => b"[ACPI] region memory base=",
         Space::Io => b"[ACPI] region io base=",
         Space::Pci => b"[ACPI] region pci seg.bus.dev.fn=",
     };
+    let mut line = Line::new();
     line.str(name).hex(base).str(b" len=").hex(len);
     line
 }
 
-/// Hardware errors follow the region counts, so a reader that knows only
-/// the first two fields still finds them where they were.
+/// Hardware errors follow the region counts, where old readers look.
 pub(super) fn posture() {
     let (recoverable, fatal, corrected) = super::hw_errors::counts();
     Line::new()

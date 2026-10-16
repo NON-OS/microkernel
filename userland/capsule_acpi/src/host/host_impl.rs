@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The interpreter's host in the capsule. Spaces with no handler here (CMOS,
-//! which the kernel keeps, SMBus, serial buses, GPIO) refuse; the field faults.
+//! The interpreter's host in the capsule; how each space is reached is `spaces`.
 
 use super::state::CapsuleHost;
 use super::{lock_hold, region, say, tables};
@@ -32,9 +31,8 @@ impl Host for CapsuleHost {
     fn stall(&mut self, us: u64) {
         stall_us(us)
     }
-    /// 100 ns ticks, from a millisecond clock.
     fn timer(&mut self) -> u64 {
-        now_ms().saturating_mul(10_000)
+        now_ms().saturating_mul(10_000) // 100 ns ticks, from a millisecond clock
     }
     fn debug(&mut self, value: &Object) {
         say::debug(value)
@@ -50,14 +48,16 @@ impl Host for CapsuleHost {
     }
     fn transaction(
         &mut self,
-        _: &RegionAccess<'_>,
+        a: &RegionAccess<'_>,
         _: [u8; 3],
         _: Option<&[u8]>,
         _: &mut Vec<u8>,
     ) -> bool {
+        super::refuse::refuse(self, a.space.0, a.base);
         false
     }
-    fn gpio(&mut self, _: &[u8], _: u32, _: u32, _: Option<u64>) -> Option<u64> {
+    fn gpio(&mut self, _: &[u8], pin: u32, _: u32, _: Option<u64>) -> Option<u64> {
+        super::refuse::refuse(self, 8, u64::from(pin));
         None
     }
     fn table(&mut self, sig: &[u8], oem: &[u8], oem_table: &[u8]) -> Option<Vec<u8>> {
