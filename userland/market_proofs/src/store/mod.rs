@@ -45,10 +45,10 @@ pub mod reasons;
 pub mod asked;
 #[path = "../../../capsule_app_store/src/store/asked_label.rs"]
 pub mod asked_label;
-#[path = "../../../capsule_app_store/src/store/purchase_said.rs"]
-pub mod purchase_said;
 #[path = "../../../capsule_app_store/src/store/order_line.rs"]
 pub mod order_line;
+#[path = "../../../capsule_app_store/src/store/purchase_said.rs"]
+pub mod purchase_said;
 
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
