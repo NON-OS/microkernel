@@ -28,6 +28,7 @@ mod replay;
 mod sa_query;
 mod tx;
 mod view;
+mod wipe;
 pub use ccmp_mode::Ccmp;
 pub use engine::LinkStation;
 pub use mgmt_rx::{MgmtDrop, MgmtRx, SaTick};

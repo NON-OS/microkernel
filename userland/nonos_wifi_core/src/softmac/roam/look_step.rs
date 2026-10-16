@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One step of a look: at home until it is time to go, away a dwell on
-//! each channel of a trip, then home again, until the plan is done.
+//! One step of a look: at home until it is time to go and the link is in
+//! no exchange that must see it through, away a dwell on each channel of a
+//! trip, then home again, until the plan is done.
 
 use super::look::{Look, Phase, Step, AWAY_CHANNELS, HOME_MS};
 use crate::softmac::radio::Radio;
 
 impl Look {
-    pub fn step<R: Radio>(&mut self, r: &mut R, ssid: &[u8], now: u64) -> Step {
+    /// Off the session's channel: the link's frames must not go out.
+    pub fn away(&self) -> bool {
+        matches!(self.phase, Phase::Away { .. })
+    }
+
+    /// One step; while `hold`, a trip waits at home to start.
+    pub fn step<R: Radio>(&mut self, r: &mut R, ssid: &[u8], now: u64, hold: bool) -> Step {
         match self.phase {
             Phase::Done => Step::Done,
-            Phase::Home { until_ms } if now < until_ms => Step::Home,
+            Phase::Home { until_ms } if now < until_ms || hold => Step::Home,
             Phase::Home { .. } => match self.next_channel() {
                 Some(at) => {
                     self.leave(r, at, AWAY_CHANNELS - 1, now);

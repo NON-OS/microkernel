@@ -23,6 +23,7 @@ mod roam_go;
 mod roam_take;
 mod serve;
 mod station;
+mod station_new;
 mod view;
 pub use control::{OP_CONNECT, OP_DISCONNECT, OP_LINK, OP_SCAN, OP_STATUS, WIFI_HDR, WIFI_MAGIC};
 pub use refuse::{refuse, STATUS_REFUSED};

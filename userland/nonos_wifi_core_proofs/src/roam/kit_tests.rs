@@ -19,17 +19,19 @@
 
 use super::beacons::{ap, beacon_of, RSNE_PSK};
 use nonos_wifi_core::rsn::{Ciphers, JoinPolicy};
-use nonos_wifi_core::softmac::roam::{offered, Kit, COOLDOWN_MS, SAMPLES_MIN};
+use nonos_wifi_core::softmac::roam::{offered, Kit, Secret, COOLDOWN_MS, SAMPLES_MIN};
+use nonos_wifi_core::wpa::akm::Akm;
 
 #[test]
 fn a_look_is_due_only_for_a_weak_ap_and_not_within_the_cooldown() {
     let runs = offered(&beacon_of(ap(1), b"home", 1, &RSNE_PSK), JoinPolicy::PSK_ONLY).unwrap();
-    let mut k = Kit::new(b"pass", false, runs, Ciphers::CCMP_128_ONLY, 0).unwrap();
+    let secret = Secret::new(runs.akm, runs.sae_h2e, b"home", b"password").unwrap();
+    let mut k = Kit::new(secret, runs, None, Ciphers::CCMP_128_ONLY);
     assert!(!k.due(0), "nothing heard yet");
     (0..SAMPLES_MIN).for_each(|_| k.signal.heard(-90));
     assert!(k.due(0));
     k.rest(1_000);
     assert!(!k.due(1_000 + COOLDOWN_MS - 1));
     assert!(k.due(1_000 + COOLDOWN_MS));
-    assert!(Kit::new(&[b'x'; 65], false, runs, Ciphers::CCMP_128_ONLY, 0).is_none(), "too long");
+    assert!(Secret::new(Akm::Sae, false, b"home", &[b'x'; 65]).is_none(), "too long");
 }

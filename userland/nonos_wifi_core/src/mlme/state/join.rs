@@ -50,6 +50,8 @@ impl Mlme {
             rates: None,
             sae: None,
             pmk: [0u8; 32],
+            pmk_given: false,
+            pt: None,
             pmkid: None,
             cached: None,
             cache_used: false,
@@ -57,19 +59,5 @@ impl Mlme {
             supplicant: None,
             failure: None,
         }
-    }
-
-    pub fn state(&self) -> MlmeState {
-        self.state
-    }
-
-    /// Why the join failed, once `Failed`.
-    pub fn failure(&self) -> Option<MlmeFailure> {
-        self.failure
-    }
-
-    /// The security chosen from the beacon, once a BSS was selected.
-    pub fn selection(&self) -> Option<Selection> {
-        self.selection
     }
 }
