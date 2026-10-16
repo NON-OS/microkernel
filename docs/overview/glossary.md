@@ -138,7 +138,7 @@ A service endpoint that only the services named for it may send to, whatever cap
 
 ## Identity domain
 
-The VT-d domain every device found by the boot PCI scan starts in, and stays in until a driver claims it. It maps physical memory one to one up to the top of the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the scan did not find has no entry and is denied. Explained in [IOMMU](../kernel/iommu.md#when-vt-d-comes-into-service). Code: `src/arch/x86_64/iommu/unit/bringup/domain.rs`, `src/arch/x86_64/iommu/unit/bringup/limit.rs`.
+The VT-d domain every device found by the boot PCI scan starts in, and stays in until a driver claims it. It maps physical memory one to one up to the top of the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the scan did not find has no entry and is denied. Explained in [IOMMU](../kernel/iommu-when-vt-d.md#when-vt-d-comes-into-service). Code: `src/arch/x86_64/iommu/unit/bringup/domain.rs`, `src/arch/x86_64/iommu/unit/bringup/limit.rs`.
 
 ## Inbox
 
@@ -150,7 +150,7 @@ The DMA remapping unit, which limits the memory a device can reach. On Intel VT-
 
 ## IOMMU domain
 
-A set of I/O page tables the remapping unit applies to the devices attached to it. The hardware broker gives each driver capsule one domain, shared by every claimed PCI device that a unit in service covers, which maps only the DMA buffers granted to the capsule, so the device faults on everything else. ACPI and platform devices get no domain. Explained in [IOMMU](../kernel/iommu.md#per-capsule-domains). Code: `src/hardware/broker/confine/attach.rs`.
+A set of I/O page tables the remapping unit applies to the devices attached to it. The hardware broker gives each driver capsule one domain, shared by every claimed PCI device that a unit in service covers, which maps only the DMA buffers granted to the capsule, so the device faults on everything else. ACPI and platform devices get no domain. Explained in [IOMMU](../kernel/iommu-per-capsule-domains.md#per-capsule-domains). Code: `src/hardware/broker/confine/attach.rs`.
 
 ## Kernel mirror
 
