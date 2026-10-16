@@ -29,8 +29,8 @@ use core::sync::atomic::{compiler_fence, Ordering};
 
 use super::message::IpcMessage;
 
-/// Zero every byte `v` holds, to its capacity, so no store is elided as
-/// dead before the free.
+/// Zero every byte `v` holds, to its capacity. The volatile stores and the
+/// fence stop the compiler dropping them as dead; no test can see that.
 pub(super) fn wipe(v: &mut Vec<u8>) {
     let p = v.as_mut_ptr();
     for i in 0..v.capacity() {
