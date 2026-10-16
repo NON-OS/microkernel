@@ -74,6 +74,9 @@
    "nonos-data/trust/capsules/driver_smbus.manifest.bin",
    "nonos-data/trust/capsules/driver_smbus.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_smbus.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_spi.manifest.bin",
+   "nonos-data/trust/capsules/driver_spi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_spi.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
@@ -1704,6 +1707,19 @@
    "userland/capsule_driver_hda/src/protocol/decode.rs",
    "userland/capsule_driver_hda/src/protocol/encode.rs",
    "userland/capsule_driver_smbus",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_spi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_cdc_acm/src/acm/owner.rs",
+   "userland/capsule_driver_cdc_acm/src/frame.rs",
+   "userland/capsule_driver_i2c_pci/src/constants/device_info.rs",
+   "userland/capsule_driver_spi",
    "userland/libc"
   ],
   "md": [],
@@ -4116,6 +4132,9 @@
    "nonos-data/trust/capsules/driver_smbus.manifest.bin",
    "nonos-data/trust/capsules/driver_smbus.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_smbus.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_spi.manifest.bin",
+   "nonos-data/trust/capsules/driver_spi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_spi.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ufs.manifest.bin",
    "nonos-data/trust/capsules/driver_ufs.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ufs.zk_trailer.bin",
@@ -4961,6 +4980,18 @@
    "userland/capsule_net_sockets/src/sockets",
    "userland/net_proofs/shim",
    "userland/sockets_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/spi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_spi/src/core",
+   "userland/capsule_driver_spi/src/facts",
+   "userland/capsule_driver_spi/src/setup/prove.rs",
+   "userland/spi_proofs"
   ],
   "md": [],
   "signed": []
