@@ -19,6 +19,7 @@ mod init;
 mod list;
 mod numa;
 mod pci_record;
+mod remove;
 mod state;
 
 // For the ACPI broker, which only x86 builds.
@@ -32,4 +33,6 @@ pub use init::init_from_pci;
 pub(in crate::hardware::broker) use numa::set_numa_nodes;
 pub(super) use init::register_platform_device;
 pub(super) use list::class_of;
+#[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
+pub(in crate::hardware::broker) use remove::remove;
 pub use list::{contains, list, list_by_class};

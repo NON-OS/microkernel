@@ -14,7 +14,9 @@ pub(super) fn finalize_teardown(pid: Pid) {
         None => return,
     };
 
+    let heir = crate::process::address_space::lifecycle::release::holder_after(&pcb);
     crate::process::address_space::lifecycle::release(&pcb);
+    crate::hardware::broker::mmio::fence::after_exit(pid, heir.map(|h| h.pid));
     let _ = crate::hardware::broker::release_all_for_pid(pid, false);
     let _ = crate::hardware::broker::irq_release_all_for_pid(pid);
     let _ = crate::hardware::broker::dma_release_all_for_pid(pid, false);

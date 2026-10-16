@@ -20,3 +20,9 @@
 
 #[path = "../../../../../../src/hardware/broker/mmio/bar_select.rs"]
 pub mod bar_select;
+#[path = "../../../../../../src/hardware/broker/mmio/fence.rs"]
+#[allow(dead_code)] // only the proofs call it outside the kernel
+pub mod fence;
+
+#[cfg(test)]
+mod fence_tests;

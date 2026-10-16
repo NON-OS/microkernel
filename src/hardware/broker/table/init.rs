@@ -22,7 +22,7 @@ use crate::drivers::pci::types::PciDevice;
 use crate::hardware::broker::DeviceRecord;
 
 use super::pci_record::record_from_pci;
-use super::state::TABLE;
+use super::state::{next_id, TABLE};
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 pub fn init_from_pci(devices: &[PciDevice]) {
@@ -44,8 +44,8 @@ pub fn init_from_pci(devices: &[PciDevice]) {
 
 pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRecord) -> u64 {
     let mut table = TABLE.write();
-    let next = table.iter().map(|r| r.device_id).max().map(|m| m + 1);
-    record.device_id = next.unwrap_or(0x1_0000_0000);
+    let max = table.iter().map(|r| r.device_id).max();
+    record.device_id = next_id(max, 0x1_0000_0000);
     table.push(record);
     record.device_id
 }
@@ -57,7 +57,7 @@ pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRe
 pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: bool) -> u64 {
     let external = super::external::flag_for(&dev.address);
     let mut table = TABLE.write();
-    let id = table.iter().map(|r| r.device_id).max().map_or(0, |m| m + 1);
+    let id = next_id(table.iter().map(|r| r.device_id).max(), 0);
     let mut record = record_from_pci(id, dev);
     record.flags |= external;
     if disabled {

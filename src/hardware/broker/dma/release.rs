@@ -44,6 +44,18 @@ pub fn release_for_device(pid: u32, device_id: u64) -> usize {
     drained.len()
 }
 
+/// A device that left while `pid` held it: every grant leaves the device's
+/// domain and is scrubbed, but the holder's pages are not unmapped here
+/// (its space is not the active one); its address-space teardown drops them.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+pub fn revoke_for_device(pid: u32, device_id: u64) -> usize {
+    let drained = drain::drain_for_device(pid, device_id);
+    for g in &drained {
+        teardown(g, false);
+    }
+    drained.len()
+}
+
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
     let drained = drain::drain_for_pid(pid);
     for g in &drained {

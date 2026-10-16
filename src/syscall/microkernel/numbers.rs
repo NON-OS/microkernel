@@ -172,6 +172,7 @@ pub const SYS_SMBIOS_TABLE: u64 = tag4(b"MSMB");
 pub const SYS_ACPI_CPU: u64 = tag4(b"MACP");
 pub const SYS_ACPI_HOLDS: u64 = tag4(b"MAHO");
 pub const SYS_PCI_PROBE_FUNCTION: u64 = tag4(b"MPPF");
+pub const SYS_PCI_DEPART: u64 = tag4(b"MPDP");
 pub const SYS_ACPI_FUNCTION_OF: u64 = tag4(b"MAFO");
 pub const SYS_ACPI_HW_ERROR: u64 = tag4(b"MAHE");
 pub const SYS_ACPI_PLATFORM_DEVICE: u64 = tag4(b"MAPD");
