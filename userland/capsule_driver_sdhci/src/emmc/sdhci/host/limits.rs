@@ -18,11 +18,11 @@
 //! The SD Host Controller specification sets none of these bounds as
 //! recalled; each says where its value comes from.
 
-/// A software reset bit clears within this: 100 ms observed in Linux
-/// sdhci.c, unverified.
+/// A software reset bit clears within this: 100 ms, as observed,
+/// unverified.
 pub const RESET_MS: u64 = 100;
-/// The internal clock reports stable within this: 150 ms observed in Linux
-/// sdhci.c, unverified.
+/// The internal clock reports stable within this: 150 ms, as observed,
+/// unverified.
 pub const CLOCK_STABLE_MS: u64 = 150;
 /// CMD and DAT inhibit clear within this before a command is sent. This
 /// engine's own: a previous command's busy phase has its own bound first.
@@ -30,9 +30,9 @@ pub const INHIBIT_MS: u64 = 100;
 /// Command Complete follows the command within this. This engine's own: a
 /// 136-bit response at 400 kHz takes under half a millisecond.
 pub const CMD_MS: u64 = 250;
-/// Supply and clock settle after each is turned on: 10 ms observed in
-/// Linux, unverified; it also covers the 74 clocks a card needs before
-/// its first command at 400 kHz many times over.
+/// Supply and clock settle after each is turned on: 10 ms, as observed,
+/// unverified; it also covers the 74 clocks a card needs before its first
+/// command at 400 kHz many times over.
 pub const SETTLE_MS: u64 = 10;
 /// Card detect debounces within this after a full reset. This engine's own.
 pub const DETECT_MS: u64 = 100;
