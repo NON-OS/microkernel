@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The largest single allocation a call makes on this thread, via the global allocator.
+//! The largest single allocation a call makes on this thread, and the bytes it leaves held.
 
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
@@ -26,16 +26,19 @@ static WATCH: Watch = Watch;
 
 thread_local! {
     static LARGEST: Cell<usize> = const { Cell::new(0) };
+    static HELD: Cell<isize> = const { Cell::new(0) };
 }
 
-// SAFETY: every call is passed straight to System; only a size is noted.
+// SAFETY: every call is passed straight to System; only sizes are noted.
 unsafe impl GlobalAlloc for Watch {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         let _ = LARGEST.try_with(|m| m.set(m.get().max(layout.size())));
+        let _ = HELD.try_with(|h| h.set(h.get() + layout.size() as isize));
         System.alloc(layout)
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        let _ = HELD.try_with(|h| h.set(h.get() - layout.size() as isize));
         System.dealloc(ptr, layout)
     }
 }
@@ -45,4 +48,12 @@ pub fn largest_during<T>(f: impl FnOnce() -> T) -> (T, usize) {
     LARGEST.with(|m| m.set(0));
     let out = f();
     (out, LARGEST.with(Cell::get))
+}
+
+/// Runs f and returns its value with the bytes it left allocated on this
+/// thread: what it returns, and anything it failed to free.
+pub fn held_after<T>(f: impl FnOnce() -> T) -> (T, isize) {
+    let before = HELD.with(Cell::get);
+    let out = f();
+    (out, HELD.with(Cell::get) - before)
 }
