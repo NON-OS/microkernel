@@ -1108,9 +1108,6 @@ src/security/crypto/constant_time/ed25519.rs:33 validate_signature_format
 src/security/crypto/constant_time/x25519.rs:21 validate_shared_secret
 src/security/crypto/constant_time/x25519.rs:33 verify_clamping
 src/security/crypto/key_management/types.rs:94 key_exchange
-src/security/crypto/random_pool.rs:44 add_entropy
-src/security/crypto/random_pool.rs:60 get_entropy_count
-src/security/crypto/random_pool.rs:64 add_entropy_count
 src/security/hardening/memory_sanitization/containers.rs:30 new_no_sanitize
 src/security/hardening/memory_sanitization/containers.rs:42 into_inner
 src/security/hardening/memory_sanitization/types.rs:106 is_canary_enabled
