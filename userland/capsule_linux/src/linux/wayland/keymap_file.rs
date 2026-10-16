@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 use nonos_libc::mk_debug;
 
 use crate::linux::file::{key, store_read};
+use crate::linux::whole::{ask, whole};
 
 /// Where the keymap is, as a guest sees it: under the family's root, which
 /// is the store's /linux, as /etc/nonos-links is. Compiled by
@@ -31,8 +32,9 @@ const PATH: &[u8] = b"/usr/share/nonos/keymap.xkb";
 const MAX: u32 = 1 << 20;
 
 pub fn load() -> Option<Vec<u8>> {
-    match store_read(&key(PATH), MAX) {
-        Ok(bytes) if !bytes.is_empty() => Some(bytes),
+    // A keymap past MAX is refused, never cut into one xkb cannot read.
+    match store_read(&key(PATH), ask(MAX)).map(|b| whole(b, MAX)) {
+        Ok(Some(bytes)) if !bytes.is_empty() => Some(bytes),
         _ => {
             let line = b"[WAYLAND] no keymap in the store, keys will carry no symbols\n";
             let _ = mk_debug(line.as_ptr(), line.len());

@@ -59,5 +59,6 @@ mod terminal_launch;
 mod terminal_path;
 mod unix;
 mod wayland;
+mod whole;
 
 pub use start::run;

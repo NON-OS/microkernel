@@ -59,7 +59,8 @@ pub fn lay_out() -> Result<usize, Why> {
 pub fn by_name_for(files: &[Vec<u8>], links: &[Link], pkg: &str) -> Vec<Link> {
     let mut placed: Vec<Vec<u8>> = files.to_vec();
     placed.extend(links.iter().map(|(at, _)| at.clone()));
-    let held_elsewhere = others(pkg);
+    // Another record unreadable: no link is made where its files might be.
+    let Some(held_elsewhere) = others(pkg) else { return Vec::new() };
     let held = |p: &[u8]| {
         placed.iter().any(|q| q == p) || held_by_another(&[p.to_vec()], &held_elsewhere).is_some()
     };

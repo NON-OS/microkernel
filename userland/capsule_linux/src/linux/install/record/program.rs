@@ -27,6 +27,7 @@ use super::super::tar::entries;
 // Outside every family's tree, where no guest can rewrite what its package
 // starts as. One directory per family, so two families' `jq` do not collide.
 use crate::linux::file::family::records;
+use crate::linux::whole::{ask, whole};
 
 /// Record `usr/bin/<name>` if the package has it, else its first program.
 /// True when it is recorded, or the package has no program to record.
@@ -56,7 +57,8 @@ pub(in crate::linux::install) fn make_records(pid: u32) {
 
 /// The guest-visible path `name` starts as, if it was installed.
 pub fn recorded(name: &str) -> Option<Vec<u8>> {
-    vfs::read_file(mk_getpid(), &at(name), 256).ok().filter(|p| p.starts_with(b"/"))
+    let raw = vfs::read_file(mk_getpid(), &at(name), ask(256)).ok();
+    raw.and_then(|p| whole(p, 256)).filter(|p| p.starts_with(b"/"))
 }
 
 /// Forget what `name` starts as, when it is uninstalled. True when there is

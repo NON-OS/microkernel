@@ -1880,6 +1880,7 @@
    "userland/capsule_linux/src/linux/wayland/window_life",
    "userland/capsule_linux/src/linux/wayland/wire.rs",
    "userland/capsule_linux/src/linux/wayland/xkb_mods.rs",
+   "userland/capsule_linux/src/linux/whole.rs",
    "userland/capsule_linux_proofs",
    "userland/capsule_model_fetch/src/exit.rs",
    "userland/capsule_model_fetch/src/get/anyone_wait.rs",
