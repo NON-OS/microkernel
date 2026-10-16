@@ -11,6 +11,8 @@ pub mod packet_size;
 pub mod pad;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/pointer.rs"]
 pub mod pointer;
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/record.rs"]
+mod record;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/types.rs"]
 pub mod types;
 // The parser returns Result<_, ()>, its own choice.

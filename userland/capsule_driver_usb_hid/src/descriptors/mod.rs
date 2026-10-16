@@ -21,6 +21,7 @@ mod packet_size;
 mod pad;
 mod parse;
 mod pointer;
+mod record;
 mod types;
 mod wire;
 

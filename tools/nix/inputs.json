@@ -5700,6 +5700,7 @@
    "userland/capsule_driver_usb_hid/src/descriptors/pad",
    "userland/capsule_driver_usb_hid/src/descriptors/parse.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/pointer.rs",
+   "userland/capsule_driver_usb_hid/src/descriptors/record.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/types.rs",
    "userland/capsule_driver_usb_hid/src/hid/button_changes.rs",
    "userland/capsule_driver_usb_hid/src/hid/keyboard/boot_report.rs",
