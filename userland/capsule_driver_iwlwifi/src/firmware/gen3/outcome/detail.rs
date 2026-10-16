@@ -32,7 +32,8 @@ impl Failure {
             | Failure::DeadMmio
             | Failure::Image
             | Failure::NoDma
-            | Failure::Lost => 0,
+            | Failure::Lost
+            | Failure::Unanswered => 0,
             Failure::Start(e) => start_code(e),
             Failure::Master(MasterError::NotStopped) => 1,
             Failure::Master(MasterError::Refused) => 2,
