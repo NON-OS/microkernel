@@ -38,7 +38,7 @@ pub(super) fn attempt(address: &PciAddress, vector: u8, dest: u8) -> (Attempt, O
             (Attempt::Routed, Some(Routed { msg, irte: vector as u16 }))
         }
         Err(e) => {
-            crate::log::info!("[IRQ] {} vector {:#x} not remapped: {:?}", address, vector, e);
+            crate::log::info!("[IRQ] vector {:#x} not remapped: {:?}", vector, e);
             (Attempt::Failed, None)
         }
     }
@@ -50,6 +50,6 @@ pub(super) fn release(address: &PciAddress, irte: u16) {
     }
     let id = device_id(address.bus, address.device, address.function);
     if let Err(e) = intr::release(id, irte as u8) {
-        crate::log::info!("[IRQ] {} remap entry {} not released: {:?}", address, irte, e);
+        crate::log::info!("[IRQ] remap entry {} not released: {:?}", irte, e);
     }
 }

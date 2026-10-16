@@ -43,9 +43,7 @@ pub(crate) fn init_display_pool() {
         if let Some(base) = alloc_contiguous(pages, AllocFlags::DMA | AllocFlags::HIGH) {
             pool.base = base;
             pool.pages = pages;
-            crate::sys::serial::print(b"[DMA] display pool base=");
-            crate::sys::serial::print_hex(base);
-            crate::sys::serial::print(b" pages=");
+            crate::sys::serial::print(b"[DMA] display pool pages=");
             crate::sys::serial::print_dec(pages as u64);
             crate::sys::serial::println(b"");
             return;

@@ -18,7 +18,6 @@
 
 use super::decide::Verdict;
 use super::table::say;
-use crate::memory::iommu::DeviceAddress;
 
 /// No unit confines the device, or the one in service would not take it, so
 /// the claim is refused rather than granted with a device that reaches all
@@ -26,11 +25,11 @@ use crate::memory::iommu::DeviceAddress;
 pub(in crate::hardware::broker) struct Refused;
 
 /// A PCI device with no domain of its own: refused, but under the opt-in.
-pub(super) fn without_domain(pid: u32, address: DeviceAddress, v: Verdict) -> Result<(), Refused> {
+pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
     if v == Verdict::Unconfined {
-        say(b"unconfined under the development opt-in, reaches all memory", pid, address);
+        say(b"unconfined under the development opt-in, reaches all memory");
         return Ok(());
     }
-    say(b"refused: no remapping unit confines it", pid, address);
+    say(b"refused: no remapping unit confines it");
     Err(Refused)
 }

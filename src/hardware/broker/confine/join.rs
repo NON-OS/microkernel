@@ -29,7 +29,6 @@ use crate::memory::iommu::DeviceAddress;
 pub(super) fn join(
     all: &mut Vec<Capsule>,
     pos: usize,
-    pid: u32,
     device_id: u64,
     address: DeviceAddress,
 ) -> Result<(), Refused> {
@@ -38,7 +37,7 @@ pub(super) fn join(
     // without pulling it out from under the first.
     if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
     {
-        say(b"refused: requester id held by another capsule", pid, address);
+        say(b"refused: requester id held by another capsule");
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }
@@ -46,20 +45,20 @@ pub(super) fn join(
     }
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         all[pos].devices.push((device_id, address));
-        say(b"confined to its capsule's domain (shared requester id)", pid, address);
+        say(b"confined to its capsule's domain (shared requester id)");
         return Ok(());
     }
     // Out of its bring-up domain first. Between the two writes the device has
     // no context entry, which denies it: the safe side to be on.
     let _ = all[pos].domain.detach_device(address);
     if all[pos].domain.attach_device(address).is_err() {
-        say(b"refused: attach failed", pid, address);
+        say(b"refused: attach failed");
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }
         return Err(Refused);
     }
     all[pos].devices.push((device_id, address));
-    say(b"confined to its capsule's domain", pid, address);
+    say(b"confined to its capsule's domain");
     Ok(())
 }

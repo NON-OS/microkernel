@@ -33,6 +33,8 @@ pub fn write(
     during(|| {
         let g = resolve(pid, grant_id, port_offset, width)?;
         let port = g.port_base + port_offset;
+        // SAFETY: resolve found the port inside the caller's grant, under a
+        // claim still held; the gate keeps a retire from quieting ports meanwhile.
         unsafe {
             match width {
                 PioWidth::U8 => out8::raw_out8(port, value as u8),

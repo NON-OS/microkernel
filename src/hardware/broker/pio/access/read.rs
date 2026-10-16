@@ -27,6 +27,8 @@ pub fn read(pid: u32, grant_id: u64, port_offset: u16, width: PioWidth) -> Resul
     during(|| {
         let g = resolve(pid, grant_id, port_offset, width)?;
         let port = g.port_base + port_offset;
+        // SAFETY: resolve found the port inside the caller's grant, under a
+        // claim still held; the gate keeps a retire from quieting ports meanwhile.
         let value = unsafe {
             match width {
                 PioWidth::U8 => in8::raw_in8(port) as u32,

@@ -53,7 +53,7 @@ pub(super) fn bind_msix(
         Ok(irtes) => Ok(record_run(pid, &req, epoch, base_slot, base_vector, &irtes)),
         Err(e) => {
             slots::free_contiguous(base_slot, n);
-            crate::log::info!("[IRQ] {} msi-x bind failed: {:?}", handle.address, e);
+            crate::log::info!("[IRQ] msi-x bind failed: {:?}", e);
             Err(e)
         }
     }
