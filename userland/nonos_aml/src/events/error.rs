@@ -37,4 +37,7 @@ pub enum EventsError {
     ModeTimeout,
     /// Not in ACPI mode and no SMI command to switch with.
     NoModeSwitch,
+    /// A wake event firmware gave no _Lxx or _Exx: armed, it would fire
+    /// with nothing to quiet its source.
+    NoMethod,
 }
