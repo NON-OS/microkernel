@@ -22,6 +22,7 @@ mod domain;
 mod domain_id;
 mod error;
 mod posture;
+mod posture_line;
 mod protection;
 mod query;
 mod unconfined;
