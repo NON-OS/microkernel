@@ -8,6 +8,8 @@ mod discover_tests;
 #[cfg(test)]
 mod generation_tests;
 #[cfg(test)]
+mod give_back_tests;
+#[cfg(test)]
 mod grants_tests;
 #[cfg(test)]
 mod regs_tests;
