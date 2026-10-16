@@ -1,9 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! One command and its answer through a scripted reader: the answer
-//! gathered across transfers, a late answer let go, time extensions taken
-//! up to their bound, and the wait ended when time runs out.
+//! One command and its answer through a scripted reader: a late answer let
+//! go, time extensions taken up to their bound, and the wait ended when
+//! time runs out (each transfer one message: exchange_cut_tests.rs).
 
-use nonos_usbnet::mock::{Call, MockBus};
+use nonos_usbnet::mock::MockBus;
 
 use crate::ccid::{command, exchange, XFR_BLOCK};
 use crate::reader::answer;
@@ -15,15 +15,6 @@ pub(crate) fn reader(transfers: Vec<Result<Option<Vec<u8>>, i32>>) -> MockBus {
 }
 
 pub(crate) const APDU: [u8; 5] = [0x00, 0xCA, 0x00, 0x6E, 0x00];
-
-#[test]
-fn an_answer_in_two_transfers_is_read_whole() {
-    let a = answer(0x80, 0, 4, 0, 0, &[0x5A; 70]);
-    let mut bus = reader(vec![Ok(Some(a[..64].to_vec())), Ok(None), Ok(Some(a[64..].to_vec()))]);
-    let got = exchange(&mut bus, &command(XFR_BLOCK, 0, 4, &APDU), 271, |_| true);
-    assert_eq!(got, Ok(a));
-    assert_eq!(bus.0.borrow().calls, [Call::BulkOut(command(XFR_BLOCK, 0, 4, &APDU))]);
-}
 
 #[test]
 fn a_late_answer_to_an_earlier_command_is_let_go() {

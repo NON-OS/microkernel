@@ -56,7 +56,8 @@ pub fn reply(r: &[u8]) -> Option<Reply<'_>> {
     Some(Reply { kind: h[0], slot: h[5], seq: h[6], icc: h[7] & 0x3, outcome, data })
 }
 
-/// The message in `got` once it is whole; too long for `max` is an error.
+/// The message in one transfer `got`: `None` when it is not all there;
+/// a dwLength too long for `max` is an error.
 pub fn whole(got: &[u8], max: usize) -> Result<Option<Reply<'_>>, i32> {
     let Some(h) = got.get(..HEADER) else { return Ok(None) };
     let len = u32::from_le_bytes([h[1], h[2], h[3], h[4]]) as usize;
