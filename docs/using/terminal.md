@@ -4,7 +4,7 @@ How to use the NONOS shell: tabs, line editing, pipes and redirects, background 
 
 ## What it is
 
-Terminal (`app.terminal`) is one [capsule](../overview/glossary.md#capsule). The parser, the built-in commands and job control all run inside it; there is no separate shell process. It also starts programs that are not built in, and runs them as foreground or background jobs with the keyboard as their input.
+Terminal (`app.terminal`) is one [capsule](../overview/glossary-boot-root-record.md#capsule). The parser, the built-in commands and job control all run inside it; there is no separate shell process. It also starts programs that are not built in, and runs them as foreground or background jobs with the keyboard as their input.
 
 A typed name runs through one of four routes, and `type <name>` says which:
 
@@ -175,7 +175,7 @@ The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`)
 
 ## Linux programs
 
-`linux` followed by a program name runs that program through the [Linux personality](../overview/glossary.md#linux-personality). The program reads the keyboard as a terminal. One that draws a full screen reads keys raw, as an xterm would send them.
+`linux` followed by a program name runs that program through the [Linux personality](../overview/glossary-linux-personality.md#linux-personality). The program reads the keyboard as a terminal. One that draws a full screen reads keys raw, as an xterm would send them.
 
 ```sh
 linux sh

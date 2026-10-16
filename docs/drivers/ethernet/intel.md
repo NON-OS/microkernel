@@ -1,6 +1,6 @@
 # Intel Ethernet
 
-NONOS has three Intel Ethernet driver [capsules](../../overview/glossary.md#capsule): e1000 for the 8254x family is in the image, while e1000e (82574, 82583, I217, I218, I219) and igc (I225, I226) are written and host-tested but built into no image in 0.9.2.
+NONOS has three Intel Ethernet driver [capsules](../../overview/glossary-boot-root-record.md#capsule): e1000 for the 8254x family is in the image, while e1000e (82574, 82583, I217, I218, I219) and igc (I225, I226) are written and host-tested but built into no image in 0.9.2.
 
 ## Which driver takes which chip
 
@@ -23,7 +23,7 @@ The driver takes an Intel PCI function of class network, subclass Ethernet, whos
 ### How it runs
 
 - The service is `driver.e1000_0` on port 4210 (`userland/capsule_driver_e1000/Capsule.mk:16`, `CAPSULE_SERVICE_ENDPOINT`).
-- The [capability](../../overview/glossary.md#capability-word) mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:23`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-65`, `requested_caps`), so the driver's own log lines are dropped in every build.
+- The [capability](../../overview/glossary-boot-root-record.md#capability-word) mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:23`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-65`, `requested_caps`), so the driver's own log lines are dropped in every build.
 - It binds no interrupt line and never sets IMS (`userland/capsule_driver_e1000/src/setup/sequence.rs:24-27`, `IMS`); the reset masks every cause (`userland/capsule_driver_e1000/src/init/reset.rs:55`, `REG_IMC`).
 - It draws a new station address every boot and never uses the EEPROM address; without randomness it does not come up (`userland/capsule_driver_e1000/src/init/station_address.rs:22-31`, `draw`).
 - It answers health check (1), link status (2), MAC address (3), transmit (4), receive (5) and a register snapshot (6) (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`). `net.core` reads operation 6 as a receive batch, which is the cause of [the receive fault](README.md#the-receive-fault).
@@ -63,7 +63,7 @@ The capsule has the same link protocol and the same polled, interrupt-free desig
 ### Why it is not in 0.9.2
 
 - The build does not include its makefile, whose `CAPSULE_SLUG` is `driver-e1000e`; a comment in it says wiring it into the kernel and the stack is a separate step (`userland/capsule_driver_e1000e/Capsule.mk:8-11`, `CAPSULE_SLUG`). The Ethernet makefiles the build includes are those of virtio-net, e1000, RTL8139 and RTL8169 (`mk/20-build.mk:532-542`, `capsule_driver_e1000`).
-- The [kernel mirror](../../overview/glossary.md#kernel-mirror) it names, `src/hardware/e1000e_capsule`, does not exist in the tree (`userland/capsule_driver_e1000e/Capsule.mk:31`, `CAPSULE_KERNEL_MIRROR`), so the kernel cannot start it.
+- The [kernel mirror](../../overview/glossary-hardware-broker.md#kernel-mirror) it names, `src/hardware/e1000e_capsule`, does not exist in the tree (`userland/capsule_driver_e1000e/Capsule.mk:31`, `CAPSULE_KERNEL_MIRROR`), so the kernel cannot start it.
 - The kernel holds no endpoint for it, and `net.core` does not look it up (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`).
 
 ### Tests
@@ -83,7 +83,6 @@ The table holds every I225 and I226 id Linux's igc driver binds, including the b
 | 15f8 | I225-I |
 | 15f7 | I220-V |
 | 3100 | I225-K |
-| 3101 | I225-K2 |
 | 3102 | I226-K |
 | 5502 | I225-LMVP |
 | 5503 | I226-LMVP |
@@ -97,7 +96,7 @@ The table holds every I225 and I226 id Linux's igc driver binds, including the b
 
 ### What the code does
 
-One advanced receive queue and one advanced transmit queue, polled, with the station address drawn every boot and never read from the NVM (`userland/capsule_driver_igc/src/init/station_address.rs:24-28`, `draw`). The service would be `driver.igc_0` on port 4272 (`userland/capsule_driver_igc/Capsule.mk:15`, `CAPSULE_SERVICE_ENDPOINT`). The driver takes the first matching function in the [hardware broker](../../overview/glossary.md#hardware-broker)'s device list and no other (`userland/capsule_driver_igc/src/discover/scan.rs:27-55`, `find_igc`).
+One advanced receive queue and one advanced transmit queue, polled, with the station address drawn every boot and never read from the NVM (`userland/capsule_driver_igc/src/init/station_address.rs:24-28`, `draw`). The service would be `driver.igc_0` on port 4272 (`userland/capsule_driver_igc/Capsule.mk:15`, `CAPSULE_SERVICE_ENDPOINT`). The driver takes the first matching function in the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker)'s device list and no other (`userland/capsule_driver_igc/src/discover/scan.rs:27-55`, `find_igc`).
 
 The tree has a file `nonos-bootloader/firmware/intel/i225-ethernet.bin` of 51 bytes; no code reads it, and the igc driver needs no firmware file.
 
@@ -111,7 +110,7 @@ The same three reasons as e1000e: the build does not include it, the kernel mirr
 
 ## To run the proofs
 
-The flake runs each [proof crate](../../overview/glossary.md#proof-crate) with overflow checks on. The same run by hand:
+The flake runs each [proof crate](../../overview/glossary-peer-list.md#proof-crate) with overflow checks on. The same run by hand:
 
 ```sh
 cd userland/e1000_proofs && cargo test --release --config profile.release.overflow-checks=true

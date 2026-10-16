@@ -14,7 +14,7 @@ flowchart LR
     T -->|MkLogTail| L[Terminal log]
 ```
 
-The [serial console](../overview/glossary.md#serial-console) is the main record. Kernel code writes `[TAG]` lines to it, the `boot_log` helpers write the same lines there and, when the on-screen log is built in, to the panel, and a [capsule](../overview/glossary.md#capsule) with the `Debug` [capability](../overview/glossary.md#capability) can add its own. On images built with `capsule-serial-debug`, the `standard` [build profile](../overview/glossary.md#build-profile) among them, the kernel also keeps a copy in memory, the serial tail, which the Terminal's `log` command reads back.
+The [serial console](../overview/glossary-rollback-index.md#serial-console) is the main record. Kernel code writes `[TAG]` lines to it, the `boot_log` helpers write the same lines there and, when the on-screen log is built in, to the panel, and a [capsule](../overview/glossary-boot-root-record.md#capsule) with the `Debug` [capability](../overview/glossary-boot-root-record.md#capability) can add its own. On images built with `capsule-serial-debug`, the `standard` [build profile](../overview/glossary-boot-root-record.md#build-profile) among them, the kernel also keeps a copy in memory, the serial tail, which the Terminal's `log` command reads back.
 
 ### The serial console
 
@@ -24,11 +24,11 @@ On x86_64 the console is the 16550 UART at I/O port `0x3F8`, which `init` sets t
 
 Every byte the console takes is also kept in memory: the first `HEAD`, 64 KiB, of the boot, which is never pushed out, and the latest `CAPACITY`, 64 KiB (`src/sys/serial/tail.rs:27-32`). `write_byte` keeps the byte before it tries the UART, so the tail fills on a machine with no serial port too (`src/sys/serial/core.rs:63-66`). A byte that arrives while the tail is being read is dropped from the tail, not waited for.
 
-The tail exists only in kernels built with the `capsule-serial-debug` feature: without it, `keep` returns at once and nothing is kept (`src/sys/serial/tail.rs:49-54`). The `standard` build profile has the feature through `microkernel-desktop-base` (`Cargo.toml:591-594`). The `hardened` and `airgapped` build profiles drop it through `debugFeatures` (`tools/nix/config.nix:62`, `tools/nix/config.nix:84`, `tools/nix/config.nix:92`), so on those images the kernel's lines stay on the serial port only. These are build profiles, chosen when the image is made. The Hardened and Air-Gapped [boot profiles](../overview/glossary.md#boot-profile) in the boot menu do not change what a kernel was built with.
+The tail exists only in kernels built with the `capsule-serial-debug` feature: without it, `keep` returns at once and nothing is kept (`src/sys/serial/tail.rs:49-54`). The `standard` build profile has the feature through `microkernel-desktop-base` (`Cargo.toml:591-594`). The `hardened` and `airgapped` build profiles drop it through `debugFeatures` (`tools/nix/config.nix:62`, `tools/nix/config.nix:84`, `tools/nix/config.nix:92`), so on those images the kernel's lines stay on the serial port only. These are build profiles, chosen when the image is made. The Hardened and Air-Gapped [boot profiles](../overview/glossary-amnesic-boot.md#boot-profile) in the boot menu do not change what a kernel was built with.
 
 ### The panel
 
-The kernel's on-screen boot log is off. `init_after_fb` prints `[fbconsole] on-screen log disabled; serial only` unless the kernel was built with `NONOS_FBCONSOLE=1` (`src/sys/boot_log/init.rs:22-39`). The panel is still used when the [boot stops](../overview/glossary.md#boot-stop) or the kernel panics; see [panic and boot stop](panic-and-boot-stop.md).
+The kernel's on-screen boot log is off. `init_after_fb` prints `[fbconsole] on-screen log disabled; serial only` unless the kernel was built with `NONOS_FBCONSOLE=1` (`src/sys/boot_log/init.rs:22-39`). The panel is still used when the [boot stops](../overview/glossary-amnesic-boot.md#boot-stop) or the kernel panics; see [panic and boot stop](panic-and-boot-stop.md).
 
 ### Capsule lines
 
@@ -86,7 +86,7 @@ Each kernel line starts with a tag in square brackets. These are the ones a read
 | `[MEM]`, `[VM-INIT]`, `[KSEC]`, `[STACK-GUARD]` | memory init | the physical span, page tables, W^X and stack guards |
 | `[TIMER]`, `[APIC]`, `[BOOT-ENTROPY]` | clock and tick setup | the counter rate, the tick, the boot nonce |
 | `[HEAP-GUARD]`, `[OOM]` | the kernel heap | a corrupted block, or an exhausted heap |
-| `[EXIT]` | `note` (`src/process/exit/end_note.rs:23-37`) | a [driver capsule](../overview/glossary.md#driver-capsule) ended by itself with a nonzero status |
+| `[EXIT]` | `note` (`src/process/exit/end_note.rs:23-37`) | a [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) ended by itself with a nonzero status |
 
 `[TRAP xx]` and `[PANIC xx]` are explained on [panic and boot stop](panic-and-boot-stop.md); memory lines on [memory and paging](memory-and-paging.md); CPU lines on [scheduler and SMP](scheduler-and-smp.md).
 
@@ -95,7 +95,7 @@ Each kernel line starts with a tag in square brackets. These are the ones a read
 - The bootloader's random seed. `log_entropy` says only whether it arrived (`src/entry/security.rs:33-36`).
 - A private Linux run's output, as above.
 
-Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries the instruction and stack pointers, CR3 and, for a page fault, the faulting address (`src/arch/x86_64/diag/dump_trap.rs:23-63`). At shutdown the [ZeroState](../overview/glossary.md#zerostate) wipe calls `wipe_ram_log` for the structured log's buffer (`src/security/hardening/memory_sanitization/api.rs:92-96`); the serial tail is a separate static buffer, and the wipe does not clear it.
+Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries the instruction and stack pointers, CR3 and, for a page fault, the faulting address (`src/arch/x86_64/diag/dump_trap.rs:23-63`). At shutdown the [ZeroState](../overview/glossary-stark-proof.md#zerostate) wipe calls `wipe_ram_log` for the structured log's buffer (`src/security/hardening/memory_sanitization/api.rs:92-96`); the serial tail is a separate static buffer, and the wipe does not clear it.
 
 ## Limits
 

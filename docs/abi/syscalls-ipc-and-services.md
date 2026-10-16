@@ -4,8 +4,8 @@ Part of [Syscalls](syscalls.md).
 
 ### IPC and services
 
-A message goes to an [endpoint](../overview/glossary.md#endpoint), a port a
-service registered, and lands in the [inbox](../overview/glossary.md#inbox) of
+A message goes to an [endpoint](../overview/glossary-dma-pool.md#endpoint), a port a
+service registered, and lands in the [inbox](../overview/glossary-hardware-broker.md#inbox) of
 the process that serves it. See [IPC](ipc.md) for the arguments, the limits and
 the ports.
 
@@ -26,7 +26,7 @@ the ports.
 |---|---|---|---|---|---|
 | `MMAP` | `0x50414D4D` | `MkMmap` | Memory | `can_allocate_memory` `src/syscall/contract/cap_table/mk_proc.rs:38` | Map up to 1 GiB of fresh zeroed pages, at a page-aligned address the caller names or one the kernel picks; returns the address. |
 | `MUMP` | `0x504D554D` | `MkMunmap` | Memory | `can_deallocate_memory` `src/syscall/contract/cap_table/mk_proc.rs:39` | Unmap pages the caller mapped. |
-| `MCLD` | `0x444C434D` | `MkCapsuleLoad` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:41-44` | Verify a [capsule](../overview/glossary.md#capsule) from the ELF, certificate, manifest and trailer the caller passes, and start it; returns the pid. |
+| `MCLD` | `0x444C434D` | `MkCapsuleLoad` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:41-44` | Verify a [capsule](../overview/glossary-boot-root-record.md#capsule) from the ELF, certificate, manifest and trailer the caller passes, and start it; returns the pid. |
 | `MCVF` | `0x4656434D` | `MkCapsuleVerify` | CoreExec and IPC and Memory | `grants_all` `src/syscall/contract/cap_table/mk_proc.rs:46-49` | Run the same verification without starting anything, and write a summary. |
 | `MEXT` | `0x5458454D` | `MkExit` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | End the calling process with an exit code. |
 | `MPAL` | `0x4C41504D` | `MkPidAlive` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | 1 when a pid names a live process, else 0. |

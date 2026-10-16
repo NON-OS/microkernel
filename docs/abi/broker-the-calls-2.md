@@ -9,7 +9,7 @@ Part of [Broker](broker.md).
   `sys_device_list` returns how many devices match and writes nothing
   (`src/syscall/microkernel/device.rs:40-45`).
 - `claim` asks `attach` to move the device into the claiming capsule's [IOMMU
-  domain](../overview/glossary.md#iommu-domain) before it powers the device, and
+  domain](../overview/glossary-hardware-broker.md#iommu-domain) before it powers the device, and
   refuses the claim with `Unconfined` when an IOMMU unit in service will not
   take it (`src/hardware/broker/claim/claim.rs:33-40`). `sys_device_claim`
   returns that refusal as `EPERM` (`src/syscall/microkernel/device.rs:67-81`).

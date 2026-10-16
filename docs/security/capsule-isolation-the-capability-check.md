@@ -5,7 +5,7 @@ Part of [Capsule isolation](capsule-isolation.md).
 ## The capability check on every NONOS system call
 
 A capsule's authority is a [capability
-word](../overview/glossary.md#capability-word): a 64-bit mask in which 37 bits
+word](../overview/glossary-boot-root-record.md#capability-word): a 64-bit mask in which 37 bits
 are defined, one per entry of the `capability_table!` list that defines
 `Capability` (`src/capabilities/types/defs.rs:18-75`). A compile-time check over
 `Capability::all` refuses a build in which two capabilities share a bit or one
@@ -14,7 +14,7 @@ list is [abi/caps.toml](../../abi/caps.toml), and [ABI
 capabilities](../abi/capabilities.md) explains each bit.
 
 The kernel keeps the word inside a [capability
-token](../overview/glossary.md#capability-token), and the token is what the
+token](../overview/glossary-boot-root-record.md#capability-token), and the token is what the
 check reads. `new_token` binds the bits to the pid, the address space ID, this
 boot's session nonce and the process's revocation epoch, then signs the result
 (`src/process/caps.rs:38-59`). The signature, `mac64`, is two keyed BLAKE3
