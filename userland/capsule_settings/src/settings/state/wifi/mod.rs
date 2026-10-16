@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Wi-Fi switch turned off. It only stopped new scans and joins before,
-//! so a joined network stayed up while the card's badge said Off. Off now
-//! leaves that network too, and drops the list a join would be made from.
+//! The Wi-Fi panel's state and its steps: entering the panel, its status,
+//! scans and joins handed to the worker and their answers, the radio, the
+//! passphrase, saved networks, and the refusals the panel gives.
 
-use super::state::{State, WifiScan};
-use super::wifi_join::leave;
-
-pub fn radio_switched_off(state: &mut State) {
-    if state.wifi.joined().is_some() {
-        leave(state);
-    }
-    state.wifi_network_count = 0;
-    state.wifi_cursor = 0;
-    state.wifi_scan = WifiScan::Idle;
-}
+pub mod answer;
+pub mod apply;
+pub mod cursor;
+pub mod diag;
+pub mod enter;
+pub mod extra;
+pub mod join;
+pub mod kinds;
+pub mod pass;
+pub mod pending;
+pub mod radio;
+pub mod refusal;
+pub mod remember;
+pub mod saved;
+pub mod scan;
+pub mod scan_now;
+pub mod status;
+pub mod step;
+pub mod worker;

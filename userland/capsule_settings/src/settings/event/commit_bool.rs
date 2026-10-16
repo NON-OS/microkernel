@@ -18,7 +18,7 @@ use nonos_policy_proto::Field;
 
 use crate::settings::ipc::op_set_bool;
 use crate::settings::state::status::StatusKind;
-use crate::settings::state::wifi_radio::radio_switched_off;
+use crate::settings::state::wifi::radio::radio_switched_off;
 use crate::settings::state::{store_value, FieldValue, State};
 
 use super::report::report;

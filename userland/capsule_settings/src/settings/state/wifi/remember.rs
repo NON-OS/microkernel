@@ -5,11 +5,11 @@
 
 //! Whether the panel remembers the networks it joins. Remembering one is the
 //! join's last step, on the worker that holds its passphrase
-//! (`wifi_worker.rs`).
+//! (`state/wifi/worker.rs`).
 
 use nonos_wifi_client::sealing_ready;
 
-use super::state::State;
+use super::super::state::State;
 
 /// Turn remembering on or off. It stays off on a boot that keeps nothing,
 /// and turning it on first checks there is a store and a TPM key, so the

@@ -1,0 +1,46 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The search's results from the keyboard: Up and Down move along them,
+//! never past either end, and Enter opens the one selected at its field.
+
+use crate::settings::state::{search_clear, set_section, track_scroll, State};
+use crate::settings::ui::bytes::as_str;
+use crate::settings::ui::results;
+use nonos_app_skeleton::EventOutcome;
+
+pub(super) fn step(state: &mut State, delta: i32) -> EventOutcome {
+    let n = results::count(as_str(state.search.text.as_slice()));
+    if n == 0 {
+        return EventOutcome::Idle;
+    }
+    let next = (state.search.cursor as i32 + delta).clamp(0, n as i32 - 1);
+    state.search.cursor = next as usize;
+    EventOutcome::Repaint
+}
+
+pub(super) fn open_selected(state: &mut State) -> EventOutcome {
+    let query = as_str(state.search.text.as_slice());
+    let Some((section, index, _)) = results::at(query, state.search.cursor) else {
+        return EventOutcome::Idle;
+    };
+    search_clear(state);
+    state.search.focused = false;
+    set_section(state, section);
+    state.cursor[section.index()] = index;
+    track_scroll(state);
+    EventOutcome::Repaint
+}
