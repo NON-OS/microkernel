@@ -18,8 +18,10 @@
 
 use alloc::vec::Vec;
 
+use super::empty_certificate::empty_certificate;
 use super::types::HandshakeState;
-use crate::scan_server_finished::{scan, ScanState};
+use crate::scan_server_finished::scan;
+use crate::scan_state::ScanState;
 use crate::server_complete::ServerComplete;
 
 impl HandshakeState {
@@ -69,17 +71,4 @@ impl HandshakeState {
             finished_hash,
         })
     }
-}
-
-/// A Certificate message that echoes `context` and carries no certificate,
-/// which is how a client declines a CertificateRequest (RFC 8446 4.4.2).
-fn empty_certificate(context: &[u8]) -> Vec<u8> {
-    let body_len = 1 + context.len() + 3;
-    let mut message = Vec::with_capacity(4 + body_len);
-    message.push(11);
-    crate::push::u24(&mut message, body_len);
-    message.push(context.len() as u8);
-    message.extend_from_slice(context);
-    crate::push::u24(&mut message, 0);
-    message
 }
