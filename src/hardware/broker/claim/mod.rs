@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod held;
 mod lookup;
 mod no_snoop;
 mod quiesce;
@@ -25,5 +26,6 @@ mod types;
 
 pub use claim::claim;
 pub use lookup::lookup;
-pub use release::{quiesce_all, quiesce_held, release, release_all_for_pid};
+pub use held::{quiesce_all, quiesce_held};
+pub use release::{release, release_all_for_pid};
 pub use types::{Claim, ClaimError};
