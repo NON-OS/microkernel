@@ -45,7 +45,7 @@ impl Host {
                 }
                 Some(BOOT_MOUSE_INPUT) if has(NOTIFY) => {
                     self.sources.push(source(Kind::Mouse));
-                    hid.mouse = true;
+                    hid.mouse = Some(value);
                 }
                 Some(PROTOCOL_MODE) if has(WRITE_WITHOUT_RESPONSE) => {
                     self.modes.push((value, BOOT_PROTOCOL));

@@ -20,7 +20,9 @@
 
 use nonos_bt_hogp::report::Input;
 use nonos_keymap::HeldKeys;
-use nonos_libc::{INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_REL};
+use nonos_libc::{
+    INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
+};
 
 use super::modifier::modifier_bit;
 use super::post_wire::send;
@@ -53,6 +55,9 @@ impl Keys {
             Input::ButtonDown(n) => send(INPUT_KIND_BUTTON_DOWN, 0, u32::from(n), 0, 0),
             Input::ButtonUp(n) => send(INPUT_KIND_BUTTON_UP, 0, u32::from(n), 0, 0),
             Input::Motion { dx, dy } => send(INPUT_KIND_POINTER_REL, 0, 0, dx.into(), dy.into()),
+            // The detents go in delta_y with HID's sign, as the USB driver
+            // posts a wheel.
+            Input::Wheel(dz) => send(INPUT_KIND_WHEEL, 0, 0, 0, dz.into()),
         };
         self.failures += u64::from(!ok);
     }
