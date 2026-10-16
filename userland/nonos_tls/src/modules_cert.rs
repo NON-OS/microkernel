@@ -32,6 +32,7 @@ mod cert_time_value;
 mod cert_valid_now;
 mod cert_window;
 mod cert_verify_msg;
+mod chain_anchor;
 mod chain_walk;
 mod crypto_port;
 mod crypto_status;
