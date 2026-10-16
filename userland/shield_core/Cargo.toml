@@ -12,6 +12,9 @@ edition = "2021"
 license = "AGPL-3.0-or-later"
 publish = false
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 name = "nox_shield_core"
 path = "src/lib.rs"
