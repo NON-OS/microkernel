@@ -26,7 +26,10 @@ pub fn answer(hub: &mut HubModel, s: Setup, data: &mut [u8]) -> Result<usize, i3
     match (s.request_type, s.request, s.value) {
         (0xA0, 0x06, v) if v >> 8 == if hub.superspeed { 0x2A } else { 0x29 } => {
             let think = if hub.superspeed { 0 } else { hub.think << 5 };
-            let d = [7, (v >> 8) as u8, hub.ports.len() as u8, think, 0, 50, 0];
+            // bLength as long as a hub of this many ports gives it.
+            let n = hub.ports.len();
+            let len = if hub.superspeed { 12 } else { 7 + (n + 1).div_ceil(8) as u8 };
+            let d = [len, (v >> 8) as u8, n as u8, think, 0, 50, 0];
             let n = d.len().min(data.len()).min(s.length as usize);
             data[..n].copy_from_slice(&d[..n]);
             Ok(n)

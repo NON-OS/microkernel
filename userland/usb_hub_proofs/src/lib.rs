@@ -25,6 +25,8 @@ mod hub_descriptor_tests;
 #[cfg(test)]
 mod hub_port_tests;
 #[cfg(test)]
+mod hub_removable_tests;
+#[cfg(test)]
 mod hub_route_tests;
 #[cfg(test)]
 mod parker_tests;

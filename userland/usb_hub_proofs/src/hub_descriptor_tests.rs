@@ -46,7 +46,7 @@ fn a_superspeed_hub_descriptor_is_read_only_as_one() {
     let d = parse_hub_descriptor(&raw, true).unwrap();
     assert_eq!((d.ports, d.think_time), (4, 0));
     assert_eq!(parse_hub_descriptor(&raw, false), None);
-    assert_eq!(parse_hub_descriptor(&[0x09, 0x29, 0x04, 0, 0, 0x32, 0], true), None);
+    assert_eq!(parse_hub_descriptor(&[0x0c, 0x29, 0x04, 0, 0, 0x32, 0], true), None);
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn short_empty_or_wide_hubs_are_refused_or_capped() {
     assert_eq!(parse_hub_descriptor(&[0x09, 0x29, 0x04, 0, 0, 0x32], false), None);
     assert_eq!(parse_hub_descriptor(&[0x06, 0x29, 0x04, 0, 0, 0x32, 0], false), None);
     assert_eq!(parse_hub_descriptor(&[0x09, 0x29, 0x00, 0, 0, 0x32, 0], false), None);
-    let d = parse_hub_descriptor(&[0x09, 0x29, 0x1c, 0, 0, 0x32, 0], false).unwrap();
+    let d = parse_hub_descriptor(&[0x0b, 0x29, 0x1c, 0, 0, 0x32, 0], false).unwrap();
     assert_eq!((d.ports, d.ports_named), (15, 28));
 }
 

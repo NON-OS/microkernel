@@ -22,6 +22,7 @@ use crate::host::Host;
 use crate::line::Line;
 use crate::node::Hub;
 use crate::place::{speed_name, Place};
+use crate::port_status::SPEED_HIGH;
 use crate::power::power_ports;
 use crate::read::hub_descriptor;
 use crate::request::set_hub_depth;
@@ -34,7 +35,10 @@ pub fn attach(h: &mut impl Host, slot: u8, place: Place, raw: &[u8]) -> Result<H
     if ss && !set_hub_depth(h, slot, place.depth) {
         return Err(HubError::Depth);
     }
-    if let Err(status) = h.configure_hub(slot, desc.ports, desc.think_time) {
+    // Only a high-speed hub has a TT; the bits are reserved on another
+    // (USB 2.0 11.23.2.1, as recalled, unverified), so none is passed on.
+    let think = if place.speed == SPEED_HIGH { desc.think_time } else { 0 };
+    if let Err(status) = h.configure_hub(slot, desc.ports, think) {
         let line = Line::new().text(b"hub slot ").num(slot as u32).text(b": ");
         line.text(HubError::Configure(status).says()).say(h);
     }

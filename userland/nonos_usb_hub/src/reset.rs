@@ -24,8 +24,7 @@ use crate::request::{
     clear_port_feature, set_port_feature, C_PORT_CONNECTION, C_PORT_RESET, PORT_RESET,
 };
 
-/// A reset still running after this has failed (Linux's hub driver waits
-/// as long; observed, unverified).
+/// A reset still running after this has failed (as observed, unverified).
 const RESET_TIMEOUT_MS: i64 = 800;
 /// How often the port is read while it resets.
 const RESET_POLL_MS: u64 = 10;
