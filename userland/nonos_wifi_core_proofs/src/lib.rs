@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for the shared WiFi core, checked against its public API.
+//! Proofs for the shared WiFi core against its public API; all test-only.
 
-// Every module is a proof or a simulation one drives: empty outside tests.
 #![cfg(test)]
 
 mod address;
@@ -27,6 +26,7 @@ mod bip_gmac_reading_tests;
 mod bip_gmac_refusal_tests;
 mod bip_gmac_tests;
 mod bip_tests;
+mod chip;
 mod cipher_select_tests;
 mod cipher_sim;
 mod country_tests;
