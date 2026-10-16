@@ -27,11 +27,8 @@ pub fn clear_dcbaa_slot(dcbaa: &DmaRegion, slot_id: u8, max_slots: u8) -> XhciRe
     write_dcbaa_slot(dcbaa, slot_id, max_slots, 0)
 }
 fn write_dcbaa_slot(dcbaa: &DmaRegion, slot_id: u8, max_slots: u8, value: u64) -> XhciResult<()> {
-    if slot_id == 0 || slot_id > max_slots {
+    if slot_id == 0 || slot_id > max_slots || !dcbaa.write_u64(slot_id as usize * 8, value) {
         return Err(XhciError::ControllerUnsupported);
-    }
-    unsafe {
-        core::ptr::write_volatile(dcbaa.as_mut_ptr::<u64>().add(slot_id as usize), value);
     }
     Ok(())
 }

@@ -25,7 +25,13 @@ use crate::constants::{USBCMD, USBCMD_HCRST, USBCMD_RUN, USBSTS, USBSTS_CNR, USB
 /// A conforming host controller: halted exactly when not running, ready once
 /// a requested reset has been performed, and reset completes on the next look.
 pub fn host_controller(bar: &FakeBar) {
-    let cmd = bar.wrote32(CAP_LEN + USBCMD as usize);
+    present(bar, bar.wrote32(CAP_LEN + USBCMD as usize));
+}
+
+/// The same for `cmd`, the USBCMD value a model already read and acted on:
+/// read again, a RUN or HCRST the driver wrote in between would be shown
+/// done without the model having taken it.
+pub fn present(bar: &FakeBar, cmd: u32) {
     let mut sts = bar.wrote32(CAP_LEN + USBSTS as usize);
     if cmd & USBCMD_HCRST != 0 {
         bar.present32(CAP_LEN + USBCMD as usize, cmd & !USBCMD_HCRST);

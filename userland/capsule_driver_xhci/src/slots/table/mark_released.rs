@@ -23,6 +23,7 @@ impl SlotTable {
         }
         self.addressed[slot_id as usize] = false;
         self.allocated[slot_id as usize] = false;
+        self.owner[slot_id as usize] = 0;
         self.count = self.count.saturating_sub(1);
         true
     }

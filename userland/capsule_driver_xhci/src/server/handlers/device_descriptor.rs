@@ -35,12 +35,13 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
     out.zero();
-    if let Err(e) = transfer(ctx, slot, &out) {
-        recover_after(ctx, slot, DCI_EP0, e);
-        reply_with_status(tx, req, E_IO);
-        return;
+    match transfer(ctx, slot, &out) {
+        Ok(n) => reply_descriptor(tx, req, &out, n.min(DEVICE_DESCRIPTOR_REPLY_LEN)),
+        Err(e) => {
+            recover_after(ctx, slot, DCI_EP0, e, Some(out));
+            reply_with_status(tx, req, E_IO);
+        }
     }
-    reply_descriptor(tx, req, &out);
 }
 fn transfer(
     ctx: &mut Context,
@@ -57,15 +58,12 @@ fn transfer(
         .ok_or(crate::error::XhciError::ControllerUnsupported)?;
     get_device_descriptor(doorbell, intr, &mut ctx.driver.event_ring, slot, &mut resources.ep0, out)
 }
-fn reply_descriptor(tx: &mut [u8], req: &Request, out: &crate::dma::DmaRegion) {
-    let payload_len = (STATUS_LEN + DEVICE_DESCRIPTOR_REPLY_LEN) as u32;
+/// The `n` bytes the device sent, as it sent them.
+fn reply_descriptor(tx: &mut [u8], req: &Request, out: &crate::dma::DmaRegion, n: usize) {
+    let payload_len = (STATUS_LEN + n) as u32;
     encode_response_header(tx, req, payload_len);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
     let offset = RESP_HDR_LEN + STATUS_LEN;
-    for i in 0..DEVICE_DESCRIPTOR_REPLY_LEN {
-        unsafe {
-            tx[offset + i] = core::ptr::read_volatile(out.as_mut_ptr::<u8>().add(i));
-        }
-    }
+    out.copy_to(&mut tx[offset..offset + n]);
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + payload_len as usize);
 }

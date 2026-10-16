@@ -16,5 +16,7 @@
 use crate::constants::RTSOFF;
 use crate::regs::mmio_read32;
 pub fn rtsoff(mmio_base: u64) -> u64 {
-    (mmio_read32(mmio_base + RTSOFF) & !0x1F) as u64
+    // SAFETY: `mmio_base` starts the mapped window, and the capability registers are its first 32
+    // bytes.
+    (unsafe { mmio_read32(mmio_base + RTSOFF) } & !0x1F) as u64
 }

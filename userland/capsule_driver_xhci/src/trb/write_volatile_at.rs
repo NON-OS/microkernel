@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::base::Trb;
-pub fn write_volatile_at(slot_va: u64, trb: Trb) {
+/// Write `trb` to the slot at `slot_va`, for the controller to read.
+///
+/// # Safety
+/// `slot_va` is a 16-byte aligned TRB slot inside a live ring grant of
+/// this process.
+pub unsafe fn write_volatile_at(slot_va: u64, trb: Trb) {
+    // SAFETY: the caller's contract.
     unsafe { core::ptr::write_volatile(slot_va as *mut Trb, trb) }
 }

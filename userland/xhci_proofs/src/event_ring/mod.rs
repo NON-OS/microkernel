@@ -23,16 +23,46 @@
 //! waits, the interrupt-IN poll and the bulk wait) over host DMA memory,
 //! with a producer written from the specification on the other side.
 
-mod events;
+pub(crate) mod events;
 mod fixture;
-mod producer;
+mod fixture_slots;
+pub(crate) mod producer;
+mod producer_ring;
+mod producer_start;
+mod producer_write;
 
+mod abort_failed_tests;
+mod abort_ring_tests;
+mod abort_unfetched_tests;
 mod address_tests;
+mod armed_tests;
+mod boundary_pointer_tests;
 mod boundary_tests;
+mod boundary_through;
+mod burst_tests;
+mod command_at;
+mod dequeue_start_tests;
 mod dequeue_tests;
+mod drain_batch_tests;
 mod erdp_tests;
 mod fuzz_tests;
-mod match_tests;
+mod match_bulk_tests;
+mod match_command_tests;
+mod match_control_tests;
+mod match_enable_slot_tests;
+mod match_impostors;
+mod match_interrupt_tests;
+mod match_stall_tests;
+mod parked_tests;
+mod recover_refusal_tests;
 mod recover_tests;
+mod residual_bulk_tests;
 mod residual_tests;
+mod residual_wild_tests;
+mod ring_full_tests;
+mod stale_lap_tests;
+mod stopped_tests;
+mod stray_tests;
+mod toggle_reset_tests;
+mod toggle_slot;
 mod toggle_tests;
