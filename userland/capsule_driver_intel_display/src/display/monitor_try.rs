@@ -16,10 +16,10 @@
 
 //! One try at an EDID block, the way the port speaks: I2C over the AUX
 //! channel for DisplayPort and eDP, DDC through GMBUS for HDMI and DVI,
-//! the latter within one transaction's deadline or the whole read's,
-//! whichever ends first.
+//! each through E-DDC's segment pointer and within one transaction's
+//! deadline or the whole read's, whichever ends first.
 
-use crate::dp::i2c::read_edid as aux_edid;
+use crate::dp::i2c_edid::read_edid as aux_edid;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::aux_regs::Ddi;
 use crate::engine::gmbus::{read_block, BLOCK};
@@ -27,8 +27,7 @@ use crate::engine::gmbus_xfer::deadline::{Deadline, XFER_US};
 use crate::engine::port::Port;
 use crate::engine::route::{Link, Route};
 
-/// One try. DisplayPort's segment pointer is not driven here, so its
-/// sinks give the first two blocks.
+/// One try at block `n`, from segment n / 2 on either port.
 pub fn once(
     m: &mut dyn Mmio,
     clock: &dyn Clock,
@@ -38,12 +37,11 @@ pub fn once(
     whole: &Deadline,
 ) -> Option<()> {
     match r.link {
-        Link::Dp { .. } if n < 2 => {
+        Link::Dp { .. } => {
             let ddi = [Ddi::A, Ddi::B, Ddi::C, Ddi::D].get(r.ddi as usize).copied()?;
             let mut p = Port { mmio: m, ddi, dpll: 0, enhanced: false, clock };
-            aux_edid(&mut p, n * 128, out).ok()
+            aux_edid(&mut p, n / 2, n % 2 * 128, out, &whole.within(XFER_US)).ok()
         }
-        Link::Dp { .. } => None,
         Link::Hdmi | Link::Dvi => read_block(m, clock, r.ddi, n, out, &whole.within(XFER_US)).ok(),
     }
 }
