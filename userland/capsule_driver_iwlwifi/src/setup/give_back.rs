@@ -21,6 +21,6 @@ use crate::driver::Driver;
 
 /// Bus Master off, then every grant and the claim (`Grants::release`).
 pub fn give_back(d: &Driver) {
-    let (mmio, irq, dma) = (d.mmio_grant, d.irq_grant, d.dma_grant);
-    Grants { device_id: d.device_id, claim_epoch: d.claim_epoch, mmio, irq, dma }.release();
+    let (mmio, irq) = (d.mmio_grant, d.irq_grant);
+    Grants { device_id: d.device_id, claim_epoch: d.claim_epoch, mmio, irq }.release();
 }

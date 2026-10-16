@@ -21,10 +21,10 @@
 //! the staging DMA all still held; a retry was then refused its own leftover
 //! claim, and only the process exit gave them back.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap};
+use nonos_libc::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
 
 use super::command::command;
-use crate::init::{bring_up, InitState};
+use crate::init::bring_up;
 use crate::regs::Regs;
 
 #[derive(Clone, Copy)]
@@ -33,16 +33,14 @@ pub struct Grants {
     pub claim_epoch: u64,
     pub mmio: u64,
     pub irq: u64,
-    pub dma: u64,
 }
 
 impl Grants {
-    /// Bus Master off first, so nothing is in flight to the staging DMA,
+    /// Bus Master off first, so the device reaches no memory of ours,
     /// then every grant in the reverse of the order it was taken, then the
     /// claim, which on its own tears the rest down as well.
     pub fn release(&self) {
         let _ = command(self.device_id, self.claim_epoch, false);
-        let _ = mk_dma_unmap(self.dma);
         let _ = mk_irq_unbind(self.irq);
         let _ = mk_mmio_unmap(self.mmio);
         let _ = mk_device_release(self.device_id);
@@ -52,6 +50,6 @@ impl Grants {
 /// Wake the chip on an attempt's grants, or give all of them back. Bus
 /// Master stays off: it goes on only right before the firmware boots, once
 /// the device's own master read back stopped (`gen3::outcome::master_on`).
-pub fn init_or_release(regs: Regs, grants: &Grants) -> Result<InitState, &'static str> {
+pub fn init_or_release(regs: Regs, grants: &Grants) -> Result<(), &'static str> {
     bring_up(regs).inspect_err(|_| grants.release())
 }

@@ -13,4 +13,4 @@ pub mod gen3;
 pub mod generation;
 
 pub use blob::{gen3_blob, gen3_pnvm};
-pub use family::{family_for_device, Family};
+pub use family::family_for_device;

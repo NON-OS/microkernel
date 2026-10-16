@@ -23,17 +23,12 @@ use crate::constants::{CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY};
 use crate::grants::{init_or_release, Grants};
 use crate::regs::Regs;
 
-const GRANTS: Grants = Grants { device_id: 5, claim_epoch: EPOCH, mmio: 6, irq: 7, dma: 8 };
+const GRANTS: Grants = Grants { device_id: 5, claim_epoch: EPOCH, mmio: 6, irq: 7 };
 
 /// The release order: Bus Master off (Memory Space alone, 2), the grants in
 /// reverse of the order setup took them, then the claim.
-const EVERYTHING: [(&str, u64); 5] = [
-    ("pci_command", 2),
-    ("dma_unmap", 8),
-    ("irq_unbind", 7),
-    ("mmio_unmap", 6),
-    ("device_release", 5),
-];
+const EVERYTHING: [(&str, u64); 4] =
+    [("pci_command", 2), ("irq_unbind", 7), ("mmio_unmap", 6), ("device_release", 5)];
 
 /// A register window in host memory, each register reading what was written.
 struct Window(Vec<u32>);

@@ -3423,7 +3423,6 @@
    "userland/capsule_driver_iwlwifi/src/init.rs",
    "userland/capsule_driver_iwlwifi/src/mmio.rs",
    "userland/capsule_driver_iwlwifi/src/pci_match.rs",
-   "userland/capsule_driver_iwlwifi/src/protocol",
    "userland/capsule_driver_iwlwifi/src/regs.rs",
    "userland/capsule_driver_iwlwifi/src/server/control",
    "userland/capsule_driver_iwlwifi/src/server/join_wire",

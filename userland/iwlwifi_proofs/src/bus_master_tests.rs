@@ -26,7 +26,7 @@ use crate::constants::{CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY};
 use crate::grants::{init_or_release, Grants};
 use crate::regs::Regs;
 
-const GRANTS: Grants = Grants { device_id: 5, claim_epoch: EPOCH, mmio: 6, irq: 7, dma: 8 };
+const GRANTS: Grants = Grants { device_id: 5, claim_epoch: EPOCH, mmio: 6, irq: 7 };
 
 fn since(before: usize) -> Vec<(&'static str, u64)> {
     given_back()[before..].to_vec()
