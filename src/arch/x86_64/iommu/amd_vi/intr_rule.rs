@@ -47,15 +47,3 @@ const REMAP_EN: u32 = 1 << 0;
 pub const fn irte(vector: u8, dest: u8) -> u32 {
     REMAP_EN | (dest as u32) << 8 | (vector as u32) << 16
 }
-
-pub const fn irte_vector(e: u32) -> u8 {
-    (e >> 16) as u8
-}
-
-pub const fn irte_dest(e: u32) -> u8 {
-    (e >> 8) as u8
-}
-
-pub const fn irte_live(e: u32) -> bool {
-    e & REMAP_EN != 0
-}

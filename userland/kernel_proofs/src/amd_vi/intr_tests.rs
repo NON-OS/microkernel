@@ -20,9 +20,7 @@
 
 use super::command::{command_opcode, invalidate_interrupt_table};
 use super::dte::{blocked, keep_interrupts, translated};
-use super::intr_rule::{
-    irte, irte_dest, irte_live, irte_vector, passes_any, remapped, ABORT_ALL, ENTRIES,
-};
+use super::intr_rule::{irte, passes_any, remapped, ABORT_ALL, ENTRIES};
 
 #[test]
 fn the_interrupt_quadword_matches_linux() {
@@ -43,10 +41,9 @@ fn a_remapping_entry_matches_linux() {
     assert_eq!(irte(0x81, 3), 0x0081_0301);
     for v in 0..=255u8 {
         let e = irte(v, v ^ 0x5A);
-        assert!(irte_live(e) && irte_vector(e) == v && irte_dest(e) == v ^ 0x5A);
+        assert!(e & 1 == 1 && (e >> 16) as u8 == v && (e >> 8) as u8 == v ^ 0x5A);
         assert_eq!(e >> 24, 0);
     }
-    assert!(!irte_live(0));
 }
 
 #[test]
