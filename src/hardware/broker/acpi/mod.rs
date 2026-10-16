@@ -31,6 +31,8 @@ pub mod cpu_wire;
 pub mod critical_watch;
 pub mod depart;
 pub mod depart_record;
+pub mod first_pass;
+pub mod first_pass_rule;
 pub mod dgon_wire;
 pub mod device_holder;
 mod ecam_note;

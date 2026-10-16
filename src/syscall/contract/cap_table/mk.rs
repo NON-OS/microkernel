@@ -164,6 +164,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiReserved
         | SyscallNumber::MkAcpiProximity
         | SyscallNumber::MkAcpiOscGrant
+        | SyscallNumber::MkAcpiFirstPass
         | SyscallNumber::MkAcpiLpit
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
