@@ -37,6 +37,8 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     // device's GpioInt names them; more holders join as their drivers do.
     ("driver.gpio0", &["driver.i2c_pci0"]),
     ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0", "driver.gpio0"]),
+    // The wiped power-off: only the shell asks for it (F-88).
+    ("power.off", &["desktop_shell"]),
 ];
 
 /// The kernel polls the keyboards and pointers, reads the random source and

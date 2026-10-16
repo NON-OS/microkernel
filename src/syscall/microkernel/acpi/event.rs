@@ -21,7 +21,7 @@
 //! stays critical, powers off through the same path as the admin shutdown.
 //! EAGAIN when the input ring would not take the key.
 
-use super::event_act::{act, pressed, say};
+use super::event_act::{act, pressed, say, taken};
 use crate::hardware::broker::acpi::battery_watch::battery_critical;
 use crate::hardware::broker::acpi::lid_state::record as record_lid;
 use crate::hardware::broker::acpi::platform_event::{decode, Event};
@@ -49,5 +49,6 @@ pub fn sys_acpi_event(kind: u64, value: u64) -> i64 {
             0
         }
         Event::BatteryCritical(c) => act(battery_critical(c, now), b"[ACPI] battery critical"),
+        Event::ButtonTaken => taken(),
     }
 }

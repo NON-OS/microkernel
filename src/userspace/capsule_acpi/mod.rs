@@ -18,6 +18,7 @@
 //! liveness. Everything ACPI does runs in the capsule.
 
 mod embed;
+mod power_off;
 mod spawn;
 mod state;
 

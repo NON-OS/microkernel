@@ -19,6 +19,7 @@
 
 mod alarm;
 mod levels;
+pub mod off;
 mod read;
 mod refresh;
 mod report;
