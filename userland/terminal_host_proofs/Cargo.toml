@@ -4,8 +4,10 @@
 # Host proofs for the terminal capsule's pure parts: the window and rail layout,
 # the rail's metrics and formatters, the palette, the prefs record, the theme
 # profiles, input syntax, history search, the `ls`, `neofetch` and `nox pull`
-# helpers, the shared flag parser and the context line. Each test target mounts
-# the real capsule sources by `#[path]`, so what passes is what ships.
+# helpers, the shared flag parser, the context line, and the whole-file reads
+# (cat, nox read, copy and push, the git store, `<`) at their caps. Each test
+# target mounts the real capsule sources by `#[path]`, so what passes is what
+# ships.
 [package]
 name = "terminal_host_proofs"
 version = "0.1.0"
@@ -24,3 +26,6 @@ nonos_policy_proto = { path = "../policy_proto" }
 # them: whole crates, so their exports are reached the way the capsule does.
 nonos_base64 = { path = "../base64" }
 nonos_inflate = { path = "../inflate" }
+# The git store trait and error the terminal's VFS adapter implements, so the
+# store's read is checked against the trait git calls it through.
+nonos_git = { path = "../nonos_git" }

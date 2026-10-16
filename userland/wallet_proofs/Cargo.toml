@@ -41,6 +41,9 @@ nonos_eth_rpc = { path = "../nonos_eth_rpc" }
 [dev-dependencies]
 sha3 = { version = "0.10", default-features = false }
 nonos_nox_chunks = { path = "../nonos_nox_chunks" }
+# The abi's encoder, for entry documents of an exact length: read_doc's cap
+# is proved on a document of exactly 256 KiB (tests/publish_files_host).
+nonos_marketplace_abi = { path = "../marketplace_abi", features = ["canonical-encode"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
