@@ -39,7 +39,7 @@ pub(super) fn attempt(address: &PciAddress, vector: u8, dest: u8) -> (Attempt, O
         Err(VtdError::InterruptRemappingOff) => (Attempt::Off, None),
         Err(VtdError::RemapTableFull) => (Attempt::Full, None),
         Err(e) => {
-            crate::log::info!("[IRQ] {} vector {:#x} not remapped: {:?}", address, vector, e);
+            crate::log::info!("[IRQ] vector {:#x} not remapped: {:?}", vector, e);
             (Attempt::Failed, None)
         }
     }

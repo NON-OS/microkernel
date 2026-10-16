@@ -19,27 +19,17 @@
 //! INTx above GSI 15, edge and active-high for an ISA line (ioapic line_mode).
 
 use crate::arch::interrupt::ioapic::Rte;
-use crate::hardware::broker::pci_index;
 
 pub(super) fn say_route(device_id: u64, gsi: u32, rte: &Rte) {
     let trigger = if rte.level_trigger { "level" } else { "edge" };
     let polarity = if rte.active_low { "active-low" } else { "active-high" };
-    match pci_index::lookup(device_id) {
-        Some(h) => crate::log::info!(
-            "[IRQ] {} intx gsi {} vector {:#x} {} {}",
-            h.address,
-            gsi,
-            rte.vector,
-            trigger,
-            polarity
-        ),
-        None => crate::log::info!(
-            "[IRQ] device {} intx gsi {} vector {:#x} {} {}",
-            device_id,
-            gsi,
-            rte.vector,
-            trigger,
-            polarity
-        ),
-    }
+    // The device by its table index, never its bus address (K10).
+    crate::log::info!(
+        "[IRQ] device {} intx gsi {} vector {:#x} {} {}",
+        device_id,
+        gsi,
+        rte.vector,
+        trigger,
+        polarity
+    );
 }
