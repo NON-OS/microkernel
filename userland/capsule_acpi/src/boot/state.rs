@@ -53,6 +53,8 @@ pub struct Acpi {
     pub hidden: crate::dpower::Hidden,
     /// Devices that come and go: what each stood for, ejects in flight.
     pub hotplug: crate::hotplug::Hotplug,
+    /// What the PCI `_DSM` says of each host bridge and labelled device.
+    pub pci_firmware: crate::pci_firmware::PciFirmware,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
     pub serial: Serial,
