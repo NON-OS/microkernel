@@ -49,6 +49,8 @@ wm / wallpaper / market (peer IPC)
 | `OP_SPOTLIGHT_OPEN` | 0x0006 | open the Launchpad and its search, or close it |
 | `OP_OPEN_WITH` | 0x0007 | open a file in another app (the file manager uses it for images); only a path starting with `/` is taken |
 | `OP_TAKE_OPEN_ARG` | 0x0008 | the opened app takes the file it was opened with; a Terminal window takes a tool tile's `run:` or `type:` command line instead (`state/open_arg.rs`) |
+| `OP_ACCESSIBILITY` | 0x0009 | from a window of Settings only (E_PERM otherwise): one display's colour filter, contrast and magnifier, passed to the compositor as NCMP 0x000F, its status answered (`server/handlers/accessibility.rs`) |
+| `OP_ACCESSIBILITY_GET` | 0x000A | from a window of Settings only: one display's settings as the compositor holds them (NCMP 0x0010), 16 bytes |
 
 ## Authority
 
