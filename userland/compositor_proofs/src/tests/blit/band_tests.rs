@@ -18,31 +18,11 @@
 //! in the band under the windows and its menubar, dock, menus and dialogs in
 //! one over them; each window is one layer in the band between.
 
-use crate::tests::scene::frame_model::layer;
+use super::band_rig::*;
 use crate::scene::SceneTable;
 use crate::scene_raise::raise_by_pid;
 use crate::scene_submit::submit_layer;
-
-const SHELL: u32 = 7;
-const DESK_Z: u32 = 1;
-const APP_Z: u32 = 2;
-const SHELL_TOP_Z: u32 = 3_000_000;
-/// scene/layer.rs MAX_LAYERS_PER_OWNER.
-const MAX_LAYERS_PER_OWNER: u32 = 4;
-
-fn order(scene: &SceneTable) -> Vec<(u32, u32)> {
-    let (layers, n) = scene.z_sorted_snapshot();
-    layers[..n].iter().map(|l| (l.owner_pid, l.z)).collect()
-}
-
-fn desktop_with_two_windows() -> SceneTable {
-    let mut scene = SceneTable::new();
-    submit_layer(&mut scene, layer(SHELL, 0, 0, 100, 100, DESK_Z)).expect("desk");
-    submit_layer(&mut scene, layer(SHELL, 0, 0, 100, 100, SHELL_TOP_Z)).expect("chrome");
-    submit_layer(&mut scene, layer(1, 10, 10, 50, 50, APP_Z)).expect("window 1");
-    submit_layer(&mut scene, layer(2, 20, 20, 50, 50, APP_Z)).expect("window 2");
-    scene
-}
+use crate::tests::scene::frame_model::layer;
 
 #[test]
 fn the_shells_chrome_draws_over_every_window_and_its_desk_under_them() {
