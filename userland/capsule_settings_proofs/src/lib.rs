@@ -46,7 +46,7 @@ pub mod text;
 
 /// The answer a Wi-Fi worker thread hands back to the window thread, as libc
 /// keeps it for every app with a worker.
-#[path = "../../capsule_settings/src/settings/state/wifi_cursor.rs"]
+#[path = "../../capsule_settings/src/settings/state/wifi/cursor.rs"]
 pub mod wifi_cursor;
 
 #[path = "../../libc/src/thread/handoff.rs"]

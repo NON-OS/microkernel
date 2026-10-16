@@ -21,7 +21,7 @@
 //! work is done (a scan sweeps the channels, a join runs association and the
 //! four-way handshake), and the answer is the result itself: the networks,
 //! or the join's status and counters. A call is the only way to receive it,
-//! so the call waits, on a worker thread (`wifi_worker.rs`) rather than the
+//! so the call waits, on a worker thread (`state/wifi/worker.rs`) rather than the
 //! window's. The key press only records the request. The next tick paints
 //! "Scanning..." or "Joining <name>..." on the window, and the tick after
 //! hands the call to the worker; the request is then out, and stays on the
