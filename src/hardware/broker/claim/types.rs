@@ -29,4 +29,6 @@ pub enum ClaimError {
     NotClaimed,
     /// A remapping unit is in service and would not take the device.
     Unconfined,
+    /// The firmware's flash controller, or a device inside its window.
+    Firmware,
 }

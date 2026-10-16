@@ -27,6 +27,7 @@ mod claim;
 mod class;
 mod confine;
 mod device;
+pub mod firmware_flash;
 pub mod dma;
 mod grant;
 // IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses

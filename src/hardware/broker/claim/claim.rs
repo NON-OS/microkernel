@@ -21,6 +21,9 @@ use super::types::{Claim, ClaimError};
 // must have already verified that `device_id` exists in the broker
 // table.
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    if super::firmware::is_firmware(device_id) {
+        return Err(ClaimError::Firmware);
+    }
     let epoch = {
         let mut claims = CLAIMS.lock();
         if claims.iter().any(|c| c.device_id == device_id) {
