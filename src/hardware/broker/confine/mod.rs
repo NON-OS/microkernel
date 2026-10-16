@@ -20,6 +20,8 @@
 //! everything else. Without a unit in service these are no-ops that say so:
 //! the device then reaches all of memory, and the boot log states it.
 
+mod acs_groups;
+mod acs_span;
 mod attach;
 mod detach;
 mod enter;
@@ -31,10 +33,13 @@ mod map_fail;
 mod posture;
 mod reserve;
 mod reserved_rule;
+mod shared;
 mod unreserve;
 mod table;
 mod unconfined;
 
+pub use acs_groups::set_acs_groups;
+pub use acs_span::Port;
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
 pub(super) use map::{map, unmap};

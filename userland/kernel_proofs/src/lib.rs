@@ -22,6 +22,8 @@
 extern crate alloc;
 
 #[cfg(test)]
+pub mod acs_groups;
+#[cfg(test)]
 pub mod addr_align;
 #[cfg(test)]
 pub mod aer_decode;

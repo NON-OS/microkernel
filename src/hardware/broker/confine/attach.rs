@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::posture::unconfined_allowed;
+use super::shared::held_elsewhere;
 use super::table::{pci_address, say, Capsule, CAPSULES};
 use super::unconfined::unconfined;
 use crate::memory::iommu::IommuDomain;
@@ -59,12 +60,8 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
             }
         },
     };
-    // Drives behind one VMD share its requester id. One capsule may hold
-    // several of them in its domain; a second capsule cannot take the id
-    // without pulling it out from under the first.
-    if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
-    {
-        say(b"refused: requester id held by another capsule", pid, address);
+    if let Some(why) = held_elsewhere(&all, pos, address) {
+        say(why, pid, address);
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }
