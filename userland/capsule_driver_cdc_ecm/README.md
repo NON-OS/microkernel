@@ -36,8 +36,10 @@ capsule holds only the ECM binding and framing (`src/ecm`).
 4. SET_ETHERNET_PACKET_FILTER: directed, broadcast, all multicast. A STALL is
    ignored, as Linux ignores it.
 
-RTL8153 adapters (0bda:8153, 17ef:721e) are left to driver_rtl8153, as Linux
-leaves them to r8152.
+RTL8153 adapters (0bda:8153, 17ef:721e) are bound in their ECM
+configuration like any other device: the vendor-mode driver for them is
+quarantined (`quarantine/rtl8153`), and their ECM configuration is the
+class this driver is written from.
 
 ## Framing
 

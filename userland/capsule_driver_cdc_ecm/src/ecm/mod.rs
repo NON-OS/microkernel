@@ -21,6 +21,5 @@ pub mod frame;
 pub mod function;
 pub mod link;
 mod transfer;
-pub mod vendor;
 
 pub use bind::bind;

@@ -25,7 +25,6 @@ use nonos_usbnet::{Bind, Bus, Found, Setup};
 
 use super::function::{find_ecm, EcmFunction};
 use super::link::Ecm;
-use super::vendor::left_to_vendor_driver;
 
 /// SET_ETHERNET_PACKET_FILTER (CDC ECM 1.2, 6.2.4): directed, broadcast
 /// and all multicast, as usbnet_cdc_update_filter sets with IFF_ALLMULTI.
@@ -33,9 +32,6 @@ const SET_ETHERNET_PACKET_FILTER: u8 = 0x43;
 const FILTER: u16 = 0x0004 | 0x0008 | 0x0002;
 
 pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ecm<B>> {
-    if left_to_vendor_driver(found.info.vendor, found.info.product) {
-        return Bind::NotOurs;
-    }
     let pick = |raw: &alloc::vec::Vec<u8>| Some((config_header(raw)?.1, find_ecm(raw)?));
     let Some((value, f)) = found.configs.iter().find_map(pick) else { return Bind::NotOurs };
     match start(&mut bus, value, &f) {

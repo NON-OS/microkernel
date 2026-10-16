@@ -42,11 +42,12 @@ fn a_refused_configuration_is_a_named_failure_and_a_refused_filter_is_not() {
 }
 
 #[test]
-fn devices_without_ecm_and_rtl8153_adapters_are_not_taken() {
+fn devices_without_ecm_are_not_taken_and_rtl8153_adapters_are() {
     let mut found = fetch(&mut usb_net(None), 2).unwrap();
     found.configs.remove(1);
     assert!(matches!(bind(usb_net(None), &found), Bind::NotOurs));
+    // No vendor-mode driver takes them now: their ECM configuration is ours.
     let mut found = fetch(&mut usb_net(None), 2).unwrap();
     (found.info.vendor, found.info.product) = (0x0bda, 0x8153);
-    assert!(matches!(bind(usb_net(None), &found), Bind::NotOurs));
+    assert!(matches!(bind(usb_net(None), &found), Bind::Ours(_)));
 }
