@@ -24,13 +24,11 @@
 //! completion with status `IWL_SCAN_OFFLOAD_ABORTED` (2), which the sweep
 //! takes like any completion.
 
-use super::super::scan::SCAN_UID;
-
 pub const SCAN_ABORT_LEN: usize = 8;
 
-/// `iwl_umac_scan_abort` for the one scan this driver runs.
-pub fn scan_abort() -> [u8; SCAN_ABORT_LEN] {
+/// `iwl_umac_scan_abort` for the scan with `uid`.
+pub fn scan_abort(uid: u32) -> [u8; SCAN_ABORT_LEN] {
     let mut c = [0u8; SCAN_ABORT_LEN];
-    c[0..4].copy_from_slice(&SCAN_UID.to_le_bytes());
+    c[0..4].copy_from_slice(&uid.to_le_bytes());
     c
 }

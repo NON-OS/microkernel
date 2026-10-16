@@ -18,7 +18,7 @@ fn the_hunt_stops_the_sweep_once_the_network_is_heard() {
         // The scan request: another network on 1, then the target on 6.
         (0x1, 0x0D) => vec![reply(c, vec![]), heard(&other_network(), 1), heard(&t, 6)],
         // The abort: the scan completes as aborted.
-        (0x1, 0x0E) => vec![reply(c, vec![]), completion(2)],
+        (0x1, 0x0E) => vec![reply(c, vec![]), completion(c, 2)],
         _ => vec![reply(c, vec![])],
     }));
     let mut st = Station::new();
@@ -45,7 +45,7 @@ fn an_abort_completed_before_its_reply_ends_the_sweep() {
     let t = target.clone();
     r.model.s.borrow_mut().responder = Some(Box::new(move |c: &Seen| match (c.group, c.cmd) {
         (0x1, 0x0D) => vec![reply(c, vec![]), heard(&t, 11)],
-        (0x1, 0x0E) => vec![completion(2), reply(c, vec![])],
+        (0x1, 0x0E) => vec![completion(c, 2), reply(c, vec![])],
         _ => vec![reply(c, vec![])],
     }));
     let mut st = Station::new();

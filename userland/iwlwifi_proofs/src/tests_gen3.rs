@@ -11,6 +11,8 @@ mod gen3_armed;
 #[cfg(test)]
 mod gen3_boot_tests;
 #[cfg(test)]
+mod gen3_booted;
+#[cfg(test)]
 mod gen3_cmdq_tests;
 #[cfg(test)]
 mod gen3_image_tests;
@@ -30,6 +32,8 @@ mod gen3_radio_tests;
 mod gen3_restart_tests;
 #[cfg(test)]
 mod gen3_stop_tests;
+#[cfg(test)]
+mod gen3_sweep_uid_tests;
 #[cfg(test)]
 mod gen3_tests;
 #[cfg(test)]

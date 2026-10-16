@@ -16,11 +16,13 @@
 
 //! What a step of the sweep came to.
 
+use crate::firmware::gen3::heard::hear;
 use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::sweep::Tick;
 
+use super::clock::Uptime;
 use super::say::Line;
-use super::state::{Radio, REST_MS, STALLS_SAID};
+use super::state::{Radio, State, REST_MS, STALLS_SAID};
 
 impl Radio {
     // What a step of the sweep came to: the scan list aged and the next sweep
@@ -46,9 +48,22 @@ impl Radio {
                 }
                 self.results.end_sweep();
                 self.next_ms = now.saturating_add(REST_MS);
+                self.abort_stalled();
             }
             Tick::Failed => self.firmware_failed(now, Failure::Lost),
             Tick::Idle | Tick::Running => {}
         }
+    }
+
+    // Free the stalled sweep's slot in the firmware. An abort left unanswered
+    // keeps the command queue busy, and the next tick restarts the firmware.
+    fn abort_stalled(&mut self) {
+        let State::Up(up) = &mut self.state else { return };
+        let (results, beacons) = (&mut self.results, &mut self.beacons);
+        let _ = self.sweep.abort_stalled(&mut up.dev, &mut Uptime, &mut |f| {
+            if hear(results, &f) {
+                *beacons = beacons.saturating_add(1);
+            }
+        });
     }
 }
