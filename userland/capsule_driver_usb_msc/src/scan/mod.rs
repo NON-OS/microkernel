@@ -14,14 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding the one mass-storage device this driver serves.
+//! Finding the one mass-storage device this driver serves, and keeping it,
+//! one bounded step at a time between requests.
 
+mod ask;
+mod asked;
+mod asking;
+mod check;
+mod choose;
+mod command;
+mod configure;
+mod controller;
+mod identity;
+mod keep;
 mod medium;
-mod pass;
+mod pace;
+mod ports;
 mod probe;
+mod ready_size;
+mod release;
 pub mod report;
 mod scanner;
+mod search;
+mod searching;
+mod sized;
+mod step;
+mod units;
 
 pub use medium::Medium;
-pub use report::Report;
-pub use scanner::{Scanner, RESCAN_MS};
+pub use scanner::Scanner;

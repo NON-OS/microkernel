@@ -14,40 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Where the search for the device stands, and why, for the kernel's block
-//! layer to say on the log. This driver holds no Debug capability and says
-//! nothing itself: a stick it did not take left nothing anywhere, and a boot
-//! from it showed only that the store was not there. Pure, so the host
-//! proofs hold the wire, which the kernel's client mirrors
-//! (src/hardware/usb_msc_capsule/report.rs).
+//! layer to say on the log: this driver holds no Debug capability, and a
+//! stick it did not take left nothing anywhere. Pure, so the host proofs
+//! hold the wire the kernel's client mirrors (src/hardware/usb_msc_capsule/
+//! report.rs); kernel_proofs includes this file alone, so its parts are
+//! named from here.
 
-/// What the search last did. The numbers are the wire's.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-#[repr(u8)]
-pub enum Stage {
-    /// driver.xhci0 has not registered yet.
-    NoXhci = 1,
-    /// The controller answers and no port has a device connected.
-    NoPort = 2,
-    /// Another class driver is addressing the port.
-    Busy = 3,
-    /// No device slot, or the device would not take an address.
-    Address = 4,
-    /// Its configuration descriptor did not read or did not parse.
-    Config = 5,
-    /// No SCSI-transparent Bulk-Only interface; `aux` is the first
-    /// interface's class, subclass and protocol.
-    NotStorage = 6,
-    /// SET_CONFIGURATION or the bulk pipes were refused.
-    Configure = 7,
-    /// INQUIRY or TEST UNIT READY did not succeed in five seconds.
-    NotReady = 8,
-    /// READ CAPACITY(10) failed.
-    Capacity = 9,
-    /// Bound: `blocks` of `aux` bytes.
-    Bound = 10,
-}
+#[path = "interface.rs"]
+mod interface;
+#[path = "stage.rs"]
+mod stage;
+
+pub use interface::first_interface;
+pub use stage::Stage;
 
 /// The last stage, the port it was on, an errno, and what it read.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -62,15 +42,20 @@ pub struct Report {
     pub connected: u8,
 }
 
-/// An interface descriptor's type, as descriptors/wire.rs names it.
-const DESC_INTERFACE: u8 = 0x04;
-
 /// The bytes `encode` writes.
 pub const REPORT_LEN: usize = 20;
 
 impl Report {
     pub const fn new() -> Self {
-        Self { stage: Stage::NoXhci, port: 0, detail: 0, aux: 0, blocks: 0, closed: 0, connected: 0 }
+        Self {
+            stage: Stage::NoXhci,
+            port: 0,
+            detail: 0,
+            aux: 0,
+            blocks: 0,
+            closed: 0,
+            connected: 0,
+        }
     }
 
     pub fn at(stage: Stage, port: u8, detail: i32) -> Self {
@@ -87,21 +72,4 @@ impl Report {
         out[12..20].copy_from_slice(&self.blocks.to_le_bytes());
         REPORT_LEN
     }
-}
-
-/// The first interface's class, subclass and protocol in a configuration
-/// descriptor, as `0x00CCSSPP`, or 0 when it has none.
-pub fn first_interface(raw: &[u8]) -> u32 {
-    let mut pos = 0;
-    while pos + 2 <= raw.len() {
-        let len = raw[pos] as usize;
-        if len < 2 || pos + len > raw.len() {
-            return 0;
-        }
-        if raw[pos + 1] == DESC_INTERFACE && len >= 9 {
-            return u32::from_be_bytes([0, raw[pos + 5], raw[pos + 6], raw[pos + 7]]);
-        }
-        pos += len;
-    }
-    0
 }

@@ -15,14 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{Request, HDR_LEN, STATUS_LEN};
-use crate::scan::Report;
+use crate::scan::Scanner;
 use crate::server::respond;
 use crate::state::State;
 
-/// The counters, then where the search for the device stands (scan/report.rs).
-pub fn handle(state: &State, report: &Report, sender_pid: u32, req: &Request, tx: &mut [u8]) {
+/// The counters, then where the search for the device stands
+/// (scan/report.rs), then the re-bind generation: devices served after the
+/// first, and media served afresh (scan/asked.rs), as a u32. It is raised
+/// whenever what is served may be another medium, so the kernel's client
+/// (src/hardware/usb_msc_capsule) can tell and read what it trusts of the
+/// disk again before it writes; one that reads only the counters and the
+/// report reads this reply as before.
+pub fn handle(state: &State, scanner: &Scanner, sender_pid: u32, req: &Request, tx: &mut [u8]) {
     let out = &mut tx[HDR_LEN + STATUS_LEN..];
     let n = state.write_snapshot(out);
-    let n = n + report.encode(&mut out[n..]);
-    let _ = respond::payload(sender_pid, req, n, tx);
+    let n = n + scanner.report.encode(&mut out[n..]);
+    out[n..n + 4].copy_from_slice(&scanner.rebinds.to_le_bytes());
+    let _ = respond::payload(sender_pid, req, n + 4, tx);
 }
