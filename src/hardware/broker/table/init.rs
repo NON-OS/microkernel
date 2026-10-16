@@ -36,7 +36,9 @@ pub fn init_from_pci(devices: &[PciDevice]) {
             bars: dev.bars,
             msi: dev.msi,
             msix: dev.msix,
-            standard: matches!(dev.header_type, HeaderType::Standard),
+            // An Intel VMD gates its drives' DMA and config as a bridge does (L61).
+            standard: matches!(dev.header_type, HeaderType::Standard)
+                && !crate::hardware::inventory::is_intel_vmd(dev.vendor_id, dev.device_id),
         });
     }
     *TABLE.write() = records;
