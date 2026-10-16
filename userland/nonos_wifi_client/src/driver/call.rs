@@ -10,14 +10,17 @@
 //! `[magic u32][op u16][request id u32]` then the body. The reply echoes the
 //! header and carries the op's fields after it.
 
+use core::sync::atomic::{AtomicU32, Ordering};
+
 use nonos_libc::mk_ipc_call_timeout;
 
+pub(super) use super::reply::WIFI_HDR;
+use super::reply::{answer, header};
 use crate::join_wire::JOIN_BODY_MAX;
 use crate::wipe::wipe;
 
-const WIFI_MAGIC: u32 = 0x5749_4649;
-/// The header both directions carry: magic, op and request id.
-pub const WIFI_HDR: usize = 10;
+/// The next request's id, so a reply is matched to the request it answers.
+static NEXT_ID: AtomicU32 = AtomicU32::new(1);
 pub(super) const OP_CONNECT: u16 = 1;
 pub(super) const OP_DISCONNECT: u16 = 2;
 pub(super) const OP_SCAN: u16 = 3;
@@ -28,8 +31,9 @@ pub(super) const OP_LINK: u16 = 5;
 const BODY_MAX: usize = JOIN_BODY_MAX;
 
 /// Send `op` with `body` to `port` and wait up to `timeout_ms`. Returns the
-/// reply length when at least a header came back. The request buffer is wiped
-/// before returning, since a join's body holds the passphrase.
+/// reply length when the reply is this request's (`reply::answer`). The
+/// request buffer is wiped before returning: a join's body holds the
+/// passphrase.
 pub(super) fn call(
     port: u32,
     op: u16,
@@ -40,9 +44,9 @@ pub(super) fn call(
     if body.len() > BODY_MAX {
         return None;
     }
+    let rid = NEXT_ID.fetch_add(1, Ordering::Relaxed);
     let mut req = [0u8; WIFI_HDR + BODY_MAX];
-    req[0..4].copy_from_slice(&WIFI_MAGIC.to_le_bytes());
-    req[4..6].copy_from_slice(&op.to_le_bytes());
+    req[..WIFI_HDR].copy_from_slice(&header(op, rid));
     req[WIFI_HDR..WIFI_HDR + body.len()].copy_from_slice(body);
     let n = mk_ipc_call_timeout(
         port as u64,
@@ -53,10 +57,7 @@ pub(super) fn call(
         timeout_ms,
     );
     wipe(&mut req);
-    if n < WIFI_HDR as i64 {
-        return None;
-    }
-    Some(n as usize)
+    answer(resp, n, op, rid)
 }
 
 /// A little-endian u32 at `at`, or zero past the end.
