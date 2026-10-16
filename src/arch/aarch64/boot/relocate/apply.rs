@@ -35,9 +35,13 @@ pub(crate) unsafe fn apply(relas: &[Rela], at: Placement) -> Result<usize, Refus
         // Wrapping only to keep panic paths out of code that runs before
         // relocation: `place` proved neither step can wrap.
         let at_place = at.load_base.wrapping_add(r.offset.wrapping_sub(at.link_base));
+        // The image's own address, as it runs, not a physical one: counted
+        // by run-static-checks.sh.
+        #[cfg_attr(target_os = "none", allow(fuzzy_provenance_casts))]
+        let word = at_place as *mut u64;
         // SAFETY: `place` checked this 8 bytes lies inside the image and is
         // aligned; the caller guarantees the image is writable and unread.
-        unsafe { core::ptr::write_volatile(at_place as *mut u64, r.addend.wrapping_add(bias)) };
+        unsafe { core::ptr::write_volatile(word, r.addend.wrapping_add(bias)) };
     }
     Ok(relas.len())
 }

@@ -471,6 +471,33 @@ fi
 tlb_local_callers="$( { grep -rn 'tlb::invalidate_page\|tlb::invalidate_all' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'tlb::invalidate_* callers outside paging/arch' "${baselines_dir}/tlb-local-callers.txt" "${tlb_local_callers}"
 
+# aarch64: a number becomes a pointer only in src/arch/aarch64/mmu/pointer.rs,
+# which says whether it is RAM (the direct map, which no user root can take
+# away), a boot device window or a window the kernel mapped. The compiler
+# refuses the cast everywhere else under src/arch/aarch64
+# (`#![deny(fuzzy_provenance_casts)]` in its mod.rs, the lint enabled in
+# lib.rs). This holds the deny in place, refuses a module-wide allow and the
+# provenance APIs that would step around the lint, and counts the
+# statement-level exceptions, which only shrink.
+a64_ptr_file='src/arch/aarch64/mmu/pointer.rs'
+if grep -Fxq '#![deny(fuzzy_provenance_casts)]' src/arch/aarch64/mod.rs \
+    && grep -Fxq '#![feature(strict_provenance_lints)]' src/lib.rs; then
+    note ok "aarch64 denies integer-to-pointer casts outside ${a64_ptr_file}"
+else
+    fail_with "src/arch/aarch64/mod.rs must deny fuzzy_provenance_casts, and src/lib.rs enable strict_provenance_lints"
+fi
+a64_ptr_inner="$( { grep -rn '#!\[.*fuzzy_provenance_casts' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^src/arch/aarch64/mod.rs:\|^${a64_ptr_file}:" || true; } )"
+a64_ptr_apis="$( { grep -rnE 'with_exposed_provenance|from_exposed_addr|without_provenance|transmute.*\b(u64|usize)\b' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^${a64_ptr_file}:" || true; } )"
+if [ -n "${a64_ptr_inner}${a64_ptr_apis}" ]; then
+    fail_with "aarch64: an address made a pointer around ${a64_ptr_file}"
+    printf '%s\n' "${a64_ptr_inner}" "${a64_ptr_apis}" >&2
+else
+    note ok "no module-wide allow or provenance API steps around ${a64_ptr_file}"
+fi
+a64_ptr_count="$( { grep -rn 'allow(fuzzy_provenance_casts)' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^${a64_ptr_file}:" || true; } | wc -l | tr -d '[:space:]')"
+run_baseline 'aarch64 integer-to-pointer casts outside mmu/pointer.rs' "${baselines_dir}/aarch64-pointer-casts.txt" "${a64_ptr_count}"
+unset a64_ptr_file a64_ptr_inner a64_ptr_apis a64_ptr_count
+
 # Driver capsule isolation. The userland virtio-rng driver capsule
 # must reach hardware only through the broker. Pulling kernel
 # driver modules in (`crate::drivers::*`) would defeat the
