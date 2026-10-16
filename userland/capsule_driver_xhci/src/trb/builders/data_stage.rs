@@ -13,14 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{TRB_DIR_IN, TRB_TYPE_DATA_STAGE};
+use crate::constants::{TRB_DIR_IN, TRB_ISP, TRB_TYPE_DATA_STAGE};
 use crate::trb::Trb;
 pub fn data_stage_in(buffer_phys: u64, length: u16, cycle: bool) -> Trb {
     let mut trb = Trb::zero();
     trb.set_pointer(buffer_phys);
     trb.set_transfer_length(length as u32);
     trb.set_type(TRB_TYPE_DATA_STAGE);
-    trb.d3 |= TRB_DIR_IN;
+    // A short answer is reported on this TRB with its residual, so the
+    // bytes the device sent are known (transfer_events.rs).
+    trb.d3 |= TRB_DIR_IN | TRB_ISP;
     trb.set_cycle(cycle);
     trb
 }

@@ -56,7 +56,7 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         data_len,
     };
     match do_transfer(ctx, slot, request) {
-        Ok(()) => send_reply(tx, req, data_len, region.as_ref()),
+        Ok(actual) => send_reply(tx, req, actual, region.as_ref()),
         Err(e) => {
             recover_after(ctx, slot, DCI_EP0, e);
             reply_with_status(tx, req, if is_stall(e) { E_PIPE } else { E_IO })

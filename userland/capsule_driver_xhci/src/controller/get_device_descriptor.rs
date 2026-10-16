@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::ring_doorbell::ring_doorbell;
+use super::transfer_events::received;
 use super::wait_transfer_completion::wait_transfer_completion;
 use crate::dma::DmaRegion;
 use crate::error::XhciResult;
@@ -45,7 +46,8 @@ pub fn get_device_descriptor(
         DEVICE_DESCRIPTOR_LEN,
     )
 }
-/// GET_DESCRIPTOR(Device) for the first `length` bytes into `out`.
+/// GET_DESCRIPTOR(Device) for the first `length` bytes into `out`; the
+/// bytes the device sent.
 pub fn read_device_descriptor(
     doorbell_base: u64,
     intr_base: u64,
@@ -61,6 +63,6 @@ pub fn read_device_descriptor(
     let status_phys = ep0.enqueue(status_stage_out(ep0.cycle() != 0))?;
     ring_doorbell(doorbell_base, slot_id, DCI_EP0);
     let issued = IssuedTransfer { phys: status_phys, slot: slot_id, dci: DCI_EP0 };
-    wait_transfer_completion(intr_base, issued, &[setup_phys, data_phys], evt_ring)?;
-    Ok(length as usize)
+    let residual = wait_transfer_completion(intr_base, issued, &[setup_phys, data_phys], evt_ring)?;
+    Ok(received(length, residual) as usize)
 }

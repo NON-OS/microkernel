@@ -49,5 +49,6 @@ mod start;
 mod wait_cnr_clear;
 mod wait_command_completion;
 mod wait_hc_running;
+mod transfer_events;
 mod wait_transfer_completion;
 pub use exports::*;

@@ -6008,6 +6008,7 @@
    "userland/capsule_driver_xhci/src/controller/run_command.rs",
    "userland/capsule_driver_xhci/src/controller/scratchpad.rs",
    "userland/capsule_driver_xhci/src/controller/start.rs",
+   "userland/capsule_driver_xhci/src/controller/transfer_events.rs",
    "userland/capsule_driver_xhci/src/controller/wait_cnr_clear.rs",
    "userland/capsule_driver_xhci/src/controller/wait_command_completion.rs",
    "userland/capsule_driver_xhci/src/controller/wait_hc_running.rs",

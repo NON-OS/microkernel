@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use nonos_libc::Deadline;
 
-use crate::constants::{CC_SHORT_PACKET, CC_SUCCESS, TRB_TYPE_TRANSFER_EVENT};
+use super::transfer_events::{complete, short_residual, stopped_early};
+use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::controller::park::{park_step, SPIN_BUDGET};
 use crate::error::{XhciError, XhciResult};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::{EventRing, IssuedTransfer};
-use crate::trb::Trb;
 
 /// A control transfer gets 5 s, as Linux USB_CTRL_SET_TIMEOUT: a slow stick or
 /// card reader can miss SET_CONFIGURATION or CLEAR_FEATURE within a second.
@@ -31,13 +31,16 @@ const TRANSFER_TIMEOUT_MS: u64 = 5_000;
 /// stages): a STALL or other error stops the transfer on one of them, the
 /// controller reports it there and halts the endpoint, and the last TRB is
 /// never reached. Such an event ends the wait at once with its code, where
-/// it used to be parked while the wait ran to its timeout.
+/// it used to be parked while the wait ran to its timeout. A data stage
+/// that came short says so on its own TRB; its residual is returned, 0
+/// when it came whole.
 pub fn wait_transfer_completion(
     intr_base: u64,
     issued: IssuedTransfer,
     earlier: &[u64],
     evt_ring: &mut EventRing,
-) -> XhciResult<()> {
+) -> XhciResult<u32> {
+    let mut residual = 0;
     let deadline = Deadline::after_ms(TRANSFER_TIMEOUT_MS);
     let mut spins = 0u32;
     loop {
@@ -56,28 +59,15 @@ pub fn wait_transfer_completion(
             continue;
         }
         if issued.completed_by(&event) {
-            return complete(event.completion_code());
+            return complete(event.completion_code()).map(|()| residual);
+        }
+        if let Some(r) = short_residual(&event, issued, earlier) {
+            residual = r;
+            continue;
         }
         if stopped_early(&event, issued, earlier) {
             return Err(XhciError::TransferCompletionFailed(event.completion_code()));
         }
         evt_ring.park(event);
     }
-}
-fn complete(code: u8) -> XhciResult<()> {
-    match code {
-        CC_SUCCESS | CC_SHORT_PACKET => Ok(()),
-        other => Err(XhciError::TransferCompletionFailed(other)),
-    }
-}
-/// Whether `event` is an error on one of `earlier`, on the same slot and
-/// endpoint as `issued`.
-pub fn stopped_early(event: &Trb, issued: IssuedTransfer, earlier: &[u64]) -> bool {
-    let cc = event.completion_code();
-    let at = event.get_pointer() & !0xF;
-    event.slot_id() == issued.slot
-        && event.endpoint_id() == issued.dci
-        && cc != CC_SUCCESS
-        && cc != CC_SHORT_PACKET
-        && earlier.iter().any(|&p| p & !0xF == at)
 }
