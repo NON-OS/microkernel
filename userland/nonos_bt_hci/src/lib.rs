@@ -19,8 +19,8 @@
 //! through `UsbPipes`, which a capsule backs with its USB controller
 //! driver; the host core works through `Transport`, so it runs the same
 //! over USB here and over a simulated controller in the proofs. Nothing
-//! here sends a vendor command of its own: a capsule that patches its
-//! controller sends its vendor's commands through `Host::command` first.
+//! here sends a vendor command: a controller that needs vendor setup
+//! before it answers the standard ones is refused, not patched.
 
 #![cfg_attr(not(test), no_std)]
 

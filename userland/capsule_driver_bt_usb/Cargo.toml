@@ -31,19 +31,6 @@ nonos_bt_proto = { path = "../bt_proto" }
 nonos_keymap = { path = "../nonos_keymap" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
-# Each vendor file is checked against its pinned SHA-256 before it is sent.
-sha2 = { version = "0.10", default-features = false, features = ["force-soft"], optional = true }
-
-[build-dependencies]
-# build.rs checks the same pins before the files are built in.
-sha2 = { version = "0.10", default-features = false }
-
-[features]
-# Builds Realtek's patch files into the capsule and patches a Realtek
-# controller before bring-up. Off until the owner adds the files under
-# nonos-bootloader/firmware/rtl_bt/ (Decision 19); the build refuses any
-# that do not match their pins.
-realtek = ["dep:sha2"]
 
 [profile.release]
 panic = "abort"

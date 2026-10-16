@@ -20,10 +20,9 @@ Bring-up uses standard commands only, in this order:
 6. Set Event Mask.
 7. LE Set Event Mask.
 
-This crate sends no vendor command of its own. A controller that needs
-vendor setup before it answers these stops at the first one it fails,
-with that command's status or a timeout, unless its capsule sets it up
-first through `Host::command` (driver.bt_usb0 does for Realtek chips).
+No vendor command is sent. A controller that needs vendor setup or
+firmware before it answers these stops at the first one it fails, with
+that command's status or a timeout.
 
 After bring-up, `connect` sends LE Create Connection for one named peer
 and waits for LE Connection Complete. If the peer is not heard within the
