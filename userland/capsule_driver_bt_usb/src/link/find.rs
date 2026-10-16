@@ -22,6 +22,7 @@
 
 use super::env::Env;
 use super::listen::listen;
+use super::us::Us;
 use nonos_bt_hci::host::DEFAULT_SCAN;
 use nonos_bt_hci::{HciError, Host, Transport};
 use nonos_bt_wire::addr::{AddrType, BdAddr};
@@ -42,9 +43,10 @@ pub struct Peer {
 pub fn find_hid<T: Transport, E: Env>(
     host: &mut Host<T>,
     env: &mut E,
+    us: &Us,
 ) -> Result<Option<Peer>, HciError> {
     host.scan_passive(DEFAULT_SCAN)?;
-    let heard = listen(host, env);
+    let heard = listen(host, env, us);
     let stopped = host.scan_stop();
     let heard = heard?;
     stopped?;

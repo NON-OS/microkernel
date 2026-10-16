@@ -22,6 +22,7 @@
 use crate::air::{advertised, PEER};
 use crate::bond_tests::{press, static_identity};
 use crate::fixture::{air, keyboard, link, HID_ADV};
+use crate::fixture_link::plain;
 use crate::link::{find_hid, End};
 use nonos_bt_hogp::report::Input;
 
@@ -52,7 +53,7 @@ fn a_bonded_peer_that_may_not_be_connected_to_is_passed_over() {
     link(&mut host, &ours, &mut env).unwrap();
     // ADV_NONCONN_IND, with the HID service named all the same.
     air(&mut host).adv_kind = 0x03;
-    assert_eq!(find_hid(&mut host, &mut env), Ok(None));
+    assert_eq!(find_hid(&mut host, &mut env, &plain()), Ok(None));
 }
 
 #[test]
@@ -65,7 +66,7 @@ fn a_bonded_peer_is_taken_over_a_stranger_heard_first() {
     // What the bonded peer advertises does not matter: here, no HID.
     air(&mut host).adv = vec![2, 0x01, 0x06, 3, 0x03, 0x0f, 0x18];
     let start = env.now;
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     assert_eq!(peer.addr.0, PEER);
     assert!(env.now - start < 2_000, "the bonded peer waited");
 }

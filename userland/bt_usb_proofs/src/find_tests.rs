@@ -18,6 +18,7 @@
 //! look with no HID device in range ends on time with the radio quiet.
 
 use crate::fixture::{air, keyboard, with};
+use crate::fixture_link::plain;
 use crate::hogp_sim::keyboard_mouse;
 use crate::link::find_hid;
 use crate::smp_sim::Peer;
@@ -33,7 +34,7 @@ fn no_hid_device_ends_the_look_with_the_scan_stopped() {
     let battery_only = [2, 0x01, 0x06, 3, 0x03, 0x0f, 0x18];
     let peer = Peer::new(IoCap::NoInputNoOutput, false);
     let (mut host, _, mut env) = with(peer, keyboard_mouse(), &battery_only);
-    assert_eq!(find_hid(&mut host, &mut env), Ok(None));
+    assert_eq!(find_hid(&mut host, &mut env, &plain()), Ok(None));
     assert!(env.now >= 10_000, "the look ended early, at {} ms", env.now);
     let last = air(&mut host).commands.last().unwrap().clone();
     assert_eq!(last, [0x0c, 0x20, 2, 0, 0], "the scan was left on");
@@ -45,7 +46,7 @@ fn no_hid_device_ends_the_look_with_the_scan_stopped() {
 #[test]
 fn the_scan_stops_before_the_connection_is_asked_for() {
     let (mut host, _, mut env) = keyboard();
-    let peer = find_hid(&mut host, &mut env).unwrap().unwrap();
+    let peer = find_hid(&mut host, &mut env, &plain()).unwrap().unwrap();
     assert_eq!(peer.addr.0, crate::air::PEER);
     let ops = opcodes(&air(&mut host).commands);
     let enable = op::LE_SET_SCAN_ENABLE.0;

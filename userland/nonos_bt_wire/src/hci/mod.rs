@@ -17,6 +17,7 @@
 pub mod acl;
 pub mod boundary;
 pub mod command;
+pub mod directed;
 pub mod disconnect;
 pub mod encryption;
 pub mod event;

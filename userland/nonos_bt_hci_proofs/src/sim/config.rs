@@ -20,6 +20,8 @@ pub const ADDR: [u8; 6] = [0x11, 0x22, 0x33, 0x44, 0x55, 0x66];
 
 pub struct Config {
     pub le: bool,
+    /// LE Read Local Supported Features' eight octets, bit 0 first.
+    pub le_features: u64,
     /// LE Read Buffer Size's length and count.
     pub le_buffers: (u16, u8),
     /// Read Buffer Size's ACL length and count.
@@ -39,6 +41,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             le: true,
+            le_features: 0,
             le_buffers: (27, 4),
             buffers: (0, 0),
             silent: false,

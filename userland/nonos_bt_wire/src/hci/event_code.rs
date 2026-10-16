@@ -38,3 +38,5 @@ pub const LE_CONNECTION_COMPLETE: u8 = 0x01;
 pub const LE_ADVERTISING_REPORT: u8 = 0x02;
 /// Vol 4, Part E, 7.7.65.5.
 pub const LE_LTK_REQUEST: u8 = 0x05;
+/// Vol 4, Part E, 7.7.65.11.
+pub const LE_DIRECTED_ADVERTISING_REPORT: u8 = 0x0b;

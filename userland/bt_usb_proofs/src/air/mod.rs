@@ -21,6 +21,7 @@ mod commands;
 mod encrypt;
 mod events;
 mod give;
+mod heard;
 mod link;
 mod new;
 mod pipes;
@@ -29,4 +30,4 @@ mod state;
 
 pub use act::Act;
 pub use events::advertised;
-pub use state::{Air, PEER};
+pub use state::{Air, OURS, PEER};

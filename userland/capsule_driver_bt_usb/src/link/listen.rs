@@ -20,6 +20,7 @@
 use super::env::Env;
 use super::find::{Peer, SCAN_MS};
 use super::heard::{heard_in, Heard};
+use super::us::Us;
 use nonos_bt_hci::{HciError, Host, Transport};
 
 /// How long a new advertiser waits, from when it is first heard, while
@@ -30,6 +31,7 @@ pub const HOLD_MS: u64 = 2_000;
 pub(super) fn listen<T: Transport, E: Env>(
     host: &mut Host<T>,
     env: &mut E,
+    us: &Us,
 ) -> Result<Option<Peer>, HciError> {
     let until = env.now_ms().saturating_add(SCAN_MS);
     let hold = env.any_bonds();
@@ -45,7 +47,7 @@ pub(super) fn listen<T: Transport, E: Env>(
             host.transport().pause();
             continue;
         };
-        match heard_in(&event, env)? {
+        match heard_in(&event, env, us)? {
             Some(Heard::Bonded(peer)) => return Ok(Some(peer)),
             Some(Heard::New(peer)) if !hold => return Ok(Some(peer)),
             Some(Heard::New(peer)) if waiting.is_none() => {

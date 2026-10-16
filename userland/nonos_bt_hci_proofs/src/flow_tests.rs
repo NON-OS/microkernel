@@ -54,7 +54,7 @@ fn events_met_while_waiting_are_kept_in_order() {
     let before = vec![adv_report(1, &[2, 1, 6]), adv_report(2, &[])];
     let mut s = stack(Config { before: before.clone(), ..Config::default() });
     s.bring_up().unwrap();
-    for _ in 0..7 {
+    for _ in 0..8 {
         assert_eq!(s.next_event().unwrap().as_ref(), Some(&before[0]));
         assert_eq!(s.next_event().unwrap().as_ref(), Some(&before[1]));
     }

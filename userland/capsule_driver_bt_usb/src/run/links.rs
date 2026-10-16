@@ -48,7 +48,7 @@ pub fn links(
             env.desk.wait(IDLE_MS);
             continue;
         }
-        let peer = match find_hid(host, env) {
+        let peer = match find_hid(host, env, &me) {
             Ok(Some(peer)) => peer,
             Ok(None) => continue,
             Err(e) => return e,

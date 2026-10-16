@@ -44,6 +44,8 @@ pub struct Host<T> {
     pub(super) acl_free: u16,
     /// The address type scans and connections are made as (7.8.4).
     pub(super) own: AddrType,
+    /// The Scanning_Filter_Policy scans use, chosen at bring-up (7.8.10).
+    pub(super) scan_filter: u8,
 }
 
 impl<T: Transport> Host<T> {
@@ -55,15 +57,19 @@ impl<T: Transport> Host<T> {
         let queue = VecDeque::new();
         let (acl_len, acl_total, acl_free) = (0, 0, 0);
         let own = AddrType::Public;
-        Self { t, credits: 1, budget, queue, dropped: 0, acl_len, acl_total, acl_free, own }
-    }
-
-    pub fn transport(&mut self) -> &mut T {
-        &mut self.t
-    }
-
-    /// ACL buffers free on the controller now.
-    pub fn acl_free(&self) -> u16 {
-        self.acl_free
+        let scan_filter = super::scan::ACCEPT_ALL;
+        let dropped = 0;
+        Self {
+            t,
+            credits: 1,
+            budget,
+            queue,
+            dropped,
+            acl_len,
+            acl_total,
+            acl_free,
+            own,
+            scan_filter,
+        }
     }
 }

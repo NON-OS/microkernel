@@ -33,4 +33,9 @@ pub struct Seen {
     pub paired_here: bool,
     /// Pairing Requests the host sent, over all links.
     pub requests: usize,
+    /// The address the peer directs its advertising to, if it does:
+    /// ADV_DIRECT_IND with this TargetA (Vol 6, Part B, 2.3.1.2).
+    pub directed_to: Option<[u8; 6]>,
+    /// Scanning_Filter_Policy of each LE Set Scan Parameters, in order.
+    pub scan_filters: Vec<u8>,
 }

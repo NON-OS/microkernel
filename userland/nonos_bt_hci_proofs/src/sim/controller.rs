@@ -42,6 +42,7 @@ pub fn respond(cfg: &Config, packet: &[u8]) -> Vec<Vec<u8>> {
         op::READ_LOCAL_FEATURES => vec![0, 0, 0, 0, if cfg.le { 0x40 } else { 0 }, 0, 0, 0],
         op::READ_LOCAL_VERSION => vec![0x0d, 0x34, 0x12, 0x0d, 0x5f, 0x00, 0x78, 0x56],
         op::READ_BD_ADDR => ADDR.to_vec(),
+        op::LE_READ_LOCAL_FEATURES => cfg.le_features.to_le_bytes().to_vec(),
         op::LE_READ_BUFFER_SIZE => {
             let [l0, l1] = cfg.le_buffers.0.to_le_bytes();
             vec![l0, l1, cfg.le_buffers.1]

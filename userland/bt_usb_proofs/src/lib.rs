@@ -21,6 +21,12 @@
 
 extern crate alloc;
 
+#[allow(unused)]
+#[path = "../../nonos_bt_hci_proofs/src/sim/mod.rs"]
+mod hci_sim;
+#[allow(unused)]
+#[path = "../../nonos_bt_hogp_proofs/src/sim/mod.rs"]
+mod hogp_sim;
 #[path = "../../capsule_driver_bt_usb/src/link/mod.rs"]
 mod link;
 #[path = "../../capsule_driver_bt_usb/src/hid/modifier.rs"]
@@ -29,17 +35,10 @@ mod modifier;
 #[path = "../../capsule_driver_bt_usb/src/nbtc/mod.rs"]
 mod nbtc;
 mod ring;
-mod usb;
-
-#[allow(unused)]
-#[path = "../../nonos_bt_hci_proofs/src/sim/mod.rs"]
-mod hci_sim;
-#[allow(unused)]
-#[path = "../../nonos_bt_hogp_proofs/src/sim/mod.rs"]
-mod hogp_sim;
 #[allow(unused)]
 #[path = "../../nonos_bt_smp_proofs/src/sim/mod.rs"]
 mod smp_sim;
+mod usb;
 
 mod air;
 mod env;
@@ -54,6 +53,7 @@ mod battery_link_tests;
 mod bond_keep_tests;
 mod bond_tests;
 mod credit_tests;
+mod directed_proofs;
 mod early_tests;
 mod find_tests;
 mod hold_tests;

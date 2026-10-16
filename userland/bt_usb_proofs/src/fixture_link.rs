@@ -37,11 +37,17 @@ pub fn link(
 
 /// As `link`, as `us`; a bonded peer is encrypted with its kept key.
 pub fn link_as(host: &mut Stack, us: &Us, env: &mut TestEnv) -> Result<(End, Session), HciError> {
-    let peer = find_hid(host, env)?.expect("no HID device heard");
+    let peer = find_hid(host, env, us)?.expect("no HID device heard");
     let c =
         Connect { scan: DEFAULT_SCAN, peer_type: peer.kind, peer: peer.addr, link: DEFAULT_LINK };
     let link = host.connect(&c)?;
     let mut s = begin(host, &link, us, env)?.expect("pairing did not start");
     let end = serve(host, &mut s, env)?;
     Ok((end, s))
+}
+
+/// This host as a look sees it with no private address: no key, so no
+/// directed advertisement to a private address is taken as ours.
+pub fn plain() -> Us {
+    Us { kind: AddrType::Public, addr: BdAddr(crate::air::OURS), identity: None }
 }

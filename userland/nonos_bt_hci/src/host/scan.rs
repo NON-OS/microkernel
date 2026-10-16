@@ -48,7 +48,12 @@ impl Scan {
 pub const DEFAULT_SCAN: Scan = Scan { interval: 0x0060, window: 0x0030 };
 
 const PASSIVE: u8 = 0x00;
-const ACCEPT_ALL: u8 = 0x00;
+/// Scanning_Filter_Policy (7.8.10; Vol 6, Part B, 4.3.3): 0x00 drops a
+/// directed advertisement whose TargetA is not this device's address;
+/// 0x02 also passes one whose TargetA is a resolvable private address,
+/// so the host can resolve it against its own IRK.
+pub const ACCEPT_ALL: u8 = 0x00;
+pub const ACCEPT_UNRESOLVED: u8 = 0x02;
 
 impl<T: Transport> Host<T> {
     /// Start a passive scan with duplicate reports filtered by the
@@ -59,7 +64,7 @@ impl<T: Transport> Host<T> {
         }
         let [i0, i1] = s.interval.to_le_bytes();
         let [w0, w1] = s.window.to_le_bytes();
-        let params = [PASSIVE, i0, i1, w0, w1, self.own.wire(), ACCEPT_ALL];
+        let params = [PASSIVE, i0, i1, w0, w1, self.own.wire(), self.scan_filter];
         self.command(op::LE_SET_SCAN_PARAMETERS, &params)?;
         self.command(op::LE_SET_SCAN_ENABLE, &[1, 1]).map(|_| ())
     }
