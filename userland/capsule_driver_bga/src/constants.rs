@@ -22,6 +22,7 @@ pub const FB_BAR: u8 = 0;
 pub const REG_BAR: u8 = 2;
 
 pub const DISPI_IOPORT_OFFSET: u32 = 0x500;
+pub const DISPI_INDEX_ID: u32 = 0;
 pub const DISPI_INDEX_XRES: u32 = 1;
 pub const DISPI_INDEX_YRES: u32 = 2;
 pub const DISPI_INDEX_BPP: u32 = 3;
@@ -29,6 +30,10 @@ pub const DISPI_INDEX_ENABLE: u32 = 4;
 pub const DISPI_BPP_32: u16 = 32;
 pub const DISPI_ENABLED: u16 = 0x01;
 pub const DISPI_LFB_ENABLED: u16 = 0x40;
+/// The DISPI interface versions this driver programs: the ID register of
+/// Bochs and QEMU's adapters reads 0xB0C0 to 0xB0C5, one per revision.
+pub const DISPI_ID_FIRST: u16 = 0xB0C0;
+pub const DISPI_ID_LAST: u16 = 0xB0C5;
 
 pub const MODE_WIDTH: u16 = 1024;
 pub const MODE_HEIGHT: u16 = 768;

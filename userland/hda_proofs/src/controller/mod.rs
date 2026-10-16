@@ -29,20 +29,28 @@ pub mod codec_probe;
 pub mod compose;
 #[path = "../../../capsule_driver_hda/src/controller/corb.rs"]
 pub mod corb;
-#[path = "../../../capsule_driver_hda/src/controller/immediate.rs"]
-pub mod immediate;
+#[path = "../../../capsule_driver_hda/src/controller/crst.rs"]
+pub mod crst;
 #[path = "../../../capsule_driver_hda/src/controller/dma_sync.rs"]
 pub mod dma_sync;
+#[path = "../../../capsule_driver_hda/src/controller/immediate.rs"]
+pub mod immediate;
 #[path = "../../../capsule_driver_hda/src/controller/info.rs"]
 pub mod info;
 #[path = "../../../capsule_driver_hda/src/controller/intel.rs"]
 pub mod intel;
 #[path = "../../../capsule_driver_hda/src/controller/position.rs"]
 pub mod position;
+#[path = "../../../capsule_driver_hda/src/controller/quiesce.rs"]
+pub mod quiesce;
 #[path = "../../../capsule_driver_hda/src/controller/reset.rs"]
 pub mod reset;
+#[path = "../../../capsule_driver_hda/src/controller/rirb.rs"]
+mod rirb;
 #[path = "../../../capsule_driver_hda/src/controller/sst.rs"]
 pub mod sst;
+#[path = "../../../capsule_driver_hda/src/controller/stop.rs"]
+pub mod stop;
 #[path = "../../../capsule_driver_hda/src/controller/stream_layout.rs"]
 pub mod stream_layout;
 #[path = "../../../capsule_driver_hda/src/controller/stream_run.rs"]
@@ -51,6 +59,8 @@ pub mod stream_run;
 pub mod streams;
 #[path = "../../../capsule_driver_hda/src/controller/verb.rs"]
 pub mod verb;
+#[path = "../../../capsule_driver_hda/src/controller/verb_send.rs"]
+mod verb_send;
 #[path = "../../../capsule_driver_hda/src/controller/verdict.rs"]
 pub mod verdict;
 #[path = "../../../capsule_driver_hda/src/controller/verdict_name.rs"]
@@ -61,6 +71,5 @@ pub mod wait;
 pub use codec_probe::{probe, CodecProbe, MAX_CODECS};
 pub(crate) use compose::{compose_verb, compose_verb_long};
 pub use info::ControllerInfo;
-pub use stream_layout::layout;
-pub use stream_layout::{StreamDescriptor, STREAM_BIDI, STREAM_OUTPUT};
-
+pub use stream_layout::{layout, StreamDescriptor, STREAM_BIDI, STREAM_OUTPUT};
+pub(crate) use stream_run::StreamRun;

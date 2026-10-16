@@ -17,18 +17,30 @@
 //! One codec, from the parameters it reports to the verbs that make it play.
 //!
 //! `walk` reads a codec's audio function group into a `Codec` description;
-//! everything after that (`plan`, `path`, `conn`, `pincfg`, `format`) is
-//! pure and runs on the host proofs against descriptions of real codecs.
-//! `program`, `power`, `realtek` and `jack` send the verbs.
+//! everything after that (`plan`, `assign`, `out_pins`, `path`, `search`,
+//! `deepen`, `hop`, `conn`, `pincfg`, `format`) is pure and runs on the
+//! host proofs against descriptions of real codecs. `program` sends the
+//! verbs, through `power`, `realtek`, `beep`, `route`, `amp`, `jack`,
+//! `external` and `stream`.
 
+pub mod amp;
+pub mod assign;
+pub mod beep;
 pub mod conn;
+pub mod deepen;
+pub mod external;
 pub mod format;
+pub mod hop;
 pub mod jack;
+pub mod out_pins;
 pub mod path;
 pub mod pincfg;
 pub mod plan;
 pub mod power;
 pub mod program;
 pub mod realtek;
+pub mod route;
+pub mod search;
+pub mod stream;
 pub mod walk;
 pub mod widget;

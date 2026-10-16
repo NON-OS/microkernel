@@ -18,13 +18,19 @@
 //! arithmetic sealed in its own tree; named here as siblings, it is reachable
 //! to the tests through the same path the mode set uses.
 
+#[path = "../../../capsule_driver_bga/src/dispi/check.rs"]
+mod check;
 #[path = "../../../capsule_driver_bga/src/dispi/clear.rs"]
 mod clear;
 #[path = "../../../capsule_driver_bga/src/dispi/dispi_off.rs"]
 mod dispi_off;
 #[path = "../../../capsule_driver_bga/src/dispi/set_mode.rs"]
 mod set_mode;
+#[path = "../../../capsule_driver_bga/src/dispi/span.rs"]
+mod span;
 
+pub use check::{confirm, identify};
 pub use clear::clear;
 pub use dispi_off::dispi_off;
-pub use set_mode::set_mode;
+pub use set_mode::{regs_len, set_mode};
+pub use span::span;

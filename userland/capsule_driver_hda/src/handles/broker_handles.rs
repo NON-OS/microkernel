@@ -14,31 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::MmioMapOut;
+
+/// What a bring-up holds from the broker from the moment the register window
+/// is mapped. Dropping it is the one way the controller is given up.
 pub struct BrokerHandles {
     pub(super) device_id: u64,
+    pub(super) claim_epoch: u64,
     pub(super) mmio_grant_id: u64,
     pub(super) mmio_user_va: u64,
     pub(super) irq_grant_id: u64,
-    pub(super) corb_grant_id: u64,
-    pub(super) rirb_grant_id: u64,
 }
 
 impl BrokerHandles {
     pub(crate) const fn new(
         device_id: u64,
-        mmio_grant_id: u64,
-        mmio_user_va: u64,
+        claim_epoch: u64,
+        mmio: &MmioMapOut,
         irq_grant_id: u64,
-        corb_grant_id: u64,
-        rirb_grant_id: u64,
     ) -> Self {
-        Self {
-            device_id,
-            mmio_grant_id,
-            mmio_user_va,
-            irq_grant_id,
-            corb_grant_id,
-            rirb_grant_id,
-        }
+        let (mmio_grant_id, mmio_user_va) = (mmio.grant_id, mmio.user_va);
+        Self { device_id, claim_epoch, mmio_grant_id, mmio_user_va, irq_grant_id }
     }
 }

@@ -28,8 +28,9 @@ The capsule uses only Mk and broker calls:
   ULT ADSP 8086:9c36 and 9cb6, Atom LPE 0f28, 22a8 and 119a), which is never
   run as an HD Audio controller (`src/discover/`, `src/controller/sst.rs`).
 - `MkDeviceClaim` gives this process exclusive controller ownership,
-  `MkPciConfigWrite` turns on bus mastering and memory decoding, and
-  `MkPciConfigRead` reads Intel's TCSEL, DEVC and CGCTL for the boot log.
+  `MkPciConfigWrite` turns on memory decoding at the claim and bus mastering
+  once the controller is reset, and `MkPciConfigRead` reads the command word
+  and Intel's TCSEL, DEVC and CGCTL for the boot log.
 - `MkMmioMap` maps the BAR0 register window.
 - `MkIrqBind` binds the legacy line when firmware routed one, else one MSI-X
   vector, else the driver runs polled (`src/setup/irq.rs`,
@@ -89,23 +90,33 @@ state survives process exit.
 
 ## Runtime lifecycle
 
-One bring-up attempt (`src/setup/sequence.rs`) runs over each controller in
-turn until one plays:
+One bring-up attempt (`src/setup/sequence.rs`, `attempt.rs`) runs over each
+controller in turn until one plays:
 
-1. Claim the controller, turn on bus mastering and memory decoding, map BAR0,
-   bind the interrupt, map the CORB and RIRB.
-2. Stop every engine a previous owner left running, then a full reset: CRST
+1. Claim the controller with memory decoding on and bus mastering off, both
+   read-modify-write (`src/setup/config.rs`), map BAR0, bind the interrupt,
+   a kill) left its engines armed at frames freed since, and the kernel's
+   release cleared only Bus Master, so it stays off until step 2 stops them.
+   Today's broker ORs the bits it is given into the Command register, so this
+   write cannot yet clear a Bus Master left set; the kernel clears it at claim
+   that will not fails the attempt by name; its teardown resets the
+   controller for the next, `src/controller/stop.rs`), then a full reset: CRST
    low and seen low, held 1 ms, high and seen high, 2 ms for the codecs, then
    STATESTS (`src/controller/reset.rs`). Apollo Lake's DMA latency and the
    multi-link clock of Skylake-family parts are set as Linux sets them
    (`src/controller/intel.rs`).
-3. Start the rings at the largest size the controller offers; a CORB read
-   pointer reset that is not acknowledged is carried on from, as in Linux.
+3. Turn bus mastering on (read-modify-write), then start the rings at the
+   largest size the controller offers; a CORB read pointer reset that is not
+   acknowledged is carried on from, as in Linux.
 4. Ask every codec STATESTS names for its identity over the CORB, walk each
    audio function group (widgets, pin configurations, connection lists in
    short and long form with ranges, amp capabilities) and plan its outputs:
    every speaker, headphone and line out pin with a path to a DAC that plays
-   48 kHz 16-bit (`src/controller/codec/`). The codec with speakers wins.
+   48 kHz 16-bit (`src/controller/codec/`), each pin's search held to a
+   budget of 2048 connections followed and never through an input amp past
+   the sixteenth, which the amp verb cannot name (`search.rs`, `hop.rs`). A
+   codec whose graph spends the budget with nothing routed is skipped by name
+   (`[HDA] codec <n> graph over budget`). The codec with speakers wins.
 5. With no analog output, name the reason (`src/controller/verdict.rs`):
    an Intel SST engine on the bus, or an Intel DSP controller with no codec
    or only HDMI, needs SOF (logged `[HDA] intel sst dsp 8086:<id> found,
@@ -124,16 +135,32 @@ turn until one plays:
    8 KiB periods (`src/controller/stream_run.rs`).
 
 The serving loop (`src/server/runner/run.rs`) reads the headphone jack every
-500 ms and switches the speakers with it, waits up to 50 ms for the
-interrupt, then 5 ms for a request. On each buffer completion it either marks
-`[HDA] play-complete` once (tone mode) or, while a stream started with
-`OP_STREAM_START` is running, copies queued PCM into each period the
-controller has finished, as read from the DMA position buffer on Intel or
-LPIB elsewhere (`src/controller/position.rs`), and fills a period the queue
-cannot cover with silence (`src/server/runner/refill.rs`).
+500 ms and switches the speakers with it; while the codec does not answer
+the wait doubles, and after six reads in a row unanswered (half a minute)
+the codec is lost, logged once, and its jack not read again
+(`jack_schedule.rs`). It waits up to 50 ms for the interrupt, then 5 ms for
+a request. On each buffer completion it either marks `[HDA] play-complete`
+once (tone mode) or, while a stream started with `OP_STREAM_START` is
+running, copies queued PCM into each period the controller has finished, as
+read from the DMA position buffer on Intel or LPIB elsewhere
+(`src/controller/position.rs`), and fills a period the queue cannot cover
+with silence (`src/server/runner/refill.rs`).
 
-Teardown is the handles' Drop: unmap, unbind and release the claim, which
-takes the DMA grants with it.
+Teardown is the handles' Drop (`src/handles/`), and every way out of an
+attempt after BAR0 is mapped goes through it, the silent verdict included,
+in this order: every stream engine's RUN cleared and seen clear, then the
+CORB and RIRB engines' (`src/controller/stop.rs`), then DPLBASE cleared, the
+controller put in reset with CRST seen low (`src/controller/quiesce.rs`), a
+PCI Command write with Bus Master Enable clear, the interrupt unbound and
+the register window unmapped, and only then the claim released. No DMA
+grant is unmapped before the release. Each wait is bounded; an engine that
+will not stop is logged by name and the teardown goes on.
+
+The release is the real guard: the broker clears bus mastering itself and
+reads it back before it drains the DMA grants (rings, BDL, PCM ring), so no
+frame is freed under an engine still writing it. The driver's own Bus Master
+write is defence in depth: the broker ORs a command write that names only
+writable bits into the register today, so it takes effect once the kernel's
 
 ## Failure model
 
@@ -142,7 +169,10 @@ controller that does not leave reset, reads all ones, reports VMAJ or GCAP
 zero, has no output stream, has DMA above 4 GiB without 64-bit addressing,
 or whose codec does not reach D0 fails setup; a graphics card's controller
 that fails is passed over. Every wait is bounded in milliseconds of uptime
-(`src/controller/wait.rs`), each verb by 100 ms.
+(`src/controller/wait.rs`), each verb by 100 ms, and every wait spins
+only while the millisecond clock reads under two (at least one whole
+millisecond) and sleeps between polls after it, so a codec or controller
+that stopped answering holds no core.
 
 A machine with audio hardware this driver cannot play on is not a failure:
 the driver names it (`OP_OUTPUT_STATUS`) and the audio server, the player
@@ -222,7 +252,18 @@ descriptor it runs. Mixing, volume and routing belong to `audio.server`.
 
 A signed audio-controller service with CORB/RIRB verb transport, codec
 discovery, stream programming, BDL DMA, and playback driven by the audio
-server. Capture and volume are not there yet.
+server. Capture and hardware volume are a planned unit of their own (below).
+
+## Planned: capture and hardware volume
+
+Not in this driver, and no capture code is written until two things exist
+that do not yet: a consent gate (`audio.server` and Settings mint a token
+for one capture stream, and the driver refuses an input stream without it)
+and an indicator the user can see while a microphone is open (the codec's
+mic-mute LED and the compositor's). The unit adds an input stream op behind
+that token, opens the ADC path only for its life and closes it on stop, and
+adds volume and mute ops mapped onto each amp's steps. Until then the
+microphone cannot be opened at all, which is what keeps it private.
 
 ## Release evidence
 

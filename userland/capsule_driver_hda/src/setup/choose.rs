@@ -19,8 +19,9 @@
 //! sits at address 0 on most boards, but nothing requires it, and on a
 //! machine with an HDMI codec at 0 the old driver configured the display
 //! codec and the speakers stayed silent. A codec with speakers is preferred
-//! to one with only jacks, and a codec that fails its walk is skipped rather
-//! than failing the controller.
+//! to one with only jacks, and a codec that fails its walk, or whose graph
+//! the route search gives up on, is skipped rather than failing the
+//! controller.
 
 use alloc::boxed::Box;
 
@@ -62,12 +63,12 @@ pub fn choose(link: &mut Link, codecs: &[CodecProbe], codec_mask: u16) -> Choice
             }
             Class::DigitalOnly => digital = true,
             Class::NoOutput => other = true,
+            Class::OverBudget => {
+                other = true;
+                Line::new("[HDA] codec ").dec(p.address as u32).s(" graph over budget").emit();
+            }
         }
     }
-    let findings = Findings {
-        codec_mask,
-        analog: best.is_some(),
-        digital_only: digital && !other,
-    };
+    let findings = Findings { codec_mask, analog: best.is_some(), digital_only: digital && !other };
     Choice { best, findings }
 }

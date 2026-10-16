@@ -20,26 +20,40 @@ use super::{claim, mmio, pci, Driver};
 use crate::constants::{BYTES_PER_PIXEL, CLEAR_COLOR, FB_BAR, MODE_HEIGHT, MODE_WIDTH, REG_BAR};
 use crate::discover::Found;
 use crate::dispi;
-use crate::error::BgaResult;
+use crate::error::{BgaError, BgaResult};
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
 
 /// One bring-up attempt on the adapter discovery found. Each failing step
 /// releases the claim, which takes any mapping already made with it, so the
-/// next attempt can claim the adapter again.
+/// next attempt can claim the adapter again. Both mappings are as long as
+/// the broker made them, not as the mode needs. The adapter must name a
+/// DISPI version, and the mode must fit the framebuffer mapping, before the
+/// mode is programmed; it must read back as set before anything is drawn.
 pub fn run(dev: Found) -> BgaResult<Driver> {
     let claim_epoch = claim::claim(dev.device_id)?;
-    if let Err(e) = pci::enable_bus_master(dev.device_id, claim_epoch) {
+    if let Err(e) = pci::enable_memory(dev.device_id, claim_epoch) {
         let _ = mk_device_release(dev.device_id);
         return Err(e);
     }
     let reg_map = mmio::map(dev.device_id, claim_epoch, REG_BAR, dev.reg_size)?;
     let fb_map = mmio::map(dev.device_id, claim_epoch, FB_BAR, dev.fb_size)?;
-    let regs = Regs::new(reg_map.user_va);
-    dispi::set_mode(regs, MODE_WIDTH, MODE_HEIGHT);
-    let pixels = MODE_WIDTH as u64 * MODE_HEIGHT as u64;
-    dispi::clear(fb_map.user_va, pixels, CLEAR_COLOR);
     let handles = BrokerHandles::new(dev.device_id, reg_map.grant_id, fb_map.grant_id);
+    if reg_map.length < dispi::regs_len() {
+        return Err(BgaError::RegisterWindowTooSmall);
+    }
+    let regs = Regs::new(reg_map.user_va);
+    dispi::identify(regs)?;
+    let fb = dispi::span(fb_map.user_va, fb_map.length, MODE_WIDTH, MODE_HEIGHT)?;
+    dispi::set_mode(regs, MODE_WIDTH, MODE_HEIGHT);
+    dispi::confirm(regs, MODE_WIDTH, MODE_HEIGHT)?;
+    dispi::clear(&fb, CLEAR_COLOR);
     let stride = MODE_WIDTH as u32 * BYTES_PER_PIXEL;
-    Ok(Driver { handles, fb_user_va: fb_map.user_va, width: MODE_WIDTH, height: MODE_HEIGHT, stride })
+    Ok(Driver {
+        handles,
+        fb_user_va: fb_map.user_va,
+        width: MODE_WIDTH,
+        height: MODE_HEIGHT,
+        stride,
+    })
 }

@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod jack_poll;
+mod jack_schedule;
 mod max_tx_body;
 mod poll_irq;
 mod refill;
 mod run;
-mod status;
 #[cfg(feature = "nonos-driver-hda-smoketest")]
 mod selftest;
+mod status;
 
 pub use run::run;
 pub use status::run_status;

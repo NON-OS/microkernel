@@ -21,7 +21,16 @@ use crate::constants::{
 };
 use crate::regs::Regs;
 
+/// How far into the register mapping the mode set writes: through ENABLE,
+/// the highest DISPI index it touches.
+pub fn regs_len() -> u64 {
+    dispi_off(DISPI_INDEX_ENABLE) as u64 + 2
+}
+
+/// Program the mode with the adapter disabled, ENABLE written last.
 pub fn set_mode(regs: Regs, width: u16, height: u16) {
+    // SAFETY: every index written lies below `regs_len`, which the caller
+    // has checked the register mapping covers.
     unsafe {
         regs.w16(dispi_off(DISPI_INDEX_ENABLE), 0);
         regs.w16(dispi_off(DISPI_INDEX_XRES), width);
