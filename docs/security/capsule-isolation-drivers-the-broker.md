@@ -49,9 +49,9 @@ Where confinement is not possible:
   the claim.
 
 Each claim on a PCI device prints a line on the serial console that starts with
-`[VT-D] pid=`, gives the device's address, and says `confined`, `unconfined` or
-`refused` with the reason (`say` in
-`src/hardware/broker/confine/table.rs:45-53`). `posture_line` prints the summary
+`[VT-D]` and says `confined`, `unconfined` or `refused` with the reason. It
+names neither the process nor the device's address, since the log leaves the
+machine (`say` in `src/hardware/broker/confine/table.rs:50-55`). `posture_line` prints the summary
 as `[IOMMU] <vendor> present, enforcing=<0|1>, unconfined grants=<n>`
 (`src/memory/iommu/posture_line.rs`). Device DMA is confined only when that
 line shows `enforcing=1` and `unconfined grants=0`. On an image built with

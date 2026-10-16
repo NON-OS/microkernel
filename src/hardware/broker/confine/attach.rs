@@ -41,12 +41,12 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
      * firmware from whatever lived at 0x100000. Such a device is refused.
      */
     if !crate::memory::iommu::translates(address) {
-        return without_domain(pid, address, verdict(true, false, Ok(()), OPT_IN, PRODUCTION));
+        return without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION));
     }
-    super::interrupts::admit(pid, address)?;
+    super::interrupts::admit()?;
     // A virtio device without ACCESS_PLATFORM ignores the domain.
     if !super::virtio::may_confine(device_id) {
-        say(b"refused: virtio without ACCESS_PLATFORM under an IOMMU", pid, address);
+        say(b"refused: virtio without ACCESS_PLATFORM under an IOMMU");
         return Err(Refused);
     }
     let mut all = CAPSULES.lock();
@@ -64,9 +64,9 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
              */
             Err(e) => {
                 let v = verdict(true, true, Err(unconfined_allowed(e)), OPT_IN, PRODUCTION);
-                return without_domain(pid, address, v);
+                return without_domain(v);
             }
         },
     };
-    super::join::join(&mut all, pos, pid, device_id, address)
+    super::join::join(&mut all, pos, device_id, address)
 }

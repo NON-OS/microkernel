@@ -62,9 +62,7 @@ pub(crate) fn init_low32_pool(base: u64, pages: usize) {
     }
     pool.base = base;
     pool.pages = pages;
-    crate::sys::serial::print(b"[DMA] low32 pool base=");
-    crate::sys::serial::print_hex(base);
-    crate::sys::serial::print(b" pages=");
+    crate::sys::serial::print(b"[DMA] low32 pool pages=");
     crate::sys::serial::print_dec(pages as u64);
     crate::sys::serial::print(b" floor=");
     crate::sys::serial::print_dec(low32_floor(pages) as u64);

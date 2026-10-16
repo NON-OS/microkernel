@@ -32,14 +32,14 @@ pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
     let (_, address) = all[pos].devices.remove(i);
     // Another device behind the same VMD still needs the shared id.
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
-        say(b"released; requester id still shared", pid, address);
+        say(b"released; requester id still shared");
         return;
     }
     if all[pos].domain.detach_device(address).is_err() {
-        say(b"detach failed; the domain is kept", pid, address);
+        say(b"detach failed; the domain is kept");
         return;
     }
-    say(b"released and denied", pid, address);
+    say(b"released and denied");
     if all[pos].devices.is_empty() {
         all.remove(pos);
     }

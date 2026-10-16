@@ -20,9 +20,8 @@
 
 use super::refuse::Refused;
 use super::table::say;
-use crate::memory::iommu::DeviceAddress;
 
-pub(super) fn admit(pid: u32, address: DeviceAddress) -> Result<(), Refused> {
+pub(super) fn admit() -> Result<(), Refused> {
     use super::decide::interrupts_confined;
     use crate::memory::iommu::dev_unconfined::PRODUCTION;
     use crate::memory::iommu::dev_unremapped::OPT_IN;
@@ -34,9 +33,9 @@ pub(super) fn admit(pid: u32, address: DeviceAddress) -> Result<(), Refused> {
         return Ok(());
     }
     if interrupts_confined(remapping, OPT_IN, PRODUCTION) {
-        say(b"interrupts not remapped, under nonos-dev-unremapped-interrupts", pid, address);
+        say(b"interrupts not remapped, under nonos-dev-unremapped-interrupts");
         return Ok(());
     }
-    say(b"refused: interrupts not remapped", pid, address);
+    say(b"refused: interrupts not remapped");
     Err(Refused)
 }
