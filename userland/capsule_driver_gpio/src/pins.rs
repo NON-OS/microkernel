@@ -23,10 +23,9 @@
 use crate::acpi::serial;
 use crate::aei::aei_list;
 use crate::bank::Bank;
-use crate::keys::bus_key;
 use crate::say::say;
 use alloc::vec::Vec;
-use nonos_gpio::{Owner, Trigger};
+use nonos_gpio::{bus_key, Owner, Trigger};
 
 const GPIO_INT: u8 = 1 << 3;
 const EDGE: u8 = 1 << 5;
