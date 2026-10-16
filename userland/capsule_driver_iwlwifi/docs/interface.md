@@ -1,7 +1,8 @@
 ## Interface contract
 
-Three request families arrive on the one service inbox: the Wi-Fi control
-family, net_core's link protocol, and this driver's own.
+Two request families arrive on the one service inbox: the Wi-Fi control
+family and net_core's link protocol. Anything else gets no reply
+(`server/control/route.rs`, `Route::Other`).
 
 The Wi-Fi control family (`nonos_wifi_client`, tag `0x57494649`):
 
@@ -25,26 +26,8 @@ net_core's link protocol (`nonos_wifi_core::netif`, tag "NNET"): link status,
 MAC address, transmit and receive one Ethernet frame. Until a port is open the
 link reads down and holds no address.
 
-The driver's own `NIWF` protocol (version 1):
-
-| Operation | Input | Output |
-|---|---|---|
-| `OP_HEALTHCHECK` | none | status |
-| `OP_DEVICE_INFO` | none | PCI id, hw revision, family |
-| `OP_FIRMWARE_INFO` | none | selected firmware name and size |
-| `OP_RF_STATE` | none | RF-kill / init flags |
-| `OP_DMA_STATE` | none | brokered DMA staging grant metadata |
-| `OP_FIRMWARE_STAGE` | none | staged firmware section counts and bytes |
-| `OP_ALIVE_WAIT` | none | alive notification status and interrupt word |
-
-It also routes `OP_FIRMWARE_LOAD`, `OP_RX_POLL`, and the older helpers from
-before the shared core ran the join (`OP_MGMT_BUILD`, `OP_BEACON_PARSE`,
-`OP_HCMD_ISSUE`; `src/server/dispatch.rs`). Nothing in the tree speaks NIWF to
-them. The key helpers that took or returned key material (`0x000D` to
-`0x0018`: the PTK, the handshake, CCMP, key unwrap and the raw data path),
-with the private copies of the WPA2 code behind them, are gone; their numbers
-are never reused and now reply `E_INVAL` (`E_BAD_OP` with no body).
-
-Unknown operations reply `E_BAD_OP`. Non-empty bodies on fixed-width requests
-reply `E_INVAL`. Once the gen3 radio owns the card, the ops that write it
-(`OP_FIRMWARE_LOAD`, `OP_ALIVE_WAIT`, `OP_HCMD_ISSUE`) reply `E_BUSY` (-16).
+The driver's own `NIWF` protocol is gone: nothing in the tree spoke it. Its
+reports (health, device, firmware, RF and DMA state), the legacy firmware
+stage, load and ALIVE wait, the receive poll, the host command and the older
+frame helpers were deleted with the code behind them, and a request carrying
+its tag gets no reply.
