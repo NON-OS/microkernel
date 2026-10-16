@@ -82,8 +82,10 @@ reaches its reader, so who may is the owner's to decide.
 
 - One reader: an interface of class 0Bh with a bulk pair and its CCID
   class descriptor, whose dwFeatures say short or extended APDU exchange.
-- Every slot it has, one command at a time, each under its own sequence
-  number; an answer to another is let go.
+- Every slot it has up to 63, one command at a time, each under its own
+  sequence number; an answer to another is let go. A slot past 63 is
+  refused (-22): the driver could not remember it was powered, and CLOSE
+  would leave its card live.
 - Each bulk IN transfer one message: an answer whose dwLength runs past
   the transfer that brought it was cut short and is passed over, never
   joined to the next.
