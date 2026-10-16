@@ -29,6 +29,8 @@ mod max_tx_body;
 mod poll_irq;
 #[path = "../../../capsule_driver_hda/src/server/runner/refill.rs"]
 mod refill;
+#[path = "../../../capsule_driver_hda/src/server/runner/refill_log.rs"]
+mod refill_log;
 
 mod jack_lost_tests;
 mod jack_poll_tests;
