@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::slots::{bar_slots, upper_half_fits};
+use super::slots::{bar_slots, io_size, upper_half_fits};
 
 // The dword after a header's last BAR, where its bridge registers begin.
 fn after_bars(header: u8) -> u16 {
@@ -56,4 +56,15 @@ fn no_upper_half_is_read_past_the_last_bar() {
     assert!(upper_half_fits(4, 6) && !upper_half_fits(5, 6));
     assert!(upper_half_fits(0, 2) && !upper_half_fits(1, 2) && !upper_half_fits(0, 1));
     assert!(!upper_half_fits(0, 0) && !upper_half_fits(255, 255));
+}
+
+#[test]
+fn an_io_bar_is_sized_within_sixteen_bits_whatever_its_upper_half_reads() {
+    // A 16-bit decoder hardwiring 31:16 to zero, and a 32-bit one.
+    assert_eq!(io_size(0x0000_FFE1), 0x20, "an SMBus BAR of 32 ports");
+    assert_eq!(io_size(0xFFFF_FFE1), 0x20);
+    assert_eq!(io_size(0xFFFF_FFF1), 0x10);
+    assert_eq!(io_size(0x0000_FF01), 0x100, "the largest I/O BAR");
+    assert_eq!(io_size(0x0000_0001), 0, "no address bit kept: no BAR");
+    assert_eq!(io_size(0xFFFF_0001), 0, "an upper half alone sizes nothing");
 }

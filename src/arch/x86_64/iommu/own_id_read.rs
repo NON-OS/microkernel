@@ -16,7 +16,7 @@
 
 //! The configuration reads `own_id` judges by (L51).
 
-use crate::bus::pci::{find_devices, listed_whole};
+use crate::bus::pci::{find_devices, listed_through};
 use crate::drivers::pci::capabilities::find_capability;
 use crate::drivers::pci::config::access::{read16, read8};
 
@@ -36,8 +36,8 @@ pub(crate) fn own_id(bus: u8, device: u8, function: u8) -> bool {
 }
 
 // A root bus: bus 0, or one no listed bridge's range holds, as a second host
-// bridge's (EPYC's 0x20, 0x40; Xeon's stacks; L61), never read from a table
-// full enough to have dropped the bridge above it (L65).
+// bridge's (EPYC's 0x20, 0x40; Xeon's stacks; L61), read only where the table
+// leaves out no bridge that could hold it (L68).
 fn is_root(bus: u8) -> bool {
     // A bridge whose range cannot be read is taken to hold it.
     let holds = |(b, d, f): (u8, u8, u8)| {
@@ -46,7 +46,7 @@ fn is_root(bus: u8) -> bool {
     };
     let bridges = find_devices(0x06, 0x04).chain(find_devices(0x06, 0x09));
     let mut all = bridges.chain(find_devices(0x06, 0x07)).map(|b| (b.bus, b.device, b.function));
-    bus == ROOT_BUS || (listed_whole() && !all.any(holds))
+    bus == ROOT_BUS || (listed_through(bus) && !all.any(holds))
 }
 
 // The PCI-to-PCI bridge (class 06, subclass 04 or 09) whose secondary bus is
