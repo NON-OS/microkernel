@@ -9,6 +9,7 @@ section. It builds on `nonos_bt_wire` for the packet formats.
 |---|---|
 | `transport` | `Transport`: whole HCI packets each way, polled, never waited on. |
 | `usb` | HCI over USB (Vol 4, Part B). Finds the Bluetooth interface (class E0/01/01) and its three endpoints in a configuration descriptor. Joins interrupt and bulk transfers into whole packets. `UsbHci` implements `Transport` over `UsbPipes`, which a capsule backs with its USB controller driver. |
+| `uart` | HCI over a UART, for controllers wired to a serial port. `h4` is the UART transport (Vol 4, Part A): a packet indicator, then the packet, cut by its own header's length; an octet that is no indicator ends the stream. `h5` is the Three-wire UART (Vol 4, Part D): SLIP framing, the four-octet header with its checksum, the optional 16-bit CRC, link establishment (SYNC, CONFIG and their responses), and reliable packets with sequence numbers, a sliding window and acknowledgement. Both implement `Transport` over `UartPort`, which a capsule backs with its serial driver. No vendor command and no firmware patch: no public specification covers either. |
 | `host` | `Host`: commands with command flow control and a poll budget (Vol 4, Part E, 4.4), events met while waiting kept in a bounded queue, bring-up, the event masks, passive scanning, and ACL data with buffer credits (Vol 4, Part E, 4.1.1). Opening a link as central (`connect`, Vol 4, Part E, 7.8.12 and 7.8.13), encrypting it (`encrypt`, 7.8.24), and new timing for it once a peripheral's request is accepted (`update_link`, 7.8.18). |
 
 Bring-up uses standard commands only, in this order:
@@ -55,6 +56,12 @@ both. The reserved kind and a random part Vol 6, Part B, 1.3.2.1 or
 1.3.2.2 forbids are refused unsent, and an address the controller refuses
 leaves the public one in use. The controller refuses a change while it
 scans or connects, so the caller changes it between those.
+
+Over the Three-wire UART, `establish` runs link establishment for at most
+a given number of looks. A reliable packet is sent again every `retx_ms`
+until acknowledged, and the link counts as lost when one has waited
+`LOST_MS` (one second) with nothing acknowledged, or when the controller
+starts the link over under a host using it. Either is `HciError::NoLink`.
 
 Every wait is bounded. A command waits at most `POLL_BUDGET` polls with a
 `pause` between empty ones (about two seconds in a capsule). The event
