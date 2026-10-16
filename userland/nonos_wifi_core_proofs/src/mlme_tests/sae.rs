@@ -57,7 +57,7 @@ pub(super) fn sae_join(h2e: bool) -> (Mlme, [u8; 32]) {
     let (_, ap_status, ap_commit) = ap.commit_frame();
     let confirm = m.on_mgmt(&sae_from_ap(1, ap_status, &ap_commit)).tx.expect("the confirm");
     let cb = &confirm[MAC_HEADER_LEN..];
-    assert!(matches!(ap.on_frame(2, 0, &cb[6..]), SaeStep::Accepted), "the AP verifies it");
+    assert!(matches!(ap.on_frame(2, 0, &cb[6..]), SaeStep::Accepted { .. }), "the AP verifies it");
     let req = m.on_mgmt(&sae_from_ap(2, 0, &ap_confirm)).tx.expect("association");
     let els = assoc_elements(&req);
     let rsn = els.iter().find(|e| e.0 == 48).unwrap().1.clone();

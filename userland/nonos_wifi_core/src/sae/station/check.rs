@@ -48,6 +48,6 @@ impl SaeStation {
         }
         self.state = SaeState::Accepted;
         self.failure = None;
-        SaeStep::Accepted
+        SaeStep::Accepted { pmk: self.keys.pmk }
     }
 }
