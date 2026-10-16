@@ -21,6 +21,7 @@
 //! to confine a device checks. When bring-up fails, calls return
 //! `NotEnforcing` rather than success.
 
+pub(crate) mod acs;
 pub mod amd_vi;
 pub mod device;
 pub mod domain;
