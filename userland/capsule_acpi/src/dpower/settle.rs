@@ -32,6 +32,8 @@ pub struct Hidden {
     pub answered: Vec<(Id, Bdf)>,
     pub settle_at: u64,
     pub settled: bool,
+    /// Devices the reveal has tried, so a later pass skips them.
+    pub tried: Vec<Id>,
     /// Devices their drivers armed to wake while the system runs.
     pub wake: super::Wakes,
 }

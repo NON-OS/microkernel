@@ -40,12 +40,18 @@ fn missing(acpi: &mut Acpi, dev: Id) -> Option<Bdf> {
     pci_read(f, 0, 2).map_or(true, |v| v == 0xFFFF).then_some(f)
 }
 
-pub fn reveal_hidden(acpi: &mut Acpi) {
+/// Each hidden function not yet tried, until `until`; whether all were.
+pub fn reveal_hidden(acpi: &mut Acpi, until: u64) -> bool {
     let want = PRESENT | ENABLED;
     let fitted = |d: &&nonos_aml::platform::DeviceInfo| d.sta & want == want && d.adr.is_some();
     let devs: Vec<Id> = acpi.devices.iter().filter(fitted).map(|d| d.id).collect();
-    let devs: Vec<Id> = devs.into_iter().filter(|d| power_managed(&acpi.aml, *d)).collect();
+    let fresh = |d: &Id| power_managed(&acpi.aml, *d) && !acpi.hidden.tried.contains(d);
+    let devs: Vec<Id> = devs.into_iter().filter(fresh).collect();
     for dev in devs {
+        if now_ms() >= until {
+            return false;
+        }
+        acpi.hidden.tried.push(dev);
         let Some(f) = missing(acpi, dev) else { continue };
         let Acpi { aml, host, dpower, cooling, pci_firmware, .. } = acpi;
         // Up from D3cold it has been through a reset: let it recover first.
@@ -65,4 +71,5 @@ pub fn reveal_hidden(acpi: &mut Acpi) {
         }
     }
     acpi.hidden.settle_at = now_ms().saturating_add(SETTLE_MS);
+    true
 }

@@ -16,13 +16,16 @@
 
 //! From the kernel's tables to a running platform.
 
+mod assemble;
 mod bringup;
 mod eval;
+mod first;
 mod ged;
 mod late;
 mod load;
 mod osc;
 mod osc_host;
+mod pass;
 mod report;
 mod report_prt;
 mod say;
