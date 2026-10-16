@@ -49,6 +49,12 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Bring the device to power state D0 before its driver maps MMIO. Done
     // outside the claims lock: it touches config space and settles for a moment.
     crate::hardware::broker::power::power_on_device(device_id);
+    // Its BARs read back against enumeration's, and put back where the move
+    // to D0 lost them; one that will not stick refuses the claim (L62).
+    if !super::restore::restore(device_id) {
+        let _ = super::release::release(pid, device_id);
+        return Err(ClaimError::Refused);
+    }
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
