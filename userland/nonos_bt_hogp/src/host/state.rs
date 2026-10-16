@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The HID host on one ATT bearer: discovery, then configuration, then
-//! the reports. It sends nothing itself; it keeps one request outstanding
-//! at a time, as a client must (Vol 3, Part F, 3.3.2).
+//! The HID host on one ATT bearer: discovery, configuration, then reports,
+//! with one request outstanding at a time (Vol 3, Part F, 3.3.2).
 
 use super::boot::Boot;
 use super::charge::{Cell, Charge};
@@ -30,8 +29,9 @@ use alloc::vec::Vec;
 
 pub struct Host {
     pub(super) phase: Phase,
-    /// HID service handle ranges.
+    /// HID service handle ranges; `past` once one past the bound was found.
     pub(super) services: Vec<(u16, u16)>,
+    pub(super) past: bool,
     /// The current service's declarations, while they are being read.
     pub(super) decls: Vec<Decl>,
     pub(super) sources: Vec<Source>,
