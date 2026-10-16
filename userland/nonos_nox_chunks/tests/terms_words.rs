@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The fourteen words read back into the terms exactly, and a word with bits
 //! past its field's width is refused, so no reading has two encodings.
 

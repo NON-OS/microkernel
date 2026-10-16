@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What every body test checks: no cut and no tail reads.
+//! What the body tests share.
 
-pub fn refused_cut_and_tail<T>(b: &[u8], parse: impl Fn(&[u8]) -> Option<T>) {
-    for n in 0..b.len() {
-        assert!(parse(&b[..n]).is_none(), "{n} of {} bytes", b.len());
-    }
-    let mut long = b.to_vec();
-    long.push(0);
-    assert!(parse(&long).is_none());
-}
+mod cut;
+
+pub use cut::refused_cut_and_tail;

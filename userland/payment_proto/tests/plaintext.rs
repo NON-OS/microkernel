@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! ORDER_PLAINTEXT's wire (plan/29): the ask exactly, and pages that cover
 //! the plaintext, stay inside it, and read back; reads repeat.
 
@@ -44,6 +43,7 @@ fn pages_cover_the_plaintext_and_stay_inside_it() {
     assert_eq!(PlainPage::of(&plain, 150_000), None, "past the end");
     let lying = PlainPage { total: 10, offset: 8, bytes: vec![1; 3] }.encode();
     assert_eq!(PlainPage::parse(&lying), None, "past its total");
-    let long = PlainPage { total: u64::MAX, offset: 0, bytes: vec![0; PLAINTEXT_PAGE + 1] }.encode();
+    let long =
+        PlainPage { total: u64::MAX, offset: 0, bytes: vec![0; PLAINTEXT_PAGE + 1] }.encode();
     assert_eq!(PlainPage::parse(&long), None, "longer than a page");
 }

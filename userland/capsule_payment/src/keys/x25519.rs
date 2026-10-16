@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! X25519 for the escrow offer (plan/29), from x25519-dalek as shield_core
 //! pins it. The secrets it is handed are wiped by their owners.
 
