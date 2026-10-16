@@ -23,8 +23,10 @@
 //! ENOENT for a device not named, not described, or with no wake event;
 //! EPERM for any verb but get from anyone but the holder; EINVAL for a
 //! state it lacks, a move between low-power states, or a wake target past
-//! _S0W; ELOSES (-95) for a PCI function's move to D3cold, which its
-//! configuration would not survive (`keep`); EIO when the AML failed.
+//! _S0W; ELOSES (-95) for a PCI function's move its configuration would
+//! not survive, D3cold, or D3hot without No_Soft_Reset while the kernel
+//! cannot put it back (`keep`); EIO when the AML failed or the BARs could
+//! not be put back.
 
 use super::moves::move_to;
 use super::reply::reply;
@@ -54,7 +56,7 @@ pub fn device_power(acpi: &mut Acpi, req: &[u8], sender: u32) -> (i32, Vec<u8>) 
     };
     let code = match (verb, state) {
         (GET | FACTS, _) => 0,
-        (SET, Some(to)) => move_to(acpi, dev, to, sender),
+        (SET, Some(to)) => move_to(acpi, dev, to, (sender, id)),
         (WAKE_ON, Some(to)) => code(wake(acpi, dev, Some(to), (sender, id))),
         (WAKE_OFF, _) => code(wake(acpi, dev, None, (sender, id))),
         _ => EINVAL,

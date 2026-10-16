@@ -38,7 +38,7 @@ mod wake_types;
 
 pub use dstate::{to_d0, to_d3};
 pub use order::{in_order, resource_order};
-pub use pci_keep::{loses_config, loses_config_claimed, NO_SOFT_RESET};
+pub use pci_keep::{loses_config, loses_config_claimed, needs_restore, refused, NO_SOFT_RESET};
 pub use pool::PowerPool;
 pub use psc::{power_managed, psc};
 pub use reveal::{reveal, settle, Revealed};
