@@ -253,8 +253,11 @@ other op: no one.
   evaluated tables (_STA, then _CRS, _DSM and _DSD, after _INI): bus kind,
   address or chip select, speed, the HID-over-I2C descriptor register from
   _DSM function 1, the GpioInt pin or GSI with its trigger, polarity and
-  wake, the bus and GPIO controllers' _ADR, _UID and paths, and the count
-  of such devices. Layout in `src/serial/wire.rs`. Held to `driver.i2c_pci0`
+  wake, the bus and GPIO controllers' _UID and paths, the bus
+  controller's key (1 << 63 | its broker device id, for a PCI function
+  and a platform controller alike; the `_ADR` slot is all ones, since no
+  capsule is given a function's numbers), and the count of such devices.
+  Layout in `src/serial/wire.rs`. Held to `driver.i2c_pci0`
   and `driver.i2c_hid0` besides `power` and the shell. Each device is
   logged at start on one `[ACPI] serial` line.
 - DEVICE_POWER (10, verb, state, device id): a device's D-state (ACPI
@@ -318,6 +321,11 @@ other op: no one.
   device ids or its `_HID`. The body: a count, then each quirk's name and
   value. The table ships empty; an entry comes with the unit that needs
   it, its reason cited. Layout in `src/quirks.rs`.
+- HOLDER (21, pid u32, key u64): whether that pid holds the bus
+  controller the key names, for `driver.gpio0` alone. The key is SERIAL's
+  form, 1 << 63 | broker device id; the kernel's claim test is asked for
+  an ACPI-bus device and for a PCI function alike. A key without the bit
+  is refused (EINVAL). The body is 1 or 0. Layout in `src/holder.rs`.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and

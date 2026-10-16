@@ -18,7 +18,9 @@
 //! for the controller capsules: the kernel's static scan is their
 //! fallback, this their first source.
 
+pub mod bus_key;
 mod find;
+mod known;
 mod say;
 mod state;
 mod wire;
