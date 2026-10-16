@@ -216,12 +216,12 @@ userland/virtio_net_proofs/src/queue/mod.rs:14
 userland/virtio_transport_proofs/src/tests/space.rs:125
 userland/virtio_transport_proofs/src/tests/space.rs:82
 userland/wallet_proofs/src/keyring_owner_tests.rs:68
-userland/wallet_proofs/src/lib.rs:32
-userland/wallet_proofs/src/lib.rs:41
 userland/wallet_proofs/src/lib.rs:47
 userland/wallet_proofs/src/lib.rs:50
 userland/wallet_proofs/src/lib.rs:60
 userland/wallet_proofs/src/nox/mod.rs:31
+userland/wallet_proofs/src/route_link.rs:20
+userland/wallet_proofs/src/route_link.rs:23
 userland/wallet_proofs/src/store/mod.rs:37
 userland/wallet_proofs/src/wallet/net/mod.rs:12
 userland/wallet_proofs/src/wallet/net/mod.rs:9
