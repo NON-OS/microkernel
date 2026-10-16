@@ -37,7 +37,7 @@ fn submit(x: &[u8]) -> Option<Vec<u64>> {
 }
 
 fn submitted(w: &[u32]) -> Option<Vec<u64>> {
-    Some([vec![wide(w[0], w[1])], some(&w[2..7])?].concat())
+    (w[7] == 0).then(|| Some([vec![wide(w[0], w[1])], some(&w[2..7])?].concat()))?
 }
 
 fn focus(x: &[u8]) -> Option<Vec<u64>> {
@@ -50,8 +50,10 @@ fn removed(x: &[u8]) -> Option<Vec<u64>> {
 
 pub fn pointer_and_scene() -> Vec<Op> {
     vec![
-        ("focus_set", 8, &[7, 0], focus, |w| some(&w[..1])),
-        ("cursor_update", 16, &[10, 20, 1, 0], cursor, |w| some(&[w[0], w[1], b(w[2] != 0)])),
+        ("focus_set", 8, &[7, 0], focus, |w| (w[1] == 0).then(|| some(&w[..1]))?),
+        ("cursor_update", 16, &[10, 20, 1, 0], cursor, |w| {
+            (w[3] == 0).then(|| some(&[w[0], w[1], b(w[2] != 0)]))?
+        }),
         ("damage_commit", 16, &[1, 2, 3, 4], damage, |w| some(&w[..4])),
         (
             "screenshot",

@@ -18,7 +18,8 @@
 //! only when it is exactly the length its op names.
 
 /// The body's first `N` little-endian u32 words when it is exactly `LEN`
-/// bytes. Bytes past the words read are padding and are not looked at.
+/// bytes. A padding word is read like any other, so a decoder can require
+/// it zero.
 pub fn words<const N: usize, const LEN: usize>(body: &[u8]) -> Option<[u32; N]> {
     // An op whose words outrun its own length is a build error, not a
     // check at run time.
