@@ -17,7 +17,7 @@
 //! The floor canvas: a screen below 1024x720 either way gets a canvas of its
 //! own shape that covers 1024x720, and a screen at or above it keeps its own.
 
-#[path = "../../compositor/src/setup/canvas_floor.rs"]
+#[path = "../../../../compositor/src/setup/canvas_floor.rs"]
 mod canvas_floor;
 
 use canvas_floor::floor_canvas;

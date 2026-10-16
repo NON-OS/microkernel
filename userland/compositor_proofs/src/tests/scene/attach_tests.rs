@@ -23,7 +23,7 @@ use std::collections::HashSet;
 
 use crate::attach::{AttachCache, SurfaceKernel, MAX_ATTACH};
 use crate::damage::{DamageAccumulator, Rect};
-use crate::frame_model::{layer, Screen};
+use crate::tests::scene::frame_model::{layer, Screen};
 use crate::scene::{Layer, SceneTable};
 use crate::scene_submit::submit_layer;
 use crate::sw_blitter::Surface;

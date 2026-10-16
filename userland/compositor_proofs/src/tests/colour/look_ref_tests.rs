@@ -22,7 +22,7 @@ use crate::display::access_rule::{FILTER_DEUTAN, FILTER_GREYSCALE, FILTER_PROTAN
 use crate::display::colour_rule::matrix;
 use crate::display::cvd_rule::apply;
 use crate::display::srgb_rule::{from_linear, LIN_MAX};
-use crate::look_tests::{looked, rgb};
+use crate::tests::colour::look_tests::{looked, rgb};
 
 #[test]
 fn the_pass_matches_floating_point_channel_by_channel() {

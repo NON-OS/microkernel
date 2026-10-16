@@ -14,80 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the compositor's trusted-path primitives. The `#[path]`
-//! includes pull in the real production source so the tests pin the shipping
-//! behavior, not a copy. `state::damage` is re-exported here so the blitter's
-//! `crate::state::damage::Rect` path resolves exactly as it does in-tree.
-//! The scene table and the submit, raise and remove steps sit beside the
-//! damage accumulator at the crate root, so their `super::` paths resolve
-//! to the same neighbours they have in the compositor's `state`.
+//! Host proofs for the compositor. The `#[path]` includes pull in the real
+//! production source so the tests pin the shipping behaviour, not a copy;
+//! each group's `mod.rs` holds its includes, and `tests/` the proofs.
+//! The state modules are re-exported at the root, where the proofs name them.
 
 extern crate alloc;
 
-#[path = "../../compositor/src/state/attach.rs"]
-pub mod attach;
+pub mod display;
+pub mod frame_pacer;
+pub mod state;
 
-#[path = "../../compositor/src/state/damage.rs"]
-pub mod damage;
-
-#[path = "../../compositor/src/state/scene/mod.rs"]
-pub mod scene;
-
-#[path = "../../compositor/src/state/raise_rule.rs"]
-pub mod raise_rule;
-
-#[path = "../../compositor/src/state/scene_raise.rs"]
-pub mod scene_raise;
-
-#[path = "../../compositor/src/state/scene_remove.rs"]
-pub mod scene_remove;
-
-#[path = "../../compositor/src/state/scene_submit.rs"]
-pub mod scene_submit;
-
-#[path = "../../compositor/src/state/visible.rs"]
-pub mod visible;
-
-#[path = "../../compositor/src/state/indicator.rs"]
-pub mod indicator;
-
-#[path = "../../compositor/src/state/trusted_rule.rs"]
-pub mod trusted_rule;
-
-pub mod state {
-    pub mod damage {
-        pub use crate::damage::{DamageAccumulator, Rect};
-    }
-    pub use crate::{attach, indicator, scene, trusted_rule, visible};
-}
-
-// A damaged rectangle composed onto real pixels, as a frame composes it,
-// with the arrow cursor drawn last.
-#[path = "."]
-pub mod frame_pacer {
-    #[path = "../../compositor/src/frame_pacer/canvas_copy.rs"]
-    pub mod canvas_copy;
-    #[path = "../../compositor/src/frame_pacer/compose.rs"]
-    pub mod compose;
-    #[path = "../../compositor/src/frame_pacer/cursor.rs"]
-    pub mod cursor;
-    #[path = "../../compositor/src/frame_pacer/cursor_shape.rs"]
-    pub mod cursor_shape;
-    #[path = "../../compositor/src/frame_pacer/indicator_band.rs"]
-    pub mod indicator_band;
-    #[path = "../../compositor/src/frame_pacer/look.rs"]
-    pub mod look;
-    #[path = "../../compositor/src/frame_pacer/look_matrix.rs"]
-    pub mod look_matrix;
-    #[path = "../../compositor/src/frame_pacer/night_tint.rs"]
-    pub mod night_tint;
-}
-
-#[path = "../../compositor/src/frame_pacer/drain_damage.rs"]
-pub mod drain_damage;
-
-#[path = "../../compositor/src/frame_pacer/drain_batch.rs"]
-pub mod drain_batch;
+pub use frame_pacer::{drain_batch, drain_damage};
+pub use state::{
+    attach, damage, indicator, raise_rule, scene, scene_raise, scene_remove, scene_submit,
+    trusted_rule, visible,
+};
 
 #[path = "../../compositor/src/sw_blitter/mod.rs"]
 pub mod sw_blitter;
@@ -97,154 +39,10 @@ pub mod sw_blitter;
 #[path = "../../compositor/src/protocol/mod.rs"]
 pub mod protocol;
 
-// What the compositor decides about a display driver on the wire: when to
-// ask a name while on GOP, what a poll does, and who may send a size hint.
-#[path = "."]
-pub mod display {
-    #[path = "../../compositor/src/display/access_rule.rs"]
-    pub mod access_rule;
-    #[path = "../../compositor/src/display/access_wire.rs"]
-    pub mod access_wire;
-    #[path = "../../compositor/src/display/backoff.rs"]
-    pub mod backoff;
-    #[path = "../../compositor/src/display/colour_rule.rs"]
-    pub mod colour_rule;
-    #[path = "../../compositor/src/display/cursor_rule.rs"]
-    pub mod cursor_rule;
-    #[path = "../../compositor/src/display/cvd_filter.rs"]
-    pub mod cvd_filter;
-    #[path = "../../compositor/src/display/cvd_rule.rs"]
-    pub mod cvd_rule;
-    #[path = "../../compositor/src/display/first_frame_rule.rs"]
-    pub mod first_frame_rule;
-    #[path = "../../compositor/src/display/head.rs"]
-    pub mod head;
-    #[path = "../../compositor/src/display/head_rule.rs"]
-    pub mod head_rule;
-    #[path = "../../compositor/src/display/hint_rule.rs"]
-    pub mod hint_rule;
-    #[path = "../../compositor/src/display/indicator_rule.rs"]
-    pub mod indicator_rule;
-    #[path = "../../compositor/src/display/layout_rule.rs"]
-    pub mod layout_rule;
-    #[path = "../../compositor/src/display/link.rs"]
-    pub mod link;
-    #[path = "../../compositor/src/display/m3.rs"]
-    pub mod m3;
-    #[path = "../../compositor/src/display/magnifier_rule.rs"]
-    pub mod magnifier_rule;
-    #[path = "../../compositor/src/display/night_rule.rs"]
-    pub mod night_rule;
-    #[path = "../../compositor/src/display/poll_rule.rs"]
-    pub mod poll_rule;
-    #[path = "../../compositor/src/display/resize_rule.rs"]
-    pub mod resize_rule;
-    #[path = "../../compositor/src/display/scale_rule.rs"]
-    pub mod scale_rule;
-    #[path = "../../compositor/src/display/screenshot_rule.rs"]
-    pub mod screenshot_rule;
-    #[path = "../../compositor/src/display/srgb_rule.rs"]
-    pub mod srgb_rule;
-}
-
 /// The kernel's display list and hint sources, which the compositor mounts.
 #[allow(dead_code)]
 #[path = "../../../src/services/registry/displays.rs"]
 pub mod displays;
 
 #[cfg(test)]
-mod access_tests;
-#[cfg(test)]
-mod attach_tests;
-#[cfg(test)]
-mod backoff_tests;
-#[cfg(test)]
-mod band_remove_tests;
-#[cfg(test)]
-mod band_tests;
-#[cfg(test)]
-mod batch_tests;
-#[cfg(test)]
-mod blitter_tests;
-#[cfg(test)]
-mod colour_tests;
-#[cfg(test)]
-mod cursor_plane_tests;
-#[cfg(test)]
-mod cursor_rule_tests;
-#[cfg(test)]
-mod cvd_gap_tests;
-#[cfg(test)]
-mod cvd_tests;
-#[cfg(test)]
-mod damage_tests;
-#[cfg(test)]
-mod downscale_tests;
-#[cfg(test)]
-mod first_frame_tests;
-#[cfg(test)]
-mod floor_tests;
-#[cfg(test)]
-mod foreign_pixel_tests;
-#[cfg(test)]
-mod frame_model;
-#[cfg(test)]
-mod head_tests;
-#[cfg(test)]
-mod hint_tests;
-#[cfg(test)]
-mod indicator_band_tests;
-#[cfg(test)]
-mod indicator_tests;
-#[cfg(test)]
-mod layout_tests;
-#[cfg(test)]
-mod lens_tests;
-#[cfg(test)]
-mod look_ref_tests;
-#[cfg(test)]
-mod look_tests;
-#[cfg(test)]
-mod magnify_damage_tests;
-#[cfg(test)]
-mod magnify_tests;
-#[cfg(test)]
-mod mirror_tests;
-#[cfg(test)]
-mod night_tests;
-#[cfg(test)]
-mod parse_tests;
-#[cfg(test)]
-mod poll_tests;
-#[cfg(test)]
-mod present_retry_tests;
-#[cfg(test)]
-mod privacy_tests;
-#[cfg(test)]
-mod raise_tests;
-#[cfg(test)]
-mod repaint_tests;
-#[cfg(test)]
-mod resize_fit_tests;
-#[cfg(test)]
-mod resize_tests;
-#[cfg(test)]
-mod scale_tests;
-#[cfg(test)]
-mod screenshot_tests;
-#[cfg(test)]
-mod srgb_tests;
-#[cfg(test)]
-mod stacking_tests;
-#[cfg(test)]
-mod trusted_capture_tests;
-#[cfg(test)]
-mod trusted_desk;
-#[cfg(test)]
-mod trusted_mem;
-#[cfg(test)]
-mod trusted_notice_tests;
-#[cfg(test)]
-mod trusted_tests;
-#[cfg(test)]
-mod upscale_tests;
+mod tests;

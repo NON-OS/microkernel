@@ -20,7 +20,7 @@
 
 use crate::damage::Rect;
 use crate::display::magnifier_rule::Lens;
-use crate::magnify_tests::{shown, OUT, SH, SW};
+use crate::tests::blit::magnify_tests::{shown, OUT, SH, SW};
 
 #[test]
 fn a_damaged_rectangle_redraws_exactly_what_it_covers() {

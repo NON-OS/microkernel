@@ -21,7 +21,7 @@
 //! put there, within the layer's band, so what is visibly on top is what the
 //! next click lands on.
 
-use crate::frame_model::{layer, Rng, Screen, H, W};
+use crate::tests::scene::frame_model::{layer, Rng, Screen, H, W};
 use crate::scene::SceneTable;
 use crate::scene_raise::raise_by_pid;
 use crate::scene_submit::submit_layer;
