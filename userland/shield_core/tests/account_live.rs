@@ -3,7 +3,6 @@
 //! Reads only: balances, and a review of a send that is never signed. The
 //! account is the public BIP-39 test account, so nothing here is anyone's.
 //! Ignored by default because it needs the network. Run it with `--ignored`.
-#![allow(clippy::expect_used, clippy::panic)]
 
 use nox_shield_core::evm::{balances, review, Checked, Network, Order};
 use nox_shield_core::net::asset::Coin;

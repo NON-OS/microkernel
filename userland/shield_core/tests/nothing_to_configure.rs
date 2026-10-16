@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::panic)]
-
 //! A wallet needs nothing configured to exist.
 //!
 //! First run used to demand a sequencer onion before a wallet could exist,

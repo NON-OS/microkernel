@@ -1,11 +1,3 @@
-// Tests assert by panicking and print what they read, so those lints are off here only.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 use nox_shield_core::notes::{commitment, commitment_bytes};
 use nox_shield_core::prover::pool_hasher;
 use stark_proofs::shield::note::{note_parts, Note};

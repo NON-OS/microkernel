@@ -4,17 +4,6 @@
 //! what it must not do is quietly lose a line or print a failed verification
 //! as though it passed.
 
-/*
- * A test asserts by panicking, and this one builds a report by hand, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 use super::report::Shape;
 use super::{card, BenchReport};
 

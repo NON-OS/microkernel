@@ -1,14 +1,3 @@
-/*
- * A test asserts by panicking, and a fixture reads directories by hand, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 //! What the wallet leaves on disk, and nothing else. Every file is findable by whoever holds
 //! the device, so the set is part of the privacy claim: the sealed seed, the note log and a
 //! bench card. A fourth file without a decision is the finding this test exists for.

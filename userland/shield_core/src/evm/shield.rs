@@ -52,5 +52,6 @@ pub fn review_shield(
     if ether == 0 {
         return Ok(ShieldChecked::Refused(NO_ETH));
     }
-    super::shield_tx::finish(tor, &chain, from, order, approval, ether, pending, fees, sends)
+    let sender = super::sender::Sender { tor, chain: &chain, from };
+    super::shield_tx::finish(sender, order, approval, ether, pending, fees, sends)
 }
