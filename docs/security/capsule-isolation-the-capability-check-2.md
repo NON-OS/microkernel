@@ -9,12 +9,12 @@ pid=<pid> syscall=<name>(<number>)` (`src/syscall/contract/dispatch.rs:43-46`).
 That `log` writes only when a log manager is installed, and nothing in the
 kernel calls its `init` (`src/log/manager/api.rs:26-53`), so in this release the
 line is dropped. It reaches neither the screen nor the [serial
-console](../overview/glossary.md#serial-console), and the Terminal's `log`
+console](../overview/glossary-rollback-index.md#serial-console), and the Terminal's `log`
 command does not show refusals.
 
 Revoking a bit through `revoke` mints a new token and raises the epoch, so the
 older token fails at the next call (`src/process/caps.rs:99-108`). A process
-receives its [manifest](../overview/glossary.md#manifest)'s bits once:
+receives its [manifest](../overview/glossary-linux-personality.md#manifest)'s bits once:
 `install_spawn` refuses a second install (`src/process/caps.rs:110-122`). After
 that it gains bits only from an `Admin` holder: `sys_cap_grant` refuses a caller
 without `Admin` and any bit the caller does not hold itself, while

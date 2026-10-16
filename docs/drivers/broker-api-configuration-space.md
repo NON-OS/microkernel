@@ -40,7 +40,7 @@ out)`, and `mk_mmio_map` packs the BAR index into the top half of one argument
 `map_for_caller` then checks the claim and epoch, that the BAR is a memory BAR
 within `bar_count`, and that the request fits the BAR. It maps the pages into
 the capsule as user, read-write, uncached and no-execute, and `map_for_caller`
-records the [grant](../overview/glossary.md#grant) last
+records the [grant](../overview/glossary-dma-pool.md#grant) last
 (`src/hardware/broker/mmio/map.rs:49-112`). The offset and length need not be
 page aligned: the returned `user_va` already carries the offset into its first
 page (`src/hardware/broker/mmio/map.rs:30-35`).

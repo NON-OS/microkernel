@@ -23,7 +23,7 @@ taking a weaker path.
   (`src/userspace/init/spawn_plan/network/mod.rs:28-29`), and no build profile
   turns on `nonos-capsule-net-ntp` (`tools/nix/config.nix`). The one kernel that
   carries it, the `nonos-mk-ntp-test` smoke test, has no [policy
-  store](glossary.md#policy-store), so net.ntp there cannot read Direct and asks
+  store](glossary-peer-list.md#policy-store), so net.ntp there cannot read Direct and asks
   nothing.
 - No guessed CPU. The kernel runs on every core, and a CPU whose APIC id is in
   no descriptor halts rather than run as the boot CPU with another CPU's process

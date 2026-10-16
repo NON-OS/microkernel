@@ -14,7 +14,7 @@
 
 ## How the driver finds the controller
 
-The i8042 cannot be enumerated, so the [hardware broker](../../overview/glossary.md#hardware-broker) publishes two records for it on every machine: the keyboard record with PNP vendor 0x0001, device 0x0303, ports 0x60 to 0x64 and IRQ 1, and the aux record with device 0x0304 and IRQ 12 (`register_legacy`, `src/hardware/broker/platform.rs:40-74`). The driver looks for both by these ids (`PNP_DEVICE_PS2_KBD`, `userland/capsule_driver_ps2_input/src/constants/pnp.rs:16-19`).
+The i8042 cannot be enumerated, so the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker) publishes two records for it on every machine: the keyboard record with PNP vendor 0x0001, device 0x0303, ports 0x60 to 0x64 and IRQ 1, and the aux record with device 0x0304 and IRQ 12 (`register_legacy`, `src/hardware/broker/platform.rs:40-74`). The driver looks for both by these ids (`PNP_DEVICE_PS2_KBD`, `userland/capsule_driver_ps2_input/src/constants/pnp.rs:16-19`).
 
 A record on every machine proves nothing. Before it starts, the driver claims the keyboard record, takes the port grant, empties the output buffer and gives the claim back, whatever it found (`controller_answers`, `userland/capsule_driver_ps2_input/src/setup/probe.rs:31-42`). On a machine whose keyboard and pointer are USB or I2C the ports float, the buffer never empties, and the driver exits with status 2, `EXIT_ABSENT`, holding nothing (`_start`, `userland/capsule_driver_ps2_input/src/main.rs:46-57`).
 
@@ -66,7 +66,7 @@ A touchpad on the aux port gets no special treatment. The driver speaks no vendo
 
 ## Authority and privacy
 
-The [capsule](../../overview/glossary.md#capsule) manifest asks for the [capabilities](../../overview/glossary.md#capability) IPC, Memory, DeviceEnum, Driver, Irq, Pio and InputSource and nothing else: no MMIO, no DMA and no Debug (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_ps2_input/Capsule.mk:18`). The kernel installs the set the signed manifest names, and its spawn site asks for nothing beyond it (`requested_caps`, `src/hardware/ps2_kbd_capsule/spawn.rs:51-57`).
+The [capsule](../../overview/glossary-boot-root-record.md#capsule) manifest asks for the [capabilities](../../overview/glossary-boot-root-record.md#capability) IPC, Memory, DeviceEnum, Driver, Irq, Pio and InputSource and nothing else: no MMIO, no DMA and no Debug (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_ps2_input/Capsule.mk:18`). The kernel installs the set the signed manifest names, and its spawn site asks for nothing beyond it (`requested_caps`, `src/hardware/ps2_kbd_capsule/spawn.rs:51-57`).
 
 Without Debug the driver's own `[driver_ps2]` lines are refused by the kernel and never reach the console. When the driver ends with a status other than 0, the kernel prints an `[EXIT]` line with its service name and status, and for status 2 or 6 the reason in words (`words`, `src/process/exit/end_rule.rs:38-44`).
 
@@ -81,7 +81,7 @@ No capsule may send to `driver.ps2_kbd0`: the kernel holds it to an empty list (
 
 ## How this is checked
 
-- The [proof crate](../../overview/glossary.md#proof-crate) `ps2_input_proofs` runs the presence probe, the bring-up sequence and its fallbacks, and the keyboard and mouse setup against a modelled i8042 that records every byte the driver sends: 38 tests, and the check `proofs-ps2_input_proofs` passes at commit bff12b97.
+- The [proof crate](../../overview/glossary-peer-list.md#proof-crate) `ps2_input_proofs` runs the presence probe, the bring-up sequence and its fallbacks, and the keyboard and mouse setup against a modelled i8042 that records every byte the driver sends: 38 tests, and the check `proofs-ps2_input_proofs` passes at commit bff12b97.
 - `input_proofs` holds the packet decode and the layout tables against hostile bytes: 96 tests, check `proofs-input_proofs` passes.
 - The QEMU run target gives the guest its keyboard and mouse through the q35 machine's i8042 (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
 - For the PS/2 keyboard with its layouts and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.

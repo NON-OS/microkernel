@@ -18,7 +18,7 @@ own bit, starting with `can_device_enum` for the device list
 | `Pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease` | kernel-run port I/O on the device, x86_64 only |
 
 `claim` refuses a device another capsule already holds, moves the device into
-the claiming capsule's [IOMMU domain](../overview/glossary.md#iommu-domain)
+the claiming capsule's [IOMMU domain](../overview/glossary-hardware-broker.md#iommu-domain)
 before powering it, and sets it so that no request it makes is no-snoop
 (`src/hardware/broker/claim/claim.rs:23-45`). The domain maps nothing until
 `MkDmaMap` grants a buffer, so the device reaches that capsule's buffers and
@@ -28,7 +28,7 @@ Confinement depends on the hardware. `detect` selects Intel VT-d when the
 firmware's DMAR table yields a remapping unit, and with only an IVRS table
 selects AMD-Vi (`src/arch/x86_64/iommu/backend/select.rs`). Both are driven
 in `microkernel-core`, which every [build
-profile](../overview/glossary.md#build-profile) builds on, each with interrupt
+profile](../overview/glossary-boot-root-record.md#build-profile) builds on, each with interrupt
 remapping (`nonos-iommu-intremap`, `nonos-iommu-amdvi`). A device found at
 boot that no driver claims is blocked, but for the memory firmware reserved
 for it (RMRR, IVMD), which it keeps one to one.
