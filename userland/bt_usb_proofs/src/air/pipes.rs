@@ -62,6 +62,7 @@ impl UsbPipes for Air {
             Some(Act::Signal(frame)) => self.send_to_host(LE_SIGNALING, &frame),
             Some(Act::Drop(reason)) => self.event(&disconnected(HANDLE, reason)),
             Some(Act::Event(e)) => self.event(&e),
+            Some(Act::Acl(packets)) => self.bulk_in.extend(packets),
             None => {}
         }
     }
