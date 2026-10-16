@@ -16,5 +16,10 @@
 
 mod entry_tests;
 mod walk_tests;
+mod seeded_entries;
+mod seeded_entry_tests;
+mod seeded_gen;
+mod seeded_lies;
+mod seeded_walk_tests;
 mod quirk_tests;
 mod quirk_table_tests;
