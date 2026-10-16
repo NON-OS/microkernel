@@ -35,4 +35,6 @@ mod rx_tests;
 #[cfg(test)]
 mod spec;
 #[cfg(test)]
+mod tx_size_tests;
+#[cfg(test)]
 mod tx_tests;

@@ -47,7 +47,8 @@ pub struct Ncm<B> {
 
 impl<B: Bus> Ncm<B> {
     pub fn new(bus: B, mac: [u8; 6], pipes: Pipes, rx_max: usize, shape: TxShape) -> Self {
-        let (rx, tx) = (vec![0; rx_max], vec![0; shape.max]);
+        // Room for the block and the byte that may end it (pad.rs).
+        let (rx, tx) = (vec![0; rx_max], vec![0; shape.max + 1]);
         let pending = VecDeque::new();
         let (notify, link, looks, ntb32) = (None, true, 0, false);
         Self { bus, mac, pipes, rx_max, ntb32, shape, rx, tx, seq: 0, pending, notify, link, looks }

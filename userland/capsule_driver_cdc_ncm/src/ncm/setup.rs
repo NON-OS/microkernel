@@ -17,19 +17,15 @@
 //! Telling the device the sizes this host takes (NCM 1.0, 6.2.7 and 6.2.9):
 //! the NTB input size and the largest datagram.
 
+use nonos_usbnet::say::say;
 use nonos_usbnet::xhci::BULK_MAX;
 use nonos_usbnet::{Bus, Setup};
 
+use super::datagram::max_datagram;
 use super::function::NcmFunction;
 use super::limits::rx_max;
 use super::params::NtbParams;
-use super::requests::{CAP_MAX_DATAGRAM_SIZE, CAP_NTB_INPUT_SIZE_8, GET_MAX_DATAGRAM_SIZE};
-use super::requests::{SET_MAX_DATAGRAM_SIZE, SET_NTB_INPUT_SIZE};
-
-/// The datagram size asked for: at least a full Ethernet frame, and no
-/// more than a jumbo frame the stack could still take whole.
-const DGRAM_MIN: u16 = 1514;
-const DGRAM_MAX: u16 = 8192;
+use super::requests::{CAP_NTB_INPUT_SIZE_8, SET_NTB_INPUT_SIZE};
 
 /// The NTB input size in force: the one asked for, or the device's own
 /// when it refused and its own still fits one bulk transfer.
@@ -51,25 +47,13 @@ pub(super) fn setup<B: Bus>(
                 return Err(("SET_NTB_INPUT_SIZE refused, blocks too large", e));
             }
             rx = p.in_max as usize;
+            // Bounded and safe, but under the 2048 the request allows: said
+            // once, at bind, and the device kept.
+            if rx < 2048 {
+                say(b"cdc-ncm", &[b"input size refused; the device's own, under 2048, kept"]);
+            }
         }
     }
     max_datagram(bus, f);
     Ok(rx)
-}
-
-/// Only for a device that offers it. The size is read first and written
-/// only when it differs, so a device already right is not disturbed; a
-/// failure changes nothing.
-fn max_datagram<B: Bus>(bus: &mut B, f: &NcmFunction) {
-    if f.caps & CAP_MAX_DATAGRAM_SIZE == 0 {
-        return;
-    }
-    let want = f.max_segment.clamp(DGRAM_MIN, DGRAM_MAX);
-    let mut now = [0u8; 2];
-    let get = Setup::class(true, GET_MAX_DATAGRAM_SIZE, 0, f.comm);
-    if bus.control_in(get, &mut now) != Ok(2) || u16::from_le_bytes(now) == want {
-        return;
-    }
-    let set = Setup::class(false, SET_MAX_DATAGRAM_SIZE, 0, f.comm);
-    let _ = bus.control_out(set, &want.to_le_bytes());
 }

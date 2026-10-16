@@ -47,9 +47,13 @@ capsule holds only the NCM binding and NTB framing (`src/ncm`).
 
 Out: one frame per NTB16, an NTH16, an NDP16 with one entry and its zero
 entry, and the datagram placed on the device's wNdpOutAlignment,
-wNdpOutDivisor and wNdpOutPayloadRemainder. A block that ends on a packet
-boundary gets one more byte; one past min_tx_pkt is padded to the full NTB
-size (not for DisplayLink docks), as `cdc_ncm_fill_tx_frame` does.
+wNdpOutDivisor and wNdpOutPayloadRemainder. A block is at most the
+device's dwNtbOutMaxSize, or one byte under a 4096-byte transfer when that
+is larger. One that ends on a packet boundary below dwNtbOutMaxSize gets
+one zero byte more, counted in wBlockLength, so a short packet ends it
+(NCM 1.0, as recalled, unverified). A device whose largest block cannot
+carry one full frame is not bound. If SET_NTB_INPUT_SIZE is refused and the
+device's own input size is under 2048, that is said once and kept.
 
 In: one bulk IN of the negotiated NTB input size. Its header must be its
 format's own length, and the block, no longer than the input size, must
@@ -179,7 +183,7 @@ DHCP and a web page over a real CDC-NCM device.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (cdc_ncm_proofs, 42 tests).
+Build and host-proof evidence only so far (cdc_ncm_proofs, 41 tests).
 Runtime evidence needs driver.xhci0's polled bulk IN and control OUT data
 stage (docs/hardware/usb-net.md), the kernel spawn, and a real device: none
 is on main yet.
@@ -198,6 +202,6 @@ is on main yet.
 
 ## Verification
 
-`cd userland/cdc_ncm_proofs && cargo test` (42 pass at the time of
+`cd userland/cdc_ncm_proofs && cargo test` (41 pass at the time of
 writing); the capsule's `cargo build --release` and `cargo clippy` for
 x86_64-nonos-user. Not verified under QEMU or on hardware.

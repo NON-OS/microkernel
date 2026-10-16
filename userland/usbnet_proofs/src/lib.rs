@@ -25,6 +25,7 @@ pub mod nic;
 #[path = "../../nonos_usbnet/src/nnet/mod.rs"]
 pub mod nnet;
 /// The port book; the scanner around it calls driver.xhci0.
+pub mod say;
 pub mod scan;
 #[path = "../../nonos_usbnet/src/setup.rs"]
 pub mod setup;

@@ -1,9 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The NTB parameters and the sizes derived from them, as Linux
-//! cdc_ncm_check_rx_max, cdc_ncm_check_tx_max and cdc_ncm_update_rxtx_max
-//! derive them.
+//! The NTB parameters and the sizes derived from them (NCM 1.0, 6.2.1 and
+//! 6.2.7, as recalled, unverified), held to one bulk transfer.
 
-use crate::ncm::limits::{min_tx_pkt, rx_max, tx_max};
+use crate::ncm::limits::{rx_max, tx_max};
 use crate::ncm::params::parse_params;
 use crate::spec::ntb_params;
 
@@ -25,20 +24,10 @@ fn the_input_size_is_one_transfer_at_most_and_2048_at_least() {
 }
 
 #[test]
-fn the_output_size_never_ends_on_a_packet_unless_it_is_the_devices_own() {
-    assert_eq!(tx_max(16384, 512), 4095, "BULK_MAX falls on a packet: one byte less");
-    assert_eq!(tx_max(2048, 512), 2048, "dwNtbOutMaxSize itself needs no short packet");
-    assert_eq!(tx_max(3000, 1024), 3000);
-    assert_eq!(tx_max(0, 512), 1698, "none given: Linux's least, frame + 40-entry NDP + NTH");
-    assert_eq!(tx_max(1000, 64), 1698, "below 2048 is a spec violation; Linux's least");
-    assert_eq!(tx_max(2560, 512), 2560);
-    assert_eq!(tx_max(3072, 1024), 3072);
-}
-
-#[test]
-fn padding_to_the_full_block_starts_three_packets_short_of_it() {
-    assert_eq!(min_tx_pkt(4095, 512), 4095 - 1536);
-    assert_eq!(min_tx_pkt(4095, 1024), 1023);
-    assert_eq!(min_tx_pkt(1698, 512), 512, "CDC_NCM_MIN_TX_PKT");
-    assert_eq!(min_tx_pkt(300, 512), 300, "never past the block");
+fn the_output_size_is_the_devices_own_or_one_byte_under_a_transfer() {
+    assert_eq!(tx_max(16384), 4095, "past one transfer: room for the byte that ends it");
+    assert_eq!(tx_max(4097), 4095);
+    assert_eq!(tx_max(4096), 4096, "dwNtbOutMaxSize itself needs no byte");
+    assert_eq!((tx_max(2048), tx_max(3000), tx_max(2560)), (2048, 3000, 2560));
+    assert_eq!((tx_max(1000), tx_max(0)), (1000, 0), "too small: tx_shape refuses it");
 }
