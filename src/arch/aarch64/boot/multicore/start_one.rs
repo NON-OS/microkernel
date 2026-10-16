@@ -18,6 +18,7 @@
 
 use crate::arch::aarch64::asm::{_aarch64_secondary_start, _aarch64_spin_table_start};
 use crate::arch::aarch64::boot::info::BootInfo;
+use crate::arch::aarch64::mmu::image_pa;
 use crate::arch::aarch64::psci;
 
 use super::spin_table;
@@ -40,7 +41,8 @@ pub(super) fn start(
 /// only lands on the right core when a board has a single cluster numbered
 /// from zero.
 fn power_on(affinity: u64, stack_top: u64) -> Result<(), &'static [u8]> {
-    let entry = _aarch64_secondary_start as unsafe extern "C" fn() as u64;
+    // Physical: the CPU starts with its MMU off.
+    let entry = image_pa(_aarch64_secondary_start as unsafe extern "C" fn() as u64);
     psci::cpu_on(affinity, entry, stack_top).map_err(|_| &b"PSCI CPU_ON refused it"[..])
 }
 
@@ -53,6 +55,6 @@ fn release_parked(
 ) -> Result<(), &'static [u8]> {
     // The stack first: the CPU looks for it the moment the word changes.
     spin_table::assign_stack(index, affinity, stack_top)?;
-    let entry = _aarch64_spin_table_start as unsafe extern "C" fn() as u64;
+    let entry = image_pa(_aarch64_spin_table_start as unsafe extern "C" fn() as u64);
     spin_table::release(info, word, entry)
 }

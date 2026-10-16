@@ -41,7 +41,8 @@ unsafe fn l2(index: usize) -> &'static mut PageTable {
 
 fn l2_addr(index: usize) -> u64 {
     // SAFETY: an address, formed without a reference to the static.
-    unsafe { core::ptr::addr_of!((*core::ptr::addr_of!(KERNEL_L2))[index]) as u64 }
+    // Physical: a descriptor holds it, and the kernel may run high.
+    super::image_pa(unsafe { core::ptr::addr_of!((*core::ptr::addr_of!(KERNEL_L2))[index]) as u64 })
 }
 
 /// The level 2 table under `l1[index]`, taken from the pool and installed if
