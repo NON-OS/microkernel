@@ -23,6 +23,8 @@ pub enum SavedError {
     Unreadable,
     /// The record is not the length or format this client writes.
     Damaged,
+    /// The name or passphrase is not one this network can be saved with.
+    NotSavable,
     /// The vfs service refused a read or write; the text is its reason.
     Vfs(&'static str),
 }
@@ -37,6 +39,7 @@ impl SavedError {
             SavedError::KeyFailed => "The TPM did not give the sealing key",
             SavedError::Unreadable => "Sealed elsewhere or altered on disk",
             SavedError::Damaged => "The saved-networks record is damaged",
+            SavedError::NotSavable => "This name or passphrase cannot be saved",
             SavedError::Vfs(why) => why,
         }
     }
