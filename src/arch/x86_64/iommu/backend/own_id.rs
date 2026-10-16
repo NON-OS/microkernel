@@ -1,0 +1,64 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Whether a device's DMA reaches the IOMMU under its own requester id
+//! (L51). A conventional PCI device behind a PCIe-to-PCI bridge is seen
+//! under an id the bridge supplies, so its context entry is never the one
+//! its requests walk: confined by that entry, it was counted confined while
+//! its DMA went through whatever the bridge's id was given. Pure, so the
+//! walk and the rule run on the host too.
+
+use alloc::vec::Vec;
+
+/// The bus the host bridge itself hosts. A device there is its own requester.
+pub(super) const ROOT_BUS: u8 = 0;
+
+/// One bridge on the way up from a device's bus to the root bus.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(super) enum Hop {
+    /// A PCIe root port or switch port: it forwards the requester id unchanged.
+    PciePort,
+    /// Anything else: a PCIe-to-PCI bridge, a reverse bridge, a bridge with no
+    /// PCIe capability, which may substitute an id of its own.
+    Other,
+}
+
+/// The bridges from `bus` up to the root bus, nearest first. `parent_of(b)`
+/// names the bridge whose secondary bus is `b`, as (its own bus, its kind).
+/// None when a bus has no bridge above it or a parent's bus is not below its
+/// child's, which a sane numbering never gives and a loop always would.
+pub(super) fn path_to_root(
+    mut bus: u8,
+    parent_of: impl Fn(u8) -> Option<(u8, Hop)>,
+) -> Option<Vec<Hop>> {
+    let mut path = Vec::new();
+    while bus != ROOT_BUS {
+        let (up, hop) = parent_of(bus)?;
+        if up >= bus {
+            return None;
+        }
+        path.push(hop);
+        bus = up;
+    }
+    Some(path)
+}
+
+/// Whether a device on `bus` sends under its own id: on the root bus, or a
+/// PCIe function every one of whose bridges is a PCIe port. Anything else,
+/// an unknown path included, is not counted as its own.
+pub(super) fn own_requester_id(bus: u8, is_pcie: bool, path: Option<&[Hop]>) -> bool {
+    bus == ROOT_BUS || (is_pcie && path.is_some_and(|p| p.iter().all(|h| *h == Hop::PciePort)))
+}

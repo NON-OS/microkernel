@@ -39,12 +39,14 @@ pub(crate) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<
 }
 
 /// Whether a unit this kernel has in service translates `device`: VT-d is
-/// enforcing and a programmed unit's scope covers the device. A device no unit
-/// covers would take an IOVA for a physical address.
+/// enforcing, a programmed unit's scope covers the device, and its DMA
+/// arrives under its own id (L51). A device no unit covers would take an IOVA
+/// for a physical address.
 pub(crate) fn translates(device: DeviceAddress) -> bool {
     let Ok((bus, dev, function)) = segment0(device) else {
         return false;
     };
     enforced::require().is_ok()
         && crate::arch::x86_64::iommu::unit::coverage::unit_covers(bus, dev, function)
+        && super::own_id_read::own_id(bus, dev, function)
 }

@@ -41,9 +41,12 @@ pub(super) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<
  * An id that shares its entry with another, either way round, is never
  * counted as confined: its DMA would walk the other's tables, or a
  * passthrough entry, while the broker reported it held to its own (L50).
+ * Nor is one firmware lists no alias for but a bridge may stand in for (L51).
  */
 pub(super) fn translates(device: DeviceAddress) -> bool {
     segment0(device).is_ok_and(|(bus, dev, function)| {
-        unit_covers(bus, dev, function) && !amd_iommu_aliased(device_id(bus, dev, function))
+        unit_covers(bus, dev, function)
+            && !amd_iommu_aliased(device_id(bus, dev, function))
+            && super::own_id_read::own_id(bus, dev, function)
     })
 }

@@ -122,6 +122,8 @@ pub mod iommu_command;
 #[cfg(test)]
 pub mod iommu_fault;
 #[cfg(test)]
+pub mod iommu_own_id;
+#[cfg(test)]
 pub mod iommu_queue;
 #[cfg(test)]
 pub mod iommu_release;
