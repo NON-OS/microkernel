@@ -18,8 +18,8 @@ use crate::arch::fdt::endian::be_cells;
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::property::Property;
 
-/// A `/chosen` address, one or two cells by its own length, as Linux reads
-/// the initrd bounds: `/chosen` has no `#address-cells` of its own to say.
+/// A `/chosen` address, one cell or two as its length says: `/chosen` has
+/// no `#address-cells` of its own to say which.
 pub(super) fn bound(prop: &Property) -> Result<u64, FdtError> {
     match prop.data.len() {
         4 => be_cells(prop.data, 0, 1),
