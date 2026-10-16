@@ -22,9 +22,11 @@
 //! network saved as WPA3.
 
 use super::attempt::{attempt, retry_with_psk};
+use super::cached::{first_attempt, keep};
 use super::hunt::hunt;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
+use crate::pmksa::PmksaCache;
 use crate::regdom::{Band, Domain};
 use crate::rsn::JoinPolicy;
 use crate::softmac::radio::{Env, Radio};
@@ -48,6 +50,7 @@ pub fn join<R: Radio, E: Env>(
     domain: Domain,
     req: &ConnectRequest,
     hints: &[(Band, u8)],
+    cache: &mut PmksaCache,
 ) -> Result<Joined, JoinError> {
     let (found, beacons) = hunt(r, env, domain, req.ssid, req.hidden, hints);
     let found = found.ok_or(JoinError::NotFound(beacons))?;
@@ -57,11 +60,13 @@ pub fn join<R: Radio, E: Env>(
     r.set_bss(Some(bssid));
     let first = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
     let ciphers = r.ciphers();
-    let mut report = attempt(r, env, domain, req, first.with_ciphers(ciphers), &found.beacon)?;
+    let policy = first.with_ciphers(ciphers);
+    let mut report = first_attempt(r, env, domain, req, policy, &found.beacon, bssid, cache)?;
     if retry_with_psk(&report, req.wpa3_only) {
         let psk = JoinPolicy::PSK_ONLY.with_ciphers(ciphers);
-        report = attempt(r, env, domain, req, psk, &found.beacon)?;
+        report = attempt(r, env, domain, req, psk, &found.beacon, None)?;
     }
+    keep(cache, env, req, &report);
     if !matches!(report.outcome, Outcome::Joined { .. }) {
         r.associated(None);
         r.set_bss(None);
