@@ -66,3 +66,6 @@ pub mod time_offset;
 #[cfg(target_arch = "x86_64")]
 #[path = "../../../src/security/hardening/memory_sanitization/scrub_asm.rs"]
 mod scrub_asm;
+/// A holder's grant window and quota (K10).
+#[path = "grant_window/mod.rs"]
+pub mod grant_window;

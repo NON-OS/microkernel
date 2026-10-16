@@ -23,6 +23,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
+use super::super::quota;
 use super::types::{DmaError, DmaGrant};
 
 pub(super) static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
@@ -32,8 +33,17 @@ pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-pub(super) fn insert(record: DmaGrant) {
-    RECORDS.lock().push(record);
+/// Within its holder's quota (K10); on false the caller undoes the map.
+pub(super) fn insert(record: DmaGrant) -> bool {
+    let mut all = RECORDS.lock();
+    let mine = all.iter().filter(|g| g.pid == record.pid);
+    let (held, bytes) = mine.fold((0, 0u64), |(n, b), g| (n + 1, b.saturating_add(g.length)));
+    let (max, max_bytes) = (quota::MAX_DMA_GRANTS, quota::MAX_DMA_BYTES);
+    if !quota::admits(held, bytes, record.length, max, max_bytes) {
+        return false;
+    }
+    all.push(record);
+    true
 }
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
