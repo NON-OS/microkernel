@@ -39,6 +39,7 @@ pub(crate) fn load_capsule_from_vfs(
     let manifest = decode_manifest(&artifacts.manifest).map_err(|_| LoadError::Manifest)?;
     let (service_name, service_port) = endpoint(&manifest, EndpointKind::Service)?;
     let (reply_name, reply_port) = endpoint(&manifest, EndpointKind::Reply)?;
+    super::names::check(service_name, reply_name, manifest.namespace_str())?;
 
     /*
      * Borrowed from artifacts, which this function owns and drops on the way

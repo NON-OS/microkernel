@@ -69,3 +69,6 @@ mod scrub_asm;
 /// A holder's grant window and quota.
 #[path = "grant_window/mod.rs"]
 pub mod grant_window;
+/// Names a runtime-loaded capsule may declare.
+#[path = "name_rule/mod.rs"]
+pub mod name_rule;

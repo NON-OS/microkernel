@@ -46,6 +46,8 @@ Limits, checks and reports:
   commit.
 - [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a
   security bug privately.
+- [Service names](service-names.md): who may hold a service name, and what a
+  capsule loaded from the store may declare.
 
 The capability bits are described in [Capsule isolation](capsule-isolation.md)
 and [ABI capabilities](../abi/capabilities.md), and the bit table that
