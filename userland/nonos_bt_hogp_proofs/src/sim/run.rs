@@ -22,7 +22,7 @@ use nonos_bt_hogp::report::Input;
 use std::collections::VecDeque;
 
 /// Discovery of a large database takes a few dozen PDUs.
-const MAX_PDUS: usize = 2000;
+pub(super) const MAX_PDUS: usize = 2000;
 
 pub struct Run {
     pub host: Host,
