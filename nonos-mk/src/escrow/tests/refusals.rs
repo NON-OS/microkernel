@@ -31,7 +31,7 @@ fn each_refusal_names_its_cause() {
     let mut seen = Seen::default();
     let mut draw = || [9u8; 32];
     let mut ask = |body: &[u8]| answer(&s, &mut seen, body, 1, &mut draw).map(|_| ());
-    let body = req.agent_body();
+    let body = req.agent_body().expect("a request whose solution fits its u16");
     assert_eq!(ask(&body), Ok(()));
     assert_eq!(ask(&body), Err(Refusal::Seen), "one answer per proof of work");
     assert_eq!(ask(&body[1..]), Err(Refusal::Body));
@@ -45,7 +45,11 @@ fn each_refusal_names_its_cause() {
     let mut cheap = req.clone();
     cheap.solution = pow(&req.buyer_pk, ESCROW_POW_EFFORT / 2).encode().to_vec();
     if cheap.solution != req.solution {
-        assert_eq!(ask(&cheap.agent_body()), Err(Refusal::Solution), "under the least effort");
+        assert_eq!(
+            ask(&cheap.agent_body().expect("a request whose solution fits its u16")),
+            Err(Refusal::Solution),
+            "under the least effort"
+        );
     }
     let mut chain = body;
     chain[..8].copy_from_slice(&5u64.to_le_bytes());
