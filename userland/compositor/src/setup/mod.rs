@@ -24,6 +24,7 @@ mod discover;
 mod gop_backing;
 mod heads;
 mod layout;
+mod move_off;
 mod panel_mm;
 mod poll;
 mod poll_heads;
@@ -35,8 +36,8 @@ mod resize;
 mod upgrade;
 
 pub use canvas::fit_canvas;
-pub use layout::relayout;
 pub use discover::{displays, lookup};
+pub use layout::relayout;
 pub use poll::poll;
 pub use prime::run_display;
 pub use prime_gop::run_gop_once as run_gop;

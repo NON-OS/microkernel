@@ -17,8 +17,8 @@
 use crate::protocol::{
     Request, E_BAD_OP, E_INVAL, OP_ACCESSIBILITY, OP_ACCESSIBILITY_GET, OP_CURSOR_UPDATE,
     OP_DAMAGE_COMMIT, OP_DISPLAY_HINT, OP_DISPLAY_INFO, OP_FOCUS_SET, OP_HEALTHCHECK, OP_INDICATOR,
-    OP_INPUT_SUBSCRIBE, OP_NIGHT_LIGHT, OP_OUTPUT_ARRANGEMENT, OP_OUTPUT_LAYOUT, OP_OUTPUT_SCALE,
-    OP_SCENE_REMOVE, OP_SCENE_SUBMIT, OP_SCREENSHOT,
+    OP_INPUT_SUBSCRIBE, OP_NIGHT_LIGHT, OP_OUTPUT_ARRANGEMENT, OP_OUTPUT_LAYOUT, OP_OUTPUT_NOTICE,
+    OP_OUTPUT_SCALE, OP_SCENE_REMOVE, OP_SCENE_SUBMIT, OP_SCREENSHOT,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -43,6 +43,7 @@ pub fn dispatch(
         OP_DISPLAY_HINT => handlers::display_hint::handle(ctx, sender_pid, &req, body, tx),
         OP_INDICATOR => handlers::indicator::handle(ctx, sender_pid, &req, body, tx),
         OP_OUTPUT_LAYOUT => handlers::output_layout::handle(ctx, sender_pid, &req, body, tx),
+        OP_OUTPUT_NOTICE => handlers::output_notice::handle(ctx, sender_pid, body),
         OP_OUTPUT_ARRANGEMENT => {
             handlers::output_arrangement::handle(ctx, sender_pid, &req, body, tx)
         }
