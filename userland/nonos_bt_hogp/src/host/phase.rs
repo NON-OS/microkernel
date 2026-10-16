@@ -18,6 +18,8 @@
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
+    /// Asking for a larger ATT_MTU (Vol 3, Part F, 3.4.2).
+    Mtu,
     /// Finding HID services from this handle on (Vol 3, Part G, 4.4.2).
     Services {
         next: u16,

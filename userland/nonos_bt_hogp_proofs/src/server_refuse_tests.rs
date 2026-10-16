@@ -45,8 +45,9 @@ fn only_services_group_and_nothing_is_written() {
 }
 
 #[test]
-fn the_mtu_stays_23_and_the_rest_is_not_supported() {
-    assert_eq!(ask(&[0x02, 0x00, 0x02]), [0x03, 23, 0]);
+fn the_mtu_answer_is_this_hosts_and_the_rest_is_not_supported() {
+    // 247, the same Rx MTU the host's client offers.
+    assert_eq!(ask(&[0x02, 0x00, 0x02]), [0x03, 247, 0]);
     // Malformed: Invalid PDU on handle 0.
     assert_eq!(ask(&[0x02, 0x00]), [0x01, 0x02, 0, 0, 0x04]);
     assert_eq!(ask(&[0x08, 0x01, 0x00, 0xff, 0xff, 0x00]), [0x01, 0x08, 0, 0, 0x04]);

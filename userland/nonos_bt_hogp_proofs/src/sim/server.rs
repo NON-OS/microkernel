@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A peripheral's ATT server over a `Db`, written from Vol 3, Part F,
-//! 3.4, with the default LE ATT_MTU of 23 (Vol 3, Part F, 3.2.8). It keeps
-//! every write, and can be told to misbehave.
+//! 3.4, with the default LE ATT_MTU of 23 (Vol 3, Part F, 3.2.8) until an
+//! MTU exchange changes it. It keeps every write, and can be told to
+//! misbehave.
 
 use super::db::Db;
 
@@ -44,6 +45,12 @@ pub struct Peripheral {
     /// Answer a Read Blob at the end of a value with this error.
     pub blob_end: Option<u8>,
     pub requests: usize,
+    /// The bearer's ATT_MTU, which sizes every response.
+    pub mtu: usize,
+    /// The Server Rx MTU it answers an exchange with.
+    pub rx_mtu: u16,
+    /// Answer an exchange with these parameters instead, as they are.
+    pub mtu_reply: Option<Vec<u8>>,
 }
 
 impl Peripheral {
@@ -60,6 +67,9 @@ impl Peripheral {
             wide: false,
             blob_end: None,
             requests: 0,
+            mtu: MTU,
+            rx_mtu: MTU as u16,
+            mtu_reply: None,
         }
     }
 }

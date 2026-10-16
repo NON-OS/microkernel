@@ -16,8 +16,8 @@
 
 //! Report mode, looked at once every service's declarations are read. A
 //! keyboard service worth upgrading has its Report Map read whole: a Read,
-//! then Read Blobs from the length so far while each answer fills the
-//! response (Vol 3, Part G, 4.8.1 and 4.8.3). A map longer than HIDS 1.0
+//! then Read Blobs from the length so far while each answer fills a
+//! response at the bearer's ATT_MTU (Vol 3, Part G, 4.8.1 and 4.8.3). A map longer than HIDS 1.0
 //! allows leaves the service in boot mode, unread.
 
 use super::phase::Phase;
@@ -25,7 +25,6 @@ use super::state::Host;
 use super::step::Step;
 use crate::error::HogpError;
 use crate::report::map::MAP_MAX;
-use crate::server::ATT_MTU;
 use nonos_bt_wire::att;
 
 impl Host {
@@ -47,7 +46,7 @@ impl Host {
         }
         self.map.extend_from_slice(p);
         // A response shorter than it could be ends the value.
-        if p.len() < ATT_MTU - 1 {
+        if p.len() < usize::from(self.mtu) - 1 {
             return self.refs(service, 0, now);
         }
         let map = self.hids.get(service).and_then(|h| h.map).ok_or(HogpError::Protocol)?;
