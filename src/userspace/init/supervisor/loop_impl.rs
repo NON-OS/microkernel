@@ -59,6 +59,7 @@ pub(crate) fn init_loop() -> ! {
         // calling capsule's syscall, which is what stopped the caller from
         // resuming (it faulted on its own code under the wrong page tables).
         crate::userspace::init::service_instance_spawns();
+        crate::arch::acpi_gap_press();
         crate::userspace::init::service_installs();
         park();
     }
