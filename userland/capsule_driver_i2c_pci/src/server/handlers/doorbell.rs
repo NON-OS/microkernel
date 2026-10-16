@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The touchpad's "fresh report" doorbell: reply whether the pad's interrupt
-//! line is electrically active right now. An i2c-HID device holds the line
-//! active-low while an input report waits and releases it after the read, so
-//! sensing the pad's level (Intel PADCFG0.GPIORXSTATE, AMD PIN_STS) gives
-//! interrupt pacing without routing the interrupt: the HID driver reads the
-//! input register only while the line is asserted. Read-only; nothing to
-//! clear. `present` is zero when the platform layout is not mapped
-//! (setup/gpio), and the HID driver then polls.
+//! line rang since the last look. An i2c-HID device holds its line asserted
+//! while an input report waits (HID over I2C v1.0 section 7.4, as recalled,
+//! unverified), and driver.gpio0, which owns the GPIO controller, reports it
+//! on every poll while it stays asserted; the HID driver reads the input
+//! register when it rang. `present` is zero when the firmware declared no
+//! line or gpio0 does not answer for this device, and the HID driver then
+//! reads on its timer.
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use nonos_libc::mk_debug;
 
 use crate::driver::Driver;
+use crate::gpio0::look;
 use crate::protocol::{Request, E_OK};
 use crate::server::respond;
 
@@ -35,8 +36,8 @@ use crate::server::respond;
 static RANG: AtomicBool = AtomicBool::new(false);
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
-    let (present, fired) = match &driver.doorbell {
-        Some(db) => (1u32, u32::from(db.asserted(db.regs.read32(db.cfg_offset)))),
+    let (present, fired) = match driver.doorbell.as_ref().and_then(look) {
+        Some(rang) => (1u32, u32::from(rang)),
         None => (0u32, 0u32),
     };
     // The first ring proves the pad and its polarity were found right; with

@@ -27,6 +27,8 @@
 //! must be deasserted first, and which registers are read-only once the core
 //! is enabled. Getting those wrong breaks every part that implements them.
 
+extern crate alloc;
+
 #[path = "../../capsule_driver_i2c_pci/src/constants/mod.rs"]
 pub mod constants;
 
@@ -44,13 +46,15 @@ pub mod init;
 
 #[path = "../../capsule_driver_i2c_pci/src/driver.rs"]
 pub mod driver;
+#[path = "../../capsule_driver_i2c_pci/src/gpio0/wire.rs"]
+pub mod gpio0_wire;
 
 #[cfg(test)]
 mod clock_tests;
 #[cfg(test)]
-mod doorbell_tests;
-#[cfg(test)]
 mod enable_state_tests;
+#[cfg(test)]
+mod gpio0_tests;
 #[cfg(test)]
 mod lpss_tests;
 #[cfg(test)]
