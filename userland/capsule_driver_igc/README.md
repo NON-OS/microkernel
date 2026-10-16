@@ -26,10 +26,14 @@ driver.igc_0 -- broker MMIO + DMA rings --> I225 / I226 (internal PHY)
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in
   the igc table (every `IGC_DEV_ID_*` in Linux igc_hw.h).
-- `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
-  Bus Master Enable.
-- `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
-  and TX buffers.
+- `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space with
+  Bus Master off, and turns Bus Master on only after the reset, once both
+  rings name the driver's own memory and before either queue is enabled.
+- `MkMmioMap` maps BAR0, which must reach `BAR0_MIN_BYTES` (64 KiB, the
+  register file up to TXDCTL(0)) in the device record and as mapped;
+  `MkDmaMap` takes the RX ring, RX buffers, TX ring and TX buffers.
+- `MkDeviceRelease` gives the device back. It clears Bus Master and reads it
+  back before it frees every grant, so the driver unmaps nothing by hand.
 - `MkIpcRecv` and `MkIpcSend` serve `service:4272:driver.igc_0`.
 - `CryptoRandom` draws the station address each boot.
 
@@ -57,17 +61,32 @@ without entropy. Nothing is stored.
 
 ## Runtime lifecycle
 
-Discover, claim, enable bus mastering, map, take DMA grants, then bring the
-part up in Linux's order (PCIe master stop, global reset, address and
-filters, PHY power-up under the SW/FW semaphore, link, MAC enables, TX
-queue, RX queue) and serve IPC until the process ends.
+Discover, claim with Bus Master off, map, take DMA grants, then bring the
+part up in Linux's order (PCIe master stop, global reset, both queues
+written off, address and filters, PHY power-up under the SW/FW semaphore,
+link, MAC enables, both rings named, Bus Master on, TX queue, RX queue) and
+serve IPC until the process ends. Queue 0 may come out of the reset
+enabled, as Linux notes; it is turned off and read back on the clock, and
+only a queue or engine that will not turn off ends the attempt.
+
+A transmit watchdog runs on every send: frames in flight with the link up
+and none completed for 5 s is a hung transmitter. Both queues are stood
+down, the part reset, both rings restart from slot 0, and the part goes
+back on the air under the same station address, Bus Master staying on.
+
+Teardown is stand-down (both queues and engines off), reset, Bus Master off
+(effective once the kernel's K6 lands; the broker ORs Command bits today),
+then `MkDeviceRelease`, which is the real guard: it clears Bus Master with a
+read-back before freeing every grant.
 
 ## Failure model
 
-No device: one line and `EXIT_ABSENT`. A failing step stands the part
-down, gives back every grant, logs `igc: <step>`, and the attempt is
-retried on the shared bounded schedule; running out is `EXIT_GAVE_UP`.
-Link down and RX empty are answers, not errors.
+No device: one line and `EXIT_ABSENT`. A failing step gives the device back
+as teardown does, logs `igc: <step>`, and the attempt is retried on the
+shared bounded schedule; running out is `EXIT_GAVE_UP`. A hung transmitter
+is logged (`tx hang, reset: done` or the step that failed), and a failed
+reset is tried again a whole watchdog bound later. Link down and RX empty
+are answers, not errors.
 
 ## Current implemented surface
 

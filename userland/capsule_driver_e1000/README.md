@@ -22,8 +22,14 @@ Hardware access is mediated by Mk and broker syscalls:
 
 - `MkDeviceList` locates the Intel NIC record.
 - `MkDeviceClaim` owns the NIC claim and claim epoch.
-- `MkMmioMap` maps BAR0.
-- `MkDmaMap` and `MkDmaUnmap` allocate RX/TX descriptors and packet buffers.
+- `MkPciConfigWrite` writes the PCI Command word: Memory Space on, Bus Master
+  off at the claim and on only after the reset, once both rings name the
+  driver's own memory.
+- `MkMmioMap` maps BAR0, which must reach `BAR0_MIN_BYTES` (0x6000, past
+  every register the bring-up writes), in the device record and as mapped.
+- `MkDmaMap` allocates RX/TX descriptors and packet buffers.
+- `MkDeviceRelease` gives the device back. It clears Bus Master and reads it
+  back before it frees every grant, so the driver unmaps nothing by hand.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.e1000_0` on
   `service:4210:driver.e1000_0`.
 - `CryptoRandom` draws the station address each boot.
@@ -69,10 +75,20 @@ record peers, keep application identity, or log payloads by default.
 
 ## Runtime lifecycle
 
-The capsule claims the NIC, maps BAR0, allocates RX/TX DMA rings, resets and
-programs the device, draws a locally administered station address with
-`CryptoRandom` (the EEPROM address is not used), and serves raw-frame IPC. It
-polls the rings and enables no interrupt. Teardown disables the device path and returns all broker grants.
+The capsule claims the NIC with Bus Master off, maps BAR0, allocates RX/TX
+DMA rings, stops and resets the device, draws a locally administered station
+address with `CryptoRandom` (the EEPROM address is not used), names both
+rings, turns Bus Master on, enables the engines, and serves raw-frame IPC. It
+polls the rings and enables no interrupt.
+
+A transmit watchdog runs on every send: frames in flight with the link up
+and none completed for 5 s is a hung transmitter, and the part is reset and
+both rings restarted under the same station address, Bus Master staying on.
+
+Teardown is stop, reset, Bus Master off (effective once the kernel's K6
+lands; the broker ORs Command bits today), then `MkDeviceRelease`, which is
+the real guard: it clears Bus Master with a read-back before freeing every
+grant.
 
 ## Failure model
 
@@ -82,9 +98,11 @@ setup or programming gives back every grant, and the attempt is repeated on
 the shared bounded schedule (`nonos_libc::bring_up`: seven tries, sleeping
 between them); running out exits `EXIT_GAVE_UP` (6).
 
-Setup failure rolls back grants in reverse order. Runtime TX failure returns a
-NIC fault without retrying inside the kernel. RX empty is non-fatal. Link-down
-is reported to callers rather than hidden.
+A failure once the DMA grants are taken gives the device back as teardown
+does. A hung transmitter is logged (`tx hang, reset: done` or the step that
+failed) and a failed reset is tried again a whole watchdog bound later.
+Runtime TX failure returns a NIC fault without retrying inside the kernel. RX
+empty is non-fatal. Link-down is reported to callers rather than hidden.
 
 ## Current implemented surface
 
@@ -95,7 +113,8 @@ is reported to callers rather than hidden.
   (`src/init/station_address.rs`, through `nonos_mac`).
 - Serves link, MAC, RX packet, and TX packet operations over IPC.
 - Serves a side-effect-free register/ring state snapshot over IPC.
-- Rolls broker grants back during setup failure and process teardown.
+- Gives the device back, part stopped and reset, on setup failure and
+  teardown; resets a hung transmitter in place.
 
 ## Wire format
 

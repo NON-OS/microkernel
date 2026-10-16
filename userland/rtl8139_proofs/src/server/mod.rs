@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PCI Command decode bits the device's BARs call for, from the record,
-//! as capsule_driver_rtl8169 derives them: I/O Space for a port BAR, Memory
-//! Space for an MMIO one.
+//! The server: the loop, the handlers, the one reply path, and the transmit
+//! watchdog, against the IPC calls the shim scripts.
 
-use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
-
-pub const CMD_IO_SPACE: u16 = 1 << 0;
-pub const CMD_MEMORY_SPACE: u16 = 1 << 1;
-
-pub fn command_bits(r: &DeviceRecord) -> u16 {
-    let mut bits = 0u16;
-    for bar in &r.bars[..core::cmp::min(r.bar_count as usize, r.bars.len())] {
-        if bar.kind == BAR_KIND_PIO {
-            bits |= CMD_IO_SPACE;
-        } else if bar.kind == BAR_KIND_MMIO {
-            bits |= CMD_MEMORY_SPACE;
-        }
-    }
-    bits
-}
+#[path = "../../../capsule_driver_rtl8139/src/server/error.rs"]
+pub mod error;
+#[path = "../../../capsule_driver_rtl8139/src/server/handlers/mod.rs"]
+pub mod handlers;
+#[path = "../../../capsule_driver_rtl8139/src/server/runner.rs"]
+pub mod runner;
+#[path = "../../../capsule_driver_rtl8139/src/server/tx_watch.rs"]
+pub mod tx_watch;

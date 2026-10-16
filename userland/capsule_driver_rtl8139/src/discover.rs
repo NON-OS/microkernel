@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bar_command;
 mod bar_pio;
 mod support;
 
-use nonos_libc::{mk_device_list, DeviceRecord};
-use self::bar_command::command_bits;
 use self::bar_pio::first_pio_bar;
 use self::support::is_supported;
+use nonos_libc::{mk_device_list, DeviceRecord};
 
 /// The device list holds ACPI and fabricated records beside PCI functions;
 /// at 32 a machine with more stopped short of the device behind a root port.
@@ -31,7 +29,6 @@ const MAX_DEVICES: usize = 128;
 pub struct Found {
     pub device_id: u64,
     pub pio_bar_index: u8,
-    pub command_bits: u16,
 }
 
 pub fn find_rtl8139() -> Option<Found> {
@@ -48,11 +45,7 @@ pub fn find_rtl8139() -> Option<Found> {
         // often leaves Interrupt Line at 0xFF, and filtering on it skipped a
         // present RTL8139 as absent.
         if let Some(pio_bar_index) = first_pio_bar(r) {
-            return Some(Found {
-                device_id: r.device_id,
-                pio_bar_index,
-                command_bits: command_bits(r),
-            });
+            return Some(Found { device_id: r.device_id, pio_bar_index });
         }
     }
     None

@@ -15,57 +15,44 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The driver's bring-up files, each public here so a test can drive one
-//! step at a time as well as the whole sequence.
+//! step at a time as well as the whole sequence. They are mounted from the
+//! driver's init directory as they are, siblings of one another, as the
+//! driver's `super::` paths need.
 
-#[path = "../../../capsule_driver_e1000e/src/init/cfg_done.rs"]
-pub mod cfg_done;
-#[path = "../../../capsule_driver_e1000e/src/init/errata.rs"]
-pub mod errata;
-#[path = "../../../capsule_driver_e1000e/src/init/finish.rs"]
-pub mod finish;
-#[path = "../../../capsule_driver_e1000e/src/init/flush_rings.rs"]
-pub mod flush_rings;
-#[path = "../../../capsule_driver_e1000e/src/init/flush_rx.rs"]
-pub mod flush_rx;
-#[path = "../../../capsule_driver_e1000e/src/init/flush_tx.rs"]
-pub mod flush_tx;
-#[path = "../../../capsule_driver_e1000e/src/init/hw_bits_82574.rs"]
-pub mod hw_bits_82574;
-#[path = "../../../capsule_driver_e1000e/src/init/hw_bits_pch.rs"]
-pub mod hw_bits_pch;
-#[path = "../../../capsule_driver_e1000e/src/init/interconnect.rs"]
-pub mod interconnect;
-#[path = "../../../capsule_driver_e1000e/src/init/k1.rs"]
-pub mod k1;
-#[path = "../../../capsule_driver_e1000e/src/init/lanphypc.rs"]
-pub mod lanphypc;
-#[path = "../../../capsule_driver_e1000e/src/init/link.rs"]
-pub mod link;
-#[path = "../../../capsule_driver_e1000e/src/init/mac_filter.rs"]
-pub mod mac_filter;
-#[path = "../../../capsule_driver_e1000e/src/init/pch_prepare.rs"]
-pub mod pch_prepare;
-#[path = "../../../capsule_driver_e1000e/src/init/phy_reset.rs"]
-pub mod phy_reset;
-#[path = "../../../capsule_driver_e1000e/src/init/post_phy_reset.rs"]
-pub mod post_phy_reset;
-#[path = "../../../capsule_driver_e1000e/src/init/post_reset.rs"]
-pub mod post_reset;
-#[path = "../../../capsule_driver_e1000e/src/init/quiesce.rs"]
-pub mod quiesce;
-#[path = "../../../capsule_driver_e1000e/src/init/reset.rs"]
-pub mod reset;
-#[path = "../../../capsule_driver_e1000e/src/init/reset_block.rs"]
-pub mod reset_block;
-#[path = "../../../capsule_driver_e1000e/src/init/run.rs"]
-pub mod run;
-#[path = "../../../capsule_driver_e1000e/src/init/rx_setup.rs"]
-pub mod rx_setup;
-#[path = "../../../capsule_driver_e1000e/src/init/station_address.rs"]
-pub mod station_address;
-#[path = "../../../capsule_driver_e1000e/src/init/tx_setup.rs"]
-pub mod tx_setup;
-#[path = "../../../capsule_driver_e1000e/src/init/ulp.rs"]
-pub mod ulp;
-#[path = "../../../capsule_driver_e1000e/src/init/ulp_host.rs"]
-pub mod ulp_host;
+#[path = "../../../capsule_driver_e1000e/src/init"]
+mod files {
+    pub mod cfg_done;
+    pub mod errata;
+    pub mod finish;
+    pub mod flush_rings;
+    pub mod flush_rx;
+    pub mod flush_tx;
+    pub mod hw_bits_82574;
+    pub mod hw_bits_pch;
+    pub mod interconnect;
+    pub mod k1;
+    pub mod lanphypc;
+    pub mod link;
+    pub mod mac_filter;
+    pub mod own_rings;
+    pub mod pch_prepare;
+    pub mod phy_reset;
+    pub mod post_phy_reset;
+    pub mod post_reset;
+    pub mod quiesce;
+    pub mod recover;
+    pub mod reset;
+    pub mod reset_block;
+    pub mod reset_part;
+    pub mod run;
+    pub mod rx_setup;
+    pub mod start;
+    pub mod station_address;
+    pub mod tx_setup;
+    pub mod ulp;
+    pub mod ulp_host;
+}
+
+pub use files::*;
+pub use quiesce::{run as quiesce, stop_dma, stop_units};
+pub use recover::recover;

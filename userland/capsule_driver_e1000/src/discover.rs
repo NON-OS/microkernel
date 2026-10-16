@@ -17,6 +17,7 @@
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
 use crate::constants::pci::{E1000_DEVICE_IDS, INTEL_VENDOR_ID};
+use crate::constants::regs::BAR0_MIN_BYTES;
 
 /// The device list holds ACPI and fabricated records beside PCI functions;
 /// at 32 a machine with more stopped short of the device behind a root port.
@@ -48,7 +49,7 @@ pub fn find_e1000() -> Option<Found> {
             continue;
         }
         let bar0 = r.bars[0];
-        if bar0.kind != BAR_KIND_MMIO || bar0.size == 0 {
+        if bar0.kind != BAR_KIND_MMIO || bar0.size < BAR0_MIN_BYTES {
             continue;
         }
         return Some(Found { device_id: r.device_id, bar0_size: bar0.size });

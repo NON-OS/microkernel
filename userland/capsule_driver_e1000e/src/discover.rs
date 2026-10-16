@@ -17,12 +17,10 @@
 //! Find the first e1000e-family Ethernet function in the broker's device
 //! list, with its family and the BAR0 window it decodes.
 
-mod bar_command;
 mod support;
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO};
 
-use self::bar_command::command_bits;
 use self::support::family_of;
 use crate::constants::regs::BAR0_MIN_BYTES;
 use crate::constants::Family;
@@ -37,7 +35,6 @@ pub struct Found {
     pub pci_device: u16,
     pub family: Family,
     pub bar0_size: u64,
-    pub command_bits: u16,
 }
 
 pub fn find_e1000e() -> Option<Found> {
@@ -56,11 +53,5 @@ fn found(r: &DeviceRecord) -> Option<Found> {
     if r.bar_count == 0 || r.bars[0].kind != BAR_KIND_MMIO || r.bars[0].size < BAR0_MIN_BYTES {
         return None;
     }
-    Some(Found {
-        device_id: r.device_id,
-        pci_device: r.device,
-        family,
-        bar0_size: r.bars[0].size,
-        command_bits: command_bits(r),
-    })
+    Some(Found { device_id: r.device_id, pci_device: r.device, family, bar0_size: r.bars[0].size })
 }

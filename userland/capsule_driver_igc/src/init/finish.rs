@@ -16,16 +16,15 @@
 
 //! The end of one bring-up attempt. Setup has taken every grant; programming
 //! the part either works and is announced, or the step that stopped it is
-//! logged as "igc: <step>", the part is stood down, and every grant goes
-//! back before the attempt reports failure, so the next attempt claims the
-//! device afresh instead of meeting its own leftover claim.
+//! logged as "igc: <step>" and the device goes back, stood down and reset
+//! first (`Driver::release`), before the attempt reports failure, so the
+//! next attempt claims the device afresh instead of meeting its own claim.
 
 use crate::log::Line;
 use crate::setup::Driver;
 
 use super::announce;
 use super::run::bring_up;
-use super::stand_down;
 
 pub fn finish(mut driver: Driver) -> Result<Driver, &'static str> {
     match bring_up(&mut driver) {
@@ -35,7 +34,6 @@ pub fn finish(mut driver: Driver) -> Result<Driver, &'static str> {
         }
         Err(e) => {
             Line::new().text(e).send();
-            stand_down::run(&driver.regs);
             driver.release();
             Err(e)
         }

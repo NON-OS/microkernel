@@ -26,4 +26,5 @@ mod rollback;
 mod sequence;
 
 pub use driver::Driver;
+pub use pci::command;
 pub use sequence::run;
