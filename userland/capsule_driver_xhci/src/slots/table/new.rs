@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 impl SlotTable {
     pub fn new() -> Self {
         let empty = [false; XHCI_SLOT_TABLE_LEN];
-        Self { allocated: empty, addressed: empty, resources: Vec::new(), count: 0 }
+        let owner = [0; XHCI_SLOT_TABLE_LEN];
+        Self { allocated: empty, addressed: empty, owner, resources: Vec::new(), count: 0 }
     }
 }

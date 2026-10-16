@@ -13,6 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-pub(crate) fn mmio_read32(addr: u64) -> u32 {
+/// Read the 32-bit register at `addr`.
+///
+/// # Safety
+/// `addr` is a 4-byte aligned register inside a register window this
+/// process mapped (`mk_mmio_map`) and still holds.
+pub(crate) unsafe fn mmio_read32(addr: u64) -> u32 {
+    // SAFETY: the caller's contract.
     unsafe { core::ptr::read_volatile(addr as *const u32) }
 }

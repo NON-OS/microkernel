@@ -16,6 +16,7 @@
 mod cycle;
 mod enqueue;
 mod enqueue_phys;
+mod keep;
 mod phys;
 mod state;
 pub use state::TransferRing;

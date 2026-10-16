@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::address_flow::{address_after_reset, port_speed, slot_ready};
+use super::address_flow::{address_at, port_speed, slot_ready};
+use crate::contexts::{Place, Topology};
 use crate::controller::reset_port;
 use crate::protocol::{Request, ADDRESS_DEVICE_REQUEST_LEN, E_BUSY, E_INVAL, E_IO, E_NODEV};
 use crate::server::context::Context;
@@ -35,7 +36,8 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         return;
     }
     let usb3 = ctx.driver.layout.ports.is_usb3(port_id);
-    let portsc = match reset_port(ctx.driver.layout.op_base, port_id, usb3) {
+    let irq = &mut ctx.driver.event_ring.irq;
+    let portsc = match reset_port(ctx.driver.layout.op_base, port_id, usb3, irq) {
         Ok(v) => v,
         Err(crate::error::XhciError::NoDeviceOnPort) => {
             reply_with_status(tx, req, E_NODEV);
@@ -46,5 +48,6 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
             return;
         }
     };
-    address_after_reset(ctx, req, tx, slot_id, port_id, port_speed(portsc));
+    let place = Place { root_port: port_id, speed: port_speed(portsc), topo: Topology::default() };
+    address_at(ctx, req, tx, slot_id, place);
 }

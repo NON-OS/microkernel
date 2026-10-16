@@ -19,6 +19,8 @@ use crate::trb::{read_volatile_at, Trb};
 impl EventRing {
     pub fn current_trb(&self) -> Trb {
         let va = self.segment.user_va() + (self.dequeue_index as u64) * (TRB_BYTES as u64);
-        read_volatile_at(va)
+        // SAFETY: `dequeue_index` is below EVENT_RING_SEGMENT_TRBS (`advance`
+        // wraps it), so the TRB lies inside the live segment grant.
+        unsafe { read_volatile_at(va) }
     }
 }

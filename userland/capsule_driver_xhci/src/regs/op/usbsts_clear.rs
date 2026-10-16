@@ -20,5 +20,7 @@ use crate::regs::mmio_write32;
 /// USBSTS bit is RW1C (HSE, EINT, PCD, SRE), so writing back what was read
 /// would acknowledge a port change or an interrupt nobody has looked at.
 pub fn usbsts_clear(op_base: u64, w1c_mask: u32) {
-    mmio_write32(op_base + USBSTS, w1c_mask);
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_write32(op_base + USBSTS, w1c_mask) };
 }
