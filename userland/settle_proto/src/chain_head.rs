@@ -17,7 +17,9 @@
 //!: two hosts name about the same block, and the range from the
 //! scanned-to mark to it lies inside the chain's cap, SERVICE_MS of its
 //! blocks. The cap is a backstop; the mark keeps an honest range small.
+//! log_pages is the one composition settle runs and the tests check.
 
+use nonos_eth_rpc::{block_pages, LOG_PAGE_BLOCKS};
 use nonos_nox_config::Chain;
 
 use crate::{ENOENT, EPROTO};
@@ -52,4 +54,14 @@ pub fn log_range(chain_id: u64, from: u64, to: u64) -> Result<(u64, u64), i32> {
         true => Ok((from, to)),
         false => Err(EPROTO),
     }
+}
+
+/// The pages of a log read over [from, to] on `chain_id`: the range judged
+/// by log_range, then cut in LOG_PAGE_BLOCKS. settle pages with this alone.
+pub fn log_pages(
+    chain_id: u64,
+    from: u64,
+    to: u64,
+) -> Result<impl Iterator<Item = (u64, u64)>, i32> {
+    log_range(chain_id, from, to).map(|(from, to)| block_pages(from, to, LOG_PAGE_BLOCKS))
 }
