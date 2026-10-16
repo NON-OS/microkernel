@@ -27,8 +27,8 @@ use super::limits::{POWER_TRIES, SETTLE_MS};
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
     /// SD Bus Power on at `vdd`: the voltage chosen while power is off,
     /// then power set (Power Control, as recalled, unverified). Some Intel
-    /// hosts drop the first power-on just after leaving D3 (observed in
-    /// Linux sdhci-pci-core.c, unverified), so the bit is read back a
+    /// hosts drop the first power-on just after leaving D3 (as observed,
+    /// unverified against Intel's documents), so the bit is read back a
     /// millisecond after each write and written again, POWER_TRIES in all.
     pub fn power_up(&mut self, vdd: Vdd) -> EmmcResult<()> {
         let on = vdd.select() | POWER_ON;
