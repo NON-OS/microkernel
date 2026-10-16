@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A GMBUS transaction's parts: taking a read's bytes, putting a write's,
-//! the end every transaction has, and DDC/CI carried on them.
+//! A GMBUS transaction's parts: its one deadline, taking a read's bytes,
+//! putting a write's, the end every transaction has, and DDC/CI carried on
+//! them.
 
 pub mod ddc;
+pub mod deadline;
 pub mod end;
 pub mod put;
 pub mod take;
