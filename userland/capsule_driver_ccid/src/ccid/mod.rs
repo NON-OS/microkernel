@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod atr;
 mod class_desc;
 mod exchange;
 mod msg;
@@ -21,6 +22,7 @@ mod reader;
 mod reply;
 mod slots;
 
+pub use atr::atr_fits;
 pub use exchange::exchange;
 pub use msg::{answers, command, GET_SLOT_STATUS, HEADER, ICC_POWER_OFF, ICC_POWER_ON, XFR_BLOCK};
 pub use reader::{find_reader, Reader};

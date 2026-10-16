@@ -13,11 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! One command and its answer over the bulk pair. The answer is gathered
-//! from as many transfers as it comes in, until its dwLength is whole.
-//! An answer under another sequence number is a late one to a command
-//! that timed out and is let go. While the card asks for more time the
-//! wait starts again, a bounded number of times. A halted pipe is cleared.
+//! One command and its answer over the bulk pair. Each bulk IN transfer is
+//! one message, ended by the reader's short packet (CCID 1.1, 5.2, as
+//! recalled, unverified): an answer whose dwLength runs past its transfer
+//! was cut short and is passed over, never joined to the next. A late
+//! answer (another slot or sequence) is let go; each time extension starts
+//! the wait again, a bounded number of times. A halted pipe is cleared.
 
 use alloc::vec::Vec;
 
@@ -42,26 +43,25 @@ pub fn exchange<B: Bus>(
         return Err(E_IO);
     }
     let (slot, seq, mut buf) = (cmd[5], cmd[6], alloc::vec![0u8; max]);
-    let (mut got, mut extensions, mut fresh) = (Vec::new(), 0, true);
+    let (mut extensions, mut fresh) = (0, true);
     loop {
         if !wait(core::mem::take(&mut fresh)) {
             return Err(E_TIMEDOUT);
         }
-        match bus.bulk_in_poll(&mut buf) {
-            Ok(Some(n)) => got.extend_from_slice(&buf[..n.min(max - got.len())]),
+        let got = match bus.bulk_in_poll(&mut buf) {
+            Ok(Some(n)) => &buf[..n.min(max)],
             Ok(None) => continue,
             Err(e) => return Err(halted(bus, e, true)),
-        }
-        let Some(r) = whole(&got, max)?.map(|r| (r.slot, r.seq, r.outcome)) else { continue };
+        };
+        let Some(r) = whole(got, max)?.map(|r| (r.slot, r.seq, r.outcome)) else { continue };
         let ours = r.0 == slot && r.1 == seq;
         if ours && r.2 != Outcome::MoreTime {
-            return Ok(got);
+            return Ok(got.to_vec());
         }
         (extensions, fresh) = (extensions + ours as u32, ours);
         if extensions > EXTENSIONS {
             return Err(E_TIMEDOUT);
         }
-        got.clear();
     }
 }
 

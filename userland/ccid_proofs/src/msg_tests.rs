@@ -1,8 +1,10 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Commands built and answers read: the header's fields where the class
-//! puts them, and an answer whose dwLength overruns what came refused.
+//! puts them, an answer whose dwLength overruns what came refused, and an
+//! ATR's length bounded.
 
-use crate::ccid::{answers, command, reply, Outcome, GET_SLOT_STATUS, ICC_POWER_ON, XFR_BLOCK};
+use crate::ccid::{answers, atr_fits, command, reply, Outcome};
+use crate::ccid::{GET_SLOT_STATUS, ICC_POWER_ON, XFR_BLOCK};
 use crate::reader::answer;
 
 #[test]
@@ -40,4 +42,11 @@ fn each_command_has_the_answer_kind_it_expects() {
     assert_eq!(answers(XFR_BLOCK), 0x80);
     assert_eq!(answers(GET_SLOT_STATUS), 0x81);
     assert_eq!(answers(0x63), 0x81);
+}
+
+#[test]
+fn an_atr_is_two_to_thirty_three_bytes() {
+    assert!(atr_fits(&[0x3B, 0x00]) && atr_fits(&[0x3B; 33]));
+    assert!(!atr_fits(&[]) && !atr_fits(&[0x3B]), "no T0");
+    assert!(!atr_fits(&[0x3B; 34]), "past TS and 32 more");
 }
