@@ -41,6 +41,9 @@ impl Air {
         if let Some((_, why)) = self.cfg.fail.filter(|f| f.0 == o) {
             return vec![status(why, 1, o)];
         }
+        if self.lies.forgot {
+            return vec![status(0x02, 1, o)];
+        }
         let start = status(0, 1, o);
         if self.refuse_encryption || ltk != self.smp.ltk {
             return vec![start, encryption_change(KEY_MISSING, HANDLE, 0)];
@@ -51,6 +54,7 @@ impl Air {
         for k in keys {
             self.send_to_host(SMP, &k);
         }
+        self.lies.sealed = (true, true);
         vec![start, encryption_change(0, HANDLE, 1)]
     }
 }

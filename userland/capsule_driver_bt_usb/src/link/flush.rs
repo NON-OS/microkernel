@@ -23,6 +23,10 @@ impl Session {
     /// Send what waits while the controller has buffers; a PDU that does
     /// not fit waits whole for the next turn (`Host::send_pdu`).
     pub(super) fn flush<T: Transport>(&mut self, host: &mut Host<T>) -> Result<(), HciError> {
+        // A link that has ended sends nothing more, its encryption maybe gone.
+        if self.end.is_some() {
+            return Ok(());
+        }
         while let Some(frame) = self.outbox.front() {
             match host.send_pdu(self.handle, frame) {
                 Ok(()) => {

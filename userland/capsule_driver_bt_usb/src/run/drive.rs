@@ -17,24 +17,15 @@
 //! The capsule's life: find a controller, run it until it fails, give its
 //! slot back, and look again.
 
-use nonos_bt_hci::usb::UsbHci;
-use nonos_bt_hci::{HciError, Host};
 use nonos_usbnet::xhci::disable_slot;
 
 use super::bonds;
-use super::env::CapsuleEnv;
+use super::controller::controller;
 use super::finder::Finder;
-use super::links::links;
 use super::say::{reason, say};
-use crate::link::Private;
-use crate::usb::Bound;
-use nonos_bt_bond::LocalIrk;
 
 /// Between two looks at the ports while no controller is bound.
 const SEARCH_MS: u64 = 1_000;
-/// ACL packets are taken up to this many data octets until bring-up has
-/// read the controller's own length: the LE minimum (Vol 4, Part E, 7.8.2).
-const ACL_FIRST: u16 = 27;
 
 pub fn run() -> ! {
     let (mut env, irk) = bonds::environment();
@@ -52,23 +43,4 @@ pub fn run() -> ! {
         disable_slot(xhci, slot);
         finder.lost(port);
     }
-}
-
-/// Bring-up, then links one after another; the error that ended it.
-fn controller(b: Bound, irk: &LocalIrk, env: &mut CapsuleEnv) -> HciError {
-    let mut host = Host::new(UsbHci::new(b.pipes, &b.iface, ACL_FIRST));
-    let c = match host.bring_up() {
-        Ok(c) => c,
-        Err(e) => return e,
-    };
-    host.transport().set_acl_max(c.acl_len);
-    // An all-zero address is a controller still waiting for its vendor's
-    // setup, which this host does not do (letter E-12); it also could not
-    // stand for this host in pairing (Vol 3, Part H, 2.2.7).
-    if c.addr.0 == [0; 6] {
-        return HciError::NotBluetooth;
-    }
-    say(&[b"controller up"]);
-    env.desk.board().controller = true;
-    links(&mut host, Private::new(irk.clone(), c.addr), env)
 }
