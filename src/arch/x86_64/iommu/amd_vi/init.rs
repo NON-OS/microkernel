@@ -47,8 +47,8 @@ pub fn init() {
             let mut line = Line::new();
             line.str(b"[AMD-VI] IOMMU translation enabled, units=");
             line.dec(super::units::units().len() as u64);
-            line.str(b" devices=").dec(assigned as u64).end();
-            serial::println(b"[AMD-VI] enumerated devices identity mapped; others denied");
+            line.str(b" reserved=").dec(assigned as u64).end();
+            serial::println(b"[AMD-VI] every other requester id blocked until claimed");
         }
         Err(e) => {
             let mut line = Line::new();

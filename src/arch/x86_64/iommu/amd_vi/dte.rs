@@ -33,12 +33,6 @@ pub const fn blocked() -> Dte {
     [VALID | TRANSLATION_VALID, 0, 0, 0]
 }
 
-/// DMA reaches physical addresses untranslated: Mode 0 with IR and IW,
-/// what Linux programs for an identity domain.
-pub const fn passthrough() -> Dte {
-    [VALID | TRANSLATION_VALID | READ | WRITE, 0, 0, 0]
-}
-
 /// DMA translated through `levels` of page table from `root`, tagged with
 /// `domain` in the second quadword's low sixteen bits.
 pub const fn translated(root: u64, levels: u8, domain: u16) -> Dte {
