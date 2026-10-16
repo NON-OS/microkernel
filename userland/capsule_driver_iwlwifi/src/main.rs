@@ -27,9 +27,6 @@ mod discover;
 mod dot11;
 mod driver;
 mod firmware;
-// The host-command queue: how the driver hands commands and frames to the alive
-// firmware. Reached through OP_HCMD_ISSUE.
-mod hcmd;
 mod init;
 mod mmio;
 // Which PCI function is a supported adapter, decided without the INTx line.

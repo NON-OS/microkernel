@@ -17,16 +17,14 @@
 //! Which of this driver's own protocol ops write the card. They belong to the
 //! legacy FH load path: loading firmware sections over the FH channel (which
 //! also releases the CPU), waiting for ALIVE by acknowledging interrupt
-//! causes, and ringing a command doorbell on queue 4. Once the gen3 radio owns
-//! the card, any of them would reset its CPU, clear the causes it polls or
-//! ring a doorbell the running firmware never configured, so the serving loop
-//! refuses them with `E_BUSY`. Every other op reads what setup recorded,
+//! causes. Once the gen3 radio owns the card, either would reset its CPU or
+//! clear the causes it polls, so the serving loop refuses them with `E_BUSY`. Every other op reads what setup recorded,
 //! writes only the legacy staging memory, or is pure computation, and is
 //! still answered.
 
-use crate::protocol::{OP_ALIVE_WAIT, OP_FIRMWARE_LOAD, OP_HCMD_ISSUE};
+use crate::protocol::{OP_ALIVE_WAIT, OP_FIRMWARE_LOAD};
 
 /// Whether `op` writes the card's registers.
 pub fn drives_card(op: u16) -> bool {
-    matches!(op, OP_FIRMWARE_LOAD | OP_ALIVE_WAIT | OP_HCMD_ISSUE)
+    matches!(op, OP_FIRMWARE_LOAD | OP_ALIVE_WAIT)
 }

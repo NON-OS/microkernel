@@ -16,7 +16,6 @@ pub const OP_ALIVE_WAIT: u16 = 0x0007;
 pub const OP_FIRMWARE_LOAD: u16 = 0x0008;
 pub const OP_MGMT_BUILD: u16 = 0x0009;
 pub const OP_BEACON_PARSE: u16 = 0x000A;
-pub const OP_HCMD_ISSUE: u16 = 0x000B;
 pub const OP_RX_POLL: u16 = 0x000C;
 // 0x000D to 0x0018 were the old join helpers, which took and returned key
 // material (a PTK, a TK, a GTK, a PMK); they are gone and never reused.
