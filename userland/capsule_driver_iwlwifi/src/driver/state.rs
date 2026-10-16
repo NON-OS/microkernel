@@ -8,7 +8,6 @@
 
 //! What the driver holds for the adapter it claimed.
 
-use crate::firmware::Family;
 use crate::regs::Regs;
 
 #[derive(Clone, Copy)]
@@ -20,13 +19,5 @@ pub struct Driver {
     /// Bytes of the register window the broker mapped.
     pub mmio_len: u64,
     pub irq_grant: u64,
-    pub dma_grant: u64,
-    pub dma_user_va: u64,
-    pub dma_device_addr: u64,
-    pub dma_len: u64,
-    pub hw_rev: u32,
-    pub gp_cntrl: u32,
-    pub rf_kill: bool,
-    pub family: Family,
     pub regs: Regs,
 }

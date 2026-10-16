@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! What is not a control request goes on to the driver protocol, and joins
-//! run here.
+//! What is not a control request is answered with nothing, and joins run
+//! here.
 
 use nonos_wifi_core::scan_list::ScanResults;
 
@@ -9,12 +9,18 @@ use crate::gen3::outcome::*;
 use super::control::{request, word};
 
 #[test]
-fn what_is_not_a_control_request_goes_on_to_the_driver_protocol() {
+fn what_is_not_a_control_request_is_answered_with_nothing() {
+    use crate::control::{route, Route};
     let view = View { stage: 0, step: 0, detail: 0, hw_rev: 0, rf_id: 0, heard: None };
     let mut out = vec![0u8; REPLY_MAX];
     let mut niwf = 0x4E49_5746u32.to_le_bytes().to_vec();
     niwf.extend_from_slice(&[0; 16]);
-    assert_eq!(answer(&niwf, &view, &mut out), None, "the driver's own tag");
+    assert_eq!(answer(&niwf, &view, &mut out), None, "the deleted protocol's tag");
+    for can_join in [true, false] {
+        assert_eq!(route(&niwf, can_join), Route::Other, "nothing serves that tag now");
+        assert_eq!(route(&niwf[..3], can_join), Route::Other, "shorter than a tag");
+        assert_eq!(route(&[], can_join), Route::Other, "empty");
+    }
     assert_eq!(answer(&request(4, 1)[..9], &view, &mut out), None, "shorter than the header");
     let mut small = vec![0u8; REPLY_MAX - 1];
     assert_eq!(answer(&request(4, 1), &view, &mut small), None, "a reply buffer too small for a scan");

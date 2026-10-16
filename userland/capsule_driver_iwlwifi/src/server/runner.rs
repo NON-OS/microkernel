@@ -12,12 +12,10 @@ use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_wifi_core::netif::{wire, MAX_RESPONSE};
 
 use crate::driver::Driver;
-use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 
 use super::control::{self, route, Route, REPLY_MAX};
 use super::join_serve::join;
 use super::link_serve::link_serve;
-use super::own::own;
 use super::radio::Radio;
 use super::view::view;
 
@@ -26,13 +24,13 @@ const SERVICE_INBOX: u64 = 0;
 /// before it services them again; otherwise it waits for the next request.
 const SCAN_TICK_MS: u64 = 50;
 
-pub fn run(mut driver: Driver) -> ! {
+pub fn run(driver: Driver) -> ! {
     // The gen3 radio comes up once, before the first request; on an adapter
-    // this path does not run it records why and leaves the card to own.rs.
+    // this path does not run it records why, for the status reply.
     let mut radio = Radio::start(&driver);
-    // Large enough for net_core's largest frame and this driver's own requests.
-    let mut rx = vec![0u8; (HDR_LEN + IPC_PAYLOAD_MAX).max(wire::HDR_LEN + wire::MAX_FRAME)];
-    let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
+    // Large enough for net_core's largest frame; a control request (a join
+    // body is at most 99 bytes) is far shorter.
+    let mut rx = vec![0u8; wire::HDR_LEN + wire::MAX_FRAME];
     let mut reply = vec![0u8; REPLY_MAX];
     let mut link = vec![0u8; MAX_RESPONSE];
     loop {
@@ -60,16 +58,13 @@ pub fn run(mut driver: Driver) -> ! {
                 }
                 continue;
             }
-            Route::Control | Route::Driver => {}
+            Route::Control => {
+                if let Some(len) = control::answer(&rx[..n], &view(&radio), &mut reply) {
+                    let _ = mk_ipc_reply(sender_pid, reply.as_ptr(), len);
+                }
+            }
+            // Nothing in the tree speaks anything else to this driver.
+            Route::Other => {}
         }
-        /*
-         * The Wi-Fi control family the panels speak to any Wi-Fi driver comes
-         * first; this driver's own protocol has a different tag.
-         */
-        if let Some(len) = control::answer(&rx[..n], &view(&radio), &mut reply) {
-            let _ = mk_ipc_reply(sender_pid, reply.as_ptr(), len);
-            continue;
-        }
-        own(&mut driver, sender_pid, &rx[..n], &mut tx);
     }
 }

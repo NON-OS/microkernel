@@ -9,7 +9,6 @@
 mod announce;
 mod claim;
 pub mod command;
-mod dma;
 mod give_back;
 mod grants;
 mod irq;
