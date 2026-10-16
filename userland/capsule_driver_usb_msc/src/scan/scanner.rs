@@ -14,110 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Looking for the device. Nothing tells the kernel that a USB
-//! mass-storage device is plugged in until the controller driver has
-//! enumerated its ports, so this driver starts wherever an xHCI controller
-//! is and decides here, within a bounded window, whether it has a device.
-//!
-//! The window ran from this driver's start. On a laptop whose controller
-//! takes seconds to come up, and a stick that takes seconds more to say it
-//! is ready, it could close before the stick was ever asked, and the boot
-//! went on with no store. It now runs from when the controller is found,
-//! and once it closes, ports are still looked at every few seconds: a port
-//! newly connected, or one that failed, is tried again, so a late stick is
-//! still taken.
+//! Looking for the device and keeping it, one bounded step at a time between
+//! requests (server/serve.rs): the probe that ran inline held every request
+//! about thirty-five seconds, every few seconds, for an empty card reader.
 
-use nonos_libc::Deadline;
-
+use super::asking::Asking;
+use super::identity::Identity;
 use super::medium::Medium;
-use super::pass::{pass, NOT_OURS};
-use super::report::{Report, Stage};
-use crate::state::State;
-use crate::xhci::{connected_ports, lookup};
-
-/// How long driver.xhci0 is waited for before no device is assumed; how
-/// long after it is found a device is looked for; how long a port is given
-/// to report its device; how often ports are looked at after that.
-const XHCI_WAIT_MS: u64 = 30_000;
-const WINDOW_MS: u64 = 10_000;
-const SETTLE_MS: u64 = 1_500;
-pub const RESCAN_MS: u64 = 5_000;
+use super::ports::Ports;
+use super::report::Report;
+use super::searching::XHCI_WAIT_MS;
+use crate::clock::Deadline;
 
 pub struct Scanner {
-    xhci: Option<u32>,
-    window: Deadline,
-    settle: Option<Deadline>,
-    tries: [u8; 256],
-    /// What the last pass found, which the kernel asks for (OP_GET_STATE).
+    pub(super) xhci: Option<u32>,
+    /// While the search lasts a block request is asked to come again.
+    pub(super) searching: bool,
+    pub(super) window: Deadline,
+    pub(super) settle: Deadline,
+    /// When the ports are next listed; whether the last listing left any open.
+    pub(super) look: Deadline,
+    pub(super) open: bool,
+    pub(super) ports: Ports,
+    pub(super) asking: Option<Asking>,
+    /// The device served this boot, once there is one (`identity`); the
+    /// port it was let go on while it stays there (`release`).
+    pub(super) served: Option<Identity>,
+    pub(super) left_on: Option<u8>,
+    /// Devices served after the first, and media served afresh (`asked`),
+    /// which the kernel reads.
+    pub rebinds: u32,
+    pub medium: Medium,
+    /// What the search last found, which the kernel asks for (OP_GET_STATE).
     pub report: Report,
 }
 
 impl Scanner {
     pub fn new() -> Self {
+        let wait = Deadline::after_ms(XHCI_WAIT_MS);
         Self {
             xhci: None,
-            window: Deadline::after_ms(XHCI_WAIT_MS),
-            settle: None,
-            tries: [0; 256],
+            searching: true,
+            window: wait,
+            settle: wait,
+            look: Deadline::after_ms(0),
+            open: false,
+            ports: Ports::new(),
+            asking: None,
+            served: None,
+            left_on: None,
+            rebinds: 0,
+            medium: Medium::Scanning,
             report: Report::new(),
-        }
-    }
-
-    /// One pass over the ports. `Scanning` until the device is bound or
-    /// every connected port is decided, or the window closes.
-    pub fn step(&mut self, state: &mut State) -> Medium {
-        let Some(xhci) = self.found() else { return self.undecided() };
-        let settle = *self.settle.get_or_insert_with(|| Deadline::after_ms(SETTLE_MS));
-        let ports = match connected_ports(xhci) {
-            Ok(ports) => ports,
-            Err(e) => {
-                self.report = Report::at(Stage::NoXhci, 0, e);
-                return self.undecided();
-            }
-        };
-        let (found, open) = pass(xhci, ports, &mut self.tries, state, &mut self.report);
-        if let Some(disk) = found {
-            return Medium::Ready(disk);
-        }
-        if open || !settle.expired() {
-            return self.undecided();
-        }
-        Medium::Absent
-    }
-
-    /// After the window: every port that failed is given its tries again,
-    /// and one pass looks at every port not of another class.
-    pub fn again(&mut self, state: &mut State) -> Medium {
-        let Some(xhci) = self.found() else { return Medium::Absent };
-        for t in self.tries.iter_mut().filter(|t| **t != NOT_OURS) {
-            *t = 0;
-        }
-        let Ok(ports) = connected_ports(xhci) else { return Medium::Absent };
-        match pass(xhci, ports, &mut self.tries, state, &mut self.report) {
-            (Some(disk), _) => Medium::Ready(disk),
-            _ => Medium::Absent,
-        }
-    }
-
-    /// driver.xhci0, once it has registered; the window restarts then.
-    fn found(&mut self) -> Option<u32> {
-        if let Some(x) = self.xhci {
-            return Some(x);
-        }
-        let Some(x) = lookup() else {
-            self.report = Report::new();
-            return None;
-        };
-        self.xhci = Some(x);
-        self.window = Deadline::after_ms(WINDOW_MS);
-        Some(x)
-    }
-
-    fn undecided(&self) -> Medium {
-        if self.window.expired() {
-            Medium::Absent
-        } else {
-            Medium::Scanning
         }
     }
 }

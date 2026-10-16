@@ -18,20 +18,15 @@
 //! in, and the configuration descriptor.
 
 use super::call::call;
+use super::reply::data_in;
 use super::wire::{DATA_AT, OP_CONTROL_TRANSFER, OP_GET_CONFIG_DESCRIPTOR};
-use crate::protocol::E_IO;
 
 /// The configuration descriptor, up to `out.len()` (at most 512) bytes.
 pub fn config_descriptor(xhci: u32, slot: u8, out: &mut [u8]) -> Result<usize, i32> {
     let want = (out.len().min(512) as u16).to_le_bytes();
     let mut resp = [0u8; DATA_AT + 4 + 512];
     let len = call(xhci, OP_GET_CONFIG_DESCRIPTOR, &[slot, 0, want[0], want[1]], &mut resp)?;
-    let actual = u16::from_le_bytes([resp[DATA_AT], resp[DATA_AT + 1]]) as usize;
-    if len < 4 + actual || actual > out.len() {
-        return Err(E_IO);
-    }
-    out[..actual].copy_from_slice(&resp[DATA_AT + 4..DATA_AT + 4 + actual]);
-    Ok(actual)
+    data_in(&resp, len, 4, out)
 }
 
 /// A request with no data stage: SET_CONFIGURATION, CLEAR_FEATURE, or the
@@ -73,10 +68,5 @@ pub fn control_in(
     body[8..10].copy_from_slice(&want.to_le_bytes());
     let mut resp = [0u8; DATA_AT + 2 + 512];
     let len = call(xhci, OP_CONTROL_TRANSFER, &body, &mut resp)?;
-    let actual = u16::from_le_bytes([resp[DATA_AT], resp[DATA_AT + 1]]) as usize;
-    if len < 2 + actual || actual > out.len() {
-        return Err(E_IO);
-    }
-    out[..actual].copy_from_slice(&resp[DATA_AT + 2..DATA_AT + 2 + actual]);
-    Ok(actual)
+    data_in(&resp, len, 2, out)
 }

@@ -19,10 +19,16 @@
 //! with the Bulk-Only Mass Storage Reset and both pipes cleared (5.3.4).
 
 use super::types::Disk;
-use crate::xhci::{control_no_data, reset_bulk};
+use crate::protocol::{E_IO, E_TIMEDOUT};
+use crate::state::{Said, State};
+use crate::xhci::{control_no_data, reset_bulk, Window};
 
 const CLEAR_FEATURE: (u8, u8) = (0x02, 0x01);
 const MASS_STORAGE_RESET: (u8, u8) = (0x21, 0xFF);
+/// A reset's own time, whatever the command it follows had left: long
+/// enough for driver.xhci0 to finish a transfer that call stopped waiting
+/// on, then the five requests.
+const RECOVERY_MS: u64 = 8_000;
 
 /// Clear a halted pipe in the controller, then the device's halt feature.
 pub fn clear_halt(disk: &Disk, dir_in: bool) -> Result<(), i32> {
@@ -37,6 +43,7 @@ pub fn clear_halt(disk: &Disk, dir_in: bool) -> Result<(), i32> {
 /// usb_stor_reset_common does: a halt left on either side fails every
 /// command after it.
 pub fn reset_recovery(disk: &Disk) -> Result<(), i32> {
+    let _window = Window::open(RECOVERY_MS);
     let mut result =
         control_no_data(disk.xhci, disk.slot, MASS_STORAGE_RESET, 0, disk.interface as u16);
     for (dir_in, ep) in [(true, disk.ep_in), (false, disk.ep_out)] {
@@ -47,4 +54,20 @@ pub fn reset_recovery(disk: &Disk) -> Result<(), i32> {
         }
     }
     result
+}
+
+/// A command that lost its phase: the transport is reset, with time of its
+/// own so one that ran out of time is reset too, and the failure named,
+/// `E_TIMEDOUT` when the time ran out, else `E_IO`. It is heard as an
+/// attention (`Said`): a reader clears its unit attention once it fails a
+/// command with CHECK CONDITION for it, so a lost CSW, that command's or
+/// that of the REQUEST SENSE that read it, may take a medium change with it.
+pub(super) fn lost(disk: &Disk, state: &mut State, e: i32) -> i32 {
+    state.heard(Said::Attention);
+    let _ = reset_recovery(disk);
+    if e == E_TIMEDOUT {
+        E_TIMEDOUT
+    } else {
+        E_IO
+    }
 }

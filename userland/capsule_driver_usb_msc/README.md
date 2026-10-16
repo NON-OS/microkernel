@@ -37,8 +37,8 @@ Its only state is in process memory: the bound device, BOT tags, counters.
 
 No capsule may send to `driver.usb_msc0`: the kernel holds the endpoint to an
 empty list (`src/services/registry/held.rs`), so only the kernel's own block
-client reaches it, by name or by pid. The block ops also check for sender pid
-0 themselves.
+client reaches it, by name or by pid. Every op but the health check also
+checks for sender pid 0 itself (`src/server/admits.rs`).
 
 ## Authority
 
@@ -65,7 +65,7 @@ forbidden: xHCI ownership, USB scheduling, DMA buffers, block cache, filesystem 
 | `OP_BUILD_TEST_UNIT_READY` / `OP_BUILD_REQUEST_SENSE` | none | BOT CBW for that command |
 | `OP_ACCEPT_CSW` | 13-byte BOT CSW | status |
 | `OP_DECODE_INQUIRY` / `OP_DECODE_CAPACITY` / `OP_DECODE_SENSE` | the SCSI data-in bytes | decoded fields |
-| `OP_GET_STATE` | none | counters and endpoint snapshot |
+| `OP_GET_STATE` | none | counters, the search report, then the re-bind generation (`u32`) |
 | `OP_BLK_CAPACITY` / `OP_BLK_FLUSH` | none; kernel (pid 0) only | blocks, block length / status |
 | `OP_BLK_READ` / `OP_BLK_WRITE` | `lba_le64, sectors_le32` (+ data), at most 64 sectors | data / status |
 
@@ -77,16 +77,58 @@ reply `E_NO_MSC`.
 
 The capsule does not store product strings, serial numbers, raw descriptors,
 SCSI payloads, or block data. It keeps only the current endpoint binding table,
-the last issued BOT tag, and diagnostic counters in process memory. Capsule
-teardown drops that memory through normal userland process cleanup.
+the last issued BOT tag, diagnostic counters, and a digest of the served
+device's INQUIRY and serial number, in process memory. Capsule teardown
+drops that memory through normal userland process cleanup.
 
 ## Runtime lifecycle
 
-At startup the capsule looks for its device for at most 10 s, answering the
-block surface `E_AGAIN` meanwhile: it addresses each free connected port, keeps
-the first BOT interface, runs TEST UNIT READY and READ CAPACITY(10), and after
-1.5 s with no port left undecided answers `E_NODEV`. A device whose blocks are
-not 512 bytes is answered `E_NOTSUP`, and the kernel passes it over by name.
+The search for the device runs one bounded step at a time between requests, so
+every request is answered within its own window while it lasts. The capsule
+waits up to 30 s for `driver.xhci0` to register, then looks for its device for
+at most 10 s, answering the block surface `E_AGAIN` meanwhile, and `E_NODEV`
+once every connected port is decided, 1.5 s at the soonest; ports are listed
+again every 5 s after, so a late stick is still taken. It addresses each free
+connected port, keeps the first SCSI-transparent BOT interface, reads the serial
+number (none when it does not read), and asks each logical unit INQUIRY, TEST
+UNIT READY and READ CAPACITY, a command a step, for 30 s at most. An empty card
+reader is passed a second after it was configured, and its port waits 5 s, then
+twice that. The first unit ready is served: blocks of 512 to 4096 bytes, as
+512-byte sectors; any other length is answered `E_NOTSUP`, and the kernel passes
+the device over by name.
+
+A device that fails a request is checked in the next step: still on its port,
+ready, and of its size. One gone or not ready is let go and the search restarts.
+After a let-go only the same unit, size and serial number is served again, and
+one let go without leaving its port is asked on that port alone. Serving ends
+for the boot (`E_NODEV`) when the driver cannot tell what it would serve from
+what it served: a card taken out, a size that changed, a medium change (UNIT
+ATTENTION 28h) said by the unit served when it is asked again after a let-go or
+heard by the check once the kernel has read or written a sector, and a device
+with no serial number let go. Any other UNIT ATTENTION but no medium (a power-on
+or reset, 29h), a sense that does not read, and a lost phase may be a change
+too: a reset reader may say 29h for 28h, and a reader clears its 28h once it
+fails a command for it, which a lost CSW hides. The check then serves the medium
+afresh, raising the re-bind generation. A device the check keeps after three
+failed requests in a row, no READ or WRITE moving data between them, is let go:
+one with a serial number is searched for again, the kernel told there is no
+device while its port waits (5 s, doubling to 80 s), then bound again; one
+without ends serving. A request out of its 18 s answers `E_TIMEDOUT`, which the
+kernel takes as a refusal and asks again.
+
+The trade-offs. Until the kernel's first READ or WRITE succeeds it holds nothing
+of the medium, so a request that fails with a UNIT ATTENTION then is answered
+`E_AGAIN`, which the kernel's disk selection asks again where it passed the
+stick over on `E_IO`, and the check asks TEST UNIT READY and READ CAPACITY again
+and serves what is there, its identity recorded afresh: another card may be
+served, before the kernel has chosen its disk by what it reads. After that read,
+a reader that says its medium changed loses the boot disk even with the same
+card in it. A stick with no serial number is served once a boot: a let-go of it
+ends serving rather than risk the kernel's writes landing on another stick. The
+state reply ends with a re-bind generation, raised each time a device is served
+after the first or a medium is served afresh, so the kernel can read the store
+header again before it writes. A reader that says a power-on after a transport
+reset raises it with the same card in it, at the cost of that read.
 
 ## Failure model
 
@@ -181,15 +223,19 @@ bounded READ(10) transfer through the xHCI bulk-transfer service.
 What only a boot on real silicon can confirm. The host proofs cover the parsers, the bring-up sequence against a model, and the bounded retry; these do not.
 
 - A stick plugged in at boot is found inside the ten second window; with none the block layer is told "no device".
-- A slow medium passes TEST UNIT READY within its ten tries 50 ms apart.
+- A slow medium passes TEST UNIT READY within its 30 s.
 - Read, write and flush round-trip data; a stalled endpoint recovers.
 
 ## Explicit non-goals today
 
-Not here: hot-plug after the start-up search, multi-LUN devices, UASP, devices
-past 2 TiB (READ(10) addresses the first 2^32 blocks), filesystems, partitions,
-caching and encryption. Stall and phase-error recovery follow BOT 6.6 and 5.3.4;
-there is no retry of a failed command beyond that.
+Not here: UASP, more than one logical unit served at a time, write-protect
+detection and UNMAP, filesystems, partitions, caching and encryption.
+Descriptor-format sense is not decoded: one counts as a UNIT ATTENTION, so a
+reader that uses it still has a change seen, and the generation rises after any
+request that failed with one. Two sticks of one make, size and serial number
+cannot be told apart once the one served has left its port. Stall and
+phase-error recovery follow BOT 6.6 and 5.3.4; a failed command is not retried
+beyond that and the check after it.
 
 ## Verification
 
