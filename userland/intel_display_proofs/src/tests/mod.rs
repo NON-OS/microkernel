@@ -16,6 +16,7 @@
 
 mod aux_ch_fail_tests;
 mod aux_ch_tests;
+mod aux_sink;
 mod backlight_tests;
 mod brightness_tests;
 mod brightness_wire_tests;
