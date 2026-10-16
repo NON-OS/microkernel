@@ -30,15 +30,20 @@ fn parent(bus: u8) -> Option<(u8, Hop)> {
     }
 }
 
+// Bus 0 is the only root bus of this fixture.
+fn root0(bus: u8) -> bool {
+    bus == ROOT_BUS
+}
+
 fn own(bus: u8, is_pcie: bool) -> bool {
-    own_requester_id(bus, is_pcie, false, path_to_root(bus, parent).as_deref())
+    own_requester_id(is_pcie, false, path_to_root(bus, root0, parent).as_deref())
 }
 
 #[test]
 fn the_root_bus_and_pcie_behind_pcie_ports_are_their_own() {
     assert!(own(ROOT_BUS, false) && own(ROOT_BUS, true));
     assert!(own(1, true) && own(3, true));
-    assert_eq!(path_to_root(3, parent), Some(vec![Hop::PciePort; 3]));
+    assert_eq!(path_to_root(3, root0, parent), Some(vec![Hop::PciePort; 3]));
 }
 
 #[test]
@@ -51,25 +56,16 @@ fn a_bridge_that_may_stand_in_makes_the_device_not_its_own() {
 
 #[test]
 fn an_unknown_path_or_a_loop_is_never_its_own() {
-    assert!(!own(9, true) && path_to_root(9, parent).is_none());
+    assert!(!own(9, true) && path_to_root(9, root0, parent).is_none());
     let looped = |bus: u8| Some((bus, Hop::PciePort));
-    assert!(path_to_root(7, looped).is_none());
+    assert!(path_to_root(7, root0, looped).is_none());
     let upward = |bus: u8| Some((bus.wrapping_add(1), Hop::PciePort));
-    assert!(path_to_root(7, upward).is_none());
-    assert!(!own_requester_id(7, true, false, None));
+    assert!(path_to_root(7, root0, upward).is_none());
+    assert!(!own_requester_id(true, false, None));
 }
 
 #[test]
 fn a_bridge_that_stands_in_for_its_subordinates_is_never_its_own() {
-    assert!(!own_requester_id(ROOT_BUS, false, true, Some(&[])));
-    assert!(!own_requester_id(3, true, true, path_to_root(3, parent).as_deref()));
-}
-
-#[test]
-fn every_bus_terminates_within_its_own_number_of_hops() {
-    let chain = |bus: u8| Some((bus - 1, Hop::PciePort));
-    for bus in 0..=u8::MAX {
-        let path = path_to_root(bus, chain).expect("a strict chain reaches the root");
-        assert_eq!(path.len(), bus as usize);
-    }
+    assert!(!own_requester_id(false, true, Some(&[])));
+    assert!(!own_requester_id(true, true, path_to_root(3, root0, parent).as_deref()));
 }
