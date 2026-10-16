@@ -23,6 +23,7 @@ pub const ACK_CC_CI: u8 = 0x04;
 pub const SET_NOTIFICATION_ENABLE: u8 = 0x05;
 pub const GET_CAPABILITY: u8 = 0x06;
 pub const GET_CONNECTOR_CAPABILITY: u8 = 0x07;
+pub const GET_PDOS: u8 = 0x10;
 pub const GET_CONNECTOR_STATUS: u8 = 0x12;
 
 /// Notifications asked for: command completed (0), external supply (1),
@@ -59,4 +60,12 @@ pub fn connector_status(n: u8) -> u64 {
 /// Bit 0 acknowledges a connector change, bit 1 a completed command.
 pub fn ack(command: bool, change: bool) -> u64 {
     control(ACK_CC_CI, u64::from(change) | u64::from(command) << 1)
+}
+
+/// The partner's source PDOs as it offers them now: connector (6:0),
+/// partner (7), offset (15:8), count less one (17:16), source (18), and
+/// capabilities type 0, the current ones (20:19).
+pub fn partner_source_pdos(n: u8, offset: u8, count: u8) -> u64 {
+    let fields = u64::from(n & 0x7F) | 1 << 7 | u64::from(offset) << 8;
+    control(GET_PDOS, fields | u64::from(count.clamp(1, 4) - 1) << 16 | 1 << 18)
 }

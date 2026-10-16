@@ -20,6 +20,8 @@
 
 use super::state::TypeC;
 use crate::sys::log::Line;
+use nonos_ucsi::contract::contract;
+use nonos_ucsi::pdo::{max_mw, pdo};
 use nonos_ucsi::session::State;
 use nonos_ucsi::start::Port;
 
@@ -45,7 +47,11 @@ pub fn changed(n: usize, p: &Port) {
     let role: &[u8] = if s.provider { b" sourcing" } else { b" sinking" };
     let l = l.str(b": attached").str(role).str(b" mode=").dec(u64::from(s.power_mode));
     let l = l.str(b" partner=").dec(u64::from(s.partner_type));
-    l.str(if s.charger() { b" charger" } else { b"" }).end();
+    let l = l.str(if s.charger() { b" charger" } else { b"" });
+    let best = p.offered.list().iter().map(|w| max_mw(pdo(*w))).max();
+    let Some(best) = best else { return l.end() };
+    let took = contract(s.rdo, p.offered.list()).map_or(0, |c| c.mw);
+    l.str(b" offers up to ").dec(best.into()).str(b" mW, took ").dec(took.into()).str(b" mW").end();
 }
 
 pub fn started(t: &TypeC) {

@@ -24,10 +24,16 @@ extern crate alloc;
 pub mod capability;
 #[path = "../../nonos_ucsi/src/command.rs"]
 pub mod command;
+#[path = "../../nonos_ucsi/src/contract.rs"]
+pub mod contract;
 #[path = "../../nonos_ucsi/src/exchange.rs"]
 pub mod exchange;
 #[path = "../../nonos_ucsi/src/layout.rs"]
 pub mod layout;
+#[path = "../../nonos_ucsi/src/offered.rs"]
+pub mod offered;
+#[path = "../../nonos_ucsi/src/pdo.rs"]
+pub mod pdo;
 #[path = "../../nonos_ucsi/src/poll.rs"]
 mod poll;
 #[path = "../../nonos_ucsi/src/ppm.rs"]
@@ -47,6 +53,8 @@ pub mod storm;
 
 #[cfg(test)]
 mod model;
+#[cfg(test)]
+mod model_pdos;
 #[cfg(test)]
 mod model_ppm;
 #[cfg(test)]

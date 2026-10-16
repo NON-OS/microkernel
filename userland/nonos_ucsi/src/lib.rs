@@ -32,8 +32,11 @@ extern crate alloc;
 
 pub mod capability;
 pub mod command;
+pub mod contract;
 pub mod exchange;
 pub mod layout;
+pub mod offered;
+pub mod pdo;
 mod poll;
 pub mod ppm;
 mod recover;
