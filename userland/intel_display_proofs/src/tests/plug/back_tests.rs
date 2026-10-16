@@ -59,7 +59,7 @@ fn a_monitor_whose_edid_does_not_answer_yet_is_read_on_every_poll() {
     sink.borrow_mut().nack = true;
     model.borrow_mut().plug_in(Ddi::B, sink.clone());
     settle(&mut d);
-    d.poll_plugs();
+    assert!(!d.poll_plugs(), "nothing moved, nothing told");
     assert_eq!(h0(&d).plug, Plug::Out, "still waking");
     sink.borrow_mut().nack = false;
     d.poll_plugs();

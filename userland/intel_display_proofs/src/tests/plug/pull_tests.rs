@@ -47,9 +47,9 @@ fn watching_arms_detection_and_needs_an_output_with_mode_setting() {
 fn a_pull_darkens_the_port_once_two_polls_agree() {
     let (mut d, model, _) = watched();
     model.borrow_mut().pull();
-    d.poll_plugs();
+    assert!(!d.poll_plugs());
     assert_eq!(h0(&d).plug, Plug::In, "one poll is not enough");
-    d.poll_plugs();
+    assert!(d.poll_plugs(), "an output moved: the compositor is told");
     assert_eq!(h0(&d).plug, Plug::Out);
     let m = model.borrow();
     assert_eq!(m.get(trans_conf(Transcoder::B)) >> 31, 0, "transcoder off");

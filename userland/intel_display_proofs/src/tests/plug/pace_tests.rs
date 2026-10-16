@@ -25,15 +25,19 @@ use crate::tests::wire_rig::h0;
 #[test]
 fn a_pull_settles_after_two_poll_intervals_not_two_frames() {
     let (mut d, model, _) = watched();
+    // One poll first, so the interval starts here.
+    d.clock.now.set(d.clock.now.get() + POLL_US);
+    assert!(!d.tick(), "the line high, as it was");
     model.borrow_mut().pull();
     let start = d.clock.now.get();
     while d.clock.now.get() < start + POLL_US - 1000 {
-        d.tick();
+        assert!(!d.tick());
     }
     assert_eq!(h0(&d).plug, Plug::In, "frames alone poll nothing");
-    for _ in 0..2 {
+    let told = (0..2).map(|_| {
         d.clock.now.set(d.clock.now.get() + POLL_US);
-        d.tick();
-    }
+        d.tick()
+    });
+    assert_eq!(told.collect::<Vec<_>>(), [false, true], "told once, as it settles");
     assert_eq!(h0(&d).plug, Plug::Out);
 }

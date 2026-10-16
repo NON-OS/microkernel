@@ -20,12 +20,26 @@
 //! exits at once without running a destructor, each of which would unmap a
 //! grant, release the claim or write a register, and the kernel takes back
 //! what the process held. The service leaves the registry with it, which
-//! the compositor's poll reads as the display gone. Any other frame from
+//! the compositor's poll reads as the display gone; it is told first, one
+//! send of OUTPUT_NOTICE into its inbox, so it moves to another display at
+//! once, and a send refused changes nothing. Any other frame from
 //! sender 0 is dropped, and sender 0 is never answered (`turn`).
 
-use nonos_libc::{mk_exit, EXIT_ABSENT};
+use nonos_gfx_wire::notice::{notice, LEAVING};
+use nonos_libc::{mk_exit, mk_ipc_send_to_pid, EXIT_ABSENT};
 
-/// A DGON named this driver's device (`turn`).
-pub fn leave() -> ! {
+/// A DGON named this driver's device (`turn`); `owner` is the compositor
+/// that asked for its primaries, if one has.
+pub fn leave(owner: Option<u32>) -> ! {
+    tell(owner, LEAVING);
     mk_exit(EXIT_ABSENT)
+}
+
+/// One OUTPUT_NOTICE to `owner`; its inbox full, or no owner yet, the
+/// compositor's own poll finds the same a moment later.
+pub fn tell(owner: Option<u32>, why: u32) {
+    if let Some(pid) = owner {
+        let n = notice(why);
+        let _ = mk_ipc_send_to_pid(pid, n.as_ptr(), n.len());
+    }
 }
