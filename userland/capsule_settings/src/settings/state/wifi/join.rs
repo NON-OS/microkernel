@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Field;
-use nonos_wifi_client::wipe;
-
-use super::cache::FieldValue;
-use super::cached_value::cached_value;
-use super::state::{State, WifiConnect};
+use super::super::state::State;
+use super::answer::{hand_off, refuse_while_out};
+use super::pass::clear_passphrase;
+use super::pending::{Pending, Work};
+use super::radio::radio_on;
+use super::refusal::join_refusal;
+use super::worker::{Ask, Secret};
 use nonos_libc::mk_time_millis;
-
-use super::wifi_answer::{hand_off, refuse_while_out};
-use super::wifi_enter::refresh_wifi_status;
-use super::wifi_pending::{Pending, Work};
-use super::wifi_refusal::join_refusal;
-use super::wifi_worker::{Ask, Secret};
 
 /// Begin a join of the highlighted network. A secured network first opens
 /// the passphrase editor; the second call (or an open network on the first)
@@ -57,7 +52,7 @@ pub fn connect_selected(state: &mut State) {
     state.wifi.pending = Pending::ask(Work::Join, mk_time_millis());
 }
 
-/// Hand the join asked for to the worker (`wifi_worker.rs`): association and
+/// Hand the join asked for to the worker (`state/wifi/worker.rs`): association and
 /// the four-way handshake answer only when done, a few seconds or more. The
 /// passphrase moves into the request, which wipes it when dropped, and the
 /// panel's buffer is wiped now; remembering, when asked for, happens on the
@@ -71,31 +66,4 @@ pub fn join_now(state: &mut State) {
     };
     let remember = state.wifi.remember;
     hand_off(state, Work::Join, Ask::Join { driver, net, pass, remember });
-}
-
-/// Close the passphrase editor and wipe what was typed.
-pub fn clear_passphrase(state: &mut State) {
-    wipe(&mut state.wifi_pass.text.bytes);
-    state.wifi_pass.text.len = 0;
-    state.wifi_pass.active = false;
-    state.wifi_pass.shown = false;
-}
-
-/// Leave the network the radio is associated with and clear its keys.
-pub fn leave(state: &mut State) {
-    if refuse_while_out(state) {
-        return;
-    }
-    if let Some(driver) = state.wifi.driver {
-        driver.disconnect();
-    }
-    state.wifi_connect = WifiConnect::Idle;
-    refresh_wifi_status(state);
-}
-
-/*
- * Off only when the store says so; an unread value does not block the radio.
- */
-pub(super) fn radio_on(state: &State) -> bool {
-    !matches!(cached_value(state, Field::WifiRadio), FieldValue::Bool(false))
 }

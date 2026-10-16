@@ -33,5 +33,5 @@ pub mod access;
 pub mod machine_key;
 #[path = "../../capsule_settings/src/settings/event/wifi_key.rs"]
 pub mod wifi_key;
-#[path = "../../capsule_settings/src/settings/state/wifi_refusal.rs"]
+#[path = "../../capsule_settings/src/settings/state/wifi/refusal.rs"]
 pub mod wifi_refusal;

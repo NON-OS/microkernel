@@ -87,7 +87,7 @@ the matching set and, on success, the shell notice.
 - No adapter, no lease or no TPM: the Wi-Fi section says which.
 - A scan or join that will not run says why on the Wi-Fi page: the switch
   is off, no driver is running, or the highlighted row is not one the scan
-  found (`src/settings/state/wifi_refusal.rs`).
+  found (`src/settings/state/wifi/refusal.rs`).
 - Kept wallpapers that were not read show `--`, and a change to them is
   refused rather than written over the stored set.
 

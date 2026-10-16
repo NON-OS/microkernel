@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
-
-use crate::settings::state::wifi_pending::Work;
-use crate::settings::state::State;
-
 use super::bytes::as_str;
 use super::control_geom::right_edge;
 use super::metrics::BODY_PX;
+use super::net_empty::empty_scan;
 use super::net_signal::draw_bars;
 use super::row_focus;
 use super::row_label;
 use super::text;
 use super::theme::{OK, SUBLABEL_FG};
 use super::valbuf::ValBuf;
-use crate::wifi::ScanStats;
+use crate::settings::state::wifi::pending::Work;
+use crate::settings::state::State;
+use nonos_app_skeleton::PaintBuffer;
 
 /// One scanned network. The list is empty until a scan runs, and an empty list
 /// says so rather than drawing nothing.
@@ -74,22 +72,4 @@ pub fn paint(
         let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
         text::right(fb, right - 26, top, "Connected", OK, BODY_PX);
     }
-}
-
-/*
- * An empty list says where reception stopped, from the driver's scan counters:
- * frames the radio received on the channels it swept, and how many parsed as
- * beacons. No frames is a receiver that hears nothing; frames but no beacons is
- * a parse that fails. Before any sweep the plain line stands.
- */
-fn empty_scan(b: &mut ValBuf, stats: ScanStats) {
-    if stats.steps == 0 {
-        b.push_str("No networks found");
-        return;
-    }
-    b.push_str("No networks: ");
-    b.push_dec(stats.raw);
-    b.push_str(" frames, ");
-    b.push_dec(stats.beacons);
-    b.push_str(" beacons heard");
 }

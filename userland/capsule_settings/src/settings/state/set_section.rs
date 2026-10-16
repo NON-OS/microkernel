@@ -20,7 +20,7 @@ use super::audio_output_probe::probe_audio_output;
 use super::machine_key_probe::probe_machine_key;
 use super::state::State;
 use super::track_scroll::track_scroll;
-use super::wifi_enter::enter_wifi;
+use super::wifi::enter::enter_wifi;
 
 /// Select a section. Entering Wi-Fi or Network enumerates adapters and re-reads
 /// net_core, so both pages show the link as it is; neither scans, because a scan

@@ -20,8 +20,9 @@ use crate::settings::state::machine_key::said;
 use crate::settings::state::State;
 
 use super::build_info::{ARCHITECTURE, GIT_SHA, TOOLCHAIN, VERSION};
+use super::live_link::link;
 use super::live_net::{adapter, addr, link_state};
-use super::live_wifi::{join, link, remember};
+use super::live_wifi::{join, remember};
 use super::valbuf::ValBuf;
 
 /// Format one live row's value, and the tone it should read in.
