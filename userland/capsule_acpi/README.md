@@ -276,7 +276,12 @@ other op: no one.
   Type-C ports: a count (0 without UCSI, at most 8) and four bytes each,
   flags (attached, sourcing, a charger, can source, can sink, status
   unknown, session stopped), power operation mode, partner type and
-  battery charging status. Layout in `src/server/typec_wire.rs`.
+  battery charging status. Then, port by port, a charger's offers as
+  read with GET_PDOS (a count and each source PDO u32, only from a
+  Power Delivery charger, at most seven) and the contract taken (the
+  request's position, then mV, mA and mW u32, as `nonos_ucsi::contract`
+  reads the request against the offers). Read-only: nothing here asks a
+  charger for power. Layout in `src/server/typec_wire.rs`.
 - THERMAL (7): the number of zones (at most 64), then per zone its
   temperature and _CRT in tenths of a kelvin (0 unknown or absent) and
   state bits (1 passive, 2 hot, 4 critical, 8 a fan it lists running).

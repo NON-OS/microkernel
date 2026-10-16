@@ -30,7 +30,9 @@ pub fn running(ports: usize) -> (Model, Session) {
 #[test]
 fn start_walks_every_connector() {
     let (m, s) = running(2);
-    assert_eq!(m.commands, [1, 5, 4, 6, 4, 7, 4, 0x12, 4, 7, 4, 0x12, 4], "each acknowledged");
+    // Port 1 is a Power Delivery charger, so its offers are asked (0x10).
+    let walk = [1, 5, 4, 6, 4, 7, 4, 0x12, 4, 0x10, 4, 7, 4, 0x12, 4];
+    assert_eq!(m.commands, walk, "each acknowledged");
     assert_eq!(s.ports.len(), 2);
     let p1 = s.ports[0].status.unwrap();
     assert!(p1.connected && p1.charger());
