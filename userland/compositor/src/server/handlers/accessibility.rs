@@ -41,13 +41,13 @@ pub fn handle(
     let Some((out, a)) = parse(body, ctx.looks.access.len()) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    let before = ctx.looks.access[out];
+    let (before, had) = (ctx.looks.access[out], ctx.own_colours());
     if out == 0 && a.magnified() && ctx.hw_cursor() {
         crate::frame_pacer::hw_cursor_back::hide(ctx);
     }
     ctx.looks.access[out] = a;
     ctx.looks.rebuild();
-    if before.magnified() != a.magnified() {
+    if before.magnified() != a.magnified() || had != ctx.own_colours() {
         crate::setup::relayout(ctx);
     }
     ctx.damage.mark_full(ctx.width, ctx.height);
