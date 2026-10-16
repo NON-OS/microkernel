@@ -28,11 +28,16 @@ pub const DCD: u16 = 1 << 0;
 pub const DSR: u16 = 1 << 1;
 pub const LEVELS: u16 = DCD | DSR;
 
-/// The state a SERIAL_STATE notification in `n` carries.
-pub fn serial_state(n: &[u8]) -> Option<u16> {
+/// The state a SERIAL_STATE notification in `n` carries, when it is about
+/// communications interface `comm` (its wIndex).
+pub fn serial_state(n: &[u8], comm: u8) -> Option<u16> {
     let head = n.get(..8)?;
+    let index = u16::from_le_bytes([head[4], head[5]]);
     let length = u16::from_le_bytes([head[6], head[7]]);
     if head[0] != FROM_INTERFACE_CLASS || head[1] != SERIAL_STATE || length < 2 {
+        return None;
+    }
+    if index != u16::from(comm) {
         return None;
     }
     Some(u16::from_le_bytes([*n.get(8)?, *n.get(9)?]) & 0x7F)

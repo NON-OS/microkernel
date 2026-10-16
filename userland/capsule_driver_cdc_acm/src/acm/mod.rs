@@ -13,14 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod endpoint;
 mod function;
 mod line;
 mod notice;
 mod owner;
 mod rx;
 
-pub use endpoint::Notify;
+pub use nonos_usbnet::Notify;
 pub use function::{find_acm, AcmFunction, CAP_BREAK, CAP_LINE};
 pub use line::{control_lines, send_break, set_line, Line, DEFAULT, DTR, RTS};
 pub use notice::{serial_state, State};

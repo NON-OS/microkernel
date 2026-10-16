@@ -29,7 +29,8 @@ use crate::notify::{poll, NOTICE_MAX};
 const READ: usize = 4096;
 
 pub fn pump(d: &mut Dev) {
-    let (Some(mut bus), Some(notify)) = (d.bus(), d.port().map(|p| p.notify)) else { return };
+    let Some((notify, comm)) = d.port().map(|p| (p.notify, p.f.comm)) else { return };
+    let Some(mut bus) = d.bus() else { return };
     if d.owner.pid.is_none() {
         return;
     }
@@ -47,7 +48,7 @@ pub fn pump(d: &mut Dev) {
     if let Some(dci) = notify {
         let mut n = [0u8; NOTICE_MAX];
         if let Ok(Some(len)) = poll(bus.xhci, bus.slot, dci, &mut n) {
-            if let Some(s) = serial_state(&n[..len]) {
+            if let Some(s) = serial_state(&n[..len], comm) {
                 d.state.seen(s);
             }
         }

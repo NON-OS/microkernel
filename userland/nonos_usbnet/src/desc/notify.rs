@@ -30,10 +30,21 @@ pub fn notify_ep(raw: &[u8], number: u8) -> Option<Notify> {
             inside = d[2] == number && d[3] == 0;
         }
         let ours = inside && d[1] == ENDPOINT && d.len() >= 7;
-        (ours && d[2] & 0x80 != 0 && d[3] & 0x3 == INTERRUPT).then(|| Notify {
+        let fit = ours && sound(u16::from_le_bytes([d[4], d[5]]), d[6]);
+        (fit && d[2] & 0x80 != 0 && d[3] & 0x3 == INTERRUPT).then(|| Notify {
             address: d[2],
             max_packet: u16::from_le_bytes([d[4], d[5]]),
             interval: d[6],
         })
     })
+}
+
+/// An interrupt endpoint's wMaxPacketSize and bInterval as USB bounds them
+/// (USB 2.0 9.6.6, as recalled, unverified): bits 15:13 reserved, never
+/// the reserved count of 3 added transactions, 1 to 1024 bytes, and an
+/// interval of at least 1. Another is passed over: the host is never asked
+/// to poll it.
+fn sound(raw: u16, interval: u8) -> bool {
+    let size = raw & 0x07FF;
+    raw >> 13 == 0 && (raw >> 11) & 0x3 != 3 && (1..=1024).contains(&size) && interval >= 1
 }

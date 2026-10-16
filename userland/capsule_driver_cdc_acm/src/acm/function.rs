@@ -19,10 +19,9 @@
 //! interface with a bulk pair, its ACM functional descriptor's
 //! capabilities, and the interrupt IN endpoint its notifications come on.
 
-use nonos_usbnet::desc::{find_functional, interfaces, union_data, CLASS_CDC_DATA, CLASS_COMM};
-use nonos_usbnet::Pipes;
-
-use super::endpoint::{notify, Notify};
+use nonos_usbnet::desc::{find_functional, interfaces, notify_ep, union_data};
+use nonos_usbnet::desc::{CLASS_CDC_DATA, CLASS_COMM};
+use nonos_usbnet::{Notify, Pipes};
 
 const SUBCLASS_ACM: u8 = 0x02;
 /// The Abstract Control Management functional descriptor.
@@ -61,7 +60,7 @@ pub fn find_acm(raw: &[u8]) -> Option<AcmFunction> {
             data,
             data_alt: on.alt,
             pipes: on.pipes,
-            notify: notify(raw, c.number),
+            notify: notify_ep(raw, c.number),
         })
     })
 }

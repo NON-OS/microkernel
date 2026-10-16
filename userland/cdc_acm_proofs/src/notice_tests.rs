@@ -13,13 +13,13 @@ fn notice(kind: u8, length: u16, data: &[u8]) -> Vec<u8> {
 
 #[test]
 fn serial_state_is_read_and_others_are_not() {
-    assert_eq!(serial_state(&notice(0x20, 2, &[0x03, 0x00])), Some(0x03));
-    assert_eq!(serial_state(&notice(0x20, 2, &[0xFF, 0xFF])), Some(0x7F), "reserved bits");
-    assert_eq!(serial_state(&notice(0x00, 0, &[])), None, "NETWORK_CONNECTION");
-    assert_eq!(serial_state(&notice(0x20, 2, &[0x03])), None, "short");
+    assert_eq!(serial_state(&notice(0x20, 2, &[0x03, 0x00]), 0), Some(0x03));
+    assert_eq!(serial_state(&notice(0x20, 2, &[0xFF, 0xFF]), 0), Some(0x7F), "reserved bits");
+    assert_eq!(serial_state(&notice(0x00, 0, &[]), 0), None, "NETWORK_CONNECTION");
+    assert_eq!(serial_state(&notice(0x20, 2, &[0x03]), 0), None, "short");
     let mut wrong = notice(0x20, 2, &[1, 0]);
     wrong[0] = 0x21;
-    assert_eq!(serial_state(&wrong), None, "not from an interface");
+    assert_eq!(serial_state(&wrong, 0), None, "not from an interface");
 }
 
 #[test]
