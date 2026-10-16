@@ -27,9 +27,9 @@ runs:
   (`src/fs/blockfs_volume/mount_volume.rs:23-24`,
   `src/fs/blockfs_volume/format_volume.rs:22-25`), so the check never runs in
   0.9.2.
-- `Entropy`: `gate_read` asks for it before the kernel client's `get_stats` and
-  `healthcheck` (`src/security/entropy_capsule/capability.rs:23-31`), and no
-  kernel code calls either.
+- `Entropy`: no kernel code asks for it. The kernel client's `get_stats` and
+  `healthcheck`, the only code that did, had no callers and are deleted; the
+  kernel's own asks for random bytes need no capability.
 - Neither bit gates a capsule that sends to the `keyring` or `entropy_pool`
   endpoint itself. Both endpoints ask for `IPC` alone, as every service endpoint
   outside `NETWORK_SERVICES` does. The keyring capsule ties each request to the

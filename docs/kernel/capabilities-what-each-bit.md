@@ -44,7 +44,7 @@ siblings ask for their own bit alone
 | 26 | `StoreWrite` | `MkStoreWrite`, `MkStoreRead`; with `FileSystem`, the data import calls. |
 | 27 | `EnrolDevRoot` | `MkDevRootRequest`, `MkDevRootConfirm`, `MkDevRootLocal`, `MkLocalConsent`, `MkLocalRestore`. `Admin` does not imply it. |
 | 28 | `Keyring` | Nothing that runs. The kernel's keyring client checks it in `gate_caller` (`src/security/keyring_capsule/capability.rs:26-34`), but no kernel code calls that client, and a capsule sends to the keyring with `IPC` alone. |
-| 29 | `Entropy` | Nothing that runs. The kernel's entropy client checks it in `gate_read` (`src/security/entropy_capsule/capability.rs:23-32`) for statistics and health checks no kernel code asks for, and a capsule sends to the entropy service with `IPC` alone. |
+| 29 | `Entropy` | Nothing that runs. No kernel code checks it, and a capsule sends to the entropy service with `IPC` alone. |
 | 30 | `AppInstall` | `MkAppInstall`, `MkAppLaunch`, `MkAppInstallStatus`, `MkAppUninstall`. |
 | 31 | `AttestRead` | `MkAttestEntries`, `MkLogTail`, every field of other processes in `MkProcStat`; `MkAttestDoc` only without `Network`. |
 | 32 | `ForeignExec` | The 15 `MkForeign` and `MkPeer` calls that host a Linux guest, and `MkLocalVerify`. |

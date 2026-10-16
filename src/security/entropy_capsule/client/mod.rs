@@ -16,15 +16,9 @@
 
 mod ask;
 mod ask_rule;
-mod get_stats;
-mod healthcheck;
-mod reseed;
 mod seq;
 mod transport;
 
 pub(super) use transport::REPLY_INBOX;
 
 pub use ask::poll;
-pub use get_stats::{get_stats, EntropyStats};
-pub use healthcheck::healthcheck;
-pub use reseed::reseed;
