@@ -46,6 +46,9 @@ pub struct Quirks {
     /// No COMRESET brings the link back: PxSSTS.DET stays at this, 0 for a
     /// disk pulled, 1 for a device the PHY cannot talk to.
     pub stuck_det: Option<u32>,
+    /// The HBA reset leaves this port's engines as they were, as on a part
+    /// that resets only its global state; a stop of the port's own ends them.
+    pub hr_spares_port: bool,
 }
 
 impl Default for Quirks {
@@ -62,6 +65,7 @@ impl Default for Quirks {
             stuck_det: None,
             self_reset_ms: None,
             sticky: (0, 0),
+            hr_spares_port: false,
         }
     }
 }

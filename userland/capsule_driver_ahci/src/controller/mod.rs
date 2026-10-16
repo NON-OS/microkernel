@@ -25,6 +25,7 @@ mod scan_ports;
 mod settle;
 mod signature;
 mod spin_up;
+mod stopped;
 mod window;
 
 pub use enable::enable_ahci;
@@ -33,4 +34,5 @@ pub use port_info::PortInfo;
 pub use scan_ports::scan_ports;
 pub use settle::settle_links;
 pub use spin_up::spin_up;
+pub use stopped::{armed_port, stop_armed};
 pub use window::ports_in_window;

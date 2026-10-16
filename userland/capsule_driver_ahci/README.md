@@ -16,9 +16,17 @@ requests, with IDENTIFY's medium byte set to 1 so the installer names it
 eMMC. The eMMC code is the self-contained `src/emmc/` tree (SDHCI host with
 ADMA2, High Speed at up to 52 MHz on the widest bus that reads back intact,
 CMD23 multi-block transfers, cache flush), proved by `userland/emmc_proofs`
-against a register-level model of a host with an eMMC behind it. It moves
-to a capsule of its own with that directory. It asks for no capability the
-SATA path did not already hold.
+against a register-level model of a host with an eMMC behind it. A host is
+reset (Software Reset For All read back clear, Present State then idle, ADMA2
+offered) before any DMA region is mapped or Bus Master goes on, so ADMA a
+dead driver left running reaches nothing; a host refused before then never
+gets Bus Master. On a host without 64-bit addressing the regions are asked
+for below 4 GiB (`MK_DMA_MAP_DMA32`), which 32-bit ADMA2 reaches. A host goes
+back stopped, with Bus Master written off (a no-op until the broker stores
+Command words as written, K6), and its DMA regions are never unmapped by
+hand: `MkDeviceRelease` frees them once it reads Bus Master back off. It
+moves to a capsule of its own with that directory. It asks for no capability
+the SATA path did not already hold.
 
 This slice is a block-controller milestone. It proves discovery, claim, MMIO
 mapping, IRQ ownership, AHCI-mode enable, ATA identify, command-list/FIS/PRDT
@@ -100,13 +108,18 @@ plan magics. It serves the first disk carrying either, else the first that came 
 
 With no AHCI controller in the device list the capsule logs one line and exits
 `EXIT_ABSENT` (2) before claiming anything. A controller whose claim,
-memory and bus-master enable, MMIO map or HBA reset fails is skipped and
-released; when no disk comes up on any controller (none opened, or every port
-empty or failing), the whole walk is retried on the shared bounded schedule
-(`nonos_libc::bring_up`: seven tries, sleeping between them), and running out
-logs the last cause and exits `EXIT_GAVE_UP` (6). A port whose link, DMA,
-signature, or ATA identify fails is stopped; unserved ports are parked, other
-controllers released. Requests never touch a port that is not the one served.
+Memory Space write, MMIO map or HBA reset fails, or with a port still running
+after the reset and a stop of its own, is skipped and released without ever
+getting Bus Master; when no disk comes up on any controller (none opened, or
+every port empty or failing), the whole walk is retried on the shared bounded
+schedule (`nonos_libc::bring_up`: seven tries, sleeping between them), and
+running out logs the last cause and exits `EXIT_GAVE_UP` (6). A port whose
+link, DMA, signature, or ATA identify fails is stopped. Unserved ports on the
+controller kept are parked: stopped, then their regions unmapped, since the
+port served keeps Bus Master on. Every other controller goes back whole: its
+ports stopped, Bus Master written off (a no-op until K6), then the release,
+which frees their regions once it reads Bus Master back off. Requests never
+touch a port that is not the one served.
 
 Taken for an HBA: any SATA function (class 01h subclass 06h, whatever its
 prog-if) and an Intel RST RAID-mode function (01h/04h, which is AHCI
@@ -116,17 +129,22 @@ may be as small as one port's registers (0x180 bytes): Intel PCH ABARs are
 commonly 2 KiB and AMD FCH ones 1 KiB, often off a page boundary; the broker
 maps such a BAR by its page and hands back the VA of its first byte.
 
-Bring-up, per controller: BIOS/OS handoff when CAP2.BOH; GHC.HR within 1 s
-(a controller that does not reset is left alone), with CAP and PI written
-back when the reset cleared them; then PxCMD.SUD (and POD with CAP.CPD) on
-every implemented port, since with staggered spin-up a port sends no COMRESET
-until SUD is set and reads DET = 0 with a disk attached. Every implemented
-port is then tried: its own COMRESET decides whether a disk is there (the link
-quiet for 200 ms is an empty port), a disk gets up to 10 s to clear BSY while
-it spins up, and only an ATA signature is identified. Every wait is on the
-monotonic clock (`src/constants/timing.rs`). On an HBA without CAP.S64A every
-DMA buffer is asked for below 4 GiB (`MK_DMA_MAP_DMA32`). Each port tried
-logs one `[ahci]` serial line with PxSSTS, PxTFD, PxSERR, PxSIG and PxCMD.
+Bring-up, per controller: Memory Space at the claim, Bus Master not yet;
+BIOS/OS handoff when CAP2.BOH; GHC.HR within 1 s (a controller that does not
+reset is left alone), with CAP and PI written back when the reset cleared
+them; Bus Master only once every implemented port the window reaches reads
+PxCMD.ST, CR, FRE and FR clear and no slot in PxCI or PxSACT (a driver that
+died without its Drop leaves its engines armed on frames the kernel has
+freed), a port the reset did not stop given ST and FRE off and CR and FR
+waited out first; then PxCMD.SUD (and POD with CAP.CPD) on every implemented
+port, since with staggered spin-up a port sends no COMRESET until SUD is set
+and reads DET = 0 with a disk attached. Every implemented port is then tried:
+its own COMRESET decides whether a disk is there (the link quiet for 200 ms is
+an empty port), a disk gets up to 10 s to clear BSY while it spins up, and
+only an ATA signature is identified. Every wait is on the monotonic clock
+(`src/constants/timing.rs`). On an HBA without CAP.S64A every DMA buffer is
+asked for below 4 GiB (`MK_DMA_MAP_DMA32`). Each port tried logs one `[ahci]`
+serial line with PxSSTS, PxTFD, PxSERR, PxSIG and PxCMD.
 
 PI is the controller's own word, and its bits may be sparse: the walk covers
 up to CAP.NP + 1 ports or the highest PI bit, whichever is higher, and a zero
