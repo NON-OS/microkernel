@@ -14,20 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the broker granted, given back when the driver lets go: the
-//! register mapping, then the device itself.
+//! The register BAR's map. The driver's register type is the proofs' own
+//! (src/hw/mmio.rs), which hands each access to the modelled reader, so the
+//! address here only has to be the one that type is built from.
 
-use nonos_libc::{mk_device_release, mk_mmio_unmap};
+use crate::events::note;
+use crate::types::MmioMapOut;
 
-pub struct Handles {
-    pub device_id: u64,
-    /// Zero until the BAR is mapped; unmapping zero is refused harmlessly.
-    pub mmio_grant: u64,
+/// Where the register window is said to be mapped.
+pub const MMIO_VA: u64 = 0x7F00_0000;
+
+pub fn mk_mmio_map(
+    _device_id: u64,
+    _epoch: u64,
+    _bar: u32,
+    _flags: u32,
+    _offset: u64,
+    length: u64,
+    out: &mut MmioMapOut,
+) -> i64 {
+    *out = MmioMapOut { user_va: MMIO_VA, length, grant_id: 0x51 };
+    note("mmio_map");
+    0
 }
 
-impl Drop for Handles {
-    fn drop(&mut self) {
-        let _ = mk_mmio_unmap(self.mmio_grant);
-        let _ = mk_device_release(self.device_id);
-    }
+pub fn mk_mmio_unmap(grant_id: u64) -> i64 {
+    note(format!("mmio_unmap {grant_id:#x}"));
+    0
 }

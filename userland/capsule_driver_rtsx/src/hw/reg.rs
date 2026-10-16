@@ -16,28 +16,35 @@
 
 //! One internal register through HAIMR, as rtsx_pci_read_register and
 //! rtsx_pci_write_register do it, waiting on the clock instead of Linux's
-//! 1024 polls.
+//! 1024 polls. HAIMR never reads all ones while the reader answers (no
+//! register this driver names fills bits 29:16), so all ones is a reader
+//! gone from the bus, said at once rather than waited out.
 
 use super::mmio::Regs;
-use crate::clock::{now, Budget};
+use crate::clock::{now, pause, Budget};
 use crate::error::{Result, RtsxError};
 use crate::regs::host::HAIMR;
 use crate::wire::{haimr_done, haimr_read, haimr_write};
 
 /// Linux's 1024 polls take about a millisecond; 10 ms leaves room for a
 /// slow PCIe read without hiding a dead reader.
-const ACCESS_MS: u64 = 10;
+pub const ACCESS_MS: u64 = 10;
 
 fn finish(regs: Regs) -> Result<u32> {
     let budget = Budget::begin(now(), ACCESS_MS);
     loop {
         let value = regs.r32(HAIMR);
+        if value == u32::MAX {
+            return Err(RtsxError::Gone);
+        }
         if haimr_done(value) {
             return Ok(value);
         }
-        if budget.spent(now()) {
+        let t = now();
+        if budget.spent(t) {
             return Err(RtsxError::RegisterTimeout);
         }
+        pause(&budget, t);
     }
 }
 

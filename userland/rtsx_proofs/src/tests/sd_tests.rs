@@ -32,7 +32,9 @@ fn the_commands_carry_their_index_argument_and_response() {
     assert_eq!(Command::sd_send_op_cond(true).rsp, Rsp::R3);
     assert_eq!(Command::select_card(1).rsp, Rsp::R1b);
     assert_eq!(Command::SET_BUS_WIDTH_4.arg, 2);
-    assert_eq!(Command::read_multiple(7).index, 18);
+    assert_eq!((Command::read(7, false).index, Command::read(7, true).index), (17, 18));
+    assert_eq!((Command::write(7, false).index, Command::write(7, true).index), (24, 25));
+    assert_eq!(Command::send_status(0xB368), Command { index: 13, arg: 0xB368_0000, rsp: Rsp::R1 });
 }
 
 #[test]

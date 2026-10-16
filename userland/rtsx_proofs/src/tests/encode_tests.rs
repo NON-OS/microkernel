@@ -19,7 +19,7 @@
 use crate::regs::sd::SD_CMD0;
 use crate::wire::buffer::{CmdBuf, MAX_CMDS};
 use crate::wire::encode::*;
-use crate::wire::{classify, CmdKind, Outcome};
+use crate::wire::CmdKind;
 
 #[test]
 fn a_command_entry_is_built_as_rtsx_pci_add_cmd_builds_it() {
@@ -37,8 +37,9 @@ fn haimr_and_the_engine_control_words() {
     assert!(haimr_done(0x7FFF_FFFF) && !haimr_done(0x8000_0000));
     // Three entries: START, hardware auto response, 12 bytes.
     assert_eq!(hcbctlr(3), 0xC000_000C);
-    // DEVICE_TO_HOST << 29 | TRIG_DMA | ADMA_MODE.
-    assert_eq!(hdbctlr_read(), 0xA800_0000);
+    // DEVICE_TO_HOST << 29 | TRIG_DMA | ADMA_MODE; HOST_TO_DEVICE is 0.
+    assert_eq!(hdbctlr(true), 0xA800_0000);
+    assert_eq!(hdbctlr(false), 0x8800_0000);
 }
 
 #[test]
@@ -60,14 +61,4 @@ fn the_buffer_keeps_order_and_refuses_the_257th_entry() {
     buf.write(0xFC00, 1, 0);
     assert!(buf.overflowed());
     assert_eq!(buf.words().len(), MAX_CMDS);
-}
-
-#[test]
-fn bipr_is_read_as_the_isr_reads_it() {
-    assert_eq!(classify(0), Outcome::Pending);
-    assert_eq!(classify(1 << 16), Outcome::Pending);
-    assert_eq!(classify(1 << 29), Outcome::Ok);
-    assert_eq!(classify((1 << 29) | (1 << 28)), Outcome::Fail);
-    assert_eq!(classify((1 << 29) | (1 << 24)), Outcome::Fail);
-    assert_eq!(classify(u32::MAX), Outcome::Gone);
 }

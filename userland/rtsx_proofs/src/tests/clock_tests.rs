@@ -17,7 +17,7 @@
 //! The SSC settings rtsx_pci_switch_clock computes, worked by hand from its
 //! code for the two clocks the driver uses, and the clock budget.
 
-use crate::budget::Budget;
+use crate::clock::Budget;
 use crate::regs::clk::{SSC_DEPTH_4M, SSC_DEPTH_500K};
 use crate::regs::sd::{SD_CLK_DIVIDE_0, SD_CLK_DIVIDE_128};
 use crate::wire::clock_plan::{plan, ClockPlan};
