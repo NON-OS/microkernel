@@ -56,6 +56,7 @@ mod pps_tests;
 mod route_tests;
 mod scanout_refusal_tests;
 mod scanout_tests;
+mod sizes;
 mod takeover_edge_tests;
 mod takeover_tests;
 mod timing_pick_tests;
