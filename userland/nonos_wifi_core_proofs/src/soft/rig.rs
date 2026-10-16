@@ -48,6 +48,8 @@ pub struct SimAir {
     pub rssi: [i8; 2],
     /// The address the station sends from now, and whether to refuse a new one.
     pub addr: ([u8; 6], bool),
+    /// The address the APs still send to, when a reset they never saw changed it.
+    pub chat_to: Option<[u8; 6]>,
 }
 
 /// A ready station in range of `ap`.
