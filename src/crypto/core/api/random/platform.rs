@@ -16,6 +16,10 @@
 
 use core::sync::atomic::AtomicU64;
 
+pub(super) use super::platform_clock::{
+    get_stack_pointer, read_cycle_counter, read_pit_counter, read_rtc_timestamp,
+};
+
 pub(super) static KEYGEN_COUNTER: AtomicU64 = AtomicU64::new(0xB5A1_9E37_C4D2_8F6B);
 
 /* DEV NOTES eK@nonos.systems
@@ -61,47 +65,4 @@ fn try_virtio_rng64() -> Option<u64> {
     let mut buf = [0u8; 8];
     crate::drivers::virtio_rng::fill_random(&mut buf).ok()?;
     Some(u64::from_le_bytes(buf))
-}
-
-#[inline]
-pub(super) fn read_cycle_counter() -> u64 {
-    crate::arch::read_time_counter()
-}
-
-#[cfg(target_arch = "x86_64")]
-#[inline]
-pub(super) fn get_stack_pointer() -> u64 {
-    let rsp: u64;
-    unsafe {
-        core::arch::asm!("mov {}, rsp", out(reg) rsp, options(nomem, nostack));
-    }
-    rsp
-}
-#[cfg(not(target_arch = "x86_64"))]
-#[inline]
-pub(super) fn get_stack_pointer() -> u64 {
-    0
-}
-
-#[cfg(target_arch = "x86_64")]
-pub(super) fn read_pit_counter() -> u16 {
-    const PIT_CHANNEL0: u16 = 0x40;
-    const PIT_COMMAND: u16 = 0x43;
-    const LATCH_CHANNEL0: u8 = 0x00;
-    unsafe {
-        core::arch::asm!("out dx, al", in("dx") PIT_COMMAND, in("al") LATCH_CHANNEL0, options(nostack, preserves_flags, nomem));
-        let low: u8;
-        core::arch::asm!("in al, dx", out("al") low, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
-        let high: u8;
-        core::arch::asm!("in al, dx", out("al") high, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
-        ((high as u16) << 8) | (low as u16)
-    }
-}
-#[cfg(not(target_arch = "x86_64"))]
-pub(super) fn read_pit_counter() -> u16 {
-    0
-}
-
-pub(super) fn read_rtc_timestamp() -> u64 {
-    crate::arch::wall_clock::unix_timestamp().unwrap_or(0)
 }

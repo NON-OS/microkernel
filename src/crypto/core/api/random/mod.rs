@@ -17,6 +17,7 @@
 mod api;
 mod keygen;
 mod platform;
+mod platform_clock;
 
 pub use api::{
     fill_random, generate_secure_key_checked, secure_random_u32, secure_random_u64,
