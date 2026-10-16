@@ -16,9 +16,9 @@
 
 use alloc::vec::Vec;
 
-use nonos_nox_meter::caller::Role;
+use nonos_nox_meter::caller::op_role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
-use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_SET_BUDGET, OP_TOPUP};
+use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_TOPUP};
 use nonos_payment_proto::{OP_LISTING_CAP, OP_ORDER_PLAINTEXT, OP_ORDER_REFUND, OP_ORDER_STATUS};
 use nonos_payment_proto::{OP_ORDER_DELIVERED, OP_ORDER_NEW, OP_ORDER_OFFER, OP_PURCHASE};
 
@@ -28,25 +28,11 @@ use crate::handlers;
 use crate::jobs::Work;
 use crate::meter::Meter;
 
-/// Each op with the role its caller must play (plan/21). The caller is
-/// checked before the body is read. Op 7 (NXL1) is not in v1, and the
-/// ORDER_* ops arrive with escrow (B5); until then, EINVAL.
+/// Each op with the role its caller must play (`caller::op_role`, plan/21),
+/// checked before the body is read; an op with no role is EINVAL.
 pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
-    let role = match req.op {
-        OP_HEALTHCHECK | OP_LIST_TOKENS => Role::Anyone,
-        // JOB answers only the pid that started the job (Jobs::take).
-        OP_PAY | OP_ORDER_STATUS | OP_JOB => Role::Payer,
-        OP_DRAIN => Role::Settle,
-        OP_ACCOUNT | OP_SET_BUDGET | OP_OPEN | OP_TOPUP | OP_CLOSE | OP_CLAIM => Role::Wallet,
-        OP_ORDER_NEW | OP_ORDER_REFUND | OP_ORDER_OFFER | OP_LISTING_CAP => Role::Wallet,
-        OP_ORDER_DELIVERED => Role::Deliverer,
-        OP_ORDER_PLAINTEXT => Role::Install,
-        // 19/0 the store's POST, 19/1 the wallet's TAKE (plan/27).
-        OP_PURCHASE => match handlers::purchase_role(req.body) {
-            Some(r) => r,
-            None => return req.answer(EINVAL, &[]),
-        },
-        _ => return req.answer(EINVAL, &[]),
+    let Some(role) = op_role(req.op, req.body) else {
+        return req.answer(EINVAL, &[]);
     };
     if !admits(role, req.sender) {
         return req.answer(EPERM, &[]);
