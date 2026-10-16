@@ -19,7 +19,8 @@
 //! already inside the table, and answers None if the node is too short.
 
 use super::super::le::{u32_at, u64_at, u8_at};
-use super::node::{Kind, ITS_GROUP, NAMED_COMPONENT, ROOT_COMPLEX, SMMU_V3};
+use super::node::{Kind, ITS_GROUP, NAMED_COMPONENT, RMR, ROOT_COMPLEX, SMMU_V1_V2, SMMU_V3};
+use super::node_smmu::{rmr, smmu_v2};
 use alloc::vec::Vec;
 
 fn its_group(n: &[u8]) -> Option<Kind> {
@@ -63,7 +64,9 @@ pub fn kind(n: &[u8], ty: u8, revision: u8) -> Option<Kind> {
         ITS_GROUP => its_group(n),
         NAMED_COMPONENT => named(n),
         ROOT_COMPLEX => root_complex(n, revision),
+        SMMU_V1_V2 => smmu_v2(n),
         SMMU_V3 => smmu_v3(n),
+        RMR => rmr(n),
         other => Some(Kind::Other(other)),
     }
 }

@@ -24,6 +24,8 @@ mod hostile_tests;
 mod iort_bad_tests;
 mod iort_build;
 mod iort_loop_tests;
+mod iort_smmu_build;
+mod iort_smmu_tests;
 mod iort_tests;
 mod madt_build;
 mod madt_tests;
