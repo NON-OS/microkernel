@@ -12,6 +12,8 @@ pub mod ctaphid;
 pub mod keyside;
 
 #[cfg(test)]
+mod hostile_tests;
+#[cfg(test)]
 mod job_tests;
 #[cfg(test)]
 mod key_tests;
