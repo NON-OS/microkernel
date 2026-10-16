@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claim the wifi device, enable bus mastering and map its register window
+//! Claim the wifi device, enable its memory space and map its register window
 //! through the broker. The claim epoch and device id are carried out so the
 //! later firmware download can map DMA memory against the same claim.
 
-use nonos_libc::{
-    mk_device_claim, mk_device_release, mk_mmio_map, mk_pci_config_write, MmioMapOut,
-    MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
-};
+use nonos_libc::{mk_device_claim, mk_device_release, mk_mmio_map, MmioMapOut};
 
 use core::sync::atomic::Ordering;
 
@@ -39,15 +36,13 @@ pub fn run(dev: Found) -> Result<Mapped, &'static str> {
     if epoch <= 0 {
         return Err("rtl8821ce: claim failed");
     }
-    // Enable memory space (so the MMIO BAR decodes) and bus mastering (so the
-    // beacon queue can DMA staged firmware out of host memory). These are the
-    // only two command bits the broker permits a driver to flip; the I/O-space
-    // bit is neither needed (this driver uses the memory BAR, not the port BAR)
-    // nor writable through that path, so it is deliberately left out.
-    let command = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
-    if mk_pci_config_write(dev.device_id, epoch as u64, MK_PCI_CFG_COMMAND, command) < 0 {
+    // Memory Space alone, so the MMIO BAR decodes. Bus Master waits until the
+    // power cycle shows the MAC was off (`pwr::power_on_then_master`): a card
+    // whose last driver died without its Drop may still have its DMA engines
+    // armed at memory the kernel freed.
+    if !super::master::command(dev.device_id, epoch as u64, false) {
         let _ = mk_device_release(dev.device_id);
-        return Err("rtl8821ce: bus master enable failed");
+        return Err("rtl8821ce: memory space enable failed");
     }
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
     let len = core::cmp::max(dev.bar_size, 0x1000);
