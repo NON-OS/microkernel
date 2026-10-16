@@ -22,10 +22,16 @@ use crate::roam::two_aps::{run_until, sent, two_aps};
 use crate::soft::wire::control;
 use nonos_wifi_core::softmac::control::roam_code::CODE_AP_UNPROVEN;
 
-/// The status reply's last word: the last failed roam's code.
+/// The status reply's word at 53: the last failed roam's code.
 pub fn last_roam(st: &mut crate::soft::rig::Station) -> i32 {
     let s = control(st, 4, &[]);
-    i32::from_le_bytes(s[s.len() - 4..].try_into().unwrap())
+    i32::from_le_bytes(s[53..57].try_into().unwrap())
+}
+
+/// The status reply's word at 57: the beacons beacon protection refused.
+pub fn beacons_refused(st: &mut crate::soft::rig::Station) -> u32 {
+    let s = control(st, 4, &[]);
+    u32::from_le_bytes(s[57..61].try_into().unwrap())
 }
 
 #[test]

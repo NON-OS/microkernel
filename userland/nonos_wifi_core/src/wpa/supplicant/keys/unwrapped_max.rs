@@ -30,10 +30,15 @@ pub(super) const IGTK_LEN: usize = 16;
 pub(super) const GTK_MAX: usize = 32;
 
 /// The group keys one message delivered.
+/// An integrity group key: the key, its index and the packet number the AP
+/// announced with it.
+pub(in crate::wpa::supplicant) type Integrity = ([u8; IGTK_LEN], u16, [u8; 6]);
+
 pub(in crate::wpa::supplicant) struct GroupKeys {
     pub(in crate::wpa::supplicant) gtk: [u8; GTK_MAX],
     pub(in crate::wpa::supplicant) gtk_id: u8,
-    pub(in crate::wpa::supplicant) igtk: Option<([u8; IGTK_LEN], u16, [u8; 6])>,
+    pub(in crate::wpa::supplicant) igtk: Option<Integrity>,
+    pub(in crate::wpa::supplicant) bigtk: Option<Integrity>,
     /// The Key RSC of the message that delivered them.
     pub(in crate::wpa::supplicant) rsc: u64,
 }
@@ -49,24 +54,5 @@ impl Supplicant {
             return None;
         }
         aes_unwrap(&self.kek(), wrapped, plain)
-    }
-
-    /// Store the group keys a message delivered. Returns whether the GTK is a
-    /// different key from the one already held (a repeat is not reinstalled).
-    pub(in crate::wpa::supplicant) fn store_group_keys(&mut self, k: &GroupKeys) -> bool {
-        let len = self.group.tk_len();
-        let changed =
-            self.gtk_len != len || self.gtk[..len] != k.gtk[..len] || self.gtk_id != k.gtk_id;
-        self.gtk[..len].copy_from_slice(&k.gtk[..len]);
-        self.gtk_len = len;
-        self.gtk_id = k.gtk_id;
-        self.gtk_rsc = k.rsc;
-        if let Some((key, id, ipn)) = k.igtk {
-            self.igtk = key;
-            self.igtk_id = id;
-            self.igtk_ipn = ipn;
-            self.igtk_set = true;
-        }
-        changed
     }
 }
