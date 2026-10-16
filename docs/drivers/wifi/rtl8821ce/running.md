@@ -6,11 +6,15 @@ Every boot draws a new locally administered unicast address from kernel randomne
 
 The serve loop scans in the background while no network is joined, so a scan request is answered at once from the list (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:124-133`, `scanner`).
 
-- Channels 1 to 13 on 2.4 GHz only (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:58-59`, `SCAN_CHANNELS`).
+- Channels 1 to 13 on 2.4 GHz only (`userland/capsule_driver_rtl8821ce/src/serve/tuning.rs`, `SCAN_CHANNELS`). The world-safe domain both drivers keep to lets the radio probe on 1 to 11, while on 12 and 13 it listens and sends only to a network whose beacon it heard there (`userland/nonos_wifi_core/src/regdom/world.rs`, `world`).
 - 300 ms on each channel (`userland/capsule_driver_rtl8821ce/src/serve/scanner.rs:33-38`, `DWELL_MS`).
 - The scan is passive: the driver listens for beacons and sends nothing.
 
-Before a join the driver hunts the network's beacon: two sweeps at 250 ms a channel (`userland/capsule_driver_rtl8821ce/src/serve/connect/hunt.rs:38-40`, `BEACON_HUNT_DWELL_MS`, `HUNT_SWEEPS`). It sends a probe request only for a network saved as hidden, and that probe names only that network (`userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs:29-36`, `hunt_probe`).
+Before a join the driver hunts the network's beacon: two sweeps at 250 ms a channel (`userland/capsule_driver_rtl8821ce/src/serve/connect/hunt/dwell.rs`, `BEACON_HUNT_DWELL_MS`, `HUNT_SWEEPS`). It sends a probe request only for a network saved as hidden, only on channels 1 to 11, and that probe names only that network (`userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs`, `hunt_probe`). A hidden network on 12 or 13 is therefore not probed for.
+
+The join channel is the one the beacon names when the domain allows it and it is within four channels of where the beacon was heard, else the channel it was heard on; a beacon heard where the domain allows nothing is passed over (`userland/nonos_wifi_core/src/regdom/channel.rs`, `join_channel`, called from `userland/capsule_driver_rtl8821ce/src/serve/connect/hunt/find.rs`, `find_beacon`).
+
+Every rate is sent at one power index, 0x24 in 0.5 dB steps (about 18 dBm): the domain's 20 dBm EIRP less an assumed 2 dBi antenna gain, set once at bring-up (`userland/capsule_driver_rtl8821ce/src/phy/txpower.rs`, `band_index`). The efuse power-by-rate calibration is not ported.
 
 ## Joining
 
