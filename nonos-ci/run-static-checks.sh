@@ -1796,8 +1796,9 @@ unset nvme_dead_code
 
 # irq::bind is best-effort and cannot fail; the BrokerHandles Drop unmaps MMIO.
 for phase_file in \
-    userland/capsule_driver_nvme/src/setup/sequence/bring_up.rs:mk_device_release \
-    userland/capsule_driver_nvme/src/setup/mmio.rs:mk_device_release \
+    'userland/capsule_driver_nvme/src/setup/sequence/bring_up.rs:release(dev.device_id, claim_epoch)' \
+    'userland/capsule_driver_nvme/src/setup/mmio.rs:release(device_id, claim_epoch)' \
+    'userland/capsule_driver_nvme/src/handles/release.rs:mk_device_release(device_id)' \
     'userland/capsule_driver_nvme/src/handles/broker_handles_drop.rs:impl Drop for BrokerHandles' \
     'userland/capsule_driver_nvme/src/handles/broker_handles_drop.rs:mk_mmio_unmap(' ; do
     file="${phase_file%%:*}"

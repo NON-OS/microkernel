@@ -21,17 +21,25 @@ use crate::constants::{
 use crate::regs::Regs;
 
 impl ControllerInfo {
+    /// The register block's first 0x40 bytes, from a BAR0 mapping the broker
+    /// gave. Read before anything says the block is NVMe's.
     pub fn read(regs: Regs) -> Self {
-        Self {
-            cap: unsafe { regs.r64(REG_CAP) },
-            version: unsafe { regs.r32(REG_VS) },
-            cc: unsafe { regs.r32(REG_CC) },
-            csts: unsafe { regs.r32(REG_CSTS) },
-            aqa: unsafe { regs.r32(REG_AQA) },
-            intms: unsafe { regs.r32(REG_INTMS) },
-            intmc: unsafe { regs.r32(REG_INTMC) },
-            cmbloc: unsafe { regs.r32(REG_CMBLOC) },
-            cmbsz: unsafe { regs.r32(REG_CMBSZ) },
+        // SAFETY: every register read lies in the first 0x40 bytes of BAR0.
+        // The broker refuses a window whose first page holds an MSI-X table,
+        // so that whole page is mapped: BAR0 is at least 16 KiB
+        // (discover::pci_match) and, like every memory BAR, size aligned.
+        unsafe {
+            Self {
+                cap: regs.r64(REG_CAP),
+                version: regs.r32(REG_VS),
+                cc: regs.r32(REG_CC),
+                csts: regs.r32(REG_CSTS),
+                aqa: regs.r32(REG_AQA),
+                intms: regs.r32(REG_INTMS),
+                intmc: regs.r32(REG_INTMC),
+                cmbloc: regs.r32(REG_CMBLOC),
+                cmbsz: regs.r32(REG_CMBSZ),
+            }
         }
     }
 }

@@ -16,40 +16,29 @@
 
 use alloc::vec::Vec;
 
-use crate::admin::reset_to_disabled;
-use crate::controller::ControllerInfo;
 use crate::dma::DmaRegion;
 use crate::log::{emit, Line};
-use crate::regs::Regs;
 
 /// The memory a controller was given, or may have taken. Only a disable
-/// (CC.EN to 0) takes a host memory buffer back from the controller, so the
-/// memory is unmapped only once one has completed.
+/// (CC.EN to 0) takes it back from the controller, so it goes back to the
+/// broker with the device's release, after the disable and with bus
+/// mastering off (setup::Device); only memory the controller never took is
+/// unmapped before (`unmap`).
 pub struct Hmb {
     pub(super) list: DmaRegion,
     pub(super) pieces: Vec<DmaRegion>,
+    /// SET FEATURES dwords 11 to 15 that give it to the controller: at
+    /// bring-up, and again after a reset has taken it back.
+    pub enable: [u32; 5],
 }
 
 impl Hmb {
-    /// Disable the controller, then let the memory go.
-    pub fn release(self, regs: Regs, info: ControllerInfo) {
-        let disabled = reset_to_disabled(regs, info).is_ok();
-        self.after_disable(disabled);
-    }
-
-    /// Unmap the memory if the controller was disabled. If the disable
-    /// failed the controller may still write to it, so it is not unmapped
-    /// here: the grants stay until the device's release, which turns bus
-    /// mastering off before the broker frees them.
-    pub fn after_disable(self, disabled: bool) {
-        if disabled {
-            drop(self.pieces);
-            drop(self.list);
-            return;
+    /// Give back memory the controller never took: not offered, or refused.
+    pub fn unmap(self) {
+        for piece in self.pieces {
+            piece.unmap();
         }
-        let kept = self.pieces.len() as u64;
-        say(b"disable failed with host memory buffer given; kept mapped, pieces ", kept);
-        core::mem::forget(self);
+        self.list.unmap();
     }
 }
 

@@ -123,6 +123,13 @@ version = "0.3.0"
 [[package]]
 name = "nvme_proofs"
 version = "0.3.0"
+dependencies = [
+ "nvme_proofs_libc_shim",
+]
+
+[[package]]
+name = "nvme_proofs_libc_shim"
+version = "0.1.0"
 
 [[package]]
 name = "r-efi"
