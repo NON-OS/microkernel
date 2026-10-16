@@ -21,7 +21,7 @@ use super::address::bound;
 
 impl<'a> Fdt<'a> {
     /// The initrd the loader placed, as `(start, end)` with `end` exclusive.
-    /// Each bound is one or two cells by its own length, as Linux reads them.
+    /// A loader may write a bound as one cell or two; its length says which.
     pub fn initrd(&self) -> Result<Option<(u64, u64)>, FdtError> {
         let Some(chosen) = self.find_path(b"/chosen")? else {
             return Ok(None);
