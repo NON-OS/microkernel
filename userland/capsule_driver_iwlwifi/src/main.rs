@@ -31,6 +31,7 @@ mod firmware;
 // firmware. Reached through OP_HCMD_ISSUE.
 mod hcmd;
 mod init;
+mod mmio;
 // Which PCI function is a supported adapter, decided without the INTx line.
 mod pci_match;
 mod protocol;
