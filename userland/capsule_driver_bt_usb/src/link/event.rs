@@ -16,16 +16,18 @@
 
 //! Events from the controller while a link is up. Disconnection Complete
 //! for the link ends it (Vol 4, Part E, 7.7.5), and a link this host never
-//! asked for is dealt with in `stray`. Hardware Error never comes here:
+//! asked for is dealt with in `stray`, and its encryption lost in `sealed`.
+//! Hardware Error never comes here:
 //! the host stops on it, since the controller must be brought up again
 //! (7.7.16). Everything else needs nothing from this host.
 
 use super::end::End;
 use super::env::Env;
+use super::sealed::KEY_REFRESH_COMPLETE;
 use super::session::Session;
 use nonos_bt_hci::{HciError, Host, Transport};
 use nonos_bt_wire::hci::event::parse_event;
-use nonos_bt_wire::hci::event_code::{DISCONNECTION_COMPLETE, LE_META};
+use nonos_bt_wire::hci::event_code::{DISCONNECTION_COMPLETE, ENCRYPTION_CHANGE, LE_META};
 use nonos_bt_wire::hci::DisconnectionComplete;
 
 impl Session {
@@ -43,6 +45,7 @@ impl Session {
                 }
             }
             LE_META => self.on_le(host, e.params)?,
+            ENCRYPTION_CHANGE | KEY_REFRESH_COMPLETE => self.on_key_event(e.code, e.params),
             _ => {}
         }
         Ok(())

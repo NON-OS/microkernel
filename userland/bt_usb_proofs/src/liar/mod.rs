@@ -20,9 +20,12 @@
 //! touches within a bound, every key still down goes up, and nothing hangs.
 
 mod buffer_tests;
+mod forget_tests;
 mod handle_tests;
 mod peer;
 mod reset_tests;
+mod restart_tests;
+mod sealed_tests;
 mod silence_tests;
 
 use peer::{opened, A_DOWN, KEYS};
