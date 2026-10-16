@@ -35,9 +35,11 @@ pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> 
 }
 
 /// Stop a device the caller holds from mastering the bus, before its grants
-/// are torn down. False, and nothing written, when `pid` does not hold it.
-pub fn quiesce_held(pid: u32, device_id: u64) -> bool {
-    let held = CLAIMS.lock().iter().any(|c| c.device_id == device_id && c.pid == pid);
+/// are torn down. False, and nothing written, when `pid` does not hold it at
+/// `epoch`: a newer claim's device is not this release's to stop (L71).
+pub fn quiesce_held(pid: u32, device_id: u64, epoch: u64) -> bool {
+    let key = (pid, device_id, epoch);
+    let held = CLAIMS.lock().iter().any(|c| (c.pid, c.device_id, c.epoch) == key);
     if held {
         super::quiesce::stop_bus_master_quietly(device_id);
     }
