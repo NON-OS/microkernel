@@ -53,6 +53,7 @@ impl Mlme {
             pmkid: None,
             cached: None,
             cache_used: false,
+            reassoc_from: None,
             supplicant: None,
             failure: None,
         }

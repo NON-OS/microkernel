@@ -57,6 +57,7 @@ impl Session {
             station,
             queue,
             heard_ms: now_ms,
+            kit: None,
         }
     }
 }
