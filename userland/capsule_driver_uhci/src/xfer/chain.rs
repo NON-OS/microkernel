@@ -55,11 +55,13 @@ pub fn asked<M: Mem>(m: &M, td: usize) -> usize {
     (((m.rd(td + 8) >> 21) + 1) & 0x7FF) as usize
 }
 
-/// The bytes the TDs `from..=upto` moved.
+/// The bytes the TDs `from..=upto` moved, each held to what it asked
+/// for: ActLen is the controller's word, and one past MaxLen would carry
+/// the count beyond the buffer the TDs were given.
 pub fn moved<M: Mem>(m: &M, base: usize, from: usize, upto: usize) -> usize {
     (from..=upto)
         .map(|i| match state(m.rd(base + i * TD_LEN + 4)) {
-            TdState::Done(n) => n,
+            TdState::Done(n) => n.min(asked(m, base + i * TD_LEN)),
             _ => 0,
         })
         .sum()

@@ -30,6 +30,8 @@ mod control_tests;
 #[cfg(test)]
 mod ep0_fault_tests;
 #[cfg(test)]
+mod hostile_td_tests;
+#[cfg(test)]
 mod hub_fixture;
 #[cfg(test)]
 #[path = "../../uhci_proofs/src/hub_lane.rs"]
