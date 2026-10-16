@@ -1,6 +1,6 @@
 # USB networking
 
-The tree held five USB network driver [capsules](../../overview/glossary.md#capsule) (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179 and Realtek RTL8153, the last now quarantined) on one shared core, `nonos_usbnet`; none of them runs in 0.9.2. This page says what each binds, what kept them out of 0.9.2, and where they stand now.
+The tree held five USB network driver [capsules](../../overview/glossary.md#capsule) (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179 and Realtek RTL8153, the last two now quarantined) on one shared core, `nonos_usbnet`; none of them runs in 0.9.2. This page says what each binds, what kept them out of 0.9.2, and where they stand now.
 
 ## State
 
@@ -31,17 +31,17 @@ Each class capsule holds only its binding and its framing. The shared core `nono
 | `capsule_driver_cdc_ecm` | `driver.cdc_ecm0`, 4250 | a communications interface of subclass 0x06 with a Union and an Ethernet Networking descriptor |
 | `capsule_driver_cdc_ncm` | `driver.cdc_ncm0`, 4252 | a communications interface of subclass 0x0D, protocol 0, with the NCM descriptor |
 | `capsule_driver_rndis` | `driver.rndis0`, 4254 | three RNDIS control classes, listed below |
-| `capsule_driver_ax88179` | `driver.ax88179_0`, 4256 | 13 USB vendor:product pairs |
+| `capsule_driver_ax88179` | `driver.ax88179_0`, 4256 | quarantined on drivers/b: see below |
 | `capsule_driver_rtl8153` | `driver.rtl8153_0`, 4258 | quarantined on drivers/b: see below |
 
 - CDC-ECM: `find_ecm` takes the first communications interface of subclass 0x06 that has a Union descriptor, an Ethernet Networking descriptor and a data interface with a bulk pair (`userland/capsule_driver_cdc_ecm/src/ecm/function.rs:26-57`, `find_ecm`). With the RTL8153 capsule quarantined, it binds 0bda:8153 and 17ef:721e in their ECM configuration like any other device. One Ethernet frame goes in each bulk transfer, with one padding byte when its length is a multiple of 64 or of the packet size (`userland/capsule_driver_cdc_ecm/src/ecm/frame.rs:22-36`, `padded_len`).
 - CDC-NCM: `find_ncm` needs subclass 0x0D, protocol 0, and both the Ethernet Networking and the NCM functional descriptors (`userland/capsule_driver_cdc_ncm/src/ncm/function.rs:26-64`, `find_ncm`).
 - RNDIS: the control interface must be CDC ACM with the vendor protocol (0x02, 0x02, 0xFF), the wireless controller class phones use for tethering (0xE0, 0x01, 0x03), or the miscellaneous RNDIS class (0xEF, 0x04, 0x01) (`userland/capsule_driver_rndis/src/rndis/function.rs:27-31`, `CONTROL_CLASSES`). A communications function that declares modem capabilities is a modem and is skipped (`userland/capsule_driver_rndis/src/rndis/function.rs:57-64`, `acm_capable`).
-- ASIX AX88179: the ids Linux's ax88179_178a driver binds, with 0b95:1790 for the AX88179 and 0b95:178a for the AX88178A; the other 11 pairs are adapters built on these chips (`userland/capsule_driver_ax88179/src/ax/products.rs:17-35`, `PRODUCTS`).
+- ASIX AX88179: quarantined on drivers/b (branch `quarantine/ax88179`). Its register map, values and bring-up were taken from another driver, and no public programming reference exists to rewrite it from (Decision 10).
 
 ## Addresses and capabilities
 
-Unlike the PCI drivers, these capsules use the adapter's own station address. They hold no Crypto capability to draw one. The AX88179 capsule reads AX_NODE_ID and stops the bind when it holds no usable address (`userland/capsule_driver_ax88179/src/ax/station.rs:27-37`, `NO_STATION`).
+Unlike the PCI drivers, these capsules use the adapter's own station address. They hold no Crypto capability to draw one.
 
 All five ask for IPC and Memory, the mask 0x18, with Debug (0x100) optional, granted only by a build that compiles `capsule-serial-debug` (`userland/capsule_driver_cdc_ecm/Capsule.mk`, `CAPSULE_REQUIRED_CAPS`, `CAPSULE_OPTIONAL_CAPS`). Their loop drops the messages it sent itself by its own pid, which it reads back with `MkServiceLookup` under its service name rather than `MkGetPid`, so no CoreExec is needed (`userland/nonos_usbnet/src/run/me.rs`, `own_pid`). Earlier they asked for 0x200018, which grants InputSource and no Debug.
 
@@ -55,7 +55,7 @@ Each capsule has a [proof crate](../../overview/glossary.md#proof-crate) that ru
 | `proofs-cdc_ecm_proofs` | passed, 7 tests |
 | `proofs-cdc_ncm_proofs` | passed, 33 tests |
 | `proofs-rndis_proofs` | passed, 22 tests |
-| `proofs-ax88179_proofs` | passed, 25 tests |
+| `proofs-ax88179_proofs` | passed, 25 tests (0.9.2; quarantined since) |
 | `proofs-rtl8153_proofs` | passed, 27 tests (0.9.2; quarantined since) |
 
 ```sh
