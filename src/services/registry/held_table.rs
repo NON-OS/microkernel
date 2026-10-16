@@ -71,5 +71,4 @@ const USB_CLIENTS: &[&str] = &[
     "driver.cdc_ncm0",
     "driver.rndis0",
     "driver.ax88179_0",
-    "driver.rtl8153_0",
 ];

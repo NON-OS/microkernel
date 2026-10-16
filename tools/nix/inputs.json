@@ -65,9 +65,6 @@
    "nonos-data/trust/capsules/driver_rndis.manifest.bin",
    "nonos-data/trust/capsules/driver_rndis.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_rndis.zk_trailer.bin",
-   "nonos-data/trust/capsules/driver_rtl8153.manifest.bin",
-   "nonos-data/trust/capsules/driver_rtl8153.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/driver_rtl8153.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
@@ -1652,18 +1649,6 @@
    "userland/capsule_driver_rtl8139",
    "userland/libc",
    "userland/nonos_mac"
-  ],
-  "md": [],
-  "signed": []
- },
- "userland/capsule_driver_rtl8153": {
-  "exclude": [],
-  "include": [
-   ".cargo",
-   "src/services/registry/usb_hosts.rs",
-   "userland/capsule_driver_rtl8153",
-   "userland/libc",
-   "userland/nonos_usbnet"
   ],
   "md": [],
   "signed": []
@@ -4163,9 +4148,6 @@
    "nonos-data/trust/capsules/driver_rndis.manifest.bin",
    "nonos-data/trust/capsules/driver_rndis.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_rndis.zk_trailer.bin",
-   "nonos-data/trust/capsules/driver_rtl8153.manifest.bin",
-   "nonos-data/trust/capsules/driver_rtl8153.nonos_id_cert.bin",
-   "nonos-data/trust/capsules/driver_rtl8153.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_sdhci.manifest.bin",
    "nonos-data/trust/capsules/driver_sdhci.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_sdhci.zk_trailer.bin",
@@ -4784,33 +4766,6 @@
    "userland/capsule_driver_rtl8139/src/setup/driver.rs",
    "userland/nonos_mac",
    "userland/rtl8139_proofs"
-  ],
-  "md": [],
-  "signed": []
- },
- "userland/rtl8153_proofs": {
-  "exclude": [],
-  "include": [
-   ".cargo",
-   "userland/capsule_driver_rtl8153/src/r8153",
-   "userland/capsule_net_core/src/protocol/ops.rs",
-   "userland/nonos_usbnet/src/bind.rs",
-   "userland/nonos_usbnet/src/bus.rs",
-   "userland/nonos_usbnet/src/desc",
-   "userland/nonos_usbnet/src/found.rs",
-   "userland/nonos_usbnet/src/halt.rs",
-   "userland/nonos_usbnet/src/hosts.rs",
-   "userland/nonos_usbnet/src/hosts_first.rs",
-   "userland/nonos_usbnet/src/nic.rs",
-   "userland/nonos_usbnet/src/nnet",
-   "userland/nonos_usbnet/src/scan/book.rs",
-   "userland/nonos_usbnet/src/scan/port.rs",
-   "userland/nonos_usbnet/src/scan/search.rs",
-   "userland/nonos_usbnet/src/setup.rs",
-   "userland/nonos_usbnet/src/xhci/wire.rs",
-   "userland/rtl8153_proofs",
-   "userland/usbnet_proofs",
-   "userland/xhci_proofs/libc_shim"
   ],
   "md": [],
   "signed": []
