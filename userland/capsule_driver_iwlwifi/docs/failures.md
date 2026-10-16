@@ -57,8 +57,5 @@ Implemented and proven on the host against a modeled device
 - The Wi-Fi control family status, scan, connect, disconnect and link
   replies, and net_core's link protocol.
 
-Framed but not run on the air:
-
-- The legacy FH load path for 7265, 8265, 9260 and AX200 (staging, section
-  upload, ALIVE wait) exists behind the NIWF ops but is not driven at startup,
-  and AX200 or older parts report NoAirPath.
+The 7265, 8265, 9260 and AX200 parts are found and refused by the gen3 radio
+before it maps any DMA; their firmware and the legacy load path are deleted.

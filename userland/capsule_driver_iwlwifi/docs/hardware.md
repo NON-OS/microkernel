@@ -14,12 +14,11 @@ detail, CSR_HW_REV, CSR_HW_RF_ID, counters) and the Settings Wi-Fi panel.
   bring-up failed and was given up`. The capsule holds no core while it waits.
 - Setup on an SO laptop: the MAC clock comes ready in setup's legacy APM poll
   (it runs before the gen3 path takes the NIC; if it times out there, setup
-  gives up and the gen3 path never runs). The broker log shows the 64-page
-  staging grant accepted.
+  gives up and the gen3 path never runs).
 - Identity: `[iwlwifi] pci 0x000051f0 hw_rev 0x00000370 rf_id 0x0010d000` (or
   your platform's values; MAC type 0x37 or 0x43, RF type 0x10D, 0x10C or
   0x10A), then `[iwlwifi] firmware iwlwifi-so-a0-gf-a0-86.ucode` (or hr-b0-84).
-- DMA: about ten further grants in the broker log, none refused (else
+- DMA: about ten grants in the broker log, none refused (else
   `[iwlwifi] no DMA region of N bytes` and stage NoDma).
 - ALIVE: `[iwlwifi] firmware alive: status 0x0000cafe umac M.N sku 0x...`.
   If instead `radio not up: the firmware never raised ALIVE (step 7, detail

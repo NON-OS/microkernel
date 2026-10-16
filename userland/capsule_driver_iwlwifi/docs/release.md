@@ -14,8 +14,7 @@ parsers (proven in `serve_tests`).
 net_core link protocol requests use its 20-byte envelope (`NNET`); a frame is
 at most 1514 bytes.
 
-NIWF requests use the 20-byte driver envelope; replies begin with a 4-byte
-signed status word. All multi-byte integers are little-endian.
+Any other request gets no reply. All multi-byte integers are little-endian.
 
 ## State ownership
 

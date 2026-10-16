@@ -15,18 +15,17 @@ Only `net.core` and the Wi-Fi panels (`app.settings` in any of its three
 windows, and `app.setup_wizard`) may send to `driver.iwlwifi0`: the kernel
 holds the endpoint to them (`src/services/registry/held.rs`), by name and by
 pid. Within that, the driver serves the link protocol (raw frames onto the
-air) and its own NIWF protocol only to the process that owns `net.core`, as
+air) only to the process that owns `net.core`, as
 the registry names it on each request; anyone else is refused (EPERM), so a
 panel cannot put frames on the air around the route the person chose. The
 panels keep the Wi-Fi control family: scan, join and status
-(`src/server/link_serve.rs`, `src/server/own.rs`, `nonos_wifi_core::netif::gate`).
+(`src/server/link_serve.rs`, `nonos_wifi_core::netif::gate`).
 
 Two limits of this grant shape the driver:
 
 - The broker maps at most 64 pages (256 KiB) per DMA grant for a network-class
-  device (`dma_page_limit_for_class`). The legacy staging grant is 64 pages,
-  and the gen3 path spreads its memory over several grants of at most that
-  size (control region, receive buffers, and the firmware sections planned
+  device (`dma_page_limit_for_class`). The gen3 path spreads its memory over
+  several grants of at most that size (control region, receive buffers, and the firmware sections planned
   first-fit by `gen3::plan`). The first join maps one more, the 160 KiB
   transmit region (`gen3::txq`: the management and data queues' rings, byte
   count tables and frame buffers), kept for the capsule's life once the
