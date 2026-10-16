@@ -25,13 +25,14 @@ pub mod damage_bound;
 pub mod focus;
 pub mod indicator;
 pub mod looks;
-pub mod scene;
 pub mod raise_rule;
+pub mod scene;
 pub mod scene_raise;
 pub mod scene_remove;
 pub mod scene_submit;
 pub mod trusted_rule;
 pub mod visible;
+pub mod visible_drop;
 
 pub use attach::AttachCache;
 pub use context::Context;
