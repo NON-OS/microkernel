@@ -17,6 +17,7 @@
  * PCB FP slot ownership lands. */
 
 #include "epd1.h"
+#include "percpu.h"
 
 .section .text.enter_user, "ax", %progbits
 
@@ -34,11 +35,14 @@ aarch64_enter_user:
     ldr     x9,  [x0, #16]
     msr     spsr_el1, x9
 
-    /* The process's IA key, which the switch put in this CPU's slot
-     * (security::pac); none where TPIDR_EL1 names no slot. */
+    /* The process's IA key, which the switch put in this CPU's per-CPU
+     * block (security::pac), before x10 and x11 are loaded; none where the
+     * block says keys are not switched (asm/percpu.h). */
     mrs     x9, tpidr_el1
     cbz     x9, 1f
-    ldp     x10, x11, [x9]
+    ldr     x10, [x9, #PERCPU_PAC_ON]
+    cbz     x10, 1f
+    ldp     x10, x11, [x9, #PERCPU_PAC_USER]
     msr     S3_0_C2_C1_0, x10           /* APIAKeyLo_EL1 */
     msr     S3_0_C2_C1_1, x11           /* APIAKeyHi_EL1 */
 1:

@@ -65,18 +65,28 @@
 
 #include "epd1.h"
 
-/* The IA key across the EL0 boundary (security::pac): EL0's is kept in the
- * frame and the kernel's put in, and EL0's put back before the eret. Only
- * where TPIDR_EL1 names a key slot, which is only where pointer
- * authentication is on: elsewhere the key registers may not exist. x9-x11
- * are saved in the frame already and reloaded from it after. */
-.macro PAC_FROM_EL0
+#include "percpu.h"
+
+/* Whether this CPU switches IA keys (security::pac): its per-CPU block,
+ * which TPIDR_EL1 names, says so. Falls through with x9 the block when it
+ * does, and branches to `skip` when it does not, before any key register
+ * is touched: a CPU without pointer authentication has none. */
+.macro PAC_ON skip
     mrs     x9, tpidr_el1
-    cbz     x9, 1f
+    cbz     x9, \skip
+    ldr     x10, [x9, #PERCPU_PAC_ON]
+    cbz     x10, \skip
+.endm
+
+/* The IA key across the EL0 boundary: EL0's is kept in the frame and the
+ * kernel's put in, and EL0's put back before the eret. x9-x11 are saved in
+ * the frame already and reloaded from it after. */
+.macro PAC_FROM_EL0
+    PAC_ON  1f
     mrs     x10, S3_0_C2_C1_0           /* APIAKeyLo_EL1 */
     mrs     x11, S3_0_C2_C1_1           /* APIAKeyHi_EL1 */
     stp     x10, x11, [sp, #FRAME_PAC_IA]
-    ldp     x10, x11, [x9, #16]         /* the slot's kernel key */
+    ldp     x10, x11, [x9, #PERCPU_PAC_KERNEL]
     msr     S3_0_C2_C1_0, x10
     msr     S3_0_C2_C1_1, x11
     isb
@@ -85,8 +95,7 @@
 
 /* No isb: the eret that follows synchronizes the write. */
 .macro PAC_TO_EL0
-    mrs     x9, tpidr_el1
-    cbz     x9, 1f
+    PAC_ON  1f
     ldp     x10, x11, [sp, #FRAME_PAC_IA]
     msr     S3_0_C2_C1_0, x10
     msr     S3_0_C2_C1_1, x11

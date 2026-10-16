@@ -46,11 +46,12 @@ pub(super) fn move_high(info: &BootInfo) -> ! {
 
 /// Where `aarch64_go_high` lands, at the high alias. The registers that hold
 /// addresses of their own move here too: device windows, the vectors, and
-/// this CPU's key slot.
+/// this CPU's per-CPU block, which holds its keys.
 #[no_mangle]
 extern "C" fn aarch64_kernel_high(info: *const ()) -> ! {
     mmu::devices_high();
     crate::arch::aarch64::exceptions::install_vbar_el1();
+    crate::arch::aarch64::cpu::percpu::install_here();
     crate::arch::aarch64::security::pac::bind_this_cpu();
     serial::println(b"[MMU] the kernel runs from TTBR1");
     // SAFETY: the caller's BootInfo, on the stack that moved with it.
