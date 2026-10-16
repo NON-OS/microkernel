@@ -19,7 +19,9 @@
 //! here is one of these, so none falls through to a rename or the Launchpad
 //! search and types a character there.
 
-use nonos_app_skeleton::{KEY_LID_CLOSED, KEY_LID_OPENED, KEY_POWER};
+use nonos_app_skeleton::{
+    KEY_BRIGHTNESS_DOWN, KEY_BRIGHTNESS_UP, KEY_LID_CLOSED, KEY_LID_OPENED, KEY_POWER,
+};
 
 use super::volume::{volume_key, VolumeKey};
 
@@ -32,6 +34,9 @@ pub enum SystemKey {
     Power,
     /// The lid closed (true) or opened, from the kernel (state/lid.rs).
     Lid(bool),
+    /// Brightness Up (true) or Down: the focused output's panel
+    /// (state/brightness.rs).
+    Brightness(bool),
 }
 
 /// The system key `code` names, or None for any other key.
@@ -39,6 +44,9 @@ pub fn system_key(code: u32) -> Option<SystemKey> {
     match code {
         KEY_POWER => Some(SystemKey::Power),
         KEY_LID_CLOSED | KEY_LID_OPENED => Some(SystemKey::Lid(code == KEY_LID_CLOSED)),
+        KEY_BRIGHTNESS_UP | KEY_BRIGHTNESS_DOWN => {
+            Some(SystemKey::Brightness(code == KEY_BRIGHTNESS_UP))
+        }
         _ => volume_key(code).map(SystemKey::Volume),
     }
 }
