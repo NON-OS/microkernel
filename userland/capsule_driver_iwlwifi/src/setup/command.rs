@@ -16,9 +16,10 @@
 
 //! The function's PCI command register. The kernel clears Bus Master when a
 //! driver claims a device, so the driver turns it on itself: Memory Space
-//! alone at the claim, for the register window, and Bus Master too only once
-//! the chip is woken and the DMA it may use is the driver's own grants. Every
-//! failed attempt and every teardown clears it again before a grant goes.
+//! alone at the claim, for the register window, and Bus Master too only right
+//! before the firmware boots, once the device's own bus master read back
+//! stopped and the DMA it may use is the driver's own grants. Every failed
+//! attempt and every teardown clears it again before a grant goes.
 
 use nonos_libc::{
     mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,

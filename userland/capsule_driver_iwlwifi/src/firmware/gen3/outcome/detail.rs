@@ -21,6 +21,7 @@ use super::super::layout::LayoutError;
 use super::super::select::Refusal;
 use super::super::up::UpError;
 use super::kinds::Failure;
+use super::master::MasterError;
 use super::subcodes::{start_code, wait_code};
 
 impl Failure {
@@ -33,6 +34,8 @@ impl Failure {
             | Failure::NoDma
             | Failure::Lost => 0,
             Failure::Start(e) => start_code(e),
+            Failure::Master(MasterError::NotStopped) => 1,
+            Failure::Master(MasterError::Refused) => 2,
             Failure::Refused(r) => match r {
                 Refusal::NotSoDevice(id) => 0x1_0000 | u32::from(id),
                 Refusal::MacNotBundled(mac) => 0x2_0000 | u32::from(mac),

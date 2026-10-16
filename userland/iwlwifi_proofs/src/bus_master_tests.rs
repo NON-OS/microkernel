@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! W4a: the driver sets its own Bus Master, as the kernel's K6 leaves it to.
-//! The claim turns on Memory Space alone; Bus Master comes on only once the
-//! chip woke on the attempt's grants; and a broker that refuses either write
-//! gives everything back, Bus Master off before any grant.
+//! The claim turns on Memory Space alone, and setup never turns Bus Master
+//! on: that waits for the device's own master to read back stopped, right
+//! before the firmware boots (gen3_master_tests).
 
 use nonos_libc::{given_back, refuse_config, EPOCH};
 
@@ -45,15 +45,10 @@ fn the_claim_turns_on_memory_space_alone() {
 }
 
 #[test]
-fn bus_master_refused_after_the_chip_woke_gives_everything_back() {
+fn setup_wakes_the_chip_and_never_turns_bus_master_on() {
     let mut window = vec![0u32; 0x100 / 4];
     window[CSR_GP_CNTRL / 4] = GP_CNTRL_MAC_CLOCK_READY;
-    refuse_config(true);
     let before = given_back().len();
-    let got = init_or_release(Regs::new(window.as_mut_ptr() as u64), &GRANTS);
-    refuse_config(false);
-    assert_eq!(got.err(), Some("iwlwifi: bus master enable failed"));
-    let all = [("pci_command", 6), ("pci_command", 2), ("dma_unmap", 8)];
-    assert_eq!(since(before)[..3], all, "on, refused; off before the DMA goes");
-    assert_eq!(since(before)[3..], [("irq_unbind", 7), ("mmio_unmap", 6), ("device_release", 5)]);
+    assert!(init_or_release(Regs::new(window.as_mut_ptr() as u64), &GRANTS).is_ok());
+    assert!(since(before).is_empty(), "no command write: Bus Master waits for the stop");
 }
