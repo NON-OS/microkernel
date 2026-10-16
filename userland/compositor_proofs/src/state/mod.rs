@@ -40,3 +40,5 @@ pub mod scene_submit;
 pub mod trusted_rule;
 #[path = "../../../compositor/src/state/visible.rs"]
 pub mod visible;
+#[path = "../../../compositor/src/state/visible_drop.rs"]
+pub mod visible_drop;
