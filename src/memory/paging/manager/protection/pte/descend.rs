@@ -17,7 +17,7 @@
 //! Finding the entry that governs an address in the running space.
 
 use super::super::super::core::PagingManager;
-use crate::memory::addr::VirtAddr;
+use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
@@ -33,6 +33,7 @@ impl PagingManager {
     pub(super) fn leaf_for(&self, va: VirtAddr) -> PagingResult<Leaf> {
         let v = va.as_u64();
         let cr3 = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
+        let cr3 = PhysAddr::new(crate::arch::paging::root_in(cr3.as_u64(), v));
         /*
          * SAFETY: eK@nonos.systems - cr3 is the running root, and every
          * level is checked present before the next is dereferenced.

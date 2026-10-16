@@ -19,7 +19,6 @@ use super::super::pending_flush::PendingFlush;
 use super::super::tlb_scope::mutation_asid;
 use super::tables::{alloc_table, table_at};
 use crate::arch::paging::descriptor;
-use crate::arch::paging::read_root as read_cr3;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::PagingResult;
@@ -39,7 +38,7 @@ impl PagingManager {
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
         // The live per-cpu cr3, not the manager's cached field.
-        let cr3 = PhysAddr::new(read_cr3() & CR3_FRAME_MASK);
+        let cr3 = PhysAddr::new(crate::arch::paging::root_for(va_val) & CR3_FRAME_MASK);
         // SAFETY: eK@nonos.systems - cr3 is the running root, and page
         // tables are reached through the directmap.
         let replaced = unsafe {
