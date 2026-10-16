@@ -449,13 +449,19 @@ other op: no one.
   and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
-- POWER_OFF (25, no body): the wiped power-off, for `desktop_shell` alone,
-  the same path a power-button press takes, with no boot guard or
-  debounce. It never replies when it runs, only an errno when the kernel
-  refuses. The shell asks through `power.off` (port 4532), the capsule's
-  second name, which the kernel's HELD line admits from the shell alone.
-  The kernel registers that name beside `acpi` at spawn, on the same inbox,
-  so this op is checked by sender here too.
+- The shell's power-off, on `power.off` (port 4532), the capsule's
+  second name, which the kernel's HELD line admits from `desktop_shell`
+  alone. It is not an op: one 20-byte little-endian header, magic
+  "POFF" (0x4646_4F50), version 1, op 1, flags 0, reserved 0, a request
+  id, payload length 0. The kernel registers the name beside `acpi` at
+  spawn, on the same inbox, so the sender is checked here too. A request
+  that passes runs the wiped power-off at once, with no boot guard,
+  debounce or ACPI work first, and is never answered. A refusal echoes
+  the header with an i32 status at offset 20:
+  - EINVAL for anything not exactly that header;
+  - EPERM for a sender not the shell's process;
+  - the kernel's errno if it refuses AdminShutdown.
+  Layout in `src/power/off/wire.rs`.
 - SMBIOS (8): the machine's identity from SMBIOS (DMTF DSP0134), read
   once at start through `MkSmbiosTable` and walked by `nonos_smbios`: vendor,
   product, version, board vendor, board, BIOS vendor, version and date, and

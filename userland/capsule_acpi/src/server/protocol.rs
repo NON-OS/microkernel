@@ -48,10 +48,8 @@ pub const OP_HOLDER: u8 = 21;
 pub const OP_PCI_FIRMWARE: u8 = 22;
 // 23 VCP and 24 SET_VCP belong to the brightness wire's graphics servers
 //; this capsule never serves them, so one sent here by mistake is
-// an unknown op, not a sleep or power request.
-/// The wiped power-off, asked by the shell through `power.off` (F-88): no
-/// body; no reply comes when it runs, an errno when the kernel refuses.
-pub const OP_POWER_OFF: u8 = 25;
+// an unknown op, not a sleep or power request. The next op here is 25.
+// A request starting "POFF" is the shell's power-off (power/off/wire.rs).
 pub const EPERM: i32 = -1;
 pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
