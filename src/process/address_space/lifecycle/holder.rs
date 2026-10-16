@@ -17,10 +17,49 @@
 use alloc::sync::Arc;
 use core::sync::atomic::Ordering;
 
+use spin::Mutex;
+
 use crate::process::core::ProcessControlBlock;
 
+/*
+ * Set on a thread once its release has run, so its group's tables are never
+ * handed to it. Two finalizes at once each found the other as the heir: the
+ * ASID went to a thread already on its way out, and the tables, attach
+ * records and kept frames all leaked (L49).
+ */
+const RELEASED: u64 = 1 << 62;
+
+/* The owner check and the hand-over, which two releases must see in turn. */
+static RELEASE: Mutex<()> = Mutex::new(());
+
+/*
+ * A thread runs on its group's tables without owning them, and until it
+ * leaves the process table it can still be on a CPU under them, taking its
+ * own kill or parked on its kernel stack. Freed when the owner went first,
+ * they were reused under a running thread, and a threaded guest's exit
+ * triple faulted. They pass to a thread still in the table instead, and the
+ * last holder's release frees them: the ASID when it is `pcb`'s to free.
+ */
+pub(super) fn tables_to_free(pcb: &ProcessControlBlock) -> Option<u32> {
+    let _turn = crate::smp::lock_responsive(&RELEASE);
+    pcb.flags.fetch_or(RELEASED, Ordering::AcqRel);
+    let asid = crate::memory::paging::manager::lookup_asid_for_process(pcb.pid)?;
+    let Some(heir) = holder_after(pcb) else { return Some(asid) };
+    if !crate::memory::paging::manager::hand_over_address_space(asid, heir.pid) {
+        return Some(asid);
+    }
+    // Its token names the ASID it runs in, which it now owns.
+    let _ = crate::process::caps::rebind_address_space(&heir);
+    None
+}
+
+/// Whether `pcb`'s release has run: its `cr3` may name freed tables.
+pub(crate) fn released(pcb: &ProcessControlBlock) -> bool {
+    pcb.flags.load(Ordering::Acquire) & RELEASED != 0
+}
+
 /// Another thread still on `pcb`'s tables, which then pass to it.
-pub(crate) fn holder_after(pcb: &ProcessControlBlock) -> Option<Arc<ProcessControlBlock>> {
+fn holder_after(pcb: &ProcessControlBlock) -> Option<Arc<ProcessControlBlock>> {
     let tables = pcb.cr3.load(Ordering::Acquire);
     if tables == 0 {
         return None;
@@ -28,5 +67,5 @@ pub(crate) fn holder_after(pcb: &ProcessControlBlock) -> Option<Arc<ProcessContr
     crate::process::core::PROCESS_TABLE
         .get_all_processes()
         .into_iter()
-        .find(|p| p.pid != pcb.pid && p.cr3.load(Ordering::Acquire) == tables)
+        .find(|p| p.pid != pcb.pid && !released(p) && p.cr3.load(Ordering::Acquire) == tables)
 }

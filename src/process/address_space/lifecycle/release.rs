@@ -22,7 +22,7 @@ use crate::kernel_core::surface_registry::pin::kept::take_kept;
 use crate::kernel_core::surface_registry::pin::orphans::reclaim;
 use crate::process::core::ProcessControlBlock;
 
-use super::holder::holder_after;
+use super::holder::tables_to_free;
 
 pub fn release(pcb: &Arc<ProcessControlBlock>) {
     let mut mem = pcb.memory_state();
@@ -35,24 +35,7 @@ pub fn release(pcb: &Arc<ProcessControlBlock>) {
     // ASID-scoped teardown frees the leaf frames as well, so it is the only
     // path that touches the right tables. A thread with none runs on tables
     // another thread owns, and that thread's release frees them.
-    let Some(asid) = crate::memory::paging::manager::lookup_asid_for_process(pcb.pid) else {
-        return;
-    };
-    /*
-     * A thread runs on its group's tables without owning them, and until it
-     * leaves the process table it can still be on a CPU under them, taking
-     * its own kill or parked on its kernel stack. Freed when the owner went
-     * first, they were reused under a running thread, and a threaded guest's
-     * exit triple faulted. They pass to a thread still in the table instead,
-     * and the last holder's release frees them.
-     */
-    if let Some(heir) = holder_after(pcb) {
-        if crate::memory::paging::manager::hand_over_address_space(asid, heir.pid) {
-            // Its token names the ASID it runs in, which it now owns.
-            let _ = crate::process::caps::rebind_address_space(&heir);
-            return;
-        }
-    }
+    let Some(asid) = tables_to_free(pcb) else { return };
     // Shared surface frames another process still maps stay allocated
     // (`surface_registry::pin::exit`), whichever thread froze the list.
     let keep = take_kept(pcb.cr3.load(Ordering::Acquire));
