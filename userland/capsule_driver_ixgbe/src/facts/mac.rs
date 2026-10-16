@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Control, status, EEPROM, link, MAC setting and receive-address bits.
-//! Source: observed in Linux ixgbe (facts::regs), unverified against
+//! Source: as observed, unverified against
 //! Intel's 82599, X540 and X550 datasheets.
 
 pub const CTRL_GIO_DIS: u32 = 1 << 2;
@@ -51,7 +51,7 @@ pub const HLREG0_JUMBOEN: u32 = 1 << 2;
 pub const HLREG0_TXPADEN: u32 = 1 << 10;
 
 /// RDRXCTL: CRC strip, which must agree with HLREG0, and bits the 82599 and
-/// later want set (observed in Linux ixgbe, unverified).
+/// later want set (as observed, unverified).
 pub const RDRXCTL_CRCSTRIP: u32 = 1 << 1;
 pub const RDRXCTL_RSCFRSTSIZE: u32 = 0x1F << 17;
 pub const RDRXCTL_RSCACKC: u32 = 1 << 25;

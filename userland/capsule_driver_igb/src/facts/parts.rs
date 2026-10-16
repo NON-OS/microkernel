@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Which igb MAC a device id is, and what differs between them: the reset,
-//! the receive-address table and the PHY access. Source: observed in Linux
-//! igb, unverified against Intel's datasheets.
+//! the receive-address table and the PHY access. Source: as observed,
+//! unverified against Intel's datasheets.
 
 /// The port's media as its device id names it: only copper is brought up
 /// (bring/port.rs).

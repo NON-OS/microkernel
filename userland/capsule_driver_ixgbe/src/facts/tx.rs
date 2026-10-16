@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Transmit queue and descriptor bits. Source: observed in Linux ixgbe
-//! sources, unverified against Intel's datasheets.
+//! Transmit queue and descriptor bits. Source: as observed,
+//! unverified against Intel's datasheets.
 
-/// TXDCTL thresholds: prefetch 32 and host 1 as observed in Linux ixgbe
-/// (unverified; a lower prefetch is said there to hang transmit with DFP
+/// TXDCTL thresholds: prefetch 32 and host 1 as observed
+/// (unverified; a lower prefetch is recalled to hang transmit with DFP
 /// on), and write-back 1, this driver's: it polls, with no moderation.
 pub const TXDCTL_PTHRESH: u32 = 32;
 pub const TXDCTL_HTHRESH: u32 = 1 << 8;

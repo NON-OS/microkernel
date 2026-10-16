@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Receive queue and write-back bits. Source: observed in Linux ixgbe
-//! headers, unverified against Intel's datasheets.
+//! Receive queue and write-back bits. Source: as observed,
+//! unverified against Intel's datasheets.
 
 /// SRRCTL: the packet buffer in 1 KiB units in bits 4:0, the header buffer
 /// in 64-byte units from bit 8 (written as bytes << 2), the descriptor type
