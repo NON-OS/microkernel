@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The shell's half of the trusted path: its chrome surface, which band it
-//! is in, and the secure attention chord's state.
+//! is in, the secure attention chord's state and the power-off
+//! confirmation.
 
 use super::attention::Attention;
+use super::power_off::PowerOff;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Trusted {
@@ -26,4 +28,6 @@ pub struct Trusted {
     /// Whether the chrome is in the trusted band now.
     pub up: bool,
     pub attention: Attention,
+    /// The power-off confirmation, which only the router can answer.
+    pub power_off: PowerOff,
 }

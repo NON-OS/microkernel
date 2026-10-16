@@ -36,6 +36,7 @@ mod off_tile;
 pub mod palette;
 pub mod panel;
 pub mod pkg_consent;
+mod power_off;
 pub mod shadow_reach;
 pub mod surface;
 pub mod text_aa;

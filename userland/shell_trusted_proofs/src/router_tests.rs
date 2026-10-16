@@ -53,3 +53,16 @@ fn the_rule_survives_its_one_word() {
         assert_eq!(Router::from_word(r.word()), r);
     }
 }
+
+/// The token power off is answered with (state/power_off.rs) comes only
+/// with a frame the rule believes.
+#[test]
+fn a_frame_from_anyone_but_the_router_carries_no_token() {
+    let senders = (0..64).chain([u32::MAX - 1, u32::MAX]);
+    for r in [Router::Unknown, Router::Pinned(1), Router::Pinned(12), Router::Pinned(u32::MAX)] {
+        for s in senders.clone() {
+            assert_eq!(r.frame(s).is_some(), r.believes(s), "{r:?} from {s}");
+        }
+    }
+    assert!(Router::Unknown.frame(0).is_none(), "no router running");
+}

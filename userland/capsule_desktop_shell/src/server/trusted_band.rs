@@ -28,6 +28,7 @@ fn prompt_up(ctx: &Context) -> bool {
         || ctx.pending.pending_pkg_install.is_some()
         || ctx.pending.live_prompt.showing()
         || ctx.pending.pending_delete.showing()
+        || ctx.trusted.power_off.showing()
 }
 
 pub fn sync(ctx: &mut Context) {

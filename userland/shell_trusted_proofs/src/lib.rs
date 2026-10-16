@@ -28,16 +28,24 @@ mod arrange_wire;
 #[path = "../../compositor/src/protocol/ops.rs"]
 #[allow(dead_code)]
 mod ncmp;
+/// The power-off request and how its answer is read.
+#[path = "../../capsule_desktop_shell/src/power_off_client/frame.rs"]
+pub mod power_off_frame;
 /// The shell's ops, and its table of those Settings may send on.
 #[path = "../../capsule_desktop_shell/src/protocol/ops.rs"]
 pub mod protocol;
 #[path = "../../capsule_desktop_shell/src/server/handlers/relay_table.rs"]
 pub mod relay_table;
+pub mod sealed;
 
 #[cfg(test)]
 mod attention_tests;
 #[cfg(test)]
 mod band_tests;
+#[cfg(test)]
+mod power_off_frame_tests;
+#[cfg(test)]
+mod power_off_tests;
 #[cfg(test)]
 mod relay_tests;
 #[cfg(test)]

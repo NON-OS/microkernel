@@ -27,7 +27,8 @@ use super::volume::{volume_key, VolumeKey};
 pub enum SystemKey {
     /// Mute, Volume Down or Volume Up: the master volume (state/volume.rs).
     Volume(VolumeKey),
-    /// The power key, from a keyboard or the machine's ACPI power button.
+    /// The power key, from a keyboard or the machine's ACPI power button:
+    /// it asks to power off (state/power_off.rs).
     Power,
 }
 
@@ -39,9 +40,8 @@ pub fn system_key(code: u32) -> Option<SystemKey> {
     volume_key(code).map(SystemKey::Volume)
 }
 
-/// What the power key says. The desktop has no way to power off yet:
-/// capsule_power is built but not spawned, and the shell offers no Shut Down
-/// (docs/handbook/desktop/0.9.2-notes.md). The key says so rather than doing
-/// nothing, so a person pressing it is not left wondering whether it was
-/// heard.
+/// What the shell says when no service answers to `power.off`, so a power off
+/// confirmed from the menu or this key has nowhere to go
+/// (state/power_off.rs). Said rather than nothing, so a person who asked is
+/// not left wondering whether it was heard.
 pub const POWER_OFF_UNAVAILABLE: &[u8] = b"Power off is not available from the desktop";

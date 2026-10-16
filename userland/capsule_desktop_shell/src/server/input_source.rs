@@ -21,17 +21,18 @@
 use core::sync::atomic::{AtomicU32, Ordering};
 
 use crate::server::handlers::launcher_request::lookup_pid;
-use crate::state::input_source_rule::Router;
+use crate::state::input_source_rule::{Routed, Router};
 
 const ROUTER: &[u8] = b"input_router";
 static BELIEVED: AtomicU32 = AtomicU32::new(0);
 
-pub fn is_router(sender: u32) -> bool {
+/// The router's token for a frame from `sender`, or None for anyone else.
+pub fn routed(sender: u32) -> Option<Routed> {
     let now = Router::from_word(BELIEVED.load(Ordering::Relaxed));
-    if now.believes(sender) {
-        return true;
+    if let Some(by) = now.frame(sender) {
+        return Some(by);
     }
     let next = now.after_lookup(lookup_pid(ROUTER));
     BELIEVED.store(next.word(), Ordering::Relaxed);
-    next.believes(sender)
+    next.frame(sender)
 }

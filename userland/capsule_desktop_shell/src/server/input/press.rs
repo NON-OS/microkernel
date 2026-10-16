@@ -20,12 +20,13 @@
 
 use crate::protocol::read_u32;
 use crate::server::handlers::menubar_click;
+use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 use nonos_libc::INPUT_KIND_BUTTON_DOWN;
 
-pub(super) fn press(ctx: &mut Context, buf: &[u8], kind: u16, x: i32, y: i32) -> bool {
+pub(super) fn press(ctx: &mut Context, by: Routed, buf: &[u8], kind: u16, x: i32, y: i32) -> bool {
     let (px, py) = (x as u32, y as u32);
-    if super::prompts::consumed(ctx, px, py) {
+    if super::prompts::consumed(ctx, by, px, py) {
         return true;
     }
     // A click on a menu-bar title, or anywhere while a drop-down is open,

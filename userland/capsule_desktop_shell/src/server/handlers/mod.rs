@@ -42,6 +42,7 @@ pub mod notify;
 pub mod open_with;
 pub mod pkg_consent;
 pub mod pkg_install;
+pub mod power_off;
 pub mod relay_table;
 pub mod settings_relay;
 pub mod spotlight_open;

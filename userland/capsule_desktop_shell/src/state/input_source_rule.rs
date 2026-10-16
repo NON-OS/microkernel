@@ -47,6 +47,11 @@ impl Router {
         matches!(self, Router::Pinned(p) if p == sender)
     }
 
+    /// The token for a frame from `sender`, when the router is believed.
+    pub fn frame(self, sender: u32) -> Option<Routed> {
+        self.believes(sender).then_some(Routed(()))
+    }
+
     /// Kept in one word: 0 not looked up, else the pid.
     pub fn word(self) -> u32 {
         match self {
@@ -62,3 +67,9 @@ impl Router {
         }
     }
 }
+
+/// What a handler is given for a frame the router sent. Only `Router::frame`
+/// makes one, so code that needs it can only be reached from router input:
+/// a message from any other pid never carries it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Routed(());

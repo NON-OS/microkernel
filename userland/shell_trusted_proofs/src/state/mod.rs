@@ -21,5 +21,13 @@
 pub mod attention;
 #[path = "../../../capsule_desktop_shell/src/state/input_source_rule.rs"]
 pub mod input_source_rule;
+#[path = "../../../capsule_desktop_shell/src/state/notify.rs"]
+pub mod notify;
+#[path = "../../../capsule_desktop_shell/src/state/power_off.rs"]
+pub mod power_off;
+#[path = "../../../capsule_desktop_shell/src/state/toast.rs"]
+pub mod toast;
 #[path = "../../../capsule_desktop_shell/src/state/trusted_rule.rs"]
 pub mod trusted_rule;
+
+pub use notify::NotifyLevel;
