@@ -102,8 +102,9 @@ state. The link (spi0's port and the firmware's facts) is set once.
 ## Current implemented surface
 
 Setup, bring-up, report reads, the doorbell, and the shared decode and
-posting. The input mode is not switched: a precision touchpad stays in its
-mouse collection until the set-feature output report is written here.
+posting. A precision pad's input mode and surface and button switches are
+set after bring-up by i2c_hid's own feature report logic, run over SPI's
+get-feature and set-feature requests.
 
 ## Release target
 
@@ -117,9 +118,11 @@ driver.spi_hid0 -> kernel input ring -> input_router -> compositor / apps
 truncation, a string past the end) and the refusal of each wiring spi0
 cannot drive. It also covers the report laid out for the shared poll, and
 the protocol core. `kernel_proofs` covers the held table and the spawn.
-Verification rows: the HID-over-SPI values in `nonos_spi_hid`, the _DSM
-flags' multi-SPI bits (15:14), and reading with no dummy byte after the
-address.
+`i2c_hid_proofs` covers the feature report logic both drivers share, over
+a modelled port. Verification rows: the HID-over-SPI values in
+`nonos_spi_hid` (the feature request and response types among them), the
+_DSM flags' multi-SPI bits (15:14), and reading with no dummy byte after
+the address.
 
 ## Release checklist
 
@@ -131,8 +134,8 @@ address.
 
 ## Explicit non-goals today
 
-No input mode switching yet, no output reports but descriptor requests,
-no fragmented reports, and no multi-SPI. Touches become pointer motion,
+No output reports but descriptor and feature requests, no fragmented
+reports, and no multi-SPI. Touches become pointer motion,
 scroll and taps in the shared HID code, as on I2C; moving that into the
 input router is G's.
 
