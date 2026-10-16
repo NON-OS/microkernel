@@ -10,8 +10,6 @@ input, with no WiFi hardware present. It depends on `userland/nonos_seal` for se
 From `src/lib.rs`, `src/wifi/mod.rs` and `src/saved/mod.rs`:
 
 - `../../capsule_settings/src/wifi/interface.rs` as `interface`: adapter discovery.
-- `../../../capsule_settings/src/wifi/panel.rs` as `wifi::panel` (test builds only): the panel
-  state machine.
 - `../../../nonos_wifi_client/src/network.rs` and `.../wire.rs` as `wifi::network` and
   `wifi::wire`: the network model and the scan/connect wire codec.
 - `../../../nonos_wifi_client/src/saved/{error,file,list,list_codec}.rs` as `saved`, and
@@ -27,10 +25,6 @@ are syscalls.
   devices are excluded; `discover` does not overrun its output buffer; known parts get
   specific names (`recognises_wifi_by_class_not_brand`,
   `discover_never_overruns_the_output_buffer`).
-- `panel_tests.rs`: scan results are deduplicated and ordered by signal, the cursor stays in
-  bounds, a secured network opens the passphrase editor and an open one does not
-  (`load_scan_merges_duplicate_ssids_keeping_the_strongest`,
-  `choosing_an_open_network_does_not_open_the_editor`).
 - `wire_tests.rs`: the parser for untrusted scan bytes refuses a lying count, truncated
   entries and oversized or overrunning SSID lengths (`a_lying_count_stops_at_the_real_data`,
   `an_ssid_running_past_the_buffer_is_refused`).

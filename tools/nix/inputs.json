@@ -2419,7 +2419,6 @@
    "userland/capsule_settings/src/wifi/driver_ids.rs",
    "userland/capsule_settings/src/wifi/interface.rs",
    "userland/capsule_settings/src/wifi/net_poll.rs",
-   "userland/capsule_settings/src/wifi/panel.rs",
    "userland/capsule_settings/src/wifi/wifi_class.rs",
    "userland/capsule_settings_proofs",
    "userland/capsule_setup_wizard/src/qwen/labels.rs",
@@ -5277,7 +5276,6 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "userland/capsule_settings/src/wifi/panel.rs",
    "userland/nonos_wifi_client/src/driver/fw_step.rs",
    "userland/nonos_wifi_client/src/join_wire.rs",
    "userland/nonos_wifi_client/src/network.rs",
