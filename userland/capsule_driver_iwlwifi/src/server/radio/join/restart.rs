@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The join state after the firmware restarted.
+//! The join state after the firmware restarted, and the stuck transmit
+//! queue that calls for a restart.
 
 use crate::firmware::gen3::join::inbox::{Inbox, Queues};
 use crate::firmware::gen3::txq::{TxQueue, TXQ_STRIDE};
@@ -31,5 +32,10 @@ impl Join {
         }
         self.q = Queues { mgmt: TxQueue::new(0), data: TxQueue::new(TXQ_STRIDE) };
         self.inbox = Inbox::new();
+    }
+
+    /// A transmit queue's oldest frame has gone unanswered `TX_STUCK_MS`.
+    pub(in super::super) fn tx_stuck(&mut self, now_ms: u64) -> bool {
+        self.q.mgmt.stuck(now_ms) | self.q.data.stuck(now_ms)
     }
 }

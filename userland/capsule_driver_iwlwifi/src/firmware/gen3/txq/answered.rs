@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The slots the device has not answered, and those it answered.
+//! The slots the device has not answered, those it answered, and a queue
+//! whose oldest frame stays unanswered.
 
 use super::layout::TXQ_ENTRIES;
 use super::queue::TxQueue;
+
+/// How long a frame may go unanswered (Linux `IWL_DEF_WD_TIMEOUT`).
+pub const TX_STUCK_MS: u64 = 2500;
 
 impl TxQueue {
     /// Frames the device has not answered.
@@ -36,5 +40,24 @@ impl TxQueue {
         }
         self.read = self.read.wrapping_add(n as u16);
         true
+    }
+
+    /// Whether the oldest unanswered frame has gone unanswered `TX_STUCK_MS`
+    /// at `now_ms`, as far as the looks at this queue show: each look notes
+    /// the oldest slot and when it was first seen there. Its slot cannot be
+    /// taken back while the device may still read it, so a stuck queue
+    /// calls for a firmware restart (Linux's transmit watchdog does too).
+    pub fn stuck(&mut self, now_ms: u64) -> bool {
+        if self.in_flight() == 0 {
+            self.watch = None;
+            return false;
+        }
+        match self.watch {
+            Some((read, since)) if read == self.read => now_ms.saturating_sub(since) >= TX_STUCK_MS,
+            _ => {
+                self.watch = Some((self.read, now_ms));
+                false
+            }
+        }
     }
 }

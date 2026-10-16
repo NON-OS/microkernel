@@ -33,7 +33,8 @@ impl Failure {
             | Failure::Boot(_)
             | Failure::Up(_)
             | Failure::Lost
-            | Failure::Unanswered => STAGE_FIRMWARE_FAILED,
+            | Failure::Unanswered
+            | Failure::TxStuck => STAGE_FIRMWARE_FAILED,
         }
     }
 
@@ -51,6 +52,7 @@ impl Failure {
             Failure::Lost => STEP_LOST,
             Failure::Master(_) => STEP_MASTER,
             Failure::Unanswered => STEP_UNANSWERED,
+            Failure::TxStuck => STEP_TX_STUCK,
         }
     }
 }

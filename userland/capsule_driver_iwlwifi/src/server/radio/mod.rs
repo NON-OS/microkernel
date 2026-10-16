@@ -34,6 +34,7 @@ mod bring;
 mod clock;
 mod entropy;
 mod grant;
+mod health;
 mod join;
 mod restart;
 mod restart_due;

@@ -56,6 +56,8 @@ pub enum Failure {
     /// A command went unanswered within `COMMAND_MS`: the firmware stopped
     /// taking commands, though it raised no error cause.
     Unanswered,
+    /// A transmitted frame went unanswered `TX_STUCK_MS`.
+    TxStuck,
 }
 
 /// The step numbers the status reply carries, in bring-up order.
@@ -70,3 +72,4 @@ pub const STEP_UP: u8 = 8;
 pub const STEP_LOST: u8 = 9;
 pub const STEP_MASTER: u8 = 10;
 pub const STEP_UNANSWERED: u8 = 11;
+pub const STEP_TX_STUCK: u8 = 12;

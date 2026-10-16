@@ -44,3 +44,5 @@ mod restart_policy_tests;
 mod station_cmd_tests;
 #[cfg(test)]
 mod tx_path_tests;
+#[cfg(test)]
+mod tx_stuck_tests;

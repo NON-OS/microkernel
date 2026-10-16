@@ -69,6 +69,7 @@ impl Failure {
             Failure::Lost => "the firmware raised its error cause while running",
             Failure::Master(e) => e.text(),
             Failure::Unanswered => "a firmware command went unanswered",
+            Failure::TxStuck => "a transmitted frame went unanswered",
         }
     }
 }
