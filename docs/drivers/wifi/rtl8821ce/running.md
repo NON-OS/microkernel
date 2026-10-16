@@ -1,6 +1,8 @@
 ## Station address
 
-Every boot draws a new locally administered unicast address from kernel randomness. The address in the efuse is never used, because access points log the source of every probe (`userland/capsule_driver_rtl8821ce/src/station.rs:17-31`, `draw`). With no randomness the radio stays dark at `NoStationAddress` instead of falling back.
+Every boot draws a new locally administered unicast address from kernel randomness for the radio at rest. The address in the efuse is never used, because access points log the source of every probe (`userland/capsule_driver_rtl8821ce/src/station.rs`, `draw`). With no randomness the radio stays dark at `NoStationAddress` instead of falling back.
+
+Each join then runs under the network's own address: the first join draws a key for the boot (`userland/capsule_driver_rtl8821ce/src/station.rs`, `draw_key`), and the address is derived from it and the network's name (`userland/nonos_wifi_core/src/address/key.rs`, `AddressKey::for_network`). So two networks never see the same address, and one network sees the same address on every join of a boot. The address goes into the MAC-ID registers before the hunt, so a hidden network's probe carries it too (`userland/capsule_driver_rtl8821ce/src/link/address.rs`, `readdress`). With no randomness for the key the join ends with -12.
 
 ## Scanning
 
