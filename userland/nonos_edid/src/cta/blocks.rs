@@ -59,11 +59,13 @@ impl<'a> Cta<'a> {
         }
     }
 
-    /// The detailed timings from `d` until a zero clock or byte 127.
+    /// The detailed timings from `d` until a zero clock or byte 127; one
+    /// that is no sound timing is passed over, not taken as the end.
     pub fn detailed(&self) -> impl Iterator<Item = Detailed> + 'a {
         let b: &'a [u8] = self.0;
         let first = self.dtd_offset().max(4);
         let n = if self.dtd_offset() == 0 { 0 } else { (BLOCK - 1 - first) / LEN };
-        (0..n).map_while(move |i| Detailed::decode(&b[first + i * LEN..first + (i + 1) * LEN]))
+        let slots = (0..n).map(move |i| &b[first + i * LEN..first + (i + 1) * LEN]);
+        slots.take_while(|d| d[0] != 0 || d[1] != 0).filter_map(Detailed::decode)
     }
 }
