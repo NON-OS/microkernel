@@ -18,14 +18,23 @@
 //! kernel's block client needs.
 
 mod bot;
+mod capacity;
+mod csw;
 mod data_phase;
+mod digest;
+mod inquiry;
 mod lun;
 mod ready;
 mod recover;
 mod scsi_io;
+mod sense;
+mod serial;
 mod types;
 
+pub use capacity::{capacity, sync_cache};
+pub use inquiry::inquiry;
 pub use lun::max_lun;
-pub use ready::{capacity, sync_cache, unit_ready};
+pub use ready::{test_ready, Unit};
 pub use scsi_io::{read, write};
+pub use serial::serial;
 pub use types::Disk;

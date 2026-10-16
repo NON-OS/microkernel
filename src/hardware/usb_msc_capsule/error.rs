@@ -32,7 +32,8 @@ pub enum DriverUsbMscError {
     NoCallerPid,
     TransportFailure,
     ProtocolMismatch,
-    /// The driver has not yet decided whether a device is there.
+    /// The driver has not yet decided whether a device is there, or a
+    /// request ran out of its time and the driver checks the device.
     NotReady,
     /// The driver looked, and no mass-storage device is plugged in.
     NoDevice,

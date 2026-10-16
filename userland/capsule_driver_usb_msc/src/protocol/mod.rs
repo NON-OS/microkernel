@@ -25,7 +25,7 @@ pub use decode::{parse, refused};
 pub use encode::{response_header, write_status};
 pub use errno::{
     E_ACCES, E_AGAIN, E_BAD_OP, E_INVAL, E_IO, E_MSGSIZE, E_NODEV, E_NOMEDIUM, E_NOTSUP, E_NO_MSC,
-    E_NXIO, E_OVERFLOW, E_PHASE,
+    E_NXIO, E_OVERFLOW, E_PHASE, E_TIMEDOUT,
 };
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{

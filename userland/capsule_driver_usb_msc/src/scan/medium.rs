@@ -19,7 +19,21 @@
 use crate::disk::Disk;
 
 pub enum Medium {
+    /// Still looking: a block request is asked to come again.
     Scanning,
     Ready(Disk),
+    /// The device failed a request. Before it serves another it is asked
+    /// whether it is still on its port, ready, and of the size it was
+    /// (scan/check.rs), so a stick pulled out or a card swapped in a reader
+    /// is not addressed as the one that was bound.
+    Checking(Disk),
     Absent,
+    /// Nothing is served again this boot: the driver cannot tell what it
+    /// would serve from the medium it served. The kernel chose its disk
+    /// once, by what it read. A card swapped in a reader once the kernel
+    /// held a sector, a size that is not the one served, a card taken out,
+    /// a change said by the unit served while it was asked again, and a let
+    /// go device with no serial number all end here (scan/check.rs,
+    /// scan/ask.rs, scan/release.rs).
+    Changed,
 }
