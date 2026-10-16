@@ -4,7 +4,7 @@ Part of [Capabilities](capabilities.md).
 
 ## Tests
 
-The [proof crate](../overview/glossary.md#proof-crate) `userland/kernel_proofs`
+The [proof crate](../overview/glossary-peer-list.md#proof-crate) `userland/kernel_proofs`
 compiles the cap table (`userland/kernel_proofs/src/syscall/contract/mod.rs`),
 the predicates (`userland/kernel_proofs/src/syscall/caps/mod.rs`), the
 capability list and the bit helpers
@@ -19,7 +19,7 @@ $ python3 scripts/check_syscall_caps.py
 ```
 
 [Checking the security claims
-yourself](../security/checking-the-claims.md#every-capability-and-control-is-enforced)
+yourself](../security/checking-the-claims-every-capability-and.md#every-capability-and-control-is-enforced)
 covers three more tools that hold the capability list to the code, and what each
 printed at this commit.
 

@@ -7,15 +7,15 @@ Part of [IOMMU](iommu.md).
 - With an Intel VT-d unit that the firmware described and left off, the kernel
   turns translation on at boot. Every device found by the PCI scan starts in an
   identity mapped domain, and anything the scan did not find is denied.
-- When a [driver capsule](../overview/glossary.md#driver-capsule) claims a
+- When a [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) claims a
   device behind a unit in service, the device moves into that capsule's own
-  [IOMMU domain](../overview/glossary.md#iommu-domain), which maps only the DMA
+  [IOMMU domain](../overview/glossary-hardware-broker.md#iommu-domain), which maps only the DMA
   buffers the capsule was granted.
 - AMD-Vi units are taken back from firmware but not driven by any image profile
   this tree defines, so DMA behind an AMD-Vi unit is unrestricted.
 - With no unit, or a unit that did not come up, DMA is unrestricted, and the
   kernel says so on the [serial
-  console](../overview/glossary.md#serial-console).
+  console](../overview/glossary-rollback-index.md#serial-console).
 
 Everything here is read from the code. No hardware report for this release
 covers whether a given machine's units come into service; the build provides the

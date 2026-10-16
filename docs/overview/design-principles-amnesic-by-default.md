@@ -4,7 +4,7 @@ Part of [Design principles](design-principles.md).
 
 ## Amnesic by default
 
-Every boot is [amnesic](glossary.md#amnesic-boot) unless the person chooses to
+Every boot is [amnesic](glossary-amnesic-boot.md#amnesic-boot) unless the person chooses to
 install, in first-boot setup or from the boot menu's install entry. With the
 `install` key set to false, an image has no setup and no installer at all
 (`nonos.toml:22-25`). First-boot setup is the only thing that records the choice
@@ -16,12 +16,12 @@ install entry (`poll` in `src/userspace/init/supervisor/after_setup.rs:17-48`).
 A file a program asks to keep goes to the [package store](glossary.md#store),
 which is written to the disk as it is, with no encryption (`append` in
 `userland/capsule_vfs/src/blk/store_write.rs:39-84`). Qwen models and other
-imported files go to a [data volume](glossary.md#data-volume). On a live stick,
+imported files go to a [data volume](glossary-claim-epoch.md#data-volume). On a live stick,
 whose disk plan keeps no volume, that volume is held in RAM
 (`open_session_volume` in `src/fs/blockfs_volume/open_machine.rs:46-53`). On an
 installed disk every sector is sealed with ChaCha20-Poly1305 (`seal` and
 `aead_encrypt` in `src/fs/cryptoblock/seal.rs:18-46`), under a [machine
-key](glossary.md#machine-key) the [TPM](glossary.md#tpm) derives for this
+key](glossary-linux-personality.md#machine-key) the [TPM](glossary-stark-proof.md#tpm) derives for this
 machine in this boot state (`KEY_LABEL` in
 `src/fs/blockfs_volume/open_machine.rs:17-38`). The kernel can instead seal a
 random volume key with a passphrase stretched by Argon2id (`passphrase_volume`
@@ -29,7 +29,7 @@ in `src/fs/blockfs_volume/passphrase.rs:17-32`), but no capsule in this release
 asks for one.
 
 Shutting down and restarting, the `AdminShutdown` and `AdminReboot` syscalls,
-both run the [ZeroState](glossary.md#zerostate) wipe first (`shutdown` in
+both run the [ZeroState](glossary-stark-proof.md#zerostate) wipe first (`shutdown` in
 `src/syscall/dispatch/router/admin/shutdown.rs:20-27`, `reboot` in
 `src/syscall/dispatch/router/admin/reboot.rs:20-28`): the other CPUs are
 stopped, then memory is wiped, then the firmware is called (`terminate` in

@@ -7,7 +7,7 @@ Part of [Capabilities](capabilities.md).
 Several bits are checked somewhere other than the syscall table, or nowhere that
 runs:
 
-- `Network`: an [endpoint](../overview/glossary.md#endpoint) in
+- `Network`: an [endpoint](../overview/glossary-dma-pool.md#endpoint) in
   `NETWORK_SERVICES` requires it on top of `IPC`, through `required_caps`
   (`src/services/registry/policy.rs:26-44`). See [IPC](ipc.md).
 - `RegisterService`: `caller_has_register_right` accepts it, or `Admin`, before

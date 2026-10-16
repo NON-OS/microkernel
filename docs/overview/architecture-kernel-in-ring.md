@@ -16,7 +16,7 @@ a build without it does. It keeps address spaces and page tables
 boundary (`src/syscall/`), process creation and capsule spawn
 (`src/kernel_core/process_spawn/`) and init, which starts the capsules
 (`src/userspace/init/`). In this release it also keeps the TPM driver
-(`src/security/tpm/`) and the encrypted [data volume](glossary.md#data-volume)
+(`src/security/tpm/`) and the encrypted [data volume](glossary-claim-epoch.md#data-volume)
 (`src/fs/`). For its own boot it keeps PCI enumeration and a virtio-rng entropy
 probe (`init_pci` and `init_virtio_rng` in `src/drivers/mod.rs:17-35`).
 
@@ -28,7 +28,7 @@ with ENOSYS (`syscall_handler` in
 `src/arch/x86_64/syscall/manager/entry.rs:24-53`). The kernel defines 130
 syscalls (`SyscallNumber` in `src/syscall/numbers/defs.rs:19-150`) and 36
 capability bits (`capability_table` in `src/capabilities/types/defs.rs:21-83`).
-Messages between capsules wait in kernel [inboxes](glossary.md#inbox): all of
+Messages between capsules wait in kernel [inboxes](glossary-hardware-broker.md#inbox): all of
 them together hold at most 96 MiB, one inbox at most 16 MiB, and one sender at
 most half of any one inbox (`TOTAL_BYTES_MAX`, `INBOX_BYTES_MAX` and
 `SHARE_BYTES_MAX` in `src/ipc/nonos_inbox/budget.rs:41-43`).

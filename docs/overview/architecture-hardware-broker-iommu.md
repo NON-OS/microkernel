@@ -13,7 +13,7 @@ an interrupt binding Irq, a DMA buffer Dma and port I/O Pio (`MkDeviceClaim`,
 `src/syscall/contract/cap_table/mk_device.rs:25-37`).
 
 The broker gives each driver capsule its own [IOMMU
-domain](glossary.md#iommu-domain), which every device that capsule claims shares
+domain](glossary-hardware-broker.md#iommu-domain), which every device that capsule claims shares
 (`attach` in `src/hardware/broker/confine/attach.rs:30-101`). This kernel drives
 Intel VT-d, and every image turns its translation on at boot, with
 `nonos-iommu-enforce` in `microkernel-core` (`Cargo.toml:240-249`). When a claim
@@ -21,12 +21,12 @@ is released, the broker turns the device's bus mastering off, then detaches it
 from its domain (`release` in `src/hardware/broker/claim/release.rs:24-36`).
 
 Confinement does not reach every device. A device found at boot that no driver
-claims stays in the [identity domain](glossary.md#identity-domain), and a device
+claims stays in the [identity domain](glossary-hardware-broker.md#identity-domain), and a device
 with no PCI requester id, such as a controller found through ACPI, gets no
 domain (`pci_address` in `src/hardware/broker/confine/table.rs:35-43`). The
 AMD-Vi backend sits behind the `nonos-iommu-amdvi` feature and interrupt
 remapping behind `nonos-iommu-intremap`, and no [build
-profile](glossary.md#build-profile) in `tools/nix/config.nix` turns either on
+profile](glossary-boot-root-record.md#build-profile) in `tools/nix/config.nix` turns either on
 (`Cargo.toml:879-891`). When no remapping unit is in service, because the
 firmware describes none, the one found did not come up, or it is AMD-Vi, a claim
 goes ahead with the device unconfined, and so does a claim on a device that no
@@ -49,7 +49,7 @@ are the drivers this release builds: `ahci`, `e1000`, `hda`, `i2c_hid`,
 `usb_hid`, `usb_msc`, `virtio_blk`, `virtio_gpu`, `virtio_net`, `virtio_rng` and
 `xhci`. The other eight, `ax88179`, `cdc_ecm`, `cdc_ncm`, `e1000e`, `igc`,
 `rndis`, `rtl8153` and `rtsx`, are in the tree with [proof
-crates](glossary.md#proof-crate) but not in this release's catalogue, so no
+crates](glossary-peer-list.md#proof-crate) but not in this release's catalogue, so no
 image carries them. A 27th directory, `capsule_driver_bga`, has no `Capsule.mk`.
 
 When a driver ends, by exit or by fault, the process teardown gives back every

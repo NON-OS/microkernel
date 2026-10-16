@@ -6,7 +6,7 @@ How NONOS checks its own code, how to run each kind of check, and which checks f
 
 | Kind | Where it lives | What runs it |
 |---|---|---|
-| [proof crates](../overview/glossary.md#proof-crate) | `userland/*_proofs`, and a few host crates elsewhere | `nix flake check` |
+| [proof crates](../overview/glossary-peer-list.md#proof-crate) | `userland/*_proofs`, and a few host crates elsewhere | `nix flake check` |
 | kernel feature and profile checks | the kernel crate | `nix flake check` |
 | static checks | `scripts/`, `nonos-ci/`, `tools/` | `nix flake check` |
 | drift checks | `tools/nix/` | `nix flake check` |
@@ -35,7 +35,7 @@ nix build .#checks.x86_64-linux.proofs-ps2_input_proofs -L
 
 Not tested in this release.
 
-On a macOS host the two [TPM](../overview/glossary.md#tpm) proof crates are left out, because the software TPM tools they drive build only for Linux (`needsTpm`, `tools/nix/checks.nix:99-102`).
+On a macOS host the two [TPM](../overview/glossary-stark-proof.md#tpm) proof crates are left out, because the software TPM tools they drive build only for Linux (`needsTpm`, `tools/nix/checks.nix:99-102`).
 
 ## What to run for a change
 
@@ -53,7 +53,7 @@ The flake defines 143 checks for `x86_64-linux` at this commit. In a run of all 
 |---|---|
 | `inputs` | `tools/nix/inputs.json` is stale for `userland/capsule_market`, `userland/capsule_model_fetch` and `userland/model_fetch_proofs` |
 | `static-abi` | `scripts/check_prebuilt.py` finds two binaries it cannot classify: `nonos-data/market/index.bin` and `nonos-data/models/catalogue.bin`. The scripts after it in the list did not run |
-| `static-hygiene` | `scripts/check_stubs.py` finds 15 admissions that are not in its [baseline](../overview/glossary.md#baseline). The scripts after it did not run |
+| `static-hygiene` | `scripts/check_stubs.py` finds 15 admissions that are not in its [baseline](../overview/glossary-amnesic-boot.md#baseline). The scripts after it did not run |
 | `static-tree` | several gates: the `cfg(target_arch` count is 234 against a baseline of 116, the `crate::arch::x86_64::` count 135 against 100, and the end of its log shows the forbidden `read` and `write` import at `userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29` |
 | `nonos-verify` | clippy passes, then the `hygiene` scan fails. It writes its findings to a file, so the log ends as the scan starts. Its comment patterns match shipping comments such as the "for now" in `src/hardware/inventory/family.rs` |
 | `proofs-rtl8169_proofs` | its 67 tests pass; clippy's `manual_div_ceil` lint fails on `userland/capsule_driver_rtl8169/src/log/line.rs` |
@@ -65,7 +65,7 @@ The flake defines 143 checks for `x86_64-linux` at this commit. In a run of all 
 
 ## Proof crates
 
-A [proof crate](../overview/glossary.md#proof-crate) is a host crate that compiles shipping source with `#[path]` and runs it under `cargo test`, with the system calls that source makes answered by a shim. `userland/ps2_input_proofs` is a small one. It mounts the PS/2 driver's `constants`, `discover`, `init` and `setup` modules from the [capsule](../overview/glossary.md#capsule) source (`userland/ps2_input_proofs/src/lib.rs:32-40`) and replaces `nonos_libc` with a shim that models the controller (`userland/ps2_input_proofs/Cargo.toml:19-22`). Its 38 tests pass at this commit.
+A [proof crate](../overview/glossary-peer-list.md#proof-crate) is a host crate that compiles shipping source with `#[path]` and runs it under `cargo test`, with the system calls that source makes answered by a shim. `userland/ps2_input_proofs` is a small one. It mounts the PS/2 driver's `constants`, `discover`, `init` and `setup` modules from the [capsule](../overview/glossary-boot-root-record.md#capsule) source (`userland/ps2_input_proofs/src/lib.rs:32-40`) and replaces `nonos_libc` with a shim that models the controller (`userland/ps2_input_proofs/Cargo.toml:19-22`). Its 38 tests pass at this commit.
 
 There are 107 crates under `userland/*_proofs`, counted as `proof_crates` (`verification/evidence/EVIDENCE.json:2184`). The flake runs each one the same way: one test thread through `RUST_TEST_THREADS`, a release build with overflow checks on, then clippy (`tools/nix/checks.nix:85-94`). Overflow checks stay on because capsules ship without them: on a device an overflow wraps quietly, and a proof built the same way would agree with the wrapped value and pass. The comment above the script names the case that taught this, a 1968 timestamp in `net.ntp` that wrapped the clock while its proof stayed green (`tools/nix/checks.nix:81-84`).
 
@@ -87,7 +87,7 @@ Not tested in this release.
 2. Mount the shipping source with `#[path]`; a copy would test code that does not ship.
 3. Regenerate `tools/nix/inputs.json` with `python3 tools/nix/inputs.py`. The `inputs` drift check runs it with `--check` and fails when a path dependency or a `#[path]` was added without it (`tools/nix/checks.nix:265-269`).
 4. Make it pass clippy with `-D warnings` over all targets. `lintLib` and `lintNone` take no new members (`tools/nix/checks.nix:44-54`).
-5. A new [driver capsule](../overview/glossary.md#driver-capsule) ships with its proof crate; [Contributing](README.md#where-code-goes) gives the rule.
+5. A new [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) ships with its proof crate; [Contributing](README.md#where-code-goes) gives the rule.
 
 ## Static checks
 
@@ -98,7 +98,7 @@ Four checks read the whole tree, each built by `static`:
 - `static-tree` runs `nonos-ci/run-static-checks.sh`, the grep gates over the whole tree (`static`, `tools/nix/checks.nix:236-239`). Its `fail_with` records a failure and lets the script carry on, so one run reports every gate that fails (`nonos-ci/run-static-checks.sh:15-17`).
 - `static-evidence` regenerates `verification/evidence/EVIDENCE.json`, fails on any difference, requires `sorry_count` to be zero and runs the proven-functions ratchet (`tools/nix/checks.nix:241-246`).
 
-Many gates compare against a [baseline](../overview/glossary.md#baseline). In `scripts/`, `run` fails when a site is not in the committed list (`scripts/gate.py:58-91`), and `identity` matches a site by its file and name, not its line, so editing code above a site does not make it new (`scripts/gate.py:30-46`). The counting baselines in `nonos-ci/baselines/` fail when a count grows and ask you to update `baseline_file` in the same pull request when the growth is intended (`nonos-ci/check-baseline.sh:37-43`).
+Many gates compare against a [baseline](../overview/glossary-amnesic-boot.md#baseline). In `scripts/`, `run` fails when a site is not in the committed list (`scripts/gate.py:58-91`), and `identity` matches a site by its file and name, not its line, so editing code above a site does not make it new (`scripts/gate.py:30-46`). The counting baselines in `nonos-ci/baselines/` fail when a count grows and ask you to update `baseline_file` in the same pull request when the growth is intended (`nonos-ci/check-baseline.sh:37-43`).
 
 Each gate in `scripts/` runs on its own:
 

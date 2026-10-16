@@ -11,7 +11,7 @@ size is checked against `MAX_MESSAGE_SIZE` before anything is allocated
 
 The `IPC` bit admits the IPC calls through `can_ipc`
 (`src/syscall/contract/cap_table/mk_ipc.rs:38-45`). It does not admit any
-particular destination. Each [endpoint](../overview/glossary.md#endpoint) states
+particular destination. Each [endpoint](../overview/glossary-dma-pool.md#endpoint) states
 the bits a sender must hold, and `caller_satisfies_endpoint` refuses a send
 unless the sender holds all of them
 (`src/syscall/microkernel/ipc/send_caps.rs:36-63`). It also refuses a name that
@@ -36,12 +36,12 @@ named when the kernel registered that endpoint to it at spawn.
 | `driver.hda0` | `audio.server` |
 | `driver.ps2_kbd0`, `driver.usb_hid0`, `driver.i2c_hid0`, `driver.usb_msc0`, `driver.virtio_rng` | no capsule; only the kernel's own sends reach them |
 
-A [peer list](../overview/glossary.md#peer-list) goes further. A capsule named
+A [peer list](../overview/glossary-peer-list.md#peer-list) goes further. A capsule named
 in `PEERS` may send only to the endpoints listed for it, whatever its bits; the
 list has one entry, `shield_prover`, which may reach only `shield.core`
 (`src/services/registry/peers.rs:27-31`).
 
-A send straight to a process's [inbox](../overview/glossary.md#inbox) by pid
+A send straight to a process's [inbox](../overview/glossary-hardware-broker.md#inbox) by pid
 (`MkIpcSendToPid`) must pass the gate of every endpoint that process serves,
 because they are all read from that one inbox (`inbox_admits` in
 `src/services/registry/held.rs:62-70`).
@@ -56,7 +56,7 @@ Keystrokes have their own rule. Posting to the input ring needs
 `can_input_source`, which takes `InputSource` alone, held by the input drivers;
 draining it, or blocking until it has events, needs `can_input_consumer`, which
 takes `InputConsumer` alone, held by input_router. [Driver
-capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and neither `Irq`
+capsules](../overview/glossary-dma-pool.md#driver-capsule) hold `Irq`, and neither `Irq`
 nor `Admin` opens either gate
 (`src/syscall/contract/cap_table/mk_surface.rs:30-36`). A driver capsule cannot
 read what is typed into another program.

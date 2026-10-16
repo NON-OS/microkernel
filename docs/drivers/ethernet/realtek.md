@@ -1,6 +1,6 @@
 # Realtek Ethernet
 
-NONOS has two Realtek PCI Ethernet driver [capsules](../../overview/glossary.md#capsule) in the image: one for the RTL8139 and one for the RTL8169 family, which covers the RTL8168, RTL8111, RTL810x and the 2.5 GbE RTL8125.
+NONOS has two Realtek PCI Ethernet driver [capsules](../../overview/glossary-boot-root-record.md#capsule) in the image: one for the RTL8139 and one for the RTL8169 family, which covers the RTL8168, RTL8111, RTL810x and the 2.5 GbE RTL8125.
 
 ## Which driver takes which chip
 
@@ -18,11 +18,11 @@ The USB Realtek RTL8153 is a separate capsule, not in the image; see [USB networ
 
 ### Identity and authority
 
-The driver takes vendor 0x10EC, device 0x8139, PCI class network, subclass Ethernet (`userland/capsule_driver_rtl8139/src/discover/support.rs:21-30`, `is_supported`; `userland/capsule_driver_rtl8139/src/constants/pci.rs:17-18`, `RTL8139_DEVICE_ID`). It is the one wired driver that uses port I/O alone: its [capability](../../overview/glossary.md#capability-word) mask 0x198038 holds IPC, Memory, Crypto, Driver, DeviceEnum, Dma and Pio, and no Mmio (`userland/capsule_driver_rtl8139/Capsule.mk:19`, `CAPSULE_REQUIRED_CAPS`). The kernel requests the same set and no Debug (`src/hardware/rtl8139_capsule/spawn.rs:51-60`, `requested_caps`), so its own log lines are dropped. The service is `driver.rtl8139_0` on port 4212 (`userland/capsule_driver_rtl8139/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`).
+The driver takes vendor 0x10EC, device 0x8139, PCI class network, subclass Ethernet (`userland/capsule_driver_rtl8139/src/discover/support.rs:21-30`, `is_supported`; `userland/capsule_driver_rtl8139/src/constants/pci.rs:17-18`, `RTL8139_DEVICE_ID`). It is the one wired driver that uses port I/O alone: its [capability](../../overview/glossary-boot-root-record.md#capability-word) mask 0x198038 holds IPC, Memory, Crypto, Driver, DeviceEnum, Dma and Pio, and no Mmio (`userland/capsule_driver_rtl8139/Capsule.mk:19`, `CAPSULE_REQUIRED_CAPS`). The kernel requests the same set and no Debug (`src/hardware/rtl8139_capsule/spawn.rs:51-60`, `requested_caps`), so its own log lines are dropped. The service is `driver.rtl8139_0` on port 4212 (`userland/capsule_driver_rtl8139/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`).
 
 ### How it runs
 
-- Every register access goes through port I/O granted by the [hardware broker](../../overview/glossary.md#hardware-broker); packet buffers come from DMA grants.
+- Every register access goes through port I/O granted by the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker); packet buffers come from DMA grants.
 - It polls and binds no interrupt.
 - It draws a station address every boot and writes it into the IDR registers; the factory address is not a fallback (`userland/capsule_driver_rtl8139/src/init/mac.rs:23-34`, `program`).
 - Operation 6 returns a register snapshot, with status 0 whenever its port reads succeed (`userland/capsule_driver_rtl8139/src/protocol/ops.rs:17-22`, `OP_STATS`), which `net.core` reads as a receive batch; see [the receive fault](README.md#the-receive-fault).

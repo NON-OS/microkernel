@@ -11,7 +11,7 @@ tested in this release, and the other targets are in
 profile takes it out, so every image runs on every core the firmware enables
 (`nonos.toml:19-20`, `tools/nix/config.nix:127-150`). With it,
 `start_secondary_cpus` starts the [application
-processors](../overview/glossary.md#application-processor) at boot and logs
+processors](../overview/glossary-amnesic-boot.md#application-processor) at boot and logs
 `[SMP-PROOF] cpu_count=` with the number running
 (`src/kernel_core/init/start_secondary.rs:17-48`).
 

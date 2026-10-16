@@ -6,13 +6,13 @@ Part of [Threat model](threat-model.md).
 
 | Asset | Where it lives | What guards it |
 |---|---|---|
-| Qwen models on an installed disk | the [data volume](glossary.md#data-volume) | every sector sealed, under a TPM-derived key |
+| Qwen models on an installed disk | the [data volume](glossary-claim-epoch.md#data-volume) | every sector sealed, under a TPM-derived key |
 | Files a program keeps, setup's answers and kept settings | the [package store](glossary.md#store) on the NONOS disk | nothing: the store is not encrypted, and only a record its capsule sealed, such as the saved Wi-Fi list or the wallet's key, is protected |
-| What a live boot holds | RAM | power off; the [ZeroState](glossary.md#zerostate) wipe runs in 0.9.2 only at the installer's restart, and leaves the in-memory data volume and its key |
+| What a live boot holds | RAM | power off; the [ZeroState](glossary-stark-proof.md#zerostate) wipe runs in 0.9.2 only at the installer's restart, and leaves the in-memory data volume and its key |
 | The wallet's key | the keyring capsule | the keyring's vault gate |
 | Where this machine is on the network | its IP address and its cards' station addresses | the chosen anonymity network for the system's own connections, and a fresh station address at each bring-up |
-| What runs | the kernel image and every capsule | signatures, attestation and the [capability word](glossary.md#capability-word) |
-| The [device secret](glossary.md#device-secret) | derived from the [TPM](glossary.md#tpm) | the `DeviceSecret` bit, held by one capsule |
+| What runs | the kernel image and every capsule | signatures, attestation and the [capability word](glossary-boot-root-record.md#capability-word) |
+| The [device secret](glossary-claim-epoch.md#device-secret) | derived from the [TPM](glossary-stark-proof.md#tpm) | the `DeviceSecret` bit, held by one capsule |
 
 The sections below give the code behind each guard.
 
@@ -20,7 +20,7 @@ The sections below give the code behind each guard.
 
 ### A hostile app or capsule
 
-It runs with the bits its [manifest](glossary.md#manifest) grants and no others,
+It runs with the bits its [manifest](glossary-linux-personality.md#manifest) grants and no others,
 unless a capsule holding Admin grants it more, and only bits that capsule holds
 itself (`sys_cap_grant` in
 `src/syscall/microkernel/capability/handlers.rs:33-52`). Every NONOS syscall it
@@ -43,7 +43,7 @@ vault root under the published label, as the keyring does with `machine_key` and
 `ROOT_LABEL` (`userland/capsule_keyring/src/vault/root.rs:29`), and read the
 sealed blob under `/data`. The Linux personality, Settings and the Terminal are
 among the capsules that hold both. A flood of messages from one sender fills at
-most half of any one [inbox](glossary.md#inbox) (`SHARE_BYTES_MAX` in
+most half of any one [inbox](glossary-hardware-broker.md#inbox) (`SHARE_BYTES_MAX` in
 `src/ipc/nonos_inbox/budget.rs:17-43`). The `DeviceSecret` bit, which receives
 the TPM-derived device secret, is held by one capsule, `app.prove`
 (`DeviceSecret` in `src/capabilities/types/defs.rs:80-82`, `CAPSULE_HANDLE` in
@@ -57,7 +57,7 @@ it yet, so no image carries it (`userland/capsule_attack/Capsule.mk`).
 ### A hostile Linux program
 
 A Linux program holds no NONOS capabilities. The kernel parks each of its Linux
-syscalls for the [Linux personality](glossary.md#linux-personality) to answer
+syscalls for the [Linux personality](glossary-linux-personality.md#linux-personality) to answer
 (`redirect` in `src/process/foreign/trap.rs:26-54`), and refuses every NONOS
 syscall it tries except `MkTtyQuery`, which only describes its own streams
 (`MkTtyQuery` in `src/syscall/contract/cap_table/mk_surface.rs:50`). The

@@ -1,6 +1,6 @@
 # Writing an app
 
-Write a windowed app [capsule](../overview/glossary.md#capsule) on `nonos_app_skeleton` and test it, step by step on `capsule_hello`, the minimal app the tree keeps as its reference.
+Write a windowed app [capsule](../overview/glossary-boot-root-record.md#capsule) on `nonos_app_skeleton` and test it, step by step on `capsule_hello`, the minimal app the tree keeps as its reference.
 
 ## What you build
 
@@ -9,12 +9,12 @@ Write a windowed app [capsule](../overview/glossary.md#capsule) on `nonos_app_sk
 | Piece | Where | What it is | Page |
 |---|---|---|---|
 | Crate | `userland/capsule_hello/` | the `no_std` program and its `README.md` | this one |
-| [Proof crate](../overview/glossary.md#proof-crate) | `userland/apps_proofs/` | host tests on the shipping source | this one |
-| Declaration | `userland/capsule_hello/Capsule.mk` | identity, [endpoints](../overview/glossary.md#endpoint), [capability word](../overview/glossary.md#capability-word) | [Shipping an app](shipping-an-app.md) |
+| [Proof crate](../overview/glossary-peer-list.md#proof-crate) | `userland/apps_proofs/` | host tests on the shipping source | this one |
+| Declaration | `userland/capsule_hello/Capsule.mk` | identity, [endpoints](../overview/glossary-dma-pool.md#endpoint), [capability word](../overview/glossary-boot-root-record.md#capability-word) | [Shipping an app](shipping-an-app.md) |
 | Include | `mk/20-build.mk` | the line that makes the build see the capsule | [Shipping an app](shipping-an-app.md) |
-| Catalogue | `tools/nix/capsules.json` | what the flake builds and the [seal](../overview/glossary.md#seal) signs | [Shipping an app](shipping-an-app.md) |
+| Catalogue | `tools/nix/capsules.json` | what the flake builds and the [seal](../overview/glossary-rollback-index.md#seal) signs | [Shipping an app](shipping-an-app.md) |
 | Feature | `Cargo.toml` | `nonos-capsule-hello`, and the feature set that turns it on | [Shipping an app](shipping-an-app.md) |
-| [Kernel mirror](../overview/glossary.md#kernel-mirror) | `src/userspace/capsule_hello/` | embeds the capsule and spawns it | [Shipping an app](shipping-an-app.md) |
+| [Kernel mirror](../overview/glossary-hardware-broker.md#kernel-mirror) | `src/userspace/capsule_hello/` | embeds the capsule and spawns it | [Shipping an app](shipping-an-app.md) |
 | Spawn | `src/userspace/init/spawn_plan/apps.rs` | starts it at boot | [Shipping an app](shipping-an-app.md) |
 | Launcher row | `userland/capsule_desktop_shell/src/state/apps.rs` | its tile on the dock and in the Launchpad | [Shipping an app](shipping-an-app.md) |
 
@@ -22,10 +22,10 @@ hello has every piece but the proof crate and the launcher row. Nothing in userl
 
 ## Choose the right path first
 
-Every capsule with a row in `LAUNCHER_APPS`, the table behind the dock and the Launchpad, is built on `nonos_app_skeleton` and the toolkit under it. The one row that is not a capsule is Qwen, `tool.qwen`, a window of the [Linux personality](../overview/glossary.md#linux-personality) (`userland/capsule_desktop_shell/src/state/apps.rs:103-105`, `LauncherIcon::Qwen`). Of the 116 entries in `tools/nix/capsules.json`, 31 have a `Cargo.toml` that names `nonos_app_skeleton`, and none names `nonos_runtime` or a crate of `userland/sdk/` (counted on this tree).
+Every capsule with a row in `LAUNCHER_APPS`, the table behind the dock and the Launchpad, is built on `nonos_app_skeleton` and the toolkit under it. The one row that is not a capsule is Qwen, `tool.qwen`, a window of the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) (`userland/capsule_desktop_shell/src/state/apps.rs:103-105`, `LauncherIcon::Qwen`). Of the 116 entries in `tools/nix/capsules.json`, 31 have a `Cargo.toml` that names `nonos_app_skeleton`, and none names `nonos_runtime` or a crate of `userland/sdk/` (counted on this tree).
 
 - The SDK under `userland/sdk/` and the runtime `nonos_runtime` are not used by any shipped app. No `Capsule.mk` builds an SDK crate, so no SDK app is signed, enrolled or in an image; the one capsule crate that uses one, `capsule_gui_proof`, has no `Capsule.mk` either (`userland/sdk/README.md:20-22`, `capsule_gui_proof`). The examples in `userland/nonos_examples/` and `userland/sdk/examples/` are in the same position. [libc and the Rust runtimes](libc.md) describes both.
-- `tools/nonos-app` is the path for an unmodified crates.io command-line program. Its `add` cross-compiles the crate, makes its [publisher](../overview/glossary.md#publisher) keys, writes its `Capsule.mk` and include line, records it in `userland/apps.list`, and rewrites the kernel's tool registry and the desktop's `TOOL_APPS` table (`tools/nonos-app:276-287`, `cmd_add`). Such a tool runs in the Terminal, not in a window of its own: its Launchpad tile hands the Terminal its command line (`userland/capsule_desktop_shell/src/server/handlers/launchpad.rs:78-95`, `tool_command`). [Userland](README.md) lists the seven.
+- `tools/nonos-app` is the path for an unmodified crates.io command-line program. Its `add` cross-compiles the crate, makes its [publisher](../overview/glossary-peer-list.md#publisher) keys, writes its `Capsule.mk` and include line, records it in `userland/apps.list`, and rewrites the kernel's tool registry and the desktop's `TOOL_APPS` table (`tools/nonos-app:276-287`, `cmd_add`). Such a tool runs in the Terminal, not in a window of its own: its Launchpad tile hands the Terminal its command line (`userland/capsule_desktop_shell/src/server/handlers/launchpad.rs:78-95`, `tool_command`). [Userland](README.md) lists the seven.
 - An unmodified Linux program runs as a [guest](../overview/glossary.md#guest) of the Linux personality, not as a capsule of its own. See [The Linux personality](linux-personality.md).
 
 Use this page for a program with its own window.
@@ -81,7 +81,7 @@ The skeleton also exports clipboard calls from its root (`userland/app_skeleton/
 
 ### The window
 
-`AppManifest` describes the window, not the signed [manifest](../overview/glossary.md#manifest): a title, a 32-bit window id, a kind, an origin, a size and an input mask (`userland/app_skeleton/src/app/manifest.rs:20-29`, `AppManifest`). The kind is `Normal`, `Dialog`, `Tooltip` or `Popup` (`userland/app_skeleton/src/app/window_kind.rs:19-24`, `WindowKind`). hello's window id is the four bytes of `HELO`:
+`AppManifest` describes the window, not the signed [manifest](../overview/glossary-linux-personality.md#manifest): a title, a 32-bit window id, a kind, an origin, a size and an input mask (`userland/app_skeleton/src/app/manifest.rs:20-29`, `AppManifest`). The kind is `Normal`, `Dialog`, `Tooltip` or `Popup` (`userland/app_skeleton/src/app/window_kind.rs:19-24`, `WindowKind`). hello's window id is the four bytes of `HELO`:
 
 ```rust
 AppManifest {
@@ -155,7 +155,7 @@ When the window closes, an app started at boot goes back to waiting. An instance
 
 ## 4. The proof crate
 
-No check requires a proof crate for an app; `check_driver_proofs.py` covers [driver capsules](../overview/glossary.md#driver-capsule) only (`scripts/check_driver_proofs.py:36-48`, `unproved`). The apps that have tests keep their decisions in small files with no drawing or IPC in them, and host tests mount those files unchanged with `#[path]`. Apps without a crate of their own share `userland/apps_proofs`, which mounts, for example, Snake's state files (`userland/apps_proofs/src/lib.rs:409-429`, `snake_state`). It depends on `nonos_app_skeleton` without default features, so the skeleton's types build on the host (`userland/apps_proofs/Cargo.toml:21`, `nonos_app_skeleton`).
+No check requires a proof crate for an app; `check_driver_proofs.py` covers [driver capsules](../overview/glossary-dma-pool.md#driver-capsule) only (`scripts/check_driver_proofs.py:36-48`, `unproved`). The apps that have tests keep their decisions in small files with no drawing or IPC in them, and host tests mount those files unchanged with `#[path]`. Apps without a crate of their own share `userland/apps_proofs`, which mounts, for example, Snake's state files (`userland/apps_proofs/src/lib.rs:409-429`, `snake_state`). It depends on `nonos_app_skeleton` without default features, so the skeleton's types build on the host (`userland/apps_proofs/Cargo.toml:21`, `nonos_app_skeleton`).
 
 hello has no tests in this release. Its `on_event` is such a file, and a test of it in `apps_proofs` would look like this. It is not in the tree and was not compiled for this release:
 
@@ -185,7 +185,7 @@ At this commit `proofs-apps_proofs` passes with 252 tests, and `proofs-desktop_p
 
 ## 5. Into the image
 
-The program and its tests are half the work. [Shipping an app](shipping-an-app.md) takes the crate the rest of the way: the `Capsule.mk` and its capability word, the include line, the Cargo feature and profile, the kernel mirror, the spawn-plan entry, the `LAUNCHER_APPS` row, the publisher keys and a [development image](../overview/glossary.md#development-image) to boot it in.
+The program and its tests are half the work. [Shipping an app](shipping-an-app.md) takes the crate the rest of the way: the `Capsule.mk` and its capability word, the include line, the Cargo feature and profile, the kernel mirror, the spawn-plan entry, the `LAUNCHER_APPS` row, the publisher keys and a [development image](../overview/glossary-claim-epoch.md#development-image) to boot it in.
 
 ## See also
 

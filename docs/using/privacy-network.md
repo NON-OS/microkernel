@@ -10,7 +10,7 @@ Choose which network NONOS's own connections leave through, and know what each c
 | `Anyone network` | `net.anon`: an onion circuit through three relays, guard, middle and exit | The guard relay, and your local network, which sees that you use Anyone | Much faster than the mixnet. |
 | `Direct` | `net.sockets` straight to the host | Every site, every mirror and your local network | Fastest, and nothing hides you. |
 
-The labels are the ones Settings shows. The Nym mixnet is the default: setup's `Network route` step lists `Nym mixnet (default)` first, and a value the [policy store](../overview/glossary.md#policy-store) does not hold, does not know or cannot answer is read as Nym, never as Direct.
+The labels are the ones Settings shows. The Nym mixnet is the default: setup's `Network route` step lists `Nym mixnet (default)` first, and a value the [policy store](../overview/glossary-peer-list.md#policy-store) does not hold, does not know or cannot answer is read as Nym, never as Direct.
 
 Setup's own words for each choice: the mixnet "Hides who you talk to, even from someone watching the whole internet"; Anyone means "Sites never see this machine's address" and "Someone watching both ends at once could match the traffic"; Direct means "Every site, the model mirror and your own network see this machine's address".
 
@@ -69,7 +69,7 @@ In more detail:
 - Installs go over Anyone. The reason the code gives is that Nym exits rotate and end a long stream part way. A download waits up to three minutes for Anyone to build its first circuit. `qwen get --direct` in the Terminal, or `d` in the Marketplace, downloads one Qwen tier directly instead, and the mirror then sees this machine's address. See [Local AI](local-ai.md).
 - A Linux package mirror named by an address in 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 or 169.254.0.0/16 is on your own network and is dialled directly. The shipped catalogue lists no Linux packages, so this applies only to a build that names such a mirror.
 - The Settings note under `Default network` says it is what "Qwen downloads take", and a comment in the source says installs cross the mixnet. Both are older than the rules above: downloads go over Anyone.
-- A Linux program started from the Terminal runs in a role the kernel spawns without the Network [capability](../overview/glossary.md#capability). It can still use loopback and Unix sockets inside its own family. See [Linux programs](linux-programs.md).
+- A Linux program started from the Terminal runs in a role the kernel spawns without the Network [capability](../overview/glossary-boot-root-record.md#capability). It can still use loopback and Unix sockets inside its own family. See [Linux programs](linux-programs.md).
 
 ## How names are looked up
 
@@ -107,7 +107,7 @@ Reads wait longer on purpose through the two anonymity networks: a reader waits 
 
 ## What the kernel does not do
 
-The kernel does not enforce the choice. It requires the Network capability to reach `net.sockets`, `net.nym`, `net.anon`, `net.socks5` and the other network services, but it does not check which one a [capsule](../overview/glossary.md#capsule) uses. Each program keeps the choice through `nonos_route_link`.
+The kernel does not enforce the choice. It requires the Network capability to reach `net.sockets`, `net.nym`, `net.anon`, `net.socks5` and the other network services, but it does not check which one a [capsule](../overview/glossary-boot-root-record.md#capsule) uses. Each program keeps the choice through `nonos_route_link`.
 
 ## What is tested
 

@@ -4,7 +4,7 @@ Part of [Capsule isolation](capsule-isolation.md).
 
 ## The Linux personality's sandbox
 
-The [Linux personality](../overview/glossary.md#linux-personality),
+The [Linux personality](../overview/glossary-linux-personality.md#linux-personality),
 `capsule_linux`, runs unmodified x86_64 Linux programs as guests and answers
 their system calls. [Linux personality](../userland/linux-personality.md) lists
 which calls are served and which are refused.

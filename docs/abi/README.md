@@ -1,8 +1,8 @@
 # The NONOS ABI
 
-The ABI is the contract between a [capsule](../overview/glossary.md#capsule) and
+The ABI is the contract between a [capsule](../overview/glossary-boot-root-record.md#capsule) and
 the NONOS kernel: how a call is made, which number names it, which
-[capability](../overview/glossary.md#capability) admits it, and what comes back.
+[capability](../overview/glossary-boot-root-record.md#capability) admits it, and what comes back.
 
 ## Parts
 

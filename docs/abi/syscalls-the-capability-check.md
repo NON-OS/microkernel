@@ -16,7 +16,7 @@ flowchart TD
 ```
 
 Before any handler runs, `Capability::resolve` takes the caller's [capability
-token](../overview/glossary.md#capability-token) and runs five checks in order
+token](../overview/glossary-boot-root-record.md#capability-token) and runs five checks in order
 (`src/syscall/contract/resolver/resolve.rs:31-43`). `check_token` verifies the
 token's signature, its expiry and that it is not revoked
 (`src/syscall/contract/resolver/check_token.rs:21-32`). `check_session_binding`

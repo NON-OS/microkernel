@@ -24,7 +24,7 @@ working (`src/arch/x86_64/iommu/unit/bringup/run.rs:26-67`):
    `FirmwareOwnsUnit`, rather than take over tables nobody reasons about
    (`src/arch/x86_64/iommu/unit/bringup/run.rs:38-43`).
 2. It builds one root table that every unit shares, and an [identity
-   domain](../overview/glossary.md#identity-domain) with `identity_domain`
+   domain](../overview/glossary-hardware-broker.md#identity-domain) with `identity_domain`
    (`src/arch/x86_64/iommu/unit/bringup/run.rs:46-50`).
 3. The identity domain maps physical memory one to one up to the top of the
    managed range rounded up to 1 GiB, and never less than 4 GiB, as

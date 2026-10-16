@@ -5,7 +5,7 @@ Part of [Syscalls](syscalls.md).
 ### Device broker
 
 These are the calls of the device broker. `MkDeviceClaim` returns a [claim
-epoch](../overview/glossary.md#claim-epoch) that the later calls on the device
+epoch](../overview/glossary-claim-epoch.md#claim-epoch) that the later calls on the device
 pass back. See [Broker](broker.md) for the arguments and the records.
 
 | Tag | Number | Name | Capability | Gate | Meaning |

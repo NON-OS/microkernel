@@ -4,7 +4,7 @@ Part of [Design principles](design-principles.md).
 
 ## Proofs live next to the code
 
-A [proof crate](glossary.md#proof-crate) mounts the shipped source by `#[path]`
+A [proof crate](glossary-peer-list.md#proof-crate) mounts the shipped source by `#[path]`
 and tests it on the host with `cargo test`. For example, `kernel_proofs` mounts
 the kernel's service registry policy (`service_policy` in
 `userland/kernel_proofs/src/lib.rs:136-138`). `nix flake check` runs every

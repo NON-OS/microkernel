@@ -66,9 +66,9 @@ Shipping comments carry no markers of unfinished work. The `hygiene` scan reject
 
 ## Errors, panics and admissions
 
-Shipping code does not panic. The same scan fails on every pattern in `CODE_PATTERNS`: `.unwrap(`, `.expect(`, `panic!`, `todo!(`, `unimplemented!(`, `unreachable!(` and `#[allow(dead_code)]` (`nonos-verify/src/hygiene/patterns.rs:18-26`). Shipping means the trees in `root_dirs`, the kernel, `userland` and four boot and attestation crates, less what `skip` leaves out: build output, [proof crates](../overview/glossary.md#proof-crate), tests, vendored and upstream sources, and `build.rs` files (`nonos-verify/src/hygiene/roots.rs:5-31`). Return an error the caller can act on, and when bring-up cannot go on, say on the console why. The scan fails at this commit; [Tests and proofs](tests-and-proofs.md#state-of-the-checks-at-this-commit) says where.
+Shipping code does not panic. The same scan fails on every pattern in `CODE_PATTERNS`: `.unwrap(`, `.expect(`, `panic!`, `todo!(`, `unimplemented!(`, `unreachable!(` and `#[allow(dead_code)]` (`nonos-verify/src/hygiene/patterns.rs:18-26`). Shipping means the trees in `root_dirs`, the kernel, `userland` and four boot and attestation crates, less what `skip` leaves out: build output, [proof crates](../overview/glossary-peer-list.md#proof-crate), tests, vendored and upstream sources, and `build.rs` files (`nonos-verify/src/hygiene/roots.rs:5-31`). Return an error the caller can act on, and when bring-up cannot go on, say on the console why. The scan fails at this commit; [Tests and proofs](tests-and-proofs.md#state-of-the-checks-at-this-commit) says where.
 
-Three gates hold sites against a [baseline](../overview/glossary.md#baseline) that may only shrink:
+Three gates hold sites against a [baseline](../overview/glossary-amnesic-boot.md#baseline) that may only shrink:
 
 - Lint switches: `MARK` finds every `#[allow(` and `#![allow(` in `src` and `userland`, and each one must be listed in `scripts/baselines/allows.txt` (`scripts/check_allows.py:31-34`).
 - Admissions: `MARK` finds words such as stub, unsupported and not implemented in shipping Rust, and each site must be listed in `scripts/baselines/stubs.txt` (`scripts/check_stubs.py:30-32`). The gate matches words, not intent: a refusal that names the chip it will not drive passes, and one that says "not implemented" is listed.

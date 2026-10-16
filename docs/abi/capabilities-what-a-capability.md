@@ -4,18 +4,18 @@ Part of [Capabilities](capabilities.md).
 
 ## What a capability is
 
-A [capability](../overview/glossary.md#capability) is one bit in a 64-bit mask,
-the process's [capability word](../overview/glossary.md#capability-word).
+A [capability](../overview/glossary-boot-root-record.md#capability) is one bit in a 64-bit mask,
+the process's [capability word](../overview/glossary-boot-root-record.md#capability-word).
 `capability_table!` is the one list of them, with the bit each occupies
 (`src/capabilities/types/defs.rs:19-75`), and `count` is derived from that list
 rather than written down (`src/capabilities/types/table.rs:39-43`). A capsule's
-[capability token](../overview/glossary.md#capability-token) carries the
+[capability token](../overview/glossary-boot-root-record.md#capability-token) carries the
 capabilities it holds as `permissions`
 (`src/capabilities/token/types/defs.rs:22-25`), and the syscall gates ask the
 token. The kernel installs a capsule's mask when it starts it, with
 `install_caps`
 (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:99-100`).
-On a [boot profile](../overview/glossary.md#boot-profile) that runs no network,
+On a [boot profile](../overview/glossary-amnesic-boot.md#boot-profile) that runs no network,
 `caps` removes `Network` from every capsule's mask
 (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
 

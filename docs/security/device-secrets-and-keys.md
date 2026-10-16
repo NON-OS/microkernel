@@ -4,10 +4,10 @@ Where NONOS keeps secrets, what protects each one, what is lost at power off, an
 
 ## The short version
 
-- The keys that protect data across boots are derived from the [TPM](../overview/glossary.md#tpm) on demand and never stored. The same machine in the same boot state gets the same key; any other machine or boot state gets a different one.
+- The keys that protect data across boots are derived from the [TPM](../overview/glossary-stark-proof.md#tpm) on demand and never stored. The same machine in the same boot state gets the same key; any other machine or boot state gets a different one.
 - Key records in the keyring live in RAM and are gone at reboot. The wallet's sealed records are the exception, and they open only on this machine.
-- On an installed disk, the [data volume](../overview/glossary.md#data-volume) is encrypted per sector. On a live boot it lives in RAM under a key made for that boot.
-- The capsule store on the NONOS disk, the [package store](../overview/glossary.md#package-store), is not encrypted. A file persisted there is readable by anyone who holds the disk, unless the [capsule](../overview/glossary.md#capsule) that wrote it sealed it first.
+- On an installed disk, the [data volume](../overview/glossary-claim-epoch.md#data-volume) is encrypted per sector. On a live boot it lives in RAM under a key made for that boot.
+- The capsule store on the NONOS disk, the [package store](../overview/glossary-linux-personality.md#package-store), is not encrypted. A file persisted there is readable by anyone who holds the disk, unless the [capsule](../overview/glossary-boot-root-record.md#capsule) that wrote it sealed it first.
 - An orderly shutdown or reboot wipes process memory, kernel stacks, the kernel's key vault and its heap, but not the data volume key, the token MAC key or a live boot's in-memory volume. In 0.9.2 only the installer's restart runs it. A panic, a forced power-off or a power cut wipes nothing.
 
 ```mermaid
@@ -22,13 +22,13 @@ flowchart LR
     RNG --> SK["Shield store key"]
 ```
 
-The TPM produces the [machine key](../overview/glossary.md#machine-key), from which the data volume key, the vault root and the key for the saved Wi-Fi list come. The vault root in turn keys the keyring's sealed records. The RNG produces the keys that live for one boot only: the live boot volume key, the token MAC key and the Shield store key.
+The TPM produces the [machine key](../overview/glossary-linux-personality.md#machine-key), from which the data volume key, the vault root and the key for the saved Wi-Fi list come. The vault root in turn keys the keyring's sealed records. The RNG produces the keys that live for one boot only: the live boot volume key, the token MAC key and the Shield store key.
 
 ## The machine key
 
-`derive` asks the TPM for a key in this order: start a policy session, fold the current [PCRs](../overview/glossary.md#pcr) into it, read the policy digest, create a primary key whose template carries that digest, run an HMAC over the caller's label, then flush the key and the session (`src/security/tpm/machine_key/derive.rs:43-63`). The result is 32 bytes. Nothing is written to disk to make it repeatable.
+`derive` asks the TPM for a key in this order: start a policy session, fold the current [PCRs](../overview/glossary-linux-personality.md#pcr) into it, read the policy digest, create a primary key whose template carries that digest, run an HMAC over the caller's label, then flush the key and the session (`src/security/tpm/machine_key/derive.rs:43-63`). The result is 32 bytes. Nothing is written to disk to make it repeatable.
 
-- The policy covers `BOUND_PCRS`, PCR 0, 4, 7 and 9: firmware code, the boot manager the firmware measured, the [Secure Boot](../overview/glossary.md#secure-boot) policy and the kernel hash the bootloader extends (`src/security/tpm/machine_key/pcrs.rs:21-24`). PCR 1 and 3 are left out on purpose, so a changed boot order does not lose the key.
+- The policy covers `BOUND_PCRS`, PCR 0, 4, 7 and 9: firmware code, the boot manager the firmware measured, the [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) policy and the kernel hash the bootloader extends (`src/security/tpm/machine_key/pcrs.rs:21-24`). PCR 1 and 3 are left out on purpose, so a changed boot order does not lose the key.
 - The primary key lives under the storage hierarchy, `TPM_RH_OWNER`, whose seed changes when the TPM is cleared (`src/security/tpm/machine_key/consts.rs:30-35`). Clearing the TPM therefore destroys every machine key and everything sealed under one.
 - `OBJECT_ATTRIBUTES` leaves out `userWithAuth`, so only the PCR policy authorises the key, not an empty password (`src/security/tpm/machine_key/consts.rs:44-47`).
 - A label is 1 to `LABEL_MAX` bytes, 64 (`src/security/tpm/machine_key/consts.rs:54-55`).
@@ -49,11 +49,11 @@ Settings shows what the TPM answered on its Security page, for example `From the
 
 ## The device secret
 
-The anonymous device proof uses a second TPM-derived value, the [device secret](../overview/glossary.md#device-secret). `sys_device_secret` asks the TPM for it on every call and keeps no copy (`src/syscall/microkernel/device_proof/device_secret.rs:35-67`). `device_secret_caller` hands it only to a capsule that holds `DeviceSecret` and whose authority is the vendor root; a developer root, a third-party [publisher](../overview/glossary.md#publisher) or software built on the machine is refused even with the bit (`src/syscall/microkernel/device_proof/gate.rs:28-36`). [STARK attestation](stark-attestation.md) describes the proof.
+The anonymous device proof uses a second TPM-derived value, the [device secret](../overview/glossary-claim-epoch.md#device-secret). `sys_device_secret` asks the TPM for it on every call and keeps no copy (`src/syscall/microkernel/device_proof/device_secret.rs:35-67`). `device_secret_caller` hands it only to a capsule that holds `DeviceSecret` and whose authority is the vendor root; a developer root, a third-party [publisher](../overview/glossary-peer-list.md#publisher) or software built on the machine is refused even with the bit (`src/syscall/microkernel/device_proof/gate.rs:28-36`). [STARK attestation](stark-attestation.md) describes the proof.
 
 ## The keyring
 
-The keyring capsule, `capsule_keyring`, stores key records for the capsules that use it and signs with the wallet's keys. Its [manifest](../overview/glossary.md#manifest) asks for `IPC`, `Memory` and `Crypto` only, `CAPSULE_REQUIRED_CAPS := 0x38` (`userland/capsule_keyring/Capsule.mk:17`), so it has no file system, network or device access.
+The keyring capsule, `capsule_keyring`, stores key records for the capsules that use it and signs with the wallet's keys. Its [manifest](../overview/glossary-linux-personality.md#manifest) asks for `IPC`, `Memory` and `Crypto` only, `CAPSULE_REQUIRED_CAPS := 0x38` (`userland/capsule_keyring/Capsule.mk:17`), so it has no file system, network or device access.
 
 - Records live in a `Store` in the capsule's memory and are gone at reboot (`userland/capsule_keyring/src/store/types/store.rs:20-23`).
 - The store holds `MAX_KEYS`, 128 records, and at most `MAX_KEYS_PER_OWNER`, 16, for one capsule (`userland/capsule_keyring/src/store/types/constants.rs:17-21`).
@@ -88,13 +88,13 @@ What a sealed record does not do, by design (`userland/nonos_vault/src/lib.rs`):
 
 ## The data volume
 
-On an installed disk the data volume lies past the [disk plan](../overview/glossary.md#disk-plan). `PLAN_LBA` is sector 245760, 120 MiB in, and nothing the plan names starts below `DATA_FLOOR`, 128 MiB in (`src/fs/blockfs_volume/plan_types.rs:35-39`). The capsule store sits below the plan.
+On an installed disk the data volume lies past the [disk plan](../overview/glossary-claim-epoch.md#disk-plan). `PLAN_LBA` is sector 245760, 120 MiB in, and nothing the plan names starts below `DATA_FLOOR`, 128 MiB in (`src/fs/blockfs_volume/plan_types.rs:35-39`). The capsule store sits below the plan.
 
 Every 512-byte sector is sealed on its own. `seal` draws a random 12-byte nonce and encrypts 484 bytes with ChaCha20-Poly1305 under associated data made of `AAD_PREFIX` and the sector's LBA (`src/fs/cryptoblock/seal.rs:22-48`). A sector moved to another LBA, or altered, fails its tag, and `open_sealed` writes nothing for it (`src/fs/cryptoblock/sector_open.rs:41-73`).
 
 The key comes from the TPM. `open_machine_volume` derives it under `KEY_LABEL` with `derive_for_kernel` (`src/fs/blockfs_volume/open_machine.rs:42-82`). If the TPM gives no key the volume stays closed: `open_machine_volume` returns `VolumeError::MachineKey` and passes `[DATA] no machine key (...); the data volume stays closed` to the kernel's structured log (`src/fs/blockfs_volume/open_machine.rs:75-78`), which nothing installs in this release, so the line is dropped. The installer checks this first and says when the installed data volume would stay closed (`text` in `userland/capsule_install/src/install/source/tpm.rs:50-58`).
 
-Because the key is bound to PCR 0, 4, 7 and 9, a firmware update, a change to Secure Boot settings, a different bootloader or a different kernel gives a different key. `mount_or_format` then refuses to format over the volume and returns `VolumeError::Unopenable` (`src/fs/blockfs_volume/mount_or_format.rs:54-77`). Its line `[DATA] the volume holds data this key cannot open; not formatting over it` goes to the same structured log and is dropped. What does print is the answer a program gets when it asks for the volume: EIO, with `[DATA] refused with EIO: Unopenable` on the [serial console](../overview/glossary.md#serial-console), or `MachineKey(...)` in place of `Unopenable` when the TPM gave no key (`errno` in `src/syscall/microkernel/data/errno.rs:30-53`). This release has no step that moves a TPM-keyed volume to a new key.
+Because the key is bound to PCR 0, 4, 7 and 9, a firmware update, a change to Secure Boot settings, a different bootloader or a different kernel gives a different key. `mount_or_format` then refuses to format over the volume and returns `VolumeError::Unopenable` (`src/fs/blockfs_volume/mount_or_format.rs:54-77`). Its line `[DATA] the volume holds data this key cannot open; not formatting over it` goes to the same structured log and is dropped. What does print is the answer a program gets when it asks for the volume: EIO, with `[DATA] refused with EIO: Unopenable` on the [serial console](../overview/glossary-rollback-index.md#serial-console), or `MachineKey(...)` in place of `Unopenable` when the TPM gave no key (`errno` in `src/syscall/microkernel/data/errno.rs:30-53`). This release has no step that moves a TPM-keyed volume to a new key.
 
 The kernel can also key the volume with a passphrase. `sys_data_passphrase` takes 1 to `PASSPHRASE_MAX` bytes, 256, and at least `CREATE_MIN`, 8, to create one, and wipes its copy afterwards (`src/syscall/microkernel/data/passphrase.rs:31-60`). The passphrase is stretched with Argon2id at `RECOMMENDED` settings: 64 MiB of memory, 3 passes and a parallelism of 4 (`src/crypto/util/argon2/params.rs:27-30`). No capsule in this release calls the libc wrapper `mk_data_volume_passphrase` (`userland/libc/src/data.rs:50-56`), and the setup wizard says there is no passphrase-keyed volume (`WHY` in `userland/capsule_setup_wizard/src/render/screens/mode.rs:21-31`).
 
@@ -104,7 +104,7 @@ Reading the volume takes `FileSystem`; importing into it takes `StoreWrite` and 
 
 ## The capsule store is not encrypted
 
-`sys_store_write` writes the bytes it is given to the disk, at LBA 256 or above and below the plan, and needs `StoreWrite` (`src/syscall/microkernel/store_write.rs:24-42`). The file service persists a file only when the policy field `Persistent` is set, which first-boot setup records when the person chooses to keep state. `require_persistent` refuses every other persist (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`). An allowed file is written with `append` as it is (`userland/capsule_vfs/src/server/handlers/store_persist.rs:57-63`). On an [amnesic boot](../overview/glossary.md#amnesic-boot) nothing is persisted.
+`sys_store_write` writes the bytes it is given to the disk, at LBA 256 or above and below the plan, and needs `StoreWrite` (`src/syscall/microkernel/store_write.rs:24-42`). The file service persists a file only when the policy field `Persistent` is set, which first-boot setup records when the person chooses to keep state. `require_persistent` refuses every other persist (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`). An allowed file is written with `append` as it is (`userland/capsule_vfs/src/server/handlers/store_persist.rs:57-63`). On an [amnesic boot](../overview/glossary-amnesic-boot.md#amnesic-boot) nothing is persisted.
 
 On an installed system, a file persisted to the store is in the clear on the disk unless its capsule sealed it. The saved Wi-Fi list is sealed with the machine key, and the wallet's account key and recovery words are sealed by the keyring.
 
@@ -112,7 +112,7 @@ On an installed system, a file persisted to the store is in the clear on the dis
 
 | Secret | Where it comes from |
 |---|---|
-| The [capability token](../overview/glossary.md#capability-token) MAC key | 32 bytes from the kernel generator, `init_token_signing_key` (`src/kernel_core/init/platform/token_signing_key.rs:19-31`) |
+| The [capability token](../overview/glossary-boot-root-record.md#capability-token) MAC key | 32 bytes from the kernel generator, `init_token_signing_key` (`src/kernel_core/init/platform/token_signing_key.rs:19-31`) |
 | The boot session nonce bound into every token | 16 bytes from the same generator, `init_once_from_rng` (`src/security/boot_session.rs:33-42`) |
 | Keyring records, apart from the two wallet records it seals | the keyring's `Store` (`userland/capsule_keyring/src/store/types/store.rs:20-23`) |
 | The Shield store and its file key | `session` (`userland/capsule_shield/src/guard.rs:39-47`) |

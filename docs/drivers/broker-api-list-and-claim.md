@@ -13,7 +13,7 @@ does; the device list holds ACPI and fabricated records as well as PCI functions
 (`userland/capsule_driver_virtio_rng/src/discover/find.rs:22-24`).
 
 `mk_device_claim(device_id)` returns the [claim
-epoch](../overview/glossary.md#claim-epoch) or a negative errno, and
+epoch](../overview/glossary-claim-epoch.md#claim-epoch) or a negative errno, and
 `sys_device_claim` answers -19 for an unknown device, -16 when another process
 holds it and -1 when the device cannot be confined
 (`src/syscall/microkernel/device.rs:67-82`). The broker's `claim` does four
@@ -22,7 +22,7 @@ things in order (`src/hardware/broker/claim/claim.rs:23-45`):
 1. It refuses a device someone already holds and records the caller with a fresh
    epoch.
 2. It attaches a PCI device to the caller's own [IOMMU
-   domain](../overview/glossary.md#iommu-domain) through `attach`, which gives a
+   domain](../overview/glossary-hardware-broker.md#iommu-domain) through `attach`, which gives a
    record with no PCI address, such as the PS/2 or an ACPI I2C record, no domain
    (`src/hardware/broker/confine/attach.rs:30-101`).
 3. It brings a PCI function to power state D0 with `power_on_device`, because

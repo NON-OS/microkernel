@@ -1,10 +1,10 @@
 # Realtek RTL8821CE
 
-The RTL8821CE driver [capsule](../../overview/glossary.md#capsule) runs the Wi-Fi function of the Realtek RTL8821CE PCIe card on 2.4 GHz: it scans, joins WPA2 and WPA3 networks and carries traffic for `net.core`.
+The RTL8821CE driver [capsule](../../overview/glossary-boot-root-record.md#capsule) runs the Wi-Fi function of the Realtek RTL8821CE PCIe card on 2.4 GHz: it scans, joins WPA2 and WPA3 networks and carries traffic for `net.core`.
 
 ## What works
 
-Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic). Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic). Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
 
 The rest of this page is read from the code and from the host tests in `rtl8821ce_proofs` and `nonos_wifi_core_proofs`. Those cover WPA3-SAE, PSK-SHA256, group rekeys, deauthentication and the hidden-network probe. The hardware report does not say which security its join used.
 
@@ -16,7 +16,7 @@ The kernel starts the capsule only when the boot PCI scan found 10ec:c821 (`src/
 
 ## Authority
 
-The [manifest](../../overview/glossary.md#manifest) asks for the [capability](../../overview/glossary.md#capability-word) mask 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with Debug (0x100) optional (`userland/capsule_driver_rtl8821ce/Capsule.mk:26-29`, `CAPSULE_REQUIRED_CAPS`, `CAPSULE_OPTIONAL_CAPS`). The kernel's spawn request matches it and adds Debug only through `serial_debug_cap` (`src/hardware/rtl8821ce_capsule/spawn.rs:50-60`, `requested_caps`), which returns Debug only in a build with the `capsule-serial-debug` feature (`src/capabilities/serial_debug.rs:37-50`, `serial_debug_cap`).
+The [manifest](../../overview/glossary-linux-personality.md#manifest) asks for the [capability](../../overview/glossary-boot-root-record.md#capability-word) mask 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with Debug (0x100) optional (`userland/capsule_driver_rtl8821ce/Capsule.mk:26-29`, `CAPSULE_REQUIRED_CAPS`, `CAPSULE_OPTIONAL_CAPS`). The kernel's spawn request matches it and adds Debug only through `serial_debug_cap` (`src/hardware/rtl8821ce_capsule/spawn.rs:50-60`, `requested_caps`), which returns Debug only in a build with the `capsule-serial-debug` feature (`src/capabilities/serial_debug.rs:37-50`, `serial_debug_cap`).
 
 - No Irq: the driver polls its rings and binds no interrupt.
 - Crypto is there for `CryptoRandom`, which draws the station address, the handshake nonce and the SAE secrets.
@@ -104,7 +104,7 @@ The capsule links `rtw8821c_fw.bin` from `nonos-bootloader/firmware/realtek/` wi
 
 ## Reading what the driver did
 
-On a build that grants Debug, the driver writes one [serial console](../../overview/glossary.md#serial-console) line per bring-up step through `mk_debug` (`userland/capsule_driver_rtl8821ce/src/status.rs:32-33`, `line`). The standard profile keeps the `capsule-serial-debug` feature that grants it, and the hardened profile drops it (`tools/nix/config.nix:69-85`, `debugFeatures`). The Terminal's `log` command shows the kernel's recent lines and keeps only those naming the words you give (`userland/capsule_terminal/src/command/builtin/log.rs:18-21`, `mk_log_tail`):
+On a build that grants Debug, the driver writes one [serial console](../../overview/glossary-rollback-index.md#serial-console) line per bring-up step through `mk_debug` (`userland/capsule_driver_rtl8821ce/src/status.rs:32-33`, `line`). The standard profile keeps the `capsule-serial-debug` feature that grants it, and the hardened profile drops it (`tools/nix/config.nix:69-85`, `debugFeatures`). The Terminal's `log` command shows the kernel's recent lines and keeps only those naming the words you give (`userland/capsule_terminal/src/command/builtin/log.rs:18-21`, `mk_log_tail`):
 
 ```sh
 log rtl8821ce

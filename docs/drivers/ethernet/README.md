@@ -1,6 +1,6 @@
 # Ethernet drivers
 
-NONOS carries wired traffic through one driver [capsule](../../overview/glossary.md#capsule) per card family; this page lists every Ethernet driver in the tree, says which ones are in the image, shows how a frame reaches `net.core`, and describes the receive fault the three PCI drivers carry in 0.9.2.
+NONOS carries wired traffic through one driver [capsule](../../overview/glossary-boot-root-record.md#capsule) per card family; this page lists every Ethernet driver in the tree, says which ones are in the image, shows how a frame reaches `net.core`, and describes the receive fault the three PCI drivers carry in 0.9.2.
 
 ## Drivers at a glance
 
@@ -38,11 +38,11 @@ flowchart LR
   Broker --> Card["PCI network card"]
 ```
 
-Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through [grants](../../overview/glossary.md#grant) from the [hardware broker](../../overview/glossary.md#hardware-broker): a device claim, a register mapping or port range, and DMA buffers.
+Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through [grants](../../overview/glossary-dma-pool.md#grant) from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker): a device claim, a register mapping or port range, and DMA buffers.
 
 Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is where they part. `net.core` and the virtio driver use it for a receive batch (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); e1000, RTL8139 and RTL8169 use it for a register snapshot (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`).
 
-The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary.md#held-endpoint).
+The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint).
 
 `net.core` binds the first candidate whose link answers up. Wi-Fi comes first, then `driver.virtio_net0`, `driver.e1000_0`, `driver.rtl8169_0` and `driver.rtl8139_0`, then the USB drivers (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`). The e1000e and igc capsules are not on that list.
 
@@ -84,13 +84,13 @@ The flake check `proofs-virtio_net_proofs` passed with 20 tests on this commit.
 
 - The desktop base, which every desktop image builds on, carries virtio-net (`mk/20-build.mk:1095-1098`, `DESKTOP_BASE_SLUGS`).
 - The full image that `make` builds adds e1000, RTL8139 and RTL8169, with the two Wi-Fi drivers (`Cargo.toml:627-638`, `microkernel-full-gui`).
-- The air-gapped [build profile](../../overview/glossary.md#build-profile) drops every network driver and the whole stack (`tools/nix/config.nix:86-93`, `networkFeatures`).
+- The air-gapped [build profile](../../overview/glossary-boot-root-record.md#build-profile) drops every network driver and the whole stack (`tools/nix/config.nix:86-93`, `networkFeatures`).
 - `nonos-mk-ethernet-prod` builds the desktop with the three wired drivers (`mk/20-build.mk:1145-1155`, `ETHERNET_DRIVER_ARTIFACTS`). No QEMU run target attaches an e1000 or RTL8139 device, so this release has no QEMU run for them.
 - The build includes the capsule makefiles of virtio-net, e1000, RTL8139 and RTL8169 and of no other Ethernet driver (`mk/20-build.mk:532-542`, `capsule_driver_e1000`). The e1000e, igc and USB capsules are therefore in no image.
 
 ## Tests on this commit
 
-Each [proof crate](../../overview/glossary.md#proof-crate) compiles its driver's own source with `#[path]` and runs it on the host against models. The flake runs `cargo test --release` with overflow checks on, then clippy with warnings denied (`tools/nix/checks.nix:85-94`, `testArgs`, `clippy`). None of these tests covers the exchange between `net.core` and a driver, which is where [the receive fault](#the-receive-fault) sits.
+Each [proof crate](../../overview/glossary-peer-list.md#proof-crate) compiles its driver's own source with `#[path]` and runs it on the host against models. The flake runs `cargo test --release` with overflow checks on, then clippy with warnings denied (`tools/nix/checks.nix:85-94`, `testArgs`, `clippy`). None of these tests covers the exchange between `net.core` and a driver, which is where [the receive fault](#the-receive-fault) sits.
 
 | Check | Result |
 |---|---|

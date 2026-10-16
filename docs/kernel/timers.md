@@ -26,7 +26,7 @@ A PC has no register that states the TSC rate for every part. `time_counter_hz` 
 1. CPUID leaves 0x15 and 0x16, read by `get_cpuid_frequency` and accepted between `MIN_FREQUENCY`, 100 MHz, and `MAX_FREQUENCY`, 10 GHz (`src/arch/x86_64/time/tsc/calibration/cpuid.rs:24-37`, `src/arch/x86_64/time/tsc/constants.rs:23-25`). AMD parts and older Intel parts report no rate.
 2. A measurement against the PIT's fixed 1.193182 MHz `PIT_FREQUENCY`: five samples of 50 ms, at least three good ones, and the median wins (`src/arch/x86_64/time/tsc/calibration/pit.rs:24-110`). Every wait is bounded in TSC ticks, so a PIT that is gated off ends the attempt instead of hanging the boot.
 3. Once the ACPI tables are parsed, `calibrate_against_pm_timer` measures against the 3.579545 MHz ACPI PM timer if no rate is known yet (`src/boot/main/core_init/acpi_tables.rs:42-58`). It prints `[TIMER] TSC measured against the ACPI PM timer: N MHz`. `set_counter_hz_if_unknown` only fills an empty rate and never replaces one already latched (`src/time/boot.rs:49-55`).
-4. With no reference at all, the rate is `ASSUMED_HZ`, 2.5 GHz (`src/time/now.rs:26`), and the [serial console](../overview/glossary.md#serial-console) says `[TIMER] no TSC reference (CPUID, PIT, PM timer); rate is a guess`. Time then runs at the wrong speed, but it runs.
+4. With no reference at all, the rate is `ASSUMED_HZ`, 2.5 GHz (`src/time/now.rs:26`), and the [serial console](../overview/glossary-rollback-index.md#serial-console) says `[TIMER] no TSC reference (CPUID, PIT, PM timer); rate is a guess`. Time then runs at the wrong speed, but it runs.
 
 On aarch64 the rate is read from `CNTFRQ_EL0` and is exact.
 
@@ -40,7 +40,7 @@ Three kernel modules keep a rate of their own. All three read the same counter, 
 | `sys::clock` | the wall clock and `MkTimeMonotonic` | the loader's estimate, then the rate of `sys::timer::tsc`, then a fresh CPUID or PIT measurement, through `resolve_tsc_hz` (`src/sys/clock/core/init.rs:22-47`) |
 | `sys::timer::tsc` | short hardware waits, such as the shootdown deadline read through `tsc_frequency` (`src/memory/paging/manager/shootdown/wait.rs:28`) | CPUID or the PIT in `init_default`, else 2.5 GHz (`src/sys/timer/tsc/init.rs:23-55`); a PM timer measurement replaces that guess through `TSC_FREQ_HZ` (`src/boot/main/core_init/acpi_tables.rs:47-49`) |
 
-The pickers and the TSC arithmetic are compiled into the `clock_resolve_proofs` [proof crate](../overview/glossary.md#proof-crate), starting with the `resolve` module (`userland/clock_resolve_proofs/src/lib.rs:6-7`). It passes its 16 tests on this commit.
+The pickers and the TSC arithmetic are compiled into the `clock_resolve_proofs` [proof crate](../overview/glossary-peer-list.md#proof-crate), starting with the `resolve` module (`userland/clock_resolve_proofs/src/lib.rs:6-7`). It passes its 16 tests on this commit.
 
 ## The tick
 
@@ -77,7 +77,7 @@ At boot `sys::clock` takes its epoch from the loader's UEFI time, else from the 
 | `MkTimeRtc` | `0x5452544D` | the RTC date and time as year, month, day, hour, minute, second; -61 with no RTC |
 | `MkTimeAdjust` | `0x4441544D` | sets the correction so the wall clock reads `correct_ms`; -22 for a value before 2025-01-01 or after 2100-01-01 |
 
-The numbers are the [syscall tags](../overview/glossary.md#syscall-tag) `SYS_TIME_MILLIS`, `SYS_TIME_MONOTONIC`, `SYS_TIME_RTC` and `SYS_TIME_ADJUST` (`src/syscall/microkernel/numbers.rs:44-47`). The handlers are `sys_time_millis`, `sys_time_monotonic`, `sys_time_rtc` and `sys_time_adjust` (`src/syscall/microkernel/time.rs:33-95`). The first three need only a valid token. `MkTimeAdjust` needs the `TimeSet` [capability](../overview/glossary.md#capability), checked by `can_set_time` (`src/syscall/contract/cap_table/mk_proc.rs:36`, `abi/syscalls.toml:850-854`). The kernel has no network time client of its own; a [capsule](../overview/glossary.md#capsule) that holds `TimeSet` can correct the clock.
+The numbers are the [syscall tags](../overview/glossary-stark-proof.md#syscall-tag) `SYS_TIME_MILLIS`, `SYS_TIME_MONOTONIC`, `SYS_TIME_RTC` and `SYS_TIME_ADJUST` (`src/syscall/microkernel/numbers.rs:44-47`). The handlers are `sys_time_millis`, `sys_time_monotonic`, `sys_time_rtc` and `sys_time_adjust` (`src/syscall/microkernel/time.rs:33-95`). The first three need only a valid token. `MkTimeAdjust` needs the `TimeSet` [capability](../overview/glossary-boot-root-record.md#capability), checked by `can_set_time` (`src/syscall/contract/cap_table/mk_proc.rs:36`, `abi/syscalls.toml:850-854`). The kernel has no network time client of its own; a [capsule](../overview/glossary-boot-root-record.md#capsule) that holds `TimeSet` can correct the clock.
 
 ## Present but not used
 

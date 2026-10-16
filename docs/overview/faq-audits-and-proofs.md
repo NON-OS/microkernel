@@ -5,7 +5,7 @@ Part of [FAQ](faq.md).
 ## Audits and proofs
 
 This release claims no independent security audit. What it has is [proof
-crates](glossary.md#proof-crate) that test the shipped kernel and capsule source
+crates](glossary-peer-list.md#proof-crate) that test the shipped kernel and capsule source
 on the host, run by `nix flake check`; Lean 4 models in `verification/lean/`;
 and a list of everything NONOS trusts without proof,
 [verification/ASSUMPTIONS.md](../../verification/ASSUMPTIONS.md). [Design

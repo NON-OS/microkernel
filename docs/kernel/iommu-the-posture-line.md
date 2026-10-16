@@ -49,7 +49,7 @@ here.
 
 ## Tests
 
-The [proof crate](../overview/glossary.md#proof-crate) `userland/kernel_proofs`
+The [proof crate](../overview/glossary-peer-list.md#proof-crate) `userland/kernel_proofs`
 compiles the DMAR scope parser (`userland/kernel_proofs/src/dmar_scope/mod.rs`),
 the IVRS walk (`userland/kernel_proofs/src/firmware_iommu/mod.rs`), the
 confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`) and

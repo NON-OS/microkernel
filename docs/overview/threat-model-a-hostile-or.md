@@ -4,12 +4,12 @@ Part of [Threat model](threat-model.md).
 
 ### A hostile or faulty device
 
-On Intel VT-d machines the [IOMMU](glossary.md#iommu) confines device DMA. Every
+On Intel VT-d machines the [IOMMU](glossary-hardware-broker.md#iommu) confines device DMA. Every
 image turns translation on at boot, and a device the boot PCI scan did not find,
 such as a card added later, is denied (`bring_up` in
 `src/arch/x86_64/iommu/unit/bringup/run.rs:26-36`). When a driver claims a
 device that a unit in service covers, the broker puts it in the [IOMMU
-domain](glossary.md#iommu-domain) of that driver capsule, so it reaches only
+domain](glossary-hardware-broker.md#iommu-domain) of that driver capsule, so it reaches only
 what that capsule was granted, and refuses a claim the unit cannot confine
 (`attach` in `src/hardware/broker/confine/attach.rs:30-101`,
 `unconfined_allowed` in `src/hardware/broker/confine/posture.rs:17-50`). A
@@ -22,10 +22,10 @@ rest of memory is (`quiesce_all_devices` in
 ### An observer on the network
 
 The browser, the Terminal and the wallet connect through the [Nym
-mixnet](glossary.md#nym-mixnet) by default, and Direct is used only when the
+mixnet](glossary-linux-personality.md#nym-mixnet) by default, and Direct is used only when the
 person chose it (`pick` in `userland/nonos_route_link/src/pick.rs:125-139`).
 Downloads for an install go over the [Anyone
-network](glossary.md#anyone-network) whatever the default (`install_route` in
+network](glossary-amnesic-boot.md#anyone-network) whatever the default (`install_route` in
 `userland/nonos_route_link/src/pick.rs:49-63`), except a model the person asks
 to download direct, with `qwen get --direct` or `d` on its Marketplace card
 (`DIRECT_WORD` in `userland/capsule_model_fetch/src/get/run.rs:42`). The
@@ -48,7 +48,7 @@ only sealed sectors. The package store beside it is not encrypted, so the files
 kept there, setup's answers among them, can be read from the disk, apart from
 records their capsule sealed (`append` in
 `userland/capsule_vfs/src/blk/store_write.rs:39-84`). The TPM derives the volume
-key from a seed it never releases and the current boot [PCRs](glossary.md#pcr),
+key from a seed it never releases and the current boot [PCRs](glossary-linux-personality.md#pcr),
 and stores nothing, so the same disk in another machine, or the same machine in
 another boot state, gets a different key (`TPM2_HMAC` in
 `src/security/tpm/machine_key/mod.rs:17-31`).

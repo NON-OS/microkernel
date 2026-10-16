@@ -5,10 +5,10 @@ Part of [Syscalls](syscalls.md).
 ### Storage and the data volume
 
 The store calls read and write the [package
-store](../overview/glossary.md#package-store), the part of the disk from sector
-256 up to the [disk plan](../overview/glossary.md#disk-plan). The data calls
+store](../overview/glossary-linux-personality.md#package-store), the part of the disk from sector
+256 up to the [disk plan](../overview/glossary-claim-epoch.md#disk-plan). The data calls
 work on files in the encrypted [data
-volume](../overview/glossary.md#data-volume) the plan names.
+volume](../overview/glossary-claim-epoch.md#data-volume) the plan names.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|

@@ -1,6 +1,6 @@
 # Writing a driver
 
-A [driver capsule](../overview/glossary.md#driver-capsule) from scratch, built step by step on the real `capsule_driver_virtio_rng`, from its [manifest](../overview/glossary.md#manifest) to its [proof crate](../overview/glossary.md#proof-crate) and the build.
+A [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) from scratch, built step by step on the real `capsule_driver_virtio_rng`, from its [manifest](../overview/glossary-linux-personality.md#manifest) to its [proof crate](../overview/glossary-peer-list.md#proof-crate) and the build.
 
 ## What you build
 
@@ -11,11 +11,11 @@ A new driver adds these pieces. Every path is virtio-rng's copy.
 | Piece | Where | What it is |
 |---|---|---|
 | Crate | `userland/capsule_driver_virtio_rng/` | the `no_std` program |
-| Manifest | `userland/capsule_driver_virtio_rng/Capsule.mk` | identity, endpoints, [capability word](../overview/glossary.md#capability-word) |
+| Manifest | `userland/capsule_driver_virtio_rng/Capsule.mk` | identity, endpoints, [capability word](../overview/glossary-boot-root-record.md#capability-word) |
 | Contract | `userland/capsule_driver_virtio_rng/README.md` | the sections the static checks require |
-| [Kernel mirror](../overview/glossary.md#kernel-mirror) | `src/hardware/virtio_rng_capsule/` | embed, spawn and the kernel's client |
+| [Kernel mirror](../overview/glossary-hardware-broker.md#kernel-mirror) | `src/hardware/virtio_rng_capsule/` | embed, spawn and the kernel's client |
 | Spawn | `src/userspace/init/spawn_plan/drivers_virtio_io.rs` | when the kernel starts it |
-| Who may send | `src/services/registry/held_table.rs` | the [endpoint](../overview/glossary.md#endpoint)'s allowed callers |
+| Who may send | `src/services/registry/held_table.rs` | the [endpoint](../overview/glossary-dma-pool.md#endpoint)'s allowed callers |
 | Proof crate | `userland/virtio_rng_proofs/` | host tests on the shipping source |
 
 ```mermaid
@@ -32,7 +32,7 @@ The program starts in `_start`: `find_virtio_rng` looks for the device, `bring_u
 
 ## 1. The crate
 
-The crate is a `no_std`, `no_main` binary named `driver_virtio_rng` with `_start` as its entry (`userland/capsule_driver_virtio_rng/src/main.rs:17-36`). It depends on `nonos_libc` for every system call and on `nonos_virtio` for the virtio 1.0 transport (`userland/capsule_driver_virtio_rng/Cargo.toml:17-23`). It reaches hardware only through the [hardware broker](../overview/glossary.md#hardware-broker); the static checks refuse a `crate::drivers` import in this crate, through `capsule_kernel_drivers` (`nonos-ci/run-static-checks.sh:476-483`).
+The crate is a `no_std`, `no_main` binary named `driver_virtio_rng` with `_start` as its entry (`userland/capsule_driver_virtio_rng/src/main.rs:17-36`). It depends on `nonos_libc` for every system call and on `nonos_virtio` for the virtio 1.0 transport (`userland/capsule_driver_virtio_rng/Cargo.toml:17-23`). It reaches hardware only through the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker); the static checks refuse a `crate::drivers` import in this crate, through `capsule_kernel_drivers` (`nonos-ci/run-static-checks.sh:476-483`).
 
 ## 2. The manifest
 
@@ -132,7 +132,7 @@ pub fn run() -> Result<Driver, &'static str> {
 }
 ```
 
-`claim` keeps the [claim epoch](../overview/glossary.md#claim-epoch) that `mk_device_claim` returns, and every later call passes it (`userland/capsule_driver_virtio_rng/src/setup/claim.rs:24-30`). `transport::probe` then picks legacy or modern virtio from configuration space, which only the holder may read (`userland/capsule_driver_virtio_rng/src/transport/probe.rs:29-40`). When any later step fails, `mk_device_release` takes every grant with the claim, so the next attempt can claim afresh.
+`claim` keeps the [claim epoch](../overview/glossary-claim-epoch.md#claim-epoch) that `mk_device_claim` returns, and every later call passes it (`userland/capsule_driver_virtio_rng/src/setup/claim.rs:24-30`). `transport::probe` then picks legacy or modern virtio from configuration space, which only the holder may read (`userland/capsule_driver_virtio_rng/src/transport/probe.rs:29-40`). When any later step fails, `mk_device_release` takes every grant with the claim, so the next attempt can claim afresh.
 
 ## 6. Registers
 
@@ -164,7 +164,7 @@ pub fn map_queue(
 }
 ```
 
-The device is given `device_addr`, never `user_va`: the driver writes through `user_va`, and the device reaches the same frames at `device_addr`, an IOVA inside the capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) or the physical address when there is none (`src/hardware/broker/dma/map/transaction.rs:47-65`).
+The device is given `device_addr`, never `user_va`: the driver writes through `user_va`, and the device reaches the same frames at `device_addr`, an IOVA inside the capsule's [IOMMU domain](../overview/glossary-hardware-broker.md#iommu-domain) or the physical address when there is none (`src/hardware/broker/dma/map/transaction.rs:47-65`).
 
 ## 8. Polling, or interrupts
 
@@ -211,7 +211,7 @@ The header is magic, version, op, flags, a reserved word, request id and payload
 
 The kernel mirror is a module under `src/hardware/`, declared in `src/hardware/mod.rs` as `virtio_rng_capsule` (`src/hardware/mod.rs:35`). It holds:
 
-- `embed.rs`: the ELF, certificate, manifest and [attestation trailer](../overview/glossary.md#attestation-trailer) behind the Cargo feature, as `DRIVER_VIRTIO_RNG_ELF` and its siblings, and empty slices without it (`src/hardware/virtio_rng_capsule/embed.rs:23-52`).
+- `embed.rs`: the ELF, certificate, manifest and [attestation trailer](../overview/glossary-amnesic-boot.md#attestation-trailer) behind the Cargo feature, as `DRIVER_VIRTIO_RNG_ELF` and its siblings, and empty slices without it (`src/hardware/virtio_rng_capsule/embed.rs:23-52`).
 - `spawn.rs`: `spawn_driver_virtio_rng_capsule` fills a `CapsuleSpecVerified` with the endpoints and `requested_caps` and calls `spawn_verified` (`src/hardware/virtio_rng_capsule/spawn.rs:37-63`). Its `requested_caps` must stay inside the manifest or the spawn is refused, and `check_mirror_caps.py` holds `requested_caps` to the manifest on the host (`scripts/check_mirror_caps.py:17-30`).
 - `client/`: the kernel's side of the protocol. `round_trip` sends one request and waits for its reply under a lock (`src/hardware/virtio_rng_capsule/client/transport.rs:37-52`), and `gate_read` refuses the call when the current process does not hold `CAP_DRIVER` (`src/hardware/virtio_rng_capsule/capability.rs:25-34`).
 

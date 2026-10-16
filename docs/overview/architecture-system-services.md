@@ -5,7 +5,7 @@ Part of [Architecture](architecture.md).
 ## System services
 
 System services are capsules that other capsules reach by name over IPC: the
-[file store](glossary.md#file-store) (`vfs`, `ramfs`), keys and randomness
+[file store](glossary-dma-pool.md#file-store) (`vfs`, `ramfs`), keys and randomness
 (`keyring`, `entropy`, `crypto`), settings (`policy`), attestation (`attest`),
 the network stack (`net.core` and `net.sockets` on the desktop images), the
 anonymity transports (`net.nym`, `net.anon`, `net.socks5`), audio, input
@@ -22,7 +22,7 @@ the machine takes the Network bit as well as IPC (`NETWORK_SERVICES` in
 `src/services/registry/policy.rs:19-45`).
 
 [IPC services](../userland/ipc-services.md) lists them with their
-[endpoints](glossary.md#endpoint), [IPC](../kernel/ipc.md) covers the kernel
+[endpoints](glossary-dma-pool.md#endpoint), [IPC](../kernel/ipc.md) covers the kernel
 side, and [How the Nym and Anyone transports are
 built](../security/anonymity-transports.md) covers `net.nym` and `net.anon`.
 
@@ -31,14 +31,14 @@ built](../security/anonymity-transports.md) covers `net.nym` and `net.anon`.
 Apps are capsules as well: the terminal, files, the text editor, settings, the
 browser, the wallet, the marketplace, the media players and the rest of the
 desktop. So is each command-line tool the Terminal starts, such as `tokei` or
-`csview`. At spawn, an app's [capability word](glossary.md#capability-word)
-holds the required bits its [manifest](glossary.md#manifest) declares, plus
+`csview`. At spawn, an app's [capability word](glossary-boot-root-record.md#capability-word)
+holds the required bits its [manifest](glossary-linux-personality.md#manifest) declares, plus
 those of its optional bits the spawning code allows, and nothing else
 (`install_caps` in `src/security/capsule_manifest/verify/caps_bits.rs:38-47`).
 The kernel installs the word at spawn from the verified manifest
 (`spawn_verified` in
 `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:25-33`). On an
-Air-Gapped, Safe Mode or Recovery boot, the [spawn gate](glossary.md#spawn-gate)
+Air-Gapped, Safe Mode or Recovery boot, the [spawn gate](glossary-rollback-index.md#spawn-gate)
 starts no network driver or service and takes Network from every other capsule
 (`check` and `caps` in
 `src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:17-55`).

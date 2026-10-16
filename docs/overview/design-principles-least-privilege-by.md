@@ -4,10 +4,10 @@ Part of [Design principles](design-principles.md).
 
 ## Least privilege by capability word
 
-Every process holds a [capability word](glossary.md#capability-word), a mask
+Every process holds a [capability word](glossary-boot-root-record.md#capability-word), a mask
 over the 36 capability bits the kernel defines (`capability_table` in
-`src/capabilities/types/defs.rs:21-83`). A [capsule](glossary.md#capsule)'s word
-comes from its signed [manifest](glossary.md#manifest): its required bits, plus
+`src/capabilities/types/defs.rs:21-83`). A [capsule](glossary-boot-root-record.md#capsule)'s word
+comes from its signed [manifest](glossary-linux-personality.md#manifest): its required bits, plus
 those of its optional bits the spawning code allows (`install_caps` in
 `src/security/capsule_manifest/verify/caps_bits.rs:38-47`). At spawn, a grant
 outside the manifest is refused with `GrantOutsideManifest` (`check_grant` in
@@ -47,7 +47,7 @@ gate only kernel clients that nothing calls ([ABI
 capabilities](../abi/capabilities-checks-outside-the.md#checks-outside-the-syscall-table)).
 Exiting, yielding, futex waits, reading the clock and reading process stats take
 no particular bit, only a valid [capability
-token](glossary.md#capability-token), which is one that holds at least one bit
+token](glossary-boot-root-record.md#capability-token), which is one that holds at least one bit
 (`check` in `src/syscall/contract/cap_table/mk.rs:23-38`). After spawn, a
 process that holds Admin can add to another process any bit it holds itself,
 whether or not that process's manifest declares it (`sys_cap_grant` in

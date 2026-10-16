@@ -6,7 +6,7 @@ Part of [FAQ](faq.md).
 
 NONOS has its own kernel, a capability microkernel written in Rust, and no Linux
 kernel at all. Linux programs run on it through the [Linux
-personality](glossary.md#linux-personality), a [capsule](glossary.md#capsule)
+personality](glossary-linux-personality.md#linux-personality), a [capsule](glossary-boot-root-record.md#capsule)
 that answers their Linux syscalls. See [Architecture](architecture.md).
 
 ## Running Linux programs
@@ -28,14 +28,14 @@ personality. See [Command-line tools](../using/command-line-tools.md).
 
 ## Keeping files
 
-By default nothing is kept: every boot is [amnesic](glossary.md#amnesic-boot)
+By default nothing is kept: every boot is [amnesic](glossary-amnesic-boot.md#amnesic-boot)
 until the person chooses to install. Files saved during a boot live in memory,
-in the [file store](glossary.md#file-store), and are gone at power off. On a
-live stick the [data volume](glossary.md#data-volume) that holds Qwen models is
+in the [file store](glossary-dma-pool.md#file-store), and are gone at power off. On a
+live stick the [data volume](glossary-claim-epoch.md#data-volume) that holds Qwen models is
 in RAM as well. After an install to a disk, a file a program asks to keep goes
 to the [package store](glossary.md#store) on that disk, which is not encrypted,
 and Qwen models go to an encrypted data volume keyed by the machine's
-[TPM](glossary.md#tpm). Files made in Files or Editor are never kept, and a
+[TPM](glossary-stark-proof.md#tpm). Files made in Files or Editor are never kept, and a
 Linux package is held in memory until restart. The kernel can also key a volume
 with a passphrase, but nothing in this release asks for one. See
 [Files](../using/files.md) and [Install to disk](../install/install-to-disk.md).
@@ -48,7 +48,7 @@ schedules processes on all of them. Drivers are written for device classes and
 chips, and the [support matrix](../hardware/MATRIX.md) lists each class and chip
 with its PCI or USB id.
 
-On Intel VT-d machines the [IOMMU](glossary.md#iommu) confines device DMA: each
+On Intel VT-d machines the [IOMMU](glossary-hardware-broker.md#iommu) confines device DMA: each
 PCI device a driver claims reaches only the buffers granted to that driver.
 AMD-Vi is not driven and interrupt remapping is off in this release, so on an
 AMD machine device DMA is unrestricted, and the boot log says so. See

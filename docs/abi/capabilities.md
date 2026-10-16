@@ -1,7 +1,7 @@
 # Capabilities
 
 The 37 capability bits of NONOS 0.9.2: what each one lets a
-[capsule](../overview/glossary.md#capsule) do, which syscalls it admits, and
+[capsule](../overview/glossary-boot-root-record.md#capsule) do, which syscalls it admits, and
 where else the kernel checks it.
 
 ## Parts
