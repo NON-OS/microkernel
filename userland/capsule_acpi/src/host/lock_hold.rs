@@ -16,11 +16,13 @@
 
 //! Taking the Global Lock for the host's own use (an EC whose _GLK is 1):
 //! the same protocol the interpreter follows (ACPI 6.5, 5.2.10.1), bounded,
-//! and a no-op on a platform without a FACS.
+//! and a no-op on a platform without a FACS. The kernel is told as
+//! `lock::word` tells it, so this capsule's exit releases a lock it held.
 
 use super::lock::swap;
 use super::state::CapsuleHost;
 use crate::events_io::PortIo;
+use crate::sys::acpi_event::lock_told;
 use crate::sys::clock::sleep_ms;
 use nonos_aml::region::{acquire_step, release_step};
 
@@ -39,6 +41,7 @@ pub(super) fn take(h: &mut CapsuleHost) -> bool {
         }
         if takes {
             h.lock_held = true;
+            lock_told(true);
             return true;
         }
         sleep_ms(1);
@@ -50,6 +53,7 @@ pub(super) fn take(h: &mut CapsuleHost) -> bool {
 pub(super) fn give(h: &mut CapsuleHost) {
     h.lock_held = false;
     let Some(va) = h.facs else { return };
+    lock_told(false);
     let mut old = 2;
     for _ in 0..TRIES {
         let (new, pending) = release_step(old);
@@ -62,14 +66,4 @@ pub(super) fn give(h: &mut CapsuleHost) {
         }
         old = found;
     }
-}
-
-/// The interpreter's swap, noting when the capsule takes the lock (Owned
-/// set) and gives it (Owned cleared); marking Pending changes neither.
-pub(super) fn word(h: &mut CapsuleHost, old: u32, new: u32) -> Option<u32> {
-    let found = swap(h.facs?, old, new);
-    if found == old && (old & 2 == 0) != (new & 2 == 0) {
-        h.lock_held = new & 2 != 0;
-    }
-    Some(found)
 }

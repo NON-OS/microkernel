@@ -42,3 +42,12 @@ fn brightness_keys_decode() {
     assert_eq!(decode(BRIGHTNESS, 0), Some(Event::Brightness(false)));
     assert_eq!(decode(BRIGHTNESS, 2), None);
 }
+
+/// F-107: the Global Lock held (1) or being given back (0), nothing else.
+#[test]
+fn the_global_lock_report_decodes() {
+    use super::platform_event::{decode, Event, GLOBAL_LOCK};
+    assert_eq!(decode(GLOBAL_LOCK, 1), Some(Event::GlobalLock(true)));
+    assert_eq!(decode(GLOBAL_LOCK, 0), Some(Event::GlobalLock(false)));
+    assert_eq!(decode(GLOBAL_LOCK, 2), None);
+}
