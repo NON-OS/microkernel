@@ -58,7 +58,7 @@ fn a_join_failing_after_association_reports_its_end() {
 #[test]
 fn a_deauthentication_reports_the_end() {
     let mut st = joined();
-    st.radio_mut().unwrap().inbox.push_back(mgmt(12, STA, &[3, 0]));
+    crate::soft::join::deauth_from_ap(&mut st);
     ticks(&mut st, 1);
     assert_eq!(st.radio().unwrap().assoc.last(), Some(&None));
 }

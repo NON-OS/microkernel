@@ -28,6 +28,7 @@
 
 extern crate alloc;
 
+pub mod address;
 pub mod bip_gmac;
 pub mod ccmp;
 pub mod dot11;

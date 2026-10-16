@@ -33,6 +33,8 @@ pub const CODE_BAD_PASSPHRASE: i32 = -9;
 pub const CODE_WRONG_PASSWORD: i32 = -10;
 pub const CODE_IE_MISMATCH: i32 = -11;
 pub const CODE_NO_ENTROPY: i32 = -12;
+/// The radio could not take the network's address (`crate::address`).
+pub const CODE_NO_ADDRESS: i32 = -15;
 
 /// The status code and the AP's own code for a join that failed with `f`.
 pub fn failure_code(f: MlmeFailure) -> (i32, u16) {
