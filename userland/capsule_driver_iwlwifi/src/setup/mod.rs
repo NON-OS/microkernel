@@ -18,4 +18,5 @@ mod sequence;
 
 pub use announce::announce;
 pub use give_back::give_back;
+pub use grants::Grants;
 pub use sequence::run;

@@ -23,16 +23,19 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let claim_epoch = claim::claim(dev.device_id)?;
     let mmio = mmio::map(dev, claim_epoch)?;
     let irq = irq::bind(dev, claim_epoch, &mmio)?;
-    let grants =
-        Grants { device_id: dev.device_id, claim_epoch, mmio: mmio.grant_id, irq: irq.grant_id };
+    let mut grants = Grants {
+        device_id: dev.device_id,
+        claim: Some(claim_epoch),
+        mmio: Some(mmio.grant_id),
+        irq: Some(irq.grant_id),
+    };
     // SAFETY: the broker mapped `mmio.length` bytes of BAR0 at `user_va`
     // for this process, and they stay mapped while the claim is held.
     let regs = unsafe { Regs::new(mmio.user_va, mmio.length) };
-    init_or_release(regs, &grants)?;
+    init_or_release(regs, &mut grants)?;
     let _ = mk_irq_ack(irq.grant_id);
     Ok(Driver {
         device_id: dev.device_id, pci_device: dev.pci_device, claim_epoch,
-        mmio_grant: mmio.grant_id, mmio_len: mmio.length, irq_grant: irq.grant_id,
-        regs,
+        mmio_len: mmio.length, grants, regs,
     })
 }

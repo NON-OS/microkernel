@@ -9,15 +9,15 @@
 //! What the driver holds for the adapter it claimed.
 
 use crate::regs::Regs;
+use crate::setup::Grants;
 
-#[derive(Clone, Copy)]
 pub struct Driver {
     pub device_id: u64,
     pub pci_device: u16,
     pub claim_epoch: u64,
-    pub mmio_grant: u64,
     /// Bytes of the register window the broker mapped.
     pub mmio_len: u64,
-    pub irq_grant: u64,
+    /// The claim and the grants, until they are given back.
+    pub grants: Grants,
     pub regs: Regs,
 }

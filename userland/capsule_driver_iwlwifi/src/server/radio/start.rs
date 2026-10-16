@@ -31,7 +31,7 @@ use super::state::{Radio, State};
 
 impl Radio {
     /// Bring the radio up on the claimed card, or record why not.
-    pub fn start(d: &Driver) -> Radio {
+    pub fn start(d: &mut Driver) -> Radio {
         let mut seen = Seen::default();
         let state = match bring_up(d, &mut seen) {
             Ok(up) => {

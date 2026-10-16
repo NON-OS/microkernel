@@ -16,11 +16,10 @@
 //! A finished bring-up given back whole, as a failed one is, when the radio
 //! finds a card this driver cannot run.
 
-use super::grants::Grants;
 use crate::driver::Driver;
 
-/// Bus Master off, then every grant and the claim (`Grants::release`).
-pub fn give_back(d: &Driver) {
-    let (mmio, irq) = (d.mmio_grant, d.irq_grant);
-    Grants { device_id: d.device_id, claim_epoch: d.claim_epoch, mmio, irq }.release();
+/// Bus Master off, then every grant and the claim (`Grants::release`), each
+/// taken out of the driver as it goes, so a second give-back sends nothing.
+pub fn give_back(d: &mut Driver) {
+    d.grants.release();
 }

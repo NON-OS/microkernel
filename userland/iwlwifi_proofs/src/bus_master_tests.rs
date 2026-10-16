@@ -26,7 +26,9 @@ use crate::constants::{CSR_GP_CNTRL, GP_CNTRL_MAC_CLOCK_READY};
 use crate::grants::{init_or_release, Grants};
 use crate::regs::Regs;
 
-const GRANTS: Grants = Grants { device_id: 5, claim_epoch: EPOCH, mmio: 6, irq: 7 };
+fn grants() -> Grants {
+    Grants { device_id: 5, claim: Some(EPOCH), mmio: Some(6), irq: Some(7) }
+}
 
 fn since(before: usize) -> Vec<(&'static str, u64)> {
     given_back()[before..].to_vec()
@@ -51,6 +53,6 @@ fn setup_wakes_the_chip_and_never_turns_bus_master_on() {
     let before = given_back().len();
     // SAFETY: the window's own 0x100 bytes, alive for the call.
     let regs = unsafe { Regs::new(window.as_mut_ptr() as u64, 0x100) };
-    assert!(init_or_release(regs, &GRANTS).is_ok());
+    assert!(init_or_release(regs, &mut grants()).is_ok());
     assert!(since(before).is_empty(), "no command write: Bus Master waits for the stop");
 }

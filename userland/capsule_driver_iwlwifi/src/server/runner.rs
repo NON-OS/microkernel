@@ -24,10 +24,10 @@ const SERVICE_INBOX: u64 = 0;
 /// before it services them again; otherwise it waits for the next request.
 const SCAN_TICK_MS: u64 = 50;
 
-pub fn run(driver: Driver) -> ! {
+pub fn run(mut driver: Driver) -> ! {
     // The gen3 radio comes up once, before the first request; on an adapter
     // this path does not run it records why, for the status reply.
-    let mut radio = Radio::start(&driver);
+    let mut radio = Radio::start(&mut driver);
     // Large enough for net_core's largest frame; a control request (a join
     // body is at most 99 bytes) is far shorter.
     let mut rx = vec![0u8; wire::HDR_LEN + wire::MAX_FRAME];
