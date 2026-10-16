@@ -26,7 +26,7 @@ use crate::dot11::header::fc_subtype;
 use crate::mlme::Mlme;
 
 pub(super) fn feed(m: &mut Mlme, rx: &[u8], c: &mut Counters) -> Option<Vec<u8>> {
-    let fc = u16::from_le_bytes([rx[0], *rx.get(1)?]);
+    let fc = u16::from_le_bytes([*rx.first()?, *rx.get(1)?]);
     match classify(rx) {
         RxKind::Mgmt => {
             let sub = fc_subtype(fc);
