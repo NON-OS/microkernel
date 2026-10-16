@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ACPI records a platform bus controller's key is found among: each
-//! ACPI-bus record's namespace path and device id, for
-//! `nonos_gpio::bus_key` to match SERIAL's bus-controller path against.
+//! The kernel's devices as capsule_acpi looks at them (mode 0, its own
+//! look): each one's PCI function and namespace path, for `bus_key`.
 
-use crate::name::name;
+use super::bus_key::Known;
+use crate::sys::device_name::device_name;
+use crate::sys::function_of::{function_of, Asker};
 use alloc::vec::Vec;
-use nonos_libc::{mk_device_list, DeviceRecord, BUS_KIND_ACPI};
+use nonos_libc::{mk_device_list, DeviceRecord};
 
-const MAX_DEVICES: usize = 128;
+const MAX_DEVICES: usize = 256;
 
-pub fn platform_paths() -> Vec<(Vec<u8>, u64)> {
-    let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
+pub fn known() -> Vec<Known> {
+    let mut buf = alloc::vec![DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
     let count = if n > 0 { (n as usize).min(MAX_DEVICES) } else { 0 };
-    let acpi = buf[..count].iter().filter(|r| r.bus_kind == BUS_KIND_ACPI);
-    acpi.filter_map(|r| Some((name(r.device_id)?.path, r.device_id)))
-        .filter(|(p, _)| !p.is_empty())
-        .collect()
+    let each = buf[..count].iter().map(|r| Known {
+        device_id: r.device_id,
+        bdf: function_of(Asker::Capsule, r.device_id).ok(),
+        path: device_name(Asker::Capsule, r.device_id).map_or(Vec::new(), |n| n.path),
+    });
+    each.collect()
 }

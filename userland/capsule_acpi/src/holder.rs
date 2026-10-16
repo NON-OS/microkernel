@@ -14,26 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! HOLDER (21, pid u32, key u64): whether that pid holds the device the
-//! key names now, through the kernel's claim test, for the GPIO capsule to
-//! give a pin's events only to its device's holder. The key is a PCI
-//! function (segment << 16 | bus << 8 | devfn), or, with `PLATFORM` set,
-//! the broker device id of an ACPI platform device such as an AMD I2C
-//! controller, which has no PCI function. The body is 1 or 0. ENOENT for
-//! no such device; EINVAL for a short request.
+//! HOLDER (21, pid u32, key u64): whether that pid holds the bus controller
+//! the key names now, through the kernel's claim test, for the GPIO capsule
+//! to give a pin's events only to its device's holder. The key is the one
+//! form a capsule is given (`serial::bus_key`): 1 << 63 | broker device id,
+//! for a PCI function and an ACPI platform device alike. A key without the
+//! bit is a PCI function's own form, which no capsule is given, and is
+//! refused. The body is 1 or 0. ENOENT for no such device; EINVAL for a
+//! short request or a key not of that form.
 
+use crate::serial::bus_key::device_of;
 use crate::server::protocol::{EINVAL, ENOENT};
-use crate::sys::acpi_holds::claimed_by;
 use crate::sys::device_name::device_name;
-use crate::sys::function_of::Asker;
+use crate::sys::function_of::{function_of, Asker};
 use alloc::vec::Vec;
 
-/// Bit 63 of a key: the rest is a broker device id, not a PCI function.
-pub const PLATFORM: u64 = 1 << 63;
 const EPERM: i64 = -1;
 
-fn platform_held(pid: u32, device_id: u64) -> Result<bool, i64> {
+/// An ACPI-bus device's claim test first, then a PCI function's: the kernel
+/// answers each for its own kind and ENOENT for the other.
+fn held(pid: u32, device_id: u64) -> Result<bool, i64> {
     match device_name(Asker::Holder(pid), device_id) {
+        Ok(_) => return Ok(true),
+        Err(EPERM) => return Ok(false),
+        Err(_) => {}
+    }
+    match function_of(Asker::Holder(pid), device_id) {
         Ok(_) => Ok(true),
         Err(EPERM) => Ok(false),
         Err(e) => Err(e),
@@ -46,13 +52,8 @@ pub fn holder(req: &[u8]) -> (i32, Vec<u8>) {
     };
     let pid = u32::from_le_bytes([pid[0], pid[1], pid[2], pid[3]]);
     let key = u64::from_le_bytes(key.try_into().unwrap_or([0; 8]));
-    let held = if key & PLATFORM != 0 {
-        platform_held(pid, key & !PLATFORM)
-    } else {
-        let devfn = key as u8;
-        claimed_by(pid, ((key >> 16) as u16, (key >> 8) as u8, devfn >> 3, devfn & 7))
-    };
-    match held {
+    let Some(device_id) = device_of(key) else { return (EINVAL, Vec::new()) };
+    match held(pid, device_id) {
         Ok(held) => (0, alloc::vec![u8::from(held)]),
         Err(_) => (ENOENT, Vec::new()),
     }

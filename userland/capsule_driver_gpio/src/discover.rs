@@ -23,7 +23,7 @@ use crate::bank::Bank;
 use crate::ctl::ctl;
 use crate::irq::bind;
 use crate::mmio::Mmio;
-use crate::name::name;
+use crate::name::hid_of;
 use crate::say::line;
 use alloc::format;
 use alloc::vec::Vec;
@@ -61,7 +61,7 @@ pub fn banks() -> Vec<Bank> {
             line(&format!("controller {} held elsewhere ({}), passed over", r.device, epoch));
             continue;
         }
-        let hid = name(r.device_id).map_or([0; 8], |n| n.hid);
+        let hid = hid_of(r.device_id).unwrap_or([0; 8]);
         let Some(c) = windows(r, epoch as u64).and_then(|w| ctl(hid, w)) else {
             line(&format!("controller {}: windows did not map, released", r.device));
             let _ = mk_device_release(r.device_id);

@@ -19,6 +19,8 @@
 
 extern crate alloc;
 
+#[path = "../../capsule_acpi/src/serial/bus_key.rs"]
+pub mod bus_key;
 #[path = "../../capsule_acpi/src/server/policy.rs"]
 pub mod policy;
 #[path = "props.rs"]
@@ -26,6 +28,8 @@ pub mod props;
 #[path = "../../capsule_acpi/src/aei/rate.rs"]
 pub mod rate;
 
+#[cfg(test)]
+mod bus_key_tests;
 #[cfg(test)]
 mod policy_table_tests;
 #[cfg(test)]
