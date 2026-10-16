@@ -18,7 +18,6 @@ use crate::ipc::nonos_inbox;
 use crate::syscall::microkernel::errnos::{ERRNO_NOENT, ERRNO_TIMEDOUT};
 
 use super::recv_take::taken;
-use super::recv_trace::trace;
 
 static NO_INBOX: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.recv");
 // The first 64 dequeues systemwide, then sampled: enough to show which inboxes
@@ -64,8 +63,6 @@ pub(super) fn recv_from_inbox(
         if let Some(msg) = nonos_inbox::try_dequeue_existing(&inbox_name) {
             return taken(pid, &msg, buf, len);
         }
-        trace(b"before yield", pid);
         crate::sched::yield_now();
-        trace(b"after yield", pid);
     }
 }
