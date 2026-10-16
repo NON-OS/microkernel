@@ -206,6 +206,7 @@ for capsule_dir in userland/capsule_driver_*; do
     fi
     # A README over 75 lines is split into parts under the crate's docs/,
     # linked from it; the contract is read across the README and its parts.
+    # A crate without docs/ reads its README alone, as before.
     doc_text="$(cat "${readme}" "${capsule_dir}"/docs/*.md 2>/dev/null || true)"
     for section in \
         '## Role' \
