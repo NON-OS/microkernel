@@ -233,6 +233,11 @@ nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
 # Never in a release: lib.rs refuses it beside nonos-production or
 # nonos-release, and the IOMMU posture line says it is on.
 nonos-dev-unconfined-dma = []
+# The owner's development opt-in to interrupts without remapping (K3): a PCI
+# device is claimed, and its MSI bound in compatibility format, where no unit
+# remaps. Never in a release (src/memory/iommu/dev_unremapped.rs refuses it
+# beside nonos-production or nonos-release); the posture line says it is on.
+nonos-dev-unremapped-interrupts = []
 # Every image the seal may seal for release: tools/nix/config.nix turns it on
 # for each profile whose loader is not the development one. A kernel built
 # with it refuses to compile nonos-dev-attest (src/lib.rs).
