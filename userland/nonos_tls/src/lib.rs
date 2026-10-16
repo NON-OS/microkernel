@@ -57,7 +57,7 @@ pub use client_flight::client_flight;
 pub use crypto_port::CRYPTO_WAIT_MS;
 pub use handshake_alert::handshake_alert;
 pub use handshake_fault::handshake_fault;
-pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};
+pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start, Unverified};
 pub use rtc_now::rtc_now;
 pub use verify_rsa::verify_rsa;
 pub use server_complete::{server_complete, server_complete_unauthenticated, ServerComplete};

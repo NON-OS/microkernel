@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn verify_rsa(scheme: u8, hashid: u8, spki: &[u8], sig: &[u8], blob: &[u8]) -> bool {
+pub fn verify_rsa(
+    scheme: u8,
+    hashid: u8,
+    spki: &[u8],
+    sig: &[u8],
+    blob: &[u8],
+) -> crate::crypto_port::Checked {
     if hashid == 1 {
         match super::super::hash_sha384::hash_sha384(blob) {
-            Some(d) => super::super::verify_rsa::verify_rsa(scheme, hashid, spki, sig, &d),
-            None => false,
+            Some(d) => super::super::verify_rsa_checked::verify_rsa_checked(scheme, hashid, spki, sig, &d),
+            None => Ok(false),
         }
     } else {
         match super::super::hash_sha256::hash_sha256(blob) {
-            Some(d) => super::super::verify_rsa::verify_rsa(scheme, hashid, spki, sig, &d),
-            None => false,
+            Some(d) => super::super::verify_rsa_checked::verify_rsa_checked(scheme, hashid, spki, sig, &d),
+            None => Ok(false),
         }
     }
 }

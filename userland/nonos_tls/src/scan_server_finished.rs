@@ -16,12 +16,13 @@
 
 //! Walking the server's handshake messages through to Finished.
 
+use super::crypto_port::Checked;
 use super::scan_messages::{certificate, certificate_verify, finished};
 use super::scan_messages::{CERTIFICATE, CERTIFICATE_REQUEST, CERTIFICATE_VERIFY, FINISHED};
 use super::scan_request::certificate_request;
 use super::scan_state::ScanState;
 
-pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
+pub fn scan(msgs: &[u8], state: &mut ScanState) -> Checked {
     let mut pos = 0usize;
     while pos + 4 <= msgs.len() {
         let len = ((msgs[pos + 1] as usize) << 16)
@@ -29,7 +30,7 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
             | msgs[pos + 3] as usize;
         let end = pos + 4 + len;
         if end > msgs.len() {
-            return false;
+            return Ok(false);
         }
         let kind = msgs[pos];
         let body = &msgs[pos + 4..end];
@@ -43,19 +44,19 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
             if ok {
                 state.transcript.push(&msgs[pos..end]);
             }
-            return ok;
+            return Ok(ok);
         }
         if kind == CERTIFICATE_REQUEST && !certificate_request(body, state) {
-            return false;
+            return Ok(false);
         }
-        if kind == CERTIFICATE && !certificate(body, state) {
-            return false;
+        if kind == CERTIFICATE && !certificate(body, state)? {
+            return Ok(false);
         }
-        if kind == CERTIFICATE_VERIFY && !certificate_verify(body, state) {
-            return false;
+        if kind == CERTIFICATE_VERIFY && !certificate_verify(body, state)? {
+            return Ok(false);
         }
         state.transcript.push(&msgs[pos..end]);
         pos = end;
     }
-    false
+    Ok(false)
 }

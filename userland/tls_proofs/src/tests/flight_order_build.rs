@@ -57,5 +57,5 @@ pub(super) fn flight_of(parts: &[&[u8]]) -> Vec<u8> {
 pub(super) fn verdict(flight: &[u8]) -> Option<Vec<u8>> {
     let mut state = keyed(flight);
     assert_eq!(state.advance(flight), Progress::Complete(flight.len()));
-    state.verify(b"", 0, false).map(|done| done.certificates)
+    state.verify(b"", 0, false).ok().map(|done| done.certificates)
 }

@@ -25,8 +25,10 @@ mod empty_certificate;
 mod finished;
 mod reply;
 mod types;
+mod unverified;
 mod verify;
 
 pub use answer::{Answer, Refusal};
 pub(crate) use reply::reply;
 pub use types::{HandshakeState, Progress, Start};
+pub use unverified::Unverified;

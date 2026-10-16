@@ -20,6 +20,8 @@ use alloc::vec::Vec;
 
 use super::empty_certificate::empty_certificate;
 use super::types::HandshakeState;
+use super::unverified::{Unverified, Verified};
+use crate::app_keys::app_keys;
 use crate::scan_server_finished::scan;
 use crate::scan_state::ScanState;
 use crate::server_complete::ServerComplete;
@@ -31,10 +33,9 @@ impl HandshakeState {
      * messages decrypted while the flight arrived. What is gone is doing it
      * twice, and decrypting the flight again to do it.
      */
-    /// Check the finished flight and derive the application keys. `None` if
-    /// the flight is not complete or any check fails.
-    pub fn verify(&self, host: &[u8], now: u64, require_chain: bool) -> Option<ServerComplete> {
-        self.end?;
+    /// Check the finished flight and derive the application keys, or say why not.
+    pub fn verify(&self, host: &[u8], now: u64, require_chain: bool) -> Verified {
+        self.end.ok_or(Unverified::Failed)?;
         let mut transcript = self.transcript.clone();
         let mut certificates = Vec::new();
         let mut validated = false;
@@ -49,11 +50,11 @@ impl HandshakeState {
             require_chain,
             request_context: &mut request_context,
         };
-        if !scan(&self.msgs, &mut state) {
-            return None;
+        if !scan(&self.msgs, &mut state)? {
+            return Err(Unverified::Failed);
         }
         let transcript_hash = transcript.digest();
-        let app = crate::app_keys::app_keys(&self.keys, &transcript_hash)?;
+        let app = app_keys(&self.keys, &transcript_hash).ok_or(Unverified::Failed)?;
         let client_certificate = request_context.map(|context| empty_certificate(&context));
         let finished_hash = match &client_certificate {
             Some(message) => {
@@ -62,7 +63,7 @@ impl HandshakeState {
             }
             None => transcript_hash,
         };
-        Some(ServerComplete {
+        Ok(ServerComplete {
             handshake: self.keys,
             app,
             transcript_hash,

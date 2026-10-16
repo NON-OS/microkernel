@@ -16,6 +16,7 @@
 
 //! What the scan does with each handshake message it recognises.
 
+use super::crypto_port::Checked;
 use super::scan_state::ScanState;
 
 /* Handshake message types, RFC 8446 section 4. */
@@ -30,36 +31,36 @@ pub(super) const FINISHED: u8 = 20;
 /// (RFC 8446 section 4.4). A second one would replace the kept chain after the
 /// signature had been checked against the first, and a caller that pins the
 /// leaf itself would then be handed a key that signed nothing.
-pub(super) fn certificate(body: &[u8], state: &mut ScanState) -> bool {
+pub(super) fn certificate(body: &[u8], state: &mut ScanState) -> Checked {
     if *state.validated || !state.cert11.is_empty() {
-        return false;
+        return Ok(false);
     }
     state.cert11.extend_from_slice(body);
     if state.require_chain
-        && !super::chain_walk::verify_chain(state.cert11.as_slice(), state.host, state.now)
+        && !super::chain_walk::verify_chain(state.cert11.as_slice(), state.host, state.now)?
     {
-        return false;
+        return Ok(false);
     }
-    true
+    Ok(true)
 }
 
 /*
  * The signature covers the transcript hash up to, not including, this
  * message. The running hash answers that without copying the transcript.
  */
-pub(super) fn certificate_verify(body: &[u8], state: &mut ScanState) -> bool {
+pub(super) fn certificate_verify(body: &[u8], state: &mut ScanState) -> Checked {
     if *state.validated {
-        return false;
+        return Ok(false);
     }
     let before = state.transcript.digest();
     let Some(leaf) = super::cert_at::cert_at(state.cert11.as_slice(), 0) else {
-        return false;
+        return Ok(false);
     };
-    if !super::cert_verify_msg::verify_cert_verify(leaf, &before, body) {
-        return false;
+    if !super::cert_verify_msg::verify_cert_verify(leaf, &before, body)? {
+        return Ok(false);
     }
     *state.validated = true;
-    true
+    Ok(true)
 }
 
 pub(super) fn finished(body: &[u8], state: &mut ScanState) -> bool {
