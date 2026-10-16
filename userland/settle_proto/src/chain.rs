@@ -18,6 +18,10 @@
 //! for CHANNEL_STATE, a transaction hash for OPENED, a listing for LISTING).
 //! GAS names an address.
 
+#[path = "chain_head.rs"]
+mod head;
+pub use head::*;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ChainHash {
     pub chain_id: u64,

@@ -1917,6 +1917,7 @@
    "userland/market_proto",
    "userland/marketplace_abi",
    "userland/nonos_ed25519",
+   "userland/nonos_eth_rpc",
    "userland/nonos_hash",
    "userland/nonos_nox_config",
    "userland/nonos_secp256k1",

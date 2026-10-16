@@ -66,6 +66,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 
 [[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_nox_config"
 version = "0.1.0"
 
@@ -73,6 +77,7 @@ version = "0.1.0"
 name = "nonos_settle_proto"
 version = "0.1.0"
 dependencies = [
+ "nonos_eth_rpc",
  "nonos_nox_config",
  "sha3",
 ]

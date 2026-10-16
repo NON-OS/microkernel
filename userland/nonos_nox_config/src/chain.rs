@@ -20,6 +20,12 @@
 pub const MAINNET: u64 = 1;
 pub const SEPOLIA: u64 = 11_155_111;
 
+// The time between blocks on each chain, in ms: both are proof of stake at
+// 12 s slots. settle's log reads stop at 20 years of these blocks past a
+// contract's deploy block, so a chain's cap follows its block time.
+pub const MAINNET_BLOCK_MS: u64 = 12_000;
+pub const SEPOLIA_BLOCK_MS: u64 = 12_000;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Chain {
     Mainnet,
@@ -31,6 +37,13 @@ impl Chain {
         match self {
             Chain::Mainnet => MAINNET,
             Chain::Sepolia => SEPOLIA,
+        }
+    }
+
+    pub const fn block_ms(self) -> u64 {
+        match self {
+            Chain::Mainnet => MAINNET_BLOCK_MS,
+            Chain::Sepolia => SEPOLIA_BLOCK_MS,
         }
     }
 

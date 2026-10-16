@@ -13,19 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! The pages of a log read over [from, to]. `to` is the head a node named,
-//! so a range past LOG_PAGES_MAX pages is refused (EPROTO), never paged.
+//! The pages of a log read over [from, to]. `to` is a head two hosts
+//! confirmed (head.rs), and a range past the chain's cap is refused
+//! (EPROTO, settle_proto's log_range), never paged.
 
 use nonos_eth_rpc::{block_pages, LOG_PAGE_BLOCKS};
-use nonos_settle_proto::EPROTO;
+use nonos_settle_proto::log_range;
 
-/// 20.48M blocks: years of either chain past a contract's deploy_block.
-const LOG_PAGES_MAX: u64 = 2048;
-
-pub fn log_pages(from: u64, to: u64) -> Result<impl Iterator<Item = (u64, u64)>, i32> {
-    if to.saturating_sub(from) / LOG_PAGE_BLOCKS >= LOG_PAGES_MAX {
-        return Err(EPROTO);
-    }
+pub fn log_pages(
+    chain_id: u64,
+    from: u64,
+    to: u64,
+) -> Result<impl Iterator<Item = (u64, u64)>, i32> {
+    let (from, to) = log_range(chain_id, from, to)?;
     Ok(block_pages(from, to, LOG_PAGE_BLOCKS))
 }

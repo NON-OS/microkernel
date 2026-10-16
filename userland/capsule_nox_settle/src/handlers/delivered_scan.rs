@@ -38,7 +38,7 @@ pub(super) fn scan(
     ask: &[u8; 32],
 ) -> Result<Pairs, i32> {
     let mut out: Pairs = Vec::new();
-    for (a, b) in log_pages(from, to)? {
+    for (a, b) in log_pages(chain, from, to)? {
         let resp = rpc.call(chain, &request_logs(escrow, &DELIVERED_TOPIC, a, b, 1))?;
         let logs = parse_logs(&resp).ok_or(EPROTO)?;
         for pair in logs

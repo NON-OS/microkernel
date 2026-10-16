@@ -21,9 +21,8 @@
 
 use alloc::vec::Vec;
 
-use nonos_eth_rpc::{parse_u64, request_block_number};
 use nonos_nox_config::{deployed, Contract};
-use nonos_settle_proto::{current, listing_reply, parse_chain_hash, EFBIG, EINVAL, ENOENT, EPROTO};
+use nonos_settle_proto::{current, listing_reply, parse_chain_hash, EFBIG, EINVAL, ENOENT};
 
 use crate::listing::scan;
 use crate::settle::Settle;
@@ -36,7 +35,7 @@ pub fn listing(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     if first == 0 {
         return Err(ENOENT);
     }
-    let head = parse_u64(&s.rpc.call(chain, &request_block_number(1))?).ok_or(EPROTO)?;
+    let head = crate::chain::head(&mut s.rpc, chain)?;
     let cursor = s.cursors.get(chain).ok_or(ENOENT)?;
     if !cursor.full {
         let from = cursor.scanned.saturating_add(1).max(first);

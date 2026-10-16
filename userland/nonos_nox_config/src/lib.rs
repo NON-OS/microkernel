@@ -39,7 +39,7 @@ mod tags;
 mod typed;
 mod units;
 
-pub use chain::{Chain, MAINNET, SEPOLIA};
+pub use chain::{Chain, MAINNET, MAINNET_BLOCK_MS, SEPOLIA, SEPOLIA_BLOCK_MS};
 pub use contract::{Contract, CONTRACTS};
 pub use deploy::{deployment, Deployed, Deployment};
 pub use domain::{
