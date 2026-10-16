@@ -14,6 +14,7 @@
  * for EL0. */
 
 #include "epd1.h"
+#include "percpu.h"
 
 .section .text.resume_user, "ax", %progbits
 
@@ -33,11 +34,14 @@ aarch64_resume_user:
     ldr     x9,  [x0, #272]
     mov     sp,  x9
 
-    /* The process's IA key from this CPU's slot (security::pac), before
-     * x10 and x11 are loaded; none where TPIDR_EL1 names no slot. */
+    /* The process's IA key, which the switch put in this CPU's per-CPU
+     * block (security::pac), before x10 and x11 are loaded; none where the
+     * block says keys are not switched (asm/percpu.h). */
     mrs     x9, tpidr_el1
     cbz     x9, 1f
-    ldp     x10, x11, [x9]
+    ldr     x10, [x9, #PERCPU_PAC_ON]
+    cbz     x10, 1f
+    ldp     x10, x11, [x9, #PERCPU_PAC_USER]
     msr     S3_0_C2_C1_0, x10           /* APIAKeyLo_EL1 */
     msr     S3_0_C2_C1_1, x11           /* APIAKeyHi_EL1 */
 1:

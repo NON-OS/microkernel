@@ -34,6 +34,8 @@ pub fn init(boot_info: &BootInfo) {
         );
     }
     super::platform_windows::publish(boot_info);
+    // The keys below go into this CPU's per-CPU block, so it is named first.
+    cpu::percpu::install_here();
     exceptions::install_vbar_el1();
     security::init_all();
     security::pac::bind_this_cpu();

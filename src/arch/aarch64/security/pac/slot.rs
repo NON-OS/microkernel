@@ -14,58 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each CPU's key slot, which the exception vectors reach through
-//! TPIDR_EL1: words 0-1 the IA key of the process this CPU next enters EL0
-//! with, words 2-3 the kernel's. TPIDR_EL1 stays 0 until the slot is bound,
-//! and the vectors take 0 to mean no key switching on this CPU. EL0 cannot
-//! read TPIDR_EL1.
+//! Each CPU's keys, in its per-CPU block (smp::percpu::PerCpuData.pac),
+//! which TPIDR_EL1 names on every CPU and which the exception vectors read
+//! at fixed offsets (asm/percpu.h): words 0-1 the IA key of the process this
+//! CPU next enters EL0 with, 2-3 the kernel's, 4 non-zero once this CPU
+//! switches keys. TPIDR_EL1 has that one meaning; nothing here writes it.
+//! EL0 cannot read it.
 
 use core::arch::asm;
-use core::mem::size_of;
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::Ordering;
 
-use crate::arch::aarch64::boot::stack::MAX_CPUS;
+use crate::smp::percpu::{by_base, get, PerCpuData};
 
-#[repr(C, align(32))]
-struct Slot {
-    user: [AtomicU64; 2],
-    kernel: [AtomicU64; 2],
-}
+const USER: usize = 0;
+const KERNEL: usize = 2;
+const ON: usize = 4;
 
-static SLOTS: [Slot; MAX_CPUS] = [const {
-    Slot { user: [const { AtomicU64::new(0) }; 2], kernel: [const { AtomicU64::new(0) }; 2] }
-}; MAX_CPUS];
-
-/// Give CPU `cpu` its slot, filled with the kernel key, and point its
-/// TPIDR_EL1 at it. False for an index past the table.
+/// Fill CPU `cpu`'s block with the kernel key and turn key switching on
+/// for it. False for an index past the blocks.
 pub(super) fn bind(cpu: usize, kernel: [u64; 2]) -> bool {
-    let Some(slot) = SLOTS.get(cpu) else { return false };
-    for (word, value) in slot.kernel.iter().zip(kernel) {
+    let Some(block) = get(cpu) else { return false };
+    for (word, value) in block.pac[KERNEL..KERNEL + 2].iter().zip(kernel) {
         word.store(value, Ordering::Relaxed);
     }
-    // SAFETY: TPIDR_EL1 is this CPU's to use at EL1 and nothing else in the
-    // kernel reads it; it now names a static that lives as long as the CPU.
-    unsafe {
-        asm!("dmb ish", "msr tpidr_el1, {}", in(reg) slot as *const Slot, options(nostack));
-    }
+    // After the key: the vectors take the key once they see this word.
+    block.pac[ON].store(1, Ordering::Release);
     true
+}
+
+/// The block TPIDR_EL1 names on this CPU, if it names one.
+fn here() -> Option<&'static PerCpuData> {
+    let at: u64;
+    // SAFETY: reading TPIDR_EL1 at EL1 has no effect.
+    unsafe { asm!("mrs {}, tpidr_el1", out(reg) at, options(nomem, nostack, preserves_flags)) };
+    by_base(at)
 }
 
 /// The key this CPU installs on its next entry to EL0 through
 /// `aarch64_enter_user` or `aarch64_resume_user`.
 pub(super) fn set_user(key: [u64; 2]) {
-    let at: usize;
-    // SAFETY: reading TPIDR_EL1 at EL1 has no effect.
-    unsafe { asm!("mrs {}, tpidr_el1", out(reg) at, options(nomem, nostack, preserves_flags)) };
-    if at == 0 {
-        return;
-    }
-    // Only `bind` writes TPIDR_EL1, with the address of a slot in `SLOTS`;
-    // found again by its index, so no number is taken for a pointer.
-    let off = at.checked_sub(SLOTS.as_ptr() as usize).filter(|off| off % size_of::<Slot>() == 0);
-    let index = off.map(|off| off / size_of::<Slot>());
-    let Some(slot) = index.and_then(|i| SLOTS.get(i)) else { return };
-    for (word, value) in slot.user.iter().zip(key) {
+    let Some(block) = here() else { return };
+    for (word, value) in block.pac[USER..USER + 2].iter().zip(key) {
         word.store(value, Ordering::Relaxed);
     }
 }
