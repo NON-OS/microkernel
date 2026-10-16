@@ -25,3 +25,12 @@ pub fn forget(pid: u32, handle: SurfaceHandle) -> bool {
     v.retain(|r| !(r.pid == pid && r.handle == handle));
     v.len() != before
 }
+
+/// Forget the one record `pid` holds for `handle` at `base`: a record an
+/// attach wrote after the view at `base` came down is another view, and it
+/// keeps its own record and its own reference (L57).
+pub fn forget_at(pid: u32, handle: SurfaceHandle, base: u64) -> bool {
+    let mut v = ATTACHES.lock();
+    let at = v.iter().position(|r| r.pid == pid && r.handle == handle && r.base_va == base);
+    at.map(|i| v.swap_remove(i)).is_some()
+}
