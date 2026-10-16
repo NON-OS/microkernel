@@ -27,7 +27,7 @@ use crate::services::registry::lookup_service;
 use crate::sys::serial::Line;
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 
-pub fn sys_acpi_first_pass() -> i64 {
+pub(super) fn sys_acpi_first_pass() -> i64 {
     let owner = lookup_service("acpi").map(|e| e.pid);
     let Some(caller) = current_pid() else { return ERRNO_PERM };
     if !admits(owner, caller, tgid) {

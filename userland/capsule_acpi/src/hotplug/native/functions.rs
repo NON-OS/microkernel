@@ -14,42 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The functions behind a port: probed on its secondary bus when a card
-//! arrives (device 0, the only one a port's link carries; each of its
-//! functions when it has several), and every one on the buses below it
-//! taken out of the kernel's table when it leaves, in eject mode for an
-//! eject, which puts back what it took if a driver still holds one.
+//! The functions behind a port: probed on the secondary bus the kernel
+//! names when a card arrives (device 0, the only one a port's link
+//! carries), and every one the kernel's table holds below the port taken
+//! out when it leaves, in eject mode for an eject, which puts back what it
+//! took if a driver still holds one.
 
 use super::find::Bdf;
-use super::walk::read;
+use crate::sys::acpi_slot::{below_port, secondary_bus};
 use crate::sys::pci_depart::{depart, Why, EBUSY};
 use crate::sys::pci_probe::probe_function;
 use alloc::vec::Vec;
 
-const SECONDARY: u16 = 0x19;
-const SUBORDINATE: u16 = 0x1A;
-
-fn below(f: Bdf) -> impl Iterator<Item = Bdf> {
-    let (lo, hi) = (read(f, SECONDARY, 1) as u8, read(f, SUBORDINATE, 1) as u8);
-    // A port with no secondary bus set leads nowhere.
-    let set = lo != 0 && lo != 0xFF;
-    (lo..=hi.max(lo))
-        .filter(move |_| set)
-        .flat_map(move |b| (0..32u8).flat_map(move |d| (0..8u8).map(move |x| (f.0, b, d, x))))
-}
-
+/// Function 0 first; a card with no function 0 has no others (PCI Express
+/// Base, recalled). The kernel's probe answers absent for any function that
+/// does not answer, so a single-function card costs seven quick misses.
 pub fn probe(f: Bdf) -> usize {
-    let bus = read(f, SECONDARY, 1) as u8;
-    if bus == 0 || bus == 0xFF {
+    let Some(bus) = secondary_bus(f) else { return 0 };
+    if probe_function(bus, 0, 0).is_err() {
         return 0;
     }
-    let funcs = if read((f.0, bus, 0, 0), 0x0E, 1) & 0x80 != 0 { 8 } else { 1 };
-    (0..funcs).filter(|x| probe_function(bus, 0, *x).is_ok()).count()
+    1 + (1..8).filter(|x| probe_function(bus, 0, *x).is_ok()).count()
 }
 
 pub fn eject(f: Bdf) -> Result<usize, ()> {
     let mut taken: Vec<Bdf> = Vec::new();
-    for g in below(f) {
+    for g in below_port(f) {
         match depart(g.1, g.2, g.3, Why::Eject) {
             Ok(_) => taken.push(g),
             Err(EBUSY) => {
@@ -64,7 +54,6 @@ pub fn eject(f: Bdf) -> Result<usize, ()> {
     Ok(taken.len())
 }
 
-/// The device ids that left.
 pub fn gone(f: Bdf) -> Vec<u64> {
-    below(f).filter_map(|g| depart(g.1, g.2, g.3, Why::Gone).ok()).collect()
+    below_port(f).into_iter().filter_map(|g| depart(g.1, g.2, g.3, Why::Gone).ok()).collect()
 }

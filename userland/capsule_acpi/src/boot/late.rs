@@ -21,9 +21,8 @@
 //! port facts; and the Type-C session, whose first walk may take a while.
 
 use super::state::Acpi;
-use crate::hotplug::native::osc_grant::OscGrant;
 
-pub fn late(acpi: &mut Acpi, fadt: &[u8], grants: &[OscGrant]) {
+pub fn late(acpi: &mut Acpi, fadt: &[u8]) {
     let gpe = acpi.ec.as_ref().and_then(|e| e.gpe);
     let (events, sci) = super::sci::start(fadt, &mut acpi.aml, &mut acpi.host, gpe);
     (acpi.events, acpi.sci) = (events, sci);
@@ -41,7 +40,7 @@ pub fn late(acpi: &mut Acpi, fadt: &[u8], grants: &[OscGrant]) {
     acpi.apei = crate::apei::start(&acpi.devices);
     super::say::say_cooling(&acpi.cooling);
     crate::dpower::reveal_hidden(acpi, u64::MAX);
-    crate::hotplug::native::find(acpi, grants);
+    crate::hotplug::native::find(acpi);
     crate::ports::publish(acpi);
     acpi.typec = crate::typec::find(&acpi.devices, &mut acpi.aml, &mut acpi.host);
 }
