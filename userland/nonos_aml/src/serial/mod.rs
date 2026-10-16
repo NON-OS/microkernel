@@ -23,10 +23,16 @@ mod bus_parse;
 mod device;
 mod gpio;
 mod hid;
+mod hid_spi;
+mod hid_spi_types;
 mod le;
+mod spi;
 
 pub use bus::{Bus, Connection};
 pub use bus_parse::serial_buses;
 pub use device::{serial_device, SerialDevice};
 pub use gpio::{gpios, Gpio};
 pub use hid::{descriptor_register, is_hid_over_i2c, HID_I2C_DSM_UUID};
+pub use hid_spi::hid_spi;
+pub use hid_spi_types::{is_hid_over_spi, HidSpi, HID_SPI_DSM_UUID};
+pub use spi::spi;

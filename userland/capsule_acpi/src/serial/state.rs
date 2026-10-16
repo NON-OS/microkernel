@@ -24,6 +24,8 @@ pub struct Peripheral {
     pub dev: SerialDevice,
     pub hid: Vec<u8>,
     pub hid_over_i2c: bool,
+    /// HID over SPI's _DSM facts, read for a PNP0C51 device alone.
+    pub hid_spi: Option<nonos_aml::serial::HidSpi>,
     pub controller: Option<Id>,
     /// The controller's PCI function, when its `_ADR` resolves to one; kept
     /// inside capsule_acpi (`bus_key`), never sent.
