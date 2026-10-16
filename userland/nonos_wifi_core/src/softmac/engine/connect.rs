@@ -37,7 +37,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         self.end_session();
         let hint = self.scanner.hint(req.ssid);
         let Some(r) = self.radio.as_mut() else { return ConnectResult::code(CODE_BAD_REQUEST) };
-        let j = match join(r, &mut self.env, self.domain, &req, hint.as_slice()) {
+        let j = match join(r, &mut self.env, self.domain, &req, hint.as_slice(), &mut self.pmksa) {
             Ok(j) => j,
             Err(JoinError::NotFound(beacons)) => {
                 let mut res = ConnectResult::code(CODE_NOT_FOUND);
