@@ -3,6 +3,7 @@
 //! Hunting the channels for the network's beacon.
 
 use nonos_wifi_core::dot11::parse::parse_beacon;
+use nonos_wifi_core::regdom::join_channel;
 
 use super::super::super::{SCAN_CHANNELS, SCAN_FRAME_MAX};
 use super::super::probe::hunt_probe;
@@ -37,7 +38,7 @@ pub(in super::super) fn find_beacon(
     for (i, &ch) in sweeps {
         set_rf(regs, ch, Bw::W20);
         let mut probe = [0u8; 64];
-        if let Some(n) = hunt_probe(&mut probe, hidden, our_mac, ssid, i) {
+        if let Some(n) = hunt_probe(&mut probe, hidden, our_mac, ssid, ch, i) {
             link.send_raw(&probe[..n]);
         }
         let leave_at = nonos_libc::mk_uptime_ms() + BEACON_HUNT_DWELL_MS;
@@ -48,8 +49,12 @@ pub(in super::super) fn find_beacon(
             if let Some(info) = parse_beacon(&frame[..n]) {
                 beacons += 1;
                 if info.ssid == ssid {
-                    let channel =
-                        if info.channel >= 1 && info.channel <= 14 { info.channel } else { ch };
+                    // The channel the frame names, if allowed and near the
+                    // one it was heard on; else where it was heard. None:
+                    // not one the world domain allows, so not joined.
+                    let Some(channel) = join_channel(ch, info.channel) else {
+                        continue;
+                    };
                     out[..n].copy_from_slice(&frame[..n]);
                     return (Some((n, channel)), beacons);
                 }
