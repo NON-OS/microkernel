@@ -16,31 +16,19 @@
 
 use nonos_policy_proto::Field;
 
-use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
-
 use crate::settings::section::Section;
 
+use super::access_knob::Knob;
 use super::blocks_for::blocks_for;
 use super::rows::Row;
+use super::stops::stops;
 
 /// A row the cursor stops on: a field, or one wallpaper of the collection.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Slot {
     Field(Field),
     Wallpaper(u8),
-}
-
-/// How many rows the cursor stops on in a section. The cursor indexes this
-/// list, and the pane walks the same block tables, so the two cannot disagree
-/// about which row is which.
-pub fn field_count(section: Section) -> usize {
-    let mut n = 0;
-    for b in blocks_for(section) {
-        for r in b.rows {
-            n += stops(r);
-        }
-    }
-    n
+    Access(Knob),
 }
 
 /// The row the cursor's `index` names.
@@ -53,6 +41,7 @@ pub fn slot_at(section: Section, index: usize) -> Option<Slot> {
                 return match r {
                     Row::Field(f) => Some(Slot::Field(*f)),
                     Row::Wallpapers => Some(Slot::Wallpaper((index - n) as u8)),
+                    Row::Access(k) => Some(Slot::Access(*k)),
                     _ => None,
                 };
             }
@@ -66,15 +55,6 @@ pub fn slot_at(section: Section, index: usize) -> Option<Slot> {
 pub fn field_at(section: Section, index: usize) -> Option<Field> {
     match slot_at(section, index)? {
         Slot::Field(f) => Some(f),
-        Slot::Wallpaper(_) => None,
-    }
-}
-
-/// How many cursor stops a row is.
-fn stops(r: &Row) -> usize {
-    match r {
-        Row::Field(_) => 1,
-        Row::Wallpapers => WALLPAPER_LABELS.len(),
-        _ => 0,
+        Slot::Wallpaper(_) | Slot::Access(_) => None,
     }
 }

@@ -22,6 +22,11 @@ pub mod schema;
 #[path = "../../capsule_settings/src/settings/section.rs"]
 pub mod section;
 
+// The Accessibility page's values, steps, words and bodies; the calls to
+// the shell stay out.
+#[path = "settings_access.rs"]
+pub mod access;
+
 // What the Security page says the TPM answered, and the Wi-Fi page's keys
 // and refusals: pure tables and mappings, compiled as the capsule has them.
 #[path = "../../capsule_settings/src/settings/state/machine_key.rs"]

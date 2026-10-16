@@ -16,14 +16,17 @@
 
 use nonos_policy_proto::{kind_of, Field, KIND_I8, KIND_U8};
 
-use crate::settings::schema::read_only;
-use crate::settings::state::{current_field, State};
+use crate::settings::schema::{read_only, Slot};
+use crate::settings::state::{current_field, current_slot, State};
 
 use super::adjust_i8::adjust_i8;
 use super::adjust_tier::adjust_tier;
 use super::adjust_u8::adjust_u8;
 
 pub fn adjust(state: &mut State, delta: i32) {
+    if let Some(Slot::Access(knob)) = current_slot(state) {
+        return crate::settings::access::page::adjust(state, knob, delta);
+    }
     let field = match current_field(state) {
         Some(f) => f,
         None => return,
