@@ -57,7 +57,7 @@ impl RngQueue {
     }
 
     pub(crate) fn desc_table_phys(&self) -> u64 {
-        self.vq_base as u64
+        crate::arch::paging::kernel_dma(self.vq_base as u64)
     }
     pub(crate) fn set_notify_addr(&mut self, port: u16) {
         self.notify_port = port;
