@@ -49,7 +49,7 @@ A committed list or count of the known sites of something the tree should not
 have, such as lint switches, stub admissions or architecture leaks. Its check
 fails when a new site appears or the count grows, so a baseline may only shrink.
 Explained in [Tests and
-proofs](../contributing/tests-and-proofs.md#static-checks). Code:
+proofs](../contributing/tests-and-proofs-static-checks.md#static-checks). Code:
 `scripts/gate.py`, `nonos-ci/check-baseline.sh`.
 
 ## Boot handoff
