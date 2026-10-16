@@ -19,13 +19,13 @@ extern crate alloc;
 use super::state::CLAIMS;
 use super::types::{ClaimError, Stage};
 
-// Release a claim held by `pid`, retired first if it was not already (L66).
-// Returns the released epoch on success.
-pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    let epoch = super::leave::retire(pid, device_id)?;
+// Release the claim `pid` retired at `epoch` (L66), and that one only: a
+// sibling's release racing this one may have taken it, and the device been
+// claimed again since, a newer claim this release never drained (L69).
+pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> {
     let mut claims = CLAIMS.lock();
-    // A sibling's release, racing this one, may have taken it already.
-    let at = claims.iter().position(|c| c.device_id == device_id && c.epoch == epoch);
+    let ours = |c: &super::Claim| (c.pid, c.device_id, c.epoch) == (pid, device_id, epoch);
+    let at = claims.iter().position(|c| ours(c) && c.stage == Stage::Leaving);
     claims.remove(at.ok_or(ClaimError::NotClaimed)?);
     drop(claims);
     super::quiesce::stop_bus_master(device_id);
