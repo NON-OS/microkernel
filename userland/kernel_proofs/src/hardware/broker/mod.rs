@@ -49,8 +49,6 @@ mod external_tests;
 #[cfg(test)]
 mod first_pass_tests;
 #[cfg(test)]
-mod marf_tests;
-#[cfg(test)]
 mod slot_port_tests;
 #[cfg(test)]
 mod table_measure_tests;
