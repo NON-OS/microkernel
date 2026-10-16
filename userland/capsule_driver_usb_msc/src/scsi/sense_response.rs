@@ -39,9 +39,5 @@ pub fn parse_sense(raw: &[u8]) -> Option<Sense> {
     if response_code != 0x70 && response_code != 0x71 {
         return None;
     }
-    Some(Sense {
-        sense_key: raw[2] & 0x0f,
-        asc: raw[12],
-        ascq: raw[13],
-    })
+    Some(Sense { sense_key: raw[2] & 0x0f, asc: raw[12], ascq: raw[13] })
 }

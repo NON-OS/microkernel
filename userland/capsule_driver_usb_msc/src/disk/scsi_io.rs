@@ -17,36 +17,12 @@
 //! Reading and writing whole device blocks, each run over one BOT command.
 
 use super::bot::command;
+use super::sense::whole;
 use super::types::{Data, Disk};
-use crate::protocol::{E_INVAL, E_IO};
-use crate::scsi::{parse_sense, read10, read16, request_sense, write10, write16, Sense};
+use crate::protocol::E_INVAL;
+use crate::scsi::{read10, read16, write10, write16};
 use crate::span::needs_cdb16;
 use crate::state::State;
-
-const SENSE_LEN: u8 = 18;
-
-/// The sense of the last CHECK CONDITION; asking also clears it.
-pub(super) fn sense(disk: &Disk, state: &mut State) -> Result<Sense, i32> {
-    let mut raw = [0u8; SENSE_LEN as usize];
-    match command(disk, state, request_sense(SENSE_LEN), Data::In(&mut raw))? {
-        (0, _) => parse_sense(&raw).ok_or(E_IO),
-        _ => Err(E_IO),
-    }
-}
-
-/// The sense key of the last CHECK CONDITION; asking also clears it.
-pub(super) fn sense_key(disk: &Disk, state: &mut State) -> Result<u8, i32> {
-    sense(disk, state).map(|s| s.sense_key)
-}
-
-/// A good status with every byte moved, or `E_IO` with the condition cleared.
-pub(super) fn whole(disk: &Disk, state: &mut State, outcome: (u8, u32)) -> Result<(), i32> {
-    match outcome {
-        (0, 0) => Ok(()),
-        (0, _) => Err(E_IO),
-        _ => sense_key(disk, state).and(Err(E_IO)),
-    }
-}
 
 /// Read the device blocks `out` holds from block `lba`.
 pub fn read(disk: &Disk, state: &mut State, lba: u64, out: &mut [u8]) -> Result<(), i32> {

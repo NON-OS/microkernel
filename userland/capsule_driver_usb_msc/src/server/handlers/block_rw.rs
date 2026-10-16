@@ -18,13 +18,13 @@
 //! write the data. Sectors are 512 bytes whatever the device's logical block
 //! (`crate::span`): a request is moved as the device blocks that cover it,
 //! and a write that covers part of a block reads the block first.
-use alloc::vec;
 
-use crate::disk::{read, write, Disk};
+use super::sectors::{read_sectors, write_sectors};
+use crate::disk::Disk;
 use crate::protocol::{
-    BLK_HEADER_LEN, BLK_MAX_SECTORS, E_INVAL, E_IO, E_MSGSIZE, E_NOTSUP, E_NXIO,
+    BLK_HEADER_LEN, BLK_MAX_SECTORS, E_INVAL, E_IO, E_MSGSIZE, E_NOTSUP, E_NXIO, E_TIMEDOUT,
 };
-use crate::span::{sectors, sectors_per_block, span, Span, SECTOR_BYTES};
+use crate::span::{sectors, sectors_per_block, span, SECTOR_BYTES};
 use crate::state::State;
 
 pub enum Rw<'a> {
@@ -60,29 +60,7 @@ pub fn read_write(state: &mut State, disk: &Disk, rw: Rw, body: &[u8]) -> Result
         }
         Rw::Write => return Err(E_INVAL),
     };
-    done.map(|_| bytes).map_err(|_| E_IO)
-}
-
-fn span_bytes(disk: &Disk, sp: Span) -> usize {
-    sp.blocks as usize * disk.block_len as usize
-}
-
-fn read_sectors(state: &mut State, disk: &Disk, sp: Span, out: &mut [u8]) -> Result<(), i32> {
-    if sp.aligned {
-        return read(disk, state, sp.first, out);
-    }
-    let mut blocks = vec![0u8; span_bytes(disk, sp)];
-    read(disk, state, sp.first, &mut blocks)?;
-    out.copy_from_slice(&blocks[sp.head..sp.head + out.len()]);
-    Ok(())
-}
-
-fn write_sectors(state: &mut State, disk: &Disk, sp: Span, data: &[u8]) -> Result<(), i32> {
-    if sp.aligned {
-        return write(disk, state, sp.first, data);
-    }
-    let mut blocks = vec![0u8; span_bytes(disk, sp)];
-    read(disk, state, sp.first, &mut blocks)?;
-    blocks[sp.head..sp.head + data.len()].copy_from_slice(data);
-    write(disk, state, sp.first, &blocks)
+    // A request that ran out of its time says so; any other failure is the
+    // device's.
+    done.map(|_| bytes).map_err(|e| if e == E_TIMEDOUT { e } else { E_IO })
 }
