@@ -20,13 +20,13 @@ the kernel drives them itself. Explained in
 
 ## Identity domain
 
-The VT-d domain every device found by the boot PCI scan starts in, and stays in
-until a driver claims it. It maps physical memory one to one up to the top of
-the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the
-scan did not find has no entry and is denied. Explained in
+A domain mapping physical memory one to one, which no device is given. Every
+function found at boot starts blocked until a driver claims it, but for one
+firmware reserved memory for (an RMRR on VT-d, an IVMD on AMD-Vi), which keeps
+those ranges alone. Explained in
 [IOMMU](../kernel/iommu-when-vt-d.md#when-vt-d-comes-into-service). Code:
 `src/arch/x86_64/iommu/unit/bringup/domain.rs`,
-`src/arch/x86_64/iommu/unit/bringup/limit.rs`.
+`src/arch/x86_64/iommu/amd_vi/reserved.rs`.
 
 ## Inbox
 
@@ -38,13 +38,12 @@ and at most 16 MiB. Explained in [IPC](../kernel/ipc.md#limits). Code:
 
 ## IOMMU
 
-The DMA remapping unit, which limits the memory a device can reach. On Intel
-VT-d machines every image turns it on at boot and confines each claimed PCI
-device to its driver capsule's IOMMU domain. AMD-Vi is not driven and interrupt
-remapping is off in every build profile, so on an AMD machine device DMA is
-unrestricted; a claim on a device no unit in service covers goes ahead
-unconfined, and the boot log says so. Explained in [IOMMU](../kernel/iommu.md).
-Code: `src/hardware/broker/confine/posture.rs`.
+The DMA remapping unit, which limits the memory a device can reach and, with
+interrupt remapping, the interrupts it can raise. On Intel VT-d and AMD-Vi
+machines every image turns both on at boot and confines each claimed PCI device
+to its driver capsule's IOMMU domain. A claim on a device no unit in service
+can confine and remap is refused, and the boot log says so. Explained in
+[IOMMU](../kernel/iommu.md). Code: `src/hardware/broker/confine/decide.rs`.
 
 ## IOMMU domain
 
