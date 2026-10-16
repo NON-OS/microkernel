@@ -25,6 +25,7 @@ use super::state::{Mlme, MlmeOutput};
 use crate::dot11::auth::{auth_frame, parse_auth};
 use crate::sae::frame::AUTH_ALG_SAE;
 use crate::sae::SaeStep;
+use crate::wipe::wipe;
 
 /// Open System: algorithm 0, the response is transaction 2.
 const AUTH_ALG_OPEN: u16 = 0;
@@ -55,8 +56,9 @@ impl Mlme {
                 let sc = self.next_seq();
                 MlmeOutput::send(auth_frame(us, bssid, sc, AUTH_ALG_SAE, seq, status, &body))
             }
-            SaeStep::Accepted { pmk } => {
+            SaeStep::Accepted { mut pmk } => {
                 self.pmk = pmk;
+                wipe(&mut pmk);
                 self.assoc_request()
             }
             SaeStep::Ignore => MlmeOutput::none(),
