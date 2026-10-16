@@ -60,8 +60,3 @@ pub fn device_info(device: u16) -> Option<(&'static str, u32)> {
         _ => None,
     }
 }
-
-/// Clock assumed for an Intel LPSS I2C function whose id is not in the
-/// table (a newer platform): the fastest rate any LPSS generation uses, so
-/// the bus can only come out slower than programmed.
-pub const UNKNOWN_LPSS_CLOCK_HZ: u32 = 216_000_000;

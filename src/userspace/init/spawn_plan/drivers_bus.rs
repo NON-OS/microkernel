@@ -19,6 +19,7 @@ pub(super) fn spawn() {
     spawn_i2c_pci();
     spawn_i2c_hid();
     spawn_smbus();
+    super::drivers_spi::spawn();
 }
 
 /// The Intel SMBus host, only where the inventory saw one.
