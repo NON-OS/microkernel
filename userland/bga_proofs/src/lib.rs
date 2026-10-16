@@ -40,6 +40,14 @@ pub mod error;
 pub mod regs;
 #[path = "../../capsule_driver_bga/src/setup/mode.rs"]
 pub mod start;
+#[path = "../../capsule_driver_bga/src/turn.rs"]
+pub mod turn;
+
+/// The kernel's DGON, the one definition, mounted as libc mounts it: `turn`
+/// reaches its parser through the crate root.
+#[path = "../../../src/hardware/broker/acpi/dgon_wire.rs"]
+pub mod dgon;
+use dgon::dgon_parse;
 
 /// The kernel's display list, which the compositor walks to find bga.
 #[path = "../../../src/services/registry/displays.rs"]

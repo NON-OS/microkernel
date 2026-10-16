@@ -26,6 +26,7 @@ use nonos_gfx_wire::header::HDR_LEN;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
 use crate::setup::Engine;
+use crate::turn::{turn, Turn};
 use nonos_intel_display::display::{brightness_answer, Rights, BRIGHTNESS_REPLY, OP_VCP};
 
 const SERVICE_INBOX: u64 = 0;
@@ -40,9 +41,10 @@ pub fn run(server: &mut Server<Engine, Pool>, device_id: u64) -> ! {
         if !recv_ready(n) {
             continue;
         }
-        if sender == 0 {
-            crate::gone::from_kernel(&rx[..n as usize], device_id);
-            continue;
+        match turn(sender, &rx[..n as usize], device_id) {
+            Turn::End => crate::gone::leave(),
+            Turn::Drop => continue,
+            Turn::Serve => {}
         }
         let req = &rx[..n as usize];
         let len = if req.len() < HDR_LEN {

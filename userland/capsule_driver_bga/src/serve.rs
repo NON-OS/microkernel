@@ -21,6 +21,8 @@ use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
+use crate::turn::{turn, Turn};
+
 use crate::display::Bga;
 
 const SERVICE_INBOX: u64 = 0;
@@ -34,9 +36,10 @@ pub fn run(server: &mut Server<Bga, Pool>, device_id: u64) -> ! {
         if !recv_ready(n) {
             continue;
         }
-        if sender == 0 {
-            crate::gone::from_kernel(&rx[..n as usize], device_id);
-            continue;
+        match turn(sender, &rx[..n as usize], device_id) {
+            Turn::End => crate::gone::leave(),
+            Turn::Drop => continue,
+            Turn::Serve => {}
         }
         let len = server.handle(sender, &rx[..n as usize], &mut tx);
         if len > 0 {

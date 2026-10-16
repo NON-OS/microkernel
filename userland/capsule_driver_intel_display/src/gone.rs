@@ -21,13 +21,11 @@
 //! grant, release the claim or write a register, and the kernel takes back
 //! what the process held. The service leaves the registry with it, which
 //! the compositor's poll reads as the display gone. Any other frame from
-//! sender 0 is dropped, and sender 0 is never answered.
+//! sender 0 is dropped, and sender 0 is never answered (`turn`).
 
-use nonos_libc::{dgon_parse, mk_exit, EXIT_ABSENT};
+use nonos_libc::{mk_exit, EXIT_ABSENT};
 
-/// A frame from sender 0: ends the driver when it is a DGON for `device_id`.
-pub fn from_kernel(msg: &[u8], device_id: u64) {
-    if dgon_parse(msg, 0).is_some_and(|g| g.device_id == device_id) {
-        mk_exit(EXIT_ABSENT);
-    }
+/// A DGON named this driver's device (`turn`).
+pub fn leave() -> ! {
+    mk_exit(EXIT_ABSENT)
 }

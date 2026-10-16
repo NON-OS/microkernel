@@ -24,15 +24,19 @@ mod clock;
 mod discover;
 mod dma_pair;
 mod error;
-mod gone;
 mod frames;
 mod frames_drop;
+mod gone;
 mod handles;
 mod senders;
 mod serve;
 mod setup;
+mod turn;
 
 use nonos_libc::{heap_init, mk_exit, start_driver};
+// `turn` reaches the DGON parser here, where its proofs mount the kernel's
+// own definition under the same name.
+use nonos_libc::dgon_parse;
 
 use crate::error::reason;
 

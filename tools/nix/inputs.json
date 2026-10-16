@@ -810,6 +810,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi",
    "src/services/registry/displays.rs",
    "userland/bga_proofs",
    "userland/capsule_driver_bga/src/constants.rs",
@@ -821,6 +822,7 @@
    "userland/capsule_driver_bga/src/error.rs",
    "userland/capsule_driver_bga/src/regs.rs",
    "userland/capsule_driver_bga/src/setup/mode.rs",
+   "userland/capsule_driver_bga/src/turn.rs",
    "userland/nonos_devmodel",
    "userland/nonos_edid",
    "userland/nonos_gfx_serve",
@@ -3608,6 +3610,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi",
    "userland/capsule_driver_intel_display/data",
    "userland/capsule_driver_intel_display/src/ddc",
    "userland/capsule_driver_intel_display/src/display",
@@ -3618,6 +3621,7 @@
    "userland/capsule_driver_intel_display/src/family.rs",
    "userland/capsule_driver_intel_display/src/ids.rs",
    "userland/capsule_driver_intel_display/src/ids_parse.rs",
+   "userland/capsule_driver_intel_display/src/turn.rs",
    "userland/intel_display_proofs",
    "userland/nonos_edid",
    "userland/nonos_gfx_serve",
