@@ -32,12 +32,14 @@ pub enum Knob {
     /// Which display the scale row below is for.
     Screen,
     Scale,
+    /// The chosen display's brightness now: shown, never set here.
+    Brightness,
 }
 
 impl Knob {
     /// One of the displays' rows on Appearance, not Accessibility's.
     pub fn on_screens(self) -> bool {
-        matches!(self, Knob::Arrange | Knob::Screen | Knob::Scale)
+        matches!(self, Knob::Arrange | Knob::Screen | Knob::Scale | Knob::Brightness)
     }
 }
 
@@ -52,6 +54,7 @@ impl Knob {
             Knob::Arrange => "Arrangement",
             Knob::Screen => "Display",
             Knob::Scale => "Scale",
+            Knob::Brightness => "Brightness",
         }
     }
 }
