@@ -20,8 +20,25 @@
 pub mod state;
 
 #[cfg(test)]
+#[path = "../../compositor/src/display/arrange_wire.rs"]
+#[allow(dead_code)]
+mod arrange_wire;
+/// The compositor's ops and the arrangement's answer, which the table names.
+#[cfg(test)]
+#[path = "../../compositor/src/protocol/ops.rs"]
+#[allow(dead_code)]
+mod ncmp;
+/// The shell's ops, and its table of those Settings may send on.
+#[path = "../../capsule_desktop_shell/src/protocol/ops.rs"]
+pub mod protocol;
+#[path = "../../capsule_desktop_shell/src/server/handlers/relay_table.rs"]
+pub mod relay_table;
+
+#[cfg(test)]
 mod attention_tests;
 #[cfg(test)]
 mod band_tests;
+#[cfg(test)]
+mod relay_tests;
 #[cfg(test)]
 mod router_tests;
