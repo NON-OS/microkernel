@@ -23,8 +23,11 @@
 //! from init's loop rather than the tick. The decisions are pure, in
 //! `button_owner`, `leave_rule` and `hw::leave_events`; this is the glue.
 
+use super::battery_watch::tick as battery_tick;
 use super::button_owner::give_back;
+use super::critical_watch::Action;
 use super::leave_rule::{lock_at_exit, take_gap_press};
+use super::thermal_watch::tick as thermal_tick;
 use crate::arch::power::PowerOff;
 use crate::security::zerostate::terminate;
 use crate::services::registry::lookup_service;
@@ -45,10 +48,19 @@ pub fn on_exit(pid: u32) -> Option<bool> {
     Some(lock)
 }
 
-/// From init's loop: the wiped power-off for a press in the gap.
-pub fn serve_gap_press() {
+/// From init's loop: the wiped power-off for a press in the gap, or for a
+/// zone or battery whose grace ran out with no reading since (F-108).
+pub fn serve_from_init() {
     if take_gap_press() {
         Line::new().str(b"[ACPI] power button pressed while the ACPI capsule restarts").end();
+        terminate(PowerOff::Shutdown)
+    }
+    let now = crate::sys::clock::since_boot_ms();
+    let late: [(Action, &[u8]); 2] =
+        [(thermal_tick(now), b"thermal zone"), (battery_tick(now), b"battery")];
+    if let Some((_, what)) = late.iter().find(|(a, _)| *a == Action::PowerOff) {
+        let line = b" critical by its last reading, its grace over: powering off";
+        Line::new().str(b"[ACPI] ").str(what).str(line).end();
         terminate(PowerOff::Shutdown)
     }
 }
