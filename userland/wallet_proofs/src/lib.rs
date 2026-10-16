@@ -25,14 +25,10 @@ extern crate alloc;
 
 const WALLET: &str = "../capsule_wallet_nonos/src/wallet";
 
-// The rule the wallet's requests leave by, as nonos_route_link ships it. At
-// the crate root, where its own `crate::pick` paths look for it.
-#[allow(dead_code)]
-#[path = "../../nonos_route_link/src/describe.rs"]
-pub mod describe;
-#[allow(dead_code)]
-#[path = "../../nonos_route_link/src/pick.rs"]
-pub mod pick;
+// The rule the wallet's requests leave by, as nonos_route_link ships it,
+// re-exported at the root where its own `crate::pick` paths look for it.
+mod route_link;
+pub use route_link::{describe, pick};
 
 #[allow(dead_code)]
 #[path = "../../capsule_wallet_nonos/src/wallet/event/hex_digit.rs"]
