@@ -24,7 +24,7 @@ fn ids(of: Part) -> Vec<u16> {
 }
 
 #[test]
-fn the_macs_are_linux_s() {
+fn the_macs_are_as_observed() {
     assert_eq!(ids(Part::I82575), [0x10A7, 0x10A9, 0x10D6]);
     let i82576 = [0x10C9, 0x150A, 0x1518, 0x10E6, 0x10E7, 0x150D, 0x1526, 0x10E8];
     assert_eq!(ids(Part::I82576), i82576);

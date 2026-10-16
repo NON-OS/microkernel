@@ -16,7 +16,7 @@
 
 //! The PHY's register access through MDIC, the IEEE control register, the
 //! I210/I211 page register and the locks shared with firmware. MDIC, SWSM
-//! and SW_FW_SYNC: observed in Linux igb, unverified against Intel's
+//! and SW_FW_SYNC: as observed, unverified against Intel's
 //! datasheets. The control register is IEEE 802.3 clause 22's register 0.
 
 pub const MDIC_DATA_MASK: u32 = 0xFFFF;
@@ -28,8 +28,8 @@ pub const MDIC_READY: u32 = 1 << 28;
 pub const MDIC_ERROR: u32 = 1 << 30;
 /// Clause 22 has five register address bits.
 pub const MAX_PHY_REG: u32 = 0x1F;
-/// The internal copper PHY answers at address 1 (observed in Linux igb and
-/// in QEMU's igb model, which answers nowhere else).
+/// The internal copper PHY answers at address 1 (as observed, and
+/// QEMU's model of the part answers nowhere else).
 pub const PHY_ADDR: u32 = 1;
 
 /// Register 0, control, and its restart, power down and autonegotiation
@@ -38,7 +38,7 @@ pub const PHY_CONTROL: u32 = 0x00;
 pub const MII_CR_RESTART_AUTO_NEG: u16 = 0x0200;
 pub const MII_CR_POWER_DOWN: u16 = 0x0800;
 pub const MII_CR_AUTO_NEG_EN: u16 = 0x1000;
-/// The I210/I211 PHY's page register (observed in Linux igb, unverified).
+/// The I210/I211 PHY's page register (as observed, unverified).
 pub const GS40G_PAGE_SELECT: u32 = 0x16;
 
 /// SWSM: the software semaphore, then the software/firmware one.

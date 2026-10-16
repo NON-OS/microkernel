@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ring and buffer sizes. Both advanced descriptor formats are 16 bytes,
-//! and RDLEN and TDLEN must be a multiple of 128 bytes (observed in Linux
-//! ixgbe, unverified); 32 descriptors are 512.
+//! and RDLEN and TDLEN must be a multiple of 128 bytes (as observed,
+//! unverified); 32 descriptors are 512.
 
 pub const DESC_BYTES: usize = 16;
 

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Receive control, split-receive control, queue control and write-back
-//! bits. Source: observed in Linux igb (e1000_defines.h, e1000_82575.h),
+//! bits. Source: as observed,
 //! unverified against Intel's datasheets.
 
 pub const RCTL_EN: u32 = 1 << 1;
@@ -37,8 +37,8 @@ pub const SRRCTL_DESCTYPE_ADV_ONEBUF: u32 = 1 << 25;
 pub const SRRCTL_BSIZEPKT_2K: u32 = 2048 / 1024;
 pub const SRRCTL_BSIZEHDR_256: u32 = 256 << 2;
 
-/// RXDCTL thresholds. Prefetch and host thresholds of 8 are as observed in
-/// Linux igb.h, unverified. The write-back threshold is this driver's: 1,
+/// RXDCTL thresholds. Prefetch and host thresholds of 8 are as observed,
+/// unverified. The write-back threshold is this driver's: 1,
 /// so each frame is written back alone. The driver polls with every cause
 /// masked, and nothing would push a partial batch out.
 pub const RXDCTL_PTHRESH: u32 = 8;

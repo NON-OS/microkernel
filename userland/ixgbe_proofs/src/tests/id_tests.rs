@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The id table against the ids and part names as observed in Linux ixgbe
+//! The id table against the ids and part names as observed
 //! (unverified), in that table's order, for the MACs this driver takes.
 
 use crate::facts::ids::{INTEL_VENDOR_ID, IXGBE_PARTS};

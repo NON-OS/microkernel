@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The igb device ids, each with its MAC and media. Source: observed in
-//! Linux igb_main.c's table, unverified against Intel's documents. Fiber,
+//! The igb device ids, each with its MAC and media. Source: as observed,
+//! unverified against Intel's documents. Fiber,
 //! SerDes, SGMII and backplane parts are listed too, marked Other:
 //! discovery takes a copper port first, and bring-up refuses the others.
 

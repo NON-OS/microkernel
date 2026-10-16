@@ -41,7 +41,7 @@ fn a_free_semaphore_is_taken_and_put_back() {
 }
 
 #[test]
-fn a_stale_smbi_is_cleared_once_as_linux_does_on_the_i210() {
+fn a_stale_smbi_is_cleared_once_on_the_i210() {
     let bar = window();
     bar.present32(REG_SWSM, SWSM_SMBI);
     let (r, took) = timed(|| get(&regs(&bar)));

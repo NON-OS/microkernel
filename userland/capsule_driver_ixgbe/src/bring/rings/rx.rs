@@ -16,8 +16,8 @@
 
 //! Receive queue 0, one buffer per advanced descriptor: the queue disabled
 //! and seen disabled, base and length with a flushing read after them (the
-//! part may check the queue's memory as soon as they land, as observed in
-//! Linux ixgbe, unverified), head and tail zero, SRRCTL written whole (2 KiB
+//! part may check the queue's memory as soon as they land, as observed,
+//! unverified), head and tail zero, SRRCTL written whole (2 KiB
 //! packet buffer, 256-byte header size, one buffer), then the enable, read
 //! back on the clock. Only then does RDT hand the part every slot but one,
 //! which keeps a full ring distinguishable from an empty one. The receiver

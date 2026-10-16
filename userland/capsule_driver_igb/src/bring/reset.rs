@@ -21,8 +21,8 @@
 //! An NVM read that does not finish is not fatal: a flashless I210 has no
 //! NVM to read, and the station address is drawn, not read. It is logged
 //! so a photo of the console shows it. An 82575 with no NVM is refused: it
-//! needs an init script of SerDes, clock and lane settings (as observed in
-//! Linux igb, unverified) that this driver does not carry.
+//! needs an init script of SerDes, clock and lane settings (as observed,
+//! unverified) that this driver does not carry.
 
 use crate::bring::quiet;
 use crate::bring::wait::until;

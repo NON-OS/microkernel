@@ -30,7 +30,7 @@ pub const RX_RING_PHYS: u64 = 0x1_0000_1000;
 pub const TX_RING_PHYS: u64 = 0x1_0000_2000;
 pub const RX_BUF_PHYS: u64 = 0x1_0010_0000;
 pub const TX_BUF_PHYS: u64 = 0x1_0020_0000;
-pub const PCI_DEVICE: u16 = 0x10C9; // E1000_DEV_ID_82576, QEMU's igb
+pub const PCI_DEVICE: u16 = 0x10C9; // the 82576, as QEMU models it
 
 pub struct Memory {
     pub rx: Box<[RxDesc; RX_DESC_COUNT]>,

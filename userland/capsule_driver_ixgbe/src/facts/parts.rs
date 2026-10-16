@@ -16,7 +16,7 @@
 
 //! Which ixgbe MAC a function is. The 82598 (another register layout) and
 //! the X550EM parts (firmware- and external-PHY-managed links) are not
-//! taken. Source: observed in Linux ixgbe, unverified.
+//! taken. Source: as observed, unverified.
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Part {

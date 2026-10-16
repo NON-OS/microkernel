@@ -25,7 +25,7 @@ driver.igb_0 -- broker MMIO + DMA rings --> 82575 .. I211 (internal PHY)
 ## Microkernel contract
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in
-  `facts/ids.rs` (as observed in Linux's igb table, unverified).
+  `facts/ids.rs` (as observed, unverified).
 - `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring

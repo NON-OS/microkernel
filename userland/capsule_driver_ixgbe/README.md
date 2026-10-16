@@ -3,6 +3,8 @@
 Status: wired, not yet signed. The kernel mirror (`src/hardware/ixgbe_capsule`)
 embeds and spawns it under `nonos-capsule-driver-ixgbe` (the
 `microkernel-driver-ixgbe` build), and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
@@ -25,7 +27,7 @@ driver.ixgbe_0 -- broker MMIO + DMA rings --> 82599 / X540 / X550
 ## Microkernel contract
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in the
-  table: `facts/ids.rs` (as observed in Linux's ixgbe table, unverified).
+  table: `facts/ids.rs` (as observed, unverified).
 - `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
@@ -112,6 +114,7 @@ completing through `net.core`.
 
 ## Release checklist
 
+- Signed by the owner and added to the image's features, with net.core,
   net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - One machine of each MAC photographed with those lines.
 

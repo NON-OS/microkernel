@@ -18,21 +18,21 @@
 //! says so and is unverified; where it is this driver's own, it says why.
 //! The error lines that quote a bound are held to it in ixgbe_proofs.
 
-/// Bus mastering must stop before reset: 80 ms observed in Linux ixgbe,
+/// Bus mastering must stop before reset: 80 ms as observed,
 /// unverified.
 pub const MASTER_DISABLE_MS: u64 = 80;
-/// CTRL.RST clears itself about a millisecond after it is written (observed
-/// in Linux ixgbe, unverified); three are allowed.
+/// CTRL.RST clears itself about a millisecond after it is written (as
+/// observed, unverified); three are allowed.
 pub const RESET_CLEAR_MS: u64 = 3;
-/// Settle after each reset: 50 ms observed in Linux ixgbe, unverified.
+/// Settle after each reset: 50 ms as observed, unverified.
 pub const RESET_SETTLE_MS: u64 = 50;
 /// The EEPROM read after reset. This driver's own: waited on, not fatally,
 /// so the queues are not set up while the part is still loading its
 /// defaults.
 pub const AUTO_READ_MS: u64 = 10;
-/// The security block's receive path reporting idle: 40 ms observed in
-/// Linux ixgbe, unverified.
+/// The security block's receive path reporting idle: 40 ms as observed,
+/// unverified.
 pub const SECRX_MS: u64 = 40;
-/// A queue enable or disable reading back: 20 ms observed in Linux ixgbe,
+/// A queue enable or disable reading back: 20 ms as observed,
 /// unverified.
 pub const QUEUE_ENABLE_MS: u64 = 20;

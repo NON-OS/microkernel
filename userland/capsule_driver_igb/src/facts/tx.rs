@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Transmit control, queue control and advanced descriptor bits. Source:
-//! observed in Linux igb (e1000_defines.h, e1000_82575.h), unverified
+//! as observed, unverified
 //! against Intel's datasheets.
 
 pub const TCTL_EN: u32 = 1 << 1;
@@ -27,7 +27,7 @@ pub const TCTL_CT_15: u32 = 15 << 4;
 /// Retransmit on late collision.
 pub const TCTL_RTLC: u32 = 1 << 24;
 
-/// TXDCTL thresholds: prefetch 8 and host 1 as observed in Linux igb.h,
+/// TXDCTL thresholds: prefetch 8 and host 1 as observed,
 /// unverified; write-back 1 is this driver's, for the reason in rx.rs.
 pub const TXDCTL_PTHRESH: u32 = 8;
 pub const TXDCTL_HTHRESH: u32 = 1 << 8;

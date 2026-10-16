@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ring and buffer sizes. Both advanced descriptor formats are 16 bytes,
-//! and RDLEN and TDLEN must be a multiple of 128 bytes (observed in Linux
-//! igb, unverified); 32 descriptors are 512.
+//! and RDLEN and TDLEN must be a multiple of 128 bytes (as observed,
+//! unverified); 32 descriptors are 512.
 
 pub const DESC_BYTES: usize = 16;
 
@@ -26,7 +26,7 @@ pub const TX_DESC_COUNT: usize = 32;
 pub const RX_RING_BYTES: usize = RX_DESC_COUNT * DESC_BYTES;
 pub const TX_RING_BYTES: usize = TX_DESC_COUNT * DESC_BYTES;
 
-/// IGB_RXBUFFER_2048, the size SRRCTL.BSIZEPKT is programmed with.
+/// 2 KiB, the size SRRCTL.BSIZEPKT is programmed with.
 pub const RX_BUFFER_LEN: usize = 2048;
 pub const TX_BUFFER_LEN: usize = 2048;
 

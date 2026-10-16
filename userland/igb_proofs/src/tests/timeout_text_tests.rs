@@ -39,7 +39,7 @@ fn quoted_bounds_match_the_waits() {
 }
 
 #[test]
-fn the_bounds_are_linux_loop_counts_times_the_longest_sleep() {
+fn the_bounds_are_observed_loop_counts_times_the_longest_sleep() {
     assert_eq!(MASTER_DISABLE_MS * 1000, 800 * 100, "MASTER_DISABLE_TIMEOUT x 100 us");
     assert_eq!(AUTO_READ_MS, 10 * 2, "AUTO_READ_DONE_TIMEOUT x 2 ms");
     assert_eq!(SWFW_SYNC_MS, 200 * 5, "200 x mdelay(5)");

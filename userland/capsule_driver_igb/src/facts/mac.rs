@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Device control, status, NVM, extended control, receive address and PHY
-//! power bits. Source: observed in Linux igb (e1000_defines.h), unverified
-//! against Intel's datasheets.
+//! power bits. Source: as observed, unverified against
+//! Intel's datasheets.
 
 pub const CTRL_GIO_MASTER_DISABLE: u32 = 1 << 2;
 pub const CTRL_SLU: u32 = 1 << 6;

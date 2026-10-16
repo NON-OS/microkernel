@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Register offsets in BAR0. Source: observed in Linux igb (facts::regs),
+//! Register offsets in BAR0. Source: as observed,
 //! unverified against Intel's datasheets. Queue 0 is programmed at its low
 //! alias, 0x2800 and 0x3800, which the part answers for its first four
 //! queues as well as at 0xC000 and 0xE000 (observed, unverified).

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The functions this driver takes, each with its MAC. Source: the 82599,
-//! X540 and X550 ids as observed in Linux ixgbe_main.c's table, unverified.
+//! X540 and X550 ids as observed, unverified.
 //! Backplane, CX4 and SFP+ 82599 ports run in the link mode firmware left
 //! in AUTOC (bring/mode.rs); no SFP module setup is carried.
 

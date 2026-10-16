@@ -18,23 +18,23 @@
 //! says so and is unverified; where it is this driver's own, it says why.
 //! The error lines that quote a bound are held to it in igb_proofs.
 
-/// Bus mastering must stop before reset: 80 ms observed in Linux igb,
+/// Bus mastering must stop before reset: 80 ms as observed,
 /// unverified.
 pub const MASTER_DISABLE_MS: u64 = 80;
-/// Settle after the engines stop and before reset: 10 ms observed in Linux
-/// igb, unverified.
+/// Settle after the engines stop and before reset: 10 ms as observed,
+/// unverified.
 pub const QUIESCE_SETTLE_MS: u64 = 10;
-/// The NVM read after reset: 20 ms observed in Linux igb, unverified.
+/// The NVM read after reset: 20 ms as observed, unverified.
 pub const AUTO_READ_MS: u64 = 20;
 /// Each half of the SWSM semaphore. This driver's: two seconds, past the
-/// longest NVM operation firmware may hold it for (as observed in Linux
-/// igb, a 32K-word NVM at 50 us a word, unverified).
+/// longest NVM operation firmware may hold it for (as observed,
+/// a 32K-word NVM at 50 us a word, unverified).
 pub const SEMAPHORE_MS: u64 = 2000;
-/// The PHY bit of SW_FW_SYNC, retried every 5 ms: one second observed in
-/// Linux igb, unverified.
+/// The PHY bit of SW_FW_SYNC, retried every 5 ms: one second as observed,
+/// unverified.
 pub const SWFW_SYNC_MS: u64 = 1000;
 pub const SWFW_RETRY_MS: u64 = 5;
-/// One MDIC cycle: 100 ms observed in Linux igb, unverified.
+/// One MDIC cycle: 100 ms as observed, unverified.
 pub const MDIC_MS: u64 = 100;
 /// A queue enable reading back. This driver's own: other drivers do not
 /// read it back; 100 ms is allowed for it to show.
