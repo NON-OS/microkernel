@@ -16,6 +16,8 @@
 
 mod claim;
 mod hold;
+mod hold_ids;
+mod hold_platform;
 mod hold_rule;
 mod lookup;
 mod master_off;
