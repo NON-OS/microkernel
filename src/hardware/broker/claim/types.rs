@@ -31,6 +31,7 @@ pub enum ClaimError {
     Unconfined,
     /// Held for the one capsule spawned to drive it.
     Held,
-    /// Refused to every claimant until the owner's decision allows it.
+    /// Refused to every claimant: until the owner's decision allows it, or
+    /// for a bridge, until a claim made for ports exists (L58).
     Refused,
 }
