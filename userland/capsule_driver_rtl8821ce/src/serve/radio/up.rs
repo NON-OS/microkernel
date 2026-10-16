@@ -56,16 +56,8 @@ pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Ra
 }
 
 /// The station MAC from the MAC-ID registers, as `phy_setup` programmed it.
-pub(in super::super) fn read_mac(regs: &Regs) -> [u8; 6] {
+fn read_mac(regs: &Regs) -> [u8; 6] {
     let lo = regs.read32(REG_MACID);
     let hi = regs.read32(REG_MACID + 4);
     [lo as u8, (lo >> 8) as u8, (lo >> 16) as u8, (lo >> 24) as u8, hi as u8, (hi >> 8) as u8]
-}
-
-// Write the six-byte station MAC into the MAC-ID registers so the transmitter
-// stamps it as the source address and the receiver's physical-address filter
-// accepts unicast frames addressed to us.
-pub(super) fn program_mac(regs: &Regs, mac: &[u8; 6]) {
-    regs.write32(REG_MACID, u32::from_le_bytes([mac[0], mac[1], mac[2], mac[3]]));
-    regs.write32(REG_MACID + 4, u32::from_le_bytes([mac[4], mac[5], 0, 0]));
 }

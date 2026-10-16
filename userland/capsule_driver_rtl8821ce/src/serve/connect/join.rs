@@ -21,13 +21,12 @@ use crate::link::{RtlKeys, RtlLink};
 use crate::phy::channel::{set_rf, Bw};
 use crate::regs::Regs;
 use crate::status;
-use nonos_wifi_core::link_history::CODE_LEFT;
 
-use super::super::radio::read_mac;
 use super::super::SCAN_FRAME_MAX;
 use super::hunt::find_beacon;
 use super::install::answer;
 use super::media::link_to_bss;
+use super::ready::ready;
 use super::request::parse_connect;
 use super::result::{ConnectResult, CODE_BAD_REQUEST, CODE_NOT_FOUND};
 use super::run::run;
@@ -48,10 +47,10 @@ pub(in crate::serve) fn connect(
     let Some(req) = parse_connect(body) else {
         return ConnectResult::code(CODE_BAD_REQUEST);
     };
-    if req.rejoin && link.history().refuses_rejoin() {
-        return ConnectResult::code(CODE_LEFT);
-    }
-    let our_mac = read_mac(regs);
+    let our_mac = match ready(link, &req) {
+        Ok(mac) => mac,
+        Err(r) => return r,
+    };
     // Find the network's beacon (or, hidden, its probe response) on the air,
     // which also tells us its channel.
     let mut beacon = [0u8; SCAN_FRAME_MAX];
