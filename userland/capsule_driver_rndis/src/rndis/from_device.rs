@@ -22,6 +22,9 @@
 use super::message::{le32, put32, COMPLETION, MSG_INDICATE, MSG_KEEPALIVE, STATUS_SUCCESS};
 use super::message::{STATUS_MEDIA_CONNECT, STATUS_MEDIA_DISCONNECT};
 
+const INDICATE_HDR: u32 = 20;
+const KEEPALIVE_HDR: u32 = 12;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum FromDevice {
     /// The medium connected (true) or disconnected.
@@ -31,10 +34,13 @@ pub enum FromDevice {
     Other,
 }
 
-/// The message in `r`, its MessageLength checked against what came.
+/// The message in `r`, its MessageLength checked against what came and
+/// against its own header: 20 bytes for INDICATE_STATUS (type, length,
+/// status, and the status buffer's length and offset), 12 for KEEPALIVE.
 pub fn from_device(r: &[u8]) -> FromDevice {
     let (Some(kind), Some(len)) = (le32(r, 0), le32(r, 4)) else { return FromDevice::Other };
-    if (len as usize) > r.len() || len < 12 {
+    let header = if kind == MSG_INDICATE { INDICATE_HDR } else { KEEPALIVE_HDR };
+    if (len as usize) > r.len() || len < header {
         return FromDevice::Other;
     }
     match (kind, le32(r, 8)) {
