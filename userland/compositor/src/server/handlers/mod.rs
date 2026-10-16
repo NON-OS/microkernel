@@ -17,6 +17,7 @@
 pub mod accessibility;
 pub mod accessibility_get;
 pub mod attach_argb;
+pub mod brightness_get;
 pub mod brightness_step;
 pub mod cursor_update;
 pub mod damage_commit;
@@ -26,6 +27,7 @@ pub mod driver_call;
 pub mod focus_set;
 pub mod health;
 pub mod indicator;
+pub mod input_sources;
 pub mod input_subscribe;
 pub mod lid;
 pub mod night_light;

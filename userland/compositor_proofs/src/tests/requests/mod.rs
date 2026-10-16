@@ -23,5 +23,5 @@ mod hostile;
 mod ops;
 mod ops_other;
 mod ops_scene;
-mod rng;
+pub(crate) mod rng;
 mod sweep_tests;
