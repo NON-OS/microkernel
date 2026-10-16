@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod describe;
 mod phandle;
-mod controllers;
-mod find;
-mod level;
-mod props;
-mod node;
 mod seen;
 
-pub use find::{find, MAX_DEPTH};
-pub use node::{DwI2c, IrqCtrl};
+pub use describe::{describe, I2cBus, DEFAULT_BUS_HZ, NEEDLES};
