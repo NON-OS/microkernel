@@ -71,5 +71,5 @@ pub use region::sys_acpi_region;
 pub use reserved::sys_acpi_reserved;
 pub use sleep::sys_acpi_sleep;
 pub use smbios::sys_smbios_table;
-pub use table::{sys_acpi_measured, sys_acpi_table};
+pub use table::{sys_acpi_loaded, sys_acpi_measured, sys_acpi_table};
 pub use usb_ports::{sys_acpi_usb_ports, sys_usb_port_facts};

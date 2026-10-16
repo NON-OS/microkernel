@@ -265,7 +265,18 @@ fixed order:
 
 The FACS is left out, since firmware writes it. Each table becomes a
 44-byte record: signature, instance, length and BLAKE3 digest. A later
-hand-out adds a record only if the bytes changed. One digest over the
+hand-out adds a record only if the bytes changed.
+
+A table AML loads at run time is measured too, whether by `Load` from an
+OperationRegion or a buffer, or by `LoadTable`:
+1. The interpreter offers the exact bytes it is about to load to its host.
+2. The capsule hands them to the kernel (`MkAcpiLoaded`).
+3. The kernel checks them as one whole table and adds a record whose
+   instance has bit 31 set.
+
+If the kernel refuses (a malformed table, or a list already full, which
+marks the registry incomplete), the table is not loaded and AML sees a
+failed load. Only the bytes handed over are ever loaded. One digest over the
 list is the attest registry's pid 0 entry, so the root an attestation
 signs moves when the machine's AML does; `MkAcpiMeasured` returns the
 list for the About screen and a verifier. Nothing is refused on it.

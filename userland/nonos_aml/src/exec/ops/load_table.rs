@@ -44,6 +44,9 @@ impl<H: Host> Machine<'_, H> {
         let Some(bytes) = self.host.table(&text[0], &text[1], &text[2]) else {
             return Ok(Object::Integer(0));
         };
+        if !self.host.admit_table(&bytes) {
+            return Ok(Object::Integer(0));
+        }
         let scope = match text[3].as_slice() {
             b"" | b"\\" => ROOT,
             path => self.resolve_text(aml, path, at)?,
