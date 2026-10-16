@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every entropy source there is, hashed into one seed.
-//!
-//! A seed from one source is only as good as that source. virtio-rng, RDSEED
-//! and RDRAND are each drawn when present and all go into one SHA-256 with
-//! cycle-counter jitter and this CPU's stack and counter, so a weak source is
-//! covered by the others. It fails closed below 32 bytes from hardware.
+//! Every entropy source there is, hashed into one seed. RDSEED, RDRAND and
+//! the entropy capsule's held bytes go into one SHA-256 with cycle-counter
+//! jitter and this CPU's stack and counter, so a weak source is covered by
+//! the others. It fails closed below 32 bytes counted, the capsule's counting
+//! for at most half (K9).
 
 use alloc::vec::Vec;
 
+use super::super::capsule_bytes;
+use super::super::credit::enough;
 use super::super::error::EntropyError;
 use super::super::hardware::{cpu_entropy64, cpu_random64, read_cycle_counter};
 use super::super::state::ENTROPY_COUNTER;
@@ -34,7 +35,8 @@ const WORDS: usize = 4;
 const JITTER: usize = 16;
 
 pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
-    let mut pool = Vec::with_capacity(256);
+    // Room for every input, so no push reallocates and frees a copy unzeroed.
+    let mut pool = Vec::with_capacity(512);
     pool.extend_from_slice(DOMAIN);
     let mut hardware = 0usize;
     for source in [cpu_entropy64 as fn() -> Option<u64>, cpu_random64] {
@@ -44,6 +46,11 @@ pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
                 hardware += 8;
             }
         }
+    }
+    let mut capsule = 0usize;
+    if let Some((held, counted)) = capsule_bytes::take() {
+        pool.extend_from_slice(&held);
+        capsule = counted;
     }
     for _ in 0..JITTER {
         let t1 = read_cycle_counter();
@@ -61,7 +68,7 @@ pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
         unsafe { core::ptr::write_volatile(b, 0) };
     }
     // Jitter and addresses stir the pool; they are never counted as entropy.
-    if hardware < 32 {
+    if !enough(hardware, capsule) {
         return Err(EntropyError::InsufficientEntropy);
     }
     Ok(seed)

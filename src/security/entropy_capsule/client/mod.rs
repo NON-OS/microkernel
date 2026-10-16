@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod get_random;
+mod ask;
+mod ask_rule;
 mod get_stats;
 mod healthcheck;
 mod reseed;
@@ -23,7 +24,7 @@ mod transport;
 
 pub(super) use transport::REPLY_INBOX;
 
-pub use get_random::get_random;
+pub use ask::poll;
 pub use get_stats::{get_stats, EntropyStats};
 pub use healthcheck::healthcheck;
 pub use reseed::reseed;
