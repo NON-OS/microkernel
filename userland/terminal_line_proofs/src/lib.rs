@@ -36,12 +36,9 @@ pub mod line_window;
 pub mod qwen;
 
 /// The pipeline text filters. `pub(super)` in the capsule, which resolves to
-/// crate-visible here, so the tests can reach them.
-///
-/// Everything in the module is reached from the tests and from nowhere else,
-/// so on a plain library build it reads as dead. It is not: the capsule calls
-/// all of it. The allowance covers the shape of this crate, not a real gap.
-#[allow(dead_code)]
+/// crate-visible here, so the tests can reach them. Mounted for the tests
+/// only, since nothing else here calls them.
+#[cfg(test)]
 #[path = "../../capsule_terminal/src/command/dispatch/filter/text.rs"]
 pub mod text;
 
@@ -96,9 +93,9 @@ pub mod quick_open;
 #[path = "../../capsule_net_core/src/server/runner/cadence.rs"]
 pub mod cadence;
 
-// Reached only from the tests on a plain library build; the capsule calls it
-// from grep_scan. Same crate-shape allowance as the filters above.
-#[allow(dead_code)]
+// Reached only from the tests; the capsule calls it from grep_scan. Mounted for
+// the tests only, as the filters are.
+#[cfg(test)]
 #[path = "../../capsule_terminal/src/command/builtin/fs/grep_paint.rs"]
 pub mod grep_paint;
 
@@ -175,6 +172,8 @@ mod direct_gate_tests;
 mod expand_tests;
 #[cfg(test)]
 mod filter_tests;
+#[cfg(test)]
+mod nl_tests;
 #[cfg(test)]
 mod goto_tests;
 #[cfg(test)]

@@ -32,10 +32,10 @@ mod text_sort;
 #[path = "text_uniq.rs"]
 mod text_uniq;
 
-pub use text_cut::cut;
-pub use text_grep::grep;
-pub use text_reverse::{rev, tac};
-pub use text_sort::sort;
+pub(super) use text_cut::cut;
+pub(super) use text_grep::grep;
+pub(super) use text_reverse::{rev, tac};
+pub(super) use text_sort::sort;
 pub(super) use text_uniq::uniq;
 
 /// The flags `name` was given, or the line saying why they were refused.

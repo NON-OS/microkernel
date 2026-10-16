@@ -23,7 +23,7 @@ use super::flags;
 // cut -d <delim> -f <n>: emit the n-th delim-separated field of each line
 // (1-based; default delimiter space, default field 1). Missing field -> "".
 // The value may follow its flag or be joined to it, -d, or -d ",".
-pub fn cut(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+pub(in super::super) fn cut(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let parsed = match flags(b"cut", args) {
         Ok(p) => p,
         Err(e) => return e,
