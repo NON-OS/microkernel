@@ -33,7 +33,6 @@ mod deliver;
 mod discover;
 mod irq;
 mod irq_wait;
-mod keys;
 mod mmio;
 mod name;
 mod pin_requests;
@@ -53,9 +52,8 @@ pub extern "C" fn _start() -> ! {
         say_absent(b"driver.gpio0");
         mk_exit(EXIT_ABSENT);
     }
-    let paths = keys::platform_paths();
     for b in banks.iter_mut() {
-        pins::arm(b, &paths);
+        pins::arm(b);
     }
     serve::run(banks)
 }

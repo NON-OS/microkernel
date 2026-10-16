@@ -24,7 +24,6 @@ use crate::acpi::serial;
 use crate::aei::aei_list;
 use crate::bank::Bank;
 use crate::say::say;
-use alloc::vec::Vec;
 use nonos_gpio::{bus_key, Owner, Trigger};
 
 const GPIO_INT: u8 = 1 << 3;
@@ -33,7 +32,7 @@ const ACTIVE_LOW: u8 = 1 << 6;
 /// Serial-bus devices looked at, at most.
 const MAX_SERIAL: u32 = 64;
 
-pub fn arm(bank: &mut Bank, paths: &[(Vec<u8>, u64)]) {
+pub fn arm(bank: &mut Bank) {
     for (pin, flags) in aei_list(bank.record.device_id) {
         let Some(t) = Trigger::from_flags(flags) else { continue };
         match bank.router.bind(&mut bank.ctl, pin, Owner::Aei, t) {
@@ -46,7 +45,7 @@ pub fn arm(bank: &mut Bank, paths: &[(Vec<u8>, u64)]) {
     while index < MAX_SERIAL {
         let Ok(r) = serial(index) else { break };
         index += 1;
-        let Some((key, pin, t)) = serial_pin(&r, bank.uid, paths) else { continue };
+        let Some((key, pin, t)) = serial_pin(&r, bank.uid) else { continue };
         if let Err(e) = bank.router.bind(&mut bank.ctl, pin, Owner::Device(key), t) {
             say(b"device pin not armed", bank.uid, pin, &e);
         }
@@ -58,7 +57,7 @@ pub fn arm(bank: &mut Bank, paths: &[(Vec<u8>, u64)]) {
 
 /// A SERIAL record's GpioInt on controller `uid`: its bus controller's
 /// key, the pin, its trigger.
-fn serial_pin(r: &[u8], uid: u16, paths: &[(Vec<u8>, u64)]) -> Option<(u64, u16, Trigger)> {
+fn serial_pin(r: &[u8], uid: u16) -> Option<(u64, u16, Trigger)> {
     let flags = *r.get(5)?;
     let gpio_uid = u64::from_le_bytes(r.get(34..42)?.try_into().ok()?);
     if flags & GPIO_INT == 0 || gpio_uid != u64::from(uid) {
@@ -67,5 +66,5 @@ fn serial_pin(r: &[u8], uid: u16, paths: &[(Vec<u8>, u64)]) -> Option<(u64, u16,
     let pin = u16::try_from(u32::from_le_bytes(r.get(14..18)?.try_into().ok()?)).ok()?;
     let polarity = if flags & ACTIVE_LOW != 0 { 1 << 1 } else { 0 };
     let t = Trigger::from_flags(u16::from(flags & EDGE != 0) | polarity)?;
-    Some((bus_key(r, paths)?, pin, t))
+    Some((bus_key(r)?, pin, t))
 }

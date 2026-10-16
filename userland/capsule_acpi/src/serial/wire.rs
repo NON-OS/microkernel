@@ -23,11 +23,16 @@
 //! - address u16 (I2C address, SPI chip select, 0 for UART), speed u32
 //!   (Hz, or baud), descriptor register u16 (0 when none);
 //! - interrupt u32: the GpioInt's first pin, else the first GSI;
-//! - the bus controller's _ADR and _UID u64, the GPIO controller's _UID
-//!   u64, each all ones when unknown;
+//! - a slot once the bus controller's _ADR, now always all ones (a capsule
+//!   is never given a PCI function), the bus controller's _UID and the
+//!   GPIO controller's _UID u64, all ones when unknown;
 //! - then four strings, a length byte and bytes each: the device's path,
-//!   its _HID, the bus controller's path, the GPIO controller's path.
+//!   its _HID, the bus controller's path, the GPIO controller's path;
+//! - then the bus controller's key u64 (`bus_key`: 1 << 63 | its broker
+//!   device id), all ones when no device in the table is that controller.
 
+use super::bus_key::{key, Controller};
+use super::known::known;
 use super::wire_fields::{bus, interrupt, DESC_FROM_DSM, HID_I2C};
 use crate::boot::{path, Acpi};
 use alloc::vec::Vec;
@@ -46,9 +51,7 @@ pub fn serial(acpi: &Acpi, index: usize) -> Option<Vec<u8>> {
     v.extend_from_slice(&speed.to_le_bytes());
     v.extend_from_slice(&p.dev.hid_register.unwrap_or(0).to_le_bytes());
     v.extend_from_slice(&irq.to_le_bytes());
-    for n in
-        [bus_ctl.and_then(|d| d.adr), bus_ctl.and_then(|d| d.uid), gpio_ctl.and_then(|d| d.uid)]
-    {
+    for n in [None, bus_ctl.and_then(|d| d.uid), gpio_ctl.and_then(|d| d.uid)] {
         v.extend_from_slice(&n.unwrap_or(u64::MAX).to_le_bytes());
     }
     let paths =
@@ -59,5 +62,7 @@ pub fn serial(acpi: &Acpi, index: usize) -> Option<Vec<u8>> {
         v.push(s.len() as u8);
         v.extend_from_slice(s);
     }
+    let by = p.controller_bdf.map_or(Controller::Path(&ctl), Controller::Pci);
+    v.extend_from_slice(&key(by, &known()).unwrap_or(u64::MAX).to_le_bytes());
     Some(v)
 }

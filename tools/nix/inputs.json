@@ -892,6 +892,7 @@
    "userland/capsule_acpi/src/props/wire_cursor.rs",
    "userland/capsule_acpi/src/props/wire_read.rs",
    "userland/capsule_acpi/src/props/wire_write.rs",
+   "userland/capsule_acpi/src/serial/bus_key.rs",
    "userland/capsule_acpi/src/server/policy.rs",
    "userland/capsule_acpi_proofs"
   ],
