@@ -22,11 +22,10 @@ use nonos_libc::mk_pid_alive;
 
 use super::mux::Mux;
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_BUSY, E_INVAL, E_NODEV, OP_CLAIM_INTERFACE,
-    OP_DISABLE_SLOT, OP_SLOT_OF_PORT, RESP_HDR_LEN, STATUS_LEN,
+    Request, E_BUSY, E_INVAL, E_NODEV, OP_CLAIM_INTERFACE, OP_DISABLE_SLOT, OP_SLOT_OF_PORT,
 };
 use crate::server::error::reply_with_status;
-use crate::server::reply::{send, sender};
+use crate::server::reply::sender;
 use crate::slots::Release;
 
 impl Mux {
@@ -44,15 +43,7 @@ impl Mux {
                 reply_with_status(tx, req, s.err().unwrap_or(0));
             }
             (OP_SLOT_OF_PORT, &[port]) => match self.share.claims.on_port(port) {
-                Some((slot, held)) => {
-                    let plen = (STATUS_LEN + 8) as u32;
-                    encode_response_header(tx, req, plen);
-                    write_status(&mut tx[RESP_HDR_LEN..], 0);
-                    let o = RESP_HDR_LEN + STATUS_LEN;
-                    tx[o..o + 4].copy_from_slice(&[slot, 0, 0, 0]);
-                    tx[o + 4..o + 8].copy_from_slice(&held.to_le_bytes());
-                    send(tx.as_ptr(), RESP_HDR_LEN + plen as usize);
-                }
+                Some((slot, held)) => super::mux_shared_reply::slot_of_port(tx, req, slot, held),
                 None => reply_with_status(tx, req, E_NODEV),
             },
             (OP_CLAIM_INTERFACE | OP_SLOT_OF_PORT, _) => reply_with_status(tx, req, E_INVAL),
@@ -62,7 +53,11 @@ impl Mux {
                         self.share.owners.forget(slot);
                         return false;
                     }
-                    Release::Kept => reply_with_status(tx, req, 0),
+                    Release::Kept => {
+                        let c = &self.share.claims;
+                        self.share.owners.keep_holders(slot, |p| c.holds(slot, p));
+                        reply_with_status(tx, req, 0)
+                    }
                     Release::NotHolder => reply_with_status(tx, req, E_BUSY),
                 }
             }

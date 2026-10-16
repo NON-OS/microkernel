@@ -5,3 +5,4 @@
 mod claims_tests;
 mod police_more_tests;
 mod police_tests;
+mod restart_tests;

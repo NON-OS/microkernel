@@ -24,9 +24,8 @@ use crate::slots::{interrupt_limit, InterruptEndpoint};
 /// wMaxPacketSize bits 10:0; bits 12:11 are high-bandwidth transactions.
 const MAX_PACKET_MASK: u16 = 0x07FF;
 
-/// Add the interrupt-IN endpoint at `dci` to `slot`. `b_interval` is the
-/// endpoint descriptor's, converted here by the device's speed. An endpoint
-/// already configured is left as it is.
+/// Add the interrupt endpoint at `dci` to `slot`, `b_interval` converted by
+/// the device's speed; one already there keeps its ring, its buffer wiped.
 pub(super) fn do_configure(
     ctx: &mut Context,
     slot: u8,
@@ -41,7 +40,9 @@ pub(super) fn do_configure(
     let d = &mut ctx.driver;
     let res =
         d.slots.resources_mut(slot, d.layout.max_slots).ok_or(XhciError::ControllerUnsupported)?;
-    if res.interrupt_mut(dci).is_some() {
+    // A sharer's driver restarted: no former holder's report is left.
+    if let Some(ep) = res.interrupt_mut(dci) {
+        ep.buf.zero();
         return Ok(());
     }
     if !res.takes_interrupt() {

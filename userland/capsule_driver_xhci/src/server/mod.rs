@@ -27,6 +27,7 @@ mod mux_ops;
 mod mux_police;
 mod mux_ports;
 mod mux_routed;
+mod mux_shared_reply;
 mod mux_status;
 mod mux_virt;
 mod reply;
