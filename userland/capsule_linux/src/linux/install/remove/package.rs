@@ -47,7 +47,10 @@ pub fn uninstall(pkg: &str) -> Result<(), Why> {
         say(&format!("[LINUX] {pkg}: no install of it is recorded on this system\n"));
         return Err(Why::NotInstalled);
     };
-    let others = super::super::package_record::others(pkg);
+    let Some(others) = super::super::package_record::others(pkg) else {
+        say(&format!("[LINUX] {pkg}: another package's record is unreadable; nothing taken out\n"));
+        return Err(Why::RemovePartial);
+    };
     let files = only_mine(&mine.files, &others, |m| &m.files);
     let links = only_mine(&mine.links, &others, |m| &m.links);
     let mut left = Manifest { files: take_out(&files), ..Manifest::default() };
