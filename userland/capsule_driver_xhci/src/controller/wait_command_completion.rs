@@ -21,7 +21,7 @@ use crate::error::{XhciError, XhciResult};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::EventRing;
 
-// Linux XHCI_CMD_DEFAULT_TIMEOUT: an Address Device carries a SET_ADDRESS to
+// Five seconds (as observed, unverified): an Address Device carries a SET_ADDRESS to
 // the device, which a slow device can take well past a second to answer.
 const COMPLETION_TIMEOUT_MS: u64 = 5_000;
 

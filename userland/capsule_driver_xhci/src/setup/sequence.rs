@@ -57,7 +57,7 @@ pub fn run(dev: Found) -> XhciResult<Driver> {
     marker(b"[driver_xhci] legacy handoff ok\n");
     // No operational register may be written while CNR is set (xHCI 1.2
     // section 5.4.2); straight after the handoff firmware may still have the
-    // controller coming up. Linux waits here too before its halt.
+    // controller coming up.
     wait_cnr_clear(layout.op_base)?;
     halt(layout.op_base)?;
     reset(layout.op_base)?;

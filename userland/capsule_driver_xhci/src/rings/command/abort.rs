@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Aborting the command the controller is stuck on (xHCI 1.2 section
-//! 4.6.1.2, Linux `xhci_abort_cmd_ring`). A command that never completes
+//! 4.6.1.2). A command that never completes
 //! leaves the ring running on it, and every command queued after it waits
 //! behind it for good. Writing CRCR.CA makes the controller give the command
 //! up with Command Aborted, stop the ring with Command Ring Stopped, and
@@ -30,7 +30,7 @@ use crate::regs::{mmio_read32, mmio_write32};
 
 const CRCR_CA: u32 = 1 << 2;
 const CRCR_CRR: u32 = 1 << 3;
-/// Linux allows the abort five seconds.
+/// Five seconds for the abort (as observed, unverified).
 const ABORT_TIMEOUT_MS: u64 = 5_000;
 const ABORT_POLL_MS: u64 = 1;
 
@@ -50,9 +50,9 @@ impl CommandRing {
             return true;
         }
         // While the ring runs the pointer bits are ignored; only CA acts. Only
-        // the low dword is written: Linux found that a following write of
+        // the low dword is written: a following write of
         // the high dword, landing after the ring stopped, is taken as a new
-        // ring pointer and corrupts it.
+        // ring pointer and corrupts it (as observed, unverified).
         mmio_write32(crcr, CRCR_CA);
         let deadline = Deadline::after_ms(ABORT_TIMEOUT_MS);
         loop {

@@ -22,7 +22,7 @@ use crate::error::{XhciError, XhciResult};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::{EventRing, IssuedTransfer};
 
-/// A control transfer gets 5 s, as Linux USB_CTRL_SET_TIMEOUT: a slow stick or
+/// A control transfer gets 5 s (as observed, unverified): a slow stick or
 /// card reader can miss SET_CONFIGURATION or CLEAR_FEATURE within a second.
 const TRANSFER_TIMEOUT_MS: u64 = 5_000;
 

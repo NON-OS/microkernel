@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The Slot Context of an input context for Configure Endpoint (xHCI 1.2
-//! section 4.6.6 and 6.2.2.2), copied from the device's output context as
-//! Linux's `xhci_slot_copy` does, so what the controller already holds (root
+//! section 4.6.6 and 6.2.2.2), copied from the device's output context, so
+//! what the controller already holds (root
 //! port, speed, route, interrupter target, exit latency) is handed back
 //! unchanged. Only Context Entries is raised: it names the last valid
 //! endpoint context, and lowering it would drop an endpoint configured
