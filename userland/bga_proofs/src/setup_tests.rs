@@ -47,6 +47,6 @@ fn a_mapping_that_holds_the_mode_exactly_is_set_and_cleared_to_its_end() {
     assert_eq!(a.fb.wrote32(MODE_BYTES - 4), CLEAR_COLOR, "the last pixel was not cleared");
     assert_eq!(a.fb.wrote32(MODE_BYTES), GUARD, "the clear ran past the end of the mapping");
     assert_ne!(enabled(&a) & DISPI_LFB_ENABLED, 0, "the mode was not enabled");
-    assert_eq!((d.width, d.height, d.fb_user_va), (MODE_WIDTH, MODE_HEIGHT, a.fb.base()));
+    assert_eq!((d.width, d.height), (MODE_WIDTH, MODE_HEIGHT));
     assert_eq!(d.stride, MODE_WIDTH as u32 * 4);
 }

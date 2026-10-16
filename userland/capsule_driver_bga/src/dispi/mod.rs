@@ -16,11 +16,19 @@
 
 mod check;
 mod clear;
+mod copy;
 mod dispi_off;
+mod fit;
+mod restore;
 mod set_mode;
 mod span;
+mod state;
 
-pub use check::{confirm, identify};
+pub use check::{confirm, identify, kept};
 pub use clear::clear;
+pub use copy::{copy, place, Rect};
+pub use fit::{fit, video_memory};
+pub use restore::restore;
 pub use set_mode::{regs_len, set_mode};
-pub use span::span;
+pub use span::{span, Span};
+pub use state::{read, Dispi};

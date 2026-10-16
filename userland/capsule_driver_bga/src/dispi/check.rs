@@ -20,9 +20,9 @@
 //! drops it, so only reading it back tells.
 
 use super::dispi_off::dispi_off;
+use super::state::{read, Dispi};
 use crate::constants::{
-    DISPI_BPP_32, DISPI_ENABLED, DISPI_ID_FIRST, DISPI_ID_LAST, DISPI_INDEX_BPP,
-    DISPI_INDEX_ENABLE, DISPI_INDEX_ID, DISPI_INDEX_XRES, DISPI_INDEX_YRES, DISPI_LFB_ENABLED,
+    DISPI_BPP_32, DISPI_ENABLED, DISPI_ID_FIRST, DISPI_ID_LAST, DISPI_INDEX_ID, DISPI_LFB_ENABLED,
 };
 use crate::error::{BgaError, BgaResult};
 use crate::regs::Regs;
@@ -42,15 +42,27 @@ pub fn identify(regs: Regs) -> BgaResult<()> {
 }
 
 /// Whether the adapter holds the `width` x `height` mode at 32 bits per
-/// pixel, enabled with its linear framebuffer, as `set_mode` wrote it.
+/// pixel, enabled with its linear framebuffer, scanned out from the start of
+/// video memory one mode-wide line after another: the layout every copy into
+/// the framebuffer writes.
 pub fn confirm(regs: Regs, width: u16, height: u16) -> BgaResult<()> {
-    // SAFETY: every index read lies below `regs_len`, as for `identify`.
-    let read = |index| unsafe { regs.r16(dispi_off(index)) };
-    let on = DISPI_ENABLED | DISPI_LFB_ENABLED;
-    let (x, y, bpp) = (read(DISPI_INDEX_XRES), read(DISPI_INDEX_YRES), read(DISPI_INDEX_BPP));
-    if (x, y, bpp, read(DISPI_INDEX_ENABLE) & on) == (width, height, DISPI_BPP_32, on) {
+    if holds(&read(regs), width, height) {
         Ok(())
     } else {
         Err(BgaError::ModeNotTaken)
     }
+}
+
+/// The mode firmware left showing, when it is one this driver can draw:
+/// OVMF programs DISPI for its GOP framebuffer, which a kept mode leaves
+/// where the compositor's GOP fallback finds it.
+pub fn kept(d: &Dispi) -> Option<(u16, u16)> {
+    (d.xres != 0 && d.yres != 0 && holds(d, d.xres, d.yres)).then_some((d.xres, d.yres))
+}
+
+fn holds(d: &Dispi, width: u16, height: u16) -> bool {
+    let on = DISPI_ENABLED | DISPI_LFB_ENABLED;
+    let mode = (d.xres, d.yres, d.bpp, d.enable & on);
+    mode == (width, height, DISPI_BPP_32, on)
+        && (d.virt_width, d.x_offset, d.y_offset) == (width, 0, 0)
 }

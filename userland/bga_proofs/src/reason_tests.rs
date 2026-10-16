@@ -29,18 +29,22 @@ fn a_refusal_names_the_driver_whatever_errno_the_broker_gave() {
     let all = [
         BgaError::BrokerCallFailed(0),
         BgaError::ModeTooLarge,
+        BgaError::VideoMemoryTooSmall,
         BgaError::RegisterWindowTooSmall,
         BgaError::NotDispi,
         BgaError::ModeNotTaken,
+        BgaError::SurfaceRefused,
     ];
     let words: Vec<&str> = all.map(reason).to_vec();
     for (i, e) in all.into_iter().enumerate() {
         match e {
             BgaError::BrokerCallFailed(_)
             | BgaError::ModeTooLarge
+            | BgaError::VideoMemoryTooSmall
             | BgaError::RegisterWindowTooSmall
             | BgaError::NotDispi
-            | BgaError::ModeNotTaken => {}
+            | BgaError::ModeNotTaken
+            | BgaError::SurfaceRefused => {}
         }
         let w = words[i];
         assert!(w.starts_with("bga: ") && w.len() <= 80, "{w:?}");

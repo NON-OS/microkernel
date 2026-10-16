@@ -18,9 +18,11 @@
 pub enum BgaError {
     BrokerCallFailed(i64),
     ModeTooLarge,
+    VideoMemoryTooSmall,
     RegisterWindowTooSmall,
     NotDispi,
     ModeNotTaken,
+    SurfaceRefused,
 }
 
 pub type BgaResult<T> = Result<T, BgaError>;
@@ -33,8 +35,10 @@ pub const fn reason(e: BgaError) -> &'static str {
     match e {
         BgaError::BrokerCallFailed(_) => "bga: broker refused a claim or grant",
         BgaError::ModeTooLarge => "bga: mode does not fit the framebuffer mapping",
-        BgaError::RegisterWindowTooSmall => "bga: register mapping ends before DISPI ENABLE",
+        BgaError::VideoMemoryTooSmall => "bga: mode does not fit the adapter's video memory",
+        BgaError::RegisterWindowTooSmall => "bga: register mapping ends inside the DISPI block",
         BgaError::NotDispi => "bga: DISPI ID register outside 0xB0C0 to 0xB0C5",
         BgaError::ModeNotTaken => "bga: the adapter did not read back the mode set",
+        BgaError::SurfaceRefused => "bga: the kernel refused the surface's memory or entry",
     }
 }
