@@ -14,21 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Stopping the engines after a failure, and clearing the SD engine's error
-//! state, as rtsx_pci_stop_cmd and sd_clear_error do. Both run on a path
-//! that already failed and was named; their own failures add nothing.
+//! Stopping the engines after a failure, at teardown and at claim, and
+//! clearing the SD engine's error state, as rtsx_pci_stop_cmd and
+//! sd_clear_error do. After a failure or at teardown their own failures add
+//! nothing. At claim the stop must be seen (setup/master.rs): the DMA reset
+//! and ring flush go through HAIMR, which answers with the data the chip
+//! took only once it has taken them, after the two stop writes.
 
+use crate::error::Result;
 use crate::hw::write_register;
 use crate::regs::card::{CARD_STOP, SD_CLR_ERR, SD_STOP};
 use crate::regs::host::{HCBCTLR, HDBCTLR, STOP_CMD, STOP_DMA};
-use crate::regs::pm::{DMACTL, RBCTL};
+use crate::regs::pm::{DMACTL, DMA_RST, RBCTL, RB_FLUSH};
 use crate::setup::Driver;
 
 pub fn stop(drv: &Driver) {
+    let _ = stopped(drv);
+}
+
+/// Both engines stopped, and Ok only once the chip has answered the reset
+/// and the flush that follow the stops.
+pub fn stopped(drv: &Driver) -> Result<()> {
     drv.regs.w32(HCBCTLR, STOP_CMD);
     drv.regs.w32(HDBCTLR, STOP_DMA);
-    let _ = write_register(drv.regs, DMACTL, 0x80, 0x80);
-    let _ = write_register(drv.regs, RBCTL, 0x80, 0x80);
+    let reset = write_register(drv.regs, DMACTL, DMA_RST, DMA_RST);
+    let flush = write_register(drv.regs, RBCTL, RB_FLUSH, RB_FLUSH);
+    reset.and(flush)
 }
 
 pub fn clear_error(drv: &Driver) {

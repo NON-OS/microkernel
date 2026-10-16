@@ -17,27 +17,10 @@
 //! The driver's lines on the kernel console, which `log rtsx` shows on a
 //! machine with no serial port. Printed only when the build grants the
 //! Debug capability; otherwise the call is refused and the driver goes on.
+//! No line names the card beyond its size: its CID stays out (C5).
 
-mod line;
+mod emit;
+pub mod line;
 
-use nonos_libc::mk_debug;
-
+pub use emit::{emit, failed, step};
 pub use line::Line;
-
-pub fn emit(line: &mut Line) {
-    let bytes = line.finish();
-    let _ = mk_debug(bytes.as_ptr(), bytes.len());
-}
-
-/// "rtsx: <what>: <error name>", for a step that stopped.
-pub fn failed(what: &[u8], err: crate::error::RtsxError) {
-    emit(Line::start().text(what).text(b": ").text(err.name()));
-}
-
-/// A step's result, with its failure named in the log on the way out.
-pub fn step<T>(what: &[u8], r: crate::error::Result<T>) -> crate::error::Result<T> {
-    if let Err(e) = &r {
-        failed(what, *e);
-    }
-    r
-}

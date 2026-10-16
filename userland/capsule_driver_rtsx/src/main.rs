@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! driver.rtsx0: the Realtek PCIe SD card reader (RTS5227 and RTS522A, the
-//! readers in many HP and Lenovo laptops), compared with Linux's
-//! drivers/misc/cardreader/rtsx_pcr.c, rts5227.c and
-//! drivers/mmc/host/rtsx_pci_sdmmc.c. It takes the reader from the broker,
-//! brings the chip up, and watches the slot: a card that arrives is
-//! identified and its first block read, each step said under "rtsx:".
+//! readers in many HP and Lenovo laptops), compared with Linux's rtsx_pcr.c,
+//! rts5227.c and rtsx_pci_sdmmc.c. It takes the reader from the broker,
+//! brings the chip up, and serves the card in its slot as a block device
+//! on driver.rtsx0 (serve/), each step said under "rtsx:".
 
 #![no_std]
 #![no_main]
@@ -34,11 +33,12 @@ mod error;
 mod hw;
 mod init;
 mod log;
+mod protocol;
 mod regs;
 mod report;
 mod sd;
+mod serve;
 mod setup;
-mod watch;
 mod wire;
 
 use nonos_libc::{bring_up, heap_init, mk_exit, EXIT_ABSENT, EXIT_GAVE_UP};
@@ -61,7 +61,7 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(EXIT_GAVE_UP);
     };
     report::up(&drv);
-    watch::run(&mut drv)
+    serve::run(&mut drv)
 }
 
 fn start(found: &Found) -> Result<Driver, &'static str> {

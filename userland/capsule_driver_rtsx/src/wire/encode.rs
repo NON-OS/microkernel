@@ -20,7 +20,8 @@
 
 use super::kind::CmdKind;
 use crate::regs::host::{
-    ADMA_MODE, DEVICE_TO_HOST, HAIMR_TRANS_START, HAIMR_WRITE, HW_AUTO_RSP, START_CMD, TRIG_DMA,
+    ADMA_MODE, DEVICE_TO_HOST, HAIMR_TRANS_START, HAIMR_WRITE, HOST_TO_DEVICE, HW_AUTO_RSP,
+    START_CMD, TRIG_DMA,
 };
 
 const RTSX_SG_VALID: u64 = 0x01;
@@ -60,9 +61,10 @@ pub const fn hcbctlr(count: usize) -> u32 {
     START_CMD | HW_AUTO_RSP | ((count as u32 * 4) & 0x00FF_FFFF)
 }
 
-/// Start ADMA from the card to memory.
-pub const fn hdbctlr_read() -> u32 {
-    ((DEVICE_TO_HOST & 0x01) << 29) | TRIG_DMA | ADMA_MODE
+/// Start ADMA, from the card to memory when `to_host`, else to the card.
+pub const fn hdbctlr(to_host: bool) -> u32 {
+    let dir = if to_host { DEVICE_TO_HOST } else { HOST_TO_DEVICE };
+    ((dir & 0x01) << 29) | TRIG_DMA | ADMA_MODE
 }
 
 /// One scatter-gather entry for every chip but the RTS5261 and RTS5228:

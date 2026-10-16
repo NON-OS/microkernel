@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The driver's state once the reader is taken. Fields drop in order: the
-//! DMA buffers go back before the device is released.
+//! The driver's state once the reader is taken. Dropping it lets the reader
+//! go (teardown.rs): the reader is quiesced first, then the claim, the last
+//! field, is released, and the release is what tears the register map and
+//! the DMA buffers down, after bus mastering is off. Nothing is unmapped
+//! before that.
 
-use super::handles::Handles;
+use super::claim::Claim;
 use super::region::Region;
 use crate::chip::Family;
 use crate::hw::Regs;
@@ -30,10 +33,11 @@ pub struct Driver {
     pub ic_version: u8,
     /// The command buffer, then the scatter-gather table (rtsx_resv_buf).
     pub resv: Region,
-    /// Where card data lands.
+    /// Where card data lands, and what a write sends from.
     pub data: Region,
     /// The SSC clock last programmed, in MHz (pcr->cur_clock).
     pub cur_clock: u32,
-    /// Held for its Drop, which gives the mapping and the device back.
-    pub _handles: Handles,
+    /// A card is powered and being driven: every wait watches the slot.
+    pub card_on: bool,
+    pub claim: Claim,
 }
