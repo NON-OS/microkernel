@@ -90,7 +90,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
 | `OP_SCENE_SUBMIT` | 0x0002 | submit or update the sender's layer: handle, x, y, width, height, z; a z at or above `TRUSTED_Z` (0x4000_0000), the trusted band where the lock screen and permission prompts are drawn, only from a trusted source (the desktop shell), E_PERM otherwise (`state/trusted_rule.rs`) |
-| `OP_DAMAGE_COMMIT` | 0x0003 | mark a rectangle dirty |
+| `OP_DAMAGE_COMMIT` | 0x0003 | mark a rectangle dirty, counted only where the sender's own layers are |
 | `OP_FOCUS_SET` | 0x0004 | raise a pid's layer to the top of its band; the window manager only, anyone else gets E_PERM |
 | `OP_INPUT_SUBSCRIBE` | 0x0005 | sets the compositor's focus record to the sender; restacks nothing |
 | `OP_CURSOR_UPDATE` | 0x0006 | move or hide the software cursor: x, y, visible |
@@ -182,7 +182,7 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | Reply builder | `server/respond.rs` |
 | Scene table, raise order, reaping | `state/scene/*.rs`, `state/scene_raise.rs`, `state/scene_submit.rs`, `state/scene_remove.rs` |
 | Who may raise | `state/raise_rule.rs` |
-| Damage accumulator | `state/damage.rs` |
+| Damage accumulator | `state/damage/` (coalesced until no two rectangles touch); the sender's bound, `state/damage_bound.rs` |
 | Focus record | `state/focus.rs` |
 | Cursor tracker | `state/cursor.rs` |
 | Attach cache | `state/attach.rs` |
