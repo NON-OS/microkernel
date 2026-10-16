@@ -51,6 +51,6 @@ pub use map::map_page;
 pub use secondary::publish_for_secondaries;
 pub use table::PageTable;
 pub use tlb::{flush_tlb_all, flush_tlb_asid, flush_tlb_page};
-pub use translation::{phys_to_virt, virt_to_phys};
+pub use translation::virt_to_phys;
 pub use ttbr::{read_ttbr0, read_ttbr1, set_ttbr0, set_ttbr1};
 pub use unmap::unmap_page;
