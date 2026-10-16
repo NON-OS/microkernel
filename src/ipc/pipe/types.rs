@@ -64,3 +64,10 @@ impl Pipe {
         self.capacity - self.bytes_available
     }
 }
+
+// A pipe's bytes are zeroed before its buffer is freed (C8).
+impl Drop for Pipe {
+    fn drop(&mut self) {
+        crate::crypto::secure_zero(&mut self.buffer);
+    }
+}
