@@ -25,6 +25,8 @@ pub const LID: u64 = 3;
 pub const THERMAL: u64 = 4;
 pub const BATTERY_LOW: u64 = 5;
 pub const BATTERY_CRITICAL: u64 = 6;
+/// The ACPI capsule now serves the fixed power button itself (F-88).
+pub const BUTTON_TAKEN: u64 = 7;
 
 /// A thermal value: the zone's temperature in tenths of a kelvin, and the
 /// trip points it has reached.
@@ -45,6 +47,8 @@ pub enum Event {
     BatteryLow,
     /// True while critical and discharging; false once it is not.
     BatteryCritical(bool),
+    /// The capsule's SCI serves the fixed power button from now on.
+    ButtonTaken,
 }
 
 /// None for an unknown kind, or a value with bits the kind does not have.
@@ -56,6 +60,7 @@ pub fn decode(kind: u64, value: u64) -> Option<Event> {
         (THERMAL, v) if v & !THERMAL_BITS == 0 => Some(Event::Thermal(v)),
         (BATTERY_LOW, 0) => Some(Event::BatteryLow),
         (BATTERY_CRITICAL, 0 | 1) => Some(Event::BatteryCritical(value == 1)),
+        (BUTTON_TAKEN, 0) => Some(Event::ButtonTaken),
         _ => None,
     }
 }

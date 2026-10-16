@@ -21,8 +21,8 @@
 use super::lid::read_lid;
 use super::state::Buttons;
 use crate::host::CapsuleHost;
-use crate::sys::acpi_event::{acpi_event, AGAIN, POWER_BUTTON, SLEEP_BUTTON};
-use crate::sys::clock::sleep_ms;
+use crate::sys::acpi_event::{acpi_event, AGAIN, SLEEP_BUTTON};
+use crate::sys::clock::{now_ms, sleep_ms};
 use crate::sys::log::Line;
 use nonos_aml::button::{DEVICE_WAKE, STATUS_CHANGE};
 use nonos_aml::load::Aml;
@@ -47,7 +47,7 @@ pub fn notified(b: &mut Buttons, aml: &mut Aml, host: &mut CapsuleHost, id: Id, 
     match value {
         _ if !(power || sleep || lid) => return false,
         DEVICE_WAKE => Line::new(b"woken by a button or the lid").end(),
-        STATUS_CHANGE if power => press(POWER_BUTTON, b"power"),
+        STATUS_CHANGE if power => crate::power::off::press(&mut b.presses, now_ms()),
         STATUS_CHANGE if sleep => press(SLEEP_BUTTON, b"sleep"),
         STATUS_CHANGE => read_lid(b, aml, host),
         v => Line::new(b"button notify ").hex(u64::from(v)).end(),

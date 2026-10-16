@@ -23,7 +23,7 @@ use super::state::Sci;
 use crate::events_io::PortIo;
 use crate::host::CapsuleHost;
 use crate::sys::log::Line;
-use nonos_aml::events::{handlers, parse_fadt, wake_gpes, Events, Pm1Cnt, Policy};
+use nonos_aml::events::{handlers, parse_fadt, wake_gpes, Events, Pm1Cnt};
 use nonos_aml::load::Aml;
 
 pub fn start(
@@ -49,7 +49,7 @@ pub fn start(
     let (found, both) = handlers(&aml.ns);
     let (wake, bad) =
         wake_gpes(aml, &mut |aml, id| evaluator(host)(aml, id, alloc::vec::Vec::new()));
-    let mut events = Events::new(&f, found, &wake, Policy::default())
+    let mut events = Events::new(&f, found, &wake, crate::power::off::policy(fadt))
         .ok()
         .filter(|e| e.start(&mut PortIo).is_ok());
     if let (Some(ev), Some(g)) = (events.as_mut(), ec_gpe) {
@@ -68,6 +68,8 @@ pub fn start(
     let sci = events.as_ref().and_then(|_| claim_and_bind());
     if sci.is_none() {
         Line::new(b"SCI not bound; events are not served").end();
+    } else {
+        crate::power::off::take_button(fadt);
     }
     (events, sci)
 }

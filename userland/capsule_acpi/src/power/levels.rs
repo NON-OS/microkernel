@@ -19,9 +19,11 @@
 //! time it happens. Critical is _BST's critical bit, or the charge at or
 //! under the low capacity, while discharging (ACPI 6.5, 10.2.2.11): said
 //! at every reading while it lasts, so the kernel's watch sees the time
-//! pass, and once more when it ends.
+//! pass, and once more when it ends. Becoming critical runs the wiped
+//! power-off at once (F-88); the kernel's watch is what is left if refused.
 
 use super::state::{Battery, Power};
+use crate::power::off::rule::battery_critical;
 use crate::sys::acpi_event::{acpi_event, BATTERY_CRITICAL, BATTERY_LOW};
 use crate::sys::log::Line;
 
@@ -30,11 +32,15 @@ fn under(b: &Battery, level: fn(&nonos_aml::power::BatteryInfo) -> Option<u32>) 
     s.discharging && matches!((s.remaining, level(i)), (Some(r), Some(l)) if r <= l)
 }
 
+fn critical(b: &Battery) -> bool {
+    let low = b.info.as_ref().and_then(|i| i.low);
+    b.status.is_some_and(|s| battery_critical(s.discharging, s.critical, s.remaining, low))
+}
+
 pub fn check(p: &mut Power) {
     let present = || p.batteries.iter().filter(|b| b.present);
     let low = present().any(|b| under(b, |i| i.warning));
-    let critical = present()
-        .any(|b| under(b, |i| i.low) || b.status.is_some_and(|s| s.critical && s.discharging));
+    let critical = present().any(critical);
     if low && !p.low_told && acpi_event(BATTERY_LOW, 0).is_ok() {
         Line::new(b"battery low").end();
         p.low_told = true;
@@ -43,6 +49,8 @@ pub fn check(p: &mut Power) {
     if critical || p.critical {
         if critical && !p.critical {
             Line::new(b"battery critical").end();
+            // Refused, the kernel's grace power-off below still runs.
+            crate::power::off::power_off(b"battery critical");
         }
         if acpi_event(BATTERY_CRITICAL, u64::from(critical)).is_ok() {
             p.critical = critical;

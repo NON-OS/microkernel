@@ -21,6 +21,7 @@
 
 pub mod battery_watch;
 pub mod boot_logo;
+pub mod button_owner;
 mod bridge_log;
 pub mod claim_holder;
 pub mod cpu_layout;

@@ -28,6 +28,8 @@ pub mod bus_key;
 pub mod native;
 #[path = "../../capsule_acpi/src/boot/pass.rs"]
 pub mod pass;
+#[path = "../../capsule_acpi/src/power/off/rule.rs"]
+pub mod off_rule;
 #[path = "../../capsule_acpi/src/server/policy.rs"]
 pub mod policy;
 #[path = "props.rs"]
@@ -53,6 +55,8 @@ mod native_regs_tests;
 mod native_slot_tests;
 #[cfg(test)]
 mod native_walk_tests;
+#[cfg(test)]
+mod off_tests;
 #[cfg(test)]
 mod pass_tests;
 #[cfg(test)]

@@ -20,9 +20,10 @@
 
 use crate::boot::{evaluate, Acpi};
 use crate::events_io::PortIo;
+use crate::sys::clock::now_ms;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
-use nonos_aml::events::Dispatch;
+use nonos_aml::events::{Dispatch, PWRBTN};
 use nonos_libc::{mk_irq_ack, mk_irq_poll, IrqPollOut};
 
 /// Whether the SCI fired since the last look.
@@ -40,6 +41,7 @@ pub fn serve(acpi: &mut Acpi) {
     if !fired(acpi) {
         return;
     }
+    let mut fixed = 0;
     let Acpi { aml, host, events, ec, .. } = acpi;
     if let Some(ev) = events.as_mut() {
         let mut run = |d| match d {
@@ -48,6 +50,7 @@ pub fn serve(acpi: &mut Acpi) {
         };
         match ev.on_sci(&mut PortIo, &mut run) {
             Ok(r) => {
+                fixed = r.fixed;
                 acpi.gpe_runs += r.ran.len() as u64;
                 for n in r.disabled {
                     Line::new(b"GPE ")
@@ -60,6 +63,9 @@ pub fn serve(acpi: &mut Acpi) {
         }
     }
     acpi.scis += 1;
+    if fixed & PWRBTN != 0 {
+        crate::power::off::press(&mut acpi.buttons.presses, now_ms());
+    }
     let grant = acpi.sci.as_ref().map(|s| s.grant);
     super::notify::route(acpi);
     if let Some(g) = grant {

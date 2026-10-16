@@ -18,13 +18,15 @@ use super::battery_watch::battery_critical;
 use super::critical_watch::Action;
 use super::lid_state::{lid_open, record};
 use super::platform_event::{decode, Event, CRITICAL, HOT, LID, POWER_BUTTON, THERMAL};
-use super::platform_event::{BATTERY_CRITICAL, BATTERY_LOW};
+use super::platform_event::{BATTERY_CRITICAL, BATTERY_LOW, BUTTON_TAKEN};
 use super::thermal_watch::{latest, thermal, GRACE_MS};
 
 #[test]
 fn events_decode_and_stray_bits_are_refused() {
     assert_eq!(decode(POWER_BUTTON, 0), Some(Event::PowerButton));
     assert_eq!(decode(POWER_BUTTON, 1), None);
+    assert_eq!(decode(BUTTON_TAKEN, 0), Some(Event::ButtonTaken));
+    assert_eq!(decode(BUTTON_TAKEN, 1), None);
     assert_eq!(decode(LID, 1), Some(Event::Lid(true)));
     assert_eq!(decode(LID, 0), Some(Event::Lid(false)));
     assert_eq!(decode(LID, 2), None);
