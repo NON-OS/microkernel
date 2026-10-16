@@ -16,6 +16,7 @@
 
 //! The proofs, one module each, over the code the crate root mounts.
 
+mod brightness_tests;
 mod clock_line_tests;
 mod desktop_files_tests;
 mod dialog_keys_tests;

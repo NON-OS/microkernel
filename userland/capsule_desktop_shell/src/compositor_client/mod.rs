@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod brightness;
 pub mod damage_commit;
 pub mod display_info;
 pub mod health;
