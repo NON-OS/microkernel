@@ -27,7 +27,7 @@ driver.ixgbe_0 -- broker MMIO + DMA rings --> 82599 / X540 / X550
 ## Microkernel contract
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in the
-  table: `facts/ids.rs` (as observed in Linux's ixgbe table, unverified).
+  table: `facts/ids.rs` (as observed, unverified).
 - `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring

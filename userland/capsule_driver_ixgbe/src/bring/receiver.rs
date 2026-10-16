@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The receiver on, last. On the 82599 the security block's receive path is
-//! held while RXCTRL.RXEN is written (an 82599 erratum, as observed in
-//! Linux ixgbe, unverified); the X540 and X550 do not need it. If the
+//! held while RXCTRL.RXEN is written (an 82599 erratum, as observed,
+//! unverified); the X540 and X550 do not need it. If the
 //! security block does not report ready within its bound the receiver goes
 //! on anyway: holding the port down would not make it ready.
 
