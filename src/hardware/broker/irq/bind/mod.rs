@@ -34,9 +34,12 @@ mod msix_route;
 mod quiet;
 #[cfg(feature = "nonos-iommu-intremap")]
 mod remap;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod remap_amd;
 mod remap_rule;
+mod remap_vendor;
 mod teardown;
 
 pub use bind::bind;
-pub(super) use message::release as release_irte;
+pub(super) use message::release_for as release_irte;
 pub(super) use teardown::{disable_msi_for_device, disable_msix_for_device, teardown_msix_vector};
