@@ -28,7 +28,7 @@ fn page(extend: bool, output: u32, q: u32) -> ScreenPage {
     let mut chosen = [0; 4];
     chosen[output as usize] = q;
     let shown = Shown { outputs: 4, extend, extended: extend, scale_q: 4, chosen };
-    ScreenPage { shown, output, read: true }
+    ScreenPage { shown, output, read: true, levels: [None; 4] }
 }
 
 #[test]

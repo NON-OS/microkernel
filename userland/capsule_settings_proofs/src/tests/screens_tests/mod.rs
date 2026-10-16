@@ -27,6 +27,7 @@ mod shell_keep {
     #[path = "../../../../capsule_desktop_shell/src/state/display_told.rs"]
     pub mod display_told;
 }
+mod brightness_tests;
 mod keep_tests;
 mod replay_tests;
 mod step_tests;

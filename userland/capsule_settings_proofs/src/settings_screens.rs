@@ -20,6 +20,10 @@
 pub mod arrange;
 #[path = "../../capsule_settings/src/settings/screens/keep.rs"]
 pub mod keep;
+#[path = "../../capsule_settings/src/settings/screens/levels.rs"]
+pub mod levels;
+#[path = "../../capsule_settings/src/settings/screens/percent.rs"]
+pub mod percent;
 #[path = "../../capsule_settings/src/settings/screens/text.rs"]
 pub mod text;
 #[path = "../../capsule_settings/src/settings/screens/wire.rs"]
