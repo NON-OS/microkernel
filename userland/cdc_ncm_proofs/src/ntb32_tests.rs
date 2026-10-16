@@ -4,11 +4,11 @@
 
 use crate::ntb::found;
 
-const NTH32: u32 = 0x686D_636E; // "ncmh"
-const NDP32: u32 = 0x306D_636E; // "ncm0"
+pub const NTH32: u32 = 0x686D_636E; // "ncmh"
+pub const NDP32: u32 = 0x306D_636E; // "ncm0"
 
 /// A `len`-byte NTB32 whose NTH32 names its first NDP32 at `ndp`.
-fn ntb32(len: usize, ndp: u32) -> Vec<u8> {
+pub fn ntb32(len: usize, ndp: u32) -> Vec<u8> {
     let mut b = vec![0u8; len];
     b[0..4].copy_from_slice(&NTH32.to_le_bytes());
     b[4..6].copy_from_slice(&16u16.to_le_bytes());
@@ -17,7 +17,7 @@ fn ntb32(len: usize, ndp: u32) -> Vec<u8> {
     b
 }
 
-fn ndp32(b: &mut [u8], at: usize, sign: u32, next: u32, entries: &[(u32, u32)]) {
+pub fn ndp32(b: &mut [u8], at: usize, sign: u32, next: u32, entries: &[(u32, u32)]) {
     let len = (16 + 8 * (entries.len() + 1)) as u16;
     b[at..at + 4].copy_from_slice(&sign.to_le_bytes());
     b[at + 4..at + 6].copy_from_slice(&len.to_le_bytes());

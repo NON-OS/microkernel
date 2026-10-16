@@ -8,8 +8,8 @@ xHCI controller is; net.core and net.l2 reach it through
 ## Role
 
 `capsule_driver_cdc_ncm` is the USB CDC Network Control Model class capsule.
-It finds one NCM function on driver.xhci0's ports, binds it as Linux
-`cdc_ncm` does, and serves Ethernet frames to net.core over NNET, the
+It finds one NCM function on driver.xhci0's ports, binds it as NCM 1.0
+describes, and serves Ethernet frames to net.core over NNET, the
 protocol every NONOS network driver speaks.
 
 ```text
@@ -41,7 +41,7 @@ capsule holds only the NCM binding and NTB framing (`src/ncm`).
    device offers another size; the 8-byte form when bmNetworkCapabilities
    bit 5 asks for it. GET/SET_MAX_DATAGRAM_SIZE when bit 3 is set.
 7. SET_ETHERNET_PACKET_FILTER: directed, broadcast, all multicast. A STALL
-   is ignored, as Linux ignores it.
+   is ignored: a device that does not filter passes the same frames.
 
 ## Framing
 
@@ -51,12 +51,15 @@ wNdpOutDivisor and wNdpOutPayloadRemainder. A block that ends on a packet
 boundary gets one more byte; one past min_tx_pkt is padded to the full NTB
 size (not for DisplayLink docks), as `cdc_ncm_fill_tx_frame` does.
 
-In: one bulk IN of the negotiated NTB input size; every NDP16 in the chain
-and every datagram in it is checked against the transfer, queued, and
-handed up one per call. A block that comes as an NTB32 (an NTH32 "ncmh",
-NDP32s "ncm0" with 32-bit indices, as recalled, unverified) is read the
-same way. At most 40 datagrams are taken from one block. A malformed block,
-NDP or entry is dropped.
+In: one bulk IN of the negotiated NTB input size. Its header must be its
+format's own length, and the block, no longer than the input size, must
+all have arrived; nothing past its block length is read. Every NDP in the
+chain lies inside the block and is read once, and every datagram in it is
+checked against the block, queued, and handed up one per call. A device
+that offered 32-bit NTBs may send one (an NTH32 "ncmh", NDP32s "ncm0" with
+32-bit indices, as recalled, unverified); it is read the same way, by the
+same walk. At most 40 datagrams are taken from one block. A malformed
+block, NDP or entry is dropped.
 
 Out stays NTB16: every device takes it, the format is set to 16-bit where
 32-bit is offered too, and a block is at most one 4096-byte transfer, far
@@ -142,8 +145,8 @@ pipe is reset on the controller and its halt cleared on the device.
 
 ## Current implemented surface
 
-CDC-NCM binding as the Linux driver binds it (README sections above, and
-docs/hardware/), and the framing: one datagram per 16-bit NTB out; every NDP and datagram of an NTB in, checked against the transfer and handed up one per request.
+CDC-NCM binding as NCM 1.0 describes it (README sections above, and
+docs/hardware/), and the framing: one datagram per 16-bit NTB out; every NDP and datagram of an NTB in, checked against the block and handed up one per request.
 
 ## Wire format
 
@@ -176,7 +179,7 @@ DHCP and a web page over a real CDC-NCM device.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (cdc_ncm_proofs, 33 tests).
+Build and host-proof evidence only so far (cdc_ncm_proofs, 42 tests).
 Runtime evidence needs driver.xhci0's polled bulk IN and control OUT data
 stage (docs/hardware/usb-net.md), the kernel spawn, and a real device: none
 is on main yet.
@@ -195,6 +198,6 @@ is on main yet.
 
 ## Verification
 
-`cd userland/cdc_ncm_proofs && cargo test` (33 pass at the time of
+`cd userland/cdc_ncm_proofs && cargo test` (42 pass at the time of
 writing); the capsule's `cargo build --release` and `cargo clippy` for
 x86_64-nonos-user. Not verified under QEMU or on hardware.
