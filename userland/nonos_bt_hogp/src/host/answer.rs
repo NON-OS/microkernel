@@ -39,6 +39,7 @@ impl Host {
             return self.on_upgrade(op, p, now_ms);
         }
         let done = match (self.phase, op) {
+            (Phase::Mtu, EXCHANGE_MTU_RSP) => Ok(self.on_mtu(p, now_ms)),
             (Phase::Services { next }, FIND_BY_TYPE_VALUE_RSP) => self.on_services(next, p, now_ms),
             (Phase::Chars { service, next }, READ_BY_TYPE_RSP) => {
                 self.on_chars(service, next, p, now_ms)

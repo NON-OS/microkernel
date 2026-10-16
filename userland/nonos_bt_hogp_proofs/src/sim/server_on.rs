@@ -38,6 +38,7 @@ impl Peripheral {
         let refuse = refuse.or(read.map(|r| r.1));
         let result = match (refuse, op) {
             (Some(code), _) => Err((0, code)),
+            (_, EXCHANGE_MTU_REQ) => Ok(self.exchange(p)),
             (_, READ_REQ) => self.read(u16_at(0), None),
             (_, READ_BLOB_REQ) => self.read(u16_at(0), Some(u16_at(2))),
             (_, WRITE_REQ) => {
