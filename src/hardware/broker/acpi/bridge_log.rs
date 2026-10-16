@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A bridge write MkAcpiPci refused, logged once per (function, offset):
-//! should a real `_PSx` need one, the log names it, and firmware asking in
-//! a loop never fills the log.
+//! should a real `_PSx` need one, the log names it. Past REMEMBERED of them
+//! one line says the rest go untold (rule::tell), so firmware asking in a
+//! loop, over any number of offsets, never fills the log.
 
+use super::rule::{tell, Tell};
 use crate::sys::serial::Line;
 use alloc::vec::Vec;
 use spin::Mutex;
@@ -29,12 +31,14 @@ static SEEN: Mutex<Vec<(u64, u16)>> = Mutex::new(Vec::new());
 /// `key` is the function as the region lines print it.
 pub(super) fn refused(key: u64, at: u16, width: u8, value: u32) {
     let mut seen = SEEN.lock();
-    if seen.contains(&(key, at)) {
-        return;
-    }
-    // Past the bound, keep logging rather than go quiet on a new offset.
-    if seen.len() < REMEMBERED {
-        seen.push((key, at));
+    match tell(seen.contains(&(key, at)), seen.len(), REMEMBERED) {
+        Tell::Quiet => return,
+        Tell::New => seen.push((key, at)),
+        Tell::Last => {
+            // No function has this key, so it only marks the line as said.
+            seen.push((u64::MAX, 0));
+            return Line::new().str(b"[ACPI] further refused bridge writes are not logged").end();
+        }
     }
     Line::new()
         .str(b"[ACPI] pci write refused seg.bus.dev.fn=")
