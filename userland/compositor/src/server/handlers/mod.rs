@@ -17,10 +17,12 @@
 pub mod accessibility;
 pub mod accessibility_get;
 pub mod attach_argb;
+pub mod brightness_step;
 pub mod cursor_update;
 pub mod damage_commit;
 pub mod display_hint;
 pub mod display_info;
+pub mod driver_call;
 pub mod focus_set;
 pub mod health;
 pub mod indicator;
@@ -36,6 +38,8 @@ pub mod scene_remove_band;
 pub mod scene_submit;
 pub mod scene_submit_body;
 pub mod screenshot;
+pub mod set_vcp;
+pub mod shell_only;
 
 pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
     let bytes = buf.get(off..off + 4)?;

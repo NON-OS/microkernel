@@ -44,3 +44,7 @@ pub const OP_OUTPUT_ARRANGEMENT: u16 = 0x0011;
 pub const OP_OUTPUT_NOTICE: u16 = 0x0012;
 /// The shell's lid: closed darkens every output, open wakes them.
 pub const OP_LID: u16 = 0x0013;
+/// A brightness key: the focused output's panel to its next level.
+pub const OP_BRIGHTNESS_STEP: u16 = 0x0014;
+/// One of a monitor's own controls set, on the person's word.
+pub const OP_SET_VCP: u16 = 0x0015;
