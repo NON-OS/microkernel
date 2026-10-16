@@ -19,10 +19,12 @@
 //! command, the rest as the controller is ready for them), or a plain read
 //! of the reply with no index cycle; each ended with a stop and the pins
 //! let go. The write's sequence is this driver's reading of the GMBUS
-//! registers, unverified against the PRM. Every wait has a deadline.
+//! registers, unverified against the PRM. Each transaction has one
+//! deadline, XFER_US, that all its waits draw on.
 
 use super::super::access::{Clock, Mmio};
 use super::super::gmbus_regs::*;
+use super::deadline::{Deadline, XFER_US};
 use super::end::end;
 use super::put::put;
 use super::take::take;
@@ -51,7 +53,7 @@ impl DdcBus for GmbusDdc<'_> {
         }
         let (m, clock) = (&mut *self.mmio, self.clock);
         m.write(GMBUS0, p);
-        let r = put(m, clock, DDC_CI_ADDR, bytes);
+        let r = put(m, &Deadline::new(clock, XFER_US), DDC_CI_ADDR, bytes);
         end(m, clock, r.is_err());
         r.map_err(|_| DdcError::Bus)
     }
@@ -64,7 +66,7 @@ impl DdcBus for GmbusDdc<'_> {
         let (m, clock) = (&mut *self.mmio, self.clock);
         m.write(GMBUS0, p);
         m.write(GMBUS1, plain_read_cmd(DDC_CI_ADDR, out.len()));
-        let r = take(m, clock, out);
+        let r = take(m, &Deadline::new(clock, XFER_US), out);
         end(m, clock, r.is_err());
         r.map_err(|_| DdcError::Bus)
     }
