@@ -17,9 +17,10 @@
 //! Reading the tree's idle states at boot, and asking PSCI how to name them.
 
 use super::format::is_standby;
+use super::powerdown;
+use super::psci_format::suspend_format;
 use super::table::{Tree, EXTENDED, TREE};
 use crate::arch::aarch64::boot::stack::MAX_CPUS;
-use crate::arch::aarch64::psci;
 use crate::arch::fdt::find::cpus::idle_lists;
 use crate::arch::fdt::find::idle::{states, CpuStates, IdleState, Refusal, MAX_STATES};
 use crate::arch::fdt::Fdt;
@@ -44,29 +45,16 @@ pub fn prepare() {
     };
     let mut line = Line::new();
     line.str(b"[IDLE] ");
-    let version = psci::psci_version();
-    let extended =
-        if !psci::is_present() || !version.answered() || (version.major, version.minor) < (0, 2) {
-            // PSCI 0.1 numbers its calls from the tree and has no version call;
-            // CPU_SUSPEND is not reached that way here.
-            Err(&b"no PSCI 0.2 or later to enter them through"[..])
-        } else if version.supports_features() {
-            // 0.2 has no PSCI_FEATURES and always the original format; from 1.0
-            // CPU_SUSPEND may be absent, and its flags say which format.
-            match psci::cpu_suspend_features() {
-                Ok(flags) => Ok(flags & 0b10 != 0),
-                Err(_) => Err(&b"PSCI does not offer CPU_SUSPEND"[..]),
-            }
-        } else {
-            Ok(false)
-        };
+    let extended = suspend_format();
     match extended {
         Ok(extended) => {
             EXTENDED.call_once(|| extended);
-            let usable = tree.states().iter();
-            let usable = usable.filter(|s| !s.timer_stops && is_standby(s.param, extended));
-            line.str(b"states=").dec(tree.count as u64).str(b" usable=").dec(usable.count() as u64);
+            let down = powerdown::available();
+            let usable = tree.states().iter().filter(|s| !s.timer_stops);
+            let usable = usable.filter(|s| down || is_standby(s.param, extended)).count();
+            line.str(b"states=").dec(tree.count as u64).str(b" usable=").dec(usable as u64);
             line.str(if extended { b" format=extended" } else { b" format=original" });
+            line.str(if down { b" powerdown=resumable" } else { b" powerdown=no" });
         }
         Err(reason) => _ = line.str(reason).str(b"; WFI only"),
     }
