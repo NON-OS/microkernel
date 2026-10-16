@@ -126,6 +126,8 @@ pub mod iommu_own_id;
 #[cfg(test)]
 pub mod iommu_queue;
 #[cfg(test)]
+pub mod registry_names;
+#[cfg(test)]
 pub mod iommu_release;
 #[cfg(test)]
 pub mod iommu_remap;
