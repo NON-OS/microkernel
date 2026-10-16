@@ -9,16 +9,15 @@ use crate::gen3::dev::Dev;
 use crate::gen3::dram_map::classify;
 use crate::gen3::layout::{firmware_region_sizes, Board, Memory};
 use crate::gen3::plan::{control_len, RB_REGION};
-use crate::gen3::region::Region;
 use crate::gen3::select::{transport, Transport};
 use crate::gen3::ucode::Ucode;
 use crate::gen3_model::{Mem, Model, Polls};
 
 pub(super) static SO_GF: &[u8] = include_bytes!("../../../../nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode");
 
-struct Rig {
-    model: Model,
-    fw: Vec<Rc<Mem>>,
+pub(super) struct Rig {
+    pub(super) model: Model,
+    pub(super) fw: Vec<Rc<Mem>>,
 }
 
 pub(super) fn rig() -> Rig {
