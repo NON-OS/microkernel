@@ -38,7 +38,9 @@ pub fn to_screen(ctx: &mut Context, rect: Rect) -> Option<Rect> {
         (_, 4) if view.base_va == ctx.screen.base_va => Some(rect),
         (_, q) => crate::sw_blitter::scaled(view, ctx.screen, rect, q),
     };
-    let own = ctx.looks.looks[0].as_deref().filter(|_| ctx.plan.is_none() && ctx.own_colours());
+    // A closed lid's black is not recoloured: an inverting look would light it.
+    let mirrored = ctx.plan.is_none() && ctx.own_colours() && !ctx.lid.black();
+    let own = ctx.looks.looks[0].as_deref().filter(|_| mirrored);
     if let (Some(s), Some(l)) = (shown, own) {
         super::own_look::lay(ctx.screen, s, (view.width, view.height), l);
     }

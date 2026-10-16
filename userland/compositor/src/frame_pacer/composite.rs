@@ -28,6 +28,11 @@ pub fn paint(ctx: &mut Context, rect: Rect) {
         height: ctx.height,
         byte_len: ctx.backing_len,
     };
+    // Closed: nothing of the scene, the pointer or the band, only black.
+    if ctx.lid.black() {
+        crate::sw_blitter::fill_rect(dst, rect, crate::state::lid_rule::LID_BLACK);
+        return;
+    }
     // On the device's cursor plane the arrow is not in the frame.
     let cursor = ctx.cursor.current();
     let shown = cursor.visible && !ctx.hw_cursor();
