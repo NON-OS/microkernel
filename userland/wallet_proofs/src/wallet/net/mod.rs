@@ -20,8 +20,14 @@ pub mod routed_read;
 
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/private_route.rs"]
 pub mod private_route;
+#[cfg(test)]
+#[path = "../../probe_bounds_tests.rs"]
+mod probe_bounds_tests;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/read_snapshot.rs"]
 pub mod read_snapshot;
+#[cfg(test)]
+#[path = "../../../../capsule_wallet_nonos/src/wallet/net/read_tls_flight.rs"]
+mod read_tls_flight;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/snapshot_fields.rs"]
 pub mod snapshot_fields;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/net/snapshot_parse.rs"]
