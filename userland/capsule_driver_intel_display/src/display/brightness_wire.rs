@@ -21,7 +21,7 @@
 //! identity u32, the level now in percent (0xFF unknown), n u8 and n
 //! ascending percent levels. SET_BRIGHTNESS (4) takes a percent and maybe
 //! a panel; each panel goes to its level nearest it, a tie to the lower.
-//! VCP (5) and SET_VCP (6) are a monitor's own controls (`vcp_wire.rs`).
+//! VCP (23) and SET_VCP (24) are a monitor's own controls (`vcp_wire.rs`).
 //! An unknown op is EINVAL with no body.
 
 use super::brightness::Brightness;
