@@ -17,7 +17,7 @@
 use crate::settings::section::Section;
 
 use super::blocks::{
-    APPEARANCE, DEVELOPER, GENERAL, NETWORK, PRIVACY, SECURITY, SOUND, UPDATES, WIFI,
+    ACCESSIBILITY, APPEARANCE, DEVELOPER, GENERAL, NETWORK, PRIVACY, SECURITY, SOUND, UPDATES, WIFI,
 };
 use super::rows::Block;
 
@@ -28,6 +28,7 @@ pub const fn blocks_for(section: Section) -> &'static [Block] {
         Section::Wifi => WIFI,
         Section::Security => SECURITY,
         Section::Appearance => APPEARANCE,
+        Section::Accessibility => ACCESSIBILITY,
         Section::Privacy => PRIVACY,
         Section::Sound => SOUND,
         Section::Updates => UPDATES,
