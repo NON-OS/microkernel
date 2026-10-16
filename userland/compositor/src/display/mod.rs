@@ -42,6 +42,7 @@ pub mod ops;
 pub mod ops_mode;
 pub mod poll_rule;
 pub mod resize_rule;
+pub mod return_rule;
 pub mod scale_rule;
 pub mod screenshot_rule;
 pub mod srgb_rule;

@@ -24,6 +24,7 @@ mod discover;
 mod gop_backing;
 mod heads;
 mod layout;
+mod move_back;
 mod move_off;
 mod panel_mm;
 mod poll;
