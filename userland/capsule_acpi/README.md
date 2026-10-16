@@ -355,6 +355,9 @@ other op: no one.
   is released, or whose holder exits, has its wake disarmed within 2 s,
   newest armed first; one that departs has it dropped at once, with no
   method run on the device that left.
+  Verb 4, a get like verb 0, adds the device's sleep facts, read and
+  never armed: `_S0W`, `_S3D`, `_S4D`, `_S3W`, `_S4W` and `_PRW`'s
+  deepest sleeping state, one byte each, 0xFF where it has none.
   At boot, a device the tables describe under a PCI root (present and
   enabled by _STA, with _PS0 or _PR0, its _ADR reached only through real
   PCI-to-PCI bridges) whose function reads all ones gets its D0 and one
