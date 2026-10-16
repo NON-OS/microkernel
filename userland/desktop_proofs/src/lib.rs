@@ -39,7 +39,7 @@ pub mod focus;
 
 // The compositor's scene, damage and the submit and raise steps, side by side
 // as they sit in its `state` module.
-#[path = "../../compositor/src/state/damage.rs"]
+#[path = "../../compositor/src/state/damage/mod.rs"]
 pub mod damage;
 
 #[path = "../../compositor/src/state/scene/mod.rs"]

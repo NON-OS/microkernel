@@ -16,7 +16,9 @@
 
 use crate::protocol::{Request, DAMAGE_COMMIT_REQ_LEN, E_INVAL};
 use crate::server::respond;
-use crate::state::{damage::Rect, Context};
+use crate::state::damage::Rect;
+use crate::state::damage_bound as bound;
+use crate::state::Context;
 
 pub fn handle(
     ctx: &mut Context,
@@ -50,6 +52,12 @@ pub fn handle(
     }
     let width = width.min(ctx.width - x);
     let height = height.min(ctx.height - y);
-    ctx.damage.accumulate(Rect { x, y, width, height });
+    // Only where the sender's own layers are (state/damage_bound.rs). Damage
+    // past them is answered 0, not refused: a window that damages the place
+    // it just left was already repainted there by its move.
+    let r = Rect { x, y, width, height };
+    for part in bound::by_owner(r, ctx.scene.layers(), sender_pid) {
+        ctx.damage.accumulate(part);
+    }
     respond::status(sender_pid, req, 0, tx)
 }
