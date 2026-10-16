@@ -29,6 +29,7 @@ pub mod input_source_rule;
 pub mod instance;
 pub mod launch;
 pub mod launchpad_wheel;
+pub mod lid;
 pub mod live_prompt;
 pub mod menubar;
 pub mod notify;
