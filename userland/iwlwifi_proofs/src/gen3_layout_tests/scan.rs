@@ -5,7 +5,7 @@ use crate::gen3::scan::{complete, request};
 
 #[test]
 fn the_scan_request_is_a_passive_one_iteration_scan_of_the_given_channels() {
-    let r = request(&[1, 6, 36, 165]).expect("builds");
+    let r = request(&[1, 6, 36, 165], 0).expect("builds");
     assert_eq!(r.len(), 1940);
     let u16at = |o: usize| u16::from_le_bytes([r[o], r[o + 1]]);
     let u32at = |o: usize| u32::from_le_bytes(r[o..o + 4].try_into().unwrap());
@@ -25,8 +25,9 @@ fn the_scan_request_is_a_passive_one_iteration_scan_of_the_given_channels() {
     assert_eq!(ch(3), (0, 165, 1));
     assert_eq!((u16at(584), r[586]), (0, 1), "one plan, one iteration");
     assert!(r[596..].iter().all(|&b| b == 0), "no probe request, no SSIDs");
-    assert!(request(&[]).is_none());
-    assert!(request(&[1; 68]).is_none(), "more channels than the request holds");
+    assert!(request(&[], 0).is_none());
+    assert!(request(&[1; 68], 0).is_none(), "more channels than the request holds");
+    assert_eq!(request(&[1], 3).unwrap()[..4], 3u32.to_le_bytes(), "the uid it is given");
     let mut done = vec![0u8; 16];
     done[6] = 1;
     assert_eq!(complete(&done), Some((0, 1)));
