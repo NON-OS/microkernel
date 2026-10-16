@@ -29,7 +29,6 @@ pub(crate) fn len_u32(len: usize) -> Option<u32> {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::unwrap_used)]
 
     #[test]
     fn a_length_one_past_its_u32_is_refused_not_saturated() {

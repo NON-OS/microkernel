@@ -19,6 +19,8 @@
 
 #[path = "common/answer_fixture.rs"]
 mod answer_fixture;
+#[path = "common/answer_keys.rs"]
+mod answer_keys;
 #[path = "common/k.rs"]
 mod k;
 #[path = "common/seller.rs"]
@@ -26,7 +28,8 @@ mod seller;
 #[path = "common/x.rs"]
 mod x;
 
-use answer_fixture::{honest, AGENT, BUYER, LISTING, RELEASE};
+use answer_fixture::honest;
+use answer_keys::{AGENT, BUYER, LISTING, RELEASE};
 use k::{kec, K};
 use nonos_nox_chunks::{seal_answer, ANSWER_TAG, X25519};
 use x::D;

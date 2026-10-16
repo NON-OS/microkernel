@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::unwrap_used)]
-
 use super::{read_whole, MAX_REPLY};
 use crate::error::NetError;
 use std::io::{Read, Result};
