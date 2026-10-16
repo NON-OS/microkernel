@@ -43,6 +43,8 @@ mod deps_flag_tests;
 #[cfg(test)]
 mod button_tests;
 #[cfg(test)]
+mod restart_tests;
+#[cfg(test)]
 mod dgon_tests;
 #[cfg(test)]
 mod external_tests;
