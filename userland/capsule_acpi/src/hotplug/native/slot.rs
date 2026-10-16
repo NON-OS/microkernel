@@ -58,7 +58,8 @@ impl Slot {
     }
 
     pub fn step(&mut self, r: Read, now: u64) -> Act {
-        let (phase, act) = super::step::next(*self, r, now);
+        let fault = super::fault::fault(*self, r);
+        let (phase, act) = fault.unwrap_or_else(|| super::step::next(*self, r, now));
         self.phase = phase;
         act
     }

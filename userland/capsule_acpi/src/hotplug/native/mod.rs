@@ -23,6 +23,7 @@
 //! MkPciDepart, so the holder is told (DGON) and its windows fenced.
 
 mod act;
+mod fault;
 mod find;
 mod functions;
 // The kernel's one definition of an _OSC grant, by path; only the grant
@@ -36,6 +37,7 @@ mod read;
 pub mod regs;
 pub mod slot;
 mod step;
+mod step_timed;
 pub mod times;
 mod walk;
 

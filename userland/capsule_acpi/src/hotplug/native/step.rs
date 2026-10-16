@@ -17,15 +17,19 @@
 //! A slot's next phase and what to do, from its phase and one poll. A
 //! press of the button while it counts down, or while an eject waits on a
 //! holder, cancels it; a card that goes away from any phase departs once
-//! its absence has held.
+//! its absence has held. An empty slot whose latch is open is kept
+//! unpowered.
 
 use super::slot::{Act, Phase, Read, Slot};
-use super::times::{BUTTON_MS, DEBOUNCE_MS, LINK_UP_MS, READY_MS, RETRY_MS};
+use super::step_timed::timed;
+use super::times::{BUTTON_MS, DEBOUNCE_MS, RETRY_MS};
 
 pub(super) fn next(s: Slot, r: Read, now: u64) -> (Phase, Act) {
     let stay = (s.phase, Act::Nothing);
     let coming = |steady| Phase::Coming { since: now, steady };
+    let unpower = if r.powered { Act::PowerOff } else { Act::Nothing };
     let (phase, act) = match s.phase {
+        Phase::Empty if r.latch_open => (Phase::Empty, unpower),
         Phase::Empty if r.here() => (coming(Some(now)), Act::Nothing),
         Phase::Empty if r.card() && !r.powered => (coming(None), Act::PowerOn),
         Phase::Empty if r.card() => (coming(None), Act::Nothing),
@@ -51,25 +55,14 @@ pub(super) fn next(s: Slot, r: Read, now: u64) -> (Phase, Act) {
         }
         Phase::Button { .. } | Phase::Leaving { .. } => stay,
         Phase::Off if !r.card() => (Phase::Empty, Act::Nothing),
-        Phase::Off if r.pressed() && s.button => (coming(None), Act::PowerOn),
+        Phase::Off if r.pressed() && s.button && !r.latch_open && !r.faulted() => {
+            (coming(None), Act::PowerOn)
+        }
         Phase::Off => stay,
     };
     // A slot with no power controller is never switched.
     match act {
         Act::PowerOn | Act::PowerOff if !s.power => (phase, Act::Nothing),
         _ => (phase, act),
-    }
-}
-
-/// A card that is in: probed once it has been up `READY_MS`; let go, and
-/// its power cut, if its link is not up within `LINK_UP_MS`.
-fn timed(r: Read, since: u64, steady: Option<u64>, now: u64) -> (Phase, Act) {
-    let steady = if r.here() { steady.or(Some(now)) } else { None };
-    match steady {
-        Some(s) if now.saturating_sub(s) >= READY_MS => (Phase::Occupied, Act::Probe),
-        Some(_) => (Phase::Coming { since, steady }, Act::Nothing),
-        None if !r.card() => (Phase::Empty, Act::Nothing),
-        None if now.saturating_sub(since) >= LINK_UP_MS => (Phase::Off, Act::PowerOff),
-        None => (Phase::Coming { since, steady: None }, Act::Nothing),
     }
 }

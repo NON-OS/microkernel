@@ -56,5 +56,13 @@ pub fn run(acpi: &mut Acpi, i: usize, act: Act, counting: bool) {
             Err(()) => {}
         },
         Act::PowerOn | Act::PowerOff => power(f, cap, no_cc, act == Act::PowerOn),
+        Act::Fault => {
+            let ids = gone(f);
+            crate::dpower::departed(acpi, &ids);
+            say(f, b": power fault, left, ", ids.len());
+            if acpi.hotplug.native.ports[i].slot.power {
+                power(f, cap, no_cc, false);
+            }
+        }
     }
 }

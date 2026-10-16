@@ -38,10 +38,9 @@ pub fn read(p: &Port) -> Option<Read> {
     if status & CHANGES != 0 {
         let _ = pci_write(p.bdf, p.cap + SLOT_STATUS, 2, u32::from(status & CHANGES));
     }
-    let link = p.dll.then(|| cfg(p.bdf, p.cap + LINK_STATUS, 2) as u16 & DLL_ACTIVE != 0);
+    let link = p.dll.then(|| cfg(p.bdf, p.cap + LINK_STATUS, 2) as u16);
     let ctrl = cfg(p.bdf, p.cap + SLOT_CTRL, 2) as u16;
-    let powered = !p.slot.power || ctrl & POWER_OFF == 0;
-    Some(Read { status, link, powered })
+    Some(Read::from_regs(status, p.slot_cap, link, ctrl))
 }
 
 pub fn tick(acpi: &mut Acpi) {

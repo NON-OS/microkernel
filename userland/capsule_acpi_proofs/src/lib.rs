@@ -36,6 +36,10 @@ mod bus_key_tests;
 #[cfg(test)]
 mod native_button_tests;
 #[cfg(test)]
+mod native_fault_tests;
+#[cfg(test)]
+mod native_reads;
+#[cfg(test)]
 mod native_regs_tests;
 #[cfg(test)]
 mod native_slot_tests;

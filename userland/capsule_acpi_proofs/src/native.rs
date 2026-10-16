@@ -16,6 +16,8 @@
 
 //! capsule_acpi's native hot-plug slot, its pure parts, by path.
 
+#[path = "../../capsule_acpi/src/hotplug/native/fault.rs"]
+pub mod fault;
 #[path = "../../capsule_acpi/src/hotplug/native/read.rs"]
 pub mod read;
 #[path = "../../capsule_acpi/src/hotplug/native/regs.rs"]
@@ -24,5 +26,7 @@ pub mod regs;
 pub mod slot;
 #[path = "../../capsule_acpi/src/hotplug/native/step.rs"]
 pub mod step;
+#[path = "../../capsule_acpi/src/hotplug/native/step_timed.rs"]
+pub mod step_timed;
 #[path = "../../capsule_acpi/src/hotplug/native/times.rs"]
 pub mod times;
