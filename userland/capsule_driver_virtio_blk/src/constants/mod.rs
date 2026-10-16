@@ -13,15 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 mod pci;
 mod queue;
 mod regs;
 mod request;
 mod status;
+mod timing;
 pub use pci::{VIRTIO_BLK_MODERN, VIRTIO_BLK_TRANSITIONAL, VIRTIO_VENDOR_ID};
 pub use queue::{
-    DATA_BUF_LEN, HEADER_BUF_LEN, HEADER_OFFSET, MAX_QUEUE_SIZE, MAX_SECTORS_PER_REQUEST,
-    SECTOR_SIZE, STATUS_OFFSET, VQ_DESC_OFFSET, VQ_REGION_SIZE, VRING_DESC_F_NEXT,
+    DATA_BUF_LEN, HEADER_BUF_LEN, HEADER_OFFSET, MAX_SECTORS_PER_REQUEST, MIN_QUEUE_SIZE,
+    MODERN_QUEUE_SIZE, SECTOR_SIZE, STATUS_OFFSET, VQ_DESC_OFFSET, VRING_DESC_F_NEXT,
     VRING_DESC_F_WRITE,
 };
 pub use regs::{
@@ -34,4 +36,6 @@ pub use request::{
 };
 pub use status::{
     STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK, STATUS_FAILED, STATUS_FEATURES_OK,
+    STATUS_NEEDS_RESET,
 };
+pub use timing::{FLUSH_MS, REQUEST_MS, RESET_MS, WAIT_SLICE_MS};

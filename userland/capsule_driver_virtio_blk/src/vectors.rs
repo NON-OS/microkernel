@@ -30,7 +30,7 @@ const LEG_MSIX_QUEUE_VECTOR: usize = 0x16;
 const NO_VECTOR: u16 = 0xFFFF;
 
 /// Called with the request queue selected.
-pub unsafe fn assign(regs: Regs) {
+pub fn assign(regs: Regs) {
     regs.w16(LEG_MSIX_CONFIG_VECTOR, NO_VECTOR);
     regs.w16(LEG_MSIX_QUEUE_VECTOR, 0);
     if regs.r16(LEG_MSIX_QUEUE_VECTOR) != 0 {

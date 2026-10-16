@@ -13,9 +13,37 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-#[derive(Clone, Copy, PartialEq, Eq)]
+
+use crate::constants::{VIRTIO_BLK_S_IOERR, VIRTIO_BLK_S_OK, VIRTIO_BLK_S_UNSUPP};
+use crate::queue::Fault;
+
+/// How a request ended, as the handlers answer it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BlkError {
+    /// The device failed the request, or the queue would not take it.
     Io,
-    Unsupported,
+    /// The device refused the request's type (VIRTIO_BLK_S_UNSUPP).
+    Refused,
+    /// The device did not answer by the deadline: E_TIMEDOUT on the wire,
+    /// told apart from a media error.
     Timeout,
+}
+
+impl From<Fault> for BlkError {
+    fn from(fault: Fault) -> Self {
+        match fault {
+            Fault::TimedOut => BlkError::Timeout,
+            _ => BlkError::Io,
+        }
+    }
+}
+
+/// The request's end, from the status byte the device wrote.
+pub fn ended(status: u8) -> Result<(), BlkError> {
+    match status {
+        VIRTIO_BLK_S_OK => Ok(()),
+        VIRTIO_BLK_S_IOERR => Err(BlkError::Io),
+        VIRTIO_BLK_S_UNSUPP => Err(BlkError::Refused),
+        _ => Err(BlkError::Io),
+    }
 }

@@ -13,45 +13,57 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The used ring, which the device writes: its index and element are the
+//! device's word, taken only when they name the one request in flight.
+
+use core::sync::atomic::{fence, Ordering};
+
+use super::chain::HEAD;
+use super::fault::Fault;
 use super::layout::Queue;
 use crate::constants::STATUS_OFFSET;
-use core::ptr::read_volatile;
-const USED_IDX_OFFSET: usize = 2;
+
+/// VirtqUsed: u16 flags, u16 idx, VirtqUsedElem { u32 id, u32 len } ring[].
+const USED_IDX: usize = 2;
+const USED_RING: usize = 4;
+const ELEM_BYTES: usize = 8;
+
 impl Queue {
-    pub fn used_idx(&self) -> u16 {
-        unsafe { read_volatile(self.region_va.add(self.used_offset + USED_IDX_OFFSET).cast()) }
+    /// The request in flight, once the device's used index has moved;
+    /// `None` while it is still the device's. An index that moved by
+    /// anything but the one request, or an element naming another head, is
+    /// the device out of turn: the queue stalls until a reset. A length
+    /// other than the chain's writable bytes fails the request, which is
+    /// answered, so the queue goes on: a read the device did not fill is
+    /// not served as if it had. On legacy a length that claims the status
+    /// byte is enough: the specification's legacy notes have a driver
+    /// ignore it, as many legacy devices (bhyve's among them) report the
+    /// status byte alone. The status is believed there, since it reads 0xFF
+    /// until the device writes it and a read's buffer was emptied first.
+    pub fn completion(&mut self) -> Option<Result<(), Fault>> {
+        let used = self.used_ring();
+        let idx = self.ring.r16(used + USED_IDX);
+        if idx == self.used {
+            return None;
+        }
+        // The element, the status and the data are the device's only once
+        // the index that covers them is seen.
+        fence(Ordering::Acquire);
+        let at = used + USED_RING + ELEM_BYTES * self.pos(self.used);
+        let (id, len) = (self.ring.r32(at), self.ring.r32(at + 4));
+        if !self.outstanding() || idx != self.posted || id != u32::from(HEAD) {
+            return Some(Err(self.stall(Fault::Foreign)));
+        }
+        self.used = idx;
+        if (self.legacy && len == 0) || (!self.legacy && len != self.expect) {
+            return Some(Err(Fault::Length));
+        }
+        Some(Ok(()))
     }
-    /// Requests handed to the device so far, as the avail ring counts them.
-    pub fn avail_idx(&self) -> u16 {
-        unsafe { read_volatile(self.region_va.add(self.avail_offset + 2).cast()) }
-    }
-    /// Whether the device has answered every request it was given. One
-    /// slot and one data buffer serve them all, so neither may be touched
-    /// while a request is still out.
-    pub fn idle(&self) -> bool {
-        self.used_idx() == self.avail_idx()
-    }
-    pub fn status_byte(&self) -> u8 {
-        unsafe { read_volatile(self.header_va.add(STATUS_OFFSET)) }
-    }
-    /// The first `len` bytes of the data buffer, at most its length.
-    ///
-    /// # Safety
-    ///
-    /// The device must have answered every request (`idle`), or it may still
-    /// be writing the buffer under the slice.
-    pub unsafe fn data(&self, len: u32) -> &[u8] {
-        let n = core::cmp::min(len, self.data_len) as usize;
-        core::slice::from_raw_parts(self.data_va, n)
-    }
-    /// The first `len` bytes of the data buffer, to fill before a write.
-    ///
-    /// # Safety
-    ///
-    /// The device must have answered every request (`idle`), or it may still
-    /// be reading the buffer for a write being changed under it.
-    pub unsafe fn data_mut(&mut self, len: u32) -> &mut [u8] {
-        let n = core::cmp::min(len, self.data_len) as usize;
-        core::slice::from_raw_parts_mut(self.data_va, n)
+
+    /// The status byte the device wrote for the answered request.
+    pub fn status(&self) -> u8 {
+        self.header.view.r8(STATUS_OFFSET)
     }
 }

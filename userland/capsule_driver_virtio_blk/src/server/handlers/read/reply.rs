@@ -13,18 +13,28 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::protocol::{
-    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, E_IO, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN,
+    STATUS_LEN,
 };
+use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 use nonos_libc::mk_ipc_send;
 
+const DATA_AT: usize = RESP_HDR_LEN + STATUS_LEN;
+
+/// The answered read's sectors, from the data buffer. A buffer the queue
+/// will not hand over (a request still holds it) or a reply that does not
+/// fit is answered E_IO, never with whatever the buffer held.
 pub(super) fn reply_read(driver: &mut Driver, req: &Request, tx: &mut [u8], bytes_n: usize) {
-    let payload_len = STATUS_LEN as u32 + bytes_n as u32;
-    encode_response_header(tx, req, payload_len);
+    let end = DATA_AT.saturating_add(bytes_n);
+    let taken = tx.get_mut(DATA_AT..end).is_some_and(|out| driver.queue.take(out));
+    if !taken {
+        reply_with_status(tx, req, E_IO);
+        return;
+    }
+    encode_response_header(tx, req, (STATUS_LEN + bytes_n) as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
-    let buf = unsafe { driver.queue.data(bytes_n as u32) };
-    tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + bytes_n].copy_from_slice(buf);
-    let len = RESP_HDR_LEN + STATUS_LEN + bytes_n;
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), len);
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), end);
 }
