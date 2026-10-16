@@ -17,4 +17,6 @@
 // Registered from C's device-tree platform finder at integration; until
 // then nothing on this branch calls it.
 #[allow(dead_code)]
+mod line;
+#[allow(dead_code)]
 pub(super) mod record;
