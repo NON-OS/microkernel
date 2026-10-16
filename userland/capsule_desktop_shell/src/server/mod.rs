@@ -22,6 +22,7 @@ mod dock_sync;
 pub mod grabs;
 pub mod handlers;
 mod input;
+mod input_source;
 mod installed_apps;
 mod launch_overdue;
 mod packages;
@@ -39,6 +40,7 @@ pub mod wallpaper_policy;
 mod store_changed;
 mod store_health;
 pub mod toast_clock;
+mod trusted_band;
 mod wm_notify;
 mod wm_notify_toast;
 

@@ -17,6 +17,7 @@
 pub mod damage_commit;
 pub mod display_info;
 pub mod health;
+pub mod scene_remove_band;
 pub mod scene_submit;
 pub mod wire;
 

@@ -25,6 +25,7 @@ use crate::state::Context;
 
 #[derive(Clone, Copy)]
 enum Dialog {
+    Attention,
     Live,
     Delete,
     Consent,
@@ -33,7 +34,9 @@ enum Dialog {
 
 /// Whether the key went to a dialog or a menu.
 pub fn key(ctx: &mut Context, code: u32) -> bool {
-    let which = if ctx.live_prompt.showing() {
+    let which = if ctx.trusted.attention.prompt() {
+        Dialog::Attention
+    } else if ctx.live_prompt.showing() {
         Dialog::Live
     } else if ctx.pending_delete.showing() {
         Dialog::Delete
@@ -53,6 +56,7 @@ pub fn key(ctx: &mut Context, code: u32) -> bool {
 
 fn answer(ctx: &mut Context, which: Dialog, choice: Choice) {
     match which {
+        Dialog::Attention => super::attention::answer(ctx, choice),
         Dialog::Live => super::live_prompt::answer(ctx, choice),
         Dialog::Delete => super::delete_prompt::answer(ctx, choice),
         Dialog::Consent => super::consent::answer(ctx, choice),

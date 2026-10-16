@@ -67,6 +67,7 @@ fn finish(
     // desktop under it.
     held[0] = Some(super::register_overlay::register_overlay(&mut ctx, desk, DESK_Z)?);
     held[1] = Some(super::register_overlay::register_overlay(&mut ctx, overlay, CHROME_Z)?);
+    ctx.trusted.chrome_handle = held[1].unwrap_or(0);
     // The first frame is asked for once; the runner's first repaint asks
     // again, so a busy compositor here does not send setup round.
     super::commit_overlay::commit_overlay(&mut ctx);

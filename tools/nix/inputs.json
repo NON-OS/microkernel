@@ -4388,6 +4388,18 @@
   "md": [],
   "signed": []
  },
+ "userland/shell_trusted_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_desktop_shell/src/state/attention.rs",
+   "userland/capsule_desktop_shell/src/state/input_source_rule.rs",
+   "userland/capsule_desktop_shell/src/state/trusted_rule.rs",
+   "userland/shell_trusted_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/shield_wire_proofs": {
   "exclude": [],
   "include": [

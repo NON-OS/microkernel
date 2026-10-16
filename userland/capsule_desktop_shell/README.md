@@ -192,8 +192,17 @@ must compile clean.
   files or the content of other capsules.
 - No tray icons beyond text label (deferred until toolkit images).
 - No notification persistence across restart.
-- One global chord only: Ctrl+Alt+Esc, reserved by the input router,
-  brings Process Manager forward.
+- Two global chords, reserved by the input router: Ctrl+Alt+Esc brings
+  Process Manager forward, and Ctrl+Alt+Delete, the secure attention chord,
+  opens the system's prompt (lock the screen, or go back) and leaves the
+  lock (`state/attention.rs`, `server/handlers/attention.rs`). There are no
+  accounts yet, so the lock is left by the chord, not a password.
+- The trusted path (`server/trusted_band.rs`): while a permission prompt,
+  the system's prompt or the lock is up, the chrome is placed in the
+  compositor's trusted band (z 0x4000_0000) and taken from its own; no
+  window can cover it, no screenshot holds it, and the router gives the
+  shell every key and click. Input frames are believed from the input
+  router's pid alone (`server/input_source.rs`).
 
 ## Verification
 

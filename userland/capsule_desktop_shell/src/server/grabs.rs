@@ -28,7 +28,8 @@ pub fn sync(ctx: &mut Context) {
         dialog: ctx.pending_consent.is_some()
             || ctx.pending_pkg_install.is_some()
             || ctx.live_prompt.showing()
-            || ctx.pending_delete.showing(),
+            || ctx.pending_delete.showing()
+            || ctx.trusted.attention != crate::state::attention::Attention::None,
         rename: ctx.rename.is_some(),
     });
     let (release, request) = steps(ctx.grab_held, want);
