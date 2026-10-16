@@ -28,7 +28,7 @@ use alloc::collections::BTreeMap;
 
 #[derive(Debug, Default)]
 pub struct PowerPool {
-    held: BTreeMap<Id, u32>,
+    pub(super) held: BTreeMap<Id, u32>,
 }
 
 impl PowerPool {

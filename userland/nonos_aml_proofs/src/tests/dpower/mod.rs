@@ -23,6 +23,7 @@ mod wake_depart_tests;
 mod wake_event_tests;
 mod wake_gone_tests;
 mod wake_more_tests;
+mod wake_present_tests;
 mod wake_rig;
 mod wake_tests;
 // The capsule's own sweep, by path, proven against the real disarm;
