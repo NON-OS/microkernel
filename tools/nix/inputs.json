@@ -3390,6 +3390,7 @@
    "src/arch/aarch64/idle_states/enter.rs",
    "src/arch/aarch64/idle_states/format.rs",
    "src/arch/aarch64/idle_states/prepare.rs",
+   "src/arch/aarch64/idle_states/psci_format.rs",
    "src/arch/aarch64/idle_states/select.rs",
    "src/arch/cpu/idle_cpu.rs",
    "src/arch/fdt/find/idle/types.rs",
@@ -4470,6 +4471,21 @@
    "src/crypto/util/constant_time",
    "stark-attest/crates/stark-core",
    "userland/stark_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/suspend_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/asm/percpu.h",
+   "src/arch/aarch64/asm/suspend.S",
+   "src/arch/aarch64/asm/suspend.h",
+   "src/arch/aarch64/idle_states/context.rs",
+   "src/arch/aarch64/idle_states/layout.rs",
+   "src/arch/aarch64/idle_states/powerdown.rs",
+   "userland/suspend_proofs"
   ],
   "md": [],
   "signed": []
