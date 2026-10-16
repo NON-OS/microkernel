@@ -16,7 +16,7 @@
 
 //! The system keys, which the input router hands only to the shell whatever
 //! has focus: the volume keys set the master volume and say what plays, the
-//! power key asks to power off.
+//! power key asks to power off, the lid darkens and wakes the screen.
 
 use crate::state::system_key::{system_key, SystemKey};
 use crate::state::toast::TOAST_TEXT_MAX;
@@ -37,6 +37,7 @@ pub fn key(ctx: &mut Context, code: u32) -> bool {
             ctx.toasts.replace(&line[..n], NotifyLevel::Info, now, is_volume_notice);
         }
         SystemKey::Power => super::power_off::ask(ctx),
+        SystemKey::Lid(closed) => super::lid::key(ctx, closed),
     }
     true
 }

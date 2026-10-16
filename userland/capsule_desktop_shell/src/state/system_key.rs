@@ -19,7 +19,7 @@
 //! here is one of these, so none falls through to a rename or the Launchpad
 //! search and types a character there.
 
-use nonos_app_skeleton::KEY_POWER;
+use nonos_app_skeleton::{KEY_LID_CLOSED, KEY_LID_OPENED, KEY_POWER};
 
 use super::volume::{volume_key, VolumeKey};
 
@@ -30,14 +30,17 @@ pub enum SystemKey {
     /// The power key, from a keyboard or the machine's ACPI power button:
     /// it asks to power off (state/power_off.rs).
     Power,
+    /// The lid closed (true) or opened, from the kernel (state/lid.rs).
+    Lid(bool),
 }
 
 /// The system key `code` names, or None for any other key.
 pub fn system_key(code: u32) -> Option<SystemKey> {
-    if code == KEY_POWER {
-        return Some(SystemKey::Power);
+    match code {
+        KEY_POWER => Some(SystemKey::Power),
+        KEY_LID_CLOSED | KEY_LID_OPENED => Some(SystemKey::Lid(code == KEY_LID_CLOSED)),
+        _ => volume_key(code).map(SystemKey::Volume),
     }
-    volume_key(code).map(SystemKey::Volume)
 }
 
 /// What the shell says when no service answers to `power.off`, so a power off
