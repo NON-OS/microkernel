@@ -19,4 +19,5 @@
 
 mod boot_tests;
 mod devices;
+mod past_tests;
 mod report_only_tests;
