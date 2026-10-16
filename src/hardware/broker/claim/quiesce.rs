@@ -29,14 +29,11 @@ pub(super) fn stop_bus_master(device_id: u64) {
         return;
     };
     let cfg = ConfigSpace::new(handle.address);
-    // Only while no newer claim holds the device: a claimant that came in
-    // since turned Bus Master off itself, and its driver may have turned it
-    // on (L73). Read back, so the log says what the device holds.
-    let stop = || {
-        let done = cfg.update_command(|c| c & !CMD_BUS_MASTER).is_ok();
-        done && matches!(cfg.is_bus_master_enabled(), Ok(false))
-    };
-    let Some(off) = super::while_unclaimed(device_id, stop) else { return };
+    // Every caller stops while its own entry still names the device, so no
+    // newer claim's can be stopped (L75). Read back, so the log says what the
+    // device holds.
+    let done = cfg.update_command(|c| c & !CMD_BUS_MASTER).is_ok();
+    let off = done && matches!(cfg.is_bus_master_enabled(), Ok(false));
     crate::sys::serial::print(b"[BROKER] released device ");
     crate::sys::serial::print_hex(device_id);
     crate::sys::serial::println(if off { b" bus master off" } else { b" bus master STILL ON" });

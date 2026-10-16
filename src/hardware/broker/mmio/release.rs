@@ -24,7 +24,6 @@
 //! active CR3 (self-context), and skips the unmap otherwise so the
 //! address-space teardown can drop the PTEs wholesale.
 
-use crate::hardware::broker::claim::release_all_for_pid as drop_claims_for_pid;
 use crate::hardware::broker::grant::{self, GrantError, MmioGrant};
 use crate::memory::addr::VirtAddr;
 
@@ -42,10 +41,9 @@ pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     drained.len()
 }
 
+/// An exit's MMIO drain. Its claims already left (L75), so a grant a dying
+/// sibling enters after this is refused (L69) and the drain finds every one.
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
-    // The claims first: a grant a dying sibling enters after this is refused
-    // (L69), so the drain below finds every grant there will be.
-    let _ = drop_claims_for_pid(pid);
     let drained = grant::drain_for_pid(pid);
     if unmap_pages {
         for g in &drained {

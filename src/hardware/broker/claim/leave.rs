@@ -21,25 +21,28 @@
 //! waited out, and only then are its grants drained.
 
 use super::stage_rule::retired;
-use super::state::CLAIMS;
+use super::state::claims;
 use super::types::{Claim, ClaimError};
 
 /// The claim's epoch, once nothing more can be granted against it. A claim
-/// still being made is the claiming call's to settle; one a sibling's release
-/// already began is waited out again, and both drain the same grants.
+/// still being made is the claiming call's to settle, one an exit is tearing
+/// down the exit's; one a sibling's release already began is waited out
+/// again, both drain the same grants, and the entry goes with the last.
 pub(crate) fn retire(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let epoch = {
-        let mut claims = CLAIMS.lock();
+        let mut claims = claims();
         let c = claims.iter_mut().find(|c| c.device_id == device_id);
         let c = c.ok_or(ClaimError::NotClaimed)?;
         if c.pid != pid {
             return Err(ClaimError::NotHolder);
         }
         c.stage = retired(c.stage)?;
+        // Counted until its release, so the entry outlasts this teardown (L75).
+        c.leavers = c.leavers.checked_add(1).ok_or(ClaimError::NotClaimed)?;
         c.epoch
     };
     let inside = |c: &Claim| c.device_id == device_id && c.epoch == epoch && c.inflight > 0;
-    while CLAIMS.lock().iter().any(inside) {
+    while claims().iter().any(inside) {
         crate::sched::yield_now();
     }
     Ok(epoch)
