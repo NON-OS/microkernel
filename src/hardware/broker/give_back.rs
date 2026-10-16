@@ -27,10 +27,10 @@ use super::{quiesce_held_device, release_device, release_for_device, ClaimError}
 /// the claim the retire found (L69).
 pub fn give_back(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let epoch = super::claim::retire(pid, device_id)?;
-    let _ = quiesce_held_device(pid, device_id);
-    let _ = release_for_device(pid, device_id);
-    let _ = irq_release_for_device(pid, device_id);
-    let _ = dma_release_for_device(pid, device_id);
-    let _ = pio_release_for_device(pid, device_id);
+    let _ = quiesce_held_device(pid, device_id, epoch);
+    let _ = release_for_device(pid, device_id, epoch);
+    let _ = irq_release_for_device(pid, device_id, epoch);
+    let _ = dma_release_for_device(pid, device_id, epoch);
+    let _ = pio_release_for_device(pid, device_id, epoch);
     release_device(pid, device_id, epoch)
 }
