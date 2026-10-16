@@ -14,27 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The key a device's pin is bound to: the device's bus controller, whose
-//! holder alone hears the pin. A controller that is a PCI function (Intel
-//! LPSS) is named by it, segment << 16 | bus << 8 | devfn from its `_ADR`
-//! (segment 0, bus 0: the root bus these controllers sit on). One that is
-//! an ACPI platform device (AMD's AMDI0010) has no PCI function: it is
-//! named by its broker device id with `PLATFORM` set, found by matching
-//! SERIAL's bus-controller path against each ACPI record's name. Either
-//! key is what capsule_acpi's HOLDER takes.
+//! The ACPI records a platform bus controller's key is found among: each
+//! ACPI-bus record's namespace path and device id, for
+//! `nonos_gpio::bus_key` to match SERIAL's bus-controller path against.
 
 use crate::name::name;
 use alloc::vec::Vec;
 use nonos_libc::{mk_device_list, DeviceRecord, BUS_KIND_ACPI};
 
-pub const PLATFORM: u64 = 1 << 63;
 const MAX_DEVICES: usize = 128;
-/// Where SERIAL's strings start: device path, `_HID`, bus controller path,
-/// GPIO controller path, a length byte and bytes each.
-const STRINGS: usize = 42;
-const ADR: usize = 18;
 
-/// Every ACPI-bus record's namespace path and device id.
 pub fn platform_paths() -> Vec<(Vec<u8>, u64)> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
@@ -43,24 +32,4 @@ pub fn platform_paths() -> Vec<(Vec<u8>, u64)> {
     acpi.filter_map(|r| Some((name(r.device_id)?.path, r.device_id)))
         .filter(|(p, _)| !p.is_empty())
         .collect()
-}
-
-fn string(r: &[u8], nth: usize) -> Option<&[u8]> {
-    let mut at = STRINGS;
-    for _ in 0..nth {
-        at += 1 + usize::from(*r.get(at)?);
-    }
-    let len = usize::from(*r.get(at)?);
-    r.get(at + 1..at + 1 + len)
-}
-
-/// The key for a SERIAL record's bus controller, or None when it is
-/// neither a PCI function nor a published platform device.
-pub fn bus_key(r: &[u8], paths: &[(Vec<u8>, u64)]) -> Option<u64> {
-    let adr = u64::from_le_bytes(r.get(ADR..ADR + 8)?.try_into().ok()?);
-    if adr != u64::MAX {
-        return Some(((adr >> 16) & 0x1F) << 3 | (adr & 7));
-    }
-    let ctl = string(r, 2).filter(|p| !p.is_empty())?;
-    paths.iter().find(|(p, _)| p.as_slice() == ctl).map(|(_, id)| PLATFORM | id)
 }
