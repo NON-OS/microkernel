@@ -19,10 +19,9 @@ extern crate alloc;
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox::{try_enqueue_strict, StrictEnqueueError};
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{
-    ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM,
-};
+use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM};
 
+use super::payload_in::copy_in;
 use super::send_to_pid_trace::trace;
 
 // `MkIpcSendToPid` delivers `buf` to the destination pid's default
@@ -37,13 +36,10 @@ pub fn sys_ipc_send_to_pid(dest_pid: u64, buf: u64, len: usize) -> i64 {
     if dest_pid == 0 || dest_pid > u32::MAX as u64 {
         return ERRNO_INVAL;
     }
-    if crate::usercopy::validate_user_read(buf, len).is_err() {
-        return ERRNO_FAULT;
-    }
-    let mut data = alloc::vec![0u8; len];
-    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
-        return ERRNO_FAULT;
-    }
+    let data = match copy_in(buf, len) {
+        Ok(data) => data,
+        Err(e) => return e,
+    };
     let caller_pid = current_pid().unwrap_or(0);
     // A capsule held to a peer list reaches only the inboxes of its peers.
     if !crate::services::registry::caller_may_reach_pid(dest_pid as u32) {
@@ -56,10 +52,8 @@ pub fn sys_ipc_send_to_pid(dest_pid: u64, buf: u64, len: usize) -> i64 {
     trace(caller_pid, dest_pid, len);
     let dest = alloc::format!("proc.{}", dest_pid as u32);
     let from = alloc::format!("proc.{}", caller_pid);
-    let msg = IpcMessage::new(&from, &dest, &data).map_err(|_| ERRNO_NOMEM as i64);
-    let msg = match msg {
-        Ok(m) => m,
-        Err(e) => return e,
+    let Ok(msg) = IpcMessage::new(&from, &dest, &data) else {
+        return ERRNO_NOMEM;
     };
     let rc = match try_enqueue_strict(&dest, msg) {
         Ok(()) => {

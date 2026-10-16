@@ -18,8 +18,9 @@ extern crate alloc;
 
 use crate::process::accounting::{Kind, Total};
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 
+use super::payload_in::copy_in;
 use super::send_address::as_addressed;
 use super::send_redirect::{redirect_reply, resolve_send_target, Redirect};
 use super::send_reply::to_caller;
@@ -43,13 +44,10 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
     if len == 0 || len > crate::ipc::channel::MAX_MESSAGE_SIZE {
         return ERRNO_INVAL;
     }
-    if crate::usercopy::validate_user_read(buf, len).is_err() {
-        return ERRNO_FAULT;
-    }
-    let mut data = alloc::vec![0u8; len];
-    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
-        return ERRNO_FAULT;
-    }
+    let data = match copy_in(buf, len) {
+        Ok(data) => data,
+        Err(e) => return e,
+    };
     let pid = current_pid().unwrap_or(0);
     let target = resolve_send_target(endpoint);
     match redirect_reply(pid, &target) {
