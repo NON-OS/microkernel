@@ -15,7 +15,8 @@
 use crate::join_wire::JoinFlags;
 use crate::network::SSID_MAX;
 
-/// The most networks kept. Remembering one more drops the oldest.
+/// The most networks kept. Remembering one more drops the oldest not pinned
+/// to WPA3 (`put_dropping`).
 pub const SLOTS: usize = 4;
 /// A WPA2 passphrase is 8 to 63 characters, or 64 hex digits of key.
 pub const PASS_MAX: usize = 64;

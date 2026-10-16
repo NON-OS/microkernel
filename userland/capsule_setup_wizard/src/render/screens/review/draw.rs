@@ -56,12 +56,19 @@ pub fn draw(ctx: &Context) {
         name_line(ctx),
         crate::apps::said(ctx, &mut apps),
     ];
-    let y = lines::text(buf, spx, w, h, x, y + l.gap, &said, FG);
+    let mut y = lines::text(buf, spx, w, h, x, y + l.gap, &said, FG);
     let (mut first, mut rest) = ([0u8; 96], [0u8; 96]);
     let (a, b) = super::super::unsaved::said(ctx.unsaved, &mut first, &mut rest);
     if ctx.unsaved_told && a > 0 {
         let told: [&[u8]; 3] = [&first[..a], &rest[..b], super::super::unsaved::THEN];
         let shown: &[&[u8]] = if b == 0 { &[told[0], told[2]] } else { &told };
-        lines::text(buf, spx, w, h, x, y + l.gap, shown, FG);
+        y = lines::text(buf, spx, w, h, x, y + l.gap, shown, FG);
+    }
+    // The saved network dropped to make room: named here and nowhere else.
+    if let (true, Some(gone)) = (ctx.unsaved_told, ctx.net.dropped.as_ref()) {
+        let mut line = [0u8; 96];
+        let line = cat(&mut line, &[b"Forgot ", gone.ssid(), b" to make room for this network"]);
+        let then: &[u8] = if a == 0 { b"ENTER goes on" } else { b"" };
+        lines::text(buf, spx, w, h, x, y + l.gap, &[line, then], FG);
     }
 }

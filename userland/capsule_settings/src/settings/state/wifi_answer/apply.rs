@@ -23,11 +23,12 @@ pub(in super::super) fn apply(state: &mut State, answer: Answer) {
                 state.wifi_cursor = count.saturating_sub(1);
             }
         }
-        Answer::Joined { result, kept } => {
+        Answer::Joined { result, kept, dropped } => {
             state.wifi_connect =
                 if result.code == 0 { WifiConnect::Connected } else { WifiConnect::Failed(result) };
             if let Some(said) = kept {
                 state.wifi.notice = Some(said);
+                state.wifi.dropped = dropped;
                 refresh_saved(state);
             }
             refresh_wifi_status(state);

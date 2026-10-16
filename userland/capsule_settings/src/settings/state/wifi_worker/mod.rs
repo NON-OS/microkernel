@@ -39,6 +39,7 @@ mod seat;
 mod secret;
 mod work;
 
+pub(crate) use ask::REMEMBERED;
 pub(super) use ask::{Answer, Ask};
 pub(super) use seat::{poll, send, Sent};
 pub(super) use secret::Secret;

@@ -18,6 +18,8 @@
 //! the TPM and the store), mounted as the client crate mounts it so its
 //! `super::` references resolve.
 
+#[path = "../../../nonos_wifi_client/src/saved/dropped.rs"]
+mod dropped;
 #[path = "../../../nonos_wifi_client/src/saved/list.rs"]
 pub mod list;
 #[path = "../../../nonos_wifi_client/src/saved/list_codec.rs"]
@@ -27,6 +29,8 @@ mod list_put;
 #[path = "../../../nonos_wifi_client/src/saved/pin.rs"]
 mod pin;
 
+#[cfg(test)]
+mod evict_tests;
 #[cfg(test)]
 mod pin_tests;
 #[cfg(test)]
