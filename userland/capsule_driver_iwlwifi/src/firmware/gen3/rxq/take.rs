@@ -5,7 +5,7 @@
 use super::super::plan::{
     RB_SIZE, RB_STTS, RX_BUFS, RX_FREE, RX_FREE_DESC, RX_RING, RX_USED, RX_USED_DESC,
 };
-use super::super::region::{get16, put16, put64, Region};
+use super::super::region::{get16, put16, put64, zero, Region};
 use super::queue::{RxQueue, Taken, CD_FRAGMENTED};
 
 impl RxQueue {
@@ -29,7 +29,8 @@ impl RxQueue {
         let fragment = flags[0] & CD_FRAGMENTED != 0 || self.next_is_fragment;
         self.next_is_fragment = flags[0] & CD_FRAGMENTED != 0;
         let copied = out.get_mut(..RB_SIZE).is_some_and(|o| rbs.read(slot * RB_SIZE, o));
-        if !self.post(ctrl, rbs, vid) || !copied {
+        // Nothing of the frame stays in the buffer the device gets back.
+        if !zero(rbs, slot * RB_SIZE, RB_SIZE) || !self.post(ctrl, rbs, vid) || !copied {
             return Some(Taken::BadId);
         }
         Some(if fragment { Taken::Fragment } else { Taken::Buffer })
