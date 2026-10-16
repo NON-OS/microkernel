@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod access;
+mod boot_command;
 mod carve;
 mod device;
 mod run;
