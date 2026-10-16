@@ -68,6 +68,7 @@ pub use claim::{
     release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
+pub use confine::{set_acs_groups, Port as AcsPort};
 pub use give_back::give_back;
 pub use device::{
     Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
