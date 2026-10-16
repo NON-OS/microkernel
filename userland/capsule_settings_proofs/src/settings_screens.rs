@@ -18,6 +18,8 @@
 
 #[path = "../../capsule_settings/src/settings/screens/arrange.rs"]
 pub mod arrange;
+#[path = "../../capsule_settings/src/settings/screens/keep.rs"]
+pub mod keep;
 #[path = "../../capsule_settings/src/settings/screens/text.rs"]
 pub mod text;
 #[path = "../../capsule_settings/src/settings/screens/wire.rs"]
