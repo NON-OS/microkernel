@@ -21,5 +21,5 @@ pub(super) fn view(radio: &Radio) -> View<'_> {
         frames,
         beacons: radio.beacons,
     });
-    View { stage, step, detail, hw_rev: radio.hw_rev(), rf_id: radio.rf_id(), heard }
+    View { stage, step, detail, heard }
 }

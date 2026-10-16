@@ -22,14 +22,12 @@ use crate::client_join_wire::{parse_link, LastJoin, LinkEnded};
 use crate::join_wire::{encode_link, encode_link_with, parse_connect, LinkInfo};
 use nonos_wifi_core::link_history::LinkHistory;
 
-const AP: [u8; 6] = [0x02, 0, 0, 0, 0, 0xAA];
-
 #[test]
 fn the_driver_s_history_reaches_the_client_whole() {
     let mut out = [0u8; 80];
     let mut h = LinkHistory::NEW;
     h.joined(0);
-    let info = LinkInfo { bssid: AP, ssid: b"home", akm: 8 };
+    let info = LinkInfo { ssid: b"home", akm: 8 };
     let n = encode_link_with(&mut out, Some(&info), &h, 0).unwrap();
     let l = parse_link(&out[10..n]).unwrap();
     assert_eq!((l.ssid(), l.akm, l.ended), (&b"home"[..], 8, LinkEnded::No));
@@ -49,7 +47,7 @@ fn the_driver_s_history_reaches_the_client_whole() {
 #[test]
 fn the_reply_without_its_history_reads_as_lost() {
     let mut out = [0u8; 80];
-    for info in [None, Some(LinkInfo { bssid: AP, ssid: b"home", akm: 2 })] {
+    for info in [None, Some(LinkInfo { ssid: b"home", akm: 2 })] {
         let n = encode_link(&mut out, info.as_ref()).unwrap();
         let l = parse_link(&out[10..n]).unwrap();
         assert_eq!((l.ended, l.last_join), (LinkEnded::Lost, None));

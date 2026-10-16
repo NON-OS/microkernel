@@ -23,7 +23,6 @@ use super::codes::{SSID_MAX, WIFI_HDR};
 
 /// The association a link reply describes.
 pub struct LinkInfo<'a> {
-    pub bssid: [u8; 6],
     pub ssid: &'a [u8],
     /// The AKM suite type that ran (2 WPA2-PSK, 6 PSK-SHA256, 8 SAE).
     pub akm: u8,
@@ -45,7 +44,8 @@ pub fn encode_link_with(
 }
 
 /// Write the link reply after the header: not associated (with AKM 0), or
-/// `link`.
+/// `link`. The six bytes after the first stay zero: they once carried the
+/// BSSID, which no reader needs.
 pub fn encode_link(out: &mut [u8], link: Option<&LinkInfo<'_>>) -> Option<usize> {
     let fixed = WIFI_HDR + 8;
     out.get_mut(WIFI_HDR..=fixed)?.fill(0);
@@ -53,7 +53,6 @@ pub fn encode_link(out: &mut [u8], link: Option<&LinkInfo<'_>>) -> Option<usize>
     if let Some(l) = link {
         let len = l.ssid.len().min(SSID_MAX);
         out[WIFI_HDR] = 1;
-        out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&l.bssid);
         out[fixed - 1] = len as u8;
         out.get_mut(fixed..fixed + len)?.copy_from_slice(&l.ssid[..len]);
         *out.get_mut(fixed + len)? = l.akm;

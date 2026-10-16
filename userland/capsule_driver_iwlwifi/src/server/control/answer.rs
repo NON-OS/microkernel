@@ -41,7 +41,9 @@ pub fn answer(req: &[u8], view: &View<'_>, out: &mut [u8]) -> Option<usize> {
             out[WIFI_HDR + 1] = view.step;
             let (sweeps, stalls, frames, beacons) =
                 heard.as_ref().map_or((0, 0, 0, 0), |h| (h.sweeps, h.stalls, h.frames, h.beacons));
-            let words = [view.detail, view.hw_rev, view.rf_id, sweeps, stalls, frames, beacons];
+            // The second and third words stay zero: they once carried the
+            // card's revision and RF id, which no reader needs.
+            let words = [view.detail, 0, 0, sweeps, stalls, frames, beacons];
             for (i, w) in words.iter().enumerate() {
                 put32(out, WIFI_HDR + 2 + 4 * i, *w);
             }

@@ -30,7 +30,7 @@
 //! [eapol u32][probe u32][deauth u32][to_us u32][state u8]`, then `[akm u8]
 //! [ap_code u16]` from a driver that runs WPA3: the AKM that ran (2 WPA2-PSK,
 //! 6 PSK-SHA256, 8 WPA3-SAE) and the access point's status or reason code.
-//! The link reply body is `[associated u8][bssid 6][ssid_len u8][ssid]`, then
+//! The link reply body is `[associated u8][6 zero][ssid_len u8][ssid]`, then
 //! `[akm u8]` from such a driver, then the link's history (`tail`). Every
 //! field is read only when the reply reaches it; a shorter reply reads as zero
 //! there, and a reply without the history reads as lost.
