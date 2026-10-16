@@ -22,6 +22,8 @@ use crate::firmware::gen3::dev::Dev;
 use crate::regs::Regs;
 
 use super::super::grant::Grant;
+use super::super::restarts::Restarts;
+use super::rig::Rig;
 
 /// What the card said it is, for the status reply, and whether this path
 /// has touched it (from then on it owns the card).
@@ -44,4 +46,8 @@ pub struct Up {
     /// The firmware runs every join command at the layout this driver
     /// encodes (`station::ids`).
     pub join_api: bool,
+    /// The regions and image a restart boots again.
+    pub rig: &'static Rig,
+    /// The restarts tried since the count last started.
+    pub restarts: Restarts,
 }

@@ -22,7 +22,6 @@ use alloc::vec::Vec;
 
 use crate::driver::Driver;
 use crate::firmware::gen3::classify;
-use crate::firmware::gen3::dev::Dev;
 use crate::firmware::gen3::layout::{firmware_region_sizes, Board, Memory};
 use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::plan::control_len_pnvm;
@@ -33,12 +32,13 @@ use crate::firmware::{gen3_blob, gen3_pnvm};
 use crate::regs::Regs;
 
 use super::super::grant::Grant;
+use super::super::restarts::Restarts;
 use super::super::say::Line;
-use super::alive::boot_alive;
 use super::finish::finish;
 use super::identify::identify;
 use super::map::map_all;
 use super::report::station_addr;
+use super::rig::{boot_rig, Rig};
 use super::seen::{Seen, Up};
 
 pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
@@ -62,11 +62,10 @@ pub fn bring_up(d: &Driver, ids: &mut Seen) -> Result<Up, Failure> {
     let (rbs, fw_grants) = rest.split_first().ok_or(Failure::NoDma)?;
     let fw_refs: &'static [&'static Grant] = Vec::leak(fw_grants.iter().collect());
     let regs: &'static Regs = Box::leak(Box::new(d.regs));
-    let mut dev = Dev::new(regs, ctrl, rbs);
     let mem = Memory { ctrl, rbs, fw: fw_refs };
     let board =
         Board { hw_rev: ids.hw_rev, imr_enabled: transport.imr_enabled, rf_id: ids.rf_id, pnvm };
-    boot_alive(&mut dev, &mem, &fw, &ucode, &board)?;
-
-    finish(dev, &ucode, &transport, station_addr())
+    let rig: &'static Rig = Box::leak(Box::new(Rig { regs, mem, fw, ucode, board, transport }));
+    let dev = boot_rig(rig)?;
+    finish(dev, rig, station_addr(), Restarts::NEW)
 }
