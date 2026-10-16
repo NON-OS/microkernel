@@ -39,14 +39,6 @@ impl Radio {
         }
     }
 
-    pub fn hw_rev(&self) -> u32 {
-        self.seen.hw_rev
-    }
-
-    pub fn rf_id(&self) -> u32 {
-        self.seen.rf_id
-    }
-
     /// Sweeps completed, sweeps stalled, and frames received.
     pub fn counts(&self) -> (u32, u32, u32) {
         (self.sweep.completed, self.sweep.stalled, self.sweep.frames)

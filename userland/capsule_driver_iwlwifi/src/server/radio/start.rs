@@ -62,7 +62,6 @@ impl Radio {
             }
         };
         Radio {
-            seen,
             state,
             sweep: Sweep::new(),
             results: ScanResults::new(),

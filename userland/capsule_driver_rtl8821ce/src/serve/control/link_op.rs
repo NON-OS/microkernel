@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The link op: whether the radio is associated and with which network, as
-//! `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]` after the header,
+//! `[associated u8][6 zero bytes][ssid_len u8][ssid][akm u8]` after the header
+//! (the zeros once carried the BSSID, which no reader needs and none is told),
 //! the AKM 0 when not associated, then the link's history (`LinkHistory`) and
 //! message 3's Transition Disable bitmap (0 when not associated). The
 //! panels read it to show the connection whoever made it (a panel, or net_core
@@ -46,7 +47,6 @@ pub(super) fn link_reply(
     if let Some(s) = joined {
         let len = (s.ssid_len as usize).min(s.ssid.len());
         out[WIFI_HDR] = 1;
-        out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&s.bssid);
         out[fixed - 1] = len as u8;
         out.get_mut(fixed..fixed + len)?.copy_from_slice(&s.ssid[..len]);
         *out.get_mut(fixed + len)? = s.akm;
