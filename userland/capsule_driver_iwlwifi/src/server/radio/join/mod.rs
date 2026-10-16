@@ -27,6 +27,7 @@ mod answers;
 mod ask;
 mod connect;
 mod leave;
+mod ready;
 mod restart;
 mod say;
 mod say_link;
