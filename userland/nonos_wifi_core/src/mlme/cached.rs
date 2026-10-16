@@ -44,12 +44,12 @@ impl Mlme {
     /// The PMKSA a connected SAE join holds, for the caller to cache.
     pub fn pmksa(&self) -> Option<Pmksa> {
         let sae = self.state == MlmeState::Connected && self.akm() == Some(Akm::Sae);
-        let pmkid = self.pmkid.filter(|_| sae)?;
-        Some(Pmksa { bssid: self.bssid, pmk: self.pmk, pmkid })
+        self.pmkid.filter(|_| sae).map(|pmkid| Pmksa { bssid: self.bssid, pmk: self.pmk, pmkid })
     }
 
     pub(super) fn start_sae_or_cached(&mut self, h2e: bool) -> MlmeOutput {
-        let Some(p) = self.cached.filter(|p| p.bssid == self.bssid) else {
+        // Taken: the offer is used once, and wiped as `p` is dropped.
+        let Some(p) = self.cached.take_if(|p| p.bssid == self.bssid) else {
             return self.start_sae(h2e);
         };
         (self.pmk, self.pmkid, self.cache_used) = (p.pmk, Some(p.pmkid), true);

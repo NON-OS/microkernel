@@ -64,6 +64,6 @@ impl LinkStation {
     }
 
     pub(super) fn group_key(&self, key_id: u8) -> Option<TemporalKey> {
-        self.group_keys.get(key_id as usize).copied().flatten()
+        self.group_keys.get(key_id as usize)?.as_ref().map(TemporalKey::again)
     }
 }

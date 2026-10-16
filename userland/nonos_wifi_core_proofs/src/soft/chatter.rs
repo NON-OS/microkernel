@@ -28,12 +28,12 @@ const LLC: [u8; 12] = [0xaa, 0xaa, 3, 0, 0, 0, 0x08, 0x00, 0x45, 0, 0, 20];
 
 impl SimAp {
     pub fn chat(&mut self, sta: [u8; 6]) -> Option<Vec<u8>> {
-        let tk = self.tk.filter(|_| self.chatter)?;
+        let tk = self.tk.as_ref().filter(|_| self.chatter)?;
         self.pn += 1;
         let plain = from_ds_of(self.bssid, sta, &LLC);
         match tk {
-            TemporalKey::Ccmp128(k) => ccmp::encrypt(&plain, self.pn, &k),
-            TemporalKey::Gcmp256(k) => gcmp::encrypt(&plain, self.pn, &k),
+            TemporalKey::Ccmp128(k) => ccmp::encrypt(&plain, self.pn, k),
+            TemporalKey::Gcmp256(k) => gcmp::encrypt(&plain, self.pn, k),
         }
     }
 }

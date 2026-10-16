@@ -19,7 +19,7 @@
 //! it, and the cache never holds more than `PMKSA_MAX` entries, giving up
 //! the oldest.
 
-pub use super::fixture::{cache, sa, tag, PASS, SSID, STA};
+pub use super::fixture::{cache, sa, tag, twin, PASS, SSID, STA};
 use nonos_wifi_core::pmksa::{Pmksa, PMKSA_MAX};
 
 #[test]
@@ -27,13 +27,13 @@ fn an_entry_is_found_only_for_its_ap_network_and_passphrase() {
     let mut c = cache();
     let t = tag(&c, SSID, PASS);
     c.keep(STA, SSID, &t, sa(1), 0);
-    assert_eq!(c.find((sa(1).bssid, STA), SSID, &t, 1), Some(sa(1)));
-    assert_eq!(c.find((sa(2).bssid, STA), SSID, &t, 1), None, "another AP");
-    assert_eq!(c.find((sa(1).bssid, STA), b"work", &t, 1), None, "another network");
+    assert!(c.find((sa(1).bssid, STA), SSID, &t, 1) == Some(sa(1)));
+    assert!(c.find((sa(2).bssid, STA), SSID, &t, 1).is_none(), "another AP");
+    assert!(c.find((sa(1).bssid, STA), b"work", &t, 1).is_none(), "another network");
     let other = tag(&c, SSID, b"Correct horse");
-    assert_eq!(c.find((sa(1).bssid, STA), SSID, &other, 1), None, "another passphrase");
-    assert_eq!(c.find((sa(1).bssid, STA), b"hom", &t, 1), None, "a prefix of the name");
-    assert_eq!(c.find((sa(1).bssid, [2, 0, 0, 0, 0, 1]), SSID, &t, 1), None, "another station");
+    assert!(c.find((sa(1).bssid, STA), SSID, &other, 1).is_none(), "another passphrase");
+    assert!(c.find((sa(1).bssid, STA), b"hom", &t, 1).is_none(), "a prefix of the name");
+    assert!(c.find((sa(1).bssid, [2, 0, 0, 0, 0, 1]), SSID, &t, 1).is_none(), "another station");
 }
 
 #[test]
@@ -42,9 +42,9 @@ fn a_new_pmksa_for_the_same_ap_replaces_the_old() {
     let t = tag(&c, SSID, PASS);
     c.keep(STA, SSID, &t, sa(1), 0);
     let newer = Pmksa { pmk: [9; 32], ..sa(1) };
-    c.keep(STA, SSID, &t, newer, 5);
+    c.keep(STA, SSID, &t, twin(&newer), 5);
     assert_eq!(c.len(), 1);
-    assert_eq!(c.find((sa(1).bssid, STA), SSID, &t, 6), Some(newer));
+    assert!(c.find((sa(1).bssid, STA), SSID, &t, 6) == Some(newer));
 }
 
 #[test]
@@ -58,6 +58,6 @@ fn a_full_cache_gives_up_its_oldest_entry() {
     c.keep(STA, SSID, &t, sa(0), 50);
     c.keep(STA, SSID, &t, sa(9), 60);
     assert_eq!(c.len(), PMKSA_MAX);
-    assert_eq!(c.find((sa(1).bssid, STA), SSID, &t, 100), None, "the oldest went");
+    assert!(c.find((sa(1).bssid, STA), SSID, &t, 100).is_none(), "the oldest went");
     assert!([0, 2, 3, 9].iter().all(|&n| c.find((sa(n).bssid, STA), SSID, &t, 100).is_some()));
 }

@@ -58,7 +58,7 @@ impl LinkStation {
             seq: 0,
             associated: false,
             replay: Replay::new(),
-            group_keys: [None; 4],
+            group_keys: [const { None }; 4],
             supplicant: None,
             pmf: PmfState::OFF,
         }
