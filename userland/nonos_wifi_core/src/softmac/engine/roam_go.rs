@@ -40,6 +40,12 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         let Some(kit) = s.kit.as_ref() else { return };
         let (ssid, from) = (s.ssid(), s.bssid);
         let pass = kit.secret.password();
+        // The radio must still hold the address the session joined from: a
+        // chip reset since may have put its own back, which the move would
+        // show the new AP. The session ends instead, sending nothing.
+        if r.mac() != s.mac() {
+            return self.end_session();
+        }
         let req = ConnectRequest { ssid, pass, wpa3_only: kit.wpa3_only, hidden: false };
         r.tune(h.band, h.channel);
         r.set_bss(Some(h.bssid));

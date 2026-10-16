@@ -25,6 +25,13 @@ pub fn local_unicast(mut a: [u8; 6]) -> [u8; 6] {
     a
 }
 
+/// What a network's address is keyed on: a label, the SSID, then the
+/// security octet. The octet is one fixed width and always last, so the
+/// input reads back to one (SSID, security) pair without a length.
+pub fn identity<'a>(ssid: &'a [u8], security: &'a u8) -> [&'a [u8]; 3] {
+    [b"join", ssid, core::slice::from_ref(security)]
+}
+
 /// The security a request asks for, as a network's identity counts it.
 pub const SECURITY_OPEN: u8 = 0;
 pub const SECURITY_PASSPHRASE: u8 = 1;

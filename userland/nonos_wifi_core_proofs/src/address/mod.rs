@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! E-46: an address per network, and scans from their own.
+//! E-46: an address per network, and scans from their own; E-46b: the
+//! identity read back, the rule beside nonos_mac's, and resets.
 
 mod hidden_tests;
+mod identity_tests;
 mod join_tests;
 mod key_tests;
+mod mac_rule_tests;
 mod refuse_tests;
+mod reset_tests;
 mod scan_tests;
+mod stuck_tests;

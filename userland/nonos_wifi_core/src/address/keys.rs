@@ -16,7 +16,7 @@
 
 //! The per-boot secret, and the addresses made from it.
 
-use super::bits::local_unicast;
+use super::bits::{identity, local_unicast};
 use crate::vault::{assert_not_copy, Vault};
 use crate::wpa::sha256::hmac_sha256_parts;
 
@@ -46,9 +46,7 @@ impl Addresses {
 
     /// The address for network `ssid` under `security` (`security_of`).
     pub fn join(&self, ssid: &[u8], security: u8) -> [u8; 6] {
-        // The security octet ends the input at a fixed width, so no two
-        // (SSID, security) pairs read the same.
-        let mac = hmac_sha256_parts(self.key.get(), &[b"join", ssid, &[security]]);
+        let mac = hmac_sha256_parts(self.key.get(), &identity(ssid, &security));
         let mut a = [0u8; 6];
         a.copy_from_slice(&mac[..6]);
         local_unicast(a)

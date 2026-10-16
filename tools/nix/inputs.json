@@ -3830,6 +3830,7 @@
   "include": [
    ".cargo",
    "userland/nonos_aes",
+   "userland/nonos_mac",
    "userland/nonos_p256",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs"
