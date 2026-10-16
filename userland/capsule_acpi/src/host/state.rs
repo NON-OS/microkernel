@@ -18,8 +18,9 @@
 
 use super::ports::Ports;
 use super::windows::Windows;
-use nonos_aml::ec::EcPorts;
+use nonos_aml::ec::{EcPorts, Health};
 use nonos_aml::events::Pm1Cnt;
+use nonos_aml::events::Storms;
 
 #[derive(Default)]
 pub struct CapsuleHost {
@@ -37,6 +38,10 @@ pub struct CapsuleHost {
     /// The embedded controller, once found, and whether its accesses take
     /// the Global Lock (_GLK, ACPI 6.5, 6.5.7).
     pub ec: Option<(EcPorts, bool)>,
+    /// Whether the EC still answers; off once it stalls or floods.
+    pub ec_health: Health,
+    /// Its queries counted against the storm bound.
+    pub ec_floods: Storms,
     /// Whether the capsule holds the Global Lock now, through \_GL or a
     /// Lock field, so an EC access inside it does not ask again.
     pub lock_held: bool,

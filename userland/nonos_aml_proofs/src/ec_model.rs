@@ -37,6 +37,7 @@ pub struct EcModel {
     pub delay: u32,
     pub stuck: bool,
     pub slept_ms: u64,
+    pub tricks: crate::ec_tricks::Tricks,
     pub(crate) busy: u32,
     pub(crate) out: Option<u8>,
     phase: Phase,
@@ -50,6 +51,7 @@ impl EcModel {
             delay,
             stuck: false,
             slept_ms: 0,
+            tricks: Default::default(),
             busy: 0,
             out: None,
             phase: Phase::Idle,
@@ -61,7 +63,7 @@ impl EcModel {
         match (port, self.phase) {
             (0x66, _) if v as u16 == RD_EC => self.phase = Phase::ReadAddr,
             (0x66, _) if v as u16 == WR_EC => self.phase = Phase::WriteAddr,
-            (0x66, _) if v as u16 == QR_EC => self.out = Some(self.events.pop_front().unwrap_or(0)),
+            (0x66, _) if v as u16 == QR_EC => self.out = Some(self.next_event()),
             (0x62, Phase::ReadAddr) => {
                 (self.out, self.phase) = (Some(self.mem[v as usize]), Phase::Idle)
             }

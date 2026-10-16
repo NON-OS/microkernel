@@ -20,6 +20,7 @@
 //! microseconds, then a look a millisecond, up to a second in all.
 
 use super::regs::{EcError, EcPorts, IBF, OBF, RD_EC, WR_EC};
+use super::stale::flush;
 use crate::events::EventIo;
 
 const SPINS: u32 = 64;
@@ -53,6 +54,7 @@ pub(super) fn get(p: &EcPorts, io: &mut impl EventIo) -> Result<u8, EcError> {
 
 /// RD_EC: one byte of the EC's address space.
 pub fn read(p: &EcPorts, io: &mut impl EventIo, addr: u8) -> Result<u8, EcError> {
+    flush(p, io)?;
     put(p, io, p.command, RD_EC)?;
     put(p, io, p.data, addr as u16)?;
     get(p, io)
@@ -60,6 +62,7 @@ pub fn read(p: &EcPorts, io: &mut impl EventIo, addr: u8) -> Result<u8, EcError>
 
 /// WR_EC: one byte written, and the EC seen to take it.
 pub fn write(p: &EcPorts, io: &mut impl EventIo, addr: u8, v: u8) -> Result<(), EcError> {
+    flush(p, io)?;
     put(p, io, p.command, WR_EC)?;
     put(p, io, p.data, addr as u16)?;
     put(p, io, p.data, v as u16)?;
