@@ -19,7 +19,7 @@
 use super::*;
 
 /// Parse unwrapped key data. Returns `None` if an element runs past the end
-/// (other than the padding tail) or a GTK or IGTK KDE is malformed, so a
+/// or a GTK or IGTK KDE is malformed, so a
 /// truncated or forged field is never half-read. Unknown elements and vendor
 /// KDEs are skipped; the first of a repeated element is kept.
 pub fn parse_key_data(data: &[u8]) -> Option<KeyData<'_>> {
@@ -30,11 +30,9 @@ pub fn parse_key_data(data: &[u8]) -> Option<KeyData<'_>> {
         let len = data[off + 1] as usize;
         let body = off + 2;
         let end = body.checked_add(len)?;
+        // The key wrap's padding, 0xDD then zeros, reads as elements of
+        // length zero, so it never runs past the field.
         if end > data.len() {
-            // 0xDD followed only by zeros is padding, not a truncated KDE.
-            if id == EID_VENDOR && data[off + 1..].iter().all(|&b| b == 0) {
-                break;
-            }
             return None;
         }
         let elem = &data[off..end];

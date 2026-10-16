@@ -16,8 +16,7 @@
 
 //! Proofs for the shared WiFi core, checked against its public API.
 
-// Every module here is a proof or the simulation a proof drives, so the
-// crate is empty outside `cargo test`.
+// Every module is a proof or a simulation one drives: empty outside tests.
 #![cfg(test)]
 
 mod address;
@@ -72,4 +71,5 @@ mod station_gcmp_tests;
 mod station_tests;
 mod supplicant_sim;
 mod supplicant_tests;
+mod sweep;
 mod transition;
