@@ -41,6 +41,10 @@ pub fn code(c: &[u8], f: &mut dyn FnMut(Timing)) {
         _ => (15, 9),
     };
     let width = lines * num / den / 8 * 8;
+    // A handful of lines cuts to no width at all: no picture to offer.
+    if width == 0 {
+        return;
+    }
     for (bit, &(hz, rb)) in RATES.iter().enumerate() {
         if b2 & (0x10 >> bit) != 0 {
             let mut t = Timing::nominal(width, lines, hz, Source::Cvt);

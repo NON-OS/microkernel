@@ -24,8 +24,14 @@ pub const LEN: usize = 18;
 
 impl Detailed {
     /// Decode one descriptor. None when it is a display descriptor
-    /// (bytes 0-1, the pixel clock, are zero) or names no picture.
+    /// (bytes 0-1, the pixel clock, are zero) or is no sound timing.
     pub fn decode(d: &[u8]) -> Option<Self> {
+        Self::fields(d).filter(Self::sound)
+    }
+
+    /// The descriptor's fields as written, sound or not: for reading a
+    /// picture size, never for a mode list. None for a display one.
+    pub fn fields(d: &[u8]) -> Option<Self> {
         let d = d.get(..LEN)?;
         // Bytes 0-1: the pixel clock in 10 kHz units, little-endian.
         let clock = u16::from_le_bytes([d[0], d[1]]) as u32;
@@ -55,9 +61,6 @@ impl Detailed {
             width_mm: lo(12) | hi(14, 4, 0xF) << 8,
             height_mm: lo(13) | hi(14, 0, 0xF) << 8,
         };
-        if t.h_active == 0 || t.v_active == 0 {
-            return None;
-        }
         Some(t)
     }
 }
