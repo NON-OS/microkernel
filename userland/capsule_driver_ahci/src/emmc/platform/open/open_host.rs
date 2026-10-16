@@ -14,34 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claiming a host, mapping its slot and DMA regions, and bringing its card up.
+//! Claiming a host, mapping its slot, resetting it, mapping its DMA regions,
+//! and bringing its card up.
 
-use nonos_libc::{
-    mk_device_claim, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-    MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
-};
+use nonos_libc::mk_device_claim;
 
 use super::super::super::disk::{EmmcDisk, DATA_BUF_BYTES};
 use super::super::super::env::Log;
 use super::super::super::error::{EmmcError, EmmcResult};
-use super::super::super::pci::Kind;
-use super::super::super::sdhci::Host;
 use super::super::super::text::Line;
 use super::super::discover::Found;
-use super::super::dma::DmaRegion;
-use super::super::env::{SerialLog, UptimeClock};
+use super::super::dma;
+use super::super::env::SerialLog;
 use super::claim::Claim;
+use super::command::command;
 use super::embedded::check_embedded;
 use super::map_slot::map_slot;
+use super::reset::reset_host;
 use super::say::{say_dma, say_host};
 use super::sizes::DESC_TABLE_BYTES;
 use super::Opened;
 
-/// Claim `dev`, turn on its memory decoding and bus mastering (and quiet
-/// its INTx pin: completions are polled), map slot 0 and two DMA regions
-/// (the descriptor page and the 32 KiB data buffer), and bring its card up.
-/// Everything taken is given back on failure, so the next attempt can claim
-/// the host again.
+/// Claim `dev` with memory decoding on and its INTx pin quiet (completions
+/// are polled), map slot 0 and reset the host. Only then map two DMA regions
+/// (the descriptor page and the 32 KiB data buffer), below 4 GiB on a host
+/// without 64-bit addressing, turn bus mastering on and bring the card up.
+/// On failure the host is stopped and the claim given back (`Claim`), which
+/// frees the regions, so the next attempt can claim the host again.
 pub fn open(dev: &Found) -> EmmcResult<Opened> {
     let log = SerialLog;
     say_host(&log, dev);
@@ -51,25 +50,17 @@ pub fn open(dev: &Found) -> EmmcResult<Opened> {
         return Err(EmmcError::Broker(epoch));
     }
     let epoch = epoch as u64;
-    let mut claim = Claim { device_id: dev.device_id, mmio_grant: None };
-
-    let cmd = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
-    let r = mk_pci_config_write(dev.device_id, epoch, MK_PCI_CFG_COMMAND, cmd);
-    if r < 0 {
-        log.line(
-            Line::new().s(b"PCI command write refused (").dec(r.unsigned_abs()).s(b")").as_bytes(),
-        );
-        return Err(EmmcError::Broker(r));
-    }
+    let mut claim = Claim { device_id: dev.device_id, epoch, mmio_grant: None };
+    command(&log, dev.device_id, epoch, false)?;
     let io = map_slot(&log, dev, epoch, &mut claim)?;
-
     check_embedded(&log, dev, &io)?;
-
-    let table = DmaRegion::map(dev.device_id, epoch, DESC_TABLE_BYTES)
-        .inspect_err(|e| say_dma(&log, *e))?;
-    let data = DmaRegion::map(dev.device_id, epoch, DATA_BUF_BYTES as u64)
-        .inspect_err(|e| say_dma(&log, *e))?;
-    let host = Host::new(io, UptimeClock, SerialLog, table.buf(), dev.kind == Kind::IntelEmmc);
-    let disk = EmmcDisk::bring_up(host, data.buf())?;
-    Ok(Opened { disk, _data: data, _table: table, _claim: claim })
+    let mut host = reset_host(io, dev)?;
+    let dma64 = host.caps.dma64();
+    let region =
+        |len| dma::map(dev.device_id, epoch, len, dma64).inspect_err(|e| say_dma(&log, *e));
+    host.table = region(DESC_TABLE_BYTES)?;
+    let data = region(DATA_BUF_BYTES as u64)?;
+    command(&log, dev.device_id, epoch, true)?;
+    let disk = EmmcDisk::bring_up(host, data)?;
+    Ok(Opened { disk, _claim: claim })
 }

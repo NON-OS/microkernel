@@ -5,7 +5,8 @@ pub mod disk_sig;
 pub mod established;
 #[path = "../../../../capsule_driver_ahci/src/engine/link/ready.rs"]
 pub mod ready;
-// The COMRESET a stuck port's recovery falls back to.
+// The COMRESET a stuck port's recovery falls back to, and bring-up's.
 #[path = "../../../../capsule_driver_ahci/src/engine/link/bring_up.rs"]
 mod bring_up;
 pub(crate) use bring_up::link_up;
+pub(crate) use disk_sig::is_ata_disk;
