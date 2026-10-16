@@ -42,6 +42,7 @@ mod timer;
 mod types;
 mod upgrade;
 mod upgrade_answer;
+mod upgrade_leds;
 mod upgrade_take;
 
 pub use hid::REPORTS_MAX;

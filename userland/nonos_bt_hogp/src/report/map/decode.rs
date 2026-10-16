@@ -30,14 +30,11 @@ use alloc::vec::Vec;
 pub const HELD_MAX: usize = 32;
 
 fn usage_at(f: &Field, i: u32, value: &[u8]) -> Option<Option<(u16, u16)>> {
-    let raw = bits::read(value, f.bit + i * f.size, f.size)?;
     if !f.array {
+        let raw = bits::read(value, f.bit + i * f.size, f.size)?;
         return Some(if raw != 0 { f.usage_of(i) } else { None });
     }
-    let v = if f.lmin < 0 { bits::signed(raw, f.size) } else { i64::from(raw) };
-    if v < i64::from(f.lmin) || v > f.lmax {
-        return Some(None);
-    }
+    let Some(v) = bits::element(f, i, value)? else { return Some(None) };
     Some(u32::try_from(v - i64::from(f.lmin)).ok().and_then(|n| f.usage(n)))
 }
 
