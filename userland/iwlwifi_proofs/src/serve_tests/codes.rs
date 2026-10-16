@@ -31,7 +31,7 @@ fn every_end_maps_to_the_code_the_panels_name() {
         (JoinEnd::Refused(MlmeFailure::OpenNetwork), (CODE_UNSUPPORTED, 0)),
         (JoinEnd::Refused(MlmeFailure::NeedsHt), (CODE_UNSUPPORTED, 0)),
         (JoinEnd::Refused(MlmeFailure::BadPassphrase), (CODE_BAD_PASSPHRASE, 0)),
-        (JoinEnd::Refused(MlmeFailure::NoEntropy), (CODE_NO_ENTROPY, 0)),
+        (JoinEnd::Refused(MlmeFailure::SaeStart), (CODE_SAE_START, 0)),
         (JoinEnd::Refused(MlmeFailure::Sae(SaeFailure::BadConfirm)), (CODE_WRONG_PASSWORD, 0)),
         (JoinEnd::Refused(MlmeFailure::Sae(SaeFailure::Rejected(77))), (CODE_REFUSED, 77)),
         (JoinEnd::Refused(MlmeFailure::Handshake(Failure::IeMismatch)), (CODE_IE_MISMATCH, 0)),

@@ -31,6 +31,7 @@ pub fn join_text(code: i32) -> &'static str {
         -11 => "The handshake did not match the network's beacon; not joined",
         -12 => "No randomness for the handshake; not joined",
         -13 => "Not joined again: the network was left from Settings",
+        -14 => "WPA3 could not start; try again",
         CANNOT_JOIN => "This driver cannot join networks yet",
         NO_REPLY => "The driver did not answer",
         _ => "The join failed",
