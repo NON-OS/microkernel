@@ -19,7 +19,7 @@
 //! enumeration found, never one it found unassigned; decoding is off while
 //! they are written and back on after, Bus Master left to the claim.
 
-use super::restore_rule::{holds, put, wants, Kind, Want};
+use super::restore_rule::{holds, put, slots, Kind, Want};
 use crate::drivers::pci::constants::{CMD_IO_SPACE, CMD_MEMORY_SPACE};
 use crate::drivers::pci::types::PciBar;
 use crate::drivers::pci::ConfigSpace;
@@ -29,16 +29,7 @@ use crate::drivers::pci::ConfigSpace;
 pub(super) fn restore(device_id: u64) -> bool {
     let Some(h) = crate::hardware::broker::pci_index::lookup(device_id) else { return true };
     let cfg = ConfigSpace::new(h.address);
-    let mut slots: [Option<Want>; 6] = [None; 6];
-    for (i, bar) in h.bars.iter().enumerate() {
-        let (kind, address) = kind_of(bar);
-        let (low, high) = wants(kind, address);
-        // A 64-bit BAR's high half sits in the slot enumeration marked absent.
-        slots[i] = low.or(slots[i]);
-        if let (Some(high), Some(next)) = (high, slots.get_mut(i + 1)) {
-            *next = Some(high);
-        }
-    }
+    let slots = slots(h.bars.map(|bar| kind_of(&bar)));
     let at = |i: usize| 0x10 + 4 * i as u16;
     let lost = |i: usize, w: Want| !cfg.read32(at(i)).is_ok_and(|r| holds(r, w));
     if !(0..6).any(|i| slots[i].is_some_and(|w| lost(i, w))) {

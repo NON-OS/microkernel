@@ -56,3 +56,19 @@ pub fn walk_scopes(bytes: &[u8], mut at: usize, out: &mut [Scope]) -> (u8, bool)
     }
     (count as u8, truncated)
 }
+
+/// Whether a scope in `bytes[at..]` is of a kind other than a PCI endpoint or
+/// bridge. A malformed entry ends the walk; `walk_scopes` marks it truncated.
+pub fn names_off_pci(bytes: &[u8], mut at: usize) -> bool {
+    while let (Some(&kind), Some(&len)) = (bytes.get(at), bytes.get(at + 1)) {
+        let len = len as usize;
+        if len < SCOPE_HEADER_LEN || at + len > bytes.len() {
+            return false;
+        }
+        if kind != SCOPE_ENDPOINT && kind != SCOPE_BRIDGE {
+            return true;
+        }
+        at += len;
+    }
+    false
+}
