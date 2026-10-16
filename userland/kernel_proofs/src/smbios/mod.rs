@@ -19,6 +19,8 @@
  * names, included by path as the kernel builds it.
  */
 
+#[path = "../../../../src/hardware/broker/acpi/smbios_copy.rs"]
+pub mod smbios_copy;
 #[path = "../../../../src/hardware/broker/acpi/smbios_entry.rs"]
 pub mod smbios_entry;
 

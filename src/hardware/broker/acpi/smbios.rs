@@ -23,14 +23,13 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::smbios_entry::{entry_len, parse_entry};
+use super::smbios_copy::{table_span, LEN_AT};
+use super::smbios_entry::entry_len;
 use super::table_check::TableError;
 use super::tables::read;
 
 pub const ENTRY_POINT: u64 = 0;
 pub const STRUCTURES: u64 = 1;
-/// Bytes `entry_len` needs: "_SM3_" puts the length at offset 6.
-const LEN_AT: usize = 7;
 
 fn entry_point() -> Result<(u64, Vec<u8>), TableError> {
     let phys = crate::boot::handoff::get_handoff().map(|h| h.smbios.entry);
@@ -43,10 +42,10 @@ fn entry_point() -> Result<(u64, Vec<u8>), TableError> {
 
 pub fn smbios_for_capsule(which: u64) -> Result<Vec<u8>, TableError> {
     let (_, entry) = entry_point()?;
-    let e = parse_entry(&entry).ok_or(TableError::Checksum)?;
+    let (start, end) = table_span(&entry).ok_or(TableError::Checksum)?;
     match which {
         ENTRY_POINT => Ok(entry),
-        STRUCTURES => read(e.table, e.len as usize),
+        STRUCTURES => read(start, (end - start) as usize),
         _ => Err(TableError::Absent),
     }
 }
