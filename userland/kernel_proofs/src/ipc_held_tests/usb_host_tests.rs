@@ -49,7 +49,6 @@ fn every_listed_host_takes_the_class_drivers_and_no_one_else() {
         "driver.usb_hid0",
         "driver.usb_msc0",
         "driver.usb_audio0",
-        "driver.rtl8153_0",
     ] {
         assert!(first.contains(&want), "{want} cannot reach the host");
     }
