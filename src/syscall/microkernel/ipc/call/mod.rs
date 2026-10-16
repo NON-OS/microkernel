@@ -18,6 +18,5 @@ mod answer;
 mod gpu_bench;
 mod sys_ipc_call;
 mod token;
-mod trace;
 
 pub use sys_ipc_call::sys_ipc_call;

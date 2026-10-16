@@ -22,8 +22,6 @@ use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 
-use super::send_trace::trace;
-
 /*
  * A capsule replying to a request another capsule made with mk_ipc_call:
  * hand the bytes to that caller's private inbox stamped with the token
@@ -41,7 +39,6 @@ pub(super) fn to_caller(
     {
         return ERRNO_PERM;
     }
-    trace(pid, endpoint, caller_inbox, data.len());
     /*
      * Enqueue straight into the caller's reply inbox, the exact inbox its
      * blocked mk_ipc_call is draining, stamped with the token that call

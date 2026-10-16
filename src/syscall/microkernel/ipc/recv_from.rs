@@ -20,7 +20,6 @@ use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT}
 
 use super::inbox_name::resolve_for_recv;
 use super::recv_from_drain::drain;
-use super::recv_from_trace::trace;
 
 // `MkIpcRecvFrom`. Same drain semantics as `MkIpcRecv`, with an
 // extra `sender_pid_out` user pointer written with the caller pid
@@ -46,13 +45,11 @@ pub fn sys_ipc_recv_from(
         return ERRNO_FAULT;
     }
     let pid = current_pid().unwrap_or(0);
-    trace(b"enter", pid);
     let inbox_name = match resolve_for_recv(endpoint, pid) {
         Ok(name) => name,
         Err(e) => return e,
     };
     if !nonos_inbox::exists(&inbox_name) {
-        trace(b"missing inbox", pid);
         return ERRNO_NOENT;
     }
     drain(buf, len, timeout_ms, sender_pid_out, &inbox_name)

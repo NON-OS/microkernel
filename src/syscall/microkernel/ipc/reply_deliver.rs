@@ -21,8 +21,6 @@ use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox::{try_enqueue_strict, StrictEnqueueError};
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_NOENT};
 
-use super::reply_trace::trace;
-
 pub(super) fn deliver(caller_pid: u32, dest_pid: u64, dest: &str, msg: IpcMessage) -> i64 {
     let rc = match try_enqueue_strict(dest, msg) {
         Ok(()) => {
@@ -36,11 +34,8 @@ pub(super) fn deliver(caller_pid: u32, dest_pid: u64, dest: &str, msg: IpcMessag
     };
     // Wake unconditionally on delivery (state-checked and idempotent); the
     // sleep-map gate strands a receiver that is Sleeping without an entry.
-    let mut woke = false;
     if rc == 0 {
         crate::sched::wake_process(dest_pid as u32);
-        woke = true;
     }
-    trace(caller_pid, dest_pid, if woke { b"enqueue wake=1" } else { b"enqueue wake=0" }, rc, dest);
     rc
 }

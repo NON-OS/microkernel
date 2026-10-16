@@ -17,8 +17,6 @@
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::syscall::microkernel::errnos::ERRNO_FAULT;
 
-use super::recv_trace::trace;
-
 /// A dequeued message handed to the receiver: the server's token recorded,
 /// the bytes copied out.
 pub(super) fn taken(pid: u32, msg: &IpcMessage, buf: u64, len: usize) -> i64 {
@@ -26,7 +24,6 @@ pub(super) fn taken(pid: u32, msg: &IpcMessage, buf: u64, len: usize) -> i64 {
     // the entry popped for the server's next reply is the one whose
     // token names the request it just picked up.
     super::pending_reply::record_served(pid, msg.correlation);
-    trace(b"dequeue", pid);
     let copy_len = msg.data.len().min(len);
     if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
         return ERRNO_FAULT;

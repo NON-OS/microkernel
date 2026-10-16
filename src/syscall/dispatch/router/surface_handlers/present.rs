@@ -22,7 +22,6 @@ use crate::syscall::SyscallResult;
 use core::sync::atomic::AtomicBool;
 
 use super::super::surface_ops::{map_err, EINVAL, ESRCH};
-use super::trace::trace_surface;
 
 static FIRST_SURFACE_PRESENT: AtomicBool = AtomicBool::new(false);
 
@@ -47,15 +46,11 @@ pub(in super::super) fn do_vsync_wait(display: u64) -> SyscallResult {
         Some(p) => p,
         None => return errno(ESRCH),
     };
-    trace_surface(b"vsync", b"enter", pid);
     let Some(display) = u32_arg(display) else {
         return errno(EINVAL);
     };
     match wait_for_vsync(display, pid) {
-        Ok(deadline) => {
-            trace_surface(b"vsync", b"ok", pid);
-            SyscallResult::success_audited(deadline as i64)
-        }
+        Ok(deadline) => SyscallResult::success_audited(deadline as i64),
         Err(e) => errno(map_err(e)),
     }
 }
