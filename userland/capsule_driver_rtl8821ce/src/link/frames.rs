@@ -36,8 +36,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         let (n, info) = poll_one_info(
             &self.mmio,
             &self.rx_ring,
-            self.rx_buffers.bytes(),
-            self.rx_buffers.device_addr(),
+            &mut self.rx_buffers,
             &mut self.rx_state,
             out,
         )?;

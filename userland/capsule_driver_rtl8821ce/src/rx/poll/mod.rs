@@ -16,9 +16,9 @@
 
 //! Take the next received 802.11 frame off the RX ring. The hardware write index
 //! says how many slots are ready; each is parsed, and firmware-command, error
-//! and oversized frames are skipped (their slots re-armed) until a deliverable
-//! frame is found. Its body is copied out, the slot is re-armed, the host read
-//! index advances and is written back to hand the slot to the card. This is the
+//! and oversized frames are skipped until a deliverable frame is found. Its
+//! body is copied out; every slot taken is cleared and re-armed, and the host
+//! read index advances and is written back to hand it to the card. This is the
 //! read half of rtw88 `rtw_pci_rx_napi`, shaped as a single-frame poll so it
 //! backs the `poll_rx` half of the net_core link contract. Checked against a
 //! modeled device and DMA memory in `rtl8821ce_proofs`.

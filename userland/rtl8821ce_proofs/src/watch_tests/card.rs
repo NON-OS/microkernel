@@ -46,4 +46,5 @@ impl RxBuffers for NoRx {
     fn device_addr(&self) -> u64 {
         0x3800_0000
     }
+    fn clear(&mut self, _: usize, _: usize) {}
 }
