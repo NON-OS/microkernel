@@ -33,9 +33,6 @@ mod mmio;
 mod pci_match;
 mod protocol;
 mod regs;
-// The receive path: reading the firmware's responses and notifications. Reached
-// through OP_RX_POLL.
-mod rx;
 mod server;
 mod setup;
 
