@@ -48,21 +48,22 @@ pub fn levels(
     if width == 0 || htotal == 0 || pixel_khz == 0 {
         return out;
     }
-    let bytes_per_line = width as u64 * 4;
+    // u128: a latency and a clock at u32's top run their product past u64.
+    let bytes_per_line = width as u128 * 4;
     let blocks_per_line = bytes_per_line.div_ceil(512);
     for (i, &lat) in latency_us.iter().enumerate() {
         if lat == 0 {
             break;
         }
-        let lat = lat as u64;
+        let lat = lat as u128;
         // Method 1: the bytes fetched during the latency, in blocks.
-        let m1 = (lat * pixel_khz as u64 * 4).div_ceil(512 * 1000);
+        let m1 = (lat * pixel_khz as u128 * 4).div_ceil(512 * 1000);
         // Method 2: the lines scanned during the latency, whole lines.
-        let m2 = (lat * pixel_khz as u64).div_ceil(htotal as u64 * 1000) * blocks_per_line;
+        let m2 = (lat * pixel_khz as u128).div_ceil(htotal as u128 * 1000) * blocks_per_line;
         let chosen = if bytes_per_line < 512 { m1 } else { m1.min(m2) };
         let blocks = chosen + 1;
         let lines = chosen.div_ceil(blocks_per_line);
-        if blocks >= share as u64 || lines > 31 {
+        if blocks >= share as u128 || lines > 31 {
             break;
         }
         out[i] = Level { enabled: true, lines: lines as u32, blocks: blocks as u32 };

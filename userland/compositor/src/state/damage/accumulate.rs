@@ -58,7 +58,10 @@ impl DamageAccumulator {
     }
 
     fn smallest_growth(&self, r: Rect) -> usize {
-        let growth = |i: &usize| self.rects[*i].union(r).area() - self.rects[*i].area();
+        // Saturating: a rectangle whose right edge saturates can have a union
+        // narrower than itself, and a plain difference would underflow.
+        let growth =
+            |i: &usize| self.rects[*i].union(r).area().saturating_sub(self.rects[*i].area());
         (0..self.count).min_by_key(growth).unwrap_or(0)
     }
 }

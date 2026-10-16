@@ -44,7 +44,9 @@ pub fn program(
     old_ctl: u32,
 ) -> Result<(), Error> {
     let (w, h) = size;
-    let stride_ok = stride.is_multiple_of(64) && stride >= w * 4 && stride <= kind.max_stride();
+    // In u64: the width is checked below, after this reads it.
+    let wide = stride as u64 >= w as u64 * 4;
+    let stride_ok = stride.is_multiple_of(64) && wide && stride <= kind.max_stride();
     if !surf.is_multiple_of(SURF_ALIGN)
         || !stride_ok
         || !(1..=8192).contains(&w)

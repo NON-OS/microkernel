@@ -32,11 +32,12 @@ pub struct Lens {
 /// quarters (4 none), centred on `at` in the view.
 pub fn lens(at: (u32, u32), view: (u32, u32), screen: (u32, u32), m: u32) -> Lens {
     let z = (screen.0 as u64 * m as u64 / view.0.max(1) as u64).max(1);
-    let seen = |s: u32| (s as u64 * 4).div_ceil(z) as u32;
+    // Held to u32 rather than cut: a lens of z 1 on a tall screen sees more.
+    let seen = |s: u32| u32::try_from((s as u64 * 4).div_ceil(z)).unwrap_or(u32::MAX);
     let origin =
         |at: u32, seen: u32, view: u32| at.saturating_sub(seen / 2).min(view.saturating_sub(seen));
     Lens {
-        z: z as u32,
+        z: u32::try_from(z).unwrap_or(u32::MAX),
         ox: origin(at.0, seen(screen.0), view.0),
         oy: origin(at.1, seen(screen.1), view.1),
     }
