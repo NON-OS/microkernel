@@ -19,6 +19,9 @@ pub struct Claim {
     pub pid: u32,
     pub device_id: u64,
     pub epoch: u64,
+    /// Set by the claim's last step (L65): until then the entry only keeps
+    /// other claimants out, since the claim may still be refused.
+    pub ready: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

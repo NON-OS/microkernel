@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::restore_rule::{holds, put, wants, Kind, Want};
+use super::restore_rule::{holds, put, slots, wants, Kind, Want};
 
 #[test]
 fn a_bar_reset_to_zero_is_seen_lost_and_put_back_with_its_type_bits() {
@@ -49,4 +49,20 @@ fn put_never_writes_outside_the_address_bits_it_was_given() {
             assert!(holds(written, want));
         }
     }
+}
+
+#[test]
+fn a_64_bit_bar_fills_the_next_slot_with_its_high_half_and_no_other() {
+    use Kind::{Absent, Io, Mem32, Mem64};
+    let high = |v| Some(Want { value: v, mask: u32::MAX });
+    let s = slots([(Mem32, 0xFEB0_0000), (Absent, 0), (Mem64, 0x60_F000_0000), (Absent, 0),
+        (Io, 0xE000), (Absent, 0)]);
+    assert_eq!((s[0], s[1], s[3], s[5]), (wants(Mem32, 0xFEB0_0000).0, None, high(0x60), None));
+    let at4 = slots([(Absent, 0), (Absent, 0), (Absent, 0), (Absent, 0), (Mem64, 1 << 32),
+        (Absent, 0)]);
+    assert_eq!(at4[5], high(1), "slot 4's high half in slot 5");
+    // A decoded BAR keeps its own slot; past the last slot nothing is written.
+    let both = slots([(Mem64, 2 << 32), (Mem32, 0xFE00_0000), (Absent, 0), (Absent, 0),
+        (Absent, 0), (Mem64, 3 << 32)]);
+    assert_eq!((both[1], both[5]), (wants(Mem32, 0xFE00_0000).0, wants(Mem64, 3 << 32).0));
 }
