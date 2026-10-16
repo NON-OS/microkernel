@@ -27,10 +27,11 @@
 //! receive frames are decrypted by the radio from the CAM where it can, by the
 //! station otherwise. Every received frame goes through the station's checks
 //! (from the BSS, protected, not a replay) before the stack sees it, and the
-//! access point's group key handshakes are answered here, the new key handed
-//! to the serve loop to install in the CAM. Both directions are checked against
-//! the real `LinkPort`/`KeyStore` traits in `rtl8821ce_proofs`.
+//! access point's group key handshakes are answered here, the new key handed to
+//! the serve loop for the CAM; both directions are checked in `rtl8821ce_proofs`.
 
+#[path = "link/address.rs"]
+mod address;
 #[path = "link/buffers.rs"]
 mod buffers;
 #[path = "link/counts.rs"]
@@ -66,6 +67,7 @@ mod transmit;
 #[path = "link/watch.rs"]
 mod watch;
 
+pub use address::NoAddress;
 pub use buffers::RxBuffers;
 pub use counts::LinkStats;
 pub use dead::DeadLink;

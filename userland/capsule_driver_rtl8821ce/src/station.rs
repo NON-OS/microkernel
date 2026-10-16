@@ -18,6 +18,7 @@
 //! request whether it associates or not, so the efuse address is not used.
 
 use nonos_mac::{apply, MAC_LEN};
+use nonos_wifi_core::address::KEY_LEN;
 
 /// Draw a station address. `None` is fatal: falling back to the efuse would
 /// transmit the identifier this avoids.
@@ -29,4 +30,15 @@ pub fn draw() -> Option<[u8; MAC_LEN]> {
     }
     apply(&mut mac);
     Some(mac)
+}
+
+/// Draw this boot's address key, from which each network gets its own
+/// address. `None`: no randomness, so no join.
+pub fn draw_key() -> Option<[u8; KEY_LEN]> {
+    let mut key = [0u8; KEY_LEN];
+    let rc = nonos_libc::crypto_random(key.as_mut_ptr(), KEY_LEN);
+    if rc < 0 || (rc as usize) != KEY_LEN {
+        return None;
+    }
+    Some(key)
 }

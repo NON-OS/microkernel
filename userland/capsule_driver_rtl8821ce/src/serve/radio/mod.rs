@@ -21,4 +21,4 @@ mod phy;
 mod rings;
 mod up;
 
-pub(super) use up::{build_radio, read_mac, Radio, RadioUp};
+pub(super) use up::{build_radio, Radio, RadioUp};

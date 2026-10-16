@@ -3,7 +3,6 @@
 //! The PHY brought up: power, tables, antenna, station address, channel.
 
 use super::super::{Stage, DEFAULT_CHANNEL};
-use super::up::program_mac;
 use crate::efuse;
 use crate::phy::channel::Bw;
 use crate::phy::{load_all, power_on, rxpath, PhyCond, INTF_PCIE};
@@ -58,7 +57,7 @@ pub(super) fn phy_setup(regs: &Regs, efuse: Option<efuse::EfuseInfo>) -> Result<
     // completes the four-way, so this must happen after the table load. Drawn
     // rather than read from the efuse; no entropy means no radio.
     match crate::station::draw() {
-        Some(mac) => program_mac(regs, &mac),
+        Some(mac) => crate::mac::set_address(regs, &mac),
         None => {
             status::line(b"[rtl8821ce] no entropy for station address\n");
             return Err(Stage::NoStationAddress);
