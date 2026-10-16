@@ -20,7 +20,7 @@
 //! method is not lost; a level event's after, once the method has quieted
 //! the source. Each GPE is disabled while it is served. A level GPE whose
 //! method fails stays disabled, since its source is still asserting and
-//! would fire forever.
+//! would fire forever; so does any GPE past the storm bound (`storm`).
 
 use super::dispatch::Dispatch;
 use super::error::EventsError;
@@ -36,12 +36,8 @@ impl Events {
         io: &mut impl EventIo,
         run: &mut dyn FnMut(Dispatch) -> Result<(), Fault>,
     ) -> Result<SciReport, EventsError> {
-        let mut report = SciReport::default();
-        let fixed = self.pm1.status(io).ok_or(EventsError::Io)? & self.fixed;
-        if fixed != 0 && !self.pm1.clear(io, fixed) {
-            return Err(EventsError::Io);
-        }
-        report.fixed = fixed;
+        let mut report = SciReport { fixed: self.take_fixed(io)?, ..SciReport::default() };
+        let now = io.now_ms();
         for n in self.pending(io)? {
             let what = match (self.native.contains(&n), self.handlers.get(&n)) {
                 (true, _) => (Dispatch::Native(n), Trigger::Edge),
@@ -49,6 +45,11 @@ impl Events {
                 (false, None) => continue,
             };
             let Some(b) = self.block_of(n).copied() else { continue };
+            if self.storms.hit(n, now) {
+                self.quiet(io, n)?;
+                report.stormed.push(n);
+                continue;
+            }
             let edge = what.1 == Trigger::Edge;
             if !b.set_enabled(io, n, false) || (edge && !b.clear(io, n)) {
                 return Err(EventsError::Io);

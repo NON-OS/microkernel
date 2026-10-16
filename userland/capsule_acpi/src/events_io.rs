@@ -19,7 +19,7 @@
 //! refused by the kernel and reads as a failure here.
 
 use crate::sys::acpi::{port_read, port_write};
-use crate::sys::clock::sleep_ms;
+use crate::sys::clock::{now_ms, sleep_ms};
 use nonos_aml::events::EventIo;
 
 pub struct PortIo;
@@ -35,5 +35,9 @@ impl EventIo for PortIo {
 
     fn sleep(&mut self, ms: u64) {
         sleep_ms(ms)
+    }
+
+    fn now_ms(&mut self) -> u64 {
+        now_ms()
     }
 }

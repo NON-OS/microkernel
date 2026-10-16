@@ -18,6 +18,7 @@
 
 use super::protocol::{get, put, status};
 use super::regs::{EcError, EcPorts, QR_EC, SCI_EVT};
+use super::stale::flush;
 use crate::events::EventIo;
 
 /// Whether the EC has an event to report (SCI_EVT).
@@ -28,6 +29,7 @@ pub fn pending(p: &EcPorts, io: &mut impl EventIo) -> Result<bool, EcError> {
 /// QR_EC: the next event's number, None when the EC has none (12.3.5:
 /// zero means no outstanding event).
 pub fn query(p: &EcPorts, io: &mut impl EventIo) -> Result<Option<u8>, EcError> {
+    flush(p, io)?;
     put(p, io, p.command, QR_EC)?;
     let q = get(p, io)?;
     Ok((q != 0).then_some(q))

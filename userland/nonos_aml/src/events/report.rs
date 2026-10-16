@@ -27,4 +27,6 @@ pub struct SciReport {
     pub ran: Vec<(u16, Result<(), Fault>)>,
     /// Level GPEs left disabled after their method failed.
     pub disabled: Vec<u16>,
+    /// GPEs turned off for firing past the storm bound (`storm`).
+    pub stormed: Vec<u16>,
 }
