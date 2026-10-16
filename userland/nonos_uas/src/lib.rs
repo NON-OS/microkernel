@@ -24,6 +24,7 @@
 
 mod command;
 mod exchange;
+mod heed;
 mod iu;
 mod pipe;
 mod pipes;
@@ -33,6 +34,7 @@ mod tags;
 
 pub use command::{DataDir, ScsiCommand};
 pub use exchange::Exchange;
+pub use heed::DROPS_MAX;
 pub use iu::{command_iu, lun_bytes, task_iu, COMMAND_IU_LEN, TASK_IU_LEN};
 pub use iu::{TMF_ABORT_TASK, TMF_LOGICAL_UNIT_RESET};
 pub use pipe::{Pipe, UasPipes};

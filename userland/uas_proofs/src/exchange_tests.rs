@@ -1,6 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! A command's exchange, on a USB 2 device (READ READY first) and with
-//! streams (data at once), and what fails it.
+//! streams (data at once), and what fails it (another tag's IUs:
+//! dropped_tests.rs).
 
 use nonos_uas::{DataDir, Exchange, ScsiCommand, StatusIu, Step};
 
@@ -53,11 +54,10 @@ fn with_streams_the_data_moves_at_once() {
 }
 
 #[test]
-fn an_iu_out_of_turn_or_for_another_tag_fails_and_a_response_says_why() {
+fn an_iu_out_of_turn_fails_and_a_response_says_why() {
     let mut cmd = Read10::new();
     let mut x = Exchange::new(3, DataDir::In, false);
     assert_eq!(x.status(StatusIu::WriteReady { tag: 3 }, &mut cmd), Step::Failed(2));
-    assert_eq!(x.status(StatusIu::ReadReady { tag: 4 }, &mut cmd), Step::Failed(2));
     let failed = StatusIu::Response { tag: 3, code: 0x09 };
     assert_eq!(x.status(failed, &mut cmd), Step::Failed(9));
     assert_eq!(cmd.ended, None);
