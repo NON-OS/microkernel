@@ -4,14 +4,6 @@
 //! secrets, every value the wallet derives: the spend key, the nullifier key,
 //! the owner digest, the commitment, and the live and dead nullifiers. A wallet
 //! that disagrees on any of them holds notes it cannot spend or cannot find.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::panic,
-    clippy::unwrap_used,
-    clippy::arithmetic_side_effects,
-    clippy::string_slice
-)]
 
 use nonos_stark::air::{Poseidon, RATE};
 use nonos_stark::field::Fp;
