@@ -22,4 +22,5 @@ mod firmware_rig;
 mod record_tests;
 mod serve;
 mod serve_tests;
+mod size_tests;
 mod wire_sweep;
