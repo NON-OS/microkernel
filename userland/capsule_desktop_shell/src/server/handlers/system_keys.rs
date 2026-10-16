@@ -16,9 +16,9 @@
 
 //! The system keys, which the input router hands only to the shell whatever
 //! has focus: the volume keys set the master volume and say what plays, the
-//! power key says what it can do.
+//! power key asks to power off.
 
-use crate::state::system_key::{system_key, SystemKey, POWER_OFF_UNAVAILABLE};
+use crate::state::system_key::{system_key, SystemKey};
 use crate::state::toast::TOAST_TEXT_MAX;
 use crate::state::volume::{is_volume_notice, notice};
 use crate::state::{Context, NotifyLevel};
@@ -36,7 +36,7 @@ pub fn key(ctx: &mut Context, code: u32) -> bool {
             // over a volume change would be heard at the level just left.
             ctx.toasts.replace(&line[..n], NotifyLevel::Info, now, is_volume_notice);
         }
-        SystemKey::Power => ctx.toasts.push(POWER_OFF_UNAVAILABLE, NotifyLevel::Info, now),
+        SystemKey::Power => super::power_off::ask(ctx),
     }
     true
 }

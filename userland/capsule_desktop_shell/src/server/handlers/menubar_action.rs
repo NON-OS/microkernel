@@ -28,6 +28,7 @@ pub(super) fn activate(ctx: &mut Context, title: usize, row: usize) {
         (0, 0) => front_window(ctx),
         (0, 1) | (2, 0) => launchpad::open(ctx),
         (0, 2) | (4, 0) => launch(ctx, b"app.about"),
+        (0, 3) => super::power_off::ask(ctx),
         (1, 0) => desktop::create_entry(ctx, false),
         (1, 1) => desktop::create_entry(ctx, true),
         (1, 2) => launch(ctx, b"app.file_manager"),
