@@ -6,6 +6,9 @@
 
 use sha3::{Digest, Sha3_256};
 
+#[cfg(feature = "fuzzing")]
+#[path = "xwing_fuzz.rs"]
+pub mod fuzz;
 #[path = "xwing_opening.rs"]
 mod opening;
 #[path = "xwing_open.rs"]
