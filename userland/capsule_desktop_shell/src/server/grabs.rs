@@ -22,29 +22,29 @@ use crate::state::Context;
 /// ends, so a press never lands between the state and its grab.
 pub fn sync(ctx: &mut Context) {
     let want = wanted(Modal {
-        drag: ctx.drag_from.is_some(),
-        launchpad: ctx.launchpad,
-        menu: ctx.desktop_menu.is_some() || ctx.menubar.open.is_some(),
-        dialog: ctx.pending_consent.is_some()
-            || ctx.pending_pkg_install.is_some()
-            || ctx.live_prompt.showing()
-            || ctx.pending_delete.showing()
+        drag: ctx.desk_ui.drag_from.is_some(),
+        launchpad: ctx.launchpad_ui.launchpad,
+        menu: ctx.desk_ui.desktop_menu.is_some() || ctx.menubar.open.is_some(),
+        dialog: ctx.pending.pending_consent.is_some()
+            || ctx.pending.pending_pkg_install.is_some()
+            || ctx.pending.live_prompt.showing()
+            || ctx.pending.pending_delete.showing()
             || ctx.trusted.attention != crate::state::attention::Attention::None,
-        rename: ctx.rename.is_some(),
+        rename: ctx.desk_ui.rename.is_some(),
     });
-    let (release, request) = steps(ctx.grab_held, want);
+    let (release, request) = steps(ctx.links.grab_held, want);
     if release {
         let rid = ctx.issue_request_id();
-        let _ = crate::input_router_client::release_grab(ctx.input_router_port, rid);
-        ctx.grab_held = 0;
+        let _ = crate::input_router_client::release_grab(ctx.ports.input_router_port, rid);
+        ctx.links.grab_held = 0;
     }
     if let Some(mask) = request {
         let rid = ctx.issue_request_id();
         // Refused only while another holder (the installer, the boot splash)
         // has the whole screen; nothing is held then, and the next sync asks
         // again.
-        if crate::input_router_client::grab(ctx.input_router_port, rid, mask).is_ok() {
-            ctx.grab_held = mask;
+        if crate::input_router_client::grab(ctx.ports.input_router_port, rid, mask).is_ok() {
+            ctx.links.grab_held = mask;
         }
     }
 }

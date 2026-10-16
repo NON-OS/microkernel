@@ -64,7 +64,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     paint_chrome(ctx);
     let r = menubar_rect(ctx.width);
     let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, r.x, r.y, r.width, r.height);
+    let _ = push_damage_commit(ctx.ports.compositor_port, rid, r.x, r.y, r.width, r.height);
     sync_toast_layer(ctx);
     let _ = respond::status(sender_pid, req, 0, tx);
 }

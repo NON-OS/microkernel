@@ -25,40 +25,42 @@ pub(crate) fn label_of(ctx: &Context, t: Target) -> &[u8] {
     match t {
         Target::App(a) => LAUNCHER_APPS[a].label,
         Target::Tool(t) => TOOL_APPS[t].label,
-        Target::Installed(i) => ctx.installed_apps.get(i).map(|n| n.as_slice()).unwrap_or(b""),
-        Target::Package(i) => ctx.pkg_files.get(i).map(|n| n.as_bytes()).unwrap_or(b""),
+        Target::Installed(i) => {
+            ctx.store_apps.installed_apps.get(i).map(|n| n.as_slice()).unwrap_or(b"")
+        }
+        Target::Package(i) => ctx.store_apps.pkg_files.get(i).map(|n| n.as_bytes()).unwrap_or(b""),
     }
 }
 
 pub(crate) fn rebuild(ctx: &mut Context) {
-    let installed = ctx.installed_apps.len();
-    let packages = ctx.pkg_files.len();
+    let installed = ctx.store_apps.installed_apps.len();
+    let packages = ctx.store_apps.pkg_files.len();
     let total = LAUNCHER_APPS.len() + TOOL_APPS.len() + installed + packages;
     let mut next = alloc::vec::Vec::with_capacity(total);
     for i in 0..total {
         let t = target(i, installed, packages);
-        if matches(label_of(ctx, t), &ctx.launchpad_query) {
+        if matches(label_of(ctx, t), &ctx.launchpad_ui.launchpad_query) {
             next.push(t);
         }
     }
-    ctx.launchpad_view = next;
+    ctx.launchpad_ui.launchpad_view = next;
     let last = pages(ctx).saturating_sub(1);
-    if ctx.launchpad_page > last {
-        ctx.launchpad_page = last;
+    if ctx.launchpad_ui.launchpad_page > last {
+        ctx.launchpad_ui.launchpad_page = last;
     }
 }
 
 pub(crate) fn pages(ctx: &Context) -> usize {
     let cap = per_page(ctx.width, ctx.height).max(1);
-    ctx.launchpad_view.len().div_ceil(cap).max(1)
+    ctx.launchpad_ui.launchpad_view.len().div_ceil(cap).max(1)
 }
 
 pub(crate) fn page_slice(ctx: &Context) -> &[Target] {
     let cap = per_page(ctx.width, ctx.height).max(1);
-    let start = ctx.launchpad_page * cap;
-    let end = (start + cap).min(ctx.launchpad_view.len());
-    if start >= ctx.launchpad_view.len() {
+    let start = ctx.launchpad_ui.launchpad_page * cap;
+    let end = (start + cap).min(ctx.launchpad_ui.launchpad_view.len());
+    if start >= ctx.launchpad_ui.launchpad_view.len() {
         return &[];
     }
-    &ctx.launchpad_view[start..end]
+    &ctx.launchpad_ui.launchpad_view[start..end]
 }

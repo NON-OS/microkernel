@@ -22,7 +22,7 @@ const TRUNCATED: &str = "! caps hidden - do not approve";
 const WARN: u32 = 0xFFE2_9B3C;
 
 pub fn paint_pkg_consent(ctx: &Context) {
-    let Some(prompt) = ctx.pending_pkg_install.as_ref() else {
+    let Some(prompt) = ctx.pending.pending_pkg_install.as_ref() else {
         return;
     };
     let p = panel_rect(ctx.width, ctx.height);

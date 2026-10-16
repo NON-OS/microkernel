@@ -18,7 +18,7 @@ use crate::state::{Context, NotifyLevel, PkgInstallPrompt};
 /// before it starts: otherwise the stale panel sits on screen for the whole
 /// install with no sign that the click registered.
 pub(crate) fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
-    if ctx.pending_pkg_install.is_none() {
+    if ctx.pending.pending_pkg_install.is_none() {
         return false;
     }
     let approve = hit(approve_rect(ctx.width, ctx.height), px, py);
@@ -29,7 +29,7 @@ pub(crate) fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
 /// Approve installs the package; Cancel, Esc or a press outside does not.
 pub(crate) fn answer(ctx: &mut Context, choice: Choice) {
     ctx.dialog_focus.reset();
-    let Some(prompt) = ctx.pending_pkg_install.take() else {
+    let Some(prompt) = ctx.pending.pending_pkg_install.take() else {
         return;
     };
     if choice == Choice::Leave {

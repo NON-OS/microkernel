@@ -23,7 +23,7 @@ const FOLDER_NOTE: &str =
     "The folder and everything in it are removed. There is no Trash to get them back from.";
 
 pub fn paint_delete_prompt(ctx: &Context) {
-    let Some(target) = ctx.pending_delete.target() else {
+    let Some(target) = ctx.pending.pending_delete.target() else {
         return;
     };
     let p = panel_rect(ctx.width, ctx.height);
