@@ -15,5 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod dock_tests;
+mod lock_tests;
+mod release_rig;
+mod release_tests;
+mod release_want;
 mod rig;
 mod tests;
