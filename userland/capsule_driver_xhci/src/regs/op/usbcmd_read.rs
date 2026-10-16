@@ -16,5 +16,7 @@
 use crate::constants::USBCMD;
 use crate::regs::mmio_read32;
 pub fn usbcmd_read(op_base: u64) -> u32 {
-    mmio_read32(op_base + USBCMD)
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_read32(op_base + USBCMD) }
 }

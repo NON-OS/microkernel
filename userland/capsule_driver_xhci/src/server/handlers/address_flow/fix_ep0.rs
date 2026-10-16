@@ -50,15 +50,15 @@ pub(super) fn fix_ep0(ctx: &mut Context, slot: u8) -> XhciResult<u16> {
         &buf,
         DEVICE_DESCRIPTOR_PREFIX,
     );
-    if let Err(e) = read {
-        recover_after(ctx, slot, DCI_EP0, e);
-        return Err(e);
-    }
-    /*
-     * SAFETY: `buf` is a live DMA grant of at least 8 bytes and the
-     * transfer into it has completed.
-     */
-    let b = unsafe { core::ptr::read_volatile(buf.as_mut_ptr::<u8>().add(B_MAX_PACKET_SIZE0)) };
+    let got = match read {
+        Ok(n) => n,
+        Err(e) => {
+            recover_after(ctx, slot, DCI_EP0, e, Some(buf));
+            return Err(e);
+        }
+    };
+    // A device that sent less than the eight bytes said nothing of its size.
+    let b = if got > B_MAX_PACKET_SIZE0 { buf.read_u8(B_MAX_PACKET_SIZE0).unwrap_or(0) } else { 0 };
     let Some(mps) = ep0_max_packet(res.speed, res.usb3, b) else { return Ok(res.max_packet) };
     if mps == res.max_packet {
         return Ok(mps);

@@ -13,15 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod barrier;
 mod page;
 mod pool;
 mod pool_alloc;
 mod region;
+mod region_access;
 mod region_as_mut_ptr;
+mod region_copy;
 mod region_drop;
 mod region_phys;
 mod region_user_va;
 mod region_zero;
+pub use barrier::{doorbell_barrier, read_barrier};
 pub use pool::DmaPool;
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.
 #[allow(unused_imports)]
