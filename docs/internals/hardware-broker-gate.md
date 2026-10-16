@@ -19,7 +19,7 @@ flowchart TB
     table["device table"] --- scan["bus::pci scan<br/>bus/pci/init.rs:22"]
 ```
 
-A capsule claims a device by pid; the broker gives that capsule its own IOMMU domain and moves the device into it, out of the identity domain. Each grant kind — MMIO window, DMA buffer, IRQ binding, port I/O — is a separate brokered call, each needing its own capability bit. When the process ends, teardown calls `release_all_for_pid` and the broker quiesces and detaches the device. The device table the broker works from is built from the `bus::pci` bus scan.
+A capsule claims a device by pid; the broker gives that capsule its own IOMMU domain and moves the device into it, out of the blocked state every function found at boot starts in. Each grant kind — MMIO window, DMA buffer, IRQ binding, port I/O — is a separate brokered call, each needing its own capability bit. When the process ends, teardown calls `release_all_for_pid` and the broker retires the device: bus mastering off, its BAR mappings revoked, the function reset, its DMA frames freed, then the domain detached (`retire` in `src/hardware/broker/claim/retire.rs`). The device table the broker works from is built from the `bus::pci` bus scan.
 
 ## hardware
 
