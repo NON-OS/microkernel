@@ -48,10 +48,10 @@ pub(in crate::wallet::event) fn finish(state: &mut State, finished: Finished) ->
                             crate::wallet::net::last_read::LastRead { block, host, route, at_ms };
                         let slot = &mut state.net.last_read
                             [usize::from(crate::wallet::chain::is_sepolia())];
-                        newer = slot.map_or(true, |r| r.block != block || r.host != host);
+                        newer = slot.is_none_or(|r| r.block != block || r.host != host);
                         *slot = Some(read);
                     }
-                    apply(state, snap) | newer
+                    apply(state, *snap) | newer
                 }
                 None => {
                     // The link dropped; fall back to the diagnostic next refresh.

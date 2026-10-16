@@ -16,7 +16,6 @@
 //! Importing a private key: never drawn, each digit a dot.
 
 use alloc::format;
-use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -48,7 +47,7 @@ pub(super) fn import(state: &State, fb: &mut PaintBuffer) {
     let mut l = begin(fb, &spec);
     let c = l.content;
     let mut y = lead(fb, c, IMPORT_LEAD);
-    let dots: String = core::iter::repeat('\u{2022}').take(state.custody.import_len).collect();
+    let dots = "\u{2022}".repeat(state.custody.import_len);
     let (at, h) = field(fb, c, y, "PRIVATE KEY", &dots, "64 hex digits, 0x optional", true);
     hits::put(Press::Field(0), at);
     y += h + GAP;

@@ -22,7 +22,7 @@ use crate::wallet::vault::Unsealed;
 /// The status line for a keep that did not land, or None when it did.
 pub fn kept_status(kept: Kept, from_key: bool) -> Option<&'static [u8]> {
     let s: &'static [u8] = match (kept, from_key) {
-        (Kept::Kept, _) => return None,
+        (Kept::Landed, _) => return None,
         (Kept::Live, false) => b"this is a live session: nothing is kept past power off, so this wallet is gone then; write down the phrase",
         (Kept::Live, true) => b"this is a live session: nothing is kept past power off, so this wallet is gone then; keep the private key",
         (Kept::LastStays(Unsealed::DiskFull), false) => b"the disk is full, so this wallet is gone at reboot and any wallet stored before stays: write down the phrase",

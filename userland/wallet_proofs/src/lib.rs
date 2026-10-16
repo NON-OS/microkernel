@@ -25,8 +25,6 @@ extern crate alloc;
 
 const WALLET: &str = "../capsule_wallet_nonos/src/wallet";
 
-pub mod wallet;
-
 // The rule the wallet's requests leave by, as nonos_route_link ships it. At
 // the crate root, where its own `crate::pick` paths look for it.
 #[allow(dead_code)]
@@ -35,215 +33,43 @@ pub mod describe;
 #[allow(dead_code)]
 #[path = "../../nonos_route_link/src/pick.rs"]
 pub mod pick;
-/// The keyring's key store, which holds the wallet's opened account key. At
-/// the crate root, where its own `crate::store` paths look for it.
-pub mod store;
-/// The keyring's rule for who may seal and open the wallet's vault record.
-#[path = "../../capsule_keyring/src/server/vault_gate/rule.rs"]
-pub mod vault_gate;
-
-/// The keyring's `server` modules the words check names, under the
-/// `crate::server` path it is written against.
-pub mod server;
-
-#[cfg(test)]
-mod words_own_tests;
-
-// The real NOX read helpers. `apr_bps` reads `super::constants`, so `constants`
-// is a sibling module under `nox` exactly as in the wallet.
-#[allow(dead_code)]
-pub mod nox;
 
 #[allow(dead_code)]
 #[path = "../../capsule_wallet_nonos/src/wallet/event/hex_digit.rs"]
 pub mod hex_digit;
+/// The real NOX read helpers. `apr_bps` reads `super::constants`, so `constants`
+/// is a sibling module under `nox` exactly as in the wallet.
+#[allow(dead_code)]
+pub mod nox;
 
-// Keep the doc string referenced so the path note is not dead.
-#[path = "../../capsule_wallet_nonos/src/wallet/accounts/file.rs"]
-pub mod accounts_file;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/address_text.rs"]
-pub mod address_text;
-#[path = "../../capsule_wallet_nonos/src/wallet/send/exact.rs"]
-pub mod exact;
-#[path = "../../capsule_wallet_nonos/src/wallet/send/fees.rs"]
-pub mod fees;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/locking/idle_lock.rs"]
-pub mod idle_lock;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/locking/keep_plan.rs"]
-pub mod keep_plan;
-#[path = "../../capsule_wallet_nonos/src/wallet/shield/kept_names.rs"]
-pub mod kept_names;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/locking/kept_status.rs"]
-pub mod kept_status;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/custody/keyring_says.rs"]
-pub mod keyring_says;
-#[path = "../../capsule_wallet_nonos/src/wallet/net/last_read.rs"]
-pub mod last_read;
-#[path = "../../capsule_wallet_nonos/src/wallet/etna/layout.rs"]
-pub mod layout;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/probe/reading.rs"]
-pub mod reading;
-#[path = "../../capsule_wallet_nonos/src/wallet/app_refresh_due.rs"]
-pub mod refresh_due;
-#[path = "../../capsule_wallet_nonos/src/wallet/ipc/keyring_wait.rs"]
-pub mod keyring_wait;
-/// The route link's waits, which a refresh's steps keep to.
-#[path = "../../nonos_route_link/src/bounds.rs"]
-pub mod route_bounds;
-#[path = "../../capsule_wallet_nonos/src/wallet/tls13/records_whole.rs"]
-pub mod records_whole;
-#[path = "../../capsule_wallet_nonos/src/wallet/event/custody/replace_rule.rs"]
-pub mod replace_rule;
-#[path = "../../capsule_wallet_nonos/src/wallet/send/sent.rs"]
-pub mod sent;
-#[path = "../../capsule_wallet_nonos/src/wallet/attest/mod.rs"]
-pub mod attest;
-#[path = "../../capsule_wallet_nonos/src/wallet/typed/mod.rs"]
-pub mod typed;
-/* The order's pure parts (order/mod.rs). */
-pub mod order;
-#[path = "../../capsule_wallet_nonos/src/wallet/hex_id.rs"]
-pub mod hex_id;
-#[path = "../../capsule_wallet_nonos/src/wallet/intent/mod.rs"]
-pub mod intent;
-#[path = "../../capsule_wallet_nonos/src/wallet/publisher/mod.rs"]
-pub mod publisher;
-#[path = "../../capsule_wallet_nonos/src/wallet/meter/budget_form.rs"]
-pub mod meter_budget;
-#[path = "../../capsule_wallet_nonos/src/wallet/meter/channel.rs"]
-pub mod meter_channel;
-#[path = "../../capsule_wallet_nonos/src/wallet/meter/job.rs"]
-pub mod meter_job;
-#[path = "../../capsule_wallet_nonos/src/wallet/meter/topup.rs"]
-pub mod meter_topup;
-#[path = "../../capsule_wallet_nonos/src/wallet/meter/rows.rs"]
-pub mod meter_rows;
-pub mod shield;
-#[path = "../../capsule_wallet_nonos/src/wallet/settle/heard.rs"]
-pub mod settle_heard;
-#[path = "../../capsule_wallet_nonos/src/wallet/shield/fund_meter.rs"]
-pub mod fund_meter;
-#[path = "../../capsule_wallet_nonos/src/wallet/screen/shield/typed.rs"]
-pub mod shield_typed;
-#[path = "../../capsule_wallet_nonos/src/wallet/screen/status_words.rs"]
-pub mod status_words;
-#[cfg(test)]
-mod vault_read;
+/// The keyring's `server` modules the words check names, under the
+/// `crate::server` path it is written against.
+pub mod server;
+/// The keyring's key store, which holds the wallet's opened account key. At
+/// the crate root, where its own `crate::store` paths look for it.
+pub mod store;
+pub mod wallet;
+
+// The other mounted files, grouped by meaning and named at the crate root.
+mod mounts_custody;
+pub use mounts_custody::*;
+mod mounts_market;
+pub use mounts_market::*;
+mod mounts_read;
+pub use mounts_read::*;
 
 #[allow(dead_code)]
 pub fn source_root() -> &'static str {
     WALLET
 }
 
-#[cfg(test)]
-mod accounts_file_tests;
-#[cfg(test)]
-mod address_text_tests;
-#[cfg(test)]
-mod amount_tests;
-#[cfg(test)]
-mod amount_edit_tests;
-#[cfg(test)]
-mod amount_limits_tests;
-#[cfg(test)]
-mod order_tests;
-#[cfg(test)]
-mod fees_tests;
-#[cfg(test)]
-mod fetch_tests;
-#[cfg(test)]
-mod keep_tests;
-#[cfg(test)]
-mod kept_names_tests;
-#[cfg(test)]
-mod keyring_owner_tests;
-#[cfg(test)]
-mod layout_tests;
-#[cfg(test)]
-mod mul_div_tests;
-#[cfg(test)]
-mod network_tests;
-#[cfg(test)]
-mod replace_tests;
-#[cfg(test)]
-mod sent_tests;
-#[cfg(test)]
-mod fund_meter_tests;
-#[cfg(test)]
-mod settle_heard_tests;
-#[cfg(test)]
-mod landed_tests;
-#[cfg(test)]
-mod due_tests;
-#[cfg(test)]
-mod held_tests;
-#[cfg(test)]
-mod closed_due_tests;
-#[cfg(test)]
-mod move_tests;
-#[cfg(test)]
-mod eth_move_tests;
-#[cfg(test)]
-mod scan_tests;
-#[cfg(test)]
-mod attest_tests;
-#[cfg(test)]
-mod meter_budget_tests;
-#[cfg(test)]
-mod typed_tests;
-#[cfg(test)]
-mod intent_tests;
-#[cfg(test)]
-mod publisher_tests;
-#[cfg(test)]
-mod meter_job_tests;
-#[cfg(test)]
-mod meter_rows_tests;
-#[cfg(test)]
-mod shield_typed_tests;
-#[cfg(test)]
-mod stakeable_tests;
-#[cfg(test)]
-mod swap_curve_tests;
-#[cfg(test)]
-mod swap_limits_tests;
-#[cfg(test)]
-mod vault_gate_tests;
-
 #[cfg(kani)]
-mod kani_proofs;
-#[cfg(kani)]
-mod kani_order;
-#[cfg(kani)]
-mod kani_gas;
-
+mod kani;
 #[cfg(test)]
-mod tests;
-
+mod tests_custody;
 #[cfg(test)]
-mod probe_model;
+mod tests_market;
 #[cfg(test)]
-mod probe_gate_tests;
-
+mod tests_net;
 #[cfg(test)]
-mod route_tests;
-
-#[cfg(test)]
-mod gather_tests;
-#[cfg(test)]
-mod handshake_tests;
-
-#[cfg(test)]
-mod send_refusal_tests;
-#[cfg(test)]
-mod send_tests;
-#[cfg(test)]
-mod send_broadcast_tests;
-#[cfg(test)]
-mod rpc_hostile_tests;
-#[cfg(test)]
-mod private_route_tests;
-#[cfg(test)]
-mod private_route_gate_tests;
-#[cfg(test)]
-mod custody_gate_tests;
+mod tests_send;

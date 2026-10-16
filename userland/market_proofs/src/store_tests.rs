@@ -16,8 +16,8 @@
 
 //! The marketplace window's search (the order it asks in: store_order_tests).
 
+use super::store_suite::fixture::typed;
 use crate::store::search::Search;
-use crate::store_suite::fixture::typed;
 
 #[test]
 fn an_empty_query_keeps_everything() {

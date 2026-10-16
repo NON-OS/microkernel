@@ -46,7 +46,7 @@ pub trait Records {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kept {
     /// Every record landed: the next boot restores this wallet.
-    Kept,
+    Landed,
     /// The last vault could not be cleared, so whatever was stored is still
     /// on the disk and the next boot restores that, not this one.
     LastStays(Unsealed),
@@ -68,7 +68,7 @@ pub fn keep_records(records: &mut impl Records, from_key: bool) -> Kept {
         .and_then(|()| records.accounts())
         .and_then(|()| records.vault());
     match rest {
-        Ok(()) => Kept::Kept,
+        Ok(()) => Kept::Landed,
         Err(why) => Kept::Lost(why),
     }
 }

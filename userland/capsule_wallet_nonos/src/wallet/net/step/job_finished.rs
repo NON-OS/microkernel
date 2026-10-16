@@ -16,15 +16,20 @@
 
 //! What a job hands back once it is finished.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use super::super::read_snapshot::Snapshot;
 use super::super::status::NetStatus;
 
+/// A payment's hash and its receipt: its block and whether it succeeded,
+/// or None while it has none.
+pub type Receipt = ([u8; 32], Option<(u64, bool)>);
+
 /// What one reading of the chain said of the payments on their way.
 pub struct Followed {
-    /// Each payment's receipt: its block and whether it succeeded, or None.
-    pub receipts: Vec<([u8; 32], Option<(u64, bool)>)>,
+    /// Each payment's receipt.
+    pub receipts: Vec<Receipt>,
     pub head: u64,
     pub latest: u64,
     pub pending: u64,
@@ -33,9 +38,10 @@ pub struct Followed {
 /// A job's result, once it has one.
 pub enum Finished {
     Probe(NetStatus),
-    /// None when the request did not complete, so the link is down.
+    /// None when the request did not complete, so the link is down. Boxed:
+    /// a snapshot is far larger than the other results.
     Snapshot {
-        snap: Option<Snapshot>,
+        snap: Option<Box<Snapshot>>,
         address: [u8; 20],
         chain: u64,
         /// The host that answered, or failed to.

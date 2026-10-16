@@ -42,7 +42,7 @@ fn every_secret_is_zeroizing_and_nothing_copies_or_prints_it() {
 
 #[test]
 fn the_words_are_never_drawn_while_locked_and_unlock_returns_to_them() {
-    let paint = wallet("paint/paint.rs");
+    let paint = wallet("paint/dispatch.rs");
     let locked = paint.find("if state.locked").unwrap();
     let backup = paint.find("if state.keys.backup_active").unwrap();
     assert!(locked < backup, "the locked screen is drawn first");

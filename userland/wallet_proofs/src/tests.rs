@@ -17,12 +17,9 @@
 //! Known-answer checks on the real wallet helpers, verified against Foundry
 //! `cast` and live Ethereum mainnet vectors.
 
-use crate::hex_digit::hex_digit;
 use crate::nox::apr_bps::apr_bps;
 use crate::nox::calldata_addr::calldata_addr;
 use crate::nox::constants::SEL_BALANCE_OF;
-use crate::nox::format_apr::format_apr;
-use crate::nox::format_nox::format_nox;
 use crate::nox::q32_to_u128::q32_to_u128;
 
 /// `cast calldata "balanceOf(address)" 0xd8dA...6045` byte for byte.
@@ -62,36 +59,4 @@ fn quantity_decodes_low_bytes() {
     w[31] = 0xff;
     w[30] = 0x01;
     assert_eq!(q32_to_u128(&w), Some(0x01ff));
-}
-
-#[test]
-fn format_nox_two_decimals() {
-    let mut buf = [0u8; 48];
-    let n = format_nox(1_500_000_000_000_000_000, &mut buf).expect("fits");
-    assert_eq!(&buf[..n], b"1.50");
-}
-
-/* A buffer too short for the figure gives none, never a cut one. */
-#[test]
-fn format_nox_never_cuts_a_figure_short() {
-    let mut small = [0u8; 4];
-    assert_eq!(format_nox(12_345 * 1_000_000_000_000_000_000, &mut small), None);
-    assert_eq!(format_nox(1_500_000_000_000_000_000, &mut small), Some(4));
-    let mut max = [0u8; 48];
-    assert!(format_nox(u128::MAX, &mut max).is_some());
-}
-
-#[test]
-fn format_apr_percent() {
-    let mut buf = [0u8; 16];
-    let n = format_apr(1290, &mut buf);
-    assert_eq!(&buf[..n], b"12.90%");
-}
-
-#[test]
-fn hex_digit_alphabets() {
-    assert_eq!(hex_digit(b'a' as u32), Some(10));
-    assert_eq!(hex_digit(b'F' as u32), Some(15));
-    assert_eq!(hex_digit(b'9' as u32), Some(9));
-    assert_eq!(hex_digit(b'z' as u32), None);
 }

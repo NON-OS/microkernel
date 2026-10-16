@@ -16,11 +16,6 @@
 //! 05  SEND, a public payment from this account: the form, the review of
 //! exactly what will be signed, and what the network said once it went.
 
-use nonos_app_skeleton::PaintBuffer;
-
-use crate::wallet::send::{STAGE_FORM, STAGE_REVIEW};
-use crate::wallet::state::State;
-
 pub mod click;
 mod click_all;
 mod click_step;
@@ -32,11 +27,6 @@ pub mod key;
 mod key_address;
 mod review;
 mod review_rows;
+mod show;
 
-pub fn show(state: &State, fb: &mut PaintBuffer) {
-    match state.send.stage {
-        STAGE_FORM => form::form(state, fb),
-        STAGE_REVIEW => review::review(state, fb),
-        _ => done::done(state, fb),
-    }
-}
+pub use show::show;
