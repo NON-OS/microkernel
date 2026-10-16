@@ -34,78 +34,13 @@
 //! the outcome, never the passphrase. The answer lands in a static, so a
 //! worker that finishes after Settings closed writes into memory still there.
 
+use super::worker_msg::{Answer, Ask, Sent};
+use super::worker_run::work;
 use alloc::boxed::Box;
-
 use nonos_libc::{Handoff, Look, WorkerSeat};
-use nonos_wifi_client::{remember, wipe, Driver};
 
-use super::super::cache::STRING_CAP;
-use super::super::state::WIFI_NET_MAX;
-use crate::wifi::{ConnectResult, ScanNetwork, ScanOutcome, ScanStats};
+pub(super) static ANSWER: Handoff<Answer> = Handoff::new();
 
-/// A passphrase on its way to the driver, wiped when dropped.
-pub(super) struct Secret {
-    bytes: [u8; STRING_CAP],
-    len: usize,
-}
-
-impl Secret {
-    pub(super) fn new(from: &[u8]) -> Self {
-        let mut s = Self { bytes: [0u8; STRING_CAP], len: from.len().min(STRING_CAP) };
-        s.bytes[..s.len].copy_from_slice(&from[..s.len]);
-        s
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.bytes[..self.len]
-    }
-}
-
-impl Drop for Secret {
-    fn drop(&mut self) {
-        wipe(&mut self.bytes);
-        self.len = 0;
-    }
-}
-
-/// What the worker asks the driver.
-pub(super) enum Ask {
-    Scan(Driver),
-    /// Join `net`; keep it among the saved networks when `remember`.
-    Join {
-        driver: Driver,
-        net: ScanNetwork,
-        pass: Secret,
-        remember: bool,
-    },
-}
-
-/// The driver's answer.
-pub(super) enum Answer {
-    Scanned {
-        nets: [ScanNetwork; WIFI_NET_MAX],
-        count: usize,
-        outcome: ScanOutcome,
-        stats: ScanStats,
-    },
-    /// The join's outcome and, when remembering was asked for and the join
-    /// went through, what remembering said.
-    Joined { result: ConnectResult, kept: Option<&'static str> },
-}
-
-/// What became of a request handed to `send`.
-pub(super) enum Sent {
-    /// A worker has it; a tick will find the answer.
-    Out,
-    /// The last request is still with the driver; this one was dropped.
-    Busy,
-    /// No worker could be started (the kernel refused the thread, or its stack
-    /// could not be mapped): the request comes back, for
-    /// the window thread to run itself.
-    Refused(Box<Ask>),
-}
-
-static ANSWER: Handoff<Answer> = Handoff::new();
 static SEAT: WorkerSeat = WorkerSeat::new();
 
 /// The seat's refusal while its last worker is still on it.
@@ -136,34 +71,4 @@ pub(super) fn send(ask: Box<Ask>) -> Sent {
 /// The answer, once a worker has put it in.
 pub(super) fn poll() -> Look<Answer> {
     ANSWER.poll()
-}
-
-fn work(arg: usize) {
-    // SAFETY: `arg` is the box `send` leaked for this worker, and the spawn
-    // succeeded, so the worker owns it from here; dropping it wipes the
-    // passphrase.
-    let ask = unsafe { Box::from_raw(arg as *mut Ask) };
-    let answer = perform(&ask);
-    drop(ask);
-    ANSWER.put(answer);
-}
-
-/// Ask the driver, on whichever thread calls this.
-pub(super) fn perform(ask: &Ask) -> Answer {
-    match ask {
-        Ask::Scan(driver) => {
-            let mut nets = [ScanNetwork::EMPTY; WIFI_NET_MAX];
-            let (count, outcome, stats) = driver.scan(&mut nets);
-            Answer::Scanned { nets, count, outcome, stats }
-        }
-        Ask::Join { driver, net, pass, remember: keep } => {
-            let result = driver.connect(net.ssid(), pass.as_slice());
-            let kept =
-                (result.code == 0 && *keep).then(|| match remember(net.ssid(), pass.as_slice()) {
-                    Ok(()) => "Remembered, sealed with this machine's TPM key",
-                    Err(e) => e.text(),
-                });
-            Answer::Joined { result, kept }
-        }
-    }
 }

@@ -20,7 +20,8 @@ use super::pass::clear_passphrase;
 use super::pending::{Pending, Work};
 use super::radio::radio_on;
 use super::refusal::join_refusal;
-use super::worker::{Ask, Secret};
+use super::secret::Secret;
+use super::worker_msg::Ask;
 use nonos_libc::mk_time_millis;
 
 /// Begin a join of the highlighted network. A secured network first opens
