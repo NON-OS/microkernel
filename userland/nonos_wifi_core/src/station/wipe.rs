@@ -19,7 +19,6 @@
 //! The supplicant wipes itself as it is dropped.
 
 use super::{Ccmp, LinkStation};
-use crate::rsn::TemporalKey;
 use crate::vault::wipe;
 
 impl LinkStation {
@@ -30,13 +29,8 @@ impl LinkStation {
             Ccmp::Hardware => {}
         }
         self.ccmp = Ccmp::Hardware;
-        for k in self.group_keys.iter_mut().flatten() {
-            match k {
-                TemporalKey::Ccmp128(b) => wipe(b),
-                TemporalKey::Gcmp256(b) => wipe(b),
-            }
-        }
-        self.group_keys = [None; 4];
+        // Each group key wipes itself as it is dropped.
+        self.group_keys = [const { None }; 4];
         if let Some((key, _)) = self.pmf.igtk.as_mut() {
             wipe(key);
         }

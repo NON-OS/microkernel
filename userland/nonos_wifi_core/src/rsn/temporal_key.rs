@@ -18,8 +18,11 @@
 //! so a key cannot be run under the wrong cipher.
 
 use super::cipher::Cipher;
+use crate::vault::{assert_not_copy, wipe};
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+/// Never Copy, Clone or Debug: every value is one owner's, wiped when it
+/// is dropped, so no stray copy of the key outlives the link.
+#[derive(PartialEq, Eq)]
 pub enum TemporalKey {
     Ccmp128([u8; 16]),
     Gcmp256([u8; 32]),
@@ -41,10 +44,29 @@ impl TemporalKey {
         }
     }
 
+    /// A second owned key, wiped on its own drop like the first.
+    pub(crate) fn again(&self) -> Self {
+        match self {
+            TemporalKey::Ccmp128(k) => TemporalKey::Ccmp128(*k),
+            TemporalKey::Gcmp256(k) => TemporalKey::Gcmp256(*k),
+        }
+    }
+
     pub fn bytes(&self) -> &[u8] {
         match self {
             TemporalKey::Ccmp128(k) => k,
             TemporalKey::Gcmp256(k) => k,
+        }
+    }
+}
+
+assert_not_copy!(TemporalKey);
+
+impl Drop for TemporalKey {
+    fn drop(&mut self) {
+        match self {
+            TemporalKey::Ccmp128(k) => wipe(k),
+            TemporalKey::Gcmp256(k) => wipe(k),
         }
     }
 }

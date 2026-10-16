@@ -33,6 +33,11 @@ pub fn tag(c: &PmksaCache, ssid: &[u8], pass: &[u8]) -> Tag {
     c.tag(ssid, pass).expect("a tag")
 }
 
+/// A second owned PMKSA equal to `p`: the type is neither Copy nor Clone.
+pub fn twin(p: &Pmksa) -> Pmksa {
+    Pmksa { bssid: p.bssid, pmk: p.pmk, pmkid: p.pmkid }
+}
+
 pub fn sa(n: u8) -> Pmksa {
     Pmksa { bssid: [2, 0, 0, 0, 0, n], pmk: [n; 32], pmkid: [n ^ 0x55; 16] }
 }

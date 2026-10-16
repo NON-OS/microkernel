@@ -19,6 +19,7 @@ mod entropy_tests;
 mod gate_link_tests;
 mod gate_tests;
 mod gate_trip_tests;
+mod key_tests;
 mod leak;
 mod msg3_tests;
 mod port_tests;
