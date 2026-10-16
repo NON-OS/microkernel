@@ -30,6 +30,7 @@ fn requests_are_laid_out_little_endian() {
     );
     assert_eq!(att::find_information(0x0009, 0x000a), [0x04, 0x09, 0x00, 0x0a, 0x00]);
     assert_eq!(att::read(0x0012), [0x0a, 0x12, 0x00]);
+    assert_eq!(att::read_blob(0x0012, 0x0116), [0x0c, 0x12, 0x00, 0x16, 0x01]);
     assert_eq!(att::write(0x0009, &[1, 0], false), [0x12, 0x09, 0x00, 1, 0]);
     assert_eq!(att::write(0x0006, &[0], true), [0x52, 0x06, 0x00, 0]);
     assert_eq!(att::error_rsp(0x0a, 0, 0x06), [0x01, 0x0a, 0x00, 0x00, 0x06]);
@@ -62,4 +63,5 @@ fn uuids_and_which_opcodes_are_requests() {
     assert_eq!(uuid16(&[1, 2, 3]), None);
     assert!(is_request(0x0a) && is_request(0x02) && is_request(0x20));
     assert!(!is_request(0x52) && !is_request(0x1b) && !is_request(0x13) && !is_request(0x01));
+    assert!(is_request(0x0c) && !is_request(0x0d), "Read Blob is a request, its response not");
 }

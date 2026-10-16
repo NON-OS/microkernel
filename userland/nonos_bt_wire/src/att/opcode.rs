@@ -29,6 +29,8 @@ pub const READ_BY_TYPE_REQ: u8 = 0x08;
 pub const READ_BY_TYPE_RSP: u8 = 0x09;
 pub const READ_REQ: u8 = 0x0a;
 pub const READ_RSP: u8 = 0x0b;
+pub const READ_BLOB_REQ: u8 = 0x0c;
+pub const READ_BLOB_RSP: u8 = 0x0d;
 pub const READ_BY_GROUP_TYPE_REQ: u8 = 0x10;
 pub const READ_BY_GROUP_TYPE_RSP: u8 = 0x11;
 pub const WRITE_REQ: u8 = 0x12;
@@ -45,7 +47,7 @@ pub const COMMAND_FLAG: u8 = 0x40;
 /// nor one of the responses, notifications, indications or confirmations.
 pub fn is_request(opcode: u8) -> bool {
     let answers = [ERROR_RSP, EXCHANGE_MTU_RSP, FIND_INFORMATION_RSP, FIND_BY_TYPE_VALUE_RSP];
-    let more = [READ_BY_TYPE_RSP, READ_RSP, READ_BY_GROUP_TYPE_RSP, WRITE_RSP];
+    let more = [READ_BY_TYPE_RSP, READ_RSP, READ_BLOB_RSP, READ_BY_GROUP_TYPE_RSP, WRITE_RSP];
     let pushes = [HANDLE_VALUE_NTF, HANDLE_VALUE_IND, HANDLE_VALUE_CFM];
     opcode & COMMAND_FLAG == 0
         && !answers.contains(&opcode)

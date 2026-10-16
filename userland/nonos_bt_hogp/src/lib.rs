@@ -16,13 +16,14 @@
 
 //! HID over GATT (the HID over GATT Profile, HOGP 1.0, and the HID Service,
 //! HIDS 1.0) on the Attribute Protocol and GATT of the Bluetooth Core
-//! Specification 5.4, Vol 3, Parts F and G. This host is a Boot Host: it
-//! puts the HID service in Boot Protocol Mode and reads the boot keyboard
-//! and boot mouse reports, whose layout the USB HID specification fixes
-//! (HID 1.11, Appendix B). No report map is parsed, so a peripheral cannot
-//! steer the host with a crafted one. Once the reports are on, it reads
-//! the device's Battery Levels too (BAS 1.0), without ever holding up or
-//! ending HID for them.
+//! Specification 5.4, Vol 3, Parts F and G. This host reads the boot
+//! keyboard and boot mouse reports, whose layout the USB HID specification
+//! fixes (HID 1.11, Appendix B), and takes a keyboard to report mode only
+//! when its Report Map parses within fixed bounds and lays out its keys.
+//! Anything less keeps boot mode, which needs no map, so a crafted map can
+//! cost a peripheral its extra keys but never its typing. Once the reports
+//! are on, it reads the device's Battery Levels too (BAS 1.0), without
+//! ever holding up or ending HID for them.
 //!
 //! The ATT bearer must already be encrypted: the HID service's
 //! characteristics need it (HOGP 1.0, 4.1), and a peripheral that answers
