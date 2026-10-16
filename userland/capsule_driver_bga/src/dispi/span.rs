@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A mode's pixels within the framebuffer mapping the broker made.
+//! A mode's pixels within a mapping: the framebuffer the broker made, or
+//! the surface the driver maps for the compositor to draw in.
 //!
-//! The mapping is as long as the adapter's BAR0, which is device-reported:
-//! a std-VGA with 1 or 2 MiB of video memory (QEMU `vgamem_mb`) has a BAR0
-//! shorter than a 1024x768x32 mode. A `Span` exists only for a mode that
-//! fits, so every pixel written through one lies inside the mapping.
+//! The framebuffer mapping is as long as the adapter's BAR0, which is
+//! device-reported: a std-VGA with 1 or 2 MiB of video memory (QEMU
+//! `vgamem_mb`) has a BAR0 shorter than a 1024x768x32 mode. A `Span` exists
+//! only for a mode that fits, so every pixel reached through one lies inside
+//! the mapping.
 
 use crate::constants::BYTES_PER_PIXEL;
 use crate::error::{BgaError, BgaResult};
