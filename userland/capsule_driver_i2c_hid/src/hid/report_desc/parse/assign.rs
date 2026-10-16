@@ -38,7 +38,7 @@ pub(super) fn assign(
     bit_size: u32,
     logical_max: i32,
 ) {
-    let field = Field { bit_offset, bit_size, logical_max };
+    let Some(field) = Field::bounded(bit_offset, bit_size, logical_max) else { return };
     match (page, usage) {
         (USAGE_PAGE_GENERIC_DESKTOP, USAGE_X) if !layout.x.present() => {
             layout.x = field;
