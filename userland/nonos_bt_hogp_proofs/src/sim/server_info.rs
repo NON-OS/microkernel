@@ -17,7 +17,7 @@
 //! Find Information (Vol 3, Part F, 3.4.3.1): handles and types, all of
 //! one format, as many as fit.
 
-use super::server::{Peripheral, MTU};
+use super::server::Peripheral;
 use nonos_bt_wire::att::{error::*, opcode::*};
 
 impl Peripheral {
@@ -28,7 +28,7 @@ impl Peripheral {
             self.db.attrs.iter().filter(|a| a.handle >= start && (self.wide || a.handle <= end))
         {
             let f = if a.kind.len() == 2 { 1 } else { 2 };
-            if (format != 0 && f != format) || out.len() + 2 + a.kind.len() > MTU {
+            if (format != 0 && f != format) || out.len() + 2 + a.kind.len() > self.mtu {
                 break;
             }
             format = f;
@@ -56,6 +56,6 @@ impl Peripheral {
             return Err((handle, code));
         }
         let rest = a.value.get(at..).ok_or((handle, INVALID_OFFSET))?;
-        Ok([&[op][..], &rest[..rest.len().min(MTU - 1)]].concat())
+        Ok([&[op][..], &rest[..rest.len().min(self.mtu - 1)]].concat())
     }
 }
