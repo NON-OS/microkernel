@@ -45,3 +45,15 @@ fn a_packet_of_part_frames_keeps_its_whole_ones_and_stays_in_step() {
     r.put_packet(&[1, 2, 3]);
     assert_eq!(r.take(100), (3, vec![]));
 }
+
+#[test]
+fn a_packet_past_its_share_keeps_only_the_share() {
+    // Four 4-byte frames a packet, and the one a source may run ahead.
+    let mut r = Ring::new(4).sharing(20);
+    r.put_packet(&[7; 20]);
+    assert_eq!(r.take(usize::MAX), (0, vec![7; 20]), "the share and its frame");
+    r.put_packet(&[9; 100]);
+    assert_eq!(r.take(usize::MAX), (80, vec![9; 20]), "the rest never was");
+    r.put_packet(&[5; 22]);
+    assert_eq!(r.take(usize::MAX), (2, vec![5; 20]), "a partial frame past it too");
+}
