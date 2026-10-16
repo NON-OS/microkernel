@@ -4109,7 +4109,7 @@
    "userland/capsule_driver_rtl8821ce/src/sec.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/request.rs",
-   "userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/result",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
    "userland/nonos_wifi_core",
