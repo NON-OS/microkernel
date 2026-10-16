@@ -17,6 +17,8 @@ request protocol (`../compositor/src/state/`, `sw_blitter/`, `protocol/`).
 | `backoff_tests` | on GOP, one display name asked a tick, 500 ms apart, the gap doubling each fruitless round up to 30 s (`display/backoff.rs`) |
 | `poll_tests` | a wire driver's poll: a new pid re-primes, a new serial or a stale FLUSH asks SURFACE again, LOST repaints, nothing else acts (`display/poll_rule.rs`) |
 | `return_tests`, `return_poll_tests` | back to a display whose device came back only when it ranks above the one driven and its driver is announced under another pid, the better-ranked display left is kept, and after any poll nothing kept ranks at or below the display driven (`display/return_rule.rs`) |
+| `heal_tests` | an idle desktop composes nothing; a layer whose surface attaches late is drawn whole, by the idle heal or by any other frame (`state/visible.rs`, `state/visible_drop.rs`) |
+| `band_session_tests` | through capturers, screenshots, the trusted band held and let go and damage anywhere, the band on screen always equals one drawn whole for what it shows; without the rule a change under part damage is left mixed (`frame_pacer/band_rule.rs`) |
 | `head_tests` | a mirrored output's poll: a new serial or a stale FLUSH asks SURFACE again, LOST repaints, silence waits; up to three heads past output 0 (`display/head_rule.rs`) |
 | `mirror_tests` | the screen fitted whole and centred onto another output, nearest pixel, the bars and everything outside the damage untouched (`sw_blitter/resample.rs`) |
 | `hint_tests` | NCMP 0x0009's body, and only a service in the kernel's HINT_SOURCES (empty today) heard (`display/hint_rule.rs`) |

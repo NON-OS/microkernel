@@ -16,10 +16,12 @@
 
 //! The trusted band, and what a screenshot holds.
 
+pub(crate) mod band_rig;
+mod band_session_tests;
 mod screenshot_tests;
 mod trusted_capture_tests;
 pub(crate) mod trusted_desk;
-pub(crate) mod trusted_mem;
 mod trusted_mark_tests;
+pub(crate) mod trusted_mem;
 mod trusted_notice_tests;
 mod trusted_tests;
