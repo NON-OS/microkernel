@@ -31,6 +31,10 @@ are syscalls.
 - `saved/tests.rs`: slot replacement and eviction, a sealed record opening only under its key,
   and decode refusing lengths no slot was written with
   (`a_sealed_record_opens_under_its_key_only`).
+- `screens_tests/keep_tests.rs` and `replay_tests.rs`: a change on the displays' rows is kept
+  under the approved field ids, and the shell's replay (`capsule_desktop_shell/src/state/
+  display_keep.rs`, `display_told.rs`) sends back the very bytes Settings sent live, once per
+  change in the store and again for a new compositor, never a value out of range.
 
 ## Running
 
