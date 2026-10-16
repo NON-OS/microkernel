@@ -25,13 +25,17 @@ use crate::display::Bga;
 
 const SERVICE_INBOX: u64 = 0;
 
-pub fn run(server: &mut Server<Bga, Pool>) -> ! {
+pub fn run(server: &mut Server<Bga, Pool>, device_id: u64) -> ! {
     // Requests are at most 256 bytes; replies the header, status and 252.
     let (mut rx, mut tx) = ([0u8; 256], [0u8; 280]);
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
-        if !recv_ready(n) || sender == 0 {
+        if !recv_ready(n) {
+            continue;
+        }
+        if sender == 0 {
+            crate::gone::from_kernel(&rx[..n as usize], device_id);
             continue;
         }
         let len = server.handle(sender, &rx[..n as usize], &mut tx);
