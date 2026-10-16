@@ -16,18 +16,12 @@
 //! plan/26's log cap per chain: 20 years of blocks from where a read starts
 //! are paged, one more is EPROTO, and a head two hosts dispute is refused.
 
-use nonos_eth_rpc::{block_pages, LOG_PAGE_BLOCKS};
 use nonos_nox_config::Chain;
-use nonos_settle_proto::SERVICE_MS;
 use nonos_settle_proto::{blocks_in, confirmed_head, log_range, ENOENT, EPROTO, HEAD_SKEW_MS};
+use nonos_settle_proto::{log_pages, SERVICE_MS};
 
 const CHAINS: [Chain; 2] = [Chain::Mainnet, Chain::Sepolia];
 const DEPLOY: u64 = 7_000_000;
-
-/// settle's chain/pages.rs: the range judged by log_range, then paged.
-fn log_pages(chain: u64, from: u64, to: u64) -> Result<impl Iterator<Item = (u64, u64)>, i32> {
-    log_range(chain, from, to).map(|(from, to)| block_pages(from, to, LOG_PAGE_BLOCKS))
-}
 
 #[test]
 fn the_cap_is_twenty_years_of_each_chains_blocks() {
