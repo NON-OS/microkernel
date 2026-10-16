@@ -23,8 +23,7 @@ pub use super::acpi_i2c::register_acpi_i2c;
 // pub use super::census::render_and_hold as device_census; // bring-up diagnostic, silenced
 pub use super::claim::{
     claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
-    quiesce_held as quiesce_held_device, release as release_device,
-    release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
+    release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use super::class::{classify_pci, Class};
 pub use super::device::{
@@ -32,9 +31,8 @@ pub use super::device::{
 };
 pub use super::dma::{
     map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
-    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
-    wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant, DmaMapError, DmaMapRequest,
-    DmaMapResult,
+    unmap_grant as dma_unmap_grant, wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant,
+    DmaMapError, DmaMapRequest, DmaMapResult,
 };
 pub use super::grant::{GrantError, MmioGrant};
 pub use super::irq::{
@@ -44,8 +42,7 @@ pub use super::irq::{
     IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqPollResult,
 };
 pub use super::mmio::{
-    map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
-    MmioMapRequest, MmioMapResult,
+    map_for_caller, release_all_for_pid, unmap_grant, MmioMapError, MmioMapRequest, MmioMapResult,
 };
 pub use super::pci::{
     read as pci_config_read, write as pci_config_write, PciReadError, PciReadRequest,
