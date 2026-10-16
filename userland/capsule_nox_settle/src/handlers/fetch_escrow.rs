@@ -67,7 +67,8 @@ pub fn escrow_page(
     }
     let Some(page) = Page::of(&e.bytes, offset) else { return Some(Err(EINVAL)) };
     e.at_ms = now;
-    if offset as usize + page.bytes.len() == e.bytes.len() {
+    let end = usize::try_from(offset).ok().and_then(|o| o.checked_add(page.bytes.len()));
+    if end == Some(e.bytes.len()) {
         s.escrow = None;
     }
     Some(Ok(page.encode()))

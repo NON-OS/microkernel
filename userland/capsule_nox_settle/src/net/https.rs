@@ -42,7 +42,8 @@ pub(super) fn https(host: &str, req: &[u8], limit: usize, ms: u64) -> Result<Vec
     }
     let stream = RouteStream::connect(route, host, 443).map_err(|_| EIO)?;
     let mut io = RouteIo::new(stream, route.patience_ms(), ms);
-    let plain = exchange(&mut io, host, req, rtc_now(), limit + HEAD_MAX).map_err(|e| match e {
+    let max = limit.saturating_add(HEAD_MAX);
+    let plain = exchange(&mut io, host, req, rtc_now(), max).map_err(|e| match e {
         SessionError::TooLarge => EFBIG,
         SessionError::Certificate => EPROTO,
         _ => EIO,
@@ -61,7 +62,7 @@ pub fn post(host: &str, body: &[u8], limit: usize) -> Result<Vec<u8>, i32> {
 
 /// A GET of `path` on `host`; the body, at most `limit` bytes.
 pub fn get(host: &str, path: &str, limit: usize) -> Result<Vec<u8>, i32> {
-    let mut req = Vec::with_capacity(96 + host.len() + path.len());
+    let mut req = Vec::with_capacity(host.len().saturating_add(path.len()).saturating_add(96));
     for part in ["GET ", path, " HTTP/1.1\r\nHost: ", host] {
         req.extend_from_slice(part.as_bytes());
     }

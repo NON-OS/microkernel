@@ -21,9 +21,11 @@
 
 use alloc::vec::Vec;
 
-use nonos_eth_rpc::{block_pages, parse_logs, request_logs, LOG_PAGE_BLOCKS};
+use nonos_eth_rpc::{parse_logs, request_logs};
 use nonos_settle_proto::{withdrawn, Listed, EPROTO, PUBLISHED_TOPIC, WITHDRAWN_TOPIC};
 
+use super::cursor::MAX_ROWS;
+use crate::chain::log_pages;
 use crate::net::Rpc;
 
 #[derive(Default)]
@@ -34,7 +36,7 @@ pub(crate) struct Found {
 
 impl Found {
     pub fn rows(&self) -> usize {
-        self.published.len() + self.withdrawn.len()
+        self.published.len().saturating_add(self.withdrawn.len())
     }
 }
 
@@ -47,7 +49,7 @@ pub(crate) fn scan(
 ) -> Result<Found, i32> {
     let mut out = Found::default();
     let keep = |listing: &[u8; 32]| only.is_none_or(|o| o == listing);
-    for (a, b) in block_pages(from, to, LOG_PAGE_BLOCKS) {
+    for (a, b) in log_pages(from, to)? {
         for topic in [PUBLISHED_TOPIC, WITHDRAWN_TOPIC] {
             let resp = rpc.call(chain_id, &request_logs(registry, &topic, a, b, 1))?;
             for l in parse_logs(&resp).ok_or(EPROTO)?.iter().filter(|l| l.address == *registry) {
@@ -59,6 +61,10 @@ pub(crate) fn scan(
                     out.withdrawn.push(w);
                 }
             }
+        }
+        /* Past MAX_ROWS the cursor gives its rows up and rescans for one listing. */
+        if only.is_none() && out.rows() > MAX_ROWS {
+            break;
         }
     }
     Ok(out)

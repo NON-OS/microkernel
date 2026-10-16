@@ -21,7 +21,7 @@ use nonos_nox_config::Contract;
 use nonos_settle_proto::ENOENT;
 
 use super::flags::flags;
-use super::live::{place, Live, Mark};
+use super::live::{Live, Mark};
 use crate::net::Rpc;
 
 impl Live {
@@ -31,8 +31,7 @@ impl Live {
         if c == Contract::NoxToken || flags(rpc, chain_id, &at)? {
             return Ok(at);
         }
-        let (i, j) = place(chain_id, c)?;
-        self.marks[i][j] = Mark::Bad;
+        *self.mark(chain_id, c)? = Mark::Bad;
         Err(ENOENT)
     }
 }
