@@ -17,6 +17,8 @@ pub mod modem;
 #[cfg(test)]
 mod function_tests;
 #[cfg(test)]
+mod hostile_tests;
+#[cfg(test)]
 mod line_tests;
 #[cfg(test)]
 mod notice_tests;
