@@ -38,7 +38,7 @@ shipping kernel or capsule source through `#[path]` and tests it on the build
 machine. `nix flake check` runs each one that has a `Cargo.lock` as
 `proofs-<name>`: the tests in release with overflow checks on, then clippy with
 warnings denied, except for the crates still listed as not lint clean. Explained
-in [Tests and proofs](../contributing/tests-and-proofs.md#proof-crates). Code:
+in [Tests and proofs](../contributing/tests-and-proofs-proof-crates.md#proof-crates). Code:
 `tools/nix/checks.nix`.
 
 ## Publisher
