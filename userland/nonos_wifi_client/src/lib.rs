@@ -32,7 +32,7 @@ pub use join_wire::{JoinFlags, LastJoin, LinkEnded, AKM_SAE};
 pub use network::{ScanNetwork, SSID_MAX};
 pub use saved::{
     forget, forget_all, keeps_state, load, pin_wpa3, remember, remember_with, saved_flags,
-    sealing_ready, SavedError, SavedList, PASS_MAX, SLOTS,
+    sealing_ready, Dropped, SavedError, SavedList, PASS_MAX, SLOTS,
 };
 pub use wipe::wipe;
 pub use wire::parse_scan;
