@@ -18,6 +18,7 @@
 //! ID mapping count and where the mappings start within the node) and
 //! what its type carries.
 
+pub use super::kind::Kind;
 use super::mapping::Mapping;
 use alloc::vec::Vec;
 
@@ -26,37 +27,10 @@ pub const HEADER: usize = 16;
 pub const ITS_GROUP: u8 = 0;
 pub const NAMED_COMPONENT: u8 = 1;
 pub const ROOT_COMPLEX: u8 = 2;
+pub const SMMU_V1_V2: u8 = 3;
 pub const SMMU_V3: u8 = 4;
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Kind {
-    ItsGroup {
-        its_ids: Vec<u32>,
-    },
-    NamedComponent {
-        flags: u32,
-        cca: u32,
-        address_limit: u8,
-        name: Vec<u8>,
-    },
-    RootComplex {
-        cca: u32,
-        ats: u32,
-        segment: u32,
-        address_limit: Option<u8>,
-    },
-    Smmuv3 {
-        base: u64,
-        flags: u32,
-        model: u32,
-        /// Event, PRI, global error and sync GSIVs, 0 where not wired.
-        gsivs: [u32; 4],
-        proximity: Option<u32>,
-        id_mapping_index: Option<u32>,
-    },
-    /// SMMUv1/v2, PMCG, RMR and later types: carried by number, unread.
-    Other(u8),
-}
+/// Reserved memory ranges (IORT revision E.c and later, recalled).
+pub const RMR: u8 = 6;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Node {

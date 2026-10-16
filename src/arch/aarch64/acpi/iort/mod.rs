@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IORT (Arm DEN0049, the IO Remapping Table): the ITS groups, SMMUv3s,
-//! root complexes and named components, and how each one's IDs map onto
-//! the next node's until they reach an ITS.
+//! IORT (Arm DEN0049, the IO Remapping Table): the ITS groups, SMMUv1/v2s
+//! and SMMUv3s, root complexes, named components and reserved memory
+//! ranges, and how each one's IDs map onto the next node's until they
+//! reach an ITS.
 
+mod kind;
 mod mapping;
 mod node;
 mod node_data;
+mod node_smmu;
+mod rmr;
 mod translate;
 mod walk;
 
 pub use mapping::Mapping;
+pub use kind::Irq;
 pub use node::{Kind, Node};
+pub use rmr::{reserved, Reserved};
 pub use translate::translate;
 pub use walk::iort;
