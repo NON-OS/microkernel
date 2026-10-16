@@ -19,6 +19,7 @@ pub mod deliver;
 pub mod dispatch;
 pub mod key_target;
 mod keyboard;
+mod keyboard_target;
 mod pointer;
 pub mod shell_keys;
 
