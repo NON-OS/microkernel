@@ -23,7 +23,7 @@ use crate::state::Context;
 /// The menu's Delete: put the question up for the item at `index`.
 pub fn ask_delete(ctx: &mut Context, index: usize) {
     if let Some(item) = ctx.desktop_items.get(index) {
-        ctx.pending_delete.ask(&item.name, item.is_dir);
+        ctx.pending.pending_delete.ask(&item.name, item.is_dir);
     }
 }
 

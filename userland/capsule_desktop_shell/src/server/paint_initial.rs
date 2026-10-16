@@ -24,7 +24,7 @@ pub fn paint_initial(ctx: &mut Context) {
     for _ in 0..8 {
         paint_chrome(ctx);
         let rid = ctx.issue_request_id();
-        if push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height).is_ok() {
+        if push_damage_commit(ctx.ports.compositor_port, rid, 0, 0, ctx.width, ctx.height).is_ok() {
             break;
         }
         mk_yield();

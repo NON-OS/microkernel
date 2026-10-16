@@ -27,7 +27,7 @@ pub(super) const ITEM_ITEMS: [&[u8]; 3] = [b"Open", b"Rename", b"Delete"];
 
 /// The rows the open menu should show, chosen by whether it targets an item.
 pub(super) fn items(ctx: &Context) -> &'static [&'static [u8]] {
-    if ctx.menu_target.is_some() {
+    if ctx.desk_ui.menu_target.is_some() {
         &ITEM_ITEMS
     } else {
         &EMPTY_ITEMS
