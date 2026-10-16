@@ -26,3 +26,4 @@ mod dp_lane_tests;
 mod dp_link_check_tests;
 mod dp_train_fail_tests;
 mod dp_train_tests;
+pub mod edid_read;

@@ -18,11 +18,11 @@
 
 use crate::dp::aux::Aux;
 use crate::dp::caps::Caps;
-use crate::dp::i2c::read_edid;
 use crate::engine::aux_ch::AuxCh;
 use crate::engine::aux_regs::{aux_data, Ddi};
 use crate::model::sink::sink;
 use crate::model::{Gen9, Ticks};
+use crate::tests::dp::edid_read::read_edid;
 
 pub(super) fn with_sink(edid: Vec<u8>) -> Gen9 {
     let mut m = Gen9::new(1);

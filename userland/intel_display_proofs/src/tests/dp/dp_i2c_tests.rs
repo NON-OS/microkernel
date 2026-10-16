@@ -17,9 +17,9 @@
 //! The EDID read over I2C over AUX.
 
 use crate::dp::aux::AuxError;
-use crate::dp::i2c::read_edid;
 use crate::model::sink::sink;
 use crate::model::sink_aux::AuxEnd;
+use crate::tests::dp::edid_read::read_edid;
 
 fn edid() -> Vec<u8> {
     (0..256u32).map(|i| (i * 7) as u8).collect()
