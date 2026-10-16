@@ -9,3 +9,6 @@ license = "AGPL-3.0"
 crate-type = ["rlib"]
 
 [dependencies]
+
+[package.metadata.nonos]
+test-lane = true
