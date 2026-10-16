@@ -20,6 +20,7 @@
 
 mod card;
 mod checks;
+mod clear;
 mod deauth;
 mod group;
 mod pmf;

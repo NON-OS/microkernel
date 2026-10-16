@@ -41,6 +41,10 @@ impl RxBuffers for RxBuf {
     fn device_addr(&self) -> u64 {
         self.dev
     }
+    fn clear(&mut self, offset: usize, len: usize) {
+        let end = offset.saturating_add(len).min(self.mem.len());
+        self.mem[offset.min(end)..end].fill(0);
+    }
 }
 
 // A clean data RX descriptor: length only, no driver info, no shift, no errors,

@@ -54,6 +54,8 @@ mod staging_tests;
 #[cfg(test)]
 mod tables_tests;
 #[cfg(test)]
+mod tx_clear_tests;
+#[cfg(test)]
 mod tx_tests;
 #[cfg(test)]
 mod watch_tests;
