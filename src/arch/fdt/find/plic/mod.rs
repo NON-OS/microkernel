@@ -18,5 +18,6 @@ mod compatible;
 mod find;
 mod info;
 
+pub use compatible::matches;
 pub use find::find;
 pub use info::PlicInfo;

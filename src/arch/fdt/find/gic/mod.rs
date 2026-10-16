@@ -19,6 +19,7 @@ mod find;
 mod info;
 mod version;
 
+pub use compatible::classify;
 pub use find::find;
 pub use info::GicInfo;
 pub use version::GicVersion;
