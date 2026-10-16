@@ -65,6 +65,4 @@ and with no IOMMU with `NoIommu`, each with a serial line from `amd_vi` or
 Under the development opt-in the device then reaches all of memory, and the
 kernel counts it instead of hiding it. Each DMA grant made without a confining domain adds one to the count
 through `note_unconfined`, and its release takes one off
-(`src/memory/iommu/unconfined.rs:35-51`). The kernel's own virtio-rng entropy
-driver counts its buffers the same way, with `note_unconfined`
-(`src/drivers/virtio_rng/device/core.rs:44-45`).
+(`src/memory/iommu/unconfined.rs:35-51`).

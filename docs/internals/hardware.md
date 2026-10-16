@@ -16,14 +16,12 @@ These three modules are the kernel's device layer, and the division between them
 
 ## drivers
 
-`src/drivers/mod.rs` declares only `pci`, `security` and `virtio_rng`, and re-exports `init_pci` and `init_virtio_rng`. These are the **only** drivers in the kernel — the two the microkernel boot path needs (PCI enumeration and a virtio-rng entropy probe). Every other driver is a userland capsule under `src/hardware/*_capsule/`. The `security` submodule is driver-facing validators (DMA/MMIO/LBA/PCI bounds and rate limiting) used across the trusted paths.
+`src/drivers/mod.rs` declares only `pci` and `security`, and re-exports `init_pci` (`src/drivers/mod.rs:24-32`). These are the **only** driver modules in the kernel: PCI enumeration, which the microkernel boot path needs, and the validators. The kernel drives no RNG device; its entropy is the CPU's and the entropy capsule's. Every other driver is a userland capsule under `src/hardware/*_capsule/`. The `security` submodule is driver-facing validators (DMA/MMIO/LBA/PCI bounds and rate limiting) used across the trusted paths.
 
 | Item | Where | What it does |
 |---|---|---|
 | `init_pci` | `src/drivers/pci/manager/global.rs:30` | Initialize the kernel PCI manager. |
-| `init` (virtio-rng) | `src/drivers/virtio_rng/init.rs:24` | Bring up the virtio-rng entropy source. |
-| `get_random_bytes` | `src/drivers/virtio_rng/api.rs:25` | The entropy-consumer API. |
-| `validate_dma_buffer` | `src/drivers/security/dma.rs` (via `mod.rs:36`) | Bounds-check a DMA buffer. |
+| `validate_dma_buffer` | `src/drivers/security/dma.rs` (via `mod.rs:28-32`) | Bounds-check a DMA buffer. |
 | `struct RateLimiter` | `src/drivers/security/rate_limiter.rs:58` | Per-driver operation rate limiting. |
 
 ## Parts

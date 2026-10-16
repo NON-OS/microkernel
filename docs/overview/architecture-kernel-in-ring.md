@@ -17,8 +17,8 @@ boundary (`src/syscall/`), process creation and capsule spawn
 (`src/kernel_core/process_spawn/`) and init, which starts the capsules
 (`src/userspace/init/`). In this release it also keeps the TPM driver
 (`src/security/tpm/`) and the encrypted [data volume](glossary-claim-epoch.md#data-volume)
-(`src/fs/`). For its own boot it keeps PCI enumeration and a virtio-rng entropy
-probe (`init_pci` and `init_virtio_rng` in `src/drivers/mod.rs:17-35`).
+(`src/fs/`). For its own boot it keeps PCI enumeration (`init_pci` in
+`src/drivers/mod.rs:17-32`), and it drives no RNG device.
 
 Every syscall number the kernel knows goes through `dispatch`, which resolves
 the caller's capability for that call and refuses with EPERM when it does not
