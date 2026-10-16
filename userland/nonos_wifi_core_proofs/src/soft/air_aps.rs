@@ -47,13 +47,16 @@ impl SimAir {
             let from_second = second.is_some_and(|b| f.get(10..16) == Some(&b[..]));
             return Some((f, self.rssi[usize::from(from_second)]));
         }
+        let sta = crate::soft::air::STA;
         if on(&self.ap, self.tuned) && now >= self.beacon_at {
             self.beacon_at = now + 100;
+            self.inbox.extend(self.ap.chat(sta));
             return Some((self.ap.beacon(), self.rssi[0]));
         }
         let tuned = self.tuned;
-        let ap2 = self.ap2.as_ref().filter(|a| on(a, tuned) && now >= self.beacon_at2)?;
+        let ap2 = self.ap2.as_mut().filter(|a| on(a, tuned) && now >= self.beacon_at2)?;
         let b = ap2.beacon();
+        self.inbox.extend(ap2.chat(sta));
         self.beacon_at2 = now + 100;
         Some((b, self.rssi[1]))
     }

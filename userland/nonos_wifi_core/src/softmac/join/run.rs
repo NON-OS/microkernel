@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One whole join: hunt the network, tune to it, point the receive filter at
-//! it, and run the state machine under the person's policy. A network that
-//! offers WPA3 and WPA2 side by side is joined with WPA3 first; when that
-//! does not finish for any reason but a wrong password, it is joined again
-//! with WPA2, which the network offers to every WPA2 station. Never for a
-//! network saved as WPA3.
+//! One whole join: hunt the network, tune and filter to it, and run the
+//! state machine under the person's policy. A network offering WPA3 and
+//! WPA2 is joined with WPA3 first, then, unless the password was wrong or
+//! the network is saved as WPA3, with the WPA2 it offers every station.
 
-use super::attempt::{attempt, retry_with_psk, Extra};
+use super::attempt::{attempt, retry_with_psk};
 use super::cached::{first_attempt, keep};
+use super::extra::Extra;
 use super::hunt::hunt;
+use super::joining::Joining;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
 use crate::pmksa::PmksaCache;
@@ -55,18 +55,18 @@ pub fn join<R: Radio, E: Env>(
     let (found, beacons) = hunt(r, env, domain, req.ssid, req.hidden, hints);
     let found = found.ok_or(JoinError::NotFound(beacons))?;
     r.tune(found.band, found.channel);
-    let mut bssid = [0u8; 6];
-    bssid.copy_from_slice(&found.beacon[16..22]);
+    let bssid: [u8; 6] = found.beacon[16..22].try_into().unwrap_or([0; 6]);
     r.set_bss(Some(bssid));
-    let first = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
     let ciphers = r.ciphers();
-    let policy = first.with_ciphers(ciphers);
-    let mut report = first_attempt(r, env, domain, req, policy, &found.beacon, bssid, cache, None)?;
+    let first = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
+    let (policy, psk) = (first.with_ciphers(ciphers), JoinPolicy::PSK_ONLY.with_ciphers(ciphers));
+    let (tag, beacon) = (cache.tag(req.ssid, req.pass), &found.beacon);
+    let j = Joining { tag: tag.as_ref(), ..Joining::default() };
+    let mut report = first_attempt(r, env, domain, req, policy, beacon, bssid, cache, &j)?;
     if retry_with_psk(&report, req.wpa3_only) {
-        let psk = JoinPolicy::PSK_ONLY.with_ciphers(ciphers);
-        report = attempt(r, env, domain, req, psk, &found.beacon, Extra::default())?;
+        report = attempt(r, env, domain, req, psk, beacon, Extra::default())?;
     }
-    keep(cache, env, req, &report);
+    keep(cache, env, r.mac(), req, tag.as_ref(), &report);
     if !matches!(report.outcome, Outcome::Joined { .. }) {
         r.associated(None);
         r.set_bss(None);

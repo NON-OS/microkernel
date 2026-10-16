@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a session keeps to roam: the passphrase, the person's policy, the
-//! security its join selected, how well its AP is heard, and when it may
-//! next look for a better one.
+//! What a session keeps to roam: the least secret its AKM needs, the tag
+//! naming its passphrase in the PMKSA cache, the security it runs, how well
+//! its AP is heard, and when it may next look for a better one.
 
+use super::kit_join::roam_policy;
 use super::secret::Secret;
 use super::signal::Signal;
+use crate::pmksa::Tag;
 use crate::rsn::{Ciphers, JoinPolicy, Selection};
-use crate::softmac::join::ConnectRequest;
 use crate::wpa::akm::Akm;
 
 /// After a look, or a move, none starts again for this long: an AP heard
@@ -30,39 +31,22 @@ pub const COOLDOWN_MS: u64 = 30_000;
 
 pub struct Kit {
     pub secret: Secret,
+    pub tag: Option<Tag>,
     pub wpa3_only: bool,
     pub policy: JoinPolicy,
     pub runs: Selection,
+    /// The group management cipher suite the session's AP named.
+    pub group_mgmt: Option<u32>,
     pub signal: Signal,
     pub next_look_ms: u64,
 }
 
 impl Kit {
-    /// The kit for a session the join selected `runs` for. A roam keeps
-    /// the AKM the session runs: SAE only after SAE, PSK only after PSK,
-    /// so a transition network's two halves are never mixed in one session.
-    pub fn new(
-        pass: &[u8],
-        wpa3_only: bool,
-        runs: Selection,
-        ciphers: Ciphers,
-        now_ms: u64,
-    ) -> Option<Self> {
-        let policy =
-            if runs.akm == Akm::Sae { JoinPolicy::WPA3_ONLY } else { JoinPolicy::PSK_ONLY };
-        let (secret, policy, signal) =
-            (Secret::new(pass)?, policy.with_ciphers(ciphers), Signal::default());
-        Some(Self { secret, wpa3_only, policy, runs, signal, next_look_ms: now_ms })
-    }
-
-    /// The kit for the group a connect request's join opened.
-    pub fn for_join(
-        req: &ConnectRequest,
-        runs: Option<Selection>,
-        ciphers: Ciphers,
-        now: u64,
-    ) -> Option<Self> {
-        Self::new(req.pass, req.wpa3_only, runs?, ciphers, now)
+    pub fn new(secret: Secret, runs: Selection, group_mgmt: Option<u32>, ciphers: Ciphers) -> Self {
+        let policy = roam_policy(&runs, ciphers);
+        let (tag, wpa3_only) = (None, runs.akm == Akm::Sae);
+        let (signal, next_look_ms) = (Signal::default(), 0);
+        Self { secret, tag, wpa3_only, policy, runs, group_mgmt, signal, next_look_ms }
     }
 
     pub fn due(&self, now_ms: u64) -> bool {

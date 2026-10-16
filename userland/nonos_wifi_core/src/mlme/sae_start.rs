@@ -21,9 +21,8 @@ use super::failure::MlmeFailure;
 use super::state::{Mlme, MlmeOutput, MlmeState};
 use crate::dot11::auth::auth_frame;
 use crate::sae::frame::AUTH_ALG_SAE;
-use crate::sae::h2e::{derive_pt, pwe_from_pt};
-use crate::sae::hnp::derive_pwe;
 use crate::sae::SaeStation;
+use crate::vault::wipe;
 use crate::wpa::sha256::hmac_sha256_parts;
 
 /// rand and mask straight from the entropy; in the (2^-32) case that either
@@ -43,15 +42,12 @@ fn scalars(entropy: &[u8], attempt: u8) -> ([u8; 32], [u8; 32]) {
 
 impl Mlme {
     pub(super) fn start_sae(&mut self, h2e: bool) -> MlmeOutput {
-        let Some(entropy) = self.sae_entropy else {
+        // Each exchange's randomness is used once: taken, then wiped.
+        let Some(mut entropy) = self.sae_entropy.take() else {
             return self.fail(MlmeFailure::NoEntropy);
         };
-        let (pw, ssid) = (self.secret(), self.ssid());
-        let pwe = if h2e {
-            derive_pt(ssid, pw, None).and_then(|pt| pwe_from_pt(&pt, &self.our_mac, &self.bssid))
-        } else {
-            derive_pwe(pw, &entropy[64..64 + pw.len()], &self.our_mac, &self.bssid)
-        };
+        let pwe = self.pwe(h2e, &entropy);
+        self.forget_secret();
         let Some(pwe) = pwe else {
             return self.fail(MlmeFailure::BadPassphrase);
         };
@@ -63,6 +59,7 @@ impl Mlme {
                 break;
             }
         }
+        wipe(&mut entropy);
         let Some(sae) = sae else {
             return self.fail(MlmeFailure::NoEntropy);
         };

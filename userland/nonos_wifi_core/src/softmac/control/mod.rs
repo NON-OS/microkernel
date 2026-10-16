@@ -15,4 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod reply;
 pub mod result;
+pub mod roam_code;
 pub use reply::ConnectResult;
