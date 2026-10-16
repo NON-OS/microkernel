@@ -11,6 +11,8 @@ pub mod ccid;
 pub mod reader;
 
 #[cfg(test)]
+mod exchange_cut_tests;
+#[cfg(test)]
 mod exchange_halt_tests;
 #[cfg(test)]
 mod exchange_tests;

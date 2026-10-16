@@ -20,7 +20,7 @@
 //! pulled (icc 2) from one that refused.
 
 use crate::card::{ask, Fault};
-use crate::ccid::{GET_SLOT_STATUS, ICC_POWER_OFF, ICC_POWER_ON, XFR_BLOCK};
+use crate::ccid::{atr_fits, GET_SLOT_STATUS, ICC_POWER_OFF, ICC_POWER_ON, XFR_BLOCK};
 use crate::device::Dev;
 use crate::frame::{reply, Request};
 use crate::session::{close, open};
@@ -50,7 +50,10 @@ pub fn answer(d: &mut Dev, peer: u32, req: &Request, body: &[u8], tx: &mut [u8])
             close(d);
             return reply(tx, req, 0, &[]);
         }
-        (OP_POWER_ON, 1) => ask(d, ICC_POWER_ON, slot, &[]).inspect(|_| d.slots.power(slot, true)),
+        // Powered even with a bad ATR, so CLOSE powers it off again.
+        (OP_POWER_ON, 1) => ask(d, ICC_POWER_ON, slot, &[])
+            .inspect(|_| d.slots.power(slot, true))
+            .and_then(|(atr, icc)| atr_fits(&atr).then_some((atr, icc)).ok_or((E_IO, None))),
         (OP_POWER_OFF, 1) => {
             ask(d, ICC_POWER_OFF, slot, &[]).inspect(|_| d.slots.power(slot, false))
         }
