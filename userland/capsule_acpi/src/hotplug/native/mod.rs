@@ -42,6 +42,7 @@ pub mod times;
 mod walk;
 
 pub use find::find;
+pub use walk::{find_cap, read as config_read};
 pub use poll::tick;
 
 /// The hot-plug ports and when they are next read.

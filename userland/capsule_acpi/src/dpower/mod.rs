@@ -19,6 +19,7 @@
 
 mod find;
 mod hidden;
+mod keep;
 mod moves;
 mod ready;
 mod settle;
