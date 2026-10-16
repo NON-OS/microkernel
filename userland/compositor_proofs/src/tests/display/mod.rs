@@ -18,6 +18,8 @@
 
 mod arrange_tests;
 mod backoff_tests;
+mod brightness_output_tests;
+mod brightness_tests;
 mod cursor_plane_tests;
 mod cursor_rule_tests;
 mod first_frame_tests;

@@ -56,7 +56,7 @@ fn pointer(ctx: &Context) -> (u32, u32) {
 }
 
 /// The focused window's centre, or the pointer when no window has focus.
-fn focus_centre(ctx: &Context) -> (u32, u32) {
+pub fn focus_centre(ctx: &Context) -> (u32, u32) {
     let pid = ctx.focus.focused();
     let top = ctx.scene.layers().filter(|l| pid != 0 && l.owner_pid == pid).max_by_key(|l| l.z);
     top.map_or_else(|| pointer(ctx), |l| (l.x + l.width / 2, l.y + l.height / 2))
