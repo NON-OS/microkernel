@@ -29,7 +29,7 @@ use alloc::vec::Vec;
 
 const HEAD: usize = 22;
 /// Registers kept for one device.
-const MAX_REGISTERS: usize = 8;
+pub const MAX_REGISTERS: usize = 8;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Dbg2Device {

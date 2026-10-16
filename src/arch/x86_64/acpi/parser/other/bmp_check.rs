@@ -58,7 +58,8 @@ pub fn bmp(b: &[u8], whole: bool) -> Option<Bmp> {
         && (1..=MAX_SIDE).contains(&height)
         && pixels_at >= FILE_HEADER as u32 + info;
     let row = (u64::from(width as u32) * u64::from(bpp) / 8).div_ceil(4) * 4;
-    let end = u64::from(pixels_at) + row * u64::from(height);
+    // computed before `ok` is known, so a hostile width and height saturate
+    let end = u64::from(pixels_at).saturating_add(row.saturating_mul(u64::from(height)));
     let fits = end <= u64::from(file_size) && (!whole || b.len() as u64 >= u64::from(file_size));
     (ok && fits).then_some(Bmp {
         file_size,
