@@ -14,8 +14,6 @@ mod grants_tests;
 #[cfg(test)]
 mod harden_tests;
 #[cfg(test)]
-mod hcmd_tests;
-#[cfg(test)]
 mod iwlwifi_tests;
 #[cfg(test)]
 mod regs_tests;

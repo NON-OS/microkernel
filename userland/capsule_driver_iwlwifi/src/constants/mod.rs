@@ -25,7 +25,6 @@ mod pci;
 mod prph;
 mod rx_ring;
 
-pub use cmd_queue::*;
 pub use csr::*;
 pub use fh_load::*;
 pub use fw_api::*;

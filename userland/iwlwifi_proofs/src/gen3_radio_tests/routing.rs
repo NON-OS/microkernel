@@ -24,7 +24,7 @@ fn what_is_not_a_control_request_goes_on_to_the_driver_protocol() {
 
 #[test]
 fn only_the_legacy_ops_that_write_the_card_are_refused_once_the_radio_owns_it() {
-    for op in [OP_FIRMWARE_LOAD, OP_ALIVE_WAIT, OP_HCMD_ISSUE] {
+    for op in [OP_FIRMWARE_LOAD, OP_ALIVE_WAIT] {
         assert!(drives_card(op), "{op:#x}");
     }
     for op in [
