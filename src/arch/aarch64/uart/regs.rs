@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::aarch64::mmu::io;
 use core::ptr::{read_volatile, write_volatile};
 
 /// A 16550-style register file: register `n` sits at `base + (n << shift)`
@@ -28,7 +29,7 @@ pub(super) struct Regs {
 
 impl Regs {
     fn at(&self, reg: u64) -> u64 {
-        self.base + (reg << self.shift)
+        io(self.base) + (reg << self.shift)
     }
 
     pub(crate) fn read(&self, reg: u64) -> u32 {

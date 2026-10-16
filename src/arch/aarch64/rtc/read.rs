@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::base;
+use crate::arch::aarch64::mmu::io;
 
 /// `RTCDR`, the data register: seconds since the Unix epoch.
 const DR: u64 = 0x00;
@@ -28,6 +29,6 @@ pub fn unix_timestamp() -> Option<u64> {
     // SAFETY: `base` is the MMIO window the device tree published for the
     // PL031 and the boot map covered as Device memory. One volatile word read
     // of a register with no side effects.
-    let seconds = unsafe { core::ptr::read_volatile((base + DR) as *const u32) };
+    let seconds = unsafe { core::ptr::read_volatile((io(base) + DR) as *const u32) };
     Some(seconds as u64)
 }
