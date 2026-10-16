@@ -73,6 +73,11 @@ One request at a time, in slot 0. Every wait is on the uptime clock,
 bounded as `ufs/facts/bounds.rs` sets out with each bound's source. Every
 step that can fail logs one `driver.ufs:` line saying what the host or
 device answered.
+A response is taken only when its transaction type, unit, tag and (for a
+query) opcode and IDN match what was asked; the data region is zeroed
+before every read, so a device that answers GOOD without data hands back
+zeroes, not the last request's bytes; a unit whose block count times block
+size overflows 64 bits is refused.
 
 ## Privacy and persistence
 

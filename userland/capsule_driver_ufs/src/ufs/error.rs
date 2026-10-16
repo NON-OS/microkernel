@@ -41,6 +41,8 @@ pub enum UfsError {
     Dma32,
     /// A logical unit whose blocks are not 512 or 4096 bytes.
     BlockSize(u32),
+    /// A logical unit of more blocks than its bytes can count.
+    Capacity(u64),
 }
 
 /// DATA PROTECT and ILLEGAL REQUEST, the sense keys a caller can act on.

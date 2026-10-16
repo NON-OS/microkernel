@@ -19,6 +19,7 @@
 
 pub mod capacity;
 pub mod cdb;
+mod clear;
 pub mod codes;
 pub mod exec;
 pub mod inquiry;
