@@ -27,6 +27,10 @@ pub mod section;
 #[path = "settings_access.rs"]
 pub mod access;
 
+// The displays' rows on Appearance, the same way.
+#[path = "settings_screens.rs"]
+pub mod screens;
+
 // What the Security page says the TPM answered, and the Wi-Fi page's keys
 // and refusals: pure tables and mappings, compiled as the capsule has them.
 #[path = "../../capsule_settings/src/settings/state/machine_key.rs"]

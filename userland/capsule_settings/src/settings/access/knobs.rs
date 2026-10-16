@@ -65,6 +65,8 @@ pub fn step(page: &mut AccessPage, knob: Knob, delta: i32) -> bool {
             let i = MAG_STEPS.iter().position(|&m| m == k.magnify).unwrap_or(0);
             k.magnify = MAG_STEPS[step_in(i as u32, MAG_STEPS.len() as u32, delta) as usize];
         }
+        // The displays' rows are `screens`'.
+        Knob::Arrange | Knob::Screen | Knob::Scale => {}
     }
     *page != before
 }

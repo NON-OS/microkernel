@@ -41,5 +41,6 @@ pub fn value(page: &AccessPage, knob: Knob) -> &'static str {
             32 => "8x",
             _ => "Off",
         },
+        Knob::Arrange | Knob::Screen | Knob::Scale => "",
     }
 }
