@@ -4952,6 +4952,16 @@ else
 fi
 unset mirror_out
 
+# Every crate's tests run in a lane or are listed with an owner, and
+# tools/nix/test-lanes.json is what the manifests' markers say.
+if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
+    note ok "every crate's tests run in a lane or are listed (check_test_lanes)"
+else
+    tail -n 5 <<< "${lanes_out}" >&2
+    fail_with "check_test_lanes: a test runs in no lane and is not listed"
+fi
+unset lanes_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"
