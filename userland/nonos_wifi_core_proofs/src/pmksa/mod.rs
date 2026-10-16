@@ -18,5 +18,5 @@ mod cache_life_tests;
 mod cache_tests;
 mod join_tests;
 mod refuse_tests;
-mod sim;
+pub mod sim;
 mod station_tests;

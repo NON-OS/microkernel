@@ -21,7 +21,7 @@
 //! with WPA2, which the network offers to every WPA2 station. Never for a
 //! network saved as WPA3.
 
-use super::attempt::{attempt, retry_with_psk};
+use super::attempt::{attempt, retry_with_psk, Extra};
 use super::cached::{first_attempt, keep};
 use super::hunt::hunt;
 use super::report::{Outcome, Report};
@@ -61,10 +61,10 @@ pub fn join<R: Radio, E: Env>(
     let first = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
     let ciphers = r.ciphers();
     let policy = first.with_ciphers(ciphers);
-    let mut report = first_attempt(r, env, domain, req, policy, &found.beacon, bssid, cache)?;
+    let mut report = first_attempt(r, env, domain, req, policy, &found.beacon, bssid, cache, None)?;
     if retry_with_psk(&report, req.wpa3_only) {
         let psk = JoinPolicy::PSK_ONLY.with_ciphers(ciphers);
-        report = attempt(r, env, domain, req, psk, &found.beacon, None)?;
+        report = attempt(r, env, domain, req, psk, &found.beacon, Extra::default())?;
     }
     keep(cache, env, req, &report);
     if !matches!(report.outcome, Outcome::Joined { .. }) {

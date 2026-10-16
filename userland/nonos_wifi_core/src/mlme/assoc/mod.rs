@@ -16,13 +16,15 @@
 
 mod cap_ess_privacy;
 mod handshake;
+mod reassoc;
 mod request;
+mod response;
 use super::failure::MlmeFailure;
 use super::state::{Mlme, MlmeOutput, MlmeState};
 use crate::dot11::auth::from_bss_to_us;
 use crate::dot11::ies::{ap_rates, EID_EXT_SUPPORTED_RATES, EID_SUPPORTED_RATES};
 use crate::dot11::mgmt::{assoc_request_elements, element, IE_SSID};
-use crate::dot11::parse::parse_assoc_response;
+use crate::dot11::parse::{parse_assoc_response, parse_reassoc_response};
 use crate::rsn::rsnxe::STATION_RSNXE_H2E;
 use crate::rsn::Pmf;
 use crate::wpa::supplicant::{Config, Supplicant};
