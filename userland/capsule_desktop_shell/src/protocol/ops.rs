@@ -32,3 +32,4 @@ pub const OP_DISPLAY_LAYOUT: u16 = 0x000B;
 pub const OP_DISPLAY_SCALE: u16 = 0x000C;
 /// From Settings only: the displays as the compositor lays them out now.
 pub const OP_DISPLAY_ARRANGEMENT: u16 = 0x000D;
+pub const OP_DISPLAY_BRIGHTNESS: u16 = 0x000E;

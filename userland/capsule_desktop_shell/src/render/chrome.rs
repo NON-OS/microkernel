@@ -56,6 +56,7 @@ pub(super) fn paint_over_windows(ctx: &mut Context) {
     super::toasts::paint_in_chrome(ctx);
     // Over the toasts: the confirmation is the system's, their words are not.
     super::power_off::paint_power_off(ctx);
+    super::input_menu::paint_input_menu(ctx);
     // Last of all: the system's prompt and the hidden screen cover everything above.
     super::attention::paint(ctx);
 }
