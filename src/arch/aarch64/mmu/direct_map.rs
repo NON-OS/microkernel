@@ -27,7 +27,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::geometry::{BLOCK_2M, ENTRIES, GIB};
 use super::l2_pool::l2_under;
-use super::{state, PageAttributes};
+use super::{image_map, kernel_va, state, PageAttributes};
 
 /// The first physical address the direct map could not reach, or `u64::MAX`.
 static DIRECT_END: AtomicU64 = AtomicU64::new(u64::MAX);
@@ -58,7 +58,16 @@ pub(super) unsafe fn map_direct_range(base: u64, size: u64) {
             DIRECT_END.fetch_min(phys, Ordering::Relaxed);
             return;
         };
-        l2.set_block(((phys / BLOCK_2M) % ENTRIES as u64) as usize, phys, &attrs);
+        let l2_idx = ((phys / BLOCK_2M) % ENTRIES as u64) as usize;
+        // The image's blocks keep the page-by-page permissions they have one
+        // to one: the kernel runs from here once it moves, so text must stay
+        // executable and read only, and nothing else of it executable.
+        if !image_map::overlaps_image(phys) {
+            l2.set_block(l2_idx, phys, &attrs);
+        } else if !image_map::map_image_block(l2, l1_idx, l2_idx, phys, &attrs) {
+            l2.set_block(l2_idx, phys, &attrs);
+            kernel_va::high_short();
+        }
         phys = phys.saturating_add(BLOCK_2M);
     }
 }

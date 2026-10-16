@@ -32,22 +32,29 @@ fn every_block_of_every_region_and_the_registers_beside_them() {
             assert_eq!(leaf.output, phys);
             assert_eq!(leaf.level, if image.contains(&phys) { 3 } else { 2 }, "{phys:#x}");
             assert_eq!(leaf.attr_index(), probe::ram_attr(), "{phys:#x} is not RAM");
-            // Direct: every block, never executable.
+            // Direct: the image's blocks in pages as one to one, since the
+            // kernel runs from there once it moves; no block base runs.
             let direct = probe::walk(KERNEL_SPACE_START + phys).unwrap();
-            assert_eq!((direct.output, direct.level), (phys, 2));
+            let level = if image.contains(&phys) { 3 } else { 2 };
+            assert_eq!((direct.output, direct.level), (phys, level));
             assert!(!direct.executable());
         }
         assert!(probe::walk(base + size).is_none_or(|l| l.attr_index() == probe::device_attr()));
     }
     for register in [0xfe21_5040u64, 0xff84_1000, 0xff84_2000] {
-        let leaf = probe::walk(register).unwrap();
-        assert_eq!((leaf.output, leaf.level), (register & !(MIB2 - 1), 2));
-        assert_eq!(leaf.attr_index(), probe::device_attr());
-        assert!(!leaf.executable());
+        for va in [register, KERNEL_SPACE_START + register] {
+            let leaf = probe::walk(va).unwrap();
+            assert_eq!((leaf.output, leaf.level), (register & !(MIB2 - 1), 2));
+            assert_eq!(leaf.attr_index(), probe::device_attr());
+            assert!(!leaf.executable());
+        }
     }
     // Text runs, read-only data does not.
-    assert!(probe::walk(probe::TEXT.0).unwrap().executable());
-    assert!(!probe::walk(probe::TEXT.1).unwrap().executable());
+    for at in [0, KERNEL_SPACE_START] {
+        assert!(probe::walk(at + probe::TEXT.0).unwrap().executable());
+        assert!(!probe::walk(at + probe::TEXT.1).unwrap().executable());
+    }
+    assert!(probe::high_mapped());
     assert_eq!(probe::direct_map_end(), u64::MAX);
     assert!(boot_tables_proofs::sys::serial::LINES.lock().unwrap().is_empty());
 }
