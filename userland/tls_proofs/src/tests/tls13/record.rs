@@ -20,9 +20,8 @@ use crate::stream::connect_unauthenticated;
 
 /// Records fixtures/openssl_tls12_alert.tls, on demand only:
 ///   openssl s_server -accept 44400 -tls1_2 -cert c.pem -key k.pem &
-///   NONOS_TLS12_SERVER=127.0.0.1:44400 cargo test --release record_openssl_tls12 -- --ignored
+///   NONOS_TLS12_SERVER=127.0.0.1:44400 cargo test --release --features record-fixtures record_openssl_tls12
 #[test]
-#[ignore = "needs openssl s_server -tls1_2 listening"]
 fn record_openssl_tls12() {
     use std::io::{Read, Write};
     let addr = std::env::var("NONOS_TLS12_SERVER").expect("ip:port");
