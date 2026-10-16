@@ -20,46 +20,39 @@
 use alloc::vec::Vec;
 
 use super::endpoint::endpoint;
+use super::iface::Interface;
 use super::kinds::{ENDPOINT, INTERFACE, SS_ENDPOINT_COMPANION};
 use super::walk::walk;
 use crate::bus::Pipes;
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
-pub struct Interface {
-    pub number: u8,
-    pub alt: u8,
-    pub class: u8,
-    pub subclass: u8,
-    pub protocol: u8,
-    /// Its bulk pipes; an address of 0 is a direction it lacks.
-    pub pipes: Pipes,
-}
-
-impl Interface {
-    pub fn has_bulk_pair(&self) -> bool {
-        self.pipes.bulk_in != 0 && self.pipes.bulk_out != 0
-    }
-}
-
-/// Every interface descriptor in `raw`, with the first bulk IN and bulk
-/// OUT endpoint that follow it and their SuperSpeed bursts.
+/// Every whole interface descriptor in `raw`, with the first bulk IN and
+/// bulk OUT endpoint that follow it and their SuperSpeed bursts. One cut
+/// short of its 9 bytes ends the interface before it, so the endpoints
+/// after it are no interface's.
 pub fn interfaces(raw: &[u8]) -> Vec<Interface> {
-    let mut out: Vec<Interface> = Vec::new();
-    // The direction of the bulk endpoint a SuperSpeed companion follows;
-    // `None` after any other endpoint, whose companion is not ours.
+    let (mut out, mut open) = (Vec::<Interface>::new(), false);
+    // The direction of the bulk endpoint just taken: a companion counts
+    // only directly after its endpoint, and only whole (6 bytes, USB 3.2
+    // table 9-27, as recalled, unverified).
     let mut last_in: Option<bool> = None;
     for d in walk(raw) {
+        let before = last_in.take();
         match (d[1], out.last_mut()) {
-            (INTERFACE, _) if d.len() >= 9 => out.push(Interface {
-                number: d[2],
-                alt: d[3],
-                class: d[5],
-                subclass: d[6],
-                protocol: d[7],
-                pipes: Pipes::default(),
-            }),
-            (ENDPOINT, Some(i)) if d.len() >= 7 => last_in = endpoint(i, d),
-            (SS_ENDPOINT_COMPANION, Some(i)) if d.len() >= 3 => match last_in.take() {
+            (INTERFACE, _) => {
+                open = d.len() >= 9;
+                if open {
+                    out.push(Interface {
+                        number: d[2],
+                        alt: d[3],
+                        class: d[5],
+                        subclass: d[6],
+                        protocol: d[7],
+                        pipes: Pipes::default(),
+                    });
+                }
+            }
+            (ENDPOINT, Some(i)) if open && d.len() >= 7 => last_in = endpoint(i, d),
+            (SS_ENDPOINT_COMPANION, Some(i)) if d.len() >= 6 => match before {
                 Some(true) => i.pipes.burst_in = d[2] & 0x0F,
                 Some(false) => i.pipes.burst_out = d[2] & 0x0F,
                 None => {}

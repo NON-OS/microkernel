@@ -16,7 +16,7 @@
 
 //! One endpoint descriptor (USB 2.0, table 9-13) taken into an interface.
 
-use super::interface::Interface;
+use super::iface::Interface;
 
 /// Take the endpoint `d` into `i` when it is the first bulk one of its
 /// direction; that direction, so its companion is read too. A bulk

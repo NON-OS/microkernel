@@ -33,6 +33,14 @@ pub mod setup;
 #[path = "../../nonos_usbnet/src/xhci/wire.rs"]
 pub mod xhci;
 
+/// The hub's status endpoint reader, swept with the same configurations.
+#[cfg(test)]
+#[path = "../../nonos_usb_hub/src/status_endpoint.rs"]
+mod hub_status;
+/// Seeded configurations, the lies told in them, and the model.
+#[cfg(test)]
+mod sweep;
+
 /// A scripted device behind `Bus`, and the descriptors QEMU's usb-net shows.
 pub mod mock;
 pub mod qemu_usb_net;
@@ -62,4 +70,10 @@ mod hosts_tests;
 #[cfg(test)]
 mod nnet_tests;
 #[cfg(test)]
+mod reader_sweep_tests;
+#[cfg(test)]
 mod stats_tests;
+#[cfg(test)]
+mod total_sweep_tests;
+#[cfg(test)]
+mod walk_sweep_tests;

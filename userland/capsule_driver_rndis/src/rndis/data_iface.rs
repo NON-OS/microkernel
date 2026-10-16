@@ -35,7 +35,7 @@ pub(super) fn data_interface(raw: &[u8], ifs: &[Interface], comm: u8) -> Option<
         let cdc = ifs.iter().any(|i| i.number == data && i.class == CLASS_CDC_DATA);
         return cdc.then_some(data);
     }
-    let call = find_functional(raw, comm, CALL_MANAGEMENT).filter(|d| d.len() >= 5);
+    let call = find_functional(raw, comm, CALL_MANAGEMENT, 5);
     if let Some(data) = call.map(|d| d[4]).filter(|&d| carries(d) && d != comm) {
         return Some(data);
     }

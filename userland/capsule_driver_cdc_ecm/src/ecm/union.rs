@@ -25,7 +25,7 @@ use nonos_usbnet::desc::{find_functional, Interface, CLASS_CDC_DATA};
 const UNION: u8 = 0x06;
 
 pub fn union_slave(raw: &[u8], comm: u8, ifs: &[Interface]) -> Option<u8> {
-    let u = find_functional(raw, comm, UNION).filter(|d| d.len() >= 5)?;
+    let u = find_functional(raw, comm, UNION, 5)?;
     let (master, slave) = (u[3], u[4]);
     let data = |i: &Interface| i.number == slave && i.class == CLASS_CDC_DATA;
     (master == comm && ifs.iter().any(data)).then_some(slave)
