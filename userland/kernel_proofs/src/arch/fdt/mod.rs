@@ -21,6 +21,6 @@ pub mod tokens;
 #[path = "../../../../../src/arch/fdt/walker/mod.rs"]
 pub mod walker;
 
-mod blob;
+pub(crate) mod blob;
 mod i2c_more_tests;
-mod i2c_tests;
+pub(crate) mod i2c_tests;

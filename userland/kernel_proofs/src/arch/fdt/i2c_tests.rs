@@ -8,7 +8,7 @@ use super::parser::Fdt;
 
 const DW: &[u8] = b"acme,soc-i2c\0snps,designware-i2c\0";
 
-pub(super) fn soc() -> Vec<u8> {
+pub(crate) fn soc() -> Vec<u8> {
     let mut t = Tree::default();
     t.begin("").cells("#address-cells", &[2]).cells("#size-cells", &[2]);
     t.cells("interrupt-parent", &[1]);
@@ -35,7 +35,7 @@ pub(super) fn soc() -> Vec<u8> {
     t.end().blob()
 }
 
-pub(super) fn run(blob: &[u8], out: &mut [DwI2c]) -> usize {
+pub(crate) fn run(blob: &[u8], out: &mut [DwI2c]) -> usize {
     find(&Fdt::from_ptr(blob.as_ptr()).unwrap(), out).unwrap()
 }
 
