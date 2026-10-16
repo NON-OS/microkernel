@@ -23,8 +23,8 @@ use nonos_devmodel::FakeBar;
 
 use super::client::{answer, call, flush};
 use super::frames::le32;
-use super::harness::{driver, harness};
 use super::part::{answering, Answer};
+use super::{driver::driver, harness::harness};
 use crate::driver::Driver;
 use crate::protocol::{E_DEVICE, OP_FLUSH, OP_GET_PRIMARY_SURFACE, OP_HEALTHCHECK};
 use crate::setup::{resource, Primary};

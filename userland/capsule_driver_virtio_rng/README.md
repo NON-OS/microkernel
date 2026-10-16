@@ -75,8 +75,9 @@ revoked on exit.
 ## Runtime lifecycle
 
 The capsule claims the virtio RNG, sets Interrupt Disable, maps its registers,
-resets the device, allocates queue and entropy DMA, turns bus mastering on,
-initializes the virtqueue, performs a sanity fill (exit 3 if it fails, exit 4
+resets the device (status 0, read back by the clock, on either transport),
+allocates queue and entropy DMA, initializes the virtqueue, only then turns
+bus mastering on, performs a sanity fill (exit 3 if it fails, exit 4
 if every byte is zero), and serves IPC. Teardown resets the device (status 0,
 read back by the clock) and then releases the claim; the broker turns bus
 mastering off before it tears down the DMA and register grants.

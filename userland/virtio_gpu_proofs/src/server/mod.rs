@@ -22,7 +22,7 @@
 pub mod dispatch;
 #[path = "../../../capsule_driver_virtio_gpu/src/server/handlers/mod.rs"]
 pub mod handlers;
-#[path = "../../../capsule_driver_virtio_gpu/src/server/recover.rs"]
+#[path = "../../../capsule_driver_virtio_gpu/src/server/recover/mod.rs"]
 pub mod recover;
 #[path = "../../../capsule_driver_virtio_gpu/src/server/respond.rs"]
 pub mod respond;

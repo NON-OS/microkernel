@@ -22,7 +22,8 @@
 //! and to its bounds.
 
 use super::client::{call, flush};
-use super::harness::{driver, harness};
+use super::driver::driver;
+use super::harness::harness;
 use super::part::{answering, Answer};
 use crate::constants::{VG_CMD_RESOURCE_FLUSH, VG_FORMAT_B8G8R8A8_UNORM};
 use crate::protocol::{E_BAD_OP, E_BUSY, E_INVAL, OP_FLUSH};

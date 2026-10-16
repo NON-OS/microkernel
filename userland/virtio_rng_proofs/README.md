@@ -4,12 +4,14 @@ Host proofs for the virtio-rng driver (`capsule_driver_virtio_rng`). The crate
 includes the shipping constants, register, queue, fill, init and transport
 source with `#[path]` and runs them against a register window and DMA memory
 in host memory (`nonos_devmodel`, viewed through `nonos_virtio::Mmio`),
-without a boot and without a device. The clock is the one stand-in: each
-question a wait asks counts as a millisecond.
+without a boot and without a device. Two things stand in: the clock, each
+question a wait asks counting as a millisecond, and a legacy device behind a
+port grant (`regs/port.rs`) that holds the status byte, takes reads to finish
+a reset and refuses every other register.
 
 ## What it proves
 
-29 `#[test]` functions, and three checks held when the crate builds:
+31 `#[test]` functions, and three checks held when the crate builds:
 
 - the legacy handshake: every status bit the specification requires, a
   device with no queue refused and told so, no feature bit claimed, the ring
@@ -28,11 +30,16 @@ question a wait asks counts as a millisecond.
   clock says, not after a count (`fill_tests`); a request that timed out is
   never served and never posted over, and across an injected late
   completion no byte goes out twice (`late_tests`);
-- the reset on both transports (`reset_tests`), and, in the shipping text,
+- the reset on both transports (`reset_tests`), the legacy handshake going
+  past it only once the status reads back zero, and refusing a device that
+  never does (`legacy_reset_tests`); bus mastering, for a device a dead
+  predecessor left live on its own ring, only once it is reset and on this
+  driver's ring, and never on a refusal (`master_legacy_tests`,
+  `master_modern_tests`); and, in the shipping text,
   reset before the claim is released, no DMA unmapped by the driver, a
   stalled queue reset and brought up again (`teardown_tests`), bus mastering
-  only after the reset, and the modern transport whenever it is presented
-  (`order_tests`).
+  only after the reset and only in the queue step, and the modern transport
+  whenever it is presented (`order_tests`).
 
 The modern transport's own steps are proved in
 `userland/virtio_transport_proofs`.

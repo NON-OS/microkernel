@@ -14,33 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The virtio init handshake on the legacy register window, split where bus
-//! mastering goes on (`setup::legacy`): `negotiate` resets the device and
-//! settles features, `program` hands it the ring, `driver_ok` lets it run.
-//! A step that does not hold leaves the device marked FAILED.
-
-use super::constants::{
-    LEGACY_MAX, LEG_GUEST_FEATURES, LEG_HOST_FEATURES, LEG_QUEUE_NUM, LEG_QUEUE_PFN, LEG_QUEUE_SEL,
-    LEG_STATUS, STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK, STATUS_FAILED,
-    STATUS_FEATURES_OK,
-};
-use super::regs::Regs;
-
-/// Reset, ACKNOWLEDGE, DRIVER, no feature bits (virtio-rng needs none, and
-/// claiming one the device does not offer is a protocol violation), then
-/// FEATURES_OK, read back.
-pub fn negotiate(regs: Regs) -> Result<(), &'static str> {
-    regs.w8(LEG_STATUS, 0);
-    regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
-    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER);
-    let _host = regs.r32(LEG_HOST_FEATURES);
-    regs.w32(LEG_GUEST_FEATURES, 0);
-    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FEATURES_OK);
-    if regs.r8(LEG_STATUS) & STATUS_FEATURES_OK == 0 {
-        return fail(regs, "virtio: features-ok rejected");
-    }
-    Ok(())
-}
+use super::fail::fail;
+use crate::constants::STATUS_DRIVER_OK;
+use crate::constants::{LEGACY_MAX, LEG_QUEUE_NUM, LEG_QUEUE_PFN, LEG_QUEUE_SEL, LEG_STATUS};
+use crate::regs::Regs;
 
 /// Select the requestq and give the device the ring's page number. The
 /// legacy QUEUE_NUM is read-only: the device lays the ring out for that
@@ -64,11 +41,22 @@ pub fn program(regs: Regs, queue_phys: u64) -> Result<u16, &'static str> {
     Ok(qsize)
 }
 
-pub fn driver_ok(regs: Regs) {
-    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
+/// The ring programmed, then bus mastering (`master`), then DRIVER_OK. A
+/// device left live by a dead predecessor holds that one's ring, in frames
+/// since freed, until it is given this one, so it may reach memory only
+/// after `program`, which is also the last step that refuses it. Bus Master
+/// used to go on before the ring and its refusals.
+pub fn start(
+    regs: Regs,
+    queue_phys: u64,
+    master: impl FnOnce() -> Result<(), &'static str>,
+) -> Result<u16, &'static str> {
+    let size = program(regs, queue_phys)?;
+    master()?;
+    driver_ok(regs);
+    Ok(size)
 }
 
-fn fail<T>(regs: Regs, why: &'static str) -> Result<T, &'static str> {
-    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
-    Err(why)
+pub fn driver_ok(regs: Regs) {
+    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
 }

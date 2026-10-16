@@ -25,7 +25,8 @@ use std::sync::Arc;
 use nonos_libc::{on_release, releases};
 use nonos_virtio::common::DEVICE_STATUS;
 
-use super::harness::{driver, harness};
+use super::driver::driver;
+use super::harness::harness;
 
 #[test]
 fn quiesce_resets_the_device_before_it_is_given_back() {
