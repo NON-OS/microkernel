@@ -44,6 +44,8 @@ mod mouse_tests;
 #[cfg(test)]
 mod pad_decode_tests;
 #[cfg(test)]
+mod pad_hostile_tests;
+#[cfg(test)]
 mod pad_layout_tests;
 #[cfg(test)]
 mod read_len_tests;
