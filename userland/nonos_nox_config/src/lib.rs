@@ -49,13 +49,13 @@ pub use domain::{EIP712_DOMAIN_TYPEHASH, ESCROW, LISTING, SETTLEMENT, VERSION_HA
 pub use error::ConfigError;
 pub use escrow::{forwarder_initcode_hash, DELIVER_MARGIN, DISPUTE_WINDOW, MAX_DELIVERY};
 pub use escrow::{ORDER_MIN_LEAD, UNBOND_DELAY_MIN};
-pub use offer::{ESCROW_POW_EFFORT, MAX_OFFERS, OFFER_TTL};
 pub use gas::{
     APPROVE_GAS, CLAIM_GAS, CLOSE_GAS, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, OPEN_GAS,
 };
 pub use gas::{DISPUTE_GAS, REFUND_GAS, SETTLE_GAS_MAX, TOPUP_GAS};
 pub use hex::{hex20, hex32};
 pub use lookup::{address, deployed};
+pub use offer::{ESCROW_POW_EFFORT, MAX_OFFERS, OFFER_TTL};
 pub use shield_events::{INTENT_UNSHIELDED, NOTE_COMMITTED, PAYOUT_CLAIMED, PAYOUT_CREDITED};
 pub use shield_events::{POLICY_PAUSED, POLICY_UNPAUSED, SHIELD_EVENTS};
 pub use tags::{BOND_TAG, CHANNEL_TAG, LISTING_TAG, ORDER_TAG, REFUND_TAG, RELEASE_TAG, TAGS};
