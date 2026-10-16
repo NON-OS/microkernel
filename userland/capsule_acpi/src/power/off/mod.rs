@@ -16,13 +16,17 @@
 
 //! The wiped power-off (F-88). AdminShutdown wipes on the way down; it is
 //! asked for by a power-button press, a thermal zone at _CRT, a critical
-//! battery, or the shell through `power.off`, with no confirmation.
+//! battery, or the shell through `power.off` (the shell confirms first;
+//! nothing here asks).
 //! Firmware's own critical shutdown would cut power without the wipe.
 
 mod button;
+mod request;
 pub mod rule;
+pub mod wire;
 
 pub use button::{policy, press, take_button, Presses};
+pub use request::requested;
 
 use crate::sys::log::Line;
 use nonos_libc::mk_admin_shutdown;
