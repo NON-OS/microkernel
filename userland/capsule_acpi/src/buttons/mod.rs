@@ -20,6 +20,6 @@ mod notify;
 mod state;
 
 pub use find::find;
-pub use lid::read_lid;
+pub use lid::{read_lid, tick};
 pub use notify::notified;
 pub use state::Buttons;
