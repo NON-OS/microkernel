@@ -17,7 +17,7 @@
 //! A full-speed device is addressed with an EP0 of 8 bytes and may use 16,
 //! 32 or 64. Its first 8 device descriptor bytes, one packet at any size,
 //! give bMaxPacketSize0, and Evaluate Context hands that to the controller
-//! (xHCI 1.2 section 4.6.5 note, Linux `hub_port_init`). Left at 8, the
+//! (xHCI 1.2 section 4.6.5 note). Left at 8, the
 //! first longer read from a 64-byte device (its configuration descriptor)
 //! ends in a babble error on silicon.
 
