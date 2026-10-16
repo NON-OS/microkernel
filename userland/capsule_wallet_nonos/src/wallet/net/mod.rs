@@ -15,12 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bounds;
-mod constants;
 mod handshake_end;
-mod health;
 pub mod last_read;
 mod link;
-mod lookup;
 pub mod private_route;
 mod probe_rpc_tcp;
 mod probe_status;
