@@ -16,6 +16,10 @@ pub mod driver;
 pub mod give_back;
 #[path = "../../capsule_driver_iwlwifi/src/setup/grants.rs"]
 pub mod grants;
+/// Where the driver names its grants from.
+pub mod setup {
+    pub use super::grants::Grants;
+}
 #[path = "../../capsule_driver_iwlwifi/src/init.rs"]
 pub mod init;
 #[path = "../../capsule_driver_iwlwifi/src/mmio.rs"]
