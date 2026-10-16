@@ -55,7 +55,12 @@ impl Model {
             COMMAND => self.scsi(&upiu, dir, data),
             _ => None,
         };
-        let Some(rsp) = rsp else { return };
+        let Some(mut rsp) = rsp else { return };
+        // The request's LUN and task tag come back in its response's header.
+        (rsp[2], rsp[3]) = (upiu[2], upiu[3]);
+        if let Some((_, at, v)) = self.lie.get().filter(|l| l.0 == rsp[0]) {
+            rsp[at] = v;
+        }
         unsafe {
             write(ucd + (dw6 >> 16) as u64 * 4, &rsp);
             let ocs = if upiu[0] == COMMAND { self.cfg.borrow().scsi_ocs } else { 0 };
