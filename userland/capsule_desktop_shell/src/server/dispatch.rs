@@ -15,18 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{
-    Request, E_BAD_OP, E_INVAL, OP_ACCESSIBILITY, OP_ACCESSIBILITY_GET, OP_HEALTHCHECK, OP_NOTIFY,
-    OP_OPEN_WITH, OP_SPOTLIGHT_OPEN, OP_TAKE_OPEN_ARG, OP_TRAY_REGISTER, OP_TRAY_REMOVE,
-    OP_TRAY_UPDATE,
+    Request, E_BAD_OP, E_INVAL, OP_HEALTHCHECK, OP_NOTIFY, OP_OPEN_WITH, OP_SPOTLIGHT_OPEN,
+    OP_TAKE_OPEN_ARG, OP_TRAY_REGISTER, OP_TRAY_REMOVE, OP_TRAY_UPDATE,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
 
 pub fn dispatch(ctx: &mut Context, sender_pid: u32, req: Request, body: &[u8], tx: &mut [u8]) {
+    if handlers::settings_relay::relay(ctx, sender_pid, &req, body, tx) {
+        return;
+    }
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
-        OP_ACCESSIBILITY => handlers::accessibility::set(ctx, sender_pid, &req, body, tx),
-        OP_ACCESSIBILITY_GET => handlers::accessibility::get(ctx, sender_pid, &req, body, tx),
         OP_TRAY_REGISTER => handlers::tray_register::handle(ctx, sender_pid, &req, body, tx),
         OP_TRAY_UPDATE => handlers::tray_update::handle(ctx, sender_pid, &req, body, tx),
         OP_TRAY_REMOVE => handlers::tray_remove::handle(ctx, sender_pid, &req, body, tx),
