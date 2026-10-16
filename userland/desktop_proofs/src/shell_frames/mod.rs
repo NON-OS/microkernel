@@ -50,6 +50,8 @@ pub mod vfs_constants;
 // put up, and the power key. Beside them, the router's own list of those keys.
 #[path = "."]
 pub mod shell_system_keys {
+    #[path = "../../../capsule_desktop_shell/src/state/brightness.rs"]
+    pub mod brightness;
     #[path = "../../../capsule_desktop_shell/src/state/lid.rs"]
     pub mod lid;
     #[path = "../../../capsule_desktop_shell/src/state/system_key.rs"]
