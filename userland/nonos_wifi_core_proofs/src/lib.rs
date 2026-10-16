@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for the shared WiFi core: the net_core link protocol (netif) and the
-//! station data path, checked against the crate's public API.
+//! Proofs for the shared WiFi core, checked against its public API.
 
 // Every module here is a proof or the simulation a proof drives, so the
 // crate is empty outside `cargo test`.
@@ -34,6 +33,7 @@ mod cipher_sim;
 mod country_tests;
 mod crypto_kdf_tests;
 mod crypto_tests;
+mod ext_caps;
 mod gcm_key_tests;
 mod gcm_tests;
 mod gcmp_frame_tests;
