@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::access::{read16, read32, write16, write32};
+use super::boot_command::boot_command;
 use super::size::size_bar;
 use super::window::{alloc_io, alloc_mmio};
 
@@ -65,8 +66,8 @@ pub(super) fn assign_device(bus: u8, device: u8, function: u8) -> bool {
         index += if bar.is_64bit { 2 } else { 1 };
     }
 
-    // The decoders go on; Bus Master stays as it was found (K6): a driver
-    // that needs DMA turns it on through its claim, holding Dma.
-    write16(bus, device, function, COMMAND, command | COMMAND_IO_SPACE | COMMAND_MEMORY_SPACE);
+    // Decoders on; Bus Master never set, and off but on a display (K10a).
+    let class = (read32(bus, device, function, 0x08) >> 24) as u8;
+    write16(bus, device, function, COMMAND, boot_command(command, class));
     assigned
 }
