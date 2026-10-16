@@ -17,17 +17,17 @@
 //! A bind's last step (L69): its grants entered only while its claim stands.
 //! An exit drops the claim and then drains the records, so a grant entered
 //! after the drain would keep a vector routed for a capsule that is gone; one
-//! refused has what the bind programmed undone instead.
+//! refused has what the bind programmed undone instead (`undo_refused`).
 
 use super::super::grant::IrqGrant;
 use super::super::records;
-use super::super::release::teardown;
+use super::super::release::undo_refused;
 use super::super::types::IrqBindError;
 
 pub(super) fn enter(grants: &[IrqGrant]) -> Result<(), IrqBindError> {
     if records::insert_live(grants) {
         return Ok(());
     }
-    grants.iter().for_each(teardown);
+    undo_refused(grants);
     Err(IrqBindError::NotClaimed)
 }

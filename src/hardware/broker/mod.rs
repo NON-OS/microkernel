@@ -22,6 +22,7 @@ mod acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 mod acpi_i2c;
 mod bootfb;
+mod brief;
 // on-screen device census: bring-up diagnostic, silenced
 // mod census;
 mod claim;

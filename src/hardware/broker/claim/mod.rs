@@ -37,7 +37,7 @@ mod types;
 pub use claim::claim;
 pub(in crate::hardware::broker) use hold_rule::FIRMWARE_BOOT_FRAMEBUFFER;
 pub(crate) use leave::retire;
-pub(crate) use live::{live, while_live};
+pub(crate) use live::{live, while_live, while_unclaimed};
 pub(crate) use lookup::{lookup, InUse};
 pub use quiesce_all::quiesce_all;
 pub use release::{quiesce_held, release, release_all_for_pid};

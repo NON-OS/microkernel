@@ -21,6 +21,7 @@
 //! and release turns it off again.
 
 use crate::drivers::pci::config::ConfigSpace;
+use crate::drivers::pci::constants::CMD_BUS_MASTER;
 
 pub(super) fn bus_master_off(device_id: u64) {
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
@@ -30,7 +31,7 @@ pub(super) fn bus_master_off(device_id: u64) {
     if !matches!(cfg.is_bus_master_enabled(), Ok(true)) {
         return;
     }
-    let _ = cfg.disable_bus_master();
+    let _ = cfg.update_command(|c| c & !CMD_BUS_MASTER);
     // Read back: a configuration write is posted, and the line says what the
     // device holds, not what was asked.
     let off = matches!(cfg.is_bus_master_enabled(), Ok(false));

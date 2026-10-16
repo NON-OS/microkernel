@@ -26,8 +26,6 @@ use crate::drivers::pci::constants::CMD_INTERRUPT_DISABLE;
 use crate::drivers::pci::types::{MsiInfo, MsiMessage, PciAddress};
 use crate::drivers::pci::PciError;
 
-const PCI_COMMAND: u16 = 0x04;
-
 pub(super) fn program(
     address: &PciAddress,
     msi: &MsiInfo,
@@ -47,8 +45,7 @@ pub(super) fn program(
     }
     // PCI Local Bus 3.0, 6.8: a function with MSI enabled must not use INTx.
     // A conventional PCI function may still assert it unless told not to.
-    let cmd = cfg.read16(PCI_COMMAND)?;
-    cfg.write16(PCI_COMMAND, cmd | CMD_INTERRUPT_DISABLE)?;
+    cfg.update_command(|c| c | CMD_INTERRUPT_DISABLE)?;
     cfg.write16(at.control, enable_one(ctrl))
 }
 
@@ -59,6 +56,5 @@ pub(super) fn clear(address: &PciAddress, msi: &MsiInfo) -> Result<(), PciError>
     let at = layout(msi.offset as u16, msi.is_64bit, msi.per_vector_mask);
     let ctrl = cfg.read16(at.control)?;
     cfg.write16(at.control, disable(ctrl))?;
-    let cmd = cfg.read16(PCI_COMMAND)?;
-    cfg.write16(PCI_COMMAND, cmd & !CMD_INTERRUPT_DISABLE)
+    cfg.update_command(|c| c & !CMD_INTERRUPT_DISABLE).map(|_| ())
 }
