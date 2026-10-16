@@ -34,5 +34,8 @@ pub const fn reason(e: AhciError) -> &'static str {
         AhciError::OutOfRange => "ahci: a transfer fell outside the disk or the data buffer",
         AhciError::ShortTransfer => "ahci: device moved fewer bytes than the command asked",
         AhciError::Wedged => "ahci: port engine would not stop; port taken out of service",
+        AhciError::EnginesRunning => {
+            "ahci: a port still ran after the HBA reset and a stop; controller left alone"
+        }
     }
 }

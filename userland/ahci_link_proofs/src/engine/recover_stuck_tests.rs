@@ -3,13 +3,13 @@
 //! DRQ, on its registers in host memory: a COMRESET, noted in the port,
 //! never Command List Override, and an idle port left alone.
 
-use super::bare_port::bare_port;
 use super::cause::Cause;
 use super::recover::recover;
 use super::recover_tests::{at, PORT_WORDS};
 use crate::clock::Deadline;
 use crate::constants::regs::{CMD_FRE, CMD_ST, PORT_CMD, PORT_SCTL, PORT_TFD, SCTL_DET_MASK};
 use crate::error::AhciError;
+use crate::model::bare_port;
 use crate::regs::Regs;
 
 /// PxCMD.CLO (AHCI 1.3.1, 3.3.7).
