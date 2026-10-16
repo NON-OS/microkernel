@@ -16,6 +16,7 @@
 
 pub mod cpus;
 pub mod gic;
+pub mod i2c;
 pub mod isa;
 pub mod memory;
 pub mod pci;
