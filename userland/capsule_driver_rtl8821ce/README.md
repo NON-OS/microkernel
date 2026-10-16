@@ -27,6 +27,11 @@ crate; IP, DHCP, DNS, and sockets stay in the upper network capsules. This
 capsule drives the radio and moves frames; it does not own network profiles or
 credentials.
 
+Transmit power rests on two assumptions until the efuse power-by-rate tables
+are ported: an antenna gain of 2 dBi, and a power index counted in 0.5 dB
+steps of output. On them the index 0x24 is 18 dBm, the world domain's 20 dBm
+EIRP less the gain (`src/phy/txpower.rs`, `band_index`).
+
 ## Parts
 
 - [The microkernel contract](docs/microkernel.md)
