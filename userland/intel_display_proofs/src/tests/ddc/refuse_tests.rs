@@ -15,20 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What goes nowhere near the bus: a monitor without DDC/CI is asked once
-//! a second however often it is asked; a read-only control, a control the
-//! allowlist does not name, and any read without a clock send nothing.
+//! a second however often it is asked; an input the display does not list,
+//! a control the allowlist does not name, and any read without a clock send
+//! nothing.
 
+use super::caps_rig::known;
 use super::fake_bus::FakeBus;
 use crate::ddc::error::DdcError;
-use crate::ddc::pace::Pacer;
-use crate::ddc::transact::{read, write};
+use crate::ddc::transact::read;
+use crate::ddc::transact_write::write;
 use crate::model::Ticks;
 
 const MONITOR: [(u8, u16, u16); 2] = [(0x10, 70, 100), (0x12, 50, 100)];
 
 #[test]
 fn a_refusal_is_kept_too_and_nothing_goes_unpaced_or_unallowed() {
-    let (t, mut p) = (Ticks::new(), Pacer::new());
+    let (t, mut p) = (Ticks::new(), known());
     let mut b = FakeBus::new(&t, &MONITOR);
     b.absent = true;
     for _ in 0..10 {
@@ -38,10 +40,10 @@ fn a_refusal_is_kept_too_and_nothing_goes_unpaced_or_unallowed() {
     b.absent = false;
     assert_eq!(write(&mut b, &t, &mut p, 0x10, 101), Err(DdcError::Absent), "max unknown");
     let before = b.log.len();
-    assert_eq!(write(&mut b, &t, &mut p, 0x60, 3), Err(DdcError::ReadOnly));
+    assert_eq!(write(&mut b, &t, &mut p, 0x60, 3), Err(DdcError::Value), "not an input it lists");
     assert_eq!(read(&mut b, &t, &mut p, 0x14), Err(DdcError::NotAllowed));
     assert_eq!(write(&mut b, &t, &mut p, 0x04, 1), Err(DdcError::NotAllowed), "factory reset");
     let broken = Ticks { broken: true, ..Ticks::new() };
-    assert_eq!(read(&mut b, &broken, &mut Pacer::new(), 0x12), Err(DdcError::NoClock));
+    assert_eq!(read(&mut b, &broken, &mut known(), 0x12), Err(DdcError::NoClock));
     assert_eq!(b.log.len(), before, "none of them touched the bus");
 }

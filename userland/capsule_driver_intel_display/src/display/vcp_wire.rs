@@ -17,9 +17,9 @@
 //! Two ops beside F 12's brightness bytes, for an external monitor's own
 //! controls over DDC/CI, in the same framing (an i32 status, then the
 //! body). VCP (23): panel u32 and a control code u8; the body is the value
-//! now and the most it takes, u16 each; from power, desktop_shell and
-//! Settings alone, since a monitor's values are a small fingerprint.
-//! SET_VCP (24): panel u32, code u8, value u16, from power or desktop_shell.
+//! now and the most it takes, u16 each; from the compositor alone, since a
+//! monitor's values are a small fingerprint. SET_VCP (24): panel u32, code
+//! u8, value u16, from the compositor alone, which takes it from the shell.
 //! The numbers are F's: on the acpi port 5 and 6 are PREPARE_SLEEP and
 //! POWER, so a SET_VCP sent to the wrong server meets an unknown op there,
 //! never a power one (23 and 24 are reserved in capsule_acpi). Only the
