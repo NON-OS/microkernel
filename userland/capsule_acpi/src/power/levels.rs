@@ -21,6 +21,9 @@
 //! at every reading while it lasts, so the kernel's watch sees the time
 //! pass, and once more when it ends. Becoming critical runs the wiped
 //! power-off at once (F-88); the kernel's watch is what is left if refused.
+//! "Discharging" includes a direction firmware made unknown by claiming
+//! both: a wrong "not discharging" would cost a critical battery its
+//! power-off.
 
 use super::state::{Battery, Power};
 use crate::power::off::rule::battery_critical;
@@ -29,12 +32,12 @@ use crate::sys::log::Line;
 
 fn under(b: &Battery, level: fn(&nonos_aml::power::BatteryInfo) -> Option<u32>) -> bool {
     let (Some(i), Some(s)) = (&b.info, &b.status) else { return false };
-    s.discharging && matches!((s.remaining, level(i)), (Some(r), Some(l)) if r <= l)
+    s.may_discharge() && matches!((s.remaining, level(i)), (Some(r), Some(l)) if r <= l)
 }
 
 fn critical(b: &Battery) -> bool {
     let low = b.info.as_ref().and_then(|i| i.low);
-    b.status.is_some_and(|s| battery_critical(s.discharging, s.critical, s.remaining, low))
+    b.status.is_some_and(|s| battery_critical(s.may_discharge(), s.critical, s.remaining, low))
 }
 
 pub fn check(p: &mut Power) {

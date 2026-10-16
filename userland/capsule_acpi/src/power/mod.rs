@@ -18,6 +18,7 @@
 //! MkBatteryStatus.
 
 mod alarm;
+mod bst_told;
 mod levels;
 pub mod off;
 mod read;
