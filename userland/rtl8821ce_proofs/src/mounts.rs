@@ -25,7 +25,7 @@ pub mod regs;
 pub mod connect_probe;
 #[path = "../../capsule_driver_rtl8821ce/src/serve/connect/request.rs"]
 pub mod connect_request;
-#[path = "../../capsule_driver_rtl8821ce/src/serve/connect/result.rs"]
+#[path = "../../capsule_driver_rtl8821ce/src/serve/connect/result/mod.rs"]
 pub mod connect_result;
 #[path = "../../capsule_driver_rtl8821ce/src/mac/mod.rs"]
 pub mod mac;
