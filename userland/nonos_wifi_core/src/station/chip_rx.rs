@@ -22,7 +22,7 @@
 //! such a chip may strip the MIC it checked.
 
 use super::cipher::seal;
-use super::{Ccmp, LinkStation};
+use super::{Ccmp, LinkStation, RxDrop};
 use crate::dot11::ccmp::{CCMP_HDR_LEN, MIC_LEN};
 use crate::dot11::gcmp::GCMP_MIC_LEN;
 use crate::dot11::header::FC_PROTECTED;
@@ -33,6 +33,18 @@ impl LinkStation {
     /// Whether this station, not the chip, checks what it receives.
     pub(super) fn checks_rx(&self) -> bool {
         matches!(self.ccmp, Ccmp::Software { .. } | Ccmp::Gcmp256 { .. })
+    }
+
+    /// The key a protected data frame's key index names. Without Extended
+    /// Key ID the pairwise key is index 0; a group index must be one the
+    /// station took a group key for. Any other index is refused, whatever
+    /// the chip says of the frame.
+    pub(super) fn rx_key(&self, group: bool, key_id: u8) -> Result<Option<TemporalKey>, RxDrop> {
+        match (group, key_id) {
+            (true, _) => self.group_key(key_id).map(Some).ok_or(RxDrop::Undecryptable),
+            (false, 0) => Ok(self.pairwise_key()),
+            (false, _) => Err(RxDrop::Undecryptable),
+        }
     }
 }
 
