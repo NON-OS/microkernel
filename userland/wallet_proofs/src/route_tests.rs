@@ -22,24 +22,32 @@ use nonos_policy_proto::route::{ANYONE, DIRECT, NYM};
 
 use crate::pick::{pick, Route, NYM_DOWN};
 use crate::wallet::net::route_text::{route_part, route_value};
+use crate::wallet::net::wallet_route::WalletRoute;
+
+/* The route as the wallet holds it, from what route link picked. */
+fn held(default: u8, nym: u32, anon: u32) -> Option<WalletRoute> {
+    Some(WalletRoute::from_link(pick(Some(default), nym, anon)))
+}
 
 #[test]
 fn the_status_line_names_the_route_the_requests_took() {
     assert_eq!(route_part(None), None, "nothing is claimed before a check");
-    assert_eq!(route_part(Some(pick(Some(NYM), 7, 9))), Some("Nym"));
-    assert_eq!(route_part(Some(pick(Some(ANYONE), 7, 9))), Some("Anyone"));
-    /* Direct reads as Direct, even with the mixnet running: it used to say
-     * "Nym" whenever net.nym answered a health check. */
-    assert_eq!(route_part(Some(pick(Some(DIRECT), 7, 9))), Some("Direct"));
-    assert_eq!(route_part(Some(pick(Some(NYM), 0, 9))), Some("no route"));
+    assert_eq!(route_part(held(NYM, 7, 9)), Some("Nym"));
+    assert_eq!(route_part(held(ANYONE, 7, 9)), Some("Anyone"));
+    /* A Direct the wallet is handed is no route, even with the mixnet
+     * running: it used to say "Nym" whenever net.nym answered a health
+     * check, then "Direct"; the wallet now has no Direct to name. */
+    assert_eq!(route_part(held(DIRECT, 7, 9)), Some("no route"));
+    assert_eq!(route_part(held(NYM, 0, 9)), Some("no route"));
 }
 
 #[test]
 fn the_route_row_says_how_the_rpc_host_is_reached() {
-    assert_eq!(route_value(Some(Route::Nym(7))), "public RPC via Nym");
-    assert_eq!(route_value(Some(Route::Anon(9))), "public RPC via Anyone");
-    assert_eq!(route_value(Some(Route::Direct)), "public RPC, direct");
-    assert_eq!(route_value(Some(Route::Down(NYM_DOWN))), "no route");
+    assert_eq!(route_value(Some(WalletRoute::Nym(7))), "public RPC via Nym");
+    assert_eq!(route_value(Some(WalletRoute::Anon(9))), "public RPC via Anyone");
+    let direct = WalletRoute::from_link(Route::Direct);
+    assert_eq!(route_value(Some(direct)), "no route", "a Direct is shown as none");
+    assert_eq!(route_value(Some(WalletRoute::Down(NYM_DOWN))), "no route");
     assert_eq!(route_value(None), "public RPC");
 }
 

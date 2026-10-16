@@ -22,11 +22,11 @@ use super::probe_report::{serial, OTHER_CHAIN};
 use super::Probe;
 use crate::wallet::net::private_route::refused;
 use crate::wallet::net::status::NetStatus;
-use nonos_route_link::Route;
+use crate::wallet::net::WalletRoute;
 
 impl Probe {
     pub fn begin() -> Probe {
-        let route = Route::Down("");
+        let route = WalletRoute::Down("");
         Probe { step: 0, route, exchange: None }
     }
 

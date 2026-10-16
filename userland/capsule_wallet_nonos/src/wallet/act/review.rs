@@ -23,7 +23,7 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::Route;
+use crate::wallet::net::WalletRoute;
 
 use super::Action;
 use crate::wallet::net::step::Exchange;
@@ -68,7 +68,7 @@ fn begin(state: &mut State, plan: Plan) -> Result<(), &'static str> {
     let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
     let body = rpc::request_batch(&refs);
     super::action::claim_network(state);
-    let exchange = Exchange::begin(Route::for_wallet(), body);
+    let exchange = Exchange::begin(WalletRoute::for_wallet(), body);
     state.action = Some(Action::Review { plan, exchange });
     state.failure = None;
     Ok(())

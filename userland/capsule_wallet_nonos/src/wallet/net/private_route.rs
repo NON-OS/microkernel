@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one rule every connection the wallet opens is held to: Nym or Anyone,
-//! never Direct. `Route::for_wallet` already turns a Direct default into Nym,
-//! or Anyone when Nym is down; this is the last gate before a stream opens,
-//! so even a Direct handed in by mistake opens nothing.
+//! never Direct. `WalletRoute` has no Direct to hold (`from_link` turns one
+//! into no route); this is the last gate before a stream opens, so a route
+//! that is down opens nothing.
 
-use super::Route;
+use super::wallet_route::WalletRoute;
 
 /// What the wallet says while neither private network is running. The tick
 /// asks again on its own schedule; nothing ever falls back to Direct.
@@ -27,9 +27,9 @@ pub const WAITING: &str =
     "Waiting for Nym or Anyone: the wallet reaches the chain over nothing else.";
 
 /// None when `route` may carry the wallet's traffic; else why nothing opens.
-pub fn refused(route: Route) -> Option<&'static str> {
+pub fn refused(route: WalletRoute) -> Option<&'static str> {
     match route {
-        Route::Nym(_) | Route::Anon(_) => None,
-        Route::Direct | Route::Down(_) => Some(WAITING),
+        WalletRoute::Nym(_) | WalletRoute::Anon(_) => None,
+        WalletRoute::Down(_) => Some(WAITING),
     }
 }

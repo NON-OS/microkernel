@@ -20,9 +20,8 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::Route;
-
 use super::super::super::handshake_end::over;
+use super::super::super::WalletRoute;
 use super::said::SLOW;
 use super::state::Exchange;
 use super::types::{Ended, Next, Stage};
@@ -39,7 +38,7 @@ impl Exchange {
         /* A host that did not answer, refused, or did not prove itself is
          * left for the next on its network. A route that is down says
          * nothing of the host. */
-        if !matches!(self.route, Route::Down(_)) {
+        if !matches!(self.route, WalletRoute::Down(_)) {
             crate::wallet::chain::rpc_failed(self.host);
         }
         Some(ended)

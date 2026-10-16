@@ -54,3 +54,5 @@ mod route_tests;
 mod rpc_hostile_tests;
 #[path = "tests.rs"]
 mod tests;
+#[path = "wallet_route_tests.rs"]
+mod wallet_route_tests;
