@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimed device leaving its holder, pure: Bus Master off, the
-//! holder's grants on it out of their tables, its BARs unmapped from the
-//! holder with the TLB shot down, the function reset, then its DMA frames
-//! freed. A read to a function in reset can end in a completion timeout,
-//! which some firmware escalates to a machine check, so no holder thread
-//! may still reach a BAR; and no frame is reused before the reset stops
-//! what a dead driver left armed. kernel_proofs::function_reset.
+//! A claimed device leaving its holder, pure. In order: Bus
+//! Master off; the holder's grants on it out of their tables; its BARs
+//! unmapped from the holder, the TLB shot down; every port access already
+//! past its check finished; the function reset; its DMA mappings out of the
+//! IOMMU domain, the IOTLB invalidation waited on; the frames freed; the
+//! domain detached; only then claimable again. A read to a function in
+//! reset can end in a completion timeout, which some firmware escalates to
+//! a machine check, so no BAR or port of the holder may still reach it; a
+//! frame freed while a stale IOTLB entry maps it could still be written by
+//! a part that ignores Bus Master.
+//! kernel_proofs::function_reset.
 
 /// The steps, each over one device of one holder.
 pub(crate) trait Retire {
@@ -30,8 +34,15 @@ pub(crate) trait Retire {
     fn take_grants(&mut self);
     /// Unmapped from the holder, the shootdown complete on return.
     fn revoke_mmio(&mut self);
+    /// Returns once no port access past its grant check is still running.
+    fn quiet_ports(&mut self);
     fn reset(&mut self);
+    /// Out of the device's domain, the IOTLB invalidation complete on return.
+    fn withdraw_dma(&mut self);
     fn free_frames(&mut self);
+    fn detach(&mut self);
+    /// Claimable again: until here a claim on it is refused, E_BUSY.
+    fn reopen(&mut self);
 }
 
 /// The one order both release paths take.
@@ -39,6 +50,10 @@ pub(crate) fn retire(io: &mut impl Retire) {
     io.stop_bus_master();
     io.take_grants();
     io.revoke_mmio();
+    io.quiet_ports();
     io.reset();
+    io.withdraw_dma();
     io.free_frames();
+    io.detach();
+    io.reopen();
 }

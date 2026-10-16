@@ -31,4 +31,6 @@ pub enum ClaimError {
     Unconfined,
     /// The claimant's scope row does not name the device.
     OutOfScope,
+    /// A claim or a retire is under way on the device.
+    Busy,
 }

@@ -21,13 +21,12 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::retire::Retire;
-use crate::hardware::broker::dma::{free_taken, take_for_device as take_dma};
+use crate::hardware::broker::dma::{free_taken, take_for_device as take_dma, withdraw_taken};
 use crate::hardware::broker::mmio::{revoke_taken, take_for_device as take_mmio};
 use crate::hardware::broker::{DmaGrant, MmioGrant};
 
-/// One device leaving `pid`. `sleeper` is the caller in its own syscall,
-/// whose reset waits may sleep (reset_wait); `in_context` when `pid`'s
-/// page tables are the active ones, so its DMA pages unmap here too.
+/// One device leaving `pid`. `sleeper` is the caller in its own syscall, whose reset waits may
+/// sleep (reset_wait); `in_context` when `pid`'s page tables are active, so its DMA pages unmap.
 pub(super) struct Leaving {
     pub(super) pid: u32,
     pub(super) device_id: u64,
@@ -54,10 +53,23 @@ impl Retire for Leaving {
     fn revoke_mmio(&mut self) {
         revoke_taken(self.pid, &self.mmio);
     }
+    fn quiet_ports(&mut self) {
+        #[cfg(target_arch = "x86_64")]
+        crate::hardware::broker::pio::quiesce_ports();
+    }
     fn reset(&mut self) {
         super::reset::at_release(self.device_id, self.sleeper);
     }
+    fn withdraw_dma(&mut self) {
+        withdraw_taken(&mut self.dma, self.in_context);
+    }
     fn free_frames(&mut self) {
-        free_taken(&self.dma, self.in_context);
+        free_taken(&self.dma);
+    }
+    fn detach(&mut self) {
+        crate::hardware::broker::confine::detach(self.pid, self.device_id);
+    }
+    fn reopen(&mut self) {
+        super::leaving::done(&mut super::state::BUSY.lock(), self.device_id);
     }
 }

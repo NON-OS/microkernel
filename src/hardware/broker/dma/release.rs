@@ -28,7 +28,7 @@
 
 use super::drain;
 use super::records;
-use super::teardown::teardown;
+use super::teardown::{release_frames, teardown, withdraw};
 use super::types::{DmaError, DmaGrant};
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), DmaError> {
@@ -51,7 +51,13 @@ pub(crate) fn take_for_device(pid: u32, device_id: u64) -> alloc::vec::Vec<DmaGr
     drain::drain_for_device(pid, device_id)
 }
 
-/// Frees grants `take_for_device` took, once their device is reset.
-pub(crate) fn free_taken(taken: &[DmaGrant], unmap_pages: bool) {
-    taken.iter().for_each(|g| teardown(g, unmap_pages));
+/// The taken grants out of their device's domain, once it is reset; keeps
+/// only those no device can reach any longer (`withdraw`).
+pub(crate) fn withdraw_taken(taken: &mut alloc::vec::Vec<DmaGrant>, unmap_pages: bool) {
+    taken.retain(|g| withdraw(g, unmap_pages));
+}
+
+/// Frees grants `withdraw_taken` kept.
+pub(crate) fn free_taken(taken: &[DmaGrant]) {
+    taken.iter().for_each(release_frames);
 }

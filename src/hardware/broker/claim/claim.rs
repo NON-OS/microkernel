@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{next_epoch, CLAIMS};
+use super::leaving::{claimable, done};
+use super::state::{next_epoch, BUSY, CLAIMS};
 use super::types::{Claim, ClaimError};
 
 // Register a claim. Returns the granted epoch on success. The caller
@@ -26,9 +27,20 @@ use super::types::{Claim, ClaimError};
  * space or set Bus Master before it is confined, powered and snooping.
  */
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    if CLAIMS.lock().iter().any(|c| c.device_id == device_id) {
-        return Err(ClaimError::AlreadyClaimed);
+    // Reserved first: no other claim, and no retire, works on the
+    // device while this one does, and a device still retiring is refused.
+    {
+        let claims = CLAIMS.lock();
+        let mut busy = BUSY.lock();
+        claimable(&claims, &busy, device_id)?;
+        busy.push(device_id);
     }
+    let claimed = claim_reserved(pid, device_id);
+    done(&mut BUSY.lock(), device_id);
+    claimed
+}
+
+fn claim_reserved(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Only what the driver's row names, before the device is touched.
     if !super::scope_check::admitted(pid, device_id) {
         return Err(ClaimError::OutOfScope);
@@ -47,14 +59,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
-    let mut claims = CLAIMS.lock();
-    // Another claim won the device meanwhile: this one's attach is undone.
-    if claims.iter().any(|c| c.device_id == device_id) {
-        drop(claims);
-        crate::hardware::broker::confine::detach(pid, device_id);
-        return Err(ClaimError::AlreadyClaimed);
-    }
     let epoch = next_epoch();
-    claims.push(Claim { pid, device_id, epoch });
+    CLAIMS.lock().push(Claim { pid, device_id, epoch });
     Ok(epoch)
 }
