@@ -16,7 +16,7 @@
 
 //! What the scan does with each handshake message it recognises.
 
-use super::scan_server_finished::ScanState;
+use super::scan_state::ScanState;
 
 /* Handshake message types, RFC 8446 section 4. */
 pub(super) const CERTIFICATE: u8 = 11;
@@ -30,34 +30,6 @@ pub(super) const FINISHED: u8 = 20;
 /// (RFC 8446 section 4.4). A second one would replace the kept chain after the
 /// signature had been checked against the first, and a caller that pins the
 /// leaf itself would then be handed a key that signed nothing.
-/*
- * A Tor-lineage relay asks every peer for a certificate (it sets
- * SSL_VERIFY_PEER and accepts whatever comes), so OpenSSL sends this between
- * EncryptedExtensions and the server's Certificate. Only its context is kept:
- * the client offers no certificate, so the extensions it lists are not read.
- * It may come once, and only before the server's own Certificate.
- */
-pub(super) fn certificate_request(body: &[u8], state: &mut ScanState) -> bool {
-    if state.request_context.is_some() || !state.cert11.is_empty() || *state.validated {
-        return false;
-    }
-    let Some(&context_len) = body.first() else {
-        return false;
-    };
-    let context_end = 1 + context_len as usize;
-    let Some(context) = body.get(1..context_end) else {
-        return false;
-    };
-    let Some(ext_len) = super::read::u16_at(body, context_end) else {
-        return false;
-    };
-    if context_end + 2 + ext_len as usize != body.len() {
-        return false;
-    }
-    *state.request_context = Some(context.to_vec());
-    true
-}
-
 pub(super) fn certificate(body: &[u8], state: &mut ScanState) -> bool {
     if *state.validated || !state.cert11.is_empty() {
         return false;
