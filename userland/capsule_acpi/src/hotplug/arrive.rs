@@ -50,7 +50,7 @@ pub fn arrive(acpi: &mut Acpi, id: Id) {
     let now = answering(acpi, id);
     let gone: Vec<_> =
         acpi.hotplug.functions(id).iter().filter(|f| !now.contains(f)).copied().collect();
-    let left = depart_all(&acpi.hotplug, &gone);
+    let left = depart_all(acpi, &gone);
     let mut new = 0u64;
     for f in now.iter().filter(|f| f.0 == 0) {
         new += u64::from(probe_function(f.1, f.2, f.3).is_ok());
