@@ -27,7 +27,7 @@ fn an_entry_lives_for_the_pmk_lifetime_and_no_longer() {
     let t = tag(&c, SSID, PASS);
     c.keep(STA, SSID, &t, sa(1), 1_000);
     assert!(c.find((sa(1).bssid, STA), SSID, &t, 1_000 + PMK_LIFETIME_MS - 1).is_some());
-    assert_eq!(c.find((sa(1).bssid, STA), SSID, &t, 1_000 + PMK_LIFETIME_MS), None);
+    assert!(c.find((sa(1).bssid, STA), SSID, &t, 1_000 + PMK_LIFETIME_MS).is_none());
     assert!(c.is_empty(), "an outlived entry is removed, not kept unoffered");
 }
 
@@ -38,7 +38,7 @@ fn an_entry_or_everything_is_forgotten_when_told() {
     (1..=3).for_each(|n| c.keep(STA, SSID, &t, sa(n), 0));
     c.remove(&sa(2).bssid, SSID);
     assert_eq!(c.len(), 2);
-    assert_eq!(c.find((sa(2).bssid, STA), SSID, &t, 1), None);
+    assert!(c.find((sa(2).bssid, STA), SSID, &t, 1).is_none());
     c.wipe_all();
     assert!(c.is_empty());
     c.keep(STA, &[b'x'; 33], &t, sa(4), 0);
