@@ -20,26 +20,32 @@
 //! answers (`MkPciDepart`, mode `Gone`).
 
 use super::records::depart_gone;
-use super::state::{Bdf, Hotplug};
+use super::state::Bdf;
+use alloc::vec::Vec;
 use crate::boot::{path, Acpi};
 use crate::sys::log::Line;
 use crate::sys::pci_depart::{depart, Why};
 use nonos_aml::namespace::Id;
 
-/// How many of `bdfs`, and of what is behind them, the kernel had.
-pub fn depart_all(hp: &Hotplug, bdfs: &[Bdf]) -> usize {
-    let mut n = 0;
+/// The device ids the kernel had among `bdfs` and what is behind them,
+/// each now gone; their runtime wake is dropped at once.
+pub fn depart_all(acpi: &mut Acpi, bdfs: &[Bdf]) -> usize {
+    let mut ids = Vec::new();
     for &f in bdfs {
-        for g in hp.behind(f).into_iter().chain(core::iter::once(f)).filter(|g| g.0 == 0) {
-            n += usize::from(depart(g.1, g.2, g.3, Why::Gone).is_ok());
+        let all = acpi.hotplug.behind(f).into_iter().chain(core::iter::once(f));
+        for g in all.filter(|g| g.0 == 0) {
+            ids.extend(depart(g.1, g.2, g.3, Why::Gone).ok());
         }
     }
-    n
+    crate::dpower::departed(acpi, &ids);
+    ids.len()
 }
 
 pub fn leave(acpi: &mut Acpi, id: Id) {
     let bdfs = acpi.hotplug.functions(id).to_vec();
-    let n = depart_all(&acpi.hotplug, &bdfs) + usize::from(depart_gone(acpi, id));
+    let record: Vec<u64> = depart_gone(acpi, id).into_iter().collect();
+    crate::dpower::departed(acpi, &record);
+    let n = depart_all(acpi, &bdfs) + record.len();
     acpi.hotplug.forget(id);
     if n != 0 {
         Line::new(b"hotplug ")

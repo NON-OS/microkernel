@@ -41,7 +41,11 @@ pub fn run(acpi: &mut Acpi, i: usize, act: Act, counting: bool) {
     match act {
         Act::Nothing => {}
         Act::Probe => say(f, b": arrived, ", probe(f)),
-        Act::Depart => say(f, b": left, ", gone(f)),
+        Act::Depart => {
+            let ids = gone(f);
+            crate::dpower::departed(acpi, &ids);
+            say(f, b": left, ", ids.len())
+        }
         Act::Eject => match eject(f) {
             Ok(n) => {
                 say(f, b": ejected, ", n);
