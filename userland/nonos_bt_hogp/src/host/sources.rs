@@ -65,7 +65,6 @@ impl Host {
         self.hids.push(hid);
         match self.services.get(service + 1) {
             Some(&(start, _)) => Ok(self.read_chars(service + 1, start, now_ms)),
-            None if self.sources.is_empty() => Err(HogpError::NoHid),
             None => self.upgrade(0, now_ms),
         }
     }

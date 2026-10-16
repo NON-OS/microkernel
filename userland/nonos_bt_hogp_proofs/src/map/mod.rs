@@ -22,7 +22,7 @@ mod fields_tests;
 mod hostile_tests;
 mod leds_tests;
 pub mod maps;
-mod mice;
+pub mod mice;
 mod mode_tests;
 mod parse_tests;
 mod pointer_edge_tests;

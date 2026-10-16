@@ -24,7 +24,7 @@ use super::phase::Phase;
 use super::state::Host;
 use super::step::Step;
 use crate::error::HogpError;
-use crate::report::map::MAP_MAX;
+use crate::report::map::{self, MAP_MAX};
 use nonos_bt_wire::att;
 
 impl Host {
@@ -33,6 +33,10 @@ impl Host {
         let next = self.hids.iter().enumerate().skip(from).find(|(_, h)| h.worth());
         let Some((service, map)) = next.and_then(|(i, h)| Some((i, h.map?))) else {
             self.map.clear();
+            // Only now: a service with no boot reports may give the input.
+            if self.sources.is_empty() {
+                return Err(HogpError::NoHid);
+            }
             return self.find_cccd(0, now_ms);
         };
         self.map.clear();
@@ -51,5 +55,13 @@ impl Host {
         }
         let map = self.hids.get(service).and_then(|h| h.map).ok_or(HogpError::Protocol)?;
         Ok(self.request(att::read_blob(map, self.map.len() as u16), now))
+    }
+
+    /// The map read whole: the service is switched if it can be.
+    pub(super) fn take_up(&mut self, service: usize, now: u64) -> Result<Step, HogpError> {
+        if let Ok(layout) = map::parse(&core::mem::take(&mut self.map)) {
+            self.switch(service, layout);
+        }
+        self.upgrade(service + 1, now)
     }
 }

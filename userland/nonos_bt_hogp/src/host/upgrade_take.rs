@@ -16,31 +16,22 @@
 
 //! Whether a service goes to report mode, once its map and Reports are
 //! read. The input Reports that count notify, have their CCCD, and hold
-//! keys or a relative pointer by the map. The service is upgraded only if
-//! they replace every boot report it has: a boot keyboard needs a Report
+//! keys or a relative pointer by the map. One must count, and they must
+//! replace every boot report the service has: a boot keyboard needs one
 //! with Keyboard page keys, a boot mouse one with relative X and Y. Then
-//! they take the boot reports' place, and Protocol Mode is written to
-//! report mode. Anything less keeps boot mode, which needs no map.
+//! they take the boot reports' place, and any Protocol Mode is written.
 
-use super::hid::{Rep, ReportIn};
+use super::hid::Rep;
+use super::report_in::ReportIn;
 use super::state::Host;
-use super::step::Step;
 use super::types::{Kind, Source};
-use crate::error::HogpError;
-use crate::report::map::{self, has_keys, points, types, Layout};
+use crate::report::map::{has_keys, points, types, Layout};
 use crate::report::{Held, Mouse};
 use crate::uuids::{prop, REPORT_PROTOCOL};
 use alloc::vec::Vec;
 
 impl Host {
-    pub(super) fn take_up(&mut self, service: usize, now: u64) -> Result<Step, HogpError> {
-        if let Ok(layout) = map::parse(&core::mem::take(&mut self.map)) {
-            self.switch(service, layout);
-        }
-        self.upgrade(service + 1, now)
-    }
-
-    fn switch(&mut self, service: usize, layout: Layout) {
+    pub(super) fn switch(&mut self, service: usize, layout: Layout) {
         let hid = &self.hids[service];
         let input = |r: &&Rep| match r.reference {
             Some((id, 1)) => {
@@ -53,7 +44,8 @@ impl Host {
         let any = |f: fn(&Layout, u8) -> bool| {
             inputs.iter().any(|r| r.reference.is_some_and(|(id, _)| f(&layout, id)))
         };
-        if (hid.keyboard.is_some() && !any(types)) || (hid.mouse.is_some() && !any(points)) {
+        let lost = |boot: Option<u16>, f| boot.is_some() && !any(f);
+        if inputs.is_empty() || lost(hid.keyboard, types) || lost(hid.mouse, points) {
             return;
         }
         let at = self.layouts.len();

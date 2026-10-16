@@ -17,7 +17,6 @@
 //! What one HID service offers for report mode (HIDS 1.0, 3), kept while
 //! its declarations are read, and the report state once it is upgraded.
 
-use crate::report::{Held, Mouse};
 use crate::uuids::prop;
 use alloc::vec::Vec;
 
@@ -51,25 +50,13 @@ pub(super) struct Hid {
 }
 
 impl Hid {
-    /// A service with a boot report to replace, a mode, a map and a
-    /// notifying Report; any other keeps boot mode.
+    /// A service with a map and a notifying Report, and a Protocol Mode to
+    /// write if it has boot reports to replace; any other keeps boot mode.
+    /// A service with no boot reports has only report mode, the mode HIDS
+    /// 1.0 starts each connection in, so it needs no write.
     pub fn worth(&self) -> bool {
         let notifies = self.reports.iter().any(|r| r.props & prop::NOTIFY != 0);
         let boot = self.keyboard.is_some() || self.mouse.is_some();
-        self.mode.is_some() && self.map.is_some() && boot && notifies
+        self.map.is_some() && notifies && (self.mode.is_some() || !boot)
     }
-}
-
-/// An input report in report mode: its value handle, its service's layout
-/// and its Report ID, whether it holds keys or a pointer, and what it
-/// last said was held.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) struct ReportIn {
-    pub value: u16,
-    pub layout: usize,
-    pub id: u8,
-    pub keys: bool,
-    pub points: bool,
-    pub held: Held,
-    pub mouse: Mouse,
 }

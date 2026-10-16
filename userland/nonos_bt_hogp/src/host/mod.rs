@@ -17,6 +17,7 @@
 mod answer;
 mod bank;
 mod battery;
+mod boot;
 mod cell;
 mod charge;
 mod charged;
@@ -33,6 +34,7 @@ mod ready;
 mod refs;
 mod refs_found;
 mod refused;
+mod report_in;
 mod reports;
 mod services;
 mod sources;

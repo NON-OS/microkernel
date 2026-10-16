@@ -43,6 +43,8 @@ mod refuse_tests;
 #[cfg(test)]
 mod report_tests;
 #[cfg(test)]
+mod second;
+#[cfg(test)]
 mod server_refuse_tests;
 #[cfg(test)]
 mod server_tests;

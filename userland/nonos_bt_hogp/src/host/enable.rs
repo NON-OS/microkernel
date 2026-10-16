@@ -51,6 +51,7 @@ impl Host {
 
     fn ready(&mut self, mut send: Vec<Vec<u8>>, now_ms: u64) -> Step {
         self.phase = Phase::Ready;
+        self.boot_states();
         // A lock set before now: the peripheral's LEDs start off.
         if self.locks.bits() != 0 {
             send.append(&mut self.leds());
