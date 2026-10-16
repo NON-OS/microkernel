@@ -32,7 +32,11 @@ pub mod term {
     pub mod prefs {
         pub mod types;
 
+        pub mod project;
+
         pub mod projects;
+
+        pub mod rail_flags;
 
         pub mod codec;
     }
