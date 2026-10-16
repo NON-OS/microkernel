@@ -5,9 +5,9 @@
 //! for the whole machine: the Nym mixnet or the Anyone network. This module
 //! keeps the phones' interface, `Tor`, `Purpose`, `TorStream` and `tls`, so
 //! every caller above it is the phones' code unchanged, and carries each
-//! stream over the chosen network through `nonos_route_link`. It never falls
-//! back to a direct connection: a chosen network that is down refuses with
-//! its reason, and so does Direct, which is not anonymous.
+//! stream over the chosen network through `nonos_route_link`. Its route is
+//! `ShieldRoute`, with no Direct case: a Direct default goes over Nym, else
+//! Anyone, and with neither running, or the chosen one down, it refuses.
 //!
 //! What it cannot reach is a `.onion` address: neither Nym nor Anyone serves
 //! Tor's onion services. A connection to one is refused at once, and the
@@ -20,6 +20,11 @@ mod purpose;
 mod route;
 mod stream;
 mod tls;
+
+#[cfg(target_vendor = "nonos")]
+mod shield_route;
+#[cfg(target_vendor = "nonos")]
+use nonos_route_link::Route;
 
 pub use network::{as_account, Tor};
 pub use purpose::Purpose;
