@@ -27,6 +27,13 @@ pub fn owner(name: &[u8]) -> Option<u32> {
     (rc >= 0 && pid != 0).then_some(pid)
 }
 
+/// Whether `sender`'s process owns `service` now (the same comparison
+/// `policy::admits` makes), for a field one service alone may read.
+pub fn runs(sender: u32, service: &[u8]) -> bool {
+    let me = group_of(sender).filter(|g| *g != 0).unwrap_or(sender);
+    owner(service).is_some_and(|p| group_of(p).filter(|g| *g != 0).unwrap_or(p) == me)
+}
+
 /// None when the kernel names no process for `pid` (ENOENT) or has no such
 /// call; the policy then takes the pid for itself.
 pub fn group_of(pid: u32) -> Option<u32> {
