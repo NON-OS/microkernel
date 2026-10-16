@@ -35,6 +35,8 @@ pub extern "C" fn aarch64_ap_entry() -> ! {
         Ok(None) => {}
         Err(reason) => refuse(b"secondary pointer authentication", reason.as_bytes()),
     }
+    // The keys go into this CPU's per-CPU block, so it is named first.
+    cpu::percpu::install_here();
     security::pac::bind_this_cpu();
     install_vbar_el1();
     cpu::init_cpu();
