@@ -29,15 +29,17 @@
 //! - then four strings, a length byte and bytes each: the device's path,
 //!   its _HID, the bus controller's path, the GPIO controller's path;
 //! - then the bus controller's key u64 (`bus_key`: 1 << 63 | its broker
-//!   device id), all ones when no device in the table is that controller.
+//!   device id), all ones when no device in the table is that controller;
+//! - then 21 bytes of SPI and HID-over-SPI facts (`wire_spi`).
 
 use super::bus_key::{key, Controller};
 use super::known::known;
 use super::wire_fields::{bus, interrupt, DESC_FROM_DSM, HID_I2C};
+use super::wire_spi::tail;
 use crate::boot::{path, Acpi};
 use alloc::vec::Vec;
 
-pub fn serial(acpi: &Acpi, index: usize) -> Option<Vec<u8>> {
+pub fn serial(acpi: &Acpi, index: usize, spi_hid_reader: bool) -> Option<Vec<u8>> {
     let p = acpi.serial.list.get(index)?;
     let (kind, mut flags, address, speed) = bus(p);
     let (irq_flags, irq) = interrupt(p);
@@ -64,5 +66,6 @@ pub fn serial(acpi: &Acpi, index: usize) -> Option<Vec<u8>> {
     }
     let by = p.controller_bdf.map_or(Controller::Path(&ctl), Controller::Pci);
     v.extend_from_slice(&key(by, &known()).unwrap_or(u64::MAX).to_le_bytes());
+    v.extend_from_slice(&tail(p, spi_hid_reader));
     Some(v)
 }

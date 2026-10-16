@@ -26,13 +26,14 @@ use alloc::vec::Vec;
 use nonos_aml::load::Aml;
 use nonos_aml::platform::{device_pci_path, function_of, resolve_text};
 use nonos_aml::platform::{DeviceInfo, HardwareId, PRESENT};
-use nonos_aml::serial::{is_hid_over_i2c, serial_device};
+use nonos_aml::serial::{hid_spi, is_hid_over_i2c, is_hid_over_spi, serial_device};
 
 pub fn find(devices: &[DeviceInfo], aml: &mut Aml, host: &mut CapsuleHost) -> Serial {
     let mut serial = Serial::default();
     for d in devices.iter().filter(|d| d.sta & PRESENT != 0) {
         let ids: Vec<HardwareId> = d.hid.iter().chain(&d.cids).cloned().collect();
         let hid_over_i2c = is_hid_over_i2c(&ids);
+        let spi_hid = is_hid_over_spi(&ids);
         let Some(dev) = serial_device(aml, &mut evaluator(host), d.id, hid_over_i2c) else {
             continue;
         };
@@ -44,7 +45,16 @@ pub fn find(devices: &[DeviceInfo], aml: &mut Aml, host: &mut CapsuleHost) -> Se
         let pin = dev.gpios.iter().find(|g| g.interrupt).or(dev.gpios.first());
         let gpio_controller = pin.and_then(|g| resolve_text(&aml.ns, d.id, &g.source));
         let hid = d.hid.as_ref().map_or(Vec::new(), |h| h.bytes().to_vec());
-        let p = Peripheral { dev, hid, hid_over_i2c, controller, controller_bdf, gpio_controller };
+        let hid_spi = spi_hid.then(|| hid_spi(aml, &mut evaluator(host), d.id)).flatten();
+        let p = Peripheral {
+            dev,
+            hid,
+            hid_over_i2c,
+            hid_spi,
+            controller,
+            controller_bdf,
+            gpio_controller,
+        };
         serial.list.push(p);
     }
     serial.list.iter().for_each(|p| say(aml, p));

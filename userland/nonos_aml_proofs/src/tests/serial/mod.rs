@@ -19,4 +19,6 @@ mod descriptor_tests;
 mod device_tests;
 mod length_tests;
 mod path_tests;
+mod hid_spi_tests;
+mod spi_tests;
 mod rig;

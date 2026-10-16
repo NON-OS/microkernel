@@ -17,10 +17,12 @@
 //! Serial Bus Connection descriptors read out of a template. Each type
 //! has a minimum of type-specific data; a descriptor shorter than its
 //! header, than the type's data, or than the data length it claims is
-//! skipped, as is a type NONOS does not know (CSI-2 among them).
+//! skipped, as is a type NONOS does not know (CSI-2 among them), and an SPI
+//! one with a reserved value (`spi`).
 
 use super::bus::{Bus, Connection};
 use super::le::{u16_at, u32_at};
+use super::spi::{spi, SPI_DATA};
 use crate::platform::items;
 use alloc::vec::Vec;
 
@@ -40,15 +42,7 @@ fn connection(b: &[u8]) -> Option<Connection> {
         I2C if len >= 6 => {
             Bus::I2c { address: u16_at(d, 4), speed_hz: u32_at(d, 0), ten_bit: flags & 1 != 0 }
         }
-        SPI if len >= 9 => Bus::Spi {
-            speed_hz: u32_at(d, 0),
-            data_bits: d[4],
-            phase: d[5],
-            polarity: d[6],
-            chip_select: u16_at(d, 7),
-            three_wire: flags & 1 != 0,
-            select_active_high: flags & 2 != 0,
-        },
+        SPI if len >= SPI_DATA => spi(d, flags)?,
         UART if len >= 10 => Bus::Uart {
             baud: u32_at(d, 0),
             rx_fifo: u16_at(d, 4),

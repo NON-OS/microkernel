@@ -25,6 +25,7 @@ mod say;
 mod state;
 mod wire;
 mod wire_fields;
+mod wire_spi;
 
 pub use find::find;
 pub use state::Serial;
