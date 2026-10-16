@@ -20,7 +20,7 @@ use super::super::ie::Ie;
 use super::kinds::{Failure, State};
 use crate::wpa::akm::Akm;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Supplicant {
     pub(in crate::wpa::supplicant) state: State,
     /// Pairwise master key from passphrase + SSID, or from SAE.

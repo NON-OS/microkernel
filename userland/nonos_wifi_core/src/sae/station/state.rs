@@ -22,7 +22,7 @@ use super::super::group::LEN;
 use super::types::{SaeFailure, SaeState};
 use p256::ProjectivePoint;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct SaeStation {
     pub(super) state: SaeState,
     pub(super) h2e: bool,
@@ -42,12 +42,13 @@ impl SaeStation {
     /// `None` if they do not make a valid commit (draw again).
     pub fn start(pwe: ProjectivePoint, h2e: bool, rand: &[u8; LEN], mask: &[u8; LEN]) -> Option<Self> {
         let commit = Commit::new(pwe, rand, mask)?;
+        let (own_scalar, own_element) = (commit.scalar(), commit.element()?);
         Some(SaeStation {
             state: SaeState::Committed,
             h2e,
             commit,
-            own_scalar: commit.scalar(),
-            own_element: commit.element()?,
+            own_scalar,
+            own_element,
             token: [0u8; TOKEN_MAX],
             token_len: 0,
             keys: SaeKeys { kck: [0u8; 32], pmk: [0u8; 32], pmkid: [0u8; 16] },

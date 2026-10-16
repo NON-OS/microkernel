@@ -16,6 +16,8 @@
 
 //! One control request, checked and answered.
 
+use nonos_wifi_core::wipe::wipe;
+
 use super::super::connect::Session;
 use super::super::radio::Radio;
 use super::super::scanner::Scanner;
@@ -29,7 +31,7 @@ use super::{link_op, status_op};
 /// Handle one control request. Returns the reply length, or `None` if it is not a
 /// well-formed control frame (so net_core traffic is never misread as control).
 pub(in super::super) fn control(
-    req: &[u8],
+    req: &mut [u8],
     radio: &mut Radio,
     session: &mut Option<Session>,
     scanner: &Scanner,
@@ -41,7 +43,6 @@ pub(in super::super) fn control(
     }
     let op = u16::from_le_bytes([req[4], req[5]]);
     let rid = u32::from_le_bytes([req[6], req[7], req[8], req[9]]);
-    let body = &req[WIFI_HDR..];
     out[0..4].copy_from_slice(&WIFI_MAGIC.to_le_bytes());
     out[4..6].copy_from_slice(&op.to_le_bytes());
     out[6..10].copy_from_slice(&rid.to_le_bytes());
@@ -50,7 +51,12 @@ pub(in super::super) fn control(
         OP_STATUS => status_op::status_reply(stage, radio, out),
         OP_LINK => link_op::link_reply(radio, session.as_ref(), out),
         OP_SCAN => scan_reply(radio, scanner, out),
-        OP_CONNECT => connect_reply(body, radio, session, out),
+        OP_CONNECT => {
+            let len = connect_reply(&req[WIFI_HDR..], radio, session, out);
+            // The body carries the passphrase: gone once the join has run.
+            wipe(&mut req[WIFI_HDR..]);
+            len
+        }
         OP_DISCONNECT => disconnect_reply(radio, session, out),
         _ => code_reply(-1, out),
     }
