@@ -81,7 +81,7 @@ carries the processor's _LPI and that of each processor container
 (ACPI0010) it sits in, nearest first, each container named by its _UID;
 the walk stops at a container with no _UID or no usable _LPI, since the
 level below names its states by position. They are read again on the
-processor's Notify 0x80, 0x81, 0x83 and 0x85, and on a container's 0x81
+processor's Notify 0x80, 0x81, 0x82, 0x83 and 0x85, and on a container's 0x81
 for every processor under it. One `[ACPI]
 cpu` line is logged for each run of processors with the same tables. Each
 processor's `_OSC` (Intel's processor UUID) is evaluated first, since firmware
@@ -89,6 +89,9 @@ often loads those tables from it, declaring only the capabilities listed in
 `cpu/caps.rs`, none until the kernel has the control code; firmware's answer is
 logged on one `cpu _OSC` line. `_PDC` is not evaluated. Nothing is entered from
 here.
+Throttling (_TSS, _PTC, _TPC and _TSD) is read too, read-only, and shown
+on the `[ACPI] cpu` line when firmware lists states; it is not in the
+record, and nothing throttles a processor.
 
 \_S5 is evaluated at start too, with nothing run, and its SLP_TYP values
 handed to the kernel through `MkAcpiSleep`, so soft-off works on a laptop
