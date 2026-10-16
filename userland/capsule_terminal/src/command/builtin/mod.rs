@@ -31,6 +31,7 @@ pub mod help_one;
 mod help_pages;
 mod help_tools;
 mod help_unknown;
+mod help_usage;
 pub mod history_cmd;
 pub mod jobs;
 pub mod log;
