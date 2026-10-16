@@ -31,16 +31,24 @@ impl Mux {
         if req.op == OP_ENABLE_SLOT {
             return self.enable_held(req, body, tx);
         }
-        if self.claim_ops(req, body, tx) || self.virtual_ops(req, body, tx) {
+        if self.auth_ops(req, body, tx) || self.claim_ops(req, body, tx) {
             return;
         }
-        match body.first().map(|&s| self.virt.real(s)) {
+        if self.virtual_ops(req, body, tx) {
+            return;
+        }
+        // A claimant's slot stands for the parked one; the body is copied
+        // only then.
+        let own: Vec<u8>;
+        let body = match body.first().map(|&s| self.virt.real(s)) {
             Some(real) if real != body[0] => {
-                let mut own = Vec::from(body);
-                own[0] = real;
-                self.inner(req, &own, tx)
+                own = [&[real][..], &body[1..]].concat();
+                &own[..]
             }
-            _ => self.inner(req, body, tx),
+            _ => body,
+        };
+        if !self.bind_refused(req, body, tx) {
+            self.inner(req, body, tx)
         }
     }
 
