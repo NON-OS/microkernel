@@ -18,18 +18,6 @@ extern crate alloc;
 
 use super::state::CLAIMS;
 
-/// Stop a device the caller holds from mastering the bus, before its grants
-/// are torn down. False, and nothing written, when `pid` does not hold it.
-pub fn quiesce_held(pid: u32, device_id: u64) -> bool {
-    let held = CLAIMS.lock().iter().any(|c| c.device_id == device_id && c.pid == pid);
-    if held {
-        super::quiesce::stop_bus_master_quietly(device_id);
-        // Before any of its frames is freed.
-        super::reset::at_release(device_id, Some(pid));
-    }
-    held
-}
-
 /// Stop every claimed device from mastering the bus, for the shutdown wipe:
 /// a device still writing would put bytes back behind it. The claim table is
 /// only tried, since a CPU stopped by IPI may hold it; the claims themselves
