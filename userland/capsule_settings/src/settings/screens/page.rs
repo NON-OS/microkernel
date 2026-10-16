@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A key on one of the displays' rows. Choosing which display the scale is
-//! for is the page's own; a new arrangement or scale is sent at once, then
-//! read back, so the rows say what the screens do, and is taken back when
-//! the shell or the compositor refuses it. One taken is kept for the next
-//! start.
+//! A key on one of the displays' rows. Choosing the display is the page's
+//! own; a new arrangement or scale is sent at once and read back, taken back
+//! when refused, kept for the next start; brightness is only shown.
 
 use crate::settings::access::shell::{call, OP_DISPLAY_LAYOUT, OP_DISPLAY_SCALE};
 use crate::settings::schema::access_knob::Knob;
@@ -34,6 +32,11 @@ pub fn adjust(state: &mut State, knob: Knob, delta: i32) {
     let before = state.screens;
     if !before.read {
         return state.status.set(StatusKind::Error, b"not read from the display yet");
+    }
+    if knob == Knob::Brightness {
+        return state
+            .status
+            .set(StatusKind::Error, b"brightness is changed with its keys, not here");
     }
     if !step(&mut state.screens, knob, delta) || knob == Knob::Screen {
         return;
