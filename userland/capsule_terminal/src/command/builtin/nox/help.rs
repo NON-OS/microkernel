@@ -20,6 +20,11 @@ use crate::command::builtin::tool::TOOLS;
 use crate::command::builtin::tool_list::tool_list;
 use crate::command::output::Output;
 
+#[path = "help_ops.rs"]
+mod help_ops;
+
+use help_ops::operators;
+
 pub fn run(out: &mut Output<'_>) {
     out.writeln(b"nox commands  (familiar aliases in parentheses)");
     out.writeln(b"  where (pwd)      current location");
@@ -63,19 +68,5 @@ pub fn run(out: &mut Output<'_>) {
     out.writeln(b"  echo <text>      print text");
     out.writeln(b"  clear            clear screen");
     out.writeln(b"  help             this index");
-    out.writeln(b"");
-    out.writeln(b"  any command > file    write output to a file");
-    out.writeln(b"  any command >> file   append output to a file");
-    out.writeln(b"  cmd | grep [-cinv] p  keep (-v drop) matching lines; -n number, -c count");
-    out.writeln(b"  cmd | sort            sort lines");
-    out.writeln(b"  cmd | uniq            drop repeated adjacent lines");
-    out.writeln(b"  cmd | nl              number lines");
-    out.writeln(b"  cmd | wc [-l -w -c]   count lines, words and bytes");
-    out.writeln(b"  cmd | head [-n] [n]   first n lines (default 10)");
-    out.writeln(b"  cmd | tail [-n] [n]   last n lines (default 10)");
-    out.writeln(b"  a ; b                 run a then b");
-    out.writeln(b"  a && b                run b only if a succeeds");
-    out.writeln(b"  a || b                run b only if a fails");
-    out.writeln(b"");
-    out.writeln(b"  Tab completes commands and paths.");
+    operators(out);
 }
