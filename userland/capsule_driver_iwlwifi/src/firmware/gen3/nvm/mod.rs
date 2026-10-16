@@ -24,7 +24,9 @@
 //! decides the regulatory domain and Linux keeps every channel (they "might
 //! become valid later"); the scan here is passive, receive only, so it covers
 //! them all then. Only 2.4 and 5 GHz channels are kept: this driver scans
-//! those.
+//! those. Of those, only the ones the world-safe domain allows
+//! (`nonos_wifi_core::regdom` `world`) are kept, so 14, 68 to 96 and 169 to
+//! 181 never are, whatever the NVM or LAR says.
 
 mod layout;
 mod parse;

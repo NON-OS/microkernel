@@ -4,6 +4,8 @@
 
 use alloc::vec::Vec;
 
+use nonos_wifi_core::regdom::world;
+
 use super::layout::{CHANNEL_VALID, PROFILE_AT, PROFILE_AT_V3, V3_LEN, V4_LEN};
 use super::NVM_CHANNELS;
 
@@ -12,7 +14,8 @@ pub struct NvmInfo {
     pub valid_tx_ant: u8,
     pub valid_rx_ant: u8,
     pub lar_enabled: bool,
-    /// Usable 2.4 and 5 GHz channel numbers, in NVM order.
+    /// Usable 2.4 and 5 GHz channel numbers the world domain allows, in NVM
+    /// order.
     pub channels: Vec<u8>,
 }
 
@@ -33,7 +36,7 @@ pub fn parse(payload: &[u8], v4: bool) -> Option<NvmInfo> {
         } else {
             u16::from_le_bytes(payload.get(at..at + 2)?.try_into().ok()?) as u32
         };
-        if lar || flags & CHANNEL_VALID != 0 {
+        if (lar || flags & CHANNEL_VALID != 0) && world(ch).is_some() {
             channels.push(ch);
         }
     }

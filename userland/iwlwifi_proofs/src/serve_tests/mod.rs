@@ -9,6 +9,7 @@
 
 mod codes;
 mod hunt;
+mod regdom;
 mod replies;
 mod route;
 mod scripted;

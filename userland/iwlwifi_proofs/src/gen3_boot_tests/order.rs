@@ -28,7 +28,7 @@ fn after_alive_the_commands_go_in_linux_order_and_a_scan_hands_up_beacons() {
     boot(&mut dev2, &mut c, &mem2, &layout, &ucode, &board()).expect("alive");
     let info = up(&mut dev2, &mut c, &ucode, &so(), SCAN_IF_ADDR).expect("up");
     assert_eq!(info.mcc, Some(0x5553));
-    assert_eq!(info.nvm.channels.len(), 51, "LAR: every 2.4 and 5 GHz channel is scanned");
+    assert_eq!(info.nvm.channels.len(), 38, "LAR: the 2.4 and 5 GHz channels the world allows");
 
     let order: Vec<(u8, u8)> = r2.model.s.borrow().commands.iter().map(|s| (s.group, s.cmd)).collect();
     assert_eq!(

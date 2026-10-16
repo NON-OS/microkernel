@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 use core::cell::RefCell;
 
 use nonos_wifi_core::dot11::parse::parse_beacon;
+use nonos_wifi_core::regdom::join_channel;
 
 use super::super::super::dev::Dev;
 use super::super::super::region::{Clock, Region};
@@ -15,7 +16,7 @@ use super::kinds::{HuntEnd, PUMP_US};
 use super::stop::stop;
 use crate::regs::Mmio;
 
-/// Hunt `ssid` over `channels`: its beacon and the channel it was heard on.
+/// Hunt `ssid` over `channels`: its beacon and the channel to join it on.
 /// `now` reads the time the sweep's budget is held to; `heard` gets every
 /// beacon and probe response.
 pub fn hunt<M: Mmio, R: Region + ?Sized, C: Clock>(
@@ -33,8 +34,12 @@ pub fn hunt<M: Mmio, R: Region + ?Sized, C: Clock>(
         heard(&f);
         let Some(b) = parse_beacon(&f.frame) else { return };
         beacons = beacons.saturating_add(1);
+        // The channel the frame names if allowed and near where it was
+        // heard, else where it was heard; a frame heard where the world
+        // domain allows nothing is not taken.
+        let Some(ch) = join_channel(f.channel, b.channel) else { return };
         if b.ssid == ssid && found.borrow().is_none() {
-            *found.borrow_mut() = Some((f.frame.clone(), f.channel));
+            *found.borrow_mut() = Some((f.frame.clone(), ch));
         }
     };
     stop(dev, c, sweep, &mut on_frame)?;
