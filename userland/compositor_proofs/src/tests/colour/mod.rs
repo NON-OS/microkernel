@@ -23,4 +23,6 @@ mod cvd_tests;
 mod look_ref_tests;
 pub(crate) mod look_tests;
 mod night_tests;
+mod own_colour_tests;
+mod own_look_tests;
 mod srgb_tests;
