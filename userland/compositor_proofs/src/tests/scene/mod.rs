@@ -42,6 +42,8 @@ mod foreign_shadow_tests;
 mod frame_check;
 pub(crate) mod frame_model;
 pub(crate) mod frame_util;
+mod heal_rig;
+mod heal_tests;
 mod indicator_tests;
 mod raise_tests;
 mod repaint_blank_tests;
