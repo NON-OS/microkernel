@@ -43,7 +43,7 @@ pub(super) fn recv<B: Bus>(ncm: &mut Ncm<B>, out: &mut [u8]) -> Result<Option<us
     look_at_link(ncm);
     if ncm.pending.is_empty() {
         match ncm.bus.bulk_in_poll(&mut ncm.rx) {
-            Ok(Some(n)) => datagrams(&ncm.rx[..n], ncm.rx_max, &mut ncm.pending),
+            Ok(Some(n)) => datagrams(&ncm.rx[..n], ncm.rx_max, ncm.ntb32, &mut ncm.pending),
             Ok(None) => return Ok(None),
             Err(e) => return Err(recover(&mut ncm.bus, e, ncm.pipes.bulk_in)),
         }
