@@ -25,9 +25,13 @@ extern crate alloc;
 
 mod core;
 mod discover;
+mod doorbell;
 mod facts;
 #[path = "../../capsule_driver_cdc_acm/src/frame.rs"]
 mod frame;
+/// driver.gpio0's EVENTS, asked for the holder's line under this host's key.
+#[path = "../../capsule_driver_i2c_pci/src/gpio0/mod.rs"]
+mod gpio0;
 /// driver.i2c_pci0's table of LPSS I2C functions: never claimed here, so
 /// this driver cannot take one from under the touchpad's driver.
 #[path = "../../capsule_driver_i2c_pci/src/constants/device_info.rs"]
