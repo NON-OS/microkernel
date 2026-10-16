@@ -20,15 +20,17 @@ use nonos_stark::air::{Poseidon, RATE};
 use nonos_stark::field::Fp;
 use nonos_stark::fri_ext::ATTEST_SHAPE;
 
-/// Poseidon at 32 rounds, the hasher the seal and every verifier use.
-pub(crate) const LOG_ROUNDS: u32 = 5;
+/// Poseidon at 32 rounds, the hasher the seal and every verifier use: the
+/// boot attestation's LOG_ROUNDS, which the pinned engine does not export.
+pub(crate) const STATEMENT_LOG_ROUNDS: u32 = 5;
 
-/// Rate 2^-6, as every statement on the engine.
-pub const EXTRA_BLOWUP_BITS: u32 = 5;
+/// Rate 2^-6, as every statement on the engine. Not the boot attestation's
+/// EXTRA_BLOWUP_BITS: this statement sets its own.
+pub const STATEMENT_BLOWUP_BITS: u32 = 5;
 
-/// The attestation's point: 26 queries and a 28-bit grind.
+/// The attestation's point: 26 queries and a 28-bit grind, ATTEST_SHAPE's.
 pub const QUERIES: usize = ATTEST_SHAPE.1;
-pub const GRIND_BITS: u32 = ATTEST_SHAPE.2;
+pub const STATEMENT_GRIND_BITS: u32 = ATTEST_SHAPE.2;
 
 /// Hc and A, four words each.
 pub const WORDS: usize = 8;
@@ -50,5 +52,5 @@ pub(crate) const WIRE_CAP: usize = 6;
 pub(crate) const RANK_ATTEMPTS: usize = 3;
 
 pub(crate) fn hasher() -> Poseidon {
-    Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE])
+    Poseidon::new(STATEMENT_LOG_ROUNDS, [Fp::ZERO; RATE])
 }

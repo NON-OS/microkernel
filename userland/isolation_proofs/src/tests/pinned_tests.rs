@@ -18,7 +18,7 @@
 //! byte, every number beside it, and the honest proof verifies under it.
 
 use crate::image::{encode, pins, record};
-use isolation_stark::{shape, EXTRA_BLOWUP_BITS, GRIND_BITS, QUERIES, WORDS};
+use isolation_stark::{shape, QUERIES, STATEMENT_BLOWUP_BITS, STATEMENT_GRIND_BITS, WORDS};
 use nonos_proof_abi::isolation::STATEMENT as PIN;
 use nonos_stark::air::domain_params_blown;
 
@@ -39,13 +39,16 @@ fn the_pinned_statement_is_the_circuits() {
         (b.trace_width, b.region_width, b.window, b.constraint_degree)
     );
     assert_eq!((a.mask_pair, a.challenge_lanes), (b.mask_pair, b.challenge_lanes));
-    assert_eq!((PIN.extra_blowup_bits, PIN.words), (EXTRA_BLOWUP_BITS, WORDS));
+    assert_eq!((PIN.extra_blowup_bits, PIN.words), (STATEMENT_BLOWUP_BITS, WORDS));
     let point = &PIN.points[0];
     assert_eq!(PIN.points.len(), 1);
-    assert_eq!((point.params, point.queries, point.grind_bits), (p.params, QUERIES, GRIND_BITS));
+    assert_eq!(
+        (point.params, point.queries, point.grind_bits),
+        (p.params, QUERIES, STATEMENT_GRIND_BITS)
+    );
     // L1-Shield's format-7 adapter takes log domain 23 at rate bits 6, and
     // nothing else (plan/12's L1).
-    assert_eq!(domain_params_blown(&air, EXTRA_BLOWUP_BITS), (23, 6));
+    assert_eq!(domain_params_blown(&air, STATEMENT_BLOWUP_BITS), (23, 6));
     assert!(proof.len() <= PIN.max_proof_bytes, "a {} byte proof", proof.len());
     assert_eq!(nox_verify::verify_why(&PIN, proof, &st.words()), Ok(()));
 }
