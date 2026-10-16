@@ -19,7 +19,6 @@ use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 
 use super::recv_from_deliver::deliver;
-use super::recv_from_trace::trace;
 
 pub(super) fn drain(
     buf: u64,
@@ -50,8 +49,6 @@ pub(super) fn drain(
             super::pending_reply::record_served(pid, msg.correlation);
             return deliver(pid, &msg, buf, len, sender_pid_out);
         }
-        trace(b"before yield", pid);
         crate::sched::yield_now();
-        trace(b"after yield", pid);
     }
 }
