@@ -16,6 +16,8 @@
 
 use nonos_libc::Deadline;
 
+pub use crate::mmio::Mmio;
+
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: usize,
@@ -52,23 +54,5 @@ impl Regs {
             }
             core::hint::spin_loop();
         }
-    }
-}
-
-/// Minimal 32-bit MMIO interface. The firmware-load path is written against
-/// this instead of `Regs` directly so a host proof can drive it with a modeled
-/// device (recording every write and simulating the FH completion) and check
-/// the exact register sequence, with no hardware.
-pub trait Mmio {
-    fn read32(&self, off: usize) -> u32;
-    fn write32(&self, off: usize, val: u32);
-}
-
-impl Mmio for Regs {
-    fn read32(&self, off: usize) -> u32 {
-        Regs::read32(self, off)
-    }
-    fn write32(&self, off: usize, val: u32) {
-        Regs::write32(self, off, val)
     }
 }
