@@ -327,7 +327,11 @@ other op: no one.
   powers up a device firmware left off. A PCI function moved to D0 from
   D3hot or D3cold is answered only once it may be touched: 10 ms from
   D3hot, 100 ms from D3cold (a reset), or less when its host bridge's
-  function 9 says so; never more (`src/dpower/ready.rs`). Layout in
+  function 9 says so; never more (`src/dpower/ready.rs`). The same
+  selector covers D1 (none) and D2 (200 us). A PCI function is refused
+  (ELOSES, -95) any move its configuration would not survive, D3cold, or
+  D3hot when its power management status lacks No_Soft_Reset, until the
+  kernel can put that state back (`src/dpower/keep.rs`). Layout in
   `src/dpower/wire.rs`.
   Its holder may also arm the device to wake while the system runs
   (verbs 2 and 3, runtime wake): `_PRW`'s power resources taken through
