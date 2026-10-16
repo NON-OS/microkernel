@@ -17,7 +17,9 @@ use crate::constants::HCCPARAMS1;
 use crate::regs::mmio_read32;
 const HCCPARAMS1_CSZ: u32 = 1 << 2;
 pub fn context_size(mmio_base: u64) -> u8 {
-    if (mmio_read32(mmio_base + HCCPARAMS1) & HCCPARAMS1_CSZ) != 0 {
+    // SAFETY: `mmio_base` starts the mapped window, and the capability registers are its first 32
+    // bytes.
+    if (unsafe { mmio_read32(mmio_base + HCCPARAMS1) } & HCCPARAMS1_CSZ) != 0 {
         64
     } else {
         32

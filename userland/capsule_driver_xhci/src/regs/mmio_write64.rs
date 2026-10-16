@@ -13,6 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-pub(crate) fn mmio_write64(addr: u64, value: u64) {
-    unsafe { core::ptr::write_volatile(addr as *mut u64, value) };
+use super::mmio_write32::mmio_write32;
+/// Write the 64-bit register at `addr` as two dword stores, low then high
+/// (xHCI 1.2 section 5.1, Linux `xhci_write_64`): some controllers
+/// mishandle a qword access, and one without 64-bit addressing must be
+/// able to take the high dword on its own.
+///
+/// # Safety
+/// `addr` is an 8-byte aligned register inside a register window this
+/// process mapped and still holds.
+pub(crate) unsafe fn mmio_write64(addr: u64, value: u64) {
+    // SAFETY: the caller's contract covers both dwords.
+    unsafe {
+        mmio_write32(addr, value as u32);
+        mmio_write32(addr + 4, (value >> 32) as u32);
+    }
 }

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::constants::{PORTSC_BASE, PORT_REG_STRIDE};
 use crate::error::{XhciError, XhciResult};
 const WINDOW_GUARD: u64 = 0x1000;
 pub fn require_window(offset: u64, mapped_len: u64) -> XhciResult<()> {
@@ -21,4 +22,17 @@ pub fn require_window(offset: u64, mapped_len: u64) -> XhciResult<()> {
         return Err(XhciError::ControllerUnsupported);
     }
     Ok(())
+}
+
+/// Every root port's register set, 16 bytes each from operational offset
+/// 0x400 (xHCI 1.2 section 5.4.8), lies inside the mapped window. A device
+/// claiming the xHCI class with a small BAR and up to 255 ports, as a
+/// hostile PCIe or Thunderbolt one can, is refused here; read past the
+/// mapping at every port access, it page-faulted the capsule.
+pub fn require_ports(cap_len: u64, max_ports: u8, mapped_len: u64) -> XhciResult<()> {
+    let sets = max_ports as u64 * PORT_REG_STRIDE;
+    match cap_len.checked_add(PORTSC_BASE + sets) {
+        Some(end) if end <= mapped_len => Ok(()),
+        _ => Err(XhciError::ControllerUnsupported),
+    }
 }

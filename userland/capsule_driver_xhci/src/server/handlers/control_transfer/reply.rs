@@ -26,12 +26,8 @@ pub(super) fn send_reply(tx: &mut [u8], req: &Request, actual: u16, region: Opti
     let o = RESP_HDR_LEN + STATUS_LEN;
     tx[o..o + 2].copy_from_slice(&actual.to_le_bytes());
     if let Some(r) = region {
-        for i in 0..actual as usize {
-            unsafe {
-                tx[o + CONTROL_TRANSFER_REPLY_PREFIX + i] =
-                    core::ptr::read_volatile(r.as_mut_ptr::<u8>().add(i));
-            }
-        }
+        let at = o + CONTROL_TRANSFER_REPLY_PREFIX;
+        r.copy_to(&mut tx[at..at + actual as usize]);
     }
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + plen as usize);
 }

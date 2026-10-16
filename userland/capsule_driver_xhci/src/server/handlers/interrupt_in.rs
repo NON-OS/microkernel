@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod reply;
 use crate::controller::{poll_interrupt_in, IntrPoll};
-use crate::protocol::{Request, E_INVAL, E_IO, HID_REPORT_MAX, INTERRUPT_IN_REQUEST_LEN};
+use crate::protocol::{Request, E_INVAL, E_IO, INTERRUPT_IN_REQUEST_LEN, INTERRUPT_PAYLOAD_MAX};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 use crate::server::handlers::recover::recover_after;
@@ -26,7 +26,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     }
     let (slot, dci) = (body[0], body[1]);
     let length = u16::from_le_bytes([body[2], body[3]]);
-    if length as usize > HID_REPORT_MAX {
+    // Up to the endpoint's payload, three packets of 1024 at most; the
+    // report is armed at the endpoint's own length whatever this is.
+    if length == 0 || length > INTERRUPT_PAYLOAD_MAX {
         reply_with_status(tx, req, E_INVAL);
         return;
     }
@@ -36,7 +38,7 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         Err(e) => {
             // A report that ended in an error halted the endpoint; it is
             // brought back here so the next poll arms it again.
-            recover_after(ctx, slot, dci, e);
+            recover_after(ctx, slot, dci, e, None);
             reply_with_status(tx, req, E_IO)
         }
     }
