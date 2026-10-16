@@ -19,12 +19,15 @@
 
 #[path = "common/answer_fixture.rs"]
 mod answer_fixture;
+#[path = "common/answer_len.rs"]
+mod answer_len;
 #[path = "common/k.rs"]
 mod k;
 #[path = "common/seller.rs"]
 mod seller;
 
-use answer_fixture::{honest, len};
+use answer_fixture::honest;
+use answer_len::len;
 use k::kec;
 use nonos_nox_chunks::{offer_len, Offer};
 use seller::KEY;

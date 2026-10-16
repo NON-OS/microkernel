@@ -20,6 +20,10 @@
 
 #[path = "common/answer_fixture.rs"]
 mod answer_fixture;
+#[path = "common/answer_keys.rs"]
+mod answer_keys;
+#[path = "common/answer_len.rs"]
+mod answer_len;
 #[path = "common/k.rs"]
 mod k;
 #[path = "common/seller.rs"]
@@ -27,7 +31,9 @@ mod seller;
 #[path = "common/x.rs"]
 mod x;
 
-use answer_fixture::{honest, len, AGENT, BUYER, LISTING, RELEASE};
+use answer_fixture::honest;
+use answer_keys::{AGENT, BUYER, LISTING, RELEASE};
+use answer_len::len;
 use k::{kec, K};
 use nonos_nox_chunks::{check_offer, chunk_root, open_answer, seal_answer, AnswerWrong, X25519};
 use seller::{content, KEY};

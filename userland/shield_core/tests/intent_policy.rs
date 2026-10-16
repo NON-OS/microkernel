@@ -1,6 +1,5 @@
 //! A withdraw on a pool with an AmountPolicy (the production pool): the fee is the policy's quote,
 //! withdrawBps of the amount plus one rung, never held to MAX_FEE_BPS, which that pool does not have.
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used, clippy::arithmetic_side_effects)]
 
 use nox_shield_core::wallet::{check_intent, Intent, IntentRefusal, PoolRules, MAX_FEE_BPS};
 
