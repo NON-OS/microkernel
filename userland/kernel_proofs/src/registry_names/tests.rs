@@ -20,15 +20,19 @@ use std::path::Path;
 
 use super::system_names::{is_reserved_form, is_system_name};
 
+/// What this proof reads; tools/nix/inputs.py hands the build every match.
+const CAPSULE_MKS: &str = "userland/*/Capsule.mk";
+
 // The service, reply and instance names Capsule.mk files declare, split by
 // whether the capsule's namespace is the system's own.
 fn declared() -> (BTreeSet<String>, BTreeSet<String>) {
-    let (mut system, mut publisher) = (BTreeSet::new(), BTreeSet::new());
+    let (mut system, mut publisher, mut read) = (BTreeSet::new(), BTreeSet::new(), 0);
     let userland = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
-    for dir in fs::read_dir(userland).expect("userland") {
+    for dir in fs::read_dir(&userland).expect("userland") {
         let Ok(raw) = fs::read_to_string(dir.expect("entry").path().join("Capsule.mk")) else {
             continue;
         };
+        read += 1;
         // Make joins a line ending in a backslash with the next.
         let text = raw.replace("\\\n", " ");
         let ns = field(&text, "CAPSULE_NAMESPACE").next().expect("a namespace");
@@ -42,6 +46,8 @@ fn declared() -> (BTreeSet<String>, BTreeSet<String>) {
             set.insert(name);
         }
     }
+    // An empty view fails as itself, never as drift or a vacuous pass (L61).
+    assert!(read >= 50, "{read} of {CAPSULE_MKS} under {userland:?}: the build lacks them");
     (system, publisher)
 }
 
