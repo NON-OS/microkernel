@@ -23,6 +23,12 @@ pub struct RxRing {
     pub buffer_user_va: u64,
     pub buffer_device_addr: u64,
     pub head: u16,
+    /// A frame longer than one buffer is being let go, piece by piece,
+    /// through the descriptor that ends it (rx_consume.rs).
+    pub piecing: bool,
+    /// Slots written back with nothing handed up: an error, a length out of
+    /// bounds, or a piece of a longer frame.
+    pub dropped: u32,
 }
 
 /*
@@ -32,7 +38,14 @@ pub struct RxRing {
  */
 impl RxRing {
     pub fn new(ring_user_va: u64, buffer_user_va: u64, buffer_device_addr: u64) -> Self {
-        Self { ring_user_va, buffer_user_va, buffer_device_addr, head: 0 }
+        Self {
+            ring_user_va,
+            buffer_user_va,
+            buffer_device_addr,
+            head: 0,
+            piecing: false,
+            dropped: 0,
+        }
     }
 
     /// # Safety

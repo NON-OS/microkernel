@@ -17,6 +17,7 @@
 use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
 use core::sync::atomic::{fence, Ordering};
 
+use crate::facts::rx::RXD_STAT_DD;
 use crate::sizes::ring::RX_DESC_COUNT;
 
 use super::rx::RxRing;
@@ -33,19 +34,15 @@ impl RxRing {
     /// the part only sees it again when the caller moves RDT onto it.
     pub fn consume(&mut self) -> Option<(u16, u16)> {
         let desc = unsafe { self.descriptor(self.head) };
-        // The part writes by DMA: every read goes to memory, none is hoisted.
-        if unsafe { read_volatile(addr_of!((*desc).staterr)) } == 0 {
+        // DD first. The part writes by DMA, so every read goes to memory and
+        // none is hoisted; nothing else in the slot is its word before DD.
+        if unsafe { read_volatile(addr_of!((*desc).staterr)) } & RXD_STAT_DD == 0 {
             return None;
         }
-        // Length and the full status are the part's only once status is seen.
         fence(Ordering::Acquire);
         let staterr = unsafe { read_volatile(addr_of!((*desc).staterr)) };
         let length = unsafe { read_volatile(addr_of!((*desc).length)) };
-        let len = match parse(staterr, length) {
-            Rx::NotDone => return None,
-            Rx::Drop => 0,
-            Rx::Frame(n) => n,
-        };
+        let len = self.judge(parse(staterr, length))?;
         let idx = self.head;
         unsafe {
             write_volatile(addr_of_mut!((*desc).buffer_addr), self.buffer_phys(idx));
@@ -55,5 +52,23 @@ impl RxRing {
         }
         self.head = (self.head + 1) % (RX_DESC_COUNT as u16);
         Some((idx, len))
+    }
+
+    /// The length to hand up, or 0 for a slot let go and counted. Every
+    /// piece of a frame longer than one buffer is let go through the one
+    /// with EOP: none is joined, so no frame grows past one buffer, and one
+    /// whose EOP never comes is let go piece by piece.
+    fn judge(&mut self, rx: Rx) -> Option<u16> {
+        let (piecing, len) = match (self.piecing, rx) {
+            (_, Rx::NotDone) => return None,
+            (_, Rx::Piece) => (true, 0),
+            (true, _) | (false, Rx::Drop) => (false, 0),
+            (false, Rx::Frame(n)) => (false, n),
+        };
+        self.piecing = piecing;
+        if len == 0 {
+            self.dropped = self.dropped.saturating_add(1);
+        }
+        Some(len)
     }
 }
