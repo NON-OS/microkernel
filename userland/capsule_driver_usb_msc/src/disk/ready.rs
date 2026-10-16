@@ -19,7 +19,8 @@
 
 use nonos_libc::mk_idle_ms;
 
-use super::scsi_io::{sense, sense_key, whole};
+use super::scsi_io::whole;
+use super::sense::{sense, sense_key};
 use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::{E_IO, E_NOMEDIUM};
