@@ -33,8 +33,7 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     o += PORT_STATUS_HEADER_BYTES;
     for port_index in 0..port_count {
         let port_id = (port_index + 1) as u8;
-        let portsc = portsc_read(ctx.driver.layout.op_base, port_id);
-        portsc_clear_changes(ctx.driver.layout.op_base, port_id, portsc);
+        let portsc = port_seen(ctx, port_id);
         tx[o] = port_id;
         tx[o + 1] = ctx.driver.slots.port_state(port_id);
         tx[o + 2] = 0;
@@ -43,4 +42,19 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
         o += PORT_ENTRY_BYTES;
     }
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + payload_bytes);
+}
+
+/// PORTSC of `port`, its change bits acknowledged. A failed controller's
+/// ports show nothing attached: read, a controller gone from the bus shows
+/// every port connected and enabled at speed 15, and class drivers would
+/// enumerate ghosts. Failed is looked at here too, not only when a request
+/// was sent to the controller: the multiplexer reads every controller's
+/// ports, a second one that no request reached among them.
+pub fn port_seen(ctx: &Context, port: u8) -> u32 {
+    if ctx.driver.dead || ctx.driver.failed() {
+        return 0;
+    }
+    let portsc = portsc_read(ctx.driver.layout.op_base, port);
+    portsc_clear_changes(ctx.driver.layout.op_base, port, portsc);
+    portsc
 }

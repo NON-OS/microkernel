@@ -17,10 +17,10 @@
 //! A completion wait parks: with the controller interrupt it blocks on it,
 //! and without one it yields only for a bounded stretch and then sleeps, so
 //! a controller that stops answering costs wakeups, never a whole core.
+//! What one step does is `irq_park_tests`.
 
-use nonos_libc::{slept_ms, yields};
-
-use crate::controller::park::{park_step, step, Step, SPIN_BUDGET, YIELD_BUDGET};
+use crate::controller::park::step::{step, Step, YIELD_BUDGET};
+use crate::controller::park::SPIN_BUDGET;
 
 #[test]
 fn the_first_polls_spin_whether_or_not_an_interrupt_is_bound() {
@@ -43,9 +43,8 @@ fn without_an_interrupt_the_yields_are_bounded_and_then_every_poll_sleeps() {
     assert_eq!(step(SPIN_BUDGET + YIELD_BUDGET, false), Step::Yield);
     assert_eq!(step(SPIN_BUDGET + YIELD_BUDGET + 1, false), Step::Sleep);
     assert_eq!(step(u32::MAX, false), Step::Sleep, "a saturated count still sleeps");
-    let yielding = (0..=SPIN_BUDGET + 4 * YIELD_BUDGET)
-        .filter(|&s| step(s, false) == Step::Yield)
-        .count();
+    let yielding =
+        (0..=SPIN_BUDGET + 4 * YIELD_BUDGET).filter(|&s| step(s, false) == Step::Yield).count();
     assert_eq!(yielding as u32, YIELD_BUDGET, "exactly one bounded stretch of yields");
 }
 
@@ -62,22 +61,4 @@ fn the_steps_never_go_back_from_sleeping_to_spinning() {
         assert!(now >= last, "poll {spins} went back to a cheaper wait");
         last = now;
     }
-}
-
-#[test]
-fn a_wait_past_both_budgets_with_no_interrupt_sleeps_instead_of_yielding() {
-    // No test sets the interrupt grant, so the shipping park_step polls
-    // without one, as on a machine whose MSI-X bind was refused.
-    let (yielded, slept) = (yields(), slept_ms());
-    park_step(SPIN_BUDGET + YIELD_BUDGET + 1);
-    assert_eq!(yields(), yielded, "no yield once the budget is spent");
-    assert!(slept_ms() > slept, "the poll slept");
-}
-
-#[test]
-fn a_wait_inside_the_yield_budget_yields_once_and_does_not_sleep() {
-    let (yielded, slept) = (yields(), slept_ms());
-    park_step(SPIN_BUDGET + 1);
-    assert_eq!(yields(), yielded + 1);
-    assert_eq!(slept_ms(), slept);
 }

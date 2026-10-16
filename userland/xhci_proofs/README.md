@@ -54,27 +54,27 @@ segment, refuses to write over an event the driver has not handed back
 through ERDP, and fills the rest of the segment's page with TRBs that look
 valid under either cycle state, so a read past the segment shows.
 
-- Dequeue (`dequeue_tests`): a TRB whose cycle bit does not match is not
-  read. From every starting dequeue index, three laps in batches of 1, 7 and
-  63 read every event once, in order, never past the segment, with the cycle
-  state flipped at each wrap; after a full lap nothing is read until the
-  controller writes again.
+- Dequeue (`dequeue_tests`, `dequeue_start_tests`): a TRB whose cycle bit
+  does not match is not read. From every starting dequeue index, three laps
+  in batches of 1, 7 and 63 read every event once, in order, never past the
+  segment, with the cycle state flipped at each wrap; after a full lap
+  nothing is read until the controller writes again.
 - Hand-back (`erdp_tests`): programming leaves ERDP at the segment base with
   EHB clear. Every consumer then writes back the next unread TRB, inside the
   segment, with DESI zero and EHB written as one, which is how EHB is
   cleared.
-- Matching (`match_tests`): a command completion naming another command, or
-  a transfer event at the command's address, does not complete the command.
-  An Enable Slot answer of slot 0 is refused, and one past MaxSlots is
-  refused by the slot table before anything is indexed. A transfer event
-  completes a control, bulk or interrupt-IN transfer only when its pointer,
-  slot id and endpoint id all name the issued TRB; anything else is parked
-  for its owner and never handed to a later transfer. Pointer bits 3:0 are
-  reserved and ignored.
-- Residual (`residual_tests`): the length handed up is the request less the
-  residual clamped to the request, so it never exceeds the request or the
-  buffer, and a residual past the request hands up nothing.
-- Boundaries (`boundary_tests`): slot 0 and 255, endpoint 0 and 31, a
+- Matching (the `match_*` files): a command completion naming another
+  command, or a transfer event at the command's address, does not complete
+  the command. An Enable Slot answer of slot 0 is refused, and one past
+  MaxSlots is refused by the slot table before anything is indexed. A
+  transfer event completes a control, bulk or interrupt-IN transfer only
+  when its pointer, slot id and endpoint id all name the issued TRB;
+  anything else is parked for its owner and never handed to a later
+  transfer. Pointer bits 3:0 are reserved and ignored.
+- Residual (the `residual_*` files): the length handed up is the request
+  less the residual clamped to the request, so it never exceeds the request
+  or the buffer, and a residual past the request hands up nothing.
+- Boundaries (the `boundary_*` files): slot 0 and 255, endpoint 0 and 31, a
   residual of u32::MAX read as 24 bits, a null pointer, a pointer of all
   ones, and pointers 8 bytes into the issued TRB and into each neighbour,
   each through every wait it reaches.

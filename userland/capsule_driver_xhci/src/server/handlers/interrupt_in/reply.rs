@@ -46,11 +46,7 @@ fn emit_report(tx: &mut [u8], req: &Request, buf: &DmaRegion, n: u16) {
     write_status(&mut tx[RESP_HDR_LEN..], 0);
     let o = RESP_HDR_LEN + STATUS_LEN;
     tx[o..o + 2].copy_from_slice(&n.to_le_bytes());
-    for i in 0..count {
-        unsafe {
-            tx[o + INTERRUPT_IN_REPLY_PREFIX + i] =
-                core::ptr::read_volatile(buf.as_mut_ptr::<u8>().add(i));
-        }
-    }
+    let at = o + INTERRUPT_IN_REPLY_PREFIX;
+    buf.copy_to(&mut tx[at..at + count]);
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + plen as usize);
 }

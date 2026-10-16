@@ -15,10 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::broker_handles::BrokerHandles;
 use nonos_libc::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
-impl Drop for BrokerHandles {
-    fn drop(&mut self) {
+impl BrokerHandles {
+    /// Give the interrupt, the register window and the claim back. The
+    /// kernel's release turns bus mastering off and revokes every DMA grant
+    /// of the device, so a DMA frame dropped after this is no longer the
+    /// controller's to write. Only the first call does anything.
+    pub fn release(&mut self) {
+        if self.released {
+            return;
+        }
+        self.released = true;
         let _ = mk_irq_unbind(self.irq_grant_id);
         let _ = mk_mmio_unmap(self.mmio_grant_id);
         let _ = mk_device_release(self.device_id);
+    }
+}
+impl Drop for BrokerHandles {
+    fn drop(&mut self) {
+        self.release();
     }
 }

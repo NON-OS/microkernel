@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod config_set_max_slots;
+mod controller_failed;
 mod crcr_program;
 mod dcbaap_program;
 mod pagesize;
+mod portsc_addr;
 mod portsc_clear_changes;
 mod portsc_neutral;
 mod portsc_read;
@@ -26,6 +28,7 @@ mod usbcmd_write;
 mod usbsts_clear;
 mod usbsts_read;
 pub use config_set_max_slots::config_set_max_slots;
+pub use controller_failed::controller_failed;
 pub use crcr_program::crcr_program;
 pub use dcbaap_program::dcbaap_program;
 pub use pagesize::{page_bytes, pagesize_read, MAX_PAGE_BYTES};
