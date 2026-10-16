@@ -17,7 +17,7 @@
 //! The two-output rig for the control proofs: the eDP panel's PWM set up,
 //! and, when asked, pipe B's monitor on HDMI with DDC/CI on DDI B's pins.
 
-use crate::display::brightness_answer;
+use crate::display::{brightness_answer, Rights};
 use crate::engine::backlight::BLC_PWM_PCH_CTL2;
 use crate::engine::pipe::Transcoder;
 use crate::engine::regs::trans_ddi_func_ctl;
@@ -43,6 +43,14 @@ pub fn rig(ddc: bool) -> (Rig, std::rc::Rc<std::cell::RefCell<crate::model::Gen9
 
 pub fn ask(d: &mut Rig, req: &[u8], may: bool) -> (i32, Vec<u8>) {
     let mut out = [0u8; 512];
-    let n = brightness_answer(d, 2, req, may, &mut out);
+    let n = brightness_answer(d, 2, req, Rights { set: may, read_controls: true }, &mut out);
     (i32::from_le_bytes(out[..4].try_into().unwrap()), out[4..n].to_vec())
+}
+
+/// As a sender with no right to read a monitor's controls.
+pub fn ask_unread(d: &mut Rig, req: &[u8]) -> i32 {
+    let mut out = [0u8; 512];
+    let may = Rights { set: false, read_controls: false };
+    brightness_answer(d, 2, req, may, &mut out);
+    i32::from_le_bytes(out[..4].try_into().unwrap())
 }
