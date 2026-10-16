@@ -580,6 +580,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/apps_proofs",
    "userland/assets/icons",
@@ -867,6 +868,7 @@
    ".cargo",
    "LICENSE",
    "VERSION",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -906,6 +908,7 @@
   "include": [
    ".cargo",
    "LICENSE",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -935,6 +938,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_attest",
    "userland/libc",
    "userland/route_proof"
@@ -946,6 +950,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/audio_proto",
    "userland/capsule_audio",
    "userland/libc"
@@ -959,6 +964,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "third_party/minimp3",
    "userland/app_skeleton",
@@ -986,6 +992,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_boot_splash",
    "userland/libc",
@@ -1000,6 +1007,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1038,6 +1046,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1237,6 +1246,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_calculator",
@@ -1251,6 +1261,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_clipboard",
    "userland/libc"
   ],
@@ -1263,6 +1274,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_clock",
@@ -1277,6 +1289,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_crypto",
    "userland/libc"
   ],
@@ -1299,6 +1312,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1321,6 +1335,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_ahci",
    "userland/libc"
   ],
@@ -1331,6 +1346,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_e1000",
    "userland/libc",
    "userland/nonos_mac"
@@ -1342,6 +1358,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_hda",
    "userland/libc"
   ],
@@ -1352,6 +1369,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_i2c_hid",
    "userland/libc"
   ],
@@ -1362,6 +1380,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_i2c_pci",
    "userland/libc",
    "userland/nonos_pinctrl"
@@ -1379,6 +1398,7 @@
    "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_iwlwifi",
    "userland/libc",
    "userland/nonos_mac",
@@ -1391,6 +1411,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_nvme",
    "userland/libc"
   ],
@@ -1401,6 +1422,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_driver_ps2_input",
    "userland/libc",
@@ -1415,6 +1437,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_rtl8139",
    "userland/libc",
    "userland/nonos_mac"
@@ -1426,6 +1449,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_rtl8169",
    "userland/libc",
    "userland/nonos_mac"
@@ -1438,6 +1462,7 @@
   "include": [
    ".cargo",
    "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_rtl8821ce",
    "userland/libc",
    "userland/nonos_mac",
@@ -1450,6 +1475,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_driver_usb_hid",
    "userland/libc",
@@ -1464,6 +1490,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_usb_msc",
    "userland/libc"
   ],
@@ -1474,6 +1501,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_blk",
    "userland/libc",
    "userland/nonos_virtio"
@@ -1485,6 +1513,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_gpu",
    "userland/libc",
    "userland/nonos_virtio"
@@ -1496,6 +1525,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_net",
    "userland/libc",
    "userland/nonos_mac",
@@ -1508,6 +1538,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_rng",
    "userland/libc",
    "userland/nonos_virtio"
@@ -1519,6 +1550,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_xhci",
    "userland/libc"
   ],
@@ -1531,6 +1563,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_egui_proof",
@@ -1545,6 +1578,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_entropy",
    "userland/libc"
   ],
@@ -1557,6 +1591,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1576,6 +1611,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_game_2048",
@@ -1593,6 +1629,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_gui_demo",
@@ -1609,6 +1646,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_hello",
@@ -1625,6 +1663,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_image_codec",
    "userland/libc",
@@ -1639,6 +1678,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_image_viewer",
@@ -1653,6 +1693,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_input_probe",
    "userland/libc"
   ],
@@ -1665,6 +1706,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_input_proof",
@@ -1679,6 +1721,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_input_router",
    "userland/libc"
   ],
@@ -1696,6 +1739,7 @@
    "src/fs/blockfs_volume/key_header.rs",
    "src/fs/blockfs_volume/plan.rs",
    "src/fs/blockfs_volume/plan_types.rs",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1721,6 +1765,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "tools/nonos-pack/core",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1736,6 +1781,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_keyring",
    "userland/libc",
    "userland/nonos_hash",
@@ -1753,6 +1799,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1918,6 +1965,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_login",
    "userland/libc"
   ],
@@ -1931,6 +1979,7 @@
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -1954,6 +2003,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -1969,6 +2019,7 @@
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_linux/src/linux/file/models/hex.rs",
    "userland/capsule_linux/src/linux/file/models/pinned.rs",
@@ -1997,6 +2048,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_anon",
    "userland/inflate",
    "userland/libc",
@@ -2017,6 +2069,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2036,6 +2089,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_dhcp",
    "userland/libc"
   ],
@@ -2046,6 +2100,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_dns",
    "userland/libc"
   ],
@@ -2056,6 +2111,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_ip",
    "userland/libc"
   ],
@@ -2066,6 +2122,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_l2",
    "userland/libc"
   ],
@@ -2076,6 +2133,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_net_ntp",
    "userland/libc",
@@ -2095,6 +2153,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_nym",
    "userland/libc",
    "userland/nonos_ed25519",
@@ -2112,6 +2171,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_sockets",
    "userland/libc"
   ],
@@ -2122,6 +2182,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_tcp",
    "userland/libc"
   ],
@@ -2132,6 +2193,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_udp",
    "userland/libc"
   ],
@@ -2151,6 +2213,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_payment",
    "userland/libc"
   ],
@@ -2163,6 +2226,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2179,6 +2243,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_power",
    "userland/libc"
   ],
@@ -2191,6 +2256,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2205,6 +2271,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_proof_io",
    "userland/libc"
   ],
@@ -2220,6 +2287,7 @@
    ".cargo",
    "nonos-attest-path",
    "nonos-device-attest",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2236,6 +2304,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2250,6 +2319,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_ramfs",
    "userland/libc"
   ],
@@ -2263,6 +2333,7 @@
   "include": [
    ".cargo",
    "VERSION",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2288,6 +2359,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2338,6 +2410,7 @@
   "include": [
    ".cargo",
    "VERSION",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2362,6 +2435,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_shield",
    "userland/libc",
@@ -2386,6 +2460,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_shield_vectors",
    "userland/libc"
   ],
@@ -2398,6 +2473,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2415,6 +2491,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_socks5",
    "userland/libc"
   ],
@@ -2467,6 +2544,7 @@
    ".cargo",
    "VERSION",
    "nonos-bench",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2499,6 +2577,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2513,6 +2592,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_vfs",
    "userland/libc",
@@ -2529,6 +2609,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2546,6 +2627,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/etna/etna-0b0046f5f585.png",
@@ -2588,6 +2670,7 @@
   "include": [
    ".cargo",
    "nonos-data/wallpapers/special-variant-9.jpg",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/assets/icons",
    "userland/capsule_wallpaper",
@@ -2604,6 +2687,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2620,6 +2704,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_wm",
    "userland/libc"
@@ -2701,6 +2786,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/compositor",
    "userland/libc"
   ],
@@ -2780,6 +2866,7 @@
   "include": [
    ".cargo",
    "nonos-data/trust/capsules",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -3304,6 +3391,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_browser_proofs/fixtures/img/gray_prog.jpg",
    "userland/capsule_browser_proofs/fixtures/img/prog_420.jpg",
@@ -3336,6 +3424,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/base64",
@@ -4277,6 +4366,7 @@
   "include": [
    ".cargo",
    "VERSION",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/kernel_core/init/framebuffer/hidpi.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
@@ -4413,6 +4503,7 @@
   "include": [
    ".cargo",
    "VERSION",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
    "src/userspace/tool_capsules/registry.rs",
@@ -4625,6 +4716,7 @@
    "src/fs/blockfs_volume/key_header.rs",
    "src/fs/blockfs_volume/plan.rs",
    "src/fs/blockfs_volume/plan_types.rs",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_vfs/src/blk/store_header.rs",
    "userland/capsule_vfs/src/blk/store_toc.rs",
@@ -4647,6 +4739,7 @@
   ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/libc",
    "userland/toolkit"
@@ -5046,6 +5139,7 @@
   "include": [
    ".cargo",
    "nonos-data/wallpapers",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_wallpaper/src/catalog_client",
    "userland/capsule_wallpaper/src/paint/decode_jpeg.rs",

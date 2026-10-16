@@ -22,6 +22,7 @@
 
 use crate::bank::Bank;
 use crate::deliver::deliver;
+use crate::gone::kernel_message;
 use crate::irq::{ack, fired};
 use crate::irq_wait::{all_bound, wait};
 use crate::queue::Queue;
@@ -43,7 +44,9 @@ pub fn run(mut banks: Vec<Bank>) -> ! {
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(OWN_INBOX, rx.as_mut_ptr(), rx.len(), recv_ms, &mut sender);
-        if recv_ready(n) && n > 0 && sender != 0 {
+        if recv_ready(n) && n > 0 && sender == 0 {
+            kernel_message(&mut banks, &rx[..n as usize]);
+        } else if recv_ready(n) && n > 0 {
             let reply = answer(&mut banks, &mut queue, &rx[..n as usize], sender);
             let _ = mk_ipc_reply(sender, reply.as_ptr(), reply.len());
         }
