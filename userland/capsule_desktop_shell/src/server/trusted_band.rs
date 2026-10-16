@@ -29,6 +29,7 @@ fn prompt_up(ctx: &Context) -> bool {
         || ctx.pending.live_prompt.showing()
         || ctx.pending.pending_delete.showing()
         || ctx.trusted.power_off.showing()
+        || ctx.trusted.input_menu.showing()
 }
 
 pub fn sync(ctx: &mut Context) {
