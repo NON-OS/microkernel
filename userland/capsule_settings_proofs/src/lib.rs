@@ -1,8 +1,8 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Host proofs for the WiFi settings panel. The real panel source is included
 //! via #[path] and exercised against synthetic inputs: adapter discovery, the
-//! untrusted scan-result parser, and the detect/select/enter-key/connect state
-//! machine.
+//! untrusted scan-result parser, and the scans and joins the panel's ticks
+//! run.
 
 extern crate alloc;
 

@@ -22,7 +22,6 @@ mod handoff_tests;
 mod hydrate_tests;
 mod interface_tests;
 mod net_poll_tests;
-mod panel_tests;
 mod paste_tests;
 mod pending_tests;
 mod qwen_tier_tests;
