@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -132,7 +135,13 @@
   "include": [
    ".cargo",
    "nonos-mk",
-   "userland/marketplace_abi"
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_seal",
+   "userland/settle_proto"
   ],
   "md": [],
   "signed": []
@@ -898,8 +907,11 @@
    "userland/capsule_model_fetch/src/tiers/memory.rs",
    "userland/libc",
    "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_nox_config",
    "userland/nonos_route_link",
    "userland/nonos_socket",
+   "userland/payment_proto",
    "userland/policy_client",
    "userland/policy_proto",
    "userland/toolkit"
@@ -1705,6 +1717,10 @@
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_installer",
    "userland/libc",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_config",
+   "userland/payment_proto",
+   "userland/settle_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2158,8 +2174,24 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_payment",
-   "userland/libc"
+   "userland/libc",
+   "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_meter",
+   "userland/nonos_seal",
+   "userland/nonos_vault",
+   "userland/payment_proto",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/settle_proto"
   ],
   "md": [],
   "signed": []
@@ -2374,6 +2406,7 @@
    "userland/libc",
    "userland/nonos_hash",
    "userland/nonos_hd",
+   "userland/nonos_nox_config",
    "userland/nonos_route_link",
    "userland/nonos_seal",
    "userland/nonos_socket",
@@ -2488,6 +2521,7 @@
    "userland/market_proto",
    "userland/nonos_git",
    "userland/nonos_http",
+   "userland/nonos_nox_config",
    "userland/nonos_route_link",
    "userland/nonos_socket",
    "userland/nonos_tls",
@@ -2860,6 +2894,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3491,6 +3528,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -4176,7 +4216,6 @@
    ".cargo",
    "userland/capsule_installer/src/protocol",
    "userland/capsule_keyring/src/protocol",
-   "userland/capsule_payment/src/protocol",
    "userland/capsule_ramfs/src/protocol",
    "userland/seq_wire_proofs"
   ],

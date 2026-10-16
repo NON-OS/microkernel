@@ -23,9 +23,8 @@
 use alloc::vec::Vec;
 
 use nonos_eth_rpc::{parse_logs, request_logs};
-use nonos_settle_proto::{delivered as from_log, DELIVERED_TOPIC, EPROTO, MAX_KEYS};
+use nonos_settle_proto::{delivered as from_log, log_pages, DELIVERED_TOPIC, EPROTO, MAX_KEYS};
 
-use crate::chain::log_pages;
 use crate::net::Rpc;
 
 type Pairs = Vec<([u8; 32], [u8; 32])>;
