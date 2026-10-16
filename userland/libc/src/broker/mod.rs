@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod device;
+// The kernel's one definition of DGON, the device-gone notice, by path.
+#[path = "../../../../src/hardware/broker/acpi/dgon_wire.rs"]
+mod dgon;
 mod dma;
 mod dma_lines;
 #[cfg(target_arch = "x86_64")]
@@ -50,3 +53,4 @@ pub use types::{
     BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED,
     DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
+pub use dgon::{dgon_encode, dgon_parse, Dgon, DGON_LEN, DGON_TAG, DGON_VERSION, WHY_GONE};

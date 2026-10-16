@@ -21,6 +21,8 @@
  * memory range or a PCI bus lies in; what each root bridge's _OSC gave up.
  */
 
+#[path = "../../../../../../src/hardware/broker/acpi/dgon_wire.rs"]
+pub mod dgon_wire;
 #[path = "../../../../../../src/hardware/broker/acpi/numa_node.rs"]
 pub mod numa_node;
 #[path = "../../../../../../src/hardware/broker/acpi/osc_grant.rs"]
