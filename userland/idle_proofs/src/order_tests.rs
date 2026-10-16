@@ -5,6 +5,7 @@
 
 const ENTER: &str = include_str!("../../../src/arch/aarch64/idle_states/enter.rs");
 const PREPARE: &str = include_str!("../../../src/arch/aarch64/idle_states/prepare.rs");
+const FORMAT: &str = include_str!("../../../src/arch/aarch64/idle_states/psci_format.rs");
 const IDLE: &str = include_str!("../../../src/arch/idle.rs");
 const IDLE_CPU: &str = include_str!("../../../src/arch/cpu/idle_cpu.rs");
 
@@ -21,10 +22,13 @@ fn after<'a>(src: &'a str, mark: &str) -> &'a str {
 fn suspend_is_entered_masked_and_its_wake_taken() {
     let wait = code(after(ENTER, "pub fn wait()").split("\nfn chosen").next().unwrap());
     let suspend = after(&wait, "return;");
-    let (before, rest) = suspend.split_once("psci::cpu_suspend(").expect("no CPU_SUSPEND");
+    let (before, rest) = suspend.split_once("let entered =").expect("no entry");
     assert!(!before.contains("daifclr"), "IRQs opened before CPU_SUSPEND");
+    let (calls, rest) = rest.split_once("if entered.is_err()").expect("no refusal");
+    assert!(calls.contains("psci::cpu_suspend(") && calls.contains("powerdown::enter(cpu, param)"));
+    assert!(!calls.contains("daif"), "IRQs opened around the call");
     let (refusal, tail) = rest.split_once("unsafe { asm!(\"wfi\"").expect("no WFI on refusal");
-    assert!(refusal.contains(".is_err()") && refusal.contains("fetch_or("));
+    assert!(refusal.contains("fetch_or("));
     let tail = after(tail, "}");
     assert!(tail.contains(r#"asm!("msr daifclr, #2", "isb", "msr daifset, #2""#), "{tail}");
 }
@@ -48,8 +52,10 @@ fn the_format_is_known_before_any_state_is_used() {
     assert_eq!(prepare.matches("EXTENDED.call_once").count(), 1);
     let ok = prepare.find("Ok(extended) =>").expect("no Ok arm");
     assert!(prepare.find("EXTENDED.call_once").unwrap() > ok);
-    let version = prepare.find("(version.major, version.minor) < (0, 2)").expect("no 0.2 floor");
-    let features = prepare.find("cpu_suspend_features()").unwrap();
-    assert!(version < features && prepare.contains("flags & 0b10 != 0"));
+    let format = code(FORMAT);
+    let version = format.find("(version.major, version.minor) < (0, 2)").expect("no 0.2 floor");
+    let features = format.find("cpu_suspend_features()").unwrap();
+    assert!(version < features && format.contains("flags & 0b10 != 0"));
     assert!(code(ENTER).contains("let extended = *EXTENDED.get()?;"));
+    assert!(code(ENTER).contains("let powerdown = powerdown::available();"));
 }

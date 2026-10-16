@@ -41,7 +41,7 @@ pub mod version;
 mod wait;
 
 pub use acked::Acked;
-pub use api::{init_gic, init_gic_cpu};
+pub use api::{chosen_version, init_gic, init_gic_cpu};
 pub use distributor::GicDistributor;
 pub use enable::{disable_irq, enable_irq};
 pub use icc::set_priority_mask;
