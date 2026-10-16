@@ -13,7 +13,7 @@ use super::scripted::{completion, heard, other_network};
 fn a_network_not_heard_in_a_whole_sweep_is_not_found() {
     let r = rig(Security::Wpa2, Switches::default());
     r.model.s.borrow_mut().responder = Some(Box::new(|c: &Seen| match (c.group, c.cmd) {
-        (0x1, 0x0D) => vec![reply(c, vec![]), heard(&other_network(), 1), completion(1)],
+        (0x1, 0x0D) => vec![reply(c, vec![]), heard(&other_network(), 1), completion(c, 1)],
         _ => vec![reply(c, vec![])],
     }));
     let mut st = Station::new();
@@ -32,8 +32,8 @@ fn a_background_sweep_is_stopped_before_the_hunt_and_a_silent_one_is_given_up() 
     let first = std::cell::Cell::new(true);
     r.model.s.borrow_mut().responder = Some(Box::new(move |c: &Seen| match (c.group, c.cmd) {
         (0x1, 0x0D) if first.replace(false) => vec![reply(c, vec![])],
-        (0x1, 0x0D) => vec![reply(c, vec![]), completion(1)],
-        (0x1, 0x0E) => vec![reply(c, vec![]), completion(2)],
+        (0x1, 0x0D) => vec![reply(c, vec![]), completion(c, 1)],
+        (0x1, 0x0E) => vec![reply(c, vec![]), completion(c, 2)],
         _ => vec![reply(c, vec![])],
     }));
     let mut st = Station::new();

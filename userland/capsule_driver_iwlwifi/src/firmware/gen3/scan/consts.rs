@@ -20,8 +20,10 @@
 pub const SCAN_REQ_V17_LEN: usize = 1940;
 /// `SCAN_MAX_NUM_CHANS_V3`.
 pub const MAX_CHANNELS: usize = 67;
-/// The uid of the one scan this driver runs at a time.
-pub const SCAN_UID: u32 = 0;
+/// The firmware's scan slots (Linux `IWL_MVM_MAX_UMAC_SCANS`). Each sweep
+/// takes the next uid, so a late completion of an earlier sweep (one given
+/// up as stalled) is never taken for the sweep in flight.
+pub const SCAN_UIDS: u32 = 4;
 
 pub(super) const GEN_FLAGS_PASS_ALL: u16 = 1 << 1;
 pub(super) const GEN_FLAGS_ADAPTIVE_DWELL: u16 = 1 << 7;
