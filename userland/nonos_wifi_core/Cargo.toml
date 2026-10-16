@@ -22,6 +22,8 @@ path = "src/lib.rs"
 p256 = { version = "0.13", default-features = false, features = ["arithmetic", "expose-field"] }
 sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
 hmac = { version = "0.12", default-features = false }
+# The local, unicast address bits, shared with every network driver.
+nonos_mac = { path = "../nonos_mac" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

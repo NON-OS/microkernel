@@ -3438,6 +3438,7 @@
    "userland/capsule_driver_iwlwifi/src/setup/grants.rs",
    "userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs",
    "userland/iwlwifi_proofs",
+   "userland/nonos_mac",
    "userland/nonos_wifi_client/src/driver/services.rs",
    "userland/nonos_wifi_client/src/join_wire",
    "userland/nonos_wifi_client/src/network.rs",
@@ -3743,6 +3744,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/nonos_mac",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs"
   ],
@@ -4113,6 +4115,7 @@
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
+   "userland/nonos_mac",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
    "userland/rtl8821ce_proofs"

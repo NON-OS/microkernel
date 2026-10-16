@@ -188,6 +188,7 @@ name = "nonos_wifi_core"
 version = "0.3.0"
 dependencies = [
  "hmac",
+ "nonos_mac",
  "p256",
  "sha2",
 ]

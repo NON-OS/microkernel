@@ -28,6 +28,7 @@
 
 extern crate alloc;
 
+pub mod address;
 pub mod ccmp;
 pub mod dot11;
 pub mod eapol;

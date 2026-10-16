@@ -18,6 +18,8 @@
 //! station data path, checked against the crate's public API.
 
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod ap_sim;
 #[cfg(test)]
 mod crypto_tests;
