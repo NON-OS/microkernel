@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every CPU's IA32_TSC_ADJUST set to the boot CPU's, as Linux
-//! tsc_store_and_check_tsc_adjust does.
+//! Every AP's IA32_TSC_ADJUST set to the boot CPU's, so its TSC carries the
+//! boot CPU's offset (SDM Vol. 3B, Time-Stamp Counter Adjustment).
 //!
 //! Uptime is the TSC of whichever CPU asks, less an anchor read on the boot
 //! CPU. Firmware that leaves TSC_ADJUST different on an AP offsets its TSC,

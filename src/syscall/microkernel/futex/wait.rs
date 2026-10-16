@@ -37,9 +37,10 @@ pub fn sys_futex_wait(vaddr: u64, expected: u32, timeout_ms: u64) -> i64 {
     let token = crate::sched::wake_token(caller);
     let key = (tgid_of(caller), vaddr);
     /*
-     * Queued before the word is read, as Linux futex_wait_setup reads it
-     * with the waiter's bucket held. Read first, a waker that changed the
-     * word just after the read and woke before the queueing found nobody,
+     * Queued before the word is read: a waker stores the new word before it
+     * calls wake, so the read sees that word or the wake finds this entry.
+     * Read first, a waker that changed the word just after the read and woke
+     * before the queueing found nobody,
      * bumped no wake count, and this wait then slept its whole timeout with
      * the word already changed: for a timed wait, up to a minute.
      */
