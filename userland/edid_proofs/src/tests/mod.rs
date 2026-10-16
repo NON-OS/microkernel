@@ -29,6 +29,7 @@ mod noise_tests;
 mod range_tests;
 mod standard_tests;
 mod svd_tests;
+mod sweep;
 mod text_tests;
 mod tile_tests;
 mod tmds_tests;
