@@ -65,3 +65,6 @@ pub const CODE_IE_MISMATCH: i32 = -11;
 
 /// No randomness for the nonce and SAE secrets.
 pub const CODE_NO_ENTROPY: i32 = -12;
+
+/// WPA3: SAE could not start from the join's randomness.
+pub const CODE_SAE_START: i32 = -14;

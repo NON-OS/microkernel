@@ -19,7 +19,7 @@ fn each_way_a_join_ends_has_its_own_code() {
         (MlmeFailure::MalformedRsne, (CODE_UNSUPPORTED, 0)),
         (MlmeFailure::NeedsHt, (CODE_UNSUPPORTED, 0)),
         (MlmeFailure::BadPassphrase, (CODE_BAD_PASSPHRASE, 0)),
-        (MlmeFailure::NoEntropy, (CODE_NO_ENTROPY, 0)),
+        (MlmeFailure::SaeStart, (CODE_SAE_START, 0)),
         (MlmeFailure::Sae(SaeFailure::BadConfirm), (CODE_WRONG_PASSWORD, 0)),
         (MlmeFailure::Sae(SaeFailure::Rejected(77)), (CODE_REFUSED, 77)),
         (MlmeFailure::Sae(SaeFailure::GroupNotSupported), (CODE_REFUSED, 0)),
