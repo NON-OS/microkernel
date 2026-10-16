@@ -16,6 +16,7 @@
 
 mod acl;
 mod address;
+mod alive;
 mod answer;
 mod bringup;
 mod command;
@@ -24,7 +25,9 @@ mod controller;
 mod encrypt;
 mod events;
 mod features;
+mod held;
 mod length;
+mod lost;
 mod ltk;
 mod masks;
 mod new;
@@ -36,6 +39,7 @@ mod state;
 mod update;
 mod wait;
 
+pub use alive::READ_RSSI;
 pub use connect::{create_connection_params, create_connection_params_as, Connect, DEFAULT_LINK};
 pub use controller::Controller;
 pub use events::QUEUE_MAX;

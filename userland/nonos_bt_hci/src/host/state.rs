@@ -41,6 +41,11 @@ pub struct Host<T> {
     pub(super) acl_len: u16,
     pub(super) acl_total: u16,
     pub(super) acl_free: u16,
+    /// The buffers each link holds now, by handle; only links holding any.
+    pub(super) held: Vec<(u16, u16)>,
+    /// Set while Reset is waited for, when a Hardware Error or another
+    /// Reset's completion is the past being cleared, not news.
+    pub(super) resetting: bool,
     /// The address type scans and connections are made as (7.8.4).
     pub(super) own: AddrType,
     /// The Scanning_Filter_Policy scans use, chosen at bring-up (7.8.10).

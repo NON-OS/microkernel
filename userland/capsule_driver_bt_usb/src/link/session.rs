@@ -46,6 +46,15 @@ pub struct Session {
     pub(super) peer: Peer,
     /// What pairing waits on the user for.
     pub(super) waiting: Option<Asked>,
+    /// Since when nothing has come on the link; `None` once something has,
+    /// until the next turn reads the clock (`alive`).
+    pub(super) quiet_since: Option<u64>,
+    /// Whether the controller answers Read RSSI, so a quiet link is checked.
+    pub(super) probe: bool,
+    /// Since when a PDU has waited for a buffer, and whether the last
+    /// flush found none.
+    pub(super) stuck_since: Option<u64>,
+    pub(super) short: bool,
 }
 
 impl Session {
