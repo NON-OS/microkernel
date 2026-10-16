@@ -17,6 +17,7 @@
 //! Device power for the capsules that drive the devices: their D-state,
 //! read and moved through _PSx and the power resources (ACPI 6.5, ch. 7).
 
+mod current;
 mod find;
 mod hidden;
 mod keep;
