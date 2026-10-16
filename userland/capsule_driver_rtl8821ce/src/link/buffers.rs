@@ -26,6 +26,9 @@ pub trait RxBuffers {
     fn bytes(&self) -> &[u8];
     /// The bus address of byte zero, for re-arming descriptors.
     fn device_addr(&self) -> u64;
+    /// Zero `len` bytes from `offset` (as far as the region reaches), so a
+    /// slot goes back to the card holding nothing of the frame it carried.
+    fn clear(&mut self, offset: usize, len: usize);
 }
 
 /// A live broker grant is the receive buffer region on real hardware: its device
@@ -37,5 +40,15 @@ impl RxBuffers for Grant {
     }
     fn device_addr(&self) -> u64 {
         DmaMem::device_addr(self)
+    }
+    fn clear(&mut self, offset: usize, len: usize) {
+        const ZERO: [u8; 256] = [0; 256];
+        let end = offset.saturating_add(len).min(self.capacity());
+        let mut at = offset;
+        while at < end {
+            let n = (end - at).min(ZERO.len());
+            self.write_bytes(at, &ZERO[..n]);
+            at += n;
+        }
     }
 }
