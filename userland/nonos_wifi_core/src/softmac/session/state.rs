@@ -17,14 +17,13 @@
 //! An associated session: the network, the station engine keyed for it, the
 //! frames waiting for the stack, and when the AP was last heard.
 
-use alloc::collections::VecDeque;
-use alloc::vec::Vec;
-
 use crate::regdom::Band;
 use crate::rsn::TemporalKey;
 use crate::softmac::roam::Kit;
 use crate::station::LinkStation;
 use crate::wpa::supplicant::Supplicant;
+use alloc::collections::VecDeque;
+use alloc::vec::Vec;
 
 /// Frames held for net_core between polls; past this the oldest go.
 pub const RX_QUEUE: usize = 64;
@@ -62,6 +61,11 @@ impl Session {
 
     pub fn is_up(&self) -> bool {
         self.station.is_associated()
+    }
+
+    /// The address the session joined from, which every frame it builds names.
+    pub fn mac(&self) -> [u8; 6] {
+        self.station.mac()
     }
 
     /// Whether the link is in an exchange no look may leave it in.
