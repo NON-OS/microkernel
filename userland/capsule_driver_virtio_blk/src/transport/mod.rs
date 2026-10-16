@@ -19,8 +19,9 @@
 mod access;
 mod broker;
 mod probe;
+mod reset;
 mod types;
 
 pub use broker::LibcBroker;
-pub use probe::probe;
+pub use probe::{probe, NEED};
 pub use types::{Modern, Transport};

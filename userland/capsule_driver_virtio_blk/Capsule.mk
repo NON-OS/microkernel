@@ -1,8 +1,8 @@
-# virtio_blk: virtio block device. PCI MMIO or PIO + INTx (MSI-X
-# when INTx cannot be bound) + DMA. The
-# capsule maps three DMA regions (queue ring, request header,
-# data buffer) and unwinds them on shutdown. Block IO transits
-# IPC; no FS policy lives in the driver.
+# virtio_blk: virtio block device. PCI MMIO or PIO + MSI-X (INTx when
+# the function has no MSI-X) + DMA. The capsule maps three DMA regions
+# (queue ring, request header, data buffer) and never unmaps them
+# itself: the device is reset and the claim's release takes them.
+# Block IO transits IPC; no FS policy lives in the driver.
 
 CAPSULE_SLUG             := driver-virtio-blk
 CAPSULE_HANDLE           := driver.virtio_blk0
@@ -14,11 +14,11 @@ CAPSULE_NAMESPACE        := systems.nonos.driver.virtio_blk0
 CAPSULE_SERVICE_ENDPOINT := service:4202:driver.virtio_blk0
 CAPSULE_REPLY_ENDPOINT   := reply:4203:endpoint.4294967304
 # CoreExec|IPC|Memory|Driver|DeviceEnum|Mmio|Irq|Dma|Pio = 0x1F8019
-# Debug so the setup retry loop can say which step it is stuck on; a silent
-# store driver reads as a vfs timeout two layers up.
 CAPSULE_REQUIRED_CAPS    := 0x1F8019
-# Debug, granted only by a build that compiles `capsule-serial-debug`: the
-# kernel mirror folds it in through serial_debug_cap().
+# Debug, so the setup retry loop can say which step it is stuck on (a silent
+# store driver reads as a vfs timeout two layers up); granted only by a build
+# that compiles `capsule-serial-debug`: the kernel mirror folds it in through
+# serial_debug_cap().
 CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/hardware/virtio_blk_capsule
 
