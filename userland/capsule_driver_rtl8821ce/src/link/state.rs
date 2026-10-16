@@ -17,6 +17,7 @@
 //! The link's rings, station and counts.
 
 use nonos_wifi_core::address::AddressKey;
+use nonos_wifi_core::key::HeldKey;
 use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::station::LinkStation;
 
@@ -51,7 +52,7 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     /// station's own deauthentication goes protected.
     pub(super) pmf: bool,
     /// A group key the AP delivered on the link, for the serve loop to install.
-    pub(super) new_group_key: Option<(u8, [u8; 16])>,
+    pub(super) new_group_key: Option<(u8, HeldKey)>,
     /// The reason code of the access point's deauthentication, taken as it
     /// came or after an unanswered SA Query; the link is down.
     pub(super) left: Option<u16>,
