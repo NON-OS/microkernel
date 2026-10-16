@@ -23,7 +23,7 @@ use super::answer::hand_off;
 use super::pending::Work;
 use super::radio::radio_on;
 use super::status::refresh_wifi_status;
-use super::worker::Ask;
+use super::worker_msg::Ask;
 use crate::wifi::{DriverStage, ScanOutcome};
 
 /// Ask the driver how far its radio came up and, only if it answered ready, hand

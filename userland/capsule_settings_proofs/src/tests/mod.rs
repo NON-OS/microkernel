@@ -14,10 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The displays' rows on Appearance (`settings::screens`).
+//! The proofs, one module each, over the panel's pure sources mounted at
+//! the crate root.
 
-/// The compositor's answer, which Settings reads.
-#[path = "../../../compositor/src/display/arrange_wire.rs"]
-mod arrange_wire;
-mod step_tests;
+mod access_page_tests;
+mod handoff_tests;
+mod hydrate_tests;
+mod interface_tests;
+mod net_poll_tests;
+mod panel_tests;
+mod paste_tests;
+mod pending_tests;
+mod qwen_tier_tests;
+mod screens_tests;
+mod section_tests;
+mod security_tests;
+mod slot_tests;
+mod sound_note_tests;
+mod text_tests;
+mod wifi_cursor_tests;
+mod wifi_key_tests;
 mod wire_tests;
