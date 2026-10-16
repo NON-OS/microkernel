@@ -35,6 +35,8 @@ pub struct Controller {
     pub acl_len: u16,
     /// How many ACL packets the controller holds at once.
     pub acl_total: u16,
+    /// The LE features (Vol 6, Part B, 4.6), bit 0 first.
+    pub le_features: u64,
 }
 
 /// Read Local Version Information (Vol 4, Part E, 7.4.1): HCI version and
@@ -42,14 +44,6 @@ pub struct Controller {
 pub fn version(ret: &[u8]) -> Result<(u8, u16, u8, u16, u16), HciError> {
     let mut r = Reader::new(ret);
     Ok((r.u8()?, r.u16()?, r.u8()?, r.u16()?, r.u16()?))
-}
-
-/// LE Supported (Controller) is bit 38 of the LMP features, page 0
-/// (Vol 2, Part C, 3.3), returned by Read Local Supported Features
-/// (Vol 4, Part E, 7.4.3) as eight octets, bit 0 first.
-pub fn le_supported(ret: &[u8]) -> Result<bool, HciError> {
-    let features: [u8; 8] = Reader::new(ret).array()?;
-    Ok(features[38 / 8] & 1 << (38 % 8) != 0)
 }
 
 /// Read BD_ADDR (Vol 4, Part E, 7.4.6).
