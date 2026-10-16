@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod announce;
 mod attempt;
+mod cached;
 mod classify;
 mod counters;
 mod drive;
@@ -28,6 +29,7 @@ mod run;
 mod send;
 mod visit;
 pub use attempt::JOIN_BUDGET_MS;
+pub use cached::retry_with_sae;
 pub use classify::{classify, wrap_eapol, RxKind};
 pub use counters::Counters;
 pub use drive::drive;
