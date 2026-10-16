@@ -27,7 +27,7 @@ pub mod codec;
 pub mod codec_probe;
 #[path = "../../../capsule_driver_hda/src/controller/compose.rs"]
 pub mod compose;
-#[path = "../../../capsule_driver_hda/src/controller/corb.rs"]
+#[path = "../../../capsule_driver_hda/src/controller/corb/mod.rs"]
 pub mod corb;
 #[path = "../../../capsule_driver_hda/src/controller/crst.rs"]
 pub mod crst;
@@ -37,7 +37,7 @@ pub mod dma_sync;
 pub mod immediate;
 #[path = "../../../capsule_driver_hda/src/controller/info.rs"]
 pub mod info;
-#[path = "../../../capsule_driver_hda/src/controller/intel.rs"]
+#[path = "../../../capsule_driver_hda/src/controller/intel/mod.rs"]
 pub mod intel;
 #[path = "../../../capsule_driver_hda/src/controller/position.rs"]
 pub mod position;
