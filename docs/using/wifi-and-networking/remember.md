@@ -2,7 +2,7 @@
 
 Turn on `Remember networks I join` with `R`. A network you then join is saved, with its passphrase, and joined again at the next boot when it is in range.
 
-- At most four networks are kept; saving a fifth drops the oldest.
+- At most four networks are kept. Saving a fifth drops the oldest one not pinned to WPA3, or the oldest of all when all four are, so a pin is lost only when nothing else can go. The panel names the one dropped, on screen only: Settings says `Remembered; forgot <name> to make room`, and setup's review says `Forgot <name> to make room for this network` before it goes on.
 - The list is saved only on a boot that keeps data: a boot of a disk NONOS was installed to, or a stick boot whose setup chose Install on its Mode step. Settings shows it as the read-only `Keep data across reboots` row under `Privacy`. On any other boot the row reads `Off: this boot keeps nothing`.
 - It is saved only with a TPM. The list is sealed with ChaCha20-Poly1305 under a [machine key](../../overview/glossary.md#machine-key) the TPM derives for the label `wifi/saved-networks`. That key is bound to PCRs 0, 4, 7 and 9, so after a firmware or kernel change the saved list no longer opens and you join again by hand.
 - The sealed record is the file `/nonos/wifi/saved` in the NONOS store.
