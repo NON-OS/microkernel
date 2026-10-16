@@ -19,7 +19,6 @@
 //! crate leaves its EDID log lines as they were.
 
 use super::dtd::Detailed;
-use super::dtd_decode::LEN;
 use crate::edid::Edid;
 
 /// The base block's first detailed timing and the image size.
@@ -38,10 +37,10 @@ impl Edid<'_> {
     /// descriptors before it are skipped, but a first timing with a clock
     /// and no picture is no native mode, as the loader has always held.
     pub fn native(&self) -> Option<Native> {
-        let b = self.base();
-        let slot = (0..4).map(|i| &b[54 + i * LEN..54 + (i + 1) * LEN]);
-        let d = slot.into_iter().find(|d| d[0] != 0 || d[1] != 0)?;
-        let d = Detailed::decode(d)?;
+        let d = self.first_slot().and_then(Detailed::fields)?;
+        if d.h_active == 0 || d.v_active == 0 {
+            return None;
+        }
         let (width_mm, height_mm) = self.size_with(d.width_mm, d.height_mm);
         Some(Native { width: d.width(), height: d.height(), width_mm, height_mm })
     }

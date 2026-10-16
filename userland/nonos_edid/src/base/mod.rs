@@ -23,6 +23,7 @@ pub mod established;
 pub mod ident;
 pub mod range;
 pub mod size;
+pub mod sound;
 pub mod standard;
 pub mod text;
 pub mod timings;
