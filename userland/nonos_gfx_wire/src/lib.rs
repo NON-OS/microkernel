@@ -26,6 +26,7 @@ pub mod errno;
 pub mod fit;
 pub mod header;
 pub mod kind;
+pub mod notice;
 pub mod ops;
 pub mod reply;
 pub mod request;

@@ -31,6 +31,8 @@ pub mod fit;
 pub mod header;
 #[path = "../../nonos_gfx_wire/src/kind.rs"]
 pub mod kind;
+#[path = "../../nonos_gfx_wire/src/notice.rs"]
+pub mod notice;
 #[path = "../../nonos_gfx_wire/src/ops.rs"]
 pub mod ops;
 #[path = "../../nonos_gfx_wire/src/reply.rs"]
