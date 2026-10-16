@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The lid, as the ACPI capsule last read it from _LID (ACPI 6.5, 9.4.1).
-//! Nothing acts on it yet; sleeping when it closes comes with sleep states.
+//! The lid, as the ACPI capsule last read it from _LID (ACPI 6.5, 9.4.1),
+//! and told to the shell (F-91) for its lock. Nothing in the kernel acts on
+//! it: whether a close powers off is the owner's open row.
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
@@ -37,5 +38,33 @@ pub fn lid_open() -> Option<bool> {
         OPEN => Some(true),
         CLOSED => Some(false),
         _ => None,
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Report {
+    /// The same as known: nothing to tell.
+    Unchanged,
+    Told,
+    /// The shell could not take it; nothing recorded, so the capsule's next
+    /// reading tells it again.
+    Busy,
+}
+
+/// A reading, told to the shell only when it changes what is known, and
+/// recorded only once told.
+pub fn report(open: bool, tell: impl FnOnce(bool) -> bool) -> Report {
+    let (r, now) = decide(LID.load(Ordering::Acquire), open, tell);
+    LID.store(now, Ordering::Release);
+    r
+}
+
+/// The rule, pure: what to answer and what is then known.
+pub fn decide(known: u8, open: bool, tell: impl FnOnce(bool) -> bool) -> (Report, u8) {
+    let now = if open { OPEN } else { CLOSED };
+    match (known == now, known == now || tell(open)) {
+        (true, _) => (Report::Unchanged, known),
+        (false, true) => (Report::Told, now),
+        (false, false) => (Report::Busy, known),
     }
 }
