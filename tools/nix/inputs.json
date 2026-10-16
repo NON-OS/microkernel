@@ -854,6 +854,34 @@
   "md": [],
   "signed": []
  },
+ "userland/blk_client_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/blk_client_proofs",
+   "userland/capsule_driver_ahci/src/protocol/endpoint.rs",
+   "userland/capsule_driver_ahci/src/protocol/header.rs",
+   "userland/capsule_driver_ahci/src/protocol/ops.rs",
+   "userland/capsule_driver_nvme/src/protocol/endpoint.rs",
+   "userland/capsule_driver_nvme/src/protocol/header.rs",
+   "userland/capsule_driver_nvme/src/protocol/ops.rs",
+   "userland/capsule_driver_virtio_blk/src/protocol/endpoint.rs",
+   "userland/capsule_driver_virtio_blk/src/protocol/errno.rs",
+   "userland/capsule_driver_virtio_blk/src/protocol/header.rs",
+   "userland/capsule_driver_virtio_blk/src/protocol/ops.rs",
+   "userland/nonos_blk_client/src/device/identity_parse.rs",
+   "userland/nonos_blk_client/src/device/span.rs",
+   "userland/nonos_blk_client/src/driver",
+   "userland/nonos_blk_client/src/error.rs",
+   "userland/nonos_blk_client/src/status_text",
+   "userland/nonos_blk_client/src/status_text.rs",
+   "userland/nonos_blk_client/src/wire/decode.rs",
+   "userland/nonos_blk_client/src/wire/encode.rs",
+   "userland/nonos_blk_client/src/wire/header.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/boot_slots_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz",
@@ -4965,19 +4993,10 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "userland/capsule_driver_virtio_blk/src/constants",
-   "userland/capsule_driver_virtio_blk/src/protocol",
-   "userland/capsule_driver_virtio_blk/src/queue/layout.rs",
-   "userland/capsule_driver_virtio_blk/src/queue/used.rs",
-   "userland/capsule_driver_virtio_blk/src/regs/io.rs",
-   "userland/capsule_driver_virtio_blk/src/regs/state/mmio.rs",
-   "userland/capsule_driver_virtio_blk/src/regs/state/types.rs",
-   "userland/capsule_driver_virtio_blk/src/server/acl",
-   "userland/capsule_driver_virtio_blk/src/server/handlers/read/request.rs",
-   "userland/capsule_driver_virtio_blk/src/server/handlers/write/request.rs",
-   "userland/capsule_driver_virtio_blk/src/setup/driver.rs",
-   "userland/capsule_driver_virtio_blk/src/setup/modern/capacity.rs",
-   "userland/capsule_driver_virtio_blk/src/transport/types.rs",
+   "userland/capsule_driver_virtio_blk/src",
+   "userland/libc/src/bringup",
+   "userland/libc/src/broker",
+   "userland/nonos_devmodel",
    "userland/nonos_virtio",
    "userland/virtio_blk_proofs"
   ],
