@@ -4,12 +4,12 @@ Part of [Syscalls](syscalls.md).
 
 ## Numbers
 
-A syscall number is a [syscall tag](../overview/glossary.md#syscall-tag): four
+A syscall number is a [syscall tag](../overview/glossary-stark-proof.md#syscall-tag): four
 ASCII letters packed little-endian into a `u64` by `tag4`, first letter in the
 lowest byte (`src/syscall/abi/tag.rs:17-22`). `MISD` is the bytes `M`, `I`, `S`,
 `D`, so its number is `0x4453494D`. Any number not in `REGISTRY` is answered
 with `ENOSYS`, -38, except from a [foreign
-process](../overview/glossary.md#foreign-process) on x86_64, whose supervisor
+process](../overview/glossary-dma-pool.md#foreign-process) on x86_64, whose supervisor
 answers it; see [The NONOS ABI](abi-calling-convention.md#calling-convention).
 
 `REGISTRY` holds one table per family, 130 calls in all

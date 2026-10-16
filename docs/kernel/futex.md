@@ -1,6 +1,6 @@
 # Futex
 
-The two NONOS system calls that let the threads of a [capsule](../overview/glossary.md#capsule) sleep on a 32-bit word in their own memory and wake each other, what they promise, and how Linux programs get their `futex` instead.
+The two NONOS system calls that let the threads of a [capsule](../overview/glossary-boot-root-record.md#capsule) sleep on a 32-bit word in their own memory and wake each other, what they promise, and how Linux programs get their `futex` instead.
 
 ## The two calls
 
@@ -9,9 +9,9 @@ The two NONOS system calls that let the threads of a [capsule](../overview/gloss
 | `MkFutexWait` | `0x5754464D`, the tag `MFTW` | `vaddr`, `expected`, `timeout_ms` | 0, or a negative error |
 | `MkFutexWake` | `0x4B54464D`, the tag `MFTK` | `vaddr`, `count` | how many waiters were woken |
 
-The numbers are four-letter [syscall tags](../overview/glossary.md#syscall-tag), `SYS_FUTEX_WAIT` and `SYS_FUTEX_WAKE` (`src/syscall/microkernel/numbers.rs:42-43`), dispatched to `sys_futex_wait` and `sys_futex_wake` (`src/syscall/microkernel/dispatch/process.rs:78-79`). Their entries in the ABI file are `desc.MFTK` and `desc.MFTW` (`abi/syscalls.toml:548-557`).
+The numbers are four-letter [syscall tags](../overview/glossary-stark-proof.md#syscall-tag), `SYS_FUTEX_WAIT` and `SYS_FUTEX_WAKE` (`src/syscall/microkernel/numbers.rs:42-43`), dispatched to `sys_futex_wait` and `sys_futex_wake` (`src/syscall/microkernel/dispatch/process.rs:78-79`). Their entries in the ABI file are `desc.MFTK` and `desc.MFTW` (`abi/syscalls.toml:548-557`).
 
-Both need only a valid [capability token](../overview/glossary.md#capability-token): `MkFutexWait` and `MkFutexWake` sit with exit, yield and the clock calls that any process may make (`src/syscall/contract/cap_table/mk.rs:23-38`). The check itself is on [capabilities](capabilities.md).
+Both need only a valid [capability token](../overview/glossary-boot-root-record.md#capability-token): `MkFutexWait` and `MkFutexWake` sit with exit, yield and the clock calls that any process may make (`src/syscall/contract/cap_table/mk.rs:23-38`). The check itself is on [capabilities](capabilities.md).
 
 | Error | Value | When |
 |---|---|---|
@@ -70,11 +70,11 @@ The NONOS standard library port builds `Mutex`, `Condvar`, `RwLock`, `Once` and 
 
 ## Linux programs
 
-A Linux program's futex call never reaches these calls. The [Linux personality](../overview/glossary.md#linux-personality) capsule serves `futex` entirely itself: a waiting guest thread is parked inside its trap, so the wait is the absence of a reply and the wake is the reply (`userland/capsule_linux/src/linux/call/futex.rs:17-22`). It accepts `FUTEX_WAIT`, `FUTEX_WAKE`, `FUTEX_REQUEUE`, `FUTEX_CMP_REQUEUE`, `FUTEX_WAIT_BITSET` and `FUTEX_WAKE_BITSET`, with the private flag (`userland/capsule_linux/src/linux/call/futex_op.rs:24-31`). `decode` refuses every other operation, and `FUTEX_CLOCK_REALTIME` on anything but `FUTEX_WAIT_BITSET`, with `ENOSYS`, and a zero bitset or a misaligned word with `EINVAL` (`userland/capsule_linux/src/linux/call/futex_op.rs:46-75`). Priority-inheritance futexes are among the refused operations. See [Linux personality](../userland/linux-personality.md).
+A Linux program's futex call never reaches these calls. The [Linux personality](../overview/glossary-linux-personality.md#linux-personality) capsule serves `futex` entirely itself: a waiting guest thread is parked inside its trap, so the wait is the absence of a reply and the wake is the reply (`userland/capsule_linux/src/linux/call/futex.rs:17-22`). It accepts `FUTEX_WAIT`, `FUTEX_WAKE`, `FUTEX_REQUEUE`, `FUTEX_CMP_REQUEUE`, `FUTEX_WAIT_BITSET` and `FUTEX_WAKE_BITSET`, with the private flag (`userland/capsule_linux/src/linux/call/futex_op.rs:24-31`). `decode` refuses every other operation, and `FUTEX_CLOCK_REALTIME` on anything but `FUTEX_WAIT_BITSET`, with `ENOSYS`, and a zero bitset or a misaligned word with `EINVAL` (`userland/capsule_linux/src/linux/call/futex_op.rs:46-75`). Priority-inheritance futexes are among the refused operations. See [Linux personality](../userland/linux-personality.md).
 
 ## Tests
 
-- The kernel's own waiter list, the `waiters` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate), which runs the order a wait takes its steps in against every interleaving with one waker (`userland/kernel_proofs/src/futex_waiters/mod.rs:17-26`). That crate passes on this commit.
+- The kernel's own waiter list, the `waiters` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary-peer-list.md#proof-crate), which runs the order a wait takes its steps in against every interleaving with one waker (`userland/kernel_proofs/src/futex_waiters/mod.rs:17-26`). That crate passes on this commit.
 - The Linux futex decoding is tested in the `capsule_linux_proofs` proof crate (`userland/capsule_linux_proofs/src/tests/futex_tests.rs`), which also passes on this commit.
 
 ## Limits

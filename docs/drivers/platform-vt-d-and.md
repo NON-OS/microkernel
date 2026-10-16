@@ -4,8 +4,8 @@ Part of [Platform](platform.md).
 
 ## VT-d and AMD-Vi
 
-The [IOMMU](../overview/glossary.md#iommu) is what confines a driver's DMA to
-the buffers the [hardware broker](../overview/glossary.md#hardware-broker) gave
+The [IOMMU](../overview/glossary-hardware-broker.md#iommu) is what confines a driver's DMA to
+the buffers the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker) gave
 it. Every image is built with `nonos-arch-iommu` and `nonos-iommu-enforce` as
 part of the core feature set, so the kernel programs the Intel VT-d remapping
 units the ACPI DMAR table describes and turns translation on
@@ -29,8 +29,8 @@ of memory. The broker says so in the log on each claim ([Broker
 API](broker-api-list-and-claim.md#list-and-claim)).
 
 With VT-d in service, `attach` gives each [driver
-capsule](../overview/glossary.md#driver-capsule) an [IOMMU
-domain](../overview/glossary.md#iommu-domain) of its own and moves each claimed
+capsule](../overview/glossary-dma-pool.md#driver-capsule) an [IOMMU
+domain](../overview/glossary-hardware-broker.md#iommu-domain) of its own and moves each claimed
 device into it. A device that no unit in service covers stays on physical
 addresses, as `translates` decides
 (`src/hardware/broker/confine/attach.rs:30-48`), and each DMA grant made for it

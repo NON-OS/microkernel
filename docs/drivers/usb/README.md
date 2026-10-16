@@ -27,7 +27,7 @@ flowchart LR
     M --> B[kernel block layer]
 ```
 
-`driver.xhci0` owns the xHCI controllers: their registers, rings and DMA. It knows nothing of keyboards or disks. The class [capsules](../../overview/glossary.md#capsule) `driver.usb_hid0` and `driver.usb_msc0` read descriptors and run transfers through it. Its service is a [held endpoint](../../overview/glossary.md#held-endpoint): the kernel lets only those two send to it, because the controller carries raw transfers to every device behind it (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`). Keyboard and mouse events go to the kernel input ring and from there to `input_router`; disk sectors go to the kernel block layer.
+`driver.xhci0` owns the xHCI controllers: their registers, rings and DMA. It knows nothing of keyboards or disks. The class [capsules](../../overview/glossary-boot-root-record.md#capsule) `driver.usb_hid0` and `driver.usb_msc0` read descriptors and run transfers through it. Its service is a [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint): the kernel lets only those two send to it, because the controller carries raw transfers to every device behind it (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`). Keyboard and mouse events go to the kernel input ring and from there to `input_router`; disk sectors go to the kernel block layer.
 
 ## Finding controllers
 
@@ -39,14 +39,14 @@ The kernel starts `driver.xhci0` at every boot (`src/userspace/init/spawn_plan/d
 
 For each controller (`userland/capsule_driver_xhci/src/setup/sequence.rs:41-94`, `run`):
 
-- It claims the controller from the [hardware broker](../../overview/glossary.md#hardware-broker), turns on bus mastering and maps BAR0 up to 512 KiB, enough for Intel's doorbells at 0x3000 and extended capabilities near 0x8000 (`userland/capsule_driver_xhci/src/setup/mmio_map.rs:19-31`, `REGISTER_WINDOW_LEN`).
+- It claims the controller from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker), turns on bus mastering and maps BAR0 up to 512 KiB, enough for Intel's doorbells at 0x3000 and extended capabilities near 0x8000 (`userland/capsule_driver_xhci/src/setup/mmio_map.rs:19-31`, `REGISTER_WINDOW_LEN`).
 - It asks for one MSI-X vector. Every completion is decided from the event ring, and the interrupt only parks the driver between polls (`userland/capsule_driver_xhci/src/setup/irq_bind.rs:20-31`, `irq_bind`).
 - It takes the controller from the firmware's legacy USB support through USBLEGSUP before the reset (`userland/capsule_driver_xhci/src/controller/legacy_handoff/legacy_handoff.rs:24-43`, `legacy_handoff`).
 - It waits for CNR to clear, halts and resets the controller, and touches nothing for 1 ms after HCRST, the wait Linux's XHCI_INTEL_HOST quirk gives Intel controllers (`userland/capsule_driver_xhci/src/controller/reset.rs:22-41`, `POST_HCRST_MS`).
 - It keeps all DMA below 4 GiB on a controller without 64-bit addressing, and refuses one with no device slots (`userland/capsule_driver_xhci/src/controller/refuse_unsupported.rs:19-28`, `refuse_unsupported`).
 - It sets up the scratchpads, the device context array, the command ring and the event ring, starts the controller, powers every root port and runs a No-op command.
 
-The capsule marks each step with a `[driver_xhci]` line written with `mk_debug` (`userland/capsule_driver_xhci/src/setup/marker.rs:17-19`, `marker`). The kernel grants `driver.xhci0` no Debug [capability](../../overview/glossary.md#capability), so those lines do not reach the [serial console](../../overview/glossary.md#serial-console) in this release (`src/hardware/xhci_capsule/spawn.rs:51-57`, `requested_caps`).
+The capsule marks each step with a `[driver_xhci]` line written with `mk_debug` (`userland/capsule_driver_xhci/src/setup/marker.rs:17-19`, `marker`). The kernel grants `driver.xhci0` no Debug [capability](../../overview/glossary-boot-root-record.md#capability), so those lines do not reach the [serial console](../../overview/glossary-rollback-index.md#serial-console) in this release (`src/hardware/xhci_capsule/spawn.rs:51-57`, `requested_caps`).
 
 ## USB 2 and USB 3 ports
 
@@ -75,9 +75,9 @@ A command such as Address Device gets 5 s (`userland/capsule_driver_xhci/src/con
 
 ## Operations and access
 
-`driver.xhci0` serves service [endpoint](../../overview/glossary.md#endpoint) 4206 (`userland/capsule_driver_xhci/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are health check, controller status, port status, enable and disable slot, address device, device and configuration descriptors, transfer ring allocation, control transfer, interrupt IN, and bulk configure, OUT, IN and reset (`userland/capsule_driver_xhci/src/protocol/ops.rs:16-30`, `OP_ADDRESS_DEVICE`). Any other operation is answered `E_INVAL` (`userland/capsule_driver_xhci/src/server/dispatch.rs:26-46`, `E_INVAL`). Port status reports each root port as free, addressed or claimed by a class driver, so one class driver does not reset a device another is still reading (`userland/capsule_driver_xhci/src/slots/table/port_state.rs:16-26`, `PORT_CLAIMED`).
+`driver.xhci0` serves service [endpoint](../../overview/glossary-dma-pool.md#endpoint) 4206 (`userland/capsule_driver_xhci/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are health check, controller status, port status, enable and disable slot, address device, device and configuration descriptors, transfer ring allocation, control transfer, interrupt IN, and bulk configure, OUT, IN and reset (`userland/capsule_driver_xhci/src/protocol/ops.rs:16-30`, `OP_ADDRESS_DEVICE`). Any other operation is answered `E_INVAL` (`userland/capsule_driver_xhci/src/server/dispatch.rs:26-46`, `E_INVAL`). Port status reports each root port as free, addressed or claimed by a class driver, so one class driver does not reset a device another is still reading (`userland/capsule_driver_xhci/src/slots/table/port_state.rs:16-26`, `PORT_CLAIMED`).
 
-The capsule holds the capabilities IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the [capability word](../../overview/glossary.md#capability-word) 0xF8018 (`userland/capsule_driver_xhci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
+The capsule holds the capabilities IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the [capability word](../../overview/glossary-boot-root-record.md#capability-word) 0xF8018 (`userland/capsule_driver_xhci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
 
 ## Controllers without a driver
 
@@ -87,7 +87,7 @@ The USB network adapter capsules (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek
 
 ## How it was verified
 
-- `userland/xhci_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the controller. It runs the TRB layer, the event ring and the bring-up against a register window and host DMA memory. Its flake check fails on this commit: clippy, run with warnings as errors, rejects two assertions in its tests (`userland/xhci_proofs/src/conformance/silicon_tests.rs:255`, `slept_ms`; `userland/xhci_proofs/src/event_ring/address_tests.rs:39`, `SET_ADDRESS_SETTLE_MS`). The check recorded no test count.
+- `userland/xhci_proofs` is the [proof crate](../../overview/glossary-peer-list.md#proof-crate) for the controller. It runs the TRB layer, the event ring and the bring-up against a register window and host DMA memory. Its flake check fails on this commit: clippy, run with warnings as errors, rejects two assertions in its tests (`userland/xhci_proofs/src/conformance/silicon_tests.rs:255`, `slept_ms`; `userland/xhci_proofs/src/event_ring/address_tests.rs:39`, `SET_ADDRESS_SETTLE_MS`). The check recorded no test count.
 - `userland/usb_proofs` covers the class side, with keyboards, mice, tablets and hub routing checked against the controller's request limits: 83 tests pass on this commit.
 - Ten of the twelve QEMU command lines in `mk/40-run.mk` attach a `qemu-xhci` controller (`mk/10-qemu.mk:99-102`, `QEMU_USB`), and so does every `make boot` (`tools/nonos_qemu/machine.py:91-93`, `devices`). Those boots take the keyboard and mouse from PS/2. The comment on `QEMU_USB` gives the reason: USB HID interrupt-IN transfers were not serviced under the macOS hvf accelerator. That host behaviour is not tested in this release.
 - USB has not been tested on hardware in this release.

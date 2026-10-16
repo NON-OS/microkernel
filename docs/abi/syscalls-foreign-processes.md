@@ -5,7 +5,7 @@ Part of [Syscalls](syscalls.md).
 ### Foreign processes
 
 A supervising capsule that holds `ForeignExec`, such as the [Linux
-personality](../overview/glossary.md#linux-personality), uses these to host
+personality](../overview/glossary-linux-personality.md#linux-personality), uses these to host
 programs the kernel has not verified. They exist on x86_64 only. On aarch64 and
 riscv64 the `foreign` module is built from `foreign_absent.rs` instead
 (`src/process/mod.rs:26-30`), and every call in it returns `ERRNO_NOSYS`, -38

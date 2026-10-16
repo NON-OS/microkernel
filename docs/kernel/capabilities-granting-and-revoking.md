@@ -11,13 +11,13 @@ Part of [Capabilities](capabilities.md).
   (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:25-27`). The
   word is every required bit plus the optional bits the spawn site asked for, as
   `install_caps` computes, and both sets must lie under the [capability
-  ceiling](../overview/glossary.md#capability-ceiling), the
+  ceiling](../overview/glossary-boot-root-record.md#capability-ceiling), the
   `allowed_caps_ceiling` of the publisher's identity certificate, which
   `within_ceiling` checks
   (`src/security/capsule_manifest/verify/caps_bits.rs:26-47`). A spawn site that
   asks for a bit the manifest does not declare is refused with
   `GrantOutsideManifest` (`src/security/capsule_manifest/verify/caps.rs:31-39`).
-- The [boot profile](../overview/glossary.md#boot-profile) trims that word
+- The [boot profile](../overview/glossary-amnesic-boot.md#boot-profile) trims that word
   before it is installed: `caps` removes `Network` when the profile runs no
   network
   (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
@@ -50,8 +50,8 @@ them, and the syscall check calls only the five checks above.
 ## What capabilities do not cover
 
 A capability says what kind of call a process may make, not whom it may talk to.
-The [held endpoints](../overview/glossary.md#held-endpoint) and the [peer
-list](../overview/glossary.md#peer-list) on [IPC](ipc.md) add that. `IO` and
+The [held endpoints](../overview/glossary-hardware-broker.md#held-endpoint) and the [peer
+list](../overview/glossary-peer-list.md#peer-list) on [IPC](ipc.md) add that. `IO` and
 `Hardware` gate nothing at this commit, and `Keyring` and `Entropy` gate only
 kernel clients that nothing calls. A capability check is only as good as the
 process isolation under it; [Capsule

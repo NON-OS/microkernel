@@ -35,7 +35,7 @@ Part of [Threat model](threat-model.md).
   did not come up. The device is unconfined, and the serial log says so for each
   claim.
 - DMA from a device found at boot that no driver has claimed, which stays in the
-  [identity domain](glossary.md#identity-domain) and reaches all the memory the
+  [identity domain](glossary-hardware-broker.md#identity-domain) and reaches all the memory the
   kernel manages, and from a device with no PCI requester id, which gets no
   domain (`pci_address` in `src/hardware/broker/confine/table.rs:35-43`).
 - Interrupts a device raises by writing MSI messages. Interrupt remapping is off
@@ -54,7 +54,7 @@ Part of [Threat model](threat-model.md).
   `userland/capsule_net_anon/src/server/idle.rs:43-51`).
 - Serial output on an image built from any profile but `hardened` and
   `airgapped`. Capsules may write diagnostics to the [serial
-  console](glossary.md#serial-console) there; only those two profiles take that
+  console](glossary-rollback-index.md#serial-console) there; only those two profiles take that
   out (`debugFeatures` in `tools/nix/config.nix:60-92`).
 - A `dev` image, which promises nothing (`tools/nix/config.nix:102-109`).
 - Timing and cache side channels between capsules, which can run at the same

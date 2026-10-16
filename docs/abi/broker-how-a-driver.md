@@ -23,10 +23,10 @@ sequenceDiagram
 
 A driver lists the broker's devices with `MkDeviceList` and reads one
 `DeviceRecord` per device. It claims one with `MkDeviceClaim`, which returns the
-[claim epoch](../overview/glossary.md#claim-epoch). The map, bind, grant and PCI
+[claim epoch](../overview/glossary-claim-epoch.md#claim-epoch). The map, bind, grant and PCI
 calls pass the epoch back, and an old epoch is refused with `ESTALE`. With the
 claim it maps MMIO windows, binds interrupts, takes DMA buffers and port grants;
-each comes back as a [grant](../overview/glossary.md#grant) id. It waits with
+each comes back as a [grant](../overview/glossary-dma-pool.md#grant) id. It waits with
 `MkIrqWait`, acknowledges with `MkIrqAck`, and gives everything back with
 `MkDeviceRelease`. The libc wrappers in `userland/libc/src/broker/` carry the
 same names in snake case, such as `mk_device_list`
@@ -35,7 +35,7 @@ same names in snake case, such as `mk_device_list`
 ## The calls
 
 Arguments are in register order, first argument first. The Capability column is
-the [capability](../overview/glossary.md#capability) gate in the cap table; see
+the [capability](../overview/glossary-boot-root-record.md#capability) gate in the cap table; see
 [Capabilities](capabilities.md).
 
 | Tag | Name | Arguments | Returns | Capability | libc |

@@ -16,7 +16,7 @@ Which disks NONOS can read and write, which capsule drives each kind, and how on
 
 virtio-blk has no page of its own. It serves the data disk of a QEMU machine and matches the two ids `VIRTIO_BLK_TRANSITIONAL` and `VIRTIO_BLK_MODERN` (`userland/capsule_driver_virtio_blk/src/constants/pci.rs:16-18`).
 
-Every storage driver is a [capsule](../../overview/glossary.md#capsule) in ring 3. The PCI drivers take their controller from the [hardware broker](../../overview/glossary.md#hardware-broker); the USB mass-storage driver reaches its device through the xHCI driver. The kernel block layer decides which disk holds NONOS, and the file system above it reads what is on that disk.
+Every storage driver is a [capsule](../../overview/glossary-boot-root-record.md#capsule) in ring 3. The PCI drivers take their controller from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker); the USB mass-storage driver reaches its device through the xHCI driver. The kernel block layer decides which disk holds NONOS, and the file system above it reads what is on that disk.
 
 ## How a disk becomes the NONOS disk
 
@@ -28,7 +28,7 @@ For each disk the layer checks three things (`src/hardware/block_device/identify
 
 1. The disk is larger than 256 sectors (`src/hardware/block_device/identify.rs:46-48`, `STORE_LBA`).
 2. The disk is addressable in 512-byte sectors (`src/hardware/block_device/fit.rs:22-30`, `sectors_fit`).
-3. LBA 256 starts with `NONOSTR1`, the header of the [package store](../../overview/glossary.md#package-store), or LBA 245760 starts with `NONOSDP1`, the [disk plan](../../overview/glossary.md#disk-plan) (`src/hardware/block_device/identify.rs:24-28`, `STORE_MAGIC`, `PLAN_MAGIC`).
+3. LBA 256 starts with `NONOSTR1`, the header of the [package store](../../overview/glossary-linux-personality.md#package-store), or LBA 245760 starts with `NONOSDP1`, the [disk plan](../../overview/glossary-claim-epoch.md#disk-plan) (`src/hardware/block_device/identify.rs:24-28`, `STORE_MAGIC`, `PLAN_MAGIC`).
 
 ```mermaid
 flowchart TD
@@ -60,7 +60,7 @@ The block layer writes its own lines, so they appear whatever the drivers may pr
 - with no disk found, `[BLOCK] no disk carries the NONOS store or disk plan yet; block I/O refused` (`src/hardware/block_device/select.rs:73-78`, `TOLD_NONE`);
 - one `[USB-MSC]` line saying where the stick search stands (`src/hardware/usb_msc_capsule/report.rs:32-38`, `report_line`).
 
-The drivers' own lines are a different matter. They write to the [serial console](../../overview/glossary.md#serial-console) with `mk_debug`, which needs the Debug [capability](../../overview/glossary.md#capability). The kernel never grants it to `driver.ahci0` (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), and the spawn grants in `src/hardware/xhci_capsule/spawn.rs`, `src/userspace/capsule_driver_usb_hid/spawn.rs` and `src/userspace/capsule_driver_usb_msc/spawn.rs` leave it out as well. `driver.nvme0` and `driver.virtio_blk0` get it only in an image built with `capsule-serial-debug` (`src/hardware/nvme_capsule/spawn.rs:51-53`, `serial_debug_cap`). The standard, qemu and dev profiles have that feature through `microkernel-desktop-base`; the hardened and air-gapped profiles drop it (`tools/nix/config.nix:60-62`, `debugFeatures`).
+The drivers' own lines are a different matter. They write to the [serial console](../../overview/glossary-rollback-index.md#serial-console) with `mk_debug`, which needs the Debug [capability](../../overview/glossary-boot-root-record.md#capability). The kernel never grants it to `driver.ahci0` (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), and the spawn grants in `src/hardware/xhci_capsule/spawn.rs`, `src/userspace/capsule_driver_usb_hid/spawn.rs` and `src/userspace/capsule_driver_usb_msc/spawn.rs` leave it out as well. `driver.nvme0` and `driver.virtio_blk0` get it only in an image built with `capsule-serial-debug` (`src/hardware/nvme_capsule/spawn.rs:51-53`, `serial_debug_cap`). The standard, qemu and dev profiles have that feature through `microkernel-desktop-base`; the hardened and air-gapped profiles drop it (`tools/nix/config.nix:60-62`, `debugFeatures`).
 
 ## The disk layout
 
@@ -75,7 +75,7 @@ The installer writes a whole disk through `nonos_disk`, and the kernel reads the
 | 262144 up to the ESP | `NONOS-DATA` | the data volume |
 | 1 GiB ending at the last MiB boundary before the backup GPT | `NONOS-ESP` | loader, kernel image and `boot.cfg` |
 
-The sector numbers come from `userland/nonos_disk_map/src/places.rs:23-48` (`STORE_BASE_LBA`, `KEY_LBA`, `DATA_FLOOR`), and the place of the [ESP](../../overview/glossary.md#esp) from `userland/nonos_disk/src/layout/plan.rs:54-62` (`esp_end`). The ESP grows past 1 GiB, in whole MiB, only for an image that does not fit in one. The [data volume](../../overview/glossary.md#data-volume) starts at or above 128 MiB. The smallest disk the installer takes is 2177 MiB: the 128 MiB below the data floor, a 1 GiB data volume, the 1 GiB ESP and 1 MiB for the backup table (`userland/nonos_disk/src/layout/sizes.rs:34-38`, `MIN_DISK_SECTORS`).
+The sector numbers come from `userland/nonos_disk_map/src/places.rs:23-48` (`STORE_BASE_LBA`, `KEY_LBA`, `DATA_FLOOR`), and the place of the [ESP](../../overview/glossary-dma-pool.md#esp) from `userland/nonos_disk/src/layout/plan.rs:54-62` (`esp_end`). The ESP grows past 1 GiB, in whole MiB, only for an image that does not fit in one. The [data volume](../../overview/glossary-claim-epoch.md#data-volume) starts at or above 128 MiB. The smallest disk the installer takes is 2177 MiB: the 128 MiB below the data floor, a 1 GiB data volume, the 1 GiB ESP and 1 MiB for the backup table (`userland/nonos_disk/src/layout/sizes.rs:34-38`, `MIN_DISK_SECTORS`).
 
 A disk plan whose volume base and size are both 0 belongs to a live stick: the volume stays in RAM and nothing of the machine is written to the stick (`src/fs/blockfs_volume/plan_types.rs:56-59`, `is_live`).
 
@@ -109,7 +109,7 @@ The list also names a storage controller that should be serving a disk and is no
 
 ## How each driver is verified
 
-Each [proof crate](../../overview/glossary.md#proof-crate) runs the driver's own source on the host. The counts are the flake check results for this commit. The QEMU column names the device each setup attaches; none of these QEMU setups has a run reported for this commit.
+Each [proof crate](../../overview/glossary-peer-list.md#proof-crate) runs the driver's own source on the host. The counts are the flake check results for this commit. The QEMU column names the device each setup attaches; none of these QEMU setups has a run reported for this commit.
 
 | Driver | Host proofs | QEMU | Real hardware |
 |---|---|---|---|

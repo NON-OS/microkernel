@@ -16,17 +16,17 @@ names which authority admitted each capsule. The loader's boot menu names the
 checks it makes on the kernel image before the kernel runs, and [Boot chain and
 signatures](../security/boot-chain-and-signatures.md) and [Rollback
 protection](../security/rollback-protection.md) cover that path. On a machine
-whose TPM holds the [rollback floor](glossary.md#rollback-floor), the loader
+whose TPM holds the [rollback floor](glossary-peer-list.md#rollback-floor), the loader
 also refuses an older signed kernel (`enforce_floor` in
 `nonos-bootloader/src/boot/crypto/rollback/floor.rs:28-40`). Before init the
 kernel checks the loader against the signed [boot-root
-record](glossary.md#boot-root-record), and starts no program when that fails
+record](glossary-boot-root-record.md#boot-root-record), and starts no program when that fails
 (`refuse_unchecked_loader` in
 `src/kernel_core/init/entry/loader_refusal.rs:27-48`). These checks hold each
 part of an image to the rest of that image: the loader checks the kernel against
-keys compiled into that loader, so with [Secure Boot](glossary.md#secure-boot)
+keys compiled into that loader, so with [Secure Boot](glossary-rollback-index.md#secure-boot)
 off an image sealed whole with other keys passes them. The TPM then gives that
-image another [machine key](glossary.md#machine-key), so this machine's data
+image another [machine key](glossary-linux-personality.md#machine-key), so this machine's data
 volume and the records sealed under its key stay closed to it (`BOUND_PCRS` in
 `src/security/tpm/machine_key/pcrs.rs:21-24`).
 
