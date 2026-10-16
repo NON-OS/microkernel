@@ -18,6 +18,7 @@
 
 use super::interrupt::{arm, IntrEp};
 use crate::env::{Mem, Regs};
+use crate::sched::clean::clean;
 use crate::sched::layout::{intr_buf, intr_ed, intr_td, INTR_BUF_LEN};
 use crate::sched::queue::{look, Ran};
 use crate::sched::take::clear_halt;
@@ -35,7 +36,7 @@ pub enum Poll {
 
 pub fn poll<M: Mem, R: Regs>(m: &M, r: &mut R, ep: &mut IntrEp, out: &mut [u8]) -> Poll {
     let (i, here) = (ep.index, intr_td(ep.index, ep.at));
-    let got = match look(m, intr_ed(i), intr_td(i, 1 - ep.at)) {
+    let got = match look(m, intr_ed(i), intr_td(i, 1 - ep.at)).map(|r| clean(m, r, here, 1)) {
         None => return Poll::Pending,
         Some(Ran::Done) => {
             let n = moved(m, here, intr_buf(i), ep.len.min(INTR_BUF_LEN)).min(out.len());

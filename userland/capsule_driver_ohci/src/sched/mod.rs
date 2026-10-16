@@ -17,6 +17,7 @@
 //! The schedule: where each structure sits, the ED and TD words, the lists
 //! the controller walks, and an ED's queue run, waited for and cancelled.
 
+pub mod clean;
 pub mod ed;
 pub mod layout;
 pub mod lists;
