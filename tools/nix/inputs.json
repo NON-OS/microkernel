@@ -2778,7 +2778,6 @@
    "userland/compositor/src/protocol",
    "userland/compositor/src/setup/canvas_floor.rs",
    "userland/compositor/src/state/attach.rs",
-   "userland/compositor/src/state/damage.rs",
    "userland/compositor/src/state/indicator.rs",
    "userland/compositor/src/state/raise_rule.rs",
    "userland/compositor/src/state/scene",
@@ -2902,7 +2901,6 @@
    "userland/capsule_wm/src/window/table/windows.rs",
    "userland/capsule_wm/src/window/window.rs",
    "userland/capsule_wm/src/z_order",
-   "userland/compositor/src/state/damage.rs",
    "userland/compositor/src/state/scene",
    "userland/compositor/src/state/scene_raise.rs",
    "userland/compositor/src/state/scene_submit.rs",
@@ -3507,7 +3505,6 @@
    "userland/capsule_input_router/src/protocol/read_u32.rs",
    "userland/capsule_input_router/src/route",
    "userland/capsule_input_router/src/state",
-   "userland/compositor/src/state/damage.rs",
    "userland/input_proofs",
    "userland/nonos_keymap"
   ],

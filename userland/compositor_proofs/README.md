@@ -8,6 +8,9 @@ request protocol (`../compositor/src/state/`, `sw_blitter/`, `protocol/`).
 | Tests | What they hold |
 |---|---|
 | `damage_tests` | damage coverage is never lost across a merge |
+| `coalesce_tests` | drained rectangles never touch, never number more than eight, cover every damaged pixel and reach no further than the damage (`state/damage/accumulate.rs`) |
+| `bound_tests`, `bound_session_tests` | a client's damage counts only on its own layers, and in random sessions of drawing, over-damage, moves, resizes and a hostile client, the screen kept by bounded damage equals a full frame (`state/damage_bound.rs`) |
+| `scale_damage_tests` | at every scale step and on a smaller screen, a screen kept by damaged rectangles equals the canvas taken onto it afresh |
 | `blitter_tests`, `upscale_tests` | the blitter never writes outside the destination, and the 2x upscale fills what it should |
 | `parse_tests` | every frame through the real header decode: served, or refused with a status and the request it answers |
 | `batch_tests` | a frame reaches a wire driver in one FLUSH of up to 15 rectangles, and a refused FLUSH's rectangles are all damaged again (`frame_pacer/drain_batch.rs`) |

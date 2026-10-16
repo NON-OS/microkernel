@@ -27,7 +27,7 @@ pub mod state;
 
 pub use frame_pacer::{drain_batch, drain_damage};
 pub use state::{
-    attach, damage, indicator, raise_rule, scene, scene_raise, scene_remove, scene_submit,
+    attach, damage, damage_bound, indicator, raise_rule, scene, scene_raise, scene_remove, scene_submit,
     trusted_rule, visible,
 };
 

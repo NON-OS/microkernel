@@ -61,7 +61,7 @@ pub mod gesture;
 
 // The compositor's damage accumulator, whose coalescing must never drop a
 // damaged pixel or the screen tears.
-#[path = "../../compositor/src/state/damage.rs"]
+#[path = "../../compositor/src/state/damage/mod.rs"]
 pub mod damage;
 
 // The input router's press grab: the frame a dragged window's motion arrives in.

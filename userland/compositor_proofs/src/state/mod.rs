@@ -20,8 +20,10 @@
 
 #[path = "../../../compositor/src/state/attach.rs"]
 pub mod attach;
-#[path = "../../../compositor/src/state/damage.rs"]
+#[path = "../../../compositor/src/state/damage/mod.rs"]
 pub mod damage;
+#[path = "../../../compositor/src/state/damage_bound.rs"]
+pub mod damage_bound;
 #[path = "../../../compositor/src/state/indicator.rs"]
 pub mod indicator;
 #[path = "../../../compositor/src/state/raise_rule.rs"]

@@ -28,4 +28,5 @@ mod poll_tests;
 mod present_retry_tests;
 mod resize_fit_tests;
 mod resize_tests;
+mod scale_damage_tests;
 mod scale_tests;

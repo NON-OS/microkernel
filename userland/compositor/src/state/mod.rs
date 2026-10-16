@@ -21,6 +21,7 @@ pub mod context_ask;
 pub mod context_new;
 pub mod cursor;
 pub mod damage;
+pub mod damage_bound;
 pub mod focus;
 pub mod indicator;
 pub mod looks;

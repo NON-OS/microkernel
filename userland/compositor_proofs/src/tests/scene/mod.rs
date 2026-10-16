@@ -18,6 +18,10 @@
 
 mod attach_tests;
 mod band_remove_tests;
+pub(crate) mod bound_model;
+mod bound_session_tests;
+mod bound_tests;
+mod coalesce_tests;
 mod damage_tests;
 mod foreign_pixel_tests;
 pub(crate) mod frame_model;
