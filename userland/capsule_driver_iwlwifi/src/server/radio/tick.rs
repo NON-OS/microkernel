@@ -27,6 +27,10 @@ use super::state::{Radio, State, REST_MS};
 impl Radio {
     /// Advance the background scan by one step, or service the open port.
     pub fn tick(&mut self) {
+        if let State::Restarting(_) = self.state {
+            self.restart_due(now_ms());
+            return;
+        }
         if self.joined() {
             self.service_link();
             return;

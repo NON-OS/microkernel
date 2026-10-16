@@ -20,6 +20,10 @@ use crate::firmware::gen3::outcome::STAGE_READY;
 
 use super::state::{Radio, State};
 
+/// The client's stage code for a firmware restart under way; the step is
+/// the try.
+const STAGE_RESTARTING: u8 = 9;
+
 impl Radio {
     /// The firmware is up and scanning.
     pub fn scanning(&self) -> bool {
@@ -35,6 +39,7 @@ impl Radio {
     pub fn stage(&self) -> (u8, u8, u32) {
         match &self.state {
             State::Up(_) => (STAGE_READY, 0, 0),
+            State::Restarting(r) => (STAGE_RESTARTING, r.restarts.tries(), 0),
             State::Down(f) => (f.stage(), f.step(), f.detail()),
         }
     }

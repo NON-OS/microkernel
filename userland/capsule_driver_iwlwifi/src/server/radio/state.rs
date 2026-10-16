@@ -24,6 +24,7 @@ use crate::firmware::gen3::sweep::Sweep;
 
 use super::bring::{Seen, Up};
 use super::join::Join;
+use super::restart::Restart;
 
 /// The rest between one sweep's end and the next sweep's start.
 pub(super) const REST_MS: u64 = 3000;
@@ -32,6 +33,8 @@ pub(super) const STALLS_SAID: u32 = 3;
 
 pub(super) enum State {
     Up(Up),
+    /// The firmware raised its error cause; it boots again at `at_ms`.
+    Restarting(Restart),
     Down(Failure),
 }
 

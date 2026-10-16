@@ -29,7 +29,10 @@ mod first;
 mod identify;
 mod map;
 mod report;
+mod rig;
 mod seen;
 
+pub use finish::finish;
 pub use first::bring_up;
+pub use rig::{boot_rig, Rig};
 pub use seen::{Seen, Up};

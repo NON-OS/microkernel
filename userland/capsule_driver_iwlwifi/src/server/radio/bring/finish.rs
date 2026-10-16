@@ -19,24 +19,25 @@
 
 use crate::firmware::gen3::dev::Dev;
 use crate::firmware::gen3::outcome::Failure;
-use crate::firmware::gen3::select::Transport;
 use crate::firmware::gen3::start::{rf_killed, stop_device};
-use crate::firmware::gen3::ucode::Ucode;
 use crate::firmware::gen3::up::{up, SCAN_IF_ADDR};
 use crate::regs::Regs;
 
 use super::super::clock::Uptime;
 use super::super::grant::Grant;
+use super::super::restarts::Restarts;
 use super::super::say::Line;
 use super::report::join_layout;
+use super::rig::Rig;
 use super::seen::Up;
 
-pub(super) fn finish(
+pub fn finish(
     mut dev: Dev<'static, Regs, Grant>,
-    ucode: &Ucode<'_>,
-    transport: &Transport,
+    rig: &'static Rig,
     addr: Option<[u8; 6]>,
+    restarts: Restarts,
 ) -> Result<Up, Failure> {
+    let (ucode, transport) = (&rig.ucode, &rig.transport);
     let regs = dev.m;
     let mut c = Uptime;
     let info = match up(&mut dev, &mut c, ucode, transport, addr.unwrap_or(SCAN_IF_ADDR)) {
@@ -63,5 +64,5 @@ pub(super) fn finish(
         ucode.valid_tx_ant() & info.nvm.valid_tx_ant,
         ucode.valid_rx_ant() & info.nvm.valid_rx_ant,
     );
-    Ok(Up { dev, channels: info.nvm.channels, addr, tx_ant, rx_ant, join_api })
+    Ok(Up { dev, channels: info.nvm.channels, addr, tx_ant, rx_ant, join_api, rig, restarts })
 }

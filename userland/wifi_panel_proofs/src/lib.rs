@@ -20,6 +20,8 @@ pub mod wipe;
 
 #[cfg(test)]
 mod saved;
+#[cfg(test)]
+mod stage;
 
 #[cfg(test)]
 mod join_tests;

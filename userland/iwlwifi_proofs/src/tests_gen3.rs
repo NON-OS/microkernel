@@ -21,9 +21,15 @@ mod gen3_pnvm_tests;
 #[cfg(test)]
 mod gen3_radio_tests;
 #[cfg(test)]
+mod gen3_restart_tests;
+#[cfg(test)]
+mod gen3_stop_tests;
+#[cfg(test)]
 mod gen3_tests;
 #[cfg(test)]
 mod prph_scratch_tests;
+#[cfg(test)]
+mod restart_policy_tests;
 #[cfg(test)]
 mod station_cmd_tests;
 #[cfg(test)]
