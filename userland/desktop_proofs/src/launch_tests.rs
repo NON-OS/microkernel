@@ -20,7 +20,8 @@
 //! back off so the shell never holds more than the kernel's eight places in
 //! the installer's reply queue.
 
-use crate::launch::{Launch, Step, DEADLINE_MS, FIRST_PROBE_MS, LOOK_GAP_MS, PROBE_GAP_MAX_MS};
+use crate::launch::timing::{DEADLINE_MS, FIRST_PROBE_MS, LOOK_GAP_MS, PROBE_GAP_MAX_MS};
+use crate::launch::{Launch, Step};
 use crate::state::Uptime;
 
 fn fresh() -> Launch {
