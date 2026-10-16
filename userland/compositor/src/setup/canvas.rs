@@ -51,8 +51,9 @@ pub fn fit_canvas(ctx: &mut Context) {
     let panel = scale_for_panel(ctx.width, ctx.height, panel_mm(ctx));
     let q = chosen(ctx.output_scale[0], panel);
     let (width, height) = match (q, floor_canvas(ctx.width, ctx.height)) {
-        (4, None) if !ctx.looks.access[0].magnified() => return,
-        (4, None) => (ctx.width, ctx.height), // the lens reads a canvas of its own
+        (4, None) if !ctx.looks.access[0].magnified() && !ctx.own_colours() => return,
+        // The lens, or mirrors in their own colours, read a canvas of their own.
+        (4, None) => (ctx.width, ctx.height),
         (4, Some(floor)) => floor,
         (q, _) => canvas_for(ctx.width, ctx.height, q),
     };

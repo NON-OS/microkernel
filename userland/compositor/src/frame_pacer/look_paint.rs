@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Each output's look over the composed rectangle: mirrored, output 0's
-//! over the whole canvas (every mirror shows output 0's screen); extended,
-//! each output's over its own slice.
+//! over the whole canvas (every mirror shows output 0's screen) unless the
+//! mirrors show their own colours (`own_look`); extended, each output's
+//! over its own slice.
 
 use crate::state::damage::Rect;
 use crate::state::Context;
@@ -24,7 +25,8 @@ use crate::sw_blitter::Surface;
 
 pub fn paint_looks(ctx: &Context, dst: Surface, rect: Rect) {
     let Some(p) = ctx.plan else {
-        if let Some(l) = ctx.looks.looks[0].as_deref() {
+        // In their own colours, each output's look goes on its own copy.
+        if let Some(l) = ctx.looks.looks[0].as_deref().filter(|_| !ctx.own_colours()) {
             super::look::apply(dst, rect, l);
         }
         return;
