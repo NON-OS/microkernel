@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod beacon;
 mod bip;
 mod mmie;
 mod procedure;
 mod sa_query;
+pub use beacon::{bip_protect_beacon, bip_verify_beacon};
 pub use bip::{bip_protect, bip_verify};
 pub use mmie::{Mmie, EID_MMIE, MMIE_LEN};
 pub use procedure::{SaPoll, SaQuery, SA_QUERY_MAX_MS, SA_QUERY_RETRY_MS};

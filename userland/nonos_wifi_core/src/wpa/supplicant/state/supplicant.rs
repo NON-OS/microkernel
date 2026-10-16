@@ -64,6 +64,8 @@ pub struct Supplicant {
     pub(in crate::wpa::supplicant) igtk_id: u16,
     pub(in crate::wpa::supplicant) igtk_ipn: [u8; 6],
     pub(in crate::wpa::supplicant) igtk_set: bool,
+    /// The beacon integrity group key, its index (6 or 7) and BIPN.
+    pub(in crate::wpa::supplicant) bigtk: Option<([u8; 16], u16, [u8; 6])>,
     /// The 802.1X version the AP spoke, mirrored in replies.
     pub(in crate::wpa::supplicant) eapol_version: u8,
     pub(in crate::wpa::supplicant) failure: Option<Failure>,
