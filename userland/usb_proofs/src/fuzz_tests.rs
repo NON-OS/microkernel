@@ -88,7 +88,9 @@ fn endpoint([number, class, subclass, protocol]: [u8; 4], rec: &[u8]) -> Option<
         _ => return None,
     };
     let interrupt_in = address & 0x80 != 0 && address & 0x0f != 0 && attributes & 0x03 == 0x03;
-    (interrupt_in && (least..=1024).contains(&size)).then_some((kind, number, address, size))
+    // bInterval 0 is no polling rate.
+    let fits = rec[6] != 0 && (least..=1024).contains(&size);
+    (interrupt_in && fits).then_some((kind, number, address, size))
 }
 
 /// A configuration a hostile device might send: plausible records mixed
