@@ -26,7 +26,7 @@ fn the_receive_queue_posts_every_buffer_and_tells_the_device_in_eights() {
 }
 
 // Put a completion for buffer `vid` at used index `i` and close up to `closed`.
-fn complete_at(ctrl: &Mem, i: usize, vid: u16, flags: u8, closed: u16) {
+pub(super) fn complete_at(ctrl: &Mem, i: usize, vid: u16, flags: u8, closed: u16) {
     let mut cd = [0u8; 32];
     cd[4..6].copy_from_slice(&vid.to_le_bytes());
     cd[6] = flags;
