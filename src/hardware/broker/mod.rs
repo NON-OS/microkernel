@@ -26,6 +26,8 @@ mod acpi_i2c;
 mod claim;
 mod class;
 mod confine;
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+mod fdt_i2c;
 mod device;
 pub mod firmware_flash;
 pub mod dma;
