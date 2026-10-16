@@ -67,4 +67,5 @@ pub fn parse_ivrs(registry: &mut TableRegistry) {
     let n = spans(bytes, &mut covered);
     *SPANS.lock() = covered[..n].iter().copied().collect();
     super::ivmd_table::record(bytes);
+    super::ivhd_special_table::record(bytes);
 }
