@@ -33,6 +33,7 @@ mod state;
 mod tables;
 
 pub use eval::{evaluate, evaluator};
+pub use osc_host::NATIVE_HOT_PLUG_ON;
 pub use report::path;
 pub use start::boot;
 pub use state::Acpi;

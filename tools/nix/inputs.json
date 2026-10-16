@@ -890,6 +890,11 @@
   "include": [
    ".cargo",
    "userland/capsule_acpi/src/aei/rate.rs",
+   "userland/capsule_acpi/src/hotplug/native/read.rs",
+   "userland/capsule_acpi/src/hotplug/native/regs.rs",
+   "userland/capsule_acpi/src/hotplug/native/slot.rs",
+   "userland/capsule_acpi/src/hotplug/native/step.rs",
+   "userland/capsule_acpi/src/hotplug/native/times.rs",
    "userland/capsule_acpi/src/props/wire.rs",
    "userland/capsule_acpi/src/props/wire_cursor.rs",
    "userland/capsule_acpi/src/props/wire_read.rs",

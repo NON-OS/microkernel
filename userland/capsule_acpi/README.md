@@ -185,6 +185,30 @@ per arrival, departure, dock, undock, wait and eject. The Notify values
 and the `_EJ0`, `_DCK`, `_LCK` and `_RMV` values are recalled,
 unverified.
 
+Native PCI Express hot plug (`src/hotplug/native/`) sits behind one
+switch, `boot::osc_host::NATIVE_HOT_PLUG_ON`, which is off: the host
+bridges' _OSC then claims nothing and firmware keeps hot plug. Turned
+on, _OSC asks for native hot plug and the capability structure, and
+each root or downstream port with a hot-plug slot below a bridge that
+granted it is polled every 50 ms. Its change bits are cleared, and no
+hot-plug interrupt is enabled. A card is there when presence says so
+and, where the port reports it, its link is up.
+- It is probed (MkPciProbeFunction) once up for 100 ms.
+- Its functions depart (MkPciDepart, gone) once it has been away for
+  100 ms, so their holders get DGON and their windows are fenced.
+- The attention button ejects after 5 s unless pressed again. Each
+  function departs in eject mode, which is retried every 2 s while one is
+  held; then slot power goes off where the slot has a controller.
+- A card whose link is not up within 1 s is let go.
+- An unpowered slot with a card is powered on.
+
+Functions are probed only on the port's secondary bus, and no BARs or
+bus numbers are assigned. A card whose BARs firmware did not assign
+joins the table marked unusable. The 100 ms after link up, the 5 s
+button window, the 1 s command bound and every register offset are
+recalled, unverified; the 100 ms debounce, 1 s link grace, 2 s retry and
+50 ms poll are this capsule's own.
+
 ## Microkernel contract
 
 Every register it touches comes through the kernel's ACPI grant rule

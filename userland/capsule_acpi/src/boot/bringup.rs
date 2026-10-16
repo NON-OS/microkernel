@@ -22,7 +22,9 @@
 use super::eval::evaluator;
 use super::osc::negotiate_all;
 use crate::host::CapsuleHost;
+use crate::hotplug::native::osc_grant::OscGrant;
 use crate::sys::log::Line;
+use alloc::vec::Vec;
 use nonos_aml::exec::{ExecLimits, Machine};
 use nonos_aml::load::Aml;
 use nonos_aml::platform::{initialize, set_pic, PIC_APIC};
@@ -33,7 +35,8 @@ use nonos_aml::region::Space;
 const SPACES: [Space; 4] =
     [Space::SYSTEM_MEMORY, Space::SYSTEM_IO, Space::PCI_CONFIG, Space::EMBEDDED_CONTROL];
 
-pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
+/// Each host bridge's _OSC grant, for the hot-plug ports.
+pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) -> Vec<OscGrant> {
     let ec_found = host.ec.is_some();
     for space in SPACES.into_iter().filter(|s| *s != Space::EMBEDDED_CONTROL || ec_found) {
         let failed = Machine::new(aml, host, ExecLimits::DEFAULT).connect(aml, space);
@@ -50,7 +53,7 @@ pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
         Some(Ok(())) => Line::new(b"\\_PIC(1): APIC mode").end(),
         None => Line::new(b"no \\_PIC").end(),
     }
-    negotiate_all(aml, host);
+    let grants = negotiate_all(aml, host);
     let r = initialize(aml, &mut evaluator(host));
     let failed = r.ran.iter().filter(|(_, x)| x.is_err()).count();
     Line::new(b"_INI ran ")
@@ -62,4 +65,5 @@ pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
         .str(b"; _STA failed ")
         .dec(r.sta_failed.len() as u64)
         .end();
+    grants
 }
