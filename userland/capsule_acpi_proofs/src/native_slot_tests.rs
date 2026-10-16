@@ -17,14 +17,11 @@
 //! A slot path by path: arrival, a glitch, a link that never comes,
 //! departure, and power for a card in an unpowered slot.
 
-use crate::native::regs::{BUTTON_PRESSED, PRESENT};
+pub use super::native_reads::{rd, OUT, PRESS, UP};
+use super::native_reads::DOWN;
+use crate::native::regs::PRESENT;
 use crate::native::slot::{Act, Phase, Read, Slot};
 use crate::native::times::*;
-
-pub const UP: Read = Read { status: PRESENT, link: Some(true), powered: true };
-const DOWN: Read = Read { status: PRESENT, link: Some(false), powered: true };
-pub const OUT: Read = Read { status: 0, link: Some(false), powered: true };
-pub const PRESS: Read = Read { status: PRESENT | BUTTON_PRESSED, link: Some(true), powered: true };
 
 pub fn slot(r: Read) -> Slot {
     Slot::new(true, true, r)
@@ -69,7 +66,7 @@ fn a_card_departs_once_its_absence_has_held() {
 
 #[test]
 fn power_comes_on_for_a_card_in_an_unpowered_slot() {
-    let off = Read { status: PRESENT, link: Some(false), powered: false };
+    let off = rd(PRESENT, Some(false), false);
     assert_eq!(slot(OUT).step(off, 0), Act::PowerOn);
     assert_eq!(Slot::new(true, false, OUT).step(off, 0), Act::Nothing);
 }

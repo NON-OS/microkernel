@@ -200,7 +200,13 @@ and, where the port reports it, its link is up.
   function departs in eject mode, which is retried every 2 s while one is
   held; then slot power goes off where the slot has a controller.
 - A card whose link is not up within 1 s is let go.
-- An unpowered slot with a card is powered on.
+- An unpowered slot with a card is powered on, but never while its
+  retention latch is open (where the slot has a latch sensor): an open
+  latch makes the card absent, so it departs, and the slot is kept
+  unpowered.
+- A power fault the slot latches takes out what was probed, cuts power,
+  and holds the slot off until its card is taken out or the button is
+  pressed (not while the fault or an open latch is still seen).
 
 Functions are probed only on the port's secondary bus, and no BARs or
 bus numbers are assigned. A card whose BARs firmware did not assign
