@@ -35,13 +35,14 @@ pub enum Link {
 
 /// The link carries `pixel_khz` at `bpp` bits per pixel.
 pub fn carries(link: Link, pixel_khz: u32, bpp: u32) -> bool {
-    let need = pixel_khz as u64 * bpp as u64;
+    // u128: three u32 factors run past u64 at their top.
+    let need = pixel_khz as u128 * bpp as u128;
     match link {
         Link::Dp { lanes, mbps } => {
-            let raw = lanes as u64 * mbps as u64 * 1000;
+            let raw = lanes as u128 * mbps as u128 * 1000;
             let payload = if mbps <= 8100 { raw * 8 / 10 } else { raw * 128 / 132 };
             need <= payload
         }
-        Link::Tmds { max_khz } => bpp >= 24 && need / 24 <= max_khz as u64,
+        Link::Tmds { max_khz } => bpp >= 24 && need / 24 <= max_khz as u128,
     }
 }
