@@ -47,3 +47,5 @@ pub use sync_chain::{fetch_history, fetch_history_until, History};
 #[cfg(test)]
 #[path = "wallet_hostile_test.rs"]
 mod wallet_hostile_test;
+#[cfg(feature = "fuzzing")]
+pub use deposit_read::fuzz::word_rounds;

@@ -25,4 +25,6 @@ pub use plaintext::NotePlaintext;
 pub use record::{NoteRecord, NoteStatus};
 pub use wire::{NoteCipher, CIPHER_LEN};
 pub use wire_digest::wire_digest;
+#[cfg(feature = "fuzzing")]
+pub use xwing::fuzz::note_rounds;
 pub use xwing::{open as open_xwing, seal as seal_xwing, Opened as XwingOpened, Opening, BLOB_LEN};
