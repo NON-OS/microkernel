@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod names;
+mod op_role;
 mod role;
 
 pub use names::{BUYERS, DELIVERERS, INSTALL, PAYERS, SETTLE, STORE, WALLET};
+pub use op_role::{op_role, purchase_role};
 pub use role::Role;

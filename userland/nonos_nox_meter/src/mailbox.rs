@@ -22,7 +22,9 @@
 
 use nonos_payment_proto::{Names, Ready, EBUSY};
 
-/// How long a posting waits to be taken: ten minutes.
+/// How long a posting waits to be taken: ten minutes, on the monotonic
+/// clock the capsule passes as `now_ms` (mk_uptime_ms). The mailbox lives
+/// in memory only, so uptime starting again at boot loses nothing.
 pub const HOLD_MS: u64 = 600_000;
 
 pub struct Slot<T> {

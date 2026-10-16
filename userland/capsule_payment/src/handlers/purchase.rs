@@ -21,26 +21,16 @@
 
 use alloc::vec::Vec;
 
-use nonos_nox_meter::caller::Role;
+use nonos_libc::mk_uptime_ms;
 use nonos_payment_proto::{parse_purchase, Purchase, EINVAL, ENOENT};
-use nonos_payment_proto::{PURCHASE_POST, PURCHASE_READY, PURCHASE_TAKE, PURCHASE_TAKE_READY};
 
 use crate::jobs::Work;
-use crate::meter::now_ms;
 use crate::server::Call;
 
-/// Who may send this body: the store posts names and takes the orderId;
-/// the wallet takes names and posts the orderId.
-pub fn purchase_role(body: &[u8]) -> Option<Role> {
-    match *body.first()? {
-        PURCHASE_POST | PURCHASE_TAKE_READY => Some(Role::Store),
-        PURCHASE_TAKE | PURCHASE_READY => Some(Role::Wallet),
-        _ => None,
-    }
-}
-
 pub fn purchase(work: &mut Work, req: &Call<'_>) -> Vec<u8> {
-    let now = now_ms();
+    // The hold is a timeout, so it runs on the monotonic clock: a step of
+    // the wall clock neither keeps a posting past HOLD_MS nor drops it early.
+    let now = mk_uptime_ms().max(0) as u64;
     let m = &mut work.mailbox;
     req.result(match parse_purchase(req.body) {
         Some(Purchase::Post(names)) => m.names.post(names, now).map(|_| Vec::new()),
