@@ -42,9 +42,10 @@ pub fn route_msi(
         return Err(AmdViError::NotEnforcing);
     }
     let id = device_id(bus, device, function);
-    // Its interrupts would share a table with another id's, a PCI function's
-    // or an I/O APIC's or HPET's (L47, L49, L50).
-    if amd_iommu_aliased(id) || amd_iommu_special(id) {
+    // Its interrupts would share a table with another id's: a PCI function's,
+    // an I/O APIC's or HPET's, or a bridge's (L47, L49, L50, L54).
+    let shared = amd_iommu_aliased(id) || amd_iommu_special(id);
+    if shared || !crate::arch::x86_64::iommu::own_id_read::own_id(bus, device, function) {
         return Err(AmdViError::Aliased);
     }
     let mut tables = TABLES.lock();
