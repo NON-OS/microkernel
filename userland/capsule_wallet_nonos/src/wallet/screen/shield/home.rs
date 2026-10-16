@@ -71,5 +71,5 @@ pub fn home(state: &State, fb: &mut PaintBuffer) {
     y += more(state, fb, c, y);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
 }
