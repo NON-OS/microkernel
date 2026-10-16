@@ -23,6 +23,7 @@ mod driver;
 mod emmc;
 mod family;
 mod missing;
+mod platform_sd;
 mod present;
 mod record;
 mod scan;
