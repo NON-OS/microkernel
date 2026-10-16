@@ -7,11 +7,13 @@ use nonos_policy_proto::setup_record::{check_record, is_done, ANSWERS_LEN, ANSWE
 use nonos_policy_proto::setup_record::{DONE, DONE_PATH};
 
 pub(super) fn restore(pid: u32) {
-    let done = vfs::read_file(pid, DONE_PATH, DONE.len() as u32).is_ok_and(|raw| is_done(&raw));
+    // One byte past each, so a longer file fails is_done or check_record
+    // rather than being cut to a marker or a record that passes.
+    let done = vfs::read_file(pid, DONE_PATH, DONE.len() as u32 + 1).is_ok_and(|raw| is_done(&raw));
     if !done {
         return;
     }
-    let Ok(raw) = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32) else {
+    let Ok(raw) = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32 + 1) else {
         return super::super::apply::say(
             b"[POLICY] setup marker without answers: nothing restored\n",
         );

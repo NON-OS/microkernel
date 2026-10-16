@@ -22,6 +22,9 @@ use super::listing_state::read_until_silent;
 use super::prefs::Prefs;
 use super::state::State;
 use super::tags::TagMap;
+#[path = "whole.rs"]
+mod whole;
+use whole::{ask, whole};
 
 // Reserved sidecar namespace. The leading dot keeps the manager's own
 // key/value blobs out of the tree the user browses.
@@ -29,9 +32,8 @@ pub(super) const TAGS_KEY: &[u8] = b"/.files/tags";
 pub(super) const FAVORITES_KEY: &[u8] = b"/.files/favorites";
 pub(super) const PREFS_KEY: &[u8] = b"/.files/prefs";
 
-// Every blob is bounded by its own type (tags cap assignments, favorites cap
-// entries), so this is only the ceiling that stops a corrupt file from being
-// pulled in whole.
+// Every blob is bounded by its own type, so this is only the ceiling past
+// which a file is refused (`whole`), never cut and saved back cut.
 const BLOB_MAX: u32 = 256 * 1024;
 
 /// Restore the persisted sidecar state. Runs before the first refresh, so the
@@ -47,7 +49,7 @@ pub fn load_meta(state: &mut State) -> bool {
     }
     let pid = state.owner_pid;
     let keys = [TAGS_KEY, FAVORITES_KEY, PREFS_KEY];
-    let read = |key: &'static [u8]| read_file(pid, key, BLOB_MAX);
+    let read = |key: &'static [u8]| whole(read_file(pid, key, ask(BLOB_MAX)), BLOB_MAX);
     let silent = read_until_silent(&keys, read, |key, buf| match key {
         TAGS_KEY => state.tags = TagMap::from_blob(&buf),
         FAVORITES_KEY => state.favorites = Favorites::from_blob(&buf),
