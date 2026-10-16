@@ -38,3 +38,7 @@ pub const LE_DIRECTED_REPORT: u64 = 1 << 10;
 /// Extended Scanner Filter Policies, bit 7 of the LE features (Vol 6,
 /// Part B, 4.6) that LE Read Local Supported Features returns (7.8.3).
 pub const EXTENDED_SCANNER_FILTER: u64 = 1 << 7;
+
+/// LE Data Packet Length Extension, bit 5 of the LE features (Vol 6,
+/// Part B, 4.6).
+pub const DATA_LENGTH_EXTENSION: u64 = 1 << 5;

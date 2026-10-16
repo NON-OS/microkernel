@@ -23,6 +23,10 @@ Bring-up uses standard commands only, in this order:
 8. LE Set Event Mask. The LE Directed Advertising Report (bit 10) is
    asked for only when the LE features have Extended Scanner Filter
    Policies (Vol 6, Part B, 4.6, bit 7).
+9. LE Read Maximum Data Length (7.8.46), only when the LE features have
+   LE Data Packet Length Extension (bit 5). A refusal, or an answer
+   outside 27 to 251 octets and 328 to 17040 µs, leaves every link at the
+   default 27 octets.
 
 No vendor command is sent. A controller that needs vendor setup or
 firmware before it answers these stops at the first one it fails, with
@@ -35,7 +39,11 @@ sends LE Enable Encryption with the LTK from `nonos_bt_smp` and waits for
 Encryption Change. The LTK comes most significant octet first, as the
 Security Manager hands it over, and goes on the wire least significant
 octet first. Rand and EDIV are zero, as LE Secure Connections has them.
-Events met during either wait stay queued for `next_event`. `update_link`
+Once a link is up, a controller that answered step 9 is asked with LE Set
+Data Length (7.8.33) for the smaller of its maximum and 251 octets in
+2120 µs, the time 251 octets take on the 1M PHY, so an ATT exchange of 247
+octets fits one PDU. A refusal leaves the link as it is. Events met during
+either wait stay queued for `next_event`. `update_link`
 sends LE Connection Update with timing a peripheral asked for and this
 host accepted; it waits only for Command Status, and LE Connection Update
 Complete reaches the caller as any other event.
