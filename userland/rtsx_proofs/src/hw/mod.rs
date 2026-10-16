@@ -14,26 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The log line a photo shows.
+//! The driver's register access, assembled from its files with the one
+//! that touches the BAR replaced: the shipping HAIMR and PHY paths run
+//! unchanged over `mmio.rs`, which hands every access to the modelled
+//! reader (`crate::model`) instead of a mapped window.
 
-use crate::line::{Line, LINE_BYTES};
+mod mmio;
+#[path = "../../../capsule_driver_rtsx/src/hw/phy.rs"]
+mod phy;
+#[path = "../../../capsule_driver_rtsx/src/hw/reg.rs"]
+mod reg;
 
-#[test]
-fn a_line_is_tagged_and_numbers_read_plainly() {
-    let mut line = Line::start();
-    line.text(b"SD card ").dec(62177280).text(b" rca ").hex(0xB368, 4);
-    assert_eq!(line.finish(), b"rtsx: SD card 62177280 rca b368\n");
-    let mut zero = Line::start();
-    assert_eq!(zero.dec(0).finish(), b"rtsx: 0\n");
-}
-
-#[test]
-fn a_long_line_is_cut_and_still_ends_in_a_newline() {
-    let mut line = Line::start();
-    for _ in 0..40 {
-        line.text(b"abcdef");
-    }
-    let out = line.finish();
-    assert_eq!(out.len(), LINE_BYTES);
-    assert_eq!(out[LINE_BYTES - 1], b'\n');
-}
+pub use mmio::Regs;
+pub use phy::{write_phy, PHY_MS};
+pub use reg::{read_register, write_register, ACCESS_MS};

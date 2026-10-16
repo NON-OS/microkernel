@@ -16,7 +16,7 @@
 
 //! A block device behind whichever driver capsule owns it.
 //!
-//! The three drivers share a header and differ in magic, opcode numbers and
+//! The drivers share a header and differ in magic, opcode numbers and
 //! service name. [`Driver`] carries those three facts per driver, the wire
 //! module encodes and decodes the shared header, and [`BlockDevice`] is what
 //! a caller holds: capacity, read, write, flush, in whole 512-byte sectors
