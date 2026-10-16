@@ -19,7 +19,7 @@
 //! Each is one call to the driver that answers only when the radio work is
 //! done (up to 15 s for a scan, 30 s for a join), and the answer is the reply
 //! itself, so the call has to wait. A worker waits for it while the window
-//! keeps painting and taking keys; a tick picks the answer up (`wifi_step`).
+//! keeps painting and taking keys; a tick picks the answer up (`step.rs`).
 //! One worker at a time: the driver is busy with it, so nothing else is asked
 //! of the driver until it answers (`Pending::is_out`).
 //!
@@ -39,8 +39,8 @@ use alloc::boxed::Box;
 use nonos_libc::{Handoff, Look, WorkerSeat};
 use nonos_wifi_client::{remember, wipe, Driver};
 
-use super::cache::STRING_CAP;
-use super::state::WIFI_NET_MAX;
+use super::super::cache::STRING_CAP;
+use super::super::state::WIFI_NET_MAX;
 use crate::wifi::{ConnectResult, ScanNetwork, ScanOutcome, ScanStats};
 
 /// A passphrase on its way to the driver, wiped when dropped.

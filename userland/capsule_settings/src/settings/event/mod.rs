@@ -32,10 +32,14 @@ pub mod on_search_key;
 pub mod on_search_pointer;
 pub mod on_wifi_passphrase;
 mod paste;
+mod paste_target;
+mod pointer_click;
 pub mod pointer_row;
 pub mod push_text_char;
 pub mod report;
+mod search_results;
 pub mod toggle_or_inc;
+mod wheel;
 pub mod wifi_key;
 mod wifi_radio_key;
 
