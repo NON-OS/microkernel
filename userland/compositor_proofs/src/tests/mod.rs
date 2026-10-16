@@ -19,6 +19,7 @@
 mod blit;
 mod colour;
 mod display;
+mod requests;
 mod scene;
 mod trusted;
 mod wire;

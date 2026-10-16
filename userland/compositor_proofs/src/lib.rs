@@ -27,8 +27,8 @@ pub mod state;
 
 pub use frame_pacer::{drain_batch, drain_damage};
 pub use state::{
-    attach, damage, damage_bound, indicator, raise_rule, scene, scene_raise, scene_remove, scene_submit,
-    trusted_rule, visible,
+    attach, damage, damage_bound, indicator, raise_rule, scene, scene_raise, scene_remove,
+    scene_submit, trusted_rule, visible,
 };
 
 #[path = "../../compositor/src/sw_blitter/mod.rs"]
@@ -38,6 +38,9 @@ pub mod sw_blitter;
 // dispatch, and the encoders a refusal is answered with.
 #[path = "../../compositor/src/protocol/mod.rs"]
 pub mod protocol;
+
+#[path = "../../compositor/src/requests/mod.rs"]
+pub mod requests;
 
 /// The kernel's display list and hint sources, which the compositor mounts.
 #[allow(dead_code)]
