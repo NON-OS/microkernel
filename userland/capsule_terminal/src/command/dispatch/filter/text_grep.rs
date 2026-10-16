@@ -26,7 +26,7 @@ use crate::term::util::format_u64;
 // inverts, -n numbers each kept line by its place in the input, -c prints only
 // how many matched. It used to know only -i and -v and take any other flag
 // for the pattern.
-pub fn grep(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+pub(in super::super) fn grep(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let parsed = match flags(b"grep", args) {
         Ok(p) => p,
         Err(e) => return e,

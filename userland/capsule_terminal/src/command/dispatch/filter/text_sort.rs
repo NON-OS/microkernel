@@ -22,7 +22,7 @@ use super::{flags, uniq};
 
 // sort [-n] [-r] [-u]: -n orders by leading integer, -r reverses, -u drops
 // adjacent duplicates once the order is settled.
-pub fn sort(args: &[&[u8]], mut input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+pub(in super::super) fn sort(args: &[&[u8]], mut input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     let parsed = match flags(b"sort", args) {
         Ok(p) => p,
         Err(e) => return e,
