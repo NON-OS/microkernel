@@ -17,11 +17,15 @@
 /*
  * Which devices the broker keeps from whichever capsule asks first: VMMDev
  * for the capsule that serves it, virtio-balloon for no one yet, the boot
- * framebuffer for driver.bootfb0 alone. The kernel's
- * pure rule is included by path.
+ * framebuffer for driver.bootfb0 alone; the records firmware tables publish
+ * for the service that drives each kind, any other refused (L59). The
+ * kernel's pure rules are included by path.
  */
 
 mod firmware_tests;
+#[path = "../../../../src/hardware/broker/claim/hold_platform.rs"]
+pub mod hold_platform;
 #[path = "../../../../src/hardware/broker/claim/hold_rule.rs"]
 pub mod hold_rule;
+mod platform_tests;
 mod tests;
