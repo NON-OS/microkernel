@@ -30,20 +30,20 @@
 
 use alloc::vec::Vec;
 
-use nonos_route_link::Route;
 use nonos_tls::flight::ClientFlight;
 use nonos_tls::{HandshakeState, TrafficKeys};
 
 use super::super::super::link::Link;
 use super::super::super::probe_rpc_tcp::TcpProbe;
 use super::super::super::probe_tls_rpc::TlsProbe;
+use super::super::super::WalletRoute;
 use super::super::gather::Gather;
 use super::types::Stage;
 
 pub struct Exchange {
     /// The RPC host asked, fixed when the request began.
     pub host: &'static str,
-    pub(super) route: Route,
+    pub(super) route: WalletRoute,
     pub(super) body: Vec<u8>,
     pub(super) stage: Stage,
     pub(super) link: Option<Link>,

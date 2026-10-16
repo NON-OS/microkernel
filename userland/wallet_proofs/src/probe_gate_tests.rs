@@ -46,7 +46,10 @@ fn the_stream_opens_only_on_a_route_the_wallet_takes() {
     let refused = code.find("refused(self.route)").unwrap();
     let begin = code.find("Exchange::begin(").unwrap();
     assert!(refused < begin, "the route is judged before anything is opened");
-    assert!(code.contains("self.route = Route::for_wallet()"), "the wallet's route, never Direct");
+    assert!(
+        code.contains("self.route = WalletRoute::for_wallet()"),
+        "the wallet's route, never Direct"
+    );
 }
 
 #[test]

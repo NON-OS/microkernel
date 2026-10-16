@@ -22,6 +22,6 @@ pub struct NetStatus {
     /// The RPC host whose chain id `rpc_chain_ok` holds for.
     pub rpc_host: &'static str,
     /// The network the last check went over, None before the first.
-    pub route: Option<nonos_route_link::Route>,
+    pub route: Option<super::WalletRoute>,
     pub status: &'static [u8],
 }

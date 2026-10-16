@@ -23,7 +23,7 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-use nonos_route_link::Route;
+use crate::wallet::net::WalletRoute;
 
 use super::super::read_snapshot::{parse_snapshot, snapshot_request};
 use super::exchange::{Ended, Exchange};
@@ -45,7 +45,7 @@ impl Job {
 
     pub fn snapshot(address: &[u8; 20]) -> Job {
         let body = snapshot_request(address);
-        let exchange = Exchange::begin(Route::for_wallet(), body);
+        let exchange = Exchange::begin(WalletRoute::for_wallet(), body);
         let chain = crate::wallet::chain::current().id;
         Job::Snapshot { exchange, address: *address, chain }
     }
