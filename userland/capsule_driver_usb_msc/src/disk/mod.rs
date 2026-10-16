@@ -24,6 +24,7 @@ mod lun;
 mod ready;
 mod recover;
 mod scsi_io;
+mod sense;
 mod transport;
 mod types;
 mod uas;

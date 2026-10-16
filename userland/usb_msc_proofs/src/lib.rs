@@ -26,6 +26,8 @@ mod msc_tests;
 #[cfg(test)]
 mod request_refusal_tests;
 #[cfg(test)]
+mod sense_tests;
+#[cfg(test)]
 mod span_tests;
 #[cfg(test)]
 mod transport_tests;

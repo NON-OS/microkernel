@@ -19,25 +19,10 @@
 use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::{E_INVAL, E_IO};
-use crate::scsi::{parse_sense, read10, read16, request_sense, write10, write16, Sense};
+use super::sense::sense_key;
+use crate::scsi::{read10, read16, write10, write16};
 use crate::span::needs_cdb16;
 use crate::state::State;
-
-const SENSE_LEN: u8 = 18;
-
-/// The sense of the last CHECK CONDITION; asking also clears it.
-pub(super) fn sense(disk: &Disk, state: &mut State) -> Result<Sense, i32> {
-    let mut raw = [0u8; SENSE_LEN as usize];
-    match command(disk, state, request_sense(SENSE_LEN), Data::In(&mut raw))? {
-        (0, _) => parse_sense(&raw).ok_or(E_IO),
-        _ => Err(E_IO),
-    }
-}
-
-/// The sense key of the last CHECK CONDITION; asking also clears it.
-pub(super) fn sense_key(disk: &Disk, state: &mut State) -> Result<u8, i32> {
-    sense(disk, state).map(|s| s.sense_key)
-}
 
 /// A good status with every byte moved, or `E_IO` with the condition cleared.
 pub(super) fn whole(disk: &Disk, state: &mut State, outcome: (u8, u32)) -> Result<(), i32> {
