@@ -5,6 +5,9 @@ edition = "2021"
 description = "Every NOX chain constant the OS builds against, in one place, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 

@@ -5,6 +5,9 @@ edition = "2021"
 description = "QR code encoder (byte mode, ISO/IEC 18004) for the NONOS wallet, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 
