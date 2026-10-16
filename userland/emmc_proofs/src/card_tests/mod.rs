@@ -17,5 +17,6 @@
 //! Cards a person puts in: SD memory cards, and the removable slot that
 //! serves them as they come and go.
 
+mod emmc_hostile;
 mod sd;
 mod slot;

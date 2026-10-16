@@ -16,7 +16,7 @@
 
 //! The model host's state, and a host fresh from power on.
 
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::rc::Rc;
 
 use super::super::card::{Card, CardCfg};
@@ -42,11 +42,9 @@ pub struct Sim {
     pub power_ons: Vec<u8>,
     pub fail_next_data: u32,
     pub tables: Vec<Vec<Desc>>,
+    /// A card that lies: the R1 to this command index reports this state.
+    pub lie: Option<(u8, u32)>,
 }
-
-/// The register-level view the driver's `Mmio` sees.
-#[derive(Clone)]
-pub struct SimBus(pub Rc<RefCell<Sim>>);
 
 impl Sim {
     pub fn new(cfg: HostCfg, card: CardCfg, now: Rc<Cell<u64>>) -> Self {
@@ -64,6 +62,7 @@ impl Sim {
             cmds: Vec::new(),
             violations: Vec::new(),
             power_ons: Vec::new(),
+            lie: None,
             fail_next_data: 0,
             tables: Vec::new(),
         };

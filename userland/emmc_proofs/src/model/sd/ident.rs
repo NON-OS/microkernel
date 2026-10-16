@@ -35,10 +35,13 @@ impl SdCard {
                 self.state = St::Ident;
                 out(Reply::Long(self.cid()))
             }
-            // R6: the published address, then status bits 12:0.
+            // R6: the published address, then status bits 12:0 as the
+            // command found them (4.10.1: CURRENT_STATE is the state the
+            // command was received in), so ident the first time.
             (false, 3, St::Ident | St::Stby) => {
+                let before = self.status() & 0x1fff;
                 self.state = St::Stby;
-                out(Reply::Short((self.cfg.rca as u32) << 16 | (self.status() & 0x1fff)))
+                out(Reply::Short((self.cfg.rca as u32) << 16 | before))
             }
             _ => return None,
         })

@@ -120,6 +120,10 @@ protect switch is on refuses WRITE with -30.
 - eMMC bring-up: OCR, CID, CSD, EXT_CSD, bus width and High Speed.
 - SD memory card bring-up: CMD8, ACMD41 with HCS, the card's own RCA, CSD
   versions 1.0 and 2.0, four lines at Default Speed.
+- A card's answers held to what it may say: each bring-up command must
+  find the card in the state the sequence put it in; an SD CSD version
+  that disagrees with the card's CCS, an RCA of 0, and a sector-mode eMMC
+  CSD that does not defer to SEC_COUNT are refused, not followed.
 - 512-byte block read, write and cache flush, up to 64 blocks a request.
 - The block wire: health, geometry, read, write, flush, identify.
 

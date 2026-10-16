@@ -40,12 +40,13 @@ pub fn bring_up<M: Mmio, C: Clock, L: Log>(h: &mut Host<M, C, L>) -> EmmcResult<
         h.say(Line::new().s(b"no SD card answered ACMD41"));
         return Ok(None);
     };
-    let (cid, rca, sectors) = identify(h)?;
+    // CCS means something only to a host that set HCS.
+    let sector_mode = v2 && ccs(ocr);
+    let (cid, rca, sectors) = identify(h, sector_mode)?;
     let mut card = Card {
         rca,
         ocr,
-        // CCS means something only to a host that set HCS.
-        sector_mode: v2 && ccs(ocr),
+        sector_mode,
         cid,
         ext: None,
         sectors,
