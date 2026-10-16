@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod accessibility;
 pub mod attention;
 pub mod consent;
 pub mod delete_prompt;
@@ -23,8 +22,8 @@ pub mod escape_chord;
 pub mod hand_over;
 pub mod health;
 pub mod installed_launch;
-pub mod instances;
 pub mod installed_launch_poll;
+pub mod instances;
 mod launch_children;
 pub mod launcher_focus;
 pub mod launcher_request;
@@ -38,6 +37,8 @@ pub mod notify;
 pub mod open_with;
 pub mod pkg_consent;
 pub mod pkg_install;
+pub mod relay_table;
+pub mod settings_relay;
 pub mod spotlight_open;
 pub mod spotlight_toggle;
 pub mod system_keys;
