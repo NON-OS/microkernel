@@ -20,8 +20,11 @@
 use super::family::Family;
 use super::identity::identity;
 use super::nonce::{salt, trace_start};
-use super::table::{with_family, LIVE, MAX_LIVE};
+use super::table::{with_family, LIVE};
 use crate::syscall::microkernel::errnos::ERRNO_BUSY;
+
+/// Never evicted: past this many, a new family's first guest is refused.
+pub(crate) const MAX_LIVE: usize = 64;
 
 /// Before `supervisor` makes a guest. A supervisor with guests already has
 /// its family. Otherwise a family it left unsealed is sealed now, and a new

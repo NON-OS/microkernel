@@ -24,8 +24,6 @@ use spin::Mutex;
 use super::family::Family;
 use super::sealed::Sealed;
 
-/// Never evicted: past this many, a new family's first guest is refused.
-pub(crate) const MAX_LIVE: usize = 64;
 /// The oldest sealed record goes first once this many are kept.
 pub(crate) const MAX_SEALED: usize = 64;
 
