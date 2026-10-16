@@ -4,6 +4,7 @@
 
 mod claims_tests;
 mod joined_tests;
+mod park_tests;
 mod police_more_tests;
 mod police_tests;
 mod restart_tests;
