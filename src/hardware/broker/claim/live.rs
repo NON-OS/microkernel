@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a claim still stands, for the paths that act after their check
-//! (L69). An exit drops its claims and then drains the grant tables and stops
-//! the devices, so a grant entered, or a register written, after it would
-//! outlive the claim it was made for.
+//! (L69). An exit moves its claims to Exiting, stops the devices and drains
+//! the grant tables without waiting for those paths (L75), so a grant
+//! entered, or a register written, after it would outlive the claim it was
+//! made for.
 
 use super::stage_rule::kept;
-use super::state::CLAIMS;
+use super::state::claims;
 
 fn stands(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
     move |c| (c.pid, c.device_id, c.epoch) == (pid, device_id, epoch) && kept(c.stage)
@@ -30,28 +31,19 @@ fn stands(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> boo
 /// entered after a true answer is one the drain finds, and one refused is
 /// undone by the path that made it.
 pub(crate) fn live(pid: u32, device_id: u64, epoch: u64) -> bool {
-    CLAIMS.lock().iter().any(stands(pid, device_id, epoch))
+    claims().iter().any(stands(pid, device_id, epoch))
 }
 
 /// `act` run under the claims' lock while the claim stands, `None` once it is
-/// gone: a config write or port access lands before an exit drops the claim
-/// and stops the device, never after. `act` takes no claim lock itself.
+/// gone: a config write or port access lands before an exit moves the claim
+/// on and stops the device, never after. `act` takes no claim lock itself.
 pub(crate) fn while_live<R>(
     pid: u32,
     device_id: u64,
     epoch: u64,
     act: impl FnOnce() -> R,
 ) -> Option<R> {
-    let claims = CLAIMS.lock();
+    let claims = claims();
     let held = claims.iter().any(stands(pid, device_id, epoch));
     held.then(act)
-}
-
-/// `act` under the claims' lock while no claim, of any stage, names the
-/// device: a refused bind's writes to a device its claim has left are made
-/// only before a newer claim holds it, never after (L73). `act` takes no
-/// claim lock, nor the interrupt records'.
-pub(crate) fn while_unclaimed<R>(device_id: u64, act: impl FnOnce() -> R) -> Option<R> {
-    let claims = CLAIMS.lock();
-    (!claims.iter().any(|c| c.device_id == device_id)).then(act)
 }
