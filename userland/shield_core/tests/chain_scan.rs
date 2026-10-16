@@ -1,11 +1,4 @@
 //! The wallet's notes from the format 5 pool's three events.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::panic,
-    clippy::unwrap_used,
-    clippy::arithmetic_side_effects
-)]
 
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
 use nox_shield_core::discovery::{scan_chain, Log};

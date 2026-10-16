@@ -4,7 +4,6 @@ use super::EvmAccount;
 
 /// The account of the public BIP-39 test phrase "abandon" eleven times then
 /// "about", for tests that sign. Every wallet's test suite knows its key.
-#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 pub(crate) fn test_account() -> EvmAccount {
     let mut words = [0u16; 12];
     words[11] = 3;

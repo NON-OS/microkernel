@@ -1,12 +1,6 @@
 /*
  * A live run against Sepolia, by hand, stage by stage. Tests assert by panicking.
  */
-#![allow(
-    clippy::expect_used,
-    clippy::panic,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects
-)]
 
 //! The whole private path on the launch pool, in the stages a person runs one at a time: the
 //! addresses to fund, a deposit signed by account 1, a private send to account 2 through the
@@ -15,7 +9,11 @@
 //! Run with `STAGE=addresses|shield|send|receive|withdraw` and `--ignored --nocapture`.
 
 mod e2e;
-mod keystore;
+/// The stand in this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 
 use e2e::{stage, wallet};
 

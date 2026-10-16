@@ -37,7 +37,6 @@ fn ready(tor: &Tor, onion: &str, pool: &str) -> Result<(), NetError> {
 
 #[cfg(test)]
 mod live {
-    #![allow(clippy::expect_used)]
     use super::ready;
     use crate::net::pool::ACTIVE;
     use crate::net::tor::Tor;
