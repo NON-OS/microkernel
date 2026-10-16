@@ -15,19 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The reports a key sends, put back together. Another channel's pass
 //! by; a continuation out of sequence, or with no message begun, ends the
-//! message as broken rather than splicing bytes into it.
+//! message as broken rather than splicing bytes into it, as does a
+//! message opened again before the last one ended (opening.rs judges).
 
 use alloc::vec::Vec;
 
-use super::frame::{Cid, CMD_ERROR, CMD_KEEPALIVE, MESSAGE_MAX};
+use super::frame::Cid;
 use super::heard::Heard;
+use super::opening::{opening, Opening};
 
 pub struct Assembler {
-    cid: Cid,
-    cmd: u8,
-    need: usize,
-    got: Vec<u8>,
-    seq: Option<u8>,
+    pub(super) cid: Cid,
+    pub(super) cmd: u8,
+    pub(super) need: usize,
+    pub(super) got: Vec<u8>,
+    pub(super) seq: Option<u8>,
 }
 
 impl Assembler {
@@ -40,36 +42,24 @@ impl Assembler {
             return Heard::Nothing;
         }
         if p[4] & 0x80 != 0 {
-            let need = u16::from_be_bytes([p[5], p[6]]) as usize;
-            match p[4] {
-                CMD_KEEPALIVE => return Heard::Keepalive(p[7]),
-                CMD_ERROR => return Heard::Error(p[7]),
-                _ if need > MESSAGE_MAX => return self.broken(),
-                cmd => (self.cmd, self.need, self.seq) = (cmd, need, Some(0)),
+            match opening(p) {
+                Opening::Keepalive(s) => Heard::Keepalive(s),
+                Opening::Error(code) => Heard::Error(code),
+                Opening::Ignore => Heard::Nothing,
+                // Opened again before the last one ended: neither is taken.
+                Opening::Begin(..) if self.seq.is_some() => self.broken(),
+                Opening::Broken => self.broken(),
+                Opening::Begin(cmd, need) => {
+                    (self.cmd, self.need, self.seq) = (cmd, need, Some(0));
+                    self.got.clear();
+                    self.take(&p[7..])
+                }
             }
-            self.got.clear();
-            self.take(&p[7..])
         } else if self.seq == Some(p[4]) {
             self.seq = Some(p[4] + 1);
             self.take(&p[5..])
         } else {
             self.broken()
         }
-    }
-
-    fn take(&mut self, data: &[u8]) -> Heard {
-        let n = (self.need - self.got.len()).min(data.len());
-        self.got.extend_from_slice(&data[..n]);
-        if self.got.len() < self.need {
-            return Heard::Nothing;
-        }
-        self.seq = None;
-        Heard::Message(self.cmd, core::mem::take(&mut self.got))
-    }
-
-    fn broken(&mut self) -> Heard {
-        (self.seq, self.need) = (None, 0);
-        self.got.clear();
-        Heard::Broken
     }
 }
