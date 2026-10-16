@@ -30,7 +30,7 @@ fn vbi(height: u32, refresh_mhz: u32, least: u32) -> Option<u32> {
     let r = refresh_mhz as u128;
     let num = 1_000_000_000u128.checked_sub(RB_MIN_V_BLANK * r).filter(|&n| n > 0)?;
     let den = r * height as u128;
-    Some(((RB_MIN_V_BLANK * den / num) as u32 + 1).max(least))
+    Some(u32::try_from(RB_MIN_V_BLANK * den / num).ok()?.checked_add(1)?.max(least))
 }
 
 /// Version 1: 160 pixels of blanking (48 front, 32 sync, 80 back), 3
@@ -43,8 +43,9 @@ pub fn reduced(width: u32, height: u32, refresh_mhz: u32) -> Option<Detailed> {
     }
     let vs = v_sync(w, height);
     let vbi = vbi(height, refresh_mhz, 3 + vs + 6)?;
-    let v_total = (height + vbi) as u128;
-    let quarters = refresh_mhz as u128 * v_total * (w + 160) as u128 * 4 / 1_000_000_000;
+    // Totals checked: a monitor's size at u32's top gives None, not a wrap.
+    let v_total = height.checked_add(vbi)? as u128;
+    let quarters = refresh_mhz as u128 * v_total * w.checked_add(160)? as u128 * 4 / 1_000_000_000;
     let h = Axis::new(w, 48, 32, 80, true);
     let v = Axis::new(height, 3, vs, vbi - 3 - vs, false);
     Some(timing(u32::try_from(250 * quarters).ok().filter(|&c| c > 0)?, h, v))
@@ -58,8 +59,8 @@ pub fn reduced_v2(width: u32, height: u32, refresh_mhz: u32) -> Option<Detailed>
         return None;
     }
     let vbi = vbi(height, refresh_mhz, 1 + 8 + 6)?;
-    let v_total = (height + vbi) as u128;
-    let khz = refresh_mhz as u128 * v_total * (width + 80) as u128 / 1_000_000;
+    let v_total = height.checked_add(vbi)? as u128;
+    let khz = refresh_mhz as u128 * v_total * width.checked_add(80)? as u128 / 1_000_000;
     let h = Axis::new(width, 8, 32, 40, true);
     let v = Axis::new(height, vbi - 8 - 6, 8, 6, false);
     Some(timing(u32::try_from(khz).ok().filter(|&c| c > 0)?, h, v))

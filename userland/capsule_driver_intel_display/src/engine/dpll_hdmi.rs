@@ -54,7 +54,8 @@ fn pick(afe_hz: u64, dividers: &[u64]) -> Option<Dco> {
             let centre = c * 1_000_000;
             // Deviation in units of 0.01% of the centre.
             let over = dco_hz >= centre;
-            let dev = dco_hz.abs_diff(centre) * 10_000 / centre;
+            // u128: a clock at u32's top runs the product past u64.
+            let dev = (dco_hz.abs_diff(centre) as u128 * 10_000 / centre as u128) as u64;
             let ok = if over { dev <= 100 } else { dev <= 600 };
             if ok && best.is_none_or(|(d, _)| dev < d) {
                 best = Some((dev, Dco { divider: p as u32, central_mhz: c as u32, dco_hz }));

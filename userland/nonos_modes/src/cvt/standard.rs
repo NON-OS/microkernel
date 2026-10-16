@@ -38,21 +38,27 @@ pub fn standard(width: u32, height: u32, refresh_mhz: u32) -> Option<Detailed> {
     let r = refresh_mhz as u128;
     // The estimated line period, in microseconds, is num / den.
     let num = 1_000_000_000u128.checked_sub(MIN_VSYNC_BP * r).filter(|&n| n > 0)?;
-    let den = r * (height + MIN_V_PORCH) as u128;
-    let vsbp = ((MIN_VSYNC_BP * den / num) as u32 + 1).max(vs + MIN_V_BPORCH);
+    // Sums in u128 and every narrowing checked: a size or rate at u32's top
+    // from a monitor gives None, never a wrapped timing.
+    let den = r * (height as u128 + MIN_V_PORCH as u128);
+    let vsbp = u32::try_from(MIN_VSYNC_BP * den / num).ok()?.checked_add(1)?;
+    let vsbp = vsbp.max(vs + MIN_V_BPORCH);
+    height.checked_add(MIN_V_PORCH)?.checked_add(vsbp)?;
     // The ideal duty cycle C' - M' * period / 1000 with C' 30 and M'
     // 300, as d_num / d_den percent, held at 20 at least.
     let (d_num, d_den) = match (300 * den).checked_sub(3 * num) {
         Some(n) if n >= 200 * den => (n, 10 * den),
         _ => (20, 1),
     };
-    let h_blank =
-        (w as u128 * d_num / ((100 * d_den - d_num) * 2 * CELL as u128)) as u32 * 2 * CELL;
-    let total = w + h_blank;
+    let cells = w as u128 * d_num / ((100 * d_den - d_num) * 2 * CELL as u128);
+    let h_blank = u32::try_from(cells * 2 * CELL as u128).ok()?;
+    let total = w.checked_add(h_blank)?;
     // The clock in 0.25 MHz steps: total / period, floored to a step.
     let clock = 250 * (4 * total as u128 * den / num);
     // Sync is 8 percent of the line, in whole cells.
     let h_sync = total / 100 * CELL;
+    // A line too short for one cell of sync has no timing a monitor locks to.
+    (h_sync > 0).then_some(())?;
     let back = h_blank / 2;
     let h = Axis::new(w, h_blank - h_sync - back, h_sync, back, false);
     let v = Axis::new(height, MIN_V_PORCH, vs, vsbp - vs, true);
