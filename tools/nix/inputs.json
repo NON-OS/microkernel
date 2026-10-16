@@ -705,6 +705,16 @@
   "md": [],
   "signed": []
  },
+ "userland/asid_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/mmu/asid/pool.rs",
+   "userland/asid_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/attest_doc_proofs": {
   "exclude": [],
   "include": [
