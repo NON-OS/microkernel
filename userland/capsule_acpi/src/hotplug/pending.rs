@@ -19,30 +19,34 @@
 //! gone, and if it never does, what was taken out is looked at again.
 
 use super::eject::{try_eject, Refused};
+use super::release::may_leave;
 use super::state::{Pending, Stage};
-use super::verify::{line, say_wait, verify};
+use super::verify::{line, say_wait, verify, TAKE_OUT_MS, VERIFY_MS, VERIFY_STEP_MS};
 use crate::boot::Acpi;
 use crate::sys::clock::now_ms;
 use alloc::vec::Vec;
-use nonos_aml::hotplug::ejectable;
+use nonos_aml::hotplug::Released;
 use nonos_aml::namespace::Id;
 
 const RETRY_MS: u64 = 2_000;
-use super::verify::{VERIFY_MS, VERIFY_STEP_MS};
 
 fn attempt(acpi: &mut Acpi, id: Id, first: bool) {
     let now = now_ms();
+    let verify = |until_ms| (Stage::Verify { until_ms }, now + VERIFY_STEP_MS);
     let (stage, next_ms) = match try_eject(acpi, id) {
-        Ok(()) => (Stage::Verify { until_ms: now + VERIFY_MS }, now + VERIFY_STEP_MS),
+        Ok(Released::ByFirmware) => verify(now + VERIFY_MS),
+        Ok(Released::ForTheUser) => {
+            line(acpi, id).str(b": removable, unlocked; may be taken out now").end();
+            verify(now + TAKE_OUT_MS)
+        }
         Err(r @ (Refused::Held(_) | Refused::HeldRecord(_))) => {
             if first {
                 say_wait(acpi, id, r);
             }
             (Stage::Held, now + RETRY_MS)
         }
-        Err(r) => {
-            let why: &[u8] = if r == Refused::Undock { b"_DCK(0)" } else { b"_EJ0" };
-            line(acpi, id).str(b": eject refused by firmware's ").str(why).end();
+        Err(Refused::Firmware(why)) => {
+            line(acpi, id).str(b": eject refused by firmware's ").str(why.method()).end();
             return;
         }
     };
@@ -50,8 +54,8 @@ fn attempt(acpi: &mut Acpi, id: Id, first: bool) {
 }
 
 pub fn request(acpi: &mut Acpi, id: Id) {
-    if !ejectable(&acpi.aml, id) {
-        line(acpi, id).str(b": eject asked of a device with no _EJ0").end();
+    if !may_leave(acpi, id) {
+        line(acpi, id).str(b": eject asked of a device with no _EJ0 and no _RMV").end();
     } else if !acpi.hotplug.pending.iter().any(|p| p.id == id) {
         attempt(acpi, id, true);
     }

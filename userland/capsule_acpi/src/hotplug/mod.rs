@@ -29,6 +29,7 @@ mod look;
 mod notify;
 mod pending;
 mod records;
+mod release;
 mod remember;
 mod state;
 mod take_out;

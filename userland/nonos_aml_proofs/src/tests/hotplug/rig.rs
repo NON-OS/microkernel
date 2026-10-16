@@ -16,7 +16,9 @@
 
 //! A root port with an ejectable slot holding two functions, a dock that
 //! answers `_DCK`, and a USB controller that leaves with the dock (`_EJD`).
-//! `\S0ST` and `\DKST` are what the slot's and the dock's `_STA` answer.
+//! `\S0ST` and `\DKST` are what the slot's and the dock's `_STA` answer;
+//! `\DKLK` is the last `_LCK` argument. A card reader `_RMV` calls
+//! removable has no `_EJ0`; the USB controller's `_RMV` answers 2.
 
 use crate::enc::*;
 
@@ -31,6 +33,7 @@ pub fn machine() -> Vec<u8> {
     cat(&[
         &name_obj("\\S0ST", &int(0x0F)),
         &name_obj("\\DKST", &int(0)),
+        &name_obj("\\DKLK", &int(9)),
         &device(PCI0, &name_obj("_HID", &string("PNP0A08"))),
         &adr(&at("RP01"), 0x001C_0000),
         &adr(&slot, 0),
@@ -44,7 +47,12 @@ pub fn machine() -> Vec<u8> {
             1,
             &cat(&[&store(&arg(0), &name("\\DKST")), &ret(&int(1))]),
         ),
+        &method(&format!("{dock}._LCK"), 1, &store(&arg(0), &name("\\DKLK"))),
+        &method(&format!("{dock}.LKST"), 0, &ret(&name("\\DKLK"))),
+        &adr(&at("CARD"), 0x001D_0000),
+        &method(&at("CARD._RMV"), 0, &ret(&int(1))),
         &adr(&at("USB0"), 0x0014_0000),
         &name_obj(&at("USB0._EJD"), &string("\\_SB.PCI0.DOCK")),
+        &method(&at("USB0._RMV"), 0, &ret(&int(2))),
     ])
 }
