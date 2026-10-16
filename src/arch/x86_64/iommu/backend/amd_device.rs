@@ -18,6 +18,7 @@
 //! id, and coverage from the IVHD device entries.
 
 use crate::arch::x86_64::iommu::amd_vi::domain::{attach, detach, device_id};
+use crate::arch::x86_64::acpi::parser::other::amd_iommu_aliased;
 use crate::arch::x86_64::iommu::amd_vi::unit_covers;
 use crate::memory::iommu::{DeviceAddress, DomainId, IommuError};
 
@@ -36,6 +37,13 @@ pub(super) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<
     detach(id(device)?).map_err(|_| IommuError::DeviceDetachFailed)
 }
 
+/*
+ * An id that shares its entry with another, either way round, is never
+ * counted as confined: its DMA would walk the other's tables, or a
+ * passthrough entry, while the broker reported it held to its own (L50).
+ */
 pub(super) fn translates(device: DeviceAddress) -> bool {
-    segment0(device).is_ok_and(|(bus, dev, function)| unit_covers(bus, dev, function))
+    segment0(device).is_ok_and(|(bus, dev, function)| {
+        unit_covers(bus, dev, function) && !amd_iommu_aliased(device_id(bus, dev, function))
+    })
 }
