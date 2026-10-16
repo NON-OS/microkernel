@@ -9,8 +9,8 @@ its polled bulk IN. It has no owner certificate yet, so no image carries it.
 ## Role
 
 `capsule_driver_cdc_ecm` is the USB CDC Ethernet Control Model class capsule.
-It finds one ECM function on driver.xhci0's ports, binds it as Linux
-`cdc_ether` does, and serves Ethernet frames to net.core over NNET, the
+It finds one ECM function on driver.xhci0's ports, binds it as CDC ECM 1.2 describes the
+function, and serves Ethernet frames to net.core over NNET, the
 protocol every NONOS network driver speaks.
 
 ```text
@@ -28,14 +28,22 @@ capsule holds only the ECM binding and framing (`src/ecm`).
 
 ## Binding
 
-1. The first configuration with a communications interface of subclass 0x06,
-   a Union naming its data interface, and an Ethernet Networking functional
-   descriptor. QEMU's usb-net offers RNDIS first and ECM second; ECM is taken.
-2. The bulk pipes go to driver.xhci0, then SET_CONFIGURATION, then
-   SET_INTERFACE to the data interface's alternate setting with the pipes.
-3. The station address from the iMACAddress string.
-4. SET_ETHERNET_PACKET_FILTER: directed, broadcast, all multicast. A STALL is
-   ignored, as Linux ignores it.
+1. The first configuration with a communications interface of subclass 0x06
+   whose Union it masters and names a CDC Data interface of the same
+   configuration, an Ethernet Networking functional descriptor of 13 bytes,
+   and a data alternate 1 with exactly one bulk IN and one bulk OUT. QEMU's
+   usb-net offers RNDIS first and ECM second; ECM is taken.
+2. wMaxSegmentSize of 0 or under 1514 is refused; one above the 2048-byte
+   receive buffer is clamped to it (no larger frames are turned on).
+3. Every interface of the configuration is held with driver.xhci0's claim
+   table; one another driver holds stops the bind, never taken over.
+4. The bulk pipes go to driver.xhci0, then SET_CONFIGURATION, then
+   SET_INTERFACE to alternate 1.
+5. The station address from the iMACAddress string: index 0, a string that
+   is not exactly twelve hex digits, a group or an all-zero address is
+   refused, and none is made up.
+6. SET_ETHERNET_PACKET_FILTER: directed, broadcast, all multicast. A refusal
+   does not stop the bind: the device then carries frames unfiltered.
 
 RTL8153 adapters (0bda:8153, 17ef:721e) are bound in their ECM
 configuration like any other device: the vendor-mode driver for them is
@@ -45,11 +53,16 @@ class this driver is written from.
 ## Framing
 
 One frame per bulk transfer. A frame that fills its last packet gets one
-padding byte (Linux `usbnet_start_xmit`). A bulk IN is 2048 bytes; a runt
-under 14 bytes is dropped, and a frame past 1514 bytes is cut to 1514.
+padding byte, as the bus cannot send a zero-length packet. A bulk IN is
+2048 bytes; a runt under 14 bytes is dropped, a frame past 1514 bytes is
+cut to 1514, and a transfer that fills the buffer without ending is let
+go up to its short or zero-length end; each is counted.
 
-The link reads up once bound: the network notifications arrive on an
-interrupt endpoint, and driver.xhci0 does not configure one beside bulk pipes.
+The link reads up once bound and follows NETWORK_CONNECTION from the
+notification endpoint, looked at every eighth request. A notification must
+name the communications interface and be as long as its wLength says
+(NETWORK_CONNECTION none, CONNECTION_SPEED_CHANGE eight); another is
+dropped and counted.
 
 ## Log
 
@@ -123,7 +136,7 @@ pipe is reset on the controller and its halt cleared on the device.
 
 ## Current implemented surface
 
-CDC-ECM binding as the Linux driver binds it (README sections above, and
+CDC-ECM binding as CDC ECM 1.2 describes it (README sections above, and
 docs/hardware/), and the framing: one Ethernet frame per bulk transfer, a padding byte when a frame fills its last packet.
 
 ## Wire format
@@ -157,7 +170,7 @@ DHCP and a web page over a real CDC-ECM device.
 
 ## Release evidence
 
-Build and host-proof evidence only so far (cdc_ecm_proofs, 7 tests).
+Build and host-proof evidence only so far (cdc_ecm_proofs, 19 tests).
 Runtime evidence needs driver.xhci0's polled bulk IN and control OUT data
 stage (docs/hardware/usb-net.md), the kernel spawn, and a real device: none
 is on main yet.
@@ -173,10 +186,10 @@ is on main yet.
 
 ## Explicit non-goals today
 
-NETWORK_CONNECTION and speed notifications (no interrupt endpoint beside the bulk pipes), multicast filter lists, more than one device per capsule, jumbo frames.
+Speed reporting (a speed change is checked, its rates unused), multicast filter lists, more than one device per capsule, jumbo frames.
 
 ## Verification
 
-`cd userland/cdc_ecm_proofs && cargo test` (7 pass at the time of
+`cd userland/cdc_ecm_proofs && cargo test` (19 pass at the time of
 writing); the capsule's `cargo build --release` and `cargo clippy` for
 x86_64-nonos-user. Not verified under QEMU or on hardware.
