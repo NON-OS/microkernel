@@ -17,6 +17,4 @@ impl JoinPolicy {
     pub const ANY: JoinPolicy = JoinPolicy { allow_psk: true, allow_sae: true };
     /// A network saved as WPA3: SAE only, never downgraded.
     pub const WPA3_ONLY: JoinPolicy = JoinPolicy { allow_psk: false, allow_sae: true };
-    /// WPA2-PSK only, for a caller that cannot supply SAE's randomness.
-    pub const PSK_ONLY: JoinPolicy = JoinPolicy { allow_psk: true, allow_sae: false };
 }

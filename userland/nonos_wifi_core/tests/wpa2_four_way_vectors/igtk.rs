@@ -14,7 +14,7 @@ use super::vectors::{h, psk_ieee, AA, M1, SNONCE, SPA};
 #[test]
 fn a_psk_network_requiring_protection_delivers_the_igtk() {
     let ap_rsne = h(AP_RSNE_PROTECTED);
-    let sel = select(&parse_rsne(&ap_rsne[2..]).unwrap(), false, JoinPolicy::PSK_ONLY).unwrap();
+    let sel = select(&parse_rsne(&ap_rsne[2..]).unwrap(), false, JoinPolicy::ANY).unwrap();
     assert_eq!((sel.akm, sel.pmf), (Akm::Psk, Pmf::Required));
     let own = station_rsne(&sel);
     assert_eq!(own.to_vec(), h(OWN_RSNE_PROTECTED));

@@ -26,7 +26,8 @@ fn the_ptk_matches_the_reference_in_either_address_order() {
 fn a_transition_network_joined_with_psk_completes_against_the_reference() {
     let ap_rsne = h(AP_RSNE_TRANSITION);
     let ap_rsnxe = h(AP_RSNXE);
-    let sel = select(&parse_rsne(&ap_rsne[2..]).unwrap(), true, JoinPolicy::PSK_ONLY).unwrap();
+    let psk = JoinPolicy { allow_psk: true, allow_sae: false };
+    let sel = select(&parse_rsne(&ap_rsne[2..]).unwrap(), true, psk).unwrap();
     assert_eq!((sel.akm, sel.pmf), (Akm::Psk, Pmf::Off));
     let own = station_rsne(&sel);
     assert_eq!(own, RSN_IE, "PSK without protection sends the plain WPA2 RSNE");
