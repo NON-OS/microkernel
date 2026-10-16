@@ -3216,7 +3216,7 @@
    "userland/capsule_driver_hda/src/controller/sst.rs",
    "userland/capsule_driver_hda/src/controller/stop.rs",
    "userland/capsule_driver_hda/src/controller/stream_layout.rs",
-   "userland/capsule_driver_hda/src/controller/stream_run.rs",
+   "userland/capsule_driver_hda/src/controller/stream_run",
    "userland/capsule_driver_hda/src/controller/streams.rs",
    "userland/capsule_driver_hda/src/controller/verb.rs",
    "userland/capsule_driver_hda/src/controller/verb_send.rs",
