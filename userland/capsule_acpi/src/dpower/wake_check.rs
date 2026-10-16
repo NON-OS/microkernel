@@ -21,10 +21,14 @@
 
 use super::target::target;
 use super::wake::wake;
-use super::wake_sweep::stale;
-use crate::boot::Acpi;
+use super::wake::Gpes;
+use super::wake_sweep::{departed as gone, stale};
+use crate::boot::{evaluator, path, Acpi};
+use crate::server::protocol::{EINVAL, EIO, ENOENT};
+use crate::sys::log::Line;
 use crate::sys::clock::now_ms;
 use crate::sys::function_of::Asker;
+use nonos_aml::device_power::WakeError;
 use nonos_aml::namespace::Id;
 
 const CHECK_MS: u64 = 2_000;
@@ -43,5 +47,29 @@ pub fn tick(acpi: &mut Acpi) {
     let owners = acpi.hidden.wake.owners.clone();
     for (dev, pid, id) in stale(&owners, &mut |pid, id| target(acpi, Asker::Holder(pid), id).ok()) {
         let _ = wake(acpi, dev, None, (pid, id));
+    }
+}
+
+/// Devices that just departed: each one's wake dropped at once, its event
+/// off with its last user and its resources given back, and no AML run
+/// on the device itself (`RuntimeWake::forget`).
+pub fn departed(acpi: &mut Acpi, ids: &[u64]) {
+    for (dev, pid, _) in gone(&acpi.hidden.wake.owners, ids) {
+        let Acpi { aml, host, cooling, events, hidden, .. } = acpi;
+        hidden.wake.owners.retain(|o| o.0 != dev);
+        let ev = &mut evaluator(host);
+        hidden.wake.rw.forget((&mut cooling.pool, aml, ev), &mut Gpes(events), dev);
+        let l = Line::new(b"wake ").str(path(aml, dev).as_bytes());
+        l.str(b" dropped: the device left, pid ").dec(pid.into()).end();
+    }
+}
+
+/// DEVICE_POWER's status for a wake verb.
+pub fn code(r: Result<(), WakeError>) -> i32 {
+    match r {
+        Ok(()) => 0,
+        Err(WakeError::NoEvent) => ENOENT,
+        Err(WakeError::TooDeep(_)) => EINVAL,
+        Err(_) => EIO,
     }
 }
