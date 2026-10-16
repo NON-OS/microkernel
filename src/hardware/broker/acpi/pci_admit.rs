@@ -27,7 +27,7 @@ use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::types::PciAddress;
 
 /// (segment, bus, device, function) packed as the log line prints it.
-fn packed(bdf: (u16, u8, u8, u8)) -> u64 {
+pub(super) fn packed(bdf: (u16, u8, u8, u8)) -> u64 {
     (u64::from(bdf.0) << 24) | (u64::from(bdf.1) << 16) | (u64::from(bdf.2) << 8) | u64::from(bdf.3)
 }
 

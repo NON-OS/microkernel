@@ -22,24 +22,24 @@ use super::act::run;
 use super::find::Port;
 use super::regs::*;
 use super::slot::{Phase, Read};
+use super::slot_wire::{LINK_STATUS, SLOT_CONTROL, SLOT_STATUS};
 use super::times::POLL_MS;
-use super::walk::read as cfg;
 use crate::boot::Acpi;
-use crate::sys::acpi_pci::pci_write;
+use crate::sys::acpi_slot::{slot_read, slot_write};
 use crate::sys::clock::now_ms;
 
 /// None when the port no longer answers.
 pub fn read(p: &Port) -> Option<Read> {
-    let status = cfg(p.bdf, p.cap + SLOT_STATUS, 2);
-    if status >= 0xFFFF {
-        return None;
-    }
-    let status = status as u16;
+    let status = slot_read(p.bdf, SLOT_STATUS).ok().filter(|s| *s < 0xFFFF)? as u16;
     if status & CHANGES != 0 {
-        let _ = pci_write(p.bdf, p.cap + SLOT_STATUS, 2, u32::from(status & CHANGES));
+        let _ = slot_write(p.bdf, SLOT_STATUS, status & CHANGES);
     }
-    let link = p.dll.then(|| cfg(p.bdf, p.cap + LINK_STATUS, 2) as u16);
-    let ctrl = cfg(p.bdf, p.cap + SLOT_CTRL, 2) as u16;
+    // A failed read skips this poll rather than look like a link gone down.
+    let link = match p.dll {
+        true => Some(slot_read(p.bdf, LINK_STATUS).ok()? as u16),
+        false => None,
+    };
+    let ctrl = slot_read(p.bdf, SLOT_CONTROL).ok()? as u16;
     Some(Read::from_regs(status, p.slot_cap, link, ctrl))
 }
 

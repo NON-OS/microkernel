@@ -16,6 +16,7 @@
 
 //! The region rule, pure: `kernel_proofs` mounts this directory as it is.
 
+mod bridge;
 mod facts;
 mod legacy;
 mod memory;
@@ -24,6 +25,7 @@ mod reason;
 mod refusal;
 mod table;
 
+pub use bridge::{bridge_write, ROUTING};
 pub use facts::{Facts, MemKind};
 pub use legacy::LEGACY_PORTS;
 pub use memory::memory;

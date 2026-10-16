@@ -60,4 +60,7 @@ pub enum Refusal {
     Claimed,
     Protected(Hardware),
     Legacy(Legacy),
+    /// A bridge's bus numbers, windows or secondary status, or a change to
+    /// its bus mastering.
+    Bridge,
 }
