@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Moving a device's requester id between denied, identity and a capsule
+//! Moving a device's requester id between denied, reserved and a capsule
 //! domain by rewriting its device table entry, then dropping the cached copy
 //! on every unit before returning.
 
 use super::super::devtab::{read_dte, write_dte};
-use super::super::dte::{blocked, domain_of, mode_of, passthrough, translated, Dte};
+use super::super::dte::{blocked, domain_of, mode_of, translated, Dte};
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
 use super::super::pte::LEVELS;
@@ -50,11 +50,6 @@ pub fn detach(id: u16) -> Result<(), AmdViError> {
     }
     crate::log::info!("[amd-vi] detaching device {} from domain {}", id, domain_of(current));
     replace(id, blocked())
-}
-
-/// Identity for a device the kernel enumerated, at bring-up.
-pub(in crate::arch::x86_64::iommu::amd_vi) fn pass(id: u16) -> Result<(), AmdViError> {
-    write_dte(id, passthrough())
 }
 
 fn replace(id: u16, entry: Dte) -> Result<(), AmdViError> {
