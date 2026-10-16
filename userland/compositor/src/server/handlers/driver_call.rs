@@ -53,11 +53,16 @@ pub fn status(port: u32, req: &[u8]) -> Option<i32> {
     call(port, req, &mut out).map(|_| i32::from_le_bytes([out[0], out[1], out[2], out[3]]))
 }
 
-/// The output the focused window (else the pointer) is on.
-pub fn focused_output(ctx: &Context) -> u16 {
+/// The outputs shown now: the first, then each further head's.
+pub fn outputs(ctx: &Context) -> ([u16; 4], usize) {
     let mut outputs = [0u16; 4];
     for (o, h) in outputs.iter_mut().skip(1).zip(&ctx.heads) {
         *o = h.output;
     }
-    output_at(ctx.plan.as_ref(), &outputs, focus_centre(ctx).0)
+    (outputs, (1 + ctx.heads.len()).min(4))
+}
+
+/// The output the focused window (else the pointer) is on.
+pub fn focused_output(ctx: &Context) -> u16 {
+    output_at(ctx.plan.as_ref(), &outputs(ctx).0, focus_centre(ctx).0)
 }
