@@ -20,10 +20,10 @@
 
 use alloc::vec::Vec;
 
-use nonos_tls::{HandshakeState, Progress, Refusal, Start};
+use nonos_tls::{HandshakeState, Progress, Start};
 
 use super::super::types::{After, Exchange, Phase};
-use super::{FAILED, REFUSED, RETRY, UNVERIFIED};
+use super::{FAILED, REFUSED, RETRY};
 
 impl Exchange {
     /// Take the flight as far as the bytes so far allow.
@@ -50,11 +50,7 @@ impl Exchange {
             Progress::Broken => return Err(FAILED),
         };
         let answer =
-            state.answer(self.host.as_bytes(), self.rtc, &self.request).map_err(|r| match r {
-                Refusal::Alert(_) => REFUSED,
-                Refusal::Unverified => UNVERIFIED,
-                Refusal::Incomplete | Refusal::Seal => FAILED,
-            })?;
+            state.answer(self.host.as_bytes(), self.rtc, &self.request).map_err(super::refused)?;
         /*
          * The handshake is over: its state, the flight and the private keys
          * are not needed again. Whatever followed the server's Finished in
