@@ -10,5 +10,3 @@ pub mod device;
 pub mod dma;
 pub mod health;
 pub mod rf;
-pub mod beacon;
-pub mod mgmt;
