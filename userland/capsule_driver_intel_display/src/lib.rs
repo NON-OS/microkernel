@@ -20,6 +20,7 @@
 
 #![no_std]
 
+pub mod ddc;
 pub mod display;
 pub mod dmc;
 pub mod dmc_parse;

@@ -101,7 +101,13 @@ on the boot framebuffer.
 F 12's bytes (BRIGHTNESS 3, SET_BRIGHTNESS 4, `brightness_wire`, `brightness_ops`) on
 the same port: a frame shorter than the wire's 20-byte header is a brightness
 request; panels are named by output with the top bit set, levels are 1..=100
-percent, and a set is taken only from power or desktop_shell (`senders.rs`); `engine::route`,
+percent, and a set is taken only from power or desktop_shell (`senders.rs`). An external
+monitor's brightness is its own, over DDC/CI (`src/ddc`, `display/ddc_bus.rs`): only on that
+output's own bus (GMBUS for HDMI and DVI, I2C over AUX for DisplayPort), only at address 0x37,
+only for brightness, contrast, the input source (read only) and the power mode (on or off), each
+reply checked for its length, checksum and echoed control, paced 40 ms to a reply and 50 ms
+between messages, and a reading kept a second. VCP 5 and SET_VCP 6 beside F 12's ops reach those
+controls (`vcp_wire.rs`); `engine::route`,
 `engine::relight::{relight, buffer}`, `Scanout::rebase`, `ggtt_run::map_run`. The binary: `discover::find`, `setup::run`, `bar::Bar0`
 (the engine's `Mmio`), `clock::Uptime`, `frames::DmaFrames`, `serve::run`.
 `src/engine`: `takeover::read_outputs`, `plane::program`, `flip::flip`,
