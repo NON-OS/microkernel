@@ -13,9 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The wallet's JSON-RPC is nonos_eth_rpc's; only its start-up self check is its own.
-
-mod self_check;
+//! The wallet's JSON-RPC is nonos_eth_rpc's.
 
 pub use nonos_eth_rpc::{broadcast_error, NodeSaid};
 pub use nonos_eth_rpc::{http_answer, http_post, Http};
@@ -27,4 +25,3 @@ pub use nonos_eth_rpc::{request_block_number, request_receipt};
 pub use nonos_eth_rpc::{request_estimate_gas, request_eth_call};
 pub use nonos_eth_rpc::{request_fee, request_fee_history};
 pub use nonos_eth_rpc::{request_nonce, request_nonce_latest};
-pub use self_check::self_check;

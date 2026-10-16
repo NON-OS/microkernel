@@ -15,42 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The refresh loop can never freeze the UI. This models the step machine in
-//! `wallet/event/probe/probe_tick.rs`, the idle gate in `wallet/app.rs`, and the
-//! per-operation socket timeouts in `wallet/net/*.rs`, and checks the
-//! invariants that keep the wallet responsive. Change a constant in the wallet
-//! and the matching constant here should change with it.
-//!
-//! Several checks assert a bound on these mirrored constants, which is the whole
-//! point of the proof, so the constant-assertion lint is not useful here.
-#![allow(clippy::assertions_on_constants)]
-// Mirror the wallet's own `ticks % 2 == 0` phrasing rather than a lint-preferred
-// rewrite, so this model reads the same as the code it models.
-#![allow(clippy::manual_is_multiple_of)]
+//! `wallet/event/probe/probe_tick.rs` and the idle gate in `wallet/app.rs`,
+//! and checks the invariants that keep the wallet responsive. Change a
+//! constant in the wallet and the matching constant here should change with
+//! it. The time bounds on what a refresh waits for are in probe_bounds_tests.
 
 // One batched refresh fetches this many fields over a single connection
 // (read_snapshot.rs: eth balance, nonce, fee, nox balance, claimable,
 // positions, stats).
 const BATCH_FIELDS: u8 = 7;
+// The whole account refreshes in one batched request rather than one
+// connection per field, so a refresh costs one handshake however many fields
+// it carries: the property that made the refresh fast enough to feel live.
+const _: () = assert!(BATCH_FIELDS >= 2, "batching only helps with several fields");
 const IDLE_GATE: u32 = 2; // app.rs: probe once the user has paused this many ticks
-
-// net/*.rs mk_ipc_call_timeout bounds, in milliseconds. Generous enough that a
-// live but contended DNS/sockets capsule on one core is never mistaken for a
-// dead one (a too-tight bound marked the whole route blocked and stopped every
-// fetch), still finite so a genuinely dead peer fails instead of hanging.
-const T_DNS: u64 = 2800;
-const T_OPEN: u64 = 1500;
-const T_CONNECT: u64 = 4000;
-const T_SEND: u64 = 1800;
-const T_RECV: u64 = 80;
-
-// Non-socket IPC bounds: the TLS handshake's crypto-capsule calls
-// (tls13/crypto_status.rs, tls13/hash_sha384.rs), the keyring call
-// (ipc/call.rs), and the service health probe (net/health.rs). The Send
-// freeze reproduced through these, not the sockets: any blocking IPC on the
-// UI thread must be bounded, whoever the peer is.
-const T_CRYPTO: u64 = 3000;
-const T_KEYRING: u64 = 4000;
-const T_HEALTH: u64 = 3000;
 
 /// app.rs: once the user has paused for IDLE_GATE ticks, probe every idle tick
 /// so the field cycle fills in a few seconds. Mouse movement does not count as
@@ -62,23 +40,6 @@ fn probes(address_ready: bool, ticks: u32, last_active: u32) -> bool {
         return false;
     }
     ticks.wrapping_sub(last_active) >= IDLE_GATE
-}
-
-/// Worst-case wall time of one fetch if every op times out (a blackholed peer):
-/// DNS, open, connect, send, read, send, read. Finite by construction.
-fn worst_case_fetch_ms() -> u64 {
-    T_DNS + T_OPEN + T_CONNECT + T_SEND + T_RECV + T_SEND + T_RECV
-}
-
-#[test]
-fn one_refresh_is_one_round_trip() {
-    // The whole account refreshes in a single batched request rather than one
-    // connection per field, so the cost of a refresh is one handshake no matter
-    // how many fields it carries. This is the property that made the refresh
-    // fast enough to feel live.
-    assert!(BATCH_FIELDS >= 2, "batching only helps with several fields");
-    let handshakes_per_refresh = 1;
-    assert_eq!(handshakes_per_refresh, 1, "a refresh must not scale with field count");
 }
 
 #[test]
@@ -109,32 +70,4 @@ fn probing_resumes_once_idle() {
 #[test]
 fn no_probe_before_an_account_exists() {
     assert!(!(0..64u32).any(|t| probes(false, t, 0)));
-}
-
-#[test]
-fn worst_case_is_bounded_and_recv_is_snappy() {
-    // A fully blackholed peer costs a finite ceiling, never an infinite hang.
-    // The bound is generous so contention is not mistaken for death, but this
-    // worst case is only reached when every op times out; a healthy fetch is a
-    // fraction of it, and it runs only once per refresh interval when idle.
-    let wc = worst_case_fetch_ms();
-    assert!(wc > 0 && wc < 15_000, "a dead peer costs a finite {wc} ms, never an infinite hang");
-    assert!(T_RECV <= 100, "the polled recv stays responsive");
-}
-
-#[test]
-fn every_ui_thread_ipc_is_time_bounded() {
-    // The invariant behind the Send-path freeze fix: no IPC from the UI
-    // thread may wait forever. Each bound is finite and small enough that
-    // even a fully wedged peer returns control within seconds.
-    for (name, bound) in [
-        ("crypto capsule (TLS handshake)", T_CRYPTO),
-        ("keyring", T_KEYRING),
-        ("health probe", T_HEALTH),
-    ] {
-        assert!(bound > 0 && bound <= 5000, "{name} bound {bound} ms must be finite, not a hang");
-    }
-    // The keyring bound covers its slowest real op: PBKDF2 with 2048 rounds
-    // plus BIP32 derivation during HD generate/recover.
-    assert!(T_KEYRING >= 2000, "keyring bound must leave room for PBKDF2-2048");
 }
