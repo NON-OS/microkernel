@@ -16,7 +16,7 @@
 
 use super::hold;
 use super::state::{next_epoch, CLAIMS};
-use super::types::{Claim, ClaimError};
+use super::types::{Claim, ClaimError, Stage};
 
 // Register a claim. Returns the granted epoch on success. The caller
 // must have already verified that `device_id` exists in the broker
@@ -29,7 +29,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
             return Err(ClaimError::AlreadyClaimed);
         }
         let epoch = next_epoch();
-        claims.push(Claim { pid, device_id, epoch, ready: false });
+        claims.push(Claim { pid, device_id, epoch, stage: Stage::Making, inflight: 0 });
         epoch
     };
     // The kernel reads a virtio-rng for boot entropy until its capsule

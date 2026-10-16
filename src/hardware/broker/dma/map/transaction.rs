@@ -26,10 +26,11 @@ use crate::memory::iommu::IommuProtection;
 // record. Each step is a single responsibility in its own file; this
 // function is the transaction boundary and owns the rollback chain.
 pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaMapError> {
-    let claim_epoch = match validate::validate(&req, pid) {
-        Ok(epoch) => epoch,
+    let held = match validate::validate(&req, pid) {
+        Ok(held) => held,
         Err(e) => return fail("validate", e),
     };
+    let claim_epoch = held.epoch;
     let pages = req.length / validate::PAGE_SIZE;
 
     let phys_start = match alloc::alloc_and_zero(pages, req.length, req.flags) {

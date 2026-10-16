@@ -33,9 +33,9 @@ const FLAGS_KNOWN: u32 = DMA_MAP_HIGH
     | DMA_MAP_TO_DEVICE
     | DMA_MAP_FROM_DEVICE;
 
-// Returns the claim epoch on success so the caller can record it
-// without a second lookup. All state is observed read-only here.
-pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<u64, DmaMapError> {
+// Returns the claim, which the caller holds until its grant is recorded
+// (L66). Nothing else is changed here.
+pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<claim::InUse, DmaMapError> {
     if req.flags & !FLAGS_KNOWN != 0 {
         return Err(DmaMapError::UnsupportedFlags);
     }
@@ -65,5 +65,5 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<u64, DmaMapError
     if pages > dma_page_limit_for_class(class) {
         return Err(DmaMapError::BadLengthForClass);
     }
-    Ok(claim.epoch)
+    Ok(claim)
 }

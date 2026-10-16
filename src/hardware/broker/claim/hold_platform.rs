@@ -52,9 +52,7 @@ pub(crate) const fn hold_for_platform(
 ) -> Option<Hold> {
     match bus {
         BUS_ACPI => Some(match (class, pci_class, vendor, device) {
-            (SERIAL, SERIAL_BUS, _, _) | (GPIO_CTRL, _, _, _) => {
-                Hold::ForService(I2C_HOST_SERVICE)
-            }
+            (SERIAL, SERIAL_BUS, _, _) | (GPIO_CTRL, _, _, _) => Hold::ForService(I2C_HOST_SERVICE),
             (INPUT, _, PNP, PS2_KBD) | (INPUT, _, PNP, PS2_AUX) => Hold::ForService(PS2_SERVICE),
             _ => Hold::Refused,
         }),

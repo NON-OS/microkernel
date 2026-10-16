@@ -25,6 +25,7 @@ mod bootfb;
 // on-screen device census: bring-up diagnostic, silenced
 // mod census;
 mod claim;
+mod give_back;
 mod class;
 mod confine;
 mod device;
@@ -60,11 +61,12 @@ pub use bootfb::{
 };
 // pub use census::render_and_hold as device_census; // bring-up diagnostic, silenced
 pub use claim::{
-    claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
+    claim as claim_device, quiesce_all as quiesce_all_devices,
     quiesce_held as quiesce_held_device,
     release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
+pub use give_back::give_back;
 pub use device::{
     Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
     DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,
