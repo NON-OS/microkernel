@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Bringing one root port to Enabled before Address Device (xHCI 1.2
-//! sections 4.3 and 4.19, USB 2.0 section 7.1.7.3, Linux `hub_port_reset`).
+//! sections 4.3 and 4.19, USB 2.0 section 7.1.7.3).
 //!
 //! A USB 2 port is enabled only by a port reset. A USB 3 port enables itself
 //! once its link trains, so one that already shows PED is used as it is; one
@@ -36,12 +36,12 @@ use crate::regs::op::{portsc_clear_changes, portsc_neutral, portsc_read, portsc_
 const RESET_TIMEOUT_MS: u64 = 1_000;
 /// Root hub power-on to power-good: xHCI root hubs report 20 ms.
 pub const POWER_GOOD_MS: u64 = 20;
-/// Connection debounce (USB 2.0 TATTDB, Linux HUB_DEBOUNCE_*): the connect
+/// Connection debounce (USB 2.0 TATTDB; the steps as observed, unverified): the connect
 /// status must hold for 100 ms, sampled every 25 ms, within 1.5 s.
 const DEBOUNCE_STABLE_MS: u64 = 100;
 const DEBOUNCE_STEP_MS: u64 = 25;
 const DEBOUNCE_TIMEOUT_MS: u64 = 1_500;
-/// Reset recovery (TRSTRCY, 10 ms) plus the margin Linux gives devices.
+/// Reset recovery (TRSTRCY, 10 ms) plus a margin (as observed, unverified).
 const RESET_RECOVERY_MS: u64 = 50;
 
 /// How a port is brought to Enabled.
@@ -65,8 +65,8 @@ pub fn port_action(portsc: u32, usb3: bool) -> PortAction {
     // A USB 3 port whose link trained is enabled already, but the device on it
     // may have been addressed by another class driver that probed it and let
     // it go. Real devices refuse a second Address Device without a reset in
-    // between (QEMU's do not), so every port is reset before it is addressed,
-    // as Linux hub_port_init does.
+    // between (QEMU's do not), so every port is reset before it is
+    // addressed.
     PortAction::Reset
 }
 

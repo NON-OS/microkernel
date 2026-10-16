@@ -125,7 +125,7 @@ requests remain outside this capsule.
   binds one MSI-X vector when it can. Intel PCH controllers have MSI only,
   so they poll; INTx is disabled in the PCI command register either way.
 - Takes the controller from firmware through USBLEGSUP inside the mapped
-  window, waits for CNR, waits 1 ms after HCRST (Linux XHCI_INTEL_HOST).
+  window, waits for CNR, waits 1 ms after HCRST (an Intel host's need, as observed, unverified).
 - Reads the Supported Protocol capabilities, so each root port is known as
   USB 2 or USB 3, and powers every port at start.
 - Serves controllers without 64-bit addressing (AC64 clear) with DMA kept
@@ -237,7 +237,7 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
   the serial console only when the capsule holds the Debug capability, and
   nothing yet shows it on screen.
 - The Intel xHCI/EHCI port switchover of 7, 8 and 9 series chipsets
-  (Panther, Lynx and Wildcat Point; Linux `usb_enable_intel_xhci_ports`):
+  (Panther, Lynx and Wildcat Point, as observed, unverified):
   it writes PCI config 0xD0 and 0xD8, which the kernel's config-write
   allowlist refuses. On those machines ports the firmware left routed to
   EHCI stay there. Chipsets from the 100 series (6th generation Core) on,
