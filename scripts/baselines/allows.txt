@@ -44,10 +44,9 @@ userland/capsule_driver_ahci/src/served/kind.rs:24
 userland/capsule_driver_iwlwifi/src/firmware/gen3/region.rs:24
 userland/capsule_driver_rtl8821ce/src/assoc.rs:78
 userland/capsule_driver_virtio_gpu/src/device/cmd/transfer_3d/wire.rs:23
-userland/capsule_driver_xhci/src/contexts/mod.rs:35
-userland/capsule_driver_xhci/src/controller/mod.rs:78
-userland/capsule_driver_xhci/src/controller/mod.rs:80
-userland/capsule_driver_xhci/src/dma/mod.rs:27
+userland/capsule_driver_xhci/src/contexts/mod.rs:46
+userland/capsule_driver_xhci/src/controller/mod.rs:32
+userland/capsule_driver_xhci/src/dma/mod.rs:31
 userland/capsule_install/brand/src/type_set.rs:39
 userland/capsule_install/src/install/ui/full/steps.rs:26
 userland/capsule_install/src/install/ui/widgets/kv.rs:30
@@ -327,4 +326,4 @@ userland/wallet_proofs/src/wallet/paint/mod.rs:10
 userland/wallet_proofs/src/wallet/swap/mod.rs:5
 userland/wm_proofs/src/window.rs:34
 userland/wm_proofs/src/window_share_tests.rs:38
-userland/xhci_proofs/src/lib.rs:46
+userland/xhci_proofs/src/lib.rs:50
