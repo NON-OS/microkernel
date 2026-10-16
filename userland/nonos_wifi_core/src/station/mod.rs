@@ -32,6 +32,7 @@
 //! supplicant the join finished with (`eapol`). `rx_frame` remains the bare
 //! structural decap, without those checks.
 
+mod address;
 mod alive;
 mod eapol;
 mod frames;
