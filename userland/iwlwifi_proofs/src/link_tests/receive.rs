@@ -2,10 +2,9 @@
 
 //! A received notification's MPDU becomes the Ethernet frame again.
 
+use super::frames::{BSSID, LLC_SNAP, OUR, RX_DESC_LEN};
 use crate::gen3::extract_mpdu;
-use crate::gen3::tx_cmd;
-use crate::station::{Ccmp, LinkStation};
-use super::frames::{BSSID, LLC_SNAP, OUR, RX_DESC_LEN, ethernet};
+use nonos_wifi_core::station::{Ccmp, LinkStation};
 
 #[test]
 fn receive_extracts_the_mpdu_and_recovers_the_ethernet_frame() {
