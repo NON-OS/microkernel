@@ -56,11 +56,15 @@ pub fn cc<M: Mem>(m: &M, at: usize) -> u32 {
 }
 
 /// The bytes a retired TD of `len` from `buf` moved: all once its CBP is
-/// 0, else up to the CBP a short packet left.
+/// 0, else up to the CBP a short packet left. A CBP outside the buffer is
+/// no count of the bytes moved, so none are taken.
 pub fn moved<M: Mem>(m: &M, at: usize, buf: usize, len: usize) -> usize {
     match (len, m.rd(at + 4)) {
         (0, _) => 0,
         (_, 0) => len,
-        (_, cbp) => (cbp.wrapping_sub(m.bus(buf)) as usize).min(len),
+        (_, cbp) => match cbp.checked_sub(m.bus(buf)) {
+            Some(n) if (n as usize) < len => n as usize,
+            _ => 0,
+        },
     }
 }

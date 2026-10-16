@@ -22,6 +22,7 @@ use super::failed::{failed, CtrlError};
 use crate::env::{Mem, Regs};
 use crate::facts::regs::CS_BLF;
 use crate::facts::td::{DP_IN, DP_OUT};
+use crate::sched::clean::clean;
 use crate::sched::ed::{control as ed_word, Target};
 use crate::sched::layout::{bulk_ed, bulk_td};
 use crate::sched::queue::{start, Ran};
@@ -63,7 +64,7 @@ pub fn ended<M: Mem>(
 ) -> Result<usize, CtrlError> {
     let here = bulk_td(ep.index, ep.at);
     ep.at = 1 - ep.at;
-    match ran {
+    match clean(m, ran, here, 1) {
         Ran::Done => Ok(moved(m, here, buf, len)),
         Ran::Halted => {
             clear_halt(m, bulk_ed(ep.index), true);
