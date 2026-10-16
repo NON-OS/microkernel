@@ -120,14 +120,22 @@ LoadTable; `lock_word` and `lock_released` for the FACS Global Lock.
 
 Firmware written for Windows asks `_OSI` for the version strings Microsoft
 publishes ("How to Identify the Windows Version in ACPI by Using _OSI",
-learn.microsoft.com) and turns devices and features on by the answers. The
-default `Personality` answers each of them, "Windows 2000" to "Windows 2022"
-(`exec::WINDOWS`, each line naming its release), as Windows does for its
-own string and every earlier one; `Personality::windows_up_to` caps the
-answers at a release for a machine that needs it. The feature group strings
-of section 5.7.2 and vendor strings such as "Linux" are not answered: the
-first promise support NONOS does not have yet, the second select paths
-tested against another system. `_OS` is "Microsoft Windows NT"; `_REV` is 2.
+learn.microsoft.com) and turns devices and features on by the answers.
+Every string NONOS has a view on is one row of `exec::osi_table`. Each row
+records whether the string is answered and how far NONOS honours what a yes
+lets firmware do (`Honour`). It names the firmware paths a yes opens that
+NONOS lacks (`unlocks`) and gives the reason. The firmware behaviour in the
+reasons is recalled, and every row is marked unverified.
+
+- **Windows strings.** The default `Personality` answers each of them,
+  "Windows 2000" to "Windows 2022", as Windows does for its own string and
+  every earlier one. `Personality::windows_up_to` caps the answers at a
+  release, for a machine that needs it.
+- **Feature group strings** of section 5.7.2 are not answered, even the
+- **Vendor strings** such as "Linux" are not answered: they select paths
+  tested against another system.
+
+`_OS` is "Microsoft Windows NT"; `_REV` is 2.
 
 ## Events
 

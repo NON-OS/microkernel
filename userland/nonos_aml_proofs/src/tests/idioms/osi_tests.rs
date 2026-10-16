@@ -22,7 +22,7 @@
 use super::more::*;
 use super::run::ok;
 use crate::enc::*;
-use crate::exec::WINDOWS;
+use crate::exec::windows;
 use crate::rig::Rig;
 
 const OTHERS: &[&str] = &[
@@ -41,7 +41,7 @@ const OTHERS: &[&str] = &[
 fn the_ladder_climbs_to_the_newest_answered_year() {
     let mut body = store(&int(0), &name("\\OSYS"));
     let mut probes = 0;
-    for (year, s) in WINDOWS.iter().enumerate() {
+    for (year, s) in windows().enumerate() {
         let probe = invoke("\\_OSI", &[string(core::str::from_utf8(s).unwrap())]);
         body.extend(if_(&probe, &store(&int(2000 + year as u64), &name("\\OSYS"))));
         probes += 1;
@@ -54,7 +54,7 @@ fn the_ladder_climbs_to_the_newest_answered_year() {
     let defs = cat(&[&name_obj("\\OSYS", &int(0)), &method("\\INIO", 0, &body)]);
     let mut r = Rig::new(&defs).connected();
     let (v, ran) = ok(&mut r, "\\INIO");
-    assert_eq!(v, 2000 + WINDOWS.len() as u64 - 1, "no vendor or feature string answered");
+    assert_eq!(v, 2000 + windows().count() as u64 - 1, "no vendor or feature string answered");
     assert!(probes >= 30);
     assert!(ran.steps < 400, "{} steps for {probes} probes", ran.steps);
 }

@@ -4,11 +4,14 @@
 //! ends on the newest.
 
 use crate::enc::*;
-use crate::exec::{ExecLimits, Machine, Personality, WINDOWS};
+use crate::exec::{windows, ExecLimits, Machine, Personality};
 use crate::load::Aml;
 use crate::object::Object;
 use crate::probe::Probe;
 use crate::run::num;
+
+#[path = "osi_table_tests.rs"]
+mod table;
 
 fn osi(p: Personality, s: &[u8]) -> u64 {
     let mut aml = Aml::default();
@@ -25,8 +28,8 @@ fn osi(p: Personality, s: &[u8]) -> u64 {
 
 #[test]
 fn every_published_windows_string_is_answered() {
-    assert_eq!(WINDOWS.len(), 23);
-    for s in WINDOWS {
+    assert_eq!(windows().count(), 23);
+    for s in windows() {
         assert_eq!(osi(Personality::DEFAULT, s), u64::MAX, "{}", String::from_utf8_lossy(s));
     }
 }
