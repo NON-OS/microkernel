@@ -35,7 +35,7 @@ Only the AX210 family ids that carry transport values go past the first step, an
 
 - Hidden networks, open, TKIP and Enterprise networks.
 - 6 GHz, HT, VHT and HE rates, rate scaling, QoS, aggregation and power save.
-- Interrupt-driven operation, firmware restart, roaming, access point and monitor mode.
+- Interrupt-driven operation, roaming, access point and monitor mode.
 
 ## See also
 
