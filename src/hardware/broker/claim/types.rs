@@ -31,4 +31,6 @@ pub enum ClaimError {
     Unconfined,
     /// The record is marked unusable (`DEVICE_FLAG_DISABLED`).
     Disabled,
+    /// Its BARs would not take back what enumeration found (L62).
+    Refused,
 }
