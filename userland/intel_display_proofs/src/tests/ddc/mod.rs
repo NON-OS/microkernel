@@ -18,6 +18,11 @@
 //! carriers, and the controls on a claimed output through the wire.
 
 mod aux_tests;
+mod caps_bound_tests;
+mod caps_fetch_tests;
+mod caps_frame_tests;
+mod caps_parse_tests;
+mod caps_rig;
 pub(crate) mod fake_bus;
 mod frame_tests;
 mod gmbus_tests;
