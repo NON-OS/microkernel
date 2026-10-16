@@ -27,8 +27,11 @@ use super::entry_word::merge;
 static NONOS_SPECTRE_EL0_ENTRY: AtomicU32 = AtomicU32::new(0);
 
 /// Fold this CPU's word into the shared one. Words only ever gain bits and
-/// counts, so a CPU that started earlier never loses a mitigation.
+/// counts, so a CPU that started earlier never loses a mitigation. The
+/// EPD1 trampoline keeps its own copy, which it reads before it can reach
+/// this one, and gets the same fold.
 pub(super) fn publish(word: u32) {
     let _ = NONOS_SPECTRE_EL0_ENTRY
         .fetch_update(Ordering::AcqRel, Ordering::Acquire, |now| Some(merge(now, word)));
+    crate::arch::aarch64::mmu::trampoline::mirror_entry_word(|now| merge(now, word));
 }

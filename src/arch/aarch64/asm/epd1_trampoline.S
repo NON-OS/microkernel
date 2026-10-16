@@ -20,6 +20,7 @@
  * VBAR_EL1 offsets 0x400-0x7FF for a lower EL using AArch64). */
 
 #include "epd1.h"
+#include "spectre_work.h"
 
 .macro TRAMP_ENTRY slot, from_el0
     .balign 0x80
@@ -29,10 +30,13 @@
     bic     x30, x30, #TCR_EPD1
     msr     tcr_el1, x30
     isb
-    .endif
+    mov     x30, #(\slot * 0x80)
+    b       from_el0
+    .else
     ldr     x30, __epd1_trampoline + 0x1000     /* the targets, high */
     add     x30, x30, #(\slot * 0x80)
     br      x30
+    .endif
 .endm
 
 .section .text.epd1_trampoline, "ax", %progbits
@@ -76,6 +80,27 @@ __epd1_trampoline:
     eret
     dsb     nsh
     isb
+
+/* Every entry from EL0, with EPD1 clear and the slot's offset in x30. The
+ * speculation work (spectre_work.h) runs here, before this page's one
+ * indirect branch, so nothing EL0 trained steers that branch either. Its
+ * word is the data page's second, mirrored from the one the vectors read
+ * (security::spectre::entry). x0-x3 and the offset ride on the kernel
+ * stack, which SP_EL1 names and which clearing EPD1 made reachable; the
+ * targets' `_scrubbed` doors then skip the same work in the vectors. */
+from_el0:
+    stp     x0, x1, [sp, #-32]!
+    stp     x2, x3, [sp, #16]
+    str     x30, [sp, #-16]!
+    ldr     w1, __epd1_trampoline + 0x1008      /* the entry word */
+    cbz     w1, 9f
+    SPECTRE_WORK w1, w3
+    ldr     x30, [sp], #16
+    ldr     x0, __epd1_trampoline + 0x1000      /* the targets, high */
+    add     x30, x30, x0
+    ldp     x2, x3, [sp, #16]
+    ldp     x0, x1, [sp], #32
+    br      x30
 
     .balign 0x1000
 .size __epd1_trampoline, . - __epd1_trampoline
