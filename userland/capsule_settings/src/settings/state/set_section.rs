@@ -44,5 +44,8 @@ pub fn set_section(state: &mut State, section: Section) {
     if section == Section::Accessibility {
         crate::settings::access::page::read(state);
     }
+    if section == Section::Appearance {
+        crate::settings::screens::read::read(state);
+    }
     track_scroll(state);
 }

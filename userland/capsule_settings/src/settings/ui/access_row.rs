@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One of the Accessibility page's rows: what it sets, and its value now.
+//! One of the rows the compositor holds, on Accessibility or the displays'
+//! on Appearance: what it sets, and its value now.
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -38,5 +39,9 @@ pub fn paint(
 ) {
     row_label::paint(fb, card_x, y, h, k.label(), None);
     let top = text::centred_top(0, h, BODY_PX) + y;
-    text::right(fb, right_edge(card_x, card_w), top, value(&state.access, k), VALUE_FG, BODY_PX);
+    let v = match k.on_screens() {
+        true => crate::settings::screens::text::value(&state.screens, k),
+        false => value(&state.access, k),
+    };
+    text::right(fb, right_edge(card_x, card_w), top, v, VALUE_FG, BODY_PX);
 }

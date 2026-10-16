@@ -54,6 +54,7 @@ pub fn new() -> State {
         machine_key: MachineKey::Unasked,
         audio_output: AudioOutput::Unasked,
         access: crate::settings::access::AccessPage::default(),
+        screens: crate::settings::screens::ScreenPage::default(),
         win_w: crate::settings::manifest::WIDTH,
         win_h: crate::settings::manifest::HEIGHT,
     }
