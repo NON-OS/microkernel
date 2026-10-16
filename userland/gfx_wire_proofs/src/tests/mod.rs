@@ -23,3 +23,4 @@ mod hostile_tests;
 mod notice_tests;
 mod reply_tests;
 mod surface_tests;
+mod sweep;
