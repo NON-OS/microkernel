@@ -57,6 +57,9 @@ impl SimAp {
         if rsne_of(&self.rsne).is_some_and(|r| r.mfpc()) {
             kd.extend_from_slice(&igtk_kde(&IGTK));
         }
+        if let Some(bits) = self.quirks.transition_disable {
+            kd.extend_from_slice(&[0xDD, 5, 0x50, 0x6F, 0x9A, 0x20, bits]);
+        }
         let m3 = message3(Akm::Psk, 2, &ANONCE, &ptk, &kd);
         self.ptk = Some((cipher, ptk));
         vec![eapol_from(self.bssid, sta, &m3)]

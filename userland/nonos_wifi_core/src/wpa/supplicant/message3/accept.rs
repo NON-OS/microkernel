@@ -40,6 +40,7 @@ impl Supplicant {
             self.fail(Failure::IeMismatch);
             return StepOutput::none();
         }
+        self.transition_disable = kd.transition_disable;
         keys.rsc = rsc_pn(&key.key_rsc);
         self.store_group_keys(&keys);
         match self.message4(&key.replay_counter) {
