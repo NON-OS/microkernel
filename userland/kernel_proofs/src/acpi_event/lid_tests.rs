@@ -51,3 +51,17 @@ fn the_global_lock_report_decodes() {
     assert_eq!(decode(GLOBAL_LOCK, 0), Some(Event::GlobalLock(false)));
     assert_eq!(decode(GLOBAL_LOCK, 2), None);
 }
+
+/// F-108: a watch no capsule ever armed never acts on the clock alone;
+/// _HOT and _CRT arm one, _PSV does not.
+#[test]
+fn a_watch_never_reported_never_acts() {
+    use super::critical_watch::{Action, Watch, GRACE_MS};
+    use super::platform_event::{CRITICAL, HOT, PASSIVE};
+    use super::thermal_watch::alarming;
+    let w = Watch::new();
+    for now in [0, 1, GRACE_MS, 10 * GRACE_MS, u64::MAX] {
+        assert_eq!(w.tick(now), Action::Nothing);
+    }
+    assert!(!alarming(PASSIVE | 3500) && alarming(HOT | 3700) && alarming(CRITICAL));
+}
