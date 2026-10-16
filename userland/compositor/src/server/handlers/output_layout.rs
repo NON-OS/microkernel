@@ -24,7 +24,7 @@
 
 use nonos_libc::mk_service_lookup;
 
-use crate::protocol::{Request, E_INVAL, E_PERM, OUTPUT_LAYOUT_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
 use crate::state::Context;
 
@@ -46,12 +46,11 @@ pub fn handle(
     if sender == 0 || shell_pid() != Some(sender) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let mode = super::u32_at(body, 0).filter(|m| *m <= 1 && body.len() == OUTPUT_LAYOUT_REQ_LEN);
-    let Some(mode) = mode else {
+    let Some(extend) = crate::requests::toggles::output_layout(body) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    if ctx.want_extend != (mode == 1) {
-        ctx.want_extend = mode == 1;
+    if ctx.want_extend != extend {
+        ctx.want_extend = extend;
         crate::setup::relayout(ctx);
         crate::say::say_display(ctx, "laid out on");
     }

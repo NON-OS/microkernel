@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SCENE_SUBMIT's body: the surface handle u64, then x, y, width, height and
-//! z, u32 each; and the layer it asks for.
+//! SCENE_SUBMIT and SCENE_REMOVE: a layer placed in a band, and layers
+//! taken away.
 
-use crate::protocol::SCENE_SUBMIT_REQ_LEN;
-use crate::state::Layer;
+use super::read::{wide, words};
+use crate::protocol::{SCENE_REMOVE_REQ_LEN, SCENE_SUBMIT_REQ_LEN};
+use crate::state::scene::Layer;
 
-#[derive(Clone, Copy)]
+/// SCENE_REMOVE's flag: only the sender's layer in band z goes.
+pub const BAND_ONLY: u32 = 1;
+
+/// SCENE_SUBMIT's body: the surface handle u64, then x, y, width, height
+/// and z, u32 each.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Placed {
     pub handle: u64,
     pub x: u32,
@@ -30,19 +36,9 @@ pub struct Placed {
     pub z: u32,
 }
 
-pub fn parse(body: &[u8]) -> Option<Placed> {
-    if body.len() != SCENE_SUBMIT_REQ_LEN {
-        return None;
-    }
-    let u = |off| super::u32_at(body, off);
-    Some(Placed {
-        handle: super::u64_at(body, 0)?,
-        x: u(8)?,
-        y: u(12)?,
-        width: u(16)?,
-        height: u(20)?,
-        z: u(24)?,
-    })
+pub fn scene_submit(body: &[u8]) -> Option<Placed> {
+    let [lo, hi, x, y, width, height, z] = words::<7, SCENE_SUBMIT_REQ_LEN>(body)?;
+    Some(Placed { handle: wide(lo, hi), x, y, width, height, z })
 }
 
 impl Placed {
@@ -60,4 +56,17 @@ impl Placed {
         let (stack, in_use, miss_count, surface_handle) = (0, true, 0, handle);
         Some(Layer { owner_pid, surface_handle, x, y, width, height, z, stack, in_use, miss_count })
     }
+}
+
+/// SCENE_REMOVE's body: z, then flags.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Remove {
+    pub z: u32,
+    /// Only the layer in band z, not every layer the sender holds.
+    pub band_only: bool,
+}
+
+pub fn scene_remove(body: &[u8]) -> Option<Remove> {
+    let [z, flags] = words::<2, SCENE_REMOVE_REQ_LEN>(body)?;
+    Some(Remove { z, band_only: flags & BAND_ONLY != 0 })
 }
