@@ -27,10 +27,15 @@ pub(super) fn release_if_last(pid: Pid, current: bool) {
         return;
     }
     let holder = holder_of(pid);
+    // The claims first: nothing more granted or entered, each device stopped
+    // while its claim still names it; the claims go after the drains, once
+    // no path is left inside them (L75).
+    let claims = broker::claims_exit_begin(holder);
     broker::release_all_for_pid(holder, current);
     broker::irq_release_all_for_pid(holder);
     broker::dma_release_all_for_pid(holder, current);
     broker::pio_release_all_for_pid(holder);
+    broker::claims_exit_end(holder, &claims);
 }
 
 /// No other thread of `pid`'s group is alive. A zombie no longer counts: it

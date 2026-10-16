@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::stage_rule::{grantable, kept, retired};
+use super::stage_rule::{exited, gone, grantable, kept, retired};
 use super::types::{ClaimError, Stage};
 
 #[test]
@@ -33,4 +33,26 @@ fn a_grant_is_entered_only_while_its_claim_stands() {
     assert!(kept(Stage::Ready) && kept(Stage::Leaving), "a release waits these out");
     assert!(!kept(Stage::Making), "nothing is granted before the claim is made");
     assert!(!kept(Stage::Orphaned), "an exit's leftover takes no grant");
+}
+
+#[test]
+fn an_exit_takes_every_made_claim_and_leaves_one_being_made_to_its_call() {
+    assert!(!grantable(Stage::Exiting) && !kept(Stage::Exiting), "nothing granted or entered");
+    assert_eq!(retired(Stage::Exiting), Err(ClaimError::NotClaimed), "the exit's to tear down");
+    for s in [Stage::Ready, Stage::Leaving, Stage::Exiting] {
+        assert_eq!(exited(s), (Stage::Exiting, true), "{s:?}");
+    }
+    assert_eq!(exited(Stage::Making), (Stage::Orphaned, false));
+    assert_eq!(exited(Stage::Orphaned), (Stage::Orphaned, false));
+}
+
+#[test]
+fn an_entry_goes_only_with_the_last_release_and_the_last_path_inside() {
+    for s in [Stage::Leaving, Stage::Exiting] {
+        assert!(gone(s, 0, 0), "{s:?}");
+        assert!(!gone(s, 1, 0) && !gone(s, 0, 1), "{s:?}");
+    }
+    for s in [Stage::Making, Stage::Ready, Stage::Orphaned] {
+        assert!(!gone(s, 0, 0), "{s:?} is its call's or its holder's");
+    }
 }

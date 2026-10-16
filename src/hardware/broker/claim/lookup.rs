@@ -16,8 +16,8 @@
 
 use core::ops::Deref;
 
-use super::stage_rule::grantable;
-use super::state::CLAIMS;
+use super::stage_rule::{gone, grantable};
+use super::state::claims;
 use super::types::Claim;
 
 /// A ready claim, held by one grant path for as long as this lives. A
@@ -32,12 +32,21 @@ impl Deref for InUse {
     }
 }
 
+/// The last path out of a claim its exit has finished with takes the entry
+/// away: the exit did not wait for it, and kept the entry so no newer claim
+/// could be made while it still writes the device (L75).
 impl Drop for InUse {
     fn drop(&mut self) {
         let key = (self.0.pid, self.0.device_id, self.0.epoch);
-        let mut claims = CLAIMS.lock();
-        if let Some(c) = claims.iter_mut().find(|c| (c.pid, c.device_id, c.epoch) == key) {
-            c.inflight = c.inflight.saturating_sub(1);
+        let mut claims = claims();
+        let at = claims.iter().position(|c| (c.pid, c.device_id, c.epoch) == key);
+        let Some(at) = at else { return };
+        let c = &mut claims[at];
+        c.inflight = c.inflight.saturating_sub(1);
+        if gone(c.stage, c.leavers, c.inflight) {
+            claims.remove(at);
+            drop(claims);
+            crate::hardware::broker::bootfb::released(key.1);
         }
     }
 }
@@ -46,7 +55,7 @@ impl Drop for InUse {
 /// still being made, or being released, reads as none, so nothing is mapped,
 /// bound or written for it (L65, L66).
 pub(crate) fn lookup(device_id: u64) -> Option<InUse> {
-    let mut claims = CLAIMS.lock();
+    let mut claims = claims();
     let c = claims.iter_mut().find(|c| c.device_id == device_id && grantable(c.stage))?;
     c.inflight = c.inflight.checked_add(1)?;
     Some(InUse(*c))

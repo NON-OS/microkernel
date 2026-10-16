@@ -34,7 +34,23 @@ pub(crate) const fn kept(stage: Stage) -> bool {
 /// still being made, its holder alive or not, is the claiming call's to settle.
 pub(crate) const fn retired(stage: Stage) -> Result<Stage, ClaimError> {
     match stage {
-        Stage::Making | Stage::Orphaned => Err(ClaimError::NotClaimed),
+        Stage::Making | Stage::Orphaned | Stage::Exiting => Err(ClaimError::NotClaimed),
         Stage::Ready | Stage::Leaving => Ok(Stage::Leaving),
     }
+}
+
+/// The stage an exit moves the claim to (L75), and whether the exit counts
+/// among its releases: a claim still being made is orphaned for its call to
+/// take back (L66); any other is the exit's to tear down.
+pub(crate) const fn exited(stage: Stage) -> (Stage, bool) {
+    match stage {
+        Stage::Making | Stage::Orphaned => (Stage::Orphaned, false),
+        Stage::Ready | Stage::Leaving | Stage::Exiting => (Stage::Exiting, true),
+    }
+}
+
+/// Whether the entry goes now: being released, no release left, no path
+/// left inside it (L75).
+pub(crate) const fn gone(stage: Stage, leavers: u32, inflight: u32) -> bool {
+    matches!(stage, Stage::Leaving | Stage::Exiting) && leavers == 0 && inflight == 0
 }

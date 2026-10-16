@@ -18,8 +18,9 @@ use super::stage_rule::{grantable, kept, retired};
 use super::types::Stage;
 
 // Two releases of one claim racing a third thread that claims the device again
-// and maps it, every order tried. `bound`: each release finishes on the epoch
-// its own retire found (L69), the old code on whatever claim it finds then.
+// and maps it, every order tried. `drains`: each drain takes only the grants
+// made at the epoch its retire found (L71), the old code all of them; `bound`:
+// each release removes that claim only (L69), the old code whatever it finds.
 #[derive(Clone)]
 pub(super) struct World {
     pub(super) claim: Option<(u64, Stage, u32)>,
@@ -28,7 +29,7 @@ pub(super) struct World {
     pub(super) new: (u8, u64),
 }
 
-pub(super) fn release(w: &mut World, r: usize, bound: bool) -> bool {
+pub(super) fn release(w: &mut World, r: usize, drains: bool, bound: bool) -> bool {
     let (step, mine) = w.rel[r];
     match (step, w.claim) {
         (0, Some((e, s, n))) if retired(s).is_ok() => {
@@ -41,7 +42,8 @@ pub(super) fn release(w: &mut World, r: usize, bound: bool) -> bool {
             }
         }
         (1, Some((e, _, n))) if e == mine && n > 0 => return false,
-        (2, _) => w.grants.retain(|&g| g != mine),
+        (2, _) if drains => w.grants.retain(|&g| g != mine),
+        (2, _) => w.grants.clear(),
         (3, Some((e, s, _))) if (e == mine || !bound) && kept(s) => w.claim = None,
         _ => {}
     }

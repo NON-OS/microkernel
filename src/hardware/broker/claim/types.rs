@@ -23,6 +23,17 @@ pub struct Claim {
     /// Grant paths inside the claim now, each holding it until its grant is
     /// recorded (L66).
     pub(crate) inflight: u32,
+    /// Releases under way, a `give_back`'s or an exit's. The entry goes only
+    /// when the last of them and the last path inside it are done, so while
+    /// any is still tearing the claim down no newer claim can be made (L75).
+    pub(crate) leavers: u32,
+}
+
+impl Claim {
+    /// A claim as its call first enters it: nothing inside, nothing leaving.
+    pub(crate) const fn making(pid: u32, device_id: u64, epoch: u64) -> Self {
+        Self { pid, device_id, epoch, stage: Stage::Making, inflight: 0, leavers: 0 }
+    }
 }
 
 /// Where a claim is in its life. Only a ready one is granted against.
@@ -38,6 +49,11 @@ pub(crate) enum Stage {
     /// Being made when its holder exited: it still keeps other claimants out,
     /// until the call making it takes it back (L66).
     Orphaned,
+    /// Its holder exited: nothing more is granted or entered against it, and
+    /// a grant being recorded is undone by the path that made it. The exit
+    /// does not wait for those paths; the entry stays until they and every
+    /// release are done (L75).
+    Exiting,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

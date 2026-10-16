@@ -17,14 +17,13 @@
 //! `MkPciConfigWrite` orchestration.
 
 use crate::drivers::pci::config::ConfigSpace;
-use crate::drivers::pci::constants::CFG_COMMAND;
 use crate::hardware::broker::claim;
 
 use super::allowlist::validate;
 use super::change::split;
 use super::ownership::resolve;
 use super::quirk_bits::Ident;
-use super::types::{PciWriteError, PciWriteRequest, WriteAction};
+use super::types::{PciWriteError, PciWriteRequest};
 
 pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let (handle, _held) = resolve(pid, &req)?;
@@ -32,21 +31,12 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let (register, _) = split(req.offset).ok_or(PciWriteError::OffsetNotAllowed)?;
     let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;
     let ident = ident(&cfg)?;
-    let action = validate(&req, handle.msix.as_ref(), &ident, current)?;
-    // Never after an exit dropped the claim and stopped the device (L69).
-    let applied = claim::while_live(pid, req.device_id, req.claim_epoch, || apply(&cfg, action));
+    let judge = |now| validate(&req, handle.msix.as_ref(), &ident, now);
+    let action = judge(current)?;
+    // Never after an exit moved the claim on and stopped the device (L69).
+    let make = || super::apply::apply(&cfg, action, judge);
+    let applied = claim::while_live(pid, req.device_id, req.claim_epoch, make);
     applied.unwrap_or(Err(PciWriteError::NotClaimed))
-}
-
-fn apply(cfg: &ConfigSpace, action: WriteAction) -> Result<(), PciWriteError> {
-    match action {
-        WriteAction::Command(value) => {
-            cfg.write16(CFG_COMMAND, value).map_err(|_| PciWriteError::PlatformError)
-        }
-        WriteAction::MsixControl { offset, value } | WriteAction::Bits { offset, value } => {
-            cfg.write16(offset, value).map_err(|_| PciWriteError::PlatformError)
-        }
-    }
 }
 
 /// The function's vendor, class and PCI Express capability, read from its

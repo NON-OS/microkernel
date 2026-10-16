@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::hold;
-use super::state::{next_epoch, CLAIMS};
-use super::types::{Claim, ClaimError, Stage};
+use super::state::{claims, next_epoch};
+use super::types::{Claim, ClaimError};
 
 // Register a claim. Returns the granted epoch on success. The caller
 // must have already verified that `device_id` exists in the broker
@@ -24,12 +24,12 @@ use super::types::{Claim, ClaimError, Stage};
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     hold::admits(pid, device_id)?;
     let epoch = {
-        let mut claims = CLAIMS.lock();
+        let mut claims = claims();
         if claims.iter().any(|c| c.device_id == device_id) {
             return Err(ClaimError::AlreadyClaimed);
         }
         let epoch = next_epoch();
-        claims.push(Claim { pid, device_id, epoch, stage: Stage::Making, inflight: 0 });
+        claims.push(Claim::making(pid, device_id, epoch));
         epoch
     };
     // The kernel reads a virtio-rng for boot entropy until its capsule

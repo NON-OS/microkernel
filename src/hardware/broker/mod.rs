@@ -66,7 +66,8 @@ pub use bootfb::{
 pub use claim::{
     claim as claim_device, quiesce_all as quiesce_all_devices,
     quiesce_held as quiesce_held_device,
-    release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
+    exit_begin as claims_exit_begin, exit_end as claims_exit_end, release as release_device, Claim,
+    ClaimError,
 };
 pub use class::{classify_pci, Class};
 pub use confine::{set_acs_groups, Port as AcsPort};

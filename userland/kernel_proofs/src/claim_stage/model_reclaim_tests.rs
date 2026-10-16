@@ -17,18 +17,21 @@
 use super::reclaim_world::{claim, release, World};
 use super::types::Stage;
 
-/// Whether some order leaves a grant whose claim is gone.
-fn leaks(w: &World, bound: bool) -> bool {
+/// Whether some order leaves a grant whose claim is gone, or the newer claim
+/// standing, made to the end, without the grant it made (L71).
+fn leaks(w: &World, drains: bool, bound: bool) -> bool {
     let done = |s: u8| s >= 4;
     if done(w.rel[0].0) && done(w.rel[1].0) && w.new.0 >= 5 {
-        return w.grants.iter().any(|&g| w.claim.is_none_or(|(e, _, _)| e != g));
+        // At 5 the claiming thread ran to the end and pushed its grant.
+        let starved = matches!(w.claim, Some((7, _, _))) && w.new.0 == 5 && !w.grants.contains(&7);
+        return starved || w.grants.iter().any(|&g| w.claim.is_none_or(|(e, _, _)| e != g));
     }
     let next = |f: &dyn Fn(&mut World) -> bool| {
         let mut n = w.clone();
-        f(&mut n) && leaks(&n, bound)
+        f(&mut n) && leaks(&n, drains, bound)
     };
-    (!done(w.rel[0].0) && next(&|n| release(n, 0, bound)))
-        || (!done(w.rel[1].0) && next(&|n| release(n, 1, bound)))
+    (!done(w.rel[0].0) && next(&|n| release(n, 0, drains, bound)))
+        || (!done(w.rel[1].0) && next(&|n| release(n, 1, drains, bound)))
         || (w.new.0 < 5
             && next(&|n| {
                 claim(n);
@@ -40,6 +43,7 @@ fn leaks(w: &World, bound: bool) -> bool {
 fn a_release_bound_to_its_own_epoch_never_takes_a_newer_claim() {
     let start =
         World { claim: Some((1, Stage::Ready, 0)), grants: vec![1], rel: [(0, 0); 2], new: (0, 0) };
-    assert!(!leaks(&start, true));
-    assert!(leaks(&start, false), "the old release removed the newer claim, its grant left");
+    assert!(!leaks(&start, true, true));
+    assert!(leaks(&start, true, false), "the old release removed the newer claim, its grant left");
+    assert!(leaks(&start, false, true), "the old drain took the standing newer claim's grant");
 }

@@ -14,27 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a bind refused at its last step undoes (L69, L73). Its claim went
-//! while it ran, so a newer claim may already hold the device: what the bind
-//! wrote to the device is taken back only while nothing holds it, so a newer
-//! claimant's vectors are never cleared, and what it took from the kernel's
-//! books is always given back.
+//! What a bind refused at its last step undoes (L69, L73, L75): its claim
+//! was moved on by an exit while it ran. The bind still holds the claim, and
+//! the entry stays until it lets go, so no newer claim can hold the device
+//! yet: what the bind wrote to the device is taken back with no lock held,
+//! its MSI-X table windows mapped and unmapped freely, and what it took from
+//! the kernel's books is given back.
 
 use super::super::grant::{IrqGrant, IrqGrantKind};
 use super::super::{bind as bind_internal, slots};
 use crate::arch::interrupt::broker::slot_of;
 use crate::arch::interrupt::ioapic;
-use crate::hardware::broker::claim;
 
 pub(in super::super) fn undo_refused(grants: &[IrqGrant]) {
-    // One claim per bind, so one device.
-    if let Some(g) = grants.first() {
-        let _ = claim::while_unclaimed(g.device_id, || grants.iter().for_each(device_half));
-    }
+    grants.iter().for_each(device_half);
     grants.iter().for_each(books_half);
 }
 
-// None of these grants was entered, and nothing holds the device: MSI-X
+// None of these grants was entered, and the device's claim is going: MSI-X
 // goes off whole, without asking the records what else is bound.
 fn device_half(g: &IrqGrant) {
     match g.kind {

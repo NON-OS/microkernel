@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! How long the shutdown waits for a table another CPU holds (L73). A CPU
-//! still running holds the claims or the DMA records only across one device
-//! access with interrupts off, and lets go within microseconds; one stopped
-//! by IPI while holding it never does. A millisecond waits out the first
-//! and bounds the cost of the second.
+//! still running holds the claims or the DMA records only across a config
+//! or port access with interrupts off, and lets go within microseconds,
+//! answered meanwhile if it waits on a shootdown (L75); one stopped by IPI
+//! while holding it never does. A millisecond waits out the first and
+//! bounds the cost of the second.
 
 /// Whether to try again: until a millisecond after `start`, from `now_ns`.
 pub(crate) fn within_a_millisecond(start: u64) -> bool {
