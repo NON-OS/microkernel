@@ -18,11 +18,12 @@
 //! last heard the name, and on success open the session the data path runs
 //! on. The radio stays pointed at the BSS only while a session holds it.
 
+use super::join_error::join_error;
 use super::station::SoftStation;
-use crate::softmac::control::result::{failure_code, CODE_BAD_REQUEST, CODE_NOT_FOUND};
-use crate::softmac::control::result::{CODE_NO_ENTROPY, CODE_REFUSED, CODE_TIMED_OUT};
+use crate::softmac::control::result::{failure_code, CODE_BAD_REQUEST, CODE_NO_ENTROPY};
+use crate::softmac::control::result::{CODE_REFUSED, CODE_TIMED_OUT};
 use crate::softmac::control::ConnectResult;
-use crate::softmac::join::{join, parse_connect, JoinError, Outcome};
+use crate::softmac::join::{join, parse_connect, Outcome};
 use crate::softmac::radio::{Env, Radio};
 use crate::softmac::roam::Kit;
 use crate::softmac::session::{Keys, Session};
@@ -38,14 +39,13 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         self.end_session();
         let hint = self.scanner.hint(req.ssid);
         let Some(r) = self.radio.as_mut() else { return ConnectResult::code(CODE_BAD_REQUEST) };
-        let j = match join(r, &mut self.env, self.domain, &req, hint.as_slice(), &mut self.pmksa) {
+        let Some(addresses) = self.addresses.as_mut() else {
+            return ConnectResult::code(CODE_NO_ENTROPY);
+        };
+        let held = (&mut self.pmksa, addresses);
+        let j = match join(r, &mut self.env, self.domain, &req, hint.as_slice(), held) {
             Ok(j) => j,
-            Err(JoinError::NotFound(beacons)) => {
-                let mut res = ConnectResult::code(CODE_NOT_FOUND);
-                res.counters.recv = beacons;
-                return res;
-            }
-            Err(JoinError::NoEntropy) => return ConnectResult::code(CODE_NO_ENTROPY),
+            Err(e) => return join_error(e),
         };
         let rep = j.report;
         let mut res = ConnectResult {

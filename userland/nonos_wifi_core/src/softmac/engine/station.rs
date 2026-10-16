@@ -20,6 +20,7 @@
 //! request it receives and calls `tick` between them; nothing else is the
 //! driver's to do above its registers.
 
+use crate::address::Addresses;
 use crate::pmksa::PmksaCache;
 use crate::regdom::Domain;
 use crate::softmac::radio::{Env, Radio};
@@ -48,4 +49,7 @@ pub struct SoftStation<R: Radio, E: Env> {
     pub(super) barred: Vec<[u8; 6]>,
     /// The code of the last roam that failed, 0 after one that succeeded.
     pub(super) last_roam: i32,
+    /// The secret each network's address is made from; `None` without
+    /// randomness, and then no join is made.
+    pub(super) addresses: Option<Addresses>,
 }

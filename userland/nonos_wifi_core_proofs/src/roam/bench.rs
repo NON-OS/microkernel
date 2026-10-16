@@ -34,6 +34,9 @@ impl Radio for Bench {
     fn mac(&self) -> [u8; 6] {
         [2, 0, 0, 0, 0, 2]
     }
+    fn set_mac(&mut self, _: [u8; 6]) -> bool {
+        false
+    }
     fn bands(&self) -> (bool, bool) {
         (true, false)
     }

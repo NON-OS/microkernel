@@ -20,7 +20,6 @@
 
 use crate::pmf_sim::AP_RSNE_MFP;
 use crate::roam::two_aps::{run_until, sent, two_aps_with, AA};
-use crate::soft::air::STA;
 use crate::soft::frames::mgmt_from;
 use crate::soft::rig::Station;
 
@@ -38,8 +37,9 @@ pub(super) fn clock(st: &Station) -> u64 {
 /// An unprotected deauthentication, which the station answers with an SA
 /// Query it must see through at home.
 pub(super) fn deauth(st: &mut Station) {
+    let sta = crate::soft::join::sta_of(st);
     let air = st.radio_mut().unwrap();
-    air.inbox.push_back(mgmt_from(AA, 12, STA, &7u16.to_le_bytes()));
+    air.inbox.push_back(mgmt_from(AA, 12, sta, &7u16.to_le_bytes()));
 }
 
 #[test]

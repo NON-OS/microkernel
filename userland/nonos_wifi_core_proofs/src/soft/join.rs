@@ -32,6 +32,18 @@ pub fn joined() -> Station {
     st
 }
 
+/// The address the station sends from now: its network's, once joined.
+pub fn sta_of(st: &Station) -> [u8; 6] {
+    st.radio().unwrap().addr.0
+}
+
+/// The AP's deauthentication (reason 3), addressed to the station as it is now.
+pub fn deauth_from_ap(st: &mut Station) {
+    let sta = sta_of(st);
+    let f = crate::soft::frames::mgmt(12, sta, &[3, 0]);
+    st.radio_mut().unwrap().inbox.push_back(f);
+}
+
 pub fn ticks(st: &mut Station, n: usize) {
     for _ in 0..n {
         st.tick();

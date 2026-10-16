@@ -19,9 +19,9 @@
 
 use super::drive::drive;
 use super::extra::Extra;
+use super::joined::JoinError;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
-use super::run::JoinError;
 use crate::mlme::{Entropy, JoinRequest, Mlme, MlmeFailure, SAE_ENTROPY};
 use crate::regdom::Domain;
 use crate::rsn::JoinPolicy;

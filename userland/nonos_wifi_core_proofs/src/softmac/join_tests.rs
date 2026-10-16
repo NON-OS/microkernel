@@ -20,7 +20,6 @@
 //! domain closes, is not found; nothing is transmitted while scanning.
 
 use crate::ap_sim::AA;
-use crate::soft::air::STA;
 use crate::soft::ap::SimAp;
 use crate::soft::frames::{from_ds, RSNE_PSK};
 use crate::soft::join::{joined, ticks, PASS, SSID};
@@ -43,19 +42,20 @@ fn a_joined_network_carries_net_cores_frames_both_ways() {
     let link = control(&mut st, 5, &[]);
     assert_eq!((link[0], &link[1..7], &link[8..8 + SSID.len()]), (1, &AA[..], SSID));
     assert_eq!(link[8 + SSID.len()], 2, "the AKM: WPA2-PSK");
+    let sta = crate::soft::join::sta_of(&st);
     let mut eth = AA.to_vec();
-    eth.extend_from_slice(&STA);
+    eth.extend_from_slice(&sta);
     eth.extend_from_slice(&[0x08, 0x00, 0x45, 0x00]);
     assert_eq!(netif(&mut st, 4, &eth).0, 0);
     let ap = &st.radio().unwrap().ap;
     assert_eq!(ap.got.last().unwrap(), &vec![0xaa, 0xaa, 3, 0, 0, 0, 0x08, 0x00, 0x45, 0x00]);
     let Some(TemporalKey::Ccmp128(tk)) = ap.tk else { panic!("keyed for CCMP-128") };
-    let down = encrypt(&from_ds(STA, &[0xaa, 0xaa, 3, 0, 0, 0, 0x08, 0x00, 0x99]), 1, &tk).unwrap();
+    let down = encrypt(&from_ds(sta, &[0xaa, 0xaa, 3, 0, 0, 0, 0x08, 0x00, 0x99]), 1, &tk).unwrap();
     st.radio_mut().unwrap().inbox.push_back(down);
     ticks(&mut st, 1);
     let (status, rx) = netif(&mut st, 5, &[]);
     assert_eq!(status, 0);
-    assert_eq!(&rx[4..], &[STA.as_slice(), &AA, &[0x08, 0x00, 0x99]].concat()[..]);
+    assert_eq!(&rx[4..], &[sta.as_slice(), &AA, &[0x08, 0x00, 0x99]].concat()[..]);
 }
 
 #[test]

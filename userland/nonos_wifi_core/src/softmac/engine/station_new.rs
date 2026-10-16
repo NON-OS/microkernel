@@ -17,8 +17,9 @@
 //! A station starting, its domain set, and a session ending.
 
 use super::station::SoftStation;
+use crate::address::Addresses;
 use crate::pmksa::PmksaCache;
-use crate::regdom::{Domain, WORLD};
+use crate::regdom::WORLD;
 use crate::softmac::radio::{Env, Radio};
 use crate::softmac::scanner::Scanner;
 use crate::softmac::stats::LinkStats;
@@ -35,27 +36,23 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         // The PMKSA tag key, fresh at each start; with no randomness, no
         // PMKSA is kept this boot.
         let pmksa = PmksaCache::new(Vault::fill(|k| env.random(k)));
+        // The secret each network's address comes from, fresh at each start.
+        let addresses = Addresses::for_this_boot(|k| env.random(k));
         let (session, look, barred, last_roam) = (None, None, Vec::new(), 0);
         let domain = WORLD;
-        Self { radio, env, stage, domain, scanner, session, stats, pmksa, look, barred, last_roam }
-    }
-
-    /// Run under `domain` instead of the world domain.
-    pub fn set_domain(&mut self, domain: Domain) {
-        self.domain = domain;
-    }
-
-    // A session over, by the AP's word, silence or the person's: forget it,
-    // open the receive filter and let the sweep start again.
-    pub(super) fn end_session(&mut self) {
-        let had = self.session.take().is_some();
-        self.look = None;
-        if let Some(r) = self.radio.as_mut() {
-            if had {
-                r.associated(None);
-            }
-            r.set_bss(None);
+        Self {
+            radio,
+            env,
+            stage,
+            domain,
+            scanner,
+            session,
+            stats,
+            pmksa,
+            look,
+            barred,
+            last_roam,
+            addresses,
         }
-        self.scanner.resume();
     }
 }

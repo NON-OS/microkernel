@@ -21,6 +21,7 @@
 // crate is empty outside `cargo test`.
 #![cfg(test)]
 
+mod address;
 mod ap_sim;
 mod beacons;
 mod bip_gmac_frames;

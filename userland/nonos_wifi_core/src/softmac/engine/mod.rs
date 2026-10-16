@@ -16,6 +16,7 @@
 mod connect;
 mod control;
 mod dead;
+mod join_error;
 mod refuse;
 mod replies;
 mod roam;
@@ -23,6 +24,7 @@ mod roam_go;
 mod roam_take;
 mod serve;
 mod station;
+mod station_end;
 mod station_new;
 mod view;
 pub use control::{OP_CONNECT, OP_DISCONNECT, OP_LINK, OP_SCAN, OP_STATUS, WIFI_HDR, WIFI_MAGIC};
