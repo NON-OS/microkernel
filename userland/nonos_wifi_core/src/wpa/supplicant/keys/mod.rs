@@ -22,6 +22,8 @@
 mod parse;
 mod pick;
 mod store;
+#[cfg(test)]
+mod wipe_tests;
 
 pub(super) use parse::{parse_group_keys, rsc_pn, wipe};
 pub(super) use store::UNWRAPPED_MAX;
