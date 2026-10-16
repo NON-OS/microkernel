@@ -13,6 +13,9 @@ use crate::run::num;
 #[path = "osi_table_tests.rs"]
 mod table;
 
+#[path = "opcode_table_tests.rs"]
+mod opcodes;
+
 fn osi(p: Personality, s: &[u8]) -> u64 {
     let mut aml = Aml::default();
     aml.rt.personality = p;
