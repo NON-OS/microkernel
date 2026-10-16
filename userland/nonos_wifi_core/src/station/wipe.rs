@@ -34,6 +34,9 @@ impl LinkStation {
         if let Some((key, _)) = self.pmf.igtk.as_mut() {
             wipe(key);
         }
+        if let Some((key, _)) = self.pmf.bigtk.as_mut() {
+            wipe(key);
+        }
         self.supplicant = None;
     }
 }

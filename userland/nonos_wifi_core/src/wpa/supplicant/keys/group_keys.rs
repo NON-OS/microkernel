@@ -19,8 +19,9 @@
 use super::*;
 
 /// Pull the group keys out of parsed key data. `None` unless a GTK of the
-/// group cipher's length `gtk_len` is present, and any IGTK present is BIP-CMAC-128 sized with
-/// an index of 4 or 5.
+/// group cipher's length `gtk_len` is present, any IGTK present is
+/// BIP-CMAC-128 sized with an index of 4 or 5, and any BIGTK present is the
+/// same size with an index of 6 or 7.
 pub(in crate::wpa::supplicant) fn group_keys(
     kd: &KeyData<'_>,
     gtk_len: usize,
@@ -31,18 +32,8 @@ pub(in crate::wpa::supplicant) fn group_keys(
     }
     let mut gtk = [0u8; GTK_MAX];
     gtk[..gtk_len].copy_from_slice(g.key);
-    let igtk = match kd.igtk {
-        Some(i) => {
-            if i.key.len() != IGTK_LEN || !(4..=5).contains(&i.key_id) {
-                return None;
-            }
-            let mut key = [0u8; IGTK_LEN];
-            key.copy_from_slice(i.key);
-            Some((key, i.key_id, i.ipn))
-        }
-        None => None,
-    };
-    Some(GroupKeys { gtk, gtk_id: g.key_id, igtk, rsc: 0 })
+    let (igtk, bigtk) = (integrity(kd.igtk, 4..=5)?, integrity(kd.bigtk, 6..=7)?);
+    Some(GroupKeys { gtk, gtk_id: g.key_id, igtk, bigtk, rsc: 0 })
 }
 
 /// The packet number in a Key RSC field (little-endian, six octets used).

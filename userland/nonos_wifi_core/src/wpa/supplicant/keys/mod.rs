@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod group_keys;
+mod integrity;
+mod store;
 mod unwrapped_max;
 use super::state::Supplicant;
 use crate::ccmp::keywrap::{aes_unwrap, MAX_BLOCKS};
-use crate::eapol::kde::{parse_key_data, KeyData};
+use crate::eapol::kde::{parse_key_data, IgtkKde, KeyData};
 pub(in crate::wpa::supplicant) use group_keys::*;
+use integrity::integrity;
 pub(in crate::wpa::supplicant) use unwrapped_max::*;

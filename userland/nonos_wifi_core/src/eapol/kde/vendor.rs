@@ -25,6 +25,9 @@ use super::*;
 /// The Wi-Fi Alliance OUI that marks its KDEs.
 pub(super) const OUI_WFA: [u8; 3] = [0x50, 0x6F, 0x9A];
 
+/// The BIGTK KDE's data type under the IEEE OUI (12.7.2, Table 12-10).
+pub(super) const KDE_BIGTK: u8 = 14;
+
 /// The Transition Disable KDE's data type, and its first octet's bits.
 pub(super) const KDE_TRANSITION_DISABLE: u8 = 0x20;
 pub const TD_WPA3_PERSONAL: u8 = 0x01;
@@ -34,8 +37,8 @@ pub const TD_ENHANCED_OPEN: u8 = 0x08;
 
 /// Read one vendor KDE's `content` (OUI, data type, data) into `out`. A
 /// second KDE of a kind already read is ignored, as is a Transition
-/// Disable KDE with no data octet; a short GTK or IGTK KDE fails the whole
-/// field, as before.
+/// Disable KDE with no data octet; a short GTK, IGTK or BIGTK KDE fails the
+/// whole field.
 pub(super) fn vendor_kde<'a>(out: &mut KeyData<'a>, content: &'a [u8]) -> Option<()> {
     let (Some(oui), Some(&kind), data) = (content.get(..3), content.get(3), content.get(4..))
     else {
@@ -45,6 +48,7 @@ pub(super) fn vendor_kde<'a>(out: &mut KeyData<'a>, content: &'a [u8]) -> Option
     match (oui, kind) {
         (o, KDE_GTK) if o == OUI_IEEE && out.gtk.is_none() => out.gtk = Some(gtk_kde(data)?),
         (o, KDE_IGTK) if o == OUI_IEEE && out.igtk.is_none() => out.igtk = Some(igtk_kde(data)?),
+        (o, KDE_BIGTK) if o == OUI_IEEE && out.bigtk.is_none() => out.bigtk = Some(igtk_kde(data)?),
         (o, KDE_TRANSITION_DISABLE) if o == OUI_WFA && out.transition_disable.is_none() => {
             out.transition_disable = data.first().copied();
         }

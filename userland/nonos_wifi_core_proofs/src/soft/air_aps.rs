@@ -51,11 +51,11 @@ impl SimAir {
         if on(&self.ap, self.tuned) && now >= self.beacon_at {
             self.beacon_at = now + 100;
             self.inbox.extend(self.ap.chat(sta));
-            return Some((self.ap.beacon(), self.rssi[0]));
+            return Some((self.ap.beacon_out(), self.rssi[0]));
         }
         let tuned = self.tuned;
         let ap2 = self.ap2.as_mut().filter(|a| on(a, tuned) && now >= self.beacon_at2)?;
-        let b = ap2.beacon();
+        let b = ap2.beacon_out();
         self.inbox.extend(ap2.chat(sta));
         self.beacon_at2 = now + 100;
         Some((b, self.rssi[1]))

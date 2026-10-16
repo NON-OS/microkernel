@@ -17,11 +17,12 @@
 //! The access point's half of the four-way handshake, keyed for the pairwise
 //! cipher the station's RSNE in message 2 names.
 
-use crate::ap_sim::{gtk_kde, igtk_kde, message3, ANONCE, GTK};
+use crate::ap_sim::{bigtk_kde, gtk_kde, igtk_kde, message3, ANONCE, GTK};
 use crate::cipher_sim::GTK256;
 use crate::pmf_sim::IGTK;
 use crate::soft::ap::SimAp;
 use crate::soft::frames::{eapol_from, mgmt_from};
+use crate::soft::protect::BIGTK;
 use nonos_wifi_core::eapol::mic::compute_mic;
 use nonos_wifi_core::eapol::parse::{parse, KEY_INFO_SECURE, MIC_OFFSET};
 use nonos_wifi_core::rsn::{parse_rsne, Cipher, Rsne, TemporalKey};
@@ -56,6 +57,9 @@ impl SimAp {
         // With management frame protection, the integrity group key too.
         if rsne_of(&self.rsne).is_some_and(|r| r.mfpc()) {
             kd.extend_from_slice(&igtk_kde(&IGTK));
+        }
+        if self.quirks.beacons.protect {
+            kd.extend_from_slice(&bigtk_kde(6, 0, &BIGTK));
         }
         if let Some(bits) = self.quirks.transition_disable {
             kd.extend_from_slice(&[0xDD, 5, 0x50, 0x6F, 0x9A, 0x20, bits]);

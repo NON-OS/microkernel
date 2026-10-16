@@ -50,6 +50,7 @@ impl Supplicant {
             igtk_id: 0,
             igtk_ipn: [0u8; 6],
             igtk_set: false,
+            bigtk: None,
             eapol_version: EAPOL_VERSION_DEFAULT,
             failure: None,
             transition_disable: None,

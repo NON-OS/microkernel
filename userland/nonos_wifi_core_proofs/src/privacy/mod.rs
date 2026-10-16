@@ -21,7 +21,7 @@ mod gate_tests;
 mod gate_trip_tests;
 mod key_tests;
 mod leak;
-mod msg3_tests;
+pub mod msg3_tests;
 mod port_tests;
 mod rsne_tests;
 mod secret_tests;

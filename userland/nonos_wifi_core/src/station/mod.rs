@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod beacon;
 mod ccmp_mode;
 mod cipher;
 mod eapol;
@@ -29,6 +30,7 @@ mod sa_query;
 mod tx;
 mod view;
 mod wipe;
+pub use beacon::BeaconRx;
 pub use ccmp_mode::Ccmp;
 pub use engine::LinkStation;
 pub use mgmt_rx::{MgmtDrop, MgmtRx, SaTick};

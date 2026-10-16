@@ -25,4 +25,17 @@ pub struct Quirks {
     pub mute_eapol: bool,
     /// A Transition Disable KDE with these bits, last in message 3.
     pub transition_disable: Option<u8>,
+    /// Beacon protection, once the AP is keyed (`protect`).
+    pub beacons: Beacons,
+}
+
+#[derive(Default)]
+pub struct Beacons {
+    /// Give a BIGTK in message 3 and end each beacon with its MME.
+    pub protect: bool,
+    /// Give the BIGTK, but send every beacon bare, as a forger in the AP's
+    /// name would.
+    pub bare: bool,
+    /// The BIPN the last protected beacon carried.
+    pub bipn: u64,
 }

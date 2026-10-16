@@ -48,12 +48,6 @@ impl Supplicant {
         self.gtk_rsc
     }
 
-    /// The integrity group key, its index and the AP's IGTK packet number,
-    /// when management frame protection delivered one.
-    pub fn igtk(&self) -> Option<(&[u8; 16], u16, [u8; 6])> {
-        self.igtk_set.then_some((&self.igtk, self.igtk_id, self.igtk_ipn))
-    }
-
     // KCK: signs EAPOL MICs. KEK: unwraps the group key. Both are slices of the
     // PTK, named here so the handshake code reads like the standard.
     pub(in crate::wpa::supplicant) fn kck(&self) -> &[u8] {

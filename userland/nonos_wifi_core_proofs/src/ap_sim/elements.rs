@@ -44,6 +44,11 @@ pub fn gtk_kde(id: u8, gtk: &[u8]) -> Vec<u8> {
     kde
 }
 
+/// A BIGTK KDE (data type 14) for index `id`, its BIPN `bipn`.
+pub fn bigtk_kde(id: u8, bipn: u8, bigtk: &[u8; 16]) -> Vec<u8> {
+    [&[0xDD, 28, 0x00, 0x0f, 0xac, 14, id, 0x00, bipn, 0, 0, 0, 0, 0][..], bigtk].concat()
+}
+
 /// An IGTK KDE for key index 4.
 pub fn igtk_kde(igtk: &[u8; 16]) -> Vec<u8> {
     let mut kde = vec![0xDD, 28, 0x00, 0x0f, 0xac, 0x09, 0x04, 0x00, 1, 0, 0, 0, 0, 0];

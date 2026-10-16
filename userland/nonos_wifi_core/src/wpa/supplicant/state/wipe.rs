@@ -28,5 +28,8 @@ impl Drop for Supplicant {
         }
         wipe(&mut self.gtk);
         wipe(&mut self.igtk);
+        if let Some((key, _, _)) = self.bigtk.as_mut() {
+            wipe(key);
+        }
     }
 }
