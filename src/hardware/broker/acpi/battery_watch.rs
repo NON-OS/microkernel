@@ -27,3 +27,8 @@ static WATCH: Watch = Watch::new();
 pub fn battery_critical(critical: bool, now_ms: u64) -> Action {
     WATCH.step(critical, now_ms)
 }
+
+/// The watch on the clock alone (F-108).
+pub fn tick(now_ms: u64) -> Action {
+    WATCH.tick(now_ms)
+}

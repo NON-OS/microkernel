@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ACPI capsule's exit and a power-button press while it restarts
-//! (F-107), callable on every target so teardown and init's loop stay one
-//! path. Only x86_64 runs the capsule; elsewhere there is nothing held.
+//! The ACPI capsule's exit, a power-button press while it restarts (F-107)
+//! and the critical watches' clocks (F-108), callable on every target so
+//! teardown and init's loop stay one path. Only x86_64 runs the capsule;
+//! elsewhere there is nothing held.
 
 /// From process teardown, for every pid: the ACPI capsule's holds given
 /// back and its events disarmed, the Global Lock with them if it held it.
@@ -29,8 +30,9 @@ pub(crate) fn acpi_capsule_exit(pid: u32) {
     let _ = pid;
 }
 
-/// From init's loop: the wiped power-off for a press read in the gap.
-pub(crate) fn acpi_gap_press() {
+/// From init's loop: the wiped power-off for a press read in the gap, or
+/// for a critical watch whose grace ran out with no reading since.
+pub(crate) fn acpi_from_init() {
     #[cfg(target_arch = "x86_64")]
-    crate::hardware::broker::acpi::leave::serve_gap_press();
+    crate::hardware::broker::acpi::leave::serve_from_init();
 }

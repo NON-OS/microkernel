@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's side of a critical thermal zone (ACPI 6.5, 11.1.5): at
-//! _CRT the machine must shut down, through the critical watch; and the
-//! last thermal word, for whoever asks how hot the machine is.
+//! _CRT the machine must shut down, and at _HOT it must leave S0, which
+//! NONOS can do only by shutting down: both through the critical watch.
+//! And the last thermal word, for whoever asks how hot the machine is.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::critical_watch::{Action, Watch};
-use super::platform_event::CRITICAL;
+use super::platform_event::{CRITICAL, HOT};
 
 pub use super::critical_watch::GRACE_MS;
 
@@ -34,7 +35,17 @@ static LAST_MS: AtomicU64 = AtomicU64::new(0);
 pub fn thermal(word: u64, now_ms: u64) -> Action {
     LAST.store(word, Ordering::Release);
     LAST_MS.store(now_ms.max(1), Ordering::Release);
-    WATCH.step(word & CRITICAL != 0, now_ms)
+    WATCH.step(alarming(word), now_ms)
+}
+
+/// A word at or past _HOT or _CRT.
+pub fn alarming(word: u64) -> bool {
+    word & (CRITICAL | HOT) != 0
+}
+
+/// The watch on the clock alone (F-108).
+pub fn tick(now_ms: u64) -> Action {
+    WATCH.tick(now_ms)
 }
 
 /// The last thermal word, while it is under three minutes old.
