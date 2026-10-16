@@ -26,6 +26,15 @@ const DT_INTERFACE: u8 = 0x04;
 const DT_ENDPOINT: u8 = 0x05;
 const ISOCHRONOUS: u8 = 0x01;
 
+/// wMaxPacketSize read to USB's bounds (USB 2.0 9.6.6, as recalled,
+/// unverified): the reserved bits 15:13 clear, never the reserved count of
+/// 3 added transactions, at most 1024 bytes a transaction. An endpoint
+/// outside them is passed over, never trusted with a stream.
+fn per_interval(mps: u16) -> Option<u32> {
+    let (size, extra) = (u32::from(mps & 0x7FF), u32::from((mps >> 11) & 0x3));
+    (mps >> 13 == 0 && extra < 3 && size <= 1024).then_some(size * (extra + 1))
+}
+
 pub(crate) fn alternate(raw: &[u8], streaming: u8) -> Vec<Alt> {
     let mut out = Vec::new();
     let mut alt: Option<u8> = None;
@@ -38,7 +47,10 @@ pub(crate) fn alternate(raw: &[u8], streaming: u8) -> Vec<Alt> {
             DT_ENDPOINT if len >= 7 && d[2] & 0x80 != 0 && d[3] & 0x3 == ISOCHRONOUS => {
                 if let Some(setting) = alt.filter(|&a| a != 0) {
                     let mps = u16::from_le_bytes([d[4], d[5]]);
-                    let per = (mps & 0x7FF) as u32 * (((mps >> 11) & 0x3) as u32 + 1);
+                    let Some(per) = per_interval(mps) else {
+                        i += len;
+                        continue;
+                    };
                     let (endpoint, interval) = (d[2], d[6]);
                     out.push(Alt {
                         setting,
