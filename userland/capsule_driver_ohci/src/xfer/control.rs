@@ -22,14 +22,14 @@ use crate::env::{Clock, Mem, Regs};
 use crate::facts::bounds::CONTROL_MS;
 use crate::facts::regs::CS_CLF;
 use crate::facts::td::{DP_IN, DP_OUT, DP_SETUP, TD_LEN};
+use crate::sched::clean::clean;
 use crate::sched::ed::{control as ed_word, Target};
 use crate::sched::layout::{ctrl_td, CTRL_BUF, CTRL_ED, CTRL_MAX, SETUP_BUF};
 use crate::sched::queue::{start, wait, Ran};
 use crate::sched::take::clear_halt;
 use crate::sched::td::{moved, write, Td};
 
-/// Run `setup`; an IN request's data lands in the control buffer, an OUT
-/// request's is taken from it. `at` is the place the queue rests on.
+/// Run `setup` through the control buffer; `at` is the queue's resting place.
 pub fn control<M: Mem, R: Regs, C: Clock>(
     (m, r, c): (&M, &mut R, &C),
     at: &mut u8,
@@ -61,7 +61,7 @@ pub fn control<M: Mem, R: Regs, C: Clock>(
         write(m, here + i * TD_LEN, *td, next);
     }
     start(m, r, CTRL_ED, tail, CS_CLF);
-    let ran = wait(m, r, c, CTRL_ED, tail, CONTROL_MS);
+    let ran = clean(m, wait(m, r, c, CTRL_ED, tail, CONTROL_MS), here, n);
     *at = 1 - *at;
     match ran {
         Ran::Done if len > 0 => Ok(moved(m, here + TD_LEN, CTRL_BUF, len)),
