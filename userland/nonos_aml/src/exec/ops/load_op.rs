@@ -42,6 +42,9 @@ impl<H: Host> Machine<'_, H> {
         let id = self.lookup(aml, t, src)?;
         let bytes = self.table_bytes(aml, id, at)?;
         let w = self.width(aml, t);
+        if !self.host.admit_table(&bytes) {
+            return Ok(Object::Integer(0));
+        }
         match aml.load_table_at(bytes, ROOT, self) {
             Ok(index) => {
                 self.result(aml, t, target, Object::Table(index), at)?;

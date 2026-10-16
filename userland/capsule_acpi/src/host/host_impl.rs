@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The interpreter's host in the capsule. Spaces with no handler yet (the
-//! EC until F 9, CMOS, which the kernel keeps, SMBus, serial buses, GPIO)
-//! are refused, and the field faults.
+//! The interpreter's host in the capsule. Spaces with no handler here (CMOS,
+//! which the kernel keeps, SMBus, serial buses, GPIO) refuse; the field faults.
 
 use super::state::CapsuleHost;
 use super::{lock_hold, region, say, tables};
@@ -64,12 +63,13 @@ impl Host for CapsuleHost {
     fn table(&mut self, sig: &[u8], oem: &[u8], oem_table: &[u8]) -> Option<Vec<u8>> {
         tables::find(sig, oem, oem_table)
     }
+    fn admit_table(&mut self, bytes: &[u8]) -> bool {
+        tables::admit(bytes)
+    }
     fn lock_word(&mut self, old: u32, new: u32) -> Option<u32> {
         lock_hold::word(self, old, new)
     }
     fn lock_released(&mut self) {
-        if let Some(cnt) = self.pm1_cnt {
-            let _ = cnt.release_lock(&mut PortIo);
-        }
+        let _ = self.pm1_cnt.map(|cnt| cnt.release_lock(&mut PortIo));
     }
 }
