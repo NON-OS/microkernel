@@ -23,13 +23,16 @@
 //! block moves with it. Each function answers for either place, so callers do
 //! not need to know which side of the move they run on.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use super::geometry::KERNEL_SPACE_START;
 
 /// Added to a device's physical address to reach its registers: zero while
 /// the kernel runs one to one, `KERNEL_SPACE_START` once it runs high.
 static IO_OFFSET: AtomicU64 = AtomicU64::new(0);
+/// Set when the boot tables could not give some part of the image or a boot
+/// device its high alias: the kernel then stays where it was loaded.
+static HIGH_SHORT: AtomicBool = AtomicBool::new(false);
 
 /// The physical address of something in the kernel image, a static or a
 /// function, from either of its addresses. What a page-table descriptor,
@@ -50,4 +53,14 @@ pub fn io(pa: u64) -> u64 {
 /// Whether the kernel has moved to the high half.
 pub fn runs_high() -> bool {
     IO_OFFSET.load(Ordering::Acquire) != 0
+}
+
+/// Something the kernel needs high was left without its alias.
+pub(super) fn high_short() {
+    HIGH_SHORT.store(true, Ordering::Relaxed);
+}
+
+/// Whether every block of the image and every boot device has its alias.
+pub(in crate::arch::aarch64) fn high_mapped() -> bool {
+    !HIGH_SHORT.load(Ordering::Relaxed)
 }

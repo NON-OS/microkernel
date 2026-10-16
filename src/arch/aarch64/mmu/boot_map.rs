@@ -26,5 +26,8 @@ pub fn init_mmu(boot_info: &BootInfo) {
         ttbr::set_ttbr1(state::l0_addr());
         ttbr::set_ttbr0(state::l0_addr(), 0);
     }
+    if !super::kernel_va::high_mapped() {
+        crate::sys::serial::println(b"[MMU] high alias incomplete: the kernel stays one to one");
+    }
     control::enable_mmu();
 }

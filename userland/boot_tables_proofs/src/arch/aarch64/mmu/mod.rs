@@ -1,13 +1,11 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! `crate::arch::aarch64::mmu` rebuilt from the kernel's files, so they are
-//! included unmodified. Only the TLB flush and the image's linker symbols are
-//! stand-ins: neither exists on the host.
+//! `crate::arch::aarch64::mmu` rebuilt from the kernel's files, unmodified;
+//! the TLB flush and the image's linker symbols are host stand-ins.
 
 // The kernel's files carry what the rest of the kernel uses of them too.
 #![allow(dead_code)]
-
-// The three below restate their kernel module files' declarations: a
-// `#[path]` file not named mod.rs does not lend its children its directory.
+// A `#[path]` file not named mod.rs lends no directory: children restated.
+pub mod alias;
 #[path = "../../../../../../src/arch/aarch64/mmu/attributes"]
 pub mod attributes {
     mod constructors;

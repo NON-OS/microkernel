@@ -4,7 +4,7 @@
 //! because the tables are built once per process.
 
 use boot_tables_proofs::leaves::{leaves, AP_EL0, PXN, UXN};
-use boot_tables_proofs::probe::{self, TEXT};
+use boot_tables_proofs::probe;
 use boot_tables_proofs::{BootInfo, MemoryRegion, MemoryType, Window};
 
 #[test]
@@ -27,6 +27,6 @@ fn pi4_tables_keep_execute_to_its_own_level() {
         let (va, d) = (leaf.va, leaf.descriptor);
         assert_eq!(d & AP_EL0, 0, "{va:#x} reachable from EL0");
         assert_ne!(d & UXN, 0, "{va:#x} executable at EL0");
-        assert!(d & PXN != 0 || (TEXT.0..TEXT.1).contains(&va), "{va:#x} runs at EL1");
+        assert!(d & PXN != 0 || probe::is_text(va), "{va:#x} runs at EL1");
     }
 }
