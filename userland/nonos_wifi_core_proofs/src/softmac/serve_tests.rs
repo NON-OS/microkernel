@@ -33,8 +33,9 @@ use std::rc::Rc;
 fn the_status_op_reports_stage_and_counters() {
     let mut st = joined();
     let s = control(&mut st, 4, &[]);
-    assert_eq!((s.len(), s[0]), (57, 0));
+    assert_eq!((s.len(), s[0]), (61, 0));
     assert_eq!(s[53..57], [0; 4], "no roam has failed");
+    assert_eq!(s[57..61], [0; 4], "no beacon refused");
     let rx_ring = u32::from_le_bytes(s[9..13].try_into().unwrap());
     assert_eq!(rx_ring, 0, "the join's frames are the join's, not the link's");
 }
