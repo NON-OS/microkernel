@@ -31,6 +31,11 @@ pub enum Why {
     Eject = 1,
 }
 
+/// An ACPI platform record, by its device id (modes 2 and 3).
+pub fn depart_record(device_id: u64, why: Why) -> Result<u64, Errno> {
+    ok(mk_syscall_raw(DEPART, [device_id, 0, why as u64 + 2, 0, 0, 0]))
+}
+
 /// Segment 0 only; the device id the function had.
 pub fn depart(bus: u8, dev: u8, func: u8, why: Why) -> Result<u64, Errno> {
     let devfn = u64::from(dev) << 3 | u64::from(func);
