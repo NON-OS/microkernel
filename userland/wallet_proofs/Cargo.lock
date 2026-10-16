@@ -132,6 +132,7 @@ dependencies = [
 name = "nonos_settle_proto"
 version = "0.1.0"
 dependencies = [
+ "nonos_eth_rpc",
  "nonos_nox_config",
 ]
 

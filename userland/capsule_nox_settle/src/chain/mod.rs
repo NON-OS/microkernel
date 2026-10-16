@@ -21,7 +21,6 @@ mod flags;
 mod head;
 mod live;
 mod live_fresh;
-mod pages;
 mod times;
 mod words;
 
@@ -29,5 +28,4 @@ pub use call::{eth_calls, eth_calls_at};
 pub use call_one::eth_call;
 pub use head::head;
 pub use live::Live;
-pub use pages::log_pages;
 pub use words::{word_bool, word_u128, word_u64};
