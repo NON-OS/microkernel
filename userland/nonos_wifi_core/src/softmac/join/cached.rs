@@ -69,7 +69,7 @@ pub(crate) fn keep<E: Env>(
     t: Option<&Tag>,
     report: &Report,
 ) {
-    if let (Some(p), Outcome::Joined { .. }, Some(t)) = (report.pmksa, &report.outcome, t) {
-        c.keep(sta, req.ssid, t, p, env.now_ms());
+    if let (Some(p), Outcome::Joined { .. }, Some(t)) = (&report.pmksa, &report.outcome, t) {
+        c.keep(sta, req.ssid, t, p.again(), env.now_ms());
     }
 }
