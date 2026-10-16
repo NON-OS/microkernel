@@ -48,3 +48,5 @@ pub const OP_LID: u16 = 0x0013;
 pub const OP_BRIGHTNESS_STEP: u16 = 0x0014;
 /// One of a monitor's own controls set, on the person's word.
 pub const OP_SET_VCP: u16 = 0x0015;
+pub const OP_BRIGHTNESS_GET: u16 = 0x0016;
+pub const OP_INPUT_SOURCES: u16 = 0x0017;
