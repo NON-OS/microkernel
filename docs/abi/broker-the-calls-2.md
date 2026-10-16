@@ -13,11 +13,11 @@ Part of [Broker](broker.md).
   refuses the claim with `Unconfined` when an IOMMU unit in service will not
   take it (`src/hardware/broker/claim/claim.rs:33-40`). `sys_device_claim`
   returns that refusal as `EPERM` (`src/syscall/microkernel/device.rs:67-81`).
-  When no IOMMU unit in service covers the device, `attach` lets the claim go
-  ahead unconfined, and `unconfined_allowed` does the same when no unit is in
-  service at all: the device can then reach all of memory, and the serial log
-  says so for that claim (`src/hardware/broker/confine/attach.rs:30-47`,
-  `src/hardware/broker/confine/posture.rs:32-37`). A record with no PCI address,
+  When no IOMMU unit in service covers the device, or its interrupts are not
+  remapped, the claim is refused with `Unconfined` too; only a kernel built
+  with a development opt-in lets it ahead, the device then reaching all of
+  memory, and the serial log says so for that claim
+  (`src/hardware/broker/confine/decide.rs`). A record with no PCI address,
   such as an ACPI or PS/2 one, is not attached at all, since `pci_address` finds
   nothing for it (`src/hardware/broker/confine/table.rs:39-43`).
 - `sys_device_release` stops bus mastering first, then tears down every MMIO,
