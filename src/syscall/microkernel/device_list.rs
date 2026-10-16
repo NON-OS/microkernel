@@ -15,16 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! MkDeviceList (DeviceEnum, checked at the contract layer): every record
-//! of a class, copied out.
+//! of a class, copied out, with the window bases of the ones the caller
+//! does not hold zeroed (K10g).
 
 use core::mem::size_of;
 
-use super::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 use crate::hardware::broker::{self, DeviceRecord};
+use crate::process::current_pid;
 use crate::usercopy::{validate_user_write, write_user_value};
 
 pub fn sys_device_list(class: u32, buf_ptr: u64, count: u64) -> i64 {
-    let snapshot = broker::list_by_class(class);
+    let Some(pid) = current_pid() else {
+        return ERRNO_PERM;
+    };
+    let snapshot = broker::list_shown(class, pid);
     let total = snapshot.len();
     if count == 0 {
         return total as i64;
