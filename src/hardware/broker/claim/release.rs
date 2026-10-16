@@ -16,38 +16,30 @@
 
 extern crate alloc;
 
+use super::leaving::{take_all, take_held};
+use super::retire::retire;
+use super::retire_io::Leaving;
 use super::state::CLAIMS;
 use super::types::ClaimError;
 
-// Release a claim held by `pid`. Returns the released epoch on
-// success.
+// Release a claim held by `pid`, the caller in its own MkDeviceRelease.
+// The claim goes first, so a thread of `pid` that faults on a revoked BAR
+// and tears down meanwhile finds nothing to reset or free (K10b). Returns
+// the released epoch.
 pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    let mut claims = CLAIMS.lock();
-    let idx = claims.iter().position(|c| c.device_id == device_id).ok_or(ClaimError::NotClaimed)?;
-    if claims[idx].pid != pid {
-        return Err(ClaimError::NotHolder);
-    }
-    let epoch = claims[idx].epoch;
-    claims.remove(idx);
-    drop(claims);
-    super::quiesce::stop_bus_master(device_id);
+    let epoch = take_held(&mut CLAIMS.lock(), pid, device_id)?;
+    retire(&mut Leaving::new(pid, device_id, Some(pid), true));
     crate::hardware::broker::confine::detach(pid, device_id);
     Ok(epoch)
 }
 
-// Release every claim held by `pid`. Called from the kernel's
-// `MkExit` path so a dying capsule cannot leak grants. Returns the
-// number of claims revoked.
-pub fn release_all_for_pid(pid: u32) -> usize {
-    let mut claims = CLAIMS.lock();
-    let held: alloc::vec::Vec<u64> =
-        claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
-    claims.retain(|c| c.pid != pid);
-    drop(claims);
+// Release every claim held by `pid`, from exit teardown, whose waits spin
+// (reset_wait). `in_context` when `pid`'s page tables are active. Returns
+// the number of claims revoked.
+pub fn release_all_for_pid(pid: u32, in_context: bool) -> usize {
+    let held = take_all(&mut CLAIMS.lock(), pid);
     for device_id in &held {
-        super::quiesce::stop_bus_master(*device_id);
-        // Before dma_release_all_for_pid frees its frames (K10a).
-        super::reset::at_release(*device_id, None);
+        retire(&mut Leaving::new(pid, *device_id, None, in_context));
     }
     crate::hardware::broker::confine::detach_all(pid);
     held.len()
