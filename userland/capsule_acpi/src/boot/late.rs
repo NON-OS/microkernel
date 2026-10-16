@@ -14,26 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What runs once everything else is up: the ranges firmware reserves and
-//! the root bridges' proximity domains, the functions _PS0 woke, the
-//! hot-plug ports _OSC gave NONOS, the platform controllers and port
-//! facts published to the broker, and the Type-C session, whose first
-//! walk may take a while on a slow PPM.
+//! What runs once the first publish pass is told: the events (the EC's
+//! with them), the batteries and AC, the buttons and lid, the cooling,
+//! the processors, backlight, hotkeys and hardware errors; any hidden
+//! function the pass had no time for; the hot-plug ports _OSC gave NONOS;
+//! port facts; and the Type-C session, whose first walk may take a while.
 
 use super::state::Acpi;
 use crate::hotplug::native::osc_grant::OscGrant;
 
-pub fn late(acpi: &mut Acpi, grants: &[OscGrant]) {
+pub fn late(acpi: &mut Acpi, fadt: &[u8], grants: &[OscGrant]) {
+    let gpe = acpi.ec.as_ref().and_then(|e| e.gpe);
+    let (events, sci) = super::sci::start(fadt, &mut acpi.aml, &mut acpi.host, gpe);
+    (acpi.events, acpi.sci) = (events, sci);
+    acpi.power = crate::power::find(&acpi.devices);
+    crate::power::all(&mut acpi.power, &mut acpi.aml, &mut acpi.host);
+    acpi.buttons = crate::buttons::find(&acpi.devices);
+    crate::buttons::read_lid(&mut acpi.buttons, &mut acpi.aml, &mut acpi.host);
+    // The pool already counts what the first pass powered.
+    let pool = core::mem::take(&mut acpi.cooling.pool);
+    acpi.cooling = crate::cooling::find(&mut acpi.aml, &mut acpi.host);
+    acpi.cooling.pool = pool;
+    acpi.backlight = crate::backlight::find(&mut acpi.aml, &mut acpi.host);
+    acpi.cpus = crate::cpu::find(&mut acpi.aml, &mut acpi.host);
+    acpi.hotkeys = crate::hotkeys::find(&acpi.devices, &mut acpi.aml, &mut acpi.host);
+    acpi.apei = crate::apei::start(&acpi.devices);
     super::say::say_cooling(&acpi.cooling);
-    crate::reserved::publish(acpi);
-    crate::numa::publish(acpi);
-    // The host bridges' readiness durations first: the reveal waits on them.
-    crate::pci_firmware::find(acpi);
-    crate::dpower::reveal_hidden(acpi);
-    crate::hotplug::learn(acpi);
+    crate::dpower::reveal_hidden(acpi, u64::MAX);
     crate::hotplug::native::find(acpi, grants);
-    let Acpi { devices, aml, host, .. } = acpi;
-    crate::platform::publish(devices, aml, host);
     crate::ports::publish(acpi);
     acpi.typec = crate::typec::find(&acpi.devices, &mut acpi.aml, &mut acpi.host);
 }

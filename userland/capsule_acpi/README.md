@@ -231,6 +231,17 @@ function, and does no DMA. It adds functions to the device table and
 takes them out (`MkPciProbeFunction`, `MkPciDepart`); both answer only
 the `acpi` service's owner.
 
+Start runs in two parts (L55). The first publish pass (`src/boot/first.rs`):
+the namespace loaded and `_INI` run, the host bridges' `_OSC`, the reserved
+ranges and proximity domains, each hidden function's `_PS0` and probe (with
+the readiness waits) within 2 s, and the platform records in `_DEP` order.
+Then `MkAcpiFirstPass` tells the kernel, once; init's spawn of the families
+this capsule publishes waits on it, and a restarted capsule never blocks
+init again, since the flag is never cleared. Only after it: the events (the
+EC's among them), batteries and AC, buttons, cooling, processors,
+backlight, hotkeys, hardware errors, any hidden function left over, the
+native hot-plug ports, port facts and the Type-C session.
+
 ## Authority
 
 `CAPSULE_REQUIRED_CAPS := 0x58218`: IPC (0x8) to serve port 4530; Memory
