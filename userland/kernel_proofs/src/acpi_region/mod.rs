@@ -43,6 +43,8 @@ mod seeded_tests;
 #[cfg(test)]
 mod sweep;
 #[cfg(test)]
+mod smbios_span_tests;
+#[cfg(test)]
 mod table_tests;
 #[cfg(test)]
 mod tests;
