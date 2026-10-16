@@ -20,13 +20,8 @@ use nonos_app_skeleton::EventOutcome;
 
 use super::{mk_uptime_ms, needs_live_data, Wallet};
 
-// Time between account refreshes, counted from the end of the last one. One
-// batched fetch fills every field, so the wallet does not need to poll often;
-// a refresh every dozen seconds keeps balances current.
-const REFRESH_MS: i64 = 12_000;
-
-// How long after the last click or keypress a refresh may begin.
-const IDLE_MS: i64 = 2_000;
+#[path = "app_refresh_due.rs"]
+mod due;
 
 impl Wallet {
     /// Step a refresh under way, or begin one when it is due.
@@ -46,12 +41,8 @@ impl Wallet {
             return false;
         }
         let now = mk_uptime_ms();
-        let idle = now.wrapping_sub(self.last_active) >= IDLE_MS;
-        let due = live
-            && idle
-            && (!self.probed_once
-                || self.state.net.probe_step == 1
-                || now.wrapping_sub(self.last_probe) >= REFRESH_MS);
+        let owed = !self.probed_once || self.state.net.probe_step == 1;
+        let due = due::due(live, owed, now, self.last_active, self.last_probe);
         if due && self.state.net.job.is_none() {
             self.probed_once = true;
         }
