@@ -39,6 +39,8 @@ pub struct PciHost {
     /// `bus-range`; the ECAM window's first megabyte is `bus_start`.
     pub bus_start: u8,
     pub bus_end: u8,
+    /// `dma-coherent`: its functions' DMA snoops the CPU's caches.
+    pub dma_coherent: bool,
 }
 
 impl PciHost {

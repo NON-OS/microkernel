@@ -23,5 +23,5 @@ pub(super) use bar::BAR_KIND_MMIO;
 pub use bar::{Bar, BarKind};
 pub use bus::BusKind;
 pub(super) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
-pub use flags::{DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
+pub use flags::{DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED, DEVICE_FLAG_DMA_NONCOHERENT};
 pub use record::DeviceRecord;

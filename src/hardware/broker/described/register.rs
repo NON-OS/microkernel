@@ -35,6 +35,8 @@ pub struct Described {
     pub irq: Option<(u32, bool)>,
     /// `None`: no bus maps its DMA, so no grant is ever given for it.
     pub dma: Option<BusWindow>,
+    /// `dma-coherent`: its DMA snoops the CPU's caches.
+    pub coherent: bool,
 }
 
 /// Every stop reads registers in the first 4 KiB.

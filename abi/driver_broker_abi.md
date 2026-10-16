@@ -77,7 +77,8 @@ DeviceRecord {
     class:        u32       // class id, see section 4
     vendor:       u16       // vendor id (PCI)
     device:       u16       // device id (PCI)
-    flags:        u32       // CLAIMED=1, DISABLED=2 (defined; never set)
+    flags:        u32       // CLAIMED=1, DISABLED=2 (defined; never set),
+                            // DMA_NONCOHERENT=4: its DMA does not snoop
     bar_count:    u8        // valid BAR slot span, not compacted count
     irq_line:     u8        // PCI interrupt line (0xFF none)
     irq_pin:      u8        // PCI interrupt pin (0 none)

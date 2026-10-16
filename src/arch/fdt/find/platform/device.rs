@@ -42,6 +42,8 @@ pub struct PlatformDevice {
     pub irq: Option<PlatformIrq>,
     /// `None` when no bus between it and the root maps its DMA anywhere.
     pub dma: Option<DmaWindow>,
+    /// `dma-coherent`: its DMA snoops the CPU's caches.
+    pub coherent: bool,
 }
 
 impl PlatformDevice {
@@ -51,5 +53,6 @@ impl PlatformDevice {
         window_count: 0,
         irq: None,
         dma: None,
+        coherent: false,
     };
 }

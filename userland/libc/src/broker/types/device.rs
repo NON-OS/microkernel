@@ -18,6 +18,9 @@ use super::bar::Bar;
 
 pub const DEVICE_FLAG_CLAIMED: u32 = 1 << 0;
 pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
+/// The device's DMA does not snoop the CPU's caches: sync cacheable grants
+/// with `mk_dma_sync` around each transfer.
+pub const DEVICE_FLAG_DMA_NONCOHERENT: u32 = 1 << 2;
 
 #[repr(C)]
 #[derive(Clone, Copy)]

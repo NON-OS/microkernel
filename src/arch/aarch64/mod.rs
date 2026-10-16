@@ -27,6 +27,7 @@ mod constants;
 pub mod context;
 pub mod cpu;
 pub mod cpu_random;
+pub mod dma;
 pub mod exceptions;
 pub mod firmware;
 pub mod fpu;
