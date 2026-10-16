@@ -24,7 +24,7 @@ All but `linux sqlite3` come from the tour the image carries at `/usr/share/nono
 - One Linux program runs at a time. A second one is refused with `linux: a Linux program is already running in a terminal; one runs at a time, so end it (Ctrl-C) first`.
 - A name nothing holds is answered with `command not found`, and the line says where it looked.
 
-The program runs under the [Linux personality](../overview/glossary.md#linux-personality), the [capsule](../overview/glossary.md#capsule) `capsule_linux`, which answers every Linux system call the program makes. The kernel itself knows nothing of Linux.
+The program runs under the [Linux personality](../overview/glossary-linux-personality.md#linux-personality), the [capsule](../overview/glossary-boot-root-record.md#capsule) `capsule_linux`, which answers every Linux system call the program makes. The kernel itself knows nothing of Linux.
 
 ```mermaid
 sequenceDiagram
@@ -100,7 +100,7 @@ See [Files](files.md) for the NONOS side.
 
 ## Network
 
-A program started with `linux` has no internet. The kernel starts the personality for the Terminal in the role `app.linux.term`, which asks for no optional [capability](../overview/glossary.md#capability), so the network services refuse it. `wget`, or an HTTP request from `python3`, to an internet host fails.
+A program started with `linux` has no internet. The kernel starts the personality for the Terminal in the role `app.linux.term`, which asks for no optional [capability](../overview/glossary-boot-root-record.md#capability), so the network services refuse it. `wget`, or an HTTP request from `python3`, to an internet host fails.
 
 Inside the program's own family, sockets work: it may bind and listen on 127.0.0.0/8 and use Unix sockets. A bind or listen anywhere else is EACCES, a datagram leaving the family is ENETUNREACH, and a raw socket is EPERM.
 
@@ -121,7 +121,6 @@ Once a program has opened a Qwen model, its family gets no internet socket in an
 
 ## Hardware report
 
-`sh`, `python3`, `sqlite3` and `john`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 The host tests of the personality pass on this commit: `capsule_linux_proofs` (369 tests) and `terminal_line_proofs` (247).
 

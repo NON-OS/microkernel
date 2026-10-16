@@ -4,7 +4,7 @@ How NONOS drives a laptop touchpad that speaks HID over I2C: which I2C controlle
 
 ## Two capsules
 
-A touchpad takes two [driver capsules](../../overview/glossary.md#driver-capsule): one owns the I2C bus, the other reads the touchpad on it.
+A touchpad takes two [driver capsules](../../overview/glossary-dma-pool.md#driver-capsule): one owns the I2C bus, the other reads the touchpad on it.
 
 ```mermaid
 flowchart LR
@@ -15,7 +15,7 @@ flowchart LR
   HID --> RING[kernel input ring]
 ```
 
-- `capsule_driver_i2c_pci` serves `driver.i2c_pci0`. It owns the I2C host controller: it claims it through the [hardware broker](../../overview/glossary.md#hardware-broker), maps its registers and runs bounded bus transfers. It parses no HID report.
+- `capsule_driver_i2c_pci` serves `driver.i2c_pci0`. It owns the I2C host controller: it claims it through the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker), maps its registers and runs bounded bus transfers. It parses no HID report.
 - `capsule_driver_i2c_hid` serves `driver.i2c_hid0`. It holds no hardware grant at all. It asks `driver.i2c_pci0` for transfers with `OP_TRANSFER`, decodes the touchpad's reports and posts pointer, wheel and button events to the kernel input ring.
 
 Only `driver.i2c_hid0` may send to `driver.i2c_pci0`, because a transfer reaches any device on the bus (`HELD`, `src/services/registry/held_table.rs:20-33`). The ACPI tables, read by the kernel, tell both where the touchpad is.
@@ -97,8 +97,7 @@ Both a tap and a clickpad press post button 1 (`publish_touch`, `userland/capsul
 
 ## How this is checked
 
-- [Proof crates](../../overview/glossary.md#proof-crate) at commit bff12b97, all passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds the transfer engine (26); `pinctrl_proofs` holds the GPIO layouts (13); `input_proofs` holds the gesture decoder (96).
-- The touchpad on Intel LPSS has one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+- [Proof crates](../../overview/glossary-peer-list.md#proof-crate) at commit bff12b97, all passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds the transfer engine (26); `pinctrl_proofs` holds the GPIO layouts (13); `input_proofs` holds the gesture decoder (96).
 - The AMD path and every other Intel family have not been run on hardware in this release.
 
 ## See also

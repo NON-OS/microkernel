@@ -43,7 +43,7 @@ flowchart TD
   (`src/hardware/broker/confine/table.rs:35-43`). Its DMA grants carry physical
   addresses and are counted as unconfined.
 
-A DMA [grant](../overview/glossary.md#grant) in a confined domain is mapped with
+A DMA [grant](../overview/glossary-dma-pool.md#grant) in a confined domain is mapped with
 `IommuProtection::READ_WRITE` at an I/O virtual address from the capsule's own
 range (`src/hardware/broker/confine/map.rs:22-50`). When the capsule releases
 the device, `detach` puts it back to denied, not to the identity domain, and the

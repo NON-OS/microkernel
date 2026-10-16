@@ -11,7 +11,6 @@ You need a network card NONOS has a driver for, an image that carries that drive
 - The standard and hardened images carry all of these drivers. The `qemu` image carries only `virtio_net`, so it has no Wi-Fi. An image built with the `airgapped` profile carries no network driver, stack or online program at all.
 - The Air-Gapped, Safe Mode and Recovery boot modes start no network driver and no network service. See [boot modes](../install/boot-modes.md).
 
-Realtek RTL8821CE Wi-Fi, for scanning, joining, DHCP, DNS and browser traffic: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 Everything else on this page is stated from the code, and the host tests of the Wi-Fi path pass on this commit.
 
@@ -66,7 +65,7 @@ Turn on `Remember networks I join` with `R`. A network you then join is saved, w
 
 - At most four networks are kept; saving a fifth drops the oldest.
 - The list is saved only on a boot that keeps data: a boot of a disk NONOS was installed to, or a stick boot whose setup chose Install on its Mode step. Settings shows it as the read-only `Keep data across reboots` row under `Privacy`. On any other boot the row reads `Off: this boot keeps nothing`.
-- It is saved only with a TPM. The list is sealed with ChaCha20-Poly1305 under a [machine key](../overview/glossary.md#machine-key) the TPM derives for the label `wifi/saved-networks`. That key is bound to PCRs 0, 4, 7 and 9, so after a firmware or kernel change the saved list no longer opens and you join again by hand.
+- It is saved only with a TPM. The list is sealed with ChaCha20-Poly1305 under a [machine key](../overview/glossary-linux-personality.md#machine-key) the TPM derives for the label `wifi/saved-networks`. That key is bound to PCRs 0, 4, 7 and 9, so after a firmware or kernel change the saved list no longer opens and you join again by hand.
 - The sealed record is the file `/nonos/wifi/saved` in the NONOS store.
 
 At boot, `net.core` scans and joins the first saved network in range. Each saved network is tried at most once per boot, so a wrong passphrase is not sent to the access point again and again. After eight scans with none in range it stops and logs `no saved Wi-Fi network in range; join one from Settings`.
@@ -153,7 +152,7 @@ flowchart LR
     sockets --> apps["programs"]
 ```
 
-On the desktop one [capsule](../overview/glossary.md#capsule), `net.core`, is the whole network stack. When it starts it registers `net.tcp`, `net.udp`, `net.dhcp.client`, `net.dns` and `net.ip`. The Settings Wi-Fi page talks to the Wi-Fi driver to scan and join. `net.core` binds the Wi-Fi driver or the Ethernet driver once its link is up and takes a DHCP lease. Programs reach the network through `net.sockets`, which uses `net.core`.
+On the desktop one [capsule](../overview/glossary-boot-root-record.md#capsule), `net.core`, is the whole network stack. When it starts it registers `net.tcp`, `net.udp`, `net.dhcp.client`, `net.dns` and `net.ip`. The Settings Wi-Fi page talks to the Wi-Fi driver to scan and join. `net.core` binds the Wi-Fi driver or the Ethernet driver once its link is up and takes a DHCP lease. Programs reach the network through `net.sockets`, which uses `net.core`.
 
 - DHCP: on a lease, `net.core` sets the address, adds the default route through the router and opens a DNS socket for every server the lease names.
 - DNS: a lookup asks every server at once and keeps the first IPv4 address any of them gives, within three seconds.

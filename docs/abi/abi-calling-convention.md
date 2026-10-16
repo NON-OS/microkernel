@@ -26,7 +26,7 @@ and `r11`, and the stub restores the caller's `rdi`, `rsi` and `rdx` before it
 returns (`src/arch/x86_64/asm/syscall.S:115-123`). `setup_fmask` masks IF, TF,
 DF and AC on entry (`src/arch/x86_64/syscall/msr.rs:108-111`). `syscall_handler`
 sends a number it does not know to `redirect`, which hands the call of a
-[foreign process](../overview/glossary.md#foreign-process) to its supervisor,
+[foreign process](../overview/glossary-dma-pool.md#foreign-process) to its supervisor,
 and answers `ENOSYS` when there is no supervisor
 (`src/arch/x86_64/syscall/manager/entry.rs:38-53`).
 
@@ -58,7 +58,7 @@ issues `ecall`, so on riscv64 the kernel side exists and nothing calls it.
 
 A call returns a signed 64-bit value. Zero or more is success, and its meaning
 depends on the call: a byte count, a pid, an address, a [claim
-epoch](../overview/glossary.md#claim-epoch), or 0. A negative value is a negated
+epoch](../overview/glossary-claim-epoch.md#claim-epoch), or 0. A negative value is a negated
 errno, as `SyscallResult::error` stores it
 (`src/syscall/types/result.rs:35-37`). `abi/syscalls.toml` publishes
 `errno_range` as -4095 to -1 (`abi/syscalls.toml:17-19`). Some calls answer with

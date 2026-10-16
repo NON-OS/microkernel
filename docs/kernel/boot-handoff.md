@@ -1,10 +1,10 @@
 # Boot handoff and kernel init
 
-How control passes from the NONOS bootloader to the x86_64 kernel, what the kernel checks before it trusts what it was given, and the order it brings itself up in until the first [capsule](../overview/glossary.md#capsule) runs.
+How control passes from the NONOS bootloader to the x86_64 kernel, what the kernel checks before it trusts what it was given, and the order it brings itself up in until the first [capsule](../overview/glossary-boot-root-record.md#capsule) runs.
 
 ## The last steps of the bootloader
 
-The loader's `exit_and_jump` does the transfer. While UEFI boot services can still hand out page-table frames, it builds the kernel's page tables with `build_kernel_pml4` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:72`). Those tables hold an identity map of low physical memory and of the framebuffer, a linear map of physical memory at `PML4[256]` (the [directmap](../overview/glossary.md#directmap)), and the kernel image in the upper half, in the order `build_kernel_pml4` adds them (`nonos-bootloader/src/paging/build.rs:45-62`). The identity window is `IDENTITY_LOW_BYTES`, 64 GiB (`nonos-bootloader/src/paging/constants.rs:43`).
+The loader's `exit_and_jump` does the transfer. While UEFI boot services can still hand out page-table frames, it builds the kernel's page tables with `build_kernel_pml4` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:72`). Those tables hold an identity map of low physical memory and of the framebuffer, a linear map of physical memory at `PML4[256]` (the [directmap](../overview/glossary-claim-epoch.md#directmap)), and the kernel image in the upper half, in the order `build_kernel_pml4` adds them (`nonos-bootloader/src/paging/build.rs:45-62`). The identity window is `IDENTITY_LOW_BYTES`, 64 GiB (`nonos-bootloader/src/paging/constants.rs:43`).
 
 The boot stack and the handoff structure are passed as directmap addresses, not physical ones, through `phys_to_directmap_virt` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:86-93`). The kernel later removes the identity window, and a directmap address stays valid on both sides of that change.
 
@@ -14,7 +14,7 @@ The jump itself is `nonos_arch_handoff_jump` (`nonos-bootloader/src/arch/x86_64/
 
 ## The handoff structure
 
-The [boot handoff](../overview/glossary.md#boot-handoff) is one `#[repr(C)]` structure, `BootHandoffV1`, defined identically on both sides (`src/boot/handoff/types/handoff.rs:28-46`, `nonos-bootloader/src/handoff/types/handoff.rs:28-47`). Its first fields are `magic`, `version` and `size`. The constants file holds the magic value `0x4E4F4E4F`, the layout version 2 and `MAX_CMDLINE_LEN` (`src/boot/handoff/types/constants.rs:17-19`).
+The [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) is one `#[repr(C)]` structure, `BootHandoffV1`, defined identically on both sides (`src/boot/handoff/types/handoff.rs:28-46`, `nonos-bootloader/src/handoff/types/handoff.rs:28-47`). Its first fields are `magic`, `version` and `size`. The constants file holds the magic value `0x4E4F4E4F`, the layout version 2 and `MAX_CMDLINE_LEN` (`src/boot/handoff/types/constants.rs:17-19`).
 
 | Field | What it carries |
 |---|---|
@@ -40,11 +40,11 @@ The `flags` word uses these bits, as listed in the `flags` module (`src/boot/han
 | 5 | `IDMAP_PRESERVED` | always set: the low identity map is present at entry |
 | 6 | `FB_AVAILABLE` | `fb` is valid |
 | 7 | `ACPI_AVAILABLE` | `acpi` is valid |
-| 8 | `TPM_MEASURED` | the loader found [TPM](../overview/glossary.md#tpm) measured boot active; a failed [PCR](../overview/glossary.md#pcr) 9 extend does not clear it |
-| 9 | `SECURE_BOOT` | the loader reports UEFI [Secure Boot](../overview/glossary.md#secure-boot) as on |
-| 10 | `ZK_ATTESTED` | the loader reports the [attestation](../overview/glossary.md#attestation) proof as verified |
+| 8 | `TPM_MEASURED` | the loader found [TPM](../overview/glossary-stark-proof.md#tpm) measured boot active; a failed [PCR](../overview/glossary-linux-personality.md#pcr) 9 extend does not clear it |
+| 9 | `SECURE_BOOT` | the loader reports UEFI [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) as on |
+| 10 | `ZK_ATTESTED` | the loader reports the [attestation](../overview/glossary-amnesic-boot.md#attestation) proof as verified |
 | 11 | `INSTALL_REQUESTED` | the person chose the boot menu's install entry |
-| 12 to 15 | `PROFILE_HARDENED`, `PROFILE_SAFE`, `PROFILE_AIR_GAPPED`, `PROFILE_RECOVERY` | the [boot profile](../overview/glossary.md#boot-profile); Standard sets none |
+| 12 to 15 | `PROFILE_HARDENED`, `PROFILE_SAFE`, `PROFILE_AIR_GAPPED`, `PROFILE_RECOVERY` | the [boot profile](../overview/glossary-amnesic-boot.md#boot-profile); Standard sets none |
 
 The loader's `build_handoff_flags` sets the framebuffer, ACPI, Secure Boot, attestation, TPM, SMEP, SMAP and UMIP bits from what it found, and sets `WX`, `NXE` and `IDMAP_PRESERVED` on every boot (`nonos-bootloader/src/handoff/prepare/flags.rs:20-57`). The install bit and the profile bits come from the boot menu: `handoff_flag` adds `INSTALL_REQUESTED` (`nonos-bootloader/src/handoff/types/install.rs:45-46`), and the chosen mode adds its `PROFILE_*` bit (`nonos-bootloader/src/menu/types/mode.rs:61-64`).
 
@@ -67,7 +67,7 @@ A few sizes are fixed by the code:
 
 Each failure is one `HandoffError` with a fixed text, such as `Invalid handoff magic value` or `Bootloader entropy seed is all zero` (`src/boot/handoff/api/error/handoff_error.rs:20-47`). A version or size mismatch is a refusal, so a loader and a kernel built for different handoff versions do not boot together.
 
-On failure `kernel_entry` prints `[NONOS] Handoff FAIL` and `[NONOS] Handoff ERR:` with the error text on the [serial console](../overview/glossary.md#serial-console), then calls `vga_fallback` (`src/nonos_main.rs:79-88`). `vga_fallback` writes `NONOS <version> <channel> - No framebuffer available` into the legacy VGA text buffer at `0xB8000` and halts (`src/entry/fallback.rs:14-43`). The panic handler's comment says the VGA text buffer is invisible on UEFI machines, which is why the handler also calls `panic_screen` (`src/boot/panic/handler.rs:54-57`). A refused handoff has no such step: its only mark on the framebuffer is the breadcrumb segment described below. What a given panel shows here was not tested on hardware in this release. See [panic and boot stop](panic-and-boot-stop.md).
+On failure `kernel_entry` prints `[NONOS] Handoff FAIL` and `[NONOS] Handoff ERR:` with the error text on the [serial console](../overview/glossary-rollback-index.md#serial-console), then calls `vga_fallback` (`src/nonos_main.rs:79-88`). `vga_fallback` writes `NONOS <version> <channel> - No framebuffer available` into the legacy VGA text buffer at `0xB8000` and halts (`src/entry/fallback.rs:14-43`). The panic handler's comment says the VGA text buffer is invisible on UEFI machines, which is why the handler also calls `panic_screen` (`src/boot/panic/handler.rs:54-57`). A refused handoff has no such step: its only mark on the framebuffer is the breadcrumb segment described below. What a given panel shows here was not tested on hardware in this release. See [panic and boot stop](panic-and-boot-stop.md).
 
 ## Kernel entry
 
@@ -108,7 +108,7 @@ After `init_core_systems`, `log_security_status` prints whether the kernel signa
 2. `init_cpu_tables`: the GDT, the SYSCALL registers, an early IDT, the 64 MiB bootstrap heap and the full IDT (`src/boot/main/core_init/cpu_tables.rs:26-48`).
 3. `init_acpi_tables`: the RSDP from the handoff, the ACPI parse, the power button, and a TSC calibration against the ACPI PM timer when no rate is known yet (`src/boot/main/core_init/acpi_tables.rs:19-33`). The tables are on [PCI and ACPI](pci-and-acpi.md).
 4. The local APIC, the idle-timer fix and the 100 Hz preemption timer. A failure in `install_on_bsp` stops the boot (`src/boot/main/core_init/init_core_systems.rs:42-44`).
-5. `sti`, memory encryption detection, the PCI scan, and `init_platform_baseline`: BAR assignment, the device broker, the entropy source, the boot session nonce and the [capability token](../overview/glossary.md#capability-token) signing key (`src/kernel_core/init/platform/baseline.rs:35-61`).
+5. `sti`, memory encryption detection, the PCI scan, and `init_platform_baseline`: BAR assignment, the device broker, the entropy source, the boot session nonce and the [capability token](../overview/glossary-boot-root-record.md#capability-token) signing key (`src/kernel_core/init/platform/baseline.rs:35-61`).
 
 ## Microkernel init
 
@@ -129,7 +129,7 @@ After `init_core_systems`, `log_security_status` prints whether the kernel signa
 | `init_device_routing`, `init_process_runtime` (`src/kernel_core/init/entry/microkernel_init.rs:76-77`) | device interrupt routing, then the process tables and the ELF loader |
 | `start_secondary_cpus` (`src/kernel_core/init/entry/microkernel_init.rs:85`) | starts every other CPU; see [scheduler and SMP](scheduler-and-smp.md) |
 
-Not every stage stops the boot. `init_core_services`, `init_vm_and_protection` and `init_extended_state` stop it on failure through `fatal`, which calls `boot::stop` for a [boot stop](../overview/glossary.md#boot-stop) (`src/kernel_core/init/entry/fatal.rs:19-22`). A missing boot nonce, an unarmed stack guard and a failed device routing step each print a warning and the boot goes on. A failed self test prints `[CRYPTO-POST] FAIL` with the primitive's name and the boot also goes on: `run_selftest` returns whether all four passed (`src/crypto/application/certification/selftest.rs:43-62`), and `microkernel_init` discards that answer (`src/kernel_core/init/entry/microkernel_init.rs:58`). The full list of steps that stop the boot is on [panic and boot stop](panic-and-boot-stop.md).
+Not every stage stops the boot. `init_core_services`, `init_vm_and_protection` and `init_extended_state` stop it on failure through `fatal`, which calls `boot::stop` for a [boot stop](../overview/glossary-amnesic-boot.md#boot-stop) (`src/kernel_core/init/entry/fatal.rs:19-22`). A missing boot nonce, an unarmed stack guard and a failed device routing step each print a warning and the boot goes on. A failed self test prints `[CRYPTO-POST] FAIL` with the primitive's name and the boot also goes on: `run_selftest` returns whether all four passed (`src/crypto/application/certification/selftest.rs:43-62`), and `microkernel_init` discards that answer (`src/kernel_core/init/entry/microkernel_init.rs:58`). The full list of steps that stop the boot is on [panic and boot stop](panic-and-boot-stop.md).
 
 ## From init to the first capsule
 

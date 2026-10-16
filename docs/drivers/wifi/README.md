@@ -1,10 +1,10 @@
 # Wi-Fi drivers
 
-NONOS has two Wi-Fi [driver capsules](../../overview/glossary.md#driver-capsule), one for the Realtek RTL8821CE and one for Intel cards; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
+NONOS has two Wi-Fi [driver capsules](../../overview/glossary-dma-pool.md#driver-capsule), one for the Realtek RTL8821CE and one for Intel cards; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
 
 ## Chips at a glance
 
-Each Wi-Fi driver is a [capsule](../../overview/glossary.md#capsule): a signed ring 3 program that reaches its card only through grants from the [hardware broker](../../overview/glossary.md#hardware-broker).
+Each Wi-Fi driver is a [capsule](../../overview/glossary-boot-root-record.md#capsule): a signed ring 3 program that reaches its card only through grants from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker).
 
 | Chip | PCI vendor:device | Capsule | State in 0.9.2 | Page |
 |---|---|---|---|---|
@@ -14,9 +14,8 @@ Each Wi-Fi driver is a [capsule](../../overview/glossary.md#capsule): a signed r
 | Intel 7260 to 9560, AX200, AX201 on Qu and QuZ platforms, two AX210 family ids without transport values | listed on the iwlwifi page | `driver.iwlwifi0` | Refused: no firmware boot path in this driver | [iwlwifi.md](iwlwifi.md) |
 | Intel BE200 and BE201, MediaTek, Qualcomm, Broadcom, other Realtek Wi-Fi | 8086:272b, a840 for the Intel ones | none | Not supported | [not-supported.md](not-supported.md) |
 
-Wi-Fi on Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic). Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
-That is the only hardware report for Wi-Fi in this release. Every other statement on these pages comes from the code and from host tests in [proof crates](../../overview/glossary.md#proof-crate).
+That is the only hardware report for Wi-Fi in this release. Every other statement on these pages comes from the code and from host tests in [proof crates](../../overview/glossary-peer-list.md#proof-crate).
 
 ## What no Wi-Fi driver does
 
@@ -44,7 +43,7 @@ flowchart LR
 
 The Settings Wi-Fi panel (`app.settings`), the first-boot setup wizard (`app.setup_wizard`) and `net.core` all reach a driver through one library, `nonos_wifi_client`. Its `find` asks for `driver.rtl8821ce0` first and `driver.iwlwifi0` second, so a machine with both cards keeps the RTL8821CE (`userland/nonos_wifi_client/src/driver/services.rs:27-35`, `SERVICES`).
 
-The kernel holds both driver endpoints: only `net.core`, the three Settings windows and the setup wizard may send to them (`src/services/registry/held_table.rs:46-50`, `WIFI_STACK`). Read more under [held endpoint](../../overview/glossary.md#held-endpoint).
+The kernel holds both driver endpoints: only `net.core`, the three Settings windows and the setup wizard may send to them (`src/services/registry/held_table.rs:46-50`, `WIFI_STACK`). Read more under [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint).
 
 The kernel starts a Wi-Fi driver only when the boot PCI scan found its chip: `spawn_iwlwifi` for any Intel network controller of subclass 0x80, and `spawn_rtl8821ce` for 10ec:c821 (`src/userspace/init/spawn_plan/drivers_wifi.rs:33-62`). The family comes from `classify_network` (`src/hardware/inventory/classify_network.rs:19-28`).
 
@@ -129,7 +128,7 @@ When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and
 
 - The list holds at most 4 networks, each passphrase at most 64 bytes (`userland/nonos_wifi_client/src/saved/list.rs:19-21`, `SLOTS`, `PASS_MAX`). Saving a fifth drops the oldest (`userland/nonos_wifi_client/src/saved/list.rs:76-87`, `put_with`).
 - It is one file, `/nonos/wifi/saved`, sealed with ChaCha20-Poly1305 (`userland/nonos_wifi_client/src/saved/file.rs:6-21`, `PATH`).
-- The key is the TPM's [machine key](../../overview/glossary.md#machine-key) for the label `wifi/saved-networks`, asked for with `machine_key` and wiped after each use (`userland/nonos_wifi_client/src/saved/key.rs:18-29`, `with_key`).
+- The key is the TPM's [machine key](../../overview/glossary-linux-personality.md#machine-key) for the label `wifi/saved-networks`, asked for with `machine_key` and wiped after each use (`userland/nonos_wifi_client/src/saved/key.rs:18-29`, `with_key`).
 - With no TPM, or after the boot state changed (a firmware, Secure Boot, loader or kernel change), the list cannot be opened (`userland/nonos_wifi_client/src/saved/key.rs:22-26`, `NoTpm`, `BootChanged`).
 - A network is written only on a boot that keeps state (`userland/nonos_wifi_client/src/saved/write.rs:21-24`, `keeps_state`).
 - A network joined with SAE is saved as WPA3, so no later join accepts WPA2 for it (`userland/nonos_wifi_client/src/saved/store.rs:38-41`, `remember`).
@@ -142,7 +141,7 @@ After one join succeeds, autojoin is done for that boot (`userland/capsule_net_c
 
 ## Which images carry them
 
-The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` [build profile](../../overview/glossary.md#build-profile), `make PROFILE=qemu`, builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the [serial console](../../overview/glossary.md#serial-console) for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
+The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` [build profile](../../overview/glossary-boot-root-record.md#build-profile), `make PROFILE=qemu`, builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the [serial console](../../overview/glossary-rollback-index.md#serial-console) for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
 
 ## Firmware and its licence
 

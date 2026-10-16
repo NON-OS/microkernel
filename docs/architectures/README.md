@@ -19,7 +19,7 @@ A kernel for any architecture other than x86_64 stops at `compile_error!` unless
 | backend | `src/arch/x86_64/`, 937 files | `src/arch/aarch64/`, 292 files | `src/arch/riscv64/`, 218 files |
 | kernel target file | `x86_64-nonos.json` | `aarch64-nonos.json` | none |
 | linker script | `linker.ld` | `linker_aarch64.ld` | `linker_riscv64.ld` |
-| [capsule](../overview/glossary.md#capsule) target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
+| [capsule](../overview/glossary-boot-root-record.md#capsule) target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
 | loader | `nonos-bootloader`, a UEFI application | none | none |
 | how it boots | UEFI firmware runs the loader | QEMU loads the kernel ELF | no boot path |
 | CI | build, boot check, boot matrix | build and three boot cells | none |
@@ -49,7 +49,7 @@ The build picks the rest by architecture:
 
 - `build.rs` chooses the linker script in `script_name` (`build.rs:335-339`).
 - `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:594-604`).
-- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its [baseline](../overview/glossary.md#baseline) (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
+- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its [baseline](../overview/glossary-amnesic-boot.md#baseline) (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
 
 ## Starting work on a port
 

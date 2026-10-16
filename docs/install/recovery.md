@@ -12,11 +12,11 @@ The loader checks the kernel exactly as for a Standard boot, so a disk whose ker
 
 ## What runs
 
-- No network driver and no network service start, and no program holds the Network [capability](../overview/glossary.md#capability), so nothing can reach a network.
+- No network driver and no network service start, and no program holds the Network [capability](../overview/glossary-boot-root-record.md#capability), so nothing can reach a network.
 - First-boot setup is skipped, and a Terminal opens once the desktop is up.
 - Of the optional apps, only Files and the Editor are available, beside the Terminal and Settings every boot has.
 - The Terminal's splash reads `NONOS, Recovery boot: no network`.
-- The [store](../overview/glossary.md#store) and the [data volume](../overview/glossary.md#data-volume) open as on any other boot of the same disk: the boot mode decides which programs start, not which storage is read.
+- The [store](../overview/glossary.md#store) and the [data volume](../overview/glossary-claim-epoch.md#data-volume) open as on any other boot of the same disk: the boot mode decides which programs start, not which storage is read.
 
 ## What you can do in Recovery
 
@@ -42,7 +42,7 @@ Look through your files in Files and the Editor. On an installed system a file r
 
 ## When the data volume does not open
 
-The installed data volume opens only on the machine that made it, in the same boot state: its key is derived by the [TPM](../overview/glossary.md#tpm) under [PCRs](../overview/glossary.md#pcr) 0, 4, 7 and 9, and never stored. After a firmware update or a change to Secure Boot, the TPM gives another key, and the kernel leaves the volume closed rather than format over it. A program that asks for the volume then gets EIO, and the serial console says `[DATA] refused with EIO: Unopenable`, or `MachineKey(...)` in place of `Unopenable` when the TPM gave no key at all.
+The installed data volume opens only on the machine that made it, in the same boot state: its key is derived by the [TPM](../overview/glossary-stark-proof.md#tpm) under [PCRs](../overview/glossary-linux-personality.md#pcr) 0, 4, 7 and 9, and never stored. After a firmware update or a change to Secure Boot, the TPM gives another key, and the kernel leaves the volume closed rather than format over it. A program that asks for the volume then gets EIO, and the serial console says `[DATA] refused with EIO: Unopenable`, or `MachineKey(...)` in place of `Unopenable` when the TPM gave no key at all.
 
 To get it back, put the firmware and the Secure Boot setting back as they were when the volume was made, and boot again. A reinstall erases the volume for good.
 
