@@ -16,21 +16,9 @@
 
 //! MkDeviceRelease (Driver, checked at the contract layer).
 
-use core::sync::atomic::{AtomicU32, Ordering};
-
 use super::errnos::{ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
 use crate::hardware::broker::{self, ClaimError};
 use crate::process::current_pid;
-
-static DEVICE_RELEASE_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace_release(label: &[u8], pid: u32) {
-    if pid != 7 || DEVICE_RELEASE_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 24 {
-        return;
-    }
-    crate::sys::serial::print(b"[DEV-RELEASE] ");
-    crate::sys::serial::println(label);
-}
 
 // Releases the claim on `device_id` held by the calling pid. Its IRQ and
 // PIO grants go first. Then release_device takes the claim out and
@@ -43,7 +31,6 @@ pub fn sys_device_release(device_id: u64) -> i64 {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
-    trace_release(b"enter", pid);
     let _ = broker::irq_release_for_device(pid, device_id);
     let _ = broker::pio_release_for_device(pid, device_id);
     match broker::release_device(pid, device_id) {
@@ -52,7 +39,6 @@ pub fn sys_device_release(device_id: u64) -> i64 {
             // went, and was entered after the drops above (K10).
             let _ = broker::irq_release_for_device(pid, device_id);
             let _ = broker::pio_release_for_device(pid, device_id);
-            trace_release(b"ok", pid);
             0
         }
         Err(ClaimError::NotClaimed) => ERRNO_NODEV,

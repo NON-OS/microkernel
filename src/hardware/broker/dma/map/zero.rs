@@ -23,6 +23,8 @@ use crate::memory::layout::DIRECTMAP_BASE;
 pub(super) fn zero_run(physical_start: u64, length: u64) {
     let kva = (DIRECTMAP_BASE + physical_start) as *mut u64;
     let words = (length / 8) as usize;
+    // SAFETY: as the function's comment says, the run is the broker's alone,
+    // mapped at DIRECTMAP_BASE, and `words` stays inside it.
     unsafe {
         for i in 0..words {
             core::ptr::write_volatile(kva.add(i), 0);
