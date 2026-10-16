@@ -14,18 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading the lids' _LID and telling the kernel when that changes. The
+//! Reading the lids' _LID and telling the kernel, which tells the shell's
+//! lock (F-91), when that changes: on each Notify, and again every
+//! LID_POLL_MS, so a Notify firmware never sent is caught within that. The
 //! state is only taken as told once the kernel has it, so a refused report
-//! is made again at the next notification.
+//! (the shell's input busy) is made again at the next reading. Any lid
+//! open reads as open.
 
 use super::state::Buttons;
 use crate::boot::evaluate;
 use crate::host::CapsuleHost;
 use crate::sys::acpi_event::{acpi_event, LID};
+use crate::sys::clock::now_ms;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
 use nonos_aml::button::lid_open;
 use nonos_aml::load::Aml;
+
+/// Often enough for a lock that follows the lid; _LID is one EC read.
+const LID_POLL_MS: u64 = 2_000;
+
+pub fn tick(b: &mut Buttons, aml: &mut Aml, host: &mut CapsuleHost) {
+    let now = now_ms();
+    if b.lids.is_empty() || now < b.next_lid_ms {
+        return;
+    }
+    b.next_lid_ms = now.saturating_add(LID_POLL_MS);
+    read_lid(b, aml, host);
+}
 
 pub fn read_lid(b: &mut Buttons, aml: &mut Aml, host: &mut CapsuleHost) {
     let mut open = None;
