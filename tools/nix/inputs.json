@@ -904,6 +904,7 @@
    "userland/capsule_acpi/src/hotplug/native/step_timed.rs",
    "userland/capsule_acpi/src/hotplug/native/times.rs",
    "userland/capsule_acpi/src/power/off/rule.rs",
+   "userland/capsule_acpi/src/power/off/wire.rs",
    "userland/capsule_acpi/src/props/wire.rs",
    "userland/capsule_acpi/src/props/wire_cursor.rs",
    "userland/capsule_acpi/src/props/wire_read.rs",

@@ -17,7 +17,7 @@
 //! The service on port 4530, and the SCI served between requests.
 
 mod brightness;
-mod caller;
+pub(crate) mod caller;
 mod holder;
 mod inventory;
 mod lpit_wire;

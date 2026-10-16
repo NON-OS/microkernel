@@ -29,6 +29,9 @@ use alloc::vec::Vec;
 pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
     let index =
         |r: &[u8]| r.get(1..5).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize);
+    if crate::power::off::wire::is_poff(req) {
+        return crate::power::off::requested(req, sender);
+    }
     let op = req.first().copied().unwrap_or(0);
     if !admits(op, sender, owner, group_of) {
         return EPERM.to_le_bytes().to_vec();
@@ -63,7 +66,6 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
         Some(OP_SET_POWER_CAP) => crate::power_meter::set_power_cap(acpi, req),
         Some(OP_HOLDER) => super::holder::holder(req),
         Some(OP_PCI_FIRMWARE) => crate::pci_firmware::pci_firmware(acpi, req),
-        Some(OP_POWER_OFF) => (crate::power::off::power_off(b"the shell asked") as i32, Vec::new()),
         _ => (EINVAL, Vec::new()),
     };
     let mut out = code.to_le_bytes().to_vec();
