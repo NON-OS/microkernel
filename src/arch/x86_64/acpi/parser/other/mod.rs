@@ -22,6 +22,7 @@ pub mod dmar_namespace_scope;
 mod dmar_namespace_store;
 pub mod dmar_namespace_walk;
 pub mod dmar_rmrr;
+pub mod dmar_rmrr_names;
 mod dmar_rmrr_store;
 pub mod dmar_scope;
 pub mod dmar_scope_walk;
@@ -42,8 +43,9 @@ mod srat_memory;
 
 pub use dmar::parse_dmar;
 pub use dmar_namespace_lookup::{namespace_devices, namespace_dropped, namespace_requester};
+pub use dmar_rmrr_names::rmrr_names;
 pub use dmar_rmrr_store::{rmrr_dropped, rmrr_regions};
-pub use dmar_scope::{translated_by_some, UnitScope};
+pub use dmar_scope::{translated_by_some, Cover, UnitScope};
 pub use dmar_source_store::{hpet_source, ioapic_source, source_scopes_dropped};
 pub use dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
 pub use hpet::parse_hpet;

@@ -24,6 +24,9 @@
 pub mod holes;
 mod holes_model_tests;
 mod holes_tests;
+#[path = "../../../../src/hardware/broker/confine/reserved_rule.rs"]
+pub mod reserved_rule;
+mod reserved_tests;
 #[path = "../../../../src/hardware/broker/confine/iova_space.rs"]
 pub mod space;
 mod tests;
