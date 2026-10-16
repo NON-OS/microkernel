@@ -66,10 +66,10 @@ pub struct State {
     pub audio_output: AudioOutput,
     /// The Accessibility page's display and what the compositor holds for it.
     pub access: crate::settings::access::AccessPage,
-    /// Window size as of the last paint. The window is resizable, so layout and
-    /// hit tests read this rather than the manifest's starting size: against
-    /// the constants, clicks below the original height were treated as the
-    /// status bar and the control on the right of a widened window did nothing.
+    /// The displays' arrangement and scales as the compositor lays them out.
+    pub screens: crate::settings::screens::ScreenPage,
+    /// Window size as of the last paint: the window is resizable, so layout
+    /// and hit tests read this, never the manifest's starting size.
     pub win_w: u32,
     pub win_h: u32,
 }

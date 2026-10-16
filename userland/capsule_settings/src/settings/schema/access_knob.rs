@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rows of the Accessibility page. They are not policy fields: the
-//! compositor holds them for each display, and Settings reads and sets them
-//! through the shell (`settings/access`).
+//! The rows the compositor holds, not policy fields: the Accessibility
+//! page's for each display (`settings/access`), and the displays'
+//! arrangement and scales on Appearance (`settings/screens`). Settings reads
+//! and sets them through the shell.
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Knob {
@@ -26,6 +27,18 @@ pub enum Knob {
     Contrast,
     Magnify,
     Follow,
+    /// Mirrored or extended across the displays.
+    Arrange,
+    /// Which display the scale row below is for.
+    Screen,
+    Scale,
+}
+
+impl Knob {
+    /// One of the displays' rows on Appearance, not Accessibility's.
+    pub fn on_screens(self) -> bool {
+        matches!(self, Knob::Arrange | Knob::Screen | Knob::Scale)
+    }
 }
 
 impl Knob {
@@ -36,6 +49,9 @@ impl Knob {
             Knob::Contrast => "High contrast",
             Knob::Magnify => "Magnification",
             Knob::Follow => "Magnifier follows",
+            Knob::Arrange => "Arrangement",
+            Knob::Screen => "Display",
+            Knob::Scale => "Scale",
         }
     }
 }
