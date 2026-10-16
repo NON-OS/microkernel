@@ -65,7 +65,11 @@ answers -19 while there is no key, and every op but HEALTHCHECK and OPEN
 
 As above; every field little-endian. To the key, CTAPHID (as recalled,
 unverified): 64-byte reports, INIT 86h, CBOR 90h, CANCEL 91h, KEEPALIVE
-BBh, ERROR BFh. To the host, the host wire (`NXHC`): CONTROL_TRANSFER,
+BBh, ERROR BFh. INIT is taken only with our nonce and a channel neither 0
+nor broadcast; a message is at most 7609 bytes, its continuations 0 to 127
+in order, another channel's reports never spliced in, and one opened
+again before it ended is broken. KEEPALIVE is taken only with one byte,
+status 1 or 2; ERROR only with one byte, its code passed up. To the host, the host wire (`NXHC`): CONTROL_TRANSFER,
 ALLOC_TRANSFER_RING (0x09), INTERRUPT_IN (0x0E), INTERRUPT_OUT (0x25),
 CLAIM_INTERFACE (0x26) and SLOT_OF_PORT (0x27).
 
