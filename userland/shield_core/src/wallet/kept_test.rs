@@ -1,4 +1,6 @@
 use super::*;
+#[path = "kept_marks_test.rs"]
+mod marks;
 
 fn scratch(name: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("nox-kept-{name}-{}", std::process::id()));
@@ -50,31 +52,6 @@ fn a_forgotten_spend_leaves_the_numbering_going_up() -> Result<(), WalletError> 
     keep_last(&export)?;
     hand_off(&export, b"d")?;
     assert_eq!(keep_last(&export)?, Some(String::from("2")));
-    std::fs::remove_dir_all(&export).ok();
-    Ok(())
-}
-
-#[test]
-fn a_folder_without_a_proof_is_not_a_spend() -> Result<(), WalletError> {
-    let export = scratch("empty");
-    std::fs::create_dir_all(export.join(EARLIER).join("4")).map_err(|_| StoreError::Io)?;
-    std::fs::create_dir_all(export.join(EARLIER).join("notes")).map_err(|_| StoreError::Io)?;
-    assert!(earlier(&export).is_empty());
-    std::fs::remove_dir_all(&export).ok();
-    Ok(())
-}
-
-#[test]
-fn a_spend_its_owner_settles_is_marked() -> Result<(), WalletError> {
-    let export = scratch("settle");
-    hand_off(&export, b"a")?;
-    let dir = export.join(HANDOFF);
-    assert!(!settling(&dir));
-    mark_settling(&dir)?;
-    assert!(settling(&dir));
-    keep_last(&export)?;
-    let kept = earlier_dir(&export, "0").ok_or(StoreError::Io)?;
-    assert!(settling(&kept), "the mark goes with the spend");
     std::fs::remove_dir_all(&export).ok();
     Ok(())
 }

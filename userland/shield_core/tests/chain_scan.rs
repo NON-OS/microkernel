@@ -1,13 +1,15 @@
 //! The wallet's notes from the format 5 pool's three events.
 
+#[path = "chain_scan/found.rs"]
+mod found;
+#[path = "chain_scan/held.rs"]
+mod held;
+#[path = "chain_scan/refused.rs"]
+mod refused;
+
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
-use nox_shield_core::discovery::{scan_chain, Log};
-use nox_shield_core::keys::{
-    note_nullifier_wire, parse_receiving_address, receiving_address_text, Account,
-};
-use nox_shield_core::notes::{
-    commitment, seal_xwing, wire_digest, NotePlaintext, NoteRecord, NoteStatus, Opening,
-};
+use nox_shield_core::keys::{parse_receiving_address, receiving_address_text, Account};
+use nox_shield_core::notes::{commitment, seal_xwing, wire_digest, NotePlaintext, Opening};
 use nox_shield_core::prover::pool_hasher;
 
 fn account() -> Account {
@@ -49,107 +51,3 @@ fn paid_to(payee: &Account, value: u64) -> (NotePlaintext, Vec<u8>) {
 }
 
 const EV: [u8; 32] = [0xEE; 32];
-
-#[test]
-fn received_deposited_and_spent_are_all_found() {
-    let me = account();
-    let stranger = account();
-    let (to_me, blob_me) = paid_to(&me, 500);
-    let (_to_them, blob_them) = paid_to(&stranger, 900);
-    // A deposit this wallet sent, and one it sent that the pool has not stored.
-    let deposit = NotePlaintext {
-        value: 3_000,
-        asset_id: 1,
-        blinding: [5, 5, 5, 5],
-        spend_pk: me.address().spend_pk,
-    };
-    let waiting = NotePlaintext {
-        value: 7_000,
-        asset_id: 1,
-        blinding: [6, 6, 6, 6],
-        spend_pk: me.address().spend_pk,
-    };
-
-    let committed_topics = [
-        [EV, leaf_of(&deposit), index_topic(0)],
-        [EV, leaf_of(&to_me), index_topic(1)],
-        [EV, [0x77; 32], index_topic(2)],
-    ];
-    let committed: Vec<Log> =
-        committed_topics.iter().map(|t| Log { topics: t, data: &[] }).collect();
-    let out_me = abi_bytes(&blob_me);
-    let out_them = abi_bytes(&blob_them);
-    let out_topics = [[EV, index_topic(1)], [EV, index_topic(2)]];
-    let outputs = vec![
-        Log { topics: &out_topics[0], data: &out_me },
-        Log { topics: &out_topics[1], data: &out_them },
-    ];
-
-    // A note this wallet held earlier, now spent on chain.
-    let held_plain = NotePlaintext {
-        value: 42,
-        asset_id: 1,
-        blinding: [1, 1, 1, 1],
-        spend_pk: me.address().spend_pk,
-    };
-    let held_cm = leaf_of(&held_plain);
-    let mut le = held_cm;
-    le.reverse();
-    let mut words = [0u64; 4];
-    for (w, c) in words.iter_mut().zip(le.chunks_exact(8)) {
-        *w = u64::from_le_bytes(c.try_into().unwrap());
-    }
-    let held = [NoteRecord {
-        plain: held_plain,
-        leaf_index: 9,
-        cm: words,
-        status: NoteStatus::Unspent,
-        found_at: 9,
-    }];
-    let nf_topics = [[EV, note_nullifier_wire(&me, &words, 9)]];
-    let nullifiers = vec![Log { topics: &nf_topics[0], data: &[] }];
-
-    let scan = scan_chain(
-        &me,
-        &committed,
-        &outputs,
-        &nullifiers,
-        &[deposit, waiting],
-        &held.iter().collect::<Vec<_>>(),
-    );
-    assert_eq!(scan.received.len(), 1, "the note paid to us, and not the stranger's");
-    assert_eq!((scan.received[0].plain.value, scan.received[0].leaf_index), (500, 1));
-    assert_eq!(scan.deposited.len(), 1, "the stored deposit, and not the waiting one");
-    assert_eq!((scan.deposited[0].plain.value, scan.deposited[0].leaf_index), (3_000, 0));
-    assert_eq!(scan.spent, vec![words], "the held note's nullifier was published");
-}
-
-#[test]
-fn a_blob_without_a_committed_leaf_is_not_money() {
-    let me = account();
-    let (_p, blob) = paid_to(&me, 500);
-    let data = abi_bytes(&blob);
-    let t = [EV, index_topic(1)];
-    let scan = scan_chain(&me, &[], &[Log { topics: &t, data: &data }], &[], &[], &[]);
-    assert!(scan.received.is_empty());
-}
-
-#[test]
-fn a_tampered_blob_is_not_money() {
-    let me = account();
-    let (plain, mut blob) = paid_to(&me, 500);
-    let at = 1500 % blob.len();
-    blob[at] ^= 1;
-    let ct = [[EV, leaf_of(&plain), index_topic(1)]];
-    let data = abi_bytes(&blob);
-    let ot = [EV, index_topic(1)];
-    let scan = scan_chain(
-        &me,
-        &[Log { topics: &ct[0], data: &[] }],
-        &[Log { topics: &ot, data: &data }],
-        &[],
-        &[],
-        &[],
-    );
-    assert!(scan.received.is_empty());
-}
