@@ -21,32 +21,18 @@
 //! that is in reset.
 
 use crate::hardware::broker::grant::{self, MmioGrant};
-use crate::memory::addr::VirtAddr;
-use crate::memory::paging::manager::{
-    lookup_asid_for_process, translate_in_asid, unmap_page_in_asid,
-};
-use crate::memory::paging::types::PagePermissions;
-
-const PAGE: u64 = 4096;
+use crate::hardware::broker::holder_space::unmap_from_holder;
 
 /// The grants `pid` holds on `device_id`, out of the table.
 pub(crate) fn take_for_device(pid: u32, device_id: u64) -> alloc::vec::Vec<MmioGrant> {
     grant::drain_for_device(pid, device_id)
 }
 
-/// Unmap each taken grant from `pid`'s address space. An address space
-/// already gone maps nothing. The pages are a device's, never freed here.
+/// Unmap each taken grant from the tables `pid` runs in, its process's
+/// when `pid` is a thread. Tables already gone map nothing. The pages are a
+/// device's, never freed here.
 pub(crate) fn revoke_taken(pid: u32, taken: &[MmioGrant]) {
-    let Some(asid) = lookup_asid_for_process(pid) else {
-        return;
-    };
-    let perms = PagePermissions::READ | PagePermissions::USER;
     for g in taken {
-        for page in 0..g.length.div_ceil(PAGE) {
-            let va = VirtAddr::new(g.user_va + page * PAGE);
-            if translate_in_asid(asid, va).is_some() {
-                let _ = unmap_page_in_asid(asid, va, perms);
-            }
-        }
+        unmap_from_holder(pid, g.user_va, g.length);
     }
 }

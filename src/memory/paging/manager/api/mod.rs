@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod address_space;
+mod asid_lookup;
 mod faults;
 mod globals;
 mod init;
@@ -30,6 +31,7 @@ pub use address_space::{
     cleanup_address_space, cleanup_address_space_keeping, create_address_space, get_process_cr3, hand_over_address_space,
     lookup_asid_for_process, switch_address_space, switch_to_process_address_space,
 };
+pub use asid_lookup::lookup_asid_for_cr3;
 pub use faults::handle_page_fault;
 pub use init::{init, is_initialized};
 pub use live_permissions::live_page_permissions;
