@@ -20,6 +20,6 @@ mod find_controllers;
 mod find_touchpad_addrs;
 
 pub use acpi_touchpad::{AcpiTouchpad, MAX_TARGETS};
-pub use defs::{Found, CLASS_GPIO_CTRL, MAX_CONTROLLERS};
+pub use defs::{Found, MAX_CONTROLLERS};
 pub use find_controllers::find_controllers;
 pub use find_touchpad_addrs::{find_touchpad_addrs, touchpad_of};

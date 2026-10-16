@@ -65,11 +65,3 @@ pub fn device_info(device: u16) -> Option<(&'static str, u32)> {
 /// table (a newer platform): the fastest rate any LPSS generation uses, so
 /// the bus can only come out slower than programmed.
 pub const UNKNOWN_LPSS_CLOCK_HZ: u32 = 216_000_000;
-
-/// True for Broxton, Apollo Lake and Gemini Lake, whose GPIO communities
-/// number their ACPI pins as the community-local pad index with an 8-byte
-/// pad stride (SoC datasheets' GPIO chapter, as recalled, unverified).
-pub fn is_bxt_family(device: u16) -> bool {
-    matches!(device_info(device), Some((_, 133_000_000)))
-        && matches!(device >> 8, 0x0A | 0x1A | 0x5A | 0x31)
-}
