@@ -40,18 +40,16 @@ pub fn eth_calls_at(
     calls: &[([u8; 20], Vec<u8>)],
     second: bool,
 ) -> Result<Vec<Vec<u8>>, i32> {
-    let parts: Vec<Vec<u8>> = calls
-        .iter()
-        .enumerate()
-        .map(|(i, (to, data))| request_eth_call(to, data, i as u64 + 1))
-        .collect();
+    let parts: Vec<Vec<u8>> =
+        calls.iter().zip(1u64..).map(|((to, data), id)| request_eth_call(to, data, id)).collect();
     let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
     let batch = request_batch(&refs);
     let resp =
         if second { rpc.call_second(chain_id, &batch)? } else { rpc.call(chain_id, &batch)? };
-    (0..calls.len())
-        .map(|i| {
-            let obj = object_for_id(&resp, i as u64 + 1).ok_or(EPROTO)?;
+    (1u64..)
+        .take(calls.len())
+        .map(|id| {
+            let obj = object_for_id(&resp, id).ok_or(EPROTO)?;
             hex_bytes(string_field(obj, b"result").ok_or(EPROTO)?).ok_or(EPROTO)
         })
         .collect()

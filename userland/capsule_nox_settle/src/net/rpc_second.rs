@@ -18,9 +18,8 @@
 
 use alloc::vec::Vec;
 
-use nonos_settle_proto::{EINVAL, EIO, ENETDOWN};
+use nonos_settle_proto::{EIO, ENETDOWN};
 
-use super::hosts::hosts;
 use super::https::post;
 use super::rpc::{on_chain, Rpc, ANSWER_MAX};
 
@@ -28,10 +27,9 @@ impl Rpc {
     /// `body`'s answer from a second host, never the current one, its chain
     /// checked each time: the other half of a two-host read.
     pub fn call_second(&mut self, chain_id: u64, body: &[u8]) -> Result<Vec<u8>, i32> {
-        let (slot, list) = hosts(chain_id).ok_or(EINVAL)?;
+        let [_, rest @ ..] = self.slots.of(chain_id)?.hosts;
         let mut last = EIO;
-        for step in 1..list.len() {
-            let host = list[(self.at[slot] + step) % list.len()];
+        for host in rest {
             match on_chain(host, chain_id).and_then(|_| post(host, body, ANSWER_MAX)) {
                 Ok(answer) => return Ok(answer),
                 Err(ENETDOWN) => return Err(ENETDOWN),

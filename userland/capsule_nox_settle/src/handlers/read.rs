@@ -30,9 +30,6 @@ pub fn read(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     let data = view_calldata(v, &r.args).ok_or(EINVAL)?;
     let at = s.live.usable(&mut s.rpc, r.chain_id, v.contract)?;
     let ret = eth_call(&mut s.rpc, r.chain_id, &at, data)?;
-    if ret.len() % 32 != 0 {
-        return Err(EPROTO);
-    }
-    let words: Vec<[u8; 32]> = ret.chunks_exact(32).map(|w| w.try_into().unwrap()).collect();
-    read_reply(&words).ok_or(EFBIG)
+    let (words, []) = ret.as_chunks::<32>() else { return Err(EPROTO) };
+    read_reply(words).ok_or(EFBIG)
 }

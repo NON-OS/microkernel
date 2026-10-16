@@ -35,16 +35,18 @@ pub struct Live {
     pub(super) marks: [[Mark; CONTRACTS.len()]; 2],
 }
 
-pub(super) fn place(chain_id: u64, c: Contract) -> Result<(usize, usize), i32> {
-    let chain = match chain_id {
-        MAINNET => 0,
-        SEPOLIA => 1,
-        _ => return Err(EINVAL),
-    };
-    Ok((chain, CONTRACTS.iter().position(|x| *x == c).ok_or(ENOENT)?))
-}
-
 impl Live {
+    /// The mark of `c` on `chain_id`: its chain's row, its slot in CONTRACTS.
+    pub(super) fn mark(&mut self, chain_id: u64, c: Contract) -> Result<&mut Mark, i32> {
+        let [mainnet, sepolia] = &mut self.marks;
+        let row = match chain_id {
+            MAINNET => mainnet,
+            SEPOLIA => sepolia,
+            _ => return Err(EINVAL),
+        };
+        row.iter_mut().zip(CONTRACTS).find_map(|(m, x)| (x == c).then_some(m)).ok_or(ENOENT)
+    }
+
     pub fn new() -> Live {
         Live { marks: [[Mark::Unknown; CONTRACTS.len()]; 2] }
     }
@@ -59,12 +61,12 @@ impl Live {
 
     /// The address of `c` on `chain_id`, when it is deployed and passed.
     pub fn usable(&mut self, rpc: &mut Rpc, chain_id: u64, c: Contract) -> Result<[u8; 20], i32> {
-        let (i, j) = place(chain_id, c)?;
+        let mark = self.mark(chain_id, c)?;
         let at = deployed(chain_id, c).map_err(|_| ENOENT)?.address;
-        if self.marks[i][j] == Mark::Unknown {
+        if *mark == Mark::Unknown {
             let passed = check(rpc, chain_id, c, &at)?;
-            self.marks[i][j] = if passed { Mark::Good } else { Mark::Bad };
+            *mark = if passed { Mark::Good } else { Mark::Bad };
         }
-        (self.marks[i][j] == Mark::Good).then_some(at).ok_or(ENOENT)
+        (*mark == Mark::Good).then_some(at).ok_or(ENOENT)
     }
 }

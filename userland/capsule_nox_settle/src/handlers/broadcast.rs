@@ -27,11 +27,11 @@ use crate::keccak::keccak;
 use crate::settle::Settle;
 
 pub fn broadcast(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
-    if body.len() <= 8 || body.len() > 8 + MAX_RAW_TX {
+    if body.len() <= 8 || body.len() > MAX_RAW_TX.saturating_add(8) {
         return Err(EINVAL);
     }
-    let chain_id = u64::from_le_bytes(body[..8].try_into().map_err(|_| EINVAL)?);
-    Ok(send_raw(s, chain_id, &body[8..])?.to_vec())
+    let (chain_id, raw) = body.split_first_chunk::<8>().ok_or(EINVAL)?;
+    Ok(send_raw(s, u64::from_le_bytes(*chain_id), raw)?.to_vec())
 }
 
 /// Send `raw` and answer its hash, which must be keccak256 of the bytes.

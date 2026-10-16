@@ -38,23 +38,24 @@ pub struct Cursor {
 pub struct Cursors(Vec<Cursor>);
 
 impl Cursors {
-    pub fn get(&mut self, chain_id: u64) -> &mut Cursor {
+    /// The chain's cursor, made fresh on the chain's first ask.
+    pub fn get(&mut self, chain_id: u64) -> Option<&mut Cursor> {
         let at = match self.0.iter().position(|c| c.chain_id == chain_id) {
             Some(at) => at,
             None => {
-                let fresh = Cursor { chain_id, scanned: 0, found: Found::default(), full: false };
-                self.0.push(fresh);
-                self.0.len() - 1
+                let at = self.0.len();
+                self.0.push(Cursor { chain_id, scanned: 0, found: Found::default(), full: false });
+                at
             }
         };
-        &mut self.0[at]
+        self.0.get_mut(at)
     }
 }
 
 impl Cursor {
     /// Take in a scan of the blocks after `scanned` up to `head`.
     pub fn absorb(&mut self, more: Found, head: u64) {
-        if self.found.rows() + more.rows() > MAX_ROWS {
+        if self.found.rows().saturating_add(more.rows()) > MAX_ROWS {
             self.full = true;
             self.found = Found::default();
             return;

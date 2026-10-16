@@ -46,7 +46,8 @@ pub fn run() -> ! {
             continue;
         }
         let mut to_pid = false;
-        let resp = match parse_header(buf.get(..n as usize).unwrap_or(&[])) {
+        let got = usize::try_from(n).ok().and_then(|n| buf.get(..n)).unwrap_or(&[]);
+        let resp = match parse_header(got) {
             Some((h, body)) => {
                 let call = Call { op: h.op, flags: h.flags, id: h.request_id, body };
                 // ASYNC: the meter is not blocked in a call, so its answer goes to its inbox.

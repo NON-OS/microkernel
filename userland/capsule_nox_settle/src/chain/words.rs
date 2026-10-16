@@ -18,8 +18,8 @@
 //! the number, and a bool is 0 or 1.
 
 pub fn word_u128(w: &[u8]) -> Option<u128> {
-    let w: &[u8; 32] = w.try_into().ok()?;
-    w[..16].iter().all(|b| *b == 0).then(|| u128::from_be_bytes(w[16..].try_into().unwrap()))
+    let ([hi, lo], []) = w.as_chunks::<16>() else { return None };
+    (*hi == [0; 16]).then_some(u128::from_be_bytes(*lo))
 }
 
 pub fn word_u64(w: &[u8]) -> Option<u64> {

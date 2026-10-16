@@ -42,23 +42,24 @@ pub fn delivered(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     let at = match s.delivered.iter().position(|k| k.chain_id == chain) {
         Some(at) => at,
         None => {
+            let at = s.delivered.len();
             s.delivered.push(DeliveredKeys::new(chain));
-            s.delivered.len() - 1
+            at
         }
     };
-    if let Some(key) = s.delivered[at].find(&ask.id) {
+    if let Some(key) = s.delivered.get(at).ok_or(ENOENT)?.find(&ask.id) {
         return Ok(key.to_vec());
     }
     let head = parse_u64(&s.rpc.call(chain, &request_block_number(1))?).ok_or(EPROTO)?;
-    let keys = &mut s.delivered[at];
+    let keys = s.delivered.get_mut(at).ok_or(ENOENT)?;
     let found = match keys.full {
         false => {
             let from = keys.scanned.saturating_add(1).max(first);
-            let more = scan(&mut s.rpc, chain, &escrow, (from, head))?;
+            let more = scan(&mut s.rpc, chain, &escrow, (from, head), &ask.id)?;
             keys.absorb(more.clone(), head);
             more
         }
-        true => scan(&mut s.rpc, chain, &escrow, (first, head))?,
+        true => scan(&mut s.rpc, chain, &escrow, (first, head), &ask.id)?,
     };
     let key = found.iter().find(|(o, _)| *o == ask.id).map(|(_, k)| *k);
     key.map(|k| k.to_vec()).ok_or(EAGAIN)

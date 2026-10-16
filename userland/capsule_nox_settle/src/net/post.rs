@@ -23,7 +23,9 @@ use alloc::vec::Vec;
 use super::https::{https, FETCH_TOTAL_MS};
 
 pub fn post_to(host: &str, path: &str, body: &[u8], limit: usize) -> Result<Vec<u8>, i32> {
-    let mut req = Vec::with_capacity(160 + host.len() + path.len() + body.len());
+    let mut req = Vec::with_capacity(
+        host.len().saturating_add(path.len()).saturating_add(body.len()).saturating_add(160),
+    );
     for part in ["POST ", path, " HTTP/1.1\r\nHost: ", host] {
         req.extend_from_slice(part.as_bytes());
     }

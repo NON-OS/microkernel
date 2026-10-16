@@ -16,13 +16,16 @@
 
 //! The escrow's Delivered logs over a block range, by address and topic0
 //! only, in pages of LOG_PAGE_BLOCKS, read strictly: (orderId,
-//! key) for each.
+//! key) for each. Past MAX_KEYS pairs the cache is given up anyway, so only
+//! the first pair naming the asked order is kept after that: a node cannot
+//! grow the answer past MAX_KEYS + 2, and what the ask finds is the same.
 
 use alloc::vec::Vec;
 
-use nonos_eth_rpc::{block_pages, parse_logs, request_logs, LOG_PAGE_BLOCKS};
-use nonos_settle_proto::{delivered as from_log, DELIVERED_TOPIC, EPROTO};
+use nonos_eth_rpc::{parse_logs, request_logs};
+use nonos_settle_proto::{delivered as from_log, DELIVERED_TOPIC, EPROTO, MAX_KEYS};
 
+use crate::chain::log_pages;
 use crate::net::Rpc;
 
 type Pairs = Vec<([u8; 32], [u8; 32])>;
@@ -32,16 +35,21 @@ pub(super) fn scan(
     chain: u64,
     escrow: &[u8; 20],
     (from, to): (u64, u64),
+    ask: &[u8; 32],
 ) -> Result<Pairs, i32> {
-    let mut out = Vec::new();
-    for (a, b) in block_pages(from, to, LOG_PAGE_BLOCKS) {
+    let mut out: Pairs = Vec::new();
+    for (a, b) in log_pages(from, to)? {
         let resp = rpc.call(chain, &request_logs(escrow, &DELIVERED_TOPIC, a, b, 1))?;
         let logs = parse_logs(&resp).ok_or(EPROTO)?;
-        out.extend(
-            logs.iter()
-                .filter(|l| l.address == *escrow)
-                .filter_map(|l| from_log(&l.topics, &l.data)),
-        );
+        for pair in logs
+            .iter()
+            .filter(|l| l.address == *escrow)
+            .filter_map(|l| from_log(&l.topics, &l.data))
+        {
+            if out.len() <= MAX_KEYS || (pair.0 == *ask && !out.iter().any(|p| p.0 == *ask)) {
+                out.push(pair);
+            }
+        }
     }
     Ok(out)
 }
