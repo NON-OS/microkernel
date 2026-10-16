@@ -6,25 +6,21 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! This driver's own protocol: firmware, the card's commands, and frames
-//! built, parsed and received by hand (OP_MGMT_BUILD among them). Every op
-//! reaches the card or the air below the route the person chose, so it is
-//! net.core's owner's alone, as the link is (server/net_core.rs); the panels
-//! speak the control family. The ops that write the card are refused once
-//! the gen3 radio owns it (guard.rs).
+//! This driver's own protocol: what setup recorded of the card, and frames
+//! built and parsed by hand (OP_MGMT_BUILD among them). It is net.core's
+//! owner's alone, as the link is (server/net_core.rs); the panels speak the
+//! control family.
 
 use nonos_wifi_core::netif::link_admits;
 
 use crate::driver::Driver;
-use crate::protocol::{parse, refused, E_BUSY, E_INVAL, E_PERM, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::protocol::{parse, refused, E_INVAL, E_PERM, HDR_LEN, IPC_PAYLOAD_MAX};
 
 use super::dispatch::dispatch;
-use super::guard::drives_card;
 use super::net_core::net_core_pid;
-use super::radio::Radio;
 use super::respond;
 
-pub(super) fn own(driver: &mut Driver, radio: &Radio, sender_pid: u32, rx: &[u8], tx: &mut [u8]) {
+pub(super) fn own(driver: &mut Driver, sender_pid: u32, rx: &[u8], tx: &mut [u8]) {
     let n = rx.len();
     // This driver's own requests are read as they were before the buffer
     // grew for net_core's frames: no longer than its own limit.
@@ -35,10 +31,6 @@ pub(super) fn own(driver: &mut Driver, radio: &Radio, sender_pid: u32, rx: &[u8]
     };
     if !link_admits(sender_pid, net_core_pid()) {
         let _ = respond::send(sender_pid, &req, E_PERM, &[], tx);
-        return;
-    }
-    if radio.owns_card() && drives_card(req.op) {
-        let _ = respond::send(sender_pid, &req, E_BUSY, &[], tx);
         return;
     }
     dispatch(driver, sender_pid, req, body, tx);

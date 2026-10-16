@@ -3,8 +3,6 @@
 //! the device model they run against.
 
 #[cfg(test)]
-mod blob_scan_tests;
-#[cfg(test)]
 mod dram_map_tests;
 #[cfg(test)]
 mod gen3_armed;

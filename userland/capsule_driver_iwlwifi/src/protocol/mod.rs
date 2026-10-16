@@ -15,10 +15,9 @@ mod ops;
 
 pub use decode::{parse, refused};
 pub use encode::response;
-pub use errno::{E_BAD_OP, E_BUSY, E_FW_INVALID, E_INVAL, E_OK, E_PERM, E_TIMEOUT};
+pub use errno::{E_BAD_OP, E_INVAL, E_OK, E_PERM};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
-pub use limits::{FW_NAME_MAX, IPC_PAYLOAD_MAX};
+pub use limits::IPC_PAYLOAD_MAX;
 pub use ops::{
-    OP_ALIVE_WAIT, OP_BEACON_PARSE, OP_DEVICE_INFO, OP_DMA_STATE, OP_FIRMWARE_INFO,
-    OP_FIRMWARE_LOAD, OP_FIRMWARE_STAGE, OP_HEALTHCHECK, OP_MGMT_BUILD, OP_RF_STATE,
+    OP_BEACON_PARSE, OP_DEVICE_INFO, OP_DMA_STATE, OP_HEALTHCHECK, OP_MGMT_BUILD, OP_RF_STATE,
 };

@@ -70,6 +70,6 @@ pub fn run(mut driver: Driver) -> ! {
             let _ = mk_ipc_reply(sender_pid, reply.as_ptr(), len);
             continue;
         }
-        own(&mut driver, &radio, sender_pid, &rx[..n], &mut tx);
+        own(&mut driver, sender_pid, &rx[..n], &mut tx);
     }
 }

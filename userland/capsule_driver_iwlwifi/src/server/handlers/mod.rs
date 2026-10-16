@@ -8,11 +8,7 @@
 
 pub mod device;
 pub mod dma;
-pub mod firmware;
-pub mod firmware_load;
-pub mod firmware_stage;
 pub mod health;
 pub mod rf;
-pub mod alive;
 pub mod beacon;
 pub mod mgmt;

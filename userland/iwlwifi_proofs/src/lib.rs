@@ -1,16 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host-runnable proofs for the iwlwifi firmware-load path.
-//!
-//! The FH (Flow Handler) firmware-into-device transfer is a fixed sequence of
-//! MMIO register writes defined by the hardware spec. These proofs include the
-//! real `load_sections` / `load_firmware_chunk` code and run it against a
-//! modeled device (`MockMmio`) that records every write and reports the FH
-//! transfer as complete. The proofs then assert the exact register sequence,
-//! values, and addressing the driver programs, so the code is validated
-//! against the documented spec without any hardware.
-//!
-//! This validates the driver's register sequence. It does not and cannot
-//! assert that a real Intel chip responds correctly; that still needs silicon.
+//! Host-runnable proofs for the iwlwifi driver: the gen3 radio against a
+//! modeled device (boot, sweeps, joins, the link and its failures), the setup
+//! of an attempt, and the wire the panels and net.core speak. They prove the
+//! driver's register sequences and messages; that a real Intel chip responds
+//! to them still needs silicon.
 
 // The driver is no_std and uses `alloc`; link it so the included sources
 // (the supplicant's Vec replies) resolve when proven on the host.

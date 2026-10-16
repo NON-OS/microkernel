@@ -8,7 +8,6 @@
 
 mod control;
 mod dispatch;
-mod guard;
 mod join_serve;
 mod join_wire;
 mod link_serve;

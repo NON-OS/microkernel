@@ -30,11 +30,6 @@ impl Radio {
         matches!(self.state, State::Up(_))
     }
 
-    /// This path has touched the card, so nothing else may drive it.
-    pub fn owns_card(&self) -> bool {
-        self.seen.touched
-    }
-
     /// The stage code, step and detail word for the status reply.
     pub fn stage(&self) -> (u8, u8, u32) {
         match &self.state {

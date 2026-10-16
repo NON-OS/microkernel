@@ -8,7 +8,7 @@
 
 //! What the driver holds for the adapter it claimed.
 
-use crate::firmware::{Family, FirmwareStageState};
+use crate::firmware::Family;
 use crate::regs::Regs;
 
 #[derive(Clone, Copy)]
@@ -29,5 +29,4 @@ pub struct Driver {
     pub rf_kill: bool,
     pub family: Family,
     pub regs: Regs,
-    pub firmware_stage: FirmwareStageState,
 }

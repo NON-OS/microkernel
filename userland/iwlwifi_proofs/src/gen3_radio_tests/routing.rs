@@ -1,13 +1,11 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! What is not a control request goes on to the driver protocol, the legacy
-//! ops refused once the radio owns the card, and joins run here.
+//! What is not a control request goes on to the driver protocol, and joins
+//! run here.
 
 use nonos_wifi_core::scan_list::ScanResults;
 
 use crate::control::{answer, Heard, View, REPLY_MAX};
 use crate::gen3::outcome::*;
-use crate::guard::drives_card;
-use crate::protocol::*;
 use super::control::{request, word};
 
 #[test]
@@ -20,25 +18,6 @@ fn what_is_not_a_control_request_goes_on_to_the_driver_protocol() {
     assert_eq!(answer(&request(4, 1)[..9], &view, &mut out), None, "shorter than the header");
     let mut small = vec![0u8; REPLY_MAX - 1];
     assert_eq!(answer(&request(4, 1), &view, &mut small), None, "a reply buffer too small for a scan");
-}
-
-#[test]
-fn only_the_legacy_ops_that_write_the_card_are_refused_once_the_radio_owns_it() {
-    for op in [OP_FIRMWARE_LOAD, OP_ALIVE_WAIT] {
-        assert!(drives_card(op), "{op:#x}");
-    }
-    for op in [
-        OP_HEALTHCHECK,
-        OP_DEVICE_INFO,
-        OP_FIRMWARE_INFO,
-        OP_RF_STATE,
-        OP_DMA_STATE,
-        OP_FIRMWARE_STAGE,
-        OP_MGMT_BUILD,
-        OP_BEACON_PARSE,
-    ] {
-        assert!(!drives_card(op), "{op:#x}");
-    }
 }
 
 /// The Wi-Fi client sends a join only to a driver its table says joins. This

@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The driver sources the setup and firmware-load proofs run: the chip wake,
-//! the grants of an attempt, the registers, and the adapter decision.
+//! The driver sources the setup proofs run: the chip wake, the grants of an
+//! attempt, the registers, and the adapter decision.
 
 #[path = "../../capsule_driver_iwlwifi/src/constants/mod.rs"]
 pub mod constants;
@@ -14,14 +14,10 @@ pub mod command;
 pub mod grants;
 #[path = "../../capsule_driver_iwlwifi/src/init.rs"]
 pub mod init;
-#[path = "../../capsule_driver_iwlwifi/src/firmware/load.rs"]
-pub mod load;
 #[path = "../../capsule_driver_iwlwifi/src/mmio.rs"]
 pub mod mmio;
 #[path = "../../capsule_driver_iwlwifi/src/regs.rs"]
 pub mod regs;
-#[path = "../../capsule_driver_iwlwifi/src/firmware/tlv.rs"]
-pub mod tlv;
 // The adapter decision discovery makes from a broker record, and what a
 // refused interrupt bind means for the attempt: pure, so proven exactly.
 pub mod firmware;

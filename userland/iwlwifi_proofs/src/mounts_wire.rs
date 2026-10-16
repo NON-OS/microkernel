@@ -3,14 +3,12 @@
 
 #[path = "../../capsule_driver_iwlwifi/src/protocol/ops.rs"]
 mod protocol_ops;
-/// The protocol op numbers the serving loop's guard names.
+/// The protocol op numbers.
 pub mod protocol {
     pub use super::protocol_ops::*;
 }
 #[path = "../../capsule_driver_iwlwifi/src/server/control.rs"]
 pub mod control;
-#[path = "../../capsule_driver_iwlwifi/src/server/guard.rs"]
-pub mod guard;
 /// The control family's join messages as the driver reads and answers them.
 #[path = "../../capsule_driver_iwlwifi/src/server/join_wire/mod.rs"]
 pub mod join_wire;

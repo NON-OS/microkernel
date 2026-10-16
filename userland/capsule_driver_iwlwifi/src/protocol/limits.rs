@@ -7,4 +7,3 @@
 // (at your option) any later version.
 
 pub const IPC_PAYLOAD_MAX: usize = 256;
-pub const FW_NAME_MAX: usize = 64;

@@ -31,5 +31,3 @@ pub const INT_COALESCING_TIMEOUT: u32 = 64;
 /// 25 ms once it has prepared the card; setup asks before that preparation,
 /// so it allows ten times as long.
 pub const CLOCK_READY_MS: u64 = 250;
-pub const INT_BIT_ALIVE: u32 = 1 << 0;
-pub const ALIVE_POLL_ITERS: usize = 2_000_000;

@@ -838,10 +838,7 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/setup/dma.rs ||
    ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
-   ! grep -q 'OP_FIRMWARE_INFO' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'OP_FIRMWARE_STAGE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'OP_ALIVE_WAIT' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -rq 'stage_firmware' userland/capsule_driver_iwlwifi/src/firmware/stage ||
+   ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
    ! grep -q 'OP_RF_STATE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod iwlwifi_capsule' src/hardware/mod.rs; then

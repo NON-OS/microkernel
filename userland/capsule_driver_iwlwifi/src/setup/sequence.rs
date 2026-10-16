@@ -13,7 +13,6 @@ use super::{claim, dma, irq, mmio};
 use crate::discover::Found;
 use crate::driver::Driver;
 use crate::firmware::family_for_device;
-use crate::firmware::FirmwareStageState;
 use crate::regs::Regs;
 
 /// One bring-up attempt on the adapter discovery found. Each broker step
@@ -43,6 +42,5 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         dma_grant: dma.grant_id, dma_user_va: dma.user_va,
         dma_device_addr: dma.device_addr, dma_len: dma.length,
         hw_rev: init.hw_rev, gp_cntrl: init.gp_cntrl, rf_kill: init.rf_kill, family, regs,
-        firmware_stage: FirmwareStageState::empty(),
     })
 }
