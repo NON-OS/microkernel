@@ -61,6 +61,5 @@ pub fn phys_keep_usable(sorted: &[(u64, u64)]) {
     }
     let (start, end) = super::managed_range(state);
     let bytes = walk_usable(sorted, start, end, |a, b| reserve_range(state, a, b));
-    super::super::usable_kept::keep(sorted);
     state.usable_frames = ((bytes / PAGE_SIZE_U64) as usize).min(state.frame_count);
 }
