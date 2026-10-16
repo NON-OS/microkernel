@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod keep_tests;
 mod move_tests;
 mod pci_tests;
 mod refusal_tests;

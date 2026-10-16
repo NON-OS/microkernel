@@ -47,11 +47,16 @@ pub fn wait_ready(pf: &PciFirmware, f: Bdf, w: Wake) -> u32 {
     us
 }
 
+/// The PCI function `dev` stands for, if any.
+pub fn pci_function(acpi: &mut Acpi, dev: Id) -> Option<Bdf> {
+    let path = device_pci_path(&mut acpi.aml, &mut evaluator(&mut acpi.host), dev)?;
+    function_of(&path, &mut bridge_bus)
+}
+
 /// The wait after `dev` moved `from` -> `to`, slept out; None when the
 /// move needs none or `dev` is no PCI function.
 pub fn settle_after(acpi: &mut Acpi, dev: Id, from: DState, to: DState) -> Option<u32> {
     let w = wake_of(from, to)?;
-    let path = device_pci_path(&mut acpi.aml, &mut evaluator(&mut acpi.host), dev)?;
-    let f = function_of(&path, &mut bridge_bus)?;
+    let f = pci_function(acpi, dev)?;
     Some(wait_ready(&acpi.pci_firmware, f, w))
 }

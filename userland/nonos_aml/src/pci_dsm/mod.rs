@@ -26,8 +26,11 @@ mod call;
 mod facts;
 mod label;
 mod ready;
+mod sleep;
 
 pub use call::{offered, PCI_DSM_UUID};
 pub use facts::{host_facts, HostFacts, Readiness};
 pub use label::{device_label, Label, MAX_LABEL};
-pub use ready::{ready_wait_us, sleep_ms_for, wake_of, Wake, D3HOT_TO_D0_MAX_US, RESET_MAX_US};
+pub use ready::{ready_wait_us, wake_of, Wake};
+pub use sleep::sleep_ms_for;
+pub use ready::{D2_TO_D0_MAX_US, D3HOT_TO_D0_MAX_US, FLR_MAX_US, RESET_MAX_US};

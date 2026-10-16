@@ -21,6 +21,7 @@
 mod dstate;
 mod method;
 mod order;
+mod pci_keep;
 mod pool;
 mod pool_left;
 mod psc;
@@ -36,6 +37,7 @@ mod wake_types;
 
 pub use dstate::{to_d0, to_d3};
 pub use order::{in_order, resource_order};
+pub use pci_keep::{loses_config, NO_SOFT_RESET};
 pub use pool::PowerPool;
 pub use psc::{power_managed, psc};
 pub use reveal::{reveal, settle, Revealed};

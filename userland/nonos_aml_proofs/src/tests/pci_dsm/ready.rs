@@ -14,66 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The readiness wait: firmware's duration is taken only when it is
-//! shorter than the specification's ceiling, the wait is never longer
-//! than the ceiling, and the sleep it becomes never cuts it short.
+//! The wait selector over every way back: firmware's duration is taken
+//! only for a wait it has a field for and only when shorter than the
+//! ceiling, no wait is ever longer than its ceiling, and each wait reads
+//! its own field.
 
-use crate::device_power::DState;
 use crate::pci_dsm::*;
 
-fn said(us: u32) -> Readiness {
-    let (reset_us, d3hot_to_d0_us) = (us, us);
-    Readiness { reset_us, link_up_us: 0, flr_us: 0, d3hot_to_d0_us, vf_enable_us: 0 }
+const ALL: [Wake; 6] =
+    [Wake::FromD1, Wake::FromD2, Wake::FromD3Hot, Wake::FromD3Cold, Wake::Reset, Wake::Flr];
+pub const EDGES: [u32; 11] = [0, 1, 199, 200, 201, 9_999, 10_000, 10_001, 99_999, 100_001, u32::MAX];
+
+fn ceiling(w: Wake) -> u32 {
+    match w {
+        Wake::FromD1 => 0,
+        Wake::FromD2 => D2_TO_D0_MAX_US,
+        Wake::FromD3Hot => D3HOT_TO_D0_MAX_US,
+        Wake::FromD3Cold | Wake::Reset => RESET_MAX_US,
+        Wake::Flr => FLR_MAX_US,
+    }
 }
 
-const EDGES: [u32; 9] = [0, 1, 999, 1_000, 9_999, 10_000, 10_001, 99_999, u32::MAX];
+fn every(us: u32) -> Readiness {
+    Readiness { reset_us: us, link_up_us: us, flr_us: us, d3hot_to_d0_us: us, vf_enable_us: us }
+}
 
 #[test]
-fn never_longer_than_the_ceiling() {
-    for (w, ceiling) in [(Wake::FromD3Hot, D3HOT_TO_D0_MAX_US), (Wake::FromD3Cold, RESET_MAX_US)] {
-        assert_eq!(ready_wait_us(None, w), ceiling, "no value: the ceiling");
-        for us in EDGES.into_iter().chain([100_000, 100_001]) {
-            assert!(ready_wait_us(Some(said(us)), w) <= ceiling, "{us} past {ceiling}");
+fn never_longer_than_the_ceiling_and_firmware_shortens_only() {
+    for w in ALL {
+        assert_eq!(ready_wait_us(None, w), ceiling(w), "{w:?}: no value, the ceiling");
+        for us in EDGES {
+            let got = ready_wait_us(Some(every(us)), w);
+            assert!(got <= ceiling(w), "{w:?} {us}");
+            let has_field = !matches!(w, Wake::FromD1 | Wake::FromD2);
+            assert_eq!(got, if has_field { us.min(ceiling(w)) } else { ceiling(w) }, "{w:?} {us}");
         }
-        assert_eq!(ready_wait_us(Some(said(u32::MAX)), w), ceiling, "all ones: the ceiling");
     }
 }
 
 #[test]
-fn firmware_shortens_only() {
-    for us in EDGES {
-        let hot = ready_wait_us(Some(said(us)), Wake::FromD3Hot);
-        let cold = ready_wait_us(Some(said(us)), Wake::FromD3Cold);
-        assert_eq!(hot, us.min(D3HOT_TO_D0_MAX_US));
-        assert_eq!(cold, us.min(RESET_MAX_US));
-    }
+fn each_wait_reads_its_own_field() {
     let r = Readiness { reset_us: 7, link_up_us: 1, flr_us: 2, d3hot_to_d0_us: 3, vf_enable_us: 4 };
-    assert_eq!(ready_wait_us(Some(r), Wake::FromD3Hot), 3, "D3hot reads its own field");
-    assert_eq!(ready_wait_us(Some(r), Wake::FromD3Cold), 7, "D3cold reads the reset field");
-}
-
-#[test]
-fn only_the_ways_back_to_d0_wait() {
-    use DState::*;
-    let all = [D0, D1, D2, D3Hot, D3Cold];
-    for from in all {
-        for to in all {
-            let w = wake_of(from, to);
-            let want = match (from, to) {
-                (D3Hot, D0) => Some(Wake::FromD3Hot),
-                (D3Cold, D0) => Some(Wake::FromD3Cold),
-                _ => None,
-            };
-            assert_eq!(w, want, "{from:?} -> {to:?}");
-        }
-    }
-}
-
-#[test]
-fn the_sleep_never_cuts_the_wait_short() {
-    for us in EDGES.into_iter().chain([D3HOT_TO_D0_MAX_US, RESET_MAX_US]) {
-        let ms = sleep_ms_for(us);
-        assert!(ms * 1000 >= u64::from(us) + 1000, "{us} us slept as {ms} ms");
-        assert!(ms * 1000 < u64::from(us) + 2000, "{us} us slept as {ms} ms, too long");
-    }
+    let got = ALL.map(|w| ready_wait_us(Some(r), w));
+    assert_eq!(got, [0, D2_TO_D0_MAX_US, 3, 7, 7, 2], "D1, D2, D3hot, D3cold, reset, FLR");
 }

@@ -54,5 +54,7 @@ pub const ENOENT: i32 = -2;
 pub const EIO: i32 = -5;
 pub const EAGAIN: i32 = -11;
 pub const EINVAL: i32 = -22;
+/// A move a PCI function's configuration would not survive (op 10).
+pub const ELOSES: i32 = -95;
 /// Requests and replies fit one IPC message.
 pub const MAX: usize = 512;
