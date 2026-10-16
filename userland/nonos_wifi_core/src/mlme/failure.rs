@@ -37,8 +37,9 @@ pub enum MlmeFailure {
     /// The passphrase is not 8 to 63 characters or 64 hex digits (PSK), or is
     /// longer than SAE is given room for.
     BadPassphrase,
-    /// SAE was selected but the caller supplied no randomness for it.
-    NoEntropy,
+    /// SAE could not start: four tries at rand and mask from the join's
+    /// randomness gave no usable commit (about 2^-124; `start_sae`).
+    SaeStart,
     /// Open System authentication was refused with this status code.
     AuthRejected(u16),
     /// The SAE exchange ran out of time, and this is why the last frame
