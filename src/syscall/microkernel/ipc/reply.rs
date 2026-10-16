@@ -17,36 +17,13 @@
 extern crate alloc;
 
 use crate::ipc::nonos_channel::IpcMessage;
-use crate::ipc::nonos_inbox::{try_enqueue_strict, StrictEnqueueError};
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{
-    ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM,
-};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM};
 
 use super::pending_reply;
+use super::reply_deliver::deliver;
 use super::reply_inbox;
-
-fn trace(caller_pid: u32, dest_pid: u64, label: &[u8], rc: i64, inbox: &str) {
-    if caller_pid != 0x9 && dest_pid != 0x17 {
-        return;
-    }
-    crate::sys::serial::trace(b"[IPC-REPLY] from=");
-    crate::sys::serial::trace_hex(caller_pid as u64);
-    crate::sys::serial::trace(b" to=");
-    crate::sys::serial::trace_hex(dest_pid);
-    crate::sys::serial::trace(b" inbox=");
-    crate::sys::serial::trace(inbox.as_bytes());
-    crate::sys::serial::trace(b" ");
-    crate::sys::serial::trace(label);
-    crate::sys::serial::trace(b" rc=");
-    if rc < 0 {
-        crate::sys::serial::trace(b"-");
-        crate::sys::serial::trace_dec((-rc) as u64);
-    } else {
-        crate::sys::serial::trace_dec(rc as u64);
-    }
-    crate::sys::serial::traceln(b"");
-}
+use super::reply_trace::trace;
 
 pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     if len == 0
@@ -85,29 +62,5 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
         }
     };
     msg.correlation = token;
-    let rc = match try_enqueue_strict(&dest, msg) {
-        Ok(()) => {
-            crate::sched::wake_process(dest_pid as u32);
-            crate::process::accounting::bump(caller_pid, crate::process::accounting::Kind::IpcTx);
-            crate::process::accounting::bump_total(crate::process::accounting::Total::IpcMessages);
-            0
-        }
-        Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
-        Err(StrictEnqueueError::QueueFull(_)) => ERRNO_BUSY,
-    };
-    // Wake unconditionally on delivery (state-checked and idempotent); the
-    // sleep-map gate strands a receiver that is Sleeping without an entry.
-    let mut woke = false;
-    if rc == 0 {
-        crate::sched::wake_process(dest_pid as u32);
-        woke = true;
-    }
-    trace(
-        caller_pid,
-        dest_pid,
-        if woke { b"enqueue wake=1" } else { b"enqueue wake=0" },
-        rc,
-        &dest,
-    );
-    rc
+    deliver(caller_pid, dest_pid, &dest, msg)
 }

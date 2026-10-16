@@ -23,18 +23,7 @@ use crate::syscall::microkernel::errnos::{
     ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM,
 };
 
-fn trace(caller_pid: u32, dest_pid: u64, len: usize) {
-    if caller_pid != 0x17 {
-        return;
-    }
-    crate::sys::serial::trace(b"[IPC-RPLY] from=");
-    crate::sys::serial::trace_hex(caller_pid as u64);
-    crate::sys::serial::trace(b" to=");
-    crate::sys::serial::trace_hex(dest_pid);
-    crate::sys::serial::trace(b" len=");
-    crate::sys::serial::trace_dec(len as u64);
-    crate::sys::serial::traceln(b"");
-}
+use super::send_to_pid_trace::trace;
 
 // `MkIpcSendToPid` delivers `buf` to the destination pid's default
 // per-process inbox `proc.<pid>`. Used by servers replying to a
