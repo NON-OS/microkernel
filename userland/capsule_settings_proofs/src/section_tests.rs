@@ -29,7 +29,7 @@ fn each_section_sits_at_its_own_index() {
         assert_eq!(s.index(), i);
         assert!(Section::from_index(i) == *s);
     }
-    assert_eq!(SECTION_COUNT, 9);
+    assert_eq!(SECTION_COUNT, 10);
     assert!(Section::from_index(SECTION_COUNT) == Section::Developer);
 }
 
