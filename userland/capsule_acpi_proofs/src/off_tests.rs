@@ -22,6 +22,10 @@ use crate::off_rule::*;
 
 #[path = "off_levels_tests.rs"]
 mod levels;
+#[path = "../../capsule_acpi/src/power/off/wire.rs"]
+mod off_wire;
+#[path = "off_wire_tests.rs"]
+mod wire;
 
 #[test]
 fn a_press_powers_off_only_past_the_guard_and_the_bounce() {
