@@ -31,7 +31,7 @@ use super::error::Error;
 use super::rank::certify;
 use super::verify::verify;
 use crate::circuit::shape;
-use crate::params::{EXTRA_BLOWUP_BITS as EXTRA, GRIND_BITS, QUERIES};
+use crate::params::{QUERIES, STATEMENT_BLOWUP_BITS as EXTRA, STATEMENT_GRIND_BITS};
 use crate::statement::Statement;
 
 pub(super) fn wire(
@@ -43,9 +43,16 @@ pub(super) fn wire(
     let air = shape(st).ok_or(Error::Shape)?;
     let root = periodic_root(&air, EXTRA);
     let log_n = domain_params_blown(&air, EXTRA).0;
-    let positions =
-        stark_verify_ext_rounds_positions(air, rounds, QUERIES, GRIND_BITS, EXTRA, &root, words)
-            .map_err(|why| Error::NotVerified(why.to_string()))?;
+    let positions = stark_verify_ext_rounds_positions(
+        air,
+        rounds,
+        QUERIES,
+        STATEMENT_GRIND_BITS,
+        EXTRA,
+        &root,
+        words,
+    )
+    .map_err(|why| Error::NotVerified(why.to_string()))?;
     certify(st, rounds, words)?;
     let shared = share_paths(rounds, &positions, log_n).ok_or(Error::Prover)?;
     let bytes = serialize_rounds_shared(rounds, &shared, params);

@@ -24,7 +24,7 @@ use nonos_stark::air::{MultiMembership, Opening, RATE};
 use nonos_stark::field::Fp;
 
 use super::layout::{A_BLOCKS, H_BLOCKS};
-use crate::params::{hasher, LOG_ROUNDS};
+use crate::params::{hasher, STATEMENT_LOG_ROUNDS};
 use crate::statement::Witness;
 
 fn blocks(words: &[u64], n: usize) -> Vec<[Fp; RATE]> {
@@ -41,7 +41,7 @@ fn chain(domain: u64, sibs: Vec<[Fp; RATE]>) -> MultiMembership {
     let opening = Opening { leaf, root, siblings: sibs, directions };
     // The leaf is a witness cell like any other: pinned, or a prover moves it.
     let pins = (0..RATE).map(|lane| (lane, 0, leaf[lane])).collect();
-    MultiMembership::new_witness_bound(hasher(), LOG_ROUNDS, alloc::vec![opening], pins)
+    MultiMembership::new_witness_bound(hasher(), STATEMENT_LOG_ROUNDS, alloc::vec![opening], pins)
         .with_split()
 }
 

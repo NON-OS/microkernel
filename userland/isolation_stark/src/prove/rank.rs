@@ -26,7 +26,7 @@ use stark_proofs::zk_rank::check_fri_rank_rounds;
 
 use super::error::Error;
 use crate::circuit::shape;
-use crate::params::{EXTRA_BLOWUP_BITS as EXTRA, RANK_ATTEMPTS};
+use crate::params::{RANK_ATTEMPTS, STATEMENT_BLOWUP_BITS as EXTRA};
 use crate::statement::Statement;
 
 pub(super) fn certify(

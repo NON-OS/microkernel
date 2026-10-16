@@ -28,7 +28,7 @@ use stark_proofs::recursion_assembly::inner::hide_wired;
 use super::error::Error;
 use super::wire::wire;
 use crate::circuit::build;
-use crate::params::{hasher, EXTRA_BLOWUP_BITS as EXTRA, GRIND_BITS, QUERIES};
+use crate::params::{hasher, QUERIES, STATEMENT_BLOWUP_BITS as EXTRA, STATEMENT_GRIND_BITS};
 use crate::statement::{Statement, Witness};
 
 /// The statement `w` proves and its proof, blinded from `entropy`.
@@ -50,7 +50,7 @@ pub(super) fn prove_as(
     let words: Vec<Fp> = st.words().iter().map(|&v| Fp::from_u64(v)).collect();
     let mut b = build(st, Some(w)).ok_or(Error::Shape)?;
     tamper(&mut b.traces);
-    let params = ParamSet::of(&b.wired, QUERIES, GRIND_BITS, EXTRA);
+    let params = ParamSet::of(&b.wired, QUERIES, STATEMENT_GRIND_BITS, EXTRA);
     let mut witness = b.wired.trace(&b.traces);
     let radix = 1usize << FRI_FOLD_LOG;
     let blind = hide_wired(&hasher(), &b.wired, &mut witness, &seed, QUERIES, radix);
@@ -58,7 +58,7 @@ pub(super) fn prove_as(
         b.wired,
         &mut witness,
         QUERIES,
-        GRIND_BITS,
+        STATEMENT_GRIND_BITS,
         EXTRA,
         &words,
         None,

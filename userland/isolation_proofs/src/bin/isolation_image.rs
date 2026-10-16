@@ -21,7 +21,9 @@
 use std::fmt::Write as _;
 
 use isolation_proofs::image::{encode, pins, record};
-use isolation_stark::{shape, Statement, EXTRA_BLOWUP_BITS, GRIND_BITS, QUERIES, WORDS};
+use isolation_stark::{
+    shape, Statement, QUERIES, STATEMENT_BLOWUP_BITS, STATEMENT_GRIND_BITS, WORDS,
+};
 use nonos_stark::air::{domain_params_blown, Air};
 
 fn hex(b: &[u8; 32]) -> String {
@@ -39,10 +41,10 @@ fn main() {
     let p = pins(&air, &program);
     let s = p.shape;
     // log2 N under the pinned engine, the rule L1-Shield's adapter fixes.
-    let (log_n, fri) = domain_params_blown(&air, EXTRA_BLOWUP_BITS);
+    let (log_n, fri) = domain_params_blown(&air, STATEMENT_BLOWUP_BITS);
     let manifest = format!(
         "program_hash {}\nperiodic_root {}\nparams {}\nqueries {QUERIES}\n\
-         grind_bits {GRIND_BITS}\nextra_blowup_bits {EXTRA_BLOWUP_BITS}\nwords {WORDS}\n\
+         grind_bits {STATEMENT_GRIND_BITS}\nextra_blowup_bits {STATEMENT_BLOWUP_BITS}\nwords {WORDS}\n\
          trace_width {}\nregion_width {}\nwindow {}\nconstraint_degree {}\n\
          mask_pair {:?}\nchallenge_lanes {}\nprogram_bytes {}\n\
          log_domain {log_n}\nfri_log_blowup {fri}\nn_periodic {}\npublic_words {WORDS}\n\
