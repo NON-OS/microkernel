@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod beacon;
 mod ccmp_mode;
+mod chip_rx;
 mod cipher;
 mod eapol;
 mod engine;

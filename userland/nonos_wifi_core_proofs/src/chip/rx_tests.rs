@@ -30,8 +30,9 @@ fn a_join_and_its_session_hold_through_a_lying_chip() {
         let mut st = station(seed, false);
         assert_eq!(connect(&mut st), 0, "seed {seed:#x}");
         let before = st.stats().rx_eth;
+        let link = st.session().map(|s| (s.mac(), s.bssid));
         (0..400).for_each(|_| st.tick());
-        assert!(st.session().is_some(), "the link held");
+        assert_eq!(st.session().map(|s| (s.mac(), s.bssid)), link, "the link held, as it was");
         assert!(st.stats().rx_eth > before, "and the AP's data still came");
     }
 }

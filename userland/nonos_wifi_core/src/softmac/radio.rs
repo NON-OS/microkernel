@@ -26,8 +26,9 @@ use crate::regdom::Band;
 use crate::rsn::Ciphers;
 
 /// One received frame: its length in the caller's buffer (FCS removed), the
-/// signal it arrived at, and whether the chip decrypted it (CCMP header and
-/// MIC left in place, as `LinkStation::receive` expects).
+/// signal it arrived at, and whether the chip decrypted it, leaving the CCMP
+/// header and the MIC as received. Where the station holds the key it checks
+/// that MIC itself, so the chip's word alone protects nothing it can check.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RxInfo {
     pub len: usize,

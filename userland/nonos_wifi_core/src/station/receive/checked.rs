@@ -30,8 +30,9 @@ pub(super) struct Checked {
 
 impl LinkStation {
     /// Check and convert one received MPDU (FCS already removed).
-    /// `hw_decrypted` says the chip decrypted and verified a protected frame
-    /// (it leaves the CCMP header and MIC in place).
+    /// `hw_decrypted` says the chip decrypted a protected frame, leaving the
+    /// CCMP header and MIC as received; the station checks that MIC itself
+    /// whenever it holds the key (`chip_rx`).
     pub fn receive(&mut self, mpdu: &[u8], hw_decrypted: bool) -> Rx {
         match self.check(mpdu, hw_decrypted) {
             Ok(c) => self.deliver(&c),

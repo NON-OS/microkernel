@@ -20,6 +20,7 @@
 //! key in `receive::group_tests`, the CCMP vectors in `receive::ccmp_tests`.
 
 use crate::receive::ccmp_tests::tk;
+use crate::receive::chip_tests::chip;
 use crate::receive::frame::{from_ap, station, SRC, STA};
 use crate::receive::join::ip_body;
 use nonos_wifi_core::station::{Rx, RxDrop};
@@ -40,12 +41,10 @@ fn a_protected_frame_from_the_bss_becomes_ethernet() {
 #[test]
 fn a_chip_decrypted_frame_loses_its_ccmp_header_and_mic() {
     let mut s = station();
-    // The chip hands up the frame decrypted in place: CCMP header, plaintext, MIC.
-    let mut f = from_ap(STA, &[], None, 0, 0, true);
-    f[1] |= 0x40;
-    f.extend_from_slice(&[5, 0, 0, 0x20, 0, 0, 0, 0]);
-    f.extend_from_slice(&ip_body(b"chip"));
-    f.extend_from_slice(&[0xEE; 8]);
+    // The chip hands up the frame decrypted in place: its CCMP header and
+    // MIC as they came, the plaintext between.
+    let sealed = from_ap(STA, &ip_body(b"chip"), Some(&tk()), 5, 0, true);
+    let f = chip(&sealed, &ip_body(b"chip"));
     let Rx::Ethernet(eth) = s.receive(&f, true) else { panic!("delivered") };
     assert_eq!(&eth[14..], b"chip", "no MIC bytes trail the payload");
     assert!(matches!(s.receive(&f, true), Rx::Dropped(RxDrop::Replay)), "replay checked too");
