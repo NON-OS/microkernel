@@ -21,6 +21,7 @@
 //! the monitor gave, is answered from memory for a second, so asking over
 //! and over costs the bus nothing.
 
+use super::caps_fetch::CapsFetch;
 use super::error::DdcError;
 use super::reply::Reading;
 use super::vcp::ALLOWED;
@@ -33,11 +34,13 @@ pub const KEEP_US: u64 = 1_000_000;
 pub struct Pacer {
     quiet_until: u64,
     kept: [Option<(Result<Reading, DdcError>, u64)>; ALLOWED.len()],
+    /// The display's capabilities string, read before any control.
+    pub caps: CapsFetch,
 }
 
 impl Pacer {
     pub const fn new() -> Pacer {
-        Pacer { quiet_until: 0, kept: [None; ALLOWED.len()] }
+        Pacer { quiet_until: 0, kept: [None; ALLOWED.len()], caps: CapsFetch::new() }
     }
 
     /// When the next message may go: never later than QUIET_US from `now`,
@@ -60,12 +63,6 @@ impl Pacer {
         if let Some(s) = slot(code).and_then(|i| self.kept.get_mut(i)) {
             *s = r.map(|r| (r, now));
         }
-    }
-}
-
-impl Default for Pacer {
-    fn default() -> Pacer {
-        Pacer::new()
     }
 }
 
