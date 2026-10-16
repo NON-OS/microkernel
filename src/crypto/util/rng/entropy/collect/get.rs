@@ -17,16 +17,9 @@
 use super::super::error::EntropyError;
 use super::super::hardware::{cpu_entropy64, cpu_random64, read_cycle_counter};
 use super::super::state::ENTROPY_COUNTER;
-use crate::drivers::virtio_rng;
 use core::sync::atomic::Ordering;
 
 pub fn get_entropy64_secure() -> Result<u64, EntropyError> {
-    if virtio_rng::is_available() {
-        let mut buf = [0u8; 8];
-        if virtio_rng::fill_random(&mut buf).is_ok() {
-            return Ok(u64::from_le_bytes(buf));
-        }
-    }
     if let Some(v) = cpu_entropy64() {
         return Ok(v);
     }

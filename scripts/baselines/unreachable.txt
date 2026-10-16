@@ -260,6 +260,7 @@ src/bus/pci/assign/window.rs:28 set_windows
 src/bus/pci/config.rs:48 pci_write8
 src/bus/pci/enable.rs:29 enable_io_space
 src/bus/pci/enable.rs:34 get_bar_address
+src/bus/pci/find.rs:67 get_device
 src/bus/pci/find.rs:117 rescan
 src/bus/pci/find.rs:121 bind_driver
 src/bus/pci/find.rs:156 unbind_driver
