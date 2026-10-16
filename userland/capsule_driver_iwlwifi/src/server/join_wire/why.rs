@@ -19,7 +19,7 @@
 
 use super::codes::{
     CODE_BAD_PASSPHRASE, CODE_BAD_REQUEST, CODE_DOWNGRADE, CODE_GROUP_KEY, CODE_IE_MISMATCH,
-    CODE_NOT_FOUND, CODE_NO_ENTROPY, CODE_PAIRWISE_KEY, CODE_REFUSED, CODE_TIMED_OUT,
+    CODE_NOT_FOUND, CODE_PAIRWISE_KEY, CODE_REFUSED, CODE_SAE_START, CODE_TIMED_OUT,
     CODE_UNSUPPORTED, CODE_WRONG_PASSWORD,
 };
 use crate::firmware::gen3::join::keys::KeyError;
@@ -37,7 +37,7 @@ pub fn failure_code(f: MlmeFailure) -> (i32, u16) {
             (CODE_UNSUPPORTED, 0)
         }
         MlmeFailure::BadPassphrase => (CODE_BAD_PASSPHRASE, 0),
-        MlmeFailure::NoEntropy => (CODE_NO_ENTROPY, 0),
+        MlmeFailure::SaeStart => (CODE_SAE_START, 0),
         MlmeFailure::Sae(SaeFailure::BadConfirm) => (CODE_WRONG_PASSWORD, 0),
         MlmeFailure::Sae(SaeFailure::Rejected(status)) => (CODE_REFUSED, status),
         MlmeFailure::Sae(_) => (CODE_REFUSED, 0),
