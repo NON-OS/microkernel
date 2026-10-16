@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bonds;
+mod controller;
 mod desk;
 mod draw;
 mod drive;

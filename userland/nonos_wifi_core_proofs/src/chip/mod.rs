@@ -13,10 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! E-51: the core against a chip that lies at its receive boundary.
+//! E-51: the core against a chip that lies at its receive boundary; E-53:
+//! one that restarts, or loses the keys it was given.
 
 mod junk;
+mod keys_tests;
 mod liar;
 mod look_tests;
+mod out_tests;
+mod restart;
+mod restart_rig;
+mod restart_tests;
 mod rig;
 mod rx_tests;
