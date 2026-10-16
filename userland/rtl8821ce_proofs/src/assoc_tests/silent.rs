@@ -2,8 +2,11 @@
 
 //! A join against a silent radio times out rather than hanging.
 
-use super::beacons::{beacon_for, OUR};
-use crate::assoc::{run, Outcome, Radio};
+use nonos_wifi_core::rsn::JoinPolicy;
+
+use super::beacons::beacon_for;
+use super::radio::{join_request, passes};
+use crate::assoc::{run_join, Outcome, Radio};
 
 // A radio that never delivers a frame, to prove the join gives up instead of
 // spinning forever.
@@ -27,7 +30,8 @@ fn a_join_against_a_silent_radio_times_out() {
     // A minimal beacon for "net" with an RSN element, enough for the machine to
     // select the BSS and emit the auth request (which the radio swallows).
     let beacon = beacon_for(b"net");
-    let report = run(&mut radio, OUR, b"net", b"password123", &beacon, [0x11u8; 32], 32);
+    let req = join_request(JoinPolicy::ANY);
+    let report = run_join(&mut radio, &req, &beacon, 32, &mut passes());
     assert!(matches!(report.outcome, Outcome::TimedOut), "a silent AP ends in a timeout");
     assert_eq!(report.sent, 1, "the auth request was transmitted from the beacon");
     assert_eq!(report.recv, 0, "a silent radio delivered nothing");
