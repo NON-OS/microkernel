@@ -42,8 +42,3 @@ impl Wallet {
         Ok(view)
     }
 }
-
-/// Whether swaps run on `network`: mainnet, where the pools are.
-pub fn network_has_swaps(network: Network) -> bool {
-    network.chain().swaps.is_some()
-}
