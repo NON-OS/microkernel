@@ -80,11 +80,13 @@ mod net_poll_tests;
 #[cfg(test)]
 mod panel_tests;
 #[cfg(test)]
-mod qwen_tier_tests;
-#[cfg(test)]
 mod paste_tests;
 #[cfg(test)]
 mod pending_tests;
+#[cfg(test)]
+mod qwen_tier_tests;
+#[cfg(test)]
+mod screens_tests;
 #[cfg(test)]
 mod section_tests;
 #[cfg(test)]

@@ -22,6 +22,7 @@ mod manifest;
 mod paint;
 mod qwen_tier;
 mod schema;
+mod screens;
 mod section;
 mod section_text;
 mod state;

@@ -61,7 +61,7 @@ pub enum Row {
     Saved,
     /// Every wallpaper in the collection, a row each, switched kept or not.
     Wallpapers,
-    /// One of the Accessibility page's settings.
+    /// One of the rows the compositor holds (`access_knob`).
     Access(Knob),
 }
 

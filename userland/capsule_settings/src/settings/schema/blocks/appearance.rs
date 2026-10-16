@@ -16,6 +16,7 @@
 
 use nonos_policy_proto::Field;
 
+use crate::settings::schema::access_knob::Knob;
 use crate::settings::schema::rows::{Block, Pill, Row};
 
 pub const APPEARANCE: &[Block] = &[
@@ -31,5 +32,11 @@ pub const APPEARANCE: &[Block] = &[
         note: None,
         pill: Pill::None,
         rows: &[Row::Field(Field::MouseSensitivity)],
+    },
+    Block {
+        title: "Displays",
+        note: Some("Extended waits for a second display; each display has its own scale."),
+        pill: Pill::None,
+        rows: &[Row::Access(Knob::Arrange), Row::Access(Knob::Screen), Row::Access(Knob::Scale)],
     },
 ];
