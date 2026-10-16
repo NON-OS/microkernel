@@ -21,16 +21,18 @@ use crate::smp::lock_responsive;
 
 use super::claim_owned::{claim_owned, foreign_windows};
 use super::gate::GATE;
+use super::kept::kept_of;
 use super::orphans::{reclaim, Orphan, ORPHANS};
 use super::window::Window;
 
 /*
- * The surface frames an munmap of `pid` must not free: frames of surfaces
- * `pid` attached from another owner, and frames of its own surfaces that
- * another process still has attached.
+ * The surface frames an munmap of `pid` must not free: those it attached from
+ * another owner, its own another process still has attached, and those its
+ * exit left to `reclaim`, which a thread still in munmap freed again (L50).
  */
 pub struct Held {
     windows: Vec<Window>,
+    kept: Vec<PhysAddr>,
 }
 
 impl Held {
@@ -40,7 +42,8 @@ impl Held {
         let _gate = lock_responsive(&GATE);
         claim_owned(pid, addr, end, &mut windows);
         foreign_windows(pid, addr, end, &mut windows);
-        Self { windows }
+        let kept = super::super::space::tables_of(pid).map(kept_of).unwrap_or_default();
+        Self { windows, kept }
     }
 
     /* True when the frame `pa` just unmapped at `va` must stay allocated. */
@@ -55,14 +58,11 @@ impl Held {
                 return true;
             }
         }
-        false
+        self.kept.binary_search_by_key(&pa.as_u64(), |f| f.as_u64()).is_ok()
     }
 
-    /*
-     * Hand the frames the owner really unmapped to the registry, which
-     * frees them once no other process maps them. A frame whose PTE could
-     * not be removed stays allocated for good.
-     */
+    /* Frames the owner really unmapped go to the registry, freed once no
+     * other process maps them; one whose PTE stayed is kept for good. */
     pub fn settle(self) {
         for w in self.windows {
             if let Some((owner, handle)) = w.orphan {
