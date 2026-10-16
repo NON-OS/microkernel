@@ -6,6 +6,7 @@ mod carve;
 mod carve_export;
 
 pub use carve_export::carve;
+#[cfg(test)]
 #[path = "../../../../src/bus/pci/assign/boot_command.rs"]
 mod boot_command;
 #[cfg(test)]
