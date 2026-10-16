@@ -13,11 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Writing length-prefixed fields and counts into a reply body.
 
-use super::take_lp::take_lp;
+use alloc::vec::Vec;
 
-pub(super) fn parse_pair(buf: &[u8]) -> Option<(&str, &str)> {
-    let (first, rest) = take_lp(buf)?;
-    let (second, _) = take_lp(rest)?;
-    Some((core::str::from_utf8(first).ok()?, core::str::from_utf8(second).ok()?))
+/// `bytes` with its length in front; None when the length does not fit the
+/// u32 the wire gives it, so a reply never states a truncated length.
+pub(crate) fn write_lp(out: &mut Vec<u8>, bytes: &[u8]) -> Option<()> {
+    write_count(out, bytes.len())?;
+    out.extend_from_slice(bytes);
+    Some(())
+}
+
+/// A count as the wire's u32; None when it does not fit.
+pub(crate) fn write_count(out: &mut Vec<u8>, n: usize) -> Option<()> {
+    out.extend_from_slice(&u32::try_from(n).ok()?.to_le_bytes());
+    Some(())
 }
