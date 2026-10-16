@@ -16,7 +16,7 @@
 
 /// The device call sites, with the casts each may keep.
 pub(super) fn device_sites() -> Vec<(&'static str, &'static str, Vec<&'static str>)> {
-    vec![
+    let mut sites = vec![
         (
             "dispatch/irq.rs",
             include_str!("../../../../src/syscall/microkernel/dispatch/irq.rs"),
@@ -44,15 +44,11 @@ pub(super) fn device_sites() -> Vec<(&'static str, &'static str, Vec<&'static st
             vec![],
         ),
         (
-            "router/surface_handlers.rs",
-            include_str!("../../../../src/syscall/dispatch/router/surface_handlers.rs"),
-            // A digit of a u32 being printed, not a register.
-            vec!["tmp[k] = b'0' + (v % 10) as u8;"],
-        ),
-        (
             "router/admin/policy_push/entry.rs",
             include_str!("../../../../src/syscall/dispatch/router/admin/policy_push/entry.rs"),
             vec![],
         ),
-    ]
+    ];
+    sites.extend(super::surface_sites::surface_sites());
+    sites
 }
