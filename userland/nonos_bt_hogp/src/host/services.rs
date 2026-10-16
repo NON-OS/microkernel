@@ -40,8 +40,11 @@ impl Host {
             if start < floor || end < start || start == 0 {
                 return Err(HogpError::Protocol);
             }
+            // Instances past the bound are left unread, as the battery's
+            // are: the device is still read by its first ones.
             if self.services.len() == MAX_SERVICES {
-                return Err(HogpError::TooMany);
+                self.past = true;
+                return self.services_done(now_ms);
             }
             self.services.push((start, end));
             floor = end.saturating_add(1);
@@ -61,5 +64,9 @@ impl Host {
         self.phase = Phase::Chars { service, next };
         let end = self.services.get(service).map_or(next, |s| s.1);
         self.request(att::read_by_type(next, end, CHARACTERISTIC), now_ms)
+    }
+    /// Whether a HID service past the bound was left unread.
+    pub fn services_past(&self) -> bool {
+        self.past
     }
 }

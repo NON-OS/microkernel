@@ -18,9 +18,8 @@
 //! the characteristic it is reading.
 
 use crate::refuse_tests::failed;
-use crate::sim::devices::{NOTIFY, READ, WWR};
+use crate::sim::devices::{NOTIFY, READ};
 use crate::sim::{keyboard_mouse, Db, Peripheral, Run};
-use nonos_bt_hogp::host::MAX_SERVICES;
 use nonos_bt_hogp::HogpError;
 
 #[test]
@@ -28,11 +27,6 @@ fn a_peripheral_that_does_not_move_forward_or_never_ends() {
     let mut peer = Peripheral::new(keyboard_mouse());
     peer.repeat = true;
     failed(&mut Run::with(peer), HogpError::Protocol);
-    let mut db = Db::default();
-    for _ in 0..=MAX_SERVICES {
-        db = db.service(0x1812).char(READ | WWR, 0x2a4e, &[1]);
-    }
-    failed(&mut Run::new(db), HogpError::TooMany);
 }
 
 #[test]
