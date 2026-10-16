@@ -33,6 +33,7 @@ pub mod notify;
 pub mod open_arg;
 pub mod paste_line;
 pub mod pkg_prompt;
+pub mod power_off;
 pub mod quiet_gap;
 mod request_id;
 pub mod says;
