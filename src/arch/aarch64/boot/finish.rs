@@ -36,6 +36,8 @@ pub(super) fn finish(info: &BootInfo) -> ! {
     epd1::activate(spectre::boot_exposed());
     super::init::bring_up(info);
     epd1::report();
+    // After the secondaries are up: until then each waits on a plain WFI.
+    crate::arch::aarch64::idle_states::prepare();
 
     #[cfg(feature = "nonos-trap-proof-kernel-abort")]
     super::trap_proof::kernel_data_abort();
