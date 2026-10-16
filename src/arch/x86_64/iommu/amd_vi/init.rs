@@ -14,6 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! AMD-Vi. Every unit is first taken back from firmware: a unit left
+//! enabled translates every device's DMA through tables firmware built for
+//! its own drivers, so the NVMe drive, the SATA controller and USB all fail
+//! to reach the memory the kernel hands them; Linux disables such a unit
+//! before anything else. A kernel built with `nonos-iommu-amdvi` then drives
+//! the units (AMD IOMMU spec 48882): one shared device table, a command
+//! buffer and an event log per unit, and capsule domains behind the same
+//! broker calls as VT-d. Without the feature DMA on an AMD machine is
+//! unrestricted and the posture line says so.
+
 //! What AMD-Vi bring-up says on the console, and the call boot makes.
 
 use super::release::release_from_firmware;
