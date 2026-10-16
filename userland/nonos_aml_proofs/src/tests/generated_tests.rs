@@ -4,6 +4,14 @@
 //! from the operators' definitions.
 
 use super::model::gen;
+
+#[path = "hostile_gen.rs"]
+mod hostile_gen;
+#[path = "hostile_table.rs"]
+mod hostile_table;
+#[path = "hostile_tests.rs"]
+mod hostile_tests;
+
 use crate::enc::*;
 use crate::exec::FaultKind;
 use crate::run::{boot, call, num};
