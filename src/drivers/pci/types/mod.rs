@@ -28,7 +28,6 @@ mod device_query;
 mod device_id;
 mod header;
 mod msi;
-mod msi_message;
 mod pcie;
 mod power;
 
@@ -40,7 +39,6 @@ pub use class_code::ClassCode;
 pub use device::PciDevice;
 pub use device_id::DeviceId;
 pub use header::HeaderType;
-pub use msi::{MsiInfo, MsixInfo};
-pub use msi_message::MsiMessage;
+pub use msi::{MsiInfo, MsiMessage, MsixInfo};
 pub use pcie::{PcieDeviceType, PcieInfo};
 pub use power::PowerManagementInfo;
