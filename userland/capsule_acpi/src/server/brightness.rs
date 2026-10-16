@@ -22,7 +22,8 @@
 //! panel, or every panel when none is named, to its level nearest the
 //! percentage asked.
 
-use super::protocol::{EINVAL, EIO, ENOENT};
+use super::protocol::{EBUSY, EINVAL, EIO, ENOENT};
+use crate::backlight::firmware_drives;
 use crate::backlight::set_all;
 use crate::boot::Acpi;
 use alloc::vec::Vec;
@@ -55,6 +56,7 @@ pub fn set(acpi: &mut Acpi, req: &[u8]) -> (i32, Vec<u8>) {
         Some(p) if p > 100 => EINVAL,
         Some(_) if acpi.backlight.outputs.is_empty() => ENOENT,
         Some(_) if panel.is_some_and(|p| !known(p)) => ENOENT,
+        Some(_) if !firmware_drives(acpi, panel) => EBUSY,
         Some(p) => {
             let Acpi { backlight, aml, host, .. } = acpi;
             if set_all(backlight, aml, host, p, panel) {
