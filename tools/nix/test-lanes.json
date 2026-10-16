@@ -1,0 +1,9 @@
+{
+ "nonos-attest-path": "",
+ "nonos-bootloader/boot_proofs": "",
+ "nonos-sign": "--lib --bins --test host_trust --test release",
+ "userland/attest_receipt": "",
+ "userland/nonos_ed25519": "",
+ "userland/nonos_i2cmodel": "",
+ "userland/nonos_secp256k1": ""
+}
