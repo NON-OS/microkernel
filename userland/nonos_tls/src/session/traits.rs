@@ -50,4 +50,10 @@ pub trait Io {
     fn write_all(&mut self, data: &[u8]) -> Result<(), SessionError>;
     /// Read what is available. Zero means nothing arrived this time.
     fn read(&mut self, into: &mut [u8]) -> Result<usize, SessionError>;
+    /// How long one read on this transport may wait for its first byte: 0
+    /// for a socket, a route's patience over a mixnet. The handshake's end
+    /// moves out by it, so a slow first byte is not cut at HANDSHAKE_MS.
+    fn patience_ms(&self) -> i64 {
+        0
+    }
 }

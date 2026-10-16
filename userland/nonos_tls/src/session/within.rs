@@ -40,7 +40,7 @@ pub fn exchange_within<S: Io>(
     reply_ms: i64,
 ) -> Result<Vec<u8>, SessionError> {
     let cf = crate::client_flight(host.as_bytes()).ok_or(SessionError::Init)?;
-    let until = super::deadline::handshake_end(None);
+    let until = super::deadline::handshake_end(None, io.patience_ms());
     io.write_all(&cf.record)?;
 
     let (flight, state, end) = read_flight(io, &cf, MAX_FLIGHT, until)?;
