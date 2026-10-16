@@ -17,6 +17,8 @@
 //! Frames onto the transmit ring, and the handshakes the link answers.
 use alloc::vec::Vec;
 
+use nonos_wifi_core::key::HeldKey;
+
 use super::buffers::RxBuffers;
 use super::state::RtlLink;
 use crate::fw::dma::DmaMem;
@@ -31,8 +33,9 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         if let Some(f) = frame {
             self.send_raw(&f);
         }
-        if group_key.is_some() {
-            self.new_group_key = group_key;
+        if let Some((id, key)) = group_key {
+            // Over the old key, which is wiped where it lies.
+            self.new_group_key = Some((id, HeldKey(key)));
             self.stats.rekeys = self.stats.rekeys.wrapping_add(1);
         }
     }

@@ -60,8 +60,9 @@ fn the_group_key_handshake_is_answered_on_the_link() {
 
     let mut out = [0u8; 1600];
     assert!(link.poll_rx(&mut out).is_none(), "nothing for the stack");
-    assert_eq!(link.take_group_key(), Some((2, next)), "the new key, for the CAM");
-    assert_eq!(link.take_group_key(), None, "handed over once");
+    assert_eq!(link.group_key(), Some((2, &next)), "the new key, for the CAM");
+    link.clear_group_key();
+    assert_eq!(link.group_key(), None, "handed over once");
     assert_eq!(link.stats().rekeys, 1);
     assert!(probe.wrote(REG_TXBD_IDX_BEQ), "group message 2 was queued");
     let mem = txm.mem.borrow();
