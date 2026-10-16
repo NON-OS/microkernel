@@ -49,7 +49,7 @@ pub fn parse_mouse(desc: &[u8]) -> MouseLayout {
         if fl.report_id != rid || fl.flags & INPUT_CONSTANT != 0 {
             return;
         }
-        let field = Field { bit_offset: fl.bit_offset, bit_size: fl.bit_size, logical_max: 0 };
+        let Some(field) = Field::bounded(fl.bit_offset, fl.bit_size, 0) else { return };
         match (fl.page, fl.usage) {
             (PAGE_GENERIC_DESKTOP, USAGE_X) if !m.x.present() => m.x = field,
             (PAGE_GENERIC_DESKTOP, USAGE_Y) if !m.y.present() => m.y = field,

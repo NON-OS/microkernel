@@ -21,7 +21,7 @@
 pub(super) fn read_bits(body: &[u8], bit_offset: u32, bit_size: u32) -> u32 {
     let mut value = 0u32;
     for k in 0..bit_size.min(32) {
-        let bit = bit_offset + k;
+        let bit = bit_offset.saturating_add(k);
         let byte = (bit / 8) as usize;
         if byte >= body.len() {
             break;

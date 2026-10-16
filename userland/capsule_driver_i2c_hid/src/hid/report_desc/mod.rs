@@ -17,6 +17,7 @@
 //! Parsing a HID report descriptor into a touchpad field map, and decoding an
 //! input report through that map into an absolute touch sample.
 
+mod bounded;
 mod decode;
 mod layout;
 mod mouse_layout;

@@ -24,6 +24,7 @@ mod frames;
 mod gate_tests;
 mod gesture_multi_tests;
 mod gesture_tests;
+mod hostile_tests;
 mod layout_tests;
 mod long_report_tests;
 mod multitouch_tests;
