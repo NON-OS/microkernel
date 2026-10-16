@@ -6,7 +6,7 @@ use p256::{ProjectivePoint, Scalar};
 
 /// One side's commit: the secret rand, the scalar and element it sends, and
 /// the PWE they were built from.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Commit {
     pub(super) rand: Scalar,
     pub(super) scalar: Scalar,
@@ -15,7 +15,7 @@ pub struct Commit {
 }
 
 /// The keys a completed exchange yields.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct SaeKeys {
     pub kck: [u8; 32],
     pub pmk: [u8; 32],

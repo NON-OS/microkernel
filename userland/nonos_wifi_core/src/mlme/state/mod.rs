@@ -25,6 +25,9 @@ mod own;
 mod read;
 mod request;
 mod start;
+mod wipe;
+#[cfg(test)]
+mod wipe_tests;
 
 pub use fields::Mlme;
 pub use kinds::{MlmeOutput, MlmeState};

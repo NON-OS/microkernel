@@ -22,6 +22,9 @@ mod kinds;
 mod own;
 mod read;
 mod start;
+mod wipe;
+#[cfg(test)]
+mod wipe_tests;
 
 pub use fields::Supplicant;
 pub use kinds::{Config, Failure, State};

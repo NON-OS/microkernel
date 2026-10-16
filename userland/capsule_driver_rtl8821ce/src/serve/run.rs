@@ -66,7 +66,7 @@ pub fn run(mapped: Option<Mapped>, stage: Stage) -> ! {
             &mut sender_pid,
         );
         if n > 0 && sender_pid != 0 {
-            let req = &rx[..n as usize];
+            let req = &mut rx[..n as usize];
             let len = answer(req, sender_pid, &mut radio, &mut session, &scanner, stage, &mut tx);
             let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), len);
         }

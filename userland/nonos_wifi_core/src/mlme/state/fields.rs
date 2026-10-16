@@ -25,7 +25,7 @@ use crate::sae::SaeStation;
 use crate::wpa::supplicant::ie::Ie;
 use crate::wpa::supplicant::Supplicant;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Mlme {
     pub(in crate::mlme) state: MlmeState,
     pub(in crate::mlme) our_mac: [u8; 6],

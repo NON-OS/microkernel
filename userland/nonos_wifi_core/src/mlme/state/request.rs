@@ -27,7 +27,7 @@ pub const SECRET_MAX: usize = 64;
 
 /// Fresh randomness for one join. Never derived from anything sent on the air:
 /// the SNonce goes out in message 2, so SAE's secrets are drawn separately.
-#[derive(Clone, Copy)]
+/// Wiped when it goes (`wipe.rs`).
 pub struct Entropy {
     pub snonce: [u8; 32],
     pub sae: [u8; SAE_ENTROPY],
