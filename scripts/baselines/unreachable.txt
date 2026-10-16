@@ -794,7 +794,7 @@ src/ipc/nonos_channel/bus.rs:185 send_system_message
 src/ipc/nonos_channel/bus.rs:51 open_channel
 src/ipc/nonos_channel/bus.rs:73 find_channel
 src/ipc/nonos_channel/bus.rs:86 channel_exists
-src/ipc/nonos_channel/message.rs:81 payload_size
+src/ipc/nonos_channel/message_view.rs:28 payload_size
 src/ipc/pipe/api.rs:21 create_pipe
 src/ipc/pipe/api.rs:43 pipe_read
 src/ipc/pipe/api.rs:74 pipe_write
