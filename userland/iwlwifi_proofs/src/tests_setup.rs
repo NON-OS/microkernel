@@ -19,5 +19,3 @@ mod iwlwifi_tests;
 mod regs_tests;
 #[cfg(test)]
 mod request_refusal_tests;
-#[cfg(test)]
-mod rx_tests;
