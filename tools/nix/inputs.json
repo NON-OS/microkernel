@@ -873,6 +873,7 @@
    "src/arch/aarch64/mmu/geometry.rs",
    "src/arch/aarch64/mmu/granule",
    "src/arch/aarch64/mmu/image_map.rs",
+   "src/arch/aarch64/mmu/kernel_va.rs",
    "src/arch/aarch64/mmu/l2_pool.rs",
    "src/arch/aarch64/mmu/l3_tables.rs",
    "src/arch/aarch64/mmu/map.rs",
