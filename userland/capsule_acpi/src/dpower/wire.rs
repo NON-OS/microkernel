@@ -23,9 +23,8 @@
 //! ENOENT for a device not named, not described, or with no wake event;
 //! EPERM for any verb but get from anyone but the holder; EINVAL for a
 //! state it lacks, a move between low-power states, or a wake target past
-//! _S0W; ELOSES (-95) for a PCI function's move to D3cold, or to D3hot
-//! without No_Soft_Reset, which its configuration would not survive
-//! (`keep`); EIO when the AML failed.
+//! _S0W; ELOSES (-95) for a PCI function's move to D3cold, which its
+//! configuration would not survive (`keep`); EIO when the AML failed.
 
 use super::moves::move_to;
 use super::reply::reply;
