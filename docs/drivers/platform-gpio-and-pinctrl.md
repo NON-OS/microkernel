@@ -55,8 +55,6 @@ touchpads](input/i2c-hid.md) covers the touchpad.
 - An AML interpreter, and with it battery level, lid events, a control-method
   power button, thermal zones and backlight control through ACPI.
 - Shutting down from the desktop.
-- Confined DMA on AMD-Vi machines, and interrupt remapping. No build profile
-  turns on either feature.
 - Routing a GPIO interrupt; only levels are read.
 
 ## See also

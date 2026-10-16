@@ -10,9 +10,10 @@ such as a card added later, is denied (`bring_up` in
 `src/arch/x86_64/iommu/unit/bringup/run.rs:26-36`). When a driver claims a
 device that a unit in service covers, the broker puts it in the [IOMMU
 domain](glossary-hardware-broker.md#iommu-domain) of that driver capsule, so it reaches only
-what that capsule was granted, and refuses a claim the unit cannot confine
-(`attach` in `src/hardware/broker/confine/attach.rs:30-101`,
-`unconfined_allowed` in `src/hardware/broker/confine/posture.rs:17-50`). A
+what that capsule was granted, and refuses a claim the unit cannot confine or
+whose interrupts it cannot remap (`attach` in
+`src/hardware/broker/confine/attach.rs`, `verdict` in
+`src/hardware/broker/confine/decide.rs`). A
 released device has its bus mastering turned off before it leaves the domain
 (`release` in `src/hardware/broker/claim/release.rs:24-36`). At shutdown and
 restart every claimed device is stopped and its DMA buffers wiped before the
