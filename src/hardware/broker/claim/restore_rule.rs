@@ -50,6 +50,20 @@ pub(crate) const fn wants(kind: Kind, address: u64) -> (Option<Want>, Option<Wan
     }
 }
 
+/// Each slot's want from the six BARs as enumeration decoded them, a 64-bit
+/// BAR's high half in the next slot (the one enumeration marked absent).
+pub(crate) fn slots(bars: [(Kind, u64); 6]) -> [Option<Want>; 6] {
+    let mut slots = [None; 6];
+    for (i, (kind, address)) in bars.into_iter().enumerate() {
+        let (low, high) = wants(kind, address);
+        slots[i] = low.or(slots[i]);
+        if let (Some(high), Some(next)) = (high, slots.get_mut(i + 1)) {
+            *next = Some(high);
+        }
+    }
+    slots
+}
+
 /// What to write so the register holds `want`: its address bits, the device's
 /// read-only type bits below them as read.
 pub(crate) const fn put(read: u32, want: Want) -> u32 {
