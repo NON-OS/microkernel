@@ -326,6 +326,8 @@ mod toast_lifetime_tests;
 // put up, and the power key. Beside them, the router's own list of those keys.
 #[path = "."]
 pub mod shell_system_keys {
+    #[path = "../../capsule_desktop_shell/src/state/lid.rs"]
+    pub mod lid;
     #[path = "../../capsule_desktop_shell/src/state/system_key.rs"]
     pub mod system_key;
     #[path = "../../capsule_desktop_shell/src/state/volume/mod.rs"]
@@ -335,5 +337,7 @@ pub mod shell_system_keys {
 #[path = "../../capsule_input_router/src/route/shell_keys.rs"]
 pub mod router_shell_keys;
 
+#[cfg(test)]
+mod lid_tests;
 #[cfg(test)]
 mod system_key_tests;
