@@ -34,7 +34,6 @@ fn only_the_legacy_ops_that_write_the_card_are_refused_once_the_radio_owns_it() 
         OP_RF_STATE,
         OP_DMA_STATE,
         OP_FIRMWARE_STAGE,
-        OP_RX_POLL,
         OP_MGMT_BUILD,
         OP_BEACON_PARSE,
     ] {

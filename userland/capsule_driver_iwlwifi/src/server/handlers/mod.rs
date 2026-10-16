@@ -16,4 +16,3 @@ pub mod rf;
 pub mod alive;
 pub mod beacon;
 pub mod mgmt;
-pub mod rx;

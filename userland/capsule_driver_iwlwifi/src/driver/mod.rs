@@ -9,7 +9,6 @@
 //! The claimed adapter: its grants, registers and firmware stage, and the
 //! command and receive rings the driver works over them.
 
-mod commands;
 mod firmware;
 mod state;
 
