@@ -27,6 +27,7 @@ mod loader_tests;
 mod native_tests;
 mod noise_tests;
 mod range_tests;
+mod size_tests;
 mod standard_tests;
 mod svd_tests;
 mod sweep;

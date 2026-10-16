@@ -17,14 +17,12 @@
 //! The floor canvas: a screen below 1024x720 either way gets a canvas of its
 //! own shape that covers 1024x720, and a screen at or above it keeps its own.
 
-#[path = "../../../../compositor/src/setup/canvas_floor.rs"]
-mod canvas_floor;
-
-use canvas_floor::floor_canvas;
+use crate::tests::sizes::canvas_floor::{backing, floor_canvas};
 
 #[test]
 fn small_firmware_modes_get_the_floor() {
     assert_eq!(floor_canvas(800, 600), Some((1024, 768)));
+    assert_eq!(backing(1024, 768), Some((4096, 4096 * 768)));
     assert_eq!(floor_canvas(640, 480), Some((1024, 768)));
     assert_eq!(floor_canvas(1024, 600), Some((1229, 720)));
     assert_eq!(floor_canvas(1280, 600), Some((1536, 720)));

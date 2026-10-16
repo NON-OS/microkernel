@@ -22,6 +22,7 @@ mod mode_tests;
 mod offset_tests;
 mod panel_tests;
 mod reason_tests;
+mod size_tests;
 mod start_tests;
 mod turn_tests;
 mod wire_flush_tests;

@@ -21,5 +21,6 @@ mod colour;
 mod display;
 pub(crate) mod requests;
 mod scene;
+mod sizes;
 mod trusted;
 mod wire;
