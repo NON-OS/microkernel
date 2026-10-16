@@ -22,7 +22,6 @@ use crate::cert_window::cert_window;
 use crate::chain_walk::verify_chain;
 use crate::example_ca::EXAMPLE_CA;
 use crate::example_leaf::EXAMPLE_LEAF;
-use crate::fixtures::certs::GATEWAY;
 
 /* The leaf was served on 2026-09-20 and runs from 2026-07-29 to 2026-10-27. */
 const INSIDE: u64 = 20260920000000;
@@ -60,21 +59,6 @@ fn either_side_of_the_window_is_told_apart() {
         assert_eq!(cert_problem(&body, b"example.com", now), Some(want));
     }
 }
-#[test]
-fn a_chain_cut_short_of_a_known_root_names_the_issuer() {
-    let body = message(&[EXAMPLE_LEAF]);
-    assert!(!verify_chain(&body, b"example.com", INSIDE));
-    assert_eq!(cert_problem(&body, b"example.com", INSIDE), Some(CertProblem::UnknownIssuer));
-}
-#[test]
-fn a_private_root_is_an_unknown_issuer() {
-    let body = message(&GATEWAY);
-    let now = 20261001000000;
-    assert!(!verify_chain(&body, b"nonos.software", now));
-    assert_eq!(cert_problem(&body, b"nonos.software", now), Some(CertProblem::UnknownIssuer));
-}
-#[test]
-fn an_unreadable_list_says_so() {
-    assert_eq!(cert_problem(&message(&[]), b"example.com", INSIDE), Some(CertProblem::Unreadable));
-    assert_eq!(cert_problem(&[], b"example.com", INSIDE), Some(CertProblem::Unreadable));
-}
+
+#[path = "cert_problem_roots.rs"]
+mod roots;
