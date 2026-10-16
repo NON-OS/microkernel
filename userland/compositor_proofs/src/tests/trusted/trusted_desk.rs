@@ -23,7 +23,7 @@ use crate::damage::{DamageAccumulator, Rect};
 use crate::frame_pacer::canvas_copy::capture;
 use crate::frame_pacer::compose::{compose, Scene};
 use crate::scene::{Layer, SceneTable};
-use crate::trusted_mem::{surface, Mem};
+use crate::tests::trusted::trusted_mem::{surface, Mem};
 use crate::trusted_rule::TRUSTED_Z;
 
 pub const W: u32 = 16;
