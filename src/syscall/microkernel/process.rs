@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
+use super::errnos::{ERRNO_INVAL, ERRNO_PERM};
 use crate::process::current_pid;
 use core::sync::atomic::{AtomicU32, Ordering};
+
+mod alive;
+mod args;
+mod thread;
+
+pub use alive::sys_pid_alive;
+pub use args::sys_args;
+pub use thread::{sys_set_tls, sys_thread_spawn};
 
 static EXIT_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
 
@@ -51,25 +57,6 @@ pub fn sys_exit(code: i32) -> i64 {
     crate::process::exit::exit_and_yield(code, false)
 }
 
-pub fn sys_pid_alive(pid: u32) -> i64 {
-    if pid == 0 {
-        return 0;
-    }
-    /*
-     * A zombie waits in the table until its tables are freed, and read as
-     * alive all that while: a launcher that asked found an app that had
-     * ended, and handed the next open to it.
-     */
-    use crate::process::nonos_core::ProcessState;
-    match crate::process::get_process_table().find_by_pid(pid) {
-        Some(pcb) => match *pcb.state.lock() {
-            ProcessState::Zombie(_) | ProcessState::Terminated(_) => 0,
-            _ => 1,
-        },
-        None => 0,
-    }
-}
-
 pub fn sys_yield() -> i64 {
     crate::sched::yield_now();
     0
@@ -80,60 +67,4 @@ pub fn sys_getpid() -> i64 {
         Some(pid) => pid as i64,
         None => ERRNO_PERM,
     }
-}
-
-pub fn sys_args(buf: u64, len: usize) -> i64 {
-    let Some(pid) = current_pid() else {
-        return ERRNO_PERM;
-    };
-    let Some(pcb) = crate::process::get_process_table().find_by_pid(pid) else {
-        return ERRNO_INVAL;
-    };
-    let mut blob: alloc::vec::Vec<u8> = alloc::vec::Vec::new();
-    for (i, arg) in pcb.argv.lock().iter().enumerate() {
-        if i > 0 {
-            blob.push(0);
-        }
-        blob.extend_from_slice(arg.as_bytes());
-    }
-    if buf == 0 || len < blob.len() {
-        return blob.len() as i64;
-    }
-    if crate::usercopy::copy_to_user(buf, &blob).is_err() {
-        return ERRNO_FAULT;
-    }
-    blob.len() as i64
-}
-
-pub fn sys_thread_spawn(entry: u64, stack: u64) -> i64 {
-    // Refused before anything is built, on the user entry builder's terms.
-    if !crate::process::core::start_in_user_half(entry, stack) {
-        return ERRNO_INVAL;
-    }
-    match crate::process::core::spawn_thread(entry, stack) {
-        Ok(tid) => tid as i64,
-        Err(_) => ERRNO_NOMEM,
-    }
-}
-
-pub fn sys_set_tls(base: u64) -> i64 {
-    // Zero clears the base; anything else must point at readable user
-    // memory (userspace keeps the TLS table's self-pointer at offset 0,
-    // so the first eight bytes are the smallest meaningful window).
-    if base != 0 && crate::usercopy::validate_user_read(base, 8).is_err() {
-        return ERRNO_FAULT;
-    }
-    let Some(pid) = current_pid() else {
-        return ERRNO_PERM;
-    };
-    let Some(pcb) = crate::process::get_process_table().find_by_pid(pid) else {
-        return ERRNO_INVAL;
-    };
-    if !crate::arch::context::set_user_tls(base) {
-        // The arch cannot carry a user TLS register across its return
-        // path yet; refuse rather than let userspace believe TLS works.
-        return ERRNO_INVAL;
-    }
-    pcb.set_tls_base(base);
-    0
 }
