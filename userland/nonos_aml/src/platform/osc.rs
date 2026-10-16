@@ -16,10 +16,11 @@
 
 //! _OSC (ACPI 6.5, 6.2.11): the operating system says what it supports and
 //! asks for control; firmware answers with what it grants. Asked first with
-//! the query flag, then committed with no more than was granted.
+//! the query flag, then committed with no more than was granted; and of
+//! either answer only what was asked is kept (`kept`).
 
 use super::eval::Eval;
-use super::osc_status::{check, OscError};
+use super::osc_status::{check, kept, OscError};
 pub use super::osc_uuid::{PCI_HOST_UUID, PLATFORM_UUID};
 use crate::load::Aml;
 use crate::namespace::Id;
@@ -50,7 +51,7 @@ pub(super) fn call(
         return Err(OscError::Shape);
     }
     check(out[0])?;
-    Ok(out)
+    Ok(kept(words, &out))
 }
 
 /// Query, then commit what was granted. `words[0]` is the status word and
