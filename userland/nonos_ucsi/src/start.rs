@@ -22,6 +22,7 @@ use super::capability::{connector_capability, connectors, ConnectorCapability};
 use super::command::NOTIFY;
 use super::command::{capability, connector_capability as cap_of, connector_status, notifications};
 use super::exchange::{command, reset, Fault};
+use super::offered::{read_offered, Offered};
 use super::ppm::Ppm;
 use super::status::{status, Status};
 use alloc::vec::Vec;
@@ -34,6 +35,8 @@ pub const MAX_CONNECTORS: u8 = 16;
 pub struct Port {
     pub capability: Option<ConnectorCapability>,
     pub status: Option<Status>,
+    /// A Power Delivery charger's offers; none otherwise.
+    pub offered: Offered,
 }
 
 /// One connector's status, acknowledging its change when `change`.
@@ -62,7 +65,8 @@ pub fn start(ppm: &mut impl Ppm, pending: &mut u128) -> Result<Vec<Port>, Fault>
             Err(e) => return Err(e),
         };
         let status = read_port(ppm, pending, c, true)?;
-        ports.push(Port { capability, status });
+        let offered = read_offered(ppm, pending, c, status)?;
+        ports.push(Port { capability, status, offered });
     }
     // What the walk read is current; changes it acknowledged are done.
     *pending = 0;
