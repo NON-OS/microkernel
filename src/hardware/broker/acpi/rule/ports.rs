@@ -38,7 +38,10 @@ pub fn io(base: u64, len: u64, f: &impl Facts) -> Result<(), Refusal> {
 }
 
 /// A PCI_Config access: reads of any function, writes only to one no other
-/// capsule has claimed, since its driver owns its configuration.
+/// capsule has claimed, since its driver owns its configuration. Reads stay
+/// open by our own ruling (F-102): firmware's _PSx, _STA, _DSM and power
+/// resource methods read their own device, and no read changes anything
+/// NONOS relies on.
 pub fn pci_config(bdf: (u16, u8, u8, u8), write: bool, f: &impl Facts) -> Result<(), Refusal> {
     if write && f.pci_claimed(bdf) {
         return Err(Refusal::Claimed);
