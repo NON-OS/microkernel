@@ -26,7 +26,7 @@ use nonos_gfx_wire::header::HDR_LEN;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
 
 use crate::setup::Engine;
-use nonos_intel_display::display::{brightness_answer, BRIGHTNESS_REPLY};
+use nonos_intel_display::display::{brightness_answer, Rights, BRIGHTNESS_REPLY, OP_VCP};
 
 const SERVICE_INBOX: u64 = 0;
 
@@ -42,7 +42,10 @@ pub fn run(server: &mut Server<Engine, Pool>) -> ! {
         }
         let req = &rx[..n as usize];
         let len = if req.len() < HDR_LEN {
-            let (d, may) = (&mut server.display, crate::senders::may_set(sender));
+            let reads = req.first() == Some(&OP_VCP);
+            let read_controls = reads && crate::senders::may_read_controls(sender);
+            let may = Rights { set: crate::senders::may_set(sender), read_controls };
+            let d = &mut server.display;
             brightness_answer(d, d.count() as u16, req, may, &mut tx)
         } else {
             server.handle(sender, req, &mut tx[..280])

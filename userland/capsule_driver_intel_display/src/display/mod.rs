@@ -41,12 +41,14 @@ mod monitor_read;
 mod panel_fits;
 mod panel_of;
 mod red_first;
+mod rights;
 mod timing_pick;
 mod vcp_wire;
 mod wire;
 
 pub use brightness::Brightness;
-pub use brightness_wire::{answer as brightness_answer, MAX_REPLY as BRIGHTNESS_REPLY};
+pub use brightness_wire::{answer as brightness_answer, Rights, MAX_REPLY as BRIGHTNESS_REPLY};
+pub use vcp_wire::OP_VCP;
 pub use copy::copy;
 pub use frames::Frames;
 pub use head::Head;
