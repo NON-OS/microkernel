@@ -13,20 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! the plan's cap on a log read, per chain: 20 years of the chain's blocks
-//! past where a read starts are paged, by settle's own log_pages; one block
-//! more is EPROTO; and a head two hosts do not agree on is refused.
+//! the plan's log cap per chain: 20 years of blocks from where a read starts
+//! are paged, one more is EPROTO, and a head two hosts dispute is refused.
 
-#[path = "../../capsule_nox_settle/src/chain/pages.rs"]
-mod pages;
-
+use nonos_eth_rpc::{block_pages, LOG_PAGE_BLOCKS};
 use nonos_nox_config::Chain;
 use nonos_settle_proto::SERVICE_MS;
 use nonos_settle_proto::{blocks_in, confirmed_head, log_range, ENOENT, EPROTO, HEAD_SKEW_MS};
-use pages::log_pages;
 
 const CHAINS: [Chain; 2] = [Chain::Mainnet, Chain::Sepolia];
 const DEPLOY: u64 = 7_000_000;
+
+/// settle's chain/pages.rs: the range judged by log_range, then paged.
+fn log_pages(chain: u64, from: u64, to: u64) -> Result<impl Iterator<Item = (u64, u64)>, i32> {
+    log_range(chain, from, to).map(|(from, to)| block_pages(from, to, LOG_PAGE_BLOCKS))
+}
 
 #[test]
 fn the_cap_is_twenty_years_of_each_chains_blocks() {
@@ -66,8 +67,7 @@ fn from_the_mark_a_range_stays_small_and_a_mark_past_the_head_pages_nothing() {
 #[test]
 fn a_head_that_jumps_is_refused() {
     for chain in CHAINS {
-        let skew = blocks_in(chain, HEAD_SKEW_MS);
-        let h = DEPLOY + 1_000;
+        let (skew, h) = (blocks_in(chain, HEAD_SKEW_MS), DEPLOY + 1_000);
         assert_eq!(confirmed_head(chain, h + skew, h), Some(h), "{chain:?}: the lower one");
         assert_eq!(confirmed_head(chain, h, h + skew + 1), None, "{chain:?}");
         assert_eq!(confirmed_head(chain, u64::MAX, h), None, "{chain:?}: one host lying");
