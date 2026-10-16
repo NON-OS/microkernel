@@ -35,8 +35,8 @@ pub fn route(acpi: &mut Acpi) {
             || crate::hotkeys::notified(hotkeys, aml, host, id, value)
             || crate::apei::notified(apei, id)
             || crate::typec::notified(typec, aml, host, id);
-        if !served {
-            Line::new(b"notify ").str(path(aml, id).as_bytes()).str(b" ").hex(value as u64).end();
+        if !served && !crate::hotplug::notified(acpi, id, value) {
+            Line::new(b"notify ").str(path(&acpi.aml, id).as_bytes()).str(b" ").hex(value as u64).end();
         }
     }
 }

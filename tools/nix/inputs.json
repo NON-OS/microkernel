@@ -3748,6 +3748,7 @@
    "userland/nonos_aml/src/fan",
    "userland/nonos_aml/src/ged",
    "userland/nonos_aml/src/grammar",
+   "userland/nonos_aml/src/hotplug",
    "userland/nonos_aml/src/legacy",
    "userland/nonos_aml/src/load",
    "userland/nonos_aml/src/motherboard",
