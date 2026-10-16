@@ -20,5 +20,6 @@ mod fit_tests;
 mod flush_tests;
 mod frame_tests;
 mod hostile_tests;
+mod notice_tests;
 mod reply_tests;
 mod surface_tests;
