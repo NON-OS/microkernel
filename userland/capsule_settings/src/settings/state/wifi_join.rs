@@ -42,17 +42,17 @@ pub fn connect_selected(state: &mut State) {
         return;
     }
     let net = state.wifi_networks[state.wifi_cursor];
-    if net.secured && !state.wifi_pass_active {
+    if net.secured && !state.wifi_pass.active {
         // A join still waiting would run with the buffer this clears.
         if state.wifi.pending.work() == Some(Work::Join) {
             state.wifi.pending = Pending::Idle;
         }
         clear_passphrase(state);
-        state.wifi_pass_active = true;
+        state.wifi_pass.active = true;
         return;
     }
     state.wifi.notice = None;
-    state.wifi_pass_active = false;
+    state.wifi_pass.active = false;
     state.wifi.join_net = net;
     state.wifi.pending = Pending::ask(Work::Join, mk_time_millis());
 }
@@ -64,7 +64,7 @@ pub fn connect_selected(state: &mut State) {
 /// worker while it still holds the passphrase.
 pub fn join_now(state: &mut State) {
     let net = state.wifi.join_net;
-    let pass = Secret::new(state.wifi_pass.as_slice());
+    let pass = Secret::new(state.wifi_pass.text.as_slice());
     clear_passphrase(state);
     let Some(driver) = state.wifi.driver.filter(|_| radio_on(state)) else {
         return;
@@ -75,10 +75,10 @@ pub fn join_now(state: &mut State) {
 
 /// Close the passphrase editor and wipe what was typed.
 pub fn clear_passphrase(state: &mut State) {
-    wipe(&mut state.wifi_pass.bytes);
-    state.wifi_pass.len = 0;
-    state.wifi_pass_active = false;
-    state.wifi_pass_shown = false;
+    wipe(&mut state.wifi_pass.text.bytes);
+    state.wifi_pass.text.len = 0;
+    state.wifi_pass.active = false;
+    state.wifi_pass.shown = false;
 }
 
 /// Leave the network the radio is associated with and clear its keys.

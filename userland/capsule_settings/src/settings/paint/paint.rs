@@ -29,7 +29,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if pane_w > 0 && pane_h > 0 {
         let mut view = fb.sub(SIDEBAR_W, 0, pane_w, pane_h);
         if searching(state) {
-            results_pane::paint(&mut view, state, state.search_scroll, pane_w, pane_h);
+            results_pane::paint(&mut view, state, state.search.scroll, pane_w, pane_h);
         } else {
             let scroll = state.scroll_px[state.section.index()];
             pane::paint(&mut view, state, scroll, pane_w, pane_h);

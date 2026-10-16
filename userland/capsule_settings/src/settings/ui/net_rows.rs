@@ -47,7 +47,7 @@ pub fn paint(
         let label = if scanning {
             "Scanning..."
         } else {
-            empty_scan(&mut why, state.wifi_stats);
+            empty_scan(&mut why, state.wifi_diag.stats);
             why.as_str()
         };
         row_label::paint(fb, card_x, screen_y, row_h, label, None);
