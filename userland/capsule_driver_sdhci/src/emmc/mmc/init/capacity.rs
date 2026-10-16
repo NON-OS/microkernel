@@ -17,12 +17,18 @@
 //! The user area size, from EXT_CSD or from the CSD.
 
 use super::super::ext_csd::ExtCsd;
-use super::super::regs::Csd;
+use super::super::regs::{Csd, C_SIZE_EXT};
 
 /// The user area in sectors: SEC_COUNT on a sector-mode card, the CSD
-/// computation on a byte-mode one; 0 when neither gives one.
+/// computation on a byte-mode one; 0 when neither gives one. A sector-mode
+/// card's CSD must defer to EXT_CSD (C_SIZE all ones, JEDEC eMMC 5.1 7.3,
+/// as recalled, unverified): one that gives a size of its own disagrees
+/// with SEC_COUNT about what the card holds.
 pub fn capacity(sector_mode: bool, csd: &Csd, ext: Option<&ExtCsd>) -> u64 {
     if sector_mode {
+        if csd.c_size != C_SIZE_EXT {
+            return 0;
+        }
         ext.map_or(0, |e| e.sec_count() as u64)
     } else {
         csd.sectors().unwrap_or(0)
