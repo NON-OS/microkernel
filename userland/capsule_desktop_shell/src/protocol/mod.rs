@@ -27,7 +27,7 @@ mod read_u32;
 pub use decode::parse;
 pub use encode::{response_header, write_status};
 pub use errno::{
-    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_BUSY, E_INVAL, E_NOENT, E_NOMEM,
+    E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_BUSY, E_INVAL, E_NOENT, E_NOMEM, E_PERM,
 };
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{
@@ -35,7 +35,7 @@ pub use limits::{
     TRAY_REGISTER_REQ_LEN, TRAY_REMOVE_REQ_LEN, TRAY_UPDATE_REQ_LEN,
 };
 pub use ops::{
-    OP_HEALTHCHECK, OP_NOTIFY, OP_OPEN_WITH, OP_SPOTLIGHT_OPEN, OP_TAKE_OPEN_ARG, OP_TRAY_REGISTER,
+    OP_ACCESSIBILITY, OP_ACCESSIBILITY_GET, OP_HEALTHCHECK, OP_NOTIFY, OP_OPEN_WITH, OP_SPOTLIGHT_OPEN, OP_TAKE_OPEN_ARG, OP_TRAY_REGISTER,
     OP_TRAY_REMOVE, OP_TRAY_UPDATE,
 };
 pub use read_i32::read_i32;
