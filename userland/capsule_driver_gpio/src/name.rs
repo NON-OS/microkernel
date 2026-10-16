@@ -14,31 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MkAcpiDeviceName as a look (mode 0): an ACPI-bus device's `_HID`, `_UID`
-//! and namespace path by broker device id. The record has no room for
-//! them; the `_HID` picks the controller model, the path names a bus
-//! controller that has no PCI function.
+//! MkAcpiDeviceName as a look (mode 0): an ACPI-bus device's `_HID` by
+//! broker device id. The record has no room for it, and it picks the
+//! controller's register model.
 
-use alloc::vec::Vec;
 use nonos_libc::mk_syscall_raw;
 
 const DEVICE_NAME: i64 = u32::from_le_bytes(*b"MADN") as i64;
+/// `_HID` (8), `_UID` (8), path length (1), path (up to 127).
 const NAME_MAX: usize = 8 + 8 + 1 + 127;
 const LOOK: u64 = 0;
 
-pub struct Name {
-    pub hid: [u8; 8],
-    pub path: Vec<u8>,
-}
-
-pub fn name(device_id: u64) -> Option<Name> {
+pub fn hid_of(device_id: u64) -> Option<[u8; 8]> {
     let mut b = [0u8; NAME_MAX];
     let out = b.as_mut_ptr() as u64;
     let n = mk_syscall_raw(DEVICE_NAME, [LOOK, 0, device_id, out, 0, 0]);
-    let b = b.get(..usize::try_from(n).ok()?.min(NAME_MAX))?;
-    let (head, rest) = b.split_at_checked(17)?;
+    if usize::try_from(n).ok()? < 17 {
+        return None;
+    }
     let mut hid = [0u8; 8];
-    hid.copy_from_slice(&head[..8]);
-    let path = rest.get(..usize::from(head[16]))?.to_vec();
-    Some(Name { hid, path })
+    hid.copy_from_slice(&b[..8]);
+    Some(hid)
 }

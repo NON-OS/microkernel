@@ -25,6 +25,9 @@ pub struct Peripheral {
     pub hid: Vec<u8>,
     pub hid_over_i2c: bool,
     pub controller: Option<Id>,
+    /// The controller's PCI function, when its `_ADR` resolves to one; kept
+    /// inside capsule_acpi (`bus_key`), never sent.
+    pub controller_bdf: Option<super::bus_key::Bdf>,
     pub gpio_controller: Option<Id>,
 }
 

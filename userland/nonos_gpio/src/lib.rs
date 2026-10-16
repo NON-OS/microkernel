@@ -44,7 +44,7 @@ pub mod window;
 pub use access::OutputError;
 pub use controller::{Controller, GpioError};
 pub use demux::Delivery;
-pub use device_key::{decode, Key, PLATFORM};
+pub use device_key::{device_of, DEVICE};
 pub use serial_key::bus_key;
 pub use router::{BindError, Owner, Router};
 pub use trigger::{Polarity, Trigger};
