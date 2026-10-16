@@ -20,3 +20,4 @@ pub(crate) mod leaves;
 mod tables;
 
 pub(in crate::arch::aarch64) use install::{install, root_word};
+pub(in crate::arch::aarch64) use tables::mirror_entry_word;

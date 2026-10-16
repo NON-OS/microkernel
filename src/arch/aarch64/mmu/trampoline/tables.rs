@@ -61,3 +61,11 @@ pub(super) fn fill(targets: u64) -> Chain {
     L1.0[0].store(words.l1, Ordering::Relaxed);
     words
 }
+
+/// Fold a CPU's speculation entry word into the copy the trampoline reads,
+/// the data page's second word, by `fold`, the rule the vectors' own copy
+/// follows: the two only ever gain the same bits.
+pub(in crate::arch::aarch64) fn mirror_entry_word(fold: impl Fn(u32) -> u32) {
+    let _ = DATA.0[1]
+        .fetch_update(Ordering::AcqRel, Ordering::Acquire, |now| Some(u64::from(fold(now as u32))));
+}
