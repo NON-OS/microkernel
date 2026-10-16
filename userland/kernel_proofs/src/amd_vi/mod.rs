@@ -26,9 +26,12 @@ pub mod command;
 pub mod dte;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/event.rs"]
 pub mod event;
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/intr_rule.rs"]
+pub mod intr_rule;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte.rs"]
 pub mod pte;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/regs.rs"]
 pub mod regs;
 mod command_tests;
+mod intr_tests;
 mod table_tests;
