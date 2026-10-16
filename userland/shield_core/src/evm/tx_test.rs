@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 //! Two transactions signed here and by Foundry's `cast mktx` with the same
 //! key, the public "abandon ... about" test account, byte for byte.
 

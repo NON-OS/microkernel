@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used, clippy::indexing_slicing)]
-
 use super::http::post;
 use crate::error::NetError;
 use std::io::{Cursor, Read, Result as IoResult, Write};

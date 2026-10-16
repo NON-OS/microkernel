@@ -1,11 +1,10 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used)]
-
 //! The recovery words come back from the vault after the keystore confirms the owner.
 
-mod keystore;
+/// The stand in this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 mod restored;
 
 use restored::restored;

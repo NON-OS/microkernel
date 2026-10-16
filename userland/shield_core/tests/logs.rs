@@ -3,7 +3,6 @@
 //! Builds the two events the pool emits for a note this wallet owns and one it
 //! does not, and scans them the way the wallet scans an RPC's reply: the owned
 //! note comes back, the other does not, and nothing was asked of a service.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
 use nox_shield_core::discovery::{scan_logs, Log};

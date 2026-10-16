@@ -1,6 +1,3 @@
-// Tests assert by panicking and print measurements, so those lints are off here only.
-#![allow(clippy::expect_used, clippy::arithmetic_side_effects)]
-
 //! The phase profile proves the pinned `transfer-eth` vector to its `proof.json`, and its times
 //! account for the whole proof. `PROFILE_THREADS` picks the threads, 0 or unset for every core,
 //! and a first run builds the periodic cache.
