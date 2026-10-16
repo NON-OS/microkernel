@@ -15,25 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ctrl+Alt+Delete: from the desktop or the prompt it shows the system's
-//! prompt; the prompt locks or goes back; only the chord leaves the lock,
+//! prompt; the prompt hides the screen or goes back; only the chord shows it,
 //! and no answer does.
 
 use crate::state::attention::Attention;
 
 #[test]
-fn the_chord_opens_the_prompt_and_leaves_the_lock() {
+fn the_chord_opens_the_prompt_and_shows_a_hidden_screen() {
     assert_eq!(Attention::None.chord(), Attention::Prompt);
     assert_eq!(Attention::Prompt.chord(), Attention::Prompt, "pressed twice: still the prompt");
-    assert_eq!(Attention::Locked.chord(), Attention::None);
+    assert_eq!(Attention::Hidden.chord(), Attention::None);
 }
 
 #[test]
-fn the_prompt_locks_or_goes_back_and_nothing_else_leaves_the_lock() {
-    assert_eq!(Attention::Prompt.answer(true), Attention::Locked);
+fn the_prompt_hides_or_goes_back_and_nothing_else_shows_the_screen() {
+    assert_eq!(Attention::Prompt.answer(true), Attention::Hidden);
     assert_eq!(Attention::Prompt.answer(false), Attention::None);
-    assert_eq!(Attention::Locked.answer(false), Attention::Locked, "a click is not the chord");
-    assert_eq!(Attention::Locked.answer(true), Attention::Locked);
+    assert_eq!(Attention::Hidden.answer(false), Attention::Hidden, "a click is not the chord");
+    assert_eq!(Attention::Hidden.answer(true), Attention::Hidden);
     assert_eq!(Attention::None.answer(true), Attention::None, "no prompt, nothing to answer");
-    assert!(Attention::Prompt.prompt() && Attention::Locked.locked());
-    assert!(!Attention::None.prompt() && !Attention::None.locked());
+    assert!(Attention::Prompt.prompt() && Attention::Hidden.hidden());
+    assert!(!Attention::None.prompt() && !Attention::None.hidden());
 }

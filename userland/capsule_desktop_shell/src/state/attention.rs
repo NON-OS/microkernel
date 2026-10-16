@@ -17,33 +17,34 @@
 //! Ctrl+Alt+Delete, the secure attention chord. The input router hands it
 //! to the shell alone, over any grab or prompt, so whatever a window draws,
 //! the chord brings up something only the system can show: its own prompt,
-//! from which the screen is locked, and the way back from the lock.
+//! from which the screen is hidden, and the way back to it.
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Attention {
     #[default]
     None,
-    /// The system's prompt: lock the screen, or go back.
+    /// The system's prompt: hide the screen, or go back.
     Prompt,
-    /// The lock screen: everything covered until the chord again.
-    Locked,
+    /// The screen hidden: everything covered until the chord again. It is
+    /// not a lock: with no accounts, anyone at the keyboard can show it.
+    Hidden,
 }
 
 impl Attention {
-    /// The chord pressed. From the lock it leads back to the desktop: no
+    /// The chord pressed. From the hidden screen it leads back to the desktop: no
     /// window can send it, so a person at the keyboard is asking. There are
     /// no accounts to check a password against yet.
     pub fn chord(self) -> Attention {
         match self {
-            Attention::Locked => Attention::None,
+            Attention::Hidden => Attention::None,
             _ => Attention::Prompt,
         }
     }
 
-    /// The prompt answered: lock, or back to the desktop.
-    pub fn answer(self, lock: bool) -> Attention {
+    /// The prompt answered: hide the screen, or back to the desktop.
+    pub fn answer(self, hide: bool) -> Attention {
         match self {
-            Attention::Prompt if lock => Attention::Locked,
+            Attention::Prompt if hide => Attention::Hidden,
             Attention::Prompt => Attention::None,
             other => other,
         }
@@ -53,7 +54,7 @@ impl Attention {
         self == Attention::Prompt
     }
 
-    pub fn locked(self) -> bool {
-        self == Attention::Locked
+    pub fn hidden(self) -> bool {
+        self == Attention::Hidden
     }
 }
