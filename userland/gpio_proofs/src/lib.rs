@@ -29,6 +29,8 @@ mod intel_pins;
 #[cfg(test)]
 mod intel_tests;
 #[cfg(test)]
+mod key_tests;
+#[cfg(test)]
 mod router_tests;
 #[cfg(test)]
 mod storm_tests;

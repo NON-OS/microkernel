@@ -19,23 +19,29 @@
 //! A controller whose line will not bind is read on the old cadence.
 
 use crate::bank::Bank;
+use crate::say::line;
+use alloc::format;
 use nonos_libc::{mk_irq_ack, mk_irq_bind, mk_irq_poll};
 use nonos_libc::{DeviceRecord, IrqBindOut, IrqPollOut};
 
 const NO_LINE: u8 = 0xFF;
 
-/// The grant for the record's line; 0 for none, or a refused bind.
+/// The grant for the record's line; 0 for none, or a refused bind. Which
+/// path the controller runs on is said on its start line.
 pub fn bind(r: &DeviceRecord, epoch: u64) -> u64 {
+    let c = r.device;
     if r.irq_pin == 0 || r.irq_line == NO_LINE {
+        line(&format!("controller {}: no interrupt line, read every 5 ms", c));
         return 0;
     }
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };
     let n = mk_irq_bind(r.device_id, epoch, u32::from(r.irq_line), 0, 0, &mut out);
-    if n < 0 {
-        0
-    } else {
-        out.grant_id
+    if n < 0 || out.grant_id == 0 {
+        line(&format!("controller {}: bind refused ({}), read every 5 ms", c, n));
+        return 0;
     }
+    line(&format!("controller {}: interrupt line {} bound", c, r.irq_line));
+    out.grant_id
 }
 
 /// Whether the bank should be read now: its interrupt moved since it was
