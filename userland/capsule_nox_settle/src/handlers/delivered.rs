@@ -56,6 +56,9 @@ pub fn delivered(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
             let from = keys.scanned.saturating_add(1).max(first);
             let more = scan(&mut s.rpc, chain, &escrow, (from, head), &ask.id)?;
             keys.absorb(more.clone(), head);
+            if keys.full {
+                super::full_note::said_full("delivered-keys", chain);
+            }
             more
         }
         true => scan(&mut s.rpc, chain, &escrow, (first, head), &ask.id)?,
