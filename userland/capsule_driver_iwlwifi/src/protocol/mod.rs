@@ -18,6 +18,4 @@ pub use encode::response;
 pub use errno::{E_BAD_OP, E_INVAL, E_OK, E_PERM};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::IPC_PAYLOAD_MAX;
-pub use ops::{
-    OP_BEACON_PARSE, OP_DEVICE_INFO, OP_DMA_STATE, OP_HEALTHCHECK, OP_MGMT_BUILD, OP_RF_STATE,
-};
+pub use ops::{OP_DEVICE_INFO, OP_DMA_STATE, OP_HEALTHCHECK, OP_RF_STATE};
