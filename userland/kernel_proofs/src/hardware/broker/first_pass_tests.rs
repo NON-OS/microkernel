@@ -20,7 +20,7 @@
 //! hosts and other platform records do not.
 
 use super::acpi::first_pass::{done, mark};
-use super::acpi::first_pass_rule::admits;
+use super::acpi::first_pass_rule::{admits, wait_needed};
 use super::acpi::platform_record::record;
 use super::acpi::platform_wire::{GPIO, I2C, SD};
 use super::device::BusKind;
@@ -30,9 +30,7 @@ use crate::hardware::platform_sd::is_platform_sd_host;
 #[test]
 fn the_flag_goes_up_once_and_stays_up() {
     assert!(mark(), "the first time sets it");
-    for _ in 0..3 {
-        assert!(!mark(), "again changes nothing");
-    }
+    (0..3).for_each(|_| assert!(!mark(), "again changes nothing"));
     assert!(done());
 }
 
@@ -62,4 +60,15 @@ fn the_three_sd_shapes_are_sd_hosts_and_nothing_else_is() {
         assert!(!is_platform_sd_host(r.bus_kind, r.pci_class, r.pci_subclass));
     }
     assert!(!is_platform_sd_host(BusKind::Pci as u8, 0x08, 0x05), "a PCI eMMC host stays PCI");
+}
+
+#[test]
+fn no_boot_without_a_spawned_acpi_owner_ever_waits() {
+    for bits in 0..8u8 {
+        let (acpi, spawned, done) = (bits & 1 != 0, bits & 2 != 0, bits & 4 != 0);
+        let waits = wait_needed(acpi, spawned, done);
+        assert_eq!(waits, acpi && spawned && !done);
+        assert!(spawned || !waits, "never without a spawned owner");
+        assert!(acpi || !waits, "never on a boot with no ACPI");
+    }
 }
