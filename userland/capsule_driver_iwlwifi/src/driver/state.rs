@@ -30,6 +30,5 @@ pub struct Driver {
     pub family: Family,
     pub regs: Regs,
     pub firmware_stage: FirmwareStageState,
-    pub cmd_write_ptr: usize,
     pub rx_read_ptr: usize,
 }

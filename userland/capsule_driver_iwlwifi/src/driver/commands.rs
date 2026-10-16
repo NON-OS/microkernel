@@ -6,32 +6,11 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! Host commands to the alive firmware, and the packets it posts back.
+//! The packets the alive firmware posts back.
 
 use super::Driver;
 
 impl Driver {
-    /// Issue a host command to the alive firmware over the command queue,
-    /// returning the new ring write pointer or `None` if it does not fit a
-    /// slot. Composes the command in the DMA buffer that staged the firmware,
-    /// fills the slot's TFD, advances the ring and rings the doorbell.
-    pub fn issue_command(&mut self, cmd: u8, group: u8, payload: &[u8]) -> Option<usize> {
-        if (self.dma_len as usize) < crate::constants::DMA_LAYOUT_END {
-            return None;
-        }
-        let q = crate::hcmd::send::CmdQueue {
-            dma_user_va: self.dma_user_va,
-            dma_device_addr: self.dma_device_addr,
-            ring_off: crate::constants::CMD_RING_OFFSET,
-            cmd_off: crate::constants::CMD_AREA_OFFSET,
-            queue: crate::constants::CMD_QUEUE_ID,
-        };
-        let next =
-            unsafe { crate::hcmd::send::send_host_command(&self.regs, &q, self.cmd_write_ptr, cmd, group, payload)? };
-        self.cmd_write_ptr = next;
-        Some(next)
-    }
-
     /// Receive the next packet the firmware posted, copying its payload into
     /// `out` and returning `(command, group, sequence, payload length)`, or
     /// `None` if the receive ring is empty. Reads the firmware's write pointer
