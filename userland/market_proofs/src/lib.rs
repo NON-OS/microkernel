@@ -58,16 +58,7 @@ mod release_tests;
 mod request_tests;
 
 #[cfg(test)]
-mod store_step_tests;
-#[cfg(test)]
-mod store_suite;
-#[cfg(test)]
-mod store_tests;
-
-#[cfg(test)]
-mod store_tab_tests;
-#[cfg(test)]
-mod store_words_tests;
+mod store_checks;
 
 #[cfg(test)]
 mod readiness_wire_tests;

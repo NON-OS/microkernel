@@ -4,9 +4,11 @@
 
 #[path = "../../../../capsule_wallet_nonos/src/wallet/settle/call.rs"]
 mod call;
-#[path = "../../../../capsule_wallet_nonos/src/wallet/settle/heard.rs"]
-mod heard;
 pub mod send;
+
+/* heard.rs is mounted once, at the crate root, and named here as the
+ * capsule names it so call.rs reaches it as `super::heard`. */
+use crate::settle_heard as heard;
 
 pub use call::SettleCall;
 pub use send::{ESCROW, LANDED};
