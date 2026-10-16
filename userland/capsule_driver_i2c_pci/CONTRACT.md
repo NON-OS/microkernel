@@ -26,7 +26,9 @@ reach. A bind made before any did, while the pad may still be asleep, keeps in
 reach each touchpad declared on the bound controller or on none, and the one
 device the read-only sweep found for a declaration with no address; an address
 declared twice carries the register of the declaration bound, the one
-`OP_ACPI_HID` answers (`src/setup/sequence/settle.rs`). When no controller the
+`OP_ACPI_HID` names (`src/setup/sequence/settle.rs`). Each `OP_ACPI_HID` names
+the next address in reach, the bound one first, so the client meets each pad in
+turn (`src/transaction/types/named.rs`). When no controller the
 firmware named comes up and the first that does is taken, nothing is bound and
 every declared address is in reach (`declared` in
 `src/setup/sequence/order.rs`). The first time the client then writes exactly
@@ -46,9 +48,11 @@ DMA engine stays in reset (`src/init/lpss_init.rs`).
 ## Privacy and persistence
 
 The capsule stores no touch events, gestures, sensor readings, device names, HID
-reports, or ACPI tables. Runtime state is limited to grant ids, PCI identity,
-controller clock metadata, the bound touchpad's address and declaration facts,
-the reach, and side-effect-free register snapshots.
+reports, or ACPI tables. A request, its reply and the bytes a transfer read are
+wiped once the reply is sent (`src/protocol/wipe.rs`). Runtime state is limited
+to grant ids, PCI identity, controller clock metadata, the bound touchpad's
+address and declaration facts, the reach and the count of `OP_ACPI_HID` asks,
+and side-effect-free register snapshots.
 
 ## State ownership
 

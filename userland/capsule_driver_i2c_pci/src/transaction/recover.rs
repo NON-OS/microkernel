@@ -32,11 +32,11 @@ use nonos_libc::mk_debug;
 use crate::constants::{IC_STATUS, IC_STATUS_MST_ACTIVITY};
 use crate::driver::Driver;
 use crate::init::bring_up;
-use crate::transaction::{BusState, TransferError, TransferResult, RECOVER_AFTER};
+use crate::transaction::{BusState, TransferError, RECOVER_AFTER};
 
 /// Count `result` into the bus's state, resetting the controller when the
 /// faults in a row reach RECOVER_AFTER.
-pub fn after(driver: &Driver, result: &Result<TransferResult, TransferError>) {
+pub fn after(driver: &Driver, result: &Result<(), TransferError>) {
     let was = driver.bus.get();
     let faulted = matches!(result, Err(TransferError::Busy | TransferError::Timeout));
     let now = match (was, faulted) {

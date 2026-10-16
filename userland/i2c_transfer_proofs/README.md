@@ -51,6 +51,20 @@ comes back and the next transfer goes through, a bus no reset frees is named
 `Stuck`, said once, and still answers every call in bounded time, and a NACK is
 the device answering, not a fault (`recover_tests`).
 
+The shipping OP_ACPI_HID handler names the next pad in reach on each ask, the
+bound one first. Of three pads declared with the second fitted at 0x2A, its
+descriptor at 0x0030, outside the HID driver's blind scan, the second ask names
+it, a descriptor read there finds it, and then only it is named (`named_tests`).
+The reply is eight bytes with the bound pin and bits on the bound pad alone, an
+empty OK with nothing in reach, and every pad with its own register in the last
+resort (`named_wire_tests`); no declaration, 64 of them, a wrapped count and a
+narrowed reach are handled (`named_hostile_tests`). The doorbell says absent
+once the bound pad is out of reach, and a probe-bound pad keeps its line
+(`doorbell_tests`). An input report, the longest read, one byte past it, a NACK,
+a refusal and a probe leave nothing in the reply buffer (`retained_tests`), and
+the engine's copy of the bytes read is wiped where it is dropped
+(`bounce_tests`).
+
 ## Run
 
 ```sh

@@ -37,6 +37,9 @@ pub struct Driver {
     /// The addresses a client's transfer may reach (setup/sequence/settle.rs);
     /// it narrows once the pad has answered (transaction/types/narrow.rs).
     pub reach: Cell<Reach>,
+    /// How many times OP_ACPI_HID was asked: each ask names the next address
+    /// in reach (transaction/types/named.rs).
+    pub acpi_hid_asks: Cell<usize>,
     /// Whether the bus is working, failing or stuck, between transfers.
     pub bus: Cell<BusState>,
     /// The touchpad's interrupt line, sensed for interrupt-paced reads, when

@@ -22,6 +22,7 @@ mod say;
 mod say_none;
 mod settle;
 mod sweep;
+mod unbound;
 mod unlisted_gate;
 
 pub use run::run;

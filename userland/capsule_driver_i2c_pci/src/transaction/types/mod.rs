@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod bus_state;
 mod flags;
+mod named;
 mod narrow;
 mod reach;
 mod result_empty;
+mod result_wipe;
 mod transfer_error;
 mod transfer_request;
 mod transfer_result;

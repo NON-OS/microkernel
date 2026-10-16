@@ -58,7 +58,7 @@ impl Reach {
         self.regs.get(i).copied()
     }
 
-    fn addrs(&self) -> &[u8] {
+    pub(super) fn addrs(&self) -> &[u8] {
         self.addrs.get(..self.len).unwrap_or(&[])
     }
 }

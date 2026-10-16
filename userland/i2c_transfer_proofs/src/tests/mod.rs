@@ -16,17 +16,25 @@
 
 //! The transfer engine, the probe and the handler against the modelled core.
 
+mod acpi;
+mod bounce_tests;
 mod busy_tests;
 mod bystanders;
 mod client;
 mod declared;
+mod doorbell_tests;
 mod fifo_tests;
 mod fixture;
 mod handler_tests;
 mod info_tests;
+mod kept;
 mod last_byte_tests;
 mod lpss_tests;
+mod multi_sku;
 mod nack_tests;
+mod named_hostile_tests;
+mod named_tests;
+mod named_wire_tests;
 mod narrow_tests;
 mod order_tests;
 mod pace_tests;
@@ -34,6 +42,7 @@ mod probe_tests;
 mod reach_tests;
 mod read_tests;
 mod recover_tests;
+mod retained_tests;
 mod settle_tests;
 mod sweep_neighbour_tests;
 mod sweep_scope_tests;

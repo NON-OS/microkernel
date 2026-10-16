@@ -21,8 +21,8 @@
 use nonos_i2cmodel::Config;
 use nonos_libc::{mk_uptime_ms, slept_ms, yields};
 
-use super::fixture::{bench, core, PAD};
-use crate::transaction::{transfer, TransferError, TransferRequest, FLAG_RESTART_ON_READ};
+use super::fixture::{bench, core, transfer, PAD};
+use crate::transaction::{TransferError, TransferRequest, FLAG_RESTART_ON_READ};
 
 pub(super) const DESC: TransferRequest<'static> =
     TransferRequest { addr: PAD, flags: FLAG_RESTART_ON_READ, write: &[0x01, 0x00], read_len: 4 };

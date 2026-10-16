@@ -7,7 +7,8 @@ The summary is in [README.md](README.md).
 
 - Intel LPSS I2C PCI discovery across Skylake through Meteor Lake-era ids, and
   ACPI-only controllers from the broker's ACPI records.
-- The touchpad setup bound handed to the HID driver (`OP_ACPI_HID`).
+- The touchpads in reach named to the HID driver in turn, the bound one first
+  (`OP_ACPI_HID`).
 - Brokered device claim and BAR0 MMIO map.
 - DesignWare component-type read, enable/status/timing/FIFO register telemetry.
 - Interrupt mask and clear during setup.
