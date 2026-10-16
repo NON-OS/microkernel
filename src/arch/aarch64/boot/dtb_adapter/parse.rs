@@ -20,6 +20,7 @@ mod describe;
 mod devices;
 mod entropy;
 mod gic;
+mod idle;
 mod memory;
 mod outcome;
 mod platform;
@@ -57,6 +58,7 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
         .and_then(|()| platform::populate(&fdt))
         .and_then(|()| psci::populate(&fdt))
         .and_then(|()| processors::populate(&fdt, info))
+        .and_then(|()| idle::populate(&fdt))
         .and_then(|()| reserved::populate(&fdt, info));
     let seed = entropy::keep(&fdt, blob as u64);
     drop(fdt);

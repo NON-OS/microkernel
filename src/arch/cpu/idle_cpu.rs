@@ -45,11 +45,17 @@ pub fn idle_cpu() {
     }
 }
 
+// idle_cpu: the same wait as `arch::idle`, which wants IRQs masked going in,
+// then left open, as this has always returned on aarch64.
 #[cfg(target_arch = "aarch64")]
 #[inline(always)]
 pub fn idle_cpu() {
     unsafe {
-        asm!("msr daifclr, #2", "wfi", options(nomem, nostack));
+        asm!("msr daifset, #2", options(nomem, nostack));
+    }
+    crate::arch::aarch64::idle_states::wait();
+    unsafe {
+        asm!("msr daifclr, #2", options(nomem, nostack));
     }
 }
 

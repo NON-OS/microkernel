@@ -32,6 +32,7 @@ pub mod exceptions;
 pub mod firmware;
 pub mod fpu;
 pub mod gic;
+pub mod idle_states;
 pub mod interrupt_controller;
 pub mod iommu;
 pub mod iort;
