@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The network self-diagnostic a step at a time: the Nym service's health,
-//! the codec and TLS self checks, then the RPC host over the wallet's route
-//! (Nym, or Anyone when Nym is down; never Direct) as an `Exchange` that asks
-//! for the chain id once the handshake finished.
+//! The network check a step at a time: the wallet's route (Nym, or Anyone
+//! when Nym is down; never Direct), then the RPC host over it as one
+//! `Exchange` that asks for the chain id once the handshake finished. It
+//! opens nothing else: every probe is traffic an observer can see.
 
 use nonos_route_link::Route;
 
-use super::super::constants::{NYM_MAGIC, SERVICE_NYM};
 use super::super::private_route::refused;
 use super::super::status::NetStatus;
-use super::super::{health::health, lookup::lookup};
 use super::exchange::Exchange;
 
 #[path = "probe_end.rs"]
@@ -35,10 +33,6 @@ mod probe_report;
 pub struct Probe {
     step: u8,
     route: Route,
-    nym_port: u32,
-    nym_ok: bool,
-    rpc_codec_ok: bool,
-    tls13_ok: bool,
     exchange: Option<Exchange>,
 }
 
@@ -46,12 +40,8 @@ impl Probe {
     /// One step; the finished diagnostic once there is one.
     pub fn step(&mut self) -> Option<NetStatus> {
         match self.step {
-            0 => (self.route, self.nym_port) = (Route::for_wallet(), lookup(SERVICE_NYM)),
-            1 => self.nym_ok = self.nym_port != 0 && health(self.nym_port, NYM_MAGIC),
-            2 => self.rpc_codec_ok = crate::wallet::rpc::self_check(),
-            /* The TLS client can make its key shares and build a hello. */
-            3 => self.tls13_ok = nonos_tls::client_flight(b"probe.invalid").is_some(),
-            4 => {
+            0 => self.route = Route::for_wallet(),
+            1 => {
                 if let Some(why) = refused(self.route) {
                     return Some(self.status(None, Some(why)));
                 }

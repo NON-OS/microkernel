@@ -27,15 +27,7 @@ use nonos_route_link::Route;
 impl Probe {
     pub fn begin() -> Probe {
         let route = Route::Down("");
-        Probe {
-            step: 0,
-            route,
-            nym_port: 0,
-            nym_ok: false,
-            rpc_codec_ok: false,
-            tls13_ok: false,
-            exchange: None,
-        }
+        Probe { step: 0, route, exchange: None }
     }
 
     /* Only Nym or Anyone carries the wallet: their proxy was found running,

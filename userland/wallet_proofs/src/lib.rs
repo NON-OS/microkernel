@@ -215,6 +215,10 @@ mod tests;
 
 #[cfg(test)]
 mod probe_model;
+#[cfg(test)]
+mod probe_bounds_tests;
+#[cfg(test)]
+mod probe_gate_tests;
 
 #[cfg(test)]
 mod route_tests;
