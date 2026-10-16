@@ -380,6 +380,11 @@ other op: no one.
   \_TTS(0)) when the kernel's half answers NotWired, which it does until
   that half exists; suspend-to-idle calls the Low Power S0 Idle _DSM
   entry and exit notifications.
+  Whatever the switch, every boot logs one line of what the machine
+  offers: `sleep: S3 yes|no, S0 idle offered yes|no (FADT flag, LPIT
+  states, LPS0 _DSM and the known UUIDs its body holds), entered never`.
+  It is read only. The UUIDs are found in the _DSM's bytes, and the _DSM
+  is never called.
 - POWER (6), the power wire: batteries and present ones; state bits (1
   charging, 2 discharging, 4 critical); the charge (0xFF unknown); the
   summed rate and the minutes left, to empty or full (u32, 0xFFFFFFFF
