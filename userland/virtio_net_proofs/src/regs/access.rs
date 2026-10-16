@@ -16,9 +16,9 @@
 
 //! The driver's `Regs`, answered from the model register file.
 
-use super::model::with;
-use crate::constants::{LEG_MAC, LEG_QUEUE_NOTIFY, LEG_QUEUE_NUM, LEG_QUEUE_PFN, LEG_QUEUE_SEL};
-use crate::constants::{LEG_STATUS, NET_CFG_STATUS};
+use super::model::{with, Status};
+use crate::constants::{LEG_HOST_FEATURES, LEG_MAC, LEG_QUEUE_NOTIFY};
+use crate::constants::{LEG_QUEUE_NUM, LEG_QUEUE_PFN, LEG_QUEUE_SEL, LEG_STATUS, NET_CFG_STATUS};
 
 const LINK_AT: usize = LEG_MAC + NET_CFG_STATUS;
 
@@ -28,13 +28,18 @@ pub struct Regs;
 impl Regs {
     pub fn r8(self, off: usize) -> u8 {
         with(|m| match off {
-            LEG_STATUS if m.reset_lag > 0 => {
-                m.reset_lag -= 1;
-                0x0F
+            LEG_STATUS => {
+                let status = if m.reset_lag > 0 { 0x0F } else { m.status };
+                m.reset_lag = m.reset_lag.saturating_sub(1);
+                m.log.push(Status::Read(status));
+                status
             }
-            LEG_STATUS => m.status,
             _ => 0xFF,
         })
+    }
+
+    pub fn r32(self, off: usize) -> u32 {
+        with(|m| if off == LEG_HOST_FEATURES { m.host } else { u32::MAX })
     }
 
     pub fn r16(self, off: usize) -> u16 {
@@ -46,7 +51,12 @@ impl Regs {
     }
 
     pub fn w8(self, off: usize, value: u8) {
-        with(|m| m.status = if off == LEG_STATUS { value } else { m.status });
+        if off == LEG_STATUS {
+            with(|m| {
+                m.status = value;
+                m.log.push(Status::Write(value));
+            });
+        }
     }
 
     pub fn w16(self, off: usize, value: u16) {

@@ -41,3 +41,14 @@ pub fn call(d: &Driver, pid: u32, op: u16, body: &[u8]) -> i32 {
 pub fn flush(resource_id: u32, x: u32, y: u32, w: u32, h: u32) -> Vec<u8> {
     [resource_id, x, y, w, h].iter().flat_map(|v| v.to_le_bytes()).collect()
 }
+
+/// An OP_TRANSFER_TO_HOST body: resource, the rectangle, padding, offset.
+pub fn transfer(resource_id: u32, w: u32, h: u32) -> Vec<u8> {
+    let words = [resource_id, 0, 0, w, h, 0].into_iter().flat_map(|v| v.to_le_bytes());
+    words.chain(0u64.to_le_bytes()).collect()
+}
+
+/// An OP_SET_SCANOUT body: scanout, resource, then the rectangle.
+pub fn scanout(scanout_id: u32, resource_id: u32, w: u32, h: u32) -> Vec<u8> {
+    [scanout_id, resource_id, 0, 0, w, h].iter().flat_map(|v| v.to_le_bytes()).collect()
+}

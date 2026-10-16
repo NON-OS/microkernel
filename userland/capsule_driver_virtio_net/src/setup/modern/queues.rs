@@ -33,10 +33,15 @@ pub struct Queues {
 
 /// Clear both rings, then program the queues over them (`program` resets
 /// the device when either is refused) and build the queues.
-pub fn build(common: &Mmio, notify: NotifyArea, dma: &DmaSet) -> Result<Queues, &'static str> {
+pub fn build(
+    common: &Mmio,
+    notify: NotifyArea,
+    dma: &DmaSet,
+    master: impl FnOnce() -> Result<(), &'static str>,
+) -> Result<Queues, &'static str> {
     dma.clear_rings();
-    let (rx_ring, tx_ring) = (dma.rx_ring.device_addr, dma.tx_ring.device_addr);
-    let [rx_ready, tx_ready] = program(common, notify, rx_ring, tx_ring)?;
+    let rings = (dma.rx_ring.device_addr, dma.tx_ring.device_addr);
+    let [rx_ready, tx_ready] = program(common, notify, rings, master)?;
     let (rx, tx) = dma.queues(rx_ready.size, tx_ready.size, VIRTIO_NET_HDR_LEN_V1);
     Ok(Queues { rx, tx, doorbells: [rx_ready.notify_offset, tx_ready.notify_offset] })
 }

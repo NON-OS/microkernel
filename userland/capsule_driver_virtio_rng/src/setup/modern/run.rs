@@ -17,11 +17,11 @@
 //! The modern sequence: the common and notify regions, reset (waited for by
 //! the clock), ACKNOWLEDGE, DRIVER, features (VERSION_1, and ACCESS_PLATFORM
 //! whenever offered; virtio-rng has no device features), FEATURES_OK, the
-//! two DMA grants, Bus Master, the request queue, DRIVER_OK. A step that
+//! two DMA grants, the request queue, Bus Master, DRIVER_OK. A step that
 //! fails after the window is mapped resets the device before the caller
 //! releases the claim, which takes every grant with it.
 
-use nonos_virtio::common::{accept, driver_ok, reset_until, start_until};
+use nonos_virtio::common::{accept, reset_until, start_until};
 use nonos_virtio::{map_window, ModernCaps, VirtioError, Window};
 
 use super::super::driver::Driver;
@@ -48,9 +48,8 @@ fn live(dev: Found, claim_epoch: u64, window: &Window) -> Result<Driver, &'stati
     start_until(&common, expired_after(RESET_MS)).map_err(VirtioError::message)?;
     accept(&common, 0).map_err(VirtioError::message)?;
     let dma = dma::map_both(dev.device_id, claim_epoch)?;
-    pci::command(dev.device_id, claim_epoch, pci::MASTER)?;
-    let ready = queue::setup(&common, window.notify_area(), dma.ring.device_addr)?;
-    driver_ok(&common);
+    let master = || pci::command(dev.device_id, claim_epoch, pci::MASTER);
+    let ready = queue::start(&common, window.notify_area(), dma.ring.device_addr, master)?;
     let notify = window.notify.region;
     Ok(Driver {
         device_id: dev.device_id,

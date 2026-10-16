@@ -20,4 +20,4 @@ mod access;
 mod model;
 
 pub use access::Regs;
-pub use model::{fresh, with};
+pub use model::{fresh, with, Status};

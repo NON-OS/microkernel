@@ -35,8 +35,10 @@ pub mod clock;
 pub mod constants;
 #[path = "../../capsule_driver_virtio_rng/src/fill.rs"]
 pub mod fill;
-#[path = "../../capsule_driver_virtio_rng/src/init.rs"]
+#[path = "../../capsule_driver_virtio_rng/src/init/mod.rs"]
 pub mod init;
+#[path = "../../capsule_driver_virtio_rng/src/setup/modern/queue.rs"]
+pub mod modern_queue;
 #[path = "../../capsule_driver_virtio_rng/src/queue/mod.rs"]
 pub mod queue;
 pub mod regs;

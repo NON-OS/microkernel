@@ -16,39 +16,54 @@
 
 //! One step of the part: serve the next head if the driver published one.
 
-use std::sync::atomic::{fence, AtomicU16, Ordering};
+use std::sync::atomic::{fence, Ordering};
 use std::sync::Mutex;
 
 use nonos_devmodel::FakeBar;
 
-use super::ring::{bytes, desc, offset_of, put, u16_at};
-use super::{answers, Answer, Seen};
-use crate::constants::{VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VQ_USED_OFFSET};
+use super::ring::{put, u16_at};
+use super::{answers, chain, Answer, Seen};
+use crate::constants::{VQ_AVAIL_OFFSET, VQ_USED_OFFSET};
 use crate::tests::model::QUEUE_SIZE;
 
-pub fn step(bar: &FakeBar, served: &AtomicU16, log: &Mutex<Vec<Seen>>, answer: Answer) {
-    let published = u16_at(bar, VQ_AVAIL_OFFSET + 2);
-    let done = served.load(Ordering::Acquire);
-    if published == done {
-        return;
+/// The available and used indices, as a step begins.
+pub fn indices(bar: &FakeBar) -> (u16, u16) {
+    (u16_at(bar, VQ_AVAIL_OFFSET + 2), u16_at(bar, VQ_USED_OFFSET + 2))
+}
+
+/// Serve the head after the `done` the part answered, if the indices `at`
+/// say the driver published one, noting the device `status` it was taken
+/// under: whether the part answered it. Nothing is written unless the ring
+/// still reads `at`: the driver may have reset the device and restarted the
+/// queue meanwhile, and what was read then is not the new queue's command.
+pub fn step(
+    bar: &FakeBar,
+    at: (u16, u16),
+    done: u16,
+    log: &Mutex<Vec<Seen>>,
+    answer: Answer,
+    status: u8,
+) -> bool {
+    if at.0 == done {
+        return false;
     }
     fence(Ordering::Acquire);
     let slot = (done % QUEUE_SIZE) as usize;
-    let head = u16_at(bar, VQ_AVAIL_OFFSET + 4 + slot * 2);
-    let first = desc(bar, head, VQ_DESC_OFFSET);
-    let second = desc(bar, first.next, VQ_DESC_OFFSET);
-    let request = bytes(bar, offset_of(bar, first.addr), first.len as usize);
-    let response = answers::build(&request, second.len as usize, answer);
-    put(bar, offset_of(bar, second.addr), &response);
-    log.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).push(Seen {
-        request,
-        request_flags: first.flags,
-        response_flags: second.flags,
-    });
+    let Some(chain) = chain::read(bar, slot).filter(|c| !answers::left(&c.request, answer)) else {
+        return false;
+    };
+    let response = answers::build(&chain.request, chain.room, answer);
+    if indices(bar) != at {
+        return false;
+    }
+    put(bar, chain.answer_at, &response);
+    let (request_flags, response_flags) = chain.flags;
+    let seen = Seen { request: chain.request, request_flags, response_flags, status };
+    log.lock().unwrap_or_else(|poisoned| poisoned.into_inner()).push(seen);
     let id = match answer {
-        Answer::WrongDescriptor => (head.wrapping_add(1) % QUEUE_SIZE) as u32,
-        Answer::AliasedDescriptor => head as u32 | 0x1_0000,
-        _ => head as u32,
+        Answer::WrongDescriptor => (chain.head.wrapping_add(1) % QUEUE_SIZE) as u32,
+        Answer::AliasedDescriptor => chain.head as u32 | 0x1_0000,
+        _ => chain.head as u32,
     };
     let entry = VQ_USED_OFFSET + 4 + slot * 8;
     put(bar, entry, &id.to_le_bytes());
@@ -56,5 +71,5 @@ pub fn step(bar: &FakeBar, served: &AtomicU16, log: &Mutex<Vec<Seen>>, answer: A
     fence(Ordering::Release);
     let moved = if answer == Answer::SkippedIndex { 2 } else { 1 };
     put(bar, VQ_USED_OFFSET + 2, &done.wrapping_add(moved).to_le_bytes());
-    served.store(done.wrapping_add(1), Ordering::Release);
+    true
 }

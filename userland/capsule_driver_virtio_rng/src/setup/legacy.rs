@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The legacy bring-up, for a function that presents only its legacy
-//! register window: registers, reset and features, the DMA grants, Bus
-//! Master, the ring, DRIVER_OK. A step that fails after the window is
+//! register window: registers, reset and features, the DMA grants, the
+//! ring, Bus Master, DRIVER_OK. A step that fails after the window is
 //! mapped resets the device before the caller releases the claim.
 
 use super::driver::Driver;
 use super::{dma, pci, registers};
 use crate::discover::Found;
-use crate::init::{driver_ok, negotiate, program};
+use crate::init::{negotiate, start};
 use crate::queue::Queue;
 use crate::regs::Regs;
 use crate::transport::Transport;
@@ -39,9 +39,8 @@ pub fn run(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
 fn live(dev: Found, claim_epoch: u64, regs: Regs) -> Result<Driver, &'static str> {
     negotiate(regs)?;
     let dma = dma::map_both(dev.device_id, claim_epoch)?;
-    pci::command(dev.device_id, claim_epoch, pci::MASTER)?;
-    let queue_size = program(regs, dma.ring.device_addr)?;
-    driver_ok(regs);
+    let master = || pci::command(dev.device_id, claim_epoch, pci::MASTER);
+    let queue_size = start(regs, dma.ring.device_addr, master)?;
     Ok(Driver {
         device_id: dev.device_id,
         queue: Queue::new(dma.ring.view, dma.buf.view, dma.buf.device_addr, queue_size),

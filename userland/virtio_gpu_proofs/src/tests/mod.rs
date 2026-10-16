@@ -19,10 +19,14 @@
 //! boot runs.
 
 mod client;
+mod clock_tests;
+mod driver;
 mod frames;
 mod harness;
 mod model;
 mod part;
+mod predecessor;
+mod probe_stall;
 mod refusal;
 mod stall;
 mod wire;
@@ -32,16 +36,23 @@ mod config_tests;
 mod discovery_tests;
 mod dispatch_tests;
 mod late_tests;
+mod master_tests;
 mod mode_tests;
 mod modern_queue_tests;
 mod modern_refusal_tests;
 mod modern_tests;
 mod notify_bound_tests;
 mod order_tests;
+mod probe_stall_tests;
 mod queue_limit_tests;
 mod queue_tests;
+mod recover_limit_tests;
 mod recover_order_tests;
+mod recover_reset_tests;
+mod recover_span_bound_tests;
+mod recover_span_tests;
 mod recover_tests;
+mod recover_try_tests;
 mod reply_refusal_tests;
 mod reply_tests;
 mod request_refusal_tests;
