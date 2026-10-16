@@ -27,20 +27,29 @@ pub(super) fn record(
     placed: &Placed,
     device_addr: u64,
     confined: bool,
-) -> u64 {
+) -> Option<u64> {
     let grant_id = records::allocate_id();
-    records::insert(DmaGrant {
-        grant_id,
-        pid,
-        device_id: req.device_id,
-        claim_epoch,
-        physical_start: placed.phys_start,
-        user_va: placed.user_va,
-        length: req.length,
-        flags: req.flags,
-        device_addr,
-        confined,
-    });
+    let live =
+        |g: &DmaGrant| crate::hardware::broker::claim::live(g.pid, g.device_id, g.claim_epoch);
+    let entered = records::insert_if(
+        DmaGrant {
+            grant_id,
+            pid,
+            device_id: req.device_id,
+            claim_epoch,
+            physical_start: placed.phys_start,
+            user_va: placed.user_va,
+            length: req.length,
+            flags: req.flags,
+            device_addr,
+            confined,
+        },
+        live,
+    );
+    // Its claim gone meanwhile (L69): the caller takes the map back.
+    if !entered {
+        return None;
+    }
 
     /*
      * A grant no remapping unit confines hands the device the host-physical
@@ -49,5 +58,5 @@ pub(super) fn record(
     if !confined {
         crate::memory::iommu::note_unconfined(1);
     }
-    grant_id
+    Some(grant_id)
 }

@@ -35,6 +35,7 @@
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod amd_remap;
 mod bind;
+mod enter;
 mod grant_run;
 mod handle_view;
 mod intx;

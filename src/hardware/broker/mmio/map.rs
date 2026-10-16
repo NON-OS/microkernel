@@ -58,7 +58,7 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     let kind = memory_type(req.flags, &bar, &w)?;
     let user_va = install(&w, kind)?;
     let grant_id = grant::allocate_id();
-    grant::insert(MmioGrant {
+    super::map_record::record(MmioGrant {
         grant_id,
         pid,
         device_id: req.device_id,
@@ -69,7 +69,7 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
         user_va: user_va.as_u64(),
         length: w.page_bytes,
         flags: req.flags,
-    });
+    })?;
     let first = user_va.as_u64() + w.in_page;
     Ok(MmioMapResult { user_va: first, length: w.usable, grant_id })
 }

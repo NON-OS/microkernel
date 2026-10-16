@@ -18,6 +18,7 @@
 
 use crate::drivers::pci::config::ConfigSpace;
 use crate::drivers::pci::constants::CFG_COMMAND;
+use crate::hardware::broker::claim;
 
 use super::allowlist::validate;
 use super::change::split;
@@ -32,7 +33,9 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;
     let ident = ident(&cfg)?;
     let action = validate(&req, handle.msix.as_ref(), &ident, current)?;
-    apply(&cfg, action)
+    // Never after an exit dropped the claim and stopped the device (L69).
+    let applied = claim::while_live(pid, req.device_id, req.claim_epoch, || apply(&cfg, action));
+    applied.unwrap_or(Err(PciWriteError::NotClaimed))
 }
 
 fn apply(cfg: &ConfigSpace, action: WriteAction) -> Result<(), PciWriteError> {

@@ -32,8 +32,15 @@ pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-pub(super) fn insert(record: DmaGrant) {
-    RECORDS.lock().push(record);
+/// Entered only when `stands` holds of it, asked under the table's lock so a
+/// drain that follows finds it (L69): its claim, for the map path.
+pub(super) fn insert_if(record: DmaGrant, stands: impl FnOnce(&DmaGrant) -> bool) -> bool {
+    let mut all = RECORDS.lock();
+    let entered = stands(&record);
+    if entered {
+        all.push(record);
+    }
+    entered
 }
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {

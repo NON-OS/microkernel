@@ -23,6 +23,4 @@ mod store;
 
 pub(super) use drain::{drain_for_device, drain_for_pid};
 pub(super) use query::{count_msix_for_device, has_message_grant, vectors_for_pid};
-pub(super) use store::{
-    allocate_id, allocate_id_run, insert, insert_many, lookup, remove, vector_for_gsi,
-};
+pub(super) use store::{allocate_id, allocate_id_run, insert_live, lookup, remove, vector_for_gsi};

@@ -27,7 +27,7 @@ use crate::arch::interrupt::ioapic;
 // bitmap is the source of truth for which broker vectors are in
 // use. Releasing the vector to `VEC_ALLOC` here would surface it
 // to non-broker callers and break the reservation invariant.
-pub(super) fn teardown(g: &IrqGrant) {
+pub(in super::super) fn teardown(g: &IrqGrant) {
     match g.kind {
         IrqGrantKind::Intx => teardown_intx(g),
         IrqGrantKind::Msix => teardown_msix(g),

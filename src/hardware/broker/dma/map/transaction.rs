@@ -66,6 +66,10 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         return fail("dma32", DmaMapError::Above4G);
     }
 
-    let grant_id = record::record(pid, &req, claim_epoch, &placed, device_addr, confined);
+    let Some(grant_id) = record::record(pid, &req, claim_epoch, &placed, device_addr, confined)
+    else {
+        placed.undo_mapped(pid, device_addr, confined);
+        return fail("record", DmaMapError::NotClaimed);
+    };
     Ok(DmaMapResult { user_va, device_addr, length: req.length, grant_id })
 }

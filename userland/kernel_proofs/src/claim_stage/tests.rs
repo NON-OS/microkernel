@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::stage_rule::{grantable, retired};
+use super::stage_rule::{grantable, kept, retired};
 use super::types::{ClaimError, Stage};
 
 #[test]
@@ -26,4 +26,11 @@ fn only_a_made_claim_not_leaving_is_granted_against() {
     assert_eq!(retired(Stage::Orphaned), Err(ClaimError::NotClaimed), "an exit's leftover");
     assert_eq!(retired(Stage::Ready), Ok(Stage::Leaving));
     assert_eq!(retired(Stage::Leaving), Ok(Stage::Leaving), "a sibling's release waits too");
+}
+
+#[test]
+fn a_grant_is_entered_only_while_its_claim_stands() {
+    assert!(kept(Stage::Ready) && kept(Stage::Leaving), "a release waits these out");
+    assert!(!kept(Stage::Making), "nothing is granted before the claim is made");
+    assert!(!kept(Stage::Orphaned), "an exit's leftover takes no grant");
 }

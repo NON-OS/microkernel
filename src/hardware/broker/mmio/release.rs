@@ -43,13 +43,15 @@ pub fn release_for_device(pid: u32, device_id: u64) -> usize {
 }
 
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
+    // The claims first: a grant a dying sibling enters after this is refused
+    // (L69), so the drain below finds every grant there will be.
+    let _ = drop_claims_for_pid(pid);
     let drained = grant::drain_for_pid(pid);
     if unmap_pages {
         for g in &drained {
             unmap_one(g);
         }
     }
-    let _ = drop_claims_for_pid(pid);
     drained.len()
 }
 
