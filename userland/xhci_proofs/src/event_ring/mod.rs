@@ -38,6 +38,7 @@ mod bulk_poll_tests;
 mod dequeue_tests;
 mod erdp_tests;
 mod fuzz_tests;
+mod hostile_tests;
 mod isoch_pipe;
 mod isoch_tests;
 mod isoch_wait_tests;
