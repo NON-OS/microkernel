@@ -52,7 +52,7 @@ pub fn find_acm(raw: &[u8]) -> Option<AcmFunction> {
         let on = ifs
             .iter()
             .find(|i| i.number == data && i.class == CLASS_CDC_DATA && i.has_bulk_pair())?;
-        let acm = find_functional(raw, c.number, ACM_FUNCTIONAL).filter(|d| d.len() >= 4);
+        let acm = find_functional(raw, c.number, ACM_FUNCTIONAL, 4);
         Some(AcmFunction {
             comm: c.number,
             protocol: c.protocol,

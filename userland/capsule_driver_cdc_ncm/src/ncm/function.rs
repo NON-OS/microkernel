@@ -53,8 +53,8 @@ pub fn find_ncm(raw: &[u8]) -> Option<NcmFunction> {
     };
     ifs.iter().filter(ncm).filter(|c| c.alt == 0).find_map(|c| {
         let data = union_data(raw, c.number)?;
-        let eth = find_functional(raw, c.number, ETHERNET_FUNCTIONAL).filter(|d| d.len() >= 13)?;
-        let func = find_functional(raw, c.number, NCM_FUNCTIONAL).filter(|d| d.len() >= 6)?;
+        let eth = find_functional(raw, c.number, ETHERNET_FUNCTIONAL, 13)?;
+        let func = find_functional(raw, c.number, NCM_FUNCTIONAL, 6)?;
         let on = ifs
             .iter()
             .find(|i| i.number == data && i.class == CLASS_CDC_DATA && i.has_bulk_pair())?;
