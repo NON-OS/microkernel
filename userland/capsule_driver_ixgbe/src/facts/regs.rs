@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Register offsets in BAR0 for the 82599, X540 and X550. Source: observed
-//! in Linux ixgbe (facts::regs), unverified against Intel's datasheets.
+//! Register offsets in BAR0 for the 82599, X540 and X550. Source: as
+//! observed, unverified against Intel's datasheets.
 
 pub const REG_CTRL: usize = 0x00000;
 pub const REG_STATUS: usize = 0x00008;

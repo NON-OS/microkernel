@@ -54,7 +54,7 @@ pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) -> Result<(), &'static 
         regs.w32(REG_RDLEN, RX_RING_BYTES as u32);
         regs.w32(REG_RDH, 0);
         regs.w32(REG_RDT, 0);
-        // Whole, as igb does: a DROP_EN or TIMESTAMP firmware left goes.
+        // Whole: a DROP_EN or TIMESTAMP firmware left goes.
         regs.w32(REG_SRRCTL, SRRCTL_ONEBUF);
         regs.w32(REG_RXDCTL, RXDCTL_ON);
     }
