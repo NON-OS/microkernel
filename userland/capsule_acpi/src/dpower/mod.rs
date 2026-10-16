@@ -25,6 +25,7 @@ mod settle;
 mod target;
 mod wake;
 mod wake_check;
+pub mod wake_sweep;
 mod wire;
 
 pub use hidden::reveal_hidden;

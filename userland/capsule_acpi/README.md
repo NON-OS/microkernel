@@ -320,9 +320,11 @@ other op: no one.
   the shared pool, `_DSW(1, 0, D)` or `_PSW(1)`, then the wake GPE
   enabled, served by firmware's `_Lxx` or `_Exx`. A target deeper than
   `_S0W` (D3hot when there is no `_S0W`) is refused, and so is an event
-  firmware gave no method. Each Notify(device, 2) is counted, and every
-  reply carries whether wake is armed and the count. A device whose
-  holder lets go has its wake disarmed within 2 s.
+  firmware gave no method. Nothing is armed by default. Each
+  Notify(device, 2) is counted, and only the holder that armed it is
+  told the count, after the path in its replies. A device whose claim
+  ends (released, its holder exited, or it departed) has its wake
+  disarmed within 2 s.
   At boot, a device the tables describe under a PCI root (present and
   enabled by _STA, with _PS0 or _PR0, its _ADR reached only through real
   PCI-to-PCI bridges) whose function reads all ones gets its D0 and one
