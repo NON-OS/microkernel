@@ -33,7 +33,8 @@ fn the_table_the_lead_set() {
     assert_eq!(names(20), [power], "SET_POWER_CAP");
     assert_eq!(names(8), [shell], "SMBIOS");
     assert_eq!(names(18), [shell], "TPM_PPI");
-    assert_eq!(names(9), [&b"driver.i2c_pci0"[..], b"driver.i2c_hid0"], "SERIAL");
+    let serial = [&b"driver.i2c_pci0"[..], b"driver.i2c_hid0", b"driver.gpio0", b"driver.spi_hid0"];
+    assert_eq!(names(9), serial, "SERIAL");
     assert_eq!(allowed(10), Allowed::AnyAdmitted, "DEVICE_POWER: the kernel's holder test");
     assert_eq!(names(11), [&b"driver.ps2_kbd0"[..]], "LEGACY");
     assert_eq!(names(21), [&b"driver.gpio0"[..]], "HOLDER");
