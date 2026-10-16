@@ -10,6 +10,9 @@ name = "boot_proofs"
 version = "0.2.0"
 edition = "2021"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 path = "src/lib.rs"
 
