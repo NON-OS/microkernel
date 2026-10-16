@@ -53,6 +53,7 @@ impl<T: Transport> Host<T> {
         let le_mask = LE_EVENT_MASK | if extended { LE_DIRECTED_REPORT } else { 0 };
         self.command(op::LE_SET_EVENT_MASK, &le_mask.to_le_bytes())?;
         self.scan_filter = if extended { ACCEPT_UNRESOLVED } else { ACCEPT_ALL };
+        self.data_length = self.data_length_to_ask(le_features)?;
         (self.acl_len, self.acl_total, self.acl_free) = (acl_len, acl_total, acl_total);
         Ok(Controller {
             hci_version: v.0,

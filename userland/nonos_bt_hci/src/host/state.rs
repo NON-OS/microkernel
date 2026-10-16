@@ -21,7 +21,6 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
-use crate::transport::Transport;
 use nonos_bt_wire::addr::AddrType;
 
 /// Polls one command may wait. With the capsule's millisecond pause this
@@ -46,30 +45,6 @@ pub struct Host<T> {
     pub(super) own: AddrType,
     /// The Scanning_Filter_Policy scans use, chosen at bring-up (7.8.10).
     pub(super) scan_filter: u8,
-}
-
-impl<T: Transport> Host<T> {
-    pub fn new(t: T) -> Self {
-        Self::with_budget(t, POLL_BUDGET)
-    }
-
-    pub fn with_budget(t: T, budget: u32) -> Self {
-        let queue = VecDeque::new();
-        let (acl_len, acl_total, acl_free) = (0, 0, 0);
-        let own = AddrType::Public;
-        let scan_filter = super::scan::ACCEPT_ALL;
-        let dropped = 0;
-        Self {
-            t,
-            credits: 1,
-            budget,
-            queue,
-            dropped,
-            acl_len,
-            acl_total,
-            acl_free,
-            own,
-            scan_filter,
-        }
-    }
+    /// The PDU octets and time to ask each connection for, from bring-up.
+    pub(super) data_length: Option<(u16, u16)>,
 }
