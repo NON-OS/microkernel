@@ -21,3 +21,4 @@ mod random;
 mod calls;
 mod install;
 mod wayland;
+mod whole;
