@@ -26,6 +26,7 @@ use super::head::Head;
 use crate::ddc::pace::Pacer;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
+use crate::engine::hotplug::Poller;
 
 /// A flip waits for one vertical blank: 100 ms covers a 24 Hz panel with
 /// room to spare, and a pipe that never blanks gives up within a FLUSH's
@@ -43,11 +44,14 @@ pub struct Intel<M: Mmio, F: Frames, C: Clock> {
     pub heads: [Option<Head<F>>; MAX_HEADS],
     /// Each output's DDC/CI timing and what its monitor last said.
     pub ddc: [Pacer; MAX_HEADS],
+    /// The hot-plug lines once `watch` armed them, and when they were
+    /// last polled.
+    pub plugs: Option<(Poller, u64)>,
 }
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
     pub fn new(m: M, clock: C, gen: &'static Gen, heads: [Option<Head<F>>; MAX_HEADS]) -> Self {
-        Intel { m, clock, gen, heads, ddc: Default::default() }
+        Intel { m, clock, gen, heads, ddc: Default::default(), plugs: None }
     }
 
     pub fn count(&self) -> usize {

@@ -40,6 +40,7 @@ pub struct Gen9 {
     pub dead: bool,
     pub ddc: super::gmbus_state::Ddc,
     pub plane: PlaneKind, // Gen9's unless a test models another
+    pub cable: super::cable::Cable,
 }
 
 impl Gen9 {
@@ -61,15 +62,7 @@ impl Gen9 {
             dead: false,
             ddc: Default::default(),
             plane: PlaneKind::Universal,
+            cable: Default::default(),
         }
-    }
-
-    pub fn get(&self, off: u32) -> u32 {
-        *self.regs.get(&off).unwrap_or(&0)
-    }
-
-    pub fn set(&mut self, off: u32, v: u32) {
-        self.regs.insert(off, v);
-        self.live.insert(off, v);
     }
 }
