@@ -23,10 +23,11 @@
 
 use super::event_act::{act, pressed, say, taken};
 use crate::hardware::broker::acpi::battery_watch::battery_critical;
-use crate::hardware::broker::acpi::lid_state::record as record_lid;
+use crate::hardware::broker::acpi::lid_state::{report as report_lid, Report};
+use crate::hardware::broker::acpi::power_key::lid as lid_key;
 use crate::hardware::broker::acpi::platform_event::{decode, Event};
 use crate::hardware::broker::acpi::thermal_watch::thermal;
-use crate::syscall::microkernel::errnos::ERRNO_INVAL;
+use crate::syscall::microkernel::errnos::{ERRNO_AGAIN, ERRNO_INVAL};
 
 pub fn sys_acpi_event(kind: u64, value: u64) -> i64 {
     let Some(event) = decode(kind, value) else { return ERRNO_INVAL };
@@ -37,12 +38,14 @@ pub fn sys_acpi_event(kind: u64, value: u64) -> i64 {
             say(b"[ACPI] sleep button pressed; NONOS has no sleep state yet");
             0
         }
-        Event::Lid(open) => {
-            if record_lid(open) {
+        Event::Lid(open) => match report_lid(open, lid_key) {
+            Report::Unchanged => 0,
+            Report::Told => {
                 say(if open { b"[ACPI] lid open" } else { b"[ACPI] lid closed" });
+                0
             }
-            0
-        }
+            Report::Busy => ERRNO_AGAIN,
+        },
         Event::Thermal(w) => act(thermal(w, now), b"[ACPI] thermal zone at _CRT"),
         Event::BatteryLow => {
             say(b"[ACPI] battery low");
