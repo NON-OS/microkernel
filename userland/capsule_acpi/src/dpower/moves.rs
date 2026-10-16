@@ -39,8 +39,13 @@ pub fn move_to(acpi: &mut Acpi, dev: Id, to: DState, pid: u32) -> i32 {
     let from = current(acpi, dev).unwrap_or(DState::D3Cold);
     let Acpi { aml, host, dpower, cooling, .. } = acpi;
     let r = dpower.set(&mut cooling.pool, aml, &mut evaluator(host), dev, from, to);
-    let l = Line::new(b"power ").str(path(aml, dev).as_bytes()).str(b" ");
+    let waited = r.is_ok().then(|| super::ready::settle_after(acpi, dev, from, to)).flatten();
+    let l = Line::new(b"power ").str(path(&acpi.aml, dev).as_bytes()).str(b" ");
     let l = l.dec(from as u64).str(b" -> ").dec(to as u64).str(b" for pid ").dec(u64::from(pid));
+    let l = match waited {
+        Some(us) => l.str(b", ready after ").dec(u64::from(us)).str(b"us"),
+        None => l,
+    };
     match r {
         Ok(()) => {
             l.end();
