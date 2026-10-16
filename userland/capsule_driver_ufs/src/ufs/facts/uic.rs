@@ -25,8 +25,7 @@ pub const DME_LINKSTARTUP: u32 = 0x16;
 pub const RESULT_MASK: u32 = 0xFF;
 
 /// PA_Local_TX_LCC_Enable. Intel's hosts want Line Control Commands off
-/// before link startup: observed in Linux ufshcd-pci.c, unverified against
-/// Intel's documents.
+/// before link startup: as observed, unverified against Intel's documents.
 pub const PA_LOCAL_TX_LCC_ENABLE: u16 = 0x155E;
 
 /// A local attribute in UCMDARG1: its id in the upper half, selector 0.
