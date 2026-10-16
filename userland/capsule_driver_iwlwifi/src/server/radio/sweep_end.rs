@@ -16,6 +16,7 @@
 
 //! What a step of the sweep came to.
 
+use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::sweep::Tick;
 
 use super::say::Line;
@@ -46,7 +47,7 @@ impl Radio {
                 self.results.end_sweep();
                 self.next_ms = now.saturating_add(REST_MS);
             }
-            Tick::Failed => self.firmware_failed(now),
+            Tick::Failed => self.firmware_failed(now, Failure::Lost),
             Tick::Idle | Tick::Running => {}
         }
     }

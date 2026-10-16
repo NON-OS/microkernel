@@ -17,6 +17,7 @@
 //! A step of the background scan between requests, or the open port serviced.
 
 use crate::firmware::gen3::heard::hear;
+use crate::firmware::gen3::outcome::Failure;
 use crate::firmware::gen3::rx_frame::RxFrame;
 use crate::firmware::gen3::sweep::Tick;
 
@@ -30,6 +31,15 @@ impl Radio {
         if let State::Restarting(_) = self.state {
             self.restart_due(now_ms());
             return;
+        }
+        // Between requests a command still in flight went unanswered: the
+        // firmware stopped taking them, and whatever it was to undo (a
+        // removal, a teardown) could not run. Restart it.
+        if let State::Up(up) = &self.state {
+            if up.dev.cmdq.busy() {
+                self.firmware_failed(now_ms(), Failure::Unanswered);
+                return;
+            }
         }
         if self.joined() {
             self.service_link();
@@ -49,7 +59,7 @@ impl Radio {
                 Ok(t) => t,
                 Err(_) if up.dev.error_cause() => Tick::Failed,
                 Err(_) => {
-                    Line::new().text(b"scan request not answered; retrying after a rest").send();
+                    Line::new().text(b"scan request not answered").send();
                     self.next_ms = now.saturating_add(REST_MS);
                     Tick::Idle
                 }

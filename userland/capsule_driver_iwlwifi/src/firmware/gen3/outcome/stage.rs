@@ -29,9 +29,11 @@ impl Failure {
             | Failure::Boot(BootError::NoNicAccess) => STAGE_POWER_FAILED,
             Failure::Refused(_) => STAGE_NO_AIR_PATH,
             Failure::NoDma | Failure::Master(_) => STAGE_NO_DMA,
-            Failure::Image | Failure::Boot(_) | Failure::Up(_) | Failure::Lost => {
-                STAGE_FIRMWARE_FAILED
-            }
+            Failure::Image
+            | Failure::Boot(_)
+            | Failure::Up(_)
+            | Failure::Lost
+            | Failure::Unanswered => STAGE_FIRMWARE_FAILED,
         }
     }
 
@@ -48,6 +50,7 @@ impl Failure {
             Failure::Up(_) => STEP_UP,
             Failure::Lost => STEP_LOST,
             Failure::Master(_) => STEP_MASTER,
+            Failure::Unanswered => STEP_UNANSWERED,
         }
     }
 }
