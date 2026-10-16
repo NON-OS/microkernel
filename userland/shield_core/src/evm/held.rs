@@ -45,7 +45,6 @@ fn lookup(hash: &[u8; 32]) -> Call {
 
 #[cfg(test)]
 mod live {
-    #![allow(clippy::expect_used, clippy::indexing_slicing)]
     use super::floor;
     use crate::evm::Network;
     use crate::net::tor::Tor;

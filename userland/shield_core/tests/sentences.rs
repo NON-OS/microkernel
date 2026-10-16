@@ -1,6 +1,3 @@
-// Tests assert by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::panic)]
-
 use nox_shield_core::error::{CustodyError, WalletError};
 
 // Every error a shell can be handed, listed exhaustively. Each shell maps an error to a

@@ -1,5 +1,4 @@
 //! The spend rules, each against the pool's own refusal.
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used, clippy::arithmetic_side_effects)]
 
 use nox_shield_core::notes::MAX_VALUE;
 use nox_shield_core::wallet::{check_intent, Intent, IntentRefusal, PoolRules};

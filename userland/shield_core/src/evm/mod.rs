@@ -35,6 +35,7 @@ mod shield_recheck_fit;
 pub mod shield_recheck;
 mod shield_batch_txs;
 mod shield_order;
+mod sender;
 mod shield_tx;
 pub mod swap;
 pub mod tx;

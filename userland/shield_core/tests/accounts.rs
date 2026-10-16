@@ -1,12 +1,11 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 //! Accounts and key export through the wallet the shells hold, on the public 12-word phrase, end
 //! to end: the addresses are the standard ones at index 0 and 1, and each exported key controls its own.
 
-mod keystore;
+/// The stand in this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 mod restored;
 
 use nox_shield_core::error::WalletError;

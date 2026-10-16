@@ -3,13 +3,6 @@
 //! The call is pinned against Foundry's own ABI encoder, the fee against the
 //! contract's rounding, the stored note against the watcher that must later
 //! recognise it, and the pre-flight against the contract's refusals in order.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::panic,
-    clippy::unwrap_used,
-    clippy::arithmetic_side_effects
-)]
 
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
 use nox_shield_core::discovery::confirm_deposit;

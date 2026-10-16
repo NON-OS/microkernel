@@ -1,14 +1,3 @@
-/*
- * A test asserts by panicking, and a measurement prints what it read, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed, Phrase};
 use nox_shield_core::error::CustodyError;
 use nox_shield_core::keys::Account;

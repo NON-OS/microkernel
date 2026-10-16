@@ -1,14 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::unwrap_used,
-    clippy::panic,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects
-)]
-
 //! A transfer and a withdrawal as the wallet builds them, read by the prover's
 //! own request checks: roots, membership, the dummy beside a single note,
 //! balance and ownership. Nothing is proved, so this runs in a moment.

@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 use super::{record, recorded, KEPT};
 use crate::evm::Network;
 

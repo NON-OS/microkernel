@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::integer_division)]
-
 use super::{amount_out, impact_bps, mul_div};
 
 #[test]

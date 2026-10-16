@@ -3,18 +3,14 @@
 
 use super::calls::estimate;
 use super::gas::Fees;
-use super::network::Chain;
 use super::rpc::ask;
+use super::sender::Sender;
 use super::shield::{ShieldChecked, ShieldOrder, Shielding};
 use super::tx::Eip1559;
 use crate::error::NetError;
-use crate::net::tor::Tor;
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn finish(
-    tor: &Tor,
-    chain: &Chain,
-    from: &[u8; 20],
+    sender: Sender,
     order: &ShieldOrder,
     approval: bool,
     ether: u128,
@@ -22,6 +18,7 @@ pub(super) fn finish(
     fees: Fees,
     sends: &[(u64, [u8; 32])],
 ) -> Result<ShieldChecked, NetError> {
+    let Sender { tor, chain, from } = sender;
     let value = if order.token.is_none() { order.amount } else { 0 };
     let (target, data) = match (approval, order.token) {
         (true, Some(token)) => (token, order.approve_data),

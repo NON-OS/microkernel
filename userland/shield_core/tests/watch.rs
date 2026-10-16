@@ -3,7 +3,6 @@
 //! The pool cannot check that, since the owner digest is opaque to it, so the client must: a
 //! matching deposit is accepted, a mismatched leaf is refused, and the escrowed value must be
 //! the value the note was sealed to.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
 use nox_shield_core::discovery::{accept_incoming, confirm_deposit, Leaf, WatchReject};

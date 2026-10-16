@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used)]
-
 use super::{handed, serves, state, takes_submitter_fee, Handed};
 
 #[test]

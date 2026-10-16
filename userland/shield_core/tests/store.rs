@@ -1,15 +1,8 @@
-/*
- * A test asserts by panicking, and a measurement prints what it read, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
-mod keystore;
+/// The stand ins this test runs against (tests/keystore/).
+mod keystore {
+    mod scratch;
+    pub use scratch::scratch;
+}
 
 use keystore::scratch;
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};

@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used, clippy::indexing_slicing)]
-
 use super::xwing::{open, seal, seal_with, Opened, Opening, BLOB_LEN};
 use crate::notes::{commitment, wire_digest, NotePlaintext};
 use crate::prover::pool_hasher;

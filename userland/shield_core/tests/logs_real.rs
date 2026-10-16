@@ -4,13 +4,6 @@
 //! genuine history the wallet must read. Untested parsing is where a reversed
 //! byte order hides, so this runs the decoder over the real words and checks it
 //! recovers every leaf index and commitment the chain emitted.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::panic,
-    clippy::unwrap_used,
-    clippy::arithmetic_side_effects
-)]
 
 use nox_shield_core::discovery::{note_commitments, Log};
 

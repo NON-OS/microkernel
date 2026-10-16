@@ -3,7 +3,6 @@
 //! No proxy app: the core bootstraps from the live consensus, builds its own
 //! circuit, wraps TLS end to end and reads the Sepolia pool's history. It needs the
 //! network, so it is ignored by default. Run it with `--ignored`.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::discovery::{first_gap, note_commitments, Log};
 use nox_shield_core::net::rpc::head_over_tor;

@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::arithmetic_side_effects, clippy::integer_division)]
-
 use super::{pieces, pieces_by, MAX_PIECES};
 use crate::net::policy_rules::Rule;
 use crate::net::asset_v2::{PROD_ETH, PROD_NOX};
