@@ -16,15 +16,21 @@
 
 //! The reserved memory regions DMAR reports, kept for the IOMMU.
 
+use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
 
-use super::dmar_rmrr::{parse_rmrr, Rmrr};
+use super::dmar_rmrr::{parse_rmrr, rmrr_span, Rmrr};
 
 const MAX_RMRRS: usize = 16;
 
 static RMRRS: Mutex<heapless::Vec<Rmrr, MAX_RMRRS>> = Mutex::new(heapless::Vec::new());
 /// RMRRs left out: malformed, or past the room kept.
 static DROPPED: Mutex<usize> = Mutex::new(0);
+/// The memory each RMRR left out names, which no other is ever alone in (L67).
+static BARRED: Mutex<heapless::Vec<(u64, u64), MAX_RMRRS>> = Mutex::new(heapless::Vec::new());
+/// Some RMRR may be missing altogether: the table's walk was cut short, or
+/// one left out named nothing readable or found no room (L67).
+static INCOMPLETE: AtomicBool = AtomicBool::new(false);
 
 /// Every RMRR that parsed, in table order.
 pub fn rmrr_regions() -> heapless::Vec<Rmrr, MAX_RMRRS> {
@@ -37,9 +43,24 @@ pub fn rmrr_dropped() -> usize {
     *DROPPED.lock()
 }
 
+/// The memory left-out RMRRs name, and whether some may be missing whole.
+pub fn rmrr_barred() -> (heapless::Vec<(u64, u64), MAX_RMRRS>, bool) {
+    (BARRED.lock().clone(), INCOMPLETE.load(Ordering::SeqCst))
+}
+
+/// The walk over DMAR's structures stopped at a malformed one: whatever
+/// followed it was never read.
+pub(super) fn rmrr_cut_short() {
+    INCOMPLETE.store(true, Ordering::SeqCst);
+}
+
 pub(super) fn record_rmrr(bytes: &[u8]) {
     let kept = parse_rmrr(bytes).is_some_and(|r| RMRRS.lock().push(r).is_ok());
     if !kept {
         *DROPPED.lock() += 1;
+        let barred = rmrr_span(bytes).is_some_and(|span| BARRED.lock().push(span).is_ok());
+        if !barred {
+            INCOMPLETE.store(true, Ordering::SeqCst);
+        }
     }
 }

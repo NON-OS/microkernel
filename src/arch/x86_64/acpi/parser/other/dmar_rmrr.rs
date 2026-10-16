@@ -60,3 +60,12 @@ pub fn parse_rmrr(bytes: &[u8]) -> Option<Rmrr> {
     let foreign = names_off_pci(bytes, RMRR_HEADER_LEN);
     Some(Rmrr { segment, base, limit, scopes, count, truncated, foreign })
 }
+
+/// The pages an RMRR names whatever else is wrong with it, rounded outward,
+/// `[first, last]` byte (L67): one firmware got wrong still says a device
+/// uses that memory. `None` when not even its header can be read.
+pub fn rmrr_span(bytes: &[u8]) -> Option<(u64, u64)> {
+    let word = |at: usize| Some(u64::from_le_bytes(bytes.get(at..at + 8)?.try_into().ok()?));
+    let (a, b) = (word(8)?, word(16)?);
+    Some((a.min(b) & !PAGE_MASK, a.max(b) | PAGE_MASK))
+}

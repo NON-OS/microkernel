@@ -20,17 +20,14 @@ use core::ptr;
 use super::super::state::TableRegistry;
 use super::dmar_namespace_store::{record_andd, ANDD_TYPE};
 use super::dmar_rmrr::RMRR_TYPE;
-use super::dmar_rmrr_store::record_rmrr;
+use super::dmar_rmrr_store::{record_rmrr, rmrr_cut_short};
 use super::dmar_units::record_drhd;
 use crate::arch::x86_64::acpi::tables::{Dmar, Drhd, SdtHeader, SIG_DMAR};
 
 const DRHD_TYPE: u16 = 0;
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
-    let addr = match registry.tables.get(&SIG_DMAR) {
-        Some(&a) => a,
-        None => return,
-    };
+    let Some(&addr) = registry.tables.get(&SIG_DMAR) else { return };
     let addr = match super::super::phys::directmap(addr) {
         Some(v) => v,
         None => return,
@@ -51,6 +48,7 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
             let kind = ptr::read_volatile(cursor as *const u16);
             let length = ptr::read_volatile((cursor + 2) as *const u16);
             if length < 4 || cursor + length as u64 > end {
+                rmrr_cut_short();
                 break;
             }
             let bytes = core::slice::from_raw_parts(cursor as *const u8, length as usize);

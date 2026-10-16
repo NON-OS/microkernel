@@ -47,11 +47,17 @@ pub fn rmrr_sole(r: &Rmrr) -> bool {
 
 /// Whether `r`'s memory is the device's alone (L65): every RMRR it overlaps,
 /// itself included, names that one endpoint and no other device. Firmware
-/// may list one region twice, once per device that uses it.
+/// may list one region twice, once per device that uses it, and on another
+/// segment: memory is one for every segment (L67).
 pub fn rmrr_own<F>(all: &[Rmrr], r: &Rmrr, segment: u16, bdf: (u8, u8, u8), bb: &F) -> bool
 where
     F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
 {
-    let meets = |o: &&Rmrr| o.segment == r.segment && o.base <= r.limit && r.base <= o.limit;
+    let meets = |o: &&Rmrr| o.base <= r.limit && r.base <= o.limit;
     all.iter().filter(meets).all(|o| rmrr_sole(o) && rmrr_names(o, segment, bdf, bb) == Cover::Yes)
+}
+
+/// Whether `r` touches memory an RMRR left out names (L67), `[first, last]`.
+pub fn rmrr_barred_by(barred: &[(u64, u64)], r: &Rmrr) -> bool {
+    barred.iter().any(|&(first, last)| first <= r.limit && r.base <= last)
 }

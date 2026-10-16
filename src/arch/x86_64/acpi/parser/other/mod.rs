@@ -43,8 +43,8 @@ mod srat_memory;
 
 pub use dmar::parse_dmar;
 pub use dmar_namespace_lookup::{namespace_devices, namespace_dropped, namespace_requester};
-pub use dmar_rmrr_names::{rmrr_names, rmrr_own};
-pub use dmar_rmrr_store::{rmrr_dropped, rmrr_regions};
+pub use dmar_rmrr_names::{rmrr_barred_by, rmrr_names, rmrr_own};
+pub use dmar_rmrr_store::{rmrr_barred, rmrr_dropped, rmrr_regions};
 pub use dmar_scope::{translated_by_some, Cover, UnitScope};
 pub use dmar_source_store::{hpet_source, ioapic_source, source_scopes_dropped};
 pub use dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
