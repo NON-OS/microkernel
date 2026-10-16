@@ -19,6 +19,10 @@
 //! ACPI capsule's interpreter. A null `out_ptr` asks only for the length;
 //! a buffer shorter than the table gets nothing and ERANGE.
 
+#[path = "loaded.rs"]
+mod loaded;
+pub use loaded::sys_acpi_loaded;
+
 use super::errno::table_errno;
 use crate::hardware::broker::acpi::table_for_capsule;
 use crate::hardware::broker::acpi::table_measured::{record, records};
@@ -50,13 +54,11 @@ pub fn sys_acpi_table(signature: u64, instance: u64, out_ptr: u64, out_len: u64)
     }
 }
 
-/// `MkAcpiMeasured(out_ptr, out_len)`: the firmware tables the ACPI capsule
-/// was handed, measured (broker::acpi::table_measure), 44 bytes a table in
-/// load order, for the About screen and a verifier. Their digest is the
-/// attest registry's pid 0 entry, so like `MkAttestEntries` these bytes need
-/// not be believed: changed, they no longer fold to the signed root. Gated
-/// the same way, on reading attestations; a buffer too small is refused
-/// without writing.
+/// `MkAcpiMeasured(out_ptr, out_len)`: the measured firmware tables, 44
+/// bytes each in order (broker::acpi::table_measure), for the About screen
+/// and a verifier. Their digest is the attest registry's pid 0 entry, so
+/// like `MkAttestEntries` they need not be believed, and are gated the same
+/// way; a buffer too small is refused without writing.
 pub fn sys_acpi_measured(out_ptr: u64, out_len: u64) -> i64 {
     let all = records();
     if all.len() as u64 > out_len {

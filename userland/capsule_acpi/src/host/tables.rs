@@ -16,9 +16,12 @@
 
 //! Tables by signature and OEM ids, for DataTableRegion and LoadTable
 //! (ACPI 6.5, 19.6.32 and 19.6.76): every instance the kernel will hand
-//! over is looked at, and the first whose ids match is the one.
+//! over is looked at, and the first whose ids match is the one. And every
+//! table AML loads at run time, measured by the kernel before it loads.
 
 use crate::sys::acpi::table;
+use crate::sys::acpi_loaded::acpi_loaded;
+use crate::sys::log::Line;
 use alloc::vec::Vec;
 
 /// Far more instances of one signature than any firmware ships.
@@ -42,4 +45,21 @@ pub fn find(sig: &[u8], oem_id: &[u8], oem_table_id: &[u8]) -> Option<Vec<u8>> {
         }
     }
     None
+}
+
+/// The exact bytes Load or LoadTable is about to load, handed to the kernel
+/// (MkAcpiLoaded), which checks and measures them; refused, they do not load.
+pub fn admit(bytes: &[u8]) -> bool {
+    match acpi_loaded(bytes) {
+        Ok(()) => true,
+        Err(e) => {
+            let sig = bytes.get(..4).unwrap_or(b"????");
+            Line::new(b"table ")
+                .str(sig)
+                .str(b" not loaded: refused, errno ")
+                .dec(e.unsigned_abs())
+                .end();
+            false
+        }
+    }
 }

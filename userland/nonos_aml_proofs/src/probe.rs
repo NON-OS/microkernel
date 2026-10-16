@@ -25,6 +25,9 @@ pub struct Probe {
     pub transactions: Vec<Transaction>,
     pub pins: BTreeMap<u32, u64>,
     pub tables: Vec<Vec<u8>>,
+    /// Every table AML asked to load, and whether such loads are refused.
+    pub admitted: Vec<Vec<u8>>,
+    pub refuse_tables: bool,
     /// The FACS lock word, if any; firmware lets go after this many looks.
     pub facs: Option<u32>,
     pub firmware_holds: u32,

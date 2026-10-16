@@ -52,6 +52,10 @@ pub trait Host {
     /// A table the platform holds, by signature and OEM ids, for
     /// DataTableRegion and LoadTable.
     fn table(&mut self, signature: &[u8], oem_id: &[u8], oem_table_id: &[u8]) -> Option<Vec<u8>>;
+    /// A table AML is about to Load or LoadTable, as the exact bytes that
+    /// will be loaded: false refuses the load. The capsule measures them
+    /// through the kernel first, so nothing loads that was not measured.
+    fn admit_table(&mut self, bytes: &[u8]) -> bool;
     /// Compare-and-swap on the FACS Global Lock word: returns the word found,
     /// which equals `old` when `new` was stored; None if there is no FACS.
     fn lock_word(&mut self, old: u32, new: u32) -> Option<u32>;

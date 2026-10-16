@@ -24,12 +24,28 @@
 
 use super::kernel::platform::fw::parser::state::TABLES;
 use super::table_check::{declared_length, verify, TableError, HEADER};
+use super::table_measure::Measured;
 use super::tables::{locate, read};
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static SWEPT: AtomicBool = AtomicBool::new(false);
+
+/// The sweep, the first time only: each table that reads whole, to `add`.
+pub(super) fn sweep_once<T>(mut add: impl FnMut(Measured) -> T) {
+    if SWEPT.swap(true, Ordering::AcqRel) {
+        return;
+    }
+    for (s, i) in every_table() {
+        if let Ok(b) = copy_any(s, i) {
+            add(Measured::of(s, i, &b));
+        }
+    }
+}
 
 const OWN_PLACE: [[u8; 4]; 4] = [*b"FACP", *b"DSDT", *b"SSDT", *b"FACS"];
 
-pub(super) fn every_table() -> Vec<([u8; 4], u32)> {
+fn every_table() -> Vec<([u8; 4], u32)> {
     let (ssdts, rest) = {
         let tables = TABLES.read();
         let Some(reg) = tables.as_ref() else { return Vec::new() };
@@ -47,7 +63,7 @@ pub(super) fn every_table() -> Vec<([u8; 4], u32)> {
 
 /// A table as checked as the capsule's copy, whether or not the capsule may
 /// read it: the measurement stays in the kernel.
-pub(super) fn copy_any(sig: [u8; 4], instance: u32) -> Result<Vec<u8>, TableError> {
+fn copy_any(sig: [u8; 4], instance: u32) -> Result<Vec<u8>, TableError> {
     let phys = locate(sig, instance).ok_or(TableError::Absent)?;
     let head = read(phys, HEADER)?;
     let bytes = read(phys, declared_length(&head, sig)?)?;
