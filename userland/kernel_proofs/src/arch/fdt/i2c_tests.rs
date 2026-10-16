@@ -1,9 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! A sample SoC tree: a controller under an identity-mapped bus, one
-//! disabled, one behind a translating bridge, one at the root.
+//! A sample SoC tree under a GIC: a controller under an identity-mapped bus,
+//! one disabled, one behind a translating bridge, one at the root.
 
 use super::blob::Tree;
-use super::find::i2c::{find, DwI2c};
+use super::find::i2c::{find, DwI2c, IrqCtrl};
 use super::parser::Fdt;
 
 const DW: &[u8] = b"acme,soc-i2c\0snps,designware-i2c\0";
@@ -12,7 +12,8 @@ pub(crate) fn soc() -> Vec<u8> {
     let mut t = Tree::default();
     t.begin("").cells("#address-cells", &[2]).cells("#size-cells", &[2]);
     t.cells("interrupt-parent", &[1]);
-    t.begin("intc").cells("phandle", &[1]).cells("#interrupt-cells", &[3]).end();
+    t.begin("intc").prop("compatible", b"arm,gic-400\0").cells("phandle", &[1]);
+    t.cells("#interrupt-cells", &[3]).end();
     t.begin("clk").prop("compatible", b"fixed-clock\0").cells("phandle", &[2]);
     t.cells("clock-frequency", &[100_000_000]).end();
     t.begin("soc").cells("#address-cells", &[1]).cells("#size-cells", &[1]);
@@ -49,6 +50,7 @@ fn the_controller_under_an_identity_bus_comes_whole() {
         irq: [0, 32, 4],
         irq_cells: 3,
         irq_parent: Some(1),
+        irq_ctrl: IrqCtrl::Gic,
         bus_hz: Some(400_000),
         clock: Some(2),
         input_hz: Some(100_000_000),

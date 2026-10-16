@@ -83,13 +83,16 @@ DeviceRecord {
     irq_pin:      u8        // PCI interrupt pin (0 none)
     _pad1:        u8
     irq_source:   u32       // PCI: the interrupt line
-    bars:         [Bar; 6]  // hardware BAR indices preserved; holes are zeroed
+    bars:         [Bar; 6]  // hardware BAR indices preserved; holes are zeroed,
+                            // but for the aux words noted under Bar
 }
 
 Bar {
     base:   u64
     size:   u64
-    aux:    u32      // LPSS I2C controller: source clock in Hz; else 0
+    aux:    u32      // I2C controller: input clock in Hz (bar 0); I2C-HID:
+                     // connection speed; device-tree I2C bar 1 (kind
+                     // NONE): bus rate in Hz; else 0
     kind:   u8       // BAR_NONE=0, BAR_MMIO=1, BAR_PIO=2
     flags:  u8       // PREFETCH=1, MEM64=2
     _pad:   [u8; 2]
