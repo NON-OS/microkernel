@@ -36,7 +36,7 @@ fn vtd_lets_go_only_after_the_kernels_tables_or_under_the_dev_opt_in() {
 
 #[test]
 fn amd_units_firmware_left_running_keep_running_without_the_backend() {
-    assert!(!amd_stop(false, false), "the default build: left as firmware set it");
+    assert!(!amd_stop(false, false), "built without the backend: left as firmware set it");
     assert!(amd_stop(true, false), "stopped to be brought up with the kernel's tables");
     assert!(amd_stop(false, true), "the dev opt-in");
 }
