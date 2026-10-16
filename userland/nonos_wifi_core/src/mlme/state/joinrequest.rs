@@ -62,6 +62,8 @@ pub struct Mlme {
     pub(in crate::mlme) cache_used: bool,
     /// A move from this AP: the request is a reassociation.
     pub(in crate::mlme) reassoc_from: Option<[u8; 6]>,
+    /// The station checks beacons under the BIGTK (`verify_beacons`).
+    pub(in crate::mlme) verifies_beacons: bool,
     pub(in crate::mlme) supplicant: Option<Supplicant>,
     pub(in crate::mlme) failure: Option<MlmeFailure>,
 }

@@ -56,6 +56,7 @@ impl Mlme {
             cached: None,
             cache_used: false,
             reassoc_from: None,
+            verifies_beacons: false,
             supplicant: None,
             failure: None,
         }

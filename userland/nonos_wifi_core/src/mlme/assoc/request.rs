@@ -38,9 +38,12 @@ impl Mlme {
         };
         let esr: &[u8] = if rates.extended().is_empty() { &[] } else { &esr_e[..esr_n] };
         let rsnxe: &[u8] = if sel.sae_h2e { &STATION_RSNXE_H2E } else { &[] };
-        let elements: [&[u8]; 5] = [&ssid_e[..ssid_n], &sr_e[..sr_n], esr, &rsne, rsnxe];
+        // Extended Capabilities comes after the RSNE and before the RSNXE
+        // (Table 9-35).
+        let ext = self.ext_caps(&sel);
+        let elements: [&[u8]; 6] = [&ssid_e[..ssid_n], &sr_e[..sr_n], esr, &rsne, ext, rsnxe];
         let seq = self.next_seq();
-        let mut out = [0u8; 160];
+        let mut out = [0u8; 192];
         match self.request_frame(&mut out, seq, &elements) {
             Some(n) => {
                 self.state = MlmeState::Associating;

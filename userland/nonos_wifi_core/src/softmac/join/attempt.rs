@@ -50,6 +50,8 @@ pub(super) fn attempt<R: Radio, E: Env>(
     let mut m =
         Mlme::join(&JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy });
     m.set_domain(domain);
+    // This station checks its AP's beacons under the BIGTK (E-45).
+    m.verify_beacons();
     if let Some(p) = extra.offer {
         m.offer_pmksa(p);
     }
