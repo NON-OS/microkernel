@@ -24,7 +24,7 @@ use nonos_usbnet::desc::{
 use nonos_usbnet::{Notify, Pipes};
 
 const SUBCLASS_NCM: u8 = 0x0D;
-/// USB_CDC_PROTO_NONE: the only protocol Linux cdc_devs[] matches for NCM.
+/// No class-specific protocol (NCM 1.0, 4.2, as recalled, unverified).
 const PROTOCOL_NONE: u8 = 0x00;
 /// Ethernet Networking (ECM 1.2, 5.4) and NCM (NCM 1.0, 5.2.1) descriptors.
 const ETHERNET_FUNCTIONAL: u8 = 0x0F;
