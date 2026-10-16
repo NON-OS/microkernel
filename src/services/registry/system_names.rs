@@ -25,6 +25,21 @@
 
 const NAMES: &str = include_str!("system_names.txt");
 
+/*
+ * Roots a publisher's capsule never names under, whatever the list holds: the
+ * system trusts names there that no Capsule.mk declares (`net.admin`, a second
+ * NVMe's `driver.nvme1`, `driver.bootfb0`), and the kernel's own forms. A
+ * numeric `endpoint.<n>` is how a send addresses a port by number (L57).
+ */
+const ROOTS: [&str; 5] = ["driver.", "net.", "proc.", "stdin.", "kernel."];
+
+/// Whether `name` is a form only the system may take.
+pub(crate) fn is_reserved_form(name: &str) -> bool {
+    let numeric =
+        name.strip_prefix("endpoint.").is_some_and(|n| n.bytes().all(|b| b.is_ascii_digit()));
+    numeric || ROOTS.iter().any(|r| name.starts_with(r))
+}
+
 /// Whether `name` is one of the image's own, or a numbered instance of one.
 pub(crate) fn is_system_name(name: &str) -> bool {
     NAMES.lines().filter(|sys| !sys.is_empty()).any(|sys| {

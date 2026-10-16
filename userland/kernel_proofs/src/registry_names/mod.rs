@@ -19,8 +19,10 @@
  * to every Capsule.mk in the tree, so a capsule added or renamed without the
  * list fails here; and the rule that refuses a publisher's capsule a system
  * name, or a numbered instance of one, is run over the cases that matter.
+ * The reserved roots and the numeric `endpoint.<n>` form (L57) beside it.
  */
 
+mod form_tests;
 #[path = "../../../../src/services/registry/system_names.rs"]
 mod system_names;
 mod tests;

@@ -29,13 +29,13 @@ pub(super) const ROOT_BUS: u8 = 0;
 /// One bridge on the way up from a device's bus to the root bus.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(super) enum Hop {
-    /// A PCIe root port or a switch's upstream port: it forwards the requester
-    /// id unchanged, and a peer's request below it still reaches the IOMMU.
+    /// A PCIe root port, or a switch's upstream or downstream port: each
+    /// forwards the requester id unchanged, so the entry a device's id names
+    /// is the one its DMA walks. Whether a peer below one switch is reached
+    /// without the IOMMU is ACS, a fact of its own and not this one (L57).
     PciePort,
     /// Anything else: a PCIe-to-PCI bridge, a reverse bridge, a bridge with no
-    /// PCIe capability, which may substitute an id of its own; and a switch's
-    /// downstream port, which may route a request to a peer below the same
-    /// switch without it ever reaching the IOMMU unless ACS says otherwise.
+    /// PCIe capability, which may substitute an id of its own.
     Other,
 }
 

@@ -46,14 +46,16 @@ fn parent_of(bus: u8) -> Option<(u8, Hop)> {
 
 // Device/port type, bits 7:4 of the PCIe Capabilities register (PCIe base
 // 7.5.3.2, recalled): 4 root port, 5 switch upstream, 6 switch downstream.
-// A downstream port counts as Other: its ACS controls sit in extended
-// configuration space, which this access path cannot read (L54).
+// All three pass the id through. Counted Other (L54), a downstream port kept
+// every device below it on the identity entry, which reaches all of memory;
+// its ACS controls, in extended space this path cannot read, are a separate
+// gap and stay recorded as one (L57).
 fn kind(bus: u8, device: u8, function: u8) -> Hop {
     let Some(cap) = find_capability(bus, device, function, CAP_PCIE) else {
         return Hop::Other;
     };
     match read16(bus, device, function, cap.offset as u16 + 2).map(|v| (v >> 4) & 0xF) {
-        Ok(4 | 5) => Hop::PciePort,
+        Ok(4..=6) => Hop::PciePort,
         _ => Hop::Other,
     }
 }
