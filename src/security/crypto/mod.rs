@@ -18,7 +18,6 @@ pub mod constant_time;
 pub mod key_management;
 pub mod random;
 mod random_fill;
-mod random_pool;
 pub mod trusted_hashes;
 pub mod trusted_keys;
 

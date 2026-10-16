@@ -56,3 +56,6 @@ pub mod function_reset;
 /// IPC payloads zeroed before they are freed (C8).
 #[path = "ipc_wipe/mod.rs"]
 pub mod ipc_wipe;
+/// The entropy capsule's bytes, health-tested and mixed.
+#[path = "entropy_health/mod.rs"]
+pub mod entropy_health;
