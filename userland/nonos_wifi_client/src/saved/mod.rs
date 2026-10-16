@@ -15,6 +15,7 @@ mod keep;
 mod key;
 mod list;
 mod list_codec;
+mod list_put;
 mod pin;
 mod store;
 mod write;
