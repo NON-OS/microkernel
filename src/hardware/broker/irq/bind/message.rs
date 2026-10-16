@@ -24,7 +24,7 @@ use super::super::grant::NO_IRTE;
 use super::super::types::IrqBindError;
 use super::remap_rule::{outcome, Outcome};
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
-use crate::memory::iommu::dev_unconfined::holds;
+use crate::memory::iommu::dev_unremapped::holds;
 
 #[derive(Clone, Copy)]
 pub(super) struct Routed {
