@@ -263,3 +263,11 @@ fn the_largest_wtotallength_walks_a_full_buffer_of_padding() {
     d.resize(u16::MAX as usize, 0);
     assert_eq!(hid_bindings(&d).map(|b| b.len()), Ok(0));
 }
+
+#[test]
+fn an_endpoint_polled_at_no_interval_is_never_bound() {
+    for (sub, proto) in [(1, 1), (1, 2), (0, 0)] {
+        let raw = config().iface(0, HID, sub, proto).ep(0x81, INTERRUPT, 64, 0).build();
+        assert_eq!(hid_bindings(&raw).map(|b| b.len()), Ok(0), "{sub}:{proto}");
+    }
+}
