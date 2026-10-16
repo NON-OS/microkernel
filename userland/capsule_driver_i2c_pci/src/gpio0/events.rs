@@ -23,8 +23,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_uptime_ms};
 
-use super::wire::{events, rang, request, REPLY_MAX};
-use crate::driver::Doorbell;
+use super::wire::{events, rang, request, Doorbell, REPLY_MAX};
 
 const SERVICE: &[u8] = b"driver.gpio0";
 const CALL_MS: u64 = 50;

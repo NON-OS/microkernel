@@ -1719,6 +1719,7 @@
    "userland/capsule_driver_cdc_acm/src/acm/owner.rs",
    "userland/capsule_driver_cdc_acm/src/frame.rs",
    "userland/capsule_driver_i2c_pci/src/constants/device_info.rs",
+   "userland/capsule_driver_i2c_pci/src/gpio0",
    "userland/capsule_driver_spi",
    "userland/libc"
   ],

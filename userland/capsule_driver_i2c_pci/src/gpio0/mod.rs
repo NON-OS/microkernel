@@ -17,3 +17,4 @@ mod events;
 mod wire;
 
 pub use events::look;
+pub use wire::Doorbell;
