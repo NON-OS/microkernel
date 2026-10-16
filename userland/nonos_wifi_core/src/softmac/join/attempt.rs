@@ -29,6 +29,14 @@ use crate::sae::SaeFailure;
 use crate::softmac::radio::{Env, Radio};
 use crate::wpa::akm::Akm;
 
+/// What an attempt starts from beyond the network: a cached PMKSA to offer,
+/// and the AP the station moves from when it is a reassociation.
+#[derive(Clone, Copy, Default)]
+pub struct Extra {
+    pub offer: Option<Pmksa>,
+    pub from: Option<[u8; 6]>,
+}
+
 /// Each attempt's budget: long enough for a slow router's SAE.
 pub const JOIN_BUDGET_MS: u64 = 8_000;
 
@@ -39,7 +47,7 @@ pub(super) fn attempt<R: Radio, E: Env>(
     req: &ConnectRequest,
     policy: JoinPolicy,
     beacon: &[u8],
-    offer: Option<Pmksa>,
+    extra: Extra,
 ) -> Result<Report, JoinError> {
     let mut entropy = Entropy { snonce: [0u8; 32], sae: [0u8; SAE_ENTROPY] };
     if !env.random(&mut entropy.snonce) || !env.random(&mut entropy.sae) {
@@ -49,8 +57,11 @@ pub(super) fn attempt<R: Radio, E: Env>(
     let mut m =
         Mlme::join(&JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy });
     m.set_domain(domain);
-    if let Some(p) = offer {
+    if let Some(p) = extra.offer {
         m.offer_pmksa(p);
+    }
+    if let Some(from) = extra.from {
+        m.reassociate_from(from);
     }
     Ok(drive(r, env, m, beacon, JOIN_BUDGET_MS))
 }

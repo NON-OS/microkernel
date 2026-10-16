@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The association request and the AP's response to it.
+//! The association (or reassociation) request: its elements.
 
 use super::*;
 
@@ -41,34 +41,12 @@ impl Mlme {
         let elements: [&[u8]; 5] = [&ssid_e[..ssid_n], &sr_e[..sr_n], esr, &rsne, rsnxe];
         let seq = self.next_seq();
         let mut out = [0u8; 160];
-        match assoc_request_elements(
-            &mut out,
-            self.our_mac,
-            self.bssid,
-            CAP_ESS_PRIVACY,
-            seq,
-            &elements,
-        ) {
+        match self.request_frame(&mut out, seq, &elements) {
             Some(n) => {
                 self.state = MlmeState::Associating;
                 MlmeOutput::send(out[..n].to_vec())
             }
             None => self.fail(MlmeFailure::AssocRejected(0)),
-        }
-    }
-
-    pub(in crate::mlme) fn on_assoc_response(&mut self, frame: &[u8]) -> MlmeOutput {
-        if !from_bss_to_us(frame, &self.our_mac, &self.bssid) {
-            return MlmeOutput::none();
-        }
-        match parse_assoc_response(frame) {
-            Some((0, _aid)) => {
-                self.start_handshake();
-                MlmeOutput::none()
-            }
-            Some((STATUS_REJECTED_TEMPORARILY, _)) => MlmeOutput::none(),
-            Some((status, _)) => self.fail(MlmeFailure::AssocRejected(status)),
-            None => MlmeOutput::none(),
         }
     }
 }

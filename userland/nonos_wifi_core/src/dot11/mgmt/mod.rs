@@ -17,6 +17,7 @@
 mod assoc_request_elements;
 mod associes;
 mod ie_ssid;
+mod reassoc_request;
 use super::header::{
     frame_control, write_header, MacAddr, BROADCAST, SUBTYPE_ASSOC_REQ, SUBTYPE_AUTH,
     SUBTYPE_PROBE_REQ, TYPE_MGMT,
@@ -24,3 +25,4 @@ use super::header::{
 pub use assoc_request_elements::*;
 pub use associes::*;
 pub use ie_ssid::*;
+pub use reassoc_request::*;

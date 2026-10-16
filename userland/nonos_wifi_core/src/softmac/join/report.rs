@@ -22,7 +22,7 @@
 use super::counters::Counters;
 use crate::mlme::{Mlme, MlmeFailure, MlmeState};
 use crate::pmksa::Pmksa;
-use crate::rsn::TemporalKey;
+use crate::rsn::{Selection, TemporalKey};
 use crate::wpa::akm::Akm;
 use crate::wpa::supplicant::Supplicant;
 
@@ -50,6 +50,10 @@ pub struct Report {
     pub used_pmksa: bool,
     /// The PMKSA a connected SAE join holds, to cache.
     pub pmksa: Option<Pmksa>,
+    /// The security the join selected from the beacon.
+    pub selection: Option<Selection>,
+    /// The AP accepted the (re)association, whatever followed.
+    pub accepted: bool,
 }
 
 pub(super) fn state_code(s: MlmeState) -> u8 {
@@ -66,5 +70,6 @@ pub(super) fn state_code(s: MlmeState) -> u8 {
 pub(super) fn report(m: &Mlme, outcome: Outcome, counters: Counters) -> Report {
     let state = state_code(m.state());
     let (failure, akm, used_pmksa, pmksa) = (m.failure(), m.akm(), m.used_pmksa(), m.pmksa());
-    Report { outcome, counters, state, failure, akm, used_pmksa, pmksa }
+    let (selection, accepted) = (m.selection(), m.accepted());
+    Report { outcome, counters, state, failure, akm, used_pmksa, pmksa, selection, accepted }
 }

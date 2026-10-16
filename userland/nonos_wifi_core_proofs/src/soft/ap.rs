@@ -22,16 +22,20 @@
 //! fails), installs the pairwise key on message 4, and from then on reads the
 //! station's protected data.
 
-use crate::soft::frames::beacon;
+use crate::ap_sim::AA;
+use crate::soft::frames::beacon_from;
 use nonos_wifi_core::rsn::{Cipher, TemporalKey};
 
 pub struct SimAp {
+    pub bssid: [u8; 6],
     pub ssid: Vec<u8>,
     pub pass: Vec<u8>,
     pub channel: u8,
     pub hidden: bool,
     pub rsne: Vec<u8>,
     pub on: bool,
+    /// Refuse every (re)association, status 17 (AP unable to handle more).
+    pub refuse: bool,
     pub tk: Option<TemporalKey>,
     /// The plaintext bodies of the station's protected data frames.
     pub got: Vec<Vec<u8>>,
@@ -43,12 +47,14 @@ impl SimAp {
     pub fn new(ssid: &[u8], pass: &[u8], channel: u8, rsne: &[u8]) -> Self {
         let (ssid, pass, rsne) = (ssid.to_vec(), pass.to_vec(), rsne.to_vec());
         Self {
+            bssid: AA,
             ssid,
             pass,
             channel,
             hidden: false,
             rsne,
             on: true,
+            refuse: false,
             tk: None,
             got: Vec::new(),
             ptk: None,
@@ -57,6 +63,6 @@ impl SimAp {
 
     pub fn beacon(&self) -> Vec<u8> {
         let name: &[u8] = if self.hidden { &[] } else { &self.ssid };
-        beacon(8, [0xff; 6], name, self.channel, &self.rsne)
+        beacon_from(self.bssid, 8, [0xff; 6], (name, self.channel, &self.rsne))
     }
 }

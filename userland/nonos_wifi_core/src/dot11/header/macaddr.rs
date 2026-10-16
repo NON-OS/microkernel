@@ -36,6 +36,10 @@ pub const SUBTYPE_ASSOC_REQ: u8 = 0;
 
 pub const SUBTYPE_ASSOC_RESP: u8 = 1;
 
+pub const SUBTYPE_REASSOC_REQ: u8 = 2;
+
+pub const SUBTYPE_REASSOC_RESP: u8 = 3;
+
 pub const SUBTYPE_PROBE_REQ: u8 = 4;
 
 pub const SUBTYPE_PROBE_RESP: u8 = 5;

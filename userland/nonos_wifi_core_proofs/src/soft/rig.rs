@@ -41,12 +41,11 @@ pub struct SimAir {
     pub assoc: Vec<Option<Association>>,
     /// The radio says it runs GCMP-256 as well as CCMP-128.
     pub gcmp: bool,
-}
-
-impl SimAir {
-    pub fn on_channel(&self) -> bool {
-        self.ap.on && self.tuned == Some((Band::of_legacy(self.ap.channel), self.ap.channel))
-    }
+    /// A second AP, for roaming; heard only on its own channel.
+    pub ap2: Option<SimAp>,
+    pub(crate) beacon_at2: u64,
+    /// The signal each AP is heard at.
+    pub rssi: [i8; 2],
 }
 
 /// A ready station in range of `ap`.
@@ -64,6 +63,9 @@ pub fn rig(ap: SimAp) -> Station {
         beacon_at: 0,
         assoc: Vec::new(),
         gcmp: false,
+        ap2: None,
+        beacon_at2: 0,
+        rssi: [-50, -50],
     };
     SoftStation::new(Some(air), SimEnv { clock, draws: 0 }, 0)
 }

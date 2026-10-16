@@ -23,6 +23,7 @@
 use crate::pmksa::PmksaCache;
 use crate::regdom::{Domain, WORLD};
 use crate::softmac::radio::{Env, Radio};
+use crate::softmac::roam::Look;
 use crate::softmac::scanner::Scanner;
 use crate::softmac::session::Session;
 use crate::softmac::stats::LinkStats;
@@ -40,6 +41,8 @@ pub struct SoftStation<R: Radio, E: Env> {
     pub(super) stats: LinkStats,
     /// PMKSAs SAE joins made, for this boot only.
     pub(super) pmksa: PmksaCache,
+    /// A look for a better AP of the session's network, while one runs.
+    pub(super) look: Option<Look>,
 }
 
 impl<R: Radio, E: Env> SoftStation<R, E> {
@@ -47,7 +50,8 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     pub fn new(radio: Option<R>, env: E, stage: u8) -> Self {
         let (scanner, stats) = (Scanner::new(), LinkStats::default());
         let pmksa = PmksaCache::default();
-        Self { radio, env, stage, domain: WORLD, scanner, session: None, stats, pmksa }
+        let (session, look) = (None, None);
+        Self { radio, env, stage, domain: WORLD, scanner, session, stats, pmksa, look }
     }
 
     /// Run under `domain` instead of the world domain.
@@ -59,6 +63,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     // open the receive filter and let the sweep start again.
     pub(super) fn end_session(&mut self) {
         let had = self.session.take().is_some();
+        self.look = None;
         if let Some(r) = self.radio.as_mut() {
             if had {
                 r.associated(None);

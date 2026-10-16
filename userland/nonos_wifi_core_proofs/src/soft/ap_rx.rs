@@ -18,7 +18,7 @@
 
 use crate::ap_sim::{message1, ANONCE};
 use crate::soft::ap::SimAp;
-use crate::soft::frames::{beacon, eapol_of, eapol_to, mgmt};
+use crate::soft::frames::{beacon_from, eapol_from, eapol_of, mgmt_from};
 use nonos_wifi_core::dot11::{ccmp, gcmp};
 use nonos_wifi_core::rsn::TemporalKey;
 use nonos_wifi_core::wpa::akm::Akm;
@@ -26,19 +26,23 @@ use nonos_wifi_core::wpa::akm::Akm;
 impl SimAp {
     /// What the AP sends back for one frame it heard.
     pub fn on_frame(&mut self, f: &[u8]) -> Vec<Vec<u8>> {
-        let mut sta = [0u8; 6];
+        let (mut sta, me) = ([0u8; 6], self.bssid);
         sta.copy_from_slice(&f[10..16]);
         match (f[0] >> 2 & 3, f[0] >> 4) {
-            (0, 11) => vec![mgmt(11, sta, &[0, 0, 2, 0, 0, 0])],
-            (0, 0) => vec![
-                mgmt(1, sta, &[0x11, 4, 0, 0, 1, 0xc0]),
-                eapol_to(sta, &message1(Akm::Psk, 1, &ANONCE)),
+            (0, 11) => vec![mgmt_from(me, 11, sta, &[0, 0, 2, 0, 0, 0])],
+            (0, sub @ (0 | 2)) if self.refuse => {
+                vec![mgmt_from(me, sub + 1, sta, &[0x11, 4, 17, 0, 0, 0])]
+            }
+            // An association, or a reassociation answered in kind.
+            (0, sub @ (0 | 2)) => vec![
+                mgmt_from(me, sub + 1, sta, &[0x11, 4, 0, 0, 1, 0xc0]),
+                eapol_from(me, sta, &message1(Akm::Psk, 1, &ANONCE)),
             ],
             (0, 4)
                 if f.get(24..26) == Some(&[0, self.ssid.len() as u8])
                     && f[26..].starts_with(&self.ssid) =>
             {
-                vec![beacon(5, sta, &self.ssid, self.channel, &self.rsne)]
+                vec![beacon_from(me, 5, sta, (&self.ssid, self.channel, &self.rsne))]
             }
             (2, _) if f[1] & 0x40 != 0 => {
                 let body = match self.tk {

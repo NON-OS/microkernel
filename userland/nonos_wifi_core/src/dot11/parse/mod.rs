@@ -17,9 +17,11 @@
 mod fixed_fields_len;
 mod parse_assoc_response;
 mod parse_beacon;
+mod parse_reassoc_response;
 use super::header::{
     fc_subtype, fc_type, MAC_HEADER_LEN, SUBTYPE_BEACON, SUBTYPE_PROBE_RESP, TYPE_MGMT,
 };
 pub use fixed_fields_len::*;
 pub use parse_assoc_response::*;
 pub use parse_beacon::*;
+pub use parse_reassoc_response::*;

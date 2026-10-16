@@ -53,6 +53,10 @@ impl Session {
             }
             if f[10..16] == self.bssid {
                 self.heard_ms = env.now_ms();
+                // Only the AP's beacons weigh in: they come at a steady rate.
+                if let (0x80, Some(k)) = (f[0], self.kit.as_mut()) {
+                    k.signal.heard(rx.rssi_dbm);
+                }
             }
             let ended = match fc_type(u16::from_le_bytes([f[0], f[1]])) {
                 TYPE_DATA => self.on_data(r, f, rx.decrypted, st),

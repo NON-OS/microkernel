@@ -18,6 +18,7 @@ pub mod control;
 pub mod engine;
 pub mod join;
 pub mod radio;
+pub mod roam;
 pub mod scanner;
 pub mod session;
 pub mod stats;

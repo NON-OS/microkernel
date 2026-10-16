@@ -17,10 +17,10 @@
 //! The access point's half of the four-way handshake, keyed for the pairwise
 //! cipher the station's RSNE in message 2 names.
 
-use crate::ap_sim::{gtk_kde, message3, AA, ANONCE, GTK};
+use crate::ap_sim::{gtk_kde, message3, ANONCE, GTK};
 use crate::cipher_sim::GTK256;
 use crate::soft::ap::SimAp;
-use crate::soft::frames::{eapol_to, mgmt};
+use crate::soft::frames::{eapol_from, mgmt_from};
 use nonos_wifi_core::eapol::mic::compute_mic;
 use nonos_wifi_core::eapol::parse::{parse, KEY_INFO_SECURE, MIC_OFFSET};
 use nonos_wifi_core::rsn::{parse_rsne, Cipher, Rsne, TemporalKey};
@@ -43,9 +43,9 @@ impl SimAp {
             rsne_of(k.key_data).filter(|r| r.pairwise_gcmp256).map_or(Ccmp128, |_| Gcmp256);
         let mut ptk = vec![0u8; 32 + cipher.tk_len()];
         let pmk = pmk(&self.pass, &self.ssid);
-        Akm::Psk.derive_ptk_into(&pmk, (&AA, &sta), (&ANONCE, &k.nonce), &mut ptk);
+        Akm::Psk.derive_ptk_into(&pmk, (&self.bssid, &sta), (&ANONCE, &k.nonce), &mut ptk);
         if compute_mic(&ptk[..16], &e) != e[MIC_OFFSET..MIC_OFFSET + 16] {
-            return vec![mgmt(12, sta, &15u16.to_le_bytes())];
+            return vec![mgmt_from(self.bssid, 12, sta, &15u16.to_le_bytes())];
         }
         // The group cipher is the AP's own; GCMP-256 takes a 32-octet GTK.
         let group = rsne_of(&self.rsne).and_then(|r| Cipher::from_selector(r.group));
@@ -54,6 +54,6 @@ impl SimAp {
         kd.extend_from_slice(&gtk_kde(1, gtk));
         let m3 = message3(Akm::Psk, 2, &ANONCE, &ptk, &kd);
         self.ptk = Some((cipher, ptk));
-        vec![eapol_to(sta, &m3)]
+        vec![eapol_from(self.bssid, sta, &m3)]
     }
 }
