@@ -13,13 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The market's length-prefixed field readers and writers, as it ships them:
+//! the writers for the release and commerce encoders, the readers for the
+//! request tests. `lp` names them as the market does.
 
-extern crate alloc;
+#[cfg(test)]
+#[path = "../../../capsule_market/src/server/lp/pair.rs"]
+mod pair;
+#[cfg(test)]
+#[path = "../../../capsule_market/src/server/lp/take.rs"]
+mod take;
+#[path = "../../../capsule_market/src/server/lp/write.rs"]
+mod write;
 
-use alloc::vec::Vec;
-
-pub(super) fn write_lp_string(out: &mut Vec<u8>, s: &str) {
-    let bytes = s.as_bytes();
-    out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
-    out.extend_from_slice(bytes);
+pub(crate) mod lp {
+    pub(crate) use super::write::{write_count, write_lp};
+    #[cfg(test)]
+    pub(crate) use super::{pair::parse_pair, take::read_lp_str, take::take_lp};
 }

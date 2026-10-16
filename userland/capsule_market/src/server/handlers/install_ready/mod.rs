@@ -17,8 +17,6 @@
 mod constants;
 pub(super) mod find_release;
 mod handle;
-pub(super) mod parse_pair;
 mod parse_ready;
-mod take_lp;
 
 pub(crate) use handle::handle;

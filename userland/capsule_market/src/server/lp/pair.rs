@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! A listing and release id, each length-prefixed, as GET_RELEASE and
+//! GET_COMMERCE send them.
 
-use super::take_lp::take_lp;
+use super::take::take_lp;
 
-pub(in crate::server::handlers) fn parse_pair(buf: &[u8]) -> Option<(&str, &str)> {
+pub(crate) fn parse_pair(buf: &[u8]) -> Option<(&str, &str)> {
     let (first, rest) = take_lp(buf)?;
     let (second, _) = take_lp(rest)?;
     Some((core::str::from_utf8(first).ok()?, core::str::from_utf8(second).ok()?))

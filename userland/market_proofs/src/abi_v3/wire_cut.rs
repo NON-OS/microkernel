@@ -16,13 +16,13 @@
 
 use nonos_market_proto::parse_commerce;
 
-use super::fixtures::sold;
 use super::commerce_encode::encode;
+use super::fixtures::sold;
 
 #[test]
 fn a_cut_or_padded_reply_is_refused() {
     let entry = sold().entries[0].clone();
-    let body = encode(&entry, &entry.releases[0], true);
+    let body = encode(&entry, &entry.releases[0], true).unwrap();
     for n in 0..body.len() {
         assert!(parse_commerce(&body[..n]).is_none(), "{n} bytes");
     }

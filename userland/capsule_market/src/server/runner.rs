@@ -38,24 +38,26 @@ pub fn run<V: Verifier>(store: &mut Store, verifier: &V) -> ! {
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), RX_BUF_LEN, bonds.wait_ms(), &mut sender);
         bonds.tick(now_ms());
         // Settle's answer to a bond read is taken here and needs no reply.
-        if n <= 0 || bonds.on_frame(sender, rx.get(..n as usize).unwrap_or(&[]), now_ms()) {
+        /* A count past the buffer is not trusted: the frame is dropped. */
+        let Some(frame) = usize::try_from(n).ok().and_then(|n| rx.get(..n)) else {
+            continue;
+        };
+        if frame.is_empty() || bonds.on_frame(sender, frame, now_ms()) {
             continue;
         }
-        let n = n as usize;
-        let req = match decode_request(&rx[..n]) {
-            Some(r) => r,
-            None => {
-                reply_decode_failed(&mut tx, E_INVAL);
-                continue;
-            }
+        let Some(req) = decode_request(frame) else {
+            reply_decode_failed(&mut tx, E_INVAL);
+            continue;
         };
         let body_start = HDR_LEN;
-        let body_end = body_start.saturating_add(req.payload_len as usize);
-        if body_end > n {
+        let body = usize::try_from(req.payload_len)
+            .ok()
+            .and_then(|len| body_start.checked_add(len))
+            .and_then(|end| frame.get(body_start..end));
+        let Some(body) = body else {
             reply_status(&mut tx, &req, E_MSGSIZE);
             continue;
-        }
-        let body = &rx[body_start..body_end];
+        };
         match req.op {
             OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
             OP_LOAD_INDEX => handlers::load_index::handle(store, verifier, body, &req, &mut tx),

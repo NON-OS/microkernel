@@ -26,11 +26,7 @@ use nonos_marketplace_abi::{binding_verdict, commerce_bytes, commerce_verdict, l
 use nonos_marketplace_abi::{release_hash, release_id, CapsuleRelease, CommerceVerdict};
 
 use crate::chain_hosts::Host;
-
-fn lp(out: &mut Vec<u8>, bytes: &[u8]) {
-    out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
-    out.extend_from_slice(bytes);
-}
+use crate::server::lp::write_lp;
 
 /// `publisher_signed` is whether this release's publisher signature
 /// verified: a commerce hash nobody signed is not the publisher's word.
@@ -38,7 +34,7 @@ pub(super) fn encode(
     entry: &MarketplaceEntry,
     rel: &CapsuleRelease,
     publisher_signed: bool,
-) -> Vec<u8> {
+) -> Option<Vec<u8>> {
     let commerce = match commerce_verdict(&Host, entry, rel) {
         CommerceVerdict::Matches if !publisher_signed => CommerceVerdict::Mismatch,
         v => v,
@@ -51,10 +47,10 @@ pub(super) fn encode(
     out.extend_from_slice(&release_id(&Host, &listing, &rel.release_id));
     out.extend_from_slice(&release_hash(&Host, rel).unwrap_or([0; 32]));
     out.extend_from_slice(&entry.token.chain_id.to_le_bytes());
-    lp(&mut out, &entry.token.contract_address);
+    write_lp(&mut out, &entry.token.contract_address)?;
     match &entry.commerce {
-        Some(c) => lp(&mut out, &commerce_bytes(c)),
-        None => lp(&mut out, &[]),
+        Some(c) => write_lp(&mut out, &commerce_bytes(c))?,
+        None => write_lp(&mut out, &[])?,
     }
-    out
+    Some(out)
 }

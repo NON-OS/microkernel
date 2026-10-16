@@ -13,13 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Reading a length-prefixed field from a request body.
 
-extern crate alloc;
+/// The field at the head of `buf`, and what follows it; None when `buf`
+/// does not hold the four length bytes or the length they state.
+pub(crate) fn take_lp(buf: &[u8]) -> Option<(&[u8], &[u8])> {
+    let len: [u8; 4] = buf.get(..4)?.try_into().ok()?;
+    let end = usize::try_from(u32::from_le_bytes(len)).ok()?.checked_add(4)?;
+    Some((buf.get(4..end)?, buf.get(end..)?))
+}
 
-use alloc::vec::Vec;
-
-pub(super) fn write_lp_string(out: &mut Vec<u8>, s: &str) {
-    let bytes = s.as_bytes();
-    out.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
-    out.extend_from_slice(bytes);
+/// The field at the head of `buf` as text; None when it is not UTF-8.
+pub(crate) fn read_lp_str(buf: &[u8]) -> Option<&str> {
+    core::str::from_utf8(take_lp(buf)?.0).ok()
 }

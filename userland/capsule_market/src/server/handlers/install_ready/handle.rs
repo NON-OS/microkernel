@@ -41,28 +41,34 @@ pub(crate) fn handle(store: &Store, bonds: &mut Bonds, body: &[u8], req: &Reques
             None => return reply_status(tx, req, E_NODATA),
         };
     let publisher_ok = accepted.publisher_signature_verified(entry_index, release_index);
-    let entry = &accepted.index.entries[entry_index];
+    let Some(entry) = accepted.index.entries.get(entry_index) else {
+        return reply_status(tx, req, E_NODATA);
+    };
     let base =
         evaluate(accepted.signature_verified, listing_id, release, publisher_ok, escrow(entry));
     let more = market_gates(&Host, entry, release, publisher_ok);
     let code = bond_gate(&mut bonds.cache, entry, chain, now_ms() / 1000);
     let bond = code.passes();
-    let slot = match body_slot(tx, READINESS_LEN) {
-        Some(s) => s,
-        None => return reply_status(tx, req, E_INVAL),
+    /* The row's layout, typed to READINESS_LEN, so the build fails if the
+     * proto's length and this list ever disagree. */
+    let row: [u8; READINESS_LEN] = [
+        (ready(accepted.signature_verified, entry, release, publisher_ok) && bond) as u8,
+        base.index_signature_valid as u8,
+        base.package_url_present as u8,
+        base.publisher_signature_present as u8,
+        base.validation_passed as u8,
+        base.arch_match as u8,
+        base.attestation_present as u8,
+        more.commerce as u8,
+        more.attest as u8,
+        more.policy as u8,
+        more.price as u8,
+        bond as u8,
+        code as u8,
+    ];
+    let Some(slot) = body_slot(tx, READINESS_LEN) else {
+        return reply_status(tx, req, E_INVAL);
     };
-    slot[0] = (ready(accepted.signature_verified, entry, release, publisher_ok) && bond) as u8;
-    slot[1] = base.index_signature_valid as u8;
-    slot[2] = base.package_url_present as u8;
-    slot[3] = base.publisher_signature_present as u8;
-    slot[4] = base.validation_passed as u8;
-    slot[5] = base.arch_match as u8;
-    slot[6] = base.attestation_present as u8;
-    slot[7] = more.commerce as u8;
-    slot[8] = more.attest as u8;
-    slot[9] = more.policy as u8;
-    slot[10] = more.price as u8;
-    slot[11] = bond as u8;
-    slot[12] = code as u8;
+    slot.copy_from_slice(&row);
     reply_with_body(tx, req, READINESS_LEN);
 }

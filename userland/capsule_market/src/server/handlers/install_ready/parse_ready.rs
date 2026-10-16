@@ -18,7 +18,7 @@
 //! the chain_id (u64 LE) the bond gate reads on (v1.4.23). The old form,
 //! without it, reads as no chain.
 
-use super::take_lp::take_lp;
+use crate::server::lp::take_lp;
 
 pub(super) fn parse_ready(buf: &[u8]) -> Option<(&str, &str, Option<u64>)> {
     let (first, rest) = take_lp(buf)?;

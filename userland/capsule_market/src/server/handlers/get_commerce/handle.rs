@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::install_ready::find_release::find_release;
-use super::super::install_ready::parse_pair::parse_pair;
 use super::encode::encode;
 use crate::protocol::{Request, E_INVAL, E_MSGSIZE, E_NODATA};
 use crate::server::error::reply_status;
+use crate::server::lp::parse_pair;
 use crate::server::payload::{body_slot, reply_with_body};
 use crate::store::Store;
 
@@ -38,9 +38,13 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
             Some(p) => p,
             None => return reply_status(tx, req, E_NODATA),
         };
-    let entry = &accepted.index.entries[entry_index];
+    let Some(entry) = accepted.index.entries.get(entry_index) else {
+        return reply_status(tx, req, E_NODATA);
+    };
     let signed = accepted.publisher_signature_verified(entry_index, release_index);
-    let out = encode(entry, release, signed);
+    let Some(out) = encode(entry, release, signed) else {
+        return reply_status(tx, req, E_MSGSIZE);
+    };
     let slot = match body_slot(tx, out.len()) {
         Some(s) => s,
         None => return reply_status(tx, req, E_MSGSIZE),
