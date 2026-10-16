@@ -16,7 +16,8 @@
 
 //! The display's upkeep between frames: on GOP, one name of the display
 //! list asked per tick on Backoff's schedule; on a wire driver, the poll
-//! every 500 ms, or at once after a FLUSH found the primary stale. The
+//! every 500 ms, or at once after a FLUSH found the primary stale or the
+//! driver sent OUTPUT_NOTICE. The
 //! legacy ops have neither: that driver is driven as it always was.
 
 use crate::display::poll_rule::POLL_MS;
@@ -53,7 +54,7 @@ impl Upkeep {
             let _ = crate::frame_pacer::show_band(ctx);
         }
         let Some(link) = ctx.wire else { return };
-        if link.stale || now_ms.saturating_sub(self.last_poll_ms) >= POLL_MS {
+        if link.stale || link.nudged || now_ms.saturating_sub(self.last_poll_ms) >= POLL_MS {
             self.last_poll_ms = now_ms;
             if let Some(what) = crate::setup::poll(ctx) {
                 say(&alloc::format!("{}: {}", link.name, what));

@@ -29,6 +29,7 @@ use super::discover::{lookup, GfxEndpoint};
 /// What changed, for the log; None when nothing did.
 pub fn poll(ctx: &mut Context) -> Option<&'static str> {
     let link = ctx.wire?;
+    ctx.wire.as_mut()?.nudged = false;
     let ep = lookup(link.name);
     let same = ep.filter(|e| e.pid == link.pid);
     let state = same.and_then(|e| ops::state(e.port, 0).ok());
@@ -47,6 +48,7 @@ pub fn poll(ctx: &mut Context) -> Option<&'static str> {
         }
         Step::Resurface => again(ctx, ep?, "primary replaced"),
         Step::Reprime => again(ctx, ep?, "driver restarted"),
+        Step::Move => super::move_off::move_off(ctx, link.pid),
     }
 }
 

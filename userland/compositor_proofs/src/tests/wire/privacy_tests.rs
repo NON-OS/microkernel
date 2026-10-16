@@ -18,7 +18,8 @@
 //! DISPLAY_INFO's canvas geometry (16 bytes), DISPLAY_HINT's flags and
 //! OUTPUT_LAYOUT's mode and OUTPUT_SCALE's scale (4 bytes each), an
 //! output's accessibility settings and the arrangement's counts and scales
-//! (16 and 32 bytes of numbers), and SCREENSHOT's size; no op hands
+//! (16 and 32 bytes of numbers), and SCREENSHOT's size; OUTPUT_NOTICE
+//! answers nothing at all (`notice_tests`); no op hands
 //! back pixels, a surface or a handle, and the screen's pixels reach only
 //! the surface a screen capture holder shared (`screenshot_tests`).
 
@@ -44,8 +45,9 @@ fn no_op_answers_with_pixels_or_handles() {
         OP_ACCESSIBILITY,
         OP_ACCESSIBILITY_GET,
         OP_OUTPUT_ARRANGEMENT,
+        OP_OUTPUT_NOTICE,
     ];
-    assert_eq!(ops.to_vec(), (1u16..=17).collect::<Vec<_>>(), "every op the dispatch knows");
+    assert_eq!(ops.to_vec(), (1u16..=18).collect::<Vec<_>>(), "every op the dispatch knows");
     assert_eq!(DISPLAY_INFO_RESP_LEN, STATUS_LEN + 16, "the canvas's geometry and nothing else");
     assert_eq!((INDICATOR_REQ_LEN, OUTPUT_LAYOUT_REQ_LEN), (8, 4));
 }

@@ -25,6 +25,7 @@ mod floor_tests;
 mod head_tests;
 mod hint_tests;
 mod layout_tests;
+mod notice_tests;
 mod poll_tests;
 mod present_retry_tests;
 mod resize_fit_tests;

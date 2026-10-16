@@ -35,4 +35,8 @@ pub struct WireLink {
     /// Where the primary's cursor slot starts, when CAPS has HW_CURSOR and
     /// the pointer goes on the device's plane; 0 composites it.
     pub cursor_offset: u32,
+    /// The driver said its device left (OUTPUT_NOTICE): drive another.
+    pub leaving: bool,
+    /// The driver asked for a poll now (OUTPUT_NOTICE).
+    pub nudged: bool,
 }

@@ -28,6 +28,7 @@ pub mod input_subscribe;
 pub mod night_light;
 pub mod output_arrangement;
 pub mod output_layout;
+pub mod output_notice;
 pub mod output_scale;
 pub mod scene_remove;
 pub mod scene_remove_band;

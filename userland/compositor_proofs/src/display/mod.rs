@@ -54,6 +54,8 @@ pub mod m3;
 pub mod magnifier_rule;
 #[path = "../../../compositor/src/display/night_rule.rs"]
 pub mod night_rule;
+#[path = "../../../compositor/src/display/notice_rule.rs"]
+pub mod notice_rule;
 #[path = "../../../compositor/src/display/poll_rule.rs"]
 pub mod poll_rule;
 #[path = "../../../compositor/src/display/resize_rule.rs"]
