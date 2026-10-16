@@ -18,37 +18,9 @@
 //! rectangles, never one per rectangle (a flipping driver waits a vertical
 //! blank per FLUSH), and a refused FLUSH's rectangles all shown later.
 
+use super::batch_rig::*;
+use crate::drain_batch::BATCH;
 use nonos_gfx_wire::body::flush::MAX_RECTS;
-
-use crate::damage::{DamageAccumulator, Rect};
-use crate::drain_batch::{drain_batched, BATCH};
-
-struct Display {
-    damage: DamageAccumulator,
-    refuse: usize,
-    flushes: Vec<Vec<(u32, u32)>>,
-}
-
-fn display(rects: &[(u32, u32)]) -> Display {
-    let mut d = Display { damage: DamageAccumulator::new(), refuse: 0, flushes: Vec::new() };
-    for &(x, y) in rects {
-        d.damage.accumulate(Rect { x, y, width: 4, height: 4 });
-    }
-    d
-}
-
-fn send(d: &mut Display, rects: &[Rect]) -> Result<(), ()> {
-    if d.refuse > 0 {
-        d.refuse -= 1;
-        return Err(());
-    }
-    d.flushes.push(rects.iter().map(|r| (r.x, r.y)).collect());
-    Ok(())
-}
-
-fn frame(d: &mut Display, visible: impl Fn(&Rect) -> bool) -> Result<(), ()> {
-    drain_batched(d, |d| &mut d.damage, |_, r| visible(&r).then_some(r), send)
-}
 
 #[test]
 fn a_frame_goes_in_one_flush() {

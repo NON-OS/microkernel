@@ -16,8 +16,12 @@
 
 //! Pixels moved: the blitter, scaling, mirroring, batches, the band and the magnifier.
 
+mod band_rig;
 mod band_tests;
+mod batch_rig;
 mod batch_tests;
+mod blitter_canvas;
+mod blitter_place_tests;
 mod blitter_tests;
 mod downscale_tests;
 mod indicator_band_tests;
@@ -25,4 +29,6 @@ mod lens_tests;
 mod magnify_damage_tests;
 pub(crate) mod magnify_tests;
 mod mirror_tests;
+mod upscale_buf;
+mod upscale_edge_tests;
 mod upscale_tests;
