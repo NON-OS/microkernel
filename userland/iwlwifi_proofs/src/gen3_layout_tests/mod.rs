@@ -15,6 +15,7 @@
 //! dwell 4, adaptive dwell defaults 6..8, max budget 10, priority 28, passive
 //! dwell 32), iwl_scan_channel_cfg_umac 8.
 
+mod clear;
 mod cmdq;
 mod commands;
 mod image;
