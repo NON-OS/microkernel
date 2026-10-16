@@ -3,7 +3,12 @@
  "nonos-bootloader/boot_proofs": "",
  "nonos-sign": "--lib --bins --test host_trust --test release",
  "userland/attest_receipt": "",
+ "userland/nonos_devmodel": "",
+ "userland/nonos_disk": "",
+ "userland/nonos_disk_map": "",
  "userland/nonos_ed25519": "",
  "userland/nonos_i2cmodel": "",
+ "userland/nonos_keymap": "",
+ "userland/nonos_mac": "",
  "userland/nonos_secp256k1": ""
 }
