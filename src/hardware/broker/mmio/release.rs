@@ -20,12 +20,13 @@
 //!   * `unmap_grant` — single grant, holder-pid request
 //!   * `release_all_for_pid` — every grant a pid still owns
 //!
-//! Each variant unmaps the user pages when the holder's CR3 is the
-//! active CR3 (self-context), and skips the unmap otherwise so the
-//! address-space teardown can drop the PTEs wholesale.
+//! A single grant goes from the active tables, its holder's own syscall's.
+//! What a pid still owns at teardown goes from the tables it runs in, from
+//! any context: a thread's, or tables handed to an heir, outlive it.
 
 use crate::hardware::broker::claim::release_all_for_pid as drop_claims_for_pid;
 use crate::hardware::broker::grant::{self, GrantError, MmioGrant};
+use crate::hardware::broker::holder_space::unmap_from_holder;
 use crate::memory::addr::VirtAddr;
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
@@ -39,8 +40,8 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
     let retired = drop_claims_for_pid(pid, unmap_pages);
     let drained = grant::drain_for_pid(pid);
-    if unmap_pages {
-        for g in &drained {
+    for g in &drained {
+        if !unmap_from_holder(pid, g.user_va, g.length) && unmap_pages {
             unmap_one(g);
         }
     }
