@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The display wire's rule for the mode to ask for when the host wants a
-//! size (PLAN-coverage section 12, "Selection"): nothing for a zero size
-//! or the size already set; an adapter taking any size within its range
-//! is clamped to it; an adapter with a list gets its largest mode that
-//! fits inside the wanted size.
+//! size (PLAN-coverage section 12, "Selection"): nothing for a zero size or
+//! the size already set; a range adapter clamped to its range; a listing
+//! adapter its largest mode that fits inside the wanted size.
 
 /// A MODE_RANGE adapter's limits, from its CAPS reply.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -56,19 +55,21 @@ pub fn fit(
     (got != current).then_some(got)
 }
 
-/// Clamped to the adapter's range, the width cut to its alignment, and
-/// cut again, keeping the shape, while the frame overruns the budget.
+/// Clamped to the range, cut keeping its shape while over budget, aligned.
 fn clamp(want: (u32, u32), r: &Range) -> Option<(u32, u32)> {
     let align = r.width_align.max(1);
     if r.max_width < MIN.0 || r.max_height < MIN.1 {
         return None;
     }
     let (mut w, mut h) = (want.0.clamp(MIN.0, r.max_width), want.1.clamp(MIN.1, r.max_height));
-    let frame = |w: u32, h: u32| w as u64 * h as u64 * 4 + CURSOR_SLOT;
-    while frame(w, h) > r.budget && w > MIN.0 && h > MIN.1 {
-        (w, h) = ((w * 15 / 16).max(MIN.0), (h * 15 / 16).max(MIN.1));
+    // u128: u32's top squared, four bytes a pixel, passes even u64's top.
+    let frame = |w: u32, h: u32| w as u128 * h as u128 * 4 + CURSOR_SLOT as u128;
+    let budget = r.budget as u128;
+    while frame(w, h) > budget && w > MIN.0 && h > MIN.1 {
+        let shrink = |v: u32| (v as u64 * 15 / 16) as u32;
+        (w, h) = (shrink(w).max(MIN.0), shrink(h).max(MIN.1));
     }
     w = w / align * align;
     let fits = w >= MIN.0 && w <= r.max_width && h <= r.max_height;
-    (fits && frame(w, h) <= r.budget).then_some((w, h))
+    (fits && frame(w, h) <= budget).then_some((w, h))
 }
