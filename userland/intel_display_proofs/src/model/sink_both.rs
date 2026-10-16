@@ -48,4 +48,7 @@ impl Link for Both {
     fn stop(&mut self) {
         LinkEnd(self.0.clone()).stop()
     }
+    fn now_us(&self) -> Option<u64> {
+        LinkEnd(self.0.clone()).now_us()
+    }
 }

@@ -45,4 +45,8 @@ impl Link for LinkEnd {
         s.drive = Drive::default();
         s.stops += 1;
     }
+    /// The sink's time is the waits it was given.
+    fn now_us(&self) -> Option<u64> {
+        Some(self.0.borrow().waited_us)
+    }
 }
