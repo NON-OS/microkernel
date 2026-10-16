@@ -22,4 +22,4 @@ mod state;
 pub use init::init_from_pci;
 pub(super) use init::register_platform_device;
 pub(super) use list::class_of;
-pub use list::{contains, list, list_by_class};
+pub use list::{contains, list, list_by_class, list_shown};
