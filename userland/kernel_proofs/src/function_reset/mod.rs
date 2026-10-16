@@ -18,7 +18,11 @@
 pub mod reset_rule;
 #[path = "../../../../src/hardware/broker/claim/reset_run.rs"]
 pub mod reset_run;
+#[path = "../../../../src/hardware/broker/claim/reset_wait.rs"]
+pub mod reset_wait;
 #[cfg(test)]
 mod fake;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod wait_tests;

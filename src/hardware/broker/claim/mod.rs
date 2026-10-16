@@ -26,6 +26,7 @@ mod reset_io;
 mod reset_restore;
 mod reset_rule;
 mod reset_run;
+mod reset_wait;
 mod scope_check;
 mod state;
 mod types;

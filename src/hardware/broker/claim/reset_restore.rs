@@ -36,10 +36,19 @@ impl Function {
     }
 }
 
-/// Spin `ms` milliseconds: the reset runs where nothing may sleep.
-pub(super) fn pause_ms(ms: u64) {
-    let end = crate::time::monotonic_ns().saturating_add(ms.saturating_mul(1_000_000));
-    while crate::time::monotonic_ns() < end {
-        core::hint::spin_loop();
+/// Wait `ms` milliseconds: asleep on the sleeper's process where reset_wait
+/// allows it, spinning otherwise.
+pub(super) fn pause_ms(ms: u64, sleeper: Option<u32>) {
+    let Some(pid) = super::reset_wait::sleeper(sleeper, crate::process::current_pid()) else {
+        let end = crate::time::monotonic_ns().saturating_add(ms.saturating_mul(1_000_000));
+        while crate::time::monotonic_ns() < end {
+            core::hint::spin_loop();
+        }
+        return;
+    };
+    let end = crate::time::timestamp_millis().saturating_add(ms);
+    while crate::time::timestamp_millis() < end {
+        crate::sched::sleep_until(pid, end);
+        crate::sched::yield_now();
     }
 }

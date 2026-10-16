@@ -25,7 +25,7 @@ pub fn quiesce_held(pid: u32, device_id: u64) -> bool {
     if held {
         super::quiesce::stop_bus_master_quietly(device_id);
         // Before any of its frames is freed.
-        super::reset::at_release(device_id);
+        super::reset::at_release(device_id, Some(pid));
     }
     held
 }

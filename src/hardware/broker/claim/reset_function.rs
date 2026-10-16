@@ -30,12 +30,14 @@ pub(super) struct Function {
     pub(super) header: [u32; 16],
     /// Device Control and Device Control 2, as saved.
     pub(super) control: (u16, u16),
+    /// The caller whose process the waits may sleep (reset_wait).
+    pub(super) sleeper: Option<u32>,
 }
 
 impl Function {
-    pub(super) fn new(cfg: ConfigSpace) -> Self {
+    pub(super) fn new(cfg: ConfigSpace, sleeper: Option<u32>) -> Self {
         let (pcie, af) = (capability(&cfg, CAP_PCIE), capability(&cfg, CAP_AF));
-        Self { cfg, pcie, af, header: [0; 16], control: (0, 0) }
+        Self { cfg, pcie, af, header: [0; 16], control: (0, 0), sleeper }
     }
 }
 
