@@ -34,22 +34,8 @@ impl Probe {
         /* A network's refusal, or no route at all, is said in its own words. */
         let refused = failed;
         NetStatus {
-            nym_ok: self.nym_ok,
-            route_ready,
             rpc_connect_ok: tcp.connect,
-            rpc_tcp_ok: tcp.connect,
-            rpc_codec_ok: self.rpc_codec_ok,
-            tls13_ok: self.tls13_ok,
-            tls_server_ok: tls.server_hello,
-            tls_record_ok: tls.encrypted_record,
-            tls_certificate_ok: tls.certificate,
             tls_chain_ok: tls.chain,
-            tls_anchor_ok: tls.anchor,
-            tls_signature_ok: tls.signature,
-            tls_hostname_ok: tls.hostname,
-            tls_validity_ok: tls.validity,
-            tls_finished_ok: tls.finished,
-            tls_client_finished_ok: tls.client_finished,
             rpc_chain_ok: tls.chain_id,
             rpc_host: "",
             route: Some(self.route),

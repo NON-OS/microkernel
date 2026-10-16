@@ -63,7 +63,7 @@ pub fn proving(state: &State, fb: &mut PaintBuffer) {
     y = super::proving_earlier::earlier(fb, ui, c, y);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     let on: Vec<bool> = shown.iter().map(|_| true).collect();
     super::edges::footer(&l, &on);
 }
