@@ -47,10 +47,7 @@ Limits, checks and reports:
 - [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a
   security bug privately.
 
-`capabilities-and-tokens.md` in this directory is an older capability page. It
-stays because `scripts/check_docs_caps.py` reads its bit table (`PAGE`,
-`scripts/check_docs_caps.py:39`), and its prose is out of date: it says
-`MkCapGrant` needs `IPC`, where the kernel asks for `Admin` (`MkCapGrant`,
-`src/syscall/contract/cap_table/mk_ipc.rs:50`), and it links pages that do not
-exist. Use [Capsule isolation](capsule-isolation.md) and [ABI
-capabilities](../abi/capabilities.md).
+The capability bits are described in [Capsule isolation](capsule-isolation.md)
+and [ABI capabilities](../abi/capabilities.md), and the bit table that
+`scripts/check_docs_caps.py` holds to the kernel is in [Capabilities: what each
+bit admits](../kernel/capabilities-what-each-bit.md).
