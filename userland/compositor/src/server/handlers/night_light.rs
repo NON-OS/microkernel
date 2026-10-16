@@ -22,8 +22,8 @@
 
 use nonos_libc::mk_service_lookup;
 
-use crate::display::night_rule::{active, ramps, WARMEST_K};
-use crate::protocol::{Request, E_INVAL, E_PERM, NIGHT_LIGHT_REQ_LEN};
+use crate::display::night_rule::{active, ramps};
+use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
 use crate::state::Context;
 
@@ -45,8 +45,7 @@ pub fn handle(
     if sender == 0 || shell_pid() != Some(sender) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let k = super::u32_at(body, 0).filter(|_| body.len() == NIGHT_LIGHT_REQ_LEN);
-    let Some(k) = k.filter(|&k| k == 0 || k >= WARMEST_K) else {
+    let Some(k) = crate::requests::toggles::night_light(body) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
     ctx.looks.night = active(k).then(|| alloc::boxed::Box::new(ramps(k)));

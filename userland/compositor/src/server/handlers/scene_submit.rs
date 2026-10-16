@@ -28,7 +28,7 @@ pub fn handle(
     body: &[u8],
     tx: &mut [u8],
 ) -> Result<(), &'static str> {
-    let Some(placed) = super::scene_submit_body::parse(body) else {
+    let Some(placed) = crate::requests::place::scene_submit(body) else {
         return respond::status(sender_pid, req, E_INVAL, tx);
     };
     // The trusted band is the trusted sources' alone: a prompt is never

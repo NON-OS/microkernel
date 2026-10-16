@@ -26,7 +26,7 @@ use nonos_libc::{mk_cap_check, mk_surface_release, mk_uptime_ms};
 use crate::display::screenshot_rule::{may_capture, NOTICE_MS};
 use crate::frame_pacer::canvas_copy::capture;
 use crate::frame_pacer::compose::Scene;
-use crate::protocol::{Request, E_INVAL, E_IO, E_PERM, SCREENSHOT_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_IO, E_PERM};
 use crate::server::respond;
 use crate::state::attach_kernel::Kernel;
 use crate::state::trusted_rule::TRUSTED_Z;
@@ -42,7 +42,7 @@ pub fn handle(
     if !may_capture(sender, mk_cap_check) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let handle = super::u64_at(body, 0).filter(|_| body.len() == SCREENSHOT_REQ_LEN);
+    let handle = crate::requests::capture::screenshot(body);
     let Some(handle) = handle else { return respond::status(sender, req, E_INVAL, tx) };
     let Some(dst) = super::attach_argb::attach_argb(handle) else {
         return respond::status(sender, req, E_INVAL, tx);

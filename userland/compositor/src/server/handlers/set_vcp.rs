@@ -24,7 +24,7 @@
 //! or any other refusal as E_IO.
 
 use crate::display::brightness_rule::OP_SET_VCP;
-use crate::protocol::{Request, E_INVAL, E_IO, E_NOENT, E_PERM, SET_VCP_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_IO, E_NOENT, E_PERM};
 use crate::server::respond;
 use crate::state::Context;
 
@@ -38,19 +38,14 @@ pub fn handle(
     if !super::shell_only::from_shell(sender) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let (Some(panel), Some(code), Some(value)) =
-        (super::u32_at(body, 0), super::u32_at(body, 4), super::u32_at(body, 8))
-    else {
+    let Some(ask) = crate::requests::vcp::set_vcp(body) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    if body.len() != SET_VCP_REQ_LEN || code > 0xFF || value > 0xFFFF {
-        return respond::status(sender, req, E_INVAL, tx);
-    }
     let Some(port) = super::driver_call::brightness_port(ctx) else {
         return respond::status(sender, req, E_NOENT, tx);
     };
-    let (p, [lo, hi]) = (panel.to_le_bytes(), (value as u16).to_le_bytes());
-    let msg = [OP_SET_VCP, p[0], p[1], p[2], p[3], code as u8, lo, hi];
+    let (p, [lo, hi]) = (ask.panel.to_le_bytes(), ask.value.to_le_bytes());
+    let msg = [OP_SET_VCP, p[0], p[1], p[2], p[3], ask.code, lo, hi];
     let status = match super::driver_call::status(port, &msg) {
         Some(0) => 0,
         Some(-1) => E_PERM,

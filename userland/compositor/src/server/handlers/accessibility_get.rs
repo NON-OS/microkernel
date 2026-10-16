@@ -35,7 +35,7 @@ pub fn handle(
     if sender == 0 || !trusted_pids().contains(&Some(sender)) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let out = super::u32_at(body, 0).filter(|_| body.len() == 4).map(|o| o as usize);
+    let out = crate::requests::capture::accessibility_get(body);
     let Some(a) = out.and_then(|o| ctx.looks.access.get(o)).copied() else {
         return respond::status(sender, req, E_INVAL, tx);
     };

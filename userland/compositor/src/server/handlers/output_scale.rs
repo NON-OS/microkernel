@@ -25,8 +25,7 @@
 
 use nonos_libc::mk_service_lookup;
 
-use crate::display::scale_rule::STEPS;
-use crate::protocol::{Request, E_INVAL, E_PERM, OUTPUT_SCALE_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
 use crate::state::Context;
 
@@ -48,14 +47,11 @@ pub fn handle(
     if sender == 0 || shell_pid() != Some(sender) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let (Some(out), Some(q)) = (super::u32_at(body, 0), super::u32_at(body, 4)) else {
+    let asked = crate::requests::toggles::output_scale(body);
+    let Some((slot, want)) = asked.and_then(|(o, q)| Some((ctx.output_scale.get_mut(o)?, q)))
+    else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    let ok = body.len() == OUTPUT_SCALE_REQ_LEN && (q == 0 || STEPS.contains(&q));
-    let Some(slot) = ctx.output_scale.get_mut(out as usize).filter(|_| ok) else {
-        return respond::status(sender, req, E_INVAL, tx);
-    };
-    let want = (q != 0).then_some(q);
     if *slot != want {
         *slot = want;
         crate::setup::relayout(ctx);
