@@ -16,9 +16,9 @@
 
 //! Building the replies protocol.rs describes.
 
-use super::caller::{group_of, owner};
+use super::caller::{group_of, owner, runs};
 use super::inventory::{device, status};
-use super::policy::admits;
+use super::policy::{admits, SPI_HID};
 use super::protocol::*;
 use super::{brightness, lpit_wire, power_wire, smbios_wire, thermal_wire};
 use crate::boot::Acpi;
@@ -33,6 +33,7 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
     if !admits(op, sender, owner, group_of) {
         return EPERM.to_le_bytes().to_vec();
     }
+    let spi_hid = op == OP_SERIAL && runs(sender, SPI_HID);
     let (code, body) = match req.first().copied() {
         Some(OP_STATUS) => (0, status(acpi)),
         Some(OP_DEVICE) => match index(req).and_then(|i| device(acpi, i)) {
@@ -45,7 +46,7 @@ pub fn answer(acpi: &mut Acpi, req: &[u8], sender: u32) -> Vec<u8> {
         Some(OP_POWER) => power_wire::power(acpi),
         Some(OP_THERMAL) => thermal_wire::thermal(acpi),
         Some(OP_SMBIOS) => smbios_wire::smbios(acpi),
-        Some(OP_SERIAL) => match index(req).and_then(|i| crate::serial::serial(acpi, i)) {
+        Some(OP_SERIAL) => match index(req).and_then(|i| crate::serial::serial(acpi, i, spi_hid)) {
             Some(b) => (0, b),
             None => (ENOENT, Vec::new()),
         },

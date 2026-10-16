@@ -207,7 +207,8 @@ Each op answers only the services named for it (`src/server/policy.rs`,
 registry at each request; anyone else gets EPERM. BRIGHTNESS,
 SET_BRIGHTNESS, POWER and THERMAL: `power` and `desktop_shell`.
 PREPARE_SLEEP: `power`. SMBIOS: `desktop_shell`. SERIAL: the I2C
-capsules. DEVICE_POWER: any sender the endpoint admits, moves only for
+capsules, `driver.gpio0` and `driver.spi_hid0` (its HID-over-SPI facts
+to `driver.spi_hid0` alone). DEVICE_POWER: any sender the endpoint admits, moves only for
 the device's holder. LEGACY: `driver.ps2_kbd0`. STATUS, DEVICE and any
 other op: no one.
 
@@ -252,10 +253,16 @@ other op: no one.
   wake, the bus and GPIO controllers' _UID and paths, the bus
   controller's key (1 << 63 | its broker device id, for a PCI function
   and a platform controller alike; the `_ADR` slot is all ones, since no
-  capsule is given a function's numbers), and the count of such devices.
-  Layout in `src/serial/wire.rs`. Held to `driver.i2c_pci0`
-  and `driver.i2c_hid0` besides `power` and the shell. Each device is
-  logged at start on one `[ACPI] serial` line.
+  capsule is given a function's numbers), the SPI connection's data
+  bits, clock phase and polarity and wire mode (SpiSerialBusV2; one with
+  a reserved value is refused), for a PNP0C51 device HID over SPI's _DSM
+  facts (report addresses, opcodes, flags; only the documented functions
+  its function 0 offers), and the count of such devices. Layout in
+  `src/serial/wire.rs` and `src/serial/wire_spi.rs`. Answered to
+  `driver.i2c_pci0`, `driver.i2c_hid0`, `driver.gpio0` and
+  `driver.spi_hid0`. Each device is
+  logged at start on one `[ACPI] serial` line. The HID-over-SPI bytes are
+  zero for any reader but `driver.spi_hid0`.
 - DEVICE_POWER (10, verb, state, device id): a device's D-state (ACPI
   6.5, chapter 7), a PCI function or an ACPI-bus device. Any caller the
   port admits may read it; only the pid holding the device's claim (asked
