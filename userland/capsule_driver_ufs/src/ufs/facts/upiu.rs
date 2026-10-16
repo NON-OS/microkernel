@@ -46,6 +46,12 @@ pub const UPIU_LEN: usize = 32;
 /// Response offsets: transaction type, response, SCSI status, the flag
 /// value's last byte, sense length (big-endian) and sense data.
 pub const AT_TYPE: usize = 0;
+/// The request's LUN and task tag, echoed in its response's header, and a
+/// query's opcode and IDN echoed in its transaction specific fields.
+pub const AT_LUN: usize = 2;
+pub const AT_TAG: usize = 3;
+pub const AT_OPCODE: usize = 12;
+pub const AT_IDN: usize = 13;
 pub const AT_RESPONSE: usize = 6;
 pub const AT_STATUS: usize = 7;
 pub const AT_FLAG: usize = 23;

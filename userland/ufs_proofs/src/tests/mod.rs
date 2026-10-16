@@ -20,6 +20,7 @@ mod bring_up_tests;
 mod device_tests;
 mod encode_tests;
 mod host_tests;
+mod hostile_tests;
 mod link_tests;
 mod luns_tests;
 mod ocs_tests;

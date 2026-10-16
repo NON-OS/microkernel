@@ -17,4 +17,5 @@
 //! Talking to the device before any SCSI: is it there, and is it ready.
 
 mod ask;
+mod once;
 pub mod ready;

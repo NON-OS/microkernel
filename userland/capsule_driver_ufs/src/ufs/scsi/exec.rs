@@ -19,6 +19,7 @@
 //! and the PRDT, and the response's status decides.
 
 use super::cdb::Cdb;
+use super::clear::clear;
 use super::codes::{CHECK_CONDITION, GOOD};
 use super::sense;
 use crate::ufs::ctx::Ctx;
@@ -53,9 +54,12 @@ pub fn exec<H: Hw>(
     };
     let upiu = command(lun, flags, n as u32, &cdb.0[..cdb.1]);
     let req = Req { cmd_type: c.scsi_type(), dir, upiu: &upiu, data_len: n, ms };
+    if let Data::In(n) = data {
+        clear(c, n);
+    }
     let rsp = run(hw, c, &req)?;
     let r = Rsp(&rsp);
-    if r.tt() != RESPONSE {
+    if !r.answers(RESPONSE, lun) {
         return Err(UfsError::Upiu(r.tt()));
     }
     match r.status() {

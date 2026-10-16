@@ -16,15 +16,11 @@
 
 //! One device management question to unit 0, no data, asked per policy.
 
+use super::once::once;
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
 use crate::ufs::facts::bounds::{NOP_MS, NOP_TRIES, QUERY_MS, QUERY_TRIES};
-use crate::ufs::facts::upiu::{NOP_IN, QUERY_RSP, TARGET_SUCCESS as OK};
-use crate::ufs::slot::descriptor::Dir;
-use crate::ufs::slot::run::{run, Req};
-use crate::ufs::upiu::request::{flag_query, nop_out};
-use crate::ufs::upiu::response::Rsp;
 
 #[derive(Clone, Copy)]
 pub enum Ask {
@@ -55,20 +51,4 @@ pub fn ask<H: Hw>(hw: &H, c: &Ctx, a: Ask) -> Result<bool, UfsError> {
         }
     }
     Err(last)
-}
-
-fn once<H: Hw>(hw: &H, c: &Ctx, a: Ask, ms: u64) -> Result<bool, UfsError> {
-    let upiu = match a {
-        Ask::Nop => nop_out(),
-        Ask::Flag { func, op, idn } => flag_query(func, op, idn),
-    };
-    let req = Req { cmd_type: c.dev_type(), dir: Dir::None, upiu: &upiu, data_len: 0, ms };
-    let rsp = run(hw, c, &req)?;
-    let r = Rsp(&rsp);
-    // A query's response field is its response code.
-    match (a, r.tt(), r.response()) {
-        (Ask::Nop, NOP_IN, OK) | (Ask::Flag { .. }, QUERY_RSP, OK) => Ok(r.flag()),
-        (Ask::Flag { .. }, QUERY_RSP, code) => Err(UfsError::Query(code)),
-        (_, tt, _) => Err(UfsError::Upiu(tt)),
-    }
 }
