@@ -18,17 +18,18 @@
 //! no two messages closer than 50 ms, and a reading answered from memory
 //! for a second.
 
+use super::caps_rig::known;
 use super::fake_bus::FakeBus;
-use crate::ddc::pace::Pacer;
 use crate::ddc::reply::Reading;
-use crate::ddc::transact::{read, write};
+use crate::ddc::transact::read;
+use crate::ddc::transact_write::write;
 use crate::model::Ticks;
 
 const MONITOR: [(u8, u16, u16); 2] = [(0x10, 70, 100), (0x12, 50, 100)];
 
 #[test]
 fn the_reply_waits_40_ms_and_the_next_message_50() {
-    let (t, mut p) = (Ticks::new(), Pacer::new());
+    let (t, mut p) = (Ticks::new(), known());
     let mut b = FakeBus::new(&t, &MONITOR);
     assert_eq!(read(&mut b, &t, &mut p, 0x10), Ok(Reading { present: 70, max: 100 }));
     assert_eq!(read(&mut b, &t, &mut p, 0x12), Ok(Reading { present: 50, max: 100 }));
@@ -40,7 +41,7 @@ fn the_reply_waits_40_ms_and_the_next_message_50() {
 
 #[test]
 fn a_reading_is_kept_a_second_and_a_write_forgets_it() {
-    let (t, mut p) = (Ticks::new(), Pacer::new());
+    let (t, mut p) = (Ticks::new(), known());
     let mut b = FakeBus::new(&t, &MONITOR);
     for _ in 0..50 {
         assert_eq!(read(&mut b, &t, &mut p, 0x10).map(|r| r.present), Ok(70));

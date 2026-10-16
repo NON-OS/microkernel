@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a sender of F 12's bytes may do, as the capsule's sender rule
-//! found it: change brightness and a monitor's controls (power,
-//! desktop_shell), and read a monitor's controls (those and Settings).
+//! found it (`senders.rs`, the compositor alone): change brightness and a
+//! monitor's controls, and read a monitor's controls.
 
 #[derive(Clone, Copy)]
 pub struct Rights {

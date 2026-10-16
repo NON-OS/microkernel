@@ -20,8 +20,6 @@
 pub enum DdcError {
     /// A control the allowlist does not name.
     NotAllowed,
-    /// A control the allowlist names read-only, asked to change.
-    ReadOnly,
     /// A value the control does not take.
     Value,
     /// The request was not taken: nothing answers DDC/CI on this bus.
@@ -38,4 +36,6 @@ pub enum DdcError {
     Unsupported,
     /// No clock to pace the bus by.
     NoClock,
+    /// The display has not given its capabilities string, or gave a bad one.
+    NoCapabilities,
 }

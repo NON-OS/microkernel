@@ -50,7 +50,7 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
         let mon = Monitor::on(m, clock, &Route { ddi: ms.lit.ddi, link: ms.lit.link });
         let Some(tmds_khz) = mon.tmds_khz() else { return };
         (ms.monitor, ms.tmds_khz, h.panel) = (mon, tmds_khz, mon.panel());
-        ddc[o] = Pacer::default();
+        ddc[o] = Pacer::new();
         (h.plug, h.generation) = (Plug::Back, h.generation.wrapping_add(1));
     }
 }

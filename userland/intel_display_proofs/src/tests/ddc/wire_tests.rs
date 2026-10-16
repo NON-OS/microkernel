@@ -16,15 +16,19 @@
 
 //! The controls through F 12's bytes on the two-output rig, with pipe B's
 //! monitor on HDMI and DDC/CI: BRIGHTNESS lists it beside the eDP panel
-//! and SET_BRIGHTNESS reaches it; VCP and SET_VCP answer for the allowed
-//! controls only, sets from power or the shell alone, and the eDP panel
-//! and the DP monitor without DDC/CI have none.
+//! and SET_BRIGHTNESS reaches it, once its capabilities string is read and
+//! not before; VCP and SET_VCP answer for the allowed controls only, sets
+//! from the compositor alone, and the eDP panel and the DP monitor without
+//! DDC/CI have none.
 
+use super::caps_rig::read_caps;
 use super::rig::{ask, ask_unread, rig, HDMI};
 
 #[test]
 fn the_hdmi_monitor_is_listed_and_set_through_brightness() {
     let (mut d, model) = rig(true);
+    assert_eq!(ask(&mut d, &[3], false).1[0], 1, "not before its capabilities");
+    read_caps(&mut d);
     let (status, body) = ask(&mut d, &[3], false);
     assert_eq!((status, body[0]), (0, 2), "the eDP panel and the monitor");
     assert_eq!((&body[107..111], body[111]), (&HDMI[..], 70));
@@ -34,15 +38,17 @@ fn the_hdmi_monitor_is_listed_and_set_through_brightness() {
 }
 
 #[test]
-fn vcp_answers_the_allowed_controls_and_sets_only_from_power_or_the_shell() {
+fn vcp_answers_the_allowed_controls_and_sets_only_from_the_compositor() {
     let (mut d, model) = rig(true);
+    read_caps(&mut d);
     let at = |c: u8| [23, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c];
     assert_eq!(ask(&mut d, &at(0x12), false), (0, vec![50, 0, 80, 0]));
-    assert_eq!(ask_unread(&mut d, &at(0x12)), -1, "only power, the shell and Settings read");
+    assert_eq!(ask_unread(&mut d, &at(0x12)), -1, "only the compositor reads");
     assert_eq!(ask(&mut d, &at(0x60), false), (0, vec![0x0F, 0, 0x12, 0]), "input, read");
     let set = |c: u8, v: u16| [24, HDMI[0], HDMI[1], HDMI[2], HDMI[3], c, v as u8, (v >> 8) as u8];
     assert_eq!(ask(&mut d, &set(0x12, 60), false).0, -1, "EPERM for anyone else");
-    assert_eq!(ask(&mut d, &set(0x60, 0x11), true).0, -1, "the input source is not set");
+    assert_eq!(ask(&mut d, &set(0x60, 0x12), true).0, -22, "an input it does not list");
+    assert_eq!(ask(&mut d, &set(0x60, 0x11), true).0, 0, "one it lists");
     assert_eq!(ask(&mut d, &set(0x04, 1), true).0, -1, "a factory reset is not allowed");
     assert_eq!(ask(&mut d, &set(0x12, 81), true).0, -22, "past the maximum");
     assert_eq!(ask(&mut d, &set(0x12, 60), true).0, 0);

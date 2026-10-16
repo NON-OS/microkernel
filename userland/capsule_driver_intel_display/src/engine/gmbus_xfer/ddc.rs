@@ -27,13 +27,15 @@ use super::end::end;
 use super::put::put;
 use super::take::take;
 use crate::ddc::bus::DdcBus;
+use crate::ddc::caps_frame::CAPS_READ;
 use crate::ddc::error::DdcError;
 use crate::ddc::frame::DDC_CI_ADDR;
 
 /// The most one DDC/CI message here holds: a Set VCP's seven bytes.
 const MAX_SEND: usize = 8;
-/// The most one reply here holds: a VCP reply's eleven bytes.
-const MAX_TAKE: usize = 16;
+/// The most one reply here holds: a capabilities reply's 38 bytes, well
+/// inside GMBUS1's byte count.
+const MAX_TAKE: usize = CAPS_READ;
 
 pub struct GmbusDdc<'a> {
     pub mmio: &'a mut dyn Mmio,

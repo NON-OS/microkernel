@@ -22,10 +22,18 @@
 //! checked for its length, its checksum and that it answers what was asked.
 
 pub mod bus;
+pub mod caps;
+pub mod caps_fetch;
+pub mod caps_frame;
+mod caps_list;
+mod caps_take;
+mod caps_walk;
 pub mod error;
 pub mod frame;
+mod fresh;
 pub mod pace;
 pub mod reply;
 pub mod transact;
+pub mod transact_write;
 pub mod vcp;
 pub mod wait;

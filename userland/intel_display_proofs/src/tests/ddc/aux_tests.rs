@@ -20,10 +20,11 @@
 //! 0x37; a sink with nothing at that address (the model's DP monitor)
 //! is absent.
 
+use super::caps_rig::known;
 use crate::ddc::error::DdcError;
-use crate::ddc::pace::Pacer;
 use crate::ddc::reply::Reading;
-use crate::ddc::transact::{read, write};
+use crate::ddc::transact::read;
+use crate::ddc::transact_write::write;
 use crate::dp::i2c_ddc::AuxDdc;
 use crate::model::mccs::Mccs;
 use crate::model::mccs_aux::MccsAux;
@@ -34,7 +35,7 @@ use crate::model::Ticks;
 #[test]
 fn a_read_and_a_set_are_framed_as_i2c_over_aux_at_0x37() {
     let mut a = MccsAux { monitor: Mccs::with(&[(0x12, 50, 100)]), ..Default::default() };
-    let (t, mut p) = (Ticks::new(), Pacer::new());
+    let (t, mut p) = (Ticks::new(), known());
     let mut bus = AuxDdc { aux: &mut a };
     assert_eq!(read(&mut bus, &t, &mut p, 0x12), Ok(Reading { present: 50, max: 100 }));
     assert_eq!(write(&mut bus, &t, &mut p, 0x12, 75), Ok(()));
@@ -52,7 +53,7 @@ fn a_read_and_a_set_are_framed_as_i2c_over_aux_at_0x37() {
 
 #[test]
 fn a_sink_with_nothing_at_0x37_is_absent() {
-    let (t, mut p) = (Ticks::new(), Pacer::new());
+    let (t, mut p) = (Ticks::new(), known());
     let mut end = AuxEnd(sink(Vec::new()));
     assert_eq!(read(&mut AuxDdc { aux: &mut end }, &t, &mut p, 0x10), Err(DdcError::Absent));
 }

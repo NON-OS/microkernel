@@ -51,7 +51,7 @@ pub struct Intel<M: Mmio, F: Frames, C: Clock> {
 
 impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
     pub fn new(m: M, clock: C, gen: &'static Gen, heads: [Option<Head<F>>; MAX_HEADS]) -> Self {
-        Intel { m, clock, gen, heads, ddc: Default::default(), plugs: None }
+        Intel { m, clock, gen, heads, ddc: [Pacer::new(); MAX_HEADS], plugs: None }
     }
 
     pub fn count(&self) -> usize {
