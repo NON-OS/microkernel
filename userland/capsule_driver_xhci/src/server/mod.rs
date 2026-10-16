@@ -25,6 +25,7 @@ mod mux_enable;
 mod mux_forward;
 mod mux_list;
 mod mux_ops;
+mod mux_park;
 mod mux_police;
 mod mux_ports;
 mod mux_routed;
