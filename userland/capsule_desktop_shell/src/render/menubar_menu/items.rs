@@ -25,8 +25,11 @@ pub(super) const TITLE_COUNT: usize = 5;
 
 const APPS: &[LauncherApp] = &LAUNCHER_APPS;
 
-const APP_ITEMS: [&str; 3] = ["Focus Window", "Show All Apps", "About This System"];
-const DESKTOP_ITEMS: [&str; 3] = ["Refresh Desktop", "Show All Apps", "About This System"];
+// Power Off is last in the first menu, which is there whatever has focus.
+const APP_ITEMS: [&str; 4] = ["Focus Window", "Show All Apps", "About This System", POWER_OFF];
+const DESKTOP_ITEMS: [&str; 4] =
+    ["Refresh Desktop", "Show All Apps", "About This System", POWER_OFF];
+const POWER_OFF: &str = "Power Off";
 const FILE_ITEMS: [&str; 3] = ["New Folder", "New File", "Open Files"];
 const VIEW_ITEMS: [&str; 3] = ["Show Launchpad", "Show Dock", "Refresh Desktop"];
 const GO_ITEMS: [&str; 3] = ["Terminal", "Browser", "Settings"];

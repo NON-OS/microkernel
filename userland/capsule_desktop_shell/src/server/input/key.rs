@@ -19,12 +19,13 @@
 
 use crate::protocol::{read_u16, read_u32};
 use crate::server::desktop;
+use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 
 /// The Ctrl bit of a key event's modifier flags, as app_skeleton names it.
 const MOD_CTRL: u16 = nonos_app_skeleton::MOD_CTRL;
 
-pub(super) fn key(ctx: &mut Context, buf: &[u8], kind: u16) -> bool {
+pub(super) fn key(ctx: &mut Context, by: Routed, buf: &[u8], kind: u16) -> bool {
     let code = read_u32(buf, 12).unwrap_or(0);
     let flags = read_u16(buf, 10).unwrap_or(0);
     if super::super::handlers::escape_chord::is_reserved_chord(kind, code, flags) {
@@ -49,7 +50,7 @@ pub(super) fn key(ctx: &mut Context, buf: &[u8], kind: u16) -> bool {
         }
         return true;
     }
-    if super::super::handlers::dialog_key::key(ctx, code) {
+    if super::super::handlers::dialog_key::key(ctx, by, code) {
         return true;
     }
     if ctx.desk_ui.rename.is_some() {

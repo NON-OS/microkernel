@@ -19,10 +19,11 @@
 
 use crate::protocol::{read_i32, read_u16, read_u32};
 use crate::server::handlers::launchpad;
+use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 use nonos_libc::{INPUT_KIND_KEY_DOWN, INPUT_KIND_WHEEL};
 
-pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
+pub fn handle(ctx: &mut Context, by: Routed, buf: &[u8]) -> bool {
     if buf.len() < 40 || read_u32(buf, 0) != Some(0x4E49_4E50) {
         return false;
     }
@@ -39,7 +40,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     // A key press while an inline rename is active edits the name; keys carry no
     // pointer position, so this is handled before the x/y checks below.
     if kind == INPUT_KIND_KEY_DOWN {
-        return super::key::key(ctx, buf, kind);
+        return super::key::key(ctx, by, buf, kind);
     }
     // The wheel reaches the shell only through its pointer grab, which the
     // Launchpad holds while open; it was dropped here, so the pages could
@@ -50,5 +51,5 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         }
         return true;
     }
-    super::pointer::pointer(ctx, buf, kind)
+    super::pointer::pointer(ctx, by, buf, kind)
 }

@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A press taken by what is drawn over the desktop, in this order: the live
-//! and delete prompts, the two consents, the toasts' panel, the Launchpad.
+//! A press taken by what is drawn over the desktop, in this order: the
+//! power-off confirmation, the live and delete prompts, the two consents,
+//! the toasts' panel, the Launchpad.
 
 use crate::server::handlers::launchpad;
+use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 
 /// True when one of them took the press.
-pub(super) fn consumed(ctx: &mut Context, px: u32, py: u32) -> bool {
+pub(super) fn consumed(ctx: &mut Context, by: Routed, px: u32, py: u32) -> bool {
+    if super::super::handlers::power_off::click(ctx, by, px, py) {
+        return true;
+    }
     if super::super::handlers::live_prompt::click(ctx, px, py) {
         return true;
     }
