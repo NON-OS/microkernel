@@ -28,6 +28,8 @@ pub mod policy;
 pub mod props;
 #[path = "../../capsule_acpi/src/aei/rate.rs"]
 pub mod rate;
+#[path = "../../capsule_acpi/src/dpower/wake_sweep.rs"]
+pub mod wake_sweep;
 
 #[cfg(test)]
 mod bus_key_tests;
@@ -49,3 +51,7 @@ mod props_tests;
 mod rate_tests;
 #[cfg(test)]
 mod thread_tests;
+#[cfg(test)]
+mod wake_model;
+#[cfg(test)]
+mod wake_sweep_tests;

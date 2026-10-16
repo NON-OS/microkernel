@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a driver's armed device hears: each Notify(dev, 2) counted. Every
-//! two seconds each armed device's holder is asked again, and one that no
-//! longer holds it has its wake disarmed, so nothing stays armed for a
-//! driver that is gone.
+//! two seconds each armed device's holder is asked again (`wake_sweep`),
+//! and one that no longer holds it, by release, exit or departure, has
+//! its wake disarmed.
 
 use super::target::target;
 use super::wake::wake;
+use super::wake_sweep::stale;
 use crate::boot::Acpi;
 use crate::sys::clock::now_ms;
 use crate::sys::function_of::Asker;
@@ -39,9 +40,8 @@ pub fn tick(acpi: &mut Acpi) {
         return;
     }
     acpi.hidden.wake.check_at = now + CHECK_MS;
-    for (dev, pid, id) in acpi.hidden.wake.owners.clone() {
-        if target(acpi, Asker::Holder(pid), id) != Ok(dev) {
-            let _ = wake(acpi, dev, None, (pid, id));
-        }
+    let owners = acpi.hidden.wake.owners.clone();
+    for (dev, pid, id) in stale(&owners, &mut |pid, id| target(acpi, Asker::Holder(pid), id).ok()) {
+        let _ = wake(acpi, dev, None, (pid, id));
     }
 }

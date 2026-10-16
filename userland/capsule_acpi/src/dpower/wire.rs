@@ -15,25 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! DEVICE_POWER (10): a device's D-state, PCI function or ACPI-bus device,
-//! read by any caller the port admits, and moved only for the pid that
-//! holds the device's claim (the kernel answers MkAcpiFunctionOf and
-//! MkAcpiDeviceName for its holder alone), so a driver powers its own
-//! device and no other. Drivers name it by device id.
-//!
-//! Request: verb u8 (0 get, 1 set, 2 wake on, 3 wake off), state u8 (0
-//! D0 to 4 D3cold: for set, the state; for wake on, the deepest the
-//! driver will put it in), device id u64. Reply: the state after, u8
-//! (0xFF when unknown), whether it has power control, u8, its path's
-//! length u8 and bytes, then whether wake is armed, u8, and the wakes
-//! counted since, u32. ENOENT for a device the kernel names neither way,
-//! that the tables do not describe, or that has no wake event; EPERM for
-//! any verb but get from anyone but the holder; EINVAL for a state the
-//! device lacks, a move between two low-power states, or a wake target
-//! deeper than _S0W; EIO when the AML failed, the device left as it was.
+//! read by any caller the port admits; moved, and armed to wake, only for
+//! the pid holding its claim (the kernel answers MkAcpiFunctionOf and
+//! MkAcpiDeviceName for its holder alone). Named by device id. Request:
+//! verb u8 (0 get, 1 set, 2 wake on, 3 wake off), state u8 (0 D0 to 4
+//! D3cold: for set, the state; for wake on, the deepest the driver will
+//! put it in), device id u64. Reply: the state after, u8 (0xFF when
+//! unknown), whether it has power control, u8, its path's length u8 and
+//! bytes; then, only to the holder that armed its wake, 1 u8 and the
+//! wakes counted since, u32. ENOENT for a device the kernel names neither
+//! way, the tables do not describe, or with no wake event; EPERM for any
+//! verb but get from anyone but the holder; EINVAL for a state it lacks,
+//! a move between low-power states, or a wake target past _S0W; EIO when
+//! the AML failed, the device left as it was.
 
 use super::moves::{current, move_to};
 use super::target::target;
 use super::wake::{code, wake};
+use super::wake_sweep::owns;
 use crate::boot::{path, Acpi};
 use crate::server::protocol::EINVAL;
 use crate::sys::function_of::Asker;
@@ -68,8 +67,9 @@ pub fn device_power(acpi: &mut Acpi, req: &[u8], sender: u32) -> (i32, Vec<u8>) 
     let p = &p.as_bytes()[..p.len().min(200)];
     v.push(p.len() as u8);
     v.extend_from_slice(p);
-    let wakes = acpi.hidden.wake.rw.wakes(dev);
-    v.push(u8::from(wakes.is_some()));
-    v.extend_from_slice(&wakes.unwrap_or(0).to_le_bytes());
+    if owns(&acpi.hidden.wake.owners, dev, sender) {
+        v.push(1);
+        v.extend_from_slice(&acpi.hidden.wake.rw.wakes(dev).unwrap_or(0).to_le_bytes());
+    }
     (code, v)
 }
