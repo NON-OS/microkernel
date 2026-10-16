@@ -54,7 +54,7 @@ fn the_drivers_handles_give_back_both_mappings_and_then_the_claim() {
     let d = run(found(MODE_BYTES)).unwrap_or_else(|e| panic!("refused: {e:?}"));
     assert_eq!(a.fb.wrote32(0), CLEAR_COLOR);
     let before = given_back().len();
-    drop(d.handles);
+    drop(d._handles);
     let back: Vec<&str> = given_back()[before..].iter().map(|g| g.0).collect();
     assert_eq!(back, ["mmio_unmap", "mmio_unmap", "device_release"]);
     assert_eq!(given_back().last(), Some(&("device_release", DEVICE)));
