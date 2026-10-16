@@ -139,6 +139,8 @@ pub mod iommu_window;
 pub mod iova_space;
 #[cfg(test)]
 pub mod layout_slots;
+#[cfg(test)]
+pub mod load_average;
 pub mod memory;
 #[cfg(test)]
 pub mod mmio_window;

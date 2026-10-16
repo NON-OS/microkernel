@@ -47,8 +47,8 @@ pub(super) fn rename(pid: u32, name: String) {
     crate::process::with_process(pid, |pcb| *pcb.name.lock() = name);
 }
 
-/// The part of a guest's name after "foreign:", which a forked child takes as
-/// a Linux child takes its parent's comm.
+/// The part of a guest's name after "foreign:", which a forked child takes
+/// because it runs its parent's program until an exec of its own renames it.
 pub(super) fn comm_of(pid: u32) -> String {
     crate::process::with_process(pid, |pcb| {
         String::from(pcb.name.lock().strip_prefix("foreign:").unwrap_or("fork"))

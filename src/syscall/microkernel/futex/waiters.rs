@@ -41,9 +41,9 @@ pub(super) fn leave(queue: &mut BTreeMap<Key, Vec<u32>>, key: Key, pid: u32) {
 /// Leave on a return that does not sleep: the word had already changed. A
 /// pid a waker took off the list had that wake spent on it while it was
 /// returning anyway, and a waiter asleep behind it then slept out its whole
-/// timeout. Linux never spends a wake that way, since futex_wait_setup reads
-/// the word with the bucket locked. So the next waiter is taken in its place
-/// and handed back for the caller to wake.
+/// timeout. A wake is owed to a waiter that will sleep, not to one on its way
+/// out, so the next waiter is taken in its place and handed back for the
+/// caller to wake.
 pub(super) fn leave_early(queue: &mut BTreeMap<Key, Vec<u32>>, key: Key, pid: u32) -> Option<u32> {
     if queue.get(&key).is_some_and(|waiting| waiting.contains(&pid)) {
         leave(queue, key, pid);

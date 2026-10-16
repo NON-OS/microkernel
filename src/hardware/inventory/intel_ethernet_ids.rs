@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Intel Ethernet parts by driver, as Linux binds them: e1000
-//! (8254x), e1000e (8257x, 82583 and the PCH I217/I218/I219), igb (82575,
-//! 82576, 82580, I350, I354, I210, I211), igc (I225, I226) and ixgbe (the
-//! 82599, X540 and X550 it takes). Each list is its capsule's own, which
-//! kernel_proofs holds it to.
+//! The Intel Ethernet parts by driver: e1000 (8254x), e1000e (8257x, 82583
+//! and the PCH I217/I218/I219), igb (82575, 82576, 82580, I350, I354, I210,
+//! I211), igc (I225, I226) and ixgbe (82599, X540, X550). Each part is in the
+//! table of the capsule whose register model covers its MAC, which
+//! kernel_proofs holds it to. The ids are unverified until re-sourced from
+//! Intel's datasheets (L56).
 //!
 //! Pure, with no imports, so host proofs can include it by path.
 
@@ -28,8 +29,8 @@ pub const E1000_DEVICE_IDS: [u16; 28] = [
     0x107c, 0x1019, 0x101a, 0x1075,
 ];
 
-/// Every e1000e board list, in netdev.c's order: 82574, 82583, PCH LPT,
-/// SPT, CNP, TGP, ADP, MTP and PTP.
+/// Every e1000e board list: 82574, 82583, PCH LPT, SPT, CNP, TGP, ADP, MTP
+/// and PTP.
 pub const E1000E_DEVICE_IDS: [u16; 64] = [
     0x10d3, 0x10f6, 0x150c, 0x153a, 0x153b, 0x155a, 0x1559, 0x15a0, 0x15a1, 0x15a2, 0x15a3, 0x156f,
     0x1570, 0x15b7, 0x15b8, 0x15b9, 0x15d7, 0x15d8, 0x15e3, 0x15d6, 0x0d53, 0x0d55, 0x15bd, 0x15be,
