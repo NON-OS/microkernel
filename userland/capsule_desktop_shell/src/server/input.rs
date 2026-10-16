@@ -41,7 +41,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     let Some(kind) = read_u16(buf, 8) else {
         return true;
     };
-    // Ctrl+Alt+Delete and the lock come before anything else the shell does.
+    // Ctrl+Alt+Delete and the hidden screen come before anything else the shell does.
     if let Some(done) = super::handlers::attention::filter(ctx, kind, buf) {
         return done;
     }
