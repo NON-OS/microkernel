@@ -34,7 +34,8 @@ report mode where it can:
 
 Discovery and configuration run in this order:
 0. Ask for a larger ATT_MTU (below).
-1. Find the HID services (UUID 0x1812) with Find By Type Value.
+1. Find the HID services (UUID 0x1812) with Find By Type Value. At most
+   4 are kept; any past them are left unread, as Battery Services are.
 2. Read each service's characteristic declarations with Read By Type.
 3. Keep the boot keyboard input (0x2A22) and boot mouse input (0x2A33)
    reports that can notify, Protocol Mode (0x2A4E), and the boot keyboard
@@ -175,8 +176,7 @@ The host stops with an error, and never loops, on any of these:
 - a response to no request, or an Error Response naming another request;
 - handles that do not move forward;
 - a descriptor outside its characteristic;
-- more than 4 HID services, 64 declarations in one service, or 512
-  requests;
+- 64 declarations in one service, or 512 requests;
 - no response within the 30 s ATT transaction timeout.
 
 After a timeout nothing more is sent on the bearer.
