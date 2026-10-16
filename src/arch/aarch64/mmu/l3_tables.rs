@@ -30,5 +30,6 @@ pub(in crate::arch::aarch64::mmu) unsafe fn l3(l1: usize, l2: usize) -> &'static
 }
 
 pub(in crate::arch::aarch64::mmu) unsafe fn l3_addr(l1: usize, l2: usize) -> u64 {
-    core::ptr::addr_of!((*core::ptr::addr_of!(KERNEL_L3))[l1][l2]) as u64
+    // Physical: a descriptor holds it, and the kernel may run high.
+    super::image_pa(core::ptr::addr_of!((*core::ptr::addr_of!(KERNEL_L3))[l1][l2]) as u64)
 }
