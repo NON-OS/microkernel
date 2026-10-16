@@ -26,7 +26,7 @@ use super::native::RETRIES;
 /// The EDID's I2C address (VESA E-DDC).
 pub const EDID_ADDR: u32 = 0x50;
 
-fn once(aux: &mut dyn Aux, req: &[u8]) -> Result<([u8; 20], usize), AuxError> {
+pub fn once(aux: &mut dyn Aux, req: &[u8]) -> Result<([u8; 20], usize), AuxError> {
     let mut last = AuxError::Timeout;
     for _ in 0..RETRIES {
         let mut r = [0u8; 20];

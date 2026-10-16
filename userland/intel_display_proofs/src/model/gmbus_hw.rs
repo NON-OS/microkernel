@@ -19,21 +19,14 @@
 //! then shows the wait phase; on any other pair the address is NAKed.
 
 use super::gen9::Gen9;
+use super::gmbus_state::Ddc;
 use crate::engine::gmbus_regs::*;
-
-#[derive(Default)]
-pub struct Ddc {
-    /// The pin pair the monitor hangs on, and its EDID.
-    pub monitor: Option<(u32, Vec<u8>)>,
-    /// The read in progress: next byte, end byte.
-    pub at: usize,
-    pub end: usize,
-    pub nak: bool,
-    pub active: bool,
-}
 
 impl Gen9 {
     pub(super) fn gmbus_write(&mut self, off: u32, v: u32) {
+        if self.ci_write(off, v) {
+            return;
+        }
         if off != GMBUS1 || v & SW_RDY == 0 {
             return;
         }
@@ -50,10 +43,16 @@ impl Gen9 {
             end: index + ((v >> 16) & 0x1FF) as usize,
             nak: !hit,
             active: true,
+            mccs: self.ddc.mccs.take(),
+            ci: None,
+            data: Vec::new(),
         };
     }
 
     pub(super) fn gmbus_read(&mut self, off: u32) -> Option<u32> {
+        if self.ddc.ci.is_some() {
+            return self.ci_read(off);
+        }
         let d = &mut self.ddc;
         match off {
             GMBUS2 if d.nak => Some(NAK | ACTIVE),
