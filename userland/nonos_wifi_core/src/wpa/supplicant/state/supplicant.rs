@@ -67,4 +67,6 @@ pub struct Supplicant {
     /// The 802.1X version the AP spoke, mirrored in replies.
     pub(in crate::wpa::supplicant) eapol_version: u8,
     pub(in crate::wpa::supplicant) failure: Option<Failure>,
+    /// Message 3's Transition Disable bits (`transition_disable`).
+    pub(in crate::wpa::supplicant) transition_disable: Option<u8>,
 }

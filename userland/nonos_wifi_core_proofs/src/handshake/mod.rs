@@ -21,4 +21,4 @@ mod four_way_tests;
 mod group_tests;
 mod refusal_tests;
 mod replay_tests;
-mod sim;
+pub mod sim;

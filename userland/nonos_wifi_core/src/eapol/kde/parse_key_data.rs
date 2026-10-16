@@ -42,11 +42,7 @@ pub fn parse_key_data(data: &[u8]) -> Option<KeyData<'_>> {
         match id {
             EID_RSN if out.rsne.is_none() => out.rsne = Some(elem),
             EID_RSNX if out.rsnxe.is_none() => out.rsnxe = Some(elem),
-            EID_VENDOR if content.len() >= 4 && content[..3] == OUI_IEEE => match content[3] {
-                KDE_GTK if out.gtk.is_none() => out.gtk = Some(gtk_kde(&content[4..])?),
-                KDE_IGTK if out.igtk.is_none() => out.igtk = Some(igtk_kde(&content[4..])?),
-                _ => {}
-            },
+            EID_VENDOR => vendor_kde(&mut out, content)?,
             _ => {}
         }
         off = end;

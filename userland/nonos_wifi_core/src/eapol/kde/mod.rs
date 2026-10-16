@@ -16,5 +16,7 @@
 
 mod eid_rsn;
 mod parse_key_data;
+mod vendor;
 pub use eid_rsn::*;
 pub use parse_key_data::*;
+pub use vendor::*;

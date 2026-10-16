@@ -20,6 +20,7 @@ mod kinds;
 mod new;
 mod status;
 mod supplicant;
+mod transition;
 mod wipe;
 use super::ie::Ie;
 use crate::eapol::build::EAPOL_VERSION_DEFAULT;

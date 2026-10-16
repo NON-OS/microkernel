@@ -23,4 +23,6 @@ pub struct Quirks {
     pub msg3_rsne: Option<Vec<u8>>,
     /// Accept a (re)association, then never send message 1 or answer one.
     pub mute_eapol: bool,
+    /// A Transition Disable KDE with these bits, last in message 3.
+    pub transition_disable: Option<u8>,
 }

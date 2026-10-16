@@ -56,4 +56,7 @@ pub struct Report {
     pub accepted: bool,
     /// The group management cipher suite the AP's beacon named.
     pub group_mgmt: Option<u32>,
+    /// The Transition Disable bits message 3 carried, for the caller to
+    /// keep with the saved network.
+    pub transition_disable: Option<u8>,
 }

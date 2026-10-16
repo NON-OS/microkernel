@@ -30,11 +30,9 @@ use nonos_wifi_core::softmac::join::{retry_with_sae, Counters, Outcome, Report};
 #[test]
 fn a_pmksa_for_another_ap_leaves_the_join_to_sae() {
     let (first, _) = by_sae();
-    let p = first.pmksa().map(|mut p| {
-        p.bssid = OTHER;
-        p
-    });
-    let (m, auth, _) = offered(p.unwrap());
+    let mut p = first.pmksa().unwrap();
+    p.bssid = OTHER;
+    let (m, auth, _) = offered(p);
     assert_eq!(auth[MAC_HEADER_LEN..MAC_HEADER_LEN + 2], [3, 0], "an SAE commit");
     assert!(!m.used_pmksa());
 }
@@ -69,6 +67,7 @@ fn an_ap_that_forgot_the_pmksa_refuses_and_sae_runs_again() {
         selection: m.selection(),
         accepted: m.accepted(),
         group_mgmt: None,
+        transition_disable: None,
     };
     assert!(retry_with_sae(&report(true)));
     assert!(!retry_with_sae(&report(false)), "a full SAE join that failed is not run again here");

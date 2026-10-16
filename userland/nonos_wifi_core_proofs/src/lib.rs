@@ -70,3 +70,4 @@ mod station_gcmp_tests;
 mod station_tests;
 mod supplicant_sim;
 mod supplicant_tests;
+mod transition;

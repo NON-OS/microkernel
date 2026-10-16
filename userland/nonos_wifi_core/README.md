@@ -16,7 +16,7 @@ under `cargo test`.
 | `rsn` | reads what a beacon offers (RSNE, RSNXE), chooses SAE or PSK under the person's policy (`select`), builds the station's own elements |
 | `sae` | WPA3-Personal SAE over group 19 (NIST P-256), station side: the password element by hash-to-element (`h2e`) when the access point offers it, else hunting and pecking (`hnp`); commit, confirm, KCK, PMK and PMKID |
 | `wpa` | PSK and PTK derivation, the AKMs (WPA2-PSK, PSK-SHA256, SAE), HMAC, HKDF and SHA-256, and the supplicant that runs the four-way and group key handshakes |
-| `eapol` | the EAPOL-Key codec, KDEs and MICs |
+| `eapol` | the EAPOL-Key codec, KDEs and MICs. The Wi-Fi Alliance's Transition Disable KDE is read too, and the supplicant keeps its bits only from a message 3 that verified, unwrapped under the PTK and passed the downgrade check; the join report and `Mlme::transition_disable` hand them to the driver, which keeps them with the saved network |
 | `ccmp` | AES-CCM and AES key unwrap, for chips without hardware CCMP. AES and AES-CMAC are the system's, from `nonos_aes`, and are re-exported here as `ccmp::aes` and `ccmp::cmac` |
 | `mlme` | the association state machine: beacon, authentication (Open System or SAE), association, then the handshake, emitting the frames to send |
 | `station` | the data path: ethernet to 802.11 and back, CCMP in software or hardware, the transmit sequence and packet numbers, a check of every received frame against the association (BSS, protection, replay), and the management frames of a live link (deauthentication under PMF, the SA Query) |
