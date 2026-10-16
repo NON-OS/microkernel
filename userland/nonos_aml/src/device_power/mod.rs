@@ -22,6 +22,7 @@ mod dstate;
 mod method;
 mod order;
 mod pool;
+mod pool_left;
 mod psc;
 mod reveal;
 mod rules;
@@ -29,6 +30,7 @@ mod state;
 mod transition;
 mod wake;
 mod wake_method;
+mod wake_forget;
 mod wake_off;
 mod wake_types;
 
