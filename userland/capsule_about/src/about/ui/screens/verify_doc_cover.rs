@@ -21,10 +21,17 @@ use super::append::put;
 // "44 capsules over 143 bytes, 72 byte signature" as one cell. The three numbers
 // are only meaningful next to each other, and each on its own row would read as a
 // separate finding rather than as the shape of one document.
-pub(super) fn counted(out: &mut [u8; 64], capsules: &[u8], signed: &[u8], sig: &[u8]) -> usize {
+/// `what` follows the count and says what was counted (`firmware::counted`).
+pub(super) fn counted(
+    out: &mut [u8; 64],
+    count: &[u8],
+    what: &[u8],
+    signed: &[u8],
+    sig: &[u8],
+) -> usize {
     let mut n = 0;
-    n += put(&mut out[n..], capsules);
-    n += put(&mut out[n..], b" capsules over ");
+    n += put(&mut out[n..], count);
+    n += put(&mut out[n..], what);
     n += put(&mut out[n..], signed);
     n += put(&mut out[n..], b" bytes, ");
     n += put(&mut out[n..], sig);
