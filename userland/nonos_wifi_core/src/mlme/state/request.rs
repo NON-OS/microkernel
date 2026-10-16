@@ -33,6 +33,16 @@ pub struct Entropy {
     pub sae: [u8; SAE_ENTROPY],
 }
 
+impl Entropy {
+    /// Draw a join's randomness through `fill`, which fills a buffer whole or
+    /// says it could not. None when either draw fails, so a join is refused
+    /// before it begins and never runs on zeros.
+    pub fn draw(mut fill: impl FnMut(&mut [u8]) -> bool) -> Option<Entropy> {
+        let mut e = Entropy { snonce: [0; 32], sae: [0; SAE_ENTROPY] };
+        (fill(&mut e.snonce) && fill(&mut e.sae)).then_some(e)
+    }
+}
+
 /// One join: the station, the network, the secret and what the person allowed.
 pub struct JoinRequest<'a> {
     pub our_mac: [u8; 6],
