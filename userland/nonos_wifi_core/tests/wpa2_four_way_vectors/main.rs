@@ -31,5 +31,6 @@
 mod igtk;
 mod kdf;
 mod mlme;
+mod protected;
 mod transition;
 mod vectors;
