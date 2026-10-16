@@ -23,7 +23,7 @@
 
 use nonos_libc::mk_service_lookup;
 
-use crate::protocol::{Request, E_INVAL, E_PERM, LID_REQ_LEN};
+use crate::protocol::{Request, E_INVAL, E_PERM};
 use crate::server::respond;
 use crate::state::Context;
 
@@ -45,17 +45,16 @@ pub fn handle(
     if sender == 0 || shell_pid() != Some(sender) {
         return respond::status(sender, req, E_PERM, tx);
     }
-    let closed = super::u32_at(body, 0).filter(|c| *c <= 1 && body.len() == LID_REQ_LEN);
-    let Some(closed) = closed else {
+    let Some(closed) = crate::requests::toggles::lid(body) else {
         return respond::status(sender, req, E_INVAL, tx);
     };
-    let (lid, whole) = ctx.lid.moved(closed == 1);
+    let (lid, whole) = ctx.lid.moved(closed);
     ctx.lid = lid;
     if whole {
         ctx.damage.mark_full(ctx.width, ctx.height);
         crate::say::say_display(
             ctx,
-            if closed == 1 { "darkened for the lid on" } else { "woken by the lid on" },
+            if closed { "darkened for the lid on" } else { "woken by the lid on" },
         );
     }
     respond::status(sender, req, 0, tx)

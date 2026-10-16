@@ -1,0 +1,47 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! FOCUS_SET and CURSOR_UPDATE: who has the keyboard, and where the
+//! pointer is drawn.
+
+use super::read::words;
+use crate::protocol::{CURSOR_UPDATE_REQ_LEN, FOCUS_SET_REQ_LEN};
+
+/// FOCUS_SET: the pid now focused.
+pub fn focus_set(body: &[u8]) -> Option<u32> {
+    let [pid] = words::<1, FOCUS_SET_REQ_LEN>(body)?;
+    Some(pid)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Cursor {
+    pub x: u32,
+    pub y: u32,
+    pub visible: bool,
+}
+
+/// CURSOR_UPDATE: any non-zero third word shows the pointer.
+pub fn cursor_update(body: &[u8]) -> Option<Cursor> {
+    let [x, y, visible] = words::<3, CURSOR_UPDATE_REQ_LEN>(body)?;
+    Some(Cursor { x, y, visible: visible != 0 })
+}
+
+impl Cursor {
+    /// Whether the point is on a `w` by `h` canvas.
+    pub fn on(&self, w: u32, h: u32) -> bool {
+        self.x < w && self.y < h
+    }
+}
