@@ -419,9 +419,9 @@ src/drivers/pci/types/bridge.rs:47 io_window
 src/drivers/pci/types/bridge.rs:51 memory_window
 src/drivers/pci/types/bridge.rs:55 prefetch_window
 src/drivers/pci/types/class_code.rs:40 is_storage
-src/drivers/pci/types/device.rs:134 get_bar
-src/drivers/pci/types/device.rs:138 get_memory_bar
-src/drivers/pci/types/device.rs:142 get_io_bar
+src/drivers/pci/types/device_bars.rs:23 get_bar
+src/drivers/pci/types/device_bars.rs:27 get_memory_bar
+src/drivers/pci/types/device_bars.rs:31 get_io_bar
 src/drivers/pci/types/msi.rs:34 allocated_vectors
 src/drivers/pci/types/pcie.rs:35 link_speed_str
 src/drivers/pci/types/pcie.rs:39 bandwidth_gbps
