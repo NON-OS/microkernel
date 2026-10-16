@@ -6,7 +6,8 @@
 //! Keeping a network in the list.
 
 use super::dropped::Dropped;
-use super::list::{SavedList, LEN_MASK, PASS_MAX, SAVED_HIDDEN, SAVED_WPA3, SLOTS};
+use super::list::{SavedList, LEN_MASK, SAVED_HIDDEN, SAVED_WPA3, SLOTS};
+use super::pass::usable;
 use crate::join_wire::JoinFlags;
 use crate::network::SSID_MAX;
 
@@ -33,14 +34,20 @@ impl SavedList {
         pass: &[u8],
         flags: JoinFlags,
     ) -> Option<Option<Dropped>> {
-        if ssid.is_empty() || ssid.len() > SSID_MAX || pass.len() > PASS_MAX {
+        if ssid.is_empty() || ssid.len() > SSID_MAX {
             return None;
         }
         let mut dropped = None;
         let mut keep = if flags.wpa3_only { SAVED_WPA3 } else { 0 };
         keep |= if flags.hidden { SAVED_HIDDEN } else { 0 };
-        if let Some(i) = self.find(ssid) {
+        let found = self.find(ssid);
+        if let Some(i) = found {
             keep |= self.slots[i][0] & !LEN_MASK;
+        }
+        if !usable(pass, keep & SAVED_WPA3 != 0) {
+            return None;
+        }
+        if let Some(i) = found {
             self.remove(i);
         } else if self.count == SLOTS {
             let pinned = |i: usize| self.slots[i][0] & SAVED_WPA3 != 0;
