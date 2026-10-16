@@ -25,6 +25,12 @@ const SMALL_IRQ: u8 = 0x04;
 const SMALL_END: u8 = 0x0F;
 const LARGE_EXTENDED_IRQ: u8 = 0x09;
 
+/// An Extended Interrupt descriptor names at least one number and has room
+/// for every number it counts; one that does not is stepped over.
+fn fits(body: &[u8]) -> bool {
+    body[1] >= 1 && body.len() >= 2 + 4 * usize::from(body[1])
+}
+
 /// Each interrupt in the template, one per descriptor that names any: the
 /// lowest set bit of an IRQ descriptor's mask, or an Extended Interrupt
 /// descriptor's first number.
@@ -38,7 +44,7 @@ pub fn interrupts(t: &[u8]) -> Vec<u32> {
                 break;
             }
             let Some(body) = t.get(i + 1..i + 1 + len) else { break };
-            if kind == SMALL_IRQ && len >= 2 {
+            if kind == SMALL_IRQ && (2..=3).contains(&len) {
                 let mask = u16::from_le_bytes([body[0], body[1]]);
                 if mask != 0 {
                     out.push(mask.trailing_zeros());
@@ -49,7 +55,7 @@ pub fn interrupts(t: &[u8]) -> Vec<u32> {
             let Some(l) = t.get(i + 1..i + 3) else { break };
             let len = u16::from_le_bytes([l[0], l[1]]) as usize;
             let Some(body) = t.get(i + 3..i + 3 + len) else { break };
-            if tag & 0x7F == LARGE_EXTENDED_IRQ && len >= 6 && body[1] >= 1 {
+            if tag & 0x7F == LARGE_EXTENDED_IRQ && len >= 2 && fits(body) {
                 out.push(u32::from_le_bytes([body[2], body[3], body[4], body[5]]));
             }
             i += 3 + len;

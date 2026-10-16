@@ -58,6 +58,12 @@ pub fn properties_under(
     let Some(Ok(Object::Package(dsd))) = child(aml, eval, dev, *b"_DSD", Vec::new()) else {
         return Vec::new();
     };
-    let set = set_in(&dsd.borrow(), uuid);
-    set.map(|s| pairs(aml, &s)).unwrap_or_default()
+    let dsd = dsd.borrow().clone();
+    properties_in(aml, &dsd, uuid)
+}
+
+/// The pairs in a _DSD package's elements under `uuid`, read from the
+/// result alone: none when the set is missing or not a package.
+pub fn properties_in(aml: &Aml, dsd: &[Object], uuid: &[u8; 16]) -> Vec<Property> {
+    set_in(dsd, uuid).map(|s| pairs(aml, &s)).unwrap_or_default()
 }
