@@ -5,6 +5,14 @@ edition = "2021"
 autotests = false
 build = "build.rs"
 
+# The test lane runs every target but `artifacts`. That test reads the capsule
+# ELFs and the trust set a seal wrote together, so it belongs to the seal,
+# whose verify phase checks the same signatures against the same ELFs; in the
+# lane it would read a tree with no ELFs in it.
+[package.metadata.nonos]
+test-lane = true
+test-args = "--lib --bins --test host_trust --test release"
+
 [lib]
 name = "nonos_capsule_sign"
 path = "src/lib.rs"
