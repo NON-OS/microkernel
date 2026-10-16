@@ -21,34 +21,30 @@ mod devices;
 mod entropy;
 mod gic;
 mod memory;
+mod outcome;
 mod platform;
 mod processors;
 mod psci;
 mod reserved;
 
 use crate::arch::aarch64::boot::info::BootInfo;
+use crate::arch::aarch64::mmu::pointer::ram;
 use crate::arch::fdt::Fdt;
 
 use describe::describe;
-
-/// What became of the pointer the loader left in x0.
-pub enum Outcome {
-    /// x0 was zero: QEMU's ELF boot, or a loader that passes no tree.
-    NoTree,
-    Parsed,
-    /// A tree was handed over and cannot be trusted. Booting on the virt
-    /// defaults instead would drive a real board at QEMU's addresses.
-    Broken(&'static [u8]),
-}
+pub use outcome::Outcome;
 
 pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
     if dtb_ptr == 0 {
         return Outcome::NoTree;
     }
-    // SAFETY: the MMU is still off, so x0 is the physical address the loader
-    // left the blob at, and zero was turned away above. A pointer to nothing
+    let Some(blob) = ram::<u8>(dtb_ptr) else {
+        return Outcome::Broken(b"the device tree lies past the direct map");
+    };
+    // SAFETY: x0 is the physical address the loader left the blob at, zero
+    // was turned away above, and `ram` reaches it. A pointer to nothing
     // takes an external abort, which the vectors already installed report.
-    let fdt = match unsafe { Fdt::from_ptr(dtb_ptr as *const u8) } {
+    let fdt = match unsafe { Fdt::from_ptr(blob) } {
         Ok(f) => f,
         Err(e) => return Outcome::Broken(describe(e)),
     };
@@ -62,11 +58,11 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
         .and_then(|()| psci::populate(&fdt))
         .and_then(|()| processors::populate(&fdt, info))
         .and_then(|()| reserved::populate(&fdt, info));
-    let seed = entropy::keep(&fdt, dtb_ptr);
+    let seed = entropy::keep(&fdt, blob as u64);
     drop(fdt);
     if let Some(at) = seed {
-        // SAFETY: MMU off, the parser dropped above, `at` from this blob.
-        unsafe { entropy::erase(dtb_ptr, at) };
+        // SAFETY: the parser dropped above, `at` from this blob.
+        unsafe { entropy::erase(blob, at) };
     }
     match steps {
         Ok(()) => Outcome::Parsed,

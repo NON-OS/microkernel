@@ -4,18 +4,18 @@
 //! them, leaving a tree that still parses.
 
 use crate::arch::aarch64::boot_entropy::KEPT;
-use crate::arch::seed_step::{erase, keep};
 use crate::arch::fdt::Fdt;
+use crate::arch::seed_step::{erase, keep};
 use crate::fixtures::VIRT_GICV3 as VIRT;
 
 #[test]
 fn the_seed_is_kept_then_zeroed_in_place_and_nothing_else_moves() {
     let mut blob = VIRT.to_vec();
-    let base = blob.as_mut_ptr() as u64;
+    let base = blob.as_mut_ptr();
     let (original, at) = {
         let fdt = Fdt::from_bytes(&blob).unwrap();
         let original = fdt.chosen_bytes(b"rng-seed").unwrap().unwrap().to_vec();
-        (original, keep(&fdt, base).unwrap())
+        (original, keep(&fdt, base as u64).unwrap())
     };
     assert_eq!(at.1, 32);
     assert!(KEPT.lock().unwrap().contains(&original));

@@ -28,7 +28,7 @@
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use crate::arch::aarch64::boot::info::BootInfo;
-use crate::arch::aarch64::mmu::KERNEL_SPACE_START;
+use crate::arch::aarch64::mmu::pointer::ram;
 use crate::arch::cache_flush::flush_and_fence;
 
 /// As many CPUs as `spin_table_start.S` searches for; it hard-codes the 64.
@@ -61,7 +61,7 @@ pub(super) fn release(info: &BootInfo, release: u64, entry: u64) -> Result<(), &
     if release % 8 != 0 || !in_ram {
         return Err(b"cpu-release-addr is not aligned RAM");
     }
-    let word = (release + KERNEL_SPACE_START) as *mut u64;
+    let word = ram::<u64>(release).ok_or(&b"cpu-release-addr is past the direct map"[..])?;
     // SAFETY: the address is aligned RAM inside the kernel's direct map, and
     // firmware gave this word to the parked CPU, so no Rust object lives there.
     unsafe { core::ptr::write_volatile(word, entry) };
