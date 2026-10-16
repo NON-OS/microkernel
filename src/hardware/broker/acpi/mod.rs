@@ -30,6 +30,7 @@ pub mod cpu_take;
 pub mod cpu_wire;
 pub mod critical_watch;
 pub mod depart;
+pub mod depart_record;
 pub mod device_holder;
 mod ecam_note;
 mod error;

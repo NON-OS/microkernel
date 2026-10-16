@@ -40,7 +40,7 @@ pub enum DepartError {
     Held(u32),
 }
 
-fn revoke(pid: u32, id: u64) -> [usize; 4] {
+pub(super) fn revoke(pid: u32, id: u64) -> [usize; 4] {
     let _ = quiesce_held(pid, id);
     let counts = [
         irq::release_for_device(pid, id),
@@ -68,6 +68,6 @@ pub fn depart(bus: u8, dev: u8, func: u8, eject: bool) -> Result<Departed, Depar
     let counts = holder.map(|pid| revoke(pid, id));
     let _ = table::remove(id);
     let _ = pci_index::take(id);
-    super::probe_say::left((bus, dev, func), id, holder.zip(counts));
+    super::probe_say::left(Some((bus, dev, func)), id, holder.zip(counts));
     Ok(Departed { device_id: id, holder })
 }

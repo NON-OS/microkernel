@@ -29,6 +29,10 @@ pub mod device;
 pub mod external_range;
 pub mod mmio;
 pub mod reserved;
+pub mod table;
+
+#[allow(unused_imports)] // the table's files name it at this path
+pub use device::DeviceRecord;
 
 #[cfg(test)]
 mod bars_tests;
