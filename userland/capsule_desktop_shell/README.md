@@ -116,7 +116,7 @@ crypto cap.
 | Per-op handlers | `server/handlers/*.rs` |
 | Tray table | `state/tray/{mod,entry,table}.rs` |
 | Input grabs | `state/grab_rule.rs`, `server/grabs.rs` |
-| Context | `state/context.rs` |
+| Context | `state/context.rs`, its groups in `state/ctx/` |
 | Setup peers resolution | `setup/prime/peers.rs` |
 | Overlay mmap | `setup/prime/overlay.rs` |
 | Surface register + scene_submit | `setup/prime/register.rs` |

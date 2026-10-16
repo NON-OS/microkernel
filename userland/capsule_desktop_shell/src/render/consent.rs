@@ -10,8 +10,8 @@
 
 use crate::render::fill::fill_rect;
 use crate::render::layout::Rect;
-use crate::render::palette;
 use crate::render::measure_aa::{measure_aa, truncate_to_width};
+use crate::render::palette;
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font;
 use crate::render::ui_font::{line_h, top_y_centered, valid_str, TITLE_PX, UI_PX};
@@ -36,7 +36,7 @@ pub(super) fn margin() -> u32 {
 }
 
 pub fn paint_consent(ctx: &Context) {
-    let Some(name) = ctx.pending_consent.as_deref() else {
+    let Some(name) = ctx.pending.pending_consent.as_deref() else {
         return;
     };
     let p = panel_rect(ctx.width, ctx.height);

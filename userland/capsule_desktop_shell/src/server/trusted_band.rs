@@ -24,10 +24,10 @@ use crate::state::trusted_rule::{in_band, moves};
 use crate::state::Context;
 
 fn prompt_up(ctx: &Context) -> bool {
-    ctx.pending_consent.is_some()
-        || ctx.pending_pkg_install.is_some()
-        || ctx.live_prompt.showing()
-        || ctx.pending_delete.showing()
+    ctx.pending.pending_consent.is_some()
+        || ctx.pending.pending_pkg_install.is_some()
+        || ctx.pending.live_prompt.showing()
+        || ctx.pending.pending_delete.showing()
 }
 
 pub fn sync(ctx: &mut Context) {
@@ -37,7 +37,7 @@ pub fn sync(ctx: &mut Context) {
         return;
     };
     let rid = ctx.issue_request_id();
-    let (port, handle, w, h) = (ctx.compositor_port, t.chrome_handle, ctx.width, ctx.height);
+    let (port, handle, w, h) = (ctx.ports.compositor_port, t.chrome_handle, ctx.width, ctx.height);
     if push_scene_submit(port, rid, handle, 0, 0, w, h, place).is_err() {
         return;
     }

@@ -58,7 +58,7 @@ fn button_rect(w: u32, h: u32, approve: bool) -> Rect {
 }
 
 pub(crate) fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
-    if ctx.pending_consent.is_none() {
+    if ctx.pending.pending_consent.is_none() {
         return false;
     }
     let approve = hit(approve_rect(ctx.width, ctx.height), px, py);
@@ -69,7 +69,7 @@ pub(crate) fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
 /// Approve launches the app; Cancel, Esc or a press outside does not.
 pub(crate) fn answer(ctx: &mut Context, choice: Choice) {
     ctx.dialog_focus.reset();
-    if let Some(name) = ctx.pending_consent.take() {
+    if let Some(name) = ctx.pending.pending_consent.take() {
         if choice == Choice::Act {
             super::installed_launch::launch(ctx, &name);
         }

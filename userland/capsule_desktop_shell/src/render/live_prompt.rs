@@ -17,7 +17,7 @@ const TITLE: &str = "This is a live session";
 const NOTE: &str = "Nothing here is kept: files, settings and models are gone when the machine stops. Install NONOS to keep them.";
 
 pub fn paint_live_prompt(ctx: &Context) {
-    if !ctx.live_prompt.showing() {
+    if !ctx.pending.live_prompt.showing() {
         return;
     }
     let p = panel_rect(ctx.width, ctx.height);

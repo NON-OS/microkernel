@@ -29,7 +29,7 @@ pub fn refresh(ctx: &mut Context) {
     let Some(listed) = crate::vfs_client::list(b"/pkgs") else {
         return;
     };
-    if listed.is_empty() && !ctx.pkg_files_loaded {
+    if listed.is_empty() && !ctx.store_apps.pkg_files_loaded {
         return;
     }
     let files: Vec<String> = listed
@@ -37,9 +37,9 @@ pub fn refresh(ctx: &mut Context) {
         .filter(|e| !e.is_dir && e.name.ends_with(".nonos"))
         .map(|e| e.name)
         .collect();
-    if ctx.pkg_files_loaded && ctx.pkg_files == files {
+    if ctx.store_apps.pkg_files_loaded && ctx.store_apps.pkg_files == files {
         return;
     }
-    ctx.pkg_files = files;
-    ctx.pkg_files_loaded = true;
+    ctx.store_apps.pkg_files = files;
+    ctx.store_apps.pkg_files_loaded = true;
 }
