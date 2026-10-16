@@ -887,6 +887,24 @@
   "md": [],
   "signed": []
  },
+ "userland/broadcast_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/idle_states/allow.rs",
+   "src/arch/aarch64/idle_states/call.rs",
+   "src/arch/aarch64/idle_states/select.rs",
+   "src/arch/aarch64/timer/broadcast/book.rs",
+   "src/arch/aarch64/timer/broadcast/frame.rs",
+   "src/arch/aarch64/timer/broadcast/halves.rs",
+   "src/arch/aarch64/timer/broadcast/hand.rs",
+   "src/arch/aarch64/timer/broadcast/handler.rs",
+   "src/arch/aarch64/timer/broadcast/start.rs",
+   "userland/broadcast_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/browser_http_proofs": {
   "exclude": [],
   "include": [
@@ -3387,6 +3405,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/arch/aarch64/idle_states/call.rs",
    "src/arch/aarch64/idle_states/enter.rs",
    "src/arch/aarch64/idle_states/format.rs",
    "src/arch/aarch64/idle_states/prepare.rs",
