@@ -19,6 +19,8 @@ use nonos_aml::device_power::PowerPool;
 use nonos_aml::namespace::Id;
 use nonos_aml::thermal::{Trips, Verdict};
 
+pub use super::passive::Passive;
+
 /// How a fan is run: an ACPI 4.0 fan through _FSL, with the levels for on
 /// and off; an older one by its device power state.
 #[derive(Clone, Copy)]
@@ -47,6 +49,7 @@ pub struct Zone {
     pub critical_at: Option<u64>,
     /// _CRT reached on two readings a second apart.
     pub critical: bool,
+    pub passive: Option<Passive>,
 }
 
 #[derive(Default)]
@@ -58,4 +61,6 @@ pub struct Cooling {
     /// The thermal word last reported, and when.
     pub reported: Option<u64>,
     pub reported_ms: u64,
+    /// The ceilings the kernel holds, by processor UID.
+    pub sent: Vec<(u64, u8)>,
 }

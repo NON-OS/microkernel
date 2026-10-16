@@ -18,13 +18,14 @@
 //! and 11.3). A fan named by several zones, or levels, is one fan.
 
 use super::drive::drive_of;
+use super::passive::passive_of;
 use super::state::{Cooling, Fan, Zone};
 use crate::boot::evaluator;
 use crate::host::CapsuleHost;
 use alloc::vec::Vec;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
-use nonos_aml::thermal::{active_devices, trips, zones};
+use nonos_aml::thermal::{active_devices, trips, zones, FULL};
 
 fn fan(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, dev: Id) -> usize {
     if let Some(i) = c.fans.iter().position(|f| f.id == dev) {
@@ -45,7 +46,9 @@ pub fn refresh(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, z: usize)
         let devs = active_devices(aml, &mut evaluator(host), tz, x);
         lv.push(devs.into_iter().map(|d| fan(c, aml, host, d)).collect());
     }
-    (c.zones[z].trips, c.zones[z].levels) = (t, lv);
+    let limit = c.zones[z].passive.as_ref().map_or(FULL, |p| p.limit);
+    let p = t.passive.and_then(|_| passive_of(aml, host, tz, limit));
+    (c.zones[z].trips, c.zones[z].levels, c.zones[z].passive) = (t, lv, p);
 }
 
 pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Cooling {
@@ -61,6 +64,7 @@ pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Cooling {
             next_ms: 0,
             critical_at: None,
             critical: false,
+            passive: None,
         });
         let z = c.zones.len() - 1;
         refresh(&mut c, aml, host, z);

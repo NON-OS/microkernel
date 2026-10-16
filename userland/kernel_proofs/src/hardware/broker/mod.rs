@@ -68,3 +68,5 @@ mod round_trip_tests;
 mod same_group_tests;
 #[cfg(test)]
 mod usb_port_tests;
+#[cfg(test)]
+mod thermal_limit_tests;
