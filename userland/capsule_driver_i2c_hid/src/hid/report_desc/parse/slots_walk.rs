@@ -45,11 +45,9 @@ pub fn parse_slots(desc: &[u8], rid: u8) -> Slots {
                 for f in 0..count.min(MAX_FIELDS_PER_ITEM) {
                     if tag == 0x8 && id == rid {
                         let usage = usage_for(&usages.list, usages.n, f as usize);
-                        slots.record(
-                            page,
-                            usage,
-                            Field { bit_offset: at, bit_size: size, logical_max: max },
-                        );
+                        if let Some(field) = Field::bounded(at, size, max) {
+                            slots.record(page, usage, field);
+                        }
                     }
                     if tag == 0x8 {
                         at = at.saturating_add(size);
