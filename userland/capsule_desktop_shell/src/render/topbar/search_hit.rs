@@ -21,7 +21,8 @@ use crate::state::indicators::clock_stamp::{stamp, STAMP_LEN};
 use crate::state::indicators::{battery, battery_text};
 use crate::state::Context;
 
-use super::search_box::{fitted, search_box};
+use super::cluster::search_box;
+use super::search_box::fitted;
 
 pub fn search_hit(ctx: &Context, px: u32, py: u32) -> bool {
     let mut bbuf = [0u8; battery_text::LABEL_MAX];
