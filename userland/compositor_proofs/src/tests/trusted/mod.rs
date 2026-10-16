@@ -20,5 +20,6 @@ mod screenshot_tests;
 mod trusted_capture_tests;
 pub(crate) mod trusted_desk;
 pub(crate) mod trusted_mem;
+mod trusted_mark_tests;
 mod trusted_notice_tests;
 mod trusted_tests;
