@@ -31,6 +31,7 @@ mod drivers_fido;
 mod drivers_input;
 mod drivers_nic;
 mod drivers_sdhci;
+mod drivers_spi;
 mod drivers_storage;
 mod drivers_ufs;
 mod drivers_usb;
