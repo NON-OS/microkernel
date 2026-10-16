@@ -19,10 +19,12 @@ use alloc::vec::Vec;
 use crate::memory::addr::PhysAddr;
 use crate::smp::lock_responsive;
 
-use super::claim_owned::{claim_owned, foreign_windows};
+use super::claim_owned::claim_owned;
+use super::foreign_windows::foreign_windows;
 use super::gate::GATE;
 use super::kept::kept_of;
-use super::orphans::{reclaim, Orphan, ORPHANS};
+use super::orphan_settle::settle;
+use super::orphans::reclaim;
 use super::window::Window;
 
 /*
@@ -64,12 +66,7 @@ impl Held {
     /* Frames the owner really unmapped go to the registry, freed once no
      * other process maps them; one whose PTE stayed is kept for good. */
     pub fn settle(self) {
-        for w in self.windows {
-            if let Some((owner, handle)) = w.orphan {
-                let (frames, free, tables) = (w.frames, w.unmapped, 0);
-                ORPHANS.lock().push(Orphan { owner, handle, frames, free, grant: None, tables });
-            }
-        }
+        settle(self.windows);
         reclaim();
     }
 }
