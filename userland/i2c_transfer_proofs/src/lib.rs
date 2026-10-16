@@ -27,10 +27,15 @@
 //! bus behind it. The engine, the probe and the IPC handler are then run
 //! exactly as they ship, and what the proofs read is the wire.
 
+extern crate alloc;
+
 #[path = "../../capsule_driver_i2c_pci/src/constants/mod.rs"]
 pub mod constants;
 #[path = "../../capsule_driver_i2c_pci/src/driver.rs"]
 pub mod driver;
+/// The Doorbell type driver.rs names; nothing here asks gpio0.
+#[path = "../../capsule_driver_i2c_pci/src/gpio0/wire.rs"]
+pub mod gpio0;
 #[path = "../../capsule_driver_i2c_pci/src/init/mod.rs"]
 pub mod init;
 #[path = "../../capsule_driver_i2c_pci/src/protocol/mod.rs"]
