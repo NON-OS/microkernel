@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The node a phandle names, and what a controller needs from it: the
-//! interrupt specifier width and controller kind, and a fixed clock's rate.
+//! The node a phandle names, and a fixed clock's rate from it.
 
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;

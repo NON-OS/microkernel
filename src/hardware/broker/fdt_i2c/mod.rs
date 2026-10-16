@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Registered from C's device-tree platform finder at integration; until
-// then nothing on this branch calls it.
+// The device-tree DesignWare I2C interface's stop routine. The platform
+// finder and the described-device record (C's) call it at integration;
+// until then nothing on this branch does.
 #[allow(dead_code)]
-mod line;
-#[allow(dead_code)]
-pub(super) mod record;
+pub(super) mod stop;
