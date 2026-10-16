@@ -5,7 +5,8 @@
 //! it runs once; and a request no tick reached in time is dropped instead of
 //! run long after.
 
-use crate::wifi::pending::{Next, Pending, Work, STALE_MS};
+use crate::wifi::pending::{Pending, Work};
+use crate::wifi::pending_tick::{Next, STALE_MS};
 
 #[test]
 fn nothing_asked_does_nothing() {

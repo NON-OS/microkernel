@@ -22,7 +22,8 @@ use super::super::state::State;
 use super::apply::apply;
 use super::join::join_now;
 use super::pass::clear_passphrase;
-use super::pending::{Next, Pending, Work};
+use super::pending::{Pending, Work};
+use super::pending_tick::Next;
 use super::scan_now::scan_now;
 use super::worker::poll;
 

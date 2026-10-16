@@ -21,7 +21,7 @@
 use super::super::state::{State, WifiConnect, WifiScan};
 use super::saved::refresh_saved;
 use super::status::refresh_wifi_status;
-use super::worker::Answer;
+use super::worker_msg::Answer;
 
 /// Put the driver's answer on the panel.
 pub(super) fn apply(state: &mut State, answer: Answer) {

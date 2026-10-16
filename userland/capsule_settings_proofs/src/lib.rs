@@ -8,6 +8,12 @@ extern crate alloc;
 
 #[path = "../../capsule_settings/src/wifi/interface.rs"]
 pub mod interface;
+#[path = "../../capsule_settings/src/wifi/adapter_name.rs"]
+pub mod adapter_name;
+#[path = "../../capsule_settings/src/wifi/driver_ids.rs"]
+pub mod driver_ids;
+#[path = "../../capsule_settings/src/wifi/wifi_class.rs"]
+pub mod wifi_class;
 /// The iwlwifi driver's own id table, so the panel's has-a-driver rule is
 /// held to it.
 #[cfg(test)]
@@ -37,9 +43,6 @@ pub mod settings;
 #[path = "../../capsule_settings/src/settings/ui/field_note_user.rs"]
 pub mod field_note_user;
 
-#[cfg(test)]
-mod sound_note_tests;
-
 /// The text buffers the panel's fields type into: UTF-8, edited a whole
 /// character at a time.
 pub mod text;
@@ -68,36 +71,4 @@ mod wipe;
 pub mod qwen_tier;
 
 #[cfg(test)]
-mod access_page_tests;
-#[cfg(test)]
-mod handoff_tests;
-#[cfg(test)]
-mod hydrate_tests;
-#[cfg(test)]
-mod interface_tests;
-#[cfg(test)]
-mod net_poll_tests;
-#[cfg(test)]
-mod panel_tests;
-#[cfg(test)]
-mod paste_tests;
-#[cfg(test)]
-mod pending_tests;
-#[cfg(test)]
-mod qwen_tier_tests;
-#[cfg(test)]
-mod screens_tests;
-#[cfg(test)]
-mod section_tests;
-#[cfg(test)]
-mod security_tests;
-#[cfg(test)]
-mod slot_tests;
-#[cfg(test)]
-mod text_tests;
-#[cfg(test)]
-mod wifi_cursor_tests;
-#[cfg(test)]
-mod wifi_key_tests;
-#[cfg(test)]
-mod wire_tests;
+mod tests;

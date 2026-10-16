@@ -19,3 +19,5 @@ pub mod wire;
 // A scan or join asked for and run from the panel's ticks.
 #[path = "../../../capsule_settings/src/settings/state/wifi/pending.rs"]
 pub mod pending;
+#[path = "../../../capsule_settings/src/settings/state/wifi/pending_tick.rs"]
+pub mod pending_tick;

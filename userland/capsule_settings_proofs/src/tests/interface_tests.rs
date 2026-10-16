@@ -4,9 +4,11 @@
 //! friendly names for the parts we target (Realtek RTL8821CE, Intel AX200/AX210
 //! including the Alder Lake CNVi 0x51f0) are pinned.
 
-use crate::interface::{
-    adapter_label, discover, has_driver, is_wifi, DeviceView, WifiInterface, BUS_KIND_PCI,
-    PCI_CLASS_NETWORK, PCI_SUBCLASS_WIRELESS,
+use crate::adapter_name::adapter_label;
+use crate::driver_ids::has_driver;
+use crate::interface::WifiInterface;
+use crate::wifi_class::{
+    discover, is_wifi, DeviceView, BUS_KIND_PCI, PCI_CLASS_NETWORK, PCI_SUBCLASS_WIRELESS,
 };
 
 fn wifi(vendor: u16, device: u16) -> DeviceView {

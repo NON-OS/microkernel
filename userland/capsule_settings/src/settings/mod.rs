@@ -16,6 +16,8 @@
 
 mod access;
 mod app;
+mod app_ready;
+mod app_tick;
 mod event;
 mod ipc;
 mod manifest;
@@ -28,4 +30,4 @@ mod section_text;
 mod state;
 mod ui;
 
-pub use app::Settings;
+pub use app_ready::Settings;

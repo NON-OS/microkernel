@@ -27,8 +27,8 @@ fn the_sound_rows_say_they_reach_the_desktops_tones_and_not_music() {
         assert!(said.contains("desktop"), "{said}");
         assert!(said.contains("Music has its own volume"), "{said}");
     }
-    let shell = include_str!("../../capsule_desktop_shell/src/sound/levels.rs");
+    let shell = include_str!("../../../capsule_desktop_shell/src/sound/levels.rs");
     assert!(shell.contains("Field::Volume") && shell.contains("Field::SoundEnabled"));
-    let music = include_str!("../../capsule_audio_player/src/model.rs");
+    let music = include_str!("../../../capsule_audio_player/src/model.rs");
     assert!(!music.contains("Field::Volume"), "if Music follows the row, the note must change");
 }

@@ -20,7 +20,9 @@
 use super::super::state::State;
 use super::apply::apply;
 use super::pending::{Pending, Work};
-use super::worker::{perform, send, Ask, Sent};
+use super::worker::send;
+use super::worker_msg::{Ask, Sent};
+use super::worker_run::perform;
 use alloc::boxed::Box;
 
 /// What the panel says when a request comes while the last is out.
