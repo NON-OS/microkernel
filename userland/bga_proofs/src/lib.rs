@@ -32,23 +32,44 @@
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
-
+pub mod dispi;
 #[path = "../../capsule_driver_bga/src/error.rs"]
 pub mod error;
-
 #[path = "../../capsule_driver_bga/src/regs.rs"]
 pub mod regs;
 
-pub mod dispi;
+/// One bring-up attempt end to end, against `libc_shim`'s broker: discovery's
+/// record, the claim and PCI command, both BAR mappings, the DISPI ID, the
+/// mode set and its read-back, and the clear.
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/discover.rs"]
+mod discover;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/handles.rs"]
+mod handles;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/setup/mod.rs"]
+mod setup;
 
+#[cfg(test)]
+mod adapter;
+#[cfg(test)]
+mod check_tests;
 #[cfg(test)]
 mod clear_tests;
-
 #[cfg(test)]
 mod mode_tests;
-
 #[cfg(test)]
 mod offset_tests;
-
 #[cfg(test)]
 mod reason_tests;
+#[cfg(test)]
+mod setup_bound_tests;
+#[cfg(test)]
+mod setup_claim_tests;
+#[cfg(test)]
+mod setup_confirm_tests;
+#[cfg(test)]
+mod setup_tests;
+#[cfg(test)]
+mod span_tests;

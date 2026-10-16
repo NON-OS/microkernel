@@ -13,47 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::{
-    mk_pci_config_read, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-    MK_PCI_CMD_MEMORY_SPACE,
-};
+//! The Intel and AMD settings written to PCI configuration space around the
+//! controller reset, each through `config::update`.
 
+use super::config::update;
 use crate::constants::{
     CGCTL_MISCBDCGE, DEVC_NOSNOOP, PCI_CFG_CGCTL, PCI_CFG_DEVC, PCI_CFG_TCSEL, TCSEL_MASK,
 };
-use crate::controller::intel::{with_bits, PciQuirks, AMD_ENABLE_SNOOP, AMD_MISC_CNTR2, AMD_SNOOP_MASK};
+use crate::controller::intel::{PciQuirks, AMD_ENABLE_SNOOP, AMD_MISC_CNTR2, AMD_SNOOP_MASK};
 use crate::error::{HdaError, HdaResult};
 use crate::setup::Line;
-
-/// Bus mastering for the rings and the stream, and memory decoding for the
-/// register BAR, which firmware leaves off on a controller it did not use.
-pub fn enable(device_id: u64, claim_epoch: u64) -> HdaResult<()> {
-    let bits = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_MEMORY_SPACE;
-    let r = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, bits);
-    if r < 0 {
-        return Err(HdaError::BrokerCallFailed(r));
-    }
-    Ok(())
-}
-
-/// One PCI configuration word read, its `mask` bits set to `want`, and
-/// written back when they differ. The broker refuses any other bit.
-fn update(device_id: u64, claim_epoch: u64, offset: u32, mask: u16, want: u16) -> HdaResult<()> {
-    let cur = mk_pci_config_read(device_id, claim_epoch, offset, 2);
-    if cur < 0 {
-        return Err(HdaError::BrokerCallFailed(cur));
-    }
-    let cur = cur as u16;
-    let new = with_bits(cur, mask, want);
-    if new == cur {
-        return Ok(());
-    }
-    let r = mk_pci_config_write(device_id, claim_epoch, offset, new);
-    if r < 0 {
-        return Err(HdaError::BrokerCallFailed(r));
-    }
-    Ok(())
-}
 
 /// The settings `azx_init_pci` writes before the controller is touched:
 /// TCSEL to 0 on Intel, snooping on for the Intel PCH (DEVC NOSNOOP off)
