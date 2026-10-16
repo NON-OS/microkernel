@@ -14,21 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::write_volatile;
-
 const HALF_PERIOD: usize = 55;
 const AMPLITUDE: i16 = 0x2000;
 
-pub fn fill(va: u64, bytes: usize) {
-    let frames = bytes / 4;
-    let buf = va as *mut i16;
-    let mut i = 0usize;
-    while i < frames {
+/// A square wave over `out`, one frame of two 16-bit little-endian samples
+/// to each whole four bytes; a tail shorter than a frame is left alone.
+pub fn fill(out: &mut [u8]) {
+    for (i, frame) in out.chunks_exact_mut(4).enumerate() {
         let sample = if (i / HALF_PERIOD) & 1 == 0 { AMPLITUDE } else { -AMPLITUDE };
-        unsafe {
-            write_volatile(buf.add(i * 2), sample);
-            write_volatile(buf.add(i * 2 + 1), sample);
-        }
-        i += 1;
+        let [lo, hi] = sample.to_le_bytes();
+        frame.copy_from_slice(&[lo, hi, lo, hi]);
     }
 }
