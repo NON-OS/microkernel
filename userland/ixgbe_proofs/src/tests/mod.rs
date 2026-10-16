@@ -35,6 +35,7 @@ mod reset_tests;
 mod reset_wait_tests;
 mod rx_batch_tests;
 mod rx_fuzz;
+mod rx_piece_tests;
 mod rx_queue_tests;
 mod rx_wb_tests;
 mod stage_tests;
