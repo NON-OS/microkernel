@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Suspend, the firmware's half, behind the owner's switch (`switch.rs`).
+//! Suspend, the firmware's half, behind the owner's switch (`switch.rs`);
+//! and what the machine offers for sleep, said once at boot (`seen.rs`).
 
 mod hardware;
 pub mod lpit;
 mod s3;
+pub mod seen;
 mod switch;
 
 pub use s3::{idle, s3};

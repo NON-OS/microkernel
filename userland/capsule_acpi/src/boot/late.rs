@@ -26,6 +26,7 @@ pub fn late(acpi: &mut Acpi, fadt: &[u8]) {
     let gpe = acpi.ec.as_ref().and_then(|e| e.gpe);
     let (events, sci) = super::sci::start(fadt, &mut acpi.aml, &mut acpi.host, gpe);
     (acpi.events, acpi.sci) = (events, sci);
+    crate::suspend::seen::say(acpi, fadt);
     acpi.power = crate::power::find(&acpi.devices);
     crate::power::all(&mut acpi.power, &mut acpi.aml, &mut acpi.host);
     acpi.buttons = crate::buttons::find(&acpi.devices);

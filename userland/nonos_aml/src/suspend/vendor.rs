@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Low Power S0 Idle _DSM's two function sets: Microsoft's and Intel's.
+//! The Low Power S0 Idle _DSM's two function sets: Microsoft's and Intel's;
+//! and AMD's UUID, only looked for (`s0_seen`).
 //! Both UUIDs and their function numbers are recalled from the vendors'
 //! published documents (Microsoft's "Modern Standby firmware
 //! notifications", Intel's Low Power S0 Idle _DSM), which could not be
@@ -42,4 +43,22 @@ impl Vendor {
             Vendor::Intel => INTEL_UUID,
         }
     }
+}
+
+/// AMD's, recalled the same way: E3F32452-FEBC-43CE-9039-932122D37721, in ToUUID's byte order.
+pub const AMD_UUID: [u8; 16] = [
+    0x52, 0x24, 0xF3, 0xE3, 0xBC, 0xFE, 0xCE, 0x43, 0x90, 0x39, 0x93, 0x21, 0x22, 0xD3, 0x77, 0x21,
+];
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Uuids {
+    pub microsoft: bool,
+    pub intel: bool,
+    pub amd: bool,
+}
+
+/// The known UUIDs `body` holds, found in its bytes, never by a call.
+pub fn uuids(body: &[u8]) -> Uuids {
+    let has = |u: &[u8; 16]| body.windows(16).any(|w| w == u);
+    Uuids { microsoft: has(&MICROSOFT_UUID), intel: has(&INTEL_UUID), amd: has(&AMD_UUID) }
 }
