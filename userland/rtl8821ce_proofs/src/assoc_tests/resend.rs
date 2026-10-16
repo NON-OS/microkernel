@@ -6,7 +6,8 @@ use nonos_wifi_core::rsn::JoinPolicy;
 
 use super::beacons::{beacon_for, beacon_with_akm};
 use super::radio::{clock, join_request, seq_of, RecordingRadio};
-use crate::assoc::{run_join, Outcome, RETX_AFTER_MS, RETX_SAE_AFTER_MS};
+use crate::assoc::resend::{RETX_AFTER_MS, RETX_SAE_AFTER_MS};
+use crate::assoc::{run_join, Outcome};
 
 // The unanswered authentication frame is resent every RETX_AFTER_MS of the
 // clock, however fast the receive passes run: at 1 ms and at 50 ms a pass the
