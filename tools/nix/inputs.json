@@ -717,8 +717,8 @@
    "userland/capsule_about/src/about/data/doc_parse/types.rs",
    "userland/capsule_about/src/about/data/proofs/census",
    "userland/capsule_about/src/about/data/proofs/firmware.rs",
-   "userland/capsule_about/src/about/data/proofs/session.rs",
-   "userland/capsule_about/src/about/data/proofs/words.rs",
+   "userland/capsule_about/src/about/data/proofs/session",
+   "userland/capsule_about/src/about/data/proofs/words",
    "userland/libc/src/attest_policy.rs",
    "userland/libc/src/boot_attest/record.rs",
    "userland/route_proof"
