@@ -31,6 +31,10 @@ pub mod osc_grant;
 pub mod platform_decode;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_encode.rs"]
 pub mod platform_encode;
+#[path = "../../../../../../src/hardware/broker/acpi/first_pass.rs"]
+pub mod first_pass;
+#[path = "../../../../../../src/hardware/broker/acpi/first_pass_rule.rs"]
+pub mod first_pass_rule;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_record.rs"]
 pub mod platform_record;
 #[path = "../../../../../../src/hardware/broker/acpi/platform_wire.rs"]
