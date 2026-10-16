@@ -34,8 +34,8 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
     Ok(())
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    let drained = grant::drain_for_device(pid, device_id);
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    let drained = grant::drain_for_device(pid, device_id, epoch);
     for g in &drained {
         unmap_one(g);
     }

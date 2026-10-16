@@ -47,6 +47,8 @@ pub(crate) mod pci_index;
 pub mod pio;
 #[cfg(not(target_arch = "x86_64"))]
 mod pio_absent;
+#[cfg(not(target_arch = "x86_64"))]
+mod pio_absent_claim;
 mod platform;
 mod power;
 mod table;
@@ -103,7 +105,11 @@ pub use pio::{
     PioGrantResult, PioWidth,
 };
 #[cfg(not(target_arch = "x86_64"))]
-pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
+pub use pio_absent::{
+    pio_release_all_for_pid, pio_release_for_device as pio_release_for_device_unkeyed,
+};
+#[cfg(not(target_arch = "x86_64"))]
+pub use pio_absent_claim::pio_release_for_device;
 pub use platform::register_legacy as register_legacy_platform_devices;
 pub use table::{contains, init_from_pci, list, list_by_class};
 pub use windows::touches_device_window;

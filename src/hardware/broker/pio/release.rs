@@ -31,8 +31,8 @@ pub fn release_grant(pid: u32, grant_id: u64) -> Result<(), PioError> {
     Ok(())
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    grant_drain::drain_for_device(pid, device_id).len()
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    grant_drain::drain_for_device(pid, device_id, epoch).len()
 }
 
 pub fn release_all_for_pid(pid: u32) -> usize {
