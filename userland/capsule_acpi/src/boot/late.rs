@@ -16,12 +16,14 @@
 
 //! What runs once everything else is up: the ranges firmware reserves and
 //! the root bridges' proximity domains, the functions _PS0 woke, the
-//! platform controllers and port facts published to the broker, and the
-//! Type-C session, whose first walk may take a while on a slow PPM.
+//! hot-plug ports _OSC gave NONOS, the platform controllers and port
+//! facts published to the broker, and the Type-C session, whose first
+//! walk may take a while on a slow PPM.
 
 use super::state::Acpi;
+use crate::hotplug::native::osc_grant::OscGrant;
 
-pub fn late(acpi: &mut Acpi) {
+pub fn late(acpi: &mut Acpi, grants: &[OscGrant]) {
     super::say::say_cooling(&acpi.cooling);
     crate::reserved::publish(acpi);
     crate::numa::publish(acpi);
@@ -29,6 +31,7 @@ pub fn late(acpi: &mut Acpi) {
     crate::pci_firmware::find(acpi);
     crate::dpower::reveal_hidden(acpi);
     crate::hotplug::learn(acpi);
+    crate::hotplug::native::find(acpi, grants);
     let Acpi { devices, aml, host, .. } = acpi;
     crate::platform::publish(devices, aml, host);
     crate::ports::publish(acpi);

@@ -25,6 +25,7 @@
 
 use super::eval::evaluator;
 use crate::host::CapsuleHost;
+use crate::hotplug::native::osc_grant::OscGrant;
 use crate::sys::log::Line;
 use alloc::vec::Vec;
 use nonos_aml::load::Aml;
@@ -37,7 +38,8 @@ fn is_host_bridge(aml: &mut Aml, host: &mut CapsuleHost, dev: Id) -> bool {
     matches!(id, Some(HardwareId::Eisa(ref b)) if b == b"PNP0A08" || b == b"PNP0A03")
 }
 
-pub fn negotiate_all(aml: &mut Aml, host: &mut CapsuleHost) {
+/// Each host bridge's committed grant, for the hot-plug ports.
+pub fn negotiate_all(aml: &mut Aml, host: &mut CapsuleHost) -> Vec<OscGrant> {
     if let Some(osc) = aml.ns.child(ROOT, *b"_SB_").and_then(|sb| aml.ns.child(sb, *b"_OSC")) {
         let r = negotiate(aml, &mut evaluator(host), osc, (&PLATFORM_UUID, 1), &[0, 0]);
         Line::new(b"\\_SB._OSC ").str(if r.is_ok() { b"ok" } else { b"refused" }).end();
@@ -45,11 +47,13 @@ pub fn negotiate_all(aml: &mut Aml, host: &mut CapsuleHost) {
     let devices: Vec<Id> = (0..aml.ns.len() as Id)
         .filter(|&i| aml.ns.get(i).is_some_and(|e| e.kind == Kind::Device))
         .collect();
+    let mut grants = Vec::new();
     for dev in devices {
         let Some(osc) = aml.ns.child(dev, *b"_OSC") else { continue };
         if !is_host_bridge(aml, host, dev) {
             continue;
         }
-        super::osc_host::host_bridge(aml, host, dev, osc);
+        grants.extend(super::osc_host::host_bridge(aml, host, dev, osc));
     }
+    grants
 }
