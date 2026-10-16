@@ -24,6 +24,12 @@ pub(crate) const fn grantable(stage: Stage) -> bool {
     matches!(stage, Stage::Ready)
 }
 
+/// Whether a grant made against the claim may still be entered (L69): while
+/// it is ready, or leaving with the paths its release waits out still inside.
+pub(crate) const fn kept(stage: Stage) -> bool {
+    matches!(stage, Stage::Ready | Stage::Leaving)
+}
+
 /// The stage a release moves the claim to, or why none may begin: a claim
 /// still being made, its holder alive or not, is the claiming call's to settle.
 pub(crate) const fn retired(stage: Stage) -> Result<Stage, ClaimError> {

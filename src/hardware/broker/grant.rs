@@ -60,12 +60,17 @@ fn next_grant_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-// Insert a new grant. The caller (broker MMIO map handler) has
-// already validated claim ownership, BAR containment and alignment,
-// and installed the user pages. This function only persists the
-// record so revocation can find it later.
-pub(super) fn insert(record: MmioGrant) {
-    GRANTS.lock().push(record);
+// Insert a new grant, while its claim stands (L69). The caller (broker
+// MMIO map handler) has already validated claim ownership, BAR containment
+// and alignment, and installed the user pages; false when the claim is gone,
+// for the caller to take the pages back.
+pub(super) fn insert_live(record: MmioGrant) -> bool {
+    let mut grants = GRANTS.lock();
+    let live = super::claim::live(record.pid, record.device_id, record.claim_epoch);
+    if live {
+        grants.push(record);
+    }
+    live
 }
 
 // Allocate a fresh grant id without recording yet. Lets the handler
