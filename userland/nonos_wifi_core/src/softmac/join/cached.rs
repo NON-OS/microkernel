@@ -23,10 +23,10 @@
 
 use super::attempt::attempt;
 use super::extra::Extra;
+use super::joined::JoinError;
 use super::joining::Joining;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
-use super::run::JoinError;
 use crate::pmksa::{PmksaCache, Tag};
 use crate::regdom::Domain;
 use crate::rsn::JoinPolicy;
