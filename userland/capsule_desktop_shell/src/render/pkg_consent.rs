@@ -9,9 +9,10 @@
 
 use alloc::vec::Vec;
 
-use super::consent::{
-    border, button, fill, line, margin, wrap_at, APPROVE_BG, BORDER, CANCEL_BG, DIM, FG, PANEL,
+use super::dialog_kit::{
+    border, button, fill, margin, APPROVE_BG, BORDER, CANCEL_BG, DIM, FG, PANEL,
 };
+use super::dialog_text::{line, wrap_at};
 use crate::render::ui_font::{line_h, valid_str, TITLE_PX, UI_PX};
 use crate::server::handlers::pkg_consent::{approve_rect, cancel_rect, panel_rect};
 use crate::state::dialog_keys::Choice;

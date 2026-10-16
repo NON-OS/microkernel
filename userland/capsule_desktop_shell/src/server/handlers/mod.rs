@@ -16,6 +16,7 @@
 
 pub mod attention;
 pub mod consent;
+pub mod consent_rect;
 pub mod delete_prompt;
 pub mod dialog_key;
 pub mod escape_chord;
@@ -25,10 +26,14 @@ pub mod installed_launch;
 pub mod installed_launch_poll;
 pub mod instances;
 mod launch_children;
+mod launch_find;
+mod launch_say;
+mod launch_wake;
 pub mod launcher_focus;
 pub mod launcher_request;
 pub mod launchpad;
 pub mod launchpad_key;
+mod launchpad_launch;
 pub mod live_prompt;
 mod menu_key;
 pub mod menubar_action;
