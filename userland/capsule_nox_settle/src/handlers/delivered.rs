@@ -23,10 +23,9 @@
 
 use alloc::vec::Vec;
 
-use nonos_eth_rpc::{parse_u64, request_block_number};
 use nonos_nox_config::{deployed, Contract};
 use nonos_settle_proto::{parse_chain_hash, DeliveredKeys};
-use nonos_settle_proto::{EAGAIN, EINVAL, ENOENT, EPROTO};
+use nonos_settle_proto::{EAGAIN, EINVAL, ENOENT};
 
 use super::delivered_scan::scan;
 use crate::settle::Settle;
@@ -50,7 +49,7 @@ pub fn delivered(s: &mut Settle, body: &[u8]) -> Result<Vec<u8>, i32> {
     if let Some(key) = s.delivered.get(at).ok_or(ENOENT)?.find(&ask.id) {
         return Ok(key.to_vec());
     }
-    let head = parse_u64(&s.rpc.call(chain, &request_block_number(1))?).ok_or(EPROTO)?;
+    let head = crate::chain::head(&mut s.rpc, chain)?;
     let keys = s.delivered.get_mut(at).ok_or(ENOENT)?;
     let found = match keys.full {
         false => {
