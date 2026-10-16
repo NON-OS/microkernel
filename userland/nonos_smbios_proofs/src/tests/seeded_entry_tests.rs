@@ -20,7 +20,7 @@
 //! needs, inside the bytes handed over, summing to zero (the "_DMI_" part
 //! too), and its fields are the bytes at their offsets, nothing else.
 
-use super::seeded_entries::{fix, honest, le};
+use super::seeded_entries::{honest, le, lie};
 use super::seeded_gen::Rng;
 use crate::entry::parse_entry;
 
@@ -32,22 +32,7 @@ fn entry_points_parse_only_as_their_bytes_say() {
         let wide = r.below(2) == 0;
         let mut b = honest(r, wide);
         assert!(parse_entry(&b).is_some(), "seed {seed}: an honest entry");
-        let at = if r.below(3) == 0 { 5 + usize::from(wide) } else { 8 + r.below(23) as usize };
-        if at < b.len() {
-            b[at] = r.below(256) as u8;
-        }
-        if r.below(2) == 0 {
-            // the sums set right again over whatever the length now says
-            let (sum, l) = if wide { (5, usize::from(b[6])) } else { (4, usize::from(b[5])) };
-            if !wide && r.below(2) == 0 {
-                fix(&mut b, 0x10..0x1F, 0x15);
-            }
-            let end = l.clamp(sum + 1, b.len());
-            fix(&mut b, 0..end, sum);
-        }
-        if r.below(4) == 0 {
-            b.truncate(b.len() - 1 - r.below(12) as usize);
-        }
+        lie(r, &mut b, wide);
         let Some(e) = parse_entry(&b) else {
             refused += 1;
             continue;

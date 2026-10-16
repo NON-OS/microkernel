@@ -90,6 +90,7 @@ mod slot_ports;
 pub mod slot_rule;
 pub mod slot_wire;
 pub mod smbios;
+pub mod smbios_copy;
 pub mod smbios_entry;
 mod table_allow;
 mod table_check;
