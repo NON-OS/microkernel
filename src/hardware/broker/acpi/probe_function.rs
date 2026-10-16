@@ -20,12 +20,14 @@
 //! the device table through the boot scan's own record build; if its BARs
 //! were never assigned it joins marked unusable, since NONOS assigns none.
 //! An IOMMU in service gives it no context entry: its DMA is denied until
-//! a driver claims it and the claim confines it, as for any device.
+//! a driver claims it and the claim confines it, as for any device. One
+//! whose registers fall in a departed device's fenced window joins marked
+//! unusable too, until the space that may still map it is gone.
 
+use super::super::mmio::fence::fenced_by;
 use super::super::{pci_index, table};
 use super::late_bars::unassigned;
 use crate::drivers::pci::manager::probe_function;
-use crate::sys::serial::Line;
 use alloc::vec::Vec;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -54,19 +56,11 @@ pub fn probe_late(bus: u8, dev: u8, func: u8) -> Result<u64, ProbeError> {
             (b.size(), b.address().map(|a| a.as_u64()).or(b.port().map(u64::from)).unwrap_or(0))
         })
         .collect();
-    let disabled = unassigned(&bars);
+    let mem = found.bars.iter().filter_map(|b| Some((b.address()?.as_u64(), b.size())));
+    let fenced = mem.clone().find_map(|(base, size)| fenced_by(base, size));
+    let disabled = unassigned(&bars) || fenced.is_some();
     let id = table::add_pci_function(&found, disabled);
     super::numa_refresh::refresh();
-    let iommu: &[u8] = if crate::memory::iommu::capabilities().enforcing {
-        b"; IOMMU denies its DMA until it is claimed"
-    } else {
-        b"; no IOMMU in service, unconfined like every device"
-    };
-    let mut l = Line::new();
-    l.str(b"[ACPI] pci ").hex(u64::from(bus)).str(b":").hex(u64::from(dev)).str(b".");
-    l.dec(u64::from(func)).str(b" answered after _PS0: ").hex(u64::from(found.vendor_id));
-    l.str(b":").hex(u64::from(found.device_id)).str(b" device=").hex(id);
-    l.str(if disabled { b"; BARs unassigned, marked unusable" } else { iommu });
-    l.end();
+    super::probe_say::say((bus, dev, func), &found, id, disabled, fenced);
     Ok(id)
 }
