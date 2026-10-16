@@ -15,17 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A DMA buffer below 4 GiB, mapped uncached so neither side needs a flush,
-//! as Linux takes it from dma_alloc_coherent with a 32-bit mask.
+//! as Linux takes it from dma_alloc_coherent with a 32-bit mask. It is
+//! never unmapped here: the claim's release drains it once bus mastering
+//! is off (claim.rs), and an unmap before that would free a frame the
+//! reader can still write.
 
-use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32};
+use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32};
 
 use crate::error::{Result, RtsxError};
 
 pub struct Region {
-    grant_id: u64,
-    user_va: u64,
+    pub(super) user_va: u64,
     device_addr: u32,
-    len: u64,
+    pub(super) len: u64,
 }
 
 impl Region {
@@ -35,12 +37,11 @@ impl Region {
         if mk_dma_map(device_id, claim_epoch, len, flags, &mut out) < 0 {
             return Err(RtsxError::DmaMap);
         }
-        let region = Self { grant_id: out.grant_id, user_va: out.user_va, device_addr: 0, len };
         let end = out.device_addr.checked_add(len).ok_or(RtsxError::DmaAbove4G)?;
         if end > 1 << 32 || out.length < len {
             return Err(RtsxError::DmaAbove4G);
         }
-        Ok(Self { device_addr: out.device_addr as u32, ..region })
+        Ok(Self { user_va: out.user_va, device_addr: out.device_addr as u32, len })
     }
 
     pub const fn device_addr(&self) -> u32 {
@@ -50,7 +51,7 @@ impl Region {
     pub fn write_u32(&self, offset: u64, value: u32) {
         if offset + 4 <= self.len {
             // SAFETY: inside the mapping the broker returned (checked
-            // against `len`), which lives until this Region is dropped.
+            // against `len`), which lives until the claim is released.
             unsafe { core::ptr::write_volatile((self.user_va + offset) as *mut u32, value) }
         }
     }
@@ -62,11 +63,5 @@ impl Region {
         }
         // SAFETY: as write_u32.
         unsafe { core::ptr::read_volatile((self.user_va + offset) as *const u8) }
-    }
-}
-
-impl Drop for Region {
-    fn drop(&mut self) {
-        let _ = mk_dma_unmap(self.grant_id);
     }
 }

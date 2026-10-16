@@ -37,3 +37,12 @@ pub fn capacity_blocks(csd: &[u32; 4]) -> Option<u64> {
         _ => None,
     }
 }
+
+/// Whether a card of `blocks` is reached whole by a 32-bit argument: block
+/// numbers on a high capacity card, byte offsets on a standard one. An
+/// SDUC card past 2 TiB needs CMD22, which this driver does not send, and
+/// a card of no blocks is no disk.
+pub const fn addressable(blocks: u64, high_capacity: bool) -> bool {
+    let limit = if high_capacity { 1 << 32 } else { 1 << 23 };
+    blocks > 0 && blocks <= limit
+}

@@ -28,6 +28,7 @@
 use alloc::vec::Vec;
 
 use super::handle::BlockDevice;
+use super::unserved::unserved;
 use crate::driver::{Controller, Driver, ALL};
 use crate::error::BlkError;
 
@@ -61,17 +62,4 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
         }
     }
     out
-}
-
-/// Controllers with no service behind them. An NVMe controller is one
-/// disk, so each one past those served is one missing. The SATA driver
-/// serves a disk from whichever of the machine's AHCI controllers holds
-/// one, and a virtio-blk device can be the medium this boot came from, so
-/// for those only a driver serving nothing is a missing disk.
-fn unserved(driver: Driver, on_bus: usize, served: u8) -> u8 {
-    let missing = match driver {
-        Driver::Nvme => on_bus.saturating_sub(served as usize),
-        Driver::Ahci | Driver::VirtioBlk => usize::from(served == 0 && on_bus > 0),
-    };
-    missing.min(u8::MAX as usize) as u8
 }

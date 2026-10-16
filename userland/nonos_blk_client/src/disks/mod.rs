@@ -19,6 +19,7 @@
 //! calls itself, and the word that confirms it.
 
 mod booted;
+mod confirm;
 mod contents;
 mod describe;
 mod probe;

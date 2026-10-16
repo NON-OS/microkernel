@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SD commands the bring-up and the reads send (SD Physical Layer
-//! 4.7.4), each with its argument and the response it expects.
+//! The SD commands the bring-up, the reads and the writes send (SD Physical
+//! Layer 4.7.4), each with its argument and the response it expects.
 
 use super::rsp::Rsp;
 
@@ -57,10 +57,15 @@ impl Command {
     }
     /// ACMD6 with 10b: a 4-bit bus.
     pub const SET_BUS_WIDTH_4: Command = cmd(6, 2, Rsp::R1);
-    pub const fn read_single(addr: u32) -> Command {
-        cmd(17, addr, Rsp::R1)
+    pub const fn send_status(rca: u16) -> Command {
+        cmd(13, (rca as u32) << 16, Rsp::R1)
     }
-    pub const fn read_multiple(addr: u32) -> Command {
-        cmd(18, addr, Rsp::R1)
+    /// CMD17, or CMD18 for more than one block.
+    pub const fn read(addr: u32, multi: bool) -> Command {
+        cmd(if multi { 18 } else { 17 }, addr, Rsp::R1)
+    }
+    /// CMD24, or CMD25 for more than one block.
+    pub const fn write(addr: u32, multi: bool) -> Command {
+        cmd(if multi { 25 } else { 24 }, addr, Rsp::R1)
     }
 }

@@ -48,6 +48,10 @@ pub const LINK_RDY_INT: u8 = 0x20;
 pub const DMA_DONE_INT: u8 = 0x80;
 pub const DMA_EN: u8 = 0x01;
 pub const DMA_DIR_FROM_CARD: u8 = 0x02;
+pub const DMA_DIR_TO_CARD: u8 = 0x00;
+/// DMACTL: reset the DMA engine. RBCTL: flush the ring buffer.
+pub const DMA_RST: u8 = 0x80;
+pub const RB_FLUSH: u8 = 0x80;
 pub const DMA_512: u8 = 0x20;
 pub const DMA_PACK_SIZE_MASK: u8 = 0x30;
 pub const D3_DELINK_MODE_EN: u8 = 0x10;
