@@ -29,7 +29,7 @@ pub fn write(
     width: PioWidth,
     value: u32,
 ) -> Result<(), PioError> {
-    let g = resolve(pid, grant_id, port_offset, width)?;
+    let (g, _held) = resolve(pid, grant_id, port_offset, width)?;
     let port = g.port_base + port_offset;
     unsafe {
         match width {

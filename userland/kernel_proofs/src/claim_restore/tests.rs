@@ -53,16 +53,18 @@ fn put_never_writes_outside_the_address_bits_it_was_given() {
 
 #[test]
 fn a_64_bit_bar_fills_the_next_slot_with_its_high_half_and_no_other() {
-    use Kind::{Absent, Io, Mem32, Mem64};
+    use Kind::{Absent, Mem32, Mem64};
     let high = |v| Some(Want { value: v, mask: u32::MAX });
-    let s = slots([(Mem32, 0xFEB0_0000), (Absent, 0), (Mem64, 0x60_F000_0000), (Absent, 0),
-        (Io, 0xE000), (Absent, 0)]);
+    let mut bars = [(Absent, 0); 6];
+    (bars[0], bars[2]) = ((Mem32, 0xFEB0_0000), (Mem64, 0x60_F000_0000));
+    let s = slots(bars);
     assert_eq!((s[0], s[1], s[3], s[5]), (wants(Mem32, 0xFEB0_0000).0, None, high(0x60), None));
-    let at4 = slots([(Absent, 0), (Absent, 0), (Absent, 0), (Absent, 0), (Mem64, 1 << 32),
-        (Absent, 0)]);
-    assert_eq!(at4[5], high(1), "slot 4's high half in slot 5");
+    bars = [(Absent, 0); 6];
+    bars[4] = (Mem64, 1 << 32);
+    assert_eq!(slots(bars)[5], high(1), "slot 4's high half in slot 5");
     // A decoded BAR keeps its own slot; past the last slot nothing is written.
-    let both = slots([(Mem64, 2 << 32), (Mem32, 0xFE00_0000), (Absent, 0), (Absent, 0),
-        (Absent, 0), (Mem64, 3 << 32)]);
+    bars = [(Absent, 0); 6];
+    (bars[0], bars[1], bars[5]) = ((Mem64, 2 << 32), (Mem32, 0xFE00_0000), (Mem64, 3 << 32));
+    let both = slots(bars);
     assert_eq!((both[1], both[5]), (wants(Mem32, 0xFE00_0000).0, wants(Mem64, 3 << 32).0));
 }
