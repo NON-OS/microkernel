@@ -55,6 +55,10 @@ impl Host for Probe {
     fn table(&mut self, signature: &[u8], _: &[u8], _: &[u8]) -> Option<Vec<u8>> {
         self.tables.iter().find(|t| &t[..4] == signature).cloned()
     }
+    fn admit_table(&mut self, bytes: &[u8]) -> bool {
+        self.admitted.push(bytes.to_vec());
+        !self.refuse_tables
+    }
     fn lock_word(&mut self, old: u32, new: u32) -> Option<u32> {
         self.cas(old, new)
     }

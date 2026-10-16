@@ -8,6 +8,9 @@ use crate::object::Object;
 use crate::probe::Probe;
 use crate::rig::Rig;
 
+#[path = "load_admit_tests.rs"]
+mod admit;
+
 fn ssdt() -> Vec<u8> {
     table(
         b"SSDT",

@@ -26,6 +26,8 @@
 pub mod button_owner;
 #[path = "../../../../../../src/hardware/broker/acpi/dgon_wire.rs"]
 pub mod dgon_wire;
+#[path = "../../../../../../src/hardware/broker/acpi/loaded_rule.rs"]
+pub mod loaded_rule;
 #[path = "../../../../../../src/hardware/broker/acpi/numa_node.rs"]
 pub mod numa_node;
 #[path = "../../../../../../src/hardware/broker/acpi/osc_grant.rs"]
