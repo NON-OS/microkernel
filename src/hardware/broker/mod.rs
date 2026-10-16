@@ -29,6 +29,7 @@ mod confine;
 mod device;
 pub mod dma;
 mod grant;
+mod holder_space;
 // IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses
 // GICv3 SPIs; riscv64 uses PLIC external sources. Backend selection
 // happens inside `irq::mod.rs` via `target_arch` cfg.
