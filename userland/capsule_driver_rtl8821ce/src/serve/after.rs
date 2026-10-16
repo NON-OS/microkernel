@@ -29,11 +29,12 @@ use super::scanner::Scanner;
 // deauthentication from the AP ends the session, clearing its keys, so the
 // link reads down and the background scan resumes.
 pub(super) fn after_receive(up: &mut radio::RadioUp, session: &mut Option<Session>) {
-    if let (Some((id, key)), Some(s)) = (up.link.take_group_key(), session.as_mut()) {
-        if up.keys.install_gtk(&key, id) {
+    if let (Some((id, key)), Some(s)) = (up.link.group_key(), session.as_mut()) {
+        if up.keys.install_gtk(key, id) {
             s.set_gtk_id(id);
         }
     }
+    up.link.clear_group_key();
     let (left, silent) = (up.link.take_left(), up.link.take_silent());
     if left.is_some() || silent {
         say_loss(left);
