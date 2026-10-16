@@ -18,7 +18,7 @@
 //! callers that want the panel alone.
 
 use super::monitor::Monitor;
-use super::monitor_read::read;
+use super::monitor_read::{read, EDID_MAX};
 use super::panel_fits::fits;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::Gen;
@@ -27,7 +27,7 @@ use crate::engine::route::Route;
 use nonos_gfx_serve::Panel;
 
 pub fn panel(m: &mut dyn Mmio, clock: &dyn Clock, r: &Route) -> Panel {
-    let mut blob = [0u8; 256];
+    let mut blob = [0u8; EDID_MAX];
     let n = read(m, clock, r, &mut blob);
     Panel::read(&blob[..n], fits)
 }

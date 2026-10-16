@@ -14,32 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An EDID read over DDC through GMBUS: select the DDI's pins, ask for the
-//! bytes from address 0x50 at an index, take them four at a time as the
-//! controller has them ready, then end with a stop. A NAK clears the
-//! controller and is reported; every wait has a deadline.
+//! An EDID block read over DDC through GMBUS. Blocks two and on sit behind
+//! the E-DDC segment pointer at 0x30: its byte is written, with no stop,
+//! before the read from 0x50 at the block's index, and the pointer is back
+//! at 0 after every stop, so the first two blocks need none (VESA E-DDC,
+//! as this driver recalls it; unverified against the standard). A NAK
+//! clears the controller and is reported; every wait draws on the
+//! caller's deadline.
 
-use super::access::{Clock, Mmio};
+use super::access::{Clock, Expiry, Mmio};
 use super::error::Error;
 use super::gmbus_regs::*;
-use super::gmbus_xfer::take::take;
+use super::gmbus_xfer::{end::end, put::put, take::take};
 
-/// Read `out.len()` bytes (at most 256) of the EDID on DDI `ddi`'s DDC
-/// pins, from byte `index`.
-pub fn read_edid(
+pub const EDID_ADDR: u32 = 0x50;
+pub const SEGMENT_ADDR: u32 = 0x30;
+pub const BLOCK: usize = 128;
+
+/// Block `n` of the EDID on DDI `ddi`'s DDC pins: 128 bytes from index
+/// `n % 2 * 128` of segment `n / 2`.
+pub fn read_block(
     m: &mut dyn Mmio,
     clock: &dyn Clock,
     ddi: u32,
-    index: u8,
-    out: &mut [u8],
+    n: u8,
+    out: &mut [u8; BLOCK],
+    until: &dyn Expiry,
 ) -> Result<(), Error> {
     let p = pin(ddi).ok_or(Error::Argument)?;
-    if out.is_empty() || out.len() > 256 {
-        return Err(Error::Argument);
-    }
     m.write(GMBUS0, p);
-    m.write(GMBUS1, read_cmd(0x50, index, out.len()));
-    let r = take(m, clock, out);
-    super::gmbus_xfer::end::end(m, clock, r.is_err());
+    let r = point(m, n / 2, until).and_then(|()| {
+        m.write(GMBUS1, read_cmd(EDID_ADDR, n % 2 * 128, BLOCK));
+        take(m, until, out)
+    });
+    end(m, clock, r.is_err());
     r
+}
+
+/// The segment pointer at `segment`, left in the wait phase so the read
+/// follows with a repeated start; a sink without E-DDC NAKs it.
+fn point(m: &mut dyn Mmio, segment: u8, until: &dyn Expiry) -> Result<(), Error> {
+    match segment {
+        0 => Ok(()),
+        s => put(m, until, SEGMENT_ADDR, &[s]),
+    }
 }

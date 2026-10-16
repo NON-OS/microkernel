@@ -17,7 +17,7 @@
 //! The monitor on a lit output: its EDID as read (`monitor_read`), kept
 //! for the panel the wire describes and the timings a mode set picks.
 
-use super::monitor_read::read;
+use super::monitor_read::{read, EDID_MAX};
 use super::panel_fits::fits;
 use crate::engine::access::{Clock, Mmio};
 use crate::engine::gen::{Gen, GEN9};
@@ -31,8 +31,8 @@ const TMDS_DEFAULT_KHZ: u32 = 165_000;
 
 #[derive(Clone, Copy)]
 pub struct Monitor {
-    pub blob: [u8; 256],
-    /// 0, 128 or 256.
+    pub blob: [u8; EDID_MAX],
+    /// A whole number of blocks, at most EDID_MAX.
     pub len: usize,
 }
 
@@ -42,14 +42,14 @@ impl Monitor {
     pub fn of(m: &mut dyn Mmio, clock: &dyn Clock, gen: &Gen, t: Transcoder) -> Monitor {
         match route::read(m, t).filter(|_| *gen == GEN9) {
             Some(r) => Monitor::on(m, clock, &r),
-            None => Monitor { blob: [0; 256], len: 0 },
+            None => Monitor { blob: [0; EDID_MAX], len: 0 },
         }
     }
 
     /// The monitor at the end of route `r`, lit or dark: a replugged
     /// port's transcoder is off, so its route is the one it was lit on.
     pub fn on(m: &mut dyn Mmio, clock: &dyn Clock, r: &Route) -> Monitor {
-        let mut mon = Monitor { blob: [0; 256], len: 0 };
+        let mut mon = Monitor { blob: [0; EDID_MAX], len: 0 };
         mon.len = read(m, clock, r, &mut mon.blob);
         mon
     }
