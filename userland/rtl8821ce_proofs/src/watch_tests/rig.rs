@@ -28,7 +28,7 @@ pub(super) const STA: [u8; 6] = [0x02, 0x11, 0x22, 0x33, 0x44, 0x55];
 pub(super) const AP: [u8; 6] = [0x02, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE];
 
 #[derive(Clone)]
-pub(super) struct Dma(Rc<RefCell<Vec<u8>>>, u64);
+pub(super) struct Dma(pub(super) Rc<RefCell<Vec<u8>>>, pub(super) u64);
 
 impl DmaMem for Dma {
     fn capacity(&self) -> usize {

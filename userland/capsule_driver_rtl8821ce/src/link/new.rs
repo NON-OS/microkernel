@@ -63,6 +63,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             left: None,
             silent: false,
             history: LinkHistory::NEW,
+            address: None,
         }
     }
 }
