@@ -149,6 +149,9 @@ pub mod lifecycle_state;
 pub mod usb_msc_report_words;
 #[cfg(test)]
 mod usb_msc_report_tests;
+/// The firmware's flash never claimed or mapped.
+#[cfg(test)]
+mod firmware_flash;
 /// Which core services init restarts when they end.
 #[cfg(test)]
 #[path = "../../../src/userspace/init/supervisor/watch_rule.rs"]
