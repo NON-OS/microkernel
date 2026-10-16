@@ -26,7 +26,7 @@ use super::buyer::request;
 #[test]
 fn the_agent_reads_settles_body_exactly() {
     let req = request(1);
-    let b = req.agent_body();
+    let b = req.agent_body().expect("a request whose solution fits its u16");
     let a = Asked::parse(&b).unwrap();
     assert_eq!(b.len(), BODY_LEN);
     assert_eq!((a.chain_id, a.buyer_pk, &a.pow[..]), (1, req.buyer_pk, &req.solution[..]));
