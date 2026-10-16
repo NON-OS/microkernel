@@ -19,6 +19,7 @@
 //! the EC's _GLK asks for it.
 
 use super::lock_hold::{give, take};
+use super::spaces::ec_ok;
 use super::state::CapsuleHost;
 use crate::events_io::PortIo;
 use nonos_aml::ec;
@@ -37,12 +38,12 @@ fn locked<T>(h: &mut CapsuleHost, glk: bool, f: impl FnOnce() -> Option<T>) -> O
 
 pub(super) fn read(h: &mut CapsuleHost, addr: u64, width: u32) -> Option<u64> {
     let (ports, glk) = h.ec?;
-    let addr = u8::try_from(addr).ok().filter(|_| width == 1)?;
+    let addr = u8::try_from(addr).ok().filter(|_| ec_ok(addr, width))?;
     locked(h, glk, || ec::read(&ports, &mut PortIo, addr).ok().map(u64::from))
 }
 
 pub(super) fn write(h: &mut CapsuleHost, addr: u64, width: u32, v: u64) -> bool {
     let Some((ports, glk)) = h.ec else { return false };
-    let Ok(addr) = u8::try_from(addr) else { return false };
-    width == 1 && locked(h, glk, || ec::write(&ports, &mut PortIo, addr, v as u8).ok()).is_some()
+    let Some(addr) = u8::try_from(addr).ok().filter(|_| ec_ok(addr, width)) else { return false };
+    locked(h, glk, || ec::write(&ports, &mut PortIo, addr, v as u8).ok()).is_some()
 }

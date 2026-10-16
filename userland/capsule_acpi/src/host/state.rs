@@ -32,6 +32,8 @@ pub struct CapsuleHost {
     pub pm1_cnt: Option<Pm1Cnt>,
     /// Region accesses the host refused or that failed, for the log.
     pub refused: u64,
+    /// The refused regions told so far, by (space, base).
+    pub told: alloc::vec::Vec<(u8, u64)>,
     /// The embedded controller, once found, and whether its accesses take
     /// the Global Lock (_GLK, ACPI 6.5, 6.5.7).
     pub ec: Option<(EcPorts, bool)>,

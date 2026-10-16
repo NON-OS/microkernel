@@ -27,6 +27,8 @@ pub mod platform_rule;
 pub mod rule;
 
 #[cfg(test)]
+mod aml_ports_tests;
+#[cfg(test)]
 mod machine;
 #[cfg(test)]
 mod model_facts;
@@ -34,6 +36,10 @@ mod model_facts;
 mod platform_admit_tests;
 #[cfg(test)]
 mod platform_tests;
+#[cfg(test)]
+mod seeded_gen;
+#[cfg(test)]
+mod seeded_tests;
 #[cfg(test)]
 mod sweep;
 #[cfg(test)]

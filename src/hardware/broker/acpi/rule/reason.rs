@@ -32,12 +32,16 @@ impl Refusal {
             Refusal::Protected(Hardware::Hpet) => "HPET",
             Refusal::Protected(Hardware::Iommu) => "IOMMU",
             Refusal::Protected(Hardware::Ecam) => "PCI configuration window",
+            Refusal::Protected(Hardware::Msix) => "MSI-X table or pending bits",
             Refusal::Legacy(Legacy::Dma) => "DMA controller ports",
             Refusal::Legacy(Legacy::Pic) => "PIC ports",
             Refusal::Legacy(Legacy::Pit) => "PIT ports",
             Refusal::Legacy(Legacy::PciConfig) => "PCI configuration ports",
             Refusal::Legacy(Legacy::Rtc) => "CMOS clock ports",
             Refusal::Legacy(Legacy::Serial) => "kernel serial port",
+            Refusal::Legacy(Legacy::Reset) => "system control port A (reset)",
+            Refusal::Legacy(Legacy::Console) => "kernel console CRT ports",
+            Refusal::Legacy(Legacy::Debug) => "kernel debug ports",
             Refusal::Bridge => "bridge bus number, window or bus master",
         }
     }
