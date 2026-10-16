@@ -18,7 +18,8 @@ use crate::settings::schema::blocks_for;
 use crate::settings::state::State;
 
 use super::metrics::PANE_PAD_TOP;
-use super::walk::{content_h, walk, Item};
+use super::walk::{walk, Item};
+use super::walk_height::content_h;
 
 pub fn max_scroll(state: &State, view_h: u32) -> u32 {
     content_h(state).saturating_sub(view_h)

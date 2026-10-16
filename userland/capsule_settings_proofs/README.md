@@ -21,14 +21,14 @@ are syscalls.
 
 ## What the tests check
 
-- `interface_tests.rs`: WiFi is recognised by PCI class, not vendor; wired NICs and non-PCI
+- `interface_tests.rs`, `interface_names_tests.rs`, `interface_driver_tests.rs`: WiFi is recognised by PCI class, not vendor; wired NICs and non-PCI
   devices are excluded; `discover` does not overrun its output buffer; known parts get
   specific names (`recognises_wifi_by_class_not_brand`,
   `discover_never_overruns_the_output_buffer`).
-- `wire_tests.rs`: the parser for untrusted scan bytes refuses a lying count, truncated
+- `wire_tests.rs`, `wire_ssid_tests.rs`, `connect_request_tests.rs`: the parser for untrusted scan bytes refuses a lying count, truncated
   entries and oversized or overrunning SSID lengths (`a_lying_count_stops_at_the_real_data`,
   `an_ssid_running_past_the_buffer_is_refused`).
-- `saved/tests.rs`: slot replacement and eviction, a sealed record opening only under its key,
+- `saved/tests.rs`, `saved/seal_tests.rs`: slot replacement and eviction, a sealed record opening only under its key,
   and decode refusing lengths no slot was written with
   (`a_sealed_record_opens_under_its_key_only`).
 - `screens_tests/keep_tests.rs` and `replay_tests.rs`: a change on the displays' rows is kept

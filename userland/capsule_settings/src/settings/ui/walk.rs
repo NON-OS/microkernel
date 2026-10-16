@@ -16,12 +16,11 @@
 
 use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 
+use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP, ROW_H};
+use super::walk_metrics::{block_h, head_h, network_rows, row_h, saved_rows};
 use crate::settings::schema::blocks_for;
 use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
-
-use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP, ROW_H};
-use super::walk_metrics::{block_h, head_h, network_rows, row_h, saved_rows};
 
 #[derive(Clone, Copy)]
 pub enum Item {
@@ -73,12 +72,4 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
         }
         y += bh + CARD_GAP;
     }
-}
-
-pub fn content_h(state: &State) -> u32 {
-    let mut h = PANE_PAD_TOP + HEAD_H;
-    for b in blocks_for(state.section) {
-        h += block_h(state, b) + CARD_GAP;
-    }
-    h + PANE_PAD_TOP
 }
