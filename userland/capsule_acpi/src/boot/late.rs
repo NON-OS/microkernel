@@ -29,6 +29,8 @@ pub fn late(acpi: &mut Acpi, fadt: &[u8]) {
     acpi.power = crate::power::find(&acpi.devices);
     crate::power::all(&mut acpi.power, &mut acpi.aml, &mut acpi.host);
     acpi.buttons = crate::buttons::find(&acpi.devices);
+    // The boot guard counts from here, the first publish pass just done.
+    acpi.buttons.presses.pass_at = Some(crate::sys::clock::now_ms());
     crate::buttons::read_lid(&mut acpi.buttons, &mut acpi.aml, &mut acpi.host);
     // The pool already counts what the first pass powered.
     let pool = core::mem::take(&mut acpi.cooling.pool);
