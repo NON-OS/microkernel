@@ -39,6 +39,9 @@ pub enum HciError {
     NoBuffers,
     /// No Bluetooth interface in the device's configuration.
     NotBluetooth,
+    /// A Three-wire UART link never became active, or its peer stopped
+    /// acknowledging what was sent (Vol 4, Part D).
+    NoLink,
 }
 
 impl From<WireError> for HciError {

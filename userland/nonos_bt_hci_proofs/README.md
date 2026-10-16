@@ -45,3 +45,16 @@ test fail:
 Three more were tried for the random address (E-21), each caught: the scan
 made as public regardless; the address taken before the controller agreed;
 an RPA's random part checked as a static one's.
+
+The UART proofs (`src/uart/`) put the simulated controller behind an H4
+port and behind a second Three-wire side. Bring-up over each matches bring-up
+over USB. The Three-wire octets a side sends are laid out by hand from
+Vol 4, Part D: the SYNC, a header with every field set, SLIP with and
+without out-of-frame flow control, CONFIG, and a first command and its
+acknowledgement. Hostile lines are covered too: H4 cut at every octet,
+indicators that are none, lengths over their bound, random lines,
+undefined escapes, overlong frames, every flipped header and CRC bit,
+acknowledgements naming packets never sent, a peer that never answers
+and one that starts over. Every command crosses a line losing up to half
+its frames exactly once and in order.
+

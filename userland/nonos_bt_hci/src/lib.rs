@@ -29,6 +29,7 @@ extern crate alloc;
 pub mod error;
 pub mod host;
 pub mod transport;
+pub mod uart;
 pub mod usb;
 
 pub use error::HciError;
