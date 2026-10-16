@@ -16,6 +16,7 @@
 
 pub mod apps;
 pub mod attention;
+pub mod brightness;
 pub mod chrome;
 pub mod context;
 pub mod ctx;
