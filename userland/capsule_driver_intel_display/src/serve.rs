@@ -30,14 +30,18 @@ use nonos_intel_display::display::{brightness_answer, Rights, BRIGHTNESS_REPLY, 
 
 const SERVICE_INBOX: u64 = 0;
 
-pub fn run(server: &mut Server<Engine, Pool>) -> ! {
+pub fn run(server: &mut Server<Engine, Pool>, device_id: u64) -> ! {
     // Requests are at most 256 bytes; replies the header, status and 252,
     // or a brightness reply of at most 512.
     let (mut rx, mut tx) = ([0u8; 256], [0u8; BRIGHTNESS_REPLY]);
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
-        if !recv_ready(n) || sender == 0 {
+        if !recv_ready(n) {
+            continue;
+        }
+        if sender == 0 {
+            crate::gone::from_kernel(&rx[..n as usize], device_id);
             continue;
         }
         let req = &rx[..n as usize];
