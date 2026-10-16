@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! REMOTE_NDIS_INITIALIZE_MSG and its completion (Remote NDIS 1.0, 2.2.1
-//! and 2.2.2), as Linux generic_rndis_bind sends and reads them.
+//! and 2.2.2), as the bind sends and reads them.
 
 use nonos_usbnet::nic::ETH_FRAME_MAX;
 
@@ -49,8 +49,8 @@ pub fn init_done(r: &[u8]) -> Result<Limits, &'static str> {
         return Err("medium not 802.3");
     }
     let (max_packets, max_transfer, align_shift) = (word(32)?, word(36)?, word(40)?);
-    // A full frame, its header and a padding byte in one transfer. Linux
-    // lowers the MTU for a smaller device; the stack here sends 1514.
+    // A full frame, its header and a padding byte in one transfer: the
+    // stack sends 1514-byte frames and has no smaller MTU to fall back to.
     if (max_transfer as usize) < PACKET_HDR + ETH_FRAME_MAX + 1 {
         return Err("device transfer size under one frame");
     }
