@@ -39,12 +39,16 @@ from pathlib import Path
 import sys
 
 from nonos_cap_audit_checks import capabilities, syscalls
+from nonos_cap_audit_selftest import self_test
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", type=Path, default=Path("."))
+    ap.add_argument("--self-test", action="store_true", help="run on fixtures")
     args = ap.parse_args()
+    if args.self_test:
+        return self_test()
     bad = capabilities(args.root) + syscalls(args.root)
     if bad:
         print(f"\n{bad} problem(s); a right nothing enforces is not a right",

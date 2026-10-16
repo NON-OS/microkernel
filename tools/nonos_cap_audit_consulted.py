@@ -21,6 +21,13 @@ from pathlib import Path
 from nonos_cap_audit_read import called_anywhere, code_lines, read
 
 
+ANY = r"Capability::(\w+)"
+# Under src/userspace and in a spawn.rs, a `.bit()` builds the mask a capsule
+# is given or asks for, and asks no holder: the attest refusal probe's
+# `with_io` once counted IO as consulted. A gate there names no `.bit()`.
+GRANT = r"Capability::(\w+)\b(?!\.bit\(\))"
+
+
 def consulted(root: Path, listed: set) -> set:
     """Which of `listed` some reachable code actually asks about.
 
@@ -42,12 +49,13 @@ def consulted(root: Path, listed: set) -> set:
         if "capabilities/types/" in str(path):
             continue
         inside = "syscall/caps/checks" in str(path)
+        grants = "src/userspace/" in str(path) or path.name == "spawn.rs"
         fn = None
         for line in code_lines(path):
             found = re.search(r"\bfn\s+(\w+)", line)
             if found:
                 fn = found.group(1)
-            for name in re.findall(r"Capability::(\w+)", line):
+            for name in re.findall(GRANT if grants else ANY, line):
                 if inside and fn:
                     by_checker.setdefault(name, set()).add(fn)
                 else:
