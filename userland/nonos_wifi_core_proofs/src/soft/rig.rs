@@ -46,26 +46,13 @@ pub struct SimAir {
     pub(crate) beacon_at2: u64,
     /// The signal each AP is heard at.
     pub rssi: [i8; 2],
+    /// The address the station sends from now, and whether to refuse a new one.
+    pub addr: ([u8; 6], bool),
 }
 
 /// A ready station in range of `ap`.
 pub fn rig(ap: SimAp) -> Station {
-    let clock = Rc::new(Cell::new(0));
-    let (sent, inbox) = (Vec::new(), VecDeque::new());
-    let air = SimAir {
-        ap,
-        clock: clock.clone(),
-        tuned: None,
-        bss: None,
-        sent,
-        sent_on: Vec::new(),
-        inbox,
-        beacon_at: 0,
-        assoc: Vec::new(),
-        gcmp: false,
-        ap2: None,
-        beacon_at2: 0,
-        rssi: [-50, -50],
-    };
+    let air = crate::soft::air_new::air(ap);
+    let clock = air.clock.clone();
     SoftStation::new(Some(air), SimEnv { clock, draws: 0 }, 0)
 }
