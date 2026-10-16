@@ -16,8 +16,5 @@
 
 mod encode_release;
 mod handle;
-mod parse_pair;
-mod take_lp;
-mod write_lp_string;
 
 pub(crate) use handle::handle;

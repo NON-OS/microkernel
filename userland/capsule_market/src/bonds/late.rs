@@ -35,9 +35,11 @@ impl BondCache {
 }
 
 pub(super) fn row_of(s: &Step, now: u64) -> Option<Row> {
-    let reading = BondReading::from_words(&s.got[0], &s.got[1], now)?;
-    let [m] = s.got[2].as_slice() else { return None };
-    m[..16].iter().all(|b| *b == 0).then_some(())?;
-    let min = u128::from_be_bytes(m[16..].try_into().ok()?);
+    let [first, second, third] = s.got.as_slice() else { return None };
+    let reading = BondReading::from_words(first, second, now)?;
+    let [m] = third.as_slice() else { return None };
+    let (high, low) = m.split_at(16);
+    high.iter().all(|b| *b == 0).then_some(())?;
+    let min = u128::from_be_bytes(low.try_into().ok()?);
     Some(Row { key: s.key, reading, min })
 }

@@ -21,19 +21,10 @@
 //! a zero header and E_INVAL); the readers never read past the body, whatever
 //! length a prefix claims.
 
-#[path = "../../capsule_market/src/server/handlers/get_app/read_lp_string.rs"]
-mod read_lp_string;
-#[path = "../../capsule_market/src/server/handlers/get_release/take_lp.rs"]
-mod take_lp;
-#[path = "../../capsule_market/src/server/handlers/get_release/parse_pair.rs"]
-mod parse_pair;
-
 use alloc::vec::Vec;
 
 use crate::protocol::{decode_request, HDR_LEN};
-use parse_pair::parse_pair;
-use read_lp_string::read_lp_string;
-use take_lp::take_lp;
+use crate::server::lp::{parse_pair, read_lp_str as read_lp_string, take_lp};
 
 const MAGIC: u32 = 0x4E4D_4B54;
 
@@ -81,7 +72,8 @@ fn any_header_decodes_or_is_refused() {
     let mut s = 0x4E4D_4B54_0000_0002u64;
     for _ in 0..200_000 {
         let r = xorshift(&mut s);
-        let mut f = frame(xorshift(&mut s) as u16, xorshift(&mut s) as u32, xorshift(&mut s) as u32);
+        let mut f =
+            frame(xorshift(&mut s) as u16, xorshift(&mut s) as u32, xorshift(&mut s) as u32);
         match r % 6 {
             0 => f.truncate((xorshift(&mut s) % (HDR_LEN as u64 + 1)) as usize),
             1 => f[(xorshift(&mut s) % 6) as usize] ^= 1 << (xorshift(&mut s) % 8),
@@ -107,7 +99,8 @@ fn the_length_prefixed_readers_stay_inside_the_body() {
     let mut s = 0x4E4D_4B54_0000_0003u64;
     let mut paired = 0usize;
     for _ in 0..200_000 {
-        let a: Vec<u8> = (0..xorshift(&mut s) % 24).map(|_| b'a' + (xorshift(&mut s) % 26) as u8).collect();
+        let a: Vec<u8> =
+            (0..xorshift(&mut s) % 24).map(|_| b'a' + (xorshift(&mut s) % 26) as u8).collect();
         let b: Vec<u8> = (0..xorshift(&mut s) % 24)
             .map(|_| match xorshift(&mut s) {
                 r if r & 15 == 0 => r as u8,
