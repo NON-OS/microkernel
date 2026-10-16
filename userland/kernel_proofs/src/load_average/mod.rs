@@ -23,4 +23,5 @@
 
 #[path = "../../../../src/fs/procfs/loadavg_math.rs"]
 mod loadavg_math;
+mod periodic_tests;
 mod tests;

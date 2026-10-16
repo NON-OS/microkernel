@@ -16,10 +16,13 @@ fn reset_value_gains_wc_in_entry_one_only() {
 }
 
 #[test]
-fn the_four_entries_a_page_can_select_are_wb_wc_uc_minus_and_uc() {
-    let want = [MT_WB, MT_WC, MT_UC_MINUS, MT_UC];
-    for (i, t) in want.iter().enumerate() {
-        assert_eq!(entry(with_wc(PAT_RESET), i as u32), *t);
+fn on_any_table_firmware_left_only_entry_one_changes() {
+    // The kernel writes with_wc of whatever the MSR holds, not the reset table.
+    for p in [0u64, u64::MAX, 0x0407_0506_0007_0106, 0x0102_0304_0506_0704, PAT_RESET] {
+        let w = with_wc(p);
+        assert_eq!((w >> 8) & 0xFF, MT_WC as u64, "{p:#x}");
+        assert_eq!(w & !0xFF00, p & !0xFF00, "{p:#x}");
+        assert_eq!(with_wc(w), w, "{p:#x}");
     }
 }
 

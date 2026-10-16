@@ -81,6 +81,20 @@ impl MemoryMap {
         }
     }
 
+    // Every region that may hold RAM: anything not reserved, unusable, NVS,
+    // MMIO or PAL code, the loader's and firmware's own included (L63).
+    // SAFETY: Caller must ensure ptr points to valid MemoryMapEntry array
+    pub unsafe fn ram_regions(&self) -> impl Iterator<Item = (u64, u64)> + '_ {
+        use memory_type::{ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE, RESERVED, UNUSABLE};
+        let not_ram = [RESERVED, UNUSABLE, ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE];
+        unsafe {
+            self.entries()
+                .iter()
+                .filter(move |e| !not_ram.contains(&e.memory_type))
+                .map(|e| (e.physical_start, e.physical_start + e.page_count * 4096))
+        }
+    }
+
     // SAFETY: Caller must ensure ptr points to valid MemoryMapEntry array
     pub unsafe fn total_usable_memory(&self) -> u64 {
         unsafe {

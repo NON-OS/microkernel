@@ -27,7 +27,7 @@ fn held(base: u64, end: u64, device: u64) -> Held {
 fn a_region_is_mapped_only_clear_of_ram_grants_the_window_and_others() {
     let (b, e) = STOLEN;
     assert_eq!(verdict(b, e, IOVA_BASE, &[], false), Verdict::Map, "no grant yet");
-    assert!(matches!(verdict(b, e, IOVA_BASE, &[], true), Verdict::Refuse(_)), "over RAM");
+    assert!(matches!(verdict(b, e, IOVA_BASE, &[], true), Verdict::Refuse(_)), "RAM or held");
     assert!(matches!(verdict(b, e, b + 0x1000, &[], false), Verdict::Refuse(_)), "grants");
     assert_eq!(verdict(b, e, b, &[], false), Verdict::Map, "grants end where it starts");
     let w = (INTERRUPT_WINDOW_START - 0x1000, INTERRUPT_WINDOW_START + 0x1000);

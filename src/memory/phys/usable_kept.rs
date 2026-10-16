@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The boot map's usable RAM, kept once the allocator has taken it (L60).
+//! The boot map's RAM, every region not reserved, unusable, NVS, MMIO or PAL
+//! code, the loader's and firmware's own included (L60, L63): an RMRR over
+//! the kernel image is as much RAM as one over memory the allocator hands out.
 
 use spin::Mutex;
 
@@ -22,8 +24,8 @@ use super::usable_runs::Runs;
 
 static KEPT: Mutex<Runs> = Mutex::new(Runs::EMPTY);
 
-/// Keep `sorted`, the boot map's usable regions ordered by start.
-pub(crate) fn keep(sorted: &[(u64, u64)]) {
+/// Keep `sorted`, the boot map's RAM regions ordered by start.
+pub fn keep(sorted: &[(u64, u64)]) {
     let mut kept = KEPT.lock();
     for &(start, end) in sorted {
         kept.add(start, end);

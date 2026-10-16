@@ -20,7 +20,7 @@
 //! keeps doing DMA to. Pure, so the host proofs hold it.
 
 use super::dmar_rmrr::Rmrr;
-use super::dmar_scope::{scope_covers, Cover, Scope, UnitScope, MAX_SCOPES};
+use super::dmar_scope::{scope_covers, Cover, Scope, UnitScope, MAX_SCOPES, SCOPE_ENDPOINT};
 
 /// Yes when one of `r`'s scopes names `bdf` in `segment`, No when none does,
 /// Unknown when a scope could not be resolved or some were dropped.
@@ -35,4 +35,12 @@ where
     let unit =
         UnitScope { include_all: false, segment: segment_of, scopes, count: n as u8, truncated };
     scope_covers(&unit, segment, bdf, bridge_buses)
+}
+
+/// Whether `r` names one endpoint alone (L63). A region several devices
+/// share, or a bridge's whole subtree, is theirs together: mapped for one
+/// claimant, it lets that device rewrite what a sibling, unclaimed and still
+/// in the identity domain, is driven by.
+pub fn rmrr_sole(r: &Rmrr) -> bool {
+    r.count == 1 && !r.truncated && r.scopes[0].kind == SCOPE_ENDPOINT
 }
