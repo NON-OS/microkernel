@@ -38,7 +38,7 @@ whose line does not bind is read every 5 ms instead.
 
 | Operation | Input | Output |
 |---|---|---|
-| `EVENTS` (1) | device key u64: the bus controller's PCI function (segment << 16, bus << 8, devfn), or bit 63 set and the broker device id of a platform bus controller | count u8, then (controller `_UID` u16, pin u16) each |
+| `EVENTS` (1) | device key u64: 1 << 63 \| the broker device id of the bus controller, PCI or platform alike (SERIAL's last field) | count u8, then (controller `_UID` u16, pin u16) each |
 | `WRITE` (2) | controller u16, pin u16, level u8 | status |
 | `REARM` (3) | controller u16, pin u16 | status |
 
@@ -52,6 +52,7 @@ device's holder re-arms it.
 The capsule may enumerate devices, claim the ACPI GPIO controllers, map
 their windows and bind their interrupts. It has no DMA, PIO, filesystem, network, display,
 credential, or input focus authority. Its sealed trust files come from the
+owner's signing step; the kernel embeds it only with
 `nonos-capsule-driver-gpio`, which no profile turns on yet.
 
 ## Privacy and persistence
@@ -87,7 +88,8 @@ unarmed. A pin that storms is masked alone. When capsule_acpi does not answer,
 - `_AEI` pins listed and signalled through capsule_acpi's GPIO_EVENT, a level
   pin masked while its method runs.
 - Serial-bus devices' GpioInt pins queued for the holder of their bus
-  controller's PCI function.
+  controller, named by its broker device id (no capsule sees a PCI
+  function's numbers).
 - EVENTS, WRITE and REARM, each answered only for the device's holder.
 
 ## Wire format

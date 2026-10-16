@@ -14,54 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Both forms of a pin's device key: a bus controller that is a PCI
-//! function is named by it; one that is an ACPI platform device by its
-//! broker device id with bit 63 set, found by its namespace path.
+//! The one key form a capsule is given for a bus controller, read from the
+//! end of a SERIAL record: present and marked, or refused.
 
-use nonos_gpio::device_key::pci_key;
-use nonos_gpio::{bus_key, decode, Key, PLATFORM};
+use nonos_gpio::serial_key::serial_string;
+use nonos_gpio::{bus_key, device_of, DEVICE};
 
-/// A SERIAL record cut to what the key reads: `_ADR` at 18, then the four
-/// strings at 42 (device path, `_HID`, bus controller path, GPIO path).
-fn serial(adr: u64, bus_path: &[u8]) -> Vec<u8> {
+/// A SERIAL record cut to what the key reads: the four strings at 42
+/// (device path, `_HID`, bus controller path, GPIO path), then the key.
+fn serial(bus_path: &[u8], key: u64) -> Vec<u8> {
     let mut r = vec![0u8; 42];
-    r[18..26].copy_from_slice(&adr.to_le_bytes());
     for s in [&b"\\_SB.I2CA.TPD0"[..], b"PNP0C50", bus_path, b"\\_SB.GPIO"] {
         r.push(s.len() as u8);
         r.extend_from_slice(s);
     }
+    r.extend_from_slice(&key.to_le_bytes());
     r
 }
 
-fn paths() -> Vec<(Vec<u8>, u64)> {
-    vec![(b"\\_SB.GPIO".to_vec(), 7), (b"\\_SB.I2CA".to_vec(), 42)]
+#[test]
+fn the_key_after_the_strings_names_a_broker_device() {
+    let r = serial(b"\\_SB.I2CA", DEVICE | 42);
+    assert_eq!(bus_key(&r), Some(DEVICE | 42));
+    assert_eq!(device_of(DEVICE | 42), Some(42));
+    assert_eq!(serial_string(&r, 2), Some(&b"\\_SB.I2CA"[..]));
+    let pci = serial(b"\\_SB.PCI0.I2C1", DEVICE | 7);
+    assert_eq!(bus_key(&pci), Some(DEVICE | 7), "a PCI controller is keyed the same way");
 }
 
 #[test]
-fn a_pci_bus_controller_is_named_by_its_function() {
-    // _ADR 0x0015_0001: device 0x15, function 1.
-    let key = bus_key(&serial(0x0015_0001, b"\\_SB.PCI0.I2C1"), &paths()).unwrap();
-    assert_eq!(key, 0x15 << 3 | 1);
-    assert_eq!(key, pci_key(0x0015_0001));
-    assert_eq!(decode(key), Key::Pci(0, 0, 0x15, 1));
-    assert_eq!(decode(0x0002_0310), Key::Pci(2, 3, 2, 0), "segment and bus kept apart");
+fn anything_but_that_form_is_refused() {
+    assert_eq!(bus_key(&serial(b"\\_SB.I2CA", u64::MAX >> 1)), None, "bit 63 clear: a PCI form");
+    assert_eq!(device_of(0x15 << 3 | 1), None);
+    assert_eq!(bus_key(&serial(b"", 0x0A9)), None);
+    let mut cut = serial(b"\\_SB.I2CA", DEVICE | 42);
+    cut.truncate(cut.len() - 1);
+    assert_eq!(bus_key(&cut), None, "key cut short");
+    assert_eq!(bus_key(&[0; 20]), None);
 }
 
 #[test]
-fn a_platform_bus_controller_is_named_by_its_device_id() {
-    let key = bus_key(&serial(u64::MAX, b"\\_SB.I2CA"), &paths()).unwrap();
-    assert_eq!(key, PLATFORM | 42);
-    assert_eq!(decode(key), Key::Device(42));
-}
-
-#[test]
-fn a_bus_controller_that_is_neither_has_no_key() {
-    assert_eq!(bus_key(&serial(u64::MAX, b"\\_SB.I2CB"), &paths()), None, "not published");
-    assert_eq!(bus_key(&serial(u64::MAX, b""), &paths()), None, "no path");
-    let wide = vec![(b"\\_SB.I2CA".to_vec(), PLATFORM | 1)];
-    assert_eq!(bus_key(&serial(u64::MAX, b"\\_SB.I2CA"), &wide), None, "id uses bit 63");
-    let mut cut = serial(u64::MAX, b"\\_SB.I2CA");
-    cut.truncate(50);
-    assert_eq!(bus_key(&cut, &paths()), None, "record cut short");
-    assert_eq!(bus_key(&[0; 20], &paths()), None);
+fn all_ones_names_no_controller() {
+    // capsule_acpi writes all ones when no device in the table is the
+    // controller: no pin is bound to it.
+    assert_eq!(bus_key(&serial(b"\\_SB.I2CA", u64::MAX)), None);
 }
