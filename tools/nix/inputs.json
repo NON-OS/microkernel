@@ -3383,6 +3383,22 @@
   "md": [],
   "signed": []
  },
+ "userland/idle_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/idle_states/enter.rs",
+   "src/arch/aarch64/idle_states/format.rs",
+   "src/arch/aarch64/idle_states/prepare.rs",
+   "src/arch/aarch64/idle_states/select.rs",
+   "src/arch/cpu/idle_cpu.rs",
+   "src/arch/fdt/find/idle/types.rs",
+   "src/arch/idle.rs",
+   "userland/idle_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/igc_proofs": {
   "exclude": [],
   "include": [
@@ -3991,6 +4007,24 @@
    "userland/capsule_net_nym/src/topology/draw.rs",
    "userland/capsule_net_nym/src/topology/refresh.rs",
    "userland/nym_topology_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/percpu_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/asm/enter_user.S",
+   "src/arch/aarch64/asm/percpu.h",
+   "src/arch/aarch64/asm/resume_user.S",
+   "src/arch/aarch64/asm/vectors.S",
+   "src/arch/aarch64/security/pac/slot.rs",
+   "src/smp/percpu/by_base.rs",
+   "src/smp/percpu/layout.rs",
+   "src/smp/percpu/types.rs",
+   "src/smp/percpu/types_new.rs",
+   "userland/percpu_proofs"
   ],
   "md": [],
   "signed": []
