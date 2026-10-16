@@ -42,7 +42,9 @@ impl TxQueue {
         let buffers: u16 = if body.is_empty() { 2 } else { 3 };
         let chunks = (2 + 10 * buffers).div_ceil(64) - 1;
         let bc = len as u16 | chunks << 14;
-        tx.write(buf, head)
+        // The buffer cleared first: no byte of an earlier frame stays.
+        zero(tx, buf, TX_BUF)
+            && tx.write(buf, head)
             && tx.write(buf + FIRST_TB + tb1, body)
             && tx.write(first, &head[..FIRST_TB])
             && zero(tx, tfd, TFD_SIZE)
