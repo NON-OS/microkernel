@@ -179,4 +179,5 @@ pub enum SyscallNumber {
     MkAcpiFirstPass = tag4(b"MAFP"),
     MkAcpiSlot = tag4(b"MRSL"),
     MkAcpiMeasured = tag4(b"MAMT"),
+    MkAcpiRestoreFunction = tag4(b"MARF"),
 }
