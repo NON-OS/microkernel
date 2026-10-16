@@ -20,12 +20,11 @@
 //! value that goes on the air.
 
 use nonos_libc::crypto_random;
-use nonos_wifi_core::mlme::{Entropy, SAE_ENTROPY};
+use nonos_wifi_core::mlme::Entropy;
 
-/// The join's randomness, or `None` if the kernel gave none.
+/// The join's randomness, or `None` if the kernel gave none. A connect draws
+/// it first, so without it the join is refused before the current network is
+/// left or a frame goes out.
 pub fn draw_entropy() -> Option<Entropy> {
-    let mut e = Entropy { snonce: [0u8; 32], sae: [0u8; SAE_ENTROPY] };
-    let a = crypto_random(e.snonce.as_mut_ptr(), e.snonce.len());
-    let b = crypto_random(e.sae.as_mut_ptr(), e.sae.len());
-    (a == e.snonce.len() as i64 && b == e.sae.len() as i64).then_some(e)
+    Entropy::draw(|b| crypto_random(b.as_mut_ptr(), b.len()) == b.len() as i64)
 }

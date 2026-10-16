@@ -24,6 +24,7 @@
 
 mod assoc;
 mod base;
+mod entropy;
 mod frames;
 mod ignored;
 mod sae;

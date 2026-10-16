@@ -40,6 +40,7 @@ impl Radio {
         if req.rejoin && self.join.history.refuses_rejoin() {
             return ConnectResult::code(CODE_LEFT);
         }
+        let Some(entropy) = draw_entropy() else { return ConnectResult::code(CODE_NO_ENTROPY) };
         self.disconnect();
         if req.hidden {
             return hidden();
@@ -63,7 +64,6 @@ impl Radio {
             Err(HuntEnd::NotHeard(heard)) => return not_heard(heard),
             Err(HuntEnd::Radio) => return ConnectResult::code(CODE_BAD_REQUEST),
         };
-        let Some(entropy) = draw_entropy() else { return ConnectResult::code(CODE_NO_ENTROPY) };
         let policy = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
         let jr = JoinRequest { our_mac: addr, ssid: req.ssid, passphrase: req.pass, policy, entropy };
         let mut fw = Fw { dev: &mut up.dev, tx, clock: &mut clock, q: &mut self.join.q, inbox: &mut self.join.inbox };
