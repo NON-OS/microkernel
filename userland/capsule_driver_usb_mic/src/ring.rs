@@ -30,11 +30,17 @@ pub struct Ring {
     /// Bytes per frame: 2 a channel.
     pub frame: usize,
     pub overrun: u32,
+    /// The most one packet may carry: its interval's share and one frame.
+    pub share: usize,
 }
 
 impl Ring {
     pub fn new(frame: usize) -> Ring {
-        Ring { q: VecDeque::new(), frame: frame.max(1), overrun: 0 }
+        Ring { q: VecDeque::new(), frame: frame.max(1), overrun: 0, share: usize::MAX }
+    }
+
+    pub fn sharing(self, share: usize) -> Ring {
+        Ring { share, ..self }
     }
 
     /// `b` kept, at most RING_CAP in all; older whole frames go to make room.
@@ -50,12 +56,14 @@ impl Ring {
 
     /// One isochronous packet's bytes. A packet carries whole audio frames
     /// (USB Audio 2.0 2.3.1.1, as recalled, unverified); bytes past the last
-    /// whole one are the device's error, dropped and counted as lost, so no
-    /// later frame is read a channel out of step.
+    /// whole one, and past the packet's share (a source runs at most a frame
+    /// ahead of its rate, as recalled, unverified), are the device's error:
+    /// dropped, counted as lost, no later frame read a channel out of step.
     pub fn put_packet(&mut self, p: &[u8]) {
-        let tail = p.len() % self.frame;
-        self.overrun = self.overrun.saturating_add(tail as u32);
-        self.put(&p[..p.len() - tail]);
+        let keep = p.len().min(self.share);
+        let tail = keep % self.frame;
+        self.overrun = self.overrun.saturating_add((p.len() - keep + tail) as u32);
+        self.put(&p[..keep - tail]);
     }
 
     /// Up to `most` bytes of whole frames, and the overrun since the last.
