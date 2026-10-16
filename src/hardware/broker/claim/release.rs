@@ -19,7 +19,7 @@ extern crate alloc;
 use super::leaving::{take_all, take_held};
 use super::retire::retire;
 use super::retire_io::Leaving;
-use super::state::CLAIMS;
+use super::state::{BUSY, CLAIMS};
 use super::types::ClaimError;
 
 // Release a claim held by `pid`, the caller in its own MkDeviceRelease.
@@ -27,9 +27,11 @@ use super::types::ClaimError;
 // and tears down meanwhile finds nothing to reset or free (K10b). Returns
 // the released epoch.
 pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    let epoch = take_held(&mut CLAIMS.lock(), pid, device_id)?;
+    let epoch = {
+        let mut claims = CLAIMS.lock();
+        take_held(&mut claims, &mut BUSY.lock(), pid, device_id)?
+    };
     retire(&mut Leaving::new(pid, device_id, Some(pid), true));
-    crate::hardware::broker::confine::detach(pid, device_id);
     Ok(epoch)
 }
 
@@ -37,7 +39,10 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
 // (reset_wait). `in_context` when `pid`'s page tables are active. Returns
 // the number of claims revoked.
 pub fn release_all_for_pid(pid: u32, in_context: bool) -> usize {
-    let held = take_all(&mut CLAIMS.lock(), pid);
+    let held = {
+        let mut claims = CLAIMS.lock();
+        take_all(&mut claims, &mut BUSY.lock(), pid)
+    };
     for device_id in &held {
         retire(&mut Leaving::new(pid, *device_id, None, in_context));
     }
