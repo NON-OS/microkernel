@@ -20,12 +20,21 @@ use super::state::CLAIMS;
 
 /// Stop every claimed device from mastering the bus, for the shutdown wipe:
 /// a device still writing would put bytes back behind it. The claim table is
-/// only tried, since a CPU stopped by IPI may hold it; the claims themselves
-/// are left in place. The number of devices stopped, or `None` if the table
-/// was held.
+/// waited for a millisecond at most, since a CPU stopped by IPI may hold it
+/// (`brief`); the claims themselves are left in place. The number of devices
+/// stopped, or `None` if the table stayed held.
 pub fn quiesce_all() -> Option<usize> {
+    let start = crate::time::now_ns();
     let held: alloc::vec::Vec<u64> = {
-        let claims = CLAIMS.try_lock()?;
+        let claims = loop {
+            if let Some(claims) = CLAIMS.try_lock() {
+                break claims;
+            }
+            if !super::super::brief::within_a_millisecond(start) {
+                return None;
+            }
+            core::hint::spin_loop();
+        };
         claims.iter().map(|c| c.device_id).collect()
     };
     for device_id in &held {
