@@ -35,6 +35,7 @@ impl Host {
         let mut host = Self {
             phase: Phase::Services { next: 1 },
             services: Vec::new(),
+            past: false,
             decls: Vec::new(),
             sources: Vec::new(),
             modes: Vec::new(),
