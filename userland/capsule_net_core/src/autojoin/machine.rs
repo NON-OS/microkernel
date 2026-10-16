@@ -35,6 +35,8 @@ mod again;
 mod codes;
 #[path = "machine/consts.rs"]
 mod consts;
+#[path = "machine/due.rs"]
+mod due;
 #[path = "machine/rejoin.rs"]
 mod rejoin;
 #[path = "machine/seen.rs"]
