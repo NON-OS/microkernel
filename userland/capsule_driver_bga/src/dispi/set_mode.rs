@@ -16,18 +16,21 @@
 
 use super::dispi_off::dispi_off;
 use crate::constants::{
-    DISPI_BPP_32, DISPI_ENABLED, DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_XRES,
-    DISPI_INDEX_YRES, DISPI_LFB_ENABLED,
+    DISPI_BPP_32, DISPI_ENABLED, DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_VIDEO_MEMORY_64K,
+    DISPI_INDEX_VIRT_WIDTH, DISPI_INDEX_XRES, DISPI_INDEX_X_OFFSET, DISPI_INDEX_YRES,
+    DISPI_INDEX_Y_OFFSET, DISPI_LFB_ENABLED,
 };
 use crate::regs::Regs;
 
-/// How far into the register mapping the mode set writes: through ENABLE,
-/// the highest DISPI index it touches.
+/// How far into the register mapping the driver reaches: through
+/// VIDEO_MEMORY_64K, the highest DISPI index it reads.
 pub fn regs_len() -> u64 {
-    dispi_off(DISPI_INDEX_ENABLE) as u64 + 2
+    dispi_off(DISPI_INDEX_VIDEO_MEMORY_64K) as u64 + 2
 }
 
-/// Program the mode with the adapter disabled, ENABLE written last.
+/// Program the mode with the adapter disabled, ENABLE written last but for
+/// the line layout: one mode-wide line after another from the start of video
+/// memory, which an adapter enabled from disabled would reset to anyway.
 pub fn set_mode(regs: Regs, width: u16, height: u16) {
     // SAFETY: every index written lies below `regs_len`, which the caller
     // has checked the register mapping covers.
@@ -37,5 +40,8 @@ pub fn set_mode(regs: Regs, width: u16, height: u16) {
         regs.w16(dispi_off(DISPI_INDEX_YRES), height);
         regs.w16(dispi_off(DISPI_INDEX_BPP), DISPI_BPP_32);
         regs.w16(dispi_off(DISPI_INDEX_ENABLE), DISPI_ENABLED | DISPI_LFB_ENABLED);
+        regs.w16(dispi_off(DISPI_INDEX_VIRT_WIDTH), width);
+        regs.w16(dispi_off(DISPI_INDEX_X_OFFSET), 0);
+        regs.w16(dispi_off(DISPI_INDEX_Y_OFFSET), 0);
     }
 }
