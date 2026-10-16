@@ -59,10 +59,11 @@ impl LinkStation {
         }
         let (pn, key_id) = pn_and_key(mpdu, v.hdr_len).ok_or(RxDrop::Malformed)?;
         let replay_key = group.then_some(key_id);
+        let key = if group { self.group_key(key_id) } else { self.pairwise_key() };
         let body = if hw {
-            mpdu[v.hdr_len + CCMP_HDR_LEN..mpdu.len() - MIC_LEN].to_vec()
+            chip_body(mpdu, v.hdr_len, pn, key.as_ref().filter(|_| self.checks_rx()))
+                .ok_or(RxDrop::Undecryptable)?
         } else {
-            let key = if group { self.group_key(key_id) } else { self.pairwise_key() };
             open(mpdu, &key.ok_or(RxDrop::Undecryptable)?).ok_or(RxDrop::Undecryptable)?
         };
         if !self.replay.accept(replay_key, v.tid, pn) {
