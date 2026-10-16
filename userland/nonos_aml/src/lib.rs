@@ -42,6 +42,7 @@ pub mod exec;
 pub mod fan;
 pub mod ged;
 pub mod grammar;
+pub mod hotplug;
 pub mod legacy;
 pub mod load;
 pub mod motherboard;

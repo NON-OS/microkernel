@@ -51,6 +51,8 @@ pub struct Acpi {
     pub dpower: DevicePower,
     /// Functions woken by _PS0 at boot, waiting on a driver's claim.
     pub hidden: crate::dpower::Hidden,
+    /// Devices that come and go: what each stood for, ejects in flight.
+    pub hotplug: crate::hotplug::Hotplug,
     pub backlight: Backlight,
     pub hotkeys: Hotkeys,
     pub serial: Serial,

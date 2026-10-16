@@ -43,5 +43,6 @@ pub fn run(mut acpi: Acpi) -> ! {
         crate::dpower::tick(&mut acpi);
         crate::apei::tick(&mut acpi.apei);
         crate::typec::tick(&mut acpi);
+        crate::hotplug::tick(&mut acpi);
     }
 }

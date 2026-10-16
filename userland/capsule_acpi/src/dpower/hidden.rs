@@ -36,7 +36,7 @@ pub type Bdf = (u16, u8, u8, u8);
 
 /// Only a real PCI-to-PCI bridge (header type 1) gives a secondary bus; a
 /// USB controller's ports carry _ADRs too, and are not functions.
-fn bridge_bus(f: Bdf) -> Option<u8> {
+pub fn bridge_bus(f: Bdf) -> Option<u8> {
     let header = pci_read(f, 0x0E, 1).ok()? & 0x7F;
     (header == 1).then(|| pci_read(f, SECONDARY_BUS, 1).ok().map(|v| v as u8)).flatten()
 }

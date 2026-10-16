@@ -31,6 +31,7 @@ pub mod log;
 pub mod lpit;
 pub mod numa;
 pub mod osc;
+pub mod pci_depart;
 pub mod pci_probe;
 pub mod platform;
 pub mod ports;

@@ -25,6 +25,7 @@ pub fn late(acpi: &mut Acpi) {
     crate::reserved::publish(acpi);
     crate::numa::publish(acpi);
     crate::dpower::reveal_hidden(acpi);
+    crate::hotplug::learn(acpi);
     let Acpi { devices, aml, host, .. } = acpi;
     crate::platform::publish(devices, aml, host);
     crate::ports::publish(acpi);
