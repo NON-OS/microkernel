@@ -27,6 +27,8 @@ pub struct Battery {
     pub present: bool,
     pub info: Option<BatteryInfo>,
     pub status: Option<BatteryStatus>,
+    /// The _BST faults already said for this battery (`bst_told`).
+    pub told: u8,
 }
 
 #[derive(Default)]
