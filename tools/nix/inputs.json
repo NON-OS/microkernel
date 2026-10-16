@@ -4086,7 +4086,6 @@
   "include": [
    ".cargo",
    "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
-   "userland/capsule_driver_rtl8821ce/src/assoc.rs",
    "userland/capsule_driver_rtl8821ce/src/coex",
    "userland/capsule_driver_rtl8821ce/src/constants",
    "userland/capsule_driver_rtl8821ce/src/efuse.rs",
