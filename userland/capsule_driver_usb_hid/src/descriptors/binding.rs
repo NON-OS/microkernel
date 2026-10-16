@@ -43,7 +43,9 @@ impl HidBinding {
         } else {
             HidKind::Tablet
         };
-        if !holds_a_report(kind, ep.max_packet_size) {
+        // An interval of 0 is no polling rate (USB 2.0 9.6.6, as recalled,
+        // unverified): such an endpoint is not polled.
+        if !holds_a_report(kind, ep.max_packet_size) || ep.interval == 0 {
             return None;
         }
         Some(Self {
