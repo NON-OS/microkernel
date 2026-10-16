@@ -39,6 +39,8 @@ pub(crate) enum Refused {
     NotRelative = 2,
     OutsideImage = 3,
     MisalignedPlace = 4,
+    /// A pointer in text or read-only data, which `rebase` cannot write.
+    ReadOnlyPlace = 5,
 }
 
 /// Where the image was linked and where it is: `len` bytes from each.

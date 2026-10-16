@@ -7,6 +7,7 @@ use std::alloc::{alloc_zeroed, dealloc, Layout};
 
 use crate::elf::Pie;
 use crate::relocate::apply::apply;
+use crate::relocate::rebase::rebase;
 use crate::relocate::rela::{Placement, Refused, LOAD_ALIGN};
 
 pub struct Loaded {
@@ -37,6 +38,13 @@ impl Loaded {
         let at = Placement { link_base: pie.link_base, load_base: self.base, len: pie.len };
         // SAFETY: the image is this allocation, which nothing else reads.
         unsafe { apply(&pie.relas, at) }
+    }
+
+    /// The image's pointers rewritten for `run_base`, through where it is.
+    pub fn rebase(&self, pie: &Pie, run_base: u64, writable: u64) -> Result<usize, Refused> {
+        let at = Placement { link_base: pie.link_base, load_base: self.base, len: pie.len };
+        // SAFETY: as for `relocate`.
+        unsafe { rebase(&pie.relas, at, run_base, writable) }
     }
 
     pub fn bytes(&self) -> &[u8] {
