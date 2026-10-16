@@ -29,6 +29,8 @@ mod ntb;
 #[cfg(test)]
 mod ntb32_tests;
 #[cfg(test)]
+mod ntb_audit_tests;
+#[cfg(test)]
 mod rx_tests;
 #[cfg(test)]
 mod spec;

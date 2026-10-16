@@ -16,7 +16,7 @@
 
 //! Binding an NCM device: the first configuration that has an NCM
 //! function, whichever index it sits at (a phone may offer it after other
-//! configurations), brought up as Linux cdc_ncm_bind_common does. A device
+//! configurations), brought up by start.rs. A device
 //! with only ECM (subclass 0x06) is the ECM driver's and is not taken.
 
 use nonos_usbnet::desc::config_header;
@@ -38,7 +38,7 @@ pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Ncm<B>> {
             // Without its notifications the link reads up, as it did before.
             let notify = f.notify.and_then(|ep| bus.configure_interrupt(ep).ok());
             let mut ncm = Ncm::new(bus, mac, f.pipes, rx_max, shape);
-            ncm.notify = notify;
+            (ncm.notify, ncm.ntb32) = (notify, params.ntb32());
             Bind::Ours(ncm)
         }
         Err((what, e)) => Bind::Failed(what, e),

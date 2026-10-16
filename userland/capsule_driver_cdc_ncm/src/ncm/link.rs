@@ -21,10 +21,9 @@ use alloc::collections::VecDeque;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_usbnet::{Bus, Nic, Pipes};
+use nonos_usbnet::{Bus, Pipes};
 
 use super::shape::TxShape;
-use super::transfer::{recv, send};
 
 pub struct Ncm<B> {
     pub(super) bus: B,
@@ -32,6 +31,8 @@ pub struct Ncm<B> {
     pub(super) pipes: Pipes,
     /// The NTB input size the device was given; one bulk IN is this long.
     pub rx_max: usize,
+    /// The device offered 32-bit NTBs, so one it sends is read.
+    pub ntb32: bool,
     pub shape: TxShape,
     pub(super) rx: Vec<u8>,
     pub(super) tx: Vec<u8>,
@@ -48,27 +49,7 @@ impl<B: Bus> Ncm<B> {
     pub fn new(bus: B, mac: [u8; 6], pipes: Pipes, rx_max: usize, shape: TxShape) -> Self {
         let (rx, tx) = (vec![0; rx_max], vec![0; shape.max]);
         let pending = VecDeque::new();
-        let (notify, link, looks) = (None, true, 0);
-        Self { bus, mac, pipes, rx_max, shape, rx, tx, seq: 0, pending, notify, link, looks }
-    }
-}
-
-impl<B: Bus> Nic for Ncm<B> {
-    fn mac(&self) -> [u8; 6] {
-        self.mac
-    }
-
-    /// Up from bind until NETWORK_CONNECTION says down (transfer.rs reads
-    /// it), so a device that never notifies still carries traffic.
-    fn link_up(&self) -> bool {
-        self.link
-    }
-
-    fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
-        send(self, frame)
-    }
-
-    fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
-        recv(self, out)
+        let (notify, link, looks, ntb32) = (None, true, 0, false);
+        Self { bus, mac, pipes, rx_max, ntb32, shape, rx, tx, seq: 0, pending, notify, link, looks }
     }
 }

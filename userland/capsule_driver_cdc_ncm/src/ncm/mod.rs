@@ -19,14 +19,16 @@
 
 pub mod align;
 pub mod bind;
+pub mod format;
 pub mod function;
 mod init;
 pub mod limits;
 pub mod link;
 mod link_watch;
-pub mod ndp32;
+mod nic;
+pub mod ndp;
 pub mod notice;
-pub mod ntb32_in;
+pub mod nth;
 pub mod ntb_in;
 pub mod ntb_out;
 pub mod pad;
@@ -37,6 +39,5 @@ mod setup;
 pub mod shape;
 mod start;
 mod transfer;
-pub mod verify;
 
 pub use bind::bind;
