@@ -9,6 +9,7 @@
 //! TPM for the sealing key, and `store` reads and writes the record through
 //! vfs, refusing to write one on a boot that keeps nothing.
 
+mod dropped;
 mod error;
 mod file;
 mod keep;
@@ -20,6 +21,7 @@ mod pin;
 mod store;
 mod write;
 
+pub use dropped::Dropped;
 pub use error::SavedError;
 pub use keep::{forget, pin_wpa3, saved_flags};
 pub use list::{SavedList, PASS_MAX, SLOTS};

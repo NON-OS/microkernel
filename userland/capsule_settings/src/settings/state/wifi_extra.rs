@@ -8,7 +8,7 @@
 //! Saved networks are held here by name only: the passphrases stay sealed in
 //! the store, and a list opened to read the names is wiped as it drops.
 
-use nonos_wifi_client::{Driver, Link, SavedError, ScanNetwork, SLOTS};
+use nonos_wifi_client::{Driver, Dropped, Link, SavedError, ScanNetwork, SLOTS};
 
 use super::wifi_pending::Pending;
 
@@ -28,6 +28,9 @@ pub struct WifiExtra {
     pub saved_err: Option<SavedError>,
     /// What the last remember or forget did, for the panel to say.
     pub notice: Option<&'static str>,
+    /// The network the last remember dropped to make room, named after its
+    /// notice on screen and nowhere else.
+    pub dropped: Option<Dropped>,
     /// A scan or join asked for and not yet run (`wifi_pending.rs`).
     pub pending: Pending,
     /// The network a pending join is for; its passphrase waits in the
@@ -46,6 +49,7 @@ impl WifiExtra {
             saved_count: 0,
             saved_err: None,
             notice: None,
+            dropped: None,
             pending: Pending::Idle,
             join_net: ScanNetwork::EMPTY,
         }
