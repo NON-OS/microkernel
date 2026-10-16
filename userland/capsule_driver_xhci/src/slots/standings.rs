@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each judged device's standing, by slot, and the held ones listed for
-//! the owner's answer (OP_USB_HELD).
+//! Each judged configuration's standing, by slot, the slot's current one
+//! last, and the held ones listed for the owner's answer (OP_USB_HELD).
 
 use super::authorize::{Authority, Standing, DEFAULT_POLICY};
 
@@ -26,22 +26,31 @@ impl Default for Authority {
 }
 
 impl Authority {
+    /// The standing of the slot's current configuration.
     pub fn standing(&self, slot: u8) -> Option<Standing> {
-        self.list.iter().find(|s| s.0 == slot).map(|s| s.1)
+        self.list.iter().rev().find(|e| e.0 == slot).map(|e| e.2)
     }
 
-    pub(super) fn set(&mut self, slot: u8, standing: Standing) {
-        self.forget(slot);
-        self.list.push((slot, standing));
+    /// Configuration `value`'s standing, made the slot's current one.
+    pub(super) fn current(&mut self, slot: u8, value: u8) -> Option<Standing> {
+        let at = self.list.iter().position(|e| e.0 == slot && e.1 == value)?;
+        let e = self.list.remove(at);
+        self.list.push(e);
+        Some(e.2)
+    }
+
+    pub(super) fn set(&mut self, slot: u8, value: u8, standing: Standing) {
+        self.list.retain(|e| e.0 != slot || e.1 != value);
+        self.list.push((slot, value, standing));
     }
 
     pub fn forget(&mut self, slot: u8) {
-        self.list.retain(|s| s.0 != slot);
+        self.list.retain(|e| e.0 != slot);
     }
 
     pub fn held(&self) -> impl Iterator<Item = (u8, u32)> + '_ {
-        self.list.iter().filter_map(|s| match s.1 {
-            Standing::Held { ticket } => Some((s.0, ticket)),
+        self.list.iter().filter_map(|e| match e.2 {
+            Standing::Held { ticket } => Some((e.0, ticket)),
             _ => None,
         })
     }

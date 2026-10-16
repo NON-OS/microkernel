@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which devices Ask holds: a boot keyboard (HID, protocol 1), the shape
-//! a stick that types takes, or a device whose interfaces are of more than
-//! one class (USB 2.0 9.6.5, HID 1.11 4.3; as recalled, unverified). A CDC
+//! Which configurations Ask holds: any with a HID interface, since a
+//! keyboard need not offer the boot protocol and reading report
+//! descriptors is more than the gate should do (a mouse waits too), or one
+//! whose interfaces are of more than one class (USB 2.0 9.6.5, as
+//! recalled, unverified). A CDC
 //! Data interface belongs to the communications function beside it and is
 //! not counted as a class of its own. A configuration naming no interface
 //! is held too: nothing in it says what it is.
 
 const INTERFACE: u8 = 0x04;
 const CLASS_HID: u8 = 0x03;
-const BOOT_KEYBOARD: u8 = 0x01;
 const CLASS_CDC_DATA: u8 = 0x0A;
 
 pub fn asks(config: &[u8]) -> bool {
@@ -33,7 +34,7 @@ pub fn asks(config: &[u8]) -> bool {
         let Some(d) = d else { return true };
         if d[1] == INTERFACE && d.len() >= 9 {
             let class = d[5];
-            if class == CLASS_HID && d[7] == BOOT_KEYBOARD {
+            if class == CLASS_HID {
                 return true;
             }
             if class != CLASS_CDC_DATA && *first.get_or_insert(class) != class {

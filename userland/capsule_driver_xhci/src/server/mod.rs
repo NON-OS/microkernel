@@ -23,6 +23,7 @@ mod mux_at;
 mod mux_auth;
 mod mux_bind;
 mod mux_claims;
+mod mux_config;
 mod mux_enable;
 mod mux_forward;
 mod mux_held;

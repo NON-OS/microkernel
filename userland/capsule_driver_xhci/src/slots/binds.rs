@@ -36,3 +36,9 @@ pub fn binds(op: u16, body: &[u8]) -> bool {
         _ => false,
     }
 }
+
+/// The configuration value a SET_CONFIGURATION sets (wValue's low byte).
+pub fn set_configuration(op: u16, body: &[u8]) -> Option<u8> {
+    let set = op == OP_CONTROL_TRANSFER && body.get(2..4) == Some(&[0x00, SET_CONFIGURATION][..]);
+    set.then(|| body.get(4).copied()).flatten()
+}
