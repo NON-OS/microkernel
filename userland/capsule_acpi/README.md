@@ -19,6 +19,7 @@ devices up, reports what firmware describes, and serves the SCI.
    MkAcpiPower, MkAcpiEvent  <---      batteries, buttons, lid, thermal
    MkAcpiSleep               <---      \_S5 (start, and PREPARE_SLEEP)
    MkAcpiCpu                 <---      _PSS _PCT _PPC _CST _CPC _LPI, per processor
+   MkAcpiThermalLimit        <---      passive cooling's ceiling, per processor
    SCI record (PNP0C08)
      MkDeviceClaim, MkIrqBind  --->    SCI: fixed events, _Lxx/_Exx, Notify
                                        port 4530: STATUS, DEVICE
@@ -93,8 +94,20 @@ hottest temperature and the trip points reached go to the kernel through
 reaching it runs the wiped power-off at once, before firmware's own thermal
 shutdown can cut power without the wipe. Should that be refused, the kernel
 asks the desktop to shut down, and powers off itself if the zone is still
-critical 30 seconds later. Passive cooling (_PSV) is reported, and
-waits on processor performance control.
+critical 30 seconds later.
+
+Passive cooling (_PSV) is reported, and the capsule keeps a limit per zone.
+A zone qualifies when it has believable _TC1, _TC2 and _TSP and a _PSL
+that names processors. Every _TSP it steps the limit by `nonos_aml`'s rule
+(ACPI 11.1.5, recalled). The limit is a percentage of full performance. It
+falls only at or above _PSV, and below _PSV it climbs back to 100. While
+the zone is engaged, it is read every _TSP. Each processor takes the lowest
+limit of the zones that name it, and the capsule hands that ceiling to the
+The kernel keeps the ceiling beside the processor's _PPC
+(`cpu_store::thermal_limit`). Nothing acts on it until the kernel's
+frequency control reads it, and the capsule never drives a P-state
+itself. A zone with no qualifying constants stays report-only, and the
+critical trip still powers the machine off.
 
 Every processor, a Processor object (by its ProcID) or an ACPI0007 device
 (by its _UID), has its _PSS, _PCT, _PPC, _CST and _CPC read at start and
