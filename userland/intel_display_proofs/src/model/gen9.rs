@@ -38,7 +38,7 @@ pub struct Gen9 {
     pub aux_stuck: bool,
     pub pending: Vec<(u32, u32, u32)>, // landing a few reads later
     pub dead: bool,
-    pub ddc: super::gmbus_hw::Ddc,
+    pub ddc: super::gmbus_state::Ddc,
     pub plane: PlaneKind, // Gen9's unless a test models another
 }
 

@@ -16,8 +16,9 @@
 
 //! The receive loop: every frame from the inbox answered by the wire
 //! server, the reply sent to the pid the kernel says sent it. A frame too
-//! short for the wire's header is F 12's brightness bytes (at most six;
-//! the wire's every request is at least twenty), answered natively.
+//! short for the wire's header is F 12's brightness bytes, or a monitor
+//! control beside them (at most eight; the wire's every request is at
+//! least twenty), answered natively.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;

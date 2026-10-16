@@ -38,7 +38,7 @@ pub mod ggtt_range;
 pub mod ggtt_run;
 pub mod gmbus;
 pub mod gmbus_regs;
-pub mod gmbus_take;
+pub mod gmbus_xfer;
 pub mod hdmi;
 pub mod hotplug;
 pub mod mn;

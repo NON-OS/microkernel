@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The sink's AUX end: DPCD reads and writes, I2C to the EDID, DEFER and
-//! NACK on demand.
+//! The sink's AUX end: DPCD reads and writes, I2C to the EDID (and a
+//! NACK at any other I2C address), DEFER and NACK on demand.
 
 use super::sink::Sink;
 use crate::dp::aux::{Aux, AuxError};
@@ -25,24 +25,24 @@ pub struct AuxEnd(pub Sink);
 const ACK: u8 = 0x00;
 const NACK: u8 = 0x10;
 const DEFER: u8 = 0x20;
+const I2C_NACK: u8 = 0x40;
 
 impl Aux for AuxEnd {
     fn transfer(&mut self, req: &[u8], reply: &mut [u8; 20]) -> Result<usize, AuxError> {
         let mut s = self.0.borrow_mut();
         s.transfers += 1;
-        if s.nack {
-            reply[0] = NACK;
-            return Ok(1);
-        }
-        if s.defers > 0 {
-            s.defers -= 1;
-            reply[0] = DEFER;
+        if s.nack || s.defers > 0 {
+            s.defers = s.defers.saturating_sub(!s.nack as u32);
+            reply[0] = if s.nack { NACK } else { DEFER };
             return Ok(1);
         }
         let cmd = req[0] >> 4;
         let addr = (((req[0] & 0xF) as usize) << 16) | ((req[1] as usize) << 8) | req[2] as usize;
         let len = req.get(3).map(|&l| l as usize + 1).unwrap_or(0);
-        reply[0] = ACK;
+        reply[0] = if cmd & 0x8 == 0 && addr != 0x50 { I2C_NACK } else { ACK };
+        if reply[0] == I2C_NACK {
+            return Ok(1);
+        }
         match cmd {
             0x9 => {
                 let st = s.status();

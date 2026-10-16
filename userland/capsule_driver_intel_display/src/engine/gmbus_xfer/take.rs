@@ -16,13 +16,13 @@
 
 //! Taking the bytes of a GMBUS read as the controller readies them.
 
-use super::access::{Clock, Expiry, Mmio, Until};
-use super::error::Error;
-use super::gmbus_regs::{GMBUS2, GMBUS3, HW_RDY, HW_WAIT_PHASE, NAK};
+use super::super::access::{Clock, Expiry, Mmio, Until};
+use super::super::error::Error;
+use super::super::gmbus_regs::{GMBUS2, GMBUS3, HW_RDY, HW_WAIT_PHASE, NAK};
 
 pub const STEP_US: u64 = 50_000;
 
-fn wait_any(m: &mut dyn Mmio, bits: u32, clock: &dyn Clock) -> Result<u32, Error> {
+pub fn wait_any(m: &mut dyn Mmio, bits: u32, clock: &dyn Clock) -> Result<u32, Error> {
     let until = Until::new(clock, STEP_US);
     loop {
         let st = m.read(GMBUS2);
