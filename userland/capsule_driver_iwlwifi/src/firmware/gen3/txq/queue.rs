@@ -26,12 +26,14 @@ pub struct TxQueue {
     pub live: bool,
     pub(super) write: u16,
     pub(super) read: u16,
+    /// The oldest unanswered slot when last looked at, and since when.
+    pub(super) watch: Option<(u16, u64)>,
 }
 
 impl TxQueue {
     /// The queue whose area starts `base` bytes into the transmit region.
     pub const fn new(base: usize) -> Self {
-        Self { base, id: 0, live: false, write: 0, read: 0 }
+        Self { base, id: 0, live: false, write: 0, read: 0, watch: None }
     }
 
     /// The descriptor ring's and byte count table's device addresses.
@@ -48,6 +50,7 @@ impl TxQueue {
         self.live = false;
         self.write = 0;
         self.read = 0;
+        self.watch = None;
         zero(tx, self.base, BUFS)
     }
 
@@ -58,5 +61,6 @@ impl TxQueue {
         self.live = true;
         self.write = write_ptr;
         self.read = write_ptr;
+        self.watch = None;
     }
 }
