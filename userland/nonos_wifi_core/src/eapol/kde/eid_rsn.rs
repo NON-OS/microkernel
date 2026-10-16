@@ -62,4 +62,6 @@ pub struct KeyData<'a> {
     pub rsnxe: Option<&'a [u8]>,
     pub gtk: Option<GtkKde<'a>>,
     pub igtk: Option<IgtkKde<'a>>,
+    /// The Transition Disable KDE's first octet (`vendor`).
+    pub transition_disable: Option<u8>,
 }

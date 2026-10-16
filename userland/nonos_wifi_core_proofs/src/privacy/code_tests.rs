@@ -37,6 +37,7 @@ fn report(accepted: bool, failure: MlmeFailure) -> Report {
         selection: None,
         accepted,
         group_mgmt: None,
+        transition_disable: None,
     }
 }
 
