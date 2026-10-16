@@ -28,8 +28,12 @@ use nonos_bt_wire::att::{self, error::*, opcode::*};
 use nonos_bt_wire::cursor::Reader;
 
 /// The ATT_MTU on LE until an exchange changes it (Vol 3, Part G, 5.2.1).
-/// This server never asks for more, so it stays 23.
+/// This server's responses never exceed it, which any ATT_MTU allows.
 pub const ATT_MTU: usize = 23;
+/// The largest ATT PDU this host receives, as client and as server: a
+/// 251-octet LE data PDU less the 4-octet L2CAP header, and well within
+/// the 512 octets the capsule reassembles.
+pub const RX_MTU: u16 = 247;
 
 /// A response, or the handle and code of an Error Response.
 pub type Answer = Result<Vec<u8>, (u16, u8)>;

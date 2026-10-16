@@ -21,7 +21,7 @@ pub mod fallback_tests;
 mod fields_tests;
 mod hostile_tests;
 mod leds_tests;
-mod maps;
+pub mod maps;
 mod mice;
 mod mode_tests;
 mod parse_tests;

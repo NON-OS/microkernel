@@ -22,4 +22,4 @@ mod serve;
 mod single;
 
 pub use db::{COMPUTER, NAME};
-pub use serve::{serve, ATT_MTU};
+pub use serve::{serve, ATT_MTU, RX_MTU};

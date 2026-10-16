@@ -18,15 +18,16 @@
 //! 3.4.2.1), Read (3.4.4.3) and Write (3.4.5.1).
 
 use super::db;
-use super::serve::{Answer, ATT_MTU, BAD};
+use super::serve::{Answer, ATT_MTU, BAD, RX_MTU};
 use nonos_bt_wire::att::{error::*, opcode::*};
 
-/// Exchange MTU Response with this server's receive MTU (3.4.2.2).
+/// Exchange MTU Response with this server's receive MTU (3.4.2.2), the
+/// same the host's client offers, so both exchanges agree.
 pub fn exchange_mtu(p: &[u8]) -> Answer {
     if p.len() != 2 {
         return Err(BAD);
     }
-    Ok([&[EXCHANGE_MTU_RSP][..], &(ATT_MTU as u16).to_le_bytes()].concat())
+    Ok([&[EXCHANGE_MTU_RSP][..], &RX_MTU.to_le_bytes()].concat())
 }
 
 /// Read Response with as much of the value as fits (3.4.4.4).

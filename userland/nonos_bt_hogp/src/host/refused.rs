@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An Error Response to discovery: Attribute Not Found ends a discovery
-//! step, a security error asks for pairing, an error while report mode is
+//! step, any error to the MTU exchange keeps the default ATT_MTU, a
+//! security error asks for pairing, an error while report mode is
 //! being looked at leaves boot mode, and any other error ends discovery.
 
 use super::phase::Phase;
@@ -29,6 +30,10 @@ impl Host {
         // Once ready, only the battery client asks; its errors are its own.
         if self.phase == Phase::Ready {
             return self.charge_error(code, now_ms);
+        }
+        // A server may not take the exchange; the default ATT_MTU holds.
+        if self.phase == Phase::Mtu {
+            return self.find_services(1, now_ms);
         }
         let security =
             [INSUFFICIENT_AUTHENTICATION, INSUFFICIENT_ENCRYPTION, INSUFFICIENT_KEY_SIZE];

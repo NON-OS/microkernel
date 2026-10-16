@@ -26,6 +26,7 @@ mod dispatch;
 mod enable;
 mod hid;
 mod leds;
+mod mtu;
 mod notify;
 mod phase;
 mod ready;
@@ -46,6 +47,7 @@ mod upgrade_leds;
 mod upgrade_take;
 
 pub use hid::REPORTS_MAX;
+pub use mtu::MTU_DEFAULT;
 pub use phase::Phase;
 pub use state::Host;
 pub use step::{Outcome, Step};

@@ -37,6 +37,8 @@ mod led_tests;
 #[cfg(test)]
 mod map;
 #[cfg(test)]
+mod mtu;
+#[cfg(test)]
 mod refuse_tests;
 #[cfg(test)]
 mod report_tests;
