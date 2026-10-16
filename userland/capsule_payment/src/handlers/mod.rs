@@ -41,6 +41,6 @@ pub(crate) use open::open;
 pub(crate) use orders::{order_new, order_status};
 pub(crate) use pay::pay;
 pub(crate) use plaintext::order_plaintext;
-pub(crate) use purchase::{purchase, purchase_role};
+pub(crate) use purchase::purchase;
 pub(crate) use refund::order_refund;
 pub(crate) use tokens::tokens;
