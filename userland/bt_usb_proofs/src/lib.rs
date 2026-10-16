@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for the Bluetooth USB capsule: its files compiled unchanged, against
-//! the HCI, SMP and HOGP proofs' simulators, each proven against the spec.
+//! The Bluetooth USB capsule's files, unchanged, against the proven simulators.
 
 #![cfg(test)]
-
 extern crate alloc;
 
 #[allow(unused)]
@@ -57,6 +55,8 @@ mod directed_proofs;
 mod early_tests;
 mod find_tests;
 mod hold_tests;
+mod interleave_sim;
+mod interleave_tests;
 mod link_tests;
 mod modifier_tests;
 mod mouse_tests;
