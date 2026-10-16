@@ -1,6 +1,9 @@
 //! The owner's yes to a held review: a send, a swap or a deposit. The review must be current and
 //! worked out for the account now unlocked, and a deposit's note is stored before it leaves.
 
+#[path = "account_confirm_history.rs"]
+mod history;
+
 use super::account_view::VALID_FOR;
 use super::Wallet;
 use crate::error::{NetError, WalletError};
@@ -48,29 +51,5 @@ impl Wallet {
             hash: to_hex(&hash),
             link: format!("{}{}", pending.network.chain().explorer, to_hex(&hash)),
         })
-    }
-}
-
-impl Wallet {
-    /// A deposit gone out, into the history. Sent either way: a failed write loses the entry,
-    /// never the deposit, whose note is already kept.
-    fn note_deposit(&self, note: &crate::notes::NotePlaintext, hash: [u8; 32]) {
-        use crate::store::activity::{Activity, DEPOSIT_SENT};
-        let mut a = Activity::new(DEPOSIT_SENT, crate::wallet::history::clock());
-        a.asset_id = note.asset_id;
-        a.value = note.value;
-        a.tx = hash;
-        a.cm = crate::wallet::history::cm_of(note);
-        let _ = self.with_mut(|s| Ok(crate::wallet::history::note(s, a)?));
-    }
-
-    /// The owner's settlement of the spend in `dir`, into the history.
-    fn note_settled(&self, dir: &std::path::Path, hash: [u8; 32]) {
-        use crate::store::activity::{Activity, SETTLED_SELF};
-        let Ok([tag, _]) = crate::wallet::publish::handoff_nullifiers(dir) else { return };
-        let mut a = Activity::new(SETTLED_SELF, crate::wallet::history::clock());
-        a.tag = tag;
-        a.tx = hash;
-        let _ = self.with_mut(|s| Ok(crate::wallet::history::note(s, a)?));
     }
 }

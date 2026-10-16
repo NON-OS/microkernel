@@ -1,6 +1,6 @@
 use super::{pieces, pieces_by, MAX_PIECES};
-use crate::net::policy_rules::Rule;
 use crate::net::asset_v2::{PROD_ETH, PROD_NOX};
+use crate::net::policy_rules::Rule;
 
 const CENT: u64 = 10_000_000_000_000_000;
 const THOUSAND_NOX: u64 = 1_000_000_000_000;

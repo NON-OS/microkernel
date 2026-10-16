@@ -6,6 +6,7 @@ mod blinding;
 mod cipher;
 mod commit;
 mod kdf;
+mod max_value;
 mod plaintext;
 mod plaintext_bytes;
 mod record;
@@ -19,11 +20,8 @@ mod xwing_test;
 pub use blinding::fresh_blinding;
 pub use cipher::{open_note, seal_note, Opened};
 pub use commit::{commitment, commitment_bytes, owner_commit_wire};
+pub use max_value::MAX_VALUE;
 pub use plaintext::NotePlaintext;
-
-/// The largest value a note may hold, `p - 2`, the pool's `MAX_VALUE`. The
-/// circuit adds values in the field, so a larger one could wrap.
-pub const MAX_VALUE: u64 = nonos_stark::field::P - 2;
 pub use record::{NoteRecord, NoteStatus};
 pub use wire::{NoteCipher, CIPHER_LEN};
 pub use wire_digest::wire_digest;

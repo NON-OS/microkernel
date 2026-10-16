@@ -1,26 +1,10 @@
 //! Whether the pool would take a deposit, with the contract's checks in its order.
 
-use super::deposit::split_deposit;
+#[path = "deposit_gate_state.rs"]
+mod state;
 
-/// The pool state for one depositor and asset. `open_deposits` lets anyone in, caps still apply.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct PoolState {
-    pub deposits_paused: bool,
-    pub wound_down: bool,
-    pub beta_mode: bool,
-    pub beta_paused: bool,
-    pub is_depositor: bool,
-    pub addr_deposited: u128,
-    pub addr_cap: u128,
-    pub total_deposited: u128,
-    pub total_cap: u128,
-    pub fee_bps: u16,
-    pub open_deposits: bool,
-    /// Base units per note unit. One on a format 5 pool, which counts base units.
-    pub scale: u128,
-    /// The pool's AmountPolicy is paused: nothing settles in or out until it resumes.
-    pub policy_paused: bool,
-}
+use super::deposit::split_deposit;
+pub use state::PoolState;
 
 /// Why the pool would refuse, named the way a screen can say it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

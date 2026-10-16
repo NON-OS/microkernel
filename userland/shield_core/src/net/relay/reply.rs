@@ -2,6 +2,11 @@
 //! show, a refusal reason, is kept to printable characters and 200 of them:
 //! the lander is a server the wallet does not control.
 
+#[path = "reply_info.rs"]
+mod info;
+
+pub(crate) use info::{serves, takes_submitter_fee};
+
 use crate::error::NetError;
 use crate::net::rpc::{after, quoted};
 
@@ -63,19 +68,6 @@ pub(crate) fn state(body: &str) -> Result<RelayState, NetError> {
         reason: field(body, "reason").map(printable),
     })
 }
-
-/// Whether `/v1/info` names `pool` as the pool the lander serves.
-pub(crate) fn serves(body: &str, pool: &str) -> bool {
-    field(body, "pool").is_some_and(|p| p.eq_ignore_ascii_case(pool))
-}
-
-/// Whether `/v1/info` says the lander takes a proof whose fee goes to whoever submits it.
-pub(crate) fn takes_submitter_fee(body: &str) -> bool {
-    after(body, "\"fee_to_submitter_accepted\"")
-        .map(|rest| rest.trim_start_matches([' ', ':']))
-        .is_some_and(|rest| rest.starts_with("true"))
-}
-
 #[cfg(test)]
 #[path = "reply_test.rs"]
 mod reply_test;

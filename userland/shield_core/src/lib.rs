@@ -22,4 +22,3 @@ pub mod notes;
 pub mod prover;
 pub mod store;
 pub mod wallet;
-
