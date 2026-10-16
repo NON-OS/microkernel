@@ -40,11 +40,11 @@ enum Target {
 }
 
 fn target_of(state: &State) -> Option<Target> {
-    if state.search_focused {
+    if state.search.focused {
         Some(Target::Search)
     } else if state.editing {
         Some(Target::Value)
-    } else if state.section == Section::Wifi && state.wifi_pass_active {
+    } else if state.section == Section::Wifi && state.wifi_pass.active {
         Some(Target::Passphrase)
     } else {
         None
@@ -81,9 +81,9 @@ pub(super) fn on_paste(state: &mut State) -> Option<EventOutcome> {
 fn into(state: &mut State, target: Target, line: &str) -> Pasted {
     match target {
         Target::Search => {
-            let out = state.search.paste(line, STRING_CAP, QUERY_MAX, |_| true);
-            state.search_cursor = 0;
-            state.search_scroll = 0;
+            let out = state.search.text.paste(line, STRING_CAP, QUERY_MAX, |_| true);
+            state.search.cursor = 0;
+            state.search.scroll = 0;
             out
         }
         Target::Value => {
@@ -92,7 +92,7 @@ fn into(state: &mut State, target: Target, line: &str) -> Pasted {
             state.edit.paste(line, cap, usize::MAX, value_char)
         }
         Target::Passphrase => {
-            state.wifi_pass.paste(line, STRING_CAP, usize::MAX, |c| matches!(c, ' '..='~'))
+            state.wifi_pass.text.paste(line, STRING_CAP, usize::MAX, |c| matches!(c, ' '..='~'))
         }
     }
 }

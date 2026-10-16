@@ -40,6 +40,7 @@ pub mod net_rows;
 pub mod net_signal;
 pub mod page_head;
 pub mod pane;
+pub mod pane_items;
 pub mod pill;
 pub mod results;
 pub mod results_geom;

@@ -33,25 +33,25 @@ pub(super) fn on_search_key(state: &mut State, event: &InputEvent) -> EventOutco
     match event.code {
         KEY_ESC => {
             search_clear(state);
-            state.search_focused = false;
+            state.search.focused = false;
             EventOutcome::Repaint
         }
         KEY_BACKSPACE => {
-            state.search.pop();
-            state.search_cursor = 0;
-            state.search_scroll = 0;
+            state.search.text.pop();
+            state.search.cursor = 0;
+            state.search.scroll = 0;
             EventOutcome::Repaint
         }
         KEY_UP => step(state, -1),
         KEY_DOWN => step(state, 1),
         KEY_ENTER => open_selected(state),
         _ => match typed_char(event) {
-            Some(ch) if state.search.char_count() < QUERY_MAX => {
-                if !state.search.push_char(ch, STRING_CAP) {
+            Some(ch) if state.search.text.char_count() < QUERY_MAX => {
+                if !state.search.text.push_char(ch, STRING_CAP) {
                     return EventOutcome::Idle;
                 }
-                state.search_cursor = 0;
-                state.search_scroll = 0;
+                state.search.cursor = 0;
+                state.search.scroll = 0;
                 EventOutcome::Repaint
             }
             _ => EventOutcome::Idle,
@@ -60,22 +60,22 @@ pub(super) fn on_search_key(state: &mut State, event: &InputEvent) -> EventOutco
 }
 
 fn step(state: &mut State, delta: i32) -> EventOutcome {
-    let n = results::count(as_str(state.search.as_slice()));
+    let n = results::count(as_str(state.search.text.as_slice()));
     if n == 0 {
         return EventOutcome::Idle;
     }
-    let next = (state.search_cursor as i32 + delta).clamp(0, n as i32 - 1);
-    state.search_cursor = next as usize;
+    let next = (state.search.cursor as i32 + delta).clamp(0, n as i32 - 1);
+    state.search.cursor = next as usize;
     EventOutcome::Repaint
 }
 
 pub(super) fn open_selected(state: &mut State) -> EventOutcome {
-    let query = as_str(state.search.as_slice());
-    let Some((section, index, _)) = results::at(query, state.search_cursor) else {
+    let query = as_str(state.search.text.as_slice());
+    let Some((section, index, _)) = results::at(query, state.search.cursor) else {
         return EventOutcome::Idle;
     };
     search_clear(state);
-    state.search_focused = false;
+    state.search.focused = false;
     set_section(state, section);
     state.cursor[section.index()] = index;
     track_scroll(state);

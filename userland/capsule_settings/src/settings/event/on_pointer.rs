@@ -33,7 +33,7 @@ pub(super) fn on_pointer(state: &mut State, x: i32, y: i32) -> EventOutcome {
     if x < 0 || y < 0 {
         return EventOutcome::Idle;
     }
-    let was_focused = core::mem::replace(&mut state.search_focused, false);
+    let was_focused = core::mem::replace(&mut state.search.focused, false);
     let outcome = route(state, x, y);
     if was_focused && outcome == EventOutcome::Idle {
         return EventOutcome::Repaint;
@@ -80,7 +80,7 @@ fn route(state: &mut State, x: i32, y: i32) -> EventOutcome {
 fn click_network(state: &mut State, i: usize) {
     let same = state.wifi_cursor == i;
     state.wifi_cursor = i;
-    if i >= state.wifi_network_count || (same && state.wifi_pass_active) {
+    if i >= state.wifi_network_count || (same && state.wifi_pass.active) {
         return;
     }
     clear_passphrase(state);
@@ -88,8 +88,8 @@ fn click_network(state: &mut State, i: usize) {
 }
 
 fn results_click(state: &mut State, y: i32) -> EventOutcome {
-    let n = results::count(as_str(state.search.as_slice()));
-    let Some(i) = index_at(y, state.search_scroll, n) else { return EventOutcome::Idle };
-    state.search_cursor = i;
+    let n = results::count(as_str(state.search.text.as_slice()));
+    let Some(i) = index_at(y, state.search.scroll, n) else { return EventOutcome::Idle };
+    state.search.cursor = i;
     open_selected(state)
 }
