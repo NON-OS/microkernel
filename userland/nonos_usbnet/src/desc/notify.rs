@@ -26,8 +26,8 @@ const INTERRUPT: u8 = 0x03;
 pub fn notify_ep(raw: &[u8], number: u8) -> Option<Notify> {
     let mut inside = false;
     walk(raw).find_map(|d| {
-        if d[1] == INTERFACE && d.len() >= 4 {
-            inside = d[2] == number && d[3] == 0;
+        if d[1] == INTERFACE {
+            inside = d.len() >= 9 && d[2] == number && d[3] == 0;
         }
         let ours = inside && d[1] == ENDPOINT && d.len() >= 7;
         let fit = ours && sound(u16::from_le_bytes([d[4], d[5]]), d[6]);

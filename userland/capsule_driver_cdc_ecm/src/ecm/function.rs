@@ -51,7 +51,7 @@ pub fn find_ecm(raw: &[u8]) -> Option<EcmFunction> {
     let comms = ifs.iter().filter(|i| i.class == CLASS_COMM && i.subclass == SUBCLASS_ECM);
     comms.filter(|c| c.alt == 0).find_map(|c| {
         let data = union_slave(raw, c.number, &ifs)?;
-        let eth = find_functional(raw, c.number, ETHERNET).filter(|d| d.len() >= ETHERNET_LEN)?;
+        let eth = find_functional(raw, c.number, ETHERNET, ETHERNET_LEN)?;
         Some(EcmFunction {
             comm: c.number,
             data,
