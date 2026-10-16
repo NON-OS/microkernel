@@ -8,7 +8,6 @@ version = "0.1.0"
 dependencies = [
  "i2c_proofs_libc_shim",
  "nonos_devmodel",
- "nonos_pinctrl",
 ]
 
 [[package]]
@@ -17,8 +16,4 @@ version = "0.1.0"
 
 [[package]]
 name = "nonos_devmodel"
-version = "0.1.0"
-
-[[package]]
-name = "nonos_pinctrl"
 version = "0.1.0"

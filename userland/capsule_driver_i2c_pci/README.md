@@ -44,9 +44,15 @@ endpoint to it (`src/services/registry/held.rs`), by name and by pid, because
 | `OP_PROBE` | 7-bit address | present / absent |
 | `OP_ACPI_HID` | none | the touchpad the kernel registered from ACPI: I2C address, HID descriptor register, GPIO pin; empty when firmware declared none |
 
-`src/server/handlers/doorbell.rs` holds a GPIO doorbell handler that
-`driver.i2c_hid0` asks for as op 8, but it is not in the module tree at this
-commit, so op 8 is answered `E_BAD_OP`.
+Op 8, the doorbell, answers `present u32, rang u32`: whether the
+touchpad's interrupt line rang since the last look. This capsule does not
+claim or map the GPIO controller; `driver.gpio0` owns it, and this capsule
+drains gpio0's EVENTS (op 1) for its own device. The key is the broker
+device id of the controller it claimed, with bit 63 set; gpio0's holder
+check accepts that claim (F 62). `present` is 0 when the firmware declared
+no line, gpio0 is absent, or gpio0 refuses (on Intel, gpio0 binds no pin
+until a pad layout is published), and `driver.i2c_hid0` then reads on its
+timer.
 
 Unknown operations reply `E_BAD_OP`. Non-empty bodies on fixed-width requests
 reply `E_INVAL`.
@@ -131,8 +137,8 @@ The target chain is:
 driver.i2c_pci0 -> driver.i2c_hid0 -> kernel input ring -> input_router -> compositor / apps
 ```
 
-The next runtime slice is IRQ-aware completion and the GPIO doorbell above the
-same bounded transfer primitive.
+The next runtime slice is IRQ-aware completion above the same bounded
+transfer primitive.
 
 ## Release evidence
 
