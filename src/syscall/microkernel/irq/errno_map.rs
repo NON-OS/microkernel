@@ -43,6 +43,17 @@ pub(super) fn bind_errno(e: IrqBindError) -> i64 {
     }
 }
 
+/// As `grant_errno`, but a grant a depart took answers ENODEV: the device
+/// is gone, which is not the caller's mistake.
+pub(super) fn grant_errno_for(pid: u32, grant_id: u64, e: IrqError) -> i64 {
+    match e {
+        IrqError::UnknownGrant if crate::hardware::broker::irq::gone::departed(pid, grant_id) => {
+            ERRNO_NODEV
+        }
+        e => grant_errno(e),
+    }
+}
+
 /// The errno for a refused wait on a grant.
 pub(super) fn grant_errno(e: IrqError) -> i64 {
     match e {
