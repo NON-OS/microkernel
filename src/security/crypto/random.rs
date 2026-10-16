@@ -47,18 +47,5 @@ pub fn try_secure_random_u64() -> Result<u64, &'static str> {
     if let Some(v) = crate::arch::cpu_random::entropy_u64() {
         return Ok(v);
     }
-    if let Ok(v) = try_virtio_rng() {
-        return Ok(v);
-    }
     Err("No hardware entropy source available")
-}
-
-fn try_virtio_rng() -> Result<u64, ()> {
-    if crate::drivers::virtio_rng::is_available() {
-        let mut buf = [0u8; 8];
-        if crate::drivers::virtio_rng::fill_random(&mut buf).is_ok() {
-            return Ok(u64::from_le_bytes(buf));
-        }
-    }
-    Err(())
 }
