@@ -19,13 +19,19 @@
 //! standard asks a source to retry at least seven times, DisplayPort 1.4a
 //! section 2.7.7.1.5; the driver's transfer bounds each try in time).
 
-use super::aux::{header, native_reply, Aux, AuxError, Reply, MAX_DATA, NATIVE_READ, NATIVE_WRITE};
+use super::aux::{header, Aux, AuxError, MAX_DATA, NATIVE_READ, NATIVE_WRITE};
+use super::native_once::once;
+
+use super::sideband::refused;
 
 /// Tries per transaction before a DEFER or a timeout counts as failure.
 pub const RETRIES: u32 = 8;
 
 /// Read `out.len()` bytes of the DPCD from `addr`.
 pub fn read(aux: &mut dyn Aux, addr: u32, out: &mut [u8]) -> Result<(), AuxError> {
+    if refused(addr, out.len()) {
+        return Err(AuxError::Refused);
+    }
     let mut done = 0;
     while done < out.len() {
         let n = (out.len() - done).min(MAX_DATA);
@@ -44,6 +50,9 @@ pub fn read(aux: &mut dyn Aux, addr: u32, out: &mut [u8]) -> Result<(), AuxError
 
 /// Write `data` to the DPCD at `addr`.
 pub fn write(aux: &mut dyn Aux, addr: u32, data: &[u8]) -> Result<(), AuxError> {
+    if refused(addr, data.len()) {
+        return Err(AuxError::Refused);
+    }
     for (i, chunk) in data.chunks(MAX_DATA).enumerate() {
         let mut req = [0u8; 4 + MAX_DATA];
         req[..4].copy_from_slice(&header(NATIVE_WRITE, addr + (i * MAX_DATA) as u32, chunk.len()));
@@ -51,22 +60,4 @@ pub fn write(aux: &mut dyn Aux, addr: u32, data: &[u8]) -> Result<(), AuxError> 
         once(aux, &req[..4 + chunk.len()])?;
     }
     Ok(())
-}
-
-/// One transaction to an ACK, retrying DEFER and timeouts.
-fn once(aux: &mut dyn Aux, req: &[u8]) -> Result<([u8; 20], usize), AuxError> {
-    let mut last = AuxError::Timeout;
-    for _ in 0..RETRIES {
-        let mut reply = [0u8; 20];
-        match aux.transfer(req, &mut reply) {
-            Ok(0) => last = AuxError::Short,
-            Ok(n) => match native_reply(reply[0]) {
-                Some(Reply::Ack) => return Ok((reply, n)),
-                Some(Reply::Defer) => last = AuxError::Refused,
-                _ => return Err(AuxError::Refused),
-            },
-            Err(e) => last = e,
-        }
-    }
-    Err(last)
 }
