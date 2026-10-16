@@ -44,6 +44,8 @@ pub mod pte;
 pub mod regs;
 mod release;
 #[cfg(feature = "nonos-iommu-amdvi")]
+mod reserved;
+#[cfg(feature = "nonos-iommu-amdvi")]
 mod ring;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod submit;

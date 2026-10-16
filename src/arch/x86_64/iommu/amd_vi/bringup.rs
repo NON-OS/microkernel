@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AMD-Vi bring-up: map every unit IVRS names, give every enumerated PCI
-//! function an identity entry in one shared device table, deny every other
-//! requester id, and put each unit in service. All or nothing: a unit that
-//! cannot be reached leaves enforcement unclaimed.
+//! AMD-Vi bring-up: map every unit IVRS names, point each at one shared
+//! device table in which every requester id is blocked, put each unit in
+//! service, then give the devices firmware reserved memory for those ranges
+//! alone. All or nothing: a unit that cannot be reached leaves
+//! enforcement unclaimed.
 
 use super::devtab::device_table;
-use super::domain::{device_id, pass};
+use super::domain::device_id;
 use super::enable::enable_unit;
 use super::error::AmdViError;
 use super::mmio::Unit;
 use super::units::{record, set_enforcing, Units};
 use crate::arch::x86_64::acpi::parser::other::{amd_iommu_bases, amd_iommu_spans};
 
-/// Returns how many devices were given identity entries.
+/// Returns how many devices were given their reserved memory.
 pub(super) fn bring_up() -> Result<usize, AmdViError> {
     let bases = amd_iommu_bases();
     if bases.is_empty() {
@@ -41,25 +42,14 @@ pub(super) fn bring_up() -> Result<usize, AmdViError> {
     let units = record(mapped);
     let table = device_table()?;
 
-    // Entries before any unit reads the table: the disk, the USB controller
-    // and the network card keep working the moment translation starts.
-    let mut assigned = 0;
-    for dev in crate::bus::pci::enumerate_devices().iter() {
-        pass(device_id(dev.bus, dev.device, dev.function))?;
-        assigned += 1;
-    }
-    // Ids firmware named one by one: the id a bridge's devices arrive under,
-    // an ACPI device such as an eMMC host, an IOAPIC or HPET. None of them
-    // need appear in PCI enumeration, and denying them breaks the device.
-    for span in amd_iommu_spans().iter().filter(|s| s.named) {
-        pass(span.first)?;
-        assigned += 1;
-    }
     for (index, unit) in units.iter().enumerate() {
         // SAFETY: eK@nonos.systems - `table` is allocated once and never
-        // freed, and every enumerated device has its entry above.
+        // freed, and every entry in it is blocked.
         unsafe { enable_unit(index, unit, table)? };
     }
     set_enforcing();
-    Ok(assigned)
+    let enumerated = crate::bus::pci::enumerate_devices();
+    let pci = enumerated.iter().map(|d| device_id(d.bus, d.device, d.function));
+    let named = amd_iommu_spans().into_iter().filter(|s| s.named).map(|s| s.first);
+    Ok(super::reserved::give_reserved(pci.chain(named)))
 }

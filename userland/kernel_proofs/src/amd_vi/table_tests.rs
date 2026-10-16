@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::dte::{allows_write, blocked, domain_of, mode_of, passthrough, root_of, translated};
+use super::dte::{allows_write, blocked, domain_of, mode_of, root_of, translated};
 use super::pte::{
     address, directory, index, is_present, leaf, next_level, reach, writable, LEVELS,
 };
@@ -25,8 +25,6 @@ in bits 11:9, IR bit 61, IW bit 62, domain id in the second quadword). */
 fn device_table_entries_match_linux() {
     assert_eq!(blocked(), [0x3, 0, 0, 0]);
     assert!(!allows_write(blocked()));
-    assert_eq!(passthrough()[0], 0x6000_0000_0000_0003);
-    assert_eq!(mode_of(passthrough()), 0);
     let t = translated(0x1234_5000, 4, 7);
     assert_eq!(t[0], 0x6000_0000_1234_5803);
     assert_eq!((domain_of(t), mode_of(t), root_of(t)), (7, 4, 0x1234_5000));
