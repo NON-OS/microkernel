@@ -24,7 +24,6 @@ tools/nonos-pack c C the host run could not fetch blake3 v1.8.6; marked with --w
 tools/nonos-pack/core a C passes on the host (19 passed, 2s); a member of tools/nonos-pack, which runs it with --workspace
 userland/capsule_audio d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_audio_player d C no_std capsule: its tests/host programs want a host proofs crate (the host run could not fetch cc v1.4.0)
-userland/capsule_driver_hda d D no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_mdview/layout_tests c C the host run lacked the crate pulldown-cmark
 userland/capsule_net_core/tests/ipc_framing a C passes on the host (12 passed, 1s); it has no Cargo.lock of its own
 userland/capsule_net_nym d A no_std capsule: a host cargo test stops on a duplicate panic_impl lang item; its inline tests want a #[path] mount in a nym proofs crate
