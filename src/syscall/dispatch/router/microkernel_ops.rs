@@ -112,6 +112,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAcpiFirstPass
             | MkAcpiSlot
             | MkAcpiMeasured
+            | MkAcpiRestoreFunction
             | MkNumaHmat
             | MkAcpiLpit
             | MkBootLogo

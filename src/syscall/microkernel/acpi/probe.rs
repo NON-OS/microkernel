@@ -21,10 +21,16 @@
 //! for a function already in the table; ENOENT when it still does not
 //! answer; EINVAL for a field out of range.
 
+use crate::hardware::broker::acpi::claim_holder::tgid;
+use crate::hardware::broker::acpi::first_pass_rule::admits;
+use crate::hardware::broker::acpi::marf_rule::Marf;
 use crate::hardware::broker::acpi::probe_function::{probe_late, ProbeError};
+use crate::hardware::broker::acpi::restore_function::{restore_function, RestoreError};
 use crate::process::current_pid;
 use crate::services::registry::lookup_service;
-use crate::syscall::microkernel::errnos::{ERRNO_EXIST, ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{
+    ERRNO_AGAIN, ERRNO_EXIST, ERRNO_INVAL, ERRNO_IO, ERRNO_NODEV, ERRNO_NOENT, ERRNO_PERM,
+};
 
 pub fn sys_pci_probe_function(bus: u64, devfn: u64) -> i64 {
     let owner = lookup_service("acpi").map(|e| e.pid);
@@ -38,5 +44,24 @@ pub fn sys_pci_probe_function(bus: u64, devfn: u64) -> i64 {
         Ok(id) => id as i64,
         Err(ProbeError::Present) => ERRNO_EXIST,
         Err(ProbeError::Absent) => ERRNO_NOENT,
+    }
+}
+
+/// `MkAcpiRestoreFunction(device_id) -> 0`, the acpi owner's thread group
+/// only (L64): after a claimed function's move back to D0, its BARs put
+/// back. ENOENT for 0 or an unknown id, ENODEV when unclaimed, EAGAIN
+/// unless in D0, EIO when a BAR would not stick and the claim was released.
+pub fn sys_acpi_restore_function(device_id: u64) -> i64 {
+    let owner = lookup_service("acpi").map(|e| e.pid);
+    let Some(caller) = current_pid() else { return ERRNO_PERM };
+    if !admits(owner, caller, tgid) {
+        return ERRNO_PERM;
+    }
+    match restore_function(device_id) {
+        Ok(()) => 0,
+        Err(RestoreError::Refused(Marf::Unknown)) => ERRNO_NOENT,
+        Err(RestoreError::Refused(Marf::NotClaimed)) => ERRNO_NODEV,
+        Err(RestoreError::Refused(Marf::NotInD0)) => ERRNO_AGAIN,
+        Err(RestoreError::Lost) => ERRNO_IO,
     }
 }
