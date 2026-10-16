@@ -19,13 +19,14 @@
 use super::common::owner;
 use super::held::endpoint_admits;
 
-/// The controllers, the GPU and the sound card take their one client.
+/// The controllers, the GPUs and the sound card take their one client.
 #[test]
 fn each_device_takes_its_service_alone() {
-    let cases: [(&str, &[&'static str]); 4] = [
+    let cases: [(&str, &[&'static str]); 5] = [
         ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
         ("driver.i2c_pci0", &["driver.i2c_hid0"]),
         ("driver.virtio_gpu0", &["compositor"]),
+        ("driver.bga0", &["compositor"]),
         ("driver.hda0", &["audio.server"]),
     ];
     for (ep, clients) in cases {
