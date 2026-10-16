@@ -23,6 +23,7 @@ use nonos_libc::{mk_debug, mk_getpid};
 
 use super::super::manifest::{decode, encode, Manifest};
 use crate::linux::file::family::records;
+use crate::linux::whole::{ask, whole};
 
 /// The largest manifest read back: a package of some thousands of files.
 const MAX: u32 = 1 << 20;
@@ -50,7 +51,9 @@ pub(in super::super) fn write(name: &str, m: &Manifest) -> bool {
     kept
 }
 
-/// What `name` wrote, or None when no install of it is recorded.
+/// What `name` wrote, or None when no install of it is recorded or its
+/// record is past MAX (never a cut manifest).
 pub(in super::super) fn read(name: &str) -> Option<Manifest> {
-    vfs::read_file(mk_getpid(), &at(name), MAX).ok().map(|b| decode(&b))
+    let raw = vfs::read_file(mk_getpid(), &at(name), ask(MAX)).ok();
+    raw.and_then(|b| whole(b, MAX)).map(|b| decode(&b))
 }

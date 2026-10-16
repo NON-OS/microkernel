@@ -27,10 +27,12 @@ use super::super::manifest::{encode, Manifest};
 use super::one::{at, dir, read};
 
 /// Every other package's manifest, so what two packages share stays.
-pub(in super::super) fn others(name: &str) -> Vec<Manifest> {
+/// `None` when one of them cannot be read whole: its files might be shared,
+/// so nothing may be taken out on a guess.
+pub(in super::super) fn others(name: &str) -> Option<Vec<Manifest>> {
     let listed = vfs::list_paths(mk_getpid(), &dir()).unwrap_or_default();
     let names = listed.iter().map(|p| p.rsplit('/').next().unwrap_or(p)).map(String::from);
-    names.filter(|n| !n.is_empty() && n != name).filter_map(|n| read(&n)).collect()
+    names.filter(|n| !n.is_empty() && n != name).map(|n| read(&n)).collect()
 }
 
 /// Keep only what is still to take out, or drop the record once nothing is.

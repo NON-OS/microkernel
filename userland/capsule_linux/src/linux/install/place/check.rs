@@ -56,7 +56,9 @@ pub(super) fn check(entries: &[Entry], pkg: &str) -> Result<(), Why> {
             mine.push(at);
         }
     }
-    let others = super::super::package_record::others(pkg);
+    let Some(others) = super::super::package_record::others(pkg) else {
+        return refuse(pkg, b"", "another package's record is unreadable");
+    };
     match held_by_another(&mine, &others) {
         Some(at) => refuse(pkg, at, "another installed package holds it"),
         None => Ok(()),
