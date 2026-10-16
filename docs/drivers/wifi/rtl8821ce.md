@@ -50,7 +50,7 @@ The driver goes as far as it can and then serves whatever stage it reached, so t
 6. The transmit and receive engines are enabled and the MAC table runs (`userland/capsule_driver_rtl8821ce/src/main.rs:140-152`, `init_trx_cfg`, `run_mac_table`). An engine that does not start also stops at `FirmwareFailed`.
 7. Radio: `build_radio` maps the DMA rings, configures the PHY from the efuse and draws the station address (`userland/capsule_driver_rtl8821ce/src/serve/radio.rs:59-78`, `build_radio`). Failures stop at `NoDma`, at `EfuseFailed` for an efuse that still does not read or an RF front-end with no register table, or at `NoStationAddress` (`userland/capsule_driver_rtl8821ce/src/serve/radio.rs:128-168`, `Stage::NoStationAddress`).
 
-A bring-up that passes every phase ends at `Ready`. The stage numbers are listed in `Stage` (`userland/capsule_driver_rtl8821ce/src/serve/stage.rs:19-43`) and their panel texts on the [Wi-Fi overview](README.md#bring-up-stages).
+A bring-up that passes every phase ends at `Ready`. The stage numbers are listed in `Stage` (`userland/capsule_driver_rtl8821ce/src/serve/stage.rs:19-43`) and their panel texts on the [Wi-Fi overview](overview/stages.md#bring-up-stages).
 
 The card is a Wi-Fi and Bluetooth combo. The driver hands the shared antenna to Wi-Fi and keeps the Bluetooth grant low; Bluetooth is not driven (`userland/capsule_driver_rtl8821ce/src/coex/wl_only.rs:17-34`, `take_antenna`).
 
@@ -70,7 +70,7 @@ Before a join the driver hunts the network's beacon: two sweeps at 250 ms a chan
 
 ## Joining
 
-A connect runs the whole join inside the request (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:17-29`, `JoinPolicy`). The policy is WPA3-SAE whenever offered and WPA2 otherwise, and only SAE for a network saved as WPA3 (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:139-143`, `JoinPolicy::WPA3_ONLY`). The negotiation itself is described on the [Wi-Fi overview](README.md#security-a-join-accepts).
+A connect runs the whole join inside the request (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:17-29`, `JoinPolicy`). The policy is WPA3-SAE whenever offered and WPA2 otherwise, and only SAE for a network saved as WPA3 (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:139-143`, `JoinPolicy::WPA3_ONLY`). The negotiation itself is described on the [Wi-Fi overview](overview/security.md#security-a-join-accepts).
 
 - The join gets 8 s (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:61-68`, `JOIN_BUDGET_MS`).
 - On a network that offers both, a WPA3 join that did not finish is tried again once with WPA2, with its own 8 s (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:69-72`, `PSK_BUDGET_MS`). That second try is skipped when the network was saved as WPA3 and when the access point's SAE confirm said the password is wrong (`userland/capsule_driver_rtl8821ce/src/serve/connect.rs:250-257`, `retry_with_psk`).
@@ -96,7 +96,7 @@ The status codes are defined beside `failure_code`, which maps each way a join c
 
 The one service inbox takes two request families: `net.core`'s link protocol, handled by `netif::serve`, and the Wi-Fi control family (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:100-122`, `netif::serve`). A frame neither family takes is answered with -22 rather than left without a reply (`userland/capsule_driver_rtl8821ce/src/serve/refuse.rs:24-25`, `STATUS_REFUSED`).
 
-While joined, a new group key from the access point is installed and a deauthentication ends the session, so the link reads down and the background scan resumes (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:137-150`, `after_receive`). The driver does not rejoin by itself; see [autojoin](README.md#autojoin-and-losing-the-link).
+While joined, a new group key from the access point is installed and a deauthentication ends the session, so the link reads down and the background scan resumes (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:137-150`, `after_receive`). The driver does not rejoin by itself; see [autojoin](overview/stages.md#autojoin-and-losing-the-link).
 
 ## Firmware
 
