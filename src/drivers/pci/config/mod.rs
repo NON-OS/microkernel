@@ -16,6 +16,7 @@
 
 pub mod access;
 pub mod bridge;
+mod command_edit;
 pub mod config_space;
 #[cfg(target_arch = "x86_64")]
 mod extended;

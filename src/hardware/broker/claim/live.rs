@@ -46,3 +46,12 @@ pub(crate) fn while_live<R>(
     let held = claims.iter().any(stands(pid, device_id, epoch));
     held.then(act)
 }
+
+/// `act` under the claims' lock while no claim, of any stage, names the
+/// device: a refused bind's writes to a device its claim has left are made
+/// only before a newer claim holds it, never after (L73). `act` takes no
+/// claim lock, nor the interrupt records'.
+pub(crate) fn while_unclaimed<R>(device_id: u64, act: impl FnOnce() -> R) -> Option<R> {
+    let claims = CLAIMS.lock();
+    (!claims.iter().any(|c| c.device_id == device_id)).then(act)
+}
