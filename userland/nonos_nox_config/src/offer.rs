@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The escrow offer's constants (plan/29, v1.4.29; the owner may change
 //! them): the least Equi-X effort an agent takes, how long an offer lives,
 //! and how many the meter keeps.

@@ -44,6 +44,7 @@ mod fresh_modes;
 mod hexes;
 mod ops;
 mod shield_fresh;
+mod status;
 mod values;
 mod values_more;
 
@@ -57,6 +58,7 @@ pub use fresh_modes::{FRESH_BATCH, FRESH_HANDED, FRESH_ONCE};
 pub use hexes::{hex, unhex};
 pub use ops::*;
 pub use shield_fresh::{OP_SHIELD_FROM_FRESH, SHIELD_FRESH_CONFIRM, SHIELD_FRESH_REVIEW};
+pub use status::*;
 pub use values::{field, fields, Values};
 
 #[cfg(test)]
