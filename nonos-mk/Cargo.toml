@@ -3,6 +3,9 @@ name = "nonos-mk"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.nonos]
+test-lane = true
+
 [[bin]]
 name = "marketplace-index"
 path = "src/main.rs"

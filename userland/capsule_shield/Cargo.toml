@@ -7,6 +7,9 @@ license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "nonos.shield: the NOX Shield wallet service, 1:1 with the phone apps"
 
+[package.metadata.nonos]
+test-lane = true
+
 [[bin]]
 name = "shield"
 path = "src/main.rs"

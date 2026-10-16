@@ -19,6 +19,7 @@
 mod bitbuf;
 mod choose_version;
 mod message_codewords;
+mod pad;
 
 pub(crate) use choose_version::choose_version;
 pub(crate) use message_codewords::message_codewords;

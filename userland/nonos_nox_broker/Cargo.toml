@@ -5,6 +5,9 @@ edition = "2021"
 description = "License broker core: turn a verified NOX payment into a signed entitlement, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 
