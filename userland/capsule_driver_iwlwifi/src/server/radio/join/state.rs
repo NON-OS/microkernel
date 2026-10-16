@@ -17,6 +17,7 @@
 use crate::firmware::gen3::join::inbox::{Inbox, Queues};
 use crate::firmware::gen3::join::run::Joined;
 use crate::firmware::gen3::txq::{TxQueue, TXQ_STRIDE};
+use nonos_wifi_core::address::AddressKey;
 use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::netif::LinkPort;
 
@@ -34,6 +35,9 @@ pub struct Join {
     pub(super) ssid_len: usize,
     /// How the link last ended and the last join came out, for the link reply.
     pub(super) history: LinkHistory,
+    /// This boot's address key, drawn at the first join; kept across
+    /// firmware restarts so a network keeps its address.
+    pub(super) address: Option<AddressKey>,
 }
 
 impl Join {
@@ -46,6 +50,7 @@ impl Join {
             ssid: [0; SSID_MAX],
             ssid_len: 0,
             history: LinkHistory::NEW,
+            address: None,
         }
     }
 }
