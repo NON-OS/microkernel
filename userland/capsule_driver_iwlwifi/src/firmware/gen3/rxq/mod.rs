@@ -21,9 +21,9 @@
 //! address); the device fills one, writes a completion descriptor
 //! (`iwl_rx_completion_desc`: buffer id, fragmented flag) on the used ring and
 //! advances the closed index in the status word. The host walks the used ring
-//! up to that index, takes each buffer and posts it again. The free ring's
-//! write index goes to the device in multiples of eight, and only after the
-//! ALIVE interrupt: the firmware configures the receive engine itself and
+//! up to that index, takes each buffer, clears it and posts it again. The free
+//! ring's write index goes to the device in multiples of eight, and only after
+//! the ALIVE interrupt: the firmware configures the receive engine itself and
 //! Linux restocks then (`iwl_pcie_rxmq_restock` on ALIVE).
 //!
 //! Everything the device writes is checked: a buffer id that is zero, out of
