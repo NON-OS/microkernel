@@ -10,5 +10,6 @@ mod park_tests;
 mod police_more_tests;
 mod police_tests;
 mod restart_tests;
+mod set_config_tests;
 mod unclaimed_tests;
 mod wiring_tests;

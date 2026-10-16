@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a device may be bound, decided once per device before any of
-//! its interfaces is: allowed as before, held for the owner's answer, or
-//! refused. Its standing goes with the slot, and a new device on the slot
-//! is judged afresh (server/mux_enable.rs forgets it).
+//! Whether a device may be bound, decided for each configuration it is set
+//! to: allowed as before, held for the owner's answer, or refused. One set
+//! to another configuration after a harmless one is judged again for it,
+//! and a new device on the slot afresh (server/mux_enable.rs).
 
 use alloc::vec::Vec;
 
@@ -25,16 +25,15 @@ use super::asks::asks;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Policy {
-    /// Every device bound, as before this gate.
+    /// Every device bound, as before; Ask holds a HID or several-class
+    /// configuration until answered; Deny binds nothing.
     Allow,
-    /// A keyboard or a device of several classes held until answered.
     Ask,
-    /// No device bound.
     Deny,
 }
 
-/// The owner's to choose (an owner row). Allow, so nothing changes on any
-/// machine until the owner says otherwise.
+/// The owner's to choose (owner Decision 12). Allow until the owner says
+/// otherwise, so nothing changes on any machine.
 pub const DEFAULT_POLICY: Policy = Policy::Allow;
 pub const E_ACCES: i32 = -13;
 
@@ -47,7 +46,8 @@ pub enum Standing {
 
 pub struct Authority {
     pub policy: Policy,
-    pub(super) list: Vec<(u8, Standing)>,
+    /// Slot, bConfigurationValue, standing; a slot's last is its current.
+    pub(super) list: Vec<(u8, u8, Standing)>,
     tickets: u32,
 }
 
@@ -56,9 +56,9 @@ impl Authority {
         Self { policy, list: Vec::new(), tickets: 0 }
     }
 
-    /// Judge the device on `slot` by its first configuration, `None` when
-    /// it could not be read (then it is held or refused, never allowed).
-    pub fn judge(&mut self, slot: u8, config: Option<&[u8]>) -> Standing {
+    /// Judge configuration `value` on `slot` by its bytes, `None` when
+    /// unread (then never allowed); it becomes the slot's current one.
+    pub fn judge(&mut self, slot: u8, value: u8, config: Option<&[u8]>) -> Standing {
         let standing = match self.policy {
             Policy::Allow => Standing::Authorized,
             Policy::Deny => Standing::Denied,
@@ -68,7 +68,7 @@ impl Authority {
                 Standing::Held { ticket: self.tickets }
             }
         };
-        self.set(slot, standing);
+        self.set(slot, value, standing);
         standing
     }
 }

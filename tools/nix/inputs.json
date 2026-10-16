@@ -5934,6 +5934,7 @@
    "userland/capsule_driver_xhci/src/rings",
    "userland/capsule_driver_xhci/src/server/handlers/control_transfer/region.rs",
    "userland/capsule_driver_xhci/src/server/mux_auth.rs",
+   "userland/capsule_driver_xhci/src/server/mux_bind.rs",
    "userland/capsule_driver_xhci/src/server/mux_claims.rs",
    "userland/capsule_driver_xhci/src/server/mux_enable.rs",
    "userland/capsule_driver_xhci/src/server/mux_forward.rs",
