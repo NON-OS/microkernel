@@ -51,7 +51,7 @@ impl Drop for Busy {
 }
 
 /// True when the caller's address space has a busy range meeting this one.
-pub(super) fn busy_over(addr: u64, len: u64) -> bool {
+pub(in crate::kernel_core::surface_registry) fn busy_over(addr: u64, len: u64) -> bool {
     let (space, end) = (current_space(), addr.saturating_add(len));
     lock_responsive(&BUSY).iter().any(|e| e.0 == space && ranges_meet(addr, end, e.1, e.2))
 }
