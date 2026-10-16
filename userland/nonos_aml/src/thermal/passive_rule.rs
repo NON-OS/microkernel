@@ -24,9 +24,11 @@
 //! least a point a step. NONOS's frequency control reads it as a ceiling.
 
 pub const FULL: u8 = 100;
-/// Larger than any constant firmware writes; past it a value is a lie.
+/// Our choice, from no source: larger than any constant firmware writes,
+/// so a value past it is taken for a lie.
 pub const MAX_TC: u64 = 64;
-/// Five minutes, in tenths of a second.
+/// Our choice, from no source, to catch a lie: five minutes, in tenths of
+/// a second.
 pub const MAX_TSP: u64 = 3000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
