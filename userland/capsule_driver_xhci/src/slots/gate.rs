@@ -50,3 +50,21 @@ pub fn gate(
         None => refuse(holds || s.holders.admits(slot, pid, &alive)),
     }
 }
+
+/// Parking a hub's child (OP_PARK) takes it out from under whoever drives
+/// it, so only a driver admitted on both the child's slot and its hub's,
+/// as a claimant or the holder, parks it; anyone else gets -1.
+pub fn gate_park(
+    s: &mut Sharing,
+    child: u8,
+    hub: u8,
+    pid: u32,
+    alive: impl Fn(u32) -> bool,
+) -> Result<(), i32> {
+    let mut on = |slot| s.claims.holds(slot, pid) || s.holders.admits(slot, pid, &alive);
+    if on(hub) && on(child) {
+        Ok(())
+    } else {
+        Err(E_PERM)
+    }
+}
