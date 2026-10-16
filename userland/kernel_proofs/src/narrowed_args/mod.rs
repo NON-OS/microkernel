@@ -35,4 +35,6 @@ pub mod narrow;
 mod device_sites;
 mod field_tests;
 mod id_sites;
+mod ipc_sites;
+mod surface_sites;
 mod tests;
