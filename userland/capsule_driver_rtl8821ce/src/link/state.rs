@@ -16,6 +16,7 @@
 
 //! The link's rings, station and counts.
 
+use nonos_wifi_core::address::AddressKey;
 use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::station::LinkStation;
 
@@ -58,4 +59,6 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) silent: bool,
     /// How the link last ended and the last join came out, for the link op.
     pub(super) history: LinkHistory,
+    /// This boot's address key, drawn at the first join.
+    pub(super) address: Option<AddressKey>,
 }
