@@ -51,6 +51,8 @@ mod first_pass_tests;
 #[cfg(test)]
 mod slot_port_tests;
 #[cfg(test)]
+mod table_measure_tests;
+#[cfg(test)]
 mod slot_tests;
 #[cfg(test)]
 mod irq_flag_tests;

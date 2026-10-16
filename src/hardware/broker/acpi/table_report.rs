@@ -48,3 +48,18 @@ fn reason(e: TableError) -> &'static [u8] {
         TableError::Checksum => b"checksum",
     }
 }
+
+/// One line per table measured (F-90): its first four digest bytes.
+pub(super) fn measured(m: &super::table_measure::Measured) {
+    let lead = u32::from_be_bytes([m.digest[0], m.digest[1], m.digest[2], m.digest[3]]);
+    Line::new()
+        .str(b"[ACPI] measured ")
+        .str(&m.sig)
+        .str(b" instance=")
+        .dec(u64::from(m.instance))
+        .str(b" len=")
+        .dec(u64::from(m.len))
+        .str(b" blake3=")
+        .hex(u64::from(lead))
+        .end();
+}
