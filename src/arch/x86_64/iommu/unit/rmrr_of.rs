@@ -17,7 +17,9 @@
 //! The reserved regions a claimed device keeps doing DMA to (L60), from the
 //! RMRRs DMAR lists, as `[base, end)`.
 
-use crate::arch::x86_64::acpi::parser::other::{rmrr_names, rmrr_own, rmrr_regions, Cover};
+use crate::arch::x86_64::acpi::parser::other::dmar_rmrr::Rmrr;
+use crate::arch::x86_64::acpi::parser::other::{rmrr_barred, rmrr_barred_by, rmrr_names};
+use crate::arch::x86_64::acpi::parser::other::{rmrr_own, rmrr_regions, Cover};
 
 /// Regions an RMRR names the device alone in; whether one might name it and
 /// could not be resolved; and whether one names it with other devices (L63).
@@ -32,9 +34,12 @@ pub struct RmrrOf {
 pub fn rmrr_of(segment: u16, bdf: (u8, u8, u8)) -> RmrrOf {
     let mut out = RmrrOf { ranges: heapless::Vec::new(), unresolved: false, shared: false };
     let (all, bb) = (rmrr_regions(), &super::coverage::bridge_buses);
+    // An RMRR left out may name the same memory for another device (L67).
+    let (barred, incomplete) = rmrr_barred();
+    let free = |r: &Rmrr| !incomplete && !rmrr_barred_by(&barred, r);
     for r in all.iter() {
         match rmrr_names(r, segment, bdf, bb) {
-            Cover::Yes if !rmrr_own(&all, r, segment, bdf, bb) => out.shared = true,
+            Cover::Yes if !(free(r) && rmrr_own(&all, r, segment, bdf, bb)) => out.shared = true,
             Cover::Yes => {
                 let range = r.limit.checked_add(1).map(|end| (r.base, end));
                 if range.and_then(|range| out.ranges.push(range).ok()).is_none() {
