@@ -27,7 +27,6 @@ use super::super::error::EntropyError;
 use super::super::hardware::{cpu_entropy64, cpu_random64, read_cycle_counter};
 use super::super::state::ENTROPY_COUNTER;
 use crate::crypto::hash::sha256;
-use crate::drivers::virtio_rng;
 use core::sync::atomic::Ordering;
 
 const DOMAIN: &[u8] = b"NONOS seed pool v1";
@@ -38,11 +37,6 @@ pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
     let mut pool = Vec::with_capacity(256);
     pool.extend_from_slice(DOMAIN);
     let mut hardware = 0usize;
-    let mut device = [0u8; 32];
-    if virtio_rng::is_available() && virtio_rng::fill_random(&mut device).is_ok() {
-        pool.extend_from_slice(&device);
-        hardware += device.len();
-    }
     for source in [cpu_entropy64 as fn() -> Option<u64>, cpu_random64] {
         for _ in 0..WORDS {
             if let Some(v) = source() {
