@@ -22,6 +22,9 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
 pub(super) static CLAIMS: Mutex<Vec<Claim>> = Mutex::new(Vec::new());
+/// Devices a claim or a retire is working on (K10c): reserved before either
+/// touches the device, given back when it is done. Locked after CLAIMS.
+pub(super) static BUSY: Mutex<Vec<u64>> = Mutex::new(Vec::new());
 pub(super) static EPOCH: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn next_epoch() -> u64 {
