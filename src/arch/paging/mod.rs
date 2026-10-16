@@ -27,6 +27,7 @@ mod tagged_invalidate;
 mod tagged_tlb;
 mod tlb;
 mod user_root;
+mod walk_root;
 mod write_protect;
 
 pub use enable_tagged::enable_tagged_invalidation;
@@ -35,4 +36,5 @@ pub use tagged_invalidate::invalidate_tagged;
 pub use tagged_tlb::supports_tagged_invalidation;
 pub use tlb::{invalidate_all, invalidate_page};
 pub use user_root::{retire_root, USER_ROOT_HOLDS_KERNEL};
+pub use walk_root::{root_for, root_in};
 pub use write_protect::{disable_write_protection, enable_write_protection};
