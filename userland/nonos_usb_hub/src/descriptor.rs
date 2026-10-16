@@ -27,8 +27,7 @@ pub const HUB_HEAD_LEN: u16 = 7;
 /// port past 15 cannot be told apart from 15; a SuperSpeed hub has at most
 /// 15 ports. Ports past this are left alone.
 pub const MAX_HUB_PORTS: u8 = 15;
-/// At least 100 ms, whatever the hub says (Linux waits as long; observed,
-/// unverified).
+/// At least 100 ms, whatever the hub says (as observed, unverified).
 const MIN_POWER_ON_MS: u32 = 100;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -52,7 +51,7 @@ pub fn parse_hub_descriptor(buf: &[u8], superspeed: bool) -> Option<HubDescripto
         return None;
     }
     let named = buf[2];
-    if named == 0 {
+    if named == 0 || (buf[0] as usize) < full_len(named, superspeed) {
         return None;
     }
     let characteristics = u16::from_le_bytes([buf[3], buf[4]]);
@@ -63,4 +62,14 @@ pub fn parse_hub_descriptor(buf: &[u8], superspeed: bool) -> Option<HubDescripto
         think_time,
         power_on_ms: (buf[5] as u32 * 2).max(MIN_POWER_ON_MS),
     })
+}
+
+/// The least bLength holding DeviceRemovable for `named` ports, a bit a
+/// port after bit 0 (USB 2.0 11.23.2.1), or a SuperSpeed hub's 16 bits
+/// ending its 12 bytes (USB 3.2 10.15.2.1); as recalled, unverified.
+fn full_len(named: u8, superspeed: bool) -> usize {
+    match superspeed {
+        true => 12,
+        false => HUB_HEAD_LEN as usize + (named as usize + 1).div_ceil(8),
+    }
 }
