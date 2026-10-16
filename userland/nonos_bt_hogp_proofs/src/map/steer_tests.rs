@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Peripherals that would take a service to report mode it should not
-//! reach: one with a boot mouse, a Reference longer than two octets,
+//! reach: one whose map has no pointer for its boot mouse, a Reference
+//! longer than two octets,
 //! descriptors past a Report's end, and a map cut off after a part that
 //! parses alone.
 
@@ -29,13 +30,14 @@ use nonos_bt_wire::att::error::UNLIKELY_ERROR;
 use nonos_bt_wire::att::opcode::READ_BLOB_REQ;
 
 #[test]
-fn a_keyboard_service_with_a_boot_mouse_keeps_boot_mode() {
+fn a_boot_mouse_with_no_pointer_in_the_map_keeps_boot_mode() {
     let db = report_keyboard(&KEYBOARD).char(READ | NOTIFY, 0x2a33, &[0; 3]).desc(0x2902, &[0, 0]);
     let mut run = Run::new(db);
     assert_eq!(run.go(), Some(Outcome::Ready { keyboard: true, mouse: true }));
-    assert!(!run.sent.iter().any(|p| p[..] == [0x0a, MAP as u8, 0]), "its map is not read");
-    assert_eq!(run.peer.writes[0], (MODE, vec![0], true));
-    assert_eq!(run.host.sources()[0].kind, Kind::Keyboard);
+    assert!(run.sent.iter().any(|p| p[..] == [0x0a, MAP as u8, 0]), "its map is read");
+    assert_eq!(run.peer.writes[0], (MODE, vec![0], true), "but it types and cannot point");
+    let kinds: Vec<_> = run.host.sources().iter().map(|s| s.kind).collect();
+    assert_eq!(kinds, [Kind::Keyboard, Kind::Mouse]);
 }
 
 #[test]
@@ -62,7 +64,7 @@ fn a_map_cut_off_after_a_part_that_parses_alone() {
 }
 
 #[test]
-fn a_service_with_a_boot_mouse_is_never_upgraded() {
+fn a_service_with_no_reports_never_has_its_map_read() {
     let db = keyboard_mouse();
     let map = db.handle_of(0x2a4b);
     let mut run = Run::new(db);
