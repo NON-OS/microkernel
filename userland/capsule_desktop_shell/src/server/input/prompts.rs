@@ -27,6 +27,9 @@ pub(super) fn consumed(ctx: &mut Context, by: Routed, px: u32, py: u32) -> bool 
     if super::super::handlers::power_off::click(ctx, by, px, py) {
         return true;
     }
+    if super::super::handlers::input_menu::click(ctx, by, px, py) {
+        return true;
+    }
     if super::super::handlers::live_prompt::click(ctx, px, py) {
         return true;
     }
