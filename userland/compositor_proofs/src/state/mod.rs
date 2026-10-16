@@ -20,12 +20,16 @@
 
 #[path = "../../../compositor/src/state/attach.rs"]
 pub mod attach;
+#[path = "../../../compositor/src/state/cursor.rs"]
+pub mod cursor;
 #[path = "../../../compositor/src/state/damage/mod.rs"]
 pub mod damage;
 #[path = "../../../compositor/src/state/damage_bound.rs"]
 pub mod damage_bound;
 #[path = "../../../compositor/src/state/indicator.rs"]
 pub mod indicator;
+#[path = "../../../compositor/src/state/lid_rule.rs"]
+pub mod lid_rule;
 #[path = "../../../compositor/src/state/raise_rule.rs"]
 pub mod raise_rule;
 #[path = "../../../compositor/src/state/scene/mod.rs"]
