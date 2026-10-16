@@ -4,7 +4,8 @@
 
 //! Which Launchpad tile a point falls on, and what it launches.
 
-use super::grid::{cell_h, cell_origin, cell_w};
+use super::cells::cell_origin;
+use super::grid::{cell_h, cell_w};
 use crate::state::{Context, LAUNCHER_APPS, TOOL_APPS};
 
 /// What a clicked tile launches: a desktop app by index, an installed tool by

@@ -25,7 +25,7 @@ pub mod input_source_rule;
 pub mod notify;
 #[path = "../../../capsule_desktop_shell/src/state/power_off.rs"]
 pub mod power_off;
-#[path = "../../../capsule_desktop_shell/src/state/toast.rs"]
+#[path = "../../../capsule_desktop_shell/src/state/toast/mod.rs"]
 pub mod toast;
 #[path = "../../../capsule_desktop_shell/src/state/trusted_rule.rs"]
 pub mod trusted_rule;

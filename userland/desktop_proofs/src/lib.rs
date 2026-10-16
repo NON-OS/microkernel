@@ -93,7 +93,7 @@ mod tray_share_tests;
 #[path = "../../capsule_desktop_shell/src/state/scale.rs"]
 pub mod shell_scale;
 
-#[path = "../../capsule_desktop_shell/src/render/ui_font.rs"]
+#[path = "../../capsule_desktop_shell/src/render/ui_font/mod.rs"]
 pub mod ui_font;
 
 /// How the wheel turns the Launchpad's pages.
@@ -137,10 +137,10 @@ mod min_size_tests;
 // window tracking, under the `crate::state` paths the taskbar names them by.
 extern crate alloc;
 
-#[path = "../../capsule_desktop_shell/src/state/apps.rs"]
+#[path = "../../capsule_desktop_shell/src/state/apps/mod.rs"]
 pub mod shell_apps;
 
-#[path = "../../capsule_desktop_shell/src/state/instance.rs"]
+#[path = "../../capsule_desktop_shell/src/state/instance/mod.rs"]
 pub mod instance;
 
 #[path = "../../capsule_desktop_shell/src/state/taskbar/mod.rs"]
@@ -177,7 +177,7 @@ mod dock_tests;
 pub mod render {
     pub use crate::shadow_reach;
     pub use crate::ui_font;
-    #[path = "../../capsule_desktop_shell/src/render/layout.rs"]
+    #[path = "../../capsule_desktop_shell/src/render/layout/mod.rs"]
     pub mod layout;
 }
 
@@ -204,7 +204,7 @@ mod paste_line_tests;
 // A Launchpad launch the installer is still loading, followed on the shell's
 // turns instead of waited out on its frame loop. Its source names `alloc::`
 // as no_std code does.
-#[path = "../../capsule_desktop_shell/src/state/launch.rs"]
+#[path = "../../capsule_desktop_shell/src/state/launch/mod.rs"]
 pub mod launch;
 
 #[cfg(test)]
@@ -220,10 +220,10 @@ mod text_typed_tests;
 // What the shell's toasts say when something did not happen (a launch, a
 // package, a desktop file action), and its battery label, which is nothing
 // without a reading.
-#[path = "../../capsule_desktop_shell/src/state/says.rs"]
+#[path = "../../capsule_desktop_shell/src/state/says/mod.rs"]
 pub mod says;
 
-#[path = "../../capsule_desktop_shell/src/state/indicators/battery_text.rs"]
+#[path = "../../capsule_desktop_shell/src/state/indicators/battery_text/mod.rs"]
 pub mod battery_text;
 
 #[cfg(test)]
@@ -234,7 +234,7 @@ mod tray_fit_tests;
 // What a Launchpad tool tile hands the Terminal (run, or typed for its
 // arguments), kept apart from the paths Open With leaves; and the generated
 // table of tool tiles it is decided for.
-#[path = "../../capsule_desktop_shell/src/state/open_arg.rs"]
+#[path = "../../capsule_desktop_shell/src/state/open_arg/mod.rs"]
 pub mod open_arg;
 
 #[path = "../../capsule_desktop_shell/src/state/tool_apps.rs"]
@@ -244,7 +244,7 @@ pub mod tool_apps;
 mod open_arg_tests;
 
 // The menubar's date and time line, 24 and 12 hour.
-#[path = "../../capsule_desktop_shell/src/state/indicators/clock.rs"]
+#[path = "../../capsule_desktop_shell/src/state/indicators/clock/mod.rs"]
 pub mod clock_line;
 
 #[cfg(test)]
@@ -295,9 +295,9 @@ mod shadow_reach_tests;
 #[path = "."]
 pub mod toast_state {
     pub use crate::store_state::NotifyLevel;
-    #[path = "../../capsule_desktop_shell/src/state/toast.rs"]
+    #[path = "../../capsule_desktop_shell/src/state/toast/mod.rs"]
     pub mod toast;
-    #[path = "../../capsule_desktop_shell/src/state/toasts.rs"]
+    #[path = "../../capsule_desktop_shell/src/state/toasts/mod.rs"]
     pub mod toasts;
 }
 
@@ -326,10 +326,10 @@ mod toast_lifetime_tests;
 // put up, and the power key. Beside them, the router's own list of those keys.
 #[path = "."]
 pub mod shell_system_keys {
-    #[path = "../../capsule_desktop_shell/src/state/volume.rs"]
-    pub mod volume;
     #[path = "../../capsule_desktop_shell/src/state/system_key.rs"]
     pub mod system_key;
+    #[path = "../../capsule_desktop_shell/src/state/volume/mod.rs"]
+    pub mod volume;
 }
 
 #[path = "../../capsule_input_router/src/route/shell_keys.rs"]

@@ -30,6 +30,7 @@ mod launch_find;
 mod launch_say;
 mod launch_wake;
 pub mod launcher_focus;
+mod launcher_launch;
 pub mod launcher_request;
 pub mod launchpad;
 pub mod launchpad_key;

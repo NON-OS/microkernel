@@ -23,6 +23,7 @@
 use alloc::vec::Vec;
 
 use super::metrics::{gap, FG};
+use super::more_mark::more_mark;
 use crate::render::layout::menubar_rect;
 use crate::render::measure_aa::measure_aa_bytes;
 use crate::render::menubar_menu::titles_right;
@@ -63,23 +64,4 @@ pub(super) fn tray(ctx: &Context, right: u32) {
     if !mark.is_empty() {
         text_aa_bytes(ctx, x, y, mark, FG, STATUS_PX);
     }
-}
-
-/// "+N", the count of labels left out.
-fn more_mark(n: usize, buf: &mut [u8; 12]) -> &[u8] {
-    buf[0] = b'+';
-    let mut digits = [0u8; 10];
-    let mut i = digits.len();
-    let mut v = n;
-    loop {
-        i -= 1;
-        digits[i] = b'0' + (v % 10) as u8;
-        v /= 10;
-        if v == 0 {
-            break;
-        }
-    }
-    let d = digits.len() - i;
-    buf[1..1 + d].copy_from_slice(&digits[i..]);
-    &buf[..1 + d]
 }

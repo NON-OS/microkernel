@@ -19,7 +19,7 @@ use nonos_libc::mk_uptime_ms;
 use crate::compositor_client::push_damage_commit;
 use crate::render::layout::menubar_height;
 use crate::render::paint_chrome;
-use crate::state::indicators::{net, notify_gate, policy};
+use crate::state::indicators::{net, notify_gate, policy, timezone};
 use crate::state::{Context, NotifyLevel};
 
 pub(super) fn refresh_clock(ctx: &mut Context) {
@@ -63,7 +63,7 @@ fn read_policy(ctx: &mut Context) -> bool {
                 ctx.readings.clock_24h = v;
             }
             notify_gate::follow(ctx.ports.policy_port);
-            if let Some(v) = policy::timezone(ctx.ports.policy_port) {
+            if let Some(v) = timezone::timezone(ctx.ports.policy_port) {
                 ctx.readings.tz_hours = v;
             }
             crate::server::display_replay::replay(ctx);

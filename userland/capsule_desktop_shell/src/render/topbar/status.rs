@@ -20,9 +20,11 @@
 //! left of it.
 
 use super::battery_glyph::battery_glyph;
-use super::metrics::{batt_glyph_w, gap, net_glyph_w, search_glyph_w, FG};
+use super::cluster::{cluster_x, search_box};
+use super::glyph_w::{batt_glyph_w, net_glyph_w, search_glyph_w};
+use super::metrics::{gap, FG};
 use super::net_glyph::net_glyph;
-use super::search_box::{cluster_x, fitted, has_gauge, search_box};
+use super::search_box::{fitted, has_gauge};
 use super::search_glyph::search_glyph;
 use crate::render::layout::menubar_rect;
 use crate::render::palette;

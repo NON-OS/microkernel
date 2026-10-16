@@ -30,8 +30,9 @@ use crate::router_shell_keys::{
     KEY_VOLUME_DOWN as ROUTER_DOWN, KEY_VOLUME_UP as ROUTER_UP,
 };
 use crate::shell_system_keys::system_key::{system_key, SystemKey, POWER_OFF_UNAVAILABLE};
+use crate::shell_system_keys::volume::keys::{after_key, VOLUME_STEP};
 use crate::shell_system_keys::volume::{
-    after_key, is_volume_notice, notice, press, volume_key, Heard, VolumeKey, VOLUME_STEP,
+    is_volume_notice, notice, press, volume_key, Heard, VolumeKey,
 };
 use crate::toast_state::toast::{UptimeMs, TOAST_TEXT_MAX};
 use crate::toast_state::toasts::ToastQueue;

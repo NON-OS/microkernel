@@ -5,7 +5,7 @@
 //! The one ordered list of Launchpad entries that is on screen, so the
 //! painter and the hit-test can never disagree about what a cell holds.
 
-use super::grid::per_page;
+use super::cells::per_page;
 use super::hit::{target, Target};
 use crate::state::{Context, LAUNCHER_APPS, TOOL_APPS};
 

@@ -17,7 +17,9 @@
 //! A tool tile hands the Terminal its command, run when the tool shows its
 //! usage bare and typed for its arguments otherwise, in a form no path takes.
 
-use crate::open_arg::{is_path, runs_bare, still_wanted, tool_command, COMMAND_TTL_MS, RUN, TYPE};
+use crate::open_arg::command::{runs_bare, RUN, TYPE};
+use crate::open_arg::pending::COMMAND_TTL_MS;
+use crate::open_arg::{is_path, still_wanted, tool_command};
 use crate::tool_apps::TOOL_APPS;
 
 #[test]

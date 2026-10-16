@@ -20,7 +20,7 @@
 //! subscriptions, and the chime.
 
 use crate::render::paint_chrome;
-use crate::setup::prime::register::{CHROME_Z, DESK_Z};
+use crate::setup::prime::bands::{CHROME_Z, DESK_Z};
 use crate::setup::prime::{open_chrome_windows, overlay, peers};
 use crate::state::Context;
 
