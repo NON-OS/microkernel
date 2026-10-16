@@ -41,6 +41,7 @@ pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> Result<(), &'static [u
     crate::arch::aarch64::timer::describe_tree_frequency(timer.clock_frequency);
     let pci = find_pci(fdt).map_err(describe)?.unwrap_or_default();
     info.pci_ecam_base = pci.ecam_base;
+    crate::arch::aarch64::dma::coherent::note_pci(pci.dma_coherent);
     // Today's accessor reads bus 0 at the window base. A window that starts
     // at a later bus waits for the ECAM registry, which takes the start bus.
     info.pci_ecam_size = if pci.bus_start == 0 { pci.ecam_size } else { 0 };

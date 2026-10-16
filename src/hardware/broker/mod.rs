@@ -60,7 +60,10 @@ pub use claim::{
     release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
-pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
+pub use device::{
+    Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
+    DEVICE_FLAG_DMA_NONCOHERENT,
+};
 pub use dma::{
     map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
     release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,

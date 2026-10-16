@@ -42,5 +42,6 @@ pub(super) fn describe(
     }
     device.irq = first_spi(fdt, node)?;
     device.dma = fdt.dma_window(node)?;
+    device.coherent = fdt.property(node, b"dma-coherent")?.is_some();
     Ok(device)
 }

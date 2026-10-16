@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hardware::broker::device::{Bar, BarKind, BusKind, DeviceRecord};
+use crate::hardware::broker::device::{
+    Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_DMA_NONCOHERENT,
+};
 
 use super::register::Described;
 
@@ -34,6 +36,7 @@ pub(super) fn record(d: &Described) -> DeviceRecord {
         pci_progif,
         class,
         device: d.interface as u16,
+        flags: if d.coherent { 0 } else { DEVICE_FLAG_DMA_NONCOHERENT },
         bar_count: d.window_count.min(6) as u8,
         irq_source: d.irq.map_or(0, |(intid, _)| intid),
         bars,
