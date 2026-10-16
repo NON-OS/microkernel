@@ -51,7 +51,9 @@ said nothing in time.
 - `OPEN` (2): `vendor u16, product u16, max_slot u8, 0, 0, 0, features
   u32`. -16 while a live client holds the reader.
 - `CLOSE` (3): every slot the holder powered is powered off.
-- `POWER_ON` (4) `slot u8`: the card's ATR.
+- `POWER_ON` (4) `slot u8`: the card's ATR, 2 to 33 bytes; a reader that
+  hands up anything else is answered -5, with the slot still powered so
+  `CLOSE` powers it off.
 - `POWER_OFF` (5) `slot u8`: 0.
 - `STATUS` (6) `slot u8`: `icc u8, changed u8, 0, 0`; `changed` is 1 when
   the reader said the slot changed since the last STATUS.
@@ -82,6 +84,9 @@ reaches its reader, so who may is the owner's to decide.
   class descriptor, whose dwFeatures say short or extended APDU exchange.
 - Every slot it has, one command at a time, each under its own sequence
   number; an answer to another is let go.
+- Each bulk IN transfer one message: an answer whose dwLength runs past
+  the transfer that brought it was cut short and is passed over, never
+  joined to the next.
 - Time extensions from the card, up to 64 in a row, each waited 3 s.
 - Slot changes from the interrupt IN endpoint where it has one.
 
@@ -127,9 +132,10 @@ names: an OpenPGP or PIV card agent, or a national ID client.
 
 ## Release evidence
 
-`ccid_proofs` covers the reader finding, the messages, the exchange (whole
-answers across transfers, late answers, time extensions and their bound,
-time running out, halted pipes) and the slot memory. The held-table proofs
+`ccid_proofs` covers the reader finding, the messages, the ATR's length,
+the exchange (each transfer one message, an answer cut short passed over
+and never joined to the next, late answers, time extensions and their
+bound, time running out, halted pipes) and the slot memory. The held-table proofs
 in `kernel_proofs`. No boot yet.
 
 ## Release checklist
