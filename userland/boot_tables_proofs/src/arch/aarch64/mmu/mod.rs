@@ -39,6 +39,8 @@ pub mod granule {
 mod image_bounds;
 #[path = "../../../../../../src/arch/aarch64/mmu/image_map.rs"]
 mod image_map;
+#[path = "../../../../../../src/arch/aarch64/mmu/kernel_va.rs"]
+mod kernel_va;
 #[path = "../../../../../../src/arch/aarch64/mmu/l2_pool.rs"]
 mod l2_pool;
 #[path = "../../../../../../src/arch/aarch64/mmu/l3_tables.rs"]
@@ -67,6 +69,7 @@ pub mod text_guard;
 mod unmap;
 
 pub use attributes::{MemoryType, PageAttributes};
+pub use kernel_va::image_pa;
 
 mod tlb {
     /// The host has no TLB; the tables are read back directly.
