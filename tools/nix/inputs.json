@@ -3531,7 +3531,10 @@
    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
    "nonos-data/trust/policy/zk_capsule_policy_root.bin",
    "src",
+   "userland/capsule_driver_usb_msc/src/protocol/errno.rs",
+   "userland/capsule_driver_usb_msc/src/scan/interface.rs",
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
+   "userland/capsule_driver_usb_msc/src/scan/stage.rs",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
    "userland/libc/src/broker/dma_lines.rs"
@@ -4821,14 +4824,25 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_usb_msc/src/bot",
+   "userland/capsule_driver_usb_msc/src/clock/deadline.rs",
    "userland/capsule_driver_usb_msc/src/descriptors",
    "userland/capsule_driver_usb_msc/src/disk",
    "userland/capsule_driver_usb_msc/src/protocol",
+   "userland/capsule_driver_usb_msc/src/scan",
    "userland/capsule_driver_usb_msc/src/scsi",
+   "userland/capsule_driver_usb_msc/src/server/admits.rs",
+   "userland/capsule_driver_usb_msc/src/server/dispatch.rs",
+   "userland/capsule_driver_usb_msc/src/server/handlers",
+   "userland/capsule_driver_usb_msc/src/server/serve.rs",
    "userland/capsule_driver_usb_msc/src/span",
    "userland/capsule_driver_usb_msc/src/state",
-   "userland/usb_msc_proofs",
-   "userland/xhci_proofs/libc_shim"
+   "userland/capsule_driver_usb_msc/src/xhci/call.rs",
+   "userland/capsule_driver_usb_msc/src/xhci/port_list.rs",
+   "userland/capsule_driver_usb_msc/src/xhci/reply.rs",
+   "userland/capsule_driver_usb_msc/src/xhci/slot.rs",
+   "userland/capsule_driver_usb_msc/src/xhci/window.rs",
+   "userland/capsule_driver_usb_msc/src/xhci/wire.rs",
+   "userland/usb_msc_proofs"
   ],
   "md": [],
   "signed": []
