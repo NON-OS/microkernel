@@ -28,6 +28,7 @@ mod record;
 mod record_reg;
 mod report;
 mod say;
+mod say_t;
 mod say_ids;
 mod send;
 mod state;
