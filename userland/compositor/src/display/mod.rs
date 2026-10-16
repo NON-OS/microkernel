@@ -19,6 +19,7 @@
 pub mod backoff;
 pub mod call;
 pub mod access_rule;
+pub mod access_wire;
 pub mod colour_rule;
 pub mod cursor_rule;
 pub mod cvd_filter;
