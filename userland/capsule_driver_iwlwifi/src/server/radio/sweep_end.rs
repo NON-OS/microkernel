@@ -16,17 +16,14 @@
 
 //! What a step of the sweep came to.
 
-use crate::firmware::gen3::outcome::Failure;
-use crate::firmware::gen3::start::stop_device;
 use crate::firmware::gen3::sweep::Tick;
 
-use super::clock::Uptime;
 use super::say::Line;
-use super::state::{Radio, State, REST_MS, STALLS_SAID};
+use super::state::{Radio, REST_MS, STALLS_SAID};
 
 impl Radio {
     // What a step of the sweep came to: the scan list aged and the next sweep
-    // after a rest, or the radio down.
+    // after a rest, or the firmware restarted.
     pub(super) fn after_step(&mut self, tick: Tick, now: u64) {
         match tick {
             Tick::Completed(_) => {
@@ -49,14 +46,7 @@ impl Radio {
                 self.results.end_sweep();
                 self.next_ms = now.saturating_add(REST_MS);
             }
-            Tick::Failed => {
-                if let State::Up(up) = &self.state {
-                    stop_device(up.dev.m, &mut Uptime);
-                }
-                self.master_off();
-                Line::new().text(b"radio down: ").text(Failure::Lost.text().as_bytes()).send();
-                self.state = State::Down(Failure::Lost);
-            }
+            Tick::Failed => self.firmware_failed(now),
             Tick::Idle | Tick::Running => {}
         }
     }
