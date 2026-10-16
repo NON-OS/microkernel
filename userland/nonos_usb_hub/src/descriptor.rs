@@ -47,7 +47,7 @@ pub struct HubDescriptor {
 /// (`superspeed`), or None when it is not one.
 pub fn parse_hub_descriptor(buf: &[u8], superspeed: bool) -> Option<HubDescriptor> {
     let want = if superspeed { DT_SS_HUB } else { DT_HUB };
-    if buf.len() < HUB_HEAD_LEN as usize || (buf[0] as u16) < HUB_HEAD_LEN || buf[1] != want {
+    if buf.len() < HUB_HEAD_LEN as usize || buf[1] != want {
         return None;
     }
     let named = buf[2];
@@ -64,9 +64,9 @@ pub fn parse_hub_descriptor(buf: &[u8], superspeed: bool) -> Option<HubDescripto
     })
 }
 
-/// The least bLength holding DeviceRemovable for `named` ports, a bit a
-/// port after bit 0 (USB 2.0 11.23.2.1), or a SuperSpeed hub's 16 bits
-/// ending its 12 bytes (USB 3.2 10.15.2.1); as recalled, unverified.
+/// The least bLength holding DeviceRemovable, a bit a port after bit 0
+/// (USB 2.0 11.23.2.1), or a SuperSpeed hub's 16 bits ending its 12 bytes
+/// (USB 3.2 10.15.2.1; as recalled). Never under 8: it covers the head.
 fn full_len(named: u8, superspeed: bool) -> usize {
     match superspeed {
         true => 12,
