@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The air to the simulated AP behind the `Radio` trait: the AP is heard only
+//! The air to the simulated APs behind the `Radio` trait: each is heard only
 //! on its channel, beacons every 100 ms of the simulated clock, and answers
-//! what the station sends while tuned there.
+//! what the station sends it while tuned there (`air_aps`).
 
 pub use crate::soft::rig::SimAir;
 use nonos_wifi_core::regdom::Band;
@@ -42,23 +42,15 @@ impl Radio for SimAir {
     fn send(&mut self, mpdu: &[u8]) -> bool {
         self.sent.push(mpdu.to_vec());
         self.sent_on.push(self.tuned);
-        let replies = if self.on_channel() { self.ap.on_frame(mpdu) } else { vec![] };
+        let replies = self.on_air(mpdu);
         self.inbox.extend(replies);
         true
     }
 
     fn recv(&mut self, out: &mut [u8]) -> Option<RxInfo> {
-        let now = self.clock.get();
-        let f = match self.inbox.pop_front() {
-            Some(f) => f,
-            None if self.on_channel() && now >= self.beacon_at => {
-                self.beacon_at = now + 100;
-                self.ap.beacon()
-            }
-            None => return None,
-        };
+        let (f, rssi_dbm) = self.next_frame()?;
         out[..f.len()].copy_from_slice(&f);
-        Some(RxInfo { len: f.len(), rssi_dbm: -50, decrypted: false })
+        Some(RxInfo { len: f.len(), rssi_dbm, decrypted: false })
     }
 
     fn set_bss(&mut self, bssid: Option<[u8; 6]>) {

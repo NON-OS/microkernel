@@ -57,6 +57,8 @@ pub struct Mlme {
     pub(in crate::mlme) cached: Option<Pmksa>,
     /// This join is running on `cached`.
     pub(in crate::mlme) cache_used: bool,
+    /// A move from this AP: the request is a reassociation.
+    pub(in crate::mlme) reassoc_from: Option<[u8; 6]>,
     pub(in crate::mlme) supplicant: Option<Supplicant>,
     pub(in crate::mlme) failure: Option<MlmeFailure>,
 }
