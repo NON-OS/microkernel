@@ -17,7 +17,11 @@
 use crate::kernel_core::surface_registry::attach_map::state::ATTACHES;
 use crate::kernel_core::surface_registry::types::SurfaceHandle;
 
-pub fn forget(pid: u32, handle: SurfaceHandle) {
+/// Whether a record was there to forget: two releases of one record race to
+/// here, and only the one that removed it gives back its reference (L54).
+pub fn forget(pid: u32, handle: SurfaceHandle) -> bool {
     let mut v = ATTACHES.lock();
+    let before = v.len();
     v.retain(|r| !(r.pid == pid && r.handle == handle));
+    v.len() != before
 }
