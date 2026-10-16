@@ -25,17 +25,15 @@ pub struct CryptoVerifier;
 
 impl Verifier for CryptoVerifier {
     fn verify(&self, signed_bytes: &[u8], signature: &[u8], pubkey: &[u8; PUBKEY_LEN]) -> Verdict {
-        if signature.len() != SIG_LEN {
+        let Ok(sig) = <[u8; SIG_LEN]>::try_from(signature) else {
             return Verdict::Refused;
-        }
+        };
         /*
          * Verification is a library call now rather than a syscall. The
          * kernel keeps ed25519 only for the boot chain, which decides whether
          * a capsule loads at all; a market listing's signature is this
          * capsule's own business and does not need ring 0 to check it.
          */
-        let mut sig = [0u8; SIG_LEN];
-        sig.copy_from_slice(&signature[..SIG_LEN]);
         if ed25519_verify(pubkey, signed_bytes, &Signature::from_bytes(&sig)) {
             Verdict::Accepted
         } else {

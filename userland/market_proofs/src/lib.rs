@@ -31,6 +31,7 @@ mod abi_v3;
 #[allow(dead_code, unused_imports)]
 #[path = "../../capsule_market/src/protocol/mod.rs"]
 mod protocol;
+mod server;
 #[cfg(test)]
 use abi_v3::chain_hosts;
 

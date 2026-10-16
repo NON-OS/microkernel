@@ -19,32 +19,32 @@ extern crate alloc;
 use alloc::vec::Vec;
 use nonos_marketplace_abi::CapsuleRelease;
 
-use super::write_lp_string::write_lp_string;
+use crate::server::lp::{write_count, write_lp};
 
-pub(super) fn encode_release(rel: &CapsuleRelease) -> Vec<u8> {
+/// None when a field is too long for the u32 length the wire gives it.
+pub(super) fn encode_release(rel: &CapsuleRelease) -> Option<Vec<u8>> {
     let mut out: Vec<u8> = Vec::new();
-    write_lp_string(&mut out, &rel.release_id);
+    write_lp(&mut out, rel.release_id.as_bytes())?;
     out.extend_from_slice(&rel.manifest_hash);
     out.extend_from_slice(&rel.package_hash);
-    write_lp_string(&mut out, &rel.package_url);
-    out.extend_from_slice(&(rel.publisher_signature.len() as u32).to_le_bytes());
-    out.extend_from_slice(&rel.publisher_signature);
-    out.extend_from_slice(&(rel.supported_arches.len() as u32).to_le_bytes());
+    write_lp(&mut out, rel.package_url.as_bytes())?;
+    write_lp(&mut out, &rel.publisher_signature)?;
+    write_count(&mut out, rel.supported_arches.len())?;
     for arch in &rel.supported_arches {
-        write_lp_string(&mut out, arch);
+        write_lp(&mut out, arch.as_bytes())?;
     }
     out.extend_from_slice(&rel.kernel_abi_min.to_le_bytes());
-    out.extend_from_slice(&(rel.required_capabilities.len() as u32).to_le_bytes());
+    write_count(&mut out, rel.required_capabilities.len())?;
     for cap in &rel.required_capabilities {
-        write_lp_string(&mut out, cap);
+        write_lp(&mut out, cap.as_bytes())?;
     }
     out.push(rel.validation.status as u8);
-    write_lp_string(&mut out, &rel.validation.note);
-    write_lp_string(&mut out, &rel.validation.validator_id);
+    write_lp(&mut out, rel.validation.note.as_bytes())?;
+    write_lp(&mut out, rel.validation.validator_id.as_bytes())?;
     out.extend_from_slice(&rel.validation.validated_at_ms.to_le_bytes());
     // The escrow fields (B8, v1.4.36): zero for a release not escrowed.
     let ext = rel.ext.as_ref();
     out.extend_from_slice(&ext.map_or([0; 32], |x| x.chunk_root));
     out.extend_from_slice(&ext.map_or(0, |x| x.content_len).to_le_bytes());
-    out
+    Some(out)
 }
