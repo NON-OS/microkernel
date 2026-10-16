@@ -26,6 +26,8 @@ pub enum Act {
     Drop(u8),
     /// Any other event from the controller.
     Event(Vec<u8>),
+    /// ACL packets exactly as given, on any handle.
+    Acl(Vec<Vec<u8>>),
 }
 
 /// A Handle Value Notification (Vol 3, Part F, 3.4.7.1).

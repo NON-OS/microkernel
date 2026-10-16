@@ -28,6 +28,8 @@ mod connect_cancel_tests;
 #[cfg(test)]
 mod connect_tests;
 #[cfg(test)]
+mod credit_sweep_tests;
+#[cfg(test)]
 mod descriptor_tests;
 #[cfg(test)]
 mod encrypt_end_tests;

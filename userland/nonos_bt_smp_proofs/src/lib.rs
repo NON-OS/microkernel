@@ -48,3 +48,7 @@ mod privacy_draw_tests;
 mod privacy_tests;
 #[cfg(test)]
 mod sim;
+#[cfg(test)]
+mod sweep_key_tests;
+#[cfg(test)]
+mod sweep_tests;

@@ -20,6 +20,7 @@ pub mod pointer_devices;
 pub mod report_devices;
 mod run;
 mod run_io;
+mod run_lie;
 mod run_new;
 mod server;
 mod server_find;

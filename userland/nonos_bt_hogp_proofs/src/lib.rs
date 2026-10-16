@@ -51,4 +51,6 @@ mod server_tests;
 #[cfg(test)]
 mod sim;
 #[cfg(test)]
+mod sweep;
+#[cfg(test)]
 mod timeout_tests;

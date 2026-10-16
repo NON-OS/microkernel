@@ -42,3 +42,5 @@ mod le_meta_tests;
 mod reassembly_tests;
 #[cfg(test)]
 mod signal_tests;
+#[cfg(test)]
+mod sweep;
