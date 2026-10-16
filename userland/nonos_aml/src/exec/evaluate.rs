@@ -49,6 +49,7 @@ impl<H: Host> Machine<'_, H> {
     /// \_GL the Global Lock goes back to firmware with it.
     fn release_all(&mut self, aml: &mut Aml) {
         let held: Vec<_> = self.held.drain(..).collect();
+        aml.rt.left_held = aml.rt.left_held.saturating_add(held.len() as u32);
         for (m, _) in held {
             aml.rt.mutexes.remove(&m);
             if self.is_global_lock(aml, m) && aml.rt.global_lock > 0 {
