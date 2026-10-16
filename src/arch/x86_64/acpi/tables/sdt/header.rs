@@ -17,6 +17,10 @@
 use core::mem;
 use core::slice;
 
+/// The longest table the checksum reads: `MAX_TABLE_BYTES`, held equal where
+/// both are compiled, kept here so this file stands alone for the proofs.
+pub(crate) const LONGEST_TABLE: u32 = 1 << 20;
+
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct SdtHeader {
@@ -36,8 +40,11 @@ impl SdtHeader {
         self.signature.to_le_bytes()
     }
 
+    /// Refused too, before a byte is summed: a table longer than any firmware
+    /// writes. The sum ran over whatever length the header named, 4 GiB of
+    /// memory past the table at worst (L70).
     pub fn validate_checksum(&self, table_ptr: *const u8) -> bool {
-        if self.length < mem::size_of::<Self>() as u32 {
+        if self.length < mem::size_of::<Self>() as u32 || self.length > LONGEST_TABLE {
             return false;
         }
         // SAFETY: Caller ensures table_ptr is valid for self.length bytes
