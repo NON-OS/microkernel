@@ -19,13 +19,12 @@
 //! running mark, the window a dock click raises, the menubar title and the
 //! open and close toasts.
 
-use crate::instance::{
-    app_index_of, instance_name, is_instance_of, INSTANCE_NAME_MAX, INSTANCE_SLOTS,
-};
+use crate::instance::matcher::is_instance_of;
+use crate::instance::{app_index_of, instance_name, INSTANCE_NAME_MAX, INSTANCE_SLOTS};
 use crate::shell_apps::LAUNCHER_APPS;
 use crate::taskbar::{
-    new_taskbar_state, raise_tracked, track_window_closed, track_window_opened,
-    Reach, TASKBAR_NO_ACTIVE,
+    new_taskbar_state, raise_tracked, track_window_closed, track_window_opened, Reach,
+    TASKBAR_NO_ACTIVE,
 };
 
 fn bases() -> impl Iterator<Item = &'static [u8]> {
