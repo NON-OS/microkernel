@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod clock;
+mod hid_info;
 mod hid_record;
 mod record;
 mod register;
 mod report;
+mod slots;
 
 pub use register::register_acpi_i2c;
