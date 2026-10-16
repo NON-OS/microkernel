@@ -20,6 +20,7 @@
 //! remembers the account and network it was asked for, so one that lands
 //! after a switch is dropped rather than shown against the wrong account.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use nonos_route_link::Route;
@@ -55,7 +56,7 @@ impl Job {
             Job::Probe(probe) => probe.step().map(Finished::Probe),
             Job::Snapshot { exchange, address, chain } => {
                 let snap = match exchange.step()? {
-                    Ended::Answer(resp) => Some(parse_snapshot(&resp)),
+                    Ended::Answer(resp) => Some(Box::new(parse_snapshot(&resp))),
                     Ended::Failed(_) | Ended::Unknown(_) => None,
                 };
                 let host = exchange.host;

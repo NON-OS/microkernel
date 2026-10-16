@@ -19,9 +19,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::wallet::etna::Role;
 use crate::wallet::etna::text::{draw, draw_in, line};
 use crate::wallet::etna::tokens::{CORNER, OUTLINE, TEXT_3, TIGHT};
+use crate::wallet::etna::Role;
 use crate::wallet::state::State;
 
 const COLS: u32 = 3;
