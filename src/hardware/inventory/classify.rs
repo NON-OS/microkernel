@@ -20,6 +20,7 @@ use super::classify_serial_bus::classify_serial_bus;
 use super::classify_storage::classify_storage;
 use super::emmc::is_intel_emmc;
 use super::family::HardwareFamily;
+use super::platform_sd::is_platform_sd_host;
 use crate::hardware::broker::{BarKind, DeviceRecord};
 
 /// AHCI 1.3.1, 2.1.11: the ABAR is BAR5.
@@ -52,6 +53,9 @@ pub fn classify_family(
 /// alone; an Intel RAID-mode function it takes for AHCI is kept only when
 /// BAR5, where the ABAR lives, is a memory BAR.
 pub fn classify_device(rec: &DeviceRecord) -> HardwareFamily {
+    if is_platform_sd_host(rec.bus_kind, rec.pci_class, rec.pci_subclass) {
+        return HardwareFamily::StorageSdhci;
+    }
     let family =
         classify_family(rec.pci_class, rec.pci_subclass, rec.pci_progif, rec.vendor, rec.device);
     if family == HardwareFamily::StorageAhci && rec.pci_subclass == 0x04 && !abar_mapped(rec) {
