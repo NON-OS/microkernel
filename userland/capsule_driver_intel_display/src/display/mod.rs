@@ -48,7 +48,6 @@ mod wire;
 
 pub use brightness::Brightness;
 pub use brightness_wire::{answer as brightness_answer, Rights, MAX_REPLY as BRIGHTNESS_REPLY};
-pub use vcp_wire::OP_VCP;
 pub use copy::copy;
 pub use frames::Frames;
 pub use head::Head;
@@ -60,3 +59,4 @@ pub use panel_fits::fits;
 pub use panel_of::{panel, panel_of};
 pub use red_first::{red_first, swap_red_blue};
 pub use timing_pick::{matching, pick};
+pub use vcp_wire::OP_VCP;

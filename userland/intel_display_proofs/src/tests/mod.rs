@@ -66,6 +66,7 @@ mod takeover_tests;
 mod timing_pick_tests;
 mod timing_write_tests;
 mod trans_func_tests;
+mod turn_tests;
 mod two_heads_tests;
 mod two_rig;
 mod vblank_tests;
