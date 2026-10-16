@@ -20,12 +20,16 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::claim::give_back;
+use crate::{seal, watch};
 
 pub struct MmioMapOut {
     pub user_va: u64,
     pub length: u64,
     pub grant_id: u64,
 }
+
+/// Each BAR's grant is this plus its index.
+pub(crate) const GRANT_BASE: u64 = 0x100;
 
 thread_local! {
     static BARS: RefCell<HashMap<u32, (u64, u64)>> = RefCell::new(HashMap::new());
@@ -34,6 +38,11 @@ thread_local! {
 /// Map BAR `index` at `va`, `length` bytes long as the broker reports it.
 pub fn map_bar(index: u8, va: u64, length: u64) {
     BARS.with(|b| b.borrow_mut().insert(index as u32, (va, length)));
+}
+
+/// Where BAR `bar` is mapped and how long the broker says it is.
+pub(crate) fn mapping(bar: u32) -> Option<(u64, u64)> {
+    BARS.with(|b| b.borrow().get(&bar).copied())
 }
 
 pub fn mk_mmio_map(
@@ -45,11 +54,15 @@ pub fn mk_mmio_map(
     _length: u64,
     out: &mut MmioMapOut,
 ) -> i64 {
-    let Some((va, length)) = BARS.with(|b| b.borrow().get(&bar).copied()) else { return -19 };
-    *out = MmioMapOut { user_va: va, length, grant_id: 0x100 + bar as u64 };
+    let Some((va, length)) = mapping(bar) else { return -19 };
+    *out = MmioMapOut { user_va: va, length, grant_id: GRANT_BASE + bar as u64 };
     0
 }
 
 pub fn mk_mmio_unmap(grant: u64) -> i64 {
-    give_back("mmio_unmap", grant)
+    let rc = give_back("mmio_unmap", grant);
+    if watch::watches(grant) {
+        seal::seal();
+    }
+    rc
 }

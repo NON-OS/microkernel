@@ -27,17 +27,19 @@ use nonos_devmodel::FakeBar;
 
 use crate::constants::{
     DISPI_BPP_32, DISPI_ENABLED, DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_ID,
-    DISPI_INDEX_XRES, DISPI_INDEX_YRES, DISPI_LFB_ENABLED,
+    DISPI_INDEX_VIRT_WIDTH, DISPI_INDEX_XRES, DISPI_INDEX_YRES, DISPI_LFB_ENABLED,
 };
 use crate::dispi::{confirm, dispi_off, identify};
 use crate::error::BgaError;
 use crate::regs::Regs;
 
-/// A DISPI block holding `id` and the mode `(xres, yres, bpp, enable)`.
+/// A DISPI block holding `id` and the mode `(xres, yres, bpp, enable)`,
+/// one mode-wide line after another.
 fn window(id: u16, mode: (u16, u16, u16, u16)) -> FakeBar {
     let bar = FakeBar::new(0x600);
     let at = |index| dispi_off(index) as usize;
     bar.present16(at(DISPI_INDEX_ID), id);
+    bar.present16(at(DISPI_INDEX_VIRT_WIDTH), mode.0);
     bar.present16(at(DISPI_INDEX_XRES), mode.0);
     bar.present16(at(DISPI_INDEX_YRES), mode.1);
     bar.present16(at(DISPI_INDEX_BPP), mode.2);
