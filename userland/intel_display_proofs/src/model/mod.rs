@@ -16,6 +16,7 @@
 
 pub mod aux_hw;
 pub mod bus;
+pub mod cable;
 pub mod clock;
 pub mod dc_hw;
 pub mod ddi_hw;
@@ -34,6 +35,7 @@ pub mod mccs_aux;
 pub mod mccs_reply;
 pub mod mmio;
 pub mod pipe_hw;
+pub mod regs;
 pub mod scanout;
 pub mod shared;
 pub mod sink;

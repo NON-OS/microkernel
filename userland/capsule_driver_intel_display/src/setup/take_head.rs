@@ -21,7 +21,7 @@
 use alloc::vec::Vec;
 
 use nonos_gfx_wire::body::state::SCANNING_OUT;
-use nonos_intel_display::display::{Frames, Head, Modeset, Monitor, FLIP_US};
+use nonos_intel_display::display::{Frames, Head, Modeset, Monitor, Plug, FLIP_US};
 use nonos_intel_display::engine::access::{Clock, Until};
 use nonos_intel_display::engine::gen::Gen;
 use nonos_intel_display::engine::{scanout::Scanout, takeover::Output};
@@ -55,7 +55,8 @@ pub fn take_head(
     let scan = Scanout::start(m, &out, window.1, [&a, &b], &until).map_err(IntelError::Engine)?;
     let modeset = Modeset::find(m, clock, gen, &out, monitor, (window.0 + 64, window.1));
     let (panel, bases, flags, generation) = (monitor.panel(), now.iova, SCANNING_OUT, 1);
-    Ok(Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor: None })
+    let (cursor, plug) = (None, Plug::In);
+    Ok(Head { out, scan, frames, panel, modeset, bases, generation, flags, window, cursor, plug })
 }
 
 /// GGTT entries a surface of `w` x `h` takes, in 64-entry steps (the
