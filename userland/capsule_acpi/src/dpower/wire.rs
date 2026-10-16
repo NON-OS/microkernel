@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DEVICE_POWER (10): a device's D-state, PCI function or ACPI-bus device,
-//! read by any caller the port admits; moved, and armed to wake, only for
-//! the pid holding its claim (the kernel answers MkAcpiFunctionOf and
-//! MkAcpiDeviceName for its holder alone). Named by device id. Request:
-//! verb u8 (0 get, 1 set, 2 wake on, 3 wake off), state u8 (0 D0 to 4
-//! D3cold: for set, the state; for wake on, the deepest the driver will
-//! put it in), device id u64. Reply: the state after, u8 (0xFF when
-//! unknown), whether it has power control, u8, its path's length u8 and
-//! bytes; then, only to the holder that armed its wake, 1 u8 and the
-//! wakes counted since, u32. ENOENT for a device the kernel names neither
-//! way, the tables do not describe, or with no wake event; EPERM for any
-//! verb but get from anyone but the holder; EINVAL for a state it lacks,
-//! a move between low-power states, or a wake target past _S0W; EIO when
-//! the AML failed, the device left as it was.
+//! DEVICE_POWER (10): a device's D-state, read by any caller the port
+//! admits; moved, and armed to wake, only for its claim's holder (the
+//! kernel's MkAcpiFunctionOf and MkAcpiDeviceName). Request: verb u8 (0
+//! get, 1 set, 2 wake on, 3 wake off), state u8 (0 D0 to 4 D3cold: for
+//! set, the state; for wake on, the deepest the driver will put it in),
+//! device id u64. Reply: the state after, u8 (0xFF unknown), whether it
+//! has power control, u8, its path's length u8 and bytes; then, only to
+//! the holder that armed its wake, 1 u8 and the wakes counted since, u32.
+//! ENOENT for a device not named, not described, or with no wake event;
+//! EPERM for any verb but get from anyone but the holder; EINVAL for a
+//! state it lacks, a move between low-power states, or a wake target past
+//! _S0W; ELOSES (-95) for a PCI function's move to D3cold, or to D3hot
+//! without No_Soft_Reset, which its configuration would not survive
+//! (`keep`); EIO when the AML failed.
 
 use super::moves::{current, move_to};
 use super::target::target;
