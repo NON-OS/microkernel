@@ -33,7 +33,8 @@ impl Failure {
             | Failure::Image
             | Failure::NoDma
             | Failure::Lost
-            | Failure::Unanswered => 0,
+            | Failure::Unanswered
+            | Failure::TxStuck => 0,
             Failure::Start(e) => start_code(e),
             Failure::Master(MasterError::NotStopped) => 1,
             Failure::Master(MasterError::Refused) => 2,
