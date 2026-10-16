@@ -3923,6 +3923,8 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/smbios_copy.rs",
+   "src/hardware/broker/acpi/smbios_entry.rs",
    "userland/nonos_smbios/src/chassis.rs",
    "userland/nonos_smbios/src/entry.rs",
    "userland/nonos_smbios/src/identity.rs",
