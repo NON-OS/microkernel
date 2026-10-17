@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod enter;
 mod exit;
 mod gone;
 mod hold;
@@ -35,6 +36,7 @@ mod restore_rule;
 mod stage_rule;
 mod state;
 mod types;
+mod wipe;
 
 pub use claim::claim;
 pub(in crate::hardware::broker) use hold_rule::FIRMWARE_BOOT_FRAMEBUFFER;
@@ -45,3 +47,7 @@ pub use quiesce_all::quiesce_all;
 pub use exit::{exit_begin, exit_end};
 pub use release::{quiesce_held, release};
 pub use types::{Claim, ClaimError};
+// Only the x86_64 tick knows it holds no lock (L78).
+#[cfg(target_arch = "x86_64")]
+pub(crate) use wipe::step_all as step_wipes;
+pub(in crate::hardware::broker) use wipe::{reset_caps, say_reset_ways, ResetCaps};

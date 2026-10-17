@@ -20,6 +20,9 @@ mod direction;
 mod drain;
 mod flags;
 mod held_run;
+mod kept;
+mod kept_rule;
+mod kept_settle;
 mod limits;
 mod map;
 mod placement;
@@ -33,6 +36,8 @@ mod va;
 mod wipe;
 
 pub use held_run::{free_held_run, grant_run_covering};
+pub(in crate::hardware::broker) use kept::kept_bytes;
+pub(in crate::hardware::broker) use kept_settle::settle_kept;
 pub use map::map_for_caller;
 #[cfg(not(target_arch = "x86_64"))]
 pub(crate) use pool::low32_default_pages;

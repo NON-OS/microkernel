@@ -27,6 +27,7 @@ mod exit_world;
 mod model_exit_tests;
 mod model_reclaim_tests;
 mod model_tests;
+mod over_tests;
 mod reclaim_world;
 #[path = "../../../../src/hardware/broker/claim/stage_rule.rs"]
 mod stage_rule;

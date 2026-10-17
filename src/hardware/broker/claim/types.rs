@@ -69,4 +69,6 @@ pub enum ClaimError {
     /// Refused to every claimant: until the decision allows it, or
     /// for a bridge, until a claim made for ports exists (L58).
     Refused,
+    /// Its last claim's wipe is under way, or its entry is going: ask again.
+    Resetting,
 }

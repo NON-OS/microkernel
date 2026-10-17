@@ -15,23 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::hold;
-use super::state::{claims, next_epoch};
-use super::types::{Claim, ClaimError};
+use super::types::ClaimError;
 
 // Register a claim. Returns the granted epoch on success. The caller
 // must have already verified that `device_id` exists in the broker
 // table.
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     hold::admits(pid, device_id)?;
-    let epoch = {
-        let mut claims = claims();
-        if claims.iter().any(|c| c.device_id == device_id) {
-            return Err(ClaimError::AlreadyClaimed);
-        }
-        let epoch = next_epoch();
-        claims.push(Claim::making(pid, device_id, epoch));
-        epoch
-    };
+    let fresh = super::wipe::fresh(pid, device_id);
+    let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;
     // The kernel reads a virtio-rng for boot entropy until its capsule
     // claims it: reset and let go before the device changes domain (L8).
     if let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) {
@@ -65,7 +57,7 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     }
     // Only now is anything granted against it, so a refusal above leaves no
     // map, binding or DMA behind for the next claimant's device (L65).
-    if !super::pending::admit(pid, device_id, epoch) {
+    if !super::pending::admit(pid, device_id, epoch, fresh.as_ref()) {
         super::pending::withdraw(pid, device_id, epoch);
         return Err(ClaimError::NotClaimed);
     }

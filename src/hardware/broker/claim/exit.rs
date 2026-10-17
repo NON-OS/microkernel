@@ -55,4 +55,5 @@ pub fn exit_end(pid: u32, held: &[(u64, u64)]) {
         let _ = super::release::settle((pid, device_id, epoch));
     }
     crate::hardware::broker::confine::detach_all(pid);
+    super::wipe::step_all(true);
 }

@@ -55,6 +55,7 @@ pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> 
     super::quiesce::stop_bus_master(device_id);
     if settle(key) == Some(true) {
         crate::hardware::broker::confine::detach(pid, device_id);
+        super::wipe::step_all(true);
     }
     Ok(epoch)
 }

@@ -25,10 +25,25 @@ pub extern "C" fn mk_device_list(class: u32, buf: *mut DeviceRecord, count: u64)
     call_raw(N_MK_DEVICE_LIST, [class as u64, buf as u64, count, 0, 0, 0])
 }
 
+/// A device being reset between holders answers EAGAIN until it is back
+/// (L78), a second or so at most; the claim waits that out here, so a
+/// driver restarted at once still gets its device.
 #[no_mangle]
 pub extern "C" fn mk_device_claim(device_id: u64) -> i64 {
+    for _ in 0..RESET_TRIES {
+        let got = call_raw(N_MK_DEVICE_CLAIM, [device_id, 0, 0, 0, 0, 0]);
+        if got != EAGAIN {
+            return got;
+        }
+        let _ = crate::mk_idle_ms(10);
+    }
     call_raw(N_MK_DEVICE_CLAIM, [device_id, 0, 0, 0, 0, 0])
 }
+
+const EAGAIN: i64 = -11;
+/// 10 ms apart: 2.5 s, past the longest reset (the FLR, its retries and the
+/// power-cycle fallback come to about 1.3 s).
+const RESET_TRIES: u32 = 250;
 
 #[no_mangle]
 pub extern "C" fn mk_device_release(device_id: u64) -> i64 {

@@ -22,8 +22,11 @@
 use core::mem::size_of;
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
-use crate::hardware::broker::{self, ClaimError, DeviceRecord};
+#[path = "device_errno.rs"]
+mod device_errno;
+
+use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
+use crate::hardware::broker::{self, DeviceRecord};
 use crate::process::current_pid;
 use crate::usercopy::{validate_user_write, write_user_value};
 
@@ -75,10 +78,7 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
     }
     match broker::claim_device(pid, device_id) {
         Ok(epoch) => epoch as i64,
-        Err(ClaimError::AlreadyClaimed) | Err(ClaimError::Held) => ERRNO_BUSY,
-        Err(ClaimError::UnknownDevice) => ERRNO_NODEV,
-        Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
-        Err(ClaimError::Unconfined) | Err(ClaimError::Refused) => ERRNO_PERM,
+        Err(e) => device_errno::claim_errno(e),
     }
 }
 
@@ -99,12 +99,6 @@ pub fn sys_device_release(device_id: u64) -> i64 {
             trace_release(b"ok", pid);
             0
         }
-        Err(ClaimError::NotClaimed) => ERRNO_NODEV,
-        Err(ClaimError::NotHolder) => ERRNO_PERM,
-        Err(ClaimError::AlreadyClaimed)
-        | Err(ClaimError::UnknownDevice)
-        | Err(ClaimError::Unconfined)
-        | Err(ClaimError::Held)
-        | Err(ClaimError::Refused) => ERRNO_INVAL,
+        Err(e) => device_errno::release_errno(e),
     }
 }

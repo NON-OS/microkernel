@@ -48,5 +48,7 @@ pub fn wipe_live_grants() -> Option<usize> {
         },
         again,
     );
-    seen.then_some(wiped)
+    // The runs kept for their devices' wipes hold the same traffic (L78).
+    let kept = super::kept::scrub_all(again);
+    (seen && kept).then_some(wiped)
 }

@@ -49,6 +49,15 @@ pub(crate) const fn exited(stage: Stage) -> (Stage, bool) {
     }
 }
 
+/// Why a claim may not begin over an entry in `stage`: one being made or
+/// standing is another's; one going is followed by its wipe, so ask again.
+pub(crate) const fn over(stage: Stage) -> ClaimError {
+    match stage {
+        Stage::Making | Stage::Ready => ClaimError::AlreadyClaimed,
+        Stage::Leaving | Stage::Orphaned | Stage::Exiting => ClaimError::Resetting,
+    }
+}
+
 /// Whether the entry goes now: being released, no release left, no path
 /// left inside it (L75).
 pub(crate) const fn gone(stage: Stage, leavers: u32, inflight: u32) -> bool {
