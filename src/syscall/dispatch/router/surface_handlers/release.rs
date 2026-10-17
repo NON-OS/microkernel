@@ -35,6 +35,8 @@ pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
     if attach_map::lookup(pid, handle).is_none() {
         return errno(EPERM);
     }
+    // The owner letting go takes back what it named.
+    crate::kernel_core::surface_registry::share::owner_releases(pid, handle);
     match drop_attach(pid, handle) {
         Ok(n) => SyscallResult::success_audited(n as i64),
         Err(e) => errno(map_err(e)),
