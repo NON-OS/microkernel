@@ -46,10 +46,11 @@ pub struct Readiness {
 /// The verdict, the gates and the bond's code.
 pub const READINESS_LEN: usize = 1 + GATES.len() + 1;
 
-/// None when the reply is shorter than READINESS_LEN or names an unknown
-/// bond code.
+/// None unless the reply is exactly READINESS_LEN bytes naming a known
+/// bond code: a byte past the bond's code is no readiness either.
 pub fn parse_readiness(body: &[u8]) -> Option<Readiness> {
-    let (verdict, rest) = body.get(..READINESS_LEN)?.split_first()?;
+    let row: &[u8; READINESS_LEN] = body.try_into().ok()?;
+    let (verdict, rest) = row.split_first()?;
     let (bond, gate_bytes) = rest.split_last()?;
     let bond = BondCode::from_byte(*bond)?;
     let mut gates = [false; 11];

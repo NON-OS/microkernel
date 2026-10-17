@@ -16,16 +16,10 @@
 
 //! What each step of a purchase says first, and which footer it offers.
 
-use crate::wallet::order::fees::Fees;
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
+use crate::wallet::order::terms::words::QUOTING;
 
-pub const CONSENT: &str = "The store asks to buy this. What follows is the market's own record, \
-     not the store's: buy only if it is what you meant.";
-const QUOTING: &str = "Asking the Shield what funding this price costs. It decides whether \
-     the price is one of its standard amounts today.";
-const REFUSED: &str = "The Shield will not fund this price, so it cannot be paid privately, \
-     and this wallet does not pay escrow from a plain address yet.";
 const OFFERING: &str = "The meter is asking the seller's agent for its sealed offer. Its proof \
      of work runs between other payments, so this can take a minute.";
 const ORDERING: &str = "The meter is making the order and checking its deposit address against \
@@ -36,11 +30,8 @@ const FUND: &str = "The order is made. Fund it from the Shield: send exactly the
 /// The lead sentence, and the action offered beside Close, if any.
 pub fn lead(p: &Pending) -> (&'static str, Option<&'static str>) {
     match (&p.step, &p.read) {
-        (Step::Consent, Ok(Named::Escrow(_))) => match p.fees {
-            Fees::Quoted(_) => (CONSENT, Some("Buy")),
-            Fees::Refused(_) => (REFUSED, None),
-            Fees::Unasked | Fees::Asking => (QUOTING, None),
-        },
+        // Said by the wallet's name in terms::lines (consent.rs), not here.
+        (Step::Consent, Ok(Named::Escrow(_))) => (QUOTING, None),
         (Step::Consent, Err(why)) => (why, None),
         (Step::Offering(_), _) => (OFFERING, None),
         (Step::Ordering(..), _) => (ORDERING, None),

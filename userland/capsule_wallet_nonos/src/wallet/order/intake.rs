@@ -17,25 +17,24 @@
 /*
  * A purchase the store named, taken from the meter's mailbox (op 19/1,
  * the plan): asked every TAKE_EVERY_MS while the wallet is open, unlocked
- * and holds no other purchase. The consent screen opens at once and fills
- * as the market is read, one call a tick (consent.rs).
+ * and holds no other purchase. Nothing of it shows while the market is
+ * read, one call a tick; the consent opens once every answer is in and
+ * the terms read (consent.rs, shown.rs).
  */
 
 use alloc::boxed::Box;
 
 use nonos_libc::mk_uptime_ms;
 
-use super::fees::Fees;
 pub use super::pending::{Pending, Step};
-use super::reading::Reading;
+use super::terms::shown::{unread, Unread};
 use super::watch::Watch;
 use crate::wallet::meter::order_calls::take;
-use crate::wallet::state::{State, VIEW_PURCHASE};
+use crate::wallet::state::State;
 
 const TAKE_EVERY_MS: u64 = 2_000;
-const READING: &str = "Reading the listing's terms from the market.";
 
-/// Whether a purchase arrived and its screen opened.
+/// Whether a purchase arrived; its terms are read before anything shows.
 pub fn take_due(state: &mut State) -> bool {
     if state.locked || state.meter.purchase.is_some() || state.meter.job.is_some() {
         return false;
@@ -46,14 +45,17 @@ pub fn take_due(state: &mut State) -> bool {
     }
     state.meter.take_at = now + TAKE_EVERY_MS;
     let Some(names) = take() else { return false };
-    let (read, reading, fees) = (Err(READING), Some(Reading::Commerce), Fees::Unasked);
+    let Unread { read, reading, record, fees, guard } = unread();
     let (step, watch, refund_to) = (Step::Consent, Watch::default(), [0; 20]);
     let (form, delivery, held) = Default::default();
-    let escrow = None;
+    let (escrow, armed) = (None, false);
     let p = Pending {
         names,
         read,
         reading,
+        record,
+        guard,
+        armed,
         fees,
         watch,
         delivery,
@@ -64,8 +66,5 @@ pub fn take_due(state: &mut State) -> bool {
         escrow,
     };
     state.meter.purchase = Some(Box::new(p));
-    state.view = VIEW_PURCHASE;
-    state.scroll = 0;
-    state.failure = None;
     true
 }
