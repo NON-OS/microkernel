@@ -48,5 +48,5 @@ pub use length::ASK_TIME_US;
 pub use ltk::enable_encryption_params;
 pub use masks::{EVENT_MASK, LE_EVENT_MASK};
 pub use scan::{Scan, DEFAULT_SCAN};
-pub use state::{Host, POLL_BUDGET};
+pub use state::{Host, COMMAND_CREDITS_MAX, POLL_BUDGET};
 pub use update::connection_update_params;
