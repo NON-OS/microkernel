@@ -55,6 +55,15 @@ pub fn walk(virt: u64) -> Option<Leaf> {
     Some(Leaf { output, level, descriptor })
 }
 
+/// The kernel's resume check (`mmu::one_to_one`) over the built root.
+pub fn executable_one_to_one(start: u64, end: u64) -> Result<(), &'static [u8]> {
+    // SAFETY: the tables are only read here, between calls that write them.
+    let root = unsafe { &*state::l0() };
+    // SAFETY: a table address the builder wrote, a host pointer here.
+    let host = |pa: u64| Some(unsafe { &*(pa as *const _) });
+    super::one_to_one::executable_one_to_one(root, start, end, host)
+}
+
 /// The AttrIndx the kernel gives registers and ordinary RAM.
 pub fn device_attr() -> u64 {
     (PageAttributes::device().to_descriptor_bits() & PTE_ATTR_INDX_MASK) >> 2
