@@ -47,10 +47,11 @@ impl App for Wallet {
         self.state.frame.h = fb.height;
         paint(&self.state, fb);
         crate::wallet::order::guard::poll::drawn(&mut self.state);
+        crate::wallet::arm::gate::drawn(&mut self.state);
     }
 
     fn tick_interval_ms(&self) -> i64 {
-        if self.stepping() {
+        if self.stepping() || crate::wallet::arm::gate::looking(&self.state) {
             STEP_TICK_MS
         } else {
             REST_TICK_MS
