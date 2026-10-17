@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A driver restarted onto its own leftovers.
 
+mod dark_refuse_tests;
+mod dark_tests;
 mod death_kit;
+mod death_sweep;
 mod death_tests;
 pub mod kit;
 pub mod leftovers;

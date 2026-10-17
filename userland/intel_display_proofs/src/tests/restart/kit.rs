@@ -26,7 +26,7 @@ use crate::display::{settle_heads, Intel};
 use crate::engine::gen::GEN9;
 use crate::engine::ggtt_pte::Pte;
 use crate::engine::scanout::Scanout;
-use crate::engine::takeover::read_outputs;
+use crate::engine::takeover_dark::read_outputs_kept;
 use crate::model::{Gen9, ModelFrames, Polls, Shared, Ticks};
 use crate::tests::wire_rig::{taken, Rig};
 
@@ -43,14 +43,15 @@ pub fn pages(base: u64, n: u32) -> Vec<u64> {
 pub fn restart(mut m: Gen9) -> Option<(Rig, Rc<RefCell<Gen9>>)> {
     (m.watch.die_at, m.watch.dead_at, m.watch.reached) = (None, None, 0);
     m.confine = Default::default();
-    let lit = read_outputs(&mut m, &GEN9);
+    let total = m.ggtt.len() as u32;
+    let lit = read_outputs_kept(&mut m, &GEN9, total);
     let out = lit.iter().flatten().next().copied()?;
     let n = ((out.width * 4).next_multiple_of(64) * out.height).div_ceil(4096);
     m.fill(NEW[0], n as u64, 0xFF00_00AA);
     m.fill(NEW[1], n as u64, 0xFF00_00BB);
     crate::tests::confine::arm(&mut m, &NEW, n as usize);
     let iovas = [pages(NEW[0], n), pages(NEW[1], n)];
-    let (total, ours) = (m.ggtt.len() as u32, m.ggtt.len() as u32 / 2);
+    let ours = total / 2;
     let scan = Scanout::start(&mut m, &out, total, [&iovas[0], &iovas[1]], ours, &Polls::new(50));
     let model = Rc::new(RefCell::new(m));
     let shared = Shared(model.clone());

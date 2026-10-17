@@ -21,7 +21,7 @@
 
 use nonos_intel_display::engine::access::Until;
 use nonos_intel_display::engine::error::Error;
-use nonos_intel_display::engine::takeover::read_outputs;
+use nonos_intel_display::engine::takeover_dark::read_outputs_kept;
 use nonos_intel_display::engine::{dc::dc_off, gen::PlaneKind, ggtt_range::entries};
 
 use super::{claim, maps, take, Driver};
@@ -46,7 +46,7 @@ pub fn run(dev: Found) -> IntelResult<Driver> {
     if gen.plane != PlaneKind::Primary {
         dc_off(&mut m, &Until::new(&clock, DC_US)).map_err(IntelError::Engine)?;
     }
-    let lit = read_outputs(&mut m, gen);
+    let lit = read_outputs_kept(&mut m, gen, total);
     if lit.iter().all(|o| o.is_none()) {
         return Err(IntelError::Engine(Error::NothingLit));
     }

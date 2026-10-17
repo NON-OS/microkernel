@@ -67,6 +67,7 @@ pub mod scanout_start;
 pub mod scanout_stop;
 pub mod settle;
 pub mod takeover;
+pub mod takeover_dark;
 pub mod timing;
 pub mod timing_write;
 pub mod trans_func;
