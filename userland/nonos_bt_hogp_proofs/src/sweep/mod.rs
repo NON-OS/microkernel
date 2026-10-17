@@ -22,3 +22,4 @@ mod gatt_lies;
 mod gatt_tests;
 mod map_tests;
 mod rng;
+mod server_tests;
