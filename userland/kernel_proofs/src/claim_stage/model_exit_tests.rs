@@ -20,7 +20,7 @@ use super::exit_steps::step;
 use super::exit_world::{code, Entry, World};
 use super::types::Stage;
 
-const ENDS: [u8; 4] = [4, 4, 5, 2];
+const ENDS: [u8; 5] = [4, 4, 5, 2, 1];
 
 /// Whether some order goes wrong: a newer claim's device written, frames freed
 /// under Bus Master, a grant left, the old entry left for ever, or no path
@@ -46,10 +46,11 @@ fn wrong(w: World, new: bool, seen: &mut HashSet<World>) -> bool {
     !moved && (!ended || w.grant || w.entry.is_some_and(|e| e.0 == 1))
 }
 
-/// With the sibling's release, or the exit alone with the grant path.
-fn start(release: bool) -> World {
+/// With the sibling's release, or the exit alone with the grant path; a kill
+/// can park the release only where its wait `yields`.
+fn start(release: bool, yields: bool) -> World {
     let entry = Some(Entry(1, code(Stage::Ready), 0, 0));
-    let steps = [0, 0, if release { 0 } else { 8 }, 0];
+    let steps = [0, 0, if release { 0 } else { 8 }, 0, (!yields) as u8];
     World { entry, grant: true, bus_on: true, bad: false, steps }
 }
 
@@ -57,13 +58,18 @@ fn start(release: bool) -> World {
 fn a_claim_stands_until_its_exit_its_releases_and_its_paths_are_done() {
     for release in [true, false] {
         let mut seen = HashSet::new();
-        assert!(!wrong(start(release), true, &mut seen), "release {release}");
+        assert!(!wrong(start(release, false), true, &mut seen), "release {release}");
         assert!(seen.len() > 20, "{} states", seen.len());
     }
 }
 
 #[test]
 fn the_old_exit_let_a_newer_claim_in_under_its_paths() {
-    assert!(wrong(start(true), false, &mut HashSet::new()));
-    assert!(wrong(start(false), false, &mut HashSet::new()), "the exit alone");
+    assert!(wrong(start(true, false), false, &mut HashSet::new()));
+    assert!(wrong(start(false, false), false, &mut HashSet::new()), "the exit alone");
+}
+
+#[test]
+fn a_release_killed_in_a_wait_that_yields_kept_the_entry_for_ever() {
+    assert!(wrong(start(true, true), true, &mut HashSet::new()), "L75's wait");
 }
