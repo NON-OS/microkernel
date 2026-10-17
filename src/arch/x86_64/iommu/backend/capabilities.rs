@@ -16,7 +16,7 @@
 
 //! The guarantees the selected IOMMU gives right now.
 
-use crate::arch::x86_64::acpi::parser::other::foreign_segment_units;
+use crate::arch::x86_64::acpi::parser::other::units_left_off;
 use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels};
 use crate::arch::x86_64::iommu::regs::cap::snoop_control;
 #[cfg(feature = "nonos-iommu-intremap")]
@@ -39,8 +39,9 @@ pub(crate) fn capabilities() -> IommuCapabilities {
 }
 
 /*
- * Bring-up programs every segment 0 unit. A unit on another segment is left
- * off, and devices behind it reach memory directly, so nothing is claimed. The width is what the domains' depth reaches, cut to what the unit
+ * Bring-up programs every segment 0 unit it holds. A unit left off (another
+ * segment, past eight, past an unreadable DMAR structure) translates
+ * nothing, and devices behind it reach memory directly, so nothing is claimed. The width is what the domains' depth reaches, cut to what the unit
  * accepts. Pages are 4 KiB only because map_range installs nothing larger.
  */
 fn vtd() -> IommuCapabilities {
@@ -48,7 +49,7 @@ fn vtd() -> IommuCapabilities {
     let (Some(info), Some(levels)) = (probed(), page_levels()) else {
         return none;
     };
-    if !is_enforcing() || foreign_segment_units() != 0 {
+    if !is_enforcing() || units_left_off() != 0 {
         return none;
     }
     let Some(reach) = levels.checked_mul(9).and_then(|bits| bits.checked_add(12)) else {

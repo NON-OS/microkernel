@@ -20,7 +20,7 @@
 //! machine confines DMA without reading the source.
 
 use super::message::reason;
-use crate::arch::x86_64::acpi::parser::other::foreign_segment_units;
+use crate::arch::x86_64::acpi::parser::other::units_left_off;
 use crate::arch::x86_64::iommu::globals::page_levels;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::fault::drain_faults;
@@ -33,7 +33,8 @@ pub(super) fn not_built_in() {
 
 /// Identity mapping does not confine a device that was enumerated; what it
 /// buys is that anything absent from the enumeration is denied. Every segment
-/// 0 unit is programmed; units on other segments are not, and an operator has
+/// 0 unit the kernel holds is programmed; units left off (other segments,
+/// past eight, past an unreadable structure) are not, and an operator has
 /// to know that before trusting the machine.
 pub(super) fn enabled(assigned: usize, reserved: usize) {
     let mut line = Line::new();
@@ -43,10 +44,10 @@ pub(super) fn enabled(assigned: usize, reserved: usize) {
     line.str(b"[VT-D] enumerated devices blocked until claimed; with reserved memory=");
     line.dec(reserved as u64).str(b"; others denied").end();
     Line::new().str(b"[VT-D] units programmed=").hex(unit_count() as u64).end();
-    let foreign = foreign_segment_units();
-    if foreign > 0 {
+    let left_off = units_left_off();
+    if left_off > 0 {
         let mut line = Line::new();
-        line.str(b"[VT-D] WARNING units on other segments=").hex(foreign as u64);
+        line.str(b"[VT-D] WARNING units left off=").hex(left_off as u64);
         line.str(b"; not programmed, devices behind them are unrestricted").end();
     }
 
