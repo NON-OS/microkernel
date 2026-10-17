@@ -49,13 +49,15 @@ const READY_TRIES: u32 = 600;
 /// a USB-SATA bridge or a slow stick can take.
 const READY_PAUSE_MS: u64 = 50;
 
-/// INQUIRY first, then TEST UNIT READY until the medium is ready. Linux's
-/// SCSI scan always opens with INQUIRY, and some USB storage firmware does
-/// not answer anything else correctly until it has seen one. Its data is
+/// INQUIRY first, then TEST UNIT READY until the medium is ready. SPC
+/// makes INQUIRY the one command every logical unit answers whatever its
+/// state, and some USB storage firmware does not answer anything else
+/// correctly until it has seen one (as observed, unverified). Its data is
 /// not needed here: a failed status is ignored, a transport that fails ends
-/// the probe. With `more_luns`, a logical unit that says it has no medium is
-/// given up at once, as Linux's sd_spinup_disk does, so a card reader's empty
-/// slots do not each cost the whole wait before the one with a card is asked.
+/// the probe. With `more_luns`, a logical unit whose sense says MEDIUM NOT
+/// PRESENT (ASC 3Ah, SPC, as recalled) is given up at once, so a card
+/// reader's empty slots do not each cost the whole wait before the one with
+/// a card is asked.
 pub fn unit_ready(disk: &Disk, state: &mut State, more_luns: bool) -> Result<(), i32> {
     let mut data = [0u8; INQUIRY_DATA_LEN];
     let mut asked = false;
@@ -77,8 +79,8 @@ pub fn unit_ready(disk: &Disk, state: &mut State, more_luns: bool) -> Result<(),
         match command(disk, state, test_unit_ready(), Data::None) {
             Ok((0, _)) => return Ok(()),
             Ok(_) => {
-                // NOT READY on a medium that waits to be told to spin up: one
-                // START UNIT, as Linux sd_spinup_disk sends.
+                // NOT READY on a medium that waits to be told to spin up
+                // (SBC START STOP UNIT, as recalled): one START UNIT.
                 let said = sense(disk, state);
                 if more_luns && said.is_ok_and(|s| s.asc == MEDIUM_NOT_PRESENT) {
                     return Err(E_NOMEDIUM);
