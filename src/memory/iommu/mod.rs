@@ -29,6 +29,10 @@ mod query;
 mod unconfined;
 mod vendor;
 
+#[cfg(target_arch = "x86_64")]
+pub(crate) use backend::block_faulted;
+#[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
+pub(crate) use backend::note_fault;
 pub use capabilities::IommuCapabilities;
 pub use device::DeviceAddress;
 pub use domain::IommuDomain;
