@@ -29,7 +29,7 @@ use super::verdict::{judge, Verdict};
 pub const CONFIRM_MS: u64 = 1_000;
 pub const CRITICAL_POLL_MS: u64 = 5_000;
 /// A told bit beside the trip faults: the zone's _TMP was unread.
-pub const UNREAD_TMP: u8 = 1 << 7;
+pub const UNREAD_TMP: u16 = 1 << 7;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Watch {
