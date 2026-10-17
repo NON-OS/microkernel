@@ -53,7 +53,9 @@ fn gather() -> Option<Vec<(u64, u64)>> {
     Some(out)
 }
 
-fn ram() -> Option<Vec<(u64, u64)>> {
+/// RAM from the boot memory map, as page ranges; None when the map is
+/// missing or malformed. The IOMMU register bases are held to it too (K11).
+pub(crate) fn ram() -> Option<Vec<(u64, u64)>> {
     let map = get_handoff()?.mmap;
     let count = map.entry_count as usize;
     if map.ptr == 0 || count == 0 || count > MAX_ENTRIES {
