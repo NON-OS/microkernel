@@ -24,3 +24,5 @@ mod frame_tests;
 mod join_tests;
 mod list_tests;
 mod rng;
+mod signal_mutant;
+mod signal_tests;
