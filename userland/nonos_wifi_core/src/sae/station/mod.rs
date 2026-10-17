@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod accessors;
+mod again;
 mod commit;
 mod confirm;
 mod frame;
@@ -28,6 +29,7 @@ use super::frame::{
     STATUS_SAE_HASH_TO_ELEMENT, STATUS_SUCCESS, TOKEN_MAX,
 };
 use super::group::LEN;
+pub use again::{CONFIRMS_MAX, TOKENS_MAX};
 use alloc::vec::Vec;
 use nonos_p256::ProjectivePoint;
 pub use saestate::*;
