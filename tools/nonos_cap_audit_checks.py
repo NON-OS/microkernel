@@ -24,12 +24,14 @@ from nonos_cap_audit_read import declared, read
 
 
 # Capabilities known to enforce nothing, recorded so the check is a
-# ratchet rather than noise: these two do not fail the audit, and any
-# third one will. Neither is requested by a capsule. `IO` is read by
-# `can_read` and `can_write`, `Hardware` by `can_hardware`, and nothing
-# calls any of them. Wire one or retire it and take it off this list;
-# do not add to it to make the audit quiet.
-UNENFORCED = {"IO", "Hardware"}
+# ratchet rather than noise: these do not fail the audit, and any other
+# will. `IO` is read by `can_read` and `can_write`, `Hardware` by
+# `can_hardware`, and nothing calls any of them; neither is requested by a
+# capsule. `Entropy` is only defined as `CAP_ENTROPY`, which nothing reads,
+# since its clients went in K9; manifests still grant it, and dropping the
+# bit changes signed manifests, the call. Wire one or retire it and
+# take it off this list; do not add to it to make the audit quiet.
+UNENFORCED = {"IO", "Hardware", "Entropy"}
 
 
 def capabilities(root: Path) -> int:
