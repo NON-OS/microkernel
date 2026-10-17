@@ -16,10 +16,12 @@
 
 //! The join as one path from the shell's bytes to the chosen AKM against a
 //! hostile access point: a seeded sweep that a network saved as WPA3 is
-//! never joined with WPA2 (`select_sweep`), the end-to-end downgrade and
-//! message-3 mismatch refusals (`downgrade_tests`), and a sweep of hostile
+//! never joined with WPA2 (`select_sweep`), the end-to-end downgrade
+//! refusal (`downgrade_tests`), the refusal of SAE without management-frame
+//! protection for a saved-WPA3 network (`pmf_tests`), and a sweep of hostile
 //! connect bodies that never leak the passphrase or panic (`body_tests`).
 
 mod body_tests;
 mod downgrade_tests;
+mod pmf_tests;
 mod select_sweep;
