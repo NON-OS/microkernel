@@ -44,10 +44,10 @@ pub fn load(regs: &Regs, device_id: u64, claim_epoch: u64) -> Result<(), FwLoadE
 
     let backup = prep::begin(regs);
     let result = download(regs, FW, |chunk| rsvd::stage_chunk(regs, &stage_buf, &ring, chunk));
-    let finished = prep::finish(regs, backup);
     if let Err(e) = result {
+        prep::abort(regs, backup);
         say_download(e);
         return Err(FwLoadError::Download(e));
     }
-    finish(finished)
+    finish(prep::finish(regs, backup))
 }
