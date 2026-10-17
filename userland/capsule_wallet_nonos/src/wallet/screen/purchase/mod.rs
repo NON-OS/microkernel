@@ -22,7 +22,7 @@ mod consent;
 mod escrow_click;
 mod escrow_rows;
 mod escrow_said;
-mod escrow_words;
+pub(crate) mod escrow_words;
 pub mod form;
 mod fund;
 mod held;

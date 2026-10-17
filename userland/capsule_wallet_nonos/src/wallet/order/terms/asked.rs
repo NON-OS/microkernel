@@ -35,6 +35,8 @@ pub const OTHER_LISTING: &str = "The market answered for another listing than th
      store named, so nothing here can be bought.";
 pub const OTHER_RELEASE: &str = "The market answered for another release than the one the \
      store named, so nothing here can be bought.";
+pub const UNHASHED: &str = "The wallet could not hash the market's ids itself, so nothing \
+     here can be bought.";
 
 /// What is bought, by the market's own names for it.
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -55,14 +57,19 @@ pub fn as_asked(
     version: &[u8],
 ) -> Result<Record, &'static str> {
     let text = core::str::from_utf8(&names.listing).map_err(|_| OTHER_LISTING)?;
-    let listing = listing_id(k, &app.publisher_key, text);
+    // A hash the service did not give is all zeros: never an id to match.
+    let listing = hashed(listing_id(k, &app.publisher_key, text))?;
     if app.id != names.listing || c.listing_id != listing {
         return Err(OTHER_LISTING);
     }
     let named = names.release.is_empty() || names.release == version;
     let version_text = core::str::from_utf8(version).map_err(|_| OTHER_RELEASE)?;
-    if !named || c.release_id != release_id(k, &listing, version_text) {
+    if !named || c.release_id != hashed(release_id(k, &listing, version_text))? {
         return Err(OTHER_RELEASE);
     }
     Ok(Record { title: app.name.clone(), release: version.to_vec() })
+}
+
+fn hashed(id: [u8; 32]) -> Result<[u8; 32], &'static str> {
+    (id != [0; 32]).then_some(id).ok_or(UNHASHED)
 }

@@ -16,12 +16,12 @@
 
 //! A key, given first to whatever owns the keyboard: the backup words, a
 //! key screen, a field on the screen on show. Only what none of them takes
-//! moves between screens, and no single key ever signs or sends anything.
+//! moves between screens; Enter that moves value acts only armed (arm/).
 
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC};
 
-use crate::wallet::screen;
 use crate::wallet::state::{State, VIEW_SWAP};
+use crate::wallet::{arm::gate::held_back, screen};
 
 pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     if state.locked {
@@ -30,13 +30,15 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
         }
         return EventOutcome::Idle;
     }
-    // The one-time backup screen owns input until the user confirms the
-    // phrase is written down. Enter is the only way through.
+    // The backup words own input until confirmed written down, by Enter.
     if state.keys.backup_active {
         if code == KEY_ENTER {
             return super::custody::backup::confirm_backup(state);
         }
         return EventOutcome::Idle;
+    }
+    if let Some(out) = (code == KEY_ENTER).then(|| held_back(state, None)).flatten() {
+        return out;
     }
     if let Some(out) = screen::custody::click::key(state, code) {
         return out;
@@ -59,10 +61,9 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     if let Some(out) = screen::stake::click::key(state, code) {
         return out;
     }
-    if state.view == VIEW_SWAP {
-        if let Some(out) = super::swap::swap_input::swap_input(state, code) {
-            return out;
-        }
+    let swap = state.view == VIEW_SWAP;
+    if let Some(out) = swap.then(|| super::swap::swap_input::swap_input(state, code)).flatten() {
+        return out;
     }
     if code == KEY_ESC {
         return super::escape::escape(state);

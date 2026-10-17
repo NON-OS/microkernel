@@ -37,7 +37,8 @@ pub fn landed(state: &mut State, done: Result<Box<Terms>, &'static str>) {
             (p.read, p.record) = (Ok(t.named), Some(t.record));
             if opens(p.reading.as_ref(), &p.read, p.record.as_ref()) {
                 (state.view, state.scroll, state.failure) = (VIEW_PURCHASE, 0, None);
-                super::focus::raise_self();
+                // Refused (E_PERM under T1b) or not: unarmed until focused.
+                p.guard = super::focus::raise_self();
             }
         }
         Err(why) => {

@@ -67,4 +67,6 @@ pub struct State {
     pub shield_ui: super::shield_ui::ShieldUi,
     pub meter: crate::wallet::meter::MeterUi,
     pub publisher: crate::wallet::publish::PublisherUi,
+    /// The guard on a screen whose presses move value or sign (`arm`).
+    pub arm: crate::wallet::arm::look::Arm,
 }

@@ -31,7 +31,7 @@ use crate::wallet::meter::job::JobKind;
 use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::state::State;
 
-pub const ROW_CLAIM: u8 = 42;
+pub use crate::wallet::arm::rows::ROW_CLAIM;
 
 pub fn row(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let idle = state.meter.job.is_none();

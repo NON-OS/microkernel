@@ -52,6 +52,9 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
         let _ = super::custody::backup::confirm_backup(state);
         return go(state, VIEW_HOME);
     }
+    if let Some(out) = crate::wallet::arm::gate::held_back(state, Some(press)) {
+        return out;
+    }
     match state.view {
         VIEW_IMPORT | VIEW_RECOVER | VIEW_EXPORT => screen::custody::click::click(state, press),
         VIEW_SETTINGS => screen::settings::click::click(state, press),

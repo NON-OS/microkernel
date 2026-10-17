@@ -18,6 +18,7 @@
 //! whose four answers are given.
 
 use nonos_market_proto::{OP_GET_APP, OP_GET_COMMERCE, OP_GET_RELEASE, OP_INSTALL_READY};
+use nonos_marketplace_abi::Keccak;
 use nonos_payment_proto::Names;
 
 use super::deposit_fixture::K;
@@ -31,13 +32,22 @@ type Calls = Vec<(u16, Vec<u8>)>;
 
 /// Every call the reading makes against `m`, and the terms it ends in.
 pub fn read_terms(names: &Names, m: &Market) -> (Calls, Result<Terms, &'static str>) {
+    read_terms_with(&K, names, m)
+}
+
+/// The same reading, its ids hashed by `k`.
+pub fn read_terms_with(
+    k: &impl Keccak,
+    names: &Names,
+    m: &Market,
+) -> (Calls, Result<Terms, &'static str>) {
     let (mut calls, mut at) = (Vec::new(), Reading::Commerce);
     let ops = [OP_GET_COMMERCE, OP_GET_RELEASE, OP_INSTALL_READY, OP_GET_APP];
     loop {
         let next = call(names, &at).and_then(|(op, body)| {
             calls.push((op, body));
             let answer = &m[ops.iter().position(|o| *o == op).expect("a market op")];
-            answered(&K, names, at, answer)
+            answered(k, names, at, answer)
         });
         match next {
             Ok(Read::More(n)) => at = n,

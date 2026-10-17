@@ -16,9 +16,10 @@
 
 /*
  * The wallet's own window and the window manager (T1's wallet side):
- * raised and focused when the consent opens, through app_skeleton's
- * client, and asked who holds focus with OP_QUERY_FOCUS. Not an answer,
- * or another window's, is not focus.
+ * asked to raise and focus it when the consent opens, through
+ * app_skeleton's client, a refusal only waiting (terms/forward.rs); and
+ * asked who holds focus with OP_QUERY_FOCUS. Not an answer, or another
+ * window's, is not focus.
  */
 
 use nonos_app_skeleton::clients::wm::{window_focus, window_raise};
@@ -27,6 +28,8 @@ use nonos_app_skeleton::wire::{call_payload, read_u32, HDR_LEN, NWMP_MAGIC};
 use nonos_libc::{mk_getpid, mk_uptime_ms};
 
 use crate::wallet::manifest::manifest;
+use crate::wallet::order::terms::arming::Guard;
+use crate::wallet::order::terms::forward::forward;
 
 const WM: &[u8] = b"wm";
 /// The window manager's OP_QUERY_FOCUS: its answer, after the status, is
@@ -38,12 +41,12 @@ fn request_id() -> u32 {
     mk_uptime_ms() as u32
 }
 
-/// Raise the wallet's window and give it focus.
-pub fn raise_self() {
-    let Some(port) = lookup_port(WM) else { return };
+/// Ask to raise the wallet's window and give it focus; the consent's guard.
+pub fn raise_self() -> Guard {
+    let Some(port) = lookup_port(WM) else { return Guard::default() };
     let window = manifest().window_id;
-    let _ = window_raise(port, request_id(), window);
-    let _ = window_focus(port, request_id(), window);
+    let raised = window_raise(port, request_id(), window);
+    forward(raised, window_focus(port, request_id(), window))
 }
 
 /// Whether this wallet's window holds focus, as the window manager says.

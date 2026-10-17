@@ -38,8 +38,9 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     }
     let consent = super::consent::lines(p);
     let (sentence, action) = consent.as_ref().map_or_else(|| first(p), |l| (&*l.lead, l.action));
-    // Buy is pressable only once the focus guard armed it (terms/arming.rs).
-    let act = action.is_some() && (consent.is_none() || p.armed);
+    // A consent's press only once the focus guard armed it (terms/arming.rs).
+    let guarded = crate::wallet::order::guard::poll::guarded(p);
+    let act = action.is_some() && (!guarded || p.armed);
     let close = closable(p);
     let status = crate::wallet::screen::status::parts(state);
     let mut footer = alloc::vec![
