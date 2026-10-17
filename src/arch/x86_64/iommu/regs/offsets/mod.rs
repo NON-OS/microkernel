@@ -31,7 +31,7 @@ pub use invalidate::{
     IOTLB_IVT,
 };
 pub use queue::{
-    iqa_value, queue_free, queue_index, queue_next, queue_offset, FSTS_ICE, FSTS_IQE, FSTS_ITE,
+    iqa_value, queue_free, queue_index, queue_next, queue_offset, queue_slot, FSTS_ICE, FSTS_IQE, FSTS_ITE,
     GCMD_QIE, GSTS_QIES, IQA, IQH, IQT, QUEUE_ENTRIES,
 };
 pub use remap::{
