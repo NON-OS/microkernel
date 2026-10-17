@@ -29,8 +29,15 @@ pub fn grant_run_covering(holder: u32, va: u64, len: u64) -> Option<(u64, u64)> 
 }
 
 /// Scrub a run and give it back where it came from: its pool, or the
-/// allocator. The device lost it when its grant was torn down.
+/// allocator. The device lost it when its grant was torn down; a run its
+/// device's wipe still keeps waits for that wipe (L78).
 pub fn free_held_run(physical_start: u64, length: u64) {
+    if !super::kept::defer(physical_start, length) {
+        free_now(physical_start, length);
+    }
+}
+
+pub(super) fn free_now(physical_start: u64, length: u64) {
     super::scrub::scrub(physical_start, length);
     let pages = (length / 4096) as usize;
     if !super::pool::give_back(physical_start, pages) {
