@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::x86_64::acpi::aml::GpioController;
-use crate::arch::x86_64::acpi::devices::i2c::{I2cHidDevice, I2cHostName};
+use crate::arch::x86_64::acpi::devices::i2c::I2cHidDevice;
 use crate::hardware::broker::class::ids;
 use crate::hardware::broker::device::{Bar, BarKind, BusKind, DeviceRecord};
 
 use super::hid_info::hid_info;
-use super::host_id::host_device_id;
 use super::slots::controller_slot;
 
 /// Build an ACPI-bus DeviceRecord for a firmware-declared I2C-HID device.
@@ -32,20 +31,13 @@ use super::slots::controller_slot;
 /// * `irq_pin`: GPIO community of a GpioInt as `_UID`+1, zero when unknown.
 /// * `irq_source`: the GpioInt pin, or the GSI of an Interrupt resource.
 /// * bar 0 (kind None, never a window; `bar_count` stays zero): `base` is
-///   the device_id of the registered platform (non-PCI) host controller the
+///   `host`, the device_id of the platform host or PCI LPSS function the
 ///   ResourceSource resolved to, else u64::MAX (no physical address: every
 ///   MkDeviceList caller reads it), `size` the controller NameSeg as a
 ///   little-endian u32,
 ///   `aux` the ConnectionSpeed in Hz, `flags` the HID_INFO_* bits.
-pub(super) fn hid_record(
-    dev: &I2cHidDevice,
-    gpio: &[GpioController],
-    hosts: &[I2cHostName],
-    registered: &[(u64, u64)],
-) -> DeviceRecord {
+pub(super) fn hid_record(dev: &I2cHidDevice, gpio: &[GpioController], host: u64) -> DeviceRecord {
     let (info, source, community) = hid_info(dev, gpio);
-    let named = hosts.iter().map(|h| (h.name, h.mmio_base));
-    let host = host_device_id(dev.controller, named, registered);
     let mut bars = [Bar::empty(); 6];
     bars[0] = Bar {
         base: host,

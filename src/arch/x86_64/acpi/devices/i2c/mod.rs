@@ -25,13 +25,16 @@ mod enumerate;
 pub mod hids;
 mod names;
 mod parse;
+mod pci_hosts;
 mod resources;
 mod types;
 mod walk;
 
 pub use enumerate::{
-    enumerate_i2c_hid_devices, enumerate_platform_i2c_hosts, find_touchpads, find_touchscreens,
+    enumerate_i2c_hid_devices, enumerate_pci_i2c_hosts, enumerate_platform_i2c_hosts,
+    find_touchpads, find_touchscreens,
 };
 pub use hids::{classify_hid_device, TOUCHPAD_HIDS, TOUCHSCREEN_HIDS};
 pub use parse::{parse_hid_devices, parse_platform_controllers, I2cHostName};
+pub use pci_hosts::{parse_pci_controllers, I2cPciHost};
 pub use types::{HidInterrupt, I2cHidDevice, I2cHidDeviceType};

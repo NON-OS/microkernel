@@ -278,6 +278,7 @@
    "src/arch/x86_64/acpi/devices/i2c/hids.rs",
    "src/arch/x86_64/acpi/devices/i2c/names.rs",
    "src/arch/x86_64/acpi/devices/i2c/parse.rs",
+   "src/arch/x86_64/acpi/devices/i2c/pci_hosts.rs",
    "src/arch/x86_64/acpi/devices/i2c/resources.rs",
    "src/arch/x86_64/acpi/devices/i2c/types.rs",
    "src/arch/x86_64/acpi/devices/i2c/walk.rs",
