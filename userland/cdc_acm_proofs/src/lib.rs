@@ -14,6 +14,10 @@ pub mod wire;
 /// A modem's configuration, built a descriptor at a time.
 pub mod modem;
 
+/// Seeded sweeps over what a modem sends.
+#[cfg(test)]
+mod notice_sweep;
+
 #[cfg(test)]
 mod function_tests;
 #[cfg(test)]
@@ -21,6 +25,10 @@ mod hostile_tests;
 #[cfg(test)]
 mod line_tests;
 #[cfg(test)]
+mod notice_sweep_tests;
+#[cfg(test)]
 mod notice_tests;
 #[cfg(test)]
 mod owner_tests;
+#[cfg(test)]
+mod rx_sweep_tests;
