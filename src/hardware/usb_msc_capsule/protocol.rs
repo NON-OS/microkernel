@@ -40,6 +40,8 @@ pub(super) const E_NODEV: i32 = -19;
 pub(super) const E_INVAL: i32 = -22;
 pub(super) const E_MSGSIZE: i32 = -90;
 pub(super) const E_NOTSUP: i32 = -95;
+/// A logical unit with no medium in it: a card reader's empty slot.
+pub(super) const E_NOMEDIUM: i32 = -123;
 
 pub(super) fn encode_request(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
     transport::encode_request(MAGIC, VERSION, op, 0, request_id, body)

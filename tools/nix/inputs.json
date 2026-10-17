@@ -3506,6 +3506,7 @@
    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
    "nonos-data/trust/policy/zk_capsule_policy_root.bin",
    "src",
+   "userland/capsule_driver_usb_msc/src/protocol/errno.rs",
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
