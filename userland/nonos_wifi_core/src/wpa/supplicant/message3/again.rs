@@ -26,7 +26,9 @@ impl Supplicant {
         frame: &[u8],
         key: &EapolKey<'_>,
     ) -> StepOutput {
-        if !self.authentic_message3(frame, key) {
+        // A repeat of the message 3 already taken: the same ANonce, never a
+        // new PTK once connected.
+        if key.nonce != self.anonce || !self.authentic_message3(frame, key) {
             return StepOutput::none();
         }
         self.rx_replay = Some(key.replay_counter);
