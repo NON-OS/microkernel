@@ -42,6 +42,8 @@ mod pwr_switch_tests;
 #[cfg(test)]
 mod pwr_tests;
 #[cfg(test)]
+mod quiesce_tests;
+#[cfg(test)]
 mod rx_tests;
 #[cfg(test)]
 mod sae_forged_tests;
