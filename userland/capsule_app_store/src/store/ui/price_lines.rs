@@ -25,13 +25,17 @@ use super::text;
 use super::wrap_whole::wrap_whole;
 use crate::store::market::Kec;
 use crate::store::payee::payee_line;
-use crate::store::price::{price_line, Price};
+use crate::store::price::{gas_line, price_line, Price};
 use crate::store::theme::ACCENT;
 
 /// Paints and returns the y to carry on from.
 pub fn paint(fb: &mut PaintBuffer, p: &Price, left: u32, room: u32, mut top: i32) -> i32 {
     text::line(fb, left, top, &price_line(p), ACCENT, SMALL_PX);
     top += 20;
+    if let Some(gas) = gas_line(p) {
+        text::line(fb, left, top, gas, ACCENT, SMALL_PX);
+        top += 20;
+    }
     for part in payee_line(&Kec, p).map_or_else(Vec::new, |l| wrap_whole(&l, room, SMALL_PX)) {
         text::line(fb, left, top, &part, ACCENT, SMALL_PX);
         top += 20;
