@@ -10,10 +10,11 @@ use super::backup::{reg_backup, reg_restore};
 use super::cpu::{halt_cpu, reset_platform, start_cpu};
 use super::kinds::{Backup, Finish};
 use crate::regs::Mmio;
+use crate::wait::until_ms;
 
-/// Reads allowed before the firmware-ready handshake is declared failed. The
-/// 8051 needs real time to boot and raise the ready bits, so this is generous.
-const READY_POLL_LIMIT: u32 = 8_000_000;
+/// How long the 8051 may take to boot and raise the ready bits. rtw88 gives
+/// this chip 10 ms (`check_hw_ready`) and its older ones 200 ms; the longer.
+const READY_MS: u64 = 200;
 
 /// Prepare for download: stop the 8051, map the queues so the beacon queue can
 /// stage reserved pages, and reset the WL platform. Returns the saved registers.
@@ -43,12 +44,12 @@ pub fn finish<M: Mmio>(mmio: &M, backup: Backup) -> Finish {
     start_cpu(mmio);
 
     let mut last = 0u16;
-    for _ in 0..READY_POLL_LIMIT {
+    let ready = until_ms(READY_MS, || {
         last = mmio.read16(REG_MCUFW_CTRL);
-        if last & FW_READY_MASK == FW_READY {
-            return Finish::Ready;
-        }
-        core::hint::spin_loop();
+        last & FW_READY_MASK == FW_READY
+    });
+    if ready {
+        return Finish::Ready;
     }
     Finish::NotReady(last)
 }
