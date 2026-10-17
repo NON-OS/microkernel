@@ -19,9 +19,9 @@
 //! model's watch (`model/watch.rs`); and the owner's silence and a
 //! restart's leftovers, the two ends of a death seen from outside.
 
-mod flip_deaths;
+pub(crate) mod flip_deaths;
 pub mod kit;
 pub mod kit_held;
 mod leftover_tests;
-mod mode_deaths;
+pub(crate) mod mode_deaths;
 mod silence_tests;

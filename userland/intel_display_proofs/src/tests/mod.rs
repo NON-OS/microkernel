@@ -56,6 +56,7 @@ mod port_limit_tests;
 mod port_tests;
 mod power_tests;
 mod pps_tests;
+mod restart;
 mod route_tests;
 mod scanout_refusal_tests;
 mod scanout_tests;
