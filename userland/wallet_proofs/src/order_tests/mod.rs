@@ -16,6 +16,7 @@
 
 mod arming;
 mod buy_gate;
+mod clock_unit;
 mod consent_fee;
 mod consent_forward;
 mod consent_ids;

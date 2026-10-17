@@ -20,6 +20,7 @@ mod app;
 mod arm;
 mod attest;
 pub mod chain;
+mod clock;
 pub mod etna;
 mod event;
 mod hex_id;

@@ -39,7 +39,7 @@ fn marks(meter: &mut MeterUi) -> impl Iterator<Item = (&mut Option<u64>, [u8; 20
 
 /// A Shield withdraw of `asset` to `deposit` has started.
 pub fn started(state: &mut State, asset: u8, deposit: Option<[u8; 20]>) {
-    let now = nonos_tls::rtc_now();
+    let now = crate::wallet::clock::now_s();
     for (paid, to) in marks(&mut state.meter) {
         if pays_gas(asset, deposit, to) {
             *paid = Some(now);
