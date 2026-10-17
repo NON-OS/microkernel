@@ -43,6 +43,7 @@ fn amd_units_firmware_left_running_keep_running_without_the_backend() {
 
 #[test]
 fn the_dmar_platform_opt_in_is_bit_two_of_the_flags() {
+    let _turn = super::flags_tests::FLAGS_HELD.lock().unwrap_or_else(|e| e.into_inner());
     record(0);
     assert!(!dmar_platform_opt_in());
     record(0b0000_0100);

@@ -39,7 +39,9 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
             return;
         }
         if header.length as usize >= mem::size_of::<Dmar>() {
-            super::dmar_flags::record(ptr::read_volatile(addr as *const Dmar).flags);
+            let dmar = ptr::read_volatile(addr as *const Dmar);
+            super::dmar_flags::record(dmar.flags);
+            super::dmar_flags::record_width(dmar.host_address_width);
         }
         let mut cursor = addr + mem::size_of::<Dmar>() as u64;
         let end = addr + header.length as u64;
