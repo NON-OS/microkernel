@@ -44,7 +44,7 @@ pub mod vga_attr;
 pub mod vmd_domain;
 #[path = "align_tests.rs"]
 mod align_tests;
-#[path = "authorization_tests.rs"]
+#[path = "authorization_tests/mod.rs"]
 mod authorization_tests;
 #[path = "elf_section_tests.rs"]
 mod elf_section_tests;
