@@ -33,4 +33,7 @@ pub enum ClaimError {
     OutOfScope,
     /// A claim or a retire is under way on the device (K10c).
     Busy,
+    /// Another capsule holds a device this one reaches past the IOMMU, or
+    /// shares its requester id (K11b): said on the boot log, EBUSY here.
+    GroupHeld,
 }

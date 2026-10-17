@@ -31,17 +31,18 @@ pub(crate) const PORT: u16 = SV | RR | CR | UF;
 /// What a function of a multi-function device must redirect.
 pub(crate) const FUNCTION: u16 = RR | CR;
 
-/// The control word that turns `needed` on, when the capability offers it
-/// all; None when it does not, and no write helps.
-pub(crate) const fn enabling(cap: u16, ctrl: u16, needed: u16) -> Option<u16> {
-    if cap & needed == needed {
-        Some(ctrl | needed)
-    } else {
-        None
-    }
+/// The control word with what the capability offers of `needed` turned on.
+pub(crate) const fn enabling(cap: u16, ctrl: u16, needed: u16) -> u16 {
+    ctrl | (needed & cap)
 }
 
-/// Whether the capability and control words, if any, redirect `needed`.
+/*
+ * Whether the capability and control words, if any, redirect `needed`. A
+ * bit the capability does not offer is hard-wired: a port that forwards no
+ * peer traffic need not implement its redirect (PCIe 6.0, 6.12.1.1), as in
+ * Linux drivers/pci/pci.c `pci_acs_flags_enabled` (K11b). A function with
+ * no ACS capability redirects nothing.
+ */
 pub(crate) fn redirects(acs: Option<(u16, u16)>, needed: u16) -> bool {
-    acs.is_some_and(|(cap, ctrl)| (cap & ctrl) & needed == needed)
+    acs.is_some_and(|(cap, ctrl)| ctrl & (needed & cap) == needed & cap)
 }
