@@ -14,49 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! FUNDED (op 21, plan/21): whether one more install of a listing lands on
-//! a channel the meter holds, as one bit for app.store. The price is the
-//! listing's own, from its commerce record; the caller names a listing and
-//! a chain and nothing else, so the bit cannot bisect a deposit.
+//! FUNDED (op 21, plan/21): whether one more install of a listing would be
+//! charged, as one bit for app.store. The bit is PAY's own decision on the
+//! PAY an install makes: `priced` on the record, then `landing` on the
+//! meter's state, in the order PAY makes them (capsule_payment's
+//! handlers/pay.rs). The caller names a listing and a chain and nothing
+//! else; payee, unit and price are the record's, so the bit cannot bisect
+//! a deposit.
 
-use nonos_marketplace_abi::{commerce_from_bytes, SettleMode};
-use nonos_payment_proto::AccountRow;
+use nonos_marketplace_abi::commerce_from_bytes;
+use nonos_payment_proto::PayRequest;
 
-use super::super::channel::CHARGE_MARGIN;
+use super::landing::landing;
+use super::offer::priced;
 use super::record::Offer;
+use crate::state::MeterState;
 
-/// The listing's committed unitPrice, if PAY would charge one unit of it on
-/// `chain_id` (offer.rs `priced`): the release trusted, the record on that
-/// chain and in its NOX, a voucher listing, and one unit a nonzero charge
-/// at or above its minimum. Any other record, unreadable included, is None.
-pub fn committed(o: &Offer, chain_id: u64, nox: &[u8; 20]) -> Option<u128> {
+/// The PAY an install of `o` makes on `chain_id`: one unit of the record's
+/// unit at its unitPrice, to its payee, for the release it names. None
+/// when the commerce block does not read. Neither check reads the market
+/// strings or the call id, so they are left empty.
+pub fn install(o: &Offer, chain_id: u64) -> Option<PayRequest<'static>> {
     let c = commerce_from_bytes(&o.block).ok()?;
-    let pays = o.trusted && o.chain_id == chain_id && o.token.as_slice() == nox;
-    let one = c.unit_price != 0 && c.unit_price >= c.min_charge;
-    (pays && c.settle_mode == SettleMode::Voucher && one).then_some(c.unit_price)
+    Some(PayRequest {
+        listing_id: o.listing_id,
+        release_hash: o.release_hash,
+        payee: c.payee,
+        unit: c.unit,
+        qty: 1,
+        unit_price: c.unit_price,
+        call_id: [0; 32],
+        chain_id,
+        listing: b"",
+        release: b"",
+    })
 }
 
-/// Whether `r` takes a charge of `price` for `listing` on `chain_id` at
-/// `now`, unix s, as Channel::charged would: this listing and chain, not
-/// frozen, live past the margin, max(cumulative, settled) plus the price
-/// within deposit, checked.
-pub fn takes(r: &AccountRow, listing: &[u8; 32], chain_id: u64, price: u128, now: u64) -> bool {
-    let after = r.cumulative.max(r.settled).checked_add(price);
-    (&r.listing_id, r.chain_id) == (listing, chain_id)
-        && !r.frozen
-        && now.saturating_add(CHARGE_MARGIN) < r.expiry
-        && price != 0
-        && after.is_some_and(|c| c <= r.deposit)
-}
-
-/// The bit: `o` is the market's record for the listing asked about, `rows`
-/// the meter's channels. The channel is keyed by the record's listing id.
-pub fn funded<I>(rows: I, o: &Offer, chain_id: u64, nox: &[u8; 20], now: u64) -> bool
-where
-    I: IntoIterator<Item = AccountRow>,
-{
-    let Some(price) = committed(o, chain_id, nox) else {
+/// The bit: `o` is the market's record for the listing asked about, `s`
+/// the meter's state. Yes exactly when PAY would charge `install`.
+pub fn funded(s: &MeterState, o: &Offer, chain_id: u64, nox: &[u8; 20], now: u64) -> bool {
+    let Some(r) = install(o, chain_id) else {
         return false;
     };
-    rows.into_iter().any(|r| takes(&r, &o.listing_id, chain_id, price, now))
+    priced(&r, o, nox).and_then(|amount| landing(s, &r, amount, now)).is_ok()
 }

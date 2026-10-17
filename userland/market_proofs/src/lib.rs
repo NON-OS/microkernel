@@ -39,6 +39,8 @@ mod index_decode_tests;
 pub mod release_wire;
 
 pub mod meter;
+// The meter's files name each other from its crate root.
+use meter::{budget, channel, error, state};
 pub mod store;
 
 pub mod linux_why;
