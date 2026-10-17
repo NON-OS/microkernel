@@ -36,7 +36,7 @@ pub type Rig = Intel<Shared, ModelFrames, Ticks>;
 pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let (mut m, a, b) = setup();
     let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
-    let scan = Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(50)).unwrap();
+    let scan = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     let model = Rc::new(RefCell::new(m));
     let shared = Shared(model.clone());
     let len = scan.pages as usize * 4096;
