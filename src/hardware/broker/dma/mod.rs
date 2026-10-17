@@ -24,6 +24,7 @@ mod pool;
 mod records;
 mod release;
 mod scrub;
+mod sources;
 mod teardown;
 mod types;
 mod va;
