@@ -4358,6 +4358,17 @@
   "md": [],
   "signed": []
  },
+ "userland/shield_vectors_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_shield_vectors/src",
+   "userland/capsule_shield_vectors/vectors",
+   "userland/shield_vectors_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/shield_wire_proofs": {
   "exclude": [],
   "include": [
