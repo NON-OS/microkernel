@@ -30,13 +30,14 @@ const KEEP_CAP: u64 = 256 << 20;
 
 pub(super) fn enter(pid: u32, device_id: u64, fresh: Option<&Fresh>) -> Result<u64, ClaimError> {
     wipe::step_all(true);
-    let kept = crate::hardware::broker::dma::kept_bytes(device_id);
-    let over_cap = fresh.is_some() && kept >= KEEP_CAP;
     let mut claims = claims();
     if let Some(c) = claims.iter().find(|c| c.device_id == device_id) {
         return Err(over(c.stage));
     }
-    match fresh.map(|f| wipe::admits(device_id, f.by, over_cap)) {
+    // Read after the record, under the claims and wipes locks (L80); the
+    // kept list's lock is a leaf.
+    let capped = || crate::hardware::broker::dma::kept_bytes(device_id) >= KEEP_CAP;
+    match fresh.map(|f| wipe::admits(device_id, f.by, capped)) {
         None | Some(Admit::Go) => {}
         Some(Admit::Rearm) => {
             wipe::rearm(device_id);
