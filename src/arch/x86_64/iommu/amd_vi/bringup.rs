@@ -20,7 +20,8 @@
 //! alone (K4). All or nothing: a unit that cannot be reached leaves
 //! enforcement unclaimed.
 
-use super::devtab::{device_table, read_dte};
+use super::devtab::device_table;
+use super::devtab_entry::read_dte;
 use super::domain::device_id;
 use super::enable::enable_unit;
 use super::error::AmdViError;
