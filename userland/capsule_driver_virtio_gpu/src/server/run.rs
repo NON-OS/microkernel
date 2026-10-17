@@ -17,10 +17,15 @@
 //! sent to the pid the kernel says sent it. The loop wakes at least every
 //! WATCH_MS, a frame or not, so a silent owner is seen (`Server::watch`):
 //! its screen is blanked from zeroed primaries, the host's copies included.
+//! Each turn reads the host's display events first, and an output that
+//! changed (turned off or back, or a new size wanted) is told to the
+//! compositor at once with OUTPUT_NOTICE rather than on its next poll.
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_uptime_ms, recv_ready};
 
-use super::gone::leave;
+use nonos_gfx_wire::notice::OUTPUTS_CHANGED;
+
+use super::gone::{leave, tell};
 use super::turn::{turn, Turn};
 use crate::driver::Driver;
 
@@ -32,6 +37,9 @@ pub fn run(mut driver: Driver) -> ! {
     let (mut rx, mut tx) = ([0u8; 256], [0u8; 280]);
     let server = &mut driver.server;
     loop {
+        if server.display.events() {
+            tell(server.owner, OUTPUTS_CHANGED);
+        }
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WATCH_MS, &mut sender);
         let now = mk_uptime_ms().max(0) as u64;
