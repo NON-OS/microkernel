@@ -17,9 +17,7 @@
 //! nonos_route_link's sources the wallet's routing is held to, mounted by
 //! path. A route_link file the proofs need is one more mount here.
 
-#[allow(dead_code)]
 #[path = "../../nonos_route_link/src/describe.rs"]
 pub mod describe;
-#[allow(dead_code)]
 #[path = "../../nonos_route_link/src/pick.rs"]
 pub mod pick;
