@@ -39,12 +39,15 @@ pub(super) fn try_resume(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool {
         saved.kernel_sp = kstack;
     }
 
+    // Asked with the store, before anything is loaded (L77c).
+    if !pcb.mark_running() {
+        return true;
+    }
     if swap_address_space(pcb).is_err() {
         *pcb.state.lock() = ProcessState::Terminated(-1);
         return true;
     }
 
-    *pcb.state.lock() = ProcessState::Running;
     CURRENT_PID.store(pid, Ordering::SeqCst);
     set_time_slice(DEFAULT_TIME_SLICE);
 

@@ -26,24 +26,8 @@ use crate::process::nonos_core::{
 use crate::process::scheduler::preemption::{set_time_slice, DEFAULT_TIME_SLICE};
 use crate::smp::percpu;
 
-fn restore_syscall_user_rsp(pcb: &Arc<ProcessControlBlock>) {
-    let rsp = pcb.syscall_user_rsp.load(Ordering::Relaxed);
-    if rsp == 0 {
-        return;
-    }
-    unsafe {
-        core::arch::asm!(
-            "mov gs:0x28, {0}",
-            in(reg) rsp,
-            options(nomem, nostack, preserves_flags),
-        );
-    }
-}
-
-// CPL=0 resume path. Used when the PCB has no pending user-entry and
-// no saved user context — typically a kernel thread whose CpuContext
-// was parked in INTERRUPT_SAVED_CONTEXTS by the preempt/yield path.
-// Returns control to that context via CpuContext::restore.
+// CPL=0 resume of a context the preempt/yield path parked in
+// INTERRUPT_SAVED_CONTEXTS: no pending user entry, no saved user context.
 pub(super) fn resume_kernel_thread(pcb: &Arc<ProcessControlBlock>, pid: u32) {
     let ctx = match INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
         Some(c) => c,
@@ -58,6 +42,10 @@ pub(super) fn resume_kernel_thread(pcb: &Arc<ProcessControlBlock>, pid: u32) {
         *pcb.state.lock() = ProcessState::Terminated(-1);
         return;
     }
+    // Asked with the store, before anything is loaded (L77c).
+    if !pcb.mark_running() {
+        return;
+    }
 
     let cpu = percpu::current().cpu_id;
     unsafe {
@@ -69,7 +57,6 @@ pub(super) fn resume_kernel_thread(pcb: &Arc<ProcessControlBlock>, pid: u32) {
     percpu::set_kernel_stack(kstack);
 
     let cr3v = pcb.cr3.load(Ordering::Relaxed);
-    *pcb.state.lock() = ProcessState::Running;
     CURRENT_PID.store(pid, Ordering::SeqCst);
     set_time_slice(DEFAULT_TIME_SLICE);
 
@@ -83,6 +70,6 @@ pub(super) fn resume_kernel_thread(pcb: &Arc<ProcessControlBlock>, pid: u32) {
         init_fpu();
     }
 
-    restore_syscall_user_rsp(pcb);
+    super::user_rsp::restore_syscall_user_rsp(pcb);
     ctx.restore()
 }

@@ -21,7 +21,8 @@ use super::pick_gen::ROOT;
 use super::port_rule::{picked, Bridge, DOWNSTREAM, UPSTREAM};
 
 fn counted(b: &[Bridge]) -> Vec<usize> {
-    (0..b.len()).filter(|&at| picked(b, at)).collect()
+    let pick = picked(b);
+    (0..b.len()).filter(|&at| pick(at)).collect()
 }
 
 #[test]
@@ -32,7 +33,7 @@ fn a_bridge_left_unset_puts_no_root_port_in_a_switch() {
     let untyped = (0, Some(4), None);
     assert!(counted(&[roots[0], (2, Some(0), Some(ROOT)), untyped]).is_empty(), "no type");
     assert!(counted(&[roots[0], (1, Some(1), Some(UPSTREAM))]).is_empty(), "names its own bus");
-    assert!(!picked(&[], 0) && !picked(&[(0, Some(1), Some(DOWNSTREAM))], 1), "past the list");
+    assert!(!picked(&[])(0) && !picked(&[(0, Some(1), Some(DOWNSTREAM))])(1), "past the list");
 }
 
 #[test]

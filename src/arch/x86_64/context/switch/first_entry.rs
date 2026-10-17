@@ -36,6 +36,10 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
         *pcb.state.lock() = ProcessState::Terminated(-1);
         return true;
     }
+    // Asked with the store, before anything is loaded (L77c).
+    if !pcb.mark_running() {
+        return true;
+    }
 
     let cpu = percpu::current().cpu_id;
     unsafe {
@@ -54,7 +58,6 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
         crate::memory::paging::tlb::set_cr3(crate::memory::PhysAddr::new(cr3v));
     }
 
-    *pcb.state.lock() = ProcessState::Running;
     CURRENT_PID.store(pid, Ordering::SeqCst);
     set_time_slice(DEFAULT_TIME_SLICE);
 
