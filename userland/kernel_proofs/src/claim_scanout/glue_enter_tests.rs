@@ -33,7 +33,7 @@ fn bootfb_is_refused_once_surrendered_after_the_wipe_answer_before_the_push() {
             "let mut claims = claims();",
             "if let Some(c) = claims.iter().find(|c| c.device_id == device_id) \
          { return Err(over(c.stage)); }",
-            "match fresh.map(|f| wipe::admits(device_id, f.by, over_cap)) {",
+            "match fresh.map(|f| wipe::admits(device_id, f.by, capped)) {",
             "Some(Admit::Refused) => { drop(claims);",
         ],
     );
