@@ -50,17 +50,17 @@ impl Drop for Rig {
 
 /// A rig whose host shows `displays` (width, height) on scanouts 0, 1, ...
 pub fn rig_with(displays: &[(u32, u32)]) -> Rig {
-    dma_reset();
-    let h = harness();
     let host = Rc::new(RefCell::new(Host::default()));
     host.borrow_mut().displays[..displays.len()].copy_from_slice(displays);
+    rig_on(host)
+}
+
+/// A driver brought up on `host` as it stands, its DMA starting afresh.
+pub fn rig_on(host: Rc<RefCell<Host>>) -> Rig {
+    dma_reset();
+    let h = harness();
     let (gpu_host, region) = (Rc::clone(&host), Arc::clone(&h.region));
-    on_yield(move || {
-        let killed = gpu_host.borrow_mut().serve(&region);
-        if killed {
-            panic!("the driver is killed");
-        }
-    });
+    on_yield(move || assert!(!gpu_host.borrow_mut().serve(&region), "the driver is killed"));
     let (table, fences) = (ScanoutTable::new(), FenceCounter::new());
     seed(&h.queue, &table, &fences).expect("display info");
     let gpu = take((h.queue, fences), (7, 1), &table, Default::default()).expect("taken");
