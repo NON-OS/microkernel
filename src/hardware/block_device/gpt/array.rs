@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a header's partition entry array may lie and how much of it is
-//! read (UEFI 2.10, 5.3.2, as recalled, unverified): entries of 128 × 2^n
-//! bytes, at least one, the array after the header at LBA 1 and wholly
-//! before FirstUsableLBA, so no partition's I/O can reach it.
+//! What partition entry array a header may name and how much of it is read
+//! (UEFI 2.10, 5.3.2, as recalled, unverified): entries of 128 × 2^n bytes,
+//! at least one, wholly inside the room which.rs gives the header, so no
+//! partition's I/O can reach it.
 
 /// The fields read lie in an entry's first 128 bytes; a larger entry is
 /// legal and read for those alone, so a table written with them still
@@ -32,11 +32,14 @@ pub(crate) fn array_sectors(entries: u32, size: u32) -> u64 {
     (entries as u64 * size as u64).div_ceil(512)
 }
 
-/// Whether an array of `entries` of `size` bytes at `lba` is one to read,
-/// below a usable range starting at `first_usable`.
-pub(crate) fn array_fits(lba: u64, entries: u32, size: u32, first_usable: u64) -> bool {
-    let size_ok = size as usize >= ENTRY_MIN && size.is_power_of_two();
+/// Whether `entries` of `size` bytes are an array to read: entries of
+/// 128 x 2^n bytes, at least one, at most `ARRAY_MAX` in all.
+pub(crate) fn shaped(entries: u32, size: u32) -> bool {
     let bytes = entries as u64 * size as u64;
-    let end = lba.saturating_add(array_sectors(entries, size));
-    size_ok && entries >= 1 && bytes <= ARRAY_MAX && lba >= 2 && end <= first_usable
+    size as usize >= ENTRY_MIN && size.is_power_of_two() && entries >= 1 && bytes <= ARRAY_MAX
+}
+
+/// Whether that array at `lba` lies wholly in sectors `lo` up to `hi`.
+pub(crate) fn within(lba: u64, entries: u32, size: u32, lo: u64, hi: u64) -> bool {
+    lba >= lo && lba.saturating_add(array_sectors(entries, size)) <= hi
 }

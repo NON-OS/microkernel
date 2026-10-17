@@ -36,17 +36,18 @@ mod written;
 
 use gpt_damage::{put, seal, table, T};
 use kernel_gpt::{entries, header, places};
+use kernel_gpt::Which;
 
 #[test]
 fn a_nonos_partition_missing_doubled_or_too_small_places_nothing() {
     let (mut h, a0) = table();
     let read = |h: &mut Vec<u8>, a: &[u8]| {
         seal(h, a);
-        let hd = header::parse(h, T).unwrap();
+        let hd = header::parse_as(h, T, Which::Primary).unwrap();
         places(&entries(&hd, a).unwrap())
     };
     assert!(read(&mut h, &a0).is_some());
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     let end = entries(&hd, &a0).unwrap().iter().map(|e| e.last).max().unwrap();
     assert!(end + 8 <= hd.last_usable, "room for a second store");
     let mut a = a0.clone();
