@@ -9,3 +9,6 @@ license = "AGPL-3.0"
 
 [dependencies]
 ab_glyph = "0.2"
+
+[package.metadata.nonos]
+test-lane = true

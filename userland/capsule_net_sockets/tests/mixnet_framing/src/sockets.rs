@@ -1,4 +1,4 @@
 #[path = "../../../src/sockets/types.rs"]
-mod types;
+pub mod types;
 
 pub use types::SocketKey;
