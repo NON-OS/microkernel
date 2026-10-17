@@ -42,6 +42,7 @@ mod join;
 mod hex;
 mod mlme;
 mod netif;
+mod plane;
 mod pmf_frames;
 mod pmf_link_tests;
 mod pmf_plain_tests;
