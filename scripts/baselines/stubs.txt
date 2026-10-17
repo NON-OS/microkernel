@@ -95,7 +95,6 @@ userland/capsule_browser/src/browser/js/interp/natives/json_stringify.rs:25
 userland/capsule_desktop_shell/src/render/topbar/search_glyph.rs:17
 userland/capsule_driver_ahci/src/setup/say_skipped.rs:29
 userland/capsule_driver_hda/src/error/reason.rs:29
-userland/capsule_driver_i2c_hid/src/setup.rs:48
 userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome.rs:155
 userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome.rs:205
 userland/capsule_driver_iwlwifi/src/firmware/gen3/up.rs:55
@@ -106,7 +105,7 @@ userland/capsule_driver_iwlwifi/src/setup/sequence.rs:23
 userland/capsule_driver_nvme/src/error/reason.rs:29
 userland/capsule_driver_nvme/src/setup/say/failure.rs:35
 userland/capsule_driver_nvme/src/setup/say/mod.rs:25
-userland/capsule_driver_nvme/src/setup/sequence/bring_up.rs:45
+userland/capsule_driver_nvme/src/setup/sequence/bring_up.rs:48
 userland/capsule_driver_rtl8169/src/chip/detect.rs:59
 userland/capsule_driver_rtl8169/src/chip/error.rs:32
 userland/capsule_driver_rtl8169/src/chip/error.rs:43
