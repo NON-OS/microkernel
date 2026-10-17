@@ -16,6 +16,7 @@
 
 pub mod attach_map;
 mod dump;
+mod handle;
 #[cfg(feature = "input-probe-inject")]
 pub mod inject;
 pub mod input_ring;
