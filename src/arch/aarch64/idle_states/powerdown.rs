@@ -19,6 +19,7 @@
 use super::context::{resume_lost, SuspendContext, SLOTS};
 use super::flags::flags;
 use super::layout::{ARMED, FLAGS, MAGIC, MPIDR, RESUMED};
+use super::resume_map;
 use crate::arch::aarch64::cpu::mpidr_affinity;
 use crate::arch::aarch64::mmu::image_pa;
 use crate::arch::aarch64::psci::{conduit, PsciError, PsciMethod};
@@ -37,7 +38,7 @@ extern "C" {
 /// Whether a powerdown state may be asked for at all: there is firmware to
 /// ask, and no core has come back somewhere it could not return from.
 pub(super) fn available() -> bool {
-    conduit().is_some() && !resume_lost()
+    conduit().is_some() && !resume_lost() && resume_map::verified()
 }
 
 /// Enter powerdown state `param` on roster CPU `cpu`, the caller. True when

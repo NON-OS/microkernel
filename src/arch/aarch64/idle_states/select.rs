@@ -16,25 +16,8 @@
 
 //! Which of this CPU's states to enter now. Pure, so the proofs run it.
 
-use super::format::is_standby;
+use super::rules::{allowed, Allow};
 use crate::arch::fdt::find::idle::IdleState;
-
-/// What a CPU may enter beyond a standby state that keeps its timer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct Allow {
-    /// The resume path may be used (powerdown.rs).
-    pub powerdown: bool,
-    /// A broadcast frame will wake it for its deadline (timer::broadcast).
-    pub timer_stop: bool,
-}
-
-/// Whether `state` may be entered at all under `allow`: standby, so
-/// CPU_SUSPEND returns here on a wake, or powerdown with the resume path;
-/// and keeping the local timer, or stopping it with a broadcast frame.
-pub fn allowed(state: &IdleState, extended: bool, allow: Allow) -> bool {
-    (allow.timer_stop || !state.timer_stops)
-        && (allow.powerdown || is_standby(state.param, extended))
-}
 
 /// The deepest state, by `min-residency-us`, that this CPU may enter now:
 /// - one of its own (`list`, indices into `states`);

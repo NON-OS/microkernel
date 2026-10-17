@@ -7,7 +7,8 @@ use crate::arch::fdt::find::idle::{IdleState, MAX_STATES};
 const NONE: Allow = Allow { powerdown: false, timer_stop: false };
 const DOWN: Allow = Allow { powerdown: true, timer_stop: false };
 const ALL: Allow = Allow { powerdown: true, timer_stop: true };
-use crate::select::{pick, Allow};
+use crate::rules::Allow;
+use crate::select::pick;
 
 #[test]
 fn the_edges() {

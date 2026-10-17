@@ -18,9 +18,10 @@
 //! timer: both can change after boot (a lost resume, the frame's start).
 
 use super::powerdown;
-use super::select::Allow;
+use super::rules::{allowance, Allow};
 use crate::arch::aarch64::timer::broadcast;
 
-pub(super) fn allow() -> Allow {
-    Allow { powerdown: powerdown::available(), timer_stop: broadcast::ready() }
+/// What roster CPU `cpu` may enter now (`select::allowance`).
+pub(super) fn allow(cpu: usize) -> Allow {
+    allowance(cpu, broadcast::owner(), broadcast::ready(), powerdown::available())
 }

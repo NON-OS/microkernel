@@ -27,6 +27,8 @@
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
+use super::attributes::PTE_ADDR_MASK;
+
 /// SCTLR_EL1 M, C and I: translation, data and instruction caching.
 const SCTLR_MMU_ON: u64 = 1 << 0 | 1 << 2 | 1 << 12;
 
@@ -64,4 +66,10 @@ pub fn publish_for_secondaries() {
         at,
         core::mem::size_of_val(&AARCH64_MMU_CONTEXT) as u64,
     );
+}
+
+/// The TTBR0 table a core switching its MMU on from the record uses.
+pub fn published_root() -> Option<u64> {
+    let published = AARCH64_MMU_CONTEXT[4].load(Ordering::Acquire) != 0;
+    published.then(|| AARCH64_MMU_CONTEXT[2].load(Ordering::Acquire) & PTE_ADDR_MASK)
 }

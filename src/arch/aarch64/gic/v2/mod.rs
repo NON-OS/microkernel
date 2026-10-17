@@ -22,5 +22,6 @@ mod serve;
 mod sgi;
 
 pub(super) use cpu::{init, init_cpu};
+pub(super) use masks::of_affinity;
 pub(super) use serve::{acknowledge, end};
 pub(super) use sgi::{send, send_all_others};

@@ -29,6 +29,8 @@ pub mod layout;
 mod powerdown;
 mod prepare;
 mod psci_format;
+mod resume_map;
+pub mod rules;
 pub mod select;
 mod table;
 

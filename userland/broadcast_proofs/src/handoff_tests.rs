@@ -7,7 +7,7 @@ use crate::order_tests::{code, order};
 const HAND: &str = include_str!("../../../src/arch/aarch64/timer/broadcast/hand.rs");
 const START: &str = include_str!("../../../src/arch/aarch64/timer/broadcast/start.rs");
 const CALL: &str = include_str!("../../../src/arch/aarch64/idle_states/call.rs");
-const SELECT: &str = include_str!("../../../src/arch/aarch64/idle_states/select.rs");
+const RULES: &str = include_str!("../../../src/arch/aarch64/idle_states/rules.rs");
 const ALLOW: &str = include_str!("../../../src/arch/aarch64/idle_states/allow.rs");
 
 #[test]
@@ -30,17 +30,20 @@ fn a_deadline_is_handed_off_before_the_state_and_taken_back_after() {
 
 #[test]
 fn a_timer_stop_state_only_with_a_frame() {
-    let select = code(SELECT);
-    assert!(select.contains("(allow.timer_stop || !state.timer_stops)"));
-    assert!(code(ALLOW).contains("timer_stop: broadcast::ready()"));
-    assert!(code(HAND).contains("FRAME.get().is_some()"));
-    // The frame is ready only once its counter is checked and its
-    // interrupt taken.
+    let rules = code(RULES);
+    assert!(rules.contains("(allow.timer_stop || !state.timer_stops)"));
+    assert!(rules.contains("timer_stop: frame && other }"));
+    assert!(code(ALLOW).contains("allowance(cpu, broadcast::owner(), broadcast::ready(),"));
+    assert!(code(HAND).contains("FRAME.get().is_some() && OWNER.get().is_some()"));
+    // The frame is ready only once its counter is checked, its interrupt
+    // taken and aimed at the CPU that owns it.
     order(
         &code(START),
         &[
             "if seen < before || seen > after {",
             "register_irq_handler(",
+            "route_spi_here(found.intid)",
+            "OWNER.call_once(|| owner);",
             "FRAME.call_once(",
             "enable_irq(",
         ],

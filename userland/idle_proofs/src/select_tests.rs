@@ -3,7 +3,8 @@
 
 use crate::arch::fdt::find::idle::IdleState;
 use crate::format::is_standby;
-use crate::select::{pick, Allow};
+use crate::rules::Allow;
+use crate::select::pick;
 
 /// The rule, written out: the first listed of the eligible states whose
 /// residency no other eligible state exceeds.

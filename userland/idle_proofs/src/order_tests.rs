@@ -60,5 +60,5 @@ fn the_format_is_known_before_any_state_is_used() {
     let features = format.find("cpu_suspend_features()").unwrap();
     assert!(version < features && format.contains("flags & 0b10 != 0"));
     assert!(code(ENTER).contains("let extended = *EXTENDED.get()?;"));
-    assert!(code(ENTER).contains("budget_us(), allow())?;"));
+    assert!(code(ENTER).contains("budget_us(), allow(cpu))?;"));
 }

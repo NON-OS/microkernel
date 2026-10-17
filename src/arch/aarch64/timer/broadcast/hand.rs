@@ -17,12 +17,18 @@
 //! A CPU handing its deadline to the frame before its own timer stops, and
 //! taking it back after.
 
-use super::state::{BOOK, FRAME};
+use super::state::{BOOK, FRAME, OWNER};
 use crate::arch::aarch64::timer::PhysicalTimer;
 
-/// Whether a CPU may enter a state that stops its timer.
+/// Whether a CPU may enter a state that stops its timer: the frame is up
+/// and has an owner (the owner itself may not; `owner`).
 pub fn ready() -> bool {
-    FRAME.get().is_some()
+    FRAME.get().is_some() && OWNER.get().is_some()
+}
+
+/// The roster CPU the frame's interrupt is aimed at.
+pub fn owner() -> Option<usize> {
+    OWNER.get().copied()
 }
 
 /// Before roster CPU `cpu` enters a state that stops its timer: its

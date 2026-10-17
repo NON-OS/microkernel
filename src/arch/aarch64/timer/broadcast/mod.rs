@@ -28,5 +28,6 @@ mod handler;
 mod start;
 mod state;
 
-pub use hand::{hand_off, ready, take_back};
-pub use start::{describe, start};
+pub use hand::{hand_off, owner, ready, take_back};
+pub use start::start;
+pub use state::describe;
