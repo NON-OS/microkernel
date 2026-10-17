@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod api;
+mod entered;
 pub mod inbox_name;
 pub mod init;
 pub mod isolation;
