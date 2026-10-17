@@ -47,6 +47,9 @@ pub enum SaeFailure {
     BadCommit,
     /// The AP's confirm did not verify: a different password.
     BadConfirm,
+    /// The AP asked for an anti-clogging token more often than `TOKENS_MAX`,
+    /// or sent its commit again more often than `CONFIRMS_MAX` allows.
+    Looping,
 }
 
 /// What a received SAE frame calls for.

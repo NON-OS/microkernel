@@ -31,6 +31,9 @@ pub struct SaeStation {
     pub(super) peer_scalar: [u8; LEN],
     pub(super) peer_element: [u8; 2 * LEN],
     pub(super) failure: Option<SaeFailure>,
+    /// Anti-clogging tokens taken, and confirms sent, in this exchange.
+    pub(super) tokens: u8,
+    pub(super) confirms: u16,
 }
 
 impl SaeStation {
@@ -56,6 +59,8 @@ impl SaeStation {
             peer_scalar: [0u8; LEN],
             peer_element: [0u8; 2 * LEN],
             failure: None,
+            tokens: 0,
+            confirms: 0,
         })
     }
 }
