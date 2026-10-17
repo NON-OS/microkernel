@@ -29,7 +29,10 @@ pub fn read_field(data: &[u8], f: &Field) -> Option<i32> {
     let v =
         (0..size).fold(0u64, |v, b| v | ((data[(off + b) / 8] >> ((off + b) % 8) & 1) as u64) << b);
     let negative = f.min < 0 && size < 64 && v >> (size - 1) & 1 != 0;
-    Some(if negative { (v as i64 - (1i64 << size)) as i32 } else { v as i32 })
+    // An unsigned field of 32 bits can hold more than an i32: past it, the
+    // value is past any logical maximum, so it saturates there rather
+    // than wrapping to a negative one at the range's other end.
+    Some(if negative { (v as i64 - (1i64 << size)) as i32 } else { v.min(i32::MAX as u64) as i32 })
 }
 
 pub fn scale(v: i32, f: &Field) -> i32 {
@@ -41,8 +44,10 @@ pub fn scale(v: i32, f: &Field) -> i32 {
 }
 
 pub fn hat(v: i32, f: &Field) -> i32 {
+    // An inverted range holds no value, so the range test alone refuses
+    // every value of it; positions is then never 0 or less below.
     let positions = f.max as i64 - f.min as i64 + 1;
-    if v < f.min || v > f.max || positions <= 0 {
+    if v < f.min || v > f.max {
         return -1;
     }
     ((v as i64 - f.min as i64) * 8 / positions) as i32
