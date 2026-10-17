@@ -8,6 +8,8 @@ pub mod constants;
 pub mod server;
 /// The bounded bring-up every driver shares: its exit codes, its schedule,
 /// and its serve loop's turn.
+#[path = "../../libc/src/bringup/deadline.rs"]
+pub mod bringup_deadline;
 #[path = "../../libc/src/bringup/policy.rs"]
 pub mod bringup_policy;
 #[path = "../../libc/src/bringup/recv_turn.rs"]
@@ -21,6 +23,8 @@ mod ahci_tests;
 mod bringup_decide_tests;
 #[cfg(test)]
 mod bringup_tests;
+#[cfg(test)]
+mod deadline_tests;
 #[cfg(test)]
 mod recv_turn_tests;
 

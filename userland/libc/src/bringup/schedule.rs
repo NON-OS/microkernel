@@ -17,7 +17,7 @@
 //! The bounded bring-up schedule: how many attempts, and the sleep
 //! between them. Pure, so it is proven on the host.
 
-/// Attempts at bring-up before the driver gives up on the device.
+/// Attempts for a loop that counts its tries; bring_up runs by the clock.
 pub const BRINGUP_ATTEMPTS: u32 = 7;
 /// Sleep after the first failed attempt.
 pub const BRINGUP_FIRST_DELAY_MS: u64 = 100;
