@@ -52,4 +52,7 @@ pub struct SoftStation<R: Radio, E: Env> {
     /// The secret each network's address is made from; `None` without
     /// randomness, and then no join is made.
     pub(super) addresses: Option<Addresses>,
+    /// Set while the radio is turned off: no transmit path sends anything
+    /// (E-72). A held session is frozen, not torn down, and resumes on.
+    pub(super) off: bool,
 }
