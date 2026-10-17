@@ -43,6 +43,7 @@ pub mod session;
 mod smp;
 mod stray;
 mod timers;
+pub mod trust;
 pub mod us;
 mod user;
 

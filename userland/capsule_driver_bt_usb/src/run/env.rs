@@ -36,8 +36,8 @@ impl Env for CapsuleEnv {
     fn now_ms(&mut self) -> u64 {
         mk_uptime_ms().max(0) as u64
     }
-    fn input(&mut self, input: Input) {
-        self.keys.on(input);
+    fn input(&mut self, input: Input, authenticated: bool) {
+        self.keys.on(input, crate::link::trust::source_flags(authenticated));
     }
     fn tick(&mut self, now_ms: u64) {
         self.keys.tick(now_ms);

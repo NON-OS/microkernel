@@ -39,7 +39,13 @@ pub struct Keys {
 }
 
 impl Keys {
-    pub fn on(&mut self, input: Input) {
+    /// `source` is the G-76 trust the posting link carries (SOURCE_BT, and
+    /// BOND_AUTHENTICATED when its bond was authenticated). It rides in the
+    /// free high bits of each event's flags, beside the modifiers. The
+    /// pointer events set it here; the key events go through the USB HID
+    /// driver's shared `post_key`, which gains the same bits at integration
+    /// with G-76 (a posted key only ever comes from an authenticated bond).
+    pub fn on(&mut self, input: Input, source: u16) {
         let ok = match input {
             Input::KeyDown(u) | Input::KeyUp(u) if modifier_bit(u).is_some() => {
                 let bit = modifier_bit(u).unwrap_or(0);
@@ -52,12 +58,14 @@ impl Keys {
                 self.repeat.release(u);
                 self.post(u, false)
             }
-            Input::ButtonDown(n) => send(INPUT_KIND_BUTTON_DOWN, 0, u32::from(n), 0, 0),
-            Input::ButtonUp(n) => send(INPUT_KIND_BUTTON_UP, 0, u32::from(n), 0, 0),
-            Input::Motion { dx, dy } => send(INPUT_KIND_POINTER_REL, 0, 0, dx.into(), dy.into()),
+            Input::ButtonDown(n) => send(INPUT_KIND_BUTTON_DOWN, source, u32::from(n), 0, 0),
+            Input::ButtonUp(n) => send(INPUT_KIND_BUTTON_UP, source, u32::from(n), 0, 0),
+            Input::Motion { dx, dy } => {
+                send(INPUT_KIND_POINTER_REL, source, 0, dx.into(), dy.into())
+            }
             // The detents go in delta_y with HID's sign, as the USB driver
             // posts a wheel.
-            Input::Wheel(dz) => send(INPUT_KIND_WHEEL, 0, 0, 0, dz.into()),
+            Input::Wheel(dz) => send(INPUT_KIND_WHEEL, source, 0, 0, dz.into()),
         };
         self.failures += u64::from(!ok);
     }
