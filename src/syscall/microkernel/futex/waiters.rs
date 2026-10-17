@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Joining and leaving one futex's waiter list. Pure, so the order a wait
-//! takes them in can be checked on the host against every waker interleaving.
+//! Joining and leaving one futex's waiter list, pure so the host checks it.
 
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
@@ -38,19 +37,20 @@ pub(super) fn leave(queue: &mut BTreeMap<Key, Vec<u32>>, key: Key, pid: u32) {
     }
 }
 
-/// Leave on a return that does not sleep: the word had already changed. A
-/// pid a waker took off the list had that wake spent on it while it was
-/// returning anyway, and a waiter asleep behind it then slept out its whole
-/// timeout. A wake is owed to a waiter that will sleep, not to one on its way
-/// out, so the next waiter is taken in its place and handed back for the
-/// caller to wake.
-pub(super) fn leave_early(queue: &mut BTreeMap<Key, Vec<u32>>, key: Key, pid: u32) -> Option<u32> {
+/// Leave on a return that does not sleep: a wake spent on this pid goes to the
+/// next live waiter, for the caller to wake, never to one killed (L81).
+pub(super) fn leave_early(
+    queue: &mut BTreeMap<Key, Vec<u32>>,
+    key: Key,
+    pid: u32,
+    ended: impl Fn(u32) -> bool,
+) -> Option<u32> {
     if queue.get(&key).is_some_and(|waiting| waiting.contains(&pid)) {
         leave(queue, key, pid);
         return None;
     }
     let waiting = queue.get_mut(&key)?;
-    let next = (!waiting.is_empty()).then(|| waiting.remove(0));
+    let next = take_live(waiting, 1, ended).pop();
     if waiting.is_empty() {
         queue.remove(&key);
     }
