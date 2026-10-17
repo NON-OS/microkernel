@@ -19,8 +19,7 @@
  * buffer shared with the compositor, each frame committed as damage over it.
  */
 
-use nonos_app_skeleton::clients::compositor::{damage_commit, display_info, scene_submit};
-use nonos_app_skeleton::PaintBuffer;
+use nonos_app_skeleton::clients::compositor::{display_info, scene_submit};
 use nonos_libc::{mk_mmap, mk_surface_register, mk_surface_release, mk_surface_share};
 use nonos_libc::{SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
@@ -31,7 +30,7 @@ const MAP_PRIVATE_ANON: i32 = 0x22;
 pub(super) struct Surface {
     pub compositor: u32,
     pub router: u32,
-    base: u64,
+    pub(super) base: u64,
     pub width: u32,
     pub height: u32,
 }
@@ -60,16 +59,4 @@ pub(super) fn open() -> Result<Surface, &'static str> {
         return Err(why);
     }
     Ok(Surface { compositor, router, base: base_va, width, height })
-}
-
-impl Surface {
-    pub(super) fn buffer(&self) -> PaintBuffer<'static> {
-        let words = self.width as usize * self.height as usize;
-        let pixels = unsafe { core::slice::from_raw_parts_mut(self.base as *mut u32, words) };
-        PaintBuffer { pixels, stride_words: self.width, width: self.width, height: self.height }
-    }
-
-    pub(super) fn commit(&self, request_id: u32) {
-        let _ = damage_commit(self.compositor, request_id, 0, 0, self.width, self.height);
-    }
 }
