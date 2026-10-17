@@ -23,6 +23,7 @@ mod intx_parse;
 mod ranges;
 mod rid_map;
 
+pub use bus_range::bus_range;
 pub use find::{find, host};
 pub use info::PciHost;
 pub use intx::{IntxMap, IntxRoute, MAX_INTX};
