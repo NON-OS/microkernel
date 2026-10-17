@@ -21,6 +21,7 @@
 
 mod ack;
 mod bind;
+mod line_live;
 mod message;
 mod pending;
 mod pending_alloc;
