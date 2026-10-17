@@ -28,8 +28,9 @@
  * ending a thread it published and could not start.
  */
 
-#[path = "../../../../src/process/core/table/thread_start.rs"]
-pub mod thread_start;
 mod end_tests;
+mod entry_load_tests;
 mod entry_tests;
 mod tests;
+#[path = "../../../../src/process/core/table/thread_start.rs"]
+pub mod thread_start;

@@ -26,8 +26,16 @@ pub(super) fn naming(bridges: &[Bridge], bus: u8) -> impl Iterator<Item = &Bridg
 }
 
 /// Whether `b` ends a link where it sits: a root port nothing names, or a
-/// downstream port every bridge above which is a borne-out upstream port.
+/// downstream port every bridge above which is a borne-out upstream port;
+/// and either way one whose bus below holds one bridge at most, since a link
+/// carries one component and two bridges there are a switch's ports. A
+/// switch on a root bus with no root port above it, its upstream port saying
+/// root, is found by that alone (L77d).
 pub(super) fn ends(bridges: &[Bridge], ups: &[bool; 256], b: &Bridge) -> bool {
+    let on = |s: u8| bridges.iter().filter(|x| x.0 == s).count();
+    if b.1.is_some_and(|s| on(s) > 1) {
+        return false;
+    }
     match b.2 {
         Some(ROOT_PORT) => naming(bridges, b.0).next().is_none(),
         Some(DOWNSTREAM) => ups[b.0 as usize],
