@@ -57,6 +57,7 @@ pub fn lead(s: &Sending, read_back: bool) -> String {
         IntentStep::Review { .. } if s.pressed => "Reading the account's nonce, then signing…",
         IntentStep::Review { .. } => "Check every line: it is read from the bytes signed.",
         IntentStep::Broadcasting => "Sending…",
+        IntentStep::Unsure { .. } => "It may not have gone; reading the account's nonce first…",
         IntentStep::Sent(_) => "Sent; waiting for it to land. Its hash:",
         IntentStep::Landed if s.send.kind == 5 => "Landed: the bond is no longer held.",
         IntentStep::Landed => "Landed: the chain now reads what it set.",

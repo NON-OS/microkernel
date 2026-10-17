@@ -30,13 +30,23 @@ pub const HOLD_MS: i64 = 10 * 60 * 1000;
 /// gives the stake nothing to spend: either holds the next signature back
 /// until its receipt is read, or for `HOLD_MS` at most.
 pub fn held_back(state: &State) -> Option<&'static str> {
+    held_for(state, false)
+}
+
+/// The same for the path that signs next, the publisher screen's or a
+/// payment's: the other path's sends still waiting for a block hold it, so
+/// the two never take one nonce.
+pub fn held_for(state: &State, publisher: bool) -> Option<&'static str> {
     let now = nonos_libc::mk_uptime_ms();
-    let chain = chain::current().id;
-    if state.broadcast.sent.unknown_waiting(chain, &state.acct.address, now, HOLD_MS) {
+    let (chain, me) = (chain::current().id, &state.acct.address);
+    if state.broadcast.sent.unknown_waiting(chain, me, now, HOLD_MS) {
         return Some(
             "The last transaction may still land. A new one waits for its receipt, \
              for ten minutes at most, so nothing is paid twice.",
         );
+    }
+    if state.broadcast.sent.waiting_of(chain, me, !publisher) {
+        return Some("The last transaction is not in a block yet; a new one waits for it.");
     }
     if !awaiting(state) {
         return None;

@@ -6,3 +6,5 @@
 pub mod gas;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/send/outcome.rs"]
 pub mod outcome;
+/* The ledger, mounted at the crate root, where the intent files name it. */
+pub use crate::sent;

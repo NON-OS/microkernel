@@ -31,7 +31,7 @@ mod stake_calls;
 mod steps;
 pub mod text;
 
-pub use confirm::{follow, held_back, sign, sign_draft};
+pub use confirm::{follow, held_back, held_for, sign, sign_draft};
 pub use draft::{finish, held, plan, Draft, Plan};
 pub use steps::*;
 pub use text::{amount_text, asset_name, decimals, fee_text};

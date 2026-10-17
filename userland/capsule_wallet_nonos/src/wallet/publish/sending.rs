@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A publisher transaction under way (B8): the call, its send as signed,
- * its step, the calls after it, sent one at a time, each with its own
- * review and Sign, and when settle is asked next for a read that repeats.
+ * A publisher transaction under way (B8): the call, its send, its step,
+ * the calls after it, each with its own review and Sign, and when settle
+ * is asked next for a read that repeats.
  */
 
 use alloc::vec::Vec;
 
-use nonos_settle_proto::{OP_BROADCAST, OP_GAS, OP_INTENT, OP_READ};
+use nonos_settle_proto::{Quote, OP_BROADCAST, OP_GAS, OP_INTENT, OP_READ};
 
 use crate::wallet::intent::{IntentStep, Publisher, PublisherSend};
 
@@ -36,6 +36,8 @@ pub struct Sending {
     pub pressed: bool,
     /// What the keyring signed, broadcast next.
     pub raw: Option<Vec<u8>>,
+    /// The quote it was signed at and its own hash, for a broadcast unsure.
+    pub signed: Option<(Quote, [u8; 32])>,
 }
 
 impl Sending {
@@ -45,7 +47,7 @@ impl Sending {
         step: IntentStep,
         queue: Vec<Publisher>,
     ) -> Self {
-        Sending { call, send, step, queue, next_ms: 0, pressed: false, raw: None }
+        Sending { call, send, step, queue, next_ms: 0, pressed: false, raw: None, signed: None }
     }
 }
 

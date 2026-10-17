@@ -43,6 +43,8 @@ mod sent_fate;
 mod sent_judge;
 #[path = "sent_ledger.rs"]
 mod sent_ledger;
+#[path = "sent_paths.rs"]
+mod sent_paths;
 pub use sent_fate::{fate, Fate, Reading};
 pub use sent_ledger::usable;
 
@@ -67,4 +69,6 @@ pub struct Sent {
 #[derive(Clone, Default, PartialEq, Eq, Debug)]
 pub struct Ledger {
     pub list: Vec<Sent>,
+    /// The hashes the publisher screen sent; every other one is a payment's.
+    pub publisher: Vec<[u8; 32]>,
 }

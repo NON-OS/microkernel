@@ -27,8 +27,15 @@ use nonos_settle_proto::Quote;
 pub enum IntentStep {
     Quoting,
     Funds(Quote),
-    Review { quote: Quote },
+    Review {
+        quote: Quote,
+    },
     Broadcasting,
+    /// Settle did not confirm the broadcast: it may not have gone (retry.rs).
+    Unsure {
+        quote: Quote,
+        hash: [u8; 32],
+    },
     Sent([u8; 32]),
     Landed,
     Failed(&'static str),
