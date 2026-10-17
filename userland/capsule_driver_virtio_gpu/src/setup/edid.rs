@@ -25,10 +25,9 @@ use nonos_libc::mk_debug;
 use crate::device::cmd::get_edid;
 use crate::device::cmd::get_edid::EDID_MAX_LEN;
 use crate::device::ControlQueue;
-use crate::display::gpu::MAX_SIDE;
+use crate::display::modes::fits;
 
 pub fn panel(q: &ControlQueue, offered: bool) -> Panel {
-    let fits = |w: u32, h: u32| (640..=MAX_SIDE).contains(&w) && (480..=MAX_SIDE).contains(&h);
     let mut blob = [0u8; EDID_MAX_LEN];
     let read = if offered { get_edid(q, 0, &mut blob) } else { Err("not offered") };
     let p = read.map(|n| Panel::read(&blob[..n], fits)).unwrap_or_default();
