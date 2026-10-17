@@ -57,7 +57,7 @@ impl Radio for Forger {
 #[test]
 fn a_forged_sae_refusal_neither_ends_the_join_nor_turns_it_to_wpa2() {
     let mut radio = Forger(Vec::new(), 0);
-    let entropy = Entropy { snonce: [0x11; 32], sae: [0x22; SAE_ENTROPY] };
+    let entropy = Entropy { snonce: [0x11; 32], sae: [0x22; SAE_ENTROPY], rekey: [0x6B; 32] };
     let (ssid, passphrase, policy) = (&b"net"[..], &b"password123"[..], JoinPolicy::ANY);
     let req = JoinRequest { our_mac: OUR, ssid, passphrase, policy, entropy };
     let mut t = 0u64;

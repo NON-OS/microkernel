@@ -10,7 +10,7 @@ use super::request::{Entropy, JoinRequest, SAE_ENTROPY};
 use crate::rsn::JoinPolicy;
 
 fn entropy() -> Entropy {
-    Entropy { snonce: [0x52; 32], sae: [0x5A; SAE_ENTROPY] }
+    Entropy { snonce: [0x52; 32], sae: [0x5A; SAE_ENTROPY], rekey: [0x6B; 32] }
 }
 
 #[test]
@@ -36,6 +36,7 @@ fn the_machines_secrets_read_zero_after_it_is_dropped() {
         assert_eq!(read_volatile(addr_of!((*m).pmk)), [0; 32], "the PMK");
         assert_eq!(read_volatile(addr_of!((*m).snonce)), [0; 32], "the SNonce");
         assert_eq!(read_volatile(addr_of!((*m).sae_entropy)), [0; SAE_ENTROPY], "SAE's bytes");
+        assert_eq!(read_volatile(addr_of!((*m).rekey_seed)), [0; 32], "the rekey seed");
     }
 }
 
@@ -48,5 +49,6 @@ fn a_joins_randomness_reads_zero_after_it_is_dropped() {
         drop_in_place(e);
         assert_eq!(read_volatile(addr_of!((*e).snonce)), [0; 32]);
         assert_eq!(read_volatile(addr_of!((*e).sae)), [0; SAE_ENTROPY]);
+        assert_eq!(read_volatile(addr_of!((*e).rekey)), [0; 32]);
     }
 }

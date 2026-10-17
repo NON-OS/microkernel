@@ -11,7 +11,7 @@ use crate::wpa::akm::Akm;
 #[test]
 fn the_supplicants_keys_read_zero_after_it_is_dropped() {
     let rsne = [0x30, 0x14, 1, 0, 0, 0x0F, 0xAC, 4, 1, 0, 0, 0x0F, 0xAC, 4, 1, 0, 0, 0x0F, 0xAC, 2];
-    let s = Supplicant::configure(&Config {
+    let mut s = Supplicant::configure(&Config {
         pmk: [0x44; 32],
         aa: [2, 0, 0, 0, 1, 0],
         spa: [2, 0, 0, 0, 0, 0],
@@ -23,6 +23,7 @@ fn the_supplicants_keys_read_zero_after_it_is_dropped() {
         ap_rsnxe: None,
         pmf: false,
     });
+    s.reseed_rekey([0x99; 32]);
     let mut slot = MaybeUninit::new(s);
     let p = slot.as_mut_ptr();
     // SAFETY: `p` points at the Supplicant `slot` holds, which outlives the
@@ -35,5 +36,6 @@ fn the_supplicants_keys_read_zero_after_it_is_dropped() {
         assert_eq!(read_volatile(addr_of!((*p).ptk)), [0; 48], "the PTK");
         assert_eq!(read_volatile(addr_of!((*p).gtk)), [0; 32], "the GTK");
         assert_eq!(read_volatile(addr_of!((*p).igtk)), [0; 16], "the IGTK");
+        assert_eq!(read_volatile(addr_of!((*p).rekey_seed)), [0; 32], "the rekey seed");
     }
 }

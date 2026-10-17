@@ -31,6 +31,8 @@ pub const SECRET_MAX: usize = 64;
 pub struct Entropy {
     pub snonce: [u8; 32],
     pub sae: [u8; SAE_ENTROPY],
+    /// The seed pairwise rekeys draw their SNonces from (`Supplicant`).
+    pub rekey: [u8; 32],
 }
 
 impl Entropy {
@@ -38,8 +40,8 @@ impl Entropy {
     /// says it could not. None when either draw fails, so a join is refused
     /// before it begins and never runs on zeros.
     pub fn draw(mut fill: impl FnMut(&mut [u8]) -> bool) -> Option<Entropy> {
-        let mut e = Entropy { snonce: [0; 32], sae: [0; SAE_ENTROPY] };
-        (fill(&mut e.snonce) && fill(&mut e.sae)).then_some(e)
+        let mut e = Entropy { snonce: [0; 32], sae: [0; SAE_ENTROPY], rekey: [0; 32] };
+        (fill(&mut e.snonce) && fill(&mut e.sae) && fill(&mut e.rekey)).then_some(e)
     }
 }
 

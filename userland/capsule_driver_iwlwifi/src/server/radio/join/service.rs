@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The open port serviced between requests.
 use super::super::clock::{now_ms, Uptime};
+use super::super::entropy::reseed;
 use super::super::say::Line;
 use super::super::{Radio, State};
 use super::say_link::{say_link, say_loss};
@@ -32,6 +33,9 @@ impl Radio {
         let mut clock = Uptime;
         let mut fw = Fw { dev: &mut up.dev, tx, clock: &mut clock, q: &mut self.join.q, inbox: &mut self.join.inbox };
         Port { fw: &mut fw, link: &mut j.link }.service();
+        if j.link.new_pairwise_key.is_some() {
+            reseed(&mut j.link.station);
+        }
         if let Some(Err(_)) = j.rekey(&mut fw) {
             Line::new().text(b"link: the new group key did not go in").send();
         }
