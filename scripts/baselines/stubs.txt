@@ -131,7 +131,7 @@ userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:26
 userland/capsule_driver_xhci/src/error/reason.rs:28
 userland/capsule_image_codec/src/server/handlers/decode_sized.rs:47
 userland/capsule_image_codec/src/server/handlers/decode_sized.rs:77
-userland/capsule_image_viewer/src/viewer/decode.rs:39
+userland/capsule_image_viewer/src/viewer/decode_op.rs:21
 userland/capsule_terminal/src/command/builtin/nox/pull/fetch.rs:228
 userland/capsule_terminal/src/command/builtin/nox/pull/redirect.rs:25
 userland/capsule_terminal/src/command/builtin/nox/pull/redirect.rs:41
