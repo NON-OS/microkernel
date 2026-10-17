@@ -38,7 +38,9 @@ pub fn find(config: &[u8], play: bool) -> Option<Stream> {
                     UAC2 => 2,
                     _ => 0,
                 };
-                let streaming = d[5] == CLASS_AUDIO && d[6] == SUBCLASS_STREAMING && version != 0;
+                // Another protocol (version 0) needs no refusing here: no
+                // AS_GENERAL or Format Type I reads as PCM for it.
+                let streaming = d[5] == CLASS_AUDIO && d[6] == SUBCLASS_STREAMING;
                 let s = Stream { interface: d[2], alt: d[3], version, ..Stream::default() };
                 cur = Alt { s, streaming, ..Alt::default() };
             }
