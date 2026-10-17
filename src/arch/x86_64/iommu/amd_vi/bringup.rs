@@ -23,10 +23,13 @@
 use super::devtab::device_table;
 use super::devtab_entry::read_dte;
 use super::domain::device_id;
+use super::efr::walks;
 use super::enable::enable_unit;
 use super::error::AmdViError;
 use super::intr_rule::passes_any;
 use super::mmio::Unit;
+use super::pte::LEVELS;
+use super::regs;
 use super::units::{record, set_enforcing, Units};
 use crate::arch::x86_64::acpi::parser::other::{amd_iommu_bases, amd_iommu_spans};
 
@@ -39,6 +42,11 @@ pub(super) fn bring_up() -> Result<usize, AmdViError> {
     let mut mapped = Units::new();
     for base in bases.iter() {
         let unit = Unit::map(*base).ok_or(AmdViError::RegistersUnmappable)?;
+        // Every domain is Mode 4: a unit whose HATS walks fewer is refused.
+        let efr = unit.read64(regs::EXT_FEATURE).ok_or(AmdViError::DepthUnsupported)?;
+        if !walks(efr, LEVELS) {
+            return Err(AmdViError::DepthUnsupported);
+        }
         mapped.push(unit).map_err(|_| AmdViError::NotPresent)?;
     }
     let units = record(mapped);
