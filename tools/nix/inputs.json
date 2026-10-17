@@ -2921,7 +2921,9 @@
    "userland/capsule_driver_ahci/src/protocol",
    "userland/capsule_driver_ahci/src/server/handlers/rw_parse.rs",
    "userland/driver_proofs",
-   "userland/libc/src/bringup/policy.rs"
+   "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/bringup/recv_turn.rs",
+   "userland/libc/src/bringup/schedule.rs"
   ],
   "md": [],
   "signed": []
