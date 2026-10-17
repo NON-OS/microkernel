@@ -22,7 +22,11 @@
 pub mod attach_steps;
 #[path = "../../../../src/arch/x86_64/iommu/tables/frames_of.rs"]
 pub mod frames_of;
+#[path = "../../../../src/arch/x86_64/iommu/backend/noted.rs"]
+pub mod noted;
 #[cfg(test)]
 mod frames_tests;
+#[cfg(test)]
+mod noted_tests;
 #[cfg(test)]
 mod tests;
