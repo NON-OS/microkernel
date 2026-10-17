@@ -16,7 +16,7 @@
 
 //! The release's approval of the kernel, served by `MkInstallSource`.
 
-use super::errnos::{ERRNO_FAULT, ERRNO_NOENT};
+use super::errnos::ERRNO_NOENT;
 
 /// The approval the loader handed over, read like an image: the bytes from
 /// `offset`, zero past the end. None handed over is no such image.
@@ -27,14 +27,5 @@ pub(super) fn approval(offset: u64, out_ptr: u64, out_len: u64) -> i64 {
     if h.policy.approval_present != 1 {
         return ERRNO_NOENT;
     }
-    let all = &h.policy.approval[..];
-    let start = usize::try_from(offset).unwrap_or(usize::MAX).min(all.len());
-    let end = all.len().min(start.saturating_add(usize::try_from(out_len).unwrap_or(usize::MAX)));
-    if end == start {
-        return 0;
-    }
-    if crate::usercopy::write_user_bytes(out_ptr, &all[start..end]).is_err() {
-        return ERRNO_FAULT;
-    }
-    (end - start) as i64
+    super::install_source_records::serve(&h.policy.approval[..], offset, out_ptr, out_len)
 }
