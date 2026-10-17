@@ -85,6 +85,24 @@ the wallet. While locked they stay in memory but are never drawn; unlocking
 returns straight to the backup screen. They are wiped on that confirmation,
 when a generate fails, and when the next generate writes over them.
 
+## The purchase consent and what it cannot stop
+
+A purchase the store names shows nothing until the market's four answers
+are in, are for the names asked and pass `read_named`
+(`src/wallet/order/terms`). The consent then says, by the wallet's own name,
+whom it pays in full, and the wallet raises and focuses its window. Buy is
+armed only once the consent is drawn and the window manager says the
+wallet holds focus (`OP_QUERY_FOCUS`), and only after a further second;
+the second starts again whenever focus is lost and won back, and focus lost
+over the consent sends the purchase back to reading its terms
+(`src/wallet/order/guard`).
+
+These blunt focus stealing and a fake window drawn to look like the
+wallet. They cannot stop a click falling through an overlay that another
+capsule draws above the wallet: the compositor lets any client draw over
+any window while clicks follow the window manager's stacking. The fix is
+manager.
+
 ## Tests
 
 `userland/wallet_proofs` mounts the wallet's pure helpers (amounts, scaling,

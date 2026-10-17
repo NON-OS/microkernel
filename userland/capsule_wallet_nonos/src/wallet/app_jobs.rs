@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A tick in order, and the press, shield and meter jobs it steps.
+//! A tick in order: a consent's focus, then the press, shield and meter
+//! jobs it steps.
 
 use super::{mk_uptime_ms, Wallet};
 
 impl Wallet {
     /// One tick: the first checks, then the jobs, then the refresh.
     pub(super) fn tick(&mut self) -> bool {
+        // A consent's focus first, whatever else this tick holds (order/guard).
+        let guard = crate::wallet::order::guard::poll::poll(&mut self.state);
         if let Some(r) = self.tick_gate() {
-            return r;
+            return r || guard;
         }
         if let Some(r) = self.tick_jobs() {
-            return r;
+            return r || guard;
         }
-        self.tick_refresh()
+        self.tick_refresh() || guard
     }
 
     /// A press's, the shield's or the meter's job. Some when one ran.
