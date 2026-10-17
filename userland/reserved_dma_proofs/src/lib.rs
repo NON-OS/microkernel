@@ -17,6 +17,8 @@ pub mod device;
 pub mod entry;
 #[path = "../../../src/hardware/broker/confine/held.rs"]
 pub mod held;
+#[path = "../../../src/arch/fdt/find/iommus/limits.rs"]
+pub mod iommus_limits;
 #[path = "../../../src/hardware/broker/confine/iova_space.rs"]
 pub mod iova_space;
 #[path = "../../../src/arch/aarch64/iommu/reserved/lookup.rs"]
@@ -40,6 +42,9 @@ pub mod memory {
 pub mod arch {
     pub mod fdt {
         pub mod find {
+            pub mod iommus {
+                pub use crate::iommus_limits::MAX_STREAMS;
+            }
             pub mod reserved_dma {
                 pub use crate::entry::{Owner, TreeRange, MAX_STREAMS};
             }
