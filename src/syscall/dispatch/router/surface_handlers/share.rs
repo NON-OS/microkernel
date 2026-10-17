@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::kernel_core::surface_registry::share::share_write;
 use crate::kernel_core::surface_registry::{
     attach_surface, lookup_owned, share_surface, SurfaceDescriptor,
 };
@@ -22,18 +23,32 @@ use crate::syscall::dispatch::util::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::write_user_value;
 
-use super::super::surface_ops::{map_err, EFAULT, ESRCH};
+use super::super::surface_ops::{map_err, EFAULT, EINVAL, ESRCH};
+use super::receiver::receiver;
 
-pub(in super::super) fn do_share(sid: u64) -> SyscallResult {
+/// Share `sid` with `target`, the one process besides the caller that may
+/// attach it; `flags` SHARE_WRITE maps its view writable (K20).
+pub(in super::super) fn do_share(sid: u64, target: u64, flags: u64) -> SyscallResult {
     let pid = match current_pid() {
         Some(p) => p,
         None => return errno(ESRCH),
+    };
+    let Some(write) = share_write(flags) else {
+        return errno(EINVAL);
+    };
+    let target = match receiver(pid, target) {
+        Ok(t) => t,
+        Err(e) => return errno(e),
     };
     let handle = match lookup_owned(pid, sid) {
         Ok(h) => h,
         Err(e) => return errno(map_err(e)),
     };
-    match share_surface(pid, handle) {
+    // The owner's own process: its handle, and no right recorded.
+    let Some(target) = target else {
+        return SyscallResult::success_audited(handle as i64);
+    };
+    match share_surface(pid, handle, target, write) {
         Ok(h) => SyscallResult::success_audited(h as i64),
         Err(e) => errno(map_err(e)),
     }

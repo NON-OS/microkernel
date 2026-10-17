@@ -6,7 +6,11 @@ use nonos_libc::{
     SURFACE_FORMAT_ARGB8888,
 };
 
-pub(super) fn share_input(bytes: &[u8]) -> Result<(u64, u64, *mut u8, usize), &'static str> {
+/// The input as a surface only `codec` maps, read-only (K20).
+pub(super) fn share_input(
+    bytes: &[u8],
+    codec: u32,
+) -> Result<(u64, u64, *mut u8, usize), &'static str> {
     let byte_len = bytes.len() as u64;
     let padded = ((bytes.len() + 3) & !3).max(4);
     let base = mk_mmap(core::ptr::null_mut(), padded, 0x3, 0x22, -1, 0);
@@ -28,13 +32,15 @@ pub(super) fn share_input(bytes: &[u8]) -> Result<(u64, u64, *mut u8, usize), &'
         byte_len: padded as u64,
         base_va: base as u64,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         let _ = mk_munmap(base, padded);
         return Err("input register failed");
     }
-    let handle = mk_surface_share(sid as u64);
+    let handle = mk_surface_share(sid as u64, codec, 0);
     if handle <= 0 {
         let _ = mk_munmap(base, padded);
         return Err("input share failed");
