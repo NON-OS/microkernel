@@ -50,3 +50,6 @@ pub const OP_ORDER_PLAINTEXT: u16 = 18;
 pub const OP_PURCHASE: u16 = 19;
 /// One listing's cap, the rest of the budget kept (v1.4.43, wallet).
 pub const OP_LISTING_CAP: u16 = 20;
+/// app.store: whether a voucher listing's channel takes one more install,
+/// one byte the meter decides from the listing's own price (funded.rs).
+pub const OP_FUNDED: u16 = 21;

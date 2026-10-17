@@ -41,5 +41,6 @@ pub const DELIVERERS: [&[u8]; 4] =
 /// The install role alone takes an order's plaintext (op 18, plan/29).
 pub const INSTALL: [&[u8]; 1] = [b"app.linux.install"];
 
-/// The store alone posts a purchase's names (op 19/0, plan/27).
+/// The store alone posts a purchase's names (op 19/0, plan/27) and asks
+/// whether a listing's channel takes one more install (op 21, FUNDED).
 pub const STORE: [&[u8]; 1] = [b"app.store"];
