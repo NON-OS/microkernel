@@ -7,6 +7,8 @@
 
 #[path = "../../../src/arch/aarch64/idle_states/format.rs"]
 pub mod format;
+#[path = "../../../src/arch/aarch64/idle_states/rules.rs"]
+pub mod rules;
 #[path = "../../../src/arch/aarch64/idle_states/select.rs"]
 pub mod select;
 #[path = "../../../src/arch/fdt/find/idle/types.rs"]

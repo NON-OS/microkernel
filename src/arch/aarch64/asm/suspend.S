@@ -201,10 +201,15 @@ _aarch64_resume_start:
     br      x16
 
 .size _aarch64_resume_start, . - _aarch64_resume_start
+/* Where the stub ends: the boot check (idle_states/resume_map.rs) asks
+ * that every byte from _aarch64_resume_start to here runs one to one. */
+.globl _aarch64_resume_start_end
+_aarch64_resume_start_end:
 
 
 .section .text.aarch64_resume_high, "ax", %progbits
 .balign 16
+.globl aarch64_resume_high
 .type  aarch64_resume_high, %function
 
 aarch64_resume_high:
@@ -329,3 +334,5 @@ aarch64_resume_high:
     b       18b
 
 .size aarch64_resume_high, . - aarch64_resume_high
+.globl aarch64_resume_high_end
+aarch64_resume_high_end:
