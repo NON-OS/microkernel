@@ -14,48 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hid::report_desc::layout::{Field, TouchLayout};
+//! An input field of the touch report, recorded the first time its usage
+//! is seen, so a report that repeats X and Y for every finger keeps the
+//! first contact's. Usages are page in the top half, usage in the bottom.
 
-const USAGE_PAGE_GENERIC_DESKTOP: u16 = 0x01;
-const USAGE_PAGE_BUTTON: u16 = 0x09;
-const USAGE_PAGE_DIGITIZER: u16 = 0x0D;
+use super::field_at::FieldAt;
+use crate::hid::report_desc::{Field, TouchLayout};
 
-const USAGE_X: u16 = 0x30;
-const USAGE_Y: u16 = 0x31;
-const USAGE_TIP_SWITCH: u16 = 0x42;
-const USAGE_CONFIDENCE: u16 = 0x47;
-const USAGE_CONTACT_ID: u16 = 0x51;
-const USAGE_CONTACT_COUNT: u16 = 0x54;
+const X: u32 = 0x0001_0030;
+const Y: u32 = 0x0001_0031;
+pub(super) const TIP_SWITCH: u32 = 0x000D_0042;
+const CONFIDENCE: u32 = 0x000D_0047;
+const CONTACT_ID: u32 = 0x000D_0051;
+const CONTACT_COUNT: u32 = 0x000D_0054;
+const BUTTON_PAGE: u32 = 0x0009;
 
-// Record a field the first time its usage is seen, so multitouch reports that
-// repeat X/Y per finger keep the primary contact.
-pub(super) fn assign(
-    layout: &mut TouchLayout,
-    page: u16,
-    usage: u16,
-    report_id: u8,
-    bit_offset: u32,
-    bit_size: u32,
-    logical_max: i32,
-) {
-    let field = Field { bit_offset, bit_size, logical_max };
-    match (page, usage) {
-        (USAGE_PAGE_GENERIC_DESKTOP, USAGE_X) if !layout.x.present() => {
-            layout.x = field;
-            layout.report_id = report_id;
-        }
-        (USAGE_PAGE_GENERIC_DESKTOP, USAGE_Y) if !layout.y.present() => layout.y = field,
-        (USAGE_PAGE_DIGITIZER, USAGE_TIP_SWITCH) if !layout.tip.present() => layout.tip = field,
-        (USAGE_PAGE_DIGITIZER, USAGE_CONFIDENCE) if !layout.confidence.present() => {
-            layout.confidence = field
-        }
-        (USAGE_PAGE_DIGITIZER, USAGE_CONTACT_ID) if !layout.contact_id.present() => {
-            layout.contact_id = field
-        }
-        (USAGE_PAGE_DIGITIZER, USAGE_CONTACT_COUNT) if !layout.contact_count.present() => {
-            layout.contact_count = field
-        }
-        (USAGE_PAGE_BUTTON, _) if !layout.button.present() => layout.button = field,
-        _ => {}
+pub(super) fn assign(l: &mut TouchLayout, f: &FieldAt) {
+    let slot: &mut Field = match f.usage {
+        X if !f.relative => &mut l.x,
+        Y if !f.relative => &mut l.y,
+        TIP_SWITCH => &mut l.tip,
+        CONFIDENCE => &mut l.confidence,
+        CONTACT_ID => &mut l.contact_id,
+        CONTACT_COUNT => &mut l.contact_count,
+        u if u >> 16 == BUTTON_PAGE => &mut l.button,
+        _ => return,
+    };
+    if !slot.present() {
+        *slot = f.field();
     }
 }

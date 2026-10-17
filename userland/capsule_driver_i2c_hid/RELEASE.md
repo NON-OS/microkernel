@@ -7,13 +7,16 @@ What the capsule does today and what release still needs. The summary is in
 
 - Runtime service lookup for `driver.i2c_pci0`.
 - Bounded HID descriptor reads through `OP_TRANSFER`.
-- The address from `driver.i2c_pci0` (`OP_ACPI_HID`), then a probe list covering
-  common ELAN, Synaptics, FocalTech, and alternate HID addresses, within the
-  controller's reach.
-- IPC health, reprobe, and descriptor export (unreachable at this commit).
+- The address from `driver.i2c_pci0` (`OP_ACPI_HID`) and no other: no scan;
+  given up after 30 s with nothing to drive.
+- IPC health and descriptor export (unreachable at this commit).
 - Power-on, reset and the zero-length reset report, each wait a sleep.
-- Report descriptor parse for the touch report, input report reads, and relative
-  and absolute decodes posted to the kernel input ring.
+- The report descriptor walked by usb_hid's walker (shared as source), with
+  Push and Pop, per-report offsets, usage ranges and four-byte usages; a
+  device that is no touchpad or mouse released asleep.
+- Input reads paced by the interrupt line where the controller senses it,
+  else every 2 ms while reports come and 16 ms when quiet; a self-reset pad
+  set up again and its click let go, read back or not.
 - No persistent input history and no direct hardware access.
 
 ## Release target
@@ -39,9 +42,10 @@ descriptor delivered to the input runtime without kernel-resident input policy.
 
 ## Explicit non-goals today
 
-This slice does not implement an I2C keyboard, keyboard layout mapping, touch
-filtering beyond the gesture decoder, focus routing, or power management beyond
-the wake and reset at start.
+This slice does not drive an I2C keyboard or touch screen (both are released),
+keyboard layout mapping, touch filtering beyond the gesture decoder, or focus
+routing. Suspend and resume (SET_POWER) are not here: they need a
+system-sleep path, in the kernel or a power capsule, to call this driver.
 
 ## Verification
 
@@ -49,5 +53,5 @@ the wake and reset at start.
 - Kernel profile: `cargo check --no-default-features --features
   microkernel-driver-i2c-hid`
 - Static gate: `bash nonos-ci/run-static-checks.sh`
-- Proofs: `(cd userland/i2c_hid_proofs && cargo test --release)`.
+- Proofs: `(cd userland/i2c_hid_proofs && cargo test)`, a debug build.
 - Handbook: [drivers](../../docs/handbook/drivers.md).
