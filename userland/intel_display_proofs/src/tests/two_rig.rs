@@ -59,7 +59,8 @@ pub fn two_rig() -> (Rig, Rc<RefCell<Gen9>>, [(u32, u32); 2]) {
         let a = pages(base, n, 0xFF00_0000 | px, &mut m);
         let b = pages(base + 0x0400_0000, n, 0xFF00_0011 + px, &mut m);
         let out = read_output(&mut *m, &GEN9, p).unwrap();
-        let scan = Scanout::start(&mut *m, &out, windows[i].1, [&a, &b], &Polls::new(50)).unwrap();
+        let scan = Scanout::start(&mut *m, &out, windows[i].1, [&a, &b], u32::MAX, &Polls::new(50))
+            .unwrap();
         let (iova, len) = ([a[0], b[0]], n as usize * 4096);
         let model = Shared(model.clone());
         let frames = ModelFrames { model, iova, len, fences: 0, was: None, next: None };

@@ -30,7 +30,7 @@ const EDP: Transcoder = Transcoder::Edp;
 fn running() -> (Gen9, Scanout) {
     let (mut m, a, b) = setup();
     let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
-    let s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(50)).unwrap();
+    let s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     (m, s)
 }
 

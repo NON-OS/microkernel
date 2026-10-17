@@ -16,8 +16,9 @@
 
 //! A pull in the middle of a mode set: the cable goes as the new mode's
 //! DPLL is set, between darkening the port and training it. The mode set
-//! fails with its new surfaces given back, the next settled poll leaves the
-//! output dark, and the monitor back is lit at the mode it showed.
+//! fails with its new surfaces given back and, the old mode not lit again
+//! with the cable gone, the output waiting to be set; the next
+//! settled poll leaves it dark, and the monitor back is lit at a mode set.
 
 use nonos_gfx_serve::Display;
 use nonos_gfx_wire::body::state::SCANNING_OUT;
@@ -36,7 +37,7 @@ fn a_pull_mid_mode_set_ends_dark_and_the_monitor_back_is_lit() {
     with_shadow(1024, 768, |s| assert!(d.set_mode(0, 1024, 768, s).is_err()));
     assert!(model.borrow().cable.pulled.is_some(), "pulled during the mode set");
     assert_eq!(h0(&d).frames.was, None, "the new surfaces given back");
-    assert_eq!((h0(&d).scan.width, h0(&d).plug), (1920, Plug::In), "not seen yet");
+    assert_eq!((h0(&d).scan.width, h0(&d).plug), (1920, Plug::Back), "the old mode not lit again");
     settle(&mut d);
     assert_eq!(h0(&d).plug, Plug::Out);
     assert_eq!(d.state(0).unwrap().flags, 0, "dark, not lost");

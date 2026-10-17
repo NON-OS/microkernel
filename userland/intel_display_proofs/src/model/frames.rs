@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The scanout surfaces as the model's IOVA pages: a write lands in the
-//! pages the GGTT points the plane at, so what a copy did is read back as
-//! what the model's scanout shows. Fences are counted; a renewed pair
-//! takes fresh IOVAs above every one used so far.
+//! The scanout surfaces as the model's IOVA pages: a copy is read back as
+//! what the model's scanout shows. Fences are counted; a renewed pair takes
+//! fresh IOVAs above every one used so far, and a pair given back is freed.
 
 use super::shared::Shared;
 use crate::display::Frames;
@@ -65,8 +64,11 @@ impl Frames for ModelFrames {
     }
 
     fn settle(&mut self, keep: bool) {
-        if let Some((iova, len)) = self.was.take().filter(|_| !keep) {
+        let Some((iova, len)) = self.was.take() else { return };
+        let gone = if keep { (iova, len) } else { (self.iova, self.len) };
+        if !keep {
             (self.iova, self.len) = (iova, len);
         }
+        self.model.0.borrow_mut().free(gone.0.map(|a| (a, a + gone.1 as u64)));
     }
 }

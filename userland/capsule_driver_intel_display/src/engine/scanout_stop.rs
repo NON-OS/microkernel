@@ -16,7 +16,8 @@
 
 //! Handing an output back: firmware's plane registers are put back and
 //! latched before the driver's GGTT entries go, so the engine never
-//! scans out an entry that is no longer present.
+//! scans out an entry that is no longer present; or, with no way back, the
+//! entries forgotten so the plane reaches nothing.
 
 use super::access::{Expiry, Mmio};
 use super::error::Error;
@@ -41,5 +42,14 @@ impl Scanout {
             ggtt::unmap(m, self.ggtt, s / 4096, self.pages, total)?;
         }
         Ok(())
+    }
+
+    /// The surfaces' GGTT entries marked not present, the plane left where
+    /// it is: what a plane on surfaces about to be given back must see, so
+    /// it reaches no frame of anyone's.
+    pub fn forget(&self, m: &mut dyn Mmio, total: u32) {
+        for s in self.surfaces {
+            let _ = ggtt::unmap(m, self.ggtt, s / 4096, self.pages, total);
+        }
     }
 }

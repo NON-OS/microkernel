@@ -61,7 +61,7 @@ fn start_present_and_stop_on_a_broadwell_plane() {
     broadwell(&mut m);
     let out = read_output(&mut m, &GEN8, Pipe::A).unwrap();
     assert_eq!(m.pixel(Pipe::A, 1919, 1079), Some(0xFF00_0001), "firmware's picture");
-    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(50)).unwrap();
+    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 1919, 1079), Some(0xFF00_00AA));
     s.present(&mut m, &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 0, 0), Some(0xFF00_00BB));

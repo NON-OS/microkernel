@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One output taken over: two DMA surfaces holding firmware's picture, the
+//! One output taken over: two DMA surfaces holding firmware's picture (or
+//! zeroed, over a dead driver's leftover), the
 //! plane moved onto the first inside the output's GGTT window (whose first
 //! 64 entries the cursor keeps), and mode setting found where it can be.
 
@@ -24,7 +25,8 @@ use nonos_gfx_wire::body::state::SCANNING_OUT;
 use nonos_intel_display::display::{Frames, Head, Modeset, Monitor, Plug, FLIP_US};
 use nonos_intel_display::engine::access::{Clock, Until};
 use nonos_intel_display::engine::gen::Gen;
-use nonos_intel_display::engine::{scanout::Scanout, takeover::Output};
+use nonos_intel_display::engine::scanout::{leftover, Scanout};
+use nonos_intel_display::engine::takeover::Output;
 
 use super::firmware;
 use crate::bar::Bar0;
@@ -38,7 +40,7 @@ pub fn take_head(
     m: &mut Bar0,
     (clock, gen): (&dyn Clock, &Gen),
     out: Output,
-    window: (u32, u32),
+    (floor, top, ours): (u32, u32, u32),
     monitor: &Monitor,
     aperture: u64,
 ) -> IntelResult<Head<DmaFrames>> {
@@ -47,12 +49,16 @@ pub fn take_head(
     let now = map_pair(h.device_id, h.epoch, pages as u64 * 4096)?;
     let (device_id, epoch) = (h.device_id, h.epoch);
     let mut frames = DmaFrames { device_id, epoch, now, was: None, cursor: None };
-    firmware::copy_picture(h, &out.plane, &mut frames, stride, aperture);
+    // A leftover's picture is not firmware's: the zeroed frames show instead.
+    if !leftover(&out.plane, ours) {
+        firmware::copy_picture(h, &out.plane, &mut frames, stride, aperture);
+    }
     frames.fence();
     let iovas = |base: u64| (0..pages as u64).map(|i| base + i * 4096).collect::<Vec<u64>>();
     let (a, b) = (iovas(now.iova[0]), iovas(now.iova[1]));
     let until = Until::new(clock, FLIP_US);
-    let scan = Scanout::start(m, &out, window.1, [&a, &b], &until).map_err(IntelError::Engine)?;
+    let window = (floor, top);
+    let scan = Scanout::start(m, &out, top, [&a, &b], ours, &until).map_err(IntelError::Engine)?;
     let modeset = Modeset::find(m, clock, gen, &out, monitor, (window.0 + 64, window.1));
     let (panel, bases, flags, generation) = (monitor.panel(), now.iova, SCANNING_OUT, 1);
     let (cursor, plug) = (None, Plug::In);

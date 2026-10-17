@@ -887,6 +887,7 @@
    "userland/capsule_driver_bootfb/src/describe.rs",
    "userland/capsule_driver_bootfb/src/display.rs",
    "userland/capsule_driver_bootfb/src/fb.rs",
+   "userland/capsule_driver_bootfb/src/fb_wipe.rs",
    "userland/capsule_driver_bootfb/src/firmware.rs",
    "userland/capsule_driver_bootfb/src/geometry.rs",
    "userland/capsule_driver_bootfb/src/record.rs",
@@ -3404,6 +3405,7 @@
    "userland/nonos_gfx_serve/src/slot.rs",
    "userland/nonos_gfx_serve/src/state.rs",
    "userland/nonos_gfx_serve/src/surface.rs",
+   "userland/nonos_gfx_serve/src/watch.rs",
    "userland/nonos_gfx_wire",
    "userland/nonos_modes"
   ],

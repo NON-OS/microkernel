@@ -39,7 +39,7 @@ pub fn dp_rig(timing: (Axis, Axis), edid: Vec<u8>, total: u32) -> (Rig, Model, S
     let (mut m, s, a, b) = dp_board(timing, edid, total);
     let pages = a.len() as u64;
     let out = read_output(&mut m, &GEN9, Pipe::B).unwrap();
-    let scan = Scanout::start(&mut m, &out, total, [&a, &b], &Polls::new(50)).unwrap();
+    let scan = Scanout::start(&mut m, &out, total, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     let model = Rc::new(RefCell::new(m));
     let mut shared = Shared(model.clone());
     let clock = Ticks::new();

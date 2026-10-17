@@ -21,6 +21,7 @@ mod maps;
 mod sequence;
 mod take;
 mod take_head;
+mod take_plan;
 
 pub use driver::{Driver, Engine};
 pub use sequence::run;

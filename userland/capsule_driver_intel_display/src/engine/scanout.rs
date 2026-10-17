@@ -54,3 +54,11 @@ impl Scanout {
         Ok(())
     }
 }
+
+/// Whether lit surface `p` reaches into the GGTT entries from `ours` up,
+/// the ones this driver's windows take: a dead driver's leftover, not
+/// firmware's picture. Never copied; mapped over, not avoided.
+pub fn leftover(p: &PlaneState, ours: u32) -> bool {
+    let pages = (p.stride as u64 * p.height as u64).div_ceil(4096);
+    (p.live / 4096) as u64 + pages > ours as u64
+}

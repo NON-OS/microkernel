@@ -41,6 +41,7 @@ pub struct Gen9 {
     pub ddc: super::gmbus_state::Ddc,
     pub plane: PlaneKind, // Gen9's unless a test models another
     pub cable: super::cable::Cable,
+    pub watch: super::watch::Watch,
 }
 
 impl Gen9 {
@@ -63,6 +64,7 @@ impl Gen9 {
             ddc: Default::default(),
             plane: PlaneKind::Universal,
             cable: Default::default(),
+            watch: Default::default(),
         }
     }
 }
