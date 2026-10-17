@@ -40,6 +40,7 @@ mod send_reply_inbox;
 mod send_caps;
 mod send_to_pid;
 mod sender_pid;
+mod wait_rule;
 
 pub use call::sys_ipc_call;
 pub use lookup::sys_service_lookup;

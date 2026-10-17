@@ -16,6 +16,10 @@
 
 use crate::syscall::{call_raw, N_MK_IPC_RECV_FROM};
 
+/// A `timeout_ms` that looks once: a receive on an empty inbox returns
+/// -EAGAIN at once. 0 still waits for ever.
+pub const MK_IPC_NO_WAIT: u64 = u64::MAX;
+
 // Dequeue one message and write the sender pid to `sender_pid_out`
 // (if non-null). Same blocking + timeout semantics as `mk_ipc_recv`.
 #[no_mangle]
