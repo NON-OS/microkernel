@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The common ops the compositor sends (section 12): CAPS, SURFACE, STATE,
-//! FLUSH, RETIRE and CURSOR, each to one output (0 is the first). A driver answering
-//! CAPS with ENOSYS speaks only the legacy ops, and the caller drives it
-//! that way.
+//! FLUSH, RETIRE and CURSOR, each to one output (0 is the first).
 
 use nonos_gfx_wire::body::flush::MAX_RECTS;
 use nonos_gfx_wire::errno::EINVAL;

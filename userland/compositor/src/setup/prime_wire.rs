@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Driving the driver found: CAPS first. ENOSYS is a driver that speaks only
-//! the legacy ops (0x0C, then 0x08/0x09/0x0A each frame); any other answer
-//! to CAPS that is not CAPS is a driver not ready. Otherwise SURFACE, which
+//! Driving the driver found: CAPS first; an answer that is not CAPS is a
+//! driver not ready (or one speaking no display wire). Otherwise SURFACE, which
 //! makes this compositor the owner (a restarted compositor gets its surface
 //! back), and the primary is attached, then every further output's. With
 //! HW_CURSOR the pointer goes on the device's plane (`hw_cursor`).
 
 use nonos_gfx_wire::body::caps::HW_CURSOR;
-use nonos_gfx_wire::errno::ENOSYS;
 
 use super::attach_primary::attach_primary;
 use super::discover::GfxEndpoint;
@@ -30,18 +28,13 @@ use crate::display::{ops, WireLink};
 use crate::state::Context;
 
 pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
-    let caps = match ops::caps(ep.port) {
-        Err(ENOSYS) => return super::prime_once::run_legacy(ep),
-        Err(_) => return Err("display: CAPS not answered"),
-        Ok(c) => c,
-    };
+    let caps = ops::caps(ep.port).map_err(|_| "display: CAPS not answered")?;
     let s = ops::surface(ep.port, 0).map_err(|_| "display: SURFACE refused")?;
     let p = attach_primary(s.handle)?;
     if (p.width, p.height) != (s.width, s.height) {
         return Err("display: primary is not the size SURFACE said");
     }
-    let mut ctx = Context::new(p, ep.port, 0, false);
-    ctx.first_scanout_done = true;
+    let mut ctx = Context::new(p, ep.port, false);
     let (name, serial, pid, physical_mm) = (ep.name, s.serial, ep.pid, caps.physical_mm);
     let outputs = caps.outputs;
     let cursor_offset = if caps.flags & HW_CURSOR != 0 { s.cursor_offset } else { 0 };

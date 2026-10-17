@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A damaged rectangle put on the display off the wire: through the kernel's
-//! copy to the boot framebuffer, or the legacy virtio ops.
+//! copy to the boot framebuffer. Every driver speaks the wire since G-77.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -51,6 +51,6 @@ pub(super) fn show(
         }
         Ok(())
     } else {
-        super::present_virtio::present_rect(ctx, rect)
+        Err("display: neither GOP nor a wire driver to present on")
     }
 }

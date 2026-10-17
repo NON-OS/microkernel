@@ -19,7 +19,6 @@ use crate::sw_blitter::Surface;
 
 pub struct Context {
     pub gfx_port: u32,
-    pub resource_id: u32,
     pub width: u32,
     pub height: u32,
     pub stride: u32,
@@ -31,9 +30,7 @@ pub struct Context {
     /// A GOP present was refused because a driver holds the framebuffer.
     pub gop_held: bool,
     pub surface_handle: u64,
-    pub first_scanout_done: bool,
     pub scanout_error_reported: bool,
-    pub next_request_id: u32,
     pub scene: SceneTable,
     pub damage: DamageAccumulator,
     pub focus: FocusTable,
@@ -46,8 +43,7 @@ pub struct Context {
     pub scale_q: u32,
     pub output_scale: [Option<u32>; 4],
     pub screen: Surface,
-    /// The driver when it is driven on the display wire; None on GOP and
-    /// on the legacy ops.
+    /// The driver when it is driven on the display wire; None on GOP.
     pub wire: Option<crate::display::WireLink>,
     /// The wire driver's outputs past 0, each mirroring the screen.
     pub heads: alloc::vec::Vec<crate::display::Head>,

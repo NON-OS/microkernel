@@ -43,11 +43,11 @@ pub fn say_display(ctx: &Context, what: &str) {
     ));
 }
 
-/// The path the desktop is shown on. The legacy ops are only virtio-gpu's.
+/// The path the desktop is shown on.
 fn path(ctx: &Context) -> &'static str {
     match ctx.wire {
         Some(link) => link.name,
         None if ctx.gop_mode => "GOP framebuffer",
-        None => "driver.virtio_gpu0 (legacy ops)",
+        None => "no display",
     }
 }

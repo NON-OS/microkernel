@@ -27,7 +27,7 @@ pub fn run() -> Result<Driver, &'static str> {
     let attempt = claimed(dev, claim_epoch);
     if attempt.is_err() {
         /*
-         * bring_up, scanouts::seed, create_primary and the queue layout
+         * bring_up, scanouts::seed, the takeover and the queue layout
          * returned their errors with the claim, the register grants, the
          * queue DMA and any surface DMA still held, so every attempt after
          * the first failed at claim. Releasing the claim takes every grant

@@ -20,8 +20,6 @@ use crate::state::Context;
 
 /// The physical size of the panel shown on: CAPS' on the wire (the driver
 /// read its monitor's EDID), the kernel's on GOP (the boot panel's EDID).
-/// None on the legacy ops: the kernel's size is the boot panel's, and a
-/// virtio-gpu scanout is a different output it says nothing about.
 pub fn panel_mm(ctx: &Context) -> Option<(u32, u32)> {
     let mut mm: u32 = 0;
     if let Some(link) = ctx.wire {

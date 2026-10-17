@@ -37,7 +37,6 @@ pub mod look_paint;
 pub mod mirror;
 pub mod night_tint;
 pub mod own_look;
-pub mod present_virtio;
 pub mod present_wire;
 pub mod show;
 pub mod show_band;

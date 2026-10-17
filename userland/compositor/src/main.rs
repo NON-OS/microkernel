@@ -21,7 +21,6 @@ extern crate alloc;
 
 mod display;
 mod frame_pacer;
-mod gfx_client;
 mod protocol;
 mod requests;
 mod say;
