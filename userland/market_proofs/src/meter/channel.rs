@@ -13,9 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The margin PAY and FUNDED both keep from a channel's expiry.
+//! The margin PAY and FUNDED both keep from a channel's expiry, and the
+//! channel's own charge, which both make through MeterState::charged.
 
+#[path = "../../../nonos_nox_meter/src/channel/charge.rs"]
+mod charge;
 #[path = "../../../nonos_nox_meter/src/channel/margin.rs"]
 mod margin;
+#[path = "../../../nonos_nox_meter/src/channel/state.rs"]
+mod state;
 
 pub use margin::CHARGE_MARGIN;
+pub use state::{Channel, MAX_CHANNELS, NO_SIG};

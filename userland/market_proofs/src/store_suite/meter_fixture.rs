@@ -14,19 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The market's record for the sold listing and the meter's FUNDED reply
-//! over a channel table, worked out by the meter's own predicate.
+//! over its state, worked out by the meter's own predicate.
 
 use nonos_marketplace_abi::{commerce_bytes, Commerce, SettleMode};
 use nonos_nox_config::{address, Contract, SEPOLIA};
 use nonos_payment_proto::{AccountRow, FUNDED_NO, FUNDED_YES};
 
 use super::held_fixture::{KEY, NOW};
+use super::meter_state::{channel, state, PAYEE, UNIT};
 use crate::meter::pay::{funded, Offer};
+use crate::meter::state::MeterState;
 
 /// What OP_GET_COMMERCE says of the sold listing: KEY on Sepolia, 3 NOX an
 /// install by voucher, signed and bound.
 pub fn record(unit_price: u128) -> Offer {
-    let (payee, bond_id, unit, binding_sig) = ([0; 20], [9; 32], [3; 32], [0; 65]);
+    let (payee, bond_id, unit, binding_sig) = (PAYEE, [9; 32], UNIT, [0; 65]);
     let (min_charge, settle_mode, proof_reqs) = (unit_price, SettleMode::Voucher, Vec::new());
     let c = Commerce {
         payee,
@@ -45,7 +47,13 @@ pub fn record(unit_price: u128) -> Offer {
 
 /// The meter's FUNDED reply body for the sold listing over `rows`.
 pub fn meter(rows: &[AccountRow], o: &Offer) -> Vec<u8> {
+    let channels: Vec<_> = rows.iter().map(channel).collect();
+    reply(&state(&channels), o)
+}
+
+/// The meter's FUNDED reply body for the sold listing over its state `s`.
+pub fn reply(s: &MeterState, o: &Offer) -> Vec<u8> {
     let nox = address(SEPOLIA, Contract::NoxToken).expect("NOX on Sepolia");
-    let yes = funded(rows.iter().copied(), o, SEPOLIA, &nox, NOW);
+    let yes = funded(s, o, SEPOLIA, &nox, NOW);
     Vec::from([if yes { FUNDED_YES } else { FUNDED_NO }])
 }

@@ -20,17 +20,20 @@
 //! channel's listing id come from the market's commerce record for it, the
 //! one PAY reads (`clients::offer`), never from the caller.
 //!
+//! The answer is PAY's: `nonos_nox_meter::pay::funded` runs PAY's `priced`
+//! and `landing` (pay.rs, pay_charge.rs) on the PAY of one unit, so the
+//! payee, the unit, the margin, the deposit and the budget all count.
+//!
 //! Every way to not know answers FUNDED_NO under status 0: no key or state
 //! (PAY's ENOPERSIST), no NOX on the chain, the market silent or refusing,
-//! a record PAY would refuse, no row with room. A distinct status for each
-//! would tell the store more than the bit. Only a body that does not parse
-//! is EINVAL, which says nothing of the meter.
+//! a record or a charge PAY would refuse. A distinct status for each would
+//! tell the store more than the bit. Only a body that does not parse is
+//! EINVAL, which says nothing of the meter.
 
 use alloc::vec::Vec;
 
 use nonos_nox_config::{address, Contract};
-use nonos_nox_meter::pay::funded as takes_one;
-use nonos_nox_meter::wire::row;
+use nonos_nox_meter::pay::funded as charged;
 use nonos_payment_proto::{FundedAsk, EINVAL, FUNDED_NO, FUNDED_YES};
 
 use crate::clients::offer;
@@ -57,6 +60,7 @@ fn held(meter: &mut Meter, ask: &FundedAsk) -> bool {
     let Ok(o) = offer(&ask.listing, b"") else {
         return false;
     };
-    let rows = meter.state.channels.iter().map(row);
-    takes_one(rows, &o, ask.chain_id, &nox, now_ms() / 1000)
+    // PAY's own decision on one unit, on the state as it stands: PAY's
+    // best-effort refresh of a stale channel is a chain call, not a check.
+    charged(&meter.state, &o, ask.chain_id, &nox, now_ms() / 1000)
 }

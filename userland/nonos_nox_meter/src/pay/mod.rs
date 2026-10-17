@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod funded;
+mod landing;
 mod offer;
 mod record;
 
-pub use funded::{committed, funded, takes};
+pub use funded::{funded, install};
+pub use landing::landing;
 pub use offer::priced;
 pub use record::Offer;
