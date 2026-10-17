@@ -40,6 +40,7 @@ pub(super) fn visit<R: Radio, E: Env>(
     h: &mut Heard,
     at: (Band, u8, bool),
     dwell: u64,
+    seq: &mut u16,
 ) -> Option<Found> {
     let (band, channel, probe) = at;
     if !r.tune(band, channel) {
@@ -47,9 +48,10 @@ pub(super) fn visit<R: Radio, E: Env>(
     }
     let mut out = [0u8; 80];
     if let Some(n) =
-        probe.then(|| probe_request(&mut out, r.mac(), h.ssid, &PROBE_RATES, 0)).flatten()
+        probe.then(|| probe_request(&mut out, r.mac(), h.ssid, &PROBE_RATES, *seq)).flatten()
     {
         r.send(&out[..n]);
+        *seq = seq.wrapping_add(1) & 0x0FFF;
     }
     listen(r, env, h, dwell).map(|(beacon, named)| Found {
         beacon,

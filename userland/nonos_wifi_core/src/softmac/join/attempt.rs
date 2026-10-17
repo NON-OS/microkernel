@@ -43,7 +43,8 @@ pub(super) fn attempt<R: Radio, E: Env>(
 ) -> Result<Report, JoinError> {
     // Fresh randomness for every attempt, a roam's included: never reused.
     let mut entropy = Entropy { snonce: [0u8; 32], sae: [0u8; SAE_ENTROPY] };
-    if !env.random(&mut entropy.snonce) || !env.random(&mut entropy.sae) {
+    let mut seq = [0u8; 2];
+    if !env.random(&mut entropy.snonce) || !env.random(&mut entropy.sae) || !env.random(&mut seq) {
         return Err(JoinError::NoEntropy);
     }
     let our_mac = r.mac();
@@ -61,7 +62,7 @@ pub(super) fn attempt<R: Radio, E: Env>(
     if let Some(kept) = extra.kept {
         kept.give(&mut m);
     }
-    Ok(drive(r, env, m, beacon, JOIN_BUDGET_MS))
+    Ok(drive(r, env, m, beacon, JOIN_BUDGET_MS, u16::from_le_bytes(seq)))
 }
 
 pub(super) fn retry_with_psk(report: &Report, wpa3_only: bool) -> bool {
