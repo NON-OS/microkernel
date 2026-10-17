@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Which presses move value or sign (the lead's ruling 1, 2026-10-17). Each
- * is held to the arming escrow Buy has (order/terms/arming.rs): the screen
- * drawn whole, the wallet focused, held a second, asked again at the
- * press. Every other press, and every key but Enter, reads, reviews,
- * chooses, copies or leaves, and acts at once.
- */
+//! Which presses move value or sign (the lead's ruling 1, 2026-10-17). Each
+//! is held to the arming escrow Buy has (order/terms/arming.rs): the screen
+//! drawn whole, the wallet focused, held a second, asked again at the
+//! press. Every other press, and every key but Enter, reads, reviews,
+//! chooses, copies or leaves, and acts at once.
 
-use super::rows::{ROW_ATTEST, ROW_BINDING, ROW_CLAIM, ROW_CLOSE, ROW_TOPUP};
+use super::rows::{ROW_ATTEST, ROW_BINDING, ROW_CLAIM, ROW_CLOSE, ROW_INTENT, ROW_TOPUP};
 use crate::wallet::screen::hits::Press;
 
 /// The one screen at a time whose presses the guard looks at.
@@ -51,6 +49,8 @@ pub enum Shown {
     Meter,
     /// An entry document open to publish: the binding and attests signed.
     Publish,
+    /// A publisher transaction's review: Sign and send signs it.
+    PublisherReview,
     /// The private key asked for, still hidden: Show the key.
     Export,
 }
@@ -61,11 +61,14 @@ pub fn moves(shown: Shown, press: Option<Press>) -> bool {
     match (shown, press) {
         (Consent | Meter, Some(Press::Footer(1)) | None) => true,
         (Budget | Escrow, Some(Press::Footer(1))) => true,
-        (PayReview | StakeReview | ShieldReview | Export, Some(Press::Footer(0))) => true,
+        (
+            PayReview | StakeReview | ShieldReview | PublisherReview | Export,
+            Some(Press::Footer(0)),
+        ) => true,
         (TakeBack(at), Some(Press::Footer(n))) => n == at,
         (Landed(at), Some(Press::Row(r))) => r == at,
         (Meter, Some(Press::Row(r))) => matches!(r, ROW_TOPUP | ROW_CLOSE | ROW_CLAIM),
-        (Publish, Some(Press::Row(r))) => r == ROW_BINDING || r >= ROW_ATTEST,
+        (Publish, Some(Press::Row(r))) => r == ROW_BINDING || (ROW_ATTEST..ROW_INTENT).contains(&r),
         _ => false,
     }
 }

@@ -28,7 +28,8 @@ pub mod fees;
 pub mod fund_meter;
 #[path = "../../capsule_wallet_nonos/src/wallet/hex_id.rs"]
 pub mod hex_id;
-#[path = "../../capsule_wallet_nonos/src/wallet/intent/mod.rs"]
+/// The intent files, with the names the tests use.
+#[path = "intent/mod.rs"]
 pub mod intent;
 #[path = "../../capsule_wallet_nonos/src/wallet/shield/kept_names.rs"]
 pub mod kept_names;
