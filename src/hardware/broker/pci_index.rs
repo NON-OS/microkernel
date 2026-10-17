@@ -39,6 +39,8 @@ pub(in crate::hardware::broker) struct PciHandle {
     /// A type 0 header and no Intel VMD: no function whose Bus Master Enable
     /// or BARs gate others', whose claim the broker refuses (L58, L61).
     pub(in crate::hardware::broker) standard: bool,
+    /// How it is reset between holders (L78).
+    pub(in crate::hardware::broker) reset: crate::hardware::broker::claim::ResetCaps,
 }
 
 static INDEX: RwLock<Vec<PciHandle>> = RwLock::new(Vec::new());
