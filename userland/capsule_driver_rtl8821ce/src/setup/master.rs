@@ -33,9 +33,25 @@ pub fn command(device_id: u64, epoch: u64, master: bool) -> bool {
     mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) >= 0
 }
 
-/// Give a chip back that is not to be served: Bus Master off, then the claim,
-/// which takes the register window with it.
+/// Quiesce the chip: its engines stopped, then Bus Master off
+/// (`mac::quiesce`). Whether the broker took the Bus Master write.
+pub fn quiesce(m: &Mapped) -> bool {
+    crate::mac::quiesce(&m.regs, || command(m.device_id, m.claim_epoch, false))
+}
+
+/// `quiesce` on a bring-up that stopped short and still serves its stage,
+/// said on the console.
+pub fn stopped(m: &Mapped) {
+    crate::status::line(if quiesce(m) {
+        b"[rtl8821ce] bring-up stopped: engines off, bus master off\n"
+    } else {
+        b"[rtl8821ce] bring-up stopped: engines off, bus master write refused\n"
+    });
+}
+
+/// Give a chip back that is not to be served: quiesced, then the claim, which
+/// takes the register window and the DMA mapped under it.
 pub fn release(m: &Mapped) {
-    let _ = command(m.device_id, m.claim_epoch, false);
+    let _ = quiesce(m);
     let _ = mk_device_release(m.device_id);
 }
