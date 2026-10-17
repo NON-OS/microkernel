@@ -32,7 +32,11 @@ impl<H: Host> Machine<'_, H> {
     ) -> Result<(), Fault> {
         let k = aml.kid(t, node, 0);
         match self.value(aml, t, k)? {
-            Object::Table(i) if aml.unload(i) => Ok(()),
+            Object::Table(i) if aml.unload(i) => {
+                // A mutex this evaluation held may have gone with the table.
+                self.held.retain(|(m, _)| aml.rt.mutexes.contains_key(m));
+                Ok(())
+            }
             _ => Err(self.fault(FaultKind::Type, at)),
         }
     }
