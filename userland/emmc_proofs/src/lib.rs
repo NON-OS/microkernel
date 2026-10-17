@@ -74,3 +74,11 @@ mod start_list_tests;
 mod voltage_tests;
 #[cfg(test)]
 mod wire_server_tests;
+#[cfg(test)]
+mod sweep_rng;
+#[cfg(test)]
+mod wire_frame_sweep_tests;
+#[cfg(test)]
+mod wire_rw_rule;
+#[cfg(test)]
+mod wire_rw_sweep_tests;
