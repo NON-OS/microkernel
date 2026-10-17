@@ -46,6 +46,7 @@ impl App for Wallet {
         self.state.frame.w = fb.width;
         self.state.frame.h = fb.height;
         paint(&self.state, fb);
+        crate::wallet::order::guard::poll::drawn(&mut self.state);
     }
 
     fn tick_interval_ms(&self) -> i64 {
