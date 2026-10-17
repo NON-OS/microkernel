@@ -61,4 +61,7 @@ fn handle(frame: &ExceptionFrame, tag: &[u8], from_user: bool) {
     if is_preemption_tick(acked.intid) {
         crate::process::exit::reclaim_at_tick(from_user);
     }
+    if from_user {
+        super::el0_return::at_el0_return();
+    }
 }
