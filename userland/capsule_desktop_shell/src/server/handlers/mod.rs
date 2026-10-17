@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod attention;
+pub mod bond_notice;
 pub mod brightness_key;
 pub mod consent;
 pub mod consent_rect;
