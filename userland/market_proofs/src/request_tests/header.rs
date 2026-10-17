@@ -16,7 +16,7 @@
 
 //! Any request header decodes or is refused, without a panic.
 
-use crate::protocol::{decode_request, HDR_LEN};
+use crate::protocol::{decode_request, HDR_LEN, RESP_HDR_LEN};
 
 use super::frames::{frame, le32, xorshift, MAGIC};
 
@@ -38,6 +38,9 @@ fn any_header_decodes_or_is_refused() {
                 assert!(f.len() >= HDR_LEN);
                 assert_eq!((le32(&f, 0), u16::from_le_bytes([f[4], f[5]])), (MAGIC, 1));
                 assert_eq!((req.request_id, req.payload_len), (le32(&f, 12), le32(&f, 16)));
+                let (op, flags) =
+                    (u16::from_le_bytes([f[6], f[7]]), u16::from_le_bytes([f[8], f[9]]));
+                assert_eq!((req.op, req.flags), (op, flags));
             }
             None => assert!(f.len() < HDR_LEN || le32(&f, 0) != MAGIC || f[4..6] != [1, 0]),
         }
@@ -45,4 +48,5 @@ fn any_header_decodes_or_is_refused() {
     assert!(decode_request(&[]).is_none());
     assert!(decode_request(&frame(1, 2, 0)[..HDR_LEN - 1]).is_none());
     assert!(decode_request(&frame(1, 2, u32::MAX)).is_some(), "the loop bounds the body");
+    assert_eq!(RESP_HDR_LEN, HDR_LEN, "a reply header is a request header's length");
 }
