@@ -17,4 +17,9 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
     pub fn clear_pairwise_key(&mut self) {
         self.new_pairwise_key = None;
     }
+
+    /// A fresh seed for the next rekey's SNonce.
+    pub fn reseed_rekey(&mut self, seed: [u8; 32]) {
+        self.station.reseed_rekey(seed);
+    }
 }

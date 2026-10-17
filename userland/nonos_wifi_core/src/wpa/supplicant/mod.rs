@@ -32,6 +32,7 @@ mod message3;
 mod output;
 mod rekey;
 mod reply;
+mod seed;
 mod state;
 pub mod step;
 
