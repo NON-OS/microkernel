@@ -10,9 +10,11 @@ from the ABI registry or from the capability table (`capabilities` and
 `syscalls`, `tools/nonos_cap_audit_checks.py:35-72`). A capability named only
 inside a checker that nothing calls does not count as consulted, and neither
 does a `.bit()` that builds the mask a capsule is given, under `src/userspace`
-or in a `spawn.rs` (`consulted`, `tools/nonos_cap_audit_consulted.py:24-66`).
-`IO` and `Hardware` are on its `UNENFORCED` list, known to enforce nothing, and
-a third one fails it (`tools/nonos_cap_audit_checks.py:25-32`).
+or in a `spawn.rs` (`consulted`, `tools/nonos_cap_audit_consulted.py`). Nor
+does a constant made from a bit, such as `CAP_ENTROPY`, until some line other
+than a `use` reads it (`used_elsewhere`, `tools/nonos_cap_audit_alias.py`).
+`IO`, `Hardware` and `Entropy` are on its `UNENFORCED` list, known to enforce
+nothing, and a fourth one fails it (`UNENFORCED`, `tools/nonos_cap_audit_checks.py`).
 
 ```sh
 python3 tools/nonos-cap-audit
@@ -21,7 +23,7 @@ python3 tools/nonos-cap-audit
 At this commit it passes and exits 0:
 
 ```text
-capabilities: 37 declared, 35 consulted, 2 known unenforced
+capabilities: 37 declared, 34 consulted, 3 known unenforced
 syscalls: 117 Mk numbers, all gated and named
 ```
 
