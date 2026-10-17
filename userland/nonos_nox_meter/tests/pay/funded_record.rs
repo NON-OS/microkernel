@@ -17,17 +17,25 @@
 //! would refuse answers not funded, however much a channel holds.
 
 use nonos_marketplace_abi::{commerce_bytes, Commerce, SettleMode};
-use nonos_nox_meter::pay::{committed, funded, Offer};
+use nonos_nox_meter::pay::{funded, install, Offer};
+use nonos_nox_meter::state::MeterState;
+use nonos_payment_proto::PayRequest;
 
-use super::fixture::NOX;
-use super::funded_fixture::{record, row, sold, NOW};
+use super::fixture::{request, NOX};
+use super::funded_fixture::{channel, record, sold, state, NOW};
+
+fn held() -> MeterState {
+    state(&[channel()])
+}
 
 #[test]
 fn the_price_is_the_records_unit_price() {
-    assert_eq!(committed(&record(), 1, &NOX), Some(7));
+    let one = PayRequest { qty: 1, call_id: [0; 32], listing: b"", release: b"", ..request() };
+    assert_eq!(install(&record(), 1), Some(one), "one unit, the record's payee and unit");
     let dear = Offer { block: commerce_bytes(&Commerce { unit_price: 15, ..sold() }), ..record() };
-    assert_eq!(committed(&dear, 1, &NOX), Some(15));
-    assert!(!funded([row()], &dear, 1, &NOX, NOW), "14 left, the record says 15");
+    assert_eq!(install(&dear, 1).map(|r| r.unit_price), Some(15));
+    assert_eq!(install(&Offer { block: vec![1, 2, 3], ..record() }, 1), None);
+    assert!(!funded(&held(), &dear, 1, &NOX, NOW), "14 left, the record says 15");
 }
 
 #[test]
@@ -44,8 +52,8 @@ fn a_record_pay_would_refuse_is_not_funded() {
         block(Commerce { unit_price: 0, min_charge: 0, ..sold() }),
         block(Commerce { min_charge: 8, ..sold() }),
     ] {
-        assert!(!funded([row()], &bad, 1, &NOX, NOW), "{bad:?}");
+        assert!(!funded(&held(), &bad, 1, &NOX, NOW), "{bad:?}");
     }
-    assert!(!funded([row()], &record(), 2, &NOX, NOW), "asked on another chain");
-    assert!(!funded([row()], &record(), 1, &[0x0b; 20], NOW), "not this chain's NOX");
+    assert!(!funded(&held(), &record(), 2, &NOX, NOW), "asked on another chain");
+    assert!(!funded(&held(), &record(), 1, &[0x0b; 20], NOW), "not this chain's NOX");
 }
