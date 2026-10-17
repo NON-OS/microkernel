@@ -8,9 +8,9 @@ Each join then runs under the network's own address: the first join draws a key 
 
 The serve loop scans in the background while no network is joined, so a scan request is answered at once from the list (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:124-133`, `scanner`).
 
-- Channels 1 to 13 on 2.4 GHz only (`userland/capsule_driver_rtl8821ce/src/serve/tuning.rs`, `SCAN_CHANNELS`). The world-safe domain both drivers keep to lets the radio probe on 1 to 11, while on 12 and 13 it listens and sends only to a network whose beacon it heard there (`userland/nonos_wifi_core/src/regdom/world.rs`, `world`).
+- Channels 1 to 13 on 2.4 GHz only (`userland/capsule_driver_rtl8821ce/src/serve/scanner/channels.rs`, `SCAN_CHANNELS`). The world-safe domain both drivers keep to lets the radio probe on 1 to 11, while on 12 and 13 it listens and sends only to a network whose beacon it heard there (`userland/nonos_wifi_core/src/regdom/world.rs`, `world`).
 - 300 ms on each channel (`userland/capsule_driver_rtl8821ce/src/serve/scanner.rs:33-38`, `DWELL_MS`).
-- The scan is passive: the driver listens for beacons and sends nothing.
+- The scan is passive: the driver listens for beacons and sends nothing. It only reads the receive ring and tunes the synthesizer (`userland/capsule_driver_rtl8821ce/src/serve/scanner/drain.rs`, `Scanner::drain`). `rtl8821ce_proofs` drains frames a station might answer through it, probe requests among them, and checks that nothing is queued or kicked (`userland/rtl8821ce_proofs/src/scanner_tests/drain.rs`).
 
 Before a join the driver hunts the network's beacon: two sweeps at 250 ms a channel (`userland/capsule_driver_rtl8821ce/src/serve/connect/hunt/dwell.rs`, `BEACON_HUNT_DWELL_MS`, `HUNT_SWEEPS`). It sends a probe request only for a network saved as hidden, only on channels 1 to 11, and that probe names only that network (`userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs`, `hunt_probe`). A hidden network on 12 or 13 is therefore not probed for.
 
