@@ -26,8 +26,10 @@ use crate::fw::dma::DmaMem;
 use crate::regs::Mmio;
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
-    /// Tick the station at `now_ms`: send what it calls for, or note the end.
+    /// Tick at `now_ms`: watch the transmit ring (`watch_tx`), then the
+    /// station: send what it calls for, or note the end.
     pub fn tick(&mut self, now_ms: u64) {
+        self.watch_tx(now_ms);
         match self.station.tick(now_ms) {
             Tick::Send(frame) => {
                 self.send_raw(&frame);

@@ -27,6 +27,7 @@ use crate::fw::dma::DmaMem;
 use crate::regs::Mmio;
 use crate::rx::ring::{RxState, RX_DESC_COUNT};
 use crate::tx::ring::TxState;
+use crate::tx::stall::TxWatch;
 
 /// Most frames one receive poll drains looking for a data frame. Twice the ring
 /// so a full backlog of beacons is cleared in a call, but bounded so a continuous
@@ -43,6 +44,7 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) tx_ring: D,
     pub(super) tx_buffers: D,
     pub(super) tx_state: TxState,
+    pub(super) tx_watch: TxWatch,
     pub(super) rx_ring: D,
     pub(super) rx_buffers: RB,
     pub(super) rx_state: RxState,

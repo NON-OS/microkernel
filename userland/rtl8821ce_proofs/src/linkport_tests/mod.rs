@@ -28,4 +28,5 @@ mod receive;
 mod replay;
 mod rig;
 pub(crate) mod rxbuf;
+mod stall;
 mod up;
