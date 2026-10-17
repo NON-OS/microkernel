@@ -38,8 +38,9 @@ pub struct Machine<'h, H: Host> {
     pub(crate) calls: u32,
     /// Mutexes this evaluation holds, oldest first, with their sync levels.
     pub(crate) held: Vec<(Id, u8)>,
-    /// The budget refused something: a table loading now is cut short.
-    pub(crate) cut: bool,
+    /// Where the budget first refused something, if it has: a table
+    /// loading now is cut short there.
+    pub(crate) cut: Option<u32>,
 }
 
 impl<'h, H: Host> Machine<'h, H> {
@@ -47,7 +48,7 @@ impl<'h, H: Host> Machine<'h, H> {
         aml.rt.evaluations += 1;
         let eval = aml.rt.evaluations;
         let (frames, held, stack_top) = (Vec::new(), Vec::new(), super::stack::here());
-        let (steps, alloc, time_us, calls, cut) = (0, 0, 0, 0, false);
+        let (steps, alloc, time_us, calls, cut) = (0, 0, 0, 0, None);
         Machine { host, limits, eval, steps, alloc, time_us, stack_top, frames, calls, held, cut }
     }
 
