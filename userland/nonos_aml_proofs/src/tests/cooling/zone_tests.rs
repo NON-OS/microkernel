@@ -31,7 +31,7 @@ fn trip_points_in_milli_celsius_and_the_fan_that_cools() {
     let tz = at(&aml, "\\_TZ.TZ0").unwrap();
     assert_eq!(zones(&aml), [tz]);
     let mut probe = Probe::default();
-    let t = trips(&mut aml, &mut evaluator(&mut probe), tz);
+    let t = trips(&mut aml, &mut evaluator(&mut probe), tz, &Default::default());
     assert_eq!((t.critical, t.hot, t.passive), (Some(100_050), Some(90_050), Some(80_050)));
     assert_eq!(t.active, [70_050, 60_050], "_AC2 is warmer than _AC1, so the list stops");
     assert_eq!(t.polling, Some(300));
@@ -56,7 +56,7 @@ fn a_zone_with_nothing_has_no_trips() {
     let (mut aml, _) = boot(&thermal_zone("\\_TZ.TZ1", &[]), 2);
     let tz = at(&aml, "\\_TZ.TZ1").unwrap();
     let mut probe = Probe::default();
-    let t = trips(&mut aml, &mut evaluator(&mut probe), tz);
+    let t = trips(&mut aml, &mut evaluator(&mut probe), tz, &Default::default());
     assert_eq!(t, Default::default());
     assert_eq!(temperature(&mut aml, &mut evaluator(&mut probe), tz), None);
 }

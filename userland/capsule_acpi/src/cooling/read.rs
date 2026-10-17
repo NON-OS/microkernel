@@ -14,24 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading a zone's temperature and judging it. _CRT is believed only on
-//! two readings at least a second apart, since one stray _TMP must not
-//! power the machine off; a zone at or past _CRT is read every second
-//! until that is settled, and every five while it lasts.
+//! Reading a zone's temperature and judging it by `Watch`'s rule: _CRT on
+//! two readings a second apart, and a reading cut or not believed never
+//! reading as cooler, said once.
 
 use super::state::Zone;
 use crate::boot::evaluator;
 use crate::host::CapsuleHost;
 use nonos_aml::load::Aml;
-use nonos_aml::thermal::{judge, temperature};
+use nonos_aml::thermal::{temperature, UNREAD_TMP};
 
 /// For a zone with no _TZP, or a _TZP of 0: notifications should come, but
 /// a missed one must not hide a zone heating towards _CRT.
 const DEFAULT_POLL_MS: u64 = 30_000;
 const MIN_POLL_MS: u64 = 1_000;
 const MAX_POLL_MS: u64 = 60_000;
-const CONFIRM_MS: u64 = 1_000;
-const CRITICAL_POLL_MS: u64 = 5_000;
 
 fn interval(z: &Zone) -> u64 {
     match z.trips.polling {
@@ -41,24 +38,10 @@ fn interval(z: &Zone) -> u64 {
 }
 
 pub fn read_zone(z: &mut Zone, aml: &mut Aml, host: &mut CapsuleHost, now: u64) {
-    z.temp = temperature(aml, &mut evaluator(host), z.id);
-    let v = z.temp.map(|t| judge(&z.trips, t, &z.verdict.active)).unwrap_or_default();
-    z.critical = match (v.critical, z.critical_at) {
-        (false, _) => {
-            z.critical_at = None;
-            false
-        }
-        (true, None) => {
-            z.critical_at = Some(now);
-            false
-        }
-        (true, Some(at)) => z.critical || now.saturating_sub(at) >= CONFIRM_MS,
-    };
-    let wait = match (v.critical, z.critical) {
-        (true, false) => CONFIRM_MS,
-        (true, true) => CRITICAL_POLL_MS,
-        _ => interval(z),
-    };
-    z.next_ms = now.saturating_add(wait);
-    z.verdict = v;
+    let read = temperature(aml, &mut evaluator(host), z.id);
+    let poll = interval(z);
+    z.next_ms = now.saturating_add(z.w.reading(&z.trips, read, now, poll));
+    if z.w.unread {
+        super::trip_faults::tell(z, UNREAD_TMP);
+    }
 }

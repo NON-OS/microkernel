@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The thermal zones and the fans their _ALx lists name (ACPI 6.5, 11.4.2
-//! and 11.3). A fan named by several zones, or levels, is one fan.
+//! and 11.3). A fan named by several zones, or levels, is one fan. A trip
+//! unread on a re-read keeps the value believed before (`trip_read`).
 
 use super::drive::drive_of;
 use super::passive::passive_of;
@@ -40,8 +41,8 @@ fn fan(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, dev: Id) -> usize
 /// zone says they changed (Notify 0x81 and 0x82).
 pub fn refresh(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost, z: usize) {
     let tz = c.zones[z].id;
-    let t = trips(aml, &mut evaluator(host), tz);
-    super::trip_faults::tell(&mut c.zones[z], &t);
+    let t = trips(aml, &mut evaluator(host), tz, &c.zones[z].trips);
+    super::trip_faults::tell(&mut c.zones[z], t.faults);
     let mut lv = Vec::new();
     for x in 0..t.active.len() {
         let devs = active_devices(aml, &mut evaluator(host), tz, x);
@@ -60,11 +61,8 @@ pub fn find(aml: &mut Aml, host: &mut CapsuleHost) -> Cooling {
             id,
             trips: Default::default(),
             levels: Vec::new(),
-            verdict: Default::default(),
-            temp: None,
+            w: Default::default(),
             next_ms: 0,
-            critical_at: None,
-            critical: false,
             passive: None,
             told: 0,
         });

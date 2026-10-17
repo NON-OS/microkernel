@@ -51,9 +51,14 @@ pub fn passive_of(aml: &mut Aml, host: &mut CapsuleHost, tz: Id, limit: u8) -> O
 /// After a reading: the next limit when a _TSP has passed, and the zone
 /// read again by then while passive cooling is engaged.
 pub fn step_zone(z: &mut Zone, now: u64) {
-    let (Some(p), Some(psv), Some(t)) = (z.passive.as_mut(), z.trips.passive, z.temp) else {
+    let (Some(p), Some(psv), Some(t)) = (z.passive.as_mut(), z.trips.passive, z.w.temp) else {
         return;
     };
+    // An unread reading moves no limit, since the zone may be hotter than
+    // its last, nor reads it sooner: a _TMP cut each time costs a budget.
+    if z.w.unread {
+        return;
+    }
     if now >= p.due_ms {
         p.limit = step(p.limit, p.c, p.last.unwrap_or(t), t, psv);
         (p.last, p.due_ms) = (Some(t), now.saturating_add(p.c.period_ms));
