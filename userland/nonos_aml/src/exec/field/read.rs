@@ -40,7 +40,7 @@ impl<H: Host> Machine<'_, H> {
     fn read_units(&mut self, aml: &mut Aml, ctx: &Ctx, at: u32) -> Result<Object, Fault> {
         self.select_bank(aml, ctx, at)?;
         let u = ctx.unit;
-        let w = access_width(u.access[0], u.bit_offset, u.bit_len, space_of(ctx));
+        let w = access_width(u.access[0], u.bit_offset, u.bit_len, space_of(ctx), room(ctx));
         self.charge(u.bit_len as u64 / 8, at)?;
         let mut bytes = vec![0u8; (u.bit_len as usize).div_ceil(8)];
         for p in plan(u.bit_offset, u.bit_len, w) {
@@ -48,6 +48,15 @@ impl<H: Host> Machine<'_, H> {
             set_bits(&mut bytes, p.at as u64, p.bits, raw >> p.shift);
         }
         self.field_value(aml, bytes, u.bit_len, at)
+    }
+}
+
+/// The bytes an access may reach: the region's length; an IndexField's
+/// data register bounds its own accesses.
+pub(crate) fn room(ctx: &Ctx) -> u64 {
+    match &ctx.target {
+        Target::Region(_, r) => r.len,
+        Target::Index { .. } => u64::MAX,
     }
 }
 

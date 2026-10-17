@@ -11,6 +11,9 @@ fn field(list: &[u8]) -> Vec<u8> {
     pkg(0x5B81, &cat(&[&name("REG0"), &[0x01], list]))
 }
 
+#[path = "field_width/mod.rs"]
+mod field_width;
+
 #[test]
 fn every_element_kind_parses() {
     let list = cat(&[

@@ -18,7 +18,7 @@
 //! by the field's UpdateRule (section 19.6.48).
 
 use super::index_bank::Ctx;
-use super::read::space_of;
+use super::read::{room, space_of};
 use crate::exec::{Fault, Host, Machine};
 use crate::load::Aml;
 use crate::namespace::Id;
@@ -45,7 +45,7 @@ impl<H: Host> Machine<'_, H> {
         self.select_bank(aml, ctx, at)?;
         let u = ctx.unit;
         let rule = UpdateRule::from_flags(ctx.flags);
-        let w = access_width(u.access[0], u.bit_offset, u.bit_len, space_of(ctx));
+        let w = access_width(u.access[0], u.bit_offset, u.bit_len, space_of(ctx), room(ctx));
         for p in plan(u.bit_offset, u.bit_len, w) {
             let value = get_bits(src, p.at as u64, p.bits);
             let word = if p.bits == w * 8 {

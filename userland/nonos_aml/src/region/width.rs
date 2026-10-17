@@ -18,13 +18,21 @@
 
 use super::Space;
 
-/// The access width in bytes for a field of `bit_len` bits at `bit_offset`.
-/// ByteAcc to QWordAcc fix it. AnyAcc leaves it to the operating system:
-/// this takes the narrowest naturally aligned width, up to eight bytes, that
-/// holds the whole field in one access, so a register declared AnyAcc is
-/// still read in one piece; a field no such width holds is read by bytes.
-/// An embedded controller or CMOS field is always read by bytes.
-pub fn access_width(access_type: u8, bit_offset: u32, bit_len: u32, space: Space) -> u32 {
+/// The access width in bytes for a field of `bit_len` bits at `bit_offset`,
+/// in a region of `room` bytes. ByteAcc to QWordAcc fix it. AnyAcc leaves
+/// it to the operating system: this takes the narrowest naturally aligned
+/// width, up to eight bytes, that holds the whole field in one access
+/// inside the region, so a register declared AnyAcc is still read in one
+/// piece and no byte past the region is touched; a field no such width
+/// holds is read by bytes. An embedded controller or CMOS field is always
+/// read by bytes.
+pub fn access_width(
+    access_type: u8,
+    bit_offset: u32,
+    bit_len: u32,
+    space: Space,
+    room: u64,
+) -> u32 {
     if space.is_byte_wide() {
         return 1;
     }
@@ -37,7 +45,10 @@ pub fn access_width(access_type: u8, bit_offset: u32, bit_len: u32, space: Space
             let (start, end) = (bit_offset as u64, bit_offset as u64 + bit_len as u64);
             [1u64, 2, 4, 8]
                 .into_iter()
-                .find(|w| start / (w * 8) == (end.max(start + 1) - 1) / (w * 8))
+                .find(|w| {
+                    let unit = start / (w * 8);
+                    unit == (end.max(start + 1) - 1) / (w * 8) && (unit + 1) * w <= room
+                })
                 .unwrap_or(1) as u32
         }
     }
