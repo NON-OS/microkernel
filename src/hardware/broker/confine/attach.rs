@@ -22,7 +22,7 @@ use super::decide::{verdict, Verdict};
 use super::iova::IOVA_BASE;
 use super::posture::unconfined_allowed;
 use super::refuse::{without_domain, Refused};
-use super::table::{pci_address, say, Capsule, CAPSULES};
+use super::table::{pci_address, Capsule, CAPSULES};
 use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 use crate::memory::iommu::IommuDomain;
 
@@ -43,12 +43,7 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
     if !crate::memory::iommu::translates(address) {
         return without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION));
     }
-    super::interrupts::admit()?;
-    // A virtio device without ACCESS_PLATFORM ignores the domain (K5).
-    if !super::virtio::may_confine(device_id) {
-        say(b"refused: virtio without ACCESS_PLATFORM under an IOMMU");
-        return Err(Refused);
-    }
+    super::gates::admit(device_id)?;
     let mut all = CAPSULES.lock();
     let pos = match all.iter().position(|c| c.pid == pid) {
         Some(i) => i,
