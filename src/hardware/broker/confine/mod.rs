@@ -14,6 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(target_arch = "x86_64")]
+mod acs;
+#[cfg(target_arch = "x86_64")]
+mod acs_kind;
+#[cfg(target_arch = "x86_64")]
+mod acs_path;
+#[cfg(target_arch = "x86_64")]
+mod acs_read;
+#[cfg(target_arch = "x86_64")]
+mod acs_rule;
+#[cfg(target_arch = "x86_64")]
+mod acs_tree;
 mod attach;
 mod decide;
 mod detach;
