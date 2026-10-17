@@ -41,6 +41,9 @@ mod index_decode_tests;
 pub mod release_wire;
 
 pub mod store;
+/* The wallet's EIP-55 spelling, which its consent's "pay to" is written in. */
+#[path = "../../capsule_wallet_nonos/src/wallet/event/address_text.rs"]
+pub mod wallet_address_text;
 
 pub mod linux_why;
 #[cfg(test)]
