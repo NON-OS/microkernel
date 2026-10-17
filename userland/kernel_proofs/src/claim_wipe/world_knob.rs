@@ -24,7 +24,8 @@ pub(super) enum Knob {
     Built,
     /// 1: unconfined frames freed at teardown, no record kept (I2).
     FreeAtTeardown,
-    /// 4: kept frames settled by their device alone, not its epoch (I2).
+    /// 4: kept frames settled by their device alone, not its epoch, and as
+    /// late as before L80, the only settle a newer claim's runs can meet (I2).
     SettleNoEpoch,
     /// 5: the Vendor ID read 99 ms after an FLR (I3).
     VendorAt99,
@@ -40,6 +41,15 @@ pub(super) enum Knob {
     NoRearm,
     /// 14: the reset written over Transactions Pending (I4).
     NoTpWait,
+    /// 15: the kept bound read at the claim's first step, before the claims
+    /// hold, as before L80, so an end settled in between goes unseen (I10).
+    CapEarly,
+    /// 16: libc's count of tries cut to L78's 250, which sleeps ended early
+    /// spend while the reset is still under way (I9).
+    FewTries,
+    /// 17: an ended wipe's kept frames settled once its record is written,
+    /// as before L80, so a claim let in over the end misses them (I10).
+    SettleLate,
     /// Not a mutant: the kernel as built, with a step stalled between its
     /// clock read and its act, as a sibling function's settle can stall it.
     Stall,

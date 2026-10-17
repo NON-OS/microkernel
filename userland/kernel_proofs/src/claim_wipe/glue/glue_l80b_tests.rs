@@ -19,14 +19,12 @@
 //! version 2 PCIe capability, and the put back writes it through the rule;
 //! a kept run the registry's let-go frees is reported to its caller as one.
 
-const CAPS: &str = include_str!("../../../../src/hardware/broker/claim/wipe/caps.rs");
-const CHECK: &str = include_str!("../../../../src/hardware/broker/claim/wipe/check.rs");
-const INIT: &str = include_str!("../../../../src/hardware/broker/table/init.rs");
-const KEPT: &str = include_str!("../../../../src/hardware/broker/dma/kept.rs");
+use super::code::flat;
 
-fn flat(s: &str) -> String {
-    s.split_whitespace().collect::<Vec<_>>().join(" ")
-}
+const CAPS: &str = include_str!("../../../../../src/hardware/broker/claim/wipe/caps.rs");
+const CHECK: &str = include_str!("../../../../../src/hardware/broker/claim/wipe/check.rs");
+const INIT: &str = include_str!("../../../../../src/hardware/broker/table/init.rs");
+const KEPT: &str = include_str!("../../../../../src/hardware/broker/dma/kept.rs");
 
 #[test]
 fn device_control_2_is_read_at_enumeration_and_put_back_through_the_rule() {
