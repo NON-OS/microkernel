@@ -21,7 +21,7 @@
 
 use crate::rsn_tests::body;
 use crate::sweep::rng::{each, Rng};
-use nonos_wifi_core::rsn::{parse_rsne, select, JoinPolicy, SelectError};
+use nonos_wifi_core::rsn::{parse_rsne, select, JoinPolicy, Pmf, SelectError};
 use nonos_wifi_core::wpa::akm::Akm;
 
 /// Cipher suite bytes: TKIP(2), CCMP-128(4), GCMP-256(9), and a junk one.
@@ -50,7 +50,11 @@ fn wpa3_saved_is_never_joined_with_psk() {
         let h2e = rng.byte() & 1 == 1;
         // Saved as WPA3: SAE or a refusal, never a PSK AKM.
         match select(&r, h2e, JoinPolicy::WPA3_ONLY) {
-            Ok(s) => assert_eq!(s.akm, Akm::Sae, "WPA3-only settled on a non-SAE AKM"),
+            Ok(s) => {
+                assert_eq!(s.akm, Akm::Sae, "WPA3-only settled on a non-SAE AKM");
+                // A saved-WPA3 join demands PMF: it never connects without it.
+                assert_ne!(s.pmf, Pmf::Off, "WPA3-only connected without protection");
+            }
             Err(e) => assert!(matches!(
                 e,
                 SelectError::Downgrade
