@@ -1,8 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! A scene: \_TZ.TZ0 whose _TMP, _CRT, _HOT and _PSV are methods. Each may
-//! take \MX, spins a little (a different count each, so the cuts fall in
-//! different places), gives \MX back, and returns its answer. _AC0 and
-//! _TZP are plain names.
+//! A scene: \_TZ.TZ0 whose _TMP, _CRT, _HOT, _PSV, _AC0, _AC1 and _TZP are
+//! methods. Each may take \MX, spins a little (a different count each, so
+//! the cuts fall in different places), gives \MX back, and answers.
 
 use crate::enc::*;
 
@@ -14,12 +13,15 @@ pub enum Ans {
     Str,
 }
 
-/// _TMP, _CRT, _HOT, _PSV; None for a trip the zone does not have.
-pub type Lies = [Option<Ans>; 4];
-pub const SEGS: [&str; 4] = ["_TMP", "_CRT", "_HOT", "_PSV"];
+/// One per `SEGS`; None for a trip the zone does not have.
+pub type Lies = [Option<Ans>; 7];
+pub const SEGS: [&str; 7] = ["_TMP", "_CRT", "_HOT", "_PSV", "_AC0", "_AC1", "_TZP"];
 
-const SANE: Lies =
-    [Some(Ans::Int(3332)), Some(Ans::Int(3732)), Some(Ans::Int(3632)), Some(Ans::Int(3532))];
+const fn n(v: u64) -> Option<Ans> {
+    Some(Ans::Int(v))
+}
+
+const SANE: Lies = [n(3332), n(3732), n(3632), n(3532), n(3432), n(3332), n(100)];
 
 /// Every scene: sane, then one lie at a time.
 pub fn scenes() -> Vec<Lies> {
@@ -29,17 +31,20 @@ pub fn scenes() -> Vec<Lies> {
         l
     };
     let mut out = vec![SANE];
-    for i in 0..4 {
+    for i in 0..SEGS.len() {
         // Absolute zero, below it as a signed reading, past any bound, not
         // a number.
         for a in [Ans::Int(0), Ans::Int(u64::MAX), Ans::Int(5000), Ans::Str] {
             out.push(lie(i, Some(a)));
         }
     }
-    out.push(lie(2, None));
+    for i in [2, 5, 6] {
+        out.push(lie(i, None)); // no _HOT, no _AC1, no _TZP
+    }
     out.push(lie(2, Some(Ans::Int(3832)))); // _HOT above _CRT
     out.push(lie(1, Some(Ans::Int(3432)))); // _CRT below _PSV
     out.push(lie(2, Some(Ans::Int(3432)))); // _HOT below _PSV
+    out.push(lie(5, Some(Ans::Int(3532)))); // _AC1 above _AC0
     out
 }
 
@@ -49,7 +54,7 @@ fn spin(n: u64) -> Vec<u8> {
 }
 
 pub fn dsdt(lies: &Lies, mutex: bool) -> Vec<u8> {
-    let mut body = cat(&[&name_obj("_AC0", &int(3432)), &name_obj("_TZP", &int(100))]);
+    let mut body = Vec::new();
     for (i, a) in lies.iter().enumerate() {
         let Some(a) = a else { continue };
         let v = match a {
