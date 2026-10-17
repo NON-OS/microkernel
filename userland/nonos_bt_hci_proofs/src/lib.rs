@@ -36,6 +36,8 @@ mod encrypt_end_tests;
 #[cfg(test)]
 mod encrypt_tests;
 #[cfg(test)]
+mod events_hostile;
+#[cfg(test)]
 mod filter_tests;
 #[cfg(test)]
 mod flow_tests;

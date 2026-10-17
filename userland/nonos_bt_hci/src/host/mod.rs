@@ -40,6 +40,7 @@ mod update;
 mod wait;
 
 pub use alive::READ_RSSI;
+pub use answer::{answer, Answer};
 pub use connect::{create_connection_params, create_connection_params_as, Connect, DEFAULT_LINK};
 pub use controller::Controller;
 pub use events::QUEUE_MAX;
