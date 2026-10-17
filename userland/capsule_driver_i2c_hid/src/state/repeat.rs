@@ -14,26 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The last raw frame and how often it has repeated verbatim. Polled reads
-//! return the current report whether or not it is new; without this, one
-//! stale motion report re-read at poll rate is a phantom input stream that
-//! drifts the cursor on its own.
+//! How often the last pointer report has come again unchanged. Polled
+//! reads return the current report whether or not it is new; without this,
+//! one stale motion report re-read at poll rate is a phantom input stream
+//! that drifts the cursor on its own.
 
-/// The whole frame is kept, as long as the poll's read buffer. A precision
-/// touchpad's click button, scan time and contact count come after five
-/// finger slots, 20 and more bytes in; a 16-byte snapshot took a click under
-/// a resting finger for a repeat of the rest and dropped it.
+use crate::hid::TouchSample;
+use crate::input::sample::MouseSample;
+
+/// What the check keeps of the last report: the pointer sample decoded
+/// from it, all the decision needs. Never the report's bytes, nor anything
+/// of a report the driver does not read, a keyboard's above all. A touch sample holds the click button, so a click under a resting
+/// finger is no repeat of the rest.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Seen {
+    Touch(TouchSample),
+    Mouse(MouseSample),
+}
+
+#[derive(Default)]
 pub struct FrameRepeat {
-    pub last_frame: [u8; FRAME_MAX],
-    pub last_frame_len: usize,
+    pub last: Option<Seen>,
     pub frame_repeats: u32,
 }
 
-/// The poll reads at most this much (input/poll/cycle.rs).
-pub const FRAME_MAX: usize = 256;
-
-impl Default for FrameRepeat {
-    fn default() -> Self {
-        Self { last_frame: [0; FRAME_MAX], last_frame_len: 0, frame_repeats: 0 }
+impl FrameRepeat {
+    /// A read that was no pointer report ends the run.
+    pub fn reset(&mut self) {
+        *self = Self::default();
     }
 }
+
+/// The poll reads at most this much (input/poll/read_frame.rs).
+pub const FRAME_MAX: usize = 256;

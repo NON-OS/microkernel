@@ -18,38 +18,44 @@
 //! written back only when a bit changed.
 
 use super::command::{command, REPORT_MAX};
+use super::configure::MODE;
+use super::configured::Configured;
 use super::fallback::from_descriptor;
 use super::get::get;
 use super::set::set;
 use super::set_bits::set_bits;
-use crate::hid::report_desc::Field;
+use crate::hid::Field;
 
 // Read-modify-write one feature report: apply every target field that lives
-// in it, write back only when a bit actually changed.
+// in it, write back only when a bit actually changed, and say in `c` what
+// its Input Mode field read back as and whether the write took. None when
+// there is nothing to write (no command register, a report too long to
+// build).
 pub(super) fn configure_one_report(
     port: u32,
     addr: u8,
     desc: &[u8; 30],
     id: u8,
     targets: &[(Field, u8, u32); 3],
-) -> bool {
-    let Some(cmd) = command(desc, id) else { return false };
+    c: &mut Configured,
+) -> Option<()> {
+    let cmd = command(desc, id)?;
     let mut report = [0u8; REPORT_MAX];
     let mut report_len = get(port, addr, &cmd, id, &mut report);
-    let mut changed = false;
-    if report_len < 2 {
-        let Some(len) = from_descriptor(id, targets, &mut report) else { return false };
-        report_len = len;
-        changed = true;
+    let read_back = report_len >= 2;
+    let mut changed = !read_back;
+    if !read_back {
+        report_len = from_descriptor(id, targets, &mut report)?;
     }
-    for (field, field_id, value) in targets.iter() {
+    for (i, (field, field_id, value)) in targets.iter().enumerate() {
         if *field_id == id && field.present() {
-            changed |=
-                set_bits(&mut report[1..report_len], field.bit_offset, field.bit_size, *value);
+            let body = &mut report[1..report_len];
+            let flipped = set_bits(body, field.bit_offset, field.bit_size, *value);
+            changed |= flipped;
+            c.mode_lost |= i == MODE && read_back && flipped;
+            c.mode_unread |= i == MODE && !read_back;
         }
     }
-    if !changed {
-        return true;
-    }
-    set(port, addr, &cmd, &report[..report_len])
+    c.refused |= changed && !set(port, addr, &cmd, &report[..report_len]);
+    Some(())
 }

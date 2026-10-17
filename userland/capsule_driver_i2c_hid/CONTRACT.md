@@ -23,7 +23,7 @@ requests with `MkIpcSend`, receives replies with `MkIpcRecv`, and serves callers
 with `MkIpcRecvFrom` plus `MkIpcSendToPid`. No capsule may send to
 `driver.i2c_hid0`: the kernel holds the endpoint to an empty list
 (`src/services/registry/held.rs`). The serving loop answers only a non-zero
-sender (`src/server/runner/run.rs`), so at this commit the three ops below are
+sender (`src/server/runner/run.rs`), so at this commit the ops below are
 reachable by nobody; the driver's work is the input it posts.
 
 ## Interface contract
@@ -31,13 +31,12 @@ reachable by nobody; the driver's work is the input it posts.
 | Operation | Input | Output |
 |---|---|---|
 | `OP_HEALTHCHECK` | none | found flag, address, probe count |
-| `OP_PROBE` | none | refreshed descriptor state |
 | `OP_DESCRIPTOR` | none | cached HID descriptor bytes |
 
-Unknown operations reply `E_BAD_OP`. Malformed bodies reply `E_INVAL`. Requests
-use the `NHID` capsule header, version `1`, and the shared 20-byte driver
-envelope. Replies begin with a 4-byte signed status word. All multi-byte
-integers are little-endian.
+Unknown operations reply `E_BAD_OP`; op 2, a re-probe nothing sent, is gone and
+is one. Malformed bodies reply `E_INVAL`. Requests use the `NHID` capsule
+header, version `1`, and the shared 20-byte driver envelope. Replies begin with
+a 4-byte signed status word. All multi-byte integers are little-endian.
 
 ## Authority
 
@@ -53,7 +52,10 @@ bus.
 The capsule stores no touch events, gestures, keystrokes, sensor samples, or
 history. It keeps the I2C address, probe counter, HID and report descriptor
 state, the last button mask and the current gesture in volatile memory; each
-report is decoded and posted, then dropped.
+report is decoded and posted, then its read buffer is cleared. The repeat
+check keeps the last decoded pointer sample, not the report's bytes, and
+a report of no collection it reads, a keyboard's keys above all, is
+dropped unread.
 
 ## State ownership
 
