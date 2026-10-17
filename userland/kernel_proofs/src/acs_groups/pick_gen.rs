@@ -17,7 +17,10 @@
 //! Seeded bridge trees for the pick sweep (L77): root ports, switches nested
 //! three deep, ports reporting anything, bridges firmware left unset.
 
-use super::port_rule::{Bridge, DOWNSTREAM, ROOT_PORT as ROOT, UPSTREAM};
+use super::port_rule::{Bridge, DOWNSTREAM, UPSTREAM};
+
+/// A root port's Device/Port Type (recalled, unverified).
+pub(super) const ROOT: u8 = 4;
 
 /// The bridges, each one's true kind and the index of the bridge above it.
 pub(super) struct Tree(
@@ -35,8 +38,13 @@ impl Tree {
         self.3 % n
     }
     fn told(&mut self, honest: u8) -> Option<u8> {
-        let lies = [Some(honest), Some(honest), Some(UPSTREAM), Some(ROOT), Some(DOWNSTREAM), None];
-        lies[self.draw(6) as usize]
+        // Every type a bridge might say, the switch's own ones most often.
+        let lies = [Some(UPSTREAM), Some(ROOT), Some(DOWNSTREAM), None, Some(0), Some(7), Some(9)];
+        match self.draw(9) {
+            0..=6 => lies[self.draw(7) as usize],
+            7 => Some(self.draw(256) as u8),
+            _ => Some(honest),
+        }
     }
     pub(super) fn bridge(&mut self, bus: u8, kind: u8, said: Option<u8>, up: usize, depth: u32) {
         let (me, below) = (self.0.len(), self.2 + 1);

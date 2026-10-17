@@ -17,7 +17,8 @@
 //! The pick over whole bridge lists (L77): a bridge firmware left unset, a
 //! switch whose ports lie, and a false bridge naming a switch's bus.
 
-use super::port_rule::{picked, Bridge, DOWNSTREAM, ROOT_PORT as ROOT, UPSTREAM};
+use super::pick_gen::ROOT;
+use super::port_rule::{picked, Bridge, DOWNSTREAM, UPSTREAM};
 
 fn counted(b: &[Bridge]) -> Vec<usize> {
     (0..b.len()).filter(|&at| picked(b, at)).collect()
