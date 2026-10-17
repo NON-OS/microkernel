@@ -42,6 +42,8 @@ mod layout_tests;
 mod layout_width_tests;
 #[path = "replace_tests.rs"]
 mod replace_tests;
+#[path = "store_default_tests.rs"]
+mod store_default_tests;
 #[path = "vault_gate_tests.rs"]
 mod vault_gate_tests;
 #[path = "vault_read/mod.rs"]
