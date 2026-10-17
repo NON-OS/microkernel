@@ -10,6 +10,8 @@ use crate::rig::Rig;
 
 #[path = "load_admit_tests.rs"]
 mod admit;
+#[path = "unload_cut/mod.rs"]
+mod unload_cut;
 
 fn ssdt() -> Vec<u8> {
     table(
