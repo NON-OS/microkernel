@@ -22,9 +22,8 @@
 //! above it. One counted too many only groups more; one left out let its
 //! peers reach each other past the IOMMU. Pure, so it runs on the host too.
 
-/// PCIe Device/Port Type values (recalled, unverified): a root port, and a
-/// switch's upstream port and downstream one.
-pub(super) const ROOT_PORT: u8 = 4;
+/// PCIe Device/Port Type values (recalled, unverified): a switch's upstream
+/// port and a downstream one.
 pub(super) const UPSTREAM: u8 = 5;
 pub(super) const DOWNSTREAM: u8 = 6;
 
@@ -44,11 +43,12 @@ pub(super) type Bridge = (u8, Option<u8>, Option<u8>);
 /// Whether `bridges[at]` counts, every bridge naming its bus asked, so a
 /// false one cannot hide the switch it sits in. A bridge names only a bus
 /// below its own: one firmware left unset names bus 0, and would otherwise
-/// put every bridge of the root bus in a switch. Nothing below a bridge is a
-/// root port, so that claim there is not believed (L77).
+/// put every bridge of the root bus in a switch. Below a bridge only a
+/// switch's two port types are believed: anything else it says there is
+/// taken as unread, so it counts, which only groups more (L77).
 pub(super) fn picked(bridges: &[Bridge], at: usize) -> bool {
     let Some(&(bus, _, said)) = bridges.get(at) else { return false };
-    let own = said.filter(|&t| t != ROOT_PORT);
+    let own = said.filter(|&t| t == UPSTREAM || t == DOWNSTREAM);
     let names = |b: &&Bridge| b.1 == Some(bus) && bus > b.0;
     let mut above = bridges.iter().filter(names).peekable();
     match above.peek() {

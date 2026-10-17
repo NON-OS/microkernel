@@ -37,7 +37,10 @@ pub(super) fn admit(pid: u32, device_id: u64, epoch: u64) -> bool {
         return false;
     };
     claim.stage = Stage::Ready;
-    crate::hardware::broker::bootfb::claimed(device_id);
+    if crate::hardware::broker::bootfb::claimed(device_id) {
+        drop(claims);
+        crate::hardware::broker::bootfb::say(true);
+    }
     true
 }
 

@@ -47,11 +47,11 @@ fn wrong(w: World, new: bool, seen: &mut HashSet<World>) -> bool {
 }
 
 /// With the sibling's release, or the exit alone with the grant path; a kill
-/// can park the release only where its wait `yields`.
+/// in every run, parking the release only where its wait `yields`.
 fn start(release: bool, yields: bool) -> World {
     let entry = Some(Entry(1, code(Stage::Ready), 0, 0));
-    let steps = [0, 0, if release { 0 } else { 8 }, 0, (!yields) as u8];
-    World { entry, grant: true, bus_on: true, bad: false, steps }
+    let steps = [0, 0, if release { 0 } else { 8 }, 0, 0];
+    World { entry, grant: true, bus_on: true, bad: false, yields, steps }
 }
 
 #[test]
