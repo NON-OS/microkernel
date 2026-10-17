@@ -51,12 +51,4 @@ impl<K: Keys> Store<K> {
         self.ids.push((kind, identity, id));
         self.book.insert(record)
     }
-
-    /// Forget the bond with this identity; whether there was one.
-    pub fn forget(&mut self, kind: u8, identity: &[u8; 6]) -> Result<bool, BondError> {
-        let Some(at) = self.id_of(kind, identity) else { return Ok(false) };
-        self.keys.delete(self.ids[at].2)?;
-        self.ids.remove(at);
-        Ok(self.book.remove(kind, identity))
-    }
 }
