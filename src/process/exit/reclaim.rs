@@ -34,9 +34,10 @@ pub(crate) fn reclaim_at_tick(from_user: bool) {
      * that never ends on the CPU that holds the read.
      *
      * A tick from user mode holds no kernel lock, the rule tick.rs switches
-     * by on x86_64 (the lower-EL vector on aarch64), and neither does the halt a CPU waits in when nothing is runnable:
-     * a busy machine reclaims at its next tick in user code, an idle one at
-     * its next tick at all.
+     * by on x86_64 (the lower-EL vector on aarch64, sstatus.SPP on riscv64),
+     * and neither does the halt a CPU waits in when nothing is runnable: a
+     * busy machine reclaims at its next tick in user code, an idle one at its
+     * next tick at all.
      */
     let holds_no_lock = from_user || crate::process::accounting::is_idle();
     if holds_no_lock && crate::process::current_pid().is_some() {

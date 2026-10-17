@@ -56,16 +56,18 @@ fn aarch64_takes_it_from_the_vector_before_the_tick() {
 #[test]
 fn riscv64_takes_it_from_the_frame_before_the_tick() {
     let int = code("arch/riscv64/interrupts/handlers/interrupt.rs");
+    assert!(int.contains(
+        "InterruptCode::SupervisorTimer => timer::handle_timer_interrupt(frame.is_from_user()),"
+    ));
+    let timer = code("arch/riscv64/timer/interrupt.rs");
     order(
-        &int,
+        &timer,
         &[
-            "InterruptCode::SupervisorTimer => {",
-            "crate::process::accounting::set_tick_origin(frame.is_from_user());",
-            "timer::handle_timer_interrupt()",
+            "pub fn handle_timer_interrupt(from_user: bool) {",
+            "crate::process::accounting::set_tick_origin(from_user);",
+            "preemption::tick::tick();",
         ],
     );
-    let timer = code("arch/riscv64/timer/interrupt.rs");
-    order(&timer, &["pub fn handle_timer_interrupt() {", "preemption::tick::tick();"]);
 }
 
 #[test]
