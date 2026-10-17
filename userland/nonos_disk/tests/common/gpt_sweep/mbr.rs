@@ -16,6 +16,7 @@
 
 //! Sector 0 of a sound GPT disk.
 
+use super::lies::Lie;
 use super::rng::Rng;
 
 /// A protective MBR: one EEh record from LBA 1, in any of the four slots,
@@ -32,4 +33,17 @@ pub fn mbr(r: &mut Rng, sectors: u64) -> Vec<u8> {
     e[12..16].copy_from_slice(&((sectors - 1).min(u32::MAX as u64) as u32).to_le_bytes());
     (s[510], s[511]) = (0x55, 0xAA);
     s
+}
+
+/// Sector 0 told wrong: no 55h AAh, no EEh record, or one not at LBA 1.
+pub fn mbr_lie(r: &mut Rng, lie: Lie, d: &mut super::disk::Disk) {
+    let records = d.mbr[446..510].chunks_mut(16);
+    match lie {
+        Lie::NoMbrSignature => d.mbr[510 + r.range(0, 1) as usize] ^= r.range(1, 255) as u8,
+        Lie::NoProtective => d.mbr[446..510]
+            .chunks_mut(16)
+            .for_each(|e| e[4] = if e[4] == 0xEE { 0x07 } else { e[4] }),
+        Lie::ProtectiveNotAtOne => records.filter(|e| e[4] == 0xEE).for_each(|e| e[8] ^= 3),
+        other => unreachable!("{other:?} is not an MBR lie"),
+    }
 }

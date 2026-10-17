@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's GPT reader over seeded disks, built sound then told one
-//! lie: it believes exactly what common/gpt_sweep/model.rs believes, a lie
-//! costing one entry costs no other, and what it names is always inside the
-//! usable range with no two partitions sharing a sector.
+//! The kernel's GPT reader over seeded disks with both headers, built
+//! sound then told one lie in either: it names exactly what the rule in
+//! common/gpt_sweep/rule.rs names, takes the backup when only the primary
+//! lies, says when a holding backup disagrees, and whatever it names lies
+//! in the usable range with no sector shared.
 
 extern crate alloc;
 
@@ -28,17 +29,21 @@ mod gpt_sweep;
 mod kernel_gpt;
 
 use gpt_sweep::build::disk;
-use gpt_sweep::lie::{tell, Lie, LIES};
+use gpt_sweep::expect::expected;
+use gpt_sweep::lie::{tell, LIES};
 use gpt_sweep::rng::{rounds, Rng};
-use gpt_sweep::view::{held, kernel, model};
+use gpt_sweep::rule::{rule, Named};
+use gpt_sweep::view::{held, kernel};
 
 #[test]
-fn every_sound_disk_is_read_as_built() {
+fn every_sound_disk_is_read_from_its_primary_as_built() {
     let mut sizes = [0u32; 41];
     for seed in 1..rounds(3_000) {
         let d = disk(&mut Rng::new(seed));
-        let got = kernel(&d).unwrap_or_else(|| panic!("seed {seed}: a sound disk refused"));
-        assert_eq!(Some(got), model(&d), "seed {seed}");
+        let Named::Primary(parts) = kernel(&d) else {
+            panic!("seed {seed}: a sound disk not read")
+        };
+        assert_eq!(Named::Primary(parts), rule(&d), "seed {seed}");
         sizes[d.sectors.ilog2() as usize] += 1;
     }
     let spread = sizes.iter().filter(|&&n| n >= 30).count();
@@ -46,29 +51,21 @@ fn every_sound_disk_is_read_as_built() {
 }
 
 #[test]
-fn after_any_lie_the_reader_believes_what_the_rule_believes() {
-    let skips_one = [Lie::PastLast, Lie::EndBeforeStart, Lie::BelowFirst];
-    let mut told = [0u32; LIES.len()];
-    for seed in 1..rounds(10_000) {
+fn after_any_lie_in_either_header_the_reader_names_what_the_rule_names() {
+    let mut told = [[0u32; 2]; LIES.len()];
+    for seed in 1..rounds(20_000) {
         let mut r = Rng::new(seed);
         let built = disk(&mut r);
-        let sound = model(&built).unwrap();
-        let (lie, d) = tell(&mut r, &built);
+        let Named::Primary(sound) = rule(&built) else { panic!("seed {seed}: built unsound") };
+        let (lie, w, broke, d) = tell(&mut r, &built);
         let got = kernel(&d);
-        assert_eq!(got, model(&d), "seed {seed}: {lie:?}");
-        match got {
-            Some(ref kept) if skips_one.contains(&lie) => {
-                let why = format!("seed {seed}: {lie:?} cost more than its entry");
-                assert_eq!(kept.len() + 1, sound.len(), "{why}");
-                assert!(kept.iter().all(|p| sound.contains(p)), "seed {seed}: {lie:?}");
-            }
-            Some(_) => panic!("seed {seed}: {lie:?} was believed"),
-            None => assert!(!skips_one.contains(&lie), "seed {seed}: {lie:?} cost the whole table"),
-        }
-        held(&d, got.as_deref(), seed);
-        told[LIES.iter().position(|l| *l == lie).unwrap()] += 1;
+        assert_eq!(got, rule(&d), "seed {seed}: {lie:?} in header {w}");
+        let why = format!("seed {seed}: {lie:?} in header {w}, primary broken {broke}");
+        assert_eq!(got, expected(lie, w, broke, &sound, &got), "{why}");
+        held(&d, &got, seed);
+        told[LIES.iter().position(|l| *l == lie).unwrap()][w] += 1;
     }
     for (n, lie) in told.iter().zip(LIES) {
-        assert!(cfg!(miri) || *n >= 300, "{lie:?} was told only {n} times");
+        assert!(cfg!(miri) || n[0] + n[1] >= 300, "{lie:?} was told only {n:?} times");
     }
 }
