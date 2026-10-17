@@ -31,6 +31,8 @@ pub struct SaeStation {
     pub(super) own_element: [u8; 2 * LEN],
     pub(super) token: [u8; TOKEN_MAX],
     pub(super) token_len: usize,
+    /// Token requests answered in this exchange (`TOKEN_ROUNDS_MAX`).
+    pub(super) token_rounds: u8,
     pub(super) keys: SaeKeys,
     pub(super) peer_scalar: [u8; LEN],
     pub(super) peer_element: [u8; 2 * LEN],
@@ -51,6 +53,7 @@ impl SaeStation {
             own_element,
             token: [0u8; TOKEN_MAX],
             token_len: 0,
+            token_rounds: 0,
             keys: SaeKeys { kck: [0u8; 32], pmk: [0u8; 32], pmkid: [0u8; 16] },
             peer_scalar: [0u8; LEN],
             peer_element: [0u8; 2 * LEN],
