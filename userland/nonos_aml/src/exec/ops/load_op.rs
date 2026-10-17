@@ -47,6 +47,7 @@ impl<H: Host> Machine<'_, H> {
         }
         match aml.load_table_at(bytes, ROOT, self) {
             Ok(index) => {
+                self.announce_loaded(aml);
                 self.result(aml, t, target, Object::Table(index), at)?;
                 Ok(Object::Integer(w.ones()))
             }
