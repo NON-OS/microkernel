@@ -18,7 +18,8 @@
   "frame-pointer": "always",
 
   "cpu": "generic",
-  "features": "+strict-align,+sb,+ssbs,+mte,+rand,+el3",
+  "features": "+strict-align,+sb,+ssbs,+mte,+rand,+el3,-neon,-fp-armv8",
+  "abi": "softfloat",
 
   "linker-flavor": "ld.lld",
   "linker": "rust-lld",

@@ -56,6 +56,12 @@
     msr     \reg, x9
 .endm
 
+/* The kernel is built without FP/SIMD (-mgeneral-regs-only, softfloat), so
+ * a task's vector registers survive every kernel entry. This file is one of
+ * the few that move them on purpose. */
+.arch_extension fp
+.arch_extension simd
+
 /* x0 = the context, x1 = power_state, x2 = the entry point's physical
  * address, x3 = the context id (the context's physical address), x4 = 1 to
  * call by SMC, 0 by HVC. Called with IRQs masked. */
