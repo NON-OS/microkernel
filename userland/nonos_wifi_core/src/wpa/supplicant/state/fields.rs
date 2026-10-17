@@ -17,7 +17,6 @@
 //! What the supplicant holds through a handshake.
 
 use super::super::ie::Ie;
-use super::super::rekey::Rekey;
 use super::kinds::{Failure, State};
 use crate::wpa::akm::Akm;
 
@@ -63,6 +62,4 @@ pub struct Supplicant {
     /// Message 3's Transition Disable bitmap, 0 when it sent none.
     pub(in crate::wpa::supplicant) transition_disable: u8,
     pub(in crate::wpa::supplicant) failure: Option<Failure>,
-    /// A pairwise rekey waiting for its message 3 (`rekey`).
-    pub(in crate::wpa::supplicant) rekey: Option<Rekey>,
 }

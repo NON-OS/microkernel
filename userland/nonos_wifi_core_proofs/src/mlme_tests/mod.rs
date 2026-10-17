@@ -29,6 +29,8 @@ mod candidates;
 mod candidates_bound;
 mod entropy;
 mod frames;
+mod fuzz_judge;
+mod fuzz_sae;
 mod ignored;
 mod sae;
 mod sae_forged;
