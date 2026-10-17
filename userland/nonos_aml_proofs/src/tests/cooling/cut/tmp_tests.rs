@@ -31,5 +31,5 @@ fn a_cut_or_lying_temperature_is_no_reading() {
         }
     }
     println!("_TMP: {cut} cut reads, {lies_seen} finished lies read as nothing");
-    assert!(cut >= 520 && lies_seen == 8, "{cut} {lies_seen}");
+    assert!(cut >= 890 && lies_seen == 8, "{cut} {lies_seen}");
 }
