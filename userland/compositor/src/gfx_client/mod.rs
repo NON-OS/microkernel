@@ -16,6 +16,7 @@
 
 pub mod flush;
 pub mod get_primary;
+pub mod health;
 pub mod set_scanout;
 pub mod transfer;
 pub mod wire;
