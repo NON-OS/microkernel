@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bond;
 pub mod chord;
 pub mod deliver;
 pub mod dispatch;
@@ -25,10 +26,12 @@ mod key_deliver;
 pub mod key_target;
 mod keyboard;
 mod kinds;
+mod notice;
 pub mod pad;
 mod pointer;
 pub mod preempt;
 mod press_kinds;
+mod refuse;
 pub mod shell_keys;
 pub mod trusted_hold;
 
