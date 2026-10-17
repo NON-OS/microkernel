@@ -19,8 +19,8 @@
 //! asks it before it loads the thread's stack or tables; the paths that
 //! entered nothing put it back Ready the same way.
 
-const ENTERED: &str = include_str!("../../../../src/process/core/entered.rs");
-const SW: [(&str, &str, &str); 7] = [
+pub(super) const ENTERED: &str = include_str!("../../../../src/process/core/entered.rs");
+pub(super) const SW: [(&str, &str, &str); 7] = [
     ("x86_64 resume", include_str!("../../../../src/arch/x86_64/context/switch/resume.rs"), K),
     ("x86_64 first", include_str!("../../../../src/arch/x86_64/context/switch/first_entry.rs"), K),
     (
@@ -58,6 +58,7 @@ fn no_entry_path_stores_running_or_ready_over_a_kill() {
     for (what, text, load) in SW {
         assert!(!text.contains("= ProcessState::Running"), "{what}: a plain Running store");
         assert!(!text.contains("= ProcessState::Ready"), "{what}: a plain Ready store");
+        assert!(!text.contains("state.lock()"), "{what}: a state store not through entered.rs");
         let asked = at(text, "if !pcb.mark_running() {", what);
         assert!(asked < at(text, load, what), "{what}: asked after it loads the thread");
         assert!(text[asked..].contains("mark_running() {\n        return"), "{what}: enters on");

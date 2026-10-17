@@ -50,5 +50,13 @@ fn a_switch_counts_its_ports_whatever_they_say_and_a_false_namer_hides_none() {
     let mut lied = tree.to_vec();
     lied.insert(0, (1, Some(2), Some(ROOT)));
     lied.push((9, Some(2), Some(ROOT)));
-    assert_eq!(counted(&lied), vec![0, 3, 4, 5, 6], "a second bridge naming bus 2");
+    assert_eq!(counted(&lied), vec![0, 2, 3, 4, 5, 6], "a second bridge naming bus 2");
+}
+
+#[test]
+fn a_swapped_switch_on_a_root_bus_counts_its_ports() {
+    // No root port above: the upstream port says root, its ports upstream.
+    let lied =
+        [(0, Some(1), Some(ROOT)), (1, Some(2), Some(UPSTREAM)), (1, Some(3), Some(UPSTREAM))];
+    assert_eq!(counted(&lied), vec![1, 2], "a link carries one component");
 }
