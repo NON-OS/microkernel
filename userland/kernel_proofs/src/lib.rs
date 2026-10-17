@@ -31,6 +31,8 @@ pub mod driver_grants;
 pub mod device_windows;
 #[cfg(test)]
 pub mod device_shown;
+#[cfg(test)]
+pub mod holder_choice;
 pub mod fs;
 pub mod hardware;
 pub mod fb_frame;

@@ -22,6 +22,7 @@
 
 use core::sync::atomic::Ordering;
 
+use super::holder_choice::{choose, Space};
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::manager::{
     lookup_asid_for_cr3, lookup_asid_for_process, translate_in_asid, unmap_page_in_asid,
@@ -30,12 +31,15 @@ use crate::memory::paging::types::PagePermissions;
 
 const PAGE: u64 = 4096;
 
-/// The asid `pid` runs in: its own, or, for a thread, its process's.
+/// The asid `pid` runs in: its own, or, for a thread, its process's. None
+/// is holder_choice's active-table fallback, which callers take themselves.
 pub(crate) fn holder_asid(pid: u32) -> Option<u32> {
-    lookup_asid_for_process(pid).or_else(|| {
-        let cr3 = crate::process::PROCESS_TABLE.find_by_pid(pid)?.cr3.load(Ordering::Acquire);
-        (cr3 != 0).then(|| lookup_asid_for_cr3(cr3)).flatten()
-    })
+    let cr3 =
+        || crate::process::PROCESS_TABLE.find_by_pid(pid).map(|p| p.cr3.load(Ordering::Acquire));
+    match choose(lookup_asid_for_process(pid), cr3, lookup_asid_for_cr3) {
+        Space::Asid(asid) => Some(asid),
+        Space::ActiveTable => None,
+    }
 }
 
 /// Unmap `length` bytes at `user_va` from `pid`'s tables. False when they
