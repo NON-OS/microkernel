@@ -20,6 +20,8 @@ mod entry_bond;
 mod entry_publish;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/entry_release.rs"]
 mod entry_release;
+#[path = "../../../capsule_wallet_nonos/src/wallet/intent/followed.rs"]
+pub mod followed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/landed.rs"]
 mod landed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/landed_read.rs"]

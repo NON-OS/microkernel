@@ -21,6 +21,7 @@ mod click_acts;
 mod click_send;
 pub mod key;
 mod review;
+mod review_echo;
 mod review_rows;
 mod review_say;
 mod rows;
