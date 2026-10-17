@@ -19,23 +19,28 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::rows::rows;
 use super::words::{closable, lead as first};
 use super::words_voucher::another;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
-use crate::wallet::etna::parts::fact::fact;
+use crate::wallet::order::terms::shown::opens;
 use crate::wallet::screen::hits;
-use crate::wallet::screen::page::{edges, lead};
+use crate::wallet::screen::page::edges;
 use crate::wallet::state::State;
 
 pub fn show(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let Some(p) = state.meter.purchase.as_deref() else { return };
-    let (sentence, action) = first(p);
-    let (close, act) = (closable(p), action.is_some());
+    if !opens(p.reading.as_ref(), &p.read, p.record.as_ref()) {
+        return;
+    }
+    let consent = super::consent::lines(p);
+    let (sentence, action) = consent.as_ref().map_or_else(|| first(p), |l| (&*l.lead, l.action));
+    // Buy is pressable only once the focus guard armed it (terms/arming.rs).
+    let act = action.is_some() && (consent.is_none() || p.armed);
+    let close = closable(p);
     let status = crate::wallet::screen::status::parts(state);
     let mut footer = alloc::vec![
         ("Close", Weight::Secondary, close),
@@ -54,13 +59,7 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     };
     let mut l = begin(fb, &spec);
     let c = l.content;
-    let mut y = lead(fb, c, sentence);
-    for (label, value) in rows(p) {
-        y += fact(fb, c.x, y, c.w, label, &value);
-    }
-    if super::form::open_form(p) {
-        y += super::form::paint(p, fb, c, y);
-    }
+    let y = super::body::paint(p, consent.as_ref(), fb, c, sentence);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
     edges(&l, &footer.iter().map(|f| f.2).collect::<alloc::vec::Vec<_>>());

@@ -24,6 +24,8 @@ use super::held::Held;
 pub use super::pending_step::Step;
 use super::read::Named;
 use super::reading::Reading;
+use super::terms::arming::Guard;
+use super::terms::asked::Record;
 use super::voucher_form::VoucherForm;
 use super::watch::Watch;
 
@@ -33,6 +35,12 @@ pub struct Pending {
     pub read: Result<Named, &'static str>,
     /// The market call to make next; None once the terms are read.
     pub reading: Option<Reading>,
+    /// The market's names for what is bought, read for the names asked.
+    pub record: Option<Record>,
+    /// Whether Buy may act yet: the consent drawn, the wallet focused.
+    pub guard: Guard,
+    /// Whether the screen shows Buy armed, as of the last look at focus.
+    pub armed: bool,
     pub fees: Fees,
     pub watch: Watch,
     pub delivery: Delivery,

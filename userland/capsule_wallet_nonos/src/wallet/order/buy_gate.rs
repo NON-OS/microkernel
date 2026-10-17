@@ -18,13 +18,14 @@
  * When an escrow purchase may be quoted and bought (B8, plan/27): at
  * consent, read from the market as escrow; the Shield is asked its quote
  * once, for the block's price written exactly, and Buy acts only on a
- * price it quoted. Anything else does nothing.
+ * price it quoted with a fee that reads as NOX. Anything else does
+ * nothing; whether Buy is armed on screen is arming.rs.
  */
 
 use alloc::string::String;
 
 use super::buy::Buy;
-use super::fees_kind::{exact, Fees};
+use super::fees_kind::{exact, fee_wei, Fees};
 use super::pending_step::Step;
 use super::read::Named;
 
@@ -34,10 +35,10 @@ pub fn buyable<'a>(
     read: &'a Result<Named, &'static str>,
     fees: &Fees,
 ) -> Option<&'a Buy> {
-    let (Step::Consent, Ok(Named::Escrow(buy)), Fees::Quoted(_)) = (step, read, fees) else {
+    let (Step::Consent, Ok(Named::Escrow(buy)), Fees::Quoted(fee)) = (step, read, fees) else {
         return None;
     };
-    Some(buy)
+    fee_wei(fee).map(|_| buy)
 }
 
 /// The amount the Shield is asked to quote, if one is to be asked now.
