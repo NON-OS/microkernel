@@ -25,4 +25,4 @@
 mod dwell;
 mod find;
 
-pub(super) use find::find_beacon;
+pub(super) use find::find_candidates;

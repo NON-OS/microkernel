@@ -19,5 +19,6 @@
 //! commit for SAE. The beacon's RSNE and RSNXE are kept whole for the
 //! downgrade check in message 3, and its rates for the association request.
 
+pub(super) mod judge;
 mod select;
 mod start_sae;
