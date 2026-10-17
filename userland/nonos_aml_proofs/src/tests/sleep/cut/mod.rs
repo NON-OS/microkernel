@@ -7,4 +7,5 @@
 mod fixture;
 mod gen;
 mod run;
+mod say_tests;
 mod sweep_tests;

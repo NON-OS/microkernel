@@ -889,6 +889,8 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/s5_choice.rs",
+   "src/hardware/broker/acpi/sleep_request.rs",
    "src/hardware/broker/acpi/slot_rule.rs",
    "src/hardware/broker/acpi/slot_wire.rs",
    "userland/capsule_acpi/src/aei/rate.rs",
@@ -916,6 +918,7 @@
    "userland/capsule_acpi/src/props/wire_write.rs",
    "userland/capsule_acpi/src/serial/bus_key.rs",
    "userland/capsule_acpi/src/server/policy.rs",
+   "userland/capsule_acpi/src/sleep",
    "userland/capsule_acpi_proofs"
   ],
   "md": [],
@@ -3844,7 +3847,9 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/s5_choice.rs",
    "userland/capsule_acpi/src/dpower/wake_sweep.rs",
+   "userland/capsule_acpi/src/sleep",
    "userland/nonos_aml/src/aei",
    "userland/nonos_aml/src/apei",
    "userland/nonos_aml/src/arena",
