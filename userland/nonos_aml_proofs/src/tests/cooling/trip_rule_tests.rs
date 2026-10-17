@@ -66,5 +66,5 @@ fn trips_applies_it() {
     let (mut aml, _) = boot(&thermal_zone("\\_TZ.TZ9", &body), 2);
     let tz = at(&aml, "\\_TZ.TZ9").unwrap();
     let t = trips(&mut aml, &mut evaluator(&mut Probe::default()), tz, &Default::default());
-    assert_eq!((t.critical, t.hot, t.faults), (Some(80_050), None, HO | CL));
+    assert_eq!((t.critical, t.hot, t.faults), (Some(80_050), None, u16::from(HO | CL)));
 }

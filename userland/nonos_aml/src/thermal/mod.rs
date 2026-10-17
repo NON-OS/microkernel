@@ -20,6 +20,7 @@
 mod passive;
 mod passive_rule;
 mod temp;
+mod trip_more;
 mod trip_read;
 mod trip_rule;
 mod trips;
@@ -31,7 +32,8 @@ pub use passive::{
     constants, passive_constants, passive_devices, step, Constants, FULL, MAX_TC, MAX_TSP,
 };
 pub use temp::{milli_celsius, tenths_kelvin, COLDEST, HOTTEST};
-pub use trip_read::{Read, UNREAD_CRT, UNREAD_HOT, UNREAD_PSV, UNREAD_TRIPS};
+pub use trip_more::{UNREAD_AC, UNREAD_TRIPS, UNREAD_TZP};
+pub use trip_read::{Read, UNREAD_CRT, UNREAD_HOT, UNREAD_PSV};
 pub use trip_rule::{sane, CRT_UNDER_PSV, HOT_OVER_CRT, HOT_UNDER_PSV, HOT_UNDER_PSV_KEPT};
 pub use trips::{active_seg, temperature, trips, Trips, MAX_ACTIVE};
 pub use verdict::{judge, Verdict, HYSTERESIS_MC};

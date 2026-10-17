@@ -3,21 +3,25 @@
 //! it used, against the model, from a first read and from one believed.
 
 use super::fixture::{dsdt, scenes, SEGS};
-use super::reader::{believed, held, limited, Log};
+use super::reader::{held, limited, Log};
+use super::trips_model::want;
 use crate::consts::at;
 use crate::probe::Probe;
 use crate::run::boot;
-use crate::thermal::{sane, trips, Trips, UNREAD_CRT, UNREAD_HOT, UNREAD_PSV};
+use crate::thermal::{trips, Trips, UNREAD_AC, UNREAD_TRIPS, UNREAD_TZP};
+use crate::thermal::{UNREAD_CRT as C, UNREAD_HOT as H, UNREAD_PSV as P};
 
 fn before() -> [Trips; 2] {
     let seen = (Some(95_050), Some(85_050), Some(75_050));
-    let seen = Trips { critical: seen.0, hot: seen.1, passive: seen.2, ..Trips::default() };
+    let (critical, hot, passive) = seen;
+    let more = (vec![65_050, 55_050], Some(50));
+    let seen = Trips { critical, hot, passive, active: more.0, polling: more.1, faults: 0 };
     [Trips::default(), seen]
 }
 
 #[test]
 fn a_cut_or_lying_trip_keeps_the_one_believed_before() {
-    let (mut cut, mut kept) = (0, 0);
+    let (mut cut, mut kept, mut more) = (0, 0, [0; 2]);
     for (lies, mutex) in scenes().into_iter().flat_map(|l| [(l, false), (l, true)]) {
         let (mut aml, _) = boot(&dsdt(&lies, mutex), 2);
         let tz = at(&aml, "\\_TZ.TZ0").unwrap();
@@ -27,30 +31,28 @@ fn a_cut_or_lying_trip_keeps_the_one_believed_before() {
                 let (mut log, mut probe) = (Log::new(), Probe::default());
                 let t = trips(&mut aml, &mut limited(&mut probe, steps, &mut log), tz, &prev);
                 assert!(!held(&aml), "{lies:?} {steps}: held");
-                let mut bits = 0;
-                let mut want = |i: usize, was: Option<i32>, bit: u8| {
-                    let id = ids[i]?;
-                    let run = log.iter().find(|r| r.0 == id).expect("each trip read").1;
-                    believed(run).or_else(|| {
-                        bits |= bit;
-                        was
-                    })
-                };
-                let crt = want(1, prev.critical, UNREAD_CRT);
-                let (hot, psv) = (want(2, prev.hot, UNREAD_HOT), want(3, prev.passive, UNREAD_PSV));
-                let (hot, order) = sane(crt, hot, psv);
-                let got = (t.critical, t.hot, t.passive, t.faults);
-                assert_eq!(got, (crt, hot, psv, order | bits), "{lies:?} {mutex} {steps}");
-                assert_eq!((t.active, t.polling), (vec![70_050], Some(100)));
+                assert_eq!(t, want(&log, &ids, &prev), "{lies:?} {mutex} {steps}");
                 let cuts = log.iter().filter(|r| r.1.is_none()).count();
-                (cut, kept) =
-                    (cut + cuts, kept + usize::from(bits != 0 && prev.critical.is_some()));
+                cut += cuts;
+                let seen = prev.critical.is_some();
+                kept += usize::from(t.faults >> 4 != 0 && seen);
+                for (n, bit) in more.iter_mut().zip([UNREAD_AC, UNREAD_TZP]) {
+                    *n += usize::from(t.faults & bit != 0 && seen);
+                }
                 if cuts == 0 {
                     break;
                 }
             }
         }
     }
-    println!("trips: {cut} cut reads, {kept} reads keeping a believed trip");
-    assert!(cut >= 5_400 && kept >= 1_100, "{cut} {kept}");
+    println!("trips: {cut} cut reads, {kept} keeping a trip, {more:?} an _ACx, a _TZP");
+    assert!(cut >= 22_500 && kept >= 3_000, "{cut} {kept}");
+    assert!(more[0] >= 2_700 && more[1] >= 2_900, "{more:?}");
+}
+
+/// The capsule reads a zone's trips again while any of these is set: every
+/// trip whose unread value is kept must be among them.
+#[test]
+fn every_kept_trip_is_read_again() {
+    assert_eq!(UNREAD_TRIPS, C | H | P | UNREAD_AC | UNREAD_TZP);
 }

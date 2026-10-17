@@ -46,7 +46,7 @@ pub struct Zone {
     pub next_ms: u64,
     pub passive: Option<Passive>,
     /// The trip faults, and an unread _TMP, already said (`trip_faults`).
-    pub told: u8,
+    pub told: u16,
 }
 
 #[derive(Default)]

@@ -27,10 +27,9 @@ use crate::platform::{integer, Eval};
 use alloc::vec::Vec;
 
 /// `Trips::faults` bits beside `trip_rule`'s: the trip was unread.
-pub const UNREAD_CRT: u8 = 1 << 4;
-pub const UNREAD_HOT: u8 = 1 << 5;
-pub const UNREAD_PSV: u8 = 1 << 6;
-pub const UNREAD_TRIPS: u8 = UNREAD_CRT | UNREAD_HOT | UNREAD_PSV;
+pub const UNREAD_CRT: u16 = 1 << 4;
+pub const UNREAD_HOT: u16 = 1 << 5;
+pub const UNREAD_PSV: u16 = 1 << 6;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Read {
@@ -58,7 +57,7 @@ pub fn read(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id, seg: Seg) -> Read {
 
 /// The value believed: the one read, or for an unread trip the one kept,
 /// with `bit` set in `faults`.
-pub fn believe(r: Read, kept: Option<i32>, bit: u8, faults: &mut u8) -> Option<i32> {
+pub fn believe(r: Read, kept: Option<i32>, bit: u16, faults: &mut u16) -> Option<i32> {
     match r {
         Read::Absent => None,
         Read::At(t) => Some(t),
