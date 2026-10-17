@@ -23,7 +23,7 @@
 //! driver is driven; one that only vanished is waited for, since a
 //! restarted driver comes back on the same screen.
 
-use nonos_gfx_wire::body::state::LOST;
+use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 use nonos_gfx_wire::State;
 
 use super::link::WireLink;
@@ -39,7 +39,8 @@ pub enum Step {
     Resurface,
     /// Drive the driver now announced from the start: CAPS, then SURFACE.
     Reprime,
-    /// The driver's device left: drive the best other one announced.
+    /// The driver's device left, or its output can never be lit again:
+    /// drive the best other one announced.
     Move,
 }
 
@@ -54,6 +55,12 @@ pub fn step(link: &WireLink, found: Option<u32>, state: Option<State>) -> Step {
         None => return Step::Keep,
         Some(pid) if pid != link.pid => return Step::Reprime,
         Some(_) => {}
+    }
+    // LOST and dark on a driver that sets no mode: nothing will light it
+    // again (bootfb once a GPU driver has its scanout, L79).
+    let dead = |s: &State| s.flags & LOST != 0 && s.flags & SCANNING_OUT == 0;
+    if link.fixed && state.as_ref().is_some_and(dead) {
+        return Step::Move;
     }
     if link.stale {
         return Step::Resurface;

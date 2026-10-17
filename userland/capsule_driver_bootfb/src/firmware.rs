@@ -25,6 +25,8 @@ pub enum Why {
     Record,
     Announce,
     Claim,
+    /// The claim refused for good (-EPERM): a GPU driver has the scanout.
+    Refused,
     Geometry,
     /// Three-byte pixels: the console keeps the screen.
     Format,

@@ -31,7 +31,7 @@ impl Model {
         }
         let bar = vec![0u32; size.div_ceil(4) as usize];
         let (calls, said) = (Vec::new(), Vec::new());
-        let m = Model { bar, info, calls, said, announced: false, holder: false };
+        let m = Model { bar, info, calls, said, announced: false, holder: false, taken: false };
         let bar0 = (BAR_KIND_MMIO, BAR_FLAG_PREFETCH, 0x8000_0000, size, offset);
         let (device_id, bus_kind, class) = (42, BUS_KIND_FIRMWARE, CLASS_DISPLAY);
         (m, Listed { device_id, bus_kind, class, vendor: 0, device: 1, bar_count: 1, bar0 })

@@ -16,11 +16,11 @@
 
 //! What the boot framebuffer says of itself on the wire: CAPS with kind 6
 //! and no flags (no mode setting, no cursor), its one mode, and a state
-//! that is always that mode, scanning out.
+//! that is that mode, scanning out until the scanout is lost.
 
 use super::fb::Fb;
 use nonos_gfx_wire::body::mode::{CURRENT, FROM_DEVICE, PREFERRED};
-use nonos_gfx_wire::body::state::SCANNING_OUT;
+use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 use nonos_gfx_wire::{kind, Caps, Mode, State};
 
 pub fn caps(f: &Fb) -> Caps {
@@ -40,12 +40,13 @@ pub fn mode(f: &Fb) -> Mode {
     Mode { width: f.width, height: f.height, flags: PREFERRED | CURRENT | FROM_DEVICE }
 }
 
-pub fn state(f: &Fb) -> State {
+/// Its mode, scanning out; LOST and dark once `gone` to a GPU driver.
+pub fn state(f: &Fb, gone: bool) -> State {
     State {
-        generation: 1,
+        generation: 1 + gone as u32,
         width: f.width,
         height: f.height,
-        flags: SCANNING_OUT,
+        flags: if gone { LOST } else { SCANNING_OUT },
         ..State::default()
     }
 }

@@ -39,4 +39,6 @@ pub struct WireLink {
     pub leaving: bool,
     /// The driver asked for a poll now (OUTPUT_NOTICE).
     pub nudged: bool,
+    /// CAPS has no MODE_SET: an output it says is LOST stays lost.
+    pub fixed: bool,
 }

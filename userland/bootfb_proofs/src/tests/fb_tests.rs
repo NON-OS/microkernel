@@ -16,7 +16,6 @@
 
 //! The framebuffer checks and the one mode it offers.
 
-use crate::display::BootFb;
 use crate::fb::{Fb, Layout};
 use nonos_gfx_serve::Display;
 use nonos_gfx_wire::{kind, Mode};
@@ -39,7 +38,7 @@ fn caps_modes_and_state_name_one_fixed_mode() {
     let mut fb =
         Fb::new(mem.as_mut_ptr() as *mut u8, 4096, (32, 30), 128, Layout::BlueFirst).unwrap();
     fb.physical_mm = 300 | 200 << 16;
-    let mut d = BootFb { fb, fence: || {} };
+    let mut d = super::serve::board(fb, || {});
     let c = d.caps();
     assert_eq!(
         (c.kind, c.outputs, c.flags, c.max_width, c.max_height),
@@ -51,4 +50,7 @@ fn caps_modes_and_state_name_one_fixed_mode() {
     assert_eq!((m[0].width, m[0].height, m[0].flags), (32, 30, 1 | 2 | 4));
     let s = d.state(0).unwrap();
     assert_eq!((s.width, s.height, s.flags), (32, 30, 1));
+    d.gone = true;
+    let s = d.state(0).unwrap();
+    assert_eq!((s.flags, s.generation), (2, 2), "lost to a GPU driver: LOST, dark, a new look");
 }

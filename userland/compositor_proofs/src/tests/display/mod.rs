@@ -18,6 +18,7 @@
 
 mod arrange_tests;
 mod backoff_tests;
+mod bootfb_gone_tests;
 mod brightness_get_tests;
 mod brightness_output_tests;
 mod brightness_tests;
