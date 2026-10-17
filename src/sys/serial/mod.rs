@@ -54,8 +54,3 @@ pub fn trace_hex(v: u64) {
         print::print_hex(v);
     }
 }
-pub fn trace_dec(v: u64) {
-    if is_debug_enabled() {
-        print::print_dec(v);
-    }
-}

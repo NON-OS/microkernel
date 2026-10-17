@@ -18,7 +18,7 @@ use super::ivrs_walk::MAX_AMD_IOMMUS;
 
 fn iommu_bases(table: &[u8]) -> Vec<u64> {
     let mut out = [0u64; MAX_AMD_IOMMUS];
-    let n = super::ivrs_walk::iommu_bases(table, &mut out);
+    let n = super::ivrs_walk::walk(table, &mut out).found;
     out[..n].to_vec()
 }
 

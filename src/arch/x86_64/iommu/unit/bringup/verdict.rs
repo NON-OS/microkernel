@@ -20,7 +20,9 @@
 //! machine confines DMA without reading the source.
 
 use super::message::reason;
-use crate::arch::x86_64::acpi::parser::other::{ats_structures, units_left_off};
+use crate::arch::x86_64::acpi::parser::other::{
+    ats_structures, dmar_x2apic_opt_out, units_left_off,
+};
 use crate::arch::x86_64::iommu::globals::page_levels;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::fault::drain_faults;
@@ -51,6 +53,9 @@ pub(super) fn enabled(assigned: usize, reserved: usize) {
         line.str(b"; not programmed, devices behind them are unrestricted").end();
     }
 
+    if dmar_x2apic_opt_out() {
+        serial::println(b"[VT-D] firmware opts out of x2APIC remapping; entries are xAPIC");
+    }
     let (atsr, satc, need_ats) = ats_structures();
     if atsr + satc > 0 {
         let mut line = Line::new();
