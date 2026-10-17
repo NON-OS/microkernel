@@ -19,6 +19,7 @@ meter, the plan) links it.
   chain has seen) freezes the channel instead (v1.3, E13). `voucher`
   builds the newest voucher with the channel's own expiry, which the
   contract requires; the caller never picks one.
+- `budget`: the owner's caps, global and per listing, with an expiry. The
   default allows nothing; `fresh` is a new allowance from SET_BUDGET.
 - `state`: the two together. Every change returns a new value, which the
   capsule writes to disk before anything is signed from it. A full channel
@@ -45,8 +46,8 @@ meter, the plan) links it.
 - `pay`: `priced`, which refuses a PAY v2 request (`nonos_payment_proto`)
   unless the release is trusted and every word equals its signed commerce
   block.
-  `funded`, FUNDED's one bit for app.store: a channel for the record's
-  listing and chain takes one more unit at the record's own price.
+  `landing`, PAY's charge decision: channel by payee, budget, unit.
+  `funded`, FUNDED's bit for app.store: `priced` then `landing` on one unit.
 - `state::ChainView`: settle's CHANNEL_STATE; a closed channel takes no
   further charge.
 - `wire`: the meter's state as payment_proto's ACCOUNT and DRAIN replies,
@@ -57,6 +58,7 @@ Hashes are injected through `nonos_marketplace_abi::Keccak`.
 
 ## What the tag does not stop
 
+A genuine older state file, replayed, restores budget the owner has since
 spent. Channel deposits bound it, and a channel the chain has settled past
 the file's record freezes. Closing it needs a monotonic counter, such as a
 TPM NV index, which is later work.
