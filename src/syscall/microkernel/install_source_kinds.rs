@@ -32,3 +32,6 @@ pub const KIND_BOOT_ROOT_RECORD: u32 = crate::boot::handoff::types::MODULE_KIND_
  * loader hands it over in the attest policy rather than as a module, so it
  * is read from there, under a number no module kind takes. */
 pub const KIND_KERNEL_APPROVAL: u32 = 0x100;
+/* The disk this boot's block layer chose, by backend and instance
+ * (install_source_in_use.rs), also under a number no module kind takes. */
+pub const KIND_IN_USE_DISK: u32 = 0x101;

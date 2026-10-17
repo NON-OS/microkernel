@@ -59,7 +59,7 @@ pub(super) fn failed(driver: Driver, instance: u8, e: &BlkError, emmc_only: bool
     }
 }
 
-pub(super) fn withheld(device: BlockDevice) -> Disk {
+pub(super) fn withheld(device: BlockDevice, why: &str) -> Disk {
     Disk {
         driver: device.driver,
         instance: device.instance,
@@ -68,8 +68,6 @@ pub(super) fn withheld(device: BlockDevice) -> Disk {
         block: device.geometry.lba_size(),
         contents: Contents::probe(&device),
         identity: device.identity().ok().flatten(),
-        fault: Some(String::from(
-            "holds the loader this boot ran, so it may be the boot disk: not offered",
-        )),
+        fault: Some(String::from(why)),
     }
 }

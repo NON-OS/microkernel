@@ -28,8 +28,7 @@
 //! kernel, without which an installed disk would not boot as this one did.
 
 use super::errnos::{ERRNO_FAULT, ERRNO_NOENT};
-use super::install_source_approval::approval;
-use super::{install_source_modules, install_source_window};
+use super::{install_source_modules, install_source_records, install_source_window};
 
 pub use super::install_source_kinds::*;
 
@@ -47,8 +46,8 @@ const SERVED: [u32; 5] = [
 /// bytes written, zero at the end of the image, so a caller learns the size
 /// by reading to the end and never needs a separate length call.
 pub fn sys_install_source(kind: u64, offset: u64, out_ptr: u64, out_len: u64) -> i64 {
-    if kind == u64::from(KIND_KERNEL_APPROVAL) {
-        return approval(offset, out_ptr, out_len);
+    if let Some(served) = install_source_records::record(kind, offset, out_ptr, out_len) {
+        return served;
     }
     if !SERVED.iter().any(|&k| u64::from(k) == kind) {
         return ERRNO_NOENT;
