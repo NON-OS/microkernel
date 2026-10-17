@@ -34,7 +34,7 @@ pub fn shield(state: &State) -> Option<Shown> {
             Some(Shown::TakeBack(at as u8))
         }
         SHIELD_HOME => {
-            let (now, moving) = (nonos_tls::rtc_now(), state.meter.landed.moving.as_ref());
+            let (now, moving) = (crate::wallet::clock::now_s(), state.meter.landed.moving.as_ref());
             (0u8..).zip(landed(state)).find_map(|(i, (address, held))| {
                 let (eth, _) = moves(held)?;
                 let m = moving.filter(|m| m.address == address && m.eth == eth);

@@ -36,7 +36,7 @@ fn why_now(state: &State, now_s: u64) -> Option<Why> {
 }
 
 pub fn feed(state: &mut State) {
-    let Some(why) = why_now(state, nonos_tls::rtc_now()) else { return };
+    let Some(why) = why_now(state, crate::wallet::clock::now_s()) else { return };
     let Some(to) = state.meter.purchase.as_deref().map(|p| p.refund_to) else { return };
     if to != [0; 20] {
         state.meter.landed.due.add(to, why, mk_uptime_ms().max(0) as u64);

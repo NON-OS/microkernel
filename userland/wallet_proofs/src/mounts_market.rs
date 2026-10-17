@@ -18,6 +18,8 @@
 
 #[path = "../../capsule_wallet_nonos/src/wallet/attest/mod.rs"]
 pub mod attest;
+#[path = "../../capsule_wallet_nonos/src/wallet/clock/unix.rs"]
+pub mod clock_unix;
 #[path = "../../capsule_wallet_nonos/src/wallet/send/exact.rs"]
 pub mod exact;
 #[path = "../../capsule_wallet_nonos/src/wallet/send/fees.rs"]
