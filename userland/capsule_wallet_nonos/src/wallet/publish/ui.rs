@@ -17,12 +17,24 @@
 /*
  * What the publisher screen holds (B8, the plan): the path as typed, the
  * entry document read from it, whether the person confirmed its publisher
- * key, and the last signature's line.
+ * key, the last signature's line; the fields the Bond's and a release's
+ * calls are typed into, the publisher transaction under way, the chain
+ * views that grey its rows, and the settle request outstanding.
  */
 
 use alloc::string::String;
 
 use nonos_marketplace_abi::MarketplaceEntry;
+
+use super::sending::{Asked, Sending};
+use super::views::Views;
+use crate::wallet::num::Amount;
+
+/// The field typed into.
+pub const FOCUS_PATH: u8 = 0;
+pub const FOCUS_AMOUNT: u8 = 1;
+pub const FOCUS_AGENT: u8 = 2;
+pub const FOCUS_URI: u8 = 3;
 
 #[derive(Default)]
 pub struct PublisherUi {
@@ -30,4 +42,12 @@ pub struct PublisherUi {
     pub entry: Option<MarketplaceEntry>,
     pub confirmed: bool,
     pub news: Option<String>,
+    pub focus: u8,
+    /// The bond, in NOX as typed.
+    pub amount: Amount,
+    pub agent: String,
+    pub uri: String,
+    pub sending: Option<Sending>,
+    pub views: Views,
+    pub asked: Option<Asked>,
 }

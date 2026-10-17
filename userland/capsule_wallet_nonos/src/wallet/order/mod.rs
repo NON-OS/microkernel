@@ -59,7 +59,7 @@ mod refund_call;
 mod refund_said;
 pub mod rows;
 pub mod said;
-mod send_bounds;
+pub(crate) mod send_bounds;
 mod send_gas;
 pub mod send_quote;
 pub mod send_resume;

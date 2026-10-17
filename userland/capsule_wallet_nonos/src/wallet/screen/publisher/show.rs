@@ -35,6 +35,9 @@ const LEAD: &str = "Sign a listing as its publisher. Type the path of its entry 
      under /data; each signature is written beside it for marketplace-index.";
 
 pub fn show(state: &State, fb: &mut PaintBuffer) {
+    if let Some(s) = &state.publisher.sending {
+        return super::review::review(state, s, fb);
+    }
     hits::clear();
     let status = crate::wallet::screen::status::parts(state);
     let footer = [("Open", Weight::Primary, true)];
@@ -52,7 +55,7 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     let c = l.content;
     let mut y = lead(fb, c, LEAD);
     let p = &state.publisher;
-    let (at, used) = field(fb, c, y, "ENTRY DOCUMENT", &p.path, "/data/my-app.entry", true);
+    let (at, used) = field(fb, c, y, "ENTRY DOCUMENT", &p.path, "/data/my-app.entry", p.focus == 0);
     hits::put(Press::Field(0), at);
     y += used + GAP;
     if let Some(news) = &p.news {
@@ -60,6 +63,7 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     }
     if let Some(e) = &p.entry {
         y += super::rows::entry(state, e, fb, c, y);
+        y += super::acts::acts(state, e, fb, c, y);
     }
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
