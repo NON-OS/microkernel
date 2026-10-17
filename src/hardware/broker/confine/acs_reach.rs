@@ -25,18 +25,20 @@ use super::acs_path::Hop;
 use super::acs_rule::redirects;
 use super::acs_tree::Bdf;
 
-/// What the device reaches past the IOMMU: every hop's shared bus, and its
-/// peers wherever `acs` (its words, with what it needs turned on) does not
-/// redirect them.
-pub(crate) fn group(
+/// What the device reaches past the IOMMU, its group: every hop's shared
+/// bus, and its peers wherever `acs` (its words, with what it needs turned
+/// on) does not redirect them; each member with the hop that lets it reach
+/// the device: the port without ACS, or the bridge to a shared conventional
+/// bus.
+pub(crate) fn group_by_hop(
     hops: Vec<Hop>,
     mut acs: impl FnMut(Bdf, u16) -> Option<(u16, u16)>,
-) -> Vec<Bdf> {
+) -> Vec<(Bdf, Bdf)> {
     let mut reached = Vec::new();
     for hop in hops {
-        reached.extend(hop.always);
+        reached.extend(hop.always.iter().map(|&m| (m, hop.at)));
         if !hop.peers.is_empty() && !redirects(acs(hop.at, hop.needed), hop.needed) {
-            reached.extend(hop.peers);
+            reached.extend(hop.peers.iter().map(|&m| (m, hop.at)));
         }
     }
     reached

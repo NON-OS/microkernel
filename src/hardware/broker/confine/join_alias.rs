@@ -27,17 +27,6 @@ use super::refuse::Refused;
 use super::table::{say, Capsule};
 use crate::memory::iommu::DeviceAddress;
 
-/// Whether a capsule other than `all[pos]` holds a group member or alias.
-pub(super) fn held_elsewhere(
-    all: &[Capsule],
-    pos: usize,
-    (group, aliases): (&[u64], &[DeviceAddress]),
-) -> bool {
-    let held =
-        |c: &Capsule| c.devices.iter().any(|(id, a)| group.contains(id) || aliases.contains(a));
-    all.iter().enumerate().any(|(i, c)| i != pos && held(c))
-}
-
 /// Each alias into the domain that now holds `device_id`, recorded under it
 /// so a release takes it out. Refused, the device leaves the domain again.
 pub(super) fn join_aliases(

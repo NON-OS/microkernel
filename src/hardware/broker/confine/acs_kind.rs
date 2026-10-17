@@ -33,21 +33,34 @@ pub(super) enum Secondary {
     LegacyPci,
 }
 
-pub(super) fn secondary((b, d, f): Bdf) -> Secondary {
+pub(super) fn secondary(at: Bdf) -> Secondary {
+    match pcie_head(at) {
+        None => Secondary::LegacyPci,
+        Some(head) if (head >> 20) & 0xF == PCIE_TO_PCI => Secondary::PcieToPci,
+        Some(_) => Secondary::Express,
+    }
+}
+
+/// The device/port type of its PCI Express capability, None without one.
+pub(super) fn pcie_type(at: Bdf) -> Option<u8> {
+    pcie_head(at).map(|head| ((head >> 20) & 0xF) as u8)
+}
+
+/// The first dword of the PCI Express capability, walking at most 48.
+fn pcie_head((b, d, f): Bdf) -> Option<u32> {
     if read32_unchecked(b, d, f, 0x04) & STATUS_CAP_LIST == 0 {
-        return Secondary::LegacyPci;
+        return None;
     }
     let mut at = (read32_unchecked(b, d, f, 0x34) & 0xFC) as u8;
     for _ in 0..48 {
         if at < 0x40 {
-            return Secondary::LegacyPci;
+            return None;
         }
         let head = read32_unchecked(b, d, f, at);
         if head & 0xFF == PCIE_CAP_ID {
-            let to_pci = (head >> 20) & 0xF == PCIE_TO_PCI;
-            return if to_pci { Secondary::PcieToPci } else { Secondary::Express };
+            return Some(head);
         }
         at = ((head >> 8) & 0xFC) as u8;
     }
-    Secondary::LegacyPci
+    None
 }

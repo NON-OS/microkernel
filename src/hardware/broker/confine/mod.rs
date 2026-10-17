@@ -21,15 +21,20 @@ mod acs_alias;
 #[cfg(target_arch = "x86_64")]
 mod acs_kind;
 #[cfg(target_arch = "x86_64")]
+mod acs_layout;
+#[cfg(target_arch = "x86_64")]
 mod acs_path;
 #[cfg(target_arch = "x86_64")]
 mod acs_reach;
 #[cfg(target_arch = "x86_64")]
 mod acs_read;
+mod acs_refusal;
 #[cfg(target_arch = "x86_64")]
 mod acs_rule;
 #[cfg(target_arch = "x86_64")]
 mod acs_tree;
+#[cfg(target_arch = "x86_64")]
+mod acs_words;
 mod attach;
 mod decide;
 mod detach;
@@ -39,7 +44,9 @@ mod iova;
 mod iova_space;
 mod join;
 mod join_alias;
+mod join_group;
 mod map;
+mod member;
 mod posture;
 mod refuse;
 mod table;
@@ -51,4 +58,5 @@ mod virtio_rule;
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
 pub(super) use map::{map, NoAddress};
+pub(super) use refuse::Refusal;
 pub(super) use unmap::unmap;

@@ -22,8 +22,9 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::join_alias::held_elsewhere;
-use super::refuse::Refused;
+use super::join_group::group_held;
+use super::member::Member;
+use super::refuse::Refusal;
 use super::table::{say, Capsule};
 use crate::memory::iommu::DeviceAddress;
 
@@ -32,14 +33,13 @@ pub(super) fn join(
     pos: usize,
     device_id: u64,
     address: DeviceAddress,
-    reach: (&[u64], &[DeviceAddress]),
-) -> Result<(), Refused> {
-    if held_elsewhere(all, pos, reach) {
-        say(b"refused: its isolation group is held by another capsule");
+    reach: (&[Member], &[DeviceAddress]),
+) -> Result<(), Refusal> {
+    if group_held(all, pos, reach) {
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }
-        return Err(Refused);
+        return Err(Refusal::GroupHeld);
     }
     // Drives behind one VMD share its requester id. One capsule may hold
     // several of them in its domain; a second capsule cannot take the id
@@ -50,7 +50,7 @@ pub(super) fn join(
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }
-        return Err(Refused);
+        return Err(Refusal::GroupHeld);
     }
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         all[pos].devices.push((device_id, address));
@@ -65,7 +65,7 @@ pub(super) fn join(
         if all[pos].devices.is_empty() {
             all.remove(pos);
         }
-        return Err(Refused);
+        return Err(Refusal::Refused);
     }
     all[pos].devices.push((device_id, address));
     say(b"confined to its capsule's domain");

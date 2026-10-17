@@ -21,16 +21,16 @@ use alloc::vec::Vec;
 use super::decide::{verdict, Verdict};
 use super::iova::IOVA_BASE;
 use super::posture::unconfined_allowed;
-use super::refuse::{without_domain, Refused};
+use super::refuse::{without_domain, Refusal, Refused};
 use super::table::{pci_address, Capsule, CAPSULES};
 use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 use crate::memory::iommu::IommuDomain;
 
-pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refused> {
+pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
         // No requester id, no bus master: map.rs refuses its DMA grants.
         return match verdict(false, false, Ok(()), OPT_IN, PRODUCTION) {
-            Verdict::Refuse => Err(Refused),
+            Verdict::Refuse => Err(Refused.into()),
             _ => Ok(()),
         };
     };
@@ -41,7 +41,7 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
      * firmware from whatever lived at 0x100000. Such a device is refused.
      */
     if !crate::memory::iommu::translates(address) {
-        return without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION));
+        return Ok(without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?);
     }
     let (group, aliases) = super::gates::admit(device_id)?;
     let mut all = CAPSULES.lock();
@@ -59,10 +59,10 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
              */
             Err(e) => {
                 let v = verdict(true, true, Err(unconfined_allowed(e)), OPT_IN, PRODUCTION);
-                return without_domain(v);
+                return Ok(without_domain(v)?);
             }
         },
     };
     super::join::join(&mut all, pos, device_id, address, (&group, &aliases))?;
-    super::join_alias::join_aliases(&mut all, pid, device_id, &aliases)
+    Ok(super::join_alias::join_aliases(&mut all, pid, device_id, &aliases)?)
 }

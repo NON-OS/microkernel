@@ -26,15 +26,16 @@ use alloc::vec::Vec;
 use super::acs_alias::aliases;
 use super::acs_kind::{secondary, Secondary};
 use super::acs_path::path;
+use super::acs_reach::group_by_hop;
 use super::acs_read::{buses, redirect};
-use super::acs_reach::group as reached;
 use super::acs_tree::{Bdf, Func};
+use super::member::Member;
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 /// What a device reaches past the IOMMU, and the ids it reaches it under.
 pub(super) struct Reach {
     /// The other broker devices in its isolation group.
-    pub group: Vec<u64>,
+    pub group: Vec<Member>,
     /// The requester ids its DMA may carry besides its own.
     pub aliases: Vec<Bdf>,
 }
@@ -47,9 +48,13 @@ pub(super) fn reach(device_id: u64) -> Option<Reach> {
         pci_index::all().into_iter().filter(|h| h.address.segment == 0).collect();
     let all: Vec<Func> = handles.iter().map(|h| func(bdf(h))).collect();
     let hops = path(bdf(&me), &all)?;
-    let reached = reached(hops, redirect);
+    let reached = group_by_hop(hops, redirect);
     let others = handles.iter().filter(|h| h.device_id != device_id);
-    let group = others.filter(|h| reached.contains(&bdf(h))).map(|h| h.device_id).collect();
+    let member = |h: &PciHandle| {
+        let &(at, hop) = reached.iter().find(|(m, _)| *m == bdf(h))?;
+        Some(Member { id: h.device_id, at, hop })
+    };
+    let group = others.filter_map(member).collect();
     Some(Reach { group, aliases: aliases(bdf(&me), &all) })
 }
 
