@@ -49,8 +49,12 @@ pub fn perform_default(pid: u32, signo: u8) {
             crate::process::exit::teardown(pid, signo as i32 + 128, true);
         }
         DefaultAction::Stop => {
+            // Never over a kill landing from another CPU (L77d).
             with_process_mut(pid, |pcb| {
-                *pcb.state.lock() = ProcessState::Stopped;
+                let mut state = pcb.state.lock();
+                if !matches!(*state, ProcessState::Zombie(_) | ProcessState::Terminated(_)) {
+                    *state = ProcessState::Stopped;
+                }
             });
         }
         DefaultAction::Continue => {
