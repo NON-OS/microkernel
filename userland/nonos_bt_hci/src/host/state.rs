@@ -28,10 +28,16 @@ use nonos_bt_wire::addr::AddrType;
 /// and Reset, the slowest, well inside that.
 pub const POLL_BUDGET: u32 = 2_000;
 
+/// The host issues one command at a time and waits for its answer, so it
+/// never has more than one in flight. Num_HCI_Command_Packets is clamped
+/// to this, so a controller granting more cannot inflate the host's count
+/// (Vol 4, Part E, 4.4).
+pub const COMMAND_CREDITS_MAX: u8 = 1;
+
 pub struct Host<T> {
     pub(super) t: T,
-    /// Num_HCI_Command_Packets as last told; the host may send one command
-    /// before it is told anything (Vol 4, Part E, 4.4).
+    /// Num_HCI_Command_Packets as last told, clamped to COMMAND_CREDITS_MAX;
+    /// the host may send one command before it is told anything (4.4).
     pub(super) credits: u8,
     pub(super) budget: u32,
     pub(super) queue: VecDeque<Vec<u8>>,
@@ -52,4 +58,11 @@ pub struct Host<T> {
     pub(super) scan_filter: u8,
     /// The PDU octets and time to ask each connection for, from bring-up.
     pub(super) data_length: Option<(u16, u16)>,
+}
+
+impl<T> Host<T> {
+    /// Command credits held now, never above COMMAND_CREDITS_MAX.
+    pub fn credits(&self) -> u8 {
+        self.credits
+    }
 }
