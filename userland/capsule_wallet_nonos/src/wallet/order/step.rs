@@ -22,7 +22,7 @@
  * Ordering keeps it with the order until deposit_check has its reply.
  */
 
-use nonos_libc::{crypto_random, mk_time_millis};
+use nonos_libc::crypto_random;
 use nonos_payment_proto::OP_ORDER_NEW;
 
 use super::deposit_check::pinned;
@@ -41,7 +41,7 @@ pub fn poll(state: &mut State) -> bool {
     let Ok(Named::Escrow(buy)) = &p.read else { return false };
     let next = match &p.step {
         Step::Offering(id) => {
-            let now = mk_time_millis().max(0) as u64 / 1000;
+            let now = crate::wallet::clock::now_s();
             after_offer(buy, order_job(*id).as_deref().map_err(|e| *e), (p.refund_to, salt), now)
         }
         Step::Ordering(id, sent) => {

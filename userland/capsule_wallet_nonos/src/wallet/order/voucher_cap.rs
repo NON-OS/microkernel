@@ -41,7 +41,7 @@ pub fn poll(state: &mut State) -> bool {
     if p.form.budgeted != Budgeted::Unasked {
         return false;
     }
-    let now = nonos_tls::rtc_now();
+    let now = crate::wallet::clock::now_s();
     p.form.budgeted = match listing_cap(v.listing_id, p.form.cap_wei) {
         Err(_) => Budgeted::Failed(NO_CAP),
         Ok(()) if in_force(now) => Budgeted::Set,

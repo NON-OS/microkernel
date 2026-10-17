@@ -39,7 +39,7 @@ pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
     let Some(e) = p.escrow.as_ref() else { return Vec::new() };
     let mut out = Vec::from([("from", checksummed_text(&p.refund_to))]);
     if let Some(end) = e.window_end {
-        out.push(("dispute window", left(end, nonos_tls::rtc_now())));
+        out.push(("dispute window", left(end, crate::wallet::clock::now_s())));
     }
     if let SendStep::Sent(h) = &e.step {
         let short: String = h.iter().take(8).map(|b| format!("{b:02x}")).collect();

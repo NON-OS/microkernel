@@ -18,6 +18,10 @@
 
 #[path = "attest_tests.rs"]
 mod attest_tests;
+#[path = "clock_shield_tests.rs"]
+mod clock_shield_tests;
+#[path = "clock_tests.rs"]
+mod clock_tests;
 #[path = "closed_due_tests.rs"]
 mod closed_due_tests;
 #[path = "due_tests.rs"]

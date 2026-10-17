@@ -44,12 +44,12 @@ pub(super) fn refused(status: i32) -> &'static str {
 pub fn open(state: &mut State) -> Option<&'static str> {
     let p = state.meter.purchase.as_deref_mut()?;
     let v = openable(&p.step, &p.read, &p.held)?;
-    let (amount, expiry, cap) = match p.form.read(nonos_tls::rtc_now()) {
+    let (amount, expiry, cap) = match p.form.read(crate::wallet::clock::now_s()) {
         Ok(read) => read,
         Err(why) => return Some(why),
     };
     p.form.cap_wei = cap;
-    let s = match open_start(v, fresh_address(), amount, expiry, nonos_tls::rtc_now) {
+    let s = match open_start(v, fresh_address(), amount, expiry, crate::wallet::clock::now_s) {
         Ok(s) => s,
         Err(why) => return Some(why),
     };

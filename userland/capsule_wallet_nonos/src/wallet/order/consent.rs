@@ -49,6 +49,6 @@ fn held(p: &mut Pending) -> bool {
     else {
         return false;
     };
-    p.held = after_page(account(from).as_ref(), from, v, nonos_tls::rtc_now());
+    p.held = after_page(account(from).as_ref(), from, v, crate::wallet::clock::now_s());
     true
 }

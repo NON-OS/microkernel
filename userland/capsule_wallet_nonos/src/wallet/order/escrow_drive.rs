@@ -52,7 +52,7 @@ pub fn poll(state: &mut State) -> bool {
         refund_to: p.refund_to,
         pending: p.watch.status.as_ref().map_or(0, |s| s.pending),
         now_ms,
-        now_s: nonos_tls::rtc_now(),
+        now_s: crate::wallet::clock::now_s(),
     };
     step(settle, e, &c) | timed
 }

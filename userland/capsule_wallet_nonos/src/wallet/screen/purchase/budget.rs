@@ -37,7 +37,7 @@ pub fn set_budget_for_channel(state: &mut State) -> EventOutcome {
     let (Budgeted::NoBudget, Ok(Named::Voucher(v))) = (p.form.budgeted, &p.read) else {
         return EventOutcome::Idle;
     };
-    let now = nonos_tls::rtc_now();
+    let now = crate::wallet::clock::now_s();
     if in_force(now) {
         p.form.budgeted = Budgeted::Set;
         return EventOutcome::Repaint;

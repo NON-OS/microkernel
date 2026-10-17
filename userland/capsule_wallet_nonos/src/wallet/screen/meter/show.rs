@@ -60,7 +60,7 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     if let Some(a) = a.filter(|a| a.flags & READY != 0) {
         let address = crate::wallet::screen::receive_address::checksummed_text(&a.address);
         y += fact(fb, c.x, y, c.w, "address", &crate::wallet::etna::groups::shortened(&address));
-        for (label, value) in budget_rows(a, nonos_tls::rtc_now(), nox) {
+        for (label, value) in budget_rows(a, crate::wallet::clock::now_s(), nox) {
             y += fact(fb, c.x, y, c.w, label, &value);
         }
         if let Some(news) = &state.meter.news {
