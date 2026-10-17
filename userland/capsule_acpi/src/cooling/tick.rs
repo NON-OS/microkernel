@@ -17,7 +17,8 @@
 //! The zones read as they fall due, and on Notify (ACPI 6.5, 11.4 and
 //! 5.6.6): 0x80, the temperature changed; 0x81, the trip points did;
 //! 0x82, the zone's device lists did. A Notify on a fan (0x80, it runs
-//! slower than asked) is logged.
+//! slower than asked) is logged. A zone with a trip unread is read afresh
+//! at its next reading, so one cut at start is not missing for good.
 
 use super::apply::apply;
 use super::find::refresh;
@@ -32,11 +33,18 @@ use crate::sys::clock::now_ms;
 use crate::sys::log::Line;
 use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
+use nonos_aml::thermal::UNREAD_TRIPS;
 
 pub fn tick(c: &mut Cooling, aml: &mut Aml, host: &mut CapsuleHost) {
     let now = now_ms();
     let mut read = false;
-    for z in c.zones.iter_mut().filter(|z| now >= z.next_ms) {
+    let due = |z: &super::state::Zone| now >= z.next_ms;
+    for z in 0..c.zones.len() {
+        if due(&c.zones[z]) && c.zones[z].trips.faults & UNREAD_TRIPS != 0 {
+            refresh(c, aml, host, z);
+        }
+    }
+    for z in c.zones.iter_mut().filter(|z| due(z)) {
         read_zone(z, aml, host, now);
         step_zone(z, now);
         read = true;
