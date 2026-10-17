@@ -63,9 +63,13 @@ impl Aml {
         let mut arena = Arena::new(self.limits);
         let root = parse::load(&block, &mut arena, &mut ParseScopes::new(&self.ns, scope))?;
         self.tables.push(Table { bytes, arena, root });
-        let saved = self.ns.journal_pause();
+        let (saved, cut) = (self.ns.journal_pause(), exec.cut());
         self.walk(index, root, scope, exec);
         self.ns.journal_resume(saved);
+        // Cut short by the budget, it is taken back out whole (not the DSDT).
+        if !cut && exec.cut() && self.unload(index) {
+            return Err(Error::new(ErrorKind::Budget, 0));
+        }
         Ok(index)
     }
 }
