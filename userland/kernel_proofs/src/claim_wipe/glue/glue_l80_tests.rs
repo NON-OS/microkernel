@@ -36,7 +36,7 @@ const ADMITS: [&str; 5] = [
     "rule(record.map(|w| w.phase), same(record.and_then(|w| w.by), by), now, capped) }",
 ];
 
-const ENTERS: [&str; 12] = [
+const ENTERS: [&str; 14] = [
     "pub(super) fn enter(pid: u32, device_id: u64, fresh: Option<&Fresh>)",
     "-> Result<u64, ClaimError> { wipe::step_all(true); let mut claims = claims();",
     "if let Some(c) = claims.iter().find(|c| c.device_id == device_id) {",
@@ -48,6 +48,8 @@ const ENTERS: [&str; 12] = [
     r#"Some(Admit::Refused) => { drop(claims); crate::log::info!( "[BROKER] pid={} refused"#,
     r#"device {}: kept for its last holder's driver service, or \ past its kept frames'"#,
     r#"bound", pid, device_id ); return Err(ClaimError::Refused); } }"#,
+    "if crate::hardware::broker::bootfb::is_boot_framebuffer(device_id) && surrendered() {",
+    "return Err(ClaimError::Refused); }",
     "let epoch = next_epoch(); claims.push(Claim::making(pid, device_id, epoch)); Ok(epoch) }",
 ];
 

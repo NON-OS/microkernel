@@ -27,9 +27,10 @@ const CLAIM: &str = include_str!("../../../../../src/hardware/broker/claim/claim
 const FRESH: &str = include_str!("../../../../../src/hardware/broker/claim/wipe/holder.rs");
 
 /// claim.rs `claim` up to its entry.
-const CLAIMS: [&str; 3] = [
+const CLAIMS: [&str; 4] = [
     "pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {",
     "hold::admits(pid, device_id)?; let fresh = super::wipe::fresh(pid, device_id);",
+    "let covers = crate::hardware::broker::bootfb::covers(device_id);",
     "let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;",
 ];
 
