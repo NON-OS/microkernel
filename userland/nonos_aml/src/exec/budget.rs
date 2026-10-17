@@ -25,16 +25,23 @@ impl<H: Host> Machine<'_, H> {
     pub(crate) fn tick(&mut self, at: u32) -> Result<(), Fault> {
         self.steps += 1;
         match self.steps > self.limits.steps {
-            true => Err(self.fault(FaultKind::Steps, at)),
+            true => Err(self.out_of(FaultKind::Steps, at)),
             false => Ok(()),
         }
+    }
+
+    /// A refusal for want of budget, remembered so a table loading now is
+    /// taken back out (`load_table_at`).
+    fn out_of(&mut self, kind: FaultKind, at: u32) -> Fault {
+        self.cut = true;
+        self.fault(kind, at)
     }
 
     /// Counts `bytes` against the budget before they are allocated.
     pub(crate) fn charge(&mut self, bytes: u64, at: u32) -> Result<(), Fault> {
         let total = (self.alloc as u64).saturating_add(bytes);
         if total > self.limits.alloc as u64 {
-            return Err(self.fault(FaultKind::Alloc, at));
+            return Err(self.out_of(FaultKind::Alloc, at));
         }
         self.alloc = total as usize;
         Ok(())
@@ -44,7 +51,7 @@ impl<H: Host> Machine<'_, H> {
     pub(crate) fn spend(&mut self, us: u64, at: u32) -> Result<(), Fault> {
         let total = self.time_us.saturating_add(us);
         if total > self.limits.time_ms.saturating_mul(1000) {
-            return Err(self.fault(FaultKind::Time, at));
+            return Err(self.out_of(FaultKind::Time, at));
         }
         self.time_us = total;
         Ok(())

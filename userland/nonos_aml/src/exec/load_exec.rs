@@ -46,4 +46,8 @@ impl<H: Host> LoadExec for Machine<'_, H> {
             _ => Err(Fault::new(FaultKind::Control, table, aml.node(table, node).at)),
         }
     }
+
+    fn cut(&self) -> bool {
+        self.cut
+    }
 }

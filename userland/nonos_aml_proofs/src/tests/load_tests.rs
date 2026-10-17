@@ -6,6 +6,9 @@ use crate::consts::{at, load};
 use crate::enc::*;
 use crate::namespace::{Kind, Origin};
 
+#[path = "load_cut/mod.rs"]
+mod load_cut;
+
 #[test]
 fn each_named_object_becomes_its_kind() {
     let objs = cat(&[
