@@ -5,6 +5,9 @@ use crate::enc::*;
 use crate::exec::PciPath;
 use crate::rig::Rig;
 
+#[path = "reg/mod.rs"]
+mod reg;
+
 #[test]
 fn a_pci_config_region_knows_its_function() {
     let lpc = device(
