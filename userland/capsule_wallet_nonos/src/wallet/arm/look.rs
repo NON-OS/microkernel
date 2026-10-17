@@ -23,7 +23,8 @@
  */
 
 use super::moves::Shown;
-use crate::wallet::order::terms::arming::{buy_armed, look, Guard, Look};
+use super::shows::shows_armed;
+use crate::wallet::order::terms::arming::{look, Guard, Look};
 
 #[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]
 pub struct Arm {
@@ -54,7 +55,7 @@ pub fn seen(a: Arm, shown: Option<Shown>, focused: bool, now: u64) -> Arm {
 }
 
 /// Whether a press that moves value on `shown` acts at `now`, after one
-/// more look at focus.
+/// more look at focus: as the paint draws it after that look (shows.rs).
 pub fn pressed(a: Arm, shown: Option<Shown>, focused: bool, now: u64) -> bool {
-    shown.is_some() && a.shown == shown && buy_armed(a.guard, focused, now)
+    shows_armed(&seen(a, shown, focused, now), shown, now)
 }
