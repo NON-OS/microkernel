@@ -18,13 +18,20 @@
 //! capsule publishes what a PCI root bridge's _OSC offered and what NONOS
 //! committed, for the kernel's own readers (`osc_store::osc_grant`). Only
 //! the `acpi` service's owner may call it. EINVAL for buses backwards, a
-//! word past 32 bits, or a grant past the offer; ENOSPC when full.
+//! word past 32 bits, or a grant past the offer; ENOSPC when full. A grant
+//! past the kernel's own claim is recorded cut to it (F-110b).
 
-use crate::hardware::broker::acpi::osc_grant::{checked, OscGrant};
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use crate::hardware::broker::acpi::osc_grant::{checked, within_claim, OscGrant, KERNEL_CLAIM};
 use crate::hardware::broker::acpi::osc_store::publish;
 use crate::process::current_pid;
 use crate::services::registry::lookup_service;
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOSPC, ERRNO_PERM};
+use crate::sys::serial::Line;
+
+/// The extra said once: a firmware that over-grants does it at every boot.
+static SAID: AtomicBool = AtomicBool::new(false);
 
 pub fn sys_acpi_osc_grant(segment: u64, buses: u64, offered: u64, granted: u64) -> i64 {
     let owner = lookup_service("acpi").map(|e| e.pid);
@@ -40,6 +47,12 @@ pub fn sys_acpi_osc_grant(segment: u64, buses: u64, offered: u64, granted: u64) 
     let Some(g) = checked(OscGrant { segment, first, last, offered, granted }) else {
         return ERRNO_INVAL;
     };
+    // The kernel's own claim bounds what it records, not the capsule's mask.
+    let (g, extra) = within_claim(g, KERNEL_CLAIM);
+    if extra != 0 && !SAID.swap(true, Ordering::Relaxed) {
+        let line = b"[ACPI] _OSC granted controls past the kernel's claim, not taken: ";
+        Line::new().str(line).hex(u64::from(extra)).end();
+    }
     if publish(g) {
         0
     } else {
