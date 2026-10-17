@@ -21,6 +21,7 @@
 
 mod bus_range;
 mod device_pci;
+mod dsm_mask;
 mod eisa;
 mod eval;
 mod ids;
@@ -49,6 +50,7 @@ mod walk;
 
 pub use bus_range::bus_range;
 pub use device_pci::device_pci_path;
+pub use dsm_mask::{offered_mask, offers};
 pub use eisa::eisa_id;
 pub use eval::{child, integer, Eval};
 pub use ids::{compatible_ids, hardware_id, HardwareId};

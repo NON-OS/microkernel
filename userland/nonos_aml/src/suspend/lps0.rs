@@ -21,7 +21,7 @@ use super::vendor::Vendor;
 use crate::load::Aml;
 use crate::namespace::Id;
 use crate::object::Object;
-use crate::platform::{child, DeviceInfo, Eval, PRESENT};
+use crate::platform::{child, offered_mask, DeviceInfo, Eval, PRESENT};
 use alloc::vec;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -44,18 +44,7 @@ pub fn dsm(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id, v: Vendor, f: u64) -> Op
 }
 
 fn functions(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id, v: Vendor) -> u64 {
-    let mask = match dsm(aml, eval, dev, v, 0) {
-        Some(Object::Buffer(b)) => {
-            b.borrow().iter().take(8).rev().fold(0, |m, b| m << 8 | u64::from(*b))
-        }
-        Some(Object::Integer(n)) => n,
-        _ => 0,
-    };
-    if mask & 1 != 0 {
-        mask
-    } else {
-        0
-    }
+    offered_mask(dsm(aml, eval, dev, v, 0).as_ref())
 }
 
 pub fn find_lps0(aml: &mut Aml, eval: &mut Eval<'_>, devices: &[DeviceInfo]) -> Option<Lps0> {
