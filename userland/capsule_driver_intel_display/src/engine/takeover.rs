@@ -38,13 +38,13 @@ pub struct Output {
 }
 
 /// TRANS_CONF bit 30, the transcoder's state, not its enable request.
-fn running(m: &mut dyn Mmio, t: Transcoder) -> bool {
+pub(super) fn running(m: &mut dyn Mmio, t: Transcoder) -> bool {
     m.read(regs::trans_conf(t)) & (1 << 30) != 0
 }
 
 /// The transcoder feeding `p`: the eDP transcoder if `g` has one running
 /// and selecting `p`, else the pipe's own.
-fn feeding(m: &mut dyn Mmio, g: &Gen, p: Pipe) -> Transcoder {
+pub(super) fn feeding(m: &mut dyn Mmio, g: &Gen, p: Pipe) -> Transcoder {
     if !g.edp_transcoder {
         return Transcoder::of(p);
     }
