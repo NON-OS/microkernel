@@ -49,6 +49,8 @@ pub(super) fn try_resume(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool {
     set_time_slice(DEFAULT_TIME_SLICE);
 
     fpu::prepare_incoming();
+    // Its own thread register, not the last task's (context::tls).
+    crate::arch::aarch64::context::write_user_tls(pcb.get_tls_base());
     // The IA key it enters EL0 with, its own (security::pac).
     crate::arch::aarch64::security::enter_process(
         pcb.tgid.load(Ordering::Relaxed),
