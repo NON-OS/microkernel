@@ -7,6 +7,9 @@ use crate::enc::*;
 use crate::probe::Probe;
 use crate::rig::Rig;
 
+#[path = "lock_fault/mod.rs"]
+mod lock_fault;
+
 fn locked_field(probe: Probe) -> Rig {
     let defs = cat(&[&region("REG0", 1, 0x60, 1), &field("REG0", 0x11, &[unit("LCK", 8)])]);
     Rig::with(&cat(&[&defs, &method("\\M", 0, &store(&int(1), &name("LCK")))]), probe).connected()
