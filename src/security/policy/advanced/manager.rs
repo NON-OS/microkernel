@@ -52,18 +52,4 @@ impl AdvancedSecurityManager {
         self.violations.fetch_add(1, Ordering::Release);
         crate::log::security_log!("SECURITY VIOLATION: {}", msg);
     }
-    pub fn stats(&self) -> SecurityStats {
-        SecurityStats {
-            violations: self.violations.load(Ordering::Relaxed),
-            canary_rotations: self.stack_canary.rotations.load(Ordering::Relaxed),
-            cfi_violations: self.cfi.violations.load(Ordering::Relaxed),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct SecurityStats {
-    pub violations: u64,
-    pub canary_rotations: u64,
-    pub cfi_violations: u64,
 }
