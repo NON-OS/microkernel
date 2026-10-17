@@ -38,6 +38,7 @@ mod gcmp_frame_tests;
 mod gcmp_handshake_tests;
 mod gcmp_malformed_tests;
 mod handshake;
+mod join;
 mod hex;
 mod mlme;
 mod netif;
