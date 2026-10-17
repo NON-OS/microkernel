@@ -4531,6 +4531,23 @@
   "md": [],
   "signed": []
  },
+ "userland/stream_confine_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-data/trust/policy/zk_capsule_policy_root.bin",
+   "src",
+   "userland/stream_confine_proofs"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/capsules/shield_vectors.manifest.bin",
+   "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+  ]
+ },
  "userland/suspend_proofs": {
   "exclude": [],
   "include": [
