@@ -28,8 +28,9 @@ use nonos_settle_proto::{https_target, KINDS, MAX_URL};
 
 use super::abi::{addr, call, uint};
 use super::call::Publisher;
+use super::decode_words::SPENDERS;
 
-fn selector(kind: u8) -> Option<u32> {
+pub(super) fn selector(kind: u8) -> Option<u32> {
     KINDS.iter().find(|k| k.id == kind).map(|k| k.calls[0].1)
 }
 
@@ -37,8 +38,6 @@ pub fn to(p: &Publisher, chain_id: u64) -> Option<[u8; 20]> {
     let k = KINDS.iter().find(|k| k.id == p.kind())?;
     address(chain_id, k.contract).ok()
 }
-
-const SPENDERS: [Contract; 3] = [Contract::Settlement, Contract::Escrow, Contract::PublisherBond];
 
 pub fn calldata(p: &Publisher, chain_id: u64) -> Option<Vec<u8>> {
     encode(p, |c| address(chain_id, c).ok())
