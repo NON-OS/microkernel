@@ -36,7 +36,7 @@ pub(super) struct Surface {
 }
 
 pub(super) fn open() -> Result<Surface, &'static str> {
-    let (compositor, router) = super::peers::wait()?;
+    let (compositor, router, compositor_pid) = super::peers::wait()?;
     let di = display_info(compositor, 1)?;
     let (width, height) = (di.width, di.height);
     let stride = width.checked_mul(4).ok_or("stride overflow")?;
@@ -48,9 +48,17 @@ pub(super) fn open() -> Result<Surface, &'static str> {
     }
     let format = SURFACE_FORMAT_ARGB8888;
     let base_va = base as u64;
-    let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, flags: 0 };
+    let desc = SurfaceDescriptor {
+        width,
+        height,
+        stride,
+        format,
+        byte_len,
+        base_va,
+        ..Default::default()
+    };
     let sid = mk_surface_register(&desc);
-    let handle = if sid < 0 { -1 } else { mk_surface_share(sid as u64) };
+    let handle = if sid < 0 { -1 } else { mk_surface_share(sid as u64, compositor_pid, 0) };
     if handle <= 0 {
         return Err("surface refused");
     }
