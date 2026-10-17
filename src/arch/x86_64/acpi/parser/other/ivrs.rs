@@ -62,7 +62,7 @@ pub fn parse_ivrs(registry: &mut TableRegistry) {
     let mut found = [0u64; MAX_AMD_IOMMUS];
     let read = walk(bytes, &mut found);
     super::ivrs_left::note(!read.complete);
-    *BASES.lock() = found[..read.found].iter().copied().collect();
+    *BASES.lock() = super::ivrs_left::admitted(&found[..read.found]);
     let mut covered = [Span { first: 0, last: 0, named: false }; MAX_SPANS];
     let n = spans(bytes, &mut covered);
     *SPANS.lock() = covered[..n].iter().copied().collect();
