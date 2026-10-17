@@ -30,12 +30,10 @@ const WALLET: &str = "../capsule_wallet_nonos/src/wallet";
 mod route_link;
 pub use route_link::{describe, pick};
 
-#[allow(dead_code)]
 #[path = "../../capsule_wallet_nonos/src/wallet/event/hex_digit.rs"]
 pub mod hex_digit;
 /// The real NOX read helpers. `apr_bps` reads `super::constants`, so `constants`
 /// is a sibling module under `nox` exactly as in the wallet.
-#[allow(dead_code)]
 pub mod nox;
 
 /// The keyring's `server` modules the words check names, under the
@@ -54,7 +52,6 @@ pub use mounts_market::*;
 mod mounts_read;
 pub use mounts_read::*;
 
-#[allow(dead_code)]
 pub fn source_root() -> &'static str {
     WALLET
 }
