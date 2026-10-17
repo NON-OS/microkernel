@@ -21,8 +21,7 @@ use crate::memory::iommu::reserved::ReservedRange;
 
 /// Entries kept from the whole tree; more refuses the read.
 pub const MAX_TREE_RANGES: usize = 16;
-/// Stream ids kept for one platform device's `iommus`.
-pub const MAX_STREAMS: usize = 4;
+pub use crate::arch::fdt::find::iommus::MAX_STREAMS;
 
 /// Whose range it is, as the remapping unit will see the device.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

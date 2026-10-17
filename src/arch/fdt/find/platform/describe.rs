@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::fdt::error::FdtError;
+use crate::arch::fdt::find::iommus::iommus;
 use crate::arch::fdt::node::NodeRef;
 use crate::arch::fdt::parser::Fdt;
 
@@ -43,5 +44,6 @@ pub(super) fn describe(
     device.irq = first_spi(fdt, node)?;
     device.dma = fdt.dma_window(node)?;
     device.coherent = fdt.property(node, b"dma-coherent")?.is_some();
+    device.iommus = iommus(fdt, node)?;
     Ok(device)
 }
