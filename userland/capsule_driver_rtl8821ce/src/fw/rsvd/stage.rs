@@ -1,37 +1,15 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
-//! Stage one firmware chunk into the on-chip packet buffer as a reserved page.
-//! This is the hardware-specific half of firmware download: the DDMA channel can
-//! only copy out of the packet buffer, so each chunk first travels through the
-//! beacon queue into reserved-page 0. The engine lays the 48-byte TX descriptor
-//! and the payload into a DMA buffer, publishes a beacon buffer descriptor, arms
-//! the beacon-valid status, kicks the beacon queue and waits for the card to
-//! report the page landed, then returns the DDMA source address the caller
-//! copies from. The register sequence follows rtw88 `rtw_fw_write_data_rsvd_page`
-//! (the 11ac path) and `rtw_pci_write_data_rsvd_page` in `pci.c`. The exact byte
-//! layout and register program are checked against a modeled device in
-//! `rtl8821ce_proofs`; only the card actually consuming the beacon page is left
-//! for on-silicon bring-up.
+//! A firmware chunk staged in the reserved pages.
 
-use super::dma::DmaMem;
-use super::regs::{
+use super::super::dma::DmaMem;
+use super::super::regs::{
     BCN_VALID_V1, ENSWBCN_HI, EN_BCNQ_DL_B2, OCPBASE_TXBUF, PCI_BCNQ_FLAG, REG_CR,
     REG_FIFOPAGE_CTRL_2, REG_FWHW_TXQ_CTRL, REG_TXBD_BCN_WORK, TX_BUF_DESC_SIZE, TX_DESC_SIZE,
 };
-use super::txdesc::{self, TXDESC_LEN};
+use super::super::txdesc::{self, TXDESC_LEN};
+use super::valid::wait_bcn_valid;
 use crate::regs::Mmio;
-
-/// Reads allowed before the reserved-page write is declared not to have landed.
-const BCN_VALID_POLL_LIMIT: u32 = 1_000_000;
 
 /// Stage `chunk` at reserved-page 0 and return the DDMA source address for it, or
 /// `None` if the chunk does not fit the staging buffer or the card never reports
@@ -83,16 +61,4 @@ where
         return None;
     }
     Some(OCPBASE_TXBUF + TX_DESC_SIZE)
-}
-
-// The card sets beacon-valid once the staged page has landed in the packet
-// buffer; a page that never validates means a wedged or unpowered card.
-fn wait_bcn_valid<M: Mmio>(mmio: &M) -> bool {
-    for _ in 0..BCN_VALID_POLL_LIMIT {
-        if mmio.read16(REG_FIFOPAGE_CTRL_2) & BCN_VALID_V1 != 0 {
-            return true;
-        }
-        core::hint::spin_loop();
-    }
-    false
 }
