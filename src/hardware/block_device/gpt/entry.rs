@@ -22,7 +22,6 @@
 
 use alloc::vec::Vec;
 
-use super::array::ENTRY_MIN;
 use super::bytes::le64;
 use super::crc32::crc32;
 use super::header::Header;
@@ -41,7 +40,8 @@ pub(crate) struct Entry {
 pub(crate) fn entries(h: &Header, array: &[u8]) -> Option<Vec<Entry>> {
     let size = h.entry_size as usize;
     let array = array.get(..h.entries as usize * size)?;
-    if size < ENTRY_MIN || crc32(array) != h.entries_crc {
+    // A Header comes only from parse, which holds the size to 128 x 2^n.
+    if crc32(array) != h.entries_crc {
         return None;
     }
     let mut out = Vec::new();

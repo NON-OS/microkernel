@@ -33,6 +33,8 @@ mod entry;
 mod fixed;
 #[path = "../../../../../src/hardware/block_device/gpt/header.rs"]
 pub mod header;
+#[path = "../../../../../src/hardware/block_device/gpt/mbr.rs"]
+pub mod mbr;
 #[path = "../../../../../src/hardware/block_device/gpt/places.rs"]
 pub mod places;
 #[path = "../../../../../src/hardware/block_device/gpt/window.rs"]

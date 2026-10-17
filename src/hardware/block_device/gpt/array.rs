@@ -22,7 +22,7 @@
 /// The fields read lie in an entry's first 128 bytes; a larger entry is
 /// legal and read for those alone, so a table written with them still
 /// places its partitions.
-pub(crate) const ENTRY_MIN: usize = 128;
+const ENTRY_MIN: usize = 128;
 /// The most array read: 1024 entries of 128 bytes. It bounds what one
 /// table makes the kernel allocate and read, whatever the header claims.
 const ARRAY_MAX: u64 = 128 * 1024;

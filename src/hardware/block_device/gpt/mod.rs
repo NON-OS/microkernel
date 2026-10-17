@@ -24,6 +24,7 @@ mod crc32;
 mod entry;
 mod fixed;
 mod header;
+mod mbr;
 mod places;
 mod read;
 mod window;
