@@ -17,7 +17,7 @@
 use alloc::vec::Vec;
 use nonos_aml::device_power::PowerPool;
 use nonos_aml::namespace::Id;
-use nonos_aml::thermal::{Trips, Verdict};
+use nonos_aml::thermal::{Trips, Watch};
 
 pub use super::passive::Passive;
 
@@ -41,16 +41,11 @@ pub struct Zone {
     pub trips: Trips,
     /// For _AL0 onward, the fans (indexes into `Cooling::fans`) it runs.
     pub levels: Vec<Vec<usize>>,
-    pub verdict: Verdict,
-    /// m°C; None when _TMP failed or was not believed.
-    pub temp: Option<i32>,
+    /// Its readings: the last temperature believed, the verdict, _CRT's watch.
+    pub w: Watch,
     pub next_ms: u64,
-    /// When _CRT was first reached, waiting on a second reading.
-    pub critical_at: Option<u64>,
-    /// _CRT reached on two readings a second apart.
-    pub critical: bool,
     pub passive: Option<Passive>,
-    /// The trip faults already said (`trip_faults`).
+    /// The trip faults, and an unread _TMP, already said (`trip_faults`).
     pub told: u8,
 }
 

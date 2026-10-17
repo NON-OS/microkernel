@@ -17,7 +17,7 @@
 //! A zone's passive cooling (ACPI 6.5, 11.4): _TC1, _TC2 and _TSP for the
 //! rule (`passive_rule`), and _PSL, the processors it slows.
 
-use super::trips::value;
+use super::trip_read::value;
 use crate::load::Aml;
 use crate::namespace::{Id, Seg};
 use crate::platform::{listed, Eval};
