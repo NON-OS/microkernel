@@ -59,6 +59,11 @@ impl Scanout {
 /// the ones this driver's windows take: a dead driver's leftover, not
 /// firmware's picture. Never copied; mapped over, not avoided.
 pub fn leftover(p: &PlaneState, ours: u32) -> bool {
-    let pages = (p.stride as u64 * p.height as u64).div_ceil(4096);
-    (p.live / 4096) as u64 + pages > ours as u64
+    let (first, pages) = surface_run(p);
+    first as u64 + pages as u64 > ours as u64
+}
+
+/// The GGTT entries lit surface `p` takes: (first, count).
+pub fn surface_run(p: &PlaneState) -> (u32, u32) {
+    (p.live / 4096, (p.stride as u64 * p.height as u64).div_ceil(4096) as u32)
 }
