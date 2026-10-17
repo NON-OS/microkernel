@@ -22,7 +22,7 @@ use spin::Mutex;
 
 use super::super::state::TableRegistry;
 use super::ivhd_scope::{spans, Span, MAX_SPANS};
-use super::ivrs_walk::{iommu_bases, MAX_AMD_IOMMUS};
+use super::ivrs_walk::{walk, MAX_AMD_IOMMUS};
 use crate::arch::x86_64::acpi::tables::SdtHeader;
 
 const SIG_IVRS: u32 = u32::from_le_bytes(*b"IVRS");
@@ -58,11 +58,13 @@ pub fn parse_ivrs(registry: &mut TableRegistry) {
             return;
         }
         let len = (header.length as usize).min(MAX_IVRS_BYTES);
+        super::ivrs_left::note(len < header.length as usize);
         core::slice::from_raw_parts(addr as *const u8, len)
     };
     let mut found = [0u64; MAX_AMD_IOMMUS];
-    let n = iommu_bases(bytes, &mut found);
-    *BASES.lock() = found[..n].iter().copied().collect();
+    let read = walk(bytes, &mut found);
+    super::ivrs_left::note(!read.complete);
+    *BASES.lock() = found[..read.found].iter().copied().collect();
     let mut covered = [Span { first: 0, last: 0, named: false }; MAX_SPANS];
     let n = spans(bytes, &mut covered);
     *SPANS.lock() = covered[..n].iter().copied().collect();

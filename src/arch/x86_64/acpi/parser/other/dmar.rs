@@ -49,6 +49,8 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
             let kind = ptr::read_volatile(cursor as *const u16);
             let length = ptr::read_volatile((cursor + 2) as *const u16);
             if length < 4 || cursor + length as u64 > end {
+                // What follows is unread: a unit there would be left off.
+                super::dmar_units::left_off();
                 break;
             }
             let bytes = core::slice::from_raw_parts(cursor as *const u8, length as usize);
