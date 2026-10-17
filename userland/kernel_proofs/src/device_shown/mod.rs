@@ -22,6 +22,8 @@
 pub mod host_id;
 #[cfg(test)]
 mod host_tests;
+#[cfg(test)]
+mod pci_host_tests;
 #[path = "../../../../src/hardware/broker/shown.rs"]
 pub mod shown;
 #[cfg(test)]
