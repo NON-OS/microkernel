@@ -17,7 +17,7 @@ use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCA
 use crate::device::ControlQueue;
 use crate::regs::Regs;
 use crate::setup::Primary;
-use crate::state::{FenceCounter, ResourceTable, ScanoutTable};
+use crate::state::{Blank, FenceCounter, Owner, ResourceTable, ScanoutTable};
 pub struct Driver {
     pub device_id: u64,
     pub pci_device: u16,
@@ -37,6 +37,9 @@ pub struct Driver {
     pub scanouts: ScanoutTable,
     pub fences: FenceCounter,
     pub primary: Option<Primary>,
+    /// The driver's own zeroed surface, shown when an owner dies (G-73).
+    pub blank: Option<Blank>,
+    pub owner: Owner,
 }
 impl Driver {
     pub fn config(&self) -> (u32, u32, u32) {
@@ -50,5 +53,11 @@ impl Driver {
     }
     pub fn display_info(&self) -> (u32, u32, u32) {
         self.config()
+    }
+    /// Whether `id` is the primary's or the blank's: never an owner's to
+    /// lose, and never released with one.
+    pub fn ours(&self, id: u32) -> bool {
+        self.primary.is_some_and(|p| p.resource_id == id)
+            || self.blank.is_some_and(|b| b.resource_id == id)
     }
 }

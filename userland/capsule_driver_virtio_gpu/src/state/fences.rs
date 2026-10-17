@@ -17,6 +17,11 @@ use core::cell::Cell;
 pub struct FenceCounter {
     next: Cell<u64>,
 }
+impl Default for FenceCounter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl FenceCounter {
     pub const fn new() -> Self {
         Self { next: Cell::new(1) }

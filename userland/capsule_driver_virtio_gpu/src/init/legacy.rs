@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::status::reset;
 use super::types::InitOut;
 use crate::constants::{
     LEG_GUEST_FEATURES, LEG_HOST_FEATURES, LEG_QUEUE_NUM, LEG_QUEUE_PFN, LEG_QUEUE_SEL, LEG_STATUS,
@@ -24,7 +25,7 @@ use crate::regs::Regs;
 
 pub fn bring_up_legacy(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
     unsafe {
-        regs.w8(LEG_STATUS, 0);
+        reset(regs, LEG_STATUS)?;
         regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
         regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER);
         let host = regs.r32(LEG_HOST_FEATURES);

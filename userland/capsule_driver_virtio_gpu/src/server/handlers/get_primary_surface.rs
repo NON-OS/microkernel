@@ -14,32 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::constants::VG_FORMAT_B8G8R8A8_UNORM;
+use crate::death::handover::handover;
 use crate::driver::Driver;
-use crate::protocol::{
-    Request, E_BUSY, E_DEVICE, GET_PRIMARY_SURFACE_RESP_LEN, HDR_LEN, STATUS_LEN,
-};
+use crate::protocol::{Request, E_DEVICE, GET_PRIMARY_SURFACE_RESP_LEN, HDR_LEN, STATUS_LEN};
 use crate::server::respond;
-pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
+/// The last pid to ask owns the primary: only the compositor may send here,
+/// so a new one is a restarted compositor (G-73; `death::handover`).
+pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, now: u64, tx: &mut [u8]) {
     let Some(primary) = driver.primary.as_ref() else {
         respond::status(sender_pid, req, E_DEVICE, tx);
         return;
     };
-    if !driver.resources.update(primary.resource_id, |r| {
-        if r.owner_pid == 0 {
-            r.owner_pid = sender_pid;
-        }
-    }) {
+    if driver.resources.lookup(primary.resource_id).is_none() {
         respond::status(sender_pid, req, E_DEVICE, tx);
         return;
     }
-    let Some(resource) = driver.resources.lookup(primary.resource_id) else {
-        respond::status(sender_pid, req, E_DEVICE, tx);
-        return;
-    };
-    if resource.owner_pid != sender_pid {
-        respond::status(sender_pid, req, E_BUSY, tx);
-        return;
-    }
+    handover(driver, sender_pid, now);
     let off = HDR_LEN + STATUS_LEN;
     tx[off..off + 8].copy_from_slice(&primary.handle.to_le_bytes());
     tx[off + 8..off + 12].copy_from_slice(&primary.resource_id.to_le_bytes());
