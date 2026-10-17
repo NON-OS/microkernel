@@ -17,7 +17,7 @@ pub mod h2c;
 pub mod link;
 #[path = "../../capsule_driver_rtl8821ce/src/pwr/mod.rs"]
 pub mod pwr;
-#[path = "../../capsule_driver_rtl8821ce/src/regs.rs"]
+#[path = "../../capsule_driver_rtl8821ce/src/regs/mod.rs"]
 pub mod regs;
 // The connect request and result codes of the serve stage; the rest of the
 // stage needs the kernel.
