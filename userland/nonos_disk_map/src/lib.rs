@@ -17,21 +17,32 @@
 //! Where a NONOS disk keeps what, in 512-byte sectors.
 //!
 //! ```text
-//!   LBA 0 .. 34          protective MBR, primary GPT header and entries
+//!   LBA 0 .. 34          protective MBR, primary GPT (0 .. 48 on 4 KiB blocks)
 //!   LBA 256 .. 245760    the package store: vfs loads it and appends to it
 //!   LBA 245760           the disk plan: where the data volume lies
 //!   LBA 245761           the key header: how the volume key is reached
 //!   LBA 262144 ..        the data volume, and anything the plan imports
 //! ```
 //!
+//! An LBA here counts 512-byte sectors on every disk, so each place is the
+//! same byte offset whatever the disk's logical block, and a disk of larger
+//! blocks is reached through its block layer's mapping. The protective MBR
+//! and the GPT are the firmware's, which reads them in the disk's own
+//! blocks. Every place here starts and ends on a block of
+//! [`MAX_BLOCK_BYTES`] but the key header, which shares the plan's.
+//!
 //! The kernel settles on the disk that carries the store's magic at 256 or
 //! the plan's at 245760 (`src/hardware/block_device/identify.rs`), serves
 //! store reads and writes only inside 256..245760
 //! (`src/syscall/microkernel/store_read.rs`, `store_write.rs`), and reads the
 //! plan and the key header itself (`src/fs/blockfs_volume/`). It keeps its
-//! own copies of these numbers, and so do the host tools that pack a store
-//! and write a plan; `tests/` reads those sources and fails when one
-//! differs from what is here.
+//! own copies of these numbers. So does the bootloader, which copies the
+//! store and reads a live plan before the kernel runs
+//! (`nonos-bootloader/src/loader/file/store_copy.rs`, `disk_mirror/plan.rs`),
+//! the AHCI driver, which picks its disk by the same two magics, fs_proofs'
+//! stand-in for the kernel's store calls, and the host tools that pack a
+//! store and write a plan. `tests/` reads each of those sources and fails
+//! when a number there differs from what is here.
 
 #![no_std]
 
@@ -45,6 +56,6 @@ pub use container::{
 };
 pub use digest::digest16;
 pub use places::{
-    DATA_FLOOR, HEADER_RING_SECTORS, KEY_LBA, KEY_MAGIC, MIN_VOLUME_SECTORS, PLAN_LBA, PLAN_MAGIC,
-    SECTOR_SIZE, STORE_BASE_LBA, STORE_END_LBA,
+    DATA_FLOOR, HEADER_RING_SECTORS, KEY_LBA, KEY_MAGIC, MAX_BLOCK_BYTES, MIN_VOLUME_SECTORS,
+    PLAN_LBA, PLAN_MAGIC, SECTOR_SIZE, STORE_BASE_LBA, STORE_END_LBA,
 };
