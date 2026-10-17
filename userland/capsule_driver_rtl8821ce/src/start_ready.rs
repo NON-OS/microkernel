@@ -19,7 +19,7 @@
 
 use crate::serve::Stage;
 use crate::setup::Mapped;
-use crate::{fwload, mac, status};
+use crate::{fwload, mac, setup, status};
 
 /// Load the firmware and bring the MAC up on `mapped`, reporting how far it
 /// got.
@@ -29,6 +29,7 @@ pub fn up_to_ready(mapped: Mapped) -> (Option<Mapped>, Stage) {
     // mapping and the card's own execution is proven in rtl8821ce_proofs.
     if fwload::load(&mapped.regs, mapped.device_id, mapped.claim_epoch).is_err() {
         status::line(b"[rtl8821ce] firmware download failed\n");
+        setup::stopped(&mapped);
         return (Some(mapped), Stage::FirmwareFailed);
     }
     status::line(b"[rtl8821ce] firmware loaded and ready\n");
@@ -38,6 +39,7 @@ pub fn up_to_ready(mapped: Mapped) -> (Option<Mapped>, Stage) {
     // radio comes up yet hears nothing.
     if !mac::init_trx_cfg(&mapped.regs) {
         status::line(b"[rtl8821ce] trx engine enable failed\n");
+        setup::stopped(&mapped);
         return (Some(mapped), Stage::FirmwareFailed);
     }
     status::line(b"[rtl8821ce] trx engines enabled\n");

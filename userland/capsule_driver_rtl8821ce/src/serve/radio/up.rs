@@ -43,11 +43,12 @@ pub(in super::super) fn build_radio(mapped: Option<Mapped>, stage: Stage) -> (Ra
     let Some((tx_ring, tx_buffers, rx_ring, rx_buffers)) = map_rings(m.device_id, m.claim_epoch)
     else {
         status::line(b"[rtl8821ce] dma ring mapping failed\n");
+        crate::setup::stopped(&m);
         return (Radio::Down, Stage::NoDma);
     };
-    match phy_setup(&m.regs, m.efuse) {
-        Ok(()) => {}
-        Err(stage) => return (Radio::Down, stage),
+    if let Err(stage) = phy_setup(&m.regs, m.efuse) {
+        crate::setup::stopped(&m);
+        return (Radio::Down, stage);
     }
     let our_mac = read_mac(&m.regs);
     let link = RtlLink::new(m.regs, tx_ring, tx_buffers, rx_ring, rx_buffers, our_mac);

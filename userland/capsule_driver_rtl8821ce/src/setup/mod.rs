@@ -19,5 +19,5 @@ mod master;
 mod run;
 
 pub use mapped::Mapped;
-pub use master::{command, release};
+pub use master::{command, release, stopped};
 pub use run::run;
