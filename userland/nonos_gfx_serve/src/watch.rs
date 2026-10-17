@@ -41,13 +41,13 @@ impl<D: Display, P: Platform> Server<D, P> {
     }
 
     /// At `now_ms`: an owner silent too long has the outputs blanked, once
-    /// for each silence; true when it happened now.
+    /// for each silence the devices took whole; true when it ran now.
     pub fn watch(&mut self, now_ms: u64) -> bool {
         let silent = now_ms.saturating_sub(self.heard_ms) >= OWNER_SILENCE_MS;
         if self.owner.is_none() || self.quiet || !silent {
             return false;
         }
-        self.quiet = true;
+        let mut whole = true;
         for o in 0..self.slots.len() {
             let slot = self.slots[o];
             for p in [slot.current, slot.retiring].into_iter().flatten() {
@@ -56,12 +56,14 @@ impl<D: Display, P: Platform> Server<D, P> {
             let Some(c) = slot.current else { continue };
             let off = Cursor { flags: 0, x: 0, y: 0, hot_x: 0, hot_y: 0, width: 0, height: 0 };
             let all = [Rect { x: 0, y: 0, width: c.width, height: c.height }];
-            self.with_shadow(c, |d, s| {
+            whole &= self.with_shadow(c, |d, s| {
                 let _ = d.cursor(o as u16, &off, &[]);
-                let _ = (d.flush(o as u16, &all, s), d.flush(o as u16, &all, s));
+                d.flush(o as u16, &all, s).is_ok() & d.flush(o as u16, &all, s).is_ok()
             });
             self.slots[o].blanked = true;
         }
+        // A blank a device did not take whole is tried again next wake.
+        self.quiet = whole;
         true
     }
 }
