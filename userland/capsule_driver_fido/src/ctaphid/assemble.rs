@@ -49,9 +49,10 @@ impl Assembler {
                 // Opened again before the last one ended: neither is taken.
                 Opening::Begin(..) if self.seq.is_some() => self.broken(),
                 Opening::Broken => self.broken(),
+                // With no message under way `got` is empty: take() empties
+                // it on finishing and broken() clears it.
                 Opening::Begin(cmd, need) => {
                     (self.cmd, self.need, self.seq) = (cmd, need, Some(0));
-                    self.got.clear();
                     self.take(&p[7..])
                 }
             }
