@@ -17,9 +17,10 @@
 //! One SCI: the fixed events first, then the event layer serves the GPEs;
 //! the notifications the methods queued are routed, and the line is
 //! acknowledged so the next one can arrive. A GPE past the storm bound, or
-//! the GPE of an EC that has stalled or flooded, is turned off.
+//! the GPE of an EC that has stalled or flooded, is turned off; one left off
+//! for a back-off window is armed again first, even with no SCI pending.
 
-use super::sci_parts::{fired, press};
+use super::sci_parts::{fired, press, rearm};
 use crate::boot::{evaluate, Acpi};
 use crate::events_io::PortIo;
 use crate::sys::log::Line;
@@ -28,6 +29,7 @@ use nonos_aml::events::Dispatch;
 use nonos_libc::mk_irq_ack;
 
 pub fn serve(acpi: &mut Acpi) {
+    rearm(acpi);
     if !fired(acpi) {
         return;
     }
