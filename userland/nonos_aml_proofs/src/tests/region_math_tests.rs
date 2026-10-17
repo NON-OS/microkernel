@@ -7,18 +7,24 @@ use crate::region::*;
 #[test]
 fn access_widths() {
     let io = Space::SYSTEM_IO;
-    assert_eq!(access_width(1, 0, 32, io), 1, "ByteAcc");
-    assert_eq!(access_width(3, 0, 8, io), 4, "DWordAcc");
-    assert_eq!(access_width(0, 32, 32, io), 4, "AnyAcc, an aligned dword");
-    assert_eq!(access_width(0, 16, 16, io), 2, "AnyAcc, an aligned word");
+    assert_eq!(access_width(1, 0, 32, io, u64::MAX), 1, "ByteAcc");
+    assert_eq!(access_width(3, 0, 8, io, u64::MAX), 4, "DWordAcc");
+    assert_eq!(access_width(0, 32, 32, io, u64::MAX), 4, "AnyAcc, an aligned dword");
+    assert_eq!(access_width(0, 16, 16, io, u64::MAX), 2, "AnyAcc, an aligned word");
     assert_eq!(
-        access_width(0, 8, 16, io),
+        access_width(0, 8, 16, io, u64::MAX),
         4,
         "AnyAcc, a word off its alignment: the dword holding it"
     );
-    assert_eq!(access_width(0, 4, 8, io), 2, "AnyAcc, across a byte inside a word");
-    assert_eq!(access_width(0, 60, 8, io), 1, "AnyAcc, across a qword: bytes");
-    assert_eq!(access_width(4, 0, 64, Space::EMBEDDED_CONTROL), 1, "EC is bytes whatever is asked");
+    assert_eq!(access_width(0, 4, 8, io, u64::MAX), 2, "AnyAcc, across a byte inside a word");
+    assert_eq!(access_width(0, 60, 8, io, u64::MAX), 1, "AnyAcc, across a qword: bytes");
+    assert_eq!(access_width(0, 0, 24, io, 3), 1, "AnyAcc never reads past the region");
+    assert_eq!(access_width(0, 0, 24, io, 4), 4, "but a dword when the region has one");
+    assert_eq!(
+        access_width(4, 0, 64, Space::EMBEDDED_CONTROL, u64::MAX),
+        1,
+        "EC is bytes whatever is asked"
+    );
 }
 
 #[test]
