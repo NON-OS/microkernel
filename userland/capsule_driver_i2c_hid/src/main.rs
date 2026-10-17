@@ -21,6 +21,7 @@ extern crate alloc;
 use nonos_libc::{heap_init, mk_exit, say_absent, EXIT_ABSENT};
 
 mod diag;
+mod drive;
 mod hid;
 mod i2c_client;
 mod input;
@@ -35,7 +36,9 @@ const DRIVER: &[u8] = b"driver.i2c_hid";
 /// driver's service. Setup fails only when it is not there within a short,
 /// parked window (no controller on this machine, or one that never came up):
 /// the driver says so and leaves with `EXIT_ABSENT`. A controller with no pad
-/// on its bus is not a failure; the server keeps re-probing for one.
+/// on its bus yet is asked again for a bounded while (setup/run.rs), and the
+/// driver leaves the same way when none comes up or the device it names is
+/// no touchpad or mouse.
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     if heap_init().is_err() {

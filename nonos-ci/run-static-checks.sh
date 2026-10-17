@@ -1019,7 +1019,13 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x200018' userland/capsule_driver_i2c_
    ! grep -q 'driver\.i2c_pci0' userland/capsule_driver_i2c_hid/src/i2c_client/service.rs ||
    ! grep -q 'MkServiceLookup' userland/capsule_driver_i2c_hid/README.md ||
    ! grep -q 'OP_DESCRIPTOR' userland/capsule_driver_i2c_hid/src/protocol/ops.rs ||
-   ! grep -q 'fn probe_bus(.*: &mut \[u8; HID_DESC_LEN\])' userland/capsule_driver_i2c_hid/src/hid/probe/scan.rs ||
+   ! grep -qE '^pub fn probe_addr\($' userland/capsule_driver_i2c_hid/src/hid/probe/direct.rs ||
+   ! grep -qE '^[^/]*query_acpi_hid\(port\)' userland/capsule_driver_i2c_hid/src/setup/run.rs ||
+   ! grep -qE '^[^/]*probe_addr\(port, addr, reg, ' userland/capsule_driver_i2c_hid/src/setup/run.rs ||
+   ! grep -qE '^    if !state\.found\(\) && !state\.done && state\.probe_window\.expired\(\) \{$' userland/capsule_driver_i2c_hid/src/setup/run.rs ||
+   grep -rqE '^[^/]*(CANDIDATE_ADDRS|fn probe_bus)' userland/capsule_driver_i2c_hid/src ||
+   [ "$(ls userland/capsule_driver_i2c_hid/src/hid/probe | tr '\n' ' ')" != "direct.rs mod.rs read_at.rs " ] ||
+   [ "$(grep -rlE '^[^/]*read_descriptor_at\(' userland/capsule_driver_i2c_hid/src | sort | tr '\n' ' ')" != "userland/capsule_driver_i2c_hid/src/hid/probe/direct.rs userland/capsule_driver_i2c_hid/src/hid/probe/read_at.rs " ] ||
    ! grep -rq 'spawn_driver_i2c_hid_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod capsule_driver_i2c_hid' src/userspace/mod.rs; then
     fail_with "capsule_driver_i2c_hid must expose bounded HID descriptor discovery"

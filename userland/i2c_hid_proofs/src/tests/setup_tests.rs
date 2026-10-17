@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding the pad: by the firmware's word, by scanning, or not at all.
+//! Finding the pad: by the firmware's word, by the controller's sweep, or not
+//! at all.
 
 use nonos_i2cmodel::{touchpad, Command, HidOverI2c};
 
@@ -45,7 +46,8 @@ fn a_wrong_firmware_hint_does_not_open_the_bus_to_a_scan() {
     /*
      * Multi-SKU firmware names pads that were never fitted, and the
      * controller probes every declared one when it comes up. A device at an
-     * address nobody declared stays out of reach of the HID driver's scan.
+     * address nobody declared is never asked for, and the controller would
+     * refuse it if it were.
      */
     let r = rig_with(pad(), Some((0x2C, HID_DESC_REG)));
     let state = setup::run().expect("setup");

@@ -17,7 +17,7 @@ driver.i2c_pci0 -- MMIO --> I2C controller --> touchpad
 ([CONTRACT.md](CONTRACT.md#microkernel-contract)).
 
 ## Interface contract
-`OP_HEALTHCHECK`, `OP_PROBE` and `OP_DESCRIPTOR`, which no capsule may send yet
+`OP_HEALTHCHECK` and `OP_DESCRIPTOR`, which no capsule may send yet
 ([CONTRACT.md](CONTRACT.md#interface-contract)).
 
 ## Authority
@@ -27,19 +27,20 @@ the addresses the controller has in reach
 
 ## Privacy and persistence
 No touch, gesture, keystroke or history is kept; each report is decoded, posted
-and dropped ([CONTRACT.md](CONTRACT.md#privacy-and-persistence)).
+and its buffer cleared ([CONTRACT.md](CONTRACT.md#privacy-and-persistence)).
 
 ## Runtime lifecycle
 Look the controller up, bind the pad, wake and reset it, then serve and read
 reports ([LIFECYCLE.md](LIFECYCLE.md#runtime-lifecycle)).
 
 ## Failure model
-No controller service: `EXIT_ABSENT` (2) after two seconds asleep; a silent pad
-leaves it reprobing ([LIFECYCLE.md](LIFECYCLE.md#failure-model)).
+No controller service, no pad in 30 s, or a device that is no touchpad or
+mouse: `EXIT_ABSENT` (2) ([LIFECYCLE.md](LIFECYCLE.md#failure-model)).
 
 ## Current implemented surface
-Lookup, bounded descriptor reads, the address from `OP_ACPI_HID` then a scan,
-wake, report decode and posting ([RELEASE.md](RELEASE.md)).
+Lookup, the address from `OP_ACPI_HID` alone, wake, the report descriptor
+walk shared with usb_hid, paced reads, decode, posting, reset recovery
+([RELEASE.md](RELEASE.md)).
 
 ## Wire format
 The `NHID` header, version `1`, in the 20-byte driver envelope; replies start
@@ -66,8 +67,8 @@ Zero warnings, static gates, signed artifacts, a probe on supported hardware
 ([RELEASE.md](RELEASE.md#release-checklist)).
 
 ## Explicit non-goals today
-An I2C keyboard, layout mapping, touch filtering beyond the gesture decoder,
-focus routing, power management beyond the wake at start.
+Driving an I2C keyboard or touch screen (they are released), layout mapping,
+touch filtering beyond the gesture decoder, focus routing, suspend and resume.
 
 ## Verification
 `make -B nonos-mk-driver-i2c-hid`, the static checks, and `i2c_hid_proofs`

@@ -59,9 +59,7 @@ pub fn rig_with(device: HidOverI2c, hint: Option<(u8, u16)>) -> Rig {
     Rig { pad, _served: served, _attached: attached }
 }
 
-/// The events of one kind among those posted, in order. The raw-report
-/// signal the driver posts alongside every frame is not an input event and
-/// is what this leaves out.
+/// The events of one kind among those posted, in order.
 pub fn of_kind(events: &[nonos_libc::InputEvent], kind: u16) -> Vec<nonos_libc::InputEvent> {
     events.iter().copied().filter(|e| e.kind == kind).collect()
 }
