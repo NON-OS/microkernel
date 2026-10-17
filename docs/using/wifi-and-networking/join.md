@@ -23,7 +23,7 @@ The page keeps its own keys:
 | Tab, `[` and `]` | Tab and `]` go to the next section, `[` to the previous one. |
 | Esc | Close Settings, or cancel the passphrase. |
 
-Each network sees its own hardware (MAC) address, made up for this machine on each boot. The address depends on the network's name and its security (open, WPA2 or WPA3), so two networks cannot tell they met the same machine. This release changed how that address is made. So on the first join after the update, every saved network sees the machine as a new device once. A router that reserves a lease or filters by MAC address needs the new address entered once.
+Each network sees its own hardware (MAC) address, made up for this machine and new on every boot. The address depends on the network's name and its security (open, WPA2 or WPA3), so two networks cannot tell they met the same machine. A network sees the same address on every join within one boot. After a restart it sees a new device. So a router that reserves a lease or filters by MAC address cannot recognise this machine from one boot to the next. This release changed how the address is made, but that adds nothing to the change each restart already brings.
 
 There is no Terminal command to scan or join Wi-Fi in this release. The Terminal's network commands are `ping`, `ifconfig`, `nslookup`, `curl` and `nym`.
 
