@@ -25,7 +25,9 @@
 //!   went to another transaction, a top-up signed in between), the same
 //!   vouchers again, at most once a day. Otherwise they would stay carried
 //!   and unpaid until anyone may close; the daily limit bounds what a lying
-//!   settle can burn.
+//!   settle can burn. A `last_retry` more than a day ahead of `now` (the
+//!   clock stepped back, or stamped while wrong) is due too, so it cannot
+//!   hold a settlement stuck until real time catches up.
 
 use crate::error::MeterError;
 use crate::state::MeterState;
@@ -46,8 +48,13 @@ pub(super) fn allowed(
         return Ok(s.last_retry);
     }
     let passed = matches!(s.last_settle, Some((c, n)) if c == chain_id && nonce > n);
-    if passed && now >= s.last_retry.saturating_add(RETRY_EVERY) {
+    if passed && retry_due(s.last_retry, now) {
         return Ok(now);
     }
     Err(MeterError::NothingOwed)
+}
+
+/// A day has passed since `last_retry`, or it lies more than a day ahead.
+fn retry_due(last_retry: u64, now: u64) -> bool {
+    now >= last_retry.saturating_add(RETRY_EVERY) || last_retry.saturating_sub(now) > RETRY_EVERY
 }
