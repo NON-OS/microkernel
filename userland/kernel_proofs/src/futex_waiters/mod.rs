@@ -20,9 +20,11 @@
  */
 
 mod glue_tests;
+mod glue_whole_tests;
 mod interleave;
 mod killed;
 mod killed_tests;
+mod pass_on_killed_tests;
 mod pass_on_tests;
 mod tests;
 #[path = "../../../../src/syscall/microkernel/futex/waiters.rs"]

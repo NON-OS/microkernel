@@ -53,7 +53,7 @@ pub fn sys_futex_wait(vaddr: u64, expected: u32, timeout_ms: u64) -> i64 {
     let dead = super::queue::ended(caller);
     if dead || read.is_err() || u32::from_ne_bytes(buf) != expected {
         // Bound first, so the queue lock is dropped before the wake.
-        let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller);
+        let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller, super::queue::ended);
         if let Some(next) = next {
             crate::sched::wake_process(next);
         }

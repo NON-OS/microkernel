@@ -49,7 +49,7 @@ pub fn step(w: &mut World, path: usize, k: Knob) -> bool {
     match (path, s) {
         (0, 0) | (1, 0) => join(&mut w.queue, KEY, [W1, W2][path]),
         (0, 1) if w.ended && k != Knob::NoCheckAfterJoin => {
-            let _ = leave_early(&mut w.queue, KEY, W1);
+            let _ = leave_early(&mut w.queue, KEY, W1, |p| p == W1);
         }
         (0, 1) => {}
         (2, 0) => w.ended = true,

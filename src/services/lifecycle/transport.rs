@@ -35,10 +35,8 @@ const RECV_YIELDS: u32 = 50_000;
 
 pub use super::transport_lock::lock_yielding;
 
-/// Bump a per-capsule request-id counter, skipping zero so callers can
-/// reserve `0` for "no request in flight". The atomic is owned by
-/// each capsule's `seq` module so increments do not contend across
-/// capsules.
+/// Bump a per-capsule request-id counter, skipping zero so `0` means none in
+/// flight; each capsule's `seq` module owns its own, so none contend.
 pub fn next_request_id(seq: &AtomicU32) -> u32 {
     let v = seq.fetch_add(1, Ordering::Relaxed);
     if v == 0 {
@@ -150,10 +148,9 @@ pub fn round_trip(
             // without a map entry.
             crate::sched::wake_process(state.pid());
         }
-        // Owner exited between the liveness check above and the
-        // enqueue, or the inbox was already unregistered. Either
-        // way the capsule is gone from this caller's view; surface
-        // it as `Dead` so client code maps to the same errno path.
+        // Owner exited between the liveness check above and the enqueue,
+        // or the inbox was already unregistered: the capsule is gone from
+        // this caller's view, `Dead`, so clients map one errno path.
         Err(nonos_inbox::StrictEnqueueError::MissingInbox)
         | Err(nonos_inbox::StrictEnqueueError::DeadOwner) => {
             return Err(TransportError::Dead);
@@ -166,10 +163,13 @@ pub fn round_trip(
     let _waiting = super::waiting::Waiting::on(reply_inbox);
     for round in 0..RECV_YIELDS {
         // A caller killed meanwhile returns now, its lock's guard dropped on
-        // the way out, rather than reaching the park still holding it.
+        // the way out; it says nothing of the capsule, which may be up (L81).
         let killed = crate::process::current_pid()
             .is_some_and(|p| crate::process::scheduler::selection::is_dead(p));
-        if !state.is_alive() || killed {
+        if killed {
+            return Err(TransportError::TransportFailure);
+        }
+        if !state.is_alive() {
             return Err(TransportError::Dead);
         }
         if state.generation() != gen_at_send {

@@ -17,12 +17,10 @@
 //! The fast path for kernel-served randomness.
 //!
 //! The entropy capsule stays the root of the entropy story: it is where seed
-//! material comes from and the only thing that can say a seed existed. What it
-//! must not be is a per-byte dependency. Routing every `crypto_random` through
-//! an IPC round trip put a userspace context switch inside the hottest
-//! primitive in the system; under a networking workload that was millions of
-//! messages a minute into one inbox on one core, and the whole machine queued
-//! behind it.
+//! material comes from and the only thing that can say a seed existed. It must
+//! not be a per-byte dependency: a round trip per `crypto_random` put a context
+//! switch inside the hottest primitive, millions of messages a minute into one
+//! inbox on one core under a networking load, and the machine queued behind.
 //!
 //! So: a ChaCha20 generator, seeded from the capsule, serving locally. Fast key
 //! erasure — every fill ends by replacing the key with fresh keystream, so a
@@ -51,16 +49,17 @@ static STATE: Mutex<Option<State>> = Mutex::new(None);
 /// and the capsule cannot provide one now; the caller keeps its existing
 /// hardware-RNG fallback for that case.
 pub fn fill(out: &mut [u8]) -> bool {
-    let mut guard = STATE.lock();
-
-    let reseed_due = match guard.as_ref() {
-        None => true,
-        Some(s) => s.since_reseed >= RESEED_AFTER,
-    };
+    let due = |s: &Option<State>| s.as_ref().is_none_or(|s| s.since_reseed >= RESEED_AFTER);
+    // The capsule is asked with STATE let go: a caller paused in that round
+    // trip, or killed in it and never woken, would leave every other caller
+    // spinning on it with interrupts masked (L81).
+    let reseed_due = due(&STATE.lock());
     if reseed_due {
         let mut seed = [0u8; 32];
         if let Ok(n) = super::client::get_random(&mut seed) {
-            if n == seed.len() {
+            let mut guard = STATE.lock();
+            // Another caller's reseed may have landed meanwhile; one is enough.
+            if n == seed.len() && due(&guard) {
                 *guard = Some(State { key: seed, counter: 0, since_reseed: 0 });
             }
         }
@@ -70,6 +69,7 @@ pub fn fill(out: &mut [u8]) -> bool {
         seed.fill(0);
     }
 
+    let mut guard = STATE.lock();
     let Some(state) = guard.as_mut() else {
         return false;
     };
