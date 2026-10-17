@@ -16,10 +16,11 @@
 
 //! Every `iommu-addresses` entry under `/reserved-memory`.
 
-use crate::arch::fdt::endian::{be_cells, be_u32};
 use crate::arch::fdt::parser::Fdt;
 use crate::memory::iommu::reserved::ReservedRange;
 
+use super::backref::{names_back, phandle};
+use super::cells::entry_at;
 use super::entry::{TreeRange, MAX_TREE_RANGES};
 use super::owner::owner;
 use super::refusal::Refusal;
@@ -27,7 +28,8 @@ use super::refusal::Refusal;
 /// Each entry `<&device iova size>`, the address and size in the cells of
 /// the device's own bus, kept with the child's first `reg` as its physical
 /// base. An entry whose device cannot be keyed is not kept: its reason goes
-/// to `unkeyed` (the first one), for boot to say.
+/// to `unkeyed` (the first one), for boot to say, as does one the device's
+/// own `memory-region` does not name back.
 pub fn ranges(
     fdt: &Fdt,
     out: &mut [TreeRange; MAX_TREE_RANGES],
@@ -43,18 +45,15 @@ pub fn ranges(
             continue;
         };
         let region = fdt.mmio(&child, 0)?;
+        let named = phandle(fdt, &child)?;
         let mut at = 0usize;
         while at < prop.data.len() {
-            let device = fdt.by_phandle(be_u32(prop.data, at)?)?;
-            let (a, s) = (device.cells.address as usize, device.cells.size as usize);
-            // On a PCI bus: phys.hi, then phys.mid:lo, the IOVA (PCI bus
-            // binding, recalled).
-            let iova = match a {
-                3 => be_cells(prop.data, at + 8, 2)?,
-                _ => be_cells(prop.data, at + 4, a as u32)?,
-            };
-            let len = be_cells(prop.data, at + 4 + 4 * a, s as u32)?;
-            at += 4 + 4 * (a + s);
+            let (device, iova, len, next) = entry_at(fdt, prop.data, at)?;
+            at = next;
+            if !names_back(fdt, &device, named)? {
+                unkeyed.get_or_insert(b"an entry its device's memory-region does not name back");
+                continue;
+            }
             let owner = match owner(fdt, &device)? {
                 Ok(owner) => owner,
                 Err(why) => {

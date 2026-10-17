@@ -80,6 +80,8 @@ mod psci_tests;
 #[cfg(test)]
 mod reserve_tests;
 #[cfg(test)]
+mod reserved_dma_backref_tests;
+#[cfg(test)]
 mod reserved_dma_hostile_tests;
 #[cfg(test)]
 mod reserved_dma_tests;
