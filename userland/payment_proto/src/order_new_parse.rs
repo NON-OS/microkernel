@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading ORDER_NEW's body: exactly ORDER_NEW_LEN bytes, in order.
+//! Reading ORDER_NEW's body: exactly ORDER_NEW_LEN bytes, in order, so a
+//! body without refundSalt is refused. Its Debug never shows refundSalt
+//! (rule 5): with refundTo it would open refundCommit.
+
+use core::fmt;
 
 use crate::cursor::Cursor;
 use crate::order_new::OrderNew;
@@ -26,8 +30,8 @@ impl OrderNew {
             (r.u64()?, r.fixed()?, r.fixed()?, r.fixed()?);
         let (payee, amount, chunk_root, content_len) =
             (r.fixed()?, r.u128()?, r.fixed()?, r.u64()?);
-        let (cipher_root, key_commit, deadline, refund_to) =
-            (r.fixed()?, r.fixed()?, r.u64()?, r.fixed()?);
+        let (cipher_root, key_commit, deadline, refund_to, refund_salt) =
+            (r.fixed()?, r.fixed()?, r.u64()?, r.fixed()?, r.fixed()?);
         r.end(OrderNew {
             chain_id,
             listing_id,
@@ -41,6 +45,27 @@ impl OrderNew {
             key_commit,
             deadline,
             refund_to,
+            refund_salt,
         })
+    }
+}
+
+impl fmt::Debug for OrderNew {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("OrderNew")
+            .field("chain_id", &self.chain_id)
+            .field("listing_id", &self.listing_id)
+            .field("release_id", &self.release_id)
+            .field("bond_id", &self.bond_id)
+            .field("payee", &self.payee)
+            .field("amount", &self.amount)
+            .field("chunk_root", &self.chunk_root)
+            .field("content_len", &self.content_len)
+            .field("cipher_root", &self.cipher_root)
+            .field("key_commit", &self.key_commit)
+            .field("deadline", &self.deadline)
+            .field("refund_to", &self.refund_to)
+            .field("refund_salt", &"redacted")
+            .finish()
     }
 }

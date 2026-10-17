@@ -16,34 +16,28 @@
 
 /*
  * ORDER_NEW's reply recomputed before any Shield withdraw:
- * orderId over the terms this wallet asked for, and its CREATE2 deposit, by
- * nonos_nox_chunks as the meter derives them. Salt and refundCommit: the meter's.
+ * refundCommit over this wallet's own refundTo and refundSalt, orderId over
+ * the terms it asked for, and its CREATE2 deposit, by nonos_nox_chunks as
+ * the meter derives them. The salt word alone is the meter's.
  */
 
 use nonos_marketplace_abi::Keccak;
-use nonos_nox_chunks::{deposit_address, order_id, OrderTerms};
-use nonos_nox_config::{address, forwarder_initcode_hash, Contract, DISPUTE_WINDOW};
+use nonos_nox_chunks::{deposit_address, order_id, refund_commit, OrderTerms};
+use nonos_nox_config::{address, Contract, DISPUTE_WINDOW};
 use nonos_payment_proto::{OrderMade, OrderNew};
 
-/// The escrow and the forwarder's initcode hash the config pins on a chain.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Pinned {
-    pub escrow: [u8; 20],
-    pub forwarder: [u8; 32],
-}
-
-/// What the config pins on `chain_id`, None until the owner deploys.
-pub fn pinned(chain_id: u64) -> Option<Pinned> {
-    let escrow = address(chain_id, Contract::Escrow).ok()?;
-    Some(Pinned { escrow, forwarder: forwarder_initcode_hash(chain_id)? })
-}
+#[path = "deposit_pinned.rs"]
+mod pins;
+pub use pins::{pinned, Pinned};
 
 pub const UNPINNED: &str = "This chain's escrow is not pinned in the wallet yet; do not fund it.";
+pub const REFUND_WRONG: &str =
+    "The meter's refund commitment is not to this wallet's address; do not fund it.";
 pub const ID_WRONG: &str = "The meter's order id is not the one these terms make; do not fund it.";
 pub const DEPOSIT_WRONG: &str = "The meter's deposit address is not this order's; do not fund it.";
 
-/// Whether `m` is the order `sent` makes on `at`'s escrow: its id, then its
-/// deposit address. Any refusal is a sentence the screen shows.
+/// Whether `m` is the order `sent` makes on `at`'s escrow: its refundCommit,
+/// its id, then its deposit address. Any refusal is a sentence the screen shows.
 pub fn deposit_check(
     k: &impl Keccak,
     sent: &OrderNew,
@@ -52,6 +46,8 @@ pub fn deposit_check(
 ) -> Result<(), &'static str> {
     let at = at.ok_or(UNPINNED)?;
     let token = address(sent.chain_id, Contract::NoxToken).map_err(|_| UNPINNED)?;
+    let refund = refund_commit(k, &sent.refund_to, &sent.refund_salt);
+    (refund == m.terms[12]).then_some(()).ok_or(REFUND_WRONG)?;
     let terms = OrderTerms {
         listing_id: sent.listing_id,
         release_id: sent.release_id,
@@ -65,7 +61,7 @@ pub fn deposit_check(
         content_len: sent.content_len,
         cipher_root: sent.cipher_root,
         key_commit: sent.key_commit,
-        refund_commit: m.terms[12],
+        refund_commit: refund,
         salt: m.terms[13],
     };
     let id = order_id(k, sent.chain_id, &at.escrow, &terms);
