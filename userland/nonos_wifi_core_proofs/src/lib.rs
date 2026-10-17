@@ -24,6 +24,8 @@ mod ap_sim;
 #[cfg(test)]
 mod crypto_tests;
 #[cfg(test)]
+mod forged_m1_tests;
+#[cfg(test)]
 mod handshake_tests;
 #[cfg(test)]
 mod key_tests;
