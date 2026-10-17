@@ -33,6 +33,12 @@ pub fn uint(v: u128) -> [u8; 32] {
     w
 }
 
+/// A uint64 word read strictly: None when its top 24 bytes are not zero.
+pub fn word_u64(w: &[u8; 32]) -> Option<u64> {
+    let (high, low) = w.split_last_chunk::<8>()?;
+    high.iter().all(|b| *b == 0).then(|| u64::from_be_bytes(*low))
+}
+
 /// selector | heads | (for a string) its offset word then its tail.
 pub fn call(selector: u32, heads: &[[u8; 32]], string: Option<&[u8]>) -> Vec<u8> {
     let mut out = selector.to_be_bytes().to_vec();

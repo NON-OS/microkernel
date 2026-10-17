@@ -17,5 +17,11 @@
 mod attest;
 mod binding;
 mod fixture;
+mod intents;
+mod intents_agent;
+mod intents_bond;
+mod intents_refused;
+mod intents_release;
+mod intents_uri;
 mod path;
 mod release;
