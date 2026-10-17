@@ -17,6 +17,8 @@
 //! Proofs for the Security Manager. Every module is test-only.
 
 #[cfg(test)]
+mod auth_level_tests;
+#[cfg(test)]
 mod cmac_tests;
 #[cfg(test)]
 mod ecdh_tests;

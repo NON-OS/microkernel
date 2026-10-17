@@ -71,5 +71,6 @@ mod ring_refuse_tests;
 mod ring_tests;
 mod ring_wire_tests;
 mod signal_tests;
+mod unauth_tests;
 mod trust_tests;
 mod usb_tests;
