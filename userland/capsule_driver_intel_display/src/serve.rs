@@ -19,13 +19,14 @@
 //! short for the wire's header is F 12's brightness bytes, or a monitor
 //! control beside them (at most eight; the wire's every request is at
 //! least twenty), answered natively. The receive waits at most a hot-plug
-//! poll's interval, so the lines are read with no frame coming in.
+//! poll's interval, so the lines are read, and the owner's silence
+//! watched (`Server::watch`), with no frame coming in.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 use nonos_gfx_wire::header::HDR_LEN;
 use nonos_gfx_wire::notice::OUTPUTS_CHANGED;
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_uptime_ms, recv_ready};
 
 use crate::setup::Engine;
 use crate::turn::{turn, Turn};
@@ -45,6 +46,8 @@ pub fn run(server: &mut Server<Engine, Pool>, device_id: u64) -> ! {
         }
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WAIT_MS, &mut sender);
+        let now = mk_uptime_ms().max(0) as u64;
+        server.watch(now);
         if !recv_ready(n) {
             continue;
         }
@@ -63,6 +66,7 @@ pub fn run(server: &mut Server<Engine, Pool>, device_id: u64) -> ! {
         } else {
             server.handle(sender, req, &mut tx[..280])
         };
+        server.heard(sender, now);
         if len > 0 {
             let _ = mk_ipc_reply(sender, tx.as_ptr(), len);
         }

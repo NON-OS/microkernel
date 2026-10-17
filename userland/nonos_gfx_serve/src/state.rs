@@ -33,6 +33,14 @@ use super::server::Server;
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub fn read_state(&mut self, output: u16) -> Result<State, Errno> {
+        let mut st = self.state_of(output)?;
+        if core::mem::take(&mut self.slot(output)?.blanked) {
+            st.flags |= LOST;
+        }
+        Ok(st)
+    }
+
+    fn state_of(&mut self, output: u16) -> Result<State, Errno> {
         let mut st = self.display.state(output)?;
         let slot = self.slot(output)?;
         let cur = slot.current;

@@ -51,5 +51,6 @@ fn held<W: Firmware>(fw: &mut W, r: &Listed, epoch: u64, size: u64) -> Result<Fb
     let first = base.wrapping_add(g.offset as usize);
     let mut fb = Fb::new(first, len, (g.width, g.height), g.stride, layout).ok_or(Why::Shape)?;
     fb.physical_mm = g.physical_mm;
+    fb.wipe();
     Ok(fb)
 }

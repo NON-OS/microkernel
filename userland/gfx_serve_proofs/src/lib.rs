@@ -46,6 +46,8 @@ pub mod slot;
 pub mod state;
 #[path = "../../nonos_gfx_serve/src/surface.rs"]
 pub mod surface;
+#[path = "../../nonos_gfx_serve/src/watch.rs"]
+pub mod watch;
 
 #[cfg(test)]
 mod model;

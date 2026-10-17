@@ -34,6 +34,12 @@ pub fn map(len: usize) -> Result<Region, Errno> {
     Ok(Region { base: base as usize, len })
 }
 
+/// Zeroed again, so what a dead owner composed is gone from it.
+pub fn scrub(r: Region) {
+    // SAFETY: regions are only those `map` made, still mapped.
+    unsafe { core::ptr::write_bytes(r.base as *mut u8, 0, r.len) };
+}
+
 pub fn unmap(r: Region) {
     let _ = mk_munmap(r.base as *mut u8, r.len);
 }

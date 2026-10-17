@@ -23,6 +23,7 @@ mod describe;
 mod discover;
 mod display;
 mod fb;
+mod fb_wipe;
 mod firmware;
 mod geometry;
 mod libc_firmware;

@@ -41,6 +41,8 @@ pub trait Platform {
     fn release(&mut self, handle: Option<u64>, r: Region);
     /// The bytes of a region this platform handed out.
     fn bytes(&self, r: Region) -> &[u8];
+    /// Zero a region this platform handed out.
+    fn scrub(&mut self, r: Region);
     /// This driver's pid, the high half of its serials.
     fn pid(&self) -> u32;
 }
