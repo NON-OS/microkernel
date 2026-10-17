@@ -18,7 +18,7 @@
 //! chord first, keys, the wheel, a drag's release, motion and presses.
 
 use crate::protocol::{read_i32, read_u16, read_u32};
-use crate::server::handlers::launchpad;
+use crate::server::handlers::{self, launchpad};
 use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 use nonos_libc::{INPUT_KIND_KEY_DOWN, INPUT_KIND_WHEEL};
@@ -28,6 +28,11 @@ pub fn handle(ctx: &mut Context, by: Routed, buf: &[u8]) -> bool {
         return false;
     }
     if read_u16(buf, 4) != Some(1) {
+        return true;
+    }
+    // The router's notice is no event: said, and nothing routed.
+    if crate::state::router_notice::is_notice(buf) {
+        handlers::bond_notice::say(ctx);
         return true;
     }
     let Some(kind) = read_u16(buf, 8) else {

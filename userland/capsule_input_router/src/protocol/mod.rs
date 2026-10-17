@@ -24,7 +24,7 @@ mod ops;
 mod read_u32;
 
 pub use decode::parse;
-pub use delivery::{encode_delivery, DELIVERY_LEN};
+pub use delivery::{encode_delivery, DELIVERY_LEN, NOTICE_KIND, NOTICE_UNPROVEN};
 pub use encode::{response_header, write_status};
 pub use errno::{E_ACCES, E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_INVAL};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};

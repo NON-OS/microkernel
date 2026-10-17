@@ -44,6 +44,7 @@ pub mod pkg_prompt;
 pub mod power_off;
 pub mod quiet_gap;
 mod request_id;
+pub mod router_notice;
 pub mod says;
 pub mod scale;
 pub mod store_word;
