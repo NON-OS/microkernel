@@ -24,12 +24,16 @@
 pub mod acs_rule;
 #[path = "../../../../src/hardware/broker/confine/acs_span.rs"]
 pub mod acs_span;
+#[path = "../../../../src/arch/x86_64/iommu/acs/chain_rule.rs"]
+pub mod chain_rule;
 mod model;
 mod model_tests;
+mod pick_chain_tests;
 mod pick_gen;
 mod pick_sweep_tests;
 mod pick_tests;
 mod pick_tree_tests;
+mod pick_trees;
 #[path = "../../../../src/arch/x86_64/iommu/acs/port_rule.rs"]
 pub mod port_rule;
 mod span_tests;

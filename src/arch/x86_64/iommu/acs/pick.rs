@@ -50,5 +50,6 @@ pub(super) fn downstream_ports(devices: &[PciDevice]) -> Vec<&PciDevice> {
         .collect();
     let read: Vec<Bridge> =
         found.iter().map(|d| (d.address.bus, secondary(d), reported(d))).collect();
-    (0..found.len()).filter(|&at| picked(&read, at)).map(|at| found[at]).collect()
+    let pick = picked(&read);
+    (0..found.len()).filter(|&at| pick(at)).map(|at| found[at]).collect()
 }
