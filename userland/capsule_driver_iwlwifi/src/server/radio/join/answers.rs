@@ -1,22 +1,10 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 //! The answers a connect gives without a join: a hidden network, which this
 //! driver cannot find, and a network the hunt did not hear.
 
-use crate::server::join_wire::{ConnectResult, CODE_NOT_FOUND};
+use crate::firmware::gen3::join::run::JoinEnd;
+use crate::server::join_wire::{end_code, ConnectResult, CODE_NOT_FOUND};
+use nonos_wifi_core::mlme::MlmeFailure;
 
 use super::super::say::Line;
 
@@ -30,5 +18,14 @@ pub(super) fn not_heard(heard: u32) -> ConnectResult {
     Line::new().text(b"join: network not heard among ").num(heard).text(b" beacons").send();
     let mut r = ConnectResult::code(CODE_NOT_FOUND);
     r.progress.recv = heard;
+    r
+}
+
+/// What a connect answers when the network was heard, but only as one this
+/// station cannot join as it claims to be, refused for `why`.
+pub(super) fn refused(why: MlmeFailure) -> ConnectResult {
+    Line::new().text(b"join: no access point of the network can be joined").send();
+    let mut r = ConnectResult::code(0);
+    (r.code, r.ap_code) = end_code(JoinEnd::Refused(why));
     r
 }
