@@ -23,9 +23,11 @@ mod map_type;
 mod memory_type;
 pub mod msix_exclusion;
 mod release;
+mod take_back;
 mod types;
 pub mod window;
 
 pub use map::map_for_caller;
 pub use release::{release_all_for_pid, release_for_device, unmap_grant};
+pub(in crate::hardware::broker) use take_back::take_back;
 pub use types::{MmioMapError, MmioMapRequest, MmioMapResult};
