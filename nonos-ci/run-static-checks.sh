@@ -620,13 +620,13 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virt
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_virtio_gpu/src/setup/dma.rs ||
-   ! grep -rq 'GPU_CFG_NUM_SCANOUTS' userland/capsule_driver_virtio_gpu/src/constants ||
-   ! grep -q 'OP_DISPLAY_INFO' userland/capsule_driver_virtio_gpu/src/protocol/ops.rs ||
+   ! grep -rq 'GPU_CFG_EVENTS_READ' userland/capsule_driver_virtio_gpu/src/constants ||
+   ! grep -q 'impl Display for Gpu' userland/capsule_driver_virtio_gpu/src/display/wire.rs ||
    ! grep -rq 'spawn_driver_virtio_gpu_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod virtio_gpu_capsule' src/hardware/mod.rs; then
-    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + display-info IPC"
+    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + the display wire"
 else
-    note ok "capsule_driver_virtio_gpu exposes brokered device setup + display-info IPC"
+    note ok "capsule_driver_virtio_gpu exposes brokered device setup + the display wire"
 fi
 
 gpu_endpoint_marker="$( { grep -rn 'driver\.virtio_gpu0' userland/capsule_driver_virtio_gpu src/hardware/virtio_gpu_capsule --include='*.rs' || true; } )"
@@ -4217,7 +4217,7 @@ unset handoff_init handoff_orch
 
 # NØNOS trust-anchor module ships the policy decoder and the
 # baked-policy slot the kernel embeds at build time. The slot can be
-# `Option<&[u8]> = None` during Lane B integration; once Lane B emits
+# `Option<&[u8]> = None` during run B integration; once run B emits
 # .keys/nonos_trust_anchor.policy.bin, baked.rs flips to a non-Option
 # include_bytes! and a separate gate enforces "no None" in production.
 ta_dir=src/security/nonos_trust_anchor
