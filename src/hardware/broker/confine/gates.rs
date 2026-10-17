@@ -22,9 +22,11 @@ use alloc::vec::Vec;
 
 use super::refuse::Refused;
 use super::table::say;
+use crate::memory::iommu::DeviceAddress;
 
-/// The device's isolation group, which join.rs holds to one capsule.
-pub(super) fn admit(device_id: u64) -> Result<Vec<u64>, Refused> {
+/// The device's isolation group, which join.rs holds to one capsule, and
+/// the aliases its DMA carries, which join.rs attaches with it.
+pub(super) fn admit(device_id: u64) -> Result<(Vec<u64>, Vec<DeviceAddress>), Refused> {
     super::interrupts::admit()?;
     // A virtio device without ACCESS_PLATFORM ignores the domain (K5).
     if !super::virtio::may_confine(device_id) {
@@ -33,10 +35,15 @@ pub(super) fn admit(device_id: u64) -> Result<Vec<u64>, Refused> {
     }
     // What it reaches without the IOMMU is its group (K11).
     #[cfg(target_arch = "x86_64")]
-    return super::acs::group(device_id).ok_or_else(|| {
-        say(b"refused: no isolation group, behind a VMD or a looped bus");
-        Refused
-    });
+    return match super::acs::reach(device_id) {
+        Some(r) => {
+            Ok((r.group, r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect()))
+        }
+        None => {
+            say(b"refused: no isolation group, behind a VMD or a looped bus");
+            Err(Refused)
+        }
+    };
     #[cfg(not(target_arch = "x86_64"))]
-    Ok(Vec::new())
+    Ok((Vec::new(), Vec::new()))
 }

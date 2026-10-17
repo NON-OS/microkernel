@@ -24,14 +24,17 @@ use alloc::vec::Vec;
 /// Bus, device, function.
 pub(crate) type Bdf = (u8, u8, u8);
 
-/// One enumerated function; a bridge's secondary and subordinate bus, and
+/// One enumerated function; a bridge's secondary and subordinate bus;
 /// whether its secondary is conventional PCI, where devices reach each
-/// other directly (a PCIe-to-PCI bridge, or one with no PCIe capability).
+/// other directly; and the requester id DMA from below it carries upstream,
+/// when that is not the device's own (K11): a PCIe-to-PCI bridge's is its
+/// secondary bus, device 0, function 0; a legacy PCI bridge's is its own.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Func {
     pub at: Bdf,
     pub buses: Option<(u8, u8)>,
     pub conventional: bool,
+    pub alias: Option<Bdf>,
 }
 
 /// The functions `pick` chooses, and every function under those that are

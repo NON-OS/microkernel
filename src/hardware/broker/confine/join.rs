@@ -22,6 +22,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::join_alias::held_elsewhere;
 use super::refuse::Refused;
 use super::table::{say, Capsule};
 use crate::memory::iommu::DeviceAddress;
@@ -31,11 +32,9 @@ pub(super) fn join(
     pos: usize,
     device_id: u64,
     address: DeviceAddress,
-    group: &[u64],
+    reach: (&[u64], &[DeviceAddress]),
 ) -> Result<(), Refused> {
-    // A device another capsule holds reaches this one past the IOMMU (K11).
-    let held = |c: &Capsule| c.devices.iter().any(|(id, _)| group.contains(id));
-    if all.iter().enumerate().any(|(i, c)| i != pos && held(c)) {
+    if held_elsewhere(all, pos, reach) {
         say(b"refused: its isolation group is held by another capsule");
         if all[pos].devices.is_empty() {
             all.remove(pos);
