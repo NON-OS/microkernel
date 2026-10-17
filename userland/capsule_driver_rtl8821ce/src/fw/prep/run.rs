@@ -7,7 +7,7 @@ use super::super::regs::{
     REG_TXDMA_STATUS,
 };
 use super::backup::{reg_backup, reg_restore};
-use super::cpu::{halt_cpu, reset_platform, start_cpu};
+use super::cpu::{halt, halt_cpu, reset_platform, start_cpu};
 use super::kinds::{Backup, Finish};
 use crate::regs::Mmio;
 use crate::wait::until_ms;
@@ -37,6 +37,7 @@ pub fn finish<M: Mmio>(mmio: &M, backup: Backup) -> Finish {
     mmio.write32(REG_TXDMA_STATUS, BTI_PAGE_OVF);
     let ctrl = mmio.read16(REG_MCUFW_CTRL);
     if ctrl & CHECK_SUM_OK != CHECK_SUM_OK {
+        halt(mmio);
         return Finish::ChecksumBad(ctrl);
     }
     mmio.write16(REG_MCUFW_CTRL, (ctrl | FW_DW_RDY) & !MCUFWDL_EN);
@@ -51,5 +52,14 @@ pub fn finish<M: Mmio>(mmio: &M, backup: Backup) -> Finish {
     if ready {
         return Finish::Ready;
     }
+    halt(mmio);
     Finish::NotReady(last)
+}
+
+/// End a download that failed (a section not staged, a DDMA channel that never
+/// let go): restore the queues and leave the 8051 halted, so no part-loaded
+/// image ever runs.
+pub fn abort<M: Mmio>(mmio: &M, backup: Backup) {
+    reg_restore(mmio, backup);
+    halt(mmio);
 }
