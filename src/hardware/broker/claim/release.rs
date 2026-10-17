@@ -39,10 +39,7 @@ pub(super) fn settle(key: Key) -> Option<bool> {
     c.leavers = c.leavers.saturating_sub(1);
     let last = gone(c.stage, c.leavers, c.inflight);
     if last {
-        claims.remove(at);
-        // Under the table's lock, as `admit` sets it, so a newer claim's hold
-        // is never cleared by this one's going (L77).
-        crate::hardware::broker::bootfb::released(key.1);
+        super::gone::remove(claims, at);
     }
     Some(last)
 }

@@ -16,6 +16,7 @@
 
 mod claim;
 mod exit;
+mod gone;
 mod hold;
 mod hold_ids;
 mod hold_platform;

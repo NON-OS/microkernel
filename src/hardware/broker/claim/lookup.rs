@@ -44,8 +44,7 @@ impl Drop for InUse {
         let c = &mut claims[at];
         c.inflight = c.inflight.saturating_sub(1);
         if gone(c.stage, c.leavers, c.inflight) {
-            claims.remove(at);
-            crate::hardware::broker::bootfb::released(key.1);
+            super::gone::remove(claims, at);
         }
     }
 }

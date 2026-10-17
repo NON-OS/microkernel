@@ -24,18 +24,31 @@ use crate::hardware::broker::claim;
 use crate::kernel_core::init::framebuffer::{framebuffer_state, phys_window, set_held};
 use crate::sys::serial;
 
-pub(in crate::hardware::broker) fn claimed(device_id: u64) {
-    if is_boot_framebuffer(device_id) {
+/// The hold set under the claims' lock; true when there is a line to say,
+/// which `say` does once the lock is let go: a serial line takes
+/// milliseconds, and the shutdown's quiesce waits only one for it (L77).
+pub(in crate::hardware::broker) fn claimed(device_id: u64) -> bool {
+    let fb = is_boot_framebuffer(device_id);
+    if fb {
         set_held(true);
-        serial::println(b"[BROKER] boot framebuffer claimed: the kernel stops drawing on it");
     }
+    fb
 }
 
-pub(in crate::hardware::broker) fn released(device_id: u64) {
-    if is_boot_framebuffer(device_id) {
+pub(in crate::hardware::broker) fn released(device_id: u64) -> bool {
+    let fb = is_boot_framebuffer(device_id);
+    if fb {
         set_held(false);
-        serial::println(b"[BROKER] boot framebuffer given back: the kernel draws on it again");
     }
+    fb
+}
+
+pub(in crate::hardware::broker) fn say(held: bool) {
+    serial::println(if held {
+        b"[BROKER] boot framebuffer claimed: the kernel stops drawing on it"
+    } else {
+        b"[BROKER] boot framebuffer given back: the kernel draws on it again"
+    });
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

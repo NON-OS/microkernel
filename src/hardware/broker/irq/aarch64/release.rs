@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use core::sync::atomic::Ordering::{self, Acquire};
 
 use crate::arch::aarch64::gic;
 use crate::arch::aarch64::gic::irq_handlers;
@@ -53,13 +53,9 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
 pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     // A message bind carries no epoch yet, so it goes by pid and device (L71).
     let messages = super::message::release_where(|b| b.pid == pid && b.device_id == device_id);
-    let lines = release_lines(|e| {
-        let at = |a: &core::sync::atomic::AtomicU64| a.load(Ordering::Acquire);
-        e.pid.load(Ordering::Acquire) == pid
-            && at(&e.device_id) == device_id
-            && at(&e.claim_epoch) == epoch
-    });
-    messages + lines
+    let at = |a: &core::sync::atomic::AtomicU64| a.load(Ordering::Acquire);
+    let ours = |e: &Entry| e.pid.load(Ordering::Acquire) == pid && at(&e.device_id) == device_id;
+    messages + release_lines(|e| ours(e) && at(&e.claim_epoch) == epoch)
 }
 
 pub fn release_all_for_pid(pid: u32) -> usize {
@@ -67,9 +63,13 @@ pub fn release_all_for_pid(pid: u32) -> usize {
     messages + release_lines(|e| e.pid.load(Ordering::Acquire) == pid)
 }
 
-/// Tear down the line grants `which` picks; message vectors go with their bind.
+/// Tear down the line grants `which` picks (message vectors go with their
+/// bind), each id read before the match, so a slot reused after fails it.
 fn release_lines(which: impl Fn(&Entry) -> bool) -> usize {
-    let live = |e: &&Entry| e.intid.load(Ordering::Acquire) != 0;
-    let lines = SLOTS.iter().filter(live).filter(|e| !e.message.load(Ordering::Acquire));
-    lines.filter(|e| which(e) && tear_down(e, e.grant_id.load(Ordering::Acquire))).count()
+    let line = |e: &&Entry| e.intid.load(Acquire) != 0 && !e.message.load(Acquire);
+    let take = |e: &&'static Entry| {
+        let id = e.grant_id.load(Acquire);
+        which(e) && tear_down(e, id)
+    };
+    SLOTS.iter().filter(line).filter(take).count()
 }

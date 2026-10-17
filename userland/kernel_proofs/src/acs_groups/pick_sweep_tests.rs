@@ -20,7 +20,8 @@
 //! is covered by that upstream port, counted itself, when both lie.
 
 use super::pick_gen::Tree;
-use super::port_rule::{picked, DOWNSTREAM, ROOT_PORT as ROOT, UPSTREAM};
+use super::pick_gen::ROOT;
+use super::port_rule::{picked, DOWNSTREAM, UPSTREAM};
 
 #[test]
 fn every_switch_port_counts_or_is_covered_and_no_honest_root_port_counts() {

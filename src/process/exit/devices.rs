@@ -22,14 +22,19 @@
 use crate::hardware::broker::{self, holder_of, others_alive};
 use crate::process::core::{Pid, ProcessState, PROCESS_TABLE};
 
-pub(super) fn release_if_last(pid: Pid, current: bool, wait: bool) {
+/// False only when the group's devices are still to go but a CPU still runs
+/// one of its threads: finalize then tries again on a later tick (L77).
+pub(super) fn release_if_last(pid: Pid, current: bool, wait: bool) -> bool {
     if !last_of_group(pid) {
-        return;
+        return true;
     }
     let holder = holder_of(pid);
-    // Not while another CPU still runs one of its threads (L77).
-    if !super::off_cpu::group_off_cpu(holder, wait) {
-        return;
+    if !super::off_cpu::group_off_cpu(holder, current.then_some(pid), wait) {
+        return false;
+    }
+    // Asked again after the wait: a thread started meanwhile keeps them.
+    if !last_of_group(pid) {
+        return true;
     }
     // The claims first: nothing more granted or entered, each device stopped
     // while its claim still names it; the claims go after the drains, once
@@ -40,6 +45,7 @@ pub(super) fn release_if_last(pid: Pid, current: bool, wait: bool) {
     broker::dma_release_all_for_pid(holder, current);
     broker::pio_release_all_for_pid(holder);
     broker::claims_exit_end(holder, &claims);
+    true
 }
 
 /// At teardown, once `pid` is a zombie: the CPU still running it is told to
@@ -47,7 +53,7 @@ pub(super) fn release_if_last(pid: Pid, current: bool, wait: bool) {
 /// a device the release hands on (L77).
 pub(super) fn stop_then_release(pid: Pid, current: bool) {
     super::stop_elsewhere::stop_elsewhere(pid);
-    release_if_last(pid, current, true);
+    let _ = release_if_last(pid, current, true);
 }
 
 /// No other thread of `pid`'s group is alive. A zombie no longer counts: it

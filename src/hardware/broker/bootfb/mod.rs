@@ -18,6 +18,6 @@ mod hold;
 mod register;
 pub(crate) mod rule;
 
-pub(in crate::hardware::broker) use hold::{claimed, released};
+pub(in crate::hardware::broker) use hold::{claimed, released, say};
 pub use hold::{info_for, BootFbInfoError};
 pub use register::register_boot_framebuffer;

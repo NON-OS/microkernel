@@ -24,9 +24,9 @@ use super::super::types::{Pid, Priority, ProcessState};
 use super::build_pcb::build_pcb;
 use super::current_pid::CURRENT_PID;
 use super::pid::allocate_tid;
+use super::thread_end::{parent_ended, unstarted};
 use super::thread_start::start_in_user_half;
 use super::types::PROCESS_TABLE;
-use crate::syscall::microkernel::errnos::ERRNO_NOMEM;
 
 /// Create a schedulable thread inside the current process, running.
 pub fn spawn_thread(entry: u64, stack: u64) -> Result<Pid, &'static str> {
@@ -61,6 +61,9 @@ pub fn spawn_thread_parked(parent_pid: Pid, entry: u64, stack: u64) -> Result<Pi
     pcb.tgid.store(parent.tgid.load(Ordering::Relaxed), Ordering::Relaxed);
     crate::process::caps::rebind_address_space(&pcb).ok_or("boot session nonce missing")?;
     PROCESS_TABLE.add(pcb);
+    if parent_ended(&parent) {
+        return Err(unstarted(tid, "process ended"));
+    }
     /*
      * Where the thread's own IPC calls are answered. A process has
      * `proc.<pid>` from its spawn; a thread had none, so every call it made
@@ -82,12 +85,6 @@ pub fn spawn_thread_parked(parent_pid: Pid, entry: u64, stack: u64) -> Result<Pi
         return Err(unstarted(tid, "thread user context"));
     }
     Ok(tid)
-}
-
-/// End a thread that was published but cannot run, and pass on why.
-fn unstarted(tid: Pid, why: &'static str) -> &'static str {
-    crate::process::exit::teardown(tid, ERRNO_NOMEM as i32, false);
-    why
 }
 
 /// Let a parked thread run. The claim is what makes it runnable, so a
