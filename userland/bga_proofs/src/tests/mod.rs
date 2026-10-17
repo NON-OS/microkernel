@@ -16,6 +16,7 @@
 
 mod current_tests;
 mod edid_read_tests;
+mod fresh_tests;
 mod list_tests;
 mod mode_screen_tests;
 mod mode_tests;
@@ -26,7 +27,6 @@ mod silence_tests;
 mod size_tests;
 mod start_tests;
 mod turn_tests;
-mod wipe_tests;
 mod wire_flush_tests;
 mod wire_lost_tests;
 mod wire_state_tests;

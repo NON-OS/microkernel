@@ -823,6 +823,7 @@
    "userland/capsule_driver_bga/src/edid",
    "userland/capsule_driver_bga/src/error.rs",
    "userland/capsule_driver_bga/src/regs.rs",
+   "userland/capsule_driver_bga/src/setup/fresh.rs",
    "userland/capsule_driver_bga/src/setup/mode.rs",
    "userland/capsule_driver_bga/src/turn.rs",
    "userland/gfx_serve_proofs/src/sweep/asks.rs",
