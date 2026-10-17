@@ -35,7 +35,7 @@ pub(crate) fn preempt_current_process() {
     adopt_current(curr_pid);
 
     save_fpu_state(curr_pid);
-    crate::arch::save_outgoing_fpu();
+    crate::arch::keep_outgoing_user_state();
     crate::sched::Context::clear_restored_flag();
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
