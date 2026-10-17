@@ -104,9 +104,13 @@ pub mod claim_holds;
 #[cfg(test)]
 pub mod claim_restore;
 #[cfg(test)]
+pub mod claim_scanout;
+#[cfg(test)]
 pub mod claim_stage;
 #[cfg(test)]
 pub mod claim_wipe;
+#[cfg(test)]
+pub mod console_gate;
 #[cfg(test)]
 pub mod boot_bus_master;
 #[cfg(test)]

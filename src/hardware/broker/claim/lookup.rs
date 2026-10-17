@@ -18,7 +18,7 @@ use core::ops::Deref;
 
 use super::stage_rule::{gone, grantable};
 use super::state::claims;
-use super::types::Claim;
+use super::types::{Claim, Stage};
 
 /// A ready claim, held by one grant path for as long as this lives. A
 /// release waits for every one to go before it drains, so a grant whose
@@ -55,6 +55,21 @@ impl Drop for InUse {
 pub(crate) fn lookup(device_id: u64) -> Option<InUse> {
     let mut claims = claims();
     let c = claims.iter_mut().find(|c| c.device_id == device_id && grantable(c.stage))?;
+    c.inflight = c.inflight.checked_add(1)?;
+    Some(InUse(*c))
+}
+
+/// The claim a grant was made under, held by an unmap of that grant until its
+/// pages are gone (L79), whatever its release has reached: a release waits it
+/// out and the entry outlasts it, so neither the device's next holder nor a
+/// claim taking its scanout is let in while those pages still show it.
+pub(crate) fn inside(pid: u32, device_id: u64, epoch: u64) -> Option<InUse> {
+    let mut claims = claims();
+    let held = |c: &&mut Claim| (c.pid, c.device_id, c.epoch) == (pid, device_id, epoch);
+    let c = claims.iter_mut().find(held)?;
+    if !matches!(c.stage, Stage::Ready | Stage::Leaving | Stage::Exiting) {
+        return None;
+    }
     c.inflight = c.inflight.checked_add(1)?;
     Some(InUse(*c))
 }

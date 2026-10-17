@@ -24,10 +24,14 @@
 //! active CR3 (self-context), and skips the unmap otherwise so the
 //! address-space teardown can drop the PTEs wholesale.
 
+use crate::hardware::broker::claim;
 use crate::hardware::broker::grant::{self, GrantError, MmioGrant};
 use crate::memory::addr::VirtAddr;
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
+    // Inside its claim until the pages are gone, so a release or a takeover
+    // of the scanout waits out an unmap already under way (L79).
+    let _inside = grant::find(pid, grant_id).and_then(|(d, e)| claim::inside(pid, d, e));
     let g = grant::remove(pid, grant_id)?;
     unmap_one(&g);
     Ok(())

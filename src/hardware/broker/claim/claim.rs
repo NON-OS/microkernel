@@ -23,6 +23,7 @@ use super::types::ClaimError;
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     hold::admits(pid, device_id)?;
     let fresh = super::wipe::fresh(pid, device_id);
+    let covers = crate::hardware::broker::bootfb::covers(device_id);
     let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;
     // The kernel reads a virtio-rng for boot entropy until its capsule
     // claims it: reset and let go before the device changes domain (L8).
@@ -55,11 +56,16 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if !hold::untranslated(device_id) {
         super::master_off::bus_master_off(device_id);
     }
+    // The last refusal before the boot framebuffer's scanout is taken is
+    // above; one at the admit gives the console back (L79).
+    if covers {
+        super::scanout::take(device_id);
+    }
     // Only now is anything granted against it, so a refusal above leaves no
     // map, binding or DMA behind for the next claimant's device (L65).
-    if !super::pending::admit(pid, device_id, epoch, fresh.as_ref()) {
-        super::pending::withdraw(pid, device_id, epoch);
-        return Err(ClaimError::NotClaimed);
+    let admitted = super::pending::admit(pid, device_id, epoch, fresh.as_ref(), covers);
+    if covers {
+        crate::kernel_core::init::framebuffer::end_takeover();
     }
-    Ok(epoch)
+    admitted.map(|()| epoch).inspect_err(|_| super::pending::withdraw(pid, device_id, epoch))
 }

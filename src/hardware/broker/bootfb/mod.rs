@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod cover;
+mod cover_rule;
 mod hold;
+mod info;
 mod register;
 pub(crate) mod rule;
+mod sink;
 
-pub(in crate::hardware::broker) use hold::{claimed, released, say};
-pub use hold::{info_for, BootFbInfoError};
+pub(in crate::hardware::broker) use cover::covers;
+pub(in crate::hardware::broker) use hold::{admitted, released, say};
+pub use info::{info_for, BootFbInfoError};
 pub use register::register_boot_framebuffer;
+pub(in crate::hardware::broker) use register::{device, is_boot_framebuffer};
+pub(in crate::hardware::broker) use sink::get as sink;

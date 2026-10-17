@@ -17,9 +17,40 @@
 /*
  * The boot framebuffer published as a claimable display device (L31): the
  * window a driver may map and the geometry `MkBootFramebuffer` answers. The
- * kernel's pure rule is included by path.
+ * kernel's pure rule is included by path. Beside it, whose claim takes the
+ * framebuffer's scanout (L79): the cover rule included by path, a model of
+ * the find the kernel runs at boot, and the glue around both read as text,
+ * the glue that decides pinned whole.
  */
 
+#[path = "../../../../src/hardware/broker/bootfb/cover_rule.rs"]
+pub mod cover_rule;
 #[path = "../../../../src/hardware/broker/bootfb/rule.rs"]
 pub mod rule;
+
+mod cover_ask_glue_tests;
+mod cover_bound_tests;
+mod cover_byte_gen;
+mod cover_byte_tests;
+mod cover_edge_tests;
+mod cover_find;
+mod cover_gen;
+mod cover_glue_tests;
+mod cover_model;
+mod cover_pages_tests;
+mod cover_pin_tests;
+mod cover_reach_tests;
+mod cover_seeded_tests;
+mod cover_sweep_tests;
+mod cover_tests;
+mod covers_fallback_tests;
+mod covers_tests;
+mod dma_glue_tests;
+mod glue_lex;
+mod glue_text;
+mod record_glue_tests;
+mod register_glue_tests;
+mod register_pin_tests;
+mod seed_glue_tests;
+mod table_glue_tests;
 mod tests;
