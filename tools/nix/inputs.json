@@ -3937,6 +3937,7 @@
    "userland/compositor/Capsule.mk",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/broker/device.rs",
    "userland/libc/src/broker/dma.rs",
    "userland/libc/src/broker/dma_lines.rs",
    "userland/tool_install/Capsule.mk",
