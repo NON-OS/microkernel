@@ -17,6 +17,7 @@
 mod bring_up;
 mod legacy;
 mod modern;
+mod status;
 mod types;
 
 pub use bring_up::bring_up;

@@ -23,7 +23,7 @@
 
 pub mod answers;
 mod bodies;
-mod ring;
+pub mod ring;
 mod serve;
 
 mod answering;

@@ -22,4 +22,6 @@ pub struct Primary {
     pub stride: u32,
     pub backing_addr: u64,
     pub backing_len: u64,
+    /// Where this driver maps the backing, to zero it (G-73).
+    pub user_va: u64,
 }

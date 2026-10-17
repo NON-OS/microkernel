@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod create;
 mod descriptor;
-mod dma;
+pub mod dma;
 mod geometry;
 mod prime;
 mod resource;
