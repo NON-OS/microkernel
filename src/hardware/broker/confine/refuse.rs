@@ -19,7 +19,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::attach::Refused;
-use super::table::{say, Capsule};
+use super::say::say;
+use super::table::Capsule;
 use crate::memory::iommu::DeviceAddress;
 
 /// Say why, and drop the capsule's entry if this was to be its first device.

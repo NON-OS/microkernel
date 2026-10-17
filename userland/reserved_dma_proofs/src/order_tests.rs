@@ -20,7 +20,7 @@ fn order(src: &str, marks: &[&str]) {
 #[test]
 fn ranges_go_in_before_the_device_and_come_out_after_it() {
     order(
-        &code("hardware/broker/confine/attach.rs"),
+        &code("hardware/broker/confine/one.rs"),
         &[
             "if let Err(why) = reserve(&mut all[pos], address) {",
             "return refuse(&mut all, pos, why, pid, address);",
@@ -44,9 +44,9 @@ fn ranges_go_in_before_the_device_and_come_out_after_it() {
         &code("hardware/broker/confine/detach.rs"),
         &[
             "if all[pos].devices.iter().any(|(_, a)| *a == address) {",
-            "return;",
+            "return true;",
             "if all[pos].domain.detach_device(address).is_err() {",
-            "return;",
+            "return true;",
             "super::unreserve::release(&mut all[pos], address);",
             "if all[pos].devices.is_empty() {",
         ],

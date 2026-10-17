@@ -42,3 +42,4 @@ mod wait;
 mod walk;
 
 pub use init::{bring_up, describe};
+pub use state::in_service_phandle;

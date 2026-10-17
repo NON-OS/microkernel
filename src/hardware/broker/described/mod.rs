@@ -24,6 +24,7 @@
 //! interface's own specification.
 
 mod interface;
+mod iommus;
 mod lookup;
 mod quiesce;
 mod record;
@@ -33,7 +34,8 @@ mod stop_regs;
 mod window;
 
 pub use interface::Interface;
-pub(in crate::hardware::broker) use lookup::dma_window;
+pub use iommus::{DescribedIommus, MAX_DESCRIBED_STREAMS};
+pub(in crate::hardware::broker) use lookup::{dma_window, iommus};
 pub(in crate::hardware::broker) use quiesce::stop;
 pub use register::{register, Described};
 pub use window::BusWindow;

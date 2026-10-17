@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::iommus::DescribedIommus;
 use super::state::DESCRIBED;
 use super::window::BusWindow;
 
@@ -21,4 +22,9 @@ use super::window::BusWindow;
 /// no bus maps DMA for: it is given no grant.
 pub(in crate::hardware::broker) fn dma_window(device_id: u64) -> Option<Option<BusWindow>> {
     DESCRIBED.read().iter().find(|e| e.device_id == device_id).map(|e| e.dma)
+}
+
+/// `None` for a device this module did not publish; else its `iommus`.
+pub(in crate::hardware::broker) fn iommus(device_id: u64) -> Option<DescribedIommus> {
+    DESCRIBED.read().iter().find(|e| e.device_id == device_id).map(|e| e.iommus)
 }
