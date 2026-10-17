@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The kernel's hardware types the proofs need, by path.
+ * The kernel's hardware types the proofs need, by path, and the broker's
+ * class table (L79).
  */
 
 pub mod block_device;
+#[cfg(test)]
+pub mod broker;

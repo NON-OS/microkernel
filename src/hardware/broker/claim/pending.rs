@@ -20,7 +20,7 @@
 //! settles it, admitted or taken back.
 
 use super::state::claims;
-use super::types::Stage;
+use super::types::{ClaimError, Stage};
 use super::wipe::Fresh;
 
 fn is(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
@@ -29,24 +29,31 @@ fn is(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
 
 /// The last step: from here the claim is granted against. The boot
 /// framebuffer's hold is set under the table's lock and cleared under it as
-/// the entry goes, so each lands in its claim's own order (L77). False when
-/// its holder exited meanwhile, the claim orphaned.
-/// Its wipe record is written in the same hold (L78).
-pub(super) fn admit(pid: u32, device_id: u64, epoch: u64, f: Option<&Fresh>) -> bool {
+/// the entry goes, so each lands in its claim's own order (L77). Refused when
+/// its holder exited meanwhile, the claim orphaned. Its wipe record is
+/// written in the same hold (L78), and a covering claim's stop latched (L79).
+pub(super) fn admit(
+    pid: u32,
+    device_id: u64,
+    epoch: u64,
+    f: Option<&Fresh>,
+    covers: bool,
+) -> Result<(), ClaimError> {
     let mut claims = claims();
-    let found = claims.iter_mut().find(|c| is(pid, device_id, epoch)(c));
-    let Some(claim) = found.filter(|c| c.stage == Stage::Making) else {
-        return false;
+    let at = claims.iter().position(is(pid, device_id, epoch));
+    let Some(at) = at.filter(|&i| claims[i].stage == Stage::Making) else {
+        return Err(ClaimError::NotClaimed);
     };
+    super::scanout::admits(&claims, device_id, covers)?;
     if f.is_some_and(|f| !super::wipe::held(device_id, epoch, f)) {
-        return false;
+        return Err(ClaimError::NotClaimed);
     }
-    claim.stage = Stage::Ready;
-    if crate::hardware::broker::bootfb::claimed(device_id) {
-        drop(claims);
-        crate::hardware::broker::bootfb::say(true);
+    claims[at].stage = Stage::Ready;
+    if covers {
+        crate::kernel_core::init::framebuffer::set_gone();
     }
-    true
+    crate::hardware::broker::bootfb::admitted(claims, device_id);
+    Ok(())
 }
 
 /// A refused claim taken back by the call that made it. Nothing was granted

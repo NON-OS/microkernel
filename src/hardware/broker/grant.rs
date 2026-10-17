@@ -32,8 +32,6 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
-use crate::memory::addr::VirtAddr;
-
 #[derive(Debug, Clone, Copy)]
 pub struct MmioGrant {
     pub grant_id: u64,
@@ -114,8 +112,14 @@ pub(super) fn drain_for_device(pid: u32, device_id: u64, epoch: u64) -> Vec<Mmio
     taken
 }
 
-// Lookup a single grant by id. Used by an explicit `MkMmioUnmap`
-// from the holder.
+// The device and claim of `pid`'s grant `grant_id`, as recorded, so an
+// unmap can hold that claim while it takes the pages back (L79).
+pub(super) fn find(pid: u32, grant_id: u64) -> Option<(u64, u64)> {
+    let grants = GRANTS.lock();
+    let g = grants.iter().find(|g| g.grant_id == grant_id && g.pid == pid)?;
+    Some((g.device_id, g.claim_epoch))
+}
+
 // Remove a single grant if `pid` is the holder. Returns the removed
 // record on success.
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<MmioGrant, GrantError> {
@@ -127,31 +131,6 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<MmioGrant, GrantError> {
     Ok(grants.remove(idx))
 }
 
-// Snapshot for diagnostics. The lock is dropped before the
-// caller sees the data.
-
-// User MMIO virtual-address allocator. Each grant gets a fresh
-// region inside `[USER_MMIO_BASE, USER_MMIO_END)`; the bumping
-// counter is global because each capsule has its own page tables,
-// so VA reuse across address spaces is harmless. Within one address
-// space the bump never wraps for the life of the run; if it ever
-// does, that is a real exhaustion and the request fails.
-pub(super) use super::windows::{USER_MMIO_BASE, USER_MMIO_END};
-const PAGE_SIZE: u64 = 4096;
-
-static NEXT_USER_MMIO_VA: AtomicU64 = AtomicU64::new(USER_MMIO_BASE);
-
-// Reserve `pages * 4 KiB` of user VA in the MMIO grant region. A
-// guard page is added between adjacent grants so a runaway access
-// cannot silently spill into the next grant. Returns `None` on
-// region exhaustion.
-pub(super) fn reserve_user_va(pages: u64) -> Option<VirtAddr> {
-    let bytes = pages.checked_mul(PAGE_SIZE)?;
-    let with_guard = bytes.checked_add(PAGE_SIZE)?;
-    let base = NEXT_USER_MMIO_VA.fetch_add(with_guard, Ordering::SeqCst);
-    let end = base.checked_add(bytes)?;
-    if end > USER_MMIO_END {
-        return None;
-    }
-    Some(VirtAddr::new(base))
-}
+#[path = "grant_va.rs"]
+mod va;
+pub(super) use va::{reserve_user_va, USER_MMIO_BASE, USER_MMIO_END};
