@@ -16,7 +16,8 @@
 
 /*
  * A purchase on its consent screen, one step a tick (B8): the market read
- * one call at a time, then the shield's quote for an escrow price, so the
+ * one call at a time, the screen opened only when it is all read
+ * (guard/open.rs), then the shield's quote for an escrow price, so the
  * window never waits on more than one reply. A voucher listing's open
  * channel is looked for before its form (v1.4.48).
  */
@@ -35,7 +36,7 @@ pub fn poll(state: &mut State) -> bool {
     if let Some(at) = p.reading.take() {
         match advance(&p.names, at) {
             Read::More(next) => p.reading = Some(next),
-            Read::Done(read) => p.read = read,
+            Read::Done(done) => super::guard::open::landed(state, done),
         }
         return true;
     }

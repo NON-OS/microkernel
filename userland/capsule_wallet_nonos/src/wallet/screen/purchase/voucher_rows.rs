@@ -22,7 +22,6 @@ use alloc::vec::Vec;
 
 use nonos_nox_config::UNITS;
 
-use crate::wallet::etna::groups::shortened;
 use crate::wallet::order::fees::exact;
 use crate::wallet::order::held::Held;
 use crate::wallet::order::intake::Step;
@@ -33,7 +32,7 @@ use crate::wallet::screen::receive_address::checksummed_text;
 pub fn rows(v: &Voucher, step: &Step, f: &VoucherForm, held: Held) -> Vec<(&'static str, String)> {
     let unit = UNITS.iter().find(|(_, w)| *w == v.unit).map_or("unit", |(n, _)| n);
     let mut out = Vec::from([
-        ("payee", shortened(&checksummed_text(&v.payee))),
+        ("pay to", checksummed_text(&v.payee)),
         ("price", format!("{} NOX per {unit}", exact(v.unit_price))),
         ("least charge", format!("{} NOX", exact(v.min_charge))),
         ("unspent", String::from("back to a fresh address of this wallet")),

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Buy on an escrow purchase: once the Shield has quoted the price, the
-//! refund address is drawn and ORDER_OFFER starts in the meter.
+//! Buy on an escrow purchase: once the Shield has quoted the price and
+//! the focus guard armed it, the refund address is drawn and ORDER_OFFER
+//! starts in the meter.
 
 use nonos_app_skeleton::EventOutcome;
 use nonos_payment_proto::{EINVAL, OP_ORDER_OFFER};
@@ -23,14 +24,20 @@ use nonos_payment_proto::{EINVAL, OP_ORDER_OFFER};
 use crate::wallet::meter::call::start;
 use crate::wallet::order::buy_gate::buyable;
 use crate::wallet::order::fresh::fresh_address;
+use crate::wallet::order::guard::poll::{focused, now};
 use crate::wallet::order::intake::Step;
 use crate::wallet::order::said::{failed, Stage};
+use crate::wallet::order::terms::arming::buy_armed;
 use crate::wallet::state::State;
 
 /// The person confirmed: draw the refund address and start the offer.
 pub fn confirm(state: &mut State) -> EventOutcome {
     let Some(p) = state.meter.purchase.as_mut() else { return EventOutcome::Idle };
     let Some(buy) = buyable(&p.step, &p.read, &p.fees) else { return EventOutcome::Idle };
+    // Drawn, focused, and held ARM_MS: asked of the window manager now.
+    if !buy_armed(p.guard, focused(), now()) {
+        return EventOutcome::Idle;
+    }
     p.step = match fresh_address() {
         Err(why) => Step::Failed(why),
         Ok(to) => {

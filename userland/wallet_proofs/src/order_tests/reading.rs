@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A named purchase's terms are read one call at a time (B8, v1.4.36):
-//! GET_COMMERCE, then the release's escrow fields, then INSTALL_READY on
-//! the names' chain, and an answer that does not read ends it there.
+//! A named purchase's terms are read one call at a time, in order (B8,
+//! v1.4.36); an answer that does not read ends the reading there.
 
-use nonos_market_proto::{pair_body, ready_body as ready_ask};
-use nonos_market_proto::{OP_GET_COMMERCE, OP_GET_RELEASE, OP_INSTALL_READY};
+use nonos_market_proto::{listing_body, pair_body, ready_body as ready_ask};
+use nonos_market_proto::{OP_GET_APP, OP_GET_COMMERCE, OP_GET_RELEASE, OP_INSTALL_READY};
 use nonos_marketplace_abi::SettleMode;
 
+use super::deposit_fixture::K;
 use super::fixture::buy;
 use super::gate_fixture::names;
+use super::ids_fixture::{bought, version};
 use super::market_drive::{escrow_market, read_through, Market};
 use super::read_fixture::{commerce, escrow, CHAIN};
 use crate::order::read::Named;
-use crate::order::reading_step::{answered, call, Read, Reading, UNREAD};
+use crate::order::reading_step::{call, Read, Reading, UNREAD};
+use crate::order::terms::answer::answered;
 
 fn market() -> Market {
     escrow_market(buy().amount)
@@ -39,9 +41,10 @@ fn the_market_is_asked_commerce_then_release_then_ready() {
     let (calls, read) = read_through(&n, &market());
     let pair = pair_body(&n.listing, &n.release).unwrap();
     let ready = ready_ask(&n.listing, &n.release, CHAIN).unwrap();
-    let want = [(OP_GET_COMMERCE, pair.clone()), (OP_GET_RELEASE, pair), (OP_INSTALL_READY, ready)];
+    let (app, rel) = ((OP_GET_APP, listing_body(&n.listing).unwrap()), OP_GET_RELEASE);
+    let want = [(OP_GET_COMMERCE, pair.clone()), (rel, pair), (OP_INSTALL_READY, ready), app];
     assert_eq!(calls, want);
-    assert_eq!(read, Ok(Named::Escrow(buy())));
+    assert_eq!(read, Ok(Named::Escrow(bought())));
 }
 
 #[test]
@@ -58,12 +61,15 @@ fn an_answer_that_does_not_read_ends_the_reading_at_its_call() {
 fn each_answer_in_hand_names_the_next_call() {
     let (n, m) = (names(), market());
     assert_eq!(call(&n, &Reading::Commerce).unwrap().0, OP_GET_COMMERCE);
-    let Ok(Read::More(at)) = answered(CHAIN, Reading::Commerce, &m[0]) else { panic!() };
+    let Ok(Read::More(at)) = answered(&K, &n, Reading::Commerce, &m[0]) else { panic!() };
     assert!(matches!(&at, Reading::Release(c) if c.block == commerce(SettleMode::Escrow).block));
     assert_eq!(call(&n, &at).unwrap().0, OP_GET_RELEASE);
-    let Ok(Read::More(at)) = answered(CHAIN, at, &m[1]) else { panic!() };
-    assert!(matches!(&at, Reading::Ready(_, e) if **e == escrow()));
+    let Ok(Read::More(at)) = answered(&K, &n, at, &m[1]) else { panic!() };
+    assert!(matches!(&at, Reading::Ready(_, e, v) if **e == escrow() && *v == version(&n)));
     assert_eq!(call(&n, &at).unwrap().0, OP_INSTALL_READY);
-    let Ok(Read::Done(read)) = answered(CHAIN, at, &m[2]) else { panic!() };
-    assert_eq!(read, Ok(Named::Escrow(buy())));
+    let Ok(Read::More(at)) = answered(&K, &n, at, &m[2]) else { panic!() };
+    assert!(matches!(&at, Reading::App(_, b, _) if **b == Named::Escrow(bought())));
+    assert_eq!(call(&n, &at).unwrap().0, OP_GET_APP);
+    let Ok(Read::Done(read)) = answered(&K, &n, at, &m[3]) else { panic!() };
+    assert_eq!(read.map(|t| t.named), Ok(Named::Escrow(bought())));
 }
