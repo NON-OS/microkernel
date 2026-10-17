@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::aarch64::firmware;
+use crate::arch::fdt::find::iommus::Iommus;
 use crate::arch::fdt::find::platform::{PlatformDevice, PlatformKind};
-use crate::hardware::broker::described::{BusWindow, Described, Interface};
+use crate::hardware::broker::described::{BusWindow, Described, DescribedIommus, Interface};
 
 /// GENET is described but not published: the broker has to stop a device's
 /// DMA when its capsule lets go, and there is no public specification of
@@ -43,5 +44,10 @@ pub(super) fn described_from(p: &PlatformDevice) -> Option<Described> {
         irq: p.irq.map(|irq| (irq.intid, irq.edge)),
         dma,
         coherent: p.coherent,
+        iommus: match p.iommus {
+            Iommus::None => DescribedIommus::None,
+            Iommus::Streams { unit, sids, count } => DescribedIommus::Streams { unit, sids, count },
+            Iommus::Unreadable(why) => DescribedIommus::Unreadable(why),
+        },
     })
 }

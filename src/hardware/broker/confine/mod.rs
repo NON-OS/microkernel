@@ -22,16 +22,21 @@
 
 mod attach;
 mod avoid;
+mod capsule;
 mod detach;
 mod held;
 mod iova;
 mod iova_space;
 mod map;
+mod one;
 mod posture;
 mod refuse;
 mod reserve;
+mod say;
+mod streams;
 mod table;
 mod unreserve;
+mod verdict;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
