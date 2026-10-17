@@ -30,5 +30,6 @@ pub mod window;
 
 pub use map::map_for_caller;
 pub use release::{release_all_for_pid, unmap_grant};
+pub(crate) use forbidden_ranges::ram as boot_ram_ranges;
 pub(crate) use revoke::{revoke_taken, take_for_device};
 pub use types::{MmioMapError, MmioMapRequest, MmioMapResult};
