@@ -17,8 +17,8 @@
 //! The display's upkeep between frames: on GOP, one name of the display
 //! list asked per tick on Backoff's schedule; on a wire driver, the poll
 //! every 500 ms, or at once after a FLUSH found the primary stale or the
-//! driver sent OUTPUT_NOTICE. The
-//! legacy ops have neither: that driver is driven as it always was.
+//! driver sent OUTPUT_NOTICE. On the legacy ops, HEALTHCHECK every 500 ms
+//! (G-73): the driver blanks the screen of a compositor it has not heard.
 
 use crate::display::poll_rule::POLL_MS;
 use crate::display::Backoff;
@@ -53,7 +53,15 @@ impl Upkeep {
             // A capturer that died stopped capturing: show it.
             let _ = crate::frame_pacer::show_band(ctx);
         }
-        let Some(link) = ctx.wire else { return };
+        let Some(link) = ctx.wire else {
+            if now_ms.saturating_sub(self.last_poll_ms) >= POLL_MS {
+                self.last_poll_ms = now_ms;
+                if let Some(what) = crate::setup::poll_legacy(ctx) {
+                    say(&alloc::format!("driver.virtio_gpu0: {}", what));
+                }
+            }
+            return;
+        };
         if link.stale || link.nudged || now_ms.saturating_sub(self.last_poll_ms) >= POLL_MS {
             self.last_poll_ms = now_ms;
             if let Some(what) = crate::setup::poll(ctx) {
