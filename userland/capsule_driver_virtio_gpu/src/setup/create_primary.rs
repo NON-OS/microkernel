@@ -16,8 +16,10 @@
 use super::primary_surface;
 use super::Primary;
 use crate::device::virtqueue::ControlQueue;
-use crate::state::{FenceCounter, ResourceTable, ScanoutTable};
+use crate::state::{FenceCounter, ResourceTable, Scanout, ScanoutTable};
 
+/// The primary on scanout 0, which bring-up shows; the table says so, so
+/// the watch detaches it when an owner dies (G-73).
 pub fn create(
     device_id: u64,
     claim_epoch: u64,
@@ -26,12 +28,10 @@ pub fn create(
     resources: &ResourceTable,
     scanouts: &ScanoutTable,
 ) -> Result<Option<Primary>, &'static str> {
-    scanouts
-        .get(0)
-        .and_then(|s| s.enabled.then_some(s))
-        .map(|s| {
-            primary_surface::create(device_id, claim_epoch, control_queue, fences, resources, s)
-        })
-        .transpose()
-        .map(|p| p.flatten())
+    let Some(s) = scanouts.get(0).filter(|s| s.enabled) else { return Ok(None) };
+    let p = primary_surface::create(device_id, claim_epoch, control_queue, fences, resources, s)?;
+    if let Some(p) = p {
+        scanouts.record(0, Scanout { current_resource_id: p.resource_id, ..s });
+    }
+    Ok(p)
 }

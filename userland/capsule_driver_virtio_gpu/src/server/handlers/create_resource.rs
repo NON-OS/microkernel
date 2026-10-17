@@ -17,7 +17,8 @@ use crate::constants::VG_FORMAT_B8G8R8A8_UNORM;
 use crate::device::cmd;
 use crate::driver::Driver;
 use crate::protocol::{
-    le_u32, Request, CREATE_RESOURCE_REQ_LEN, E_DEVICE, E_INVAL, E_NOMEM, HDR_LEN, STATUS_LEN,
+    le_u32, Request, CREATE_RESOURCE_REQ_LEN, E_BUSY, E_DEVICE, E_INVAL, E_NOMEM, HDR_LEN,
+    STATUS_LEN,
 };
 use crate::server::respond;
 use crate::state::Resource;
@@ -26,19 +27,8 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], tx: 
         respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
-    let Some(requested_id) = le_u32(body, 0) else {
-        respond::status(sender_pid, req, E_INVAL, tx);
-        return;
-    };
-    let Some(format) = le_u32(body, 4) else {
-        respond::status(sender_pid, req, E_INVAL, tx);
-        return;
-    };
-    let Some(width) = le_u32(body, 8) else {
-        respond::status(sender_pid, req, E_INVAL, tx);
-        return;
-    };
-    let Some(height) = le_u32(body, 12) else {
+    let fields = (le_u32(body, 0), le_u32(body, 4), le_u32(body, 8), le_u32(body, 12));
+    let (Some(requested_id), Some(format), Some(width), Some(height)) = fields else {
         respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
@@ -46,11 +36,15 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], tx: 
         respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
+    // An id the table holds is the primary's, the blank's or one in use.
+    if requested_id != 0 && driver.resources.lookup(requested_id).is_some() {
+        respond::status(sender_pid, req, E_BUSY, tx);
+        return;
+    }
     let resource_id = if requested_id == 0 { driver.resources.alloc_id() } else { requested_id };
     let fence_id = driver.fences.issue();
-    if let Err(_) =
-        cmd::create_resource_2d(&driver.control_queue, fence_id, resource_id, format, width, height)
-    {
+    let q = &driver.control_queue;
+    if cmd::create_resource_2d(q, fence_id, resource_id, format, width, height).is_err() {
         respond::status(sender_pid, req, E_DEVICE, tx);
         return;
     }
