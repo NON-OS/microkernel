@@ -46,6 +46,8 @@ mod l3_tables;
 pub mod leaves;
 #[path = "../../../../../../src/arch/aarch64/mmu/map.rs"]
 mod map;
+#[path = "../../../../../../src/arch/aarch64/mmu/one_to_one.rs"]
+mod one_to_one;
 pub mod probe;
 #[path = "../../../../../../src/arch/aarch64/mmu/ram_map.rs"]
 mod ram_map;
@@ -54,9 +56,11 @@ mod state;
 #[path = "../../../../../../src/arch/aarch64/mmu/table"]
 pub mod table {
     mod entry;
+    mod leaf;
     mod page_table;
     mod walk;
 
+    pub use leaf::leaf_entry;
     pub use page_table::PageTable;
     pub use walk::walk_page_tables;
 }
