@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod attach_steps;
 mod bdf_to_source_id;
 mod map_device;
 mod unmap_device;
