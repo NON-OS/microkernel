@@ -3627,7 +3627,6 @@
    "userland/capsule_market/src/server/lp/take.rs",
    "userland/capsule_market/src/server/lp/write.rs",
    "userland/capsule_terminal/src/command/builtin/market/wrap.rs",
-   "userland/capsule_wallet_nonos/src/wallet/event/address_text.rs",
    "userland/libc/src/debug.rs",
    "userland/libc/src/syscall/numbers/tag.rs",
    "userland/market_proofs",
