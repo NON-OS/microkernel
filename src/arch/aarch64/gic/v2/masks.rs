@@ -30,7 +30,7 @@ use crate::arch::aarch64::cpu::cpu_id;
 static MASKS: [AtomicU8; MAX_CPUS] = [const { AtomicU8::new(0) }; MAX_CPUS];
 
 pub(super) fn record(mask: u8) {
-    MASKS[cpu_id().min(MAX_CPUS - 1)].store(mask, Ordering::Release);
+    MASKS[cpu_id()].store(mask, Ordering::Release);
 }
 
 /// The mask of the CPU whose affinity is `packed` (`Aff3:Aff2:Aff1:Aff0`, a
@@ -39,7 +39,7 @@ pub(in crate::arch::aarch64::gic) fn of_affinity(packed: u32) -> Option<u8> {
     let p = packed as u64;
     let mpidr = ((p >> 24) << 32) | (p & 0x00FF_FFFF);
     let index = roster::index_of(mpidr)?;
-    match MASKS[index.min(MAX_CPUS - 1)].load(Ordering::Acquire) {
+    match MASKS.get(index)?.load(Ordering::Acquire) {
         0 => None,
         mask => Some(mask),
     }

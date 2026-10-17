@@ -24,15 +24,8 @@ pub fn init(boot_info: &BootInfo) {
     cpu::init_cpu();
     // Latch the CPU list before anything asks which CPU it is running on. The
     // GIC does, one call below, and its answer decides which redistributor
-    // this core talks to.
-    //
-    // SAFETY: this is the boot CPU, this runs once, and no secondary has been
-    // released yet, so nothing else can be touching the roster.
-    unsafe {
-        super::multicore::roster::populate(
-            &boot_info.cpu_affinities[..boot_info.cpu_affinity_count],
-        );
-    }
+    // this core talks to. This is the boot CPU, before any secondary starts.
+    super::multicore::roster::populate(&boot_info.cpu_affinities[..boot_info.cpu_affinity_count]);
     super::platform_windows::publish(boot_info);
     // The keys below go into this CPU's per-CPU block, so it is named first.
     cpu::percpu::install_here();
