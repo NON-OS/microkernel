@@ -19,17 +19,17 @@
 
 use nonos_nox_meter::flow::{Contracts, Flow};
 use nonos_nox_meter::job::Jobs;
+use nonos_nox_meter::timeout::step_timed_out;
 use nonos_payment_proto::{EAGAIN, ETIME};
 
-/// A step with no answer in this long fails its job (v1.4.15).
-pub(super) const STEP_MS: u64 = 150_000;
-/// How often the loop wakes to check that, while a step waits.
+/// How often the loop wakes to check a waiting step's STEP_MS (timeout.rs).
 pub(super) const TICK_MS: u64 = 1_000;
 
 pub(super) struct Pending {
     pub op: u16,
     pub req: u32,
     pub settle_pid: u32,
+    /// When the step was sent, on the monotonic clock (`meter::uptime_ms`).
     pub sent_ms: u64,
 }
 
@@ -56,10 +56,10 @@ pub(crate) struct Work {
 }
 
 impl Work {
-    /// Fail the job whose step has waited past STEP_MS.
-    pub fn tick(&mut self, now_ms: u64) {
+    /// Fail the job whose step has waited STEP_MS by `up_ms`, uptime.
+    pub fn tick(&mut self, up_ms: u64) {
         let sent = self.run.as_ref().and_then(|r| r.pending.as_ref()).map(|p| p.sent_ms);
-        if sent.is_some_and(|t| now_ms.saturating_sub(t) >= STEP_MS) {
+        if sent.is_some_and(|t| step_timed_out(t, up_ms)) {
             self.finish(Err(ETIME));
         }
     }
