@@ -18,6 +18,7 @@
 import re
 from pathlib import Path
 
+from nonos_cap_audit_alias import alias, used_elsewhere
 from nonos_cap_audit_read import called_anywhere, code_lines, read
 
 
@@ -44,7 +45,7 @@ def consulted(root: Path, listed: set) -> set:
     engine. A regex cannot tell them apart and the compiler does not
     have to, so anything not on the list is somebody else's type.
     """
-    seen, by_checker = set(), {}
+    seen, by_checker, aliases = set(), {}, {}
     for path in (root / "src").rglob("*.rs"):
         if "capabilities/types/" in str(path):
             continue
@@ -55,11 +56,15 @@ def consulted(root: Path, listed: set) -> set:
             found = re.search(r"\bfn\s+(\w+)", line)
             if found:
                 fn = found.group(1)
+            if defined := alias(line):
+                aliases[defined[0]] = defined[1]
+                continue
             for name in re.findall(GRANT if grants else ANY, line):
                 if inside and fn:
                     by_checker.setdefault(name, set()).add(fn)
                 else:
                     seen.add(name)
+    seen |= {cap for const, cap in aliases.items() if used_elsewhere(root, const)}
     for name, fns in by_checker.items():
         if any(called_anywhere(root, fn) for fn in fns):
             seen.add(name)
