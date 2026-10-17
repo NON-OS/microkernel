@@ -30,6 +30,7 @@ mod peers;
 mod run;
 mod start;
 mod surface;
+mod surface_paint;
 
 pub use active::{active, setup_kept, wanted};
 pub use run::run;
