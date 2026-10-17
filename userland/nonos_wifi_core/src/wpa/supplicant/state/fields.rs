@@ -62,4 +62,7 @@ pub struct Supplicant {
     /// Message 3's Transition Disable bitmap, 0 when it sent none.
     pub(in crate::wpa::supplicant) transition_disable: u8,
     pub(in crate::wpa::supplicant) failure: Option<Failure>,
+    /// The rekey SNonce's seed (`reseed_rekey`) and the rekeys finished.
+    pub(in crate::wpa::supplicant) rekey_seed: [u8; 32],
+    pub(in crate::wpa::supplicant) rekeys: u64,
 }

@@ -40,6 +40,7 @@ pub(crate) mod result;
 mod run;
 mod session;
 
+pub(super) use entropy::reseed;
 pub(super) use join::connect;
 pub(super) use leave::disconnect;
 pub(super) use media::set_media_no_link;
