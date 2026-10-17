@@ -20,10 +20,13 @@
 
 use std::path::PathBuf;
 
-/// The file at `rel` from the repository root.
+/// The file at `rel` from this crate's directory: `../../` and the file's
+/// path from the repository root. tools/nix/inputs.py follows a literal
+/// spelled from here into this crate's lane, so the flake's test of the
+/// crate holds every file it reads.
 pub fn source(rel: &str) -> String {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-    std::fs::read_to_string(root.join(rel)).unwrap_or_else(|e| panic!("{rel}: {e}"))
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(rel);
+    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{rel}: {e}"))
 }
 
 /// The right-hand side of `name`'s definition, without the semicolon.
