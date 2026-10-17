@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! The first message 3: checked, keyed, and answered with message 4.
 
@@ -27,6 +13,11 @@ impl Supplicant {
             return StepOutput::none();
         }
         self.rx_replay = Some(key.replay_counter);
+        self.take_message3(key)
+    }
+
+    /// Take an authentic message 3's keys and answer it with message 4.
+    pub(in super::super) fn take_message3(&mut self, key: &EapolKey<'_>) -> StepOutput {
         let mut plain = [0u8; UNWRAPPED_MAX];
         let out = self.accept_message3(key, &mut plain);
         wipe(&mut plain);

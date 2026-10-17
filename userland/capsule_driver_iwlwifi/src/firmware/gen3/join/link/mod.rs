@@ -38,6 +38,7 @@
 //! with the firmware's missed-beacons notice, ends a link whose access point
 //! went away.
 
+mod held;
 mod netif;
 mod open;
 mod port;
