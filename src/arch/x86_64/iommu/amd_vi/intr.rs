@@ -20,7 +20,6 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use core::sync::atomic::{fence, Ordering};
 use spin::Mutex;
 
 use super::command::invalidate_interrupt_table;
@@ -70,6 +69,6 @@ fn set(id: u16, table: u64, vector: u8, value: u32) -> Result<(), AmdViError> {
     let slots = entries_mut(table).map_err(|_| AmdViError::TableUnreachable)?;
     let (slot, shift) = (vector as usize / 2, (vector as usize % 2) * 32);
     slots[slot] = (slots[slot] & !(0xFFFF_FFFF << shift)) | ((value as u64) << shift);
-    fence(Ordering::SeqCst);
+    super::visible::flush(&slots[slot]);
     submit_all(&[invalidate_interrupt_table(id)])
 }

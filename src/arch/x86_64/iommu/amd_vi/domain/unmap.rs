@@ -21,6 +21,7 @@
 use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
 use super::super::pte::is_present;
+use super::super::visible::store;
 use super::lifetime::{root_of, ROOTS};
 use super::range::{leaf_at, pages, PAGE};
 use super::walk::walk_lookup;
@@ -38,7 +39,7 @@ pub fn unmap_range(domain: u16, iova: u64, size: usize) -> Result<(), AmdViError
     }
     for page in 0..count {
         if let Some((table, slot)) = walk_lookup(root, iova + page * PAGE)? {
-            *leaf_at(table, slot)? = 0;
+            store(leaf_at(table, slot)?, 0);
         }
     }
     flush_domain(domain)

@@ -21,6 +21,7 @@
 use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
 use super::super::pte::{is_present, leaf};
+use super::super::visible::store;
 use super::lifetime::{root_of, ROOTS};
 use super::range::{leaf_at, pages, PAGE};
 use super::walk::{walk_create, walk_lookup};
@@ -48,11 +49,11 @@ pub fn map_range(
     // From the first leaf on, a failure is taken back first (iommu::place).
     let put = |page: u64| -> Result<(), AmdViError> {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
-        *leaf_at(table, slot)? = leaf(phys + page * PAGE, read, write);
+        store(leaf_at(table, slot)?, leaf(phys + page * PAGE, read, write));
         Ok(())
     };
     let clear = |page: u64| match walk_lookup(root, iova + page * PAGE) {
-        Ok(Some((table, slot))) => leaf_at(table, slot).map(|l| *l = 0).is_ok(),
+        Ok(Some((table, slot))) => leaf_at(table, slot).map(|l| store(l, 0)).is_ok(),
         _ => false,
     };
     place(count, put, clear, || flush_domain(domain)).map_err(|u| match u {

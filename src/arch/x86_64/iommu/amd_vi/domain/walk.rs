@@ -18,6 +18,7 @@
 
 use super::super::error::AmdViError;
 use super::super::pte::{address, directory, index, is_present, next_level, LEVELS};
+use super::super::visible::store;
 use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
 
 /// The level 1 table and slot for `iova`, creating directories on the way.
@@ -29,7 +30,7 @@ pub(super) fn walk_create(root: u64, iova: u64) -> Result<(u64, usize), AmdViErr
         let slot = index(iova, level);
         if !is_present(entries[slot]) {
             let next = allocate_table().map_err(|_| AmdViError::NoFrames)?;
-            entries[slot] = directory(next, level);
+            store(&mut entries[slot], directory(next, level));
         }
         table = address(entries[slot]);
     }

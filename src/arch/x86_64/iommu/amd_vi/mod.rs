@@ -29,6 +29,7 @@ pub mod domain;
 pub mod dte;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod enable;
+pub mod efr;
 pub mod error;
 pub mod event;
 #[cfg(feature = "nonos-iommu-amdvi")]
@@ -58,6 +59,8 @@ mod ring;
 mod submit;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod units;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod visible;
 
 #[cfg(feature = "nonos-iommu-amdvi")]
 pub use coverage::unit_covers;
