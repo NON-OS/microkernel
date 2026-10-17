@@ -20,7 +20,7 @@ mod h2c_tests;
 #[cfg(test)]
 mod link_tests;
 #[cfg(test)]
-mod linkport_tests;
+pub(crate) mod linkport_tests;
 #[cfg(test)]
 mod mac_tests;
 #[cfg(test)]
