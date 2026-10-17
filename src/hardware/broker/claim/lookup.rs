@@ -45,7 +45,6 @@ impl Drop for InUse {
         c.inflight = c.inflight.saturating_sub(1);
         if gone(c.stage, c.leavers, c.inflight) {
             claims.remove(at);
-            drop(claims);
             crate::hardware::broker::bootfb::released(key.1);
         }
     }
