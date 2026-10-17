@@ -54,6 +54,8 @@ mod intx_hostile_tests;
 #[cfg(test)]
 mod intx_tests;
 #[cfg(test)]
+mod iommus_tests;
+#[cfg(test)]
 mod irq_tests;
 #[cfg(test)]
 mod layout_tests;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::fdt::find::iommus::Iommus;
 use crate::arch::fdt::node::DmaWindow;
 
 use super::kind::PlatformKind;
@@ -44,6 +45,8 @@ pub struct PlatformDevice {
     pub dma: Option<DmaWindow>,
     /// `dma-coherent`: its DMA snoops the CPU's caches.
     pub coherent: bool,
+    /// Which IOMMU translates its DMA, as which streams.
+    pub iommus: Iommus,
 }
 
 impl PlatformDevice {
@@ -54,5 +57,6 @@ impl PlatformDevice {
         irq: None,
         dma: None,
         coherent: false,
+        iommus: Iommus::None,
     };
 }
