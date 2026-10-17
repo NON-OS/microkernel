@@ -25,16 +25,17 @@ impl Assembler {
             return Payload::More;
         }
         let Some((hlen, info)) = header(p) else {
-            self.bad = true;
+            (self.bad, self.lost) = (true, true);
             return Payload::More;
         };
         let fid = info & FID != 0;
         let mut out = Payload::More;
         if self.fid.is_some_and(|f| f != fid) {
             // A new frame began before the last one ended: that one was
-            // cut short and is dropped.
+            // cut short and is dropped. A payload whose header could not be
+            // read since may have been this frame's first: it starts spoiled.
             self.buf.clear();
-            self.bad = false;
+            (self.bad, self.lost) = (self.lost, false);
         }
         self.fid = Some(fid);
         self.bad |= info & ERR != 0 || self.buf.len() + p.len() - hlen > self.max;

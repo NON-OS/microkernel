@@ -50,6 +50,8 @@ fn a_bad_a_cut_or_an_oversized_frame_is_dropped() {
     assert_eq!(a.frame(), &[4]);
     assert!(!done(&mut a, &p(0x2, &[1, 2, 3, 4, 5])), "past 4 bytes");
     assert!(!done(&mut a, &[9, 0x82, 1]), "a header longer than its payload");
-    assert!(done(&mut a, &p(0x1 | 0x2, &[6])));
-    assert_eq!(a.frame(), &[6], "the last whole frame only");
+    // That payload's FID could not be read: it may have begun the next frame.
+    assert!(!done(&mut a, &p(0x1 | 0x2, &[6])), "the frame after it begins spoiled");
+    assert!(done(&mut a, &p(0x2, &[8])));
+    assert_eq!(a.frame(), &[8], "the last whole frame only");
 }

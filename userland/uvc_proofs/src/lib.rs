@@ -46,6 +46,10 @@ mod indicator_tests;
 #[cfg(test)]
 mod listing_tests;
 #[cfg(test)]
+mod payload_sweep;
+#[cfg(test)]
+mod payload_sweep_tests;
+#[cfg(test)]
 mod probe_tests;
 #[cfg(test)]
 mod webcam;

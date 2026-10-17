@@ -31,13 +31,16 @@ pub struct Assembler {
     pub(crate) buf: Vec<u8>,
     pub(crate) fid: Option<bool>,
     pub(crate) bad: bool,
+    /// A payload with no header to read was seen since the last EOF: it may
+    /// have been the next frame's start, so that frame starts spoiled too.
+    pub(crate) lost: bool,
     pub(crate) done: Vec<u8>,
 }
 
 impl Assembler {
     /// Frames of at most `max` bytes (the commit's dwMaxVideoFrameSize).
     pub fn new(max: usize) -> Self {
-        Self { max, buf: Vec::new(), fid: None, bad: false, done: Vec::new() }
+        Self { max, buf: Vec::new(), fid: None, bad: false, lost: false, done: Vec::new() }
     }
 
     /// The last whole frame.
@@ -51,7 +54,7 @@ impl Assembler {
             self.done = core::mem::take(&mut self.buf);
         }
         self.buf.clear();
-        self.bad = false;
+        (self.bad, self.lost) = (false, false);
         if whole {
             Payload::Frame
         } else {
