@@ -43,9 +43,22 @@ pub fn max_cost(q: &Quote) -> u128 {
     (q.gas_limit as u128).saturating_mul(q.max_fee)
 }
 
+/// The quote as signed: the most it costs, the nonce, and the gas terms.
 pub fn fee_rows(q: &Quote, eth: fn(u128) -> String) -> Vec<(&'static str, String)> {
     Vec::from([
         ("network fee", format!("at most {} ETH", eth(max_cost(q)))),
         ("nonce", format!("{}", q.nonce)),
+        ("gas limit", format!("{}", q.gas_limit)),
+        ("max fee", gwei(q.max_fee)),
+        ("tip", gwei(q.max_priority)),
     ])
+}
+
+/// `wei` per gas in gwei, every digit kept.
+pub fn gwei(wei: u128) -> String {
+    let part = format!("{:09}", wei % 1_000_000_000);
+    match part.trim_end_matches('0') {
+        "" => format!("{} gwei", wei / 1_000_000_000),
+        p => format!("{}.{p} gwei", wei / 1_000_000_000),
+    }
 }

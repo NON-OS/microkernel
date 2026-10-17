@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_nox_config::Contract;
+
+use super::fixture::{at, K};
 use super::kinds::every;
-use crate::intent::{hex, id, review_rows};
+use crate::hex_id::id;
+use crate::intent::{addr_text, hex, review_rows};
 
 fn nox(v: u128) -> String {
     format!("{v}")
@@ -24,15 +28,24 @@ fn nox(v: u128) -> String {
 #[test]
 fn every_kind_reads_as_an_action() {
     for p in every() {
-        let rows = review_rows(&p, nox);
+        let rows = review_rows(&p, &K, &at, nox);
         assert_eq!(rows[0].0, "action", "{p:?}");
         assert!(rows.len() >= 2 && rows.iter().all(|(_, v)| !v.is_empty()), "{p:?}");
     }
-    let approve = review_rows(&every()[0], nox);
-    assert_eq!(approve[1], ("taker", "NONOS Bond".into()));
+    let approve = review_rows(&every()[0], &K, &at, nox);
+    assert_eq!(approve[0].1, "set NOX allowance for NONOS Bond to 5 NOX");
+    let bond = addr_text(&K, &at(Contract::PublisherBond).unwrap());
+    assert_eq!(approve[1], ("taker", format!("NONOS Bond at {bond}")));
     assert_eq!(approve[2].1, "5 NOX, exactly this, never unlimited");
-    let publish = review_rows(&every()[5], nox);
+    let publish = review_rows(&every()[5], &K, &at, nox);
     assert_eq!(publish.last().unwrap().1, "https://example.org/r/qwen-small@1");
+    assert_eq!(
+        (publish.len(), publish[2].1.as_str()),
+        (7, hex(&[4; 32]).as_str()),
+        "every argument"
+    );
+    let anchor = review_rows(&every()[7], &K, &at, nox);
+    assert!(anchor.last().unwrap().1.starts_with("a hash, not a location"));
 }
 
 #[test]

@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod decode;
+mod decode_string;
+mod fixture;
 mod kinds;
+mod page;
+mod page_signed;
 mod publish;
 mod quote;
 mod refused;
 mod review;
 mod words;
+mod words_rest;
