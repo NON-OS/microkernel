@@ -16,10 +16,10 @@
 
 /*
  * Settle's answer to the publisher screen's request (send_ask.rs), taken
- * by the step that asked: the quote held to the calldata's decode, the
- * balance and the nonce both paths share (intent::after_gas), GAS again at
- * Sign (Q8) or after an unsure broadcast (send_retry.rs), the broadcast's
- * hash, the call's view until it lands. Any other answer is dropped.
+ * by the step that asked: the quote, the balance and shared nonce (Q8),
+ * GAS again at Sign, unsure or dropped (send_retry.rs), the broadcast's
+ * answer, kept apart from the hash followed, the call's view until it
+ * lands, unless the ledger says it will not. Any other answer is dropped.
  */
 
 use alloc::vec::Vec;
@@ -30,7 +30,7 @@ use nonos_settle_proto::{parse_read_reply, Gas, Quote};
 use super::send_drive::EVERY_MS;
 use super::sending::Asked;
 use super::views::Views;
-use crate::wallet::intent::{after_broadcast, after_gas, after_quote, landed, IntentStep};
+use crate::wallet::intent::{after_gas, after_quote, landed, may_land, IntentStep};
 use crate::wallet::settle::broadcast::sent;
 use crate::wallet::state::State;
 
@@ -44,7 +44,7 @@ pub fn answered(state: &mut State, a: Asked, r: Result<Vec<u8>, i32>, now_ms: u6
     if let (Asked::Gas, true) = (a, s.pressed) {
         return super::send_sign::nonce_read(state, gas(r));
     }
-    if let (Asked::Gas, IntentStep::Unsure { .. }) = (a, s.step) {
+    if let (Asked::Gas, IntentStep::Unsure { .. } | IntentStep::Sent(_)) = (a, s.step) {
         return super::send_retry::reread(state, gas(r), now_ms);
     }
     let chain_id = s.send.chain_id;
@@ -58,13 +58,11 @@ pub fn answered(state: &mut State, a: Asked, r: Result<Vec<u8>, i32>, now_ms: u6
             s.next_ms = now_ms + EVERY_MS;
             gas(r).map_or(step, |g| after_gas(&state.broadcast.sent, &s.send, step, &g))
         }
-        (Asked::Broadcast, IntentStep::Broadcasting) => {
-            s.next_ms = now_ms + EVERY_MS;
-            after_broadcast(sent(r), s.signed)
-        }
-        (Asked::Landed, step) if words(r).is_some_and(|w| landed(&s.call, &w)) => {
-            matches!(step, IntentStep::Sent(_)).then_some(IntentStep::Landed).unwrap_or(step)
-        }
+        (Asked::Broadcast, IntentStep::Broadcasting) => super::send_retry::sent(s, sent(r), now_ms),
+        (Asked::Landed, step) if may_land(&state.broadcast.sent, &step) => match words(r) {
+            Some(w) if landed(&s.call, &w) => IntentStep::Landed,
+            _ => step,
+        },
         (_, step) => step,
     };
     if s.step == IntentStep::Landed {
