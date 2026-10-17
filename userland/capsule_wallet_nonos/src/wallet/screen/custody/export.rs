@@ -18,10 +18,11 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::frame::frame;
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::value::value_block;
-use crate::wallet::screen::hits;
+use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::screen::page::{edges, lead};
 use crate::wallet::state::State;
 
@@ -36,10 +37,11 @@ pub(super) fn export(state: &State, fb: &mut PaintBuffer) {
     let status = crate::wallet::screen::status::parts(state);
     /* Asked first: the key is fetched only by the second screen's button. */
     let shown = state.keys.export_active;
+    let show = !greyed(state, Press::Footer(0));
     let footer = if shown {
         [("Hide the key", Weight::Primary, true), ("Cancel", Weight::Secondary, false)]
     } else {
-        [("Show the key", Weight::Primary, true), ("Cancel", Weight::Secondary, true)]
+        [("Show the key", Weight::Primary, show), ("Cancel", Weight::Secondary, true)]
     };
     let footer = if shown { &footer[..1] } else { &footer[..] };
     let spec = frame(state, "Private key", footer, &status);
@@ -55,6 +57,6 @@ pub(super) fn export(state: &State, fb: &mut PaintBuffer) {
     if shown {
         edges(&l, &[true]);
     } else {
-        edges(&l, &[true, true]);
+        edges(&l, &[show, true]);
     }
 }

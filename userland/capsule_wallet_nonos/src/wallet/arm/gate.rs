@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The guard at the press, each tick and each paint (moves.rs, look.rs): a
+ * The guard at the press and each paint (moves.rs, look.rs, tick.rs): a
  * press that moves value or signs acts only once armed, focus asked of
  * the window manager again at the press; held back, it says so on the
  * status line and nothing else happens. The consent keeps its own guard.
@@ -23,9 +23,10 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use super::look::{painted, pressed, seen};
+use super::look::{painted, pressed};
 use super::moves::{moves, Shown};
 use super::on_show::on_show;
+use super::shows::greys;
 use crate::wallet::order::guard::poll::{focused, guarding, now};
 use crate::wallet::order::terms::arming::buy_armed;
 use crate::wallet::screen::hits::Press;
@@ -33,7 +34,7 @@ use crate::wallet::state::State;
 
 const HELD_BACK: &[u8] = b"held back: this acts once the wallet has held focus for a second";
 
-fn own(state: &State) -> Option<Shown> {
+pub(super) fn own(state: &State) -> Option<Shown> {
     on_show(state).filter(|s| *s != Shown::Consent)
 }
 
@@ -54,13 +55,9 @@ pub fn held_back(state: &mut State, press: Option<Press>) -> Option<EventOutcome
     Some(EventOutcome::Repaint)
 }
 
-/// One look at focus while a guarded screen shows, each tick.
-pub fn poll(state: &mut State) {
-    let shown = own(state);
-    if shown.is_some() || state.arm.shown.is_some() {
-        let focused = shown.is_some() && focused();
-        state.arm = seen(state.arm, shown, focused, now());
-    }
+/// Whether `press` is drawn greyed: by the fn the press asks (shows.rs).
+pub fn greyed(state: &State, press: Press) -> bool {
+    greys(&state.arm, own(state), Some(press), now())
 }
 
 /// The screen was just painted whole.
