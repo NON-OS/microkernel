@@ -27,6 +27,7 @@ use super::copy::copy;
 use super::frames::Frames;
 use super::intel::Intel;
 use super::mode_light::{errno, light};
+use super::mode_undo::undo;
 use super::modeset::Modeset;
 use super::plug::Plug;
 use super::timing_pick::pick;
@@ -64,10 +65,7 @@ impl<M: Mmio, F: Frames, C: Clock> Intel<M, F, C> {
                 Ok(())
             }
             Err(e) => {
-                hd.frames.settle(false);
-                if light(m, clock, &mut hd.scan, (&ms, &ms.now), was, old_bases, held).is_ok() {
-                    hd.plug = Plug::In;
-                }
+                undo(m, clock, hd, &ms, (was, old_bases), held);
                 Err(errno(e))
             }
         }

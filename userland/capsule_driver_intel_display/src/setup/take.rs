@@ -18,16 +18,18 @@
 //! of the GGTT, stacked down from the top, room for two surfaces of the
 //! largest mode its monitor offers, and every window lies above all of
 //! firmware's surfaces: no output's surfaces can land on another's, or on
-//! a picture firmware is still scanning out. An output that does not fit,
-//! or fails, is left as firmware lit it; none at all fails the attempt.
+//! a picture firmware is still scanning out; a dead driver's leftover is
+//! mapped over (`take_plan`). An output that does not fit, or fails, is
+//! left as it was lit; none at all fails the attempt.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
-use nonos_intel_display::display::{Intel, Monitor, MAX_HEADS};
+use nonos_intel_display::display::{Intel, MAX_HEADS};
 use nonos_intel_display::engine::gen::Gen;
 use nonos_intel_display::engine::{error::Error, takeover::Output};
 
-use super::take_head::{run, take_head};
+use super::take_head::take_head;
+use super::take_plan::plan;
 use super::Driver;
 use crate::bar::Bar0;
 use crate::clock::Uptime;
@@ -43,23 +45,14 @@ pub fn take(
     aperture: u64,
 ) -> IntelResult<Driver> {
     let clock = Uptime;
-    let fw = |o: &Output| o.plane.live / 4096 + run(o.plane.stride / 4, o.plane.height);
-    let fw_top = lit.iter().flatten().map(fw).max().unwrap_or(0);
+    let p = plan(&mut m, &clock, gen, lit, total);
     let (mut top, mut first_err) = (total / 64 * 64, IntelError::Engine(Error::NothingLit));
     let mut heads = [None, None, None, None];
     let mut n = 0;
-    for out in lit.into_iter().flatten() {
-        let monitor = Monitor::of(&mut m, &clock, gen, out.transcoder);
-        let p = monitor.panel();
-        let big = p.modes[..p.len]
-            .iter()
-            .fold((out.width, out.height), |a, m| (a.0.max(m.width), a.1.max(m.height)));
-        // Two surfaces of the largest mode, and 64 entries for the cursor.
-        let Some(floor) = top.checked_sub(2 * run(big.0, big.1) + 64).filter(|&f| f >= fw_top)
-        else {
-            continue;
-        };
-        match take_head(&h, &mut m, (&clock, gen), out, (floor, top), &monitor, aperture) {
+    for (out, monitor, need) in p.outs.into_iter().flatten() {
+        let Some(floor) = top.checked_sub(need).filter(|&f| f >= p.fw_top) else { continue };
+        let at = (floor, top, p.ours);
+        match take_head(&h, &mut m, (&clock, gen), out, at, &monitor, aperture) {
             Ok(head) => (heads[n], n, top) = (Some(head), n + 1, floor),
             Err(e) if n == 0 => first_err = e,
             Err(_) => {}

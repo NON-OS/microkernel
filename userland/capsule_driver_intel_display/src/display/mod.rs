@@ -35,6 +35,7 @@ mod intel;
 mod link_keep;
 mod mode_light;
 mod mode_set;
+mod mode_undo;
 mod modes;
 mod modeset;
 mod monitor;

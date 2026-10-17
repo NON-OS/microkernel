@@ -62,7 +62,7 @@ fn start_present_and_stop_on_haswell() {
     m.set(r::plane_stride(Pipe::A, 1), 7680);
     let out = read_output(&mut m, &GEN7_5, Pipe::A).unwrap();
     assert_eq!(out.ggtt, Pte::Narrow);
-    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(50)).unwrap();
+    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 1919, 1079), Some(0xFF00_00AA));
     s.present(&mut m, &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 0, 0), Some(0xFF00_00BB));

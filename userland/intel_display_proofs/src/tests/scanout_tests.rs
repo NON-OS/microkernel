@@ -44,7 +44,7 @@ fn start_present_and_stop_on_firmwares_mode() {
     let (mut m, a, b) = setup();
     let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
     assert_eq!(m.pixel(Pipe::A, 7, 7), Some(0xFF00_0001), "firmware's picture");
-    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(50)).unwrap();
+    let mut s = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     assert_eq!(m.pixel(Pipe::A, 1919, 1079), Some(0xFF00_00AA));
     assert!(s.surfaces.iter().all(|&g| g % (256 * 1024) == 0 && g / 4096 >= 2025));
     assert_eq!(s.back(), 1);

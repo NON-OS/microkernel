@@ -30,12 +30,12 @@ fn a_tiled_firmware_plane_or_a_short_buffer_is_refused_untouched() {
     let mut out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
     let short = &a[..2024];
     assert_eq!(
-        Scanout::start(&mut m, &out, TOTAL, [short, &b], &Polls::new(9)).err(),
+        Scanout::start(&mut m, &out, TOTAL, [short, &b], u32::MAX, &Polls::new(9)).err(),
         Some(Error::Argument)
     );
     out.plane.ctl |= 1 << 10;
     assert_eq!(
-        Scanout::start(&mut m, &out, TOTAL, [&a, &b], &Polls::new(9)).err(),
+        Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(9)).err(),
         Some(Error::Layout)
     );
     assert!(
@@ -48,6 +48,6 @@ fn a_tiled_firmware_plane_or_a_short_buffer_is_refused_untouched() {
 fn a_table_too_small_for_two_surfaces_is_full() {
     let (mut m, a, b) = setup();
     let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
-    let r = Scanout::start(&mut m, &out, 4096, [&a, &b], &Polls::new(9));
+    let r = Scanout::start(&mut m, &out, 4096, [&a, &b], u32::MAX, &Polls::new(9));
     assert_eq!(r.err(), Some(Error::GgttFull));
 }
