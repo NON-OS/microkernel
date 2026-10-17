@@ -16,10 +16,10 @@
 
 /*
  * Settle's answer to the publisher screen's request (send_ask.rs), taken
- * by the step that asked it: the quote held to the calldata's own decode,
- * the balance against the most it can cost, the pending nonce at Sign
- * (Q8), the broadcast's hash, the call's view until it lands. An answer
- * the step no longer waits for is dropped.
+ * by the step that asked: the quote held to the calldata's decode, the
+ * balance and the nonce both paths share (intent::after_gas), GAS again at
+ * Sign (Q8) or after an unsure broadcast (send_retry.rs), the broadcast's
+ * hash, the call's view until it lands. Any other answer is dropped.
  */
 
 use alloc::vec::Vec;
@@ -30,19 +30,22 @@ use nonos_settle_proto::{parse_read_reply, Gas, Quote};
 use super::send_drive::EVERY_MS;
 use super::sending::Asked;
 use super::views::Views;
-use crate::wallet::intent::{after_balance, after_quote, landed, IntentStep};
+use crate::wallet::intent::{after_broadcast, after_gas, after_quote, landed, IntentStep};
 use crate::wallet::settle::broadcast::sent;
 use crate::wallet::state::State;
 
 const NO_QUOTE: &str = "settle did not quote the transaction; try again";
-const NOT_SENT: &str = "settle did not send the transaction; it may not have gone";
 
 /// Whether the screen changed. The screen's views are views_poll.rs's.
 pub fn answered(state: &mut State, a: Asked, r: Result<Vec<u8>, i32>, now_ms: u64) -> bool {
     let words = |r: Result<Vec<u8>, i32>| r.ok().and_then(|b| parse_read_reply(&b));
+    let gas = |r: Result<Vec<u8>, i32>| r.ok().and_then(|b| Gas::parse(&b));
     let Some(s) = state.publisher.sending.as_mut() else { return false };
     if let (Asked::Gas, true) = (a, s.pressed) {
-        return super::send_sign::nonce_read(state, r.ok().and_then(|b| Gas::parse(&b)));
+        return super::send_sign::nonce_read(state, gas(r));
+    }
+    if let (Asked::Gas, IntentStep::Unsure { .. }) = (a, s.step) {
+        return super::send_retry::reread(state, gas(r), now_ms);
     }
     let chain_id = s.send.chain_id;
     let at = |c| address(chain_id, c).ok();
@@ -53,12 +56,11 @@ pub fn answered(state: &mut State, a: Asked, r: Result<Vec<u8>, i32>, now_ms: u6
         },
         (Asked::Gas, step @ IntentStep::Funds(_)) => {
             s.next_ms = now_ms + EVERY_MS;
-            let g = r.ok().and_then(|b| Gas::parse(&b));
-            g.map_or(step, |g| after_balance(step, g.balance))
+            gas(r).map_or(step, |g| after_gas(&state.broadcast.sent, &s.send, step, &g))
         }
         (Asked::Broadcast, IntentStep::Broadcasting) => {
-            s.next_ms = now_ms;
-            sent(r).map_or(IntentStep::Failed(NOT_SENT), IntentStep::Sent)
+            s.next_ms = now_ms + EVERY_MS;
+            after_broadcast(sent(r), s.signed)
         }
         (Asked::Landed, step) if words(r).is_some_and(|w| landed(&s.call, &w)) => {
             matches!(step, IntentStep::Sent(_)).then_some(IntentStep::Landed).unwrap_or(step)
