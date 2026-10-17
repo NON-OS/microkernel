@@ -31,9 +31,7 @@ pub mod types;
 pub mod vmd;
 
 pub use api::{
-    add_device_to_blocklist, clear_device_blocklist, pci_read_config32,
-    pci_read_config32_safe, pci_write_config32, pci_write_config32_safe,
-    remove_device_from_blocklist, set_device_allowlist,
+    pci_read_config32, pci_read_config32_safe, pci_write_config32, pci_write_config32_safe,
 };
 pub use bar::{decode_all_bars, decode_all_bars_unchecked, decode_bar, enumerate_bars, BarInfo};
 pub use capabilities::{
@@ -56,10 +54,7 @@ pub use msi::{
     is_msi_enabled, is_msix_enabled, mask_all_msix, mask_msi_vector, mask_msix_vector,
     unmask_all_msix, unmask_msi_vector, unmask_msix_vector, MsiController,
 };
-pub use security::{
-    add_to_blocklist, check_device_allowed, clear_blocklist, is_dma_capable, remove_from_blocklist,
-    set_allowlist,
-};
+pub use security::is_dma_capable;
 pub use stats::PciStats;
 pub use types::{
     BridgeInfo, ClassCode, DeviceId, HeaderType, MsiInfo, MsiMessage, MsixInfo, PciAddress, PciBar,
