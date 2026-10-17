@@ -28,16 +28,18 @@ pub fn link_and_board(mapped: &mut Mapped) {
     // zeros while the always-on registers keep answering, which reads as a
     // register window that is half alive. The host had ASPM L1 enabled on this
     // link, and the chip carries its own enable that only the driver can clear.
-    if !pcie::hold_link_awake(&mapped.regs) {
-        status::line(b"[rtl8821ce] pcie link config did not answer\n");
+    match pcie::hold_link_awake(&mapped.regs) {
+        Ok(()) => {}
+        Err(pcie::DbiTimeout::Read) => {
+            status::line(b"[rtl8821ce] pcie link config: dbi read timed out\n")
+        }
+        Err(pcie::DbiTimeout::Write) => {
+            status::line(b"[rtl8821ce] pcie link config: dbi write timed out\n")
+        }
     }
-    // As rtw88 does for this chip: a late completion through VT-d must not
-    // time out and stall the card's DMA.
-    if pcie::disable_completion_timeout(mapped.device_id, mapped.claim_epoch) {
-        status::line(b"[rtl8821ce] pcie completion timeout disabled\n");
-    } else {
-        status::line(b"[rtl8821ce] pcie completion timeout left on: write refused\n");
-    }
+    // The PCIe completion timeout stays on, unlike rtw88, which turns it off for
+    // this chip (plan/50 C1): a completion that never comes ends in an error
+    // the bring-up names, never in a DMA engine waiting for it forever.
     // Read the board facts here, on a freshly powered MAC, which is where rtw88
     // takes them. Taken at the end of bring-up instead, after the firmware
     // download and the MAC tables, the efuse control and LDO registers answered
