@@ -22,11 +22,11 @@ use alloc::vec::Vec;
 use nonos_nox_meter::flow::Next;
 use nonos_payment_proto::EIO;
 
-use super::ask::request;
-use super::send::send;
 use super::work::{Pending, Work};
+use super::{ask::request, send::send};
 use crate::handlers::deliver_key;
 use crate::keyring::sign_tx;
+use crate::meter::uptime_ms;
 use crate::orders::{bind, drop_order, keep, keep_offer};
 
 enum Act {
@@ -59,7 +59,7 @@ pub(super) fn advance(work: &mut Work, mut next: Result<Next, i32>, now_ms: u64)
                     None => Act::End(Err(EIO)),
                     Some((op, body)) => match send(op, req, &body) {
                         Ok(settle_pid) => {
-                            Act::Sent(Pending { op, req, settle_pid, sent_ms: now_ms })
+                            Act::Sent(Pending { op, req, settle_pid, sent_ms: uptime_ms() })
                         }
                         Err(e) => Act::End(Err(e)),
                     },
