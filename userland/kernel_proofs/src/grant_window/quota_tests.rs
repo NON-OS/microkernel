@@ -16,16 +16,19 @@
 
 //! A holder's quota is a bound, on count and on bytes, with no wrap.
 
-use crate::proofs_1::quota::{admits, MAX_DMA_BYTES, MAX_DMA_GRANTS, MAX_MMIO_GRANTS};
+use crate::proofs_1::quota::{spent, Spent, MAX_DMA_BYTES, MAX_DMA_GRANTS, MAX_MMIO_GRANTS};
 
 const P: u64 = 4096;
 
 #[test]
 fn a_quota_is_a_bound() {
-    assert!(admits(MAX_DMA_GRANTS - 1, 0, P, MAX_DMA_GRANTS, MAX_DMA_BYTES));
-    assert!(!admits(MAX_DMA_GRANTS, 0, P, MAX_DMA_GRANTS, MAX_DMA_BYTES), "one too many");
-    assert!(admits(0, MAX_DMA_BYTES - P, P, MAX_DMA_GRANTS, MAX_DMA_BYTES), "exactly full");
-    assert!(!admits(0, MAX_DMA_BYTES - P, 2 * P, MAX_DMA_GRANTS, MAX_DMA_BYTES));
-    assert!(!admits(0, u64::MAX, 1, usize::MAX, u64::MAX), "no wrap past the top");
-    assert!(!admits(MAX_MMIO_GRANTS, 0, 0, MAX_MMIO_GRANTS, u64::MAX), "MMIO counts too");
+    let (n, b) = (MAX_DMA_GRANTS, MAX_DMA_BYTES);
+    assert_eq!(spent(n - 1, 0, P, n, b), None);
+    assert_eq!(spent(n, 0, P, n, b), Some(Spent::Grants), "one too many");
+    assert_eq!(spent(0, b - P, P, n, b), None, "exactly full");
+    assert_eq!(spent(0, b - P, 2 * P, n, b), Some(Spent::Bytes));
+    assert_eq!(spent(0, u64::MAX, 1, usize::MAX, u64::MAX), Some(Spent::Bytes), "no wrap");
+    assert_eq!(spent(n, b, P, n, b), Some(Spent::Grants), "the count is named first");
+    let mmio = spent(MAX_MMIO_GRANTS, 0, 0, MAX_MMIO_GRANTS, u64::MAX);
+    assert_eq!(mmio, Some(Spent::Grants), "MMIO counts too");
 }
