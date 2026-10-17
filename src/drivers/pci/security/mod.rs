@@ -15,9 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod analysis;
-pub mod approval;
 
 pub use analysis::is_dma_capable;
-pub use approval::{
-    add_to_blocklist, check_device_allowed, clear_blocklist, remove_from_blocklist, set_allowlist,
-};
