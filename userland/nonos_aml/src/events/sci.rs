@@ -21,8 +21,8 @@
 //! the source. Each GPE is disabled while it is served. A level GPE whose
 //! method fails on its own stays disabled, since its source is still
 //! asserting and would fire forever; so does any GPE past the storm bound
-//! (`storm`). One whose method the budget cut short is armed again, so the
-//! next event is not lost, until `CUTS` runs in a row were cut.
+//! (`storm`). One the budget cut short is armed again, or after `CUTS` cuts
+//! in a row left off for a back-off window (`storm_backoff`, `rearm`).
 
 use super::dispatch::Dispatch;
 use super::error::EventsError;
@@ -61,12 +61,12 @@ impl Events {
                 return Err(EventsError::Io);
             }
             let cut = result.as_ref().is_err_and(Fault::is_budget);
-            let spent = self.storms.cut(n, cut);
-            if (result.is_ok() || edge || cut) && !spent {
+            let off = self.storms.after_run(n, result.is_ok(), cut, now);
+            if (result.is_ok() || edge || cut) && off.is_none() {
                 b.set_enabled(io, n, true).then_some(()).ok_or(EventsError::Io)?;
             } else {
                 self.armed.remove(&n);
-                report.disabled.push(n);
+                report.disabled.push((n, off));
             }
             report.ran.push((n, result));
         }
