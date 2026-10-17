@@ -54,6 +54,8 @@ mod avoid_tests;
 #[cfg(test)]
 mod edge_tests;
 #[cfg(test)]
+mod held_tests;
+#[cfg(test)]
 mod lookup_tests;
 #[cfg(test)]
 mod order_tests;
