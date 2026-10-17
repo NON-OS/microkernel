@@ -17,6 +17,7 @@
 mod display_mode;
 mod frames;
 mod present;
+mod receiver;
 mod register;
 mod release;
 mod share;
