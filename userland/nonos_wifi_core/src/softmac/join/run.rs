@@ -46,7 +46,12 @@ pub fn join<R: Radio, E: Env>(
     if req.hidden {
         scan_from(r, env, addresses, net)?;
     }
-    let (found, beacons) = hunt(r, env, domain, req.ssid, req.hidden, hints);
+    let mut sb = [0u8; 2]; // a random sequence start for this scan burst (E-70)
+    if !env.random(&mut sb) {
+        return Err(JoinError::NoEntropy);
+    }
+    let (found, beacons) =
+        hunt(r, env, domain, req.ssid, req.hidden, hints, u16::from_le_bytes(sb));
     let found = found.ok_or(JoinError::NotFound(beacons))?;
     r.tune(found.band, found.channel);
     let bssid: [u8; 6] = found.beacon[16..22].try_into().unwrap_or([0; 6]);

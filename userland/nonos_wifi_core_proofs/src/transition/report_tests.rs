@@ -41,7 +41,7 @@ fn joined_with(bits: Option<u8>) -> Report {
     let policy = JoinPolicy::ANY;
     let req =
         JoinRequest { our_mac: STA, ssid: SSID, passphrase: PASS, policy, entropy: entropy() };
-    drive(air, &env, Mlme::join(&req), &beacon, JOIN_BUDGET_MS)
+    drive(air, &env, Mlme::join(&req), &beacon, JOIN_BUDGET_MS, 0)
 }
 
 #[test]

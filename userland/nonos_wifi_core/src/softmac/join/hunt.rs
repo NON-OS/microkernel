@@ -42,10 +42,14 @@ pub fn hunt<R: Radio, E: Env>(
     ssid: &[u8],
     hidden: bool,
     hints: &[(Band, u8)],
+    seq_start: u16,
 ) -> (Option<Found>, u32) {
     let mut heard = Heard { ssid, beacons: 0 };
+    // One random sequence-number start for this scan burst's probes, carried
+    // across its channels and never run on into the join that follows (E-70).
+    let mut seq = seq_start & 0x0FFF;
     for &(band, ch) in hints {
-        if let Some(f) = visit(r, env, &mut heard, (band, ch, false), HINT_DWELL_MS) {
+        if let Some(f) = visit(r, env, &mut heard, (band, ch, false), HINT_DWELL_MS, &mut seq) {
             return (Some(f), heard.beacons);
         }
     }
@@ -53,9 +57,8 @@ pub fn hunt<R: Radio, E: Env>(
     for _ in 0..SWEEPS {
         for step in ScanPlan::new(domain, g2, g5) {
             let probe = hidden && step.mode == ScanMode::Active;
-            if let Some(f) =
-                visit(r, env, &mut heard, (step.band, step.channel, probe), SWEEP_DWELL_MS)
-            {
+            let at = (step.band, step.channel, probe);
+            if let Some(f) = visit(r, env, &mut heard, at, SWEEP_DWELL_MS, &mut seq) {
                 return (Some(f), heard.beacons);
             }
         }

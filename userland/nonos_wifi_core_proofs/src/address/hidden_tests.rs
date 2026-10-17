@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A hidden network is probed from a scan's own address, fresh each scan,
-//! and each address starts its sequence numbers at 0.
+//! and each address restarts its sequence numbers at a random value that is
+//! never carried on across an address change (E-70).
 
 use super::join_tests::from_auth;
 use crate::soft::ap::SimAp;
@@ -58,10 +59,17 @@ fn a_hidden_network_is_probed_from_a_scans_address_then_joined_from_its_own() {
 }
 
 #[test]
-fn each_address_starts_its_sequence_numbers_at_zero() {
+fn each_address_restarts_its_sequence_at_random_never_carried_across() {
     let mut st = hidden();
     assert_eq!(code(&connect(&mut st, SSID, PASS, FLAG_HIDDEN)), 0);
     let sent = &st.radio().unwrap().sent;
-    assert_eq!(seq(sent.iter().find(|f| f[0] == 0x40).unwrap()), 0, "the scan's first");
-    assert_eq!(seq(sent.iter().find(|f| f[0] == 0xb0).unwrap()), 0, "the network's first");
+    let scan: Vec<u16> = sent.iter().filter(|f| f[0] == 0x40).map(|f| seq(f)).collect();
+    let at = sent.iter().position(|f| f[0] == 0xb0).expect("an authentication");
+    let net: Vec<u16> = sent[at..].iter().map(|f| seq(f)).collect();
+    assert!(scan.windows(2).all(|w| w[1] == (w[0] + 1) & 0x0fff), "scan steps by one");
+    assert!(net.windows(2).all(|w| w[1] == (w[0] + 1) & 0x0fff), "join steps by one");
+    // The join does not continue the scan's counter across the address change,
+    // and neither address starts at the fixed zero the old code used.
+    assert_ne!(net[0], (scan[scan.len() - 1] + 1) & 0x0fff, "sequence ran on across addresses");
+    assert!(scan[0] != 0 || net[0] != 0, "sequence restarted at zero");
 }
