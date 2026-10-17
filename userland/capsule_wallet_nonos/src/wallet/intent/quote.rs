@@ -35,7 +35,12 @@ use super::encode::to;
 pub const PUBLISHER_GAS_MAX: u64 = 1_000_000;
 
 pub fn quote_refusal(p: &Publisher, chain_id: u64, q: &Quote) -> Option<&'static str> {
-    super::super::order::send_bounds::held_to(q, p.kind(), to(p, chain_id), PUBLISHER_GAS_MAX)
+    held(p, to(p, chain_id), q)
+}
+
+/// The same, with `to` the address the kind's contract is at.
+pub fn held(p: &Publisher, to: Option<[u8; 20]>, q: &Quote) -> Option<&'static str> {
+    super::super::order::send_bounds::held_to(q, p.kind(), to, PUBLISHER_GAS_MAX)
 }
 
 /// The most the transaction can cost in ETH, in wei.
