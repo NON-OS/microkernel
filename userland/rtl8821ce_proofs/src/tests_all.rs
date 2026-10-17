@@ -20,6 +20,8 @@ mod fw_tests;
 #[cfg(test)]
 mod h2c_tests;
 #[cfg(test)]
+mod halt_tests;
+#[cfg(test)]
 mod link_tests;
 #[cfg(test)]
 pub(crate) mod linkport_tests;

@@ -15,4 +15,4 @@ mod kinds;
 mod run;
 
 pub use kinds::*;
-pub use run::{begin, finish};
+pub use run::{abort, begin, finish};
