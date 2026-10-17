@@ -25,7 +25,7 @@ use spin::RwLock;
 pub struct StackCanary {
     global: AtomicU64,
     per_cpu: RwLock<BTreeMap<u32, u64>>,
-    pub(super) rotations: AtomicU64,
+    rotations: AtomicU64,
 }
 
 impl StackCanary {

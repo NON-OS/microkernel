@@ -26,11 +26,3 @@ pub fn init_advanced_security() -> Result<(), &'static str> {
     GLOBAL_MANAGER.call_once(|| manager);
     Ok(())
 }
-
-pub fn security_manager() -> &'static AdvancedSecurityManager {
-    GLOBAL_MANAGER.call_once(|| {
-        let manager = AdvancedSecurityManager::new(SecurityConfig::default());
-        manager.init();
-        manager
-    })
-}
