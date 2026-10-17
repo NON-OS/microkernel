@@ -3506,7 +3506,8 @@
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
-   "userland/libc/src/broker/dma_lines.rs"
+   "userland/libc/src/broker/dma_lines.rs",
+   "userland/nonos_blk_client/src/disks/in_use.rs"
   ],
   "md": [],
   "signed": [
