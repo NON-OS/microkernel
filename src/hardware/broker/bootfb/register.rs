@@ -29,16 +29,23 @@ use crate::hardware::broker::table::register_platform_device;
 use crate::kernel_core::init::framebuffer::phys_window;
 use crate::sys::serial;
 
-pub(super) static BOOTFB: Once<u64> = Once::new();
+static BOOTFB: Once<u64> = Once::new();
 
 pub fn register_boot_framebuffer() {
     let Some(w) = phys_window() else {
         return;
     };
+    // Whether published or not, a claim of the memory it lies in stops the
+    // kernel drawing on it (L79).
+    super::cover::find(w.page, w.len);
     let Some((base, size)) = window(w.page, w.len, w.offset) else {
         serial::println(b"[BROKER] boot framebuffer: its window is malformed, not published");
         return;
     };
+    if !super::sink::make() {
+        serial::println(b"[BROKER] boot framebuffer: no frame for its sink, not published");
+        return;
+    }
     let mut bars = [Bar::empty(); 6];
     // Prefetchable, so a driver may ask for write-combining; the kernel's own
     // mapping still decides the type it gets (L17).
@@ -58,6 +65,10 @@ pub fn register_boot_framebuffer() {
     serial::println(line.as_bytes());
 }
 
-pub(super) fn is_boot_framebuffer(device_id: u64) -> bool {
+pub(in crate::hardware::broker) fn is_boot_framebuffer(device_id: u64) -> bool {
     BOOTFB.get() == Some(&device_id)
+}
+
+pub(in crate::hardware::broker) fn device() -> Option<u64> {
+    BOOTFB.get().copied()
 }

@@ -62,7 +62,10 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<claim::InUse, Dm
     }
     let class = table::class_of(req.device_id).ok_or(DmaMapError::UnknownDevice)?;
     let pages = req.length / PAGE_SIZE;
-    if pages > dma_page_limit_for_class(class) {
+    // None against the boot framebuffer: a takeover of its scanout reclaims
+    // its MMIO from outside, and a DMA grant could not be (L79).
+    let fb = crate::hardware::broker::bootfb::is_boot_framebuffer(req.device_id);
+    if fb || pages > dma_page_limit_for_class(class) {
         return Err(DmaMapError::BadLengthForClass);
     }
     Ok(claim)
