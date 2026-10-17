@@ -16,11 +16,14 @@
 
 //! The receive loop: every frame answered by the wire server, the reply
 //! sent to the pid the kernel says sent it, the owner's silence watched on
-//! every wake; and the fence FLUSH ends with.
+//! every wake, the scanout asked after on every wake and the compositor
+//! told once if a GPU driver took it (LEAVING: drive another); and the
+//! fence FLUSH ends with.
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_uptime_ms, recv_ready};
+use nonos_gfx_wire::notice::{notice, LEAVING};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send_to_pid, mk_uptime_ms, recv_ready};
 
 use crate::display::BootFb;
 
@@ -34,6 +37,11 @@ pub fn run(server: &mut Server<BootFb, Pool>) -> ! {
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WATCH_MS, &mut sender);
+        // Asked on every wake and before every frame (`loss`).
+        if server.display.tell_due() {
+            let n = notice(LEAVING);
+            let _ = server.owner.map(|pid| mk_ipc_send_to_pid(pid, n.as_ptr(), n.len()));
+        }
         let now = mk_uptime_ms().max(0) as u64;
         server.watch(now);
         if !recv_ready(n) || sender == 0 {

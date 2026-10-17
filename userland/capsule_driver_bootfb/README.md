@@ -47,6 +47,17 @@ small for its mode, or a stride shorter than a line is refused at
 mapping: the compositor keeps its GOP path. FLUSH rectangles outside the
 mode are refused by the server before any copy.
 
+A GPU driver taking the scanout (L79, G-80): the kernel ends bootfb's
+claim and points its mapping at a zeroed sink page, without a fault. bootfb
+asks `mk_boot_framebuffer` on every wake (at least every 500 ms) and before
+every frame; any answer but its 24 bytes means the scanout is gone for the
+boot. Then it draws nothing more (FLUSH and MODE_SET answer ENXIO), STATE
+answers LOST and dark, the claim is released once (-ENODEV ignored), the
+compositor is told once with OUTPUT_NOTICE LEAVING, and the old mapping is
+never unmapped, re-mapped or claimed again (`loss.rs`, `libc_scanout.rs`).
+It stays up answering LOST. A claim refused at start (-EPERM, final for the
+boot) is one line and an exit (`start.rs`).
+
 ## Current implemented surface
 
 `Fb::new` (the checked mapping), `Fb::copy_in`, `describe::{caps, mode,

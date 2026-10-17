@@ -20,7 +20,7 @@
 //! back), and the primary is attached, then every further output's. With
 //! HW_CURSOR the pointer goes on the device's plane (`hw_cursor`).
 
-use nonos_gfx_wire::body::caps::HW_CURSOR;
+use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_SET};
 
 use super::attach_primary::attach_primary;
 use super::discover::GfxEndpoint;
@@ -38,9 +38,19 @@ pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
     let (name, serial, pid, physical_mm) = (ep.name, s.serial, ep.pid, caps.physical_mm);
     let outputs = caps.outputs;
     let cursor_offset = if caps.flags & HW_CURSOR != 0 { s.cursor_offset } else { 0 };
-    let (stale, leaving, nudged) = (false, false, false);
-    let link =
-        WireLink { name, serial, pid, physical_mm, outputs, stale, cursor_offset, leaving, nudged };
+    let (stale, leaving, nudged, fixed) = (false, false, false, caps.flags & MODE_SET == 0);
+    let link = WireLink {
+        name,
+        serial,
+        pid,
+        physical_mm,
+        outputs,
+        stale,
+        cursor_offset,
+        leaving,
+        nudged,
+        fixed,
+    };
     ctx.wire = Some(link);
     ctx.heads = super::heads::prime_heads(ep.port, outputs);
     Ok(ctx)

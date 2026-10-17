@@ -34,6 +34,8 @@ pub mod fb_wipe;
 pub mod firmware;
 #[path = "../../capsule_driver_bootfb/src/geometry.rs"]
 pub mod geometry;
+#[path = "../../capsule_driver_bootfb/src/loss.rs"]
+pub mod loss;
 #[path = "../../capsule_driver_bootfb/src/record.rs"]
 pub mod record;
 

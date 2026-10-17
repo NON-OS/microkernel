@@ -27,9 +27,11 @@ pub const PID: u32 = 40;
 const SERIAL: u32 = PID << 16 | 1;
 
 pub fn link(stale: bool) -> WireLink {
-    let (name, cursor_offset, leaving, nudged) = ("driver.bga0", 0, false, false);
+    let (name, cursor_offset, leaving, nudged, fixed) = ("driver.bga0", 0, false, false, false);
     let (serial, pid, physical_mm, outputs) = (SERIAL, PID, 0, 1);
-    WireLink { name, serial, pid, physical_mm, outputs, stale, cursor_offset, leaving, nudged }
+    #[rustfmt::skip]
+    let l = WireLink { name, serial, pid, physical_mm, outputs, stale, cursor_offset, leaving, nudged, fixed };
+    l
 }
 
 fn state(serial: u32, flags: u32) -> Option<State> {
