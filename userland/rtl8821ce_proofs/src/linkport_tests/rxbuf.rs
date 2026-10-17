@@ -7,24 +7,24 @@ use crate::rx::ring::{RxState, RX_BUF_STRIDE, RX_DESC_COUNT};
 
 // The receive buffers as a CPU-readable region. The poll path only reads them, so
 // a plain vector suffices; the harness stages a frame before the link is built.
-pub(super) struct RxBuf {
-    pub(super) mem: Vec<u8>,
-    pub(super) dev: u64,
+pub(crate) struct RxBuf {
+    pub(crate) mem: Vec<u8>,
+    pub(crate) dev: u64,
 }
 
 impl RxBuf {
-    pub(super) fn new(dev: u64) -> Self {
+    pub(crate) fn new(dev: u64) -> Self {
         Self { mem: vec![0u8; RX_DESC_COUNT as usize * RX_BUF_STRIDE], dev }
     }
 
     // Stage a decrypted 802.11 MPDU behind a clean data descriptor in `slot`.
-    pub(super) fn stage(&mut self, slot: u32, mpdu: &[u8]) {
+    pub(crate) fn stage(&mut self, slot: u32, mpdu: &[u8]) {
         self.stage_w0(slot, mpdu, 0);
     }
 
     // Stage a frame behind a descriptor with extra word-0 bits (the security
     // type, SWDEC).
-    pub(super) fn stage_w0(&mut self, slot: u32, mpdu: &[u8], w0_extra: u32) {
+    pub(crate) fn stage_w0(&mut self, slot: u32, mpdu: &[u8], w0_extra: u32) {
         let base = RxState::buffer_offset(slot);
         let mut d = rx_desc(mpdu.len() as u16);
         let w0 = u32::from_le_bytes([d[0], d[1], d[2], d[3]]) | w0_extra;

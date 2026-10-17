@@ -5,9 +5,8 @@
 use crate::phy::channel::{set_rf, Bw};
 use crate::regs::{Mmio, Regs};
 
-use super::super::SCAN_CHANNELS;
+use super::channels::SCAN_CHANNELS;
 use super::state::Scanner;
-
 
 /// How long to dwell on one channel before hopping, in milliseconds of uptime:
 /// enough to catch beacons (about ten a second) without a long sweep. It is

@@ -4,13 +4,13 @@
 
 use nonos_wifi_core::dot11::parse::parse_beacon;
 
-use crate::fw::dma::Grant;
-use crate::link::RtlLink;
+use crate::fw::dma::DmaMem;
+use crate::link::{RtlLink, RxBuffers};
 use crate::phy::channel::{set_rf, Bw};
-use crate::regs::Regs;
+use crate::regs::Mmio;
 use crate::scan;
 
-use super::super::SCAN_CHANNELS;
+use super::channels::SCAN_CHANNELS;
 use super::state::Scanner;
 
 /// Frames to drain from the ring on one pass before yielding back to the serve
@@ -21,7 +21,13 @@ impl Scanner {
     // Drain whatever the hardware has DMA-ed onto the ring on the current channel.
     // Run every serve-loop pass, request or not, so heavy net_core polling can
     // never starve the scan of the ring. Tunes the synthesizer on the first pass.
-    pub(in super::super) fn drain(&mut self, link: &mut RtlLink<Regs, Grant, Grant>, regs: &Regs) {
+    // Nothing here transmits: the ring is only read (`RtlLink::poll_raw`) and
+    // the synthesizer only tuned.
+    pub(in super::super) fn drain<M: Mmio, D: DmaMem, RB: RxBuffers>(
+        &mut self,
+        link: &mut RtlLink<M, D, RB>,
+        regs: &M,
+    ) {
         if !self.tuned {
             set_rf(regs, SCAN_CHANNELS[self.ch_idx], Bw::W20);
             self.tuned = true;
@@ -41,5 +47,4 @@ impl Scanner {
             }
         }
     }
-
 }

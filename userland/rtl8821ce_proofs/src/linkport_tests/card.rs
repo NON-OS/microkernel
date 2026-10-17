@@ -13,17 +13,17 @@ use crate::tx::regs::{REG_TXBD_IDX_BEQ, TRX_BD_HW_IDX_SHIFT};
 // their high bits; every write is recorded in a shared log so a test can assert
 // the doorbell after the card has moved into the link.
 #[derive(Clone)]
-pub(super) struct Card {
-    pub(super) tx_rp: u32,
-    pub(super) rx_wp: u32,
-    pub(super) writes: Rc<RefCell<Vec<(usize, u32)>>>,
+pub(crate) struct Card {
+    pub(crate) tx_rp: u32,
+    pub(crate) rx_wp: u32,
+    pub(crate) writes: Rc<RefCell<Vec<(usize, u32)>>>,
 }
 
 impl Card {
-    pub(super) fn new(tx_rp: u32, rx_wp: u32) -> Self {
+    pub(crate) fn new(tx_rp: u32, rx_wp: u32) -> Self {
         Self { tx_rp, rx_wp, writes: Rc::new(RefCell::new(Vec::new())) }
     }
-    pub(super) fn wrote(&self, off: usize) -> bool {
+    pub(crate) fn wrote(&self, off: usize) -> bool {
         self.writes.borrow().iter().any(|&(o, _)| o == off)
     }
 }

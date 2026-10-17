@@ -8,7 +8,7 @@
 
 use crate::scan;
 
-use super::super::SCAN_FRAME_MAX;
+use super::channels::SCAN_FRAME_MAX;
 
 pub(in super::super) struct Scanner {
     pub(super) results: scan::ScanResults,
