@@ -42,6 +42,7 @@ pub struct Gen9 {
     pub plane: PlaneKind, // Gen9's unless a test models another
     pub cable: super::cable::Cable,
     pub watch: super::watch::Watch,
+    pub confine: super::confine::Confine,
 }
 
 impl Gen9 {
@@ -65,6 +66,7 @@ impl Gen9 {
             plane: PlaneKind::Universal,
             cable: Default::default(),
             watch: Default::default(),
+            confine: Default::default(),
         }
     }
 }
