@@ -32,11 +32,15 @@ checks the properties the loader and the first instruction depend on:
   - aarch64 text signs return addresses and has BTI landing pads, in their
     hint-space forms only: the combined PAuth branches and loads are
     undefined on an ARMv8.0 core such as a Raspberry Pi 4's Cortex-A72
+  - aarch64 text touches the FP/SIMD registers only in the routines that
+    save, restore, suspend and resume them: the kernel is built without
+    FP/SIMD, so a task's vector registers survive every kernel entry
 
 Reads the ELF directly, so it runs on a host with no cross binutils.
 """
 
 import argparse
+import bisect
 import struct
 import sys
 from pathlib import Path
@@ -101,7 +105,8 @@ class Elf:
         for sh in heads:
             yield self.cstr(names + sh[0]), sh
 
-    def symbol(self, wanted):
+    def symbols(self):
+        """(value, name) of every symbol defined in a section."""
         by_index = [sh for _, sh in self.sections()]
         for sh in by_index:
             if sh[1] != SHT_SYMTAB:
@@ -109,10 +114,12 @@ class Elf:
             strtab = by_index[sh[6]][4]
             offset, size, entsize = sh[4], sh[5], sh[9]
             for at in range(offset, offset + size, entsize):
-                st_name, _, _, _, st_value, _ = struct.unpack_from("<IBBHQQ", self.data, at)
-                if self.cstr(strtab + st_name) == wanted:
-                    return st_value
-        return None
+                st_name, _, _, st_shndx, st_value, _ = struct.unpack_from("<IBBHQQ", self.data, at)
+                if st_shndx:
+                    yield st_value, self.cstr(strtab + st_name)
+
+    def symbol(self, wanted):
+        return next((value for value, name in self.symbols() if name == wanted), None)
 
     def cstr(self, at):
         end = self.data.index(b"\0", at)
@@ -186,6 +193,41 @@ def branch_protection(elf):
     return failed
 
 
+# The only routines that move a task's FP/SIMD registers on purpose
+# (src/arch/aarch64/asm: fpu_save.S, fpu_restore.S, suspend.S).
+FP_SIMD_OWNERS = frozenset({
+    "aarch64_fpu_save", "aarch64_fpu_restore", "aarch64_cpu_suspend", "aarch64_resume_high",
+})
+
+
+def fp_simd(word):
+    """An A64 instruction that reads or writes the FP/SIMD register file: the
+    SIMD&FP data-processing group, op0 = x111, or a SIMD&FP load or store,
+    op0 = x1x0 with V (bit 26) set (Arm ARM, top-level A64 encoding; recalled,
+    unverified)."""
+    return (word >> 25) & 0x7 == 0x7 or word & 0x0E000000 == 0x0C000000
+
+
+def vector_registers(elf, owners=FP_SIMD_OWNERS):
+    """What puts FP/SIMD use outside `owners`, each named by the symbol it lies in."""
+    symbols = sorted(elf.symbols())
+    starts = [value for value, _ in symbols]
+    found = {}
+    for t, fl, offset, vaddr, _, filesz, _ in elf.headers():
+        if t != PT_LOAD or not fl & PF_X:
+            continue
+        for at in range(0, filesz - filesz % 4, 4):
+            if not fp_simd(struct.unpack_from("<I", elf.data, offset + at)[0]):
+                continue
+            i = bisect.bisect_right(starts, vaddr + at) - 1
+            name = symbols[i][1] if i >= 0 else f"{vaddr + at:#x}"
+            if name not in owners:
+                found[name] = found.get(name, 0) + 1
+    failed = [f"{count} FP/SIMD instructions in {name}: is the kernel built with FP/SIMD again?"
+              for name, count in sorted(found.items(), key=lambda kv: -kv[1])[:8]]
+    return failed + (["(more not listed)"] if len(found) > 8 else [])
+
+
 def check(elf, arch):
     """Every failed property, as one line each."""
     failed = []
@@ -197,6 +239,7 @@ def check(elf, arch):
         failed.append(f"e_machine is {elf.e_machine}, want {MACHINES[arch]} ({arch})")
     if arch == "aarch64":
         failed += branch_protection(elf)
+        failed += vector_registers(elf)
 
     start = elf.symbol(ENTRY_SYMBOL)
     if start is None:
@@ -251,7 +294,8 @@ def main():
     kind = "a static PIE" if elf.e_type == ET_DYN else "an executable"
     print(f"kernel-elf: {a.elf} is {kind} for {a.arch}, entry `{ENTRY_SYMBOL}` at "
           f"{elf.e_entry:#x}, {loads} PT_LOAD segments, none writable and executable"
-          + (", return addresses signed and branch targets padded" if a.arch == "aarch64" else ""))
+          + (", return addresses signed, branch targets padded, FP/SIMD only where saved"
+             if a.arch == "aarch64" else ""))
     return 0
 
 
