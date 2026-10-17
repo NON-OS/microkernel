@@ -28,5 +28,8 @@ mod flush_tests;
 mod limbo_tests;
 mod mode_set_tests;
 mod mode_sweep_tests;
+mod plug_again_tests;
+mod plug_sweep_tests;
+mod plug_tests;
 mod silence_sweep_tests;
 mod take_tests;

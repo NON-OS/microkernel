@@ -16,14 +16,16 @@
 //! What virtio-gpu says of itself on the wire. CAPS: kind 1, its outputs,
 //! any size in range (a host takes any), the host's size hints, no cursor
 //! plane yet; FLUSH copies, so not DEVICE_READS. STATE: the size the head
-//! shows and the host's wanted size, scanning out.
+//! shows and the host's wanted size; scanning out, dark while the host has
+//! the scanout off, LOST once it is back until a mode set shows it.
 
 use nonos_gfx_wire::body::caps::{HINTS, MODE_RANGE, MODE_SET};
-use nonos_gfx_wire::body::state::SCANNING_OUT;
+use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 use nonos_gfx_wire::errno::ENXIO;
 use nonos_gfx_wire::{kind, Caps, Errno, State};
 
 use super::gpu::{Gpu, MAX_SIDE};
+use super::plug::Plug;
 
 pub fn caps(g: &Gpu) -> Caps {
     Caps {
@@ -47,7 +49,11 @@ pub fn state(g: &Gpu, output: u16) -> Result<State, Errno> {
         height: h.shown.height,
         hint_width: h.hint.0,
         hint_height: h.hint.1,
-        flags: SCANNING_OUT,
+        flags: match h.plug {
+            Plug::In => SCANNING_OUT,
+            Plug::Out => 0,
+            Plug::Back => LOST,
+        },
         ..State::default()
     })
 }
