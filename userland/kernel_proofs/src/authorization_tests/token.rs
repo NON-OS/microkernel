@@ -17,6 +17,7 @@
 //! A token with given caps, and the calls the gate is checked over.
 
 use crate::capabilities::{Capability, CapabilityToken};
+use crate::syscall::abi::REGISTRY;
 use crate::syscall::numbers::SyscallNumber;
 
 extern crate alloc;
@@ -40,6 +41,8 @@ pub(super) fn token(permissions: Vec<Capability>) -> CapabilityToken {
     }
 }
 
+// Every call the ABI registry holds. Ids are four-letter tags, so a scan
+// of small numbers would find none of them.
 pub(super) fn registered_syscalls() -> Vec<SyscallNumber> {
-    (0u64..100_000).filter_map(SyscallNumber::from_u64).collect()
+    REGISTRY.iter().flat_map(|d| d.iter().map(|e| e.variant)).collect()
 }

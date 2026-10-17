@@ -21,13 +21,24 @@ use crate::syscall::numbers::SyscallNumber;
 
 extern crate alloc;
 use alloc::vec;
+use alloc::vec::Vec;
 
 #[test]
-fn an_empty_token_is_denied_every_syscall() {
+fn an_empty_token_is_denied_every_syscall_but_tty_query() {
+    // MkTtyQuery asks only about the caller's own streams, so the cap table
+    // grants it to anyone. A second call passing here is a hole.
     let empty = token(vec![]);
-    for n in registered_syscalls() {
-        assert!(!is_allowed(&empty, n), "an empty capability token must be denied every syscall");
-    }
+    let passed: Vec<SyscallNumber> =
+        registered_syscalls().into_iter().filter(|&n| is_allowed(&empty, n)).collect();
+    assert_eq!(passed, vec![SyscallNumber::MkTtyQuery]);
+}
+
+#[test]
+fn the_registry_is_what_the_gate_is_checked_over() {
+    let calls = registered_syscalls();
+    assert!(calls.contains(&SyscallNumber::MkTtyQuery));
+    assert!(calls.contains(&SyscallNumber::CryptoRandom));
+    assert!(calls.len() > 100, "{} calls", calls.len());
 }
 
 #[test]
