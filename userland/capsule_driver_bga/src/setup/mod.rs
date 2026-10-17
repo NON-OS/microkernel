@@ -16,6 +16,7 @@
 
 mod claim;
 mod driver;
+pub mod fresh;
 mod mmio;
 mod mode;
 mod sequence;
