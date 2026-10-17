@@ -17,6 +17,7 @@
 #![no_main]
 extern crate alloc;
 mod constants;
+mod death;
 mod device;
 mod discover;
 mod driver;

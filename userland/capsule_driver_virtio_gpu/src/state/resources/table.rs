@@ -20,37 +20,29 @@ use super::resource::Resource;
 use crate::protocol::MAX_RESOURCES;
 
 pub struct ResourceTable {
-    next_id: Cell<u32>,
-    entries: [Cell<Resource>; MAX_RESOURCES],
+    pub(super) next_id: Cell<u32>,
+    pub(super) entries: [Cell<Resource>; MAX_RESOURCES],
+}
+
+impl Default for ResourceTable {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ResourceTable {
     pub const fn new() -> Self {
-        const EMPTY: Cell<Resource> = Cell::new(Resource {
-            resource_id: 0,
-            owner_pid: 0,
-            width: 0,
-            height: 0,
-            format: 0,
-            backing_addr: 0,
-            backing_len: 0,
-            in_use: false,
-        });
-        Self { next_id: Cell::new(1), entries: [EMPTY; MAX_RESOURCES] }
+        let entries = [const { Cell::new(Resource::NONE) }; MAX_RESOURCES];
+        Self { next_id: Cell::new(1), entries }
     }
-    pub fn alloc_id(&self) -> u32 {
-        let id = self.next_id.get();
-        self.next_id.set(id.wrapping_add(1).max(1));
-        id
-    }
-    pub fn insert(&self, r: Resource) -> Result<(), ()> {
+    pub fn insert(&self, r: Resource) -> Result<(), &'static str> {
         for entry in &self.entries {
             if !entry.get().in_use {
                 entry.set(r);
                 return Ok(());
             }
         }
-        Err(())
+        Err("virtio-gpu: resource table full")
     }
     pub fn lookup(&self, resource_id: u32) -> Option<Resource> {
         for entry in &self.entries {

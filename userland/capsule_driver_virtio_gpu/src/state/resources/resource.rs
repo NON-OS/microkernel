@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Resource {
     pub resource_id: u32,
     pub owner_pid: u32,
@@ -26,17 +26,16 @@ pub struct Resource {
     pub in_use: bool,
 }
 
-impl Default for Resource {
-    fn default() -> Self {
-        Self {
-            resource_id: 0,
-            owner_pid: 0,
-            width: 0,
-            height: 0,
-            format: 0,
-            backing_addr: 0,
-            backing_len: 0,
-            in_use: false,
-        }
-    }
+impl Resource {
+    /// No resource: what a free entry holds.
+    pub const NONE: Resource = Resource {
+        resource_id: 0,
+        owner_pid: 0,
+        width: 0,
+        height: 0,
+        format: 0,
+        backing_addr: 0,
+        backing_len: 0,
+        in_use: false,
+    };
 }

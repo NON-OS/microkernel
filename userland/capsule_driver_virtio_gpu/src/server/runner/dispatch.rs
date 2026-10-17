@@ -22,9 +22,16 @@ use crate::protocol::{
 };
 use crate::server::{handlers, respond};
 
-pub fn dispatch(driver: &Driver, sender_pid: u32, req: Request, body: &[u8], tx: &mut [u8]) {
+pub fn dispatch(
+    driver: &Driver,
+    sender_pid: u32,
+    req: Request,
+    body: &[u8],
+    now: u64,
+    tx: &mut [u8],
+) {
     match req.op {
-        OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
+        OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(driver, sender_pid, &req, tx),
         OP_CONTROLLER_INFO if body.is_empty() => {
             handlers::controller::handle(driver, sender_pid, &req, tx)
         }
@@ -41,7 +48,7 @@ pub fn dispatch(driver: &Driver, sender_pid: u32, req: Request, body: &[u8], tx:
             handlers::mode_list::handle(driver, sender_pid, &req, tx)
         }
         OP_GET_PRIMARY_SURFACE if body.is_empty() => {
-            handlers::get_primary_surface::handle(driver, sender_pid, &req, tx)
+            handlers::get_primary_surface::handle(driver, sender_pid, &req, now, tx)
         }
         OP_CREATE_RESOURCE => handlers::create_resource::handle(driver, sender_pid, &req, body, tx),
         OP_ATTACH_BACKING => handlers::attach_backing::handle(driver, sender_pid, &req, body, tx),

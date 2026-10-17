@@ -13,9 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+pub mod blank;
 pub mod fences;
+pub mod owner;
 pub mod resources;
 pub mod scanouts;
+pub use blank::Blank;
 pub use fences::FenceCounter;
+pub use owner::Owner;
 pub use resources::{Resource, ResourceTable};
 pub use scanouts::{Scanout, ScanoutTable};

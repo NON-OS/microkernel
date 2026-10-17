@@ -27,3 +27,7 @@ pub const QUERY_CAPS_RESP_LEN: usize = 16;
 pub const MODE_LIST_ENTRY_LEN: usize = 32;
 pub const GET_PRIMARY_SURFACE_RESP_LEN: usize = 32;
 pub const MAX_RESOURCES: usize = 64;
+/// HEALTHCHECK's answer: one word of flags.
+pub const HEALTH_RESP_LEN: usize = 4;
+/// The owner's last screen was blanked since it last asked: repaint whole.
+pub const HEALTH_LOST: u32 = 1;

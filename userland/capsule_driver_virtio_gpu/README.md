@@ -51,18 +51,17 @@ scanout and flush refuse a resource another pid owns.
 
 | Operation | Input | Output |
 |---|---|---|
-| `OP_HEALTHCHECK` | none | status |
 | `OP_CONTROLLER_INFO` | none | device id, queue size, feature bits |
 | `OP_DISPLAY_INFO` | none | events, scanout count, capset count |
 | `OP_CONTROLQ_STATE` | none | control queue DMA metadata |
 | `OP_QUERY_CAPS` | none | scanout count, capset count, events, and whether the virgl probe passed |
-| `OP_CREATE_RESOURCE` | resource parameters | 2D resource created, owned by the sender |
+| `OP_CREATE_RESOURCE` | resource parameters | 2D resource created, owned by the sender; an id the table holds is refused with `E_BUSY` |
 | `OP_ATTACH_BACKING` | resource, backing | backing attached |
 | `OP_TRANSFER_TO_HOST` | resource, rectangle | TRANSFER_TO_HOST_2D posted |
 | `OP_SET_SCANOUT` | resource, scanout | SET_SCANOUT posted |
 | `OP_FLUSH` | resource, rectangle | RESOURCE_FLUSH posted |
 | `OP_MODE_LIST` | none | the scanout modes |
-| `OP_GET_PRIMARY_SURFACE` | none | the primary surface handle and geometry |
+| `OP_GET_PRIMARY_SURFACE` | none | the primary surface handle and geometry; the asker owns the primary from then on (only the compositor may send, so a new asker is a restarted compositor) |
 
 Unknown operations reply `E_BAD_OP`. Malformed request bodies reply `E_INVAL`.
 
@@ -78,7 +77,8 @@ input authority, and no filesystem or network authority.
 
 The capsule stores no windows, screenshots, pointer paths, keystrokes, or
 display history. The primary scanout's backing holds the last frame drawn; it
-is a DMA grant, revoked on exit and zeroed by the broker before reuse. Runtime
+is a DMA grant, revoked on exit and zeroed by the broker before reuse. When
+holds the old frame. Runtime
 state is otherwise grant ids, queue addresses, device feature bits, the
 resource table, and virtio-gpu config counters.
 
@@ -86,13 +86,17 @@ resource table, and virtio-gpu config counters.
 
 Startup discovers a virtio-gpu PCI function, claims it, takes it off its
 legacy interrupt line, maps its registers, allocates queue DMA, runs
+a device reset (status 0, then read back until it reads 0) and
 ACK/DRIVER/FEATURES_OK/DRIVER_OK, selects control queue 0, reads the scanouts,
 asks for EDID when offered (logged only), runs a best-effort virgl render probe
 that only logs whether 3D works, and creates the primary scanout: a DMA grant
 attached to a 2D resource, set on scanout 0, then registered with
 `mk_surface_register` and shared with `mk_surface_share`
-(`src/setup/primary_surface/create.rs`). It then serves IPC. Shutdown relies on
-process teardown and broker grant revocation.
+(`src/setup/primary_surface/create.rs`), and a blank surface of its own: a
+second zeroed DMA grant on a resource that only the driver uses
+(`src/setup/blank_surface.rs`). It then serves IPC, waking at least every
+500 ms to run the watch. Shutdown relies on process teardown and broker
+grant revocation.
 
 ## Failure model
 
@@ -103,6 +107,17 @@ failed. Bring-up is tried a bounded number of times with a sleep between tries
 6 when one is present but never comes up, and the compositor falls back to GOP.
 Missing BAR0, zero queue size, or FEATURES_OK rejection prevents the capsule
 from serving. The resource ops post controlq commands; the others read state.
+
+(the compositor polls `OP_HEALTHCHECK` every 500 ms), has its screen blanked
+(`src/death/`):
+1. Every scanout showing a resource is detached.
+   unreferenced.
+3. The primary is zeroed and sent to the host.
+4. The blank surface is shown on scanout 0.
+
+A step the device refuses does not stop the rest, and the whole blank is
+tried again on the next wake until every step lands. With no blank surface
+the scanouts are left detached.
 
 ## Current implemented surface
 
