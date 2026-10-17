@@ -18,7 +18,7 @@
 //! escrow terms, for the block's price written exactly, in NOX, to the
 //! deposit address the meter computed.
 
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR};
 use super::gate_fixture::{fees, reads, steps};
 use crate::order::fees_kind::{exact, Fees};
 use crate::order::fund_ask::{fund_ask, FundAsk};
@@ -51,7 +51,7 @@ fn the_withdraw_is_the_exact_price_in_nox_to_the_meters_deposit() {
     let quoted = Fees::Quoted("0.02".into());
     for (amount, deposit) in [(buy().amount, [0xDD; 20]), (1_234_500_000_000_000_001, [0x0E; 20])] {
         let b = crate::order::buy::Buy { amount, ..buy() };
-        let mut m = made(&b.order_new(&offer(), REFUND_TO, NOW));
+        let mut m = made(&b.order_new(&offer(), REFUND_PAIR, NOW));
         m.deposit = deposit;
         let got = fund_ask(&Step::Fund(Box::new(m)), &Ok(Named::Escrow(b)), &quoted);
         let want = FundAsk { asset: ASSET_NOX, amount: exact(amount), to: deposit };

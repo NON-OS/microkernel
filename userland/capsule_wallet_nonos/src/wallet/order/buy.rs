@@ -24,8 +24,7 @@ use alloc::vec::Vec;
 use nonos_nox_config::{DELIVER_MARGIN, MAX_DELIVERY, ORDER_MIN_LEAD};
 use nonos_payment_proto::{OfferAsk, OfferMade, OrderNew};
 
-/// How long the seller is given to deliver: two days past the escrow's
-/// least lead, inside its window either way.
+/// The seller's time to deliver: two days past the escrow's least lead.
 pub const DELIVERY_ASKED: u64 = ORDER_MIN_LEAD + 2 * 24 * 3_600;
 const _: () = assert!(DELIVERY_ASKED <= MAX_DELIVERY - DELIVER_MARGIN);
 
@@ -55,8 +54,8 @@ impl Buy {
         }
     }
 
-    /// The order on `offer`, refunded to `refund_to`, asked at `now` (s).
-    pub fn order_new(&self, offer: &OfferMade, refund_to: [u8; 20], now: u64) -> OrderNew {
+    /// The order on `offer`, refunded to `refund` (refundTo, refundSalt), at `now` (s).
+    pub fn order_new(&self, offer: &OfferMade, refund: ([u8; 20], [u8; 32]), now: u64) -> OrderNew {
         OrderNew {
             chain_id: self.chain_id,
             listing_id: self.listing_id,
@@ -69,7 +68,8 @@ impl Buy {
             cipher_root: offer.cipher_root,
             key_commit: offer.key_commit,
             deadline: now + DELIVERY_ASKED,
-            refund_to,
+            refund_to: refund.0,
+            refund_salt: refund.1,
         }
     }
 }

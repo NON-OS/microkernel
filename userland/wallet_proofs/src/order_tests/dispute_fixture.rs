@@ -21,12 +21,12 @@ use nonos_nox_chunks::{dispute_call, Dispute, OrderTerms};
 use nonos_payment_proto::{DeliveredMade, OrderMade};
 use nonos_settle_proto::Quote;
 
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR};
 
 pub(super) const AT: u64 = NOW + 86_400;
 
 pub(super) fn order() -> (OrderMade, DeliveredMade) {
-    let m = made(&buy().order_new(&offer(), REFUND_TO, NOW));
+    let m = made(&buy().order_new(&offer(), REFUND_PAIR, NOW));
     let t = OrderTerms::from_words(&m.terms).unwrap();
     let d = Dispute {
         index: 3,

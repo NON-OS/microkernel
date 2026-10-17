@@ -22,12 +22,12 @@ use nonos_nox_meter::orders::{order_plan, Order};
 use nonos_nox_meter::MeterError;
 use nonos_payment_proto::OrderMade;
 
-use super::fixture::{new, ESCROW, FWD, NOW, NOX, SALTS};
+use super::fixture::{new, ESCROW, FWD, NOW, NOX, SALT};
 use super::host::Host;
 use super::ret::{ret, word};
 
 pub fn order() -> Order {
-    order_plan(&Host, &new(NOW + ORDER_MIN_LEAD, 1_000), (&NOX, &ESCROW, &FWD), SALTS, NOW).unwrap()
+    order_plan(&Host, &new(NOW + ORDER_MIN_LEAD, 1_000), (&NOX, &ESCROW, &FWD), SALT, NOW).unwrap()
 }
 
 pub fn view(view: u16, args: Vec<[u8; 32]>) -> Next {

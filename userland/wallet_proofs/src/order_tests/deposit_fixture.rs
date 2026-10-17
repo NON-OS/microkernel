@@ -52,10 +52,10 @@ pub fn made_at(n: &OrderNew) -> OrderMade {
     m
 }
 
-/// made_at with another refundCommit and salt, the meter's own choice.
-pub fn salted(n: &OrderNew, b: u8) -> OrderMade {
+/// made_at with the meter's salt byte `b`, and refundCommit `commit` if Some.
+pub fn salted(n: &OrderNew, b: u8, commit: Option<[u8; 32]>) -> OrderMade {
     let mut m = made(n);
-    (m.terms[12][0], m.terms[13][0]) = (b, b);
+    (m.terms[12], m.terms[13][0]) = (commit.unwrap_or(m.terms[12]), b);
     (m.order_id, m.deposit) = ids(n.chain_id, &m.terms, &AT);
     m
 }

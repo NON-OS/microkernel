@@ -20,7 +20,7 @@ use nonos_payment_proto::OrderMade;
 use nonos_settle_proto::{reply, FLAG_ASYNC};
 
 use super::dispute_fixture::ESCROW;
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR, REFUND_TO};
 use super::refund::SALT;
 use crate::order::drive::escrow_step::step;
 use crate::order::escrowing::{Ctx, Escrowing};
@@ -42,7 +42,7 @@ impl Rig {
     pub fn new(kind: u8) -> Rig {
         REFUND.with(|r| r.set(Some((REFUND_TO, SALT))));
         SENT.with(|s| s.borrow_mut().clear());
-        let m = made(&buy().order_new(&offer(), REFUND_TO, NOW));
+        let m = made(&buy().order_new(&offer(), REFUND_PAIR, NOW));
         Rig { settle: SettleCall::default(), e: Escrowing::new(kind), now_ms: 1_000, m }
     }
 

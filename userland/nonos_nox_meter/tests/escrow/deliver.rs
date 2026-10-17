@@ -48,6 +48,7 @@ fn an_order_takes_only_the_offer_its_terms_name() {
         key_commit: k.offer.key_commit,
         deadline: 9,
         refund_to: [8; 20],
+        refund_salt: [9; 32],
     };
     let list = vec![(2, k.clone())];
     assert_eq!(offer_for(&n, &list).map(|(s, _)| *s), Some(2));

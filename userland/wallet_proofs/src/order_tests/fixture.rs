@@ -17,14 +17,18 @@
 //! A purchase as the market gave it, and the order the meter would make of
 //! it, its words built by nonos_nox_chunks' own OrderTerms.
 
-use nonos_nox_chunks::OrderTerms;
+use nonos_nox_chunks::{refund_commit, OrderTerms};
 use nonos_nox_config::{address, Contract, DISPUTE_WINDOW};
 use nonos_payment_proto::{OfferMade, OrderMade, OrderNew};
 
+use super::deposit_fixture::K;
 use crate::order::buy::Buy;
 
 pub const NOW: u64 = 1_800_000_000;
 pub const REFUND_TO: [u8; 20] = [0x44; 20];
+/// The wallet's own refundSalt for REFUND_TO, as ORDER_NEW carries it.
+pub const REFUND_SALT: [u8; 32] = [0x66; 32];
+pub const REFUND_PAIR: ([u8; 20], [u8; 32]) = (REFUND_TO, REFUND_SALT);
 
 pub fn buy() -> Buy {
     Buy {
@@ -44,7 +48,8 @@ pub fn offer() -> OfferMade {
     OfferMade { offer_id: [7; 32], cipher_root: [8; 32], key_commit: [9; 32] }
 }
 
-/// What the meter answers for `n`: its terms as the escrow encodes them.
+/// What the meter answers for `n`: its terms as the escrow encodes them,
+/// refundCommit over `n`'s own refundTo and refundSalt.
 pub fn made(n: &OrderNew) -> OrderMade {
     let terms = OrderTerms {
         listing_id: n.listing_id,
@@ -59,7 +64,7 @@ pub fn made(n: &OrderNew) -> OrderMade {
         content_len: n.content_len,
         cipher_root: n.cipher_root,
         key_commit: n.key_commit,
-        refund_commit: [0xAA; 32],
+        refund_commit: refund_commit(&K, &n.refund_to, &n.refund_salt),
         salt: [0xBB; 32],
     };
     OrderMade { order_id: [0xCC; 32], deposit: [0xDD; 20], terms: terms.words() }

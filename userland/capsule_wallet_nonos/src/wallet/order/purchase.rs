@@ -22,12 +22,17 @@
 use alloc::boxed::Box;
 
 use nonos_marketplace_abi::Keccak;
-use nonos_payment_proto::{OfferMade, OrderMade, OrderNew, EAGAIN};
+use nonos_payment_proto::{OrderMade, OrderNew, EAGAIN};
 
 use super::buy::Buy;
 use super::confirm::confirms;
 use super::deposit_check::{deposit_check, Pinned};
 use super::said::{failed, Stage};
+
+/* ORDER_OFFER's result, and the wallet's own refundSalt drawn for it. */
+#[path = "purchase_offer.rs"]
+pub mod offer;
+pub use offer::after_offer;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum After {
@@ -42,17 +47,6 @@ pub enum After {
 
 const UNREADABLE: &str = "The meter's answer could not be read; nothing was ordered.";
 const NOT_CONFIRMED: &str = "The order's terms are not the ones confirmed; do not fund it.";
-
-/// ORDER_OFFER's job result.
-pub fn after_offer(buy: &Buy, r: Result<&[u8], i32>, refund_to: [u8; 20], now: u64) -> After {
-    match r {
-        Err(EAGAIN) => After::Wait,
-        Err(s) => After::Failed(failed(Stage::Offer, s)),
-        Ok(b) => OfferMade::parse(b).map_or(After::Failed(UNREADABLE), |o| {
-            After::Order(Box::new(buy.order_new(&o, refund_to, now)))
-        }),
-    }
-}
 
 /// ORDER_NEW's job result for `sent`: funded only on the terms confirmed, with
 /// the id and deposit address the wallet itself makes of them on `at`.

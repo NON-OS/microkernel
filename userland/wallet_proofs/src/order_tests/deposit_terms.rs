@@ -18,12 +18,12 @@
 //! byte off in any of the fourteen is refused, as is a chain nothing pins.
 
 use super::deposit_fixture::{ids, made_at, AT, K};
-use super::fixture::{buy, offer, NOW, REFUND_TO};
+use super::fixture::{buy, offer, NOW, REFUND_PAIR};
 use crate::order::deposit_check::{deposit_check, pinned, ID_WRONG, UNPINNED};
 
 #[test]
 fn an_id_over_any_other_term_is_refused_and_so_is_an_unpinned_chain() {
-    let n = buy().order_new(&offer(), REFUND_TO, NOW);
+    let n = buy().order_new(&offer(), REFUND_PAIR, NOW);
     let m = made_at(&n);
     for i in 0..14 {
         let mut theirs = m.terms;

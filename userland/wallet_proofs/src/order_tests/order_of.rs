@@ -20,7 +20,7 @@
 use nonos_nox_config::DISPUTE_WINDOW;
 
 use super::dispute_fixture::AT;
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR};
 use crate::order::order_of::{order_of, window_end};
 
 fn word(n: u64) -> [u8; 32] {
@@ -35,7 +35,7 @@ fn order_of_reads_state_and_delivered_at_and_the_window_is_the_terms() {
     assert_eq!(order_of(&[word(2); 4]), None, "four words");
     assert_eq!(order_of(&[[0xff; 32], word(0), word(0), word(0), word(0)]), None);
     assert_eq!(order_of(&[word(300), word(0), word(0), word(0), word(0)]), None, "no u8");
-    let m = made(&buy().order_new(&offer(), REFUND_TO, NOW));
+    let m = made(&buy().order_new(&offer(), REFUND_PAIR, NOW));
     assert_eq!(window_end(&m, AT), Some(AT + DISPUTE_WINDOW));
     assert_eq!(window_end(&m, u64::MAX), None);
 }

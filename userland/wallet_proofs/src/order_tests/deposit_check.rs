@@ -19,12 +19,11 @@
 //! creation code written out by hand.
 
 use nonos_nox_chunks::clone_initcode_hash;
-use nonos_nox_config::{address, Contract, DISPUTE_WINDOW, ORDER_TAG};
-
+use nonos_nox_config::{address, Contract, DISPUTE_WINDOW, ORDER_TAG, REFUND_TAG};
 use sha3::{Digest, Keccak256};
 
 use super::deposit_fixture::{ids, made_at, AT, K};
-use super::fixture::{buy, offer, NOW, REFUND_TO};
+use super::fixture::{buy, offer, NOW, REFUND_PAIR};
 use crate::order::deposit_check::{deposit_check, Pinned};
 
 fn kec(parts: &[&[u8]]) -> [u8; 32] {
@@ -39,7 +38,7 @@ fn w(tail: &[u8]) -> [u8; 32] {
 
 #[test]
 fn the_id_and_deposit_are_abi_encode_and_create2_written_out() {
-    let n = buy().order_new(&offer(), REFUND_TO, NOW);
+    let n = buy().order_new(&offer(), REFUND_PAIR, NOW);
     let m = made_at(&n);
     let nox = address(n.chain_id, Contract::NoxToken).unwrap();
     assert_eq!(ORDER_TAG, kec(&[b"NONOS.nox.order.v1"]));
@@ -48,7 +47,8 @@ fn the_id_and_deposit_are_abi_encode_and_create2_written_out() {
     let head = [ORDER_TAG, w(&n.chain_id.to_be_bytes()), w(&AT.escrow)];
     let ids3 = [n.listing_id, n.release_id, n.bond_id, w(&n.payee), w(&nox)];
     let rest = [amount, deadline, window, n.chunk_root, len, n.cipher_root, n.key_commit];
-    let enc = [&head[..], &ids3, &rest, &[[0xAA; 32], [0xBB; 32]]].concat();
+    let refund = kec(&[&REFUND_TAG, &w(&n.refund_to), &n.refund_salt]);
+    let enc = [&head[..], &ids3, &rest, &[refund, [0xBB; 32]]].concat();
     assert_eq!(enc.len(), 17);
     let id = kec(&[enc.concat().as_slice()]);
     let deposit = kec(&[&[0xff], &AT.escrow, &id, &AT.forwarder]);
@@ -58,7 +58,7 @@ fn the_id_and_deposit_are_abi_encode_and_create2_written_out() {
 
 #[test]
 fn the_forwarder_hash_is_the_clones_creation_code_hashed() {
-    let n = buy().order_new(&offer(), REFUND_TO, NOW);
+    let n = buy().order_new(&offer(), REFUND_PAIR, NOW);
     let m = made_at(&n);
     let fwd = [0x3F; 20];
     let head = hex("3d602d80600a3d3981f3363d3d373d3d3d363d73");

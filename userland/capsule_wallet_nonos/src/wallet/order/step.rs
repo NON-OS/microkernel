@@ -18,10 +18,11 @@
  * A purchase's steps after consent (B8): ORDER_OFFER in the meter (started
  * by Buy, screen/purchase), then ORDER_NEW on the offer it checked, each a
  * job asked on every tick, then the deposit address to fund. The window
- * never waits on the network.
+ * never waits on the network. ORDER_NEW carries a refundSalt drawn here;
+ * Ordering keeps it with the order until deposit_check has its reply.
  */
 
-use nonos_libc::mk_time_millis;
+use nonos_libc::{crypto_random, mk_time_millis};
 use nonos_payment_proto::OP_ORDER_NEW;
 
 use super::deposit_check::pinned;
@@ -41,7 +42,7 @@ pub fn poll(state: &mut State) -> bool {
     let next = match &p.step {
         Step::Offering(id) => {
             let now = mk_time_millis().max(0) as u64 / 1000;
-            after_offer(buy, order_job(*id).as_deref().map_err(|e| *e), p.refund_to, now)
+            after_offer(buy, order_job(*id).as_deref().map_err(|e| *e), (p.refund_to, salt), now)
         }
         Step::Ordering(id, sent) => {
             let r = order_job(*id);
@@ -59,4 +60,12 @@ pub fn poll(state: &mut State) -> bool {
         After::Failed(why) => Step::Failed(why),
     };
     true
+}
+
+/// A refundSalt from the kernel's CSPRNG, which the wallet draws its other
+/// randomness from; None on a short or all-zero draw.
+fn salt() -> Option<[u8; 32]> {
+    let mut s = [0u8; 32];
+    let short = crypto_random(s.as_mut_ptr(), s.len()) < s.len() as i64;
+    (!short && s != [0; 32]).then_some(s)
 }
