@@ -1,18 +1,4 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! Drive one EAPOL-Key frame through the handshake (IEEE Std 802.11-2020,
 //! 12.7.6 and 12.7.7). Every frame must be an RSN descriptor with Key Ack set,
@@ -30,34 +16,13 @@
 //! Only an authentic message that is unacceptable (a downgraded RSNE, key data
 //! without a valid group key) fails it.
 
-use alloc::vec::Vec;
-
 use super::state::{State, Supplicant};
 use crate::eapol::parse::{
-    parse, EapolKey, DESCRIPTOR_RSN, KEY_INFO_ACK, KEY_INFO_ERROR, KEY_INFO_INDEX_MASK,
-    KEY_INFO_MIC, KEY_INFO_PAIRWISE, KEY_INFO_REQUEST, KEY_INFO_VERSION_MASK,
+    parse, DESCRIPTOR_RSN, KEY_INFO_ACK, KEY_INFO_ERROR, KEY_INFO_INDEX_MASK, KEY_INFO_MIC,
+    KEY_INFO_PAIRWISE, KEY_INFO_REQUEST, KEY_INFO_VERSION_MASK,
 };
 
-/// What `step` produced: a frame to transmit, and whether the group key
-/// changed. A frame is returned for messages 2 and 4 and for group message 2;
-/// `None` means the input was not a message the supplicant acts on, or it was
-/// dropped (check `Supplicant::state` for `Failed`).
-pub struct StepOutput {
-    pub reply: Option<Vec<u8>>,
-    /// A group key handshake delivered a new group key: the caller installs
-    /// `Supplicant::gtk` at `Supplicant::gtk_id`.
-    pub new_group_key: bool,
-}
-
-impl StepOutput {
-    pub(super) fn none() -> Self {
-        Self { reply: None, new_group_key: false }
-    }
-
-    pub(super) fn reply(frame: Option<Vec<u8>>) -> Self {
-        Self { reply: frame, new_group_key: false }
-    }
-}
+pub use super::output::StepOutput;
 
 impl Supplicant {
     pub fn step(&mut self, frame: &[u8]) -> StepOutput {
@@ -97,35 +62,5 @@ impl Supplicant {
             return self.on_group1(frame, &key);
         }
         StepOutput::none()
-    }
-
-    // A replay counter must exceed the last one a verified MIC vouched for.
-    // Message 1 carries no MIC, so it never raises the floor; it is held only
-    // to the floor already set.
-    fn replay_is_fresh(&self, rc: &[u8; 8]) -> bool {
-        match &self.rx_replay {
-            Some(last) => u64::from_be_bytes(*rc) > u64::from_be_bytes(*last),
-            None => true,
-        }
-    }
-
-    // Message 1 -> derive the PTK, answer with message 2 (SNonce and the
-    // station's RSNE, MIC keyed by the fresh KCK). A repeated message 1 before
-    // message 3 is answered the same way, with the ANonce it carries: the AP
-    // repeats it when message 2 was lost, and its replay counter advanced, so
-    // the earlier message 2 would be discarded.
-    fn on_message1(&mut self, key: &EapolKey<'_>) -> StepOutput {
-        self.anonce = key.nonce;
-        self.ptk = self.akm.derive_ptk(&self.pmk, &self.aa, &self.spa, &self.anonce, &self.snonce);
-        match self.message2(&key.replay_counter) {
-            Some(frame) => {
-                self.state = State::PtkDerived;
-                StepOutput::reply(Some(frame))
-            }
-            None => {
-                self.fail(super::state::Failure::Internal);
-                StepOutput::none()
-            }
-        }
     }
 }
