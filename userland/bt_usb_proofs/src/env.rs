@@ -32,6 +32,8 @@ use nonos_bt_smp::pairing::Random;
 pub struct TestEnv {
     pub now: u64,
     pub input: Vec<Input>,
+    /// The G-76 trust flags stamped on each posted event, in step with `input`.
+    pub input_flags: Vec<u16>,
     pub lines: Vec<String>,
     pub batteries: Vec<Battery>,
     pub passkeys: Vec<u32>,
@@ -50,7 +52,19 @@ impl TestEnv {
         let bonds = Store::open(MemoryKeys::default()).unwrap();
         let batteries = Vec::new();
         let user = User::new();
-        Self { now: 0, input, lines, batteries, passkeys, ticks: 0, shown, rng, bonds, user }
+        Self {
+            now: 0,
+            input,
+            input_flags: Vec::new(),
+            lines,
+            batteries,
+            passkeys,
+            ticks: 0,
+            shown,
+            rng,
+            bonds,
+            user,
+        }
     }
 
     pub fn said(&self, line: &str) -> bool {
