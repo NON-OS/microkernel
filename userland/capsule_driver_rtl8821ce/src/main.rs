@@ -27,10 +27,10 @@ extern crate alloc;
 
 mod assoc;
 mod bringup;
+mod clock;
 mod coex;
 mod constants;
 mod discover;
-
 mod efuse;
 mod fw;
 mod fwload;
@@ -52,6 +52,7 @@ mod start_ready;
 mod station;
 mod status;
 mod tx;
+mod wait;
 
 use nonos_libc::{heap_init, mk_exit};
 

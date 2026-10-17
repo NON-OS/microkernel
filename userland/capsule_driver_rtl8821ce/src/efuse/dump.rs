@@ -7,6 +7,11 @@ use nonos_wifi_core::wipe::wipe;
 use super::diag::record_stall;
 use super::layout::*;
 use crate::regs::Mmio;
+use crate::wait::until_ms;
+
+/// How long one byte's read may take (rtw88 reads a million times, a
+/// microsecond apart).
+const BYTE_MS: u64 = 1000;
 
 // Read the whole physical efuse a byte at a time. Select the wifi bank and drop
 // the 2.5V LDO first, then for each address clear the flag to start a read and
@@ -24,20 +29,16 @@ pub(crate) fn dump_physical<M: Mmio>(mmio: &M) -> Option<[u8; EFUSE_SIZE]> {
         ctl |= (addr as u32 & EF_ADDR_MASK) << EF_ADDR_SHIFT;
         mmio.write32(REG_EFUSE_CTRL, ctl & !EF_FLAG);
 
-        let mut spins = 1_000_000u32;
-        loop {
+        let read = until_ms(BYTE_MS, || {
             ctl = mmio.read32(REG_EFUSE_CTRL);
-            if ctl & EF_FLAG != 0 {
-                break;
-            }
-            spins -= 1;
-            if spins == 0 {
-                // One past the address, so a window that reads back all-zero
-                // is told apart from a loop that was never entered.
-                record_stall(ctl, addr, mmio.read32(REG_LDO_EFUSE_CTRL));
-                wipe(&mut map);
-                return None;
-            }
+            ctl & EF_FLAG != 0
+        });
+        if !read {
+            // One past the address, so a window that reads back all-zero is
+            // told apart from a loop that was never entered.
+            record_stall(ctl, addr, mmio.read32(REG_LDO_EFUSE_CTRL));
+            wipe(&mut map);
+            return None;
         }
         *slot = (ctl & EF_DATA_MASK) as u8;
     }

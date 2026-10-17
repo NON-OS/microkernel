@@ -5,8 +5,9 @@
 use super::super::cond::{apply, PhyCond};
 use super::super::rf;
 use super::super::tables::{RTL8821C_AGC, RTL8821C_BB, RTL8821C_MAC, RTL8821C_RF_A};
-use super::delay::{is_bb_delay, is_rf_delay, settle};
+use super::delay::{bb_delay_ms, rf_delay_ms, rf_write_settle};
 use crate::regs::Mmio;
+use crate::wait::delay_ms;
 
 /// Load the PHY-side MAC table (byte writes).
 pub fn load_mac<M: Mmio>(mmio: &M, drv: &PhyCond) {
@@ -15,12 +16,9 @@ pub fn load_mac<M: Mmio>(mmio: &M, drv: &PhyCond) {
 
 /// Load the baseband table (32-bit writes, with inline settle delays).
 pub fn load_bb<M: Mmio>(mmio: &M, drv: &PhyCond) {
-    apply(RTL8821C_BB, drv, |addr, data| {
-        if is_bb_delay(addr) {
-            settle();
-        } else {
-            mmio.write32(addr as usize, data);
-        }
+    apply(RTL8821C_BB, drv, |addr, data| match bb_delay_ms(addr) {
+        Some(ms) => delay_ms(ms),
+        None => mmio.write32(addr as usize, data),
     });
 }
 
@@ -32,11 +30,11 @@ pub fn load_agc<M: Mmio>(mmio: &M, drv: &PhyCond) {
 /// Load the RF path-A table through the SIPI interface (with settle delays).
 pub fn load_rf_a<M: Mmio>(mmio: &M, drv: &PhyCond) {
     apply(RTL8821C_RF_A, drv, |addr, data| {
-        if is_rf_delay(addr) {
-            settle();
+        if let Some(ms) = rf_delay_ms(addr) {
+            delay_ms(ms);
         } else {
             rf::write_a(mmio, addr as u8, data);
-            settle();
+            rf_write_settle();
         }
     });
 }

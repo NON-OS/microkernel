@@ -7,9 +7,10 @@ use super::pages::{AUTO_INIT_LLT_V1, H2CQ_FULL};
 use super::queues::{init_h2c, priority_queue_cfg};
 use super::regs::{MAC_TRX_ENABLE, REG_AUTO_LLT_V1, REG_CR, REG_H2CQ_CSR, REG_TXDMA_PQ_MAP};
 use crate::regs::Mmio;
+use crate::wait::until_ms;
 
-/// Reads allowed before the link-list-table auto-init is declared stuck.
-const LLT_POLL_LIMIT: u32 = 1_000_000;
+/// How long the link-list-table auto-init may take (rtw88 `check_hw_ready`).
+const LLT_MS: u64 = 10;
 
 /// Configure and enable the MAC's transmit and receive engines. Returns false if
 /// the link-list table never finished initialising or the H2C queue did not come
@@ -33,11 +34,5 @@ fn queue_mapping<M: Mmio>(mmio: &M) {
 
 // Wait for the auto-init link-list-table bit to clear.
 pub(super) fn poll_llt<M: Mmio>(mmio: &M) -> bool {
-    for _ in 0..LLT_POLL_LIMIT {
-        if mmio.read8(REG_AUTO_LLT_V1) & AUTO_INIT_LLT_V1 == 0 {
-            return true;
-        }
-        core::hint::spin_loop();
-    }
-    false
+    until_ms(LLT_MS, || mmio.read8(REG_AUTO_LLT_V1) & AUTO_INIT_LLT_V1 == 0)
 }

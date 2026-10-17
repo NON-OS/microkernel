@@ -3,6 +3,8 @@
 
 #[path = "../../capsule_driver_rtl8821ce/src/assoc/mod.rs"]
 pub mod assoc;
+#[path = "fake_clock.rs"]
+pub mod clock;
 #[path = "../../capsule_driver_rtl8821ce/src/coex/mod.rs"]
 pub mod coex;
 #[path = "../../capsule_driver_rtl8821ce/src/constants/mod.rs"]
@@ -29,6 +31,8 @@ pub mod connect_request;
 pub mod connect_result;
 #[path = "../../capsule_driver_rtl8821ce/src/mac/mod.rs"]
 pub mod mac;
+#[path = "../../capsule_driver_rtl8821ce/src/pcie/mod.rs"]
+pub mod pcie;
 #[path = "../../capsule_driver_rtl8821ce/src/phy/mod.rs"]
 pub mod phy;
 #[path = "../../capsule_driver_rtl8821ce/src/ring/mod.rs"]
@@ -49,3 +53,5 @@ pub mod serve_scanner;
 pub mod serve_status;
 #[path = "../../capsule_driver_rtl8821ce/src/tx/mod.rs"]
 pub mod tx;
+#[path = "../../capsule_driver_rtl8821ce/src/wait.rs"]
+pub mod wait;
