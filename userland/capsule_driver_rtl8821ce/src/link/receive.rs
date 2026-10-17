@@ -51,7 +51,9 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
                     out[..eth.len()].copy_from_slice(&eth);
                     return Some(eth.len());
                 }
-                Rx::Handshake { frame, group_key } => self.handshake(frame, group_key),
+                Rx::Handshake { frame, group_key, pairwise_key } => {
+                    self.handshake(frame, group_key, pairwise_key)
+                }
                 Rx::Send(frame) => {
                     self.send_raw(&frame);
                 }

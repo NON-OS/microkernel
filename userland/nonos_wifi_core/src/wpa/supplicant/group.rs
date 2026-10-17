@@ -54,6 +54,6 @@ impl Supplicant {
         };
         keys.rsc = rsc_pn(&key.key_rsc);
         let changed = self.store_group_keys(&keys);
-        StepOutput { reply: self.group2(&key.replay_counter), new_group_key: changed }
+        StepOutput { new_group_key: changed, ..StepOutput::reply(self.group2(&key.replay_counter)) }
     }
 }

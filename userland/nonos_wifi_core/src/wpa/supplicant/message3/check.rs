@@ -24,6 +24,11 @@ use crate::wipe::wipe;
 /// The Key Information bits every message 3 of an RSN handshake carries.
 const MESSAGE3_BITS: u16 = KEY_INFO_INSTALL | KEY_INFO_SECURE | KEY_INFO_ENCRYPTED;
 
+/// Whether `key` carries the bits every message 3 does.
+pub(in crate::wpa::supplicant) fn is_message3(key: &EapolKey<'_>) -> bool {
+    key.key_info & MESSAGE3_BITS == MESSAGE3_BITS
+}
+
 impl Supplicant {
     // Whether `frame` is an authentic message 3 for this handshake: the bits
     // message 3 carries and a MIC under the KCK of the ANonce it repeats. A
@@ -32,7 +37,7 @@ impl Supplicant {
     // PTK is taken only once the MIC verifies. A frame that is not authentic
     // is dropped without ending the handshake.
     pub(super) fn authentic_message3(&mut self, frame: &[u8], key: &EapolKey<'_>) -> bool {
-        if key.key_info & MESSAGE3_BITS != MESSAGE3_BITS {
+        if !is_message3(key) {
             return false;
         }
         if key.nonce == self.anonce {

@@ -19,7 +19,9 @@
 //! taken.
 
 mod data;
+mod forged_rekey;
 mod frames;
 mod keys;
+mod rekey;
 mod stations;
 mod vectors;

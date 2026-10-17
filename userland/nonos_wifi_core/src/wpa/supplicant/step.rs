@@ -54,6 +54,10 @@ impl Supplicant {
             return match (self.state, has_mic) {
                 (State::Start | State::PtkDerived, false) => self.on_message1(&key),
                 (State::PtkDerived, true) => self.on_message3(frame, &key),
+                (State::Connected, false) => self.on_rekey_message1(&key),
+                (State::Connected, true) if self.rekey_for(&key.nonce) => {
+                    self.on_rekey_message3(frame, &key)
+                }
                 (State::Connected, true) => self.on_message3_again(frame, &key),
                 _ => StepOutput::none(),
             };

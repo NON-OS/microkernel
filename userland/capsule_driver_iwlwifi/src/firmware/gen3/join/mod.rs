@@ -39,5 +39,6 @@ pub mod hunt;
 pub mod inbox;
 pub mod keys;
 pub mod link;
+mod pairwise;
 pub mod run;
 pub mod target;

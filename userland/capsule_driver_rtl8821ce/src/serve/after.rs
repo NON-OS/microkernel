@@ -29,6 +29,11 @@ use super::scanner::Scanner;
 // deauthentication from the AP ends the session, clearing its keys, so the
 // link reads down and the background scan resumes.
 pub(super) fn after_receive(up: &mut radio::RadioUp, session: &mut Option<Session>) {
+    // A rekeyed pairwise key replaces the CAM's in its slot.
+    if let (Some(key), Some(s)) = (up.link.pairwise_key(), session.as_ref()) {
+        up.keys.install_ptk(key, s.key_id, &s.bssid);
+    }
+    up.link.clear_pairwise_key();
     if let (Some((id, key)), Some(s)) = (up.link.group_key(), session.as_mut()) {
         if up.keys.install_gtk(key, id) {
             s.set_gtk_id(id);

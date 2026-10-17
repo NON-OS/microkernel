@@ -23,13 +23,8 @@
 //! protected one). A new group key is taken for software decryption with its
 //! Key RSC as the replay floor and handed to the driver to install.
 
-use alloc::vec::Vec;
-
 use super::receive::{Rx, RxDrop};
 use super::LinkStation;
-use crate::dot11::data::build_data;
-
-const ETHERTYPE_EAPOL: [u8; 2] = [0x88, 0x8E];
 
 impl LinkStation {
     pub(super) fn on_eapol(&mut self, eapol: &[u8], protected: bool) -> Rx {
@@ -44,27 +39,17 @@ impl LinkStation {
         } else {
             None
         };
+        // Message 4 of a rekey goes out under the pairwise key in use; the
+        // new one is taken only after it is framed.
+        let pairwise_key = out.new_pairwise_key.then(|| sup.tk().try_into().ok()).flatten();
         if let Some((id, key, rsc)) = group_key {
             self.set_group_key(id, key, rsc);
         }
         let frame = out.reply.and_then(|r| self.eapol_frame(&r, protected));
-        Rx::Handshake { frame, group_key: group_key.map(|(id, key, _)| (id, key)) }
-    }
-
-    /// Frame an EAPOL payload to the access point, protected under the
-    /// pairwise key or in the clear.
-    pub fn eapol_frame(&mut self, eapol: &[u8], protect: bool) -> Option<Vec<u8>> {
-        let mut eth = Vec::with_capacity(14 + eapol.len());
-        eth.extend_from_slice(&self.bssid);
-        eth.extend_from_slice(&self.our_mac);
-        eth.extend_from_slice(&ETHERTYPE_EAPOL);
-        eth.extend_from_slice(eapol);
-        if protect {
-            return self.tx_frame(&eth);
+        if let Some(tk) = pairwise_key {
+            self.set_pairwise_key(tk);
         }
-        let seq = self.seq;
-        let frame = build_data(&eth, self.our_mac, self.bssid, seq)?;
-        self.seq = self.seq.wrapping_add(1) & 0x0FFF;
-        Some(frame)
+        let group_key = group_key.map(|(id, key, _)| (id, key));
+        Rx::Handshake { frame, group_key, pairwise_key }
     }
 }

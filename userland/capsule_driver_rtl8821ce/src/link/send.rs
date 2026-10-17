@@ -28,10 +28,19 @@ use crate::tx::enqueue;
 use crate::tx::regs::QSEL_BE;
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
-    // Send what a key handshake on the link produced, and keep its new key.
-    pub(super) fn handshake(&mut self, frame: Option<Vec<u8>>, group_key: Option<(u8, [u8; 16])>) {
+    // Send what a key handshake on the link produced, and keep its new keys:
+    // a rekeyed pairwise key only once its message 4 is on the ring.
+    pub(super) fn handshake(
+        &mut self,
+        frame: Option<Vec<u8>>,
+        group_key: Option<(u8, [u8; 16])>,
+        pairwise_key: Option<[u8; 16]>,
+    ) {
         if let Some(f) = frame {
             self.send_raw(&f);
+        }
+        if let Some(tk) = pairwise_key {
+            self.new_pairwise_key = Some(HeldKey(tk));
         }
         if let Some((id, key)) = group_key {
             // Over the old key, which is wiped where it lies.

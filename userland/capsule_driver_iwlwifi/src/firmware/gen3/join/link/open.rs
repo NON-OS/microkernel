@@ -37,6 +37,7 @@ impl Link {
             left: None,
             silent: false,
             new_group_key: None,
+            new_pairwise_key: None,
             stats: LinkStats::default(),
             data_rate,
             mgmt_rate,
