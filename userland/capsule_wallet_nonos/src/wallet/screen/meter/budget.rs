@@ -51,8 +51,8 @@ pub fn ready(state: &State) -> bool {
 
 /// Set budget: the form as typed into SET_BUDGET, then the account again.
 pub fn set(state: &mut State) -> EventOutcome {
-    use crate::wallet::meter::budget_form::budget_request;
-    let asked = budget_request(&state.meter.cap_text, &state.meter.days_text, nonos_tls::rtc_now());
+    use crate::wallet::{clock::now_s, meter::budget_form::budget_request};
+    let asked = budget_request(&state.meter.cap_text, &state.meter.days_text, now_s());
     let body = match asked.map(|b| b.encode()) {
         Ok(Some(body)) => body,
         Ok(None) => return EventOutcome::Idle,

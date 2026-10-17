@@ -29,7 +29,7 @@ pub fn offered(p: &Pending) -> Option<Offer> {
     let Step::Fund(m) = &p.step else { return None };
     let step = p.escrow.as_ref().map(|e| &e.step);
     let due = deadline(m).unwrap_or(u64::MAX);
-    let now = nonos_tls::rtc_now();
+    let now = crate::wallet::clock::now_s();
     let o = offer(step, p.watch.status.as_ref(), p.delivery.made.as_ref(), due, now);
     gas_offer(o, p.escrow.as_ref().and_then(|e| e.gas_paid_s), now)
 }
