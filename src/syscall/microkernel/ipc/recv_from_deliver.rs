@@ -23,7 +23,7 @@ pub(super) fn deliver(
     msg: &crate::ipc::nonos_channel::IpcMessage,
     buf: u64,
     len: usize,
-    sender_pid_out: u64,
+    (sender_pid_out, enqueued_ms_out): (u64, u64),
 ) -> i64 {
     let sender_pid = from_envelope(&msg.from);
     let copy_len = msg.data.len().min(len);
@@ -33,6 +33,13 @@ pub(super) fn deliver(
     if sender_pid_out != 0 {
         let bytes = sender_pid.to_le_bytes();
         if crate::usercopy::copy_to_user(sender_pid_out, &bytes).is_err() {
+            return ERRNO_FAULT;
+        }
+    }
+    if enqueued_ms_out != 0 {
+        let now = (crate::sys::clock::since_boot_ms(), crate::time::timestamp_millis());
+        let at = super::enqueued_at::enqueued_uptime(now.0, now.1, msg.timestamp_ms);
+        if crate::usercopy::copy_to_user(enqueued_ms_out, &at.to_le_bytes()).is_err() {
             return ERRNO_FAULT;
         }
     }

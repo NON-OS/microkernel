@@ -258,7 +258,7 @@ ret  = {type="i64"}
 [desc.MIRF]
 nr   = 0x4652494D
 caps = ["IPC"]
-args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="src_pid_out",type="u32*",dir="out"}]
+args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="src_pid_out",type="u32*",dir="out"},{name="enqueued_ms_out",type="u64*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MISP]

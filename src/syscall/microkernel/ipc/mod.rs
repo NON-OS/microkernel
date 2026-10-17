@@ -20,6 +20,7 @@ mod lookup;
 mod payload_in;
 mod pending_reply;
 mod recv;
+mod enqueued_at;
 mod recv_from;
 mod recv_from_deliver;
 mod recv_from_drain;
