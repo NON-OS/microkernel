@@ -39,12 +39,12 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     // Surfaces are held by the thread group, on its tables (L36, L46).
     super::surfaces::give_up_if_last(pid, &pcb);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
-    super::devices::release_if_last(pid, current);
     crate::syscall::microkernel::ipc::release_pending_replies_for_pid(pid);
 
     super::end_note::note(pid, exit_code, by_signal);
     pcb.exit_code.store(exit_code, Ordering::Release);
     *pcb.state.lock() = ProcessState::Zombie(exit_code);
+    super::devices::stop_then_release(pid, current);
     super::finalize::release_names(pid, &pcb);
     /*
      * Queued only once the process is a zombie. A CPU that claimed it just
