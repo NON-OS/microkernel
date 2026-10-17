@@ -20,3 +20,5 @@ pub mod moves;
 mod on_shield;
 mod on_show;
 pub mod rows;
+pub mod shows;
+pub mod tick;

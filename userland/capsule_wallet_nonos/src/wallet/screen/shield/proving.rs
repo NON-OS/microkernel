@@ -28,11 +28,12 @@ pub use super::proving_buttons::{
     buttons, earlier_to_settle, SETTLE, SETTLE_EARLIER, STOP, TAKE_BACK,
 };
 pub use super::proving_job::doing;
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
-use crate::wallet::screen::hits;
+use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::state::State;
 
 pub fn proving(state: &State, fb: &mut PaintBuffer) {
@@ -43,7 +44,10 @@ pub fn proving(state: &State, fb: &mut PaintBuffer) {
     let footer: Vec<(&str, Weight, bool)> = shown
         .iter()
         .enumerate()
-        .map(|(i, (t, _))| (*t, if i == 0 { Weight::Primary } else { Weight::Secondary }, true))
+        .map(|(i, (t, _))| {
+            let on = !greyed(state, Press::Footer(i as u8));
+            (*t, if i == 0 { Weight::Primary } else { Weight::Secondary }, on)
+        })
         .collect();
     let spec = FrameSpec {
         number: "09",
@@ -64,6 +68,6 @@ pub fn proving(state: &State, fb: &mut PaintBuffer) {
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
     super::edges::put(&l);
-    let on: Vec<bool> = shown.iter().map(|_| true).collect();
+    let on: Vec<bool> = footer.iter().map(|f| f.2).collect();
     super::edges::footer(&l, &on);
 }

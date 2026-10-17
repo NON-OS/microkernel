@@ -29,7 +29,7 @@ use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::parts::fact::fact;
 use crate::wallet::meter::rows::{budget_rows, state_line};
 use crate::wallet::nox::nox_text as nox;
-use crate::wallet::screen::hits;
+use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::screen::page::{edges, lead};
 use crate::wallet::state::State;
 
@@ -39,7 +39,7 @@ const LEAD: &str = "The meter pays for apps by voucher, from its own address and
 pub fn show(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let status = crate::wallet::screen::status::parts(state);
-    let ready = budget::ready(state);
+    let ready = budget::ready(state) && !crate::wallet::arm::gate::greyed(state, Press::Footer(1));
     let footer = [("Refresh", Weight::Secondary, true), ("Set budget", Weight::Primary, ready)];
     let spec = FrameSpec {
         number: "10",

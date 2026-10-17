@@ -22,6 +22,7 @@ use alloc::format;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_payment_proto::Account;
 
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::parts::fact::fact;
 use crate::wallet::etna::parts::quiet::quiet_group;
 use crate::wallet::etna::rect::Rect;
@@ -55,11 +56,13 @@ pub fn channels(state: &State, a: &Account, fb: &mut PaintBuffer, c: Rect, y: u3
     hits::put(Press::Field(FIELD_TOPUP), at);
     h += used + GAP / 2;
     let idle = m.job.is_none();
-    let rows = [("Top up the picked channel", idle), ("Close the picked channel", idle)];
+    let on = |row| idle && !greyed(state, Press::Row(row));
+    let rows =
+        [("Top up the picked channel", on(ROW_TOPUP)), ("Close the picked channel", on(ROW_CLOSE))];
     let mut at = [Rect::new(0, 0, 0, 0); 2];
     h += quiet_group(fb, c.x, y + h, c.w, &rows, &mut at);
     for (n, r) in at.iter().enumerate() {
-        if idle {
+        if rows[n].1 {
             hits::put(Press::Row(ROW_TOPUP + n as u8), *r);
         }
     }
