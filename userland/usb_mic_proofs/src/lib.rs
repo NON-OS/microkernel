@@ -26,6 +26,11 @@ pub mod uac2;
 #[path = "../../capsule_driver_usb_mic/src/wire.rs"]
 pub mod wire;
 
+/// A seeded sweep over the streaming alternates a function offers.
+#[cfg(test)]
+mod alt_sweep;
+#[cfg(test)]
+mod alt_sweep_tests;
 /// A seeded sweep over captured sound.
 #[cfg(test)]
 mod capture_sweep;
