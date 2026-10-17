@@ -585,7 +585,7 @@ fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
             &["-mno-red-zone", "-mcmodel=kernel", "-mno-mmx", "-mno-sse", "-mno-sse2", "-mno-avx"]
                 [..],
         )),
-        "aarch64" => Some(("aarch64-unknown-none-elf", &[][..])),
+        "aarch64" => Some(("aarch64-unknown-none-elf", &["-mgeneral-regs-only"][..])),
         "riscv64" => Some(("riscv64-unknown-none-elf", &[][..])),
         _ => None,
     }
