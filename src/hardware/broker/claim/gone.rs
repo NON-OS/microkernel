@@ -26,9 +26,11 @@ use spin::MutexGuard;
 
 use super::types::Claim;
 
+/// The function's wipe is owed in the same hold (L78).
 pub(super) fn remove(mut claims: MutexGuard<'static, Vec<Claim>>, at: usize) {
-    let device_id = claims.remove(at).device_id;
-    let fb = crate::hardware::broker::bootfb::released(device_id);
+    let gone = claims.remove(at);
+    super::wipe::owe(gone.device_id, gone.epoch);
+    let fb = crate::hardware::broker::bootfb::released(gone.device_id);
     drop(claims);
     if fb {
         crate::hardware::broker::bootfb::say(false);
