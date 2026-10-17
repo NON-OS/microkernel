@@ -48,6 +48,8 @@ mod read_fixture;
 mod reading;
 mod refund;
 mod refund_cases;
+mod refund_commit;
+mod refund_salt;
 mod requests;
 mod rows;
 mod send_resume;

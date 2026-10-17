@@ -19,7 +19,7 @@
 
 use nonos_payment_proto::{Names, OpenConfirm};
 
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR, REFUND_TO};
 use super::held::row;
 use super::read_fixture::CHAIN;
 use super::voucher::voucher;
@@ -39,7 +39,7 @@ pub fn names() -> Names {
 
 /// Every Step, Consent first and Fund fourth.
 pub fn steps() -> Vec<Step> {
-    let n = buy().order_new(&offer(), REFUND_TO, NOW);
+    let n = buy().order_new(&offer(), REFUND_PAIR, NOW);
     let s = voucher().open(voucher().unit_price, NOW + 1, REFUND_TO, NOW).unwrap();
     let confirm = OpenConfirm { start: s, open_tx: [9; 32] };
     vec![

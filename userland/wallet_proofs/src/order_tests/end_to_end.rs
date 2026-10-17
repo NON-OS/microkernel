@@ -20,7 +20,7 @@
 
 use nonos_payment_proto::Names;
 
-use super::fixture::{made, offer, NOW};
+use super::fixture::{made, offer, NOW, REFUND_SALT};
 use super::gate_fixture::{names, FRESH};
 use super::market_drive::{escrow_market, read_through};
 use super::read_fixture::CHAIN;
@@ -47,7 +47,7 @@ fn names_and_a_chain_make_a_buy_at_the_blocks_unit_price() {
         assert_eq!(to_quote(&Step::Consent, &read, &Fees::Unasked), Some(exact(PRICE)));
         let quoted = Fees::Quoted("0.01".into());
         let b = buyable(&Step::Consent, &read, &quoted).unwrap();
-        let order = b.order_new(&offer(), FRESH, NOW);
+        let order = b.order_new(&offer(), (FRESH, REFUND_SALT), NOW);
         assert_eq!((order.amount, order.refund_to), (PRICE, FRESH), "refundTo: the fresh one");
         let funded = fund_ask(&Step::Fund(Box::new(made(&order))), &read, &quoted).unwrap();
         assert_eq!(funded.amount, exact(PRICE));
