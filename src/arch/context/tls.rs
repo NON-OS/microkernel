@@ -17,10 +17,11 @@
 // Arch-neutral write of the calling task's user TLS register. On x86_64
 // that is MSR_FS_BASE, which the syscall return path leaves untouched, so
 // a direct write here survives into user mode; the scheduler re-installs
-// the PCB's value on every later switch. aarch64 and riscv64 return their
-// trap frames wholesale (tpidr_el0 / tp live in the saved frame), so a
-// bare register write here would be clobbered on return; those ports
-// report failure until their frames carry the TLS slot.
+// the PCB's value on every later switch. On aarch64 it is TPIDR_EL0, which
+// no exception entry or return touches, so the write survives the same way
+// and the switch keeps and re-installs it (aarch64::context::tls). riscv64
+// returns `tp` from its trap frame, so a bare register write would be
+// clobbered there; that port reports failure until its frame carries it.
 
 pub fn set_user_tls(base: u64) -> bool {
     #[cfg(target_arch = "x86_64")]
@@ -31,7 +32,12 @@ pub fn set_user_tls(base: u64) -> bool {
         unsafe { crate::arch::x86_64::gdt::fs_gs::set_fs_base(base) };
         true
     }
-    #[cfg(not(target_arch = "x86_64"))]
+    #[cfg(target_arch = "aarch64")]
+    {
+        crate::arch::aarch64::context::write_user_tls(base);
+        true
+    }
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
         let _ = base;
         false
