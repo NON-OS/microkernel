@@ -27,6 +27,8 @@ mod funcs_tests;
 #[cfg(test)]
 mod hex;
 #[cfg(test)]
+mod identity_level_tests;
+#[cfg(test)]
 mod method_tests;
 #[cfg(test)]
 mod pairing_fail_tests;
