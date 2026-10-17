@@ -19,6 +19,7 @@ mod end_note;
 pub mod end_rule;
 mod exit_and_yield;
 mod finalize;
+mod off_cpu;
 mod park;
 mod pending;
 pub mod postmortem;

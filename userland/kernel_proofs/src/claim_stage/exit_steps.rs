@@ -51,6 +51,8 @@ pub(super) fn step(w: &mut World, p: usize, new: bool) -> bool {
         (3, 0) if w.entry.is_some() => return false,
         (3, 0) => (w.entry, w.bus_on) = (Some(Entry(7, code(Stage::Ready), 0, 0)), false),
         (3, 1) => w.bus_on = true,
+        // Only a wait that yields parks a killed thread: it never comes back.
+        (4, 0) if w.steps[2] == 1 && w.entry.is_some_and(|e| e.0 == 1 && e.3 > 0) => w.steps[2] = 9,
         _ => {}
     }
     w.steps[p] += 1;

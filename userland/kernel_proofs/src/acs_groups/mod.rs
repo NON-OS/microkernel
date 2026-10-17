@@ -26,7 +26,10 @@ pub mod acs_rule;
 pub mod acs_span;
 mod model;
 mod model_tests;
+mod pick_gen;
+mod pick_sweep_tests;
 mod pick_tests;
+mod pick_tree_tests;
 #[path = "../../../../src/arch/x86_64/iommu/acs/port_rule.rs"]
 pub mod port_rule;
 mod span_tests;

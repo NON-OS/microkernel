@@ -52,9 +52,7 @@ pub fn exit_begin(pid: u32) -> Vec<(u64, u64)> {
 /// the capsule's domain goes with the exit.
 pub fn exit_end(pid: u32, held: &[(u64, u64)]) {
     for &(device_id, epoch) in held {
-        if super::release::settle((pid, device_id, epoch)) == Some(true) {
-            crate::hardware::broker::bootfb::released(device_id);
-        }
+        let _ = super::release::settle((pid, device_id, epoch));
     }
     crate::hardware::broker::confine::detach_all(pid);
 }

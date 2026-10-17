@@ -40,6 +40,9 @@ pub(super) fn settle(key: Key) -> Option<bool> {
     let last = gone(c.stage, c.leavers, c.inflight);
     if last {
         claims.remove(at);
+        // Under the table's lock, as `admit` sets it, so a newer claim's hold
+        // is never cleared by this one's going (L77).
+        crate::hardware::broker::bootfb::released(key.1);
     }
     Some(last)
 }
@@ -55,7 +58,6 @@ pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> 
     super::quiesce::stop_bus_master(device_id);
     if settle(key) == Some(true) {
         crate::hardware::broker::confine::detach(pid, device_id);
-        crate::hardware::broker::bootfb::released(device_id);
     }
     Ok(epoch)
 }

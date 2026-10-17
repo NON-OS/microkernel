@@ -42,8 +42,13 @@ pub(crate) fn retire(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
         c.epoch
     };
     let inside = |c: &Claim| c.device_id == device_id && c.epoch == epoch && c.inflight > 0;
+    // Spun, never yielded: a thread killed where it yields is parked for good,
+    // and this one would hold its count for ever (L77). No path inside a claim
+    // yields and kernel code is never preempted, so each finishes on its own
+    // CPU; shootdowns are answered meanwhile, as the claims' lock does.
     while claims().iter().any(inside) {
-        crate::sched::yield_now();
+        crate::smp::serve_shootdowns();
+        core::hint::spin_loop();
     }
     Ok(epoch)
 }

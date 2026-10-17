@@ -56,6 +56,8 @@ pub(super) fn bind_intx(
     say_route(req.device_id, gsi, &rte);
 
     let grant_id = records::allocate_id();
+    // Active before the record is seen: a drain finding it comes after (L77).
+    slots::activate(slot, grant_id, gsi);
     super::enter::enter(&[IrqGrant {
         grant_id,
         pid,
@@ -68,7 +70,6 @@ pub(super) fn bind_intx(
         device_vector: 0,
         irte: NO_IRTE,
     }])?;
-    slots::activate(slot, grant_id, gsi);
 
     Ok(IrqBindResult { grant_id, vector, grants: 1 })
 }

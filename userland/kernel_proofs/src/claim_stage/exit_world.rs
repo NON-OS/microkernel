@@ -28,15 +28,15 @@ use super::types::Stage;
 pub(super) struct Entry(pub u64, pub u8, pub u32, pub u32);
 
 /// Paths: 0 the grant path, 1 the exit, 2 the sibling's release, 3 the newer
-/// claimant. `bad`: an old path wrote a newer claim's device, or frames were
-/// freed while the device could still master the bus.
+/// claimant, 4 a kill landing where the release waits (L77). `bad`: an old
+/// path wrote a newer claim's device, or frames were freed under Bus Master.
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) struct World {
     pub entry: Option<Entry>,
     pub grant: bool,
     pub bus_on: bool,
     pub bad: bool,
-    pub steps: [u8; 4],
+    pub steps: [u8; 5],
 }
 
 const STAGES: [Stage; 5] =

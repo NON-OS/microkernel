@@ -27,8 +27,9 @@ fn is(pid: u32, device_id: u64, epoch: u64) -> impl Fn(&super::Claim) -> bool {
 }
 
 /// The last step: from here the claim is granted against. The boot
-/// framebuffer's hold moves under the table's lock, so a release always lands
-/// after it. False when its holder exited meanwhile, the claim orphaned.
+/// framebuffer's hold is set under the table's lock and cleared under it as
+/// the entry goes, so each lands in its claim's own order (L77). False when
+/// its holder exited meanwhile, the claim orphaned.
 pub(super) fn admit(pid: u32, device_id: u64, epoch: u64) -> bool {
     let mut claims = claims();
     let found = claims.iter_mut().find(|c| is(pid, device_id, epoch)(c));

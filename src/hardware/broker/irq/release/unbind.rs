@@ -29,10 +29,20 @@
 //!     device-side enable bit returns to its post-reset state.
 
 use super::super::records::{self, drain_for_device, drain_for_pid};
+use crate::hardware::broker::claim;
 use super::super::types::IrqError;
 use super::unwind::teardown;
 
+/// Inside its own claim, held across the teardown, so a release waits for it
+/// and the device written is still the claim's; a grant whose claim is being
+/// released is left to that release's drain (L77).
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
+    let found = records::lookup(grant_id).ok_or(IrqError::UnknownGrant)?;
+    if found.pid != pid {
+        return Err(IrqError::NotHolder);
+    }
+    let ours = |c: &claim::InUse| (c.pid, c.epoch) == (pid, found.claim_epoch);
+    let _held = claim::lookup(found.device_id).filter(ours).ok_or(IrqError::UnknownGrant)?;
     let g = records::remove(pid, grant_id)?;
     teardown(&g);
     Ok(())

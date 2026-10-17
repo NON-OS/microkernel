@@ -51,11 +51,11 @@ pub(super) fn record_run(
             irte: irtes[i],
         });
     }
-    super::enter::enter(&new_records)?;
-
+    // Active before the records are seen (L77), as for a line.
     for i in 0..n {
         slots::activate(base_slot + i, base_grant + i as u64, NO_LINE);
     }
+    super::enter::enter(&new_records)?;
 
     Ok(IrqBindResult { grant_id: base_grant, vector: base_vector, grants: n as u32 })
 }
