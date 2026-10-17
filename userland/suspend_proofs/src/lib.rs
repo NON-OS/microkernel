@@ -23,3 +23,5 @@ mod model_tests;
 mod ops;
 #[cfg(test)]
 mod order_tests;
+#[cfg(test)]
+mod resume_map_tests;
