@@ -12,6 +12,12 @@ pub mod ctaphid;
 pub mod keyside;
 
 #[cfg(test)]
+mod ctaphid_parts;
+#[cfg(test)]
+mod frame_sweep;
+#[cfg(test)]
+mod frame_sweep_tests;
+#[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
 mod job_tests;
