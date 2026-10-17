@@ -23,6 +23,7 @@ mod mode_set_tests;
 mod op_tests;
 mod output_retire_tests;
 mod output_tests;
+mod silence_tests;
 mod size_tests;
 mod surface_tests;
 mod sweep_tests;
