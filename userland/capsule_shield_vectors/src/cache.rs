@@ -16,13 +16,15 @@
 
 //! The periodic cache the build ships, checked whole and against the tree built here.
 
+use std::io::Write;
+
 use crate::serial::{line, TAG};
 
 pub(crate) static SHIPPED: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/periodic.top"));
 
 /// The periodic root check on the shipped file: taken whole, refused with
 /// one bit of its root changed.
-pub(crate) fn shipped_cache() -> bool {
+pub(crate) fn shipped_cache(out: &mut impl Write) -> bool {
     if SHIPPED.is_empty() {
         println!("{TAG} cache: none shipped in this build; the first proof builds it");
         return true;
@@ -33,15 +35,16 @@ pub(crate) fn shipped_cache() -> bool {
         *last ^= 1;
     }
     let refused = nox_prover::load_cache(&touched).is_err();
-    line(taken, &format!("cache: the shipped {} bytes carry PERIODIC_ROOT", SHIPPED.len()))
-        & line(refused, "cache: the same file with one bit of its root changed is refused")
+    line(out, taken, &format!("cache: the shipped {} bytes carry PERIODIC_ROOT", SHIPPED.len()))
+        & line(out, refused, "cache: the same file with one bit of its root changed is refused")
 }
 
 /// The tree a proof from nothing built, held to the shipped cache when this
 /// build ships one.
-pub(crate) fn built_is_shipped(name: &str, top: &[u8]) {
+pub(crate) fn built_is_shipped(out: &mut impl Write, name: &str, top: &[u8]) {
     if !SHIPPED.is_empty() {
         line(
+            out,
             top == SHIPPED,
             &format!("{}: the tree built here is the shipped cache, byte for byte", name),
         );
