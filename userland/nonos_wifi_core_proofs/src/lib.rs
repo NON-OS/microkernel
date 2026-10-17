@@ -28,6 +28,7 @@ mod bip_tests;
 mod chip;
 mod cipher_select_tests;
 mod cipher_sim;
+mod control;
 mod country_tests;
 mod crypto_kdf_tests;
 mod crypto_tests;
