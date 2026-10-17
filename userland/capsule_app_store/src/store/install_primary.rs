@@ -17,11 +17,13 @@
 //! Enter does the next sensible thing for the selected listing: install it,
 //! wait while it installs, or open it once it has.
 
+use super::channel_held::{queued, reads_channels, route, Route};
+use super::fill_step::now_ms;
 use super::install::{ask, open, remove, Asked};
+use super::meter_call::channels;
 use super::next_step::{on_enter, Enter};
-use super::progress::Progress;
 use super::purchase::{names_of, post};
-use super::purchase_said::{by_wallet, ordered};
+use super::purchase_said::ordered;
 use super::state::State;
 
 /// What Enter means for the selected listing, as far as it has got.
@@ -33,24 +35,32 @@ pub fn primary(state: &mut State) -> Option<Asked> {
         Enter::Remove => Some(remove(state)),
         // The pane says why; asking again would only fail the same way.
         Enter::Cannot => Some(Asked::Cannot),
-        // A sold listing is bought in the wallet, which installs it after.
-        Enter::Install if state.current().is_some_and(by_wallet) => {
-            let asked = post(state);
-            if asked == Asked::InWallet && state.current().is_some_and(ordered) {
-                state.orders.posted = state.current().map(names_of);
-                state.orders.order = None;
-            }
-            Some(asked)
-        }
         Enter::Install => {
-            let asked = ask(state);
-            if asked == Asked::Queued {
-                if let Some(l) = state.current_mut() {
-                    l.progress = Progress::Queued;
-                    l.removing = false;
-                }
-            }
-            Some(asked)
+            let l = state.current()?;
+            let rows = reads_channels(l).then(channels).flatten();
+            Some(match route(l, rows.as_deref(), now_ms() / 1000) {
+                Route::Install => install(state),
+                Route::Post => buy(state),
+            })
         }
     }
+}
+
+/// A sold listing is bought in the wallet, which installs it after; one
+/// whose channel is already open and funded installs (channel_held).
+fn buy(state: &mut State) -> Asked {
+    let asked = post(state);
+    if asked == Asked::InWallet && state.current().is_some_and(ordered) {
+        state.orders.posted = state.current().map(names_of);
+        state.orders.order = None;
+    }
+    asked
+}
+
+fn install(state: &mut State) -> Asked {
+    let asked = ask(state);
+    if let Some(l) = state.current_mut() {
+        queued(l, asked);
+    }
+    asked
 }
