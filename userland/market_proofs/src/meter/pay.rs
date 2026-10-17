@@ -13,13 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! FUNDED's predicate and the commerce record it reads, as the meter has
-//! them; PAY's own check (offer.rs) stays behind in the meter's tests.
+//! FUNDED's predicate and the PAY checks it is made of, as the meter has
+//! them: `priced` on the commerce record, then `landing` on the state.
 
 #[path = "../../../nonos_nox_meter/src/pay/funded.rs"]
 mod funded;
+#[path = "../../../nonos_nox_meter/src/pay/landing.rs"]
+mod landing;
+#[path = "../../../nonos_nox_meter/src/pay/offer.rs"]
+mod offer;
 #[path = "../../../nonos_nox_meter/src/pay/record.rs"]
 mod record;
 
-pub use funded::{committed, funded, takes};
+pub use funded::{funded, install};
+pub use landing::landing;
+pub use offer::priced;
 pub use record::Offer;

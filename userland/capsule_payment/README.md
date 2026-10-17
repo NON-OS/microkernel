@@ -76,7 +76,7 @@ status defined there.
 | 14 CLOSE | wallet | `Close` | a job id, or EBUSY; its result is closeTx[32], or ETIME before expiry plus the contract's GRACE. Anyone may close: the meter's key is a convenience |
 | 15 JOB | wallet | id u32 | EAGAIN while the job runs, then its result once; ENOENT for any other id. Each step is an ASYNC settle request answered into this capsule's inbox; a step with no answer in 150 s fails the job (ETIME) |
 | 16 CLAIM | wallet | chain_id u64 | a job id, or EBUSY; the job reads claimable(NOX, meter) (READ 60), ENOENT when nothing is credited, then signs ShieldedPool.claim(1, meter) itself (CLAIM_GAS 150000, the fee caps) and has settle broadcast it; its result is claimTx (v1.4.17) |
-| 21 FUNDED | app.store | `FundedAsk`: chain_id u64, lp listing | one byte: 1 when a channel for the listing (its id from OP_GET_COMMERCE) takes one more unit at the record's own unitPrice, as PAY's checks would; 0 for every other case, a failed market lookup or no key included. EINVAL only for a body that does not parse |
+| 21 FUNDED | app.store | `FundedAsk`: chain_id u64, lp listing | one byte: 1 when PAY of one unit, to the record's payee in its unit at its unitPrice (the listing's id from OP_GET_COMMERCE), would charge, by PAY's own `priced` and `landing`: channel, margin, deposit, unit and budget; 0 for every other case, a failed market lookup or no key included. EINVAL only for a body that does not parse |
 
 Every refusal is a status named in `nonos_payment_proto::status`.
 
