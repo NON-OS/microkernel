@@ -24,7 +24,7 @@ use nonos_gfx_wire::body::state::{LOST, SCANNING_OUT};
 use nonos_gfx_wire::errno::ENXIO;
 use nonos_gfx_wire::{kind, Caps, Errno, State};
 
-use super::gpu::{Gpu, MAX_SIDE};
+use super::gpu::{Gpu, GRANT_BYTES, MAX_SIDE};
 use super::plug::Plug;
 
 pub fn caps(g: &Gpu) -> Caps {
@@ -36,7 +36,7 @@ pub fn caps(g: &Gpu) -> Caps {
         max_height: MAX_SIDE,
         // A host takes any width: one the window manager sized included.
         width_align: 1,
-        surface_budget: MAX_SIDE as u64 * MAX_SIDE as u64 * 4,
+        surface_budget: GRANT_BYTES,
         physical_mm: g.panel.physical_mm,
     }
 }

@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! MODES: the host's wanted size first (the device's own mode, section
 //! 12's first choice), then the modes output 0's EDID lists, then the size
-//! shown now; each once, flagged by where it came from.
+//! shown now; each once, flagged by where it came from. A mode whose
+//! surface would not fit one display grant is not offered (G-78): the
+//! EDID's are left out when it is read (`setup/edid.rs`), the host's here,
+//! and the size shown fits, since its surface was made.
 
 use nonos_gfx_wire::body::mode::{CURRENT, FROM_DEVICE, PREFERRED};
 use nonos_gfx_wire::Mode;
 
-use super::gpu::Gpu;
+use super::gpu::{Gpu, GRANT_BYTES, MAX_SIDE};
 
 pub fn modes(g: &Gpu, output: u16, out: &mut [Mode]) -> usize {
     let Some(h) = g.head(output) else { return 0 };
@@ -30,6 +33,7 @@ pub fn modes(g: &Gpu, output: u16, out: &mut [Mode]) -> usize {
         height: h.hint.1,
         flags: FROM_DEVICE | PREFERRED,
     });
+    let host = host.filter(|m| within_grant(m.width, m.height));
     // One preferred mode: the host's when it names one, else EDID's.
     let keep = if host.is_some() { !PREFERRED } else { u32::MAX };
     let edid = if output == 0 { &g.panel.modes[..g.panel.len] } else { &[][..] };
@@ -48,4 +52,15 @@ pub fn modes(g: &Gpu, output: u16, out: &mut [Mode]) -> usize {
         len += 1;
     }
     len
+}
+
+/// Whether an EDID mode is offered: each side in range, and within a grant.
+pub fn fits(w: u32, h: u32) -> bool {
+    (640..=MAX_SIDE).contains(&w) && (480..=MAX_SIDE).contains(&h) && within_grant(w, h)
+}
+
+/// Whether a `w` x `h` surface fits one display grant; a host may ask any
+/// size, so this is all its own ask is held to.
+pub fn within_grant(w: u32, h: u32) -> bool {
+    w as u64 * h as u64 * 4 <= GRANT_BYTES
 }
