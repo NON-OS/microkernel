@@ -43,17 +43,17 @@ pub(super) fn keep(device_id: u64, epoch: u64, start: u64, len: u64) {
     KEPT.lock().push(Kept { device_id, epoch, start, len, run, for_good });
 }
 
-/// The registry let go of a run: true when it is kept and still waits.
-pub(super) fn defer(start: u64, len: u64) -> bool {
+/// The registry let go of a run: None if not kept, else whether it waits.
+pub(super) fn defer(start: u64, len: u64) -> Option<bool> {
     let mut all = KEPT.lock();
-    let Some(at) = all.iter().position(|k| (k.start, k.len) == (start, len)) else { return false };
+    let at = all.iter().position(|k| (k.start, k.len) == (start, len))?;
     let (run, act) = on_let_go(all[at].run);
     if act == Act::Free {
         all.remove(at);
-        return false;
+        return Some(false);
     }
     all[at].run = run;
-    true
+    Some(true)
 }
 
 pub(in crate::hardware::broker) fn kept_bytes(device_id: u64) -> u64 {

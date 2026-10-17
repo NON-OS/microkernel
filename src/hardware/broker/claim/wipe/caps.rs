@@ -33,6 +33,9 @@ const CAP_AF: u8 = 0x13;
 pub(in crate::hardware::broker) struct ResetCaps {
     pub(in crate::hardware::broker) pcie: u8,
     pub(in crate::hardware::broker) devctl2: bool,
+    /// Device Control 2 as firmware left it, whose completion timeout a put
+    /// back restores: a network holder may change it (L80).
+    pub(in crate::hardware::broker) devctl2_boot: u16,
     pub(in crate::hardware::broker) af: u8,
     pub(in crate::hardware::broker) af_tp: bool,
     pub(in crate::hardware::broker) pm: u8,
@@ -51,10 +54,13 @@ pub(in crate::hardware::broker) fn reset_caps(dev: &PciDevice) -> ResetCaps {
     let devcap = pcie.and_then(|(o, _)| cfg.read32(u16::from(o) + 4).ok());
     let af_caps = af.and_then(|(o, _)| cfg.read8(u16::from(o) + 3).ok());
     let pmcsr = pm.and_then(|(o, _)| cfg.read16(u16::from(o) + 4).ok());
+    let v2 = pcie.filter(|p| p.1 >= 2);
+    let devctl2_boot = v2.and_then(|(o, _)| cfg.read16(u16::from(o) + 0x28).ok());
     let untranslated = super::super::hold_rule::untranslated(dev.vendor_id, dev.device_id);
     ResetCaps {
         pcie: pcie.map_or(0, |p| p.0),
-        devctl2: pcie.is_some_and(|p| p.1 >= 2),
+        devctl2: v2.is_some(),
+        devctl2_boot: devctl2_boot.unwrap_or(0),
         af: af.map_or(0, |a| a.0),
         af_tp: af_caps.is_some_and(|c| c & AF_TP_CAP != 0),
         pm: pm.map_or(0, |p| p.0),

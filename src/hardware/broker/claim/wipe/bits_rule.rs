@@ -52,6 +52,16 @@ pub(crate) const fn devctl_after(before: u16) -> u16 {
     before & !(INITIATE_FLR | NO_SNOOP_EN)
 }
 
+/// Device Control 2's completion timeout value and disable, which a network
+/// holder may write (L80).
+pub(crate) const CT_BITS: u16 = 0x001F;
+
+/// Device Control 2 as put back: its completion timeout as firmware left it
+/// at enumeration, `boot`, never as the last holder set it (L80).
+pub(crate) const fn devctl2_after(before: u16, boot: u16) -> u16 {
+    (before & !CT_BITS) | (boot & CT_BITS)
+}
+
 /// PMCSR moved to `state`, PME_Status (write one to clear) written 0.
 pub(crate) const fn pmcsr_to(read: u16, state: u16) -> u16 {
     (read & !(PM_STATE | PME_STATUS)) | (state & PM_STATE)

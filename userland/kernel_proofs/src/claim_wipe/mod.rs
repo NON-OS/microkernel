@@ -28,6 +28,7 @@
 mod admit_rule;
 mod admit_tests;
 mod bits_const_tests;
+mod bits_ct_tests;
 mod bits_ready_tests;
 #[path = "../../../../src/hardware/broker/claim/wipe/bits_rule.rs"]
 mod bits_rule;
@@ -58,11 +59,14 @@ mod enter_tests;
 mod enter_wait;
 mod enter_wipe;
 mod enter_world;
+mod glue_l80_tests;
+mod glue_l80b_tests;
 mod glue_tests;
 mod holder_pool;
 #[path = "../../../../src/hardware/broker/claim/wipe/holder_rule.rs"]
 mod holder_rule;
 mod holder_tests;
+mod kept_count_tests;
 #[path = "../../../../src/hardware/broker/dma/kept_rule.rs"]
 mod kept_rule;
 mod kept_tests;

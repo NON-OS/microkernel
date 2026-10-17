@@ -19,7 +19,7 @@
 //! reset cleared is put back, decode last and only once its BARs stuck
 //! (L62), Bus Master and INTx Disable left 0 for the next holder's driver.
 
-use super::bits_rule::{devctl_after, not_ready, BME, INTX_DISABLE, IO, MEM};
+use super::bits_rule::{devctl2_after, devctl_after, not_ready, BME, INTX_DISABLE, IO, MEM};
 use super::end_rule::{checked, End, Next};
 use super::marker_rule::marker_bit;
 use super::method_rule::fallback;
@@ -55,7 +55,7 @@ fn put_back(cfg: &ConfigSpace, w: &Wipe) {
         let _ = cfg.write16(devctl, devctl_after(d));
     }
     if let Some(d) = s.devctl2 {
-        let _ = cfg.write16(devctl + 0x20, d);
+        let _ = cfg.write16(devctl + 0x20, devctl2_after(d, w.caps.devctl2_boot));
     }
     if stuck {
         let keep = |v: u16| (v & !(IO | MEM | BME | INTX_DISABLE)) | (s.command & (IO | MEM));

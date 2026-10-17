@@ -57,7 +57,8 @@ pub(super) struct Proc {
     pub name: Option<Name>,
     pub dead: bool,
     pub attempts: u8,
-    pub tries: u16,
+    /// When the attempt began: libc retries for a bounded time (L80).
+    pub started: u64,
     pub over_cap: bool,
     /// The loss the attempt began on, past its hold and back by then (I8).
     pub owed_back: Option<u64>,
