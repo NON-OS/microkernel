@@ -17,8 +17,7 @@ pub(super) fn inv_shift_rows(s: &mut [u8; 16]) {
     }
 }
 
-pub(super) // Multiply in GF(2^8) by masks, never by a branch on `a`, a byte of state.
-fn gmul(mut a: u8, mut b: u8) -> u8 {
+pub(super) fn gmul(mut a: u8, mut b: u8) -> u8 {
     let mut p = 0u8;
     for _ in 0..8 {
         p ^= a & (b & 1).wrapping_neg();
