@@ -20,7 +20,7 @@
 use nonos_nox_config::{DELIVER_MARGIN, MAX_DELIVERY, ORDER_MIN_LEAD};
 use nonos_payment_proto::{OfferAsk, OrderNew};
 
-use super::fixture::{buy, offer, NOW, REFUND_TO};
+use super::fixture::{buy, offer, NOW, REFUND_PAIR};
 use crate::order::buy::DELIVERY_ASKED;
 
 #[test]
@@ -34,10 +34,10 @@ fn the_offer_names_the_listing_release_chunks_and_agent() {
 
 #[test]
 fn the_order_takes_the_offers_roots_and_a_deadline_in_the_window() {
-    let n = buy().order_new(&offer(), REFUND_TO, NOW);
+    let n = buy().order_new(&offer(), REFUND_PAIR, NOW);
     assert_eq!((n.cipher_root, n.key_commit), ([8; 32], [9; 32]));
     assert_eq!((n.bond_id, n.payee, n.amount), ([3; 32], [0x55; 20], buy().amount));
-    assert_eq!(n.refund_to, REFUND_TO);
+    assert_eq!((n.refund_to, n.refund_salt), REFUND_PAIR, "the wallet's own pair");
     assert!(n.deadline >= NOW + ORDER_MIN_LEAD);
     assert!(n.deadline <= NOW + MAX_DELIVERY - DELIVER_MARGIN);
     assert_eq!(n.deadline, NOW + DELIVERY_ASKED);

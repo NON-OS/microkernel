@@ -22,7 +22,9 @@ pub const NOW: u64 = 1_800_000_000;
 pub const NOX: [u8; 20] = [0x0a; 20];
 pub const ESCROW: [u8; 20] = [0xe5; 20];
 pub const FWD: [u8; 32] = [0xf0; 32];
-pub const SALTS: ([u8; 32], [u8; 32]) = ([0x51; 32], [0x52; 32]);
+/// The meter's order salt, and the wallet's refundSalt in the request.
+pub const SALT: [u8; 32] = [0x51; 32];
+pub const REFUND_SALT: [u8; 32] = [0x52; 32];
 
 pub fn new(deadline: u64, amount: u128) -> OrderNew {
     OrderNew {
@@ -38,5 +40,6 @@ pub fn new(deadline: u64, amount: u128) -> OrderNew {
         key_commit: [7; 32],
         deadline,
         refund_to: [8; 20],
+        refund_salt: REFUND_SALT,
     }
 }

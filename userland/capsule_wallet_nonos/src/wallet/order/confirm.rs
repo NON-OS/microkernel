@@ -17,7 +17,8 @@
 /*
  * Whether the order the meter made is the one the person confirmed: every
  * term the wallet sent, and the two the meter fills from the config, the
- * chain's NOX and DISPUTE_WINDOW. The salts and refundCommit are its own.
+ * chain's NOX and DISPUTE_WINDOW. The salt is its own; refundCommit,
+ * over the wallet's own refundTo and refundSalt, deposit_check recomputes.
  */
 
 use nonos_nox_config::{address, Contract, DISPUTE_WINDOW};
