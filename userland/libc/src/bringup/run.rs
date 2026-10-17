@@ -16,12 +16,14 @@
 
 //! The bring-up loop every driver shares.
 
+use super::deadline::retry_after;
 use super::recv_turn::{recv_turn, RecvTurn, RECV_PARK_MS};
 use super::say::say_gave_up;
-use super::schedule::{next, Next};
+use super::schedule::delay_after;
 use crate::mk_idle_ms;
 
-/// Try `attempt` until it succeeds or the schedule in `policy` runs out.
+/// Try `attempt` until it succeeds or BRINGUP_BUDGET_MS have passed since
+/// the first try began (deadline.rs), sleeping the schedule's delays between.
 ///
 /// Each failed attempt must already have released whatever it claimed; the
 /// next one claims afresh. The sleeps are real sleeps (`mk_idle_ms`), so a
@@ -32,6 +34,7 @@ pub fn bring_up<T>(
     driver: &[u8],
     mut attempt: impl FnMut() -> Result<T, &'static str>,
 ) -> Result<T, &'static str> {
+    let start = uptime();
     let mut done = 0u32;
     loop {
         let err = match attempt() {
@@ -39,16 +42,21 @@ pub fn bring_up<T>(
             Err(e) => e,
         };
         done = done.saturating_add(1);
-        match next(done) {
-            Next::Retry(ms) => {
+        match retry_after(uptime().saturating_sub(start), delay_after(done)) {
+            Some(ms) => {
                 let _ = mk_idle_ms(ms);
             }
-            Next::GiveUp => {
+            None => {
                 say_gave_up(driver, err);
                 return Err(err);
             }
         }
     }
+}
+
+/// Milliseconds since boot; a clock that will not say reads as 0.
+fn uptime() -> u64 {
+    u64::try_from(crate::mk_uptime_ms()).unwrap_or(0)
 }
 
 /// Whether a serve loop has a message to serve after its receive returned
