@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod lookup_compositor_pid;
 mod lookup_compositor_port;
 mod lookup_desktop_shell_port;
 mod lookup_keyring_port;
 mod lookup_port;
 
+pub use lookup_compositor_pid::lookup_compositor_pid;
 pub use lookup_compositor_port::lookup_compositor_port;
 pub use lookup_desktop_shell_port::lookup_desktop_shell_port;
 pub use lookup_keyring_port::lookup_keyring_port;
