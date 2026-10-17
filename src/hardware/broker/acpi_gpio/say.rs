@@ -35,8 +35,23 @@ pub(super) fn say(ctl: &GpioController, what: &str) {
 pub(super) fn read_sbreg() -> Option<u64> {
     let bar = sbreg_bar();
     match bar {
-        Some(b) => serial::println(format!("[GPIO] SBREG_BAR {:#x}", b).as_bytes()),
+        Some(b) if census() => serial::println(format!("[GPIO] SBREG_BAR {:#x}", b).as_bytes()),
+        Some(_) => serial::println(b"[GPIO] SBREG_BAR read"),
         None => serial::println(b"[GPIO] SBREG_BAR not readable from 00:1f.1"),
     }
     bar
+}
+
+/// How many community windows, and, in a census build, where the first is.
+pub(super) fn windows_line(ctl: &GpioController) -> alloc::string::String {
+    match census() {
+        true => format!("{} community windows, first at {:#x}", ctl.window_count, ctl.windows[0].0),
+        false => format!("{} community windows", ctl.window_count),
+    }
+}
+
+/// A physical address reaches the log only in a NONOS_DEVICE_CENSUS=1 build,
+/// the touchpad bring-up build census/render.rs keys on.
+fn census() -> bool {
+    matches!(option_env!("NONOS_DEVICE_CENSUS"), Some("1"))
 }

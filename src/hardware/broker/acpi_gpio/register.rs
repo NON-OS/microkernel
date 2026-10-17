@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
-
 use crate::arch::x86_64::acpi::aml::{community_window, enumerate_gpio_controllers};
 
 use super::super::table::register_platform_device;
 use super::record::device_record;
-use super::say::{read_sbreg, say};
+use super::say::{read_sbreg, say, windows_line};
 
 /// Register the ACPI-enumerated GPIO controllers with the broker table, one
 /// record per controller with a bar per community. A window need not be
@@ -40,8 +38,7 @@ pub fn register_acpi_gpio() {
                 ctl.push_window(at, len);
             }
         }
-        let first = ctl.windows[0].0;
-        say(&ctl, &format!("{} community windows, first at {:#x}", ctl.window_count, first));
+        say(&ctl, &windows_line(&ctl));
         register_platform_device(device_record(&ctl));
     }
 }
