@@ -20,13 +20,7 @@ use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 
 use super::recv_from_deliver::deliver;
 
-pub(super) fn drain(
-    buf: u64,
-    len: usize,
-    timeout_ms: u64,
-    sender_pid_out: u64,
-    inbox: &str,
-) -> i64 {
+pub(super) fn drain(buf: u64, len: usize, timeout_ms: u64, outs: (u64, u64), inbox: &str) -> i64 {
     let start = crate::time::timestamp_millis();
     let pid = current_pid().unwrap_or(0);
     loop {
@@ -37,7 +31,7 @@ pub(super) fn drain(
         let token = crate::sched::wake_token(pid);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
             super::pending_reply::record_served(pid, msg.correlation);
-            return deliver(pid, &msg, buf, len, sender_pid_out);
+            return deliver(pid, &msg, buf, len, outs);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
         if timeout_ms > 0 && elapsed >= timeout_ms {
@@ -47,7 +41,7 @@ pub(super) fn drain(
         crate::sched::sleep_until_unless_woken(pid, deadline, token);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
             super::pending_reply::record_served(pid, msg.correlation);
-            return deliver(pid, &msg, buf, len, sender_pid_out);
+            return deliver(pid, &msg, buf, len, outs);
         }
         crate::sched::yield_now();
     }
