@@ -44,13 +44,13 @@ impl Mmio for Gen9 {
     }
     fn write(&mut self, off: u32, v: u32) {
         match NARROW.contains(&off) {
-            true => self.ggtt[((off - NARROW.start) / 4) as usize] = widen(v),
+            true => self.put_entry((off - NARROW.start) / 4, widen(v)),
             false => self.on_write(off, v),
         }
         self.step(!NARROW.contains(&off));
     }
     fn write64(&mut self, off: u32, v: u64) {
-        self.ggtt[((off - WIDE) / 8) as usize] = v;
+        self.put_entry((off - WIDE) / 8, v);
         self.step(false);
     }
     fn read64(&mut self, off: u32) -> u64 {

@@ -61,12 +61,6 @@ impl Gen9 {
         }
     }
 
-    /// `ranges` given back: held freed from here, and checked at once.
-    pub fn free(&mut self, ranges: impl IntoIterator<Item = (u64, u64)>) {
-        self.watch.freed.extend(ranges);
-        self.check();
-    }
-
     pub fn check(&mut self) {
         if self.reaching().iter().any(|a| self.watch.freed.iter().any(|f| (f.0..f.1).contains(a))) {
             self.watch.reached += 1;

@@ -36,6 +36,7 @@ pub type Rig = Intel<Shared, ModelFrames, Ticks>;
 pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     let (mut m, a, b) = setup();
     let out = read_output(&mut m, &GEN9, Pipe::A).unwrap();
+    crate::tests::confine::arm(&mut m, &[a[0], b[0]], a.len());
     let scan = Scanout::start(&mut m, &out, TOTAL, [&a, &b], u32::MAX, &Polls::new(50)).unwrap();
     let model = Rc::new(RefCell::new(m));
     let shared = Shared(model.clone());
@@ -47,8 +48,7 @@ pub fn rig() -> (Rig, Rc<RefCell<Gen9>>) {
     (Intel::new(shared, Ticks::new(), &GEN9, heads), model)
 }
 
-/// A head as the capsule's takeover leaves one: on its first surface,
-/// scanning out, its monitor attached, no cursor yet.
+/// A head as takeover leaves one: on its first surface, scanning out, no cursor.
 pub fn taken(
     out: Output,
     scan: Scanout,

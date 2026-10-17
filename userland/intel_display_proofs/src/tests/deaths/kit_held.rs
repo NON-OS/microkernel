@@ -18,6 +18,7 @@
 
 use super::kit::{rig, Model, Wrong};
 use crate::model::frames::CURSOR_IOVA;
+use crate::tests::confine::kit::confined;
 use crate::tests::wire_rig::{h0, Rig};
 
 /// The IOVA ranges the driver holds: each surface of its pair and of the
@@ -51,6 +52,7 @@ pub fn steps(work: impl FnOnce(&mut Rig)) -> Vec<u32> {
 /// frames the driver holds now.
 pub fn hold(d: &Rig, model: &Model, w: Wrong) {
     let m = model.borrow();
+    confined(&m, &format!("{w:?}"));
     assert_eq!(m.watch.reached, 0, "{w:?}: a plane on a frame given back");
     let held = held(d);
     let on_held = |a: &u64| held.iter().any(|h| (h.0..h.1).contains(a));

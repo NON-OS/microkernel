@@ -53,6 +53,10 @@ pub fn two_rig() -> (Rig, Rc<RefCell<Gen9>>, [(u32, u32); 2]) {
     let windows = [(a_floor, TOTAL), (a_floor - 2 * run(1024, 768), a_floor)];
     let mut heads = [None, None, None, None];
     let specs = [(Pipe::A, 2025, 0x1000_0000, 0xAA), (Pipe::B, 768, 0x3000_0000, 0xCC)];
+    let both = specs.iter().flat_map(|s| [s.2, s.2 + 0x0400_0000]).collect::<Vec<_>>();
+    crate::tests::confine::arm(&mut m, &both[..2], 2025);
+    m.hold((both[2], both[2] + 768 * 4096));
+    m.hold((both[3], both[3] + 768 * 4096));
     let model = Rc::new(RefCell::new(m));
     for (i, (p, n, base, px)) in specs.into_iter().enumerate() {
         let mut m = model.borrow_mut();
