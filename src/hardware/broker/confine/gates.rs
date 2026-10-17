@@ -20,13 +20,14 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::member::Member;
 use super::refuse::Refused;
 use super::table::say;
 use crate::memory::iommu::DeviceAddress;
 
 /// The device's isolation group, which join.rs holds to one capsule, and
 /// the aliases its DMA carries, which join.rs attaches with it.
-pub(super) fn admit(device_id: u64) -> Result<(Vec<u64>, Vec<DeviceAddress>), Refused> {
+pub(super) fn admit(device_id: u64) -> Result<(Vec<Member>, Vec<DeviceAddress>), Refused> {
     super::interrupts::admit()?;
     // A virtio device without ACCESS_PLATFORM ignores the domain.
     if !super::virtio::may_confine(device_id) {

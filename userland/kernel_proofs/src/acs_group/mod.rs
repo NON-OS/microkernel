@@ -20,15 +20,28 @@
 
 #[path = "../../../../src/hardware/broker/confine/acs_alias.rs"]
 pub mod acs_alias;
+#[path = "../../../../src/hardware/broker/confine/acs_layout.rs"]
+pub mod acs_layout;
 #[path = "../../../../src/hardware/broker/confine/acs_path.rs"]
 pub mod acs_path;
 #[path = "../../../../src/hardware/broker/confine/acs_reach.rs"]
 pub mod acs_reach;
+#[path = "../../../../src/hardware/broker/confine/acs_refusal.rs"]
+pub mod acs_refusal;
 #[path = "../../../../src/hardware/broker/confine/acs_rule.rs"]
 pub mod acs_rule;
 #[path = "../../../../src/hardware/broker/confine/acs_tree.rs"]
 pub mod acs_tree;
+#[path = "../../../../src/hardware/broker/confine/acs_words.rs"]
+pub mod acs_words;
 mod alias_tests;
+mod hardwired_tests;
+mod laptop_tests;
+mod laptops;
+mod layout_tests;
 mod machine;
+mod q35_tests;
+mod read_layer;
 mod tests;
 mod tree_tests;
+mod words_tests;

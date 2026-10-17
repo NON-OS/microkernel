@@ -24,6 +24,19 @@ use super::table::say;
 /// of memory (decide.rs).
 pub(in crate::hardware::broker) struct Refused;
 
+/// Why a claim's confinement was refused, for its errno.
+pub(in crate::hardware::broker) enum Refusal {
+    Refused,
+    /// Another capsule holds what the device reaches past the IOMMU.
+    GroupHeld,
+}
+
+impl From<Refused> for Refusal {
+    fn from(_: Refused) -> Self {
+        Refusal::Refused
+    }
+}
+
 /// A PCI device with no domain of its own: refused, but under the opt-in.
 pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
     if v == Verdict::Unconfined {
