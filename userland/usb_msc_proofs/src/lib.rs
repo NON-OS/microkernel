@@ -19,8 +19,19 @@ pub mod state;
 /// The device behind driver.xhci0, scripted, where `disk` calls it.
 pub mod xhci;
 
+/// The driver's BOT command, mounted where the sweep reaches it.
+#[cfg(test)]
+mod bot_parts;
+/// A seeded sweep over BOT commands.
+#[cfg(test)]
+mod bot_sweep;
+
+#[cfg(test)]
+mod bot_sweep_tests;
 #[cfg(test)]
 mod codec_tests;
+#[cfg(test)]
+mod csw_shape_tests;
 #[cfg(test)]
 mod msc_tests;
 #[cfg(test)]
