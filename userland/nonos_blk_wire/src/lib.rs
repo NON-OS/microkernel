@@ -29,6 +29,7 @@
 mod decode;
 mod encode;
 mod errno;
+mod frame;
 mod geometry;
 mod header;
 mod identify;
@@ -39,6 +40,7 @@ mod ops;
 pub use decode::decode_request;
 pub use encode::{encode_response_header, write_status};
 pub use errno::{E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, E_ROFS};
+pub use frame::body_fits;
 pub use geometry::{encode_geometry, MEDIA_PRESENT, READ_ONLY, REMOVABLE};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use identify::{encode_identify, MEDIUM_EMMC, MEDIUM_SD, MEDIUM_UFS};
