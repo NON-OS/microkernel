@@ -41,14 +41,15 @@ pub struct Bga {
     pub fence: fn(),
 }
 
-impl Bga {
-    /// Video memory zeroed, all of it: it outlives every process, and what
-    /// a dead driver left there (a client's pixels among it) is not shown
-    /// again by the next one.
-    pub fn wipe(&self) {
-        // SAFETY: `vram` maps `vram_len` bytes, this driver's while it runs.
-        unsafe { core::ptr::write_bytes(self.vram as *mut u8, 0, self.vram_len) };
-    }
+/// `len` bytes of video memory at `vram` zeroed: it outlives every
+/// process, and what a dead driver left there (a client's pixels among it)
+/// is not shown again by the next one (G-72, G-78).
+///
+/// # Safety
+/// `vram` must map `len` writable bytes for the call.
+pub unsafe fn wipe(vram: u64, len: usize) {
+    // SAFETY: the caller's mapping.
+    unsafe { core::ptr::write_bytes(vram as *mut u8, 0, len) };
 }
 
 /// Whether a `w` x `h` mode is one this driver sets in `vram_len` bytes

@@ -23,11 +23,11 @@ use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
 use nonos_libc::mk_device_release;
 
-use super::{claim, mmio, mode, Driver};
+use super::fresh::fresh;
+use super::{claim, mmio, Driver};
 use crate::constants::{EDID_WINDOW, FB_BAR, MK_MMIO_MAP_WC, REG_BAR};
 use crate::discover::Found;
-use crate::display::{fits, Bga};
-use crate::edid::{self, Panel};
+use crate::edid;
 use crate::error::{BgaError, BgaResult};
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
@@ -46,14 +46,11 @@ pub fn run(dev: Found) -> BgaResult<Driver> {
     } else {
         0
     };
-    let panel = Panel::read(&blob[..edid_len], |w, h| fits(vram_len, w, h));
-    let Some(mode) = mode::starting(regs, &panel, vram_len) else {
+    let Some(bga) = fresh(regs, (fb_map.user_va, vram_len), &blob[..edid_len], fence) else {
         drop(handles);
         let _ = mk_device_release(dev.device_id);
         return Err(BgaError::NoMode);
     };
-    let bga = Bga { regs, vram: fb_map.user_va, vram_len, panel, mode, generation: 1, fence };
-    bga.wipe();
     Ok(Driver { handles: handles, server: Server::new(bga, Pool) })
 }
 

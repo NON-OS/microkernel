@@ -21,4 +21,4 @@ mod modes;
 mod show;
 mod wire;
 
-pub use bga::{fits, Bga};
+pub use bga::{fits, wipe, Bga};
