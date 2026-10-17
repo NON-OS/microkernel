@@ -18,6 +18,7 @@
 //! none while the lock or the backup words are up, or before an account.
 
 use super::moves::Shown;
+use crate::wallet::intent::IntentStep;
 use crate::wallet::order::escrow_offer::Offer;
 use crate::wallet::order::guard::poll::guarding;
 use crate::wallet::order::intake::Step;
@@ -39,7 +40,7 @@ pub fn on_show(state: &State) -> Option<Shown> {
         (VIEW_NOX, _) => state.stake.draft.is_some().then_some(Shown::StakeReview),
         (VIEW_SHIELD, _) => super::on_shield::shield(state),
         (VIEW_METER, _) => Some(Shown::Meter),
-        (VIEW_PUBLISHER, _) => state.publisher.entry.is_some().then_some(Shown::Publish),
+        (VIEW_PUBLISHER, _) => publisher(state),
         _ => None,
     }
 }
@@ -54,5 +55,14 @@ fn purchase(state: &State) -> Option<Shown> {
         (Some(Offer::Dispute | Offer::Refund | Offer::Again), _) => Some(Shown::Escrow),
         (Some(_), _) | (None, Step::Fund(_)) => None,
         _ => (p.form.budgeted == Budgeted::NoBudget).then_some(Shown::Budget),
+    }
+}
+
+/// A transaction's review only once its rows are there to be drawn whole;
+/// nothing guarded while it is quoted or sent; else the entry's signing.
+fn publisher(state: &State) -> Option<Shown> {
+    match &state.publisher.sending {
+        Some(s) => matches!(s.step, IntentStep::Review { .. }).then_some(Shown::PublisherReview),
+        None => state.publisher.entry.is_some().then_some(Shown::Publish),
     }
 }

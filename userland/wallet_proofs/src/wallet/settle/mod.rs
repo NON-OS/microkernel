@@ -2,6 +2,8 @@
 //! The wallet's settle client, over a fake port (send.rs): call.rs and
 //! heard.rs are the capsule's own.
 
+#[path = "../../../../capsule_wallet_nonos/src/wallet/settle/broadcast.rs"]
+pub mod broadcast;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/settle/call.rs"]
 mod call;
 pub mod send;

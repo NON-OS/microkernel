@@ -24,5 +24,10 @@ pub const ROW_CLOSE: u8 = 41;
 pub const ROW_CLAIM: u8 = 42;
 /// The publish screen's binding, signed once the binding is confirmed.
 pub const ROW_BINDING: u8 = 1;
-/// Release i's attest is row ROW_ATTEST + i.
+/// Release i's attest is row ROW_ATTEST + i, the releases capped at 16.
 pub const ROW_ATTEST: u8 = 2;
+/// The Bond's rows from ROW_INTENT, release i's publish, withdraw and
+/// anchors at ROW_RELEASE + 3i: each only asks for a quote, and the
+/// review's Sign is what signs, so the guard does not take them.
+pub const ROW_INTENT: u8 = 20;
+pub const ROW_RELEASE: u8 = 30;

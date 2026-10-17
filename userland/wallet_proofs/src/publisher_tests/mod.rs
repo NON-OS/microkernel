@@ -16,6 +16,7 @@
 
 mod attest;
 mod binding;
+mod broadcast;
 mod fixture;
 mod intents;
 mod intents_agent;
@@ -24,4 +25,5 @@ mod intents_refused;
 mod intents_release;
 mod intents_uri;
 mod path;
+mod press;
 mod release;

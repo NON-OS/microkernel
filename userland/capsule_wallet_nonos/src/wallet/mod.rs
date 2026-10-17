@@ -24,6 +24,7 @@ mod clock;
 pub mod etna;
 mod event;
 mod hex_id;
+mod intent;
 mod ipc;
 mod manifest;
 mod meter;

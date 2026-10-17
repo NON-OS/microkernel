@@ -25,6 +25,7 @@ mod page;
 mod page_signed;
 mod publish;
 mod quote;
+mod ready;
 mod refused;
 mod review;
 mod step;

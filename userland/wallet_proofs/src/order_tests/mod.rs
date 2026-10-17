@@ -54,7 +54,7 @@ mod open_gate;
 mod order_of;
 mod press_arm;
 mod press_free;
-mod press_grey;
+pub(crate) mod press_grey;
 mod press_moves;
 mod press_relit;
 mod props;
