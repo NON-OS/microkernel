@@ -21,13 +21,13 @@ use nonos_nox_meter::orders::order_plan;
 use nonos_nox_meter::MeterError;
 use nonos_payment_proto::OrderNew;
 
-use super::fixture::{new, ESCROW, FWD, NOW, NOX, SALTS};
+use super::fixture::{new, ESCROW, FWD, NOW, NOX, REFUND_SALT, SALT};
 use super::host::{keccak, Host};
 
 #[test]
 fn an_order_is_the_buyers_terms_its_id_and_its_deposit_address() {
     let o = new(NOW + ORDER_MIN_LEAD, 1_000);
-    let got = order_plan(&Host, &o, (&NOX, &ESCROW, &FWD), SALTS, NOW).unwrap();
+    let got = order_plan(&Host, &o, (&NOX, &ESCROW, &FWD), SALT, NOW).unwrap();
     let sale = Sale {
         listing_id: [1; 32],
         release_id: [2; 32],
@@ -39,20 +39,21 @@ fn an_order_is_the_buyers_terms_its_id_and_its_deposit_address() {
         cipher_root: [6; 32],
         key_commit: [7; 32],
     };
-    let b = Buyer { deadline: o.deadline, refund_to: [8; 20], refund_salt: SALTS.1, salt: SALTS.0 };
+    let b =
+        Buyer { deadline: o.deadline, refund_to: [8; 20], refund_salt: REFUND_SALT, salt: SALT };
     let terms = buyer_terms(&Host, &sale, &NOX, &b, NOW).unwrap();
     let id = order_id(&Host, 11155111, &ESCROW, &terms);
     assert_eq!((got.order_id, got.terms), (id, terms.words()));
     assert_eq!(got.deposit, deposit_address(&Host, &ESCROW, &id, &FWD));
-    assert_eq!((got.chain_id, got.refund_to, got.refund_salt), (11155111, [8; 20], SALTS.1));
+    assert_eq!((got.chain_id, got.refund_to, got.refund_salt), (11155111, [8; 20], REFUND_SALT));
     let mut to = [0u8; 32];
     to[12..].copy_from_slice(&[8; 20]);
-    assert_eq!(got.terms[12], keccak(&[REFUND_TAG, to, SALTS.1].concat()), "refundCommit");
+    assert_eq!(got.terms[12], keccak(&[REFUND_TAG, to, REFUND_SALT].concat()), "refundCommit");
 }
 
 #[test]
 fn an_order_outside_the_window_or_empty_is_refused() {
-    let plan = |o: OrderNew| order_plan(&Host, &o, (&NOX, &ESCROW, &FWD), SALTS, NOW).err();
+    let plan = |o: OrderNew| order_plan(&Host, &o, (&NOX, &ESCROW, &FWD), SALT, NOW).err();
     assert_eq!(plan(new(NOW + ORDER_MIN_LEAD - 1, 1_000)), Some(MeterError::Expired));
     assert_eq!(
         plan(new(NOW + MAX_DELIVERY - DELIVER_MARGIN + 1, 1_000)),

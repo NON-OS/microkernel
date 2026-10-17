@@ -33,6 +33,7 @@ fn new() -> OrderNew {
         key_commit: [7; 32],
         deadline: 1_900_000_000,
         refund_to: [8; 20],
+        refund_salt: [0x5a; 32],
     }
 }
 
@@ -43,7 +44,7 @@ fn order_new_is_its_fields_in_order() {
     assert_eq!(&b[..8], &11155111u64.to_le_bytes());
     assert_eq!((&b[8..40], &b[104..124]), (&[1u8; 32][..], &[4u8; 20][..]));
     assert_eq!(&b[124..140], &1_000u128.to_le_bytes());
-    assert_eq!(&b[b.len() - 20..], &[8u8; 20]);
+    assert_eq!((&b[252..272], &b[272..]), (&[8u8; 20][..], &[0x5au8; 32][..]), "then the salt");
     assert_eq!(OrderNew::parse(&b), Some(new()));
     assert_eq!(OrderNew::parse(&b[1..]), None);
     assert_eq!(OrderNew::parse(&[b.as_slice(), &[0]].concat()), None);

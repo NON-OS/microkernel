@@ -19,7 +19,7 @@
 //! or Refunded, or NOX waiting then, swept first (v1.4.55); and only to the
 //! refundTo drawn at Buy.
 
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR, REFUND_TO};
 use super::refund::SALT;
 use crate::order::dispute_said::NOT_REFUND_TO;
 use crate::order::refund::refund;
@@ -27,7 +27,7 @@ use crate::order::refund_said::*;
 
 #[test]
 fn each_state_refunds_or_says_why_not() {
-    let m = made(&buy().order_new(&offer(), REFUND_TO, NOW));
+    let m = made(&buy().order_new(&offer(), REFUND_PAIR, NOW));
     let deadline = u64::from_be_bytes(m.terms[6][24..].try_into().unwrap());
     let at = |of, pending, now| refund(&m, REFUND_TO, (REFUND_TO, SALT), of, pending, now);
     assert!(at((3, 0), 0, NOW).is_ok(), "disputed, at once");
@@ -50,7 +50,7 @@ fn each_state_refunds_or_says_why_not() {
 
 #[test]
 fn only_the_refund_to_drawn_at_buy_sends_it() {
-    let m = made(&buy().order_new(&offer(), REFUND_TO, NOW));
+    let m = made(&buy().order_new(&offer(), REFUND_PAIR, NOW));
     let r = |drawn, answered| refund(&m, drawn, (answered, SALT), (3, 0), 0, NOW);
     assert_eq!(r(REFUND_TO, [0x99; 20]), Err(NOT_REFUND_TO));
     assert_eq!(r([0; 20], [0; 20]), Err(NOT_REFUND_TO));
