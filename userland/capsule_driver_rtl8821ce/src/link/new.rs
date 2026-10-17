@@ -28,6 +28,7 @@ use crate::rx::program as rx_program;
 use crate::rx::ring::{RxState, RX_DESC_COUNT};
 use crate::tx::program as tx_program;
 use crate::tx::ring::{TxState, TX_DESC_COUNT};
+use crate::tx::stall::TxWatch;
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
     /// Build the link over already-mapped DMA and program both rings into the
@@ -53,6 +54,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             tx_ring,
             tx_buffers,
             tx_state: TxState::new(TX_DESC_COUNT),
+            tx_watch: TxWatch::default(),
             rx_ring,
             rx_buffers,
             rx_state: RxState::new(RX_DESC_COUNT),

@@ -41,6 +41,9 @@ pub struct LinkStats {
     pub rx_refused: u32,
     /// Group key handshakes answered on the link.
     pub rekeys: u32,
+    /// Times the rings were reset because the card stopped reading the
+    /// transmit ring.
+    pub tx_resets: u32,
 }
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
