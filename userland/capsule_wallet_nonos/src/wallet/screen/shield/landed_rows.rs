@@ -33,7 +33,7 @@ use crate::wallet::shield::landed_held::line;
 use crate::wallet::state::State;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
-    let (mut h, now) = (0, nonos_tls::rtc_now());
+    let (mut h, now) = (0, crate::wallet::clock::now_s());
     for (i, (address, held)) in (0u8..).zip(landed(state)) {
         h += fact(fb, c.x, y + h, c.w, "landed", &line(&address, held, exact)) + GAP / 2;
         let m = state.meter.landed.moving.as_ref().filter(|m| m.address == address);
@@ -62,7 +62,7 @@ pub fn click(state: &mut State, row: u8) -> EventOutcome {
     };
     let Some((eth, amount)) = moves(held) else { return EventOutcome::Idle };
     let m = state.meter.landed.moving.as_ref().filter(|m| m.address == address && m.eth == eth);
-    match act(m, nonos_tls::rtc_now()) {
+    match act(m, crate::wallet::clock::now_s()) {
         Act::Move | Act::GasWaiting => job::start(state, address, amount, eth),
         Act::Confirm { .. } => job::confirm(state),
         Act::PayGas => return job::pay_gas(state),
