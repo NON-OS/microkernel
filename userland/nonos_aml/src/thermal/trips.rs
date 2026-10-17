@@ -18,7 +18,8 @@
 //! must shut down; _HOT, where it should sleep to S4; _PSV, where the
 //! processors slow; and _AC0 to _AC9, where fans start, _AC0 the hottest.
 
-use super::trip_read::{believe, read, temp, value, UNREAD_CRT, UNREAD_HOT, UNREAD_PSV};
+use super::trip_more::{active, polling};
+use super::trip_read::{believe, read, temp, UNREAD_CRT, UNREAD_HOT, UNREAD_PSV};
 use super::trip_rule::sane;
 use crate::load::Aml;
 use crate::namespace::{Id, Seg};
@@ -32,14 +33,14 @@ pub struct Trips {
     pub critical: Option<i32>,
     pub hot: Option<i32>,
     pub passive: Option<i32>,
-    /// In m°C, _AC0 first. The list stops at the first _ACx missing or
-    /// unbelievable, or warmer than the one before: the levels must fall.
+    /// In m°C, _AC0 first. The list stops at the first _ACx missing, or
+    /// warmer than the one before, or unread with none kept (`trip_more`).
     pub active: Vec<i32>,
     /// _TZP, in tenths of a second; 0 means the zone notifies instead.
     pub polling: Option<u64>,
     /// `trip_rule`'s fault bits, how the trips were misordered, and
-    /// `trip_read`'s, which were unread and kept from `prev`.
-    pub faults: u8,
+    /// `trip_read`'s and `trip_more`'s, which were unread and kept from `prev`.
+    pub faults: u16,
 }
 
 pub fn active_seg(x: usize) -> Seg {
@@ -48,20 +49,14 @@ pub fn active_seg(x: usize) -> Seg {
 
 /// The zone's trips; `prev`, those believed before, for any unread now.
 pub fn trips(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id, prev: &Trips) -> Trips {
-    let mut active = Vec::new();
-    for x in 0..MAX_ACTIVE {
-        match temp(aml, eval, tz, active_seg(x)) {
-            Some(t) if active.last().is_none_or(|prev| t <= *prev) => active.push(t),
-            _ => break,
-        }
-    }
     let mut kept = 0;
+    let active = active(aml, eval, tz, &prev.active, &mut kept);
     let mut get = |seg, was, bit| believe(read(aml, eval, tz, seg), was, bit, &mut kept);
     let critical = get(*b"_CRT", prev.critical, UNREAD_CRT);
     let passive = get(*b"_PSV", prev.passive, UNREAD_PSV);
     let (hot, faults) = sane(critical, get(*b"_HOT", prev.hot, UNREAD_HOT), passive);
-    let faults = faults | kept;
-    let polling = value(aml, eval, tz, *b"_TZP");
+    let polling = polling(aml, eval, tz, prev.polling, &mut kept);
+    let faults = u16::from(faults) | kept;
     Trips { critical, hot, passive, active, polling, faults }
 }
 
