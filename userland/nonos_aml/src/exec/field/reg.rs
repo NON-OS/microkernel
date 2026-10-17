@@ -33,9 +33,8 @@ impl<H: Host> Machine<'_, H> {
     /// Runs _REG(space, 1) once in every scope that holds a region of that
     /// space and has a _REG, in the order the regions were defined. A scope
     /// is marked before its _REG runs, so a _REG that loads a table is not
-    /// run again from inside itself. A _REG that faults is reported and the
-    /// rest still run, so one broken device does not keep the others'
-    /// regions unannounced.
+    /// run again from inside itself. A _REG that faults on its own is
+    /// reported and the rest still run.
     pub(super) fn announce(&mut self, aml: &mut Aml, space: Space) -> Vec<(Id, Fault)> {
         let mut scopes: Vec<Id> = Vec::new();
         for (scope, s) in super::reg_loaded::regions(aml) {
@@ -45,13 +44,21 @@ impl<H: Host> Machine<'_, H> {
             }
         }
         let mut failed = Vec::new();
+        // Once the budget refuses, no _REG can run: the scopes left, and
+        // one cut midway, stay untold for the next connect or load.
         for scope in scopes {
+            if self.cut {
+                break;
+            }
             let Some(reg) = aml.ns.child(scope, *b"_REG") else { continue };
             aml.rt.announced.push((scope, space.0));
             let args = alloc::vec![Object::Integer(space.0 as u64), Object::Integer(1)];
             self.frames.push(Frame::new(0, scope));
             let r = self.read_named(aml, reg, args, 0);
             self.frames.pop();
+            if self.cut {
+                aml.rt.announced.retain(|told| *told != (scope, space.0));
+            }
             if let Err(f) = r {
                 failed.push((reg, f));
             }

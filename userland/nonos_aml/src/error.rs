@@ -45,6 +45,9 @@ pub enum ErrorKind {
     Checksum,
     /// A table out of order: the DSDT comes first, then SSDTs and PSDTs.
     Signature,
+    /// The evaluation loading a table ran out of budget in its load-time
+    /// code; the table was taken back out.
+    Budget,
 }
 
 /// A refusal and the table offset it was found at.
