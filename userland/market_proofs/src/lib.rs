@@ -24,12 +24,10 @@ pub mod install_ready;
 #[path = "../../capsule_market/src/server/handlers/install_ready/find_release.rs"]
 pub mod find_release;
 
-// The request header decode every frame passes before dispatch; the rest of
-// the module is the capsule's reply side, which nothing here sends.
 #[cfg(test)]
 mod abi_v3;
-#[allow(dead_code, unused_imports)]
-#[path = "../../capsule_market/src/protocol/mod.rs"]
+// The request header decode every frame passes before dispatch (protocol/).
+#[cfg(test)]
 mod protocol;
 mod server;
 #[cfg(test)]

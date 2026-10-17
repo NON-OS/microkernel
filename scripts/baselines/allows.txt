@@ -117,7 +117,6 @@ userland/kernel_proofs/src/syscall/microkernel/mod.rs:17
 userland/l2_proofs/src/refusal_tests.rs:30
 userland/l2_proofs/src/refusal_tests.rs:33
 userland/l2_proofs/src/server.rs:22
-userland/market_proofs/src/lib.rs:29
 userland/mechanism_proofs/src/bounds/mod.rs:19
 userland/mechanism_proofs/src/buddy/constants/mod.rs:22
 userland/mechanism_proofs/src/buddy/constants/mod.rs:26
