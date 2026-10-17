@@ -19,6 +19,7 @@
 use core::mem;
 use core::ptr;
 
+use super::dmar_ats::{ATSR_TYPE, SATC_TYPE};
 use super::dmar_rmrr::RMRR_TYPE;
 use crate::arch::x86_64::acpi::tables::Drhd;
 
@@ -40,6 +41,7 @@ pub(super) unsafe fn entry(kind: u16, cursor: u64, bytes: &[u8]) -> bool {
             let (segment, base) = (drhd.segment, drhd.register_base_address);
             found_drhd |= super::dmar_units::record(bytes, segment, base);
         }
+        ATSR_TYPE | SATC_TYPE if length >= 8 => super::dmar_ats::record(kind, bytes),
         _ => {}
     }
     found_drhd

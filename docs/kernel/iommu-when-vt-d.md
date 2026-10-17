@@ -53,6 +53,13 @@ a warning, the devices behind it are unrestricted, and the IOMMU then claims
 no enforcement at all (`src/arch/x86_64/acpi/parser/other/dmar_keep.rs`,
 `fn keep`; `src/arch/x86_64/iommu/backend/capabilities.rs`, `fn vtd`).
 
+DMAR's flags and host address width are read. Without `INTR_REMAP` interrupt
+remapping stays off; the reported width is cut to the host address width; and
+ATSR and SATC structures are counted in an `[VT-D] ATS left off` line, since no
+context entry takes a device's own translations
+(`src/arch/x86_64/acpi/parser/other/dmar_flags.rs`, `fn dmar_intr_remap`;
+`src/arch/x86_64/acpi/parser/other/dmar_ats.rs`, `fn ats_structures`).
+
 Interrupt remapping is the `nonos-iommu-intremap` feature, in
 `microkernel-core`. Every unit gets one shared table with CFI clear, so a
 compatibility format interrupt is blocked: each MSI, MSI-X and IO-APIC line

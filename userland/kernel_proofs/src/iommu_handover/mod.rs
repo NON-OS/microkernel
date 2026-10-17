@@ -19,4 +19,6 @@ pub mod handover;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_flags.rs"]
 pub mod dmar_flags;
 #[cfg(test)]
+mod flags_tests;
+#[cfg(test)]
 mod tests;
