@@ -30,6 +30,7 @@ mod lock_word;
 mod pci_path;
 mod read;
 mod reg;
+mod reg_loaded;
 mod region;
 mod region_io;
 mod rules;
