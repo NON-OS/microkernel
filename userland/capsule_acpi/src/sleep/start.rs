@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! \_S5 read at start, with nothing run, and handed to the kernel: on a
-//! laptop whose \_S5 is a method, the kernel's constant reader found none,
-//! and soft-off becomes available from here on, even for a shutdown that
-//! never comes through PREPARE_SLEEP.
+//! \_S5 read at start, and again after any table loaded at run time, with
+//! nothing run, and handed to the kernel: on a laptop whose \_S5 is a
+//! method, the kernel's constant reader found none, and soft-off becomes
+//! available from here on, even for a shutdown that never comes through
+//! PREPARE_SLEEP. The kernel's own pair stands when it has one (F-111).
 
 use crate::boot::evaluator;
 use crate::host::CapsuleHost;
@@ -35,6 +36,9 @@ pub fn read_s5(aml: &mut Aml, host: &mut CapsuleHost) {
                 Err(e) => l.str(b"; the kernel refused it: ").dec(e.unsigned_abs()).end(),
             }
         }
-        None => Line::new(b"no usable \\_S5: soft-off is the constant reader's alone").end(),
+        None => {
+            let rest = b"soft-off rests on the kernel's constant reader (its posture line)";
+            Line::new(b"no usable \\_S5 here: ").str(rest).end()
+        }
     }
 }

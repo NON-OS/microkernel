@@ -37,8 +37,12 @@ pub fn evaluate(
     id: Id,
     args: Vec<Object>,
 ) -> Result<Object, Fault> {
-    let before = aml.rt.left_held;
+    let (before, tables) = (aml.rt.left_held, aml.tables.len());
     let r = Machine::new(aml, host, ExecLimits::DEFAULT).evaluate(aml, id, args);
+    // A table loaded at run time may define or redefine \_S5 (F-111).
+    if aml.tables.len() > tables {
+        crate::sleep::read_s5(aml, host);
+    }
     let left = aml.rt.left_held.wrapping_sub(before);
     if left > 0 && TOLD.fetch_add(1, Ordering::Relaxed) < TELL {
         let line = Line::new(b"AML: method ").hex(u64::from(id)).str(b" ended holding ");

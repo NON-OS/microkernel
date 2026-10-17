@@ -84,6 +84,7 @@ mod report;
 pub mod reserved_publish;
 pub mod rule;
 mod sci;
+pub mod s5_choice;
 pub mod sleep_adopt;
 pub mod sleep_request;
 pub mod slot_access;

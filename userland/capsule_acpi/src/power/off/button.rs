@@ -18,10 +18,10 @@
 //! hand-over of the fixed button from the kernel's poll to this capsule's
 //! SCI, so that one reader alone clears its status bit.
 
-use super::power_off;
+use super::{power_off, Why};
 use super::rule::{fixed_button, on_restart, press as verdict, Press};
 use core::sync::atomic::{AtomicBool, Ordering};
-use crate::sys::acpi_event::{acpi_event, button_taken, POWER_BUTTON};
+use crate::sys::acpi_event::button_taken;
 use crate::sys::log::Line;
 use nonos_aml::events::Policy;
 
@@ -39,11 +39,8 @@ pub fn press(p: &mut Presses, now: u64) {
     let v = on_restart(verdict(p.last, p.pass_at, now), RESTARTED.load(Ordering::Relaxed));
     p.last = Some(now);
     match v {
-        Press::PowerOff => {
-            power_off(b"power button");
-            // Refused: the shell's Power key, as before this capsule took it.
-            let _ = acpi_event(POWER_BUTTON, 0);
-        }
+        // Refused, `serve` gives the shell its Power key instead.
+        Press::PowerOff => power_off(Why::Button),
         Press::Bounce => {}
         Press::BootGuard => Line::new(b"power button ignored: within the boot guard").end(),
     }

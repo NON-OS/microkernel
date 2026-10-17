@@ -57,7 +57,7 @@ pub fn send(c: &mut Cooling, now: u64) {
     }
     if w & CRITICAL != 0 && c.reported.is_none_or(|r| r & CRITICAL == 0) {
         // Refused, the kernel's grace power-off still runs from the report.
-        crate::power::off::power_off(b"thermal zone at _CRT");
+        crate::power::off::power_off(crate::power::off::Why::Thermal);
     }
     // A refused report is made again at the next reading.
     if acpi_event(THERMAL, w).is_ok() {

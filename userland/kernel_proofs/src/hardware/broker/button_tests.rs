@@ -43,3 +43,6 @@ fn a_press_before_any_capsule_is_the_desktops() {
     assert_eq!(press_rule(false), Press::Desktop);
     assert_eq!(press_rule(true), Press::PowerOff);
 }
+
+#[path = "s5_choice_tests.rs"]
+mod s5_choice;

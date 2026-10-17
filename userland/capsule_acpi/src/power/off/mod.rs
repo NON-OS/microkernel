@@ -17,25 +17,17 @@
 //! The wiped power-off (F-88). AdminShutdown wipes on the way down; it is
 //! asked for by a power-button press, a thermal zone at _CRT, a critical
 //! battery, or the shell through `power.off` (the shell confirms first;
-//! nothing here asks).
-//! Firmware's own critical shutdown would cut power without the wipe.
+//! nothing here asks). Each is asked for, then run from the capsule's
+//! loop with \_TTS(5) and \_PTS(5) first (`serve`, F-111). Firmware's own
+//! critical shutdown would cut power without the wipe.
 
 mod button;
 mod request;
+mod serve;
 pub mod rule;
 pub mod wire;
 
 pub use button::{policy, press, take_button, Presses};
 pub use request::requested;
 
-use crate::sys::log::Line;
-use nonos_libc::mk_admin_shutdown;
-
-/// One line, then AdminShutdown. Returns only when the kernel refused it,
-/// with the errno; the callers then fall back to what ran before.
-pub fn power_off(why: &[u8]) -> i64 {
-    Line::new(b"power off with the wipe: ").str(why).end();
-    let e = mk_admin_shutdown();
-    Line::new(b"power off refused, errno ").dec(e.unsigned_abs()).end();
-    e
-}
+pub use serve::{power_off, serve, Why};
