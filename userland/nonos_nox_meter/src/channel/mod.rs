@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod charge;
 mod floor;
+mod margin;
 mod state;
 mod voucher;
 
-pub use charge::CHARGE_MARGIN;
+pub use margin::CHARGE_MARGIN;
 pub use state::{Channel, MAX_CHANNELS, NO_SIG};

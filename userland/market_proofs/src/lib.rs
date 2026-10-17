@@ -38,6 +38,7 @@ mod index_decode_tests;
 
 pub mod release_wire;
 
+pub mod meter;
 pub mod store;
 
 pub mod linux_why;

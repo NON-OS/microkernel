@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 
 use nonos_nox_meter::caller::op_role;
 use nonos_payment_proto::{EINVAL, EPERM, OP_ACCOUNT, OP_DRAIN, OP_HEALTHCHECK, OP_LIST_TOKENS};
-use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_JOB, OP_OPEN, OP_PAY, OP_TOPUP};
+use nonos_payment_proto::{OP_CLAIM, OP_CLOSE, OP_FUNDED, OP_JOB, OP_OPEN, OP_PAY, OP_TOPUP};
 use nonos_payment_proto::{OP_LISTING_CAP, OP_ORDER_PLAINTEXT, OP_ORDER_REFUND, OP_ORDER_STATUS};
 use nonos_payment_proto::{OP_ORDER_DELIVERED, OP_ORDER_NEW, OP_ORDER_OFFER, OP_PURCHASE};
 
@@ -56,6 +56,7 @@ pub fn dispatch(meter: &mut Meter, work: &mut Work, req: &Call<'_>) -> Vec<u8> {
         OP_ORDER_PLAINTEXT => handlers::order_plaintext(req),
         OP_PURCHASE => handlers::purchase(work, req),
         OP_LISTING_CAP => handlers::listing_cap(meter, req),
+        OP_FUNDED => handlers::funded(meter, req),
         _ => handlers::set_budget(meter, req),
     }
 }

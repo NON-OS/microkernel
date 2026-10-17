@@ -13,11 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::margin::CHARGE_MARGIN;
 use super::state::{Channel, NO_SIG};
 use crate::error::MeterError;
-
-/// No charge lands within a day of a channel's expiry.
-pub const CHARGE_MARGIN: u64 = 86_400;
 
 impl Channel {
     /// This channel after a charge of `amount` whose usage root is `root`, or

@@ -18,9 +18,8 @@
 //! wait while it installs, or open it once it has.
 
 use super::channel_held::{queued, reads_channels, route, Route};
-use super::fill_step::now_ms;
 use super::install::{ask, open, remove, Asked};
-use super::meter_call::channels;
+use super::meter_call::funded;
 use super::next_step::{on_enter, Enter};
 use super::purchase::{names_of, post};
 use super::purchase_said::ordered;
@@ -37,8 +36,8 @@ pub fn primary(state: &mut State) -> Option<Asked> {
         Enter::Cannot => Some(Asked::Cannot),
         Enter::Install => {
             let l = state.current()?;
-            let rows = reads_channels(l).then(channels).flatten();
-            Some(match route(l, rows.as_deref(), now_ms() / 1000) {
+            let bit = reads_channels(l).then(|| funded(&names_of(l))).flatten();
+            Some(match route(l, bit) {
                 Route::Install => install(state),
                 Route::Post => buy(state),
             })

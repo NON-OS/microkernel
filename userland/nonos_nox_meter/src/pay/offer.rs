@@ -16,25 +16,11 @@
 
 //! Whether a PAY request asks for exactly what the release sells.
 
-use alloc::vec::Vec;
-
 use nonos_marketplace_abi::{commerce_from_bytes, SettleMode};
 
+use super::record::Offer;
 use crate::error::MeterError;
 use nonos_payment_proto::PayRequest;
-
-/// What the market said about the release, as OP_GET_COMMERCE returns it.
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct Offer {
-    /// Both the publisher's release signature and the payee's binding hold.
-    pub trusted: bool,
-    pub listing_id: [u8; 32],
-    pub release_hash: [u8; 32],
-    pub chain_id: u64,
-    pub token: Vec<u8>,
-    /// The commerce block's canonical bytes.
-    pub block: Vec<u8>,
-}
 
 /// The amount to charge, qty times unitPrice, once every word of the
 /// request equals the signed block: the caller names nothing the publisher

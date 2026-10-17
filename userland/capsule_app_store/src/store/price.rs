@@ -35,10 +35,6 @@ pub struct Price {
     pub payee: [u8; 20],
     /// Commerce matches and the payee's binding is valid.
     pub trusted: bool,
-    /// The commerce reply's listing id and chain: what a channel for this
-    /// listing carries in the meter's ACCOUNT rows.
-    pub listing_key: [u8; 32],
-    pub chain_id: u64,
 }
 
 pub fn price_line(p: &Price) -> Vec<u8> {

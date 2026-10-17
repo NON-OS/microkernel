@@ -45,6 +45,8 @@ meter, the plan) links it.
 - `pay`: `priced`, which refuses a PAY v2 request (`nonos_payment_proto`)
   unless the release is trusted and every word equals its signed commerce
   block.
+  `funded`, FUNDED's one bit for app.store: a channel for the record's
+  listing and chain takes one more unit at the record's own price.
 - `state::ChainView`: settle's CHANNEL_STATE; a closed channel takes no
   further charge.
 - `wire`: the meter's state as payment_proto's ACCOUNT and DRAIN replies,

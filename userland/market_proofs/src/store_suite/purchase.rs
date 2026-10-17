@@ -28,9 +28,7 @@ use crate::store::purchase_said::{by_wallet, handed, ordered};
 
 fn priced(mode: u8, trusted: bool) -> crate::store::listing::Listing {
     let mut l = listing(b"linux.qwen-small", b"Qwen");
-    let (unit, payee, listing_key, chain_id) = (&b"install"[..], [0; 20], [0; 32], 0);
-    l.known.price =
-        Some(Price { mode, unit, unit_price: 1, payee, trusted, listing_key, chain_id });
+    l.known.price = Some(Price { mode, unit: b"install", unit_price: 1, payee: [0; 20], trusted });
     l
 }
 
