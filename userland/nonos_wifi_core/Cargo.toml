@@ -27,3 +27,6 @@ nonos_mac = { path = "../nonos_mac" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[package.metadata.nonos]
+test-lane = true
