@@ -34,20 +34,6 @@ impl SaeStation {
         self.peer_scalar = peer.scalar_bytes;
         self.peer_element = peer.element_bytes;
         self.state = SaeState::Confirmed;
-        // The first confirm this station sends carries send-confirm 1.
-        let send_confirm = 1u16;
-        let c = confirm(
-            &self.keys.kck,
-            send_confirm,
-            &self.own_scalar,
-            &self.own_element,
-            &self.peer_scalar,
-            &self.peer_element,
-        );
-        SaeStep::Send {
-            seq: SEQ_CONFIRM,
-            status: STATUS_SUCCESS,
-            body: confirm_body(send_confirm, &c),
-        }
+        self.send_confirm()
     }
 }
