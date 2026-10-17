@@ -18,11 +18,11 @@
 //! must shut down; _HOT, where it should sleep to S4; _PSV, where the
 //! processors slow; and _AC0 to _AC9, where fans start, _AC0 the hottest.
 
-use super::temp::milli_celsius;
+use super::trip_read::{believe, read, temp, value, UNREAD_CRT, UNREAD_HOT, UNREAD_PSV};
 use super::trip_rule::sane;
 use crate::load::Aml;
 use crate::namespace::{Id, Seg};
-use crate::platform::{integer, Eval};
+use crate::platform::Eval;
 use alloc::vec::Vec;
 
 pub const MAX_ACTIVE: usize = 10;
@@ -37,24 +37,17 @@ pub struct Trips {
     pub active: Vec<i32>,
     /// _TZP, in tenths of a second; 0 means the zone notifies instead.
     pub polling: Option<u64>,
-    /// `trip_rule`'s fault bits: how the trips were misordered.
+    /// `trip_rule`'s fault bits, how the trips were misordered, and
+    /// `trip_read`'s, which were unread and kept from `prev`.
     pub faults: u8,
-}
-
-pub(super) fn value(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id, seg: Seg) -> Option<u64> {
-    let id = aml.ns.child(tz, seg)?;
-    eval(aml, id, Vec::new()).ok().as_ref().and_then(integer)
-}
-
-fn temp(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id, seg: Seg) -> Option<i32> {
-    value(aml, eval, tz, seg).and_then(milli_celsius)
 }
 
 pub fn active_seg(x: usize) -> Seg {
     [b'_', b'A', b'C', b'0' + x as u8]
 }
 
-pub fn trips(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id) -> Trips {
+/// The zone's trips; `prev`, those believed before, for any unread now.
+pub fn trips(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id, prev: &Trips) -> Trips {
     let mut active = Vec::new();
     for x in 0..MAX_ACTIVE {
         match temp(aml, eval, tz, active_seg(x)) {
@@ -62,9 +55,12 @@ pub fn trips(aml: &mut Aml, eval: &mut Eval<'_>, tz: Id) -> Trips {
             _ => break,
         }
     }
-    let critical = temp(aml, eval, tz, *b"_CRT");
-    let passive = temp(aml, eval, tz, *b"_PSV");
-    let (hot, faults) = sane(critical, temp(aml, eval, tz, *b"_HOT"), passive);
+    let mut kept = 0;
+    let mut get = |seg, was, bit| believe(read(aml, eval, tz, seg), was, bit, &mut kept);
+    let critical = get(*b"_CRT", prev.critical, UNREAD_CRT);
+    let passive = get(*b"_PSV", prev.passive, UNREAD_PSV);
+    let (hot, faults) = sane(critical, get(*b"_HOT", prev.hot, UNREAD_HOT), passive);
+    let faults = faults | kept;
     let polling = value(aml, eval, tz, *b"_TZP");
     Trips { critical, hot, passive, active, polling, faults }
 }

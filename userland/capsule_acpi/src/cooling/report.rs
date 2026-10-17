@@ -28,11 +28,11 @@ const RESEND_MS: u64 = 60_000;
 const FLAGS: u64 = PASSIVE | HOT | CRITICAL;
 
 pub fn word(c: &Cooling) -> Option<u64> {
-    let hottest = c.zones.iter().filter_map(|z| z.temp).max()?;
+    let hottest = c.zones.iter().filter_map(|z| z.w.temp).max()?;
     let any = |f: fn(&Zone) -> bool, bit: u64| if c.zones.iter().any(f) { bit } else { 0 };
-    let flags = any(|z| z.verdict.passive, PASSIVE)
-        | any(|z| z.verdict.hot, HOT)
-        | any(|z| z.critical, CRITICAL);
+    let flags = any(|z| z.w.verdict.passive, PASSIVE)
+        | any(|z| z.w.verdict.hot, HOT)
+        | any(|z| z.w.critical, CRITICAL);
     Some(tenths_kelvin(hottest).min(TENTHS_K_MASK) | flags)
 }
 
