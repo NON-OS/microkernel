@@ -59,13 +59,6 @@ pub struct Runtime {
 impl Runtime {
     /// Notifications past this are dropped and counted: no table grows an undrained queue.
     pub const MAX_NOTIFICATIONS: usize = 64;
-    /// Everything kept about an object, dropped when the object is removed.
-    pub fn forget(&mut self, id: Id) {
-        *self.value(id) = None;
-        self.regions.remove(&id);
-        self.buffer_fields.remove(&id);
-        self.announced.retain(|(s, _)| *s != id);
-    }
     pub fn value(&mut self, id: Id) -> &mut Option<Object> {
         if self.values.len() <= id as usize {
             self.values.resize(id as usize + 1, None);
