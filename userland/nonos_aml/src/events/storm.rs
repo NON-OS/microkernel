@@ -26,16 +26,16 @@ pub const RUNS: u32 = 200;
 pub const WINDOW_MS: u64 = 1000;
 /// Keys tracked at once; more GPEs than any machine has.
 const KEYS: usize = 512;
-/// Runs in a row the budget cut short before an event is left off: a method
-/// that never finishes is broken, not unlucky. Our bound, from no source.
-pub const CUTS: u8 = 3;
 
 #[derive(Debug, Default)]
 pub struct Storms {
     /// Per key: the window's start and the runs in it.
     seen: BTreeMap<u16, (u64, u32)>,
-    /// Per key: runs in a row the budget cut short.
-    cuts: BTreeMap<u16, u8>,
+    /// Per key: runs in a row the budget cut short, the back-off window
+    /// last used, and when an event left off is armed again (`storm_backoff`).
+    pub(super) cuts: BTreeMap<u16, u8>,
+    pub(super) windows: BTreeMap<u16, u64>,
+    pub(super) off: BTreeMap<u16, u64>,
 }
 
 impl Storms {
@@ -50,17 +50,5 @@ impl Storms {
         }
         e.1 += 1;
         e.1 > RUNS
-    }
-
-    /// Counts a run of `key` the budget cut short, or clears the count after
-    /// one it did not; true once `CUTS` runs in a row were cut.
-    pub fn cut(&mut self, key: u16, cut: bool) -> bool {
-        if !cut {
-            self.cuts.remove(&key);
-            return false;
-        }
-        let n = self.cuts.entry(key).or_insert(0);
-        *n = n.saturating_add(1);
-        *n >= CUTS
     }
 }

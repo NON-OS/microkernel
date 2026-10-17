@@ -37,7 +37,7 @@ fn a_failing_level_method_leaves_its_event_off_and_an_edge_one_does_not() {
     rig.raise(0x02);
     let mut io = rig.regs.clone();
     let report = rig.events.on_sci(&mut io, &mut fail).unwrap();
-    assert_eq!(report.disabled, [0x01]);
+    assert_eq!(report.disabled, [(0x01, None)]);
     assert_eq!(bits(&rig.regs, 0x01), (false, false));
     assert_eq!(bits(&rig.regs, 0x02), (false, true));
     assert!(!rig.events.armed.contains(&0x01));

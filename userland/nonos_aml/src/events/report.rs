@@ -25,8 +25,9 @@ pub struct SciReport {
     pub fixed: u16,
     /// Runtime GPEs run, in order, and how their methods ended.
     pub ran: Vec<(u16, Result<(), Fault>)>,
-    /// Level GPEs left disabled after their method failed.
-    pub disabled: Vec<u16>,
+    /// GPEs left disabled: for good (None) after a level method failed on
+    /// its own, or for a back-off window in milliseconds after cuts.
+    pub disabled: Vec<(u16, Option<u64>)>,
     /// GPEs turned off for firing past the storm bound (`storm`).
     pub stormed: Vec<u16>,
 }
