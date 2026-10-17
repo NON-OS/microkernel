@@ -40,6 +40,10 @@ pub mod error;
 pub mod regs;
 #[path = "../../capsule_driver_bga/src/setup/mode.rs"]
 pub mod start;
+// The mode module under the name the bring-up's `fresh` reaches it by.
+pub use start as mode;
+#[path = "../../capsule_driver_bga/src/setup/fresh.rs"]
+pub mod fresh;
 #[path = "../../capsule_driver_bga/src/turn.rs"]
 pub mod turn;
 
