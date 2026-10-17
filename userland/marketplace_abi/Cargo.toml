@@ -25,6 +25,10 @@ crate-type = ["rlib"]
 # Tags, domains and typehashes for the ids and the binding digest.
 nonos_nox_config = { path = "../nonos_nox_config" }
 
+[dev-dependencies]
+# A host keccak for the tests of address_text against EIP-55's examples.
+sha3 = { version = "=0.10.9", default-features = false }
+
 [features]
 default = []
 # Permits the canonical-bytes encoder to round-trip a fully-formed
