@@ -29,3 +29,10 @@ pub(super) use inner::{
     allocate_domain, attach_device, capabilities, detach_device, free_domain, map, select_vendor,
     translates, unmap,
 };
+#[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
+pub(crate) use inner::{block_faulted, note_fault};
+#[cfg(all(target_arch = "x86_64", not(feature = "nonos-arch-iommu")))]
+#[path = "backend_unsupported_fault.rs"]
+mod no_fault;
+#[cfg(all(target_arch = "x86_64", not(feature = "nonos-arch-iommu")))]
+pub(crate) use no_fault::block_faulted;
