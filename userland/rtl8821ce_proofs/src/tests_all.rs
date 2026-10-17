@@ -4,6 +4,8 @@
 #[cfg(test)]
 mod assoc_tests;
 #[cfg(test)]
+mod bounds_tests;
+#[cfg(test)]
 mod coex_tests;
 #[cfg(test)]
 mod connect_tests;

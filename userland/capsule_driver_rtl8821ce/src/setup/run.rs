@@ -49,7 +49,9 @@ pub fn run(dev: Found) -> Result<Mapped, &'static str> {
         return Err("rtl8821ce: mmio map failed");
     }
     Ok(Mapped {
-        regs: Regs::new(out.user_va),
+        // SAFETY: the broker mapped `length` bytes of the BAR at `user_va` for
+        // this claim, which is released only on the way out (`release`).
+        regs: unsafe { Regs::new(out.user_va, out.length) },
         device_id: dev.device_id,
         claim_epoch: epoch as u64,
         efuse: None,

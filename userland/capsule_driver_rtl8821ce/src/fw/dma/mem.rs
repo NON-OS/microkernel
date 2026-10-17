@@ -14,6 +14,7 @@ pub trait DmaMem {
     fn capacity(&self) -> usize;
     /// The device (bus) address of the region's start.
     fn device_addr(&self) -> u64;
-    /// Copy `src` into the region at `offset`. Callers keep writes in bounds.
+    /// Copy `src` into the region at `offset`. A copy that would run past the
+    /// region writes nothing.
     fn write_bytes(&self, offset: usize, src: &[u8]);
 }

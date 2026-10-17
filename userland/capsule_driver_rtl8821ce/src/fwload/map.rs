@@ -65,5 +65,8 @@ pub(crate) fn map_dma_with(
     if mk_dma_map(device_id, claim_epoch, bytes, flags, &mut out) < 0 {
         return None;
     }
-    Some(Grant::new(out.user_va, out.device_addr, out.length as usize))
+    // SAFETY: the broker mapped `length` coherent bytes at `user_va` for this
+    // claim, reached by the card at `device_addr`; the mapping lasts as long
+    // as the claim, which outlives every grant the driver holds.
+    Some(unsafe { Grant::new(out.user_va, out.device_addr, out.length as usize) })
 }
