@@ -17,7 +17,7 @@
 //! The driver against modelled capability regions and a part that consumes
 //! the control queue.
 
-mod deaths;
+mod gpu;
 mod harness;
 mod host;
 mod model;
@@ -35,7 +35,7 @@ mod queue_limit_tests;
 mod queue_tests;
 mod reply_refusal_tests;
 mod reply_tests;
-mod request_refusal_tests;
 mod reset_tests;
 mod wire_scanout_tests;
+mod wire_sweep;
 mod wire_tests;
