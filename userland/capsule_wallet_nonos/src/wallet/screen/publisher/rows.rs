@@ -34,9 +34,7 @@ use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::state::State;
 
 pub const ROW_CONFIRM: u8 = 0;
-pub const ROW_BINDING: u8 = 1;
-/// Release i's attest is row ROW_ATTEST + i.
-pub const ROW_ATTEST: u8 = 2;
+pub use crate::wallet::arm::rows::{ROW_ATTEST, ROW_BINDING};
 
 pub fn entry(state: &State, e: &MarketplaceEntry, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let mut h = 0;
