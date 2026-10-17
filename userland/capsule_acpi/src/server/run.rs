@@ -47,5 +47,6 @@ pub fn run(mut acpi: Acpi) -> ! {
         crate::hotplug::tick(&mut acpi);
         crate::hotplug::native::tick(&mut acpi);
         crate::dpower::wake_tick(&mut acpi);
+        let _ = crate::power::off::serve(&mut acpi);
     }
 }

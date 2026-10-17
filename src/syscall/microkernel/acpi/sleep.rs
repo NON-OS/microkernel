@@ -16,7 +16,8 @@
 
 //! `MkAcpiSleep(state, slp_typ_a, slp_typ_b) -> 0`: the ACPI capsule has
 //! evaluated \_S5 (after \_TTS and \_PTS, when a shutdown is coming) and
-//! hands its SLP_TYP values to the kernel's soft-off. EINVAL for any state
+//! hands its SLP_TYP values to the kernel's soft-off, which takes them when
+//! its own constant reader found none (`s5_choice`). EINVAL for any state
 //! but 5 or a value wider than three bits; ENODEV when the kernel never
 //! read the ACPI tables.
 
@@ -38,7 +39,7 @@ pub fn sys_acpi_sleep(state: u64, a: u64, b: u64) -> i64 {
             now.1
         ),
         Before::Differed(ca, cb) => crate::log_warn!(
-            "[ACPI] \\_S5 from the interpreter: SLP_TYP {}/{}, where the constant reader had {}/{}",
+            "[ACPI] \\_S5 from the interpreter: SLP_TYP {}/{}; the constant reader's {}/{} stands",
             now.0,
             now.1,
             ca,
