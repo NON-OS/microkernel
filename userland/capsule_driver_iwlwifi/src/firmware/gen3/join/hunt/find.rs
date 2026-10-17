@@ -1,12 +1,11 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
-//! Hunting the network's beacon over the channels.
+//! Hunting the network's access points over the channels.
 
-use alloc::vec::Vec;
-use core::cell::RefCell;
-
+use nonos_wifi_core::bss::Candidates;
 use nonos_wifi_core::dot11::parse::parse_beacon;
 use nonos_wifi_core::regdom::join_channel;
+use nonos_wifi_core::scan_list::signal_percent;
 
 use super::super::super::dev::Dev;
 use super::super::super::region::{Clock, Region};
@@ -16,19 +15,19 @@ use super::kinds::{HuntEnd, PUMP_US};
 use super::stop::stop;
 use crate::regs::Mmio;
 
-/// Hunt `ssid` over `channels`: its beacon and the channel to join it on.
-/// `now` reads the time the sweep's budget is held to; `heard` gets every
-/// beacon and probe response.
+/// Hunt over `channels` for the network `found` is for: one whole sweep,
+/// every beacon and probe response for it judged into `found`, each at the
+/// signal it was heard at. `now` reads the time the sweep's budget is held
+/// to; `heard` gets every beacon and probe response.
 pub fn hunt<M: Mmio, R: Region + ?Sized, C: Clock>(
     dev: &mut Dev<'_, M, R>,
     c: &mut C,
     sweep: &mut Sweep,
     channels: &[u8],
-    ssid: &[u8],
+    found: &mut Candidates,
     now: &mut dyn FnMut() -> u64,
     heard: &mut dyn FnMut(&RxFrame),
-) -> Result<(Vec<u8>, u8), HuntEnd> {
-    let found: RefCell<Option<(Vec<u8>, u8)>> = RefCell::new(None);
+) -> Result<(), HuntEnd> {
     let mut beacons = 0u32;
     let mut on_frame = |f: RxFrame| {
         heard(&f);
@@ -38,9 +37,7 @@ pub fn hunt<M: Mmio, R: Region + ?Sized, C: Clock>(
         // heard, else where it was heard; a frame heard where the world
         // domain allows nothing is not taken.
         let Some(ch) = join_channel(f.channel, b.channel) else { return };
-        if b.ssid == ssid && found.borrow().is_none() {
-            *found.borrow_mut() = Some((f.frame.clone(), ch));
-        }
+        found.hear(&f.frame, ch, signal_percent(f.signal));
     };
     stop(dev, c, sweep, &mut on_frame)?;
     match sweep.start(dev, c, channels, now(), &mut on_frame) {
@@ -48,14 +45,14 @@ pub fn hunt<M: Mmio, R: Region + ?Sized, C: Clock>(
         Ok(_) => {}
     }
     while sweep.running() {
-        if found.borrow().is_some() {
-            stop(dev, c, sweep, &mut on_frame)?;
-            break;
-        }
         c.delay_us(PUMP_US);
         if sweep.pump(dev, now(), &mut on_frame) == Tick::Failed {
             return Err(HuntEnd::Radio);
         }
     }
-    found.into_inner().ok_or(HuntEnd::NotHeard(beacons))
+    if found.found() {
+        Ok(())
+    } else {
+        Err(HuntEnd::NotHeard(beacons))
+    }
 }
