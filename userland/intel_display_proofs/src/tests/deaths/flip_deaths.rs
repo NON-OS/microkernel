@@ -25,13 +25,13 @@ use nonos_gfx_serve::{Display, Shadow};
 use nonos_gfx_wire::body::cursor::{NEW_SHAPE, VISIBLE};
 use nonos_gfx_wire::{Cursor, Rect};
 
-fn flush(d: &mut Rig) {
+pub(crate) fn flush(d: &mut Rig) {
     let px = vec![0x5Au8; 1920 * 1080 * 4];
     let s = Shadow { bytes: &px, width: 1920, height: 1080, stride: 7680, cursor_offset: 0 };
     let _ = d.flush(0, &[Rect { x: 8, y: 8, width: 64, height: 32 }], &s);
 }
 
-fn cursor(d: &mut Rig) {
+pub(crate) fn cursor(d: &mut Rig) {
     let c = Cursor {
         flags: NEW_SHAPE | VISIBLE,
         x: 100,

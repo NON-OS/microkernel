@@ -28,8 +28,7 @@ use super::takeover::Output;
 
 impl Scanout {
     /// Map both surfaces (`pages` IOVAs each) high in the GGTT, clear of
-    /// firmware's surface unless it reaches into the entries from `ours` up
-    /// (a dead driver's, mapped over), then show the first once it is live.
+    /// firmware's surface but over a leftover, then show the first, live.
     pub fn start(
         m: &mut dyn Mmio,
         out: &Output,
@@ -41,7 +40,9 @@ impl Scanout {
         let fw = out.plane;
         let stride = (out.width * 4).next_multiple_of(64);
         let pages = (stride * out.height).div_ceil(4096);
-        if !fw.flippable() || fw.width != out.width || fw.height != out.height {
+        // A leftover, maybe another size after a cut-off mode set, is drawn over.
+        let kept = !leftover(&fw, ours) && (fw.width, fw.height) != (out.width, out.height);
+        if !fw.flippable() || kept {
             return Err(Error::Layout);
         }
         if iovas.iter().any(|v| v.len() != pages as usize) {

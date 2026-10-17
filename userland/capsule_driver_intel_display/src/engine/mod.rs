@@ -65,6 +65,7 @@ pub mod scanout_mode;
 pub mod scanout_recover;
 pub mod scanout_start;
 pub mod scanout_stop;
+pub mod settle;
 pub mod takeover;
 pub mod timing;
 pub mod timing_write;
