@@ -9,7 +9,7 @@ use nonos_wifi_core::wpa::akm::Akm;
 use nonos_wifi_core::wpa::ptk::{pmk, ptk};
 use nonos_wifi_core::wpa::supplicant::{Config, State, Supplicant};
 
-fn supplicant(key: [u8; 32]) -> Supplicant {
+pub(crate) fn supplicant(key: [u8; 32]) -> Supplicant {
     Supplicant::configure(&Config {
         pmk: key,
         aa: AA,

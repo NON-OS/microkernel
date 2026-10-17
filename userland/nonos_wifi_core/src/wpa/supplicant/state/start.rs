@@ -51,7 +51,6 @@ impl Supplicant {
             eapol_version: EAPOL_VERSION_DEFAULT,
             transition_disable: 0,
             failure: None,
-            rekey: None,
         }
     }
 }

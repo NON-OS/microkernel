@@ -16,6 +16,9 @@ pub const IE_SSID: u8 = 0;
 pub const IE_DS_PARAMS: u8 = 3;
 pub const IE_RSN: u8 = 48;
 
+/// The longest SSID (IEEE Std 802.11-2020, 9.4.2.2).
+pub const SSID_LEN_MAX: usize = 32;
+
 /// A parsed view of a beacon or probe response. `ssid` borrows the frame.
 pub struct BeaconInfo<'a> {
     pub bssid: [u8; 6],
@@ -27,8 +30,8 @@ pub struct BeaconInfo<'a> {
 
 /// Parse a beacon or probe-response frame that starts at the MAC header.
 /// Returns `None` if the frame is too short for the header and fixed fields, or
-/// if it carries no SSID element. A missing DS-parameter element leaves the
-/// channel at zero; an RSN element sets `rsn`.
+/// if it carries no SSID element or one longer than 32 octets. A missing
+/// DS-parameter element leaves the channel at zero; an RSN element sets `rsn`.
 pub fn parse_beacon(frame: &[u8]) -> Option<BeaconInfo<'_>> {
     if frame.len() < MAC_HEADER_LEN + FIXED_FIELDS_LEN {
         return None;
@@ -44,7 +47,7 @@ pub fn parse_beacon(frame: &[u8]) -> Option<BeaconInfo<'_>> {
     let fixed = MAC_HEADER_LEN;
     let capability = u16::from_le_bytes([frame[fixed + 10], frame[fixed + 11]]);
     let tags = &frame[MAC_HEADER_LEN + FIXED_FIELDS_LEN..];
-    let ssid = find_ie(tags, IE_SSID)?;
+    let ssid = find_ie(tags, IE_SSID).filter(|s| s.len() <= SSID_LEN_MAX)?;
     let channel = match find_ie(tags, IE_DS_PARAMS) {
         Some(ds) if !ds.is_empty() => ds[0],
         _ => 0,

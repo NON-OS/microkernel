@@ -26,6 +26,8 @@ mod crypto_tests;
 #[cfg(test)]
 mod forged_m1_tests;
 #[cfg(test)]
+mod fuzz;
+#[cfg(test)]
 mod handshake_tests;
 #[cfg(test)]
 mod key_tests;
@@ -37,6 +39,8 @@ mod link_history_tests;
 mod mlme_tests;
 #[cfg(test)]
 mod netif_tests;
+#[cfg(test)]
+mod parser_fuzz_tests;
 #[cfg(test)]
 mod protect_tests;
 #[cfg(test)]
@@ -50,7 +54,11 @@ mod sae_tests;
 #[cfg(test)]
 mod scan_list_tests;
 #[cfg(test)]
+mod ssid_bound_tests;
+#[cfg(test)]
 mod station_tests;
+#[cfg(test)]
+mod supplicant_fuzz_tests;
 #[cfg(test)]
 mod supplicant_tests;
 #[cfg(test)]

@@ -21,6 +21,7 @@
 mod data;
 mod forged_rekey;
 mod frames;
+mod fuzz;
 mod keys;
 mod rekey;
 mod stations;

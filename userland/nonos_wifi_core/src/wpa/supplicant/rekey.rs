@@ -1,14 +1,13 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
-//! A pairwise rekey (IEEE Std 802.11-2020, 12.7.6): the AP runs the four-way
-//! handshake again on a connected link. Its message 1 is answered under a new
-//! SNonce and the PTK of the new ANonce, which waits while the keys in use
-//! carry on, until a message 3 for that ANonce verifies under it; only then
-//! does it replace them. A forged message 1 (it carries no MIC) costs one
-//! message 2 and changes nothing. The new SNonce is HMAC-SHA256, keyed by the
-//! current KCK and KEK, of a label, the new ANonce and the last SNonce: new
-//! for every ANonce and unknown without the PTK, where the standard asks for
-//! a random one and the supplicant holds no randomness after the join.
+//! A pairwise rekey (IEEE Std 802.11-2020, 12.7.6). A message 1 on a
+//! connected link is answered under the SNonce and PTK of its ANonce while the
+//! keys in use carry on; a message 3 naming another ANonce is checked under
+//! the PTK of that ANonce, and only if it verifies does the PTK take over.
+//! Nothing waits between the two, so a forged message 1 costs one message 2
+//! and can neither change a key nor stop the AP's rekey. The SNonce is
+//! HMAC-SHA256 under the current KCK and KEK of a label, the ANonce and the
+//! last SNonce: unknown without the PTK, as no randomness is held after the join.
 
 use super::message3::is_message3;
 use super::state::Supplicant;
@@ -20,10 +19,8 @@ use crate::wpa::sha256::hmac_sha256_parts;
 
 const LABEL: &[u8] = b"NONOS rekey SNonce";
 
-/// The rekey a message 1 started: its ANonce, our SNonce, their PTK.
-#[derive(Clone)]
-pub(in crate::wpa::supplicant) struct Rekey {
-    anonce: [u8; 32],
+/// The keys a rekey to one ANonce runs under: our SNonce and the PTK.
+struct Rekey {
     snonce: [u8; 32],
     ptk: [u8; 48],
 }
@@ -36,26 +33,29 @@ impl Drop for Rekey {
 }
 
 impl Supplicant {
+    // The SNonce and PTK of a rekey to `anonce`.
+    fn rekey_to(&self, anonce: &[u8; 32]) -> Rekey {
+        let snonce = hmac_sha256_parts(&self.ptk[..32], &[LABEL, anonce, &self.snonce]);
+        let ptk = self.akm.derive_ptk(&self.pmk, &self.aa, &self.spa, anonce, &snonce);
+        Rekey { snonce, ptk }
+    }
+
     pub(super) fn on_rekey_message1(&mut self, key: &EapolKey<'_>) -> StepOutput {
-        let snonce = hmac_sha256_parts(&self.ptk[..32], &[LABEL, &key.nonce, &self.snonce]);
-        let ptk = self.akm.derive_ptk(&self.pmk, &self.aa, &self.spa, &key.nonce, &snonce);
-        let mut r = Rekey { anonce: key.nonce, snonce, ptk };
+        let mut r = self.rekey_to(&key.nonce);
         self.swap(&mut r);
         let reply = self.message2(&key.replay_counter);
         self.swap(&mut r);
-        self.rekey = Some(r);
         StepOutput::reply(reply)
     }
 
-    /// Whether a rekey for `anonce` is waiting for its message 3.
-    pub(super) fn rekey_for(&self, anonce: &[u8; 32]) -> bool {
-        self.rekey.as_ref().is_some_and(|r| r.anonce == *anonce)
+    /// Whether a message 3 for `anonce` would be a rekey's.
+    pub(super) fn is_rekey(&self, anonce: &[u8; 32]) -> bool {
+        *anonce != self.anonce
     }
 
     pub(super) fn on_rekey_message3(&mut self, frame: &[u8], key: &EapolKey<'_>) -> StepOutput {
-        let Some(mut r) = self.rekey.take() else { return StepOutput::none() };
+        let mut r = self.rekey_to(&key.nonce);
         if !is_message3(key) || !verify_mic_kind(self.akm.mic_kind(), &r.ptk[..16], frame) {
-            self.rekey = Some(r);
             return StepOutput::none();
         }
         self.swap(&mut r);
@@ -67,7 +67,7 @@ impl Supplicant {
         out
     }
 
-    // The pending keys for the ones in use, and back.
+    // The rekey's keys for the ones in use, and back.
     fn swap(&mut self, r: &mut Rekey) {
         core::mem::swap(&mut self.snonce, &mut r.snonce);
         core::mem::swap(&mut self.ptk, &mut r.ptk);
