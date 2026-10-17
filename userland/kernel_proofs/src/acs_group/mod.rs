@@ -22,6 +22,8 @@
 pub mod acs_alias;
 #[path = "../../../../src/hardware/broker/confine/acs_path.rs"]
 pub mod acs_path;
+#[path = "../../../../src/hardware/broker/confine/acs_reach.rs"]
+pub mod acs_reach;
 #[path = "../../../../src/hardware/broker/confine/acs_rule.rs"]
 pub mod acs_rule;
 #[path = "../../../../src/hardware/broker/confine/acs_tree.rs"]

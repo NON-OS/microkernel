@@ -23,6 +23,8 @@ mod acs_kind;
 #[cfg(target_arch = "x86_64")]
 mod acs_path;
 #[cfg(target_arch = "x86_64")]
+mod acs_reach;
+#[cfg(target_arch = "x86_64")]
 mod acs_read;
 #[cfg(target_arch = "x86_64")]
 mod acs_rule;
