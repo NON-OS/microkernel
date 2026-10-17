@@ -25,6 +25,7 @@ mod cursor_tests;
 mod ddb_tests;
 mod ddc;
 mod ddc_sink;
+mod deaths;
 mod dmc_tests;
 mod dp;
 mod dp_board;

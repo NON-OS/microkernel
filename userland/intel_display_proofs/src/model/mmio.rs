@@ -47,9 +47,11 @@ impl Mmio for Gen9 {
             true => self.ggtt[((off - NARROW.start) / 4) as usize] = widen(v),
             false => self.on_write(off, v),
         }
+        self.step(!NARROW.contains(&off));
     }
     fn write64(&mut self, off: u32, v: u64) {
         self.ggtt[((off - WIDE) / 8) as usize] = v;
+        self.step(false);
     }
     fn read64(&mut self, off: u32) -> u64 {
         self.ggtt[((off - WIDE) / 8) as usize]
