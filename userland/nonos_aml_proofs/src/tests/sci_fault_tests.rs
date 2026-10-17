@@ -22,8 +22,10 @@ use crate::events::{Dispatch, Policy, GBL, PWRBTN, SLPBTN};
 use crate::exec::{Fault, FaultKind};
 use crate::fadt_enc::{PM1_EN, PM1_STS};
 
+/// A method that fails on its own; one the budget cuts is armed again
+/// (F-125, `sci_cut`).
 fn fail(_: Dispatch) -> Result<(), Fault> {
-    Err(Fault::new(FaultKind::Steps, 0, 0))
+    Err(Fault::new(FaultKind::Type, 0, 0))
 }
 
 #[test]
