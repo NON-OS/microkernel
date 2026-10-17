@@ -23,16 +23,22 @@ use super::key_deliver::deliver_key;
 use super::kinds::{is_keyboard, is_pointer, key_facts};
 use super::preempt::{preempt, Route};
 use super::press_kinds::{is_pad, is_pad_button};
-use super::{keyboard, pointer, trusted_hold};
+use super::{bond, keyboard, pointer, refuse, trusted_hold};
 
 pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
-    let hold = trusted_hold::holder(ctx.trusted, mk_uptime_ms());
+    let now = mk_uptime_ms();
+    let hold = trusted_hold::holder(ctx.trusted, now);
     if hold.is_none() {
         ctx.trusted = None;
     }
     let key_like = is_keyboard(event.kind) || is_pad_button(event.kind);
     let key = key_like.then(|| key_facts(ctx, event));
-    match preempt(key, hold, pointer::shell_pid(ctx)) {
+    let shell = pointer::shell_pid(ctx);
+    let route = preempt(key, hold, shell);
+    if bond::unproven(event.flags) && refuse::refused(ctx, event, (hold, route, shell), now) {
+        return 0;
+    }
+    match route {
         Route::To(pid) => return deliver_key(ctx, pid, event),
         Route::Held(h) if key.is_some() => return deliver_key(ctx, h, event),
         Route::Held(h) => {

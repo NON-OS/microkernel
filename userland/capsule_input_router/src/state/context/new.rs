@@ -41,6 +41,7 @@ impl Context {
             cursor_y: 0,
             cursor_dirty: false,
             trusted: None,
+            bond: crate::route::bond::Bond { told_ms: None, refused: None },
         }
     }
 }
