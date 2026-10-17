@@ -16,13 +16,13 @@
 
 //! Every driver the kernel spawns has a row, or claims nothing.
 
-use super::scope::{row, Match};
+use super::scope::row;
 
 /// Drivers that reach their devices through another driver and never call
 /// MkDeviceClaim: they have no row, and must not gain one unnoticed.
 const CLAIMS_NOTHING: [&str; 3] = ["driver.usb_hid0", "driver.usb_msc0", "driver.i2c_hid0"];
 
-fn spawned_drivers() -> Vec<String> {
+pub(super) fn spawned_drivers() -> Vec<String> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
     let mut found = Vec::new();
     let mut stack = vec![root.join("hardware"), root.join("userspace")];
@@ -55,17 +55,5 @@ fn every_driver_the_kernel_spawns_has_a_row_or_claims_nothing() {
     }
     for d in CLAIMS_NOTHING {
         assert!(drivers.iter().any(|s| s == d), "{d} is no longer spawned");
-    }
-}
-
-#[test]
-fn every_id_range_is_a_pair_low_to_high() {
-    for d in spawned_drivers() {
-        for m in row(&d).unwrap_or(&[]) {
-            if let Match::Ids(_, ids) = m {
-                assert!(!ids.is_empty() && ids.len() % 2 == 0, "{d}: a range without its end");
-                assert!(ids.chunks(2).all(|r| r[0] <= r[1]), "{d}: a range high to low");
-            }
-        }
     }
 }

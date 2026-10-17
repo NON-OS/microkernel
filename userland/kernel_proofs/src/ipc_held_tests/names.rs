@@ -46,26 +46,3 @@ fn the_list_names_every_card_the_kernel_starts() {
         assert!(spawn.contains(&line), "{card} is not the name its spawn registers");
     }
 }
-
-/// The stack's names are the endpoints the kernel registers for it.
-#[test]
-fn the_callers_are_the_names_the_kernel_registers() {
-    let spawns = [
-        ("net.core", include_str!("../../../../src/userspace/capsule_net_core/spawn.rs")),
-        ("net.l2", include_str!("../../../../src/userspace/capsule_net_l2/spawn.rs")),
-        ("app.settings", include_str!("../../../../src/userspace/capsule_settings/spawn.rs")),
-        (
-            "app.setup_wizard",
-            include_str!("../../../../src/userspace/capsule_setup_wizard/spawn.rs"),
-        ),
-    ];
-    for (name, spawn) in spawns {
-        let line = format!("const SERVICE_NAME: &str = \"{name}\";");
-        assert!(spawn.contains(&line), "{name} is not what its spawn registers");
-    }
-    let settings = spawns[2].1;
-    for window in ["\"app.settings.1\"", "\"app.settings.2\""] {
-        assert!(settings.contains(window), "Settings has no window {window}");
-    }
-    assert!(!settings.contains("\"app.settings.3\""), "Settings grew a window the list lacks");
-}

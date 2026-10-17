@@ -22,4 +22,5 @@ mod scope;
 
 mod edges;
 mod hostile;
+mod ranges;
 mod spawned;
