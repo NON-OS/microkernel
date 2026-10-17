@@ -19,20 +19,18 @@
 extern crate alloc;
 
 use alloc::collections::BTreeMap;
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, Ordering};
 use spin::RwLock;
 
 pub struct CFI {
     pub(super) enabled: AtomicBool,
     targets: RwLock<BTreeMap<u64, u32>>,
-    pub(super) violations: AtomicU64,
 }
 impl CFI {
     pub fn new() -> Self {
         Self {
             enabled: AtomicBool::new(false),
             targets: RwLock::new(BTreeMap::new()),
-            violations: AtomicU64::new(0),
         }
     }
     pub fn add_target(&self, addr: u64, sig: u32) {
