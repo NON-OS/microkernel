@@ -9,7 +9,7 @@ part on its own thread consumes the ring the way a device does. It links
 
 ## What it proves
 
-55 `#[test]` functions over what the virtio specification fixes and what a
+57 `#[test]` functions over what the virtio specification fixes and what a
 dead owner leaves:
 
 - the bring-up, legacy and modern: the status handshake, the features the
