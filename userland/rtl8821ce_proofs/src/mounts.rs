@@ -7,7 +7,7 @@ pub mod assoc;
 pub mod coex;
 #[path = "../../capsule_driver_rtl8821ce/src/constants/mod.rs"]
 pub mod constants;
-#[path = "../../capsule_driver_rtl8821ce/src/efuse.rs"]
+#[path = "../../capsule_driver_rtl8821ce/src/efuse/mod.rs"]
 pub mod efuse;
 #[path = "../../capsule_driver_rtl8821ce/src/fw/mod.rs"]
 pub mod fw;

@@ -4098,7 +4098,7 @@
    "userland/capsule_driver_rtl8821ce/src/assoc",
    "userland/capsule_driver_rtl8821ce/src/coex",
    "userland/capsule_driver_rtl8821ce/src/constants",
-   "userland/capsule_driver_rtl8821ce/src/efuse.rs",
+   "userland/capsule_driver_rtl8821ce/src/efuse",
    "userland/capsule_driver_rtl8821ce/src/fw",
    "userland/capsule_driver_rtl8821ce/src/h2c",
    "userland/capsule_driver_rtl8821ce/src/link",
