@@ -23,9 +23,12 @@ use crate::wpa::supplicant::Supplicant;
 impl Mlme {
     /// The supplicant, once connected: the data path keeps answering the
     /// access point's group key handshakes with it. A copy, which wipes its
-    /// keys when it goes, as this machine's does.
+    /// keys when it goes, as this machine's does, seeded for its rekeys
+    /// from the join's randomness.
     pub fn supplicant(&self) -> Option<Supplicant> {
-        self.supplicant.clone().filter(|_| self.state == MlmeState::Connected)
+        let mut s = self.supplicant.clone().filter(|_| self.state == MlmeState::Connected)?;
+        s.reseed_rekey(self.rekey_seed);
+        Some(s)
     }
 
     /// The pairwise temporal key, valid once Connected.
