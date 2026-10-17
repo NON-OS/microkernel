@@ -3586,6 +3586,8 @@
    "nonos-data/market/index.bin",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
+   "userland/capsule_app_store/src/store/channel_held.rs",
+   "userland/capsule_app_store/src/store/channel_page.rs",
    "userland/capsule_app_store/src/store/fill_order.rs",
    "userland/capsule_app_store/src/store/listing.rs",
    "userland/capsule_app_store/src/store/market/failure.rs",

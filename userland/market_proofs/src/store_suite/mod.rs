@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod account_page;
+mod channel;
+mod channel_seq;
 pub mod fixture;
+mod held_fixture;
 mod order;
 mod payee;
 mod payee_never;
