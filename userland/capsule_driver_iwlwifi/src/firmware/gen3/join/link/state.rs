@@ -51,6 +51,8 @@ pub struct Link {
     /// A group key the access point delivered, held until the firmware has
     /// it; wiped where it lies when replaced or cleared.
     pub new_group_key: Option<(u8, HeldKey)>,
+    /// A rekeyed pairwise key, likewise held until the firmware has it.
+    pub new_pairwise_key: Option<HeldKey>,
     pub stats: LinkStats,
     /// The rate words for data frames and for handshake and management ones.
     pub data_rate: u32,

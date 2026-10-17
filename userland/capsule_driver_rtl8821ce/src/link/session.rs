@@ -34,6 +34,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.station.associate(bssid, Ccmp::SoftwareTxHwRx { tk: ptk });
         self.pmf = false;
         self.new_group_key = None;
+        self.new_pairwise_key = None;
         self.left = None;
         self.silent = false;
     }
