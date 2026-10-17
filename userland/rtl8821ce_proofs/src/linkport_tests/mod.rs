@@ -18,7 +18,7 @@
 //! earlier version of this fixture staged an unprotected station-to-AP frame,
 //! which the link now refuses as it must (`an_unprotected_frame_is_refused_*`).
 
-mod card;
+pub(crate) mod card;
 mod checks;
 mod clear;
 mod deauth;
@@ -27,5 +27,5 @@ mod pmf;
 mod receive;
 mod replay;
 mod rig;
-mod rxbuf;
+pub(crate) mod rxbuf;
 mod up;

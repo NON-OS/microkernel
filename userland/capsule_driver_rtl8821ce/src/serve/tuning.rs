@@ -17,10 +17,9 @@
 //! The radio's channels and frame size, which the scanner, the join's
 //! beacon hunt and the radio's bring-up share, and the serving loop's pace.
 
-/// The 2.4GHz channels the background scan and the pre-join beacon hunt hop through.
-pub(super) const SCAN_CHANNELS: [u8; 13] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
-/// The scratch buffer a scan or a beacon hunt reads each frame into.
-pub(super) const SCAN_FRAME_MAX: usize = 2048;
+/// The scan's channels and frame size, kept with the scanner so its receive
+/// step is whole without the rest of `serve`.
+pub(super) use super::scanner::{SCAN_CHANNELS, SCAN_FRAME_MAX};
 /// The channel the radio parks on until a scan retunes it. Channel 1 is always
 /// legal and is where a passive scan starts.
 pub(super) const DEFAULT_CHANNEL: u8 = 1;
