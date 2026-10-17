@@ -57,5 +57,5 @@ pub use pm1_cnt::{Pm1Cnt, GBL_RLS, SCI_EN, SLP_EN};
 pub use policy::Policy;
 pub use report::SciReport;
 pub use state::Events;
-pub use storm::{Storms, RUNS, WINDOW_MS};
+pub use storm::{Storms, CUTS, RUNS, WINDOW_MS};
 pub use wake::wake_gpes;
