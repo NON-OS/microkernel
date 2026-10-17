@@ -15,15 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One call to the meter (payment_proto), from the store: PURCHASE's two
-//! forms and ORDER_STATUS with its JOB. The meter answers from memory.
+//! forms, ORDER_STATUS with its JOB, and ACCOUNT's channel rows. The meter
+//! answers from memory.
 
 use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
 use nonos_payment_proto::{reply_body, request, EAGAIN, EINVAL, HDR_LEN, SERVICE, STATUS_LEN};
+use nonos_payment_proto::{AccountRow, ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN, OP_ACCOUNT};
+
+use super::channel_held::page;
 
 const TIMEOUT_MS: u64 = 2_000;
+/// ACCOUNT's head before its rows (payment_proto account.rs).
+const ACCOUNT_HEAD_LEN: usize = 1 + 20 + 16 + 16 + 8 + 16 + 2;
 
 pub fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
     let (mut port, mut pid) = (0u32, 0u32);
@@ -43,4 +49,17 @@ pub fn call(op: u16, body: &[u8], max: usize) -> Result<Vec<u8>, i32> {
         Err(nonos_payment_proto::ReplyError::Status(s)) => Err(s),
         Err(_) => Err(EAGAIN),
     }
+}
+
+/// Every channel row the meter holds, a page a call, or None once a page
+/// does not come back or read. Each page starts past the last, so it ends.
+pub fn channels() -> Option<Vec<AccountRow>> {
+    let max = ACCOUNT_HEAD_LEN + ACCOUNT_ROWS_MAX * ACCOUNT_ROW_LEN;
+    let (mut rows, mut from) = (Vec::new(), Some(0u8));
+    while let Some(at) = from {
+        let (got, next) = page(call(OP_ACCOUNT, &[at], max), at)?;
+        rows.extend(got);
+        from = next;
+    }
+    Some(rows)
 }
