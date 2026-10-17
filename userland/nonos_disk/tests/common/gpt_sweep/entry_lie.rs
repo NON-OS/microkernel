@@ -26,26 +26,26 @@ fn pick(r: &mut Rng, of: &[usize]) -> Option<usize> {
     (!of.is_empty()).then(|| of[r.range(0, of.len() as u64 - 1) as usize])
 }
 
-fn span(d: &mut Disk, i: usize) -> (u64, u64) {
-    let e = d.entry(i);
+fn span(d: &mut Disk, w: usize, i: usize) -> (u64, u64) {
+    let e = d.entry(w, i);
     (
         u64::from_le_bytes(e[32..40].try_into().unwrap()),
         u64::from_le_bytes(e[40..48].try_into().unwrap()),
     )
 }
 
-fn set(d: &mut Disk, i: usize, first: u64, last: u64) {
-    let e = d.entry(i);
+fn set(d: &mut Disk, w: usize, i: usize, first: u64, last: u64) {
+    let e = d.entry(w, i);
     e[32..40].copy_from_slice(&first.to_le_bytes());
     e[40..48].copy_from_slice(&last.to_le_bytes());
 }
 
-pub fn entry_lie(r: &mut Rng, lie: Lie, d: &mut Disk) -> Option<()> {
-    let (first, last, n) = (d.get(40, 8), d.get(48, 8), d.get(80, 4) as usize);
-    let used: Vec<usize> = (0..n).filter(|&i| d.entry(i)[..16] != [0; 16]).collect();
-    let free: Vec<usize> = (0..n).filter(|&i| d.entry(i)[..16] == [0; 16]).collect();
+pub fn entry_lie(r: &mut Rng, lie: Lie, w: usize, d: &mut Disk) -> Option<()> {
+    let (first, last, n) = (d.get(w, 40, 8), d.get(w, 48, 8), d.get(w, 80, 4) as usize);
+    let used: Vec<usize> = (0..n).filter(|&i| d.entry(w, i)[..16] != [0; 16]).collect();
+    let free: Vec<usize> = (0..n).filter(|&i| d.entry(w, i)[..16] == [0; 16]).collect();
     let u = pick(r, &used)?;
-    let (a, b) = span(d, u);
+    let (a, b) = span(d, w, u);
     match lie {
         Lie::Overlap => {
             let f = pick(r, &free)?;
@@ -56,15 +56,15 @@ pub fn entry_lie(r: &mut Rng, lie: Lie, d: &mut Disk) -> Option<()> {
                 _ => (r.range(first, a), r.range(b, last)),
             };
             let kind: Vec<u8> = r.bytes(16).iter().map(|x| x | 1).collect();
-            d.entry(f)[..16].copy_from_slice(&kind);
-            set(d, f, span.0, span.1);
+            d.entry(w, f)[..16].copy_from_slice(&kind);
+            set(d, w, f, span.0, span.1);
         }
         Lie::PastLast => {
             let past = [last + r.range(1, 1 << 20), d.sectors + r.range(0, 9), u64::MAX];
-            set(d, u, a, r.one_of(&past));
+            set(d, w, u, a, r.one_of(&past));
         }
-        Lie::EndBeforeStart => set(d, u, b + r.range(1, 64), b),
-        Lie::BelowFirst => set(d, u, r.range(0, first - 1), b),
+        Lie::EndBeforeStart => set(d, w, u, b + r.range(1, 64), b),
+        Lie::BelowFirst => set(d, w, u, r.range(0, first - 1), b),
         other => unreachable!("{other:?} is not an entry lie"),
     }
     Some(())

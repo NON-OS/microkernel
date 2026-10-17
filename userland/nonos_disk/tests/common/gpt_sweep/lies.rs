@@ -14,32 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The lies the sweep tells a disk, one to each.
+//! The lies the sweep tells a disk, one to each, and the list of them.
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Lie {
-    Signature,
-    HeaderSize,
-    MyLba,
-    FirstAfterLast,
-    LastPastDisk,
-    EntriesLba,
-    EntryCount,
-    EntrySize,
-    HeaderCrc,
-    ArrayCrc,
-    Overlap,
-    PastLast,
-    EndBeforeStart,
-    BelowFirst,
-    NoMbrSignature,
-    NoProtective,
-    ProtectiveNotAtOne,
-    Block4096,
+macro_rules! lies {
+    ($($lie:ident),* $(,)?) => {
+        #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+        pub enum Lie {
+            $($lie),*
+        }
+
+        pub const LIES: &[Lie] = &[$(Lie::$lie),*];
+    };
 }
 
-use Lie::*;
-pub const LIES: [Lie; 18] = [
+lies!(
     Signature,
     HeaderSize,
     MyLba,
@@ -58,4 +46,12 @@ pub const LIES: [Lie; 18] = [
     NoProtective,
     ProtectiveNotAtOne,
     Block4096,
-];
+    BackupMyLba,
+    BackupAlternate,
+    BackupArrayOverHeader,
+    BackupArrayInUsable,
+    Disagree,
+    BothBroken,
+    ArrayPastRoom,
+    ArrayTooBig
+);

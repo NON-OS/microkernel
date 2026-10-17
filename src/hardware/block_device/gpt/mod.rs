@@ -20,18 +20,25 @@
 mod array;
 mod boot;
 mod bytes;
+mod choose;
 mod crc32;
 mod entry;
+mod fields;
 mod fixed;
 mod header;
+mod layout;
 mod mbr;
 mod places;
 mod read;
+mod table;
+mod which;
 mod window;
 
 pub(crate) use boot::boot_guid;
+pub(crate) use choose::Held;
 pub(crate) use fixed::FIXED;
-pub(crate) use places::{holds, places};
+pub(crate) use layout::{layout, Layout, Shown};
+pub(crate) use places::holds;
 pub use places::{Extent, Places};
 pub(crate) use read::table;
 pub(crate) use window::{plan_at, store_at};

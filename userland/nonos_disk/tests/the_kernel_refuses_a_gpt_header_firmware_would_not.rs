@@ -37,11 +37,12 @@ mod written;
 
 use gpt_damage::{put, seal, table, T};
 use kernel_gpt::header;
+use kernel_gpt::Which;
 
 #[test]
 fn each_header_field_off_by_itself_is_refused() {
     let (h0, a) = table();
-    assert!(header::parse(&h0, T).is_some(), "as written");
+    assert!(header::parse_as(&h0, T, Which::Primary).is_some(), "as written");
     // (field, value, width, and a field set first so this check alone fails)
     let cases: [(usize, u64, usize, Option<(usize, u64, usize)>, &str); 13] = [
         (0, 0x5452_4150_2049_4646, 8, None, "signature not EFI PART"),
@@ -65,10 +66,10 @@ fn each_header_field_off_by_itself_is_refused() {
         }
         put(&mut h, at, v, width);
         seal(&mut h, &a);
-        assert!(header::parse(&h, T).is_none(), "{why}");
+        assert!(header::parse_as(&h, T, Which::Primary).is_none(), "{why}");
     }
     let mut h = h0.clone();
     h[60] ^= 1;
-    assert!(header::parse(&h, T).is_none(), "the header CRC");
-    assert!(header::parse(&h0, 2000).is_none(), "a disk smaller than the table says");
+    assert!(header::parse_as(&h, T, Which::Primary).is_none(), "the header CRC");
+    assert!(header::parse_as(&h0, 2000, Which::Primary).is_none(), "a disk smaller than the table says");
 }

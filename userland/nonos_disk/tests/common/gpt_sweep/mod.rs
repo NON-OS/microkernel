@@ -18,10 +18,12 @@
 //! and 4096-byte blocks, one lie told in each, and the rule stated here
 //! from the UEFI tables apart from the reader.
 
+pub mod backup_lie;
 pub mod build;
 pub mod crc;
 pub mod disk;
 pub mod entry_lie;
+pub mod expect;
 pub mod head_lie;
 pub mod lie;
 pub mod lies;
@@ -29,4 +31,7 @@ pub mod mbr;
 pub mod model;
 pub mod parts;
 pub mod rng;
+pub mod room_lie;
+pub mod rule;
+pub mod tell;
 pub mod view;

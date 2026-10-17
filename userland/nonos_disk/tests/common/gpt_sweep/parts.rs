@@ -16,10 +16,32 @@
 
 //! The partitions a sound table names, and their types.
 
+use super::disk::Disk;
 use super::rng::Rng;
 
+/// The primary's entries: up to 8 partitions in random slots, and every
+/// other slot unused (type zero) though it may still name usable sectors.
+pub fn place(r: &mut Rng, d: &mut Disk, first: u64, last: u64, n: u64) {
+    let parts = spans(r, first, last, n.min(8));
+    let mut slots: Vec<usize> = (0..n as usize).collect();
+    for i in 0..n as usize {
+        // An unused entry may still name sectors inside the usable range.
+        let (a, b) = (r.range(first, last), r.range(first, last));
+        let e = d.entry(0, i);
+        e[..16].fill(0);
+        e[32..48].copy_from_slice(&[a.min(b).to_le_bytes(), a.max(b).to_le_bytes()].concat());
+    }
+    for (a, b) in parts {
+        let slot = slots.swap_remove(r.range(0, slots.len() as u64 - 1) as usize);
+        let e = d.entry(0, slot);
+        e[..16].copy_from_slice(&kind(r));
+        e[32..40].copy_from_slice(&a.to_le_bytes());
+        e[40..48].copy_from_slice(&b.to_le_bytes());
+    }
+}
+
 /// Up to `most` partitions in `first..=last`, each before the next.
-pub fn spans(r: &mut Rng, first: u64, last: u64, most: u64) -> Vec<(u64, u64)> {
+fn spans(r: &mut Rng, first: u64, last: u64, most: u64) -> Vec<(u64, u64)> {
     let mut at: Vec<u64> = (0..2 * r.range(0, most)).map(|_| r.range(first, last)).collect();
     at.sort_unstable();
     at.dedup();
@@ -27,7 +49,7 @@ pub fn spans(r: &mut Rng, first: u64, last: u64, most: u64) -> Vec<(u64, u64)> {
 }
 
 /// A random partition type, a NONOS one one time in two.
-pub fn kind(r: &mut Rng) -> [u8; 16] {
+fn kind(r: &mut Rng) -> [u8; 16] {
     use crate::kernel_gpt::places::{NONOS_DATA, NONOS_PLAN, NONOS_STORE};
     let mut t: [u8; 16] = r.bytes(16).try_into().unwrap();
     t[0] |= 1;

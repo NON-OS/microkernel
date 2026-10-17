@@ -14,50 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One lie told in a sound disk. A field lie is resealed, so its CRCs are
-//! right over the wrong contents and only the field can refuse it; a CRC
-//! lie is told with nothing resealed.
+//! One lie told in a sound disk, in the primary header (0) or the backup
+//! (1). A field lie is resealed, so its CRCs are right over the wrong
+//! contents and only the field can refuse it; a CRC lie is told with
+//! nothing resealed.
 
+use super::backup_lie::backup_lie;
 use super::disk::Disk;
 use super::entry_lie::entry_lie;
-use super::head_lie::head_lie;
+use super::head_lie::{head_lie, FIELDS};
 pub use super::lies::{Lie, LIES};
+use super::mbr::mbr_lie;
 use super::rng::Rng;
+use super::room_lie::room_lie;
+pub use super::tell::tell;
 
-pub fn tell(r: &mut Rng, d: &Disk) -> (Lie, Disk) {
-    loop {
-        let (lie, mut told) = (LIES[r.range(0, LIES.len() as u64 - 1) as usize], d.clone());
-        if apply(r, lie, &mut told).is_some() {
-            return (lie, told);
-        }
-    }
-}
-
-fn apply(r: &mut Rng, lie: Lie, d: &mut Disk) -> Option<()> {
-    let (n, size) = (d.get(80, 4), d.get(84, 4));
+pub fn apply(r: &mut Rng, lie: Lie, w: usize, d: &mut Disk) -> Option<usize> {
+    let bytes = d.get(w, 80, 4) * d.get(w, 84, 4);
+    let flip = 1u8 << r.range(0, 7);
     match lie {
         Lie::HeaderCrc => {
-            let at = [r.range(0, 15), r.range(20, 91)][r.range(0, 1) as usize];
-            d.header[at as usize] ^= 1 << r.range(0, 7);
-            return Some(());
+            d.heads[w][[r.range(0, 15), r.range(20, 91)][r.range(0, 1) as usize] as usize] ^= flip
         }
-        Lie::ArrayCrc => {
-            d.array[r.range(0, n * size - 1) as usize] ^= 1 << r.range(0, 7);
-            return Some(());
+        Lie::ArrayCrc => d.arrays[w][r.range(0, bytes - 1) as usize] ^= flip,
+        Lie::NoMbrSignature | Lie::NoProtective | Lie::ProtectiveNotAtOne => mbr_lie(r, lie, d),
+        Lie::Block4096 => d.heads.iter_mut().for_each(|h| h.fill(0)),
+        Lie::BothBroken => {
+            let field = FIELDS[r.range(0, FIELDS.len() as u64 - 1) as usize];
+            for w in 0..2 {
+                head_lie(r, field, w, d);
+                d.seal(w);
+            }
         }
-        Lie::NoMbrSignature => d.mbr[510 + r.range(0, 1) as usize] ^= r.range(1, 255) as u8,
-        Lie::NoProtective => d.mbr[446..510]
-            .chunks_mut(16)
-            .for_each(|e| e[4] = if e[4] == 0xEE { 0x07 } else { e[4] }),
-        Lie::ProtectiveNotAtOne => {
-            d.mbr[446..510].chunks_mut(16).filter(|e| e[4] == 0xEE).for_each(|e| e[8] ^= 3)
+        Lie::ArrayPastRoom | Lie::ArrayTooBig => {
+            room_lie(r, lie, w, d);
+            d.seal(w);
         }
-        Lie::Block4096 => d.header.fill(0),
         Lie::Overlap | Lie::PastLast | Lie::EndBeforeStart | Lie::BelowFirst => {
-            entry_lie(r, lie, d)?
+            entry_lie(r, lie, w, d)?;
+            d.seal(w);
         }
-        _ => head_lie(r, lie, d),
+        Lie::BackupMyLba | Lie::BackupAlternate | Lie::BackupArrayOverHeader => {
+            return backup_lie(r, lie, d)
+        }
+        Lie::BackupArrayInUsable | Lie::Disagree => return backup_lie(r, lie, d),
+        _ => {
+            head_lie(r, lie, w, d);
+            d.seal(w);
+        }
     }
-    d.seal();
-    Some(())
+    Some(w)
 }
