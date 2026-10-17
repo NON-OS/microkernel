@@ -20,3 +20,4 @@
 
 pub mod ahci_capsule;
 pub mod block_device;
+pub mod usb_msc_capsule;
