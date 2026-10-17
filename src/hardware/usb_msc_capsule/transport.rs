@@ -57,7 +57,8 @@ pub(super) fn round_trip(op: u16, body: &[u8]) -> Result<Vec<u8>, E> {
     match resp.status {
         0 => Ok(resp.body),
         E_AGAIN => Err(E::NotReady),
-        E_NODEV => Err(E::NoDevice),
+        // No device, or a reader with no card in it: no disk there now.
+        E_NODEV | E_NOMEDIUM => Err(E::NoDevice),
         E_ACCES => Err(E::AccessDenied),
         E_INVAL => Err(E::InvalidArgument),
         E_NXIO => Err(E::OutOfRange),
