@@ -16,6 +16,7 @@
 
 use super::super::pool;
 use crate::hardware::broker::dma::flags::{DMA_MAP_DMA32, DMA_MAP_HIGH};
+use crate::hardware::broker::dma::sources::{sources, Source};
 use crate::hardware::broker::dma::types::DmaMapError;
 use crate::memory::phys::{alloc_contiguous, free_contiguous, AllocFlags};
 
@@ -40,21 +41,16 @@ pub(super) fn alloc_and_zero(pages: u64, length: u64, dma_flags: u32) -> Result<
 
 fn take(pages: usize, dma_flags: u32) -> Option<u64> {
     let base = AllocFlags::DMA | AllocFlags::ZERO;
-    if dma_flags & DMA_MAP_HIGH != 0 {
-        return pool::alloc(pages).or_else(|| alloc_contiguous(pages, base | AllocFlags::HIGH));
-    }
-    // A buffer small enough for the reserved low pool goes there first. A map
-    // that is not DMA32 stops short of the pool's floor, kept for those that are.
-    if let Some(phys_start) = pool::low32_alloc(pages, dma_flags & DMA_MAP_DMA32 != 0) {
-        return Some(phys_start);
-    }
-    if let Some(phys_start) = alloc_contiguous(pages, base | AllocFlags::DMA32) {
-        return Some(phys_start);
-    }
-    if dma_flags & DMA_MAP_DMA32 != 0 {
-        return None;
-    }
-    alloc_contiguous(pages, base)
+    let dma32 = dma_flags & DMA_MAP_DMA32 != 0;
+    // A map that is not DMA32 stops short of the low pool's floor, kept for
+    // those that are.
+    sources(dma_flags & DMA_MAP_HIGH != 0, dma32).iter().find_map(|source| match source {
+        Source::DisplayPool => pool::alloc(pages),
+        Source::HighFirst => alloc_contiguous(pages, base | AllocFlags::HIGH),
+        Source::LowPool => pool::low32_alloc(pages, dma32),
+        Source::Below4G => alloc_contiguous(pages, base | AllocFlags::DMA32),
+        Source::Anywhere => alloc_contiguous(pages, base),
+    })
 }
 
 /// Give back frames `alloc_and_zero` handed out, to the pool they came from:
