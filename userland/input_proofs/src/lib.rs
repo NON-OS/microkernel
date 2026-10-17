@@ -90,6 +90,10 @@ pub mod route;
 pub mod clients;
 pub mod protocol;
 
+// The shell's reading of the router's notice frame (G-76).
+#[path = "../../capsule_desktop_shell/src/state/router_notice.rs"]
+pub mod shell_router_notice;
+
 // Which process a key press goes to, by what the window manager answered.
 pub use route::key_target as router_key_target;
 
@@ -111,6 +115,14 @@ mod key_target_tests;
 mod press_frame_tests;
 #[cfg(test)]
 mod ps2_tests;
+#[cfg(test)]
+mod router_bond_hold_tests;
+#[cfg(test)]
+mod router_bond_kit;
+#[cfg(test)]
+mod router_bond_tests;
+#[cfg(test)]
+mod router_bond_wire_tests;
 #[cfg(test)]
 mod router_brightness_key_tests;
 #[cfg(test)]

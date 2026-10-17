@@ -3635,6 +3635,7 @@
   "include": [
    ".cargo",
    "userland/app_skeleton/src/input/keys.rs",
+   "userland/capsule_desktop_shell/src/state/router_notice.rs",
    "userland/capsule_driver_i2c_hid/src/hid/report_desc",
    "userland/capsule_driver_i2c_hid/src/input/gesture",
    "userland/capsule_driver_i2c_hid/src/input/parse_report.rs",
