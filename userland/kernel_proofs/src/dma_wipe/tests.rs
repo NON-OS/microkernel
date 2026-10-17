@@ -39,7 +39,7 @@ fn grant(pid: u32, phys: u64) -> DmaGrant {
 fn the_wipe_walk_sees_every_live_grant_and_never_waits_on_a_held_table() {
     let pid = 0xD3A1;
     for i in 0..5u64 {
-        insert(grant(pid, 0x10_0000 + i * 4096));
+        insert(grant(pid, 0x10_0000 + i * 4096)).unwrap();
     }
     let mut seen = std::vec::Vec::new();
     assert!(try_each(|g| {
