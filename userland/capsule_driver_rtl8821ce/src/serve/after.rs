@@ -19,7 +19,7 @@
 
 use nonos_wifi_core::key::KeyStore;
 
-use super::connect::{self, Session};
+use super::connect::{self, reseed, Session};
 use super::loss::say_loss;
 use super::radio::{self, Radio};
 use super::scanner::Scanner;
@@ -32,6 +32,7 @@ pub(super) fn after_receive(up: &mut radio::RadioUp, session: &mut Option<Sessio
     // A rekeyed pairwise key replaces the CAM's in its slot.
     if let (Some(key), Some(s)) = (up.link.pairwise_key(), session.as_ref()) {
         up.keys.install_ptk(key, s.key_id, &s.bssid);
+        reseed(&mut up.link);
     }
     up.link.clear_pairwise_key();
     if let (Some((id, key)), Some(s)) = (up.link.group_key(), session.as_mut()) {

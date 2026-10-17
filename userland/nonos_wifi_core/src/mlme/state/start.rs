@@ -42,6 +42,7 @@ impl Mlme {
             policy: req.policy,
             snonce: req.entropy.snonce,
             sae_entropy: req.entropy.sae,
+            rekey_seed: req.entropy.rekey,
             bssid: [0u8; 6],
             channel: 0,
             seq: 0,

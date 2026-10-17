@@ -32,6 +32,7 @@ mod frames;
 mod fuzz_judge;
 mod fuzz_sae;
 mod ignored;
+mod rekey_seed;
 mod sae;
 mod sae_forged;
 mod stray;

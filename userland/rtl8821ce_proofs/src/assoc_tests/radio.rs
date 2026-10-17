@@ -45,7 +45,7 @@ pub(super) fn join_request(policy: JoinPolicy) -> JoinRequest<'static> {
         ssid: b"net",
         passphrase: b"password123",
         policy,
-        entropy: Entropy { snonce: [0x11; 32], sae: [0x22; SAE_ENTROPY] },
+        entropy: Entropy { snonce: [0x11; 32], sae: [0x22; SAE_ENTROPY], rekey: [0x6B; 32] },
     }
 }
 

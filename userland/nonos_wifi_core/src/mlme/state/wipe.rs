@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 
 //! The join's secrets wiped when the machine goes: the passphrase, the PMK,
-//! the SNonce and SAE's bytes. The SAE station and the supplicant wipe their
+//! the SNonce, SAE's bytes and the rekey seed. The SAE station and the supplicant wipe their
 //! own.
 
 use super::fields::Mlme;
@@ -14,6 +14,7 @@ impl Drop for Mlme {
         wipe(&mut self.pmk);
         wipe(&mut self.snonce);
         wipe(&mut self.sae_entropy);
+        wipe(&mut self.rekey_seed);
     }
 }
 
@@ -21,5 +22,6 @@ impl Drop for Entropy {
     fn drop(&mut self) {
         wipe(&mut self.snonce);
         wipe(&mut self.sae);
+        wipe(&mut self.rekey);
     }
 }

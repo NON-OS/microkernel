@@ -37,7 +37,7 @@ fn assoc_rsne(req: &[u8]) -> Vec<u8> {
 fn the_mlme_joins_a_psk_network_with_one_rsne_in_the_request_and_message_2() {
     // The PSK network requiring protection, joined as any network not saved
     // as WPA3 is, with the passphrase "password".
-    let entropy = Entropy { snonce: SNONCE, sae: [0x22; SAE_ENTROPY] };
+    let entropy = Entropy { snonce: SNONCE, sae: [0x22; SAE_ENTROPY], rekey: [0x6B; 32] };
     let (ssid, passphrase) = (&b"IEEE"[..], &b"password"[..]);
     let req = JoinRequest { our_mac: SPA, ssid, passphrase, policy: JoinPolicy::ANY, entropy };
     let mut m = Mlme::join(&req);

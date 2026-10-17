@@ -32,7 +32,7 @@ pub(super) fn entropy() -> Entropy {
     for (i, b) in sae.iter_mut().enumerate() {
         *b = (i as u8).wrapping_mul(37).wrapping_add(11);
     }
-    Entropy { snonce: SNONCE, sae }
+    Entropy { snonce: SNONCE, sae, rekey: [0x6B; 32] }
 }
 
 pub(super) fn join(policy: JoinPolicy) -> Mlme {

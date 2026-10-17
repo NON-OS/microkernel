@@ -21,10 +21,23 @@
 
 use nonos_libc::crypto_random;
 use nonos_wifi_core::mlme::Entropy;
+use nonos_wifi_core::station::LinkStation;
+use nonos_wifi_core::wipe::wipe;
 
 /// The join's randomness, or `None` if the kernel gave none. A connect draws
 /// it first, so without it the join is refused before the current network is
 /// left or a frame goes out.
 pub fn draw_entropy() -> Option<Entropy> {
     Entropy::draw(|b| crypto_random(b.as_mut_ptr(), b.len()) == b.len() as i64)
+}
+
+/// A fresh seed for the next pairwise rekey's SNonce, taken once a rekey has
+/// finished. Without one the station keeps its seed; its count of rekeys
+/// still keeps every SNonce new.
+pub fn reseed(station: &mut LinkStation) {
+    let mut seed = [0u8; 32];
+    if crypto_random(seed.as_mut_ptr(), seed.len()) == seed.len() as i64 {
+        station.reseed_rekey(seed);
+    }
+    wipe(&mut seed);
 }

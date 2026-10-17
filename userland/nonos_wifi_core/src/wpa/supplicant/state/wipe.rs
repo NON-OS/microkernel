@@ -13,5 +13,6 @@ impl Drop for Supplicant {
         wipe(&mut self.ptk);
         wipe(&mut self.gtk);
         wipe(&mut self.igtk);
+        wipe(&mut self.rekey_seed);
     }
 }

@@ -24,5 +24,6 @@ mod frames;
 mod fuzz;
 mod keys;
 mod rekey;
+mod rekey_seed;
 mod stations;
 mod vectors;
