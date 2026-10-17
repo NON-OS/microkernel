@@ -34,9 +34,9 @@ pub trait LoadExec {
     /// Runs any other statement or expression found while loading.
     fn run(&mut self, aml: &mut Aml, table: u16, scope: Id, node: u32) -> Result<(), Fault>;
 
-    /// Whether the budget refused something, so load-time code was cut
-    /// short and the table is only part loaded.
-    fn cut(&self) -> bool {
-        false
+    /// Where the budget refused something, if it has: load-time code was
+    /// cut short there and the table is only part loaded.
+    fn cut(&self) -> Option<u32> {
+        None
     }
 }
