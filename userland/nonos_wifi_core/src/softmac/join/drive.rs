@@ -33,9 +33,10 @@ pub fn drive<R: Radio, E: Env>(
     mut m: Mlme,
     beacon: &[u8],
     budget_ms: u64,
+    seq_start: u16,
 ) -> Report {
     let mut c = Counters::default();
-    let (start, mut seq) = (env.now_ms(), 0u16);
+    let (start, mut seq) = (env.now_ms(), seq_start & 0x0FFF); // random start (E-70)
     let mut quiet_since = start;
     let mut pending: Vec<u8> = m.on_mgmt(beacon).tx.unwrap_or_default();
     if !pending.is_empty() {
