@@ -53,6 +53,13 @@ mod pad_decode_tests;
 mod pad_hostile_tests;
 #[cfg(test)]
 mod pad_layout_tests;
+/// A seeded sweep over gamepad report descriptors and their reports.
+#[cfg(test)]
+mod pad_sweep;
+#[cfg(test)]
+mod pad_sweep_tests;
+#[cfg(test)]
+mod pad_wide_tests;
 #[cfg(test)]
 mod read_len_tests;
 #[cfg(test)]
