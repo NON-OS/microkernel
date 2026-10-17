@@ -2,7 +2,7 @@
 
 //! The forward rounds' steps.
 
-use super::tables::SBOX;
+use super::sbox::sub;
 
 pub(super) fn add_round_key(s: &mut [u8; 16], k: &[u8]) {
     for (b, kb) in s.iter_mut().zip(k.iter()) {
@@ -11,9 +11,7 @@ pub(super) fn add_round_key(s: &mut [u8; 16], k: &[u8]) {
 }
 
 pub(super) fn sub_bytes(s: &mut [u8; 16]) {
-    for b in s.iter_mut() {
-        *b = SBOX[*b as usize];
-    }
+    sub(s);
 }
 
 pub(super) fn shift_rows(s: &mut [u8; 16]) {

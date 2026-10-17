@@ -2,12 +2,10 @@
 
 //! The inverse rounds' steps.
 
-use super::tables::INV_SBOX;
+use super::sbox::inv_sub;
 
 pub(super) fn inv_sub_bytes(s: &mut [u8; 16]) {
-    for b in s.iter_mut() {
-        *b = INV_SBOX[*b as usize];
-    }
+    inv_sub(s);
 }
 
 pub(super) fn inv_shift_rows(s: &mut [u8; 16]) {
@@ -19,17 +17,12 @@ pub(super) fn inv_shift_rows(s: &mut [u8; 16]) {
     }
 }
 
-pub(super) fn gmul(mut a: u8, mut b: u8) -> u8 {
+pub(super) // Multiply in GF(2^8) by masks, never by a branch on `a`, a byte of state.
+fn gmul(mut a: u8, mut b: u8) -> u8 {
     let mut p = 0u8;
     for _ in 0..8 {
-        if b & 1 != 0 {
-            p ^= a;
-        }
-        let hi = a & 0x80;
-        a <<= 1;
-        if hi != 0 {
-            a ^= 0x1b;
-        }
+        p ^= a & (b & 1).wrapping_neg();
+        a = (a << 1) ^ (0x1b & (a >> 7).wrapping_neg());
         b >>= 1;
     }
     p
