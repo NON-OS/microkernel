@@ -57,18 +57,4 @@ impl SaeStation {
             failure: None,
         })
     }
-
-    pub fn state(&self) -> SaeState {
-        self.state
-    }
-
-    /// Why the last frame was discarded, while the exchange runs.
-    pub fn failure(&self) -> Option<SaeFailure> {
-        self.failure
-    }
-
-    /// The PMK and PMKID once accepted.
-    pub fn pmk(&self) -> Option<([u8; 32], [u8; 16])> {
-        (self.state == SaeState::Accepted).then_some((self.keys.pmk, self.keys.pmkid))
-    }
 }
