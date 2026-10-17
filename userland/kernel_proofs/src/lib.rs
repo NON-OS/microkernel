@@ -19,6 +19,8 @@
 
 extern crate alloc;
 
+#[cfg(test)]
+pub mod acpi_span;
 pub mod arch;
 pub mod bus;
 pub mod capabilities;

@@ -19,23 +19,22 @@ use core::ptr;
 
 use super::super::state::TableRegistry;
 use super::dmar_entry::entry;
-use crate::arch::x86_64::acpi::tables::{Dmar, SdtHeader, SIG_DMAR};
+use crate::arch::x86_64::acpi::tables::{Dmar, SIG_DMAR};
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_DMAR) {
         Some(&a) => a,
         None => return,
     };
-    let addr = match super::super::phys::directmap(addr) {
-        Some(v) => v,
-        None => return,
+    let Some((addr, header)) = super::super::phys::mapped_table(addr) else {
+        return;
     };
     let mut found_drhd = false;
     // SAFETY: eK@nonos.systems - `addr` is the directmapped table ACPI
-    // published, read whole by its checksum; every structure read below lies
-    // within `[addr, end)`, which the length check at each step keeps.
+    // published, mapped for its whole length (mapped_table) and read whole by
+    // its checksum; every structure read below lies within `[addr, end)`,
+    // which the length check at each step keeps.
     unsafe {
-        let header = ptr::read_volatile(addr as *const SdtHeader);
         if !header.validate_checksum(addr as *const u8) {
             return;
         }
