@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #[derive(Clone, Copy)]
 pub struct Primary {
+    /// Shared with the compositor, writable, when it asks.
+    pub sid: u64,
+    /// Its own handle: shared with itself, the kernel names no receiver.
     pub handle: u64,
     pub resource_id: u32,
     pub width: u32,

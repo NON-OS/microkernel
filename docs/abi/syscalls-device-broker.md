@@ -34,9 +34,7 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
 | `MSRG` | `0x4752534D` | `MkSurfaceRegister` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk_trust.rs:41` | Register the caller's own memory as a surface; returns its id. |
-| `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk_trust.rs:41` | Share a surface the caller owns; returns a handle. |
-| `MSAT` | `0x5441534D` | `MkSurfaceAttach` | GraphicsSurfaceMap | `can_surface_map` `src/syscall/contract/cap_table/mk_trust.rs:42` | Map a shared surface into the caller and write its descriptor. |
-| `MSRL` | `0x4C52534D` | `MkSurfaceRelease` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk_trust.rs:41` | Drop the caller's reference to a surface. |
+| `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk_trust.rs:41` | Share a surface the caller owns with `target_pid`, a live process other than the caller's, and return its handle; `flags` bit 0 maps that receiver's view writable, any other bit is `EINVAL`, a fifth receiver of one surface `ENOMEM`. Naming the caller's own process names nobody and only returns the handle (`do_share` in `src/syscall/dispatch/router/surface_handlers/share.rs`, `receiver` in `src/syscall/dispatch/router/surface_handlers/receiver.rs`). |
 | `MSPR` | `0x5250534D` | `MkSurfacePresent` | GraphicsPresent | `can_present` `src/syscall/contract/cap_table/mk_trust.rs:43` | Present a surface, whole or one damage rectangle. |
 | `MDVW` | `0x5756444D` | `MkDisplayVsyncWait` | GraphicsDisplayQuery | `can_display_query` `src/syscall/contract/cap_table/mk_trust.rs:44` | Sleep to the next tick of the kernel's 60 Hz frame clock; not the display's own sync. |
 | `MIEP` | `0x5045494D` | `MkInputEventPost` | InputSource | `can_input_source` `src/syscall/contract/cap_table/mk_surface.rs:35` | Post one input event to the kernel's input ring. |

@@ -34,5 +34,7 @@ pub(super) fn descriptor(handle: SurfaceHandle) -> Result<SurfaceDescriptor, Reg
         byte_len: slot.byte_len,
         base_va: 0,
         flags: slot.flags,
+        owner_pid: slot.owner_pid,
+        writable: 0,
     })
 }

@@ -432,7 +432,7 @@ ret  = {type="i64"}
 [desc.MSSH]
 nr   = 0x4853534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"}]
+args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"},{name="flags",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSAT]

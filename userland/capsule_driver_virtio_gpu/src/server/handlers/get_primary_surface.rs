@@ -19,6 +19,8 @@ use crate::protocol::{
     Request, E_BUSY, E_DEVICE, GET_PRIMARY_SURFACE_RESP_LEN, HDR_LEN, STATUS_LEN,
 };
 use crate::server::respond;
+use nonos_libc::mk_surface_share;
+use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
     let Some(primary) = driver.primary.as_ref() else {
         respond::status(sender_pid, req, E_DEVICE, tx);
@@ -38,6 +40,11 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
     };
     if resource.owner_pid != sender_pid {
         respond::status(sender_pid, req, E_BUSY, tx);
+        return;
+    }
+    // The compositor draws the screen into it: it alone maps it, writable.
+    if mk_surface_share(primary.sid, sender_pid, SURFACE_SHARE_WRITE) <= 0 {
+        respond::status(sender_pid, req, E_DEVICE, tx);
         return;
     }
     let off = HDR_LEN + STATUS_LEN;

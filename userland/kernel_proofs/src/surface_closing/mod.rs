@@ -20,4 +20,6 @@
 #[path = "../../../../src/kernel_core/surface_registry/pin/closing_rule.rs"]
 mod closing_rule;
 
+mod rights;
+
 mod tests;

@@ -21,7 +21,7 @@ pub struct Decoded {
 pub fn decode(bytes: &[u8], name: &[u8]) -> Result<Decoded, &'static str> {
     let op = op_for(name)?;
     let svc = lookup_service(b"image_codec").ok_or("no codec")?;
-    let (in_handle, in_len, in_base, in_pad) = share_input(bytes)?;
+    let (in_handle, in_len, in_base, in_pad) = share_input(bytes, svc.pid)?;
     let mut payload = [0u8; 16];
     payload[0..8].copy_from_slice(&in_handle.to_le_bytes());
     payload[8..16].copy_from_slice(&in_len.to_le_bytes());

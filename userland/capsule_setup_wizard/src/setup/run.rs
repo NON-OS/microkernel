@@ -37,12 +37,14 @@ pub fn run() -> Result<Context, &'static str> {
         byte_len,
         base_va: backing_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         return Err("surface register rejected");
     }
-    let handle = mk_surface_share(sid as u64);
+    let handle = mk_surface_share(sid as u64, discover::lookup_compositor_pid()?, 0);
     if handle <= 0 {
         return Err("surface share rejected");
     }

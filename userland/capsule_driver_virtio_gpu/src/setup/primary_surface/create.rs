@@ -19,7 +19,7 @@ use crate::constants::VG_FORMAT_B8G8R8A8_UNORM;
 use crate::device::cmd;
 use crate::device::virtqueue::ControlQueue;
 use crate::state::{FenceCounter, ResourceTable, Scanout};
-use nonos_libc::{mk_surface_register, mk_surface_share};
+use nonos_libc::{mk_getpid, mk_surface_register, mk_surface_share};
 pub fn create(
     device_id: u64,
     claim_epoch: u64,
@@ -50,7 +50,7 @@ pub fn create(
         dma::rollback(dma.grant_id, "virtio-gpu: primary dma rollback failed")?;
         return Err("virtio-gpu: surface register rejected");
     }
-    let handle = mk_surface_share(sid as u64);
+    let handle = mk_surface_share(sid as u64, mk_getpid(), 0);
     if handle < 0 {
         dma::rollback(dma.grant_id, "virtio-gpu: primary dma rollback failed")?;
         return Err("virtio-gpu: surface share rejected");
@@ -62,6 +62,7 @@ pub fn create(
         return Err("virtio-gpu: resource table full");
     }
     Ok(Some(Primary {
+        sid: sid as u64,
         handle: handle as u64,
         resource_id,
         width: scanout.width,

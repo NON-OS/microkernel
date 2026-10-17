@@ -6,14 +6,14 @@ Part of [Syscalls](syscalls.md).
 
 `MSRG` reads a `SurfaceDescriptor` from the caller, and `MSAT` writes one back
 (`src/syscall/dispatch/router/surface_handlers/register.rs:35-38`,
-`src/syscall/dispatch/router/surface_handlers/share.rs:47-53`). `do_register`
+`do_attach` in `src/syscall/dispatch/router/surface_handlers/share.rs`). `do_register`
 refuses a `byte_len` of 0 or over `MAX_SURFACE_BYTES`, 64 MiB, and a `base_va`
 that is not page aligned
 (`src/syscall/dispatch/router/surface_handlers/frames.rs:34-37`). `MIEP` reads one
 `InputEvent` (`src/syscall/dispatch/router/input_ops/do_post.rs:23-27`). Both
 layouts match `abi/wire.toml`.
 
-### `SurfaceDescriptor`, 40 bytes
+### `SurfaceDescriptor`, 48 bytes
 
 | Field | Offset | Type | Meaning |
 |---|---|---|---|
@@ -24,6 +24,8 @@ layouts match `abi/wire.toml`.
 | `byte_len` | 16 | `u64` | Bytes of backing memory |
 | `base_va` | 24 | `u64` | Page-aligned start of the caller's own writable memory |
 | `flags` | 32 | `u64` | Flags word |
+| `owner_pid` | 40 | `u32` | Written by `MSAT`: the process that registered the surface (`descriptor` in `src/kernel_core/surface_registry/share/descriptor.rs`) |
+| `writable` | 44 | `u32` | Written by `MSAT`: 1 when the caller's view is writable, 0 when read-only (`attach_surface` in `src/kernel_core/surface_registry/share/attach_surface.rs`) |
 
 ### `InputEvent`, 32 bytes
 
@@ -38,7 +40,7 @@ layouts match `abi/wire.toml`.
 | `delta_y` | 20 | `i32` | Motion or wheel delta |
 | `timestamp_ns` | 24 | `u64` | Time of the event in nanoseconds |
 
-`FMT_ARGB8888` is defined in `src/kernel_core/surface_registry/types.rs:22`, and
+`FMT_ARGB8888` is defined in `src/kernel_core/surface_registry/types.rs`, and
 the kinds are the `INPUT_KIND_KEY_DOWN` to `INPUT_KIND_TOUCH` constants of
 `nonos_abi` (`userland/nonos_abi/src/input.rs:20-27`).
 

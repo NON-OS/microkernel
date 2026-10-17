@@ -25,6 +25,6 @@ pub(super) fn group(pid: u32) -> u32 {
 }
 
 /// Whether `a` and `b` are threads of one process.
-pub(super) fn same_process(a: u32, b: u32) -> bool {
+pub(in crate::kernel_core::surface_registry) fn same_process(a: u32, b: u32) -> bool {
     a == b || group(a) == group(b)
 }
