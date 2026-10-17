@@ -19,6 +19,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
+use super::iova::IOVA_BASE;
+use crate::memory::iommu::reserved::ReservedRange;
 use crate::memory::iommu::{DeviceAddress, IommuDomain};
 
 /// A capsule's domain and what it holds. Dropping the entry frees the domain.
@@ -27,6 +29,15 @@ pub(super) struct Capsule {
     pub domain: IommuDomain,
     pub devices: Vec<(u64, DeviceAddress)>,
     pub next_iova: u64,
+    /// Its devices' reserved ranges, mapped at attach; their IOVAs are never
+    /// handed to a grant.
+    pub reserved: Vec<ReservedRange>,
+}
+
+impl Capsule {
+    pub(super) fn new(pid: u32, domain: IommuDomain) -> Self {
+        Self { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE, reserved: Vec::new() }
+    }
 }
 
 // Taken before the IOMMU's own lock, never inside it.

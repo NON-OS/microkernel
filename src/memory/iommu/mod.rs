@@ -23,6 +23,7 @@ mod error;
 mod posture;
 mod protection;
 mod query;
+pub mod reserved;
 mod unconfined;
 mod vendor;
 

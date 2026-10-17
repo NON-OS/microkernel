@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-
-use super::iova::IOVA_BASE;
 use super::posture::unconfined_allowed;
+use super::refuse::refuse;
+use super::reserve::reserve;
 use super::table::{pci_address, say, Capsule, CAPSULES};
+use super::unreserve::unreserve;
 use crate::memory::iommu::IommuDomain;
 
 /// The unit is in service and would not take the device, so the claim is
@@ -51,7 +49,7 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
         Some(i) => i,
         None => match IommuDomain::allocate() {
             Ok(domain) => {
-                all.push(Capsule { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE });
+                all.push(Capsule::new(pid, domain));
                 all.len() - 1
             }
             /*
@@ -74,26 +72,31 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
     // without pulling it out from under the first.
     if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
     {
-        say(b"refused: requester id held by another capsule", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
+        return refuse(
+            &mut all,
+            pos,
+            b"refused: requester id held by another capsule",
+            pid,
+            address,
+        );
     }
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         all[pos].devices.push((device_id, address));
         say(b"confined to its capsule's domain (shared requester id)", pid, address);
         return Ok(());
     }
+    // Its reserved ranges in the new domain before it is attached there, so
+    // it never runs without them; all of them, or the claim is refused.
+    let added = match reserve(&mut all[pos], address) {
+        Ok(added) => added,
+        Err(why) => return refuse(&mut all, pos, why, pid, address),
+    };
     // Out of the identity domain first. Between the two writes the device has
     // no context entry, which denies it: the safe side to be on.
     let _ = all[pos].domain.detach_device(address);
     if all[pos].domain.attach_device(address).is_err() {
-        say(b"refused: attach failed", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
+        unreserve(&mut all[pos], added);
+        return refuse(&mut all, pos, b"refused: attach failed", pid, address);
     }
     all[pos].devices.push((device_id, address));
     say(b"confined to its capsule's domain", pid, address);
