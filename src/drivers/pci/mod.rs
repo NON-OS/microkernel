@@ -59,9 +59,9 @@ pub use msi::{
 pub use security::{
     add_to_allowlist, add_to_blocklist, approve_bus_master, audit_device, check_device_allowed,
     clear_allowlist, clear_blocklist, clear_bus_master_approvals, device_security_level,
-    get_security_policy, get_security_stats, is_dma_capable, is_security_relevant,
+    get_security_stats, is_dma_capable, is_security_relevant,
     prepare_device_for_dma, remove_from_blocklist, reset_security_stats, revoke_bus_master,
-    set_allowlist, set_security_policy, validate_config_write, validate_device_for_driver,
+    set_allowlist, validate_config_write, validate_device_for_driver,
     DeviceAuditInfo, SecurityLevel, SecurityPolicy, SecurityStats,
 };
 pub use stats::PciStats;
