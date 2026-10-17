@@ -18,14 +18,7 @@
 //! a peer without the IOMMU when they share a device, a bus, or a port that
 //! forwards between them, unless that port redirects upstream with ACS.
 //! What it reaches is its isolation group, and one capsule holds a group at
-//! a time (join.rs). kernel_proofs::acs_rule.
-
-extern crate alloc;
-
-use alloc::vec::Vec;
-
-use super::acs_path::Hop;
-use super::acs_tree::Bdf;
+//! a time (join.rs); acs_reach.rs walks it. kernel_proofs::acs_rule.
 
 /// ACS capability and control bits (PCIe 6.0, 7.7.11): Source Validation,
 /// P2P Request Redirect, P2P Completion Redirect, Upstream Forwarding.
@@ -51,21 +44,4 @@ pub(crate) const fn enabling(cap: u16, ctrl: u16, needed: u16) -> Option<u16> {
 /// Whether the capability and control words, if any, redirect `needed`.
 pub(crate) fn redirects(acs: Option<(u16, u16)>, needed: u16) -> bool {
     acs.is_some_and(|(cap, ctrl)| (cap & ctrl) & needed == needed)
-}
-
-/// What the device reaches past the IOMMU: every hop's shared bus, and its
-/// peers wherever `acs` (its words, with what it needs turned on) does not
-/// redirect them.
-pub(crate) fn group(
-    hops: Vec<Hop>,
-    mut acs: impl FnMut(Bdf, u16) -> Option<(u16, u16)>,
-) -> Vec<Bdf> {
-    let mut reached = Vec::new();
-    for hop in hops {
-        reached.extend(hop.always);
-        if !hop.peers.is_empty() && !redirects(acs(hop.at, hop.needed), hop.needed) {
-            reached.extend(hop.peers);
-        }
-    }
-    reached
 }
