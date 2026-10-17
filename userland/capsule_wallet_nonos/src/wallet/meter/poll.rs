@@ -37,6 +37,7 @@ pub fn tick(state: &mut State) -> bool {
         || crate::wallet::order::opened::poll(state)
         || crate::wallet::order::voucher_cap::poll(state)
         || crate::wallet::order::intake::take_due(state)
+        || crate::wallet::publish::send_drive::poll(state)
 }
 
 /// Whether the screen changed.

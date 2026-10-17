@@ -18,7 +18,7 @@ use alloc::format;
 
 use nonos_app_skeleton::EventOutcome;
 
-use super::rows::{ROW_ATTEST, ROW_BINDING, ROW_CONFIRM};
+use super::rows::{ROW_ATTEST, ROW_BINDING, ROW_CONFIRM, ROW_INTENT};
 use crate::wallet::chain;
 use crate::wallet::publish::{load, sign_attest, sign_binding};
 use crate::wallet::screen::hits::Press;
@@ -33,7 +33,7 @@ pub fn open(state: &mut State) -> EventOutcome {
 /// Open: read the entry document the path names; a new one starts unconfirmed.
 pub(super) fn read(state: &mut State) -> EventOutcome {
     let p = &mut state.publisher;
-    (p.entry, p.confirmed, p.news) = (None, false, None);
+    (p.entry, p.confirmed, p.news, p.views) = (None, false, None, Default::default());
     match load(state, &state.publisher.path.clone()) {
         Ok(e) => state.publisher.entry = Some(e),
         Err(why) => state.failure = Some(why),
@@ -56,14 +56,18 @@ fn sign(state: &mut State, row: u8) {
 }
 
 pub fn click(state: &mut State, press: Press) -> EventOutcome {
+    if state.publisher.sending.is_some() {
+        return super::click_send::click(state, press);
+    }
     match press {
         Press::Back => state.view = VIEW_SETTINGS,
         Press::Dismiss => state.failure = None,
         Press::Footer(0) => return read(state),
-        Press::Field(_) => {}
+        Press::Field(n) => state.publisher.focus = n,
         Press::Row(ROW_CONFIRM) => state.publisher.confirmed = !state.publisher.confirmed,
         Press::Row(ROW_BINDING) if state.publisher.confirmed => sign(state, ROW_BINDING),
-        Press::Row(r) if r >= ROW_ATTEST => sign(state, r),
+        Press::Row(r) if (ROW_ATTEST..ROW_INTENT).contains(&r) => sign(state, r),
+        Press::Row(r) if r >= ROW_INTENT => super::click_acts::press(state, r),
         _ => return EventOutcome::Idle,
     }
     EventOutcome::Repaint

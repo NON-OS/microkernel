@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acts;
+mod acts_rows;
 pub mod click;
+mod click_acts;
+mod click_send;
 pub mod key;
+mod review;
+mod review_rows;
+mod review_say;
 mod rows;
 mod show;
+mod why;
 
 pub use show::show;
