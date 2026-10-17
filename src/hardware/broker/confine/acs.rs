@@ -27,7 +27,7 @@ use super::acs_alias::aliases;
 use super::acs_kind::{secondary, Secondary};
 use super::acs_path::path;
 use super::acs_read::{buses, redirect};
-use super::acs_rule::group as reached;
+use super::acs_reach::group as reached;
 use super::acs_tree::{Bdf, Func};
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
