@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Interrupt remapping at boot: one table, every unit pointed at it, and a
-//! line that says whether it took. A unit without ECAP.IR, or without a
-//! live invalidation queue, leaves it off on the whole machine, since a
-//! device's handle must mean the same entry behind every unit.
+//! line that says whether it took. A DMAR without INTR_REMAP, or a unit
+//! without ECAP.IR or a live queue, leaves it off machine-wide: a device's
+//! handle must mean the same entry behind every unit.
 
 use core::sync::atomic::Ordering;
 
 use super::enable::enable_on;
 use super::table::{ACTIVE, TABLE};
+use crate::arch::x86_64::acpi::parser::other::dmar_intr_remap;
 use crate::arch::x86_64::iommu::regs::{cap, offsets};
 use crate::arch::x86_64::iommu::tables::frame::allocate_table;
 use crate::arch::x86_64::iommu::unit::queue;
@@ -32,6 +33,10 @@ use crate::sys::serial::{self, Line};
 pub fn init() {
     let all = units();
     if all.is_empty() {
+        return;
+    }
+    if !dmar_intr_remap() {
+        serial::println(b"[VT-D] IOMMU interrupt remapping off: DMAR does not offer it");
         return;
     }
     if !all.iter().all(|u| cap::interrupt_remapping(u.ecap)) {
@@ -52,16 +57,13 @@ pub fn init() {
             }
         }
     }
-    // xAPIC-format entries (EIME clear): every destination the kernel names
-    // is 8 bits (device_irq_dest).
+    // xAPIC format (EIME clear): every destination is 8 bits (device_irq_dest).
     let irta = offsets::irta_value(table.phys, false);
     for info in all {
         // SAFETY: eK@nonos.systems - the table page is allocated above and
         // never freed, and every unit's queue was checked live.
         if unsafe { enable_on(&info.unit, irta) }.is_err() {
-            let mut line = Line::new();
-            line.str(b"[VT-D] IOMMU interrupt remapping off: unit base=").hex(info.unit.base_pa());
-            line.str(b" did not acknowledge").end();
+            serial::println(b"[VT-D] IOMMU interrupt remapping off: a unit did not acknowledge");
             return;
         }
     }
