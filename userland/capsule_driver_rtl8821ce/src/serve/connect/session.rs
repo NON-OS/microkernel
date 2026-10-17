@@ -23,7 +23,7 @@ use super::consts::PAIRWISE_KEY_ID;
 #[derive(Clone, Copy)]
 pub(in crate::serve) struct Session {
     pub(in crate::serve) bssid: [u8; 6],
-    pub(super) key_id: u8,
+    pub(in crate::serve) key_id: u8,
     pub(super) gtk_id: u8,
     pub(in crate::serve) ssid: [u8; 32],
     pub(in crate::serve) ssid_len: u8,

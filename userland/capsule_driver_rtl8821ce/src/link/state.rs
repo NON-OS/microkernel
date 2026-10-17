@@ -55,6 +55,8 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) pmf: bool,
     /// A group key the AP delivered on the link, for the serve loop to install.
     pub(super) new_group_key: Option<(u8, HeldKey)>,
+    /// A rekeyed pairwise key, held until the CAM has it.
+    pub(super) new_pairwise_key: Option<HeldKey>,
     /// The reason code of the access point's deauthentication, taken as it
     /// came or after an unanswered SA Query; the link is down.
     pub(super) left: Option<u16>,
