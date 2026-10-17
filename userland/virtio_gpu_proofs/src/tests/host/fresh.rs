@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A fresh host: no resources, no scanout showing anything, answering every
-//! command, its displays scanout 0 at PANEL and the rest off.
+//! command, its displays scanout 0 at PANEL and the rest off; and one reset.
 
 use super::state::Host;
 use super::words::PANEL;
@@ -27,5 +27,13 @@ impl Default for Host {
         let (scanouts, log, seen, used) = ([0; VG_MAX_SCANOUTS], Vec::new(), 0, 0);
         let (res, dead_at, dead_for, die_at) = (Default::default(), None, 0, None);
         Host { res, scanouts, log, seen, used, dead_at, dead_for, die_at, displays }
+    }
+}
+
+impl Host {
+    /// A device reset (the wipe between holders, then the driver's own):
+    /// every resource and scanout gone and a new ring, its displays kept.
+    pub fn reset_device(&mut self) {
+        *self = Host { displays: self.displays, ..Host::default() };
     }
 }

@@ -27,6 +27,10 @@ use crate::state::FenceCounter;
 
 /// The largest side offered; a host takes any size, DMA bounds it here.
 pub const MAX_SIDE: u32 = 4096;
+/// What one display DMA grant can hold: the kernel broker's
+/// DISPLAY_FRAMEBUFFER_PAGES (8192) pages of 4 KiB. A surface is one grant,
+/// so no mode over it is offered.
+pub const GRANT_BYTES: u64 = 8192 * 4096;
 
 pub struct Head {
     pub scanout: u32,
