@@ -18,7 +18,7 @@
 //! name is found by listening, so nothing is sent for it and no saved
 //! network's name leaves the machine. Only a network the person marked hidden
 //! (its beacons carry no name) gets a probe request, naming it alone, sent
-//! from the per-boot random address. Kept apart from the hunt's radio loop so
+//! from an address drawn for that hunt alone. Kept apart from the hunt's radio loop so
 //! the proofs check the decision and the frame on the host.
 
 use nonos_wifi_core::dot11::mgmt::probe_request;

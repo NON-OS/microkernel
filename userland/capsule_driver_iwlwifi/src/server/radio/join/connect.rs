@@ -1,18 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
+
 //! A connect: leave, hunt the network, run the join.
 
 use crate::driver::Driver;
@@ -21,7 +8,8 @@ use crate::firmware::gen3::join::address::join_as;
 use crate::firmware::gen3::join::exchange::Progress;
 use crate::firmware::gen3::join::fw::Fw;
 use crate::firmware::gen3::join::hunt::{hunt, HuntEnd};
-use crate::server::join_wire::{parse_connect, ConnectResult, CODE_BAD_REQUEST};
+use crate::server::join_wire::{parse_connect, ConnectResult, CODE_BAD_REQUEST, CODE_NO_ENTROPY};
+use nonos_wifi_core::address::Security;
 use nonos_wifi_core::mlme::JoinRequest;
 use nonos_wifi_core::rsn::JoinPolicy;
 
@@ -35,8 +23,8 @@ impl Radio {
     /// Join the network a connect body names.
     pub fn connect(&mut self, d: &Driver, body: &[u8]) -> ConnectResult {
         let Some(req) = parse_connect(body) else { return ConnectResult::code(CODE_BAD_REQUEST) };
-        let (addr, entropy) = match self.join.ready(&req) {
-            Ok(ready) => ready,
+        let entropy = match self.join.ready(&req) {
+            Ok(entropy) => entropy,
             Err(r) => return r,
         };
         self.disconnect();
@@ -62,6 +50,11 @@ impl Radio {
             Err(HuntEnd::Radio) => return ConnectResult::code(CODE_BAD_REQUEST),
         };
         let policy = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
+        // The network's own address: its name under the security the join runs.
+        let kind = Security::of_beacon(&beacon, policy);
+        let Some(addr) = self.join.address(req.ssid, kind) else {
+            return ConnectResult::code(CODE_NO_ENTROPY);
+        };
         let jr = JoinRequest { our_mac: addr, ssid: req.ssid, passphrase: req.pass, policy, entropy };
         let mut fw = Fw { dev: &mut up.dev, tx, clock: &mut clock, q: &mut self.join.q, inbox: &mut self.join.inbox };
         let mut progress = Progress::default();

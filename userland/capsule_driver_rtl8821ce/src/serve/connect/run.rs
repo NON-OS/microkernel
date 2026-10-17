@@ -17,7 +17,6 @@
 //! The join run under the request's policy.
 
 use nonos_wifi_core::mlme::JoinRequest;
-use nonos_wifi_core::rsn::JoinPolicy;
 
 use crate::assoc;
 use crate::fw::dma::Grant;
@@ -43,7 +42,7 @@ pub(super) fn run(
     let Some(entropy) = draw_entropy() else {
         return Err(ConnectResult::code(CODE_NO_ENTROPY));
     };
-    let policy = if req.wpa3_only { JoinPolicy::WPA3_ONLY } else { JoinPolicy::ANY };
+    let policy = req.policy();
     let join = JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy };
     status::debug(b"[rtl8821ce] connect: joining\n");
     let mut now_ms = || nonos_libc::mk_uptime_ms() as u64;

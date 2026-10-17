@@ -15,7 +15,8 @@ use crate::regs::Regs;
 
 /*
  * Hunt the channels for a beacon matching `ssid`, copying the raw frame into `out`
- * and returning its length and the channel it was heard on. The join needs the
+ * and returning its length and the channel it was heard on. `probe_as` is set
+ * only for a hidden network: the hunt's one-off address its probes go out under. The join needs the
  * real beacon (not the scan summary) because the state machine reads the BSSID,
  * channel and RSN element straight out of it.
  * Returns the matched beacon (length and channel) if found, together with the
@@ -28,8 +29,7 @@ pub(in super::super) fn find_beacon(
     link: &mut RtlLink<Regs, Grant, Grant>,
     regs: &Regs,
     ssid: &[u8],
-    hidden: bool,
-    our_mac: [u8; 6],
+    probe_as: Option<[u8; 6]>,
     out: &mut [u8; SCAN_FRAME_MAX],
 ) -> (Option<(usize, u8)>, u32) {
     let mut frame = [0u8; SCAN_FRAME_MAX];
@@ -38,7 +38,7 @@ pub(in super::super) fn find_beacon(
     for (i, &ch) in sweeps {
         set_rf(regs, ch, Bw::W20);
         let mut probe = [0u8; 64];
-        if let Some(n) = hunt_probe(&mut probe, hidden, our_mac, ssid, ch, i) {
+        if let Some(n) = probe_as.and_then(|mac| hunt_probe(&mut probe, true, mac, ssid, ch, i)) {
             link.send_raw(&probe[..n]);
         }
         let leave_at = nonos_libc::mk_uptime_ms() + BEACON_HUNT_DWELL_MS;

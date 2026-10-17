@@ -18,8 +18,9 @@
 //! name every network that broadcasts its name, so nothing is transmitted and
 //! no saved network's name leaves the machine. Only for a network the person
 //! marked hidden (its beacons carry no name) does the hunt send a probe
-//! request naming it, once per channel, from the per-boot random address; the
-//! probe response that answers it carries the name and is taken like a beacon.
+//! request naming it, once per channel, from an address drawn for this hunt
+//! alone (`nonos_wifi_core::address::one_off`); the probe response that
+//! answers it carries the name and is taken like a beacon.
 
 mod dwell;
 mod find;
