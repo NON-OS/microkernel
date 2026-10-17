@@ -24,6 +24,7 @@
 use alloc::vec::Vec;
 
 use super::booted::{Booted, By};
+use super::chosen::{ask, running_from, LOADER, RUNNING};
 use super::contents::Contents;
 pub use super::disk::{Disk, Survey};
 use super::probe::unread;
@@ -45,13 +46,15 @@ pub fn survey() -> Survey {
     // The SATA driver's missing rows name eMMC when that is all it serves.
     let emmc_only = present.contains(&Controller::Emmc) && !present.contains(&Controller::Ahci);
     let booted = Booted::ask();
+    let chosen = ask();
     let mut out = Vec::new();
     for found in discover(&present) {
         let (driver, instance) = (found.driver, found.instance);
         let row = match found.device {
             Ok(device) => match booted.by(&device) {
                 Some(By::Partition) => continue,
-                Some(By::Loader) => withheld(device),
+                Some(By::Loader) => withheld(device, LOADER),
+                None if running_from(chosen, driver, instance) => withheld(device, RUNNING),
                 None => match Contents::probe(&device) {
                     Contents::Unread(status) => unread(device, status),
                     contents => target(driver, instance, device, contents),
