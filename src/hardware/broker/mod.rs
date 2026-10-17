@@ -25,7 +25,7 @@ mod bootfb;
 mod brief;
 // on-screen device census: bring-up diagnostic, silenced
 // mod census;
-mod claim;
+pub(crate) mod claim;
 mod give_back;
 mod class;
 mod confine;
