@@ -21,8 +21,8 @@ mod endpoint;
 
 pub use endpoint::KERNEL_REPLY_ENDPOINT;
 pub use nonos_blk_wire::{
-    decode_request, encode_geometry, encode_identify, encode_response_header, write_status,
-    Request, E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, GEOMETRY_LEN, HDR_LEN, MEDIA_PRESENT,
-    MEDIUM_UFS, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY, OP_READ, OP_WRITE,
-    RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN,
+    body_fits, decode_request, encode_geometry, encode_identify, encode_response_header,
+    write_status, Request, E_ACCES, E_INVAL, E_MSGSIZE, E_NODEV, E_NXIO, GEOMETRY_LEN, HDR_LEN,
+    MEDIA_PRESENT, MEDIUM_UFS, OP_FLUSH, OP_GEOMETRY, OP_HEALTHCHECK, OP_IDENTIFY, OP_READ,
+    OP_WRITE, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN,
 };
