@@ -67,8 +67,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     crate::sched::remove_from_run_queue(pid);
     clear_current_if(pid);
     super::stop_elsewhere::stop_elsewhere(pid);
-    crate::process::scheduler::preemption::proc_ticks::clear(pid);
-    crate::process::accounting::clear(pid);
+    super::forget::forget(pid);
     crate::process::foreign::clear(pid);
     super::pending::enqueue(pid);
     /*
