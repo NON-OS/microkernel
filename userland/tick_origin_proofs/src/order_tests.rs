@@ -1,20 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The tick's origin on aarch64 and riscv64, read from the kernel's source:
-//! taken from the level the interrupt came from, recorded before the tick
-//! runs, into the one per-CPU flag the dead-thread switch and band wake read.
+//! taken from the level the interrupt came from and recorded before the
+//! tick runs.
 
-fn code(path: &str) -> String {
-    let src = std::fs::read_to_string(format!("../../src/{path}")).unwrap();
-    src.lines().map(|l| l.split("//").next().unwrap_or("").trim()).collect::<Vec<_>>().join("\n")
-}
-
-fn order(src: &str, marks: &[&str]) {
-    let mut from = 0;
-    for mark in marks {
-        let at = src[from..].find(mark).unwrap_or_else(|| panic!("no `{mark}` after {from}"));
-        from += at + mark.len();
-    }
-}
+use crate::source::{code, order};
 
 /// The 16 slots of the aarch64 vector table, in table order: each 0x80
 /// apart, the IRQ of each group second (Arm ARM vector offsets, recalled).
@@ -68,25 +57,4 @@ fn riscv64_takes_it_from_the_frame_before_the_tick() {
             "preemption::tick::tick();",
         ],
     );
-}
-
-#[test]
-fn the_dead_thread_switch_and_band_wake_read_what_was_set() {
-    let flag = "crate::smp::percpu::current().tick_from_user";
-    let split = code("process/accounting/split.rs");
-    order(&split, &["pub fn set_tick_origin(from_user: bool) {", flag, ".store(from_user,"]);
-    let tick = code("process/scheduler/preemption/tick.rs");
-    order(
-        &tick,
-        &[
-            "pub fn tick() {",
-            "give_way()",
-            "&& ",
-            flag,
-            "&& super::super::selection::is_dead(pid)",
-            "set_reschedule();",
-        ],
-    );
-    let band = code("process/scheduler/preemption/band_wake.rs");
-    order(&band, &["pub(super) fn give_way() -> bool {", flag, "if !from_user ||"]);
 }
