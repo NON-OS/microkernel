@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use super::handle::{decode_handle, encode_handle, SurfaceHandle, SurfaceSid};
+
 pub const SLOT_CAP: usize = 256;
 pub const INPUT_RING_CAP: usize = 1024;
 pub const MAX_PAGES_PER_SURFACE: usize = 16384;
@@ -61,17 +63,4 @@ pub enum RegistryError {
     BadHandle,
     MapFailed,
     NoProc,
-}
-
-pub type SurfaceSid = u64;
-pub type SurfaceHandle = u64;
-
-#[inline]
-pub fn encode_handle(slot_idx: u32, epoch: u32) -> SurfaceHandle {
-    ((slot_idx as u64) << 32) | epoch as u64
-}
-
-#[inline]
-pub fn decode_handle(h: SurfaceHandle) -> (u32, u32) {
-    ((h >> 32) as u32, h as u32)
 }
