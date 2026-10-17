@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
-use crate::arch::aarch64::fpu::{enable as enable_fp, try_enable_for_current_task};
+use crate::arch::aarch64::fpu::try_enable_for_current_task;
 use crate::arch::trap::contract::deliver;
 use crate::process::signal::SIGILL;
 use crate::sys::serial::Line;
@@ -53,12 +53,10 @@ pub(crate) extern "C" fn aarch64_exc_sync_lower(frame: *mut ExceptionFrame) {
 /// whichever task last used them, so the task is ended with SIGILL and the
 /// CPU goes on to the next one.
 ///
-/// The trap means CPACR_EL1.FPEN was 0b00, which traps EL1 too, and the exit
-/// path is compiled code that uses the vector registers. So the unit is
-/// enabled for the kernel first. The task never returns to EL0, and the next
-/// task's `prepare_incoming` sets FPEN again before it runs.
+/// The exit path needs no FP/SIMD: the kernel is built without it, so FPEN
+/// stays as the trap left it, and the next task's `prepare_incoming` sets it
+/// before that task runs.
 fn refuse_fp(frame: &ExceptionFrame) -> ! {
-    enable_fp();
     Line::new()
         .str(b"[FPU] refused: EL0 FP/SIMD access with no per-task FP slot, pid=")
         .dec(u64::from(crate::process::current_pid().unwrap_or(0)))

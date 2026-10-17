@@ -1,6 +1,12 @@
 /* aarch64 FP/SIMD restore. x0 = &FpSimdContext (16-aligned).
  * Caller must have CPACR_EL1.FPEN granting EL1 FP access. */
 
+/* The kernel is built without FP/SIMD (-mgeneral-regs-only, softfloat), so
+ * a task's vector registers survive every kernel entry. This file is one of
+ * the few that move them on purpose. */
+.arch_extension fp
+.arch_extension simd
+
 .section .text.aarch64_fpu_restore, "ax", %progbits
 .balign 16
 .globl aarch64_fpu_restore
