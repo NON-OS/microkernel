@@ -18,6 +18,8 @@
 //! `iommu-addresses` name a device and the IOVA it must find the region at
 //! (the reserved-memory binding, recalled, unverified).
 
+mod backref;
+mod cells;
 mod entry;
 mod owner;
 mod read;
