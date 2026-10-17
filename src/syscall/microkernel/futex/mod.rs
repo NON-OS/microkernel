@@ -29,5 +29,6 @@ mod wait;
 mod waiters;
 mod wake;
 
+pub use queue::forget;
 pub use wait::sys_futex_wait;
 pub use wake::sys_futex_wake;
