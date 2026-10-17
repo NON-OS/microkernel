@@ -17,8 +17,10 @@
 //! What acs.rs reads of a function: a bridge's secondary bus, and its ACS
 //! words, with what a hop must redirect turned on first (K11).
 
-use super::acs_rule::enabling;
+use super::acs_kind::pcie_type;
+use super::acs_layout::layout;
 use super::acs_tree::Bdf;
+use super::acs_words::words;
 use crate::drivers::pci::config::{read32_unchecked, read_extended32, write_extended32};
 
 const ACS_ID: u32 = 0x000D;
@@ -30,16 +32,19 @@ pub(super) fn buses((b, d, f): Bdf) -> Option<(u8, u8)> {
     bridge.then_some(((numbers >> 8) as u8, (numbers >> 16) as u8))
 }
 
-/// The ACS capability and control words, with `needed` turned on first
-/// where the capability offers it all.
-pub(super) fn redirect((b, d, f): Bdf, needed: u16) -> Option<(u16, u16)> {
-    let at = acs_offset((b, d, f))? + 4;
-    let words = |v: u32| (v as u16, (v >> 16) as u16);
-    let (cap, ctrl) = words(read_extended32(b, d, f, at));
-    if let Some(on) = enabling(cap, ctrl, needed).filter(|&on| on != ctrl) {
-        write_extended32(b, d, f, at, u32::from(cap) | u32::from(on) << 16);
-    }
-    Some(words(read_extended32(b, d, f, at)))
+/// The ACS capability and control words, with what `needed` the capability
+/// offers turned on first, read the way its maker lays them out (K11b).
+pub(super) fn redirect(at: Bdf, needed: u16) -> Option<(u16, u16)> {
+    let (b, d, f) = at;
+    let ids = read32_unchecked(b, d, f, 0x00);
+    let layout = layout(ids as u16, (ids >> 16) as u16, pcie_type(at), b);
+    let base = acs_offset(at);
+    let header = base.unwrap_or(0x100);
+    let read = |o: u16| read_extended32(b, d, f, header + o);
+    let write = |o: u16, v: u32| {
+        let _ = write_extended32(b, d, f, header + o, v);
+    };
+    words(layout, needed, base.is_some(), read, write)
 }
 
 /// The ACS extended capability's offset, walking at most 64 headers.
