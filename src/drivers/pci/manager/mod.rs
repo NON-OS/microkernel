@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod device;
+mod enumerate;
 mod global;
 mod probe;
+mod probe_header;
 
 pub use device::PciManager;
 pub use global::{
