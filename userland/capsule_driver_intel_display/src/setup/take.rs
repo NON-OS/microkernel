@@ -20,11 +20,13 @@
 //! firmware's surfaces: no output's surfaces can land on another's, or on
 //! a picture firmware is still scanning out; a dead driver's leftover is
 //! mapped over (`take_plan`). An output that does not fit, or fails, is
-//! left as it was lit; none at all fails the attempt.
+//! left as it was lit; none at all fails the attempt. Then whatever a
+//! killed driver left is let go of, the GGTT rewritten whole (`settle`).
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
-use nonos_intel_display::display::{Intel, MAX_HEADS};
+use nonos_intel_display::display::{settle_heads, Intel, FLIP_US, MAX_HEADS};
+use nonos_intel_display::engine::access::Until;
 use nonos_intel_display::engine::gen::Gen;
 use nonos_intel_display::engine::{error::Error, takeover::Output};
 
@@ -61,6 +63,8 @@ pub fn take(
     if n == 0 {
         return Err(first_err);
     }
+    let until = Until::new(&clock, FLIP_US);
+    settle_heads(&mut m, &lit, &heads, (gen.ggtt, p.ours, total), &until);
     let mut intel = Intel::new(m, clock, gen, heads);
     intel.watch();
     Ok(Driver { server: Server::new(intel, Pool), handles: h })
