@@ -17,7 +17,7 @@
 //! The store's price line (B9): exact NOX, the unit and how it settles, and
 //! nothing priced until both the publisher and the payee stand behind it.
 
-use crate::store::price::{nox_amount, price_line, Price, ESCROW, FREE, VOUCHER};
+use crate::store::price::{gas_line, nox_amount, price_line, Price, ESCROW, FREE, VOUCHER};
 
 fn price(mode: u8, unit_price: u128, trusted: bool) -> Price {
     Price { mode, unit: b"install", unit_price, payee: [0; 20], trusted }
@@ -41,4 +41,14 @@ fn nox_is_never_rounded() {
     assert_eq!(nox_amount(1), b"0.000000000000000001");
     assert_eq!(nox_amount(1_234_500_000_000_000_000), b"1.2345");
     assert_eq!(nox_amount(u128::MAX), b"340282366920938463463.374607431768211455");
+}
+
+#[test]
+fn only_a_trusted_voucher_price_says_the_meter_pays_the_settles_gas() {
+    let gas: &[u8] = b"Each install also spends one settle's gas from the meter's ETH";
+    assert_eq!(gas_line(&price(VOUCHER, 1, true)), Some(gas));
+    assert!(gas.len() < 80, "one short line");
+    for (mode, trusted) in [(VOUCHER, false), (ESCROW, true), (FREE, true)] {
+        assert_eq!(gas_line(&price(mode, 1, trusted)), None);
+    }
 }

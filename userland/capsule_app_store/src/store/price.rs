@@ -53,6 +53,12 @@ pub fn price_line(p: &Price) -> Vec<u8> {
 }
 
 /// `wei` in NOX: the whole part, then every significant decimal.
+/// v1.4.7: a voucher install drains to the chain first, at the meter's gas.
+pub fn gas_line(p: &Price) -> Option<&'static [u8]> {
+    (p.mode == VOUCHER && p.trusted)
+        .then_some(b"Each install also spends one settle's gas from the meter's ETH")
+}
+
 pub fn nox_amount(wei: u128) -> Vec<u8> {
     let mut out = alloc::format!("{}", wei / WEI).into_bytes();
     let frac = alloc::format!("{:018}", wei % WEI);
