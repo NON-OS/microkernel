@@ -31,7 +31,12 @@ pub fn dispatch(code: InterruptCode, frame: &mut TrapFrame) {
     }
 
     match code {
-        InterruptCode::SupervisorTimer => timer::handle_timer_interrupt(),
+        InterruptCode::SupervisorTimer => {
+            // sstatus.SPP clear: the trap came from U-mode (privileged spec,
+            // sstatus). The tick's dead-thread switch and band wake read it.
+            crate::process::accounting::set_tick_origin(frame.is_from_user());
+            timer::handle_timer_interrupt()
+        }
         InterruptCode::SupervisorExternal => handle_external(),
         InterruptCode::SupervisorSoftware => handle_software(),
         InterruptCode::MachineSoftware

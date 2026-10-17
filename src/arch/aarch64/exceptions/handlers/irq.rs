@@ -42,6 +42,13 @@ fn handle(frame: &ExceptionFrame, tag: &[u8], from_user: bool) {
         return;
     };
     let outer = enter_service(acked);
+    // Before the tick runs: it switches away from a thread killed elsewhere,
+    // and gives way to a woken band, only on a tick that interrupted EL0.
+    // The vector says which: lower-EL entries sit from 0x400 (Arm ARM,
+    // vector table offsets; recalled, unverified).
+    if is_preemption_tick(acked.intid) {
+        crate::process::accounting::set_tick_origin(from_user);
+    }
     let handled = dispatch_irq(acked.intid);
     // A handler may have finished it already; this finishes it otherwise.
     complete_interrupt();
