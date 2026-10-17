@@ -20,8 +20,11 @@
  * contender and the kill in every order, and the kernel's glue read.
  */
 
+mod glue_locks_tests;
 mod glue_tests;
+mod glue_whole_tests;
 mod tests;
+mod text;
 #[path = "../../../../src/services/lifecycle/transport_rule.rs"]
 mod transport_rule;
 mod world;

@@ -32,7 +32,7 @@ use super::kept::{chosen, keep, none};
 use super::order::order;
 use super::said::say;
 use super::seen_line::line;
-use super::wait::waited_for_boot_disk;
+use super::wait::{caller_gone, waited_for_boot_disk};
 use super::BlockDeviceError;
 
 pub fn selected() -> Result<Backend, BlockDeviceError> {
@@ -62,8 +62,9 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
     }
     match (other, refused) {
         (Some((b, p)), None) => Ok(keep(b, p)),
+        // Never for a caller killed meanwhile: its asks failed for it (L81).
         (Some((b, p)), Some(e)) => {
-            if waited_for_boot_disk() {
+            if waited_for_boot_disk() && !caller_gone() {
                 Ok(keep(b, p))
             } else {
                 Err(e)
