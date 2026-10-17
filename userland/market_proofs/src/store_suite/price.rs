@@ -20,7 +20,7 @@
 use crate::store::price::{nox_amount, price_line, Price, ESCROW, FREE, VOUCHER};
 
 fn price(mode: u8, unit_price: u128, trusted: bool) -> Price {
-    Price { mode, unit: b"install", unit_price, trusted }
+    Price { mode, unit: b"install", unit_price, payee: [0; 20], trusted }
 }
 
 #[test]

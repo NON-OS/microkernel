@@ -47,6 +47,7 @@ mod next_step;
 mod order_line;
 mod order_watch;
 mod orders;
+mod payee;
 mod poll;
 pub mod price;
 mod progress;

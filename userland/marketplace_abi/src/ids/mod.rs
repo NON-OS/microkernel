@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod address_text;
 mod derive;
 mod hashers;
 mod release_hash;
 
+pub use address_text::address_text;
 pub use derive::{bond_id, listing_id, release_id};
 pub use hashers::{Blake3, Keccak};
 pub use release_hash::release_hash;

@@ -34,6 +34,10 @@ pub mod source;
 #[path = "../../../capsule_app_store/src/store/price.rs"]
 pub mod price;
 
+/* The payee a paid listing pays, as the wallet's consent will name it. */
+#[path = "../../../capsule_app_store/src/store/payee.rs"]
+pub mod payee;
+
 #[path = "../../../capsule_app_store/src/store/verdict.rs"]
 pub mod verdict;
 

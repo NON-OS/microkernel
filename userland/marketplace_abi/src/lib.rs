@@ -61,7 +61,7 @@ pub use codec::{encode_and_sign, encode_index, EncodeError, EncodedIndex};
 #[cfg(feature = "canonical-encode")]
 pub use codec::{encode_entry_document, encode_release_document};
 pub use codec::{DecodeError, COMMERCE_DOMAIN, CURRENT_SCHEMA, SCHEMA_V2, SCHEMA_V3};
-pub use ids::{bond_id, listing_id, release_hash, release_id, Blake3, Keccak};
+pub use ids::{address_text, bond_id, listing_id, release_hash, release_id, Blake3, Keccak};
 pub use limits::{
     GUEST_POLICY_LEN, MAX_ARCHES, MAX_CAPABILITIES, MAX_DESCRIPTION, MAX_ENTRIES, MAX_NAME,
     MAX_PROOF_ANCHORS, MAX_PROOF_REQS, MAX_PUBLISHER, MAX_RELEASES, MAX_SIGNATURE,

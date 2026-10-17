@@ -35,10 +35,17 @@ pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Result<Price, Failur
     )?;
     let got = parse_commerce(&body).ok_or(Failure::Malformed)?;
     if got.block.is_empty() {
-        return Ok(Price { mode: FREE, unit: b"unit", unit_price: 0, trusted: true });
+        return Ok(Price {
+            mode: FREE,
+            unit: b"unit",
+            unit_price: 0,
+            payee: [0; 20],
+            trusted: true,
+        });
     }
     let c = commerce_from_bytes(&got.block).map_err(|_| Failure::Malformed)?;
     let unit = UNITS.iter().find(|(_, w)| *w == c.unit).map_or(&b"unit"[..], |(n, _)| n.as_bytes());
     let mode = c.settle_mode as u8;
-    Ok(Price { mode, unit, unit_price: c.unit_price, trusted: got.trusted() })
+    let (unit_price, payee, trusted) = (c.unit_price, c.payee, got.trusted());
+    Ok(Price { mode, unit, unit_price, payee, trusted })
 }
