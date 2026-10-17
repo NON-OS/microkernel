@@ -32,5 +32,6 @@ pub use crate::iommu_command::{behaviour, global};
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/ivrs_walk.rs"]
 pub mod ivrs_walk;
 mod efr_tests;
+mod stop_tests;
 mod tests;
 mod walk_tests;
