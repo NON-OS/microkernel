@@ -25,6 +25,9 @@ mod bot_parts;
 /// A seeded sweep over BOT commands.
 #[cfg(test)]
 mod bot_sweep;
+/// A seeded sweep over the SCSI answers a disk is sized and flushed by.
+#[cfg(test)]
+mod scsi_sweep;
 
 #[cfg(test)]
 mod bot_sweep_tests;
@@ -36,6 +39,8 @@ mod csw_shape_tests;
 mod msc_tests;
 #[cfg(test)]
 mod request_refusal_tests;
+#[cfg(test)]
+mod scsi_sweep_tests;
 #[cfg(test)]
 mod sense_tests;
 #[cfg(test)]
