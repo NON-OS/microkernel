@@ -49,10 +49,9 @@ fn an_old_record_already_gone_does_not_stop_the_renewal() {
     s.keys().delete_next = Some(KeysError::NotFound);
     assert_eq!(s.keep(fresh()), Ok(()));
     assert_eq!(kept_ltk(&s), Some(fresh().ltk));
-    // The store forgets the old id, so forgetting the bond deletes the new.
+    // The false NotFound left the old record a stray in the keyring. Forget
+    // sweeps the identity, so both the renewed bond and the stray go: nothing
+    // of the identity is left to come back on the next open (E-63).
     assert_eq!(s.forget(0, &public().identity), Ok(true));
-    let ids = s.keys().inner.list(KIND_BOND).unwrap();
-    assert_eq!(ids.len(), 1);
-    let left = s.keys().inner.retrieve(ids[0]).unwrap();
-    assert_eq!(BondRecord::decode(&left).unwrap().ltk, public().ltk);
+    assert!(s.keys().inner.list(KIND_BOND).unwrap().is_empty());
 }

@@ -18,6 +18,8 @@
 //! module is test-only.
 
 #[cfg(test)]
+mod model;
+#[cfg(test)]
 mod book_limit_tests;
 #[cfg(test)]
 mod book_tests;
