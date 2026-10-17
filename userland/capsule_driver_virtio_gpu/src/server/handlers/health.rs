@@ -13,8 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::protocol::Request;
+use crate::driver::Driver;
+use crate::protocol::{Request, HDR_LEN, HEALTH_LOST, HEALTH_RESP_LEN, STATUS_LEN};
 use crate::server::respond;
-pub fn handle(sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    respond::status(sender_pid, req, 0, tx);
+/// The compositor's poll: its heartbeat, and LOST once after a blank.
+pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
+    let flags = if driver.owner.take_lost(sender_pid) { HEALTH_LOST } else { 0 };
+    let off = HDR_LEN + STATUS_LEN;
+    tx[off..off + 4].copy_from_slice(&flags.to_le_bytes());
+    respond::payload(sender_pid, req, HEALTH_RESP_LEN, tx);
 }

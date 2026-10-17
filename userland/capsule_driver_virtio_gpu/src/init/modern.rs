@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::status::{failed, reset};
 use super::types::InitOut;
 use crate::constants::{
     CTRLQ_INDEX, FEATURE_PAGE_HIGH, FEATURE_PAGE_LOW, MOD_DEVICE_FEATURE,
     MOD_DEVICE_FEATURE_SELECT, MOD_DEVICE_STATUS, MOD_DRIVER_FEATURE, MOD_DRIVER_FEATURE_SELECT,
     MOD_QUEUE_DESC, MOD_QUEUE_DEVICE, MOD_QUEUE_DRIVER, MOD_QUEUE_ENABLE, MOD_QUEUE_NOTIFY_OFF,
     MOD_QUEUE_SELECT, MOD_QUEUE_SIZE, STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK,
-    STATUS_FAILED, STATUS_FEATURES_OK, VIRTIO_F_ACCESS_PLATFORM_HIGH, VIRTIO_F_VERSION_1_HIGH,
-    VIRTIO_GPU_F_EDID, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET,
+    STATUS_FEATURES_OK, VIRTIO_F_ACCESS_PLATFORM_HIGH, VIRTIO_F_VERSION_1_HIGH, VIRTIO_GPU_F_EDID,
+    VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET,
 };
 use crate::regs::Regs;
 pub fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
     unsafe {
-        regs.w8(MOD_DEVICE_STATUS, 0);
+        reset(regs, MOD_DEVICE_STATUS)?;
         regs.w8(MOD_DEVICE_STATUS, STATUS_ACKNOWLEDGE);
         regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_DRIVER);
         regs.w32(MOD_DEVICE_FEATURE_SELECT, FEATURE_PAGE_LOW);
@@ -34,8 +35,7 @@ pub fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static 
         regs.w32(MOD_DEVICE_FEATURE_SELECT, FEATURE_PAGE_HIGH);
         let host_high = regs.r32(MOD_DEVICE_FEATURE);
         if host_high & VIRTIO_F_VERSION_1_HIGH == 0 {
-            regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
-            return Err("virtio-gpu: modern feature missing");
+            return Err(failed(regs, "virtio-gpu: modern feature missing"));
         }
         // Low page: VIRGL and EDID when offered, nothing else.
         regs.w32(MOD_DRIVER_FEATURE_SELECT, FEATURE_PAGE_LOW);
@@ -47,20 +47,17 @@ pub fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static 
         regs.w32(MOD_DRIVER_FEATURE, high);
         regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FEATURES_OK);
         if regs.r8(MOD_DEVICE_STATUS) & STATUS_FEATURES_OK == 0 {
-            regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
-            return Err("virtio-gpu: features rejected");
+            return Err(failed(regs, "virtio-gpu: features rejected"));
         }
         regs.w16(MOD_QUEUE_SELECT, CTRLQ_INDEX);
         let qmax = regs.r16(MOD_QUEUE_SIZE);
         if qmax == 0 {
-            regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
-            return Err("virtio-gpu: missing control queue");
+            return Err(failed(regs, "virtio-gpu: missing control queue"));
         }
         let qsize = core::cmp::min(qmax, VQ_MAX_SIZE);
         regs.w16(MOD_QUEUE_SIZE, qsize);
         let Some(regs) = regs.with_queue_notify(regs.r16(MOD_QUEUE_NOTIFY_OFF)) else {
-            regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
-            return Err("virtio-gpu: notify address outside the notify region");
+            return Err(failed(regs, "virtio-gpu: notify address outside the notify region"));
         };
         regs.w64(MOD_QUEUE_DESC, queue_phys + VQ_DESC_OFFSET as u64);
         regs.w64(MOD_QUEUE_DRIVER, queue_phys + VQ_AVAIL_OFFSET as u64);
