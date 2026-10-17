@@ -30,6 +30,7 @@ use alloc::vec::Vec;
 pub const UNREAD_CRT: u8 = 1 << 4;
 pub const UNREAD_HOT: u8 = 1 << 5;
 pub const UNREAD_PSV: u8 = 1 << 6;
+pub const UNREAD_TRIPS: u8 = UNREAD_CRT | UNREAD_HOT | UNREAD_PSV;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Read {
