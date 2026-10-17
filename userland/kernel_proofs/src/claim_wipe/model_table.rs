@@ -21,8 +21,11 @@
 use super::admit_rule::{admits, Admit};
 use super::due_rule::pending;
 use super::holder_rule::{same, Name};
+use super::model_end::unsettled;
+use super::model_enter::KEEP_CAP;
 use super::phase_rule::Phase;
 use super::world::World;
+use super::world_knob::Knob;
 use super::world_types::{Truth, Wipe};
 
 impl World {
@@ -36,11 +39,17 @@ impl World {
         self.truth = Truth { owed_at: now, since: now, writes: 0, ..self.truth };
     }
 
-    /// ask.rs `admits`, for process `p`.
-    pub(super) fn admits(&self, p: usize) -> Admit {
-        let (pr, rec) = (&self.procs[p], self.rec);
+    /// ask.rs `admits`, for process `p`: the kept bound asked once the
+    /// record is read (L80); no tenancy let in with it reached (I10).
+    pub(super) fn admits(&mut self, p: usize) -> Admit {
+        let (rec, past, pr) = (self.rec, self.kept_bytes() >= KEEP_CAP, &mut self.procs[p]);
+        pr.over_cap = if self.knob == Knob::CapEarly { pr.over_cap } else { past };
         let same = same(rec.and_then(|r| r.by), pr.name);
-        admits(rec.map(|r| r.phase), same, self.now, pr.over_cap)
+        let a = admits(rec.map(|r| r.phase), same, self.now, pr.over_cap);
+        if a == Admit::Go && self.kept_bytes() + unsettled(self) >= KEEP_CAP {
+            self.bad(10, "a tenancy let in past the kept frames' bound (I10)");
+        }
+        a
     }
 
     /// ask.rs `rearm`: a lost function asked once more.
