@@ -16,13 +16,15 @@
 
 //! The compare-and-swap loops on the FACS lock word.
 
-use crate::exec::{Fault, Host, Machine};
+use crate::exec::{Fault, FaultKind, Host, Machine};
 use crate::region::{acquire_step, release_step};
 
 /// How long to wait between looks at a lock firmware holds. Firmware tells
 /// of its release through an SCI (GBL_RLS); until the SCI is wired, looking
 /// again every millisecond, under the evaluation's time budget, is the wait.
 const POLL_US: u64 = 1000;
+/// Looks at the word when giving the lock back; our choice, from no source.
+const GIVE_LOOKS: u32 = 8;
 
 impl<H: Host> Machine<'_, H> {
     /// A platform without a FACS has no firmware to share the lock with, so
@@ -45,10 +47,13 @@ impl<H: Host> Machine<'_, H> {
         }
     }
 
+    /// Never refused by the budget: an evaluation stopped for running out
+    /// of steps or time must still hand the lock back, or firmware waits on
+    /// it forever. Firmware changes a word the capsule owns only by marking
+    /// it pending, so a few looks always do.
     pub(crate) fn lock_give(&mut self, at: u32) -> Result<(), Fault> {
         let mut old = 2u32;
-        loop {
-            self.tick(at)?;
+        for _ in 0..GIVE_LOOKS {
             let (new, pending) = release_step(old);
             match self.host.lock_word(old, new) {
                 None => return Ok(()),
@@ -61,5 +66,6 @@ impl<H: Host> Machine<'_, H> {
                 }
             }
         }
+        Err(self.fault(FaultKind::Mutex, at))
     }
 }
