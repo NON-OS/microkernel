@@ -33,8 +33,9 @@ fn each_op_has_the_role_plan_21_gives_it() {
     use Role::*;
     let wallet: &[u16] = &[5, 6, 8, 11, 12, 13, 14, 16, 17, 20];
     let roles = [(Anyone, &[1, 4][..]), (Payer, &[2, 9, 15]), (Settle, &[3]), (Wallet, wallet)];
-    // 19 with the body [0] is the store's POST.
-    let roles = [&roles[..], &[(Deliverer, &[10][..]), (Install, &[18]), (Store, &[19])]].concat();
+    // 19 with the body [0] is the store's POST; 21 is its FUNDED.
+    let roles =
+        [&roles[..], &[(Deliverer, &[10][..]), (Install, &[18]), (Store, &[19, 21])]].concat();
     for op in 0..=u16::MAX {
         let want = roles.iter().find(|(_, ops)| ops.contains(&op)).map(|(r, _)| *r);
         assert_eq!(op_role(op, &[0]), want, "op {op}");

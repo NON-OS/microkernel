@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod funded;
 mod offer;
+mod record;
 
-pub use offer::{priced, Offer};
+pub use funded::{committed, funded, takes};
+pub use offer::priced;
+pub use record::Offer;

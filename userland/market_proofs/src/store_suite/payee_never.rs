@@ -25,9 +25,7 @@ use crate::store::price::{Price, FREE};
 #[test]
 fn a_listing_with_no_commerce_block_shows_no_payee_line() {
     // What market/price.rs makes of an empty block: free, nothing to pay.
-    let (unit, payee, listing_key) = (&b"unit"[..], [0; 20], [0; 32]);
-    let free =
-        Price { mode: FREE, unit, unit_price: 0, payee, trusted: true, listing_key, chain_id: 0 };
+    let free = Price { mode: FREE, unit: b"unit", unit_price: 0, payee: [0; 20], trusted: true };
     assert_eq!(payee_line(&Host, &free), None);
     assert_eq!(payee_line(&Host, &served(bytes(EXAMPLES[0]), SettleMode::Free)), None);
     let mut unconfirmed = served(bytes(EXAMPLES[0]), SettleMode::Escrow);
