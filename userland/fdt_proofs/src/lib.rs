@@ -5,6 +5,17 @@
 
 pub mod arch;
 
+// `fdt/find/reserved_dma` names its range type by the kernel's path.
+#[path = "../../../src/memory/iommu/reserved/range.rs"]
+mod reserved_range;
+pub mod memory {
+    pub mod iommu {
+        pub mod reserved {
+            pub use crate::reserved_range::ReservedRange;
+        }
+    }
+}
+
 #[cfg(test)]
 mod blobs;
 #[cfg(test)]
@@ -68,6 +79,12 @@ mod platform_tests;
 mod psci_tests;
 #[cfg(test)]
 mod reserve_tests;
+#[cfg(test)]
+mod reserved_dma_hostile_tests;
+#[cfg(test)]
+mod reserved_dma_tests;
+#[cfg(test)]
+mod reserved_dma_tree;
 #[cfg(test)]
 mod rpi4_platform_tests;
 #[cfg(test)]

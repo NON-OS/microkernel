@@ -26,6 +26,7 @@ pub mod pci;
 pub mod platform;
 pub mod plic;
 pub mod psci;
+pub mod reserved_dma;
 pub mod rtc;
 pub mod smmu;
 pub mod timebase;

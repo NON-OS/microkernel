@@ -27,6 +27,7 @@ mod platform;
 mod processors;
 mod psci;
 mod reserved;
+mod reserved_dma;
 
 use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::aarch64::mmu::pointer::ram;
@@ -59,7 +60,8 @@ pub fn populate(dtb_ptr: u64, info: &mut BootInfo) -> Outcome {
         .and_then(|()| psci::populate(&fdt))
         .and_then(|()| processors::populate(&fdt, info))
         .and_then(|()| idle::populate(&fdt))
-        .and_then(|()| reserved::populate(&fdt, info));
+        .and_then(|()| reserved::populate(&fdt, info))
+        .and_then(|()| reserved_dma::populate(&fdt));
     let seed = entropy::keep(&fdt, blob as u64);
     drop(fdt);
     if let Some(at) = seed {
