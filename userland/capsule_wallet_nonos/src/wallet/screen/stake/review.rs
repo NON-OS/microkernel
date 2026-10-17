@@ -19,8 +19,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::super::hits;
+use super::super::hits::{self, Press};
 use super::super::page::{edges, lead};
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
@@ -42,8 +43,9 @@ pub fn review(state: &State, fb: &mut PaintBuffer, d: &Draft) {
     let status = super::super::status::parts(state);
     let working = crate::wallet::act::working(state);
     let ready = working.is_none();
+    let confirm = ready && !greyed(state, Press::Footer(0));
     let footer = [
-        (working.unwrap_or("Confirm and send"), Weight::Primary, ready),
+        (working.unwrap_or("Confirm and send"), Weight::Primary, confirm),
         ("Back", Weight::Secondary, ready),
     ];
     let spec = FrameSpec {
@@ -68,5 +70,5 @@ pub fn review(state: &State, fb: &mut PaintBuffer, d: &Draft) {
     y += at.h;
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    edges(&l, &[ready, ready]);
+    edges(&l, &[confirm, ready]);
 }

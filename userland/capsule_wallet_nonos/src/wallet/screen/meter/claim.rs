@@ -25,6 +25,7 @@ use nonos_app_skeleton::{EventOutcome, PaintBuffer};
 use nonos_nox_config::SEPOLIA;
 use nonos_payment_proto::OP_CLAIM;
 
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::parts::quiet::quiet_group;
 use crate::wallet::etna::rect::Rect;
 use crate::wallet::meter::job::JobKind;
@@ -34,7 +35,7 @@ use crate::wallet::state::State;
 pub use crate::wallet::arm::rows::ROW_CLAIM;
 
 pub fn row(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
-    let idle = state.meter.job.is_none();
+    let idle = state.meter.job.is_none() && !greyed(state, Press::Row(ROW_CLAIM));
     let mut at = [Rect::new(0, 0, 0, 0); 1];
     let h = quiet_group(
         fb,
