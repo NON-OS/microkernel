@@ -13,23 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! A voucher listing whose channel is open installs on Enter, the wallet's
-//! "Use it" answered: the store reads the meter's ACCOUNT rows and installs when one takes one more install as the meter's charge
-//! would. Anything less, a meter that did not answer included, posts.
+//! "Use it" answered: the store asks the meter FUNDED, one
+//! bit the meter works out from the listing's own price and its channels,
+//! and installs on a yes. Anything less, no answer included, posts.
 
-use nonos_payment_proto::AccountRow;
+use alloc::vec::Vec;
 
+use nonos_payment_proto::parse_funded;
+
+use super::asked::Asked;
 use super::listing::Listing;
-use super::price::{Price, VOUCHER};
+use super::price::VOUCHER;
+use super::progress::Progress;
 use super::purchase_said::by_wallet;
-
-#[path = "channel_page.rs"]
-mod channel_page;
-pub use channel_page::{page, queued};
-
-/// PAY refuses on a channel within a day of its expiry.
-pub const CHARGE_MARGIN: u64 = 86_400;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Route {
@@ -39,30 +36,30 @@ pub enum Route {
     Post,
 }
 
-/// Whether Enter on `l` reads the channels first: a trusted voucher listing
-/// the wallet would otherwise be handed. Escrow never does.
+/// Whether Enter on `l` asks the meter first: a trusted voucher listing the
+/// wallet would otherwise be handed. Escrow never does.
 pub fn reads_channels(l: &Listing) -> bool {
     by_wallet(l) && l.known.price.is_some_and(|p| p.mode == VOUCHER)
 }
 
-/// Whether `r` takes one install (one unit at `p`'s price) at `now`, unix
-/// s, as Channel::charged would: this listing and chain, not frozen, live
-/// past the margin, max(cumulative, settled) plus the price within deposit.
-pub fn funded_for(r: &AccountRow, p: &Price, now: u64) -> bool {
-    let after = r.cumulative.max(r.settled).checked_add(p.unit_price);
-    (r.listing_id, r.chain_id) == (p.listing_key, p.chain_id)
-        && !r.frozen
-        && now.saturating_add(CHARGE_MARGIN) < r.expiry
-        && p.unit_price != 0
-        && after.is_some_and(|c| c <= r.deposit)
+/// FUNDED's reply as the store takes it: the bit, or None for an error, no
+/// answer, or a reply that does not read.
+pub fn answer(reply: Result<Vec<u8>, i32>) -> Option<bool> {
+    parse_funded(&reply.ok()?)
 }
 
-/// Where Enter sends `l`, given the rows read; None (no answer, an error,
-/// a reply that does not read) posts.
-pub fn route(l: &Listing, rows: Option<&[AccountRow]>, now: u64) -> Route {
-    let held = |p: Price| rows.is_some_and(|rs| rs.iter().any(|r| funded_for(r, &p, now)));
-    match !by_wallet(l) || l.known.price.filter(|_| reads_channels(l)).is_some_and(held) {
+/// Where Enter sends `l`, given the meter's bit; only Some(true) installs a
+/// listing the wallet sells.
+pub fn route(l: &Listing, funded: Option<bool>) -> Route {
+    match !by_wallet(l) || (reads_channels(l) && funded == Some(true)) {
         true => Route::Install,
         false => Route::Post,
+    }
+}
+
+/// An install asked for and queued shows as queued.
+pub fn queued(l: &mut Listing, asked: Asked) {
+    if asked == Asked::Queued {
+        (l.progress, l.removing) = (Progress::Queued, false);
     }
 }

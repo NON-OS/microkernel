@@ -18,6 +18,6 @@ mod account;
 mod budget;
 mod drain;
 
-pub use account::account;
+pub use account::{account, row};
 pub use budget::budget;
 pub use drain::{drain, record};
