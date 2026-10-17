@@ -24,6 +24,7 @@ mod inherit;
 mod ops;
 mod pid;
 mod pid_alloc;
+mod thread_end;
 mod thread_spawn;
 mod thread_start;
 mod types;

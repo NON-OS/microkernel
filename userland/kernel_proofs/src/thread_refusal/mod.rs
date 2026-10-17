@@ -30,4 +30,5 @@
 
 #[path = "../../../../src/process/core/table/thread_start.rs"]
 pub mod thread_start;
+mod end_tests;
 mod tests;
