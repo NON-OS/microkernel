@@ -89,19 +89,26 @@ when a generate fails, and when the next generate writes over them.
 
 A purchase the store names shows nothing until the market's four answers
 are in, are for the names asked and pass `read_named`
-(`src/wallet/order/terms`). The consent then says, by the wallet's own name,
-whom it pays in full, and the wallet raises and focuses its window. Buy is
-armed only once the consent is drawn and the window manager says the
-wallet holds focus (`OP_QUERY_FOCUS`), and only after a further second;
-the second starts again whenever focus is lost and won back, and focus lost
-over the consent sends the purchase back to reading its terms
-(`src/wallet/order/guard`).
+(`src/wallet/order/terms`); an id the wallet hashes as all zeros, a hash
+the crypto service did not give, is refused before any compare. The consent
+then says, by the wallet's own name, whom it pays in full, and the wallet
+asks to raise and focus its window; a refusal is no failure and nothing is
+said of it. Buy is armed only once the consent is drawn and the window
+manager says the wallet holds focus (`OP_QUERY_FOCUS`), and only after a
+further second; the second starts again whenever focus is lost and won
+back, and focus lost over the consent sends the purchase back to reading
+its terms (`src/wallet/order/guard`). Every other press that moves value or
+signs is armed the same way (`src/wallet/arm`); off the purchase, focus lost
+disarms it until a fresh second has passed.
 
 These blunt focus stealing and a fake window drawn to look like the
-wallet. They cannot stop a click falling through an overlay that another
-capsule draws above the wallet: the compositor lets any client draw over
-any window while clicks follow the window manager's stacking. The fix is
-manager.
+wallet. A click falling through an overlay that another capsule draws above
+compositor's layer under the pointer (`OP_LAYER_AT`) against the window
+manager's hit before it delivers the click. T1b also takes a client's own
+raise or focus only within a second of input the router gave it, so the
+wallet's own raise after the store's POST is refused (`E_PERM`) and the
+dock marks the wallet for attention: bringing the wallet forward is the
+person's act, and the second starts from that.
 
 ## Tests
 

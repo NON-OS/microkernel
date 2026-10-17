@@ -24,6 +24,7 @@ impl Wallet {
     pub(super) fn tick(&mut self) -> bool {
         // A consent's focus first, whatever else this tick holds (order/guard).
         let guard = crate::wallet::order::guard::poll::poll(&mut self.state);
+        crate::wallet::arm::gate::poll(&mut self.state);
         if let Some(r) = self.tick_gate() {
             return r || guard;
         }

@@ -17,6 +17,7 @@
 pub mod accounts;
 mod act;
 mod app;
+mod arm;
 mod attest;
 pub mod chain;
 pub mod etna;
