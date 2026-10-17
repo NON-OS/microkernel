@@ -18,6 +18,7 @@ pub mod aux_hw;
 pub mod bus;
 pub mod cable;
 pub mod clock;
+pub mod confine;
 pub mod dc_hw;
 pub mod ddi_hw;
 pub mod expiry;
