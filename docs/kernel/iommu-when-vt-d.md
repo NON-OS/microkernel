@@ -43,14 +43,15 @@ and is denied. The success lines say so, from `enabled`
 [VT-D] translation enabled, levels=<hex> devices=<hex>
 [VT-D] enumerated devices blocked until claimed; with reserved memory=<n>; others denied
 [VT-D] units programmed=<hex>
+[VT-D] WARNING units left off=<hex>; not programmed, devices behind them are unrestricted
 ```
 
-Only units on PCI segment 0 are programmed. DMAR units on other segments are
-counted by `foreign_segment_units` and named in a warning, and the devices
-behind them are unrestricted
-(`src/arch/x86_64/acpi/parser/other/dmar.rs:44-48`). The kernel records at most
-`MAX_REMAP_UNITS`, 8, segment 0 units, and reads only the DRHD structures of the
-table (`src/arch/x86_64/acpi/parser/other/dmar.rs:26-27`).
+Only units on PCI segment 0 are programmed, at most `MAX_REMAP_UNITS`, 8.
+A unit on another segment, a ninth, or one past a DMAR structure that does not
+parse is left off: `units_left_off` counts it, the boot log names the count in
+a warning, the devices behind it are unrestricted, and the IOMMU then claims
+no enforcement at all (`src/arch/x86_64/acpi/parser/other/dmar_keep.rs`,
+`fn keep`; `src/arch/x86_64/iommu/backend/capabilities.rs`, `fn vtd`).
 
 Interrupt remapping is the `nonos-iommu-intremap` feature, in
 `microkernel-core`. Every unit gets one shared table with CFI clear, so a
