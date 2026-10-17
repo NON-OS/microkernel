@@ -16,30 +16,36 @@
 
 extern crate alloc;
 
-use super::table::{say, CAPSULES};
+use alloc::vec::Vec;
+
+use super::table::{say, Capsule, CAPSULES};
 
 /// Back to denied, not to the identity domain: nothing drives the device now,
 /// and the next claim attaches it afresh. The domain goes with the capsule's
 /// last device, which denies it everything it still mapped.
 pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
-    let mut all = CAPSULES.lock();
+    detach_held(&mut CAPSULES.lock(), pid, device_id);
+}
+
+/// `detach` with CAPSULES already held.
+pub(super) fn detach_held(all: &mut Vec<Capsule>, pid: u32, device_id: u64) {
     let Some(pos) = all.iter().position(|c| c.pid == pid) else {
         return;
     };
-    let Some(i) = all[pos].devices.iter().position(|(d, _)| *d == device_id) else {
-        return;
-    };
-    let (_, address) = all[pos].devices.remove(i);
-    // Another device behind the same VMD still needs the shared id.
-    if all[pos].devices.iter().any(|(_, a)| *a == address) {
-        say(b"released; requester id still shared");
-        return;
+    // The device's own id and each alias it was joined under.
+    while let Some(i) = all[pos].devices.iter().position(|(d, _)| *d == device_id) {
+        let (_, address) = all[pos].devices.remove(i);
+        // Another device behind the same VMD or bridge still needs the id.
+        if all[pos].devices.iter().any(|(_, a)| *a == address) {
+            say(b"released; requester id still shared");
+            continue;
+        }
+        if all[pos].domain.detach_device(address).is_err() {
+            say(b"detach failed; the domain is kept");
+            return;
+        }
+        say(b"released and denied");
     }
-    if all[pos].domain.detach_device(address).is_err() {
-        say(b"detach failed; the domain is kept");
-        return;
-    }
-    say(b"released and denied");
     if all[pos].devices.is_empty() {
         all.remove(pos);
     }

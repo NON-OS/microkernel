@@ -17,6 +17,8 @@
 #[cfg(target_arch = "x86_64")]
 mod acs;
 #[cfg(target_arch = "x86_64")]
+mod acs_alias;
+#[cfg(target_arch = "x86_64")]
 mod acs_kind;
 #[cfg(target_arch = "x86_64")]
 mod acs_path;
@@ -34,6 +36,7 @@ mod interrupts;
 mod iova;
 mod iova_space;
 mod join;
+mod join_alias;
 mod map;
 mod posture;
 mod refuse;

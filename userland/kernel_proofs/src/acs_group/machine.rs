@@ -31,11 +31,11 @@ pub(super) const LPC: Bdf = (0, 0x1f, 0);
 pub(super) const NVME: Bdf = (5, 0, 0);
 
 fn bridge(at: Bdf, sec: u8, sub: u8) -> Func {
-    Func { at, buses: Some((sec, sub)), conventional: false }
+    Func { at, buses: Some((sec, sub)), conventional: false, alias: None }
 }
 
 fn leaf(at: Bdf) -> Func {
-    Func { at, buses: None, conventional: false }
+    Func { at, buses: None, conventional: false, alias: None }
 }
 
 pub(super) fn machine() -> Vec<Func> {
