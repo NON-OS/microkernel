@@ -16,19 +16,8 @@
 
 pub mod analysis;
 pub mod approval;
-pub mod policy;
-pub mod stats;
-pub mod validation;
 
-pub use analysis::{
-    audit_device, device_security_level, is_dma_capable, is_security_relevant,
-    prepare_device_for_dma, validate_device_for_driver, DeviceAuditInfo, SecurityLevel,
-};
+pub use analysis::is_dma_capable;
 pub use approval::{
-    add_to_allowlist, add_to_blocklist, approve_bus_master, check_device_allowed, clear_allowlist,
-    clear_blocklist, clear_bus_master_approvals, is_bus_master_approved, remove_from_blocklist,
-    revoke_bus_master, set_allowlist,
+    add_to_blocklist, check_device_allowed, clear_blocklist, remove_from_blocklist, set_allowlist,
 };
-pub use policy::SecurityPolicy;
-pub use stats::{get_security_stats, reset_security_stats, SecurityStats};
-pub use validation::{validate_config_write, verify_bar_not_protected};

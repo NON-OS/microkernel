@@ -31,7 +31,7 @@ pub mod types;
 pub mod vmd;
 
 pub use api::{
-    add_device_to_blocklist, clear_device_blocklist, get_pci_stats_tuple, pci_read_config32,
+    add_device_to_blocklist, clear_device_blocklist, pci_read_config32,
     pci_read_config32_safe, pci_write_config32, pci_write_config32_safe,
     remove_device_from_blocklist, set_device_allowlist,
 };
@@ -57,12 +57,8 @@ pub use msi::{
     unmask_all_msix, unmask_msi_vector, unmask_msix_vector, MsiController,
 };
 pub use security::{
-    add_to_allowlist, add_to_blocklist, approve_bus_master, audit_device, check_device_allowed,
-    clear_allowlist, clear_blocklist, clear_bus_master_approvals, device_security_level,
-    get_security_stats, is_dma_capable, is_security_relevant,
-    prepare_device_for_dma, remove_from_blocklist, reset_security_stats, revoke_bus_master,
-    set_allowlist, validate_config_write, validate_device_for_driver,
-    DeviceAuditInfo, SecurityLevel, SecurityPolicy, SecurityStats,
+    add_to_blocklist, check_device_allowed, clear_blocklist, is_dma_capable, remove_from_blocklist,
+    set_allowlist,
 };
 pub use stats::PciStats;
 pub use types::{

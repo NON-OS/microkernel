@@ -18,9 +18,7 @@ extern crate alloc;
 
 use super::config;
 use super::error::Result;
-use super::security::{
-    add_to_blocklist, clear_blocklist, get_security_stats, remove_from_blocklist, set_allowlist,
-};
+use super::security::{add_to_blocklist, clear_blocklist, remove_from_blocklist, set_allowlist};
 use alloc::vec::Vec;
 
 pub fn pci_read_config32(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
@@ -43,12 +41,6 @@ pub fn pci_write_config32_safe(
     value: u32,
 ) -> Result<()> {
     config::write32(bus, device, function, offset as u16, value)
-}
-
-pub fn get_pci_stats_tuple() -> (u64, u64, u64) {
-    let security = get_security_stats();
-    let (reads, writes) = config::get_config_stats();
-    (reads, writes, security.violations)
 }
 
 pub fn set_device_allowlist(list: Option<Vec<(u16, u16)>>) {
