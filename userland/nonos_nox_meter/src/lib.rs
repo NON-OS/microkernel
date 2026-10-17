@@ -44,6 +44,7 @@ pub mod persist;
 pub mod root;
 pub mod settle;
 pub mod state;
+pub mod timeout;
 pub mod typed;
 pub mod usage;
 pub mod voucher;

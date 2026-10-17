@@ -35,7 +35,7 @@ pub struct Meter {
     /// Whether the file on disk has been read: saving before reading would
     /// overwrite the channels the meter signed on with an empty table.
     pub(super) loaded: bool,
-    /// When settle last reported each channel, in milliseconds.
+    /// When settle last reported each channel, in uptime milliseconds.
     pub(super) seen: Vec<([u8; 32], u64)>,
 }
 

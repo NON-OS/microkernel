@@ -19,17 +19,23 @@
 //! older than a minute. Best effort: without settle the meter carries on
 //! from its cached state and the local floor.
 
-use nonos_libc::mk_time_millis;
+use nonos_libc::{mk_time_millis, mk_uptime_ms};
+use nonos_nox_meter::timeout::still_fresh;
 
 use super::hold::Meter;
 use crate::clients::{channel_state, ROUTED_MS};
 
-const STALE_MS: u64 = 60_000;
 /// A charge does not wait on the network: a refresh before one is short.
 const CHARGE_MS: u64 = 1_500;
 
+/// The wall clock, for what is compared with chain time.
 pub(crate) fn now_ms() -> u64 {
     mk_time_millis().max(0) as u64
+}
+
+/// The monotonic clock, for timeouts: STEP_MS and STALE_MS (timeout.rs).
+pub(crate) fn uptime_ms() -> u64 {
+    mk_uptime_ms().max(0) as u64
 }
 
 impl Meter {
@@ -44,13 +50,13 @@ impl Meter {
     /// Refresh the channels a charge to this payee and listing could land
     /// in, those settle has not reported in the last minute.
     pub fn refresh_stale(&mut self, payee: &[u8; 20], listing: &[u8; 32], chain: u64) {
-        let now = now_ms();
+        let now = uptime_ms();
         let stale: alloc::vec::Vec<[u8; 32]> = self
             .state
             .channels
             .iter()
             .filter(|c| &c.payee == payee && &c.listing_id == listing && c.chain_id == chain)
-            .filter(|c| !self.seen.iter().any(|(id, at)| id == &c.id && now < at + STALE_MS))
+            .filter(|c| !self.seen.iter().any(|(id, at)| id == &c.id && still_fresh(*at, now)))
             .map(|c| c.id)
             .collect();
         for id in stale {
@@ -63,6 +69,6 @@ impl Meter {
         let next = self.state.from_chain(id, &view);
         self.note(next);
         self.seen.retain(|(seen, _)| seen != id);
-        self.seen.push((*id, now_ms()));
+        self.seen.push((*id, uptime_ms()));
     }
 }
