@@ -23,5 +23,5 @@ mod ui;
 
 pub use attest_flow::sign_attest;
 pub use binding_flow::{load, sign_binding, why};
-pub use kec::Kec;
+pub use kec::{Kec, Noted};
 pub use ui::PublisherUi;
