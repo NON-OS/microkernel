@@ -18,6 +18,9 @@
 
 use crate::off_rule::*;
 
+#[path = "shutdown_say_tests.rs"]
+mod shutdown_say;
+
 /// F-107: a restarted capsule has no boot guard (the kernel served the
 /// button while it was away), but a bounce is still a bounce.
 #[test]
