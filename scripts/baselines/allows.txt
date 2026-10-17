@@ -161,7 +161,6 @@ userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:31
 userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:34
 userland/nonos_disk/tests/fat32_names_and_geometry_hold_at_their_edges.rs:37
 userland/nonos_git/tests/common/mod.rs:22
-userland/nonos_nox_broker/src/issue.rs:53
 userland/nonos_seal/src/poly1305.rs:129
 userland/nvme_proofs/src/lib.rs:62
 userland/nvme_proofs/src/nvm/mod.rs:5
@@ -214,7 +213,6 @@ userland/virtio_net_proofs/src/queue/mod.rs:13
 userland/virtio_net_proofs/src/queue/mod.rs:14
 userland/virtio_transport_proofs/src/tests/space.rs:125
 userland/virtio_transport_proofs/src/tests/space.rs:82
-userland/wallet_proofs/src/keyring_owner_tests.rs:68
 userland/wm_proofs/src/window.rs:28
 userland/wm_proofs/src/window_share_tests.rs:37
 userland/xhci_proofs/src/lib.rs:43
