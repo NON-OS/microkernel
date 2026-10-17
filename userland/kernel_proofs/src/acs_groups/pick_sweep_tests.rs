@@ -29,7 +29,7 @@ use super::port_rule::{picked, DOWNSTREAM, UPSTREAM};
 fn two_ports_of_a_switch_are_both_closed_or_grouped_together() {
     let mut seen = [0u32; 3];
     for seed in 1..=4_000u64 {
-        let mut t = grown(seed);
+        let mut t = grown(seed, true);
         let bridges = t.0.clone();
         let pick = picked(&bridges);
         let mut ports = Vec::new();

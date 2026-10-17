@@ -46,10 +46,12 @@ pub fn sys_futex_wait(vaddr: u64, expected: u32, timeout_ms: u64) -> i64 {
      */
     join(&mut FUTEX_QUEUE.lock(), key, caller);
     // Re-read the word under the kernel's eyes: if it already changed since
-    // the caller's own check, a wake happened and we must not block.
+    // the caller's own check, a wake happened and we must not block. Killed
+    // before it queued, teardown's forget has run: it leaves by itself (L77e).
     let mut buf = [0u8; 4];
     let read = crate::usercopy::copy_from_user(vaddr, &mut buf);
-    if read.is_err() || u32::from_ne_bytes(buf) != expected {
+    let dead = super::queue::ended(caller);
+    if dead || read.is_err() || u32::from_ne_bytes(buf) != expected {
         // Bound first, so the queue lock is dropped before the wake.
         let next = leave_early(&mut FUTEX_QUEUE.lock(), key, caller);
         if let Some(next) = next {
@@ -59,10 +61,8 @@ pub fn sys_futex_wait(vaddr: u64, expected: u32, timeout_ms: u64) -> i64 {
     }
 
     // A timed wait sleeps the time it asked for: the queueing and the wake
-    // token above mean a wake that races the sleep is never lost, so the
-    // safety cap is only for an untimed wait. Capped, `mk_idle_ms` slept at most 20 ms, and every
-    // driver loop counting sleeps (a stick's spin-up, a port's reset
-    // recovery) ended long before the time it meant to give.
+    // token mean a wake racing the sleep is never lost, so the safety cap is
+    // only for an untimed wait; capped, a driver's counted sleeps ran short.
     let cap = if timeout_ms == 0 { SAFETY_MS } else { timeout_ms.min(MAX_TIMED_MS) };
     let deadline = crate::time::timestamp_millis().saturating_add(cap.max(1));
     crate::sched::sleep_until_unless_woken(caller, deadline, token);

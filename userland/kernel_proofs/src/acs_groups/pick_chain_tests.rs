@@ -58,7 +58,7 @@ fn a_swapped_switch_is_closed_or_grouped_below_its_closed_upstream_port() {
 #[test]
 fn told_the_truth_the_pick_counts_switch_ports_and_unset_bridges_only() {
     for seed in 1..=4_000u64 {
-        let t = grown(seed);
+        let t = grown(seed, false);
         // One firmware left unset is read with no type: below a bridge it counts.
         let said = |(b, k): (&Bridge, &(u8, usize))| (b.0, b.1, Some(k.0).filter(|&k| k != 0));
         let told: Vec<Bridge> = t.0.iter().zip(&t.1).map(said).collect();

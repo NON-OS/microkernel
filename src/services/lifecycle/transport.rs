@@ -27,30 +27,13 @@ use alloc::format;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use spin::{Mutex, MutexGuard};
-
 use super::state::CapsuleState;
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox;
 
 const RECV_YIELDS: u32 = 50_000;
 
-/// Acquire a per-capsule transport lock without busy-spinning. `round_trip`
-/// yields the CPU while it waits for the reply, so the holder is off-core for
-/// the whole exchange; a contending caller must yield too rather than spin, or
-/// on a single CPU with interrupts disabled it pins the core and the holder
-/// can never run to release the lock (the deadlock involuntary preemption now
-/// makes reachable). On contention, hand the CPU to the holder and retry.
-pub fn lock_yielding(lock: &'static Mutex<()>) -> MutexGuard<'static, ()> {
-    let mut round = 0u32;
-    loop {
-        if let Some(guard) = lock.try_lock() {
-            return guard;
-        }
-        super::reply_wait::rest(round);
-        round = round.saturating_add(1);
-    }
-}
+pub use super::transport_lock::lock_yielding;
 
 /// Bump a per-capsule request-id counter, skipping zero so callers can
 /// reserve `0` for "no request in flight". The atomic is owned by
@@ -182,7 +165,11 @@ pub fn round_trip(
     let started_ms = crate::time::timestamp_millis();
     let _waiting = super::waiting::Waiting::on(reply_inbox);
     for round in 0..RECV_YIELDS {
-        if !state.is_alive() {
+        // A caller killed meanwhile returns now, its lock's guard dropped on
+        // the way out, rather than reaching the park still holding it.
+        let killed = crate::process::current_pid()
+            .is_some_and(|p| crate::process::scheduler::selection::is_dead(p));
+        if !state.is_alive() || killed {
             return Err(TransportError::Dead);
         }
         if state.generation() != gen_at_send {

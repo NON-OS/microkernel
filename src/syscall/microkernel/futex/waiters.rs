@@ -56,3 +56,20 @@ pub(super) fn leave_early(queue: &mut BTreeMap<Key, Vec<u32>>, key: Key, pid: u3
     }
     next
 }
+
+/// Up to `count` live waiters from the front (0, all), any that ended dropped
+/// uncounted: a wake spent on one killed after it queued was lost (L77e).
+pub(super) fn take_live(
+    waiting: &mut Vec<u32>,
+    count: usize,
+    ended: impl Fn(u32) -> bool,
+) -> Vec<u32> {
+    let mut woken = Vec::new();
+    while (count == 0 || woken.len() < count) && !waiting.is_empty() {
+        let pid = waiting.remove(0);
+        if !ended(pid) {
+            woken.push(pid);
+        }
+    }
+    woken
+}
