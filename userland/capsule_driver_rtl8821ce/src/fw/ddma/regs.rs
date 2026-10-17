@@ -26,5 +26,5 @@ pub const DDMA_RESET_CHKSUM_STS: u32 = 1 << 25;
 pub const DDMA_CHKSUM_CONT: u32 = 1 << 24;
 pub const DDMA_DLEN_MASK: u32 = 0x3FFFF;
 
-// Reads allowed before a DDMA transfer is declared stuck.
-pub(super) const OWN_POLL_LIMIT: u32 = 1_000_000;
+/// How long a DDMA transfer may hold the channel (rtw88 `check_hw_ready`).
+pub(super) const OWN_MS: u64 = 10;

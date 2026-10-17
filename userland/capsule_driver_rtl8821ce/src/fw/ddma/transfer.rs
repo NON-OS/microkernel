@@ -4,11 +4,12 @@
 
 use crate::regs::Mmio;
 
-use super::regs::OWN_POLL_LIMIT;
+use super::regs::OWN_MS;
 use super::{
     DDMA_CHKSUM_CONT, DDMA_CHKSUM_EN, DDMA_DLEN_MASK, DDMA_OWN, DDMA_RESET_CHKSUM_STS, MCUFWDL_EN,
     REG_DDMA_CH0CTRL, REG_DDMA_CH0DA, REG_DDMA_CH0SA, REG_MCUFW_CTRL,
 };
+use crate::wait::until_ms;
 
 /// Enable firmware download: set the download-enable bit in the firmware
 /// control register while preserving the reserved bits the card owns.
@@ -44,11 +45,5 @@ pub fn transfer<M: Mmio>(mmio: &M, src: u32, dst: u32, len: u32, first: bool) ->
 // The channel-owned bit is set by the host to start a transfer and cleared by
 // the card when it finishes; a transfer may only start when it reads clear.
 fn wait_idle<M: Mmio>(mmio: &M) -> bool {
-    for _ in 0..OWN_POLL_LIMIT {
-        if mmio.read32(REG_DDMA_CH0CTRL) & DDMA_OWN == 0 {
-            return true;
-        }
-        core::hint::spin_loop();
-    }
-    false
+    until_ms(OWN_MS, || mmio.read32(REG_DDMA_CH0CTRL) & DDMA_OWN == 0)
 }
