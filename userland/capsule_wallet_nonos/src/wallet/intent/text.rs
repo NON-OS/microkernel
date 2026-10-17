@@ -15,13 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Text for an intent's review: contract names, and hex as a person reads
- * it (hex_id).
+ * Text for an intent's review, every value whole: contract names, an id
+ * as all its hex (hex_id), an address in its EIP-55 spelling.
  */
 
+use alloc::format;
+use alloc::string::String;
+
+use nonos_marketplace_abi::{address_text, Keccak};
 use nonos_nox_config::Contract;
 
-pub use super::super::hex_id::{hex, id};
+pub use super::super::hex_id::hex;
+
+/// `a` in full, 0x and its EIP-55 spelling (marketplace_abi's).
+pub fn addr_text(k: &impl Keccak, a: &[u8; 20]) -> String {
+    address_text(k, a).iter().map(|c| char::from(*c)).collect()
+}
+
+/// A contract by name and its address in full, or why there is none.
+pub fn placed(k: &impl Keccak, c: Contract, a: Option<[u8; 20]>) -> String {
+    match a {
+        Some(a) => format!("{} at {}", contract_name(c), addr_text(k, &a)),
+        None => format!("{}: that contract is not on this network yet", contract_name(c)),
+    }
+}
 
 pub fn contract_name(c: Contract) -> &'static str {
     match c {
