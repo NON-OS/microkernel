@@ -18,18 +18,35 @@
 //! on, and what one SCI's report says on the log (each GPE left off, why).
 
 use crate::boot::Acpi;
+use crate::events_io::PortIo;
 use crate::sys::clock::now_ms;
 use crate::sys::log::Line;
 use nonos_aml::events::{SciReport, PWRBTN};
 use nonos_libc::{mk_irq_poll, IrqPollOut};
 
 pub fn said(r: &SciReport) {
-    for n in &r.disabled {
-        Line::new(b"GPE ").hex(u64::from(*n)).str(b" left disabled: its method failed").end();
+    for (n, off) in &r.disabled {
+        let l = Line::new(b"GPE ").hex(u64::from(*n));
+        match off {
+            None => l.str(b" left disabled: its method failed").end(),
+            Some(ms) => l.str(b" off for ").dec(*ms).str(b" ms: its runs were cut").end(),
+        }
     }
     for n in &r.stormed {
         let l = Line::new(b"GPE ").hex(u64::from(*n));
         l.str(b" turned off: it fired past the storm bound").end();
+    }
+}
+
+/// Arms again each GPE whose back-off window has passed; a level source
+/// still asserting is then served on the next SCI.
+pub fn rearm(acpi: &mut Acpi) {
+    let Some(ev) = acpi.events.as_mut() else { return };
+    match ev.rearm_due(&mut PortIo) {
+        Ok(back) => back.iter().for_each(|n| {
+            Line::new(b"GPE ").hex(u64::from(*n)).str(b" armed again after its window").end()
+        }),
+        Err(_) => Line::new(b"SCI: event registers unreachable").end(),
     }
 }
 
