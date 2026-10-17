@@ -37,7 +37,8 @@ pub const REFUSED: &str = "This price cannot be paid privately yet, so the walle
 pub fn escrow() -> String {
     format!(
         "Held in escrow until delivery; if it is not delivered within {DELIVERY_DAYS} days it \
-         comes back to a fresh address of this wallet."
+         comes back to a fresh address of this wallet. A later pause of the escrow can \
+         delay the refund's gas, never the refund."
     )
 }
 
