@@ -57,6 +57,16 @@ pub fn checked(g: OscGrant) -> Option<OscGrant> {
     sound.then_some(g)
 }
 
+/// The controls the kernel would ever run natively: none while native hot
+/// plug is off (the capsule's `NATIVE_HOT_PLUG_ON`; the two move together).
+/// The kernel's own, so it records no grant wider whatever it is sent.
+pub const KERNEL_CLAIM: u32 = 0;
+
+/// The grant cut to `claim`, and the bits cut, for the caller to say once.
+pub fn within_claim(g: OscGrant, claim: u32) -> (OscGrant, u32) {
+    (OscGrant { granted: g.granted & claim, ..g }, g.granted & !claim)
+}
+
 /// The grant of the root bridge whose buses hold `bus`.
 pub fn grant_for(grants: &[OscGrant], segment: u16, bus: u8) -> Option<OscGrant> {
     let holds = |g: &&OscGrant| g.segment == segment && (g.first..=g.last).contains(&bus);

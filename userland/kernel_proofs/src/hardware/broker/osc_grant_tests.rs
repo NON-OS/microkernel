@@ -53,3 +53,6 @@ fn owned_means_offered_and_taken() {
     assert!(!r.os_owns(0));
     assert_eq!(ALL, 0b1011_1111, "bit 6 is not a control");
 }
+
+#[path = "osc_claim_tests.rs"]
+mod claim;
