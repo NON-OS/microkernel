@@ -21,6 +21,7 @@ use super::super::records;
 use super::super::types::{DmaGrant, DmaMapError, DmaMapRequest};
 use super::placed::Placed;
 use crate::hardware::broker::claim::record_while_held;
+use crate::hardware::broker::quota_log;
 
 pub(super) fn record(
     pid: u32,
@@ -45,9 +46,12 @@ pub(super) fn record(
     };
     match record_while_held(pid, req.device_id, claim_epoch, || records::insert(grant)) {
         None => return Err(DmaMapError::StaleEpoch),
-        // The quota spent answers as a spent window does.
-        Some(false) => return Err(DmaMapError::NoVaSpace),
-        Some(true) => {}
+        // The quota spent answers as a spent window does, and is named.
+        Some(Err(spent)) => {
+            quota_log::refused(pid, "DMA", spent);
+            return Err(DmaMapError::NoVaSpace);
+        }
+        Some(Ok(())) => {}
     }
 
     /*

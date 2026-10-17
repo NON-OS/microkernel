@@ -27,8 +27,25 @@ pub(crate) const MAX_DMA_GRANTS: usize = 1024;
 /// the display's 8192 pages.
 pub(crate) const MAX_DMA_BYTES: u64 = 4 * 8192 * 4096;
 
-/// Whether one more grant of `bytes` fits beside `held` grants of
-/// `held_bytes`.
-pub(crate) fn admits(held: usize, held_bytes: u64, bytes: u64, max: usize, max_bytes: u64) -> bool {
-    held < max && held_bytes.checked_add(bytes).is_some_and(|total| total <= max_bytes)
+/// Which bound a refused grant met, for the refusal's log line.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Spent {
+    Grants,
+    Bytes,
+}
+
+/// The bound one more grant of `bytes` would pass beside `held` grants of
+/// `held_bytes`, the count first; None when it fits.
+pub(crate) fn spent(
+    held: usize,
+    held_bytes: u64,
+    bytes: u64,
+    max: usize,
+    max_bytes: u64,
+) -> Option<Spent> {
+    if held >= max {
+        return Some(Spent::Grants);
+    }
+    let fits = held_bytes.checked_add(bytes).is_some_and(|total| total <= max_bytes);
+    (!fits).then_some(Spent::Bytes)
 }

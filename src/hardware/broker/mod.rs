@@ -49,6 +49,7 @@ pub mod pio;
 mod pio_absent;
 mod platform;
 mod quota;
+mod quota_log;
 mod power;
 mod table;
 mod va_space;

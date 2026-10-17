@@ -44,15 +44,15 @@ fn next_grant_id() -> u64 {
 
 // Insert a new grant, within its holder's quota. The caller has
 // validated the claim, the BAR and the alignment, and mapped the pages,
-// which it unmaps again on false.
-pub(in super::super) fn insert(record: MmioGrant) -> bool {
+// which it unmaps again on a refusal.
+pub(in super::super) fn insert(record: MmioGrant) -> Result<(), quota::Spent> {
     let mut grants = GRANTS.lock();
     let held = grants.iter().filter(|g| g.pid == record.pid).count();
-    if !quota::admits(held, 0, 0, quota::MAX_MMIO_GRANTS, u64::MAX) {
-        return false;
+    if let Some(spent) = quota::spent(held, 0, 0, quota::MAX_MMIO_GRANTS, u64::MAX) {
+        return Err(spent);
     }
     grants.push(record);
-    true
+    Ok(())
 }
 
 // Allocate a fresh grant id without recording yet. Lets the handler
