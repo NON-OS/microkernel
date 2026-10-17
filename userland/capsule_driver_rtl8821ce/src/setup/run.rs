@@ -20,10 +20,7 @@
 
 use nonos_libc::{mk_device_claim, mk_device_release, mk_mmio_map, MmioMapOut};
 
-use core::sync::atomic::Ordering;
-
 use super::mapped::Mapped;
-use super::window::{BAR_INDEX, WINDOW_VA};
 use crate::discover::Found;
 use crate::regs::Regs;
 
@@ -51,8 +48,6 @@ pub fn run(dev: Found) -> Result<Mapped, &'static str> {
         let _ = mk_device_release(dev.device_id);
         return Err("rtl8821ce: mmio map failed");
     }
-    BAR_INDEX.store(dev.bar_index, Ordering::Relaxed);
-    WINDOW_VA.store(out.user_va as u32, Ordering::Relaxed);
     Ok(Mapped {
         regs: Regs::new(out.user_va),
         device_id: dev.device_id,
