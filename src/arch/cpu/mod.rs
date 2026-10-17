@@ -25,6 +25,7 @@
 //! and stays here as a cfg-gated free function.
 
 mod cpu_yield;
+mod dense_cpu_index;
 mod disable_interrupts;
 mod enable_interrupts;
 mod get_cpu_id;
@@ -37,6 +38,7 @@ mod read_time_counter;
 mod report_ap_tsc_rate;
 
 pub use cpu_yield::cpu_yield;
+pub use dense_cpu_index::dense_cpu_index;
 pub use disable_interrupts::disable_interrupts;
 pub use enable_interrupts::enable_interrupts;
 pub use get_cpu_id::get_cpu_id;

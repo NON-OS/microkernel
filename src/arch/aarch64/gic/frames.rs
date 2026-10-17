@@ -30,12 +30,12 @@ use crate::arch::aarch64::cpu::cpu_id;
 static FRAMES: [AtomicU64; MAX_CPUS] = [const { AtomicU64::new(0) }; MAX_CPUS];
 
 pub(super) fn record(frame: &GicRedistributor) {
-    FRAMES[cpu_id().min(MAX_CPUS - 1)].store(frame.base(), Ordering::Release);
+    FRAMES[cpu_id()].store(frame.base(), Ordering::Release);
 }
 
 /// The calling CPU's frame, `None` before it has brought up its GIC half.
 pub(super) fn this_cpu() -> Option<GicRedistributor> {
-    match FRAMES[cpu_id().min(MAX_CPUS - 1)].load(Ordering::Acquire) {
+    match FRAMES[cpu_id()].load(Ordering::Acquire) {
         0 => None,
         base => Some(GicRedistributor::new(base)),
     }
