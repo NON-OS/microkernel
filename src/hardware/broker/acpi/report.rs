@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the owner reads on serial: one `[ACPI] region` line per window the
-//! capsule was granted or refused (each refusal once, `refusal_told`), and
-//! after each the posture line with the counts, which the boot matrix reads
-//! from the last one in a log.
+//! capsule was granted or refused (each refusal once, `refusal_told`), then
+//! the posture line, which the boot matrix reads from the last in a log.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 use super::kernel::records::Space;
@@ -71,5 +70,6 @@ pub(super) fn posture() {
         .str(b" corrected=")
         .dec(corrected)
         .str(super::ecam_note::suffix())
+        .str(super::sleep_adopt::soft_off_posture())
         .end();
 }

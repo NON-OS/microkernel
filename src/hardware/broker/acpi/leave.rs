@@ -52,14 +52,15 @@ pub fn on_exit(pid: u32) -> Option<bool> {
 /// zone or battery whose grace ran out with no reading since (F-108).
 pub fn serve_from_init() {
     if take_gap_press() {
-        Line::new().str(b"[ACPI] power button pressed while the ACPI capsule restarts").end();
+        let why = b"[ACPI] power button pressed while the ACPI capsule restarts";
+        Line::new().str(why).str(b"; _PTS(5) not run, no interpreter serves").end();
         terminate(PowerOff::Shutdown)
     }
     let now = crate::sys::clock::since_boot_ms();
     let late: [(Action, &[u8]); 2] =
         [(thermal_tick(now), b"thermal zone"), (battery_tick(now), b"battery")];
     if let Some((_, what)) = late.iter().find(|(a, _)| *a == Action::PowerOff) {
-        let line = b" critical by its last reading, its grace over: powering off";
+        let line = b" critical by its last reading, its grace over: powering off, _PTS(5) not run";
         Line::new().str(b"[ACPI] ").str(what).str(line).end();
         terminate(PowerOff::Shutdown)
     }

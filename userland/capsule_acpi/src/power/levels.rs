@@ -53,7 +53,7 @@ pub fn check(p: &mut Power) {
         if critical && !p.critical {
             Line::new(b"battery critical").end();
             // Refused, the kernel's grace power-off below still runs.
-            crate::power::off::power_off(b"battery critical");
+            crate::power::off::power_off(crate::power::off::Why::Battery);
         }
         if acpi_event(BATTERY_CRITICAL, u64::from(critical)).is_ok() {
             p.critical = critical;
