@@ -18,7 +18,7 @@
 //! domain by rewriting its device table entry, then dropping the cached copy
 //! on every unit before returning.
 
-use super::super::devtab::{read_dte, write_dte};
+use super::super::devtab_entry::{read_dte, write_dte};
 use super::super::dte::{blocked, domain_of, keep_interrupts, mode_of, translated, Dte};
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
