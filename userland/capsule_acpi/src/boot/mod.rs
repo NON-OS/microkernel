@@ -18,11 +18,13 @@
 
 mod assemble;
 mod bringup;
+mod bringup_say;
 mod eval;
 mod first;
 mod ged;
 mod late;
 mod load;
+mod load_rule;
 mod osc;
 mod osc_host;
 mod pass;
@@ -34,6 +36,8 @@ mod sci_claim;
 mod start;
 mod state;
 mod tables;
+
+use crate::sleep::shutdown_say::Part;
 
 pub use eval::{evaluate, evaluator};
 pub use osc_host::NATIVE_HOT_PLUG_ON;
