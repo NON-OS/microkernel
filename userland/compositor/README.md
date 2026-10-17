@@ -172,6 +172,12 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
   present once and the loop continues. A refused FLUSH leaves its
   rectangle damaged for the next frame; ESTALE also has the next pass ask
   SURFACE again.
+- A driver whose CAPS has no MODE_SET answering STATE with LOST and dark
+  (bootfb once a GPU driver has its scanout, L79) is a display that left,
+  notice or not: the desktop moves to the best other display announced,
+  scene, focus and damage kept, every output damaged whole there. It never
+  goes back to the boot framebuffer, last in the kernel's list
+  (`display/poll_rule.rs`, `display/return_rule.rs`).
 - A malformed request gets a typed errno (`E_BAD_MAGIC`, `E_BAD_VERSION`,
   `E_BAD_LEN`, `E_BAD_OP`, `E_INVAL`, `E_PERM`).
 

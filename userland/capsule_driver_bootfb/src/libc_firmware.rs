@@ -32,6 +32,8 @@ const SERVICE: &[u8] = b"driver.bootfb0";
 const MK_MMIO_MAP_WC: u32 = 1 << 0;
 /// Registered already, by this process's spawn.
 const EEXIST: i64 = -17;
+/// The claim refused, final for the boot (L79).
+const EPERM: i64 = -1;
 
 pub struct Libc;
 
@@ -41,7 +43,8 @@ impl Firmware for Libc {
         (rc == 0 || rc == EEXIST).then_some(()).ok_or(Why::Announce)
     }
     fn claim(&mut self, device_id: u64) -> Result<u64, Why> {
-        u64::try_from(mk_device_claim(device_id)).map_err(|_| Why::Claim)
+        let rc = mk_device_claim(device_id);
+        u64::try_from(rc).map_err(|_| if rc == EPERM { Why::Refused } else { Why::Claim })
     }
     fn geometry(&mut self, device_id: u64) -> Result<[u8; INFO_LEN], Why> {
         let mut info = BootFramebufferInfo::default();
