@@ -25,3 +25,7 @@ pub mod arch {
 mod level_tests;
 #[cfg(test)]
 mod order_tests;
+#[cfg(test)]
+mod reader_tests;
+#[cfg(test)]
+mod source;
