@@ -61,7 +61,7 @@ impl<T: Transport> Host<T> {
             match answer(&event, sent.then_some(op))? {
                 None => self.keep(event)?,
                 Some((credits, a)) => {
-                    self.credits = credits;
+                    self.credits = credits.min(super::state::COMMAND_CREDITS_MAX);
                     if let Some(a) = a {
                         return Ok(a);
                     }
