@@ -6,10 +6,15 @@ use crate::join_rig::{beacon, RSNE_PSK};
 
 // A beacon or probe response notification heard on `channel`.
 pub(super) fn heard(frame: &[u8], channel: u8) -> Out {
+    heard_at(frame, channel, 50)
+}
+
+// The same, at `energy` (the signal is its negative, in dBm).
+pub(super) fn heard_at(frame: &[u8], channel: u8, energy: u8) -> Out {
     let mut p = vec![0u8; 64];
     p[0..2].copy_from_slice(&(frame.len() as u16).to_le_bytes());
     p[12] = 0x3;
-    p[40] = 50;
+    p[40] = energy;
     p[42] = channel;
     p.extend_from_slice(frame);
     Out { cmd: 0xC1, group: 0, seq: 0x8000, payload: p }
