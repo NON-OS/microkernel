@@ -16,6 +16,7 @@
 
 mod dmar;
 mod dmar_cover;
+mod dmar_entry;
 mod dmar_flags;
 pub mod dmar_ioapic;
 pub mod dmar_ioapic_source;
