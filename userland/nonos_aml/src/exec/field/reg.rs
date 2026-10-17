@@ -18,34 +18,36 @@
 
 use crate::exec::{Fault, Frame, Host, Machine};
 use crate::load::Aml;
-use crate::namespace::{Id, Kind, Origin};
+use crate::namespace::Id;
 use crate::object::Object;
 use crate::region::Space;
 use alloc::vec::Vec;
 
 impl<H: Host> Machine<'_, H> {
-    /// Marks `space`'s handler connected, then runs _REG(space, 1) in every
-    /// scope that holds a region of that space and has a _REG, in the order
-    /// the regions were defined. A _REG that faults is reported and the rest
-    /// still run, so one broken device does not keep the others' regions
-    /// unannounced.
+    /// Marks `space`'s handler connected, then announces it (`announce`).
     pub fn connect(&mut self, aml: &mut Aml, space: Space) -> Vec<(Id, Fault)> {
         aml.rt.connected |= space.bit();
+        self.announce(aml, space)
+    }
+
+    /// Runs _REG(space, 1) once in every scope that holds a region of that
+    /// space and has a _REG, in the order the regions were defined. A scope
+    /// is marked before its _REG runs, so a _REG that loads a table is not
+    /// run again from inside itself. A _REG that faults is reported and the
+    /// rest still run, so one broken device does not keep the others'
+    /// regions unannounced.
+    pub(super) fn announce(&mut self, aml: &mut Aml, space: Space) -> Vec<(Id, Fault)> {
         let mut scopes: Vec<Id> = Vec::new();
-        for id in 0..aml.ns.len() as Id {
-            let Some(e) = aml.ns.get(id) else { continue };
-            let (Kind::OpRegion, Origin::Table { table, node }) = (e.kind, e.origin) else {
-                continue;
-            };
-            if aml.imm(table, aml.kid(table, node, 1)) as u8 == space.0
-                && !scopes.contains(&e.parent)
-            {
-                scopes.push(e.parent);
+        for (scope, s) in super::reg_loaded::regions(aml) {
+            let done = aml.rt.announced.contains(&(scope, space.0));
+            if s == space.0 && !done && !scopes.contains(&scope) {
+                scopes.push(scope);
             }
         }
         let mut failed = Vec::new();
         for scope in scopes {
             let Some(reg) = aml.ns.child(scope, *b"_REG") else { continue };
+            aml.rt.announced.push((scope, space.0));
             let args = alloc::vec![Object::Integer(space.0 as u64), Object::Integer(1)];
             self.frames.push(Frame::new(0, scope));
             let r = self.read_named(aml, reg, args, 0);

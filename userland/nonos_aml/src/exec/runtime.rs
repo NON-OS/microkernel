@@ -44,8 +44,10 @@ pub struct Runtime {
     pub personality: Personality,
     pub regions: BTreeMap<Id, Region>,
     pub buffer_fields: BTreeMap<Id, BufferField>,
-    /// Spaces whose handler is connected, one bit each (Space::bit).
+    /// Spaces whose handler is connected, one bit each (Space::bit), and
+    /// the (scope, space) pairs whose _REG(space, 1) has run.
     pub connected: u32,
+    pub announced: Vec<(Id, u8)>,
     /// How deep this capsule holds the Global Lock.
     pub global_lock: u32,
     /// Mutexes evaluations ended still holding, released for them: a
@@ -54,15 +56,14 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    /// Notifications beyond this are dropped and counted: a table cannot
-    /// grow the queue while the capsule is not draining it.
+    /// Notifications past this are dropped and counted: no table grows an undrained queue.
     pub const MAX_NOTIFICATIONS: usize = 64;
-
     /// Everything kept about an object, dropped when the object is removed.
     pub fn forget(&mut self, id: Id) {
         *self.value(id) = None;
         self.regions.remove(&id);
         self.buffer_fields.remove(&id);
+        self.announced.retain(|(s, _)| *s != id);
     }
 
     pub fn value(&mut self, id: Id) -> &mut Option<Object> {

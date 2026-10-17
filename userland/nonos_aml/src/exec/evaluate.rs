@@ -40,6 +40,9 @@ impl<H: Host> Machine<'_, H> {
     /// Loads one table, running its load-time code in this evaluation.
     pub fn load_table(&mut self, aml: &mut Aml, bytes: Vec<u8>) -> Result<u16, Error> {
         let r = aml.load_table(bytes, self);
+        if r.is_ok() {
+            self.announce_loaded(aml);
+        }
         self.release_all(aml);
         r
     }
