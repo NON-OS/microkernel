@@ -19,7 +19,7 @@
 //! registry's let-go and the wipe's settle, with either fate, freed exactly
 //! once if and only if the end frees it, and never before the settle.
 
-use super::kept_rule::keeps;
+use super::super::kept_rule::keeps;
 use super::kept_world::{run, Ev};
 
 #[test]

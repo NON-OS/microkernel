@@ -31,11 +31,13 @@ pub(super) struct Stepper {
     pub now: u64,
     pub job: Option<Wipe>,
     pub end: Option<End>,
+    /// Its end's kept frames settled (model_end).
+    pub settled: bool,
 }
 
 impl Stepper {
     pub(super) const fn new(wait: bool) -> Self {
-        Stepper { wait, stage: 0, now: 0, job: None, end: None }
+        Stepper { wait, stage: 0, now: 0, job: None, end: None, settled: false }
     }
 }
 
@@ -47,5 +49,5 @@ pub(super) fn due_at(k: Knob, p: Phase, now: u64) -> Due {
 
 /// A stage that takes the table waits while another holds it.
 pub(super) fn blocked(w: &World, s: &Stepper, me: usize) -> bool {
-    ((s.stage == 1 && s.wait) || s.stage == 4) && w.wipes_by.is_some_and(|by| by != me)
+    ((s.stage == 1 && s.wait) || s.stage == 5) && w.wipes_by.is_some_and(|by| by != me)
 }

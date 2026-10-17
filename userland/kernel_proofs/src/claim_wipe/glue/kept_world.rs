@@ -21,7 +21,7 @@
 //! keep would find it; that breaks "no run freed while its device can reach
 //! it", so the entry must stand before the registry can let go.
 
-use super::kept_rule::{on_let_go, on_settle, Act, Run};
+use super::super::kept_rule::{on_let_go, on_settle, Act, Run};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(super) enum Ev {

@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! enter.rs `enter`'s claims hold: an entry already there answers by its
-//! stage (stage_rule `over`); else the record is asked, and a Go makes the
-//! entry in the same hold; a lost function past its hold is asked again
-//! (undo check 13 refuses it instead). pending.rs `withdraw` takes back an
-//! entry made, and must leave the record exactly as it was (I7).
+//! stage (stage_rule `over`); else the record is asked, then the kept bound
+//! in that same hold (model_table), and a Go makes the entry in the claims
+//! hold; a lost function past its hold is asked again (undo check 13 refuses
+//! it instead). pending.rs `withdraw` takes back an entry made, and must
+//! leave the record exactly as it was (I7).
 
 use super::admit_rule::Admit;
 use super::model_attempt::{attempt_over, refused};
@@ -29,6 +30,9 @@ use super::world_cases::{CAP, WITHDRAWN};
 use super::world_knob::Knob;
 use super::world_thread::Thread;
 use super::world_types::Entry;
+
+/// enter.rs `KEEP_CAP` (our bound).
+pub(super) const KEEP_CAP: u64 = 256 << 20;
 
 pub(super) fn enter(w: &mut World, p: usize, t: &mut Thread) {
     if let Some(e) = w.entry {

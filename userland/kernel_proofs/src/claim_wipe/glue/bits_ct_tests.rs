@@ -19,7 +19,7 @@
 //! firmware left them at enumeration, never as the last holder set them,
 //! and every other bit as it was read before the reset.
 
-use super::bits_rule::{devctl2_after, CT_BITS};
+use super::super::bits_rule::{devctl2_after, CT_BITS};
 
 /// Completion Timeout Value (bits 0 to 3) and Disable (bit 4), as recalled;
 /// unverified.

@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The invariants of plan section 6. I1, I2, I3, I4, I6, I7 and I8 are judged
-//! where they can break (an admit, a free, a config access, a reset write, a
-//! withdraw, an attempt's end); I5 on every move and once more when the seed
-//! has run out. Each sets its own bit, so an undo check names its own.
+//! The invariants of plan section 6, and L80's. I1 to I4 and I6 to I10 are
+//! judged where they can break (an admit, a free, a config access, a reset
+//! write, a withdraw, an attempt's end, libc giving up, the record's answer
+//! to a claim); I5 on every move and once more when the seed has run out.
+//! Each sets its own bit, so an undo check names its own.
 
 use super::due_rule::pending;
 use super::model_stage::types::Stage;

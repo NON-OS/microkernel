@@ -17,12 +17,11 @@
 //! step.rs `step_all`, a stage a move: the clock read (none pending: back at
 //! once), the table taken (the tick only tries) and the due records no step
 //! is acting on marked busy, the table let go, the act with no lock held,
-//! the record put back under the table (finish.rs), and an ended wipe's
-//! kept frames settled outside every lock (undo check 8 frees them past Bus
-//! Master too).
+//! then finish.rs: an ended wipe's kept frames settled outside every lock
+//! (model_end), and only then its record put back under the table (L80).
 
-use super::end_rule::{frees, End};
 use super::model_act::act;
+use super::model_end::{after_put, before_put, settle};
 use super::model_finish::{collect, put};
 use super::model_stepper::Stepper;
 use super::phase_rule::MS;
@@ -51,16 +50,14 @@ pub(super) fn stage(w: &mut World, s: &mut Stepper, me: usize) -> Option<u64> {
             }
         }
         3 => (s.job, s.end) = act(w, s.job?, now),
-        4 => put(w, s, me, now),
-        5 => {
+        4 => return Some(before_put(w, s)),
+        5 => put(w, s, me, now),
+        6 => {
             w.wipes_by = None;
-            s.end.filter(|&e| e != End::Lost)?;
-            return Some(if w.chance(4) { MS * w.draw(301) } else { 0 });
+            return after_put(w, s);
         }
         _ => {
-            let (job, end) = (s.job?, s.end?);
-            let binds = w.dev.caps.binds && w.knob != Knob::FreeWhenBinds;
-            w.settle(job.epoch, frees(end, job.bme_off, binds));
+            settle(w, s);
             return None;
         }
     }

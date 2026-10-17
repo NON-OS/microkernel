@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! step.rs's gathering of the due records, and finish.rs `put`. The busy
-//! mark is the stepping token (undo check 10 takes it away); a record is
-//! found again by its epoch and given what the act left, or what its end
-//! leaves (undo check 6 trusts a display's clean reset).
+//! step.rs's gathering of the due records, and finish.rs `put` once its
+//! frames are settled (model_end). The busy mark is the stepping token
+//! (undo check 10 takes it away); a record is found again by its epoch and
+//! given what the act left, or what its end leaves (undo check 6 trusts a
+//! display's clean reset).
 
 use super::due_rule::Due;
 use super::end_rule::{ended, End};
-use super::model_check::unmark;
 use super::model_stepper::{due_at, Stepper};
 use super::world::World;
 use super::world_cases::{BUSY, CLEAN, LOST, UNRESET};
@@ -43,9 +43,6 @@ pub(super) fn collect(w: &mut World, s: &mut Stepper, me: usize) {
 
 pub(super) fn put(w: &mut World, s: &mut Stepper, me: usize, now: u64) {
     let Some(job) = s.job else { return };
-    if s.end == Some(End::Unreset) {
-        unmark(w, &job);
-    }
     w.wipes_by = Some(me);
     if w.rec.is_none_or(|r| r.epoch != job.epoch) {
         s.end = None;
