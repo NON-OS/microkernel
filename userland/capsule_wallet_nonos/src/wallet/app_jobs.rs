@@ -22,9 +22,9 @@ use super::{mk_uptime_ms, Wallet};
 impl Wallet {
     /// One tick: the first checks, then the jobs, then the refresh.
     pub(super) fn tick(&mut self) -> bool {
-        // A consent's focus first, whatever else this tick holds (order/guard).
-        let guard = crate::wallet::order::guard::poll::poll(&mut self.state);
-        crate::wallet::arm::gate::poll(&mut self.state);
+        // A consent's focus first, and a guarded screen's (order/guard, arm).
+        let mut guard = crate::wallet::order::guard::poll::poll(&mut self.state);
+        guard |= crate::wallet::arm::tick::poll(&mut self.state);
         if let Some(r) = self.tick_gate() {
             return r || guard;
         }

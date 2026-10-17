@@ -46,5 +46,6 @@ pub fn new_state() -> State {
         meter: crate::wallet::meter::MeterUi::default(),
         publisher: crate::wallet::publish::PublisherUi::default(),
         arm: crate::wallet::arm::look::Arm::default(),
+        arm_lit: false,
     }
 }

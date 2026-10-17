@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::{EventOutcome, PaintBuffer};
 
 use super::landed_move::{landed, said, ROW_MOVE};
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::parts::fact::fact;
 use crate::wallet::etna::parts::quiet::quiet_group;
 use crate::wallet::etna::rect::Rect;
@@ -43,8 +44,11 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
             let m = m.filter(|m| m.eth == eth);
             let mut at = [Rect::default(); 1];
             let label = label_of(act(m, now), eth);
-            h += quiet_group(fb, c.x, y + h, c.w, &Vec::from([(label, true)]), &mut at);
-            hits::put(Press::Row(ROW_MOVE + i), at[0]);
+            let on = !greyed(state, Press::Row(ROW_MOVE + i));
+            h += quiet_group(fb, c.x, y + h, c.w, &Vec::from([(label, on)]), &mut at);
+            if on {
+                hits::put(Press::Row(ROW_MOVE + i), at[0]);
+            }
         }
     }
     h

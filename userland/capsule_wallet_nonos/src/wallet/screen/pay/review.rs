@@ -18,9 +18,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::super::hits;
+use super::super::hits::{self, Press};
 use super::super::page::{edges, lead};
 use super::review_rows::draft;
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
@@ -35,7 +36,7 @@ pub fn review(state: &State, fb: &mut PaintBuffer) {
     let status = super::super::status::parts(state);
     /* While the payment goes out the buttons say so and take no press. */
     let working = crate::wallet::act::working(state);
-    let ready = state.send.draft.is_some() && working.is_none();
+    let ready = state.send.draft.is_some() && working.is_none() && !greyed(state, Press::Footer(0));
     let footer = [
         (working.unwrap_or("Confirm and send"), Weight::Primary, ready),
         ("Edit", Weight::Secondary, working.is_none()),

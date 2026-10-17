@@ -69,4 +69,6 @@ pub struct State {
     pub publisher: crate::wallet::publish::PublisherUi,
     /// The guard on a screen whose presses move value or sign (`arm`).
     pub arm: crate::wallet::arm::look::Arm,
+    /// Whether the frame last shown drew that guard armed (`arm::tick`).
+    pub arm_lit: bool,
 }

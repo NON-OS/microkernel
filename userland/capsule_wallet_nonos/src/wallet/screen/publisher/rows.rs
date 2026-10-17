@@ -23,6 +23,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_marketplace_abi::MarketplaceEntry;
 
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::chain;
 use crate::wallet::etna::parts::fact::fact;
 use crate::wallet::etna::parts::quiet::quiet_group;
@@ -56,7 +57,9 @@ pub fn entry(state: &State, e: &MarketplaceEntry, fb: &mut PaintBuffer, c: Rect,
         }
         actions.push((format!("Sign the attest of {}", rel.release_id), true));
     }
-    let rows: Vec<(&str, bool)> = actions.iter().map(|(t, on)| (t.as_str(), *on)).collect();
+    let on = |i: usize, on: bool| on && !greyed(state, Press::Row(i as u8));
+    let rows: Vec<(&str, bool)> =
+        actions.iter().enumerate().map(|(i, (t, o))| (t.as_str(), on(i, *o))).collect();
     let mut at = alloc::vec![Rect::new(0, 0, 0, 0); rows.len()];
     h += GAP + quiet_group(fb, c.x, y + h + GAP, c.w, &rows, &mut at);
     for (i, r) in at.iter().enumerate().filter(|(i, _)| rows[*i].1) {

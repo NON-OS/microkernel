@@ -20,3 +20,5 @@ pub mod look;
 pub mod moves;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/arm/rows.rs"]
 pub mod rows;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/arm/shows.rs"]
+pub mod shows;
