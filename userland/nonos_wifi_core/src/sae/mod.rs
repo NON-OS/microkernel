@@ -31,7 +31,7 @@ pub mod h2e;
 pub mod hnp;
 pub mod station;
 
-pub use station::{SaeFailure, SaeState, SaeStation, SaeStep};
+pub use station::{SaeFailure, SaeState, SaeStation, SaeStep, TOKEN_ROUNDS_MAX};
 
 /// Overwrite secret intermediate bytes so they do not linger on the stack.
 pub(crate) fn wipe(buf: &mut [u8]) {
