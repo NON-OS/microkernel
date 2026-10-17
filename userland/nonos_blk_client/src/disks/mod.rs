@@ -21,7 +21,10 @@
 mod booted;
 mod contents;
 mod describe;
+mod disk;
+mod fault;
 mod probe;
+mod rows;
 mod scan;
 mod word;
 
