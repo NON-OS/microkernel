@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acpi_stop;
 mod cache;
 mod drain;
 mod flags;
@@ -24,6 +25,10 @@ mod pool;
 mod records;
 mod release;
 mod scrub;
+// Wired at release with the keep path that holds a device's frames until
+// its stop is confirmed; the rule and its proofs come first.
+#[allow(dead_code)]
+mod sdhci_stop;
 mod teardown;
 mod types;
 mod va;
