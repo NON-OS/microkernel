@@ -16,19 +16,21 @@
 
 //! What a publisher transaction's review says at each step: the project
 //! line, the rows to sign once reviewed (read back from the calldata, so
-//! decode None shows no rows and no Sign), and the landed line in neutral
-//! words: a bond no longer held may have been withdrawn or slashed.
+//! decode None shows no rows and no Sign), what the send ledger says of a
+//! send (intent::said), and the landed line in neutral words: a bond no
+//! longer held may have been withdrawn or slashed.
 
 use alloc::format;
 use alloc::string::String;
 
 use nonos_nox_config::address;
 
-use crate::wallet::intent::{rows, IntentStep, Rows, NOT_READ_BACK};
+use crate::wallet::intent::{fate_of, rows, said, IntentStep, Rows, NOT_READ_BACK};
 use crate::wallet::nox::NOX_DECIMALS;
 use crate::wallet::publish::sending::Sending;
 use crate::wallet::publish::Kec;
 use crate::wallet::send::exact::exact_text;
+use crate::wallet::send::sent::Ledger;
 
 fn nox(v: u128) -> String {
     exact_text(v, NOX_DECIMALS)
@@ -45,7 +47,8 @@ pub fn page(s: &Sending) -> Option<Rows> {
     rows(s.send.kind, &s.send.calldata, &quote, &Kec, &at, nox, eth)
 }
 
-pub fn lead(s: &Sending, read_back: bool) -> String {
+/// the project; once sent, the send ledger's fate for the hash followed.
+pub fn lead(s: &Sending, read_back: bool, ledger: &Ledger) -> String {
     let more = match s.queue.len() {
         0 => String::new(),
         n => format!(" {n} more follow, each reviewed and signed in turn."),
@@ -58,7 +61,7 @@ pub fn lead(s: &Sending, read_back: bool) -> String {
         IntentStep::Review { .. } => "Check every line: it is read from the bytes signed.",
         IntentStep::Broadcasting => "Sending…",
         IntentStep::Unsure { .. } => "It may not have gone; reading the account's nonce first…",
-        IntentStep::Sent(_) => "Sent; waiting for it to land. Its hash:",
+        IntentStep::Sent(h) => return said(&h, fate_of(ledger, &s.step), &more),
         IntentStep::Landed if s.send.kind == 5 => "Landed: the bond is no longer held.",
         IntentStep::Landed => "Landed: the chain now reads what it set.",
         IntentStep::Failed(why) => why,

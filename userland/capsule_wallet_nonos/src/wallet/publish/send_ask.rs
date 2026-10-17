@@ -17,9 +17,9 @@
 /*
  * The settle request a publisher transaction's step needs (send_drive.rs):
  * INTENT for the quote with the wallet's own calldata, GAS for the balance
- * and, once Sign is pressed or a broadcast is unsure, for the account's
- * pending nonce; BROADCAST of
- * what the keyring signed; READ of the call's own view until it lands.
+ * and, once Sign is pressed, a broadcast is unsure or the ledger says the
+ * send was dropped, for the pending nonce; BROADCAST of what the keyring
+ * signed; READ of the call's own view until it lands, while it may.
  * With none under way, the next of the screen's views (views_poll.rs).
  */
 
@@ -31,7 +31,7 @@ use nonos_settle_proto::{Gas, Intent, Read};
 use super::kec::Kec;
 use super::send_drive::EVERY_MS;
 use super::sending::Asked;
-use crate::wallet::intent::{landed_read, IntentStep};
+use crate::wallet::intent::{dropped, landed_read, may_land, IntentStep};
 use crate::wallet::settle::broadcast::body;
 use crate::wallet::state::State;
 
@@ -57,7 +57,8 @@ pub fn ask(state: &mut State, now_ms: u64) -> Option<(Asked, Vec<u8>)> {
         IntentStep::Review { .. } if s.pressed => gas,
         IntentStep::Unsure { .. } if due => gas,
         IntentStep::Broadcasting => Some((Asked::Broadcast, body(chain_id, s.raw.as_deref()?))),
-        IntentStep::Sent(_) if due => {
+        IntentStep::Sent(_) if due && dropped(&state.broadcast.sent, &s.step) => gas,
+        IntentStep::Sent(_) if due && may_land(&state.broadcast.sent, &s.step) => {
             s.next_ms = now_ms + EVERY_MS;
             let at = |c| address(chain_id, c).ok();
             let (view, args) = landed_read(&Kec, &s.call, &from, &at)?;

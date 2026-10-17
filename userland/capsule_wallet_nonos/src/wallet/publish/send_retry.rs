@@ -15,18 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The publisher transaction's retries (B8, the ruling on commit 4):
- * each a read, each taken as an intent::Turn that leaves no press
- * standing, the guard started afresh. After a broadcast settle did not
- * confirm, GAS is read again before anything is offered (intent::unsure):
- * its nonce used, the send is followed as sent; unused, its review comes
- * back for the guarded Sign. Nothing here signs or broadcasts.
+ * A publisher broadcast's answer (sent, below) and its retries (B8, the
+ * the rulings on commits 4 and 5): each a read, each taken as an
+ * intent::Turn that leaves no press standing, the guard started afresh.
+ * After a broadcast settle did not confirm, or once the send ledger says
+ * the send followed was dropped, GAS is read again before anything is
+ * offered (intent::after_reread): its nonce used, the send is followed as
+ * it was; unused, its review comes back for the guarded Sign. Nothing
+ * here signs or broadcasts.
  */
 
 use nonos_settle_proto::Gas;
 
 use super::send_drive::EVERY_MS;
-use crate::wallet::intent::{after_unsure, Turn};
+use super::sending::Sending;
+use crate::wallet::intent::{after_broadcast, after_reread, echo, IntentStep, Turn};
 use crate::wallet::state::State;
 
 /// A Turn taken: the guard starts afresh, so a review offered again waits
@@ -39,11 +42,19 @@ pub fn took(state: &mut State, turn: Turn) -> bool {
     true
 }
 
-/// GAS's answer while the broadcast is unsure; none read, it is asked again.
+/// GAS's answer while the broadcast is unsure, or the send followed is
+/// dropped; none read, it is asked again.
 pub fn reread(state: &mut State, gas: Option<Gas>, now_ms: u64) -> bool {
     let Some(s) = state.publisher.sending.as_mut() else { return false };
     s.next_ms = now_ms + EVERY_MS;
     let Some(g) = gas else { return false };
-    let turn = after_unsure(&mut state.broadcast.sent, s.step, g.tx_nonce);
+    let turn = after_reread(&mut state.broadcast.sent, s.step, s.signed, g.tx_nonce);
     took(state, turn)
+}
+
+/// BROADCAST's answer: the hash signed is followed, and an answer naming
+/// another is kept apart, said as a warning and never followed.
+pub fn sent(s: &mut Sending, answer: Option<[u8; 32]>, now_ms: u64) -> IntentStep {
+    (s.next_ms, s.echo) = (now_ms + EVERY_MS, echo(answer, s.signed));
+    after_broadcast(answer, s.signed)
 }

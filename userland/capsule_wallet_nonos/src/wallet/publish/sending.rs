@@ -16,8 +16,8 @@
 
 /*
  * A publisher transaction under way (B8): the call, its send, its step,
- * the calls after it, each with its own review and Sign, and when settle
- * is asked next for a read that repeats.
+ * the calls after it, each reviewed and signed, and when settle is next
+ * asked for a read that repeats.
  */
 
 use alloc::vec::Vec;
@@ -38,16 +38,14 @@ pub struct Sending {
     pub raw: Option<Vec<u8>>,
     /// The quote it was signed at and its own hash, for a broadcast unsure.
     pub signed: Option<(Quote, [u8; 32])>,
+    /// BROADCAST's answer when it names another hash: shown, never followed.
+    pub echo: Option<[u8; 32]>,
 }
 
 impl Sending {
-    pub fn new(
-        call: Publisher,
-        send: PublisherSend,
-        step: IntentStep,
-        queue: Vec<Publisher>,
-    ) -> Self {
-        Sending { call, send, step, queue, next_ms: 0, pressed: false, raw: None, signed: None }
+    pub fn new(call: Publisher, send: PublisherSend, step: IntentStep, q: Vec<Publisher>) -> Self {
+        let (raw, signed, echo) = (None, None, None);
+        Sending { call, send, step, queue: q, next_ms: 0, pressed: false, raw, signed, echo }
     }
 }
 
