@@ -18,10 +18,8 @@ use core::mem;
 use core::ptr;
 
 use super::super::state::TableRegistry;
-use super::dmar_rmrr::RMRR_TYPE;
-use crate::arch::x86_64::acpi::tables::{Dmar, Drhd, SdtHeader, SIG_DMAR};
-
-const DRHD_TYPE: u16 = 0;
+use super::dmar_entry::entry;
+use crate::arch::x86_64::acpi::tables::{Dmar, SdtHeader, SIG_DMAR};
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_DMAR) {
@@ -54,15 +52,7 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
                 break;
             }
             let bytes = core::slice::from_raw_parts(cursor as *const u8, length as usize);
-            match kind {
-                RMRR_TYPE => super::dmar_reserved::record(bytes),
-                DRHD_TYPE if length as usize >= mem::size_of::<Drhd>() => {
-                    let drhd = ptr::read_volatile(cursor as *const Drhd);
-                    let (segment, base) = (drhd.segment, drhd.register_base_address);
-                    found_drhd |= super::dmar_units::record(bytes, segment, base);
-                }
-                _ => {}
-            }
+            found_drhd |= entry(kind, cursor, bytes);
             cursor += length as u64;
         }
     }
