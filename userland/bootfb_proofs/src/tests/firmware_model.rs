@@ -31,6 +31,8 @@ pub struct Model {
     pub said: Vec<String>,
     pub announced: bool,
     pub holder: bool,
+    /// A GPU driver has the scanout: every claim refused for good (L79).
+    pub taken: bool,
 }
 
 impl Firmware for Model {
@@ -41,6 +43,9 @@ impl Firmware for Model {
     }
     fn claim(&mut self, id: u64) -> Result<u64, Why> {
         self.calls.push("claim");
+        if self.taken {
+            return Err(Why::Refused);
+        }
         // EBUSY for anyone but driver.bootfb0's server.
         self.holder = self.announced && id == 42;
         self.holder.then_some(EPOCH).ok_or(Why::Claim)

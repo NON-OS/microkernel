@@ -891,6 +891,7 @@
    "userland/capsule_driver_bootfb/src/fb_wipe.rs",
    "userland/capsule_driver_bootfb/src/firmware.rs",
    "userland/capsule_driver_bootfb/src/geometry.rs",
+   "userland/capsule_driver_bootfb/src/loss.rs",
    "userland/capsule_driver_bootfb/src/record.rs",
    "userland/gfx_serve_proofs/src/sweep/asks.rs",
    "userland/gfx_serve_proofs/src/sweep/check.rs",
