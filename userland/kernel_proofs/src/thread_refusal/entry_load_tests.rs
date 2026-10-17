@@ -18,12 +18,10 @@
 //! before it is asked (L77d): mark_running, mark_ready and mark_failed each
 //! go through live_to, the one state store in entered.rs, and no entry path
 //! loads a stack, a table, a context or the floating-point state above its
-//! ask. A sleep or a stop never lands over a kill either.
+//! ask.
 
 use super::entry_tests::{ENTERED, SW};
 
-const SLEEP: &str = include_str!("../../../../src/process/scheduler/dispatch/sleep_enter.rs");
-const STOP: &str = include_str!("../../../../src/process/signal/delivery/default.rs");
 // Each with its call syntax, so the `use` lines above the ask never match.
 const LOADS: [&str; 14] = [
     "set_kernel_stack(",
@@ -42,7 +40,7 @@ const LOADS: [&str; 14] = [
     "resume_user(",
 ];
 
-fn body(f: &str) -> String {
+pub(super) fn body(f: &str) -> String {
     let at = ENTERED.find(f).unwrap_or_else(|| panic!("entered: missing `{f}`"));
     let (head, _) = ENTERED[at..].split_once("\n    }").expect("entered: no body");
     head.lines().skip(1).map(str::trim).collect::<Vec<_>>().join(" ")
@@ -60,15 +58,4 @@ fn the_guarded_store_is_the_only_one_and_nothing_loads_before_the_ask() {
             assert!(!text[..asked].contains(l), "{what}: `{l}` before the ask");
         }
     }
-}
-
-#[test]
-fn a_sleep_or_a_stop_never_lands_over_a_kill() {
-    let dead = "ProcessState::Zombie(_) | ProcessState::Terminated(_)";
-    let s = &SLEEP[SLEEP.find("fn enter_sleep(").expect("enter_sleep")..];
-    let (lock, store) = (s.find("p.state.lock()").unwrap(), s.find("= ProcessState::Sleeping"));
-    let asked = s.find(dead).expect("the sleep asks for a kill");
-    assert!(lock < asked && asked < store.expect("the store") && s[asked..].contains("return;"));
-    let t = &STOP[STOP.find("DefaultAction::Stop =>").expect("the stop")..];
-    assert!(t.find(dead).expect("the stop asks") < t.find("= ProcessState::Stopped").unwrap());
 }

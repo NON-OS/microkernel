@@ -17,12 +17,16 @@
 //! Whole seeded trees for the pick sweeps, and the buses below a bridge.
 
 use super::pick_gen::{Tree, ROOT};
+use super::port_rule::UPSTREAM;
 
-pub(super) fn grown(seed: u64) -> Tree {
+/// `on_root`: some switches sit straight on the root bus, their upstream port
+/// saying root or nothing (L77e).
+pub(super) fn grown(seed: u64, on_root: bool) -> Tree {
     let mut t = Tree(Vec::new(), Vec::new(), 0, seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1);
     for _ in 0..1 + t.draw(4) {
         let said = [None, Some(ROOT), Some(ROOT)][t.draw(3) as usize];
-        t.bridge(0, ROOT, said, usize::MAX, 0);
+        let kind = if on_root && t.draw(2) == 0 { UPSTREAM } else { ROOT };
+        t.bridge(0, kind, said, usize::MAX, 0);
     }
     t
 }
