@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod dmar;
+mod dmar_ats;
 mod dmar_cover;
 mod dmar_entry;
 mod dmar_flags;
@@ -48,7 +49,8 @@ mod unit_base_env;
 
 pub use dmar::parse_dmar;
 pub use dmar_units::{remap_unit_bases, remap_unit_scopes, units_left_off};
-pub use dmar_flags::dmar_platform_opt_in;
+pub use dmar_ats::ats_structures;
+pub use dmar_flags::{dmar_address_width, dmar_intr_remap, dmar_platform_opt_in, dmar_x2apic_opt_out};
 pub use dmar_ioapic_table::{ioapic_named, ioapic_source};
 pub use dmar_reserved::reserved_regions;
 pub use dmar_scope::{translated_by_some, UnitScope};
