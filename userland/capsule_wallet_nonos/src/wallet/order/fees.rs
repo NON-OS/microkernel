@@ -17,14 +17,14 @@
 /*
  * What funding an order costs, asked of the shield service at consent (B8,
  * the plan): its own rules decide whether the price is a standard amount on
- * today's range, and its quote of the withdraw fee shows before Buy. The
- * amount is written exactly, never rounded.
+ * today's range, and its quote of the withdraw fee shows before Buy, as
+ * NOX or not at all. The amount is written exactly, never rounded.
  */
 
 use shield_wire::{field, OP_QUOTE};
 
 use super::buy_gate::to_quote;
-pub use super::fees_kind::{exact, Fees};
+pub use super::fees_kind::{exact, fee_wei, quote_answer, Fees};
 use crate::wallet::shield::{actions::coin, job, open};
 use crate::wallet::state::shield_ui::ASSET_NOX;
 use crate::wallet::state::State;
@@ -52,10 +52,7 @@ pub fn quoted(state: &mut State, body: &str) -> bool {
     else {
         return false;
     };
-    p.fees = match field(body, "refusal") {
-        Some(why) => Fees::Refused(why.into()),
-        None => Fees::Quoted(field(body, "total_fee").unwrap_or("not reported").into()),
-    };
+    p.fees = quote_answer(field(body, "refusal"), field(body, "total_fee"));
     true
 }
 

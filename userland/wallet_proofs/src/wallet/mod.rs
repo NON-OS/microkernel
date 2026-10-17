@@ -6,6 +6,7 @@
 pub mod chain;
 /* The capsule's event::hex_digit, which a fresh address is read with. */
 pub mod event {
+    pub use crate::address_text;
     pub use crate::hex_digit;
 }
 #[cfg(test)]
@@ -20,6 +21,8 @@ pub mod nox {
     pub use crate::nox::staking::SEL_GET_STAKE_INFO;
 }
 pub mod num;
+/* The capsule's order module, which the consent's terms name absolutely. */
+pub use crate::order;
 #[path = "../../../capsule_wallet_nonos/src/wallet/rpc/mod.rs"]
 pub mod rpc;
 pub mod send;

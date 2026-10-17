@@ -16,16 +16,19 @@
 
 /*
  * A named purchase's terms read from market.index one call a tick (B8,
- * v1.4.36): GET_COMMERCE, the release's escrow fields, then INSTALL_READY
- * on the names' chain, so the window never waits on more than one reply.
- * Which call comes next, and what its answer makes, is reading_step.rs.
+ * v1.4.36): GET_COMMERCE, the release, INSTALL_READY on the names' chain,
+ * then GET_APP, so the window never waits on more than one reply. Which
+ * call comes next is reading_step.rs; what its answer makes,
+ * terms/answer.rs, with keccak from the crypto service.
  */
 
 use nonos_payment_proto::Names;
 
 use super::market::ask;
-use super::reading_step::{answered, call};
+use super::reading_step::call;
 pub use super::reading_step::{Read, Reading};
+use super::terms::answer::answered;
+use crate::wallet::publish::Kec;
 
 pub fn advance(names: &Names, at: Reading) -> Read {
     match one(names, at) {
@@ -36,5 +39,5 @@ pub fn advance(names: &Names, at: Reading) -> Read {
 
 fn one(names: &Names, at: Reading) -> Result<Read, &'static str> {
     let (op, body) = call(names, &at)?;
-    answered(names.chain_id, at, &ask(op, &body)?)
+    answered(&Kec, names, at, &ask(op, &body)?)
 }

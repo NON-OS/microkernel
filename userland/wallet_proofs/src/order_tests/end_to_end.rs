@@ -22,7 +22,7 @@ use nonos_payment_proto::Names;
 
 use super::fixture::{made, offer, NOW, REFUND_SALT};
 use super::gate_fixture::{names, FRESH};
-use super::market_drive::{escrow_market, read_through};
+use super::market_drive::{escrow_market, escrow_market_for, read_through};
 use super::read_fixture::CHAIN;
 use crate::order::buy_gate::{buyable, to_quote};
 use crate::order::fees_kind::{exact, Fees};
@@ -42,7 +42,7 @@ fn names_and_a_chain_make_a_buy_at_the_blocks_unit_price() {
     ];
     for (listing, release) in pairs {
         let n = Names { listing: listing.to_vec(), release: release.to_vec(), ..names() };
-        let read = read_through(&n, &escrow_market(PRICE)).1;
+        let read = read_through(&n, &escrow_market_for(&n, PRICE)).1;
         assert!(matches!(&read, Ok(Named::Escrow(b)) if b.amount == PRICE), "{n:?}");
         assert_eq!(to_quote(&Step::Consent, &read, &Fees::Unasked), Some(exact(PRICE)));
         let quoted = Fees::Quoted("0.01".into());

@@ -30,6 +30,9 @@
 extern crate alloc;
 
 pub mod app;
+pub mod app_ids;
+#[cfg(test)]
+mod app_ids_tests;
 pub mod body;
 pub mod bond_code;
 mod bytes;
@@ -41,6 +44,8 @@ pub mod listing;
 mod lp;
 pub mod ops;
 pub mod readiness;
+#[cfg(test)]
+mod readiness_tests;
 pub mod reason;
 pub mod release;
 pub mod release_escrow;
@@ -49,6 +54,7 @@ pub mod request;
 pub mod status;
 
 pub use app::{parse_app, App};
+pub use app_ids::{parse_app_ids, AppIds};
 pub use body::{listing_body, pair_body, ready_body};
 pub use bond_code::BondCode;
 pub use commerce::{Commerce, BINDING_VALID, COMMERCE_MATCHES};

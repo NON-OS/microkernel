@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The market's answers to a named purchase's three calls, as bytes the
+//! The market's answers to a named purchase's four calls, as bytes the
 //! way market.index writes them.
 
 use nonos_market_proto::{Commerce, Readiness, ReleaseEscrow};
@@ -33,12 +33,12 @@ pub fn commerce_body(c: &Commerce) -> Vec<u8> {
     o
 }
 
-/// GET_RELEASE's reply: version, hashes, url, then empty fields and lists
-/// (13 bytes: two counts of none, with 4 and 1 fixed bytes), then the chunk
-/// root and length the market appends.
-pub fn release_body(e: &ReleaseEscrow) -> Vec<u8> {
+/// GET_RELEASE's reply: the release's id text, hashes, url, then empty
+/// fields and lists (13 bytes: two counts of none, with 4 and 1 fixed
+/// bytes), then the chunk root and length the market appends.
+pub fn release_body(e: &ReleaseEscrow, version: &[u8]) -> Vec<u8> {
     let mut o = Vec::new();
-    lp(&mut o, b"1.0.0");
+    lp(&mut o, version);
     o.extend([0; 64]);
     lp(&mut o, &e.package_url);
     lp(&mut o, b"");
@@ -54,5 +54,18 @@ pub fn ready_body(r: &Readiness) -> Vec<u8> {
     let mut o = vec![u8::from(r.install_ready)];
     o.extend(r.gates.map(u8::from));
     o.push(r.bond as u8);
+    o
+}
+
+/// GET_APP's reply: the listing's id text, its measurement, its name, the
+/// publisher's name and key, a description, and how many releases.
+pub fn app_body(id: &[u8], name: &[u8], key: &[u8; 32]) -> Vec<u8> {
+    let mut o = Vec::new();
+    lp(&mut o, id);
+    o.extend([0; 32]);
+    [name, b"A Publisher"].iter().for_each(|f| lp(&mut o, f));
+    o.extend(key);
+    lp(&mut o, b"What it does.");
+    o.extend(1u32.to_le_bytes());
     o
 }

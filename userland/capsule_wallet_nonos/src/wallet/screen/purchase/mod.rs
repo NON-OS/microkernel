@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod body;
 mod budget;
 mod buy;
 mod click;
+mod consent;
 mod escrow_click;
 mod escrow_rows;
 mod escrow_said;

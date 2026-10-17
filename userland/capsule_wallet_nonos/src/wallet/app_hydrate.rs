@@ -48,8 +48,10 @@ impl Wallet {
         true
     }
 
-    /// Whether network work is under way, a refresh or a press's.
+    /// Whether network work is under way, a refresh or a press's, or a
+    /// consent's focus is looked at each tick (order/guard).
     pub(super) fn stepping(&self) -> bool {
-        self.state.net.job.is_some() || self.state.action.is_some()
+        let guarding = crate::wallet::order::guard::poll::guarding(&self.state);
+        self.state.net.job.is_some() || self.state.action.is_some() || guarding
     }
 }

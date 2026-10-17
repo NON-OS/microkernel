@@ -16,8 +16,8 @@
 
 //! The purchase path's decisions, split from its screens and calls: the
 //! reading's order, Buy's, Open's and Fund's gates, the fresh address, the
-//! meter's order id and deposit recomputed. They name their siblings
-//! through `super`, which these uses stand in for.
+//! meter's order id and deposit recomputed, and the consent's terms. They
+//! name their siblings through `super`, which these uses stand in for.
 
 use super::{buy, fees_kind, held, read, voucher};
 
@@ -35,3 +35,5 @@ pub mod open_gate;
 pub mod pending_step;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/order/reading_step.rs"]
 pub mod reading_step;
+#[path = "../../../../capsule_wallet_nonos/src/wallet/order/terms/mod.rs"]
+pub mod terms;

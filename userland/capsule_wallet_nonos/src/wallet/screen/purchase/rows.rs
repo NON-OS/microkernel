@@ -14,55 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The terms a purchase shows: the market's, never the store's.
+//! The terms a purchase shows: the market's, never the store's; at
+//! consent, terms::lines's.
 
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::wallet::etna::groups::shortened;
-use crate::wallet::order::buy::DELIVERY_ASKED;
 use crate::wallet::order::delivered::delivered_line;
-use crate::wallet::order::fees::{exact, Fees};
+use crate::wallet::order::fees::{exact, fee_wei, Fees};
 use crate::wallet::order::intake::{Pending, Step};
 use crate::wallet::order::read::Named;
 use crate::wallet::order::rows::status_rows;
+use crate::wallet::order::terms::words::{text, DELIVERY_DAYS};
 use crate::wallet::screen::receive_address::checksummed_text;
 
-fn text(b: &[u8]) -> String {
-    String::from_utf8_lossy(b).into_owned()
-}
-
 pub fn rows(p: &Pending) -> Vec<(&'static str, String)> {
-    let release = if p.names.release.is_empty() {
-        String::from("its default")
-    } else {
-        text(&p.names.release)
-    };
-    let mut out = Vec::from([("listing", text(&p.names.listing)), ("release", release)]);
+    let r = p.record.as_ref();
+    let mut out = Vec::from_iter(
+        r.map(|r| ("buying", format!("{}, release {}", text(&r.title), text(&r.release)))),
+    );
     let b = match &p.read {
         Ok(Named::Escrow(b)) => b,
         Ok(Named::Voucher(v)) => {
             return [out, super::voucher_rows::rows(v, &p.step, &p.form, p.held)].concat()
         }
-        Err(_) => return out,
+        Err(_) => return Vec::new(),
     };
+    if let Some(consent) = super::consent::lines(p) {
+        return consent.rows;
+    }
     let bond: String = b.bond_id.iter().take(6).map(|x| format!("{x:02x}")).collect();
     out.extend([
-        ("payee", shortened(&checksummed_text(&b.payee))),
+        ("pay to", checksummed_text(&b.payee)),
         ("price", format!("{} NOX, once", exact(b.amount))),
         ("bond", format!("0x{bond}…, checked by the market")),
         ("package", format!("{} bytes, checked chunk by chunk", b.content_len)),
-        ("delivery", format!("within {} days of the order", DELIVERY_ASKED / 86_400)),
+        ("delivery", format!("within {DELIVERY_DAYS} days of the order")),
         ("refund", String::from("to a fresh address of this wallet")),
     ]);
-    out.push(match &p.fees {
-        Fees::Quoted(fee) => {
-            ("you pay", format!("{} NOX and the Shield's fee, {fee}", exact(b.amount)))
-        }
-        Fees::Refused(why) => ("shield", why.clone()),
-        _ => ("fees", String::from("asking the Shield")),
-    });
+    if let Fees::Quoted(fee) = &p.fees {
+        let fee = fee_wei(fee).map_or(String::from("not read"), |w| format!("{} NOX", exact(w)));
+        out.push(("shield fee", fee));
+    }
     if let Step::Fund(m) = &p.step {
         out.push(("deposit", checksummed_text(&m.deposit)));
         p.watch.status.iter().for_each(|s| out.extend(status_rows(s, exact)));
