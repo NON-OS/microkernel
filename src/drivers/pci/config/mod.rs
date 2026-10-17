@@ -19,6 +19,8 @@ pub mod bridge;
 pub mod config_space;
 #[cfg(target_arch = "x86_64")]
 mod extended;
+#[cfg(target_arch = "x86_64")]
+mod extended_write;
 
 #[cfg(target_arch = "x86_64")]
 pub(crate) use extended::map_ecam_bus;
@@ -34,4 +36,6 @@ pub use bridge::BridgeConfigSpace;
 pub use config_space::ConfigSpace;
 #[cfg(target_arch = "x86_64")]
 pub use extended::read_extended32;
+#[cfg(target_arch = "x86_64")]
+pub use extended_write::write_extended32;
 pub use transport::set_ecam_window;
