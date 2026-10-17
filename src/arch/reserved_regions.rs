@@ -15,17 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The arch's answer to which ranges a device must find mapped through its
-//! IOMMU (`memory::iommu::reserved`). No arch reads any yet.
+//! IOMMU (`memory::iommu::reserved`). aarch64 reads them from the device
+//! tree. No other arch reads any yet: x86_64's DMAR RMRRs are not parsed in
+//! this tree, so every device there has none.
 
 use crate::memory::iommu::reserved::Reserved;
 use crate::memory::iommu::DeviceAddress;
 
 pub(crate) fn device_reserved_regions(device: DeviceAddress) -> Reserved {
-    let _ = device;
-    Reserved::NONE
+    #[cfg(target_arch = "aarch64")]
+    return crate::arch::aarch64::iommu::reserved::for_device(device);
+    #[cfg(not(target_arch = "aarch64"))]
+    {
+        let _ = device;
+        Reserved::NONE
+    }
 }
 
 /// The regions a reserved range's physical span must lie inside.
 pub(crate) fn reserved_memory_regions() -> &'static [(u64, u64)] {
+    #[cfg(target_arch = "aarch64")]
+    return crate::arch::aarch64::iommu::reserved::reserved_memory();
+    #[cfg(not(target_arch = "aarch64"))]
     &[]
 }
