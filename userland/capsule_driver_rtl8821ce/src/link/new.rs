@@ -62,6 +62,7 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
             stats: LinkStats::default(),
             pmf: false,
             new_group_key: None,
+            new_pairwise_key: None,
             left: None,
             silent: false,
             history: LinkHistory::NEW,

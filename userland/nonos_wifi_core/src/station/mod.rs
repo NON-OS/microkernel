@@ -35,6 +35,7 @@
 mod address;
 mod alive;
 mod eapol;
+mod eapol_tx;
 mod forget;
 #[cfg(test)]
 mod forget_tests;
@@ -46,6 +47,7 @@ mod mgmt;
 mod mode;
 mod query;
 mod receive;
+mod rekey;
 mod replay;
 mod session;
 mod tick;
