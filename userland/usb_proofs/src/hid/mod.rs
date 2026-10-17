@@ -21,6 +21,11 @@
 
 #[path = "../../../capsule_driver_usb_hid/src/hid/button_changes.rs"]
 pub mod button_changes;
+/// What one key event posts: pure, apart from the posting.
+#[path = "../../../capsule_driver_usb_hid/src/hid/key_event.rs"]
+pub mod key_event;
+#[path = "../../../capsule_driver_usb_hid/src/hid/key_post.rs"]
+pub mod key_post;
 pub mod keyboard;
 #[path = "../../../capsule_driver_usb_hid/src/hid/mouse_event.rs"]
 pub mod mouse_event;

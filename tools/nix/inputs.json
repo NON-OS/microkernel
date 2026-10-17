@@ -5642,6 +5642,8 @@
    "userland/capsule_driver_usb_hid/src/descriptors/record.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/types.rs",
    "userland/capsule_driver_usb_hid/src/hid/button_changes.rs",
+   "userland/capsule_driver_usb_hid/src/hid/key_event.rs",
+   "userland/capsule_driver_usb_hid/src/hid/key_post.rs",
    "userland/capsule_driver_usb_hid/src/hid/keyboard/boot_report.rs",
    "userland/capsule_driver_usb_hid/src/hid/keyboard/is_error_code.rs",
    "userland/capsule_driver_usb_hid/src/hid/keyboard/is_real_key.rs",
@@ -5657,6 +5659,7 @@
    "userland/capsule_driver_usb_hid/src/protocol",
    "userland/capsule_driver_xhci/src/protocol/limits.rs",
    "userland/capsule_input_router/src/state/cursor.rs",
+   "userland/nonos_keymap",
    "userland/usb_proofs"
   ],
   "md": [],

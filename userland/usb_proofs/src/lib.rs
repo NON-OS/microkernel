@@ -38,6 +38,12 @@ mod find_within_tests;
 #[cfg(test)]
 mod fuzz_tests;
 #[cfg(test)]
+mod key_post_bt_tests;
+#[cfg(test)]
+mod key_post_seq;
+#[cfg(test)]
+mod key_post_tests;
+#[cfg(test)]
 mod keyboard_tests;
 #[cfg(test)]
 mod mouse_tests;
