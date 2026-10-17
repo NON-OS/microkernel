@@ -26,13 +26,15 @@ pub extern "C" fn mk_device_list(class: u32, buf: *mut DeviceRecord, count: u64)
 }
 
 /// A device being reset between holders answers EAGAIN until it is back
-/// (L78), a second or so at most; the claim waits that out here, so a
-/// driver restarted at once still gets its device.
+/// (L78); the claim waits that out here, so a driver restarted at once still
+/// gets its device. Bounded by time, not by sleeps: any wake of this process,
+/// a message to it say, ends `mk_idle_ms` early.
 #[no_mangle]
 pub extern "C" fn mk_device_claim(device_id: u64) -> i64 {
-    for _ in 0..RESET_TRIES {
+    let until = crate::time::Deadline::after_ms(RESET_MS);
+    for _ in 0..TRY_CAP {
         let got = call_raw(N_MK_DEVICE_CLAIM, [device_id, 0, 0, 0, 0, 0]);
-        if got != EAGAIN {
+        if got != EAGAIN || until.expired() {
             return got;
         }
         let _ = crate::mk_idle_ms(10);
@@ -41,9 +43,13 @@ pub extern "C" fn mk_device_claim(device_id: u64) -> i64 {
 }
 
 const EAGAIN: i64 = -11;
-/// 10 ms apart: 2.5 s, past the longest reset (the FLR, its retries and the
-/// power-cycle fallback come to about 1.3 s).
-const RESET_TRIES: u32 = 250;
+/// Past the longest the kernel answers EAGAIN: the wait for transactions
+/// pending, the FLR's quiet window and retries, then the power-cycle
+/// fallback come to about 2.2 s, and each of their four waits may last up
+/// to half a second more for the step that ends it (the proofs' bound).
+const RESET_MS: u64 = 5000;
+/// A backstop only, should the clock never move.
+const TRY_CAP: u32 = 5000;
 
 #[no_mangle]
 pub extern "C" fn mk_device_release(device_id: u64) -> i64 {

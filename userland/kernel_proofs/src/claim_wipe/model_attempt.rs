@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimant's side, libc's `mk_device_claim`: an attempt begun in user
-//! code, Resetting (EAGAIN) asked again 10 ms on up to 250 times, any other
-//! answer the attempt's end. An attempt begun on a lost function past its
-//! hold, and back by then, must not end with that loss still standing (I8),
-//! unless the kept frames' bound refused it: as built that is asked first.
+//! A claimant's side, libc's `mk_device_claim`: Resetting (EAGAIN) asked
+//! again for 5 s from the first try, sleeps ended early by any wake (1 to 10
+//! ms). One begun on a lost function back past its hold never ends with that
+//! loss standing (I8), unless the kept bound refused it, which is asked first.
 
 use super::model_stage::types::ClaimError;
 use super::phase_rule::{Phase, MS};
 use super::world::World;
-use super::world_cases::{CAP_LOST, HOLD_LOST, RETRIED};
+use super::world_cases::{BOUND, CAP_LOST, HOLD_LOST, RETRIED};
 use super::world_thread::{Path, Thread};
+
+/// libc's bound, past the longest a wipe stays pending (L80).
+pub(super) const RESET_MS: u64 = 5000 * MS;
+const _: () = assert!(RESET_MS > BOUND);
 
 pub(super) fn begin(w: &mut World, p: usize, t: &mut Thread) {
     if w.procs[p].dead {
@@ -37,17 +40,19 @@ pub(super) fn begin(w: &mut World, p: usize, t: &mut Thread) {
         _ => None,
     });
     w.procs[p].owed_back = lost.filter(|_| now >= w.dev.ready_at);
-    w.procs[p].tries = 0;
+    w.procs[p].started = now;
     (t.path, t.step) = (Path::Claim, 0);
 }
 
 pub(super) fn refused(w: &mut World, p: usize, t: &mut Thread, e: ClaimError) {
-    let pr = &mut w.procs[p];
-    if e == ClaimError::Resetting && pr.tries < 250 && !pr.dead {
-        pr.tries += 1;
+    let resetting = e == ClaimError::Resetting && !w.procs[p].dead;
+    if resetting && w.now < w.procs[p].started + RESET_MS {
         w.seen[RETRIED] += 1;
-        (t.step, t.at) = (0, w.now + 10 * MS);
+        (t.step, t.at) = (0, w.now + MS * (1 + w.draw(10)));
         return;
+    }
+    if resetting {
+        w.bad(9, "libc gave up on a function still being reset (I9)");
     }
     attempt_over(w, p, t);
 }

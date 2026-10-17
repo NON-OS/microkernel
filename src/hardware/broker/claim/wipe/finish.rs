@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A step's act put back on its record (L78). An ended wipe leaves the
-//! record its end decides: none after a clean reset, kept for its holder's
-//! service, or lost for its hold; then the function's kept frames are
-//! settled, and the end is said once, outside every lock.
+//! A step's act put back on its record (L78). An ended wipe first settles
+//! the function's kept frames, then leaves the record its end decides: none
+//! after a clean reset, kept for its holder's service, or lost for its hold;
+//! the end is said once, outside every lock.
 
 use core::sync::atomic::Ordering;
 
@@ -29,6 +29,17 @@ pub(super) fn put(w: Wipe, end: Option<End>, now: u64) {
     if end == Some(End::Unreset) {
         super::check::unmark(&ConfigSpace::new(w.address), &w);
     }
+    // Settled while the record still reads as a wipe under way, so a claim
+    // that reads its end also reads its frames kept for good (L80). A lost
+    // function may still come back: its frames wait for its next end.
+    let (freed, kept) = match end {
+        None | Some(End::Lost) => (0, 0),
+        Some(e) => crate::hardware::broker::dma::settle_kept(
+            w.device_id,
+            w.epoch,
+            frees(e, w.bme_off, w.caps.binds),
+        ),
+    };
     {
         let mut all = crate::smp::lock_responsive(&WIPES);
         let key = |r: &Wipe| (r.device_id, r.epoch) == (w.device_id, w.epoch);
@@ -43,15 +54,6 @@ pub(super) fn put(w: Wipe, end: Option<End>, now: u64) {
         }
     }
     let Some(end) = end else { return };
-    // A lost function may still come back: its frames wait for its next end.
-    let (freed, kept) = match end {
-        End::Lost => (0, 0),
-        _ => crate::hardware::broker::dma::settle_kept(
-            w.device_id,
-            w.epoch,
-            frees(end, w.bme_off, w.caps.binds),
-        ),
-    };
     say(&w, end, freed, kept);
 }
 
