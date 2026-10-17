@@ -28,6 +28,8 @@ pub mod describe;
 pub mod display;
 #[path = "../../capsule_driver_bootfb/src/fb.rs"]
 pub mod fb;
+#[path = "../../capsule_driver_bootfb/src/fb_wipe.rs"]
+pub mod fb_wipe;
 #[path = "../../capsule_driver_bootfb/src/firmware.rs"]
 pub mod firmware;
 #[path = "../../capsule_driver_bootfb/src/geometry.rs"]

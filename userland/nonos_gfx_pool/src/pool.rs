@@ -49,6 +49,10 @@ impl Platform for Pool {
         anon::bytes(r)
     }
 
+    fn scrub(&mut self, r: Region) {
+        anon::scrub(r)
+    }
+
     fn pid(&self) -> u32 {
         mk_getpid()
     }

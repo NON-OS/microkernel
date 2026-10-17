@@ -41,6 +41,16 @@ pub struct Bga {
     pub fence: fn(),
 }
 
+impl Bga {
+    /// Video memory zeroed, all of it: it outlives every process, and what
+    /// a dead driver left there (a client's pixels among it) is not shown
+    /// again by the next one.
+    pub fn wipe(&self) {
+        // SAFETY: `vram` maps `vram_len` bytes, this driver's while it runs.
+        unsafe { core::ptr::write_bytes(self.vram as *mut u8, 0, self.vram_len) };
+    }
+}
+
 /// Whether a `w` x `h` mode is one this driver sets in `vram_len` bytes
 /// of video memory: section 12's range from 640x480, aligned, and fitting.
 pub fn fits(vram_len: usize, w: u32, h: u32) -> bool {

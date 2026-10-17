@@ -19,20 +19,24 @@
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, recv_ready};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_uptime_ms, recv_ready};
 
 use crate::turn::{turn, Turn};
 
 use crate::display::Bga;
 
 const SERVICE_INBOX: u64 = 0;
+/// Wake at least this often, so an owner's silence is seen (`Server::watch`).
+const WATCH_MS: u64 = 500;
 
 pub fn run(server: &mut Server<Bga, Pool>, device_id: u64) -> ! {
     // Requests are at most 256 bytes; replies the header, status and 252.
     let (mut rx, mut tx) = ([0u8; 256], [0u8; 280]);
     loop {
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
+        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WATCH_MS, &mut sender);
+        let now = mk_uptime_ms().max(0) as u64;
+        server.watch(now);
         if !recv_ready(n) {
             continue;
         }
@@ -42,6 +46,7 @@ pub fn run(server: &mut Server<Bga, Pool>, device_id: u64) -> ! {
             Turn::Serve => {}
         }
         let len = server.handle(sender, &rx[..n as usize], &mut tx);
+        server.heard(sender, now);
         if len > 0 {
             let _ = mk_ipc_reply(sender, tx.as_ptr(), len);
         }
