@@ -16,7 +16,10 @@
 
 //! One vector proved, timed and measured, then held to the pinned bytes.
 
+use std::io::Write;
 use std::time::Instant;
+
+use nox_prover::ENTROPY_BYTES;
 
 use crate::serial::{line, TAG};
 use crate::vectors::{self, Vector};
@@ -24,12 +27,14 @@ use crate::{cache, heap, machine, pinned, run};
 
 /// Prove `v`, from `cache` when held, and hold the result to the pinned
 /// bytes. Returns the cache the proof had or built.
-pub(crate) fn prove(v: &Vector, cache: Option<Vec<u8>>, passed: &mut u32) -> Option<Vec<u8>> {
+pub(crate) fn prove(
+    out: &mut impl Write,
+    v: &Vector,
+    cache: Option<Vec<u8>>,
+    passed: &mut u32,
+) -> Option<Vec<u8>> {
     let Some(entropy) = vectors::entropy(v) else {
-        line(
-            false,
-            &format!("{}: the entropy file is not {} bytes", v.name, nox_prover::ENTROPY_BYTES),
-        );
+        line(out, false, &format!("{}: the entropy file is not {ENTROPY_BYTES} bytes", v.name));
         return cache;
     };
     let free_before = machine::mem_free_mib();
@@ -42,7 +47,7 @@ pub(crate) fn prove(v: &Vector, cache: Option<Vec<u8>>, passed: &mut u32) -> Opt
     let (proof, built) = match proved {
         Ok(done) => done,
         Err(why) => {
-            line(false, &format!("{}: refused after {ms} ms: {why}", v.name));
+            line(out, false, &format!("{}: refused after {ms} ms: {why}", v.name));
             return cache;
         }
     };
@@ -57,13 +62,13 @@ pub(crate) fn prove(v: &Vector, cache: Option<Vec<u8>>, passed: &mut u32) -> Opt
     );
     let cache = cache.or(built);
     let Some(top) = cache.as_deref() else {
-        line(false, &format!("{}: no periodic cache after the proof", v.name));
+        line(out, false, &format!("{}: no periodic cache after the proof", v.name));
         return None;
     };
     if from_nothing {
-        cache::built_is_shipped(v.name, top);
+        cache::built_is_shipped(out, v.name, top);
     }
-    if pinned::held(v, &proof, top) {
+    if pinned::held(out, v, &proof, top) {
         *passed += 1;
     }
     cache

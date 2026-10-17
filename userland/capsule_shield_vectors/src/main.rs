@@ -39,6 +39,7 @@ use cache::SHIPPED;
 use serial::{line, TAG};
 
 fn main() {
+    let mut out = std::io::stdout();
     pool::start();
     println!(
         "{TAG} start: {} cores online, {} prover workers, {} MiB memory, {} MiB free",
@@ -48,11 +49,11 @@ fn main() {
         machine::mem_free_mib()
     );
     if pool::workers() == 0 {
-        line(false, "no thread could be started for the prover");
+        line(&mut out, false, "no thread could be started for the prover");
         println!("{TAG} DONE 0 of {} vectors", vectors::ALL.len());
         return;
     }
-    let cache_ok = cache::shipped_cache();
+    let cache_ok = cache::shipped_cache(&mut out);
     let mut passed = 0u32;
     let mut cache: Option<Vec<u8>> = None;
     for (i, v) in vectors::ALL.iter().enumerate() {
@@ -61,7 +62,7 @@ fn main() {
         if i == 1 && !SHIPPED.is_empty() {
             cache = Some(SHIPPED.to_vec());
         }
-        cache = prove::prove(v, cache, &mut passed);
+        cache = prove::prove(&mut out, v, cache, &mut passed);
     }
     println!(
         "{TAG} DONE {passed} of {} vectors byte for byte{}",

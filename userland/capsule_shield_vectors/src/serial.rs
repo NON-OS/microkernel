@@ -16,9 +16,12 @@
 
 //! The serial lines the run is read by: one PASS or FAIL line per check.
 
+use std::io::Write;
+
 pub(crate) const TAG: &str = "SHIELD-VECTORS";
 
-pub(crate) fn line(ok: bool, what: &str) -> bool {
-    println!("{TAG} {} {what}", if ok { "PASS" } else { "FAIL" });
+/// One check's line on `out`; `ok`, whether or not the line could be written.
+pub(crate) fn line(out: &mut impl Write, ok: bool, what: &str) -> bool {
+    let _ = writeln!(out, "{TAG} {} {what}", if ok { "PASS" } else { "FAIL" });
     ok
 }
