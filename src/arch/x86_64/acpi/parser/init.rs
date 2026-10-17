@@ -93,7 +93,7 @@ pub fn init() -> AcpiResult<()> {
         )
     };
     if s5.is_none() {
-        crate::log_warn!("[ACPI] no constant \\_S5 package found; soft-off unavailable");
+        crate::log_warn!("[ACPI] no constant \\_S5 package; soft-off waits on the ACPI capsule");
     }
     if let Some(reg) = TABLES.write().as_mut() {
         reg.data.s5 = s5;
