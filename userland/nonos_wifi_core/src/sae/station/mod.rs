@@ -33,5 +33,6 @@ mod receive;
 mod state;
 mod types;
 
+pub use commit_rx::TOKEN_ROUNDS_MAX;
 pub use state::SaeStation;
 pub use types::{SaeFailure, SaeState, SaeStep};
