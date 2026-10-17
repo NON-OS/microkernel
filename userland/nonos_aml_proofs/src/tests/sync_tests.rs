@@ -14,6 +14,9 @@ fn acquire(n: &str, timeout: u16) -> Vec<u8> {
     e(0x5B23, &[&name(n), &timeout.to_le_bytes()])
 }
 
+#[path = "cut_sync/mod.rs"]
+mod cut_sync;
+
 #[test]
 fn mutexes_nest_and_keep_their_sync_order() {
     let defs = cat(&[&mutex("MLO", 1), &mutex("MHI", 5)]);

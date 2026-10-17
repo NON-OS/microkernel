@@ -5,7 +5,10 @@
 //! written to the index register, then the data register is read or
 //! written one unit wide; a Preserve write does that twice, reading first.
 //! A BankField: the bank value is written to the select register once per
-//! read or write, then the units go as for a field in that bank's bytes.
+//! read or write, then the units go as for a field in that bank's bytes;
+//! if a unit's bytes cover the select register itself, the units after it
+//! go to whichever bank that write left selected, which is defined, not
+//! refused.
 
 use super::gen::Case;
 use super::gen_ib::{select_at, DAT_AT, IDX_AT};
