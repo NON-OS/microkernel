@@ -18,4 +18,5 @@
  * The kernel's hardware types the proofs need, by path.
  */
 
+pub mod ahci_capsule;
 pub mod block_device;
