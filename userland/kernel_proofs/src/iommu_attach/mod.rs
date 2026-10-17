@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An attach whose invalidation fails takes its context entry back out
-//!. The real steps are included by path.
+//! An attach whose invalidation fails takes its context entry back out,
+//! and a destroyed domain gives back its tables. The real steps and
+//! walk are included by path.
 
 #[path = "../../../../src/arch/x86_64/iommu/device/attach_steps.rs"]
 pub mod attach_steps;
+#[path = "../../../../src/arch/x86_64/iommu/tables/frames_of.rs"]
+pub mod frames_of;
+#[cfg(test)]
+mod frames_tests;
 #[cfg(test)]
 mod tests;
