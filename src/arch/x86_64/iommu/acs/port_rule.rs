@@ -18,12 +18,16 @@
 //! reports is not trusted alone: one may report itself upstream or a root
 //! port, or carry no type a walk could read. A bridge counts when it says
 //! downstream, when the bridge above it says upstream (it sits on a switch's
-//! internal bus, whatever it says), or when it has no type and a bridge
-//! above it. One counted too many only groups more; one left out let its
-//! peers reach each other past the IOMMU. Pure, so it runs on the host too.
+//! internal bus, whatever it says), when it has no type and a bridge above
+//! it, or when the bridge above it is not borne out as a link's end by the
+//! whole chain above (L77c). One counted too many only groups more; one left
+//! out let its peers reach each other past the IOMMU. Pure, for the host.
 
-/// PCIe Device/Port Type values (recalled, unverified): a switch's upstream
-/// port and a downstream one.
+use super::chain_rule::{chain, ends, naming};
+
+/// PCIe Device/Port Type values (recalled, unverified): a root port, and a
+/// switch's upstream port and a downstream one.
+pub(super) const ROOT_PORT: u8 = 4;
 pub(super) const UPSTREAM: u8 = 5;
 pub(super) const DOWNSTREAM: u8 = 6;
 
@@ -40,19 +44,23 @@ pub(super) const fn counts(own: Option<u8>, above: Option<Option<u8>>) -> bool {
 /// (none when unread), and the type it reports.
 pub(super) type Bridge = (u8, Option<u8>, Option<u8>);
 
-/// Whether `bridges[at]` counts, every bridge naming its bus asked, so a
-/// false one cannot hide the switch it sits in. A bridge names only a bus
-/// below its own: one firmware left unset names bus 0, and would otherwise
+/// Which bridges count, by index, every bridge naming a bridge's bus asked,
+/// so a false one cannot hide the switch it sits in. A bridge names only a
+/// bus below its own: one firmware left unset names bus 0, and would else
 /// put every bridge of the root bus in a switch. Below a bridge only a
-/// switch's two port types are believed: anything else it says there is
-/// taken as unread, so it counts, which only groups more (L77).
-pub(super) fn picked(bridges: &[Bridge], at: usize) -> bool {
-    let Some(&(bus, _, said)) = bridges.get(at) else { return false };
-    let own = said.filter(|&t| t == UPSTREAM || t == DOWNSTREAM);
-    let names = |b: &&Bridge| b.1 == Some(bus) && bus > b.0;
-    let mut above = bridges.iter().filter(names).peekable();
-    match above.peek() {
-        None => counts(own, None),
-        Some(_) => above.any(|b| counts(own, Some(b.2))),
+/// switch's two port types are believed, anything else taken as unread
+/// (L77); and one saying upstream is believed only below a link's end that
+/// the chain above bears out: a switch whose ports all lie, its upstream
+/// port closed, would else group nothing below it (L77c).
+pub(super) fn picked(bridges: &[Bridge]) -> impl Fn(usize) -> bool + '_ {
+    let ups = chain(bridges);
+    move |at| {
+        let Some(&(bus, _, said)) = bridges.get(at) else { return false };
+        let own = said.filter(|&t| t == UPSTREAM || t == DOWNSTREAM);
+        let mut above = naming(bridges, bus).peekable();
+        match above.peek() {
+            None => counts(own, None),
+            Some(_) => above.any(|b| counts(own, Some(b.2)) || !ends(bridges, &ups, b)),
+        }
     }
 }

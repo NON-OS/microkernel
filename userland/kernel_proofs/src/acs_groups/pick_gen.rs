@@ -56,7 +56,8 @@ impl Tree {
                 ([Some(0), None, Some(below)][self.draw(3) as usize], self.told(ROOT));
             self.0.push((below, unset, said));
             self.1.push((0, me));
-        } else if depth < 3 && self.draw(2) == 0 {
+        } else if kind != UPSTREAM && depth < 3 && self.draw(2) == 0 {
+            // A switch's internal bus holds only its downstream ports.
             let said = self.told(UPSTREAM);
             self.bridge(below, UPSTREAM, said, me, depth + 1);
         }
