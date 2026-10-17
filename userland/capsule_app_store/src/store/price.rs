@@ -31,6 +31,8 @@ pub struct Price {
     /// The unit's label, as nonos_nox_config names it, or b"unit".
     pub unit: &'static [u8],
     pub unit_price: u128,
+    /// The commerce block's payee: what the wallet's consent pays to.
+    pub payee: [u8; 20],
     /// Commerce matches and the payee's binding is valid.
     pub trusted: bool,
 }
