@@ -14,10 +14,15 @@ pub(super) fn finalize_teardown(pid: Pid) {
         None => return,
     };
 
+    // Its devices first, once no CPU runs a thread of its group: tried again
+    // on a later tick, before anything here is undone, never dropped (L77).
+    if !super::devices::release_if_last(pid, false, false) {
+        super::pending::enqueue(pid);
+        return;
+    }
     // Before the tables go: what they must keep is frozen first (L46).
     super::surfaces::give_up_if_last(pid, &pcb);
     crate::process::address_space::lifecycle::release(&pcb);
-    super::devices::release_if_last(pid, false, false);
     /* Done at the exit already; again here for an exit that came another way. */
     release_names(pid, &pcb);
     if !super::postmortem::is_retained(pid) {

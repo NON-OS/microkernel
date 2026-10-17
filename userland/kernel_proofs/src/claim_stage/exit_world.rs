@@ -36,6 +36,7 @@ pub(super) struct World {
     pub grant: bool,
     pub bus_on: bool,
     pub bad: bool,
+    pub yields: bool,
     pub steps: [u8; 5],
 }
 
