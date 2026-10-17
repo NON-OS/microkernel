@@ -29,7 +29,8 @@ impl Env for TestEnv {
         self.now += 1;
         self.now
     }
-    fn input(&mut self, input: Input) {
+    fn input(&mut self, input: Input, authenticated: bool) {
+        self.input_flags.push(crate::link::trust::source_flags(authenticated));
         self.input.push(input);
     }
     fn tick(&mut self, _now_ms: u64) {
