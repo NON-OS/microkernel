@@ -26,11 +26,11 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use nonos_marketplace_abi::Keccak;
+use nonos_marketplace_abi::{address_text, Keccak};
 use nonos_payment_proto::Names;
 
 use super::asked::Record;
-use super::words::{detail, escrow, payee_text, text, QUOTING, REFUSED};
+use super::words::{detail, escrow, text, QUOTING, REFUSED};
 use crate::wallet::order::buy::Buy;
 use crate::wallet::order::fees_kind::{exact, fee_wei, Fees, FEE_UNREAD};
 
@@ -45,7 +45,7 @@ pub struct Lines {
 
 /// The consent for `b`, as `wallet` (its own name) says it.
 pub fn lines(k: &impl Keccak, wallet: &str, n: &Names, r: &Record, b: &Buy, f: &Fees) -> Lines {
-    let payee = payee_text(k, &b.payee);
+    let payee = text(&address_text(k, &b.payee));
     let fee = match f {
         Fees::Quoted(q) => fee_wei(q).ok_or(FEE_UNREAD),
         Fees::Refused(why) if why == FEE_UNREAD => Err(FEE_UNREAD),

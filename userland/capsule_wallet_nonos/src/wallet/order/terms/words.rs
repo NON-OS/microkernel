@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The escrow consent's sentences, and the payee written in full.
+//! The escrow consent's sentences; the payee is marketplace_abi's
+//! address_text, in full (lines.rs).
 
 use alloc::format;
 use alloc::string::String;
 
-use nonos_marketplace_abi::Keccak;
 use nonos_payment_proto::Names;
 
-use crate::wallet::event::address_text::checksummed;
 use crate::wallet::order::buy::{Buy, DELIVERY_ASKED};
 
 const DAY: u64 = 86_400;
@@ -55,17 +54,6 @@ pub fn detail(n: &Names, b: &Buy) -> String {
         b.content_len,
         text(&n.listing)
     )
-}
-
-/// `a` in full, 0x and its EIP-55 spelling.
-pub fn payee_text(k: &impl Keccak, a: &[u8; 20]) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut hex = [0u8; 40];
-    for (i, b) in a.iter().enumerate() {
-        (hex[2 * i], hex[2 * i + 1]) = (HEX[usize::from(b >> 4)], HEX[usize::from(b & 15)]);
-    }
-    let spelt = checksummed(&hex, &k.keccak256(&hex));
-    format!("0x{}", String::from_utf8_lossy(&spelt))
 }
 
 pub fn text(b: &[u8]) -> String {

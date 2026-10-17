@@ -31,9 +31,12 @@ pub fn plan(state: &State) -> Result<Plan, &'static str> {
     /* A mixed-case address carries an EIP-55 checksum, and it must hold. */
     let typed = &state.send.to_hex;
     if crate::wallet::event::address_text::mixed_case(typed) {
-        let hash = crate::wallet::screen::receive_address::keccak(typed)
-            .ok_or("The address's checksum could not be checked. Try again in a moment.")?;
-        if !crate::wallet::event::address_text::case_ok(typed, &hash) {
+        let k = crate::wallet::publish::Noted::default();
+        let ok = crate::wallet::event::address_text::case_ok(&k, typed);
+        if !k.answered() {
+            return Err("The address's checksum could not be checked. Try again in a moment.");
+        }
+        if !ok {
             return Err("The capital letters in this address do not match its checksum, so a \
                  character is likely wrong. Check it against where it came from.");
         }

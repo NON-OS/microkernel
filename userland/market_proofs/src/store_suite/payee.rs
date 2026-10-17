@@ -15,22 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The payee a paid listing's detail says (B9): the commerce block's own,
 //! decoded as the store and the wallet both decode it, in full and in the
-//! wallet's EIP-55 spelling; none where nothing is sold.
+//! EIP-55 spelling the EIP itself gives; none where nothing is sold.
 
-use nonos_marketplace_abi::{commerce_bytes, commerce_from_bytes, Commerce, Keccak, SettleMode};
+use nonos_marketplace_abi::{commerce_bytes, commerce_from_bytes, Commerce, SettleMode};
 use nonos_nox_config::UNIT_INSTALL;
 
 use crate::chain_hosts::Host;
 use crate::store::payee::{payee_line, CHECKED};
 use crate::store::price::Price;
-use crate::wallet_address_text::checksummed;
 
 /* From EIP-55: every capital is the checksum's. */
-pub const EXAMPLES: [&str; 4] = [
+pub const EXAMPLES: [&str; 8] = [
     "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
     "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359",
+    "0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB",
+    "0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb",
     "0x52908400098527886E0F7030069857D2E4169EE7",
     "0x8617E340B3D01FA5F11F306F4090FD50E238070D",
+    "0xde709f2102306220921060314715629080e2fb77",
+    "0x27b1fdb04752bbc536007a920d24acb045561c26",
 ];
 
 pub fn bytes(text: &str) -> [u8; 20] {
@@ -59,9 +62,9 @@ fn the_payee_line_is_the_commerce_blocks_payee_in_full_checksummed() {
     for text in EXAMPLES {
         let line = payee_line(&Host, &served(bytes(text), SettleMode::Escrow)).expect("paid");
         assert_eq!(line, [b"pays: ", text.as_bytes(), CHECKED].concat(), "{text}");
-        let hex: [u8; 40] = text.as_bytes()[2..].try_into().unwrap();
-        let wallet = checksummed(&hex, &Host.keccak256(&hex.to_ascii_lowercase()));
-        assert_eq!(&line[8..48], &wallet[..], "the wallet's spelling of {text}");
+        for (at, (got, want)) in line[6..48].iter().zip(text.as_bytes()).enumerate() {
+            assert_eq!(char::from(*got), char::from(*want), "letter {at} of {text}");
+        }
     }
     assert!(payee_line(&Host, &served(bytes(EXAMPLES[0]), SettleMode::Voucher)).is_some());
 }

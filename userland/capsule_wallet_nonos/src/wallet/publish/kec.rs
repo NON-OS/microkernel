@@ -19,6 +19,8 @@
  * else on the device, behind marketplace_abi's trait.
  */
 
+use core::cell::Cell;
+
 use nonos_marketplace_abi::Keccak;
 
 pub struct Kec;
@@ -31,6 +33,27 @@ impl Keccak for Kec {
             // matches no id, typehash or digest the screen checks against.
             out = [0u8; 32];
         }
+        out
+    }
+}
+
+/// The crypto service's keccak, noting whether it ever failed to answer,
+/// so a checksum it could not check is said to be unchecked, not wrong.
+#[derive(Default)]
+pub struct Noted {
+    missed: Cell<bool>,
+}
+
+impl Noted {
+    pub fn answered(&self) -> bool {
+        !self.missed.get()
+    }
+}
+
+impl Keccak for Noted {
+    fn keccak256(&self, data: &[u8]) -> [u8; 32] {
+        let mut out = [0u8; 32];
+        self.missed.set(self.missed.get() | !crate::wallet::tx_hash::tx_hash(data, &mut out));
         out
     }
 }
