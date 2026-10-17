@@ -36,6 +36,9 @@ pub struct Slot {
     /// The device reported the output lost and putting the mode back has
     /// not worked yet: every STATE tries again.
     pub lost: bool,
+    /// Blanked for the owner's silence: the next STATE says LOST, so a
+    /// compositor that was only slow repaints whole.
+    pub blanked: bool,
 }
 
 impl<D: Display, P: Platform> Server<D, P> {

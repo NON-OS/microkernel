@@ -64,6 +64,9 @@ impl Platform for Heap {
     fn bytes(&self, r: Region) -> &[u8] {
         &self.memory[&r.base]
     }
+    fn scrub(&mut self, r: Region) {
+        self.memory.get_mut(&r.base).expect("a region made here").fill(0);
+    }
 
     fn pid(&self) -> u32 {
         0x77

@@ -31,12 +31,16 @@ pub struct Server<D: Display, P: Platform> {
     pub slots: [Slot; MAX_OUTPUTS],
     pub owner: Option<u32>,
     pub counter: u32,
+    /// When the owner was last heard, and whether its silence has blanked
+    /// the outputs since (`watch.rs`).
+    pub heard_ms: u64,
+    pub quiet: bool,
 }
 
 impl<D: Display, P: Platform> Server<D, P> {
     pub fn new(display: D, platform: P) -> Self {
         let slots = [Slot::default(); MAX_OUTPUTS];
-        Server { display, platform, slots, owner: None, counter: 0 }
+        Server { display, platform, slots, owner: None, counter: 0, heard_ms: 0, quiet: false }
     }
 
     /// Run `f` on the shadow of `p`.
