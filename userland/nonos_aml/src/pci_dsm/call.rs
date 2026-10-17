@@ -20,7 +20,7 @@
 use crate::load::Aml;
 use crate::namespace::Id;
 use crate::object::Object;
-use crate::platform::{child, Eval};
+use crate::platform::{child, offered_mask, offers, Eval};
 use alloc::vec;
 
 /// E5C937D0-3553-4D7A-9117-EA4D19C3434D, in ToUUID's byte order.
@@ -43,11 +43,8 @@ fn dsm(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id, rev: u64, f: u64) -> Option<
 /// mask (bit n for function n).
 pub fn offered(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id) -> Option<(u64, u64)> {
     REVISIONS.iter().find_map(|&rev| {
-        let Object::Buffer(b) = dsm(aml, eval, dev, rev, 0)? else { return None };
-        let b = b.borrow();
-        let mask =
-            b.iter().take(8).enumerate().fold(0u64, |m, (i, x)| m | u64::from(*x) << (8 * i));
-        (mask & 1 != 0).then_some((rev, mask))
+        let mask = offered_mask(dsm(aml, eval, dev, rev, 0).as_ref());
+        (mask != 0).then_some((rev, mask))
     })
 }
 
@@ -58,5 +55,5 @@ pub fn ask(aml: &mut Aml, eval: &mut Eval<'_>, dev: Id, f: u64) -> Option<Object
         return None;
     }
     let (rev, mask) = offered(aml, eval, dev)?;
-    (mask & (1 << f) != 0).then(|| dsm(aml, eval, dev, rev, f)).flatten()
+    offers(mask, f).then(|| dsm(aml, eval, dev, rev, f)).flatten()
 }

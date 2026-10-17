@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod dsm_fixture;
+mod dsm_gen;
+mod dsm_model;
+mod dsm_sweep_tests;
+mod mask_tests;
 mod rig;
 mod ready;
 mod ready_more;
