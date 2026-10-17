@@ -17,6 +17,7 @@
 //! What the driver makes of the part's answers: bodies parsed as the
 //! specification lays them out.
 
+use crate::device::cmd::get_edid::EDID_MAX_LEN;
 use crate::device::cmd::{get_capset_info, get_display_info, get_edid};
 use crate::tests::harness::harness;
 use crate::tests::part::answers::{CAPSET, PANEL, PANEL_CM};
@@ -33,18 +34,20 @@ fn display_info_yields_the_one_enabled_scanout_at_its_size() {
 }
 
 #[test]
-fn edid_yields_the_panel_size_in_centimetres_from_bytes_21_and_22() {
+fn edid_yields_the_whole_block_with_the_panel_size_at_bytes_21_and_22() {
     let h = harness();
     let _part = answering(&h.region, Answer::Spec);
-    let size = get_edid(&h.queue, 0).expect("answered").expect("a size");
-    assert_eq!((size.width_cm, size.height_cm), (PANEL_CM.0 as u32, PANEL_CM.1 as u32));
+    let mut blob = [0u8; EDID_MAX_LEN];
+    assert_eq!(get_edid(&h.queue, 0, &mut blob), Ok(128));
+    assert_eq!((blob[21], blob[22]), PANEL_CM);
 }
 
 #[test]
 fn an_edid_block_without_the_magic_is_not_believed() {
     let h = harness();
     let _part = answering(&h.region, Answer::BadEdidMagic);
-    assert_eq!(get_edid(&h.queue, 0).err(), Some("virtio-gpu: edid magic mismatch"));
+    let mut blob = [0u8; EDID_MAX_LEN];
+    assert_eq!(get_edid(&h.queue, 0, &mut blob).err(), Some("virtio-gpu: edid magic mismatch"));
 }
 
 #[test]

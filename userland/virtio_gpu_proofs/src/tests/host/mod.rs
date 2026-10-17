@@ -20,7 +20,8 @@
 //! and what each scanout shows.
 
 pub mod apply;
-pub mod gpu;
+pub mod fresh;
 pub mod pixels;
 pub mod serve;
+pub mod state;
 pub mod words;

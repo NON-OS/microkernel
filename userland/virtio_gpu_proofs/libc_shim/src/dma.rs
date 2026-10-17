@@ -61,9 +61,11 @@ pub fn mk_dma_unmap(grant_id: u64) -> i64 {
     })
 }
 
-/// The grants this thread still holds.
-pub fn dma_live() -> Vec<u64> {
-    GRANTS.with(|g| g.borrow().iter().map(|e| e.0).collect())
+/// Each grant still held, as (id, first address, bytes).
+pub fn dma_spans() -> Vec<(u64, u64, u64)> {
+    GRANTS.with(|g| {
+        g.borrow().iter().map(|e| (e.0, e.1.as_ptr() as u64, e.1.len() as u64 * 8)).collect()
+    })
 }
 
 /// Every grant of this thread given back, its memory freed.

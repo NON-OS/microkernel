@@ -37,13 +37,10 @@ pub struct Res {
 #[derive(Clone, Copy, Debug)]
 pub struct Cmd {
     pub kind: u32,
-    pub id: u32,
-    pub scanout: u32,
     pub landed: bool,
 }
 
-#[derive(Default)]
-pub struct Gpu {
+pub struct Host {
     pub res: BTreeMap<u32, Res>,
     /// Each scanout's resource; 0 is detached.
     pub scanouts: [u32; VG_MAX_SCANOUTS],
@@ -56,9 +53,11 @@ pub struct Gpu {
     pub dead_at: Option<u32>,
     pub dead_for: u32,
     pub die_at: Option<u32>,
+    /// What GET_DISPLAY_INFO reports per scanout: (width, height), 0 off.
+    pub displays: [(u32, u32); VG_MAX_SCANOUTS],
 }
 
-impl Gpu {
+impl Host {
     pub fn steps(&self) -> u32 {
         self.log.len() as u32
     }

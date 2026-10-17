@@ -19,6 +19,8 @@
 //! The driver declares these as children of `regs.rs`; included by path,
 //! each is named here instead so the sibling `use` lines resolve.
 
+#[path = "../../../capsule_driver_virtio_gpu/src/regs/config.rs"]
+mod config;
 #[path = "../../../capsule_driver_virtio_gpu/src/regs/io.rs"]
 mod io;
 #[path = "../../../capsule_driver_virtio_gpu/src/regs/notify.rs"]

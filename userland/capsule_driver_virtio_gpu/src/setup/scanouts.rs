@@ -38,10 +38,7 @@ pub fn seed(
         } else {
             (s.width, s.height)
         };
-        if !table.record(
-            i as u32,
-            Scanout { x: s.x, y: s.y, width, height, current_resource_id: 0, enabled: true },
-        ) {
+        if !table.record(i as u32, Scanout { width, height, enabled: true }) {
             return Err("virtio-gpu: scanout table rejected display info");
         }
         recorded += 1;
@@ -54,14 +51,7 @@ pub fn seed(
 fn seed_default(table: &ScanoutTable) -> Result<(), &'static str> {
     if table.record(
         0,
-        Scanout {
-            x: 0,
-            y: 0,
-            width: DEFAULT_SCANOUT_WIDTH,
-            height: DEFAULT_SCANOUT_HEIGHT,
-            current_resource_id: 0,
-            enabled: true,
-        },
+        Scanout { width: DEFAULT_SCANOUT_WIDTH, height: DEFAULT_SCANOUT_HEIGHT, enabled: true },
     ) {
         return Ok(());
     }

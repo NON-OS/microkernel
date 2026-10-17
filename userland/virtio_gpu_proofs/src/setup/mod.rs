@@ -13,16 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The driver's bring-up steps that make its surfaces: the scanouts it
-//! reads, the primary and the blank. The claim, register grants and
-//! queue mapping talk to the kernel's broker and stay out.
+//! The driver's bring-up steps that read the host's displays: the scanouts
+//! and output 0's EDID. The claim, register grants and queue mapping talk
+//! to the kernel's broker and stay out.
 
-#[path = "../../../capsule_driver_virtio_gpu/src/setup/blank_surface.rs"]
-pub mod blank_surface;
-#[path = "../../../capsule_driver_virtio_gpu/src/setup/create_primary.rs"]
-pub mod create_primary;
-pub mod primary_surface;
+#[path = "../../../capsule_driver_virtio_gpu/src/setup/edid.rs"]
+pub mod edid;
 #[path = "../../../capsule_driver_virtio_gpu/src/setup/scanouts.rs"]
 pub mod scanouts;
-
-pub use primary_surface::Primary;

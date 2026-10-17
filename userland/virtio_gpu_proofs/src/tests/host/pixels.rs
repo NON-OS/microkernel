@@ -18,10 +18,10 @@
 //! resource's width in bytes (the reading this model takes of the 2D
 //! transfer; unverified), refusing one that would read past the backing.
 
-use super::gpu::Gpu;
+use super::state::Host;
 use super::words::{fits, w};
 
-impl Gpu {
+impl Host {
     pub fn transfer(&mut self, b: &[u8]) -> bool {
         let (x, y, rw, rh) = (w(b, 0), w(b, 4), w(b, 8), w(b, 12));
         let offset = w(b, 16) as u64 | (w(b, 20) as u64) << 32;

@@ -17,12 +17,11 @@
 #![no_main]
 extern crate alloc;
 mod constants;
-mod death;
 mod device;
 mod discover;
+mod display;
 mod driver;
 mod init;
-mod protocol;
 mod regs;
 mod server;
 mod setup;

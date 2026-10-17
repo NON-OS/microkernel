@@ -66,7 +66,6 @@ pub fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static 
         regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_DRIVER_OK);
         Ok(InitOut {
             queue_size: qsize,
-            host_features: host,
             virgl: host & crate::constants::VIRTIO_GPU_F_VIRGL != 0,
             edid: low & VIRTIO_GPU_F_EDID != 0,
             regs,

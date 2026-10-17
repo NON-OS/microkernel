@@ -19,7 +19,7 @@
 //! or missing, and (strictly) unreferencing a resource still shown or still
 //! backed.
 
-use super::gpu::{Gpu, Res, POISON};
+use super::state::{Host, Res, POISON};
 use super::words::{fits, w};
 use crate::constants::{
     VG_CMD_GET_DISPLAY_INFO, VG_CMD_RESOURCE_ATTACH_BACKING, VG_CMD_RESOURCE_CREATE_2D,
@@ -27,11 +27,11 @@ use crate::constants::{
     VG_CMD_SET_SCANOUT, VG_CMD_TRANSFER_TO_HOST_2D, VG_MAX_SCANOUTS,
 };
 
-impl Gpu {
-    /// Carried out, or refused (false), with the target named for the log.
-    pub fn apply(&mut self, kind: u32, b: &[u8]) -> (bool, u32, u32) {
+impl Host {
+    /// Carried out, or refused (false).
+    pub fn apply(&mut self, kind: u32, b: &[u8]) -> bool {
         match kind {
-            VG_CMD_GET_DISPLAY_INFO => (true, 0, 0),
+            VG_CMD_GET_DISPLAY_INFO => true,
             VG_CMD_RESOURCE_CREATE_2D => {
                 let (id, rw, rh) = (w(b, 0), w(b, 8), w(b, 12));
                 let free = id != 0 && rw > 0 && rh > 0 && !self.res.contains_key(&id);
@@ -39,13 +39,13 @@ impl Gpu {
                 if free {
                     self.res.insert(id, Res { w: rw, h: rh, px, backing: None });
                 }
-                (free, id, 0)
+                free
             }
             VG_CMD_RESOURCE_UNREF => {
                 let id = w(b, 0);
                 let shown = self.scanouts.contains(&id);
                 let ok = self.res.get(&id).is_some_and(|r| r.backing.is_none()) && !shown;
-                (ok && self.res.remove(&id).is_some(), id, 0)
+                ok && self.res.remove(&id).is_some()
             }
             VG_CMD_SET_SCANOUT => {
                 let (s, id) = (w(b, 16), w(b, 20));
@@ -54,20 +54,20 @@ impl Gpu {
                 if ok {
                     self.scanouts[s as usize] = id;
                 }
-                (ok, id, s)
+                ok
             }
             VG_CMD_RESOURCE_FLUSH => {
                 let id = w(b, 16);
-                (self.res.get(&id).is_some_and(|r| fits(r, b)), id, 0)
+                self.res.get(&id).is_some_and(|r| fits(r, b))
             }
-            VG_CMD_TRANSFER_TO_HOST_2D => (self.transfer(b), w(b, 24), 0),
-            VG_CMD_RESOURCE_ATTACH_BACKING => (self.attach(b), w(b, 0), 0),
+            VG_CMD_TRANSFER_TO_HOST_2D => self.transfer(b),
+            VG_CMD_RESOURCE_ATTACH_BACKING => self.attach(b),
             VG_CMD_RESOURCE_DETACH_BACKING => {
                 let id = w(b, 0);
                 let r = self.res.get_mut(&id).filter(|r| r.backing.is_some());
-                (r.map(|r| r.backing = None).is_some(), id, 0)
+                r.map(|r| r.backing = None).is_some()
             }
-            _ => (false, 0, 0),
+            _ => false,
         }
     }
 }

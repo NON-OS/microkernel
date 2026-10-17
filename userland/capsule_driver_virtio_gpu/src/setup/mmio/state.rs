@@ -52,13 +52,6 @@ impl RegisterGrant {
             .with_notify_len(g.notify_len),
         }
     }
-    pub fn grant_id(self) -> u64 {
-        match self {
-            Self::Mmio(g) => g.grant_id,
-            Self::Pio(g) => g.grant_id,
-            Self::Modern(g) => g.common.grant_id,
-        }
-    }
     pub fn release(self) -> bool {
         match self {
             Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
