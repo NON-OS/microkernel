@@ -53,7 +53,12 @@ fn a_port_without_acs_puts_its_peers_in_the_group() {
 #[test]
 fn devices_sharing_a_conventional_bus_are_grouped_whatever_acs_says() {
     let mut pci = machine();
-    pci.push(Func { at: (2, 3, 0), buses: Some((6, 6)), conventional: true });
-    pci.extend([(6, 1, 0), (6, 2, 0)].map(|at| Func { at, buses: None, conventional: false }));
+    pci.push(Func { at: (2, 3, 0), buses: Some((6, 6)), conventional: true, alias: None });
+    pci.extend([(6, 1, 0), (6, 2, 0)].map(|at| Func {
+        at,
+        buses: None,
+        conventional: false,
+        alias: None,
+    }));
     assert_eq!(group(path((6, 1, 0), &pci).unwrap(), |_, _| ON), [(6, 2, 0)]);
 }
