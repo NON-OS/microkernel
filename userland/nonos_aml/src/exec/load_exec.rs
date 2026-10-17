@@ -47,7 +47,7 @@ impl<H: Host> LoadExec for Machine<'_, H> {
         }
     }
 
-    fn cut(&self) -> bool {
+    fn cut(&self) -> Option<u32> {
         self.cut
     }
 }

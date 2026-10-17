@@ -42,13 +42,13 @@ impl Aml {
 
     /// Loads one definition block and returns its index: the DSDT first and
     /// only first, then SSDTs and PSDTs (section 5.2.11.2). A table refused
-    /// here adds nothing to the namespace.
+    /// here adds nothing, save a DSDT cut short: it cannot be taken out, and
+    /// is refused so that none of it is served.
     pub fn load_table(&mut self, bytes: Vec<u8>, exec: &mut impl LoadExec) -> Result<u16, Error> {
         self.load_table_at(bytes, ROOT, exec)
     }
 
-    /// As `load_table`, into `scope` (LoadTable's RootPathString, section
-    /// 19.6.75); a table loaded at run time may also be an "OEMx" table.
+    /// As `load_table`, into `scope` (LoadTable's RootPathString, 19.6.75); OEMx tables too.
     pub fn load_table_at(
         &mut self,
         bytes: Vec<u8>,
@@ -56,9 +56,8 @@ impl Aml {
         exec: &mut impl LoadExec,
     ) -> Result<u16, Error> {
         let block = Block::new(&bytes, self.limits.max_table)?;
-        if !in_order(block.signature(), self.tables.is_empty()) {
-            return Err(Error::new(ErrorKind::Signature, 0));
-        }
+        let ordered = in_order(block.signature(), self.tables.is_empty());
+        ordered.then_some(()).ok_or(Error::new(ErrorKind::Signature, 0))?;
         let index = u16::try_from(self.tables.len()).map_err(|_| Error::new(ErrorKind::Size, 0))?;
         let mut arena = Arena::new(self.limits);
         let root = parse::load(&block, &mut arena, &mut ParseScopes::new(&self.ns, scope))?;
@@ -66,9 +65,10 @@ impl Aml {
         let (saved, cut) = (self.ns.journal_pause(), exec.cut());
         self.walk(index, root, scope, exec);
         self.ns.journal_resume(saved);
-        // Cut short by the budget, it is taken back out whole (not the DSDT).
-        if !cut && exec.cut() && self.unload(index) {
-            return Err(Error::new(ErrorKind::Budget, 0));
+        // Cut short by the budget: taken back out whole (the DSDT cannot be).
+        if let (None, Some(at)) = (cut, exec.cut()) {
+            self.unload(index);
+            return Err(Error::new(ErrorKind::Budget, at));
         }
         Ok(index)
     }

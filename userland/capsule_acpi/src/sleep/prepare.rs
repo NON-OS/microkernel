@@ -19,29 +19,13 @@
 //! write that follows is the one firmware asked for (ACPI 6.5, 16.1).
 //! A failed \_TTS or \_PTS is logged and the shutdown goes on.
 
-use super::shutdown_say::{method_line, s5_line, Part, Went};
+use super::shutdown_say::{method_line, s5_line, Went};
 use crate::boot::{evaluator, Acpi};
 use crate::server::protocol::{EINVAL, ENOENT};
 use crate::sys::acpi_sleep::{acpi_sleep, SOFT_OFF};
-use crate::sys::log::Line;
+use crate::sys::log_parts::emit;
 use nonos_aml::exec::Fault;
 use nonos_aml::sleep::prepare;
-
-/// One log line from the parts `shutdown_say` gives.
-fn emit(write: impl FnOnce(&mut dyn FnMut(Part))) {
-    let mut line = Some(Line::new(b""));
-    write(&mut |p| {
-        let l = line.take().expect("the line is put back after each part");
-        line = Some(match p {
-            Part::Str(s) => l.str(s),
-            Part::Hex(v) => l.hex(v),
-            Part::Dec(v) => l.dec(v),
-        });
-    });
-    if let Some(l) = line {
-        l.end();
-    }
-}
 
 fn ran(r: &Option<Result<(), Fault>>) -> Went {
     match r {

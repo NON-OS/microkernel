@@ -33,7 +33,7 @@ impl<H: Host> Machine<'_, H> {
     /// A refusal for want of budget, remembered so a table loading now is
     /// taken back out (`load_table_at`).
     fn out_of(&mut self, kind: FaultKind, at: u32) -> Fault {
-        self.cut = true;
+        self.cut = self.cut.or(Some(at));
         self.fault(kind, at)
     }
 

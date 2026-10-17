@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! F-120: every cut shutdown carried on through the capsule's own wording
-//! (`capsule_acpi/src/sleep/shutdown_say.rs`) and the kernel's choice
-//! (`s5_choice.rs`), both mounted from their sources. The model: the cut
+//! (`capsule_acpi/src/sleep/shutdown_say.rs`, mounted once, in
+//! `bringup_cut::capsule`) and the kernel's choice (`s5_choice.rs`). The model: the cut
 //! method's line says it faulted, and where; the other's says it ran or is
 //! absent; \_S5's line says its pair was handed over; and the kernel then
 //! writes a pair whatever its scan found: its own when that fits, else the
@@ -10,13 +10,11 @@
 #[allow(dead_code)]
 #[path = "../../../../../../src/hardware/broker/acpi/s5_choice.rs"]
 mod s5_choice;
-#[path = "../../../../../capsule_acpi/src/sleep/shutdown_say.rs"]
-mod say;
 
 use super::gen::scene;
 use super::run::run;
 use crate::exec::Fault;
-use say::{method_line, s5_line, Part, Went};
+use crate::tests::load_tests::bringup_cut::capsule::say::{method_line, s5_line, Part, Went};
 
 fn text(write: impl FnOnce(&mut dyn FnMut(Part))) -> String {
     let mut s = String::new();

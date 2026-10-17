@@ -3848,6 +3848,8 @@
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/s5_choice.rs",
+   "userland/capsule_acpi/src/boot/bringup_say.rs",
+   "userland/capsule_acpi/src/boot/load_rule.rs",
    "userland/capsule_acpi/src/dpower/wake_sweep.rs",
    "userland/capsule_acpi/src/sleep",
    "userland/nonos_aml/src/aei",

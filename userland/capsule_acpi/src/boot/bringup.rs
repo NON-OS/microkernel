@@ -19,10 +19,11 @@
 //! \_PIC (5.8.1) before anything reads _PRT, _OSC (6.2.11) before _INI so
 //! firmware initializes for what NONOS supports, then _INI (6.5.1).
 
+use super::bringup_say::{ini_line, pic_line, reg_line};
 use super::eval::evaluator;
 use super::osc::negotiate_all;
 use crate::host::CapsuleHost;
-use crate::sys::log::Line;
+use crate::sys::log_parts::emit;
 use nonos_aml::exec::{ExecLimits, Machine};
 use nonos_aml::load::Aml;
 use nonos_aml::platform::{initialize, set_pic, PIC_APIC};
@@ -39,29 +40,12 @@ pub fn bring_up(aml: &mut Aml, host: &mut CapsuleHost) {
     let ec_found = host.ec.is_some();
     for space in SPACES.into_iter().filter(|s| *s != Space::EMBEDDED_CONTROL || ec_found) {
         let failed = Machine::new(aml, host, ExecLimits::DEFAULT).connect(aml, space);
-        if !failed.is_empty() {
-            Line::new(b"_REG failed in ")
-                .dec(failed.len() as u64)
-                .str(b" scopes, space ")
-                .dec(space.0 as u64)
-                .end();
-        }
+        emit(|out| reg_line(failed.len(), space.0, out));
     }
-    match set_pic(aml, &mut evaluator(host), PIC_APIC) {
-        Some(Err(f)) => Line::new(b"\\_PIC(1) faulted at ").hex(f.at as u64).end(),
-        Some(Ok(())) => Line::new(b"\\_PIC(1): APIC mode").end(),
-        None => Line::new(b"no \\_PIC").end(),
-    }
+    let pic = set_pic(aml, &mut evaluator(host), PIC_APIC);
+    emit(|out| pic_line(pic.map(|r| r.map_err(|f| f.at)), out));
     negotiate_all(aml, host);
     let r = initialize(aml, &mut evaluator(host));
     let failed = r.ran.iter().filter(|(_, x)| x.is_err()).count();
-    Line::new(b"_INI ran ")
-        .dec(r.ran.len() as u64)
-        .str(b", failed ")
-        .dec(failed as u64)
-        .str(b"; absent ")
-        .dec(r.absent.len() as u64)
-        .str(b"; _STA failed ")
-        .dec(r.sta_failed.len() as u64)
-        .end();
+    emit(|out| ini_line([r.ran.len(), failed, r.absent.len(), r.sta_failed.len()], out));
 }

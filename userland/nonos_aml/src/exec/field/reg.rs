@@ -47,7 +47,7 @@ impl<H: Host> Machine<'_, H> {
         // Once the budget refuses, no _REG can run: the scopes left, and
         // one cut midway, stay untold for the next connect or load.
         for scope in scopes {
-            if self.cut {
+            if self.cut.is_some() {
                 break;
             }
             let Some(reg) = aml.ns.child(scope, *b"_REG") else { continue };
@@ -56,7 +56,7 @@ impl<H: Host> Machine<'_, H> {
             self.frames.push(Frame::new(0, scope));
             let r = self.read_named(aml, reg, args, 0);
             self.frames.pop();
-            if self.cut {
+            if self.cut.is_some() {
                 aml.rt.announced.retain(|told| *told != (scope, space.0));
             }
             if let Err(f) = r {
