@@ -22,6 +22,7 @@
 //! open network, a TKIP group cipher and an HT-only AP each end the join with
 //! their own reason; and the association request offers the AP's own rates.
 
+mod address_kind;
 mod assoc;
 mod base;
 mod entropy;
