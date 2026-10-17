@@ -60,6 +60,8 @@ pub mod syscall;
 pub mod time;
 pub mod usercopy;
 #[cfg(test)]
+pub mod unit_base;
+#[cfg(test)]
 mod registry_support;
 #[cfg(kani)]
 mod kani_proofs;

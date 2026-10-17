@@ -43,6 +43,8 @@ pub mod ivhd_scope;
 mod mcfg;
 mod srat;
 mod srat_memory;
+pub mod unit_base;
+mod unit_base_env;
 
 pub use dmar::parse_dmar;
 pub use dmar_units::{remap_unit_bases, remap_unit_scopes, units_left_off};

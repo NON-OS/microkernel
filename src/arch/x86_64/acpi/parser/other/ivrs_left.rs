@@ -21,6 +21,9 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
+use super::ivrs_walk::MAX_AMD_IOMMUS;
+use super::unit_base::AMD_WINDOW;
+
 static LEFT_OFF: AtomicBool = AtomicBool::new(false);
 
 pub(super) fn note(left_off: bool) {
@@ -31,4 +34,14 @@ pub(super) fn note(left_off: bool) {
 
 pub fn amd_units_left_off() -> bool {
     LEFT_OFF.load(Ordering::Acquire)
+}
+
+/// The bases whose registers may be mapped; any other is left off.
+pub(super) fn admitted(found: &[u64]) -> heapless::Vec<u64, MAX_AMD_IOMMUS> {
+    let mut kept = heapless::Vec::new();
+    for &base in found {
+        let ok = super::unit_base_env::admit(base, AMD_WINDOW, &kept).is_ok();
+        note(!ok || kept.push(base).is_err());
+    }
+    kept
 }
