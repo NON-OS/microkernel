@@ -6,6 +6,8 @@ use crate::consts::{at, load};
 use crate::enc::*;
 use crate::namespace::{Kind, Origin};
 
+#[path = "bringup_cut/mod.rs"]
+pub(crate) mod bringup_cut;
 #[path = "load_cut/mod.rs"]
 mod load_cut;
 
