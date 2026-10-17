@@ -54,6 +54,7 @@ impl<H: Host> Machine<'_, H> {
         let Ok(index) = aml.load_table_at(bytes, scope, self) else {
             return Ok(Object::Integer(0));
         };
+        self.announce_loaded(aml);
         if !text[4].is_empty() {
             let data = self.value(aml, t, k[5])?;
             let saved = self.frames.last().map(|f| f.scope);
