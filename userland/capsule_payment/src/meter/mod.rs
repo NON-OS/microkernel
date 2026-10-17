@@ -20,4 +20,4 @@ mod note;
 mod refresh;
 
 pub use hold::Meter;
-pub(crate) use refresh::now_ms;
+pub(crate) use refresh::{now_ms, uptime_ms};
