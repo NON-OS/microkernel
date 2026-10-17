@@ -26,6 +26,7 @@ mod deref;
 mod element;
 mod evaluate;
 mod fault;
+mod fault_budget;
 mod field;
 mod flow;
 mod frame;

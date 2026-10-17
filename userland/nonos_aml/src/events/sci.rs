@@ -19,8 +19,10 @@
 //! status is cleared before it is served, so a second edge during the
 //! method is not lost; a level event's after, once the method has quieted
 //! the source. Each GPE is disabled while it is served. A level GPE whose
-//! method fails stays disabled, since its source is still asserting and
-//! would fire forever; so does any GPE past the storm bound (`storm`).
+//! method fails on its own stays disabled, since its source is still
+//! asserting and would fire forever; so does any GPE past the storm bound
+//! (`storm`). One whose method the budget cut short is armed again, so the
+//! next event is not lost, until `CUTS` runs in a row were cut.
 
 use super::dispatch::Dispatch;
 use super::error::EventsError;
@@ -58,7 +60,9 @@ impl Events {
             if !edge && !b.clear(io, n) {
                 return Err(EventsError::Io);
             }
-            if result.is_ok() || edge {
+            let cut = result.as_ref().is_err_and(Fault::is_budget);
+            let spent = self.storms.cut(n, cut);
+            if (result.is_ok() || edge || cut) && !spent {
                 b.set_enabled(io, n, true).then_some(()).ok_or(EventsError::Io)?;
             } else {
                 self.armed.remove(&n);
