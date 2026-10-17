@@ -54,7 +54,8 @@ pub fn served(payee: [u8; 20], settle_mode: SettleMode) -> Price {
     };
     let c = commerce_from_bytes(&commerce_bytes(&c)).expect("the block reads");
     let (mode, unit_price, payee) = (c.settle_mode as u8, c.unit_price, c.payee);
-    Price { mode, unit: b"install", unit_price, payee, trusted: true }
+    let (listing_key, chain_id) = ([0; 32], 0);
+    Price { mode, unit: b"install", unit_price, payee, trusted: true, listing_key, chain_id }
 }
 
 #[test]

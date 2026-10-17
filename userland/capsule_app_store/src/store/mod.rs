@@ -21,6 +21,7 @@
 mod app;
 mod asked;
 mod asked_label;
+mod channel_held;
 mod event;
 mod event_actions;
 mod event_click;

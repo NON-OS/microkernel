@@ -27,7 +27,6 @@ pub mod search;
 
 #[path = "../../../capsule_app_store/src/store/listing.rs"]
 pub mod listing;
-
 #[path = "../../../capsule_app_store/src/store/source.rs"]
 pub mod source;
 
@@ -49,6 +48,8 @@ pub mod reasons;
 pub mod asked;
 #[path = "../../../capsule_app_store/src/store/asked_label.rs"]
 pub mod asked_label;
+#[path = "../../../capsule_app_store/src/store/channel_held.rs"]
+pub mod channel_held;
 #[path = "../../../capsule_app_store/src/store/order_line.rs"]
 pub mod order_line;
 #[path = "../../../capsule_app_store/src/store/purchase_said.rs"]
@@ -62,7 +63,6 @@ pub mod progress;
 
 #[path = "../../../capsule_app_store/src/store/fill_order.rs"]
 pub mod fill_order;
-
 #[path = "../../../capsule_app_store/src/store/next_step.rs"]
 pub mod next_step;
 
