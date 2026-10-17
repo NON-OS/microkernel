@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the context answers of itself: the next request id, and where the
-//! pointer is drawn.
+//! What the context answers of itself: where the pointer is drawn, and
+//! whether mirrors show their own colours.
 
 use super::Context;
 
 impl Context {
-    pub fn issue_request_id(&mut self) -> u32 {
-        let id = self.next_request_id;
-        self.next_request_id = id.wrapping_add(1).max(1);
-        id
-    }
-
     /// The pointer is on the wire driver's cursor plane, not composited.
     pub fn hw_cursor(&self) -> bool {
         // Extended, the pointer can be on any output: composited.
