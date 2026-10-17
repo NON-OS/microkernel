@@ -49,7 +49,11 @@ fn a_multi_function_device_names_its_siblings() {
 
 #[test]
 fn a_bus_that_loops_has_no_path() {
-    let looped =
-        vec![super::acs_tree::Func { at: (7, 0, 0), buses: Some((7, 7)), conventional: false }];
+    let looped = vec![super::acs_tree::Func {
+        at: (7, 0, 0),
+        buses: Some((7, 7)),
+        conventional: false,
+        alias: None,
+    }];
     assert!(path((7, 0, 0), &looped).is_none());
 }

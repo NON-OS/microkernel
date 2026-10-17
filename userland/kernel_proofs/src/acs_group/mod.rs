@@ -18,12 +18,15 @@
 //! shared device, bus or port without ACS. The real path, tree and
 //! rule are included by path.
 
+#[path = "../../../../src/hardware/broker/confine/acs_alias.rs"]
+pub mod acs_alias;
 #[path = "../../../../src/hardware/broker/confine/acs_path.rs"]
 pub mod acs_path;
 #[path = "../../../../src/hardware/broker/confine/acs_rule.rs"]
 pub mod acs_rule;
 #[path = "../../../../src/hardware/broker/confine/acs_tree.rs"]
 pub mod acs_tree;
+mod alias_tests;
 mod machine;
 mod tests;
 mod tree_tests;

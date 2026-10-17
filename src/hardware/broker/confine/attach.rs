@@ -43,7 +43,7 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
     if !crate::memory::iommu::translates(address) {
         return without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION));
     }
-    let group = super::gates::admit(device_id)?;
+    let (group, aliases) = super::gates::admit(device_id)?;
     let mut all = CAPSULES.lock();
     let pos = match all.iter().position(|c| c.pid == pid) {
         Some(i) => i,
@@ -63,5 +63,6 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
             }
         },
     };
-    super::join::join(&mut all, pos, device_id, address, &group)
+    super::join::join(&mut all, pos, device_id, address, (&group, &aliases))?;
+    super::join_alias::join_aliases(&mut all, pid, device_id, &aliases)
 }
