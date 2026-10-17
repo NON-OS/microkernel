@@ -40,7 +40,7 @@ mod home_parts;
 mod home_receive;
 pub mod key;
 mod landed;
-mod landed_move;
+pub(crate) mod landed_move;
 mod landed_rows;
 mod meter;
 mod nav;
