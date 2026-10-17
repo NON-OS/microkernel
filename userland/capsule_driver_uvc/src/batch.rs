@@ -21,7 +21,9 @@ pub const SLOTS: usize = 31;
 
 /// The payloads in `data` (an OP_ISOCH_IN reply's data), in order.
 pub fn payloads(data: &[u8]) -> impl Iterator<Item = &[u8]> {
-    let count = data.get(1).map_or(0, |&n| (n as usize).min(SLOTS));
+    // The slots end the read at the 31st whatever the count says, and a
+    // reply too short to hold them gives none.
+    let count = data.get(1).map_or(0, |&n| n as usize);
     let lens = data.get(4..4 + 2 * SLOTS).unwrap_or(&[]);
     let mut at = 4 + 2 * SLOTS;
     (0..count).map_while(move |i| {

@@ -5586,6 +5586,7 @@
    "userland/capsule_driver_usb_mic/src/ring.rs",
    "userland/capsule_driver_usb_mic/src/uac",
    "userland/capsule_driver_usb_mic/src/wire.rs",
+   "userland/capsule_driver_uvc/src/batch.rs",
    "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/nonos_usb_hub/src/status_endpoint.rs",
    "userland/nonos_usbnet/src/bind.rs",

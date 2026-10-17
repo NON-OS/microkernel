@@ -5,6 +5,10 @@
 
 extern crate alloc;
 
+/// driver.uvc0's isochronous batch reader, which the microphone mounts.
+#[path = "../../capsule_driver_uvc/src/batch.rs"]
+pub mod batch;
+
 /// USB Audio 1.0 descriptors and devices (usb_audio_proofs').
 #[path = "../../usb_audio_proofs/src/devices.rs"]
 pub mod devices;
@@ -22,6 +26,11 @@ pub mod uac2;
 #[path = "../../capsule_driver_usb_mic/src/wire.rs"]
 pub mod wire;
 
+/// A seeded sweep over captured sound.
+#[cfg(test)]
+mod capture_sweep;
+#[cfg(test)]
+mod capture_sweep_tests;
 #[cfg(test)]
 mod capture_tests;
 #[cfg(test)]
