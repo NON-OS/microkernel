@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 use spin::RwLock;
 
 use super::interface::Interface;
+use super::iommus::DescribedIommus;
 use super::window::BusWindow;
 
 pub(super) struct Entry {
@@ -28,6 +29,7 @@ pub(super) struct Entry {
     /// The first register window, mapped for the kernel: the stop needs it.
     pub regs: Option<u64>,
     pub dma: Option<BusWindow>,
+    pub iommus: DescribedIommus,
 }
 
 pub(super) static DESCRIBED: RwLock<Vec<Entry>> = RwLock::new(Vec::new());
