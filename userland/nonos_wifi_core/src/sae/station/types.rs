@@ -42,6 +42,8 @@ pub enum SaeFailure {
     BadCommit,
     /// A confirm did not verify: a different password, or a forgery.
     BadConfirm,
+    /// More anti-clogging token requests than an exchange answers.
+    TooManyTokenRequests,
 }
 
 /// What a received SAE frame calls for.
