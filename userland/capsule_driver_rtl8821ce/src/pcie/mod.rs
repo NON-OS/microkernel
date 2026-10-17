@@ -24,9 +24,6 @@
 //! (`pci.c`, `pci.h`), reimplemented not copied.
 
 mod dbi;
-mod devctl2;
-
-pub use devctl2::disable_completion_timeout;
 
 use crate::regs::Mmio;
 
@@ -38,13 +35,18 @@ const BIT_L1_SW_EN: u8 = 1 << 3;
 /// reference clock, which gates the same internal blocks L1 does.
 const BIT_CLKREQ_SW_EN: u8 = 1 << 4;
 
+/// Which DBI transaction never cleared its flag.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum DbiTimeout {
+    Read,
+    Write,
+}
+
 /// Hold the link out of its low-power states for the duration of bring-up.
-/// Returns false if the chip's PCIe register file did not answer, which is worth
-/// reporting: it means the link state could not be established either way.
-pub fn hold_link_awake<M: Mmio>(mmio: &M) -> bool {
-    let Some(value) = dbi::read8(mmio, RTK_PCIE_LINK_CFG) else {
-        return false;
-    };
-    dbi::write8(mmio, RTK_PCIE_LINK_CFG, value & !(BIT_L1_SW_EN | BIT_CLKREQ_SW_EN));
-    true
+/// An error names the DBI transaction that timed out, which is worth reporting:
+/// it means the link state could not be established either way.
+pub fn hold_link_awake<M: Mmio>(mmio: &M) -> Result<(), DbiTimeout> {
+    let value = dbi::read8(mmio, RTK_PCIE_LINK_CFG).ok_or(DbiTimeout::Read)?;
+    let held = value & !(BIT_L1_SW_EN | BIT_CLKREQ_SW_EN);
+    dbi::write8(mmio, RTK_PCIE_LINK_CFG, held).then_some(()).ok_or(DbiTimeout::Write)
 }
