@@ -22,6 +22,7 @@
 use super::kit::{rig, run, Wrong};
 use super::kit_held::{held, steps};
 use crate::display::Plug;
+use crate::tests::confine::kit::confined;
 use crate::tests::wire::wire_modeset_tests::shadow_of;
 use crate::tests::wire_rig::h0;
 use nonos_gfx_serve::{Display, Shadow};
@@ -47,6 +48,7 @@ fn a_mode_set_wrong_at_any_step_never_shows_a_frame_given_back() {
             let held = held(&d);
             let on_held = |a: &u64| held.iter().any(|h| (h.0..h.1).contains(a));
             assert!(m.reaching().iter().all(on_held), "{w:?}: a plane off the frames held");
+            confined(&m, &format!("{w:?} of {n}"));
             if let Some(Err(_)) = got {
                 // Lit again when it could be; else left reaching nothing given back.
                 let back = h0(&d).plug == Plug::In;

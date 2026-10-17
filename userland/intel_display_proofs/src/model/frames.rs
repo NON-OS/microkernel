@@ -54,6 +54,7 @@ impl Frames for ModelFrames {
         let pair = [base, base + len as u64];
         self.next = Some(base + 2 * len as u64);
         self.was = Some((self.iova, self.len));
+        pair.iter().for_each(|&a| self.model.0.borrow_mut().hold((a, a + len as u64)));
         (self.iova, self.len) = (pair, len);
         Some(pair)
     }
