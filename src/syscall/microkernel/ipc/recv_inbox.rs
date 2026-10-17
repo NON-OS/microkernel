@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ipc::nonos_inbox;
-use crate::syscall::microkernel::errnos::{ERRNO_NOENT, ERRNO_TIMEDOUT};
+use crate::syscall::microkernel::errnos::{ERRNO_AGAIN, ERRNO_NOENT, ERRNO_TIMEDOUT};
 
 use super::recv_take::taken;
+use super::wait_rule::{after_empty, Next};
 
 static NO_INBOX: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.recv");
 // The first 64 dequeues systemwide, then sampled: enough to show which inboxes
@@ -55,10 +56,11 @@ pub(super) fn recv_from_inbox(
             return taken(pid, &msg, buf, len);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
-        if timeout_ms > 0 && elapsed >= timeout_ms {
-            return ERRNO_TIMEDOUT;
-        }
-        let deadline = if timeout_ms == 0 { u64::MAX } else { start.saturating_add(timeout_ms) };
+        let deadline = match after_empty(timeout_ms, start, elapsed) {
+            Next::Again => return ERRNO_AGAIN,
+            Next::TimedOut => return ERRNO_TIMEDOUT,
+            Next::SleepUntil(at) => at,
+        };
         crate::sched::sleep_until_unless_woken(pid, deadline, token);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(&inbox_name) {
             return taken(pid, &msg, buf, len);
