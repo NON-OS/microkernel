@@ -22,7 +22,7 @@ use nonos_nox_config::REFUND_GAS;
 use nonos_settle_proto::Quote;
 
 use super::dispute_fixture::{quote, word, ESCROW};
-use super::fixture::{buy, made, offer, NOW, REFUND_TO};
+use super::fixture::{buy, made, offer, NOW, REFUND_PAIR, REFUND_TO};
 use crate::order::refund_call::{refund_call, refunded, state_and_extra};
 use crate::order::send_gas::after_quote;
 use crate::order::send_step::{EscrowSend, SendStep};
@@ -31,7 +31,7 @@ pub(super) const SALT: [u8; 32] = [0x5a; 32];
 
 #[test]
 fn the_refund_call_is_t_then_refund_to_then_the_salt() {
-    let m = made(&buy().order_new(&offer(), REFUND_TO, NOW));
+    let m = made(&buy().order_new(&offer(), REFUND_PAIR, NOW));
     let c = refund_call(&m, &REFUND_TO, &SALT).unwrap();
     assert_eq!((c.len(), &c[..4]), (4 + 16 * 32, &[0xa3, 0x81, 0x4a, 0x14][..]));
     assert_eq!(&c[4..452], &m.terms.concat()[..]);

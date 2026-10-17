@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! ORDER_NEW, ORDER_STATUS and ORDER_REFUND (plan/21, v1.4.20). NEW plans
-//! the order under fresh salts and runs it as a job that reads paused() and
-//! depositAddress, then seals it before answering; STATUS is a job over a
-//! kept order; REFUND (refund.rs) answers the wallet the refund pair.
+//! the order under a fresh order salt and the wallet's own refundSalt, runs
+//! it as a job that reads paused() and depositAddress, then seals it before
+//! answering; STATUS is a job over a kept order; REFUND (refund.rs) answers
+//! the wallet the refund pair.
 
 use alloc::vec::Vec;
 
@@ -48,15 +49,10 @@ fn planned(n: &OrderNew) -> Result<Order, i32> {
     let at = |c| address(n.chain_id, c).map_err(|_| ENOENT);
     let (nox, escrow) = (at(Contract::NoxToken)?, at(Contract::Escrow)?);
     let fwd = forwarder_initcode_hash(n.chain_id).ok_or(ENOENT)?;
-    let mut salts = [0u8; 64];
-    random(&mut salts)?;
-    let (mut salt, mut refund) = ([0u8; 32], [0u8; 32]);
-    salt.copy_from_slice(&salts[..32]);
-    refund.copy_from_slice(&salts[32..]);
-    wipe(&mut salts);
-    let o = order_plan(&Host, n, (&nox, &escrow, &fwd), (salt, refund), now_ms() / 1000);
+    let mut salt = [0u8; 32];
+    random(&mut salt)?;
+    let o = order_plan(&Host, n, (&nox, &escrow, &fwd), salt, now_ms() / 1000);
     wipe(&mut salt);
-    wipe(&mut refund);
     o.map_err(status_of)
 }
 

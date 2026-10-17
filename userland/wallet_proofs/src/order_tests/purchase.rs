@@ -14,30 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A purchase moves on each job result: a checked offer to ORDER_NEW, an
-//! order whose words are the confirmed terms to funding, and nothing else.
+//! Each job result moves a purchase on: an offer to ORDER_NEW, the terms confirmed to Fund.
 
 use nonos_payment_proto::{EAGAIN, EBUSY, EINVAL, ENOENT, ETIME};
 
 use super::deposit_fixture::{made_at, ordered, salted};
-use super::fixture::{buy, offer, NOW, REFUND_TO};
+use super::fixture::{buy, offer, NOW, REFUND_PAIR, REFUND_SALT, REFUND_TO};
+use crate::order::buy::Buy;
 use crate::order::purchase::{after_offer, After};
+
+fn offered(b: &Buy, r: Result<&[u8], i32>) -> After {
+    after_offer(b, r, (REFUND_TO, || Some(REFUND_SALT)), NOW)
+}
 
 #[test]
 fn an_offer_goes_on_to_its_order_and_a_running_job_is_waited_on() {
     let b = buy();
-    let want = b.order_new(&offer(), REFUND_TO, NOW);
-    assert_eq!(
-        after_offer(&b, Ok(&offer().encode()), REFUND_TO, NOW),
-        After::Order(Box::new(want))
-    );
-    assert_eq!(after_offer(&b, Err(EAGAIN), REFUND_TO, NOW), After::Wait);
-    assert!(matches!(after_offer(&b, Ok(&[0; 95]), REFUND_TO, NOW), After::Failed(_)));
+    let want = b.order_new(&offer(), REFUND_PAIR, NOW);
+    assert_eq!(offered(&b, Ok(&offer().encode())), After::Order(Box::new(want)));
+    assert_eq!(offered(&b, Err(EAGAIN)), After::Wait);
+    assert!(matches!(offered(&b, Ok(&[0; 95])), After::Failed(_)));
 }
 
 #[test]
 fn an_order_is_funded_only_on_the_terms_confirmed() {
-    let n = buy().order_new(&offer(), REFUND_TO, NOW);
+    let n = buy().order_new(&offer(), REFUND_PAIR, NOW);
     let m = made_at(&n);
     assert_eq!(ordered(&n, Ok(&m.encode())), After::Fund(Box::new(m)));
     assert_eq!(ordered(&n, Err(EAGAIN)), After::Wait);
@@ -47,10 +48,9 @@ fn an_order_is_funded_only_on_the_terms_confirmed() {
         let said = ordered(&n, Ok(&bad.encode()));
         assert!(matches!(said, After::Failed(s) if s.contains("do not fund")), "word {w}");
     }
-    let other = salted(&n, 1);
-    assert_ne!((other.terms[12], other.terms[13]), (m.terms[12], m.terms[13]));
-    let theirs = After::Fund(Box::new(other));
-    assert_eq!(ordered(&n, Ok(&other.encode())), theirs, "refundCommit and salt: the meter's");
+    let other = salted(&n, 1, None);
+    assert_ne!(other.terms[13], m.terms[13]);
+    assert_eq!(ordered(&n, Ok(&other.encode())), After::Fund(Box::new(other)), "salt: the meter's");
     let mut far = n;
     far.chain_id = 1;
     assert!(matches!(ordered(&far, Ok(&m.encode())), After::Failed(_)), "no NOX on chain 1");
@@ -60,16 +60,16 @@ fn an_order_is_funded_only_on_the_terms_confirmed() {
 #[test]
 fn each_refusal_is_said_for_its_stage() {
     let b = buy();
-    let n = b.order_new(&offer(), REFUND_TO, NOW);
+    let n = b.order_new(&offer(), REFUND_PAIR, NOW);
     let said = |a: After| match a {
         After::Failed(s) => s,
         _ => panic!("not a refusal"),
     };
-    let offer_time = said(after_offer(&b, Err(ETIME), REFUND_TO, NOW));
+    let offer_time = said(offered(&b, Err(ETIME)));
     let order_time = said(ordered(&n, Err(ETIME)));
     assert_ne!(offer_time, order_time, "ETIME means another thing at each stage");
     assert!(order_time.contains("deadline"));
     assert!(said(ordered(&n, Err(ENOENT))).contains("offer"));
     assert!(said(ordered(&n, Err(EBUSY))).contains("paused"));
-    assert!(said(after_offer(&b, Err(EINVAL), REFUND_TO, NOW)).contains("too large"));
+    assert!(said(offered(&b, Err(EINVAL))).contains("too large"));
 }
