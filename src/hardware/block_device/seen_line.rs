@@ -19,6 +19,7 @@
 use alloc::{format, string::String};
 
 use super::backend::Backend;
+use super::gpt::{Held, Shown};
 use super::seen::Seen;
 use super::BlockDeviceError;
 
@@ -45,14 +46,25 @@ pub(super) fn line(backend: Backend, seen: &Seen) -> String {
         Seen::TooSmall(n) => format!("{n} sectors, too small to hold the store"),
         Seen::NotFiveTwelve(n) => format!("{n} sectors whose blocks are not 512 bytes; not used"),
         Seen::NoTable(n, e) => format!("{n} sectors; its partition table unread ({e:?})"),
-        Seen::At { sectors, lba, got, plan, gpt, boot } => {
+        Seen::Crossed(n) => {
+            format!("{n} sectors; its GPT names another system's partition over the fixed store")
+        }
+        Seen::At { at: (sectors, lba), got, plan, gpt, boot, shown } => {
             let plan = match plan {
                 Some(p) => format!(", disk plan {}", sector(p)),
                 None => String::new(),
             };
             let by = if *gpt { "its table's store" } else { "the fixed store" };
             let boot = if *boot { "; the loader's disk" } else { "" };
-            format!("{sectors} sectors; {by} at LBA {lba} holds {}{plan}{boot}", sector(got))
+            let held = match shown {
+                Shown::Named(Held::Backup) => "; its primary GPT failed, its backup read",
+                Shown::Named(Held::Disagreeing) => "; its backup GPT disagrees, its primary read",
+                Shown::Failed => {
+                    "; both GPT headers failed; the fixed layout used where its magic is"
+                }
+                _ => "",
+            };
+            format!("{sectors} sectors; {by} at LBA {lba} holds {}{plan}{boot}{held}", sector(got))
         }
     };
     format!("[BLOCK] asked {}: {what}", backend.shown())

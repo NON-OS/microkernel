@@ -17,7 +17,7 @@
 //! Whether one backend's disk is the NONOS disk, and where its parts lie.
 
 use super::found::Found;
-use super::gpt::{self, holds, FIXED};
+use super::gpt::{self, holds, Layout, FIXED};
 use super::seen::Seen;
 use super::{backend::Backend, capacity::capacity_on, fit::sectors_fit, read::head};
 
@@ -27,8 +27,7 @@ const STORE_MAGIC: &[u8; 8] = b"NONOSTR1";
 const PLAN_MAGIC: &[u8; 8] = b"NONOSDP1";
 
 /// What `backend`'s disk is, and what was seen on it, which select.rs says
-/// on the log. A table naming NONOS's partitions places the store and plan;
-/// a disk without one (a stick, a QEMU data disk) has them at `FIXED`.
+/// on the log. Where the store and plan are looked for is gpt/layout.rs's.
 pub(super) fn identify(backend: Backend, boot: Option<&[u8; 16]>) -> (Found, Seen) {
     let sectors = match capacity_on(backend) {
         Ok(s) => s,
@@ -40,17 +39,18 @@ pub(super) fn identify(backend: Backend, boot: Option<&[u8; 16]>) -> (Found, See
     if !sectors_fit(backend) {
         return (Found::Absent, Seen::NotFiveTwelve(sectors));
     }
-    let table = match gpt::table(backend, sectors) {
-        Ok(t) => t,
+    let layout = match gpt::table(backend, sectors) {
+        Ok(t) => gpt::layout(t),
         Err(e) => return (Found::of(e), Seen::NoTable(sectors, e)),
     };
-    let named = table.as_deref().and_then(gpt::places);
-    let places = named.unwrap_or(FIXED);
-    let boot = matches!((table.as_deref(), boot), (Some(t), Some(g)) if holds(t, g));
+    let Layout::At { places, entries, named, shown } = layout else {
+        return (Found::Absent, Seen::Crossed(sectors));
+    };
+    let boot = boot.is_some_and(|g| holds(&entries, g));
     let kept = || Found::Layout { places, boot };
     let store = head(backend, places.store.first);
-    let gpt = named.is_some();
-    let seen = |plan| Seen::At { sectors, lba: places.store.first, got: store, plan, gpt, boot };
+    let at = (sectors, places.store.first);
+    let seen = |plan| Seen::At { at, got: store, plan, gpt: named, boot, shown };
     match store {
         Ok(h) if &h == STORE_MAGIC => return (kept(), seen(None)),
         Err(e) => return (Found::of(e), seen(None)),

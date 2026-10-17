@@ -36,11 +36,12 @@ mod written;
 
 use gpt_damage::{put, seal, table, T};
 use kernel_gpt::{entries, header};
+use kernel_gpt::Which;
 
 #[test]
 fn entries_of_256_bytes_are_read_for_their_first_128() {
     let (h0, a) = table();
-    let want = entries(&header::parse(&h0, T).unwrap(), &a).unwrap();
+    let want = entries(&header::parse_as(&h0, T, Which::Primary).unwrap(), &a).unwrap();
     let mut wide = vec![0u8; 64 * 256];
     for (i, e) in a.chunks(128).take(64).enumerate() {
         // The second half repeats the first: read as 128-byte entries, every
@@ -52,6 +53,6 @@ fn entries_of_256_bytes_are_read_for_their_first_128() {
     put(&mut h, 80, 64, 4);
     put(&mut h, 84, 256, 4);
     seal(&mut h, &wide);
-    let hd = header::parse(&h, T).expect("64 entries of 256 bytes fill the same 32 sectors");
+    let hd = header::parse_as(&h, T, Which::Primary).expect("64 entries of 256 bytes fill the same 32 sectors");
     assert_eq!(entries(&hd, &wide).unwrap(), want);
 }

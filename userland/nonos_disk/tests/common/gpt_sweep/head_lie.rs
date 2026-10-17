@@ -14,41 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A header field told wrong, each to a value the rule refuses.
+//! A header field told wrong, in the primary (0) or the backup (1), each
+//! to a value the rule refuses for that header.
 
 use super::disk::Disk;
 use super::lies::Lie;
 use super::rng::Rng;
 
-pub fn head_lie(r: &mut Rng, lie: Lie, d: &mut Disk) {
-    let (first, last, lba) = (d.get(40, 8), d.get(48, 8), d.get(72, 8));
-    let (n, size, sectors) = (d.get(80, 4), d.get(84, 4), d.sectors);
-    match lie {
-        Lie::Signature => d.header[r.range(0, 7) as usize] ^= r.range(1, 255) as u8,
-        Lie::HeaderSize => {
-            let v = [r.range(0, 91), r.range(513, u32::MAX as u64)];
-            d.put(12, r.one_of(&v), 4)
-        }
+/// The field lies, which "both broken" tells in each header.
+pub const FIELDS: [Lie; 8] = [
+    Lie::Signature,
+    Lie::HeaderSize,
+    Lie::MyLba,
+    Lie::FirstAfterLast,
+    Lie::LastPastDisk,
+    Lie::EntriesLba,
+    Lie::EntryCount,
+    Lie::EntrySize,
+];
+
+pub fn head_lie(r: &mut Rng, lie: Lie, w: usize, d: &mut Disk) {
+    let (first, last, lba) = (d.get(w, 40, 8), d.get(w, 48, 8), d.get(w, 72, 8));
+    let (n, size, sectors) = (d.get(w, 80, 4), d.get(w, 84, 4), d.sectors);
+    let room_end = [first, sectors - 1][w]; // FirstUsableLBA, or the backup
+    let v = match lie {
+        Lie::Signature => return d.heads[w][r.range(0, 7) as usize] ^= r.range(1, 255) as u8,
+        Lie::HeaderSize => [r.range(0, 91), r.range(513, u32::MAX as u64)].to_vec(),
         Lie::MyLba => {
-            let v = [0, 2, sectors - 1, r.next() | 2];
-            d.put(24, r.one_of(&v), 8)
+            [vec![0, 2, sectors - 1, r.next() | 2], vec![0, 1, sectors - 2, sectors]][w].clone()
         }
-        Lie::FirstAfterLast => d.put(40, last + r.range(1, 1000), 8),
-        Lie::LastPastDisk => d.put(48, sectors + r.range(0, 1 << 20), 8),
-        Lie::EntriesLba => {
-            let v = [0, 1, first, u64::MAX - r.range(0, 64)];
-            d.put(72, r.one_of(&v), 8)
-        }
-        Lie::EntryCount => {
-            let past = (first - lba) * 512 / size + r.range(1, 64);
-            let v = [0, past, r.range(1 << 20, u32::MAX as u64)];
-            d.put(80, r.one_of(&v), 4)
-        }
+        Lie::FirstAfterLast => vec![last + r.range(1, 1000)],
+        Lie::LastPastDisk => vec![sectors + r.range(0, 1 << 20)],
+        Lie::EntriesLba => vec![0, 1, [first, last][w], u64::MAX - r.range(0, 64)],
+        Lie::EntryCount => vec![
+            0,
+            (room_end - lba) * 512 / size + r.range(1, 64),
+            r.range(1 << 20, u32::MAX as u64),
+        ],
         Lie::EntrySize => {
             let big = (256 * 1024 / n).next_power_of_two().max(256);
-            let v = [r.range(0, 127), r.range(129, 4095) | 1, big];
-            d.put(84, r.one_of(&v), 4)
+            vec![r.range(0, 127), r.range(129, 4095) | 1, big]
         }
         other => unreachable!("{other:?} is not a header field"),
+    };
+    let (at, width) = match lie {
+        Lie::HeaderSize => (12, 4),
+        Lie::MyLba => (24, 8),
+        Lie::FirstAfterLast => (40, 8),
+        Lie::LastPastDisk => (48, 8),
+        Lie::EntriesLba => (72, 8),
+        Lie::EntryCount => (80, 4),
+        _ => (84, 4),
+    };
+    let told = r.one_of(&v);
+    d.put(w, at, told, width);
+    // An array named elsewhere is moved there whole: only its place refuses.
+    if lie == Lie::EntriesLba {
+        d.array_lba[w] = told;
     }
 }

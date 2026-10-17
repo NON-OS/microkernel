@@ -37,11 +37,12 @@ mod written;
 
 use gpt_damage::{put, seal, table, T};
 use kernel_gpt::{entries, header, places};
+use kernel_gpt::Which;
 
 #[test]
 fn a_damaged_array_or_an_entry_out_of_range_names_nothing_wrong() {
     let (mut h, mut a) = table();
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     a[5] ^= 1;
     assert!(entries(&hd, &a).is_none(), "the array CRC");
     a[5] ^= 1;
@@ -50,7 +51,7 @@ fn a_damaged_array_or_an_entry_out_of_range_names_nothing_wrong() {
     put(&mut a, 32, 33, 8);
     put(&mut a, 128 + 32, 300_000, 8);
     seal(&mut h, &a);
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     let e = entries(&hd, &a).unwrap();
     assert_eq!(e.len(), 2, "data and ESP remain");
     assert_eq!(places(&e), None);
@@ -59,15 +60,15 @@ fn a_damaged_array_or_an_entry_out_of_range_names_nothing_wrong() {
 #[test]
 fn partitions_that_overlap_name_nothing() {
     let (mut h, mut a) = table();
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     let e = entries(&hd, &a).unwrap();
     // The plan's entry (1) moved to start on the store's (0) last sector.
     put(&mut a, 128 + 32, e[0].last, 8);
     seal(&mut h, &a);
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     assert!(entries(&hd, &a).is_none(), "one sector shared");
     put(&mut a, 128 + 32, e[0].last + 1, 8);
     seal(&mut h, &a);
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     assert!(entries(&hd, &a).is_some(), "touching is not sharing");
 }
