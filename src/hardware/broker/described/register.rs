@@ -18,6 +18,7 @@ use crate::hardware::broker::table::register_platform_device;
 use crate::memory::addr::PhysAddr;
 
 use super::interface::Interface;
+use super::iommus::DescribedIommus;
 use super::state::{Entry, DESCRIBED};
 use super::window::BusWindow;
 
@@ -37,6 +38,8 @@ pub struct Described {
     pub dma: Option<BusWindow>,
     /// `dma-coherent`: its DMA snoops the CPU's caches.
     pub coherent: bool,
+    /// The IOMMU and streams its DMA goes through, if any.
+    pub iommus: DescribedIommus,
 }
 
 /// Every stop reads registers in the first 4 KiB.
@@ -58,6 +61,7 @@ pub fn register(d: &Described) -> Option<u64> {
         interface: d.interface,
         regs: regs.map(|va| va.as_u64()),
         dma: d.dma,
+        iommus: d.iommus,
     });
     Some(device_id)
 }
