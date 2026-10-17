@@ -19,7 +19,8 @@
 use super::types::DmaGrant;
 use crate::memory::addr::VirtAddr;
 
-pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
+/// `released`: drained by a release or an exit, not unmapped by its holder.
+pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {
     if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
@@ -29,6 +30,19 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
         crate::sys::serial::println(
             b"[DMA] grant still reachable by its device; frames quarantined",
         );
+        return;
+    }
+    // Its device may still reach it past Bus Master: kept for its wipe (L78).
+    let pci = crate::hardware::broker::pci_index::lookup(g.device_id).is_some();
+    // Its entry is made before the registry is asked, so a let-go landing on
+    // another CPU in between finds it and waits instead of freeing the run.
+    if super::kept_rule::keeps(pci, g.confined, released) {
+        super::scrub::scrub(g.physical_start, g.length);
+        super::kept::keep(g.device_id, g.claim_epoch, g.physical_start, g.length);
+        let run = (g.physical_start, g.length);
+        if !crate::kernel_core::surface_registry::pin::grant_run::hold(run.0, run.1) {
+            let _ = super::kept::defer(run.0, run.1);
+        }
         return;
     }
     if !g.confined {

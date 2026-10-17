@@ -23,6 +23,7 @@ use crate::hardware::broker::DeviceRecord;
 
 use super::pci_record::record_from_pci;
 use super::state::TABLE;
+use crate::hardware::broker::claim::{reset_caps, say_reset_ways};
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 pub fn init_from_pci(devices: &[PciDevice]) {
@@ -39,8 +40,11 @@ pub fn init_from_pci(devices: &[PciDevice]) {
             // An Intel VMD gates its drives' DMA and config as a bridge does (L61).
             standard: matches!(dev.header_type, HeaderType::Standard)
                 && !crate::hardware::inventory::is_intel_vmd(dev.vendor_id, dev.device_id),
+            reset: reset_caps(dev),
         });
     }
+    let ways: Vec<_> = handles.iter().map(|h| (h.address, h.reset)).collect();
+    say_reset_ways(&ways);
     *TABLE.write() = records;
     pci_index::install(handles);
 }

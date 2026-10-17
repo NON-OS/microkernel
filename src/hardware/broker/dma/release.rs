@@ -32,14 +32,14 @@ use super::types::DmaError;
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), DmaError> {
     let g = records::remove(pid, grant_id)?;
-    teardown(&g, true);
+    teardown(&g, true, false);
     Ok(())
 }
 
 pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
     let drained = drain::drain_for_device(pid, device_id, epoch);
     for g in &drained {
-        teardown(g, true);
+        teardown(g, true, true);
     }
     drained.len()
 }
@@ -47,7 +47,7 @@ pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
     let drained = drain::drain_for_pid(pid);
     for g in &drained {
-        teardown(g, unmap_pages);
+        teardown(g, unmap_pages, true);
     }
     drained.len()
 }
