@@ -19,10 +19,9 @@ windowing apps (terminal, calculator, desktop_shell, ...)
 compositor (this capsule) <--- focus_set (raise) from wm only
     |
     | wire path:   display/ (CAPS, SURFACE, STATE, FLUSH, RETIRE)
-    | legacy path: gfx_client (transfer_to_host / set_scanout / flush)
     | GOP path:    MkSurfacePresent on its own registered surface
     v
-a display driver (driver.bga0, ...), driver.virtio_gpu0, or the
+a display driver (driver.bga0, driver.virtio_gpu0, ...) or the
 firmware framebuffer --> display
 ```
 
@@ -72,9 +71,9 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   plane everywhere and composites the arrow again until the primary is
   replaced (`frame_pacer/{hw_cursor,hw_cursor_back,cursor_shape}.rs`,
   `display/cursor_rule.rs`).
-- A driver that answers CAPS with -38 is driven on the legacy path:
-  `gfx_client` asks for its primary surface, attaches it, and drives
-  `transfer_to_host`, `set_scanout` and `resource_flush` over IPC.
+- A driver that does not answer CAPS is not used: every display driver,
+  virtio-gpu included, speaks the display wire, and the compositor stays
+  on (or falls back to) the GOP path.
 - On the GOP path the compositor maps a buffer, registers and attaches it
   with `MkSurfaceRegister`, and presents with `MkSurfacePresent`. While in
   GOP mode it asks one name of the display list per tick, 500 ms apart and
@@ -170,7 +169,7 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
   not registered until one answers.
 - `mk_surface_attach` on a layer's handle fails for 60 frames in a row:
   the layer is dropped and its rectangle repainted.
-- `gfx_client` calls and FLUSH use a 100 ms reply timeout, so a lost
+- Wire calls and FLUSH use a 100 ms reply timeout, so a lost
   reply costs a late frame; `scanout_error_reported` notes a failed
   present once and the loop continues. A refused FLUSH leaves its
   rectangle damaged for the next frame; ESTALE also has the next pass ask
@@ -193,11 +192,10 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
 | Attach cache | `state/attach.rs` |
 | Context (owned by runner) | `state/context.rs` |
 | Frame loop (paint, cursor, present) | `frame_pacer/{tick,to_screen,composite,cursor,drain_batch,hw_cursor}.rs` |
-| gfx_client (driver.virtio_gpu0 IPC) | `gfx_client/{get_primary,transfer,set_scanout,flush}.rs`, `gfx_client/wire/*.rs` |
 | Software blitter and 2x upscale | `sw_blitter/*.rs` |
 | Wire protocol (header/ops/errno/limits) | `protocol/*.rs` |
 | Display wire client (calls, back-off, poll and hint rules) | `display/*.rs`, `frame_pacer/present_wire.rs`, `server/runner/upkeep.rs`, `server/handlers/display_hint.rs` |
-| Setup (wire, legacy, GOP, canvas, upgrade, poll) | `setup/*.rs`, `wait_for_setup.rs` |
+| Setup (wire, GOP, canvas, upgrade, poll) | `setup/*.rs`, `wait_for_setup.rs` |
 
 ## Wire format
 

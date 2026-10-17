@@ -35,7 +35,6 @@ pub fn adopt(ctx: &mut Context, mut next: Context) {
     let (old_handle, old_gop, old_screen) = (ctx.surface_handle, ctx.gop_mode, ctx.screen);
     let old = ctx.wire.map(|w| (ctx.gfx_port, w.pid, w.serial));
     ctx.gfx_port = next.gfx_port;
-    ctx.resource_id = next.resource_id;
     ctx.width = next.width;
     ctx.height = next.height;
     ctx.stride = next.stride;
@@ -43,7 +42,6 @@ pub fn adopt(ctx: &mut Context, mut next: Context) {
     ctx.backing_va = next.backing_va;
     ctx.gop_mode = next.gop_mode;
     ctx.surface_handle = next.surface_handle;
-    ctx.first_scanout_done = next.first_scanout_done;
     ctx.scanout_error_reported = false;
     ctx.wire = next.wire;
     ctx.head_pending.clear();

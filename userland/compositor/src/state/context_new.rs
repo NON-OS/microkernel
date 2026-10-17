@@ -15,21 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A context on a fresh primary: the scene empty, the whole screen damaged,
-//! the cursor centred. Every display path (GOP, the legacy virtio ops, the
-//! wire) builds one here, so a field added to the context is set once.
+//! the cursor centred. Both display paths (GOP and the wire) build one
+//! here, so a field added to the context is set once.
 
 use super::primary::Primary;
 use super::{AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
 
 impl Context {
-    /// `gfx_port` 0 with `gop_mode` for GOP; a GOP or wire primary needs
-    /// no SET_SCANOUT, so only the legacy path starts with it owed.
-    pub fn new(p: Primary, gfx_port: u32, resource_id: u32, gop_mode: bool) -> Self {
+    /// `gfx_port` 0 with `gop_mode` for GOP.
+    pub fn new(p: Primary, gfx_port: u32, gop_mode: bool) -> Self {
         let mut damage = DamageAccumulator::new();
         damage.mark_full(p.width, p.height);
         Context {
             gfx_port,
-            resource_id,
             width: p.width,
             height: p.height,
             stride: p.stride,
@@ -38,9 +36,7 @@ impl Context {
             gop_mode,
             gop_held: false,
             surface_handle: p.handle,
-            first_scanout_done: gop_mode,
             scanout_error_reported: false,
-            next_request_id: 2,
             scene: SceneTable::new(),
             damage,
             focus: FocusTable::new(),

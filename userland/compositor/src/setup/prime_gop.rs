@@ -26,5 +26,5 @@ use crate::state::Context;
 pub fn run_gop_once() -> Result<Context, &'static str> {
     let (width, height) = display_dimensions()?;
     let primary = register_backing(width, height)?;
-    Ok(Context::new(primary, 0, 0, true))
+    Ok(Context::new(primary, 0, true))
 }
