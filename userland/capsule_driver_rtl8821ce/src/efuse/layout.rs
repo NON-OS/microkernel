@@ -24,6 +24,3 @@ pub(super) const LDO25_EN: u8 = 1 << 7;
 pub(super) const EFUSE_SIZE: usize = 512;
 /// The logical offset of the RF front-end option byte.
 pub(super) const RFE_OPTION_OFFSET: usize = 0xCA;
-/// The logical offset of the six-byte station MAC address (PCIe efuse layout,
-/// rtw88 `struct rtw8821ce_efuse.mac_addr`).
-pub(super) const MAC_ADDR_OFFSET: usize = 0xD0;
