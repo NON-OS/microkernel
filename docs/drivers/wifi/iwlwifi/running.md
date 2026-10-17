@@ -4,7 +4,7 @@ Each boot draws a locally administered address from kernel randomness for the in
 
 ## Scanning
 
-- The scan is passive: the request sets the firmware's forced-passive flag with a 110 ms dwell (`userland/capsule_driver_iwlwifi/src/firmware/gen3/scan.rs:38-41`, `GEN_FLAGS_FORCE_PASSIVE`, `DWELL_PASSIVE`). No probe request is sent.
+- The scan is passive: the request sets the firmware's forced-passive flag with a 110 ms dwell (`userland/capsule_driver_iwlwifi/src/firmware/gen3/scan/request.rs`, `request`; `userland/capsule_driver_iwlwifi/src/firmware/gen3/scan/consts.rs`, `GEN_FLAGS_FORCE_PASSIVE`, `DWELL_PASSIVE`). No probe request is sent. `iwlwifi_proofs` runs background sweeps and a hunt on the modeled firmware and checks that every request is forced passive, carries no probe request or SSID, and that no frame is queued (`userland/iwlwifi_proofs/src/serve_tests/quiet.rs`).
 - The channels are the 2.4 and 5 GHz entries of the NVM that the world-safe domain allows, 38 of them with LAR; 14, 68 to 96, 169 to 181 and 6 GHz are not scanned (`userland/capsule_driver_iwlwifi/src/firmware/gen3/nvm/parse.rs`, `parse`; `userland/nonos_wifi_core/src/regdom/world.rs`, `world`). Transmit power is the firmware's, under the regulatory domain its MCC reply settles on.
 - A sweep may run 150 ms per channel plus 2 s before it counts as stalled (`userland/capsule_driver_iwlwifi/src/firmware/gen3/sweep.rs:42-50`, `budget_ms`), and the next starts 3 s after one ends (`userland/capsule_driver_iwlwifi/src/server/radio/mod.rs:54-55`, `REST_MS`).
 - While a scan runs, the serving loop wakes every 50 ms to pump it (`userland/capsule_driver_iwlwifi/src/server/runner.rs:25-27`, `SCAN_TICK_MS`).
