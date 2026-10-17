@@ -24,13 +24,15 @@ use super::recv_from_drain::drain;
 // `MkIpcRecvFrom`. Same drain semantics as `MkIpcRecv`, with an
 // extra `sender_pid_out` user pointer written with the caller pid
 // of the dequeued message (0 for kernel-internal senders) so the
-// receiver can reply via `MkIpcSendToPid`.
+// receiver can reply via `MkIpcSendToPid`, and `enqueued_ms_out`
+// written with when the kernel queued it, in MkTimeMonotonic ms (K14).
 pub fn sys_ipc_recv_from(
     endpoint: u64,
     buf: u64,
     len: usize,
     timeout_ms: u64,
     sender_pid_out: u64,
+    enqueued_ms_out: u64,
 ) -> i64 {
     if len == 0 {
         return ERRNO_INVAL;
@@ -44,6 +46,9 @@ pub fn sys_ipc_recv_from(
     {
         return ERRNO_FAULT;
     }
+    if enqueued_ms_out != 0 && crate::usercopy::validate_user_write(enqueued_ms_out, 8).is_err() {
+        return ERRNO_FAULT;
+    }
     let pid = current_pid().unwrap_or(0);
     let inbox_name = match resolve_for_recv(endpoint, pid) {
         Ok(name) => name,
@@ -52,5 +57,5 @@ pub fn sys_ipc_recv_from(
     if !nonos_inbox::exists(&inbox_name) {
         return ERRNO_NOENT;
     }
-    drain(buf, len, timeout_ms, sender_pid_out, &inbox_name)
+    drain(buf, len, timeout_ms, (sender_pid_out, enqueued_ms_out), &inbox_name)
 }
