@@ -9,7 +9,7 @@ part on its own thread consumes the ring the way a device does. It links
 
 ## What it proves
 
-38 `#[test]` functions over two things the virtio specification fixes:
+55 `#[test]` functions over what the virtio specification fixes and what a
 
 - the bring-up, legacy and modern: the status handshake, the features the
   driver accepts against what was offered, where it tells the part its rings
@@ -22,12 +22,26 @@ part on its own thread consumes the ring the way a device does. It links
   each 2D command, scanout ones included, match the specification's layouts
   (`queue_tests`, `reply_tests`, `reply_refusal_tests`, `wire_tests`,
   `wire_scanout_tests`);
-- the answer to a refused request header (`request_refusal_tests`).
+- the answer to a refused request header (`request_refusal_tests`);
+- the reset a bring-up starts from, waited for and given up on
+  (`reset_tests`);
+  own thread through the queue wait's yield. It keeps resources with their
+  pixels and backing and what each scanout shows. It is cued to stop
+  answering, for a while or for good, or to kill the driver, at every
+  command of the blank and of the handover. The proofs:
+    that takes it off has landed;
+  - the primary is zero once the driver got that far;
+  - a host back again has the next wakes finish the blank;
+  - LOST is answered once;
+  - an id the driver did not make in this life is refused before the host
+    hears of it;
+  - a blank that cannot be made is given back whole.
 
 ## What it does not prove
 
-The discovery, broker and IPC server halves, the virgl probe, and pixels on a
-screen.
+Discovery, the broker, the IPC wait loop itself, the virgl probe, pixels on a
+screen, and anything the model's reading of the 2D commands gets wrong (it
+is recalled, not checked against the specification).
 
 ## Run
 

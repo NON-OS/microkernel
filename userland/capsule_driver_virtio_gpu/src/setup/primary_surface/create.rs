@@ -69,5 +69,6 @@ pub fn create(
         stride: geom.stride,
         backing_addr: dma.device_addr,
         backing_len: dma.length,
+        user_va: dma.user_va,
     }))
 }
