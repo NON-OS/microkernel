@@ -24,12 +24,16 @@ mod entry_release;
 mod landed;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/landed_read.rs"]
 mod landed_read;
+#[path = "../../../capsule_wallet_nonos/src/wallet/intent/nonce.rs"]
+pub mod nonce;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/page.rs"]
 mod page;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/quote.rs"]
 mod quote;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/ready.rs"]
 mod ready;
+#[path = "../../../capsule_wallet_nonos/src/wallet/intent/retry.rs"]
+pub mod retry;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/review.rs"]
 mod review;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/review_bond.rs"]
@@ -42,6 +46,8 @@ mod step;
 mod step_quote;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/text.rs"]
 mod text;
+#[path = "../../../capsule_wallet_nonos/src/wallet/intent/unsure.rs"]
+pub mod unsure;
 #[path = "../../../capsule_wallet_nonos/src/wallet/intent/why.rs"]
 mod why;
 
