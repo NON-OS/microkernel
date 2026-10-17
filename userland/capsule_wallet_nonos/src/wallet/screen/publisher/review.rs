@@ -58,9 +58,10 @@ pub fn review(state: &State, s: &Sending, fb: &mut PaintBuffer) {
     };
     let mut l = begin(fb, &spec);
     let c = l.content;
-    let mut y = lead(fb, c, &said(s, !review || rows.is_some()));
+    let mut y = lead(fb, c, &said(s, !review || rows.is_some(), &state.broadcast.sent));
     if let IntentStep::Sent(h) = s.step {
         y += value_block(fb, c.x, y, c.w, &hex(&h)) + GAP;
+        y += super::review_echo::echo(fb, c, y, s.echo);
     }
     if let Some(rows) = &rows {
         y += super::review_rows::draw(fb, c, y, rows);
