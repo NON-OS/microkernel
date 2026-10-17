@@ -27,8 +27,11 @@ mod fb_wipe;
 mod firmware;
 mod geometry;
 mod libc_firmware;
+mod libc_scanout;
+mod loss;
 mod record;
 mod serve;
+mod start;
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
@@ -48,24 +51,17 @@ const DRIVER: &[u8] = b"driver.bootfb";
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let up = start_driver(DRIVER, discover::find(), |r| {
-        let fb = bring_up::bring_up(&mut libc_firmware::Libc, r).map_err(why)?;
-        Ok(Server::new(BootFb { fb, fence: serve::fence }, Pool))
+        let fb = match bring_up::bring_up(&mut libc_firmware::Libc, r) {
+            Err(firmware::Why::Refused) => start::refused(),
+            got => got.map_err(start::why)?,
+        };
+        let (holds, release) = (libc_scanout::holds, libc_scanout::release);
+        let device_id = r.device_id;
+        let display = BootFb { fb, fence: serve::fence, device_id, holds, release, gone: false, told: false };
+        Ok(Server::new(display, Pool))
     });
     match up {
         Ok(mut server) => serve::run(&mut server),
         Err(code) => mk_exit(code),
-    }
-}
-
-fn why(w: firmware::Why) -> &'static str {
-    use firmware::Why::*;
-    match w {
-        Record => "not the boot framebuffer",
-        Announce => "driver.bootfb0 not registered",
-        Claim => "claim refused",
-        Geometry => "mode not given",
-        Format => "three-byte pixels",
-        Map => "bar 0 not mapped",
-        Shape => "mode outside the range",
     }
 }

@@ -52,3 +52,11 @@ fn three_byte_pixels_are_refused_with_one_line_and_given_back() {
         assert_eq!(m.said.len(), 1);
     }
 }
+
+#[test]
+fn a_claim_refused_for_good_ends_with_nothing_held() {
+    let (mut m, r) = Model::new(64, 16, 512, BGRX, 0x40);
+    m.taken = true;
+    assert_eq!(bring_up(&mut m, &r).err(), Some(Why::Refused));
+    assert_eq!(m.calls, ["announce", "claim"], "nothing mapped, nothing to release");
+}
