@@ -21,6 +21,8 @@
 //! connect runs the whole join.
 
 use super::station::SoftStation;
+use crate::softmac::control::result::CODE_REFUSED;
+use crate::softmac::control::ConnectResult;
 use crate::softmac::radio::{Env, Radio};
 
 pub const WIFI_MAGIC: u32 = 0x5749_4649;
@@ -30,6 +32,8 @@ pub const OP_DISCONNECT: u16 = 2;
 pub const OP_SCAN: u16 = 3;
 pub const OP_STATUS: u16 = 4;
 pub const OP_LINK: u16 = 5;
+/// Turn the radio on or off (E-72): body octet 0 off, 1 on.
+pub const OP_RADIO: u16 = 6;
 
 impl<R: Radio, E: Env> SoftStation<R, E> {
     pub(super) fn control(&mut self, req: &[u8], out: &mut [u8]) -> Option<usize> {
@@ -42,8 +46,13 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
             OP_STATUS => self.status_reply(&mut out[WIFI_HDR..]),
             OP_LINK => self.link_reply(&mut out[WIFI_HDR..]),
             OP_SCAN => self.scan_reply(&mut out[WIFI_HDR..]),
+            // A radio turned off runs no join and sends no probe (E-72).
+            OP_CONNECT if self.off => {
+                ConnectResult::code(CODE_REFUSED).encode(&mut out[WIFI_HDR..])
+            }
             OP_CONNECT => self.connect(&req[WIFI_HDR..]).encode(&mut out[WIFI_HDR..]),
             OP_DISCONNECT => self.disconnect(&mut out[WIFI_HDR..]),
+            OP_RADIO => self.set_radio(&req[WIFI_HDR..], &mut out[WIFI_HDR..]),
             _ => code(-1, &mut out[WIFI_HDR..]),
         };
         Some(WIFI_HDR + n)

@@ -31,6 +31,8 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     /// returns the reply length.
     pub fn handle(&mut self, req: &[u8], out: &mut [u8]) -> usize {
         let served = match self.radio.as_mut() {
+            // Turned off: the link reads down and a data transmit is refused (E-72).
+            Some(_) if self.off => netif::serve(req, &mut DeadPort, out),
             Some(radio) => {
                 let session = self.session.as_mut();
                 let closed = self.look.as_ref().is_some_and(|l| l.away());
@@ -52,6 +54,9 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
     /// The work between requests: the chip's own upkeep, then the session's
     /// frames, or a step of the background scan while there is none.
     pub fn tick(&mut self) {
+        if self.off {
+            return; // turned off: no pump, roam or scan transmits (E-72)
+        }
         let Some(radio) = self.radio.as_mut() else { return };
         radio.service(self.env.now_ms());
         if self.roam_away() {
