@@ -36,15 +36,17 @@ pub(in crate::hardware::broker) fn owe(device_id: u64, epoch: u64) {
     }
 }
 
+/// `over_cap` is asked once the record is read: an end settles its frames
+/// before it is written, so an end read here has them counted (L80).
 pub(in crate::hardware::broker) fn admits(
     device_id: u64,
     by: Option<Name>,
-    over_cap: bool,
+    over_cap: impl FnOnce() -> bool,
 ) -> Admit {
     let all = WIPES.lock();
     let record = all.iter().find(|w| w.device_id == device_id);
-    let now = crate::time::now_ns();
-    rule(record.map(|w| w.phase), same(record.and_then(|w| w.by), by), now, over_cap)
+    let (now, capped) = (crate::time::now_ns(), over_cap());
+    rule(record.map(|w| w.phase), same(record.and_then(|w| w.by), by), now, capped)
 }
 
 pub(in crate::hardware::broker) fn rearm(device_id: u64) {
