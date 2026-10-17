@@ -65,7 +65,8 @@ fn the_consent_says_the_deadline_the_order_will_carry() {
     let l = lines(&K, WALLET, &n, &r, &b, &Fees::Quoted("0".into()));
     let said = format!(
         "Held in escrow until delivery; if it is not delivered within {} days it comes back \
-         to a fresh address of this wallet.",
+         to a fresh address of this wallet. A later pause of the escrow can delay the \
+         refund's gas, never the refund.",
         (order.deadline - NOW) / 86_400
     );
     assert_eq!((l.escrow, DELIVERY_DAYS), (said, 3));
