@@ -44,6 +44,8 @@ pub mod enrol_local_root;
 pub mod errnos;
 pub mod futex;
 pub mod install_source;
+mod install_source_approval;
+mod install_source_kinds;
 pub mod install_source_modules;
 pub mod install_source_window;
 pub mod ipc;
