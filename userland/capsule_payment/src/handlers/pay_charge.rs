@@ -20,8 +20,9 @@
 
 use nonos_nox_meter::channel::Channel;
 use nonos_nox_meter::merkle::root;
+use nonos_nox_meter::pay::landing;
 use nonos_nox_meter::usage::Charge;
-use nonos_payment_proto::{PayRequest, EPROTO};
+use nonos_payment_proto::PayRequest;
 
 use crate::keccak::Host;
 use crate::meter::{now_ms, Meter};
@@ -32,12 +33,9 @@ pub(super) fn charge(meter: &mut Meter, r: &PayRequest<'_>, amount: u128) -> Res
     let s = &meter.state;
     // The leaf names the channel and the seq the charge will have, which only
     // the charge decides; a first pass with no root finds them.
-    let (_, at) =
-        s.charged(&r.payee, &r.listing_id, r.chain_id, amount, [0; 32], now).map_err(status_of)?;
-    // A channel's vouchers carry the unit it was opened for, and no other.
-    if at.unit != r.unit {
-        return Err(EPROTO);
-    }
+    // That pass refuses as FUNDED does: a channel's vouchers carry the unit
+    // it was opened for, and no other (EPROTO).
+    let at = landing(s, r, amount, now).map_err(status_of)?;
     let leaf = Charge {
         channel_id: at.id,
         seq: at.seq,
