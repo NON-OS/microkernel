@@ -18,6 +18,7 @@
 //! kept as they are made, forgotten on request, and this host's own IRK
 //! drawn once and kept.
 
+mod forget;
 mod keep;
 mod local;
 mod open;
