@@ -21,7 +21,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::port_rule::counts;
+use super::port_rule::{picked, Bridge};
 use crate::drivers::pci::config::access::read8;
 use crate::drivers::pci::types::{HeaderType, PciDevice, PcieDeviceType as Kind};
 
@@ -43,21 +43,12 @@ fn reported(d: &PciDevice) -> Option<u8> {
 
 pub(super) fn downstream_ports(devices: &[PciDevice]) -> Vec<&PciDevice> {
     let secondary =
-        |d: &PciDevice| read8(d.address.bus, d.address.device, d.address.function, 0x19);
-    let bridges: Vec<(&PciDevice, Option<u8>)> = devices
+        |d: &PciDevice| read8(d.address.bus, d.address.device, d.address.function, 0x19).ok();
+    let found: Vec<&PciDevice> = devices
         .iter()
         .filter(|d| d.address.segment == 0 && d.header_type == HeaderType::PciToPciBridge)
-        .map(|d| (d, secondary(d).ok()))
         .collect();
-    // Every bridge naming the bus is asked, so one naming it falsely cannot
-    // hide the switch a port sits in.
-    let port = |d: &PciDevice| {
-        let own = reported(d);
-        let mut above = bridges.iter().filter(|(_, s)| *s == Some(d.address.bus)).peekable();
-        match above.peek() {
-            None => counts(own, None),
-            Some(_) => above.any(|(b, _)| counts(own, Some(reported(b)))),
-        }
-    };
-    bridges.iter().map(|(d, _)| *d).filter(|d| port(d)).collect()
+    let read: Vec<Bridge> =
+        found.iter().map(|d| (d.address.bus, secondary(d), reported(d))).collect();
+    (0..found.len()).filter(|&at| picked(&read, at)).map(|at| found[at]).collect()
 }
