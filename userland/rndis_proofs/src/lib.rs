@@ -9,6 +9,10 @@ pub mod rndis;
 #[cfg(test)]
 mod address_tests;
 #[cfg(test)]
+mod batch_sweep;
+#[cfg(test)]
+mod batch_sweep_tests;
+#[cfg(test)]
 mod batch_tests;
 #[cfg(test)]
 mod bind_tests;
