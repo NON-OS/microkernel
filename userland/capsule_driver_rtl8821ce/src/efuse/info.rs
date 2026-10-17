@@ -10,9 +10,9 @@
 //! so only the bank select and the 2.5V LDO disable bracket the read. Values are
 //! rtw88 facts (`reg.h`, `efuse.c`, `rtw8821c.c`), reimplemented not copied.
 
-use core::sync::atomic::Ordering;
+use nonos_wifi_core::wipe::wipe;
 
-use super::dump::{LAST_ADDR, LAST_CTL};
+use super::diag::record_all_ones;
 use super::layout::*;
 use super::{deshuffle, dump_physical};
 use crate::regs::Mmio;
@@ -26,37 +26,32 @@ pub struct EfuseInfo {
     pub rfe: u8,
     /// The package type, one bit alongside the RF front-end option.
     pub pkg: u8,
-    /// The station MAC address burned into the efuse. The chip does NOT autoload
-    /// it into the MAC-ID registers on this board, so the driver must read it here
-    /// and program the registers itself; otherwise the station runs on an all-zero
-    /// MAC, which associates but leaves the access point unable to address the
-    /// unicast EAPOL handshake, so the four-way never completes.
-    pub mac: [u8; 6],
 }
 
 /// Read the efuse and the cut version and extract the PHY board facts, or `None`
 /// if the efuse never completed a byte read.
+/// The factory address in the map is never taken, and both maps are wiped
+/// before this returns.
 pub fn read<M: Mmio>(mmio: &M) -> Option<EfuseInfo> {
-    let phys = dump_physical(mmio)?;
+    let mut phys = dump_physical(mmio)?;
     // A window that reads back all-ones sets the ready flag on every read, so
     // every byte "completes" instantly and the poll never stalls: an unreadable
     // efuse is otherwise indistinguishable from a blank one. Programming the RF
     // from that map picks a front-end the chip does not have.
     if phys.iter().all(|&b| b == 0xFF) {
-        LAST_CTL.store(0xFFFF_FFFF, Ordering::Relaxed);
-        LAST_ADDR.store(1, Ordering::Relaxed);
+        record_all_ones();
         return None;
     }
     let mut log = [0xffu8; EFUSE_SIZE];
     deshuffle(&phys, &mut log);
     let opt = log[RFE_OPTION_OFFSET];
+    wipe(&mut phys);
+    wipe(&mut log);
     // 0xFF is the erased value, so an option byte that reads erased was never
     // burned and there is no front-end to select. The tables index off this.
     if opt == 0xFF {
         return None;
     }
     let cut = ((mmio.read32(REG_CHIP_VER) >> 12) & 0xf) as u8;
-    let mut mac = [0u8; 6];
-    mac.copy_from_slice(&log[MAC_ADDR_OFFSET..MAC_ADDR_OFFSET + 6]);
-    Some(EfuseInfo { cut, rfe: opt & 0x1f, pkg: (opt >> 5) & 1, mac })
+    Some(EfuseInfo { cut, rfe: opt & 0x1f, pkg: (opt >> 5) & 1 })
 }

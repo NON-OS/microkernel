@@ -10,7 +10,7 @@ use super::counts::DataPath;
 
 const STATUS_TIMEOUT_MS: u64 = 500;
 /// The firmware report's offset past the stage byte (it follows the 52 bytes of
-/// counters and registers), and where its 25 bytes end, counted from the stage.
+/// counters and diagnosis), and where its 25 bytes end, counted from the stage.
 const FW_REPORT_AT: usize = 52;
 const FW_REPORT_END: usize = 1 + FW_REPORT_AT + 25;
 
@@ -38,11 +38,9 @@ pub fn driver_datapath() -> Option<DataPath> {
         rx_eth: word(12),
         netif_reqs: word(16),
         rx_err: word(20),
-        efuse_ctl: if long { word(24) } else { 0 },
-        efuse_addr: if long { word(28) } else { 0 },
-        efuse_ldo: if long { word(32) } else { 0 },
-        bar_index: if long { word(36) } else { 0xFFFF_FFFF },
-        window_va: if long { word(40) } else { 0 },
+        efuse_flags: if long { word(24) } else { 0 },
+        efuse_stalled_at: if long { word(28) } else { 0 },
+        efuse_bank_ldo: if long { word(32) } else { 0 },
         fw_step: if fw { b[FW_REPORT_AT] } else { 0 },
         fw_chunks: if fw { word(FW_REPORT_AT + 1) } else { 0 },
         fw_ctrl: if fw { word(FW_REPORT_AT + 5) } else { 0 },
