@@ -4,6 +4,7 @@
 
 use nonos_mac::{apply, MAC_LEN};
 
+use super::kind::Security;
 use crate::wipe::wipe;
 use crate::wpa::sha256::hmac_sha256_parts;
 
@@ -11,7 +12,7 @@ use crate::wpa::sha256::hmac_sha256_parts;
 pub const KEY_LEN: usize = 32;
 
 /// What the derivation is for, so the key serves nothing else.
-const LABEL: &[u8] = b"NONOS Wi-Fi station address v1";
+const LABEL: &[u8] = b"NONOS Wi-Fi station address v2";
 
 /// The per-boot key. Not Copy; wiped when dropped.
 pub struct AddressKey {
@@ -25,10 +26,11 @@ impl AddressKey {
         Self { key: *key }
     }
 
-    /// The address to join `ssid` under: HMAC-SHA256 over the label and the
-    /// name, its first six bytes made local and unicast.
-    pub fn for_network(&self, ssid: &[u8]) -> [u8; MAC_LEN] {
-        let mut h = hmac_sha256_parts(&self.key, &[LABEL, ssid]);
+    /// The address to join `ssid` under `kind`: HMAC-SHA256 over the label,
+    /// the kind's octet and the name, its first six bytes made local and
+    /// unicast. Never the BSSID: every access point of a network shares it.
+    pub fn for_network(&self, ssid: &[u8], kind: Security) -> [u8; MAC_LEN] {
+        let mut h = hmac_sha256_parts(&self.key, &[LABEL, &[kind.octet()], ssid]);
         let mut mac = [0u8; MAC_LEN];
         mac.copy_from_slice(&h[..MAC_LEN]);
         wipe(&mut h);

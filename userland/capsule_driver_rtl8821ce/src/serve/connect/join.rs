@@ -1,20 +1,8 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// NONOS Operating System (AGPL-3.0-or-later)
 
 //! A join: the network found on the air, then joined.
+
+use nonos_wifi_core::address::Security;
 
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
@@ -26,7 +14,7 @@ use super::super::SCAN_FRAME_MAX;
 use super::hunt::find_beacon;
 use super::install::answer;
 use super::media::link_to_bss;
-use super::ready::ready;
+use super::ready::{ready, refused};
 use super::request::parse_connect;
 use super::result::{ConnectResult, CODE_BAD_REQUEST, CODE_NOT_FOUND};
 use super::run::run;
@@ -47,14 +35,14 @@ pub(in crate::serve) fn connect(
     let Some(req) = parse_connect(body) else {
         return ConnectResult::code(CODE_BAD_REQUEST);
     };
-    let our_mac = match ready(link, &req) {
+    let probe_as = match ready(link, &req) {
         Ok(mac) => mac,
         Err(r) => return r,
     };
     // Find the network's beacon (or, hidden, its probe response) on the air,
     // which also tells us its channel.
     let mut beacon = [0u8; SCAN_FRAME_MAX];
-    let (found, beacons_heard) = find_beacon(link, regs, req.ssid, req.hidden, our_mac, &mut beacon);
+    let (found, beacons_heard) = find_beacon(link, regs, req.ssid, probe_as, &mut beacon);
     let Some((beacon_len, channel)) = found else {
         status::debug(b"[rtl8821ce] connect: network not found\n");
         // recv carries how many beacons of any network were heard during the
@@ -63,6 +51,12 @@ pub(in crate::serve) fn connect(
         return ConnectResult { recv: beacons_heard, ..ConnectResult::code(CODE_NOT_FOUND) };
     };
     set_rf(regs, channel, Bw::W20);
+    // The network's own address: its name under the security the join runs.
+    let kind = Security::of_beacon(&beacon[..beacon_len], req.policy());
+    let our_mac = match link.readdress(req.ssid, kind) {
+        Ok(mac) => mac,
+        Err(why) => return refused(why),
+    };
 
     link_to_bss(regs, &beacon);
 
