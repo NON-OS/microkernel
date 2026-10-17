@@ -53,6 +53,7 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
             barred,
             last_roam,
             addresses,
+            off: false,
         }
     }
 }
