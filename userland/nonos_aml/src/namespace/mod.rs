@@ -18,6 +18,7 @@
 //! loaded definition block adds to.
 
 mod add;
+mod alias_gone;
 mod climb;
 mod entry;
 mod field_unit;
