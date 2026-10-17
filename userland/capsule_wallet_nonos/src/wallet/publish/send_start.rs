@@ -39,7 +39,7 @@ fn sending(
     call: Publisher,
     queue: Vec<Publisher>,
 ) -> Result<Sending, &'static str> {
-    let step = first_step(crate::wallet::send::held_back(state).is_some());
+    let step = first_step(crate::wallet::send::held_for(state, true).is_some());
     if let IntentStep::Failed(why) = step {
         return Err(why);
     }

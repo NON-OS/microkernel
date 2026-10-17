@@ -24,7 +24,7 @@ mod confirm_hold;
 #[path = "confirm_sign.rs"]
 mod confirm_sign;
 pub use confirm_follow::{awaiting, follow};
-pub use confirm_hold::held_back;
+pub use confirm_hold::{held_back, held_for};
 pub use confirm_sign::sign_draft;
 
 /// Sign the reviewed payment and record it for the broadcast.

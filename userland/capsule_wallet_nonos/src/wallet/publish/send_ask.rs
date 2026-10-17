@@ -17,7 +17,8 @@
 /*
  * The settle request a publisher transaction's step needs (send_drive.rs):
  * INTENT for the quote with the wallet's own calldata, GAS for the balance
- * and, once Sign is pressed, for the chain's pending nonce; BROADCAST of
+ * and, once Sign is pressed or a broadcast is unsure, for the account's
+ * pending nonce; BROADCAST of
  * what the keyring signed; READ of the call's own view until it lands.
  * With none under way, the next of the screen's views (views_poll.rs).
  */
@@ -54,6 +55,7 @@ pub fn ask(state: &mut State, now_ms: u64) -> Option<(Asked, Vec<u8>)> {
         }
         IntentStep::Funds(_) if due => gas,
         IntentStep::Review { .. } if s.pressed => gas,
+        IntentStep::Unsure { .. } if due => gas,
         IntentStep::Broadcasting => Some((Asked::Broadcast, body(chain_id, s.raw.as_deref()?))),
         IntentStep::Sent(_) if due => {
             s.next_ms = now_ms + EVERY_MS;
