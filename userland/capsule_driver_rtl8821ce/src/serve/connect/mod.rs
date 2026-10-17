@@ -23,6 +23,7 @@
 //! records the association. A disconnect tells the AP, drops the association
 //! and clears the keys.
 
+mod attempt;
 mod consts;
 mod ends;
 mod entropy;

@@ -4,7 +4,9 @@
 //! scan requests forced passive, with no probe request and no SSID in them,
 //! and queue no frame of the station's own.
 
+use nonos_wifi_core::bss::Candidates;
 use nonos_wifi_core::regdom::world;
+use nonos_wifi_core::rsn::JoinPolicy;
 
 use super::scripted::{completion, heard, other_network};
 use crate::gen3::join::hunt::{hunt, HuntEnd};
@@ -34,7 +36,8 @@ fn sweeps_and_hunts_ask_only_for_passive_scans_and_queue_nothing() {
             }
             assert!(matches!(tick, Ok(Tick::Completed(_))), "sweep {now}: {tick:?}");
         }
-        let got = hunt(fw.dev, fw.clock, &mut sweep, &channels, b"absent", &mut || 0, &mut |_| {});
+        let mut found = Candidates::new(b"absent", JoinPolicy::ANY);
+        let got = hunt(fw.dev, fw.clock, &mut sweep, &channels, &mut found, &mut || 0, &mut |_| {});
         assert_eq!(got, Err(HuntEnd::NotHeard(1)));
     });
     assert!(r.commands().iter().all(|&c| c == (0x1, 0x0D)), "scan requests alone");

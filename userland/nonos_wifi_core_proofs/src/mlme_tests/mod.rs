@@ -25,6 +25,8 @@
 mod address_kind;
 mod assoc;
 mod base;
+mod candidates;
+mod candidates_bound;
 mod entropy;
 mod frames;
 mod ignored;

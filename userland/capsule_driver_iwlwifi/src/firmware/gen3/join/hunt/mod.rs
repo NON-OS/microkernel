@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding the network before a join. The join needs the network's own
+//! Finding the network before a join. The join needs an access point's own
 //! beacon (the MLME reads the BSSID, the RSN element and the rates out of it)
-//! and the channel it was heard on, so a passive sweep runs over the NVM's
-//! channels until a beacon or probe response names the network, and is then
-//! stopped. Nothing is transmitted: a network that hides its name is not
-//! found. A background sweep already in flight is stopped first so the hunt
-//! hears every channel. Every frame heard is handed on for the scan list
-//! too. The hunt is bounded by the sweep's own budget, and it never returns
-//! with a sweep still in flight: the join needs the radio to itself.
+//! and the channel to join it on, so a passive sweep runs once over the NVM's
+//! channels and every beacon or probe response naming the network becomes a
+//! candidate (`nonos_wifi_core::bss`), ranked by security and signal.
+//! Nothing is transmitted: a network that hides its name is not found. A
+//! background sweep already in flight is stopped first so the hunt hears
+//! every channel. Every frame heard is handed on for the scan list too. The
+//! hunt is bounded by the sweep's own budget, and it never returns with a
+//! sweep still in flight: the join needs the radio to itself.
 
 mod find;
 mod kinds;

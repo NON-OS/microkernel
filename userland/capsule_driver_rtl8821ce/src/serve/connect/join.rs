@@ -2,22 +2,18 @@
 
 //! A join: the network found on the air, then joined.
 
-use nonos_wifi_core::address::Security;
+use nonos_wifi_core::bss::Candidates;
 
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
-use crate::phy::channel::{set_rf, Bw};
 use crate::regs::Regs;
 use crate::status;
 
-use super::super::SCAN_FRAME_MAX;
-use super::hunt::find_beacon;
-use super::install::answer;
-use super::media::link_to_bss;
-use super::ready::{ready, refused};
+use super::attempt::attempt;
+use super::hunt::find_candidates;
+use super::ready::ready;
 use super::request::parse_connect;
-use super::result::{ConnectResult, CODE_BAD_REQUEST, CODE_NOT_FOUND};
-use super::run::run;
+use super::result::{failure_code, ConnectResult, CODE_BAD_REQUEST, CODE_NOT_FOUND};
 use super::session::Session;
 
 /// Join the network named in the request. The body is the SSID, passphrase and
@@ -39,30 +35,30 @@ pub(in crate::serve) fn connect(
         Ok(mac) => mac,
         Err(r) => return r,
     };
-    // Find the network's beacon (or, hidden, its probe response) on the air,
-    // which also tells us its channel.
-    let mut beacon = [0u8; SCAN_FRAME_MAX];
-    let (found, beacons_heard) = find_beacon(link, regs, req.ssid, probe_as, &mut beacon);
-    let Some((beacon_len, channel)) = found else {
+    // Hear the network's access points (or, hidden, their probe responses)
+    // on the air, then join the best, and the next if the AP ends that join.
+    let mut found = Candidates::new(req.ssid, req.policy());
+    let beacons_heard = find_candidates(link, regs, req.ssid, probe_as, &mut found);
+    let mut last = None;
+    while let Some(c) = found.take_best() {
+        let (r, next) = attempt(&c, &req, link, keys, regs, session);
+        if !next {
+            return r;
+        }
+        last = Some(r);
+    }
+    if let Some(r) = last {
+        return r;
+    }
+    // recv carries how many beacons of any network were heard during the
+    // hunt: 0 means the radio heard nothing (receive/tuning problem), a
+    // non-zero count means beacons arrive but the target's did not.
+    let recv = beacons_heard;
+    let Some(why) = found.refusal() else {
         status::debug(b"[rtl8821ce] connect: network not found\n");
-        // recv carries how many beacons of any network were heard during the
-        // hunt: 0 means the radio heard nothing (receive/tuning problem), a
-        // non-zero count means beacons arrive but the target's did not.
-        return ConnectResult { recv: beacons_heard, ..ConnectResult::code(CODE_NOT_FOUND) };
+        return ConnectResult { recv, ..ConnectResult::code(CODE_NOT_FOUND) };
     };
-    set_rf(regs, channel, Bw::W20);
-    // The network's own address: its name under the security the join runs.
-    let kind = Security::of_beacon(&beacon[..beacon_len], req.policy());
-    let our_mac = match link.readdress(req.ssid, kind) {
-        Ok(mac) => mac,
-        Err(why) => return refused(why),
-    };
-
-    link_to_bss(regs, &beacon);
-
-    let report = match run(link, &req, our_mac, &beacon[..beacon_len]) {
-        Ok(report) => report,
-        Err(r) => return r,
-    };
-    answer(report, req.ssid, link, keys, regs, session)
+    // Heard, but not a network this station can join as it claims to be.
+    let (code, ap_code) = failure_code(why);
+    ConnectResult { recv, ap_code, ..ConnectResult::code(code) }
 }

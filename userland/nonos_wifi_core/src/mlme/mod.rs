@@ -30,5 +30,6 @@ mod failure;
 mod state;
 mod step;
 
+pub use beacon::judge::{judge, Judged};
 pub use failure::MlmeFailure;
 pub use state::{Entropy, JoinRequest, Mlme, MlmeOutput, MlmeState, SAE_ENTROPY, SECRET_MAX};

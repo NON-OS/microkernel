@@ -4,9 +4,11 @@
 //! join, the rest as before), the connect body read with every length
 //! checked, every way a join ends mapped to the code the panels name, the
 //! connect and link replies read back by the client's own parsers, and the
-//! hunt for the network's beacon against the modeled firmware (found and
-//! the sweep stopped, not heard, a background sweep stopped first).
+//! hunt for the network's access points against the modeled firmware (a
+//! whole sweep heard, candidates ranked by security then signal, not heard,
+//! a background sweep stopped first).
 
+mod choice;
 mod codes;
 mod hunt;
 mod quiet;

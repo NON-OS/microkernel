@@ -2,6 +2,7 @@
 
 //! Hunting the channels for the network's beacon.
 
+use nonos_wifi_core::bss::Candidates;
 use nonos_wifi_core::dot11::parse::parse_beacon;
 use nonos_wifi_core::regdom::join_channel;
 
@@ -14,28 +15,31 @@ use crate::phy::channel::{set_rf, Bw};
 use crate::regs::Regs;
 
 /*
- * Hunt the channels for a beacon matching `ssid`, copying the raw frame into `out`
- * and returning its length and the channel it was heard on. `probe_as` is set
- * only for a hidden network: the hunt's one-off address its probes go out under. The join needs the
- * real beacon (not the scan summary) because the state machine reads the BSSID,
- * channel and RSN element straight out of it.
- * Returns the matched beacon (length and channel) if found, together with the
- * number of beacons of ANY network heard during the hunt. That count turns a
- * bare "not found" into a diagnosis: zero means the radio heard nothing at all
- * on any channel (a receive-path or tuning problem), non-zero means beacons are
- * arriving but the target's was not among them (wrong SSID or it was off-air).
+ * Hunt the channels for the network named `ssid`, every beacon (or, hidden,
+ * probe response) for it judged into `found`. `probe_as` is set only for a
+ * hidden network: the hunt's one-off address its probes go out under. The
+ * hunt ends with the sweep in which a candidate was first heard, so every
+ * access point of the network on any channel is heard before one is picked.
+ * Returns the number of beacons of ANY network heard: zero means the radio
+ * heard nothing on any channel (a receive-path or tuning problem), non-zero
+ * means beacons arrive but the target's was not among them.
+ * The chip gives no signal here yet, so candidates rank by security, then by
+ * how often each was heard.
  */
-pub(in super::super) fn find_beacon(
+pub(in super::super) fn find_candidates(
     link: &mut RtlLink<Regs, Grant, Grant>,
     regs: &Regs,
     ssid: &[u8],
     probe_as: Option<[u8; 6]>,
-    out: &mut [u8; SCAN_FRAME_MAX],
-) -> (Option<(usize, u8)>, u32) {
+    found: &mut Candidates,
+) -> u32 {
     let mut frame = [0u8; SCAN_FRAME_MAX];
     let mut beacons = 0u32;
     let sweeps = SCAN_CHANNELS.iter().enumerate().cycle().take(SCAN_CHANNELS.len() * HUNT_SWEEPS);
     for (i, &ch) in sweeps {
+        if i == 0 && found.found() {
+            break;
+        }
         set_rf(regs, ch, Bw::W20);
         let mut probe = [0u8; 64];
         if let Some(n) = probe_as.and_then(|mac| hunt_probe(&mut probe, true, mac, ssid, ch, i)) {
@@ -46,20 +50,17 @@ pub(in super::super) fn find_beacon(
             let Some(n) = link.poll_raw(&mut frame) else {
                 continue;
             };
-            if let Some(info) = parse_beacon(&frame[..n]) {
-                beacons += 1;
-                if info.ssid == ssid {
-                    // The channel the frame names, if allowed and near the
-                    // one it was heard on; else where it was heard. None:
-                    // not one the world domain allows, so not joined.
-                    let Some(channel) = join_channel(ch, info.channel) else {
-                        continue;
-                    };
-                    out[..n].copy_from_slice(&frame[..n]);
-                    return (Some((n, channel)), beacons);
-                }
+            let Some(info) = parse_beacon(&frame[..n]) else {
+                continue;
+            };
+            beacons += 1;
+            // The channel the frame names, if allowed and near the one it
+            // was heard on; else where it was heard. None: not one the
+            // world domain allows, so not joined.
+            if let Some(channel) = join_channel(ch, info.channel) {
+                found.hear(&frame[..n], channel, 0);
             }
         }
     }
-    (None, beacons)
+    beacons
 }

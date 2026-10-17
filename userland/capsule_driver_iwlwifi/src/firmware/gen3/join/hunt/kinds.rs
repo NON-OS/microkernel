@@ -11,7 +11,7 @@ pub(super) const ABORT_PUMPS: u32 = 100;
 /// Why the hunt found nothing.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum HuntEnd {
-    /// A whole sweep heard this many beacons, none of the network's.
+    /// A whole sweep heard this many beacons, none a candidate.
     NotHeard(u32),
     /// The sweep could not run, or would not stop.
     Radio,

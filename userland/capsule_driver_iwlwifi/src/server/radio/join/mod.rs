@@ -25,6 +25,7 @@
 //! from the open port, or as a link that is down.
 mod answers;
 mod ask;
+mod attempt;
 mod connect;
 mod leave;
 mod ready;
