@@ -55,7 +55,8 @@ fn chosen() -> Option<Chosen> {
     let extended = *EXTENDED.get()?;
     let tree = TREE.get()?;
     let cpu = roster::index_of(mpidr_affinity())?;
-    let list = tree.cpus.get(cpu)?.indices();
+    // The idle lists are in the tree's order, the index the roster's.
+    let list = tree.cpus.get(roster::tree_index(cpu)?)?.indices();
     let refused = REFUSED.get(cpu)?.load(Ordering::Relaxed);
     let index = pick(tree.states(), list, extended, refused, budget_us(), allow(cpu))?;
     let state = *tree.states().get(usize::from(index))?;

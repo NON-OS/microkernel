@@ -21,6 +21,7 @@ use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::aarch64::mmu::image_pa;
 use crate::arch::aarch64::psci;
 
+use super::roster;
 use super::spin_table;
 
 /// Start the CPU at dense `index`: released from its spin table when firmware
@@ -31,7 +32,9 @@ pub(super) fn start(
     affinity: u64,
     stack_top: u64,
 ) -> Result<(), &'static [u8]> {
-    match info.cpu_release.get(index).copied().flatten() {
+    // The release addresses are in the tree's order, the index the roster's.
+    let release = roster::tree_index(index).and_then(|at| info.cpu_release.get(at).copied());
+    match release.flatten() {
         Some(word) => release_parked(info, index, affinity, stack_top, word),
         None => power_on(affinity, stack_top),
     }
