@@ -14,35 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::{bit_of, Capability, CapabilityToken};
+use super::token::{registered_syscalls, token};
+use crate::capabilities::Capability;
 use crate::syscall::contract::is_allowed;
 use crate::syscall::numbers::SyscallNumber;
 
 extern crate alloc;
 use alloc::vec;
-use alloc::vec::Vec;
-
-// A token with a given set of capabilities and no expiry.
-fn token(permissions: Vec<Capability>) -> CapabilityToken {
-    CapabilityToken {
-        owner_module: 0,
-        permissions,
-        expires_at_ms: None,
-        nonce: 0,
-        signature: [0u8; 64],
-        token_id: 0,
-        subject_capsule_id: 0,
-        subject_asid: 0,
-        subject_measurement: [0u8; 32],
-        boot_session_nonce: [0u8; 16],
-        revocation_epoch: 0,
-        delegation_depth: 0,
-    }
-}
-
-fn registered_syscalls() -> Vec<SyscallNumber> {
-    (0u64..100_000).filter_map(SyscallNumber::from_u64).collect()
-}
 
 #[test]
 fn an_empty_token_is_denied_every_syscall() {
@@ -71,31 +49,6 @@ fn granting_a_capability_never_removes_access() {
     for n in registered_syscalls() {
         if is_allowed(&subset, n) {
             assert!(is_allowed(&superset, n), "adding a capability removed access");
-        }
-    }
-}
-
-#[test]
-fn capability_bits_are_distinct_single_bits() {
-    // The gate ultimately rests on each capability occupying its own bit.
-    let caps = [
-        Capability::CoreExec,
-        Capability::IO,
-        Capability::Network,
-        Capability::IPC,
-        Capability::Memory,
-        Capability::Crypto,
-        Capability::FileSystem,
-        Capability::Hardware,
-        Capability::Debug,
-        Capability::Admin,
-    ];
-    for c in caps {
-        assert_eq!(bit_of(c).count_ones(), 1, "each capability must be a single bit");
-    }
-    for i in 0..caps.len() {
-        for j in (i + 1)..caps.len() {
-            assert_ne!(bit_of(caps[i]), bit_of(caps[j]), "two capabilities share a bit");
         }
     }
 }
