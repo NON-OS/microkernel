@@ -16,7 +16,7 @@
 
 //! Running the fans the zones call for (ACPI 6.5, 11.1.4): a fan runs when
 //! any level listing it is on, and also when a zone listing it could not
-//! be read, since a fan left off over an unread zone is the worse mistake.
+//! be read, now or ever, since a fan left off over an unread zone is the worse mistake.
 
 use super::run_fan::run_fan;
 use super::state::Cooling;
@@ -31,7 +31,8 @@ fn wanted(c: &Cooling) -> Vec<bool> {
     let mut want = vec![false; c.fans.len()];
     for z in &c.zones {
         for (x, fans) in z.levels.iter().enumerate() {
-            if z.temp.is_none() || z.verdict.active.get(x).copied().unwrap_or(false) {
+            let on = z.w.verdict.active.get(x).copied().unwrap_or(false);
+            if z.w.temp.is_none() || z.w.unread || on {
                 fans.iter().for_each(|&f| want[f] = true);
             }
         }
