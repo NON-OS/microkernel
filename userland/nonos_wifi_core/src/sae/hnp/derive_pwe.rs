@@ -15,20 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The password element for two stations, or `None` if `decoy` is not as
-//! long as `password`, the password is too long, or (beyond any practical
-//! chance) no element was found.
+//! long as `password`, the password is too long, or no element was found in
+//! the fixed rounds.
 
 use super::*;
 
-/// The password element for two stations, or `None` if `decoy` is not as
-/// long as `password`, the password is too long, or (beyond any practical
-/// chance) no element was found. `decoy` must be fresh random bytes: it is
-/// hashed in the password's place once the element is found.
-pub fn derive_pwe(
+/// The password element for two stations in exactly `rounds` rounds, or
+/// `None` if `decoy` is not as long as `password`, the password is too long,
+/// or no element was found in those rounds. `decoy` must be fresh random
+/// bytes: it is hashed in the password's place once the element is found.
+pub fn derive_pwe_in(
     password: &[u8],
     decoy: &[u8],
     a: &[u8; 6],
     b: &[u8; 6],
+    rounds: u8,
 ) -> Option<ProjectivePoint> {
     if password.len() > PASSWORD_MAX || decoy.len() != password.len() {
         return None;
@@ -43,11 +44,7 @@ pub fn derive_pwe(
     let mut found = Choice::from(0);
     let mut x_sel = FieldElement::ZERO;
     let mut odd_sel = 0u8;
-    let mut counter: u8 = 1;
-    while counter <= MAX_ROUNDS {
-        if counter > MIN_ROUNDS && bool::from(found) {
-            break;
-        }
+    for counter in 1..=rounds {
         // Hash the real password until the element is found, the stand-in after.
         for (w, (p, s)) in work.iter_mut().zip(password.iter().zip(decoy.iter())) {
             *w = u8::conditional_select(p, s, found);
@@ -61,7 +58,6 @@ pub fn derive_pwe(
         odd_sel = u8::conditional_select(&odd_sel, &(seed[LEN - 1] & 1), take);
         found |= take;
         super::super::wipe(&mut seed);
-        counter += 1;
     }
     super::super::wipe(&mut work);
     super::super::wipe(&mut value);

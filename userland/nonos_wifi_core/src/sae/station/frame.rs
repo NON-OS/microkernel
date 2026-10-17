@@ -34,6 +34,10 @@ impl SaeStation {
     pub(super) fn on_commit(&mut self, status: u16, body: &[u8]) -> SaeStep {
         match status {
             STATUS_ANTI_CLOGGING_TOKEN_REQ if self.state == SaeState::Committed => {
+                self.tokens += 1;
+                if self.tokens > TOKENS_MAX {
+                    return self.fail(SaeFailure::Looping);
+                }
                 let Some(token) = parse_token_request(body, self.h2e) else {
                     return self.fail(SaeFailure::BadCommit);
                 };
@@ -44,6 +48,9 @@ impl SaeStation {
             }
             STATUS_GROUP_NOT_SUPPORTED => self.fail(SaeFailure::GroupNotSupported),
             STATUS_SUCCESS | STATUS_SAE_HASH_TO_ELEMENT => {
+                if self.state == SaeState::Confirmed {
+                    return self.commit_again(body);
+                }
                 if self.state != SaeState::Committed {
                     return SaeStep::Ignore;
                 }

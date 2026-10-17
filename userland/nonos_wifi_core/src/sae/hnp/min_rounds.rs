@@ -23,20 +23,34 @@
 //! and the first counter whose pwd-value is below p and an x-coordinate on
 //! the curve gives the PWE, with y chosen so its parity matches pwd-seed's.
 //!
-//! The loop always runs at least 40 rounds and treats every round alike, so
-//! how many it took to find the element (which depends on the password) does
-//! not show in the time it takes: once found, the remaining rounds hash a
-//! random stand-in password and every choice is a constant-time select. This
-//! closes the Dragonblood timing and cache side channels. Checked against
-//! the IEEE Std 802.11-2020 Annex J.10 vector.
+//! The loop runs exactly 40 rounds, whatever the password, and treats every
+//! round alike, so how many it took to find the element (which depends on
+//! the password) shows neither in the time it takes nor in how many rounds
+//! ran: once found, the remaining rounds hash a random stand-in password and
+//! every choice is a constant-time select. This closes the Dragonblood
+//! timing and cache side channels. A password with no element in those
+//! rounds (a chance near 2^-40 for one pair of addresses) is refused rather
+//! than hunted for longer; the station's next address for the network gives
+//! it another pair. Checked against the IEEE Std 802.11-2020 Annex J.10
+//! vector.
+
+use nonos_p256::ProjectivePoint;
 
 /// Rounds run whatever the password. Each round finds the element with
-/// probability about one half on group 19, so after 40 the chance a password
-/// still needs more is near 2^-40.
-pub(super) const MIN_ROUNDS: u8 = 40;
-
-/// A bound on the loop: the chance of no element in 200 rounds is about 2^-200.
-pub(super) const MAX_ROUNDS: u8 = 200;
+/// probability about one half on group 19.
+pub(super) const ROUNDS: u8 = 40;
 
 /// The longest password this loop takes, so the working copy needs no heap.
 pub const PASSWORD_MAX: usize = 128;
+
+/// The password element for two stations in `ROUNDS` rounds (`derive_pwe_in`).
+/// `decoy` must be fresh random bytes as long as `password`: it is hashed in
+/// the password's place once the element is found.
+pub fn derive_pwe(
+    password: &[u8],
+    decoy: &[u8],
+    a: &[u8; 6],
+    b: &[u8; 6],
+) -> Option<ProjectivePoint> {
+    super::derive_pwe_in(password, decoy, a, b, ROUNDS)
+}

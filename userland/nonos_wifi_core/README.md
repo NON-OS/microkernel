@@ -106,3 +106,23 @@ that finished.
   beacon or an action frame, protected or not. When the AP really
   switches, the link ends on missed beacons and the station joins again
   by scanning.
+
+## SAE against a hostile AP
+
+- **The AP's commit is checked before anything is computed from it:**
+  - its group must be 19;
+  - its scalar must lie in 1 < s < r;
+  - its element must be on the curve, which the identity never is.
+- **A reflected commit** (this station's own) is dropped.
+- **Only group 19 is run.** An AP that asks for another group, weaker or
+  not, ends the exchange.
+- **Hash-to-element is used whenever the AP's RSNXE offers it.**
+- **Hunting and pecking**, for an AP that does not offer hash-to-element,
+  runs exactly 40 rounds, whatever the password, and selects in constant
+  time. A password with no element in them (a chance near 2^-40 for one
+  pair of addresses) is refused rather than hunted for longer.
+- **Anti-clogging requests** are answered at most three times.
+- **The AP's commit sent again** after this station confirmed draws its
+  confirm again, the send-confirm counter one higher, at most three
+  confirms in all. Any other commit then is ignored.
+- **No PMK** is out before the AP's confirm verifies.

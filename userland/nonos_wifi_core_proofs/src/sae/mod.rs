@@ -17,7 +17,10 @@
 //! WPA3-SAE: the Annex J.10 vectors, the exchange end to end, and what it
 //! refuses.
 
+mod bound_tests;
 mod commit_tests;
+mod confirm_first_tests;
+mod edge_tests;
 mod exchange_tests;
 mod refusal_tests;
 mod vector_tests;
