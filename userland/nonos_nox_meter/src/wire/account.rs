@@ -18,6 +18,7 @@
 
 use nonos_payment_proto::{Account, AccountRow, ACCOUNT_ROWS_MAX, KEPT, READY};
 
+use crate::channel::Channel;
 use crate::state::MeterState;
 
 /// `address` is the meter's, once its key is open; `kept` whether this
@@ -30,17 +31,7 @@ pub fn account(
     from: usize,
 ) -> Account {
     let b = &s.budget;
-    let rows = s.channels.iter().skip(from).take(ACCOUNT_ROWS_MAX).map(|c| AccountRow {
-        channel_id: c.id,
-        listing_id: c.listing_id,
-        chain_id: c.chain_id,
-        deposit: c.deposit,
-        settled: c.settled,
-        cumulative: c.cumulative,
-        expiry: c.expiry,
-        frozen: c.frozen,
-        reclaim_to: c.reclaim_to,
-    });
+    let rows = s.channels.iter().skip(from).take(ACCOUNT_ROWS_MAX).map(row);
     Account {
         flags: if address.is_some() { READY } else { 0 } | if kept { KEPT } else { 0 },
         address: address.unwrap_or([0; 20]),
@@ -50,5 +41,20 @@ pub fn account(
         left: b.left(now),
         total: s.channels.len() as u8,
         rows: rows.collect(),
+    }
+}
+
+/// One channel as an ACCOUNT row, and as FUNDED reads it (pay::funded).
+pub fn row(c: &Channel) -> AccountRow {
+    AccountRow {
+        channel_id: c.id,
+        listing_id: c.listing_id,
+        chain_id: c.chain_id,
+        deposit: c.deposit,
+        settled: c.settled,
+        cumulative: c.cumulative,
+        expiry: c.expiry,
+        frozen: c.frozen,
+        reclaim_to: c.reclaim_to,
     }
 }

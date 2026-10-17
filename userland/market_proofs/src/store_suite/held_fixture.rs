@@ -13,14 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! A sold listing and a channel the meter holds for it, for the channel tests.
+//! A sold listing and a channel the meter holds for it, for the channel
+//! tests; meter_fixture has the market's record and the meter's answer.
 
 use nonos_nox_config::SEPOLIA;
 use nonos_payment_proto::AccountRow;
 
 use super::fixture::listing;
-use crate::store::channel_held::CHARGE_MARGIN;
+use crate::meter::channel::CHARGE_MARGIN;
 use crate::store::listing::Listing;
 use crate::store::price::Price;
 
@@ -30,9 +30,7 @@ pub const KEY: [u8; 32] = [7; 32];
 pub fn sold(mode: u8) -> Listing {
     let mut l = listing(b"linux.qwen-small", b"Qwen");
     let (unit, payee, trusted) = (&b"install"[..], [0; 20], true);
-    let p =
-        Price { mode, unit, unit_price: 3, payee, trusted, listing_key: KEY, chain_id: SEPOLIA };
-    l.known.price = Some(p);
+    l.known.price = Some(Price { mode, unit, unit_price: 3, payee, trusted });
     l
 }
 

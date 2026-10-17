@@ -18,5 +18,8 @@
 //! the release's signed commerce block sells.
 
 mod fixture;
+mod funded;
+mod funded_fixture;
+mod funded_record;
 mod minimum;
 mod offer;
