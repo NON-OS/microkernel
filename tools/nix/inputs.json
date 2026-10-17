@@ -4114,6 +4114,7 @@
    "userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/request.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result",
+   "userland/capsule_driver_rtl8821ce/src/serve/control/status_body.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/channels.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/drain.rs",

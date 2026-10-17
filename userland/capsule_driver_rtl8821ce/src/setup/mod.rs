@@ -17,9 +17,7 @@
 mod mapped;
 mod master;
 mod run;
-mod window;
 
 pub use mapped::Mapped;
 pub use master::{command, release};
 pub use run::run;
-pub use window::window;

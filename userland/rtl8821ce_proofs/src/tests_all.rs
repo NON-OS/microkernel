@@ -52,6 +52,8 @@ mod serve_refuse_tests;
 #[cfg(test)]
 mod staging_tests;
 #[cfg(test)]
+mod status_tests;
+#[cfg(test)]
 mod tables_tests;
 #[cfg(test)]
 mod tx_clear_tests;

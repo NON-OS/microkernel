@@ -13,17 +13,14 @@ pub struct DataPath {
     pub rx_eth: u32,
     pub netif_reqs: u32,
     pub rx_err: u32,
-    /// The efuse control, address and LDO registers as the last stalled read left
-    /// them. All zero means no read has stalled since boot, so a radio that
-    /// reports the efuse stage with zeros here never entered the polling loop.
-    pub efuse_ctl: u32,
-    pub efuse_addr: u32,
-    pub efuse_ldo: u32,
-    /// The BAR the register window was taken from and the low half of its
-    /// address. rtw88 uses bar_id 2 on this chip, so anything else means the
-    /// registers are being read from the wrong window.
-    pub bar_index: u32,
-    pub window_va: u32,
+    /// The last stalled efuse read, as named fields with no efuse content:
+    /// flags (bit 0, the window read back all ones; bit 1, the control
+    /// register held the address written), the address it stalled on plus
+    /// one, and the LDO/efuse register's bank-select and LDO enable bits. All
+    /// zero means no read has stalled since boot.
+    pub efuse_flags: u32,
+    pub efuse_stalled_at: u32,
+    pub efuse_bank_ldo: u32,
     /// Where firmware bring-up stopped (0: it did not stop), the chunks that
     /// had landed, and `REG_MCUFW_CTRL` as the stop left it. Zero from a driver
     /// built before the report.
