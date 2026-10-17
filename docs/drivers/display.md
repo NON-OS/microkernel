@@ -19,10 +19,10 @@ flowchart TD
     C -->|no virtio GPU| P[MkSurfacePresent]
     P --> F[GOP framebuffer]
     C -->|driver answers| G[driver.virtio_gpu0]
-    G --> S[scanout 0]
+    G --> S[its scanouts]
 ```
 
-The loader makes the GOP mode choice, `init_framebuffer` maps it in the kernel, and the compositor either presents its frames through `MkSurfacePresent` to that framebuffer or hands them to `driver.virtio_gpu0`, which shows them on scanout 0.
+The loader makes the GOP mode choice, `init_framebuffer` maps it in the kernel, and the compositor either presents its frames through `MkSurfacePresent` to that framebuffer or hands them over the display wire to `driver.virtio_gpu0`, which shows them on each scanout it took.
 
 ## The GOP framebuffer
 
@@ -51,29 +51,29 @@ Before the mapping and before any AP starts, `program_boot` makes page attribute
 
 ### The compositor on GOP
 
-When no virtio GPU driver announces itself, `run_gop_once` gives the compositor a surface backed by its own memory and presents through `MkSurfacePresent`; the kernel copies each frame into the firmware framebuffer (`userland/compositor/src/setup/prime_gop.rs:17-22`, `userland/compositor/src/setup/prime_gop.rs:36-88`). The present path refuses a rectangle outside the screen, through `blit` (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
+When no virtio GPU driver announces itself, `run_gop_once` gives the compositor a surface backed by its own memory and presents through `MkSurfacePresent`; the kernel copies each frame into the firmware framebuffer (`userland/compositor/src/setup/prime_gop.rs:26-30`). The present path refuses a rectangle outside the screen, through `blit` (`src/syscall/dispatch/router/graphics_present/blit.rs:22-67`).
 
 A screen smaller than 1024 by 720, such as an 800 by 600 firmware mode or a 1024 by 600 panel, gets a canvas of its own shape that covers 1024 by 720 and is shrunk onto the screen, from `floor_canvas` (`userland/compositor/src/setup/canvas_floor.rs:16-43`). The picture is soft but every screen fits.
 
-If the virtio GPU driver answers after the compositor fell back to GOP, `upgrade_to_virtio` moves the display over and repaints the whole scene there (`userland/compositor/src/setup/upgrade.rs:17-52`).
+If a display driver answers after the compositor fell back to GOP, `upgrade_from_gop` moves the display over and repaints the whole scene there (`userland/compositor/src/setup/upgrade.rs:32-44`).
 
 ## virtio-gpu
 
-The [driver capsule](../overview/glossary.md#driver-capsule) `capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1010 (transitional) or 1AF4:1050 (modern), the ids `VIRTIO_GPU_TRANSITIONAL` and `VIRTIO_GPU_MODERN` that `is_match` accepts (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs:16-18`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs:23-27`). It polls and binds no interrupt. Its [capability word](../overview/glossary.md#capability-word), `0x1B9018`, adds `GraphicsSurfaceCreate` to the usual driver bits so it can register and share the screen surface (`userland/capsule_driver_virtio_gpu/Capsule.mk`). Only the `compositor` may send to it (`src/services/registry/held_table.rs:34`).
+The [driver capsule](../overview/glossary.md#driver-capsule) `capsule_driver_virtio_gpu` drives a virtio GPU, PCI 1AF4:1010 (transitional) or 1AF4:1050 (modern), the ids `VIRTIO_GPU_TRANSITIONAL` and `VIRTIO_GPU_MODERN` that `is_match` accepts (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs:16-18`, `userland/capsule_driver_virtio_gpu/src/discover/match_device.rs:23-27`). It polls and binds no interrupt. Its [capability word](../overview/glossary.md#capability-word), `0x1B9018`, adds `GraphicsSurfaceCreate` to the usual driver bits so the wire server can register and share each output's primary surface (`userland/capsule_driver_virtio_gpu/Capsule.mk`). It is one of the names on the display list the compositor asks (`src/services/registry/displays.rs:27`).
 
-One bring-up attempt, `claimed`, takes the device off its legacy interrupt line, maps the registers, takes the control-queue DMA, runs the virtio handshake, reads the scanouts, asks for EDID, probes for 3D and creates the primary surface (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:45-92`). The EDID answer is only logged. The 3D probe is logged, and its result, `virgl_ready`, is reported by `OP_QUERY_CAPS` (`userland/capsule_driver_virtio_gpu/src/server/handlers/query_caps.rs:25-28`). No op of the service uses 3D, so the 2D path is the same either way.
 
-### Modes
+### Outputs and modes
 
-`seed` asks the device for its display info and records each enabled scanout at the size the host reports. A scanout smaller than 640 by 480 gets `DEFAULT_SCANOUT_WIDTH` by `DEFAULT_SCANOUT_HEIGHT`, 1280 by 720, and with no enabled scanout scanout 0 is set to that size (`userland/capsule_driver_virtio_gpu/src/setup/scanouts.rs:20-69`). `OP_MODE_LIST` returns the recorded scanouts, written out by `handle` (`userland/capsule_driver_virtio_gpu/src/server/handlers/mode_list.rs:20-42`).
+`seed` asks the device for its display info and records each enabled scanout at the size the host reports. A scanout smaller than 640 by 480 gets `DEFAULT_SCANOUT_WIDTH` by `DEFAULT_SCANOUT_HEIGHT`, 1280 by 720, and with no enabled scanout scanout 0 is set to that size (`userland/capsule_driver_virtio_gpu/src/setup/scanouts.rs`). `take` makes each recorded scanout, up to the wire's four outputs, an output: a zeroed DMA surface with a B8G8R8A8 2D resource and one backing entry, sent to the host whole, set on the scanout and flushed. A scanout whose surface cannot be made is left as the host has it, and with none taken the attempt fails (`userland/capsule_driver_virtio_gpu/src/display/take.rs:33-64`).
 
-### The primary surface
+CAPS reports kind 1 (`VIRTIO_GPU`), MODE_SET, MODE_RANGE up to 4096 a side with any width, and HINTS; FLUSH copies into the driver's surface, so DEVICE_READS is not set (`userland/capsule_driver_virtio_gpu/src/display/describe.rs:28-40`). MODES lists the host's wanted size first, then output 0's EDID modes, then the size shown, each once (`userland/capsule_driver_virtio_gpu/src/display/modes.rs:25-50`). A mode the [hardware broker](../overview/glossary.md#hardware-broker) cannot back fails with ENOMEM: one display grant is capped at `DISPLAY_FRAMEBUFFER_PAGES`, 8192 pages or 32 MiB (`src/hardware/broker/dma/limits.rs:28-44`), and the old mode keeps showing.
 
-`create` makes the screen surface on scanout 0 only (`userland/capsule_driver_virtio_gpu/src/setup/create_primary.rs:21-37`). It takes a DMA [grant](../overview/glossary.md#grant) the size of the frame, creates a B8G8R8A8 2D resource on it, sets it on the scanout, and registers and shares it with `mk_surface_register` and `mk_surface_share` so the compositor can draw into it (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/create.rs:23-73`). A frame of 4 GiB or more is refused by `derive` (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/geometry.rs:22-33`). The [hardware broker](../overview/glossary.md#hardware-broker) caps one display grant at `DISPLAY_FRAMEBUFFER_PAGES`, 8192 pages or 32 MiB, which holds one 3840 by 2160 frame at 4 bytes a pixel (`src/hardware/broker/dma/limits.rs:28-44`). For a larger scanout 0, such as 3840 by 2400, the primary surface's `mk_dma_map` fails (`userland/capsule_driver_virtio_gpu/src/setup/primary_surface/dma.rs:19-29`). `create_primary::create` hands that error to the bring-up attempt, so every attempt fails the same way (`userland/capsule_driver_virtio_gpu/src/setup/sequence.rs:66-73`).
+### Mode sets, flushes and the host's events
 
-The service answers twelve ops, from `OP_HEALTHCHECK` to `OP_GET_PRIMARY_SURFACE` (`userland/capsule_driver_virtio_gpu/src/protocol/ops.rs:16-27`). Each resource records the process that created it in `owner_pid`, and the resource ops refuse another process's resource (`userland/capsule_driver_virtio_gpu/src/server/handlers/create_resource.rs:59`, `userland/capsule_driver_virtio_gpu/src/server/handlers/set_scanout.rs:33`).
+A mode set makes before it breaks: a new surface of the size, the compositor's shadow loaded into it whole, and only then the scanout pointed at it. A step that fails gives the new surface back and leaves the old one showing (`userland/capsule_driver_virtio_gpu/src/display/mode_set.rs:32-50`). FLUSH copies the rectangles from the shadow, transfers them to the host and flushes them (`userland/capsule_driver_virtio_gpu/src/display/show.rs`). A surface is given back by detaching its backing, unreferencing the resource and only then unmapping its pages; one the host keeps waits in limbo with its pages mapped and is tried again on each mode set and each STATE (`userland/capsule_driver_virtio_gpu/src/display/limbo.rs:31-47`).
 
-Without a virtio GPU the capsule exits with `EXIT_ABSENT` (2) at once, and the compositor stays on GOP; a device that fails every bring-up attempt exits with `EXIT_GAVE_UP` (`userland/capsule_driver_virtio_gpu/src/main.rs:40-55`). At this commit `virtio_gpu_proofs` passes 38 host tests. Its crate comment lists what they hold to the specification: the status handshake, the accepted features, the control queue and the wire bytes of each 2D command, with the shipping source mounted by `#[path]` (`userland/virtio_gpu_proofs/src/lib.rs:17-32`).
+STATE also reads the device's events word. When the host raised the display bit (a window resized, a display turned on or off) the driver asks for the display info again, takes each head's new wanted size as its hint, clears the bit and moves the generation, so the compositor looks again (`userland/capsule_driver_virtio_gpu/src/display/events.rs:28-44`). There is no cursor plane yet: CURSOR answers ENOSYS and the compositor draws the arrow itself (`userland/capsule_driver_virtio_gpu/src/display/wire.rs:55-57`).
+
 
 ## Bochs BGA
 
@@ -85,7 +85,7 @@ It is parked. It has no `Capsule.mk`, no Cargo feature and no kernel mirror, and
 
 - Native GPU drivers. Intel, AMD and NVIDIA display functions are enumerate-only, and `missing_path` names a `native modeset and scanout driver` for them (`src/hardware/inventory/missing.rs:19-27`). There is no mode change after boot, no second display and no hardware acceleration on real machines.
 - A GOP without a linear 32-bit framebuffer.
-- 3D. The virtio-gpu probe reports whether the host could, and no op uses it.
+- 3D. The virtio-gpu probe logs whether the host could, and no op uses it.
 - Backlight control.
 
 ## See also
