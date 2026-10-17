@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Reading a command's body, and the one body the host answers with.
 
-use super::gpu::Res;
+use super::state::Res;
 use crate::constants::{VG_MAX_SCANOUTS, VG_RESP_OK_DISPLAY_INFO};
 use crate::tests::part::answers::header;
 
@@ -31,11 +31,13 @@ pub fn fits(r: &Res, b: &[u8]) -> bool {
     rw > 0 && rh > 0 && x + rw <= r.w as u64 && y + rh <= r.h as u64
 }
 
-/// Scanout 0 enabled at PANEL, the rest off.
-pub fn display_info() -> Vec<u8> {
+/// Each scanout as the host's displays say, enabled when it has a size.
+pub fn display_info(displays: &[(u32, u32)]) -> Vec<u8> {
     let mut out = header(VG_RESP_OK_DISPLAY_INFO, 0, 0);
-    for v in [0, 0, PANEL.0, PANEL.1, 1, 0] {
-        out.extend_from_slice(&v.to_le_bytes());
+    for &(w, h) in displays.iter().take(VG_MAX_SCANOUTS) {
+        for v in [0, 0, w, h, (w > 0 && h > 0) as u32, 0] {
+            out.extend_from_slice(&v.to_le_bytes());
+        }
     }
     out.resize(24 + 24 * VG_MAX_SCANOUTS, 0);
     out

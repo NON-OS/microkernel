@@ -17,11 +17,8 @@ use crate::constants::VG_MAX_SCANOUTS;
 use core::cell::Cell;
 #[derive(Clone, Copy, Default)]
 pub struct Scanout {
-    pub x: u32,
-    pub y: u32,
     pub width: u32,
     pub height: u32,
-    pub current_resource_id: u32,
     pub enabled: bool,
 }
 #[derive(Default)]
@@ -30,8 +27,7 @@ pub struct ScanoutTable {
 }
 impl ScanoutTable {
     pub const fn new() -> Self {
-        const OFF: Scanout =
-            Scanout { x: 0, y: 0, width: 0, height: 0, current_resource_id: 0, enabled: false };
+        const OFF: Scanout = Scanout { width: 0, height: 0, enabled: false };
         Self { entries: [const { Cell::new(OFF) }; VG_MAX_SCANOUTS] }
     }
     pub fn record(&self, scanout_id: u32, s: Scanout) -> bool {
