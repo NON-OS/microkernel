@@ -23,6 +23,8 @@ mod coverage;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod devtab;
 #[cfg(feature = "nonos-iommu-amdvi")]
+mod devtab_entry;
+#[cfg(feature = "nonos-iommu-amdvi")]
 pub mod domain;
 pub mod dte;
 #[cfg(feature = "nonos-iommu-amdvi")]

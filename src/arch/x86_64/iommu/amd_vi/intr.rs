@@ -24,7 +24,7 @@ use core::sync::atomic::{fence, Ordering};
 use spin::Mutex;
 
 use super::command::invalidate_interrupt_table;
-use super::devtab::{read_dte, write_dte};
+use super::devtab_entry::{read_dte, write_dte};
 use super::error::AmdViError;
 use super::flush::{flush_device, submit_all};
 use super::intr_rule::{irte, remapped};
