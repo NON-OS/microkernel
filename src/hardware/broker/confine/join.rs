@@ -31,7 +31,17 @@ pub(super) fn join(
     pos: usize,
     device_id: u64,
     address: DeviceAddress,
+    group: &[u64],
 ) -> Result<(), Refused> {
+    // A device another capsule holds reaches this one past the IOMMU.
+    let held = |c: &Capsule| c.devices.iter().any(|(id, _)| group.contains(id));
+    if all.iter().enumerate().any(|(i, c)| i != pos && held(c)) {
+        say(b"refused: its isolation group is held by another capsule");
+        if all[pos].devices.is_empty() {
+            all.remove(pos);
+        }
+        return Err(Refused);
+    }
     // Drives behind one VMD share its requester id. One capsule may hold
     // several of them in its domain; a second capsule cannot take the id
     // without pulling it out from under the first.

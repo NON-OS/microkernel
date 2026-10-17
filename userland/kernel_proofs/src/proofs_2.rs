@@ -69,3 +69,6 @@ pub mod reply_share;
 pub mod riscv_mmu;
 #[path = "rsdp_address/mod.rs"]
 pub mod rsdp_address;
+/// A device's isolation group.
+#[path = "acs_group/mod.rs"]
+pub mod acs_group;

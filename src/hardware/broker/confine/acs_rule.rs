@@ -1,0 +1,71 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Whether ACS keeps a device's peers from it, pure. A device reaches
+//! a peer without the IOMMU when they share a device, a bus, or a port that
+//! forwards between them, unless that port redirects upstream with ACS.
+//! What it reaches is its isolation group, and one capsule holds a group at
+//! a time (join.rs). kernel_proofs::acs_rule.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use super::acs_path::Hop;
+use super::acs_tree::Bdf;
+
+/// ACS capability and control bits (PCIe 6.0, 7.7.11): Source Validation,
+/// P2P Request Redirect, P2P Completion Redirect, Upstream Forwarding.
+pub(crate) const SV: u16 = 1 << 0;
+pub(crate) const RR: u16 = 1 << 2;
+pub(crate) const CR: u16 = 1 << 3;
+pub(crate) const UF: u16 = 1 << 4;
+/// What a downstream or root port must redirect.
+pub(crate) const PORT: u16 = SV | RR | CR | UF;
+/// What a function of a multi-function device must redirect.
+pub(crate) const FUNCTION: u16 = RR | CR;
+
+/// The control word that turns `needed` on, when the capability offers it
+/// all; None when it does not, and no write helps.
+pub(crate) const fn enabling(cap: u16, ctrl: u16, needed: u16) -> Option<u16> {
+    if cap & needed == needed {
+        Some(ctrl | needed)
+    } else {
+        None
+    }
+}
+
+/// Whether the capability and control words, if any, redirect `needed`.
+pub(crate) fn redirects(acs: Option<(u16, u16)>, needed: u16) -> bool {
+    acs.is_some_and(|(cap, ctrl)| (cap & ctrl) & needed == needed)
+}
+
+/// What the device reaches past the IOMMU: every hop's shared bus, and its
+/// peers wherever `acs` (its words, with what it needs turned on) does not
+/// redirect them.
+pub(crate) fn group(
+    hops: Vec<Hop>,
+    mut acs: impl FnMut(Bdf, u16) -> Option<(u16, u16)>,
+) -> Vec<Bdf> {
+    let mut reached = Vec::new();
+    for hop in hops {
+        reached.extend(hop.always);
+        if !hop.peers.is_empty() && !redirects(acs(hop.at, hop.needed), hop.needed) {
+            reached.extend(hop.peers);
+        }
+    }
+    reached
+}

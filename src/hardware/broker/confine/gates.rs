@@ -16,15 +16,27 @@
 
 //! What a translated device must pass before it joins a domain.
 
+extern crate alloc;
+
+use alloc::vec::Vec;
+
 use super::refuse::Refused;
 use super::table::say;
 
-pub(super) fn admit(device_id: u64) -> Result<(), Refused> {
+/// The device's isolation group, which join.rs holds to one capsule.
+pub(super) fn admit(device_id: u64) -> Result<Vec<u64>, Refused> {
     super::interrupts::admit()?;
     // A virtio device without ACCESS_PLATFORM ignores the domain.
     if !super::virtio::may_confine(device_id) {
         say(b"refused: virtio without ACCESS_PLATFORM under an IOMMU");
         return Err(Refused);
     }
-    Ok(())
+    // What it reaches without the IOMMU is its group.
+    #[cfg(target_arch = "x86_64")]
+    return super::acs::group(device_id).ok_or_else(|| {
+        say(b"refused: no isolation group, behind a VMD or a looped bus");
+        Refused
+    });
+    #[cfg(not(target_arch = "x86_64"))]
+    Ok(Vec::new())
 }
