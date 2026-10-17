@@ -21,12 +21,16 @@
 //! the device then reaches all of memory, and the boot log states it.
 
 mod attach;
+mod avoid;
 mod detach;
 mod iova;
 mod iova_space;
 mod map;
 mod posture;
+mod refuse;
+mod reserve;
 mod table;
+mod unreserve;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
