@@ -15,38 +15,40 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A claimant's side, libc's `mk_device_claim`: Resetting (EAGAIN) asked
-//! again for 5 s from the first try, sleeps ended early by any wake (1 to 10
-//! ms). One begun on a lost function back past its hold never ends with that
-//! loss standing (I8), unless the kept bound refused it, which is asked first.
+//! again for 5 s from the first try or up to its count of tries, each sleep
+//! ended early by any wake (1 to 10 ms). One begun on a lost function back
+//! past its hold never ends with that loss standing (I8).
 
 use super::model_stage::types::ClaimError;
 use super::phase_rule::{Phase, MS};
 use super::world::World;
 use super::world_cases::{BOUND, CAP_LOST, HOLD_LOST, RETRIED};
+use super::world_knob::Knob;
 use super::world_thread::{Path, Thread};
 
-/// libc's bound, past the longest a wipe stays pending (L80).
+/// libc's bound, past the longest a wipe stays pending (L80), and its count
+/// of tries, which sleeps of 1 ms or more never spend first (both libc's).
 pub(super) const RESET_MS: u64 = 5000 * MS;
-const _: () = assert!(RESET_MS > BOUND);
+pub(super) const TRY_CAP: u32 = 5000;
+const _: () = assert!(RESET_MS > BOUND && TRY_CAP as u64 * MS >= RESET_MS);
 
 pub(super) fn begin(w: &mut World, p: usize, t: &mut Thread) {
-    if w.procs[p].dead {
-        t.path = Path::Done;
-        return;
-    }
-    let now = w.now;
+    let (now, ready) = (w.now, w.dev.ready_at);
     let lost = w.rec.and_then(|r| match r.phase {
-        Phase::Lost { at } if now >= at.saturating_add(HOLD_LOST) => Some(at),
+        Phase::Lost { at } if now >= at.saturating_add(HOLD_LOST) && now >= ready => Some(at),
         _ => None,
     });
-    w.procs[p].owed_back = lost.filter(|_| now >= w.dev.ready_at);
-    w.procs[p].started = now;
-    (t.path, t.step) = (Path::Claim, 0);
+    let pr = &mut w.procs[p];
+    (pr.owed_back, pr.started, pr.tries) = (lost, now, 0);
+    (t.path, t.step) = (if pr.dead { Path::Done } else { Path::Claim }, 0);
 }
 
 pub(super) fn refused(w: &mut World, p: usize, t: &mut Thread, e: ClaimError) {
     let resetting = e == ClaimError::Resetting && !w.procs[p].dead;
-    if resetting && w.now < w.procs[p].started + RESET_MS {
+    let cap = if w.knob == Knob::FewTries { 250 } else { TRY_CAP };
+    let pr = &mut w.procs[p];
+    if resetting && w.now < pr.started + RESET_MS && pr.tries < cap {
+        pr.tries += 1;
         w.seen[RETRIED] += 1;
         (t.step, t.at) = (0, w.now + MS * (1 + w.draw(10)));
         return;
@@ -66,10 +68,8 @@ pub(super) fn attempt_over(w: &mut World, p: usize, t: &mut Thread) {
     w.seen[CAP_LOST] += (still && !pr.dead && pr.over_cap) as u32;
     let pr = &mut w.procs[p];
     pr.attempts = pr.attempts.saturating_sub(1);
-    if pr.attempts == 0 || pr.dead {
-        t.path = Path::Done;
-        return;
+    t.path = if pr.attempts == 0 || pr.dead { Path::Done } else { Path::Idle };
+    if t.path == Path::Idle {
+        t.at = w.now + MS * w.draw(2501);
     }
-    t.path = Path::Idle;
-    t.at = w.now + MS * w.draw(2501);
 }

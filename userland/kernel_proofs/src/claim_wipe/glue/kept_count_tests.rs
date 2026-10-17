@@ -18,26 +18,29 @@
 //! (L80): whichever of the registry's let-go and the wipe's settle frees it
 //! notes the release, once, and a run kept for good stays counted. The
 //! orders are driven by the kept rule itself; which paths note a release is
-//! read from the kernel.
+//! read from the kernel, each note pinned where it stands and counted, so
+//! none is added in teardown's keeps branch or noted twice.
 
-use super::kept_rule::{on_let_go, on_settle, Act, Run};
+use super::super::kept_rule::{on_let_go, on_settle, Act, Run};
+use super::code::flat;
 
-const HELD: &str = include_str!("../../../../src/hardware/broker/dma/held_run.rs");
-const SETTLE: &str = include_str!("../../../../src/hardware/broker/dma/kept_settle.rs");
+const HELD: &str = include_str!("../../../../../src/hardware/broker/dma/held_run.rs");
+const SETTLE: &str = include_str!("../../../../../src/hardware/broker/dma/kept_settle.rs");
+const TEARDOWN: &str = include_str!("../../../../../src/hardware/broker/dma/teardown.rs");
 const NOTE: &str = "crate::memory::iommu::note_unconfined_released(1);";
-
-fn flat(s: &str) -> String {
-    s.split_whitespace().collect::<Vec<_>>().join(" ")
-}
 
 /// Whether a run freed by the let-go, and one freed by the settle, is noted.
 fn noted_by() -> (bool, bool) {
-    let held = flat(HELD);
+    let (held, settle, t) = (flat(HELD), flat(SETTLE), flat(TEARDOWN));
     let body = &held[held.find("pub fn free_held_run").expect("free_held_run")..];
     let body = &body[..body.find("pub(super) fn free_now").expect("free_now")];
-    let let_go = body.contains(&format!("if kept == Some(false) {{ {NOTE} }} free_now("));
-    let settle = flat(SETTLE).contains(&format!("super::held_run::free_now(start, len); {NOTE}"));
-    (let_go, settle)
+    let once = |t: &str, at: String| t.matches(NOTE).count() == 1 && t.contains(&at);
+    let let_go = once(body, format!("if kept == Some(false) {{ {NOTE} }} free_now("));
+    let settled = once(&settle, format!("super::held_run::free_now(start, len); {NOTE} }}"));
+    let keeps = &t[t.find("if super::kept_rule::keeps(").expect("keeps")..];
+    assert!(!keeps[..keeps.find("return;").expect("return")].contains(NOTE), "noted when kept");
+    assert!(once(&t, format!("if !g.confined {{ {NOTE} }}")), "teardown notes a run not once");
+    (let_go, settled)
 }
 
 #[test]
