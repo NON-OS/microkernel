@@ -29,6 +29,6 @@ pub use approval::{
     clear_blocklist, clear_bus_master_approvals, is_bus_master_approved, remove_from_blocklist,
     revoke_bus_master, set_allowlist,
 };
-pub use policy::{get_security_policy, set_security_policy, SecurityPolicy};
+pub use policy::SecurityPolicy;
 pub use stats::{get_security_stats, reset_security_stats, SecurityStats};
 pub use validation::{validate_config_write, verify_bar_not_protected};
