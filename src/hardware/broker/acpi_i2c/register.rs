@@ -23,6 +23,7 @@ use crate::arch::x86_64::acpi::devices::i2c::{
 
 use super::super::table::register_platform_device;
 use super::hid_record::hid_record;
+use super::host_resolve::Hosts;
 use super::record::device_record;
 use super::report::report;
 
@@ -39,14 +40,14 @@ pub fn register_acpi_i2c() {
         .map(|ctl| (ctl.mmio_base, register_platform_device(device_record(ctl))))
         .collect();
     let gpio = enumerate_gpio_controllers();
-    let hosts = enumerate_platform_i2c_hosts();
+    let hosts = Hosts::new(enumerate_platform_i2c_hosts(), registered);
     let mut devices: Vec<_> = enumerate_i2c_hid_devices()
         .into_iter()
         .filter(|d| d.device_type != I2cHidDeviceType::Touchscreen)
         .collect();
     devices.sort_by_key(|d| d.device_type != I2cHidDeviceType::Touchpad);
     for dev in &devices {
-        report(dev, &hosts);
-        register_platform_device(hid_record(dev, &gpio, &hosts, &registered));
+        report(dev, &hosts.platform);
+        register_platform_device(hid_record(dev, &gpio, hosts.device_id(dev.controller)));
     }
 }
