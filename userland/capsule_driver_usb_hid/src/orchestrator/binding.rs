@@ -42,7 +42,7 @@ pub fn configure_binding(
         let _ = control_transfer(xhci_port, slot, 0x21, SET_PROTOCOL, 0, iface, 0, &mut dummy);
     }
     if binding.kind == HidKind::Keyboard {
-        // SET_IDLE(0): report on change only, as Linux asks of keyboards.
+        // SET_IDLE(0): report on change only (HID 1.11, 7.2.4, as recalled).
         // Held keys repeat from here, so the default 500 ms resend is noise;
         // many devices STALL the request, which is fine.
         let _ = control_transfer(xhci_port, slot, 0x21, SET_IDLE, 0, iface, 0, &mut dummy);

@@ -37,9 +37,9 @@ pub(super) fn bot(xhci: u32, slot: u8, desc: &[u8], state: &mut State) -> Probe 
     state.install_bindings(&found);
     let b = found.bindings[0];
     // The controller is given the endpoints before the device is told to
-    // use them (xHCI 1.2 section 4.3.5, as Linux's usb_set_configuration
-    // reserves bandwidth before it sends SET_CONFIGURATION): a device that
-    // starts its bulk pipes on SET_CONFIGURATION finds them there.
+    // use them (xHCI 1.2 section 4.3.5: Configure Endpoint before
+    // SET_CONFIGURATION): a device that starts its bulk pipes on
+    // SET_CONFIGURATION finds them there.
     if let Err(e) = configure_bulk(xhci, slot, &b)
         .and_then(|_| control_no_data(xhci, slot, SET_CONFIGURATION, desc[5] as u16, 0))
     {

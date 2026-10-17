@@ -18,7 +18,7 @@
 //! controller page, and the CSW back, checked against the command's tag.
 //!
 //! Two things real devices do that the Bulk-Only specification does not
-//! allow are taken as Linux's usb_stor_Bulk_transport takes them. Some end
+//! allow are taken as they come (as observed, unverified). Some end
 //! a data phase with a zero-length packet it did not need, which reaches
 //! the CSW read as an empty CSW; the CSW is read again. Some skip the data
 //! phase of a command they fail and send the CSW at once, which reaches the
@@ -96,8 +96,9 @@ fn read_csw(disk: &Disk, csw: &mut [u8; CSW_LEN]) -> Result<usize, i32> {
 }
 
 /// The CSW a device sent in place of a data-in phase it skipped: exactly 13
-/// short bytes that carry the CSW signature. Linux checks the same two
-/// things; the tag is checked with every other CSW's.
+/// short bytes that carry the CSW signature (BOT 1.0, 5.2, as recalled), so
+/// no data block that merely starts with one is taken for it; the tag is
+/// checked with every other CSW's.
 fn skipped_data_phase(data: &Data, moved: usize) -> Option<[u8; CSW_LEN]> {
     let Data::In(buf) = data else { return None };
     if moved != CSW_LEN || buf.len() <= CSW_LEN || !is_csw(&buf[..CSW_LEN]) {

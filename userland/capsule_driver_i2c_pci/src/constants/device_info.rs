@@ -17,8 +17,8 @@
 /// Family name and DesignWare input clock of an Intel LPSS I2C function,
 /// from its PCI device id: the platform datasheets' LPSS I2C functions and
 /// input clocks, 120 MHz Sunrise Point, 133 MHz Broxton, Apollo Lake and
-/// Gemini Lake, 216 MHz Cannon Lake on (as recalled, unverified; the same
-/// ids and clocks observed in Linux, unverified). Only I2C is listed: the UART
+/// Gemini Lake, 216 MHz Cannon Lake on (as recalled, unverified). Only I2C
+/// is listed: the UART
 /// and SPI functions of the same LPSS blocks sit at neighbouring ids and must
 /// never be driven as I2C.
 ///

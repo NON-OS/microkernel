@@ -18,7 +18,7 @@
 //! device has. A stick has one; a card reader has one per slot, and the
 //! card is often not in the first. A device that stalls the request, as
 //! the specification lets one with a single unit do, or answers past 15,
-//! has one, as Linux's usb_stor_Bulk_max_lun decides.
+//! the most the request can name (BOT 1.0, 3.2, as recalled), has one.
 
 use super::types::Disk;
 use crate::xhci::control_in;
