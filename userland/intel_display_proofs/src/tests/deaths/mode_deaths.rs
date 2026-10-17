@@ -27,7 +27,7 @@ use crate::tests::wire::wire_modeset_tests::shadow_of;
 use crate::tests::wire_rig::h0;
 use nonos_gfx_serve::{Display, Shadow};
 
-fn set(d: &mut crate::tests::wire_rig::Rig) -> Result<(), nonos_gfx_wire::Errno> {
+pub(crate) fn set(d: &mut crate::tests::wire_rig::Rig) -> Result<(), nonos_gfx_wire::Errno> {
     let px = shadow_of(0xFF13_5791, 1024, 768);
     let s = Shadow { bytes: &px, width: 1024, height: 768, stride: 4096, cursor_offset: 0 };
     d.set_mode(0, 1024, 768, &s)
