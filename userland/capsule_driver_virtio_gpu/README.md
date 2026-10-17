@@ -4,8 +4,9 @@
 
 `capsule_driver_virtio_gpu` is the virtio GPU display-controller capsule. It
 owns the PCI device claim, BAR mapping, control-queue DMA, the virtio
-initialization sequence, and the primary scanout surface for
-`driver.virtio_gpu0`.
+initialization sequence, and the display behind `driver.virtio_gpu0`, which
+it serves on the display wire (`nonos_gfx_wire`, through `nonos_gfx_serve`)
+like every other G display driver since G-77.
 
 ```text
 compositor (the only sender the kernel admits)
@@ -13,12 +14,13 @@ compositor (the only sender the kernel admits)
         v
 driver.virtio_gpu0 -- control queue DMA --> virtio-gpu device
         |
-        `-- primary scanout: a DMA grant registered and shared as a surface
+        |-- primaries: anonymous pages registered and shared as surfaces
+        `-- per output: a surface of its own (DMA + a 2D resource) on its scanout
 ```
 
 The capsule is not a compositor, window manager, renderer, toolkit, or input
-router. It exposes device configuration and 2D scanout and resource commands;
-all desktop policy stays in the compositor.
+router. It answers the wire's CAPS, MODES, STATE, SURFACE, FLUSH, MODE_SET
+and RETIRE; all desktop policy stays in the compositor.
 
 ## Microkernel contract
 
@@ -32,7 +34,7 @@ CAPSULE_OPTIONAL_CAPS = 0x100
 
 The optional bit is `Debug`, which only a `capsule-serial-debug` build grants.
 `GraphicsSurfaceCreate` admits `MkSurfaceRegister` and `MkSurfaceShare`, which
-publish the primary scanout as a surface.
+publish each primary as a surface.
 
 The capsule reaches hardware only through `MkDeviceList`, `MkDeviceClaim`,
 `MkMmioMap`/`MkPioGrant`, and `MkDmaMap`; it polls and binds no interrupt, so
@@ -43,28 +45,22 @@ interpret GPU resources, scanout policy, composition, cursor policy, or window
 ownership.
 
 Only the compositor may send to `driver.virtio_gpu0`: the kernel holds the
-endpoint to it (`src/services/registry/held.rs`), by name and by pid. Within
-the driver, each resource records the pid that created it, and attach, transfer,
-scanout and flush refuse a resource another pid owns.
+endpoint to it (`src/services/registry/held.rs`), by name and by pid. The
+wire server's owner is the last pid to ask SURFACE: a restarted compositor.
 
 ## Interface contract
 
-| Operation | Input | Output |
-|---|---|---|
-| `OP_HEALTHCHECK` | none | status, and a flags word: `HEALTH_LOST` once after the owner's screen was blanked |
-| `OP_CONTROLLER_INFO` | none | device id, queue size, feature bits |
-| `OP_DISPLAY_INFO` | none | events, scanout count, capset count |
-| `OP_CONTROLQ_STATE` | none | control queue DMA metadata |
-| `OP_QUERY_CAPS` | none | scanout count, capset count, events, and whether the virgl probe passed |
-| `OP_CREATE_RESOURCE` | resource parameters | 2D resource created, owned by the sender; an id the table holds is refused with `E_BUSY` |
-| `OP_ATTACH_BACKING` | resource, backing | backing attached |
-| `OP_TRANSFER_TO_HOST` | resource, rectangle | TRANSFER_TO_HOST_2D posted |
-| `OP_SET_SCANOUT` | resource, scanout | SET_SCANOUT posted |
-| `OP_FLUSH` | resource, rectangle | RESOURCE_FLUSH posted |
-| `OP_MODE_LIST` | none | the scanout modes |
-| `OP_GET_PRIMARY_SURFACE` | none | the primary surface handle and geometry; the asker owns the primary from then on (only the compositor may send, so a new asker is a restarted compositor) |
+The display wire (`nonos_gfx_wire`), served by `nonos_gfx_serve`:
 
-Unknown operations reply `E_BAD_OP`. Malformed request bodies reply `E_INVAL`.
+| Operation | What virtio-gpu answers |
+|---|---|
+| `CAPS` | kind 1 (VIRTIO_GPU), one output per enabled scanout (at most 4), `MODE_SET \| MODE_RANGE \| HINTS`, sides to 4096 |
+| `MODES` | the host's wanted size (preferred), then output 0's EDID modes, then the size shown |
+| `STATE` | the size shown and the host's wanted size, scanning out. A raised display event first has the display info asked again and the generation moved |
+| `SURFACE`, `FLUSH`, `MODE_SET`, `RETIRE` | as the wire defines. A flush copies into the output's surface, sends the rectangles to the host and flushes them. A mode set makes the new surface, loads it whole, and only then sets it on the scanout |
+| `CURSOR` | `ENOSYS`: no cursor plane yet |
+
+A frame from sender 0 is a DGON: one naming this device ends the driver.
 
 ## Authority
 
@@ -77,13 +73,13 @@ input authority, and no filesystem or network authority.
 ## Privacy and persistence
 
 The capsule stores no windows, screenshots, pointer paths, keystrokes, or
-display history. The primary scanout's backing holds the last frame drawn; it
-is a DMA grant, revoked on exit and zeroed by the broker before reuse. When
-its owner dies or falls silent, or a new owner takes it, the driver zeroes it
-and sends it to the host whole, so neither the next owner nor the host's copy
-holds the old frame. Runtime
-state is otherwise grant ids, queue addresses, device feature bits, the
-resource table, and virtio-gpu config counters.
+display history. Each output's surface holds the last frame flushed; it is a
+DMA grant, revoked on exit and zeroed by the broker before reuse. When the
+owner falls silent, the server zeroes the primaries and flushes them, so the
+surface and the host's copy hold none of its frame; a new owner is handed
+primaries from zeroed pages. Runtime
+state is otherwise grant ids, queue addresses, the heads (each output's
+scanout, surface and the host's wanted size), and surfaces in limbo.
 
 ## Runtime lifecycle
 
@@ -91,15 +87,12 @@ Startup discovers a virtio-gpu PCI function, claims it, takes it off its
 legacy interrupt line, maps its registers, allocates queue DMA, runs
 a device reset (status 0, then read back until it reads 0) and
 ACK/DRIVER/FEATURES_OK/DRIVER_OK, selects control queue 0, reads the scanouts,
-asks for EDID when offered (logged only), runs a best-effort virgl render probe
-that only logs whether 3D works, and creates the primary scanout: a DMA grant
-attached to a 2D resource, set on scanout 0, then registered with
-`mk_surface_register` and shared with `mk_surface_share`
-(`src/setup/primary_surface/create.rs`), and a blank surface of its own: a
-second zeroed DMA grant on a resource that only the driver uses
-(`src/setup/blank_surface.rs`). It then serves IPC, waking at least every
-500 ms to run the watch. Shutdown relies on process teardown and broker
-grant revocation.
+reads output 0's EDID when offered (the wire's panel), runs a best-effort virgl
+render probe that only logs whether 3D works, and takes every enabled scanout
+(`src/display/take.rs`): a zeroed DMA surface of the host's size, a 2D resource
+on it, sent whole, set on the scanout and flushed. It then serves the display
+wire, waking at least every 500 ms so the server's watch sees a silent owner.
+Shutdown relies on process teardown and broker grant revocation.
 
 ## Failure model
 
@@ -111,18 +104,12 @@ failed. Bring-up is tried a bounded number of times with a sleep between tries
 Missing BAR0, zero queue size, or FEATURES_OK rejection prevents the capsule
 from serving. The resource ops post controlq commands; the others read state.
 
-An owner whose process is gone, or that the driver has not heard for 3 s
-(the compositor polls `OP_HEALTHCHECK` every 500 ms), has its screen blanked
-(`src/death/`):
-1. Every scanout showing a resource is detached.
-2. The owner's own resources are detached from their backing and
-   unreferenced.
-3. The primary is zeroed and sent to the host.
-4. The blank surface is shown on scanout 0.
-
-A step the device refuses does not stop the rest, and the whole blank is
-tried again on the next wake until every step lands. With no blank surface
-the scanouts are left detached.
+A silent owner (3 s, `nonos_gfx_serve`'s watch) has its primaries zeroed and
+flushed twice, so each surface, the host's copy and the screen hold none of its
+frame. A blank a device did not take whole is tried again on the next wake. A
+surface the host will not let go of stays in limbo with its pages mapped, never
+handed back to the kernel while the host may read them. It is tried again on
+every mode set and STATE (`src/display/limbo.rs`).
 
 ## Current implemented surface
 
@@ -133,22 +120,22 @@ the scanouts are left detached.
   capabilities parsed by the shared `userland/nonos_virtio` (first usable of
   each type, lengths and BARs checked, MSI-X table pages skipped).
 - Config reads for events, scanout count, and capset count.
-- IPC health, controller info, display info, control queue state, caps,
-  mode list, and the 2D resource commands.
-- The primary scanout surface, shared with the compositor.
+- The display wire: CAPS, MODES, STATE (with the host's display events),
+  SURFACE, FLUSH, MODE_SET and RETIRE, through `nonos_gfx_serve`, for every
+  enabled scanout.
 - Static gates for capability boundary and endpoint ownership.
 
 ## Wire format
 
-Requests use the `NVGP` capsule header, version `1`, and the shared 20-byte
-driver envelope. Replies begin with a 4-byte signed status word. All multi-byte
-integers are little-endian.
+The display wire's 20-byte envelope (`NVGP` magic, version `1`) and its bodies,
+as `nonos_gfx_wire` defines them. The driver's own private ops (0x02 to 0x0C)
+were retired in G-77.
 
 ## State ownership
 
 `driver.virtio_gpu0` owns only hardware-facing GPU state: PCI claim, register
-grant, control queue DMA grant, the primary scanout's DMA grant, the resource
-table, queue size, feature mask, and config counters. The compositor owns surfaces, damage, focus, cursor, z-order, and
+grant, control queue DMA grant, each output's surface (its DMA and its 2D
+resource), the primaries' pages, and surfaces in limbo. The compositor owns surfaces, damage, focus, cursor, z-order, and
 presentation policy.
 
 ## Operating rules

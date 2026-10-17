@@ -22,7 +22,7 @@ use std::sync::atomic::{fence, Ordering};
 
 use nonos_devmodel::FakeBar;
 
-use super::gpu::{Cmd, Gpu};
+use super::state::{Cmd, Host};
 use super::words::display_info;
 use crate::constants::{
     VG_CMD_GET_DISPLAY_INFO, VG_RESP_OK_NODATA, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VQ_USED_OFFSET,
@@ -31,7 +31,7 @@ use crate::tests::model::QUEUE_SIZE;
 use crate::tests::part::answers::{header, RESP_ERR_UNSPEC};
 use crate::tests::part::ring::{bytes, desc, offset_of, put, u16_at};
 
-impl Gpu {
+impl Host {
     /// True when the driver is to be killed now, at `die_at`.
     pub fn serve(&mut self, bar: &FakeBar) -> bool {
         let mut killed = false;
@@ -46,13 +46,13 @@ impl Gpu {
             let step = self.steps() + 1;
             killed |= self.die_at == Some(step);
             if self.dead(step) {
-                self.log.push(Cmd { kind, id: 0, scanout: 0, landed: false });
+                self.log.push(Cmd { kind, landed: false });
                 continue;
             }
-            let (ok, id, scanout) = self.apply(kind, &request);
-            self.log.push(Cmd { kind, id, scanout, landed: ok });
+            let ok = self.apply(kind, &request);
+            self.log.push(Cmd { kind, landed: ok });
             let mut answer = match (ok, kind) {
-                (true, VG_CMD_GET_DISPLAY_INFO) => display_info(),
+                (true, VG_CMD_GET_DISPLAY_INFO) => display_info(&self.displays),
                 (true, _) => header(VG_RESP_OK_NODATA, 0, 0),
                 (false, _) => header(RESP_ERR_UNSPEC, 0, 0),
             };

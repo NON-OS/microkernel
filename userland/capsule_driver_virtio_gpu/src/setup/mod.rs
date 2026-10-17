@@ -13,18 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod blank_surface;
 mod claim;
 mod claimed;
-mod create_primary;
 mod dma;
 mod edid;
 mod mmio;
 mod modern_caps;
 mod pci;
-mod primary_surface;
 mod probe_3d;
 mod scanouts;
 mod sequence;
-pub use primary_surface::Primary;
 pub use sequence::run;

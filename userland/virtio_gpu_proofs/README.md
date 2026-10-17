@@ -9,44 +9,39 @@ part on its own thread consumes the ring the way a device does. It links
 
 ## What it proves
 
-57 `#[test]` functions over what the virtio specification fixes and what a
-dead owner leaves:
+49 `#[test]` functions, over what the virtio specification fixes and over the
+driver on the display wire:
 
-- the bring-up, legacy and modern: the status handshake, the features the
-  driver accepts against what was offered, where it tells the part its rings
-  are, the device configuration offsets, the queue size limit and the
-  doorbell bound (`legacy_tests`, `modern_tests`, `modern_queue_tests`,
-  `modern_refusal_tests`, `config_tests`, `queue_limit_tests`,
-  `notify_bound_tests`);
-- the control queue: every command goes out as a two-descriptor chain, the
-  answer is read from the descriptor the part named, and the wire bytes of
-  each 2D command, scanout ones included, match the specification's layouts
-  (`queue_tests`, `reply_tests`, `reply_refusal_tests`, `wire_tests`,
-  `wire_scanout_tests`);
-- the answer to a refused request header (`request_refusal_tests`);
-- the reset a bring-up starts from, waited for and given up on
-  (`reset_tests`);
-- a dead or silent owner, the driver itself killed, and a restarted
-  compositor (G-73, `deaths/`). A host model answers the ring on the driver's
-  own thread through the queue wait's yield. It keeps resources with their
-  pixels and backing and what each scanout shows. It is cued to stop
-  answering, for a while or for good, or to kill the driver, at every
-  command of the blank and of the handover. The proofs:
-  - nothing of the owner's stays shown, or in a host copy, once the command
-    that takes it off has landed;
-  - the primary is zero once the driver got that far;
-  - a host back again has the next wakes finish the blank;
-  - LOST is answered once;
-  - a new owner gets a zeroed primary;
-  - an id the driver did not make in this life is refused before the host
-    hears of it;
-  - a blank that cannot be made is given back whole.
+- **The bring-up, legacy and modern:**
+  - the status handshake;
+  - the reset a bring-up starts from, waited for and given up on;
+  - the features the driver accepts against what was offered;
+  - where it tells the part its rings are;
+  - the device configuration offsets, the queue size limit and the doorbell
+    bound.
+- **The control queue:** every command goes out as a two-descriptor chain,
+  the answer is read from the descriptor the part named, and the wire bytes
+  of each 2D command match the specification's layouts.
+- **The display wire (G-77, `gpu/`, `wire_sweep/`):** a host model answers
+  the ring on the driver's own thread through the queue wait's yield. It
+  keeps resources with their own pixels and backing and what each scanout
+  shows, and can be cued to stop answering, for a while or for good, or to
+  kill the driver, at any command. It proves:
+  - the takeover of every enabled scanout;
+  - CAPS, MODES, STATE and the host's display events;
+  - flushes;
+  - a mode set wrong at every command always shows a whole picture, old or
+    new, and the host never reads pages the driver gave back;
+  - a surface the host keeps waits in limbo and goes when the host answers;
+  - a silent owner's blank wrong at every command leaves none of its frame
+    once a transfer landed, and is finished on later wakes;
+  - the shared wire sweep, run on the driver's own server.
 
 ## What it does not prove
 
 Discovery, the broker, the IPC wait loop itself, the virgl probe, pixels on a
-screen, and anything the model's reading of the 2D commands gets wrong (it
-is recalled, not checked against the specification).
+screen, and anything the model's reading of the 2D commands gets wrong (it is
+recalled, not checked against the specification).
 
 ## Run
 

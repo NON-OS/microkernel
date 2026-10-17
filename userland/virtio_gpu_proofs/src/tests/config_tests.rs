@@ -23,7 +23,12 @@
 //! device was asked for its scanout count 0x1C bytes into a 16-byte
 //! structure.
 
-use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS};
+use crate::constants::GPU_CFG_EVENTS_READ;
+
+/// The device configuration's num_scanouts and num_capsets words, as the
+/// virtio-gpu layout places them (recalled; unverified).
+const GPU_CFG_NUM_SCANOUTS: usize = 0x08;
+const GPU_CFG_NUM_CAPSETS: usize = 0x0C;
 use crate::regs::Regs;
 use crate::tests::model::{legacy_window, modern_regs, modern_window, DEVICE_AT, QUEUE_SIZE};
 
