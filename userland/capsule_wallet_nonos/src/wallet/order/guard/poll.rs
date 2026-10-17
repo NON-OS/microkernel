@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Buy's focus guard on the escrow consent, looked at every tick while it
- * shows (terms/arming.rs): the window manager asked who holds focus; Buy shown
- * armed once held ARM_MS; focus lost over the drawn consent sends the
+ * The consent's focus guard, escrow or voucher, looked at every tick while
+ * it shows (terms/arming.rs): the window manager asked who holds focus;
+ * its press shown armed once held ARM_MS; focus lost over the drawn consent sends the
  * purchase back to reading its terms, nothing shown until they are read
  * again, when the consent opens afresh and the person must ask again.
  */
@@ -30,9 +30,10 @@ use crate::wallet::order::read::Named;
 use crate::wallet::order::terms::arming::{armed, look, Guard, Look};
 use crate::wallet::state::{State, VIEW_PURCHASE};
 
-/// Whether the purchase is an escrow consent Buy could act on.
+/// Whether the purchase is a consent a press could act on: escrow Buy, or
+/// a voucher's Open channel or Use it (the the maintainers' ruling 1).
 pub fn guarded(p: &Pending) -> bool {
-    matches!((&p.step, &p.read), (Step::Consent, Ok(Named::Escrow(_))))
+    matches!((&p.step, &p.read), (Step::Consent, Ok(Named::Escrow(_) | Named::Voucher(_))))
 }
 
 /// Whether the consent shows and its guard is looked at each tick.

@@ -33,8 +33,7 @@ use crate::wallet::screen::shield::parts::field;
 use crate::wallet::state::State;
 
 pub const FIELD_TOPUP: u8 = 2;
-pub const ROW_TOPUP: u8 = 40;
-pub const ROW_CLOSE: u8 = 41;
+pub use crate::wallet::arm::rows::{ROW_CLOSE, ROW_TOPUP};
 
 pub fn channels(state: &State, a: &Account, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let m = &state.meter;

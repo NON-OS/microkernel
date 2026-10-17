@@ -45,5 +45,6 @@ pub fn new_state() -> State {
         shield_ui: super::shield_ui::ShieldUi::default(),
         meter: crate::wallet::meter::MeterUi::default(),
         publisher: crate::wallet::publish::PublisherUi::default(),
+        arm: crate::wallet::arm::look::Arm::default(),
     }
 }
