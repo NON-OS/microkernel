@@ -41,7 +41,7 @@ fn a_truncated_request_is_refused_not_read_short() {
 /// of bytes that failed to parse as a whole request.
 #[test]
 fn a_refusable_request_still_carries_its_reply_fields() {
-    let req = frame(5, 0xdeadbeef, &vec![0u8; 64]);
+    let req = frame(5, 0xdeadbeef, &[0u8; 64]);
     let cut = &req[..HDR_LEN];
     assert!(parse(cut).is_err());
     assert_eq!(u16::from_le_bytes([cut[6], cut[7]]), 5);
