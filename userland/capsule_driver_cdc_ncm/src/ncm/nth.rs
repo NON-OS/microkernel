@@ -25,8 +25,8 @@ use super::format::{Format, NTB16, NTB32};
 /// NTB32 only from a device that offered it. The header must be its
 /// format's own length, the block no longer than `rx_max` (the input size
 /// the device was given) and all of it in the transfer; a block length of
-/// 0 leaves the block's end to the transfer's. The first NDP comes after
-/// the header.
+/// 0 leaves the block's end to the transfer's. Every NDP index, the
+/// first among them, must lie past the header: ntb_in.rs's walk holds it.
 pub fn block(raw: &[u8], rx_max: usize, ntb32: bool) -> Option<(&'static Format, &[u8], usize)> {
     let f = match le32(raw, 0)? {
         s if s == NTB16.nth_sign as usize => &NTB16,
@@ -41,7 +41,7 @@ pub fn block(raw: &[u8], rx_max: usize, ntb32: bool) -> Option<(&'static Format,
         n => raw.get(..n)?,
     };
     let first = f.field(raw, if f.wide { 12 } else { 10 })?;
-    (body.len() <= rx_max && first >= f.nth_len).then_some((f, body, first))
+    (body.len() <= rx_max).then_some((f, body, first))
 }
 
 pub fn le16(b: &[u8], at: usize) -> Option<usize> {
