@@ -25,11 +25,12 @@ use nonos_aml::load::Aml;
 use nonos_aml::namespace::Id;
 use nonos_aml::object::Object;
 
-/// Evaluations whose leftover mutexes are said, each; past it they are
-/// counted only. Our bound, from no source: a method run at every SCI
-/// must not fill the log.
+/// Evaluations whose leftover mutexes, or whose loads' _REG faults, are
+/// said, each kind; past it they are counted only. Our bound, from no
+/// source: a method run at every SCI must not fill the log.
 const TELL: u32 = 16;
 static TOLD: AtomicU32 = AtomicU32::new(0);
+static TOLD_REG: AtomicU32 = AtomicU32::new(0);
 
 pub fn evaluate(
     aml: &mut Aml,
@@ -37,7 +38,7 @@ pub fn evaluate(
     id: Id,
     args: Vec<Object>,
 ) -> Result<Object, Fault> {
-    let (before, tables) = (aml.rt.left_held, aml.tables.len());
+    let (before, tables, reg) = (aml.rt.left_held, aml.tables.len(), aml.rt.reg_faults);
     let r = Machine::new(aml, host, ExecLimits::DEFAULT).evaluate(aml, id, args);
     // A table loaded at run time may define or redefine \_S5 (F-111).
     if aml.tables.len() > tables {
@@ -49,6 +50,15 @@ pub fn evaluate(
         line.dec(u64::from(left))
             .str(b" mutexes; released, in all ")
             .dec(u64::from(aml.rt.left_held))
+            .end();
+    }
+    let failed = aml.rt.reg_faults.wrapping_sub(reg);
+    if failed > 0 && TOLD_REG.fetch_add(1, Ordering::Relaxed) < TELL {
+        let line = Line::new(b"AML: method ").hex(u64::from(id)).str(b" loaded a table; _REG ");
+        line.str(b"faulted in ")
+            .dec(u64::from(failed))
+            .str(b" scopes, the load kept; in all ")
+            .dec(u64::from(aml.rt.reg_faults))
             .end();
     }
     r
