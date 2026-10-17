@@ -23,6 +23,8 @@ The page keeps its own keys:
 | Tab, `[` and `]` | Tab and `]` go to the next section, `[` to the previous one. |
 | Esc | Close Settings, or cancel the passphrase. |
 
+Each network sees its own hardware (MAC) address, made up for this machine on each boot. The address depends on the network's name and its security (open, WPA2 or WPA3), so two networks cannot tell they met the same machine. This release changed how that address is made. So on the first join after the update, every saved network sees the machine as a new device once. A router that reserves a lease or filters by MAC address needs the new address entered once.
+
 There is no Terminal command to scan or join Wi-Fi in this release. The Terminal's network commands are `ping`, `ifconfig`, `nslookup`, `curl` and `nym`.
 
 First-boot setup has its own Network step. It starts on `No network (default, private)`, so setup joins no Wi-Fi network unless you pick one. A plugged-in cable is used without asking, and setup says so when it sees a wired card. Setup says it for the e1000, RTL8139 and RTL8169 drivers too, which get no address in this release (see [Ethernet](wired.md#ethernet)).
