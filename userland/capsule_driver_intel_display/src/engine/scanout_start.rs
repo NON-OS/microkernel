@@ -23,18 +23,19 @@ use super::flip::wait_live;
 use super::ggtt;
 use super::ggtt_range::pick;
 use super::plane::{program, SURF_ALIGN};
-use super::scanout::Scanout;
+use super::scanout::{leftover, Scanout};
 use super::takeover::Output;
 
 impl Scanout {
-    /// Map both surfaces (`pages` IOVAs each, the first already holding
-    /// the picture) high in the GGTT, clear of firmware's surface, then
-    /// point the plane at the first and wait until it is live.
+    /// Map both surfaces (`pages` IOVAs each) high in the GGTT, clear of
+    /// firmware's surface unless it reaches into the entries from `ours` up
+    /// (a dead driver's, mapped over), then show the first once it is live.
     pub fn start(
         m: &mut dyn Mmio,
         out: &Output,
         total: u32,
         iovas: [&[u64]; 2],
+        ours: u32,
         until: &dyn Expiry,
     ) -> Result<Scanout, Error> {
         let fw = out.plane;
@@ -49,7 +50,7 @@ impl Scanout {
         let align = SURF_ALIGN / 4096;
         let fw_first = fw.live / 4096;
         let fw_pages = (fw.stride.max(stride) * fw.height).div_ceil(4096);
-        let avoid = (fw_first, fw_first + fw_pages);
+        let avoid = if leftover(&fw, ours) { (0, 0) } else { (fw_first, fw_first + fw_pages) };
         let a = pick(total, pages, align, avoid).ok_or(Error::GgttFull)?;
         let b = pick(a, pages, align, avoid).ok_or(Error::GgttFull)?;
         ggtt::map(m, out.ggtt, a, iovas[0], total)?;
