@@ -16,40 +16,48 @@
 
 /*
  * What the person reads before a publisher transaction is signed: the
- * action decoded from the values the wallet itself will encode, as
- * (label, value) rows. Pure: NOX amounts come through `nox`.
+ * action and every argument, whole, as (label, value) rows; page.rs gives
+ * it the Publisher decoded from the calldata signed. Pure: NOX amounts
+ * come through `nox`, addresses through `k` and `at`.
  */
 
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
-use super::call::Publisher;
-use super::review_bond::{bond_rows, Rows};
-use super::text::id;
+use nonos_marketplace_abi::Keccak;
 
-pub fn review_rows(p: &Publisher, nox: fn(u128) -> String) -> Rows {
+use super::call::Publisher;
+use super::review_bond::{bond_rows, At, Rows};
+use super::text::hex;
+
+pub fn review_rows(p: &Publisher, k: &impl Keccak, at: At, nox: fn(u128) -> String) -> Rows {
     use Publisher::*;
     let s = |t: &str| t.to_string();
     match p {
-        Publish { release_id, release_hash, bond_id, uri, .. } => Vec::from([
-            ("action", s("publish a release")),
-            ("release", id(release_id)),
-            ("release hash", id(release_hash)),
-            ("bond", id(bond_id)),
-            ("fetched from", String::from_utf8_lossy(uri).into_owned()),
-        ]),
+        Publish { publisher_key, app_id_hash, release_id, release_hash, bond_id, uri } => {
+            Vec::from([
+                ("action", s("publish a release")),
+                ("publisher key", hex(publisher_key)),
+                ("app", hex(app_id_hash)),
+                ("release", hex(release_id)),
+                ("release hash", hex(release_hash)),
+                ("bond", hex(bond_id)),
+                ("fetched from", String::from_utf8_lossy(uri).into_owned()),
+            ])
+        }
         WithdrawRelease { listing_id, release_id } => Vec::from([
             ("action", s("withdraw a release")),
-            ("listing", id(listing_id)),
-            ("release", id(release_id)),
+            ("listing", hex(listing_id)),
+            ("release", hex(release_id)),
         ]),
         Anchor { anchor, kind, listing_id } => Vec::from([
             ("action", s("anchor a proof on chain")),
-            ("anchor", id(anchor)),
+            ("anchor", hex(anchor)),
             ("proof kind", format!("{kind}")),
-            ("listing", id(listing_id)),
+            ("listing", hex(listing_id)),
+            ("commits to", s("a hash, not a location: nothing is fetched from it")),
         ]),
-        _ => bond_rows(p, nox).unwrap_or_default(),
+        _ => bond_rows(p, k, at, nox).unwrap_or_default(),
     }
 }

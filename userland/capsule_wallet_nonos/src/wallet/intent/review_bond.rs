@@ -16,48 +16,56 @@
 
 /*
  * Review rows for the NOX and Bond kinds: approve, bond, the delivery
- * agent, unbonding, and the Bond's withdrawals.
+ * agent, unbonding, and the Bond's withdrawals; ids and addresses whole.
  */
 
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
+use nonos_marketplace_abi::Keccak;
+use nonos_nox_config::Contract;
+
 use super::call::Publisher;
-use super::text::{contract_name, hex, id};
+use super::text::{addr_text, contract_name, hex, placed};
 
 pub type Rows = Vec<(&'static str, String)>;
 
-pub fn bond_rows(p: &Publisher, nox: fn(u128) -> String) -> Option<Rows> {
+pub type At<'a> = &'a dyn Fn(Contract) -> Option<[u8; 20]>;
+
+pub fn bond_rows(p: &Publisher, k: &impl Keccak, at: At, nox: fn(u128) -> String) -> Option<Rows> {
     use Publisher::*;
     let s = |t: &str| t.to_string();
     Some(match p {
-        Approve { spender, amount } => Vec::from([
-            ("action", s("let a contract take NOX from this account")),
-            ("taker", s(contract_name(*spender))),
-            ("amount", format!("{} NOX, exactly this, never unlimited", nox(*amount))),
-        ]),
+        Approve { spender, amount } => {
+            let (name, n) = (contract_name(*spender), nox(*amount));
+            Vec::from([
+                ("action", format!("set NOX allowance for {name} to {n} NOX")),
+                ("taker", placed(k, *spender, at(*spender))),
+                ("amount", format!("{n} NOX, exactly this, never unlimited")),
+            ])
+        }
         Bond { publisher_key, amount } => Vec::from([
             ("action", s("bond NOX for a publisher key")),
-            ("publisher key", id(publisher_key)),
+            ("publisher key", hex(publisher_key)),
             ("amount", format!("{} NOX", nox(*amount))),
             ("risk", s("slashed for a lost dispute, or two different attests of one release")),
         ]),
         SetDeliveryAgent { bond_id, agent } => Vec::from([
             ("action", s("name who delivers escrow orders")),
-            ("bond", id(bond_id)),
-            ("agent", hex(agent)),
+            ("bond", hex(bond_id)),
+            ("agent", addr_text(k, agent)),
         ]),
         RequestUnbond { bond_id } => Vec::from([
             ("action", s("start unbonding")),
-            ("bond", id(bond_id)),
+            ("bond", hex(bond_id)),
             ("after", s("no new orders; the bond can be withdrawn once the unbond delay passes")),
         ]),
         WithdrawBond { bond_id } => {
-            Vec::from([("action", s("withdraw the bond")), ("bond", id(bond_id))])
+            Vec::from([("action", s("withdraw the bond")), ("bond", hex(bond_id))])
         }
         WithdrawBondCredit { to } => {
-            Vec::from([("action", s("withdraw the Bond's credit")), ("to", hex(to))])
+            Vec::from([("action", s("withdraw the Bond's credit")), ("to", addr_text(k, to))])
         }
         _ => return None,
     })
