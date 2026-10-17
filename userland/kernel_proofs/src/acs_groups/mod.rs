@@ -30,6 +30,7 @@ mod model;
 mod model_tests;
 mod pick_chain_tests;
 mod pick_gen;
+mod pick_namer_tests;
 mod pick_sweep_tests;
 mod pick_tests;
 mod pick_tree_tests;

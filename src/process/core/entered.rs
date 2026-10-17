@@ -38,6 +38,12 @@ impl ProcessControlBlock {
         let _ = self.live_to(ProcessState::Ready);
     }
 
+    /// Terminated(-1) for an entry that cannot go on, unless killed: the
+    /// kill's own code stands for the parent's wait (L77d).
+    pub(crate) fn mark_failed(&self) {
+        let _ = self.live_to(ProcessState::Terminated(-1));
+    }
+
     fn live_to(&self, to: ProcessState) -> bool {
         let mut state = self.state.lock();
         let dead = matches!(*state, ProcessState::Zombie(_) | ProcessState::Terminated(_));

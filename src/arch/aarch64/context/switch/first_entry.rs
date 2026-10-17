@@ -19,7 +19,7 @@ use core::sync::atomic::Ordering;
 
 use crate::arch::aarch64::context::enter::enter_user;
 use crate::arch::aarch64::fpu;
-use crate::process::core::{ProcessControlBlock, ProcessState, CURRENT_PID};
+use crate::process::core::{ProcessControlBlock, CURRENT_PID};
 use crate::process::scheduler::preemption::{set_time_slice, DEFAULT_TIME_SLICE};
 
 use super::address_space::swap_address_space;
@@ -32,14 +32,14 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
 
     let kstack = pcb.kernel_stack_top.load(Ordering::Acquire);
     if kstack == 0 {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
         return true;
     }
 
     if entry.kernel_sp == 0 {
         entry.kernel_sp = kstack;
     } else if entry.kernel_sp != kstack {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
         return true;
     }
 
@@ -48,7 +48,7 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
         return true;
     }
     if swap_address_space(pcb).is_err() {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
         return true;
     }
 
@@ -58,7 +58,7 @@ pub(super) fn try_first_entry(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool 
     fpu::prepare_incoming();
 
     if unsafe { enter_user(&entry) }.is_err() {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
     }
     true
 }
