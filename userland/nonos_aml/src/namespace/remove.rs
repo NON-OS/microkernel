@@ -27,10 +27,11 @@ impl Namespace {
     pub fn remove(&mut self, id: Id) -> Vec<Id> {
         let mut gone = Vec::new();
         self.remove_into(id, &mut gone);
+        self.drop_aliases_to(&mut gone);
         gone
     }
 
-    fn remove_into(&mut self, id: Id, gone: &mut Vec<Id>) {
+    pub(super) fn remove_into(&mut self, id: Id, gone: &mut Vec<Id>) {
         if id == ROOT || self.get(id).is_none() {
             return;
         }

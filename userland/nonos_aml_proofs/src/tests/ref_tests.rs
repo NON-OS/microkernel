@@ -10,6 +10,9 @@ fn run(defs: &[u8], body: &[u8]) -> Result<crate::object::Object, crate::exec::F
     call(&mut aml, "\\M", vec![])
 }
 
+#[path = "refs/mod.rs"]
+mod refs;
+
 #[test]
 fn cond_ref_of_tells_present_from_absent() {
     let int0 = name_obj("INT0", &int(5));
