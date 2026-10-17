@@ -24,3 +24,5 @@
 mod again;
 mod check;
 mod first;
+
+pub(super) use check::is_message3;
