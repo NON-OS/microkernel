@@ -18,28 +18,41 @@ fn order(src: &str, marks: &[&str]) {
 }
 
 #[test]
-fn ranges_go_in_before_the_device_and_come_out_if_it_does_not() {
+fn ranges_go_in_before_the_device_and_come_out_after_it() {
     order(
         &code("hardware/broker/confine/attach.rs"),
         &[
-            "let added = match reserve(&mut all[pos], address) {",
-            "Err(why) => return refuse(&mut all, pos, why, pid, address),",
+            "if let Err(why) = reserve(&mut all[pos], address) {",
+            "return refuse(&mut all, pos, why, pid, address);",
             "let _ = all[pos].domain.detach_device(address);",
             "if all[pos].domain.attach_device(address).is_err() {",
-            "unreserve(&mut all[pos], added);",
+            "release(&mut all[pos], address);",
         ],
     );
     order(&code("hardware/broker/confine/reserve.rs"), &[
         "if let Some(why) = found.unresolved {",
-        "filter(|r| !c.reserved.contains(r))",
+        "let ranges = unheld(&c.reserved, found.ranges());",
         "held.push((IOVA_BASE, c.next_iova));",
         "admit(&ranges, &held, crate::arch::reserved_memory_regions()).map_err(|r| r.reason())?;",
         "c.domain.map(",
         "for done in &ranges[..i] {",
-        "c.reserved.extend(ranges);",
+        "name(&mut c.reserved, found.ranges(), device);",
     ]);
+    // Out of the domain first, then its last-named ranges; not while another
+    // device behind the same requester id is still attached.
+    order(
+        &code("hardware/broker/confine/detach.rs"),
+        &[
+            "if all[pos].devices.iter().any(|(_, a)| *a == address) {",
+            "return;",
+            "if all[pos].domain.detach_device(address).is_err() {",
+            "return;",
+            "super::unreserve::release(&mut all[pos], address);",
+            "if all[pos].devices.is_empty() {",
+        ],
+    );
     let un = code("hardware/broker/confine/unreserve.rs");
-    assert!(un.contains("c.reserved.split_off(c.reserved.len().saturating_sub(added))"));
+    assert!(un.contains("for range in unname(&mut c.reserved, device) {"));
     assert!(un.contains("c.domain.unmap(range.iova, range.len as usize)"));
 }
 

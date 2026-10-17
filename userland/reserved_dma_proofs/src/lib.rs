@@ -15,6 +15,8 @@ pub mod avoid;
 pub mod device;
 #[path = "../../../src/arch/fdt/find/reserved_dma/entry.rs"]
 pub mod entry;
+#[path = "../../../src/hardware/broker/confine/held.rs"]
+pub mod held;
 #[path = "../../../src/hardware/broker/confine/iova_space.rs"]
 pub mod iova_space;
 #[path = "../../../src/arch/aarch64/iommu/reserved/lookup.rs"]

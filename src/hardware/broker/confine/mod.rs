@@ -23,6 +23,7 @@
 mod attach;
 mod avoid;
 mod detach;
+mod held;
 mod iova;
 mod iova_space;
 mod map;

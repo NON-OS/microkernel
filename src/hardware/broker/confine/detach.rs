@@ -20,7 +20,8 @@ use super::table::{say, CAPSULES};
 
 /// Back to denied, not to the identity domain: nothing drives the device now,
 /// and the next claim attaches it afresh. The domain goes with the capsule's
-/// last device, which denies it everything it still mapped.
+/// last device, which denies it everything it still mapped; a reserved range
+/// goes sooner, at the detach of the last device naming it.
 pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
     let mut all = CAPSULES.lock();
     let Some(pos) = all.iter().position(|c| c.pid == pid) else {
@@ -39,6 +40,8 @@ pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
         say(b"detach failed; the domain is kept", pid, address);
         return;
     }
+    // Out of the domain, so its last-named reserved ranges come out too.
+    super::unreserve::release(&mut all[pos], address);
     say(b"released and denied", pid, address);
     if all[pos].devices.is_empty() {
         all.remove(pos);
