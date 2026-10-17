@@ -19,8 +19,10 @@
 //! and stated patterns: the result, and what it cost in steps, nesting and
 //! time.
 
+mod crs_tests;
 mod deep_rig;
 mod deep_tests;
+mod dsm_tests;
 mod ec_tests;
 mod index_bank_rig;
 mod index_bank_tests;
@@ -29,7 +31,10 @@ mod notify_tests;
 mod nvs_rig;
 mod nvs_tests;
 mod osi_tests;
+mod pkg_tests;
 mod poll_tests;
 mod prw_rig;
 mod prw_tests;
 mod run;
+mod smi_tests;
+mod wide_index_tests;
