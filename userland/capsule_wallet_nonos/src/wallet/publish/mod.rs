@@ -21,6 +21,7 @@ mod kec;
 mod send_answer;
 mod send_ask;
 pub mod send_drive;
+mod send_retry;
 mod send_sign;
 pub mod send_start;
 pub mod sending;
