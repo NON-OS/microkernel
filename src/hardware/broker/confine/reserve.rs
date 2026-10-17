@@ -21,29 +21,27 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::held::{name, unheld};
 use super::iova::IOVA_BASE;
 use super::table::Capsule;
 use crate::memory::addr::PhysAddr;
 use crate::memory::iommu::reserved::admit;
 use crate::memory::iommu::{DeviceAddress, IommuProtection};
 
-/// Map `device`'s ranges into `c`'s domain and hold their IOVAs from the
-/// allocator, returning how many were added; or why not, in which case
-/// nothing was left mapped.
-pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<usize, &'static [u8]> {
+/// Map `device`'s ranges into `c`'s domain, hold their IOVAs from the
+/// allocator and record `device` as naming them; or why not, in which case
+/// nothing new was left mapped and nothing recorded.
+pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<(), &'static [u8]> {
     let found = crate::arch::device_reserved_regions(device);
     if let Some(why) = found.unresolved {
         return Err(why);
     }
     // A range the domain already holds exactly, from another function behind
     // the same host bridge, is in place; anything else must be admitted.
-    let ranges: Vec<_> =
-        found.ranges().iter().filter(|r| !c.reserved.contains(r)).copied().collect();
-    if ranges.is_empty() {
-        return Ok(0);
-    }
+    let ranges = unheld(&c.reserved, found.ranges());
     // Everything below the bump pointer may be granted: held as one span.
-    let mut held: Vec<(u64, u64)> = c.reserved.iter().map(|r| (r.iova, r.iova + r.len)).collect();
+    let mut held: Vec<(u64, u64)> =
+        c.reserved.iter().map(|h| (h.range.iova, h.range.iova + h.range.len)).collect();
     if c.next_iova > IOVA_BASE {
         held.push((IOVA_BASE, c.next_iova));
     }
@@ -69,7 +67,6 @@ pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<usize, &
             return Err(b"a reserved range could not be mapped");
         }
     }
-    let added = ranges.len();
-    c.reserved.extend(ranges);
-    Ok(added)
+    name(&mut c.reserved, found.ranges(), device);
+    Ok(())
 }

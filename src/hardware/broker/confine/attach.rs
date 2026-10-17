@@ -18,7 +18,7 @@ use super::posture::unconfined_allowed;
 use super::refuse::refuse;
 use super::reserve::reserve;
 use super::table::{pci_address, say, Capsule, CAPSULES};
-use super::unreserve::unreserve;
+use super::unreserve::release;
 use crate::memory::iommu::IommuDomain;
 
 /// The unit is in service and would not take the device, so the claim is
@@ -87,15 +87,14 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
     }
     // Its reserved ranges in the new domain before it is attached there, so
     // it never runs without them; all of them, or the claim is refused.
-    let added = match reserve(&mut all[pos], address) {
-        Ok(added) => added,
-        Err(why) => return refuse(&mut all, pos, why, pid, address),
-    };
+    if let Err(why) = reserve(&mut all[pos], address) {
+        return refuse(&mut all, pos, why, pid, address);
+    }
     // Out of the identity domain first. Between the two writes the device has
     // no context entry, which denies it: the safe side to be on.
     let _ = all[pos].domain.detach_device(address);
     if all[pos].domain.attach_device(address).is_err() {
-        unreserve(&mut all[pos], added);
+        release(&mut all[pos], address);
         return refuse(&mut all, pos, b"refused: attach failed", pid, address);
     }
     all[pos].devices.push((device_id, address));

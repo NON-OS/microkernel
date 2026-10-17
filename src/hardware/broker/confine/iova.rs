@@ -30,7 +30,8 @@ pub(super) use super::iova_space::IOVA_BASE;
 /// including the step over the interrupt window, is `iova_space::place`, and
 /// it never lands on one of the capsule's reserved ranges (`avoid`).
 pub(super) fn take(c: &mut Capsule, length: u64) -> Option<u64> {
-    let spans: Vec<(u64, u64)> = c.reserved.iter().map(|r| (r.iova, r.iova + r.len)).collect();
+    let spans: Vec<(u64, u64)> =
+        c.reserved.iter().map(|h| (h.range.iova, h.range.iova + h.range.len)).collect();
     let (start, end) = place_avoiding(c.next_iova, length, &spans)?;
     c.next_iova = end;
     Some(start)
