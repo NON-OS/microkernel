@@ -22,6 +22,9 @@ use nonos_libc::dma_spans;
 use super::ask::{ask, words};
 use super::rig::Rig;
 
+/// The legacy-shaped window's device configuration: events read.
+pub const EVENTS_READ: usize = 0x14;
+
 /// SURFACE for `o`, its primary filled with `px` and flushed whole.
 pub fn draw(r: &mut Rig, o: u16, px: u32) -> Surface {
     let s = Surface::decode(&ask(r, ops::SURFACE, o, &[]).1).expect("a surface");
@@ -52,4 +55,16 @@ pub fn backed_live(r: &Rig) -> bool {
     let spans = dma_spans();
     let held = |a: u64, n: u32| spans.iter().any(|&(_, b, l)| a >= b && a + n as u64 <= b + l);
     r.host.borrow().res.values().filter_map(|x| x.backing).all(|(a, n)| held(a, n))
+}
+
+/// The host turns scanout `s` to `d` (0 x 0: off) and raises the display
+/// event in the device configuration's events word.
+pub fn raise(r: &mut Rig, s: usize, d: (u32, u32)) {
+    r.host.borrow_mut().displays[s] = d;
+    r.regs.present32(EVENTS_READ, 1);
+}
+
+/// STATE for `o` as the compositor reads it.
+pub fn state(r: &mut Rig, o: u16) -> nonos_gfx_wire::State {
+    nonos_gfx_wire::State::decode(&ask(r, ops::STATE, o, &[]).1).expect("a state")
 }
