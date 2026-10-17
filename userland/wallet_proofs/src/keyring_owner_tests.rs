@@ -30,10 +30,13 @@ fn an_owner_stops_at_its_share_and_another_still_stores() {
     assert_eq!(total, MAX_KEYS);
 }
 
+const _: () = assert!(MAX_KEYS_PER_OWNER < MAX_KEYS);
+
 #[test]
-#[allow(clippy::assertions_on_constants)] // the relation is the point
 fn one_owner_never_holds_every_key() {
-    assert!(MAX_KEYS_PER_OWNER < MAX_KEYS);
+    let mut s = Store::new();
+    fill(&mut s, A);
+    assert!(!s.is_full(), "one owner's whole share leaves room for another");
 }
 
 #[test]
