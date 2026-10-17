@@ -17,7 +17,6 @@
 
 use super::super::config::read32_unchecked;
 use super::super::constants::*;
-use super::super::security::check_device_allowed;
 use super::super::types::{ClassCode, DeviceId, HeaderType, PciAddress, PciDevice};
 
 /// The function's ids, class, header type and interrupt line and pin; None
@@ -31,10 +30,6 @@ pub(super) fn read_header(bus: u8, device_num: u8, function: u8) -> Option<PciDe
     }
 
     let device_id = ((id >> 16) & 0xFFFF) as u16;
-
-    if check_device_allowed(vendor_id, device_id).is_err() {
-        return None;
-    }
 
     let class_reg = read32_unchecked(bus, device_num, function, CFG_REVISION_ID as u8);
     let revision = (class_reg & 0xFF) as u8;
