@@ -35,7 +35,7 @@ pub(super) fn record(mask: u8) {
 
 /// The mask of the CPU whose affinity is `packed` (`Aff3:Aff2:Aff1:Aff0`, a
 /// byte each), or `None` before that CPU is up or if no CPU has it.
-pub(super) fn of_affinity(packed: u32) -> Option<u8> {
+pub(in crate::arch::aarch64::gic) fn of_affinity(packed: u32) -> Option<u8> {
     let p = packed as u64;
     let mpidr = ((p >> 24) << 32) | (p & 0x00FF_FFFF);
     let index = roster::index_of(mpidr)?;

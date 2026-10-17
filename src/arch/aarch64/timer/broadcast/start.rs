@@ -21,21 +21,13 @@ use core::arch::asm;
 
 use super::frame::Frame;
 use super::handler::on_fire;
-use super::state::{DESCRIBED, FRAME};
-use crate::arch::aarch64::gic::{enable_irq, register_irq_handler};
+use super::state::{DESCRIBED, FRAME, OWNER};
+use crate::arch::aarch64::boot::multicore::roster;
+use crate::arch::aarch64::cpu::mpidr_affinity;
+use crate::arch::aarch64::gic::{enable_irq, register_irq_handler, route_spi_here};
 use crate::arch::aarch64::timer::{current_count, frequency};
-use crate::arch::fdt::find::timer_mem::find;
-use crate::arch::fdt::{Fdt, FdtError};
 use crate::memory::addr::PhysAddr;
 use crate::memory::mmio::map_device_memory;
-
-/// Keep the tree's frame; boot calls this while the tree is read.
-pub fn describe(fdt: &Fdt) -> Result<(), FdtError> {
-    if let Some(found) = find(fdt)? {
-        DESCRIBED.call_once(|| found);
-    }
-    Ok(())
-}
 
 /// Map the frame, check it counts the counter this CPU reads, and take its
 /// interrupt. The frame's number, or why there is none to use.
@@ -63,6 +55,11 @@ pub fn start() -> Result<u32, &'static [u8]> {
         return Err(b"its frame reports another counter frequency");
     }
     register_irq_handler(found.intid, on_fire).map_err(|_| &b"its interrupt is taken"[..])?;
+    // Aimed here, at the CPU that owns it from now on, not left wherever
+    // the GIC's bring-up happened to route every SPI.
+    let owner = roster::index_of(mpidr_affinity()).ok_or(&b"this CPU is not in the roster"[..])?;
+    route_spi_here(found.intid).map_err(str::as_bytes)?;
+    OWNER.call_once(|| owner);
     FRAME.call_once(|| frame);
     enable_irq(found.intid);
     Ok(found.number)
