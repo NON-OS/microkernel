@@ -24,7 +24,7 @@ use super::rig::rig;
 use super::wrong::{run, Wrong};
 
 /// The legacy-shaped window's device configuration: events read, clear.
-const EVENTS_READ: usize = 0x14;
+use super::kit::EVENTS_READ;
 const EVENTS_CLEAR: usize = 0x18;
 
 #[test]

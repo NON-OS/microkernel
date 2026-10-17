@@ -22,6 +22,7 @@ use nonos_gfx_wire::errno::{ENOSYS, ENXIO};
 use nonos_gfx_wire::{Caps, Cursor, Errno, Mode, Rect, State};
 
 use super::gpu::Gpu;
+use super::plug::Plug;
 use super::{describe, modes};
 
 impl Display for Gpu {
@@ -38,7 +39,7 @@ impl Display for Gpu {
         // The compositor's 500 ms poll: limbo is tried on it, not only when
         // a mode is set, so a host back again gets its pages freed soon.
         self.retry_limbo();
-        self.events();
+        let _ = self.events();
         describe::state(self, output)
     }
 
@@ -47,9 +48,14 @@ impl Display for Gpu {
     }
 
     fn flush(&mut self, output: u16, rects: &[Rect], shadow: &Shadow) -> Result<(), Errno> {
-        let s = &self.head(output).ok_or(ENXIO)?.shown;
-        self.load(s, rects, shadow)?;
-        self.flush_rects(s, rects)
+        let h = self.head(output).ok_or(ENXIO)?;
+        // Off, or back but not yet shown again: nothing is on the screen to
+        // update, and the mode set that shows it again loads the whole.
+        if h.plug != Plug::In {
+            return Ok(());
+        }
+        self.load(&h.shown, rects, shadow)?;
+        self.flush_rects(&h.shown, rects)
     }
 
     fn cursor(&mut self, _output: u16, _c: &Cursor, _slot: &[u8]) -> Result<(), Errno> {

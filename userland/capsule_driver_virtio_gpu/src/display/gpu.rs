@@ -33,6 +33,7 @@ pub struct Head {
     pub shown: Surface,
     /// The size the host's display info asked for this scanout.
     pub hint: (u32, u32),
+    pub plug: super::plug::Plug,
 }
 
 pub struct Gpu {

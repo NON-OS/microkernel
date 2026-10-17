@@ -31,9 +31,15 @@ use nonos_libc::{mk_exit, mk_ipc_send_to_pid, EXIT_ABSENT};
 /// A DGON named this driver's device (`turn`); `owner` is the compositor
 /// that asked for its primaries, if one has.
 pub fn leave(owner: Option<u32>) -> ! {
+    tell(owner, LEAVING);
+    mk_exit(EXIT_ABSENT)
+}
+
+/// One OUTPUT_NOTICE to `owner`; its inbox full, or no owner yet, the
+/// compositor's own poll finds the same a moment later.
+pub fn tell(owner: Option<u32>, why: u32) {
     if let Some(pid) = owner {
-        let n = notice(LEAVING);
+        let n = notice(why);
         let _ = mk_ipc_send_to_pid(pid, n.as_ptr(), n.len());
     }
-    mk_exit(EXIT_ABSENT)
 }

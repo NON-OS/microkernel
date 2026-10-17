@@ -21,17 +21,23 @@
 //! is not undone: the picture is on the host and the next flush shows it.
 
 use nonos_gfx_serve::Shadow;
-use nonos_gfx_wire::errno::{EINVAL, ETIMEDOUT};
+use nonos_gfx_wire::errno::{EAGAIN, EINVAL, ETIMEDOUT};
 use nonos_gfx_wire::{Errno, Rect};
 
 use super::gpu::Gpu;
+use super::plug::Plug;
 use super::show::area;
 use crate::device::cmd::set_scanout;
 
 impl Gpu {
     pub fn mode_set(&mut self, output: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
         self.retry_limbo();
-        let scanout = self.head(output).ok_or(EINVAL)?.scanout;
+        let head = self.head(output).ok_or(EINVAL)?;
+        // Off: there is no screen to set a mode on until the host is back.
+        if head.plug == Plug::Out {
+            return Err(EAGAIN);
+        }
+        let scanout = head.scanout;
         let new = self.make(w, h)?;
         let whole = [Rect { x: 0, y: 0, width: w, height: h }];
         let ready = self.load(&new, &whole, shadow);
@@ -45,6 +51,7 @@ impl Gpu {
         }
         let _ = self.flush_rects(&new, &whole);
         let head = self.heads[output as usize].as_mut().ok_or(EINVAL)?;
+        head.plug = Plug::In;
         let old = core::mem::replace(&mut head.shown, new);
         self.give_back(old);
         Ok(())

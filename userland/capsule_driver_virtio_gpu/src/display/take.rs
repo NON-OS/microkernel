@@ -24,6 +24,7 @@ use nonos_gfx_serve::{Panel, MAX_OUTPUTS};
 use nonos_gfx_wire::Rect;
 
 use super::gpu::{Gpu, Head};
+use super::plug::Plug;
 use super::show::area;
 use crate::constants::VG_MAX_SCANOUTS;
 use crate::device::cmd::set_scanout;
@@ -55,7 +56,8 @@ pub fn take(
             continue;
         }
         let _ = g.flush_rects(&shown, &whole);
-        g.heads[g.outputs as usize] = Some(Head { scanout: id, shown, hint: (s.width, s.height) });
+        g.heads[g.outputs as usize] =
+            Some(Head { scanout: id, shown, hint: (s.width, s.height), plug: Plug::In });
         g.outputs += 1;
     }
     if g.outputs == 0 {
