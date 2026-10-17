@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod common;
+mod sigs;
 
 use common::{canonical, ELF, IDCERT, MANIFEST, ZKTR};
 use nonos_pack_core::parse;
@@ -34,7 +35,7 @@ fn canonical_package_parses_all_four_sections() {
 fn trailer_off_stops_at_signed_region_end() {
     let plain_len = canonical().len();
     let mut b = canonical();
-    b.extend_from_slice(&common::trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
+    b.extend_from_slice(&sigs::trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
     let (_, trailer_off) = parse(&b).unwrap();
     assert_eq!(trailer_off, plain_len);
 }
