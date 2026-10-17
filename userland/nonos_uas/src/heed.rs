@@ -35,7 +35,9 @@ impl Exchange {
         if self.ended || iu.tag() != self.tag {
             return self.let_go();
         }
-        let ready = |want: DataDir| !self.streams && !self.moved && self.dir == want;
+        // With streams the data has moved before the status pipe is read,
+        // so a READY then is out of turn by `moved` alone.
+        let ready = |want: DataDir| !self.moved && self.dir == want;
         match iu {
             StatusIu::ReadReady { .. } if ready(DataDir::In) => Step::DataIn,
             StatusIu::WriteReady { .. } if ready(DataDir::Out) => Step::DataOut,

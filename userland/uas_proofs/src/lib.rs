@@ -13,3 +13,7 @@ mod exchange_tests;
 mod iu_tests;
 #[cfg(test)]
 mod pipes_tests;
+#[cfg(test)]
+mod status_sweep;
+#[cfg(test)]
+mod status_sweep_tests;
