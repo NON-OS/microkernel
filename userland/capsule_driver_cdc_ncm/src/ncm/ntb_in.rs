@@ -37,6 +37,8 @@ pub fn datagrams(raw: &[u8], rx_max: usize, ntb32: bool, out: &mut VecDeque<(usi
     let Some((f, b, mut at)) = block(raw, rx_max, ntb32) else { return };
     // One bit per byte a block of one bulk transfer can hold.
     let mut read = [0u64; BULK_MAX / 64];
+    // An NDP never lies in the header. Nor could one read there take a
+    // datagram: its signature would sit on the header's own fixed fields.
     while at != 0 && at >= f.nth_len {
         let Some(word) = read.get_mut(at / 64) else { return };
         if *word & (1 << (at % 64)) != 0 {
