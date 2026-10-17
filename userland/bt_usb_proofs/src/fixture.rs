@@ -43,6 +43,12 @@ pub fn keyboard() -> (Stack, BdAddr, TestEnv) {
     with(Peer::new(IoCap::KeyboardOnly, true), keyboard_mouse(), &HID_ADV)
 }
 
+/// The same keyboard, but with no way to take part in pairing, so it bonds
+/// Just Works: unauthenticated, open to a device in the middle.
+pub fn unauth_keyboard() -> (Stack, BdAddr, TestEnv) {
+    with(Peer::new(IoCap::NoInputNoOutput, false), keyboard_mouse(), &HID_ADV)
+}
+
 pub fn with(smp: Peer, db: Db, adv: &[u8]) -> (Stack, BdAddr, TestEnv) {
     let shown = Rc::new(Cell::new(None));
     let air = Air::new(adv, smp, Peripheral::new(db), shown.clone());
