@@ -23,6 +23,7 @@ use super::stage_rule::over;
 use super::state::{claims, next_epoch};
 use super::types::{Claim, ClaimError};
 use super::wipe::{self, Admit, Fresh};
+use crate::kernel_core::init::framebuffer::surrendered;
 
 /// Frames kept for a function past this refuse its claims (our bound).
 const KEEP_CAP: u64 = 256 << 20;
@@ -52,6 +53,10 @@ pub(super) fn enter(pid: u32, device_id: u64, fresh: Option<&Fresh>) -> Result<u
             );
             return Err(ClaimError::Refused);
         }
+    }
+    // Once a GPU driver's claim took its scanout, for the rest of the boot.
+    if crate::hardware::broker::bootfb::is_boot_framebuffer(device_id) && surrendered() {
+        return Err(ClaimError::Refused);
     }
     let epoch = next_epoch();
     claims.push(Claim::making(pid, device_id, epoch));
