@@ -55,8 +55,9 @@ fn a_switch_counts_its_ports_whatever_they_say_and_a_false_namer_hides_none() {
 
 #[test]
 fn a_swapped_switch_on_a_root_bus_counts_its_ports() {
-    // No root port above: the upstream port says root, its ports upstream.
-    let lied =
-        [(0, Some(1), Some(ROOT)), (1, Some(2), Some(UPSTREAM)), (1, Some(3), Some(UPSTREAM))];
-    assert_eq!(counted(&lied), vec![1, 2], "a link carries one component");
+    // No root port above: the upstream port says root, a port upstream.
+    for d in [Some(UPSTREAM), Some(DOWNSTREAM), None, Some(ROOT)] {
+        let lied = [(0, Some(1), Some(ROOT)), (1, Some(2), Some(UPSTREAM)), (1, Some(3), d)];
+        assert_eq!(counted(&lied), vec![1, 2], "a link carries one component: {d:?}");
+    }
 }
