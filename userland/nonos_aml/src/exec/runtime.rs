@@ -50,9 +50,10 @@ pub struct Runtime {
     pub announced: Vec<(Id, u8)>,
     /// How deep this capsule holds the Global Lock.
     pub global_lock: u32,
-    /// Mutexes evaluations ended still holding, released for them: a
-    /// firmware bug, counted for the capsule to log.
+    /// Firmware bugs counted for the capsule to log: mutexes evaluations
+    /// ended still holding (released for them), and _REG faults after a load.
     pub left_held: u32,
+    pub reg_faults: u32,
 }
 
 impl Runtime {
@@ -65,7 +66,6 @@ impl Runtime {
         self.buffer_fields.remove(&id);
         self.announced.retain(|(s, _)| *s != id);
     }
-
     pub fn value(&mut self, id: Id) -> &mut Option<Object> {
         if self.values.len() <= id as usize {
             self.values.resize(id as usize + 1, None);

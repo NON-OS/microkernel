@@ -26,7 +26,8 @@ use alloc::vec::Vec;
 impl<H: Host> Machine<'_, H> {
     /// After a table loads: its regions in a space already connected are
     /// announced too, or a device it defines would wait for a _REG that
-    /// never comes. A fault there does not undo the load.
+    /// never comes. A fault there does not undo the load; it is counted
+    /// for the capsule to say.
     pub(crate) fn announce_loaded(&mut self, aml: &mut Aml) {
         let mut spaces: Vec<u8> = Vec::new();
         for (_, space) in regions(aml) {
@@ -35,7 +36,8 @@ impl<H: Host> Machine<'_, H> {
             }
         }
         for space in spaces {
-            let _ = self.announce(aml, Space(space));
+            let failed = self.announce(aml, Space(space)).len() as u32;
+            aml.rt.reg_faults = aml.rt.reg_faults.saturating_add(failed);
         }
     }
 }
