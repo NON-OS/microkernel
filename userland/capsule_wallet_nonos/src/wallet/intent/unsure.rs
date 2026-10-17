@@ -31,11 +31,15 @@ use crate::wallet::send::sent::Ledger;
 
 pub const NOT_SENT: &str = "settle did not send the transaction; it may not have gone";
 
-/// BROADCAST's answer for what was signed: its quote and its own hash.
+pub const UNFOLLOWED: &str = "settle answered, but no hash of what was signed is held to follow";
+
+/// BROADCAST's answer for what was signed: its quote and its own hash,
+/// the one recorded at Sign and followed, whatever hash settle answered.
 pub fn after_broadcast(answer: Option<[u8; 32]>, signed: Option<(Quote, [u8; 32])>) -> IntentStep {
     match (answer, signed) {
-        (Some(h), _) => IntentStep::Sent(h),
+        (Some(_), Some((_, hash))) => IntentStep::Sent(hash),
         (None, Some((quote, hash))) => IntentStep::Unsure { quote, hash },
+        (Some(_), None) => IntentStep::Failed(UNFOLLOWED),
         (None, None) => IntentStep::Failed(NOT_SENT),
     }
 }

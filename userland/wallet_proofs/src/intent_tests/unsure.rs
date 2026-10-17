@@ -25,7 +25,7 @@ use super::fixture::{at, quote};
 use super::ledger::{bounds, send, ME};
 use crate::intent::nonce::{nonce_for, sign_at};
 use crate::intent::retry::{after_sign, Turn};
-use crate::intent::unsure::{after_broadcast, after_unsure, NOT_SENT};
+use crate::intent::unsure::{after_broadcast, after_unsure, NOT_SENT, UNFOLLOWED};
 use crate::intent::IntentStep;
 use crate::sent::{Fate, Ledger};
 use crate::wallet::arm::look::{pressed, Arm};
@@ -40,10 +40,12 @@ fn unsure(l: &mut Ledger) -> IntentStep {
 #[test]
 fn a_broadcast_answer_is_sent_and_none_is_unsure() {
     let q = quote(send().kind);
-    assert_eq!(after_broadcast(Some([4; 32]), Some((q, [3; 32]))), IntentStep::Sent([4; 32]));
+    let ours = IntentStep::Sent([3; 32]);
+    assert_eq!(after_broadcast(Some([4; 32]), Some((q, [3; 32]))), ours, "the hash signed");
     let step = after_broadcast(None, Some((q, [3; 32])));
     assert_eq!(step, IntentStep::Unsure { quote: q, hash: [3; 32] });
     assert_eq!(after_broadcast(None, None), IntentStep::Failed(NOT_SENT));
+    assert_eq!(after_broadcast(Some([4; 32]), None), IntentStep::Failed(UNFOLLOWED));
 }
 
 #[test]
