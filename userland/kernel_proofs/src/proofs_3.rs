@@ -70,3 +70,6 @@ mod refinement_tests;
 mod registry_fold_tests;
 #[path = "registry_set_tests.rs"]
 mod registry_set_tests;
+/// An attach whose invalidation fails takes its entry out (K12).
+#[path = "iommu_attach/mod.rs"]
+pub mod iommu_attach;
