@@ -37,6 +37,8 @@ pub struct Probe {
     /// Registers that behave as hardware does rather than as memory
     /// (`probe_regs.rs`), by (space, address).
     pub regs: BTreeMap<(u8, u64), crate::probe_regs::Register>,
+    pub banks: Option<crate::probe_banks::Banked>,
+    pub window: Option<crate::probe_banks::Window>,
 }
 
 impl Probe {
@@ -49,7 +51,7 @@ impl Probe {
 
     pub fn read(&mut self, a: &RegionAccess<'_>) -> Option<u64> {
         self.note(a, None);
-        if let Some(v) = self.modelled_read(a) {
+        if let Some(v) = self.window_read(a).or_else(|| self.modelled_read(a)) {
             return (!self.refuse).then_some(v);
         }
         let byte = |i: u64| *self.bytes.get(&(a.space.0, a.address + i)).unwrap_or(&0) as u64;
@@ -59,7 +61,7 @@ impl Probe {
 
     pub fn write(&mut self, a: &RegionAccess<'_>, value: u64) -> bool {
         self.note(a, Some(value));
-        if self.modelled_write(a, value) {
+        if self.window_write(a, value) || self.modelled_write(a, value) {
             return !self.refuse;
         }
         for i in 0..a.width as u64 {

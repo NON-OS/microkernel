@@ -35,6 +35,8 @@ pub mod fadt_enc;
 pub mod flat;
 #[path = "probe.rs"]
 pub mod probe;
+#[path = "probe_banks.rs"]
+pub mod probe_banks;
 #[path = "probe_host.rs"]
 pub mod probe_host;
 #[path = "probe_regs.rs"]
