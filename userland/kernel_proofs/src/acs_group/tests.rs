@@ -17,7 +17,8 @@
 //! What ACS redirects, and the group that is left (K11).
 
 use super::acs_path::path;
-use super::acs_rule::{enabling, group, redirects, CR, FUNCTION, PORT, RR, SV, UF};
+use super::acs_reach::group;
+use super::acs_rule::{enabling, redirects, CR, FUNCTION, PORT, RR, SV, UF};
 use super::acs_tree::{Bdf, Func};
 use super::machine::*;
 
