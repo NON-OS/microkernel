@@ -26,13 +26,6 @@ const IVHD_TYPES: [u8; 3] = [0x10, 0x11, 0x40];
 
 pub const MAX_AMD_IOMMUS: usize = 8;
 
-/// Distinct IOMMU base addresses, in table order, written to `out`; returns
-/// how many. Stops at the first block whose length is short or runs past the
-/// table, or when `out` is full; never reads out of bounds.
-pub fn iommu_bases(table: &[u8], out: &mut [u64]) -> usize {
-    walk(table, out).found
-}
-
 /// What a walk of the IVHD blocks found, and whether it read them all.
 pub struct Walk {
     pub found: usize,
@@ -41,6 +34,9 @@ pub struct Walk {
     pub complete: bool,
 }
 
+/// Distinct IOMMU base addresses, in table order, written to `out`. Stops
+/// at the first block whose length is short or runs past the table, or when
+/// `out` is full; never reads out of bounds.
 pub fn walk(table: &[u8], out: &mut [u64]) -> Walk {
     let mut found = 0;
     let mut at = FIRST_BLOCK;
