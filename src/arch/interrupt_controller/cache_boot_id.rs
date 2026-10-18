@@ -32,3 +32,13 @@ pub(crate) fn cache_boot_cpu_id() {
         crate::arch::x86_64::interrupt::apic::cache_bsp_apic_id();
     }
 }
+
+/// The boot CPU's controller id, latched before the SMP layer records it.
+/// On x86_64 it is checked against CPUID, which `cpu_id()` resolves by, and
+/// a disagreement fails the boot rather than strand the boot CPU later.
+pub(crate) fn latch_boot_cpu_id() -> Result<u32, &'static str> {
+    #[cfg(target_arch = "x86_64")]
+    return crate::arch::x86_64::interrupt::apic::latch_boot_id();
+    #[cfg(not(target_arch = "x86_64"))]
+    return Ok(super::local_id());
+}

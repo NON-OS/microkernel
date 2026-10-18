@@ -31,6 +31,8 @@ pub mod amd_ivhd;
 pub mod amd_vi;
 pub mod arch;
 #[cfg(test)]
+pub mod boot_cpu_id;
+#[cfg(test)]
 pub mod bti_pad;
 pub mod bus;
 pub mod capabilities;
