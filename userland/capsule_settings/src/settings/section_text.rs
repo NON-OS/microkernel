@@ -37,6 +37,9 @@ fn text(section: Section) -> (&'static str, &'static str, &'static str) {
             ("Network", "Network", "Manage how NONOS connects to networks and the internet.")
         }
         Section::Wifi => ("Wi-Fi", "Wi-Fi", "Find and join a wireless network."),
+        Section::Bluetooth => {
+            ("Bluetooth", "Bluetooth", "Pair a keyboard or mouse, and see its battery.")
+        }
         Section::Security => {
             ("Security", "Security", "This machine's keys and the protections the kernel keeps on.")
         }

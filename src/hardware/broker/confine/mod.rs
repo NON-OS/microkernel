@@ -22,6 +22,7 @@
 
 mod attach;
 mod detach;
+mod held;
 mod iova;
 mod iova_space;
 mod map;
@@ -30,4 +31,6 @@ mod table;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
+#[allow(unused_imports)] // read by the ACPI broker's SDEV posture, which only x86 builds
+pub(super) use held::held_by;
 pub(super) use map::{map, unmap};
