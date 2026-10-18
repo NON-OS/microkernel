@@ -20,6 +20,7 @@
 use super::super::disk::{EmmcDisk, MAX_SECTORS, SECTOR_SIZE};
 use super::super::env::{Clock, DmaBuf, Log, Mmio};
 use super::super::error::EmmcResult;
+use super::super::sdhci::Host;
 use super::parts::HostParts;
 
 pub struct Slot<M: Mmio, C: Clock, L: Log> {
@@ -34,24 +35,24 @@ pub struct Slot<M: Mmio, C: Clock, L: Log> {
 }
 
 impl<M: Mmio + Clone, C: Clock + Clone, L: Log + Clone> Slot<M, C, L> {
-    /// The board's eMMC, or a known Intel eMMC host: the card comes up now
-    /// or the slot is not served, as before removable slots were.
-    pub fn fixed(parts: HostParts<M, C, L>, data: DmaBuf) -> EmmcResult<Self> {
-        let disk = EmmcDisk::bring_up(parts.host(), data)?;
+    /// The board's eMMC, or a known Intel eMMC host: the card on `host`,
+    /// which `EmmcDisk::reset` readied, comes up now or the slot is not
+    /// served, as before removable slots were.
+    pub fn fixed(host: Host<M, C, L>, parts: HostParts<M, C, L>, data: DmaBuf) -> EmmcResult<Self> {
+        let disk = EmmcDisk::bring_up(host, data)?;
         Ok(Self { disk: Some(disk), removable: false, parts, data, tried: false, changed: false })
     }
 
-    /// A card reader's slot: the host is reset and watches its card detect,
-    /// and a card in it now is brought up. Fails only if the host does.
-    pub fn removable(parts: HostParts<M, C, L>, data: DmaBuf) -> EmmcResult<Self> {
-        let mut host = parts.host();
-        host.init()?;
+    /// A card reader's slot: `host`, which `EmmcDisk::reset` readied, is
+    /// stopped and watches its card detect, and a card in it now is brought
+    /// up on a host reset again for it.
+    pub fn removable(mut host: Host<M, C, L>, parts: HostParts<M, C, L>, data: DmaBuf) -> Self {
         host.quiesce();
         let mut slot =
             Self { disk: None, removable: true, parts, data, tried: false, changed: true };
         slot.arm();
         slot.refresh();
-        Ok(slot)
+        slot
     }
 
     /// The most sectors one request moves, with a card in the slot or not.

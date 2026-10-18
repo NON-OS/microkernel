@@ -18,6 +18,7 @@
 //! fixed CRC clock with the variable sample clock, sampling on the rising
 //! edge, no push-point delay.
 
+use super::limits::REGS_MS;
 use crate::error::Result;
 use crate::regs::card::{CARD_CLK_SOURCE, CRC_FIX_CLK, SAMPLE_VAR_CLK1, SD30_VAR_CLK0};
 use crate::regs::clk::{CLK_CTL, CLK_LOW_FREQ};
@@ -33,5 +34,5 @@ pub fn default_timing(drv: &Driver) -> Result<()> {
     buf.write(CLK_CTL, CLK_LOW_FREQ, 0);
     buf.write(SD_PUSH_POINT_CTL, 0xFF, 0);
     buf.write(SD_SAMPLE_POINT_CTL, SD20_RX_SEL_MASK, SD20_RX_POS_EDGE);
-    crate::engine::send(drv, &buf, 100)
+    crate::engine::send(drv, &buf, REGS_MS)
 }

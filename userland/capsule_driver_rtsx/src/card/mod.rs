@@ -15,26 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The SD card in the slot: power, signalling, the identification sequence
-//! the Linux MMC core runs through this host's ops, and block reads.
+//! the Linux MMC core runs through this host's ops, and block reads and
+//! writes.
 
 mod app;
 mod attach;
 mod clock;
 mod command;
+mod data;
+mod finish;
 mod identify;
 mod info;
+pub mod limits;
 mod power;
 mod power_off;
 mod present;
 mod pull;
 mod read;
+mod ready;
 mod select;
 mod timing;
+mod transfer;
 mod up;
 mod voltage;
+mod write;
 
 pub use info::Card;
 pub use power_off::power_off;
-pub use present::present;
+pub use present::{present, write_protected};
 pub use read::read_blocks;
+pub use ready::wait_ready;
 pub use up::bring_up;
+pub use write::write_blocks;

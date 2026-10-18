@@ -13,28 +13,32 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::registers::RegisterGrant;
+
+//! The interrupt: one MSI-X vector of the device's own when the function
+//! has MSI-X, else its INTx line. INTx was asked for first, a shared,
+//! level-triggered line (the source of the rearm and ISR-read workarounds
+//! in `io::rearm`) chosen over a dedicated vector; and a function with no
+//! routed line was never found at all, so MSI-X was never reached for it.
+
+use nonos_libc::{mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
+
 use crate::discover::Found;
-use nonos_libc::{mk_device_release, mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
-pub fn bind(
-    dev: Found,
-    claim_epoch: u64,
-    regs: RegisterGrant,
-) -> Result<(IrqBindOut, bool), &'static str> {
+
+pub struct Bound {
+    pub grant: u64,
+    /// MSI-X, so the legacy device config sits after the vector registers
+    /// and the queue must be pointed at table entry 0.
+    pub msix: bool,
+}
+
+pub fn bind(dev: &Found, claim_epoch: u64) -> Result<Bound, &'static str> {
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
-    if r >= 0 {
-        return Ok((out, false));
+    if mk_irq_bind(dev.device_id, claim_epoch, 0, MK_IRQ_BIND_MSIX, 1, &mut out) >= 0 {
+        return Ok(Bound { grant: out.grant_id, msix: true });
     }
-    let msix = mk_irq_bind(dev.device_id, claim_epoch, 0, MK_IRQ_BIND_MSIX, 1, &mut out);
-    if msix < 0 {
-        if !regs.release() {
-            return Err("register release failed after irq bind failure");
-        }
-        if mk_device_release(dev.device_id) < 0 {
-            return Err("device release failed after irq bind failure");
-        }
-        return Err("irq bind failed");
+    let line = dev.intx.ok_or("virtio-blk: no MSI-X vector and no routed INTx line")?;
+    if mk_irq_bind(dev.device_id, claim_epoch, u32::from(line), 0, 0, &mut out) < 0 {
+        return Err("virtio-blk: irq bind failed");
     }
-    Ok((out, true))
+    Ok(Bound { grant: out.grant_id, msix: false })
 }

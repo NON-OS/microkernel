@@ -1,0 +1,22 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! What the bytes before a scan code said about it: its break bit, and the
+//! prefix it came after (E0 for the extended keys, E1 for Pause).
+
+pub const FLAG_BREAK: u8 = 1 << 0;
+pub const FLAG_E0_PREFIX: u8 = 1 << 1;
+pub const FLAG_E1_PREFIX: u8 = 1 << 2;

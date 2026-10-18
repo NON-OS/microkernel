@@ -17,5 +17,7 @@ use crate::constants::IMOD;
 use crate::regs::mmio_write32;
 pub fn imod_program(intr_base: u64, imodi: u16, imodc: u16) {
     let value = (imodi as u32) | ((imodc as u32) << 16);
-    mmio_write32(intr_base + IMOD, value);
+    // SAFETY: `intr_base` is interrupter 0's register set, 32 bytes into the runtime page
+    // `read_layout` checked lies inside the mapped window.
+    unsafe { mmio_write32(intr_base + IMOD, value) };
 }

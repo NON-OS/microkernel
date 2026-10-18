@@ -23,16 +23,10 @@ use super::memory::Memory;
 use super::model::{live, resetting_part, window};
 use crate::init::finish;
 
-/// The grants `Memory::driver` records, released in reverse setup order and
-/// then the claim, which on its own tears the rest down as well.
-const EVERYTHING: [(&str, u64); 6] = [
-    ("dma_unmap", 7),
-    ("dma_unmap", 6),
-    ("dma_unmap", 5),
-    ("dma_unmap", 4),
-    ("mmio_unmap", 2),
-    ("device_release", 1),
-];
+/// What an attempt releases: the claim alone, which tears every grant down
+/// after the broker has turned Bus Master off. A ring unmapped by hand
+/// before that could still be written by a part left receiving.
+const EVERYTHING: [(&str, u64); 1] = [("device_release", 1)];
 
 fn released_since(before: usize) -> Vec<(&'static str, u64)> {
     given_back()[before..].to_vec()

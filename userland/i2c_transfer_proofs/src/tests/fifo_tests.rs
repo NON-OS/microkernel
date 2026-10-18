@@ -21,8 +21,8 @@
 
 use nonos_i2cmodel::{descriptor, Config, Violation};
 
-use super::fixture::{bench, core, PAD};
-use crate::transaction::{transfer, TransferRequest, FLAG_RESTART_ON_READ};
+use super::fixture::{bench, core, transfer, PAD};
+use crate::transaction::{TransferRequest, FLAG_RESTART_ON_READ};
 
 const HID_DESC_REG: [u8; 2] = [0x01, 0x00];
 

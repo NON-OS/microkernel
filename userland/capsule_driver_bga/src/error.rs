@@ -17,14 +17,12 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BgaError {
     BrokerCallFailed(i64),
-    /// The DISPI id register holds no Bochs id: not an adapter to drive.
+    ModeTooLarge,
+    VideoMemoryTooSmall,
+    RegisterWindowTooSmall,
     NotDispi,
-    /// Not even the driver's own mode fits in the adapter's VRAM.
-    NoMode,
-    /// The mode registers read back other than written.
-    ModeRefused,
-    /// The shadow the compositor draws into could not be made or shared.
-    Surface(i64),
+    ModeNotTaken,
+    SurfaceRefused,
 }
 
 pub type BgaResult<T> = Result<T, BgaError>;
@@ -36,9 +34,11 @@ pub type BgaResult<T> = Result<T, BgaError>;
 pub const fn reason(e: BgaError) -> &'static str {
     match e {
         BgaError::BrokerCallFailed(_) => "bga: broker refused a claim or grant",
-        BgaError::NotDispi => "bga: no DISPI id in the register BAR",
-        BgaError::NoMode => "bga: VRAM too small for any mode",
-        BgaError::ModeRefused => "bga: the adapter did not take the mode",
-        BgaError::Surface(_) => "bga: shadow surface refused",
+        BgaError::ModeTooLarge => "bga: mode does not fit the framebuffer mapping",
+        BgaError::VideoMemoryTooSmall => "bga: mode does not fit the adapter's video memory",
+        BgaError::RegisterWindowTooSmall => "bga: register mapping ends inside the DISPI block",
+        BgaError::NotDispi => "bga: DISPI ID register outside 0xB0C0 to 0xB0C5",
+        BgaError::ModeNotTaken => "bga: the adapter did not read back the mode set",
+        BgaError::SurfaceRefused => "bga: the kernel refused the surface's memory or entry",
     }
 }

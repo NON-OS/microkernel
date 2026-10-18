@@ -16,6 +16,7 @@
 
 use nonos_libc::mk_device_release;
 
+use super::master::master_after_reset;
 use super::remap::say_remapped;
 use super::say_hba::say_hba;
 use super::{claim, irq, mmio, pci};
@@ -29,9 +30,10 @@ use crate::error::AhciResult;
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
 
-/// A controller the driver claimed, mapped and put in AHCI mode. Dropping it
-/// drops `handles`, which unbinds the interrupt, unmaps ABAR and releases the
-/// claim; the broker clears bus mastering on release.
+/// A controller the driver claimed, mapped, reset into AHCI mode and gave Bus
+/// Master once its ports read stopped. Dropping it drops `handles`, which
+/// writes Bus Master off, unbinds the interrupt, unmaps ABAR and releases
+/// the claim (`BrokerHandles`'s `Drop`); the release reads Bus Master off.
 pub(super) struct Opened {
     pub epoch: u64,
     pub handles: BrokerHandles,
@@ -42,14 +44,16 @@ pub(super) struct Opened {
 
 pub(super) fn open(dev: Found) -> AhciResult<Opened> {
     let epoch = claim::claim(dev.device_id)?;
-    if let Err(e) = pci::enable_decode_and_dma(dev.device_id, epoch) {
+    // Memory Space alone: Bus Master waits for the HBA reset (`master`).
+    if let Err(e) = pci::command(dev.device_id, epoch, false) {
         let _ = mk_device_release(dev.device_id);
         return Err(e);
     }
     let mmio = mmio::map(dev.device_id, epoch, dev.abar_size)?;
     let irq = irq::bind(dev, epoch);
 
-    let handles = BrokerHandles::new(dev.device_id, mmio.grant_id, mmio.user_va, irq.grant_id);
+    let (id, va) = (mmio.grant_id, mmio.user_va);
+    let handles = BrokerHandles::new(dev.device_id, epoch, id, va, irq.grant_id);
     // The broker's VA is that of ABAR's first byte, inside its page when the
     // ABAR does not start on one.
     let regs = Regs::new(handles.mmio_user_va());
@@ -62,6 +66,7 @@ pub(super) fn open(dev: Found) -> AhciResult<Opened> {
     let raw_pi = info.pi;
     info.pi = effective_pi(info.cap, raw_pi) & window;
     say_hba(&info, raw_pi, mmio.length);
+    master_after_reset(dev.device_id, epoch, regs, info.pi, info.port_count)?;
     say_remapped(regs, dev.abar_size, mmio.length);
     spin_up(regs, info.cap, info.pi, info.port_count);
     settle_links(regs, info.pi, info.port_count);
