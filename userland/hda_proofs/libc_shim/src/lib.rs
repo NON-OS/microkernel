@@ -42,3 +42,15 @@ pub use pci::{
 pub use records::{mk_device_list, offer_devices, Bar, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 pub use serve::{mk_ipc_send, mk_irq_ack, mk_irq_wait, replies, MK_IRQ_WAIT_TIMED_OUT};
 pub use types::{DmaMapOut, IrqBindOut, MmioMapOut, MK_IRQ_BIND_MSI, MK_IRQ_BIND_MSIX};
+
+// The real libc's register accessors and DMA barriers, mounted so the driver
+// files under test reach a device through the code they ship with.
+#[path = "../../../libc/src/broker/dma_order.rs"]
+mod dma_order;
+#[path = "../../../libc/src/broker/mmio_access.rs"]
+mod mmio_access;
+pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
+pub use mmio_access::{
+    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
+    mmio_write8,
+};

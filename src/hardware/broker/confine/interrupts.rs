@@ -19,7 +19,7 @@
 //! CPU, whether or not it is ever bound: its claim is refused (K3).
 
 use super::refuse::Refused;
-use super::table::say;
+use super::say::say;
 
 pub(super) fn admit() -> Result<(), Refused> {
     use super::decide::interrupts_confined;

@@ -36,8 +36,9 @@ pub(super) fn running_from(chosen: Option<(u8, u8)>, driver: Driver, instance: u
         Driver::VirtioBlk => VIRTIO_BLK,
         Driver::Ahci => AHCI,
         Driver::Nvme => NVME,
-        // The kernel's block layer reads no SD card: no record names one.
-        Driver::Rtsx => return false,
+        // The kernel's block layer reads no SD card, and its record has no
+        // code for a disk on the block wire: no record names either.
+        Driver::Rtsx | Driver::Wire | Driver::Ufs => return false,
     };
     in_use(chosen, code, instance)
 }

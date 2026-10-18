@@ -54,11 +54,11 @@ pub(crate) fn try_cpu_id() -> Option<usize> {
     resolve().ok()
 }
 
-/// The descriptor index for this CPU, or its unmatched APIC id.
+/// The descriptor index for this CPU (the arch's dense one), or its APIC id.
 #[inline]
 fn resolve() -> Result<usize, u32> {
     let apic_id = crate::arch::cpu::get_cpu_id();
-    if let Some(index) = apic_to_cpu_id(apic_id) {
+    if let Some(index) = crate::arch::cpu::dense_cpu_index().or_else(|| apic_to_cpu_id(apic_id)) {
         return Ok(index);
     }
     if CPU_COUNT.load(Ordering::Acquire) == 0 {

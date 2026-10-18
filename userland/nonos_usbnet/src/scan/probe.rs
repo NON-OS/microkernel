@@ -20,9 +20,9 @@
 
 use super::bound::Bound;
 use super::classify::classify;
-use crate::run::BindFn;
+use crate::bind::Bind;
+use crate::found::Found;
 use crate::say::say_port;
-use crate::station::Station;
 use crate::xhci::{bind_budget, disable_slot, enable_slot, XhciBus, BIND_MS};
 
 pub(super) enum Probe<N> {
@@ -37,8 +37,7 @@ pub(super) fn probe<N>(
     xhci: u32,
     port: u8,
     tag: &[u8],
-    bind: BindFn<N>,
-    station: Station,
+    bind: &mut impl FnMut(XhciBus, &Found) -> Bind<N>,
 ) -> Probe<N> {
     let slot = match enable_slot(xhci) {
         Ok(slot) => slot,
@@ -48,7 +47,7 @@ pub(super) fn probe<N>(
         }
     };
     bind_budget(Some(BIND_MS));
-    let out = classify(XhciBus { xhci, slot }, port, tag, bind, station);
+    let out = classify(XhciBus { xhci, slot }, port, tag, bind);
     bind_budget(None);
     if !matches!(out, Probe::Ours(_)) {
         disable_slot(xhci, slot);

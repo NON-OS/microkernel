@@ -20,9 +20,9 @@
 //! compatibility format message naming a LAPIC directly is made only with
 //! remapping off and under the development opt-in (remap_rule).
 
-use super::super::grant::NO_IRTE;
 use super::super::types::IrqBindError;
 use super::remap_rule::{outcome, Outcome};
+use super::sentinels::NO_IRTE;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
 use crate::memory::iommu::dev_unremapped::holds;
 

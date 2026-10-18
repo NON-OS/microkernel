@@ -38,10 +38,8 @@ mod wipe;
 
 pub use covers::covers;
 pub use map::map_for_caller;
-#[cfg(not(target_arch = "x86_64"))]
-pub(crate) use pool::low32_default_pages;
+pub use pool::init_uncached_pool;
 pub(crate) use pool::{init_display_pool, init_low32_pool};
-#[cfg(target_arch = "x86_64")]
 pub(crate) use pool::{low32_fit, low32_target_pages};
 pub(crate) use records::grant_ranges;
 pub(crate) use release::{free_taken, take_for_device, withdraw_taken};

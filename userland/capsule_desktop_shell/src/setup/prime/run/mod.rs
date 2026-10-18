@@ -16,6 +16,7 @@
 
 mod build_context;
 mod commit_overlay;
+mod finish;
 mod healthcheck_peers;
 mod input_mask;
 mod register_overlay;

@@ -19,8 +19,7 @@ use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 use crate::state::key_targets::key_of;
 use crate::state::Context;
 
-use super::deliver::deliver_one;
-use super::keyboard_target::{release_in, target};
+use super::pointer::shell_pid;
 
 pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     let is_up = event.kind == INPUT_KIND_KEY_UP;
@@ -37,28 +36,25 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     // A system key's release with no press on record (the press went before
     // the shell was up) still goes to the shell, never to a window that did
     // not see the key go down.
-    let pid = target(ctx, event, is_up, chord || system, system);
-    // A held key repeats as more presses. One that now goes to another window
-    // than the press before it is first released where it went down: that
-    // window would otherwise hold the key for good, and a client that repeats
-    // held keys itself (a Linux app under the Wayland bridge) types it forever.
-    if !is_up {
-        if let Some(held) = ctx.key_targets.held_by(key).filter(|&p| p != pid) {
-            ctx.key_targets.take(key);
-            release_in(ctx, held, event);
+    let pid = if is_up {
+        let pressed_in = ctx.key_targets.take(key).filter(|&p| p != 0);
+        match pressed_in {
+            Some(pid) => pid,
+            None if system => shell_pid(ctx),
+            None => fallback_focus(ctx),
         }
+    } else if chord || system {
+        shell_pid(ctx)
+    } else {
+        super::focus_now::focus_now(ctx)
+    };
+    super::key_deliver::deliver_key(ctx, pid, event)
+}
+
+fn fallback_focus(ctx: &mut Context) -> u32 {
+    if ctx.last_focus_pid != 0 {
+        ctx.last_focus_pid
+    } else {
+        shell_pid(ctx)
     }
-    if !ctx.subscriptions.allows(pid, event.kind) {
-        ctx.record(0);
-        return 0;
-    }
-    let delivered = deliver_one(pid, event);
-    if !is_up && delivered != 0 {
-        ctx.key_targets.remember(key, pid);
-    }
-    if delivered == 0 {
-        ctx.forget_pid(pid);
-    }
-    ctx.record(delivered);
-    delivered
 }

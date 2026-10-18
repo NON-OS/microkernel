@@ -56,5 +56,5 @@ pub use surface::{
     mk_surface_register, refuse_surfaces, registered, SurfaceDescriptor, SHARED_HANDLE_BASE,
     SURFACE_FORMAT_ARGB8888,
 };
-pub use surface_registry::{mk_surface_share, shares, Share};
+pub use surface_registry::{mk_surface_release, mk_surface_share, released, shares, Share};
 pub use watch::watch;

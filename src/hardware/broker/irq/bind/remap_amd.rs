@@ -19,9 +19,9 @@
 //! the plain one naming the vector, and the IOMMU delivers it only as that
 //! entry says. The broker's grant keeps the vector as its handle.
 
-use super::super::grant::NO_IRTE;
 use super::message::Routed;
 use super::remap_rule::Attempt;
+use super::sentinels::NO_IRTE;
 use crate::arch::x86_64::iommu::amd_vi::domain::device_id;
 use crate::arch::x86_64::iommu::amd_vi::intr;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};

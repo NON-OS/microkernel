@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bound device: BOT transport, recovery, and the SCSI commands the
-//! kernel's block client needs.
+//! The bound device: BOT or UAS transport, recovery, and the SCSI commands
+//! the kernel's block client needs.
 
 mod bot;
 mod capacity;
 mod csw;
+mod data;
 mod data_phase;
 mod digest;
 mod inquiry;
@@ -29,7 +30,11 @@ mod recover;
 mod scsi_io;
 mod sense;
 mod serial;
+mod transport;
 mod types;
+mod uas;
+mod uas_cmd;
+mod uas_data;
 
 pub use capacity::{capacity, sync_cache};
 pub use inquiry::inquiry;

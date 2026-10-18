@@ -31,8 +31,8 @@ const EN_US: u16 = 0x0409;
 
 /// The digest of the serial number's characters, or None when the device
 /// names none or a request for it fails. A serial number is optional, and a
-/// stick whose string did not read was refused; it is bound with none, as
-/// Linux binds it, and served no more after a let-go (scan/release.rs).
+/// stick whose string did not read was refused; it is bound with none, and
+/// served no more after a let-go (scan/release.rs).
 pub fn serial(disk: &Disk) -> Option<u64> {
     let mut device = [0u8; 18];
     control_in(disk.xhci, disk.slot, GET_DESCRIPTOR, DEVICE, 0, &mut device).ok()?;

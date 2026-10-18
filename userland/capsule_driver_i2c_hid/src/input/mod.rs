@@ -18,6 +18,7 @@ pub mod gesture;
 mod poll;
 mod post;
 mod publish;
+mod publish_screen;
 mod publish_touch;
 mod release;
 pub mod sample;

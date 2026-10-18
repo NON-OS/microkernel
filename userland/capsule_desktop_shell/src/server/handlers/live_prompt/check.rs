@@ -13,12 +13,12 @@ use crate::state::live_prompt::LivePrompt;
 use crate::state::Context;
 
 pub fn check(ctx: &mut Context) {
-    if !matches!(ctx.live_prompt, LivePrompt::Asking(_)) {
+    if !matches!(ctx.pending.live_prompt, LivePrompt::Asking(_)) {
         return;
     }
     let persistent = lookup().and_then(|port| get_bool(port, Field::Persistent));
-    ctx.live_prompt = ctx.live_prompt.step(persistent);
-    if ctx.live_prompt.showing() {
+    ctx.pending.live_prompt = ctx.pending.live_prompt.step(persistent);
+    if ctx.pending.live_prompt.showing() {
         let line = b"[SHELL] live session: offering the installer\n";
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
         repaint(ctx);

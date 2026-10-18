@@ -18,11 +18,11 @@ use crate::state::Context;
 use crate::wm_client;
 
 pub fn retry_wm_subscription(ctx: &mut Context) {
-    if ctx.wm_notify_ready || ctx.wm_port == 0 {
+    if ctx.links.wm_notify_ready || ctx.ports.wm_port == 0 {
         return;
     }
     let rid = ctx.issue_request_id();
-    if wm_client::lifecycle_subscribe(ctx.wm_port, rid).is_ok() {
-        ctx.wm_notify_ready = true;
+    if wm_client::lifecycle_subscribe(ctx.ports.wm_port, rid).is_ok() {
+        ctx.links.wm_notify_ready = true;
     }
 }

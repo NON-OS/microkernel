@@ -17,7 +17,7 @@
 //! The record discovery keeps for a host; the device list itself is the
 //! test's to write.
 
-#[path = "../../../../../capsule_driver_ahci/src/emmc/platform/discover/found.rs"]
+#[path = "../../../../../capsule_driver_sdhci/src/emmc/platform/discover/found.rs"]
 mod found;
 
 pub use found::Found;

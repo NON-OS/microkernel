@@ -43,6 +43,7 @@ pub(super) fn route(op: &'static [u8]) -> Result<Backend, IommuError> {
             Ok(Backend::AmdVi)
         }
         Some(IommuVendor::AmdVi) => Err(refuse::amd_vi(op)),
-        Some(IommuVendor::Absent) => Err(refuse::absent(op)),
+        // x86 never selects an SMMU; were it named, nothing here drives it.
+        Some(IommuVendor::Absent | IommuVendor::ArmSmmuV3) => Err(refuse::absent(op)),
     }
 }

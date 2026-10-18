@@ -17,11 +17,11 @@ const MAX_QUERY: usize = 64;
 
 /// Ctrl+V in the search: the clipboard's first line, appended to the query.
 pub fn paste(ctx: &mut Context) {
-    let mut query = core::mem::take(&mut ctx.launchpad_query);
+    let mut query = core::mem::take(&mut ctx.launchpad_ui.launchpad_query);
     let changed = crate::server::paste::paste_into(ctx, &mut query, MAX_QUERY);
-    ctx.launchpad_query = query;
+    ctx.launchpad_ui.launchpad_query = query;
     if changed {
-        ctx.launchpad_page = 0;
+        ctx.launchpad_ui.launchpad_page = 0;
         rebuild(ctx);
     }
     repaint(ctx);
@@ -30,31 +30,31 @@ pub fn paste(ctx: &mut Context) {
 pub fn key(ctx: &mut Context, code: u32) {
     match code {
         KEY_ESC => {
-            if ctx.launchpad_query.is_empty() {
+            if ctx.launchpad_ui.launchpad_query.is_empty() {
                 super::launchpad::close(ctx);
                 return;
             }
-            ctx.launchpad_query.clear();
+            ctx.launchpad_ui.launchpad_query.clear();
         }
         KEY_ENTER => {
             super::launchpad::launch_first(ctx);
             return;
         }
         KEY_BACKSPACE => {
-            ctx.launchpad_query.pop();
+            ctx.launchpad_ui.launchpad_query.pop();
         }
         c if (0x20..=0x0010_FFFF).contains(&c) => {
-            if ctx.launchpad_query.len() >= MAX_QUERY {
+            if ctx.launchpad_ui.launchpad_query.len() >= MAX_QUERY {
                 return;
             }
             match char::from_u32(c) {
-                Some(ch) => ctx.launchpad_query.push(ch),
+                Some(ch) => ctx.launchpad_ui.launchpad_query.push(ch),
                 None => return,
             }
         }
         _ => return,
     }
-    ctx.launchpad_page = 0;
+    ctx.launchpad_ui.launchpad_page = 0;
     rebuild(ctx);
     repaint(ctx);
 }

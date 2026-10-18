@@ -21,7 +21,7 @@
 //! NVMe or SATA controller whose driver gave up still gets a row.
 
 #[path = "../../nonos_blk_client/src/driver/pci.rs"]
-mod pci;
+pub(crate) mod pci;
 
 use pci::{classify, Controller, INTEL_SATA_RAID, INTEL_VMD};
 
@@ -60,7 +60,7 @@ fn intel_rst_and_vmd_are_named_whatever_class_they_report() {
 
 #[path = "../../nonos_blk_client/src/device/identity_parse.rs"]
 #[allow(dead_code)]
-mod identity_parse;
+pub(crate) mod identity_parse;
 
 #[test]
 fn the_sata_identify_reply_names_the_part_and_its_medium() {

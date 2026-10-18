@@ -58,12 +58,27 @@ fn the_virtio_row_is_the_virtio_blk_drivers_own() {
     holds(Driver::VirtioBlk, h, o, w);
 }
 
+/// The eMMC and UFS drivers both serve the one block wire (nonos_blk_wire),
+/// so they share its magic and its ops; every other pair differs in both.
+fn one_wire(a: Driver, b: Driver) -> bool {
+    matches!((a, b), (Driver::Wire, Driver::Ufs) | (Driver::Ufs, Driver::Wire))
+}
+
 #[test]
 fn no_two_drivers_share_a_magic_or_a_service_name() {
-    for (i, a) in ALL.iter().enumerate() {
-        for b in &ALL[i + 1..] {
-            assert_ne!(a.magic(), b.magic(), "{a:?} and {b:?}");
+    for (i, &a) in ALL.iter().enumerate() {
+        for &b in &ALL[i + 1..] {
             assert_ne!(a.service(0), b.service(0), "{a:?} and {b:?}");
+            if one_wire(a, b) {
+                assert_eq!(a.magic(), b.magic(), "{a:?} and {b:?}");
+                let ops = |d: Driver| {
+                    let o = d.ops();
+                    [o.capacity, o.read, o.write, o.flush]
+                };
+                assert_eq!(ops(a), ops(b), "{a:?} and {b:?}");
+            } else {
+                assert_ne!(a.magic(), b.magic(), "{a:?} and {b:?}");
+            }
         }
     }
 }

@@ -17,8 +17,6 @@
 //! The used ring, which the device writes: its index and element are the
 //! device's word, taken only when they name the one request in flight.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::chain::HEAD;
 use super::fault::Fault;
 use super::layout::Queue;
@@ -49,7 +47,7 @@ impl Queue {
         }
         // The element, the status and the data are the device's only once
         // the index that covers them is seen.
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         let at = used + USED_RING + ELEM_BYTES * self.pos(self.used);
         let (id, len) = (self.ring.r32(at), self.ring.r32(at + 4));
         if !self.outstanding() || idx != self.posted || id != u32::from(HEAD) {

@@ -17,6 +17,7 @@
 mod address_space;
 mod dispatch;
 mod first_entry;
+mod kernel_resume;
 mod resume;
 
 pub(crate) use dispatch::switch_to_user_pcb_aarch64;

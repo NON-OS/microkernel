@@ -28,7 +28,7 @@ impl<'a> KernelHandoff<'a> {
         Self {
             memory: builders::memory(info),
             cpus: builders::cpus(info),
-            console: EarlyConsole::Uart(info.uart_base),
+            console: EarlyConsole::Uart(info.uart.base),
             // QEMU's virt board and the ARM server platforms this targets have
             // no firmware framebuffer. Display comes up later through
             // virtio-gpu, which is a driver, not a handoff.

@@ -27,10 +27,10 @@ use crate::protocol::{
     OP_HEALTHCHECK, OP_IDENTIFY, OP_PORT_LIST, RESP_HDR_LEN, RW_HEADER_LEN, SERVICE_NAME,
     STATUS_LEN,
 };
-use crate::served::Served;
-use crate::server::{error, handlers};
+use crate::server::error;
+use crate::setup::Driver;
 
-pub fn run(served: &mut Served) -> ! {
+pub fn run(driver: &mut Driver) -> ! {
     let rx_len = HDR_LEN + RW_HEADER_LEN + MAX_RW_PAYLOAD_BYTES as usize;
     let tx_len = RESP_HDR_LEN + STATUS_LEN + MAX_RW_PAYLOAD_BYTES as usize;
     let mut rx = vec![0u8; rx_len];
@@ -39,9 +39,7 @@ pub fn run(served: &mut Served) -> ! {
     let _service_name = SERVICE_NAME;
 
     loop {
-        if let Served::Sata(driver) = served {
-            poll_irq(driver, &mut last_irq_seq);
-        }
+        poll_irq(driver, &mut last_irq_seq);
         let mut sender_pid = 0u32;
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, 0, &mut sender_pid);
         if !nonos_libc::recv_ready(n) {
@@ -66,9 +64,6 @@ pub fn run(served: &mut Served) -> ! {
             error::reply_with_status(&mut tx, &req, E_INVAL);
             continue;
         }
-        match served {
-            Served::Sata(driver) => dispatch(driver, &req, body, &mut tx),
-            Served::Emmc(opened) => handlers::emmc::dispatch(opened, &req, body, &mut tx),
-        }
+        dispatch(driver, &req, body, &mut tx);
     }
 }

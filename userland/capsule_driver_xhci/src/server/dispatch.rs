@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::protocol::{
     Request, E_INVAL, E_NODEV, OP_ADDRESS_DEVICE, OP_ADDRESS_ROUTED, OP_ALLOC_TRANSFER_RING,
-    OP_BULK_IN, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_HUB, OP_CONTROLLER_STATUS,
+    OP_BULK_IN, OP_BULK_IN_POLL, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_BULK2,
+    OP_CONFIGURE_HUB, OP_CONFIGURE_ISOCH, OP_CONFIGURE_STREAMS, OP_CONTROLLER_STATUS,
     OP_CONTROL_TRANSFER, OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR,
-    OP_GET_DEVICE_DESCRIPTOR, OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_PORT_STATUS, OP_RESET_BULK,
+    OP_GET_DEVICE_DESCRIPTOR, OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_INTERRUPT_OUT, OP_ISOCH_IN,
+    OP_ISOCH_OUT, OP_PORT_STATUS, OP_RESET_BULK,
 };
-use crate::server::{context::Context, error::reply_with_status, handlers, reply::sender};
+use crate::server::sender_holds::sender_holds;
+use crate::server::{context::Context, error::reply_with_status, handlers};
 
 /// Serve one request. Whether the controller failed is looked at before and
 /// after each. A failed one is brought back before a request that needs
@@ -57,18 +60,17 @@ fn route(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         OP_CONTROL_TRANSFER => handlers::control_transfer::handle(ctx, req, body, tx),
         OP_ALLOC_TRANSFER_RING => handlers::alloc_transfer_ring::handle(ctx, req, body, tx),
         OP_INTERRUPT_IN => handlers::interrupt_in::handle(ctx, req, body, tx),
+        OP_INTERRUPT_OUT => handlers::interrupt_out::handle(ctx, req, body, tx),
         OP_CONFIGURE_BULK => handlers::bulk::configure(ctx, req, body, tx),
+        OP_CONFIGURE_BULK2 => handlers::bulk::configure_second(ctx, req, body, tx),
+        OP_CONFIGURE_STREAMS => handlers::bulk::configure_streams(ctx, req, body, tx),
         OP_BULK_OUT => handlers::bulk::transfer_out(ctx, req, body, tx),
         OP_BULK_IN => handlers::bulk::transfer_in(ctx, req, body, tx),
+        OP_BULK_IN_POLL => handlers::bulk::poll_in(ctx, req, body, tx),
         OP_RESET_BULK => handlers::bulk::reset(ctx, req, body, tx),
+        OP_CONFIGURE_ISOCH => handlers::isoch::configure(ctx, req, body, tx),
+        OP_ISOCH_OUT => handlers::isoch::out(ctx, req, body, tx),
+        OP_ISOCH_IN => handlers::isoch::inbound(ctx, req, body, tx),
         _ => reply_with_status(tx, req, E_INVAL),
     }
-}
-
-/// Every other request names a slot in its first byte, one the sender must
-/// have enabled (F4): a revival hands the same ids out again, and a stale
-/// one reached another client's new device.
-fn sender_holds(ctx: &Context, body: &[u8]) -> bool {
-    let (slots, max) = (&ctx.driver.slots, ctx.driver.layout.max_slots);
-    body.first().is_some_and(|&slot| slots.held_by(slot, max, sender()))
 }

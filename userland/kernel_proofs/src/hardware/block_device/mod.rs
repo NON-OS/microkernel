@@ -17,4 +17,15 @@
 #[path = "../../../../../src/hardware/block_device/error.rs"]
 mod error;
 
+// Reached by pass_tests only.
+#[path = "../../../../../src/hardware/block_device/pass.rs"]
+#[allow(dead_code)]
+mod pass;
+#[path = "../../../../../src/hardware/block_device/wait_since.rs"]
+#[allow(dead_code)]
+mod wait_since;
+
 pub use error::BlockDeviceError;
+
+#[cfg(test)]
+mod pass_tests;

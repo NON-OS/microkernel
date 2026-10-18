@@ -28,11 +28,11 @@ const NOT_A_NAME: &[u8] = b"Could not rename: no '/', and not . or ..";
 
 pub fn commit_rename(ctx: &mut Context) {
     super::release_keys::release_keys(ctx);
-    let Some(index) = ctx.rename.take() else {
+    let Some(index) = ctx.desk_ui.rename.take() else {
         return;
     };
-    let new_name = ctx.rename_buf.trim().to_string();
-    ctx.rename_buf.clear();
+    let new_name = ctx.desk_ui.rename_buf.trim().to_string();
+    ctx.desk_ui.rename_buf.clear();
 
     let old_name = match ctx.desktop_items.get(index) {
         Some(item) => item.name.clone(),

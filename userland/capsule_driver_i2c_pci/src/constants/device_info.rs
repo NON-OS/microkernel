@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// Family name and DesignWare input clock of an Intel LPSS I2C function,
-/// from its PCI device id. The ids and rates are those of Linux
-/// drivers/mfd/intel-lpss-pci.c: spt_i2c_info 120 MHz, bxt/apl/glk_i2c_info
-/// 133 MHz, cnl_i2c_info 216 MHz. Only I2C functions are listed: the UART
+/// from its PCI device id: the platform datasheets' LPSS I2C functions and
+/// input clocks, 120 MHz Sunrise Point, 133 MHz Broxton, Apollo Lake and
+/// Gemini Lake, 216 MHz Cannon Lake on (as recalled, unverified). Only I2C
+/// is listed: the UART
 /// and SPI functions of the same LPSS blocks sit at neighbouring ids and must
 /// never be driven as I2C.
 ///
-/// Where Linux and the platform datasheets disagree, or a family's rate is
+/// Where sources disagree, or a family's rate is
 /// not pinned down (Tiger Lake-LP, 120 or 133), the higher clock is used:
 /// counts computed for a faster clock than the real one only slow the bus
 /// and keep every minimum of UM10204 met, while the reverse runs it out of
@@ -58,17 +59,4 @@ pub fn device_info(device: u16) -> Option<(&'static str, u32)> {
         0x7E78..=0x7E7B | 0x7E50 | 0x7E51 => Some(("Meteor Lake-P", BXT)),
         _ => None,
     }
-}
-
-/// Clock assumed for an Intel LPSS I2C function whose id is not in the
-/// table (a newer platform): the fastest rate any LPSS generation uses, so
-/// the bus can only come out slower than programmed.
-pub const UNKNOWN_LPSS_CLOCK_HZ: u32 = 216_000_000;
-
-/// True for Broxton, Apollo Lake and Gemini Lake, whose GPIO communities
-/// number their ACPI pins as the community-local pad index with an 8-byte
-/// pad configuration stride (Linux pinctrl-broxton.c, pinctrl-geminilake.c).
-pub fn is_bxt_family(device: u16) -> bool {
-    matches!(device_info(device), Some((_, 133_000_000)))
-        && matches!(device >> 8, 0x0A | 0x1A | 0x5A | 0x31)
 }

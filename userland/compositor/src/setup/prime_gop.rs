@@ -14,57 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! GOP-framebuffer display path. When no virtio-gpu driver announces a
-//! gfx service, the compositor backs its primary surface with a
-//! page-aligned buffer it owns, registers it, and presents through
-//! MkSurfacePresent. The kernel blits that surface to the UEFI linear
-//! framebuffer the bootloader handed off, so the desktop renders on any
-//! UEFI machine: real hardware, VirtualBox, VMware, with no virtio-gpu.
+//! GOP-framebuffer display path. When no display driver answers, the
+//! compositor backs its primary surface with a page-aligned buffer it owns,
+//! registers it, and presents through MkSurfacePresent. The kernel blits
+//! that surface to the UEFI linear framebuffer the bootloader handed off,
+//! so the desktop renders on any UEFI machine with no display driver.
 
-use nonos_libc::{
-    mk_service_lookup, mk_surface_attach, mk_surface_register, mk_surface_share, SurfaceDescriptor,
-    SURFACE_FORMAT_ARGB8888,
-};
+use nonos_libc::{mk_service_lookup, mk_surface_share};
 
-use super::prime_gop_backing::{alloc_backing, display_dimensions};
-use super::prime_gop_context::gop_context;
+use super::gop_backing::{display_dimensions, register_backing};
 use super::prime_gop_handle::own_handle;
 use crate::state::Context;
 
 pub fn run_gop_once() -> Result<Context, &'static str> {
     let (width, height) = display_dimensions()?;
-    let stride = width.checked_mul(4).ok_or("gop: stride overflow")?;
-    let byte_len = (stride as u64).checked_mul(height as u64).ok_or("gop: byte_len overflow")?;
-
-    let base_va = alloc_backing(byte_len)?;
-    let desc = SurfaceDescriptor {
-        width,
-        height,
-        stride,
-        format: SURFACE_FORMAT_ARGB8888,
-        byte_len,
-        base_va,
-        flags: 0,
-        owner_pid: 0,
-        writable: 0,
-    };
-    let sid = mk_surface_register(&desc);
-    if sid < 0 {
-        return Err("gop: surface register rejected");
-    }
     // Shared with its own process, found by its own name (prime_gop_handle).
     let share = |sid, pid, flags| mk_surface_share(sid, pid, flags);
-    let handle = own_handle(sid as u64, registered_pid, share)?;
-
-    // Self-attach: the kernel returns this same mmap VA, which has a real
-    // VMA the present path resolves against. We composite into it directly.
-    let mut attached = SurfaceDescriptor::default();
-    let va = mk_surface_attach(handle, &mut attached);
-    if va <= 0 || attached.format != SURFACE_FORMAT_ARGB8888 {
-        return Err("gop: surface attach rejected");
-    }
-
-    Ok(gop_context(width, height, stride, byte_len, va as u64, handle))
+    let handle = |sid: i64| Ok(own_handle(sid as u64, registered_pid, share)?);
+    let primary = register_backing(width, height, handle)?;
+    Ok(Context::new(primary, 0, true))
 }
 
 /// The pid the kernel's registry holds `name` for, or None.

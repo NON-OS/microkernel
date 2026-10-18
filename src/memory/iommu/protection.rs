@@ -18,11 +18,18 @@
 pub struct IommuProtection {
     pub read: bool,
     pub write: bool,
+    /// The page is a device register, not memory: mapped with device
+    /// attributes so the unit neither caches nor merges what goes through.
+    pub mmio: bool,
 }
 
 impl IommuProtection {
-    pub const READ: Self = Self { read: true, write: false };
-    pub const READ_WRITE: Self = Self { read: true, write: true };
+    pub const READ: Self = Self { read: true, write: false, mmio: false };
+    pub const WRITE: Self = Self { read: false, write: true, mmio: false };
+    pub const READ_WRITE: Self = Self { read: true, write: true, mmio: false };
+    /// An MSI doorbell: on Arm a device's message is a write the SMMU
+    /// translates like any other, so the doorbell has to be mapped for it.
+    pub const DOORBELL: Self = Self { read: false, write: true, mmio: true };
 
     pub const fn readable(&self) -> bool {
         self.read

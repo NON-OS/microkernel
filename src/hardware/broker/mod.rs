@@ -28,9 +28,13 @@ mod acpi_i2c;
 mod claim;
 mod class;
 mod confine;
+pub mod described;
 mod device;
 pub mod dma;
 pub mod external_range;
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+mod fdt_i2c;
+pub mod firmware_flash;
 mod grant;
 mod holder_choice;
 mod holder_space;
@@ -51,9 +55,9 @@ pub mod pio;
 #[cfg(not(target_arch = "x86_64"))]
 mod pio_absent;
 mod platform;
+mod power;
 mod quota;
 mod quota_log;
-mod power;
 pub mod reserved;
 mod table;
 mod va_space;

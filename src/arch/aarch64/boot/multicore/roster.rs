@@ -22,60 +22,46 @@
 //! The device tree is the only place that knows, so the affinities are latched
 //! here once, on the boot CPU, before any secondary is released.
 //!
-//! Position in this list is the kernel's dense CPU index: it is contiguous by
-//! construction, which is what per-CPU tables need and what an affinity does
-//! not give you.
+//! Position in this list is the kernel's dense CPU index, the boot CPU's 0:
+//! contiguous by construction, which is what per-CPU tables need and what an
+//! affinity does not give you.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 use super::super::stack::MAX_CPUS;
+pub(in crate::arch::aarch64) use super::roster_fill::populate;
 
-/// Written once by the boot CPU during `populate`, before any secondary runs.
-static mut AFFINITIES: [u64; MAX_CPUS] = [0; MAX_CPUS];
-static COUNT: AtomicU32 = AtomicU32::new(0);
+// The roster's bound is the descriptor table's: an index below one is below
+// the other.
+const _: () = assert!(MAX_CPUS == crate::smp::MAX_CPUS);
 
-/// Record the affinities the device tree reported, in its order.
-///
-/// An empty list means the device tree could not be read. The boot CPU is
-/// still running, so the roster becomes that one CPU rather than nothing: an
-/// empty roster would make every dense index a fallback.
-///
-/// # Safety
-///
-/// Must be called on the boot CPU before any secondary is started, and only
-/// once. Nothing else may be reading the roster at the time.
-pub(in crate::arch::aarch64) unsafe fn populate(affinities: &[u64]) {
-    let own = [crate::arch::aarch64::cpu::mpidr_affinity()];
-    let source = if affinities.is_empty() { &own[..] } else { affinities };
-    let n = source.len().min(MAX_CPUS);
-    // SAFETY: the caller guarantees exclusive access, so writing the array is
-    // not a data race, and `n` is clamped to both lengths.
-    unsafe {
-        let table = &mut *core::ptr::addr_of_mut!(AFFINITIES);
-        for (slot, affinity) in table.iter_mut().take(n).zip(source) {
-            *slot = *affinity;
-        }
-    }
-    COUNT.store(n as u32, Ordering::Release);
-}
+/// Written once by the boot CPU during `populate`, before any secondary
+/// runs, and published by `COUNT`'s release store.
+pub(super) static AFFINITIES: [AtomicU64; MAX_CPUS] = [const { AtomicU64::new(0) }; MAX_CPUS];
+/// Each CPU's position in the device tree's list, `NO_TREE` for none.
+pub(super) static TREE_AT: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(NO_TREE) }; MAX_CPUS];
+pub(super) static COUNT: AtomicU32 = AtomicU32::new(0);
+pub(super) const NO_TREE: u32 = u32::MAX;
 
-/// How many CPUs the device tree listed.
+/// How many CPUs the roster holds, the boot CPU included.
 pub fn len() -> usize {
     COUNT.load(Ordering::Acquire) as usize
 }
 
 /// The affinity of the CPU at dense index `index`.
 pub fn affinity_of(index: usize) -> Option<u64> {
-    if index >= len() {
-        return None;
-    }
-    // SAFETY: the roster is written once before any reader exists and the
-    // index is inside the populated prefix, so this read races with nothing.
-    Some(unsafe { AFFINITIES[index] })
+    (index < len()).then(|| AFFINITIES[index].load(Ordering::Relaxed))
 }
 
-/// The dense index of the CPU with `affinity`, or `None` if the device tree
-/// never mentioned it.
+/// Where the CPU at dense index `index` sits in the device tree's list, for
+/// data the tree lists in its own order.
+pub fn tree_index(index: usize) -> Option<usize> {
+    let at = (index < len()).then(|| TREE_AT[index].load(Ordering::Relaxed))?;
+    (at != NO_TREE).then_some(at as usize)
+}
+
+/// The dense index of the CPU with `affinity`, or `None` if the roster does
+/// not hold it.
 pub fn index_of(affinity: u64) -> Option<usize> {
     (0..len()).find(|i| affinity_of(*i) == Some(affinity))
 }

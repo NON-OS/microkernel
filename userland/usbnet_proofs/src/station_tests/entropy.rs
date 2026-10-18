@@ -6,7 +6,7 @@
 use nonos_libc::{calls, lines, play, serial, set_entropy};
 
 use crate::fake_xhci::answer;
-use crate::scan::Scanner;
+use crate::scan::NetScanner;
 use crate::station::draw;
 use crate::xhci::XhciBus;
 use crate::{Bind, Found, Station};
@@ -21,7 +21,7 @@ fn without_entropy_no_port_is_addressed_and_that_is_said_once() {
     set_entropy(false);
     assert!(draw().is_none());
     play(|req| Some(answer(req)));
-    let mut scanner = Scanner::new(b"t");
+    let mut scanner = NetScanner::new(b"t");
     for _ in 0..3 {
         assert!(scanner.pass(b"t", take).is_none());
     }

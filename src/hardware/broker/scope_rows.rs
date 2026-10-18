@@ -16,7 +16,6 @@
 
 //! The rows of scope_table.rs with more than one entry.
 
-use super::ids::EMMC;
 use super::lpss::LPSS_I2C;
 use super::rule::Match::{self, Acpi, Class, Ids};
 
@@ -25,26 +24,21 @@ pub(super) const VMWARE: u16 = 0x15AD;
 pub(super) const VBOX: u16 = 0x80EE;
 pub(super) const ANY: Option<u16> = None;
 
-/// SATA from any vendor, Intel RST RAID, and SD/eMMC hosts (prog-if 0 to 2)
-/// the capsule's emmc path serves.
+/// SATA from any vendor, and Intel RST RAID.
 pub(super) const AHCI: &[Match] = &[
     Class { vendor: ANY, class: 0x01, sub: 0x06, progif: None },
     Class { vendor: Some(INTEL), class: 0x01, sub: 0x04, progif: None },
-    Class { vendor: ANY, class: 0x08, sub: 0x05, progif: Some(0x00) },
-    Class { vendor: ANY, class: 0x08, sub: 0x05, progif: Some(0x01) },
-    Class { vendor: ANY, class: 0x08, sub: 0x05, progif: Some(0x02) },
-    Ids(INTEL, EMMC),
 ];
 
 /// Intel LPSS I2C by id, any other Intel serial-bus or signal-processing
 /// function the capsule takes as unlisted LPSS, and the ACPI-declared I2C
-/// controllers (SERIAL) and GPIO communities (GPIO_CTRL).
+/// controllers (SERIAL). The GPIO communities are gpio0's: the touchpad's
+/// doorbell asks driver.gpio0 and never claims one.
 pub(super) const I2C_PCI: &[Match] = &[
     Ids(INTEL, LPSS_I2C),
     Class { vendor: Some(INTEL), class: 0x0C, sub: 0x80, progif: None },
     Class { vendor: Some(INTEL), class: 0x11, sub: 0x80, progif: None },
     Acpi { class: 0x0060, vendor: ANY, device: ANY },
-    Acpi { class: 0x0080, vendor: ANY, device: ANY },
 ];
 
 /// The synthesized PS/2 keyboard and aux port (broker/platform.rs).

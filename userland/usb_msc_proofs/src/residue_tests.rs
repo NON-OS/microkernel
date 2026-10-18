@@ -1,5 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Residues that count nothing, found as Linux finds them, and true ones kept.
+//! Residues that count nothing, found by a whole good INQUIRY or READ
+//! CAPACITY that claims one (as observed, unverified), and true ones kept.
 
 use crate::bot::CommandStatus;
 use crate::disk::{capacity, inquiry, read, test_ready, Unit};

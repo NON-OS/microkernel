@@ -16,13 +16,8 @@
 
 //! Every driver the kernel spawns has a row, or claims nothing.
 
+use super::claims_nothing::CLAIMS_NOTHING;
 use super::scope::row;
-
-/// Drivers that reach their devices through another driver, or vmmouse0
-/// through the backdoor alone, and never call MkDeviceClaim: they have no
-/// row, and must not gain one unnoticed.
-const CLAIMS_NOTHING: [&str; 4] =
-    ["driver.usb_hid0", "driver.usb_msc0", "driver.i2c_hid0", "driver.vmmouse0"];
 
 pub(super) fn spawned_drivers() -> Vec<String> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
