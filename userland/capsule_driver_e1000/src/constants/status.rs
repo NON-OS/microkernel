@@ -38,9 +38,4 @@ pub const TCTL_COLD_SHIFT: u32 = 12;
 pub const TCTL_CT_DEFAULT: u32 = 0x10 << TCTL_CT_SHIFT;
 pub const TCTL_COLD_FULL_DUPLEX: u32 = 0x40 << TCTL_COLD_SHIFT;
 
-pub const EERD_START: u32 = 1 << 0;
-pub const EERD_DONE: u32 = 1 << 4;
-pub const EERD_ADDR_SHIFT: u32 = 8;
-pub const EERD_DATA_SHIFT: u32 = 16;
-
 pub const RAH_AV: u32 = 1 << 31;

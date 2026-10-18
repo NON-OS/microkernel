@@ -13,9 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{PORTSC_BASE, PORT_REG_STRIDE};
+use super::portsc_addr::portsc_addr;
 use crate::regs::mmio_write32;
 pub fn portsc_write(op_base: u64, port: u8, value: u32) {
-    let reg = op_base + PORTSC_BASE + ((port as u64) - 1) * PORT_REG_STRIDE;
-    mmio_write32(reg, value);
+    let Some(reg) = portsc_addr(op_base, port) else { return };
+    // SAFETY: `read_layout` checked every root port's register set lies inside the mapped window
+    // (`require_ports`), and the callers pass a port from 1 to the controller's count.
+    unsafe { mmio_write32(reg, value) };
 }

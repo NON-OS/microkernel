@@ -17,8 +17,10 @@
 //! The driver's state for its one pad.
 
 mod fields;
+mod last_read;
 mod new;
 mod repeat;
 
 pub use fields::State;
-pub use repeat::{FrameRepeat, FRAME_MAX};
+pub use last_read::LastRead;
+pub use repeat::{FrameRepeat, Seen, FRAME_MAX};

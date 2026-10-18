@@ -26,12 +26,6 @@ pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
     let cap_le = driver.capacity_sectors.to_le_bytes();
     tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + CAPACITY_PAYLOAD_LEN]
         .copy_from_slice(&cap_le);
-    if mk_ipc_send(
-        KERNEL_REPLY_ENDPOINT,
-        tx.as_ptr(),
-        RESP_HDR_LEN + STATUS_LEN + CAPACITY_PAYLOAD_LEN,
-    ) < 0
-    {
-        return;
-    }
+    let len = RESP_HDR_LEN + STATUS_LEN + CAPACITY_PAYLOAD_LEN;
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), len);
 }

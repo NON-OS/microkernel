@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The line a link change writes; the IPC handlers around it are not
-//! included, since they reach the kernel's reply path.
+//! The server: the loop, the handlers, the one reply path, the line a link
+//! change writes and the transmit watchdog, against the IPC calls the shim
+//! scripts.
 
+#[path = "../../../capsule_driver_e1000e/src/server/error.rs"]
+pub mod error;
+#[path = "../../../capsule_driver_e1000e/src/server/handlers/mod.rs"]
+pub mod handlers;
 #[path = "../../../capsule_driver_e1000e/src/server/link_log.rs"]
 pub mod link_log;
+#[path = "../../../capsule_driver_e1000e/src/server/runner.rs"]
+pub mod runner;
+#[path = "../../../capsule_driver_e1000e/src/server/tx_watch.rs"]
+pub mod tx_watch;

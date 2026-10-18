@@ -13,23 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::contexts::Place;
 use crate::error::XhciResult;
 use crate::server::context::Context;
 use crate::slots::SlotResources;
 
-pub(super) fn alloc_resources(
-    ctx: &Context,
-    slot: u8,
-    port: u8,
-    speed: u8,
-) -> XhciResult<SlotResources> {
-    let usb3 = ctx.driver.layout.ports.is_usb3(port);
-    SlotResources::allocate(
-        &ctx.driver.dma_pool,
-        ctx.driver.layout.context_size,
-        slot,
-        port,
-        speed,
-        usb3,
-    )
+pub(super) fn alloc_resources(ctx: &Context, slot: u8, place: Place) -> XhciResult<SlotResources> {
+    let usb3 = ctx.driver.layout.ports.is_usb3(place.root_port);
+    let (pool, context_size) = (&ctx.driver.dma_pool, ctx.driver.layout.context_size);
+    SlotResources::allocate(pool, context_size, slot, place, usb3)
 }

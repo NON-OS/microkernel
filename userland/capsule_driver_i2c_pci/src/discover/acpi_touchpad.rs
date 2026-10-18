@@ -16,7 +16,8 @@
 //! The kernel's record of one ACPI-declared HID-over-I2C device, and which
 //! controller it names.
 
-use super::defs::Found;
+use super::found::Found;
+use crate::constants::HID_INFO_TEN_BIT;
 
 /// An ACPI-declared HID-over-I2C device, as the kernel's record carries it.
 #[derive(Clone, Copy, Default)]
@@ -43,6 +44,16 @@ pub struct AcpiTouchpad {
 }
 
 impl AcpiTouchpad {
+    /// A 7-bit address is declared, so the device can be addressed.
+    pub fn addressed(&self) -> bool {
+        self.addr != 0 && self.info & HID_INFO_TEN_BIT == 0
+    }
+
+    /// The ResourceSource resolved to no controller this driver can match.
+    pub fn names_none(&self) -> bool {
+        self.controller_idx.is_none() && self.host_base == 0
+    }
+
     /// Whether `dev` is the controller this record's ResourceSource names.
     pub fn names(&self, dev: &Found, index_of: impl Fn(u16) -> Option<u8>) -> bool {
         if dev.is_acpi {
