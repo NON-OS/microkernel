@@ -35,3 +35,10 @@ pub enum ViewKind {
     Grid,
     List,
 }
+
+// The sidecar read: whole, or refused (store_meta's).
+#[path = "../../../capsule_file_manager/src/fm/whole.rs"]
+pub mod whole;
+#[cfg(test)]
+#[path = "../fm_whole_tests.rs"]
+mod whole_tests;

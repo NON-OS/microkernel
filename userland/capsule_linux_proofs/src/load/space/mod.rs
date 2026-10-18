@@ -17,5 +17,5 @@
 //! The quota on a family's private directories, apart from the store. It
 //! reads its sizes from the sibling `declared`, as it does in the capsule.
 
-#[path = "../../../../capsule_linux/src/linux/file/system/space/quota.rs"]
+#[path = "../../../../capsule_linux/src/linux/file/system/space/quota/mod.rs"]
 pub mod quota;

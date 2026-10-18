@@ -25,3 +25,8 @@ use super::*;
 
 /// The Key Information bits every message 3 of an RSN handshake carries.
 pub(super) const MESSAGE3_BITS: u16 = KEY_INFO_INSTALL | KEY_INFO_SECURE | KEY_INFO_ENCRYPTED;
+
+/// Whether `key` carries the bits every message 3 does.
+pub(in crate::wpa::supplicant) fn is_message3(key: &EapolKey<'_>) -> bool {
+    key.key_info & MESSAGE3_BITS == MESSAGE3_BITS
+}

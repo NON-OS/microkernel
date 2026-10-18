@@ -19,7 +19,7 @@
 //! which runs Open System authentication instead (IEEE Std 802.11-2020,
 //! 12.6.10.3).
 
-use crate::ap_sim::{gtk_kde, message1, message3, AP_RSNE_MIXED, GTK};
+use crate::ap_sim::{gtk_kde, igtk_kde, message1, message3, AP_RSNE_MIXED, GTK};
 use crate::mlme::frames::{assoc_elements, assoc_resp, open_auth_ok};
 use crate::mlme::sae::sae_join;
 use crate::mlme::sim::{beacon, join, AP, SNONCE, STA};
@@ -37,6 +37,8 @@ pub fn four_way(m: &mut Mlme, pmk: &[u8; 32]) -> Vec<u8> {
     let ptk = Akm::Sae.derive_ptk(pmk, &AP, &STA, &ANONCE, &SNONCE);
     let mut kd = AP_RSNE_MIXED.to_vec();
     kd.extend_from_slice(&gtk_kde(1, &GTK));
+    // SAE runs with management frame protection, so the IGTK comes too.
+    kd.extend_from_slice(&igtk_kde(&[0x77; 16]));
     assert!(m.on_eapol(&message3(Akm::Sae, 2, &ANONCE, &ptk, &kd)).tx.is_some());
     assert_eq!(m.state(), MlmeState::Connected);
     m2

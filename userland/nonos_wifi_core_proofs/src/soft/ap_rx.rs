@@ -36,11 +36,15 @@ impl SimAp {
             (0, sub @ (0 | 2)) if self.quirks.mute_eapol => {
                 vec![mgmt_from(me, sub + 1, sta, &[0x11, 4, 0, 0, 1, 0xc0])]
             }
-            // An association, or a reassociation answered in kind.
-            (0, sub @ (0 | 2)) => vec![
-                mgmt_from(me, sub + 1, sta, &[0x11, 4, 0, 0, 1, 0xc0]),
-                eapol_from(me, sta, &message1(Akm::Psk, 1, &ANONCE)),
-            ],
+            // An association, or a reassociation answered in kind; the keys
+            // of any session before are gone, and the handshake starts.
+            (0, sub @ (0 | 2)) => {
+                self.tk = None;
+                vec![
+                    mgmt_from(me, sub + 1, sta, &[0x11, 4, 0, 0, 1, 0xc0]),
+                    eapol_from(me, sta, &message1(Akm::Psk, 1, &ANONCE)),
+                ]
+            }
             (0, 4)
                 if f.get(24..26) == Some(&[0, self.ssid.len() as u8])
                     && f[26..].starts_with(&self.ssid) =>

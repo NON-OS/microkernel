@@ -18,12 +18,13 @@
 //! bounded. Anti-clogging requests are answered at most three times; the
 //! AP's commit sent again draws this station's confirm again, its counter
 //! one higher, at most three confirms; and a flood of other commits once
-//! this station has confirmed is ignored at no cost.
+//! this station has confirmed is ignored at no cost. Past a bound the frame
+//! is discarded, and the exchange runs on to the AP's real confirm.
 
 use crate::sae::vectors::{ADDR1, ADDR2, PW};
 use nonos_wifi_core::sae::hnp::derive_pwe;
 use nonos_wifi_core::sae::station::{CONFIRMS_MAX, TOKENS_MAX};
-use nonos_wifi_core::sae::{SaeFailure, SaeStation, SaeStep};
+use nonos_wifi_core::sae::{SaeFailure, SaeState, SaeStation, SaeStep};
 
 pub fn pair(ap_mask: u8) -> (SaeStation, SaeStation) {
     let pwe = derive_pwe(PW, &[1u8; 14], &ADDR1, &ADDR2).unwrap();
@@ -45,8 +46,9 @@ fn anti_clogging_requests_are_answered_three_times_and_no_more() {
     for _ in 0..TOKENS_MAX {
         assert!(matches!(sta.on_frame(1, 76, &req), SaeStep::Send { seq: 1, .. }));
     }
-    assert!(matches!(sta.on_frame(1, 76, &req), SaeStep::Failed));
+    assert!(matches!(sta.on_frame(1, 76, &req), SaeStep::Ignore));
     assert_eq!(sta.failure(), Some(SaeFailure::Looping));
+    assert_eq!(sta.state(), SaeState::Committed, "the exchange runs on");
 }
 
 #[test]
@@ -64,7 +66,8 @@ fn the_aps_commit_again_draws_a_counted_confirm_three_times_and_no_more() {
     for n in 2..=CONFIRMS_MAX {
         assert_eq!(counter(sta.on_frame(1, ap_st, &ap_commit)), Some(n), "the AP lost ours");
     }
-    assert!(matches!(sta.on_frame(1, ap_st, &ap_commit), SaeStep::Failed), "one too many");
+    assert!(matches!(sta.on_frame(1, ap_st, &ap_commit), SaeStep::Ignore), "one too many");
     assert_eq!((sta.failure(), sta.pmk()), (Some(SaeFailure::Looping), None));
-    assert!(matches!(sta.on_frame(2, 0, &ap_confirm), SaeStep::Ignore), "failed for good");
+    let real = sta.on_frame(2, 0, &ap_confirm);
+    assert!(matches!(real, SaeStep::Accepted { .. }), "the AP's own confirm still ends it");
 }

@@ -21,9 +21,11 @@ mod ethertype_eapol;
 mod rx;
 use super::chip_rx::chip_body;
 use super::cipher::open;
-use super::LinkStation;
+use super::{LinkStation, Loss};
 use crate::dot11::ccmp::{pn_and_key, view};
-use crate::dot11::header::{fc_subtype, fc_type, FC_FROM_DS, FC_PROTECTED, FC_TO_DS, TYPE_DATA};
+use crate::dot11::header::{
+    fc_subtype, fc_type, FC_FROM_DS, FC_PROTECTED, FC_TO_DS, TYPE_DATA, TYPE_MGMT,
+};
 use crate::frame::LLC_SNAP;
 use alloc::vec::Vec;
 use checked::*;
