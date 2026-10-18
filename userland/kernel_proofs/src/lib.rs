@@ -109,6 +109,8 @@ pub mod iova_space;
 pub mod layout_slots;
 pub mod memory;
 #[cfg(test)]
+pub mod mmap_window;
+#[cfg(test)]
 pub mod mmio_window;
 #[cfg(test)]
 pub mod msi_layout;
