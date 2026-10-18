@@ -13,6 +13,8 @@ pub enum ProveError {
     Encoding,
     /// The witness root is not the pool's published root, so the proof would be void.
     RootNotPublished,
+    /// A public address limb wider than its field: its word would say something false.
+    PublicLimb,
 }
 
 impl core::fmt::Display for ProveError {
@@ -26,6 +28,7 @@ impl core::fmt::Display for ProveError {
             ProveError::Cancelled => "proving was cancelled",
             ProveError::Encoding => "the proof could not be encoded",
             ProveError::RootNotPublished => "the pool moved while the proof was being made",
+            ProveError::PublicLimb => "the proof's public statement does not fit the pool's words",
         })
     }
 }

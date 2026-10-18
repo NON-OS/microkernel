@@ -1,0 +1,75 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The meter's wire: market_proto's 20-byte header under this service's own
+//! magic, a status first in each reply, little-endian, lengths explicit.
+
+#![no_std]
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
+extern crate alloc;
+mod account;
+mod account_codec;
+mod budget;
+mod bytes;
+mod channel_ops;
+mod cursor;
+mod cursor_put;
+mod drain;
+mod drain_form;
+mod drain_parse;
+mod frame;
+mod funded;
+mod header;
+mod job;
+mod offer;
+mod offer_made;
+mod open;
+mod open_codec;
+mod ops;
+mod order_delivered;
+mod order_delivered_made;
+mod order_made;
+mod order_more;
+mod order_new;
+mod order_new_parse;
+mod pay;
+mod pay_encode;
+mod plain_page;
+mod plaintext;
+mod purchase;
+mod status;
+mod voucher;
+
+pub use account::{Account, AccountRow, ACCOUNT_ROWS_MAX, ACCOUNT_ROW_LEN, KEPT, READY};
+pub use budget::{ListingCapAsk, SetBudget, LISTING_CAP_LEN, MAX_LISTING_CAPS};
+pub use drain_form::{DrainRequest, DrainSign, DRAIN_LIST, DRAIN_SIGN};
+pub use frame::{reply, reply_body, request, status_reply, ReplyError};
+pub use header::{parse_header, Header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
+pub use offer::{OfferAsk, MAX_URL};
+pub use open::{OpenConfirm, OpenStart, OPEN_CONFIRM, OPEN_START};
+pub use ops::*;
+pub use order_delivered::{DeliveredAsk, DeliveredMade, DELIVERED_ASK_LEN};
+pub use order_more::{parse_refund_reply, refund_reply, OrderStatus, ORDER_STATUS_LEN};
+pub use order_new::{OrderNew, ORDER_MADE_LEN, ORDER_NEW_LEN};
+pub use purchase::*;
+pub use status::*;
+pub use voucher::{VoucherRecord, DRAIN_ROWS_MAX, VOUCHER_RECORD_LEN};
+pub use {channel_ops::*, drain::*, job::*, open_codec::*, order_made::*, pay::*};
+pub use {funded::*, offer_made::*, plain_page::*, plaintext::*};

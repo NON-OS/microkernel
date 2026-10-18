@@ -18,108 +18,23 @@ use alloc::vec::Vec;
 
 // Every command name and alias the shell accepts as a first token, used
 // for Tab completion of the command word.
-const COMMANDS: &[&[u8]] = &[
-    b"help",
-    b"about",
-    b"bench",
-    b"version",
-    b"receipt",
-    b"log",
-    b"whoami",
-    b"caps",
-    b"capsules",
-    b"clear",
-    b"display",
-    b"echo",
-    b"history",
-    b"market",
-    b"motd",
-    b"ping",
-    b"svc",
-    b"service",
-    b"nox",
-    b"exit",
-    b"where",
-    b"pwd",
-    b"in",
-    b"cd",
-    b"ls",
-    b"dir",
-    b"read",
-    b"cat",
-    b"write",
-    b"copy",
-    b"cp",
-    b"mk",
-    b"mkdir",
-    b"rm",
-    b"del",
-    b"mv",
-    b"move",
-    b"stat",
-    b"find",
-    b"du",
-    b"touch",
-    b"basename",
-    b"dirname",
-    b"date",
-    b"env",
-    b"ps",
-    b"ifconfig",
-    b"ip",
-    b"nslookup",
-    b"nym",
-    b"id",
-    b"sys",
-    b"apps",
-    b"grep",
-    b"wc",
-    b"head",
-    b"tail",
-    b"cut",
-    b"run",
-    b"open",
-    b"set",
-    b"unset",
-    b"alias",
-    b"unalias",
-    b"sort",
-    b"uniq",
-    b"nl",
-    b"install",
-    b"type",
-    b"which",
-    b"tree",
-    // Reachable at the prompt and, until this line, never offered by Tab.
-    b"jobs",
-    b"fg",
-    b"bg",
-    b"rmdir",
-    b"neofetch",
-    b"commands",
-    b"profile",
-    b"theme",
-    b"tac",
-    b"rev",
-    b"qwen",
-];
+const COMMANDS: &[&[&[u8]]] = &[SHELL, FILES, SYSTEM, TEXT, LATE];
+
+#[path = "complete_words.rs"]
+mod complete_words;
+#[path = "complete_words_more.rs"]
+mod complete_words_more;
+use complete_words::{FILES, SHELL};
+use complete_words_more::{LATE, SYSTEM, TEXT};
+#[path = "complete_takes.rs"]
+mod complete_takes;
+pub use complete_takes::takes_command_argument;
 
 /// Whether the shell answers to this name, by the same table Tab completes
 /// from. One list, so `type` can never claim a command that completion does
 /// not offer, or the reverse.
 pub fn is_command_name(name: &[u8]) -> bool {
-    COMMANDS.contains(&name)
-}
-
-/// Commands whose argument is another command's name rather than a path.
-///
-/// Without this, `help gr<Tab>` looks for a file called `gr`, finds nothing,
-/// and appears broken. The completion a reader gets has to match what the
-/// command actually takes, or Tab teaches them not to press it.
-const TAKES_COMMAND: &[&[u8]] = &[b"help", b"commands", b"type", b"which"];
-
-pub fn takes_command_argument(first: &[u8]) -> bool {
-    TAKES_COMMAND.contains(&first)
+    COMMANDS.iter().any(|group| group.contains(&name))
 }
 
 /// Every name that would run: shell commands and installed tools alike.
@@ -129,7 +44,7 @@ pub fn takes_command_argument(first: &[u8]) -> bool {
 pub fn all_names() -> Vec<&'static [u8]> {
     COMMANDS
         .iter()
-        .copied()
+        .flat_map(|group| group.iter().copied())
         .chain(crate::command::builtin::tool::TOOLS.iter().map(|(typed, _)| *typed))
         .collect()
 }

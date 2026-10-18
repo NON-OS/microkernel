@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_nox_receipt"
 version = "0.2.0"
+dependencies = [
+ "nonos_nox_config",
+]

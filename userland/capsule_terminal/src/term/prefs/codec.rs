@@ -16,16 +16,15 @@
 
 use super::projects;
 use super::types::Prefs;
-use crate::term::dimensions::{MAX_FONT_SCALE, MIN_FONT_SCALE};
-use crate::term::theme::profiles::COUNT as THEME_COUNT;
+
+#[path = "codec_decode.rs"]
+mod codec_decode;
+pub use codec_decode::decode;
 
 pub const MAGIC: [u8; 4] = *b"NTP1";
 pub const VERSION: u16 = 2;
 pub const HEAD: usize = 12;
 pub const LEN: usize = HEAD + projects::BYTES;
-
-const CURSOR_COUNT: u8 = 4;
-const RAILS_MASK: u8 = 0b11;
 
 pub fn encode(p: &Prefs) -> [u8; LEN] {
     let mut out = [0u8; LEN];
@@ -45,33 +44,4 @@ pub fn encode(p: &Prefs) -> [u8; LEN] {
     out[11] = 0;
     projects::encode_into(p, &mut out[HEAD..]);
     out
-}
-
-pub fn decode(b: &[u8]) -> Prefs {
-    if b.len() < HEAD {
-        return Prefs::default();
-    }
-    if b[0] != MAGIC[0] || b[1] != MAGIC[1] || b[2] != MAGIC[2] || b[3] != MAGIC[3] {
-        return Prefs::default();
-    }
-    let version = u16::from_le_bytes([b[4], b[5]]);
-    if version == 0 || version > VERSION {
-        return Prefs::default();
-    }
-    let theme = u16::from_le_bytes([b[6], b[7]]);
-    let font_scale = b[8];
-    let cursor = b[9];
-    let (list, count) = projects::decode_from(&b[HEAD..]);
-    Prefs {
-        theme: if theme < THEME_COUNT { theme } else { 0 },
-        font_scale: if font_scale as u32 >= MIN_FONT_SCALE && font_scale as u32 <= MAX_FONT_SCALE {
-            font_scale
-        } else {
-            2
-        },
-        cursor: if cursor < CURSOR_COUNT { cursor } else { 0 },
-        rails: b[10] & RAILS_MASK,
-        projects: list,
-        project_count: count,
-    }
 }

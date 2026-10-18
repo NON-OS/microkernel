@@ -4,7 +4,6 @@
 //! and must build it, or it shows spent notes as money.
 //! These pin the derivation's security-relevant properties and the matcher
 //! that uses it.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};
 use nox_shield_core::discovery::spent_commitments;

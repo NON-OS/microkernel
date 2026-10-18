@@ -58,6 +58,6 @@ pub fn elsewhere(state: &State, fb: &mut PaintBuffer) {
     y += wrapped(fb, c.x as i32, y as i32, c.w as i32, Role::Lead, MORE, TEXT_3) as u32 + GAP;
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     super::edges::footer(&l, &[true]);
 }

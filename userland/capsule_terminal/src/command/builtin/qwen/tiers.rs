@@ -16,10 +16,10 @@
 
 //! The tier words `qwen` takes, as the kernel's allowlist has them.
 
-use alloc::format;
-use alloc::string::String;
+#[path = "tiers_default.rs"]
+mod tiers_default;
 
-use super::default_tier::Source;
+pub use tiers_default::default_line;
 
 /// The tiers the kernel runs, by family and smallest first within each.
 /// With none named, the default runs (`default_tier`).
@@ -65,15 +65,4 @@ pub fn pick_said(reply: Option<&[u8]>) -> (Option<&'static [u8]>, Option<&'stati
     }
     let unread = reply.first().is_some_and(|&c| c != 0);
     (None, unread.then_some(UNKNOWN))
-}
-
-/* The line that says a default runs, and why; None for the person's choice. */
-pub fn default_line(tier: &str, source: Source) -> Option<String> {
-    let why = match source {
-        Source::Chosen => return None,
-        Source::Stick => "the tier on the release stick, which installs offline",
-        Source::Largest => "the largest tier this machine's memory runs",
-        Source::Smallest => "the smallest tier, though none fits this machine's memory",
-    };
-    Some(format!("qwen: no tier chosen at setup or in Settings; running the default, {tier}: {why}"))
 }

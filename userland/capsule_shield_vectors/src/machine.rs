@@ -19,9 +19,9 @@
 //! the least it fell to is known. The std layer's heap keeps what it maps,
 //! so what a proof took from the machine stays taken after it.
 
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::Arc;
-use std::time::Duration;
+mod watch;
+
+pub use watch::Watch;
 
 use nonos_libc::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
 
@@ -47,42 +47,4 @@ pub fn mem_total_mib() -> u64 {
 
 pub fn mem_free_mib() -> u64 {
     header().map_or(0, |h| h.mem_free_kb >> 10)
-}
-
-/// The least free memory seen until it is stopped, sampled every 100 ms.
-pub struct Watch {
-    stop: Arc<AtomicBool>,
-    least_kb: Arc<AtomicU64>,
-    thread: Option<std::thread::JoinHandle<()>>,
-}
-
-impl Watch {
-    pub fn start() -> Watch {
-        let stop = Arc::new(AtomicBool::new(false));
-        let least_kb = Arc::new(AtomicU64::new(header().map_or(0, |h| h.mem_free_kb)));
-        let (s, l) = (Arc::clone(&stop), Arc::clone(&least_kb));
-        let thread = std::thread::Builder::new()
-            .spawn(move || {
-                while !s.load(Ordering::Relaxed) {
-                    if let Some(h) = header() {
-                        l.fetch_min(h.mem_free_kb, Ordering::Relaxed);
-                    }
-                    std::thread::sleep(Duration::from_millis(100));
-                }
-            })
-            .ok();
-        Watch { stop, least_kb, thread }
-    }
-
-    /// Stop watching; the least free memory seen, in MiB.
-    pub fn stop(mut self) -> u64 {
-        self.stop.store(true, Ordering::Relaxed);
-        if let Some(t) = self.thread.take() {
-            let _ = t.join();
-        }
-        if let Some(h) = header() {
-            self.least_kb.fetch_min(h.mem_free_kb, Ordering::Relaxed);
-        }
-        self.least_kb.load(Ordering::Relaxed) >> 10
-    }
 }

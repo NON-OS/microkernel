@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic, clippy::indexing_slicing)]
-
 //! The request and seed the wallet writes, read by the prover's own parser:
 //! the trees rebuild to the named roots, the notes sit at the named leaves,
 //! the secrets own them, and the values balance. Nothing is proved here, so this runs in a

@@ -1,10 +1,5 @@
-// Tests assert by panicking and print what they read, so those lints are off here only.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
+#[path = "vector/limbs.rs"]
+mod limbs;
 
 use nox_shield_core::notes::{commitment, commitment_bytes};
 use nox_shield_core::prover::pool_hasher;
@@ -62,24 +57,4 @@ fn the_wire_order_is_the_reverse_of_ours() {
         *slot = u8::from_str_radix(text, 16).expect("hex");
     }
     assert_eq!(theirs, expected, "the on-chain packing is not our bytes reversed");
-}
-
-// The proven split against the shipped one. `verified/src/limbs.rs` proves the 32 bit split
-// round trips, and the vendored prover has its own copy, so this ties the two: a layout
-// move in the prover fails here, not on a deployed pool.
-#[test]
-fn the_provers_limbs_are_the_proven_split() {
-    let values =
-        [0u64, 1, 0xFFFF_FFFF, 0x1_0000_0000, 0xFFFF_FFFF_FFFF_FFFF, 0x0123_4567_89AB_CDEF];
-    for value in values {
-        let note = Note { value, asset_id: 0, spend_pk: [0; 4], blinding: [0; 4] };
-        let limbs = note.limbs();
-        assert_eq!(limbs[0].value(), nox_verified::limbs::low(value), "low half at {value:#x}");
-        assert_eq!(limbs[1].value(), nox_verified::limbs::high(value), "high half at {value:#x}");
-        assert_eq!(
-            nox_verified::limbs::join(limbs[0].value(), limbs[1].value()),
-            value,
-            "rebuilding at {value:#x}"
-        );
-    }
 }

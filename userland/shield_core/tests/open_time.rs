@@ -3,7 +3,13 @@
 //! stuck, not slow. On this host in release a restore takes some 17 ms, and some 170 ms under
 //! QEMU's TCG emulation; the bound here leaves room for a debug build on a slow runner.
 
-mod keystore;
+/// The stand ins this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    mod scratch;
+    pub use guard::TestGuard;
+    pub use scratch::scratch;
+}
 
 use keystore::{scratch, TestGuard};
 use nox_shield_core::ffi::Wallet;

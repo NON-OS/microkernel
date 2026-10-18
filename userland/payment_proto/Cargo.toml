@@ -1,0 +1,19 @@
+# NONOS userland: payment_proto
+#
+# The meter's wire (service "payment", plan/21 and plan/42): every byte
+# layout and status of its ops, shared by the meter and every caller so the
+# two cannot drift. no_std, alloc only, no syscalls.
+
+[package]
+name = "nonos_payment_proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "The meter's ops, bodies and statuses, no_std"
+
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+crate-type = ["rlib"]
