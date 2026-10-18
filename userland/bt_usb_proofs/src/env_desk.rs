@@ -33,12 +33,15 @@ pub struct User {
     pub ready: Vec<(bool, bool, bool)>,
     pub linked: Vec<(u8, [u8; 6], bool)>,
     pub hang_up: bool,
+    /// The radio turned off (E-72): a live link ends and nothing more is sent.
+    pub off: bool,
 }
 
 impl User {
     pub fn new() -> Self {
         let (answers, asked, ready, linked) = (VecDeque::new(), vec![], vec![], vec![]);
-        Self { may_pair: true, answers, keep_waiting: false, asked, ready, linked, hang_up: false }
+        let hang_up = false;
+        Self { may_pair: true, answers, keep_waiting: false, asked, ready, linked, hang_up, off: false }
     }
 }
 
@@ -64,5 +67,8 @@ impl Desk for TestEnv {
     }
     fn hang_up(&mut self) -> bool {
         std::mem::take(&mut self.user.hang_up)
+    }
+    fn radio_off(&mut self) -> bool {
+        self.user.off
     }
 }

@@ -24,6 +24,8 @@ use nonos_bt_hci::{HciError, Host, Transport};
 
 /// Why a link ends whose bond the user forgot.
 pub const FORGOTTEN: &str = "its bond was forgotten";
+/// Why a link ends when the radio is turned off; the bond is kept (E-72).
+pub const OFF: &str = "the radio was turned off";
 
 impl Session {
     pub(super) fn answered<T: Transport, E: Env>(

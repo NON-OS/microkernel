@@ -61,6 +61,7 @@ mod link_tests;
 mod modifier_tests;
 mod mouse_tests;
 mod nbtc_proofs;
+mod off_tests;
 mod pair_tests;
 mod pick_tests;
 mod private_link_tests;
