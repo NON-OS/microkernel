@@ -58,11 +58,3 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
         y += bh + CARD_GAP;
     }
 }
-
-pub fn content_h(state: &State) -> u32 {
-    let mut h = PANE_PAD_TOP + HEAD_H;
-    for b in blocks_for(state.section) {
-        h += block_h(state, b) + CARD_GAP;
-    }
-    h + PANE_PAD_TOP
-}

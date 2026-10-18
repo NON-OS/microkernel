@@ -16,6 +16,7 @@
 
 use nonos_libc::{mk_ipc_send_to_pid, InputEvent};
 
+use super::bond::BOND_BITS;
 use crate::protocol::{encode_delivery, DELIVERY_LEN};
 
 // Encode an event into the NINP envelope and ship it to `target_pid`.
@@ -25,8 +26,10 @@ pub fn deliver_one(target_pid: u32, event: &InputEvent) -> u32 {
     if target_pid == 0 {
         return 0;
     }
+    // The pairing bits are the router's alone; a receiver reads modifiers.
+    let event = InputEvent { flags: event.flags & !BOND_BITS, ..*event };
     let mut frame = [0u8; DELIVERY_LEN];
-    encode_delivery(&mut frame, event);
+    encode_delivery(&mut frame, &event);
     let rc = mk_ipc_send_to_pid(target_pid, frame.as_ptr(), frame.len());
     if rc < 0 {
         0

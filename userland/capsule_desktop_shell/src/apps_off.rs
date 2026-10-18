@@ -21,10 +21,15 @@
  */
 
 mod dim;
+mod expect;
+mod failed;
 mod mask;
 mod open;
 mod qwen;
+mod say;
 
 pub use dim::dim;
+pub use expect::{expect, say_default};
+pub use failed::toast_failed;
 pub use mask::is_off;
-pub use open::{expect, open, request, say_default, toast_failed};
+pub use open::{open, request};

@@ -20,6 +20,9 @@ impl Context {
     pub fn purge_dead(&mut self) {
         self.subscriptions.purge_dead();
         self.grabs.purge_dead();
+        if self.trusted.is_some_and(|h| !nonos_libc::mk_pid_alive(h.pid)) {
+            self.trusted = None;
+        }
         if self.shell_pid != 0 && !nonos_libc::mk_pid_alive(self.shell_pid) {
             self.shell_pid = 0;
         }
