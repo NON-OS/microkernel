@@ -13,16 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! A control queue the device stalled on, brought back in place (plan/50
-//! C1). The server runs only once the primary surface is shared, and the
-//! compositor draws into its frames from then on: giving the device back
-//! would have the kernel free them under it, and nothing restarts a driver.
-//! So the claim and every grant stay. A stall gets at most three tries, each
-//! logged (`tries`, `restore`). If none works, or the device stalled again
-//! after IN_A_ROW recoveries without serving SERVED_MS after any of them
-//! (`policy`), it is left reset and the driver stays up, `Down`: device ops
-//! answer E_DEVICE and OP_HEALTHCHECK names the state.
+//! C1). The compositor draws into this driver's primaries and the outputs
+//! show its surfaces, whose pages the driver holds: giving the device back
+//! would have the kernel free them under the host, and nothing restarts a
+//! driver that gave up. So the claim and every grant stay. A stall gets at
+//! most three tries, each logged (`tries`, `restore`), each showing every
+//! output again on its own surface. If none works, or the device stalled
+//! again after IN_A_ROW recoveries without serving SERVED_MS after any of
+//! them (`policy`), it is left reset and the driver stays up, `Down`: every
+//! output answers LOST and dark, and the compositor is told LEAVING once,
+//! so it drives another display.
 
 pub mod policy;
 mod restore;

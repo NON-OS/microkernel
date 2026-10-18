@@ -23,3 +23,5 @@ pub const BUS_KIND_FDT: u8 = 4;
 pub const FDT_SDHCI: u16 = 1;
 pub const FDT_XHCI: u16 = 2;
 pub const FDT_AHCI: u16 = 3;
+/// What firmware hands over at boot: today only the boot framebuffer.
+pub const BUS_KIND_FIRMWARE: u8 = 5;

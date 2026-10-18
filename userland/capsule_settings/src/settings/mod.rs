@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod access;
 mod app;
+mod app_ready;
+mod app_tick;
 mod event;
 mod ipc;
 mod manifest;
@@ -22,9 +25,10 @@ mod page_tick;
 mod paint;
 mod qwen_tier;
 pub(crate) mod schema;
+mod screens;
 mod section;
 mod section_text;
 mod state;
 mod ui;
 
-pub use app::Settings;
+pub use app_ready::Settings;

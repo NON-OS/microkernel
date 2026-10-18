@@ -17,20 +17,19 @@
 //! Query net_core's DHCP lease. It registers `net.dhcp.client` only after binding
 //! an interface, so a failed lookup means the stack bound nothing.
 
+use super::lease::NetStatus;
+use super::lease_read::decode;
+use super::net_poll::LEASE_TIMEOUT_MS;
 use core::ptr;
-
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
 
-use super::lease::{Lease, NetStatus};
-use super::net_poll::LEASE_TIMEOUT_MS;
-
 const NET_DHCP_SERVICE: &[u8] = b"net.dhcp.client";
+
 const MAGIC_NDHC: u32 = 0x4E44_4843;
+
 const OP_LEASE_STATUS: u16 = 3;
+
 const HDR_LEN: usize = 20;
-// Generous: a bound net_core spends most of a poll draining frames, so a short
-// deadline misses its reply and the panel wrongly reads the stack as absent.
-const STATE_BOUND: u8 = 3;
 
 /// Query net_core for its lease. `Down` when the service is not registered;
 /// otherwise the bound port and any address it holds.
@@ -62,19 +61,4 @@ pub fn net_status() -> NetStatus {
         return NetStatus::NoReply;
     }
     decode(&resp[HDR_LEN..])
-}
-
-// Decode the 22-byte body: state, address fields, then the bound port.
-fn decode(b: &[u8]) -> NetStatus {
-    let bound = u32::from_le_bytes([b[18], b[19], b[20], b[21]]);
-    if b[0] != STATE_BOUND {
-        return NetStatus::Unbound { port: bound };
-    }
-    let lease = Lease {
-        ip: [b[1], b[2], b[3], b[4]],
-        prefix: b[5],
-        gw: [b[6], b[7], b[8], b[9]],
-        dns: [b[10], b[11], b[12], b[13]],
-    };
-    NetStatus::Bound { lease, port: bound }
 }

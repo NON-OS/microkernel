@@ -32,8 +32,8 @@ use super::append::put;
 use super::verify_mark::mark;
 use super::verify_row::{tint, MARK_W};
 
-const NAME_W: u32 = 210;
-const PID_W: u32 = 96;
+pub(super) const NAME_W: u32 = 210;
+pub(super) const PID_W: u32 = 96;
 const PUBLISHER: u8 = 255;
 
 pub(super) fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, a: &Attested) {
