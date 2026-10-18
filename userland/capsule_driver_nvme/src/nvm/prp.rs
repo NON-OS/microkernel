@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::PAGE;
+use super::constants::{DATA_BYTES, PAGE, PRP_LIST_BYTES};
 use super::queue::IoQueue;
+
+// A transfer of the whole data buffer names its pages after the first in
+// the one list page.
+const _: () = assert!((DATA_BYTES / PAGE) * 8 <= PRP_LIST_BYTES);
 
 pub(super) fn build_prp(io: &IoQueue, bytes: u64) -> (u64, u64) {
     let data_phys = io.data.device_addr();
@@ -29,6 +33,8 @@ pub(super) fn build_prp(io: &IoQueue, bytes: u64) -> (u64, u64) {
     let list_va = io.prp_list.user_va();
     for i in 0..(npages - 1) {
         let entry = data_phys + PAGE * (i + 1);
+        // SAFETY: transfer bounds `bytes` by DATA_BYTES, so `i` stays inside
+        // the mapped list page (the assert above).
         unsafe { core::ptr::write_volatile((list_va + i * 8) as *mut u64, entry) };
     }
     (data_phys, io.prp_list.device_addr())

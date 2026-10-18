@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The line a working bring-up prints, "igc: up <device id> <mac>
-//! link=<up|down>", and the link state it records so the first change after
-//! it is what link_status logs next.
+//! The line a working bring-up prints, "igc: up <device id> link=<up|down>",
+//! and the link state it records so the first change after it is what
+//! link_status logs next. The station address is not in it: drawn per
+//! bring-up, it is still what every frame of this session carries, and a
+//! log that holds it ties the machine to its traffic.
 
 use crate::constants::regs::REG_STATUS;
 use crate::link::{decode, LinkState};
@@ -29,13 +31,7 @@ pub fn up(driver: &mut Driver) {
     let state: LinkState = decode(unsafe { driver.regs.r32(REG_STATUS) });
     driver.link = Some(state);
     let mut line = Line::new();
-    line.text("up ").hex(driver.pci_device as u32, 4).text(" ");
-    for (i, b) in driver.mac.iter().enumerate() {
-        if i > 0 {
-            line.text(":");
-        }
-        line.hex(*b as u32, 2);
-    }
+    line.text("up ").hex(driver.pci_device as u32, 4);
     line.text(if state.up { " link=up" } else { " link=down" });
     line.send();
 }

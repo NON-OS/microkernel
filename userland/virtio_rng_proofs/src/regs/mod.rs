@@ -16,20 +16,27 @@
 
 //! The driver's register accessors, assembled for the host.
 //!
-//! `state.rs` and `io.rs` are the shipping files. `pio` is the one part that
-//! cannot come along: it issues port-IO syscalls through `nonos_libc`, which
-//! has no host build. The shim below stands in for it and refuses to be
-//! called, which is the honest arrangement rather than a silent stub. These
-//! tests build a window with `Regs::mmio`, so the PIO arm is unreachable, and
-//! if a future test takes it the panic says so instead of returning a zero
-//! that would look like a device answering.
+//! `io`, `read`, `state` and `write` are the shipping files. `pio` is the
+//! one part that cannot come along: it issues port-IO syscalls through
+//! `nonos_libc`, which has no host build. The stand-in below is a legacy
+//! device behind a port grant that holds the status byte and its reset, and
+//! the request queue's size and page, and panics on any other register, so
+//! a test that takes the PIO arm for more is told so instead of reading a
+//! zero that would look like a device answering. Tests build every other
+//! window with `Regs::mmio`.
 
 #[path = "../../../capsule_driver_virtio_rng/src/regs/io.rs"]
 mod io;
 
 mod pio;
+mod port;
 
+#[path = "../../../capsule_driver_virtio_rng/src/regs/read.rs"]
+mod read;
 #[path = "../../../capsule_driver_virtio_rng/src/regs/state.rs"]
 mod state;
+#[path = "../../../capsule_driver_virtio_rng/src/regs/write.rs"]
+mod write;
 
+pub use self::port::{port, Status};
 pub use self::state::Regs;

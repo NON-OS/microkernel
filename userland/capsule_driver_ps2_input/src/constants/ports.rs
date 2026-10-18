@@ -23,6 +23,8 @@ pub const CTL_ENABLE_KBD: u8 = 0xAE;
 pub const CTL_DISABLE_KBD: u8 = 0xAD;
 pub const CTL_WRITE_AUX: u8 = 0xD4;
 pub const KBD_ENABLE_SCANNING: u8 = 0xF4;
+/// Set the lock LEDs; the next data byte is the LED bitmap.
+pub const KBD_SET_LEDS: u8 = 0xED;
 pub const KBD_RESET: u8 = 0xFF;
 /// The keyboard's basic assurance test passed.
 pub const KBD_BAT_OK: u8 = 0xAA;
@@ -40,4 +42,3 @@ pub const CONFIG_KBD_DISABLE: u8 = 1 << 4;
 pub const CONFIG_AUX_DISABLE: u8 = 1 << 5;
 /// Translate the keyboard's scan code set 2 to set 1.
 pub const CONFIG_XLATE: u8 = 1 << 6;
-pub const RING_CAPACITY: usize = 256;

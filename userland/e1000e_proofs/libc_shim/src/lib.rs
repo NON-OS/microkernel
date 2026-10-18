@@ -16,17 +16,30 @@
 
 //! The things the included driver files take from `nonos_libc`, each backed
 //! by something a test can set or read: the host clock, a switchable entropy
-//! source, a per-thread console, a scripted config space and a record of
-//! every grant given back.
+//! source, a per-thread console, the broker's device list and BAR map, a
+//! scripted config space, the PCI Command register, a record of every grant
+//! given back, and the IPC calls the server loop makes.
 
 mod clock;
+mod command;
 mod debug;
+mod devices;
 mod entropy;
+mod ipc;
+mod mmio;
 mod pci;
 mod release;
+mod steps;
 
 pub use clock::{mk_idle_ms, Deadline};
+pub use command::{command, mk_pci_config_write, refuse_bus_master, set_command};
+pub use command::{MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE};
 pub use debug::{clear_log, logged, mk_debug};
+pub use devices::{mk_device_list, present, Bar, DeviceRecord};
+pub use devices::{BAR_KIND_MMIO, BAR_KIND_PIO, BUS_KIND_PCI};
 pub use entropy::{crypto_random, entropy, Entropy};
+pub use ipc::{line_up_requests, mk_ipc_recv_from, mk_ipc_reply, recv_ready, replies, SERVED};
+pub use mmio::{map_at_most, mk_mmio_map, MmioMapOut};
 pub use pci::{config_reads, mk_pci_config_read, set_ring_status};
 pub use release::{given_back, mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+pub use steps::{seen, watch, Part, Seen, Step};

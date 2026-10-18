@@ -19,7 +19,7 @@
 
 use crate::constants::timeouts::*;
 use crate::init::phy::{mdic, mdic_word, semaphore, swfw};
-use crate::init::reset::global::AUTO_READ_LATE;
+use crate::init::reset::global::{AUTO_READ_LATE, RESET_STUCK};
 use crate::init::reset::master::MASTER_STUCK;
 use crate::init::rx_queue::RX_NOT_ENABLED;
 use crate::init::tx_queue::TX_NOT_ENABLED;
@@ -32,6 +32,7 @@ fn quotes(text: &str, ms: u64) -> bool {
 fn quoted_bounds_match_the_waits() {
     assert!(quotes(MASTER_STUCK, MASTER_DISABLE_MS), "{MASTER_STUCK}");
     assert!(quotes(AUTO_READ_LATE, AUTO_READ_MS), "{AUTO_READ_LATE}");
+    assert!(quotes(RESET_STUCK, RESET_MS), "{RESET_STUCK}");
     assert!(quotes(TX_NOT_ENABLED, QUEUE_ENABLE_MS), "{TX_NOT_ENABLED}");
     assert!(quotes(RX_NOT_ENABLED, QUEUE_ENABLE_MS), "{RX_NOT_ENABLED}");
     assert!(quotes(mdic::READ_SLOW, MDIC_MS));
@@ -51,6 +52,7 @@ fn every_step_error_fits_one_console_line() {
     let all = [
         MASTER_STUCK,
         AUTO_READ_LATE,
+        RESET_STUCK,
         TX_NOT_ENABLED,
         RX_NOT_ENABLED,
         mdic::READ_SLOW,

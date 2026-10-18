@@ -19,8 +19,13 @@ use alloc::vec::Vec;
 use crate::protocol::MAX_HID_BINDINGS;
 
 use super::binding::HidBinding;
-use super::types::{Endpoint, HidKind, Interface, DT_CONFIGURATION, DT_ENDPOINT, DT_INTERFACE};
+use super::records::{interface, maybe_push, with_report_len};
+use super::types::{DT_CONFIGURATION, DT_ENDPOINT, DT_HID, DT_INTERFACE};
 
+/// Every HID interrupt IN endpoint in configuration `raw`, up to the cap. A
+/// boot keyboard or mouse is read in its boot layout; any other HID
+/// interface, a keyboard's media keys among them, is bound later only if its
+/// report descriptor names reports this driver reads.
 pub fn hid_bindings(raw: &[u8]) -> Result<Vec<HidBinding>, ()> {
     validate_config(raw)?;
     let total = u16::from_le_bytes([raw[2], raw[3]]) as usize;
@@ -32,12 +37,14 @@ pub fn hid_bindings(raw: &[u8]) -> Result<Vec<HidBinding>, ()> {
         if len < 2 || i + len > total {
             return Err(());
         }
-        match raw[i + 1] {
+        let rec = &raw[i..i + len];
+        match rec[1] {
             // A cut interface record still opens a new interface: the
             // endpoints after it are its own, never the one before it.
-            DT_INTERFACE if len >= 9 => iface = parse_interface(&raw[i..i + len]),
+            DT_INTERFACE if len >= 9 => iface = Some(interface(rec)),
             DT_INTERFACE => iface = None,
-            DT_ENDPOINT if len >= 7 => maybe_push(&mut out, iface, &raw[i..i + len]),
+            DT_HID => iface = iface.map(|f| with_report_len(f, rec)),
+            DT_ENDPOINT if len >= 7 => maybe_push(&mut out, iface, rec),
             _ => {}
         }
         if out.len() == MAX_HID_BINDINGS {
@@ -45,20 +52,7 @@ pub fn hid_bindings(raw: &[u8]) -> Result<Vec<HidBinding>, ()> {
         }
         i += len;
     }
-    keep_boot_interfaces(&mut out);
     Ok(out)
-}
-
-/// A device with a boot keyboard or boot mouse interface keeps only those.
-/// Its other HID interfaces are consumer and system controls (volume, power,
-/// media keys), vendor channels, or a second report-protocol copy of the
-/// keyboard: none of them is an absolute pointer, and fed to the tablet
-/// decoder their reports moved and clicked a pointer that is not there.
-/// Only a device with no boot interface at all is taken as a tablet.
-fn keep_boot_interfaces(out: &mut Vec<HidBinding>) {
-    if out.iter().any(|b| b.kind != HidKind::Tablet) {
-        out.retain(|b| b.kind != HidKind::Tablet);
-    }
 }
 
 fn validate_config(raw: &[u8]) -> Result<(), ()> {
@@ -70,21 +64,4 @@ fn validate_config(raw: &[u8]) -> Result<(), ()> {
         return Err(());
     }
     Ok(())
-}
-
-fn parse_interface(buf: &[u8]) -> Option<Interface> {
-    Some(Interface { number: buf[2], class: buf[5], subclass: buf[6], protocol: buf[7] })
-}
-
-fn maybe_push(out: &mut Vec<HidBinding>, iface: Option<Interface>, buf: &[u8]) {
-    let Some(iface) = iface else { return };
-    let ep = Endpoint {
-        address: buf[2],
-        attributes: buf[3],
-        max_packet_size: u16::from_le_bytes([buf[4], buf[5]]) & 0x07ff,
-        interval: buf[6],
-    };
-    if let Some(binding) = HidBinding::from_pair(iface, ep) {
-        out.push(binding);
-    }
 }

@@ -17,6 +17,7 @@
 mod claim;
 mod driver;
 mod irq;
+mod master;
 mod mmio;
 mod open;
 mod pci;

@@ -17,11 +17,13 @@
 //! The entropy switch and `crypto_random`, which the station address is
 //! drawn from.
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Mutex, MutexGuard};
 
 static ENTROPY: AtomicBool = AtomicBool::new(true);
 static TURN: Mutex<()> = Mutex::new(());
+/// Calls so far, mixed into each pattern so no two calls in a row agree.
+static DRAWS: AtomicU8 = AtomicU8::new(0);
 
 /// Holds the entropy switch in one position until dropped. The switch is
 /// process-wide and the tests run in parallel, so every test that draws an
@@ -42,18 +44,19 @@ pub fn entropy(available: bool) -> Entropy {
     Entropy { _turn: turn }
 }
 
-/// Fills `len` bytes with a fixed pattern when entropy is on, so a test can
-/// recognise the drawn address; answers a refusal when it is off.
+/// A pattern when entropy is on, another on every call, so a test can tell
+/// an address kept from a fresh draw; a refusal when it is off.
 pub fn crypto_random(ptr: *mut u8, len: usize) -> i64 {
     if !ENTROPY.load(Ordering::SeqCst) {
         return -1;
     }
+    let draw = DRAWS.fetch_add(1, Ordering::SeqCst);
     for i in 0..len {
         /*
          * SAFETY: the caller hands a buffer of `len` writable bytes, as the
          * real call requires.
          */
-        unsafe { *ptr.add(i) = 0xC3 ^ (i as u8) };
+        unsafe { *ptr.add(i) = 0xC3 ^ (i as u8) ^ draw };
     }
     len as i64
 }
