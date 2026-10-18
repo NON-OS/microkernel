@@ -53,8 +53,8 @@ pub fn parse_fadt(registry: &mut TableRegistry) -> AcpiResult<()> {
     let info: FadtInfo = decode_fadt(&bytes).ok_or(AcpiError::FadtNotFound)?;
 
     if !info.checksum_ok {
-        // Linux warns and carries on (acpi_tb_verify_checksum is advisory for
-        // the FADT); refusing it would leave a laptop with no power control.
+        // Warned of and used: firmware often patches the FADT at boot without
+        // fixing the sum, and refusing it would leave no power control.
         crate::log_warn!("[ACPI] FADT checksum mismatch, using it anyway");
     }
 

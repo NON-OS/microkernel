@@ -52,10 +52,22 @@ impl Supplicant {
         self.frame(info, replay, &ZERO_NONCE, &[])
     }
 
-    fn frame(&self, key_info: u16, replay: &[u8; 8], nonce: &[u8; 32], kd: &[u8]) -> Option<Vec<u8>> {
+    fn frame(
+        &self,
+        key_info: u16,
+        replay: &[u8; 8],
+        nonce: &[u8; 32],
+        kd: &[u8],
+    ) -> Option<Vec<u8>> {
         let mut out = alloc::vec![0u8; HEADER_LEN + kd.len()];
         let f = KeyFrame { key_info, replay_counter: replay, nonce, key_data: kd };
-        let n = build_key_frame_kind(&mut out, self.eapol_version, self.akm.mic_kind(), &f, self.kck())?;
+        let n = build_key_frame_kind(
+            &mut out,
+            self.eapol_version,
+            self.akm.mic_kind(),
+            &f,
+            self.kck(),
+        )?;
         out.truncate(n);
         Some(out)
     }
