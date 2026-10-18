@@ -18,7 +18,8 @@
 
 use super::handshake::past_message1;
 use super::sim::{joined_bp, kd3, signed};
-use crate::ap_sim::{bigtk_kde, group1, gtk_kde, message3, ANONCE};
+use crate::ap_sim::{bigtk_kde, group1, gtk_kde, igtk_kde, message3, ANONCE};
+use crate::pmf_sim::IGTK;
 use crate::soft::protect::BIGTK;
 use nonos_wifi_core::eapol::kde::parse_key_data;
 use nonos_wifi_core::station::BeaconRx;
@@ -58,7 +59,8 @@ fn a_rekey_brings_the_next_bigtk_and_its_own_floor() {
     let (mut s, ptk) = joined_bp();
     assert_eq!(s.receive_beacon(&signed(6, 50, &BIGTK)), BeaconRx::Verified);
     let next = [0x68; 16];
-    let kd = [&gtk_kde(2, &[0x22; 16])[..], &bigtk_kde(7, 1, &next)].concat();
+    // A group rekey under management frame protection carries the IGTK too.
+    let kd = [&gtk_kde(2, &[0x22; 16])[..], &igtk_kde(&IGTK), &bigtk_kde(7, 1, &next)].concat();
     let f = crate::soft::frames::eapol_from(
         crate::ap_sim::AA,
         crate::ap_sim::SPA,

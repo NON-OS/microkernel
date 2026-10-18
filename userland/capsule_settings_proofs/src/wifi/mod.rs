@@ -5,7 +5,7 @@
 
 // The saved list reads its join flags from here.
 #[cfg(test)]
-#[path = "../../../nonos_wifi_client/src/join_wire.rs"]
+#[path = "../../../nonos_wifi_client/src/join_wire/mod.rs"]
 pub mod join_wire;
 #[path = "../../../nonos_wifi_client/src/network.rs"]
 pub mod network;

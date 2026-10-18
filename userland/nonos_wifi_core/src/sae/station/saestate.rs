@@ -19,9 +19,12 @@
 //! sending it again with the token; on the AP's commit derive the keys and
 //! send a confirm; on the AP's confirm check it and accept. The status code of
 //! the AP's commit must say the same PWE method this station used (126 for
-//! hash-to-element, 0 for hunting and pecking), a commit that only reflects
-//! this station's own is dropped, and anything malformed or refused ends the
-//! exchange with the reason kept for the panel.
+//! hash-to-element, 0 for hunting and pecking), and a commit that only
+//! reflects this station's own is dropped. Nothing the AP sends is
+//! authenticated until its confirm verifies, so a malformed or refusing
+//! frame, or a confirm that does not verify, is discarded (12.4.8.6) with the
+//! reason kept for the panel: a forged frame cannot end the exchange, only
+//! the driver's deadline.
 
 use super::*;
 
@@ -31,21 +34,22 @@ pub enum SaeState {
     Committed,
     Confirmed,
     Accepted,
-    Failed,
 }
 
-/// Why an exchange ended without a PMK.
+/// Why a frame from the access point was discarded. Nothing before its
+/// confirm verifies is authenticated, so none of these ends the exchange; the
+/// last one is kept for the panel if the exchange runs out of time.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SaeFailure {
-    /// The AP answered with this status code (a wrong password ends here
-    /// only at the confirm: the AP cannot tell before).
+    /// A frame came with this status code (a wrong password shows only at
+    /// the confirm: the AP cannot tell before).
     Rejected(u16),
-    /// The AP does not run group 19.
+    /// A frame said the AP does not run group 19.
     GroupNotSupported,
-    /// The AP's commit was malformed, used the other PWE method, or gave an
-    /// identity shared secret.
+    /// A commit was malformed, used the other PWE method, or gave an
+    /// identity shared secret; or an anti-clogging request was malformed.
     BadCommit,
-    /// The AP's confirm did not verify: a different password.
+    /// A confirm did not verify: a different password, or a forgery.
     BadConfirm,
     /// The AP asked for an anti-clogging token more often than `TOKENS_MAX`,
     /// or sent its commit again more often than `CONFIRMS_MAX` allows.
@@ -57,10 +61,9 @@ pub enum SaeStep {
     /// Send an Authentication frame with this transaction sequence, status
     /// code and SAE body.
     Send { seq: u16, status: u16, body: Vec<u8> },
-    /// The AP's confirm verified: the PMK is ready.
-    Accepted,
-    /// Nothing to do (a duplicate, or a frame for another state).
+    /// The AP's confirm verified: the PMK, which exists only from here.
+    Accepted { pmk: [u8; 32] },
+    /// Nothing to do: a duplicate, a frame for another state, or one
+    /// discarded (`SaeStation::failure` says why).
     Ignore,
-    /// The exchange failed; see `SaeStation::failure`.
-    Failed,
 }

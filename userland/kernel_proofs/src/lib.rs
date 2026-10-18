@@ -245,6 +245,8 @@ mod registry_firmware_tests;
 #[cfg(test)]
 mod registry_fold_tests;
 #[cfg(test)]
+mod registry_namespace_tests;
+#[cfg(test)]
 mod registry_set_tests;
 #[cfg(test)]
 mod registry_support;

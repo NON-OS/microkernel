@@ -26,26 +26,17 @@ pub mod http_reply;
 #[path = "../../../capsule_linux/src/linux/install/mirror.rs"]
 pub mod mirror;
 
-#[path = "../../../capsule_linux/src/linux/install/route_read.rs"]
+#[path = "../../../capsule_linux/src/linux/install/market_arg.rs"]
+pub mod market_arg;
+#[path = "../../../capsule_linux/src/linux/install/market_check.rs"]
+pub mod market_check;
+#[path = "../../../capsule_linux/src/linux/install/proof_names.rs"]
+pub mod proof_names;
+#[path = "../../../capsule_linux/src/linux/install/route_read/mod.rs"]
 pub mod route_read;
 
 #[path = "../../../capsule_linux/src/linux/install/tools.rs"]
 pub mod tools;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_kind.rs"]
-pub mod tar_kind;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_pax.rs"]
-pub mod tar_pax;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_path.rs"]
-pub mod tar_path;
-
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
 
 #[path = "../../../capsule_linux/src/linux/install/pkg.rs"]
 pub mod pkg;
@@ -60,14 +51,24 @@ pub mod deb;
 pub mod pacman;
 pub mod pgp;
 
-#[path = "../../../capsule_linux/src/linux/install/manifest.rs"]
+#[path = "../../../capsule_linux/src/linux/install/manifest/mod.rs"]
 pub mod manifest;
-/* `unrecord` is an uninstall's, which nothing here runs. */
-#[allow(dead_code)]
-#[path = "../../../capsule_linux/src/linux/install/place_links.rs"]
+#[path = "../../../capsule_linux/src/linux/install/member/mod.rs"]
+pub mod member;
+/* The link table's writer, which only the tests here call. */
+#[cfg(test)]
+#[path = "../../../capsule_linux/src/linux/install/place_links/mod.rs"]
 pub mod place_links;
+#[cfg(test)]
+mod place_links_more_tests;
 #[cfg(test)]
 mod place_links_tests;
 
+mod escrow_files;
+#[cfg(test)]
+pub mod image_list;
+mod tar_files;
 #[path = "../../../capsule_linux/src/linux/install/unpacked.rs"]
 pub mod unpacked;
+pub use escrow_files::*;
+pub use tar_files::*;

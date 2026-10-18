@@ -22,7 +22,7 @@ mod fetch;
 mod fields;
 mod index;
 mod keyring;
-mod merged_usr;
+pub(in crate::linux::install) mod merged_usr;
 mod packages;
 mod release;
 mod run;

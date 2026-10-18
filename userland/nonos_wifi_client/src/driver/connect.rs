@@ -13,19 +13,17 @@
 //! the saved list holds for the network, whoever asks for it, so a network
 //! saved as WPA3 is never joined with WPA2 from any panel.
 
-use super::call::{OP_CONNECT, WIFI_HDR};
+use super::call::WIFI_HDR;
 use super::find::Driver;
-use super::services::CANNOT_JOIN;
-use crate::join_wire::{encode_join, parse_connect_reply, ConnectResult, JoinFlags, JOIN_BODY_MAX, JOIN_PASS_MAX};
+use crate::join_wire::{ConnectResult, JoinFlags, JOIN_PASS_MAX};
 use crate::saved::{saved_flags, PASS_MAX};
-use crate::wipe::wipe;
 
 /// Past the beacon hunt and the handshake with the driver's retransmits.
 const CONNECT_TIMEOUT_MS: u64 = 30_000;
 /// The code a join reports when the driver did not answer.
 pub(super) const NO_REPLY: i32 = -101;
 /// The reply: the header, the connect body and room to spare.
-const RESP_LEN: usize = WIFI_HDR + 38;
+pub(super) const RESP_LEN: usize = WIFI_HDR + 38;
 
 // The wire's passphrase bound is the saved list's.
 const _: () = assert!(JOIN_PASS_MAX == PASS_MAX);
@@ -57,18 +55,6 @@ impl Driver {
         flags: JoinFlags,
         timeout_ms: u64,
     ) -> Option<ConnectResult> {
-        // A driver that cannot join would answer CANNOT_JOIN after the
-        // passphrase had crossed to it; answer for it and send nothing.
-        if !self.joins() {
-            return Some(ConnectResult { code: CANNOT_JOIN, ..Default::default() });
-        }
-        let mut body = [0u8; JOIN_BODY_MAX];
-        let len = encode_join(ssid, pass, flags, &mut body);
-        let mut resp = [0u8; RESP_LEN];
-        let got = self.request(OP_CONNECT, &body[..len], &mut resp, timeout_ms);
-        wipe(&mut body);
-        let n = got?;
-        let reply = resp.get(WIFI_HDR..n).and_then(parse_connect_reply);
-        Some(reply.unwrap_or(ConnectResult { code: NO_REPLY, ..Default::default() }))
+        self.send_join(ssid, pass, flags, 0, timeout_ms)
     }
 }

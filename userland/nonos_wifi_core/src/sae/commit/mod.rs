@@ -18,6 +18,8 @@ mod build;
 mod confirm;
 mod types;
 mod wipe;
+#[cfg(test)]
+mod wipe_tests;
 use super::group::{point_xy, scalar_bytes, scalar_from_bytes, scalar_is_trivial, LEN};
 use crate::wpa::kdf::kdf_sha256;
 use crate::wpa::sha256::{hmac_sha256, hmac_sha256_parts};

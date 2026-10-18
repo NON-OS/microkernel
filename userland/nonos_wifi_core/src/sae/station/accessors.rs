@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What an SAE exchange reports: its state, why it failed, the PMK and
+//! What an SAE exchange reports: its state, why it last discarded, the PMK and
 //! PMKID once accepted, and the commit frame to send.
 
 use super::*;
@@ -24,8 +24,14 @@ impl SaeStation {
         self.state
     }
 
+    /// Why the last frame was discarded, while the exchange runs.
     pub fn failure(&self) -> Option<SaeFailure> {
         self.failure
+    }
+
+    /// The PMKID once accepted, without a copy of the PMK.
+    pub fn pmkid(&self) -> Option<[u8; 16]> {
+        (self.state == SaeState::Accepted).then_some(self.keys.pmkid)
     }
 
     /// The PMK and PMKID once accepted.

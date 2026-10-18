@@ -144,6 +144,7 @@ pub enum SyscallNumber {
     MkForeignFork = tag4(b"MFFK"),
     MkPeerUnmap = tag4(b"MPUN"),
     MkForeignExec = tag4(b"MFEX"),
+    MkLinuxRunNet = tag4(b"MLRN"),
     MkLocalSign = tag4(b"MLSG"),
     MkLocalVerify = tag4(b"MLVF"),
     MkAppInstall = tag4(b"MAIN"),

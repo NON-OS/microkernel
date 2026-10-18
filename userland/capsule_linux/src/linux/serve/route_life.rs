@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The calls of process lifecycle and signals that can leave their caller
-//! parked: a plain exit, a new process, a wait for a child or a signal, and a
-//! signal sent where only the family can say whether anyone received it.
-//! Asked before `dispatch`, so these are answered here whatever it holds.
+//! Every guest call starts here. One outside the program's declared calls is
+//! refused at once, never parked or routed. Then the lifecycle and signal
+//! calls that can leave their caller parked (exit, a new process, a wait, a
+//! signal only the family can deliver) are answered, before `dispatch`.
 
 use nonos_libc::ForeignFrame;
 
@@ -30,9 +30,10 @@ use crate::linux::guest::Guest;
 /// clone's CLONE_THREAD: without it, clone makes a process.
 const CLONE_THREAD: u64 = 0x10000;
 
-/// One trap answered: here when it is one of these calls, else by dispatch.
+/// One trap answered: refused, here, or by dispatch.
 pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
-    match first(guest, frame) {
+    let refused = crate::linux::app::outside(guest, frame.nr).map(Answer::value);
+    match refused.or_else(|| first(guest, frame)) {
         Some(got) => {
             super::tally::call();
             got

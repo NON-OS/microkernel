@@ -64,6 +64,7 @@ impl Guest {
             sleepers: Vec::new(),
             blocked: Vec::new(),
             links: Default::default(),
+            app: crate::linux::app::AppIdentity::NOTHING,
             sockets: crate::linux::net::sock::Holder::new(pid),
         }
     }

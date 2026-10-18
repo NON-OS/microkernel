@@ -204,6 +204,10 @@ for capsule_dir in userland/capsule_driver_*; do
         driver_doc_fail=1
         continue
     fi
+    # A README over 75 lines is split into parts under the crate's docs/,
+    # linked from it; the contract is read across the README and its parts.
+    # A crate without docs/ reads its README alone, as before.
+    doc_text="$(cat "${readme}" "${capsule_dir}"/docs/*.md 2>/dev/null || true)"
     for section in \
         '## Role' \
         '## Microkernel contract' \
@@ -221,20 +225,20 @@ for capsule_dir in userland/capsule_driver_*; do
         '## Release checklist' \
         '## Explicit non-goals today' \
         '## Verification'; do
-        if ! grep -Fq "${section}" "${readme}"; then
+        if ! grep -Fq -- "${section}" <<<"${doc_text}"; then
             fail_with "${readme} missing required section: ${section}"
             driver_doc_fail=1
         fi
     done
-    if ! grep -Fq '```text' "${readme}"; then
+    if ! grep -Fq '```text' <<<"${doc_text}"; then
         fail_with "${readme} must include an ASCII architecture diagram"
         driver_doc_fail=1
     fi
-    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' "${readme}"; then
+    if ! grep -Fq 'CAPSULE_REQUIRED_CAPS' <<<"${doc_text}"; then
         fail_with "${readme} must name the manifest capability mask"
         driver_doc_fail=1
     fi
-    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' "${readme}"; then
+    if ! grep -Eq 'Mk(DeviceList|DeviceClaim|MmioMap|PioGrant|DmaMap|IrqBind|IpcRecv)' <<<"${doc_text}"; then
         fail_with "${readme} must name the Mk/broker syscall contract"
         driver_doc_fail=1
     fi
@@ -894,7 +898,7 @@ unset iwl_dead_code
 for phase_file in \
     userland/capsule_driver_iwlwifi/src/setup/mmio.rs:mk_device_release \
     userland/capsule_driver_iwlwifi/src/setup/irq.rs:mk_mmio_unmap \
-    userland/capsule_driver_iwlwifi/src/setup/dma.rs:mk_irq_unbind ; do
+    userland/capsule_driver_iwlwifi/src/setup/grants.rs:mk_irq_unbind ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
@@ -909,13 +913,10 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xF8038' userland/capsule_driver_iwlwi
    ! grep -q 'mk_device_claim' userland/capsule_driver_iwlwifi/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_iwlwifi/src/setup/mmio.rs ||
    ! grep -q 'mk_irq_bind' userland/capsule_driver_iwlwifi/src/setup/irq.rs ||
-   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/setup/dma.rs ||
+   ! grep -q 'mk_dma_map' userland/capsule_driver_iwlwifi/src/server/radio/grant.rs ||
    ! grep -q 'include_bytes!' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
-   ! grep -q 'OP_FIRMWARE_INFO' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'OP_FIRMWARE_STAGE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -q 'OP_ALIVE_WAIT' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
-   ! grep -rq 'stage_firmware' userland/capsule_driver_iwlwifi/src/firmware/stage ||
-   ! grep -q 'OP_RF_STATE' userland/capsule_driver_iwlwifi/src/protocol/ops.rs ||
+   ! grep -q 'pub fn gen3_blob' userland/capsule_driver_iwlwifi/src/firmware/blob.rs ||
+   ! grep -q 'OP_STATUS' userland/capsule_driver_iwlwifi/src/server/control/kinds.rs ||
    ! grep -rq 'spawn_driver_iwlwifi_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod iwlwifi_capsule' src/hardware/mod.rs; then
     fail_with "capsule_driver_iwlwifi must expose brokered setup + firmware/RF IPC"
@@ -4968,6 +4969,33 @@ else
     fail_with "check_test_lanes: a test runs in no lane and is not listed"
 fi
 unset lanes_out
+# The keymap a Wayland guest is given is generated data; regenerating it is a
+# deliberate step (tools/nonos-linux-keymap), and this holds it to its pin.
+if keymap_out="$(python3 scripts/check_keymap.py 2>&1)"; then
+    note ok "the guest keymap is the pinned one (check_keymap)"
+else
+    tail -n 5 <<< "${keymap_out}" >&2
+    fail_with "check_keymap: keymap-us.xkb differs from its pin"
+fi
+unset keymap_out
+
+# Every Wayland global foot looks for is offered, or held back with a reason.
+if foot_out="$(python3 scripts/check_foot_globals.py 2>&1)"; then
+    note ok "foot's Wayland globals are offered or held (check_foot_globals)"
+else
+    tail -n 5 <<< "${foot_out}" >&2
+    fail_with "check_foot_globals: a global foot looks for is neither offered nor held"
+fi
+unset foot_out
+
+# Every gate between a Linux guest and the outside is where its table says.
+if gates_out="$(python3 scripts/check_linux_gates.py 2>&1)"; then
+    note ok "a Linux guest's gates are where guest-gates.txt says (check_linux_gates)"
+else
+    tail -n 10 <<< "${gates_out}" >&2
+    fail_with "check_linux_gates: a guest gate moved, went, or a new file answers a frame"
+fi
+unset gates_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

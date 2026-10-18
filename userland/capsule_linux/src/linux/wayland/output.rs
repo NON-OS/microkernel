@@ -35,11 +35,16 @@ const REFRESH_MHZ: u32 = 60_000;
 // plausible screen than none, since a client with no mode draws nothing.
 const FALLBACK: (u32, u32) = (1280, 800);
 
-pub fn announce(guest: &mut Guest, id: u32) {
-    let (w, h) = lookup_port(b"compositor")
+/// The display the compositor drives, in pixels.
+pub fn screen() -> (u32, u32) {
+    lookup_port(b"compositor")
         .and_then(|port| display_info(port, 1).ok())
         .map(|d| (d.width, d.height))
-        .unwrap_or(FALLBACK);
+        .unwrap_or(FALLBACK)
+}
+
+pub fn announce(guest: &mut Guest, id: u32) {
+    let (w, h) = screen();
     // Physical size at 96 dpi; nothing reports the panel's real size.
     let mm = |px: u32| px.saturating_mul(254) / 960;
     let to = &mut guest.display.to_client;
@@ -54,6 +59,9 @@ pub fn announce(guest: &mut Guest, id: u32) {
         .u32(0)
         .send(to);
     Event::new(id, MODE).u32(MODE_CURRENT_PREFERRED).u32(w).u32(h).u32(REFRESH_MHZ).send(to);
-    Event::new(id, SCALE).u32(1).send(to);
-    Event::new(id, DONE).send(to);
+    // The scale and done came with wl_output 2.
+    if guest.objects.at_least(id, 2) {
+        Event::new(id, SCALE).u32(1).send(to);
+        Event::new(id, DONE).send(to);
+    }
 }

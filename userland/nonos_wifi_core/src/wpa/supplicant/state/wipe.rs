@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A supplicant holds the PMK and every key the handshakes gave. It is
-//! wiped when dropped, so a session's end, a failed join and every clone a
+//! A supplicant holds the PMK, every key the handshakes gave and the seed
+//! of its rekeys' SNonces. It is wiped when dropped, so a session's end, a failed join and every clone a
 //! driver takes all leave nothing behind.
 
 use super::*;
@@ -28,6 +28,7 @@ impl Drop for Supplicant {
         }
         wipe(&mut self.gtk);
         wipe(&mut self.igtk);
+        wipe(&mut self.rekey_seed);
         if let Some((key, _, _)) = self.bigtk.as_mut() {
             wipe(key);
         }

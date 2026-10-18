@@ -59,4 +59,7 @@ pub enum RxDrop {
     NotLlc,
     /// EAPOL arrived with no supplicant to answer it.
     NoSupplicant,
+    /// A management frame with nothing for the stack: a beacon, a probe
+    /// response, another network's, or one the link does not act on.
+    Management,
 }

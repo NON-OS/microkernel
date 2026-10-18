@@ -62,6 +62,8 @@ nonos-mk-check-linux-guest-$(1)-keys: \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
 LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
+# A program in /bin gets a box; a library (a store path given) is bound to none.
+LINUX_GUEST_POLICY_LINES += $(if $(5),,/bin/$(1)=$$(linux-guest-$(1)_BIN))
 LINUX_GUEST_ENTRIES_$(1) := --entry /linux$(or $(5),/bin/$(1))=$$(linux-guest-$(1)_BIN) \
 	--entry /linux$(or $(5),/bin/$(1)).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
 	--entry /linux$(or $(5),/bin/$(1)).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
@@ -189,3 +191,5 @@ include $(LINUX_GUESTS_DIR)/GuestFiles.mk
 include $(LINUX_GUESTS_DIR)/Outside.mk
 include $(LINUX_GUESTS_DIR)/GuestProofs.mk
 include $(LINUX_GUESTS_DIR)/GuestOnly.mk
+# Last: the box every guest above runs in, bound in the personality.
+include $(LINUX_GUESTS_DIR)/GuestPolicies.mk

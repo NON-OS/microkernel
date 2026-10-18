@@ -23,6 +23,7 @@ pub mod desc;
 pub mod regs;
 pub mod ring;
 mod setup;
+pub mod stall;
 mod xmit;
 
 pub use setup::program;

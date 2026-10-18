@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Regenerate userland/linux_userland/keymap-us.xkb, the keymap a Wayland
+guest is given: US, evdev key codes, as xkbcomp compiles it from
+xkeyboard-config. A deliberate step: scripts/check_keymap.py holds the file
+to its pinned sha256 and needs neither tool, and this prints the new sha256
+to pin when the file changes.
+
+Made with xkbcomp 1.4.6 and xkeyboard-config 2.41 (Debian xkb-data
+2.41-2ubuntu1.1). The licence of what it compiles is keymap-us.NOTICE.
+"""
+
+import hashlib
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "userland/linux_userland/keymap-us.xkb"
+XKB = "/usr/share/X11/xkb"
+SOURCE = """xkb_keymap {
+ xkb_keycodes { include "evdev+aliases(qwerty)" };
+ xkb_types { include "complete" };
+ xkb_compat { include "complete" };
+ xkb_symbols { include "pc+us+inet(evdev)" };
+};
+"""
+COMMAND = ["xkbcomp", "-w", "0", f"-I{XKB}", "-xkb", "-", "-o", "-"]
+
+
+def main() -> int:
+    try:
+        done = subprocess.run(COMMAND, input=SOURCE.encode(), stdout=subprocess.PIPE, check=True)
+    except (OSError, subprocess.CalledProcessError) as why:
+        print(f"keymap: {' '.join(COMMAND)} failed: {why}", file=sys.stderr)
+        return 1
+    OUT.write_bytes(done.stdout)
+    print(f"{OUT.relative_to(ROOT)}: sha256 {hashlib.sha256(done.stdout).hexdigest()}")
+    print("pin it in scripts/check_keymap.py")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
