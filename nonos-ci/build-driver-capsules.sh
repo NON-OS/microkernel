@@ -50,8 +50,9 @@ for dir in "${direct[@]}"; do
     echo "Building ${dir} directly: make never builds it..."
     (cd "${dir}" && cargo build --release --target "../${target}.json" \
         -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem)
+    # The binary target: a crate may also carry a library, listed first.
     bin="$(cd "${dir}" && cargo metadata --no-deps --format-version 1 \
-        | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["targets"][0]["name"])')"
+        | python3 -c 'import json,sys; print(next(t["name"] for t in json.load(sys.stdin)["packages"][0]["targets"] if "bin" in t["kind"]))')"
     elfs+=("${dir}/target/${target}/release/${bin}")
 done
 
