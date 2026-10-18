@@ -14,20 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-const ETH_HEADER_LEN: usize = 14;
+/// The shortest frame that still carries a whole Ethernet header.
+pub const ETH_HEADER_LEN: usize = 14;
+/// What a shorter frame is padded to on the wire.
 pub const MIN_ETHERNET_FRAME: usize = 60;
 const MTU: usize = 1500;
+/// The longest frame handed either way. A device may report more (a jumbo
+/// bridge, a hostile used length); such a frame is dropped, never passed on.
 pub const MAX_ETHERNET_FRAME: usize = MTU + ETH_HEADER_LEN;
-
-
-
-
 
 pub const VIRTIO_NET_HDR_LEN: usize = 10;
 // Under VIRTIO_F_VERSION_1 struct virtio_net_hdr always ends in num_buffers,

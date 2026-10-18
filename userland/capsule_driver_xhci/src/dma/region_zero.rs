@@ -16,6 +16,7 @@
 use super::region::DmaRegion;
 impl DmaRegion {
     pub fn zero(&self) {
+        // SAFETY: `length` bytes from `user_va` are the live grant itself.
         unsafe {
             core::ptr::write_bytes(self.user_va as *mut u8, 0, self.length as usize);
         }

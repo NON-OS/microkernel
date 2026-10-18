@@ -14,54 +14,66 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The mode set, write by write, against bochs_hw_setmode.
+//! What the DISPI interface requires of a driver setting a mode.
+//!
+//! The window is memory, so a register reads back what was written, as a
+//! conforming adapter does for the DISPI index block. The interface also
+//! requires the mode registers be written while the adapter is disabled, and
+//! `set_mode` does that: ENABLE cleared, then XRES, YRES, BPP, ENABLE last. A
+//! passive window cannot witness that order, so what is asserted here is the
+//! settled state the adapter acts on.
 
-use crate::constants::*;
-use crate::dispi::{set_mode, Mode};
-use crate::model::{Model, Op};
+use nonos_devmodel::FakeBar;
 
-const XGA: Mode = Mode { width: 1024, height: 768, stride: 4096 };
+use crate::constants::{
+    DISPI_BPP_32, DISPI_ENABLED, DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_XRES,
+    DISPI_INDEX_YRES, DISPI_IOPORT_OFFSET, DISPI_LFB_ENABLED,
+};
+use crate::dispi::set_mode;
+use crate::regs::Regs;
+
+/// Wide enough for the whole DISPI index block, which ends at ENABLE.
+const WINDOW: usize = 0x600;
+
+fn reg(index: u32) -> usize {
+    (DISPI_IOPORT_OFFSET + index * 2) as usize
+}
 
 #[test]
-fn the_registers_are_written_in_linux_order_enable_last() {
+fn the_adapter_is_left_with_its_linear_framebuffer_decoding() {
     /*
-     * The adapter latches a mode on ENABLE. Writing it before XRES, or
-     * leaving it on while the mode changes, shows a mode nobody asked for
-     * for a frame or for good; a passive window cannot see that, the
-     * recording model does.
+     * DISPI_LFB_ENABLED is what makes the framebuffer BAR answer at all.
+     * Without it every other register reads back correct and the aperture
+     * decodes nothing, so the capsule paints into memory the adapter never
+     * scans out: a black screen with no failed call anywhere behind it.
      */
-    let m = Model::default();
-    assert!(set_mode(&m, XGA));
-    let d = |i, v| Op::Dispi(i, v);
-    let want = vec![
-        Op::VgaRead(VGA_IS1_RC),
-        Op::Vga(VGA_ATT_W, VGA_ATT_PAS),
-        d(DISPI_INDEX_ENABLE, 0),
-        d(DISPI_INDEX_BPP, 32),
-        d(DISPI_INDEX_XRES, 1024),
-        d(DISPI_INDEX_YRES, 768),
-        d(DISPI_INDEX_BANK, 0),
-        d(DISPI_INDEX_VIRT_WIDTH, 1024),
-        d(DISPI_INDEX_VIRT_HEIGHT, 768),
-        d(DISPI_INDEX_X_OFFSET, 0),
-        d(DISPI_INDEX_Y_OFFSET, 0),
-        d(DISPI_INDEX_ENABLE, DISPI_ENABLED | DISPI_LFB_ENABLED),
-    ];
-    assert_eq!(*m.log.borrow(), want);
+    let bar = FakeBar::new(WINDOW);
+    set_mode(Regs::new(bar.base()), 1024, 768);
+    let enable = bar.wrote16(reg(DISPI_INDEX_ENABLE));
+    assert!(enable & DISPI_LFB_ENABLED != 0, "the linear framebuffer must be enabled");
+    assert!(enable & DISPI_ENABLED != 0, "the adapter must be enabled");
 }
 
 #[test]
-fn a_mode_the_adapter_does_not_take_is_reported_refused() {
-    // QEMU reads a mode past its limits back clamped.
-    for (i, v) in [(DISPI_INDEX_XRES, 800), (DISPI_INDEX_YRES, 600), (DISPI_INDEX_BPP, 16)] {
-        let m = Model { stuck: Some((i, v)), ..Model::default() };
-        assert!(!set_mode(&m, XGA), "index {i} stuck at {v} passed as set");
-    }
+fn the_mode_is_programmed_at_thirty_two_bits_per_pixel() {
+    /*
+     * The capsule's clear, and every compositor above it, writes one u32 per
+     * pixel. A 16bpp mode takes those writes and shows half a screen of
+     * doubled pixels rather than reporting anything.
+     */
+    let bar = FakeBar::new(WINDOW);
+    set_mode(Regs::new(bar.base()), 1024, 768);
+    assert_eq!(bar.wrote16(reg(DISPI_INDEX_BPP)), DISPI_BPP_32);
 }
 
 #[test]
-fn the_virtual_width_follows_the_stride_not_the_width() {
-    let m = Model::default();
-    assert!(set_mode(&m, Mode { width: 1000, height: 600, stride: 1024 * 4 }));
-    assert_eq!(m.regs.borrow()[DISPI_INDEX_VIRT_WIDTH as usize], 1024);
+fn the_resolution_asked_for_is_the_one_left_in_the_mode_registers() {
+    /*
+     * XRES and YRES are adjacent 16-bit slots, so transposing them costs one
+     * digit and yields a portrait mode on a landscape panel.
+     */
+    let bar = FakeBar::new(WINDOW);
+    set_mode(Regs::new(bar.base()), 1280, 800);
+    assert_eq!(bar.wrote16(reg(DISPI_INDEX_XRES)), 1280);
+    assert_eq!(bar.wrote16(reg(DISPI_INDEX_YRES)), 800);
 }

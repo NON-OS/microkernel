@@ -13,23 +13,28 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::protocol::{
+    CONTROLLER_STATUS_PAYLOAD_LEN, MAX_POLL_EVENTS, MOUSE_EVENT_WIRE_LEN,
+    MOUSE_POLL_PAYLOAD_PREFIX_LEN, RESP_HDR_LEN, STATE_PAYLOAD_LEN, STATUS_LEN,
+};
+
 pub(super) const POLL_IDLE_MS: u64 = 1;
 pub(super) const IRQ_WAIT_MS: u64 = 100;
 
-/* driver-ready sentinel: bring-up diagnostic, silenced
-const KIND_DRIVER_READY: u16 = 0xFE01;
+/// The longest reply any op sends: a full mouse batch, the counters, or
+/// the controller status.
+pub(super) const TX_LEN: usize = max(
+    RESP_HDR_LEN + MOUSE_POLL_PAYLOAD_PREFIX_LEN + MAX_POLL_EVENTS * MOUSE_EVENT_WIRE_LEN,
+    max(
+        RESP_HDR_LEN + STATUS_LEN + STATE_PAYLOAD_LEN,
+        RESP_HDR_LEN + STATUS_LEN + CONTROLLER_STATUS_PAYLOAD_LEN,
+    ),
+);
 
-fn signal_ready() {
-    let ev = InputEvent {
-        kind: KIND_DRIVER_READY,
-        flags: 0,
-        code: 0,
-        x: 0,
-        y: 0,
-        delta_x: 0,
-        delta_y: 0,
-        timestamp_ns: 0,
-    };
-    let _ = mk_input_event_post(&ev);
+const fn max(a: usize, b: usize) -> usize {
+    if a > b {
+        a
+    } else {
+        b
+    }
 }
-*/

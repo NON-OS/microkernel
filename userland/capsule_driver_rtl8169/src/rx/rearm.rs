@@ -16,7 +16,7 @@
 
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
 use crate::constants::regs::{DESC_EOR, DESC_OWN};
-use crate::queue::desc::{desc_mut, Descriptor};
+use crate::queue::desc::{publish, Descriptor};
 use crate::setup::Driver;
 
 pub(super) fn rearm(driver: &Driver, idx: usize) {
@@ -28,8 +28,7 @@ pub(super) fn rearm(driver: &Driver, idx: usize) {
         addr_lo: addr as u32,
         addr_hi: (addr >> 32) as u32,
     };
-    nonos_libc::dma_wmb();
-    unsafe {
-        desc_mut(driver.rx.desc_va, idx, d);
-    }
+    // SAFETY: `idx` is below RX_DESC_COUNT in the mapped ring, and the slot
+    // is the driver's: the part cleared OWN on it before recv_one read it.
+    unsafe { publish(driver.rx.desc_va, idx, d) };
 }

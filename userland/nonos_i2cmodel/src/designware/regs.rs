@@ -44,10 +44,12 @@ pub const IC_COMP_PARAM_1: u64 = 0xF4;
 pub const IC_COMP_VERSION: u64 = 0xF8;
 pub const IC_COMP_TYPE: u64 = 0xFC;
 /// The core occupies the first page of the BAR; the LPSS private block
-/// follows at 0x200, and its reset register gates the core.
+/// follows at 0x200, and its reset register gates the core: bits 1:0 hold
+/// the function (Linux LPSS_PRIV_RESETS_FUNC), bit 2 the integrated DMA,
+/// which the core runs without.
 pub const CORE_END: u64 = 0x100;
 pub const LPSS_PRIV_RESETS: u64 = 0x204;
-pub const LPSS_RESETS_RELEASED: u32 = 0x7;
+pub const LPSS_RESETS_RELEASED: u32 = 0x3;
 
 pub const COMP_TYPE_VALUE: u32 = 0x4457_0140;
 pub const COMP_VERSION_VALUE: u32 = 0x3230_312A;

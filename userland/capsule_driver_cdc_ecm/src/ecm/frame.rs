@@ -36,8 +36,14 @@ pub fn padded_len(len: usize, max_packet: u16) -> usize {
 }
 
 /// The frame a bulk IN of `n` bytes holds: none when it is shorter than an
-/// Ethernet header, and at most a full frame, so a sender's padding byte
-/// after a 1514-byte frame is dropped.
+/// Ethernet header, all of it up to a full frame, a full frame when the
+/// sender's padding byte follows one, and none for anything longer (two
+/// frames run together, or junk), which is dropped rather than cut.
 pub fn received_len(n: usize) -> Option<usize> {
-    (n >= ETH_HEADER).then_some(n.min(ETH_FRAME_MAX))
+    match n {
+        n if n < ETH_HEADER => None,
+        n if n <= ETH_FRAME_MAX => Some(n),
+        n if n == ETH_FRAME_MAX + 1 => Some(ETH_FRAME_MAX),
+        _ => None,
+    }
 }

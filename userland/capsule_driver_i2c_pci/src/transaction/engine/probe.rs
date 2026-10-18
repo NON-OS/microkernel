@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::driver::Driver;
-use crate::transaction::{TransferError, TransferRequest};
+use crate::transaction::{TransferError, TransferRequest, TransferResult};
 
 use super::transfer::transfer;
 
@@ -22,8 +22,8 @@ use super::transfer::transfer;
 // generic OP_PROBE service where the caller only wants presence on the bus.
 pub fn probe(driver: &Driver, addr: u8) -> Result<bool, TransferError> {
     let req = TransferRequest { addr, flags: 0, write: &[], read_len: 1 };
-    match transfer(driver, req) {
-        Ok(_) => Ok(true),
+    match transfer(driver, req, &mut TransferResult::empty()) {
+        Ok(()) => Ok(true),
         Err(TransferError::Nack) => Ok(false),
         Err(e) => Err(e),
     }

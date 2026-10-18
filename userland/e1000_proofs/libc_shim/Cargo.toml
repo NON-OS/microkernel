@@ -14,3 +14,8 @@ license = "AGPL-3.0-or-later"
 [lib]
 name = "nonos_libc"
 path = "src/lib.rs"
+
+[dependencies]
+# The running device model's turns, so a deadline waits for the model's
+# answer (src/deadline.rs).
+nonos_devmodel = { path = "../../nonos_devmodel" }
