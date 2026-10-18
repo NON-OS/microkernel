@@ -16,6 +16,8 @@
 
 pub mod context;
 pub mod frame;
+pub mod frames_of;
+pub mod free;
 pub mod publish;
 pub mod root;
 pub mod sl_pte;

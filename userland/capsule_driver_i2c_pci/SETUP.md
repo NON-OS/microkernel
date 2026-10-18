@@ -10,10 +10,20 @@ Startup discovers every Intel LPSS controller, on PCI or as an ACPI serial-bus
 record whose source clock the broker carries in the BAR's `aux` word. For each
 one it tries, it claims it, maps BAR0, verifies the DesignWare component type
 when exposed, masks controller interrupts and clears pending interrupt state.
-It keeps the first controller whose bus returns an HID descriptor from one of
-the touchpad addresses ACPI declared, else one where a declared device only
-acknowledged, else one a candidate's `_CRS` names, else the first that comes
-up, releases the others, and serves IPC (`src/setup/sequence/run.rs`).
+The device list shows a window's base only to the device's holder, so an LPSS
+function's remap takes the base from its own record read back after the claim,
+and a function whose record then shows none is released with no register
+written (`src/setup/sequence/brought_up.rs`). It keeps the first controller
+whose bus returns an HID descriptor from one of the touchpad addresses ACPI
+declared, else one where a declared device only acknowledged, else one a
+candidate's `_CRS` names, else the first that comes up, releases the others,
+and serves IPC (`src/setup/sequence/run.rs`); the last resort reaches only
+the declarations that name it or name none. A declaration names its
+controller by the device_id of the controller's own record, as the kernel
+resolved its ResourceSource, never by address. One the kernel could not
+resolve (it resolves platform hosts by their window, and a PCI LPSS function
+declared by `_ADR` has none) names a PCI function by its "I2Cn" name, and a
+platform controller not at all (`src/discover/pairing.rs`).
 
 Only declared addresses are probed for a descriptor, which writes a register
 pointer to the device. Intel's reference firmware declares its pad as TPD0
@@ -28,6 +38,7 @@ it on every probe; so no address where boards put a GPIO expander (0x20,
 no address after the first answer is touched. A pad elsewhere, or one that
 does not acknowledge a plain read (the descriptor probe's notes say some ELAN
 parts do not), is not found this way; once the kernel evaluates `_CRS` for
+the pad (K13 in the plan), the sweep goes. With nothing
 declared, nothing on the bus is probed. Process teardown and broker
 revocation release every hardware grant.
 

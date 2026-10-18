@@ -17,7 +17,9 @@
 /// behind it, which a recovery attaches again to the resource it remakes.
 #[derive(Clone, Copy)]
 pub struct Primary {
-    pub handle: u64,
+    /// Shared with the compositor, writable, when it asks (K20); the share
+    /// answers the handle it is handed.
+    pub sid: u64,
     pub resource_id: u32,
     pub width: u32,
     pub height: u32,

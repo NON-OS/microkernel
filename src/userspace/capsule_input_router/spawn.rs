@@ -49,8 +49,8 @@ pub fn spawn_input_router_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            // Consumer authority for the raw-input ring (MkInputEventDrain/Wait).
-            | Capability::InputSource.bit(),
+            // The raw-input ring's only consumer: MkInputEventDrain and Wait (K8).
+            | Capability::InputConsumer.bit(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

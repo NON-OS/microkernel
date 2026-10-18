@@ -1,10 +1,10 @@
 # Wi-Fi drivers
 
-NONOS has two Wi-Fi [driver capsules](../../overview/glossary.md#driver-capsule), one for the Realtek RTL8821CE and one for Intel cards; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
+NONOS has two Wi-Fi [driver capsules](../../overview/glossary-dma-pool.md#driver-capsule), one for the Realtek RTL8821CE and one for Intel cards; this page lists the chips, follows a scan and a join from the Settings panel to the radio, and states what is refused.
 
 ## Chips at a glance
 
-Each Wi-Fi driver is a [capsule](../../overview/glossary.md#capsule): a signed ring 3 program that reaches its card only through grants from the [hardware broker](../../overview/glossary.md#hardware-broker).
+Each Wi-Fi driver is a [capsule](../../overview/glossary-boot-root-record.md#capsule): a signed ring 3 program that reaches its card only through grants from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker).
 
 | Chip | PCI vendor:device | Capsule | State in 0.9.2 | Page |
 |---|---|---|---|---|
@@ -15,7 +15,7 @@ Each Wi-Fi driver is a [capsule](../../overview/glossary.md#capsule): a signed r
 | Intel BE200 and BE201, MediaTek, Qualcomm, Broadcom, other Realtek Wi-Fi | 8086:272b, a840 for the Intel ones | none | Not supported | [not-supported.md](not-supported.md) |
 
 
-That is the only hardware report for Wi-Fi in this release. Every other statement on these pages comes from the code and from host tests in [proof crates](../../overview/glossary.md#proof-crate).
+That is the only hardware report for Wi-Fi in this release. Every other statement on these pages comes from the code and from host tests in [proof crates](../../overview/glossary-peer-list.md#proof-crate).
 
 ## What no Wi-Fi driver does
 

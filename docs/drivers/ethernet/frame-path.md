@@ -1,6 +1,6 @@
 # How a frame travels
 
-How a wired frame reaches `net.core`: the driver capsules on one side, the [hardware broker](../../overview/glossary.md#hardware-broker) on the other, and the link protocol between the stack and every driver. The drivers themselves are listed on the [Ethernet drivers](README.md) page.
+How a wired frame reaches `net.core`: the driver capsules on one side, the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker) on the other, and the link protocol between the stack and every driver. The drivers themselves are listed on the [Ethernet drivers](README.md) page.
 
 ```mermaid
 flowchart LR
@@ -15,7 +15,7 @@ flowchart LR
   Broker --> Card["PCI network card"]
 ```
 
-Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through [grants](../../overview/glossary.md#grant) from the hardware broker: a device claim, a register mapping or port range, and DMA buffers.
+Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through [grants](../../overview/glossary-dma-pool.md#grant) from the hardware broker: a device claim, a register mapping or port range, and DMA buffers.
 
 ## The link protocol
 
@@ -25,7 +25,7 @@ On its first poll of a newly bound card, `net.core` sends operation 6 with no bo
 
 ## Who may reach a driver
 
-The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary.md#held-endpoint). The USB network drivers have no entry there yet; see [USB networking](usb-net.md).
+The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint). The USB network drivers have no entry there yet; see [USB networking](usb-net.md).
 
 ## Which card is bound
 

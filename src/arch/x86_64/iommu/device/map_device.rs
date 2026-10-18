@@ -20,14 +20,16 @@
 //! the caches are dropped immediately after, so the window in which the
 //! hardware disagrees with the kernel's bookkeeping is closed before this
 //! returns. Until the entry exists the device is denied, which is the safe
-//! direction to fail in.
+//! direction to fail in; an entry whose invalidation failed comes out again
+//! with the binding (K12, attach_steps.rs).
 
 use super::super::globals::is_enforcing;
 use super::super::globals::state::{DeviceBinding, STATE};
-use super::super::tables::root::set_context;
+use super::super::tables::root::{clear_context, set_context};
 use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
 use super::super::unit::invalidate::invalidate_all_units;
 use super::super::unit::report::probed;
+use super::attach_steps::attach;
 use super::bdf_to_source_id::bdf_to_source_id;
 
 pub fn map_device(domain: DomainId, bus: u8, device: u8, function: u8) -> Result<(), VtdError> {
@@ -57,8 +59,12 @@ pub fn map_device(domain: DomainId, bus: u8, device: u8, function: u8) -> Result
     // kernel cannot later detach.
     state.bindings.push(DeviceBinding { source, domain }).map_err(|_| VtdError::DomainTableFull)?;
 
-    let programmed = set_context(source, sl_root, domain, info.levels.context_aw())
-        .and_then(|()| invalidate_all_units());
+    let aw = info.levels.context_aw();
+    let programmed = attach(
+        || set_context(source, sl_root, domain, aw),
+        invalidate_all_units,
+        || clear_context(source),
+    );
     if let Err(e) = programmed {
         state.bindings.retain(|binding| binding.source != source);
         return Err(e);

@@ -42,7 +42,7 @@ pub(super) fn stop_bus_master(device_id: u64) {
  * stop: without an IOMMU the device could still write into frames already
  * handed to someone else in between. Only the holder may ask.
  */
-pub(super) fn stop_bus_master_quietly(device_id: u64) {
+pub(in crate::hardware::broker) fn stop_bus_master_quietly(device_id: u64) {
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
         return;
     };

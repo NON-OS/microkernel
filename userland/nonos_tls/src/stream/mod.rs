@@ -18,6 +18,7 @@
 
 mod absorb;
 mod connect;
+mod connect_until;
 mod content;
 mod dispatch;
 mod gather;
@@ -30,4 +31,5 @@ mod settle;
 mod types;
 
 pub use connect::{connect, connect_unauthenticated};
+pub use connect_until::connect_until;
 pub use types::Stream;

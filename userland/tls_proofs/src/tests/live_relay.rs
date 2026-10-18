@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The real client against live Anyone relays over TCP, on demand only:
-//! `cargo test --release live_relays -- --ignored --nocapture`. Relays answer
+//! `cargo test --release --features live-relays live_relays -- --nocapture`. Relays answer
 //! ECDHE over P-256 alone, so this is the handshake the link layer depends on.
 //! NONOS_LIVE_RELAYS overrides the list as comma separated ip:port.
 
@@ -44,7 +44,6 @@ impl Io for Tcp {
 const RELAYS: &str = "212.132.126.60:9001,109.230.255.78:9001,38.242.206.66:9001";
 
 #[test]
-#[ignore = "network: dials live Anyone relays"]
 fn live_relays_complete_the_handshake() {
     let list = std::env::var("NONOS_LIVE_RELAYS").unwrap_or_else(|_| RELAYS.into());
     for relay in list.split(',') {
