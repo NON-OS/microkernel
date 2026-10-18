@@ -30,6 +30,9 @@ pub(super) const TRIES: u8 = 3;
 /// A port another class driver holds, or a device of another class.
 pub(super) const NOT_OURS: u8 = u8::MAX;
 
+/// What a probe does between readiness tries, told what the pass has found.
+pub type PassPause<'a> = &'a mut dyn FnMut(&mut State, &Report);
+
 /// The device, if a port holds it, and whether any port is still open: in
 /// another class driver's hands at present, or failed fewer than `TRIES` times.
 /// A port is closed once `tries` reaches `TRIES`. `report` is left saying
@@ -40,6 +43,7 @@ pub(super) fn pass(
     tries: &mut [u8; 256],
     state: &mut State,
     report: &mut Report,
+    pause: PassPause,
 ) -> (Option<Disk>, bool) {
     let mut open = false;
     if ports.is_empty() {
@@ -57,7 +61,7 @@ pub(super) fn pass(
             continue;
         }
         let (connected, closed) = (report.connected, report.closed);
-        match probe_port(xhci, port.id, state) {
+        match probe_port(xhci, port.id, state, &mut |s: &mut State| pause(s, report)) {
             Probe::Ours(disk) => {
                 let bound = Report::at(Stage::Bound, port.id, 0);
                 *report = Report { aux: disk.block_len, blocks: disk.blocks, ..bound };

@@ -19,13 +19,16 @@
 
 mod bot;
 mod data_phase;
+mod inquire;
 mod lun;
 mod ready;
 mod recover;
 mod scsi_io;
 mod types;
+mod unit_ready;
 
 pub use lun::max_lun;
-pub use ready::{capacity, sync_cache, unit_ready};
+pub use ready::{capacity, sync_cache};
 pub use scsi_io::{read, write};
 pub use types::Disk;
+pub use unit_ready::{unit_ready, Pause};

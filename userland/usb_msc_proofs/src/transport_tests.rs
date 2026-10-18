@@ -101,7 +101,7 @@ fn a_stick_with_bogus_residues_is_found_by_its_inquiry_and_bound() {
         Answer::Csw { residue: 36, status: 0 },
         Answer::Csw { residue: 0, status: 0 },
     ]);
-    assert_eq!(unit_ready(&disk(), &mut state, false), Ok(()));
+    assert_eq!(unit_ready(&disk(), &mut state, &mut |_| {}), Ok(()));
     let mut cap = 999u32.to_be_bytes().to_vec();
     cap.extend_from_slice(&512u32.to_be_bytes());
     script(vec![Answer::Data(cap), Answer::Csw { residue: 8, status: 0 }]);
