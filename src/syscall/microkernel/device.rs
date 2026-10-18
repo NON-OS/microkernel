@@ -42,6 +42,8 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
         }
         Err(ClaimError::UnknownDevice) | Err(ClaimError::Disabled) => ERRNO_NODEV,
         Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
-        Err(ClaimError::Unconfined) | Err(ClaimError::OutOfScope) => ERRNO_PERM,
+        Err(ClaimError::Unconfined) | Err(ClaimError::OutOfScope) | Err(ClaimError::Firmware) => {
+            ERRNO_PERM
+        }
     }
 }

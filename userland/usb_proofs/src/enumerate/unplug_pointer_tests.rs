@@ -15,15 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A pointer that goes away lets go of every button it held, so a drag
-//! ends; a hub that goes away takes every device below it along, each
-//! releasing what it held.
+//! ends; a device below a hub, on the virtual port driver.usb_hub0 gives
+//! it, lets go of what it held when that port empties, as the hub's going
+//! empties the ports of every device below it; and a gamepad lets its
+//! buttons up.
 
-use super::devices::Devices;
-use super::drop_port::drop_slot;
-use super::forget_slot::forget_slot;
+use super::drop_port::{drop_port, drop_slot};
 use crate::descriptors::HidKind;
 use crate::endpoints::{ep, posted};
-use crate::hub::{Hub, Place};
+use nonos_libc::INPUT_KIND_PAD_BUTTON_UP as PAD_UP;
 use nonos_libc::{reset, INPUT_KIND_BUTTON_UP as BUTTON_UP, INPUT_KIND_KEY_UP as KEY_UP};
 
 #[test]
@@ -39,16 +39,23 @@ fn a_mouse_or_tablet_with_a_button_held_lets_go_of_it() {
 }
 
 #[test]
-fn a_hub_unplugged_releases_what_every_device_below_it_held() {
+fn a_device_below_a_hub_lets_go_when_its_virtual_port_empties() {
     reset();
-    let mut devs = Devices::new();
-    let mut hub = Hub::new(4, Place::root(2, 3), 4);
-    hub.child[0] = 5;
-    devs.hubs.push(hub);
-    devs.eps.push(ep(2, 5, 3, HidKind::Keyboard));
-    devs.eps[0].dev.feed(&[0, 0, 0x05, 0, 0, 0, 0, 0]);
+    // Virtual port 40, the keyboard's, and 41 beside it.
+    let mut eps = vec![ep(40, 5, 3, HidKind::Keyboard), ep(41, 6, 3, HidKind::Mouse)];
+    eps[0].dev.feed(&[0, 0, 0x05, 0, 0, 0, 0, 0]);
     let _ = posted();
-    forget_slot(7, 4, &mut devs);
+    assert_eq!(drop_port(&mut eps, 40), vec![5]);
     assert_eq!(posted(), vec![(KEY_UP, u32::from(b'b'))]);
-    assert!(devs.eps.is_empty() && devs.hubs.is_empty());
+    assert_eq!(eps.len(), 1);
+}
+
+#[test]
+fn a_gamepad_unplugged_lets_its_buttons_up() {
+    reset();
+    let mut eps = vec![ep(2, 4, 3, HidKind::Gamepad)];
+    eps[0].dev.feed(&[1, 0x01, 0x08, 0, 0, 0, 0, 0]);
+    let _ = posted();
+    drop_slot(&mut eps, 4);
+    assert_eq!(posted(), vec![(PAD_UP, 1), (PAD_UP, 12)]);
 }

@@ -21,6 +21,7 @@ use super::classify_storage::classify_storage;
 use super::emmc::is_intel_emmc;
 use super::family::HardwareFamily;
 use super::platform_sd::is_platform_sd_host;
+use super::sd_host::is_sd_host;
 use crate::hardware::broker::{BarKind, DeviceRecord};
 
 /// AHCI 1.3.1, 2.1.11: the ABAR is BAR5.
@@ -44,10 +45,14 @@ pub fn classify_family(
         },
         0x06 => HardwareFamily::BridgePci,
         0x08 if vendor == 0x80EE && device == 0xCAFE => HardwareFamily::InputVmmdev,
+        // An SD host on an interface the capsule takes; a listed eMMC first.
+        0x08 if !is_sd_host(vendor, device, class, subclass, progif) => {
+            HardwareFamily::SystemPeripheral
+        }
         0x08 if is_intel_emmc(vendor, device, class, subclass) => HardwareFamily::StorageEmmc,
-        0x08 => HardwareFamily::SystemPeripheral,
+        0x08 => HardwareFamily::StorageSdhci,
         0x09 if vendor == 0x1af4 && device == 0x1052 => HardwareFamily::InputVirtio,
-        0x0c => classify_serial_bus(subclass, progif),
+        0x0c => classify_serial_bus(subclass, progif, vendor),
         _ => HardwareFamily::Unknown,
     }
 }
@@ -55,7 +60,8 @@ pub fn classify_family(
 /// The family of one listed device. `classify_family` decides from the ids
 /// alone; an Intel RAID-mode function it takes for AHCI is kept only when
 /// BAR5, where the ABAR lives, is a memory BAR, and VirtualBox's adapter id
-/// is SVGA II only with the port window VBoxVGA lacks.
+/// is SVGA II only with the port window VBoxVGA lacks. An SD host the ACPI
+/// tables publish is served by the SD host capsule as a PCI one is.
 pub fn classify_device(rec: &DeviceRecord) -> HardwareFamily {
     if is_platform_sd_host(rec.bus_kind, rec.pci_class, rec.pci_subclass) {
         return HardwareFamily::StorageSdhci;

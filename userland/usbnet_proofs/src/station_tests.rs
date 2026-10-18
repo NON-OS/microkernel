@@ -12,7 +12,7 @@ use std::cell::RefCell;
 use nonos_libc::{calls, play, serial};
 
 use crate::fake_xhci::answer;
-use crate::scan::Scanner;
+use crate::scan::NetScanner;
 use crate::station::Station;
 use crate::xhci::XhciBus;
 use crate::{Bind, Bus, Found, Setup};
@@ -49,7 +49,7 @@ fn any_bytes_become_a_locally_administered_unicast_address() {
 fn every_bind_of_a_run_is_handed_the_one_address_drawn_for_it() {
     let _one = serial();
     play(|req| Some(answer(req)));
-    let mut scanner = Scanner::new(b"t");
+    let mut scanner = NetScanner::new(b"t");
     scanner.pass(b"t", keep);
     scanner.pass(b"t", keep);
     let handed = HANDED.with(|h| h.borrow().clone());
@@ -62,9 +62,9 @@ fn every_bind_of_a_run_is_handed_the_one_address_drawn_for_it() {
 fn a_rebind_after_a_loss_programs_the_address_the_stack_already_has() {
     let _one = serial();
     play(|req| Some(answer(req)));
-    let mut scanner = Scanner::new(b"t");
+    let mut scanner = NetScanner::new(b"t");
     let first = scanner.pass(b"t", program).expect("bound");
-    scanner.lost(first.port);
+    scanner.lost(first.xhci, first.port);
     assert!(scanner.pass(b"t", program).is_some(), "bound again on the same port");
     // The data stage of each SET_NET_ADDRESS: the address programmed.
     let asked = calls();

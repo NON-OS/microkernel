@@ -62,7 +62,7 @@ The capsule serves `driver.ahci0` on service [endpoint](../../overview/glossary-
 
 It holds the capabilities IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the [capability word](../../overview/glossary-boot-root-record.md#capability-word) 0xF8018 (`userland/capsule_driver_ahci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
 
-The same capsule serves an eMMC disk when no SATA disk comes up; see [SD cards and eMMC](sd-and-emmc.md).
+eMMC is no longer served by this capsule; `driver.sdhci0` serves it, see [SD cards and eMMC](sd-and-emmc.md).
 
 ## How it was verified
 

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::multitouch::multitouch;
 use super::pointer::{act, note, pointer};
 use super::read_frame::read_frame;
 use super::repeat::skip_repeat;
@@ -48,7 +49,11 @@ fn deliver(state: &mut State, frame: &[u8], n: usize) -> bool {
     };
     // Any report but the driven collections' (a keyboard's keys, a
     // vendor's data) is dropped unread: nothing of it is kept.
-    let Some(seen) = pointer(state, report) else { return ended(state, true) };
+    let seen = match state.mt.serves() {
+        true => multitouch(state, report),
+        false => pointer(state, report),
+    };
+    let Some(seen) = seen else { return ended(state, true) };
     note(state, &seen);
     if skip_repeat(&mut state.repeat, seen) {
         return false;

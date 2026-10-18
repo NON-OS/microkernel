@@ -88,16 +88,22 @@ def usb_stick(path, block_size=512):
     return ["-drive", f"file={path},if=none,id=usbstick,format=raw", "-device", stick]
 
 
-def devices(net, tpm_sock, qmp):
-    args = ["-device", "virtio-vga,vectors=0,edid=on,xres=1920,yres=1080",
-            "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
+def audio():
+    return "coreaudio" if platform.system() == "Darwin" else "none"
+
+
+def devices(net, tpm_sock, qmp, swaps=None):
+    """`swaps`, a lane's (lanes.py), puts a model in place of the virtio GPU,
+    the virtio NIC or tpm-crb."""
+    swap = swaps or {}
+    gpu = swap.get("gpu", "virtio-vga,vectors=0,edid=on,xres=1920,yres=1080")
+    args = ["-device", gpu, "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
     if net == "nat":
-        args += ["-device", "virtio-net-pci,netdev=net0", "-netdev", "user,id=net0"]
+        args += ["-device", f"{swap.get('nic', 'virtio-net-pci')},netdev=net0", "-netdev", "user,id=net0"]
     if tpm_sock:
         args += ["-chardev", f"socket,id=chrtpm,path={tpm_sock}", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm",
-                 "-device", "tpm-crb,tpmdev=tpm0"]
-    audio = "coreaudio" if platform.system() == "Darwin" else "none"
-    args += ["-audiodev", f"{audio},id=snd0", "-device", "intel-hda", "-device", "hda-duplex,audiodev=snd0"]
+                 "-device", f"{swap.get('tpm', 'tpm-crb')},tpmdev=tpm0"]
+    args += ["-audiodev", f"{audio()},id=snd0", "-device", "intel-hda", "-device", "hda-duplex,audiodev=snd0"]
     if qmp:
         args += ["-qmp", f"unix:{qmp},server,nowait"]
     return args

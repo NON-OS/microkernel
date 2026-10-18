@@ -78,14 +78,15 @@ pub fn output_status_request(request_id: u32, out: &mut [u8]) -> usize {
 /// gives applications, from its status reply. The verdict numbers are the
 /// same on both wires. The outputs byte keeps its bits (speaker, headphone,
 /// line out) and plugged becomes bit 8. None for a short or refused reply,
-/// or a verdict outside the ones the driver gives.
+/// or a verdict outside the drivers': 0 to 6, 1 from driver.usb_audio0
+/// while it has no device.
 pub fn read_output_status(rx: &[u8]) -> Option<(u32, u32)> {
     if rx.len() < OUTPUT_REPLY_LEN || reply_status(rx) != E_OK {
         return None;
     }
     let b = &rx[HDR_LEN + STATUS_LEN..];
     let verdict = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
-    if verdict == 1 || verdict > 6 {
+    if verdict > 6 {
         return None;
     }
     let flags = (b[8] & 0x07) as u32 | if b[9] != 0 { 1 << 8 } else { 0 };

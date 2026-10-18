@@ -24,5 +24,8 @@ pub const FDT_END: u32 = 0x0000_0009;
 
 pub const FDT_MAGIC: u32 = 0xD00D_FEED;
 
+// Oldest version we read: the first with `size_dt_struct` in the header.
+pub const FDT_FIRST_VERSION: u32 = 17;
+
 // Last compatible version we accept. Common boot DTBs ship v17.
 pub const FDT_LAST_COMP_VERSION: u32 = 16;

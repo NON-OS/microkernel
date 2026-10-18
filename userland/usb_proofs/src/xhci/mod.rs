@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The controller driver as the driver's files reach it, played on the
-//! host: a hub whose ports follow a script (`sim`), a device's report
-//! descriptor (`report_desc`), the reports its endpoints have ready
+//! host: a device's report descriptor (`report_desc`), the reports its endpoints have ready
 //! (`interrupt`), and the slot and address calls counted (`ops`). Only what
-//! the included hub, enumeration, binding and poll files call.
+//! the included enumeration, binding and poll files call.
 
 /// The speeds the Interval below is told apart by.
 #[path = "../../../capsule_driver_xhci/src/contexts/ep0.rs"]
@@ -33,8 +32,7 @@ pub mod report_desc;
 /// A control request's setup stage, as the driver's files build it.
 #[path = "../../../capsule_driver_usb_hid/src/xhci/ops/setup.rs"]
 pub mod setup;
-pub mod sim;
 
 pub use interrupt::interrupt_in;
-pub use ops::{address_routed, control_transfer, disable_slot, enable_slot, XhciClientError};
+pub use ops::{control_transfer, disable_slot, enable_slot, XhciClientError};
 pub use setup::Setup;

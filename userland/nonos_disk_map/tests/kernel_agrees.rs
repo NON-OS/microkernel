@@ -28,9 +28,13 @@ use nonos_disk_map::*;
 #[test]
 fn the_kernel_picks_its_disk_by_the_same_sectors() {
     let id = source("../../src/hardware/block_device/identify.rs");
-    assert_eq!(value(&id, "STORE_LBA"), STORE_BASE_LBA);
     assert_eq!(rhs(&id, "STORE_MAGIC"), magic(&STORE_MAGIC));
     assert_eq!(rhs(&id, "PLAN_MAGIC"), magic(&PLAN_MAGIC));
+    // Where a disk whose table names no NONOS partitions keeps them.
+    let fixed = source("../../src/hardware/block_device/gpt/fixed.rs");
+    assert_eq!(value(&fixed, "STORE_BASE_LBA"), STORE_BASE_LBA);
+    assert_eq!(value(&fixed, "PLAN_LBA"), PLAN_LBA);
+    assert_eq!(value(&fixed, "DATA_FLOOR"), DATA_FLOOR);
 }
 
 #[test]

@@ -17,6 +17,7 @@
 mod kind;
 mod probe;
 mod registers;
+mod registers_encoded;
 
 pub use kind::CpuFeature;
 pub use probe::has_feature;

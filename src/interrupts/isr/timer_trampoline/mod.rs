@@ -54,5 +54,4 @@
 
 mod guest_stop;
 mod handler;
-mod reclaim;
 mod send_eoi;

@@ -15,10 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::backend::Backend;
-use super::map_ahci::map_ahci_error;
-use super::map_nvme::map_nvme_error;
-use super::map_usb_msc::map_usb_msc_error;
-use super::map_virtio::map_virtio_error;
 use super::select::selected;
 use super::BlockDeviceError;
 
@@ -33,7 +29,7 @@ use super::BlockDeviceError;
  * answers everything itself.
  */
 pub fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
-    let copy_answers = matches!(super::select::chosen(), None | Some(Backend::UsbMsc));
+    let copy_answers = super::kept::chosen().is_none_or(|b| b.disk.copy_answers);
     if copy_answers && super::mirror::read(lba, out) {
         return Ok(());
     }
@@ -41,19 +37,15 @@ pub fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
 }
 
 /// A read from one named backend, for the probe that picks the backend.
-pub(super) fn read_on(backend: Backend, lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
-    match backend {
-        Backend::VirtioBlk => {
-            crate::hardware::virtio_blk_capsule::read_blocks(lba, out).map_err(map_virtio_error)
-        }
-        Backend::Ahci => {
-            crate::hardware::ahci_capsule::read_blocks(lba, out).map_err(map_ahci_error)
-        }
-        Backend::Nvme => {
-            crate::hardware::nvme_capsule::read_blocks(lba, out).map_err(map_nvme_error)
-        }
-        Backend::UsbMsc => {
-            crate::hardware::usb_msc_capsule::read_blocks(lba, out).map_err(map_usb_msc_error)
-        }
-    }
+pub(super) fn read_on(b: Backend, lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
+    (b.disk.read)(b.key, lba, out)
+}
+
+/// The first eight bytes of the sector at `lba` on `b`, or the read's error.
+pub(super) fn head(b: Backend, lba: u64) -> Result<[u8; 8], BlockDeviceError> {
+    let mut sector = [0u8; 512];
+    read_on(b, lba, &mut sector)?;
+    let mut head = [0u8; 8];
+    head.copy_from_slice(&sector[..8]);
+    Ok(head)
 }

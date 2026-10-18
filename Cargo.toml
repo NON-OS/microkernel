@@ -165,6 +165,9 @@ nonos-capsule-driver-xhci       = []
 nonos-capsule-driver-usb-hid    = []
 nonos-capsule-driver-usb-msc    = []
 nonos-capsule-driver-e1000      = []
+nonos-capsule-driver-igb        = []
+nonos-capsule-driver-ixgbe      = []
+nonos-capsule-driver-e1000e     = []
 nonos-capsule-driver-i2c-pci    = []
 nonos-capsule-driver-gpio       = []
 nonos-capsule-driver-i2c-hid    = []
@@ -177,6 +180,25 @@ nonos-capsule-driver-vmxnet3    = []
 nonos-capsule-driver-tulip      = []
 nonos-capsule-driver-vmware-svga= []
 nonos-capsule-driver-ahci       = []
+nonos-capsule-driver-sdhci      = []
+nonos-capsule-driver-ufs        = []
+nonos-capsule-driver-bga        = []
+nonos-capsule-driver-usb-audio  = []
+nonos-capsule-driver-usb-hub    = []
+nonos-capsule-driver-uvc        = []
+nonos-capsule-driver-cdc-acm    = []
+nonos-capsule-driver-usb-mic    = []
+nonos-capsule-driver-ccid       = []
+nonos-capsule-driver-fido       = []
+nonos-capsule-driver-spi        = []
+nonos-capsule-driver-spi-hid    = []
+nonos-capsule-driver-cdc-ecm    = []
+nonos-capsule-driver-cdc-ncm    = []
+nonos-capsule-driver-rndis      = []
+nonos-capsule-driver-smbus      = []
+nonos-capsule-driver-uhci       = []
+nonos-capsule-driver-ohci       = []
+nonos-capsule-driver-ehci       = []
 nonos-capsule-driver-hda        = []
 nonos-capsule-driver-ac97       = []
 nonos-capsule-driver-vmmdev     = []
@@ -442,6 +464,27 @@ microkernel-driver-e1000 = [
   "nonos-capsule-driver-e1000",
 ]
 
+microkernel-driver-igb = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-igb",
+]
+
+microkernel-driver-e1000e = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-e1000e",
+]
+
+microkernel-driver-ixgbe = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ixgbe",
+]
+
 microkernel-driver-rtl8139 = [
   "microkernel-core",
   "nonos-production",
@@ -496,6 +539,163 @@ microkernel-driver-ahci = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-ahci",
+]
+
+microkernel-driver-sdhci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-sdhci",
+]
+
+microkernel-driver-ufs = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ufs",
+]
+
+microkernel-driver-bga = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-bga",
+]
+
+microkernel-driver-cdc-ecm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-cdc-ecm",
+]
+
+microkernel-driver-cdc-ncm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-cdc-ncm",
+]
+
+microkernel-driver-rndis = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-rndis",
+]
+
+microkernel-driver-usb-hub = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+]
+
+microkernel-driver-uvc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-uvc",
+]
+
+microkernel-driver-cdc-acm = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-cdc-acm",
+]
+
+microkernel-driver-usb-mic = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-usb-mic",
+]
+
+microkernel-driver-ccid = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-ccid",
+]
+
+microkernel-driver-fido = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-hid",
+  "nonos-capsule-driver-usb-hub",
+  "nonos-capsule-driver-fido",
+]
+
+microkernel-driver-spi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-i2c-pci",
+  "nonos-capsule-driver-spi",
+]
+
+microkernel-driver-spi-hid = [
+  "microkernel-driver-spi",
+  "nonos-capsule-driver-spi-hid",
+]
+
+microkernel-driver-usb-audio = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-xhci",
+  "nonos-capsule-driver-usb-audio",
+  "nonos-capsule-audio",
+]
+
+microkernel-driver-smbus = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-smbus",
+]
+
+microkernel-driver-uhci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-uhci",
+  "nonos-capsule-driver-usb-hid",
+]
+
+microkernel-driver-ohci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ohci",
+  "nonos-capsule-driver-usb-hid",
+]
+
+microkernel-driver-ehci = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ehci",
+  "nonos-capsule-driver-usb-msc",
 ]
 
 microkernel-driver-hda = [
@@ -681,6 +881,7 @@ microkernel-desktop-offline = [
   "nonos-capsule-driver-virtio-blk",
   "nonos-capsule-driver-nvme",
   "nonos-capsule-driver-ahci",
+  "nonos-capsule-driver-sdhci",
   "nonos-capsule-driver-virtio-gpu",
   "nonos-capsule-driver-ps2-input",
   "nonos-capsule-driver-xhci",

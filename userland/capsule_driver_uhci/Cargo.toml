@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_uhci
+# eK@nonos.systems
+#
+# UHCI host controller capsule: the USB 1.1 host of Intel and VIA chipsets
+# and of QEMU's and VMware's virtual machines. It serves the host wire of
+# driver.xhci0 on driver.uhci0, so the class drivers use it unchanged.
+
+[package]
+name = "nonos_capsule_driver_uhci"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland UHCI USB host controller capsule"
+
+[[bin]]
+name = "driver_uhci"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usb_virt = { path = "../nonos_usb_virt" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

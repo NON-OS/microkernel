@@ -20,7 +20,8 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
     Some(match family {
         StorageNvme => "driver_nvme",
         StorageAhci => "driver_ahci",
-        StorageEmmc => "driver_ahci",
+        StorageEmmc | StorageSdhci => "driver_sdhci",
+        StorageUfs => "driver_ufs",
         StorageUsbMsc => "driver_usb_msc",
         StorageVirtioBlk => "driver_virtio_blk",
         StorageIde => "driver_piix_ide",
@@ -30,6 +31,9 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         StorageVmwarePvscsi => "driver_pvscsi",
         NetworkVirtio => "driver_virtio_net",
         NetworkE1000 => "driver_e1000",
+        NetworkE1000e => "driver_e1000e",
+        NetworkIgb => "driver_igb",
+        NetworkIxgbe => "driver_ixgbe",
         NetworkRtl8139 => "driver_rtl8139",
         NetworkRtl8169 => "driver_rtl8169",
         NetworkPcnet => "driver_pcnet",
@@ -38,20 +42,24 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkRtl8821ce => "driver_rtl8821ce",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
+        // It keeps the firmware's mode until the compositor asks for another
+        // and serves the display wire, so the compositor moves from the GOP
+        // blit to it without losing the screen.
+        DisplayBga => "driver_bga",
         DisplayVmwareSvga => "driver_vmware_svga",
         AudioAc97 => "driver_ac97",
         InputVmmdev => "driver_vmmdev",
-        // DisplayBga stays undispatched: the BGA capsule is a broker-path
-        // proof that re-modes the adapter and serves no gfx protocol, so
-        // spawning it destroys the firmware scanout the compositor's GOP
-        // path is presenting into. Wire it back once it speaks gfx.
         UsbXhci => "driver_xhci",
+        UsbUhci => "driver_uhci",
+        UsbEhci => "driver_ehci",
+        UsbOhci => "driver_ohci",
         InputPs2 => "driver_ps2_input",
         InputUsbHid => "driver_usb_hid",
         InputI2cHid => "driver_i2c_hid",
         InputVirtio => "driver_virtio_input",
         AudioHda => "driver_hda",
         SerialI2c => "driver_i2c_pci",
+        SerialSmbus => "driver_smbus",
         _ => return None,
     })
 }

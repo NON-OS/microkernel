@@ -49,4 +49,7 @@ pub enum CpuFeature {
     /// FEAT_PAN: EL1 accesses to EL0-accessible pages fault unless PSTATE.PAN
     /// is cleared. The aarch64 counterpart of SMAP.
     Pan,
+    /// FEAT_E0PD: EL0 accesses to one half of the address space fault in
+    /// constant time, so EL0 cannot tell mapped kernel addresses by timing.
+    E0pd,
 }

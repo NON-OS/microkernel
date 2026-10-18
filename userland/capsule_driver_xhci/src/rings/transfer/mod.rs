@@ -18,5 +18,6 @@ mod enqueue;
 mod enqueue_phys;
 mod keep;
 mod phys;
+mod retire_leaving;
 mod state;
 pub use state::TransferRing;

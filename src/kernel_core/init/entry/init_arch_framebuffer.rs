@@ -23,9 +23,14 @@ pub(super) fn init_arch_framebuffer(handoff: &KernelHandoff) {
         ArchSpecificHandoff::X86_64 { v1 } => {
             init_framebuffer(v1);
         }
-        // Nothing to map: the boot path handed over no framebuffer, so the
-        // display comes up later as a virtio-gpu device.
+        // No loader hands one over here. A Raspberry Pi's firmware drives the
+        // display and gives its framebuffer when asked; elsewhere the display
+        // comes up later as a virtio-gpu device.
         #[cfg(target_arch = "aarch64")]
-        ArchSpecificHandoff::Aarch64 { .. } => {}
+        ArchSpecificHandoff::Aarch64 { .. } => {
+            if let Some(fb) = crate::arch::aarch64::firmware::framebuffer() {
+                super::super::framebuffer::init::init_framebuffer_from(&fb);
+            }
+        }
     }
 }

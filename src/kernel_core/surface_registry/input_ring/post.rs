@@ -27,7 +27,7 @@ pub fn post_input(ev: InputEvent) -> Result<(), RegistryError> {
 }
 
 /// MkInputEventPost by `pid`: stamped with its process's source, whatever
-/// the poster wrote in the high byte of `flags`.
+/// the poster wrote in bits 8 to 13 of `flags`.
 pub fn post_input_from(pid: u32, ev: InputEvent) -> Result<(), RegistryError> {
     post_stamped(ev, super::sources::source_of(pid))
 }

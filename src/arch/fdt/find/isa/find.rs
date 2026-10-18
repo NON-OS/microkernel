@@ -32,7 +32,7 @@ pub fn find_boot_hart(fdt: &Fdt) -> Result<Option<IsaFlags>, FdtError> {
 
     while let Some(event) = walker.next()? {
         match event {
-            Event::BeginNode { name } => {
+            Event::BeginNode { name, .. } => {
                 depth += 1;
                 if depth == 1 && name == b"cpus" {
                     in_cpus = true;

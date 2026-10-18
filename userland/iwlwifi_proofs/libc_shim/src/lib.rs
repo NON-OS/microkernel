@@ -21,8 +21,10 @@
 use std::cell::RefCell;
 
 mod pci;
+mod shipped;
 
 pub use pci::*;
+pub use shipped::*;
 
 thread_local! {
     static GIVEN_BACK: RefCell<Vec<(&'static str, u64)>> = const { RefCell::new(Vec::new()) };
@@ -33,13 +35,13 @@ pub(crate) fn give_back(call: &'static str, id: u64) -> i64 {
     0
 }
 
-/// Every release made on this thread, as (call, id), in order.
 /// Log `call` among the broker calls, so a modeled device's own events show
 /// in the same order as the calls around them.
 pub fn note(call: &'static str, id: u64) {
     give_back(call, id);
 }
 
+/// Every release made on this thread, as (call, id), in order.
 pub fn given_back() -> Vec<(&'static str, u64)> {
     GIVEN_BACK.with(|g| g.borrow().clone())
 }

@@ -33,5 +33,5 @@ pub(super) fn grant_mmio(dev: Found, epoch: u64) -> Result<Regs, &'static str> {
     // SAFETY: MkMmioMap mapped `out.length` bytes at `user_va`, read and
     // write, and they stay mapped until the claim is released; nothing
     // reaches the window after that, teardown being the last step.
-    Ok(Regs::mmio(unsafe { Mmio::new(base as *mut u8, len) }))
+    Ok(Regs::mmio(unsafe { Mmio::registers(base as *mut u8, len) }))
 }

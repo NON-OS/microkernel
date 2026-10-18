@@ -19,13 +19,13 @@ Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, I
 
 ## The link protocol
 
-Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is the receive batch, every waiting frame in one numbered reply (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); virtio-net, e1000, RTL8139 and RTL8169 serve it. Operation 7 is the register snapshot the PCI drivers answer (`userland/capsule_driver_e1000/src/protocol/ops.rs:32`, `OP_STATS`), and the USB drivers answer operation 6 with `E_INVAL`, their counters being at 0x0100.
+Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is the receive batch, every waiting frame in one numbered reply (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); virtio-net, e1000, RTL8139 and RTL8169 serve it. Operation 7 is the register snapshot the PCI drivers answer (`userland/capsule_driver_e1000/src/protocol/ops.rs:32`, `OP_STATS`), and the USB drivers answer operation 6 with `E_INVAL`, their counters being at 7 as well.
 
 On its first poll of a newly bound card, `net.core` sends operation 6 with no body, once per port (`userland/capsule_net_core/src/device/rx_probe.rs:30-40`, `serves`; `userland/capsule_net_core/src/device/batch_call.rs:54`, `OP_RX_BATCH`). An empty batch in a status 0 reply marks the driver as one that serves receive batches, and from then on that card is asked only for batches; any other answer, or none, and the card is read one frame at a time with operation 5 (`userland/capsule_net_core/src/device/receive.rs:22-32`, `receive`). [The receive fault](README.md#the-receive-fault) says why a status 0 reply alone is not taken as a yes.
 
 ## Who may reach a driver
 
-The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint). The USB network drivers have no entry there yet; see [USB networking](usb-net.md).
+The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint). The USB network drivers are held the same way, through the card table (`src/services/registry/nics.rs`, `NICS`); see [USB networking](usb-net.md).
 
 ## Which card is bound
 

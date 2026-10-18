@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which output driver the server plays through. The kernel registers each
-//! driver's name when it spawns it, before this capsule, and drops it when
-//! the driver finds no controller: HD Audio on most machines, AC'97 in the
-//! virtual machines that still present one. One registered sink is taken
-//! as it is. With both, the first that says it plays is taken, so an HD
-//! Audio controller that cannot play (HDMI only, no codec) does not hide a
-//! working AC'97; with neither ready the first keeps its say on why not.
+//! fixed sink's name when it spawns the driver, before this capsule, and
+//! drops it when the driver finds no controller: HD Audio on most machines,
+//! AC'97 in the virtual machines that still present one. One registered
+//! sink is taken as it is. With both, the first that says it plays is
+//! taken, so an HD Audio controller that cannot play (HDMI only, no codec)
+//! does not hide a working AC'97; with neither ready the first keeps its
+//! say on why not. A USB device someone plugged in is played through over
+//! that sink while it says it is ready (`with_usb`). Pure, for the proofs.
 
-/// The PCM sink drivers, in the order they are preferred.
+/// The fixed PCM sink drivers, in the order they are preferred.
 pub const SINKS: [&str; 2] = ["driver.hda0", "driver.ac97_0"];
 
 /// `found[i]`: `SINKS[i]` is registered. `ready(i)` asks it whether this
@@ -33,4 +35,14 @@ pub fn choose(found: [bool; 2], mut ready: impl FnMut(usize) -> bool) -> Option<
         return Some(first);
     }
     (0..found.len()).find(|&i| found[i] && ready(i)).or(Some(first))
+}
+
+/// The port to play through, given whether driver.usb_audio0 reports a
+/// device ready, the fixed sink `choose` took, and the USB driver's port.
+/// With no fixed sink the USB driver is kept, so a device can still come.
+pub fn with_usb(usb_ready: bool, fixed: Option<u32>, usb: Option<u32>) -> Option<u32> {
+    match (usb_ready, usb) {
+        (true, Some(usb)) => Some(usb),
+        _ => fixed.or(usb),
+    }
 }

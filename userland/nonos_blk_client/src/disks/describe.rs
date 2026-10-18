@@ -20,7 +20,7 @@
 
 use alloc::string::String;
 
-use super::scan::Disk;
+use super::survey::Disk;
 use crate::wire::SECTOR_SIZE;
 
 impl Disk {

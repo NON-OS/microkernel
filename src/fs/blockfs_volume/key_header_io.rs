@@ -22,10 +22,13 @@ use super::key_seal::encode_key_header;
 use super::plan_types::PLAN_LBA;
 use crate::hardware::block_device::{self, BlockDeviceError};
 
+/// The key header's sector in the plan partition: the one after the plan.
+const KEY_INDEX: u64 = KEY_LBA - PLAN_LBA;
+
 /// How the volume is keyed, `None` for a disk without a key header.
 pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
     let mut sector = [0u8; 512];
-    block_device::read(KEY_LBA, &mut sector).map_err(VolumeError::Device)?;
+    block_device::read_plan_sector(KEY_INDEX, &mut sector).map_err(VolumeError::Device)?;
     parse_key_header(&sector).map_err(|way| {
         crate::log::warn!("[DATA] key header names way {} this kernel does not know", way);
         VolumeError::UnknownKeying
@@ -38,7 +41,8 @@ pub(super) fn read_key_header() -> Result<Option<Keyed>, VolumeError> {
 /// formatted.
 pub(super) fn write_key_header(keyed: &Keyed) -> Result<(), VolumeError> {
     let before = plan_sector()?;
-    block_device::write(KEY_LBA, &encode_key_header(keyed)).map_err(VolumeError::Device)?;
+    block_device::write_plan_sector(KEY_INDEX, &encode_key_header(keyed))
+        .map_err(VolumeError::Device)?;
     block_device::flush().map_err(VolumeError::Device)?;
     if plan_sector()? != before {
         crate::log::warn!("[DATA] the disk plan changed under the key header's write");
@@ -47,8 +51,9 @@ pub(super) fn write_key_header(keyed: &Keyed) -> Result<(), VolumeError> {
     Ok(())
 }
 
+/// The plan's own sector, the first of the plan partition.
 fn plan_sector() -> Result<[u8; 512], VolumeError> {
     let mut sector = [0u8; 512];
-    block_device::read(PLAN_LBA, &mut sector).map_err(VolumeError::Device)?;
+    block_device::read_plan_sector(0, &mut sector).map_err(VolumeError::Device)?;
     Ok(sector)
 }

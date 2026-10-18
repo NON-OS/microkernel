@@ -4,8 +4,8 @@
 
 `capsule_settings` is the desktop's Settings window (`app.settings`), the
 editor for the `policy` store. It is an app on `nonos_app_skeleton`, 760 by
-520, with ten sections: General, Network, Wifi, Bluetooth, Security,
-Appearance, Privacy, Sound, Updates and Developer
+520, with eleven sections: General, Network, Wifi, Bluetooth, Security,
+Appearance, Accessibility, Privacy, Sound, Updates and Developer
 (`src/settings/section.rs`).
 The handbook page is
 [System apps and services](../../docs/handbook/apps/system-apps.md).
@@ -28,6 +28,11 @@ policy (service:4108)  -- kernel-mirrored fields --> MkAdminPolicyPush
   Qwen model row is a choice among the pinned tiers (setup's `qwen/labels.rs`,
   held to the pins by setup's build): Left, Right and Enter step through them
   (`src/settings/qwen_tier/`, held by `capsule_settings_proofs`).
+- Accessibility (`src/settings/access/`): each display's colour filter, high
+  contrast and magnifier, read and set through the shell's ops 0x000A and
+  0x0009, which take them from Settings alone and pass them to the
+  compositor (NCMP 0x0010 and 0x000F). They last the session; the
+  compositor holds them, not the policy store.
 - `MkDeviceList` finds the Wi-Fi adapters the device broker knows.
 - `MkIpcCall` to `net.dhcp.client` reads the lease; the Wi-Fi client
   (`nonos_wifi_client`) scans, joins and remembers networks.
@@ -89,7 +94,7 @@ the matching set and, on success, the shell notice.
 - No adapter, no lease or no TPM: the Wi-Fi section says which.
 - A scan or join that will not run says why on the Wi-Fi page: the switch
   is off, no driver is running, or the highlighted row is not one the scan
-  found (`src/settings/state/wifi_refusal.rs`).
+  found (`src/settings/state/wifi/refusal.rs`).
 - Bluetooth not running, or not answering within 500 ms: the Bluetooth
   page says which, shows nothing it said before, and its keys ask
   nothing. A refusal is said in the service's words

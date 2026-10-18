@@ -23,9 +23,10 @@ const MAX_HELD_KEYS: usize = 16;
 
 /// A held key: the kernel's source index for the device, and the code.
 pub type Key = (u8, u32);
-/// The key an event names: its source from the flags' high byte.
+/// The key an event names: its source from bits 8 to 13 of the flags,
+/// which the kernel writes; bits 14 and 15 are a Bluetooth bond's marks.
 pub const fn key_of(flags: u16, code: u32) -> Key {
-    ((flags >> 8) as u8, code)
+    (((flags >> 8) & 0x3F) as u8, code)
 }
 
 /// A held key and the pid its press went to; pid 0 is a free slot.

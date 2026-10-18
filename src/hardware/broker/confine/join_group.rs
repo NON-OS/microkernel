@@ -24,7 +24,8 @@ use alloc::string::String;
 
 use super::acs_refusal::{alias_line, refusal_line};
 use super::member::Member;
-use super::table::{say, Capsule};
+use super::say::say;
+use super::table::Capsule;
 use crate::memory::iommu::DeviceAddress;
 
 /// Whether a capsule other than `all[pos]` holds a member or an alias of
@@ -41,7 +42,7 @@ pub(super) fn group_held(
             return true;
         }
         if let Some(a) = aliases.iter().find(|a| c.devices.iter().any(|(_, d)| d == *a)) {
-            let at = (a.pci_bus(), a.pci_device(), a.pci_function());
+            let at = a.bdf().unwrap_or((0, 0, 0));
             say(alias_line(at, &holder(c.pid)).as_bytes());
             return true;
         }

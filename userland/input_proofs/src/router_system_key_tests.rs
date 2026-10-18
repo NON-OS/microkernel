@@ -22,9 +22,7 @@ use nonos_libc::{INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP};
 
 use crate::clients::world;
 use crate::ps2_keycodes::{KEYCODE_MUTE, KEYCODE_POWER, KEYCODE_VOLUME_DOWN, KEYCODE_VOLUME_UP};
-use crate::route::shell_keys::{
-    is_shell_key, KEY_MUTE, KEY_POWER, KEY_VOLUME_DOWN, KEY_VOLUME_UP,
-};
+use crate::route::shell_keys::{is_shell_key, KEY_MUTE, KEY_POWER, KEY_VOLUME_DOWN, KEY_VOLUME_UP};
 use crate::router_desk::*;
 use crate::usb_usage_keycode::usage_keycode;
 
@@ -46,7 +44,7 @@ fn only_the_system_keys_are_the_shells() {
     for code in SYSTEM {
         assert!(is_shell_key(code), "{code:#x}");
     }
-    for code in [0x1B, u32::from(b'x'), 0x1101, 0x1201, 0x120A, 0x1300, 0x1305, 0x2000 | 0x7f] {
+    for code in [0x1B, u32::from(b'x'), 0x1101, 0x1201, 0x120A, 0x1300, 0x13FF, 0x2000 | 0x7f] {
         assert!(!is_shell_key(code), "{code:#x} is the focused window's");
     }
 }

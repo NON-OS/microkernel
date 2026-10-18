@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The scope rows (scope.rs): each driver the kernel spawns, by the service
-//! name its spawn.rs registers, and what it may claim. usb_hid, usb_msc and
-//! i2c_hid claim nothing: they reach their devices through xhci0 and
-//! i2c_pci0, so they have no row; nor has vmmouse0, which speaks only the
-//! backdoor. The ACPI capsule claims the SCI record alone (acpi/sci.rs).
+//! name its spawn.rs registers, and what it may claim. The USB function
+//! drivers, i2c_hid and spi_hid claim nothing: they reach their devices
+//! through a host's driver, so they have no row; nor has vmmouse0, which
+//! speaks only the backdoor. The ACPI capsule claims the SCI record alone
+//! (acpi/sci.rs).
 
-use super::ids::{E1000, IWLWIFI, RTL8169};
+use super::hosts::{SDHCI, SPI, XHCI};
+use super::ids::{E1000, E1000E, IGB, IWLWIFI, IXGBE, RTL8169};
 use super::rows::{AHCI, ANY, HDA, I2C_PCI, INTEL, PS2, SVGA, VBOX, VMWARE};
 use super::rule::Match::{self, Acpi, Class, Ids, Virt};
 
@@ -29,20 +31,31 @@ const VIRTIO: u16 = 0x1AF4;
 
 pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.e1000_0", &[Ids(INTEL, E1000)]),
+    ("driver.e1000e_0", &[Ids(INTEL, E1000E)]),
+    ("driver.igb_0", &[Ids(INTEL, IGB)]),
+    ("driver.ixgbe_0", &[Ids(INTEL, IXGBE)]),
     ("driver.rtl8169_0", &[Ids(REALTEK, RTL8169)]),
     ("driver.rtl8139_0", &[Ids(REALTEK, &[0x8139, 0x8139])]),
     ("driver.virtio_net0", &[Ids(VIRTIO, &[0x1000, 0x1000, 0x1041, 0x1041])]),
     ("driver.iwlwifi0", &[Ids(INTEL, IWLWIFI)]),
     ("driver.rtl8821ce0", &[Ids(REALTEK, &[0xC821, 0xC821])]),
-    // NVMe, AHCI and HDA bind by class, from any vendor, as their capsules do.
+    // Storage, SD and USB hosts bind by class, as their capsules do (ufs0's takes listed hosts).
     ("driver.nvme0", &[Class { vendor: ANY, class: 0x01, sub: 0x08, progif: Some(0x02) }]),
     ("driver.ahci0", AHCI),
+    ("driver.sdhci0", SDHCI),
+    ("driver.ufs0", &[Class { vendor: ANY, class: 0x01, sub: 0x09, progif: None }]),
     ("driver.virtio_blk0", &[Ids(VIRTIO, &[0x1001, 0x1001, 0x1042, 0x1042])]),
-    ("driver.xhci0", &[Class { vendor: ANY, class: 0x0C, sub: 0x03, progif: Some(0x30) }]),
+    ("driver.xhci0", XHCI),
+    ("driver.ehci0", &[Class { vendor: ANY, class: 0x0C, sub: 0x03, progif: Some(0x20) }]),
+    ("driver.ohci0", &[Class { vendor: ANY, class: 0x0C, sub: 0x03, progif: Some(0x10) }]),
+    ("driver.uhci0", &[Class { vendor: ANY, class: 0x0C, sub: 0x03, progif: Some(0x00) }]),
+    ("driver.smbus0", &[Class { vendor: Some(INTEL), class: 0x0C, sub: 0x05, progif: None }]),
+    ("driver.spi0", SPI),
     ("driver.i2c_pci0", I2C_PCI),
     ("driver.ps2_kbd0", PS2),
     ("driver.virtio_rng", &[Ids(VIRTIO, &[0x1005, 0x1005, 0x1044, 0x1044])]),
     ("driver.virtio_gpu0", &[Ids(VIRTIO, &[0x1050, 0x1050])]),
+    ("driver.bga0", &[Ids(0x1234, &[0x1111, 0x1111])]),
     ("driver.hda0", HDA),
     ("driver.ac97_0", &[Ids(INTEL, &[0x2415, 0x2415])]),
     ("driver.buslogic0", &[Ids(0x104B, &[0x1040, 0x1040])]),

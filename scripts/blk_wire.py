@@ -22,7 +22,7 @@ from pathlib import Path
 
 CLIENT = "userland/nonos_blk_client/src"
 # Each field of a row, and the names a driver's protocol may give it.
-WANT = {"magic": "MAGIC", "VERSION": "VERSION", "HDR_LEN": "HDR_LEN", "capacity": "OP_CAPACITY",
+WANT = {"magic": "MAGIC", "VERSION": "VERSION", "HDR_LEN": "HDR_LEN", "capacity": "OP_CAPACITY OP_GEOMETRY",
         "read": "OP_READ_BLOCKS OP_READ", "write": "OP_WRITE_BLOCKS OP_WRITE", "flush": "OP_FLUSH"}
 NUM = r"(0x[0-9a-fA-F_]+|\d[\d_]*)"
 

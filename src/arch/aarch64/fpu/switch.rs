@@ -49,7 +49,9 @@ pub fn prepare_incoming() {
 
         unsafe { restore(&slot.ctx) };
         slot.enabled = true;
-        slot.dirty = false;
+        // Live at EL0 with no trap left to say when it writes them, so the
+        // registers count as changed until `save_outgoing` keeps them.
+        slot.dirty = true;
     } else {
         disable();
         slot.enabled = false;

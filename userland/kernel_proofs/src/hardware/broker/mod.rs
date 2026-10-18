@@ -17,7 +17,8 @@
 /*
  * The broker's device record, its class ids, the platform device record,
  * the BAR a mapping may name, the buses behind an external-facing port
- * and the ranges firmware reserves, by path as the kernel builds them.
+ * the ranges firmware reserves, and the device-tree DesignWare I2C
+ * interface's stop routine, by path as the kernel builds them.
  */
 
 pub mod acpi;
@@ -27,6 +28,8 @@ pub mod class;
 pub mod device;
 #[path = "../../../../../src/hardware/broker/external_range.rs"]
 pub mod external_range;
+#[cfg(test)]
+mod fdt_i2c;
 #[path = "../../../../../src/hardware/broker/irq/gone.rs"]
 pub mod irq_gone;
 pub mod mmio;

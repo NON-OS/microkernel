@@ -39,6 +39,10 @@ pub struct SlotResources {
     /// scheduling it, and its device went silent.
     pub interrupt: Vec<InterruptEndpoint>,
     pub bulk: Option<crate::controller::BulkPipes>,
+    /// A second bulk pair (OP_CONFIGURE_BULK2): UAS's other two pipes.
+    pub bulk2: Option<crate::controller::BulkPipes>,
+    pub isoch: Option<crate::controller::IsochPipe>,
+    pub isoch_in: Option<crate::controller::IsochPipe>,
     /// What a failed controller may still reach, kept until Disable Slot
     /// drops the slot or a reset the table (`keep_if_failed`).
     pub quarantine: Vec<DmaRegion>,

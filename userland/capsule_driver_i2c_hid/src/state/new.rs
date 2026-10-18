@@ -22,7 +22,7 @@ use nonos_libc::Deadline;
 
 use super::{FrameRepeat, LastRead, State, FRAME_MAX};
 use crate::drive::{Doorbell, Pace, Recover};
-use crate::hid::{MouseLayout, TouchLayout};
+use crate::hid::{MouseLayout, Multitouch, TouchLayout};
 use crate::input::TouchGesture;
 
 impl State {
@@ -45,6 +45,7 @@ impl State {
             last_read: LastRead::default(),
             repeat: FrameRepeat::default(),
             touch_layout: TouchLayout::default(),
+            mt: Multitouch::default(),
             mouse_layout: MouseLayout::default(),
             gesture: TouchGesture::default(),
             doorbell: Doorbell::default(),

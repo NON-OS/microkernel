@@ -21,12 +21,7 @@ pub fn acknowledge_interrupt() -> Option<u32> {
     unsafe {
         asm!("mrs {0}, icc_iar1_el1", out(reg) iar, options(nostack));
     }
-    let intid = (iar & 0xFF_FFFF) as u32;
-    if intid >= 1020 {
-        None
-    } else {
-        Some(intid)
-    }
+    super::super::intid::acknowledged((iar & 0xFF_FFFF) as u32)
 }
 
 pub fn end_interrupt(intid: u32) {

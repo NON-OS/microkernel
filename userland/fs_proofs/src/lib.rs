@@ -131,6 +131,8 @@ mod blk_pci_tests;
 #[cfg(test)]
 mod blk_span_tests;
 #[cfg(test)]
+mod blk_wire;
+#[cfg(test)]
 mod blk_word_tests;
 #[cfg(test)]
 mod stream_hash;

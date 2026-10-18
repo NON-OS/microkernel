@@ -26,22 +26,12 @@ use crate::state::{Context, LAUNCHER_APPS};
 #[path = "../../../../capsule_input_router/src/route/chord.rs"]
 mod chord;
 
-pub use chord::is_reserved_chord;
+pub use chord::{is_reserved_chord, is_secure_attention};
 
 const PROCESS_MANAGER: &[u8] = b"app.process_manager";
 
 pub fn bring_process_manager(ctx: &mut Context) {
-    // Nothing of the shell's may cover it: the Launchpad and the menus draw
-    // in the chrome band, over every window.
-    if ctx.launchpad {
-        super::launchpad::close(ctx);
-    }
-    ctx.desktop_menu = None;
-    ctx.menu_hover = None;
-    ctx.menu_target = None;
-    ctx.menubar.open = None;
-    ctx.menubar.hover = None;
-    repaint(ctx);
+    clear_chrome(ctx);
     let running = LAUNCHER_APPS
         .iter()
         .position(|a| a.service == PROCESS_MANAGER)
@@ -49,4 +39,19 @@ pub fn bring_process_manager(ctx: &mut Context) {
     if running != Some(LaunchOutcome::Focused) {
         crate::apps_off::open(ctx, PROCESS_MANAGER);
     }
+}
+
+/// Close the Launchpad and the menus, and repaint: nothing of the shell's may
+/// cover what a chord brings up, and they draw in the chrome band, over every
+/// window.
+pub fn clear_chrome(ctx: &mut Context) {
+    if ctx.launchpad_ui.launchpad {
+        super::launchpad::close(ctx);
+    }
+    ctx.desk_ui.desktop_menu = None;
+    ctx.desk_ui.menu_hover = None;
+    ctx.desk_ui.menu_target = None;
+    ctx.menubar.open = None;
+    ctx.menubar.hover = None;
+    repaint(ctx);
 }

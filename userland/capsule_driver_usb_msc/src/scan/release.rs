@@ -39,10 +39,10 @@ impl Scanner {
             return self.end(xhci, disk, e);
         }
         disable_slot(xhci, disk.slot);
-        self.ports.failed(disk.port, false);
+        self.ports_of(xhci, |p| p.failed(disk.port, false));
         let gone = e == E_NODEV;
         self.report = Report::at(if gone { Stage::Gone } else { Stage::NotReady }, disk.port, e);
-        self.left_on = (!gone).then_some(disk.port);
+        self.left_on = (!gone).then_some((xhci, disk.port));
         self.restart();
     }
 

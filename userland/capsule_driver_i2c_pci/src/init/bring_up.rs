@@ -35,9 +35,9 @@ pub fn bring_up(regs: Regs, setup: BusSetup) -> Result<InitState, &'static str> 
     if comp_type == 0 || comp_type == 0xFFFF_FFFF {
         return Err("i2c-pci: mmio dead, comp_type read 0/all-ones");
     }
-    // Linux i2c_dw_check_component_type: anything else is not a DesignWare
-    // I2C core (or is one behind a byte-swapping or 16-bit bus this driver
-    // does not implement).
+    // Anything else is not a DesignWare I2C core (DW_apb_i2c databook, as
+    // recalled, unverified), or is one behind a byte-swapping or 16-bit bus
+    // this driver does not implement.
     if comp_type != IC_COMP_TYPE_VALUE {
         return Err("i2c-pci: not a DesignWare I2C core (IC_COMP_TYPE mismatch)");
     }

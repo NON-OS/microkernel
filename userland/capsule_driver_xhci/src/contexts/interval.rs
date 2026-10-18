@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The Endpoint Context Interval field for an interrupt endpoint (xHCI 1.2
-//! section 6.2.3.6, Linux `xhci_get_endpoint_interval`). The controller
+//! section 6.2.3.6). The controller
 //! wants an exponent: the endpoint is served every 2^Interval * 125 us. The
 //! endpoint descriptor's bInterval means different things by speed: at full
 //! and low speed it is a period in 1 ms frames (1 to 255), at high speed and
@@ -27,7 +27,7 @@
 use super::ep0::{is_superspeed, SPEED_HIGH};
 
 /// The shortest and longest full and low speed periods served: 1 ms and
-/// 128 ms as exponents of 125 us, as Linux clamps them.
+/// 128 ms as exponents of 125 us (as observed, unverified).
 const FS_MIN_EXP: u32 = 3;
 const FS_MAX_EXP: u32 = 10;
 
@@ -38,4 +38,17 @@ pub fn interrupt_interval(speed: u8, usb3: bool, b_interval: u8) -> u8 {
     let microframes = b_interval.max(1) as u32 * 8;
     let exp = 31 - microframes.leading_zeros();
     exp.clamp(FS_MIN_EXP, FS_MAX_EXP) as u8
+}
+
+/// The Interval of an isochronous endpoint. Its bInterval is an exponent at
+/// every speed (1 to 16): of 1 ms frames at full speed, of 125 us
+/// microframes above, so full speed adds the three that make a frame of
+/// microframes (xHCI 1.2 section 6.2.3.6, as recalled, unverified).
+pub fn isoch_interval(speed: u8, usb3: bool, b_interval: u8) -> u8 {
+    let exp = b_interval.clamp(1, 16) - 1;
+    if is_superspeed(speed, usb3) || speed == SPEED_HIGH {
+        exp
+    } else {
+        (exp + 3).min(15)
+    }
 }

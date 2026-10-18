@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod draw;
-mod early_frame;
 mod font;
 mod init;
 mod notice_screen;

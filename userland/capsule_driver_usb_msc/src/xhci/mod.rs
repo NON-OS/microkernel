@@ -20,18 +20,28 @@
 mod bulk;
 mod call;
 mod control;
+#[path = "../../../nonos_usbnet/src/hosts.rs"]
+mod hosts;
+#[path = "../../../nonos_usbnet/src/hosts_first.rs"]
+mod hosts_first;
 mod lookup;
+mod pair;
 mod port;
 mod port_list;
 mod reply;
 mod slot;
+#[path = "../../../../src/services/registry/usb_hosts.rs"]
+mod usb_hosts;
 mod window;
 mod wire;
 
-pub use bulk::{bulk_in, bulk_out, configure_bulk, reset_bulk};
+pub use bulk::{bulk_in_on, bulk_out_on, reset_bulk_on};
 pub use control::{config_descriptor, control_in, control_no_data};
-pub use lookup::lookup;
-pub use port::connected_ports;
+pub use hosts::Hosts;
+pub use lookup::{host, hosts};
+pub use pair::DATA_PAIR;
+pub use pair::{bulk_in, bulk_out, configure_bulk, configure_bulk2, configure_streams, reset_bulk};
+pub use port::{connected_ports, port_speed};
 pub use port_list::Port;
 pub use slot::{address_device, disable_slot, enable_slot};
 pub use window::Window;

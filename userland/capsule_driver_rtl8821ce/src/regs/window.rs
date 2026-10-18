@@ -33,26 +33,26 @@ impl Regs {
 impl Mmio for Regs {
     fn read8(&self, off: usize) -> u8 {
         let Some(p) = self.at(off, 1) else { return u8::MAX };
-        unsafe { core::ptr::read_volatile(p as *const u8) }
+        unsafe { nonos_libc::mmio_read8(p) }
     }
     fn write8(&self, off: usize, val: u8) {
         let Some(p) = self.at(off, 1) else { return };
-        unsafe { core::ptr::write_volatile(p as *mut u8, val) }
+        unsafe { nonos_libc::mmio_write8(p, val) }
     }
     fn read16(&self, off: usize) -> u16 {
         let Some(p) = self.at(off, 2) else { return u16::MAX };
-        unsafe { core::ptr::read_volatile(p as *const u16) }
+        unsafe { nonos_libc::mmio_read16(p) }
     }
     fn write16(&self, off: usize, val: u16) {
         let Some(p) = self.at(off, 2) else { return };
-        unsafe { core::ptr::write_volatile(p as *mut u16, val) }
+        unsafe { nonos_libc::mmio_write16(p, val) }
     }
     fn read32(&self, off: usize) -> u32 {
         let Some(p) = self.at(off, 4) else { return u32::MAX };
-        unsafe { core::ptr::read_volatile(p as *const u32) }
+        unsafe { nonos_libc::mmio_read32(p) }
     }
     fn write32(&self, off: usize, val: u32) {
         let Some(p) = self.at(off, 4) else { return };
-        unsafe { core::ptr::write_volatile(p as *mut u32, val) }
+        unsafe { nonos_libc::mmio_write32(p, val) }
     }
 }

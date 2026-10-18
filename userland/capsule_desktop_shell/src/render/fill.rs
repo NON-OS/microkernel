@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_toolkit::paint::resample::source_span;
+//! A rectangle filled with one colour, clipped to the surface.
 
 pub fn fill_rect(
     base_va: u64,
@@ -39,88 +39,6 @@ pub fn fill_rect(
             let cell = (row_base + col * 4) as *mut u32;
             // SAFETY: rect is clipped to the surface above.
             unsafe { core::ptr::write_volatile(cell, argb) };
-        }
-    }
-}
-
-/// Alpha-blit an RGBA8 source (bytes R,G,B,A, row-major), area-averaged into the
-/// destination rect and composited over the surface. Lets the dock render a real
-/// anti-aliased icon asset instead of a 1-bit bitmap. Mirrors the app-skeleton
-/// blit but writes the raw surface directly.
-#[allow(clippy::too_many_arguments)]
-pub fn blit_rgba8_scaled(
-    base_va: u64,
-    stride_bytes: u32,
-    surface_width: u32,
-    surface_height: u32,
-    dx: u32,
-    dy: u32,
-    dw: u32,
-    dh: u32,
-    rgba: &[u8],
-    sw: u32,
-    sh: u32,
-) {
-    if dw == 0 || dh == 0 || sw == 0 || sh == 0 {
-        return;
-    }
-    if rgba.len() < (sw as usize) * (sh as usize) * 4 {
-        return;
-    }
-    let stride = stride_bytes as usize;
-    for row in 0..dh {
-        let py = dy + row;
-        if py >= surface_height {
-            break;
-        }
-        let (y0f, y1f) = source_span(row, sh, dh);
-        let sy_last = core::cmp::min((y1f - 1) >> 16, sh as u64 - 1);
-        for col in 0..dw {
-            let px = dx + col;
-            if px >= surface_width {
-                break;
-            }
-            let (x0f, x1f) = source_span(col, sw, dw);
-            let sx_last = core::cmp::min((x1f - 1) >> 16, sw as u64 - 1);
-            let (mut sr, mut sg, mut sb, mut sa, mut wsum) = (0u64, 0u64, 0u64, 0u64, 0u64);
-            for syy in (y0f >> 16)..=sy_last {
-                let wy = core::cmp::min(y1f, (syy + 1) << 16) - core::cmp::max(y0f, syy << 16);
-                let bse = (syy as usize * sw as usize) * 4;
-                for sxx in (x0f >> 16)..=sx_last {
-                    let wx = core::cmp::min(x1f, (sxx + 1) << 16) - core::cmp::max(x0f, sxx << 16);
-                    let w = wx * wy;
-                    let i = bse + sxx as usize * 4;
-                    let a = rgba[i + 3] as u64;
-                    sr += rgba[i] as u64 * a * w;
-                    sg += rgba[i + 1] as u64 * a * w;
-                    sb += rgba[i + 2] as u64 * a * w;
-                    sa += a * w;
-                    wsum += w;
-                }
-            }
-            if wsum == 0 || sa == 0 {
-                continue;
-            }
-            let a = (sa / wsum) as u32;
-            let r = ((sr / sa) as u32).min(255);
-            let g = ((sg / sa) as u32).min(255);
-            let b = ((sb / sa) as u32).min(255);
-            let cell = (base_va as usize + py as usize * stride + px as usize * 4) as *mut u32;
-            let out = if a >= 255 {
-                (r << 16) | (g << 8) | b
-            } else {
-                // SAFETY: cell is inside the surface (clipped above).
-                let d = unsafe { core::ptr::read_volatile(cell) };
-                let dr = (d >> 16) & 0xFF;
-                let dg = (d >> 8) & 0xFF;
-                let db = d & 0xFF;
-                let ia = 255 - a;
-                (((r * a + dr * ia) / 255) << 16)
-                    | (((g * a + dg * ia) / 255) << 8)
-                    | ((b * a + db * ia) / 255)
-            };
-            // SAFETY: cell is inside the surface (clipped above).
-            unsafe { core::ptr::write_volatile(cell, 0xFF00_0000 | out) };
         }
     }
 }

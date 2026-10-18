@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! What the block layer saw on a disk while choosing the NONOS disk, said
 //! on the log when it changes. A stick the layer passed over left nothing:
 //! a boot from it showed only that the store was not there, and no line
 //! said which disk was asked or why it was not taken.
 
-use alloc::format;
-use alloc::string::String;
-
-use super::backend::Backend;
+use super::gpt::Shown;
 use super::BlockDeviceError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -34,51 +30,21 @@ pub(super) enum Seen {
     TooSmall(u64),
     /// Its blocks are not 512 bytes.
     NotFiveTwelve(u64),
-    /// What its store sector held, and its disk plan sector when asked.
+    /// LBA 1 or the entry array could not be read.
+    NoTable(u64, BlockDeviceError),
+    /// Its table names another system's partition over the fixed sectors.
+    Crossed(u64),
+    /// What its store sector held, and its disk plan sector when asked;
+    /// `gpt` when its table placed them, `boot` when it holds the loader's
+    /// partition.
     At {
-        sectors: u64,
-        lba: u64,
+        /// The disk's sectors, and the store's first LBA.
+        at: (u64, u64),
         got: Result<[u8; 8], BlockDeviceError>,
         plan: Option<Result<[u8; 8], BlockDeviceError>>,
+        gpt: bool,
+        boot: bool,
+        /// What its GPT showed.
+        shown: Shown,
     },
-}
-
-pub(super) fn name(backend: Backend) -> &'static str {
-    match backend {
-        Backend::UsbMsc => "USB stick (driver.usb_msc0)",
-        Backend::Nvme => "NVMe (driver.nvme0)",
-        Backend::Ahci => "SATA (driver.ahci0)",
-        Backend::VirtioBlk => "virtio-blk (driver.virtio_blk0)",
-    }
-}
-
-/// The eight bytes as text where printable, `.` elsewhere.
-fn shown(head: &[u8; 8]) -> String {
-    head.iter().map(|&b| if (0x20..0x7f).contains(&b) { b as char } else { '.' }).collect()
-}
-
-fn sector(got: &Result<[u8; 8], BlockDeviceError>) -> String {
-    match got {
-        Ok(head) => format!("\"{}\"", shown(head)),
-        Err(e) => format!("unread ({e:?})"),
-    }
-}
-
-/// One line saying what `backend` showed.
-pub(super) fn line(backend: Backend, seen: &Seen) -> String {
-    let what = match seen {
-        Seen::NoSize(BlockDeviceError::Dead) => String::from("no disk behind this driver"),
-        Seen::NoSize(BlockDeviceError::NotReady) => String::from("its driver is still looking for its device"),
-        Seen::NoSize(e) => format!("no size given ({e:?})"),
-        Seen::TooSmall(n) => format!("{n} sectors, too small to hold the store"),
-        Seen::NotFiveTwelve(n) => format!("{n} sectors whose blocks are not 512 bytes; not used"),
-        Seen::At { sectors, lba, got, plan } => {
-            let plan = match plan {
-                Some(p) => format!(", disk plan {}", sector(p)),
-                None => String::new(),
-            };
-            format!("{sectors} sectors; LBA {lba} holds {}{plan}", sector(got))
-        }
-    };
-    format!("[BLOCK] asked {}: {what}", name(backend))
 }

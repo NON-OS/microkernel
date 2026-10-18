@@ -26,6 +26,7 @@ use crate::state::Context;
 pub fn repaint(ctx: &mut Context) {
     paint_chrome(ctx);
     let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height);
+    let _ = push_damage_commit(ctx.ports.compositor_port, rid, 0, 0, ctx.width, ctx.height);
     ctx.taskbar.drawn = ctx.taskbar.visible;
+    super::trusted_band::sync(ctx);
 }

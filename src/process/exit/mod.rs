@@ -23,6 +23,7 @@ mod pending;
 pub mod postmortem;
 mod purge;
 mod reap_log;
+mod reclaim;
 mod stop_elsewhere;
 mod teardown;
 
@@ -31,4 +32,5 @@ pub(crate) use park::park as park_dead;
 pub(crate) use pending::drain as drain_pending_teardowns;
 pub(crate) use purge::purge_for_new_pid;
 pub(crate) use reap_log::{peek_exit_status, reap_exit_status, reap_exit_status_for};
+pub(crate) use reclaim::reclaim_at_tick;
 pub use teardown::teardown;

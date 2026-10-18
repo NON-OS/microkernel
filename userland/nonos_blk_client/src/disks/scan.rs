@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every disk a block driver is serving, with what is on it and what it
-//! calls itself, and every controller that should be serving one and is
-//! not. A driver that is registered and did not answer is listed as such
-//! rather than dropped, so the list never looks complete when it is not.
-//! Disks that can be installed to come first, then the rows that explain
-//! what cannot.
+//! One look at the machine: a row for every disk a driver serves and for
+//! every controller that should be serving one and is not, targets first.
 
 use alloc::vec::Vec;
 
 use super::booted::{Booted, By};
 use super::chosen::{ask, running_from, LOADER, RUNNING};
 use super::contents::Contents;
-pub use super::disk::{Disk, Survey};
 use super::probe::unread;
 use super::rows::{failed, target, withheld};
+use super::survey::{Disk, Survey};
 use crate::device::{controllers, discover};
 use crate::driver::Controller;
 
@@ -43,8 +39,6 @@ pub fn scan() -> Vec<Disk> {
  * and not mistaken for a missing disk. */
 pub fn survey() -> Survey {
     let present = controllers();
-    // The SATA driver's missing rows name eMMC when that is all it serves.
-    let emmc_only = present.contains(&Controller::Emmc) && !present.contains(&Controller::Ahci);
     let booted = Booted::ask();
     let chosen = ask();
     let mut out = Vec::new();
@@ -60,7 +54,7 @@ pub fn survey() -> Survey {
                     contents => target(driver, instance, device, contents),
                 },
             },
-            Err(e) => failed(driver, instance, &e, emmc_only),
+            Err(e) => failed(driver, instance, &e),
         };
         out.push(row);
     }

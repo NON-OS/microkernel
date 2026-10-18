@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What each menu row does. Every arm hands off to the handler that already
-//! owns the action, so the menu is a second way in rather than a second copy.
+//! What each menu row does: each arm hands off to the action's own handler.
 
 use crate::render::menubar_menu;
 use crate::server::desktop;
@@ -28,6 +27,8 @@ pub(super) fn activate(ctx: &mut Context, title: usize, row: usize) {
         (0, 0) => front_window(ctx),
         (0, 1) | (2, 0) => launchpad::open(ctx),
         (0, 2) | (4, 0) => launch(ctx, b"app.about"),
+        (0, 3) => super::input_menu::open(ctx),
+        (0, 4) => super::power_off::ask(ctx),
         (1, 0) => desktop::create_entry(ctx, false),
         (1, 1) => desktop::create_entry(ctx, true),
         (1, 2) => launch(ctx, b"app.file_manager"),

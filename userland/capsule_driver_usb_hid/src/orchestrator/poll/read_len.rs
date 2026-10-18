@@ -17,7 +17,7 @@
 //! How much one interrupt read asks for. Pure, so the bound is proven on
 //! the host.
 
-use super::constants::HID_REPORT_MAX;
+use super::constants::{HID_REPORT_MAX, PAD_REPORT_MAX};
 
 /// One packet of an endpoint whose packets are `max_packet` bytes, but no
 /// more than a boot report. The controller driver refuses a longer read
@@ -25,4 +25,9 @@ use super::constants::HID_REPORT_MAX;
 /// endpoint unread for as long as it is bound.
 pub fn read_len(max_packet: u16) -> u16 {
     max_packet.min(HID_REPORT_MAX as u16)
+}
+
+/// A gamepad's: its whole packet, up to the controller driver's 64.
+pub fn pad_read_len(max_packet: u16) -> u16 {
+    max_packet.min(PAD_REPORT_MAX as u16)
 }

@@ -23,7 +23,7 @@ const COMMIT_TRIES: u32 = 4;
 /// commits the whole screen again, so a compositor too busy to answer here is
 /// no reason to start setup over.
 pub fn commit_overlay(ctx: &mut Context) {
-    let (port, w, h) = (ctx.compositor_port, ctx.width, ctx.height);
+    let (port, w, h) = (ctx.ports.compositor_port, ctx.width, ctx.height);
     let mut rid = ctx.issue_request_id();
     let _ = crate::setup::prime::patient::patiently(COMMIT_TRIES, 20, || {
         rid = rid.wrapping_add(1);

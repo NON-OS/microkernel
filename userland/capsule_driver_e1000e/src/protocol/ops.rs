@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Op discriminants for `driver.e1000e_0`. The set matches
-//! `capsule_driver_virtio_net` so a single network client in the
-//! kernel can drive either capsule. Adding a new op here means a
-//! new constant, a handler in `server::handlers`, and a kernel-side
-//! client; nothing else routes by op.
+//! Op discriminants for `driver.e1000e_0`, the NNET set every wired card
+//! serves. The counters are on 7: net.core asks every card for OP_RX_BATCH
+//! (6) first and takes a status-0 answer as a batch of frames, and this
+//! driver hands frames up one per call, so 6 is refused (E_INVAL).
 
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_LINK_STATUS: u16 = 2;

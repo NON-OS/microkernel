@@ -41,6 +41,7 @@ pub(in crate::userspace::init) fn spawn_drivers() {
     super::drivers_nic::spawn();
     super::vm::spawn_nics();
     super::drivers_usb::spawn();
+    super::drivers_usbnet::spawn();
     super::drivers_storage::spawn();
     super::vm::spawn_storage();
     super::vm::spawn_audio();

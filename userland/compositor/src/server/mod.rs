@@ -17,5 +17,7 @@
 pub mod handlers;
 pub mod respond;
 pub mod runner;
+pub mod trusted_notice;
+pub mod trusted_pids;
 
 pub use runner::run;

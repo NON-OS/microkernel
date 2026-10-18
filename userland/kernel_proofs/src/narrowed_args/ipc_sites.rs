@@ -34,13 +34,13 @@ pub(super) fn ipc_sites() -> Vec<(&'static str, &'static str, Vec<&'static str>)
             vec![],
         ),
         (
-            "ipc/call/answer.rs",
-            include_str!("../../../../src/syscall/microkernel/ipc/call/answer.rs"),
+            "ipc/call/settle.rs",
+            include_str!("../../../../src/syscall/microkernel/ipc/call/settle.rs"),
             vec![],
         ),
         (
-            "ipc/call/gpu_bench.rs",
-            include_str!("../../../../src/syscall/microkernel/ipc/call/gpu_bench.rs"),
+            "ipc/call/marks.rs",
+            include_str!("../../../../src/syscall/microkernel/ipc/call/marks.rs"),
             vec![],
         ),
         (

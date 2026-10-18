@@ -16,33 +16,52 @@
 
 use crate::arch::aarch64::context::save_user_frame;
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
-use crate::arch::aarch64::gic::{acknowledge_interrupt, dispatch_irq, end_interrupt};
+use crate::arch::aarch64::gic::{
+    acknowledge_interrupt, complete_interrupt, dispatch_irq, enter_service, leave_service,
+};
 
 use super::fatal::fatal_interrupt;
+use crate::arch::aarch64::timer::is_preemption_tick;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_irq_current(frame: *mut ExceptionFrame) {
+pub(crate) extern "C" fn aarch64_exc_irq_current(frame: *mut ExceptionFrame) {
     let frame = unsafe { &*frame };
-    handle(frame, b"IRQ EL1")
+    handle(frame, b"IRQ EL1", false)
 }
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_irq_lower(frame: *mut ExceptionFrame) {
+pub(crate) extern "C" fn aarch64_exc_irq_lower(frame: *mut ExceptionFrame) {
     let frame = unsafe { &*frame };
 
     save_user_frame(frame);
-    handle(frame, b"IRQ EL0")
+    handle(frame, b"IRQ EL0", true)
 }
 
-fn handle(frame: &ExceptionFrame, tag: &[u8]) {
-    let intid = match acknowledge_interrupt() {
-        Some(i) => i,
-        None => return,
-    };
-    if dispatch_irq(intid) {
-        end_interrupt(intid);
+fn handle(frame: &ExceptionFrame, tag: &[u8], from_user: bool) {
+    let Some(acked) = acknowledge_interrupt() else {
         return;
+    };
+    let outer = enter_service(acked);
+    // Before the tick runs: it switches away from a thread killed elsewhere,
+    // and gives way to a woken band, only on a tick that interrupted EL0.
+    // The vector says which: lower-EL entries sit from 0x400 (Arm ARM,
+    // vector table offsets; recalled, unverified).
+    if is_preemption_tick(acked.intid) {
+        crate::process::accounting::set_tick_origin(from_user);
     }
-    end_interrupt(intid);
-    fatal_interrupt(tag, Some(intid), frame)
+    let handled = dispatch_irq(acked.intid);
+    // A handler may have finished it already; this finishes it otherwise.
+    complete_interrupt();
+    leave_service(outer);
+    if !handled {
+        fatal_interrupt(tag, Some(acked.intid), frame)
+    }
+    // After the interrupt is finished, as x86_64's tick does it: a teardown
+    // queued by an exit is finished here, or never on this architecture.
+    if is_preemption_tick(acked.intid) {
+        crate::process::exit::reclaim_at_tick(from_user);
+    }
+    if from_user {
+        super::el0_return::at_el0_return();
+    }
 }

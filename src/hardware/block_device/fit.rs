@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,27 +17,10 @@
 //! Whether a backend's disk can be addressed in 512-byte sectors.
 
 use super::backend::Backend;
-use super::nvme_fit::nvme_sectors_fit;
 
 /// Every caller addresses 512-byte sectors. A disk with larger logical
-/// blocks is passed over by name rather than misaddressed.
-pub(super) fn sectors_fit(backend: Backend) -> bool {
-    match backend {
-        Backend::Nvme => nvme_sectors_fit(),
-        Backend::UsbMsc => usb_msc_sectors_fit(),
-        Backend::Ahci | Backend::VirtioBlk => true,
-    }
-}
-
-fn usb_msc_sectors_fit() -> bool {
-    match crate::hardware::usb_msc_capsule::geometry() {
-        Ok((_, block_len)) if block_len != 512 => {
-            crate::log::warn!(
-                "[BLOCK] USB mass-storage device uses {}-byte blocks; only 512 is addressed, not used",
-                block_len
-            );
-            false
-        }
-        _ => true,
-    }
+/// blocks is passed over by name rather than misaddressed; each row knows
+/// whether its driver maps them.
+pub(super) fn sectors_fit(b: Backend) -> bool {
+    (b.disk.fits)(b.key)
 }

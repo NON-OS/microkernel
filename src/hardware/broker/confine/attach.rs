@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-
 use super::decide::{verdict, Verdict};
-use super::iova::IOVA_BASE;
-use super::posture::unconfined_allowed;
 use super::refuse::{without_domain, Refusal, Refused};
-use super::table::{pci_address, Capsule, CAPSULES};
+use super::streams::attach_streams;
+use super::table::pci_address;
 use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
-use crate::memory::iommu::IommuDomain;
 
 pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
+        // A device the firmware description names: confined through its
+        // `iommus`, or refused (streams.rs).
+        if let Some(iommus) = crate::hardware::broker::described::iommus(device_id) {
+            return Ok(attach_streams(pid, device_id, iommus)?);
+        }
         // No requester id, no bus master: map.rs refuses its DMA grants.
         return match verdict(false, false, Ok(()), OPT_IN, PRODUCTION) {
             Verdict::Refuse => Err(Refused.into()),
@@ -44,25 +43,5 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
         return Ok(without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?);
     }
     let (group, aliases) = super::gates::admit(device_id)?;
-    let mut all = CAPSULES.lock();
-    let pos = match all.iter().position(|c| c.pid == pid) {
-        Some(i) => i,
-        None => match IommuDomain::allocate() {
-            Ok(domain) => {
-                all.push(Capsule { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE });
-                all.len() - 1
-            }
-            /*
-             * No unit in service is the same whether none was found, none is
-             * up yet, or the one found (AMD-Vi) has no backend here: refused.
-             * A unit in service with no domain left: refused as well.
-             */
-            Err(e) => {
-                let v = verdict(true, true, Err(unconfined_allowed(e)), OPT_IN, PRODUCTION);
-                return Ok(without_domain(v)?);
-            }
-        },
-    };
-    super::join::join(&mut all, pos, device_id, address, (&group, &aliases))?;
-    Ok(super::join_alias::join_aliases(&mut all, pid, device_id, &aliases)?)
+    super::one::attach_one(pid, device_id, address, false, (&group, &aliases))
 }

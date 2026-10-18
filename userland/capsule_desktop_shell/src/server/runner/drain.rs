@@ -48,7 +48,8 @@ pub(super) fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8], wake_ms: i6
         if crate::server::wm_notify::handle(ctx, &rx[..n as usize]) {
             continue;
         }
-        if crate::server::input::handle(ctx, &rx[..n as usize]) {
+        let routed = crate::server::input_source::routed(sender_pid);
+        if routed.is_some_and(|by| crate::server::input::handle(ctx, by, &rx[..n as usize])) {
             continue;
         }
         let (req, body) = match parse(&rx[..n as usize]) {

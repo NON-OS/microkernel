@@ -26,6 +26,9 @@ pub struct PageAttributes {
     pub accessed: bool,
     pub dirty: bool,
     pub contiguous: bool,
+    /// GP: indirect branches into this page must land on a BTI landing pad.
+    /// Meaningful only for code EL1 runs, and only with FEAT_BTI.
+    pub guarded: bool,
 }
 
 impl PageAttributes {
@@ -38,7 +41,27 @@ impl PageAttributes {
         accessed: bool,
         dirty: bool,
     ) -> Self {
-        Self { memory_type, write, execute, user, global, accessed, dirty, contiguous: false }
+        Self {
+            memory_type,
+            write,
+            execute,
+            user,
+            global,
+            accessed,
+            dirty,
+            contiguous: false,
+            guarded: false,
+        }
+    }
+}
+
+impl PageAttributes {
+    /// The same mapping, guarded or not. The caller decides, from FEAT_BTI
+    /// and from whether the code it maps carries landing pads; bit 50 is RES0
+    /// on a core without the feature.
+    pub const fn with_guard(mut self, guarded: bool) -> Self {
+        self.guarded = guarded;
+        self
     }
 }
 

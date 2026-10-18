@@ -38,7 +38,8 @@ impl GlobalState {
             0 => self.now.page = item.data as u16,
             1 => self.now.min = item.signed(),
             // A maximum over a minimum of zero or more is unsigned, as a
-            // one-byte 0xFF for 255 is commonly written (Linux reads it so).
+            // one-byte 0xFF for 255 is commonly written (as observed,
+            // unverified).
             2 if self.now.min < 0 => self.now.max = item.signed(),
             2 => self.now.max = i64::from(item.data),
             7 if item.data <= MAX_FIELD_BITS => self.now.size = item.data,

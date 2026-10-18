@@ -19,10 +19,10 @@
 //! nonos_libc, and a register window (`env`) that reaches the model host.
 
 mod discover;
-#[path = "../../../../capsule_driver_ahci/src/emmc/platform/dma.rs"]
+#[path = "../../../../capsule_driver_sdhci/src/emmc/platform/dma.rs"]
 mod dma;
 mod env;
-#[path = "../../../../capsule_driver_ahci/src/emmc/platform/open/mod.rs"]
+#[path = "../../../../capsule_driver_sdhci/src/emmc/platform/open/mod.rs"]
 mod open;
 
 pub use discover::Found;

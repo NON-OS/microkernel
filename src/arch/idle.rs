@@ -16,8 +16,8 @@
 
 //! Waiting when there is nothing to run.
 //!
-//! Two things have to hold however the CPU idles. Interrupts must be open
-//! across the wait, or the wake that ends it can never arrive; and the window
+//! Two things have to hold however the CPU idles. An interrupt must be able
+//! to end the wait, or the wake that ends it can never arrive; and the window
 //! between opening them and entering the wait must not be able to swallow a
 //! wake that was already pending. Both architectures give exactly one
 //! instruction pairing that closes that race, and this is where the kernel
@@ -34,14 +34,10 @@ pub(crate) fn wait_for_interrupt() {
     }
     #[cfg(target_arch = "aarch64")]
     {
-        // SAFETY: `wfi` is a hint and architecturally a no-op if a wake is
-        // already pending, so the wake cannot be lost between unmasking and
-        // waiting the way it can on a CPU that needs a shadow. The generic
-        // timer counts through `wfi` by definition, so unlike x86_64 there is
-        // no part on which this stops the tick.
-        unsafe {
-            core::arch::asm!("msr daifclr, #2", "wfi", "msr daifset, #2", options(nomem, nostack));
-        }
+        // A PSCI standby state where the tree offers one that pays, else
+        // `wfi`. The generic timer counts through both (states that stop it
+        // are never entered), so unlike x86_64 no part loses the tick here.
+        crate::arch::aarch64::idle_states::wait();
     }
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     {

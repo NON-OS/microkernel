@@ -16,57 +16,39 @@
 
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
-use crate::arch::fdt::walker::Event;
 
 use super::range::MemoryRange;
 
-// Walk every `/memory` (or `device_type = "memory"`) node and fill
-// `out`. Ranges beyond `out.len()` are dropped. /memory at top level
-// uses root #address-cells / #size-cells.
+// Every top-level memory node's `reg`, translated like any other: a node is
+// memory by `device_type = "memory"`, or by name on trees old enough to omit
+// it. Ranges past `out.len()` are dropped, which loses RAM but never claims
+// any that is not there. Empty ranges, as an unfilled Pi template carries,
+// are skipped.
 pub fn find(fdt: &Fdt, out: &mut [MemoryRange]) -> Result<usize, FdtError> {
-    let mut walker = fdt.walker();
-    let mut depth: i32 = -1;
-    let mut at_memory = false;
-    let mut address_cells: u32 = 2;
-    let mut size_cells: u32 = 1;
     let mut filled = 0usize;
-
-    while let Some(event) = walker.next()? {
-        match event {
-            Event::BeginNode { name } => {
-                depth += 1;
-                if depth == 1 && (name == b"memory" || starts_with(name, b"memory@")) {
-                    at_memory = true;
-                }
+    for node in fdt.nodes() {
+        let node = node?;
+        if node.depth != 1 || !is_memory(fdt, &node)? || !fdt.is_enabled(&node)? {
+            continue;
+        }
+        let mut index = 0usize;
+        while let Some((base, size)) = fdt.mmio(&node, index)? {
+            index += 1;
+            if size == 0 {
+                continue;
             }
-            Event::EndNode => {
-                if depth == 1 && at_memory {
-                    at_memory = false;
-                }
-                depth -= 1;
-            }
-            Event::Property(prop) => {
-                if depth == 0 {
-                    if prop.name == b"#address-cells" {
-                        address_cells = prop.u32()?;
-                    } else if prop.name == b"#size-cells" {
-                        size_cells = prop.u32()?;
-                    }
-                } else if at_memory && prop.name == b"reg" {
-                    for (base, size) in prop.reg_iter(address_cells, size_cells) {
-                        if filled < out.len() {
-                            out[filled] = MemoryRange { base, size };
-                            filled += 1;
-                        }
-                    }
-                }
+            if let Some(slot) = out.get_mut(filled) {
+                *slot = MemoryRange { base, size };
+                filled += 1;
             }
         }
     }
     Ok(filled)
 }
 
-#[inline]
-fn starts_with(haystack: &[u8], prefix: &[u8]) -> bool {
-    haystack.len() >= prefix.len() && &haystack[..prefix.len()] == prefix
+fn is_memory(fdt: &Fdt, node: &crate::arch::fdt::NodeRef) -> Result<bool, FdtError> {
+    match fdt.property(node, b"device_type")? {
+        Some(kind) => Ok(kind.string() == Ok(b"memory")),
+        None => Ok(node.base_name() == b"memory"),
+    }
 }

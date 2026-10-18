@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Per-call correlation tokens: monotonic and never zero, so one can never
+//! collide with the correlation an attacker's `mk_ipc_send` produces (always
+//! 0) nor with another call in flight. The reply must carry this exact value.
+//!
+//! A call's token is registered with the pending reply keyed by the caller's
+//! inbox. Both reply paths read it back from that same entry: the redirect
+//! path (a service replying via `mk_ipc_send` to its fixed reply endpoint)
+//! and the direct `mk_ipc_reply` path both stamp the reply with it. The
+//! genuine reply carries this token; a forged injection can only carry 0.
+
 use core::sync::atomic::{AtomicU64, Ordering};
 
-// Per-call correlation token: monotonic and never zero, so it can never collide
-// with the correlation an attacker's `mk_ipc_send` produces (always 0) nor with
-// another in-flight call. The reply must carry this exact value.
 static CALL_TOKEN: AtomicU64 = AtomicU64::new(1);
 
-// This call's correlation token, registered with the pending reply keyed by
-// this caller's inbox. Both reply paths read it back from that same entry:
-// the redirect path (a service replying via `mk_ipc_send` to its fixed reply
-// endpoint) and the direct `mk_ipc_reply` path both stamp the reply with it.
-// The genuine reply carries this token; a forged injection can only carry 0.
 pub(super) fn next_call_token() -> u64 {
     let t = CALL_TOKEN.fetch_add(1, Ordering::Relaxed);
     if t == 0 {

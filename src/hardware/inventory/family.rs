@@ -33,16 +33,29 @@ pub enum HardwareFamily {
     /// it (`vmd`). Listed, never spawned for.
     StorageVmd,
     /// An Intel eMMC host (`emmc`): the soldered disk of Atom, Celeron and
-    /// Pentium Silver laptops. Served by the AHCI capsule at present.
+    /// Pentium Silver laptops. Served by the SD host controller capsule.
     StorageEmmc,
+    /// Any other SD host (`sd_host`): a card reader, or an embedded slot
+    /// the eMMC list does not name; and an SD host the ACPI capsule
+    /// published with no PCI function (`platform_sd`). Served by the same
+    /// capsule.
+    StorageSdhci,
+    /// A UFS host controller, class 01h subclass 09h: driver.ufs0's.
+    StorageUfs,
     /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU's pc machine,
     /// VirtualBox's default, Hyper-V Generation 1.
     StorageIde,
-    /// An SD host the ACPI capsule published (`platform_sd`): an eMMC or
-    /// SD card host with no PCI function. No driver is started for it yet.
-    StorageSdhci,
     NetworkVirtio,
+    /// The 8254x parts the e1000 capsule takes.
     NetworkE1000,
+    /// 82574, 82583 and the PCH I217/I218/I219: the e1000e capsule's.
+    NetworkE1000e,
+    /// 82575 to I211: no capsule yet.
+    NetworkIgb,
+    /// I225 and I226: the igc capsule's.
+    NetworkIgc,
+    /// 82599, X540 and X550: the ixgbe capsule's.
+    NetworkIxgbe,
     NetworkRtl8139,
     NetworkRtl8169,
     /// AMD PCnet (Am79C970A/Am79C973): VirtualBox's default NIC.
@@ -53,6 +66,8 @@ pub enum HardwareFamily {
     NetworkTulip,
     NetworkRtl8821ce,
     NetworkIwlwifi,
+    /// A Realtek wireless part other than the RTL8821CE.
+    NetworkRealtekWifi,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,
     DisplayBga,
@@ -76,6 +91,8 @@ pub enum HardwareFamily {
     /// Intel ICH AC'97 (8086:2415): QEMU's AC97 and VirtualBox's AC'97.
     AudioAc97,
     SerialI2c,
+    /// An Intel SMBus host, class 0Ch subclass 05h: the i801 capsule's.
+    SerialSmbus,
     SerialSpi,
     BridgePci,
     SystemPeripheral,

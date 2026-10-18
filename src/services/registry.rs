@@ -24,17 +24,21 @@ mod auth;
 mod endpoint;
 mod error;
 mod held;
+pub(crate) mod nics;
 mod peers;
 mod peers_check;
 mod policy;
 mod reserved;
+pub(crate) mod usb_hosts;
 
+pub(crate) use addressed::addressed_admits;
 pub(crate) use adopt::adopt_endpoint;
+pub(crate) use auth::caller_has_register_right;
 pub use endpoint::ServiceEndpoint;
 pub use error::RegError;
+pub(crate) use held::displays;
 pub(crate) use peers_check::caller_owns;
 pub use peers_check::{caller_may_reach, caller_may_reach_pid, caller_may_write_inbox};
-pub(crate) use addressed::addressed_admits;
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
 
@@ -58,12 +62,6 @@ pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(
     }
     eps.push(ServiceEndpoint::new(name, port, pid, caps));
     Ok(())
-}
-
-/// True if the current process is allowed to register a service name it does
-/// not already own.
-pub(crate) fn caller_has_register_right() -> bool {
-    auth::caller_has_register_right()
 }
 
 pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {

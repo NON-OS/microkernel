@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The tries one stall gets, each logged, and the state they end in.
 
+use nonos_gfx_serve::Platform;
 use nonos_libc::mk_debug;
 
 use super::restore::attempt;
@@ -28,29 +28,33 @@ const TRIES: [&[u8]; 3] = [
     b"driver.virtio_gpu0: control queue stalled; device reset, recovering (try 2 of 3)\n",
     b"driver.virtio_gpu0: control queue stalled; device reset, recovering (try 3 of 3)\n",
 ];
-const RECOVERED: &[u8] = b"driver.virtio_gpu0: recovered in place, same surface\n";
-const DOWN: &[u8] = b"driver.virtio_gpu0: down; device reset, claim and surface kept\n";
+const RECOVERED: &[u8] = b"driver.virtio_gpu0: recovered in place, same surfaces\n";
+const DOWN: &[u8] = b"driver.virtio_gpu0: down; device reset, claim and surfaces kept\n";
 pub const IN_A_ROW_DOWN: &[u8] =
-    b"driver.virtio_gpu0: down; stalled after each recovery in a row, claim and surface kept\n";
+    b"driver.virtio_gpu0: down; stalled after each recovery in a row, claim and surfaces kept\n";
 
-pub fn recover(driver: &mut Driver) {
+pub fn recover<P: Platform>(driver: &mut Driver<P>) {
     for say in TRIES {
         log(say);
         if attempt(driver).is_ok() {
-            driver.recoveries = driver.recoveries.saturating_add(1);
-            driver.in_a_row = driver.in_a_row.saturating_add(1);
-            driver.recovered_at = driver.control_queue.published();
-            driver.recovered_ms = now_ms();
+            let t = &mut driver.tally;
+            t.recoveries = t.recoveries.saturating_add(1);
+            t.in_a_row = t.in_a_row.saturating_add(1);
+            t.recovered_at = driver.server.display.q.published();
+            t.recovered_ms = now_ms();
             return log(RECOVERED);
         }
-        driver.control_queue.reset_device();
+        driver.server.display.q.reset_device();
     }
     down(driver, DOWN);
 }
 
-/// Left reset, with the claim and every grant kept.
-pub fn down(driver: &mut Driver, say: &[u8]) {
-    driver.health = Health::Down;
+/// Left reset, with the claim and every grant kept; the outputs LOST from
+/// now on, under a generation of their own so the compositor looks again.
+pub fn down<P: Platform>(driver: &mut Driver<P>, say: &[u8]) {
+    let gpu = &mut driver.server.display;
+    gpu.health = Health::Down;
+    gpu.generation = gpu.generation.wrapping_add(1);
     log(say);
 }
 

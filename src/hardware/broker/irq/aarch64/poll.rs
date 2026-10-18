@@ -18,12 +18,12 @@ use core::sync::atomic::Ordering;
 
 use crate::hardware::broker::irq::types::{IrqError, IrqPollResult};
 
-use super::pending;
+use super::pending_find;
 
 // Owner-scoped read of (seq, overflow). The trampoline writes; this
 // path only reads, so polling is wait-free.
 pub fn poll(pid: u32, grant_id: u64) -> Result<IrqPollResult, IrqError> {
-    let e = pending::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
+    let e = pending_find::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
     if e.pid.load(Ordering::Acquire) != pid {
         return Err(IrqError::NotHolder);
     }

@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for aarch64 CPU idle states: how a PSCI power_state
+# is read, which of a CPU's states is entered for a given wait, and the
+# order the idle path keeps (masked entry, refusals remembered, the wake
+# taken). The kernel's own source is included via #[path].
+[package]
+name = "idle_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

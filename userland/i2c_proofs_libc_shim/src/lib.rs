@@ -38,7 +38,7 @@ pub use call::{mk_ipc_call_timeout, mk_service_lookup, serve, Served, SERVICE_PI
 pub use device_list::{list_devices, mk_device_list};
 pub use input::{
     mk_input_event_post, take_events, InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
-    INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
+    INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
 };
 pub use misc::{mk_debug, mk_idle_ms, slept_ms, take_debug};
 pub use pci::{
@@ -53,3 +53,15 @@ pub use records::{
 pub use reply::{mk_ipc_reply, take_reply};
 pub use sched::{busy_scheduler, mk_yield, yields, Busy};
 pub use time::{mk_uptime_ms, Deadline};
+
+// The real libc's register accessors and DMA barriers, mounted so the driver
+// files under test reach a device through the code they ship with.
+#[path = "../../libc/src/broker/dma_order.rs"]
+mod dma_order;
+#[path = "../../libc/src/broker/mmio_access.rs"]
+mod mmio_access;
+pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
+pub use mmio_access::{
+    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
+    mmio_write8,
+};

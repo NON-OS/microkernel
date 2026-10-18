@@ -24,15 +24,15 @@ use crate::descriptors::{hid_bindings, HidBinding, HidKind};
 use crate::orchestrator::device_for::device_for;
 use crate::xhci::report_desc;
 
-/// The interfaces bound when each one in report protocol sends `desc`, a
-/// descriptor whose length its HID descriptor gives.
+/// The interfaces bound, each with the kind it is read as, when each one in
+/// report protocol sends `desc`, a descriptor whose length its HID
+/// descriptor gives.
 pub fn bound(cfg: &[u8], desc: &[u8]) -> Vec<(HidKind, u8)> {
     report_desc::serve(desc);
     let report_len = desc.len() as u16;
     let all = hid_bindings(cfg).expect("well formed");
-    let kept =
-        all.into_iter().filter(|&b| device_for(7, 1, HidBinding { report_len, ..b }).is_some());
-    kept.map(|b| (b.kind, b.interface_number)).collect()
+    let kept = all.into_iter().filter_map(|b| device_for(7, 1, HidBinding { report_len, ..b }));
+    kept.map(|(b, _)| (b.kind, b.interface_number)).collect()
 }
 
 /// One HID interface in report protocol, with packets of `mps` bytes.

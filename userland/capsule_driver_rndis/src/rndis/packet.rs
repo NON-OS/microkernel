@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One frame out as one REMOTE_NDIS_PACKET_MSG (Remote NDIS 1.0, 2.2.13),
-//! laid out as Linux rndis_tx_fixup does: a 44-byte header with no
-//! out-of-band or per-packet data, the frame right after it.
+//! a 44-byte header with no out-of-band or per-packet data, the frame
+//! right after it.
 
 use super::message::{put32, MSG_PACKET};
 
@@ -26,10 +26,10 @@ pub const DATA_OFFSET: u32 = PACKET_HDR as u32 - 8;
 
 /// The bulk OUT length for a message of `len` bytes. One that fills its
 /// last packet exactly would need a zero-length packet to end it; one
-/// padding byte ends it instead, as usbnet_start_xmit does without
-/// FLAG_SEND_ZLP. A multiple of 64 is padded too: driver.xhci0 moves a
-/// high-speed or SuperSpeed pipe in 512 or 1024-byte packets whatever the
-/// descriptor says, and both are multiples of 64.
+/// padding byte ends it instead, since a short packet ends a bulk transfer
+/// (USB 2.0, as recalled, unverified). A multiple of 64 is padded too:
+/// driver.xhci0 moves a high-speed or SuperSpeed pipe in 512 or 1024-byte
+/// packets whatever the descriptor says, and both are multiples of 64.
 pub fn padded_len(len: usize, max_packet: u16) -> usize {
     let mps = max_packet as usize;
     if len.is_multiple_of(64) || (mps != 0 && len.is_multiple_of(mps)) {
@@ -41,8 +41,8 @@ pub fn padded_len(len: usize, max_packet: u16) -> usize {
 
 /// Write the message for `frame` into `out`, which holds PACKET_HDR, the
 /// frame and a padding byte; its length. The padding byte is counted in
-/// MessageLength, so a device that reads messages back to back (QEMU
-/// usb_net_handle_dataout) starts the next one where it really starts.
+/// MessageLength, so a device that reads messages back to back starts
+/// the next one where it really starts.
 pub fn wrap(frame: &[u8], max_packet: u16, out: &mut [u8]) -> usize {
     let n = padded_len(PACKET_HDR + frame.len(), max_packet);
     out[..PACKET_HDR].fill(0);

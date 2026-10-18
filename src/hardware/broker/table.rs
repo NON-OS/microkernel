@@ -24,16 +24,16 @@ mod remove;
 mod state;
 
 // For the ACPI broker, which only x86 builds.
-#[allow(unused_imports)]
-pub(in crate::hardware::broker) use init::add_pci_function;
 pub use external::external_port_of;
 #[allow(unused_imports)] // x86 alone declares ports yet
 pub(in crate::hardware::broker) use external::mark as mark_external;
+#[allow(unused_imports)]
+pub(in crate::hardware::broker) use init::add_pci_function;
 pub use init::init_from_pci;
+pub(super) use init::register_platform_device;
+pub use list::{contains, list, list_by_class, list_shown};
+pub(super) use list::{dma_coherent, kind_of};
 #[allow(unused_imports)] // x86 alone knows domains yet
 pub(in crate::hardware::broker) use numa::set_numa_nodes;
-pub(super) use init::register_platform_device;
-pub(super) use list::kind_of;
 #[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
 pub(in crate::hardware::broker) use remove::remove;
-pub use list::{contains, list, list_by_class, list_shown};

@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::process::core::Priority;
+use crate::services::registry::nics;
+use crate::services::registry::displays::is_display;
 
-/// Capsules on the pointer/keyboard -> compositor -> scanout path.
+/// Capsules on the pointer/keyboard -> compositor -> scanout path; the
+/// display drivers that scan out are every name in `displays.rs`.
 ///
 /// Each one parks in the kernel when it has nothing to do (`mk_irq_wait`,
 /// `mk_input_event_wait`, `mk_ipc_recv_from` with a timeout), so the band is
@@ -24,22 +27,16 @@ use crate::process::core::Priority;
 /// running process, so a band holding a single runnable member always falls
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
-const INTERACTIVE: [&str; 4] =
-    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0"];
-// The same paths in a virtual machine (its network cards: PACKET_PATH_VM).
-const INTERACTIVE_VM: [&str; 5] = [
-    "driver.virtio_input0",
-    "driver.vmmdev0",
-    "driver.vmmouse0",
-    "driver.vmware_svga0",
-    "driver.vmbus0",
-];
+const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
+// The same paths in a virtual machine (its network cards are on nics.rs).
+const INTERACTIVE_VM: [&str; 4] =
+    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 /*
- * Capsules that move a frame between the card and TCP: the card drivers and
- * the stack, which is where acknowledgements are made. They park the same way
- * (`mk_irq_wait`, `mk_ipc_recv_from` with a timeout), so the band stays empty
- * on an idle network. In the Normal band a wake queued behind every runnable
+ * Capsules that move a frame between the card and TCP: the card drivers
+ * (registry/nics.rs) and the stack, which is where acknowledgements are
+ * made. They park the same way (`mk_irq_wait`, `mk_ipc_recv_from` with a
+ * timeout), so the band stays empty on an idle network. In the Normal band a wake queued behind every runnable
  * capsule, and a capture of a 92 KB page load showed a median of 230 ms
  * between the guest's acknowledgements, which set the pace of every
  * slow-start round.
@@ -48,16 +45,7 @@ const INTERACTIVE_VM: [&str; 5] = [
  * yielding in a loop, and two of those in this band could hold it for a whole
  * connect timeout.
  */
-const PACKET_PATH: [&str; 7] = [
-    "driver.virtio_net0",
-    "driver.e1000_0",
-    "driver.rtl8169_0",
-    "driver.rtl8139_0",
-    "driver.iwlwifi0",
-    "driver.rtl8821ce0",
-    "net.core",
-];
-const PACKET_PATH_VM: [&str; 3] = ["driver.pcnet0", "driver.vmxnet3_0", "driver.tulip0"];
+const PACKET_PATH: [&str; 1] = ["net.core"];
 
 /*
  * The disk drivers. Each waits in `mk_ipc_recv_from` with no timeout and
@@ -66,8 +54,14 @@ const PACKET_PATH_VM: [&str; 3] = ["driver.pcnet0", "driver.vmxnet3_0", "driver.
  * answering on four threads) kept a driver off the CPU past its request's
  * budget, and a model load died on a read that a disk had long finished.
  */
-const STORAGE_PATH: [&str; 4] =
-    ["driver.virtio_blk0", "driver.ahci0", "driver.nvme0", "driver.usb_msc0"];
+const STORAGE_PATH: [&str; 6] = [
+    "driver.virtio_blk0",
+    "driver.ahci0",
+    "driver.nvme0",
+    "driver.usb_msc0",
+    "driver.sdhci0",
+    "driver.ufs0",
+];
 // The same in a virtual machine: its disk controllers poll a request out,
 // yielding and then sleeping a millisecond between looks.
 const STORAGE_PATH_VM: [&str; 5] = [
@@ -80,15 +74,12 @@ const STORAGE_PATH_VM: [&str; 5] = [
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    let bands: [&[&str]; 6] = [
-        &INTERACTIVE,
-        &INTERACTIVE_VM,
-        &PACKET_PATH,
-        &PACKET_PATH_VM,
-        &STORAGE_PATH,
-        &STORAGE_PATH_VM,
-    ];
-    if bands.iter().any(|band| band.contains(&name)) {
+    let bands: [&[&str]; 5] =
+        [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &STORAGE_PATH, &STORAGE_PATH_VM];
+    if is_display(name)
+        || nics::NICS.iter().any(|(card, _)| *card == name)
+        || bands.iter().any(|band| band.contains(&name))
+    {
         Priority::High
     } else {
         Priority::Normal

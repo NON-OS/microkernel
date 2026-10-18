@@ -14,34 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 3 of 5: test modules mounted by path
+//! Host proofs, group 3 of 6: test modules mounted by path
 //! from lib.rs, each at its own file.
 
-#[path = "scan_hidden/mod.rs"]
-pub mod scan_hidden;
-#[path = "usb_msc_report_tests.rs"]
-mod usb_msc_report_tests;
-#[path = "surface_unmap/mod.rs"]
-pub mod surface_unmap;
-#[path = "thread_refusal/mod.rs"]
-pub mod thread_refusal;
-#[path = "tls_return/mod.rs"]
-pub mod tls_return;
-#[path = "uefi_attrs/mod.rs"]
-pub mod uefi_attrs;
-#[path = "uefi_revision/mod.rs"]
-pub mod uefi_revision;
-/// The PCI Command register a driver may write.
-#[path = "pci_command/mod.rs"]
-pub mod pci_command;
-/// Which virtio devices may be confined.
-#[path = "virtio_confine/mod.rs"]
-pub mod virtio_confine;
-/// The in-kernel virtio-rng's gate: never available while it cannot deliver.
-#[path = "vga_attr/mod.rs"]
-pub mod vga_attr;
-#[path = "vmd_domain/mod.rs"]
-pub mod vmd_domain;
 #[path = "align_tests.rs"]
 mod align_tests;
 #[path = "authorization_tests/mod.rs"]
@@ -54,14 +29,16 @@ mod elf_tests;
 mod handover_tests;
 #[path = "inbox_name_tests.rs"]
 mod inbox_name_tests;
+/// An attach whose invalidation fails takes its entry out.
+#[path = "iommu_attach/mod.rs"]
+pub mod iommu_attach;
 #[path = "ipc_held_tests/mod.rs"]
 mod ipc_held_tests;
 #[path = "ipc_peers_tests.rs"]
 mod ipc_peers_tests;
-#[path = "service_policy_tests.rs"]
-mod service_policy_tests;
-#[path = "supervisor_tests.rs"]
-mod supervisor_tests;
+/// The PCI Command register a driver may write.
+#[path = "pci_command/mod.rs"]
+pub mod pci_command;
 #[path = "permissions_tests.rs"]
 mod permissions_tests;
 #[path = "refinement_tests.rs"]
@@ -70,6 +47,29 @@ mod refinement_tests;
 mod registry_fold_tests;
 #[path = "registry_set_tests.rs"]
 mod registry_set_tests;
-/// An attach whose invalidation fails takes its entry out.
-#[path = "iommu_attach/mod.rs"]
-pub mod iommu_attach;
+#[path = "scan_hidden/mod.rs"]
+pub mod scan_hidden;
+#[path = "service_policy_tests.rs"]
+mod service_policy_tests;
+#[path = "supervisor_tests.rs"]
+mod supervisor_tests;
+#[path = "surface_unmap/mod.rs"]
+pub mod surface_unmap;
+#[path = "thread_refusal/mod.rs"]
+pub mod thread_refusal;
+#[path = "tls_return/mod.rs"]
+pub mod tls_return;
+#[path = "uefi_attrs/mod.rs"]
+pub mod uefi_attrs;
+#[path = "uefi_revision/mod.rs"]
+pub mod uefi_revision;
+#[path = "usb_msc_report_tests.rs"]
+mod usb_msc_report_tests;
+/// The in-kernel virtio-rng's gate: never available while it cannot deliver.
+#[path = "vga_attr/mod.rs"]
+pub mod vga_attr;
+/// Which virtio devices may be confined.
+#[path = "virtio_confine/mod.rs"]
+pub mod virtio_confine;
+#[path = "vmd_domain/mod.rs"]
+pub mod vmd_domain;

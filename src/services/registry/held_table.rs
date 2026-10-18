@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which endpoints are held, and to whom (held.rs says why).
+//! Which endpoints are held, and to whom (held.rs says why). The display
+//! drivers are held to the compositor from displays.rs and the network cards
+//! to their stacks from nics.rs (held_cards.rs), not listed here.
+
+use super::super::usb_hosts::USB_HOSTS;
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
-    ("driver.virtio_net0", WIRED_STACK),
-    ("driver.e1000_0", WIRED_STACK),
-    ("driver.rtl8169_0", WIRED_STACK),
-    ("driver.rtl8139_0", WIRED_STACK),
-    ("driver.pcnet0", WIRED_STACK),
-    ("driver.vmxnet3_0", WIRED_STACK),
-    ("driver.tulip0", WIRED_STACK),
-    ("driver.iwlwifi0", WIFI_STACK),
-    ("driver.rtl8821ce0", WIFI_STACK),
     ("driver.bt_usb0", BLUETOOTH_PANELS),
     ("driver.ps2_kbd0", KERNEL_ONLY),
     ("driver.usb_hid0", KERNEL_ONLY),
@@ -36,38 +31,61 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.vmmouse0", KERNEL_ONLY),
     ("driver.vmbus0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
+    ("driver.usb_hub0", KERNEL_ONLY),
+    ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
-    ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
+    ("driver.ccid0", KERNEL_ONLY),
+    ("driver.fido0", KERNEL_ONLY),
+    ("driver.spi0", &["driver.spi_hid0"]),
+    ("driver.spi_hid0", KERNEL_ONLY),
+    (USB_HOSTS[0], USB_CLIENTS),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
-    ("driver.virtio_gpu0", &["compositor"]),
-    ("driver.vmware_svga0", &["compositor"]),
-    ("driver.bga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
     ("driver.ac97_0", &["audio.server"]),
-    // The GPIO controller's pins are held by the bus controller whose
-    // device's GpioInt names them; more holders join as their drivers do.
-    ("driver.gpio0", &["driver.i2c_pci0"]),
+    ("driver.usb_audio0", &["audio.server"]),
+    // A modem dials out, outside the net stack: whom else is the owner's.
+    ("driver.cdc_acm0", &["app.terminal"]),
+    (USB_HOSTS[1], USB_CLIENTS),
+    (USB_HOSTS[2], USB_CLIENTS),
+    (USB_HOSTS[3], USB_CLIENTS),
+    // The GPIO controller's pins are held by the bus controllers whose
+    // devices' GpioInt names them; more holders join as their drivers do.
+    ("driver.gpio0", &["driver.i2c_pci0", "driver.spi0"]),
     ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0", "driver.gpio0"]),
     // The wiped power-off: only the shell asks for it (F-88).
     ("power.off", &["desktop_shell"]),
 ];
 
-/// The kernel polls the keyboards and pointers, reads the random source and
-/// serves USB storage itself; no capsule has reason to reach them.
+/// A display driver shows whatever it is given over the whole screen: only
+/// the compositor drives one (every name in displays.rs).
+pub(super) const DISPLAY_CALLERS: &[&str] = &["compositor"];
+
+/// The kernel polls the keyboards and pointers, reads the random source and serves USB storage
+/// itself, and the hub walker answers it alone; no capsule has reason to reach them. The SMBus host
+/// has no driver above it yet: a raw transfer reaches any device on the bus, so it is opened to one
+/// when one exists. A smart card signs and decrypts for whoever reaches its reader, and a security
+/// key signs for whoever reaches it once its user touches it: the owner names who. The SPI host
+/// moves raw bytes to any device on its bus: only the HID driver above it reaches it, and that
+/// driver posts input, serving no one.
 const KERNEL_ONLY: &[&str] = &[];
 
-/// net.core carries the frames and asks each card for its link; net.l2 finds
-/// the wired cards.
-const WIRED_STACK: &[&str] = &["net.core", "net.l2"];
-/// A Wi-Fi card answers net.core, which carries its frames, and the panels
-/// that scan and join: Settings, in its first window or a later one
-/// (`src/userspace/capsule_settings/spawn.rs`), and the setup wizard. net.l2
-/// binds only a wired card.
-const WIFI_STACK: &[&str] =
-    &["net.core", "app.settings", "app.settings.1", "app.settings.2", "app.setup_wizard"];
+/// The hub walker and class drivers above every USB host (usb_hosts.rs), each finding its own kind.
+const USB_CLIENTS: &[&str] = &[
+    "driver.usb_hub0",
+    "driver.usb_hid0",
+    "driver.usb_msc0",
+    "driver.usb_audio0",
+    "driver.uvc0",
+    "driver.cdc_acm0",
+    "driver.usb_mic0",
+    "driver.ccid0",
+    "driver.fido0",
+    "driver.cdc_ecm0",
+    "driver.cdc_ncm0",
+    "driver.rndis0",
+];
 
-/// The Bluetooth host answers Settings, which scans, pairs and forgets in any
-/// of its windows, and the shell, which shows the link and battery levels;
-/// the capsule checks each op again (letter E-25).
+/// Bluetooth answers Settings, which scans, pairs and forgets in any window, and the shell, which
+/// shows link and battery; the capsule checks each op again (letter E-25).
 const BLUETOOTH_PANELS: &[&str] =
     &["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"];

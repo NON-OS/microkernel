@@ -27,10 +27,12 @@ const OPCODE_RESET: u8 = 0x01;
 /// the two command-register bytes, the THIRD byte carries the report id (or
 /// power state) in its low nibble and the report type in the high nibble, and
 /// the OPCODE goes in the FOURTH byte: RESET is [reg, 0x00, 0x01] and
-/// SET_POWER(ON) is [reg, 0x00, 0x08]. Order follows the spec and Linux
-/// i2c-hid: power on first, wait (ELAN and Goodix pads need it before they
-/// accept commands), then RESET and wait for the reset sentinel. SET_IDLE is not sent:
-/// its short 4-byte form is nonstandard and Linux omits it for touchpads.
+/// SET_POWER(ON) is [reg, 0x00, 0x08]. Order follows Microsoft's HID over
+/// I2C v1.0 (section 7.2, as recalled, unverified): power on first, wait
+/// (ELAN and Goodix pads need it before they accept commands), then RESET
+/// and wait for the reset sentinel. SET_IDLE is not sent: its short 4-byte
+/// form is not the spec's, and touchpads work without it (as observed on
+/// devices, unverified).
 /// Returns false when the command register is absent or a write is rejected;
 /// the caller keeps polling regardless, which still serves devices that wake
 /// without the handshake.
@@ -40,11 +42,11 @@ pub fn wake(port: u32, addr: u8, desc: &[u8; 30], input_reg: u16) -> bool {
         return false;
     }
     let reg = cmd_reg.to_le_bytes();
-    // Linux i2c_hid_set_power: some STM-based and Weida Tech parts need
-    // about 400 us after the first clock edge to wake and NACK the first
-    // power-on, so it is sent once more after a short pause. Then 60 ms,
-    // what Goodix's Windows driver waits and several pads need before they
-    // take RESET.
+    // Some STM-based and Weida Tech parts need about 400 us after the first
+    // clock edge to wake and NACK the first power-on (as observed on
+    // devices, unverified), so it is sent once more after a short pause.
+    // Then 60 ms, which several pads need before they take RESET (observed,
+    // unverified).
     if !set_power(port, addr, cmd_reg, POWER_ON) {
         let _ = mk_idle_ms(RETRY_MS);
         if !set_power(port, addr, cmd_reg, POWER_ON) {

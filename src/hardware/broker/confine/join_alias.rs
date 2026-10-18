@@ -24,7 +24,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use super::refuse::Refused;
-use super::table::{say, Capsule};
+use super::say::say;
+use super::table::Capsule;
 use crate::memory::iommu::DeviceAddress;
 
 /// Each alias into the domain that now holds `device_id`, recorded under it

@@ -13,6 +13,7 @@ pub enum Call {
     Configure(Pipes),
     BulkOut(Vec<u8>),
     ResetBulk(bool),
+    InterruptOut(u8, Vec<u8>),
 }
 
 /// The responder sees each control call and answers it: the bytes in for
@@ -23,5 +24,7 @@ pub struct Script {
     pub calls: Vec<Call>,
     pub bulk_in: VecDeque<Result<Option<Vec<u8>>, i32>>,
     pub bulk_out_fails: Option<i32>,
+    /// What the notification endpoint gives, a look at a time.
+    pub notices: VecDeque<Vec<u8>>,
     pub respond: Responder,
 }

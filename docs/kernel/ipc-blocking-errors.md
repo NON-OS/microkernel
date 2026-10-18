@@ -12,10 +12,10 @@ A message longer than the receive buffer is cut to the buffer and the rest is dr
 
 - `next_call_token` hands every call a nonzero correlation token (`src/syscall/microkernel/ipc/call/token.rs`, `fn next_call_token`).
 - The call records a pending entry with the server through `pending_reply::push` and fails with `EBUSY` when the server's queue or the caller's share is full (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs`, `fn sys_ipc_call`).
-- A `timeout_ms` of 0 means 5000 ms here, not forever (`src/syscall/microkernel/ipc/call/answer.rs`, `fn answer`).
+- A `timeout_ms` of 0 means 5000 ms here, not forever (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs`, `fn sys_ipc_call`).
 - `recv_reply_correlated` delivers only a message whose correlation equals the token and discards every other message in the reply inbox (`src/syscall/microkernel/ipc/recv_reply.rs`, `fn recv_reply_correlated`).
 - A plain send carries correlation 0, which `sys_ipc_send` sets (`src/syscall/microkernel/ipc/send.rs`, `fn sys_ipc_send`), so it cannot pass as a reply.
-- A call that times out leaves its pending entry in place, so a late reply still pairs with the right caller and is then discarded. Apart from the reply itself, only a failed send or `clear_pid`, when either side exits, removes an entry (`src/syscall/microkernel/ipc/call/answer.rs`, `fn answer`).
+- A call that times out leaves its pending entry in place, so a late reply still pairs with the right caller and is then discarded. Apart from the reply itself, only a failed send or `clear_pid`, when either side exits, removes an entry (`src/syscall/microkernel/ipc/call/settle.rs`, `fn settle`).
 
 `MkIpcReply` takes its token from the pending entry through `pending_reply::remove`; with no pending call from that destination it drops the reply and returns 0 (`src/syscall/microkernel/ipc/reply.rs`, `fn sys_ipc_reply`). A server can also answer with `MkIpcSend` to its own reply endpoint; `redirect_reply` then calls `pop`, which takes the pending entry whose token matches the request the server received last, not the oldest one, and the bytes go to that caller stamped with that token (`src/syscall/microkernel/ipc/send_redirect.rs`, `fn redirect_reply`; `src/syscall/microkernel/ipc/pending_reply/pop.rs`, `fn pop`).
 

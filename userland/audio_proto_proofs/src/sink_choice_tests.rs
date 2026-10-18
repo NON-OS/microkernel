@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The server's choice of sink: one registered is taken without a question,
-//! two are asked in order, and a machine where neither plays keeps the
-//! first, whose status says why.
+//! The server's choice of sink: one fixed sink registered is taken without a
+//! question, two are asked in order, and a machine where neither plays keeps
+//! the first, whose status says why; a ready USB device is played through
+//! over it, and the USB driver alone is kept so a device can still come.
 
-use crate::sink_choose::{choose, SINKS};
+use crate::sink_choose::{choose, with_usb, SINKS};
+
+const HDA: u32 = 4218;
+const USB: u32 = 4246;
 
 #[test]
 fn the_sinks_are_hda_then_ac97() {
@@ -56,4 +60,25 @@ fn with_both_the_first_that_plays_is_taken() {
 #[test]
 fn with_both_and_neither_playing_the_first_keeps_its_say() {
     assert_eq!(choose([true, true], |_| false), Some(0));
+}
+
+#[test]
+fn a_ready_usb_device_plays_over_hd_audio() {
+    assert_eq!(with_usb(true, Some(HDA), Some(USB)), Some(USB));
+    assert_eq!(with_usb(true, None, Some(USB)), Some(USB));
+}
+
+#[test]
+fn hd_audio_plays_while_the_usb_driver_has_no_device() {
+    assert_eq!(with_usb(false, Some(HDA), Some(USB)), Some(HDA));
+    assert_eq!(with_usb(false, Some(HDA), None), Some(HDA));
+    // Readiness from a driver that is not there changes nothing.
+    assert_eq!(with_usb(true, Some(HDA), None), Some(HDA));
+}
+
+#[test]
+fn the_usb_driver_alone_is_kept_so_a_device_can_still_come() {
+    assert_eq!(with_usb(false, None, Some(USB)), Some(USB));
+    assert_eq!(with_usb(false, None, None), None);
+    assert_eq!(with_usb(true, None, None), None);
 }

@@ -36,9 +36,13 @@ pub mod kernel;
 mod cli;
 mod decode;
 mod entries;
+/// The registry's firmware entry, by the same rule About draws it with.
+#[path = "../../capsule_about/src/about/data/proofs/firmware.rs"]
+pub mod firmware;
 mod hexcode;
 mod render;
 mod root;
+mod summary;
 
 pub use cli::{parse_args, Mode, USAGE};
 pub use decode::{capability_names, reaches_network, Authority};

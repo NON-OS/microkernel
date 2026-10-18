@@ -26,6 +26,7 @@ fn the_bus_kinds_are_the_brokers() {
     let rule = std::fs::read_to_string(root.join("scope_match.rs")).expect("readable");
     assert!(bus.contains("const BUS_KIND_PCI: u8 = 1;") && rule.contains("const PCI: u8 = 1;"));
     assert!(bus.contains("const BUS_KIND_ACPI: u8 = 2;") && rule.contains("const ACPI: u8 = 2;"));
+    assert!(bus.contains("const BUS_KIND_FDT: u8 = 4;") && rule.contains("const FDT: u8 = 4;"));
 }
 
 #[test]

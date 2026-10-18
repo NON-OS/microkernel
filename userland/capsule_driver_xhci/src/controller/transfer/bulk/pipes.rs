@@ -13,36 +13,57 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The bulk IN and OUT endpoints of one device, for a mass-storage class
-//! driver above this one: a transfer ring each and one page of DMA memory
-//! that every bulk transfer on the slot moves through.
+//! The bulk IN and OUT endpoints of one device, for a mass-storage or
+//! network class driver above this one: a transfer ring each, one page of
+//! DMA memory every waited transfer moves through, and one for the polled IN.
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
 use crate::protocol::BULK_MAX;
 use crate::rings::transfer::TransferRing;
+
+use super::streams::StreamPipe;
 pub struct BulkPipes {
     pub in_ring: TransferRing,
     pub out_ring: TransferRing,
     pub buf: DmaRegion,
+    /// The polled IN's own page, so a bulk OUT can move through `buf`
+    /// while the device may still write here.
+    pub poll_buf: DmaRegion,
+    /// The polled IN TRB on `in_ring` and the bytes it asked for, until
+    /// its completion is taken.
+    pub armed: Option<(u64, u32)>,
     pub dci_in: u8,
     pub dci_out: u8,
+    /// Streams on the IN or OUT endpoint (OP_CONFIGURE_STREAMS), whose
+    /// rings then carry its transfers in place of `in_ring` or `out_ring`.
+    pub in_streams: Option<StreamPipe>,
+    pub out_streams: Option<StreamPipe>,
 }
 impl BulkPipes {
     pub fn new(pool: &DmaPool, dci_in: u8, dci_out: u8) -> XhciResult<Self> {
-        let buf = pool.alloc(BULK_MAX as u64)?;
+        let (buf, poll_buf) = (pool.alloc(BULK_MAX as u64)?, pool.alloc(BULK_MAX as u64)?);
         buf.zero();
+        poll_buf.zero();
         Ok(Self {
             in_ring: TransferRing::new(pool)?,
             out_ring: TransferRing::new(pool)?,
             buf,
+            poll_buf,
+            armed: None,
             dci_in,
             dci_out,
+            in_streams: None,
+            out_streams: None,
         })
     }
 
-    /// Both rings and the page, for a slot to keep whole when a failed
-    /// controller may have been given them.
-    pub fn into_regions(self) -> impl Iterator<Item = DmaRegion> {
-        self.in_ring.into_regions().chain(self.out_ring.into_regions()).chain([self.buf])
+    /// The ring of endpoint `dci`, if it is one of the pair's and has no
+    /// streams: a streamed endpoint's TRBs are on its streams' rings.
+    pub fn ring_of(&self, dci: u8) -> Option<&TransferRing> {
+        match dci {
+            d if d == self.dci_in && self.in_streams.is_none() => Some(&self.in_ring),
+            d if d == self.dci_out && self.out_streams.is_none() => Some(&self.out_ring),
+            _ => None,
+        }
     }
 }

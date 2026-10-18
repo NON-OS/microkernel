@@ -475,6 +475,49 @@ fi
 tlb_local_callers="$( { grep -rn 'tlb::invalidate_page\|tlb::invalidate_all' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/arch/' || true; } | wc -l | tr -d '[:space:]')"
 run_baseline 'tlb::invalidate_* callers outside paging/arch' "${baselines_dir}/tlb-local-callers.txt" "${tlb_local_callers}"
 
+# aarch64: a number becomes a pointer only in src/arch/aarch64/mmu/pointer.rs,
+# which says whether it is RAM (the direct map, which no user root can take
+# away), a boot device window or a window the kernel mapped. The compiler
+# refuses the cast everywhere else under src/arch/aarch64
+# (`#![deny(fuzzy_provenance_casts)]` in its mod.rs, the lint enabled in
+# lib.rs). This holds the deny in place, refuses a module-wide allow and the
+# provenance APIs that would step around the lint, and counts the
+# statement-level exceptions, which only shrink.
+a64_ptr_file='src/arch/aarch64/mmu/pointer.rs'
+if grep -Fxq '#![deny(fuzzy_provenance_casts)]' src/arch/aarch64/mod.rs \
+    && grep -Fxq '#![feature(strict_provenance_lints)]' src/lib.rs; then
+    note ok "aarch64 denies integer-to-pointer casts outside ${a64_ptr_file}"
+else
+    fail_with "src/arch/aarch64/mod.rs must deny fuzzy_provenance_casts, and src/lib.rs enable strict_provenance_lints"
+fi
+a64_ptr_inner="$( { grep -rn '#!\[.*fuzzy_provenance_casts' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^src/arch/aarch64/mod.rs:\|^${a64_ptr_file}:" || true; } )"
+a64_ptr_apis="$( { grep -rnE 'with_exposed_provenance|from_exposed_addr|without_provenance|transmute.*\b(u64|usize)\b' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^${a64_ptr_file}:" || true; } )"
+if [ -n "${a64_ptr_inner}${a64_ptr_apis}" ]; then
+    fail_with "aarch64: an address made a pointer around ${a64_ptr_file}"
+    printf '%s\n' "${a64_ptr_inner}" "${a64_ptr_apis}" >&2
+else
+    note ok "no module-wide allow or provenance API steps around ${a64_ptr_file}"
+fi
+a64_ptr_count="$( { grep -rn 'allow(fuzzy_provenance_casts)' src/arch/aarch64 --include='*.rs' || true; } | { grep -v "^${a64_ptr_file}:" || true; } | wc -l | tr -d '[:space:]')"
+run_baseline 'aarch64 integer-to-pointer casts outside mmu/pointer.rs' "${baselines_dir}/aarch64-pointer-casts.txt" "${a64_ptr_count}"
+unset a64_ptr_file a64_ptr_inner a64_ptr_apis a64_ptr_count
+
+# aarch64: TPIDR_EL1 has one meaning, the address of this CPU's per-CPU block
+# (smp::percpu), which the vectors read the PAC keys out of at fixed offsets
+# (asm/percpu.h). It was once also a key-slot pointer, and the two writers
+# took turns. Only the per-CPU base setter may write it, and the powerdown
+# resume (asm/suspend.S) may put back the value it wrote, from this CPU's
+# own context slot and nothing else (userland/suspend_proofs). LOAD is that
+# file's restore macro, so it is looked for as well as a bare MSR.
+tpidr_writers="$( { grep -rniE '(msr|LOAD)[[:space:]]+tpidr_el1' src --include='*.rs' --include='*.S' --include='*.h' || true; } | { grep -v '^src/arch/percpu_base.rs:' || true; } | { grep -vE '^src/arch/aarch64/asm/suspend\.S:[0-9]+:[[:space:]]+LOAD[[:space:]]+tpidr_el1, CTX_TPIDR_EL1$' || true; } )"
+if [ -n "${tpidr_writers}" ]; then
+    fail_with "TPIDR_EL1 written outside src/arch/percpu_base.rs and the resume's one restore"
+    printf '%s\n' "${tpidr_writers}" >&2
+else
+    note ok "TPIDR_EL1 written only by the per-CPU base setter, and put back by the resume"
+fi
+unset tpidr_writers
+
 # Driver capsule isolation. The userland virtio-rng driver capsule
 # must reach hardware only through the broker. Pulling kernel
 # driver modules in (`crate::drivers::*`) would defeat the
@@ -641,13 +684,13 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virt
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_virtio_gpu/src/setup/dma.rs ||
-   ! grep -rq 'GPU_CFG_NUM_SCANOUTS' userland/capsule_driver_virtio_gpu/src/constants ||
-   ! grep -q 'OP_DISPLAY_INFO' userland/capsule_driver_virtio_gpu/src/protocol/ops.rs ||
+   ! grep -rq 'GPU_CFG_EVENTS_READ' userland/capsule_driver_virtio_gpu/src/constants ||
+   ! grep -q 'impl Display for Gpu' userland/capsule_driver_virtio_gpu/src/display/wire.rs ||
    ! grep -rq 'spawn_driver_virtio_gpu_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod virtio_gpu_capsule' src/hardware/mod.rs; then
-    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + display-info IPC"
+    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + the display wire"
 else
-    note ok "capsule_driver_virtio_gpu exposes brokered device setup + display-info IPC"
+    note ok "capsule_driver_virtio_gpu exposes brokered device setup + the display wire"
 fi
 
 gpu_endpoint_marker="$( { grep -rn 'driver\.virtio_gpu0' userland/capsule_driver_virtio_gpu src/hardware/virtio_gpu_capsule --include='*.rs' || true; } )"
@@ -2098,8 +2141,12 @@ unset gsi_owners gsi_state gsi_claim ioapic_bind broker_release
 # bit, the broker grant record, and revocation. This gate keeps
 # `map_device_memory` callers in the kernel TCB only (memory/paging
 # itself, memory/mmio, memory/unified LAPIC rebind, drivers, apic,
-# virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows).
-device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } )"
+# virtio, IOMMU unit probe, TPM register window, aarch64 PCI windows, and
+# the broker's stop for a device-tree device, which maps its registers for
+# the kernel alone so it can halt the device's DMA when its capsule lets go,
+# the Raspberry Pi firmware mailbox, which only the kernel talks to, and the
+# aarch64 broadcast timer frame, which keeps sleeping CPUs' deadlines).
+device_map_external="$( { grep -rn 'map_device_memory' src --include='*.rs' || true; } | { grep -v '^src/memory/paging/' || true; } | { grep -v '^src/memory/mmio/' || true; } | { grep -v '^src/memory/unified/' || true; } | { grep -v '^src/drivers/' || true; } | { grep -v '^src/arch/x86_64/apic/' || true; } | { grep -v '^src/arch/x86_64/interrupt/' || true; } | { grep -v '^src/interrupts/' || true; } | { grep -v '^src/sys/serial' || true; } | { grep -vE '^src/arch/[a-z0-9_]+/iommu/' || true; } | { grep -v '^src/security/tpm/mmio/map\.rs:' || true; } | { grep -v '^src/arch/aarch64/boot/pci_windows\.rs:' || true; } | { grep -v '^src/hardware/broker/described/register\.rs:' || true; } | { grep -v '^src/arch/aarch64/firmware/state\.rs:' || true; } | { grep -v '^src/arch/x86_64/acpi/hw/port_bus\.rs:' || true; } | { grep -v '^src/arch/x86_64/time/hpet\.rs:' || true; } | { grep -v '^src/arch/aarch64/timer/broadcast/start\.rs:' || true; } )"
 if [ -n "${device_map_external}" ]; then
     fail_with "map_device_memory called from outside the kernel TCB; user-facing MMIO must go through the broker"
     printf '%s\n' "${device_map_external}" >&2
@@ -2594,10 +2641,10 @@ unset unguarded_driver_spawns
 compositor_ops='userland/compositor/src/protocol/ops.rs'
 compositor_runner='userland/compositor/src/server/runner'
 compositor_prime='userland/compositor/src/setup/prime.rs'
-compositor_wire='userland/compositor/src/gfx_client/wire.rs'
+compositor_wire='userland/compositor/src/display/call.rs'
 if [ ! -f "${compositor_ops}" ] || [ ! -d "${compositor_runner}" ] \
         || [ ! -f "${compositor_prime}" ] || [ ! -f "${compositor_wire}" ]; then
-    fail_with "compositor runtime missing protocol/runner/setup/gfx_client modules"
+    fail_with "compositor runtime missing protocol/runner/setup/display wire modules"
 elif ! grep -q 'OP_SCENE_SUBMIT' "${compositor_ops}"; then
     fail_with "${compositor_ops} must define OP_SCENE_SUBMIT"
 elif ! grep -q 'OP_SCENE_REMOVE' "${compositor_ops}"; then
@@ -2610,14 +2657,14 @@ elif ! grep -rq 'mk_ipc_recv_from' "${compositor_runner}"; then
     fail_with "${compositor_runner} must receive via mk_ipc_recv_from"
 elif ! grep -rq 'mk_surface_attach' userland/compositor/src/setup; then
     fail_with "compositor setup must map the primary surface via mk_surface_attach"
-elif ! grep -rq 'mk_ipc_call' userland/compositor/src/gfx_client/wire; then
+elif ! grep -q 'mk_ipc_call' "${compositor_wire}"; then
     fail_with "${compositor_wire} must drive gfx requests via mk_ipc_call"
 elif find userland/compositor/src -name '*.rs' -print0 2>/dev/null \
         | xargs -0 grep -lE 'nonos_surface_create|nonos_surface_present_full|nonos_surface_destroy' 2>/dev/null \
         | grep -q .; then
     fail_with "compositor still uses legacy nonos_surface_* graphics syscalls"
 else
-    note ok "compositor runtime owns scene/damage/cursor through the Mk* + gfx_client path"
+    note ok "compositor runtime owns scene/damage/cursor through the Mk* + display wire path"
 fi
 unset compositor_ops compositor_runner compositor_prime compositor_wire
 

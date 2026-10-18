@@ -32,7 +32,7 @@ const KEY_A: [u8; 8] = [0, 0, 0x04, 0, 0, 0, 0, 0];
 fn an_endpoint_is_asked_only_when_due() {
     nonos_libc::reset();
     clear();
-    let (mut state, mut buf) = (State::new(), [0u8; 8]);
+    let (mut state, mut buf) = (State::new(), [0u8; 64]);
     let mut kbd = ep(1, 1, 3, HidKind::Keyboard);
     kbd.pace = Pace::new(8);
     let (mut asked, mut read) = (Vec::new(), Vec::new());
@@ -56,7 +56,7 @@ fn an_endpoint_is_asked_only_when_due() {
 fn a_device_with_reports_always_ready_is_read_sixteen_at_a_time() {
     nonos_libc::reset();
     clear();
-    let (mut state, mut buf) = (State::new(), [0u8; 8]);
+    let (mut state, mut buf) = (State::new(), [0u8; 64]);
     let mut mouse = ep(1, 1, 5, HidKind::Mouse);
     for _ in 0..40 {
         queue(5, &[0, 1, 1]);

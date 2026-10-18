@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Kernel-half clone for a freshly allocated PML4 frame.
+//! Kernel-half clone for a freshly allocated PML4 frame, where the
+//! architecture's user root carries the kernel half at all.
 //!
 //! The user half (entries 0..255) is zeroed so a new address space
 //! carries no inherited user mappings. The kernel half (entries
@@ -39,6 +40,10 @@ impl PagingManager {
             unsafe { &mut *(page_table_va.as_u64() as *mut [u64; PAGE_TABLE_ENTRIES]) };
         for entry in page_table.iter_mut() {
             *entry = 0;
+        }
+        crate::arch::paging::seed_user_root(page_table);
+        if !crate::arch::paging::USER_ROOT_HOLDS_KERNEL {
+            return Ok(());
         }
         let kernel_space =
             self.address_spaces.get(&KERNEL_ASID).ok_or(PagingError::NoActivePageTable)?;

@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_uvc: a camera read from its configuration,
+# the probe and commit controls, the alternate setting a stream takes, and
+# frames put back together from payloads.
+[package]
+name = "uvc_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_uvc = { path = "../nonos_uvc" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

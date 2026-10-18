@@ -24,37 +24,17 @@ use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 static KIND: [AtomicU8; MAX_CPUS] = [const { AtomicU8::new(0) }; MAX_CPUS];
 static HYBRID: AtomicBool = AtomicBool::new(false);
 
-/// On `cpu` itself: leaf 1AH answers for the core that executes it.
+/// On `cpu` itself, since the kind is read from the core that asks.
 pub(crate) fn record_core_kind(cpu: usize, apic_id: u32) {
     if cpu >= MAX_CPUS {
         return;
     }
-    let Some(kind) = read_own_kind() else { return };
+    let Some(kind) = crate::arch::own_core_kind() else { return };
     HYBRID.store(true, Ordering::Release);
     KIND[cpu].store(kind as u8, Ordering::Release);
     let mut l = crate::sys::serial::Line::new();
     l.str(b"[SMP] cpu=").dec(cpu as u64).str(b" apic=").dec(u64::from(apic_id));
     l.str(b" core=").str(kind.letter()).end();
-}
-
-/// None on a part that is not hybrid, where every core is alike.
-#[cfg(target_arch = "x86_64")]
-fn read_own_kind() -> Option<CoreKind> {
-    use super::core_kind::{LEAF7_EDX_HYBRID, LEAF_CORE_TYPE};
-    use crate::arch::x86_64::boot::cpu_ops::cpuid_count;
-    let max = cpuid_count(0, 0).0;
-    if max < 7 || cpuid_count(7, 0).3 & LEAF7_EDX_HYBRID == 0 {
-        return None;
-    }
-    if max < LEAF_CORE_TYPE {
-        return Some(CoreKind::Unknown);
-    }
-    Some(CoreKind::from_leaf_1a(cpuid_count(LEAF_CORE_TYPE, 0).0))
-}
-
-#[cfg(not(target_arch = "x86_64"))]
-fn read_own_kind() -> Option<CoreKind> {
-    None
 }
 
 pub(crate) fn core_kind(cpu: usize) -> CoreKind {

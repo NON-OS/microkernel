@@ -13,51 +13,29 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Output 0's monitor, once, at bring-up: its EDID read when the host
+//! offered it, and kept as the wire's panel (its modes that fit, its
+//! preferred mode and physical size). A host without EDID, or a blob that
+//! does not parse, leaves an empty panel: the host's own size still leads
+//! MODES, and the boot log says which it was.
 
-//! Ask the panel how big it physically is, once, at boot. Best-effort: a host
-//! that never offered EDID, a monitor that declares no size, and a query that
-//! the device rejects all leave the scanout path untouched and say so in the
-//! boot log, so an assumed DPI is never mistaken for a measured one.
-
-use super::probe_3d::{push, push_dec};
-use crate::device::cmd::get_edid;
-use crate::device::ControlQueue;
-
+use nonos_gfx_serve::Panel;
 use nonos_libc::mk_debug;
 
-const PRIMARY_SCANOUT: u32 = 0;
+use crate::device::cmd::get_edid;
+use crate::device::cmd::get_edid::EDID_MAX_LEN;
+use crate::device::ControlQueue;
+use crate::display::modes::fits;
 
-pub fn fetch(q: &ControlQueue, edid: bool) {
-    if !edid {
-        log(b"[GPU-EDID] edid not offered (physical size unknown)");
-        return;
-    }
-    match get_edid(q, PRIMARY_SCANOUT) {
-        Ok(Some(size)) => log_size(size.width_cm, size.height_cm),
-        Ok(None) => log(b"[GPU-EDID] panel declares no physical size"),
-        Err(e) => log_err(b"[GPU-EDID] query failed: ", e),
-    }
-}
-
-fn log(msg: &[u8]) {
-    mk_debug(msg.as_ptr(), msg.len());
-}
-
-fn log_err(prefix: &[u8], e: &str) {
-    let mut buf = [0u8; 96];
-    let mut n = 0;
-    push(&mut buf, &mut n, prefix);
-    push(&mut buf, &mut n, e.as_bytes());
-    mk_debug(buf.as_ptr(), n);
-}
-
-fn log_size(width_cm: u32, height_cm: u32) {
-    let mut buf = [0u8; 96];
-    let mut n = 0;
-    push(&mut buf, &mut n, b"[GPU-EDID] panel scanout=0 ");
-    push_dec(&mut buf, &mut n, width_cm);
-    push(&mut buf, &mut n, b"cm x ");
-    push_dec(&mut buf, &mut n, height_cm);
-    push(&mut buf, &mut n, b"cm");
-    mk_debug(buf.as_ptr(), n);
+pub fn panel(q: &ControlQueue, offered: bool) -> Panel {
+    let mut blob = [0u8; EDID_MAX_LEN];
+    let read = if offered { get_edid(q, 0, &mut blob) } else { Err("not offered") };
+    let p = read.map(|n| Panel::read(&blob[..n], fits)).unwrap_or_default();
+    let line: &[u8] = match (read, p.len) {
+        (Err(_), _) => b"[GPU-EDID] no EDID: the host's size leads",
+        (Ok(_), 0) => b"[GPU-EDID] EDID read, no mode that fits",
+        (Ok(_), _) => b"[GPU-EDID] EDID read: its modes offered",
+    };
+    mk_debug(line.as_ptr(), line.len());
+    p
 }

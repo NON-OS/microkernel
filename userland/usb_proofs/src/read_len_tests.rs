@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The interrupt read for a bound endpoint asks for one packet, never more
-//! than the controller driver will take. That driver answers a longer read
-//! with E_INVAL, and an endpoint read that way never delivers a report.
+//! The interrupt read for a bound endpoint asks for one packet, at most a
+//! boot report, and never more than the controller driver will take. That
+//! driver answers a longer read with E_INVAL, and an endpoint read that way
+//! never delivers a report.
 
-use crate::poll::read_len::read_len;
+use crate::poll::read_len::{pad_read_len, read_len};
 use crate::xhci_limits::INTERRUPT_PAYLOAD_MAX;
 
 #[test]
@@ -38,4 +39,13 @@ fn every_packet_size_a_binding_allows_is_read_in_full_up_to_a_boot_report() {
     assert_eq!(read_len(8), 8);
     assert_eq!(read_len(64), 8);
     assert_eq!(read_len(1024), 8);
+}
+
+#[test]
+fn a_gamepad_reads_its_whole_packet_up_to_64_bytes() {
+    for max_packet in 0..=u16::MAX {
+        let len = pad_read_len(max_packet);
+        assert!(len <= INTERRUPT_PAYLOAD_MAX, "{max_packet} byte packets read as {len}");
+        assert_eq!(len, max_packet.min(64), "{max_packet} byte packets");
+    }
 }

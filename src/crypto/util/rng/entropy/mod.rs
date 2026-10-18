@@ -23,11 +23,11 @@ mod hardware;
 mod health;
 mod state;
 
+pub use capsule_bytes::{feed as feed_capsule_bytes, wanted as capsule_bytes_wanted};
 pub use collect::{
     collect_seed_entropy, collect_seed_entropy_secure, get_entropy64, get_entropy64_secure,
-    get_tsc_entropy, init_entropy, mark_bootloader_entropy_provided,
-    mix_entropy_into_seed,
+    get_tsc_entropy, init_entropy, mark_bootloader_entropy_provided, mix_entropy_into_seed,
+    report_entropy_sources,
 };
-pub use capsule_bytes::{feed as feed_capsule_bytes, wanted as capsule_bytes_wanted};
 pub use error::EntropyError;
 pub use hardware::{cpu_entropy64, cpu_random64, has_cpu_entropy, has_cpu_random};

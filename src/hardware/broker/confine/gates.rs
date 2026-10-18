@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 
 use super::member::Member;
 use super::refuse::Refused;
-use super::table::say;
+use super::say::say;
 use crate::memory::iommu::DeviceAddress;
 
 /// The device's isolation group, which join.rs holds to one capsule, and

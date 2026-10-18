@@ -28,8 +28,9 @@ impl PagingManager {
         asid: u32,
         va: VirtAddr,
     ) -> Option<PhysAddr> {
-        let cr3 = self.address_spaces.get(&asid)?.cr3_value;
         let v = va.as_u64();
+        let own = self.address_spaces.get(&asid)?.cr3_value.as_u64();
+        let cr3 = PhysAddr::new(crate::arch::paging::root_in(own, v));
         /*
          * SAFETY: eK@nonos.systems - cr3 is one of ours; every table
          * is reached through the directmap and only read here.

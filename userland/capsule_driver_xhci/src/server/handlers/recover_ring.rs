@@ -34,14 +34,21 @@ pub(super) fn recover_ring(ctx: &mut Context, slot: u8, dci: u8, buf: Option<Dma
     } else if let Some(ep) = res.interrupt.iter_mut().find(|ep| ep.dci == dci) {
         ep.armed = None;
         &ep.ring
-    } else if let Some(pipes) = res.bulk.as_ref() {
+    } else if let Some(p) =
+        [res.isoch.as_mut(), res.isoch_in.as_mut()].into_iter().flatten().find(|p| p.ep.dci == dci)
+    {
+        p.forget();
+        &p.ring
+    } else if let Some(pipes) = [res.bulk.as_mut(), res.bulk2.as_mut()]
+        .into_iter()
+        .flatten()
+        .find(|p| p.ring_of(dci).is_some())
+    {
+        // A polled IN's TRB is given up with the rest: the next look arms anew.
         if dci == pipes.dci_in {
-            &pipes.in_ring
-        } else if dci == pipes.dci_out {
-            &pipes.out_ring
-        } else {
-            return false;
+            pipes.armed = None;
         }
+        pipes.ring_of(dci).unwrap_or(&pipes.out_ring)
     } else {
         return false;
     };

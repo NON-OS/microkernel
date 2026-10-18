@@ -21,7 +21,7 @@
 use alloc::format;
 
 use super::contents::Contents;
-use super::scan::Disk;
+use super::survey::Disk;
 use crate::device::BlockDevice;
 use crate::status_text::describe;
 

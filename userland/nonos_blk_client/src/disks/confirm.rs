@@ -18,7 +18,7 @@
 
 use alloc::string::String;
 
-use super::scan::Disk;
+use super::survey::Disk;
 use super::word::serial_word;
 use crate::driver::Driver;
 
@@ -36,6 +36,8 @@ impl Disk {
             Driver::Nvme => "nvme",
             Driver::Ahci => "sata",
             Driver::VirtioBlk => "virtio",
+            Driver::Wire => "emmc",
+            Driver::Ufs => "ufs",
             Driver::Rtsx => "sd",
         };
         match self.instance {

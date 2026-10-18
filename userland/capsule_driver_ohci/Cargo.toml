@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_ohci
+# eK@nonos.systems
+#
+# OHCI host controller capsule: the USB 1.1 host of AMD, SiS, NEC and
+# Apple chipsets and of VirtualBox and QEMU. It serves the host wire of
+# driver.xhci0 on driver.ohci0, so the class drivers use it unchanged.
+
+[package]
+name = "nonos_capsule_driver_ohci"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland OHCI USB host controller capsule"
+
+[[bin]]
+name = "driver_ohci"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usb_virt = { path = "../nonos_usb_virt" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

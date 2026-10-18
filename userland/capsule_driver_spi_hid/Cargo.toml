@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_spi_hid
+# eK@nonos.systems
+#
+# HID over SPI: a touchpad or keyboard on driver.spi0's bus, as the
+# firmware's serial-bus record names it, its reports decoded and posted by
+# the same code as HID over I2C.
+
+[package]
+name = "nonos_capsule_driver_spi_hid"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland HID-over-SPI class capsule"
+
+[[bin]]
+name = "driver_spi_hid"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_spi_hid = { path = "../nonos_spi_hid" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

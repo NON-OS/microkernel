@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 1 of 5: test modules mounted by path
+//! Host proofs, group 1 of 6: test modules mounted by path
 //! from lib.rs, each at its own file.
 
 #[path = "addr_align/mod.rs"]
@@ -25,12 +25,41 @@ pub mod aer_decode;
 pub mod amd_ivhd;
 #[path = "amd_vi/mod.rs"]
 pub mod amd_vi;
+#[path = "boot_screen/mod.rs"]
+pub mod boot_screen;
 #[path = "bti_pad/mod.rs"]
 pub mod bti_pad;
 #[path = "clock_scale/mod.rs"]
 pub mod clock_scale;
 #[path = "confine_posture/mod.rs"]
 pub mod confine_posture;
+#[path = "data_plan/mod.rs"]
+pub mod data_plan;
+#[path = "dma_memory_type/mod.rs"]
+pub mod dma_memory_type;
+#[path = "dma_placement/mod.rs"]
+pub mod dma_placement;
+#[path = "dma_pool_bitmap/mod.rs"]
+pub mod dma_pool_bitmap;
+#[path = "dma_surface/mod.rs"]
+mod dma_surface;
+#[path = "dma_sync_lines/mod.rs"]
+pub mod dma_sync_lines;
+#[path = "dma_wipe/mod.rs"]
+pub mod dma_wipe;
+/// DMAR reserved memory regions.
+#[path = "dmar_reserved/mod.rs"]
+pub mod dmar_reserved;
+#[path = "driver_scope/mod.rs"]
+mod driver_scope;
+#[path = "efi_time/mod.rs"]
+pub mod efi_time;
+#[path = "emmc_hosts/mod.rs"]
+pub mod emmc_hosts;
+#[path = "fd_fork/mod.rs"]
+pub mod fd_fork;
+#[path = "firmware_arith/mod.rs"]
+pub mod firmware_arith;
 /// When firmware's DMA protection may be let go.
 #[path = "iommu_handover/mod.rs"]
 pub mod iommu_handover;
@@ -42,34 +71,5 @@ pub mod iommu_place;
 pub mod iommu_start;
 #[path = "prove_job/mod.rs"]
 pub mod prove_job;
-#[path = "data_plan/mod.rs"]
-pub mod data_plan;
-#[path = "dma_memory_type/mod.rs"]
-pub mod dma_memory_type;
-#[path = "dma_placement/mod.rs"]
-pub mod dma_placement;
-#[path = "dma_pool_bitmap/mod.rs"]
-pub mod dma_pool_bitmap;
-#[path = "dma_sync_lines/mod.rs"]
-pub mod dma_sync_lines;
-/// DMAR reserved memory regions.
-#[path = "dmar_reserved/mod.rs"]
-pub mod dmar_reserved;
-#[path = "boot_screen/mod.rs"]
-pub mod boot_screen;
-#[path = "dma_surface/mod.rs"]
-mod dma_surface;
-#[path = "driver_scope/mod.rs"]
-mod driver_scope;
-#[path = "dma_wipe/mod.rs"]
-pub mod dma_wipe;
 #[path = "../../../src/hardware/broker/quota.rs"]
 pub mod quota;
-#[path = "efi_time/mod.rs"]
-pub mod efi_time;
-#[path = "emmc_hosts/mod.rs"]
-pub mod emmc_hosts;
-#[path = "fd_fork/mod.rs"]
-pub mod fd_fork;
-#[path = "firmware_arith/mod.rs"]
-pub mod firmware_arith;

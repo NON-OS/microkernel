@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 EPD1 trampoline: which CPUs use it,
+# what a user root maps of the kernel because of it, and that the assembly
+# around it keeps the order the design needs. The kernel's own source is
+# included via #[path] and include_str!.
+[package]
+name = "epd1_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

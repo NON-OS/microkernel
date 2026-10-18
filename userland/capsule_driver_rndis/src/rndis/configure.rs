@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What follows INITIALIZE: the run's station address, offered as
-//! OID_802_3_CURRENT_ADDRESS, then the packet filter, without which an
-//! RNDIS device passes no data, opened to every frame as Linux opens it.
-//! The device's permanent address, which Linux generic_rndis_bind reads
-//! here, is never asked for.
+//! What follows INITIALIZE (Remote NDIS 1.0, 3.1): the run's station
+//! address, offered as OID_802_3_CURRENT_ADDRESS, then the packet filter,
+//! without which an RNDIS device passes no data, opened to every frame.
+//! The device's permanent address is never asked for.
 
 use nonos_usbnet::{Bus, Station, Taken};
 

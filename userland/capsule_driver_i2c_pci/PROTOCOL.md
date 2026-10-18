@@ -14,7 +14,15 @@ status word, and every multi-byte integer is little-endian.
 | `OP_TRANSFER` | address in reach, write bytes, read length | status, abort source, read bytes |
 | `OP_PROBE` | 7-bit address in reach | present / absent |
 | `OP_ACPI_HID` | none | a touchpad in reach, the next on each ask, the one setup bound first: I2C address, HID descriptor register, GPIO pin and HID_INFO bits; empty when nothing is in reach |
-| `OP_GPIO_DOORBELL` | none | whether the touchpad's interrupt line is mapped, and asserted now; not mapped once the bound pad is out of reach |
+| `OP_GPIO_DOORBELL` | none | `present u32, rang u32`: whether driver.gpio0 answers for the touchpad's interrupt line, and whether it rang since the last look; not present once the bound pad is out of reach |
+
+The doorbell does not claim or map the GPIO controller: `driver.gpio0` owns it,
+and this capsule drains gpio0's EVENTS (op 1) for its own device. The key is the
+broker device id of the controller it claimed, with bit 63 set; gpio0's holder
+check accepts that claim (F 62). `present` is 0 when the firmware declared no
+line, gpio0 is absent, or gpio0 refuses (on Intel, gpio0 binds no pin until a
+pad layout is published), and `driver.i2c_hid0` then reads on its timer
+(`src/gpio0`, `src/setup/doorbell.rs`).
 
 Unknown operations reply `E_BAD_OP`. Non-empty bodies on fixed-width requests
 reply `E_INVAL`, and so does a transfer or a probe to an address not in reach,
@@ -35,7 +43,8 @@ one the probe found the descriptor at, the declared one when nothing answered
 yet, since firmware that computes its `_DSM` at run time leaves the declared
 register a guess; every other address carries its declared register. The GPIO
 pin and HID_INFO bits are the bound declaration's, the line `OP_GPIO_DOORBELL`
-senses, and zero for any other address (`src/server/handlers/acpi_hid.rs`).
+asks gpio0 about, and zero for any other address
+(`src/server/handlers/acpi_hid.rs`).
 
 Every request is wiped from the receive buffer once it is answered, and every
 reply from the reply buffer once it is sent, with the engine's copy of the

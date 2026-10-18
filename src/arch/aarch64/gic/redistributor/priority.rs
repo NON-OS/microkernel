@@ -18,11 +18,12 @@ use core::ptr::write_volatile;
 
 use super::constants::GICR_IPRIORITYR;
 use super::device::GicRedistributor;
+use crate::arch::aarch64::mmu::pointer::device;
 
 impl GicRedistributor {
     pub fn set_priority(&self, irq: u32, priority: u8) {
         if irq < 32 {
-            let addr = (self.base + GICR_IPRIORITYR + irq as u64) as *mut u8;
+            let addr = device::<u8>(self.base, GICR_IPRIORITYR + irq as u64);
             unsafe {
                 write_volatile(addr, priority);
             }

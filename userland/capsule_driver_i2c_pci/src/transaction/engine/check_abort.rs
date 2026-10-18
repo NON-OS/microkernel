@@ -20,8 +20,9 @@ use crate::constants::{
 use crate::regs::Regs;
 use crate::transaction::{TransferError, TransferResult};
 
-/// Report a TX_ABRT the way Linux i2c_dw_handle_tx_abort sorts it: an
-/// unacknowledged address or byte is the device saying no (Nack, the probe
+/// Report a TX_ABRT by its IC_TX_ABRT_SOURCE bits (DW_apb_i2c databook, as
+/// recalled, unverified): an unacknowledged address or byte is the device
+/// saying no (Nack, the probe
 /// reads it as "absent"), lost arbitration is a busy bus worth retrying, and
 /// anything else (SDA stuck, a protocol violation the core caught) is a bus
 /// fault. Reading IC_CLR_TX_ABRT releases the flushed TX FIFO.

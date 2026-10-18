@@ -1,0 +1,39 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""The lanes with no disk, one line each. A plain lane adds its QEMU
+arguments; {audio} is the audio backend, and each sound lane names an
+audiodev of its own, since a make target may define none. A swap lane puts
+its model in place of one of machine.py's devices: the virtio NIC, tpm-crb
+or the virtio GPU."""
+
+PLAIN = {
+    "usb-audio": "-audiodev {audio},id=lane-usb-snd -device usb-audio,audiodev=lane-usb-snd,bus=xhci.0",
+    "AC97": "-audiodev {audio},id=lane-ac97-snd -device AC97,audiodev=lane-ac97-snd",
+    "usb-tablet": "-device usb-tablet,bus=xhci.0",
+    "virtio-tablet": "-device virtio-tablet-pci",
+    "virtio-balloon": "-device virtio-balloon-pci",
+    "vmbus": "-device vmbus-bridge -device hv-balloon",
+}
+
+NICS = ("e1000", "e1000e", "igb", "rtl8139", "pcnet", "vmxnet3", "tulip")
+
+# lane: (the device it takes the place of, its model)
+SWAPS = {
+    **{f"nic={n}": ("nic", n) for n in NICS},
+    "tpm-tis": ("tpm", "tpm-tis"),
+    "vmware-svga": ("gpu", "vmware-svga"),
+}

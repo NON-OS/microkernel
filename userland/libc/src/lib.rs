@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![no_std]
-pub mod admin;
 pub mod acpi_measured;
+pub mod admin;
 pub mod attest;
 pub mod attest_policy;
 pub mod battery;
@@ -65,11 +65,11 @@ pub mod transport;
 pub mod tty;
 mod unistd;
 pub mod wait;
-pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
 pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
+pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
 pub use attest::{
-    mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail, AttestStatus,
-    ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
+    mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail,
+    AttestStatus, ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
 };
 pub use attest_policy::{parse_attest_policy, AttestPolicy, PolicyTree, ATTEST_POLICY_LEN};
 pub use battery::mk_battery_status;
@@ -103,6 +103,7 @@ pub use foreign_signal::{
     mk_foreign_context, mk_foreign_interrupt, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER,
     SIGNAL_RETURN,
 };
+pub use graphics::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
@@ -134,12 +135,15 @@ pub use surface_registry::{
     mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,
     mk_surface_register, mk_surface_release, mk_surface_share, InputEvent, SurfaceDescriptor,
     INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
-    INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
-    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+    INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN, INPUT_KIND_PAD_BUTTON_UP,
+    INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
+    SURFACE_FORMAT_ARGB8888,
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
 pub use tool_run::mk_tool_run;
-pub use tty::{mk_tty_query, mk_tty_set, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT};
+pub use tty::{
+    mk_tty_query, mk_tty_set, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
+};
 pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::frames;
 use super::icc;
 use super::redistributor;
 use super::state::redist_base;
-use crate::sys::serial;
 
-/// Bring up the per-CPU half of the GIC on the calling core.
-pub fn init_gic_cpu() {
-    match redistributor::for_this_cpu(redist_base()) {
-        Some(redist) => redist.init(),
-        // Without its redistributor this CPU can neither wake for SGIs nor
-        // enable its private interrupts, so the timer tick will not arrive.
-        // Say so; a silent miss looks like a hung scheduler later.
-        None => serial::println(b"[GIC] no redistributor claims this CPU"),
-    }
-
+/// Bring up the calling core's half of a GICv3: find the redistributor frame
+/// that names it, configure its SGIs and PPIs, and turn on the CPU interface.
+///
+/// Without its redistributor this CPU can neither wake for SGIs nor enable
+/// its private interrupts, so the timer tick would never arrive. That is an
+/// error for the caller to report, not something to boot on past.
+pub(super) fn init_gic_cpu() -> Result<(), &'static str> {
+    let redist = redistributor::for_this_cpu(redist_base())
+        .ok_or("no GICv3 redistributor frame claims this CPU")?;
+    redist.init()?;
+    frames::record(&redist);
     icc::init();
+    Ok(())
 }

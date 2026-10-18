@@ -17,11 +17,11 @@
 use super::state::State;
 
 pub fn searching(state: &State) -> bool {
-    state.search.len > 0
+    state.search.text.len > 0
 }
 
 pub fn search_clear(state: &mut State) {
-    while state.search.pop() {}
-    state.search_cursor = 0;
-    state.search_scroll = 0;
+    while state.search.text.pop() {}
+    state.search.cursor = 0;
+    state.search.scroll = 0;
 }

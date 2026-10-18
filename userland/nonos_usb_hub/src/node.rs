@@ -1,0 +1,47 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! A hub this driver configured, and what it keeps for each of its ports.
+
+use crate::bringup::Bringup;
+use crate::descriptor::MAX_HUB_PORTS;
+use crate::place::Place;
+
+const PORTS: usize = MAX_HUB_PORTS as usize;
+/// Tries of one root port that come to nothing before it is left alone.
+pub const TRIES: u8 = 3;
+
+pub struct Hub {
+    pub slot: u8,
+    pub place: Place,
+    pub ports: u8,
+    /// Per port, from port 1: the slot kept for the device there, 0 for
+    /// none. A device that bound nothing has its slot given back.
+    pub child: [u8; PORTS],
+    /// Per port: how far its device is brought up, and how often it was
+    /// tried.
+    pub bring: [Bringup; PORTS],
+    /// Its ports are first looked at from here, once their power is good
+    /// (bPwrOn2PwrGood after PORT_POWER), all of them; 0 once they were.
+    pub ready_ms: u64,
+}
+
+impl Hub {
+    pub fn new(slot: u8, place: Place, ports: u8) -> Self {
+        let (child, bring) = ([0; PORTS], [Bringup::new(); PORTS]);
+        Self { slot, place, ports: ports.min(MAX_HUB_PORTS), child, bring, ready_ms: 0 }
+    }
+}

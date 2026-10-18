@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::settings::schema::blocks_for;
-use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::metrics::PANE_PAD_TOP;
-use super::walk::{content_h, walk, Item};
+use super::walk::{walk, Item};
+use super::walk_height::content_h;
 
 pub fn max_scroll(state: &State, view_h: u32) -> u32 {
     content_h(state).saturating_sub(view_h)
@@ -48,7 +48,7 @@ fn cursor_rect(state: &State) -> Option<(u32, u32)> {
     let mut found = None;
     walk(state, |y, h, item| {
         let stop = match item {
-            Item::Row(bi, ri) => matches!(blocks[bi].rows[ri], Row::Field(_)),
+            Item::Row(bi, ri) => blocks[bi].rows[ri].is_stop(),
             Item::Wallpaper(_) => true,
             _ => false,
         };

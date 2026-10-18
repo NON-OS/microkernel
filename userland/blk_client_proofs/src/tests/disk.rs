@@ -18,7 +18,8 @@
 //! NVMe driver does: a whole number of its blocks, no more than one request
 //! moves, inside the disk.
 
-use crate::span::{Geometry, Native};
+use crate::chunks::Native;
+use crate::geometry::Geometry;
 
 pub const BLOCK: usize = 4096;
 

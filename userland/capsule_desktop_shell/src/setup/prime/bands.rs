@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The two bands the shell's surfaces are placed in.
+
 /// The desk's band: over the wallpaper's (0), under every application
 /// window's (2).
 pub const DESK_Z: u32 = 1;

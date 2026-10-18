@@ -20,6 +20,41 @@ endef
 
 # QEMU
 
+# Device lanes, opt-in, to boot one driver under QEMU: QEMU_LANES names them,
+# as in `make QEMU_LANES="nic=e1000e emmc" nonos-mk-run-serial-log`, and
+# nonos-mk-run, nonos-mk-run-serial and nonos-mk-run-serial-log add them.
+# tools/nonos_qemu/lane_disks.py and lane_devices.py hold the lanes, so make and
+# `nix run .#qemu -- --lane` boot the same machine. A nic= lane takes the
+# virtio NIC's place, vmware-svga the virtio GPU's, and tpm-tis tpm-crb's
+# (nonos-mk-run's TPM). A new lane is a line there, not here.
+QEMU_LANES ?=
+QEMU_LANE_DIR := $(TARGET_DIR)/lanes
+nonos_lanes = $(NONOS_PYTHON) tools/nonos-qemu-lanes $(1) --dir "$(QEMU_LANE_DIR)" \
+	--audio $(QEMU_AUDIODEV) $(QEMU_LANES)
+ifneq ($(strip $(QEMU_LANES)),)
+QEMU_LANE_ARGS := $(shell $(call nonos_lanes,args))
+QEMU_LANE_NIC := $(shell $(call nonos_lanes,nic))
+QEMU_LANE_TPM := $(shell $(call nonos_lanes,tpm))
+QEMU_LANE_GPU := $(shell $(call nonos_lanes,gpu))
+QEMU_LANE_IMAGES := nonos-mk-lane-images
+ifneq ($(QEMU_LANE_NIC),)
+QEMU_NET := $(subst virtio-net-pci,$(QEMU_LANE_NIC),$(QEMU_NET))
+QEMU_NET_DESC := $(subst virtio-net,$(QEMU_LANE_NIC),$(QEMU_NET_DESC))
+endif
+ifneq ($(QEMU_LANE_TPM),)
+QEMU_TPM := $(subst tpm-crb,$(QEMU_LANE_TPM),$(QEMU_TPM))
+endif
+ifneq ($(QEMU_LANE_GPU),)
+QEMU_GPU := -device $(QEMU_LANE_GPU)
+endif
+endif
+
+# A lane named wrong fails here, before a boot without it.
+.PHONY: nonos-mk-lane-images
+nonos-mk-lane-images:
+	@$(call nonos_lanes,images)
+	@echo "  Lanes: $(QEMU_LANES)"
+
 $(QEMU_BLK_IMG):
 	@mkdir -p $(dir $@)
 	@truncate -s 128M $@
@@ -97,11 +132,11 @@ $(QEMU_OVMF_VARS_RW): $(OVMF_VARS)
 # ESP packed earlier ships a kernel one generation behind the tree. They sit
 # in the recipe rather than the prerequisite list: a prerequisite list states
 # no order, it only states a set.
-nonos-mk-run: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+nonos-mk-run: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW) $(QEMU_LANE_IMAGES)
 	$(call nonos_kernel_and_esp,nonos-mk-zerostate)
 	@echo "Booting NONOS in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
-	@echo "  TPM: swtpm CRB"
+	@echo "  TPM: swtpm $(if $(QEMU_LANE_TPM),TIS,CRB)"
 	@echo "  Quit: Ctrl+A then X"
 	@rm -f "$(QEMU_QMP_SOCK)"
 	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
@@ -109,7 +144,7 @@ nonos-mk-run: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEM
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) $(QEMU_TPM) $(QEMU_AUDIO) \
-		$(QEMU_QMP) \
+		$(QEMU_LANE_ARGS) $(QEMU_QMP) \
 		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
 
 nonos-mk-run-net:
@@ -179,14 +214,14 @@ nonos-mk-terminal-only-run: $(QEMU_OVMF_VARS_RW)
 		$(QEMU_GPU) $(QEMU_RNG) \
 		-serial mon:stdio -no-reboot
 
-nonos-mk-run-serial: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
+nonos-mk-run-serial: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_LANE_IMAGES)
 	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
 	@echo "Booting NONOS serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
+		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) $(QEMU_LANE_ARGS) \
 		-serial mon:stdio -display none -no-reboot
 
 nonos-mk-run-serial-net:
@@ -195,7 +230,7 @@ nonos-mk-run-serial-net:
 nonos-mk-run-serial-nat:
 	@$(MAKE) --no-print-directory QEMU_NET_MODE=nat nonos-mk-run-serial
 
-nonos-mk-run-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
+nonos-mk-run-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_LANE_IMAGES)
 	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
 	@mkdir -p $(dir $(QEMU_SERIAL_LOG))
 	@echo "Booting NONOS serial console in QEMU..."
@@ -204,7 +239,7 @@ nonos-mk-run-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
+		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) $(QEMU_LANE_ARGS) \
 		-serial "file:$(QEMU_SERIAL_LOG)" -display none -no-reboot
 
 nonos-mk-run-input-probe-inject-serial-log: nonos-mk-input-probe-inject-esp $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
@@ -347,6 +382,7 @@ nonos-mk-check-assumptions:
 
 nonos-mk-static: nonos-mk-check-caps nonos-mk-check-assumptions
 	@./nonos-ci/run-static-checks.sh
+	@$(NONOS_PYTHON) nonos-ci/check-capsule-targets.py
 
 # Ring 0's size against its budget, from the kernel the last build produced.
 # Run after `nonos-mk-capsules`; TCB_BUDGET picks another profile's file.

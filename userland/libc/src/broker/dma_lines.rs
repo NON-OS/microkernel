@@ -17,17 +17,30 @@
 //! The cache lines a DMA sync flushes, free of the instruction so the host
 //! proofs check it. Every x86-64 CPU flushes at least 64 bytes per CLFLUSH
 //! (CPUID.01H:EBX bits 15:8 give 8 or more), so stepping by 64 from the line
-//! that holds the first byte never skips one.
+//! that holds the first byte never skips one. An aarch64 CPU states its
+//! smallest data line in CTR_EL0.DminLine (Arm ARM, DDI 0487, CTR_EL0), and
+//! stepping by that never skips one either.
 
 pub const DMA_SYNC_LINE: u64 = 64;
 
 /// The first line address and the number of lines `[addr, addr + len)`
 /// touches; none for an empty range or one that wraps.
 pub const fn dma_sync_lines(addr: u64, len: u64) -> (u64, u64) {
+    dma_sync_lines_of(addr, len, DMA_SYNC_LINE)
+}
+
+/// As `dma_sync_lines`, for lines of `line` bytes, a power of two.
+pub const fn dma_sync_lines_of(addr: u64, len: u64, line: u64) -> (u64, u64) {
     let end = match addr.checked_add(len) {
         Some(end) if len != 0 => end,
         _ => return (addr, 0),
     };
-    let first = addr & !(DMA_SYNC_LINE - 1);
-    (first, (end - first).div_ceil(DMA_SYNC_LINE))
+    let first = addr & !(line - 1);
+    (first, (end - first).div_ceil(line))
+}
+
+/// The smallest data cache line, in bytes, a CTR_EL0 value states:
+/// DminLine, bits 19:16, is the log2 of the number of 4-byte words.
+pub const fn ctr_dminline_bytes(ctr: u64) -> u64 {
+    4 << ((ctr >> 16) & 0xf)
 }

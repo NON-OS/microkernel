@@ -34,6 +34,18 @@ pub struct Share {
 
 thread_local! {
     static SHARES: RefCell<Vec<Share>> = const { RefCell::new(Vec::new()) };
+    static RELEASED: RefCell<Vec<u64>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Every handle given back on this thread, in order.
+pub fn released() -> Vec<u64> {
+    RELEASED.with(|r| r.borrow().clone())
+}
+
+/// MkSurfaceRelease: the handle is recorded, and the kernel's 0 answered.
+pub fn mk_surface_release(handle: u64) -> i64 {
+    RELEASED.with(|r| r.borrow_mut().push(handle));
+    0
 }
 
 /// Every share made on this thread, in order.

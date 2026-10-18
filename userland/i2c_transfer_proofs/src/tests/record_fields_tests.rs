@@ -24,7 +24,9 @@ use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BUS_KIND_ACPI};
 
 use super::listed::{discovered, list, table};
 use super::records::{hid, lpss, platform};
-use crate::discover::CLASS_GPIO_CTRL;
+
+/// The broker's class for an ACPI GPIO community record (class.rs GPIO_CTRL).
+const CLASS_GPIO_CTRL: u32 = 0x0080;
 
 /// A GPIO community record: its _HID bytes in a kind-None bar 5.
 fn gpio_community() -> DeviceRecord {

@@ -18,14 +18,34 @@
 
 use super::error::VolumeError;
 use super::plan::parse_plan;
-use super::plan_types::{Plan, PLAN_LBA};
+use super::plan_types::{Plan, PlanError};
+use crate::hardware::block_device::{self, Places};
 
 pub(super) fn read_plan() -> Result<Plan, VolumeError> {
-    let capacity = crate::hardware::block_device::capacity().map_err(VolumeError::Device)?;
+    let capacity = block_device::capacity().map_err(VolumeError::Device)?;
     let mut sector = [0u8; 512];
-    crate::hardware::block_device::read(PLAN_LBA, &mut sector).map_err(VolumeError::Device)?;
-    parse_plan(&sector, capacity).map_err(|e| {
-        crate::log::warn!("[DATA] disk plan at LBA {} refused: {:?}", PLAN_LBA, e);
+    block_device::read_plan_sector(0, &mut sector).map_err(VolumeError::Device)?;
+    let refused = |e| {
+        crate::log::warn!("[DATA] disk plan at LBA {} refused: {:?}", block_device::plan_lba(), e);
         VolumeError::Plan(e)
-    })
+    };
+    let plan = parse_plan(&sector, capacity).map_err(refused)?;
+    match block_device::places() {
+        Some(p) if !in_data(&p, &plan) => Err(refused(PlanError::PastEnd)),
+        _ => Ok(plan),
+    }
+}
+
+/// A table that names a data partition holds the volume to it: a plan
+/// pointing past it would have the volume written over another partition.
+/// A live stick's plan keeps no volume, and a table naming no data
+/// partition leaves the floor and the disk's end as the bounds.
+fn in_data(p: &Places, plan: &Plan) -> bool {
+    match p.data {
+        Some(d) if plan.volume_sectors != 0 => {
+            let end = plan.volume_base.checked_add(plan.volume_sectors);
+            plan.volume_base >= d.first && end.is_some_and(|e| e <= d.end())
+        }
+        _ => true,
+    }
 }

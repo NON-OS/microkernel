@@ -30,11 +30,13 @@ const ROWS: u32 = 4;
 
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + PAIR_H + ROW_H * ROWS + 4;
 
-pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, att: &Attestation) {
+/// `listed` is whether the registry read now holds the firmware entry, which
+/// the document's count includes.
+pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, att: &Attestation, listed: Option<bool>) {
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, HEIGHT, b"Signed by the hardware");
     match att {
-        Attestation::Produced(doc) => super::verify_doc_body::body(fb, top, inner, doc),
+        Attestation::Produced(doc) => super::verify_doc_body::body(fb, top, inner, doc, listed),
         Attestation::Refused => {
             note(fb, top, b"This machine declined to attest. It has no trusted platform module, or it could not record everything it is running.");
         }

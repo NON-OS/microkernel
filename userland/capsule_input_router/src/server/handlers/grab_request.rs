@@ -33,7 +33,15 @@ fn is_trusted_grabber(sender_pid: u32) -> bool {
 }
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if !is_trusted_grabber(sender_pid) {
+    // While the trusted band is up its holder has every key: no grab is
+    // taken from it, by a named capsule or any other.
+    let held = crate::route::trusted_hold::holder(ctx.trusted, nonos_libc::mk_uptime_ms());
+    if held.is_some_and(|h| h != sender_pid) {
+        let _ = respond::status(sender_pid, req, E_BUSY, tx);
+        return;
+    }
+    let named = is_trusted_grabber(sender_pid);
+    if !crate::route::grab_rule::grab_allowed(ctx, sender_pid, named) {
         let _ = respond::status(sender_pid, req, E_ACCES, tx);
         return;
     }

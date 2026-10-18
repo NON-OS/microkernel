@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Bringing an endpoint back after a transfer on it failed or never ended
-//! (xHCI 1.2 sections 4.6.8, 4.6.9 and 4.6.10, Linux
-//! `xhci_handle_halted_endpoint`). A STALL, babble or transaction error
+//! (xHCI 1.2 sections 4.6.8, 4.6.9 and 4.6.10, as recalled, unverified).
+//! A STALL, babble or transaction error
 //! halts the endpoint, and a halted endpoint ignores its doorbell for good:
 //! a HID device that stalls SET_IDLE, as many mice do, would otherwise lose
 //! its control pipe, and one bad interrupt report its whole input. The

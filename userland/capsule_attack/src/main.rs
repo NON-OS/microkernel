@@ -29,6 +29,7 @@ mod attempts;
 mod authority;
 mod codes;
 mod containment;
+mod disks;
 mod errno;
 mod line;
 mod medium;
