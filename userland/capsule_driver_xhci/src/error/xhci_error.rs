@@ -30,4 +30,7 @@ pub enum XhciError {
     CommandCompletionFailed(u8),
     UnexpectedCompletionSlot,
     TransferCompletionFailed(u8),
+    /// A command timed out and the abort that should have freed the ring
+    /// did not stop it either: every later command waits behind it.
+    CommandAbortFailed,
 }

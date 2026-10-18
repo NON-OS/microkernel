@@ -35,6 +35,7 @@ fn every_failure() -> Vec<XhciError> {
         XhciError::PortResetTimeout,
         XhciError::TransferCompletionTimeout,
         XhciError::CommandCompletionTimeout,
+        XhciError::CommandAbortFailed,
         XhciError::CommandCompletionFailed(4),
         XhciError::UnexpectedCompletionSlot,
         XhciError::TransferCompletionFailed(6),
@@ -53,6 +54,7 @@ fn every_failure() -> Vec<XhciError> {
             | XhciError::PortResetTimeout
             | XhciError::TransferCompletionTimeout
             | XhciError::CommandCompletionTimeout
+            | XhciError::CommandAbortFailed
             | XhciError::CommandCompletionFailed(_)
             | XhciError::UnexpectedCompletionSlot
             | XhciError::TransferCompletionFailed(_) => {}

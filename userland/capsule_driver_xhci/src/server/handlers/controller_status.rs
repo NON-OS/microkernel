@@ -26,6 +26,8 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     let iman = iman_read(ctx.driver.layout.primary_intr_base);
     let cmd_cycle = ctx.driver.command_ring.cycle();
     let events_total = ctx.driver.event_ring.drained_total();
+    let orphans = ctx.driver.event_ring.orphans();
+    let given_up = ctx.driver.event_ring.parked_given_up();
     let dcbaa_phys = ctx.driver.dcbaa.phys();
     let scratchpad_phys = ctx.driver.scratchpads.array_phys();
     let scratchpad_pages = ctx.driver.scratchpads.page_count();
@@ -61,5 +63,10 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     tx[o..o + 8].copy_from_slice(&scratchpad_phys.to_le_bytes());
     o += 8;
     tx[o..o + 4].copy_from_slice(&allocated_slots.to_le_bytes());
+    o += 4;
+    // Appended past the 56 bytes the kernel client reads, which takes a
+    // longer body as it is.
+    tx[o..o + 8].copy_from_slice(&orphans.to_le_bytes());
+    tx[o + 8..o + 16].copy_from_slice(&given_up.to_le_bytes());
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + (payload_len as usize));
 }

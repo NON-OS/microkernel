@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One command: queued, rung, and waited for. A command that times out is
-//! aborted so the commands after it are not stuck behind it on the ring.
+//! aborted so the commands after it are not stuck behind it on the ring. An
+//! abort that does not stop the ring was dropped before, and the caller saw
+//! only the timeout, then a timeout on every command after it; it is now
+//! its own error.
 use super::ring_doorbell::ring_doorbell;
 use super::wait_command_completion::{wait_command_completion, CommandCompletion};
 use crate::error::{XhciError, XhciResult};
@@ -33,8 +36,8 @@ pub fn run_command(
     let issued = cmd_ring.enqueue(trb)?;
     ring_doorbell(doorbell_base, 0, 0);
     let result = wait_command_completion(intr_base, issued, evt_ring);
-    if result.is_err_and(|e| e == XhciError::CommandCompletionTimeout) {
-        let _ = cmd_ring.abort();
+    if result.is_err_and(|e| e == XhciError::CommandCompletionTimeout) && !cmd_ring.abort() {
+        return Err(XhciError::CommandAbortFailed);
     }
     result
 }

@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{TRB_TYPE_CMD_COMPLETION_EVENT, TRB_TYPE_TRANSFER_EVENT};
+
+use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::EventRing;
 use crate::trb::Trb;
@@ -27,11 +28,22 @@ impl DrainBatch {
         Self { trbs: [Trb::zero(); DRAIN_BATCH], count: 0 }
     }
 }
+/// Take up to `DRAIN_BATCH` events between requests. A transfer event stops
+/// the drain: its endpoint's poll takes it. A command completion does not:
+/// the drain runs only between commands, so it is an orphan of an abort or
+/// of a wait that gave up, and is taken off and counted, where it used to
+/// stop the drain until the next command.
 pub fn drain_events(intr_base: u64, ring: &mut EventRing) -> DrainBatch {
     let mut batch = DrainBatch::new();
-    while batch.count < DRAIN_BATCH && ring.has_event() {
+    // Orphans count against the batch too, so a drain stays bounded.
+    let mut taken = 0;
+    while taken < DRAIN_BATCH && ring.has_event() {
+        taken += 1;
+        if ring.skip_orphan() {
+            continue;
+        }
         let trb = ring.current_trb();
-        if reserved_for_waiter(trb.get_type()) {
+        if trb.get_type() == TRB_TYPE_TRANSFER_EVENT {
             break;
         }
         batch.trbs[batch.count] = trb;
@@ -40,7 +52,4 @@ pub fn drain_events(intr_base: u64, ring: &mut EventRing) -> DrainBatch {
     }
     erdp_program(intr_base, ring.current_dequeue_phys(), true, 0);
     batch
-}
-fn reserved_for_waiter(trb_type: u32) -> bool {
-    trb_type == TRB_TYPE_TRANSFER_EVENT || trb_type == TRB_TYPE_CMD_COMPLETION_EVENT
 }
