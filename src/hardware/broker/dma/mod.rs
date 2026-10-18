@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acpi_stop;
 mod cache;
+mod covers;
 mod drain;
 mod flags;
 mod limits;
@@ -24,12 +26,17 @@ mod pool;
 mod records;
 mod release;
 mod scrub;
+// Wired at release with the keep path that holds a device's frames until
+// its stop is confirmed; the rule and its proofs come first.
+#[allow(dead_code)]
+mod sdhci_stop;
 mod sources;
 mod teardown;
 mod types;
 mod va;
 mod wipe;
 
+pub use covers::covers;
 pub use map::map_for_caller;
 #[cfg(not(target_arch = "x86_64"))]
 pub(crate) use pool::low32_default_pages;
@@ -38,7 +45,7 @@ pub(crate) use pool::{init_display_pool, init_low32_pool};
 pub(crate) use pool::{low32_fit, low32_target_pages};
 pub(crate) use records::grant_ranges;
 pub(crate) use release::{free_taken, take_for_device, withdraw_taken};
-pub use release::{release_all_for_pid, unmap_grant};
+pub use release::{release_all_for_pid, revoke_for_device, unmap_grant};
 pub(crate) use teardown::free_frames;
 pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
 pub use wipe::wipe_live_grants;

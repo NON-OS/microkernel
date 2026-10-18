@@ -24,3 +24,4 @@ mod edges;
 mod hostile;
 mod ranges;
 mod spawned;
+mod virt_rows;

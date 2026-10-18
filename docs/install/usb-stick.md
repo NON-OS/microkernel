@@ -85,7 +85,7 @@ sudo cmp -n "$(stat -f %z target/release/standard/nonos.img)" target/release/sta
 
 Not tested in this release.
 
-`same` means the write arrived whole. Check before the first boot. The kernel keeps a boot's state on a USB stick that carries NONOS before any internal disk, so a boot whose setup chose Install keeps its answers in the stick's own package [store](../overview/glossary.md#store), and a used stick no longer matches the image.
+`same` means the write arrived whole. Check before the first boot. The kernel keeps a boot's state on a USB stick that carries NONOS before any internal disk, so a boot whose setup chose Install keeps its answers in the stick's own package [store](../overview/glossary-linux-personality.md#store), and a used stick no longer matches the image.
 
 ## Boot from the stick
 

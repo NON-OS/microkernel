@@ -19,14 +19,14 @@ flowchart LR
 3. [Write a USB stick](usb-stick.md). Write the image with `make usb` or `dd`, then compare the stick with the image.
 4. [Boot modes](boot-modes.md). Boot the stick and pick an entry in the NONOS boot menu: Standard, Hardened, Safe Mode, Air-Gapped, Recovery, Install or Shut down.
 5. [First boot](first-boot.md). Answer the thirteen steps of setup. Amnesic keeps nothing; Install keeps your answers and opens the installer.
-6. [Install to disk](install-to-disk.md). Choose a disk and type its confirmation word. The installer lays out the whole disk, writes the boot files, the [store](../overview/glossary.md#store) and the partition table, and reads back every sector it wrote. Then boot the installed disk.
+6. [Install to disk](install-to-disk.md). Choose a disk and type its confirmation word. The installer lays out the whole disk, writes the boot files, the [store](../overview/glossary-linux-personality.md#store) and the partition table, and reads back every sector it wrote. Then boot the installed disk.
 7. [Update](update.md). Move an installed system to a newer release.
 8. [Recovery](recovery.md). Boot with no network and no setup, to read an installed system's files or start over.
 9. [Troubleshooting](troubleshooting.md). What each refusal and error message means, and how to collect logs.
 
 ## What to expect
 
-- The stick boots [amnesic](../overview/glossary.md#amnesic): nothing reaches the machine's own disks unless you choose to install.
+- The stick boots [amnesic](../overview/glossary-amnesic-boot.md#amnesic): nothing reaches the machine's own disks unless you choose to install.
 - Installing replaces everything on one whole disk, the one you name. NONOS does not share a disk with another system, and the installer is not a secure wipe.
 - NONOS 0.9.2 has no in-place update. A newer release is installed over the old one, and that erases it.
 - Firmware with [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) on starts the loader only if it trusts the NONOS db certificate, so expect to turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)).
