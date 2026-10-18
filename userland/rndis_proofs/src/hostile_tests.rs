@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Control answers whose lengths and offsets lie. Each is bounded by the
-//! bytes that came, so the bind fails by name or the answer is passed
-//! over; nothing panics and no read leaves the reply.
+//! Control answers whose lengths lie. Each is bounded by the bytes that
+//! came, so the bind fails by name or the answer is passed over; nothing
+//! panics and no read leaves the reply.
 
 use nonos_usbnet::mock::Call;
 use nonos_usbnet::Bind;
@@ -9,29 +9,7 @@ use nonos_usbnet::Bind;
 use crate::control_tests::bind_with;
 use crate::device::words;
 use crate::qemu::Tamper;
-use crate::rndis::query::{info, station};
 use crate::rndis::reply::{answer, Answer};
-
-fn query_with(off: u32, len: u32) -> Tamper {
-    Box::new(move |k, mut r| {
-        if k == 4 {
-            r[16..20].copy_from_slice(&len.to_le_bytes());
-            r[20..24].copy_from_slice(&off.to_le_bytes());
-        }
-        vec![r]
-    })
-}
-
-#[test]
-fn query_offsets_and_lengths_past_the_answer_are_no_address() {
-    for (off, len) in [(0xFFFF_FFF8, 6), (16, 0xFFFF_FFFF), (u32::MAX, u32::MAX), (17, 6)] {
-        let (_, r) = bind_with(query_with(off, len));
-        assert!(matches!(r, Bind::Failed("no permanent address", -5)), "off {off:#x} len {len:#x}");
-    }
-    let r = words(&[0x8000_0004, 30, 2, 0, 6, 16]);
-    assert_eq!(info(&r), None, "the bytes stop at MessageLength's claim");
-    assert_eq!(station(&words(&[0x8000_0004, 24, 2, 0])), None);
-}
 
 #[test]
 fn a_message_length_past_the_bytes_or_under_a_header_is_not_an_answer() {

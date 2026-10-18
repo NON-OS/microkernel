@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_mmio_map, MmioMapOut};
+use nonos_libc::{mk_mmio_map, MmioMapOut};
 
 use crate::constants::NVME_BAR_INDEX;
 use crate::error::{NvmeError, NvmeResult};
+use crate::handles::release;
 
 pub fn map(device_id: u64, claim_epoch: u64, bar_size: u64) -> NvmeResult<MmioMapOut> {
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
     let r = mk_mmio_map(device_id, claim_epoch, NVME_BAR_INDEX as u32, 0, 0, bar_size, &mut out);
     if r < 0 {
-        let _ = mk_device_release(device_id);
+        release(device_id, claim_epoch);
         return Err(NvmeError::BrokerCallFailed);
     }
     Ok(out)

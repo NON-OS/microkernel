@@ -21,8 +21,17 @@ use std::sync::Arc;
 
 use nonos_devmodel::FakeBar;
 
-use super::model::PORT1;
-use crate::constants::{PORTSC_CCS, PORTSC_PED, PORTSC_PP, PORTSC_PR, PORTSC_PRC};
+use super::model::{op_base, PORT1};
+use crate::constants::{
+    PORTSC_CCS, PORTSC_PED, PORTSC_PP, PORTSC_PR, PORTSC_PRC, PORTSC_SPEED_SHIFT,
+};
+use crate::controller::{park::IrqWait, reset_port};
+use crate::error::XhciResult;
+
+/// Port 1 of the controller at `bar` brought up, polled with no interrupt.
+pub fn reset_port1(bar: &FakeBar, usb3: bool) -> XhciResult<u32> {
+    reset_port(op_base(bar), 1, usb3, &mut IrqWait::new(0))
+}
 
 /*
  * A downstream device on port 1. PORTSC is one register both sides write, so
@@ -32,6 +41,11 @@ use crate::constants::{PORTSC_CCS, PORTSC_PED, PORTSC_PP, PORTSC_PR, PORTSC_PRC}
  * the change bit, and drops that bit when the driver writes one to it.
  */
 pub fn attached(finishes_reset: bool) -> impl Fn(&FakeBar) {
+    attached_at(finishes_reset, 0)
+}
+
+/// The same device, its port showing protocol speed id `speed`.
+pub fn attached_at(finishes_reset: bool, speed: u32) -> impl Fn(&FakeBar) {
     let shown = Arc::new(AtomicU32::new(0));
     move |bar| {
         let written = bar.wrote32(PORT1);
@@ -40,7 +54,7 @@ pub fn attached(finishes_reset: bool) -> impl Fn(&FakeBar) {
             return;
         }
         if written & PORTSC_PP != 0 {
-            state |= PORTSC_PP | PORTSC_CCS;
+            state |= PORTSC_PP | PORTSC_CCS | (speed & 0xF) << PORTSC_SPEED_SHIFT;
         }
         if written & PORTSC_PR != 0 && finishes_reset {
             state |= PORTSC_PED | PORTSC_PRC;

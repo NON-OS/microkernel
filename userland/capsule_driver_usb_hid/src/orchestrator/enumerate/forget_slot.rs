@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A kept device that is gone: its endpoints are dropped, a hub takes every
-//! device below it along, and the slot is given back to the controller.
+//! A kept device that is gone: its endpoints are dropped, each letting go
+//! of the keys and buttons it held, a hub takes every device below it
+//! along, and the slot is given back to the controller.
 
 use crate::xhci::disable_slot;
 
 use super::devices::Devices;
+use super::drop_port::drop_slot;
 
 pub(super) fn forget_slot(xhci_port: u32, slot: u8, devs: &mut Devices) {
-    devs.eps.retain(|e| e.slot != slot);
+    drop_slot(&mut devs.eps, slot);
     if let Some(i) = devs.hubs.iter().position(|h| h.slot == slot) {
         let hub = devs.hubs.swap_remove(i);
         for &child in hub.child.iter().filter(|&&c| c != 0) {

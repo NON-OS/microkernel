@@ -27,7 +27,9 @@ mod trb_kinds;
 mod usbcmd_bits;
 mod usbsts_bits;
 pub use cap_offsets::{CAPLENGTH, DBOFF, HCCPARAMS1, HCSPARAMS1, HCSPARAMS2, RTSOFF};
-pub use completion_codes::{CC_SHORT_PACKET, CC_SUCCESS};
+pub use completion_codes::{
+    CC_COMMAND_ABORTED, CC_COMMAND_RING_STOPPED, CC_SHORT_PACKET, CC_SLOT_NOT_ENABLED, CC_SUCCESS,
+};
 pub use erdp_bits::ERDP_EHB;
 pub use interrupter_bits::{IMAN_IE, IMAN_IP};
 pub use op_offsets::{CONFIG, CRCR_LO, DCBAAP_LO, PORTSC_BASE, PORT_REG_STRIDE, USBCMD, USBSTS};
@@ -38,7 +40,8 @@ pub use portsc_bits::{
     PORTSC_WPR,
 };
 pub use ring::{
-    COMMAND_RING_TRBS, EVENT_RING_SEGMENT_TABLE_ENTRIES, EVENT_RING_SEGMENT_TRBS, TRB_BYTES,
+    COMMAND_RING_TRBS, EVENT_RING_SEGMENT_TABLE_ENTRIES, EVENT_RING_SEGMENT_TRBS,
+    TRANSFER_RING_TRBS, TRB_BYTES,
 };
 pub use runtime_offsets::{ERDP_LO, ERSTBA_LO, ERSTSZ, IMAN, IMOD, INTERRUPTER_STRIDE};
 pub use trb_flags::{
@@ -52,4 +55,4 @@ pub use trb_kinds::{
     TRB_TYPE_TRANSFER_EVENT,
 };
 pub use usbcmd_bits::{USBCMD_HCRST, USBCMD_INTE, USBCMD_RUN};
-pub use usbsts_bits::{USBSTS_CNR, USBSTS_HCH, USBSTS_HSE};
+pub use usbsts_bits::{USBSTS_CNR, USBSTS_HCE, USBSTS_HCH, USBSTS_HSE};

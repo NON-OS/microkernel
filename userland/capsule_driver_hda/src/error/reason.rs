@@ -28,9 +28,12 @@ pub const fn reason(e: HdaError) -> &'static str {
         HdaError::ControllerResetTimeout => "hda: controller did not leave reset",
         HdaError::UnsupportedController => "hda: unsupported controller or codec",
         HdaError::VerbTimeout => "hda: codec did not answer a verb",
-        HdaError::ControllerNotResponding => "hda: controller reads all ones (powered down or gone)",
+        HdaError::ControllerNotResponding => {
+            "hda: controller reads all ones (powered down or gone)"
+        }
         HdaError::DmaOutOfReach => "hda: DMA buffer above 4 GiB on a 32-bit controller",
         HdaError::StreamResetTimeout => "hda: stream descriptor did not finish its reset",
         HdaError::CodecPowerTimeout => "hda: codec did not reach power state D0",
+        HdaError::EngineStopTimeout => "hda: a DMA engine did not stop when told to",
     }
 }

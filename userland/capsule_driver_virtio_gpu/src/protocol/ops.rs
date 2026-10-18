@@ -18,8 +18,10 @@ pub const OP_CONTROLLER_INFO: u16 = 0x0002;
 pub const OP_DISPLAY_INFO: u16 = 0x0003;
 pub const OP_CONTROLQ_STATE: u16 = 0x0004;
 pub const OP_QUERY_CAPS: u16 = 0x0005;
-pub const OP_CREATE_RESOURCE: u16 = 0x0006;
-pub const OP_ATTACH_BACKING: u16 = 0x0007;
+// 0x0006 and 0x0007 created a 2D resource and attached backing to it for a
+// client. No client sent them, a resource could never be destroyed, and a
+// full table leaked the host resource just made: they are answered as
+// unknown now, and the numbers are not reused.
 pub const OP_TRANSFER_TO_HOST: u16 = 0x0008;
 pub const OP_SET_SCANOUT: u16 = 0x0009;
 pub const OP_FLUSH: u16 = 0x000A;

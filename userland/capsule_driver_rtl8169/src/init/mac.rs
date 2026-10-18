@@ -20,24 +20,31 @@ use crate::constants::regs::{CFG9346_LOCK, CFG9346_UNLOCK, REG_CFG9346, REG_MAC0
 use crate::constants::MAC_LEN;
 use crate::regs::Regs;
 
-/// Draw a station address and program it into the IDR registers.
+/// Draw a station address.
 ///
-/// Replaces reading the factory address out of them. Fails closed: the factory
-/// address is the identifier this avoids, so it is not a fallback.
-pub fn program(regs: &Regs) -> Result<[u8; MAC_LEN], &'static str> {
+/// Replaces reading the factory address out of the IDR registers. Fails
+/// closed: the factory address is the identifier this avoids, so it is not
+/// a fallback.
+pub fn draw() -> Result<[u8; MAC_LEN], &'static str> {
     let mut mac = [0u8; MAC_LEN];
     let rc = nonos_libc::crypto_random(mac.as_mut_ptr(), MAC_LEN);
     if rc < 0 || (rc as usize) != MAC_LEN {
         return Err("rtl8169 no entropy for station address");
     }
     apply(&mut mac);
+    Ok(mac)
+}
 
+/// Program `mac` into the IDR registers and read it back.
+pub fn program(regs: &Regs, mac: &[u8; MAC_LEN]) -> Result<(), &'static str> {
     /*
      * IDR writes are dropped while the config lock is set, and the part takes
      * them only as whole dwords (reads may be any width): byte writes were
      * dropped on silicon, the readback below failed, and the NIC never came up.
      * High dword first, each read back to post it, as Linux rtl_rar_set does.
      */
+    // SAFETY: Cfg9346 and IDR0..IDR5 lie inside every mapped window, and the
+    // driver owns the part.
     unsafe {
         regs.w8(REG_CFG9346, CFG9346_UNLOCK);
         regs.w32(REG_MAC0 + 4, mac[4] as u32 | (mac[5] as u32) << 8);
@@ -49,10 +56,11 @@ pub fn program(regs: &Regs) -> Result<[u8; MAC_LEN], &'static str> {
 
     let mut readback = [0u8; MAC_LEN];
     for (i, byte) in readback.iter_mut().enumerate() {
+        // SAFETY: as above.
         *byte = unsafe { regs.r8(REG_MAC0 + i) };
     }
-    if readback != mac {
+    if &readback != mac {
         return Err("rtl8169 station address did not take");
     }
-    Ok(mac)
+    Ok(())
 }

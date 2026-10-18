@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod bot;
+mod clock;
 mod descriptors;
 mod disk;
 mod protocol;

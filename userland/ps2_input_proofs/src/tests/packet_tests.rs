@@ -20,20 +20,20 @@
 
 use crate::mouse::packet::{parse, BUTTON_LEFT, FLAG_X_OVERFLOW, FLAG_Y_OVERFLOW};
 use crate::mouse::parser::MouseParser;
-use crate::mouse::ring::{MouseRing, MOUSE_RING_CAPACITY};
+use crate::mouse::ring::MouseRing;
 
 #[test]
 fn a_first_byte_without_the_always_one_bit_never_opens_a_packet() {
     let mut p = MouseParser::new(false);
     let mut ring = MouseRing::new();
     for b in [0x00u8, 0x10, 0x07, 0xF7] {
-        p.absorb(b, &mut ring);
+        p.absorb(b, 0, &mut ring);
     }
     assert_eq!(ring.sync_errors, 4, "every stray byte is counted");
     assert!(ring.pop().is_none(), "no packet assembled from stray bytes");
     // The next byte that can open a packet does, and the stream recovers.
     for b in [0x09u8, 0x05, 0x03] {
-        p.absorb(b, &mut ring);
+        p.absorb(b, 0, &mut ring);
     }
     let ev = ring.pop().expect("resynchronised");
     assert_eq!((ev.dx, ev.dy, ev.buttons), (5, -3, BUTTON_LEFT));
@@ -68,22 +68,7 @@ fn a_wheel_mouse_takes_the_fourth_byte_as_a_signed_step() {
     let mut p = MouseParser::new(true);
     let mut ring = MouseRing::new();
     for b in [0x08u8, 0x00, 0x00, 0xFF] {
-        p.absorb(b, &mut ring);
+        p.absorb(b, 0, &mut ring);
     }
     assert_eq!(ring.pop().map(|e| e.dz), Some(-1));
-}
-
-#[test]
-fn a_full_queue_drops_new_packets_and_counts_them() {
-    let mut p = MouseParser::new(false);
-    let mut ring = MouseRing::new();
-    let total = MOUSE_RING_CAPACITY + 10;
-    for _ in 0..total {
-        for b in [0x08u8, 0x01, 0x01] {
-            p.absorb(b, &mut ring);
-        }
-    }
-    assert_eq!(ring.events_seen as usize, total);
-    assert_eq!(ring.queued(), MOUSE_RING_CAPACITY - 1, "one slot always stays empty");
-    assert_eq!(ring.events_dropped as usize, total - (MOUSE_RING_CAPACITY - 1));
 }

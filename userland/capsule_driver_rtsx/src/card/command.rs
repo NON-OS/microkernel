@@ -20,6 +20,7 @@
 //! response read back from SD_CMDx (or the ping-pong buffer for R2) and
 //! SD_STAT1 for the CRC.
 
+use super::limits::{BUSY_MS, COMMAND_MS};
 use super::select::select_sd;
 use crate::engine::{clear_error, results, send};
 use crate::error::{Result, RtsxError};
@@ -59,7 +60,7 @@ pub fn send_command(drv: &Driver, cmd: Command) -> Result<Response> {
     }
     buf.add(CmdKind::Read, SD_STAT1, 0, 0);
     // A busy response may hold the line while the card works (busy_timeout).
-    let timeout = if cmd.rsp == Rsp::R1b { 3000 } else { 100 };
+    let timeout = if cmd.rsp == Rsp::R1b { BUSY_MS } else { COMMAND_MS };
     if let Err(e) = send(drv, &buf, timeout) {
         clear_error(drv);
         return Err(e);

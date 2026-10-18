@@ -15,13 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod alloc;
+mod answer_by;
+mod bound;
 mod constants;
+mod copy;
 mod doorbell;
 mod failure;
 mod flush;
 mod geometry;
+mod park;
 mod prp;
 mod queue;
+mod restart;
+mod retry;
+mod ring_wait;
+mod served;
+mod settle_rule;
 mod setup;
 mod submit;
 mod transfer;

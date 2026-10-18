@@ -16,7 +16,9 @@
 use crate::constants::HCSPARAMS2;
 use crate::regs::mmio_read32;
 pub fn max_scratchpad(mmio_base: u64) -> u32 {
-    let v = mmio_read32(mmio_base + HCSPARAMS2);
+    // SAFETY: `mmio_base` starts the mapped window, and the capability registers are its first 32
+    // bytes.
+    let v = unsafe { mmio_read32(mmio_base + HCSPARAMS2) };
     let hi = (v >> 21) & 0x1F;
     let lo = (v >> 27) & 0x1F;
     (hi << 5) | lo

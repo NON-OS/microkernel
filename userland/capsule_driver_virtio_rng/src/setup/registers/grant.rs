@@ -13,13 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use super::grant_mmio::grant_mmio;
 use super::grant_pio::grant_pio;
-use super::types::RegisterGrant;
 use crate::discover::Found;
+use crate::regs::Regs;
 use nonos_libc::{BAR_KIND_MMIO, BAR_KIND_PIO};
 
-pub fn grant(dev: Found, epoch: u64) -> Result<RegisterGrant, &'static str> {
+/// The legacy register window, in whichever kind of BAR holds it. A failure
+/// leaves the claim to the caller, which releases it.
+pub fn grant(dev: Found, epoch: u64) -> Result<Regs, &'static str> {
     match dev.register_kind {
         BAR_KIND_MMIO => grant_mmio(dev, epoch),
         BAR_KIND_PIO => grant_pio(dev, epoch),

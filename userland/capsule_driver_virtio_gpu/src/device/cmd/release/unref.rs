@@ -25,11 +25,5 @@ pub fn resource_unref(
     fence_id: u64,
     resource_id: u32,
 ) -> Result<(), &'static str> {
-    submit(
-        q,
-        VG_CMD_RESOURCE_UNREF,
-        fence_id,
-        resource_id,
-        "virtio-gpu: resource_unref rejected",
-    )
+    submit(q, VG_CMD_RESOURCE_UNREF, fence_id, resource_id, "virtio-gpu: resource_unref rejected")
 }

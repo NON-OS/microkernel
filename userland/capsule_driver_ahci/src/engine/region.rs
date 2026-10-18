@@ -24,6 +24,7 @@ pub struct DmaRegion {
     grant_id: u64,
     user_va: u64,
     device_addr: u64,
+    len: u64,
 }
 
 impl DmaRegion {
@@ -35,7 +36,8 @@ impl DmaRegion {
         if r < 0 {
             return Err(AhciError::BrokerCallFailed(r));
         }
-        Ok(Self { grant_id: out.grant_id, user_va: out.user_va, device_addr: out.device_addr })
+        let len = out.length.min(length);
+        Ok(Self { grant_id: out.grant_id, user_va: out.user_va, device_addr: out.device_addr, len })
     }
 
     pub const fn user_va(&self) -> u64 {
@@ -44,6 +46,11 @@ impl DmaRegion {
 
     pub const fn device_addr(&self) -> u64 {
         self.device_addr
+    }
+
+    /// Bytes mapped from `user_va`.
+    pub const fn len(&self) -> u64 {
+        self.len
     }
 }
 

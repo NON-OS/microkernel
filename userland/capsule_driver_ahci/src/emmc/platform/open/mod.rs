@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claim one host, map its slot and DMA regions, and bring its card up.
+//! Claim one host, map its slot, reset it, map its DMA regions, and bring its
+//! card up.
 
 mod claim;
+mod command;
 mod embedded;
 mod map_slot;
 mod open_host;
 mod opened;
+mod reset;
 mod say;
 mod sizes;
 

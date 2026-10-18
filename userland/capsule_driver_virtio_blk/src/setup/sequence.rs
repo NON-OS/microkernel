@@ -13,29 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use nonos_libc::mk_device_release;
+
 use super::driver::Driver;
-use super::{claim, dma, irq, modern, registers};
-use crate::constants::LEG_CFG_CAPACITY;
+use super::step::step;
+use super::{claim, legacy, modern, pci};
 use crate::discover::{find_virtio_blk, Found};
-use crate::init::bring_up;
-use crate::queue::Queue;
-use crate::transport::{self, Transport};
-use nonos_libc::{mk_debug, mk_device_release, mk_irq_ack};
-
-const MSIX_CONFIG_SHIFT: usize = 4;
-
-// The step about to run, printed before it. A step that returns an error is
-// reported by the bring-up loop in main once it gives up; a step that never
-// returns reports nothing there, and the last line printed here names it.
-pub(super) fn step(name: &str) {
-    let mut line = [0u8; 64];
-    let tag = b"[BLK] step ";
-    let n = tag.len();
-    line[..n].copy_from_slice(tag);
-    let m = name.len().min(line.len() - n);
-    line[n..n + m].copy_from_slice(&name.as_bytes()[..m]);
-    let _ = mk_debug(line.as_ptr(), n + m);
-}
+use crate::transport;
 
 /// One bring-up attempt. A failed one holds nothing afterwards.
 pub fn run() -> Result<Driver, &'static str> {
@@ -46,99 +31,24 @@ pub fn run() -> Result<Driver, &'static str> {
     let attempt = claimed(dev, claim_epoch);
     if attempt.is_err() {
         /*
-         * Whichever step failed, the claim goes, and every MMIO, PIO, IRQ
-         * and DMA grant with it, so the next attempt can claim afresh. The
-         * steps below roll back on their own and this then answers "not
-         * claimed"; a register BAR the driver cannot map never did, and a modern
-         * handshake that fails leaves the release to this line.
+         * Whichever step failed, the device was reset if the handshake had
+         * reached it (`legacy::run`, `modern::run`); bus mastering goes off
+         * (defence in depth, `pci`), and the claim goes, and every MMIO,
+         * PIO, IRQ and DMA grant with it: the broker stops bus mastering
+         * first and only then tears the grants down, so the next attempt
+         * can claim afresh. No step unmaps anything itself.
          */
+        let _ = pci::command(dev.device_id, claim_epoch, pci::DECODE);
         let _ = mk_device_release(dev.device_id);
     }
     attempt
 }
 
 fn claimed(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
+    pci::command(dev.device_id, claim_epoch, pci::DECODE)?;
     step("transport");
     match transport::probe(&dev, claim_epoch)? {
         Some(caps) => modern::run(dev, claim_epoch, &caps),
-        None => legacy(dev, claim_epoch),
+        None => legacy::run(dev, claim_epoch),
     }
-}
-
-fn legacy(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
-    step("regs");
-    let register_grant = registers::grant(dev, claim_epoch)?;
-    step("irq-bind");
-    let (irq_grant, msix) = irq::bind(dev, claim_epoch, register_grant)?;
-    step("dma-queue");
-    let queue_dma = dma::map_queue(dev.device_id, claim_epoch, register_grant, &irq_grant)?;
-    step("dma-header");
-    let header_dma =
-        dma::map_header(dev.device_id, claim_epoch, register_grant, &irq_grant, &queue_dma)?;
-    step("dma-data");
-    let data_dma = dma::map_data(
-        dev.device_id,
-        claim_epoch,
-        register_grant,
-        &irq_grant,
-        &queue_dma,
-        &header_dma,
-    )?;
-    let regs = register_grant.regs().ok_or("virtio-blk: no legacy register window")?;
-    step("bring-up");
-    let init = match bring_up(regs, queue_dma.device_addr, Queue::max_supported_size(), msix) {
-        Ok(init) => init,
-        Err(e) => {
-            dma::rollback::data(
-                dev.device_id,
-                register_grant,
-                &irq_grant,
-                &queue_dma,
-                &header_dma,
-                &data_dma,
-            )?;
-            return Err(e);
-        }
-    };
-    let queue = Queue::new(
-        queue_dma.user_va,
-        queue_dma.device_addr,
-        init.queue_size,
-        header_dma.user_va,
-        header_dma.device_addr,
-        data_dma.user_va,
-        data_dma.device_addr,
-    );
-    let capacity_offset =
-        if msix { LEG_CFG_CAPACITY + MSIX_CONFIG_SHIFT } else { LEG_CFG_CAPACITY };
-    let capacity_sectors = unsafe { regs.r64(capacity_offset) };
-    if capacity_sectors == 0 {
-        dma::rollback::data(
-            dev.device_id,
-            register_grant,
-            &irq_grant,
-            &queue_dma,
-            &header_dma,
-            &data_dma,
-        )?;
-        return Err("virtio-blk: zero capacity");
-    }
-    if mk_irq_ack(irq_grant.grant_id) < 0 {
-        dma::rollback::data(
-            dev.device_id,
-            register_grant,
-            &irq_grant,
-            &queue_dma,
-            &header_dma,
-            &data_dma,
-        )?;
-        return Err("virtio-blk: irq ack failed");
-    }
-    step("ready");
-    Ok(Driver {
-        irq_grant: irq_grant.grant_id,
-        queue,
-        transport: Transport::Legacy(regs),
-        capacity_sectors,
-    })
 }

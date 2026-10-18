@@ -44,9 +44,11 @@ pub const SD_20_MODE: u8 = 0x00;
 pub const SD_CMD_START: u8 = 0x40;
 pub const SD_TRANSFER_START: u8 = 0x80;
 pub const SD_TRANSFER_END: u8 = 0x40;
+pub const SD_TRANSFER_ERR: u8 = 0x10;
 pub const SD_STAT_IDLE: u8 = 0x20;
 pub const SD_TM_CMD_RSP: u8 = 0x08;
 pub const SD_TM_AUTO_READ_2: u8 = 0x0E;
+pub const SD_TM_AUTO_WRITE_3: u8 = 0x01;
 
 /// SD_CFG2 response types (SD_RSP_TYPE_R0 and on).
 pub const SD_RSP_TYPE_R0: u8 = 0x04;
@@ -56,6 +58,7 @@ pub const SD_RSP_TYPE_R2: u8 = 0x02;
 pub const SD_RSP_TYPE_R3: u8 = 0x05;
 pub const SD_NO_CHECK_CRC7: u8 = 0x04;
 pub const SD_NO_CHECK_WAIT_CRC_TO: u8 = 0x20;
+pub const SD_NO_CALCULATE_CRC7: u8 = 0x80;
 /// SD_STAT1.
 pub const SD_CRC7_ERR: u8 = 0x80;
 

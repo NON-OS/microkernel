@@ -19,7 +19,7 @@
 //! the PHY work (r8153_hw_phy_cfg, rtl8152_set_speed) after it, and
 //! rtl8153_up at open; here they run back to back in that order.
 
-use nonos_usbnet::Bus;
+use nonos_usbnet::{Bus, Station};
 
 use super::aldps::aldps_off;
 use super::first_init::first_init;
@@ -35,12 +35,12 @@ use crate::r8153::regs::pla::MAC_PWR_CTRL3;
 use crate::r8153::regs::usb::{RX_BUF_TH, RX_THR_B};
 use crate::r8153::Version;
 
-pub fn bring_up<B: Bus>(dev: &mut Dev<B>, v: Version) -> Result<[u8; 6], Fail> {
+pub fn bring_up<B: Bus>(dev: &mut Dev<B>, v: Version, drawn: Station) -> Result<[u8; 6], Fail> {
     // r8153_init and r8153b_init.
     power_on(dev, v)?;
     rx_one_frame_per_transfer(dev)?;
-    // set_ethernet_addr.
-    let mac = station_address(dev)?;
+    // set_ethernet_addr, with the drawn address.
+    let mac = station_address(dev, drawn)?;
     // The PHY work: r8153_hw_phy_cfg, then rtl8152_set_speed.
     aldps_off(dev)?;
     phy_cfg(dev, v)?;

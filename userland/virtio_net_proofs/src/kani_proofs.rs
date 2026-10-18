@@ -7,10 +7,11 @@
 //! over a symbolic used-ring entry does not converge in the SAT backend
 //! (CBMC ran for hours without an answer, in both the full pointer-equality
 //! form and a weakened clamp-only form). The property is instead proven by
-//! the runnable harness in net_tests.rs, which drives the real take_one
-//! over two hundred thousand adversarial descriptor ids, used lengths, and
-//! ring positions plus the boundary set, asserting the exact slot pointer,
-//! the clamp, and the refill postconditions on every one.
+//! the runnable harness in tests/rx_fuzz_tests.rs, which drives the real
+//! take_one over two hundred thousand adversarial descriptor ids, used
+//! lengths and ring positions per header length, plus the boundary set in
+//! tests/rx_bound_tests.rs, asserting the source buffer, the frame bound and
+//! the refill on every one.
 
 use crate::protocol::decode_request;
 

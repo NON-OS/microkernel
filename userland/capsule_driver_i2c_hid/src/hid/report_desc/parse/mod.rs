@@ -14,23 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Walk a HID report descriptor and locate the touchpad's absolute X/Y, tip
-//! switch, contact count and button fields. This is a focused reader: it tracks
-//! only the global and local state those fields need, records the first contact
-//! it sees (enough to drive the cursor), and is bounded so a malformed
-//! descriptor can only ever yield fewer fields, never loop or read out of range.
+//! A report descriptor walked into the touchpad's and the mouse's field
+//! maps. The item reader, the globals with Push and Pop, and the offset
+//! each report ID has reached are usb_hid's parser, shared as its source:
+//! one walker for both HID drivers. The bounds, the locals and what is
+//! collected from the walk are this driver's.
+
+#[path = "../../../../../capsule_driver_usb_hid/src/descriptors/report/cursors.rs"]
+mod cursors;
+#[path = "../../../../../capsule_driver_usb_hid/src/descriptors/report/global_state.rs"]
+mod global_state;
+#[path = "../../../../../capsule_driver_usb_hid/src/descriptors/report/globals.rs"]
+mod globals;
+#[path = "../../../../../capsule_driver_usb_hid/src/descriptors/report/item.rs"]
+mod item;
 
 mod assign;
 mod feature;
-mod find_touch_report_id;
-mod item;
+mod field_at;
+mod hand;
+mod limits;
+mod locals;
+mod long;
+mod main_item;
 mod mouse;
-mod mouse_locals;
-mod mouse_walk;
-mod read_le;
-mod touch_walk;
-mod usage_for;
+mod take;
+mod touch;
 mod walk;
 
 pub use mouse::parse_mouse;
-pub use walk::parse;
+pub use touch::parse;

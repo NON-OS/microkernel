@@ -14,6 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::base::Trb;
-pub fn read_volatile_at(slot_va: u64) -> Trb {
+/// Read the TRB at `slot_va`, as the controller may be writing it.
+///
+/// # Safety
+/// `slot_va` is a 16-byte aligned TRB slot inside a live ring or event
+/// segment grant of this process.
+pub unsafe fn read_volatile_at(slot_va: u64) -> Trb {
+    // SAFETY: the caller's contract.
     unsafe { core::ptr::read_volatile(slot_va as *const Trb) }
 }

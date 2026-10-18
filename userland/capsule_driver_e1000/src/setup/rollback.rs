@@ -14,16 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reverse-order broker grant teardown invoked when a setup phase
-//! fails partway. Best-effort: an `EINVAL` from a doubly-released
-//! grant is harmless because the broker has already revoked it.
+//! Giving the device back, from any attempt that took DMA frames: the part
+//! stopped and reset first, then Bus Master turned off, then the device
+//! released. The release frees every grant tied to the device after the
+//! broker has read Bus Master back off, so no frame is unmapped here: a
+//! frame freed while the part could still write it would land wire bytes in
+//! memory the broker hands to someone else. There is no mk_dma_unmap or
+//! mk_mmio_unmap call here: `mk_device_release` does both, in the kernel,
+//! once Bus Master reads back off.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap, MmioMapOut};
+use nonos_libc::{mk_device_release, MmioMapOut};
 
-pub fn after(device_id: u64, mmio: &MmioMapOut, dma_grants: &[u64]) {
-    for &g in dma_grants.iter().rev() {
-        let _ = mk_dma_unmap(g);
-    }
-    let _ = mk_mmio_unmap(mmio.grant_id);
+use super::pci::command;
+use crate::init::reset_part;
+use crate::regs::Regs;
+
+pub fn after(device_id: u64, epoch: u64, mmio: &MmioMapOut) {
+    release(device_id, epoch, &Regs::new(mmio.user_va));
+}
+
+/// Best-effort throughout: a part that will not reset still goes back, with
+/// Bus Master off, and the broker's own stop runs before any frame is freed.
+pub fn release(device_id: u64, epoch: u64, regs: &Regs) {
+    let _ = reset_part(regs);
+    let _ = command(device_id, epoch, false);
     let _ = mk_device_release(device_id);
 }

@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Binding an RNDIS device, in the order Linux generic_rndis_bind takes:
-//! the configuration with an RNDIS function, INITIALIZE, the permanent
-//! station address, then the packet filter. A failure after INITIALIZE
-//! halts the device again, as Linux does at halt_fail_and_release.
+//! the configuration with an RNDIS function, INITIALIZE, the station
+//! address (drawn, where Linux reads the permanent one), then the packet
+//! filter. A failure after INITIALIZE halts the device again, as Linux
+//! does at halt_fail_and_release.
 
 use nonos_usbnet::desc::config_header;
 use nonos_usbnet::xhci::{CONTROL_MAX, E_IO};
-use nonos_usbnet::{Bind, Bus, Found, Setup};
+use nonos_usbnet::{Bind, Bus, Found, Setup, Station, Taken};
 
 use super::configure::configure;
 use super::control::Control;
@@ -30,11 +31,11 @@ use super::halt::halt;
 use super::init::{init_done, init_msg, Limits};
 use super::link::{Rndis, RX_LEN};
 
-pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Rndis<B>> {
+pub fn bind<B: Bus>(mut bus: B, found: &Found, drawn: Station) -> Bind<Rndis<B>> {
     let pick = |raw: &alloc::vec::Vec<u8>| Some((config_header(raw)?.1, find_rndis(raw)?));
     let Some((value, f)) = found.configs.iter().find_map(pick) else { return Bind::NotOurs };
-    match start(&mut bus, value, &f) {
-        Ok((mac, limits)) => Bind::Ours(Rndis::new(bus, mac, f.pipes, limits)),
+    match start(&mut bus, value, &f, drawn) {
+        Ok((taken, limits)) => Bind::Ours(Rndis::new(bus, (drawn.bytes(), taken), f.pipes, limits)),
         Err((what, e)) => Bind::Failed(what, e),
     }
 }
@@ -47,7 +48,8 @@ fn start<B: Bus>(
     bus: &mut B,
     value: u8,
     f: &RndisFunction,
-) -> Result<([u8; 6], Limits), (&'static str, i32)> {
+    drawn: Station,
+) -> Result<(Taken, Limits), (&'static str, i32)> {
     bus.configure_bulk(&f.pipes).map_err(|e| ("bulk pipes refused", e))?;
     bus.control_out(Setup::set_configuration(value), &[])
         .map_err(|e| ("SET_CONFIGURATION refused", e))?;
@@ -60,8 +62,8 @@ fn start<B: Bus>(
         .command(bus, &mut init_msg(RX_LEN as u32), &mut reply)
         .map_err(|e| ("RNDIS INITIALIZE failed", e))?;
     let up = init_done(&reply[..n]).map_err(|what| (what, E_IO)).and_then(|limits| {
-        let mac = configure(bus, &mut ctl, &mut reply)?;
-        Ok((mac, limits))
+        let taken = configure(bus, &mut ctl, &mut reply, drawn)?;
+        Ok((taken, limits))
     });
     if up.is_err() {
         halt(bus, f.comm);

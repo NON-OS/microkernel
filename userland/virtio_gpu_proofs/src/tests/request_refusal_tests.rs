@@ -21,67 +21,9 @@
 //! naming the op, flags and request id it carried (zeros when it is too short
 //! to carry them), so its caller is not left waiting out its timeout.
 
-use crate::protocol::{parse, refused, response_header, write_status, Request, E_INVAL, HDR_LEN, STATUS_LEN};
-
-const MAGIC: u32 = 0x4E56_4750;
-const VERSION: u16 = 1;
-/// The longest body the driver's receive buffer holds after the header.
-const BODY_MAX: usize = crate::protocol::IPC_PAYLOAD_MAX;
-/// The last op the driver knows.
-const LAST_OP: u16 = crate::protocol::OP_GET_PRIMARY_SURFACE;
-
-fn xorshift(s: &mut u64) -> u64 {
-    let mut x = *s;
-    x ^= x << 13;
-    x ^= x >> 7;
-    x ^= x << 17;
-    *s = x;
-    x
-}
-
-fn frame(op: u16, flags: u16, request_id: u32, payload_len: u32, body: &[u8]) -> Vec<u8> {
-    let mut f = Vec::with_capacity(HDR_LEN + body.len());
-    f.extend_from_slice(&MAGIC.to_le_bytes());
-    f.extend_from_slice(&VERSION.to_le_bytes());
-    f.extend_from_slice(&op.to_le_bytes());
-    f.extend_from_slice(&flags.to_le_bytes());
-    f.extend_from_slice(&[0, 0]);
-    f.extend_from_slice(&request_id.to_le_bytes());
-    f.extend_from_slice(&payload_len.to_le_bytes());
-    f.extend_from_slice(body);
-    f
-}
-
-fn le16(b: &[u8], off: usize) -> u16 {
-    u16::from_le_bytes([b[off], b[off + 1]])
-}
-
-fn le32(b: &[u8], off: usize) -> u32 {
-    u32::from_le_bytes([b[off], b[off + 1], b[off + 2], b[off + 3]])
-}
-
-/// What must hold for any input. Returns whether it decoded.
-fn check(buf: &[u8]) -> bool {
-    if let Some((req, body)) = parse(buf) {
-        assert!(buf.len() >= HDR_LEN);
-        assert_eq!((le32(buf, 0), le16(buf, 4)), (MAGIC, VERSION));
-        assert_eq!((req.op, req.flags, req.request_id), (le16(buf, 6), le16(buf, 8), le32(buf, 12)));
-        assert_eq!(body.len() as u64, u64::from(le32(buf, 16)));
-        assert_eq!(body, &buf[HDR_LEN..], "the body is the rest of the frame");
-        return true;
-    }
-    let req: Request = refused(buf);
-    let echo = if buf.len() >= HDR_LEN { (le16(buf, 6), le16(buf, 8), le32(buf, 12)) } else { (0, 0, 0) };
-    assert_eq!((req.op, req.flags, req.request_id), echo, "the refusal names its request");
-    let mut tx = vec![0u8; HDR_LEN + BODY_MAX];
-    response_header(&mut tx, &req, STATUS_LEN as u32);
-    write_status(&mut tx, E_INVAL);
-    let reply = &tx[..HDR_LEN + STATUS_LEN];
-    assert_eq!((le32(reply, 0), le16(reply, 4)), (MAGIC, VERSION));
-    assert_eq!((le16(reply, 6), le32(reply, 12), le32(reply, 16)), (req.op, req.request_id, STATUS_LEN as u32));
-    assert_eq!(le32(reply, HDR_LEN) as i32, E_INVAL);
-    false
-}
+use super::frames::{frame, xorshift, BODY_MAX, LAST_OP};
+use super::refusal::check;
+use crate::protocol::HDR_LEN;
 
 #[test]
 fn random_frames_are_served_or_answered_with_a_refusal() {
@@ -114,24 +56,4 @@ fn random_frames_are_served_or_answered_with_a_refusal() {
         }
     }
     assert!(served > 50_000 && refused_n > 50_000, "both paths reached: {served} {refused_n}");
-}
-
-#[test]
-fn boundary_frames() {
-    assert!(!check(&[]));
-    let short = frame(1, 0, 7, 0, &[]);
-    assert!(!check(&short[..HDR_LEN - 1]), "one byte short of a header");
-    assert!(check(&short), "a bare header");
-    assert!(!check(&frame(1, 0, 9, 5, &[1, 2, 3, 4])), "a length field one past the bytes");
-    assert!(!check(&frame(1, 0, 9, 3, &[1, 2, 3, 4])), "one short of them");
-    assert!(!check(&frame(1, 0, 11, u32::MAX, &[])), "the largest length field");
-    for op in (0..=LAST_OP + 1).chain([u16::MAX]) {
-        assert!(check(&frame(op, 3, u32::from(op), 0, &[])), "op {op}");
-    }
-    let big = vec![0xA5u8; BODY_MAX];
-    assert!(check(&frame(1, 0, 13, BODY_MAX as u32, &big)), "the largest body");
-    let mut bad = frame(1, 0, 15, 0, &[]);
-    bad[0] ^= 0xFF;
-    assert!(!check(&bad), "the wrong magic");
-    assert_eq!(refused(&bad).request_id, 15);
 }
