@@ -15,9 +15,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Fail when a driver capsule's discover table names a device id its kernel
-scope row (src/hardware/broker/scope_table.rs, K6f) does not admit, so the
-kernel's table and the capsules' own cannot drift. Rows by class are pinned
-in kernel_proofs::driver_scope."""
+scope row (src/hardware/broker/scope_table.rs, K6f) does not admit, or the
+row admits an id range the table never names, so the kernel's table and the
+capsules' own cannot drift either way. Rows by class are pinned in
+kernel_proofs::driver_scope."""
 
 import argparse
 import sys
@@ -35,14 +36,19 @@ def drift(root, discover=DISCOVER):
             out.append(f"{service}: no row in scope_table.rs")
             continue
         text = (root / (CAPSULES + path)).read_text()
+        named = []
         for name in names.split():
             body = item(text, name)
             if body is None:
                 out.append(f"{service}: {path} has no {name}; update DISCOVER")
                 continue
             for lo, hi in capsule_ids(body):
+                named.append((lo, hi))
                 if not any(a <= lo and hi <= b for a, b in row):
                     out.append(f"{service}: {name} names {lo:#06x}..={hi:#06x}, outside its row")
+        for a, b in row:
+            if not any(lo <= b and a <= hi for lo, hi in named):
+                out.append(f"{service}: its row admits {a:#06x}..={b:#06x}, which it never names")
     return out
 
 
@@ -59,7 +65,7 @@ def main():
     bad = drift(a.root)
     for line in bad:
         print(f"driver scope: {line}")
-    print(f"driver scope: {len(DISCOVER)} discover tables checked, {len(bad)} outside their row")
+    print(f"driver scope: {len(DISCOVER)} discover tables checked, {len(bad)} drifted from their row")
     return 1 if bad else 0
 
 

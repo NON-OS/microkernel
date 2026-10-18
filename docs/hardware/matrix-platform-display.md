@@ -22,6 +22,6 @@ Part of [Hardware support matrix](MATRIX.md).
 | Class | Chip and id | Driver capsule | State | How verified | Release |
 |---|---|---|---|---|---|
 | Display | UEFI GOP framebuffer | kernel and compositor | Works | QEMU | 0.9.2 |
-| Display | virtio-gpu 1af4:1010, 1af4:1050 | `capsule_driver_virtio_gpu` | Works | proof crate `virtio_gpu_proofs` (38); QEMU `virtio-vga` | 0.9.2 |
+| Display | virtio-gpu 1af4:1050 | `capsule_driver_virtio_gpu` | Works | proof crate `virtio_gpu_proofs` (38); QEMU `virtio-vga` | 0.9.2 |
 | Display | Bochs display adapter 1234:1111 | `capsule_driver_bga` | Not supported: parked, since it re-modes the adapter and would destroy the firmware framebuffer the desktop uses | proof crate `bga_proofs` (9) | 0.9.2 |
 | Display | Native GPUs: Intel 8086, AMD 1002, NVIDIA 10de, PCI class 03 | none | Not supported: no modeset driver; the desktop draws on the firmware framebuffer ([Display](../drivers/display.md)) | none | 0.9.2 |

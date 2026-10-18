@@ -42,7 +42,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.i2c_pci0", I2C_PCI),
     ("driver.ps2_kbd0", PS2),
     ("driver.virtio_rng", &[Ids(VIRTIO, &[0x1005, 0x1005, 0x1044, 0x1044])]),
-    ("driver.virtio_gpu0", &[Ids(VIRTIO, &[0x1010, 0x1010, 0x1050, 0x1050])]),
+    ("driver.virtio_gpu0", &[Ids(VIRTIO, &[0x1050, 0x1050])]),
     ("driver.hda0", HDA),
     ("driver.ac97_0", &[Ids(INTEL, &[0x2415, 0x2415])]),
     ("driver.buslogic0", &[Ids(0x104B, &[0x1040, 0x1040])]),
