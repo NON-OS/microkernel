@@ -18,7 +18,8 @@
 //! order: the PCI table first, its port windows and the legacy records
 //! next, then the framebuffer's registration, which finds who covers it; so
 //! every PCI record and its BARs exist when find reads the table. The
-//! firmware's I2C and GPIO controllers come after and are never asked.
+//! firmware's I2C and GPIO controllers, the SCI, the NUMA facts and the
+//! SDEV posture come after, and none of them is asked.
 
 use super::glue_text::{body, code};
 
@@ -35,6 +36,9 @@ const ORDER: &str = concat!(
     "#[cfg(target_arch=\"x86_64\")]{",
     "crate::hardware::broker::register_acpi_i2c();",
     "crate::hardware::broker::register_acpi_gpio();",
+    "let_=crate::hardware::broker::acpi::register_sci();",
+    "crate::hardware::broker::acpi::numa_refresh::refresh();",
+    "crate::hardware::broker::acpi::sdev_posture::sdev_posture();",
     "}",
 );
 

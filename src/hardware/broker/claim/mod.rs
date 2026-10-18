@@ -22,6 +22,7 @@ mod hold;
 mod hold_ids;
 mod hold_platform;
 mod hold_rule;
+mod hold_virt;
 mod leave;
 mod live;
 mod lookup;

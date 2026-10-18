@@ -43,6 +43,8 @@ pub(crate) enum Hold {
     Open,
     /// Only the process that serves this endpoint may claim the device.
     ForService(&'static str),
+    /// Only a process that serves one of these two may claim it.
+    ForEither(&'static str, &'static str),
     Refused,
 }
 

@@ -42,6 +42,8 @@ pub mod enrol_dev_root;
 pub mod enrol_local_root;
 pub mod errnos;
 pub mod futex;
+pub mod hv_backdoor;
+pub mod hv_vmbus;
 pub mod install_source;
 pub mod install_source_modules;
 pub mod install_source_window;
@@ -58,6 +60,11 @@ pub(crate) mod narrow;
 pub mod numbers;
 pub mod pci;
 pub mod pio;
+#[cfg(target_arch = "x86_64")]
+pub mod acpi;
+#[cfg(not(target_arch = "x86_64"))]
+#[path = "acpi_absent.rs"]
+pub mod acpi;
 pub mod private_write;
 pub mod proc_output;
 pub mod proc_stdin;

@@ -23,7 +23,7 @@ const VERSION: u16 = 1;
 const OP_WRITE_PCM: u16 = 7;
 const OP_STREAM_START: u16 = 8;
 const OP_STREAM_STOP: u16 = 9;
-/// driver.hda0's `OP_OUTPUT_STATUS`: its verdict on this machine's audio.
+/// The sink driver's `OP_OUTPUT_STATUS`: its verdict on this machine's audio.
 const OP_OUTPUT_STATUS: u16 = 10;
 /// The driver's status reply: header, status, then verdict u32, codec
 /// vendor u16, codec device u16, outputs u8, plugged u8, reserved u16.
