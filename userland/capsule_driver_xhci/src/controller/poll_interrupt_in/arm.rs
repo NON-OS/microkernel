@@ -16,17 +16,31 @@
 
 use crate::controller::ring_doorbell::ring_doorbell;
 use crate::error::XhciResult;
+use crate::rings::event::{EventRing, IssuedTransfer};
 use crate::slots::InterruptEndpoint;
 use crate::trb::builders::normal::normal;
+/// Queue one report TRB and ring its doorbell. The TRB is named to the event
+/// ring as armed first, at the address it is about to take, so its event is
+/// kept whatever arrives before the next poll.
 pub fn arm(
     doorbell_base: u64,
+    evt_ring: &mut EventRing,
     slot: u8,
     ep: &mut InterruptEndpoint,
     length: u16,
 ) -> XhciResult<()> {
     let cycle = ep.ring.cycle() != 0;
     let trb = normal(ep.buf.phys(), length as u32, cycle, true, false);
-    let issued_phys = ep.ring.enqueue(trb)?;
+    let issued = IssuedTransfer { phys: ep.ring.enqueue_phys(), slot, dci: ep.dci };
+    evt_ring.arm(issued)?;
+    let issued_phys = match ep.ring.enqueue(trb) {
+        Ok(phys) => phys,
+        Err(e) => {
+            // Nothing was queued, so nothing will complete: end the arming.
+            evt_ring.finished(issued);
+            return Err(e);
+        }
+    };
     ring_doorbell(doorbell_base, slot, ep.dci);
     ep.armed = Some(issued_phys);
     Ok(())

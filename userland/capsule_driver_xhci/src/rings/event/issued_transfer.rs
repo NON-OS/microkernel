@@ -35,4 +35,9 @@ impl IssuedTransfer {
             && event.slot_id() == self.slot
             && event.endpoint_id() == self.dci
     }
+
+    /// Whether `other` names the same TRB, by the same three fields.
+    pub fn same(&self, other: &IssuedTransfer) -> bool {
+        self.phys & !0xF == other.phys & !0xF && self.slot == other.slot && self.dci == other.dci
+    }
 }

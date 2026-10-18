@@ -51,7 +51,9 @@ pub(super) fn fix_ep0(ctx: &mut Context, slot: u8) -> XhciResult<u16> {
         DEVICE_DESCRIPTOR_PREFIX,
     );
     if let Err(e) = read {
-        recover_after(ctx, slot, DCI_EP0, e);
+        // The error is reported either way; a failed recovery shows on the
+        // next request to the endpoint.
+        let _recovered = recover_after(ctx, slot, DCI_EP0, e);
         return Err(e);
     }
     /*
