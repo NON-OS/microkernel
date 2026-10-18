@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! DMA phase. Four grants per setup: RX ring, RX buffer pool, TX ring, TX
-//! buffer pool. Each step rolls back every prior grant in reverse on failure
-//! so the broker never holds a partial setup. Grants are page aligned, which
-//! covers the 128-byte ring base alignment the queues need.
+//! buffer pool. A failing step gives the device back through `rollback`,
+//! whose release frees the earlier grants, so the broker never holds a
+//! partial setup. Grants are page aligned, which covers the 128-byte ring
+//! base alignment the queues need.
 
 use nonos_libc::{mk_dma_map, DmaMapOut, MmioMapOut};
 
@@ -47,19 +48,19 @@ pub fn map_rings_and_buffers(
     mmio: &MmioMapOut,
 ) -> Result<Grants, &'static str> {
     let rx_ring = alloc(device_id, claim_epoch, RX_RING_BYTES).ok_or_else(|| {
-        rollback::after(device_id, mmio, &[]);
+        rollback::after(device_id, claim_epoch, mmio);
         "dma map refused (rx ring)"
     })?;
     let rx_buf = alloc(device_id, claim_epoch, RX_BUFFER_POOL_BYTES).ok_or_else(|| {
-        rollback::after(device_id, mmio, &[rx_ring.grant_id]);
+        rollback::after(device_id, claim_epoch, mmio);
         "dma map refused (rx buffers)"
     })?;
     let tx_ring = alloc(device_id, claim_epoch, TX_RING_BYTES).ok_or_else(|| {
-        rollback::after(device_id, mmio, &[rx_ring.grant_id, rx_buf.grant_id]);
+        rollback::after(device_id, claim_epoch, mmio);
         "dma map refused (tx ring)"
     })?;
     let tx_buf = alloc(device_id, claim_epoch, TX_BUFFER_POOL_BYTES).ok_or_else(|| {
-        rollback::after(device_id, mmio, &[rx_ring.grant_id, rx_buf.grant_id, tx_ring.grant_id]);
+        rollback::after(device_id, claim_epoch, mmio);
         "dma map refused (tx buffers)"
     })?;
     Ok((rx_ring, rx_buf, tx_ring, tx_buf))

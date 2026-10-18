@@ -17,5 +17,7 @@ use crate::constants::CRCR_LO;
 use crate::regs::mmio_write64;
 pub fn crcr_program(op_base: u64, ring_phys: u64, rcs: u8) {
     let value = (ring_phys & !0x3F) | ((rcs as u64) & 0x1);
-    mmio_write64(op_base + CRCR_LO, value);
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_write64(op_base + CRCR_LO, value) };
 }

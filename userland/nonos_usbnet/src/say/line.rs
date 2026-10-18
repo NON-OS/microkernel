@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One log line, tagged `[usbnet <driver>]` so `log usbnet` shows every
-//! USB network driver's steps together.
+//! USB network driver's steps together. No line carries a station address,
+//! and the device's vendor and product only when its bind failed.
 
 use super::fmt::Line;
+use crate::station::Taken;
 
 /// `[usbnet <tag>] <parts...>`, cut to fit, ending in a newline.
 pub fn say(tag: &[u8], parts: &[&[u8]]) {
@@ -31,17 +33,19 @@ pub fn say(tag: &[u8], parts: &[&[u8]]) {
     line.send();
 }
 
-/// `[usbnet <tag>] port <n> <vid>:<pid>: <what> <errno>`.
-pub fn say_port(tag: &[u8], port: u8, ids: (u16, u16), what: &[u8], errno: Option<i32>) {
+/// `[usbnet <tag>] port <n> [<vid>:<pid>]: <what> [errno <e>]`.
+pub fn say_port(tag: &[u8], port: u8, ids: Option<(u16, u16)>, what: &[u8], errno: Option<i32>) {
     let mut line = Line::new();
     line.put(b"[usbnet ");
     line.put(tag);
     line.put(b"] port ");
     line.dec(port as i64);
-    line.put(b" ");
-    line.hex(ids.0 as u32, 4);
-    line.put(b":");
-    line.hex(ids.1 as u32, 4);
+    if let Some((vendor, product)) = ids {
+        line.put(b" ");
+        line.hex(vendor as u32, 4);
+        line.put(b":");
+        line.hex(product as u32, 4);
+    }
     line.put(b": ");
     line.put(what);
     if let Some(e) = errno {
@@ -51,19 +55,19 @@ pub fn say_port(tag: &[u8], port: u8, ids: (u16, u16), what: &[u8], errno: Optio
     line.send();
 }
 
-/// `[usbnet <tag>] port <n> up, mac aa:bb:cc:dd:ee:ff`.
-pub fn say_up(tag: &[u8], port: u8, mac: [u8; 6]) {
+/// `[usbnet <tag>] port <n> up, <how the drawn address was taken>`.
+pub fn say_up(tag: &[u8], port: u8, taken: Taken) {
+    let how: &[u8] = match taken {
+        Taken::Programmed => b"drawn station address programmed",
+        Taken::Promiscuous => b"drawn station address, device filter opened",
+        Taken::Unconfirmed => b"drawn station address not confirmed: device filter would not open",
+    };
     let mut line = Line::new();
     line.put(b"[usbnet ");
     line.put(tag);
     line.put(b"] port ");
     line.dec(port as i64);
-    line.put(b" up, mac ");
-    for (i, b) in mac.iter().enumerate() {
-        if i > 0 {
-            line.put(b":");
-        }
-        line.hex(*b as u32, 2);
-    }
+    line.put(b" up, ");
+    line.put(how);
     line.send();
 }

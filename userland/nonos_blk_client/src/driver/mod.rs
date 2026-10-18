@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The three dialects, and the controllers on the bus they serve.
+//! The drivers' dialects, and the controllers on the bus they serve.
 
+mod names;
 mod pci;
 mod table;
 

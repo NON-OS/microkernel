@@ -19,9 +19,9 @@ use super::pio_write::pio_write;
 use super::regs_type::Regs;
 
 impl Regs {
-    pub unsafe fn w32(self, offset: usize, value: u32) {
+    pub fn w32(self, offset: usize, value: u32) {
         match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_write32(base.add(offset) as usize, value),
+            RegIo::Mmio(m) => m.w32(offset, value),
             RegIo::Pio(grant) => pio_write(grant, offset, 4, value),
         }
     }

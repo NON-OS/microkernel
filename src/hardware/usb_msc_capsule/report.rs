@@ -22,18 +22,30 @@
 
 use alloc::string::String;
 
+use super::generation::{generation, COUNTERS_LEN};
 use super::protocol::OP_GET_STATE;
 use super::report_words::{words, REPORT_LEN};
 use super::transport::round_trip;
 
-/// The driver's counters come first; the report follows them.
-const COUNTERS_LEN: usize = 48;
-
-/// The search's last stage, as one "[USB-MSC] ..." line, or None when the
-/// driver does not answer or predates the report.
-pub fn report_line() -> Option<String> {
-    let body = round_trip(OP_GET_STATE, &[]).ok()?;
-    let r = body.get(COUNTERS_LEN..COUNTERS_LEN + REPORT_LEN)?;
-    Some(words(r))
+/// driver.usb_msc0's state reply as the kernel reads it: where its search
+/// stands, in words, and its re-bind generation (generation.rs), None when
+/// the reply is cut inside it. A block layer that compares the generation
+/// across writes can tell a re-bind happened.
+pub struct StateReply {
+    pub report: String,
+    pub generation: Option<u32>,
 }
 
+/// The state reply, read once, or None when the driver does not answer or
+/// predates the report.
+pub fn state_reply() -> Option<StateReply> {
+    let body = round_trip(OP_GET_STATE, &[]).ok()?;
+    let r = body.get(COUNTERS_LEN..COUNTERS_LEN + REPORT_LEN)?;
+    Some(StateReply { report: words(r), generation: generation(&body) })
+}
+
+/// The search's last stage, as one "[USB-MSC] ..." line, or None as for
+/// `state_reply`.
+pub fn report_line() -> Option<String> {
+    state_reply().map(|reply| reply.report)
+}
