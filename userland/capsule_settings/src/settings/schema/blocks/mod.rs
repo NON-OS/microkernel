@@ -16,6 +16,7 @@
 
 mod accessibility;
 mod appearance;
+mod bluetooth;
 mod developer;
 mod general;
 mod network;
@@ -27,6 +28,7 @@ mod wifi;
 
 pub use accessibility::ACCESSIBILITY;
 pub use appearance::APPEARANCE;
+pub use bluetooth::BLUETOOTH;
 pub use developer::DEVELOPER;
 pub use general::GENERAL;
 pub use network::NETWORK;

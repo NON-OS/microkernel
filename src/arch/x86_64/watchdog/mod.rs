@@ -19,9 +19,11 @@ pub mod detect;
 mod ops;
 pub mod state;
 mod status;
+mod wdat;
 
 pub use constants::{TCO1_CNT, TCO1_STS, TCO2_STS, TCO_RLD};
 pub use detect::detect_tco_watchdog;
 pub use ops::{disable, enable, get_timeout, is_enabled, kick, set_timeout};
 pub use state::{ENABLED, LAST_KICK, TIMEOUT_MS};
 pub use status::{get_status, WatchdogStatus};
+pub use wdat::{wdat_kick, wdat_set_countdown, wdat_status, WdatStatus, WRITES};

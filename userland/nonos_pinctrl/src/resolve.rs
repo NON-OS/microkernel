@@ -24,9 +24,9 @@ pub struct Pad {
     pub pad: u16,
 }
 
-/// The pad behind firmware pin number `gpio`, searched in table order as
-/// Linux intel_gpio_to_pin does, so an overlap resolves the same way. The
-/// pad index counts from the community's first pin (Linux pin_to_padno).
+/// The pad behind firmware pin number `gpio`: the first group, in table
+/// order, whose firmware numbers hold it, and the pad's place counted from
+/// its community's first pad. A number no group holds is refused.
 pub fn resolve(layout: &Layout, gpio: u32) -> Result<Pad, PinError> {
     for (bar, c) in layout.communities.iter().enumerate() {
         for g in c.groups {

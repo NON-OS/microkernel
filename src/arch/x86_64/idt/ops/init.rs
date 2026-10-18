@@ -35,15 +35,15 @@ pub fn init() -> Result<(), IdtError> {
         }
         return Err(IdtError::AlreadyInitialized);
     }
+    crate::arch::x86_64::interrupt::cli();
     unsafe {
-        asm!("cli", options(nomem, nostack, preserves_flags));
         let idt = &mut *addr_of_mut!(IDT);
         setup_exceptions(idt);
         setup_irqs(idt);
         remap_pic();
         load_idt();
-        asm!("sti", options(nomem, nostack, preserves_flags));
     }
+    crate::arch::x86_64::interrupt::sti();
     INITIALIZED.store(true, Ordering::Release);
     Ok(())
 }
