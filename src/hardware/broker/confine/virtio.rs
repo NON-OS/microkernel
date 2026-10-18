@@ -20,8 +20,7 @@
 use super::virtio_read::{access_platform, FEATURE};
 use super::virtio_rule::{admitted, common_cfg, is_modern_virtio};
 use crate::drivers::pci::config::access::{read32, read8};
-use crate::memory::addr::PhysAddr;
-use crate::memory::mmio::{map_device_memory, unmap_mmio};
+use crate::drivers::pci::with_bar_page;
 
 const PAGE: u64 = 4096;
 
@@ -52,15 +51,15 @@ fn platform_bit(rec: &crate::hardware::broker::DeviceRecord) -> Option<bool> {
     let end = u64::from(offset).checked_add(FEATURE + 4)?;
     let at = b.base.checked_add(u64::from(offset)).filter(|_| end <= b.size)?;
     let page = at & !(PAGE - 1);
-    let va = map_device_memory(PhysAddr::new(page), PAGE as usize).ok()?;
-    let reg = |r: u64| (va.as_u64() + (at - page) + r) as *mut u32;
-    // SAFETY: eK@nonos.systems - both registers lie inside the BAR (checked
-    // against its size above) and inside the one uncached page just mapped,
-    // which is unmapped before return and used by nothing else.
-    let read = |r: u64| unsafe { core::ptr::read_volatile(reg(r)) };
-    // SAFETY: as above.
-    let write = |r: u64, v: u32| unsafe { core::ptr::write_volatile(reg(r), v) };
-    let platform = access_platform(read, write);
-    let _ = unmap_mmio(va);
-    platform
+    with_bar_page(page, |va| {
+        let reg = |r: u64| (va + (at - page) + r) as *mut u32;
+        // SAFETY: eK@nonos.systems - both registers lie inside the BAR (checked
+        // against its size above) and inside the one uncached page just mapped,
+        // which is unmapped once this returns and used by nothing else.
+        let read = |r: u64| unsafe { core::ptr::read_volatile(reg(r)) };
+        // SAFETY: as above.
+        let write = |r: u64, v: u32| unsafe { core::ptr::write_volatile(reg(r), v) };
+        access_platform(read, write)
+    })
+    .flatten()
 }
