@@ -24,6 +24,8 @@ use crate::linux::net::sock::{self, Link, Proto};
 use crate::linux::net::sockaddr::{self, AF_UNSPEC};
 use crate::linux::unix;
 
+use nonos_linux_policy::mask::WAYLAND;
+
 use super::addr::{unix_addr, UAddr};
 use super::display::display;
 use super::name::{find, resolve};
@@ -38,6 +40,9 @@ pub fn connect(guest: &mut Guest, fd: u64, id: u32, proto: Proto, at: u64, len: 
         Err(e) => return e,
     };
     if let (Proto::Stream, UAddr::Path(p)) = (proto, &ua) {
+        if unix::is_display(p) && !crate::linux::app::granted(guest, WAYLAND) {
+            return crate::linux::app::refuse("the display", "WAYLAND", errno::EACCES);
+        }
         if unix::is_display(p) {
             return display(guest, fd, at, len);
         }

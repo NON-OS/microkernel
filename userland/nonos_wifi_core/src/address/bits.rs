@@ -20,8 +20,9 @@
 /// An address the station made up: individual (bit 0 of the first octet
 /// clear) and locally administered (bit 1 set), so it can never be taken
 /// for a group address or for a vendor's.
+/// The rule is `nonos_mac`'s, the one every network driver uses.
 pub fn local_unicast(mut a: [u8; 6]) -> [u8; 6] {
-    a[0] = (a[0] | 0x02) & !0x01;
+    nonos_mac::apply(&mut a);
     a
 }
 
