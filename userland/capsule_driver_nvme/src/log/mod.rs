@@ -21,7 +21,7 @@
 //! (`capsule-serial-debug`); without it the call is refused and the driver
 //! carries on.
 
-mod line;
+pub mod line;
 
 use nonos_libc::mk_debug;
 

@@ -14,41 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Bochs DISPI mode set, proved against a register window rather than
-//! against a display adapter.
+//! The Bochs display adapter's driver, proved against a register window
+//! and a framebuffer in memory rather than against an adapter.
 //!
 //! Each `#[path]` below pulls in the shipping driver source, so these tests
-//! run the code that boots, not a copy of it. The BGA capsule had no host
-//! coverage before this crate: the only way to learn that a mode set was
-//! wrong was to boot a machine and look at a black screen, which says nothing
-//! about which of the five register writes was at fault.
-//!
-//! The interface is worth proving without hardware because Bochs, QEMU and
-//! every clone of them implement the same published register set. A driver
-//! that programs the wrong bits-per-pixel, or leaves the linear framebuffer
-//! undecoded, is wrong against all of them, and a black screen is the same
-//! symptom for each. That is exactly the class of defect a test with no
-//! adapter can pin down.
+//! run the code that boots, not a copy of it: the DISPI mode set, the mode
+//! kept from firmware and written back, and the display wire it serves the
+//! compositor. Bochs, QEMU and every clone of them implement the same
+//! published register set, so a driver that programs the wrong bits per
+//! pixel, or leaves the linear framebuffer undecoded, is wrong against all
+//! of them: the class of defect a test with no adapter can pin down.
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
-
+pub mod dispi;
 #[path = "../../capsule_driver_bga/src/error.rs"]
 pub mod error;
-
-#[path = "../../capsule_driver_bga/src/regs.rs"]
+/// The shipping register access, each write answered by the adapter model.
 pub mod regs;
 
-pub mod dispi;
+/// One bring-up attempt end to end, against `libc_shim`'s broker and kernel:
+/// discovery's record, the claim and PCI command, both BAR mappings, the
+/// DISPI ID, the mode kept or set and read back, the clear and the surface.
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/discover.rs"]
+mod discover;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/handles.rs"]
+mod handles;
+/// The display wire the driver serves once it is up.
+#[cfg(test)]
+mod serve;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/setup/mod.rs"]
+mod setup;
 
+#[cfg(test)]
+mod adapter;
+#[cfg(test)]
+mod check_tests;
 #[cfg(test)]
 mod clear_tests;
-
+#[cfg(test)]
+mod display_tests;
 #[cfg(test)]
 mod mode_tests;
-
 #[cfg(test)]
 mod offset_tests;
-
 #[cfg(test)]
 mod reason_tests;
+#[cfg(test)]
+mod setup_bound_tests;
+#[cfg(test)]
+mod setup_claim_tests;
+#[cfg(test)]
+mod setup_confirm_tests;
+#[cfg(test)]
+mod setup_tests;
+#[cfg(test)]
+mod span_tests;

@@ -17,6 +17,7 @@
 use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
 use crate::protocol::{Request, E_AGAIN, E_INVAL, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
 use crate::server::error::reply_with_status;
+use crate::server::tx_watch;
 use crate::setup::Driver;
 use crate::tx::{busy, send};
 
@@ -32,6 +33,8 @@ pub fn handle(sender: u32, driver: &mut Driver, req: &Request, body: &[u8], tx: 
         reply_with_status(sender, tx, req, E_INVAL);
         return;
     }
+    // A part found hung is reset here, which frees its next slot.
+    tx_watch::check(driver, busy(driver));
     if busy(driver) {
         reply_with_status(sender, tx, req, E_AGAIN);
         return;

@@ -24,6 +24,7 @@ pub enum HdaError {
     DmaOutOfReach,
     StreamResetTimeout,
     CodecPowerTimeout,
+    EngineStopTimeout,
 }
 
 pub type HdaResult<T> = Result<T, HdaError>;
@@ -42,5 +43,6 @@ pub fn exit_code(e: HdaError) -> i32 {
         HdaError::DmaOutOfReach => 10,
         HdaError::StreamResetTimeout => 11,
         HdaError::CodecPowerTimeout => 12,
+        HdaError::EngineStopTimeout => 13,
     }
 }

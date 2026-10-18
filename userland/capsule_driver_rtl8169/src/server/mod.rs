@@ -17,5 +17,6 @@
 mod error;
 mod handlers;
 mod runner;
+mod tx_watch;
 
 pub use runner::run;
