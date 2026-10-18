@@ -13,21 +13,21 @@ riscv64 the `foreign` module is built from `foreign_absent.rs` instead
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Create a process with no capabilities, supervised by the caller. |
-| `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Give such a process an entry point and make it runnable. |
-| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Wait for a guest to make a refused syscall; take its registers. |
-| `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Answer one parked guest with the value its `rax` receives. |
-| `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Copy a parked guest's registers out, in `struct sigcontext` order. |
-| `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Answer a parked guest with a context: a signal handler, or its return. |
-| `MFIN` | `0x4E49464D` | `MkForeignInterrupt` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Stop a running guest thread at its next timer tick and hand it over parked. |
-| `MPMP` | `0x504D504D` | `MkPeerMap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Back a span of a guest's address space with fresh frames. |
-| `MPCP` | `0x5043504D` | `MkPeerCopy` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Copy bytes between the caller and a guest it supervises. |
-| `MPPT` | `0x5450504D` | `MkPeerProtect` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Set the protection of pages a guest already has. |
-| `MFTH` | `0x4854464D` | `MkForeignThread` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Start a thread inside a guest, sharing its address space. |
-| `MPTL` | `0x4C54504D` | `MkPeerTls` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Set the thread pointer a guest thread wakes with. |
-| `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Make a second process holding a guest's register state. |
-| `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Take pages back from a guest. |
-| `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:68` | Replace the program a parked guest is running. |
+| `MFSP` | `0x5053464D` | `MkForeignSpawn` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Create a process with no capabilities, supervised by the caller. |
+| `MFST` | `0x5453464D` | `MkForeignStart` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Give such a process an entry point and make it runnable. |
+| `MFWT` | `0x5457464D` | `MkForeignWait` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Wait for a guest to make a refused syscall; take its registers. |
+| `MFRP` | `0x5052464D` | `MkForeignReply` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Answer one parked guest with the value its `rax` receives. |
+| `MFCX` | `0x5843464D` | `MkForeignContext` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Copy a parked guest's registers out, in `struct sigcontext` order. |
+| `MFSG` | `0x4753464D` | `MkForeignSignal` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Answer a parked guest with a context: a signal handler, or its return. |
+| `MFIN` | `0x4E49464D` | `MkForeignInterrupt` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Stop a running guest thread at its next timer tick and hand it over parked. |
+| `MPMP` | `0x504D504D` | `MkPeerMap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Back a span of a guest's address space with fresh frames. |
+| `MPCP` | `0x5043504D` | `MkPeerCopy` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Copy bytes between the caller and a guest it supervises. |
+| `MPPT` | `0x5450504D` | `MkPeerProtect` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Set the protection of pages a guest already has. |
+| `MFTH` | `0x4854464D` | `MkForeignThread` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Start a thread inside a guest, sharing its address space. |
+| `MPTL` | `0x4C54504D` | `MkPeerTls` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Set the thread pointer a guest thread wakes with. |
+| `MFFK` | `0x4B46464D` | `MkForeignFork` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Make a second process holding a guest's register state. |
+| `MPUN` | `0x4E55504D` | `MkPeerUnmap` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Take pages back from a guest. |
+| `MFEX` | `0x5845464D` | `MkForeignExec` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_device.rs:69` | Replace the program a parked guest is running. |
 
 ### Crypto
 

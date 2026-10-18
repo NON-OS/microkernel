@@ -25,4 +25,6 @@ pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
-pub const OP_STATS: u16 = 6;
+/// The register snapshot. Not 6: that is OP_RX_BATCH, which net.core probes
+/// for, and a snapshot there had every received frame dropped.
+pub const OP_STATS: u16 = 7;

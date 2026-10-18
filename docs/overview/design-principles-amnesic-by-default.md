@@ -13,7 +13,7 @@ ends, init hands the screen to the installer only if the person chose to
 install, or if setup ended without an answer on a boot started from the menu's
 install entry (`poll` in `src/userspace/init/supervisor/after_setup.rs:17-48`).
 
-A file a program asks to keep goes to the [package store](glossary.md#store),
+A file a program asks to keep goes to the [package store](glossary-linux-personality.md#store),
 which is written to the disk as it is, with no encryption (`append` in
 `userland/capsule_vfs/src/blk/store_write.rs:39-84`). Qwen models and other
 imported files go to a [data volume](glossary-claim-epoch.md#data-volume). On a live stick,

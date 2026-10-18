@@ -49,7 +49,7 @@ order `resolve` lists them (`src/syscall/contract/resolver/resolve.rs:31-43`):
 
 The cap table is total. `is_allowed` asks the crypto, admin, microkernel and
 graphics tables in turn and refuses any call none of them claims
-(`src/syscall/contract/cap_table/mod.rs:27-34`). Only `resolve` can build the
+(`src/syscall/contract/cap_table/mod.rs:28-35`). Only `resolve` can build the
 witness type `Capability` (`src/syscall/contract/capability.rs:23-32`), and
 `dispatch` calls the handler only once it holds one; it does not pass the
 witness on to the handler at this commit

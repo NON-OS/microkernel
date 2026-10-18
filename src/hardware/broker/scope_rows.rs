@@ -21,6 +21,8 @@ use super::lpss::LPSS_I2C;
 use super::rule::Match::{self, Acpi, Class, Ids};
 
 pub(super) const INTEL: u16 = 0x8086;
+pub(super) const VMWARE: u16 = 0x15AD;
+pub(super) const VBOX: u16 = 0x80EE;
 pub(super) const ANY: Option<u16> = None;
 
 /// SATA from any vendor, Intel RST RAID, and SD/eMMC hosts (prog-if 0 to 2)
@@ -56,3 +58,6 @@ pub(super) const HDA: &[Match] = &[
     Class { vendor: ANY, class: 0x04, sub: 0x03, progif: None },
     Class { vendor: Some(INTEL), class: 0x04, sub: 0x01, progif: None },
 ];
+
+/// SVGA II as VMware lays it out, and VirtualBox's VBoxSVGA.
+pub(super) const SVGA: &[Match] = &[Ids(VMWARE, &[0x0405, 0x0405]), Ids(VBOX, &[0xBEEF, 0xBEEF])];

@@ -65,7 +65,7 @@ On the kernel's side, Hardened changes nothing: the kernel treats it as Standard
 - Init keeps apps off by mode: every optional app on Safe Mode, the Browser and the Marketplace on Air-Gapped, and everything but Files and the Editor on Recovery, beside the Terminal and Settings every boot has.
 - Recovery skips first-boot setup and opens a Terminal once the desktop is up.
 
-`Install NØNOS` boots the same verified kernel as Standard and asks it to install. The loader sets [handoff](../overview/glossary.md#handoff) bit 11, the install request, and no mode bit, since the entry resolves to Standard. Setup then opens with Install chosen on its Mode step, and the installer takes the whole screen when setup ends. See [Install to disk](install-to-disk.md).
+`Install NØNOS` boots the same verified kernel as Standard and asks it to install. The loader sets [handoff](../overview/glossary-amnesic-boot.md#handoff) bit 11, the install request, and no mode bit, since the entry resolves to Standard. Setup then opens with Install chosen on its Mode step, and the installer takes the whole screen when setup ends. See [Install to disk](install-to-disk.md).
 
 ## How the kernel learns the mode
 

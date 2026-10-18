@@ -31,10 +31,6 @@ pub mod driver_end;
 /// The driver-grant surface (A10): each call's cap, hold and grant.
 pub mod driver_grants;
 pub mod device_windows;
-#[cfg(test)]
-pub mod device_shown;
-#[cfg(test)]
-pub mod holder_choice;
 pub mod fs;
 pub mod hardware;
 pub mod fb_frame;
@@ -54,6 +50,8 @@ pub mod security;
 pub mod service_policy;
 #[cfg(test)]
 pub use proofs_4::{lifecycle_state, usb_msc_report_words, watch_rule};
+#[cfg(test)]
+pub use proofs_5::{arm_acpi, arm_acpi_tests, bgrt, seeded_tables, smbios};
 pub mod spec;
 pub mod sys;
 pub mod syscall;
@@ -73,3 +71,5 @@ pub mod proofs_2;
 pub mod proofs_3;
 #[cfg(test)]
 pub mod proofs_4;
+#[cfg(test)]
+pub mod proofs_5;

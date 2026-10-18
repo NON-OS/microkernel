@@ -19,21 +19,6 @@ import re
 
 BROKER = "src/hardware/broker"
 CAPSULES = "userland/capsule_driver_"
-# service, a capsule file, and the items (consts or fns) naming its ids
-DISCOVER = [
-    ("driver.e1000_0", "e1000/src/constants/pci.rs", "E1000_DEVICE_IDS"),
-    ("driver.rtl8169_0", "rtl8169/src/constants/pci.rs", "RTL8169_DEVICE_IDS"),
-    ("driver.rtl8139_0", "rtl8139/src/constants/pci.rs", "RTL8139_DEVICE_ID"),
-    ("driver.virtio_net0", "virtio_net/src/constants/pci.rs", "VIRTIO_NET_TRANSITIONAL VIRTIO_NET_MODERN"),
-    ("driver.iwlwifi0", "iwlwifi/src/firmware/family.rs", "family_for_device"),
-    ("driver.rtl8821ce0", "rtl8821ce/src/constants/mod.rs", "PCI_DEVICE_RTL8821CE"),
-    ("driver.ahci0", "ahci/src/emmc/pci/ids.rs", "INTEL_EMMC"),
-    ("driver.virtio_blk0", "virtio_blk/src/constants/pci.rs", "VIRTIO_BLK_TRANSITIONAL VIRTIO_BLK_MODERN"),
-    ("driver.i2c_pci0", "i2c_pci/src/constants/device_info.rs", "device_info"),
-    ("driver.virtio_rng", "virtio_rng/src/constants/pci.rs", "VIRTIO_RNG_TRANSITIONAL VIRTIO_RNG_MODERN"),
-    ("driver.virtio_gpu0", "virtio_gpu/src/constants/pci.rs", "VIRTIO_GPU_MODERN"),
-]
-
 
 
 def item(text, name):

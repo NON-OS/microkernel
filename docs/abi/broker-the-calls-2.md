@@ -70,3 +70,22 @@ Part of [Broker](broker.md).
   `ENOSYS` (`src/syscall/microkernel/pio/mod.rs:17-49`). `from_arg` reads `w`,
   the access width, as 1, 2 or 4 bytes and refuses anything else
   (`src/syscall/microkernel/pio/width.rs:23-30`).
+- `MkHvBackdoor` makes one VMware backdoor call, on a host that answers it:
+  VMware, or QEMU's vmport under KVM or TCG; elsewhere it returns `ENODEV`
+  (`src/arch/x86_64/hypervisor/backdoor_rule.rs`). Only the absolute pointer's
+  calls are allowed: GETVERSION (10), ABSPOINTER_DATA (39) for 1 to 4 words,
+  ABSPOINTER_STATUS (40), and ABSPOINTER_COMMAND (41) with enable, disable,
+  relative or absolute. Any other command or argument returns `EINVAL`, so the
+  backdoor's RPC channel, which carries data between guest and host, stays
+  closed.
+- The `MkHv*` VMBus calls need `Driver` and a claim on the VMBus root, a `VIRT`
+  record (vendor 0x1414, device 0x5642) the kernel registers once the Hyper-V
+  SynIC is up (`src/hardware/broker/vmbus.rs`). The SynIC runs on VP 0, with
+  VMBus on SINT 2 at vector 0xC1 (`src/arch/x86_64/hypervisor/hv/regs.rs`).
+  `MkHvPost` posts only the channel messages a guest sends (type 1, on
+  connection 1 or 4), aimed at VP 0 and SINT 2. Every guest page a message names
+  must lie in a DMA grant the caller holds on the VMBus root: the contact's
+  monitor pages, its interrupt page before VMBus 5.0, and a GPADL's frames
+  (`src/arch/x86_64/hypervisor/hv/vmbus_out.rs`). Any other message returns
+  `EINVAL`, a page not held `EPERM`, and a host with no room `EAGAIN`.
+  `MkHvRecv` returns `EAGAIN` when no message waits.

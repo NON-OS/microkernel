@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The x86 GPIO controller's engine: arming a firmware-named interrupt pin,
+# demultiplexing the controller's one shared interrupt to the device that
+# owns each pin, masking a storming pin alone, and writing an output pin
+# only for its device's holder. Pure: registers are reached through a
+# window the caller gives, so the capsule maps MMIO and gpio_proofs drives
+# a controller model.
+[package]
+name = "nonos_gpio"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

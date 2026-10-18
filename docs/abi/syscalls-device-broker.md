@@ -24,10 +24,15 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MDMU` | `0x554D444D` | `MkDmaUnmap` | Dma | `can_dma` `src/syscall/contract/cap_table/mk_device.rs:32` | Free a DMA grant. |
 | `MPCR` | `0x5243504D` | `MkPciConfigRead` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_device.rs:33` | Read an allowed PCI configuration register of a claimed device. |
 | `MPCW` | `0x5743504D` | `MkPciConfigWrite` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_device.rs:33` | Write an allowed 16-bit PCI configuration register. |
-| `MPGT` | `0x5447504D` | `MkPioGrant` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:37` | Get a grant over a claimed device's port BAR; x86_64 only. |
-| `MPRD` | `0x4452504D` | `MkPioRead` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:37` | Read 1, 2 or 4 bytes from a granted port. |
-| `MPWR` | `0x5257504D` | `MkPioWrite` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:37` | Write 1, 2 or 4 bytes to a granted port. |
-| `MPRL` | `0x4C52504D` | `MkPioRelease` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:37` | Drop a port grant. |
+| `MPGT` | `0x5447504D` | `MkPioGrant` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Get a grant over a claimed device's port BAR; x86_64 only. |
+| `MPRD` | `0x4452504D` | `MkPioRead` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Read 1, 2 or 4 bytes from a granted port. |
+| `MPWR` | `0x5257504D` | `MkPioWrite` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Write 1, 2 or 4 bytes to a granted port. |
+| `MPRL` | `0x4C52504D` | `MkPioRelease` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Drop a port grant. |
+| `MHVB` | `0x4256484D` | `MkHvBackdoor` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | One VMware backdoor call from the absolute pointer's set, where the host answers it; -19 elsewhere. |
+| `MHVP` | `0x5056484D` | `MkHvPost` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Post a VMBus channel message to the host; the VMBus root's holder only. |
+| `MHVR` | `0x5256484D` | `MkHvRecv` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Take the oldest SynIC message for VMBus. |
+| `MHVE` | `0x4556484D` | `MkHvEvents` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Take and clear VMBus's channel event flags. |
+| `MHVS` | `0x5356484D` | `MkHvSignal` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Signal the host on a channel's connection. |
 
 ### Graphics and input
 
@@ -37,9 +42,9 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MSSH` | `0x4853534D` | `MkSurfaceShare` | GraphicsSurfaceCreate | `can_surface_create` `src/syscall/contract/cap_table/mk_trust.rs:41` | Share a surface the caller owns with `target_pid`, a live process other than the caller's, and return its handle; `flags` bit 0 maps that receiver's view writable, any other bit is `EINVAL`, a fifth receiver of one surface `ENOMEM`. Naming the caller's own process names nobody and only returns the handle (`do_share` in `src/syscall/dispatch/router/surface_handlers/share.rs`, `receiver` in `src/syscall/dispatch/router/surface_handlers/receiver.rs`). |
 | `MSPR` | `0x5250534D` | `MkSurfacePresent` | GraphicsPresent | `can_present` `src/syscall/contract/cap_table/mk_trust.rs:43` | Present a surface, whole or one damage rectangle. |
 | `MDVW` | `0x5756444D` | `MkDisplayVsyncWait` | GraphicsDisplayQuery | `can_display_query` `src/syscall/contract/cap_table/mk_trust.rs:44` | Sleep to the next tick of the kernel's 60 Hz frame clock; not the display's own sync. |
-| `MIEP` | `0x5045494D` | `MkInputEventPost` | InputSource | `can_input_source` `src/syscall/contract/cap_table/mk_surface.rs:35` | Post one input event to the kernel's input ring. |
-| `MIED` | `0x4445494D` | `MkInputEventDrain` | InputConsumer | `can_input_consumer` `src/syscall/contract/cap_table/mk_surface.rs:36` | Drain input events from the ring. |
-| `MIEW` | `0x5745494D` | `MkInputEventWait` | InputConsumer | `can_input_consumer` `src/syscall/contract/cap_table/mk_surface.rs:37` | Wait for new input events. |
+| `MIEP` | `0x5045494D` | `MkInputEventPost` | InputSource | `can_input_source` `src/syscall/contract/cap_table/mk_surface.rs:36` | Post one input event to the kernel's input ring. |
+| `MIED` | `0x4445494D` | `MkInputEventDrain` | InputConsumer | `can_input_consumer` `src/syscall/contract/cap_table/mk_surface.rs:37` | Drain input events from the ring. |
+| `MIEW` | `0x5745494D` | `MkInputEventWait` | InputConsumer | `can_input_consumer` `src/syscall/contract/cap_table/mk_surface.rs:38` | Wait for new input events. |
 | `GDIM` | `0x4D494447` | `GraphicsDisplayDimensions` | GraphicsDisplayQuery | `Capability::GraphicsDisplayQuery` `src/syscall/contract/cap_table/graphics.rs:29` | The display's width and height, and its physical size when the firmware gives it. |
 
 Both display calls know display 0 only. `wait_for_vsync` sleeps to the next

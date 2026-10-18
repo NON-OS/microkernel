@@ -109,7 +109,7 @@ On a machine where `Keep data across reboots` is on, as on a NONOS installed to 
 - Files you created in the Terminal and kept with `keep`.
 - NONOS packages installed with the Terminal's `pkg install`, or from a `.nonos` file in `/pkgs`. See [Install a package file](marketplace.md#install-a-package-file).
 
-Everything in this list but the Qwen models and the data volume that holds them is kept in the package [store](../overview/glossary.md#store) on the disk, which is not encrypted. Anyone who holds the disk can read a kept file there, unless the program that kept it sealed it first, as the Wi-Fi list and the wallet's key and recovery words are.
+Everything in this list but the Qwen models and the data volume that holds them is kept in the package [store](../overview/glossary-linux-personality.md#store) on the disk, which is not encrypted. Anyone who holds the disk can read a kept file there, unless the program that kept it sealed it first, as the Wi-Fi list and the wallet's key and recovery words are.
 
 These are not kept, even on an installed disk:
 

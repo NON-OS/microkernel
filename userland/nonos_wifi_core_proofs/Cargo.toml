@@ -15,6 +15,7 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_wifi_core = { path = "../nonos_wifi_core" }
+nonos_mac = { path = "../nonos_mac" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

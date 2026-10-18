@@ -55,7 +55,7 @@ capsule meets most:
 | 8 | `0x100` | Debug | lines on the kernel log |
 | 15 | `0x8000` | DeviceEnum | listing devices |
 | 16 to 20 | `0x1_0000` to `0x10_0000` | Driver, Mmio, Irq, Dma, Pio | the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker) |
-| 32 | `0x1_0000_0000` | ForeignExec | creating Linux [guests](../overview/glossary.md#guest); only the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) holds it |
+| 32 | `0x1_0000_0000` | ForeignExec | creating Linux [guests](../overview/glossary-dma-pool.md#guest); only the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) holds it |
 | 35 | `0x8_0000_0000` | DeviceSecret | the [device secret](../overview/glossary-claim-epoch.md#device-secret); the signing step refuses it to every capsule but `prove` |
 
 The full table is in [ABI: capabilities](../abi/capabilities.md).
