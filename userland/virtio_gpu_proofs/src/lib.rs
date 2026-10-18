@@ -50,6 +50,8 @@ pub mod driver;
 #[path = "../../capsule_driver_virtio_gpu/src/init/mod.rs"]
 pub mod init;
 pub mod parts;
+#[cfg(test)]
+mod primary_surface;
 #[path = "../../capsule_driver_virtio_gpu/src/protocol/mod.rs"]
 pub mod protocol;
 #[path = "../../capsule_driver_virtio_gpu/src/regs.rs"]
