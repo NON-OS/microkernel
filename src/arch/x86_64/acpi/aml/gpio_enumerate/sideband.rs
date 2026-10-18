@@ -16,13 +16,14 @@
 
 use super::hid_match::id_matches;
 
-/// Length of one community's register window (coreboot GPIO_BASE_SIZE).
+/// Length of one community's register window: 64 KiB, recalled: unverified.
 const COMMUNITY_LEN: u64 = 0x1_0000;
 
-// coreboot soc/intel/<platform>/include/soc/pcr_ids.h PID_GPIOCOMn, listed
-// in the order of the communities in Linux's table for the same `_HID`
-// (its gpps names say which COMn each one is). Only platforms whose
-// coreboot gpio.asl patches the same communities into `_CRS` are here.
+// The GPIO communities' sideband port ids, in community order, for the
+// PCHs whose firmware patches the windows into `_CRS` at run time. Recalled
+// from the PCH datasheets' sideband port id tables (volume 2), which could
+// not be read here: unverified. They are only ever read from: no pad is
+// placed or written through them while no published layout exists.
 const SPT: &[u8] = &[0xAF, 0xAE, 0xAC];
 const CNP_LP: &[u8] = &[0x6E, 0x6D, 0x6A];
 const COM_0145: &[u8] = &[0x6E, 0x6D, 0x6A, 0x69];
@@ -49,7 +50,7 @@ pub(super) fn community_pids(hid: &[u8; 8]) -> &'static [u8] {
 }
 
 /// A community's window: SBREG_BAR plus its port id in bits 23:16, which is
-/// coreboot's PCRB(pid) and what vendor firmware writes into `_CRS`.
+/// what firmware writes into `_CRS` for that community.
 pub fn community_window(sbreg: u64, pid: u8) -> (u64, u64) {
     (sbreg + (u64::from(pid) << 16), COMMUNITY_LEN)
 }

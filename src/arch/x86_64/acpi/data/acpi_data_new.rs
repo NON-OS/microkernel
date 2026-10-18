@@ -36,6 +36,7 @@ impl AcpiData {
             hpet_address: None,
             fadt: None,
             s5: None,
+            s5_interp: None,
             power_devices: crate::arch::x86_64::acpi::aml::power_devices::PowerDevices::default(),
             pm_profile: PmProfile::Unspecified,
             sci_interrupt: 9,

@@ -31,6 +31,7 @@ pub const INPUT_KIND_WHEEL: u16 = 4;
 pub const INPUT_KIND_BUTTON_DOWN: u16 = 5;
 pub const INPUT_KIND_BUTTON_UP: u16 = 6;
 pub const INPUT_KIND_TOUCH: u16 = 7;
+pub const INPUT_ABS_MAX: i32 = 0x7FFF;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]

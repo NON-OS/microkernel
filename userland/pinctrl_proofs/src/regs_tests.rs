@@ -20,7 +20,7 @@ use nonos_pinctrl::{
 
 #[test]
 fn intel_stride_follows_the_revision() {
-    // REVID bits 31:16; Linux turns on the debounce registers from 0x092.
+    // The revision in bits 31:16; the wider stride from 0x092 (unverified).
     assert_eq!(intel_pad_stride(0x0091_0000), 8);
     assert_eq!(intel_pad_stride(0x0092_0000), 16);
     assert_eq!(intel_pad_stride(0x0110_0000), 16);

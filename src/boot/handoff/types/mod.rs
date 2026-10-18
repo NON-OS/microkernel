@@ -21,7 +21,9 @@ pub mod firmware;
 pub mod framebuffer;
 pub mod handoff;
 pub mod info;
+pub mod map_window;
 pub mod memory;
+mod memory_read;
 pub mod security;
 
 pub use boot_evidence::{

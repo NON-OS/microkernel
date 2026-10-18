@@ -29,7 +29,7 @@ fn the_list_names_every_card_the_kernel_starts() {
     let start = refuse.find("const NETWORK_DRIVERS").expect("the network driver list");
     let list = &refuse[start..start + refuse[start..].find("];").expect("its end")];
     let named: Vec<&str> = list.split('"').skip(1).step_by(2).collect();
-    assert_eq!(named.len(), 6, "{named:?}");
+    assert_eq!(named.len(), 9, "{named:?}");
     for card in &named {
         assert!(callers_of(card).is_some(), "{card} is a network driver and not held");
     }
@@ -38,6 +38,9 @@ fn the_list_names_every_card_the_kernel_starts() {
         include_str!("../../../../src/hardware/e1000_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8169_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8139_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/pcnet_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/vmxnet3_capsule/spawn.rs"),
+        include_str!("../../../../src/hardware/tulip_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/iwlwifi_capsule/spawn.rs"),
         include_str!("../../../../src/hardware/rtl8821ce_capsule/spawn.rs"),
     ];

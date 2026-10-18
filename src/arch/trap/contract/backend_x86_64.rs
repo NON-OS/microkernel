@@ -34,15 +34,13 @@ pub(super) fn report_fatal<F: TrapFrame>(frame: &F, cause: &TrapCause) {
 }
 
 pub(super) fn halt_forever() -> ! {
-    // SAFETY: ek@nonos.systems — at this site classification has already
-    // produced a fatal verdict, so resuming is not an option. cli stops
-    // any further interrupt arrival on this CPU; the hlt loop covers
-    // spurious wake-ups (an NMI can break a single hlt) by re-halting
-    // immediately. Both insns are nomem/nostack — we touch neither.
-    unsafe {
-        asm!("cli", options(nomem, nostack));
-    }
+    // Classification has already produced a fatal verdict, so resuming is
+    // not an option. cli stops any further interrupt arrival on this CPU;
+    // the hlt loop covers spurious wake-ups (an NMI can break a single hlt)
+    // by re-halting immediately.
+    crate::arch::x86_64::interrupt::cli();
     loop {
+        // SAFETY: hlt touches no memory and only waits for an interrupt.
         unsafe {
             asm!("hlt", options(nomem, nostack));
         }

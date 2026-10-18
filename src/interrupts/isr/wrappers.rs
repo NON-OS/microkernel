@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Plain `extern "x86-interrupt"` entries. Only NMI, #DF and #MC are installed
-//! from here: none is capsule-reachable, and the latter two end the machine
-//! rather than return to it. The rest duplicate trampolined vectors.
+//! Plain `extern "x86-interrupt"` entries. Only NMI is installed from here
+//! (#DF and #MC are in `wrappers_fatal`); the rest duplicate trampolined
+//! vectors.
 
 use x86_64::structures::idt::{InterruptStackFrame, PageFaultErrorCode};
 
@@ -31,6 +31,8 @@ pub extern "x86-interrupt" fn isr_debug(frame: InterruptStackFrame) {
 }
 
 pub extern "x86-interrupt" fn isr_nmi(frame: InterruptStackFrame) {
+    // An NMI can land in ring 3 with AC set; see `entry_flags`.
+    crate::arch::interrupt::clear_ac();
     handlers::nmi(frame);
 }
 
@@ -50,20 +52,12 @@ pub extern "x86-interrupt" fn isr_invalid_opcode(frame: InterruptStackFrame) {
     handlers::invalid_opcode(frame);
 }
 
-pub extern "x86-interrupt" fn isr_double_fault(frame: InterruptStackFrame, code: u64) -> ! {
-    handlers::double_fault(frame, code)
-}
-
 pub extern "x86-interrupt" fn isr_page_fault(frame: InterruptStackFrame, code: PageFaultErrorCode) {
     handlers::page_fault(frame, code.bits());
 }
 
 pub extern "x86-interrupt" fn isr_alignment_check(frame: InterruptStackFrame, _error_code: u64) {
     handlers::alignment_check(frame);
-}
-
-pub extern "x86-interrupt" fn isr_machine_check(frame: InterruptStackFrame) -> ! {
-    handlers::machine_check(frame)
 }
 
 pub extern "x86-interrupt" fn isr_simd_fp(frame: InterruptStackFrame) {
