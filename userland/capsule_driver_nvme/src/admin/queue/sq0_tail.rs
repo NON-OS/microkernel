@@ -16,7 +16,7 @@
 
 use crate::constants::REG_DOORBELL_BASE;
 
-pub(super) const fn sq0_tail(stride: u8) -> u32 {
+pub(in crate::admin) const fn sq0_tail(stride: u8) -> u32 {
     let _ = stride;
     REG_DOORBELL_BASE
 }

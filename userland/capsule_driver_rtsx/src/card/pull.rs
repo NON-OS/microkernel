@@ -18,6 +18,7 @@
 //! _disable_tbl): data, CD, WP and CMD pulled up and CLK down while a card
 //! is powered; everything but CD pulled down when it is not.
 
+use super::limits::REGS_MS;
 use crate::error::Result;
 use crate::regs::card::{CARD_PULL_CTL2, CARD_PULL_CTL3};
 use crate::setup::Driver;
@@ -35,5 +36,5 @@ fn set(drv: &Driver, ctl2: u8, ctl3: u8) -> Result<()> {
     let mut buf = CmdBuf::new();
     buf.write(CARD_PULL_CTL2, 0xFF, ctl2);
     buf.write(CARD_PULL_CTL3, 0xFF, ctl3);
-    crate::engine::send(drv, &buf, 100)
+    crate::engine::send(drv, &buf, REGS_MS)
 }

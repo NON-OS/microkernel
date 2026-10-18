@@ -17,49 +17,8 @@
 //! The give-up line names the last failure in words; those words replaced
 //! the negated-errno exit codes, so every cause has to read apart.
 
-use crate::error::{reason, XhciError};
-
-/// Every failure, listed through a match the compiler holds exhaustive: a new
-/// variant fails to build here until it is listed and given its words.
-fn every_failure() -> Vec<XhciError> {
-    let all = [
-        XhciError::BrokerCallFailed(-16),
-        XhciError::ControllerUnsupported,
-        XhciError::ResetTimeout,
-        XhciError::ControllerNotReadyTimeout,
-        XhciError::StartTimeout,
-        XhciError::HaltTimeout,
-        XhciError::CommandRingFull,
-        XhciError::TransferRingFull,
-        XhciError::NoDeviceOnPort,
-        XhciError::PortResetTimeout,
-        XhciError::TransferCompletionTimeout,
-        XhciError::CommandCompletionTimeout,
-        XhciError::CommandCompletionFailed(4),
-        XhciError::UnexpectedCompletionSlot,
-        XhciError::TransferCompletionFailed(6),
-    ];
-    for e in all {
-        match e {
-            XhciError::BrokerCallFailed(_)
-            | XhciError::ControllerUnsupported
-            | XhciError::ResetTimeout
-            | XhciError::ControllerNotReadyTimeout
-            | XhciError::StartTimeout
-            | XhciError::HaltTimeout
-            | XhciError::CommandRingFull
-            | XhciError::TransferRingFull
-            | XhciError::NoDeviceOnPort
-            | XhciError::PortResetTimeout
-            | XhciError::TransferCompletionTimeout
-            | XhciError::CommandCompletionTimeout
-            | XhciError::CommandCompletionFailed(_)
-            | XhciError::UnexpectedCompletionSlot
-            | XhciError::TransferCompletionFailed(_) => {}
-        }
-    }
-    all.to_vec()
-}
+use super::reason_all::every_failure;
+use crate::error::reason;
 
 #[test]
 fn every_failure_has_its_own_words_naming_the_driver() {

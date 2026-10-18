@@ -28,6 +28,7 @@ pub mod link;
 mod link_poll;
 mod link_reset;
 pub mod medium;
+mod nic;
 pub mod phy_regs;
 mod power;
 pub mod products;

@@ -18,7 +18,9 @@
 
 use crate::bind::Bind;
 use crate::found::Found;
+use crate::station::Station;
 use crate::xhci::XhciBus;
 
-/// A driver's binding, run on each device the search addresses.
-pub type BindFn<N> = fn(XhciBus, &Found) -> Bind<N>;
+/// A driver's binding, run on each device the search addresses, with the
+/// station address drawn for the run.
+pub type BindFn<N> = fn(XhciBus, &Found, Station) -> Bind<N>;

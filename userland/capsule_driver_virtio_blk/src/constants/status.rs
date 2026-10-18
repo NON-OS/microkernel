@@ -13,8 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 pub const STATUS_ACKNOWLEDGE: u8 = 1;
 pub const STATUS_DRIVER: u8 = 2;
 pub const STATUS_DRIVER_OK: u8 = 4;
 pub const STATUS_FEATURES_OK: u8 = 8;
+/// The device has given up on itself and must be reset (virtio 1.0 on;
+/// a legacy device never sets it).
+pub const STATUS_NEEDS_RESET: u8 = 0x40;
 pub const STATUS_FAILED: u8 = 0x80;

@@ -38,6 +38,15 @@ const EXIT_HEAP_INIT: i32 = 1;
 /// claiming anything. With one, each attempt takes the grants and programs
 /// the part, giving every grant back when either half fails; the attempts
 /// are bounded and slept between, and running out is `EXIT_GAVE_UP`.
+///
+/// # Safety
+///
+/// Only the kernel's capsule loader enters here, once, as the first code the
+/// process runs, on its first thread: with the image's segments mapped, its
+/// relative relocations and RELRO applied (`load_elf_entry_into`), and on a
+/// fresh user stack with rsp ≡ 8 (mod 16) before the prologue, as a call
+/// leaves it and as an `extern "C"` fn expects (`allocate_user_stack` hands
+/// back its top less 8). It must never be called from Rust.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

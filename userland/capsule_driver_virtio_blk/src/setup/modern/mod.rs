@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The virtio 1.0 bring-up, for a function that has no legacy register
-//! window (a modern-only virtio-blk, as QEMU builds behind its IOMMU).
+//! The virtio 1.0 bring-up, for every function that presents the modern
+//! structures (`transport::probe`).
 
 mod capacity;
-mod handshake;
-mod pci;
+mod live;
+mod queue;
 mod run;
 
 pub use run::run;

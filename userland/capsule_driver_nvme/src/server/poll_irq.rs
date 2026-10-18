@@ -22,8 +22,10 @@ use crate::setup::Driver;
 
 pub(super) fn poll_irq(driver: &Driver, last: &mut u64) {
     let mut irq = IrqPollOut { seq: 0, overflow: 0 };
-    if mk_irq_poll(driver.handles.irq_grant_id(), &mut irq as *mut _) >= 0 && irq.seq != *last {
+    if mk_irq_poll(driver.device.handles.irq_grant_id(), &mut irq as *mut _) >= 0
+        && irq.seq != *last
+    {
         *last = irq.seq;
-        let _ = mk_irq_ack(driver.handles.irq_grant_id());
+        let _ = mk_irq_ack(driver.device.handles.irq_grant_id());
     }
 }
