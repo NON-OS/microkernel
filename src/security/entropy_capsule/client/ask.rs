@@ -28,8 +28,7 @@ use super::ask_rule::{answers, due, Asked};
 use super::seq::next_request_id;
 use super::transport::REPLY_INBOX;
 use crate::crypto::util::rng::{capsule_bytes_wanted, feed_capsule_bytes};
-use crate::ipc::nonos_channel::IpcMessage;
-use crate::ipc::nonos_inbox;
+use crate::services::lifecycle::transport_nowait::{landed, post};
 
 const ASK_BYTES: u32 = 256;
 const _: () = assert!(ASK_BYTES <= MAX_RANDOM_BYTES);
@@ -40,7 +39,12 @@ static ASKED: Mutex<Option<Asked>> = Mutex::new(None);
 /// Drain the replies that have landed, then ask again when due.
 pub fn poll() {
     let capsule = shared_state();
-    while let Some(reply) = nonos_inbox::try_dequeue_existing(REPLY_INBOX) {
+    // Taken under the generation the ask out went to; with none out, the
+    // capsule's own, and ask_rule::answers refuses what nothing asked for.
+    loop {
+        let asked_gen = ASKED.lock().map_or(capsule.generation(), |a| a.generation);
+        let Some(got) = landed(REPLY_INBOX, capsule, asked_gen) else { break };
+        let Ok(reply) = got else { continue };
         let Some(resp) = decode_response(&reply.data) else { continue };
         {
             let mut asked = ASKED.lock();
@@ -64,10 +68,6 @@ pub fn poll() {
         id
     };
     let frame = encode_request(OP_GET_RANDOM, 0, id, &ASK_BYTES.to_le_bytes());
-    let target = alloc::format!("proc.{}", capsule.pid());
-    let Ok(msg) = IpcMessage::new(SENDER_NAME, &target, &frame) else { return };
     // Not sent: the ask stays out until GIVE_UP_MS, then is sent again.
-    if nonos_inbox::try_enqueue_strict(&target, msg).is_ok() {
-        crate::sched::wake_process(capsule.pid());
-    }
+    let _ = post(&frame, SENDER_NAME, capsule);
 }
