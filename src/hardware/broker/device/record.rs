@@ -16,6 +16,9 @@
 
 use super::bar::Bar;
 
+/// `numa_node` for a device no firmware table places.
+pub const NUMA_UNKNOWN: u8 = 0xFF;
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct DeviceRecord {
@@ -31,7 +34,8 @@ pub struct DeviceRecord {
     pub bar_count: u8,
     pub irq_line: u8,
     pub irq_pin: u8,
-    pub _pad1: [u8; 1],
+    /// Proximity domain, 0xFF when unknown or past 254 (`acpi::numa_node`).
+    pub numa_node: u8,
     pub irq_source: u32,
     pub bars: [Bar; 6],
 }
@@ -51,7 +55,7 @@ impl DeviceRecord {
             bar_count: 0,
             irq_line: 0xFF,
             irq_pin: 0,
-            _pad1: [0; 1],
+            numa_node: NUMA_UNKNOWN,
             irq_source: 0,
             bars: [Bar::empty(); 6],
         }

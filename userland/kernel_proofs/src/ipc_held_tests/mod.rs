@@ -23,9 +23,11 @@
 #[path = "../../../../src/services/registry/held.rs"]
 mod held;
 
+mod bluetooth;
 mod cards;
 mod classified;
 mod common;
 mod devices;
 mod gates;
 mod names;
+mod power_off;

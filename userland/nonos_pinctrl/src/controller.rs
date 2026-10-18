@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::group::Layout;
-use crate::tables::LAYOUTS;
+use crate::layouts::LAYOUTS;
 
 /// The register model of a GPIO controller.
 #[derive(Debug, Clone, Copy)]
 pub enum Controller {
-    /// Intel PCH pinctrl: one ACPI device whose `_CRS` lists one window per
+    /// Intel PCH GPIO: one ACPI device whose `_CRS` lists one window per
     /// community, in the order of the layout.
     Intel(&'static Layout),
     /// The AMD FCH GPIO bank: one window, one dword per pin.
     Amd,
 }
 
-// Linux pinctrl-amd.c amd_gpio_acpi_match.
+// The AMD FCH GPIO bank's `_HID`s, recalled from AMD platforms' published
+// ACPI tables, not read from a document: unverified.
 const AMD_IDS: [&[u8]; 4] = [b"AMD0030", b"AMDI0030", b"AMDI0031", b"AMDI0033"];
 
 /// The controller model for a decoded `_HID`: seven-character ids carry a
