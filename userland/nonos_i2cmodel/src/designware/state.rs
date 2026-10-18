@@ -21,6 +21,7 @@ use std::collections::HashMap;
 use super::config::Config;
 use super::fifo::Fifo;
 use super::record::{RegEvent, Violation};
+use super::stall::Stall;
 use crate::bus::{Bus, Dir};
 
 pub struct Designware {
@@ -40,6 +41,8 @@ pub struct Designware {
     /// A transaction is open on the bus: a START went out and no STOP yet.
     pub(super) active: bool,
     pub(super) dir: Option<Dir>,
+    /// Whether the bus has stopped moving, and what would start it again.
+    pub(super) stall: Stall,
     pub(super) abort_source: u32,
     pub(super) raw_intr: u32,
     pub(super) violations: Vec<Violation>,
@@ -59,6 +62,7 @@ impl Designware {
             rx: Fifo::new(config.rx_depth),
             active: false,
             dir: None,
+            stall: Stall::None,
             abort_source: 0,
             raw_intr: 0,
             violations: Vec::new(),

@@ -20,7 +20,7 @@
 //! 0Dh, as recalled, unverified). A pad in hybrid mode has one such
 //! collection and sends its fingers over several reports (assemble.rs).
 
-use super::super::layout::Field;
+use super::super::Field;
 
 /// Fingers kept per report: a ten-finger screen's worth.
 pub const MAX_SLOTS: usize = 10;

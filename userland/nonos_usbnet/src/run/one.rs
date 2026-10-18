@@ -34,8 +34,10 @@ pub(super) fn serve_one<N: Nic>(
 ) {
     let mut from = 0u32;
     let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait_ms, &mut from);
-    // A reply that found no waiter comes back to this inbox; what this
-    // capsule sent itself is dropped, never answered.
+    // Sender 0 is a delivery from the kernel itself, which has no one to
+    // answer. A reply that found no waiter comes back to this inbox; what
+    // this capsule sent itself (`me`, read back by its service name, as
+    // MkGetPid needs CoreExec) is dropped, never answered.
     if n <= 0 || from == 0 || from == me {
         return;
     }

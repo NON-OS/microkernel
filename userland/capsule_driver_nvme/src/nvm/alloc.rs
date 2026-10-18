@@ -17,7 +17,9 @@
 use super::constants::{CQ_BYTES, DATA_BYTES, IO_ENTRIES, PRP_LIST_BYTES, SQ_BYTES};
 use super::doorbell::{cq_head_doorbell, sq_tail_doorbell};
 use super::geometry::NamespaceGeometry;
+use super::park::Park;
 use super::queue::IoQueue;
+use super::served::SERVED;
 use crate::admin::CqCursor;
 use crate::dma::DmaRegion;
 use crate::error::NvmeResult;
@@ -39,6 +41,10 @@ impl IoQueue {
             cursor: CqCursor::new(IO_ENTRIES),
             cid: 1,
             out: None,
+            park: Park::on(0),
+            answer_by: None,
+            taken: 0,
+            served: [None; SERVED],
             sq_db: sq_tail_doorbell(qid, stride),
             cq_db: cq_head_doorbell(qid, stride),
             nsid: geometry.nsid,

@@ -57,7 +57,7 @@ pub fn inbound(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(e) => {
-            recover_after(ctx, slot, dci, e);
+            recover_after(ctx, slot, dci, e, None);
             reply_with_status(tx, req, E_IO)
         }
     }

@@ -24,8 +24,8 @@ pub const FALLBACK_DESC_REGS: [u16; 2] = [0x0001, 0x0020];
 
 /// Try the exact address the firmware declared through ACPI, at the
 /// declared descriptor register first and then at the registers in common
-/// use. Returns the register that held the descriptor, so the driver binds
-/// without probing a guessed address list.
+/// use. Register 0 names none, so it is never written. Returns the register
+/// that held the descriptor; no other address is ever tried.
 pub fn probe_addr(
     port: u32,
     addr: u8,
@@ -33,6 +33,7 @@ pub fn probe_addr(
     descriptor: &mut [u8; HID_DESC_LEN],
 ) -> Option<u16> {
     core::iter::once(reg)
+        .filter(|&r| r != 0)
         .chain(FALLBACK_DESC_REGS.into_iter().filter(|&r| r != reg))
         .find(|&r| read_descriptor_at(port, addr, r, descriptor))
 }

@@ -12,46 +12,46 @@ request encoder and the pad's register file is a stand-in.
 
 ## What is proved
 
-Setup binds the pad the firmware named and reads its HID descriptor; without
-a hint the bus scan finds it; a wrong hint falls back to the scan; a pad at an
-address the scan never tries leaves the driver unbound and alive; no
-controller service is a refusal.
+Setup binds only the address the controller names: the pad the firmware
+declared, or the one its read-only sweep answered; no other address is asked
+for, a peer's address past 7 bits is refused, register 0 is never written,
+and a bus with no pad is given up 30 s after the first probe, however often
+it asks, saying why (`no_scan_tests`, `acpi_tests`, `window_tests`). A
+keyboard is put back to sleep; a touch screen is driven as a screen, never
+through the touchpad's layout; a mouse, or the mouse of a keyboard that has
+one, is driven, its key reports dropped unread (`keyboard_tests`,
+`bind_tests`, `mouse_app_tests`, `composite_tests`). Every finger of a screen
+or a parallel-mode pad is found, hybrid frames are put together, and a
+screen's first finger presses, drags and releases (`multitouch_tests`,
+`screen_tests`, `hostile_tests`); the feature report logic runs over any
+transport's port (`feature_tests`).
 
-Wake sends SET_POWER ON before RESET, and drains the zero-length report the
-specification says a reset device sends first, so the first poll sees a real
-frame.
+The descriptor walk lays out what HID 1.11 says: reports continued after
+another's items, Push and Pop, usage ranges, four-byte usages, the logical
+minimum and its sign (`walker_tests`, `range_tests`); each bound at and past
+it, a vendor report too long to read costing only itself (`bounds_*`,
+`long_tests`, `vendor_tests`); 200 000 hostile descriptors and 300 000
+hand-built layouts, no panic with overflow checks on (`*fuzz_tests`).
 
-The report descriptor read over the bus parses to the same field map as the
-bytes parsed directly, with every input field at the bit the descriptor puts
-it and the feature fields found under their own report id.
-
-Configuration writes input mode 3 and both switches into the feature report,
-reads the report before writing it so a vendor's other fields survive, and
-leaves a pad already in that mode alone.
-
-Polling turns a finger sliding right into one relative motion to the right
-and nothing else, a touch and lift into a click on button one, two fingers
-moving down into a wheel step, a palm into nothing, and an empty input
-register into a quiet poll. The gesture engine is also checked on decoded
-frames alone: motion scaling, the discontinuity that is a new finger, the tap
-and the drag that is not one, scrolling that freezes the pointer until both
-fingers lift, the palm that freezes it until it lifts, and the click button's
-two-frame debounce. The boot-mouse fallback decode is checked on frames with
-and without a report id and refuses a length prefix past the buffer.
-
-## What changed in the driver
-
-`TouchGesture::on_touch` takes the decoded `TouchSample` rather than its
-eight fields, which removed the one lint switch in the capsule. Two modules
-were renamed to stop shadowing their parents, and one rounding was spelled
-as the division it is. No behaviour changed.
+A pad that resets itself is set up again, a bounded number of times, and
+lets go of what it held, on every path a reset shows itself: the ring, a
+mode read back lost, and on a pad that cannot read back, a run of mouse
+reports with no touch report. A stick, a still finger, a NACKed or slow
+write and the driver's own stall let go of nothing (`recovery/`, `reset_*`,
+`recover_tests`, `stick_tests`, `doorbell_tests`, `line_tests`). Reads back
+off to 16 ms on an idle pad (`pace_*`); a transfer is waited for as long as
+the shipping controller's longest path takes (`budget_tests`). Frames post
+input and nothing else, repeats are paced, and nothing is left behind
+(`quiet_tests`, `repeat_tests`, `retain_tests`, `torn_tests`).
 
 ## Run
 
 ```sh
 cd userland/i2c_hid_proofs
-cargo test --release
+cargo test
 ```
+
+A debug build, so the fuzz runs with overflow checks on.
 
 See [drivers](../../docs/handbook/drivers.md) and
 [proofs](../../docs/handbook/verification/proofs.md).

@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Filling the framebuffer, and stopping where it ends. `clear` writes one
-//! word per pixel with no bound of its own, so a count one too large runs off
-//! the mapping; a guard pixel behind the window here shows it.
+//! Filling the framebuffer, and stopping where it ends.
+//!
+//! `clear` writes one 32-bit word per pixel of a `Span`, and a span exists
+//! only for a mode whose pixels fit the mapping it was made from. A second
+//! window here stands in for the framebuffer aperture, one pixel longer than
+//! the mapping, so a test can watch the word after the last pixel.
 
 use nonos_devmodel::FakeBar;
 
-use crate::dispi::clear;
+use crate::dispi::{clear, span};
 
 const COLOR: u32 = 0x0010_2a3a;
 const GUARD: u32 = 0xdead_beef;
@@ -32,6 +35,14 @@ fn aperture(pixels: usize) -> FakeBar {
     bar
 }
 
+/// Clear a `w` x `h` mode in an aperture mapped exactly that large.
+fn cleared(w: u16, h: u16) -> FakeBar {
+    let pixels = w as usize * h as usize;
+    let fb = aperture(pixels);
+    clear(&span(fb.base(), pixels as u64 * 4, w, h).expect("an exact fit"), COLOR);
+    fb
+}
+
 #[test]
 fn every_pixel_in_the_span_takes_the_colour_it_was_given() {
     /*
@@ -39,12 +50,8 @@ fn every_pixel_in_the_span_takes_the_colour_it_was_given() {
      * one band of whatever the firmware left behind, which reads as a corrupt
      * mode rather than as an arithmetic slip.
      */
-    let pixels = 64;
-    let fb = aperture(pixels);
-    // SAFETY: the aperture holds `pixels` pixels and a guard behind them.
-    unsafe { clear(fb.base(), pixels as u64, COLOR) };
-
-    for i in 0..pixels {
+    let fb = cleared(8, 8);
+    for i in 0..64 {
         assert_eq!(fb.wrote32(i * 4), COLOR, "pixel {i} was not cleared");
     }
 }
@@ -52,26 +59,16 @@ fn every_pixel_in_the_span_takes_the_colour_it_was_given() {
 #[test]
 fn the_pixel_past_the_end_of_the_span_is_left_alone() {
     /*
-     * The count is a pixel count, not an inclusive bound. One pixel of
-     * overrun writes four bytes past the framebuffer mapping, which on a
-     * booted machine faults the capsule or lands in whatever the pager put
-     * next to the aperture. Neither points back at this loop.
+     * One pixel of overrun writes four bytes past the framebuffer mapping,
+     * which on a booted machine faults the capsule or lands in whatever the
+     * pager put next to the aperture. Neither points back at this loop.
      */
-    let pixels = 64;
-    let fb = aperture(pixels);
-    // SAFETY: the aperture holds `pixels` pixels and a guard behind them.
-    unsafe { clear(fb.base(), pixels as u64, COLOR) };
-    assert_eq!(fb.wrote32(pixels * 4), GUARD, "clear wrote past the last pixel");
+    assert_eq!(cleared(8, 8).wrote32(64 * 4), GUARD, "clear wrote past the last pixel");
 }
 
 #[test]
 fn a_span_of_no_pixels_writes_nothing_at_all() {
-    /*
-     * A zero-sized mode is the degenerate case the discovery path can hand
-     * over when a BAR fails to map, and it must not touch the aperture.
-     */
-    let fb = aperture(0);
-    // SAFETY: no pixel is written.
-    unsafe { clear(fb.base(), 0, COLOR) };
-    assert_eq!(fb.wrote32(0), GUARD, "an empty clear still wrote a pixel");
+    // A zero-sized mode must not touch the aperture, even one mapped empty.
+    assert_eq!(cleared(0, 768).wrote32(0), GUARD, "an empty clear still wrote a pixel");
+    assert_eq!(cleared(1024, 0).wrote32(0), GUARD, "an empty clear still wrote a pixel");
 }

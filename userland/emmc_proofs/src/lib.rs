@@ -41,6 +41,8 @@ pub mod rw_parse;
 mod model;
 
 #[cfg(test)]
+mod adma_bounds_tests;
+#[cfg(test)]
 mod adma_tests;
 #[cfg(test)]
 mod bring_up_tests;
@@ -60,6 +62,8 @@ mod fault_tests;
 mod io_tests;
 #[cfg(test)]
 mod names_tests;
+#[cfg(test)]
+mod open_proofs;
 #[cfg(test)]
 mod pci_tests;
 #[cfg(test)]

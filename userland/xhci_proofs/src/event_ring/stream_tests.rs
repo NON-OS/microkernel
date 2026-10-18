@@ -19,7 +19,7 @@
 //! transfer on a stream).
 
 use super::fixture::{Fixture, BULK_IN_DCI};
-use super::toggle_tests::{storage_slot, CONTEXT_SIZE};
+use super::toggle_slot::{storage_slot, CONTEXT_SIZE};
 use crate::controller::{write_stream_input, StreamPipe, MAX_LOG2};
 use crate::dma::DmaRegion;
 

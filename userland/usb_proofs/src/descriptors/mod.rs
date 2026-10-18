@@ -1,4 +1,22 @@
-// NONOS Operating System (AGPL-3.0-or-later)
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The driver's descriptor walks, loaded from its own files: the
+//! configuration descriptor, the report descriptor and a gamepad's layout.
+
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/application.rs"]
 pub mod application;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/binding.rs"]
@@ -9,16 +27,18 @@ pub mod config;
 pub mod packet_size;
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/pad/mod.rs"]
 pub mod pad;
-#[path = "../../../capsule_driver_usb_hid/src/descriptors/pointer.rs"]
-pub mod pointer;
-#[path = "../../../capsule_driver_usb_hid/src/descriptors/record.rs"]
-mod record;
-#[path = "../../../capsule_driver_usb_hid/src/descriptors/types.rs"]
-pub mod types;
 // The parser returns Result<_, ()>, its own choice.
 #[allow(clippy::result_unit_err)]
 #[path = "../../../capsule_driver_usb_hid/src/descriptors/parse.rs"]
 pub mod parse;
-pub use pad::PadState;
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/records.rs"]
+pub mod records;
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/report/mod.rs"]
+pub mod report;
+#[path = "../../../capsule_driver_usb_hid/src/descriptors/types.rs"]
+pub mod types;
+
+pub use binding::HidBinding;
+pub use pad::{pad_layout, PadEvent, PadLayout, PadState};
 pub use parse::hid_bindings;
 pub use types::HidKind;

@@ -14,53 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Trying one root port: address its device, and bind it by UAS at high
-//! speed (uas_bind.rs) or by Bulk-Only (bot_bind.rs).
+//! Taking one root port's device: a slot for it, configured (`configure`),
+//! and given back unless the device is ours to ask. Its logical units are
+//! asked after, a command a step (`ask`).
 
-use super::bot_bind::bot;
+use super::asking::Asking;
+use super::configure::configure;
 use super::report::Stage;
-use super::uas_bind::uas;
-use crate::disk::Disk;
 use crate::state::State;
-use crate::xhci::{address_device, config_descriptor, disable_slot, enable_slot, E_BUSY};
+use crate::xhci::{disable_slot, enable_slot};
 
 pub enum Probe {
-    Ours(Disk),
+    /// Configured: its logical units are to be asked.
+    Bound(Asking),
     /// A device of another class, its first interface's class, subclass
     /// and protocol (`report::first_interface`); its slot is given back.
     NotOurs(u32),
     /// Another class driver is addressing the port; ask again later.
     Busy,
-    /// The device did not answer as a BOT device should, at this stage,
+    /// The device did not answer as a BOT or UAS device should, at this stage,
     /// with this errno.
     Failed(Stage, i32),
 }
 
-pub fn probe_port(xhci: u32, port: u8, state: &mut State) -> Probe {
+pub fn bind(xhci: u32, port: u8, state: &mut State) -> Probe {
     let slot = match enable_slot(xhci) {
         Ok(slot) => slot,
         Err(e) => return Probe::Failed(Stage::Address, e),
     };
-    let probe = bind(xhci, slot, port, state);
-    if !matches!(probe, Probe::Ours(_)) {
+    let probe = configure(xhci, slot, port, state);
+    if !matches!(probe, Probe::Bound(_)) {
         disable_slot(xhci, slot);
     }
     probe
-}
-
-fn bind(xhci: u32, slot: u8, port: u8, state: &mut State) -> Probe {
-    match address_device(xhci, slot, port) {
-        Ok(()) => {}
-        Err(E_BUSY) => return Probe::Busy,
-        Err(e) => return Probe::Failed(Stage::Address, e),
-    }
-    let mut desc = [0u8; 255];
-    let n = match config_descriptor(xhci, slot, &mut desc) {
-        Ok(n) => n,
-        Err(e) => return Probe::Failed(Stage::Config, e),
-    };
-    if let Some(probe) = uas(xhci, slot, port, &desc[..n], state) {
-        return probe;
-    }
-    bot(xhci, slot, &desc[..n], state)
 }

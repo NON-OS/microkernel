@@ -37,6 +37,9 @@ pub struct Fake {
     pub refuse_address: Option<i32>,
     pub refuse_configure: Option<i32>,
     pub last_reset: Option<(u8, usize)>,
+    /// Every port reset asked for; how long the walk slept.
+    pub resets: Vec<(u8, usize)>,
+    pub slept: u64,
     pub now: i64,
     pub lines: Vec<String>,
 }

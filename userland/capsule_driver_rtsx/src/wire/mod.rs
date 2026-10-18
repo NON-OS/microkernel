@@ -27,7 +27,7 @@ mod response;
 
 pub use buffer::CmdBuf;
 pub use clock_plan::plan;
-pub use encode::{haimr_done, haimr_read, haimr_write, hcbctlr, hdbctlr_read, sg_entry};
+pub use encode::{haimr_done, haimr_read, haimr_write, hcbctlr, hdbctlr, sg_entry};
 pub use kind::CmdKind;
 pub use outcome::{classify, Outcome};
 pub use response::{parse, Response, ResponseError};

@@ -14,38 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Turn on Memory Space and Bus Master Enable once the device is claimed.
-//! The e1000 capsule never did, and relied on firmware having left them on;
-//! a part whose BIOS did not boot from it has Bus Master clear, and then
-//! every descriptor fetch and frame write is dropped at the root port.
+//! The PCI Command word, through the broker. Memory Space is always on, so
+//! BAR0 answers. Bus Master is off from the claim until the part is stopped
+//! and reset and both rings name this driver's frames, and off again before
+//! the device goes back: a part left mastering by firmware or by an earlier
+//! attempt must not reach memory before it is stopped, nor after its frames
+//! are freed. The broker clears it on every release, so each attempt sets
+//! it; a part whose BIOS did not boot from it has it clear, and then every
+//! descriptor fetch and frame write is dropped at the root port.
+//!
+//! Only allowlisted bits go in: the broker takes a value carrying any other
+//! bit (I/O Space, which the 82574's port BAR asks for) verbatim and refuses
+//! it unless every such bit already matches. It ORs allowlisted bits into
+//! the register today, so "off" takes effect once it stores them as written
+//! (src/hardware/broker/pci/command.rs); until then it changes nothing.
 
 use nonos_libc::{
-    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-    MK_PCI_CMD_MEMORY_SPACE,
+    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
 };
 
-use crate::discover::Found;
-
-/*
- * Only bits the broker lets a driver flip go in. It ORs a value made of
- * writable bits into the current register, but takes a value carrying any
- * other bit (I/O Space, which the 82574's port BAR asks for) verbatim, and
- * refuses it unless every non-writable bit already matches: a firmware that
- * left I/O decode off, or set SERR or parity, would fail the claim
- * (src/hardware/broker/pci/command.rs). The driver uses BAR0 only.
- */
-const WRITABLE: u16 = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
-
-pub fn command_value(record_bits: u16) -> u16 {
-    (record_bits & WRITABLE) | MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER
-}
-
-pub fn enable(dev: Found, claim_epoch: u64) -> Result<(), &'static str> {
-    let value = command_value(dev.command_bits);
-    let r = mk_pci_config_write(dev.device_id, claim_epoch, MK_PCI_CFG_COMMAND, value);
-    if r < 0 {
-        let _ = mk_device_release(dev.device_id);
-        return Err("pci command write refused (bus master)");
+pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
+    let master = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };
+    let value = MK_PCI_CMD_MEMORY_SPACE | master;
+    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+        return Err(if bus_master {
+            "pci command write refused (bus master)"
+        } else {
+            "pci command write refused (memory space)"
+        });
     }
     Ok(())
 }

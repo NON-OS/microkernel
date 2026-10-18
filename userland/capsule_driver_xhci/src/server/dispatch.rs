@@ -14,18 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::protocol::{
-    Request, E_INVAL, OP_ADDRESS_DEVICE, OP_ADDRESS_ROUTED, OP_ALLOC_TRANSFER_RING, OP_BULK_IN,
-    OP_BULK_IN_POLL, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_BULK2, OP_CONFIGURE_HUB,
-    OP_CONFIGURE_ISOCH, OP_CONFIGURE_STREAMS, OP_CONTROLLER_STATUS, OP_CONTROL_TRANSFER,
-    OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR, OP_GET_DEVICE_DESCRIPTOR,
-    OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_INTERRUPT_OUT, OP_ISOCH_IN, OP_ISOCH_OUT, OP_PORT_STATUS,
-    OP_RESET_BULK,
+    Request, E_INVAL, E_NODEV, OP_ADDRESS_DEVICE, OP_ADDRESS_ROUTED, OP_ALLOC_TRANSFER_RING,
+    OP_BULK_IN, OP_BULK_IN_POLL, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_CONFIGURE_BULK2,
+    OP_CONFIGURE_HUB, OP_CONFIGURE_ISOCH, OP_CONFIGURE_STREAMS, OP_CONTROLLER_STATUS,
+    OP_CONTROL_TRANSFER, OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR,
+    OP_GET_DEVICE_DESCRIPTOR, OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_INTERRUPT_OUT, OP_ISOCH_IN,
+    OP_ISOCH_OUT, OP_PORT_STATUS, OP_RESET_BULK,
 };
-use crate::server::context::Context;
-use crate::server::error::reply_with_status;
-use crate::server::handlers;
+use crate::server::sender_holds::sender_holds;
+use crate::server::{context::Context, error::reply_with_status, handlers};
 
+/// Serve one request. Whether the controller failed is looked at before and
+/// after each. A failed one is brought back before a request that needs
+/// it, and while it cannot be every such request is refused with E_NODEV;
+/// status requests are answered either way.
 pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
+    let status = matches!(req.op, OP_HEALTHCHECK | OP_CONTROLLER_STATUS | OP_PORT_STATUS);
+    if ctx.driver.failed() {
+        ctx.driver.dead = true;
+    }
+    if ctx.driver.dead && !status && ctx.driver.revive().is_err() {
+        return reply_with_status(tx, req, E_NODEV);
+    }
+    route(ctx, req, body, tx);
+    if ctx.driver.failed() {
+        ctx.driver.dead = true;
+    }
+}
+
+fn route(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(req, tx),
         OP_CONTROLLER_STATUS if body.is_empty() => {
@@ -33,6 +50,7 @@ pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
         OP_PORT_STATUS if body.is_empty() => handlers::port_status::handle(ctx, req, tx),
         OP_ENABLE_SLOT if body.is_empty() => handlers::enable_slot::handle(ctx, req, tx),
+        _ if !sender_holds(ctx, body) => reply_with_status(tx, req, E_INVAL),
         OP_DISABLE_SLOT => handlers::disable_slot::handle(ctx, req, body, tx),
         OP_ADDRESS_DEVICE => handlers::address_device::handle(ctx, req, body, tx),
         OP_ADDRESS_ROUTED => handlers::address_routed::handle(ctx, req, body, tx),

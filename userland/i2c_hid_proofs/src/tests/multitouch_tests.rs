@@ -18,11 +18,11 @@
 //! followed when the first slot lifts (screen_tests.rs has a screen's).
 
 use super::digitizers::*;
-use crate::hid::{parse_report_descriptor, primary, Multitouch, Surface};
+use crate::hid::{primary, Multitouch, Surface};
 
 pub(super) fn mt(kind: u8, fingers: usize) -> Multitouch {
     let d = digitizer(kind, fingers);
-    Multitouch::new(&d, &parse_report_descriptor(&d))
+    Multitouch::new(&d)
 }
 
 #[test]

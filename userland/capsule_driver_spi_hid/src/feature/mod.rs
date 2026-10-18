@@ -16,6 +16,8 @@
 
 #[path = "../../../capsule_driver_i2c_hid/src/hid/input_mode/configure.rs"]
 mod configure;
+#[path = "../../../capsule_driver_i2c_hid/src/hid/input_mode/configured.rs"]
+mod configured;
 #[path = "../../../capsule_driver_i2c_hid/src/hid/input_mode/fallback.rs"]
 mod fallback;
 #[path = "../../../capsule_driver_i2c_hid/src/hid/input_mode/one_report.rs"]

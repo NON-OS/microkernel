@@ -21,7 +21,10 @@
 //! on every poll while it stays asserted; the HID driver reads the input
 //! register when it rang. `present` is zero when the firmware declared no
 //! line or gpio0 does not answer for this device, and the HID driver then
-//! reads on its timer.
+//! reads on its timer. It is zero too once the bound pad is out of reach:
+//! the line is the bound declaration's, and when the client has found
+//! another pad (transaction/types/narrow.rs) it belongs to a pad the client
+//! does not read, so it must never gate those reads.
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
@@ -36,7 +39,8 @@ use crate::server::respond;
 static RANG: AtomicBool = AtomicBool::new(false);
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
-    let (present, fired) = match driver.doorbell.as_ref().and_then(look) {
+    let ours = driver.reach.get().allows(driver.bound_addr);
+    let (present, fired) = match driver.doorbell.as_ref().filter(|_| ours).and_then(look) {
         Some(rang) => (1u32, u32::from(rang)),
         None => (0u32, 0u32),
     };

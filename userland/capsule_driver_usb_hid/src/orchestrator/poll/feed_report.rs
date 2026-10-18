@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::descriptors::HidKind;
-use crate::hid::feed_pad;
 use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 
 use super::constants::PAD_REPORT_MAX;
 
+/// One report into the state of the interface it came from, and no other.
 pub(super) fn feed_report(
     state: &mut State,
     ep: &mut HidEndpoint,
@@ -29,22 +29,10 @@ pub(super) fn feed_report(
 ) {
     // The read is bounded by the buffer; a count past it is no report.
     let Some(report) = buf.get(..n) else { return };
+    ep.dev.feed(report);
     match ep.kind {
-        HidKind::Keyboard => {
-            state.keyboard.feed(report);
-            state.key_reports = state.key_reports.wrapping_add(1);
-        }
-        HidKind::Mouse => {
-            state.mouse.feed(report);
-            state.mouse_reports = state.mouse_reports.wrapping_add(1);
-        }
-        HidKind::Tablet => {
-            state.tablet.feed(report);
-        }
-        HidKind::Gamepad => {
-            if let Some((id, pad)) = ep.pad.as_mut() {
-                feed_pad(*id, pad, report);
-            }
-        }
+        HidKind::Keyboard => state.key_reports = state.key_reports.wrapping_add(1),
+        HidKind::Mouse => state.mouse_reports = state.mouse_reports.wrapping_add(1),
+        HidKind::Report | HidKind::Gamepad => {}
     }
 }

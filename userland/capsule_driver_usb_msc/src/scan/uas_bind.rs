@@ -22,12 +22,11 @@
 
 use nonos_uas::{uas_pipes, UasPipes};
 
+use super::asking::Asking;
 use super::probe::Probe;
-use super::ready_unit::finish;
 use super::report::Stage;
 use super::uas_setup::set_up;
-use crate::disk::Disk;
-use crate::state::State;
+use crate::disk::{max_lun, serial, Disk};
 use crate::xhci::port_speed;
 
 const SPEED_HIGH: u8 = 3;
@@ -37,7 +36,7 @@ const SPEED_SUPER: u8 = 4;
 const STREAMS_LOG2: u8 = 2;
 
 /// `None` when the device is not one to bind by UAS here.
-pub(super) fn uas(xhci: u32, slot: u8, port: u8, desc: &[u8], state: &mut State) -> Option<Probe> {
+pub(super) fn uas(xhci: u32, slot: u8, port: u8, desc: &[u8]) -> Option<Probe> {
     let p = uas_pipes(desc)?;
     let log2 = match port_speed(xhci, port)? {
         SPEED_HIGH => None,
@@ -48,9 +47,8 @@ pub(super) fn uas(xhci: u32, slot: u8, port: u8, desc: &[u8], state: &mut State)
         Ok(data) => data,
         Err(e) => return Some(Probe::Failed(Stage::Configure, e)),
     };
-    let mut disk = Disk::bound(xhci, slot, &data);
-    (disk.uas, disk.streams) = (true, log2.is_some());
-    Some(finish(disk, state))
+    let disk = Disk { port, uas: true, streams: log2.is_some(), ..Disk::bound(xhci, slot, &data) };
+    Some(Probe::Bound(Asking::start(disk, max_lun(&disk), serial(&disk))))
 }
 
 /// The streams to ask for: as many as the status and data pipes all take,

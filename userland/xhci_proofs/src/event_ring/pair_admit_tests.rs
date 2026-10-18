@@ -18,7 +18,7 @@
 //! first does not hold, one a slot; and the ops' pair byte.
 
 use super::fixture::Fixture;
-use super::toggle_tests::storage_slot;
+use super::toggle_slot::storage_slot;
 use crate::controller::BulkPipes;
 use crate::slots::{pair_of, pair_stream};
 

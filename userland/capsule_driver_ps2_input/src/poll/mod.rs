@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod absorb;
-// port-read diagnostic sentinels: bring-up diagnostic, silenced
-// mod diag;
+mod chord;
+mod counters;
 mod drain;
 mod drainer;
+pub mod prefix;
 mod read_port;
+pub use absorb::absorb;
+pub use counters::Counters;
 pub use drain::drain;
 pub use drainer::Drainer;
 pub use read_port::read_port;

@@ -16,5 +16,7 @@
 use crate::constants::ERSTBA_LO;
 use crate::regs::mmio_write64;
 pub fn erstba_program(intr_base: u64, erst_phys: u64) {
-    mmio_write64(intr_base + ERSTBA_LO, erst_phys & !0x3F);
+    // SAFETY: `intr_base` is interrupter 0's register set, 32 bytes into the runtime page
+    // `read_layout` checked lies inside the mapped window.
+    unsafe { mmio_write64(intr_base + ERSTBA_LO, erst_phys & !0x3F) };
 }

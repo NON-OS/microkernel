@@ -14,51 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_ADDRESS_ROUTED across several controllers: the root port names the
-//! controller, and the TT's hub slot, a slot id of the multiplexer's like
-//! the device's own, must be on that controller; both go to it as its own
-//! numbers, and the reply carries the multiplexer's back.
+//! A routed Address Device across controllers. Its TT hub slot is one of
+//! the multiplexer's too, and must be bound on the port's controller; and
+//! its whole place is held against that controller's hubs before a slot is
+//! enabled for it, so a request naming no place a hub set up has no
+//! command run for it, as with one controller.
 
 use alloc::vec::Vec;
 
-use super::mux::{status, Mux, VSlot};
-use super::mux_ports::local_port;
-use crate::protocol::{Request, E_INVAL, E_IO, RESP_HDR_LEN, STATUS_LEN};
-use crate::server::dispatch::dispatch;
-use crate::server::error::reply_with_status;
-use crate::server::reply::{captured, send};
+use super::mux::Mux;
+use super::mux_forward::VSlot;
+use crate::server::handlers::address_routed::place_below_hub;
+
+/// Where a routed request carries its speed, route, and TT hub slot.
+const SPEED: usize = 2;
+const ROUTE: usize = 3;
+const TT_SLOT: usize = 7;
 
 impl Mux {
-    pub(super) fn address_routed(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
-        let (Some(&v), Some(&port), Some(&tt)) = (body.first(), body.get(1), body.get(7)) else {
-            return reply_with_status(tx, req, E_INVAL);
-        };
-        let Some((ctrl, lport)) = local_port(&self.ports, port) else {
-            return reply_with_status(tx, req, E_INVAL);
-        };
-        let tt_local = match self.vslots[tt as usize] {
-            _ if tt == 0 => 0,
-            VSlot::Bound { ctrl: c, slot } if c as usize == ctrl => slot,
-            _ => return reply_with_status(tx, req, E_INVAL),
-        };
-        let slot = match self.vslots[v as usize] {
-            VSlot::Pending => match self.enable_on(ctrl, req, tx) {
-                Some(slot) => {
-                    self.vslots[v as usize] = VSlot::Bound { ctrl: ctrl as u8, slot };
-                    slot
-                }
-                None => return reply_with_status(tx, req, E_IO),
-            },
-            _ => return reply_with_status(tx, req, E_INVAL),
-        };
+    /// `body`, `ADDRESS_ROUTED_REQUEST_LEN` bytes for root port `lport` of
+    /// controller `ctrl`, with its TT hub slot made the controller's own;
+    /// `Err` when it names a hub not bound there or a place none has.
+    pub(super) fn routed_local(&self, ctrl: usize, lport: u8, body: &[u8]) -> Result<Vec<u8>, ()> {
         let mut local = Vec::from(body);
-        (local[0], local[1], local[7]) = (slot, lport, tt_local);
-        let ctx = &mut self.ctxs[ctrl];
-        let len = captured(|| dispatch(ctx, req, &local, tx));
-        if status(tx, len) == Some(0) && len >= RESP_HDR_LEN + STATUS_LEN + 2 {
-            tx[RESP_HDR_LEN + STATUS_LEN] = v;
-            tx[RESP_HDR_LEN + STATUS_LEN + 1] = port;
+        if body[TT_SLOT] != 0 {
+            match self.vslots[body[TT_SLOT] as usize] {
+                VSlot::Bound { ctrl: c, slot } if c as usize == ctrl => local[TT_SLOT] = slot,
+                _ => return Err(()),
+            }
         }
-        send(tx.as_ptr(), len);
+        let r = &body[ROUTE..ROUTE + 4];
+        let route = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
+        let tt = (local[TT_SLOT], local[TT_SLOT + 1]);
+        place_below_hub(&self.ctxs[ctrl], lport, body[SPEED], route, tt).ok_or(())?;
+        Ok(local)
     }
 }

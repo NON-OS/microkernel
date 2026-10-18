@@ -14,44 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One pass over every registered host's ports, fastest host first.
-
-use nonos_libc::Deadline;
+//! What one step of the scanner does, and how long the server may wait for
+//! a request before the next is due: the pause before the next command to a
+//! device being asked, or the next look at the ports. A ready device waits
+//! for requests alone.
 
 use super::medium::Medium;
-use super::pass::pass;
-use super::report::{Report, Stage};
-use super::scanner::{Scanner, SETTLE_MS};
+use super::scanner::Scanner;
+use super::searching::SCAN_POLL_MS;
 use crate::state::State;
-use crate::xhci::connected_ports;
 
 impl Scanner {
-    /// One pass over the ports. `Scanning` until the device is bound or
-    /// every connected port is decided, or the window closes.
-    pub fn step(&mut self, state: &mut State) -> Medium {
+    /// One bounded step: the next command to the device being asked, the
+    /// check of one that failed, or a look at the ports and a bind.
+    pub fn step(&mut self, state: &mut State) {
         if !self.found() {
-            return self.undecided();
+            return self.decide();
         }
-        let settle = *self.settle.get_or_insert_with(|| Deadline::after_ms(SETTLE_MS));
-        let (report, mut open) = (&mut self.report, false);
-        let disk = self.hosts.first(|xhci, tries| match connected_ports(xhci) {
-            Ok(ports) => {
-                let (disk, still) = pass(xhci, ports, tries, state, report);
-                open |= still;
-                disk
+        match core::mem::replace(&mut self.medium, Medium::Scanning) {
+            Medium::Checking(disk) => self.check(disk.xhci, disk, state),
+            kept @ (Medium::Ready(_) | Medium::Changed) => self.medium = kept,
+            idle => {
+                self.medium = idle;
+                self.search(state);
             }
-            Err(e) => {
-                *report = Report::at(Stage::NoXhci, 0, e);
-                open = true;
-                None
-            }
-        });
-        if let Some(disk) = disk {
-            return Medium::Ready(disk);
         }
-        if open || !settle.expired() {
-            return self.undecided();
-        }
-        Medium::Absent
+    }
+
+    /// At least 1 ms; 0, as long as it takes, when the device is ready or
+    /// nothing is served again.
+    pub fn wait_ms(&self) -> u64 {
+        let due = match (&self.medium, &self.asking) {
+            (Medium::Ready(_) | Medium::Changed, _) => return 0,
+            (Medium::Checking(_), _) => 0,
+            (_, Some(asking)) => asking.wait_ms(),
+            _ if self.known == 0 && self.searching => SCAN_POLL_MS,
+            _ => self.look.left_ms(),
+        };
+        due.max(1)
     }
 }
