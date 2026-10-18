@@ -49,8 +49,11 @@ fn check_completion(
     rf: &mut Refill,
     running: bool,
 ) {
+    // SAFETY: `stream_off` is a stream descriptor from the layout, inside the
+    // window (`crate::regs`), and SD_STS a byte register of it.
     let sts = unsafe { driver.regs.r8(driver.stream_off + SD_STS) };
     if sts & SDSTS_BCIS != 0 {
+        // SAFETY: as above.
         unsafe { driver.regs.w8(driver.stream_off + SD_STS, SDSTS_BCIS) };
         if running {
             refill(driver, q, rf);

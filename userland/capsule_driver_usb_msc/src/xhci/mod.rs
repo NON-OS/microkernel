@@ -22,12 +22,17 @@ mod call;
 mod control;
 mod lookup;
 mod port;
+mod port_list;
+mod reply;
 mod slot;
+mod window;
 mod wire;
 
 pub use bulk::{bulk_in, bulk_out, configure_bulk, reset_bulk};
 pub use control::{config_descriptor, control_in, control_no_data};
 pub use lookup::lookup;
-pub use port::{connected_ports, Port};
+pub use port::connected_ports;
+pub use port_list::Port;
 pub use slot::{address_device, disable_slot, enable_slot};
+pub use window::Window;
 pub use wire::{BULK_MAX, E_BUSY, E_PIPE, PORT_CLAIMED, PORT_FREE};

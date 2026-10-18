@@ -1,17 +1,23 @@
 use crate::driver::Driver;
-use crate::protocol::{Request, E_BUSY, E_INVAL, E_NACK, E_OK, E_TIMEOUT, TRANSFER_READ_MAX};
+use crate::protocol::{wipe, Request, E_BUSY, E_INVAL, E_NACK, E_OK, E_TIMEOUT, TRANSFER_READ_MAX};
 use crate::server::respond;
-use crate::transaction::{transfer, TransferError, TransferRequest};
+use crate::transaction::{transfer, TransferError, TransferRequest, TransferResult};
 
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, body: &[u8], out: &mut [u8]) {
-    let Some((addr, flags, write, read_len)) = parse(body) else {
+    // Only the devices setup put in reach (transaction/types/reach.rs).
+    let reach = driver.reach.get();
+    let Some((addr, flags, write, read_len)) = parse(body).filter(|p| reach.allows(p.0)) else {
         let _ = respond::send(sender_pid, req, E_INVAL, &[], out);
         return;
     };
     let tr = TransferRequest { addr, flags, write, read_len };
-    match transfer(driver, tr) {
-        Ok(result) => {
-            reply_ok(sender_pid, req, &result.read[..result.read_len], result.abort_source, out)
+    // The bytes read land here, and go when it drops, on every path (C8).
+    let mut result = TransferResult::empty();
+    match transfer(driver, tr, &mut result) {
+        Ok(()) => {
+            let read = &result.read[..result.read_len];
+            driver.reach.set(reach.after_read(addr, write, read));
+            reply_ok(sender_pid, req, read, result.abort_source, out)
         }
         Err(e) => {
             let _ = respond::send(sender_pid, req, errno(e), &[], out);
@@ -39,6 +45,7 @@ fn reply_ok(sender_pid: u32, req: &Request, read: &[u8], abort: u32, out: &mut [
     body[4..8].copy_from_slice(&abort.to_le_bytes());
     body[8..8 + read.len()].copy_from_slice(read);
     let _ = respond::send(sender_pid, req, E_OK, &body[..8 + read.len()], out);
+    wipe(&mut body);
 }
 
 fn errno(err: TransferError) -> i32 {

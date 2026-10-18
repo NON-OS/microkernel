@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy)]
+/// What one pointer report moves and holds: relative motion, a wheel step
+/// and the buttons down, button 1 in bit 0.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MouseEvent {
     pub dx: i16,
     pub dy: i16,
     pub dz: i8,
     pub buttons: u8,
-    pub flags: u8,
-}
-
-impl MouseEvent {
-    pub fn write_wire(self, out: &mut [u8]) {
-        out[0..2].copy_from_slice(&self.dx.to_le_bytes());
-        out[2..4].copy_from_slice(&self.dy.to_le_bytes());
-        out[4] = self.dz as u8;
-        out[5] = self.buttons;
-        out[6] = self.flags;
-        out[7] = 0;
-    }
 }

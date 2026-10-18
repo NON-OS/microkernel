@@ -17,7 +17,9 @@
 //! The end of one bring-up attempt. Programming the part either works and
 //! the one `up` line is logged, or every grant goes back before the attempt
 //! reports failure, so the next attempt claims the device afresh instead of
-//! meeting its own leftover claim.
+//! meeting its own leftover claim. The station address is not in the line:
+//! drawn per bring-up, it is still what every frame of this session
+//! carries, and a log that holds it ties the machine to its traffic.
 
 use crate::constants::regs::REG_STATUS;
 use crate::constants::status::STATUS_LU;
@@ -38,8 +40,6 @@ pub fn finish(mut driver: Driver) -> Result<Driver, &'static str> {
     Line::new()
         .text("up ")
         .hex16(driver.pci_device)
-        .text(" mac ")
-        .mac(&driver.mac)
         .text(" family=")
         .text(driver.family.name())
         .text(if up { " link=up" } else { " link=down" })

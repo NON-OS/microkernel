@@ -19,6 +19,7 @@
 //! before any input arrives.
 
 use nonos_i2cmodel::Command;
+use nonos_libc::take_debug;
 
 use super::fixture::{pad, rig, rig_with, HID_DESC_REG, PAD};
 use crate::setup;
@@ -31,8 +32,11 @@ fn wake_powers_the_pad_on_before_resetting_it() {
      * waits on an acknowledgement that never comes.
      */
     let r = rig();
+    take_debug();
     let state = setup::run().expect("setup");
     assert!(state.woke, "the driver did not report the pad awake");
+    let said = take_debug().iter().any(|l| l.contains("; reset acknowledged"));
+    assert!(said, "the bind line did not say the reset was acknowledged");
     let cmds = r.pad.lock().take_commands();
     let power = cmds.iter().position(|c| *c == Command::SetPower { sleep: false });
     let reset = cmds.iter().position(|c| *c == Command::Reset);

@@ -24,8 +24,13 @@
 //! this part, so these and the build are all the verification short of the
 //! machine itself.
 
+// The server loop allocates its buffers through `alloc`, as in the capsule.
+extern crate alloc;
+
 #[path = "../../capsule_driver_igc/src/constants/mod.rs"]
 pub mod constants;
+#[path = "../../capsule_driver_igc/src/discover/mod.rs"]
+pub mod discover;
 #[path = "../../capsule_driver_igc/src/init/mod.rs"]
 pub mod init;
 #[path = "../../capsule_driver_igc/src/link/mod.rs"]
@@ -36,8 +41,8 @@ pub mod log;
 pub mod protocol;
 #[path = "../../capsule_driver_igc/src/queue/mod.rs"]
 pub mod queue;
-#[path = "../../capsule_driver_igc/src/regs.rs"]
 pub mod regs;
+pub mod server;
 pub mod setup;
 
 #[cfg(test)]

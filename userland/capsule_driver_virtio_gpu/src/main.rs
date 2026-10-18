@@ -16,6 +16,7 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
+mod clock;
 mod constants;
 mod device;
 mod discover;
@@ -32,6 +33,10 @@ use nonos_libc::{bring_up, heap_init, mk_exit, mk_service_register, EXIT_ABSENT,
 const SERVICE_NAME: &[u8] = b"driver.virtio_gpu0";
 const SERVICE_PORT: u32 = 4226;
 
+/// # Safety
+///
+/// The capsule's entry point: the kernel calls it once, on a fresh stack,
+/// and nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
@@ -54,6 +59,10 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(EXIT_GAVE_UP);
     };
     if mk_service_register(SERVICE_NAME.as_ptr(), SERVICE_NAME.len(), SERVICE_PORT) < 0 {
+        // The compositor is handed the surface only over the service, so
+        // nothing holds it yet: the device is stopped and given back before
+        // the capsule leaves, not left live on grants the exit frees.
+        let _ = driver.quiesce();
         mk_exit(1);
     }
     server::run(driver);

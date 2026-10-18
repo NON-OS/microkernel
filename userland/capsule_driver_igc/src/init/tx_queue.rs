@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! igc_configure_tx_ring for queue 0: queue disabled, length, base, head and
-//! tail zero, then thresholds and QUEUE_ENABLE in one write. Linux does not
-//! read the enable back; this driver does, on the clock, so a queue that
-//! never started is named in the log instead of showing up as lost frames.
+//! tail zero (`program`); then, once Bus Master is on, thresholds and
+//! QUEUE_ENABLE in one write (`enable`). Linux does not read the enable
+//! back; this driver does, on the clock, so a queue that never started is
+//! named in the log instead of showing up as lost frames.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -37,7 +38,7 @@ use crate::regs::Regs;
 /// Quotes QUEUE_ENABLE_MS; igc_proofs holds the two equal.
 pub const TX_NOT_ENABLED: &str = "tx queue enable did not read back in 100 ms";
 
-pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) -> Result<(), &'static str> {
+pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) {
     // SAFETY: `tx.ring_user_va` is the broker DMA grant for the ring,
     // TX_DESC_COUNT descriptors long; `regs` carries a valid broker MmioMap
     // base for BAR0 and every offset is a register inside it (igc_regs.h).
@@ -55,9 +56,14 @@ pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) -> Result<(), &'static 
         regs.w32(REG_TDBAH, (ring_phys >> 32) as u32);
         regs.w32(REG_TDH, 0);
         regs.w32(REG_TDT, 0);
-        let txdctl = TXDCTL_PTHRESH | TXDCTL_HTHRESH | TXDCTL_WTHRESH | TXDCTL_QUEUE_ENABLE;
-        regs.w32(REG_TXDCTL, txdctl);
     }
+}
+
+pub fn enable(regs: &Regs) -> Result<(), &'static str> {
+    let txdctl = TXDCTL_PTHRESH | TXDCTL_HTHRESH | TXDCTL_WTHRESH | TXDCTL_QUEUE_ENABLE;
+    // SAFETY: `regs` carries a valid broker MmioMap base for BAR0 and TXDCTL
+    // is a register inside it (igc_regs.h).
+    unsafe { regs.w32(REG_TXDCTL, txdctl) };
     // SAFETY: as above.
     let on = || unsafe { regs.r32(REG_TXDCTL) } & TXDCTL_QUEUE_ENABLE != 0;
     if until(QUEUE_ENABLE_MS, on) {

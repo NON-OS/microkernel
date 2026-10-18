@@ -20,7 +20,7 @@
 //! completion code says, and is never taken as one.
 use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::trb::Trb;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct IssuedTransfer {
     pub phys: u64,
     pub slot: u8,

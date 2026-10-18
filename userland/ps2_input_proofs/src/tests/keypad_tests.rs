@@ -19,9 +19,9 @@
 
 use nonos_keymap::Layout;
 
+use crate::keymap::flags::FLAG_E0_PREFIX;
 use crate::keymap::keypad::character;
 use crate::keymap::translate::translate;
-use crate::ring::FLAG_E0_PREFIX;
 
 /// Each keypad key with the character it prints: scan code, E0 prefix.
 const KEYPAD: [(u8, bool, u8); 14] = [

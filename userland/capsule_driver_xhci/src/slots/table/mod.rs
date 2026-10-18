@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod attach_addressed;
+mod below_root;
 mod count;
+mod held;
 mod is_addressed;
 mod is_allocated;
 mod mark_allocated;
 mod mark_released;
 mod new;
+mod owner;
 mod port_state;
 mod resources_mut;
 mod take_resources;

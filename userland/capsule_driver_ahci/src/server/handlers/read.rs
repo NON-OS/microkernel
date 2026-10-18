@@ -19,7 +19,7 @@ use nonos_libc::mk_ipc_send;
 use crate::constants::ata::SECTOR_SIZE;
 use crate::engine::transfer;
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_MSGSIZE, E_NODEV, KERNEL_REPLY_ENDPOINT,
+    encode_response_header, write_status, Request, E_IO, E_MSGSIZE, E_NODEV, KERNEL_REPLY_ENDPOINT,
     READ_REQ_LEN, RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::error::reply_with_status;
@@ -43,14 +43,12 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     }
     let bytes = nsectors as usize * SECTOR_SIZE;
     let payload = STATUS_LEN + bytes;
+    let at = RESP_HDR_LEN + STATUS_LEN;
+    let copied = tx.get_mut(at..at + bytes).map(|out| port.take(out));
+    if copied != Some(Ok(())) {
+        return reply_with_status(tx, req, E_IO);
+    }
     encode_response_header(tx, req, payload as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            port.data.user_va() as *const u8,
-            tx[RESP_HDR_LEN + STATUS_LEN..].as_mut_ptr(),
-            bytes,
-        );
-    }
     let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + payload);
 }

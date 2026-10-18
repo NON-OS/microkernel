@@ -28,6 +28,8 @@ use crate::regs::Regs;
 /// failure is read from.
 pub(super) fn say_port(regs: Regs, index: u8, up: &AhciResult<Port>) {
     let base = PORT_BASE + u32::from(index) * PORT_STRIDE;
+    // SAFETY: the walk reaches only ports whose registers lie inside the
+    // mapped ABAR.
     let r = |off: u32| unsafe { regs.r32(base + off) };
     let mut line = Line::new();
     line.text(b"port ").num(u64::from(index)).text(b": ");
