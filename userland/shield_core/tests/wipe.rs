@@ -1,14 +1,3 @@
-/*
- * A test asserts by panicking, and a fixture writes files by hand, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 //! Destroying a wallet leaves nothing behind that a later open could read.
 //!
 //! This path loses money, so it must never report success while a file survives, and never

@@ -10,7 +10,10 @@
 
 use super::TorStream;
 use crate::error::NetError;
-use std::io::{Error, ErrorKind, Read, Result, Write};
+use std::io::{Error, ErrorKind, Result};
+
+#[path = "tls_io.rs"]
+mod io;
 
 /// The largest response held: a page of pool history.
 const LIMIT: usize = 16 * 1024 * 1024;
@@ -33,7 +36,7 @@ pub fn tls(stream: TorStream, host: &str) -> std::result::Result<TlsStream, NetE
 #[cfg(target_vendor = "nonos")]
 impl nonos_tls::Io for TorStream {
     fn write_all(&mut self, data: &[u8]) -> core::result::Result<(), nonos_tls::SessionError> {
-        Write::write_all(self, data).map_err(|_| nonos_tls::SessionError::Io)
+        std::io::Write::write_all(self, data).map_err(|_| nonos_tls::SessionError::Io)
     }
     fn read(&mut self, into: &mut [u8]) -> core::result::Result<usize, nonos_tls::SessionError> {
         let wait = self.patience;
@@ -46,7 +49,7 @@ impl TlsStream {
     fn run(&mut self) -> Result<()> {
         let now = nonos_tls::rtc_now();
         if now == 0 {
-            return Err(Error::new(ErrorKind::Other, "no clock to check the certificate against"));
+            return Err(Error::other("no clock to check the certificate against"));
         }
         let plain = nonos_tls::exchange(&mut self.stream, &self.host, &self.request, now, LIMIT)
             .map_err(|_| Error::new(ErrorKind::ConnectionAborted, "tls"))?;
@@ -58,35 +61,5 @@ impl TlsStream {
     fn run(&mut self) -> Result<()> {
         let _ = (&self.stream, &self.host, LIMIT);
         Err(Error::new(ErrorKind::NotConnected, "no network"))
-    }
-}
-
-impl Write for TlsStream {
-    fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        if self.reply.is_some() {
-            return Err(Error::new(ErrorKind::Other, "one request per connection"));
-        }
-        self.request.extend_from_slice(buf);
-        Ok(buf.len())
-    }
-    fn flush(&mut self) -> Result<()> {
-        if self.reply.is_none() {
-            self.run()?;
-        }
-        Ok(())
-    }
-}
-
-impl Read for TlsStream {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        if self.reply.is_none() {
-            self.run()?;
-        }
-        let reply = self.reply.as_deref().unwrap_or(&[]);
-        let rest = reply.get(self.at..).unwrap_or(&[]);
-        let n = rest.len().min(buf.len());
-        buf[..n].copy_from_slice(&rest[..n]);
-        self.at += n;
-        Ok(n)
     }
 }

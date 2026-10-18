@@ -34,32 +34,19 @@ userland/capsule_net_sockets/tests/connect_pending a C passes on the host (5 pas
 userland/capsule_net_sockets/tests/mixnet_framing a C passes on the host (12 passed, 2s); it has no Cargo.lock of its own
 userland/capsule_process_manager d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_settings d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
-userland/capsule_shield a B passes on the host (4 passed, 79s)
 userland/capsule_snake d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
-userland/capsule_terminal d B no_std capsule: its tests/*_host.rs want a host proofs crate; built for the host now, it fails on `check` missing from super::verify
 userland/capsule_text_editor/layout_tests a C passes on the host (81 passed, 13s)
 userland/iwlwifi_proofs/src/link_tests.rs orphan C no mod line reaches it; re-added it fails on its import of crate::station, and passes (2 tests) once that is fixed
 userland/nonos_avi a C passes on the host (14 passed, 3s)
 userland/nonos_brotli a C passes on the host (7 passed, 33s)
 userland/nonos_gguf a C passes on the host (12 passed, 3s)
-userland/nonos_git a B passes on the host (73 passed, 23s)
 userland/nonos_hash a A passes on the host (2 passed, 3s)
 userland/nonos_hd c B the host run lacked the crate serde_json
 userland/nonos_http a A passes on the host (22 passed, 4s)
-userland/nonos_nox_broker a B passes on the host (9 passed, 2s)
-userland/nonos_nox_license c B the host run could not fetch libc v0.2.189
-userland/nonos_nox_receipt a B passes on the host (10 passed, 2s)
 userland/nonos_qjs c C the host run could not fetch cc v1.2.67
-userland/nonos_qr a B passes on the host (7 passed, 3s)
-userland/nonos_recon a B passes on the host (11 passed, 1s)
-userland/nonos_seal a B passes on the host (7 passed, 2s)
-userland/nonos_vault a B passes on the host (13 passed, 2s)
-userland/nonos_vt a B passes on the host (69 passed, 26s)
 userland/nonos_wifi_core a C passes on the host (6 passed, 19s)
 userland/openpgp a C passes on the host (12 passed, 40s)
 userland/policy_proto a A passes on the host (37 passed, 6s)
-userland/shield_core a B passes on the host (247 passed, 200s)
-userland/shield_wire a B passes on the host (6 passed, 1s)
 userland/stark_proofs/src/forgery_tests.rs orphan A no mod line reaches it; re-added it does not compile: the Poseidon preimage AIR it imports is gone and StarkProof has no clone
 userland/stark_proofs/src/poseidon_tests.rs orphan A no mod line reaches it; re-added it does not compile: crypto::stark::poseidon is gone
 userland/stark_proofs/src/recursive_verifier_tests.rs orphan A no mod line reaches it; re-added it does not compile: FinalLayerConstant, FriTranscript and recursive_verify are gone from stark::air

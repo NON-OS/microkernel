@@ -29,24 +29,23 @@
 //! does not check which process asks (`capsule_installer/src/server`), so the
 //! worker's own thread id is no obstacle.
 
-use alloc::boxed::Box;
-use alloc::vec::Vec;
+use nonos_libc::{Handoff, WorkerSeat};
 
-use nonos_libc::{Handoff, Look, WorkerSeat};
+use super::work::PkgDone;
 
-use super::work::{parse, perform, report, PkgDone, PkgOp};
-use crate::command::output::Output;
-use crate::jobs::JobProgress;
-use crate::term::state::State;
-use crate::term::util::format_u64;
+#[path = "job_prepare.rs"]
+mod job_prepare;
+#[path = "job_say.rs"]
+mod job_say;
+#[path = "job_step.rs"]
+mod job_step;
+
+pub use job_prepare::prepare;
 
 /// Where the worker's answer lands.
 static ANSWER: Handoff<PkgDone> = Handoff::new();
 /// The worker's thread and its stack.
 static SEAT: WorkerSeat = WorkerSeat::new();
-
-/// The seat's refusal while its last worker is still on it.
-const EBUSY: i64 = -16;
 
 pub struct PkgJob {
     /// The answer was taken; nothing is left to stop waiting for.
@@ -62,100 +61,4 @@ pub enum Prepared {
     /// Not a request for a worker (`status`, or a usage error), or no worker
     /// could be started: the ordinary dispatch runs it, on this thread.
     Inline,
-}
-
-pub fn prepare(state: &mut State, args: &[&[u8]]) -> Prepared {
-    let Some(op) = parse(state.cwd.as_bytes(), args) else {
-        return Prepared::Inline;
-    };
-    if !ANSWER.claim() {
-        return refuse(state);
-    }
-    let verifying = match &op {
-        PkgOp::Install { path, .. } => Some(said(b"pkg: verifying ", path)),
-        PkgOp::Remove { .. } => None,
-    };
-    let arg = Box::into_raw(Box::new(op));
-    match SEAT.spawn(work, arg as usize) {
-        Ok(_) => {
-            if let Some(line) = verifying {
-                state.scrollback.push_line(&line);
-            }
-            Prepared::Job(PkgJob { answered: false })
-        }
-        Err(errno) => {
-            // SAFETY: the spawn failed, so no worker took the box; it is
-            // still this thread's, and only this thread frees it.
-            drop(unsafe { Box::from_raw(arg) });
-            ANSWER.release();
-            if errno == EBUSY {
-                // The last worker has handed its answer back but is not gone
-                // yet, so its stack is still in use.
-                return refuse(state);
-            }
-            say_inline(state, errno);
-            Prepared::Inline
-        }
-    }
-}
-
-/// The worker: ask the installer, hand the answer back, end.
-fn work(arg: usize) {
-    // SAFETY: `arg` is the box `prepare` leaked for this worker, and the
-    // spawn succeeded, so the worker owns it from here.
-    let op = unsafe { Box::from_raw(arg as *mut PkgOp) };
-    ANSWER.put(perform(&op));
-}
-
-impl PkgJob {
-    pub fn step_once(&mut self, out: &mut Output<'_>) -> JobProgress {
-        match ANSWER.poll() {
-            Look::Waiting => JobProgress::Running,
-            Look::Ready(done) => {
-                self.answered = true;
-                JobProgress::Done(if report(out, &done) { 0 } else { 1 })
-            }
-            Look::Idle => {
-                self.answered = true;
-                out.writeln_error(b"pkg: the installer's answer was lost");
-                JobProgress::Done(1)
-            }
-        }
-    }
-}
-
-impl Drop for PkgJob {
-    /// Ctrl+C ends the job without its answer: stop waiting for it, so the
-    /// worker's answer is discarded when it comes rather than kept.
-    fn drop(&mut self) {
-        if !self.answered {
-            ANSWER.stop_waiting();
-        }
-    }
-}
-
-fn refuse(state: &mut State) -> Prepared {
-    state
-        .scrollback
-        .push_error(b"pkg: the last request is still with the installer; try again shortly");
-    state.last_status = 1;
-    Prepared::Refused
-}
-
-/// No worker could be started (its stack not mapped, or the kernel refused
-/// the thread). The request runs on the window thread instead, as it did
-/// before workers, and the person is told the window will wait.
-fn say_inline(state: &mut State, errno: i64) {
-    let mut num = [0u8; 24];
-    let k = format_u64(errno.unsigned_abs(), &mut num);
-    let mut line = said(b"pkg: no worker thread (-", &num[..k]);
-    line.extend_from_slice(b"), the window waits for the installer");
-    state.scrollback.push_line(&line);
-}
-
-fn said(what: &[u8], tail: &[u8]) -> Vec<u8> {
-    let mut line = Vec::with_capacity(what.len() + tail.len());
-    line.extend_from_slice(what);
-    line.extend_from_slice(tail);
-    line
 }

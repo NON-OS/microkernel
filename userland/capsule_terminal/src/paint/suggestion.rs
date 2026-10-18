@@ -20,6 +20,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::line_text::text;
 use super::line_window::fit_cells;
+use super::metrics::Metrics;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
@@ -37,11 +38,11 @@ pub fn draw_suggestion(
     fb: &mut PaintBuffer,
     x: u32,
     y: u32,
-    adv: u32,
-    px: f32,
+    m: Metrics,
     room_cells: usize,
     t: &Theme,
 ) {
+    let (adv, px) = (m.adv, m.px);
     let body = state.line.as_bytes();
     if state.line.cursor != body.len() {
         return;

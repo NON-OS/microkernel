@@ -21,16 +21,13 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
-use nonos_libc::mk_proc_input;
-
-use super::stdin_cut::cut_at;
+#[path = "stdin_feed.rs"]
+mod stdin_feed;
 
 /// End of transmission: sent alone, the program's input is over.
 pub const EOT: u8 = 0x04;
 /// Held and not yet taken. Past this, input is refused, not queued.
 const QUEUE_MAX: usize = 1024 * 1024;
-/// Messages handed over in one tick.
-const TICK_MESSAGES: usize = 64;
 
 pub struct StdinQueue {
     pending: VecDeque<Vec<u8>>,
@@ -67,34 +64,5 @@ impl StdinQueue {
     /// Whether typed keys still go to the program.
     pub fn takes_keys(&self) -> bool {
         !self.sealed
-    }
-
-    /// Queue `bytes` as messages of at most `MESSAGE_MAX`, cut between
-    /// characters. False, with nothing queued, when full.
-    pub fn push(&mut self, bytes: &[u8]) -> bool {
-        if self.sealed || self.bytes + bytes.len() > QUEUE_MAX {
-            return false;
-        }
-        let mut rest = bytes;
-        while !rest.is_empty() {
-            let cut = cut_at(rest);
-            self.pending.push_back(rest[..cut].to_vec());
-            rest = &rest[cut..];
-        }
-        self.bytes += bytes.len();
-        true
-    }
-
-    /// Hand the kernel what it takes this tick, oldest first. A message it
-    /// refuses (a full inbox, or one not made yet) waits for the next tick.
-    pub fn feed(&mut self, pid: u32) {
-        for _ in 0..TICK_MESSAGES {
-            let Some(msg) = self.pending.front() else { return };
-            if mk_proc_input(pid as u64, msg.as_ptr(), msg.len() as u64) <= 0 {
-                return;
-            }
-            self.bytes -= msg.len();
-            self.pending.pop_front();
-        }
     }
 }

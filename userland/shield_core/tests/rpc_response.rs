@@ -4,7 +4,6 @@
 //! parsed the way the wallet parses a page. A reversed field or a mishandled
 //! extra key is where a scanner silently finds nothing, so this runs the real
 //! bytes and checks the 189 logs come out whole and feed the note decoder.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::discovery::{note_commitments, Log};
 use nox_shield_core::net::rpc::{parse_block_number, parse_logs};

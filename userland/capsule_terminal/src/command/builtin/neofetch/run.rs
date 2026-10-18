@@ -20,7 +20,6 @@ use alloc::vec::Vec;
 use nonos_libc::mk_uptime_ms;
 
 use crate::command::output::Output;
-use crate::term::identity::{hostname, username};
 use crate::term::state::State;
 use crate::term::util::copy_into;
 
@@ -28,19 +27,14 @@ use super::compose::two_column;
 use super::logo::LOGO;
 use super::palette::palette;
 
+#[path = "run_info.rs"]
+mod run_info;
+
+use run_info::info;
+
 const VERSION: &str = include_str!("../../../../../../VERSION");
 
 const GAP: usize = 2;
-
-fn row(label: &str, value: &[u8]) -> Vec<u8> {
-    let mut line = Vec::with_capacity(48);
-    line.extend_from_slice(label.as_bytes());
-    while line.len() < 8 {
-        line.push(b' ');
-    }
-    line.extend_from_slice(value);
-    line
-}
 
 /*
  * The system's uptime, from the monotonic clock `uptime` reads. It was the
@@ -52,27 +46,6 @@ fn uptime(buf: &mut [u8]) -> usize {
         return copy_into(buf, b"unavailable");
     }
     crate::paint::fetch_uptime::uptime_str(ms as u64, buf)
-}
-
-fn info(kernel: &[u8], up: &[u8], signed: &[u8]) -> Vec<Vec<u8>> {
-    let mut head = Vec::with_capacity(32);
-    head.extend_from_slice(username());
-    head.push(b'@');
-    head.extend_from_slice(hostname());
-    let mut rule = Vec::with_capacity(head.len());
-    rule.resize(head.len(), b'-');
-    alloc::vec![
-        head,
-        rule,
-        Vec::from(&b"ZeroState Cryptographic OS"[..]),
-        Vec::new(),
-        row("os", crate::paint::fetch_boot::os_line().as_bytes()),
-        row("kernel", kernel),
-        row("shell", b"nox   (type 'help')"),
-        row("signed", signed),
-        row("arch", b"x86_64"),
-        row("uptime", up),
-    ]
 }
 
 pub fn run(state: &mut State) {

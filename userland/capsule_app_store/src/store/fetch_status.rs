@@ -29,11 +29,13 @@
 //! the answer up. Should no worker start, it is asked on the window thread
 //! with the short wait, as before.
 
-use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, Handoff, Look, WorkerSeat};
+use nonos_libc::{Handoff, Look, WorkerSeat};
 
-use crate::status_wire::{Status, ASK, LEN};
+use crate::status_wire::Status;
 
-const SERVICE: &[u8] = b"tool.model-fetch";
+#[path = "fetch_call.rs"]
+mod fetch_call;
+
 /* Past the fetcher's longest call to net.anon (CALL_MS, 20 s). */
 const WORKER_WAIT_MS: u64 = 25_000;
 const WINDOW_WAIT_MS: u64 = 150;
@@ -62,25 +64,11 @@ pub fn ask() -> Option<Option<Status>> {
             if errno == EBUSY {
                 return None;
             }
-            Some(call(WINDOW_WAIT_MS))
+            Some(fetch_call::call(WINDOW_WAIT_MS))
         }
     }
 }
 
 fn work(_: usize) {
-    ANSWER.put(call(WORKER_WAIT_MS));
-}
-
-fn call(wait_ms: u64) -> Option<Status> {
-    let (mut port, mut pid) = (0u32, 0u32);
-    let rc = mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid);
-    if rc < 0 || pid == 0 || port == 0 {
-        return None;
-    }
-    let mut buf = [0u8; LEN];
-    let n = mk_ipc_call_timeout(port as u64, ASK.as_ptr(), ASK.len(), buf.as_mut_ptr(), buf.len(), wait_ms);
-    if n < LEN as i64 {
-        return None;
-    }
-    Status::decode(&buf)
+    ANSWER.put(fetch_call::call(WORKER_WAIT_MS));
 }

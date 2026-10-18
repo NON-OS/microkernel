@@ -27,6 +27,7 @@ use core::sync::atomic::{AtomicU32, Ordering};
 
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
 use shield_wire::{decode_reply, encode_request, SERVICE};
+use zeroize::Zeroize;
 
 const TIMEOUT_MS: u64 = 4000;
 /* The service never answers more than this; a state reply cuts its oldest
@@ -52,26 +53,14 @@ fn port() -> Option<u32> {
     (rc >= 0 && port != 0 && pid != 0).then_some(port)
 }
 
-fn wipe(b: &mut [u8]) {
-    for x in b.iter_mut() {
-        unsafe { core::ptr::write_volatile(x, 0) };
-    }
-}
-
 pub fn call(op: u16, fields: &[&str]) -> Result<Answer, &'static str> {
     let port = port().ok_or(NO_SERVICE)?;
     let seq = SEQ.fetch_add(1, Ordering::Relaxed);
     let mut tx = encode_request(seq, op, fields);
     let mut rx = vec![0u8; RX_LEN];
-    let rc = mk_ipc_call_timeout(
-        port as u64,
-        tx.as_ptr(),
-        tx.len(),
-        rx.as_mut_ptr(),
-        rx.len(),
-        TIMEOUT_MS,
-    );
-    wipe(&mut tx);
+    let (out, cap) = (rx.as_mut_ptr(), rx.len());
+    let rc = mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), out, cap, TIMEOUT_MS);
+    tx.zeroize();
     if rc < 8 {
         return Err(NO_ANSWER);
     }

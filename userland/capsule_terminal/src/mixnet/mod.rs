@@ -24,12 +24,8 @@
 //! its own.
 
 pub mod exchange;
+mod routed;
 mod stream;
 
 pub use exchange::{Exchange, Poll, Stage};
-
-/// Whether the mixnet proxy is running, and so whether anything that leaves
-/// directly is worth pointing out.
-pub fn routed() -> bool {
-    stream::proxy_available()
-}
+pub use routed::routed;

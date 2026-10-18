@@ -32,9 +32,13 @@ pub fn pkg_query(req: Request<'_>) -> Vec<u8> {
     let Some(path) = parse_path(req.payload) else {
         return encode_response(req.seq, EINVAL, &[]);
     };
-    let Ok(bytes) = read_file(mk_getpid(), path, MAX_PACKAGE) else {
+    // One byte past the cap, so a longer package is refused here, never cut.
+    let Ok(bytes) = read_file(mk_getpid(), path, MAX_PACKAGE + 1) else {
         return encode_response(req.seq, EINVAL, &[]);
     };
+    if bytes.len() > MAX_PACKAGE as usize {
+        return encode_response(req.seq, EINVAL, &[]);
+    }
     match verify_package(&bytes) {
         Ok(v) => encode_response(req.seq, 0, &summary_payload(&v)),
         Err(status) => encode_response(req.seq, status, &[]),

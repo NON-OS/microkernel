@@ -23,6 +23,7 @@
 //! listing's detail would be painted under another listing's name.
 
 use super::header::{HDR_LEN, MAGIC, STATUS_LEN, VERSION};
+use crate::bytes::fixed;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ReplyError {
@@ -45,21 +46,22 @@ pub fn reply_body(rx: &[u8], op: u16, request_id: u32) -> Result<&[u8], ReplyErr
     if rx.len() < HDR_LEN + STATUS_LEN {
         return Err(ReplyError::Short);
     }
-    let u16_at = |at: usize| u16::from_le_bytes([rx[at], rx[at + 1]]);
-    let u32_at = |at: usize| u32::from_le_bytes([rx[at], rx[at + 1], rx[at + 2], rx[at + 3]]);
-    if u32_at(0) != MAGIC || u16_at(4) != VERSION {
+    let u16_at = |i: usize| fixed::<2>(rx, i).map(u16::from_le_bytes);
+    let u32_at = |i: usize| fixed::<4>(rx, i).map(u32::from_le_bytes);
+    if u32_at(0) != Some(MAGIC) || u16_at(4) != Some(VERSION) {
         return Err(ReplyError::Foreign);
     }
-    if u16_at(6) != op || u32_at(12) != request_id {
+    if u16_at(6) != Some(op) || u32_at(12) != Some(request_id) {
         return Err(ReplyError::Stale);
     }
-    let payload = u32_at(16) as usize;
+    let payload = u32_at(16).and_then(|p| usize::try_from(p).ok()).ok_or(ReplyError::Short)?;
     let end = HDR_LEN.checked_add(payload).ok_or(ReplyError::Truncated)?;
     if payload < STATUS_LEN || end > rx.len() {
         return Err(ReplyError::Truncated);
     }
-    match u32_at(HDR_LEN) as i32 {
-        0 => Ok(&rx[HDR_LEN + STATUS_LEN..end]),
+    let status = fixed::<4>(rx, HDR_LEN).map(i32::from_le_bytes).ok_or(ReplyError::Short)?;
+    match status {
+        0 => rx.get(HDR_LEN + STATUS_LEN..end).ok_or(ReplyError::Truncated),
         status => Err(ReplyError::Status(status)),
     }
 }

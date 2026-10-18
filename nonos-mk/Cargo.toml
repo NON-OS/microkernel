@@ -3,6 +3,9 @@ name = "nonos-mk"
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.nonos]
+test-lane = true
+
 [[bin]]
 name = "marketplace-index"
 path = "src/main.rs"
@@ -15,3 +18,13 @@ serde_json = "1"
 hex = "0.4"
 blake3 = "1"
 nonos_marketplace_abi = { path = "../userland/marketplace_abi", features = ["canonical-encode"] }
+nonos_nox_config = { path = "../userland/nonos_nox_config" }
+# escrow-serve (B5b, the plan step 1): the offer, its seal and the puzzle.
+nonos_nox_chunks = { path = "../userland/nonos_nox_chunks" }
+nonos_equix = { path = "../userland/nonos_equix" }
+x25519-dalek = { version = "=2.0.1", default-features = false, features = ["static_secrets"] }
+sha3 = { version = "=0.10.9", default-features = false }
+
+[dev-dependencies]
+# The request settle sends, built by its own encoder.
+nonos_settle_proto = { path = "../userland/settle_proto" }

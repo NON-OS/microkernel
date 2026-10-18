@@ -13,33 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+// The one place the active quote source is chosen. The swap screen calls this,
+// never a concrete impl, so wiring a pool means swapping the body here and
+// nothing else. Today it returns `Unwired`, which answers None.
 
-use super::assoc_set_provider::AssocSetProvider;
-use super::pool_provider::PoolProvider;
-use super::proof_provider::ProofProvider;
 use super::quote_provider::QuoteProvider;
-use super::revenue_provider::RevenueProvider;
-use super::sim_provider::SimProvider;
-use super::stub::Stub;
+use super::unwired::Unwired;
 
-// The one place the active backend is chosen. Screens call these, never a
-// concrete impl, so wiring the contracts+prover means swapping the body here and
-// nothing else. Today every one returns the honest Stub.
-pub fn pool() -> impl PoolProvider {
-    Stub
-}
-pub fn prover() -> impl ProofProvider {
-    Stub
-}
 pub fn quote() -> impl QuoteProvider {
-    Stub
-}
-pub fn assoc() -> impl AssocSetProvider {
-    Stub
-}
-pub fn sim() -> impl SimProvider {
-    Stub
-}
-pub fn revenue() -> impl RevenueProvider {
-    Stub
+    Unwired
 }
