@@ -6,11 +6,11 @@ NONOS has two Realtek PCI Ethernet driver [capsules](../../overview/glossary.md#
 
 | Driver | Chips | PCI ids, vendor 10ec | State |
 |---|---|---|---|
-| `driver.rtl8139_0` | RTL8139 | 8139 | Partial: in the image, host tests pass, [receive fault](README.md#the-receive-fault), no hardware report, no QEMU run target |
-| `driver.rtl8169_0` | RTL8169, RTL8110, RTL8168, RTL8111, RTL810x, RTL8125 | 8169, 8167, 8168, 8161, 8162, 2502, 2600, 8136, 8125, 3000 | Partial: in the image, [receive fault](README.md#the-receive-fault), no hardware report; its flake check fails on a lint |
+| `driver.rtl8139_0` | RTL8139 | 8139 | Partial: in the image, host tests pass, receive batches fixed in code but not booted ([the receive fault](README.md#the-receive-fault)), no hardware report, no QEMU run target |
+| `driver.rtl8169_0` | RTL8169, RTL8110, RTL8168, RTL8111, RTL810x, RTL8125 | 8169, 8167, 8168, 8161, 8162, 2502, 2600, 8136, 8125, 3000 | Partial: in the image, host tests pass, receive batches fixed in code but not booted ([the receive fault](README.md#the-receive-fault)), no hardware report; its flake check fails on a lint |
 | none | RTL8126A, RTL8127A | 8126, 8127 | Not supported: left out of the id table |
 
-Read from the code, `net.core` drops every frame either driver receives, so a cable on these ports gets no DHCP lease in this release (`userland/capsule_net_core/src/device/rx_batch.rs:65-67`, `batch_frames`); see [the receive fault](README.md#the-receive-fault).
+In 0.9.2 `net.core` dropped every frame either driver received, so a cable on these ports got no DHCP lease; see [the receive fault](README.md#the-receive-fault). It is fixed in code on this branch and has not been booted.
 
 The USB Realtek RTL8153 is a separate capsule, not in the image; see [USB networking](usb-net.md).
 
@@ -25,11 +25,11 @@ The driver takes vendor 0x10EC, device 0x8139, PCI class network, subclass Ether
 - Every register access goes through port I/O granted by the [hardware broker](../../overview/glossary.md#hardware-broker); packet buffers come from DMA grants.
 - It polls and binds no interrupt.
 - It draws a station address every boot and writes it into the IDR registers; the factory address is not a fallback (`userland/capsule_driver_rtl8139/src/init/mac.rs:23-34`, `program`).
-- Operation 6 returns a register snapshot, with status 0 whenever its port reads succeed (`userland/capsule_driver_rtl8139/src/protocol/ops.rs:17-22`, `OP_STATS`), which `net.core` reads as a receive batch; see [the receive fault](README.md#the-receive-fault).
+- Operation 6 serves receive batches and operation 7 the register snapshot (`userland/capsule_driver_rtl8139/src/protocol/ops.rs:21-26`, `OP_RX_BATCH`, `OP_STATS`); the snapshot sat at 6 in 0.9.2, see [the receive fault](README.md#the-receive-fault).
 
 ### Tests
 
-`rtl8139_proofs` checks the receive ring walk: every read lands at the wrapped offset and a frame copy never leaves the caller's buffer, whatever length the device writes. Kani harnesses for it sit in `userland/rtl8139_proofs/src/kani_proofs/`; the flake check does not run them. The flake check `proofs-rtl8139_proofs` passed with 15 tests on this commit.
+`rtl8139_proofs` checks the receive ring walk: every read lands at the wrapped offset and a frame copy never leaves the caller's buffer, whatever length the device writes. Kani harnesses for it sit in `userland/rtl8139_proofs/src/kani_proofs/`; the flake check does not run them. The flake check `proofs-rtl8139_proofs` passed with 15 tests on 0.9.2; with the receive batch tests it runs 20.
 
 ## RTL8169 family, with the RTL8125
 
@@ -66,7 +66,7 @@ The mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with
 - Memory-mapped registers only, no port I/O.
 - It polls and binds no interrupt.
 - It draws a station address every boot and writes it into the IDR registers; the factory address is not a fallback (`userland/capsule_driver_rtl8169/src/init/mac.rs:23-33`, `program`).
-- Operation 6 returns a register snapshot with status 0 (`userland/capsule_driver_rtl8169/src/protocol/ops.rs:17-22`, `OP_STATS`), the cause of [the receive fault](README.md#the-receive-fault).
+- Operation 6 serves receive batches and operation 7 the register snapshot (`userland/capsule_driver_rtl8169/src/protocol/ops.rs:21-26`, `OP_RX_BATCH`, `OP_STATS`); the snapshot sat at 6 in 0.9.2, the cause of [the receive fault](README.md#the-receive-fault).
 
 The kernel starts it on every boot of the full image. The make target `nonos-mk-ethernet-prod` carries it to show that a driver whose chip is absent exits and lets the boot go on; the build comment gives the reason as QEMU having no model of this chip (`mk/20-build.mk:1145-1150`, `ETHERNET_DRIVER_ARTIFACTS`).
 
@@ -74,7 +74,7 @@ The kernel starts it on every boot of the full image. The make target `nonos-mk-
 
 `rtl8169_proofs` compiles the driver's source and runs it against a modelled part: the station address with the entropy source off, the rings, chip identification from the XID, the RTL8168 and RTL8125 register maps, the per-family start, and link speed decode up to 2500 Mb/s.
 
-On this commit the flake check `proofs-rtl8169_proofs` fails. Its tests pass (the log reports 67 passed); then clippy, which the check runs with warnings denied, stops on `manual_div_ceil` in the driver's log formatter (`userland/capsule_driver_rtl8169/src/log/line.rs:39-41`, `digits`). The lint asks for `div_ceil` in place of an expression that computes the same value.
+On this commit the flake check `proofs-rtl8169_proofs` fails. Its tests pass (the log reports 67 passed on 0.9.2; with the receive batch tests there are 72); then clippy, which the check runs with warnings denied, stops on `manual_div_ceil` in the driver's log formatter (`userland/capsule_driver_rtl8169/src/log/line.rs:39-41`, `digits`). The lint asks for `div_ceil` in place of an expression that computes the same value.
 
 ```sh
 cd userland/rtl8169_proofs && cargo test --release --config profile.release.overflow-checks=true

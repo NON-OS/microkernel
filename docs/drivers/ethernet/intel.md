@@ -6,11 +6,11 @@ NONOS has three Intel Ethernet driver [capsules](../../overview/glossary.md#caps
 
 | Driver | Chips | In the 0.9.2 image | State |
 |---|---|---|---|
-| `driver.e1000_0` | 8254x family, 28 device ids | yes | Partial: host tests pass, [receive fault](README.md#the-receive-fault), no hardware report, no QEMU run target |
+| `driver.e1000_0` | 8254x family, 28 device ids | yes | Partial: host tests pass, receive batches fixed in code but not booted ([the receive fault](README.md#the-receive-fault)), no hardware report, no QEMU run target |
 | `driver.e1000e_0` | 82574, 82583, and the I217, I218, I219 PHYs on Intel PCH chipsets, 64 device ids | no | Not supported: not built, not started, not bound by `net.core` |
 | `driver.igc_0` | I225, I226 and their variants, 16 device ids | no | Not supported: not built, not started, not bound by `net.core` |
 
-An Intel I217, I218, I219, I225 or I226 port has no driver in the 0.9.2 image. The e1000 driver that is in the image carries [the receive fault](README.md#the-receive-fault): `net.core` drops every frame it receives, so a cable on an 8254x port gets no DHCP lease (`userland/capsule_net_core/src/device/rx_batch.rs:65-67`, `batch_frames`). Read [what to use instead](../wifi/not-supported.md#what-to-use-instead) before you plan on a wired link.
+An Intel I217, I218, I219, I225 or I226 port has no driver in the 0.9.2 image. In 0.9.2 the e1000 driver carried [the receive fault](README.md#the-receive-fault): `net.core` dropped every frame it received, so a cable on an 8254x port got no DHCP lease. It is fixed in code on this branch and has not been booted. Read [what to use instead](../wifi/not-supported.md#what-to-use-instead) before you plan on a wired link.
 
 ## e1000 (8254x)
 
@@ -26,7 +26,7 @@ The driver takes an Intel PCI function of class network, subclass Ethernet, whos
 - The [capability](../../overview/glossary.md#capability-word) mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:23`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-65`, `requested_caps`), so the driver's own log lines are dropped in every build.
 - It binds no interrupt line and never sets IMS (`userland/capsule_driver_e1000/src/setup/sequence.rs:24-27`, `IMS`); the reset masks every cause (`userland/capsule_driver_e1000/src/init/reset.rs:55`, `REG_IMC`).
 - It draws a new station address every boot and never uses the EEPROM address; without randomness it does not come up (`userland/capsule_driver_e1000/src/init/station_address.rs:22-31`, `draw`).
-- It answers health check (1), link status (2), MAC address (3), transmit (4), receive (5) and a register snapshot (6) (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`). `net.core` reads operation 6 as a receive batch, which is the cause of [the receive fault](README.md#the-receive-fault).
+- It answers health check (1), link status (2), MAC address (3), transmit (4), receive (5), receive batch (6) and a register snapshot (7) (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-32`, `OP_RX_BATCH`, `OP_STATS`). The snapshot sat at 6 in 0.9.2, which was the cause of [the receive fault](README.md#the-receive-fault).
 
 The kernel starts it on every boot of the full image; on a machine without one of these chips it exits with code 2 and claims nothing. See the [Ethernet overview](README.md#behaviour-every-pci-driver-shares).
 
@@ -83,7 +83,6 @@ The table holds every I225 and I226 id Linux's igc driver binds, including the b
 | 15f8 | I225-I |
 | 15f7 | I220-V |
 | 3100 | I225-K |
-| 3101 | I225-K2 |
 | 3102 | I226-K |
 | 5502 | I225-LMVP |
 | 5503 | I226-LMVP |
@@ -103,7 +102,7 @@ The tree has a file `nonos-bootloader/firmware/intel/i225-ethernet.bin` of 51 by
 
 ### Why it is not in 0.9.2
 
-The same three reasons as e1000e: the build does not include it, the kernel mirror it names does not exist (`userland/capsule_driver_igc/Capsule.mk:29`, `CAPSULE_KERNEL_MIRROR`), and `net.core` does not look it up. Both capsules also answer operation 6 with a register snapshot and status 0, as e1000 does, so wiring either in as it stands would bring [the receive fault](README.md#the-receive-fault) with it (`userland/capsule_driver_igc/src/server/runner.rs:71`, `OP_STATS`).
+The same three reasons as e1000e: the build does not include it, the kernel mirror it names does not exist (`userland/capsule_driver_igc/Capsule.mk:29`, `CAPSULE_KERNEL_MIRROR`), and `net.core` does not look it up. Both capsules answer the register snapshot at operation 7 and do not serve receive batches, so `net.core` would use operation 5, one frame per call, for them (`userland/capsule_driver_igc/src/protocol/ops.rs:30`, `OP_STATS`); in 0.9.2 the snapshot sat at 6 and would have brought [the receive fault](README.md#the-receive-fault) with it.
 
 ### Tests
 

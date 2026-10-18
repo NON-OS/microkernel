@@ -32,6 +32,10 @@ pub mod rx;
 pub mod setup;
 
 #[cfg(test)]
+mod batch_script;
+#[cfg(test)]
+mod batch_tests;
+#[cfg(test)]
 mod finish_tests;
 #[cfg(test)]
 mod part;

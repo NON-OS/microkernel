@@ -20,8 +20,8 @@
 use smoltcp::socket::tcp::{Socket, State};
 use smoltcp::time::Duration;
 
+use super::pair::Pair;
 use crate::tcp_liveness::{KEEP_ALIVE, TIMEOUT};
-use crate::tcp_pair::Pair;
 
 // A probe must land inside every TIMEOUT window, twice over.
 const _: () = assert!(KEEP_ALIVE.total_millis() * 2 < TIMEOUT.total_millis());
