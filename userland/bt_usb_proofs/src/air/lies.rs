@@ -28,6 +28,9 @@ pub struct Lies {
     pub forgot: bool,
     pub withhold: bool,
     pub mute: bool,
+    /// A Disconnect it accepts but never completes, so the host's wait for
+    /// Disconnection Complete must end at its own bound.
+    pub linger: bool,
     /// The restart to come, at the host's packet with this count.
     pub restart: Option<(u64, Restart)>,
     pub steps: u64,
