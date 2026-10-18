@@ -52,7 +52,7 @@ def main() -> int:
                       "capsule_preflight_ms capsule_spawn_start capsule_preflight_ok", "capsule_install_ms capsule_preflight_ok capsule_runqueue_ok",
                       "first_surface_register_ms microkernel_main_start surface_register_first", "first_surface_present_ms microkernel_main_start surface_present_first",
                       "first_gpu_transfer_ms microkernel_main_start virtio_gpu_transfer_first", "first_gpu_scanout_ms microkernel_main_start virtio_gpu_scanout_first",
-                      "first_gpu_flush_ms microkernel_main_start virtio_gpu_flush_first", "gpu_scanout_to_flush_ms virtio_gpu_scanout_first virtio_gpu_flush_first",
+                      "first_gpu_flush_ms microkernel_main_start virtio_gpu_flush_first", "gpu_scanout_to_flush_ms virtio_gpu_scanout_first virtio_gpu_flush_first", "first_display_flush_ms microkernel_main_start display_flush_first",
                       "first_input_post_ms microkernel_main_start input_post_first", "first_input_drain_ms microkernel_main_start input_drain_first", "input_route_ms input_post_first input_drain_first", "capsule_attest_ms capsule_spawn_start capsule_attest_ok", "capsule_attest_to_runqueue_ms capsule_attest_ok capsule_runqueue_ok")
         for name, a, b in (item.split() for item in phase_text):
             pending, samples = None, []

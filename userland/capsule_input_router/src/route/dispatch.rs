@@ -14,40 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
-    INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
-    INPUT_KIND_WHEEL,
-};
+use nonos_libc::{mk_uptime_ms, InputEvent};
 
 use crate::state::Context;
 
-use super::deliver::deliver_one;
-use super::{keyboard, pointer};
+use super::held::deliver_held;
+use super::key_deliver::deliver_key;
+use super::kinds::{is_keyboard, is_pointer, key_facts};
+use super::preempt::{preempt, Route};
+use super::press_kinds::{is_pad, is_pad_button};
+use super::{bond, keyboard, pointer, refuse, trusted_hold};
 
 pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
-    if let Some(holder) = ctx.grabs.holder_for(event.kind) {
-        let mut ev = *event;
-        if is_pointer(ev.kind) {
-            // A grab redirects delivery, but the cursor must keep tracking:
-            // the compositor's pointer position only ever comes from this
-            // routing step, and parking it while a drag grab is held freezes
-            // the cursor on screen. The holder also expects screen pixels,
-            // not raw device units, so the grabbed event carries the routed
-            // position.
-            let (x, y) = ctx.cursor.apply(&ev);
-            ctx.cursor_x = x;
-            ctx.cursor_y = y;
-            ctx.cursor_dirty = true;
-            ev.x = x as i32;
-            ev.y = y as i32;
+    let now = mk_uptime_ms();
+    let hold = trusted_hold::holder(ctx.trusted, now);
+    if hold.is_none() {
+        ctx.trusted = None;
+    }
+    let key_like = is_keyboard(event.kind) || is_pad_button(event.kind);
+    let key = key_like.then(|| key_facts(ctx, event));
+    let shell = pointer::shell_pid(ctx);
+    let route = preempt(key, hold, shell);
+    if bond::unproven(event.flags) && refuse::refused(ctx, event, (hold, route, shell), now) {
+        return 0;
+    }
+    match route {
+        Route::To(pid) => return deliver_key(ctx, pid, event),
+        Route::Held(h) if key.is_some() => return deliver_key(ctx, h, event),
+        Route::Held(h) => {
+            let (n, pressed) = deliver_held(ctx, h, event);
+            ctx.record(n + pressed);
+            return n + pressed;
         }
-        let n = deliver_one(holder, &ev);
-        let pressed = if is_pointer(ev.kind) {
-            pointer::release_under_grab(ctx, holder, event, ev.x as u32, ev.y as u32)
-        } else {
-            0
-        };
+        Route::Normal => {}
+    }
+    if let Some(holder) = ctx.grabs.holder_for(event.kind) {
+        let (n, pressed) = deliver_held(ctx, holder, event);
         if n == 0 {
             // A holder that cannot receive its grabbed stream (inbox full or
             // dead) must not keep the grab: the lost event may be the very
@@ -66,36 +68,8 @@ pub fn route_event(ctx: &mut Context, event: &InputEvent) -> u32 {
     if is_keyboard(event.kind) {
         return keyboard::route_keyboard(ctx, event);
     }
-    let mut total = 0u32;
-    let mut failed = [0u32; crate::state::subscriptions::MAX_SUBSCRIBERS];
-    let mut failed_count = 0usize;
-    for pid in ctx.subscriptions.match_kind(event.kind) {
-        let delivered = deliver_one(pid, event);
-        if delivered == 0 && failed_count < failed.len() {
-            failed[failed_count] = pid;
-            failed_count += 1;
-        }
-        total += delivered;
+    if is_pad(event.kind) {
+        return super::pad::route_pad(ctx, event);
     }
-    for pid in failed.iter().take(failed_count) {
-        ctx.forget_pid(*pid);
-    }
-    ctx.record(total);
-    total
-}
-
-fn is_keyboard(kind: u16) -> bool {
-    kind == INPUT_KIND_KEY_DOWN || kind == INPUT_KIND_KEY_UP
-}
-
-fn is_pointer(kind: u16) -> bool {
-    matches!(
-        kind,
-        INPUT_KIND_POINTER_REL
-            | INPUT_KIND_POINTER_ABS
-            | INPUT_KIND_WHEEL
-            | INPUT_KIND_BUTTON_DOWN
-            | INPUT_KIND_BUTTON_UP
-            | INPUT_KIND_TOUCH
-    )
+    super::fanout::fan_out(ctx, event)
 }

@@ -26,9 +26,9 @@ const MAX_NAME: usize = 64;
 
 /// Ctrl+V while renaming: the clipboard's first line, appended to the name.
 pub fn rename_paste(ctx: &mut Context) {
-    let mut name = core::mem::take(&mut ctx.rename_buf);
+    let mut name = core::mem::take(&mut ctx.desk_ui.rename_buf);
     crate::server::paste::paste_into(ctx, &mut name, MAX_NAME);
-    ctx.rename_buf = name;
+    ctx.desk_ui.rename_buf = name;
 }
 
 pub fn rename_key(ctx: &mut Context, code: u32) {
@@ -36,16 +36,16 @@ pub fn rename_key(ctx: &mut Context, code: u32) {
         KEY_ENTER => super::commit_rename::commit_rename(ctx),
         KEY_ESC => {
             super::release_keys::release_keys(ctx);
-            ctx.rename = None;
-            ctx.rename_buf.clear();
+            ctx.desk_ui.rename = None;
+            ctx.desk_ui.rename_buf.clear();
         }
         KEY_BACKSPACE => {
-            ctx.rename_buf.pop();
+            ctx.desk_ui.rename_buf.pop();
         }
         c if (0x20..=0x0010_FFFF).contains(&c) => {
-            if ctx.rename_buf.len() < MAX_NAME {
+            if ctx.desk_ui.rename_buf.len() < MAX_NAME {
                 if let Some(ch) = char::from_u32(c) {
-                    ctx.rename_buf.push(ch);
+                    ctx.desk_ui.rename_buf.push(ch);
                 }
             }
         }

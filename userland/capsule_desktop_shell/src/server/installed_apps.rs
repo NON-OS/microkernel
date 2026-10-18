@@ -33,17 +33,17 @@ use crate::state::Context;
  */
 pub fn load_once(ctx: &mut Context) {
     let now = mk_uptime_ms().max(0) as u64;
-    if !ctx.installer_gap.due(now) || !crate::installer_client::available() {
+    if !ctx.store_apps.installer_gap.due(now) || !crate::installer_client::available() {
         return;
     }
     let Some(listed) = crate::installer_client::list_installed() else {
-        ctx.installer_gap.missed(now);
+        ctx.store_apps.installer_gap.missed(now);
         return;
     };
-    ctx.installer_gap.answered();
-    if listed.is_empty() || ctx.installed_apps == listed {
+    ctx.store_apps.installer_gap.answered();
+    if listed.is_empty() || ctx.store_apps.installed_apps == listed {
         return;
     }
-    ctx.installed_apps = listed;
-    ctx.installed_apps_loaded = true;
+    ctx.store_apps.installed_apps = listed;
+    ctx.store_apps.installed_apps_loaded = true;
 }

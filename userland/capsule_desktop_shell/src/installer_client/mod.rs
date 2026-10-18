@@ -26,6 +26,7 @@ mod decode;
 mod frame;
 mod list_installed;
 mod load;
+mod load_wire;
 mod pkg;
 mod pkg_decode;
 mod pkg_wire;
@@ -34,7 +35,8 @@ mod probe;
 
 pub use available::available;
 pub use list_installed::list_installed;
-pub use load::{issue_load, Issued};
+pub use load::issue_load;
+pub use load_wire::Issued;
 pub use pkg::{pkg_commit, pkg_query};
 pub use pkg_decode::PkgSummary;
 pub use probe::probe;

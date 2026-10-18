@@ -28,45 +28,9 @@
 //! asked in turn, a window whose process is gone is forgotten as its close
 //! would have been, and an app left with no window is opened afresh.
 
+use super::reach::Reach;
 use super::types::TaskbarState;
 use super::windows::track_window_closed;
-
-/// What sending a window's process the focus frame did.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Reach {
-    /// The frame was taken: the process restores, raises and focuses it.
-    Taken,
-    /// The process is there but its inbox is full: it is alive, with its
-    /// window, and busy. The window is kept.
-    Busy,
-    /// No process takes frames under that pid any more.
-    Gone,
-}
-
-/// The kernel's answer to a send into a full inbox.
-pub const ERRNO_BUSY: i64 = -16;
-
-/// What sending `pid` the focus frame means for its window: `alive` is the
-/// kernel's MkPidAlive, `send` delivers the frame and returns the kernel's
-/// answer.
-///
-/// A process that has ended keeps its `proc.<pid>` inbox until its tables
-/// are freed, and the kernel takes a send into that inbox while the zombie
-/// is still in the process table. The send alone so read an app that had
-/// just ended as Taken: the dock click raised nothing and opened nothing,
-/// and only the next click, after the runner's sweep, opened the app.
-/// MkPidAlive reads a zombie as gone, so it is asked first, and a process
-/// that is not alive is Gone without a frame sent into its inbox.
-pub fn reach_by(pid: u32, alive: impl FnOnce(u32) -> bool, send: impl FnOnce(u32) -> i64) -> Reach {
-    if !alive(pid) {
-        return Reach::Gone;
-    }
-    match send(pid) {
-        rc if rc >= 0 => Reach::Taken,
-        ERRNO_BUSY => Reach::Busy,
-        _ => Reach::Gone,
-    }
-}
 
 /// Raise app `index`'s newest window whose process `reach` gets to. Each
 /// window whose process is gone is forgotten on the way, so the running

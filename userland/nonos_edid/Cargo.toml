@@ -1,0 +1,17 @@
+# NONOS userland: nonos_edid
+#
+# The display identification data a monitor hands over (VESA E-EDID 1.4 with
+# its CTA-861 and DisplayID 2.0 extensions), parsed without allocation so the
+# loader, every display capsule and the host proofs read a panel the same way.
+
+[package]
+name = "nonos_edid"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS EDID, CTA-861 and DisplayID parser"
+
+[lib]
+name = "nonos_edid"
+path = "src/lib.rs"
