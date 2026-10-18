@@ -40,7 +40,7 @@ fn a_scan_lists_the_network_without_transmitting() {
 fn a_joined_network_carries_net_cores_frames_both_ways() {
     let mut st = joined();
     let link = control(&mut st, 5, &[]);
-    assert_eq!((link[0], &link[1..7], &link[8..8 + SSID.len()]), (1, &AA[..], SSID));
+    assert_eq!((link[0], &link[1..7], &link[8..8 + SSID.len()]), (1, &[0u8; 6][..], SSID));
     assert_eq!(link[8 + SSID.len()], 2, "the AKM: WPA2-PSK");
     let sta = crate::soft::join::sta_of(&st);
     let mut eth = AA.to_vec();

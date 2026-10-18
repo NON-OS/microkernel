@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The custody tests: kept records, keyring owners and words, the vault, the frame.
+//! The custody tests: kept records, the keyring's owners, words, typed data and
+//! retired ops, the vault, the frame.
 
 #[path = "custody_gate_tests.rs"]
 mod custody_gate_tests;
@@ -42,8 +43,26 @@ mod layout_tests;
 mod layout_width_tests;
 #[path = "replace_tests.rs"]
 mod replace_tests;
+#[path = "retired_tests.rs"]
+mod retired_tests;
 #[path = "store_default_tests.rs"]
 mod store_default_tests;
+#[path = "typed_admit_tests.rs"]
+mod typed_admit_tests;
+#[path = "typed_check_tests.rs"]
+mod typed_check_tests;
+#[path = "typed_hash_tests.rs"]
+mod typed_hash_tests;
+#[path = "typed_live_tests.rs"]
+mod typed_live_tests;
+#[path = "typed_request_tests.rs"]
+mod typed_request_tests;
+#[path = "typed_shape_tests.rs"]
+mod typed_shape_tests;
+#[path = "typed_spec_tests.rs"]
+mod typed_spec_tests;
+#[path = "typed_word_tests.rs"]
+mod typed_word_tests;
 #[path = "vault_gate_tests.rs"]
 mod vault_gate_tests;
 #[path = "vault_read/mod.rs"]

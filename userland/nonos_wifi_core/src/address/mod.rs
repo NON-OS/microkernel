@@ -25,8 +25,12 @@
 
 mod bits;
 mod keys;
+mod kind;
+mod network;
 mod scan;
 pub use bits::{
     identity, local_unicast, security_of, SECURITY_OPEN, SECURITY_PASSPHRASE, SECURITY_WPA3,
 };
 pub use keys::Addresses;
+pub use kind::Security;
+pub use network::{one_off, KEY_LEN};

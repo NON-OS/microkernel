@@ -203,6 +203,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkPeerUnmap
         | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
 
+        /* The handler admits only the Linux run role, for its own pid. */
+        SyscallNumber::MkLinuxRunNet => caps.can_foreign_exec(),
+
         /*
          * Minting a trailer is a trust operation, so it sits with the
          * enrolment calls rather than with the installer ones.

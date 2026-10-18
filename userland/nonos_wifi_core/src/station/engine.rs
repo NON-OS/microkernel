@@ -14,18 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The station data-path engine shared by every WiFi driver: a driver feeds
-//! one `LinkStation` its association facts and converts between ethernet and
-//! 802.11 with it. It owns the transmit sequence number and the software
-//! packet-number counter, so no driver keeps its own.
-//!
-//! [`LinkStation::receive`] checks each frame against the association before
-//! it reaches the stack and answers the AP's key handshakes (`eapol`);
-//! `rx_frame` remains the bare structural decap. `receive_mgmt` takes the
-//! management frames, under management frame protection when it is on.
+//! The station itself: its association facts and its counters.
 
 use super::pmf_state::PmfState;
 use super::replay::Replay;
+use super::watch::Watch;
 use super::Ccmp;
 use crate::dot11::header::MacAddr;
 use crate::rsn::TemporalKey;
@@ -47,6 +40,8 @@ pub struct LinkStation {
     pub(super) pmf: PmfState,
     /// Under `Ccmp::Hardware`, whether the driver says the chip holds the keys.
     pub(super) chip_keyed: bool,
+    /// The clock, the access point's liveness and the station's own query.
+    pub(super) watch: Watch,
 }
 
 impl LinkStation {
@@ -64,6 +59,7 @@ impl LinkStation {
             supplicant: None,
             pmf: PmfState::OFF,
             chip_keyed: false,
+            watch: Watch::new(),
         }
     }
 }
