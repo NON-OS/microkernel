@@ -61,7 +61,7 @@ impl Mlme {
         }
         wipe(&mut entropy);
         let Some(sae) = sae else {
-            return self.fail(MlmeFailure::NoEntropy);
+            return self.fail(MlmeFailure::SaeStart);
         };
         let (seq, status, body) = sae.commit_frame();
         self.sae = Some(sae);

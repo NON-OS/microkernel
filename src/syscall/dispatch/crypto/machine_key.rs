@@ -19,22 +19,18 @@
 //! The caller names the key with a label and gets the same bytes back every
 //! boot on this machine, and different bytes on any other machine or under any
 //! other kernel. Nothing is stored anywhere to make that so. Labels the kernel
-//! keeps for itself are refused here.
+//! keeps for itself are refused here, and a bound label is derived for the
+//! caller's own namespace alone (`machine_key::bound_label`).
 
 use crate::capabilities::Capability;
-use crate::security::tpm::error::TpmError;
-use crate::security::tpm::machine_key::{derive, is_user_label, KeyError, LABEL_MAX};
+use crate::security::attest_registry::bound_namespace_of;
+use crate::security::tpm::machine_key::{bound_label, derive, is_user_label, KeyError, LABEL_MAX};
 use crate::syscall::dispatch::require_capability;
 use crate::syscall::SyscallResult;
 
+use super::machine_key_errno::errno_for;
 use super::primitives::copy;
 use crate::security::hardening::memory_sanitization::secure_zero_slice;
-
-/// `TPM_RC_POLICY_FAIL` as a format-1 code with the handle, parameter or
-/// session number stripped: bits 8 to 11 carry that number, bit 6 says
-/// which kind, and neither is part of the error.
-const RC_POLICY_FAIL: u32 = 0x09D;
-const RC_FORMAT1_ERROR_MASK: u32 = 0x0BF;
 
 pub fn handle_machine_key(label_ptr: u64, label_len: u64, out_ptr: u64) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Crypto) {
@@ -47,6 +43,11 @@ pub fn handle_machine_key(label_ptr: u64, label_len: u64, out_ptr: u64) -> Sysca
     if !is_user_label(&label) {
         return crate::syscall::dispatch::errno(22);
     }
+    let namespace = caller_group().and_then(bound_namespace_of);
+    let label = match bound_label(&label, namespace.as_ref()) {
+        Ok(l) => l,
+        Err(e) => return crate::syscall::dispatch::errno(e),
+    };
     match derive(&label) {
         Ok(mut key) => {
             let written = copy::write(out_ptr, &key);
@@ -65,15 +66,8 @@ pub fn handle_machine_key(label_ptr: u64, label_len: u64, out_ptr: u64) -> Sysca
     }
 }
 
-/// No TPM, a TPM refusing because the machine is not in the key's state, or a
-/// transport fault: a caller unlocking a volume says a different thing for each.
-fn errno_for(e: KeyError) -> i32 {
-    match e {
-        KeyError::Tpm(TpmError::NotPresent) => 19,
-        KeyError::Tpm(TpmError::Timeout) => 110,
-        KeyError::Tpm(TpmError::InvalidResponse) => 5,
-        KeyError::Refused(rc) if rc & RC_FORMAT1_ERROR_MASK == RC_POLICY_FAIL => 13,
-        KeyError::Refused(_) => 5,
-        KeyError::BadLabel => 22,
-    }
+/// The pid spawn recorded: a thread answers for the process it belongs to.
+fn caller_group() -> Option<u32> {
+    let pid = crate::process::current_pid()?;
+    crate::process::with_process(pid, |pcb| pcb.thread_group_id()).filter(|&g| g != 0).or(Some(pid))
 }

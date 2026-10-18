@@ -62,7 +62,7 @@ impl Gguf {
     }
     /// Pad to `align`, then `bytes` of tensor data.
     pub fn data(&mut self, align: usize, bytes: usize) -> &mut Self {
-        while self.out.len() % align != 0 {
+        while !self.out.len().is_multiple_of(align) {
             self.out.push(0);
         }
         self.out.resize(self.out.len() + bytes, 0x5a);

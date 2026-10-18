@@ -20,7 +20,7 @@
 use nonos_libc::ForeignFrame;
 
 use super::answer::Answer;
-use super::table::plain;
+use super::table::all::plain;
 use super::{waits, waits_lock, waits_sock, waits_try};
 use crate::linux::abi::{nr, nr_path as np};
 use crate::linux::call::{clone, exit_thread, futex};

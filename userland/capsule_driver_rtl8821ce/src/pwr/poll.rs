@@ -19,11 +19,12 @@
 
 use super::command::PwrCmd;
 use crate::regs::Mmio;
+use crate::wait::until_ms;
 
-/// Reads allowed before a poll step is declared failed. Real transitions settle
-/// in a handful of microseconds; the bound only stops a wedged card hanging the
-/// driver.
-const POLL_LIMIT: u32 = 1_000_000;
+/// How long a poll step may take before it is declared failed: rtw88 polls
+/// 20000 times, 50 us apart. Real transitions settle in microseconds; the
+/// bound only stops a wedged card hanging the driver.
+const POLL_MS: u64 = 1000;
 
 const REG_SYS_PW_CTRL: usize = 0x0004;
 const BIT_PFM_WOWL: u8 = 1 << 3;
@@ -42,11 +43,5 @@ pub(super) fn poll<M: Mmio>(mmio: &M, step: &PwrCmd) -> bool {
 
 fn poll_once<M: Mmio>(mmio: &M, step: &PwrCmd) -> bool {
     let want = step.value & step.mask;
-    for _ in 0..POLL_LIMIT {
-        if mmio.read8(step.offset as usize) & step.mask == want {
-            return true;
-        }
-        core::hint::spin_loop();
-    }
-    false
+    until_ms(POLL_MS, || mmio.read8(step.offset as usize) & step.mask == want)
 }

@@ -19,3 +19,6 @@ path = "src/lib.rs"
 nonos_toolkit = { path = "..", default-features = false }
 
 [workspace]
+
+[package.metadata.nonos]
+test-lane = true
