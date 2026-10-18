@@ -116,6 +116,8 @@ pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
 pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 /// Replace the program a parked guest is running.
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
+/// The Linux run role asks to be started again with Network.
+pub const SYS_LINUX_RUN_NET: u64 = tag4(b"MLRN");
 /// Mint a trailer for something this machine is installing.
 pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");
 /// Ask whether an image is proved under a root this machine trusts.

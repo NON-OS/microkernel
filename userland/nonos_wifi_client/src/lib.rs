@@ -28,11 +28,11 @@ pub use driver::{
     find, firmware_step_text, join_text, ConnectResult, Driver, DriverStage, Link, ScanOutcome,
     ScanStats, OP_STATUS, WIFI_HDR,
 };
-pub use join_wire::{JoinFlags, AKM_SAE};
+pub use join_wire::{JoinFlags, LastJoin, LinkEnded, AKM_SAE};
 pub use network::{ScanNetwork, SSID_MAX};
 pub use saved::{
-    forget, forget_all, keeps_state, load, remember, remember_with, saved_flags, sealing_ready,
-    SavedError, SavedList, PASS_MAX, SLOTS,
+    forget, forget_all, keeps_state, load, pin_wpa3, remember, remember_with, saved_flags,
+    sealing_ready, Dropped, SavedError, SavedList, PASS_MAX, SLOTS,
 };
 pub use wipe::wipe;
 pub use wire::parse_scan;

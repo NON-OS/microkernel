@@ -30,12 +30,14 @@ extern crate alloc;
 
 pub mod address;
 pub mod bip_gmac;
+pub mod bss;
 pub mod ccmp;
 pub mod dot11;
 pub mod eapol;
 pub mod frame;
 pub mod gcmp;
 pub mod key;
+pub mod link_history;
 pub mod mlme;
 pub mod netif;
 pub mod pmf;

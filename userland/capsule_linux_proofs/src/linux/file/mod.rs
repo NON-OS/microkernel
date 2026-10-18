@@ -26,7 +26,7 @@ pub mod cstr;
 pub mod create_flags;
 #[path = "../../../../capsule_linux/src/linux/file/calls/dup3_args.rs"]
 pub mod dup3_args;
-#[path = "../../../../capsule_linux/src/linux/file/epoll_rules.rs"]
+#[path = "../../../../capsule_linux/src/linux/file/epoll_rules/mod.rs"]
 pub mod epoll_rules;
 pub mod exe;
 pub mod link;
@@ -39,5 +39,5 @@ pub mod path;
 pub mod punch;
 pub mod store;
 
-pub use crate::resolve::key;
+pub use crate::resolve::{key, visible};
 pub use store::{read as store_read, write as store_write};

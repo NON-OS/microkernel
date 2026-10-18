@@ -20,3 +20,6 @@ path = "src/lib.rs"
 
 [profile.release]
 overflow-checks = true
+
+[package.metadata.nonos]
+test-lane = true
