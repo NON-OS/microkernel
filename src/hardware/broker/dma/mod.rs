@@ -16,6 +16,7 @@
 
 mod acpi_stop;
 mod cache;
+mod covers;
 mod drain;
 mod flags;
 mod limits;
@@ -34,6 +35,7 @@ mod types;
 mod va;
 mod wipe;
 
+pub use covers::covers;
 pub use map::map_for_caller;
 #[cfg(not(target_arch = "x86_64"))]
 pub(crate) use pool::low32_default_pages;
