@@ -19,6 +19,7 @@ use nonos_policy_proto::Field;
 use crate::settings::schema::rows::{Block, Pill, Tone};
 use crate::settings::state::{cached_value, FieldValue, State};
 
+use super::live_bt::bt_pill;
 use super::live_net::link_state;
 use super::valbuf::ValBuf;
 
@@ -29,6 +30,7 @@ pub fn block_pill(state: &State, b: &Block) -> Option<(ValBuf, Tone)> {
         Pill::None => None,
         Pill::Net => Some(link_state(state)),
         Pill::Radio => Some(radio(state)),
+        Pill::Bt => Some(bt_pill(state)),
     }
 }
 

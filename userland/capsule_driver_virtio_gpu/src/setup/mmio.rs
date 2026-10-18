@@ -13,12 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod grant;
-mod grant_pio;
-mod labels;
-mod map_mmio;
-mod map_modern;
-mod rollback_modern;
-mod state;
-pub use self::grant::grant;
-pub use self::state::RegisterGrant;
+
+mod broker;
+mod window;
+
+pub use window::map;

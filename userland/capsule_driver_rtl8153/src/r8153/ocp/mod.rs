@@ -28,7 +28,7 @@ mod write;
 
 pub use dev::Dev;
 pub use phy::{mdio_read, mdio_write, phy_read, phy_write, sram_write};
-pub use read::{get, read_byte, read_dword, read_word};
+pub use read::{read_byte, read_dword, read_word};
 pub use request::{BYTE_EN_DWORD, BYTE_EN_WORD};
 pub use request::{MCU_TYPE_PLA as PLA, MCU_TYPE_USB as USB};
 pub use update::{update_byte, update_dword, update_word};

@@ -17,9 +17,15 @@
 use nonos_libc::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
 
 use super::broker_handles::BrokerHandles;
+use super::release::stop_bus_master;
 
+/// The release goes last: it clears Bus Master and reads it back before it
+/// drains the device's DMA frames, so nothing the controller still has in
+/// flight lands in a freed frame. The driver's own clear ahead of it is
+/// defence in depth, in effect once the kernel's K6 is (stop_bus_master).
 impl Drop for BrokerHandles {
     fn drop(&mut self) {
+        stop_bus_master(self.device_id, self.claim_epoch);
         let _ = mk_irq_unbind(self.irq_grant_id);
         let _ = mk_mmio_unmap(self.mmio_grant_id);
         let _ = mk_device_release(self.device_id);

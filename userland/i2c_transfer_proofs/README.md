@@ -4,28 +4,10 @@ Host-runnable proofs for the Intel LPSS I2C capsule's transfer engine, probe
 and IPC handler. The shipping driver source is included through `#[path]`;
 the register accessor alone is replaced with one that forwards to the
 DesignWare core in `nonos_i2cmodel`, with a HID touchpad on the bus behind it.
-
-## What was found
-
-Three defects in the shipping engine, each caught by a test here before the
-fix and passing after it.
-
-A NACKed transfer reported success. An abort empties the TX FIFO and idles
-the bus exactly as a completed transfer does; only `TX_ABRT` tells them apart,
-and the engine checked it at the top of its loop but declared completion at
-the bottom. On the model the window is deterministic; on silicon it is a race
-the driver loses a fraction of the time, and every probe of an absent address
-could come back as a device. The engine now checks the abort again before
-trusting completion.
-
-The FIFO depths were assumed. The engine pushed against a constant 64 while
-the core reports its depths in `IC_COMP_PARAM_1`, and silicon ships with 8,
-16 and 32. Against an eight-entry core the driver lost 56 of 64 commands. The
-depths are now read at bring-up and carried in the driver.
-
-Reads in flight were not counted. `IC_RXFLR` counts bytes that have landed,
-not reads issued, so a burst of read commands could exceed the room left in
-the receive FIFO. The engine now counts issued reads against that room.
+Setup's settling of a bind and its sweep are included too; the claim, the
+mapping and the bring-up of each controller go through the broker, and the
+bench (`src/bench`) brings the modelled core up in their place. The defects
+these proofs caught are in [FOUND.md](FOUND.md).
 
 ## What is proved
 
@@ -42,11 +24,51 @@ disagrees with its size before touching the bus, and passes a NACK on as its
 own errno. The HID probe recognises a device by its descriptor length and
 answers no, not error, for an empty address.
 
+OP_TRANSFER and OP_PROBE reach the bound device and nothing else on the bus,
+refusing every other address before the bus (`reach_tests`). OP_CONTROLLER_INFO
+answers its whole 52-byte record (`info_tests`); it once copied an eight-byte
+value into a four-byte slot and took the driver down on every call. A transfer
+on a stalled bus yields, then sleeps, and ends at its deadline, a healthy one
+never sleeps, and an empty one is refused (`pace_tests`). On a machine where
+every yield gives a time slice away, a wait still ends within one slice of its
+deadline, and a transfer on a moving bus polls back to back and never yields
+(`busy_tests`). Until a device has returned its HID descriptor, every pad
+declared on the controller, or on none, stays in reach, and once one has it
+alone does (`settle_tests`); the first time a client then reads a valid HID
+descriptor through OP_TRANSFER at a pad's declared register, the reach narrows
+to that pad, while a malformed descriptor or a read at another register does not
+(`narrow_tests`); an address declared twice carries the bound declaration's
+register, so a descriptor read there narrows and one at the other does not
+(`twice_tests`). A declaration with no address finds the pad by reading 0x15,
+0x2C and 0x10, one byte at a time, writing nothing, up to the first that
+answers, and a pad anywhere else is not found (`sweep_tests`); a GPIO expander
+at 0x20 and a thermal sensor at 0x4C are never addressed, with the pad at 0x10
+or 0x2C or with none answering, and a client's transfer to either is refused
+(`sweep_neighbour_tests`); nothing is probed without such a declaration on the
+controller, and a faulting bus ends the sweep at its first address
+(`sweep_scope_tests`). Two faults in a row reset the controller: a wedged core
+comes back and the next transfer goes through, a bus no reset frees is named
+`Stuck`, said once, and still answers every call in bounded time, and a NACK is
+the device answering, not a fault (`recover_tests`).
+
+The shipping OP_ACPI_HID handler names the next pad in reach on each ask, the
+bound one first. Of three pads declared with the second fitted at 0x2A, its
+descriptor at 0x0030, outside the HID driver's blind scan, the second ask names
+it, a descriptor read there finds it, and then only it is named (`named_tests`).
+The reply is eight bytes with the bound pin and bits on the bound pad alone, an
+empty OK with nothing in reach, and every pad with its own register in the last
+resort (`named_wire_tests`); no declaration, 64 of them, a wrapped count and a
+narrowed reach are handled (`named_hostile_tests`). The doorbell says absent
+once the bound pad is out of reach, and a probe-bound pad keeps its line
+(`doorbell_tests`). An input report, the longest read, one byte past it, a NACK,
+a refusal and a probe leave nothing in the reply buffer (`retained_tests`), and
+the engine's copy of the bytes read is wiped where it is dropped
+(`bounce_tests`).
+
 ## Run
 
 ```sh
-cd userland/i2c_transfer_proofs
-cargo test --release
+cd userland/i2c_transfer_proofs && cargo test --release
 ```
 
 See [drivers](../../docs/handbook/drivers.md) and

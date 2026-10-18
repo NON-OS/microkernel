@@ -39,6 +39,9 @@ impl AdminQueue {
             ),
         );
         self.wait(regs, stride, cid, "get log page SMART / health (02h)")?;
+        // SAFETY: the identify region is mapped for 4 KiB, more than the
+        // 512 bytes read; the command has completed, and the slice borrows
+        // the queue, so no command that writes it goes in meanwhile.
         Ok(unsafe {
             core::slice::from_raw_parts(
                 self.identify.user_va() as *const u8,

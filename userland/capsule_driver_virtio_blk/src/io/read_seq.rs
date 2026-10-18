@@ -13,13 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::error::BlkError;
+
 use nonos_libc::{mk_irq_poll, IrqPollOut};
 
-pub(super) fn read_seq(grant: u64) -> Result<u64, BlkError> {
+use crate::queue::Fault;
+
+/// The interrupt sequence as it stands, for a wait to start from.
+pub(super) fn read_seq(grant: u64) -> Result<u64, Fault> {
     let mut out = IrqPollOut { seq: 0, overflow: 0 };
     if mk_irq_poll(grant, &mut out as *mut _) < 0 {
-        return Err(BlkError::Io);
+        return Err(Fault::Wait);
     }
     Ok(out.seq)
 }

@@ -17,15 +17,18 @@
 //! The client side of driver.xhci0: find the ports, address a device, and
 //! move its traffic over endpoint 0 and its bulk pipes.
 
+mod budget;
 mod bulk;
 mod call;
 mod control;
 mod lookup;
+mod pipe;
 mod port;
 mod slot;
 mod wire;
 mod xhci_bus;
 
+pub use budget::{bind_budget, BIND_MS};
 pub use lookup::lookup;
 pub use port::connected_ports;
 pub use slot::{address_device, disable_slot, enable_slot};

@@ -14,28 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
+use core::sync::atomic::AtomicUsize;
+
 use nonos_libc::mk_service_lookup;
 
-const GFX_SERVICE: &[u8] = b"driver.virtio_gpu0";
+use crate::say::say;
+
+mod order;
+
+/// The driver the display log last named, none at first.
+static SAID: AtomicUsize = AtomicUsize::new(usize::MAX);
 
 pub struct GfxEndpoint {
     pub port: u32,
 }
 
-// Resolves the gfx driver's port through the kernel service registry.
-// mk_ipc_call routes by port; the kernel verifies the owning pid is
-// alive before delivery, so the compositor does not need to hold it.
+// Resolves the gfx driver's port through the kernel service registry, in
+// `order`'s order, and names on the display log each driver it finds anew:
+// wait_for_setup names the virtio path whichever driver serves it, and the
+// GOP framebuffer when it takes that. mk_ipc_call routes by port; the
+// kernel verifies the owning pid is alive before delivery, so the
+// compositor does not need to hold it.
 pub fn lookup_gfx_endpoint() -> Result<GfxEndpoint, &'static str> {
+    let found = order::first_announced(announced);
+    if let Some(driver) = order::news(&SAID, found.map(|(at, _)| at)) {
+        say(&format!("gfx lookup: {}", driver));
+    }
+    let (_, port) = found.ok_or("gfx service not announced")?;
+    Ok(GfxEndpoint { port })
+}
+
+fn announced(name: &[u8]) -> Option<u32> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
-    let rc = mk_service_lookup(
-        GFX_SERVICE.as_ptr(),
-        GFX_SERVICE.len(),
-        &mut port as *mut u32,
-        &mut pid as *mut u32,
-    );
-    if rc < 0 || pid == 0 || port == 0 {
-        return Err("gfx service not announced");
-    }
-    Ok(GfxEndpoint { port })
+    let rc =
+        mk_service_lookup(name.as_ptr(), name.len(), &mut port as *mut u32, &mut pid as *mut u32);
+    (rc >= 0 && pid != 0 && port != 0).then_some(port)
 }
