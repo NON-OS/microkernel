@@ -23,7 +23,9 @@ mod pipes;
 // The client call and the wire constants of driver.xhci0 are nonos_usbnet's
 // own files, compiled here: that crate keeps them private, and a copy would
 // drift from the one the network drivers use.
-// `call` paces its binds through `budget`, so that comes along with it.
+// `call` gates each request on a per-bind budget (nonos_usbnet's own), so
+// its module is compiled here too; this capsule sets no budget, so the gate
+// is open (may_start returns Ok while none is under way).
 #[allow(dead_code)]
 #[path = "../../../nonos_usbnet/src/xhci/budget.rs"]
 mod budget;
