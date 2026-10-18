@@ -25,6 +25,7 @@ pub struct JumpAddresses {
 }
 
 /// Validate addresses and jump to kernel. POST codes on failure: E1=entry, E2=stack, E3=handoff
+/// (E4 is `halt_map_overflow`).
 pub fn validate_and_jump(addrs: JumpAddresses) -> ! {
     com1_byte(b'V');
     if !validate_entry_address(addrs.entry) {
@@ -43,6 +44,13 @@ pub fn validate_and_jump(addrs: JumpAddresses) -> ! {
     com1_byte(b'\n');
     // SAFETY: all addresses validated above
     unsafe { jump_to_kernel(addrs.entry, addrs.stack, addrs.handoff) }
+}
+
+/// A memory map that did not fit its buffer: halted rather than handed on
+/// cut short. POST code E4.
+pub fn halt_map_overflow() -> ! {
+    com1_byte(b'4');
+    halt_with_code(0xE4)
 }
 
 fn com1_byte(b: u8) {

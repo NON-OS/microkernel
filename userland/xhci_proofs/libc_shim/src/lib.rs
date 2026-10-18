@@ -38,6 +38,9 @@ mod mmio;
 mod pci_command;
 mod process;
 mod unmap;
+/// libc's own park policy, run against the stand-ins here.
+#[path = "../../../libc/src/wait/mod.rs"]
+pub mod wait;
 
 pub use broker::{
     mk_debug, mk_device_claim, mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND,
