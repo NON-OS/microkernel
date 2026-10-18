@@ -21,6 +21,7 @@ mod pass;
 mod probe;
 pub mod report;
 mod scanner;
+mod serve;
 
 pub use medium::Medium;
 pub use report::Report;
