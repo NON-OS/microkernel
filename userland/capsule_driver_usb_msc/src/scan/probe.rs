@@ -18,8 +18,9 @@
 //! configuration has a SCSI-transparent Bulk-Only interface.
 
 use super::report::{first_interface, Stage};
+use super::serve::serve_first_ready;
 use crate::descriptors::parse_config;
-use crate::disk::{capacity, max_lun, unit_ready, Disk};
+use crate::disk::{Disk, Pause};
 use crate::state::State;
 use crate::xhci::{
     address_device, config_descriptor, configure_bulk, control_no_data, disable_slot, enable_slot,
@@ -40,19 +41,19 @@ pub enum Probe {
 
 const SET_CONFIGURATION: (u8, u8) = (0x00, 0x09);
 
-pub fn probe_port(xhci: u32, port: u8, state: &mut State) -> Probe {
+pub fn probe_port(xhci: u32, port: u8, state: &mut State, pause: Pause) -> Probe {
     let slot = match enable_slot(xhci) {
         Ok(slot) => slot,
         Err(e) => return Probe::Failed(Stage::Address, e),
     };
-    let probe = bind(xhci, slot, port, state);
+    let probe = bind(xhci, slot, port, state, pause);
     if !matches!(probe, Probe::Ours(_)) {
         disable_slot(xhci, slot);
     }
     probe
 }
 
-fn bind(xhci: u32, slot: u8, port: u8, state: &mut State) -> Probe {
+fn bind(xhci: u32, slot: u8, port: u8, state: &mut State, pause: Pause) -> Probe {
     match address_device(xhci, slot, port) {
         Ok(()) => {}
         Err(E_BUSY) => return Probe::Busy,
@@ -77,25 +78,5 @@ fn bind(xhci: u32, slot: u8, port: u8, state: &mut State) -> Probe {
     {
         return Probe::Failed(Stage::Configure, e);
     }
-    let mut disk = Disk::bound(xhci, slot, &b);
-    // The first logical unit with a medium ready is served: on a card
-    // reader, the slot with the card in it.
-    let last = max_lun(&disk);
-    let mut ready = Err(0);
-    for lun in 0..=last {
-        disk.lun = lun;
-        ready = unit_ready(&disk, state, lun < last);
-        if ready.is_ok() {
-            break;
-        }
-    }
-    if let Err(e) = ready {
-        return Probe::Failed(Stage::NotReady, e);
-    }
-    let (blocks, block_len) = match capacity(&disk, state) {
-        Ok(c) => c,
-        Err(e) => return Probe::Failed(Stage::Capacity, e),
-    };
-    (disk.blocks, disk.block_len) = (blocks, block_len);
-    Probe::Ours(disk)
+    serve_first_ready(Disk::bound(xhci, slot, &b), state, pause)
 }

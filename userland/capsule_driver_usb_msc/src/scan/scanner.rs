@@ -30,7 +30,7 @@
 use nonos_libc::Deadline;
 
 use super::medium::Medium;
-use super::pass::{pass, NOT_OURS};
+use super::pass::{pass, PassPause, NOT_OURS};
 use super::report::{Report, Stage};
 use crate::state::State;
 use crate::xhci::{connected_ports, lookup};
@@ -65,7 +65,7 @@ impl Scanner {
 
     /// One pass over the ports. `Scanning` until the device is bound or
     /// every connected port is decided, or the window closes.
-    pub fn step(&mut self, state: &mut State) -> Medium {
+    pub fn step(&mut self, state: &mut State, pause: PassPause) -> Medium {
         let Some(xhci) = self.found() else { return self.undecided() };
         let settle = *self.settle.get_or_insert_with(|| Deadline::after_ms(SETTLE_MS));
         let ports = match connected_ports(xhci) {
@@ -75,7 +75,7 @@ impl Scanner {
                 return self.undecided();
             }
         };
-        let (found, open) = pass(xhci, ports, &mut self.tries, state, &mut self.report);
+        let (found, open) = pass(xhci, ports, &mut self.tries, state, &mut self.report, pause);
         if let Some(disk) = found {
             return Medium::Ready(disk);
         }
@@ -87,13 +87,13 @@ impl Scanner {
 
     /// After the window: every port that failed is given its tries again,
     /// and one pass looks at every port not of another class.
-    pub fn again(&mut self, state: &mut State) -> Medium {
+    pub fn again(&mut self, state: &mut State, pause: PassPause) -> Medium {
         let Some(xhci) = self.found() else { return Medium::Absent };
         for t in self.tries.iter_mut().filter(|t| **t != NOT_OURS) {
             *t = 0;
         }
         let Ok(ports) = connected_ports(xhci) else { return Medium::Absent };
-        match pass(xhci, ports, &mut self.tries, state, &mut self.report) {
+        match pass(xhci, ports, &mut self.tries, state, &mut self.report, pause) {
             (Some(disk), _) => Medium::Ready(disk),
             _ => Medium::Absent,
         }
