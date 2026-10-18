@@ -18,9 +18,8 @@ use crate::protocol::{Request, E_MSGSIZE, E_NODEV, RW_HEADER_LEN};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
-pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let regs = driver.regs;
-    let io = match driver.io.as_mut() {
+pub fn handle(driver: &mut Driver, req: &Request, sender: u32, body: &[u8], tx: &mut [u8]) {
+    let io = match driver.io.as_ref() {
         Some(i) => i,
         None => return reply_with_status(tx, req, E_NODEV),
     };
@@ -33,20 +32,11 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != RW_HEADER_LEN + bytes || req.payload_len as usize != RW_HEADER_LEN + bytes {
         return reply_with_status(tx, req, E_MSGSIZE);
     }
-    // The buffer may still be the controller's, for a command given up on.
-    if let Err(e) = io.settle(regs) {
-        return reply_with_status(tx, req, io.failure_status(e));
-    }
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            body[RW_HEADER_LEN..].as_ptr(),
-            io.data.user_va() as *mut u8,
-            bytes,
-        );
-    }
-    let status = match io.transfer(regs, lba, nsectors, true) {
-        Ok(()) => 0,
-        Err(e) => io.failure_status(e),
-    };
-    reply_with_status(tx, req, status);
+    let data = &body[RW_HEADER_LEN..];
+    driver.io_command(
+        sender,
+        tx,
+        |io, regs, _| io.write_from(regs, lba, nsectors, data),
+        |tx, done| reply_with_status(tx, req, done.err().unwrap_or(0)),
+    );
 }

@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! PCI command setup: memory decode and bus mastering on, legacy interrupt
-//! pin off.
+//! The PCI command a bring-up asks for: memory decode, with the legacy
+//! interrupt pin off, first; bus mastering only once the device has been
+//! reset. A device left live by a previous instance still holds its ring
+//! addresses, in frames since freed, until it is reset, so it may not reach
+//! memory before that.
 //!
 //! The driver never waits on an interrupt: every control-queue command
 //! polls the used ring. Left enabled, the device raises INTx on each
@@ -26,20 +29,20 @@
 //! request. Interrupt Disable keeps the device off the line entirely.
 
 use nonos_libc::{
-    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-    MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
+    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
+    MK_PCI_CMD_MEMORY_SPACE,
 };
 
-/// Memory decode too: a modern function is reached only through its memory
-/// BAR, and the broker does not assume firmware left decoding on.
-pub fn enable(device_id: u64, claim_epoch: u64) -> Result<(), &'static str> {
-    let bits = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
-    let rc = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, bits);
-    if rc >= 0 {
-        return Ok(());
+/// Memory decode, and the legacy pin off. A modern function is reached only
+/// through its memory BAR, and the broker does not assume firmware left
+/// decoding on.
+pub const DECODE: u16 = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_INTX_DISABLE;
+/// What a device that has been reset may also do.
+pub const MASTER: u16 = DECODE | MK_PCI_CMD_BUS_MASTER;
+
+pub fn command(device_id: u64, claim_epoch: u64, bits: u16) -> Result<(), &'static str> {
+    if mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, bits) < 0 {
+        return Err("virtio-gpu: pci command setup failed");
     }
-    if mk_device_release(device_id) < 0 {
-        return Err("virtio-gpu: release failed after pci setup failure");
-    }
-    Err("virtio-gpu: pci command setup failed")
+    Ok(())
 }

@@ -23,7 +23,7 @@ impl Transport {
     /// that queue's own and takes the index too.
     pub fn notify(self, queue: u16) {
         match self {
-            Self::Legacy(regs) => unsafe { regs.w16(LEG_QUEUE_NOTIFY, queue) },
+            Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
             Self::Modern(m) => m.notify.w16(m.doorbell, queue),
         }
     }

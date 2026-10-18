@@ -14,60 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The server loop: a request, then one step of the search for the device
+//! or of its check, each in its own window (`serve`).
+
 use alloc::vec;
 
-use nonos_libc::{mk_getpid, mk_ipc_recv_from, Deadline};
+use nonos_libc::{mk_getpid, mk_ipc_recv_from};
 
-use crate::protocol::{parse, refused, BLK_HEADER_LEN, BLK_MAX_BYTES, E_INVAL, HDR_LEN, STATUS_LEN};
-use crate::scan::{Medium, Scanner, RESCAN_MS};
-use crate::server::dispatch::dispatch;
-use crate::server::respond;
-use crate::state::State;
+use super::serve::Server;
+use crate::protocol::{BLK_HEADER_LEN, BLK_MAX_BYTES, HDR_LEN, STATUS_LEN};
 
 const SERVICE_INBOX: u64 = 0;
-/// While the device is being looked for, requests are answered between
-/// passes: `E_AGAIN` for the block surface, as usual for the rest.
-const SCAN_POLL_MS: u64 = 5;
-/// With no device after the window, how long a receive waits before the
-/// ports are looked at again.
-const ABSENT_POLL_MS: u64 = 250;
 
 pub fn run() -> ! {
     let mut rx = vec![0u8; HDR_LEN + BLK_HEADER_LEN + BLK_MAX_BYTES];
     let mut tx = vec![0u8; HDR_LEN + STATUS_LEN + BLK_MAX_BYTES];
-    let mut state = State::new();
-    let mut scanner = Scanner::new();
-    let mut medium = Medium::Scanning;
+    let mut server = Server::new();
     /*
      * A reply to the kernel's inbox that finds no waiter comes back here;
      * anything this capsule sent itself is dropped, never answered.
      */
     let self_pid = mk_getpid();
-    let mut rescan = Deadline::after_ms(RESCAN_MS);
     loop {
-        let scanning = matches!(medium, Medium::Scanning);
-        let wait = match medium {
-            Medium::Scanning => SCAN_POLL_MS,
-            Medium::Absent => ABSENT_POLL_MS,
-            Medium::Ready(_) => 0,
-        };
+        let wait = server.scanner.wait_ms();
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender);
         if n > 0 && sender != self_pid {
-            match parse(&rx[..n as usize]) {
-                Some((req, body)) => {
-                    dispatch(&mut state, &medium, &scanner.report, sender, req, body, &mut tx)
-                }
-                None => {
-                    let _ = respond::status(sender, &refused(&rx[..n as usize]), E_INVAL, &mut tx);
-                }
-            }
+            server.serve(sender, &rx[..n as usize], &mut tx);
         }
-        if scanning {
-            medium = scanner.step(&mut state);
-        } else if matches!(medium, Medium::Absent) && rescan.expired() {
-            medium = scanner.again(&mut state);
-            rescan = Deadline::after_ms(RESCAN_MS);
-        }
+        server.step();
     }
 }

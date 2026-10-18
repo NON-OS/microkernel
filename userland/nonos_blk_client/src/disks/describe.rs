@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How a disk describes itself to a person: its bus name, its size, the
-//! word that confirms erasing it, and why it cannot be installed to when
-//! it cannot.
+//! How a disk describes itself to a person: its bus name, its size, and
+//! why it cannot be installed to when it cannot. The word that confirms
+//! erasing it is in `confirm.rs`.
 
 use alloc::string::String;
 
 use super::scan::Disk;
-use super::word::serial_word;
-use crate::driver::Driver;
 use crate::wire::SECTOR_SIZE;
 
 impl Disk {
@@ -56,25 +54,5 @@ impl Disk {
                 "this disk uses {block}-byte blocks, and NONOS lays its partition table out in 512-byte ones, which firmware would not find here"
             )
         })
-    }
-
-    /// The word a person types to erase this disk: the last four characters
-    /// of its serial when the part has one, so the word is on the sticker
-    /// and on no other disk in the machine; the bus name otherwise, with
-    /// the instance after it past the first, so two SATA disks are told
-    /// apart.
-    pub fn confirm_word(&self) -> String {
-        if let Some(word) = self.identity.as_ref().and_then(|id| serial_word(id.serial_str())) {
-            return word;
-        }
-        let bus = match self.driver {
-            Driver::Nvme => "nvme",
-            Driver::Ahci => "sata",
-            Driver::VirtioBlk => "virtio",
-        };
-        match self.instance {
-            0 => String::from(bus),
-            n => alloc::format!("{bus}{n}"),
-        }
     }
 }

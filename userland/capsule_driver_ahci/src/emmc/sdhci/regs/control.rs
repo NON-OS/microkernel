@@ -20,6 +20,9 @@
 // Present State.
 pub const PS_CMD_INHIBIT: u32 = 1 << 0;
 pub const PS_DAT_INHIBIT: u32 = 1 << 1;
+pub const PS_DAT_ACTIVE: u32 = 1 << 2;
+pub const PS_WRITE_ACTIVE: u32 = 1 << 8;
+pub const PS_READ_ACTIVE: u32 = 1 << 9;
 pub const PS_CARD_INSERTED: u32 = 1 << 16;
 pub const PS_CARD_STABLE: u32 = 1 << 17;
 

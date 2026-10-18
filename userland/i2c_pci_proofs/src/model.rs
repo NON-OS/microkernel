@@ -26,28 +26,9 @@
 use nonos_devmodel::FakeBar;
 
 use crate::constants::{IC_COMP_TYPE, IC_COMP_VERSION, IC_ENABLE, IC_ENABLE_STATUS};
-use crate::init::{BusSetup, InitState};
-
-/// The message a bring-up gave up with. `InitState` carries no `Debug`, so
-/// `expect_err` is not available and the success case is spelled out here.
-pub fn refusal(outcome: Result<InitState, &'static str>) -> &'static str {
-    match outcome {
-        Ok(_) => panic!("bring-up succeeded where this window should have refused it"),
-        Err(message) => message,
-    }
-}
 
 /// Wide enough for the LPSS private block at 0x200, past the core's 0x100.
 pub const WINDOW: usize = 0x400;
-/// Gemini Lake's I2C input clock, the part this capsule was brought up on.
-pub const CLOCK_HZ: u32 = 133_000_000;
-/// Where the window sits physically, as the LPSS remap register must learn.
-/// Above 4 GiB on purpose: firmware places LPSS BARs there on large-memory
-/// machines, and a remap that dropped the high dword would point the
-/// integrated DMA at the wrong page.
-pub const PHYS_BASE: u64 = 0x0000_0040_1234_5000;
-/// The bring-up an Intel LPSS function gets: its clock and its window.
-pub const SETUP: BusSetup = BusSetup { clock_hz: CLOCK_HZ, lpss_base: Some(PHYS_BASE), standard_mode: false };
 /// IC_COMP_VERSION of a 2.01a core, which has IC_SDA_HOLD.
 pub const DW_COMP_VERSION: u32 = 0x3230_312A;
 /// The DesignWare I2C component signature a live core answers with.
@@ -79,5 +60,14 @@ pub fn stuck_enabled() -> FakeBar {
     let bar = live();
     bar.present32(IC_ENABLE as usize, 1);
     bar.present32(IC_ENABLE_STATUS as usize, 1);
+    bar
+}
+
+/// Enable bit set, status already quiescent, so the disable takes on the
+/// first read. A restore then waits on a status this passive window never
+/// raises, so it is observed in IC_ENABLE, not in a return value.
+pub fn enabled_and_quiescent() -> FakeBar {
+    let bar = live();
+    bar.present32(IC_ENABLE as usize, 1);
     bar
 }
