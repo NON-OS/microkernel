@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod abi;
+mod acpi_capsule;
 mod active_page_table_root;
 pub mod console;
 pub mod context;
@@ -23,6 +24,8 @@ pub mod cpu_random;
 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
 pub mod fdt;
 pub mod halt;
+mod hv_backdoor;
+mod hv_vmbus;
 pub(crate) mod idle;
 mod init_boot_memory;
 mod init_broker_irq_routing;
@@ -32,6 +35,7 @@ mod percpu_base;
 pub mod port_io;
 pub(crate) mod power;
 mod remap_pci_windows;
+mod report_hypervisor;
 mod run_without_interrupts;
 mod stack_pointer;
 mod time_counter;
@@ -52,6 +56,7 @@ pub mod aarch64;
 #[cfg(target_arch = "riscv64")]
 pub mod riscv64;
 pub use abi::ArchOps;
+pub(crate) use acpi_capsule::{acpi_capsule_exit, acpi_from_init};
 pub(crate) use active_page_table_root::active_page_table_root;
 #[cfg(target_arch = "x86_64")]
 pub use cpu::init_cpu_features;
@@ -62,6 +67,14 @@ pub(crate) use init_boot_memory::init_boot_memory;
 pub(crate) use init_broker_irq_routing::init_broker_irq_routing;
 pub(crate) use percpu_base::set as set_percpu_base;
 pub(crate) use remap_pci_windows::remap_pci_windows;
+pub(crate) use report_hypervisor::report_hypervisor;
+pub(crate) use hv_backdoor::{hv_backdoor, HvBackdoorError};
+pub use hv_backdoor::hv_backdoor_present;
+pub use hv_vmbus::hv_vmbus_ready;
+pub(crate) use hv_vmbus::{
+    hv_vmbus_events, hv_vmbus_post, hv_vmbus_recv, hv_vmbus_signal, HvVmbusError, HV_EVENT_WORDS,
+    HV_MESSAGE_BYTES,
+};
 pub(crate) use run_without_interrupts::run_without_interrupts;
 pub(crate) use stack_pointer::stack_pointer;
 pub(crate) use time_counter::{read_time_counter, time_counter_hz};

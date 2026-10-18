@@ -16,6 +16,7 @@
 
 mod entries;
 mod parse;
+pub mod walk;
 mod x2apic;
 
 pub use entries::*;

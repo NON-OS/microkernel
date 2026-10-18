@@ -14,40 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
+//! MCFG read once at boot through the one pure decoder (`mcfg_decode`),
+//! which never reads past the bytes the header's length bounds.
+
+#[path = "mcfg_decode.rs"]
+pub(super) mod mcfg_decode;
 
 use super::super::state::TableRegistry;
+use super::raw_table::bytes;
 use crate::arch::x86_64::acpi::data::PcieSegment;
-use crate::arch::x86_64::acpi::tables::{Mcfg, McfgEntry, SIG_MCFG};
 
 pub fn parse_mcfg(registry: &mut TableRegistry) {
-    let addr = match registry.tables.get(&SIG_MCFG) {
-        Some(&a) => a,
-        None => return,
-    };
-    let addr = match super::super::phys::directmap(addr) {
-        Some(v) => v,
-        None => return,
-    };
-
-    unsafe {
-        let mcfg = ptr::read_volatile(addr as *const Mcfg);
-        let entry_count = mcfg.entry_count();
-        let entries_ptr = (addr + mcfg.entries_offset() as u64) as *const McfgEntry;
-
-        for i in 0..entry_count {
-            let entry = ptr::read_volatile(entries_ptr.add(i));
-            // An inverted bus range or a zero base describes nothing that
-            // can be reached; Linux's pci_mcfg_check_entries rejects both.
-            if entry.end_bus < entry.start_bus || entry.base_address == 0 {
-                continue;
-            }
-            registry.data.pcie_segments.push(PcieSegment {
-                base_address: entry.base_address,
-                segment: entry.segment_group,
-                start_bus: entry.start_bus,
-                end_bus: entry.end_bus,
-            });
-        }
+    let Some(table) = bytes(registry, b"MCFG") else { return };
+    for w in mcfg_decode::windows(table) {
+        registry.data.pcie_segments.push(PcieSegment {
+            base_address: w.base,
+            segment: w.segment,
+            start_bus: w.start_bus,
+            end_bus: w.end_bus,
+        });
     }
 }
