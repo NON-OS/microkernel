@@ -36,6 +36,7 @@ mod lid_rig;
 mod lid_rule_tests;
 mod lid_session_tests;
 mod lid_tests;
+mod lookup_log_tests;
 mod notice_tests;
 mod poll_tests;
 mod present_retry_tests;

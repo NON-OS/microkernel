@@ -19,15 +19,17 @@
 use nonos_gfx_wire::{ops, Surface};
 use nonos_libc::dma_spans;
 
-use super::ask::{ask, words};
+use super::ask::{ask, surface, words};
 use super::rig::Rig;
+use crate::constants::GPU_CFG_EVENTS_READ;
+use crate::tests::model::DEVICE_AT;
 
-/// The legacy-shaped window's device configuration: events read.
-pub const EVENTS_READ: usize = 0x14;
+/// The device configuration's events-read word, in the modern window.
+pub const EVENTS_READ: usize = DEVICE_AT + GPU_CFG_EVENTS_READ;
 
 /// SURFACE for `o`, its primary filled with `px` and flushed whole.
 pub fn draw(r: &mut Rig, o: u16, px: u32) -> Surface {
-    let s = Surface::decode(&ask(r, ops::SURFACE, o, &[]).1).expect("a surface");
+    let s = surface(r, o);
     fill(r, o, px);
     let all = words(&[s.serial, 1, 0, 0, s.width, s.height]);
     assert_eq!(ask(r, ops::FLUSH, o, &all).0, 0, "flushed");
@@ -35,8 +37,8 @@ pub fn draw(r: &mut Rig, o: u16, px: u32) -> Surface {
 }
 
 pub fn fill(r: &mut Rig, o: u16, px: u32) {
-    let base = r.s.slots[o as usize].current.expect("a primary").region.base;
-    let m = r.s.platform.memory.get_mut(&base).expect("its memory");
+    let base = r.d.server.slots[o as usize].current.expect("a primary").region.base;
+    let m = r.d.server.platform.memory.get_mut(&base).expect("its memory");
     m.chunks_exact_mut(4).for_each(|c| c.copy_from_slice(&px.to_le_bytes()));
 }
 

@@ -24,6 +24,7 @@ pub mod limbo;
 pub mod mode_set;
 pub mod modes;
 pub mod plug;
+pub mod reshow;
 pub mod show;
 pub mod surface;
 pub mod take;

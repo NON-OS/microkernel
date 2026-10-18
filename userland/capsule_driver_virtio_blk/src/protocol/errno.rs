@@ -19,3 +19,5 @@ pub const E_ACCES: i32 = -13;
 pub const E_IO: i32 = -5;
 pub const E_MSGSIZE: i32 = -90;
 pub const E_NXIO: i32 = -6;
+/// The device did not answer by the deadline, told apart from E_IO.
+pub const E_TIMEDOUT: i32 = -110;

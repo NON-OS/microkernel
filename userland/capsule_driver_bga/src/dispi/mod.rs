@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod check;
 mod current;
 mod dispi_off;
+mod fit;
+mod restore;
 mod set_mode;
+mod state;
 
+pub use check::identify;
 pub use current::{current, DispiMode};
-pub use set_mode::set_mode;
+pub use fit::video_memory;
+pub use restore::restore;
+pub use set_mode::{regs_len, set_mode};
+pub use state::{read, Dispi};

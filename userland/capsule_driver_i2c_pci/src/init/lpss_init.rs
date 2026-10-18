@@ -17,17 +17,19 @@
 use crate::constants::*;
 use crate::regs::Regs;
 
-// Intel LPSS wrapper bring-up, as Linux intel_lpss_init_dev does it: put the
-// function in reset, release the function and both integrated DMA resets,
-// then program the remap address (the window's physical address, low dword
-// then high) so the integrated DMA sees the window where it really is, above
-// 4 GiB included. Firmware frequently leaves the resets released already;
-// asserting first makes the state the same whatever it left. This has to run
-// before the first DesignWare register access, and only on an LPSS function:
-// a platform controller has no private block at these offsets.
+// Intel LPSS wrapper bring-up, after Linux intel_lpss_init_dev: put the
+// function in reset, release the function alone, then program the remap
+// address (the window's physical address, low dword then high), which Linux
+// writes for every LPSS function, with or without its DMA engine. The
+// integrated DMA is left in reset: nothing here uses it, and released it
+// could master the bus. Firmware frequently leaves the resets released
+// already; asserting first makes the state the same whatever it left, and is
+// also how a wedged core is recovered. This has to run before the first
+// DesignWare register access, and only on an LPSS function: a platform
+// controller has no private block at these offsets.
 pub(super) fn lpss_init(regs: Regs, base: u64) {
     regs.write32(LPSS_PRIV_RESETS, 0);
-    regs.write32(LPSS_PRIV_RESETS, LPSS_PRIV_RESETS_DEASSERT);
+    regs.write32(LPSS_PRIV_RESETS, LPSS_PRIV_RESETS_FUNC);
     regs.write32(LPSS_PRIV_REMAP_LO, base as u32);
     regs.write32(LPSS_PRIV_REMAP_HI, (base >> 32) as u32);
 }

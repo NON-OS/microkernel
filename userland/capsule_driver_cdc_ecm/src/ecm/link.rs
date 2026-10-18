@@ -20,7 +20,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_usbnet::nic::ETH_FRAME_MAX;
-use nonos_usbnet::{Bus, Nic, Pipes};
+use nonos_usbnet::{Bus, Nic, Pipes, Taken};
 
 use super::transfer::{recv, send};
 
@@ -31,20 +31,26 @@ const RX_LEN: usize = 2048;
 pub struct Ecm<B> {
     pub(super) bus: B,
     pub(super) mac: [u8; 6],
+    pub(super) taken: Taken,
     pub(super) pipes: Pipes,
     pub(super) rx: Vec<u8>,
     pub(super) tx: Vec<u8>,
 }
 
 impl<B: Bus> Ecm<B> {
-    pub fn new(bus: B, mac: [u8; 6], pipes: Pipes) -> Self {
-        Self { bus, mac, pipes, rx: vec![0; RX_LEN], tx: vec![0; ETH_FRAME_MAX + 1] }
+    pub fn new(bus: B, mac: [u8; 6], taken: Taken, pipes: Pipes) -> Self {
+        let (rx, tx) = (vec![0; RX_LEN], vec![0; ETH_FRAME_MAX + 1]);
+        Self { bus, mac, taken, pipes, rx, tx }
     }
 }
 
 impl<B: Bus> Nic for Ecm<B> {
     fn mac(&self) -> [u8; 6] {
         self.mac
+    }
+
+    fn taken(&self) -> Taken {
+        self.taken
     }
 
     /// The link is the device being bound: its notifications come on an

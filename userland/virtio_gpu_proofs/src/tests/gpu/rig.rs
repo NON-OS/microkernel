@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A driver brought up on the host model as bring-up does it: the scanouts
-//! read, every enabled one taken (`display::take`), and the wire server on
-//! top, its primaries on the shared heap. The model answers on every yield
-//! of the driver's own thread; a cued kill panics there.
+//! read, every enabled one taken (`display::take`), the wire server on top
+//! (its primaries on the shared heap) and what a recovery needs. The model
+//! answers on every yield of the driver's own thread; a kill panics there.
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -27,16 +27,17 @@ use nonos_gfx_serve::Server;
 use nonos_libc::{dma_reset, off_yield, on_yield};
 
 use crate::display::take::take;
-use crate::display::Gpu;
+use crate::driver::Driver;
 use crate::setup::scanouts::seed;
-use crate::state::{FenceCounter, ScanoutTable};
+use crate::state::{FenceCounter, ScanoutTable, Tally};
 use crate::tests::harness::harness;
 use crate::tests::host::state::Host;
+use crate::tests::probe_stall::NOTIFY;
 use crate::tests::wire_sweep::heap::Heap;
 
 pub struct Rig {
     pub host: Rc<RefCell<Host>>,
-    pub s: Server<Gpu, Heap>,
+    pub d: Driver<Heap>,
     pub regs: Arc<FakeBar>,
     _region: Arc<FakeBar>,
 }
@@ -64,7 +65,9 @@ pub fn rig_on(host: Rc<RefCell<Host>>) -> Rig {
     let (table, fences) = (ScanoutTable::new(), FenceCounter::new());
     seed(&h.queue, &table, &fences).expect("display info");
     let gpu = take((h.queue, fences), (7, 1), &table, Default::default()).expect("taken");
-    Rig { host, s: Server::new(gpu, Heap::new(1 << 16)), regs: h.regs, _region: h.region }
+    let server = Server::new(gpu, Heap::new(1 << 16));
+    let d = Driver { device_id: 7, server, notify: NOTIFY, tally: Tally::default() };
+    Rig { host, d, regs: h.regs, _region: h.region }
 }
 
 pub fn rig() -> Rig {

@@ -22,7 +22,7 @@ use nonos_libc::{mk_uptime_ms, INPUT_KIND_KEY_DOWN};
 
 use crate::route::trusted_hold::{told, HOLD_LEASE_MS};
 use crate::router_desk::*;
-use crate::router_trusted_tests::{held_desk, A, KEY_X};
+use crate::router_tests::router_trusted_tests::{held_desk, A, KEY_X};
 
 #[test]
 fn the_hold_ends_when_it_lapses_or_its_holder_dies() {

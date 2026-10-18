@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
 pub const STATUS_ACKNOWLEDGE: u8 = 1;
 pub const STATUS_DRIVER: u8 = 2;
 pub const STATUS_DRIVER_OK: u8 = 4;
