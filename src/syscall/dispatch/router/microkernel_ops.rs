@@ -25,6 +25,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkIpcReply
             | MkIpcSendToPid
             | MkServiceLookup
+            | MkThreadGroup
             | MkServiceRegister
             | MkMmap
             | MkMunmap
@@ -83,6 +84,39 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPioRead
             | MkPioWrite
             | MkPioRelease
+            | MkAcpiTable
+            | MkAcpiRegion
+            | MkAcpiPort
+            | MkAcpiPci
+            | MkAcpiPower
+            | MkAcpiEvent
+            | MkAcpiSleep
+            | MkSmbiosTable
+            | MkAcpiCpu
+            | MkAcpiHolds
+            | MkPciProbeFunction
+            | MkPciDepart
+            | MkAcpiFunctionOf
+            | MkAcpiHwError
+            | MkAcpiPlatformDevice
+            | MkAcpiDeviceName
+            | MkAcpiUsbPorts
+            | MkUsbPortFacts
+            | MkAcpiExternalPort
+            | MkAcpiReserved
+            | MkAcpiProximity
+            | MkNumaNodeOf
+            | MkNumaDistance
+            | MkDeviceNode
+            | MkAcpiOscGrant
+            | MkAcpiFirstPass
+            | MkAcpiSlot
+            | MkAcpiMeasured
+            | MkAcpiLoaded
+            | MkAcpiThermalLimit
+            | MkNumaHmat
+            | MkAcpiLpit
+            | MkBootLogo
             | MkDebug
             | MkStdoutWrite
             | MkPrivateWrite

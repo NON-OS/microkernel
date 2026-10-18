@@ -30,6 +30,7 @@ pub enum Hit {
         control: bool,
     },
     Network(usize),
+    BtDevice(usize),
     /// The "No networks found" row, whose "Scan" asks for one.
     Scan,
     None,
@@ -63,6 +64,7 @@ pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
             }
             Item::Network(_) if inside && state.wifi_network_count == 0 => hit = Hit::Scan,
             Item::Network(i) if inside => hit = Hit::Network(i),
+            Item::BtDevice(i) if inside && i < state.bt.bond_count => hit = Hit::BtDevice(i),
             Item::Saved(i) if inside && i < state.wifi.saved_count => {
                 hit = Hit::Network(state.wifi_network_count + i)
             }

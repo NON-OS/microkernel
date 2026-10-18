@@ -16,6 +16,7 @@
 
 #![no_std]
 pub mod admin;
+pub mod acpi_measured;
 pub mod attest;
 pub mod attest_policy;
 pub mod battery;
@@ -63,6 +64,7 @@ pub mod tty;
 mod unistd;
 pub mod wait;
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
+pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
 pub use attest::{
     mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail, AttestStatus,
     ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
