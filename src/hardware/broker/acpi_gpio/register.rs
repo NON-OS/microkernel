@@ -21,6 +21,7 @@ use crate::arch::x86_64::acpi::aml::{
 };
 use crate::sys::serial;
 
+use super::super::acpi::platform_paths::keep_unpathed;
 use super::super::table::register_platform_device;
 use super::p2sb::sbreg_bar;
 use super::record::device_record;
@@ -45,7 +46,8 @@ pub fn register_acpi_gpio() {
         }
         let first = ctl.windows[0].0;
         say(&ctl, &format!("{} community windows, first at {:#x}", ctl.window_count, first));
-        register_platform_device(device_record(&ctl));
+        let id = register_platform_device(device_record(&ctl));
+        keep_unpathed(id, ctl.hid, u64::from(ctl.uid));
     }
 }
 

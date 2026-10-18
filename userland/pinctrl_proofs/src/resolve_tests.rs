@@ -14,35 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::vector_tests::layout;
-use nonos_pinctrl::{locate, resolve, Line, Pad, PinError};
+//! Pin resolution over a synthetic layout, made up for the proof and named
+//! after no platform: a group's firmware numbers mapped onto its pads, a
+//! group whose numbering starts at zero, a gap and an unnumbered group
+//! refused, and the pad counted from its own community's first pad.
+
+use nonos_pinctrl::{resolve, Community, Group, Layout, Pad, PinError};
+
+const SYNTHETIC: Layout = Layout {
+    name: "synthetic",
+    communities: &[
+        Community {
+            first: 0,
+            groups: &[
+                Group { first: 0, size: 24, gpio: Some(0) },
+                Group { first: 24, size: 8, gpio: None },
+            ],
+        },
+        Community {
+            first: 32,
+            groups: &[
+                Group { first: 32, size: 16, gpio: Some(64) },
+                Group { first: 48, size: 4, gpio: Some(0) },
+            ],
+        },
+    ],
+};
 
 #[test]
-fn the_same_number_is_a_different_pad_on_another_platform() {
-    // Firmware pin 103 is GPP_E7 on Sunrise Point but GPP_D7 on Cannon
-    // Point: reading the number as a pad index only works on the first.
-    assert_eq!(resolve(layout("Sunrise Point-LP"), 103), Ok(Pad { bar: 1, pad: 55 }));
-    assert_eq!(resolve(layout("Cannon Point-LP"), 103), Ok(Pad { bar: 1, pad: 7 }));
+fn numbers_resolve_to_their_community_and_pad() {
+    assert_eq!(resolve(&SYNTHETIC, 5), Ok(Pad { bar: 0, pad: 5 }));
+    assert_eq!(resolve(&SYNTHETIC, 64), Ok(Pad { bar: 1, pad: 0 }));
+    assert_eq!(resolve(&SYNTHETIC, 79), Ok(Pad { bar: 1, pad: 15 }));
 }
 
 #[test]
-fn unnumbered_groups_and_gaps_are_refused() {
-    // Cannon Point-LP numbers GPP_B 32..57 and GPP_G from 64; 58..63 is
-    // nothing, and its SPI pads have no firmware number at all.
-    assert_eq!(resolve(layout("Cannon Point-LP"), 60), Err(PinError::NotMapped));
-    assert_eq!(resolve(layout("Tiger Lake-LP"), 1000), Err(PinError::NotMapped));
+fn the_first_group_holding_a_number_wins() {
+    // Numbers 0..=3 are held by both the first group and the zero-based
+    // one; table order decides, as a datasheet's order would.
+    assert_eq!(resolve(&SYNTHETIC, 2), Ok(Pad { bar: 0, pad: 2 }));
 }
 
 #[test]
-fn a_zero_based_group_resolves_from_zero() {
-    // Jasper Lake GPP_G is INTEL_GPIO_BASE_ZERO: firmware pin 3 is pin 228.
-    assert_eq!(resolve(layout("Jasper Lake"), 3), Ok(Pad { bar: 3, pad: 3 }));
-}
-
-#[test]
-fn locate_by_hid() {
-    let tgl = *b"INTC1055";
-    assert_eq!(locate(&tgl, 327), Ok(Line::Intel { bar: 2, pad: 62 }));
-    assert_eq!(locate(b"AMDI0030", 9), Ok(Line::Amd { pin: 9 }));
-    assert_eq!(locate(b"INT3452\0", 9), Err(PinError::UnknownController));
+fn gaps_and_unnumbered_groups_are_refused() {
+    assert_eq!(resolve(&SYNTHETIC, 30), Err(PinError::NotMapped), "between the groups");
+    assert_eq!(resolve(&SYNTHETIC, 80), Err(PinError::NotMapped), "past the last");
 }

@@ -27,14 +27,15 @@ use core::arch::asm;
 #[cfg(target_arch = "x86_64")]
 #[inline(always)]
 pub fn idle_cpu() {
+    use crate::arch::x86_64::interrupt::{cli, sti};
     if crate::arch::x86_64::interrupt::apic::idle_timer::halt_safe() {
+        // SAFETY: STI's shadow keeps a pending wake inside the HLT. Not
+        // `nomem`: the scheduler state read around it must not move across.
         unsafe {
-            asm!("sti; hlt", options(nomem, nostack));
+            asm!("sti; hlt", options(nostack));
         }
     } else {
-        unsafe {
-            asm!("sti", options(nomem, nostack));
-        }
+        sti();
         for _ in 0..4096 {
             core::hint::spin_loop();
         }
@@ -43,9 +44,7 @@ pub fn idle_cpu() {
     // after idling and rely on the kernel-wide IF=0 discipline for those
     // locks; returning with interrupts still enabled lets the timer ISR
     // land inside the caller's next lock section and spin-deadlock the core.
-    unsafe {
-        asm!("cli", options(nomem, nostack));
-    }
+    cli();
 }
 
 /// The wait `arch::idle` makes, masked going in. Returns with IRQs OPEN on
