@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the virtio-scsi driver. Builds for the host so
+# `cargo test` runs the real driver source and nonos_scsi_serve (included
+# via #[path]) against a virtio-scsi device model: the transport proofs'
+# common configuration, the device configuration, and a request queue that
+# walks each descriptor chain through the grant and answers it from
+# nonos_scsi's simulated logical units.
+[package]
+name = "virtio_scsi_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_virtio = { path = "../nonos_virtio" }
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_libc = { package = "virtio_scsi_proofs_libc_shim", path = "libc_shim" }

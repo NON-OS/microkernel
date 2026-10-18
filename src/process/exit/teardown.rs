@@ -45,6 +45,8 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     crate::kernel_core::surface_registry::release_owned_by_pid(pid);
     crate::kernel_core::surface_registry::attach_map::forget_pid(pid);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;
+    // The ACPI capsule's events disarmed before its SCI grant goes.
+    crate::arch::acpi_capsule_exit(pid);
     crate::hardware::broker::release_all_for_pid(pid, current);
     crate::hardware::broker::irq_release_all_for_pid(pid);
     crate::hardware::broker::dma_release_all_for_pid(pid, current);
