@@ -20,7 +20,6 @@ use super::super::core::PagingManager;
 use super::super::pending_flush::PendingFlush;
 use super::super::tlb_scope::mutation_asid;
 use super::tables::table_at;
-use crate::arch::paging::read_root as read_cr3;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
@@ -34,7 +33,7 @@ impl PagingManager {
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
         // The live per-cpu root, not the manager's cached one.
-        let cr3 = PhysAddr::new(read_cr3() & !0xFFF);
+        let cr3 = PhysAddr::new(crate::arch::paging::root_for(va_val) & !0xFFF);
         /*
          * SAFETY: eK@nonos.systems - cr3 is the running root, and every
          * level is checked present before the next is dereferenced.

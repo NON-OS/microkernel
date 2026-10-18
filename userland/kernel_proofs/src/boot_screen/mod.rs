@@ -22,7 +22,7 @@
  */
 
 #[allow(dead_code)]
-#[path = "../../../../src/sys/boot_log/early_frame.rs"]
+#[path = "../../../../src/arch/x86_64/early_screen/frame.rs"]
 pub mod early_frame;
 
 #[allow(dead_code)]

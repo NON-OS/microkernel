@@ -17,6 +17,7 @@
 const BUS_KIND_PCI: u8 = 1;
 const BUS_KIND_ACPI: u8 = 2;
 const BUS_KIND_VIRT: u8 = 3;
+const BUS_KIND_FDT: u8 = 4;
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,4 +25,6 @@ pub enum BusKind {
     Pci = BUS_KIND_PCI,
     Acpi = BUS_KIND_ACPI,
     Virt = BUS_KIND_VIRT,
+    /// Named by the device tree: no config space, see `broker::described`.
+    Fdt = BUS_KIND_FDT,
 }

@@ -21,6 +21,11 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_virtio = { path = "../nonos_virtio" }
+# The display wire: its bodies and errors, the server core with the
+# EDID panel, and the primaries' memory.
+nonos_gfx_pool = { path = "../nonos_gfx_pool" }
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }
 
 [profile.release]
 panic = "abort"

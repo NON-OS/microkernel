@@ -31,6 +31,16 @@ pub struct PciHost {
     /// 16-bit port range, and a driver asking for port `n` has to land at
     /// `io_cpu_base + (n - io_port_base)`.
     pub io_port_base: u64,
+    /// The first 32-bit memory window: where the CPU reaches it, the PCI bus
+    /// address that corresponds, and its size. BARs are assigned from it.
+    pub mem_cpu_base: u64,
+    pub mem_bus_base: u64,
+    pub mem_size: u64,
+    /// `bus-range`; the ECAM window's first megabyte is `bus_start`.
+    pub bus_start: u8,
+    pub bus_end: u8,
+    /// `dma-coherent`: its functions' DMA snoops the CPU's caches.
+    pub dma_coherent: bool,
 }
 
 impl PciHost {

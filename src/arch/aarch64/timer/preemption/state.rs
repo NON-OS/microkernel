@@ -22,6 +22,12 @@ pub fn configure(intid: u32) {
     PHYS_INTID.store(intid, Ordering::Release);
 }
 
+/// Whether `intid` is the preemption timer's, the tick the kernel's per-tick
+/// work hangs off.
+pub fn is_preemption_tick(intid: u32) -> bool {
+    intid != 0 && intid == phys_intid()
+}
+
 pub(super) fn phys_intid() -> u32 {
     PHYS_INTID.load(Ordering::Acquire)
 }

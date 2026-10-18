@@ -23,7 +23,8 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord};
 
-use super::interface::{discover, DeviceView, WifiInterface};
+use super::interface::WifiInterface;
+use super::wifi_class::{discover, DeviceView};
 
 /// The broker table is small; this bounds the enumeration buffer.
 const MAX_DEVICES: usize = 64;

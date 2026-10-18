@@ -38,6 +38,3 @@ pub mod pump_rule;
 #[allow(dead_code)]
 #[path = "../../../capsule_audio/src/sink/wire.rs"]
 pub mod wire;
-// Which driver the server plays through.
-#[path = "../../../capsule_audio/src/sink/choose.rs"]
-pub mod choose;

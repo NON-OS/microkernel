@@ -18,19 +18,20 @@
   "frame-pointer": "always",
 
   "cpu": "generic",
-  "features": "+strict-align,+pauth,+sb,+ssbs,+mte,+rand,+el3",
+  "features": "+strict-align,+sb,+ssbs,+mte,+rand,+el3,-neon,-fp-armv8",
+  "abi": "softfloat",
 
   "linker-flavor": "ld.lld",
   "linker": "rust-lld",
 
   "pre-link-args": {
-    "ld.lld": ["-nostdlib", "-no-pie", "--gc-sections", "-z", "max-page-size=0x1000"]
+    "ld.lld": ["-nostdlib", "--gc-sections", "-z", "max-page-size=0x1000"]
   },
 
-  "relocation-model": "static",
+  "relocation-model": "pie",
   "code-model": "small",
-  "position-independent-executables": false,
-  "static-position-independent-executables": false,
+  "position-independent-executables": true,
+  "static-position-independent-executables": true,
 
   "no-default-libraries": true,
   "has-rpath": false,

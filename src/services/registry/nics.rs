@@ -45,6 +45,10 @@ pub(crate) const NICS: &[(&str, Link)] = &[
     ("driver.rtl8139_0", Link::Wired),
     ("driver.igb_0", Link::Wired),
     ("driver.ixgbe_0", Link::Wired),
+    // The virtual machines' cards.
+    ("driver.pcnet0", Link::Wired),
+    ("driver.vmxnet3_0", Link::Wired),
+    ("driver.tulip0", Link::Wired),
     ("driver.cdc_ecm0", Link::Wired),
     ("driver.cdc_ncm0", Link::Wired),
     ("driver.rndis0", Link::Wired),

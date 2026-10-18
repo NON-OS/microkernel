@@ -15,25 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The way this window's pixels reach the screen. The compositor presents
-//! through the virtio-gpu driver when that driver has announced
-//! `driver.virtio_gpu0`, and otherwise asks the kernel to blit its frame into
+//! through the first display driver in the kernel's `displays.rs` that has
+//! announced itself, and otherwise asks the kernel to blit its frame into
 //! the framebuffer the firmware left (compositor `setup/discover.rs`,
 //! `setup/prime_gop.rs`). Pure, so the choice is proven on the host.
-
-/// The service the compositor looks up for its gfx driver.
-pub const GFX_SERVICE: &[u8] = b"driver.virtio_gpu0";
 
 pub struct Path {
     pub hops: [&'static [u8]; 3],
     pub backend: &'static [u8],
 }
 
-pub fn path(virtio_announced: bool) -> Path {
-    if virtio_announced {
-        Path {
-            hops: [b"capsule_about", b"compositor", b"driver.virtio_gpu"],
-            backend: b"compositor + driver.virtio_gpu",
-        }
+/// The path through `display`, the announced display driver's service, or
+/// through the firmware framebuffer when none has announced.
+pub fn path(display: Option<&'static str>) -> Path {
+    if let Some(name) = display {
+        let (hop, backend): (&'static [u8], &'static [u8]) = match name {
+            "driver.virtio_gpu0" => (b"driver.virtio_gpu", b"compositor + driver.virtio_gpu"),
+            "driver.bga0" => (b"driver.bga", b"compositor + driver.bga"),
+            _ => (name.as_bytes(), b"compositor + display driver"),
+        };
+        Path { hops: [b"capsule_about", b"compositor", hop], backend }
     } else {
         Path {
             hops: [b"capsule_about", b"compositor", b"kernel blit"],

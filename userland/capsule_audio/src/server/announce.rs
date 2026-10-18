@@ -27,11 +27,11 @@ pub(super) fn announce(sink: Option<&Sink>, mixer: &mut Mixer) {
         #[cfg(feature = "nonos-audio-smoketest")]
         Some(s) => crate::selftest::boot(mixer, s),
         #[cfg(not(feature = "nonos-audio-smoketest"))]
-        Some(s) => mark(s.output_line()),
-        /* driver.hda0 is registered before this capsule is spawned and
-         * dropped when the driver finds no controller, and driver.usb_audio0
-         * is registered only where an xHCI controller is, so neither after
-         * the lookup's two seconds means this machine has no output. A
+        Some(s) => mark(&alloc::format!("[AUDIO] output {}\n", s.name())),
+        /* A fixed sink driver is registered before this capsule is spawned
+         * and dropped when it finds no controller, and driver.usb_audio0 is
+         * registered only where an xHCI controller is, so none after the
+         * lookup's two seconds means this machine has no output. A
          * client asking why is told there is no sound hardware, a stream
          * open is refused with E_NODEV, everything else with E_INVAL, and
          * the desktop's chime and alerts are skipped without a sound. A

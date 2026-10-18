@@ -28,6 +28,7 @@ pub const PTE_WRITABLE: u64 = flags::WRITABLE;
 pub const PTE_USER: u64 = flags::USER;
 pub const PTE_WRITE_THROUGH: u64 = flags::WRITE_THROUGH;
 pub const PTE_CACHE_DISABLE: u64 = flags::NO_CACHE;
+pub const PTE_DEVICE: u64 = flags::DEVICE;
 pub const PTE_ACCESSED: u64 = flags::ACCESSED;
 pub const PTE_DIRTY: u64 = flags::DIRTY;
 pub const PTE_HUGE_PAGE: u64 = flags::HUGE;

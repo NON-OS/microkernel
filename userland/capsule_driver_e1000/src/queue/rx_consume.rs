@@ -19,7 +19,6 @@
 //! caller still hands the slot back.
 
 use core::ptr::{addr_of, addr_of_mut, read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::{RX_DESC_COUNT, RX_STATUS_DD, RX_STATUS_EOP};
 use crate::constants::MAX_ETHERNET_FRAME;
@@ -41,7 +40,7 @@ impl RxRing {
             return None;
         }
         // Length, errors and the frame are only the part's once DD is seen.
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         let errors = unsafe { read_volatile(addr_of!((*desc).errors)) };
         let len = unsafe { read_volatile(addr_of!((*desc).length)) };
         let idx = self.head;

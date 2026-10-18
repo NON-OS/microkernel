@@ -27,6 +27,6 @@ pub fn refresh_taskbar(ctx: &mut Context) {
     paint_chrome(ctx);
     let r = dock_area_rect(ctx.width, ctx.height);
     let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, r.x, r.y, r.width, r.height);
+    let _ = push_damage_commit(ctx.ports.compositor_port, rid, r.x, r.y, r.width, r.height);
     ctx.taskbar.drawn = ctx.taskbar.visible;
 }

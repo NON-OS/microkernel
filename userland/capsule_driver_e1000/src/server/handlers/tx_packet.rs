@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::regs::REG_TDT;
 use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
@@ -60,7 +58,7 @@ pub fn handle(sender: u32, driver: &mut Driver, req: &Request, body: &[u8], tx: 
     let idx = driver.tx.post(body.len() as u16);
     let next_tdt = ((idx as u32) + 1) % (TX_DESC_COUNT as u32);
     // The frame bytes are plain stores; the tail write is what lets the part read them.
-    fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     // SAFETY: `driver.regs` carries the broker MmioMap base for BAR0 and TDT
     // is a 32-bit aligned offset in it.
     unsafe {

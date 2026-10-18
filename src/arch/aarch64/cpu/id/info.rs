@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::affinity::{cluster_id, core_id, cpu_id};
+use super::affinity::{cluster_id, core_id};
+use super::index::cpu_id;
 use super::main_id::{implementer, part_number, revision, variant};
 
 #[derive(Debug, Clone, Copy)]

@@ -47,6 +47,18 @@ pub fn release_for_device(pid: u32, device_id: u64) -> usize {
     count
 }
 
+/// A depart's revoke: as `release_for_device`, and each grant remembered
+/// as departed so a later poll or wait on it answers ENODEV.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+pub fn revoke_for_device(pid: u32, device_id: u64) -> usize {
+    let drained = drain_for_device(pid, device_id);
+    for g in &drained {
+        teardown(g);
+        super::super::gone::mark(pid, g.grant_id);
+    }
+    drained.len()
+}
+
 pub fn release_all_for_pid(pid: u32) -> usize {
     let drained = drain_for_pid(pid);
     let count = drained.len();
