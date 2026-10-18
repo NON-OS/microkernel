@@ -22,6 +22,18 @@
 extern crate alloc;
 
 #[cfg(test)]
+pub mod acpi_event;
+#[cfg(test)]
+mod acpi_leave;
+#[cfg(test)]
+pub mod acpi_power;
+#[cfg(test)]
+pub mod acpi_region;
+#[cfg(test)]
+pub mod acpi_sleep;
+#[cfg(test)]
+pub mod acpi_tables;
+#[cfg(test)]
 pub mod addr_align;
 #[cfg(test)]
 pub mod aer_decode;
@@ -83,6 +95,27 @@ pub mod guest_room;
 pub mod idt_vectors;
 #[cfg(test)]
 pub mod ioapic_line_mode;
+#[cfg(test)]
+pub mod smbios;
+#[cfg(test)]
+pub mod lpit;
+#[cfg(test)]
+pub mod wdat;
+#[cfg(test)]
+pub mod tpm2;
+#[cfg(test)]
+pub mod bgrt;
+#[cfg(test)]
+pub mod acpi_cpu;
+#[cfg(test)]
+pub mod late_probe;
+#[path = "../../../src/arch/aarch64/acpi/mod.rs"]
+#[allow(dead_code)] // the proofs read what an Arm machine's tables give
+pub mod arm_acpi;
+#[cfg(test)]
+mod arm_acpi_tests;
+#[cfg(test)]
+mod seeded_tables;
 #[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
@@ -197,6 +230,8 @@ mod supervisor_tests;
 mod permissions_tests;
 #[cfg(test)]
 mod refinement_tests;
+#[cfg(test)]
+mod registry_firmware_tests;
 #[cfg(test)]
 mod registry_fold_tests;
 #[cfg(test)]

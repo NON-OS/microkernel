@@ -16,6 +16,7 @@
 
 // Shared types across all arch backends.
 mod errors;
+pub mod gone;
 mod grant;
 mod types;
 
@@ -47,7 +48,9 @@ pub use bind::bind;
 #[cfg(target_arch = "x86_64")]
 pub use poll::poll;
 #[cfg(target_arch = "x86_64")]
-pub use release::{ack_grant, release_all_for_pid, release_for_device, unmap_grant};
+pub use release::{
+    ack_grant, release_all_for_pid, release_for_device, revoke_for_device, unmap_grant,
+};
 #[cfg(target_arch = "x86_64")]
 pub use wait::{wait_arm, wait_disarm};
 

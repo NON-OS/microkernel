@@ -16,12 +16,14 @@
 
 use crate::error::PadError;
 
-// Linux pinctrl-amd.h: each pin owns one dword at pin * 4 from the bank
-// base, and bit 16 (PIN_STS_OFF) is the raw level on the pin.
+// The AMD FCH GPIO bank (AMD's BIOS and Kernel Developer's Guides and
+// Processor Programming References, GPIO section): one dword per pin at
+// pin * 4 from the bank base, bit 16 the level on the pin. Recalled, not
+// read: unverified.
 pub const AMD_PIN_STS: u32 = 1 << 16;
 
-/// Offset of `pin`'s register in a GPIO bank window of `window` bytes. Linux
-/// amd_gpio_probe sizes the bank as resource_size / 4 pins.
+/// Offset of `pin`'s register in a GPIO bank window of `window` bytes: a
+/// pin whose dword does not lie inside the window is refused.
 pub fn amd_pin_reg(pin: u32, window: u64) -> Result<u64, PadError> {
     let off = u64::from(pin) * 4;
     if off + 4 > window {
@@ -31,7 +33,7 @@ pub fn amd_pin_reg(pin: u32, window: u64) -> Result<u64, PadError> {
 }
 
 /// A pin register that reads all ones is a bank that does not decode; its
-/// PIN_STS would read as a line held high for ever.
+/// level bit would read as a line held high for ever.
 pub fn amd_alive(value: u32) -> Result<(), PadError> {
     if value == u32::MAX {
         return Err(PadError::Absent);

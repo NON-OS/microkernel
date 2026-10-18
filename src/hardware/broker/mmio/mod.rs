@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bar_select;
+pub mod fence;
 mod map;
 pub mod msix_exclusion;
 mod release;
@@ -21,5 +23,5 @@ mod types;
 pub mod window;
 
 pub use map::map_for_caller;
-pub use release::{release_all_for_pid, release_for_device, unmap_grant};
+pub use release::{release_all_for_pid, release_for_device, revoke_for_device, unmap_grant};
 pub use types::{MmioMapError, MmioMapRequest, MmioMapResult};

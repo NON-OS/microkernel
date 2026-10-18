@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# NONOS's own ACPI Machine Language interpreter, written from the ACPI 6.5
+# specification. Pure and no_std with alloc: it runs inside capsule_acpi, never
+# in the kernel, so a hostile or broken table can stop the capsule and no more.
+# nonos_aml_proofs mounts these sources by #[path] and proves them on the host.
+[package]
+name = "nonos_aml"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS ACPI Machine Language interpreter"
+
+[lib]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 2

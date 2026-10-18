@@ -1,0 +1,14 @@
+[package]
+name = "nonos_smbios"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS SMBIOS reader: entry points and a bounded structure walk"
+
+[lib]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 2
