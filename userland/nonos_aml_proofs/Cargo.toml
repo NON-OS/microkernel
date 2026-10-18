@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for nonos_aml. The interpreter's sources are mounted by #[path]
+# so the tests run the shipping code itself; every fixture is built by the
+# small AML encoder in src/enc, written here from the ACPI 6.5 grammar, so no
+# table enters the tree as an opaque blob.
+[package]
+name = "nonos_aml_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

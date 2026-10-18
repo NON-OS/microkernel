@@ -16,6 +16,9 @@
 
 mod backdoor;
 mod device;
+// The kernel's one definition of DGON, the device-gone notice, by path.
+#[path = "../../../../src/hardware/broker/acpi/dgon_wire.rs"]
+mod dgon;
 mod dma;
 mod dma_lines;
 #[cfg(target_arch = "x86_64")]
@@ -50,8 +53,10 @@ pub use pio::{mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write};
 pub use types::{
     Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_MEM64,
     BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_PCI,
-    BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
+    BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED,
+    DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
+pub use dgon::{dgon_encode, dgon_parse, Dgon, DGON_LEN, DGON_TAG, DGON_VERSION, WHY_GONE};
 pub use vmbus::{
     mk_hv_events, mk_hv_post, mk_hv_recv, mk_hv_signal, MK_HV_EVENT_WORDS, MK_HV_MESSAGE_BYTES,
     MK_VMBUS_DEVICE, MK_VMBUS_VENDOR,

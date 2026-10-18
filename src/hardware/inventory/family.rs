@@ -38,6 +38,9 @@ pub enum HardwareFamily {
     /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU's pc machine,
     /// VirtualBox's default, Hyper-V Generation 1.
     StorageIde,
+    /// An SD host the ACPI capsule published (`platform_sd`): an eMMC or
+    /// SD card host with no PCI function. No driver is started for it yet.
+    StorageSdhci,
     NetworkVirtio,
     NetworkE1000,
     NetworkRtl8139,

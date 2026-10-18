@@ -22,6 +22,7 @@ pub mod broker;
 pub mod buslogic_capsule;
 pub mod e1000_capsule;
 pub mod hda_capsule;
+pub mod gpio_capsule;
 pub mod i2c_pci_capsule;
 pub mod inventory;
 pub mod iwlwifi_capsule;

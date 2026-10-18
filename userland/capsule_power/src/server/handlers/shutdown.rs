@@ -16,6 +16,7 @@
 
 use nonos_libc::{mk_admin_shutdown, mk_time_millis};
 
+use super::acpi_prepare::prepare_soft_off;
 use crate::protocol::Request;
 use crate::server::respond;
 use crate::state::PowerState;
@@ -25,6 +26,9 @@ pub fn run(state: &mut PowerState, out: &mut [u8], req: &Request) -> usize {
     if now > 0 {
         state.last_shutdown_request_unix = now as u64;
     }
+    // Whatever the capsule answers, the shutdown goes on: a firmware that
+    // could not be prepared is still better powered off than left running.
+    state.last_acpi_prepare = prepare_soft_off();
     let rc = mk_admin_shutdown();
     let status = if rc == 0 { 0 } else { rc as i32 };
     respond::status(out, req, status)
