@@ -16,5 +16,7 @@
 use crate::constants::USBCMD;
 use crate::regs::mmio_write32;
 pub fn usbcmd_write(op_base: u64, value: u32) {
-    mmio_write32(op_base + USBCMD, value);
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_write32(op_base + USBCMD, value) };
 }

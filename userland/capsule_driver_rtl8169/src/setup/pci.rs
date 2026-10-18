@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND};
+use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND};
 
 use super::command_word::command_word;
-use crate::discover::Found;
 
-pub fn enable_bus_master(dev: Found, claim_epoch: u64) -> Result<(), &'static str> {
-    let command = command_word(dev.command_bits);
-    let r = mk_pci_config_write(dev.device_id, claim_epoch, MK_PCI_CFG_COMMAND, command);
-    if r < 0 {
-        let _ = mk_device_release(dev.device_id);
-        return Err("pci command setup failed");
+/// Write the Command word under the claim (see `command_word`).
+pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
+    let word = command_word(bus_master);
+    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, word) < 0 {
+        return Err(if bus_master {
+            "pci command write refused (bus master)"
+        } else {
+            "pci command write refused (memory space)"
+        });
     }
     Ok(())
 }

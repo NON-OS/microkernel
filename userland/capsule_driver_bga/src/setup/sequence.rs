@@ -16,30 +16,43 @@
 
 use nonos_libc::mk_device_release;
 
-use super::{claim, mmio, pci, Driver};
-use crate::constants::{BYTES_PER_PIXEL, CLEAR_COLOR, FB_BAR, MODE_HEIGHT, MODE_WIDTH, REG_BAR};
+use super::{claim, mmio, mode, pci, surface, Driver};
+use crate::constants::{BYTES_PER_PIXEL, CLEAR_COLOR, FB_BAR, REG_BAR};
 use crate::discover::Found;
 use crate::dispi;
-use crate::error::BgaResult;
+use crate::error::{BgaError, BgaResult};
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
 
 /// One bring-up attempt on the adapter discovery found. Each failing step
 /// releases the claim, which takes any mapping already made with it, so the
-/// next attempt can claim the adapter again.
+/// next attempt can claim the adapter again. Both mappings are as long as
+/// the broker made them, not as the mode needs. The adapter must name a
+/// DISPI version before anything else is read. The state firmware left is
+/// read whole before any write and is written back when the handles drop,
+/// on a failed step as when the driver goes. The mode must fit before it is
+/// programmed and read back as set, and the surface must be made, before
+/// anything is drawn: one refused on the firmware's mode leaves its picture.
 pub fn run(dev: Found) -> BgaResult<Driver> {
     let claim_epoch = claim::claim(dev.device_id)?;
-    if let Err(e) = pci::enable_bus_master(dev.device_id, claim_epoch) {
+    if let Err(e) = pci::enable_memory(dev.device_id, claim_epoch) {
         let _ = mk_device_release(dev.device_id);
         return Err(e);
     }
     let reg_map = mmio::map(dev.device_id, claim_epoch, REG_BAR, dev.reg_size)?;
     let fb_map = mmio::map(dev.device_id, claim_epoch, FB_BAR, dev.fb_size)?;
+    let mut handles = BrokerHandles::new(dev.device_id, reg_map.grant_id, fb_map.grant_id);
+    if reg_map.length < dispi::regs_len() {
+        return Err(BgaError::RegisterWindowTooSmall);
+    }
     let regs = Regs::new(reg_map.user_va);
-    dispi::set_mode(regs, MODE_WIDTH, MODE_HEIGHT);
-    let pixels = MODE_WIDTH as u64 * MODE_HEIGHT as u64;
-    dispi::clear(fb_map.user_va, pixels, CLEAR_COLOR);
-    let handles = BrokerHandles::new(dev.device_id, reg_map.grant_id, fb_map.grant_id);
-    let stride = MODE_WIDTH as u32 * BYTES_PER_PIXEL;
-    Ok(Driver { handles, fb_user_va: fb_map.user_va, width: MODE_WIDTH, height: MODE_HEIGHT, stride })
+    dispi::identify(regs)?;
+    let firmware = dispi::read(regs);
+    handles.restore_at_drop(regs, firmware);
+    let m = mode::take(regs, &firmware, fb_map.user_va, fb_map.length)?;
+    let surface = surface::make(m.width, m.height)?;
+    dispi::clear(&m.fb, CLEAR_COLOR);
+    let stride = m.width as u32 * BYTES_PER_PIXEL;
+    let (width, height, fb) = (m.width, m.height, m.fb);
+    Ok(Driver { surface, _handles: handles, regs, fb, width, height, stride, owner_pid: 0 })
 }

@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
+use core::ptr::{self, addr_of_mut};
+use core::sync::atomic::{fence, Ordering};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -45,4 +46,22 @@ pub unsafe fn desc(base: u64, idx: usize) -> Descriptor {
 /// currently owns, since the part reads it through DMA without a lock.
 pub unsafe fn desc_mut(base: u64, idx: usize, value: Descriptor) {
     ptr::write_volatile((base as *mut Descriptor).add(idx), value);
+}
+
+/// Hand descriptor `idx` of the ring at `base` to the part: the address and
+/// opts2 first, then a release fence, then opts1, which carries OWN, in a
+/// store of its own, as Linux orders it with dma_wmb(). A part that sees OWN
+/// then finds the address and the frame bytes already in place; one store of
+/// the whole descriptor leaves the order of its parts unspecified.
+///
+/// # Safety
+///
+/// As `desc_mut`.
+pub unsafe fn publish(base: u64, idx: usize, value: Descriptor) {
+    let d = (base as *mut Descriptor).add(idx);
+    ptr::write_volatile(addr_of_mut!((*d).addr_lo), value.addr_lo);
+    ptr::write_volatile(addr_of_mut!((*d).addr_hi), value.addr_hi);
+    ptr::write_volatile(addr_of_mut!((*d).opts2), value.opts2);
+    fence(Ordering::Release);
+    ptr::write_volatile(addr_of_mut!((*d).opts1), value.opts1);
 }

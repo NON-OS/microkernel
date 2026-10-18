@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::{mk_device_release, Deadline};
+
+use crate::constants::dma::TX_HANG_MS;
 use crate::constants::MAC_LEN;
 use crate::discover::Found;
 use crate::pio::Pio;
@@ -21,18 +24,20 @@ use crate::pio::Pio;
 use super::driver::Driver;
 use super::{claim, dma, pci, pio_grant};
 
-/// Claim the card discovery found and take its grants. A failing step gives
-/// back what the earlier ones took.
+/// Claim the card discovery found, with Bus Master off until the bring-up
+/// has reset the part, and take its grants. A failing step gives back what
+/// the earlier ones took.
 pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let epoch = claim::claim(dev.device_id)?;
-    pci::enable(dev, epoch)?;
+    if let Err(e) = pci::command(dev.device_id, epoch, false) {
+        let _ = mk_device_release(dev.device_id);
+        return Err(e);
+    }
     let pio = pio_grant::grant(dev, epoch)?;
     let (rx, tx) = dma::map_all(dev.device_id, epoch, &pio)?;
     Ok(Driver {
         device_id: dev.device_id,
-        pio_grant: pio.grant_id,
-        rx_grant: rx.grant_id,
-        tx_grant: tx.grant_id,
+        claim_epoch: epoch,
         rx_user_va: rx.user_va,
         rx_device_addr: rx.device_addr,
         tx_user_va: tx.user_va,
@@ -42,5 +47,6 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         tx_dirty: 0,
         pio: Pio::new(pio.grant_id),
         mac: [0u8; MAC_LEN],
+        tx_watch: Deadline::after_ms(TX_HANG_MS),
     })
 }

@@ -16,8 +16,9 @@
 
 //! RX bring-up: zero the ring, prime every slot with its buffer, select the
 //! legacy descriptor (RFCTL.EXTEN clear, RCTL.DTYP 00), program the ring
-//! registers with the tail on the last slot, and enable the receiver with
-//! broadcast, 2048-byte buffers and the CRC stripped.
+//! registers with the tail on the last slot, and set RCTL for broadcast,
+//! 2048-byte buffers and the CRC stripped, the receiver still off: `start`
+//! enables it once Bus Master is on.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -25,7 +26,7 @@ use crate::constants::queue::{RX_DESC_COUNT, RX_RING_BYTES};
 use crate::constants::regs::{
     REG_RCTL, REG_RDBAH, REG_RDBAL, REG_RDH, REG_RDLEN, REG_RDT, REG_RFCTL,
 };
-use crate::constants::rxtx::{RCTL_BAM, RCTL_EN, RCTL_SECRC, RCTL_SZ_2048, RFCTL_EXTEN};
+use crate::constants::rxtx::{RCTL_BAM, RCTL_SECRC, RCTL_SZ_2048, RFCTL_EXTEN};
 use crate::queue::layout::RxDesc;
 use crate::queue::RxRing;
 use crate::regs::Regs;
@@ -48,6 +49,6 @@ pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) {
         regs.w32(REG_RDLEN, RX_RING_BYTES as u32);
         regs.w32(REG_RDH, 0);
         regs.w32(REG_RDT, (RX_DESC_COUNT as u32) - 1);
-        regs.w32(REG_RCTL, RCTL_EN | RCTL_BAM | RCTL_SZ_2048 | RCTL_SECRC);
+        regs.w32(REG_RCTL, RCTL_BAM | RCTL_SZ_2048 | RCTL_SECRC);
     }
 }

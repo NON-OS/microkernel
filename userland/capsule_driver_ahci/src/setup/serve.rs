@@ -18,15 +18,19 @@ use alloc::vec::Vec;
 
 use super::walked::Walk;
 use crate::choose::{choose, Candidate};
+use crate::constants::timing::COMMAND_MS;
 use crate::controller::scan_ports;
-use crate::engine::park;
+use crate::engine::{park, retire};
 use crate::error::{AhciError, AhciResult};
 use crate::log::Line;
 use crate::setup::Driver;
 
 /// Keep the chosen port and its controller; hand back everything else. Every
-/// other port is parked before any controller is released, so no port is
-/// still running when its controller's claim goes away.
+/// other port is stopped before any controller is released, so no port is
+/// still running when its controller's claim goes away. On the controller
+/// kept it is parked: its regions are unmapped by hand, since the port
+/// served keeps Bus Master on. On one that goes back whole it is retired:
+/// its regions are left to the release, which frees them after Bus Master.
 ///
 /// With no disk up the attempt fails, so the bring-up schedule runs again: a
 /// disk still spinning up, or a link that needed a second COMRESET, gets
@@ -42,9 +46,16 @@ pub(super) fn serve(mut w: Walk) -> AhciResult<Driver> {
         return Err(w.first_port_error.unwrap_or(AhciError::NoDisk));
     };
     let keep = cands[c.index].controller;
-    let block = w.probed.swap_remove(c.index).port;
+    let mut block = w.probed.swap_remove(c.index).port;
+    // Served now, so each command has the full budget, not the walk's.
+    block.command_ms = COMMAND_MS;
     for p in w.probed.drain(..) {
-        park(p.port, w.opened[p.cand.controller].regs);
+        let regs = w.opened[p.cand.controller].regs;
+        if p.cand.controller == keep {
+            park(p.port, regs);
+        } else {
+            retire(p.port, regs);
+        }
     }
     let ctl = w.opened.swap_remove(keep);
     drop(w.opened);

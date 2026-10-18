@@ -25,9 +25,21 @@ use super::super::text::Line;
 use super::EmmcDisk;
 
 impl<M: Mmio, C: Clock, L: Log> EmmcDisk<M, C, L> {
-    /// Bring the card on `host` up and read sector 0 once to prove the data
-    /// path. On failure the host is quiesced (reset, power off) before the
-    /// error is returned, so the caller may free the DMA regions.
+    /// Reset `host` for a bring-up (`Host::init`): Software Reset For All
+    /// seen to finish, which ends any DMA, and ADMA2 offered. On failure the
+    /// host is quiesced (reset, power off) before the error is returned.
+    pub fn reset(mut host: Host<M, C, L>) -> EmmcResult<Host<M, C, L>> {
+        if let Err(e) = host.init() {
+            host.quiesce();
+            return Err(e);
+        }
+        Ok(host)
+    }
+
+    /// Bring the card up on a host `reset` has readied, and read sector 0
+    /// once to prove the data path. On failure the host is quiesced (reset,
+    /// power off) before the error is returned, so the caller may give its
+    /// DMA regions back.
     pub fn bring_up(mut host: Host<M, C, L>, data: DmaBuf) -> EmmcResult<Self> {
         if data.len < EXT_CSD_LEN {
             return Err(EmmcError::OutOfRange);

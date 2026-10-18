@@ -54,3 +54,18 @@ cmake-macos-universal https://github.com/Kitware/CMake/releases/download/v4.4.3/
 cmake-linux-x86_64   https://github.com/Kitware/CMake/releases/download/v4.4.3/cmake-4.4.3-linux-x86_64.tar.gz d6c83076c575bc00b823522ac974bda66d0af05d6ddc30e739c12385cf32c6cc
 cmake-linux-aarch64  https://github.com/Kitware/CMake/releases/download/v4.4.3/cmake-4.4.3-linux-aarch64.tar.gz 2efc974dbd63b4444c0e8494b92f2e80c2d7e635b4b80eac2916985ddd8f72a6
 llama.cpp     git+https://github.com/ggml-org/llama.cpp@00af63567a3ac073919be039db8492f229de5ffc        sha256-kymi92Eb+CObdp0kWKPetyltXD5/t8MvAibLJEKi0qs=
+# foot (C8): its libraries, its font, and meson for their builds. ninja,
+# pkg-config, gperf and bison come from the build host. libxkbcommon stays at
+# 1.7.0, the last release with a published tarball and checksum.
+meson         https://github.com/mesonbuild/meson/releases/download/1.12.1/meson-1.12.1.tar.gz          ab0a6ca09f8ef70c564c8241fb5a23957886a0b53fb58412b5e07eaf07dba743
+wayland       https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.26.0/downloads/wayland-1.26.0.tar.xz 64176eaa46e4969903e286f8e5ef8331affc17fdf03ac9b58381d2b23162b7a3
+wayland-protocols https://gitlab.freedesktop.org/wayland/wayland-protocols/-/releases/1.49/downloads/wayland-protocols-1.49.tar.xz ec4c8f74942d6dff7ace8b4ce4764f0ef9ff618a935d974ea77edee2ad240b14
+pixman        https://www.cairographics.org/releases/pixman-0.46.4.tar.xz                               a098c33924754ad43f981b740f6d576c70f9ed1006e12221b1845431ebce1239
+freetype      https://download.savannah.gnu.org/releases/freetype/freetype-2.14.3.tar.xz                36bc4f1cc413335368ee656c42afca65c5a3987e8768cc28cf11ba775e785a5f
+expat         https://github.com/libexpat/libexpat/releases/download/R_2_9_0/expat-2.9.0.tar.xz         1e6371862cc31999b368c3b89b49994f0677e1bab5f1b2b85ae3741f5d803051
+fontconfig    https://gitlab.freedesktop.org/api/v4/projects/890/packages/generic/fontconfig/2.18.3/fontconfig-2.18.3.tar.xz 4f7b554a38cdf78c033f666c8871f3749e14a094f65a07f630c91ed0b43d35e3
+tllist        https://codeberg.org/dnkl/tllist/releases/download/1.1.0/tllist-1.1.0.tar.gz              a1f0ce0dc4fcb4ce59c37202a1d914c853a8bd2d7c5d57d623b15a8dd9778767
+fcft          https://codeberg.org/dnkl/fcft/releases/download/3.3.3/fcft-3.3.3.tar.gz                  bb298772d625e7d917373d541456f34f1957a9e22b16f17f64158b2c3816563c
+foot          https://codeberg.org/dnkl/foot/releases/download/1.28.0/foot-1.28.0.tar.gz                ee73c292a4b457004b38c2df178eac025ab0b849fdd9e13253c1f8b5cf110710
+dejavu-fonts  https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.tar.bz2 fa9ca4d13871dd122f61258a80d01751d603b4d3ee14095d65453b4e846e17d7
+libxkbcommon  https://xkbcommon.org/download/libxkbcommon-1.7.0.tar.xz                                  65782f0a10a4b455af9c6baab7040e2f537520caa2ec2092805cdfd36863b247

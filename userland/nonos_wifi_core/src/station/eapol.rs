@@ -28,6 +28,7 @@ use alloc::vec::Vec;
 use super::receive::{Rx, RxDrop};
 use super::LinkStation;
 use crate::dot11::data::build_data;
+use crate::rsn::TemporalKey;
 
 const ETHERTYPE_EAPOL: [u8; 2] = [0x88, 0x8E];
 
@@ -37,18 +38,22 @@ impl LinkStation {
             return Rx::Dropped(RxDrop::NoSupplicant);
         };
         let out = sup.step(eapol);
-        let group_key = if out.new_group_key && sup.gtk().len() == 16 {
-            let mut key = [0u8; 16];
-            key.copy_from_slice(sup.gtk());
-            Some((sup.gtk_id(), key, sup.gtk_rsc()))
-        } else {
-            None
+        // A group rekey under management frame protection carries a new IGTK.
+        self.pmf.take_igtk(sup);
+        let fresh = out.new_group_key.then(|| TemporalKey::new(sup.group_cipher(), sup.gtk()));
+        let (id, rsc) = (sup.gtk_id(), sup.gtk_rsc());
+        let fresh = fresh.flatten();
+        // Only a CCMP-128 key goes to the chip's key cache; a GCMP-256 one
+        // stays with the station, which decrypts group frames under it.
+        let group_key = match &fresh {
+            Some(TemporalKey::Ccmp128(k)) => Some((id, *k)),
+            _ => None,
         };
-        if let Some((id, key, rsc)) = group_key {
+        if let Some(key) = fresh {
             self.set_group_key(id, key, rsc);
         }
         let frame = out.reply.and_then(|r| self.eapol_frame(&r, protected));
-        Rx::Handshake { frame, group_key: group_key.map(|(id, key, _)| (id, key)) }
+        Rx::Handshake { frame, group_key }
     }
 
     /// Frame an EAPOL payload to the access point, protected under the

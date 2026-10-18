@@ -16,15 +16,32 @@
 
 //! The driver's scan set 1 decode, at the `crate::keymap` paths its files name
 //! each other by: the base table, the E0 table, the decode that picks one by
-//! the prefix and reads the break bit, and the keys whose repeats it drops.
+//! the prefix and reads the break bit, the keys whose repeats it drops, the
+//! lock keys' LED bits, the modifiers, and the post to the input ring. The
+//! active layout alone is a stand-in (keymap/active.rs says why).
 
+pub mod active;
+#[path = "../../capsule_driver_ps2_input/src/keymap/flags.rs"]
+pub mod flags;
+#[path = "../../capsule_driver_ps2_input/src/keymap/keypad.rs"]
+pub mod keypad;
+#[path = "../../capsule_driver_ps2_input/src/keymap/locks.rs"]
+pub mod locks;
+#[path = "../../capsule_driver_ps2_input/src/keymap/modifiers.rs"]
+pub mod modifiers;
+#[path = "../../capsule_driver_ps2_input/src/keymap/once.rs"]
+pub mod once;
+#[path = "../../capsule_driver_ps2_input/src/keymap/post.rs"]
+pub mod post;
 #[path = "../../capsule_driver_ps2_input/src/keymap/set1/mod.rs"]
 pub mod set1;
 #[path = "../../capsule_driver_ps2_input/src/keymap/set1_e0.rs"]
 pub mod set1_e0;
 #[path = "../../capsule_driver_ps2_input/src/keymap/translate.rs"]
 pub mod translate;
-#[path = "../../capsule_driver_ps2_input/src/keymap/once.rs"]
-pub mod once;
-#[path = "../../capsule_driver_ps2_input/src/keymap/keypad.rs"]
-pub mod keypad;
+
+pub use locks::{lock_bit, LED_CAPS, LED_NUM};
+pub use modifiers::{modifier_bit, MOD_ALT, MOD_CTRL};
+pub use once::acts_once;
+pub use post::publish;
+pub use translate::translate;

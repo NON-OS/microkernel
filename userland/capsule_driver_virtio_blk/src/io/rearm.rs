@@ -26,16 +26,16 @@
 //! first used-ring check, so the wait was rare; with several CPUs it
 //! finishes a moment later and every request waited 100 ms.
 
-use super::error::BlkError;
+use crate::queue::Fault;
 use crate::transport::Transport;
 use nonos_libc::mk_irq_ack;
 
 /// Read (and so clear) the interrupt status, then unmask the line. With
 /// MSI-X the status is unused and the ack is a no-op: both stay harmless.
-pub(super) fn rearm(transport: Transport, irq_grant: u64) -> Result<(), BlkError> {
+pub(super) fn rearm(transport: Transport, irq_grant: u64) -> Result<(), Fault> {
     let _ = transport.isr();
     if mk_irq_ack(irq_grant) < 0 {
-        return Err(BlkError::Io);
+        return Err(Fault::Wait);
     }
     Ok(())
 }

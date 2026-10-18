@@ -16,8 +16,6 @@
 
 //! What the driver counts, for OP_STATS and for noticing a device gone.
 
-use super::wire::STATS_LEN;
-
 #[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]
 pub struct Stats {
     pub tx_frames: u32,
@@ -29,7 +27,8 @@ pub struct Stats {
     /// Devices bound, and devices given up as gone, since start.
     pub binds: u32,
     pub losses: u32,
-    /// Transfers failed in a row; one that succeeds clears it.
+    /// Failures since a frame last moved, transfers and the driver's own
+    /// looks alike: an empty IN pipe cannot hide a device whose sends fail.
     pub failing: u32,
 }
 
@@ -46,24 +45,19 @@ impl Stats {
         if let Some(n) = got {
             self.rx_frames = self.rx_frames.wrapping_add(1);
             self.rx_bytes = self.rx_bytes.wrapping_add(n as u32);
+            self.failing = 0;
         }
-        self.failing = 0;
+    }
+
+    /// The driver's own look (`Nic::tick`): a failure counts toward the
+    /// device being gone, and a success moves no frame.
+    pub fn ticked(&mut self, r: Result<(), i32>) {
+        self.failing = self.failing.saturating_add(r.is_err() as u32);
     }
 
     fn failed(&mut self, tx: bool) {
         let count = if tx { &mut self.tx_errors } else { &mut self.rx_errors };
         *count = count.wrapping_add(1);
         self.failing = self.failing.saturating_add(1);
-    }
-
-    /// The twelve words OP_STATS carries, the last three zero.
-    pub fn encode(&self, out: &mut [u8]) -> usize {
-        let s = self;
-        let head = [s.tx_frames, s.tx_errors, s.rx_frames, s.rx_errors, s.tx_bytes, s.rx_bytes];
-        let tail = [s.binds, s.losses, s.failing, 0, 0, 0];
-        for (i, w) in head.iter().chain(tail.iter()).enumerate() {
-            out[i * 4..i * 4 + 4].copy_from_slice(&w.to_le_bytes());
-        }
-        STATS_LEN
     }
 }

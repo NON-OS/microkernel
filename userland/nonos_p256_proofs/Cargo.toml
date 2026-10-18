@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_p256: the curve's constants and generator
+# against each other and the curve equation, points and ECDH against values
+# computed by a separate big-integer implementation and the Bluetooth Core
+# Specification's debug key pair, and every refusal on its own input.
+[package]
+name = "nonos_p256_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_p256 = { path = "../nonos_p256" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

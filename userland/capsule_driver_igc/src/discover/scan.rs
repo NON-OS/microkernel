@@ -16,7 +16,8 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO};
 
-use super::bar_command::command_bits;
+use crate::constants::pci::BAR0_MIN_BYTES;
+
 use super::found::Found;
 use super::support::is_match;
 
@@ -41,16 +42,13 @@ pub fn find_igc() -> Option<Found> {
         if r.bar_count == 0 {
             continue;
         }
+        // A smaller window would put the queue registers past the mapping,
+        // and every register store there would land outside it.
         let bar0 = r.bars[0];
-        if bar0.kind != BAR_KIND_MMIO || bar0.size == 0 {
+        if bar0.kind != BAR_KIND_MMIO || bar0.size < BAR0_MIN_BYTES {
             continue;
         }
-        return Some(Found {
-            device_id: r.device_id,
-            pci_device: r.device,
-            bar0_size: bar0.size,
-            command_bits: command_bits(r),
-        });
+        return Some(Found { device_id: r.device_id, pci_device: r.device, bar0_size: bar0.size });
     }
     None
 }

@@ -17,8 +17,9 @@
 //! Who this driver serves. Raw sectors hold every partition on the disk,
 //! another system's unencrypted files among them, and the store the next boot
 //! trusts, so only the kernel's own client and a sender the kernel says holds
-//! StoreWrite (the installer, vfs) reach the medium. A health check stays
-//! open. Pure, so the decision is held on the host.
+//! StoreWrite (the installers, and vfs or capsule_linux could) reach the
+//! medium. A health check stays open. Pure, so the decision is held on the
+//! host.
 
 use crate::protocol::OP_HEALTHCHECK;
 

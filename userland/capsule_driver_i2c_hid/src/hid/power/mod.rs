@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! I2C-HID power-up handshake. Real devices ship asleep: until the host
-//! writes SET_POWER(ON) and RESET through the command register, most
-//! touchpads never produce a single input report. The emulated bench has
-//! no i2c-hid device, so only real hardware exercises this path.
+//! I2C-HID power: the power-up handshake, and the sleep a device is put in
+//! when it is released or given up. Real devices ship asleep: until the
+//! host writes SET_POWER(ON) and RESET through the command register, most
+//! touchpads never produce a single input report.
 
 mod await_reset;
 mod command_register;
+mod set_power;
 mod settle;
+mod sleep;
 mod wake;
 
+pub use sleep::sleep;
 pub use wake::wake;

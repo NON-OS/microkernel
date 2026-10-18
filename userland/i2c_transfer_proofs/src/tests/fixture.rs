@@ -21,6 +21,7 @@ use nonos_i2cmodel::{touchpad, Bus, Config, Designware, HidOverI2c, Shared};
 use crate::bench::{self, GEMINI_LAKE_HZ};
 use crate::driver::Driver;
 use crate::regs::{self, Attached};
+use crate::transaction::{TransferError, TransferRequest, TransferResult};
 
 /// The touchpad's address on the HP this driver was brought up against.
 pub const PAD: u8 = 0x15;
@@ -58,4 +59,11 @@ pub fn bench_with(config: Config, device: HidOverI2c) -> Bench {
 /// The core, for a look at the wire or the violation list.
 pub fn core<R>(f: impl FnOnce(&mut Designware) -> R) -> R {
     regs::with(f)
+}
+
+/// One transfer through the shipping engine, its result handed back for the
+/// test to read.
+pub fn transfer(d: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, TransferError> {
+    let mut out = TransferResult::empty();
+    crate::transaction::transfer(d, req, &mut out).map(|()| out)
 }

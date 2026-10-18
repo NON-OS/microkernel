@@ -61,8 +61,8 @@ pub fn query_acpi_hid(port: u32) -> Option<(u8, u16)> {
     }
     let slave = u16::from_le_bytes([rx[24], rx[25]]);
     let reg = u16::from_le_bytes([rx[26], rx[27]]);
-    if slave == 0 {
-        return None;
-    }
-    Some((slave as u8, reg))
+    // The peer's word: only a 7-bit address other than the general call is
+    // an address, and one wider is refused, not cut to a byte.
+    let addr = u8::try_from(slave).ok().filter(|a| (1..=0x7F).contains(a))?;
+    Some((addr, reg))
 }

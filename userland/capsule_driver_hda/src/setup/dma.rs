@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap, DmaMapOut,
-    IrqBindOut, MmioMapOut,
-};
+use nonos_libc::{mk_dma_map, DmaMapOut};
 
+use crate::controller::bdl::RING_BYTES;
 use crate::error::{HdaError, HdaResult};
 
 const PAGE_MASK: u64 = 0xfff;
@@ -41,47 +39,18 @@ fn alloc(device_id: u64, claim_epoch: u64, bytes: u64) -> HdaResult<DmaMapOut> {
     }
 }
 
-fn unwind(device_id: u64, mmio: &MmioMapOut, irq: &IrqBindOut, dma_grants: &[u64]) {
-    for &grant in dma_grants.iter().rev() {
-        let _ = mk_dma_unmap(grant);
-    }
-    let _ = mk_irq_unbind(irq.grant_id);
-    let _ = mk_mmio_unmap(mmio.grant_id);
-    let _ = mk_device_release(device_id);
-}
-
-pub fn map_verb_rings(
-    device_id: u64,
-    claim_epoch: u64,
-    mmio: &MmioMapOut,
-    irq: &IrqBindOut,
-) -> HdaResult<(DmaMapOut, DmaMapOut)> {
-    let corb = alloc(device_id, claim_epoch, CORB_BYTES).map_err(|e| {
-        unwind(device_id, mmio, irq, &[]);
-        e
-    })?;
-    let rirb = alloc(device_id, claim_epoch, RIRB_BYTES).map_err(|e| {
-        unwind(device_id, mmio, irq, &[corb.grant_id]);
-        e
-    })?;
+/// The CORB and the RIRB. A grant made before a failure is not unmapped
+/// here: `BrokerHandles` already holds the device, and its drop stops the
+/// controller before the release takes every grant back.
+pub fn map_verb_rings(device_id: u64, claim_epoch: u64) -> HdaResult<(DmaMapOut, DmaMapOut)> {
+    let corb = alloc(device_id, claim_epoch, CORB_BYTES)?;
+    let rirb = alloc(device_id, claim_epoch, RIRB_BYTES)?;
     Ok((corb, rirb))
 }
 
-pub fn map_stream(
-    device_id: u64,
-    claim_epoch: u64,
-    mmio: &MmioMapOut,
-    irq: &IrqBindOut,
-    prior: &[u64],
-) -> HdaResult<(DmaMapOut, DmaMapOut)> {
-    let bdl = alloc(device_id, claim_epoch, BDL_BYTES).map_err(|e| {
-        unwind(device_id, mmio, irq, prior);
-        e
-    })?;
-    let sample = alloc(device_id, claim_epoch, crate::controller::bdl::RING_BYTES).map_err(|e| {
-        let _ = mk_dma_unmap(bdl.grant_id);
-        unwind(device_id, mmio, irq, prior);
-        e
-    })?;
+/// The buffer descriptor list page and the PCM ring, given back the same way.
+pub fn map_stream(device_id: u64, claim_epoch: u64) -> HdaResult<(DmaMapOut, DmaMapOut)> {
+    let bdl = alloc(device_id, claim_epoch, BDL_BYTES)?;
+    let sample = alloc(device_id, claim_epoch, RING_BYTES)?;
     Ok((bdl, sample))
 }

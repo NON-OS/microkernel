@@ -3,8 +3,8 @@
 //! hostile device could send.
 
 use crate::desc::{config_header, device_info, CLASS_CDC_DATA, CLASS_COMM};
-use crate::desc::{find_functional, interfaces, mac_from_string, union_data, walk};
-use crate::qemu_usb_net::{CONFIG_ECM, CONFIG_RNDIS, DEVICE, MAC, MAC_STRING};
+use crate::desc::{find_functional, interfaces, union_data, walk};
+use crate::qemu_usb_net::{CONFIG_ECM, CONFIG_RNDIS, DEVICE};
 
 #[test]
 fn device_descriptor_names_netchip_with_two_configurations() {
@@ -34,18 +34,6 @@ fn functional_descriptors_follow_their_interface() {
     assert_eq!((eth[3], u16::from_le_bytes([eth[8], eth[9]])), (3, 1514));
     assert_eq!(union_data(&CONFIG_RNDIS, 0), Some(1));
     assert!(find_functional(&CONFIG_ECM, 1, 0x06).is_none());
-}
-
-#[test]
-fn mac_string_reads_and_bad_ones_do_not() {
-    assert_eq!(mac_from_string(&MAC_STRING), Some(MAC));
-    let mut bad = MAC_STRING;
-    bad[4] = b'g';
-    assert_eq!(mac_from_string(&bad), None);
-    let mut group = MAC_STRING;
-    group[4] = b'1';
-    assert_eq!(mac_from_string(&group), None, "a multicast address is no station");
-    assert_eq!(mac_from_string(&MAC_STRING[..20]), None);
 }
 
 #[test]

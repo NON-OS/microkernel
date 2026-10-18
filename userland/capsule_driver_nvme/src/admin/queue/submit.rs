@@ -16,22 +16,29 @@
 
 use core::ptr::write_volatile;
 
-use super::constants::ADMIN_ENTRIES;
+use super::constants::{ADMIN_ENTRIES, SQ_BYTES};
 use super::sq0_tail::sq0_tail;
 use super::types::AdminQueue;
 use crate::admin::Submission;
 use crate::regs::Regs;
 
+// Every slot below ADMIN_ENTRIES lies in the submission queue's DMA region.
+const _: () = assert!(ADMIN_ENTRIES as u64 * core::mem::size_of::<Submission>() as u64 <= SQ_BYTES);
+
 impl AdminQueue {
     pub(super) fn submit(&mut self, regs: Regs, stride: u8, cmd: Submission) {
         let slot =
             self.sq.user_va() + (self.tail as u64) * (core::mem::size_of::<Submission>() as u64);
+        // SAFETY: `tail` is below ADMIN_ENTRIES (the assert above).
         unsafe { write_volatile(slot as *mut Submission, cmd) };
         self.tail = (self.tail + 1) % ADMIN_ENTRIES;
         // The controller DMA-reads the submission entry only after it sees the
         // new tail in the doorbell. Order the entry store ahead of the doorbell
         // store so the device never fetches a stale or half-written command.
         core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+        // SAFETY: the queue 0 tail doorbell lies below the I/O completion
+        // head doorbell, which bring-up checked fits the window
+        // (ControllerInfo::doorbells_fit).
         unsafe { regs.w32(sq0_tail(stride), self.tail as u32) };
     }
 }

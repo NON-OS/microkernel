@@ -35,6 +35,7 @@ pub mod run;
 pub mod say;
 pub mod scan;
 pub mod setup;
+pub mod station;
 pub mod xhci;
 
 pub use bind::Bind;
@@ -43,3 +44,4 @@ pub use found::Found;
 pub use nic::Nic;
 pub use run::run;
 pub use setup::Setup;
+pub use station::{Station, Taken};

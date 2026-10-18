@@ -44,11 +44,11 @@ pub fn pump(ctx: &mut Context, prev_buttons: &mut u8) {
 // masked edge is dropped, not latched — sweep the output buffer
 // again after the unmask so that byte cannot sit in the i8042
 // holding the line high with no further edge to wake us.
-fn drain_ports(ctx: &mut Context) {
+pub(super) fn drain_ports(ctx: &mut Context) {
     drain(
         ctx.driver.pio_grant_id,
         &mut ctx.drainer,
-        &mut ctx.ring,
+        &mut ctx.counters,
         &mut ctx.mouse,
         &mut ctx.mouse_ring,
         ctx.driver.mouse_enabled,

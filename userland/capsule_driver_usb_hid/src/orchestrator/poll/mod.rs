@@ -18,8 +18,14 @@ mod constants;
 mod drain_endpoint;
 mod drain_endpoints;
 mod feed_report;
+mod pace;
+mod period;
 mod read_len;
 mod refresh_endpoints;
+mod rescan;
 mod run;
 
+pub(super) use pace::Pace;
+pub(super) use period::period_ms;
+pub(super) use read_len::read_len;
 pub use run::run;

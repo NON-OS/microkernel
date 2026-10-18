@@ -14,38 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A broker DMA region, unmapped when dropped.
+//! A broker DMA region. Nothing here unmaps one: `mk_device_release` frees
+//! every grant the device holds once the broker has read Bus Master back
+//! off, and an unmap before that would free a frame the host could still
+//! reach, since the driver's own "off" write changes nothing until the
+//! broker stores Command words as written.
 
-use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut};
+use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_DMA32};
 
 use super::super::env::DmaBuf;
 use super::super::error::{EmmcError, EmmcResult};
 
-pub struct DmaRegion {
-    grant_id: u64,
-    buf: DmaBuf,
-}
-
-impl DmaRegion {
-    /// A zeroed, physically contiguous region of `length` bytes (a multiple
-    /// of 4 KiB) the claimed device may reach.
-    pub fn map(device_id: u64, claim_epoch: u64, length: u64) -> EmmcResult<Self> {
-        let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-        let r = mk_dma_map(device_id, claim_epoch, length, 0, &mut out);
-        if r < 0 {
-            return Err(EmmcError::Broker(r));
-        }
-        let buf = DmaBuf { va: out.user_va, bus: out.device_addr, len: out.length as usize };
-        Ok(Self { grant_id: out.grant_id, buf })
+/// A zeroed, physically contiguous region of `length` bytes (a multiple of
+/// 4 KiB) the claimed device may reach until the claim is released. For a
+/// host without 64-bit addressing (`dma64` false) it is asked below 4 GiB:
+/// ADMA2 in 32-bit mode names nothing above, and the kernel may place a map
+/// that does not ask there.
+pub fn map(device_id: u64, claim_epoch: u64, length: u64, dma64: bool) -> EmmcResult<DmaBuf> {
+    let flags = if dma64 { 0 } else { MK_DMA_MAP_DMA32 };
+    let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
+    let r = mk_dma_map(device_id, claim_epoch, length, flags, &mut out);
+    if r < 0 {
+        return Err(EmmcError::Broker(r));
     }
-
-    pub const fn buf(&self) -> DmaBuf {
-        self.buf
-    }
-}
-
-impl Drop for DmaRegion {
-    fn drop(&mut self) {
-        let _ = mk_dma_unmap(self.grant_id);
-    }
+    Ok(DmaBuf { va: out.user_va, bus: out.device_addr, len: out.length as usize })
 }

@@ -20,7 +20,8 @@
 //! request, which many HID devices answer to SET_IDLE, left EP0 halted and
 //! every later request on the device timed out.
 
-use crate::controller::recover_endpoint;
+use super::recover_ring::recover_ring;
+use crate::dma::DmaRegion;
 use crate::error::XhciError;
 use crate::server::context::Context;
 
@@ -28,37 +29,43 @@ use crate::server::context::Context;
 pub const DCI_EP0: u8 = 1;
 
 /// Recover endpoint `dci` of `slot` if `err` left it halted or running on
-/// TRBs that will never complete. Other errors left nothing behind.
-pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) {
-    if !matches!(err, XhciError::TransferCompletionFailed(_) | XhciError::TransferCompletionTimeout)
-    {
-        return;
-    }
-    let d = &mut ctx.driver;
-    let Some(res) = d.slots.resources_mut(slot, d.layout.max_slots) else { return };
-    let ring = if dci == DCI_EP0 {
-        &res.ep0
-    } else if let Some(ep) = res.interrupt.iter_mut().find(|ep| ep.dci == dci) {
-        ep.armed = None;
-        &ep.ring
-    } else if let Some(pipes) = res.bulk.as_ref() {
-        if dci == pipes.dci_in {
-            &pipes.in_ring
-        } else if dci == pipes.dci_out {
-            &pipes.out_ring
-        } else {
-            return;
-        }
-    } else {
-        return;
-    };
-    let _ = recover_endpoint(
-        d.layout.doorbell_base,
-        d.layout.primary_intr_base,
-        &mut d.command_ring,
-        &mut d.event_ring,
-        ring,
-        slot,
-        dci,
+/// TRBs that will never complete, then let go of `buf`, the request's own
+/// DMA buffer those TRBs point at. It is freed only once nothing can run
+/// them: the endpoint confirmed stopped with its dequeue moved past them.
+/// When that failed it stays with the endpoint's ring until a later
+/// transfer completes on it or its dequeue moves (`recover_ring`); freed, a
+/// TRB the controller still ran would DMA into a frame the kernel had
+/// handed to someone else. A failed controller is sent no command.
+pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError, buf: Option<DmaRegion>) {
+    let left_behind = matches!(
+        err,
+        XhciError::TransferCompletionFailed(_) | XhciError::TransferCompletionTimeout
     );
+    if left_behind && !ctx.driver.failed() {
+        recover_ring(ctx, slot, dci, buf);
+    } else {
+        let _ = keep_if_failed(ctx, slot, err, buf);
+    }
+}
+
+/// Let go of `regions`, DMA memory a request or a Configure Endpoint that
+/// ended in `err` gave the controller. A Host Controller Error does not
+/// halt it (xHCI 1.2 section 5.4.2), so a failed controller may still reach
+/// them: they stay with the slot until a revival has reset the controller,
+/// teardown has released it, or Disable Slot drops the slot. `failed` also
+/// covers an `err` of `ControllerDead`: each wait that answers it read the
+/// failure from USBSTS or found the command ring wedged, and both hold until
+/// the reset. Returns `err`.
+pub fn keep_if_failed(
+    ctx: &mut Context,
+    slot: u8,
+    err: XhciError,
+    regions: impl IntoIterator<Item = DmaRegion>,
+) -> XhciError {
+    if ctx.driver.failed() {
+        for region in regions {
+            ctx.driver.slots.quarantine(slot, region);
+        }
+    }
+    err
 }

@@ -13,12 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::park::Armed;
 use crate::constants::{EVENT_RING_SEGMENT_TRBS, TRB_BYTES};
+use crate::controller::park::IrqWait;
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
-use crate::trb::Trb;
-/// Transfer events kept for the endpoint that did not wait for them.
-pub(super) const PARKED: usize = 8;
+/// Interrupt-IN TRBs that may be armed at once, across every device: four
+/// endpoints on each of sixteen.
+pub(super) const ARMED: usize = 64;
 const ERST_ENTRY_BYTES: u64 = 16;
 pub struct EventRing {
     pub(super) segment: DmaRegion,
@@ -26,7 +28,15 @@ pub struct EventRing {
     pub(super) consumer_cycle: u8,
     pub(super) dequeue_index: usize,
     pub(super) drained_total: u64,
-    pub(super) parked: [Option<Trb>; PARKED],
+    /// Each armed TRB, and its event once a wait other than its own poll
+    /// read it (`park`).
+    pub(super) armed: [Option<Armed>; ARMED],
+    /// The interrupt of the interrupter this ring belongs to, which its
+    /// waits block on between polls.
+    pub irq: IrqWait,
+    /// The operational registers of the controller the ring was given to,
+    /// 0 before `bring_up`; its waits look there for a failed controller.
+    pub(super) op_base: u64,
 }
 impl EventRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
@@ -36,12 +46,11 @@ impl EventRing {
         let erst = pool.alloc(ERST_ENTRY_BYTES)?;
         erst.zero();
         let segment_phys = segment.phys();
-        let erst_va = erst.as_mut_ptr::<u32>();
-        unsafe {
-            core::ptr::write_volatile(erst_va.add(0), (segment_phys & 0xFFFF_FFFF) as u32);
-            core::ptr::write_volatile(erst_va.add(1), (segment_phys >> 32) as u32);
-            core::ptr::write_volatile(erst_va.add(2), EVENT_RING_SEGMENT_TRBS as u32);
-            core::ptr::write_volatile(erst_va.add(3), 0);
+        // The one entry: segment base, then its size in TRBs.
+        let entry =
+            [segment_phys as u32, (segment_phys >> 32) as u32, EVENT_RING_SEGMENT_TRBS as u32];
+        for (i, dw) in entry.into_iter().enumerate() {
+            let _ = erst.write_u32(4 * i, dw);
         }
         Ok(Self {
             segment,
@@ -49,7 +58,9 @@ impl EventRing {
             consumer_cycle: 1,
             dequeue_index: 0,
             drained_total: 0,
-            parked: [None; PARKED],
+            armed: [None; ARMED],
+            irq: IrqWait::new(0),
+            op_base: 0,
         })
     }
 }
