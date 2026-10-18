@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! SET_REPORT: command register, type/id + opcode, then the data register
-//! and the length-prefixed report.
+//! and the length-prefixed report. Whether the pad took it: a write it or
+//! the bus refuses leaves it as it was, for a later set-up to try again.
 
 use super::command::Command;
 use super::port::REPORT_MAX;

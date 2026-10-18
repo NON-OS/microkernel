@@ -47,6 +47,10 @@ pub fn isoch_out(
     if !batch_fits(lens, data, ep.esit_payload()) {
         return Err(XhciError::ControllerUnsupported);
     }
+    if !evt.can_expect() {
+        return Err(XhciError::TooManyArmed);
+    }
+    pipe.ring.room_for(lens.len())?;
     let base = pipe.half * ISOCH_MAX;
     /*
      * SAFETY: the buffer is 2 * ISOCH_MAX bytes and `data` at most ISOCH_MAX;
@@ -66,10 +70,14 @@ pub fn isoch_out(
     }
     ring_doorbell(doorbell_base, slot, ep.dci);
     pipe.half ^= 1;
-    let before = pipe.pending.replace(IssuedTransfer { phys: last, slot, dci: ep.dci });
-    let Some(before) = before else { return Ok(CC_SUCCESS) };
-    match wait_isoch(intr_base, before, evt)?.completion_code() {
-        cc @ (CC_SUCCESS | CC_MISSED_SERVICE) => Ok(cc),
+    let issued = IssuedTransfer { phys: last, slot, dci: ep.dci };
+    evt.expect_also(issued);
+    let Some(before) = pipe.pending.replace(issued) else { return Ok(CC_SUCCESS) };
+    let cc = wait_isoch(intr_base, before, evt)?.completion_code();
+    // The batch before ran; this one is still queued behind it.
+    pipe.ring.retire_leaving(lens.len());
+    match cc {
+        CC_SUCCESS | CC_MISSED_SERVICE => Ok(cc),
         cc => Err(XhciError::TransferCompletionFailed(cc)),
     }
 }

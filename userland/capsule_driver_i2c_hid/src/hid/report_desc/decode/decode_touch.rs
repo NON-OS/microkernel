@@ -13,63 +13,37 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
+use super::body::{body, holds};
+use super::position::position;
 use super::types::TouchSample;
 use crate::hid::report_desc::layout::TouchLayout;
 use crate::hid::report_desc::read_bits::read_bits;
+use crate::hid::report_desc::Field;
 
 /// `report` is the input report after the two-byte i2c-hid length prefix (what
-/// the poll loop already slices out). Returns None when the report is for a
-/// different report id than the touch layout.
+/// the poll loop already slices out). None when it is another report than
+/// the touch layout's, or too short to hold every field the layout reads.
 pub fn decode_touch(report: &[u8], layout: &TouchLayout) -> Option<TouchSample> {
-    let body = if layout.report_id != 0 {
-        if report.first().copied()? != layout.report_id {
-            return None;
-        }
-        &report[1..]
-    } else {
-        report
-    };
-
-    // A torn or short polled read must be dropped whole: read_bits zero-fills
-    // past the end, which would silently truncate coordinates into violent
-    // jumps toward the origin instead of failing.
-    let fields =
-        [layout.x, layout.y, layout.tip, layout.contact_count, layout.contact_id, layout.button, layout.confidence];
-    let need =
-        fields.iter().filter(|f| f.present()).map(|f| f.bit_offset + f.bit_size).max().unwrap_or(0);
-    if (body.len() as u32) * 8 < need {
+    let l = layout;
+    let body = body(report, l.report_id)?;
+    let fields = [l.x, l.y, l.tip, l.contact_count, l.contact_id, l.button, l.confidence];
+    if !holds(body, &fields) {
         return None;
     }
-
-    let x = read_bits(body, layout.x.bit_offset, layout.x.bit_size);
-    let y = read_bits(body, layout.y.bit_offset, layout.y.bit_size);
-    let tip = read_bits(body, layout.tip.bit_offset, layout.tip.bit_size) != 0;
-    let contacts = if layout.contact_count.present() {
-        read_bits(body, layout.contact_count.bit_offset, layout.contact_count.bit_size)
-    } else if tip {
-        1
-    } else {
-        0
-    };
-    let contact_id = layout
-        .contact_id
-        .present()
-        .then(|| read_bits(body, layout.contact_id.bit_offset, layout.contact_id.bit_size));
-    let button = layout.button.present()
-        && read_bits(body, layout.button.bit_offset, layout.button.bit_size) != 0;
-    let confidence = !layout.confidence.present()
-        || read_bits(body, layout.confidence.bit_offset, layout.confidence.bit_size) != 0;
-
+    let value = |f: &Field| read_bits(body, f.bit_offset, f.bit_size);
+    let (x, x_max) = position(body, &l.x);
+    let (y, y_max) = position(body, &l.y);
+    let tip = value(&l.tip) != 0;
+    let contacts = if l.contact_count.present() { value(&l.contact_count) } else { u32::from(tip) };
     Some(TouchSample {
         x,
         y,
-        x_max: layout.x.logical_max,
-        y_max: layout.y.logical_max,
+        x_max,
+        y_max,
         tip,
         contacts,
-        contact_id,
-        button,
-        confidence,
+        contact_id: l.contact_id.present().then(|| value(&l.contact_id)),
+        button: value(&l.button) != 0,
+        confidence: !l.confidence.present() || value(&l.confidence) != 0,
     })
 }

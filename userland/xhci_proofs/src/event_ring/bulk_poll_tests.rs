@@ -64,10 +64,12 @@ fn other_events_are_left_for_their_takers() {
     assert_eq!(got, Ok(BulkPoll::Pending));
     assert!(fx.ring.has_event(), "the command completion was taken");
     fx.ring.advance();
-    // Another endpoint's completion naming the same address is parked.
+    // Another endpoint's completion naming the same address is kept for
+    // the TRB armed there, which has a place (`expect`).
+    let other = IssuedTransfer { phys: issued, slot: SLOT, dci: INT_DCI };
+    assert!(fx.ring.expect(other));
     fx.hc.post(transfer(issued, CC_STALL, 0, SLOT, INT_DCI));
     let got = poll_bulk_in(fx.db(), fx.intr(), &mut fx.ring, &mut pipes, SLOT, LEN);
     assert_eq!(got, Ok(BulkPoll::Pending));
-    let other = IssuedTransfer { phys: issued, slot: SLOT, dci: INT_DCI };
     assert!(fx.ring.take_parked(other).is_some(), "the interrupt endpoint's event was lost");
 }

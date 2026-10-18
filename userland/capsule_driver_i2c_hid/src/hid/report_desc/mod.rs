@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Parsing a HID report descriptor into a touchpad field map, and decoding an
-//! input report through that map into an absolute touch sample.
+//! Parsing a HID report descriptor into the touchpad's and the mouse's
+//! field maps, and decoding an input report through them.
 
-mod bounded;
 mod decode;
+mod field;
 mod layout;
 mod mouse_layout;
 mod multitouch;
@@ -26,7 +26,8 @@ mod parse;
 mod read_bits;
 
 pub use decode::{decode_mouse, decode_touch, TouchSample};
-pub use layout::{Field, TouchLayout};
+pub use field::Field;
+pub use layout::TouchLayout;
 pub use mouse_layout::MouseLayout;
 pub use multitouch::{primary, Multitouch, ScreenEvent};
 pub use parse::{parse, parse_mouse, Surface};

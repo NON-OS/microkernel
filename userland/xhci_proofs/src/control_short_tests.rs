@@ -7,7 +7,7 @@ use crate::constants::{CC_SHORT_PACKET, CC_SUCCESS, TRB_ISP, TRB_TYPE_TRANSFER_E
 
 /// A STALL (xHCI 6.4.5), as recalled, unverified.
 const CC_STALL: u8 = 6;
-use crate::controller::transfer_events::{received, short_residual, stopped_early};
+use crate::controller::{moved, short_on, stopped_early};
 use crate::rings::event::IssuedTransfer;
 use crate::trb::builders::data_stage::data_stage_in;
 use crate::trb::Trb;
@@ -34,25 +34,25 @@ fn the_data_stage_asks_to_hear_of_a_short_answer() {
 #[test]
 fn a_short_data_stage_reports_what_it_did_not_fill() {
     let short = event(DATA, CC_SHORT_PACKET, 503, 3);
-    assert_eq!(short_residual(&short, ISSUED, &[SETUP, DATA]), Some(503));
+    assert_eq!(short_on(&short, ISSUED, &[SETUP, DATA]), Some(503));
     assert!(!stopped_early(&short, ISSUED, &[SETUP, DATA]), "short is no error");
-    assert_eq!(received(512, 503), 9);
+    assert_eq!(moved(512, 503), 9);
 }
 
 #[test]
 fn only_this_transfers_short_event_counts() {
     let earlier = [SETUP, DATA];
-    assert_eq!(short_residual(&event(0x9000, CC_SHORT_PACKET, 5, 3), ISSUED, &earlier), None);
-    assert_eq!(short_residual(&event(DATA, CC_SHORT_PACKET, 5, 4), ISSUED, &earlier), None);
-    assert_eq!(short_residual(&event(DATA, CC_SUCCESS, 5, 3), ISSUED, &earlier), None);
+    assert_eq!(short_on(&event(0x9000, CC_SHORT_PACKET, 5, 3), ISSUED, &earlier), None);
+    assert_eq!(short_on(&event(DATA, CC_SHORT_PACKET, 5, 4), ISSUED, &earlier), None);
+    assert_eq!(short_on(&event(DATA, CC_SUCCESS, 5, 3), ISSUED, &earlier), None);
     assert!(stopped_early(&event(DATA, CC_STALL, 0, 3), ISSUED, &earlier));
 }
 
 #[test]
 fn a_residual_past_the_request_reads_as_nothing() {
-    assert_eq!(received(18, 0), 18);
-    assert_eq!(received(18, 18), 0);
-    assert_eq!(received(18, 0x00FF_FFFF), 0);
+    assert_eq!(moved(18, 0), 18);
+    assert_eq!(moved(18, 18), 0);
+    assert_eq!(moved(18, 0x00FF_FFFF), 0);
     let wild = event(DATA, CC_SHORT_PACKET, 0x00FF_FFFF, 3);
-    assert_eq!(short_residual(&wild, ISSUED, &[SETUP, DATA]).map(|r| received(64, r)), Some(0));
+    assert_eq!(short_on(&wild, ISSUED, &[SETUP, DATA]).map(|r| moved(64, r)), Some(0));
 }

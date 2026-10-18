@@ -22,26 +22,37 @@ use crate::constants::{
     CONFIG_AUX_DISABLE, CONFIG_IRQ12, CTL_DISABLE_KBD, CTL_ENABLE_AUX, CTL_READ_CONFIG,
     CTL_WRITE_CONFIG, MOUSE_ENABLE_REPORTING, MOUSE_SET_DEFAULTS,
 };
-use crate::init::{flush_output, keyboard_config};
+use crate::init::dropped::drop_byte;
+use crate::init::flush_output::flush_keys;
+use crate::init::keyboard_config;
 
-/// Bring the mouse up and return whether it negotiated the IntelliMouse scroll
-/// wheel (a 4-byte report). The wheel probe runs before reporting is enabled so
-/// the sample-rate writes are not interleaved with movement packets.
+/// Bring the mouse up at start and return whether it negotiated the
+/// IntelliMouse scroll wheel (a 4-byte report). Nothing serves the keyboard
+/// yet, so a keystroke that lands meanwhile is dropped and counted.
 pub fn enable_mouse(grant_id: u64) -> Result<bool, &'static str> {
-    // The keyboard is scanning by now, and its bytes carry the same status
-    // as the configuration byte, so its port is held off until the write
-    // below turns it back on (Linux i8042_controller_init holds both).
+    reenable_mouse(grant_id, &mut drop_byte)
+}
+
+/// Bring the mouse up, every keyboard byte that lands meanwhile going to
+/// `keys`: the serve loop brings a mouse that reset up again while the
+/// keyboard is in use, and a key let go then must still be let go. The
+/// wheel probe runs before reporting is enabled so the sample-rate writes
+/// are not interleaved with movement packets.
+pub fn reenable_mouse(grant_id: u64, keys: &mut dyn FnMut(u8)) -> Result<bool, &'static str> {
+    // The keyboard's bytes carry the same status as the configuration
+    // byte, so its port is held off until the write below turns it back on
+    // (Linux i8042_controller_init holds both).
     command(grant_id, CTL_DISABLE_KBD)?;
     command(grant_id, CTL_ENABLE_AUX)?;
-    flush_output(grant_id);
+    flush_keys(grant_id, keys);
     command(grant_id, CTL_READ_CONFIG)?;
     let cfg = read_config(grant_id)?;
     command(grant_id, CTL_WRITE_CONFIG)?;
     // The keyboard's own bits stay as its bring-up set them (interrupt,
     // clock, translation); the aux clock and interrupt are turned on.
     write_data(grant_id, (keyboard_config(cfg) | CONFIG_IRQ12) & !CONFIG_AUX_DISABLE)?;
-    mouse_command(grant_id, MOUSE_SET_DEFAULTS)?;
-    let wheel = detect_wheel(grant_id).unwrap_or(false);
-    mouse_command(grant_id, MOUSE_ENABLE_REPORTING)?;
+    mouse_command(grant_id, MOUSE_SET_DEFAULTS, keys)?;
+    let wheel = detect_wheel(grant_id, keys).unwrap_or(false);
+    mouse_command(grant_id, MOUSE_ENABLE_REPORTING, keys)?;
     Ok(wheel)
 }

@@ -13,15 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Which addressed slots are hubs: a device below a hub is addressed only
-//! on a root port a hub holds, and its TT only in a hub's slot.
+//! Which addressed slots are hubs (a child is parked only below one), and
+//! how held a slot is, for the port list's virtual ports.
 
 use super::types::SlotTable;
 
 impl SlotTable {
     /// Whether `slot_id` is addressed and marked a hub.
     pub fn is_hub(&self, slot_id: u8) -> bool {
-        self.resources.iter().any(|r| r.slot_id == slot_id && r.hub)
+        self.resources.iter().any(|r| r.slot_id == slot_id && r.hub.is_some())
     }
 
     /// The owner byte of addressed `slot_id`: 2 once a class driver
@@ -34,10 +34,5 @@ impl SlotTable {
         } else {
             1
         }
-    }
-
-    /// Whether a hub is addressed on root port `port_id`.
-    pub fn hub_on(&self, port_id: u8) -> bool {
-        self.resources.iter().any(|r| r.port_id == port_id && r.hub)
     }
 }

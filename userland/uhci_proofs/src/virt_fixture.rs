@@ -3,8 +3,9 @@
 //! as driver.usb_hub0 walks it (nonos_usb_hub's Parker): its children
 //! parked with the host as virtual ports for the class drivers to claim.
 
-use nonos_usb_hub::{as_hub, scan_hubs, Hub, Parker, Place};
+use nonos_usb_hub::{as_hub, Hub, Parker, Place};
 
+use crate::hub_fixture::settle;
 use crate::hub_lane::Lane;
 use crate::hub_seen::hub_dev;
 use crate::model::hub::HubModel;
@@ -38,7 +39,7 @@ impl Tree {
     /// One pass of driver.usb_hub0 over the hubs it holds.
     pub fn walk(&mut self) {
         let mut lane = Lane { cx: &mut self.f, lines: vec![] };
-        scan_hubs(&mut lane, &mut self.hubs, &mut Parker);
+        settle(&mut lane, &mut self.hubs, &mut Parker);
     }
 
     pub fn call(&mut self, op: u16, body: &[u8]) -> Answer {

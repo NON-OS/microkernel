@@ -32,7 +32,7 @@ fn a_16_octet_event_packet_comes_up_whole() {
     fx.hc.post(transfer(armed, CC_SUCCESS, 0, SLOT, INT_DCI));
     let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut res, INT_DCI, EVENT_PACKET);
     assert!(matches!(got, Ok(IntrPoll::Complete(EVENT_PACKET))));
-    assert_eq!(res.interrupt[0].max, EVENT_PACKET, "the buffer holds one packet");
+    assert_eq!(res.interrupt[0].len, EVENT_PACKET, "the buffer holds one packet");
 }
 
 #[test]

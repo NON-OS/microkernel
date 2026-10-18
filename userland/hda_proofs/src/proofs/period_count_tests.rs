@@ -18,7 +18,7 @@
 //! silence is not an underrun, and a client that stops feeding is one
 //! underrun however many silent periods follow before the stream stops.
 
-use crate::periods::{Period, Periods};
+use crate::audio::{Period, Periods};
 
 const P: usize = 0x2000;
 

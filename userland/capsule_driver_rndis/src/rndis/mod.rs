@@ -31,7 +31,6 @@ mod link_watch;
 pub mod message;
 mod nic;
 pub mod packet;
-pub mod query;
 pub mod reply;
 pub mod set;
 mod start;

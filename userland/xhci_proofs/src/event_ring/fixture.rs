@@ -21,12 +21,9 @@ use nonos_devmodel::FakeBar;
 
 use super::producer::Producer;
 use crate::constants::TRB_BYTES;
-use crate::controller::{program_event_ring, BulkPipes};
+use crate::controller::program_event_ring;
 use crate::dma::DmaPool;
-use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
-use crate::rings::transfer::TransferRing;
-use crate::slots::{InterruptEndpoint, SlotResources};
 
 /// The slot and endpoints the fixture configures. Any other slot or
 /// endpoint id in an event names something the driver never set up.
@@ -35,12 +32,12 @@ pub const EP0_DCI: u8 = 1;
 pub const INT_DCI: u8 = 3;
 pub const BULK_IN_DCI: u8 = 4;
 pub const BULK_OUT_DCI: u8 = 5;
-const CONTEXT_SIZE: u8 = 32;
+pub(super) const CONTEXT_SIZE: u8 = 32;
 /// One doorbell per slot, slot ids up to 255.
 const DOORBELL_BYTES: usize = 256 * 4;
 pub const TRB: u64 = TRB_BYTES as u64;
-/// A boot report's 8 bytes: the packet the fixture's HID endpoint carries.
-pub const HID_READ: u16 = 8;
+
+pub use super::fixture_slots::root_place;
 
 pub struct Fixture {
     pub pool: DmaPool,
@@ -66,34 +63,6 @@ impl Fixture {
 
     pub fn db(&self) -> u64 {
         self.doorbells.base()
-    }
-
-    pub fn command_ring(&self) -> CommandRing {
-        CommandRing::new(&self.pool).expect("command ring")
-    }
-
-    pub fn transfer_ring(&self) -> TransferRing {
-        TransferRing::new(&self.pool).expect("transfer ring")
-    }
-
-    /// An addressed slot with an interrupt-IN endpoint, set up as the
-    /// alloc-transfer-ring handler does: its own ring and a buffer of one
-    /// 8-byte packet.
-    pub fn hid_slot(&self) -> SlotResources {
-        let mut res =
-            SlotResources::allocate(&self.pool, CONTEXT_SIZE, SLOT, 1, 3, false).expect("slot resources");
-        res.interrupt.push(InterruptEndpoint {
-            dci: INT_DCI,
-            ring: self.transfer_ring(),
-            buf: self.pool.alloc(HID_READ as u64).expect("report buffer"),
-            max: HID_READ,
-            armed: None,
-        });
-        res
-    }
-
-    pub fn bulk_pipes(&self) -> BulkPipes {
-        BulkPipes::new(&self.pool, BULK_IN_DCI, BULK_OUT_DCI).expect("bulk pipes")
     }
 
     /// Where the driver's dequeue pointer is, checked to lie in the segment.

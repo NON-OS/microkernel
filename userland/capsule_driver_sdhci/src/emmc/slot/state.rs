@@ -37,7 +37,7 @@ impl<M: Mmio + Clone, C: Clock + Clone, L: Log + Clone> Slot<M, C, L> {
     /// The board's eMMC, or a known Intel eMMC host: the card comes up now
     /// or the slot is not served, as before removable slots were.
     pub fn fixed(parts: HostParts<M, C, L>, data: DmaBuf) -> EmmcResult<Self> {
-        let disk = EmmcDisk::bring_up(parts.host(), data)?;
+        let disk = EmmcDisk::bring_up(EmmcDisk::reset(parts.host())?, data)?;
         Ok(Self { disk: Some(disk), removable: false, parts, data, tried: false, changed: false })
     }
 

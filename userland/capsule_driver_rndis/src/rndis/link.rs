@@ -23,7 +23,7 @@ use core::ops::Range;
 
 use nonos_usbnet::nic::ETH_FRAME_MAX;
 use nonos_usbnet::xhci::BULK_MAX;
-use nonos_usbnet::{Bus, Pipes};
+use nonos_usbnet::{Bus, Pipes, Taken};
 
 use super::init::Limits;
 use super::packet::PACKET_HDR;
@@ -34,7 +34,8 @@ pub const RX_LEN: usize = BULK_MAX;
 
 pub struct Rndis<B> {
     pub(super) bus: B,
-    pub(super) mac: [u8; 6],
+    /// The drawn station address, and how the device took it.
+    pub(super) station: ([u8; 6], Taken),
     pub(super) pipes: Pipes,
     pub(super) limits: Limits,
     pub(super) rx: Vec<u8>,
@@ -50,9 +51,9 @@ pub struct Rndis<B> {
 }
 
 impl<B: Bus> Rndis<B> {
-    pub fn new(bus: B, mac: [u8; 6], pipes: Pipes, limits: Limits) -> Self {
+    pub fn new(bus: B, station: ([u8; 6], Taken), pipes: Pipes, limits: Limits) -> Self {
         let (rx, tx) = (vec![0; RX_LEN], vec![0; PACKET_HDR + ETH_FRAME_MAX + 1]);
         let (queue, notify, link) = (VecDeque::new(), None, true);
-        Self { bus, mac, pipes, limits, rx, queue, tx, comm: 0, notify, link, looks: 0 }
+        Self { bus, station, pipes, limits, rx, queue, tx, comm: 0, notify, link, looks: 0 }
     }
 }

@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Received transfers: a runt dropped, a long frame cut at 1514 and
-//! counted, a transfer that fills the buffer let go to its end (a short or
+//! Received transfers: a runt dropped, one longer than a frame and its
+//! padding byte dropped and counted, a transfer that fills the buffer let go to its end (a short or
 //! zero-length transfer), and a frame too long for the stack's room
 //! counted; frames out of 14 to 1514 bytes are refused.
 
@@ -34,7 +34,7 @@ fn runts_long_frames_and_frames_past_the_room_are_counted() {
     bus.0.borrow_mut().bulk_in.extend(q.map(|v| Ok(Some(v))));
     let mut out = [0u8; 1514];
     assert_eq!(nic.recv(&mut out), Ok(None));
-    assert_eq!(nic.recv(&mut out), Ok(Some(1514)));
+    assert_eq!(nic.recv(&mut out), Ok(None), "dropped, not cut");
     assert_eq!(nic.recv(&mut out[..100]), Ok(None));
     let c = nic.counts;
     assert_eq!((c.runts, c.cut, c.too_long, c.overruns), (1, 1, 1, 0));

@@ -29,7 +29,7 @@ use crate::constants::CC_SUCCESS;
 use crate::controller::ring_doorbell::ring_doorbell;
 use crate::error::{XhciError, XhciResult};
 use crate::protocol::{ISOCH_MAX, ISOCH_PACKETS_MAX};
-use crate::rings::event::EventRing;
+use crate::rings::event::{EventRing, IssuedTransfer};
 use crate::trb::builders::isoch::isoch;
 
 /// What the batch before held: success, or missed service if any packet of
@@ -49,6 +49,10 @@ pub fn isoch_in(
     if !in_batch_fits(n, td_len) {
         return Err(XhciError::ControllerUnsupported);
     }
+    if !evt.can_expect_n(n) {
+        return Err(XhciError::TooManyArmed);
+    }
+    pipe.ring.room_for(n)?;
     let base = pipe.buf.phys() + (pipe.half * ISOCH_MAX) as u64;
     let mut b = InBatch { tds: [0; ISOCH_PACKETS_MAX], n, half: pipe.half, td_len };
     let (tbc, tlbpc) = burst_fields(td_len, ep.max_packet, ep.max_burst, pipe.superspeed);
@@ -56,11 +60,13 @@ pub fn isoch_in(
         let cycle = pipe.ring.cycle() != 0;
         let at = base + (i as u64) * td_len as u64;
         b.tds[i] = pipe.ring.enqueue(isoch(at, td_len, tbc, tlbpc, true, cycle))?;
+        evt.expect_also(IssuedTransfer { phys: b.tds[i], slot, dci: ep.dci });
     }
     ring_doorbell(doorbell_base, slot, ep.dci);
     pipe.half ^= 1;
     let Some(before) = pipe.inflight.replace(b) else { return Ok((CC_SUCCESS, 0, 0)) };
     let got = collect(intr_base, (slot, ep.dci), &before, evt)?;
+    pipe.ring.retire_leaving(n);
     let cc =
         lengths(&got[..before.n], td_len, lens).map_err(XhciError::TransferCompletionFailed)?;
     /*

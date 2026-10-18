@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::descriptors::{HidKind, PadState};
+use crate::descriptors::HidKind;
+use crate::hid::Device;
+use crate::orchestrator::poll::Pace;
 
 /// What trying one port came to.
 pub enum Outcome {
     Bound,
-    /// Not a HID device; its slot was given back.
+    /// Not a HID device, or none whose reports this driver reads; its slot
+    /// was given back.
     NotHid,
     /// Another class driver is addressing the port.
     Busy,
@@ -28,13 +31,14 @@ pub enum Outcome {
 
 pub struct HidEndpoint {
     pub port: u32,
-    /// The root port the device is on, so its endpoints go when it leaves.
+    /// The port the device is on, so its endpoints go when it leaves.
     pub root_port: u8,
     pub slot: u8,
     pub dci: u8,
     pub kind: HidKind,
     pub max_packet: u16,
-    /// A gamepad's number (the `y` of its events), its layout and what it
-    /// last reported.
-    pub pad: Option<(i32, PadState)>,
+    /// The interface's own keys, buttons, pad state and repeat.
+    pub dev: Device,
+    /// When the poll loop next asks for its report.
+    pub pace: Pace,
 }

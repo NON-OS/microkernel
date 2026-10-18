@@ -19,6 +19,7 @@
 
 mod broker;
 mod device;
+mod slow_reset;
 mod space;
 
 mod bringup_tests;
@@ -26,7 +27,11 @@ mod caps_tests;
 mod features_tests;
 mod map_tests;
 mod mmio_tests;
+mod modern_caps_tests;
+mod modern_only_tests;
+mod msix_bar_tests;
 mod notify_tests;
 mod queue_tests;
+mod reset_tests;
 mod select_tests;
 mod walk_tests;

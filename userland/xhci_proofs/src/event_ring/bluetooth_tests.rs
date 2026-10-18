@@ -19,9 +19,9 @@
 //! own endpoints whatever the other holds (bluetooth_limit_tests.rs has the
 //! read's size, bluetooth_poll_tests.rs the two polled side by side).
 
-use super::fixture::{Fixture, BULK_OUT_DCI, INT_DCI, SLOT};
+use super::fixture::{root_place, Fixture, BULK_OUT_DCI, INT_DCI, SLOT};
 use crate::contexts::with_entries;
-use crate::slots::{interrupt_limit, InterruptEndpoint, SlotResources};
+use crate::slots::{InterruptEndpoint, SlotResources};
 
 /// HCI event packets of the controller's endpoint, a common size.
 pub(super) const EVENT_PACKET: u16 = 16;
@@ -30,18 +30,20 @@ const CONTEXT_SIZE: u8 = 32;
 /// A slot holding the interrupt endpoint and the bulk pair, as the two
 /// configure handlers leave it in either order.
 pub(super) fn radio_slot(fx: &Fixture) -> SlotResources {
-    let mut res =
-        SlotResources::allocate(&fx.pool, CONTEXT_SIZE, SLOT, 1, 3, false).expect("slot resources");
+    let place = root_place(1, 3);
+    let mut res = SlotResources::allocate(&fx.pool, CONTEXT_SIZE, SLOT, place, false)
+        .expect("slot resources");
     assert!(res.takes_bulk() && res.takes_interrupt());
     res.bulk = Some(fx.bulk_pipes());
     assert!(res.takes_interrupt(), "bulk pipes leave room for the event endpoint");
-    let max = interrupt_limit(EVENT_PACKET);
-    let buf = fx.pool.alloc(max as u64).expect("event buffer");
+    // A full speed event endpoint's payload is its one packet.
+    let len = EVENT_PACKET;
+    let buf = fx.pool.alloc(len as u64).expect("event buffer");
     res.interrupt.push(InterruptEndpoint {
         dci: INT_DCI,
         ring: fx.transfer_ring(),
         buf,
-        max,
+        len,
         armed: None,
     });
     assert!(!res.takes_bulk(), "one bulk pair a slot");
@@ -54,7 +56,7 @@ fn a_slot_holds_an_interrupt_endpoint_and_a_bulk_pair() {
     let mut res = radio_slot(&fx);
     while res.takes_interrupt() {
         let buf = fx.pool.alloc(8).expect("buffer");
-        let ep = InterruptEndpoint { dci: 7, ring: fx.transfer_ring(), buf, max: 8, armed: None };
+        let ep = InterruptEndpoint { dci: 7, ring: fx.transfer_ring(), buf, len: 8, armed: None };
         res.interrupt.push(ep);
     }
     assert_eq!(res.interrupt.len(), 4, "the bulk pair does not count against the four");

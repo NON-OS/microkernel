@@ -26,6 +26,7 @@ impl Host for Fake {
     fn control(&mut self, slot: u8, s: Setup, data: &mut [u8]) -> Result<usize, i32> {
         if (s.request_type, s.request, s.value) == (0x23, 0x03, 4) {
             self.last_reset = Some((slot, s.index as usize));
+            self.resets.push((slot, s.index as usize));
         }
         if let Some(done) = self.devices.get(&slot).and_then(|d| standard(d, s, data)) {
             return done;
@@ -61,6 +62,7 @@ impl Host for Fake {
     }
     fn idle_ms(&mut self, ms: u64) {
         self.now += ms as i64;
+        self.slept += ms;
     }
     fn now_ms(&mut self) -> i64 {
         self.now

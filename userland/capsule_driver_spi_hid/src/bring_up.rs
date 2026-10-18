@@ -47,7 +47,7 @@ pub fn bring_up(l: &Link, state: &mut State) -> Result<(), &'static str> {
     state.input_register = INPUT_REGISTER;
     state.input_len = usize::from(desc.max_input);
     state.touch_layout = parse_report_descriptor(&rd);
-    state.mt = Multitouch::new(&rd, &state.touch_layout);
+    state.mt = Multitouch::new(&rd);
     state.mouse_layout = parse_mouse_layout(&rd);
     // Best effort, as on I2C: a pad without the features is unaffected.
     let _ = configure_reporting(&SpiFeatures { link: l }, &state.touch_layout);

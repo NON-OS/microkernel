@@ -13,9 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Looking at the ports of every hub held. Each hub is taken out of the
-//! list while its ports are looked at, so a hub found below it can be
-//! added, and put back after.
+
+//! Looking at the ports of every hub held, or with `busy_only` at those mid
+//! way through bringing up a device. Each hub is taken out of the list while
+//! its ports are looked at, so a hub found below it can be added, and put
+//! back after. One port at a time is reset (`step_port`). Whether any port
+//! is still mid way through is returned.
 
 use alloc::vec::Vec;
 
@@ -24,14 +27,22 @@ use crate::host::Host;
 use crate::node::Hub;
 use crate::scan_hub::scan_hub;
 
-pub fn scan_hubs<H: Host>(h: &mut H, hubs: &mut Vec<Hub>, classes: &mut impl Classes<H>) {
+pub fn scan_hubs<H: Host>(
+    h: &mut H,
+    hubs: &mut Vec<Hub>,
+    classes: &mut impl Classes<H>,
+    busy_only: bool,
+) -> bool {
+    let mut busy = false;
+    let mut resetting = hubs.iter().any(|x| x.bring.iter().any(|b| b.resetting()));
     let slots: Vec<u8> = hubs.iter().map(|x| x.slot).collect();
     for slot in slots {
         let Some(i) = hubs.iter().position(|x| x.slot == slot) else {
             continue;
         };
         let mut hub = hubs.swap_remove(i);
-        scan_hub(h, &mut hub, hubs, classes);
+        busy |= scan_hub(h, &mut hub, hubs, classes, busy_only, &mut resetting);
         hubs.push(hub);
     }
+    busy
 }

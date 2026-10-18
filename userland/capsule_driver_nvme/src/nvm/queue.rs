@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::park::Park;
+use super::served::SERVED;
 use crate::admin::CqCursor;
 use crate::dma::DmaRegion;
 
@@ -21,20 +23,30 @@ pub struct IoQueue {
     pub(super) sq: DmaRegion,
     pub(super) cq: DmaRegion,
     pub(super) prp_list: DmaRegion,
-    pub(crate) data: DmaRegion,
+    pub(super) data: DmaRegion,
     pub(super) sq_tail: u16,
     pub(super) cursor: CqCursor,
     pub(super) cid: u16,
     pub(super) sq_db: u32,
     pub(super) cq_db: u32,
     pub(super) nsid: u32,
-    pub(crate) capacity_sectors: u64,
+    pub capacity_sectors: u64,
     pub(crate) lba_size: u32,
     pub(super) max_sectors: u32,
     /// A command whose wait ran out, which the controller may still be
     /// moving through the data buffer. Nothing touches the buffer or submits
     /// again until its completion is seen (`settle`).
     pub(super) out: Option<u16>,
+    /// What the queue's waits do between rounds of polling the ring.
+    pub(super) park: Park,
+    /// The uptime the request in progress must be answered by; between
+    /// requests, the bound a recovery left for the next (answer_by).
+    pub(super) answer_by: Option<u64>,
+    /// The uptime the request in progress, or the last, was taken at: a
+    /// time before its reply, which a bound set with no clock counts from.
+    pub(super) taken: u64,
+    /// The senders other than the kernel a pending bound served (served).
+    pub(super) served: [Option<u32>; SERVED],
 }
 
 impl IoQueue {
@@ -44,7 +56,7 @@ impl IoQueue {
     /// 512-byte, 8 at 4096-byte), and a controller whose MDTS is smaller
     /// lowers it further. Bounding transfers by this keeps every read/write
     /// within the buffer and within what the controller accepts.
-    pub(crate) fn max_sectors(&self) -> u32 {
+    pub fn max_sectors(&self) -> u32 {
         self.max_sectors
     }
 }

@@ -33,6 +33,10 @@ impl FeaturePort for I2cFeatures<'_> {
         command(self.desc, id).map_or(0, |cmd| get(self.port, self.addr, &cmd, id, report))
     }
 
+    fn reaches(&self, id: u8) -> bool {
+        command(self.desc, id).is_some()
+    }
+
     fn set(&self, report: &[u8]) -> bool {
         let Some(&id) = report.first() else { return false };
         command(self.desc, id).is_some_and(|cmd| set(self.port, self.addr, &cmd, report))

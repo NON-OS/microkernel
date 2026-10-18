@@ -16,5 +16,7 @@
 use crate::constants::IMAN;
 use crate::regs::mmio_write32;
 pub fn iman_write(intr_base: u64, value: u32) {
-    mmio_write32(intr_base + IMAN, value);
+    // SAFETY: `intr_base` is interrupter 0's register set, 32 bytes into the runtime page
+    // `read_layout` checked lies inside the mapped window.
+    unsafe { mmio_write32(intr_base + IMAN, value) };
 }

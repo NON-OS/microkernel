@@ -25,6 +25,9 @@ impl Designware {
     /// Run every queued command. Called before each register read, so the
     /// core is always caught up with what the driver pushed.
     pub(super) fn step(&mut self) {
+        if self.stalled() {
+            return;
+        }
         while let Some(cmd) = self.tx.pop() {
             if !self.execute(cmd) {
                 return;

@@ -26,8 +26,12 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     let iman = iman_read(ctx.driver.layout.primary_intr_base);
     let cmd_cycle = ctx.driver.command_ring.cycle();
     let events_total = ctx.driver.event_ring.drained_total();
-    let dcbaa_phys = ctx.driver.dcbaa.phys();
-    let scratchpad_phys = ctx.driver.scratchpads.array_phys();
+    // Where the DCBAA and the scratchpad array sit is no client's business:
+    // on a machine without an IOMMU it is a physical address a compromised
+    // class capsule could aim misdirected DMA at. Only whether each exists
+    // is said, in the fields the addresses had.
+    let dcbaa_present = 1u64;
+    let scratchpads_present = (ctx.driver.scratchpads.array_phys() != 0) as u64;
     let scratchpad_pages = ctx.driver.scratchpads.page_count();
     let allocated_slots = ctx.driver.slots.count() as u32;
     let payload_len = (STATUS_LEN + CONTROLLER_STATUS_PAYLOAD_LEN) as u32;
@@ -56,9 +60,9 @@ pub fn handle(ctx: &Context, req: &Request, tx: &mut [u8]) {
     o += 4;
     tx[o..o + 8].copy_from_slice(&events_total.to_le_bytes());
     o += 8;
-    tx[o..o + 8].copy_from_slice(&dcbaa_phys.to_le_bytes());
+    tx[o..o + 8].copy_from_slice(&dcbaa_present.to_le_bytes());
     o += 8;
-    tx[o..o + 8].copy_from_slice(&scratchpad_phys.to_le_bytes());
+    tx[o..o + 8].copy_from_slice(&scratchpads_present.to_le_bytes());
     o += 8;
     tx[o..o + 4].copy_from_slice(&allocated_slots.to_le_bytes());
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + (payload_len as usize));

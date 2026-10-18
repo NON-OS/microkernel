@@ -18,9 +18,9 @@ use crate::settings::schema::ALL_FIELDS;
 use crate::settings::section::{Section, SECTION_COUNT};
 use crate::wifi::{DataPath, DriverStage, NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
+use super::audio_output::AudioOutput;
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
-use super::audio_output::AudioOutput;
 use super::machine_key::MachineKey;
 use super::status::Status;
 use super::wifi_extra::WifiExtra;
@@ -88,6 +88,8 @@ pub struct State {
     pub machine_key: MachineKey,
     /// What audio.server said the last time the Sound page asked.
     pub audio_output: AudioOutput,
+    /// What driver.bt_usb0 last said, for the Bluetooth page.
+    pub bt: crate::bluetooth::Panel,
     /// Window size as of the last paint. The window is resizable, so layout and
     /// hit tests read this rather than the manifest's starting size: against
     /// the constants, clicks below the original height were treated as the

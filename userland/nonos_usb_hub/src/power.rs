@@ -13,9 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Powering every port of a new hub and waiting, on the clock, for the
-//! power to be good (USB 2.0 section 11.11 and 11.23.2.1). A hub without
-//! power switching ignores the request; its ports are powered already.
+//! Powering every port of a new hub (USB 2.0 section 11.11 and 11.23.2.1).
+//! A hub without power switching ignores the request; its ports are powered
+//! already. The wait for the power to be good is the hub's `ready_ms`, a
+//! deadline its ports are looked at against: slept through here, up to
+//! 510 ms, it held the walk, and every other hub's ports with it, each time
+//! a hub, or a device posing as one, was plugged in.
 
 use crate::descriptor::HubDescriptor;
 use crate::host::Host;
@@ -38,5 +41,4 @@ pub fn power_ports(h: &mut impl Host, slot: u8, desc: &HubDescriptor) {
             .text(b" ports refused PORT_POWER")
             .say(h);
     }
-    h.idle_ms(desc.power_on_ms as u64);
 }

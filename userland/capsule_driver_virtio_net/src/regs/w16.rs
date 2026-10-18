@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::write_volatile;
-
 use super::io::RegIo;
 use super::pio_write::pio_write;
 use super::regs_type::Regs;
 
 impl Regs {
-    pub unsafe fn w16(self, offset: usize, value: u16) {
+    pub fn w16(self, offset: usize, value: u16) {
         match self.io {
-            RegIo::Mmio(base) => write_volatile(base.add(offset).cast(), value),
+            RegIo::Mmio(m) => m.w16(offset, value),
             RegIo::Pio(grant) => pio_write(grant, offset, 2, value as u32),
         }
     }

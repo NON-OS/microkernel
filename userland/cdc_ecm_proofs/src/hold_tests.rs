@@ -2,7 +2,7 @@
 //! Every interface of the configuration held before it is set; one another
 //! driver holds stops the bind before the device is touched.
 
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::qemu_usb_net::MAC_STRING;
 
 use crate::device::{bound, device, ASKED, HELD};
@@ -20,7 +20,7 @@ fn an_interface_another_driver_holds_is_never_taken_over() {
     for held in [0u8, 1] {
         HELD.with(|h| *h.borrow_mut() = vec![held]);
         let (bus, found) = device(|_| {}, &MAC_STRING);
-        let r = bind(bus.clone(), &found);
+        let r = bind(bus.clone(), &found, drawn());
         assert!(matches!(r, nonos_usbnet::Bind::Failed("interface held by another driver", -16)));
         let calls = bus.0.borrow().calls.clone();
         assert!(!calls.iter().any(|c| matches!(c, Call::Out(..) | Call::Configure(_))));

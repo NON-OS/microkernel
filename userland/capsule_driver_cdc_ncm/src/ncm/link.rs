@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound NCM device as the frame service sees it: one frame per call
-//! each way, while a received block's datagrams wait in `pending`.
+//! A bound NCM device: its station address, pipes and NTB sizes, and a
+//! received block's datagrams waiting in `pending`, one handed up per call.
 
 use alloc::collections::VecDeque;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_usbnet::{Bus, Pipes};
+use nonos_usbnet::{Bus, Pipes, Taken};
 
 use super::shape::TxShape;
 
 pub struct Ncm<B> {
     pub(super) bus: B,
-    pub(super) mac: [u8; 6],
+    /// The drawn station address, and how the device took it.
+    pub(super) station: ([u8; 6], Taken),
     pub(super) pipes: Pipes,
     /// The NTB input size the device was given; one bulk IN is this long.
     pub rx_max: usize,
@@ -46,11 +47,31 @@ pub struct Ncm<B> {
 }
 
 impl<B: Bus> Ncm<B> {
-    pub fn new(bus: B, mac: [u8; 6], pipes: Pipes, rx_max: usize, shape: TxShape) -> Self {
+    pub fn new(
+        bus: B,
+        station: ([u8; 6], Taken),
+        pipes: Pipes,
+        rx_max: usize,
+        shape: TxShape,
+    ) -> Self {
         // Room for the block and the byte that may end it (pad.rs).
         let (rx, tx) = (vec![0; rx_max], vec![0; shape.max + 1]);
         let pending = VecDeque::new();
         let (notify, link, looks, ntb32) = (None, true, 0, false);
-        Self { bus, mac, pipes, rx_max, ntb32, shape, rx, tx, seq: 0, pending, notify, link, looks }
+        Self {
+            bus,
+            station,
+            pipes,
+            rx_max,
+            ntb32,
+            shape,
+            rx,
+            tx,
+            seq: 0,
+            pending,
+            notify,
+            link,
+            looks,
+        }
     }
 }

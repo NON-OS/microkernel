@@ -20,12 +20,14 @@
 use super::mux::{status, Mux};
 use crate::protocol::{encode_response_header, Request, OP_DISABLE_SLOT, RESP_HDR_LEN, STATUS_LEN};
 use crate::server::error::reply_with_status;
-use crate::server::reply::{captured, send};
+use crate::server::reply::{captured, send, vouch};
 use nonos_usb_virt::{ext, port_entry, Disable};
 
 impl Mux {
     /// Slot id `s` disabled as any slot is, its reply kept back.
     fn quietly(&mut self, req: &Request, s: u8, tx: &mut [u8]) -> Option<i32> {
+        // A parked child's slot is driver.usb_hub0's, given back for it.
+        vouch();
         let off = Request { op: OP_DISABLE_SLOT, payload_len: 1, ..*req };
         let len = captured(|| self.inner(&off, &[s], tx));
         status(tx, len)

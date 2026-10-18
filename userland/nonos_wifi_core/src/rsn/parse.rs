@@ -21,35 +21,10 @@
 //! ends before it; a list whose count runs past the element is malformed and
 //! the element is refused, so a beacon cannot make the station read past it.
 
-use super::suite::{selector, AKM_PSK, AKM_PSK_SHA256, AKM_SAE, CAP_MFPC, CAP_MFPR, CIPHER_CCMP};
-
-/// The parts of an access point's RSN element the station selects from.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Rsne {
-    /// The group data cipher suite.
-    pub group: u32,
-    /// Whether CCMP-128 is among the pairwise cipher suites.
-    pub pairwise_ccmp: bool,
-    pub akm_psk: bool,
-    pub akm_psk_sha256: bool,
-    pub akm_sae: bool,
-    /// The RSN Capabilities field.
-    pub caps: u16,
-    /// The group management cipher suite, when the element names one.
-    pub group_mgmt: Option<u32>,
-}
-
-impl Rsne {
-    /// Management frame protection capable.
-    pub fn mfpc(&self) -> bool {
-        self.caps & CAP_MFPC != 0
-    }
-
-    /// Management frame protection required.
-    pub fn mfpr(&self) -> bool {
-        self.caps & CAP_MFPR != 0
-    }
-}
+use super::parse_tail::tail;
+use super::reader::Reader;
+pub use super::rsne::Rsne;
+use super::suite::{CIPHER_CCMP, CIPHER_GCMP_256};
 
 /// Parse an RSN element's content (the bytes after its id and length).
 /// Returns `None` for a version other than 1 or a suite list that runs past
@@ -65,6 +40,7 @@ pub fn parse_rsne(body: &[u8]) -> Option<Rsne> {
     let mut out = Rsne {
         group: CIPHER_CCMP,
         pairwise_ccmp: true,
+        pairwise_gcmp256: false,
         akm_psk: false,
         akm_psk_sha256: false,
         akm_sae: false,
@@ -80,64 +56,15 @@ pub fn parse_rsne(body: &[u8]) -> Option<Rsne> {
     }
     out.pairwise_ccmp = false;
     for _ in 0..r.u16()? {
-        if r.suite()? == CIPHER_CCMP {
-            out.pairwise_ccmp = true;
-        }
-    }
-    if r.done() {
-        return Some(out);
-    }
-    for _ in 0..r.u16()? {
         match r.suite()? {
-            AKM_PSK => out.akm_psk = true,
-            AKM_PSK_SHA256 => out.akm_psk_sha256 = true,
-            AKM_SAE => out.akm_sae = true,
+            CIPHER_CCMP => out.pairwise_ccmp = true,
+            CIPHER_GCMP_256 => out.pairwise_gcmp256 = true,
             _ => {}
         }
     }
     if r.done() {
         return Some(out);
     }
-    out.caps = r.u16()?;
-    if r.done() {
-        return Some(out);
-    }
-    let pmkids = r.u16()? as usize;
-    r.skip(pmkids.checked_mul(16)?)?;
-    if r.remaining() >= 4 {
-        out.group_mgmt = Some(r.suite()?);
-    }
+    tail(&mut r, &mut out)?;
     Some(out)
-}
-
-// A bounded little-endian cursor over the element body.
-struct Reader<'a> {
-    b: &'a [u8],
-    off: usize,
-}
-
-impl Reader<'_> {
-    fn remaining(&self) -> usize {
-        self.b.len() - self.off
-    }
-    fn done(&self) -> bool {
-        self.off >= self.b.len()
-    }
-    fn take(&mut self, n: usize) -> Option<&[u8]> {
-        let end = self.off.checked_add(n)?;
-        let s = self.b.get(self.off..end)?;
-        self.off = end;
-        Some(s)
-    }
-    fn skip(&mut self, n: usize) -> Option<()> {
-        self.take(n).map(|_| ())
-    }
-    fn u16(&mut self) -> Option<u16> {
-        let s = self.take(2)?;
-        Some(u16::from_le_bytes([s[0], s[1]]))
-    }
-    fn suite(&mut self) -> Option<u32> {
-        let s = self.take(4)?;
-        Some(selector([s[0], s[1], s[2], s[3]]))
-    }
 }

@@ -29,6 +29,6 @@ pub use hosts::Hosts;
 pub use lookup::{host, hosts};
 pub use ops::{
     address_device, alloc_transfer_ring, claim_interface, control_transfer, disable_slot,
-    enable_slot, get_config_descriptor, interrupt_in, port_status, PortSnapshot,
+    enable_slot, get_config_descriptor, interrupt_in, port_status, PortSnapshot, Setup,
     MAX_DESCRIPTOR_LEN,
 };

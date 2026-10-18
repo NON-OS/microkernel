@@ -37,7 +37,8 @@ pub fn pipe(fx: &Fixture) -> IsochPipe {
 }
 
 pub fn trb_at(bus: u64) -> Trb {
-    read_volatile_at(dma_host(bus).expect("ring memory"))
+    // SAFETY: `bus` names a TRB of a ring the test's pool mapped.
+    unsafe { read_volatile_at(dma_host(bus).expect("ring memory")) }
 }
 
 pub fn send(fx: &mut Fixture, p: &mut IsochPipe, lens: &[u16], fill: u8) -> Result<u8, XhciError> {

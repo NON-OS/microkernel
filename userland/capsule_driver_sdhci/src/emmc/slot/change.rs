@@ -34,7 +34,7 @@ impl<M: Mmio + Clone, C: Clock + Clone, L: Log + Clone> Slot<M, C, L> {
 
     /// One attempt; a failure has been logged by the bring-up itself.
     pub(super) fn bring_up(&mut self) {
-        match EmmcDisk::bring_up(self.parts.host(), self.data) {
+        match EmmcDisk::reset(self.parts.host()).and_then(|h| EmmcDisk::bring_up(h, self.data)) {
             Ok(d) => {
                 d.say_part();
                 (self.disk, self.tried, self.changed) = (Some(d), false, true);

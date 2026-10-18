@@ -13,9 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! A gamepad bound: its reports read against the layout its descriptor
 //! gave, each change posted to the input router as a pad event. `y` names
-//! the pad, numbered as pads bind, so two pads are told apart.
+//! the pad, numbered as pads bind, so two pads are told apart. A pad that
+//! goes away lets go of every button it held.
 
 use core::sync::atomic::{AtomicI32, Ordering};
 
@@ -28,20 +30,34 @@ use crate::descriptors::{PadEvent, PadLayout, PadState};
 
 static NEXT: AtomicI32 = AtomicI32::new(0);
 
-pub fn new_pad(layout: PadLayout) -> (i32, PadState) {
-    (NEXT.fetch_add(1, Ordering::Relaxed), PadState::new(layout))
+pub struct Pad {
+    id: i32,
+    state: PadState,
 }
 
-pub fn feed_pad(id: i32, state: &mut PadState, report: &[u8]) {
-    state.feed(report, |e| {
-        let (kind, code, x) = match e {
-            PadEvent::Button(n, true) => (INPUT_KIND_PAD_BUTTON_DOWN, n, 0),
-            PadEvent::Button(n, false) => (INPUT_KIND_PAD_BUTTON_UP, n, 0),
-            PadEvent::Axis(usage, value) => (INPUT_KIND_PAD_AXIS, usage, value),
-        };
-        let code = code as u32;
-        let ev =
-            InputEvent { kind, flags: 0, code, x, y: id, delta_x: 0, delta_y: 0, timestamp_ns: 0 };
-        let _ = mk_input_event_post(&ev);
-    });
+impl Pad {
+    pub fn new(layout: PadLayout) -> Self {
+        Self { id: NEXT.fetch_add(1, Ordering::Relaxed), state: PadState::new(layout) }
+    }
+
+    pub fn feed(&mut self, report: &[u8]) {
+        let id = self.id;
+        self.state.feed(report, |e| post(id, e));
+    }
+
+    pub fn release_all(&mut self) {
+        let id = self.id;
+        self.state.release(|e| post(id, e));
+    }
+}
+
+fn post(id: i32, e: PadEvent) {
+    let (kind, code, x) = match e {
+        PadEvent::Button(n, true) => (INPUT_KIND_PAD_BUTTON_DOWN, n, 0),
+        PadEvent::Button(n, false) => (INPUT_KIND_PAD_BUTTON_UP, n, 0),
+        PadEvent::Axis(usage, value) => (INPUT_KIND_PAD_AXIS, usage, value),
+    };
+    let code = code as u32;
+    let ev = InputEvent { kind, flags: 0, code, x, y: id, delta_x: 0, delta_y: 0, timestamp_ns: 0 };
+    let _ = mk_input_event_post(&ev);
 }

@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod gesture;
-pub mod parse_report;
 mod poll;
 mod post;
 mod publish;
 mod publish_screen;
 mod publish_touch;
+mod release;
 pub mod sample;
 
 pub use gesture::TouchGesture;
 pub use poll::poll;
+pub use release::{release_held, release_touch_click};

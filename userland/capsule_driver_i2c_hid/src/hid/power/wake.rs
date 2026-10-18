@@ -16,13 +16,12 @@
 
 use super::await_reset::await_reset;
 use super::command_register::command_register;
+use super::set_power::{set_power, POWER_ON};
 use super::settle::{POWER_ON_MS, RETRY_MS};
 use crate::i2c_client::write_read;
 use nonos_libc::mk_idle_ms;
 
 const OPCODE_RESET: u8 = 0x01;
-const OPCODE_SET_POWER: u8 = 0x08;
-const POWER_ON: u8 = 0x00;
 
 /// The I2C-HID power-up sequence. Wire framing per the HID-over-I2C spec: after
 /// the two command-register bytes, the THIRD byte carries the report id (or
@@ -43,15 +42,14 @@ pub fn wake(port: u32, addr: u8, desc: &[u8; 30], input_reg: u16) -> bool {
         return false;
     }
     let reg = cmd_reg.to_le_bytes();
-    let set_power = [reg[0], reg[1], POWER_ON, OPCODE_SET_POWER];
     // Some STM-based and Weida Tech parts need about 400 us after the first
     // clock edge to wake and NACK the first power-on (as observed on
-    // devices, unverified), so it is sent once more after a short pause. Then 60 ms,
-    // which several pads need before they take RESET (observed,
+    // devices, unverified), so it is sent once more after a short pause.
+    // Then 60 ms, which several pads need before they take RESET (observed,
     // unverified).
-    if write_read(port, addr, &set_power, &mut []).is_none() {
+    if !set_power(port, addr, cmd_reg, POWER_ON) {
         let _ = mk_idle_ms(RETRY_MS);
-        if write_read(port, addr, &set_power, &mut []).is_none() {
+        if !set_power(port, addr, cmd_reg, POWER_ON) {
             say("[i2chid] SET_POWER(ON) NACKed twice, pad not reset\n");
             return false;
         }

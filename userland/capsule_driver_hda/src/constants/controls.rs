@@ -38,3 +38,6 @@ pub const AMP_SET_RIGHT: u16 = 1 << 12;
 pub const AMP_MUTE: u16 = 1 << 7;
 pub const AMP_OUT_UNMUTE: u16 = AMP_SET_OUTPUT | AMP_SET_LEFT | AMP_SET_RIGHT;
 pub const AMP_IN_UNMUTE: u16 = AMP_SET_INPUT | AMP_SET_LEFT | AMP_SET_RIGHT;
+/// Input amps the four index bits can name; a sixteenth input and above
+/// cannot be addressed, and `index << 8` would wrap onto another input.
+pub const AMP_INDEX_COUNT: u8 = 16;

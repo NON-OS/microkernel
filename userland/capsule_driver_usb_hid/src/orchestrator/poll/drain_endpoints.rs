@@ -24,10 +24,11 @@ pub(super) fn drain_endpoints(
     state: &mut State,
     eps: &mut [HidEndpoint],
     buf: &mut [u8; PAD_REPORT_MAX],
+    now_ms: u64,
 ) -> bool {
     let mut drained = false;
     for ep in eps.iter_mut() {
-        drained |= drain_endpoint(state, ep, buf);
+        drained |= drain_endpoint(state, ep, buf, now_ms);
     }
     drained
 }

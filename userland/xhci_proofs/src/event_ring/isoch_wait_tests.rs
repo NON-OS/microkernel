@@ -31,13 +31,15 @@ fn the_next_batch_takes_the_other_half_and_the_last_batchs_completion() {
     let mut p = pipe(&fx);
     send(&mut fx, &mut p, &[192, 192], 1).unwrap();
     let last = p.ring.phys() + TRB;
+    // A bulk IN armed elsewhere, with a place for its event (`expect`).
+    let other = IssuedTransfer { phys: 0x9000, slot: SLOT, dci: BULK_IN_DCI };
+    assert!(fx.ring.expect(other));
     fx.hc.post(transfer(0, CC_UNDERRUN, 0, SLOT, DCI));
     fx.hc.post(transfer(0, CC_MISSED, 0, SLOT, DCI));
     fx.hc.post(transfer(0x9000, CC_SUCCESS, 0, SLOT, BULK_IN_DCI));
     fx.hc.post(transfer(last, CC_SUCCESS, 0, SLOT, DCI));
     assert_eq!(send(&mut fx, &mut p, &[192], 2), Ok(CC_SUCCESS));
     assert_eq!(trb_at(p.ring.phys() + 2 * TRB).get_pointer(), p.buf.phys() + ISOCH_MAX as u64);
-    let other = IssuedTransfer { phys: 0x9000, slot: SLOT, dci: BULK_IN_DCI };
     assert!(fx.ring.take_parked(other).is_some(), "another endpoint's event is kept");
     let dry = IssuedTransfer { phys: 0, slot: SLOT, dci: DCI };
     assert!(fx.ring.take_parked(dry).is_none(), "its own endpoint's strays are not");

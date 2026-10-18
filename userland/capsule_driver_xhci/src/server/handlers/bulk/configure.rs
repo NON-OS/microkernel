@@ -19,7 +19,7 @@
 //! SuperSpeed Endpoint Companion's bMaxBurst of the IN endpoint in bits 3:0
 //! and of the OUT endpoint in bits 7:4; it was a reserved zero, which still
 //! means one packet per burst, and it is ignored below SuperSpeed.
-use super::configure_run::run;
+use super::configure_pipes::{run, Bursts};
 use super::reply::send_prefix;
 use crate::error::XhciError;
 use crate::protocol::{Request, CONFIGURE_BULK_REQUEST_LEN, E_INVAL, E_IO};
@@ -54,11 +54,4 @@ fn configure_pair(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8], 
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(_) => reply_with_status(tx, req, E_IO),
     }
-}
-
-#[derive(Clone, Copy)]
-/// Each endpoint's SuperSpeed bMaxBurst, from the request's fourth byte.
-pub(super) struct Bursts {
-    pub bulk_in: u8,
-    pub bulk_out: u8,
 }

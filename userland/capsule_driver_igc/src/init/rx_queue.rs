@@ -16,10 +16,10 @@
 
 //! igc_configure_rx_ring for queue 0, one buffer per advanced descriptor:
 //! queue disabled, base, length, head and tail zero, SRRCTL (2 KiB packet
-//! buffer, 256-byte header size, ADV_ONEBUF), then thresholds and
-//! QUEUE_ENABLE. igc sets no SRRCTL drop-enable bit for its queues and
-//! neither does this driver. The enable is read back on the clock; only then
-//! does RDT hand the part every slot but one, as igc_alloc_rx_buffers does.
+//! buffer, 256-byte header, ADV_ONEBUF, no drop-enable, as igc) in
+//! `program`; once Bus Master is on, thresholds and QUEUE_ENABLE in
+//! `enable`, read back on the clock before RDT hands the part every slot
+//! but one, as igc_alloc_rx_buffers does.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -39,7 +39,7 @@ const SRRCTL_FIELDS: u32 = SRRCTL_BSIZEPKT_MASK | SRRCTL_BSIZEHDR_MASK | SRRCTL_
 const SRRCTL_ONEBUF: u32 = SRRCTL_BSIZEHDR_256 | SRRCTL_BSIZEPKT_2K | SRRCTL_DESCTYPE_ADV_ONEBUF;
 const RXDCTL_ON: u32 = RXDCTL_PTHRESH | RXDCTL_HTHRESH | RXDCTL_WTHRESH | RXDCTL_QUEUE_ENABLE;
 
-pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) -> Result<(), &'static str> {
+pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) {
     // SAFETY: `rx.ring_user_va` is the broker DMA grant for the ring,
     // RX_DESC_COUNT descriptors long; `regs` carries a valid broker MmioMap
     // base for BAR0 and every offset is a register inside it (igc_regs.h).
@@ -57,8 +57,13 @@ pub fn program(regs: &Regs, rx: &RxRing, ring_phys: u64) -> Result<(), &'static 
         regs.w32(REG_RDT, 0);
         let srrctl = regs.r32(REG_SRRCTL) & !SRRCTL_FIELDS;
         regs.w32(REG_SRRCTL, srrctl | SRRCTL_ONEBUF);
-        regs.w32(REG_RXDCTL, RXDCTL_ON);
     }
+}
+
+pub fn enable(regs: &Regs) -> Result<(), &'static str> {
+    // SAFETY: `regs` carries a valid broker MmioMap base for BAR0 and every
+    // offset is a register inside it (igc_regs.h).
+    unsafe { regs.w32(REG_RXDCTL, RXDCTL_ON) };
     // SAFETY: as above.
     let on = || unsafe { regs.r32(REG_RXDCTL) } & RXDCTL_QUEUE_ENABLE != 0;
     if !until(QUEUE_ENABLE_MS, on) {

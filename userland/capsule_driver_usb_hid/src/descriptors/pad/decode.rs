@@ -64,4 +64,12 @@ impl PadState {
         }
         self.buttons = buttons;
     }
+
+    /// Every button held comes up, told once each; the axes are left.
+    pub fn release(&mut self, mut emit: impl FnMut(PadEvent)) {
+        for n in (0..32).filter(|n| self.buttons >> n & 1 != 0) {
+            emit(PadEvent::Button(n as u16 + 1, false));
+        }
+        self.buttons = 0;
+    }
 }

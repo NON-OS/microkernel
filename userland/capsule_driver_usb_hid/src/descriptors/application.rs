@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! What a HID interface is for, from its report descriptor (HID 1.11,
 //! 6.2.2, as recalled, unverified): the usage page and usage in force at
-//! its first application collection. usb_hid feeds only a pointer to its
-//! tablet decoder (pointer.rs); driver.fido0 takes a key (page F1D0h).
+//! its first application collection. driver.fido0 mounts it to take a key
+//! (page F1D0h); usb_hid reads its interfaces through report/ instead.
 
 const USAGE_PAGE: u8 = 0x04;
 const USAGE: u8 = 0x08;

@@ -56,7 +56,7 @@ pub fn start() -> ! {
         })
     });
     match started {
-        Ok(Started::Playing(driver)) => server::run(driver),
+        Ok(Started::Playing(driver)) => server::run(*driver),
         Ok(Started::Silent(status)) => server::run_status(status),
         Err(code) => {
             if let Some(e) = last {

@@ -7,6 +7,8 @@ extern crate alloc;
 pub mod ncm;
 
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod align_tests;
 #[cfg(test)]
 mod bind_tests;
@@ -21,6 +23,8 @@ mod hostile_chain_tests;
 #[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
+mod input_size_tests;
+#[cfg(test)]
 mod limits_tests;
 #[cfg(test)]
 mod link_tests;
@@ -29,11 +33,11 @@ mod ntb;
 #[cfg(test)]
 mod ntb32_tests;
 #[cfg(test)]
+mod ntb_audit_tests;
+#[cfg(test)]
 mod ntb_sweep;
 #[cfg(test)]
 mod ntb_sweep_tests;
-#[cfg(test)]
-mod ntb_audit_tests;
 #[cfg(test)]
 mod rx_tests;
 #[cfg(test)]

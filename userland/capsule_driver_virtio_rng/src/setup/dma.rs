@@ -14,48 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMA phase: two grants. The queue grant is two contiguous pages
-//! holding the descriptor table, available ring, and used ring;
-//! the buffer grant is one page the descriptor points at. Failure
-//! at any step rolls back every prior grant in reverse order so
-//! the broker never holds a partial setup.
+//! DMA phase: two grants. The ring grant holds the descriptor table, the
+//! available ring and the used ring; the buffer grant is the page the
+//! descriptor points at. A failure leaves the grants made before it in
+//! place: the caller resets the device and releases the claim, and the
+//! broker stops bus mastering before it tears any of them down. Nothing is
+//! unmapped here.
 
-use nonos_libc::{mk_device_release, mk_dma_map, mk_dma_unmap, DmaMapOut, MK_DMA_MAP_COHERENT};
+use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_COHERENT};
+use nonos_virtio::Mmio;
 
-use super::registers::RegisterGrant;
 use crate::constants::{ENTROPY_BUF_LEN, VQ_REGION_SIZE};
 
-pub fn map_queue(
-    device_id: u64,
-    claim_epoch: u64,
-    regs: RegisterGrant,
-) -> Result<DmaMapOut, &'static str> {
-    let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    // The virtqueue is read and written by both sides while it runs: mapped
-    // uncached, so neither needs a cache flush (virtio 1.2, 2.7.13).
-    let r =
-        mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, MK_DMA_MAP_COHERENT, &mut out);
-    if r < 0 {
-        let _ = regs.release();
-        let _ = mk_device_release(device_id);
-        return Err("dma map failed (queue)");
-    }
-    Ok(out)
+#[derive(Clone, Copy)]
+pub struct Grant {
+    /// The driver's view: every access checked against the length asked for.
+    pub view: Mmio,
+    /// What the device is told.
+    pub device_addr: u64,
 }
 
-pub fn map_buffer(
-    device_id: u64,
-    claim_epoch: u64,
-    regs: RegisterGrant,
-    queue_dma: &DmaMapOut,
-) -> Result<DmaMapOut, &'static str> {
+pub struct Grants {
+    pub ring: Grant,
+    pub buf: Grant,
+}
+
+pub fn map_both(device_id: u64, claim_epoch: u64) -> Result<Grants, &'static str> {
+    // The ring is read and written by both sides while it runs: mapped
+    // uncached, so neither needs a cache flush (virtio 1.2, 2.7.13).
+    let coherent = MK_DMA_MAP_COHERENT;
+    Ok(Grants {
+        ring: map(device_id, claim_epoch, VQ_REGION_SIZE, coherent, "dma map failed (queue)")?,
+        buf: map(device_id, claim_epoch, ENTROPY_BUF_LEN, 0, "dma map failed (buffer)")?,
+    })
+}
+
+fn map(
+    id: u64,
+    epoch: u64,
+    len: usize,
+    flags: u32,
+    what: &'static str,
+) -> Result<Grant, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let r = mk_dma_map(device_id, claim_epoch, ENTROPY_BUF_LEN, 0, &mut out);
-    if r < 0 {
-        let _ = mk_dma_unmap(queue_dma.grant_id);
-        let _ = regs.release();
-        let _ = mk_device_release(device_id);
-        return Err("dma map failed (buffer)");
+    let rc = mk_dma_map(id, epoch, len as u64, flags, &mut out);
+    let base = usize::try_from(out.user_va).map_err(|_| what)?;
+    let whole = out.length >= len as u64 && out.device_addr.checked_add(len as u64).is_some();
+    if rc < 0 || base == 0 || out.device_addr == 0 || !whole {
+        return Err(what);
     }
-    Ok(out)
+    // SAFETY: MkDmaMap mapped `out.length` bytes at `user_va`, read and
+    // write, and `len` of them are used. They stay mapped until the claim is
+    // released, and nothing reaches a queue built over them after that.
+    let view = unsafe { Mmio::new(base as *mut u8, len) };
+    Ok(Grant { view, device_addr: out.device_addr })
 }

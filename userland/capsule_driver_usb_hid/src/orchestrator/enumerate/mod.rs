@@ -22,11 +22,12 @@ mod devices;
 mod drop_port;
 mod forget;
 mod read_configuration;
-mod reports;
+mod root_ports;
 mod run;
 mod say_port;
 mod types;
 
 pub use devices::Devices;
+pub use root_ports::RootPorts;
 pub use run::enumerate;
 pub use types::HidEndpoint;

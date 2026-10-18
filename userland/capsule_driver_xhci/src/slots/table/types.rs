@@ -21,6 +21,9 @@ pub(super) const XHCI_SLOT_TABLE_LEN: usize = 256;
 pub struct SlotTable {
     pub(super) allocated: [bool; XHCI_SLOT_TABLE_LEN],
     pub(super) addressed: [bool; XHCI_SLOT_TABLE_LEN],
+    /// The pid of the client that enabled each slot; 0 for none, or for the
+    /// kernel's own requests.
+    pub(super) owner: [u32; XHCI_SLOT_TABLE_LEN],
     pub(super) resources: Vec<SlotResources>,
     pub(super) count: u16,
 }

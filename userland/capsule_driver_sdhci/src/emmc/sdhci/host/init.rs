@@ -28,16 +28,17 @@ use super::super::regs::{
 use super::engine::Host;
 
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
-    /// Reset the whole host and set it up for polled ADMA2: statuses
-    /// latched, no interrupt signalled, longest data timeout, no preset
-    /// values, 3.3 V signaling (1.8 V Signaling Enable clear: only HS200
-    /// and UHS-I need 1.8 V, and neither is used), power and clock off, one
-    /// data line.
+    /// Reset the whole host, seen idle after it (`idle_after_reset`), and set
+    /// it up for polled ADMA2: statuses latched, no interrupt signalled,
+    /// longest data timeout, no preset values, 3.3 V signaling (1.8 V
+    /// Signaling Enable clear: only HS200 and UHS-I need 1.8 V, and neither is
+    /// used), power and clock off, one data line.
     pub fn init(&mut self) -> EmmcResult<()> {
         if let Err(e) = self.reset(RESET_ALL) {
             self.say(Line::new().s(b"host reset did not finish"));
             return Err(e);
         }
+        self.idle_after_reset()?;
         self.caps = Caps {
             caps: self.io.r32(CAPABILITIES),
             caps1: self.io.r32(CAPABILITIES_1),

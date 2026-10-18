@@ -16,10 +16,10 @@
 
 //! Releasing the LPSS reset before anything else is touched.
 //!
-//! init/mod.rs:58-65 states it: "On Skylake and later the wrapper powers up
-//! with the function and iDMA resets asserted, which leaves the core dead.
-//! Writing LPSS_PRIV_RESETS = 0x7 deasserts them. This has to run once,
-//! before the first DesignWare register access in disable()."
+//! init/lpss_init.rs states it: the wrapper holds the function in reset,
+//! which leaves the core dead, and writing the function's two reset bits to
+//! LPSS_PRIV_RESETS releases it. This has to run before the first
+//! DesignWare register access.
 //!
 //! Order is the property, not presence. A deassert that happens after the
 //! core has already been configured leaves those writes to a block still in
@@ -27,12 +27,11 @@
 //! and carrying none of its settings.
 
 use crate::constants::{
-    IC_CON, IC_SS_SCL_HCNT, LPSS_PRIV, LPSS_PRIV_RESETS, LPSS_PRIV_RESETS_DEASSERT,
-    LPSS_PRIV_RESETS_FUNC, LPSS_PRIV_RESETS_IDMA,
+    IC_CON, IC_SS_SCL_HCNT, LPSS_PRIV, LPSS_PRIV_RESETS, LPSS_PRIV_RESETS_FUNC,
 };
 use crate::init::bring_up;
-use crate::model::{live, refusal, stuck_at, SETUP};
-use crate::regs::Regs;
+use crate::model::{live, stuck_at};
+use crate::setup::{refusal, regs, SETUP};
 
 #[test]
 fn the_reset_is_deasserted_before_any_designware_register_is_written() {
@@ -44,9 +43,9 @@ fn the_reset_is_deasserted_before_any_designware_register_is_written() {
      * write. The reset value has to be there and the core registers must not.
      */
     let bar = stuck_at(0x00);
-    refusal(bring_up(Regs::new(bar.base()), SETUP));
+    refusal(bring_up(regs(&bar), SETUP));
 
-    assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_DEASSERT);
+    assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_FUNC);
     assert_eq!(bar.wrote32(IC_CON as usize), 0, "IC_CON written before the deassert");
     assert_eq!(bar.wrote32(IC_SS_SCL_HCNT as usize), 0, "SCL counts written too early");
 }
@@ -58,17 +57,17 @@ fn a_completed_bring_up_still_leaves_the_reset_deasserted() {
      * register again or by mapping another register onto the same offset.
      */
     let bar = live();
-    bring_up(Regs::new(bar.base()), SETUP).expect("bring-up");
-    assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_DEASSERT);
+    bring_up(regs(&bar), SETUP).expect("bring-up");
+    assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_FUNC);
 }
 
 #[test]
-fn the_deassert_value_releases_the_function_and_both_idma_resets() {
+fn the_release_value_is_the_function_bits_and_never_the_dma_bit() {
     /*
-     * Deasserting only the function reset leaves the integrated DMA held,
-     * which the DesignWare core needs out of reset before it will run.
+     * Bits 1:0 hold the function, bit 2 the integrated DMA (dma_tests.rs
+     * names the sources). The DesignWare core runs with the DMA held, and
+     * the DMA released could master the bus.
      */
     assert_eq!(LPSS_PRIV_RESETS, LPSS_PRIV + 0x04);
-    assert_eq!(LPSS_PRIV_RESETS_DEASSERT, 0x7);
-    assert_eq!(LPSS_PRIV_RESETS_DEASSERT, LPSS_PRIV_RESETS_FUNC | LPSS_PRIV_RESETS_IDMA);
+    assert_eq!(LPSS_PRIV_RESETS_FUNC, 0x3);
 }

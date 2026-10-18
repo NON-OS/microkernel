@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! One report to an interrupt OUT endpoint: copied into its buffer, sent
 //! on one Normal TRB, and waited for. A security key reads its requests
-//! here (CTAPHID); a report is at most the endpoint's own packet.
+//! here (CTAPHID); a report is at most the endpoint's own payload.
 
+use super::transfer::bulk::wait::wait_bulk;
 use crate::constants::{CC_SHORT_PACKET, CC_SUCCESS};
-use crate::controller::bulk::wait::wait_bulk;
 use crate::controller::ring_doorbell::ring_doorbell;
 use crate::error::{XhciError, XhciResult};
 use crate::rings::event::{EventRing, IssuedTransfer};
@@ -36,12 +36,12 @@ pub fn interrupt_out(
 ) -> XhciResult<u16> {
     let slot = res.slot_id;
     let ep = res.interrupt_mut(dci).ok_or(XhciError::ControllerUnsupported)?;
-    if !dci.is_multiple_of(2) || data.is_empty() || data.len() > ep.max as usize {
+    if !dci.is_multiple_of(2) || data.is_empty() || data.len() > ep.len as usize {
         return Err(XhciError::ControllerUnsupported);
     }
     let dst = ep.buf.as_mut_ptr::<u8>();
     for (i, &b) in data.iter().enumerate() {
-        // SAFETY: the buffer holds `ep.max` bytes and `i` is below that.
+        // SAFETY: the buffer holds `ep.len` bytes and `i` is below that.
         unsafe { core::ptr::write_volatile(dst.add(i), b) };
     }
     let len = data.len() as u32;
@@ -49,7 +49,10 @@ pub fn interrupt_out(
     ring_doorbell(doorbell_base, slot, dci);
     let event = wait_bulk(intr_base, IssuedTransfer { phys: issued, slot, dci }, evt_ring)?;
     match event.completion_code() {
-        CC_SUCCESS | CC_SHORT_PACKET => Ok((len - (event.d2 & 0x00FF_FFFF).min(len)) as u16),
+        CC_SUCCESS | CC_SHORT_PACKET => {
+            ep.ring.retire();
+            Ok((len - (event.d2 & 0x00FF_FFFF).min(len)) as u16)
+        }
         cc => Err(XhciError::TransferCompletionFailed(cc)),
     }
 }

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Waiting for an isoch batch's last TD. Events of the same endpoint that
-//! are not it are dropped rather than parked: they are the underrun the
-//! stream had when its ring ran dry, or a missed TD, and no waiter will ever
-//! ask for them. Other endpoints' events are parked for their own waiters.
+//! Waiting for an isoch batch's last TD, whose event has a place kept
+//! (`expect_also`). Any other event goes to `park`, which keeps it only for
+//! a TRB armed for it: an underrun the stream had when its ring ran dry,
+//! or a missed TD, names none and is dropped.
 
 use nonos_libc::Deadline;
 
 use crate::constants::TRB_TYPE_TRANSFER_EVENT;
-use crate::controller::park::{park_step, SPIN_BUDGET};
+use crate::controller::park::SPIN_BUDGET;
 use crate::error::{XhciError, XhciResult};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::{EventRing, IssuedTransfer};
@@ -48,7 +48,10 @@ pub(super) fn wait_isoch(
             return Err(XhciError::TransferCompletionTimeout);
         }
         if !evt.has_event() {
-            park_step(spins);
+            if spins > SPIN_BUDGET && evt.controller_failed() {
+                return Err(XhciError::ControllerDead);
+            }
+            evt.irq.park(spins);
             continue;
         }
         let event = evt.current_trb();
@@ -58,10 +61,9 @@ pub(super) fn wait_isoch(
             continue;
         }
         if issued.completed_by(&event) {
+            evt.settle(issued);
             return Ok(event);
         }
-        if event.slot_id() != issued.slot || event.endpoint_id() != issued.dci {
-            evt.park(event);
-        }
+        evt.park(event);
     }
 }

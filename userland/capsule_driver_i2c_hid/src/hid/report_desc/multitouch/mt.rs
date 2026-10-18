@@ -19,8 +19,8 @@
 //! collection keeps the touch layout's path, which reads hybrid reports by
 //! their Contact Identifier.
 
-use super::super::layout::{Field, TouchLayout};
-use super::super::parse::{parse_slots, surface, Surface};
+use super::super::parse::{parse_fingers, Surface};
+use super::super::Field;
 use super::assemble::Assembler;
 use super::frame::{decode_frame, Frame};
 use super::screen::Screen;
@@ -38,14 +38,20 @@ pub struct Multitouch {
 }
 
 impl Multitouch {
-    pub fn new(desc: &[u8], layout: &TouchLayout) -> Multitouch {
-        let (rid, count, button) = (layout.report_id, layout.contact_count, layout.button);
-        let slots = parse_slots(desc, rid);
-        Multitouch { slots, surface: surface(desc), rid, count, button, ..Multitouch::default() }
+    pub fn new(desc: &[u8]) -> Multitouch {
+        let g = parse_fingers(desc);
+        let (slots, surface, rid, count, button) = (g.slots, g.surface, g.rid, g.count, g.button);
+        Multitouch { slots, surface, rid, count, button, ..Multitouch::default() }
     }
 
     pub fn serves(&self) -> bool {
         self.slots.n > 0 && (self.surface == Surface::Screen || self.slots.n >= 2)
+    }
+
+    /// Whether `report` (a report after the i2c-hid length) is the touch
+    /// report this path reads: every report, where the device numbers none.
+    pub fn takes(&self, report: &[u8]) -> bool {
+        self.rid == 0 || report.first() == Some(&self.rid)
     }
 
     /// The frame `report` (a report after the i2c-hid length) completes;
@@ -59,8 +65,13 @@ impl Multitouch {
         self.assembler.push(f)
     }
 
-    /// The first slot's logical maxima, which every slot shares.
+    /// The first slot's position ranges, which every slot shares: logical
+    /// maximum less minimum, as frame.rs counts positions from the minimum.
     pub fn max(&self) -> (i32, i32) {
-        (self.slots.list[0].x.logical_max, self.slots.list[0].y.logical_max)
+        let range = |f: Field| {
+            let r = i64::from(f.logical_max) - i64::from(f.logical_min);
+            r.clamp(0, i64::from(i32::MAX)) as i32
+        };
+        (range(self.slots.list[0].x), range(self.slots.list[0].y))
     }
 }

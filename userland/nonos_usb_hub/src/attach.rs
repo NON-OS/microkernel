@@ -59,5 +59,7 @@ pub fn attach(h: &mut impl Host, slot: u8, place: Place, raw: &[u8]) -> Result<H
         .num(desc.ports_named as u32)
         .text(b" ports, powered")
         .say(h);
-    Ok(Hub::new(slot, place, desc.ports))
+    let mut hub = Hub::new(slot, place, desc.ports);
+    hub.ready_ms = (h.now_ms().max(0) as u64).saturating_add(u64::from(desc.power_on_ms));
+    Ok(hub)
 }

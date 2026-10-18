@@ -17,7 +17,7 @@
 //! A bound RNDIS device as the frame service sees it: frames each way,
 //! and the link as the device last reported it (link_watch.rs).
 
-use nonos_usbnet::{Bus, Nic};
+use nonos_usbnet::{Bus, Nic, Taken};
 
 use super::link::Rndis;
 use super::link_watch::look_at_link;
@@ -25,7 +25,11 @@ use super::transfer::{recv, send};
 
 impl<B: Bus> Nic for Rndis<B> {
     fn mac(&self) -> [u8; 6] {
-        self.mac
+        self.station.0
+    }
+
+    fn taken(&self) -> Taken {
+        self.station.1
     }
 
     /// Up from bind until an INDICATE_STATUS says MEDIA_DISCONNECT.

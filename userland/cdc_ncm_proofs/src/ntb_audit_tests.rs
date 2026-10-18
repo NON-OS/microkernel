@@ -4,6 +4,7 @@
 //! that all arrived and is read no further than its block length, and NTB
 //! parameters no shorter than their own wLength says.
 
+use nonos_usbnet::mock::drawn;
 use std::collections::VecDeque;
 
 use nonos_usbnet::Bind;
@@ -31,7 +32,7 @@ fn an_ntb32_is_read_only_from_a_device_that_offered_it() {
     let offered = |formats| {
         let mut dev = Dev::ncm(0);
         dev.params = ntb_params(formats, 16384, 16384, (4, 0, 4));
-        let Bind::Ours(nic) = bind(dev.bus(), &dev.found()) else { panic!("not bound") };
+        let Bind::Ours(nic) = bind(dev.bus(), &dev.found(), drawn()) else { panic!("not bound") };
         nic.ntb32
     };
     assert_eq!((offered(1), offered(3)), (false, true));

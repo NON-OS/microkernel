@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod abort;
+mod abort_outcome;
+mod cancel;
+mod controller;
 mod crcr_value;
 mod cycle;
 mod enqueue;
 mod state;
+pub use abort_outcome::Abort;
 pub use state::CommandRing;

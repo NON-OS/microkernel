@@ -14,57 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Address Device across several controllers: the port names the
-//! controller, the slot is enabled there, and the reply carries the
-//! multiplexer's slot id and port back.
+//! Address Device, and its routed form for a device below a hub, across
+//! controllers: the root port names the controller, a slot id only
+//! reserved is enabled there (`mux_bind`), and the reply names the slot
+//! and port as the class driver knows them. A routed request is held
+//! against that controller's hubs first (`mux_routed`).
 
-use super::mux::{status, Mux, VSlot};
+use alloc::vec::Vec;
+
+use super::mux::Mux;
 use super::mux_ports::local_port;
+use super::mux_status::status;
 use crate::protocol::{
-    Request, ADDRESS_DEVICE_REQUEST_LEN, E_INVAL, E_IO, OP_ENABLE_SLOT, RESP_HDR_LEN, STATUS_LEN,
+    Request, ADDRESS_DEVICE_REQUEST_LEN, ADDRESS_ROUTED_REQUEST_LEN, E_INVAL, OP_ADDRESS_ROUTED,
+    RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::dispatch::dispatch;
 use crate::server::error::reply_with_status;
 use crate::server::reply::{captured, send};
 
 impl Mux {
-    pub(super) fn address_device(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
-        if body.len() != ADDRESS_DEVICE_REQUEST_LEN {
+    pub(super) fn address(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
+        let routed = req.op == OP_ADDRESS_ROUTED;
+        let want = if routed { ADDRESS_ROUTED_REQUEST_LEN } else { ADDRESS_DEVICE_REQUEST_LEN };
+        if body.len() != want {
             return reply_with_status(tx, req, E_INVAL);
         }
         let (v, port) = (body[0], body[1]);
         let Some((ctrl, lport)) = local_port(&self.ports, port) else {
             return reply_with_status(tx, req, E_INVAL);
         };
-        let slot = match self.vslots[v as usize] {
-            VSlot::Free => return reply_with_status(tx, req, E_INVAL),
-            VSlot::Bound { ctrl: c, slot } if c as usize == ctrl => slot,
-            VSlot::Bound { .. } => return reply_with_status(tx, req, E_INVAL),
-            VSlot::Pending => match self.enable_on(ctrl, req, tx) {
-                Some(slot) => {
-                    self.vslots[v as usize] = VSlot::Bound { ctrl: ctrl as u8, slot };
-                    slot
-                }
-                None => return reply_with_status(tx, req, E_IO),
-            },
+        let local = if routed { self.routed_local(ctrl, lport, body) } else { Ok(Vec::from(body)) };
+        let Ok(mut local) = local else { return reply_with_status(tx, req, E_INVAL) };
+        let slot = match self.bind(v, ctrl, req, tx) {
+            Ok(slot) => slot,
+            Err(e) => return reply_with_status(tx, req, e),
         };
+        (local[0], local[1]) = (slot, lport);
         let ctx = &mut self.ctxs[ctrl];
-        let len = captured(|| dispatch(ctx, req, &[slot, lport], tx));
+        let len = captured(|| dispatch(ctx, req, &local, tx));
         if status(tx, len) == Some(0) && len >= RESP_HDR_LEN + STATUS_LEN + 2 {
             tx[RESP_HDR_LEN + STATUS_LEN] = v;
             tx[RESP_HDR_LEN + STATUS_LEN + 1] = port;
         }
         send(tx.as_ptr(), len);
-    }
-
-    /// Enable a slot on controller `ctrl` through its own handler.
-    pub(super) fn enable_on(&mut self, ctrl: usize, req: &Request, tx: &mut [u8]) -> Option<u8> {
-        let enable = Request { op: OP_ENABLE_SLOT, payload_len: 0, ..*req };
-        let ctx = &mut self.ctxs[ctrl];
-        let len = captured(|| dispatch(ctx, &enable, &[], tx));
-        if status(tx, len) != Some(0) || len <= RESP_HDR_LEN + STATUS_LEN {
-            return None;
-        }
-        Some(tx[RESP_HDR_LEN + STATUS_LEN])
     }
 }

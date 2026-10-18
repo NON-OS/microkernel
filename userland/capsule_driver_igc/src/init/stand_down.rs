@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a failed attempt leaves the part doing before its grants go back:
-//! nothing. A step that fails after the MAC enables (a queue that did not
-//! read back) would otherwise leave a queue able to DMA into ring memory the
-//! broker is about to hand to someone else. Both queues are disabled, both
-//! engines stopped, every cause masked, and bus mastering asked to stop.
+//! What the part is left doing before its grants go back, after a failed
+//! attempt or at any release: nothing. A step that fails after the MAC
+//! enables (a queue that did not read back) would otherwise leave a queue
+//! able to DMA into ring memory the broker is about to hand to someone else.
+//! Both queues are disabled, both engines stopped, every cause masked, and
+//! bus mastering asked to stop; the reset that follows waits for the master
+//! to stop before it lands.
 
 use crate::constants::ctrl::CTRL_GIO_MASTER_DISABLE;
 use crate::constants::regs::{REG_CTRL, REG_IMC, REG_RCTL, REG_RXDCTL, REG_STATUS};

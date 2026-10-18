@@ -17,18 +17,23 @@
 //! Assert PCI Memory Space so the controller's MMIO BAR is decoded.
 //!
 //! Firmware frequently hands off an LPSS I2C controller it never used with
-//! the Memory Space command bit clear. Every MMIO register access then
-//! silently drops, so the LPSS reset and the DesignWare bring-up write into
-//! the void and the touchpad stays dead. Assert Memory Space (and Bus
-//! Master, harmless for this PIO driver) once, right after the claim, before
-//! any BAR access.
+//! the Memory Space command bit clear. Every MMIO access then silently
+//! drops, so the LPSS reset and the DesignWare bring-up write into the void
+//! and the touchpad stays dead. Memory Space is asserted once, right after
+//! the claim, before any BAR access.
+//!
+//! Bus Master is not: every byte moves through the FIFOs by programmed I/O,
+//! the capsule holds no DMA grant, and a function allowed to master the bus
+//! can reach memory wherever no IOMMU confines it. Interrupt Disable is set
+//! because the driver polls and binds no interrupt, so the function cannot
+//! hold a shared INTx line up with a status nobody reads.
 
 use nonos_libc::{
-    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
+    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
 };
 
 pub fn enable(device_id: u64, claim_epoch: u64) -> Result<(), &'static str> {
-    let bits = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
+    let bits = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_INTX_DISABLE;
     if mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, bits) < 0 {
         return Err("i2c-pci: could not enable memory space");
     }

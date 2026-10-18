@@ -19,8 +19,18 @@
 //! modelled register window (`nonos_devmodel`); `nonos_libc` is the shim in
 //! `libc_shim`.
 
+// The server loop allocates its buffers through `alloc`, as in the capsule.
+extern crate alloc;
+
 #[path = "../../capsule_driver_e1000e/src/constants/mod.rs"]
 pub mod constants;
+// Mounted from the driver's src directory, so discover.rs finds its own
+// `support` module beside it, as in the capsule.
+#[path = "../../capsule_driver_e1000e/src"]
+mod discover_dir {
+    pub mod discover;
+}
+pub use discover_dir::discover;
 #[path = "../../capsule_driver_e1000e/src/log/mod.rs"]
 pub mod log;
 #[path = "../../capsule_driver_e1000e/src/phy/mod.rs"]
@@ -29,7 +39,6 @@ pub mod phy;
 pub mod protocol;
 #[path = "../../capsule_driver_e1000e/src/queue/mod.rs"]
 pub mod queue;
-#[path = "../../capsule_driver_e1000e/src/regs.rs"]
 pub mod regs;
 #[path = "../../capsule_driver_e1000e/src/swflag/mod.rs"]
 pub mod swflag;

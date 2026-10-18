@@ -27,6 +27,9 @@ pub struct HidBinding {
     pub endpoint_address: u8,
     pub interval: u8,
     pub max_packet_size: u16,
+    /// The length of the interface's report descriptor, for a binding read
+    /// through one.
+    pub report_len: u16,
 }
 
 impl HidBinding {
@@ -41,7 +44,7 @@ impl HidBinding {
                 _ => return None,
             }
         } else {
-            HidKind::Tablet
+            HidKind::Report
         };
         // An interval of 0 is no polling rate (USB 2.0 9.6.6, as recalled,
         // unverified): such an endpoint is not polled.
@@ -54,6 +57,7 @@ impl HidBinding {
             endpoint_address: ep.address,
             interval: ep.interval,
             max_packet_size: ep.max_packet_size,
+            report_len: iface.report_len,
         })
     }
 }

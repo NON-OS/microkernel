@@ -13,8 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! A device newly connected to a hub port: debounced, reset by the hub,
-//! addressed through its route, and handed to the caller's classes.
+
+//! A device on a hub port whose reset is over (`Bringup`), addressed
+//! through its route and handed to the caller's classes.
 
 use alloc::vec::Vec;
 
@@ -23,12 +24,7 @@ use crate::error::HubError;
 use crate::host::Host;
 use crate::node::Hub;
 use crate::place::Place;
-use crate::reset::reset_port;
 use crate::route::{child_route, child_tt};
-
-/// TATTDB, how long a connection must hold before the port is reset (USB
-/// 2.0 section 7.1.7.3).
-const DEBOUNCE_MS: u64 = 100;
 
 /// The slot kept for the device, or None when nothing on it was kept and
 /// the slot was given back.
@@ -36,18 +32,17 @@ pub(crate) fn attach_child<H: Host>(
     h: &mut H,
     hub: &Hub,
     port: u8,
+    speed: u8,
     hubs: &mut Vec<Hub>,
     classes: &mut impl Classes<H>,
 ) -> Result<Option<u8>, HubError> {
-    h.idle_ms(DEBOUNCE_MS);
-    let st = reset_port(h, hub.slot, port, hub.place.superspeed())?;
     let route = child_route(hub.place.route, hub.place.depth, port).ok_or(HubError::TooDeep)?;
     let place = Place {
         root_port: hub.place.root_port,
         route,
         depth: hub.place.depth + 1,
-        speed: st.speed,
-        tt: child_tt(hub.place.speed, hub.slot, hub.place.tt, port, st.speed),
+        speed,
+        tt: child_tt(hub.place.speed, hub.slot, hub.place.tt, port, speed),
         parent: (hub.slot, port),
     };
     let slot = h.enable_slot().map_err(|_| HubError::NoSlot)?;

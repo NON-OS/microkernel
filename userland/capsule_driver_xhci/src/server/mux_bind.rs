@@ -14,57 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A request that binds a device (slots/binds.rs) weighed against its
-//! standing (slots/authorize.rs). SET_CONFIGURATION is weighed against the
-//! configuration it sets, a pipe or hub against the current one; one not
-//! yet judged is read here, through the same path as a class driver's
-//! read, and judged. Under Allow nothing is read and nothing changes.
-
-use nonos_libc::mk_debug;
+//! Binding one of the multiplexer's slot ids to a controller's slot.
 
 use super::mux::Mux;
-use super::mux_config::config_at;
-use crate::protocol::Request;
-use crate::server::error::reply_with_status;
-use crate::slots::binds::{binds, set_configuration};
-use crate::slots::Standing;
-
-const HELD: &[u8] = b"xhci: a device is held for the owner's answer (OP_USB_HELD)";
-/// Configurations looked through for the one a SET_CONFIGURATION names.
-const CONFIGS: u8 = 8;
+use super::mux_forward::VSlot;
+use super::mux_status::status;
+use crate::protocol::{Request, E_INVAL, E_IO, OP_ENABLE_SLOT, RESP_HDR_LEN, STATUS_LEN};
+use crate::server::dispatch::dispatch;
+use crate::server::reply::{captured, sender};
 
 impl Mux {
-    /// True when the bind was refused and answered.
-    pub(super) fn bind_refused(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) -> bool {
-        let Some(&slot) = body.first().filter(|_| binds(req.op, body)) else { return false };
-        let set = set_configuration(req.op, body);
-        let auth = |m: &mut Mux| match set {
-            Some(v) => m.share.auth.admit_set(slot, v),
-            None => m.share.auth.admit(slot),
-        };
-        if auth(self).is_none() {
-            let (value, config) = match set {
-                Some(v) => (
-                    v,
-                    (0..CONFIGS)
-                        .map_while(|i| config_at(self, req, slot, i, tx))
-                        .find(|c| c.get(5) == Some(&v)),
-                ),
-                None => {
-                    let c = config_at(self, req, slot, 0, tx);
-                    (c.as_ref().and_then(|c| c.get(5).copied()).unwrap_or(0), c)
-                }
-            };
-            if let Standing::Held { .. } = self.share.auth.judge(slot, value, config.as_deref()) {
-                let _ = mk_debug(HELD.as_ptr(), HELD.len());
+    /// Controller `ctrl`'s slot for `v`, enabled there now when the sender
+    /// had only reserved `v`; the status to reply with otherwise. A bound
+    /// slot's owner is held by its controller (`dispatch`).
+    pub(super) fn bind(
+        &mut self,
+        v: u8,
+        ctrl: usize,
+        req: &Request,
+        tx: &mut [u8],
+    ) -> Result<u8, i32> {
+        match self.vslots[v as usize] {
+            VSlot::Bound { ctrl: c, slot } if c as usize == ctrl => Ok(slot),
+            VSlot::Free | VSlot::Bound { .. } => Err(E_INVAL),
+            VSlot::Pending { owner } if owner != sender() => Err(E_INVAL),
+            VSlot::Pending { .. } => {
+                let slot = self.enable_on(ctrl, req, tx).ok_or(E_IO)?;
+                // The Enable Slot may have revived the controller first: the
+                // ids bound to it before go now, so the next request does not
+                // take this binding, made on the revived controller, as stale.
+                self.forget_revived();
+                self.vslots[v as usize] = VSlot::Bound { ctrl: ctrl as u8, slot };
+                Ok(slot)
             }
         }
-        match auth(self) {
-            Some(Err(e)) => {
-                reply_with_status(tx, req, e);
-                true
-            }
-            _ => false,
+    }
+
+    /// Enable a slot on controller `ctrl` through its own handler.
+    fn enable_on(&mut self, ctrl: usize, req: &Request, tx: &mut [u8]) -> Option<u8> {
+        let enable = Request { op: OP_ENABLE_SLOT, payload_len: 0, ..*req };
+        let ctx = &mut self.ctxs[ctrl];
+        let len = captured(|| dispatch(ctx, &enable, &[], tx));
+        if status(tx, len) != Some(0) || len <= RESP_HDR_LEN + STATUS_LEN {
+            return None;
         }
+        Some(tx[RESP_HDR_LEN + STATUS_LEN])
     }
 }

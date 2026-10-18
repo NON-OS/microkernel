@@ -41,7 +41,8 @@ impl Mux {
     }
 
     fn claim(&mut self, req: &Request, s: u8, port: u8, tx: &mut [u8]) {
-        if !self.fresh(s) {
+        // A virtual port nothing was ever parked on names no port at all.
+        if !self.fresh(s) || self.virt.at(port).is_none() {
             return reply_with_status(tx, req, E_INVAL);
         }
         match self.virt.claim(port, s) {

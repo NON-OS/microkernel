@@ -14,25 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How much one interrupt read may ask: one packet as the endpoint
-//! descriptor's wMaxPacketSize gives it, at most 64 octets, so a HID boot
-//! report stays at 8 and an HCI event endpoint reads its 16 or 64.
+//! How much one interrupt read takes: the endpoint's whole payload per
+//! interval, so a HID boot report stays at 8 and an HCI event endpoint
+//! reads its 16 or 64; the high-bandwidth bits of wMaxPacketSize count
+//! extra packets at high speed, never bytes, and are not read below it.
 
 use super::bluetooth_tests::EVENT_PACKET;
-use crate::protocol::INTERRUPT_IN_MAX;
-use crate::slots::interrupt_limit;
+use crate::contexts::{interrupt_payload, SPEED_FULL, SPEED_HIGH};
+use crate::protocol::INTERRUPT_PAYLOAD_MAX;
 
 #[test]
-fn an_interrupt_read_is_one_packet_and_never_past_64() {
-    assert_eq!(INTERRUPT_IN_MAX, 64);
-    assert_eq!(interrupt_limit(8), 8, "a HID boot report stays 8");
-    assert_eq!(interrupt_limit(EVENT_PACKET), 16);
-    assert_eq!(interrupt_limit(64), 64);
-    assert_eq!(interrupt_limit(1023), 64);
+fn an_interrupt_read_is_the_endpoints_payload_and_never_past_its_bound() {
+    let esit = |speed, mps| interrupt_payload(speed, false, mps, 0).map(|p| p.esit);
+    assert_eq!(esit(SPEED_FULL, 8), Some(8), "a HID boot report stays 8");
+    assert_eq!(esit(SPEED_FULL, EVENT_PACKET), Some(16));
+    assert_eq!(esit(SPEED_FULL, 64), Some(64));
     // Bits 12:11 count extra transactions per microframe, not bytes.
-    assert_eq!(interrupt_limit(0x1800 | 16), 16);
+    assert_eq!(esit(SPEED_FULL, 0x1800 | 16), Some(16), "not read below high speed");
+    assert_eq!(esit(SPEED_HIGH, 0x0800 | 16), Some(32), "one more packet");
     for mps in 0..=u16::MAX {
-        assert!(interrupt_limit(mps) as usize <= INTERRUPT_IN_MAX);
-        assert!(interrupt_limit(mps) <= mps & 0x7FF);
+        for speed in [SPEED_FULL, SPEED_HIGH] {
+            if let Some(n) = esit(speed, mps) {
+                assert!(n <= INTERRUPT_PAYLOAD_MAX, "{mps:#x}");
+                assert!(n >= mps & 0x7FF && n != 0, "{mps:#x}");
+            }
+        }
     }
 }

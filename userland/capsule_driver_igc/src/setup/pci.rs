@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! PCI phase, as rtl8169 setup/pci.rs: one write to the Command register
-//! under the claim. A refusal releases the claim so the broker is clean.
+//! One write to the Command register under the claim (see `pci_command`).
 
-use nonos_libc::{mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND};
-
-use crate::discover::Found;
+use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND};
 
 use super::pci_command::command_value;
 
-pub fn enable(dev: Found, claim_epoch: u64) -> Result<(), &'static str> {
-    let command = command_value(dev.command_bits);
-    let r = mk_pci_config_write(dev.device_id, claim_epoch, MK_PCI_CFG_COMMAND, command);
-    if r < 0 {
-        let _ = mk_device_release(dev.device_id);
-        return Err("PCI command write (bus master, memory space) refused");
+pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
+    let value = command_value(bus_master);
+    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+        return Err(if bus_master {
+            "PCI command write (bus master) refused"
+        } else {
+            "PCI command write (memory space) refused"
+        });
     }
     Ok(())
 }

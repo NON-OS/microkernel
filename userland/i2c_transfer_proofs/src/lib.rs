@@ -22,7 +22,7 @@
 //! register is what clears the abort. Memory cannot see a read.
 //!
 //! So this crate swaps one file. Every `#[path]` below is the shipping driver;
-//! `regs` alone is not, and it forwards each access to a DesignWare core
+//! `regs` alone is not (nor `gpio0`'s look, which no gpio0 answers here), and it forwards each access to a DesignWare core
 //! modelled from the databook (`nonos_i2cmodel`), with a HID touchpad on the
 //! bus behind it. The engine, the probe and the IPC handler are then run
 //! exactly as they ship, and what the proofs read is the wire.
@@ -31,10 +31,9 @@ extern crate alloc;
 
 #[path = "../../capsule_driver_i2c_pci/src/constants/mod.rs"]
 pub mod constants;
+pub mod discover;
 #[path = "../../capsule_driver_i2c_pci/src/driver.rs"]
 pub mod driver;
-/// The Doorbell type driver.rs names; nothing here asks gpio0.
-#[path = "../../capsule_driver_i2c_pci/src/gpio0/wire.rs"]
 pub mod gpio0;
 #[path = "../../capsule_driver_i2c_pci/src/init/mod.rs"]
 pub mod init;
@@ -46,6 +45,7 @@ pub mod transaction;
 pub mod bench;
 pub mod regs;
 pub mod server;
+pub mod setup;
 
 #[cfg(test)]
 mod tests;

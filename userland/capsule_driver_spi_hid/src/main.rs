@@ -39,9 +39,9 @@ mod run;
 mod setup;
 mod shape;
 mod spi;
-// Shared with HID over I2C: its bus address and register fields go unread.
+// The state HID over I2C kept before its own moved to its reset recovery and
+// interrupt pacing; its bus address and register fields go unread here.
 #[allow(dead_code)]
-#[path = "../../capsule_driver_i2c_hid/src/state/mod.rs"]
 mod state;
 
 use nonos_libc::{heap_init, mk_exit, say_absent, EXIT_ABSENT};

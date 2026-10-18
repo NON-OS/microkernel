@@ -21,7 +21,7 @@
 
 use nonos_virtio::{Mmio, VirtioError};
 
-use crate::modern::capacity::read;
+use crate::setup::modern::capacity::read;
 
 #[repr(align(4096))]
 struct Page([u8; 4096]);

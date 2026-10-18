@@ -16,9 +16,9 @@
 
 mod cycle;
 mod multitouch;
+mod pointer;
 mod read_frame;
 mod repeat;
-mod signal_raw_report;
-mod touch_frame;
+mod report;
 
 pub use cycle::poll;

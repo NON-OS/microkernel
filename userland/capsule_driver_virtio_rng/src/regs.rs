@@ -21,6 +21,8 @@
 
 mod io;
 mod pio;
+mod read;
 mod state;
+mod write;
 
 pub use self::state::Regs;

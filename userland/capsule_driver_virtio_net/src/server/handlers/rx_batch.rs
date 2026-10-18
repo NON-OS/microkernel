@@ -22,23 +22,13 @@
 //! final, and a reply that reached a caller that had stopped waiting used to
 //! lose them.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-
 use crate::constants::Q_RX;
 use crate::protocol::{Request, E_AGAIN, E_INVAL};
 use crate::server::error::reply_with_status;
 use crate::server::handlers::rx_fill::fill;
+use crate::server::handlers::rx_kept::{forget, Kept};
 use crate::server::handlers::rx_send::send;
 use crate::setup::Driver;
-
-/// The last batch handed out, and to whom, kept until its number moves on.
-pub struct Kept {
-    pub pid: u32,
-    pub seq: u32,
-    pub body: Vec<u8>,
-}
 
 pub fn handle(
     pid: u32,
@@ -48,6 +38,9 @@ pub fn handle(
     kept: &mut Option<Kept>,
     tx: &mut [u8],
 ) -> bool {
+    // net.core polls every cycle, sending or not: sent frames are taken
+    // back and wiped here too, never left in DMA memory until a send (C8).
+    driver.tx.reclaim();
     /* An empty request only asks whether batches are served. */
     if body.is_empty() {
         return send(pid, req, &0u32.to_le_bytes());
@@ -58,10 +51,10 @@ pub fn handle(
     if let Some(k) = kept.as_ref().filter(|k| k.pid == pid && k.seq == seq) {
         return send(pid, req, &k.body);
     }
-    let batch = unsafe { fill(&mut driver.rx) };
+    let batch = fill(&mut driver.rx);
     driver.transport.notify(Q_RX);
+    forget(kept);
     let Some(batch) = batch else {
-        *kept = None;
         return reply_with_status(pid, tx, req, E_AGAIN);
     };
     let sent = send(pid, req, &batch);

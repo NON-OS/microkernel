@@ -38,6 +38,9 @@ pub(super) fn card<M: Mmio, C: Clock, L: Log>(
         if let Some(card) = sd::bring_up(h)? {
             return Ok(card);
         }
+        // The SD probe left the host powered and clocked for SD: MMC starts
+        // from a reset host, as from `EmmcDisk::reset`.
+        h.init()?;
     }
     mmc::bring_up(h, data)
 }

@@ -21,7 +21,8 @@
 pub struct Counts {
     /// Transfers shorter than an Ethernet header.
     pub runts: u32,
-    /// Frames longer than 1514 bytes, cut to 1514.
+    /// Transfers longer than a frame and its padding byte (two frames run
+    /// together, or junk), dropped rather than cut.
     pub cut: u32,
     /// Transfers that filled the receive buffer without ending, let go to
     /// their end.

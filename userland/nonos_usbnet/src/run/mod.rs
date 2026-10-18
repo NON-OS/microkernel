@@ -24,4 +24,4 @@ mod serve;
 
 pub use bind_fn::BindFn;
 pub use me::own_pid;
-pub use serve::run;
+pub use serve::{run, LOST_AFTER};

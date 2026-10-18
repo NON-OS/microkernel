@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The failure reasons and the statuses a failed request answers.
+//! The reason a failed bring-up reports, and the status a failed request
+//! answers.
 
 use crate::emmc::error::{reason, EmmcError};
 
@@ -26,6 +27,7 @@ fn every_failure_has_its_own_reason() {
         EmmcError::NotEmbedded,
         EmmcError::NoAdma,
         EmmcError::HostReset,
+        EmmcError::HostBusy,
         EmmcError::ClockUnstable,
         EmmcError::NoPower,
         EmmcError::NoVoltage,

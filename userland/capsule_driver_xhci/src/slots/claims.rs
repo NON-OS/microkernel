@@ -64,6 +64,11 @@ impl Claims {
         self.list.iter().any(|c| c.slot == slot && c.pid == pid)
     }
 
+    /// Whether a driver `alive` says still runs holds an interface of `slot`.
+    pub fn held_live(&self, slot: u8, alive: impl Fn(u32) -> bool) -> bool {
+        self.list.iter().any(|c| c.slot == slot && alive(c.pid))
+    }
+
     /// The shared slot on `port` and its claimed interfaces (0 to 31).
     pub fn on_port(&self, port: u8) -> Option<(u8, u32)> {
         let slot = self.list.iter().find(|c| c.port == port)?.slot;

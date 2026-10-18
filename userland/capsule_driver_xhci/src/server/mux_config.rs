@@ -21,9 +21,9 @@
 use alloc::vec::Vec;
 
 use super::mux::{status, Mux};
-use crate::controller::CONFIG_DESCRIPTOR_MAX;
 use crate::protocol::{
-    Request, CONTROL_TRANSFER_REPLY_PREFIX, OP_CONTROL_TRANSFER, RESP_HDR_LEN, STATUS_LEN,
+    Request, CONTROL_DATA_MAX, CONTROL_TRANSFER_REPLY_PREFIX, OP_CONTROL_TRANSFER, RESP_HDR_LEN,
+    STATUS_LEN,
 };
 use crate::server::reply::captured;
 
@@ -35,7 +35,7 @@ pub(super) fn config_at(
     index: u8,
     tx: &mut [u8],
 ) -> Option<Vec<u8>> {
-    let [lo, hi] = CONFIG_DESCRIPTOR_MAX.to_le_bytes();
+    let [lo, hi] = CONTROL_DATA_MAX.to_le_bytes();
     let body = [slot, 0, 0x80, 0x06, index, 0x02, 0, 0, lo, hi];
     let read = Request { op: OP_CONTROL_TRANSFER, payload_len: body.len() as u32, ..*req };
     let len = captured(|| m.inner(&read, &body, tx));

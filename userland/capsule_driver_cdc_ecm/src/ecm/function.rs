@@ -28,7 +28,8 @@ use super::union::union_slave;
 
 const SUBCLASS_ECM: u8 = 0x06;
 /// The Ethernet Networking descriptor: subtype 0Fh, 13 bytes through
-/// bNumberPowerFilters; iMACAddress at 3, wMaxSegmentSize at 8.
+/// bNumberPowerFilters; wMaxSegmentSize at 8. Its iMACAddress (at 3) is
+/// never read, but a function without the whole descriptor is not ECM.
 const ETHERNET: u8 = 0x0F;
 const ETHERNET_LEN: usize = 13;
 
@@ -38,8 +39,6 @@ pub struct EcmFunction {
     pub data: u8,
     pub data_alt: u8,
     pub pipes: Pipes,
-    /// iMACAddress: the string descriptor index of the station address.
-    pub mac_index: u8,
     /// wMaxSegmentSize as the device gives it; segment.rs judges it.
     pub max_segment: u16,
     /// The notification endpoint, when the interface has one.
@@ -57,7 +56,6 @@ pub fn find_ecm(raw: &[u8]) -> Option<EcmFunction> {
             data,
             data_alt: DATA_ON,
             pipes: bulk_alt(raw, data, &ifs)?,
-            mac_index: eth[3],
             max_segment: u16::from_le_bytes([eth[8], eth[9]]),
             notify: notify_ep(raw, c.number),
         })

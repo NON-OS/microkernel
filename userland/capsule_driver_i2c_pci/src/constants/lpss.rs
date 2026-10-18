@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 // Intel LPSS wrapper (Skylake and later; the PCH datasheets' LPSS chapter,
 // as recalled, unverified). The DesignWare core sits at 0x000..0x100; the
-// LPSS private register block is at offset 0x200 inside the same MMIO BAR. Out of reset the LPSS holds the
-// DesignWare core asserted, so the RESETS register must be deasserted before
-// any core register is touched or every access returns garbage.
+// LPSS private register block is at offset 0x200 inside the same MMIO BAR.
+// Out of reset the LPSS holds the DesignWare core asserted, so the RESETS
+// register must be deasserted before any core register is touched or every
+// access returns garbage.
 pub const LPSS_PRIV: u64 = 0x200;
 pub const LPSS_PRIV_RESETS: u64 = LPSS_PRIV + 0x04;
-// Bit 2 (FUNC) releases the function reset; bits 1:0 (IDMA) release the
-// integrated DMA reset. Writing 0x7 deasserts all three; writing 0 asserts
-// them. This matches intel_lpss_deassert_reset().
-pub const LPSS_PRIV_RESETS_FUNC: u32 = 1 << 2;
-pub const LPSS_PRIV_RESETS_IDMA: u32 = 0x3;
-pub const LPSS_PRIV_RESETS_DEASSERT: u32 = LPSS_PRIV_RESETS_FUNC | LPSS_PRIV_RESETS_IDMA;
-// Intel LPSS private registers beyond the reset (intel_lpss_init_dev and
-// intel_lpss_set_remap_addr): the 64-bit remap address the integrated DMA
+// Bits 1:0 release the function (RESETS_FUNC and RESETS_APB in the LPSS
+// chapter, as recalled, unverified); bit 2 releases the integrated DMA
+// engine. Writing 0 asserts all three. This driver moves every byte by
+// programmed I/O, so the DMA engine, which could otherwise master the bus
+// from the same window, stays held.
+pub const LPSS_PRIV_RESETS_FUNC: u32 = 0x3;
+// Intel LPSS private registers beyond the reset (the LPSS chapter, as
+// recalled, unverified): the 64-bit remap address the integrated DMA
 // uses for the function's MMIO window, written low then high, and the
 // capabilities word whose type field tells I2C (0) from UART (1) and SPI (2).
 pub const LPSS_PRIV_REMAP_LO: u64 = LPSS_PRIV + 0x40;

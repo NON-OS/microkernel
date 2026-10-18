@@ -17,6 +17,7 @@
 //! The client side of driver.xhci0: find the ports, address a device, and
 //! move its traffic over endpoint 0 and its bulk pipes.
 
+mod budget;
 mod bulk;
 mod call;
 mod claims;
@@ -24,6 +25,7 @@ mod control;
 mod interrupt;
 mod interrupt_out;
 mod lookup;
+mod pipe;
 mod port;
 mod read_shared;
 mod slot;
@@ -32,6 +34,7 @@ mod usb_hosts;
 mod wire;
 mod xhci_bus;
 
+pub use budget::{bind_budget, BIND_MS};
 pub use call::call;
 pub use claims::{claim_interface, slot_of_port};
 pub use lookup::{host, hosts};

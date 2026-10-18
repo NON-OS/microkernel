@@ -28,15 +28,23 @@
 
 extern crate alloc;
 
+pub mod address;
+pub mod bip_gmac;
 pub mod ccmp;
 pub mod dot11;
 pub mod eapol;
 pub mod frame;
+pub mod gcmp;
 pub mod key;
 pub mod mlme;
 pub mod netif;
+pub mod pmf;
+pub mod pmksa;
+pub mod regdom;
 pub mod rsn;
 pub mod sae;
 pub mod scan_list;
+pub mod softmac;
 pub mod station;
+pub mod vault;
 pub mod wpa;

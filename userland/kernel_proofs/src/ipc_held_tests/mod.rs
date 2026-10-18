@@ -29,6 +29,7 @@ mod nics;
 #[path = "../../../../src/services/registry/usb_hosts.rs"]
 mod usb_hosts;
 
+mod bluetooth;
 mod card_names;
 mod card_readers;
 mod cards;

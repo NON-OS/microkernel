@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{TRB_TYPE_CMD_COMPLETION_EVENT, TRB_TYPE_TRANSFER_EVENT};
+use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::EventRing;
 use crate::trb::Trb;
@@ -41,6 +41,12 @@ pub fn drain_events(intr_base: u64, ring: &mut EventRing) -> DrainBatch {
     erdp_program(intr_base, ring.current_dequeue_phys(), true, 0);
     batch
 }
+/// Only a transfer event can still have a waiter here: an interrupt-IN TRB
+/// an earlier poll armed. No command is in flight between requests, since
+/// each runs to its completion, or is given up, inside the request that
+/// issued it; a Command Completion Event here is nobody's (a late answer to
+/// a command that timed out) and is consumed with the rest, so it cannot
+/// hold every report behind it.
 fn reserved_for_waiter(trb_type: u32) -> bool {
-    trb_type == TRB_TYPE_TRANSFER_EVENT || trb_type == TRB_TYPE_CMD_COMPLETION_EVENT
+    trb_type == TRB_TYPE_TRANSFER_EVENT
 }

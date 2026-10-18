@@ -21,6 +21,7 @@
 /// CDC ECM 1.2, 6.2.4; an NCM function takes it too (NCM 1.0, table 6-2).
 pub const SET_ETHERNET_PACKET_FILTER: u8 = 0x43;
 pub const GET_NTB_PARAMETERS: u8 = 0x80;
+pub const SET_NET_ADDRESS: u8 = 0x82;
 pub const SET_NTB_FORMAT: u8 = 0x84;
 pub const SET_NTB_INPUT_SIZE: u8 = 0x86;
 pub const GET_MAX_DATAGRAM_SIZE: u8 = 0x87;
@@ -34,11 +35,14 @@ pub const CRC_NOT_APPENDED: u16 = 0x0000;
 
 /// bmNetworkCapabilities of the NCM functional descriptor (NCM 1.0,
 /// 5.2.1, table 5-2).
+pub const CAP_NET_ADDRESS: u8 = 1 << 1;
 pub const CAP_MAX_DATAGRAM_SIZE: u8 = 1 << 3;
 pub const CAP_CRC_MODE: u8 = 1 << 4;
 /// The device takes the 8-byte form of SET_NTB_INPUT_SIZE.
 pub const CAP_NTB_INPUT_SIZE_8: u8 = 1 << 5;
 
 /// The packet filter: directed, broadcast and all multicast (CDC ECM 1.2,
-/// table 8), what the stack receives; never promiscuous.
+/// table 8), what the stack receives, and the bit that opens it to every
+/// frame for a device that did not take the drawn address.
 pub const FILTER: u16 = 0x0004 | 0x0008 | 0x0002;
+pub const PROMISCUOUS: u16 = 0x0001;

@@ -16,14 +16,10 @@
 
 pub const STATUS_LEN: usize = 4;
 pub const CONFIG_DESCRIPTOR_MAX: usize = 512;
+/// One control transfer's data, the most of a report descriptor read.
+pub const REPORT_DESCRIPTOR_MAX: usize = 512;
 pub const IPC_PAYLOAD_MAX: usize = 768;
 pub const HID_BINDING_WIRE_LEN: usize = 8;
 pub const MAX_HID_BINDINGS: usize = 8;
 pub const KEY_REPORT_LEN: usize = 8;
 pub const MOUSE_REPORT_MIN: usize = 3;
-pub const MOUSE_REPORT_MAX: usize = 4;
-/// Buttons, then X and Y as 16-bit positions; the wheel byte is optional.
-pub const TABLET_REPORT_MIN: usize = 5;
-pub const MAX_EVENTS: usize = 16;
-pub const KEY_EVENT_WIRE_LEN: usize = 8;
-pub const MOUSE_EVENT_WIRE_LEN: usize = 8;

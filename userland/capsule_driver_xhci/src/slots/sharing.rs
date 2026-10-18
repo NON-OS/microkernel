@@ -28,3 +28,15 @@ pub struct Sharing {
     /// Which devices may be bound (authorize.rs).
     pub auth: Authority,
 }
+
+impl Sharing {
+    /// Slot id `slot` names nothing now (its controller was revived): its
+    /// claims, pipes, holder and standing go, so a device the id is given to
+    /// next starts with none of them.
+    pub fn forget(&mut self, slot: u8) {
+        self.claims.list.retain(|c| c.slot != slot);
+        self.owners.forget(slot);
+        self.holders.forget(slot);
+        self.auth.forget(slot);
+    }
+}

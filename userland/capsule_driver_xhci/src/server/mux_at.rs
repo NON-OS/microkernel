@@ -14,21 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The slot ids the multiplexer gives out, and the controller behind one,
-//! with one controller or several.
+//! The controller behind one of the multiplexer's slot ids, with one
+//! controller or several.
 
-use super::mux::Mux;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub(super) enum VSlot {
-    Free,
-    /// Reserved by Enable Slot, no controller yet.
-    Pending,
-    Bound {
-        ctrl: u8,
-        slot: u8,
-    },
-}
+use super::mux::{Mux, VSlot};
 
 impl Mux {
     /// The controller and its own slot behind slot id `s`.
@@ -51,7 +40,7 @@ impl Mux {
     /// Whether slot id `s` is enabled and not yet addressed.
     pub(super) fn fresh(&self, s: u8) -> bool {
         if self.ctxs.len() > 1 {
-            return self.vslots[s as usize] == VSlot::Pending;
+            return matches!(self.vslots[s as usize], VSlot::Pending { .. });
         }
         let d = &self.ctxs[0].driver;
         d.slots.is_allocated(s, d.layout.max_slots) && !d.slots.is_addressed(s, d.layout.max_slots)

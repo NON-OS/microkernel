@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Shared with HID over I2C, whose reset recovery lets a held click go
+// (button_held); no reset here leaves one held.
+#[allow(dead_code)]
 #[path = "../../../capsule_driver_i2c_hid/src/input/gesture/mod.rs"]
 pub mod gesture;
-#[path = "../../../capsule_driver_i2c_hid/src/input/parse_report.rs"]
 pub mod parse_report;
 mod poll;
 #[path = "../../../capsule_driver_i2c_hid/src/input/post.rs"]

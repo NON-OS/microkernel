@@ -17,6 +17,7 @@
 //! The three target fields, and each feature report that holds one of them
 //! configured once.
 
+use super::configured::Configured;
 use super::one_report::configure_one_report;
 use super::port::FeaturePort;
 use crate::hid::TouchLayout;
@@ -30,16 +31,18 @@ use crate::hid::TouchLayout;
 const INPUT_MODE_TOUCHPAD: u32 = 3;
 const SWITCH_ON: u32 = 1;
 
+/// Where the Input Mode target sits among the three.
+pub(super) const MODE: usize = 0;
+
 /// Drive input mode to touchpad and both reporting switches on, touching only
-/// feature reports that need a change. Returns true when the configuration
-/// is known good (already correct, or corrected).
-pub fn configure_reporting(port: &impl FeaturePort, layout: &TouchLayout) -> bool {
+/// feature reports that need a change.
+pub fn configure_reporting(port: &impl FeaturePort, layout: &TouchLayout) -> Configured {
     let targets = [
         (layout.input_mode, layout.input_mode_report_id, INPUT_MODE_TOUCHPAD),
         (layout.surface_switch, layout.surface_switch_report_id, SWITCH_ON),
         (layout.button_switch, layout.button_switch_report_id, SWITCH_ON),
     ];
-    let mut all_ok = true;
+    let mut c = Configured::default();
     let mut done_ids = [0u8; 3];
     let mut done = 0usize;
     for (_, id, _) in targets.iter() {
@@ -50,7 +53,9 @@ pub fn configure_reporting(port: &impl FeaturePort, layout: &TouchLayout) -> boo
         }
         done_ids[done] = id;
         done += 1;
-        all_ok &= configure_one_report(port, id, &targets);
+        if configure_one_report(port, id, &targets, &mut c).is_none() {
+            c.mode_unwritable |= id == layout.input_mode_report_id;
+        }
     }
-    all_ok
+    c
 }

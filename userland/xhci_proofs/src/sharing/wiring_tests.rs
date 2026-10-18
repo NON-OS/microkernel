@@ -4,7 +4,7 @@
 //! holder, and the claim, the give-back and every other request reach the
 //! gate before any handler or the slot's controller.
 
-const FORWARD: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_forward.rs");
+const FORWARD: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_entry.rs");
 const ENABLE: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_enable.rs");
 const CLAIMS: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_claims.rs");
 const POLICE: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_police.rs");

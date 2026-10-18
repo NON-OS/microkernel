@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The driver tree as the capsule builds it, without `platform`.
+//! The driver tree as the capsule builds it. Its `platform`, the broker glue,
+//! is the capsule's own over the stand-in nonos_libc, but for the device list
+//! and the register window, which reach the model host.
 
 #[path = "../../../capsule_driver_sdhci/src/emmc/disk/mod.rs"]
 pub mod disk;
@@ -28,6 +30,8 @@ pub mod info;
 pub mod mmc;
 #[path = "../../../capsule_driver_sdhci/src/emmc/pci/mod.rs"]
 pub mod pci;
+#[cfg(test)]
+pub mod platform;
 #[path = "../../../capsule_driver_sdhci/src/emmc/sd/mod.rs"]
 pub mod sd;
 #[path = "../../../capsule_driver_sdhci/src/emmc/sdhci/mod.rs"]

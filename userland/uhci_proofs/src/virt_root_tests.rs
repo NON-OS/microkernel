@@ -4,8 +4,9 @@
 //! for the class drivers, and a hub leaving its root port taking every
 //! child along, a claimed one reaching its claimant as a detach.
 
-use nonos_usb_hub::{roots, scan_hubs, Hub, Parker, Root};
+use nonos_usb_hub::{roots, Hub, Parker, Root};
 
+use crate::hub_fixture::settle;
 use crate::hub_lane::Lane;
 use crate::hub_seen::hub_dev;
 use crate::model::hub::HubModel;
@@ -25,7 +26,7 @@ fn pass(f: &mut Front<Cx>, hubs: &mut Vec<Hub>, tried: &mut [u8; 256]) {
     let (root, _) = listed(f);
     let mut lane = Lane { cx: f, lines: vec![] };
     roots(&mut lane, &root, hubs, tried);
-    scan_hubs(&mut lane, hubs, &mut Parker);
+    settle(&mut lane, hubs, &mut Parker);
 }
 
 #[test]

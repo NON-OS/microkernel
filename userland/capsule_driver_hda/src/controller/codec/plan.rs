@@ -14,24 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which outputs of a codec this driver drives, and how.
-//!
-//! Every pin the board's pin configuration names as a speaker, headphone or
-//! line out, and that can drive output, gets a path: speakers first, then
-//! headphones, then line outs, each group in the association and sequence
-//! order Linux sorts by. All of them play the one stream; switching between
-//! speaker and headphone is the jack's job (`jack`). A codec with output
-//! pins that are all HDMI or DisplayPort is a display codec, and one with
-//! none this driver can route has no usable output.
+//! What a codec plays through: the outputs this driver drives, each with
+//! its route to a DAC, as `assign` chose them, or why there are none.
 
-use super::path::{find, Path, MAX_DEPTH};
+pub use super::assign::plan;
+use super::path::Path;
 use super::pincfg::OutKind;
-use super::widget::Codec;
-use crate::constants::{PINCAP_OUT, PINCAP_PRES_DETECT, WIDGET_TYPE_PIN};
 
 pub const MAX_OUTPUTS: usize = 6;
-
-const EMPTY: Path = Path { nodes: [0; MAX_DEPTH], sel: [0; MAX_DEPTH], len: 0 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Output {
@@ -75,52 +65,7 @@ pub enum Class {
     DigitalOnly,
     /// Nothing this driver can play through.
     NoOutput,
-}
-
-pub fn plan(codec: &Codec) -> Class {
-    let mut plan = Plan { outputs: [None; MAX_OUTPUTS] };
-    let mut paths = [EMPTY; MAX_OUTPUTS];
-    let mut n = 0usize;
-    for kind in [OutKind::Speaker, OutKind::Headphone, OutKind::LineOut] {
-        let mut pins = [(0u8, 0u8); 16];
-        let mut k = 0usize;
-        for w in codec.all() {
-            if k < pins.len()
-                && w.ty() == WIDGET_TYPE_PIN
-                && w.pin_caps & PINCAP_OUT != 0
-                && !w.is_digital()
-                && w.pin_cfg.out_kind() == Some(kind)
-            {
-                pins[k] = (w.pin_cfg.order(), w.nid);
-                k += 1;
-            }
-        }
-        pins[..k].sort_unstable();
-        for &(_, pin) in &pins[..k] {
-            if n >= MAX_OUTPUTS {
-                break;
-            }
-            let Some(path) = find(codec, pin, &paths[..n]) else { continue };
-            let w = codec.get(pin).map(|w| (w.pin_caps, w.pin_cfg));
-            let senses = w.is_some_and(|(caps, cfg)| {
-                caps & PINCAP_PRES_DETECT != 0 && cfg.is_jack() && !cfg.presence_overridden()
-            });
-            paths[n] = path;
-            plan.outputs[n] = Some(Output { kind, path, senses });
-            n += 1;
-        }
-    }
-    if n > 0 {
-        return Class::Analog(plan);
-    }
-    // A display codec's unused ports are marked not connected, so it is
-    // known by its pins: output pins, every one of them HDMI or DisplayPort.
-    // An analog codec's S/PDIF pin does not make it one.
-    let outs = || codec.all().iter().filter(|w| w.ty() == WIDGET_TYPE_PIN && w.pin_caps & PINCAP_OUT != 0);
-    let digital = outs().any(|w| w.is_digital()) && outs().all(|w| w.is_digital());
-    if digital {
-        Class::DigitalOnly
-    } else {
-        Class::NoOutput
-    }
+    /// No output routed, and the search ran out its budget on a pin: a
+    /// graph no real codec reports, given up on rather than searched on.
+    OverBudget,
 }

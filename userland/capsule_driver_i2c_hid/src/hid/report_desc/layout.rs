@@ -15,25 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The fields a touchpad input report exposes, located by parsing the HID
-//! report descriptor. Offsets are in bits from the start of the report body
-//! (after the report-id byte, if any).
+//! report descriptor.
 
-#[derive(Clone, Copy, Default)]
-pub struct Field {
-    pub bit_offset: u32,
-    pub bit_size: u32,
-    pub logical_max: i32,
-}
-
-impl Field {
-    pub fn present(&self) -> bool {
-        self.bit_size != 0
-    }
-}
+use super::field::Field;
 
 /// The located fields of a precision-touchpad report. A layout is only usable
-/// when it carries absolute X and Y and a tip switch; otherwise the driver
-/// falls back to the relative boot-mouse decode.
+/// when it carries absolute X and Y and a tip switch.
 #[derive(Clone, Copy, Default)]
 pub struct TouchLayout {
     /// Report id that carries the touch data, or 0 when the device uses none.
