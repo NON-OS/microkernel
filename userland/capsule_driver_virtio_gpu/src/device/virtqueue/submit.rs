@@ -13,19 +13,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::{avail, desc, layout::QueueLayout, used, wait};
-use crate::constants::CTRLQ_INDEX;
-use crate::regs::Regs;
-use core::ptr::{read_volatile, write_volatile};
+
+//! One command, polled to completion. A command the device does not answer
+//! by the deadline, or answers out of turn, ends in a device reset and the
+//! queue out of service, by name. A timed-out command used to stay
+//! published while the next one rewrote its staging page and descriptors,
+//! so the device could run the stale chain with the new bytes.
+
+use super::control_queue::ControlQueue;
+use super::{avail, desc, used, wait};
+use crate::clock::expired_after;
+use crate::constants::{CTRLQ_INDEX, CTRLQ_MS, VQ_STAGING_OFFSET};
+
 pub struct SubmitOutput {
     pub used_len: u32,
 }
+
 pub fn submit_sync(
-    layout: QueueLayout,
-    regs: Regs,
+    q: &ControlQueue,
     request: &[u8],
     resp_len: u32,
 ) -> Result<SubmitOutput, &'static str> {
+    if q.is_reset() {
+        return Err("virtio-gpu: control queue reset after a stalled command");
+    }
+    let layout = q.layout;
     let req_len = request.len();
     if req_len == 0 || resp_len == 0 {
         return Err("virtio-gpu: empty request/response");
@@ -34,34 +46,29 @@ pub fn submit_sync(
     if total > layout.staging_len() {
         return Err("virtio-gpu: staging too small");
     }
-    let staging = layout.staging_va();
-    unsafe {
-        for (i, b) in request.iter().enumerate() {
-            write_volatile(staging.add(i), *b);
-        }
-        for i in req_len..total {
-            write_volatile(staging.add(i), 0);
-        }
+    for at in 0..total {
+        layout.ring.w8(VQ_STAGING_OFFSET + at, request.get(at).copied().unwrap_or(0));
     }
     let req_addr = layout.staging_device_addr();
     let resp_addr = req_addr + req_len as u64;
-    let pre_used_idx = used::read_idx(layout);
-    let head = avail::read_idx(layout) % layout.queue_size;
+    let next = q.next.get();
+    let head = next % layout.queue_size;
     desc::write_request_chain(layout, head, req_addr, req_len as u32, resp_addr, resp_len);
-    avail::publish(layout, head);
-    unsafe {
-        regs.notify(CTRLQ_INDEX);
+    avail::publish(layout, next, head);
+    q.regs.notify(CTRLQ_INDEX);
+    if let Err(e) = wait::used_moved(layout, next, expired_after(CTRLQ_MS)) {
+        q.reset_device();
+        return Err(e);
     }
-    wait::used_changed(layout, pre_used_idx)?;
-    let entry = used::read_entry(layout, pre_used_idx);
+    let entry = used::read_entry(layout, next);
+    let done = next.wrapping_add(1);
+    q.next.set(done);
+    // One command was in flight, so the device may have used exactly it.
     // The whole 32-bit id: cut to 16 bits, an element naming head + 65536
     // (a descriptor no ring this size holds) passed for the one published.
-    if entry.id != u32::from(head) {
+    if used::read_idx(layout) != done || entry.id != u32::from(head) {
+        q.reset_device();
         return Err("virtio-gpu: used id mismatch");
     }
     Ok(SubmitOutput { used_len: entry.len })
-}
-pub fn read_response_byte(layout: QueueLayout, req_len: usize, offset: usize) -> u8 {
-    let staging = layout.staging_va();
-    unsafe { read_volatile(staging.add(req_len + offset)) }
 }

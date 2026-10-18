@@ -29,7 +29,7 @@ use super::show::area;
 use crate::constants::VG_MAX_SCANOUTS;
 use crate::device::cmd::set_scanout;
 use crate::device::ControlQueue;
-use crate::state::{FenceCounter, ScanoutTable};
+use crate::state::{FenceCounter, Health, ScanoutTable};
 
 pub fn take(
     (q, fences): (ControlQueue, FenceCounter),
@@ -38,9 +38,9 @@ pub fn take(
     panel: Panel,
 ) -> Result<Gpu, &'static str> {
     let heads = [const { None }; MAX_OUTPUTS];
-    let limbo = Vec::new();
+    let (limbo, health, outputs) = (Vec::new(), Health::Live, 0);
     let mut g =
-        Gpu { q, fences, device, heads, outputs: 0, panel, generation: 1, next_id: 1, limbo };
+        Gpu { q, fences, device, heads, outputs, panel, generation: 1, next_id: 1, limbo, health };
     for id in 0..VG_MAX_SCANOUTS as u32 {
         let Some(s) = table.get(id).filter(|s| s.enabled) else { continue };
         if g.outputs as usize == MAX_OUTPUTS {

@@ -16,3 +16,4 @@
 pub const USBSTS_HCH: u32 = 1 << 0;
 pub const USBSTS_HSE: u32 = 1 << 2;
 pub const USBSTS_CNR: u32 = 1 << 11;
+pub const USBSTS_HCE: u32 = 1 << 12;

@@ -15,16 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! FLUSH: the rectangles named reach the host's copy and the screen, the
 //! rest stays as it was; a host that drops the transfer answers ETIMEDOUT
-//! and shows nothing of the rectangle.
+//! and shows nothing of the rectangle, and the turn's recovery shows the
+//! frame the surface's pages hold, whole.
 
 use nonos_gfx_wire::errno::ETIMEDOUT;
 use nonos_gfx_wire::ops;
 
-use super::ask::{ask, words};
+use super::ask::{ask, send, words};
 use super::kit::{draw, fill, shown};
 use super::rig::rig;
-use crate::constants::VG_CMD_RESOURCE_FLUSH as RESOURCE_FLUSH;
 use super::wrong::{run, Wrong};
+use crate::constants::VG_CMD_RESOURCE_FLUSH as RESOURCE_FLUSH;
+use crate::server::recover::settle;
 
 #[test]
 fn a_flush_shows_its_rectangle_and_nothing_else() {
@@ -49,9 +51,11 @@ fn a_host_that_drops_the_transfer_answers_timed_out_and_shows_none_of_it() {
     let s = draw(&mut r, 0, 0x0011_2233);
     fill(&mut r, 0, 0x00AB_CDEF);
     let all = words(&[s.serial, 1, 0, 0, 640, 480]);
-    let got = run(&mut r, Wrong::Dead(1, 1), |r| ask(r, ops::FLUSH, 0, &all).0);
+    let got = run(&mut r, Wrong::Dead(1, 1), |r| send(r, ops::FLUSH, 0, &all).0);
     assert_eq!(got, Some(ETIMEDOUT));
     assert!(shown(&r, 0).unwrap().iter().all(|&p| p == 0x0011_2233), "the old picture");
-    assert_eq!(ask(&mut r, ops::FLUSH, 0, &all).0, 0, "the host back");
-    assert!(shown(&r, 0).unwrap().iter().all(|&p| p == 0x00AB_CDEF));
+    // The stall reset the device; the next turn shows the pages whole.
+    assert!(!settle(&mut r.d), "recovered");
+    assert!(shown(&r, 0).unwrap().iter().all(|&p| p == 0x00AB_CDEF), "the new, whole");
+    assert_eq!(ask(&mut r, ops::FLUSH, 0, &all).0, 0, "served again");
 }

@@ -26,9 +26,7 @@ mod ops;
 pub use decode::decode_request;
 pub use encode::{encode_response_header, write_status};
 pub use endpoint::{KERNEL_REPLY_ENDPOINT, SERVICE_NAME};
-pub use errno::{
-    ata_status, E_ACCES, E_INVAL, E_IO, E_MSGSIZE, E_NODEV, E_NXIO, E_OK, E_TIMEDOUT,
-};
+pub use errno::{ata_status, E_ACCES, E_INVAL, E_IO, E_MSGSIZE, E_NODEV, E_NXIO, E_OK, E_TIMEDOUT};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use identify_reply::{encode_identify, IDENTIFY_PAYLOAD_LEN, MEDIUM_SATA};
 pub use limits::{

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Power on: host init, first voltage, OCR query, shared voltage, CMD1.
+//! Power on: first voltage, OCR query, shared voltage, CMD1.
 
 use super::super::super::env::{Clock, Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
@@ -27,10 +27,9 @@ use super::power::{go_idle, power_and_clock};
 use super::query_ocr::query_ocr;
 use super::voltage::settle_voltage;
 
-/// From a reset host to a card that has finished power up at the lowest
-/// voltage both sides share. Returns the card's OCR.
+/// From a host `EmmcDisk::reset` readied to a card that has finished power
+/// up at the lowest voltage both sides share. Returns the card's OCR.
 pub(super) fn power_on<M: Mmio, C: Clock, L: Log>(h: &mut Host<M, C, L>) -> EmmcResult<u32> {
-    h.init()?;
     let host = host_ocr(&h.caps);
     let Some(first) = first_vdd(host) else {
         h.say(Line::new().s(b"host offers no bus voltage"));

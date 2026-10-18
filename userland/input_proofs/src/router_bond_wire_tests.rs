@@ -21,7 +21,7 @@
 use crate::protocol::NOTICE_KIND;
 use crate::route::chord::KEY_DELETE;
 use crate::route::trusted_hold::told;
-use crate::router_bond_kit::*;
+use crate::router_tests::router_bond_kit::*;
 use crate::router_desk::*;
 use crate::shell_router_notice::is_notice;
 

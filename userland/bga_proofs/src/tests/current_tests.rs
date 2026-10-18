@@ -17,9 +17,8 @@
 //! Reading back the mode DISPI shows: what bga keeps from firmware at
 //! start, and how it checks a mode set took.
 
-use crate::constants::{
-    DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_VIRT_WIDTH, DISPI_INDEX_XRES,
-};
+use crate::constants::{DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_VIRT_WIDTH};
+use crate::constants::{DISPI_INDEX_XRES, DISPI_INDEX_X_OFFSET, DISPI_INDEX_Y_OFFSET};
 use crate::dispi::{current, dispi_off, set_mode, DispiMode};
 use crate::model::Adapter;
 
@@ -42,10 +41,8 @@ fn a_mode_set_reads_back_as_the_mode_with_four_bytes_a_pixel() {
 
 #[test]
 fn a_firmware_mode_wider_in_memory_than_on_screen_keeps_its_stride() {
-    /*
-     * Firmware may scan out a virtual screen wider than the visible one; a
-     * copy at the visible width would shear every row after the first.
-     */
+    // Firmware may scan out lines wider than the visible ones; a copy at
+    // the visible width would shear every row after the first.
     let a = Adapter::new();
     set_mode(a.regs(), 1024, 768);
     poke(&a, DISPI_INDEX_VIRT_WIDTH, 1280);
@@ -64,4 +61,15 @@ fn a_mode_not_32_bits_or_without_its_framebuffer_is_none_bga_can_use() {
     set_mode(a.regs(), 1024, 768);
     poke(&a, DISPI_INDEX_XRES, 0);
     assert_eq!(current(a.regs()), None, "a zero-wide mode");
+}
+
+#[test]
+fn a_panned_mode_is_none_bga_draws_into() {
+    // Every copy writes from the start of video memory, so a pan shears it.
+    let a = Adapter::new();
+    for index in [DISPI_INDEX_X_OFFSET, DISPI_INDEX_Y_OFFSET] {
+        set_mode(a.regs(), 1024, 768);
+        poke(&a, index, 1);
+        assert_eq!(current(a.regs()), None, "panned at index {index}");
+    }
 }

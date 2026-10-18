@@ -42,6 +42,9 @@ pub mod protocol;
 #[path = "../../compositor/src/requests/mod.rs"]
 pub mod requests;
 
+/// Which driver the display log names, over that list.
+#[path = "../../compositor/src/setup/discover/order.rs"]
+pub mod discover_order;
 /// The kernel's display list and hint sources, which the compositor mounts.
 #[allow(dead_code)]
 #[path = "../../../src/services/registry/displays.rs"]

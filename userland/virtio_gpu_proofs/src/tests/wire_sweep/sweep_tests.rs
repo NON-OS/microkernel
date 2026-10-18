@@ -22,7 +22,7 @@ use crate::tests::gpu::rig::rig;
 #[test]
 fn virtio_gpu_answers_every_frame_as_the_wire_defines() {
     let mut r = rig();
-    let t = sweep(&mut r.s, 0x0717_0001, 20_000, 7);
+    let t = sweep(&mut r.d.server, 0x0717_0001, 20_000, 7);
     assert!(
         t.unanswered >= 1_000 && t.refused >= 2_500 && t.taken >= 2_500 && t.shown >= 200,
         "{t:?}"

@@ -14,22 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
-};
+//! The PCI Command word, through the broker. The part is reached through its
+//! port BAR, and I/O decode is not a bit the broker lets a driver write: the
+//! kernel's boot pass (src/bus/pci/assign/device.rs) turns it on for every
+//! function, and the write here leaves it as it is. So only Bus Master is
+//! written: off from the claim until the part is reset and the receive
+//! buffer and transmit slots name this driver's frames, and off again
+//! before the device goes back. A part left mastering by firmware or
+//! by an earlier attempt must not reach memory before it is stopped, nor
+//! after its frames are freed. The broker clears it on every release, so
+//! each attempt sets it.
+//!
+//! Today the broker ORs the written bits into the register, so the "off"
+//! writes take effect once it stores them as written
+//! (src/hardware/broker/pci/command.rs); until then they change nothing.
 
-use crate::discover::Found;
+use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER};
 
-pub fn enable(dev: Found, claim_epoch: u64) -> Result<(), &'static str> {
-    let r = mk_pci_config_write(
-        dev.device_id,
-        claim_epoch,
-        MK_PCI_CFG_COMMAND,
-        dev.command_bits | MK_PCI_CMD_BUS_MASTER,
-    );
-    if r < 0 {
-        let _ = mk_device_release(dev.device_id);
-        return Err("pci command setup failed");
+pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
+    let value = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };
+    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+        return Err(if bus_master {
+            "pci command write refused (bus master)"
+        } else {
+            "pci command write refused (bus master off)"
+        });
     }
     Ok(())
 }

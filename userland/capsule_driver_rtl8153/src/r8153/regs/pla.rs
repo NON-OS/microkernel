@@ -25,7 +25,6 @@ pub const RXFIFO_CTRL2: u16 = 0xc0a8;
 pub const FMC: u16 = 0xc0b4;
 pub const TEREDO_CFG: u16 = 0xc0bc;
 pub const MAR: u16 = 0xcd00;
-pub const BACKUP: u16 = 0xd000;
 pub const TEREDO_TIMER: u16 = 0xd2cc;
 pub const REALWOW_TIMER: u16 = 0xd2e8;
 /// r8153_aldps_en polls bit 8 here after turning ALDPS off; r8152.c gives

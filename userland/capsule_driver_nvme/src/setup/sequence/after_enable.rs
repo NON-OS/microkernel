@@ -46,14 +46,10 @@ pub(super) fn after_enable(
     } else {
         None
     };
-    match served(dev, claim_epoch, regs, info, admin, &identity, given.is_some()) {
-        Ok((namespace, health, io)) => Ok((identity, namespace, health, io, given)),
-        Err(e) => {
-            // Take the buffer back from the controller before its memory goes.
-            if let Some(memory) = given {
-                memory.release(regs, info);
-            }
-            Err(e)
-        }
-    }
+    // A failure from here leaves the buffer to the attempt's teardown: the
+    // disable takes it back from the controller, and the release frees it
+    // only after bus mastering is off.
+    let (namespace, health, io) =
+        served(dev, claim_epoch, regs, info, admin, &identity, given.is_some())?;
+    Ok((identity, namespace, health, io, given))
 }

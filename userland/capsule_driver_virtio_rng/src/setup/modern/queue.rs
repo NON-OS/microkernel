@@ -19,11 +19,11 @@
 //! The layout is the legacy one: descriptors at the start of the region,
 //! the available ring right after a table of `queue_size` descriptors (where
 //! `Queue::new` puts it) and the used ring at VQ_USED_OFFSET. The size is
-//! the device's maximum held to QUEUE_SIZE, as on the legacy path, and is
-//! chosen before the addresses because the available ring's place follows
-//! from it.
+//! the device's maximum held to QUEUE_SIZE (a modern driver may shrink the
+//! ring, a legacy one may not), and is chosen before the addresses because
+//! the available ring's place follows from it.
 
-use nonos_virtio::common::{choose_size, queue_max, setup_queue, NotifyArea, QueueSpec};
+use nonos_virtio::common::{choose_size, driver_ok, queue_max, setup_queue, NotifyArea, QueueSpec};
 use nonos_virtio::{Mmio, VirtioError};
 
 use crate::constants::{QUEUE_SIZE, VQ_DESC_OFFSET, VQ_USED_OFFSET};
@@ -50,4 +50,20 @@ pub fn setup(common: &Mmio, notify: NotifyArea, region: u64) -> Result<Ready, &'
     };
     let ready = setup_queue(common, &spec, notify).map_err(VirtioError::message)?;
     Ok(Ready { queue_size: ready.size, doorbell: ready.notify_offset })
+}
+
+/// The queue programmed, then bus mastering (`master`), then DRIVER_OK:
+/// the device may reach memory only once its queue is on this grant, not a
+/// dead predecessor's, and every refusal is behind it. Bus Master used to
+/// go on before the queue and its refusals.
+pub fn start(
+    common: &Mmio,
+    notify: NotifyArea,
+    region: u64,
+    master: impl FnOnce() -> Result<(), &'static str>,
+) -> Result<Ready, &'static str> {
+    let ready = setup(common, notify, region)?;
+    master()?;
+    driver_ok(common);
+    Ok(ready)
 }

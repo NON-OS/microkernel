@@ -18,7 +18,7 @@
 //! device; the calls of the bring-up are cleared, so a test sees its own.
 
 use nonos_usbnet::found::{fetch, Found};
-use nonos_usbnet::mock::{Call, MockBus};
+use nonos_usbnet::mock::{drawn, Call, MockBus};
 use nonos_usbnet::Bind;
 
 use super::answer::{rtl8153, Shared};
@@ -36,7 +36,7 @@ pub fn found(version: u16, ids: (u16, u16)) -> (MockBus, Shared, Found) {
 
 pub fn bound(version: u16) -> (Rtl8153<MockBus>, MockBus, Shared) {
     let (bus, chip, found) = found(version, RTL8153_IDS);
-    let Bind::Ours(nic) = bind(bus.clone(), &found) else { panic!("not bound") };
+    let Bind::Ours(nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
     bus.0.borrow_mut().calls.clear();
     (nic, bus, chip)
 }

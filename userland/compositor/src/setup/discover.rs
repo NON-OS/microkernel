@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
+use core::sync::atomic::AtomicUsize;
+
 use nonos_libc::mk_service_lookup;
+
+use crate::say::say;
 
 // The display drivers, best first, from the kernel's own table: the names
 // the compositor tries are the names the kernel holds to it.
 #[allow(dead_code)] // the kernel's helpers this capsule does not call
 #[path = "../../../../src/services/registry/displays.rs"]
 pub mod displays;
+mod order;
+
+/// The driver the display log last named, none at first.
+static SAID: AtomicUsize = AtomicUsize::new(usize::MAX);
 
 #[derive(Clone, Copy)]
 pub struct GfxEndpoint {
@@ -29,10 +38,16 @@ pub struct GfxEndpoint {
     pub pid: u32,
 }
 
-/// The first display driver on the list that is announced now.
+/// The first display driver on the list that is announced now, and on the
+/// display log each driver it finds anew: wait_for_setup names the wire
+/// path whichever driver serves it, and the GOP framebuffer when it takes
+/// that.
 pub fn lookup_gfx_endpoint() -> Result<GfxEndpoint, &'static str> {
-    let found = (0..displays::DISPLAYS.len()).find_map(lookup_at);
-    found.ok_or("gfx service not announced")
+    let found = (0..displays::DISPLAYS.len()).find_map(|at| Some((at, lookup_at(at)?)));
+    if let Some(driver) = order::news(&SAID, found.map(|(at, _)| at)) {
+        say(&format!("gfx lookup: {}", driver));
+    }
+    found.map(|(_, ep)| ep).ok_or("gfx service not announced")
 }
 
 /// The driver at `index` in the list, if it is announced now.

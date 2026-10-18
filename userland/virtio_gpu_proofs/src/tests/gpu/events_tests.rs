@@ -23,9 +23,12 @@ use super::ask::ask;
 use super::rig::rig;
 use super::wrong::{run, Wrong};
 
-/// The legacy-shaped window's device configuration: events read, clear.
 use super::kit::EVENTS_READ;
-const EVENTS_CLEAR: usize = 0x18;
+use crate::constants::GPU_CFG_EVENTS_CLEAR;
+use crate::tests::model::DEVICE_AT;
+
+/// The device configuration's events-clear word, in the modern window.
+const EVENTS_CLEAR: usize = DEVICE_AT + GPU_CFG_EVENTS_CLEAR;
 
 #[test]
 fn a_display_event_brings_the_host_s_new_size_as_the_hint() {

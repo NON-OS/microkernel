@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! The uptime clock, virtual. Every read moves it on one millisecond and
-//! every sleep by its length, so a driver loop bounded by a deadline ends
-//! after a fixed number of polls on the host, however fast the host runs,
-//! and a test can tell a bound in time from a bound in iterations.
+//! The uptime clock, virtual. Every read moves it on one millisecond, every
+//! sleep by its length and every yield by the scheduler's slice (sched.rs),
+//! so a driver loop bounded by a deadline ends after a fixed number of polls
+//! on the host, however fast the host runs, and a test can tell a bound in
+//! time from a bound in iterations.
 
 use std::cell::Cell;
 
 use crate::misc::slept_ms;
+use crate::sched::yielded_ms;
 
 thread_local! {
     static READS: Cell<u64> = const { Cell::new(0) };
@@ -33,7 +34,7 @@ pub fn mk_uptime_ms() -> i64 {
         r.set(r.get() + 1);
         r.get()
     });
-    (reads + slept_ms()) as i64
+    (reads + slept_ms() + yielded_ms()) as i64
 }
 
 /// The shipping `nonos_libc::Deadline`, against the virtual clock.

@@ -1,0 +1,61 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Programming both modern virtqueues, receive first, then bus mastering,
+//! all or nothing.
+
+use nonos_virtio::common::{reset_until, setup_queue, CommonCfg, NotifyArea, QueueReady};
+use nonos_virtio::VirtioError;
+
+use super::spec::spec;
+use crate::clock::expired_after;
+use crate::constants::{Q_RX, Q_TX, RESET_MS};
+
+/// Program and enable the receive and transmit queues over the ring
+/// regions at device addresses `rx_ring` and `tx_ring`, then turn bus
+/// mastering on (`master`): a device left live by a dead predecessor holds
+/// that one's rings until it is given these, so it may reach memory only
+/// after both and after every refusal; Bus Master used to go on first.
+/// When a step fails the receive queue may already be enabled, in a grant
+/// the failed attempt releases next: the device is reset first, so it has
+/// let go of every ring before the grants go. `common` is the
+/// device's window, or on the host a model of one with a register file per
+/// queue, which shows what each queue held when Bus Master went on.
+pub fn program(
+    common: &impl CommonCfg,
+    notify: NotifyArea,
+    (rx_ring, tx_ring): (u64, u64),
+    master: impl FnOnce() -> Result<(), &'static str>,
+) -> Result<[QueueReady; 2], &'static str> {
+    let both = both(common, notify, rx_ring, tx_ring).and_then(|q| master().map(|()| q));
+    if both.is_err() {
+        let _ = reset_until(common, expired_after(RESET_MS));
+    }
+    both
+}
+
+fn both(
+    common: &impl CommonCfg,
+    notify: NotifyArea,
+    rx_ring: u64,
+    tx_ring: u64,
+) -> Result<[QueueReady; 2], &'static str> {
+    let rx_spec = spec(Q_RX, rx_ring).ok_or("virtio-net: rx ring address")?;
+    let tx_spec = spec(Q_TX, tx_ring).ok_or("virtio-net: tx ring address")?;
+    let rx = setup_queue(common, &rx_spec, notify).map_err(VirtioError::message)?;
+    let tx = setup_queue(common, &tx_spec, notify).map_err(VirtioError::message)?;
+    Ok([rx, tx])
+}

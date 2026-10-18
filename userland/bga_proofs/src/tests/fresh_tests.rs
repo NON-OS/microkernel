@@ -22,9 +22,9 @@ use std::cell::RefCell;
 
 use crate::constants::{DISPI_INDEX_ENABLE, DISPI_INDEX_XRES, DISPI_INDEX_YRES};
 use crate::dispi::{current, dispi_off, set_mode, DispiMode};
-use crate::fresh::fresh;
 use crate::model::Adapter;
 use crate::regs::Regs;
+use crate::setup::fresh::fresh;
 
 thread_local! {
     static AT: RefCell<(u64, u64, usize)> = const { RefCell::new((0, 0, 0)) };
@@ -46,7 +46,7 @@ fn restart(a: &mut Adapter) -> Option<DispiMode> {
     let at = (a.bar.base(), a.vram.as_mut_ptr() as u64, a.vram.len());
     AT.with(|x| *x.borrow_mut() = at);
     SAW.with(|s| s.borrow_mut().clear());
-    let m = fresh(a.regs(), (at.1, at.2), &[], look)?.mode;
+    let m = fresh(a.regs(), (at.1, at.2 as u64), &[], look).ok()?.mode;
     assert!(a.vram.iter().all(|&b| b == 0), "every byte, past the mode's too");
     Some(m)
 }

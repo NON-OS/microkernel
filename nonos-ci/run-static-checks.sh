@@ -534,18 +534,35 @@ else
 fi
 unset blk_dead_code
 
-# Setup-phase rollback. Every setup/* file that performs a broker
-# call past `claim` must also unwind every prior grant on a
-# failure path. The check below requires each of the three later
-# phases (mmio/irq/dma) to issue the broker release/unmap/unbind
-# calls for the prior phases — a missing rollback is caught
-# lexically.
-for needle in 'mk_device_release' 'mk_mmio_unmap|regs\.release' 'mk_irq_unbind' ; do
-    if ! grep -rqE "${needle}" userland/capsule_driver_virtio_blk/src/setup ; then
-        fail_with "capsule_driver_virtio_blk setup must roll back via ${needle} on failure"
+# Setup-phase rollback. A failed bring-up (setup/sequence.rs)
+# and a recovery (setup/quiesce.rs) each give every grant back through the
+# claim's release, which stops bus mastering before it frees any; each
+# transport's bring-up resets the device on failure and a recovery resets it
+# before the release; the driver unmaps no DMA itself, so no frame is freed
+# while the device can still reach it. (It used to unmap each phase's grants
+# in turn, the ring included, with the device still pointed at them.) Each
+# file is held on its own: one release left elsewhere does not excuse it.
+for blk_release in setup/sequence.rs setup/quiesce.rs ; do
+    if ! grep -q 'mk_device_release(' "userland/capsule_driver_virtio_blk/src/${blk_release}" ; then
+        fail_with "capsule_driver_virtio_blk ${blk_release} must give the device back via mk_device_release"
     fi
 done
-note ok "capsule_driver_virtio_blk setup phases roll back prior broker grants"
+for blk_phase in setup/legacy.rs setup/modern/run.rs setup/quiesce.rs ; do
+    if ! grep -qE '\.reset\(\)|reset_until\(' "userland/capsule_driver_virtio_blk/src/${blk_phase}" ; then
+        fail_with "capsule_driver_virtio_blk ${blk_phase} must reset the device before the claim goes"
+    fi
+done
+blk_q="userland/capsule_driver_virtio_blk/src/setup/quiesce.rs"
+blk_reset_at="$( { grep -n '\.reset()' "${blk_q}" || true; } | head -1 | cut -d: -f1)"
+blk_release_at="$( { grep -n 'mk_device_release(' "${blk_q}" || true; } | head -1 | cut -d: -f1)"
+if [ -n "${blk_reset_at}" ] && [ -n "${blk_release_at}" ] && [ "${blk_reset_at}" -gt "${blk_release_at}" ]; then
+    fail_with "capsule_driver_virtio_blk setup/quiesce.rs must reset the device before it gives it back"
+fi
+unset blk_q blk_reset_at blk_release_at
+if grep -rq 'mk_dma_unmap' userland/capsule_driver_virtio_blk/src ; then
+    fail_with "capsule_driver_virtio_blk must not unmap DMA itself; the release does, after a reset"
+fi
+note ok "capsule_driver_virtio_blk setup resets, then gives every grant back with the claim"
 
 # Endpoint string is the contract a kernel-side client opens
 # against. Marker line in `main.rs` and the comment in
@@ -678,9 +695,8 @@ else
 fi
 unset net_dead_code
 
-# Setup-phase rollback for the network driver. Same shape as the
-# virtio_blk gate: each later phase has to issue the prior
-# phase's release/unmap/unbind on failure.
+# Setup-phase rollback for the network driver: each later phase has to
+# issue the prior phase's release/unmap/unbind on failure.
 # A driver that polls binds no interrupt, so it has none to unbind; it
 # must take the device off its legacy pin instead.
 for needle in 'mk_device_release' 'mk_mmio_unmap' 'mk_irq_unbind' ; do
@@ -745,21 +761,78 @@ else
 fi
 unset e1000_dead_code
 
-# Polled driver, no IRQ phase; setup/rollback.rs tears down grants.
+# A Rust file's code with every comment taken out, `//` to the end of the
+# line and `/* */` (nested, across lines) alike, so a call commented out
+# either way is not counted as made. String literals are not parsed; the
+# files it reads hold no comment marker inside one.
+rust_code() {
+    awk '
+        {
+            line = $0; code = ""
+            while (line != "") {
+                if (depth > 0) {
+                    o = index(line, "/*"); c = index(line, "*/")
+                    if (c == 0 && o == 0) { line = ""; break }
+                    if (o > 0 && (c == 0 || o < c)) { depth++; line = substr(line, o + 2) }
+                    else { depth--; line = substr(line, c + 2) }
+                    continue
+                }
+                l = index(line, "//"); b = index(line, "/*")
+                if (l > 0 && (b == 0 || l < b)) { code = code substr(line, 1, l - 1); line = ""; break }
+                if (b > 0) { code = code substr(line, 1, b - 1); depth = 1; line = substr(line, b + 2); continue }
+                code = code line; line = ""
+            }
+            print code
+        }
+    ' "$1"
+}
+
+# Polled driver, no IRQ phase; setup/rollback.rs releases the device, and
+# the kernel's release clears Bus Master, then frees every grant. Each needle
+# is a call, matched in the file's code (rust_code), not in a comment.
 for phase_file in \
-    userland/capsule_driver_e1000/src/setup/mmio.rs:mk_device_release \
-    'userland/capsule_driver_e1000/src/setup/rollback.rs:mk_dma_unmap(' \
-    'userland/capsule_driver_e1000/src/setup/rollback.rs:mk_mmio_unmap(' \
-    userland/capsule_driver_e1000/src/setup/dma.rs:rollback ; do
+    'userland/capsule_driver_e1000/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_e1000/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_e1000/src/setup/dma.rs:rollback::after(' ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done
 note ok "capsule_driver_e1000 setup phases roll back prior broker grants"
+
+# The same rollback gate for capsule_driver_e1000e.
+for phase_file in \
+    'userland/capsule_driver_e1000e/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_e1000e/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_e1000e/src/setup/dma.rs:rollback::after(' ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_e1000e setup phases roll back prior broker grants"
+
+# The same rollback gate for capsule_driver_igc.
+for phase_file in \
+    'userland/capsule_driver_igc/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_igc/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_igc/src/setup/dma.rs:rollback::after(' ; do
+    file="${phase_file%%:*}"
+    needle="${phase_file##*:}"
+    if [ ! -f "${file}" ]; then
+        fail_with "missing ${file}"
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
+        fail_with "${file} must roll back via ${needle} on failure"
+    fi
+done
+note ok "capsule_driver_igc setup phases roll back prior broker grants"
 
 if ! grep -q 'OP_STATS' userland/capsule_driver_e1000/src/protocol/ops.rs ||
    ! grep -q 'STATS_PAYLOAD_LEN: usize = 48' userland/capsule_driver_e1000/src/protocol/limits.rs ||
@@ -908,10 +981,9 @@ for phase_file in \
 done
 note ok "capsule_driver_i2c_pci setup phases roll back prior broker grants"
 
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x78018' userland/capsule_driver_i2c_pci/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x38018' userland/capsule_driver_i2c_pci/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_i2c_pci/src/setup/claim.rs ||
    ! grep -q 'mk_mmio_map' userland/capsule_driver_i2c_pci/src/setup/mmio.rs ||
-   ! grep -q 'mk_irq_bind' userland/capsule_driver_i2c_pci/src/setup/irq.rs ||
    ! grep -q 'OP_REGISTER_SNAPSHOT' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
    ! grep -q 'OP_TRANSFER' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
    ! grep -q 'OP_PROBE' userland/capsule_driver_i2c_pci/src/protocol/ops.rs ||
@@ -947,7 +1019,13 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x200018' userland/capsule_driver_i2c_
    ! grep -q 'driver\.i2c_pci0' userland/capsule_driver_i2c_hid/src/i2c_client/service.rs ||
    ! grep -q 'MkServiceLookup' userland/capsule_driver_i2c_hid/README.md ||
    ! grep -q 'OP_DESCRIPTOR' userland/capsule_driver_i2c_hid/src/protocol/ops.rs ||
-   ! grep -q 'fn probe_bus(.*: &mut \[u8; HID_DESC_LEN\])' userland/capsule_driver_i2c_hid/src/hid/probe/scan.rs ||
+   ! grep -qE '^pub fn probe_addr\($' userland/capsule_driver_i2c_hid/src/hid/probe/direct.rs ||
+   ! grep -qE '^[^/]*query_acpi_hid\(port\)' userland/capsule_driver_i2c_hid/src/setup/run.rs ||
+   ! grep -qE '^[^/]*probe_addr\(port, addr, reg, ' userland/capsule_driver_i2c_hid/src/setup/run.rs ||
+   ! grep -qE '^    if !state\.found\(\) && !state\.done && state\.probe_window\.expired\(\) \{$' userland/capsule_driver_i2c_hid/src/setup/run.rs ||
+   grep -rqE '^[^/]*(CANDIDATE_ADDRS|fn probe_bus)' userland/capsule_driver_i2c_hid/src ||
+   [ "$(ls userland/capsule_driver_i2c_hid/src/hid/probe | tr '\n' ' ')" != "direct.rs mod.rs read_at.rs " ] ||
+   [ "$(grep -rlE '^[^/]*read_descriptor_at\(' userland/capsule_driver_i2c_hid/src | sort | tr '\n' ' ')" != "userland/capsule_driver_i2c_hid/src/hid/probe/direct.rs userland/capsule_driver_i2c_hid/src/hid/probe/read_at.rs " ] ||
    ! grep -rq 'spawn_driver_i2c_hid_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod capsule_driver_i2c_hid' src/userspace/mod.rs; then
     fail_with "capsule_driver_i2c_hid must expose bounded HID descriptor discovery"
@@ -1011,17 +1089,18 @@ else
 fi
 unset rtl8139_mmio
 
-# Polled driver, no IRQ phase; setup/rollback.rs tears down grants.
+# Polled driver, no IRQ phase; setup/rollback.rs releases the device, and
+# the kernel's release clears Bus Master, then frees every grant. Each needle
+# is a call, matched in the file's code (rust_code), not in a comment.
 for phase_file in \
-    userland/capsule_driver_rtl8139/src/setup/pio_grant.rs:mk_device_release \
-    'userland/capsule_driver_rtl8139/src/setup/rollback.rs:mk_dma_unmap(' \
-    'userland/capsule_driver_rtl8139/src/setup/rollback.rs:mk_pio_release(' \
-    userland/capsule_driver_rtl8139/src/setup/dma.rs:after_pio ; do
+    'userland/capsule_driver_rtl8139/src/setup/pio_grant.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_rtl8139/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_rtl8139/src/setup/dma.rs:rollback::after_pio(' ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done
@@ -1103,17 +1182,18 @@ else
 fi
 unset rtl8169_dead_code
 
-# Polled driver, no IRQ phase; setup/rollback.rs tears down grants.
+# Polled driver, no IRQ phase; setup/rollback.rs releases the device, and
+# the kernel's release clears Bus Master, then frees every grant. Each needle
+# is a call, matched in the file's code (rust_code), not in a comment.
 for phase_file in \
-    userland/capsule_driver_rtl8169/src/setup/mmio.rs:mk_device_release \
-    'userland/capsule_driver_rtl8169/src/setup/rollback.rs:mk_dma_unmap(' \
-    'userland/capsule_driver_rtl8169/src/setup/rollback.rs:mk_mmio_unmap(' \
-    userland/capsule_driver_rtl8169/src/setup/dma.rs:rollback ; do
+    'userland/capsule_driver_rtl8169/src/setup/mmio.rs:mk_device_release(dev.device_id)' \
+    'userland/capsule_driver_rtl8169/src/setup/rollback.rs:mk_device_release(device_id)' \
+    'userland/capsule_driver_rtl8169/src/setup/dma.rs:rollback::after(' ; do
     file="${phase_file%%:*}"
     needle="${phase_file##*:}"
     if [ ! -f "${file}" ]; then
         fail_with "missing ${file}"
-    elif ! grep -q "${needle}" "${file}"; then
+    elif ! { rust_code "${file}" || true; } | grep -qF "${needle}"; then
         fail_with "${file} must roll back via ${needle} on failure"
     fi
 done
@@ -1248,10 +1328,10 @@ done
 note ok "capsule_driver_ps2_input setup phases roll back prior broker grants"
 
 if ! grep -q 'OP_CONTROLLER_STATUS' userland/capsule_driver_ps2_input/src/protocol/ops.rs ||
-   ! grep -q 'CONTROLLER_STATUS_PAYLOAD_LEN: usize = 28' userland/capsule_driver_ps2_input/src/protocol/limits.rs ||
+   ! grep -q 'CONTROLLER_STATUS_PAYLOAD_LEN: usize = 16' userland/capsule_driver_ps2_input/src/protocol/limits.rs ||
    ! grep -q 'controller_status::handle' userland/capsule_driver_ps2_input/src/server/runner/run.rs ||
    ! grep -q 'STATUS_OFFSET' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs ||
-   ! grep -q 'ctx.ring.queued' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs; then
+   ! grep -q 'ctx.mouse_ring.queued' userland/capsule_driver_ps2_input/src/server/handlers/controller_status.rs; then
     fail_with "capsule_driver_ps2_input must expose brokered i8042 status and ring telemetry"
 else
     note ok "capsule_driver_ps2_input exposes brokered i8042 status and ring telemetry"
@@ -1397,21 +1477,24 @@ unset usb_hid_forbidden_hw
 
 if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x200018' userland/capsule_driver_usb_hid/Capsule.mk ||
    ! grep -q 'OP_PROBE_CONFIG' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
-   ! grep -q 'OP_FEED_KEYBOARD_REPORT' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
-   ! grep -q 'OP_FEED_MOUSE_REPORT' userland/capsule_driver_usb_hid/src/protocol/ops.rs ||
    ! grep -q 'hid_bindings' userland/capsule_driver_usb_hid/src/descriptors/parse.rs ||
-   ! grep -q 'Keyboard::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
-   ! grep -q 'Mouse::new' userland/capsule_driver_usb_hid/src/state/mod.rs ||
-   ! grep -q 'probe_config' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'feed_keyboard_report' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'feed_mouse_report' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'poll_keys' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
-   ! grep -q 'poll_mouse' src/userspace/capsule_driver_usb_hid/client/mod.rs ||
+   ! grep -q 'Keyboard::new' userland/capsule_driver_usb_hid/src/orchestrator/device_for.rs ||
+   ! grep -q 'Mouse::new' userland/capsule_driver_usb_hid/src/orchestrator/device_for.rs ||
    ! grep -q 'capsule_driver_usb_hid' src/userspace/mod.rs ||
    ! grep -rq 'spawn_driver_usb_hid_capsule' src/userspace/init/; then
     fail_with "capsule_driver_usb_hid must expose HID descriptor + boot-report path"
 else
     note ok "capsule_driver_usb_hid exposes HID descriptor + boot-report path"
+fi
+
+# A report fed in over IPC was posted as typed input, and a key poll read
+# back what was typed: neither op may come back, in the driver's
+# wire, its server, or the kernel's client of it.
+if grep -rqE 'OP_FEED_|OP_POLL_' userland/capsule_driver_usb_hid/src/protocol \
+        userland/capsule_driver_usb_hid/src/server src/userspace/capsule_driver_usb_hid; then
+    fail_with "capsule_driver_usb_hid must not serve a report feed or event poll op"
+else
+    note ok "capsule_driver_usb_hid serves no report feed or event poll op"
 fi
 
 usb_hid_endpoint_marker="$( { grep -rn 'driver\.usb_hid0' userland/capsule_driver_usb_hid --include='*.rs' src/userspace/capsule_driver_usb_hid --include='*.rs' || true; } )"
@@ -1719,8 +1802,9 @@ unset nvme_dead_code
 
 # irq::bind is best-effort and cannot fail; the BrokerHandles Drop unmaps MMIO.
 for phase_file in \
-    userland/capsule_driver_nvme/src/setup/sequence/bring_up.rs:mk_device_release \
-    userland/capsule_driver_nvme/src/setup/mmio.rs:mk_device_release \
+    'userland/capsule_driver_nvme/src/setup/sequence/bring_up.rs:release(dev.device_id, claim_epoch)' \
+    'userland/capsule_driver_nvme/src/setup/mmio.rs:release(device_id, claim_epoch)' \
+    'userland/capsule_driver_nvme/src/handles/release.rs:mk_device_release(device_id)' \
     'userland/capsule_driver_nvme/src/handles/broker_handles_drop.rs:impl Drop for BrokerHandles' \
     'userland/capsule_driver_nvme/src/handles/broker_handles_drop.rs:mk_mmio_unmap(' ; do
     file="${phase_file%%:*}"
@@ -2587,8 +2671,10 @@ unset compositor_ops compositor_focus compositor_input
 ps2_cap_gate='src/hardware/ps2_kbd_capsule/capability.rs'
 ps2_error='src/hardware/ps2_kbd_capsule/error.rs'
 ps2_runner='userland/capsule_driver_ps2_input/src/server/runner/run.rs'
-if [ ! -f "${ps2_cap_gate}" ] || [ ! -f "${ps2_error}" ] || [ ! -f "${ps2_runner}" ]; then
-    fail_with "Phase-5 input proof sources missing (ps2 capability/error/runner)"
+ps2_post='userland/capsule_driver_ps2_input/src/keymap/post.rs'
+if [ ! -f "${ps2_cap_gate}" ] || [ ! -f "${ps2_error}" ] || [ ! -f "${ps2_runner}" ] || \
+        [ ! -f "${ps2_post}" ]; then
+    fail_with "Phase-5 input proof sources missing (ps2 capability/error/runner/post)"
 elif ! grep -q 'CAP_DRIVER' "${ps2_cap_gate}"; then
     fail_with "${ps2_cap_gate} must gate calls on CAP_DRIVER"
 elif ! grep -q 'AccessDenied' "${ps2_cap_gate}"; then
@@ -2597,12 +2683,16 @@ elif ! grep -q 'AccessDenied' "${ps2_error}"; then
     fail_with "${ps2_error} must carry AccessDenied err-name mapping"
 elif ! grep -q 'mk_ipc_recv(0' "${ps2_runner}"; then
     fail_with "${ps2_runner} must receive requests through mk_ipc_recv"
-elif ! grep -q 'OP_POLL_EVENTS' "${ps2_runner}"; then
-    fail_with "${ps2_runner} must route OP_POLL_EVENTS in driver loop"
+elif ! grep -q 'OP_POLL_MOUSE' "${ps2_runner}"; then
+    fail_with "${ps2_runner} must route OP_POLL_MOUSE in driver loop"
+elif ! grep -q 'mk_input_event_post' "${ps2_post}"; then
+    fail_with "${ps2_post} must post each key to the kernel input ring (mk_input_event_post)"
+elif grep -rq 'OP_POLL_EVENTS' userland/capsule_driver_ps2_input/src; then
+    fail_with "capsule_driver_ps2_input must not serve OP_POLL_EVENTS: a ring of typed scan codes is retained input"
 else
     note ok "phase5 denied-cap and ps2 input event flow source markers present"
 fi
-unset ps2_cap_gate ps2_error ps2_runner
+unset ps2_cap_gate ps2_error ps2_runner ps2_post
 
 # Phase-6 desktop shell policy ownership: wallpaper/tray/notify/
 # spotlight policy and endpoint loop live in the desktop-shell capsule.
@@ -4868,6 +4958,16 @@ else
     fail_with "check_mirror_caps: a spawn mirror or README disagrees with its manifest"
 fi
 unset mirror_out
+
+# Every crate's tests run in a lane or are listed with an owner, and
+# tools/nix/test-lanes.json is what the manifests' markers say.
+if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
+    note ok "every crate's tests run in a lane or are listed (check_test_lanes)"
+else
+    tail -n 5 <<< "${lanes_out}" >&2
+    fail_with "check_test_lanes: a test runs in no lane and is not listed"
+fi
+unset lanes_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

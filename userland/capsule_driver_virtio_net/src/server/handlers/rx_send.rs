@@ -21,6 +21,7 @@ extern crate alloc;
 use alloc::vec;
 
 use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};
+use crate::scrub::scrub;
 use crate::server::error::reply;
 
 /// Reply to `pid` with status 0 followed by `body`.
@@ -29,5 +30,7 @@ pub fn send(pid: u32, req: &Request, body: &[u8]) -> bool {
     encode_response_header(&mut out, req, (STATUS_LEN + body.len()) as u32);
     write_status(&mut out[RESP_HDR_LEN..], 0);
     out[RESP_HDR_LEN + STATUS_LEN..].copy_from_slice(body);
-    reply(pid, &out, out.len())
+    let sent = reply(pid, &out, out.len());
+    scrub(&mut out);
+    sent
 }

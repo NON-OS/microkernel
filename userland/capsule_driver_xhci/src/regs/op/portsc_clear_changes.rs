@@ -13,8 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::portsc_addr::portsc_addr;
 use super::portsc_neutral::portsc_neutral;
-use crate::constants::{PORTSC_BASE, PORTSC_CHANGE_BITS, PORT_REG_STRIDE};
+use crate::constants::PORTSC_CHANGE_BITS;
 use crate::regs::mmio_write32;
 
 // Acknowledge the change bits set in `snapshot`. The rest of the write is
@@ -22,10 +23,9 @@ use crate::regs::mmio_write32;
 // read, and never a one into PR (reset), WPR (warm reset) or PED (writing 1
 // disables the port).
 pub fn portsc_clear_changes(op_base: u64, port: u8, snapshot: u32) {
-    let reg = op_base + PORTSC_BASE + ((port as u64) - 1) * PORT_REG_STRIDE;
     let to_clear = snapshot & PORTSC_CHANGE_BITS;
-    if to_clear == 0 {
-        return;
-    }
-    mmio_write32(reg, portsc_neutral(snapshot) | to_clear);
+    let Some(reg) = portsc_addr(op_base, port).filter(|_| to_clear != 0) else { return };
+    // SAFETY: `read_layout` checked every root port's register set lies inside the mapped window
+    // (`require_ports`), and the callers pass a port from 1 to the controller's count.
+    unsafe { mmio_write32(reg, portsc_neutral(snapshot) | to_clear) };
 }

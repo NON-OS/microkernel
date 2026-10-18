@@ -18,9 +18,16 @@
 
 use super::super::super::env::{Clock, Deadline, Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
-use super::super::regs::{INT_STATUS, RESET_CMD, RESET_DATA, SOFTWARE_RESET};
+use super::super::super::text::Line;
+use super::super::regs::{INT_STATUS, PRESENT_STATE, RESET_CMD, RESET_DATA, SOFTWARE_RESET};
+use super::super::regs::{PS_CMD_INHIBIT, PS_DAT_ACTIVE, PS_DAT_INHIBIT};
+use super::super::regs::{PS_READ_ACTIVE, PS_WRITE_ACTIVE};
 use super::engine::Host;
 use super::limits::RESET_MS;
+
+/// Present State while a command, the data lines or a transfer is active.
+const BUSY: u32 =
+    PS_CMD_INHIBIT | PS_DAT_INHIBIT | PS_DAT_ACTIVE | PS_WRITE_ACTIVE | PS_READ_ACTIVE;
 
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
     /// Set Software Reset bits and wait for the host to clear them.
@@ -36,6 +43,18 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
             }
             self.clock.relax();
         }
+    }
+
+    /// After Software Reset For All read clear, the host's word that DMA has
+    /// ended (SDHCI 3.00, 2.2.16): Present State must agree before anything
+    /// is mapped for the host or it is given Bus Master. `HostBusy` when a
+    /// command, the data lines or a transfer still show active.
+    pub(super) fn idle_after_reset(&self) -> EmmcResult<()> {
+        if self.io.r32(PRESENT_STATE) & BUSY != 0 {
+            self.say(Line::new().s(b"host still busy after its reset"));
+            return Err(EmmcError::HostBusy);
+        }
+        Ok(())
     }
 
     /// After a failed command: reset the CMD line, then the DAT line (as

@@ -24,6 +24,8 @@ use super::rig::Rig;
 pub enum Wrong {
     Dead(u32, u32),
     Killed(u32),
+    /// The host answers command k refused, carrying nothing out.
+    Refused(u32),
 }
 
 /// `work` with `w` cued from the host's next command; None when killed.
@@ -34,6 +36,7 @@ pub fn run<T>(r: &mut Rig, w: Wrong, work: impl FnOnce(&mut Rig) -> T) -> Option
         match w {
             Wrong::Dead(k, d) => (h.dead_at, h.dead_for) = (Some(now + k), d),
             Wrong::Killed(k) => h.die_at = Some(now + k),
+            Wrong::Refused(k) => h.refuse_at = Some(now + k),
         }
     }
     let hook = std::panic::take_hook();

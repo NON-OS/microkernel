@@ -27,7 +27,7 @@ pub(super) fn feed_idle(q: &mut PcmQueue) {
     }
     while q.len() < floor {
         let mut chunk = vec![0u8; PERIOD_BYTES as usize];
-        fill(chunk.as_mut_ptr() as u64, PERIOD_BYTES as usize);
+        fill(&mut chunk);
         q.push(&chunk);
     }
 }

@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A small deterministic generator for the fuzz loops, and a MAC address
-//! written the way the `up` line writes it.
+//! A small deterministic generator for the fuzz loops, a MAC address
+//! written the way the `up` line writes it, and a driver whose part has run
+//! on its rings.
+
+use crate::setup::Driver;
 
 pub fn xorshift(state: &mut u64) -> u64 {
     *state ^= *state << 13;
@@ -26,4 +29,11 @@ pub fn xorshift(state: &mut u64) -> u64 {
 
 pub fn mac_text(mac: &[u8; 6]) -> String {
     mac.iter().map(|b| format!("{b:02x}")).collect::<Vec<_>>().join(":")
+}
+
+/// `d` as `start` leaves it: the part has fetched only this driver's
+/// descriptors since, so the I219 flush may run on them.
+pub fn started(mut d: Driver) -> Driver {
+    d.on_own_rings = true;
+    d
 }

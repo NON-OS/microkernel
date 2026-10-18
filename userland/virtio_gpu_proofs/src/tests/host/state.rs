@@ -49,10 +49,12 @@ pub struct Host {
     pub seen: u16,
     pub used: u16,
     /// From command `dead_at` the host takes commands and answers none, for
-    /// `dead_for` of them (0: for good); at `die_at` the driver is killed.
+    /// `dead_for` of them (0: for good); at `die_at` the driver is killed;
+    /// command `refuse_at` is answered refused and not carried out.
     pub dead_at: Option<u32>,
     pub dead_for: u32,
     pub die_at: Option<u32>,
+    pub refuse_at: Option<u32>,
     /// What GET_DISPLAY_INFO reports per scanout: (width, height), 0 off.
     pub displays: [(u32, u32); VG_MAX_SCANOUTS],
 }

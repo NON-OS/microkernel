@@ -20,7 +20,7 @@ fn a_gigabit_link_is_found_its_medium_set_and_the_answer_cached() {
     let (bus, mut nic) = bound(&chip);
     let start = bus.0.borrow().calls.len();
     chip.physr.set(0xa400);
-    nic.tick();
+    assert_eq!(nic.tick(), Ok(()));
     assert!(nic.link_up());
     let calls = bus.0.borrow().calls[start..].to_vec();
     let expected = vec![
@@ -35,7 +35,7 @@ fn a_gigabit_link_is_found_its_medium_set_and_the_answer_cached() {
     ];
     assert_eq!(calls, expected);
     let n = bus.0.borrow().calls.len();
-    nic.tick();
+    assert_eq!(nic.tick(), Ok(()));
     (0..100).for_each(|_| assert!(nic.link_up()));
     assert_eq!(bus.0.borrow().calls.len(), n, "no look within the second, none in link_up");
 }
@@ -45,16 +45,16 @@ fn a_dropped_link_and_a_renegotiated_one_are_seen_on_the_next_look() {
     let chip = Chip::default();
     let (bus, mut nic) = bound(&chip);
     chip.physr.set(0xa400);
-    nic.tick();
+    assert_eq!(nic.tick(), Ok(()));
     std::thread::sleep(Duration::from_millis(1_050));
     chip.physr.set(0x6400);
-    nic.tick();
+    assert_eq!(nic.tick(), Ok(()));
     assert!(nic.link_up());
     let last = bus.0.borrow().calls.last().cloned();
     assert_eq!(last, Some(mac_w(0x22, &[0x32, 0x03])), "100 full duplex");
     std::thread::sleep(Duration::from_millis(1_050));
     chip.physr.set(0x0000);
-    nic.tick();
+    assert_eq!(nic.tick(), Ok(()));
     assert!(!nic.link_up());
     assert_eq!(bus.0.borrow().calls.last().cloned(), Some(PHYSR));
 }
@@ -65,7 +65,7 @@ fn a_tx_fifo_that_stays_busy_leaves_the_link_down_after_a_tenth_of_a_second() {
     let (bus, mut nic) = bound(&chip);
     chip.physr.set(0xa400);
     let t = Instant::now();
-    nic.tick();
+    assert_eq!(nic.tick(), Ok(()));
     let took = t.elapsed();
     assert!(!nic.link_up());
     assert!(took >= Duration::from_millis(100) && took < Duration::from_millis(900), "{took:?}");

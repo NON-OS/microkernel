@@ -34,6 +34,15 @@ mod start;
 
 use nonos_libc::{heap_init, mk_exit};
 
+/// The capsule's entry point: the heap, then the driver, which never returns.
+///
+/// # Safety
+///
+/// Only the kernel's capsule loader enters here, once, as the first code the
+/// process runs: with the image's segments mapped, its relative relocations
+/// and RELRO applied (`load_elf_entry_into`), and on a fresh user stack
+/// aligned for the SysV entry ABI (`allocate_user_stack`). It must never be
+/// called from Rust.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

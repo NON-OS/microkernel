@@ -23,11 +23,29 @@
 //! closed without entropy rather than falling back. Checked with the entropy
 //! source switched off, and by a part watching the receive enable.
 
+mod clock_edge;
+mod held_look;
+mod live;
 mod memory;
 mod model;
+mod order;
+mod probe;
+mod serve;
 
 mod address_tests;
 mod bring_up_tests;
+mod bus_master_refusal_tests;
+mod bus_master_tests;
+mod discover_tests;
 mod finish_tests;
+mod predecessor_tests;
 mod reset_tests;
 mod ring_tests;
+mod runner_tests;
+mod rx_handler_tests;
+mod tx_handler_tests;
+mod tx_hang_fail_tests;
+mod tx_hang_mac_tests;
+mod tx_hang_tests;
+mod tx_link_tests;
+mod wait_tests;

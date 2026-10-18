@@ -22,3 +22,7 @@ pub const RX_RING_BYTES: usize = RX_DESC_COUNT * DESC_BYTES;
 pub const TX_RING_BYTES: usize = TX_DESC_COUNT * DESC_BYTES;
 pub const RX_BUFFER_BYTES: usize = RX_DESC_COUNT * BUFFER_SIZE;
 pub const TX_BUFFER_BYTES: usize = TX_DESC_COUNT * BUFFER_SIZE;
+
+/// The next transmit slot still the part's this long with the link up is a
+/// hung transmitter: Linux r8169's RTL8169_TX_TIMEOUT, 6 seconds.
+pub const TX_HANG_MS: u64 = 6000;

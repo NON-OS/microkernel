@@ -25,7 +25,7 @@ use crate::route::shell_keys::{
     is_shell_key, KEY_BRIGHTNESS_DOWN, KEY_BRIGHTNESS_UP, KEY_LID_OPENED,
 };
 use crate::router_desk::*;
-use crate::router_lid_key_tests::skeleton;
+use crate::router_tests::router_lid_key_tests::skeleton;
 
 const A: u32 = 20;
 

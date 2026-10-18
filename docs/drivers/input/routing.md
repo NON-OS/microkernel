@@ -1,0 +1,70 @@
+# Input: routing and privacy
+
+Where `input_router` sends each event it drains from the kernel input ring,
+the keys no focused window ever sees, and what no input driver keeps. How an
+event gets to the ring is in [Input drivers](README.md).
+
+## Routing
+
+For a pointer event the router moves the cursor, sends the compositor the new
+position, and asks the window manager `wm` which window is under the pointer. A
+key press goes to the focused app, the window `wm` names as having focus. Its
+release goes to the window that got the press, so a focus change while a key is
+held cannot strand it (`route_keyboard`,
+`userland/capsule_input_router/src/route/keyboard.rs:25-56`).
+
+A process receives an event only when it has subscribed to that kind of event,
+and the router keeps at most 64 subscriptions (`MAX_SUBSCRIBERS`,
+`userland/capsule_input_router/src/state/subscriptions/types.rs:21`). Five
+services may grab chosen kinds of event, so that those events go to them alone:
+the boot splash, the setup wizard, the input probe, `desktop_shell` and the
+installer. Any other sender is refused (`GRABBERS`,
+`userland/capsule_input_router/src/server/handlers/grab_request.rs:28-29`).
+
+Two groups of keys never reach the focused window:
+
+- Ctrl+Alt+Esc goes to `desktop_shell`, which brings Process Manager forward to
+  end a window that misbehaves (`is_reserved_chord`,
+  `userland/capsule_input_router/src/route/chord.rs:34-36`).
+- Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has
+  focus (`is_shell_key`,
+  `userland/capsule_input_router/src/route/shell_keys.rs:32-34`).
+  [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do.
+  The Power key, from a keyboard or from the [ACPI power
+  button](../platform.md#the-power-button), only shows the notice `Power off is
+  not available from the desktop`: the desktop has no way to power off in 0.9.2
+  (`POWER_OFF_UNAVAILABLE`,
+  `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+
+## Privacy
+
+No input driver writes a key to disk or to a log. The one exception for pointer
+data is the touchpad driver: when it holds the Debug capability it writes the
+first 16 bytes of each of its first six raw reports to the console, so a decode
+can be checked against the wire (`frame_dumps`,
+`userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`).
+`input_router` is granted IPC, Memory and InputSource and nothing else, so it
+cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`,
+`userland/capsule_input_router/Capsule.mk:16`).
+
+The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0`
+[held endpoints](../../overview/glossary.md#held-endpoint) with an empty sender
+list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`,
+`src/services/registry/held_table.rs:27-29`).
+
+Two limits follow from the capability rules above. A capsule holding `Irq` may
+post input events whatever its device, and the manifests of the AHCI, HD Audio,
+Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it; the I2C
+controller driver no longer does, as its engine polls (`CAPSULE_REQUIRED_CAPS`,
+`userland/capsule_driver_i2c_pci/Capsule.mk:18`). The three input drivers hold
+`InputSource` as well as `input_router`, so the kernel would let them drain the
+ring; in the shipped code only `input_router` calls the drain
+(`can_input_consumer`,
+`src/capabilities/token/types/authority_broker.rs:64-73`).
+
+## See also
+
+- [Input drivers](README.md)
+- [Input: layouts and limits](layouts.md)
+- [Audio](../audio.md)
+- [Platform: the power button](../platform.md#the-power-button)

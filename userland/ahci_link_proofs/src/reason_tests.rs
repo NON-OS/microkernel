@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The give-up line names the last failure in words; those words replaced
-//! the per-error exit codes, so every cause has to read apart from the rest.
+//! The give-up line names the last failure in words (no exit codes): each reads apart.
 
 use crate::error::{reason, AhciError};
 use crate::identity::Refusal;
@@ -28,9 +27,13 @@ fn every_failure() -> Vec<AhciError> {
         AhciError::NoDisk,
         AhciError::BrokerCallFailed(-16),
         AhciError::CommandFailed,
+        AhciError::HbaFailed,
         AhciError::Timeout,
         AhciError::IdentityRefused(Refusal::NoCapacity),
         AhciError::OutOfRange,
+        AhciError::ShortTransfer,
+        AhciError::Wedged,
+        AhciError::EnginesRunning,
     ];
     for e in all {
         match e {
@@ -38,9 +41,13 @@ fn every_failure() -> Vec<AhciError> {
             | AhciError::NoDisk
             | AhciError::BrokerCallFailed(_)
             | AhciError::CommandFailed
+            | AhciError::HbaFailed
             | AhciError::Timeout
             | AhciError::IdentityRefused(_)
-            | AhciError::OutOfRange => {}
+            | AhciError::OutOfRange
+            | AhciError::ShortTransfer
+            | AhciError::Wedged
+            | AhciError::EnginesRunning => {}
         }
     }
     all.to_vec()

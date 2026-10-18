@@ -16,8 +16,9 @@
 
 //! TX bring-up. Zeros the descriptor ring, programs TDBA/TDLEN/
 //! TDH/TDT, configures TIPG to the IEEE 802.3 full-duplex default
-//! (`0x00602008`), and enables the transmitter via TCTL with the
-//! pad-short-packet bit and a 16-retry collision threshold.
+//! (`0x00602008`), and sets TCTL with the pad-short-packet bit and a
+//! 16-retry collision threshold, the transmitter still off; `start`
+//! enables it once Bus Master is on.
 
 use core::sync::atomic::{fence, Ordering};
 
@@ -25,7 +26,7 @@ use crate::constants::queue::{TX_DESC_COUNT, TX_RING_BYTES};
 use crate::constants::regs::{
     REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT, REG_TIPG,
 };
-use crate::constants::status::{TCTL_COLD_FULL_DUPLEX, TCTL_CT_DEFAULT, TCTL_EN, TCTL_PSP};
+use crate::constants::status::{TCTL_COLD_FULL_DUPLEX, TCTL_CT_DEFAULT, TCTL_PSP};
 use crate::queue::layout::TxDesc;
 use crate::queue::TxRing;
 use crate::regs::Regs;
@@ -49,6 +50,6 @@ pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) {
         regs.w32(REG_TDH, 0);
         regs.w32(REG_TDT, 0);
         regs.w32(REG_TIPG, TIPG_FULL_DUPLEX);
-        regs.w32(REG_TCTL, TCTL_EN | TCTL_PSP | TCTL_CT_DEFAULT | TCTL_COLD_FULL_DUPLEX);
+        regs.w32(REG_TCTL, TCTL_PSP | TCTL_CT_DEFAULT | TCTL_COLD_FULL_DUPLEX);
     }
 }

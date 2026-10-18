@@ -17,17 +17,15 @@
 //! Linux e1000_flush_tx_ring: give the transmitter one more descriptor, a
 //! 512-byte frame of whatever the ring memory holds, so it drains.
 //!
-//! One difference, forced by where this runs: Linux appends that descriptor
-//! to its own ring, already programmed. Here the pending ring is whatever
-//! firmware left, in memory this capsule does not own and cannot write. So
-//! queue 0 is first pointed at this driver's own ring (empty, head and tail
-//! zero) and the descriptor goes in its slot 0.
+//! One difference: Linux appends that descriptor at its ring's tail. Here
+//! `own_rings` has first started queue 0 over on this driver's own ring
+//! (empty, head and tail zero), so the descriptor goes in its slot 0.
 
 use core::ptr::write_volatile;
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::queue::{TX_CMD_IFCS, TX_RING_BYTES};
-use crate::constants::regs::{REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT};
+use crate::constants::queue::TX_CMD_IFCS;
+use crate::constants::regs::{REG_TCTL, REG_TDT};
 use crate::constants::rxtx::TCTL_EN;
 use crate::constants::timeouts::SHORT_MS;
 use crate::queue::layout::TxDesc;
@@ -47,11 +45,6 @@ pub fn run(d: &Driver) {
     unsafe {
         write_volatile(d.tx.ring_user_va as *mut TxDesc, desc);
         fence(Ordering::Release);
-        d.regs.w32(REG_TDBAL, ring as u32);
-        d.regs.w32(REG_TDBAH, (ring >> 32) as u32);
-        d.regs.w32(REG_TDLEN, TX_RING_BYTES as u32);
-        d.regs.w32(REG_TDH, 0);
-        d.regs.w32(REG_TDT, 0);
         d.regs.modify(REG_TCTL, 0, TCTL_EN);
         d.regs.w32(REG_TDT, 1);
     }

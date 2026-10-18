@@ -44,10 +44,12 @@ impl Display for Gpu {
     }
 
     fn set_mode(&mut self, output: u16, w: u32, h: u32, shadow: &Shadow) -> Result<(), Errno> {
+        describe::live(self)?;
         self.mode_set(output, w, h, shadow)
     }
 
     fn flush(&mut self, output: u16, rects: &[Rect], shadow: &Shadow) -> Result<(), Errno> {
+        describe::live(self)?;
         let h = self.head(output).ok_or(ENXIO)?;
         // Off, or back but not yet shown again: nothing is on the screen to
         // update, and the mode set that shows it again loads the whole.

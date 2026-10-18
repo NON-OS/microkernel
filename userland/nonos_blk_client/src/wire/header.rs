@@ -1,0 +1,26 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The header every block driver shares, and the unit callers address a
+//! disk in. Each driver's own copy is held to these by
+//! scripts/check_blk_wire.py and blk_client_proofs.
+
+pub const VERSION: u16 = 1;
+pub const HDR_LEN: usize = 20;
+pub const STATUS_LEN: usize = 4;
+/// The unit callers address a disk in. The per-request ceiling and the
+/// disk's own block size are the device's, in `device/span.rs`.
+pub const SECTOR_SIZE: usize = 512;

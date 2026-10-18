@@ -26,7 +26,9 @@ use nonos_gfx_wire::ops;
 use super::ask::{ask, words};
 use super::kit::{backed_live, draw, fill, raise, shown, state};
 use super::rig::rig;
+use crate::constants::GPU_CFG_EVENTS_CLEAR;
 use crate::tests::host::words::PANEL;
+use crate::tests::model::DEVICE_AT;
 
 const PX: u32 = 0x0044_5566;
 const LATER: u32 = 0x0077_8899;
@@ -36,7 +38,7 @@ fn off_goes_dark_and_back_shows_the_primary_whole() {
     let mut r = rig();
     let s = draw(&mut r, 0, PX);
     raise(&mut r, 0, (0, 0));
-    assert!(r.s.display.events(), "turned off is a change");
+    assert!(r.d.server.display.events(), "turned off is a change");
     assert_eq!(r.host.borrow().scanouts[0], 0, "the scanout let go of the surface");
     assert_eq!(state(&mut r, 0).flags, 0, "dark");
     fill(&mut r, 0, LATER);
@@ -46,13 +48,13 @@ fn off_goes_dark_and_back_shows_the_primary_whole() {
     assert_eq!(r.host.borrow().steps(), before, "nothing sent while off");
     assert_eq!(ask(&mut r, ops::MODE_SET, 0, &words(&[800, 600])).0, EAGAIN);
     raise(&mut r, 0, PANEL);
-    assert!(r.s.display.events(), "back is a change");
+    assert!(r.d.server.display.events(), "back is a change");
     assert_eq!(state(&mut r, 0).flags, LOST, "lost once, set again by the server");
     let px = shown(&r, 0).expect("shown again");
     assert!(px.len() == 640 * 480 && px.iter().all(|&p| p == LATER), "the primary whole");
     assert_eq!(state(&mut r, 0).flags, SCANNING_OUT);
     assert_eq!(r.host.borrow().res.len(), 1, "the old surface given back");
-    assert!(r.s.display.limbo.is_empty() && backed_live(&r));
+    assert!(r.d.server.display.limbo.is_empty() && backed_live(&r));
 }
 
 #[test]
@@ -60,7 +62,8 @@ fn an_event_that_changes_nothing_moves_nothing() {
     let mut r = rig();
     let g = state(&mut r, 0).generation;
     raise(&mut r, 0, PANEL);
-    assert!(!r.s.display.events(), "no change");
+    assert!(!r.d.server.display.events(), "no change");
     assert_eq!(state(&mut r, 0).generation, g);
-    assert_eq!(r.regs.wrote32(0x18), 1, "the bit cleared all the same");
+    let clear = DEVICE_AT + GPU_CFG_EVENTS_CLEAR;
+    assert_eq!(r.regs.wrote32(clear), 1, "the bit cleared all the same");
 }

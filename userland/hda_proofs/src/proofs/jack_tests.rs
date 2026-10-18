@@ -31,7 +31,11 @@ fn the_speakers_play_only_while_nothing_is_plugged_in() {
     assert_eq!(pin_ctl(OutKind::Speaker, false, true), 0);
     assert_eq!(pin_ctl(OutKind::Headphone, true, true), PIN_OUT_ENABLE | PIN_HP_ENABLE);
     assert_eq!(pin_ctl(OutKind::Headphone, false, false), PIN_OUT_ENABLE);
-    assert_eq!(pin_ctl(OutKind::LineOut, false, true), PIN_OUT_ENABLE, "line out is not auto-muted");
+    assert_eq!(
+        pin_ctl(OutKind::LineOut, false, true),
+        PIN_OUT_ENABLE,
+        "line out is not auto-muted"
+    );
 }
 
 #[test]

@@ -17,8 +17,14 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BgaError {
     BrokerCallFailed(i64),
-    /// DISPI took no linear 32-bit mode, firmware's or ours.
-    NoMode,
+    RegisterWindowTooSmall,
+    NotDispi,
+    /// The mode does not fit the framebuffer mapping (BAR0 as mapped).
+    ModeTooLarge,
+    /// The mode does not fit the adapter's own video memory.
+    VideoMemoryTooSmall,
+    /// The adapter did not read back the mode set, line layout included.
+    ModeNotTaken,
 }
 
 pub type BgaResult<T> = Result<T, BgaError>;
@@ -30,6 +36,10 @@ pub type BgaResult<T> = Result<T, BgaError>;
 pub const fn reason(e: BgaError) -> &'static str {
     match e {
         BgaError::BrokerCallFailed(_) => "bga: broker refused a claim or grant",
-        BgaError::NoMode => "bga: the adapter took no 32-bit linear mode",
+        BgaError::RegisterWindowTooSmall => "bga: register mapping ends inside the DISPI block",
+        BgaError::NotDispi => "bga: DISPI ID register outside 0xB0C0 to 0xB0C5",
+        BgaError::ModeTooLarge => "bga: mode does not fit the framebuffer mapping",
+        BgaError::VideoMemoryTooSmall => "bga: mode does not fit the adapter's video memory",
+        BgaError::ModeNotTaken => "bga: the adapter did not read back the mode set",
     }
 }

@@ -21,7 +21,10 @@ use crate::dispi::{current, set_mode, DispiMode};
 use crate::display::fits;
 use crate::edid::Panel;
 use crate::model::{blob, dtd, Adapter, VRAM};
-use crate::start::starting;
+use crate::setup::mode::starting;
+
+/// Video memory and the BAR0 mapping, both the model's whole.
+const ALL: (u64, u64) = (VRAM as u64, VRAM as u64);
 
 fn panel(b: &[u8]) -> Panel {
     Panel::read(b, |w, h| fits(VRAM, w, h))
@@ -40,21 +43,21 @@ fn the_mode_firmware_left_is_kept() {
     let a = Adapter::new();
     set_mode(a.regs(), 800, 600);
     let p = panel(&blob(Some(dtd(1280, 800, (286, 179))), &[], 0));
-    assert_eq!(starting(a.regs(), &p, VRAM), mode(800, 600));
+    assert_eq!(starting(a.regs(), &p, ALL).ok(), mode(800, 600));
 }
 
 #[test]
 fn an_adapter_left_off_starts_on_the_monitors_preferred_mode() {
     let a = Adapter::new();
     let p = panel(&blob(Some(dtd(1280, 800, (286, 179))), &[], 0));
-    assert_eq!(starting(a.regs(), &p, VRAM), mode(1280, 800));
+    assert_eq!(starting(a.regs(), &p, ALL).ok(), mode(1280, 800));
     assert_eq!(current(a.regs()), mode(1280, 800));
 }
 
 #[test]
 fn with_no_monitor_word_it_starts_at_1024x768() {
     let a = Adapter::new();
-    assert_eq!(starting(a.regs(), &Panel::default(), VRAM), mode(1024, 768));
+    assert_eq!(starting(a.regs(), &Panel::default(), ALL).ok(), mode(1024, 768));
 }
 
 #[test]
@@ -65,5 +68,5 @@ fn a_preferred_mode_too_large_for_video_memory_falls_back() {
      */
     let a = Adapter::new();
     let p = panel(&blob(Some(dtd(1920, 1080, (531, 299))), &[], 0));
-    assert_eq!(starting(a.regs(), &p, 4 << 20), mode(1024, 768));
+    assert_eq!(starting(a.regs(), &p, (4 << 20, 4 << 20)).ok(), mode(1024, 768));
 }

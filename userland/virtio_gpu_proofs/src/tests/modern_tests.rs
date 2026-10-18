@@ -14,47 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The modern bring-up: the status handshake and the features taken.
+//! The bring-up on the shared transport: the status handshake and the
+//! features taken. ACCESS_PLATFORM is taken whenever it is offered, so a
+//! device behind an IOMMU sends its DMA through it. Whether the claim is
+//! confined is the kernel's to enforce at claim time, so a device that does
+//! not offer it still comes up here: the driver does not guess.
 
-use crate::constants::{
-    FEATURE_PAGE_HIGH, MOD_DEVICE_STATUS, MOD_DRIVER_FEATURE, MOD_DRIVER_FEATURE_SELECT,
-    VIRTIO_F_ACCESS_PLATFORM_HIGH, VIRTIO_F_VERSION_1_HIGH, VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL,
-    VIRTIO_GPU_MODERN,
-};
-use crate::init::bring_up;
-use crate::tests::model::{modern_regs, modern_window, QUEUE_SIZE, REGION_PHYS};
+use nonos_virtio::common::{DEVICE_STATUS, DRIVER_FEATURE, DRIVER_FEATURE_SELECT};
+use nonos_virtio::features::{VIRTIO_F_ACCESS_PLATFORM, VIRTIO_F_VERSION_1};
+
+use super::model::{bring_up, modern_window, NOTIFY_LEN, QUEUE_SIZE};
+use crate::constants::{VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL};
 
 /// The status byte as the virtio specification numbers it: ACKNOWLEDGE 1,
 /// DRIVER 2, DRIVER_OK 4, FEATURES_OK 8.
 const LIVE: u8 = 0x0F;
+const VIRGL: u64 = VIRTIO_GPU_F_VIRGL as u64;
+const EDID: u64 = VIRTIO_GPU_F_EDID as u64;
 
 #[test]
 fn a_part_offering_both_features_ends_live_with_both_accepted() {
     let bar = modern_window(VIRTIO_GPU_F_VIRGL | VIRTIO_GPU_F_EDID, QUEUE_SIZE);
-    let out = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
-    assert_eq!(bar.wrote8(MOD_DEVICE_STATUS), LIVE);
-    assert!(out.virgl && out.edid);
-    assert_eq!(bar.wrote32(MOD_DRIVER_FEATURE_SELECT), FEATURE_PAGE_HIGH, "high page acked last");
-    // The model shows one feature word for both pages, so bits 0 and 1 in the
-    // high page are VERSION_1 and ACCESS_PLATFORM: both offered, both taken.
-    assert_eq!(
-        bar.wrote32(MOD_DRIVER_FEATURE),
-        VIRTIO_F_VERSION_1_HIGH | VIRTIO_F_ACCESS_PLATFORM_HIGH
-    );
+    let (features, ..) = bring_up(&bar, NOTIFY_LEN).expect("live");
+    assert_eq!(bar.wrote8(DEVICE_STATUS), LIVE);
+    assert_eq!(features & (VIRGL | EDID), VIRGL | EDID);
+    assert_eq!(bar.wrote32(DRIVER_FEATURE_SELECT), 1, "high page acked last");
+    // Bits 0 and 1 of the high page: VERSION_1 and ACCESS_PLATFORM, which
+    // is taken whenever it is offered.
+    assert_eq!(bar.wrote32(DRIVER_FEATURE), 0b11);
+    assert_eq!(features >> 32 << 32, VIRTIO_F_VERSION_1 | VIRTIO_F_ACCESS_PLATFORM);
 }
 
 #[test]
-fn access_platform_is_taken_only_when_offered() {
+fn a_part_that_does_not_offer_access_platform_is_not_given_it() {
     // Bit 0 alone: the high page offers VERSION_1 and not ACCESS_PLATFORM.
     let bar = modern_window(VIRTIO_GPU_F_VIRGL, QUEUE_SIZE);
-    bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
-    assert_eq!(bar.wrote32(MOD_DRIVER_FEATURE), VIRTIO_F_VERSION_1_HIGH);
+    let (features, ..) = bring_up(&bar, NOTIFY_LEN).expect("live");
+    assert_eq!(features & VIRTIO_F_ACCESS_PLATFORM, 0);
+    assert_eq!(bar.wrote32(DRIVER_FEATURE), 1, "VERSION_1 alone");
+    assert_eq!(bar.wrote8(DEVICE_STATUS), LIVE);
 }
 
 #[test]
 fn a_feature_the_part_did_not_offer_is_not_taken() {
     let bar = modern_window(VIRTIO_GPU_F_VIRGL, QUEUE_SIZE);
-    let out = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
-    assert!(out.virgl, "offered, so accepted");
-    assert!(!out.edid, "not offered, so not claimed");
+    let (features, ..) = bring_up(&bar, NOTIFY_LEN).expect("live");
+    assert_ne!(features & VIRGL, 0, "offered, so accepted");
+    assert_eq!(features & EDID, 0, "not offered, so not claimed");
+}
+
+#[test]
+fn no_device_bit_the_driver_does_not_handle_is_taken() {
+    let bar = modern_window(u32::MAX, QUEUE_SIZE);
+    let (features, ..) = bring_up(&bar, NOTIFY_LEN).expect("live");
+    assert_eq!(features & 0xFFFF_FFFF, VIRGL | EDID);
+    assert_eq!(features >> 32, 0b11, "VERSION_1 and ACCESS_PLATFORM, nothing else");
 }

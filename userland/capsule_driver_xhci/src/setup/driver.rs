@@ -28,4 +28,12 @@ pub struct Driver {
     pub event_ring: EventRing,
     pub layout: ControllerLayout,
     pub slots: SlotTable,
+    /// The controller failed (`failed`) and was not brought back: every
+    /// request on it is refused until `revive` succeeds.
+    pub dead: bool,
+    /// How many times `revive` brought the controller back; slot ids handed
+    /// out before the last are stale.
+    pub generation: u32,
+    /// Revivals tried so far, bounded by `MAX_REVIVALS`.
+    pub revivals: u8,
 }

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The mouse packet path, each file the shipping one: the bytes the aux port
-//! delivers are assembled into packets, decoded, and queued. Posting to the
-//! kernel input ring talks to the kernel and stays out.
+//! delivers are assembled into packets, decoded, queued, and posted to the
+//! input ring the shim keeps.
 
 #[path = "../../../capsule_driver_ps2_input/src/mouse/axis.rs"]
 mod axis;
@@ -26,5 +26,11 @@ pub mod event;
 pub mod packet;
 #[path = "../../../capsule_driver_ps2_input/src/mouse/parser.rs"]
 pub mod parser;
+#[path = "../../../capsule_driver_ps2_input/src/mouse/post.rs"]
+mod post;
 #[path = "../../../capsule_driver_ps2_input/src/mouse/ring.rs"]
 pub mod ring;
+
+pub use parser::MouseParser;
+pub use post::publish as publish_mouse;
+pub use ring::MouseRing;

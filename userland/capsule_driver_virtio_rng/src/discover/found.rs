@@ -21,8 +21,6 @@ pub struct Found {
     pub register_bar: u8,
     pub register_kind: u8,
     pub register_size: u64,
-    /// The PCI device id: transitional 0x1005 or modern-only 0x1044.
-    pub pci_device: u16,
     /// Every BAR, for the transport choice and the capability checks.
     pub bars: Bars,
 }

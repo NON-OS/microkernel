@@ -15,21 +15,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The mode bga starts on: firmware's when DISPI already shows a linear
-//! 32-bit mode (section 12: a driver keeps the mode firmware left until a
-//! MODE_SET), else the monitor's preferred mode when it fits, else 1024x768.
+//! 32-bit mode from the start of video memory that fits (section 12: a
+//! driver keeps the mode firmware left until a MODE_SET, and OVMF's GOP
+//! mode is then left where the compositor's GOP fallback finds it); else
+//! the monitor's preferred mode when it fits, else 1024x768, refused by
+//! name before a register is written when it does not fit either limit,
+//! and held to reading back as set.
 
 use crate::constants::FALLBACK_MODE;
 use crate::dispi::{current, set_mode, DispiMode};
 use crate::display::fits;
 use crate::edid::Panel;
+use crate::error::{BgaError, BgaResult};
 use crate::regs::Regs;
 
-pub fn starting(regs: Regs, panel: &Panel, vram_len: usize) -> Option<DispiMode> {
-    if let Some(m) = current(regs) {
-        return Some(m);
+/// `video` bytes of video memory, `mapped` bytes of BAR0 mapped.
+pub fn starting(regs: Regs, panel: &Panel, (video, mapped): (u64, u64)) -> BgaResult<DispiMode> {
+    let room = video.min(mapped) as usize;
+    if let Some(m) = current(regs).filter(|m| m.stride as usize * m.height as usize <= room) {
+        return Ok(m);
     }
-    let (w, h) = panel.preferred.unwrap_or(FALLBACK_MODE);
-    let (w, h) = if fits(vram_len, w, h) { (w, h) } else { FALLBACK_MODE };
+    let (w, h) = panel.preferred.filter(|&(w, h)| fits(room, w, h)).unwrap_or(FALLBACK_MODE);
+    let bytes = w as u64 * h as u64 * 4;
+    if bytes > video {
+        return Err(BgaError::VideoMemoryTooSmall);
+    }
+    if bytes > mapped {
+        return Err(BgaError::ModeTooLarge);
+    }
     set_mode(regs, w as u16, h as u16);
-    current(regs)
+    current(regs).filter(|m| (m.width, m.height) == (w, h)).ok_or(BgaError::ModeNotTaken)
 }

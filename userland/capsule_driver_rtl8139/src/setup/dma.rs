@@ -14,26 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, DmaMapOut, PioGrantOut};
+//! The two DMA grants: the receive buffer and the four transmit slots. The
+//! part's RBSTART and TSAD registers are 32 bits wide, so both are asked for
+//! below 4 GiB, and each is held to ending there too: a grant that started
+//! below and ran past would have the part's addresses wrap into low memory
+//! that is not this driver's. A failing step gives the device back through
+//! `rollback`, whose release frees whatever was granted.
+
+use nonos_libc::{mk_dma_map, DmaMapOut, PioGrantOut, MK_DMA_MAP_DMA32};
 
 use crate::constants::dma::{RX_BUF_BYTES, TX_BUF_BYTES};
 
 use super::rollback;
 
 const PAGE_MASK: u64 = 0xFFF;
+const FOUR_GIB: u64 = 1 << 32;
 
 fn page_round(n: u64) -> u64 {
     (n + PAGE_MASK) & !PAGE_MASK
 }
 
-fn alloc(device_id: u64, epoch: u64, bytes: u64) -> Option<DmaMapOut> {
+fn alloc(
+    device_id: u64,
+    epoch: u64,
+    bytes: u64,
+    refused: &'static str,
+) -> Result<DmaMapOut, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let r = mk_dma_map(device_id, epoch, page_round(bytes), 0, &mut out);
-    if r < 0 {
-        None
-    } else {
-        Some(out)
+    if mk_dma_map(device_id, epoch, page_round(bytes), MK_DMA_MAP_DMA32, &mut out) < 0 {
+        return Err(refused);
     }
+    if out.length < bytes {
+        return Err("rtl8139 dma grant shorter than asked");
+    }
+    let end = out.device_addr.checked_add(out.length);
+    if end.is_none_or(|end| end > FOUR_GIB) {
+        return Err("rtl8139 requires 32-bit dma");
+    }
+    Ok(out)
 }
 
 pub fn map_all(
@@ -41,17 +59,11 @@ pub fn map_all(
     epoch: u64,
     pio: &PioGrantOut,
 ) -> Result<(DmaMapOut, DmaMapOut), &'static str> {
-    let rx = alloc(device_id, epoch, RX_BUF_BYTES as u64).ok_or_else(|| {
-        rollback::after_pio(device_id, pio, &[]);
-        "rx dma failed"
-    })?;
-    let tx = alloc(device_id, epoch, TX_BUF_BYTES as u64).ok_or_else(|| {
-        rollback::after_pio(device_id, pio, &[rx.grant_id]);
-        "tx dma failed"
-    })?;
-    if rx.device_addr > u32::MAX as u64 || tx.device_addr > u32::MAX as u64 {
-        rollback::after_pio(device_id, pio, &[tx.grant_id, rx.grant_id]);
-        return Err("rtl8139 requires 32-bit dma");
-    }
+    let give_back = |e| {
+        rollback::after_pio(device_id, epoch, pio);
+        e
+    };
+    let rx = alloc(device_id, epoch, RX_BUF_BYTES as u64, "rx dma failed").map_err(give_back)?;
+    let tx = alloc(device_id, epoch, TX_BUF_BYTES as u64, "tx dma failed").map_err(give_back)?;
     Ok((rx, tx))
 }

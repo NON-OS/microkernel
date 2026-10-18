@@ -19,21 +19,37 @@
 
 use crate::error::{reason, BgaError};
 
+/// Every failure, so a new one fails to build here until it is given words.
+const ALL: [BgaError; 6] = [
+    BgaError::BrokerCallFailed(0),
+    BgaError::RegisterWindowTooSmall,
+    BgaError::NotDispi,
+    BgaError::ModeTooLarge,
+    BgaError::VideoMemoryTooSmall,
+    BgaError::ModeNotTaken,
+];
+
 #[test]
 fn a_refusal_names_the_driver_whatever_errno_the_broker_gave() {
     let w = reason(BgaError::BrokerCallFailed(-16));
     assert!(w.starts_with("bga: ") && w.len() > "bga: ".len(), "{w:?}");
     assert!(w.len() <= 80, "{w:?} is too long for the give-up line");
     assert_eq!(w, reason(BgaError::BrokerCallFailed(-1)));
-    // Exhaustive: a new failure fails to build here until it is given words.
     match BgaError::BrokerCallFailed(0) {
-        BgaError::BrokerCallFailed(_) | BgaError::NoMode => {}
+        BgaError::BrokerCallFailed(_)
+        | BgaError::RegisterWindowTooSmall
+        | BgaError::NotDispi
+        | BgaError::ModeTooLarge
+        | BgaError::VideoMemoryTooSmall
+        | BgaError::ModeNotTaken => {}
     }
 }
 
 #[test]
-fn an_adapter_that_takes_no_mode_says_so() {
-    let w = reason(BgaError::NoMode);
-    assert!(w.starts_with("bga: ") && w.len() <= 80, "{w:?}");
-    assert_ne!(w, reason(BgaError::BrokerCallFailed(0)));
+fn every_refusal_says_so_in_words_of_its_own() {
+    for (i, e) in ALL.iter().enumerate() {
+        let w = reason(*e);
+        assert!(w.starts_with("bga: ") && w.len() <= 80, "{w:?}");
+        assert!(ALL[..i].iter().all(|o| reason(*o) != w), "{e:?} shares its words");
+    }
 }

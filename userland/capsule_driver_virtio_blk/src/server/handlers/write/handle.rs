@@ -13,29 +13,28 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use super::request::write_request;
-use crate::io::{settle, submit, BlkError};
-use crate::protocol::{Request, E_INVAL, E_IO, RW_HEADER_LEN};
+use crate::io::submit;
+use crate::protocol::{Request, E_IO, RW_HEADER_LEN};
 use crate::queue::Direction;
 use crate::server::error::reply_with_status;
+use crate::server::handlers::status::status_of;
 use crate::setup::Driver;
 
 pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let parsed = match write_request(driver, req, body) {
+    let parsed = match write_request(driver.capacity_sectors, req, body) {
         Ok(v) => v,
         Err(status) => {
             reply_with_status(tx, req, status);
             return;
         }
     };
-    // The buffer may still be the device's, for a request it has not answered.
-    if settle(driver.transport, &mut driver.queue, driver.irq_grant).is_err() {
+    // The queue hands its buffer over only while no request holds it.
+    let data = body.get(RW_HEADER_LEN..RW_HEADER_LEN + parsed.bytes_n);
+    if !data.is_some_and(|d| driver.queue.fill(d)) {
         reply_with_status(tx, req, E_IO);
         return;
-    }
-    unsafe {
-        let dst = driver.queue.data_mut(parsed.bytes_n as u32);
-        dst.copy_from_slice(&body[RW_HEADER_LEN..RW_HEADER_LEN + parsed.bytes_n]);
     }
     let outcome = submit(
         driver.transport,
@@ -45,10 +44,5 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         parsed.lba,
         parsed.nsectors,
     );
-    let status = match outcome {
-        Ok(()) => 0,
-        Err(BlkError::Unsupported) => E_INVAL,
-        Err(_) => E_IO,
-    };
-    reply_with_status(tx, req, status);
+    reply_with_status(tx, req, status_of(outcome));
 }

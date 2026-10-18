@@ -13,28 +13,49 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::claim;
-use super::claimed::claimed;
-use crate::discover::find_virtio_gpu;
-use crate::driver::Driver;
-use nonos_libc::mk_device_release;
 
-/// One bring-up attempt. A failed one holds nothing afterwards.
-pub fn run() -> Result<Driver, &'static str> {
-    let dev = find_virtio_gpu();
-    let dev = dev.ok_or("virtio-gpu: device not found")?;
+//! One bring-up attempt. A failed one holds nothing afterwards: once the
+//! register window is mapped the device is reset first, and
+//! then the claim goes, and every grant with it.
+
+use nonos_gfx_pool::Pool;
+use nonos_libc::mk_device_release;
+use nonos_virtio::common::reset_until;
+
+use super::{claim, live, mmio, pci};
+use crate::clock::expired_after;
+use crate::constants::RESET_MS;
+use crate::discover::{find_virtio_gpu, Found};
+use crate::driver::Driver;
+
+pub fn run() -> Result<Driver<Pool>, &'static str> {
+    let dev = find_virtio_gpu().ok_or("virtio-gpu: device not found")?;
     let claim_epoch = claim::claim(dev.device_id)?;
     let attempt = claimed(dev, claim_epoch);
     if attempt.is_err() {
         /*
-         * bring_up, scanouts::seed, the takeover and the queue layout
-         * returned their errors with the claim, the register grants, the
-         * queue DMA and any surface DMA still held, so every attempt after
-         * the first failed at claim. Releasing the claim takes every grant
-         * with it; the steps that roll back on their own have released it
-         * already and this answers "not claimed".
+         * Whichever step failed, the claim goes, and every register, queue
+         * and surface grant with it: the broker stops bus mastering first
+         * and only then tears the grants down, so the next attempt can
+         * claim afresh. Nothing is unmapped before that.
          */
         let _ = mk_device_release(dev.device_id);
+    }
+    attempt
+}
+
+fn claimed(dev: Found, claim_epoch: u64) -> Result<Driver<Pool>, &'static str> {
+    /*
+     * No interrupt is bound: the driver polls, and DECODE takes the device
+     * off its legacy line so it cannot hold a shared line up.
+     */
+    pci::command(dev.device_id, claim_epoch, pci::DECODE)?;
+    let window = mmio::map(&dev, claim_epoch)?;
+    let attempt = live::run(dev, claim_epoch, &window);
+    if attempt.is_err() {
+        // A command may be in flight, or a resource attached to a grant:
+        // the device is stopped before the claim is given back.
+        let _ = reset_until(&window.common.region, expired_after(RESET_MS));
     }
     attempt
 }
