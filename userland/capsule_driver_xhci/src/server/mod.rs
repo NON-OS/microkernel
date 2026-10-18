@@ -16,10 +16,21 @@
 pub mod context;
 mod dispatch;
 mod error;
-mod handlers;
+// The proofs reach the control data stage's buffer through it.
+pub(crate) mod handlers;
 pub mod mux;
-mod mux_ports;
-mod reply;
-mod runner;
+mod mux_address;
+mod mux_bind;
+mod mux_forward;
+mod mux_port_status;
+pub(crate) mod mux_ports;
+mod mux_routed;
+mod mux_slots;
+mod mux_status;
+mod mux_sweep;
+pub(crate) mod reply;
+mod route;
+pub(crate) mod runner;
 mod service_interrupts;
+mod sweep;
 pub use runner::run;

@@ -29,9 +29,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_mac"
+version = "0.3.0"
+
+[[package]]
 name = "nonos_usbnet"
 version = "0.3.0"
 dependencies = [
+ "nonos_mac",
  "nonos_userland_libc",
 ]
 

@@ -21,20 +21,22 @@ use super::pci::Controller;
 use super::table::Driver;
 
 impl Driver {
-    /// The kind of controller on the bus this driver serves.
-    pub fn controller(self) -> Controller {
+    /// The kind of controller on the bus this driver serves. A card reader
+    /// has none: an empty reader is no missing disk.
+    pub fn controller(self) -> Option<Controller> {
         match self {
-            Driver::VirtioBlk => Controller::VirtioBlk,
-            Driver::Nvme => Controller::Nvme,
-            Driver::Ahci => Controller::Ahci,
-            Driver::Wire => Controller::Emmc,
-            Driver::Ufs => Controller::Ufs,
+            Driver::VirtioBlk => Some(Controller::VirtioBlk),
+            Driver::Nvme => Some(Controller::Nvme),
+            Driver::Ahci => Some(Controller::Ahci),
+            Driver::Wire => Some(Controller::Emmc),
+            Driver::Ufs => Some(Controller::Ufs),
+            Driver::Rtsx => None,
         }
     }
 
     /// Whether this driver serves a disk from controller `c`.
     pub fn serves(self, c: Controller) -> bool {
-        c == self.controller()
+        self.controller() == Some(c)
     }
 
     /// The bus, as a person sees it in the disk list.
@@ -45,6 +47,7 @@ impl Driver {
             Driver::Ahci => b"SATA",
             Driver::Wire => b"eMMC",
             Driver::Ufs => b"UFS",
+            Driver::Rtsx => b"SD",
         }
     }
 }

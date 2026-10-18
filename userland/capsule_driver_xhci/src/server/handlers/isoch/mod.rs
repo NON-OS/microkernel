@@ -18,6 +18,7 @@
 //! it batches of packets, one service interval each.
 
 mod configure;
+mod configure_pipe;
 mod out;
 
 pub use configure::configure;

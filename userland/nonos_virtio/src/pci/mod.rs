@@ -21,6 +21,6 @@ mod bars;
 mod config;
 mod ids;
 
-pub use bars::{has_io_bar, BarInfo, BarKind, Bars};
+pub use bars::{BarInfo, BarKind, Bars};
 pub use config::{ConfigSpace, CONFIG_SPACE_LEN};
 pub use ids::{is_modern_id, MODERN_ID_FIRST, MODERN_ID_LAST, VIRTIO_VENDOR_ID};

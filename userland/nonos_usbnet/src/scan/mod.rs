@@ -16,13 +16,17 @@
 
 //! Finding the device this driver serves among the root ports.
 
+mod backoff;
 mod book;
 mod bound;
+mod class;
 mod classify;
 mod port;
 mod probe;
 mod scanner;
+mod search;
 
+pub use backoff::retry_after_ms;
 pub use book::{Book, TRIES};
 pub use bound::Bound;
 pub use port::Port;

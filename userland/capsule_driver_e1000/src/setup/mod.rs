@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bus_master;
 mod claim;
 mod dma;
 mod driver;
 mod mmio;
+mod pci;
 mod rollback;
 mod sequence;
 
 pub use driver::Driver;
+pub use pci::command;
 pub use sequence::run;

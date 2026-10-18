@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! ADMA2 descriptor tables: both widths, lengths, End on the last only, no
-//! Nop, alignment and reach, and splitting.
+//! Nop, and splitting. Sizes, alignment and reach are `bounds`.
 
 use crate::emmc::sdhci::adma::*;
+#[path = "adma_bounds_tests.rs"]
+mod bounds;
 
 fn descs(t: &[u8], w: Width, n: usize) -> Vec<(u16, u16, u64)> {
     let dl = w.desc_len();
@@ -32,7 +34,6 @@ fn descs(t: &[u8], w: Width, n: usize) -> Vec<(u16, u16, u64)> {
         })
         .collect()
 }
-
 
 /* The descriptor bits the driver never sets, from the SD Host Controller
 spec (1.13.4): interrupt on completion, and the action field's mask. */
@@ -71,38 +72,4 @@ fn a_buffer_is_split_into_32_kib_pieces_end_on_the_last_only() {
             assert!(t[n * w.desc_len()..].iter().all(|&b| b == 0));
         }
     }
-}
-
-#[test]
-fn descriptor_sizes() {
-    assert_eq!(Width::A32.desc_len(), 8);
-    assert_eq!(Width::A64.desc_len(), 12);
-    assert_eq!((Width::A32.align(), Width::A64.align()), (4, 8));
-}
-
-#[test]
-fn bad_lengths_alignment_and_reach_build_nothing() {
-    let mut t = [0u8; TABLE_BYTES];
-    assert_eq!(build(&mut t, Width::A32, 0x1000, 0), Err(AdmaError::Length));
-    assert_eq!(build(&mut t, Width::A32, 0x1000, 510), Err(AdmaError::Length));
-    assert_eq!(build(&mut t, Width::A32, 0x1002, 512), Err(AdmaError::Align));
-    assert_eq!(build(&mut t, Width::A64, 0x1004, 512), Err(AdmaError::Align));
-    assert_eq!(build(&mut t, Width::A32, 0xffff_ff00, 512), Err(AdmaError::Reach));
-    assert_eq!(build(&mut t, Width::A32, 0x1_0000_0000, 512), Err(AdmaError::Reach));
-    assert_eq!(build(&mut t, Width::A64, u64::MAX - 7, 512), Err(AdmaError::Reach));
-    assert_eq!(build(&mut t[..8], Width::A32, 0x1000, 65536), Err(AdmaError::Room));
-    assert!(t.iter().all(|&b| b == 0));
-    // The last 32-bit byte is reachable.
-    assert_eq!(build(&mut t, Width::A32, 0xffff_fe00, 512), Ok(1));
-    assert_eq!(build(&mut t, Width::A64, 0x1_0000_0000, 512), Ok(1));
-}
-
-#[test]
-fn width_is_32_bit_below_4_gib_else_64_bit_if_the_host_has_it() {
-    assert_eq!(width_for(0x1000, 4096, 0x2000, 32768, false), Some(Width::A32));
-    assert_eq!(width_for(0x1000, 4096, 0x2000, 32768, true), Some(Width::A32));
-    assert_eq!(width_for(0x1_0000_0000, 4096, 0x2000, 512, true), Some(Width::A64));
-    assert_eq!(width_for(0x1000, 4096, 0xffff_f000, 8192, true), Some(Width::A64));
-    assert_eq!(width_for(0x1000, 4096, 0xffff_f000, 8192, false), None);
-    assert_eq!(width_for(0x1000, 4096, u64::MAX, 1, false), None);
 }

@@ -25,7 +25,11 @@ immediate data, and the IN transfer type; the data stage carries the buffer
 address split across the low words, the 17-bit length, and the IN direction;
 the status stage interrupts on completion. The cycle bit, the ring ownership
 handshake, follows the caller's argument in every stage. A Kani harness
-proves the data stage faithful for every address, length, and cycle.
+proves the data stage faithful for every address, length, and cycle. A
+request OUT carries exactly its wLength bytes after the setup and they go
+out as the client gave them; a body that carries any other count, or an IN
+request that carries bytes, is refused before anything is queued
+(`control_out_tests`, `server_tests/control_out_tests`).
 
 ## Wire header
 
@@ -54,30 +58,38 @@ segment, refuses to write over an event the driver has not handed back
 through ERDP, and fills the rest of the segment's page with TRBs that look
 valid under either cycle state, so a read past the segment shows.
 
-- Dequeue (`dequeue_tests`): a TRB whose cycle bit does not match is not
-  read. From every starting dequeue index, three laps in batches of 1, 7 and
-  63 read every event once, in order, never past the segment, with the cycle
-  state flipped at each wrap; after a full lap nothing is read until the
-  controller writes again.
+- Dequeue (`dequeue_tests`, `dequeue_start_tests`): a TRB whose cycle bit
+  does not match is not read. From every starting dequeue index, three laps
+  in batches of 1, 7 and 63 read every event once, in order, never past the
+  segment, with the cycle state flipped at each wrap; after a full lap
+  nothing is read until the controller writes again.
 - Hand-back (`erdp_tests`): programming leaves ERDP at the segment base with
   EHB clear. Every consumer then writes back the next unread TRB, inside the
   segment, with DESI zero and EHB written as one, which is how EHB is
   cleared.
-- Matching (`match_tests`): a command completion naming another command, or
-  a transfer event at the command's address, does not complete the command.
-  An Enable Slot answer of slot 0 is refused, and one past MaxSlots is
-  refused by the slot table before anything is indexed. A transfer event
-  completes a control, bulk or interrupt-IN transfer only when its pointer,
-  slot id and endpoint id all name the issued TRB; anything else is parked
-  for its owner and never handed to a later transfer. Pointer bits 3:0 are
-  reserved and ignored.
-- Residual (`residual_tests`): the length handed up is the request less the
-  residual clamped to the request, so it never exceeds the request or the
-  buffer, and a residual past the request hands up nothing.
-- Boundaries (`boundary_tests`): slot 0 and 255, endpoint 0 and 31, a
+- Matching (the `match_*` files): a command completion naming another
+  command, or a transfer event at the command's address, does not complete
+  the command. An Enable Slot answer of slot 0 is refused, and one past
+  MaxSlots is refused by the slot table before anything is indexed. A
+  transfer event completes a control, bulk or interrupt-IN transfer only
+  when its pointer, slot id and endpoint id all name the issued TRB;
+  anything else is parked for its owner and never handed to a later
+  transfer. Pointer bits 3:0 are reserved and ignored.
+- Residual (the `residual_*` files): the length handed up is the request
+  less the residual clamped to the request, so it never exceeds the request
+  or the buffer, and a residual past the request hands up nothing.
+- Boundaries (the `boundary_*` files): slot 0 and 255, endpoint 0 and 31, a
   residual of u32::MAX read as 24 bits, a null pointer, a pointer of all
   ones, and pointers 8 bytes into the issued TRB and into each neighbour,
   each through every wait it reaches.
+- Armed places (`armed_tests`, `parked_tests`, `armed_place/`, the
+  `bulk_poll_*` and `isoch_*` files): an interrupt report, the polled bulk
+  IN and an isoch batch's last TD each keep a place for their event, so a
+  wait that reads it first parks it for them, and with every place taken
+  nothing is queued. The polled IN answers at once while nothing came and
+  consumes a command completion nobody waits for. An isoch batch is a TD per
+  packet in the free half of its buffer; two full batches fit the isoch ring
+  at once, and a batch it has no room for is refused whole.
 - Fuzz (`fuzz_tests`): 200,000 xorshift rounds of up to four random events,
   their steering fields biased to the edges above, handed to a random
   consumer, with half-written TRBs left at the enqueue slot. After every

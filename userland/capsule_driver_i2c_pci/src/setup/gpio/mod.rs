@@ -28,6 +28,8 @@
 //! driver reads on a timer, which every device supports.
 //!
 //! Nothing here writes a GPIO register: ownership, routing and the RX
+//! inversion stay as the firmware set them, and the level is read before
+//! that inversion, which is why the declared polarity decides what rings.
 
 mod bxt;
 mod community;

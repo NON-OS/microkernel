@@ -58,5 +58,5 @@ fn a_ufs_part_is_named_and_is_no_emmc() {
 #[test]
 fn each_driver_names_its_own_bus() {
     let named: Vec<&[u8]> = ALL.iter().map(|d| d.label()).collect();
-    assert_eq!(named, [&b"NVMe"[..], b"SATA", b"eMMC", b"UFS", b"virtio"]);
+    assert_eq!(named, [&b"NVMe"[..], b"SATA", b"eMMC", b"UFS", b"virtio", b"SD"]);
 }

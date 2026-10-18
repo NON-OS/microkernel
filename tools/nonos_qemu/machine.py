@@ -96,7 +96,7 @@ def devices(net, tpm_sock, qmp, swaps=None):
     """`swaps`, a lane's (lanes.py), puts a model in place of the virtio GPU,
     the virtio NIC or tpm-crb."""
     swap = swaps or {}
-    gpu = swap.get("gpu", "virtio-vga,disable-modern=on,vectors=0,edid=on,xres=1920,yres=1080")
+    gpu = swap.get("gpu", "virtio-vga,vectors=0,edid=on,xres=1920,yres=1080")
     args = ["-device", gpu, "-device", "qemu-xhci,id=xhci", "-device", "virtio-rng-pci"]
     if net == "nat":
         args += ["-device", f"{swap.get('nic', 'virtio-net-pci')},netdev=net0", "-netdev", "user,id=net0"]

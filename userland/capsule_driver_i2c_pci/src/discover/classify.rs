@@ -46,7 +46,8 @@ pub(super) fn classify(r: &DeviceRecord) -> Option<(&'static str, u32, bool)> {
             return Some((UNKNOWN_LPSS_FAMILY, UNKNOWN_LPSS_CLOCK_HZ, false));
         }
     }
-    if r.bus_kind == BUS_KIND_ACPI && r.class == CLASS_SERIAL && r.pci_class == PCI_CLASS_SERIAL_BUS {
+    if r.bus_kind == BUS_KIND_ACPI && r.class == CLASS_SERIAL && r.pci_class == PCI_CLASS_SERIAL_BUS
+    {
         return Some((ACPI_LPSS_FAMILY, r.bars[0].aux, true));
     }
     None

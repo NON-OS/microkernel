@@ -6,12 +6,16 @@
 
 use crate::nic::Nic;
 use crate::nnet::{answer, decode, Request, Stats, E_INVAL, OP_STATS, STATS_LEN};
+use crate::station::Taken;
 
 struct Unbound;
 
 impl Nic for Unbound {
     fn mac(&self) -> [u8; 6] {
         [0; 6]
+    }
+    fn taken(&self) -> Taken {
+        Taken::Unconfirmed
     }
     fn link_up(&self) -> bool {
         false

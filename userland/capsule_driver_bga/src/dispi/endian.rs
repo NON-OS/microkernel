@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! QEMU's framebuffer byte order, set little endian where the adapter has
-//! the register, as bochs_hw_init does: the pixels are written as
-//! little-endian words whatever the host.
+//! The framebuffer's byte order, set little endian where the adapter has
+//! QEMU's extension register for it: every pixel is written as a
+//! little-endian word, whatever byte order the host machine has.
 
-use crate::constants::{QEXT_ENDIAN, QEXT_LITTLE_ENDIAN, QEXT_SIZE};
-use crate::hw::Hw;
+use crate::constants::{QEXT_ENDIAN, QEXT_LITTLE_ENDIAN, QEXT_SIZE, REG_BAR_MIN};
+use crate::regs::Regs;
 
-/// Whether the register was there to set. A size under 8 (or past the BAR)
-/// is an adapter without it, which is little endian already.
-pub fn little_endian<H: Hw>(hw: &H, reg_bar: u64) -> bool {
-    let size = hw.qext(QEXT_SIZE) as u64;
-    if !(8..=reg_bar).contains(&size) {
+/// Whether the register was there to set, in a register mapping `mapped`
+/// bytes long. A mapping that ends before the extension block, or a block
+/// that names a size under 8 bytes or past the mapping, is an adapter
+/// without the register, which is little endian already.
+pub fn little_endian(regs: Regs, mapped: u64) -> bool {
+    if mapped < REG_BAR_MIN {
         return false;
     }
-    hw.set_qext(QEXT_ENDIAN, QEXT_LITTLE_ENDIAN);
+    // SAFETY: the mapping reaches REG_BAR_MIN, past the size register.
+    let size = unsafe { regs.r32(QEXT_SIZE) } as u64;
+    if !(8..=mapped).contains(&size) {
+        return false;
+    }
+    // SAFETY: as above; the byte-order register ends at REG_BAR_MIN.
+    unsafe { regs.w32(QEXT_ENDIAN, QEXT_LITTLE_ENDIAN) };
     true
 }

@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::set1::{
     KEYCODE_DEL, KEYCODE_DOWN, KEYCODE_END, KEYCODE_HOME, KEYCODE_INS, KEYCODE_LEFT, KEYCODE_LMETA,
-    KEYCODE_MUTE, KEYCODE_PGDN, KEYCODE_PGUP, KEYCODE_POWER, KEYCODE_RALT, KEYCODE_RCTRL,
-    KEYCODE_RIGHT, KEYCODE_RMETA, KEYCODE_UP, KEYCODE_VOLUME_DOWN, KEYCODE_VOLUME_UP,
+    KEYCODE_MUTE, KEYCODE_PAUSE, KEYCODE_PGDN, KEYCODE_PGUP, KEYCODE_POWER, KEYCODE_PRINT,
+    KEYCODE_RALT, KEYCODE_RCTRL, KEYCODE_RIGHT, KEYCODE_RMETA, KEYCODE_UP, KEYCODE_VOLUME_DOWN,
+    KEYCODE_VOLUME_UP,
 };
 pub fn keycode_for(scan: u8) -> Option<u32> {
     let v = match scan {
@@ -29,7 +30,11 @@ pub fn keycode_for(scan: u8) -> Option<u32> {
         0x2E => KEYCODE_VOLUME_DOWN,
         0x30 => KEYCODE_VOLUME_UP,
         0x35 => b'/' as u32,
+        // E0 2A and E0 36 are the fake shifts a keyboard wraps Print Screen
+        // and the navigation keys in; they have no entry and post nothing.
+        0x37 => KEYCODE_PRINT,
         0x38 => KEYCODE_RALT,
+        0x46 => KEYCODE_PAUSE,
         0x47 => KEYCODE_HOME,
         0x48 => KEYCODE_UP,
         0x49 => KEYCODE_PGUP,

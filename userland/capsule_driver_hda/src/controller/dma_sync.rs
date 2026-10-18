@@ -26,9 +26,11 @@
 //! nanoseconds a period; with it off they are the difference between sound
 //! and noise.
 
+#[cfg(target_arch = "x86_64")]
 const LINE: u64 = 64;
 
 /// Write `len` bytes at `va` back to memory and drop them from the cache.
+/// Every caller names part of one of this capsule's DMA grants.
 #[cfg(target_arch = "x86_64")]
 pub fn flush(va: u64, len: u64) {
     if len == 0 {
@@ -37,7 +39,8 @@ pub fn flush(va: u64, len: u64) {
     let mut p = va & !(LINE - 1);
     let end = va + len;
     while p < end {
-        // SAFETY: CLFLUSH takes any mapped address and changes no memory.
+        // SAFETY: CLFLUSH changes no memory, and `p` is mapped: its line holds a
+        // byte of the DMA grant the caller named.
         unsafe { core::arch::x86_64::_mm_clflush(p as *const u8) };
         p += LINE;
     }

@@ -40,5 +40,5 @@ pub use queue::AdminQueue;
 
 pub(crate) use command::Submission;
 pub(crate) use completion::Completion;
-pub(crate) use completion_wait::{wait_for_completion, wait_noting_foreign};
+pub(crate) use completion_wait::wait_for_completion;
 pub(crate) use cq_cursor::CqCursor;

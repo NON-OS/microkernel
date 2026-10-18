@@ -17,12 +17,14 @@
 //! CDC-NCM (USB NCM 1.0): finding the function, binding it, the sizes its
 //! NTB parameters give, and its transfer blocks out and in.
 
+mod address;
 pub mod align;
 pub mod bind;
 pub mod function;
 mod init;
 pub mod limits;
 pub mod link;
+mod nic;
 pub mod ntb_in;
 pub mod ntb_out;
 pub mod pad;

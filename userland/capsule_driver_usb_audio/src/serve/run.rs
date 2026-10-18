@@ -42,7 +42,7 @@ pub fn run() -> ! {
     // A batch is at most 4032 bytes (`uac::timing`), so one PCM chunk holds it.
     let (mut rx, mut batch) = (vec![0u8; HDR_LEN + MAX_PCM_CHUNK], vec![0u8; MAX_PCM_CHUNK]);
     let mut tx = [0u8; REPLY_MAX];
-    let (mut play, mut scanner, me) = (Play::new(), Scanner::new(), own_pid("driver.usb_audio0"));
+    let (mut play, mut scanner, me) = (Play::new(), Scanner::class(), own_pid("driver.usb_audio0"));
     let (mut bound, mut failing) = (None::<Bound<Speaker>>, 0u32);
     let mut next_pass = Deadline::after_ms(0);
     say(TAG, &[b"started, looking for a device"]);
@@ -68,7 +68,7 @@ pub fn run() -> ! {
         }
         if bound.is_none() && next_pass.expired() {
             next_pass = Deadline::after_ms(SEARCH_POLL_MS);
-            bound = scanner.pass(TAG, bind);
+            bound = scanner.pass_class(TAG, bind);
             play.device = bound.as_ref().map(|b| Device { ids: b.nic.ids, outputs: b.nic.outputs });
         }
     }

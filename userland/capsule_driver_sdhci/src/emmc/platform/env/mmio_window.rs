@@ -35,21 +35,30 @@ impl MmioWindow {
 
 impl Mmio for MmioWindow {
     fn r8(&self, off: u32) -> u8 {
+        // SAFETY: `new`'s contract keeps the 256-byte register set mapped
+        // at `base`, and the engine passes only the SDHCI register offsets
+        // (`sdhci::regs`), the last HOST_VERSION at 0xfe, so the access
+        // lies inside it, at the register's own alignment.
         unsafe { nonos_libc::mmio_read8((self.base + off as u64) as usize) }
     }
     fn r16(&self, off: u32) -> u16 {
+        // SAFETY: as in `r8`.
         unsafe { nonos_libc::mmio_read16((self.base + off as u64) as usize) }
     }
     fn r32(&self, off: u32) -> u32 {
+        // SAFETY: as in `r8`.
         unsafe { nonos_libc::mmio_read32((self.base + off as u64) as usize) }
     }
     fn w8(&self, off: u32, v: u8) {
+        // SAFETY: as in `r8`.
         unsafe { nonos_libc::mmio_write8((self.base + off as u64) as usize, v) }
     }
     fn w16(&self, off: u32, v: u16) {
+        // SAFETY: as in `r8`.
         unsafe { nonos_libc::mmio_write16((self.base + off as u64) as usize, v) }
     }
     fn w32(&self, off: u32, v: u32) {
+        // SAFETY: as in `r8`.
         unsafe { nonos_libc::mmio_write32((self.base + off as u64) as usize, v) }
     }
 }

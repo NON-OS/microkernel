@@ -33,11 +33,11 @@ pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
-/// Not 6: net.core asks every card for OP_RX_BATCH (6) first and takes a
-/// status-0 answer as a batch. These drivers serve one frame per call, so 6
-/// is refused and net.core reads with OP_RX_PACKET; the counters sit on 7,
-/// where the PCI cards keep theirs.
-pub const OP_STATS: u16 = 7;
+/// The counters, off every number net.core sends: its 6 is OP_RX_BATCH,
+/// which these drivers do not serve, and a status-0 answer to 6 used to
+/// be read as a batch, so no received frame ever reached the stack. 6 is
+/// refused and net.core reads one frame at a time with OP_RX_PACKET.
+pub const OP_STATS: u16 = 0x0100;
 
 pub const E_INVAL: i32 = -22;
 pub const E_IO: i32 = -5;

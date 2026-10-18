@@ -17,24 +17,14 @@
 //! Legacy or modern, decided once the device is claimed (config space is
 //! only readable with the claim's epoch).
 
-use nonos_virtio::{choose, parse, wants_probe, ConfigSpace, Kind, ModernCaps, VirtioError};
+use nonos_virtio::ModernCaps;
 
 use super::broker::LibcBroker;
+use super::choose::modern_caps;
 use crate::discover::Found;
 
-/// The capabilities to drive the function with when it is to be driven
-/// modern; `None` keeps the legacy path. A transitional function with its
-/// legacy I/O BAR is not read at all, so a boot without an IOMMU takes the
-/// legacy path exactly as before.
+/// The capabilities to drive the function with over the modern transport,
+/// or `None` for the legacy one (see `choose`).
 pub fn probe(dev: &Found, claim_epoch: u64) -> Result<Option<ModernCaps>, &'static str> {
-    if !wants_probe(dev.pci_device, &dev.bars) {
-        return Ok(None);
-    }
-    let mut broker = LibcBroker::new(dev.device_id, claim_epoch);
-    let cfg = ConfigSpace::read(&mut broker).ok_or(VirtioError::ConfigRead.message())?;
-    let caps = parse(&cfg, &dev.bars);
-    Ok(match choose(dev.pci_device, &dev.bars, &caps) {
-        Kind::Modern => Some(caps),
-        Kind::Legacy => None,
-    })
+    modern_caps(&dev.bars, &mut LibcBroker::new(dev.device_id, claim_epoch))
 }

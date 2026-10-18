@@ -14,25 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MMIO phase. Maps BAR0 (the register window on every e1000e family) into the
-//! capsule's address space at the page-rounded length the broker
-//! reports. Failure releases the device claim so the broker is
-//! left clean.
+//! MMIO phase. Maps BAR0 (the register window on every e1000e family) into
+//! the capsule's address space at the page-rounded length the broker
+//! reports. Failure, or a window shorter than the registers the bring-up
+//! writes (the broker can map less than was asked), releases the device
+//! claim so the broker is left clean.
 
 use nonos_libc::{mk_device_release, mk_mmio_map, MmioMapOut};
 
 use crate::constants::pci::{BAR_INDEX, BAR_OFFSET};
+use crate::constants::regs::BAR0_MIN_BYTES;
 use crate::discover::Found;
 
 const PAGE_MASK: u64 = 0xFFF;
 
 pub fn map(dev: Found, claim_epoch: u64) -> Result<MmioMapOut, &'static str> {
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
-    let length = (dev.bar0_size + PAGE_MASK) & !PAGE_MASK;
+    let length = dev.bar0_size.saturating_add(PAGE_MASK) & !PAGE_MASK;
     let r = mk_mmio_map(dev.device_id, claim_epoch, BAR_INDEX, 0, BAR_OFFSET, length, &mut out);
-    if r < 0 {
+    if r < 0 || out.length < BAR0_MIN_BYTES {
         let _ = mk_device_release(dev.device_id);
-        return Err("mmio map failed");
+        return Err(if r < 0 { "mmio map failed" } else { "BAR0 mapped short" });
     }
     Ok(out)
 }

@@ -30,6 +30,7 @@ mod handles;
 mod log;
 mod nvm;
 mod protocol;
+mod recover;
 mod regs;
 mod server;
 mod setup;

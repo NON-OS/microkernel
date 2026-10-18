@@ -48,9 +48,11 @@ pub fn spawn_driver_bga_capsule() -> Result<(), SpawnError> {
         attestation_trailer: DRIVER_BGA_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
         // The adapter has no DMA engine and no interrupt; its registers are
-        // MMIO. Memory and GraphicsSurfaceCreate make the shadow surface.
+        // MMIO. Memory and GraphicsSurfaceCreate make the surface the
+        // compositor draws in.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            | crate::capabilities::serial_debug_cap()
             | Capability::GraphicsSurfaceCreate.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Driver.bit()

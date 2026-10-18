@@ -17,50 +17,55 @@
 //! Aborting the command the controller is stuck on (xHCI 1.2 section
 //! 4.6.1.2, Linux `xhci_abort_cmd_ring`). A command that never completes
 //! leaves the ring running on it, and every command queued after it waits
-//! behind it for good. Writing CRCR.CA makes the controller give the command
-//! up with Command Aborted, stop the ring with Command Ring Stopped, and
-//! drop CRR; the next doorbell restarts the ring at the TRB after the one
-//! given up, which is where this driver enqueues next.
+//! behind it for good. Writing CRCR.CA stops the ring and drops CRR. A
+//! command the controller was running is given up with Command Aborted, and
+//! Command Ring Stopped then names the TRB after it, where the next
+//! doorbell restarts the ring. One it had not yet taken up gets no Command
+//! Aborted: Command Ring Stopped names that TRB itself, and the next
+//! doorbell would run it, so the caller makes it a No Op (`give_up`). The
+//! events are the caller's to consume (`settle_abort`). A controller that
+//! failed keeps CRR set, so it is not waited on.
 
 use nonos_libc::{mk_idle_ms, Deadline};
 
+use super::abort_outcome::Abort;
+use super::controller::running;
 use super::state::CommandRing;
 use crate::constants::CRCR_LO;
-use crate::regs::{mmio_read32, mmio_write32};
+use crate::regs::mmio_write32;
+use crate::regs::op::controller_failed;
 
 const CRCR_CA: u32 = 1 << 2;
-const CRCR_CRR: u32 = 1 << 3;
 /// Linux allows the abort five seconds.
 const ABORT_TIMEOUT_MS: u64 = 5_000;
 const ABORT_POLL_MS: u64 = 1;
 
 impl CommandRing {
-    pub(crate) fn set_op_base(&mut self, op_base: u64) {
-        self.op_base = op_base;
-    }
-
-    /// Abort the running command. Returns whether the ring stopped. A ring
-    /// never programmed into a controller has nothing to abort.
-    pub fn abort(&self) -> bool {
+    /// Abort the running command. A ring never programmed into a controller
+    /// has nothing to abort and is not running.
+    pub fn abort(&mut self) -> Abort {
         if self.op_base == 0 {
-            return false;
+            return Abort::NotRunning;
         }
         let crcr = self.op_base + CRCR_LO;
-        if mmio_read32(crcr) & CRCR_CRR == 0 {
-            return true;
+        if !running(crcr) {
+            return Abort::NotRunning;
         }
         // While the ring runs the pointer bits are ignored; only CA acts. Only
         // the low dword is written: Linux found that a following write of
         // the high dword, landing after the ring stopped, is taken as a new
         // ring pointer and corrupts it.
-        mmio_write32(crcr, CRCR_CA);
+        // SAFETY: as in `running`.
+        unsafe { mmio_write32(crcr, CRCR_CA) };
         let deadline = Deadline::after_ms(ABORT_TIMEOUT_MS);
         loop {
-            if mmio_read32(crcr) & CRCR_CRR == 0 {
-                return true;
+            let failed = controller_failed(self.op_base);
+            if !failed && !running(crcr) {
+                return Abort::Stopped;
             }
-            if deadline.expired() {
-                return false;
+            if failed || deadline.expired() {
+                self.wedged = true;
+                return Abort::Stuck;
             }
             let _ = mk_idle_ms(ABORT_POLL_MS);
         }

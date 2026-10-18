@@ -23,7 +23,9 @@ use super::geometry::Geometry;
 use super::nvme;
 use crate::driver::Driver;
 use crate::error::BlkError;
-use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
+
+/// The status a driver answers when no medium is in its device.
+const E_NOMEDIUM: i32 = -123;
 
 #[derive(Clone, Copy, Debug)]
 pub struct BlockDevice {
@@ -39,8 +41,8 @@ pub struct BlockDevice {
 impl BlockDevice {
     /// Look instance `instance` of the driver's service up and ask it how
     /// big its disk is and what blocks it is addressed in. `None` when no
-    /// such service is registered on this boot; an error when it is and
-    /// did not answer.
+    /// such service is registered on this boot, or when it serves a card
+    /// reader with an empty slot; an error when it is and did not answer.
     pub fn open(driver: Driver, instance: u8) -> Result<Option<BlockDevice>, BlkError> {
         let Some(name) = driver.service(instance) else {
             return Ok(None);
@@ -51,32 +53,23 @@ impl BlockDevice {
             return Ok(None);
         }
         let geometry = match driver {
-            Driver::Nvme => nvme::geometry(port)?,
-            Driver::Wire | Driver::Ufs => super::wire::geometry(port)?,
-            Driver::Ahci | Driver::VirtioBlk => Geometry::SECTORS,
+            Driver::Nvme => nvme::geometry(port),
+            Driver::Wire | Driver::Ufs => super::wire::geometry(port),
+            Driver::Ahci | Driver::VirtioBlk | Driver::Rtsx => Ok(Geometry::SECTORS),
         };
+        let Some(geometry) = medium(geometry)? else { return Ok(None) };
         let mut dev = BlockDevice { driver, instance, port, sectors: 0, geometry };
-        dev.sectors = geometry.sectors(dev.capacity_blocks()?);
+        let Some(blocks) = medium(dev.capacity_blocks())? else { return Ok(None) };
+        dev.sectors = geometry.sectors(blocks);
         Ok(Some(dev))
     }
+}
 
-    /// The capacity as the driver gives it, in the disk's own blocks.
-    pub fn capacity_blocks(&self) -> Result<u64, BlkError> {
-        let ops = self.driver.ops();
-        let mut rx = [0u8; HDR_LEN + STATUS_LEN + 8];
-        let (n, id) = call(self.port, self.driver.magic(), ops.capacity, &[], &mut rx)?;
-        let body = decode_reply(&rx, n, self.driver.magic(), ops.capacity, id)?;
-        if body.len() < 8 {
-            return Err(BlkError::BadLength);
-        }
-        let mut w = [0u8; 8];
-        w.copy_from_slice(&body[..8]);
-        Ok(u64::from_le_bytes(w))
-    }
-
-    /// Saturated: the size is the driver's word, and a size shown as a few
-    /// bytes because it wrapped would misdescribe the disk.
-    pub fn bytes(&self) -> u64 {
-        self.sectors.saturating_mul(crate::wire::SECTOR_SIZE as u64)
+/// A card reader with no card in its slot serves no disk, whichever reply
+/// says so first.
+fn medium<T>(answer: Result<T, BlkError>) -> Result<Option<T>, BlkError> {
+    match answer {
+        Err(BlkError::Status(E_NOMEDIUM)) => Ok(None),
+        other => other.map(Some),
     }
 }

@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Yielding, sleeping and debug output. Yields and sleeps are counted rather
-//! than taken, so a driver that settles by waiting runs at full speed and a
-//! test can still see how it waited, and for how long.
+//! Sleeping and debug output. Sleeps are counted rather than taken, so a
+//! driver that settles by waiting runs at full speed and a test can still
+//! see how long it waited. Yielding is in sched.rs.
 
 use std::cell::{Cell, RefCell};
 
 use crate::raw;
 
 thread_local! {
-    static YIELDS: Cell<u64> = const { Cell::new(0) };
     static SLEPT_MS: Cell<u64> = const { Cell::new(0) };
     static DEBUG: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
 }
@@ -36,16 +35,6 @@ pub fn mk_idle_ms(ms: u64) -> i64 {
 /// How many milliseconds the driver asked to sleep on this thread so far.
 pub fn slept_ms() -> u64 {
     SLEPT_MS.with(Cell::get)
-}
-
-pub fn mk_yield() -> i64 {
-    YIELDS.with(|y| y.set(y.get() + 1));
-    0
-}
-
-/// How many times the driver yielded on this thread so far.
-pub fn yields() -> u64 {
-    YIELDS.with(Cell::get)
 }
 
 pub fn mk_debug(buf: *const u8, len: usize) -> i64 {

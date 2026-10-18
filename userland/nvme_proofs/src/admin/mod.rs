@@ -9,11 +9,6 @@ pub mod hmb;
 mod identity;
 #[path = "../../../capsule_driver_nvme/src/admin/namespace/mod.rs"]
 mod namespace;
-// The real admin queue doorbell offsets (pub(super); wrapped below).
-#[path = "../../../capsule_driver_nvme/src/admin/queue/cq0_head.rs"]
-mod cq0_head;
-#[path = "../../../capsule_driver_nvme/src/admin/queue/sq0_tail.rs"]
-mod sq0_tail;
 // The real enable and disable wait: the decision and the polling loop.
 #[path = "../../../capsule_driver_nvme/src/admin/ready_step.rs"]
 mod ready_step;
@@ -34,22 +29,31 @@ mod cq_cursor;
 mod active_ns;
 #[path = "../../../capsule_driver_nvme/src/admin/disable_step.rs"]
 mod disable_step;
+// The real submission entries both queues send, the admin queue that sends
+// them, and the controller's enable and disable.
+#[path = "../../../capsule_driver_nvme/src/admin/command/mod.rs"]
+mod command;
+#[path = "../../../capsule_driver_nvme/src/admin/controller.rs"]
+mod controller;
+mod doorbells;
+// With the admin doorbell offsets, which admin_doorbells names.
+#[path = "../../../capsule_driver_nvme/src/admin/queue/mod.rs"]
+mod queue;
 
 pub use active_ns::{first_active_nsid, lists_active_namespaces, FALLBACK_NSID};
+pub use command::{set_features, Submission};
 pub use completion::Completion;
 pub use completion_step::{classify, CqStep};
-pub use completion_wait::{wait_for_completion, wait_noting_foreign, DEADLINE_CHECK_SPINS};
+pub use completion_wait::{wait_for_completion, DEADLINE_CHECK_SPINS};
+pub use controller::{enable, reset_to_disabled};
 pub use cq_cursor::CqCursor;
 pub use disable_step::{
     await_ready_before_disable, disable_start, pre_disable_step, DisableStart, PreDisableStep,
 };
+pub use doorbells::admin_doorbells;
 pub use health::SmartHealth;
 pub use identity::ControllerIdentity;
 pub use namespace::NamespaceIdentity;
+pub use queue::AdminQueue;
 pub use ready_step::{ready_step, ready_timeout_ms, ReadyStep, READY_FLOOR_MS};
 pub use ready_wait::wait_ready;
-
-/// The admin submission tail and completion head doorbells for a stride.
-pub fn admin_doorbells(stride: u8) -> (u32, u32) {
-    (sq0_tail::sq0_tail(stride), cq0_head::cq0_head(stride))
-}

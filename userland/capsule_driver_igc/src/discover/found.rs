@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What discovery hands the bring-up: the broker handle, the PCI device ID
-//! (only for the log line that names the part), the register window size,
-//! and the PCI command bits the record's BARs already need decoded.
+//! (only for the log line that names the part), and the register window
+//! size, at least BAR0_MIN_BYTES.
 
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
     pub pci_device: u16,
     pub bar0_size: u64,
-    pub command_bits: u16,
 }

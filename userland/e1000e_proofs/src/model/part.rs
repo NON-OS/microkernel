@@ -26,8 +26,8 @@ use nonos_devmodel::FakeBar;
 
 use super::phy::Phy;
 use crate::constants::ctrl::{CTRL_LANPHYPC_OVERRIDE, CTRL_PHY_RST, CTRL_RST};
-use crate::constants::regs::{REG_CTRL, REG_EECD, REG_EXTCNF_CTRL, REG_STATUS};
 use crate::constants::pch_bits::{FEXTNVM3_PHY_CFG_COUNTER_50MSEC, FEXTNVM3_PHY_CFG_COUNTER_MASK};
+use crate::constants::regs::{REG_CTRL, REG_EECD, REG_EXTCNF_CTRL, REG_STATUS};
 use crate::constants::regs_pch::{REG_FEXTNVM3, REG_FWSM, REG_H2ME};
 use crate::constants::status::*;
 
@@ -47,11 +47,8 @@ pub fn step(bar: &FakeBar, phy: &Phy, how: &Behaviour) {
     if ctrl & CTRL_RST != 0 && !how.reset_stuck.load(Ordering::SeqCst) {
         how.resets.lock().unwrap().push(ctrl);
         bar.present32(REG_EXTCNF_CTRL, 0);
-        if !how.no_auto_rd.load(Ordering::SeqCst) {
-            bar.present32(REG_EECD, bar.wrote32(REG_EECD) | EECD_AUTO_RD);
-        } else {
-            bar.present32(REG_EECD, bar.wrote32(REG_EECD) & !EECD_AUTO_RD);
-        }
+        let auto_rd = if how.no_auto_rd.load(Ordering::SeqCst) { 0 } else { EECD_AUTO_RD };
+        bar.present32(REG_EECD, (bar.wrote32(REG_EECD) & !EECD_AUTO_RD) | auto_rd);
         let phyra = if ctrl & CTRL_PHY_RST != 0 { STATUS_PHYRA } else { 0 };
         bar.present32(REG_STATUS, bar.wrote32(REG_STATUS) | STATUS_LAN_INIT_DONE | phyra);
         bar.present32(REG_CTRL, ctrl & !(CTRL_RST | CTRL_PHY_RST));
@@ -68,7 +65,8 @@ pub fn step(bar: &FakeBar, phy: &Phy, how: &Behaviour) {
     // 50 ms, stays in the window and only the toggle makes it, so it marks
     // the power cycle as well; the PHY is not looked at again until after.
     let toggled = ctrl & CTRL_LANPHYPC_OVERRIDE != 0
-        || bar.wrote32(REG_FEXTNVM3) & FEXTNVM3_PHY_CFG_COUNTER_MASK == FEXTNVM3_PHY_CFG_COUNTER_50MSEC;
+        || bar.wrote32(REG_FEXTNVM3) & FEXTNVM3_PHY_CFG_COUNTER_MASK
+            == FEXTNVM3_PHY_CFG_COUNTER_50MSEC;
     if how.wakes_on_lanphypc.load(Ordering::SeqCst) && toggled {
         phy.silent.store(false, Ordering::SeqCst);
     }

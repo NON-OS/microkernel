@@ -13,16 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use super::reply::reply_read;
 use super::request::read_request;
-use crate::io::{submit, BlkError};
-use crate::protocol::{Request, E_INVAL, E_IO};
+use crate::io::submit;
+use crate::protocol::Request;
 use crate::queue::Direction;
 use crate::server::error::reply_with_status;
+use crate::server::handlers::status::status_of;
 use crate::setup::Driver;
 
 pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let parsed = match read_request(driver, req, body) {
+    let parsed = match read_request(driver.capacity_sectors, req, body) {
         Ok(v) => v,
         Err(status) => {
             reply_with_status(tx, req, status);
@@ -39,11 +41,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     );
     match outcome {
         Ok(()) => reply_read(driver, req, tx, parsed.bytes_n),
-        Err(BlkError::Unsupported) => {
-            reply_with_status(tx, req, E_INVAL);
-        }
         Err(_) => {
-            reply_with_status(tx, req, E_IO);
+            reply_with_status(tx, req, status_of(outcome));
         }
     }
 }

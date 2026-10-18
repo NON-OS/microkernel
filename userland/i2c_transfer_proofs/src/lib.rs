@@ -29,6 +29,7 @@
 
 #[path = "../../capsule_driver_i2c_pci/src/constants/mod.rs"]
 pub mod constants;
+pub mod discover;
 #[path = "../../capsule_driver_i2c_pci/src/driver.rs"]
 pub mod driver;
 #[path = "../../capsule_driver_i2c_pci/src/init/mod.rs"]
@@ -41,6 +42,7 @@ pub mod transaction;
 pub mod bench;
 pub mod regs;
 pub mod server;
+pub mod setup;
 
 #[cfg(test)]
 mod tests;

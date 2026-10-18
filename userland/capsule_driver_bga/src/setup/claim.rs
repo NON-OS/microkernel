@@ -17,12 +17,11 @@
 use nonos_libc::mk_device_claim;
 
 use crate::error::{BgaError, BgaResult};
-use crate::handles::Claim;
 
-pub fn claim(device_id: u64) -> BgaResult<Claim> {
+pub fn claim(device_id: u64) -> BgaResult<u64> {
     let epoch = mk_device_claim(device_id);
     if epoch < 0 {
         return Err(BgaError::BrokerCallFailed(epoch));
     }
-    Ok(Claim::new(device_id, epoch as u64))
+    Ok(epoch as u64)
 }

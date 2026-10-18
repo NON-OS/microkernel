@@ -48,6 +48,6 @@ pub struct Driver {
 /// What a bring-up ended in: a controller playing, or the plain reason none
 /// can, with every claim already given back.
 pub enum Started {
-    Playing(Driver),
+    Playing(Box<Driver>),
     Silent(OutputStatus),
 }

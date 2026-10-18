@@ -63,3 +63,6 @@ pub const LANPHYPC_SETTLE_MS: u64 = 30;
 /// The shortest sleep this clock has, standing in for Linux's 10 to 250 us
 /// delays (LANPHYPC pulse, PHY reset pulse, ring flush, K1 settle).
 pub const SHORT_MS: u64 = 1;
+/// A frame in flight this long with the link up and no completion is a hung
+/// transmitter: Linux e1000e's watchdog_timeo, 5 seconds.
+pub const TX_HANG_MS: u64 = 5000;

@@ -22,6 +22,6 @@ mod me;
 mod one;
 mod serve;
 
-pub use bind_fn::BindFn;
+pub use bind_fn::{BindFn, ClassBindFn};
 pub use me::own_pid;
-pub use serve::run;
+pub use serve::{run, LOST_AFTER};

@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_libc::{MmioMapOut, PioGrantOut};
-use nonos_virtio::Window;
 
+/// The legacy register window's grant, in a memory or an I/O BAR.
 #[derive(Clone, Copy)]
 pub enum RegisterGrant {
     Mmio(MmioMapOut),
     Pio(PioGrantOut),
-    /// The modern structures, one MMIO grant each.
-    Modern(Window),
 }

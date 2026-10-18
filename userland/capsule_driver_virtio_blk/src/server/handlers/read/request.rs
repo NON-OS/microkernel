@@ -17,7 +17,6 @@ use crate::constants::{MAX_SECTORS_PER_REQUEST, SECTOR_SIZE};
 use crate::protocol::{
     read_u32_le, read_u64_le, Request, E_INVAL, E_MSGSIZE, E_NXIO, READ_REQ_LEN,
 };
-use crate::setup::Driver;
 
 pub(super) struct ReadRequest {
     pub lba: u64,
@@ -26,7 +25,7 @@ pub(super) struct ReadRequest {
 }
 
 pub(super) fn read_request(
-    driver: &Driver,
+    capacity_sectors: u64,
     req: &Request,
     body: &[u8],
 ) -> Result<ReadRequest, i32> {
@@ -39,7 +38,7 @@ pub(super) fn read_request(
         return Err(E_INVAL);
     }
     let last = lba.checked_add(nsectors as u64).ok_or(E_INVAL)?;
-    if last > driver.capacity_sectors {
+    if last > capacity_sectors {
         return Err(E_NXIO);
     }
     Ok(ReadRequest { lba, nsectors, bytes_n: nsectors as usize * SECTOR_SIZE })

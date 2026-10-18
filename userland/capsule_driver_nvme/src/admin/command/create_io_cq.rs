@@ -16,6 +16,11 @@
 
 use super::submission::Submission;
 
+/// CDW11: physically contiguous (PC), interrupts enabled (IEN) on vector 0,
+/// the one MSI-X entry bound (setup::irq), which the I/O waits park on.
+/// Without that vector, INTMS masks them (setup::Device::enable).
+const PC_IEN_VECTOR_0: u32 = 0b11;
+
 impl Submission {
     pub const fn create_io_cq(cid: u16, qid: u16, qsize: u16, cq_phys: u64) -> Self {
         Self {
@@ -27,7 +32,7 @@ impl Submission {
             prp1: cq_phys,
             prp2: 0,
             cdw10: (((qsize - 1) as u32) << 16) | qid as u32,
-            cdw11: 1,
+            cdw11: PC_IEN_VECTOR_0,
             cdw12: 0,
             cdw13: 0,
             cdw14: 0,

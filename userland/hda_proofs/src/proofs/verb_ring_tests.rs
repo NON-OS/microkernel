@@ -30,7 +30,11 @@ fn the_write_pointer_wraps_within_the_ring_rather_than_running_off_the_end() {
     for i in 0..256u32 {
         assert!(link.send(CMD + i).is_ok(), "verb {i}");
     }
-    assert_eq!(bar.wrote16(crate::constants::CORBWP as usize), 0, "the pointer left the 256-entry ring");
+    assert_eq!(
+        bar.wrote16(crate::constants::CORBWP as usize),
+        0,
+        "the pointer left the 256-entry ring"
+    );
     assert_eq!(corb.wrote32(0), CMD + 255, "the last command did not wrap into slot zero");
     assert_eq!(corb.wrote32(4), CMD, "the first command was overwritten early");
 }

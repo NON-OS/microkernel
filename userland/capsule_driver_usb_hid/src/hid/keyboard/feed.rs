@@ -19,10 +19,17 @@ use super::key_changes::key_changes;
 use super::types::Keyboard;
 
 impl Keyboard {
-    /// Take one report, from the interrupt endpoint or fed over IPC. The
-    /// modifiers are set first so every key event carries this report's.
+    /// Take one boot report from the interrupt endpoint.
     pub fn feed(&mut self, raw: &[u8]) {
-        let Some(report) = BootReport::parse(raw) else { return };
+        if let Some(report) = BootReport::parse(raw) {
+            self.apply(report);
+        }
+    }
+
+    /// Take one report, read in the boot layout or through a report
+    /// descriptor. The modifiers are set first so every key event carries
+    /// this report's.
+    pub fn apply(&mut self, report: BootReport) {
         self.modifiers = report.modifiers;
         let held = self.prev;
         self.prev = key_changes(&held, &report, |key, pressed| self.push_key(key, pressed));

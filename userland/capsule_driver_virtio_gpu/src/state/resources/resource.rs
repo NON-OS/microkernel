@@ -21,22 +21,5 @@ pub struct Resource {
     pub width: u32,
     pub height: u32,
     pub format: u32,
-    pub backing_addr: u64,
-    pub backing_len: u32,
     pub in_use: bool,
-}
-
-impl Default for Resource {
-    fn default() -> Self {
-        Self {
-            resource_id: 0,
-            owner_pid: 0,
-            width: 0,
-            height: 0,
-            format: 0,
-            backing_addr: 0,
-            backing_len: 0,
-            in_use: false,
-        }
-    }
 }

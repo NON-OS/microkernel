@@ -17,20 +17,17 @@
 //! An opened host and the order its resources are given back in.
 
 use super::super::super::slot::Slot;
-use super::super::dma::DmaRegion;
 use super::super::env::{MmioWindow, SerialLog, UptimeClock};
 use super::claim::Claim;
 
 pub type HostSlot = Slot<MmioWindow, UptimeClock, SerialLog>;
 
 /// A host being served: a fixed slot with its card up, or a removable
-/// slot. Dropping it stops the host first, then frees the DMA regions,
-/// then the window and the claim, so the controller never reaches memory
-/// that is gone.
+/// slot. Dropping it stops the host first, then gives the claim back
+/// (`Claim`): bus mastering off, then the release, which frees the DMA
+/// regions, so the controller never reaches memory that is gone.
 pub struct Opened {
     pub slot: HostSlot,
-    pub(super) _data: DmaRegion,
-    pub(super) _table: DmaRegion,
     pub(super) _claim: Claim,
 }
 

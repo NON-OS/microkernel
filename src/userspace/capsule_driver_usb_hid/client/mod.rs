@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod feed;
 mod get_state;
 mod healthcheck;
 mod limits;
-mod poll_keys;
-mod poll_mouse;
-mod probe;
 mod seq;
 mod status;
 mod transport;
 mod types;
 
-pub use feed::{feed_keyboard_report, feed_mouse_report};
 pub use get_state::get_state;
 pub use healthcheck::healthcheck;
-pub use poll_keys::poll_keys;
-pub use poll_mouse::poll_mouse;
-pub use probe::probe_config;
-pub use types::{HidBinding, HidKind, KeyEvent, MouseEvent, UsbHidState};
+pub use types::UsbHidState;

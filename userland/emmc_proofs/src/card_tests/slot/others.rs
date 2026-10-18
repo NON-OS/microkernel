@@ -42,7 +42,7 @@ fn a_card_that_will_not_come_up_costs_one_attempt_until_it_leaves() {
 #[test]
 fn the_write_protect_switch_makes_the_card_read_only() {
     let rig = Rig::empty_slot(HostCfg { write_protected: true, ..sd_slot() });
-    let mut slot = Slot::removable(rig.parts(false), rig.data).expect("host up");
+    let mut slot = Slot::removable(rig.reset(false), rig.parts(false), rig.data);
     rig.sim.borrow_mut().put_sd(SdCfg::default());
     let m = slot.describe();
     assert!(m.present && m.read_only);
@@ -52,7 +52,7 @@ fn the_write_protect_switch_makes_the_card_read_only() {
 #[test]
 fn a_fixed_slot_is_always_present_and_never_polled() {
     let rig = Rig::new(HostCfg { write_protected: true, ..HostCfg::default() }, CardCfg::default());
-    let mut slot = Slot::fixed(rig.parts(true), rig.data).expect("bring-up");
+    let mut slot = Slot::fixed(rig.reset(true), rig.parts(true), rig.data).expect("bring-up");
     let before = rig.cmds().len();
     let m = slot.describe();
     assert!(m.present && !m.removable && !m.read_only, "no switch is wired to an eMMC");

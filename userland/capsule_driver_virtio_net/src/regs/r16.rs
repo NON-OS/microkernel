@@ -19,9 +19,15 @@ use super::pio_read::pio_read;
 use super::regs_type::Regs;
 
 impl Regs {
-    pub unsafe fn r16(self, offset: usize) -> u16 {
+    pub fn r16(self, offset: usize) -> u16 {
         match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_read16(base.add(offset) as usize),
+            RegIo::Mmio(m) => {
+                let value = m.r16(offset);
+                // Nothing the register vouches for in DMA memory is read
+                // before it, as libc's own accessors order a read.
+                nonos_libc::dma_rmb();
+                value
+            }
             RegIo::Pio(grant) => pio_read(grant, offset, 2) as u16,
         }
     }

@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! `OP_BULK_OUT` (`slot, 0, len_le16, data`) and `OP_BULK_IN` (`slot, 0,
 //! `OP_BULK_IN_POLL` (`slot, 0, len_le16`): one look at the slot's polled
 //! bulk IN. Data replies as `OP_BULK_IN` does, `moved_le16, 0, 0` and the
 //! bytes; nothing yet replies `E_AGAIN` at once; a STALL replies `E_PIPE`.
@@ -51,16 +50,10 @@ fn run(ctx: &mut Context, slot: u8, len: u32, out: &mut [u8]) -> XhciResult<Bulk
         .ok_or(XhciError::ControllerUnsupported)?;
     let got = poll_bulk_in(doorbell, intr, &mut ctx.driver.event_ring, pipes, slot, len)?;
     if let BulkPoll::Complete(n) = got {
-        // What came in is at most the armed request, which is at most BULK_MAX.
+        // What came in is at most the armed request, which is at most
+        // BULK_MAX; its TRB completed, so the device writes the page no more.
         let n = (n as usize).min(out.len()).min(BULK_MAX);
-        /*
-         * SAFETY: `poll_buf` is the slot's own DMA page of BULK_MAX bytes, and
-         * its TRB has completed, so the device writes it no more.
-         */
-        unsafe {
-            core::ptr::copy_nonoverlapping(pipes.poll_buf.as_mut_ptr::<u8>(), out.as_mut_ptr(), n)
-        };
-        return Ok(BulkPoll::Complete(n as u32));
+        return Ok(BulkPoll::Complete(pipes.poll_buf.copy_to(&mut out[..n]) as u32));
     }
     Ok(got)
 }

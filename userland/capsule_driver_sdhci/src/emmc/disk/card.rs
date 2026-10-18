@@ -23,10 +23,11 @@ use super::super::sd;
 use super::super::sdhci::regs::{CAPABILITIES, SLOT_TYPE_REMOVABLE};
 use super::super::sdhci::{Caps, Host};
 
-/// A removable slot holds whatever card a person put in it: an SD card
-/// first, then MMC, the order Linux's mmc_rescan tries them in. An embedded
-/// or shared slot is wired to the board's eMMC, and so is a known Intel eMMC
-/// host whatever its capabilities say: those are brought up as MMC alone.
+/// A removable slot holds whatever card a person put in it: an SD card is
+/// tried first, then MMC, which answers none of SD's identify steps. An
+/// embedded or shared slot is wired to the board's eMMC, and so is a known
+/// Intel eMMC host whatever its capabilities say: those are brought up as
+/// MMC alone.
 pub(super) fn card<M: Mmio, C: Clock, L: Log>(
     h: &mut Host<M, C, L>,
     data: DmaBuf,
@@ -36,6 +37,9 @@ pub(super) fn card<M: Mmio, C: Clock, L: Log>(
         if let Some(card) = sd::bring_up(h)? {
             return Ok(card);
         }
+        // No SD card answered: MMC starts from a host reset again, power
+        // and clock off, as the SD attempt did.
+        h.init()?;
     }
     mmc::bring_up(h, data)
 }

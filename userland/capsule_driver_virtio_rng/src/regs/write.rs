@@ -1,0 +1,55 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Writes to the legacy window. A memory window's write follows libc's
+//! write barrier, as libc's own accessors do: every store to DMA memory
+//! before it reaches the device first, a ring before its doorbell.
+
+use super::io::RegIo;
+use super::pio;
+use super::state::Regs;
+
+impl Regs {
+    pub fn w8(self, offset: usize, value: u8) {
+        match self.io {
+            RegIo::Mmio(m) => {
+                nonos_libc::dma_wmb();
+                m.w8(offset, value)
+            }
+            RegIo::Pio(grant) => pio::write(grant, offset, 1, value as u32),
+        }
+    }
+
+    pub fn w16(self, offset: usize, value: u16) {
+        match self.io {
+            RegIo::Mmio(m) => {
+                nonos_libc::dma_wmb();
+                m.w16(offset, value)
+            }
+            RegIo::Pio(grant) => pio::write(grant, offset, 2, value as u32),
+        }
+    }
+
+    pub fn w32(self, offset: usize, value: u32) {
+        match self.io {
+            RegIo::Mmio(m) => {
+                nonos_libc::dma_wmb();
+                m.w32(offset, value)
+            }
+            RegIo::Pio(grant) => pio::write(grant, offset, 4, value),
+        }
+    }
+}

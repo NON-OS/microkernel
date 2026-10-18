@@ -32,6 +32,8 @@ pub enum RtsxError {
     CmdTimeout,
     CmdFailed,
     Gone,
+    /// The card left the slot, or another went in, while it was driven.
+    Removed,
     ResponseShort,
     ResponseStartBits,
     ResponseCrc7,
@@ -39,9 +41,16 @@ pub enum RtsxError {
     NotSd,
     PowerUpTimeout,
     UnknownCsd,
+    /// More blocks than the card's addressing reaches without CMD22.
+    TooLarge,
     ClockRange,
     DataTimeout,
     DataFailed,
+    WriteProtected,
+    /// The card's status after a transfer carried an error bit.
+    CardError,
+    /// The card was still programming when its time was spent.
+    CardBusy,
 }
 
 pub type Result<T> = core::result::Result<T, RtsxError>;

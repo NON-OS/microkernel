@@ -34,3 +34,8 @@ pub const OP_RESET_BULK: u16 = 0x0013;
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
 pub const OP_CONFIGURE_ISOCH: u16 = 0x0018;
 pub const OP_ISOCH_OUT: u16 = 0x0019;
+/// Address a device below a hub: `slot, root_port, speed, route_le32,
+/// tt_hub_slot, tt_port`; replies as OP_ADDRESS_DEVICE.
+pub const OP_ADDRESS_ROUTED: u16 = 0x0020;
+/// Tell the controller a slot is a hub: `slot, ports, think_time, mtt`.
+pub const OP_CONFIGURE_HUB: u16 = 0x0021;

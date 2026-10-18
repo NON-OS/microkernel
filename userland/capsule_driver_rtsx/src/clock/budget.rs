@@ -42,4 +42,13 @@ impl Budget {
             _ => true,
         }
     }
+
+    /// Whether fewer than `ms` have passed since the start at the clock
+    /// read `now`. A failed read is never early.
+    pub const fn early(&self, now: Option<u64>, ms: u64) -> bool {
+        match (self.start, now) {
+            (Some(start), Some(now)) => now.saturating_sub(start) < ms,
+            _ => false,
+        }
+    }
 }
