@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cap;
+mod page;
 mod pci;
 mod regs;
 
 pub use cap::{cap_dstrd, cap_mpsmax_shift, cap_mpsmin_shift, cap_mqes, cap_nvm_supported, cap_to};
+pub use page::DRIVER_PAGE_SHIFT;
 pub use pci::{CLASS_BLOCK, NVME_BAR_INDEX, NVME_BAR_MIN_SIZE};
 pub use regs::{
-    CC_EN, CC_IOCQES_16, CC_IOSQES_64, CSTS_CFS, CSTS_RDY, REG_ACQ, REG_AQA, REG_ASQ, REG_CAP,
-    REG_CC, REG_CMBLOC, REG_CMBSZ, REG_CSTS, REG_DOORBELL_BASE, REG_INTMC, REG_INTMS, REG_VS,
+    CC_AMS_RR, CC_CSS_NVM, CC_EN, CC_IOCQES_16, CC_IOSQES_64, CC_MPS_SHIFT, CSTS_CFS, CSTS_RDY,
+    REG_ACQ, REG_AQA, REG_ASQ, REG_CAP, REG_CC, REG_CMBLOC, REG_CMBSZ, REG_CSTS, REG_DOORBELL_BASE,
+    REG_INTMC, REG_INTMS, REG_VS,
 };

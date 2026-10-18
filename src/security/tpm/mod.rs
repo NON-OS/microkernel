@@ -34,4 +34,4 @@ mod resend;
 mod transport;
 
 pub use resend::transact_resending;
-pub use transport::transact;
+pub use transport::{tpm2_start, tpm2_table, transact};

@@ -1,0 +1,20 @@
+# NONOS shared Bluetooth control wire format.
+# NBTC v1, which driver.bt_usb0 answers and Settings asks: the header, the op
+# and status numbers, and each payload's layout. The capsule wrote them once
+# for itself (letter E-25); Settings would have written them a second time,
+# so both ends read them from here and cannot drift apart.
+
+[package]
+name = "nonos_bt_proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS Bluetooth control service wire format"
+
+[lib]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 2

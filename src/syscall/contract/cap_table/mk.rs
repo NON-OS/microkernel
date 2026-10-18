@@ -53,7 +53,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          * capability mask, the machine's inventory, so reading them takes a
          * capability of its own, which the programs that render a receipt hold.
          */
-        SyscallNumber::MkAttestEntries => caps.can_attest_read(),
+        SyscallNumber::MkAttestEntries | SyscallNumber::MkAcpiMeasured => caps.can_attest_read(),
         SyscallNumber::MkLogTail => caps.can_attest_read(),
         /* The witness of the anonymous device proof, for nonos.prove alone. */
         SyscallNumber::MkDeviceSecret => caps.can_device_secret(),

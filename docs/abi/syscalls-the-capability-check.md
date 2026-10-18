@@ -32,12 +32,12 @@ every revoke raises (`src/syscall/contract/resolver/check_epoch.rs:22-30`).
 goes to the structured log, which this release never starts, so it is dropped
 ([Logging](../kernel/logging.md#the-structured-log-and-the-debug-ring)). The
 table is total: `is_allowed` refuses a number no family claims
-(`src/syscall/contract/cap_table/mod.rs:28-34`).
+(`src/syscall/contract/cap_table/mod.rs:29-35`).
 
 Read the Capability column this way:
 
 - A single name means the token must grant that capability.
-- "A or B" means either is enough. No [broker](../overview/glossary.md#broker)
+- "A or B" means either is enough. No [broker](../overview/glossary-hardware-broker.md#broker)
   or input gate accepts `Admin` in place of the call's own capability:
   predicates such as `can_driver` ask for their bit alone
   (`src/capabilities/token/types/authority_broker.rs:29-31`).
@@ -46,7 +46,7 @@ Read the Capability column this way:
   one capability (`src/capabilities/token/types/query.rs:44-47`). The tokens
   `new_token` mints carry no expiry (`src/process/caps.rs:38-46`).
 - "none" is `MTTQ` alone, whose arm is `true`
-  (`src/syscall/contract/cap_table/mk_surface.rs:50`). The five checks above
+  (`src/syscall/contract/cap_table/mk_surface.rs:51`). The five checks above
   still run.
 - `MADC` needs AttestRead and is refused to a caller holding Network, because
   `can_attest_doc` excludes it (`src/syscall/caps/checks/system.rs:42-47`).

@@ -33,7 +33,7 @@ The tree has a file `nonos-bootloader/firmware/intel/i225-ethernet.bin` of 51 by
 
 ## Why it is not in 0.9.2
 
-The same three reasons as [e1000e](intel-e1000e.md#why-it-is-not-in-092): the build does not include it, the kernel mirror it names does not exist (`userland/capsule_driver_igc/Capsule.mk:29`, `CAPSULE_KERNEL_MIRROR`), and `net.core` does not look it up. Both capsules answer operation 6 with a register snapshot and status 0, as e1000 does (`userland/capsule_driver_igc/src/server/runner.rs:71`, `OP_STATS`); `net.core` takes that as a driver without batches and reads frames with operation 5, so wiring either in would not bring back [the receive fault](README.md#the-receive-fault) (`userland/capsule_net_core/src/device/batch_served.rs:29-31`, `served`).
+The same three reasons as [e1000e](intel-e1000e.md#why-it-is-not-in-092): the build does not include it, the kernel mirror it names does not exist (`userland/capsule_driver_igc/Capsule.mk:29`, `CAPSULE_KERNEL_MIRROR`), and `net.core` does not look it up. Both capsules keep their register snapshot at operation 7 (`userland/capsule_driver_igc/src/protocol/ops.rs:30`, `OP_STATS`) and do not serve operation 6; `net.core` takes any answer but an empty batch as a driver without batches and reads frames with operation 5, so wiring either in would not bring back [the receive fault](README.md#the-receive-fault) (`userland/capsule_net_core/src/device/batch_served.rs:29-31`, `served`).
 
 ## Tests
 

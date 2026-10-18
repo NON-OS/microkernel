@@ -25,6 +25,7 @@
     swapgs
 1:
     cld
+    CLEAR_AC
     push    rax
     push    rcx
     push    rdx

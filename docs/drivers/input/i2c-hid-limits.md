@@ -37,7 +37,7 @@ they are checked. What they are is in [I2C-HID touchpads](i2c-hid.md).
   passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled
   DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds
   the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds
-  the transfer engine (26); `pinctrl_proofs` holds the GPIO layouts (13);
+  the transfer engine (26); `pinctrl_proofs` holds the GPIO controller ids and pad arithmetic (8 since F 46);
   `input_proofs` holds the gesture decoder (96). Since then `i2c_pci_proofs`
   holds 47, `i2c_transfer_proofs` 50 and `i2c_hid_proofs` 52, with the reach and
   its narrowing, the sweep for a pad with no declared address, and waits on a
