@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
 use nonos_libc::mk_device_claim;
 
 pub fn claim(device_id: u64) -> Result<u64, &'static str> {

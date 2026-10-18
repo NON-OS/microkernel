@@ -19,8 +19,8 @@
 //! The `#[path]` includes pull in the shipping driver source, so these tests
 //! run the code that boots. The register type is built from a base address,
 //! so a window in host memory stands in for BAR0 and a device modelled from
-//! the datasheet answers from it. The broker, DMA mapping and server halves
-//! talk to the kernel rather than to registers and stay out.
+//! the datasheet answers from it. The broker and DMA mapping talk to the
+//! kernel rather than to registers; the shim answers them.
 //!
 //! The property that earns this crate its place is the station address. The
 //! driver draws one and programs it; the factory address burned into the part
@@ -28,11 +28,15 @@
 //! network it joins, and the driver's promise is that it never falls back to
 //! it. That is checked here with the entropy source switched off.
 
+// The server loop allocates its buffers through `alloc`, as in the capsule.
+extern crate alloc;
+
 /// Which chip: the XID table and the per-version predicates.
 #[path = "../../capsule_driver_rtl8169/src/chip/mod.rs"]
 pub mod chip;
 #[path = "../../capsule_driver_rtl8169/src/constants/mod.rs"]
 pub mod constants;
+pub use setup::discover;
 /// The per-version steps: FIFO waits, the RXDV gate, quiescing.
 #[path = "../../capsule_driver_rtl8169/src/hw/mod.rs"]
 pub mod hw;
@@ -56,6 +60,9 @@ pub mod regs;
 /// whose length and flags come from the device.
 #[path = "../../capsule_driver_rtl8169/src/rx/mod.rs"]
 pub mod rx;
+/// The server loop, its handlers and the transmit watchdog the send path
+/// runs, against the IPC calls the shim scripts.
+pub mod server;
 pub mod setup;
 /// The send path, which rings the per-version doorbell.
 #[path = "../../capsule_driver_rtl8169/src/tx/mod.rs"]

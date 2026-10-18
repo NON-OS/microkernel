@@ -26,14 +26,15 @@ use crate::constants::regs::{
 use crate::init::{rx_program, tx_program};
 use crate::regs::Regs;
 
-/// RCTL as the 8254x manual numbers it: EN bit 1, BAM bit 15, SECRC bit 26,
-/// BSIZE 00 for 2048-byte buffers.
-const RCTL_EXPECTED: u32 = (1 << 1) | (1 << 15) | (1 << 26);
-/// TCTL likewise: EN bit 1, PSP bit 3, CT 0x10 at bit 4, COLD 0x40 at bit 12.
-const TCTL_EXPECTED: u32 = (1 << 1) | (1 << 3) | (0x10 << 4) | (0x40 << 12);
+/// RCTL as the 8254x manual numbers it: BAM bit 15, SECRC bit 26, BSIZE 00
+/// for 2048-byte buffers, and EN (bit 1) clear: the receiver goes on only
+/// once Bus Master is.
+const RCTL_EXPECTED: u32 = (1 << 15) | (1 << 26);
+/// TCTL likewise: PSP bit 3, CT 0x10 at bit 4, COLD 0x40 at bit 12, EN clear.
+const TCTL_EXPECTED: u32 = (1 << 3) | (0x10 << 4) | (0x40 << 12);
 
 #[test]
-fn the_receive_ring_is_named_primed_with_its_buffers_and_enabled() {
+fn the_receive_ring_is_named_primed_with_its_buffers_and_left_off() {
     let bar = window();
     let mut mem = Memory::new();
     let rx = mem.rx_ring();
@@ -51,7 +52,7 @@ fn the_receive_ring_is_named_primed_with_its_buffers_and_enabled() {
 }
 
 #[test]
-fn the_transmit_ring_is_named_empty_with_the_standard_gap_and_enabled() {
+fn the_transmit_ring_is_named_empty_with_the_standard_gap_and_left_off() {
     let bar = window();
     let mut mem = Memory::new();
     mem.tx[3].cmd = 0xFF;

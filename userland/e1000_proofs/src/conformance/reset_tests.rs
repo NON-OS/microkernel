@@ -17,7 +17,8 @@
 //! The reset handshake: requested, waited for, then the part quiesced and
 //! the link set up.
 
-use super::model::{live_part, window};
+use super::live::live_part;
+use super::model::window;
 use crate::constants::regs::{REG_CTRL, REG_IMC};
 use crate::constants::status::{
     CTRL_ASDE, CTRL_FRCDPLX, CTRL_FRCSPD, CTRL_LRST, CTRL_RST, CTRL_SLU,

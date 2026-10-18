@@ -20,7 +20,8 @@
 
 use super::events::{command, CC_SUCCESS};
 use super::fixture::{Fixture, SLOT};
-use crate::controller::{issue_address_device, SET_ADDRESS_SETTLE_MS};
+use crate::controller::command::issue_address_device::SET_ADDRESS_SETTLE_MS;
+use crate::controller::issue_address_device;
 use crate::error::XhciError;
 
 const INPUT_CONTEXT: u64 = 0x10_0000;
@@ -37,7 +38,10 @@ fn an_addressed_device_is_left_to_settle_before_the_reply() {
     issue_address_device(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, INPUT_CONTEXT, SLOT)
         .expect("addressed");
     const { assert!(SET_ADDRESS_SETTLE_MS >= 2, "at least the specification's recovery interval") };
-    assert!(nonos_libc::slept_ms() - before >= SET_ADDRESS_SETTLE_MS, "the device was given its time");
+    assert!(
+        nonos_libc::slept_ms() - before >= SET_ADDRESS_SETTLE_MS,
+        "the device was given its time"
+    );
 }
 
 #[test]
@@ -49,5 +53,8 @@ fn a_refused_address_is_reported_at_once() {
     let before = nonos_libc::slept_ms();
     let got = issue_address_device(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, INPUT_CONTEXT, SLOT);
     assert_eq!(got, Err(XhciError::CommandCompletionFailed(4)));
-    assert!(nonos_libc::slept_ms() - before < SET_ADDRESS_SETTLE_MS, "no settle for a device not addressed");
+    assert!(
+        nonos_libc::slept_ms() - before < SET_ADDRESS_SETTLE_MS,
+        "no settle for a device not addressed"
+    );
 }

@@ -22,20 +22,31 @@ use super::constants::HID_REPORT_MAX;
 use super::feed_report::feed_report;
 use super::read_len::read_len;
 
+/// Reports read from one endpoint in one poll at most. A device that always
+/// has another ready held the loop on its endpoint: no other device, no
+/// request and no key repeat was served while it streamed.
+const REPORTS_PER_POLL: u32 = 16;
+
+/// Read the endpoint if it is due at `now_ms` (`Pace`); whether a report
+/// came. The buffer is cleared once each report is handed on: it lives as
+/// long as the driver, and the keys a keyboard last held stayed in it.
 pub(super) fn drain_endpoint(
     state: &mut State,
-    ep: &HidEndpoint,
+    ep: &mut HidEndpoint,
     buf: &mut [u8; HID_REPORT_MAX],
+    now_ms: u64,
 ) -> bool {
+    if !ep.pace.due(now_ms) {
+        return false;
+    }
     let mut drained = false;
     let len = read_len(ep.max_packet);
-    loop {
-        match interrupt_in(ep.port, ep.slot, ep.dci, len, buf) {
-            Ok(Some(n)) => {
-                feed_report(state, ep, buf, n);
-                drained = true;
-            }
-            _ => return drained,
-        }
+    for _ in 0..REPORTS_PER_POLL {
+        let Ok(Some(n)) = interrupt_in(ep.port, ep.slot, ep.dci, len, buf) else { break };
+        feed_report(state, ep, buf, n);
+        buf.fill(0);
+        drained = true;
     }
+    ep.pace.asked(now_ms, drained);
+    drained
 }

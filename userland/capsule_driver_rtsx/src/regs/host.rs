@@ -29,8 +29,12 @@ pub const BIER: u32 = 0x18;
 /// BIPR, pending bits. Written back to clear, as rtsx_pci_isr does.
 pub const TRANS_OK_INT: u32 = 1 << 29;
 pub const TRANS_FAIL_INT: u32 = 1 << 28;
+/// A card-detect change on the SD slot, latched until written back.
+pub const SD_INT: u32 = 1 << 25;
 /// GPIO0_INT, which Linux also calls DELINK_INT: the link went down.
 pub const DELINK_INT: u32 = 1 << 24;
+/// The slot's write-protect switch is set (sdmmc_get_ro reads it here).
+pub const SD_WRITE_PROTECT: u32 = 1 << 19;
 pub const SD_EXIST: u32 = 1 << 16;
 
 /// BIER, the same bit positions.
@@ -51,6 +55,7 @@ pub const TRIG_DMA: u32 = 1 << 31;
 pub const ADMA_MODE: u32 = 0x02 << 26;
 pub const STOP_DMA: u32 = 1 << 28;
 pub const DEVICE_TO_HOST: u32 = 1;
+pub const HOST_TO_DEVICE: u32 = 0;
 
 /// HAIMR: one internal register access at a time.
 pub const HAIMR_TRANS_START: u32 = 1 << 31;

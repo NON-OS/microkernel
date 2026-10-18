@@ -66,7 +66,6 @@ fn the_part_comes_up_under_the_drawn_address_and_says_so() {
     assert_eq!(bar.wrote32(REG_TCTL) & 0x2, 0x2, "transmitter on");
     assert_eq!(bar.wrote32(REG_RDT), 31);
     assert_eq!(d.link, Some(LinkState { up: false, mbps: 10, full: false }));
-    let text: Vec<String> = mac.iter().map(|b| format!("{b:02x}")).collect();
-    let want = format!("igc: up 125c {} link=down\n", text.join(":"));
-    assert_eq!(said().last(), Some(&want));
+    let up = "igc: up 125c link=down\n";
+    assert_eq!(said().last().map(String::as_str), Some(up), "no station address logged");
 }
