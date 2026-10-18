@@ -53,12 +53,19 @@ pub fn grant_memory(pid: u32, base: u64, len: u64) -> Result<MemoryGrant, Region
     // From the caller's own MMIO window (K10), given back if the map fails.
     let bytes = end - start;
     let va = grant::reserve_user_va(pid, bytes / PAGE).ok_or(RegionError::NoVaSpace)?;
-    if crate::memory::paging::map_user_mmio(va, PhysAddr::new(start), bytes as usize).is_err() {
+    let undo = || {
         let _ = crate::memory::paging::unmap_user_mmio(va, bytes as usize);
         grant::release_user_va(pid, va.as_u64(), bytes);
+    };
+    if crate::memory::paging::map_user_mmio(va, PhysAddr::new(start), bytes as usize).is_err() {
+        undo();
         return Err(RegionError::MapFailed);
     }
-    let grant_id = record(pid, start, end, va.as_u64());
+    // A spent grant quota leaves nothing recorded, so nothing would unmap it.
+    let Some(grant_id) = record(pid, start, end, va.as_u64()) else {
+        undo();
+        return Err(RegionError::Full);
+    };
     if fresh {
         report::granted(Space::Memory, base, len);
     }
