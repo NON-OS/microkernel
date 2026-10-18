@@ -55,6 +55,7 @@ pub fn new() -> State {
         audio_output: AudioOutput::Unasked,
         access: crate::settings::access::AccessPage::default(),
         screens: crate::settings::screens::ScreenPage::default(),
+        bt: crate::bluetooth::Panel::new(),
         win_w: crate::settings::manifest::WIDTH,
         win_h: crate::settings::manifest::HEIGHT,
     }

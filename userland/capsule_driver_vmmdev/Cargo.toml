@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_vmmdev
+#
+# Userland VirtualBox guest device (80ee:cafe) driver capsule: mouse
+# integration. It introduces the guest to the host, narrows the host's
+# events to the mouse's, offers no capability, and posts the host
+# pointer's absolute position onto the kernel input ring. No shared
+# clipboard, folders, properties or display hints: the host learns only
+# that the guest takes absolute positions.
+
+[package]
+name = "nonos_capsule_driver_vmmdev"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland VirtualBox guest device driver capsule"
+
+[[bin]]
+name = "driver_vmmdev"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

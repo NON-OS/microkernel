@@ -29,7 +29,9 @@ fn each_section_sits_at_its_own_index() {
         assert_eq!(s.index(), i);
         assert!(Section::from_index(i) == *s);
     }
-    assert_eq!(SECTION_COUNT, 10);
+    // Bluetooth after Wifi, Accessibility after Appearance: both programs'.
+    assert_eq!(SECTION_COUNT, 11);
+    assert!(SECTIONS[3] == Section::Bluetooth && SECTIONS[6] == Section::Accessibility);
     assert!(Section::from_index(SECTION_COUNT) == Section::Developer);
 }
 
