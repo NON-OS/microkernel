@@ -32,6 +32,7 @@ mod stall;
 mod wire;
 
 mod boundary_frame_tests;
+mod create_tests;
 mod config_tests;
 mod discovery_tests;
 mod dispatch_tests;

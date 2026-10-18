@@ -21,6 +21,7 @@ use std::sync::Arc;
 
 use nonos_devmodel::FakeBar;
 
+pub use super::client::HANDLE;
 use super::client::{answer, call, flush};
 use super::part::{answering, Answer};
 use super::{driver::driver, frames::le32, harness::harness};
@@ -32,7 +33,6 @@ use crate::state::Scanout;
 pub const CLIENT: u32 = 5;
 pub const PRIMARY: Primary = Primary {
     sid: 0x31,
-    handle: 0x77,
     resource_id: 1,
     width: 64,
     height: 32,
@@ -47,7 +47,7 @@ pub fn stalled() -> (Driver, Arc<FakeBar>, Arc<FakeBar>) {
     let (width, height) = (PRIMARY.width, PRIMARY.height);
     let whole = Scanout { x: 0, y: 0, width, height, current_resource_id: 0, enabled: true };
     resource::insert(&d.resources, PRIMARY.resource_id, whole).expect("room");
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "the client holds the surface");
+    assert_eq!(handle(&d), Some(HANDLE), "the client holds the surface");
     let part = answering(&region, Answer::Spec);
     assert_eq!(call(&d, CLIENT, OP_FLUSH, &whole_flush()), 0, "a frame presented");
     drop(part);

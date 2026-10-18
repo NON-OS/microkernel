@@ -25,7 +25,7 @@ use nonos_virtio::common::DEVICE_STATUS;
 use super::client::{answer, call, scanout, transfer};
 use super::frames::le32;
 use super::part::{answering_after_reset, Answer};
-use super::stall::{handle, stalled, whole_flush, CLIENT, PRIMARY};
+use super::stall::{handle, stalled, whole_flush, CLIENT, HANDLE, PRIMARY};
 use crate::clock::now_ms;
 use crate::constants::VQ_AVAIL_OFFSET;
 use crate::protocol::{E_DEVICE, OP_FLUSH, OP_QUERY_CAPS, OP_SET_SCANOUT, OP_TRANSFER_TO_HOST};
@@ -49,7 +49,7 @@ fn a_try_the_device_refuses_ends_in_a_reset_and_nothing_reaches_it_once_down() {
     settle(&mut d);
     assert_eq!(region.wrote16(VQ_AVAIL_OFFSET + 2), published, "published once it was down");
     assert_eq!(now_ms(), from, "a wait on the device once it was down");
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "the surface is still served");
+    assert_eq!(handle(&d), Some(HANDLE), "the surface is still served");
     assert_eq!(releases(), 0, "the claim and every grant are kept");
 }
 

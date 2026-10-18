@@ -17,7 +17,7 @@ use super::state::Primary;
 use super::{descriptor, dma, geometry, prime, resource};
 use crate::device::virtqueue::ControlQueue;
 use crate::state::{FenceCounter, ResourceTable, Scanout};
-use nonos_libc::{mk_getpid, mk_surface_register, mk_surface_share};
+use nonos_libc::mk_surface_register;
 pub fn create(
     device_id: u64,
     claim_epoch: u64,
@@ -33,7 +33,6 @@ pub fn create(
     let dma = dma::map(device_id, claim_epoch, geom.byte_len)?;
     let primary = Primary {
         sid: 0,
-        handle: 0,
         resource_id: resources.alloc_id(),
         width: scanout.width,
         height: scanout.height,
@@ -47,12 +46,8 @@ pub fn create(
     if sid < 0 {
         return Err("virtio-gpu: surface register rejected");
     }
-    // Shared with itself: the kernel records no receiver and hands back the
-    // owner's handle. The compositor is named when it asks.
-    let handle = mk_surface_share(sid as u64, mk_getpid(), 0);
-    if handle < 0 {
-        return Err("virtio-gpu: surface share rejected");
-    }
+    // Shared with no one yet: the driver draws nothing through a handle, so
+    // it takes none. The compositor is named when it asks.
     resource::insert(resources, primary.resource_id, scanout)?;
-    Ok(Some(Primary { sid: sid as u64, handle: handle as u64, ..primary }))
+    Ok(Some(Primary { sid: sid as u64, ..primary }))
 }

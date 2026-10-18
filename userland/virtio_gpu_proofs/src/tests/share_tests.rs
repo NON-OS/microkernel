@@ -23,7 +23,7 @@ use nonos_libc::shares;
 use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
 
 use super::client::call;
-use super::stall::{handle, CLIENT, PRIMARY};
+use super::stall::{handle, CLIENT, HANDLE, PRIMARY};
 use super::{driver::driver, harness::harness};
 use crate::protocol::{E_BUSY, OP_GET_PRIMARY_SURFACE};
 use crate::setup::resource;
@@ -36,7 +36,7 @@ fn get_primary_names_its_client_the_writable_receiver_and_no_one_else() {
     let whole = Scanout { x: 0, y: 0, width, height, current_resource_id: 0, enabled: true };
     resource::insert(&d.resources, PRIMARY.resource_id, whole).expect("room");
     assert_eq!(shares(), [], "shared before anyone asked");
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "the client not handed the surface");
+    assert_eq!(handle(&d), Some(HANDLE), "the client not handed the surface");
     assert_eq!(shares(), [(PRIMARY.sid, CLIENT, SURFACE_SHARE_WRITE)], "not named, writable");
     assert_eq!(call(&d, CLIENT + 1, OP_GET_PRIMARY_SURFACE, &[]), E_BUSY, "a second owner");
     assert_eq!(shares().len(), 1, "the kernel told to let a second process attach it");
