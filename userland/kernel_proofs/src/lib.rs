@@ -182,6 +182,8 @@ mod elf_section_tests;
 #[cfg(test)]
 mod elf_tests;
 #[cfg(test)]
+mod entry_ac_tests;
+#[cfg(test)]
 mod handover_tests;
 #[cfg(test)]
 mod inbox_name_tests;

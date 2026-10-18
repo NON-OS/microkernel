@@ -35,39 +35,12 @@
 //! No kernel with more than one CPU online could complete a page-table
 //! mutation.
 
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::structures::idt::InterruptDescriptorTable;
 
-use super::handlers;
+use super::gates::{barrier, call_function, panic, reschedule, stop, tlb_shootdown};
 use crate::arch::x86_64::interrupt_controller::{
     IPI_BARRIER, IPI_CALL_FUNCTION, IPI_PANIC, IPI_RESCHEDULE, IPI_STOP, IPI_TLB_SHOOTDOWN,
 };
-
-extern "x86-interrupt" fn tlb_shootdown(_frame: InterruptStackFrame) {
-    handlers::tlb_shootdown();
-}
-
-extern "x86-interrupt" fn reschedule(_frame: InterruptStackFrame) {
-    handlers::reschedule();
-}
-
-extern "x86-interrupt" fn call_function(_frame: InterruptStackFrame) {
-    handlers::call_function();
-}
-
-extern "x86-interrupt" fn barrier(_frame: InterruptStackFrame) {
-    handlers::barrier();
-}
-
-// These two never return, but an interrupt gate takes a handler typed as
-// returning unit, so the divergence stays inside the call rather than in the
-// signature.
-extern "x86-interrupt" fn panic(_frame: InterruptStackFrame) {
-    handlers::panic()
-}
-
-extern "x86-interrupt" fn stop(_frame: InterruptStackFrame) {
-    handlers::stop()
-}
 
 /// Install a gate for every IPI vector.
 pub(crate) fn install_gates(idt: &mut InterruptDescriptorTable) {
