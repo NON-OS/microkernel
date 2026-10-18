@@ -5,12 +5,18 @@ edition = "2021"
 description = "License broker core: turn a verified NOX payment into a signed entitlement, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 
 [dependencies]
 nonos_nox_license = { path = "../nonos_nox_license" }
 nonos_nox_receipt = { path = "../nonos_nox_receipt" }
+
+[dev-dependencies]
+nonos_nox_config = { path = "../nonos_nox_config" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

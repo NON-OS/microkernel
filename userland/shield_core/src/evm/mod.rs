@@ -29,10 +29,13 @@ mod review_token;
 mod rlp;
 mod rpc;
 mod send;
+mod sender;
 pub mod shield;
 pub mod shield_batch;
 mod shield_batch_txs;
 mod shield_order;
+pub mod shield_recheck;
+mod shield_recheck_fit;
 mod shield_tx;
 pub mod swap;
 pub mod tx;
@@ -51,3 +54,7 @@ pub use review_parts::{Arrival, Checked, Order, Review};
 pub use send::{broadcast, status, SendStatus};
 pub use used::used;
 pub use views::{view, Viewed};
+
+#[cfg(test)]
+#[path = "reply_hostile_test.rs"]
+mod reply_hostile_test;

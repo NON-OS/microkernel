@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use nonos_libc::mk_time_millis;
+use zeroize::Zeroize;
 
 use super::call::keyring_call;
 use super::constants::{HDR_LEN, OP_WALLET_GENERATE_HD};
@@ -38,26 +39,18 @@ pub fn generate_wallet_hd(
     payload.extend_from_slice(&expires.to_le_bytes());
     let mut rx = keyring_call(port, OP_WALLET_GENERATE_HD, &payload, 4 + 1 + 48)?;
     if rx.len() < HDR_LEN + 5 {
-        wipe_vec(&mut rx);
+        rx.zeroize();
         return Err(-11);
     }
     let id = u32::from_le_bytes([rx[8], rx[9], rx[10], rx[11]]);
     let count = rx[12] as usize;
     if !matches!(count, 12 | 24) || rx.len() < HDR_LEN + 5 + count * 2 {
-        wipe_vec(&mut rx);
+        rx.zeroize();
         return Err(-11);
     }
     for (i, slot) in words.iter_mut().take(count).enumerate() {
         *slot = u16::from_le_bytes([rx[13 + i * 2], rx[14 + i * 2]]);
     }
-    wipe_vec(&mut rx);
+    rx.zeroize();
     Ok((id, count as u8))
-}
-
-fn wipe_vec(buf: &mut [u8]) {
-    for b in buf.iter_mut() {
-        // SAFETY: volatile write so the wipe of the mnemonic bytes holds.
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
 }

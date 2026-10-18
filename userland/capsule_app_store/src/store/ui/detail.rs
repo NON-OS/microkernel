@@ -48,6 +48,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
             text::line(fb, left, top, &line, MUTED, SMALL_PX);
             top += 20;
         }
+        if let Some(p) = &listing.known.price {
+            top = super::price_lines::paint(fb, p, left, room, top);
+        }
         top += 6;
         for line in wrap(&d.description, room, SMALL_PX).iter().take(4) {
             text::line(fb, left, top, line, FOREGROUND, SMALL_PX);

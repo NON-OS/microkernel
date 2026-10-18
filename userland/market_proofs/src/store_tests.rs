@@ -14,39 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The marketplace window's search, and the order it asks the market in.
+//! The marketplace window's search (the order it asks in: store_order_tests).
 
-use alloc::vec::Vec;
-
-use nonos_market_proto::App;
-
-use crate::store::fill_order::next;
-use crate::store::listing::Listing;
+use super::store_suite::fixture::typed;
 use crate::store::search::Search;
-
-fn typed(text: &[u8]) -> Search {
-    let mut s = Search::default();
-    for b in text {
-        assert!(s.push(*b));
-    }
-    s
-}
-
-fn listing(id: &[u8], name: &[u8]) -> Listing {
-    Listing::new(id.to_vec(), [0; 32], name.to_vec(), true)
-}
-
-fn described(mut l: Listing, description: &[u8]) -> Listing {
-    let detail = App {
-        name: l.name.clone(),
-        publisher: b"p".to_vec(),
-        description: description.to_vec(),
-        releases: 1,
-    };
-    l.known.detail = Some(detail);
-    l.known.described = true;
-    l
-}
 
 #[test]
 fn an_empty_query_keeps_everything() {
@@ -82,37 +53,4 @@ fn the_field_holds_at_most_sixty_four_bytes() {
     assert!(s.pop());
     s.close();
     assert!(s.text().is_empty() && !s.active);
-}
-
-#[test]
-fn the_selection_is_asked_about_first() {
-    let all: Vec<Listing> = vec![listing(b"a", b"A"), listing(b"b", b"B")];
-    assert_eq!(next(&all, Some(1)), Some((1, true)));
-    assert_eq!(next(&all, None), Some((0, false)));
-}
-
-#[test]
-fn a_selection_already_judged_is_not_asked_again() {
-    let mut all: Vec<Listing> = vec![listing(b"a", b"A"), described(listing(b"b", b"B"), b"d")];
-    all[1].known.judged = true;
-    assert_eq!(next(&all, Some(1)), Some((0, false)));
-}
-
-#[test]
-fn every_description_is_asked_once_and_then_nothing() {
-    let mut all: Vec<Listing> = vec![listing(b"a", b"A"), listing(b"b", b"B")];
-    let mut asked = 0;
-    while let Some((at, selected)) = next(&all, None) {
-        assert!(!selected);
-        all[at].known.described = true;
-        asked += 1;
-        assert!(asked <= all.len(), "asked again");
-    }
-    assert_eq!(asked, 2);
-}
-
-#[test]
-fn a_selection_past_the_list_asks_about_nothing_but_descriptions() {
-    let all: Vec<Listing> = vec![described(listing(b"a", b"A"), b"d")];
-    assert_eq!(next(&all, Some(5)), None);
 }

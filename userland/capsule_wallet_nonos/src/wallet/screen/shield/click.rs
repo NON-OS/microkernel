@@ -22,44 +22,16 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use super::landed_move::{MOVE_MAX, ROW_MOVE};
 use crate::wallet::screen::hits::Press;
-use crate::wallet::state::shield_ui::{
-    FIELD_TO, SHIELD_HOME, SHIELD_PROVING, SHIELD_REVIEW, SHIELD_SETTLE,
-};
-use crate::wallet::state::{State, VIEW_HOME, VIEW_SHIELD};
+use crate::wallet::shield::scan_job;
+use crate::wallet::state::shield_ui::{FIELD_TO, SHIELD_HOME};
+use crate::wallet::state::State;
 
-/* Enter Shield from the wallet: ask whether a shield service is there and,
- * if it is, open this account's shield store in it. */
-pub fn open(state: &mut State) -> EventOutcome {
-    state.shield_ui.screen = SHIELD_HOME;
-    state.shield_ui.absent_hidden = false;
-    state.shield_ui.failure = None;
-    state.failure = None;
-    if crate::wallet::shield::open::here() {
-        state.shield = crate::wallet::shield::probe::probe();
-    }
-    if crate::wallet::shield::open::here() && state.shield.available() {
-        crate::wallet::shield::open::open(state);
-    }
-    state.view = VIEW_SHIELD;
-    state.scroll = 0;
-    EventOutcome::Repaint
-}
-
-pub fn back(state: &mut State) -> EventOutcome {
-    let ui = &mut state.shield_ui;
-    ui.failure = None;
-    match ui.screen {
-        SHIELD_HOME => state.view = VIEW_HOME,
-        SHIELD_REVIEW if ui.from == SHIELD_SETTLE => ui.screen = SHIELD_PROVING,
-        SHIELD_REVIEW => ui.screen = ui.from,
-        _ => ui.screen = SHIELD_HOME,
-    }
-    state.scroll = 0;
-    EventOutcome::Repaint
-}
+pub use super::nav::{back, open};
 
 pub fn click(state: &mut State, press: Press) -> EventOutcome {
+    let moves = ROW_MOVE..ROW_MOVE + MOVE_MAX;
     let ui = &mut state.shield_ui;
     match press {
         Press::Back => return back(state),
@@ -72,6 +44,8 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             ui.focus = FIELD_TO;
             ui.news = None;
             ui.size = None;
+            ui.payee.to_meter = false;
+            ui.payee.to_deposit = None;
             ui.failure = None;
             state.scroll = 0;
         }
@@ -80,18 +54,18 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             ui.size = None;
         }
         Press::Pick(i) => ui.size = Some(i),
+        Press::Dest(d) => (ui.payee.to_meter, ui.payee.to_deposit) = (d == 1, None),
         Press::Field(f) => ui.focus = f,
         Press::Footer(n) => return super::footer::footer(state, n),
+        Press::Row(super::landed::ROW_SCAN) if ui.screen == SHIELD_HOME => scan_job::start(state),
+        Press::Row(super::landed::ROW_FURTHER) if ui.screen == SHIELD_HOME => {
+            scan_job::further(state)
+        }
+        Press::Row(r) if ui.screen == SHIELD_HOME && moves.contains(&r) => {
+            return super::landed_rows::click(state, r)
+        }
         Press::Row(super::home_receive::ROW_COPY) if ui.screen == SHIELD_HOME => {
-            if let Some(addr) = &ui.nox1 {
-                let copied =
-                    nonos_app_skeleton::clients::clipboard::clipboard_copy(addr.as_bytes());
-                state.status = if copied.is_ok() {
-                    b"private address copied"
-                } else {
-                    b"the clipboard did not take it"
-                };
-            }
+            super::home_receive::copy(state)
         }
         _ => return EventOutcome::Idle,
     }

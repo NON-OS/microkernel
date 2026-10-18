@@ -30,11 +30,12 @@ pub fn evaluate(
     listing_id: &str,
     release: &CapsuleRelease,
     publisher_signature_verified: bool,
+    escrow: bool,
 ) -> InstallReadiness {
     let index_signature_valid = signature_verified;
     let validation_passed = release.validation.status == ValidationStatus::Validated;
     let package_url_present = !release.package_url.is_empty();
-    let package_hash_present = release.package_hash.iter().any(|&b| b != 0);
+    let package_hash_present = super::pin::pinned(release, escrow);
     let manifest_hash_present = release.manifest_hash.iter().any(|&b| b != 0);
     let runs_here = |a: &alloc::string::String| {
         a.as_str() == RUNNING_ARCH || (!HOSTED_ARCH.is_empty() && a.as_str() == HOSTED_ARCH)

@@ -42,19 +42,20 @@ fn text(state: &State, paying: bool) -> alloc::string::String {
 
 pub fn pay(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let h = label(fb, c, y, "YOU PAY");
-    let k = chips(fb, c, y + h, &symbols(), Some(state.swap_from), Press::Asset);
-    let typed = if state.swap_in == 0 { alloc::string::String::new() } else { text(state, true) };
-    let name = token(state.swap_from).symbol;
+    let k = chips(fb, c, y + h, &symbols(), Some(state.swap.from), Press::Asset);
+    let typed =
+        if state.swap.amount_in == 0 { alloc::string::String::new() } else { text(state, true) };
+    let name = token(state.swap.from).symbol;
     let (_, f) = field(fb, c, y + h + k + TIGHT, name, &typed, "type an amount", true);
     h + k + TIGHT + f + GAP
 }
 
 pub fn receive(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
     let h = label(fb, c, y, "YOU RECEIVE");
-    let k = chips(fb, c, y + h, &symbols(), Some(state.swap_to), Press::Pick);
+    let k = chips(fb, c, y + h, &symbols(), Some(state.swap.to), Press::Pick);
     let got =
-        if state.swap_quote.ready { text(state, false) } else { alloc::string::String::new() };
-    let name = token(state.swap_to).symbol;
+        if state.swap.quote.ready { text(state, false) } else { alloc::string::String::new() };
+    let name = token(state.swap.to).symbol;
     let (_, f) = field(fb, c, y + h + k + TIGHT, name, &got, "no price yet", false);
     h + k + TIGHT + f + GAP
 }

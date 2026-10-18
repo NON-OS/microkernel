@@ -41,7 +41,14 @@ const STICK: &str = "The stick tier: Install imports it from a release stick wit
      network when this stick carries it, and downloads it otherwise.";
 
 /// Paints and returns the y to carry on from.
-pub fn paint(fb: &mut PaintBuffer, state: &State, l: &Listing, left: u32, room: u32, top: i32) -> i32 {
+pub fn paint(
+    fb: &mut PaintBuffer,
+    state: &State,
+    l: &Listing,
+    left: u32,
+    room: u32,
+    top: i32,
+) -> i32 {
     let Some(tier) = tier_of(&l.id) else { return top };
     let mut said: [(Option<String>, u32); 3] = [(None, MUTED), (None, MUTED), (None, ACCENT)];
     if state.fetch_of(l).is_some() {
