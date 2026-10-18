@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hardware::broker::IrqError;
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
 use core::mem::size_of;
 
@@ -37,9 +36,7 @@ pub fn sys_irq_poll(grant_id: u64, out_ptr: u64) -> i64 {
     }
     let res = match crate::hardware::broker::irq_poll(pid, grant_id) {
         Ok(r) => r,
-        Err(IrqError::NotHolder) => return ERRNO_PERM,
-        Err(IrqError::UnknownGrant) => return ERRNO_INVAL,
-        Err(IrqError::PlatformError) => return ERRNO_NODEV,
+        Err(e) => return super::errno_map::grant_errno_for(pid, grant_id, e),
     };
     let out = IrqPollOut { seq: res.seq, overflow: res.overflow };
     if write_user_value(out_ptr, &out).is_err() {

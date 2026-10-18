@@ -15,16 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Issue a PIO grant against a device's PIO BAR, as mmio::map_for_caller
-//! does: the claim, the device, a PIO BAR inside the 16-bit port space, then
-//! the record, while the claim still holds. Access goes through
-//! `access`; only the kernel executes `in` and `out`.
+//! does: the claim, the device, a PIO BAR inside the 16-bit port space and
+//! clear of firmware's ports, then the record, while the claim still holds
+//!. Access goes through `access`; only the kernel executes `in`/`out`.
 
 use super::grant::{self, PioGrant};
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
 use super::window::{window, Refused};
-use crate::hardware::broker::claim;
 use crate::hardware::broker::device::BAR_KIND_PIO;
-use crate::hardware::broker::table;
+use crate::hardware::broker::{claim, reserved, table};
 
 const FLAGS_KNOWN: u32 = 0;
 
@@ -58,7 +57,9 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
         Refused::Overflow => PioError::PortOverflow,
         Refused::Reserved => PioError::ReservedPort,
     })?;
-
+    if reserved::refuses(b"PIO", reserved::IO, bar.base, bar.size, true) {
+        return Err(PioError::FirmwareReserved);
+    }
     let grant_id = grant::allocate_id();
     let record = PioGrant {
         grant_id,

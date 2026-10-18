@@ -16,8 +16,8 @@
 
 //! The name the driver is found under, from both sides: the service it
 //! registers, as its Capsule.mk declares it, and the compositor's order of
-//! asking, which reaches it after virtio-gpu and before GOP, with the one
-//! line the lookup logs for each driver it finds.
+//! asking, which reaches it after virtio-gpu and before VMware's SVGA II and
+//! GOP, with the one line the lookup logs for each driver it finds.
 
 use std::cell::RefCell;
 use std::sync::atomic::AtomicUsize;
@@ -39,7 +39,7 @@ fn the_service_is_registered_as_driver_bga0_on_the_port_capsule_mk_declares() {
 
 #[test]
 fn the_compositor_asks_for_virtio_gpu_first_and_this_driver_second() {
-    assert_eq!(GFX_SERVICES, [&b"driver.virtio_gpu0"[..], SERVICE_NAME]);
+    assert_eq!(GFX_SERVICES, [&b"driver.virtio_gpu0"[..], SERVICE_NAME, b"driver.vmware_svga0"]);
     let lookup = |up: &[&[u8]]| {
         let asked = RefCell::new(Vec::new());
         let port = first_announced(|name| {
@@ -53,14 +53,15 @@ fn the_compositor_asks_for_virtio_gpu_first_and_this_driver_second() {
     assert_eq!(lookup(&both), (Some((0, 4000)), vec![virtio.clone()]), "bga asked first");
     assert_eq!(lookup(&both[1..]), (Some((1, 4000)), vec![virtio.clone(), bga.clone()]));
     assert_eq!(lookup(&both[..1]), (Some((0, 4000)), vec![virtio.clone()]));
-    assert_eq!(lookup(&[]), (None, vec![virtio, bga]), "GOP: neither announced");
+    let svga = b"driver.vmware_svga0".to_vec();
+    assert_eq!(lookup(&[]), (None, vec![virtio, bga, svga]), "GOP: none announced");
 }
 
 #[test]
 fn the_lookup_names_each_driver_it_finds_anew_and_never_gop() {
     // GOP is the compositor's to name, once it takes it (wait_for_setup):
     // a lookup that finds nothing may come while it still waits for one.
-    assert_eq!(DRIVERS, ["virtio-gpu", "bga"]);
+    assert_eq!(DRIVERS, ["virtio-gpu", "bga", "vmware-svga"]);
     let said = AtomicUsize::new(usize::MAX);
     let asks = [None, None, Some(1), Some(1), Some(0), Some(0), None, Some(1)];
     let lines: Vec<_> = asks.into_iter().map(|found| news(&said, found)).collect();

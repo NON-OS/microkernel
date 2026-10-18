@@ -26,7 +26,7 @@ Every capsule with a row in `LAUNCHER_APPS`, the table behind the dock and the L
 
 - The SDK under `userland/sdk/` and the runtime `nonos_runtime` are not used by any shipped app. No `Capsule.mk` builds an SDK crate, so no SDK app is signed, enrolled or in an image; the one capsule crate that uses one, `capsule_gui_proof`, has no `Capsule.mk` either (`userland/sdk/README.md:20-22`, `capsule_gui_proof`). The examples in `userland/nonos_examples/` and `userland/sdk/examples/` are in the same position. [libc and the Rust runtimes](libc.md) describes both.
 - `tools/nonos-app` is the path for an unmodified crates.io command-line program. Its `add` cross-compiles the crate, makes its [publisher](../overview/glossary-peer-list.md#publisher) keys, writes its `Capsule.mk` and include line, records it in `userland/apps.list`, and rewrites the kernel's tool registry and the desktop's `TOOL_APPS` table (`tools/nonos-app:276-287`, `cmd_add`). Such a tool runs in the Terminal, not in a window of its own: its Launchpad tile hands the Terminal its command line (`userland/capsule_desktop_shell/src/server/handlers/launchpad.rs:78-95`, `tool_command`). [Userland](README.md) lists the seven.
-- An unmodified Linux program runs as a [guest](../overview/glossary.md#guest) of the Linux personality, not as a capsule of its own. See [The Linux personality](linux-personality.md).
+- An unmodified Linux program runs as a [guest](../overview/glossary-dma-pool.md#guest) of the Linux personality, not as a capsule of its own. See [The Linux personality](linux-personality.md).
 
 Use this page for a program with its own window.
 
@@ -151,7 +151,7 @@ A click on the app's tile makes the desktop shell ask the kernel for a new windo
 
 On the first focus frame the app looks up the `compositor`, `wm`, `input_router` and `toolkit` services, up to `READY_ATTEMPTS`, 256 times (`userland/app_skeleton/src/discover/require.rs:22-47`, `require_peers`), and keeps what it found; a lookup that fails is tried again on the next focus frame (`userland/app_skeleton/src/runner/open_peers.rs:29-37`, `open_peers`). It then builds the app and runs its frame loop (`userland/app_skeleton/src/runner/entry.rs:48-70`, `frame_loop`). Before the loop, `boot` fits the window to the display, calls `open_window`, subscribes to input and paints the first frame (`userland/app_skeleton/src/runner/boot.rs:57-60`, `prime_frame`).
 
-When the window closes, an app started at boot goes back to waiting. An instance the kernel started for an extra window carries the argument `--nonos-window-instance` and exits instead, so its memory is cleared and its slot freed (`userland/app_skeleton/src/runner/ephemeral.rs:26-27`, `INSTANCE_ARG`). An app that fails says so in one `[APP-FAIL]` line (`userland/app_skeleton/src/log_line.rs:26-29`, `say`), but the kernel takes that line only from a capsule holding Debug (`src/syscall/contract/cap_table/mk_device.rs:39`, `can_debug`).
+When the window closes, an app started at boot goes back to waiting. An instance the kernel started for an extra window carries the argument `--nonos-window-instance` and exits instead, so its memory is cleared and its slot freed (`userland/app_skeleton/src/runner/ephemeral.rs:26-27`, `INSTANCE_ARG`). An app that fails says so in one `[APP-FAIL]` line (`userland/app_skeleton/src/log_line.rs:26-29`, `say`), but the kernel takes that line only from a capsule holding Debug (`src/syscall/contract/cap_table/mk_device.rs:40`, `can_debug`).
 
 ## 4. The proof crate
 

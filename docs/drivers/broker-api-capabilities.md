@@ -8,7 +8,7 @@ Each call needs one bit of the driver's [capability
 word](../overview/glossary-boot-root-record.md#capability-word), from `DeviceEnum` to `Pio`
 (`src/capabilities/types/defs.rs:37-47`). The contract table maps each call to
 its bit, starting with `MkDeviceList`
-(`src/syscall/contract/cap_table/mk_device.rs:24-37`):
+(`src/syscall/contract/cap_table/mk_device.rs:24-38`):
 
 | Bit | Name | Calls it admits |
 |---|---|---|

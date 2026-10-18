@@ -33,6 +33,7 @@ fn every_errno_is_its_linux_number_negated() {
         (ERRNO_FAULT, 14),
         (ERRNO_BUSY, 16),
         (ERRNO_EXIST, 17),
+        (ERRNO_XDEV, 18),
         (ERRNO_NODEV, 19),
         (ERRNO_INVAL, 22),
         (ERRNO_NOTTY, 25),

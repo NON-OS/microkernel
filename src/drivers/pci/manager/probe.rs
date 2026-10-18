@@ -27,7 +27,7 @@ use super::probe_header::read_header;
 
 pub(super) use super::enumerate::enumerate_all_buses;
 
-pub(super) fn probe_device(bus: u8, device_num: u8, function: u8) -> Option<PciDevice> {
+pub(crate) fn probe_device(bus: u8, device_num: u8, function: u8) -> Option<PciDevice> {
     let mut device = read_header(bus, device_num, function)?;
     let config = ConfigSpace::new(PciAddress::new(bus, device_num, function));
 

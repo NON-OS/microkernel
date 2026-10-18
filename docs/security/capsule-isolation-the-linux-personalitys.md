@@ -14,7 +14,7 @@ capability set with `install_spawn`, and logs `[FOREIGN] guest pid=<pid>
 caps=<mask>` with the mask read back (`src/process/foreign/spawn.rs:53-79`).
 With no bits, every NONOS call a guest could make fails the cap table, except
 `MkTtyQuery`, which only describes the caller's own streams
-(`src/syscall/contract/cap_table/mk_surface.rs:44-50`).
+(`src/syscall/contract/cap_table/mk_surface.rs:45-51`).
 
 A NONOS system call number is four ASCII bytes packed by `tag4`
 (`src/syscall/abi/tag.rs:20-22`), so a Linux number never matches one.
@@ -24,7 +24,7 @@ thread and wakes its supervisor, the capsule that created it, which answers; a
 process with no supervisor gets `ENOSYS` (`src/process/foreign/trap.rs:28-57`).
 
 The supervisor needs `ForeignExec` for every call that touches a guest
-(`can_foreign_exec` in `src/syscall/contract/cap_table/mk_device.rs:54-68`).
+(`can_foreign_exec` in `src/syscall/contract/cap_table/mk_device.rs:55-69`).
 Among the `Capsule.mk` files in this tree, only `capsule_linux` requests it, in
 `CAPSULE_REQUIRED_CAPS` (`userland/capsule_linux/Capsule.mk:45`). A supervisor
 reaches only its own guests: the map, copy, protect and unmap peer calls start

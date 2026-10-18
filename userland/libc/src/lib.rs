@@ -16,6 +16,7 @@
 
 #![no_std]
 pub mod admin;
+pub mod acpi_measured;
 pub mod attest;
 pub mod attest_policy;
 pub mod battery;
@@ -63,7 +64,9 @@ pub mod tool_run;
 pub mod transport;
 pub mod tty;
 mod unistd;
+pub mod wait;
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
+pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
 pub use attest::{
     mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail, AttestStatus,
     ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
@@ -127,11 +130,12 @@ pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_
 pub use spawn_instance::mk_spawn_instance;
 pub use store::{mk_store_read, mk_store_write};
 pub use surface_registry::{
-    mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post, mk_input_event_wait,
-    mk_surface_attach, mk_surface_present, mk_surface_present_rect, mk_surface_register,
-    mk_surface_release, mk_surface_share, InputEvent, SurfaceDescriptor, INPUT_KIND_BUTTON_DOWN,
-    INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS,
-    INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+    input_abs_scale, mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post,
+    mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,
+    mk_surface_register, mk_surface_release, mk_surface_share, InputEvent, SurfaceDescriptor,
+    INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
+    INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};

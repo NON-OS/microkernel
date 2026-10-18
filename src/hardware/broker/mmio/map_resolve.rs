@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Steps 1 and 2 of map.rs: the caller's claim, fresh, and the BAR asked
-//! for, of kind MMIO.
+//! for, a sized MMIO window (bar_select.rs) clear of firmware-reserved ranges.
 
+use super::bar_select::{mappable, BarRefusal};
 use super::types::{MmioMapError, MmioMapRequest};
 use crate::hardware::broker::claim::{self, Claim};
-use crate::hardware::broker::device::{Bar, BAR_KIND_MMIO};
+use crate::hardware::broker::device::Bar;
+use crate::hardware::broker::reserved;
 use crate::hardware::broker::table;
 use crate::hardware::broker::DeviceRecord;
 
@@ -39,13 +41,12 @@ pub(super) fn resolve(
         .into_iter()
         .find(|r| r.device_id == req.device_id)
         .ok_or(MmioMapError::UnknownDevice)?;
-    let bar_idx = req.bar_index as usize;
-    if bar_idx >= device.bars.len() || bar_idx >= device.bar_count as usize {
-        return Err(MmioMapError::BadBarIndex);
-    }
-    let bar = device.bars[bar_idx];
-    if bar.kind != BAR_KIND_MMIO {
-        return Err(MmioMapError::NotMmioBar);
+    let bar = mappable(&device.bars, device.bar_count, req.bar_index).map_err(|r| match r {
+        BarRefusal::BadIndex => MmioMapError::BadBarIndex,
+        BarRefusal::NotMmio => MmioMapError::NotMmioBar,
+    })?;
+    if reserved::refuses(b"MMIO", reserved::MEMORY, bar.base, bar.size, true) {
+        return Err(MmioMapError::FirmwareReserved);
     }
     Ok((claim, device, bar))
 }

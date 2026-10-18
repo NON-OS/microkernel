@@ -1,0 +1,34 @@
+# NONOS userland: capsule_driver_virtio_input
+#
+# Userland virtio-input (1af4:1052) driver capsule: QEMU's virtio-tablet,
+# virtio-keyboard and virtio-mouse. Every function found is driven over the
+# modern virtio transport (nonos_virtio) through the kernel hardware broker;
+# events go onto the kernel input ring, absolute positions scaled into the
+# range the input router maps onto the display.
+
+[package]
+name = "nonos_capsule_driver_virtio_input"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland virtio-input driver capsule"
+
+[[bin]]
+name = "driver_virtio_input"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_virtio = { path = "../nonos_virtio" }
+nonos_keymap = { path = "../nonos_keymap" }
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

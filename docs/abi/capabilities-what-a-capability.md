@@ -42,7 +42,7 @@ checks it instead.
 | 6 | `0x40` | `FileSystem` | `FILE_SYSTEM` | Read the data volume, and reach the VFS service. | `MDIM`, `MDST`, `MDRD`, `MDPW` |
 | 7 | `0x80` | `Hardware` | `HARDWARE` | Enforces nothing. | none |
 | 8 | `0x100` | `Debug` | `DEBUG` | Write diagnostic lines to the boot serial. | `MDBG` |
-| 9 | `0x200` | `Admin` | `ADMIN` | Reboot, shut down, push policy, grant and revoke capabilities. Accepted in place of the window right, and of `DeviceEnum` when listing devices; never of a [broker](../overview/glossary.md#broker) or input right. | `MCGT`, `MCRV`, `MDLS`, `MSPI`, `ARBT`, `ASDN`, `APPS` |
+| 9 | `0x200` | `Admin` | `ADMIN` | Reboot, shut down, push policy, grant and revoke capabilities. Accepted in place of the window right, and of `DeviceEnum` when listing devices; never of a [broker](../overview/glossary-hardware-broker.md#broker) or input right. | `MCGT`, `MCRV`, `MDLS`, `MSPI`, `ARBT`, `ASDN`, `APPS` |
 | 10 | `0x400` | `RegisterService` | `REGISTER_SERVICE` | Register a service name at run time, from a short fixed list. | none |
 | 11 | `0x800` | `GraphicsDisplayQuery` | `GRAPHICS_DISPLAY_QUERY` | Read the display size and wait on the kernel's frame clock. | `MDVW`, `GDIM` |
 | 12 | `0x1000` | `GraphicsSurfaceCreate` | `GRAPHICS_SURFACE_CREATE` | Register, share and release surfaces. | `MSRG`, `MSSH`, `MSRL` |

@@ -16,6 +16,8 @@
 
 use nonos_policy_proto::Field;
 
+pub use super::bt_live::BtLive;
+
 /// A value the panel reads from the running system rather than from policy.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Live {
@@ -33,9 +35,10 @@ pub enum Live {
     WifiRemember,
     MachineKey,
     AudioOutput,
+    Bt(BtLive),
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Tone {
     Ok,
     Warn,
@@ -49,6 +52,7 @@ pub enum Pill {
     None,
     Net,
     Radio,
+    Bt,
 }
 
 #[derive(Clone, Copy)]
@@ -59,6 +63,7 @@ pub enum Row {
     Saved,
     /// Every wallpaper in the collection, a row each, switched kept or not.
     Wallpapers,
+    BtDevices,
 }
 
 #[derive(Clone, Copy)]

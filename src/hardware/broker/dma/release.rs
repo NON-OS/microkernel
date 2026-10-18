@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMA grant revocation. Three triggers:
+//! DMA grant revocation. Four triggers:
 //!
 //!   * `MkDmaUnmap` — explicit holder request
 //!   * a device retiring (claim/retire.rs) — takes its grants, frees
 //!     them after the reset (`take_for_device`, `free_taken`)
+//!   * a device that left (`MkPciDepart`) — `revoke_for_device`
 //!   * process exit — drains every grant the dying pid owns
 //!
 //! Revocation order: unmap user pages (when the holder's CR3 is
@@ -35,6 +36,17 @@ pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), DmaError> {
     let g = records::remove(pid, grant_id)?;
     teardown(&g, true);
     Ok(())
+}
+
+/// A device that left while `pid` held it: each grant out of its domain and
+/// scrubbed, its pages out of the holder's tables as `withdraw` takes them.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+pub fn revoke_for_device(pid: u32, device_id: u64) -> usize {
+    let drained = drain::drain_for_device(pid, device_id);
+    for g in &drained {
+        teardown(g, false);
+    }
+    drained.len()
 }
 
 pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {

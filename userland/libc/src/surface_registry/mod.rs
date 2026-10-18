@@ -19,6 +19,7 @@
 // abi/wire.toml byte for byte and is identical across every
 // supported user triple.
 
+mod abs;
 mod attach;
 mod input_drain;
 mod input_post;
@@ -30,6 +31,7 @@ mod share;
 mod types;
 mod vsync;
 
+pub use abs::{input_abs_scale, INPUT_ABS_MAX};
 pub use attach::mk_surface_attach;
 pub use input_drain::mk_input_event_drain;
 pub use input_post::mk_input_event_post;

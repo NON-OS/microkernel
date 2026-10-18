@@ -58,5 +58,10 @@ the [capability](../overview/glossary-boot-root-record.md#capability) gate in th
 | `MPRD` | `MkPioRead` | `grant_id`, `port_offset`, `w`, `out_value` | 0, with the value written as a `u32` | Pio | `mk_pio_read` |
 | `MPWR` | `MkPioWrite` | `grant_id`, `port_offset`, `w`, `value` | 0 | Pio | `mk_pio_write` |
 | `MPRL` | `MkPioRelease` | `grant_id` | 0 | Pio | `mk_pio_release` |
+| `MHVB` | `MkHvBackdoor` | `cmd`, `arg`, `out_regs` | 0, with EAX, EBX, ECX and EDX written as `[u32; 4]` | Pio | `mk_hv_backdoor` |
+| `MHVP` | `MkHvPost` | `device_id`, `connection`, `msg_type`, `payload`, `len` | 0 | Driver | `mk_hv_post` |
+| `MHVR` | `MkHvRecv` | `device_id`, `out` | The message's length, with header and payload written | Driver | `mk_hv_recv` |
+| `MHVE` | `MkHvEvents` | `device_id`, `out`, `words` | The words written | Driver | `mk_hv_events` |
+| `MHVS` | `MkHvSignal` | `device_id`, `connection` | 0 | Driver | `mk_hv_signal` |
 
 The rules behind the table:

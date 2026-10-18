@@ -60,7 +60,7 @@ order (`src/syscall/contract/resolver/resolve.rs:31-43`):
 5. `check_syscall_allowed`: the cap table admits this call for these bits.
 
 The cap table, `is_allowed`, answers false for any number no table names
-(`src/syscall/contract/cap_table/mod.rs:28-34`). Most calls need a specific bit.
+(`src/syscall/contract/cap_table/mod.rs:29-35`). Most calls need a specific bit.
 A few need only a token that `caps.is_valid` accepts, such as `MkExit`,
 `MkYield` and the clock reads (`src/syscall/contract/cap_table/mk.rs:25-38`).
 `is_valid` is false for a token with no bits at all

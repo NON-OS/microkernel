@@ -37,7 +37,7 @@ flowchart LR
 
 A driver decodes what its device sends and posts each key, motion, wheel or
 button event to the kernel input ring with `MkInputEventPost`
-(`src/syscall/contract/cap_table/mk_surface.rs:35`). The kernel admits that call
+(`src/syscall/contract/cap_table/mk_surface.rs:36`). The kernel admits that call
 only from a capsule holding the `InputSource`
 [capability](../../overview/glossary-boot-root-record.md#capability) (`can_input_source`,
 `src/capabilities/token/types/authority_broker.rs:59-62`). Draining the ring, or

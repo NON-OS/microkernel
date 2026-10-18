@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_piix_ide
+#
+# Userland Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111) disk driver capsule:
+# the IDE controller of QEMU's pc machine, VirtualBox's default and Hyper-V
+# Generation 1. Port I/O for both channels and the bus master window, one
+# coherent DMA grant below 4 GiB for the descriptor table and the transfer
+# buffer, polled. Serves the block wire (NBW1), one unit per drive.
+
+[package]
+name = "nonos_capsule_driver_piix_ide"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel PIIX IDE disk driver capsule"
+
+[[bin]]
+name = "driver_piix_ide"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

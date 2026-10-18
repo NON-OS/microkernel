@@ -22,6 +22,7 @@ mod graphics;
 mod mk;
 mod mk_device;
 mod mk_ipc;
+mod mk_platform;
 mod mk_proc;
 mod mk_surface;
 mod mk_trust;
@@ -37,6 +38,7 @@ pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool 
         .or_else(|| mk_proc::check(caps, number))
         .or_else(|| mk_ipc::check(caps, number))
         .or_else(|| mk_device::check(caps, number))
+        .or_else(|| mk_platform::check(caps, number))
         .or_else(|| mk_trust::check(caps, number))
         .or_else(|| mk_surface::check(caps, number))
         .or_else(|| graphics::check(caps, number))

@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Wire-form types for `MkPioGrant`, `MkPioRead`, `MkPioWrite` and
-//! `MkPioRelease`. A grant is one PIO BAR window; the kernel does the
-//! `in`/`out`, so userland never executes them.
+//! Wire-form types for `MkPioGrant`, `MkPioRead`, `MkPioWrite` and `MkPioRelease`. A grant
+//! is one PIO BAR window; the kernel does the `in`/`out`, so userland never executes them.
 
 #[derive(Debug, Clone, Copy)]
 pub struct PioGrantRequest {
@@ -72,4 +71,5 @@ pub enum PioError {
     BadWidth,
     /// The window includes a port the machine keeps (window.rs, K6).
     ReservedPort,
+    FirmwareReserved,
 }

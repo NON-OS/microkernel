@@ -12,15 +12,15 @@ volume](../overview/glossary-claim-epoch.md#data-volume) the plan names.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MSWR` | `0x5257534D` | `MkStoreWrite` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:41` | Write up to 8 KiB of whole 512-byte sectors of the package store, at block 256 and above and below the disk plan. |
-| `MSRR` | `0x5252534D` | `MkStoreRead` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:41` | Read up to 32 KiB of whole sectors from the same window of the package store. |
-| `MDIM` | `0x4D49444D` | `MkDataImport` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:42` | Import a file into the data volume, kept only if it matches its SHA-256. |
-| `MDST` | `0x5453444D` | `MkDataStat` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:44` | The size of a file on the data volume. |
-| `MDRD` | `0x4452444D` | `MkDataRead` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:44` | Read a range of a file on the data volume. |
-| `MDPW` | `0x5750444D` | `MkDataPassphrase` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:43` | Key the data volume with a passphrase, or create it. |
-| `MDFB` | `0x4246444D` | `MkDataFeedBegin` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:47` | Begin an import fed chunk by chunk, pinned to a digest. |
-| `MDFD` | `0x4446444D` | `MkDataFeed` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:47` | Feed the next chunk of that import. |
-| `MDRM` | `0x4D52444D` | `MkDataRemove` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:47` | Take an imported file off the data volume, with its record. |
+| `MSWR` | `0x5257534D` | `MkStoreWrite` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:42` | Write up to 8 KiB of whole 512-byte sectors of the package store, at block 256 and above and below the disk plan. |
+| `MSRR` | `0x5252534D` | `MkStoreRead` | StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:42` | Read up to 32 KiB of whole sectors from the same window of the package store. |
+| `MDIM` | `0x4D49444D` | `MkDataImport` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:43` | Import a file into the data volume, kept only if it matches its SHA-256. |
+| `MDST` | `0x5453444D` | `MkDataStat` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:45` | The size of a file on the data volume. |
+| `MDRD` | `0x4452444D` | `MkDataRead` | FileSystem | `can_open_files` `src/syscall/contract/cap_table/mk_device.rs:45` | Read a range of a file on the data volume. |
+| `MDPW` | `0x5750444D` | `MkDataPassphrase` | FileSystem and StoreWrite | `can_store_write` `src/syscall/contract/cap_table/mk_device.rs:44` | Key the data volume with a passphrase, or create it. |
+| `MDFB` | `0x4246444D` | `MkDataFeedBegin` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:48` | Begin an import fed chunk by chunk, pinned to a digest. |
+| `MDFD` | `0x4446444D` | `MkDataFeed` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:48` | Feed the next chunk of that import. |
+| `MDRM` | `0x4D52444D` | `MkDataRemove` | StreamImport | `can_stream_import` `src/syscall/contract/cap_table/mk_device.rs:48` | Take an imported file off the data volume, with its record. |
 
 ### Attestation, signing roots and installs
 
@@ -54,8 +54,8 @@ See [Capabilities](capabilities.md) for the bits.
 
 | Tag | Number | Name | Capability | Gate | Meaning |
 |---|---|---|---|---|---|
-| `MCGT` | `0x5447434D` | `MkCapGrant` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:50` | Grant capability bits to a process; the caller must hold Admin and every bit it grants. |
-| `MCRV` | `0x5652434D` | `MkCapRevoke` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:50` | Revoke capability bits from a process. |
+| `MCGT` | `0x5447434D` | `MkCapGrant` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:51` | Grant capability bits to a process; the caller must hold Admin and every bit it grants. |
+| `MCRV` | `0x5652434D` | `MkCapRevoke` | Admin | `can_admin` `src/syscall/contract/cap_table/mk_ipc.rs:51` | Revoke capability bits from a process. |
 | `MCCK` | `0x4B43434D` | `MkCapCheck` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | 1 when a process holds every bit of a mask, else 0. |
 | `ARBT` | `0x54425241` | `AdminReboot` | Admin | `can_admin` `src/syscall/contract/cap_table/admin.rs:24` | Reboot. |
 | `ASDN` | `0x4E445341` | `AdminShutdown` | Admin | `can_admin` `src/syscall/contract/cap_table/admin.rs:24` | Shut down. |

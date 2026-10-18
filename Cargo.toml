@@ -116,6 +116,7 @@ nonos-capsule-nonos-install     = []
 nonos-capsule-clipboard         = []
 nonos-capsule-attest            = []
 nonos-capsule-power             = []
+nonos-capsule-acpi              = []
 nonos-capsule-image-codec       = []
 nonos-capsule-image-viewer      = []
 nonos-capsule-video-player      = []
@@ -154,18 +155,33 @@ nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-gpu = []
 nonos-capsule-driver-virtio-net = []
 nonos-capsule-driver-ps2-input  = []
+nonos-capsule-driver-virtio-input= []
 nonos-capsule-driver-xhci       = []
 nonos-capsule-driver-usb-hid    = []
 nonos-capsule-driver-usb-msc    = []
 nonos-capsule-driver-e1000      = []
 nonos-capsule-driver-i2c-pci    = []
+nonos-capsule-driver-gpio       = []
 nonos-capsule-driver-i2c-hid    = []
 nonos-capsule-driver-iwlwifi    = []
 nonos-capsule-driver-rtl8821ce  = []
 nonos-capsule-driver-rtl8139    = []
 nonos-capsule-driver-rtl8169    = []
+nonos-capsule-driver-pcnet      = []
+nonos-capsule-driver-vmxnet3    = []
+nonos-capsule-driver-tulip      = []
+nonos-capsule-driver-vmware-svga= []
 nonos-capsule-driver-ahci       = []
 nonos-capsule-driver-hda        = []
+nonos-capsule-driver-ac97       = []
+nonos-capsule-driver-vmmdev     = []
+nonos-capsule-driver-vmmouse    = []
+nonos-capsule-driver-vmbus      = []
+nonos-capsule-driver-piix-ide   = []
+nonos-capsule-driver-virtio-scsi = []
+nonos-capsule-driver-pvscsi = []
+nonos-capsule-driver-buslogic = []
+nonos-capsule-driver-mpt = []
 nonos-capsule-audio             = []
 nonos-capsule-driver-nvme       = []
 nonos-capsule-net-l2            = []
@@ -435,6 +451,41 @@ microkernel-driver-rtl8169 = [
   "nonos-capsule-driver-rtl8169",
 ]
 
+microkernel-driver-pcnet = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-pcnet",
+]
+
+microkernel-driver-vmxnet3 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmxnet3",
+]
+
+microkernel-driver-tulip = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-tulip",
+]
+
+microkernel-driver-virtio-input = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-input",
+]
+
+microkernel-driver-vmware-svga = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmware-svga",
+]
+
 microkernel-driver-ahci = [
   "microkernel-core",
   "nonos-production",
@@ -447,6 +498,69 @@ microkernel-driver-hda = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-hda",
+]
+
+microkernel-driver-ac97 = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-ac97",
+]
+
+microkernel-driver-vmmdev = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmmdev",
+]
+
+microkernel-driver-vmmouse = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmmouse",
+]
+
+microkernel-driver-vmbus = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-vmbus",
+]
+
+microkernel-driver-piix-ide = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-piix-ide",
+]
+
+microkernel-driver-virtio-scsi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-virtio-scsi",
+]
+
+microkernel-driver-pvscsi = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-pvscsi",
+]
+
+microkernel-driver-buslogic = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-buslogic",
+]
+
+microkernel-driver-mpt = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-mpt",
 ]
 
 microkernel-driver-nvme = [
@@ -648,9 +762,23 @@ microkernel-full-gui = [
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
+  "nonos-capsule-driver-pcnet",
+  "nonos-capsule-driver-vmxnet3",
+  "nonos-capsule-driver-tulip",
+  "nonos-capsule-driver-virtio-input",
+  "nonos-capsule-driver-vmware-svga",
   "nonos-capsule-driver-iwlwifi",
   "nonos-capsule-driver-rtl8821ce",
   "nonos-capsule-driver-hda",
+  "nonos-capsule-driver-ac97",
+  "nonos-capsule-driver-vmmdev",
+  "nonos-capsule-driver-vmmouse",
+  "nonos-capsule-driver-vmbus",
+  "nonos-capsule-driver-piix-ide",
+  "nonos-capsule-driver-virtio-scsi",
+  "nonos-capsule-driver-pvscsi",
+  "nonos-capsule-driver-buslogic",
+  "nonos-capsule-driver-mpt",
   "nonos-capsule-driver-usb-msc",
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",

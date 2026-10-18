@@ -37,7 +37,7 @@ impl Mlme {
         let Some(auth) = parse_auth(frame, &us, &bssid) else {
             return MlmeOutput::none();
         };
-        if self.akm() != Some(Akm::Sae) {
+        if self.akm() != Some(Akm::Sae) || self.cache_used {
             if auth.algorithm != AUTH_ALG_OPEN || auth.seq != OPEN_RESPONSE_SEQ {
                 return MlmeOutput::none();
             }
@@ -58,19 +58,16 @@ impl Mlme {
                 MlmeOutput::send(auth_frame(us, bssid, sc, AUTH_ALG_SAE, seq, status, &body))
             }
             SaeStep::Accepted => match sae.pmk() {
-                Some((pmk, _pmkid)) => {
-                    self.pmk = pmk;
+                Some((pmk, pmkid)) => {
+                    (self.pmk, self.pmkid) = (pmk, Some(pmkid));
                     self.assoc_request()
                 }
                 None => self.fail(MlmeFailure::NoEntropy),
             },
             SaeStep::Ignore => MlmeOutput::none(),
             SaeStep::Failed => {
-                let why = sae.failure();
-                match why {
-                    Some(f) => self.fail(MlmeFailure::Sae(f)),
-                    None => self.fail(MlmeFailure::NoEntropy),
-                }
+                let why = sae.failure().map_or(MlmeFailure::NoEntropy, MlmeFailure::Sae);
+                self.fail(why)
             }
         }
     }

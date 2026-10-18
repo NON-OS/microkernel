@@ -27,6 +27,7 @@ pub mod cpu;
 pub mod cpu_random;
 pub mod diag;
 pub mod gdt;
+pub mod hypervisor;
 pub(crate) mod idle;
 pub mod idt;
 pub mod interrupt;

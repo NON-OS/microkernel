@@ -4,7 +4,7 @@ How to move an installed NONOS to a newer release, what carries over, and what t
 
 ## There is no in-place update in 0.9.2
 
-NONOS 0.9.2 has no update service and no A/B system slots. The installer writes a whole disk from the image that is running, and the Marketplace installs programs into the [store](../overview/glossary.md#store), never the system itself. The kernel's boot slots feed the anonymous device proof, and are not an update mechanism.
+NONOS 0.9.2 has no update service and no A/B system slots. The installer writes a whole disk from the image that is running, and the Marketplace installs programs into the [store](../overview/glossary-linux-personality.md#store), never the system itself. The kernel's boot slots feed the anonymous device proof, and are not an update mechanism.
 
 To update, you install the newer release over the old one.
 

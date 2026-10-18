@@ -14,7 +14,7 @@ Part of [Hardware support matrix](MATRIX.md).
 | ACPI | Fixed-feature power button | kernel | Partial: a press reaches the desktop as the Power key, which shows `Power off is not available from the desktop`; the desktop cannot shut down in 0.9.2 | real hardware | 0.9.2 |
 | ACPI | Power button through AML (PNP0C0C) or on a hardware-reduced platform | kernel | Refused: NONOS has no AML interpreter to run it, and the desktop has no power-off either | none | 0.9.2 |
 | ACPI | Battery charge, PNP0C0A | kernel | Refused: reading the charge runs AML, which NONOS cannot; the top bar shows `Battery status unavailable`, or `No battery` when the firmware declares none | none | 0.9.2 |
-| GPIO | Pad level of the touchpad line: Intel Broxton family, Intel chipsets Sunrise Point to Meteor Lake, AMD (AMD0030, AMDI0030, AMDI0031, AMDI0033) | `capsule_driver_i2c_pci` with `nonos_pinctrl` | Partial: read-only, for the touchpad's interrupt line; no general GPIO driver. On other controllers the touchpad driver reads on a timer | proof crates `pinctrl_proofs` (13), `i2c_pci_proofs` (35) | 0.9.2 |
+| GPIO | Pad level of the touchpad line: Intel Broxton family, AMD (AMD0030, AMDI0030, AMDI0031, AMDI0033) | `capsule_driver_i2c_pci` with `nonos_pinctrl` | Partial: read-only, for the touchpad's interrupt line; no general GPIO driver in this release. On other controllers, Intel Sunrise Point and later among them since the originality audit, the touchpad driver reads on a timer | proof crates `pinctrl_proofs` (8), `i2c_pci_proofs` (35) | 0.9.2 |
 | Entropy | virtio-rng 1af4:1005, 1af4:1044 | `capsule_driver_virtio_rng` | Works | proof crate `virtio_rng_proofs` (12); QEMU | 0.9.2 |
 
 ## Display

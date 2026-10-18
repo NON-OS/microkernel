@@ -10,7 +10,7 @@ it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O.
 Each kind of call needs its own bit: claiming needs Driver, an MMIO window Mmio,
 an interrupt binding Irq, a DMA buffer Dma and port I/O Pio (`MkDeviceClaim`,
 `MkMmioMap`, `MkIrqBind`, `MkDmaMap` and `MkPioGrant` in
-`src/syscall/contract/cap_table/mk_device.rs:25-37`).
+`src/syscall/contract/cap_table/mk_device.rs:25-38`).
 
 The broker gives each driver capsule its own [IOMMU
 domain](glossary-hardware-broker.md#iommu-domain), which every device that capsule claims shares

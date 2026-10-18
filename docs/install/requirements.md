@@ -55,7 +55,7 @@ The sealed image `nonos.img` is 1,043,148,800 bytes, about 995 MiB:
 
 | Part | Size |
 |---|---|
-| Partition table, [package store](../overview/glossary.md#store), [disk plan](../overview/glossary-claim-epoch.md#disk-plan) and ESP | 384 MiB |
+| Partition table, [package store](../overview/glossary-linux-personality.md#store), [disk plan](../overview/glossary-claim-epoch.md#disk-plan) and ESP | 384 MiB |
 | The Qwen3 0.6B model file, laid past the ESP | 639,446,688 bytes, rounded up to whole sectors |
 | Room for the backup partition table | 1 MiB |
 

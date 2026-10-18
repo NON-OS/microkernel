@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bar_select;
+pub mod fence;
 mod forbidden;
 mod forbidden_image;
 mod forbidden_iommu;
@@ -29,7 +31,7 @@ mod types;
 pub mod window;
 
 pub use map::map_for_caller;
-pub use release::{release_all_for_pid, unmap_grant};
+pub use release::{release_all_for_pid, revoke_for_device, unmap_grant};
 pub(crate) use forbidden_ranges::ram as boot_ram_ranges;
 pub(crate) use revoke::{revoke_taken, take_for_device};
 pub use types::{MmioMapError, MmioMapRequest, MmioMapResult};

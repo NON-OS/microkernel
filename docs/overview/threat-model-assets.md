@@ -7,7 +7,7 @@ Part of [Threat model](threat-model.md).
 | Asset | Where it lives | What guards it |
 |---|---|---|
 | Qwen models on an installed disk | the [data volume](glossary-claim-epoch.md#data-volume) | every sector sealed, under a TPM-derived key |
-| Files a program keeps, setup's answers and kept settings | the [package store](glossary.md#store) on the NONOS disk | nothing: the store is not encrypted, and only a record its capsule sealed, such as the saved Wi-Fi list or the wallet's key, is protected |
+| Files a program keeps, setup's answers and kept settings | the [package store](glossary-linux-personality.md#store) on the NONOS disk | nothing: the store is not encrypted, and only a record its capsule sealed, such as the saved Wi-Fi list or the wallet's key, is protected |
 | What a live boot holds | RAM | power off; the [ZeroState](glossary-stark-proof.md#zerostate) wipe runs in 0.9.2 only at the installer's restart, and leaves the in-memory data volume and its key |
 | The wallet's key | the keyring capsule | the keyring's vault gate |
 | Where this machine is on the network | its IP address and its cards' station addresses | the chosen anonymity network for the system's own connections, and a fresh station address at each bring-up |
@@ -60,7 +60,7 @@ A Linux program holds no NONOS capabilities. The kernel parks each of its Linux
 syscalls for the [Linux personality](glossary-linux-personality.md#linux-personality) to answer
 (`redirect` in `src/process/foreign/trap.rs:26-54`), and refuses every NONOS
 syscall it tries except `MkTtyQuery`, which only describes its own streams
-(`MkTtyQuery` in `src/syscall/contract/cap_table/mk_surface.rs:50`). The
+(`MkTtyQuery` in `src/syscall/contract/cap_table/mk_surface.rs:51`). The
 personality's run and terminal roles hold no Network, and every network service
 requires it (`RUN` and `TERMINAL` in
 `src/userspace/capsule_linux/roles.rs:46-67`). The personality is itself a

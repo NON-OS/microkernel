@@ -5,7 +5,7 @@ Part of [Security](README.md).
 ## The trust model, continued
 
 Drivers are capsules too. A driver reaches its device only through the kernel's
-[broker](../overview/glossary.md#broker), and a claimed device is moved into the
+[broker](../overview/glossary-hardware-broker.md#broker), and a claimed device is moved into the
 driver's own [IOMMU
 domain](../overview/glossary-hardware-broker.md#iommu-domain) before it is
 powered (`attach` in `src/hardware/broker/claim/claim.rs:33-37`). Where no

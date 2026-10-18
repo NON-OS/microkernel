@@ -27,6 +27,7 @@ name = "capsule_settings_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_bt_proto",
  "nonos_policy_proto",
  "nonos_seal",
 ]
@@ -62,6 +63,10 @@ dependencies = [
  "nonos_toolkit",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_bt_proto"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_proto"

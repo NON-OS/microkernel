@@ -26,6 +26,7 @@ mod held;
 mod registry_addressed;
 
 mod addressed;
+mod bluetooth;
 mod callers;
 mod cards;
 mod classified;
@@ -34,3 +35,5 @@ mod common;
 mod devices;
 mod gates;
 mod names;
+mod power_off;
+mod vm_devices;

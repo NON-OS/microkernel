@@ -59,9 +59,10 @@ pub(crate) fn set_register(regs: Regs, off: u32, value: u32) {
 }
 
 /// The registers as bring-up reads them: CAP.TO 1 (500 ms, so the 5 s
-/// floor), 4 KiB pages, doorbell stride 0, NVMe 1.4.
+/// floor), the NVM command set (CAP.CSS bit 37), 4 KiB pages, doorbell
+/// stride 0, NVMe 1.4.
 pub(crate) fn info() -> ControllerInfo {
-    let (cap, version) = (1 << 24, 0x10400);
+    let (cap, version) = ((1 << 24) | (1 << 37), 0x10400);
     let (cc, csts, aqa, intms, intmc, cmbloc, cmbsz) = (0, 0, 0, 0, 0, 0, 0);
     ControllerInfo { cap, version, cc, csts, aqa, intms, intmc, cmbloc, cmbsz }
 }

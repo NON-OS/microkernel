@@ -28,6 +28,11 @@ use crate::hardware::broker::confine::Refusal;
  * space or set Bus Master before it is confined, powered and snooping.
  */
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    let flags =
+        crate::hardware::broker::list().iter().find(|r| r.device_id == device_id).map(|r| r.flags);
+    if flags.is_some_and(|f| f & crate::hardware::broker::DEVICE_FLAG_DISABLED != 0) {
+        return Err(ClaimError::Disabled);
+    }
     // Reserved first: no other claim, and no retire, works on the
     // device while this one does, and a device still retiring is refused.
     {

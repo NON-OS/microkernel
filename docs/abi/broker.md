@@ -1,7 +1,7 @@
 # Broker
 
 The calls a [driver capsule](../overview/glossary-dma-pool.md#driver-capsule) makes to
-the kernel's device [broker](../overview/glossary.md#broker), the records they
+the kernel's device [broker](../overview/glossary-hardware-broker.md#broker), the records they
 exchange, and the broker's constants.
 
 ## Parts

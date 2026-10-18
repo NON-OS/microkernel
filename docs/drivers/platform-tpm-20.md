@@ -15,8 +15,9 @@ one for measuring the boot chain, as the module comment says above `transact`
 `src/security/tpm/mmio/map.rs:25`):
 
 - The ACPI TPM2 table's start method: 6 is `START_FIFO` (TIS), 7 and 8 are CRB
-  (`src/security/tpm/transport/acpi.rs:22-28`). A table whose length or checksum
-  is wrong is ignored by `table` (`src/security/tpm/transport/acpi.rs:56-74`).
+  (`src/security/tpm/transport/tpm2_start.rs:23-25`). A table whose length or
+  checksum is wrong is ignored by `tpm2_table`
+  (`src/security/tpm/transport/acpi.rs:30-48`).
 - The part's own interface id register.
 
 When the two disagree the TPM is refused, because the two register files

@@ -13,6 +13,7 @@
  "userland/nonos_i2cmodel": "",
  "userland/nonos_keymap": "",
  "userland/nonos_mac": "",
+ "userland/nonos_scsi": "",
  "userland/nonos_secp256k1": "",
  "userland/policy_proto": "",
  "verification/trusted_path_poc": ""

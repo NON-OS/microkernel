@@ -62,7 +62,7 @@ that has not expired and grants at least one capability, as `is_valid` reads
 since it changes nothing outside the caller
 (`src/syscall/contract/cap_table/mk_ipc.rs:27-31`). `MkTtyQuery` admits every
 caller whose token passed the resolver
-(`src/syscall/contract/cap_table/mk_surface.rs:50`). `MkProcStat` shows a caller
+(`src/syscall/contract/cap_table/mk_surface.rs:51`). `MkProcStat` shows a caller
 without `AttestRead` or `ProcessControl` only the identity and state of other
 processes, as `sees_all` decides
 (`src/syscall/microkernel/procstat_redact.rs:29-34`).

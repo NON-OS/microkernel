@@ -17,7 +17,6 @@
 use nonos_app_skeleton::input::text::is_paste;
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, MOD_ALT, MOD_CTRL, MOD_META};
 
-use crate::settings::section::Section;
 use crate::settings::state::{searching, view_h, State};
 use crate::settings::ui::bytes::as_str;
 use crate::settings::ui::results;
@@ -26,9 +25,9 @@ use crate::settings::ui::scroll::max_scroll;
 
 use super::on_event_browsing::on_event_browsing;
 use super::on_event_editing::on_event_editing;
-use super::on_event_wifi::on_event_wifi;
 use super::on_pointer::on_pointer;
 use super::on_search_key::on_search_key;
+use super::on_section_key::on_section_key;
 use super::paste::on_paste;
 
 // Pixels moved per wheel notch.
@@ -61,8 +60,8 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
         }
         return on_event_editing(state, event.code);
     }
-    if state.section == Section::Wifi {
-        return on_event_wifi(state, event.code);
+    if let Some(out) = on_section_key(state, event.code) {
+        return out;
     }
     on_event_browsing(state, event.code)
 }

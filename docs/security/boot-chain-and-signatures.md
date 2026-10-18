@@ -17,7 +17,7 @@ flowchart TD
     I --> J[spawn_verified]
 ```
 
-The UEFI firmware starts the loader, `BOOTX64.EFI`. With Secure Boot on, the firmware first checks the loader's signature against the keys enrolled in it. The loader's `run_verified_boot` reads the kernel, runs `run_crypto_verification` for the signature and the [rollback index](../overview/glossary-rollback-index.md#rollback-index), then `attest_kernel` for the kernel's STARK trailer, parses the ELF, runs `commit_rollback` to raise the [TPM](../overview/glossary-stark-proof.md#tpm) floor, and only then prepares the [handoff](../overview/glossary.md#handoff) (`nonos-bootloader/src/entry/pipeline.rs:30-50`).
+The UEFI firmware starts the loader, `BOOTX64.EFI`. With Secure Boot on, the firmware first checks the loader's signature against the keys enrolled in it. The loader's `run_verified_boot` reads the kernel, runs `run_crypto_verification` for the signature and the [rollback index](../overview/glossary-rollback-index.md#rollback-index), then `attest_kernel` for the kernel's STARK trailer, parses the ELF, runs `commit_rollback` to raise the [TPM](../overview/glossary-stark-proof.md#tpm) floor, and only then prepares the [handoff](../overview/glossary-amnesic-boot.md#handoff) (`nonos-bootloader/src/entry/pipeline.rs:30-50`).
 
 Early in `microkernel_main`, right after the installer check and before any userspace, the kernel runs `check_bootloader`, its own check of the loader that started it; no userspace starts when that check fails (`src/kernel_core/init/entry/microkernel_main.rs:22-27`). Every capsule then passes `preflight::run`, which calls `verify_id_cert`, `verify_with_publisher` and `attest_gate` in that order (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:36-80`). `spawn_verified` asks `profile_gate::check` whether the boot mode lets the capsule start at all, and creates the process only after all three checks pass (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:27-63`).
 
@@ -114,7 +114,7 @@ The firmware measures every UEFI application it starts into [PCR](../overview/gl
 
 ## Capsules
 
-A capsule ships three files beside its ELF: a NONOS ID certificate signed by the trust anchor, a [capsule manifest](../overview/glossary.md#capsule-manifest) signed by its publisher, and its attestation trailer, each named after `CAPSULE_BIN_NAME` (`nonos-mk/capsule.mk:101-103`).
+A capsule ships three files beside its ELF: a NONOS ID certificate signed by the trust anchor, a [capsule manifest](../overview/glossary-linux-personality.md#capsule-manifest) signed by its publisher, and its attestation trailer, each named after `CAPSULE_BIN_NAME` (`nonos-mk/capsule.mk:101-103`).
 
 The certificate's `verify` refuses a certificate whose trust-anchor epoch is below the policy's (`EpochStale`), whose serial or NONOS id is revoked, or which is outside its validity window when the caller passes a time (`src/security/nonos_id_cert/verify/checks.rs:22-45`). For each required algorithm the certificate must then carry a trust-anchor signature, or the result is `TrustAnchorPolicy`, and that signature must verify under a policy key of the same algorithm, or the result is `TrustAnchorBadSig`; a policy key outside its own validity window is skipped when the caller passes a time (`src/security/nonos_id_cert/verify/dispatch.rs:23-45`).
 
