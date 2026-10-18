@@ -21,8 +21,8 @@ use nonos_libc::mk_ipc_recv_from;
 use crate::constants::MAX_ETHERNET_FRAME;
 use crate::protocol::{
     decode_request, E_INVAL, E_MSGSIZE, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS,
-    OP_RX_PACKET, OP_STATS, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATS_PAYLOAD_LEN,
-    STATUS_LEN,
+    OP_RX_BATCH, OP_RX_PACKET, OP_STATS, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN,
+    STATS_PAYLOAD_LEN, STATUS_LEN,
 };
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;
@@ -37,6 +37,7 @@ pub fn run(driver: &mut Driver) -> ! {
         + core::cmp::max(RX_PAYLOAD_PREFIX_LEN + MAX_ETHERNET_FRAME, STATS_PAYLOAD_LEN);
     let mut rx = vec![0u8; rx_len];
     let mut tx = vec![0u8; tx_len];
+    let mut kept = None;
 
     loop {
         let mut sender: u32 = 0;
@@ -64,6 +65,9 @@ pub fn run(driver: &mut Driver) -> ! {
             OP_MAC_ADDRESS => handlers::mac_address::handle(sender, driver, &req, &mut tx),
             OP_TX_PACKET => handlers::tx_packet::handle(sender, driver, &req, body, &mut tx),
             OP_RX_PACKET => handlers::rx_packet::handle(sender, driver, &req, &mut tx),
+            OP_RX_BATCH => {
+                handlers::rx_batch::handle(sender, driver, &req, body, &mut kept, &mut tx)
+            }
             OP_STATS => handlers::stats::handle(sender, driver, &req, &mut tx),
             _ => reply_with_status(sender, &mut tx, &req, E_INVAL),
         }

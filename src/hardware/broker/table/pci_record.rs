@@ -29,6 +29,7 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
             bar_span = (i + 1) as u8;
         }
     }
+    super::legacy_ide::fill(dev.class, dev.subclass, dev.progif, &mut bars, &mut bar_span);
     DeviceRecord {
         device_id,
         bus_kind: BusKind::Pci as u8,
@@ -42,7 +43,7 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         bar_count: bar_span,
         irq_line: dev.interrupt_line,
         irq_pin: dev.interrupt_pin,
-        _pad1: [0; 1],
+        numa_node: crate::hardware::broker::NUMA_UNKNOWN,
         irq_source: crate::arch::pci_intx_source(dev),
         bars,
     }
