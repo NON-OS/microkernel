@@ -24,10 +24,15 @@ impl Regs {
         Self { base }
     }
 
+    /// # Safety
+    /// `base + off` must name a 32-bit register inside the MMIO window
+    /// `base` was mapped from, which must still be mapped.
     pub unsafe fn r32(self, off: u32) -> u32 {
         nonos_libc::mmio_read32((self.base + off as u64) as usize)
     }
 
+    /// # Safety
+    /// As `r32`.
     pub unsafe fn w32(self, off: u32, value: u32) {
         nonos_libc::mmio_write32((self.base + off as u64) as usize, value);
     }

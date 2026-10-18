@@ -28,6 +28,7 @@
 
 mod command;
 mod configure;
+mod configured;
 mod fallback;
 mod get;
 mod one_report;
@@ -35,3 +36,4 @@ mod set;
 mod set_bits;
 
 pub use configure::configure_reporting;
+pub use configured::Configured;

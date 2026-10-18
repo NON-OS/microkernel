@@ -33,6 +33,7 @@ impl RtsxError {
             Self::CmdTimeout => b"command buffer timed out",
             Self::CmdFailed => b"command buffer failed",
             Self::Gone => b"reader no longer answers",
+            Self::Removed => b"card left the slot during the run",
             Self::ResponseShort => b"response short",
             Self::ResponseStartBits => b"response start bits wrong",
             Self::ResponseCrc7 => b"response CRC7 error",
@@ -40,9 +41,13 @@ impl RtsxError {
             Self::NotSd => b"card does not answer ACMD41 (not an SD card)",
             Self::PowerUpTimeout => b"card still busy after 1 s of ACMD41",
             Self::UnknownCsd => b"CSD structure unknown",
+            Self::TooLarge => b"card larger than its addressing reaches",
             Self::ClockRange => b"card clock outside the SSC range",
             Self::DataTimeout => b"data transfer timed out",
             Self::DataFailed => b"data transfer failed",
+            Self::WriteProtected => b"card write-protected (its switch)",
+            Self::CardError => b"card reported an error in its status",
+            Self::CardBusy => b"card still programming when its time was spent",
         }
     }
 }

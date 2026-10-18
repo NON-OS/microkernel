@@ -48,7 +48,7 @@ def qemu_cmd(a, serial, qmp, tpm):
            "-drive", f"if=pflash,format=raw,unit=1,file={a.vars}",
            "-serial", f"file:{serial}", "-qmp", f"unix:{qmp},server=on,wait=off",
            "-device", "virtio-rng-pci", "-device", "qemu-xhci,id=xhci"]
-    gpu = "virtio-vga,disable-modern=on,vectors=0,edid=on"
+    gpu = "virtio-vga,vectors=0,edid=on"
     if a.res:
         w, h = a.res.split("x")
         gpu += f",xres={w},yres={h}"

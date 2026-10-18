@@ -16,8 +16,9 @@
 
 //! Per-driver constants, copied from each driver's `protocol` module. They
 //! are the contract those capsules publish; a change there is a change
-//! here, and the driver's own tests are what hold the two together until
-//! the three protocols become one.
+//! here, and blk_client_proofs, the drivers' own tests and
+//! scripts/check_blk_wire.py hold the two together until the protocols
+//! become one. The wire each speaks is in `dialect.rs`, the bus in `bus.rs`.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {
@@ -29,10 +30,12 @@ pub enum Driver {
     Wire,
     /// The UFS host's driver (driver.ufs0), on the same block wire.
     Ufs,
+    /// The Realtek PCIe SD card reader, serving the card in its slot.
+    Rtsx,
 }
 
-pub const ALL: [Driver; 5] =
-    [Driver::Nvme, Driver::Ahci, Driver::Wire, Driver::Ufs, Driver::VirtioBlk];
+pub const ALL: [Driver; 6] =
+    [Driver::Nvme, Driver::Ahci, Driver::Wire, Driver::Ufs, Driver::VirtioBlk, Driver::Rtsx];
 
 impl Driver {
     /// The service name of instance `n` of this driver, `None` past the
@@ -50,6 +53,7 @@ impl Driver {
             Driver::Ahci => &[b"driver.ahci0", b"driver.ahci1", b"driver.ahci2", b"driver.ahci3"],
             Driver::Wire => &[b"driver.sdhci0"],
             Driver::Ufs => &[b"driver.ufs0"],
+            Driver::Rtsx => &[b"driver.rtsx0"],
         };
         names.get(n as usize).copied()
     }
@@ -57,7 +61,7 @@ impl Driver {
     /// How many instance names [`Driver::service`] knows.
     pub fn instances(self) -> u8 {
         match self {
-            Driver::VirtioBlk | Driver::Wire | Driver::Ufs => 1,
+            Driver::VirtioBlk | Driver::Wire | Driver::Ufs | Driver::Rtsx => 1,
             Driver::Nvme | Driver::Ahci => 4,
         }
     }

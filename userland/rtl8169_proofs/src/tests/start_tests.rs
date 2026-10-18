@@ -19,6 +19,8 @@
 
 use std::cell::Cell;
 
+use nonos_devmodel::FakeBar;
+
 use super::model::window;
 use crate::chip::MacVersion;
 use crate::constants::regs::REG_CFG9346;
@@ -60,9 +62,10 @@ fn an_8169_gets_no_early_tx_and_the_8169sc_its_magic_register() {
     assert_eq!(bar.wrote32(0x7C), 0x00FF_FF00, "VER_06 on a 33 MHz bus");
 }
 
+/// In a 64 KiB window, as the 8125's BAR is: its start writes past 0x100.
 #[test]
 fn an_8125_keeps_0xec_and_0xe2_for_its_own_start() {
-    let bar = window();
+    let bar = FakeBar::new(0x10000);
     bar.present16(0xE2, 0x1234);
     bar.present8(0xEC, 0x55);
     start(&Regs::new(bar.base()), MacVersion(63), || {});

@@ -28,6 +28,7 @@ use crate::protocol::{
 };
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;
+use crate::server::recover::recover;
 use crate::setup::Driver;
 
 const RX_BUF_LEN: usize = HDR_LEN;
@@ -52,6 +53,9 @@ pub fn run(driver: &mut Driver) -> ! {
             OP_FILL_RANDOM => handlers::fill::handle(driver, &req, &mut tx),
             OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
             _ => reply_with_status(&mut tx, &req, E_INVAL),
+        }
+        if driver.queue.stalled() {
+            recover(driver);
         }
     }
 }

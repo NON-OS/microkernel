@@ -21,9 +21,12 @@ impl Transport {
     /// Tell the device queue `queue` has new buffers.
     pub fn notify(self, queue: u16) {
         match self {
-            Self::Legacy(regs) => unsafe { regs.w16(LEG_QUEUE_NOTIFY, queue) },
+            Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
             Self::Modern(m) => {
                 if let Some(&at) = m.doorbells.get(queue as usize) {
+                    // The ring's index reaches the device before the doorbell
+                    // that sends it to look, as a legacy window write orders.
+                    nonos_libc::dma_wmb();
                     m.notify.w16(at, queue);
                 }
             }
@@ -35,7 +38,7 @@ impl Transport {
         match self {
             // No MSI-X vector is enabled, so the legacy device-specific
             // config starts right at the MAC.
-            Self::Legacy(regs) => unsafe { regs.r16(LEG_MAC + off) },
+            Self::Legacy(regs) => regs.r16(LEG_MAC + off),
             Self::Modern(m) => m.device.r16(off),
         }
     }

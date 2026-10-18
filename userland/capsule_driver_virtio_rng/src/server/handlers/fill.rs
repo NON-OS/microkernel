@@ -15,18 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `OP_FILL_RANDOM` handler. Bounds the requested length, runs one
-//! virtqueue round trip, copies the device's bytes into the
-//! response buffer, and emits the response.
+//! virtqueue round trip straight into the response buffer, and emits the
+//! response. The bytes are wiped from it once sent.
 
 use nonos_libc::mk_ipc_send;
 
+use crate::clock::expired_after;
+use crate::constants::FILL_MS;
 use crate::fill::fill;
 use crate::protocol::{
     encode_response_header, write_status, Request, E_IO, E_MSGSIZE, KERNEL_REPLY_ENDPOINT,
     MAX_FILL_BYTES, RESP_HDR_LEN, STATUS_LEN,
 };
+use crate::scrub::scrub;
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
+
+const BODY: usize = RESP_HDR_LEN + STATUS_LEN;
 
 pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let want = req.payload_len;
@@ -34,23 +39,17 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
         reply_with_status(tx, req, E_MSGSIZE);
         return;
     }
-    let n = match fill(driver.transport, &mut driver.queue) {
-        Ok(n) => n,
-        Err(_) => {
-            reply_with_status(tx, req, E_IO);
-            return;
-        }
+    let Some(out) = tx.get_mut(BODY..BODY + want as usize) else {
+        reply_with_status(tx, req, E_MSGSIZE);
+        return;
     };
-    let take = core::cmp::min(want, n);
-    let payload_len = STATUS_LEN as u32 + take;
-    encode_response_header(tx, req, payload_len);
+    let expired = expired_after(FILL_MS);
+    let Ok(take) = fill(driver.transport, &mut driver.queue, out, expired) else {
+        reply_with_status(tx, req, E_IO);
+        return;
+    };
+    encode_response_header(tx, req, (STATUS_LEN + take) as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
-    // SAFETY: the buffer belongs to the capsule's DMA grant; the
-    // server loop is single-threaded so no concurrent device write
-    // is in flight while the response is being copied.
-    let bytes = unsafe { driver.queue.buffer(take) };
-    let body = &mut tx[RESP_HDR_LEN + STATUS_LEN..RESP_HDR_LEN + STATUS_LEN + take as usize];
-    body.copy_from_slice(&bytes[..take as usize]);
-    let _ =
-        mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + STATUS_LEN + take as usize);
+    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), BODY + take);
+    scrub(&mut tx[BODY..]);
 }
