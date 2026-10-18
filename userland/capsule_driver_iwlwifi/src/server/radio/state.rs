@@ -1,0 +1,60 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The radio's state, and the rest between sweeps.
+
+use crate::setup::command::command;
+use nonos_wifi_core::scan_list::ScanResults;
+
+use crate::firmware::gen3::outcome::Failure;
+use crate::firmware::gen3::sweep::Sweep;
+
+use super::bring::Up;
+use super::join::Join;
+use super::restart::Restart;
+
+/// The rest between one sweep's end and the next sweep's start.
+pub(super) const REST_MS: u64 = 3000;
+/// Stalled sweeps reported on the console; later ones are only counted.
+pub(super) const STALLS_SAID: u32 = 3;
+
+pub(super) enum State {
+    Up(Up),
+    /// The firmware failed (an error cause, or commands left unanswered); it
+    /// boots again at `at_ms`.
+    Restarting(Restart),
+    Down(Failure),
+}
+
+pub struct Radio {
+    pub(super) state: State,
+    pub(super) sweep: Sweep,
+    /// The networks heard, aged by sweep.
+    pub results: ScanResults,
+    /// Beacons and probe responses that parsed.
+    pub beacons: u32,
+    pub(super) next_ms: u64,
+    pub(super) join: Join,
+    /// The claimed function and its claim, for its command register.
+    pub(super) pci: (u64, u64),
+}
+
+impl Radio {
+    /// The card stopped: Bus Master off, so it masters nothing more.
+    pub(super) fn master_off(&self) {
+        let _ = command(self.pci.0, self.pci.1, false);
+    }
+}

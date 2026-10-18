@@ -49,6 +49,7 @@ pub mod install_source_window;
 pub mod ipc;
 pub mod irq;
 pub mod kill;
+pub mod linux_run_net;
 pub mod local_consent;
 mod local_image;
 pub mod local_sign;

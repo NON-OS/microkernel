@@ -19,7 +19,7 @@
 //! association request) and every EAPOL frame the WPA2 handshake exchanges is
 //! built on this header. The field layout is the IEEE 802.11 standard and is
 //! stable across chip families, so this is correct by construction and is
-//! checked by the `iwlwifi_proofs` crate rather than needing hardware.
+//! checked in `nonos_wifi_core_proofs`, through every frame its joins build.
 
 pub type MacAddr = [u8; 6];
 
