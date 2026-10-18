@@ -28,3 +28,5 @@ pub use find::find_i2c_controller_devices;
 // The Memory32Fixed decoder is a spec-layout primitive, not controller policy;
 // the GPIO community enumerator reuses it rather than growing a second truth.
 pub(super) use memory32::parse_memory32_fixed;
+// The Extended Interrupt decoder likewise: a GPIO controller's shared line.
+pub(super) use interrupt::parse_extended_interrupt;

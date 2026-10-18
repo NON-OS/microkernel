@@ -19,8 +19,15 @@ use nonos_libc::mk_service_lookup;
 // Names the L2 capsule probes for, in order. First one the
 // kernel registry knows wins. Adding a NIC class is one line —
 // the data plane upstream of L2 sees no difference.
-const NIC_CANDIDATES: &[&str] =
-    &["driver.virtio_net0", "driver.e1000_0", "driver.rtl8169_0", "driver.rtl8139_0"];
+const NIC_CANDIDATES: &[&str] = &[
+    "driver.virtio_net0",
+    "driver.e1000_0",
+    "driver.rtl8169_0",
+    "driver.rtl8139_0",
+    "driver.pcnet0",
+    "driver.vmxnet3_0",
+    "driver.tulip0",
+];
 
 #[derive(Clone, Copy)]
 pub struct Nic {

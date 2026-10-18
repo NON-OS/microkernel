@@ -37,11 +37,14 @@ pub(crate) static SPURIOUS_COUNT: AtomicU64 = AtomicU64::new(0);
 pub(crate) static ERROR_COUNT: AtomicU64 = AtomicU64::new(0);
 pub(crate) static LAST_ESR: AtomicU32 = AtomicU32::new(0);
 
+// Both clear AC first, as every gate does; see `interrupt::entry_flags`.
 extern "x86-interrupt" fn spurious(_frame: InterruptStackFrame) {
+    super::super::clear_ac();
     SPURIOUS_COUNT.fetch_add(1, Ordering::Relaxed);
 }
 
 extern "x86-interrupt" fn apic_error(_frame: InterruptStackFrame) {
+    super::super::clear_ac();
     LAST_ESR.store(crate::sys::apic::ack_error(), Ordering::Relaxed);
     ERROR_COUNT.fetch_add(1, Ordering::Relaxed);
     crate::sys::apic::eoi();

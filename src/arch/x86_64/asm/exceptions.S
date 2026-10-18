@@ -44,6 +44,7 @@
 .text
 
 /* Body for vectors that push no error code: frame CS at rsp + 8. */
+#include "clear_ac.inc"
 #include "tramp_noerr.inc"
 #include "tramp_err.inc"
 #include "tramp_ctx.inc"
