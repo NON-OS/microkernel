@@ -17,8 +17,6 @@
 //! Taking transmit buffers back from the device, and telling a stopped
 //! device from a busy one.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::clear::zero;
 use super::{used, TxQueue};
 use crate::constants::{RING_SLOTS, TX_STALL_MS};
@@ -35,7 +33,7 @@ impl TxQueue {
         while budget > 0 && self.last_used != used::idx(self.ring) {
             budget -= 1;
             // The entry is only valid once the index covering it is seen.
-            fence(Ordering::Acquire);
+            nonos_libc::dma_rmb();
             let (id, _) = used::elem(self.ring, self.last_used);
             self.last_used = self.last_used.wrapping_add(1);
             let Some(slot) = u16::try_from(id).ok().filter(|&s| s < self.buf_count) else {

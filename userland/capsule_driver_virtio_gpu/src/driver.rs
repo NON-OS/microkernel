@@ -13,62 +13,37 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! A virtio-gpu that came up: its device id, which a DGON names, the wire
+//! server over its display (G-77), and what an in-place recovery of its
+//! control queue needs (plan/50 C1).
+
+use nonos_gfx_serve::{Platform, Server};
 use nonos_libc::mk_device_release;
 use nonos_virtio::common::{reset_until, NotifyArea};
 
 use crate::clock::expired_after;
-use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS, RESET_MS};
-use crate::device::ControlQueue;
-use crate::setup::Primary;
-use crate::state::{FenceCounter, Health, ResourceTable, ScanoutTable};
-pub struct Driver {
+use crate::constants::RESET_MS;
+use crate::display::Gpu;
+use crate::state::Tally;
+
+/// Generic over the primaries' memory: the shipping driver's is
+/// `nonos_gfx_pool::Pool`, which asks the kernel.
+pub struct Driver<P: Platform> {
     pub device_id: u64,
-    pub pci_device: u16,
-    pub claim_epoch: u64,
-    pub mmio_grant: u64,
-    pub queue_grant: u64,
-    pub queue_user_va: u64,
-    pub queue_device_addr: u64,
-    pub queue_size: u16,
-    pub host_features: u32,
-    // True when VirGL was negotiated and render context 1 exists on the host,
-    // i.e. RESOURCE_CREATE_3D / SUBMIT_3D are usable.
-    pub virgl_ready: bool,
-    pub control_queue: ControlQueue,
-    pub resources: ResourceTable,
-    pub scanouts: ScanoutTable,
-    pub fences: FenceCounter,
-    pub primary: Option<Primary>,
+    pub server: Server<Gpu, P>,
     /// The doorbell geometry, to program the queue again after a reset.
     pub notify: NotifyArea,
-    pub health: Health,
-    /// Stalls recovered in place (`server::recover`).
-    pub recoveries: u32,
-    /// Recoveries in a row (`server::recover::policy`), and the queue's count
-    /// of commands published and the clock when the last one ended.
-    pub in_a_row: u32,
-    pub recovered_at: u16,
-    pub recovered_ms: u64,
+    pub tally: Tally,
 }
-impl Driver {
-    pub fn config(&self) -> (u32, u32, u32) {
-        let regs = self.control_queue.regs;
-        (
-            regs.config_r32(GPU_CFG_EVENTS_READ),
-            regs.config_r32(GPU_CFG_NUM_SCANOUTS),
-            regs.config_r32(GPU_CFG_NUM_CAPSETS),
-        )
-    }
-    pub fn display_info(&self) -> (u32, u32, u32) {
-        self.config()
-    }
+
+impl<P: Platform> Driver<P> {
     /// Stop the device and give it back (plan/50 C2): the reset drops every
     /// command and resource, then MkDeviceRelease clears bus mastering and
     /// only after that tears down the queue, surface and register grants.
     /// Only before the service is registered: from then on the compositor
-    /// may hold the surface, whose frames the release would free.
+    /// may hold a primary, and a reset device shows none of it.
     pub fn quiesce(&self) -> bool {
-        let common = self.control_queue.regs.common;
+        let common = self.server.display.q.regs.common;
         let stopped = reset_until(&common, expired_after(RESET_MS)).is_ok();
         mk_device_release(self.device_id) >= 0 && stopped
     }

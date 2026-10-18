@@ -31,6 +31,7 @@ mod drivers_fido;
 mod drivers_input;
 mod drivers_nic;
 mod drivers_sdhci;
+mod drivers_smbus;
 mod drivers_spi;
 mod drivers_storage;
 mod drivers_ufs;
@@ -51,8 +52,10 @@ mod input_probe_fleet;
 mod install_first;
 mod network;
 mod orchestrator;
+mod platform_acpi;
 mod services_audio;
 mod usb_host;
+mod vm;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;

@@ -28,6 +28,12 @@ pub mod server;
 pub mod setup;
 
 #[cfg(test)]
+mod batch_limit_tests;
+#[cfg(test)]
+mod batch_ring;
+#[cfg(test)]
+mod batch_tests;
+#[cfg(test)]
 mod conformance;
 #[cfg(test)]
 mod e1000_tests;

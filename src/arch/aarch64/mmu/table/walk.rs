@@ -18,7 +18,16 @@ use super::super::attributes::{PTE_ADDR_MASK, PTE_TABLE, PTE_VALID};
 use super::super::granule::Granule;
 use super::page_table::PageTable;
 
-pub fn walk_page_tables(root: &PageTable, virt: u64, granule: Granule) -> Option<(u64, usize)> {
+/// The output address and level of the entry that maps `virt` under `root`,
+/// reaching each next table through `table_at`, which turns a table's
+/// physical address into the table: the kernel answers with
+/// `pointer::ram`, a host proof with its own memory.
+pub fn walk_page_tables<'a>(
+    root: &'a PageTable,
+    virt: u64,
+    granule: Granule,
+    table_at: impl Fn(u64) -> Option<&'a PageTable>,
+) -> Option<(u64, usize)> {
     let mut table = root;
     let levels = granule.levels();
     for level in 0..levels {
@@ -30,7 +39,7 @@ pub fn walk_page_tables(root: &PageTable, virt: u64, granule: Granule) -> Option
         if level == levels - 1 || (entry & PTE_TABLE == 0) {
             return Some((entry & PTE_ADDR_MASK, level));
         }
-        table = unsafe { &*((entry & PTE_ADDR_MASK) as *const PageTable) };
+        table = table_at(entry & PTE_ADDR_MASK)?;
     }
     None
 }

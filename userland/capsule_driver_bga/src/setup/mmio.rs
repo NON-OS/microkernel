@@ -18,9 +18,11 @@ use nonos_libc::{mk_device_release, mk_mmio_map, MmioMapOut};
 
 use crate::error::{BgaError, BgaResult};
 
-pub fn map(device_id: u64, claim_epoch: u64, bar: u8, length: u64) -> BgaResult<MmioMapOut> {
+/// Map `length` bytes of `bar` with `flags` (0, or write-combining for
+/// video memory); a refusal releases the claim.
+pub fn map(device_id: u64, epoch: u64, bar: u8, flags: u32, length: u64) -> BgaResult<MmioMapOut> {
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
-    let r = mk_mmio_map(device_id, claim_epoch, bar as u32, 0, 0, length, &mut out);
+    let r = mk_mmio_map(device_id, epoch, bar as u32, flags, 0, length, &mut out);
     if r < 0 {
         let _ = mk_device_release(device_id);
         return Err(BgaError::BrokerCallFailed(r));

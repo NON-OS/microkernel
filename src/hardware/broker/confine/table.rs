@@ -19,6 +19,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
+use super::held::Held;
+use super::iova::IOVA_BASE;
 use crate::memory::iommu::{DeviceAddress, IommuDomain};
 
 /// A capsule's domain and what it holds. Dropping the entry frees the domain.
@@ -27,6 +29,15 @@ pub(super) struct Capsule {
     pub domain: IommuDomain,
     pub devices: Vec<(u64, DeviceAddress)>,
     pub next_iova: u64,
+    /// Its devices' reserved ranges, mapped while a device naming them is
+    /// attached; their IOVAs are never handed to a grant.
+    pub reserved: Vec<Held>,
+}
+
+impl Capsule {
+    pub(super) fn new(pid: u32, domain: IommuDomain) -> Self {
+        Self { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE, reserved: Vec::new() }
+    }
 }
 
 // Taken before the IOMMU's own lock, never inside it.
@@ -40,14 +51,4 @@ pub(super) fn pci_address(device_id: u64) -> Option<DeviceAddress> {
     let handle = crate::hardware::broker::pci_index::lookup(device_id)?;
     let a = crate::drivers::pci::vmd::dma_requester(handle.address);
     Some(DeviceAddress::pci(a.bus, a.device, a.function))
-}
-
-pub(super) fn say(what: &[u8], pid: u32, device: DeviceAddress) {
-    let serial = crate::sys::serial::print;
-    serial(b"[VT-D] pid=");
-    crate::sys::serial::print_dec(pid as u64);
-    serial(b" device=");
-    crate::sys::serial::print_hex(device.as_u32() as u64);
-    serial(b" ");
-    crate::sys::serial::println(what);
 }

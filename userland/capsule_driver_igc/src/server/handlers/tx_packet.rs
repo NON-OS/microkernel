@@ -19,8 +19,6 @@
 //! slot answers `E_AGAIN` rather than overwriting a descriptor the part
 //! still owns.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::regs::REG_TDT;
 use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
@@ -58,7 +56,7 @@ pub fn handle(sender: u32, driver: &mut Driver, req: &Request, body: &[u8], tx: 
     let idx = driver.tx.post(body.len() as u16);
     let next_tdt = ((idx as u32) + 1) % (TX_DESC_COUNT as u32);
     // The frame and descriptor are plain stores; TDT is what lets the part read them.
-    fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     unsafe { driver.regs.w32(REG_TDT, next_tdt) };
     reply_with_status(sender, tx, req, 0);
 }

@@ -83,7 +83,13 @@ DeviceRecord                       Bar
   carries the DesignWare source clock in Hz.
 - `flags`: `DEVICE_FLAG_CLAIMED` (1) and `DEVICE_FLAG_DISABLED` (2) are
   defined (`device/flags.rs`); no path sets either, so a listed record never
-  reports a claim.
+  reports a claim. `DEVICE_FLAG_DMA_NONCOHERENT` (4) says the device's DMA
+  does not snoop the CPU's caches (no `dma-coherent` in the tree, for it or
+  its PCI host bridge). Its `MkDmaMap` COHERENT and WC grants come from the
+  uncached pool, which the kernel too maps Non-cacheable, and fail with
+  `-ENOMEM` when that pool is empty or absent. Its cacheable grants need
+  `mk_dma_sync_for_device` before the device reads and
+  `mk_dma_sync_for_cpu` after it writes.
 - A PCI record carries `irq_line` and `irq_pin` from configuration space and
   `irq_source = irq_line`. An ACPI-bus I2C-HID record gives several fields its
   own meaning (`src/hardware/broker/acpi_i2c/hid_record.rs`).

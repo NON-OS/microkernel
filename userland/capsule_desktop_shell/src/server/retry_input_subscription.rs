@@ -18,11 +18,13 @@ use crate::input_router_client;
 use crate::state::Context;
 
 pub fn retry_input_subscription(ctx: &mut Context) {
-    if ctx.input_ready || ctx.input_router_port == 0 {
+    if ctx.links.input_ready || ctx.ports.input_router_port == 0 {
         return;
     }
     let rid = ctx.issue_request_id();
-    if input_router_client::subscribe(ctx.input_router_port, rid, ctx.input_kind_mask).is_ok() {
-        ctx.input_ready = true;
+    if input_router_client::subscribe(ctx.ports.input_router_port, rid, ctx.links.input_kind_mask)
+        .is_ok()
+    {
+        ctx.links.input_ready = true;
     }
 }

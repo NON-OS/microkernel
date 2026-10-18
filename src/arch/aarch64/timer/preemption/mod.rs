@@ -19,4 +19,4 @@ mod install;
 mod state;
 
 pub use install::install_on_cpu;
-pub use state::configure;
+pub use state::{configure, is_preemption_tick};

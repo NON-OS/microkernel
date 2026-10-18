@@ -6,6 +6,10 @@ pub mod error;
 pub mod find;
 #[path = "../../../../../src/arch/fdt/header.rs"]
 pub mod header;
+#[path = "../../../../../src/arch/fdt/layout.rs"]
+pub mod layout;
+#[path = "../../../../../src/arch/fdt/limits.rs"]
+pub mod limits;
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 #[path = "../../../../../src/arch/fdt/parser.rs"]
 pub mod parser;
@@ -16,6 +20,8 @@ pub mod property;
 pub mod strings;
 #[path = "../../../../../src/arch/fdt/tokens.rs"]
 pub mod tokens;
+#[path = "../../../../../src/arch/fdt/validate.rs"]
+mod validate;
 #[allow(clippy::module_inception, clippy::should_implement_trait)]
 #[allow(clippy::manual_is_multiple_of)]
 #[path = "../../../../../src/arch/fdt/walker/mod.rs"]

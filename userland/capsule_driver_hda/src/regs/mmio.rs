@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{read_volatile, write_volatile};
-
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: u64,
@@ -30,7 +28,7 @@ impl Regs {
     ///
     /// The window is mapped and holds a byte register at `off` (`crate::regs`).
     pub unsafe fn r8(self, off: u32) -> u8 {
-        read_volatile((self.base + off as u64) as *const u8)
+        nonos_libc::mmio_read8((self.base + off as u64) as usize)
     }
 
     /// # Safety
@@ -38,7 +36,7 @@ impl Regs {
     /// The window is mapped and holds a 16-bit register at `off`, aligned to
     /// its width (`crate::regs`).
     pub unsafe fn r16(self, off: u32) -> u16 {
-        read_volatile((self.base + off as u64) as *const u16)
+        nonos_libc::mmio_read16((self.base + off as u64) as usize)
     }
 
     /// # Safety
@@ -46,7 +44,7 @@ impl Regs {
     /// The window is mapped and holds a 32-bit register at `off`, aligned to
     /// its width (`crate::regs`).
     pub unsafe fn r32(self, off: u32) -> u32 {
-        read_volatile((self.base + off as u64) as *const u32)
+        nonos_libc::mmio_read32((self.base + off as u64) as usize)
     }
 
     /// # Safety
@@ -54,14 +52,14 @@ impl Regs {
     /// The window is mapped and holds a 32-bit register at `off`, aligned to
     /// its width (`crate::regs`).
     pub unsafe fn w32(self, off: u32, value: u32) {
-        write_volatile((self.base + off as u64) as *mut u32, value);
+        nonos_libc::mmio_write32((self.base + off as u64) as usize, value);
     }
 
     /// # Safety
     ///
     /// The window is mapped and holds a byte register at `off` (`crate::regs`).
     pub unsafe fn w8(self, off: u32, value: u8) {
-        write_volatile((self.base + off as u64) as *mut u8, value);
+        nonos_libc::mmio_write8((self.base + off as u64) as usize, value);
     }
 
     /// # Safety
@@ -69,6 +67,6 @@ impl Regs {
     /// The window is mapped and holds a 16-bit register at `off`, aligned to
     /// its width (`crate::regs`).
     pub unsafe fn w16(self, off: u32, value: u16) {
-        write_volatile((self.base + off as u64) as *mut u16, value);
+        nonos_libc::mmio_write16((self.base + off as u64) as usize, value);
     }
 }

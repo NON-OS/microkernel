@@ -32,10 +32,11 @@ const XHCI_CLIENTS: &[&str] = &[
 /// The controllers, the GPU and the sound devices take their one client.
 #[test]
 fn each_device_takes_its_service_alone() {
-    let cases: [(&str, &[&'static str]); 5] = [
+    let cases: [(&str, &[&'static str]); 6] = [
         ("driver.xhci0", XHCI_CLIENTS),
         ("driver.i2c_pci0", &["driver.i2c_hid0"]),
         ("driver.virtio_gpu0", &["compositor"]),
+        ("driver.bga0", &["compositor"]),
         ("driver.hda0", &["audio.server"]),
         ("driver.usb_audio0", &["audio.server"]),
     ];

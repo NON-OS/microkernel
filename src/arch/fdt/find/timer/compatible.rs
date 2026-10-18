@@ -14,13 +14,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::fdt::property::Property;
-
-pub fn matches(compat: &Property) -> bool {
-    for s in compat.stringlist() {
-        if s == b"arm,armv8-timer" || s == b"arm,armv7-timer" {
-            return true;
-        }
-    }
-    false
-}
+pub(super) const NEEDLES: &[&[u8]] = &[b"arm,armv8-timer", b"arm,armv7-timer"];

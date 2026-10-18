@@ -18,7 +18,8 @@ use super::super::flags::DMA_MAP_DMA32;
 use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
-use super::{alloc, install, record, validate};
+use super::{alloc, bus_window, install, record, uncached, validate};
+use crate::hardware::broker::reserved;
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
 // record. Each step is a single responsibility in its own file; this
@@ -29,11 +30,22 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         Err(e) => return fail("validate", e),
     };
     let pages = req.length / validate::PAGE_SIZE;
+    let alloc_flags = match bus_window::alloc_flags(req.device_id, req.flags) {
+        Ok(flags) => flags,
+        Err(e) => return fail("window", e),
+    };
 
-    let phys_start = match alloc::alloc_and_zero(pages, req.length, req.flags) {
+    let uncached = uncached::needs_uncached_frames(req.device_id, req.flags);
+    let phys_start = match alloc::alloc_and_zero(pages, req.length, alloc_flags, uncached) {
         Ok(start) => start,
         Err(e) => return fail("alloc", e),
     };
+    // RAM the allocator holds is never firmware's; if the memory map and
+    // the namespace disagree, the device gets neither.
+    if reserved::refuses(b"DMA", reserved::MEMORY, phys_start, req.length, false) {
+        alloc::free(phys_start, pages);
+        return fail("reserved", DmaMapError::NoMemory);
+    }
 
     let user_va = match install::install(pages, req.length, phys_start, req.flags) {
         Ok(va) => va,
@@ -44,18 +56,21 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     };
     let placed = Placed { phys_start, pages, length: req.length, user_va };
 
-    let Some((device_addr, confined)) =
-        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length)
+    let rw = crate::memory::iommu::IommuProtection::READ_WRITE;
+    let Some((given, confined)) =
+        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length, rw)
     else {
         placed.undo();
         return fail("confine", DmaMapError::MapFailed);
     };
-    /*
-     * A 32-bit device is handed an address that fits its descriptor or nothing.
-     * The frames were placed below 4GB and an IOVA is drawn below 4GB, so this
-     * holds by construction; it is checked so a change to either cannot hand the
-     * device a truncated address in silence.
-     */
+    let moved = bus_window::device_address(req.device_id, phys_start, req.length, given, confined);
+    let Some(device_addr) = moved else {
+        placed.undo_mapped(pid, given, confined);
+        return fail("window", DmaMapError::Above4G);
+    };
+    // A 32-bit device is handed an address that fits its descriptor or nothing.
+    // Frames and IOVAs are both drawn below 4GB, so this holds by construction;
+    // it is checked so a change to either cannot truncate an address in silence.
     if req.flags & DMA_MAP_DMA32 != 0 && !alloc::fits_below_4g(device_addr, pages) {
         placed.undo_mapped(pid, device_addr, confined);
         return fail("dma32", DmaMapError::Above4G);
