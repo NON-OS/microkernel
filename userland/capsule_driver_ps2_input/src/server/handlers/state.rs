@@ -24,13 +24,14 @@ pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
     encode_response_header(tx, req, payload_len);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
     let mut off = RESP_HDR_LEN + STATUS_LEN;
-    tx[off..off + 8].copy_from_slice(&ctx.ring.events_seen.to_le_bytes());
+    // Counts only: no keystroke is kept to report (poll/counters.rs).
+    tx[off..off + 8].copy_from_slice(&ctx.counters.seen.to_le_bytes());
     off += 8;
-    tx[off..off + 8].copy_from_slice(&ctx.ring.events_dropped.to_le_bytes());
+    tx[off..off + 8].copy_from_slice(&ctx.counters.refused.to_le_bytes());
     off += 8;
-    tx[off..off + 8].copy_from_slice(&ctx.ring.parity_errors.to_le_bytes());
+    tx[off..off + 8].copy_from_slice(&ctx.counters.parity_errors.to_le_bytes());
     off += 8;
-    tx[off..off + 8].copy_from_slice(&ctx.ring.timeout_errors.to_le_bytes());
+    tx[off..off + 8].copy_from_slice(&ctx.counters.timeout_errors.to_le_bytes());
     off += 8;
     tx[off..off + 8].copy_from_slice(&ctx.mouse_ring.events_seen.to_le_bytes());
     off += 8;

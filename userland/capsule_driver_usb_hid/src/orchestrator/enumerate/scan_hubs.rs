@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Looking at the ports of every hub held. Each hub is taken out of the
-//! list while its ports are looked at, so a hub found below it can be
-//! added, and put back after.
+//! Looking at the ports of every hub held, or with `busy_only` at those mid
+//! way through bringing up a device. Each hub is taken out of the list while
+//! its ports are looked at, so a hub found below it can be added, and put
+//! back after. Whether any port is still mid way through is returned.
 
 use alloc::vec::Vec;
 
 use super::devices::Devices;
 use super::scan_hub::scan_hub;
 
-pub fn scan_hubs(xhci_port: u32, devs: &mut Devices) {
+pub fn scan_hubs(xhci_port: u32, devs: &mut Devices, busy_only: bool) -> bool {
     let slots: Vec<u8> = devs.hubs.iter().map(|h| h.slot).collect();
+    let mut busy = false;
     for slot in slots {
         let Some(i) = devs.hubs.iter().position(|h| h.slot == slot) else {
             continue;
         };
         let mut hub = devs.hubs.swap_remove(i);
-        scan_hub(xhci_port, &mut hub, devs);
+        busy |= scan_hub(xhci_port, &mut hub, devs, busy_only);
         devs.hubs.push(hub);
     }
+    busy
 }

@@ -19,15 +19,14 @@
 //! with E_INVAL, and an endpoint read that way never delivers a report.
 
 use crate::poll::read_len::read_len;
-use crate::xhci_limits::HID_REPORT_MAX as XHCI_READ_MAX;
+use crate::xhci_limits::INTERRUPT_PAYLOAD_MAX;
 
 #[test]
 fn a_read_asks_for_one_packet_and_never_past_what_the_controller_driver_takes() {
-    let most = XHCI_READ_MAX as u16;
     for max_packet in 0..=u16::MAX {
         let len = read_len(max_packet);
-        assert!(len <= most, "{max_packet} byte packets read as {len}");
-        assert_eq!(len, max_packet.min(most), "{max_packet} byte packets");
+        assert!(len <= INTERRUPT_PAYLOAD_MAX, "{max_packet} byte packets read as {len}");
+        assert_eq!(len, max_packet.min(8), "{max_packet} byte packets");
     }
 }
 

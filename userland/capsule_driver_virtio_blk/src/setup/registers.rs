@@ -13,71 +13,46 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The legacy register window, granted by the broker. A failure leaves
+//! the release to `sequence::run`, which takes every grant with the claim.
+
+use nonos_libc::{mk_mmio_map, mk_pio_grant, MmioMapOut, PioGrantOut, BAR_KIND_MMIO, BAR_KIND_PIO};
+use nonos_virtio::Mmio;
+
 use crate::discover::Found;
 use crate::regs::Regs;
-use nonos_libc::{
-    mk_device_release, mk_mmio_map, mk_mmio_unmap, mk_pio_grant, mk_pio_release, MmioMapOut,
-    PioGrantOut, BAR_KIND_MMIO, BAR_KIND_PIO,
-};
-use nonos_virtio::Window;
+
 const PAGE_MASK: u64 = 0xFFF;
-#[derive(Clone, Copy)]
-pub enum RegisterGrant {
-    Mmio(MmioMapOut),
-    Pio(PioGrantOut),
-    /// The modern structures, one MMIO grant each.
-    Modern(Window),
-}
-impl RegisterGrant {
-    /// The legacy register window. A modern grant has none.
-    pub fn regs(self) -> Option<Regs> {
-        match self {
-            Self::Mmio(g) => Some(Regs::mmio(g.user_va)),
-            Self::Pio(g) => Some(Regs::pio(g.grant_id)),
-            Self::Modern(_) => None,
-        }
-    }
-    pub fn release(self) -> bool {
-        match self {
-            Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
-            Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
-            Self::Modern(w) => {
-                let mut ok = true;
-                for &id in w.grant_ids().iter().rev().flatten() {
-                    ok = mk_mmio_unmap(id) >= 0 && ok;
-                }
-                ok
-            }
-        }
-    }
-}
-pub fn grant(dev: Found, epoch: u64) -> Result<RegisterGrant, &'static str> {
+
+pub fn grant(dev: Found, epoch: u64) -> Result<Regs, &'static str> {
     match dev.register_kind {
         BAR_KIND_MMIO => grant_mmio(dev, epoch),
         BAR_KIND_PIO => grant_pio(dev, epoch),
         _ => Err("virtio-blk: unsupported register bar"),
     }
 }
-fn grant_mmio(dev: Found, epoch: u64) -> Result<RegisterGrant, &'static str> {
+
+fn grant_mmio(dev: Found, epoch: u64) -> Result<Regs, &'static str> {
+    let refused = "virtio-blk: mmio map failed";
     let mut out = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
-    let length = (dev.register_size + PAGE_MASK) & !PAGE_MASK;
-    let r = mk_mmio_map(dev.device_id, epoch, dev.register_bar as u32, 0, 0, length, &mut out);
-    if r < 0 {
-        if mk_device_release(dev.device_id) < 0 {
-            return Err("device release failed after mmio map failure");
-        }
-        return Err("mmio map failed");
+    let length = dev.register_size.checked_add(PAGE_MASK).ok_or(refused)? & !PAGE_MASK;
+    let rc = mk_mmio_map(dev.device_id, epoch, dev.register_bar as u32, 0, 0, length, &mut out);
+    let base = usize::try_from(out.user_va).map_err(|_| refused)?;
+    let len = usize::try_from(out.length.min(length)).map_err(|_| refused)?;
+    if rc < 0 || base == 0 {
+        return Err(refused);
     }
-    Ok(RegisterGrant::Mmio(out))
+    // SAFETY: MkMmioMap mapped `out.length` bytes at `user_va`, readable and
+    // writable, until MkMmioUnmap or the claim's release; the view covers no
+    // more than that, and no window is used after the release.
+    Ok(Regs::mmio(unsafe { Mmio::new(base as *mut u8, len) }))
 }
-fn grant_pio(dev: Found, epoch: u64) -> Result<RegisterGrant, &'static str> {
+
+fn grant_pio(dev: Found, epoch: u64) -> Result<Regs, &'static str> {
     let mut out = PioGrantOut { port_base: 0, port_count: 0, _pad: 0, grant_id: 0 };
-    let r = mk_pio_grant(dev.device_id, epoch, dev.register_bar, 0, &mut out);
-    if r < 0 {
-        if mk_device_release(dev.device_id) < 0 {
-            return Err("device release failed after pio grant failure");
-        }
-        return Err("pio grant failed");
+    if mk_pio_grant(dev.device_id, epoch, dev.register_bar, 0, &mut out) < 0 {
+        return Err("virtio-blk: pio grant failed");
     }
-    Ok(RegisterGrant::Pio(out))
+    Ok(Regs::pio(out.grant_id))
 }

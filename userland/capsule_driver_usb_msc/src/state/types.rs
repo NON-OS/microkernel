@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::said::Said;
 use crate::descriptors::MscBinding;
 use crate::protocol::MAX_BINDINGS;
 
@@ -32,6 +33,12 @@ pub struct State {
     /// The bound device puts residues in its CSWs that do not count what it
     /// moved (`State::residue`); only the bytes that crossed the bus count.
     pub(super) ignore_residue: bool,
+    /// What a sense said of the medium (`State::take_said`); whether the
+    /// kernel has read or written a sector this boot (`State::held`); and
+    /// the failed requests in a row the device was kept after since.
+    pub(super) said: Said,
+    pub(super) held: bool,
+    pub(super) failed: u8,
 }
 
 impl Default for State {
@@ -55,6 +62,9 @@ impl State {
             phase_errors: 0,
             residue_bytes: 0,
             ignore_residue: false,
+            said: Said::Nothing,
+            held: false,
+            failed: 0,
         }
     }
 }

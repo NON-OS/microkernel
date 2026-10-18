@@ -23,6 +23,7 @@ use crate::hub::Hub;
 
 use super::types::HidEndpoint;
 
+#[derive(Default)]
 pub struct Devices {
     pub eps: Vec<HidEndpoint>,
     pub hubs: Vec<Hub>,
