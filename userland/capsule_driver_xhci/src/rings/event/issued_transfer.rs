@@ -20,7 +20,7 @@
 //! completion code says, and is never taken as one.
 use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::trb::Trb;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct IssuedTransfer {
     pub phys: u64,
     pub slot: u8,
@@ -34,10 +34,5 @@ impl IssuedTransfer {
             && event.get_pointer() & !0xF == self.phys & !0xF
             && event.slot_id() == self.slot
             && event.endpoint_id() == self.dci
-    }
-
-    /// Whether `other` names the same TRB, by the same three fields.
-    pub fn same(&self, other: &IssuedTransfer) -> bool {
-        self.phys & !0xF == other.phys & !0xF && self.slot == other.slot && self.dci == other.dci
     }
 }

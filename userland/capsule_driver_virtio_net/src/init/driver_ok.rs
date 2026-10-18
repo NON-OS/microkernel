@@ -18,7 +18,5 @@ use crate::constants::{LEG_STATUS, STATUS_DRIVER_OK};
 use crate::regs::Regs;
 
 pub fn driver_ok(regs: Regs) {
-    unsafe {
-        regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
-    }
+    regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
 }

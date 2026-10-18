@@ -40,21 +40,20 @@ The driver looks at the root ports of the xHCI controllers only. A stick behind 
 
 ## Bringing a device up
 
-Bring-up opens with INQUIRY (`userland/capsule_driver_usb_msc/src/disk/unit_ready.rs:50-73`, `unit_ready`):
+Bring-up opens with INQUIRY (`userland/capsule_driver_usb_msc/src/disk/ready.rs:39-97`, `unit_ready`):
 
-- INQUIRY first, up to five tries, since some firmware answers nothing else correctly until it has seen one (`userland/capsule_driver_usb_msc/src/disk/inquire.rs:36-53`, `inquire`);
-- TEST UNIT READY until a 30 s deadline, which a USB-SATA bridge or a slow stick can need, with one START STOP UNIT when the medium reports NOT READY. The deadline is time, not a count of tries, since each try is a whole command with its own timeouts;
-- a logical unit that reports MEDIUM NOT PRESENT is given up at once, the last one included; on a card reader the first unit with a medium is served (`userland/capsule_driver_usb_msc/src/scan/serve.rs:26-45`, `serve_first_ready`);
-- between tries the driver answers its inbox: the block surface gets `E_AGAIN`, the state query and health check are answered, and the command builders get `E_AGAIN` because they would change the bindings and tags the probe is using (`userland/capsule_driver_usb_msc/src/server/probe_pause.rs`, `Inbox::pause`).
+- INQUIRY first, up to five tries, since some firmware answers nothing else correctly until it has seen one;
+- TEST UNIT READY up to 600 times, 50 ms apart, which gives a USB-SATA bridge or a slow stick 30 s, with one START STOP UNIT when the medium reports NOT READY;
+- on a card reader with several logical units, the first unit with a medium is served, and an empty slot that is not the last unit is given up at once.
 
-It then reads the size with READ CAPACITY(10), and asks READ CAPACITY(16) of a device past 2^32 blocks (`userland/capsule_driver_usb_msc/src/disk/ready.rs:38-55`, `capacity`).
+It then reads the size with READ CAPACITY(10), and asks READ CAPACITY(16) of a device past 2^32 blocks (`userland/capsule_driver_usb_msc/src/disk/ready.rs:99-119`, `capacity`).
 
 ## Reads, writes and flush
 
 - Reads and writes use READ(10) and WRITE(10), or READ(16) and WRITE(16) when a request passes the 32-bit LBA or the 16-bit block count (`userland/capsule_driver_usb_msc/src/span/mod.rs:73-77`, `needs_cdb16`).
 - The kernel asks in 512-byte sectors, at most 64 per request (`userland/capsule_driver_usb_msc/src/protocol/limits.rs:23-27`, `BLK_MAX_SECTORS`).
 - Device blocks of 1024, 2048 or 4096 bytes are mapped onto those sectors: a request that starts or ends inside a block reads it whole, and a write changes it and writes it back (`userland/capsule_driver_usb_msc/src/span/mod.rs:17-34`, `sectors_per_block`). Any other block length is reported as it is, and the kernel passes the device over (`src/hardware/block_device/fit.rs:32-43`, `usb_msc_sectors_fit`).
-- A flush is SYNCHRONIZE CACHE(10). A device that answers ILLEGAL REQUEST has no cache to flush, and that counts as done (`userland/capsule_driver_usb_msc/src/disk/ready.rs:60-68`, `sync_cache`).
+- A flush is SYNCHRONIZE CACHE(10). A device that answers ILLEGAL REQUEST has no cache to flush, and that counts as done (`userland/capsule_driver_usb_msc/src/disk/ready.rs:121-132`, `sync_cache`).
 
 Two habits of real devices that the Bulk-Only specification does not allow are accepted: a zero-length packet before the CSW, and a CSW sent in place of a data phase the device skipped. A transport that loses its phase is reset with Bulk-Only reset recovery (`userland/capsule_driver_usb_msc/src/disk/bot.rs:20-30`, `reset_recovery`).
 

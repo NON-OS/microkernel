@@ -32,7 +32,7 @@ pub fn find_virtio_rng() -> Option<Found> {
     let count = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..count] {
         /*
-         * Identity only: the driver binds no interrupt (see `setup::irq`),
+         * Identity only: the driver binds no interrupt (see `setup::pci`),
          * so an unrouted legacy line does not make the device unusable.
          */
         if !is_match(r) {
@@ -44,7 +44,6 @@ pub fn find_virtio_rng() -> Option<Found> {
                 register_bar: idx,
                 register_kind: kind,
                 register_size: size,
-                pci_device: r.device,
                 bars: bars(r),
             });
         }

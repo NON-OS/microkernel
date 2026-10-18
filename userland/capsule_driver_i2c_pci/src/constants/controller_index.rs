@@ -21,7 +21,9 @@
 /// Lets the driver match the ACPI `_CRS` ResourceSource name against an
 /// enumerated PCI function; None means the probe decides alone.
 pub fn controller_index(device: u16) -> Option<u8> {
-    let block = |first: u16, n: u16| (device >= first && device < first + n).then(|| (device - first) as u8);
+    let block = |first: u16, n: u16| {
+        (device >= first && device < first + n).then(|| (device - first) as u8)
+    };
     let even = |first: u16| {
         (device >= first && device <= first + 14 && (device - first).is_multiple_of(2))
             .then(|| ((device - first) / 2) as u8)

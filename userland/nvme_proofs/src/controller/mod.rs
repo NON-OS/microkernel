@@ -14,13 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The real controller register snapshot and the checks bring-up makes on it.
-// The register reads themselves are MMIO and stay out of the host build.
+// The real controller register snapshot, read from the register block the
+// test's controller lives in, and the checks bring-up makes on it.
 #[path = "../../../capsule_driver_nvme/src/controller/info/doorbell_stride.rs"]
 mod doorbell_stride;
 #[path = "../../../capsule_driver_nvme/src/controller/info/doorbells_fit.rs"]
 mod doorbells_fit;
 #[path = "../../../capsule_driver_nvme/src/controller/info/info_type.rs"]
 mod info_type;
+#[path = "../../../capsule_driver_nvme/src/controller/info/is_nvme_register_block.rs"]
+mod is_nvme_register_block;
+#[path = "../../../capsule_driver_nvme/src/controller/info/min_page_shift.rs"]
+mod min_page_shift;
+#[path = "../../../capsule_driver_nvme/src/controller/info/read.rs"]
+mod read;
+#[path = "../../../capsule_driver_nvme/src/controller/info/timeout_units.rs"]
+mod timeout_units;
 
 pub use info_type::ControllerInfo;

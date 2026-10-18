@@ -24,6 +24,7 @@ mod init_state;
 mod lpss_init;
 mod program_clock;
 pub mod scl;
+pub mod sda_hold;
 mod unlisted;
 
 pub use bring_up::bring_up;
