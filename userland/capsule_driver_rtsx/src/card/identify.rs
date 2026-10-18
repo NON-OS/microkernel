@@ -21,12 +21,11 @@
 
 use super::app::app_command;
 use super::command::send_command;
+use super::limits::POWER_UP_MS;
 use crate::clock::{now, sleep_ms, Budget};
 use crate::error::{Result, RtsxError};
 use crate::sd::{if_cond_echoed, ocr_ready, Command};
 use crate::setup::Driver;
-
-const POWER_UP_MS: u64 = 1000;
 
 /// The OCR of a card that finished powering up.
 pub fn identify(drv: &Driver) -> Result<u32> {
@@ -37,9 +36,12 @@ pub fn identify(drv: &Driver) -> Result<u32> {
         matches!(send_command(drv, Command::SEND_IF_COND), Ok(r) if if_cond_echoed(r.words[0]));
     let budget = Budget::begin(now(), POWER_UP_MS);
     loop {
+        // A card that left mid-identification, or a reader gone, is that
+        // and not a card that is not SD: the served card pulled here is
+        // away until it is back (serve/change.rs), not another card.
         let ocr = match app_command(drv, 0, Command::sd_send_op_cond(v2)) {
             Ok(r) => r.words[0],
-            Err(RtsxError::Gone) => return Err(RtsxError::Gone),
+            Err(e @ (RtsxError::Gone | RtsxError::Removed)) => return Err(e),
             Err(_) => return Err(RtsxError::NotSd),
         };
         if ocr_ready(ocr) {

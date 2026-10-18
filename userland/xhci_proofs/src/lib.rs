@@ -19,30 +19,34 @@ pub mod protocol;
 pub mod trb;
 
 /*
- * The controller, run against a register window and host DMA memory. `regs`,
- * `error`, `dma`, `rings`, `contexts` and `slots` are the shipping trees
- * whole; the shim's `mk_dma_map` hands the pool page-aligned host memory at a
- * bus address of its own. `controller` picks the files that need nothing
- * beyond those: the bring-up, and everything that consumes the event ring.
+ * The controller, run against a register window and host DMA memory. Every
+ * tree below is the shipping one whole, the server and the bring-up among
+ * them; the shim's `mk_dma_map` hands the pool page-aligned host memory at a
+ * bus address of its own, and its broker serves the window a test offers.
  */
 extern crate alloc;
 
 #[path = "../../capsule_driver_xhci/src/contexts/mod.rs"]
 pub mod contexts;
+#[path = "../../capsule_driver_xhci/src/controller/mod.rs"]
 pub mod controller;
+pub mod discover;
 #[path = "../../capsule_driver_xhci/src/dma/mod.rs"]
 pub mod dma;
 #[path = "../../capsule_driver_xhci/src/error/mod.rs"]
 pub mod error;
+#[path = "../../capsule_driver_xhci/src/handles/mod.rs"]
+pub mod handles;
 #[path = "../../capsule_driver_xhci/src/regs/mod.rs"]
 pub mod regs;
 #[path = "../../capsule_driver_xhci/src/rings/mod.rs"]
 pub mod rings;
+#[path = "../../capsule_driver_xhci/src/server/mod.rs"]
+pub mod server;
+#[path = "../../capsule_driver_xhci/src/setup/mod.rs"]
+pub mod setup;
 // The capsule is a binary and never exports `SlotTable`, so it has no use
 // for a `Default`; the lint only fires because this crate makes it public.
-/// Root port numbers across several controllers.
-#[path = "../../capsule_driver_xhci/src/server/mux_ports.rs"]
-pub mod mux_ports;
 #[allow(clippy::new_without_default)]
 #[path = "../../capsule_driver_xhci/src/slots/mod.rs"]
 pub mod slots;
@@ -51,6 +55,8 @@ pub mod slots;
 mod conformance;
 #[cfg(test)]
 mod event_ring;
+#[cfg(test)]
+mod server_tests;
 #[cfg(test)]
 mod xhci_tests;
 

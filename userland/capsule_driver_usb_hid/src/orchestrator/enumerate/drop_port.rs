@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which endpoints go when a device leaves its root port. Pure, so the
+//! Which endpoints go when a device leaves, and what each lets go of first:
+//! every key and button its interface held comes up and its key repeat
+//! ends, before its state is dropped. Pure but for those posts, so the
 //! bookkeeping is proven on the host.
 
 use alloc::vec::Vec;
@@ -30,6 +32,16 @@ pub fn drop_port(eps: &mut Vec<HidEndpoint>, port: u8) -> Vec<u8> {
             slots.push(ep.slot);
         }
     }
-    eps.retain(|e| e.root_port != port);
+    for &slot in &slots {
+        drop_slot(eps, slot);
+    }
     slots
+}
+
+/// Drop every endpoint bound on `slot`, each releasing what it held.
+pub fn drop_slot(eps: &mut Vec<HidEndpoint>, slot: u8) {
+    for ep in eps.iter_mut().filter(|e| e.slot == slot) {
+        ep.dev.release_all();
+    }
+    eps.retain(|e| e.slot != slot);
 }

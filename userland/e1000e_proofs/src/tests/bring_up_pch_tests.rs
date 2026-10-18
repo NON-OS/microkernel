@@ -43,7 +43,8 @@ fn an_i219_on_cannon_lake_comes_up_with_its_errata() {
     let mut mem = Memory::new();
     clear_log();
     let d = finish(mem.driver(&bar, Family::PchCnp, 0x15BB)).expect("brought up");
-    let up = format!("e1000e: up 15bb mac {} family=pch_cnp link=up", mac_text(&d.mac));
+    let up = "e1000e: up 15bb family=pch_cnp link=up".to_string();
+    assert!(logged().iter().all(|l| !l.contains(&mac_text(&d.mac))), "no station address logged");
     assert_eq!(logged().last(), Some(&up), "{:?}", logged());
     assert_ne!(bar.wrote32(REG_RCTL) & RCTL_EN, 0);
     assert_ne!(bar.wrote32(REG_TCTL) & TCTL_EN, 0);

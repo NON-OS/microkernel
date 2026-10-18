@@ -14,29 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The station address. Linux determine_ethernet_addr reads PLA_BACKUP on
-//! every version past RTL_VER_01 when the platform and the dock offer
-//! none (neither exists here), and set_ethernet_addr writes it into
-//! PLA_IDR with the config registers unlocked
-//! (__rtl8152_set_mac_address). Linux makes up a random address when the
-//! one read is not usable; here that is a named failure.
+//! The station address: the one drawn for the run, written into PLA_IDR
+//! as Linux set_ethernet_addr writes an address, with the config registers
+//! unlocked (__rtl8152_set_mac_address), so the chip's unicast filter
+//! (RCR_APM) matches it. Linux determine_ethernet_addr first reads the
+//! factory address from PLA_BACKUP; that is never read here, so a chip
+//! with none there binds all the same.
 
-use nonos_usbnet::desc::usable;
-use nonos_usbnet::Bus;
+use nonos_usbnet::{Bus, Station};
 
-use crate::r8153::fail::{at, Fail, E_ADDRNOTAVAIL};
-use crate::r8153::ocp::{get, set, write_byte, Dev, BYTE_EN_DWORD, BYTE_EN_WORD, PLA};
+use crate::r8153::fail::{at, Fail};
+use crate::r8153::ocp::{set, write_byte, Dev, BYTE_EN_DWORD, BYTE_EN_WORD, PLA};
 use crate::r8153::regs::bits::{CRWECR_CONFIG, CRWECR_NORMAL};
-use crate::r8153::regs::pla::{BACKUP, CRWECR, IDR};
+use crate::r8153::regs::pla::{CRWECR, IDR};
 
-pub fn station_address<B: Bus>(dev: &mut Dev<B>) -> Result<[u8; 6], Fail> {
+pub fn station_address<B: Bus>(dev: &mut Dev<B>, drawn: Station) -> Result<[u8; 6], Fail> {
+    let mac = drawn.bytes();
     let mut raw = [0u8; 8];
-    at("MAC unread", get(dev, PLA, BACKUP, &mut raw))?;
-    let mut mac = [0u8; 6];
-    mac.copy_from_slice(&raw[..6]);
-    if !usable(mac) {
-        return Err(("MAC in PLA_BACKUP not usable", E_ADDRNOTAVAIL));
-    }
+    raw[..6].copy_from_slice(&mac);
     at("MAC not written to PLA_IDR", write_idr(dev, &raw))?;
     Ok(mac)
 }

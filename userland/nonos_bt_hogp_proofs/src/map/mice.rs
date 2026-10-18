@@ -1,0 +1,60 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Pointer maps for the proofs, item by item from HID 1.11, 6.2.2 and HUT
+//! 1.4, 4 and 12.
+
+/// A mouse as report 3: five buttons and three bits of padding, then
+/// relative X, Y and Wheel in one signed octet each.
+#[rustfmt::skip]
+pub const MOUSE: [u8; 50] = [
+    0x05, 0x01, 0x09, 0x02, 0xa1, 0x01, 0x85, 0x03, 0x09, 0x01, 0xa1, 0x00,
+    0x05, 0x09, 0x19, 0x01, 0x29, 0x05, 0x15, 0x00, 0x25, 0x01,
+    0x95, 0x05, 0x75, 0x01, 0x81, 0x02,
+    0x95, 0x01, 0x75, 0x03, 0x81, 0x01,
+    0x05, 0x01, 0x09, 0x30, 0x09, 0x31, 0x09, 0x38, 0x15, 0x81, 0x25, 0x7f,
+    0x75, 0x08, 0x95, 0x03,
+];
+
+/// The rest of `MOUSE`: the axes as Input (Data, Variable, Relative), and
+/// both collections closed.
+pub const MOUSE_END: [u8; 4] = [0x81, 0x06, 0xc0, 0xc0];
+
+/// `MOUSE` with its axes absolute, as a tablet's are.
+pub fn absolute() -> Vec<u8> {
+    [&MOUSE[..], &[0x81, 0x02, 0xc0, 0xc0]].concat()
+}
+
+pub fn mouse() -> Vec<u8> {
+    [&MOUSE[..], &MOUSE_END[..]].concat()
+}
+
+/// A mouse without IDs: three buttons and five bits of padding, X and Y
+/// in sixteen bits from −32767 to 32767, then Wheel in eight.
+#[rustfmt::skip]
+pub const WIDE: [u8; 62] = [
+    0x05, 0x01, 0x09, 0x02, 0xa1, 0x01, 0x09, 0x01, 0xa1, 0x00,
+    0x05, 0x09, 0x19, 0x01, 0x29, 0x03, 0x15, 0x00, 0x25, 0x01,
+    0x95, 0x03, 0x75, 0x01, 0x81, 0x02,
+    0x95, 0x01, 0x75, 0x05, 0x81, 0x01,
+    0x05, 0x01, 0x09, 0x30, 0x09, 0x31, 0x16, 0x01, 0x80, 0x26, 0xff, 0x7f,
+    0x75, 0x10, 0x95, 0x02, 0x81, 0x06,
+    0x09, 0x38, 0x15, 0x81, 0x25, 0x7f, 0x75, 0x08, 0x95, 0x01, 0x81, 0x06,
+];
+
+pub fn wide() -> Vec<u8> {
+    [&WIDE[..], &[0xc0, 0xc0]].concat()
+}

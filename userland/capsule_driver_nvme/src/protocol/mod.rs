@@ -25,9 +25,7 @@ mod ops;
 pub use decode::decode_request;
 pub use encode::{encode_response_header, write_status};
 pub use endpoint::{KERNEL_REPLY_ENDPOINT, SERVICE_NAME};
-pub use errno::{
-    device_status, E_ACCES, E_INVAL, E_IO, E_MSGSIZE, E_NODEV, E_NXIO, E_TIMEDOUT,
-};
+pub use errno::{device_status, E_ACCES, E_INVAL, E_IO, E_MSGSIZE, E_NODEV, E_NXIO, E_TIMEDOUT};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use limits::{
     CAPACITY_PAYLOAD_LEN, CONTROLLER_INFO_PAYLOAD_LEN, IDENTIFY_CONTROLLER_PAYLOAD_LEN,

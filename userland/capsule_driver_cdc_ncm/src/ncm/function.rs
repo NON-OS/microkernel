@@ -37,8 +37,6 @@ pub struct NcmFunction {
     pub data: u8,
     pub data_alt: u8,
     pub pipes: Pipes,
-    /// The string descriptor index of the MAC address.
-    pub mac_index: u8,
     /// wMaxSegmentSize of the Ethernet Networking descriptor.
     pub max_segment: u16,
     /// bmNetworkCapabilities of the NCM functional descriptor.
@@ -58,7 +56,7 @@ pub fn find_ncm(raw: &[u8]) -> Option<NcmFunction> {
             .iter()
             .find(|i| i.number == data && i.class == CLASS_CDC_DATA && i.has_bulk_pair())?;
         let max_segment = u16::from_le_bytes([eth[8], eth[9]]);
-        let (data_alt, pipes, mac_index, caps) = (on.alt, on.pipes, eth[3], func[5]);
-        Some(NcmFunction { comm: c.number, data, data_alt, pipes, mac_index, max_segment, caps })
+        let (data_alt, pipes, caps) = (on.alt, on.pipes, func[5]);
+        Some(NcmFunction { comm: c.number, data, data_alt, pipes, max_segment, caps })
     })
 }

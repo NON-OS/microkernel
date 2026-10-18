@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::state::Primary;
 use super::{descriptor, dma, geometry, prime, resource};
-use crate::constants::VG_FORMAT_B8G8R8A8_UNORM;
-use crate::device::cmd;
 use crate::device::virtqueue::ControlQueue;
 use crate::state::{FenceCounter, ResourceTable, Scanout};
 use nonos_libc::{mk_surface_register, mk_surface_share};
@@ -33,41 +31,25 @@ pub fn create(
         None => return Ok(None),
     };
     let dma = dma::map(device_id, claim_epoch, geom.byte_len)?;
-    let resource_id = resources.alloc_id();
-    cmd::create_resource_2d(
-        q,
-        fences.issue(),
-        resource_id,
-        VG_FORMAT_B8G8R8A8_UNORM,
-        scanout.width,
-        scanout.height,
-    )?;
-    cmd::attach_backing(q, fences.issue(), resource_id, dma.device_addr, geom.byte_len as u32)?;
-    prime::display(q, fences, resource_id, scanout)?;
-    let desc = descriptor::build(scanout, geom, dma.user_va);
-    let sid = mk_surface_register(&desc);
-    if sid < 0 {
-        dma::rollback(dma.grant_id, "virtio-gpu: primary dma rollback failed")?;
-        return Err("virtio-gpu: surface register rejected");
-    }
-    let handle = mk_surface_share(sid as u64);
-    if handle < 0 {
-        dma::rollback(dma.grant_id, "virtio-gpu: primary dma rollback failed")?;
-        return Err("virtio-gpu: surface share rejected");
-    }
-    if resource::insert(resources, resource_id, scanout, dma.device_addr, geom.byte_len as u32)
-        .is_err()
-    {
-        dma::rollback(dma.grant_id, "virtio-gpu: primary dma rollback failed")?;
-        return Err("virtio-gpu: resource table full");
-    }
-    Ok(Some(Primary {
-        handle: handle as u64,
-        resource_id,
+    let primary = Primary {
+        handle: 0,
+        resource_id: resources.alloc_id(),
         width: scanout.width,
         height: scanout.height,
         stride: geom.stride,
         backing_addr: dma.device_addr,
-        backing_len: dma.length,
-    }))
+        backing_len: u32::try_from(geom.byte_len).map_err(|_| "virtio-gpu: surface too large")?,
+    };
+    prime::show(q, fences, &primary)?;
+    let desc = descriptor::build(scanout, geom, dma.user_va);
+    let sid = mk_surface_register(&desc);
+    if sid < 0 {
+        return Err("virtio-gpu: surface register rejected");
+    }
+    let handle = mk_surface_share(sid as u64);
+    if handle < 0 {
+        return Err("virtio-gpu: surface share rejected");
+    }
+    resource::insert(resources, primary.resource_id, scanout)?;
+    Ok(Some(Primary { handle: handle as u64, ..primary }))
 }

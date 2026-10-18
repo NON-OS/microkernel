@@ -14,7 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The release calls, recorded so a test can see what was given back.
+//! The release calls, recorded so a test can see what was given back, each
+//! logged with what the part was doing (`steps`).
+
+use crate::pci::stop_bus_master;
+use crate::steps::{note, Step};
+
+/// The MMIO grant as `mk_mmio_map` reports it; a rollback rebuilds the
+/// register window from it.
+pub struct MmioMapOut {
+    pub user_va: u64,
+    pub length: u64,
+    pub grant_id: u64,
+}
 
 thread_local! {
     static GIVEN_BACK: std::cell::RefCell<Vec<(&'static str, u64)>> =
@@ -22,6 +34,7 @@ thread_local! {
 }
 
 fn give_back(call: &'static str, id: u64) -> i64 {
+    note(Step::Freed(call, id));
     GIVEN_BACK.with(|g| g.borrow_mut().push((call, id)));
     0
 }
@@ -33,8 +46,12 @@ pub fn given_back() -> Vec<(&'static str, u64)> {
     GIVEN_BACK.with(|g| g.borrow().clone())
 }
 
+/// Logged with Bus Master as the driver left it; the release then clears it
+/// before any grant goes, as `MkDeviceRelease` does.
 pub fn mk_device_release(device_id: u64) -> i64 {
-    give_back("device_release", device_id)
+    let r = give_back("device_release", device_id);
+    stop_bus_master();
+    r
 }
 pub fn mk_dma_unmap(grant: u64) -> i64 {
     give_back("dma_unmap", grant)

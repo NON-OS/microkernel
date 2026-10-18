@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bring_up;
-mod legacy;
-mod modern;
-mod types;
+//! The virtio 1.0 bring-up, on the shared transport (`nonos_virtio`), split
+//! where bus mastering goes on (`setup::transport`): `negotiate` resets the
+//! device and settles features, `program` hands it the control queue and
+//! lets it run. `restart` runs both again after a reset, on the same grant.
 
-pub use bring_up::bring_up;
+mod negotiate;
+mod queue;
+mod restart;
+
+pub use negotiate::negotiate;
+pub use queue::program;
+pub use restart::restart;

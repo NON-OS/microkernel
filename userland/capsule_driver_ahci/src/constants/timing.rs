@@ -27,7 +27,7 @@ pub const HANDOFF_BOS_MS: u64 = 25;
 /// ...unless it is busy (BOHC.BB), when it has 2 s to finish.
 pub const HANDOFF_BUSY_MS: u64 = 2_000;
 /// PxCMD.CR and PxCMD.FR clear within 500 ms of ST and FRE (AHCI 1.3.1,
-/// 10.1.2), and PxCMD.CLO within the same.
+/// 10.1.2).
 pub const ENGINE_STOP_MS: u64 = 500;
 /// After the staggered spin-up, the most the walk waits for a link that is
 /// mid-negotiation (DET = 1) to settle.
@@ -43,13 +43,26 @@ pub const LINK_EMPTY_MS: u64 = 200;
 pub const DEVICE_READY_MS: u64 = 10_000;
 /// The same wait after a COMRESET that recovers a stuck port while a request
 /// is being served, kept short so the reply stays within the kernel's wait.
+/// A drive that takes longer is left to finish (RESET_WINDOW_MS).
 pub const RECOVER_READY_MS: u64 = 1_000;
+/// ATA gives a drive up to 31 s after a reset to clear BSY. Until that long
+/// after the last COMRESET a recovery sent, a drive still busy is taken to
+/// be in that reset: a request waits READY_MS for it and fails, and the
+/// drive is not reset again, which would start its reset over.
+pub const RESET_WINDOW_MS: u64 = 31_000;
+/// The most the driver waits, before it issues a command, for the device to
+/// drop BSY and DRQ and the engine to run; once more after a recovery. Short,
+/// so the wait never takes the time the command itself needs.
+pub const READY_MS: u64 = 1_000;
+/// The command budget while the walk tries a disk that has just come up
+/// (IDENTIFY and the probe reads): it answers in milliseconds, and one that
+/// does not is tried again on the next bring-up attempt.
+pub const BRING_UP_COMMAND_MS: u64 = 10_000;
 /// The most one command may take, issue to completion: 30 s, Linux's
 /// ATA_TMOUT_INTERNAL and SCSI default. A drive busy with its own
 /// housekeeping, or one waking from a low-power state, takes several seconds
 /// on a write or a cache flush, and 3 s failed it there. The kernel waits
 /// 35 s for a reply (services/lifecycle/reply_wait.rs SLOW_BUDGET_MS) and
 /// the installer's client 65 s, so a command that times out still answers
-/// with the port recovered (RECOVER_READY_MS after a LINK_TIMEOUT_MS
-/// COMRESET) before either stops waiting.
+/// with the port recovered before either stops waiting (`budget`).
 pub const COMMAND_MS: u64 = 30_000;

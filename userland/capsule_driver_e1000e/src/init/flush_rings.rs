@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Linux e1000_flush_desc_rings, run before the reset on pch_spt and later:
-//! an I219 reset while it still holds descriptors enters a unit hang only a
-//! PCI reset clears. Config word PCICFG_DESC_RING_STATUS says whether it
-//! does; the broker lets a claimed device's config space be read (any
-//! aligned offset below 256), so the check is the real one.
+//! Linux e1000_flush_desc_rings before the reset on pch_spt and later: an
+//! I219 reset while it holds descriptors is a unit hang only a PCI reset
+//! clears, and config word PCICFG_DESC_RING_STATUS (readable on a claimed
+//! device) says whether it does. The flush masters, so it runs only on
+//! descriptors this driver's rings gave the part (`on_own_rings`); those a
+//! previous owner left may name freed frames (README, Runtime lifecycle).
 
 use nonos_libc::mk_pci_config_read;
 
@@ -30,9 +31,10 @@ use crate::constants::regs_pch::REG_FEXTNVM11;
 use crate::log::say;
 use crate::setup::Driver;
 
-use super::{flush_rx, flush_tx};
+use super::{flush_rx, flush_tx, own_rings};
 
-pub fn run(d: &Driver) {
+/// True when the part holds descriptors a previous owner's rings gave it.
+pub fn run(d: &Driver) -> bool {
     // SAFETY: `d.regs` is the broker-mapped BAR0 window; FEXTNVM11 and TDLEN
     // are 4-byte registers inside it on pch_spt and later.
     let tdlen = unsafe {
@@ -41,25 +43,29 @@ pub fn run(d: &Driver) {
     };
     let Some(hang) = ring_status(d) else {
         say("DESC_RING_STATUS config read refused, ring flush skipped");
-        return;
+        return false;
     };
     if hang & FLUSH_DESC_REQUIRED == 0 || tdlen == 0 {
-        return;
+        return false;
     }
-    say("descriptor rings left pending by firmware, flushing");
+    if !d.on_own_rings {
+        say("descriptor rings left pending by a previous owner, reset with Bus Master off");
+        return true;
+    }
+    say("descriptor rings left pending, flushing");
+    if own_rings::run(d).map_err(say).is_err() {
+        return false;
+    }
     flush_tx::run(d);
     // The transmit flush may have been enough; the receive ring is flushed
     // only when the part still asks for it.
     if ring_status(d).is_some_and(|h| h & FLUSH_DESC_REQUIRED != 0) {
         flush_rx::run(&d.regs);
     }
+    false
 }
 
 fn ring_status(d: &Driver) -> Option<u16> {
     let r = mk_pci_config_read(d.device_id, d.claim_epoch, PCICFG_DESC_RING_STATUS, 2);
-    if r < 0 {
-        None
-    } else {
-        Some(r as u16)
-    }
+    (r >= 0).then_some(r as u16)
 }
