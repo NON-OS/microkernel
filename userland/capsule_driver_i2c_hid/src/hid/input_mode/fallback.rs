@@ -24,7 +24,8 @@ use super::port::REPORT_MAX;
 use crate::hid::Field;
 
 /// The length of the zeroed report `id` needs to hold every target field
-/// in it, id byte included; None when no field lives there or it is too long.
+/// in it, id byte included; None when no field lives there, a field's end
+/// does not fit 32 bits, or the report is too long.
 pub(super) fn from_descriptor(
     id: u8,
     targets: &[(Field, u8, u32); 3],
@@ -33,7 +34,7 @@ pub(super) fn from_descriptor(
     let mut need_bits = 0u32;
     for (field, field_id, _) in targets.iter() {
         if *field_id == id && field.present() {
-            need_bits = need_bits.max(field.bit_offset + field.bit_size);
+            need_bits = need_bits.max(field.end()?);
         }
     }
     if need_bits == 0 {

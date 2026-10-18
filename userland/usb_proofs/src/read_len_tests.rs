@@ -19,19 +19,15 @@
 //! driver answers a longer read with E_INVAL, and an endpoint read that way
 //! never delivers a report.
 
-use crate::poll::read_len::read_len;
-use crate::xhci_limits::INTERRUPT_IN_MAX as XHCI_READ_MAX;
-
-/// A boot keyboard or mouse report: 8 bytes at most.
-const BOOT_REPORT: u16 = 8;
+use crate::poll::read_len::{pad_read_len, read_len};
+use crate::xhci_limits::INTERRUPT_PAYLOAD_MAX;
 
 #[test]
 fn a_read_asks_for_one_packet_and_never_past_what_the_controller_driver_takes() {
-    assert!(BOOT_REPORT as usize <= XHCI_READ_MAX);
     for max_packet in 0..=u16::MAX {
         let len = read_len(max_packet);
-        assert!(len as usize <= XHCI_READ_MAX, "{max_packet} byte packets read as {len}");
-        assert_eq!(len, max_packet.min(BOOT_REPORT), "{max_packet} byte packets");
+        assert!(len <= INTERRUPT_PAYLOAD_MAX, "{max_packet} byte packets read as {len}");
+        assert_eq!(len, max_packet.min(8), "{max_packet} byte packets");
     }
 }
 
@@ -43,4 +39,13 @@ fn every_packet_size_a_binding_allows_is_read_in_full_up_to_a_boot_report() {
     assert_eq!(read_len(8), 8);
     assert_eq!(read_len(64), 8);
     assert_eq!(read_len(1024), 8);
+}
+
+#[test]
+fn a_gamepad_reads_its_whole_packet_up_to_64_bytes() {
+    for max_packet in 0..=u16::MAX {
+        let len = pad_read_len(max_packet);
+        assert!(len <= INTERRUPT_PAYLOAD_MAX, "{max_packet} byte packets read as {len}");
+        assert_eq!(len, max_packet.min(64), "{max_packet} byte packets");
+    }
 }

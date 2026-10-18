@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_virtio::Mmio;
+
+/// The legacy window in a memory BAR (every access bounds checked against
+/// the mapping) or an I/O BAR (every access a broker call on the grant).
 #[derive(Clone, Copy)]
 pub(super) enum RegIo {
-    Mmio(*mut u8),
+    Mmio(Mmio),
     Pio(u64),
 }

@@ -16,5 +16,7 @@
 use crate::constants::HCCPARAMS1;
 use crate::regs::mmio_read32;
 pub fn ac64(mmio_base: u64) -> bool {
-    (mmio_read32(mmio_base + HCCPARAMS1) & 0x1) != 0
+    // SAFETY: `mmio_base` starts the mapped window, and the capability registers are its first 32
+    // bytes.
+    (unsafe { mmio_read32(mmio_base + HCCPARAMS1) } & 0x1) != 0
 }

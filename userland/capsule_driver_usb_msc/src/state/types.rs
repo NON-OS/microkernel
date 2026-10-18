@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::said::Said;
 use super::sense::SENSE_KEPT;
 use crate::descriptors::MscBinding;
 use crate::protocol::MAX_BINDINGS;
@@ -36,6 +37,12 @@ pub struct State {
     /// The sense a UAS device sent with its last CHECK CONDITION, for the
     /// REQUEST SENSE that asks for it next (sense.rs).
     pub(super) sense: Option<([u8; SENSE_KEPT], usize)>,
+    /// What a sense said of the medium (`State::take_said`); whether the
+    /// kernel has read or written a sector this boot (`State::held`); and
+    /// the failed requests in a row the device was kept after since.
+    pub(super) said: Said,
+    pub(super) held: bool,
+    pub(super) failed: u8,
 }
 
 impl Default for State {
@@ -60,6 +67,9 @@ impl State {
             residue_bytes: 0,
             ignore_residue: false,
             sense: None,
+            said: Said::Nothing,
+            held: false,
+            failed: 0,
         }
     }
 }

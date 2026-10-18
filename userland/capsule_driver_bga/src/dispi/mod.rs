@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod choose;
+mod check;
 mod clear;
+mod copy;
 mod dispi_off;
 mod endian;
-mod mode;
-mod read;
+mod fit;
+mod restore;
 mod set_mode;
+mod span;
+mod state;
+mod unblank;
 
-pub use choose::choose;
+pub use check::{confirm, identify, kept};
 pub use clear::clear;
-pub use dispi_off::dispi_off;
+pub use copy::{copy, place, Rect};
 pub use endian::little_endian;
-pub use mode::{Choice, Mode};
-pub use read::{id, seen, vram};
-pub use set_mode::set_mode;
+pub use fit::{fit, video_memory};
+pub use restore::restore;
+pub use set_mode::{regs_len, set_mode};
+pub use span::{span, Span};
+pub use state::{read, Dispi};

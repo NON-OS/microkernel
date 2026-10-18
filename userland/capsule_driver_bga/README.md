@@ -1,128 +1,113 @@
 # capsule_driver_bga
 
 Status: wired, not yet signed. The kernel mirror (`src/hardware/bga_capsule`)
-embeds and spawns it under `nonos-capsule-driver-bga` (the
-`microkernel-driver-bga` build) when the inventory sees `DisplayBga`, and the
-compositor finds it after `driver.virtio_gpu0` in its graphics list. It has
-no owner certificate yet, so no image carries it until the owner signs it.
+embeds and spawns it under `nonos-capsule-driver-bga` when the inventory sees
+`DisplayBga`. It has no owner certificate yet, so no image carries it until
+the owner signs it (see the release checklist).
 
 ## Role
 
-`capsule_driver_bga` drives the Bochs graphics adapter (QEMU's stdvga,
-1234:1111) as Linux `bochs.c` does, and serves it to the compositor on the
-gfx wire `driver.virtio_gpu0` speaks. The adapter scans out its VRAM and has
-no DMA, so the driver keeps a shadow surface in ordinary memory, shares it
-with the compositor, and copies each presented rect into VRAM.
-
-```text
-compositor --NVGP--> driver.bga0 --copy--> VRAM (BAR 0) --> scanout
-     |                    |
-     `-- draws into ------' shadow surface (shared)
-```
+`driver.bga0` drives the Bochs/QEMU standard VGA adapter (1234:1111) and
+serves the compositor the display wire it speaks to virtio-gpu. The
+compositor looks it up after `driver.virtio_gpu0` and before GOP.
 
 ## Microkernel contract
 
-- `MkDeviceList` finds 1234:1111 with an MMIO register BAR (BAR 2, at least
-  0x608 bytes) and a framebuffer BAR (BAR 0).
-- `MkDeviceClaim` claims it; `MkPciConfigWrite` sets Memory Space only (no
-  bus mastering: the adapter never masters the bus).
-- `MkMmioMap` maps BAR 2 and as much of BAR 0 as the mode needs.
-- `MkMmap`, `MkSurfaceRegister` and `MkSurfaceShare` make the shadow.
-- `MkIpcRecvFrom` serves `service:4240:driver.bga0`; `MkIpcReply` answers.
+```text
+  broker / kernel                          capsule driver.bga0
+  MkDeviceList, MkDeviceClaim  -------->   discover, setup::run
+  PCI command: Memory Space on, Bus Master off
+  MkMmioMap BAR2 (DISPI), BAR0 (VRAM) -->  mode kept or set, VRAM cleared
+  MkMmap, MkSurfaceRegister, Share ---->   the surface, ordinary memory
+  MkServiceRegister, MkIpcRecvFrom/Reply   the wire, below
+  compositor -- get_primary ----------->   surface handle and geometry
+  compositor -- flush (rectangle) ----->   surface -> VRAM copy
+```
 
 ## Interface contract
 
-NVGP, version 1, as `driver.virtio_gpu0` frames it (its header and codec
-files are mounted, not copied):
-
-- `HEALTHCHECK` (0x01);
-- `GET_PRIMARY_SURFACE` (0x0C): the shadow's handle, resource 1, width,
-  height, stride, format 1 (B8G8R8A8). The first caller holds the screen;
-  any other gets -16;
-- `TRANSFER_TO_HOST` (0x08): copies the rect, whose rows start at the
-  request's offset in the shadow, into VRAM;
-- `SET_SCANOUT` (0x09): scanout 0, resource 1, the whole mode;
-- `FLUSH` (0x0A): checked and answered. VRAM is what the adapter scans out,
-  so the transfer already showed the rect.
-
-Other ops answer -38; a malformed body -22.
+Service 4240, reply 4241 (`endpoint.4294967326`). Only the compositor may
+send to it once the kernel's holder table names it (C6, track A's).
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x39018`: IPC, Memory, GraphicsSurfaceCreate,
-DeviceEnum, Driver, Mmio. No Dma, Irq, Pio, Crypto, Network, filesystem or
-admin authority.
-
-## Current implemented surface
-
-- DISPI id check (`(id & 0xfff0) == 0xb0c0`) and VRAM from
-  `VIDEO_MEMORY_64K`, capped at BAR 0.
-- QEMU's framebuffer byte order set little endian where the register is.
-- The firmware's mode is kept when it is enabled at 32 bpp with its linear
-  framebuffer, unpanned, and fits. Otherwise 1024x768x32 is set in
-  `bochs_hw_setmode`'s order, read back, and cleared.
-- One screen, polled by request; no interrupts.
-
-## Wire format
-
-As `driver.virtio_gpu0`: a 20-byte NVGP header (`NVGP`, version, op, flags,
-request id, payload length), then a 4-byte status and the op's payload.
-
-## State ownership
-
-The capsule owns the claim, both MMIO grants and the shadow. The compositor
-attaches the shadow and draws into it; the driver only reads it.
-
-## Operating rules
-
-No MMIO or framebuffer access outside broker grants. No present from a
-process other than the screen's holder.
+`CAPSULE_REQUIRED_CAPS` = 0x39018 (IPC, Memory, GraphicsSurfaceCreate,
+DeviceEnum, Driver, Mmio), each bit named in Capsule.mk.
+`CAPSULE_OPTIONAL_CAPS` = 0x100 (Debug). No Dma, Irq or Pio.
 
 ## Privacy and persistence
 
-The shadow holds what is on screen; nothing is written anywhere else or kept
-past the process.
+It keeps nothing but the compositor's frame in the surface. Nothing is
+logged per request, and nothing is stored.
 
 ## Runtime lifecycle
 
-Spawned once, on `DisplayBga`. Each request is answered in turn; between them the
-driver waits in the kernel.
+With no adapter it exits `EXIT_ABSENT` (2) before claiming anything; one
+that fails setup is retried on the shared bounded schedule, each try
+releasing its claim, then `EXIT_GAVE_UP` (6). Up, it waits in its receive
+for at most a second at a time. A refused service registration gives the
+adapter back and exits 1.
 
 ## Failure model
 
-With no adapter the capsule logs one line and exits `EXIT_ABSENT` (2) before
-claiming anything. A failed attempt drops its claim, which releases the
-adapter and its grants, and is retried on the shared bounded schedule; running
-out exits `EXIT_GAVE_UP` (6) with the last cause: no DISPI id, no mode fits,
-mode refused, shadow refused, or a broker refusal.
+Each attempt fails by name: a register mapping that ends inside the DISPI
+block, a DISPI ID outside 0xB0C0 to 0xB0C5, a mode past VIDEO_MEMORY_64K
+or past the BAR0 mapping, a mode that does not read back as set, a surface
+the kernel refuses. The DISPI state firmware left is read before any write
+and, where it changed, written back at every drop before the mappings and
+the claim are given up. A capsule killed outright runs no drop: a kept OVMF
+mode stays GOP's, as no DISPI register was written; a mode set stays set.
+
+## Current implemented surface
+
+The mode OVMF left for GOP is kept when it is 32 bits a pixel with its
+linear framebuffer and unpanned; else 1024x768x32 is set, with the VGA
+attribute controller's palette address source set first so the adapter
+shows a picture. Where BAR2 holds the byte-order register it is set little
+endian; it is not written back at drop. VRAM is cleared once the surface is
+made. Served: get_primary, transfer, set_scanout, flush.
+
+## Wire format
+
+NVGP, virtio-gpu's ops and statuses. OP_GET_PRIMARY_SURFACE (0x0C) hands
+the surface only to the pid `compositor` is registered to, others E_BUSY;
+OP_FLUSH (0x0A) copies the rectangle into VRAM; OP_TRANSFER_TO_HOST (0x08)
+names where it starts and moves nothing, the surface being the resource;
+OP_SET_SCANOUT (0x09) takes only the whole mode, E_DEVICE once the adapter
+drops it. A bad frame or rectangle is E_INVAL; an unserved op E_BAD_OP.
+
+## State ownership
+
+The compositor draws in the surface, ordinary memory. The VRAM mapping is
+device memory and stays here: as a surface, the kernel's registry would
+free its pages to the allocator when this capsule dies, and map them
+cacheable in the compositor beside this capsule's uncached mapping.
+
+## Operating rules
+
+No MMIO outside broker grants; every rectangle off the wire is checked
+against the mode before a pixel moves.
 
 ## Release target
 
-The compositor's gfx backend on QEMU stdvga (and Bochs), in place of the
-kernel's GOP blit.
+Spawned after virtio-gpu wherever the adapter is present.
 
 ## Release evidence
 
-`bga_proofs` on the host; the QEMU `vga=std` boot below.
+Host proofs (`bga_proofs`); a QEMU `-vga std` OVMF boot showing the
+desktop through `driver.bga0`.
 
 ## Release checklist
 
-- Signed by the owner and added to the desktop image's features.
-- A QEMU stdvga boot showing the desktop through `driver.bga0`.
-
-## Real hardware bring-up checklist
-
-Bochs and QEMU only; there is no such silicon. Under QEMU `-vga std`:
-
-- the firmware's mode (OVMF's) is kept, with no flicker at the switch;
-- the compositor moves from GOP to `driver.bga0` and the desktop keeps
-  drawing;
-- a machine without the adapter shows `[EXIT] <service> status 2`.
+The owner's keys and certificate. The held-table entry, kernel mirror,
+spawn and `DisplayBga` dispatch (`src/hardware/inventory`) are in. Signing
+waits for A's kernel fix reserving baked service names: a capsule loaded at
+runtime can take `compositor` while it is free today, and with it the
+primary.
 
 ## Explicit non-goals today
 
-No mode change after start, no second head, no hardware cursor, no
-VirtualBox (80ee:beef) or Bochs I/O-port-only adapter.
+No mode set on request, no EDID, one scanout, no hardware cursor.
 
 ## Verification
 

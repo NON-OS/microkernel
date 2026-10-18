@@ -13,47 +13,57 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
+use super::multitouch::multitouch;
+use super::pointer::{act, note, pointer};
 use super::read_frame::read_frame;
 use super::repeat::skip_repeat;
-use super::touch_frame::touch_frame;
-use crate::hid::decode_mouse;
-use crate::input::parse_report::parse_report;
-use crate::input::publish::publish;
-use crate::state::{State, FRAME_MAX};
+use super::report::{report_of, Report};
+use crate::state::{LastRead, State};
 
-pub fn poll(state: &mut State) {
+/// Read the pad once and post what its report says. True when a fresh
+/// report came: not the zero-length one, and not a verbatim repeat.
+pub fn poll(state: &mut State) -> bool {
     if !state.found() || state.input_register == 0 {
-        return;
+        return false;
     }
     // A full Precision Touchpad report carries several contacts plus the
     // contact-count and scan-time trailer and can run past 64 bytes; the
     // length prefix at the head still drives how much of this we parse.
-    let mut buf = [0u8; FRAME_MAX];
-    let Some(n) = read_frame(state, &mut buf) else {
-        return;
+    let mut frame = core::mem::take(&mut state.frame);
+    let fresh = read_frame(state, &mut frame).is_some_and(|n| deliver(state, &frame, n));
+    // The report has been handed on to the input ring; none of it stays in
+    // the driver.
+    frame.fill(0);
+    state.frame = frame;
+    fresh
+}
+
+/// A frame of `n` bytes read: its report decoded, unless it is none the
+/// driver reads, and acted on, unless it repeats the last.
+fn deliver(state: &mut State, frame: &[u8], n: usize) -> bool {
+    let report = match (state.last_read, report_of(frame, n)) {
+        (LastRead::Report, Report::Whole(report)) => report,
+        // A torn frame is skipped whole, never decoded from what arrived.
+        (LastRead::Report, Report::Torn) => return ended(state, true),
+        _ => return ended(state, false),
     };
-    if skip_repeat(&mut state.repeat, &buf, n) {
-        return;
+    // Any report but the driven collections' (a keyboard's keys, a
+    // vendor's data) is dropped unread: nothing of it is kept.
+    let seen = match state.mt.serves() {
+        true => multitouch(state, report),
+        false => pointer(state, report),
+    };
+    let Some(seen) = seen else { return ended(state, true) };
+    note(state, &seen);
+    if skip_repeat(&mut state.repeat, seen) {
+        return false;
     }
-    // An absolute touchpad decodes through the parsed field map and the gesture
-    // engine; anything else falls back to the relative boot-mouse decode.
-    if state.touch_layout.is_absolute_touch() && touch_frame(state, &buf, n) {
-        return;
-    }
-    // The mouse collection, decoded at the positions the descriptor gives
-    // when it declares one; the boot-mouse guess is kept for a descriptor
-    // that could not be read.
-    if state.mouse_layout.is_relative_mouse() {
-        let total = u16::from_le_bytes([buf[0], buf[1]]) as usize;
-        if (3..=n).contains(&total) {
-            if let Some(sample) = decode_mouse(&buf[2..total], &state.mouse_layout) {
-                publish(state, sample);
-            }
-        }
-        return;
-    }
-    if let Some(sample) = parse_report(&buf[..n]) {
-        publish(state, sample);
-    }
+    act(state, seen);
+    true
+}
+
+/// A read that brought no pointer report ends a run of repeats.
+fn ended(state: &mut State, report: bool) -> bool {
+    state.repeat.reset();
+    report
 }

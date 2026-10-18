@@ -24,14 +24,18 @@ fn media_states_and_keepalives_are_read_and_their_lengths_checked() {
 }
 
 /// QEMU's usb-net, with `extra` queued behind the packet filter's
-/// completion, so it waits for the first response read after bind.
+/// completion, the second SET's (the station address is the first), so it
+/// waits for the first response read after bind.
 fn bound_with(
     extra: Vec<u8>,
 ) -> (nonos_usbnet::mock::MockBus, crate::rndis::link::Rndis<nonos_usbnet::mock::MockBus>) {
-    let mut extra = Some(extra);
-    let (bus, r) = bind_with(Box::new(move |kind, c| match kind {
-        5 => [vec![c], extra.take().into_iter().collect()].concat(),
-        _ => vec![c],
+    let (mut extra, mut sets) = (Some(extra), 0);
+    let (bus, r) = bind_with(Box::new(move |kind, c| {
+        sets += (kind == 5) as u32;
+        match (kind, sets) {
+            (5, 2) => [vec![c], extra.take().into_iter().collect()].concat(),
+            _ => vec![c],
+        }
     }));
     let Bind::Ours(nic) = r else { panic!("not bound") };
     (bus, nic)

@@ -38,7 +38,9 @@ impl Driver {
             Driver::VirtioBlk => 0x4E42_4C4B,
             Driver::Nvme => 0x4E4E_564D,
             Driver::Ahci => 0x4E41_4843,
-            Driver::Wire | Driver::Ufs => 0x4E42_5731,
+            Driver::Rtsx => 0x4E53_4452,
+            Driver::Wire => 0x4E42_5731,
+            Driver::Ufs => 0x4E42_5731,
         }
     }
 
@@ -47,8 +49,12 @@ impl Driver {
             Driver::VirtioBlk => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
             Driver::Nvme => Ops { capacity: 6, read: 7, write: 8, flush: 9 },
             Driver::Ahci => Ops { capacity: 4, read: 5, write: 6, flush: 7 },
+            Driver::Rtsx => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
             // GEOMETRY opens with the block count, as a capacity reply does.
-            Driver::Wire | Driver::Ufs => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            // Both serve the one block wire; an arm each, so the table reads
+            // row by row (scripts/check_blk_wire.py).
+            Driver::Wire => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Ufs => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
         }
     }
 }

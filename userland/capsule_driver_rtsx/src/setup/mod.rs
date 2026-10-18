@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding the reader, taking it from the broker, and the driver state that
-//! holds what was taken.
+//! Finding the reader, taking it from the broker, the driver state that
+//! holds what was taken, and letting it go.
 
+mod bulk;
+mod claim;
 mod discover;
 mod driver;
-mod handles;
+mod master;
 mod region;
 mod run;
+mod teardown;
 
 pub use discover::{find, Found};
 pub use driver::Driver;

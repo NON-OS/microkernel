@@ -22,7 +22,7 @@ fn a_report_size_of_2_32_bits_records_nothing_after_it() {
     let d = with_padding(&[0x77, 0xFF, 0xFF, 0xFF, 0xFF, 0x95, 0x02, 0x81, 0x03]);
     let layout = parse_report_descriptor(&d);
     assert!(!layout.x.present() && !layout.tip.present());
-    let mut mt = Multitouch::new(&d, &layout);
+    let mut mt = Multitouch::new(&d);
     assert!(mt.slots.n == 0 && !mt.serves(), "no finger collection is believed");
     let r = report(&[at(true, 1, 10, 10), at(true, 2, 20, 20)], 2, false);
     assert_eq!(mt.frame(&r).map_or(0, |f| f.n), 0);
@@ -42,21 +42,23 @@ fn a_field_wider_than_32_bits_or_past_any_report_is_not_recorded() {
         d
     };
     assert!(!parse_report_descriptor(&wide).x.present());
-    // 524288 bits of constant padding first: every field after ends past
-    // the 65535-byte report.
+    // 524288 bits of constant padding first: past the longest report the
+    // walk takes, so the descriptor is refused.
     let far = with_padding(&[0x77, 0x00, 0x00, 0x08, 0x00, 0x95, 0x01, 0x81, 0x03]);
     let layout = parse_report_descriptor(&far);
     assert!(!layout.x.present() && !layout.contact_count.present());
 }
 
 #[test]
-fn items_cut_short_end_the_walk() {
-    let mut d = digitizer(PAD, 2);
-    let whole = parse_report_descriptor(&d).x.present();
-    d.extend([0xFE, 0xFF, 0x00]); // a long item claiming 255 bytes
-    assert_eq!(parse_report_descriptor(&d).x.present(), whole);
-    d.push(0x77); // a four-byte item with no data
-    assert_eq!(parse_report_descriptor(&d).x.present(), whole);
+fn items_cut_short_refuse_the_descriptor_whole() {
+    let d = digitizer(PAD, 2);
+    assert!(parse_report_descriptor(&d).x.present() && Multitouch::new(&d).serves(), "control");
+    // A long item claiming 255 bytes, and a four-byte item with no data.
+    for cut in [&[0xFE, 0xFF, 0x00][..], &[0x77]] {
+        let d = [&d[..], cut].concat();
+        assert!(!parse_report_descriptor(&d).x.present(), "a cut descriptor was taken");
+        assert_eq!(Multitouch::new(&d).slots.n, 0, "a cut descriptor's fingers were taken");
+    }
 }
 
 #[test]

@@ -16,7 +16,9 @@
 
 mod claim;
 mod driver;
+mod memory;
 mod mmio;
+mod mode;
 mod pci;
 mod sequence;
 mod surface;

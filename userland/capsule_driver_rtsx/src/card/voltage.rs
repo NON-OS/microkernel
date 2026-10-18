@@ -18,6 +18,7 @@
 //! (rts5227_switch_output_voltage and rts522a_switch_output_voltage): the
 //! PHY's output value for the family, then the pad drive for 3.3 V.
 
+use super::limits::REGS_MS;
 use crate::chip::Family;
 use crate::error::Result;
 use crate::hw::write_phy;
@@ -33,5 +34,5 @@ pub fn signal_3v3(drv: &Driver) -> Result<()> {
     write_phy(drv.regs, 0x08, value)?;
     let mut buf = CmdBuf::new();
     fill_driving_3v3(&mut buf);
-    crate::engine::send(drv, &buf, 100)
+    crate::engine::send(drv, &buf, REGS_MS)
 }

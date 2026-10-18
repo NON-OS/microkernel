@@ -37,14 +37,14 @@ pub(super) fn join<N>(xhci: u32, port: u8, tag: &[u8], share: ShareFn<N>) -> Pro
     let found = match read_shared(xhci, slot, port) {
         Ok(found) => found,
         Err(e) => {
-            say_port(tag, port, (0, 0), b"shared device unread", Some(e));
+            say_port(tag, port, None, b"shared device unread", Some(e));
             return Probe::Failed;
         }
     };
-    let ids = (found.info.vendor, found.info.product);
+    let ids = Some((found.info.vendor, found.info.product));
     match share(bus, &found, claimed) {
         Bind::Ours(nic) => {
-            say_port(tag, port, ids, b"bound beside another driver", None);
+            say_port(tag, port, None, b"bound beside another driver", None);
             Probe::Ours(Bound { nic, xhci, slot, port })
         }
         Bind::NotOurs => Probe::NotOurs,

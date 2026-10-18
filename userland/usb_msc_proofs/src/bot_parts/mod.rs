@@ -7,6 +7,8 @@
 
 #[path = "../../../capsule_driver_usb_msc/src/disk/bot.rs"]
 pub mod bot;
+#[path = "../../../capsule_driver_usb_msc/src/disk/csw.rs"]
+mod csw;
 #[path = "../../../capsule_driver_usb_msc/src/disk/data.rs"]
 mod data;
 #[path = "../../../capsule_driver_usb_msc/src/disk/data_phase.rs"]

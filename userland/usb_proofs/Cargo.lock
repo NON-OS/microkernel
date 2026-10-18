@@ -11,4 +11,9 @@ name = "usb_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_keymap",
+ "usb_proofs_libc_shim",
 ]
+
+[[package]]
+name = "usb_proofs_libc_shim"
+version = "0.1.0"

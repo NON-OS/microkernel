@@ -16,9 +16,13 @@
 
 mod finish;
 mod mac;
+mod recover;
 mod reset;
 mod run;
 mod rx_setup;
+mod start;
 mod tx_setup;
 
 pub use finish::finish;
+pub use recover::recover;
+pub use reset::part as reset_part;

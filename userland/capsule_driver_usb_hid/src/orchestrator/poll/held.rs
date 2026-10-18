@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the driver keeps for one USB host: the HID devices and hubs found
-//! through it, and its root ports' tries. Root port and slot numbers are
+//! What the driver keeps for one USB host: the HID devices found through
+//! it, and what its ports showed (`RootPorts`). Port and slot numbers are
 //! the host's own, so each host keeps its own.
 
-use crate::orchestrator::enumerate::Devices;
+use crate::orchestrator::enumerate::{Devices, RootPorts};
 
 pub struct Held {
     pub devs: Devices,
-    pub tries: [u8; 256],
+    pub roots: RootPorts,
 }
 
 impl Held {
     pub fn new() -> Self {
-        Held { devs: Devices::new(), tries: [0; 256] }
+        Held { devs: Devices::new(), roots: RootPorts::new() }
     }
 }

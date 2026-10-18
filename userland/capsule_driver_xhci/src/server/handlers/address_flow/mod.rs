@@ -13,16 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod address_after_reset;
+mod address_at;
 mod alloc_resources;
 mod attach_resources;
 mod command_address;
 mod complete_address;
 mod fix_ep0;
 mod port_speed;
-mod routed;
 mod slot_ready;
-pub use address_after_reset::address_after_reset;
+pub use address_at::address_at;
 pub use port_speed::port_speed;
-pub use routed::{address_routed, Below};
 pub use slot_ready::slot_ready;

@@ -16,14 +16,18 @@
 
 //! A bound NCM device as the frame service calls it (link.rs holds it).
 
-use nonos_usbnet::{Bus, Nic};
+use nonos_usbnet::{Bus, Nic, Taken};
 
 use super::link::Ncm;
 use super::transfer::{recv, send};
 
 impl<B: Bus> Nic for Ncm<B> {
     fn mac(&self) -> [u8; 6] {
-        self.mac
+        self.station.0
+    }
+
+    fn taken(&self) -> Taken {
+        self.station.1
     }
 
     /// Up from bind until NETWORK_CONNECTION says down (transfer.rs reads

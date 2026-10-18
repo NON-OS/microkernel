@@ -21,5 +21,7 @@ use crate::constants::HCCPARAMS1;
 use crate::regs::mmio_read32;
 
 pub fn max_psa(mmio_base: u64) -> u8 {
-    ((mmio_read32(mmio_base + HCCPARAMS1) >> 12) & 0xF) as u8
+    // SAFETY: as in `ac64`: HCCPARAMS1 lies in the mapped window's first
+    // 32 bytes.
+    ((unsafe { mmio_read32(mmio_base + HCCPARAMS1) } >> 12) & 0xF) as u8
 }

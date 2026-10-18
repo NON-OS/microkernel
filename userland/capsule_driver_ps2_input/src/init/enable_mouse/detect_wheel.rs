@@ -26,19 +26,19 @@ use crate::constants::{
     CTL_WRITE_AUX, INTELLIMOUSE_ID, MOUSE_ACK, MOUSE_GET_DEVICE_ID, MOUSE_SET_SAMPLE_RATE,
 };
 
-pub(super) fn detect_wheel(grant_id: u64) -> Result<bool, &'static str> {
-    set_sample_rate(grant_id, 200)?;
-    set_sample_rate(grant_id, 100)?;
-    set_sample_rate(grant_id, 80)?;
+pub(super) fn detect_wheel(grant_id: u64, keys: &mut dyn FnMut(u8)) -> Result<bool, &'static str> {
+    set_sample_rate(grant_id, 200, keys)?;
+    set_sample_rate(grant_id, 100, keys)?;
+    set_sample_rate(grant_id, 80, keys)?;
     command(grant_id, CTL_WRITE_AUX)?;
     write_data(grant_id, MOUSE_GET_DEVICE_ID)?;
-    if read_data(grant_id)? != MOUSE_ACK {
+    if read_data(grant_id, keys)? != MOUSE_ACK {
         return Err("device id not acknowledged");
     }
-    Ok(read_data(grant_id)? == INTELLIMOUSE_ID)
+    Ok(read_data(grant_id, keys)? == INTELLIMOUSE_ID)
 }
 
-fn set_sample_rate(grant_id: u64, rate: u8) -> Result<(), &'static str> {
-    mouse_command(grant_id, MOUSE_SET_SAMPLE_RATE)?;
-    mouse_command(grant_id, rate)
+fn set_sample_rate(grant_id: u64, rate: u8, keys: &mut dyn FnMut(u8)) -> Result<(), &'static str> {
+    mouse_command(grant_id, MOUSE_SET_SAMPLE_RATE, keys)?;
+    mouse_command(grant_id, rate, keys)
 }

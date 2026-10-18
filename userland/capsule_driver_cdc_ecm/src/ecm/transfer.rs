@@ -25,6 +25,8 @@ use nonos_usbnet::Bus;
 use super::frame::padded_len;
 use super::link::Ecm;
 
+/// One frame of 14 to 1514 bytes out; any other length is refused here,
+/// whatever the caller checked, since `tx` holds a full frame and a byte.
 pub(super) fn send<B: Bus>(ecm: &mut Ecm<B>, frame: &[u8]) -> Result<(), i32> {
     if !(ETH_HEADER..=ETH_FRAME_MAX).contains(&frame.len()) {
         return Err(E_INVAL);

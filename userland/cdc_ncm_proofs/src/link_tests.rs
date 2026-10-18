@@ -3,6 +3,7 @@
 //! notification endpoint, looked at once every 64 receives; up from bind
 //! until the device says otherwise.
 
+use nonos_usbnet::mock::drawn;
 use nonos_usbnet::{Bind, Nic};
 
 use crate::device::Dev;
@@ -24,7 +25,7 @@ fn network_connection_is_read_and_others_are_not() {
 fn the_link_follows_the_device_from_its_notification_endpoint() {
     let dev = Dev::ncm(0);
     let (found, bus) = (dev.found(), dev.bus());
-    let Bind::Ours(mut nic) = bind(bus.clone(), &found) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
     assert_eq!(nic.notify, Some(3), "interrupt IN 0x81, DCI 3");
     assert!(nic.link_up(), "up from bind");
     bus.0.borrow_mut().notices.push_back(notice(false));

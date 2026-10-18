@@ -24,6 +24,8 @@ use crate::descriptors::MscBinding;
 #[derive(Clone, Copy)]
 pub struct Disk {
     pub xhci: u32,
+    /// The root port it is on, and its slot.
+    pub port: u8,
     pub slot: u8,
     pub interface: u8,
     /// BOT's bulk pair; UAS's data pipes (the second pair).
@@ -44,20 +46,11 @@ pub struct Disk {
 }
 
 impl Disk {
-    /// The device on `slot` bound through `b`, before its size is asked.
+    /// The device on `slot` bound through `b`, by BOT until it is told
+    /// otherwise, before its port is set and its size asked.
     pub fn bound(xhci: u32, slot: u8, b: &MscBinding) -> Self {
         let (interface, ep_in, ep_out) = (b.interface, b.bulk_in, b.bulk_out);
-        Self {
-            xhci,
-            slot,
-            interface,
-            ep_in,
-            ep_out,
-            uas: false,
-            streams: false,
-            lun: 0,
-            blocks: 0,
-            block_len: 0,
-        }
+        let (uas, streams, lun, blocks, block_len) = (false, false, 0, 0, 0);
+        Self { xhci, port: 0, slot, interface, ep_in, ep_out, uas, streams, lun, blocks, block_len }
     }
 }

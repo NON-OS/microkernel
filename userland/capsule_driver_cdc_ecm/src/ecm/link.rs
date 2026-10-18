@@ -20,7 +20,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_usbnet::nic::ETH_FRAME_MAX;
-use nonos_usbnet::Pipes;
+use nonos_usbnet::{Pipes, Taken};
 
 use super::counts::Counts;
 use super::function::EcmFunction;
@@ -33,6 +33,8 @@ pub const RX_LEN: usize = 2048;
 pub struct Ecm<B> {
     pub(super) bus: B,
     pub(super) mac: [u8; 6],
+    /// How the device came to take frames for the drawn address.
+    pub(super) taken: Taken,
     pub(super) comm: u8,
     pub(super) pipes: Pipes,
     /// The notification endpoint's DCI, and what one look at it arms.
@@ -50,11 +52,12 @@ pub struct Ecm<B> {
 }
 
 impl<B> Ecm<B> {
-    pub fn new(bus: B, mac: [u8; 6], f: &EcmFunction, notify: Option<u8>) -> Self {
+    pub fn new(bus: B, mac: [u8; 6], taken: Taken, f: &EcmFunction, notify: Option<u8>) -> Self {
         let notice_len = armed(f.notify.map_or(0, |n| n.max_packet));
         Self {
             bus,
             mac,
+            taken,
             comm: f.comm,
             pipes: f.pipes,
             notify,

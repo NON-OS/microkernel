@@ -14,44 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A request taken in: a claimant's slot made the parked one it stands
-//! for, then carried to that slot's controller as its own slot; and the
-//! status word of a reply kept back.
+//! The multiplexer's slot ids, and a request sent on by one.
 
 use alloc::vec::Vec;
 
-use super::mux::{Mux, VSlot};
-use crate::protocol::{Request, E_INVAL, OP_ENABLE_SLOT, RESP_HDR_LEN, STATUS_LEN};
+use super::mux::Mux;
+use crate::protocol::{Request, E_INVAL};
 use crate::server::dispatch::dispatch;
 use crate::server::error::reply_with_status;
 
-impl Mux {
-    /// A request, a claimant's slot standing for the parked one it claimed.
-    pub fn dispatch(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
-        if req.op == OP_ENABLE_SLOT {
-            return self.enable_held(req, body, tx);
-        }
-        if self.auth_ops(req, body, tx) || self.claim_ops(req, body, tx) {
-            return;
-        }
-        if self.virtual_ops(req, body, tx) {
-            return;
-        }
-        // A claimant's slot stands for the parked one; the body is copied
-        // only then.
-        let own: Vec<u8>;
-        let body = match body.first().map(|&s| self.virt.real(s)) {
-            Some(real) if real != body[0] => {
-                own = [&[real][..], &body[1..]].concat();
-                &own[..]
-            }
-            _ => body,
-        };
-        if !self.bind_refused(req, body, tx) {
-            self.inner(req, body, tx)
-        }
-    }
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum VSlot {
+    Free,
+    /// Reserved by Enable Slot for client `owner`, no controller yet.
+    Pending {
+        owner: u32,
+    },
+    Bound {
+        ctrl: u8,
+        slot: u8,
+    },
+}
 
+impl Mux {
     /// A request whose first byte is a slot id, sent to that slot's controller.
     pub(super) fn forward(&mut self, req: &Request, body: &[u8], tx: &mut [u8]) {
         let Some(&v) = body.first() else { return reply_with_status(tx, req, E_INVAL) };
@@ -62,13 +47,4 @@ impl Mux {
         local[0] = slot;
         dispatch(&mut self.ctxs[ctrl as usize], req, &local, tx);
     }
-}
-
-/// The status word of a reply `len` bytes long in `tx`.
-pub(super) fn status(tx: &[u8], len: usize) -> Option<i32> {
-    if len < RESP_HDR_LEN + STATUS_LEN {
-        return None;
-    }
-    let at = tx.get(RESP_HDR_LEN..RESP_HDR_LEN + STATUS_LEN)?;
-    Some(i32::from_le_bytes([at[0], at[1], at[2], at[3]]))
 }

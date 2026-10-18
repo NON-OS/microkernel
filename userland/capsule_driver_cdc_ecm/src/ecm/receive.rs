@@ -19,7 +19,7 @@
 //! armed; one that fills the buffer has not ended, so it and the rest of it
 //! up to its end are let go, never read past the buffer or taken as frames.
 
-use nonos_usbnet::nic::ETH_FRAME_MAX;
+use nonos_usbnet::nic::ETH_HEADER;
 use nonos_usbnet::Bus;
 
 use super::counts::bump;
@@ -43,12 +43,9 @@ pub(super) fn recv<B: Bus>(ecm: &mut Ecm<B>, out: &mut [u8]) -> Result<Option<us
         return Ok(None);
     }
     let Some(len) = received_len(n) else {
-        bump(&mut c.runts);
+        bump(if n < ETH_HEADER { &mut c.runts } else { &mut c.cut });
         return Ok(None);
     };
-    if n > ETH_FRAME_MAX {
-        bump(&mut c.cut);
-    }
     if len > out.len() {
         bump(&mut c.too_long);
         return Ok(None);
