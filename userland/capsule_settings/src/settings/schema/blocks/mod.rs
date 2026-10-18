@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod appearance;
+mod bluetooth;
 mod developer;
 mod general;
 mod network;
@@ -25,6 +26,7 @@ mod updates;
 mod wifi;
 
 pub use appearance::APPEARANCE;
+pub use bluetooth::BLUETOOTH;
 pub use developer::DEVELOPER;
 pub use general::GENERAL;
 pub use network::NETWORK;
