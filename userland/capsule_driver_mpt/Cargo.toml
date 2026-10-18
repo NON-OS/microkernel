@@ -1,0 +1,35 @@
+# NONOS userland: capsule_driver_mpt
+#
+# Userland LSI Fusion-MPT (1000:0030, the 53C1030; 1000:0054, the SAS1068)
+# driver capsule: VMware's LSI Logic Parallel and LSI Logic SAS, VirtualBox's
+# LsiLogic and LsiLogic SAS, QEMU's mptsas1068. The message interface: the
+# doorbell handshake for IOC FACTS and IOC INIT, then request and reply
+# FIFOs; one MMIO register window, one coherent DMA grant below 4 GiB for
+# the request frame, the reply frames, the sense buffer and the 64 KiB
+# buffer, polled. The disks and CD drives on its targets are served on the
+# block wire (NBW1) through nonos_scsi and nonos_scsi_serve.
+
+[package]
+name = "nonos_capsule_driver_mpt"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland LSI Fusion-MPT SCSI driver capsule"
+
+[[bin]]
+name = "driver_mpt"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_scsi_serve = { path = "../nonos_scsi_serve" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

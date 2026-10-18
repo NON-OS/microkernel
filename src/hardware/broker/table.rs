@@ -16,6 +16,7 @@
 
 mod external;
 mod init;
+mod legacy_ide;
 mod list;
 mod numa;
 mod pci_record;
