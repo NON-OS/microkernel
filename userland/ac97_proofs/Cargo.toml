@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the ICH AC'97 driver. Builds for the host so
+# `cargo test` runs the real driver source (included via #[path]) against a
+# model of the controller and its codec, the broker's port I/O routed into
+# the model and its DMA grant on host memory, from the cold reset to the
+# samples the engine plays out, and against the audio server's own wire.
+[package]
+name = "ac97_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "ac97_proofs_libc_shim", path = "libc_shim" }

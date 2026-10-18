@@ -18,10 +18,10 @@ use alloc::vec;
 
 use nonos_libc::{mk_idle_ms, mk_ipc_call_timeout, mk_service_lookup};
 
+use super::choose::{choose, SINKS};
 use super::wire;
 
-const DRIVER_NAME: &[u8] = b"driver.hda0";
-/// The kernel registers driver.hda0 when it spawns the HD Audio driver,
+/// The kernel registers a sink driver's name when it spawns the driver,
 /// before this capsule, and drops it when that driver exits (no controller,
 /// or one that never came up). The lookup is retried for about two seconds,
 /// asleep between tries; it used to be 2000 tries a yield apart, which on an
@@ -32,6 +32,7 @@ const CALL_TIMEOUT_MS: u64 = 1000;
 
 pub struct Sink {
     port: u32,
+    name: &'static str,
 }
 
 impl Sink {
@@ -40,14 +41,21 @@ impl Sink {
             if tries > 0 {
                 let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
             }
-            let mut port = 0u32;
-            let mut pid = 0u32;
-            let r = mk_service_lookup(DRIVER_NAME.as_ptr(), DRIVER_NAME.len(), &mut port, &mut pid);
-            if r == 0 && port != 0 {
-                return Some(Sink { port });
+            let sinks = SINKS.map(|name| lookup(name).map(|port| Sink { port, name }));
+            let ready = |i: usize| {
+                let verdict = sinks[i].as_ref().and_then(|s| s.output_status(0));
+                verdict.is_some_and(|(v, _)| v == wire::OUTPUT_READY)
+            };
+            if let Some(i) = choose(sinks.each_ref().map(Option::is_some), ready) {
+                return sinks.into_iter().nth(i).flatten();
             }
         }
         None
+    }
+
+    /// The driver's service name, for the log.
+    pub fn name(&self) -> &'static str {
+        self.name
     }
 
     pub fn write_pcm(&self, pcm: &[u8], request_id: u32) -> bool {
@@ -123,4 +131,10 @@ impl Sink {
         }
         wire::reply_ok(&rx[..got as usize])
     }
+}
+
+fn lookup(name: &str) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let r = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (r == 0 && port != 0).then_some(port)
 }
