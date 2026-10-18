@@ -14,68 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The client's object table.
 
-use alloc::vec::Vec;
+#[path = "object_kind.rs"]
+mod kind;
+#[path = "object_life.rs"]
+mod life;
+#[path = "object_table.rs"]
+mod table;
+#[path = "object_version.rs"]
+mod version;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Object {
-    Display,
-    Registry,
-    Callback,
-    Compositor,
-    Shm,
-    ShmPool,
-    Buffer,
-    Surface,
-    XdgBase,
-    XdgSurface,
-    XdgToplevel,
-    Seat,
-    Pointer,
-    Keyboard,
-    Output,
-}
+pub use kind::Object;
+pub use table::Objects;
 
 /// The most objects one client holds at once. A real client holds a few
 /// hundred; without a ceiling, a client creating objects it never destroys
 /// would grow this capsule's memory, and slow every lookup, for good.
 pub const MAX_OBJECTS: usize = 4096;
-
-pub struct Objects {
-    slots: Vec<(u32, Object)>,
-}
-
-impl Objects {
-    /// Object 1 is the display, always, before a client says anything.
-    pub fn new() -> Objects {
-        Objects { slots: alloc::vec![(1, Object::Display)] }
-    }
-
-    pub fn get(&self, id: u32) -> Option<Object> {
-        self.slots.iter().find(|(k, _)| *k == id).map(|(_, v)| *v)
-    }
-
-    /// Record `id` as `what`; false, recording nothing, when a new id would
-    /// pass MAX_OBJECTS, so the request that asked for it makes nothing.
-    pub fn put(&mut self, id: u32, what: Object) -> bool {
-        let full = self.slots.len() >= MAX_OBJECTS;
-        match self.slots.iter_mut().find(|(k, _)| *k == id) {
-            Some(slot) => slot.1 = what,
-            None if full => return false,
-            None => self.slots.push((id, what)),
-        }
-        true
-    }
-
-    pub fn drop_id(&mut self, id: u32) {
-        self.slots.retain(|(k, _)| *k != id);
-    }
-}
-
-impl Default for Objects {
-    fn default() -> Objects {
-        Objects::new()
-    }
-}

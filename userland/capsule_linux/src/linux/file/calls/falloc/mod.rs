@@ -16,6 +16,7 @@
 
 /* fallocate. */
 
+mod allocate;
 mod calls;
 mod punch;
 mod zero;

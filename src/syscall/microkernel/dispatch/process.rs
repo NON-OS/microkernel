@@ -25,6 +25,7 @@ use crate::syscall::microkernel::app_install::sys_app_install;
 use crate::syscall::microkernel::app_install_status::sys_app_install_status;
 use crate::syscall::microkernel::app_uninstall::sys_app_uninstall;
 use crate::syscall::microkernel::app_launch::sys_app_launch;
+use crate::syscall::microkernel::linux_run_net::sys_linux_run_net;
 use crate::syscall::microkernel::attest::sys_attest_status;
 use crate::syscall::microkernel::attest_doc::sys_attest_doc;
 use crate::syscall::microkernel::attest_entries::sys_attest_entries;
@@ -110,6 +111,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_FORK => sys_foreign_fork(a.a0, a.a1),
         SYS_PEER_UNMAP => sys_peer_unmap(a.a0, a.a1, a.a2),
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
+        SYS_LINUX_RUN_NET => sys_linux_run_net(a.a0),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_LOCAL_VERIFY => sys_local_verify(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_APP_INSTALL => sys_app_install(a.a0, a.a1, a.a2, a.a3),

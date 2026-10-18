@@ -22,7 +22,7 @@ use super::extra::Extra;
 use super::joined::JoinError;
 use super::report::{Outcome, Report};
 use super::request::ConnectRequest;
-use crate::mlme::{Entropy, JoinRequest, Mlme, MlmeFailure, SAE_ENTROPY};
+use crate::mlme::{Entropy, JoinRequest, Mlme, MlmeFailure};
 use crate::regdom::Domain;
 use crate::rsn::JoinPolicy;
 use crate::sae::SaeFailure;
@@ -42,11 +42,11 @@ pub(super) fn attempt<R: Radio, E: Env>(
     extra: Extra,
 ) -> Result<Report, JoinError> {
     // Fresh randomness for every attempt, a roam's included: never reused.
-    let mut entropy = Entropy { snonce: [0u8; 32], sae: [0u8; SAE_ENTROPY] };
     let mut seq = [0u8; 2];
-    if !env.random(&mut entropy.snonce) || !env.random(&mut entropy.sae) || !env.random(&mut seq) {
+    let entropy = Entropy::draw(|b| env.random(b)).filter(|_| env.random(&mut seq));
+    let Some(entropy) = entropy else {
         return Err(JoinError::NoEntropy);
-    }
+    };
     let our_mac = r.mac();
     let mut m =
         Mlme::join(&JoinRequest { our_mac, ssid: req.ssid, passphrase: req.pass, policy, entropy });

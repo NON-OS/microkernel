@@ -122,7 +122,10 @@ let
         ${lib.optionalString (e.slug == "linux") ''
           # The personality's built-in BusyBox, built from source here; the
           # committed guests/busybox.elf is the same bytes, for make.
-          cp ${busybox}/busybox ${e.dir}/guests/busybox.elf${lib.optionalString (packageMirror != "") ''
+          cp ${busybox}/busybox ${e.dir}/guests/busybox.elf
+          # The vendor programs its policies.txt binds, by their BLAKE3, as
+          # userland/linux_userland/Policies.mk points make at them.
+          export NONOS_LINUX_USERLAND=${linuxUserland}${lib.optionalString (packageMirror != "") ''
 
           # The NONOS package mirror in-tree tools install from (nonos.toml).
           export NONOS_PACKAGE_MIRROR=${packageMirror}''}

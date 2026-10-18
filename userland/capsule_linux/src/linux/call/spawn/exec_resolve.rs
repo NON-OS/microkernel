@@ -20,8 +20,11 @@ use crate::linux::guest::Links;
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
+use crate::linux::app::{bind, AppIdentity};
 use crate::linux::file::{key, store_read, visible};
 
+use super::exec_built_in::built_in;
+use super::exec_rewrite::rewrite;
 use super::exec_shebang::parse;
 
 /// The same ceiling the first image is read under.
@@ -34,43 +37,33 @@ pub struct Program {
     pub path: Vec<u8>,
     pub bytes: Vec<u8>,
     pub argv: Vec<Vec<u8>>,
+    /// The file execve named, bound to its policy: a script's, not its
+    /// interpreter's, since the script is what was published.
+    pub app: AppIdentity,
 }
 
 /// A path reached through a link is loaded, and proved, as the file it names.
 pub fn resolve(links: &Links, cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64> {
     let mut path = links.follow(visible(cwd, name), true);
     let mut args = argv.to_vec();
+    let mut named: Option<AppIdentity> = None;
     for _ in 0..MAX_DEPTH {
         let Ok(bytes) = store_read(&key(&path), MAX_IMAGE) else {
-            /* Not in the store: one of the built-in BusyBox's programs runs
-             * as itself, which is how a shell with no Linux tree behind it
-             * still runs `ls`. The built-in is part of this capsule's own
-             * image, measured by its manifest, and argv[0] says which
-             * program to be. */
-            if crate::linux::built_in::serves(&path).is_some() {
-                let bytes = crate::linux::built_in::built_in().bytes;
-                return Ok(Program { path: b"/bin/busybox".to_vec(), bytes, argv: args });
-            }
-            return Err(errno::fail(errno::ENOENT));
+            return built_in(&path, args, named);
         };
         if crate::linux::attest::verify(&path, &bytes).is_err() {
             return Err(errno::fail(errno::EPERM));
         }
+        let app = match named {
+            Some(app) => app,
+            None => bind(&path, &bytes).map_err(|_| errno::fail(errno::EPERM))?,
+        };
+        named = Some(app);
         let Some(interp) = parse(&bytes) else {
-            return Ok(Program { path, bytes, argv: args });
+            return Ok(Program { path, bytes, argv: args, app });
         };
         args = rewrite(&interp, &path, &args);
         path = links.follow(visible(cwd, &interp.path), true);
     }
     Err(errno::fail(errno::ELOOP))
-}
-
-/// The interpreter, its one optional argument, the script, then whatever the
-/// caller passed after argv[0].
-fn rewrite(interp: &super::exec_shebang::Interp, script: &[u8], args: &[Vec<u8>]) -> Vec<Vec<u8>> {
-    let mut out = alloc::vec![interp.path.clone()];
-    out.extend(interp.arg.clone());
-    out.push(script.to_vec());
-    out.extend(args.iter().skip(1).cloned());
-    out
 }
