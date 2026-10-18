@@ -131,6 +131,10 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<MmioGrant, GrantError> {
     Ok(grants.remove(idx))
 }
 
+#[path = "grant_acpi.rs"]
+mod acpi_window;
 #[path = "grant_va.rs"]
 mod va;
+#[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
+pub(super) use acpi_window::insert_unclaimed;
 pub(super) use va::{reserve_user_va, USER_MMIO_BASE, USER_MMIO_END};

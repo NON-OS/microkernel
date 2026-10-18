@@ -15,14 +15,61 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The broker's class table included by path (L79), under the module path
- * the kernel gives it, so its restricted ids are in reach here. find counts
- * a PCI function as a display by the class id its class code maps to, so
- * the map is checked over every code there is.
+ * The broker's records, class table (its code map checked whole, L79), BAR
+ * choice, external-facing ports and firmware's reserved ranges, by path.
  */
 
-#![allow(dead_code)]
-
+pub mod acpi;
 #[path = "../../../../../src/hardware/broker/class.rs"]
+#[allow(dead_code)] // the proofs read only the ids a platform device takes
 pub mod class;
+pub mod device;
+#[path = "../../../../../src/hardware/broker/external_range.rs"]
+pub mod external_range;
+#[path = "../../../../../src/hardware/broker/irq/gone.rs"]
+pub mod irq_gone;
+pub mod mmio;
+pub mod reserved;
+pub mod table;
+
+#[allow(unused_imports)] // the table's and the inventory's files name them at this path
+pub use device::{Bar, BarKind, DeviceRecord, BAR_FLAG_FIXED};
+
+#[cfg(test)]
+mod bars_tests;
+#[cfg(test)]
+mod button_tests;
+#[cfg(test)]
 mod class_tests;
+#[cfg(test)]
+mod deps_flag_tests;
+#[cfg(test)]
+mod dgon_tests;
+#[cfg(test)]
+mod external_tests;
+#[cfg(test)]
+mod first_pass_tests;
+#[cfg(test)]
+mod irq_flag_tests;
+#[cfg(test)]
+mod loaded_tests;
+#[cfg(test)]
+mod numa_tests;
+#[cfg(test)]
+mod osc_grant_tests;
+#[cfg(test)]
+mod restart_tests;
+#[cfg(test)]
+mod round_trip_tests;
+#[cfg(test)]
+mod same_group_tests;
+#[cfg(test)]
+mod slot_port_tests;
+#[cfg(test)]
+mod slot_tests;
+#[cfg(test)]
+mod table_measure_tests;
+#[cfg(test)]
+mod thermal_limit_tests;
+#[cfg(test)]
+mod usb_port_tests;

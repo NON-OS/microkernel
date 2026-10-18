@@ -43,7 +43,7 @@ const CLAIM: [&str; 5] = [
 const ERRNOS_OF: [&str; 6] = [
     "pub(super) fn claim_errno(e: ClaimError) -> i64 { match e {",
     "ClaimError::AlreadyClaimed | ClaimError::Held => ERRNO_BUSY,",
-    "ClaimError::UnknownDevice => ERRNO_NODEV,",
+    "ClaimError::UnknownDevice | ClaimError::Disabled => ERRNO_NODEV,",
     "ClaimError::NotHolder | ClaimError::NotClaimed => ERRNO_INVAL,",
     "ClaimError::Unconfined | ClaimError::Refused => ERRNO_PERM,",
     "ClaimError::Resetting => ERRNO_AGAIN, } }",

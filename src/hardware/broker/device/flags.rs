@@ -18,16 +18,20 @@ pub(in crate::hardware::broker) const BAR_FLAG_PREFETCH: u8 = 1 << 0;
 pub(in crate::hardware::broker) const BAR_FLAG_MEM64: u8 = 1 << 1;
 // A window the function decodes at a fixed address outside its BARs (an IDE
 // channel in compatibility mode, VBoxVGA's DISPI ports), placed in the record
-// by the broker rather than read from configuration space.
-pub(in crate::hardware::broker) const BAR_FLAG_FIXED: u8 = 1 << 2;
+// by the broker rather than read from configuration space. The inventory
+// reads it too: such a window is never one of the function's own BARs.
+pub const BAR_FLAG_FIXED: u8 = 1 << 2;
 pub const DEVICE_FLAG_CLAIMED: u32 = 1 << 0;
 pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
 /// Behind a PCIe port firmware calls external-facing: whoever can reach the
 /// connector chose what is plugged in, so it gets no untranslated DMA.
 pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
-/// On an ACPI record with `irq_pin` 1, its `_CRS` interrupt is edge
-/// triggered; clear, level (F 51).
+/// A device firmware says depends (_DEP) on one that is missing, dangling
+/// or in a cycle: published anyway, so a driver can see it and say why.
+pub const DEVICE_FLAG_DEPS_UNMET: u32 = 1 << 3;
+/// An ACPI platform device's interrupt as its own `_CRS` describes it:
+/// set, edge triggered; clear, level. Meaningful only when the record is
+/// an ACPI one with `irq_pin` set; a PCI record never sets it.
 pub const DEVICE_FLAG_IRQ_EDGE: u32 = 1 << 4;
-/// On an ACPI record with `irq_pin` 1, its `_CRS` interrupt is active low;
-/// clear, active high (F 51).
+/// Likewise: set, active low; clear, active high.
 pub const DEVICE_FLAG_IRQ_ACTIVE_LOW: u32 = 1 << 5;

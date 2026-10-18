@@ -229,7 +229,7 @@ These [proof crates](../overview/glossary.md#proof-crate) build the code the tra
 | `equix_proofs` | 28 | `nonos_equix`, the Equi-X solver behind the onion proof of work |
 | `nym_topology_proofs` | 25 | The route draw, the refresh rule and the exit address readers, on answers recorded from the Nym API |
 | `nym_reply_proofs` | 64 | WebSocket frames, fragments and reply reassembly, the SURB budget, each client's share of the table of open mixnet sessions |
-| `aes_proofs` | 19 | `net.nym`'s AES and `nonos_aes` against FIPS 197 and SP 800-38A |
+| `aes_proofs` | 23 | `net.nym`'s AES and `nonos_aes` against FIPS 197 and SP 800-38A; `nonos_aes`'s CMAC against RFC 4493 |
 | `tls_proofs` | 129 | `nonos_tls` |
 | `capsule_socks5_proofs` | 136 | `net.socks5` |
 | `route_proof_proofs` | 36 | `RouteReport`, `may_report` and the attest board |

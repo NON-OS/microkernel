@@ -26,7 +26,13 @@
 mod assoc;
 mod auth;
 mod beacon;
+mod beacon_protection;
+mod cached;
 mod failure;
+mod given;
+mod open_start;
+mod regulatory;
+mod sae_start;
 mod state;
 mod step;
 
