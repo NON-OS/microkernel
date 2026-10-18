@@ -30,6 +30,7 @@ mod beacon_protection;
 mod cached;
 mod failure;
 mod given;
+mod judge;
 mod open_start;
 mod regulatory;
 mod sae_start;
@@ -37,4 +38,5 @@ mod state;
 mod step;
 
 pub use failure::MlmeFailure;
+pub use judge::{judge, Judged};
 pub use state::{Entropy, JoinRequest, Mlme, MlmeOutput, MlmeState, SAE_ENTROPY, SECRET_MAX};

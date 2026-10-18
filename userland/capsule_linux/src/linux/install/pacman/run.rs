@@ -25,7 +25,7 @@ use super::fetch::fetch;
 use super::keyring::pinned;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
-use crate::linux::install::place::unpack;
+use crate::linux::install::place::all::unpack;
 use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
@@ -57,7 +57,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         let Some(files) = fetch(&src, &ring, repo, rec, chosen.then_some(pin)) else {
             return Err(Why::Package);
         };
-        unpack(&files, &rec.name, chosen)?;
+        unpack(&files, &rec.name, chosen, false)?;
         done.push(rec.name.clone());
         wanted.extend(rec.depends.iter().cloned());
     }

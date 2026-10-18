@@ -164,6 +164,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_aes"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_capsule_driver_rtl8821ce"
 version = "0.3.0"
 dependencies = [
@@ -177,6 +181,13 @@ name = "nonos_mac"
 version = "0.3.0"
 
 [[package]]
+name = "nonos_p256"
+version = "0.1.0"
+dependencies = [
+ "p256",
+]
+
+[[package]]
 name = "nonos_userland_libc"
 version = "0.3.0"
 dependencies = [
@@ -188,7 +199,9 @@ name = "nonos_wifi_core"
 version = "0.3.0"
 dependencies = [
  "hmac",
- "p256",
+ "nonos_aes",
+ "nonos_mac",
+ "nonos_p256",
  "sha2",
 ]
 
