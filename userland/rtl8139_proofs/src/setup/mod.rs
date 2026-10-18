@@ -14,11 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one `setup` file the bring-up needs: the driver record it fills in
-//! and gives back. Discovery, claiming and granting talk to the broker and
-//! stay out.
+//! The `setup` files, each the shipping one: the claim, the PCI Command
+//! word, the port grant, the DMA grants, the driver record the sequence
+//! fills in, and the release, against the shim's broker calls.
 
+#[path = "../../../capsule_driver_rtl8139/src/setup/claim.rs"]
+mod claim;
+#[path = "../../../capsule_driver_rtl8139/src/setup/dma.rs"]
+pub mod dma;
 #[path = "../../../capsule_driver_rtl8139/src/setup/driver.rs"]
 mod driver;
+#[path = "../../../capsule_driver_rtl8139/src/setup/pci.rs"]
+mod pci;
+#[path = "../../../capsule_driver_rtl8139/src/setup/pio_grant.rs"]
+mod pio_grant;
+#[path = "../../../capsule_driver_rtl8139/src/setup/rollback.rs"]
+pub mod rollback;
+#[path = "../../../capsule_driver_rtl8139/src/setup/sequence.rs"]
+mod sequence;
 
 pub use driver::Driver;
+pub use pci::command;
+pub use sequence::run;

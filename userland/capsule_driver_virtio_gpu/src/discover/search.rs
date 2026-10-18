@@ -16,12 +16,10 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord};
 
-use super::bar_select;
 use super::bars::bars;
+use super::constants::MAX_DEVICES;
 use super::found::Found;
 use super::match_device;
-
-const MAX_DEVICES: usize = 64;
 
 pub fn find_virtio_gpu() -> Option<Found> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
@@ -31,18 +29,8 @@ pub fn find_virtio_gpu() -> Option<Found> {
     }
     let limit = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..limit] {
-        if !match_device::is_match(r) {
-            continue;
-        }
-        if let Some((bar, kind, size)) = bar_select::select(r) {
-            return Some(Found {
-                device_id: r.device_id,
-                register_bar: bar,
-                register_kind: kind,
-                register_size: size,
-                pci_device: r.device,
-                bars: bars(r),
-            });
+        if match_device::is_match(r) {
+            return Some(Found { device_id: r.device_id, pci_device: r.device, bars: bars(r) });
         }
     }
     None

@@ -15,17 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a failed SATA command answers its client: the disk's own status
-//! and error registers when it ended the command with an error, a timeout
-//! when it never finished, an I/O error otherwise.
+//! and error registers only when the disk ended the command with an error
+//! (ERR set), a timeout when it never finished, no device once the port is
+//! wedged (out of service until a reboot, as with no disk served), and an
+//! I/O error otherwise: an HBA error or a link change among them, since
+//! PxTFD then says nothing about the command.
 
+use crate::constants::regs::TFD_ERR;
 use crate::engine::Port;
 use crate::error::AhciError;
-use crate::protocol::{ata_status, E_IO, E_TIMEDOUT};
+use crate::protocol::{ata_status, E_IO, E_NODEV, E_TIMEDOUT};
 
 pub fn status(port: &Port, e: AhciError) -> i32 {
     match e {
         AhciError::Timeout => E_TIMEDOUT,
-        AhciError::CommandFailed => ata_status(port.last_tfd),
+        AhciError::CommandFailed if port.last_tfd & TFD_ERR != 0 => ata_status(port.last_tfd),
+        AhciError::Wedged => E_NODEV,
         _ => E_IO,
     }
 }

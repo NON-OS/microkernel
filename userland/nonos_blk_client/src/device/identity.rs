@@ -18,13 +18,14 @@
 //! in their identify page, and the driver hands both through; a person
 //! erasing a disk should see the name on its sticker, and the last four
 //! characters of the serial are the word they type to confirm. The SATA
-//! driver answers its own identify op with the ATA model and serial, and
-//! says whether the part it serves is a SATA disk or an eMMC one. virtio
-//! parts give no name and say so.
+//! driver and the SD reader answer an identify op of one layout with a
+//! model and serial (`laid_out.rs`), and say whether the part is a SATA
+//! disk, an eMMC part or an SD card. virtio parts give no name and say so.
 
 use super::handle::BlockDevice;
 pub use super::identity_parse::Identity;
-use super::identity_parse::{parse_ahci_identity, AHCI_IDENTIFY_LEN, OP_AHCI_IDENTIFY};
+use super::identity_parse::OP_AHCI_IDENTIFY;
+use super::laid_out::laid_out;
 use crate::driver::Driver;
 use crate::error::BlkError;
 use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
@@ -38,6 +39,8 @@ const IDENTIFY_LEN: usize = 88;
 const SERIAL_AT: usize = 4;
 const MODEL_AT: usize = 24;
 pub(super) const MDTS_AT: usize = 82;
+/// The SD reader's identify op (capsule_driver_rtsx protocol/ops.rs).
+const OP_SD_IDENTIFY: u16 = 6;
 
 impl BlockDevice {
     /// `Ok(None)` for a driver that has no identify page to offer.
@@ -50,7 +53,8 @@ impl BlockDevice {
                 model.copy_from_slice(&page[MODEL_AT..MODEL_AT + 40]);
                 Ok(Some(Identity { model, serial, emmc: false }))
             }
-            Driver::Ahci => Ok(ahci_identity(self.port)),
+            Driver::Ahci => Ok(laid_out(Driver::Ahci, OP_AHCI_IDENTIFY, self.port)),
+            Driver::Rtsx => Ok(laid_out(Driver::Rtsx, OP_SD_IDENTIFY, self.port)),
             Driver::VirtioBlk => Ok(None),
         }
     }
@@ -68,14 +72,4 @@ pub(super) fn controller_page(port: u32) -> Result<[u8; IDENTIFY_LEN], BlkError>
     let mut page = [0u8; IDENTIFY_LEN];
     page.copy_from_slice(&body[..IDENTIFY_LEN]);
     Ok(page)
-}
-
-/// The SATA driver's identify reply, or `None` from a driver built before
-/// it had one: the disk is still listed, by its bus and size alone.
-fn ahci_identity(port: u32) -> Option<Identity> {
-    let magic = Driver::Ahci.magic();
-    let mut rx = [0u8; HDR_LEN + STATUS_LEN + AHCI_IDENTIFY_LEN];
-    let (n, id) = call(port, magic, OP_AHCI_IDENTIFY, &[], &mut rx).ok()?;
-    let body = decode_reply(&rx, n, magic, OP_AHCI_IDENTIFY, id).ok()?;
-    parse_ahci_identity(body)
 }

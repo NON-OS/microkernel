@@ -25,5 +25,5 @@ pub use lookup::lookup;
 pub use ops::{
     address_device, address_routed, alloc_transfer_ring, configure_hub, control_transfer,
     disable_slot, enable_slot, get_config_descriptor, interrupt_in, port_status, PortSnapshot,
-    MAX_DESCRIPTOR_LEN,
+    Setup, MAX_DESCRIPTOR_LEN,
 };

@@ -32,7 +32,13 @@ pub struct Resource3d {
 }
 
 impl Resource3d {
-    pub fn render_target(resource_id: u32, format: u32, width: u32, height: u32, bind: u32) -> Self {
+    pub fn render_target(
+        resource_id: u32,
+        format: u32,
+        width: u32,
+        height: u32,
+        bind: u32,
+    ) -> Self {
         Self {
             resource_id,
             target: VG_TARGET_TEXTURE_2D,

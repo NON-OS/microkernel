@@ -14,22 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::driver::Driver;
+use crate::transaction::recover::after;
 use crate::transaction::{control, valid_lengths, TransferError, TransferRequest, TransferResult};
 
 use super::run::run;
 
+/// One transfer from START to STOP, the bytes read landing in `out`, an
+/// empty result the caller holds, whose drop wipes them
+/// (types/result_wipe.rs): the engine makes no other copy of them, and none
+/// is moved about by value. A request with nothing to send or receive,
+/// or past the wire's limits, is refused before the bus. Every outcome is
+/// counted into the bus's state, and a run of faults resets the controller
+/// (recover.rs).
 pub fn transfer(
     driver: &Driver,
     req: TransferRequest<'_>,
-) -> Result<TransferResult, TransferError> {
-    if req.addr > 0x7F || !valid_lengths(req.write.len(), req.read_len) {
+    out: &mut TransferResult,
+) -> Result<(), TransferError> {
+    let (w, r) = (req.write.len(), req.read_len);
+    if req.addr > 0x7F || w + r == 0 || !valid_lengths(w, r) {
         return Err(TransferError::Invalid);
     }
+    let result = attempt(driver, req, out);
+    after(driver, &result);
+    result
+}
+
+fn attempt(
+    driver: &Driver,
+    req: TransferRequest<'_>,
+    out: &mut TransferResult,
+) -> Result<(), TransferError> {
     let regs = driver.regs;
     control::wait_idle(regs)?;
     control::set_target(regs, req.addr)?;
     control::enable(regs)?;
-    let result = run(driver, req);
+    let result = run(driver, req, out);
     let _ = control::disable(regs);
     result
 }
