@@ -41,6 +41,7 @@ fn each_driver_takes_its_own_devices() {
     assert!(admits("driver.i2c_pci0", &acpi(0x0060, 0, 0)), "an ACPI I2C controller");
     assert!(admits("driver.ps2_kbd0", &acpi(0x0040, 1, 0x0303)), "the PS/2 keyboard");
     assert!(admits("driver.virtio_rng", &pci(0x1AF4, 0x1044, (0xFF, 0, 0))), "virtio-rng");
+    assert!(admits("driver.virtio_gpu0", &pci(0x1AF4, 0x1050, (0x03, 0x80, 0))), "virtio-gpu");
 }
 
 #[test]
@@ -55,6 +56,7 @@ fn a_driver_cannot_claim_another_drivers_device() {
     assert!(!admits("driver.hda0", &pci(0x1022, 0x15E2, (0x04, 0x80, 0))), "AMD ACP");
     assert!(!admits("driver.ps2_kbd0", &acpi(0x0041, 0x15, 0x0001)), "an I2C touchpad");
     assert!(!admits("driver.iwlwifi0", &pci(0x8086, 0x08B5, (2, 0x80, 0))), "past 0x08B4");
+    assert!(!admits("driver.virtio_gpu0", &pci(0x1AF4, 0x1010, (3, 0, 0))), "an id it never takes");
 }
 
 #[test]
