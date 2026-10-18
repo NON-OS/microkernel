@@ -33,7 +33,7 @@ until the person chooses to install. Files saved during a boot live in memory,
 in the [file store](glossary-dma-pool.md#file-store), and are gone at power off. On a
 live stick the [data volume](glossary-claim-epoch.md#data-volume) that holds Qwen models is
 in RAM as well. After an install to a disk, a file a program asks to keep goes
-to the [package store](glossary.md#store) on that disk, which is not encrypted,
+to the [package store](glossary-linux-personality.md#store) on that disk, which is not encrypted,
 and Qwen models go to an encrypted data volume keyed by the machine's
 [TPM](glossary-stark-proof.md#tpm). Files made in Files or Editor are never kept, and a
 Linux package is held in memory until restart. The kernel can also key a volume

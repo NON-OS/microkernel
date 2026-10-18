@@ -18,8 +18,9 @@
 //! scope_table.rs, keyed by the service name the kernel registers for it at
 //! spawn, names what it may claim: PCI functions by vendor and device id
 //! range, or by class, subclass and prog-if; ACPI records by their broker
-//! class. A capsule with no row claims nothing, and a claim outside its row
-//! is refused before the device is touched. The table is measured with the
+//! class; a hypervisor bus's record by its ids. A capsule with no row claims
+//! nothing, and a claim outside its row is refused before the device is
+//! touched. The table is measured with the
 //! kernel; scripts/check_driver_scope.py keeps each capsule's discover table
 //! inside its row. Pure: kernel_proofs mounts this file and its tables.
 

@@ -16,6 +16,7 @@
 
 use crate::arch::x86_64::acpi::aml::{community_window, enumerate_gpio_controllers};
 
+use super::super::acpi::platform_paths::keep_unpathed;
 use super::super::table::register_platform_device;
 use super::record::device_record;
 use super::say::{read_sbreg, say, windows_line};
@@ -39,6 +40,7 @@ pub fn register_acpi_gpio() {
             }
         }
         say(&ctl, &windows_line(&ctl));
-        register_platform_device(device_record(&ctl));
+        let id = register_platform_device(device_record(&ctl));
+        keep_unpathed(id, ctl.hid, u64::from(ctl.uid));
     }
 }

@@ -27,11 +27,22 @@ use super::types::ClaimError;
 // and tears down meanwhile finds nothing to reset or free. Returns
 // the released epoch.
 pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    release_as(pid, device_id, Some(pid), true)
+}
+
+// `release` from a path other than the holder's own syscall: a depart
+// (acpi/depart.rs) names no sleeper and runs outside the holder's tables.
+pub fn release_as(
+    pid: u32,
+    device_id: u64,
+    sleeper: Option<u32>,
+    in_context: bool,
+) -> Result<u64, ClaimError> {
     let epoch = {
         let mut claims = CLAIMS.lock();
         take_held(&mut claims, &mut BUSY.lock(), pid, device_id)?
     };
-    retire(&mut Leaving::new(pid, device_id, Some(pid), true));
+    retire(&mut Leaving::new(pid, device_id, sleeper, in_context));
     Ok(epoch)
 }
 

@@ -23,7 +23,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from driver_scope_rows import CAPSULES, DISCOVER, capsule_ids, item, row_ranges
+from driver_scope_discover import DISCOVER
+from driver_scope_rows import CAPSULES, capsule_ids, item, row_ranges
 
 
 def drift(root, discover=DISCOVER):

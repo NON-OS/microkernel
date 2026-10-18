@@ -30,14 +30,8 @@ pub mod group;
 pub mod h2e;
 pub mod hnp;
 pub mod station;
+mod wipe;
 
 pub use station::{SaeFailure, SaeState, SaeStation, SaeStep};
 
-/// Overwrite secret intermediate bytes so they do not linger on the stack.
-pub(crate) fn wipe(buf: &mut [u8]) {
-    for b in buf.iter_mut() {
-        // SAFETY: `b` is a valid, aligned, exclusive reference into `buf`.
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
-}
+pub(crate) use wipe::wipe;

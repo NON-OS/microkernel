@@ -11,7 +11,7 @@ Part of [The NONOS ABI](README.md).
 - [Capabilities](capabilities.md): the 37 capability bits, what each admits, and
   the groups `abi/caps.toml` publishes.
 - [Broker](broker.md): the calls a driver makes to the device
-  [broker](../overview/glossary.md#broker), the records they exchange, and the
+  [broker](../overview/glossary-hardware-broker.md#broker), the records they exchange, and the
   broker's constants.
 - [IPC](ipc.md): the IPC calls, the message envelope, the limits, and the
   well-known service ports.
@@ -31,7 +31,7 @@ The code is the authority. Three things in the kernel decide every call:
   (`src/syscall/abi/registry/mod.rs:27-28`). There are 130 calls in 0.9.2,
   listed in [Syscalls](syscalls.md).
 - `is_allowed` decides which capability admits which call
-  (`src/syscall/contract/cap_table/mod.rs:28-34`). The 37 capability bits are
+  (`src/syscall/contract/cap_table/mod.rs:29-35`). The 37 capability bits are
   listed in [Capabilities](capabilities.md).
 - `SyscallResult::error` turns a refusal into a negative errno
   (`src/syscall/types/result.rs:35-37`). The codes are listed in

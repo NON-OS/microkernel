@@ -40,7 +40,7 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
         Err(ClaimError::AlreadyClaimed) | Err(ClaimError::Busy) | Err(ClaimError::GroupHeld) => {
             ERRNO_BUSY
         }
-        Err(ClaimError::UnknownDevice) => ERRNO_NODEV,
+        Err(ClaimError::UnknownDevice) | Err(ClaimError::Disabled) => ERRNO_NODEV,
         Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
         Err(ClaimError::Unconfined) | Err(ClaimError::OutOfScope) => ERRNO_PERM,
     }

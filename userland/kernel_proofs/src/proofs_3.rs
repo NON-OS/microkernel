@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 3 of 4: test modules mounted by path
+//! Host proofs, group 3 of 5: test modules mounted by path
 //! from lib.rs, each at its own file.
 
 #[path = "scan_hidden/mod.rs"]

@@ -6,7 +6,7 @@ Part of [Capsule isolation](capsule-isolation.md).
 
 A driver is a capsule that holds broker bits, and each broker call asks for its
 own bit, starting with `can_device_enum` for the device list
-(`src/syscall/contract/cap_table/mk_device.rs:24-37`).
+(`src/syscall/contract/cap_table/mk_device.rs:24-38`).
 
 | Bit | Calls | What it grants |
 |---|---|---|

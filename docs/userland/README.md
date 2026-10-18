@@ -1,6 +1,6 @@
 # Userland
 
-Every program NONOS runs outside the kernel runs in ring 3, as a [capsule](../overview/glossary-boot-root-record.md#capsule) or as a Linux [guest](../overview/glossary.md#guest) of one; this section says what a capsule is, how one goes from source to a running process, and how to write and ship your own.
+Every program NONOS runs outside the kernel runs in ring 3, as a [capsule](../overview/glossary-boot-root-record.md#capsule) or as a Linux [guest](../overview/glossary-dma-pool.md#guest) of one; this section says what a capsule is, how one goes from source to a running process, and how to write and ship your own.
 
 ## Pages in this section
 
