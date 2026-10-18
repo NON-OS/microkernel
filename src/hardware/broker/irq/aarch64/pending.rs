@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
 
-// 128 simultaneous GIC bindings per kernel. Cheap linear scan on the
-// trap path; the trap-time hot path is `find_by_intid`.
+// 128 GIC bindings per kernel; the trap path's linear scan stays cheap.
 pub(super) const MAX_GRANTS: usize = 128;
 
-// `intid == 0` marks a free slot. SGIs use intid 0..15 so we are not
-// shadowing a real binding — SGIs are kernel-owned and the bind path
-// rejects intid < 32.
+// `intid == 0` marks a free slot: SGIs are kernel-owned and the bind
+// path rejects intid < 32, so no real binding is shadowed.
 #[repr(C, align(64))]
 pub(super) struct Entry {
     pub(super) intid: AtomicU32,
@@ -32,6 +30,10 @@ pub(super) struct Entry {
     pub(super) claim_epoch: AtomicU64,
     pub(super) pending: AtomicU64,
     pub(super) overflow: AtomicU64,
+    pub(super) waiter: AtomicU32, // the pid in `MkIrqWait`, zero for none
+    /// Raised by a message, not a line: edge by nature, so never masked at
+    /// the GIC between deliveries, and nothing for `MkIrqAck` to undo.
+    pub(super) message: AtomicBool,
 }
 
 pub(super) static SLOTS: [Entry; MAX_GRANTS] = [const {
@@ -43,57 +45,7 @@ pub(super) static SLOTS: [Entry; MAX_GRANTS] = [const {
         claim_epoch: AtomicU64::new(0),
         pending: AtomicU64::new(0),
         overflow: AtomicU64::new(0),
+        waiter: AtomicU32::new(0),
+        message: AtomicBool::new(false),
     }
 }; MAX_GRANTS];
-
-static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
-
-// CAS-claim the first free slot for `intid`. Returns the slot index
-// and a fresh grant id, or None if the table is full or the intid is
-// already bound.
-pub(super) fn alloc(
-    intid: u32,
-    pid: u32,
-    device_id: u64,
-    claim_epoch: u64,
-) -> Option<(usize, u64)> {
-    if find_by_intid(intid).is_some() {
-        return None;
-    }
-    for i in 0..MAX_GRANTS {
-        let e = &SLOTS[i];
-        if e.intid.compare_exchange(0, intid, Ordering::AcqRel, Ordering::Acquire).is_ok() {
-            let id = NEXT_GRANT_ID.fetch_add(1, Ordering::Relaxed);
-            e.pid.store(pid, Ordering::Release);
-            e.grant_id.store(id, Ordering::Release);
-            e.device_id.store(device_id, Ordering::Release);
-            e.claim_epoch.store(claim_epoch, Ordering::Release);
-            e.pending.store(0, Ordering::Release);
-            e.overflow.store(0, Ordering::Release);
-            return Some((i, id));
-        }
-    }
-    None
-}
-
-pub(super) fn find_by_intid(intid: u32) -> Option<&'static Entry> {
-    if intid == 0 {
-        return None;
-    }
-    SLOTS.iter().find(|e| e.intid.load(Ordering::Acquire) == intid)
-}
-
-pub(super) fn find_by_grant(grant_id: u64) -> Option<&'static Entry> {
-    if grant_id == 0 {
-        return None;
-    }
-    SLOTS.iter().find(|e| {
-        e.intid.load(Ordering::Acquire) != 0 && e.grant_id.load(Ordering::Acquire) == grant_id
-    })
-}
-
-// Mark the slot free. Caller must have already unregistered the GIC
-// handler before this so no trampoline can race the slot's reuse.
-pub(super) fn free(e: &'static Entry) {
-    e.intid.store(0, Ordering::Release);
-}

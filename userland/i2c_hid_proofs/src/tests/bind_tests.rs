@@ -16,13 +16,14 @@
 
 //! What the report descriptor says decides what is driven: a relative
 //! mouse is, by its own collection; a touch screen is no touch pad, and is
-//! released like the keyboard.
+//! driven as a screen, never through the touchpad's layout.
 
 use nonos_i2cmodel::{Command, HidOverI2c};
 use nonos_libc::{take_events, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_POINTER_REL};
 
 use super::descs::MOUSE;
 use super::fixture::{of_kind, rig_with, HID_DESC_REG, PAD};
+use crate::hid::Surface;
 use crate::input::poll;
 use crate::setup;
 
@@ -42,14 +43,16 @@ fn a_relative_mouse_is_driven_by_its_own_collection() {
 }
 
 #[test]
-fn a_touch_screen_is_no_touch_pad_and_is_released() {
+fn a_touch_screen_is_no_touch_pad_and_is_driven_as_a_screen() {
     // Usage (Touch Screen), then the touch pad's own finger report.
     let mut desc = nonos_i2cmodel::touchpad::report_descriptor();
     desc[3] = 0x04;
     let device = HidOverI2c::new(PAD, desc, 2 + 8, 0x04F3, 0x0003);
     let r = rig_with(device, Some((PAD, HID_DESC_REG)));
     let state = setup::run().expect("setup");
-    assert!(!state.found() && state.done, "a touch screen was bound as a touchpad");
+    assert!(!state.touch_layout.is_absolute_touch(), "a touch screen was bound as a touchpad");
+    assert!(state.found() && !state.done, "a touch screen was released");
+    assert!(state.mt.surface == Surface::Screen && state.mt.serves());
     let cmds = r.pad.lock().take_commands();
-    assert_eq!(cmds.last(), Some(&Command::SetPower { sleep: true }), "{cmds:?}");
+    assert_ne!(cmds.last(), Some(&Command::SetPower { sleep: true }), "{cmds:?}");
 }

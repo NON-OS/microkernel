@@ -38,7 +38,7 @@ static PENDING: [Mutex<Vec<(Pid, u64)>>; MAX_CPUS] = [const { Mutex::new(Vec::ne
 
 #[inline]
 fn slot() -> &'static Mutex<Vec<(Pid, u64)>> {
-    let idx = Arch::current_cpu_id() as usize;
+    let idx = crate::arch::cpu::dense_cpu_index().unwrap_or(Arch::current_cpu_id() as usize);
     &PENDING[if idx < MAX_CPUS { idx } else { 0 }]
 }
 

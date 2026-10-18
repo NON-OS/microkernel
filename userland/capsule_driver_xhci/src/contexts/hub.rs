@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The input context of the Configure Endpoint that tells the controller a
-//! slot is a hub (xHCI 1.2 sections 4.6.6 and 6.2.2.2; Linux
-//! `xhci_update_hub_device` uses Configure Endpoint past xHCI 0.95). Only
+//! slot is a hub (xHCI 1.2 sections 4.6.6 and 6.2.2.2, as recalled,
+//! unverified: Evaluate Context does not take the hub fields). Only
 //! A0 is set: the Slot Context is the controller's own, from the output
 //! context, with the hub fields set, and every endpoint stays as it is.
 

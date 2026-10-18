@@ -1,0 +1,5 @@
+# Intel DMC firmware blobs the owner has sealed (Decision 19(c)): one blob
+# name, as `dmc::blob` gives it for a family, a space, and the blob's
+# SHA-256 in 64 lowercase hex digits, per line. Empty until the owner
+# chooses which blobs ship; until then no DMC is loaded and the display's
+# DC5 and DC6 power states stay off.

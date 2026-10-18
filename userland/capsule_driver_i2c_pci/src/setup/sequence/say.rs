@@ -37,9 +37,9 @@ pub(super) fn name(seg: &[u8; 4]) -> String {
 
 pub(super) fn say_bound(driver: &Driver, tg: Option<&AcpiTouchpad>) {
     let pacing = if driver.doorbell.is_some() {
-        "reads paced by its interrupt line"
+        "reads paced by its interrupt line once driver.gpio0 reports it, polled until then"
     } else if tg.is_some_and(|t| t.info & HID_INFO_GPIO != 0) {
-        "interrupt line on a GPIO layout NONOS does not map, reads are polled"
+        "interrupt line not nameable for driver.gpio0, reads are polled"
     } else {
         "reads are polled"
     };

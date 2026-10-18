@@ -18,10 +18,9 @@
 //! and the hit test both come through here, so a click lands on the glyphs it
 //! was drawn under.
 
-use super::items::{rows, title, TITLE_COUNT};
-use crate::render::measure_aa::{measure_aa, measure_aa_bold};
-use crate::render::topbar::brand_right;
-use crate::render::ui_font::{line_h, px, MENU_PX, UI_PX};
+use super::items::rows;
+use crate::render::measure_aa::measure_aa;
+use crate::render::ui_font::{line_h, px, UI_PX};
 use crate::state::Context;
 
 const PAD_X_LOGICAL: u32 = 10;
@@ -49,27 +48,6 @@ pub(super) fn inset() -> u32 {
 
 pub(super) fn row_h() -> u32 {
     line_h(UI_PX) + px(ROW_LEAD_LOGICAL)
-}
-
-/// The focused app's title is set in the bold face, so it has to be measured
-/// with that face or the hit box drifts off the glyphs.
-pub(super) fn title_w(ctx: &Context, index: usize) -> u32 {
-    let label = title(ctx, index);
-    let w = if index == 0 { measure_aa_bold(label, MENU_PX) } else { measure_aa(label, MENU_PX) };
-    w + pad_x() * 2
-}
-
-pub(super) fn title_x(ctx: &Context, index: usize) -> u32 {
-    let mut x = brand_right();
-    for i in 0..index.min(TITLE_COUNT) {
-        x += title_w(ctx, i);
-    }
-    x
-}
-
-/// Where the last title ends: the tray's labels start right of it.
-pub fn titles_right(ctx: &Context) -> u32 {
-    title_x(ctx, TITLE_COUNT)
 }
 
 pub(super) fn panel_w(ctx: &Context, index: usize) -> u32 {

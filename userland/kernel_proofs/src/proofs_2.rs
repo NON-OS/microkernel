@@ -14,23 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 2 of 5: test modules mounted by path
+//! Host proofs, group 2 of 6: test modules mounted by path
 //! from lib.rs, each at its own file.
 
+/// A device's isolation group (K11).
+#[path = "acs_group/mod.rs"]
+pub mod acs_group;
 #[path = "firmware_iommu/mod.rs"]
 pub mod firmware_iommu;
-#[path = "guest_room/mod.rs"]
-pub mod guest_room;
-#[path = "ioapic_line_mode/mod.rs"]
-pub mod ioapic_line_mode;
-#[path = "smp_bringup/mod.rs"]
-pub mod smp_bringup;
 #[path = "futex_waiters/mod.rs"]
 pub mod futex_waiters;
-#[path = "sched_pick/mod.rs"]
-pub mod sched_pick;
+#[path = "guest_room/mod.rs"]
+pub mod guest_room;
 #[path = "inbox_budget/mod.rs"]
 pub mod inbox_budget;
+#[path = "install_stages/mod.rs"]
+pub mod install_stages;
+#[path = "ioapic_line_mode/mod.rs"]
+pub mod ioapic_line_mode;
 #[path = "iommu_access/mod.rs"]
 pub mod iommu_access;
 #[path = "iommu_fault/mod.rs"]
@@ -57,8 +58,6 @@ pub mod narrowed_args;
 pub mod pci_address;
 #[path = "pipe_counts/mod.rs"]
 pub mod pipe_counts;
-#[path = "install_stages/mod.rs"]
-pub mod install_stages;
 #[path = "procfs_inode/mod.rs"]
 pub mod procfs_inode;
 #[path = "range_ends/mod.rs"]
@@ -69,6 +68,7 @@ pub mod reply_share;
 pub mod riscv_mmu;
 #[path = "rsdp_address/mod.rs"]
 pub mod rsdp_address;
-/// A device's isolation group (K11).
-#[path = "acs_group/mod.rs"]
-pub mod acs_group;
+#[path = "sched_pick/mod.rs"]
+pub mod sched_pick;
+#[path = "smp_bringup/mod.rs"]
+pub mod smp_bringup;

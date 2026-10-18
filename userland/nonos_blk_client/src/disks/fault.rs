@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Why a driver's row is not a disk to install to.
+//! The line a row carries when its driver did not give a disk: what is on
+//! the bus and why nothing serves it.
 
 use alloc::string::String;
 
 use crate::driver::Driver;
 use crate::error::BlkError;
 
-pub(super) fn fault(driver: Driver, instance: u8, e: &BlkError, emmc_only: bool) -> String {
-    let bus = if driver == Driver::Ahci && emmc_only {
-        "eMMC"
-    } else {
-        core::str::from_utf8(driver.label()).unwrap_or("disk")
-    };
+/// The bus is the driver's own: eMMC is the block wire's since it left the
+/// SATA driver, so a SATA row is a SATA controller, Intel RST's included.
+pub fn fault(driver: Driver, instance: u8, e: &BlkError) -> String {
+    let bus = core::str::from_utf8(driver.label()).unwrap_or("disk");
     match e {
         BlkError::NoService if instance == 0 => {
             alloc::format!("{bus} controller present, its driver did not come up")

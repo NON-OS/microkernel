@@ -25,7 +25,7 @@
 use nonos_virtio::common::driver_ok;
 use nonos_virtio::{VirtioError, Window};
 
-use super::dma::{self, QueueGrant};
+use super::dma;
 use super::pci;
 use crate::device::virtqueue::QueueLayout;
 use crate::device::ControlQueue;
@@ -36,7 +36,6 @@ pub struct Ready {
     pub control_queue: ControlQueue,
     /// The features in force.
     pub features: u64,
-    pub queue: QueueGrant,
 }
 
 pub fn start(device_id: u64, claim_epoch: u64, window: &Window) -> Result<Ready, &'static str> {
@@ -50,5 +49,5 @@ pub fn start(device_id: u64, claim_epoch: u64, window: &Window) -> Result<Ready,
     driver_ok(&common);
     let notify = window.notify.region;
     let regs = Regs { common, notify, doorbell: started.doorbell, device };
-    Ok(Ready { control_queue: ControlQueue::new(layout, regs), features, queue })
+    Ok(Ready { control_queue: ControlQueue::new(layout, regs), features })
 }

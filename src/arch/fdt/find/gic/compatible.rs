@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::fdt::property::Property;
-
 use super::version::GicVersion;
 
-pub fn classify(compat: &Property) -> Option<GicVersion> {
-    for s in compat.stringlist() {
-        if s == b"arm,gic-v3" {
-            return Some(GicVersion::V3);
-        }
-        if s == b"arm,cortex-a15-gic" || s == b"arm,gic-400" {
-            return Some(GicVersion::V2);
-        }
+/// Every distributor we know, GICv3 first. GIC-400 is the Pi 4's; the
+/// Cortex-A15 string is what QEMU `virt,gic-version=2` writes.
+pub(in crate::arch::fdt::find) const NEEDLES: &[&[u8]] = &[
+    b"arm,gic-v3",
+    b"arm,gic-400",
+    b"arm,cortex-a15-gic",
+    b"arm,cortex-a9-gic",
+    b"arm,cortex-a7-gic",
+];
+
+pub(super) fn version(needle: usize) -> GicVersion {
+    match needle {
+        0 => GicVersion::V3,
+        _ => GicVersion::V2,
     }
-    None
 }

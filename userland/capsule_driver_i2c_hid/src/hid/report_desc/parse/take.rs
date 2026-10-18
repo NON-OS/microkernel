@@ -42,7 +42,8 @@ impl Walk {
     }
 
     /// Every collection closed, no input field the report IDs cannot tell
-    /// apart, and every input report, ID byte and all, within Linux's buffer.
+    /// apart, and every input report, ID byte and all, within
+    /// MAX_REPORT_BYTES.
     pub(super) fn finish(&self) -> Result<(), Refused> {
         let ids = self.g.ids;
         let fits = self.inputs.longest(ids) <= MAX_REPORT_BYTES;

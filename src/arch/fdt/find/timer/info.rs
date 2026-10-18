@@ -24,4 +24,7 @@ pub struct TimerInfo {
     pub virtual_intid: u32,
     pub hyp_phys_intid: u32,
     pub secure_phys_intid: u32,
+    /// The node's `clock-frequency`, which the binding reserves for firmware
+    /// that left CNTFRQ_EL0 unprogrammed. `None` when absent or not one cell.
+    pub clock_frequency: Option<u32>,
 }

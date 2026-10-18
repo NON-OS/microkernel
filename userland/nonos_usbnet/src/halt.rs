@@ -16,7 +16,7 @@
 
 //! Bringing a stalled bulk pipe back: the host side through driver.xhci0,
 //! then the device's halt cleared over endpoint 0, which also sets its data
-//! toggle back to zero (USB 2.0, 9.4.5; Linux usb_clear_halt).
+//! toggle back to zero (USB 2.0, 9.4.5, as recalled, unverified).
 
 use crate::bus::Bus;
 use crate::setup::Setup;

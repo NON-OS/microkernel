@@ -19,8 +19,6 @@
 //! with an error or a frame this driver does not take. Either way the slot
 //! goes back to the part through RDT once its bytes are copied out.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::regs::REG_RDT;
 use crate::protocol::{
     encode_response_header, write_status, Request, E_AGAIN, E_IO, RESP_HDR_LEN,
@@ -60,7 +58,7 @@ pub fn handle(sender: u32, driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let src = driver.rx.buffer_va(idx) as *const u8;
     unsafe { core::ptr::copy_nonoverlapping(src, tx[body_off..].as_mut_ptr(), n) };
     // The copy out of the buffer ends before the part may write it again.
-    fence(Ordering::Release);
+    nonos_libc::dma_mb();
     unsafe { driver.regs.w32(REG_RDT, idx as u32) };
     reply(sender, tx, prefix_off + body_len);
 }

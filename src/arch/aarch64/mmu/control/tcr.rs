@@ -69,7 +69,8 @@ fn tcr_value() -> u64 {
         // The top byte of an address is not part of translation, which is what
         // lets tagged pointers survive a dereference.
         | TBI0
-        | TBI1;
+        | TBI1
+        | super::e0pd::bit();
 
     // `A1` stays clear, so TTBR0_EL1 holds the ASID for both regimes. The
     // paging boundary masks TTBR0 on that assumption.

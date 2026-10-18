@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::process::{accounting, current_pid};
+use crate::services::registry::lookup_port;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
 use crate::syscall::microkernel::narrow::u32_arg;
-use crate::{process::current_pid, services::registry::lookup_port};
 
 use super::super::pending_reply;
+use super::super::recv_reply::recv_reply_correlated;
 use super::super::reply_inbox;
 use super::super::send::send_with_correlation;
-use super::answer::answer;
-use super::gpu_bench::mark_first;
+use super::settle::settle;
 use super::token::next_call_token;
 
 pub fn sys_ipc_call(
@@ -40,6 +41,7 @@ pub fn sys_ipc_call(
     if crate::usercopy::validate_user_write(resp, resp_len).is_err() {
         return ERRNO_FAULT;
     }
+    // Registered with the pending reply keyed by this caller's inbox (token.rs).
     let token = next_call_token();
     let inbox = reply_inbox::for_pid(pid);
     let endpoint = u32_arg(ep).and_then(lookup_port);
@@ -59,11 +61,10 @@ pub fn sys_ipc_call(
         }
         return send_result;
     }
-    crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcTx);
-    crate::process::accounting::bump_total(crate::process::accounting::Total::IpcMessages);
-    let recv_result = answer(pid, &inbox, endpoint.as_ref(), resp, resp_len, timeout_ms, token);
-    if let Some(endpoint) = endpoint.as_ref() {
-        mark_first(&endpoint.name, req, req_len, resp, recv_result);
-    }
+    accounting::bump(pid, accounting::Kind::IpcTx);
+    accounting::bump_total(accounting::Total::IpcMessages);
+    let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
+    let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
+    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result);
     recv_result
 }

@@ -59,9 +59,13 @@ pub fn write_root(root_pa: u64, asid: u16) {
             core::arch::asm!("mov cr3, {}", in(reg) value, options(nostack, preserves_flags));
         }
     }
+    // aarch64 tags the root with the hardware ASID it owns, whatever `asid`
+    // says: the manager's ids are not hardware ASIDs and are never recycled
+    // through an invalidation.
     #[cfg(target_arch = "aarch64")]
     {
-        crate::arch::aarch64::mmu::set_ttbr0(root_pa & 0x0000_FFFF_FFFF_F000, asid);
+        let _ = asid;
+        crate::arch::aarch64::mmu::asid::switch_root(root_pa & 0x0000_FFFF_FFFF_F000);
     }
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     {

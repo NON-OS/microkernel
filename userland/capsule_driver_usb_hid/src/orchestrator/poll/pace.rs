@@ -27,8 +27,8 @@ const QUIET_AFTER_MS: u64 = 1000;
 /// How often a quiet endpoint is asked, as often as a full-speed keyboard
 /// is served: its first report after a pause waits at most this long more.
 pub const QUIET_PERIOD_MS: u64 = 8;
-/// The longest the loop waits on its inbox, so key repeats, hub port steps
-/// and rescans are looked at this often whatever is bound.
+/// The longest the loop waits on its inbox, so key repeats and rescans are
+/// looked at this often whatever is bound.
 pub const MAX_WAIT_MS: u64 = 16;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

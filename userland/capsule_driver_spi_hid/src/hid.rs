@@ -1,0 +1,27 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+// Shared with HID over I2C, whose poll tells the touch report from a mouse
+// report (Multitouch::takes); here the frame decode checks the ID itself.
+#[allow(dead_code)]
+#[path = "../../capsule_driver_i2c_hid/src/hid/report_desc/mod.rs"]
+mod report_desc;
+
+pub use report_desc::{
+    decode_mouse, decode_touch, parse as parse_report_descriptor,
+    parse_mouse as parse_mouse_layout, Field, MouseLayout, TouchLayout, TouchSample,
+};
+pub use report_desc::{primary, Multitouch, ScreenEvent, Surface};

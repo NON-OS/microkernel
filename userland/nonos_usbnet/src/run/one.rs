@@ -28,16 +28,17 @@ pub(super) fn serve_one<N: Nic>(
     rx: &mut [u8],
     tx: &mut [u8],
     wait_ms: u64,
+    me: u32,
     nic: Option<&mut N>,
     stats: &mut Stats,
 ) {
     let mut from = 0u32;
     let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait_ms, &mut from);
     // Sender 0 is a delivery from the kernel itself, which has no one to
-    // answer. Nothing here sends to this inbox, and the capsule could not
-    // tell its own pid if it did: MkGetPid needs CoreExec, outside its
-    // mask 0x38, so libc's mk_getpid gives 0.
-    if n <= 0 || from == 0 {
+    // answer. A reply that found no waiter comes back to this inbox; what
+    // this capsule sent itself (`me`, read back by its service name, as
+    // MkGetPid needs CoreExec) is dropped, never answered.
+    if n <= 0 || from == 0 || from == me {
         return;
     }
     let n = (n as usize).min(rx.len());

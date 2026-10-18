@@ -56,7 +56,7 @@ pub fn sys_store_read(lba: u64, user_ptr: u64, len: u64) -> i64 {
         }
         return len as i64;
     }
-    if let Err(e) = crate::hardware::block_device::read(lba, &mut buf) {
+    if let Err(e) = crate::hardware::block_device::read_store(lba, &mut buf) {
         crate::log::warn!("[STORE-RD] lba {} refused: {:?}", lba, e);
         return super::store_errno::store_errno(e);
     }

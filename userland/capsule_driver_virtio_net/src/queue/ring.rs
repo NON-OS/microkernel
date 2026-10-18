@@ -18,8 +18,6 @@
 //! available entry. Each goes through the region's bounds checks, so no
 //! index, however it was reached, writes outside the ring.
 
-use core::sync::atomic::{fence, Ordering};
-
 use nonos_virtio::Mmio;
 
 use crate::constants::{RING_SLOTS, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET};
@@ -45,7 +43,7 @@ pub fn publish(ring: Mmio, next: &mut u16, head: u16) {
     ring.w16(AVAIL_RING + 2 * usize::from(*next % RING_SLOTS), head);
     // The device may read the entry, its descriptor and the buffer the
     // moment the index covers them.
-    fence(Ordering::Release);
+    nonos_libc::dma_wmb();
     *next = next.wrapping_add(1);
     ring.w16(AVAIL_IDX, *next);
 }

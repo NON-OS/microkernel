@@ -20,7 +20,9 @@
 #[path = "../../../../src/hardware/broker/scope.rs"]
 mod scope;
 
+mod claims_nothing;
 mod edges;
+mod host_rows;
 mod hostile;
 mod ranges;
 mod spawned;

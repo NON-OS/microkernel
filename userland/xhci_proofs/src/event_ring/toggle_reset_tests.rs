@@ -46,8 +46,16 @@ fn a_bulk_pipe_that_had_not_halted_is_dropped_and_added_again() {
         fx.hc.post(command(base + TRB, CC_SUCCESS, SLOT));
         fx.hc.post(command(base + 2 * TRB, CC_SUCCESS, SLOT));
         fx.hc.post(command(base + 3 * TRB, CC_SUCCESS, SLOT));
-        reset_bulk_endpoint(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, &res, CONTEXT_SIZE, dir_in)
-            .expect("reset");
+        reset_bulk_endpoint(
+            fx.db(),
+            fx.intr(),
+            &mut cmd,
+            &mut fx.ring,
+            &res,
+            CONTEXT_SIZE,
+            (false, dir_in),
+        )
+        .expect("reset");
         assert_eq!(command_at(base + TRB).get_type(), STOP_ENDPOINT);
         assert_eq!(command_at(base + 2 * TRB).get_type(), SET_TR_DEQUEUE);
         let configure = command_at(base + 3 * TRB);

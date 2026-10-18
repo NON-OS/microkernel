@@ -1,0 +1,55 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The two hub class reads: the hub descriptor and one port's status (USB
+//! 2.0 section 11.24.2.5 and 11.24.2.7).
+
+use crate::descriptor::{parse_hub_descriptor, HubDescriptor, DT_HUB, DT_SS_HUB, HUB_HEAD_LEN};
+use crate::host::{Host, Setup};
+use crate::port_status::{decode_port_status, HubPort};
+
+const GET_STATUS: u8 = 0x00;
+const GET_DESCRIPTOR: u8 = 0x06;
+/// Class requests to the hub itself, and to one of its ports.
+const RT_HUB_IN: u8 = 0xA0;
+const RT_PORT_IN: u8 = 0xA3;
+
+pub fn hub_descriptor(h: &mut impl Host, slot: u8, superspeed: bool) -> Option<HubDescriptor> {
+    let kind = if superspeed { DT_SS_HUB } else { DT_HUB };
+    let mut buf = [0u8; HUB_HEAD_LEN as usize];
+    let value = (kind as u16) << 8;
+    let setup = Setup {
+        request_type: RT_HUB_IN,
+        request: GET_DESCRIPTOR,
+        value,
+        index: 0,
+        length: HUB_HEAD_LEN,
+    };
+    let n = h.control(slot, setup, &mut buf).ok()?;
+    parse_hub_descriptor(&buf[..n.min(buf.len())], superspeed)
+}
+
+pub fn port_status(h: &mut impl Host, slot: u8, port: u8, superspeed: bool) -> Option<HubPort> {
+    let mut buf = [0u8; 4];
+    let setup = Setup {
+        request_type: RT_PORT_IN,
+        request: GET_STATUS,
+        value: 0,
+        index: port as u16,
+        length: 4,
+    };
+    let n = h.control(slot, setup, &mut buf).ok()?;
+    (n == 4).then(|| decode_port_status(buf, superspeed))
+}

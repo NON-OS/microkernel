@@ -21,7 +21,7 @@
 use super::errnos::{ERRNO_FAULT, ERRNO_NOENT};
 use super::install_source_in_use::{in_use_record, AHCI, NVME, USB_MSC, VIRTIO_BLK};
 use super::install_source_kinds::{KIND_IN_USE_DISK, KIND_KERNEL_APPROVAL};
-use crate::hardware::block_device::{chosen, Backend};
+use crate::hardware::block_device::{chosen, Kind};
 
 /// What `kind` serves when it is such a record, None when it is not one.
 pub(super) fn record(kind: u64, offset: u64, out_ptr: u64, out_len: u64) -> Option<i64> {
@@ -38,11 +38,13 @@ fn in_use(offset: u64, out_ptr: u64, out_len: u64) -> i64 {
     let Some(backend) = chosen() else {
         return ERRNO_NOENT;
     };
-    let code = match backend {
-        Backend::VirtioBlk => VIRTIO_BLK,
-        Backend::Ahci => AHCI,
-        Backend::Nvme => NVME,
-        Backend::UsbMsc => USB_MSC,
+    let code = match backend.kind() {
+        Kind::VirtioBlk => VIRTIO_BLK,
+        Kind::Ahci => AHCI,
+        Kind::Nvme => NVME,
+        Kind::UsbMsc => USB_MSC,
+        // The record has no code for a disk on the block wire.
+        Kind::Wire => return ERRNO_NOENT,
     };
     serve(&in_use_record(code, 0), offset, out_ptr, out_len)
 }

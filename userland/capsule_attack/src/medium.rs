@@ -24,6 +24,7 @@
 use nonos_libc::mk_syscall_raw as raw;
 
 use crate::codes::{MICL, MSVL};
+use crate::disks::DISKS;
 use crate::line::{escaped, note, verdict};
 
 const HDR: usize = 20;
@@ -35,43 +36,6 @@ const EACCES: i64 = -13;
 const CALL_MS: u64 = 8000;
 /// Past the end of any disk.
 const PAST_THE_END: u64 = u64::MAX - 7;
-
-struct Disk {
-    service: &'static [u8],
-    magic: u32,
-    read: u16,
-    write: u16,
-    read_what: &'static [u8],
-    write_what: &'static [u8],
-}
-
-/// Each driver's contract, as `nonos_blk_client` copies it.
-const DISKS: [Disk; 3] = [
-    Disk {
-        service: b"driver.nvme0",
-        magic: 0x4E4E_564D,
-        read: 7,
-        write: 8,
-        read_what: b"read a raw NVMe sector without StoreWrite, MkIpcCall",
-        write_what: b"write a raw NVMe sector without StoreWrite, MkIpcCall",
-    },
-    Disk {
-        service: b"driver.ahci0",
-        magic: 0x4E41_4843,
-        read: 5,
-        write: 6,
-        read_what: b"read a raw SATA sector without StoreWrite, MkIpcCall",
-        write_what: b"write a raw SATA sector without StoreWrite, MkIpcCall",
-    },
-    Disk {
-        service: b"driver.virtio_blk0",
-        magic: 0x4E42_4C4B,
-        read: 3,
-        write: 4,
-        read_what: b"read a raw virtio-blk sector without StoreWrite, MkIpcCall",
-        write_what: b"write a raw virtio-blk sector without StoreWrite, MkIpcCall",
-    },
-];
 
 pub fn raw_disk() {
     let mut tried = false;

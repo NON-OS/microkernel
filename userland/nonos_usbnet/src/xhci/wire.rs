@@ -31,6 +31,8 @@ pub const OP_PORT_STATUS: u16 = 0x0003;
 pub const OP_ENABLE_SLOT: u16 = 0x0004;
 pub const OP_DISABLE_SLOT: u16 = 0x0005;
 pub const OP_ADDRESS_DEVICE: u16 = 0x0006;
+pub const OP_GET_DEVICE_DESCRIPTOR: u16 = 0x0007;
+pub const OP_GET_CONFIG_DESCRIPTOR: u16 = 0x0008;
 pub const OP_CONTROL_TRANSFER: u16 = 0x000B;
 pub const OP_CONFIGURE_BULK: u16 = 0x0010;
 pub const OP_BULK_OUT: u16 = 0x0011;
@@ -38,6 +40,13 @@ pub const OP_RESET_BULK: u16 = 0x0013;
 /// A bulk IN that is armed once and polled, never waited for: a network
 /// device NAKs until a frame comes, which may be never.
 pub const OP_BULK_IN_POLL: u16 = 0x0014;
+/// One report to an interrupt OUT endpoint: `slot, dci, len_le16, data`.
+pub const OP_INTERRUPT_OUT: u16 = 0x0025;
+/// `slot, port, interface`: this driver drives that interface of a device.
+pub const OP_CLAIM_INTERFACE: u16 = 0x0026;
+/// `port`: the device another driver shares there, `slot, 0, 0, 0,
+/// claimed u32` (a bit per interface held).
+pub const OP_SLOT_OF_PORT: u16 = 0x0027;
 
 /// A port's `owner` byte in `OP_PORT_STATUS`: free, or claimed by a class
 /// driver that configured endpoints on it.
