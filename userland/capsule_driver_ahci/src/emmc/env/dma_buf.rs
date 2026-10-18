@@ -35,6 +35,9 @@ impl DmaBuf {
             Some(end) if end <= self.len => {}
             _ => return false,
         }
+        // SAFETY: `off + src.len()` is inside the `len` bytes mapped at `va`,
+        // which the owner keeps mapped while the buffer is in use, and `src`
+        // is the driver's own memory, so the two do not overlap.
         unsafe {
             core::ptr::copy_nonoverlapping(src.as_ptr(), (self.va as *mut u8).add(off), src.len());
         }
@@ -54,6 +57,7 @@ impl DmaBuf {
         // The controller's writes landed before it posted Transfer Complete,
         // which was read before this; keep these loads after that read.
         core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+        // SAFETY: as in `put`, with the copy the other way.
         unsafe {
             core::ptr::copy_nonoverlapping(
                 (self.va as *const u8).add(off),

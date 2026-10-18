@@ -16,32 +16,25 @@
 
 //! The device-configuration switches a precision touchpad declares in its
 //! Feature reports: Input Mode, Surface Switch and Button Switch, each
-//! recorded with its own report id the first time it is seen.
+//! recorded with its own report ID the first time it is seen, and placed
+//! in the bits of that feature report alone.
 
-use crate::hid::report_desc::layout::{Field, TouchLayout};
+use super::field_at::FieldAt;
+use crate::hid::report_desc::TouchLayout;
 
-const USAGE_PAGE_DIGITIZER: u16 = 0x0D;
-const USAGE_INPUT_MODE: u16 = 0x52;
-const USAGE_SURFACE_SWITCH: u16 = 0x57;
-const USAGE_BUTTON_SWITCH: u16 = 0x58;
+const INPUT_MODE: u32 = 0x000D_0052;
+const SURFACE_SWITCH: u32 = 0x000D_0057;
+const BUTTON_SWITCH: u32 = 0x000D_0058;
 
-pub(super) fn feature(layout: &mut TouchLayout, usage_page: u16, usage: u16, rid: u8, f: Field) {
-    if usage_page != USAGE_PAGE_DIGITIZER {
-        return;
-    }
-    match usage {
-        USAGE_INPUT_MODE if !layout.input_mode.present() => {
-            layout.input_mode = f;
-            layout.input_mode_report_id = rid;
-        }
-        USAGE_SURFACE_SWITCH if !layout.surface_switch.present() => {
-            layout.surface_switch = f;
-            layout.surface_switch_report_id = rid;
-        }
-        USAGE_BUTTON_SWITCH if !layout.button_switch.present() => {
-            layout.button_switch = f;
-            layout.button_switch_report_id = rid;
-        }
-        _ => {}
+pub(super) fn feature(l: &mut TouchLayout, f: &FieldAt) {
+    let (field, id) = match f.usage {
+        INPUT_MODE => (&mut l.input_mode, &mut l.input_mode_report_id),
+        SURFACE_SWITCH => (&mut l.surface_switch, &mut l.surface_switch_report_id),
+        BUTTON_SWITCH => (&mut l.button_switch, &mut l.button_switch_report_id),
+        _ => return,
+    };
+    if !field.present() {
+        *field = f.field();
+        *id = f.id;
     }
 }

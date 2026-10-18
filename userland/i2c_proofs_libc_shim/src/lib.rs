@@ -26,8 +26,10 @@
 mod call;
 mod input;
 mod misc;
+mod pci;
 mod raw;
 mod reply;
+mod sched;
 mod time;
 
 pub use call::{mk_ipc_call_timeout, mk_service_lookup, serve, Served, SERVICE_PID, SERVICE_PORT};
@@ -35,6 +37,11 @@ pub use input::{
     mk_input_event_post, take_events, InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
     INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
 };
-pub use misc::{mk_debug, mk_idle_ms, mk_yield, slept_ms, take_debug, yields};
+pub use misc::{mk_debug, mk_idle_ms, slept_ms, take_debug};
+pub use pci::{
+    mk_pci_config_write, take_pci_writes, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
+    MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
+};
 pub use reply::{mk_ipc_reply, take_reply};
+pub use sched::{busy_scheduler, mk_yield, yields, Busy};
 pub use time::{mk_uptime_ms, Deadline};

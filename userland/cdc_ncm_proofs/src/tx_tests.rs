@@ -2,7 +2,7 @@
 //! One frame per NTB16 out, laid out and padded as cdc_ncm_fill_tx_frame
 //! lays out and pads the first datagram of a block.
 
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::{Bind, Nic};
 
 use crate::device::{calls, Dev};
@@ -15,7 +15,7 @@ use crate::ncm::shape::TxShape;
 fn a_frame_goes_out_as_nth16_ndp16_and_the_datagram_on_its_divisor() {
     let dev = Dev::ncm(0);
     let bus = dev.bus();
-    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found(), drawn()) else { panic!("not bound") };
     nic.send(&[0x11; 60]).unwrap();
     let head: [u8; 30] = [
         0x4E, 0x43, 0x4D, 0x48, 0x0C, 0x00, 0x00, 0x00, 0x5A, 0x00, 0x0C, 0x00, // NTH16
@@ -58,6 +58,6 @@ fn a_frame_that_does_not_fit_the_block_is_refused() {
     assert_eq!(build(&mut out, &[1; 1514], 0, &shape(1548, 512, false)), Some(1548));
     assert_eq!(build(&mut out[..100], &[1; 60], 0, &shape(4095, 512, false)), None);
     let dev = Dev::ncm(0);
-    let Bind::Ours(mut nic) = bind(dev.bus(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(dev.bus(), &dev.found(), drawn()) else { panic!("not bound") };
     assert_eq!(nic.send(&[0; 4080]), Err(-22));
 }

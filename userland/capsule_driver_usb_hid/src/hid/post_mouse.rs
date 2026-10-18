@@ -34,7 +34,9 @@ pub fn publish(ev: MouseEvent, previous_buttons: u8) -> bool {
     ok & publish_buttons(previous_buttons, ev.buttons)
 }
 
-fn publish_buttons(previous: u8, current: u8) -> bool {
+/// A button event for each of the five buttons that changed, as a boot
+/// mouse and any pointer read through a report descriptor number them.
+pub fn publish_buttons(previous: u8, current: u8) -> bool {
     let mut ok = true;
     button_changes(previous, current, MOUSE_BUTTONS, |button, down| {
         let kind = if down { INPUT_KIND_BUTTON_DOWN } else { INPUT_KIND_BUTTON_UP };

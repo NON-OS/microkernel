@@ -16,7 +16,7 @@
 use nonos_libc::mk_idle_ms;
 
 use crate::driver::Driver;
-use crate::transaction::{TransferError, TransferRequest, FLAG_RESTART_ON_READ};
+use crate::transaction::{TransferError, TransferRequest, TransferResult, FLAG_RESTART_ON_READ};
 
 use super::presence::Presence;
 use super::transfer::transfer;
@@ -51,8 +51,9 @@ pub fn probe_hid(driver: &Driver, addr: u8, declared_reg: u16) -> Result<Presenc
         for reg in descriptor_registers(declared_reg) {
             let r = reg.to_le_bytes();
             let req = TransferRequest { addr, flags: FLAG_RESTART_ON_READ, write: &r, read_len: 4 };
-            match transfer(driver, req) {
-                Ok(res) if res.read_len >= 4 => {
+            let mut res = TransferResult::empty();
+            match transfer(driver, req, &mut res) {
+                Ok(()) if res.read_len >= 4 => {
                     acked = true;
                     let len = u16::from_le_bytes([res.read[0], res.read[1]]);
                     let version = u16::from_le_bytes([res.read[2], res.read[3]]);
@@ -60,7 +61,7 @@ pub fn probe_hid(driver: &Driver, addr: u8, declared_reg: u16) -> Result<Presenc
                         return Ok(Presence::HidDescriptor(reg));
                     }
                 }
-                Ok(_) => acked = true,
+                Ok(()) => acked = true,
                 Err(TransferError::Nack) => {}
                 Err(e) => return Err(e),
             }

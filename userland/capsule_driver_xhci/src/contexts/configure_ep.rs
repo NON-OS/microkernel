@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::payload::Payload;
 use super::slot_copy::{copy_slot_context, write_dw};
 use crate::dma::DmaRegion;
 const INPUT_CONTROL_INDEX: usize = 0;
@@ -28,7 +29,7 @@ pub struct EndpointConfig {
     pub context_size: u8,
     pub dci: u8,
     pub ring_phys: u64,
-    pub max_packet: u16,
+    pub payload: Payload,
     pub interval: u8,
 }
 
@@ -38,28 +39,23 @@ pub fn write_configure_endpoint_input(input: &DmaRegion, output: &DmaRegion, cfg
     input.zero();
     write_dw(input, cfg.context_size, INPUT_CONTROL_INDEX, 1, ADD_SLOT_FLAG | (1 << cfg.dci));
     copy_slot_context(input, output, cfg.context_size, cfg.dci);
-    write_endpoint(
-        input,
-        cfg.context_size,
-        cfg.dci as usize + 1,
-        cfg.ring_phys,
-        cfg.max_packet,
-        cfg.interval,
-    );
+    write_endpoint(input, cfg);
 }
-fn write_endpoint(
-    region: &DmaRegion,
-    context_size: u8,
-    dci: usize,
-    ring_phys: u64,
-    max_packet: u16,
-    interval: u8,
-) {
-    let dw0 = (interval as u32) << 16;
-    let dw1 = (CERR << 1) | (EP_TYPE_INTERRUPT_IN << 3) | ((max_packet as u32) << 16);
-    write_dw(region, context_size, dci, 0, dw0);
-    write_dw(region, context_size, dci, 1, dw1);
-    write_dw(region, context_size, dci, 2, (ring_phys as u32) | DCS);
-    write_dw(region, context_size, dci, 3, (ring_phys >> 32) as u32);
-    write_dw(region, context_size, dci, 4, (max_packet as u32) | ((max_packet as u32) << 16));
+
+/// Mult stays 0, as for every endpoint but a SuperSpeed isochronous one;
+/// Max Burst Size and Max ESIT Payload carry the interval's every packet,
+/// and the Average TRB Length is that payload, as Linux sets it for an
+/// interrupt endpoint (xHCI 1.2 section 6.2.3).
+fn write_endpoint(region: &DmaRegion, cfg: EndpointConfig) {
+    let (csz, at, p) = (cfg.context_size, cfg.dci as usize + 1, cfg.payload);
+    let dw0 = (cfg.interval as u32) << 16;
+    let dw1 = (CERR << 1)
+        | (EP_TYPE_INTERRUPT_IN << 3)
+        | ((p.max_burst as u32) << 8)
+        | ((p.max_packet as u32) << 16);
+    write_dw(region, csz, at, 0, dw0);
+    write_dw(region, csz, at, 1, dw1);
+    write_dw(region, csz, at, 2, (cfg.ring_phys as u32) | DCS);
+    write_dw(region, csz, at, 3, (cfg.ring_phys >> 32) as u32);
+    write_dw(region, csz, at, 4, (p.esit as u32) | ((p.esit as u32) << 16));
 }
