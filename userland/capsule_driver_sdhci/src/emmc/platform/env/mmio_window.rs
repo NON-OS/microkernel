@@ -16,11 +16,10 @@
 
 //! The slot register window the broker mapped.
 
-use core::ptr::{read_volatile, write_volatile};
-
 use super::super::super::env::Mmio;
 
-/// The slot's registers, mapped by the broker (uncached) at `base`.
+/// The slot's registers, mapped by the broker (uncached) at `base`. Each
+/// access goes through libc's, which order it against DMA memory.
 #[derive(Clone, Copy)]
 pub struct MmioWindow {
     base: u64,
@@ -41,26 +40,26 @@ impl Mmio for MmioWindow {
         // at `base`, and the engine passes only the SDHCI register offsets
         // (`sdhci::regs`), the last HOST_VERSION at 0xfe, so the access
         // lies inside it, at the register's own alignment.
-        unsafe { read_volatile((self.base + off as u64) as *const u8) }
+        unsafe { nonos_libc::mmio_read8((self.base + off as u64) as usize) }
     }
     fn r16(&self, off: u32) -> u16 {
         // SAFETY: as in `r8`.
-        unsafe { read_volatile((self.base + off as u64) as *const u16) }
+        unsafe { nonos_libc::mmio_read16((self.base + off as u64) as usize) }
     }
     fn r32(&self, off: u32) -> u32 {
         // SAFETY: as in `r8`.
-        unsafe { read_volatile((self.base + off as u64) as *const u32) }
+        unsafe { nonos_libc::mmio_read32((self.base + off as u64) as usize) }
     }
     fn w8(&self, off: u32, v: u8) {
         // SAFETY: as in `r8`.
-        unsafe { write_volatile((self.base + off as u64) as *mut u8, v) }
+        unsafe { nonos_libc::mmio_write8((self.base + off as u64) as usize, v) }
     }
     fn w16(&self, off: u32, v: u16) {
         // SAFETY: as in `r8`.
-        unsafe { write_volatile((self.base + off as u64) as *mut u16, v) }
+        unsafe { nonos_libc::mmio_write16((self.base + off as u64) as usize, v) }
     }
     fn w32(&self, off: u32, v: u32) {
         // SAFETY: as in `r8`.
-        unsafe { write_volatile((self.base + off as u64) as *mut u32, v) }
+        unsafe { nonos_libc::mmio_write32((self.base + off as u64) as usize, v) }
     }
 }

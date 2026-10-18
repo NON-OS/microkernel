@@ -31,6 +31,9 @@ pub struct Scene<'a, K: SurfaceKernel> {
     pub attach: &'a mut AttachCache,
     pub kernel: &'a mut K,
     pub damage: &'a mut DamageAccumulator,
+    /// Layers at or above this z are left out: the trusted band when a
+    /// screenshot is composed, nothing (u32::MAX) for the screen.
+    pub ceiling: u32,
 }
 
 /// Compose `rect` of `dst`: the background, every visible layer bottom to
@@ -44,7 +47,7 @@ pub fn compose<K: SurfaceKernel>(
     sw_blitter::fill_rect(dst, rect, BACKGROUND_ARGB);
     let mut layers = [(Layer::default(), Surface::default()); MAX_ATTACH];
     let count = visible_layers(s.scene, s.attach, s.kernel, s.damage, &mut layers);
-    for (layer, src) in layers.iter().take(count) {
+    for (layer, src) in layers.iter().take(count).filter(|(l, _)| l.z < s.ceiling) {
         sw_blitter::composite_layer(dst, *src, layer.x, layer.y, layer.width, layer.height, rect);
     }
     if let Some((x, y)) = cursor {

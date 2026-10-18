@@ -16,13 +16,14 @@
 
 use core::sync::atomic::Ordering;
 
-use super::state::{IRQ_HANDLERS, MAX_INTID};
+use super::super::intid::slot;
+use super::state::IRQ_HANDLERS;
 
 pub fn dispatch(intid: u32) -> bool {
-    if intid >= MAX_INTID {
+    let Some(at) = slot(intid) else {
         return false;
-    }
-    let raw = IRQ_HANDLERS[intid as usize].load(Ordering::Acquire);
+    };
+    let raw = IRQ_HANDLERS[at].load(Ordering::Acquire);
     if raw.is_null() {
         return false;
     }

@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the server may do once it runs, checked in the shipping text: it
-//! runs only after the primary surface is shared, and the compositor draws
-//! into those frames from then on. Releasing the device would have the
-//! kernel free them under it, and nothing restarts a driver, so a stall is
-//! recovered in place (`recover_tests`) and nothing in the server gives the
-//! device back, unmaps a grant or leaves.
+//! What the server may do once it runs, checked in the shipping text: the
+//! compositor draws into its primaries and every output shows a surface
+//! whose pages the driver holds. Releasing the device would have the kernel
+//! free them under the host, and nothing restarts a driver, so a stall is
+//! recovered in place (`gpu::recover_tests`) and nothing in the server gives
+//! the device back, unmaps a grant or leaves; but for a DGON naming the
+//! device, by which time the kernel has revoked every grant (`gone.rs`).
 
 use std::path::{Path, PathBuf};
 
 const MAIN: &str = include_str!("../../../capsule_driver_virtio_gpu/src/main.rs");
-const LOOP: &str =
-    include_str!("../../../capsule_driver_virtio_gpu/src/server/runner/loop_once.rs");
+const LOOP: &str = include_str!("../../../capsule_driver_virtio_gpu/src/server/run.rs");
 
 /// Every source file under `dir` of the driver, with its text.
 pub fn sources(dir: &str) -> Vec<(PathBuf, String)> {
@@ -48,12 +48,16 @@ pub fn sources(dir: &str) -> Vec<(PathBuf, String)> {
 #[test]
 fn nothing_the_server_runs_gives_the_device_back_or_leaves() {
     for (path, text) in sources("server") {
+        let gone = path.ends_with("gone.rs");
         for call in ["mk_device_release", "quiesce(", "mk_exit", "mk_dma_unmap"] {
-            assert!(!text.contains(call), "{} calls {call}", path.display());
+            let allowed = gone && call == "mk_exit";
+            assert!(allowed || !text.contains(call), "{} calls {call}", path.display());
         }
     }
-    let dispatched = LOOP.find("dispatch(&driver").expect("dispatch");
-    assert!(LOOP.find("settle(&mut driver)").is_some_and(|at| at > dispatched));
+    // Every turn settles first, so a stall a request's commands hit is
+    // recovered before the next frame is read.
+    let settled = LOOP.find("settle(&mut driver)").expect("settle");
+    assert!(settled < LOOP.find("mk_ipc_recv_from(").expect("the receive"));
 }
 
 // Before the service is registered no client can have the surface: the

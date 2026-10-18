@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding the driver the server plays through.
+//! Finding the drivers the server plays through.
 
 use nonos_libc::{mk_idle_ms, mk_service_lookup};
 
-/// The kernel registers driver.hda0 when it spawns the HD Audio driver,
+use super::choose::{choose, SINKS};
+
+/// The kernel registers a fixed sink's name when it spawns the driver,
 /// before this capsule, and drops it when that driver exits (no controller,
 /// or one that never came up). The lookup is retried for about two seconds,
 /// asleep between tries; it used to be 2000 tries a yield apart, which on an
@@ -26,13 +28,16 @@ use nonos_libc::{mk_idle_ms, mk_service_lookup};
 const LOOKUP_RETRIES: u32 = 100;
 const LOOKUP_PAUSE_MS: u64 = 20;
 
-/// The port `name` is served on, once it is registered.
-pub(super) fn resolve(name: &[u8]) -> Option<u32> {
+/// The fixed sink `choose` takes, its port and name, once one is registered.
+/// `ready` asks a port whether this machine plays through it.
+pub(super) fn fixed(ready: impl Fn(u32) -> bool) -> Option<(u32, &'static str)> {
     (0..LOOKUP_RETRIES).find_map(|tries| {
         if tries > 0 {
             let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
         }
-        once(name)
+        let ports = SINKS.map(|name| once(name.as_bytes()));
+        let i = choose(ports.map(|p| p.is_some()), |i| ports[i].is_some_and(&ready))?;
+        Some((ports[i]?, SINKS[i]))
     })
 }
 

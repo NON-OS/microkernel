@@ -20,19 +20,8 @@ use super::super::selection::{
 use super::hand_off::{count_switch, requeue, run_on};
 use super::save_syscall_user_rsp;
 use super::state::SCHEDULER_STATS;
-use core::sync::atomic::{AtomicU32, Ordering};
-
-static PREEMPT_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace(label: &[u8], pid: u32) {
-    if !matches!(pid, 0x1b | 0x1c | 0x26 | 0x27)
-        || PREEMPT_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 40
-    {
-        return;
-    }
-    crate::sys::serial::print(b"[PREEMPT] ");
-    crate::sys::serial::println(label);
-}
+use super::switch_trace::trace;
+use core::sync::atomic::Ordering;
 
 #[inline(never)]
 pub(crate) fn preempt_current_process() {
@@ -46,6 +35,7 @@ pub(crate) fn preempt_current_process() {
     adopt_current(curr_pid);
 
     save_fpu_state(curr_pid);
+    crate::arch::keep_outgoing_user_state();
     crate::sched::Context::clear_restored_flag();
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };

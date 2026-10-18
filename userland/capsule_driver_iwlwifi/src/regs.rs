@@ -29,11 +29,11 @@ impl Regs {
         // SAFETY: `base` is the BAR0 window the broker mapped uncached for this
         // process (`setup::mmio`), and every offset passed is a register the
         // window holds; the gen3 path checks its length before using it.
-        unsafe { core::ptr::read_volatile((self.base + off) as *const u32) }
+        unsafe { nonos_libc::mmio_read32(self.base + off) }
     }
     pub fn write32(&self, off: usize, val: u32) {
         // SAFETY: as for `read32`.
-        unsafe { core::ptr::write_volatile((self.base + off) as *mut u32, val) }
+        unsafe { nonos_libc::mmio_write32(self.base + off, val) }
     }
     pub fn set_bits(&self, off: usize, bits: u32) {
         self.write32(off, self.read32(off) | bits);

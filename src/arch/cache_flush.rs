@@ -25,13 +25,12 @@
 
 use super::cache_line_ops::{fence, flush_line};
 
-/// Flush `[va, va + len)` from the data caches and fence.
+/// Flush `[va, va + len)` from the data caches and fence. An empty span
+/// flushes nothing and still fences.
 pub fn flush_and_fence(va: u64, len: u64) {
     let step = line_bytes();
-    let mut line = va & !(step - 1);
-    while line < va + len {
-        flush_line(line);
-        line += step;
+    if let Some((first, count)) = super::cache_span::lines(va, len, step) {
+        (0..count).for_each(|i| flush_line(first + i * step));
     }
     fence();
 }

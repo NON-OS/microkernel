@@ -21,7 +21,6 @@
 //! TDH, which the part reads as an empty one.
 
 use core::ptr::{addr_of, read_volatile};
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::TX_DESC_COUNT;
 use crate::constants::tx_bits::TXD_STAT_DD;
@@ -35,7 +34,7 @@ use super::tx::TxRing;
 impl TxRing {
     pub fn done(&self, idx: u16) -> bool {
         let status = unsafe { read_volatile(addr_of!((*self.descriptor(idx)).olinfo_status)) };
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         status & TXD_STAT_DD != 0
     }
 

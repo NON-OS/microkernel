@@ -23,10 +23,12 @@ use super::recover::DCI_EP0;
 /// buffer TRBs queued on it point at: freed once nothing queued before can
 /// still run, or else kept with the ring until the controller passed them
 /// (`TransferRing::keep`). An endpoint the slot does not have ran nothing.
-pub(super) fn recover_ring(ctx: &mut Context, slot: u8, dci: u8, buf: Option<DmaRegion>) {
+/// Whether the endpoint is back: false when it could not be brought back,
+/// or when the slot has no such endpoint to bring back.
+pub(super) fn recover_ring(ctx: &mut Context, slot: u8, dci: u8, buf: Option<DmaRegion>) -> bool {
     let d = &mut ctx.driver;
     let context_size = d.layout.context_size;
-    let Some(res) = d.slots.resources_mut(slot, d.layout.max_slots) else { return };
+    let Some(res) = d.slots.resources_mut(slot, d.layout.max_slots) else { return false };
     let ring = if dci == DCI_EP0 {
         &res.ep0
     } else if let Some(ep) = res.interrupt.iter_mut().find(|ep| ep.dci == dci) {
@@ -48,12 +50,14 @@ pub(super) fn recover_ring(ctx: &mut Context, slot: u8, dci: u8, buf: Option<Dma
         }
         pipes.ring_of(dci).unwrap_or(&pipes.out_ring)
     } else {
-        return;
+        return false;
     };
     let (db, intr) = (d.layout.doorbell_base, d.layout.primary_intr_base);
     let (cmd, evt) = (&mut d.command_ring, &mut d.event_ring);
     let ep = EndpointAt { ring, output: &res.output_context, context_size, slot, dci };
-    if let (Err(_), Some(buf)) = (recover_endpoint(db, intr, cmd, evt, ep), buf) {
+    let recovered = recover_endpoint(db, intr, cmd, evt, ep);
+    if let (Err(_), Some(buf)) = (&recovered, buf) {
         ring.keep(buf);
     }
+    recovered.is_ok()
 }
