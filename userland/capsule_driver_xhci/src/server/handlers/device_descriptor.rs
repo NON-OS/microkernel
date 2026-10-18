@@ -36,7 +36,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
     out.zero();
     if let Err(e) = transfer(ctx, slot, &out) {
-        recover_after(ctx, slot, DCI_EP0, e);
+        // The error is reported either way; a failed recovery shows on the
+        // next request to the endpoint.
+        let _recovered = recover_after(ctx, slot, DCI_EP0, e);
         reply_with_status(tx, req, E_IO);
         return;
     }

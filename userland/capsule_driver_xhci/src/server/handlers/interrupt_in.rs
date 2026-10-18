@@ -36,7 +36,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         Err(e) => {
             // A report that ended in an error halted the endpoint; it is
             // brought back here so the next poll arms it again.
-            recover_after(ctx, slot, dci, e);
+            // Either way the poll failed; whether the endpoint came back
+            // decides only what the next poll finds.
+            let _recovered = recover_after(ctx, slot, dci, e);
             reply_with_status(tx, req, E_IO)
         }
     }

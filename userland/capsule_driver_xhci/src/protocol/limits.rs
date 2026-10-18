@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const STATUS_LEN: usize = 4;
-pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
+pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 72;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;

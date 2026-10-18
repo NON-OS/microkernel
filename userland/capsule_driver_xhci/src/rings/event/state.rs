@@ -13,12 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::parked::Parked;
 use crate::constants::{EVENT_RING_SEGMENT_TRBS, TRB_BYTES};
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
-use crate::trb::Trb;
-/// Transfer events kept for the endpoint that did not wait for them.
-pub(super) const PARKED: usize = 8;
 const ERST_ENTRY_BYTES: u64 = 16;
 pub struct EventRing {
     pub(super) segment: DmaRegion,
@@ -26,7 +24,8 @@ pub struct EventRing {
     pub(super) consumer_cycle: u8,
     pub(super) dequeue_index: usize,
     pub(super) drained_total: u64,
-    pub(super) parked: [Option<Trb>; PARKED],
+    pub(super) parked: Parked,
+    pub(super) orphans: u64,
 }
 impl EventRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
@@ -49,7 +48,8 @@ impl EventRing {
             consumer_cycle: 1,
             dequeue_index: 0,
             drained_total: 0,
-            parked: [None; PARKED],
+            parked: Parked::new(),
+            orphans: 0,
         })
     }
 }

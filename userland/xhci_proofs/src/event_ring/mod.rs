@@ -27,12 +27,15 @@ mod events;
 mod fixture;
 mod producer;
 
+mod abort_tests;
 mod address_tests;
 mod boundary_tests;
 mod dequeue_tests;
 mod erdp_tests;
 mod fuzz_tests;
 mod match_tests;
+mod orphan_tests;
+mod parked_tests;
 mod recover_tests;
 mod residual_tests;
 mod toggle_tests;

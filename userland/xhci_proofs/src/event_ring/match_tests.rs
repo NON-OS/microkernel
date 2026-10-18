@@ -35,7 +35,6 @@ use crate::controller::{
 use crate::error::XhciError;
 use crate::slots::SlotTable;
 use crate::trb::commands::noop_command;
-use crate::trb::Trb;
 
 /// Pointers that are not `issued`: its neighbours on the ring, the same
 /// address with the high half changed, the null pointer, and a page away.
@@ -192,19 +191,6 @@ fn a_transfer_event_for_another_trb_leaves_the_interrupt_poll_pending() {
     fx.hc.post(transfer(issued, CC_SUCCESS, 3, SLOT, INT_DCI));
     let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut res, INT_DCI, 8);
     assert!(matches!(got, Ok(IntrPoll::Complete(5))));
-}
-
-#[test]
-fn the_interrupt_poll_leaves_a_command_completion_for_its_waiter() {
-    let mut fx = Fixture::new();
-    let mut res = fx.hid_slot();
-    let issued = res.interrupt[0].ring.enqueue_phys();
-    fx.hc.post(command(issued, CC_SUCCESS, SLOT));
-    let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut res, INT_DCI, 8);
-    assert!(matches!(got, Ok(IntrPoll::Pending)));
-    assert_eq!(fx.hc.pending(), 1, "not consumed");
-    let head: Trb = fx.ring.current_trb();
-    assert_eq!(head.get_type(), crate::constants::TRB_TYPE_CMD_COMPLETION_EVENT);
 }
 
 #[test]

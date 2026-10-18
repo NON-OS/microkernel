@@ -25,9 +25,11 @@
 //! this way, and a later CBW or data phase on that ring was answered with it
 //! at once, out of phase with the device. Events for an endpoint are now
 //! dropped when the endpoint is recovered, and a Stopped event, which no
-//! waiter ever asks for, is not kept at all.
+//! waiter ever asks for, is not kept at all. What a full table gives up is
+//! `parked`'s rule.
 use super::issued_transfer::IssuedTransfer;
-use super::state::{EventRing, PARKED};
+use super::state::EventRing;
+use crate::error::XhciResult;
 use crate::trb::Trb;
 
 /// The completion codes of a TRB the endpoint was on when Stop Endpoint
@@ -46,35 +48,24 @@ fn is_stopped(event: &Trb) -> bool {
 }
 
 impl EventRing {
-    /// Keep `event` for its own waiter. With every place taken the oldest
-    /// is given up, as the controller gives up events on a full ring. A
-    /// Stopped event is not kept: the transfer it names was given up before
-    /// its endpoint was stopped.
+    /// Keep `event` for its own waiter, unless it is a Stopped event: its
+    /// transfer was given up before the endpoint was stopped.
     pub fn park(&mut self, event: Trb) {
-        if is_stopped(&event) {
-            return;
+        if !is_stopped(&event) {
+            self.parked.park(event);
         }
-        match self.parked.iter().position(|p| p.is_none()) {
-            Some(at) => self.parked[at] = Some(event),
-            None => {
-                self.parked.rotate_left(1);
-                self.parked[PARKED - 1] = Some(event);
-            }
-        }
+    }
+    /// Name `issued` as armed before its doorbell rings; see `Parked::arm`.
+    pub fn arm(&mut self, issued: IssuedTransfer) -> XhciResult<()> {
+        self.parked.arm(issued)
     }
     /// The parked event for `issued`, if one came.
     pub fn take_parked(&mut self, issued: IssuedTransfer) -> Option<Trb> {
-        let at = self.parked.iter().position(|p| p.is_some_and(|e| issued.completed_by(&e)))?;
-        self.parked[at].take()
+        self.parked.take(issued)
     }
-    /// Drop every parked event of endpoint `dci` on `slot`. Called when the
-    /// endpoint is recovered: the transfers those events finish were given
-    /// up, and their TRB addresses will be used again.
+    /// Drop endpoint `dci` of `slot`'s arming and parked events when it is
+    /// recovered: those transfers were given up, their addresses come again.
     pub fn forget_parked(&mut self, slot: u8, dci: u8) {
-        for p in self.parked.iter_mut() {
-            if p.is_some_and(|e| e.slot_id() == slot && e.endpoint_id() == dci) {
-                *p = None;
-            }
-        }
+        self.parked.forget(slot, dci);
     }
 }

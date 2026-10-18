@@ -46,7 +46,7 @@ behind it.
 | Operation | Meaning | Reply payload |
 |---|---|---|
 | `OP_HEALTHCHECK` | server liveness | status word |
-| `OP_CONTROLLER_STATUS` | controller register/ring/slot state | 56-byte status |
+| `OP_CONTROLLER_STATUS` | controller register/ring/slot state | 72-byte status |
 | `OP_PORT_STATUS` | port state list; byte 1 says 0 free, 1 addressed, 2 claimed | count plus 8-byte entries |
 | `OP_ENABLE_SLOT` / `OP_DISABLE_SLOT` | issue xHCI Enable / Disable Slot | slot id / status word |
 | `OP_ADDRESS_DEVICE` | reset a free root port and issue Address Device; `E_BUSY` if held | slot, port, speed, EP0 MPS |
@@ -152,7 +152,9 @@ requests remain outside this capsule.
 
 Requests use the `NXHC` capsule header, version `1`, and the shared 20-byte
 driver envelope. Replies begin with a 4-byte status word. Controller status
-returns 56 bytes. Port status returns a count plus 8-byte port records.
+returns 72 bytes: the 56 the kernel client reads, then two little-endian
+u64 counters, orphan command completions taken off the event ring and
+events the parked table gave up. Port status returns a count plus 8-byte port records.
 Enable Slot returns a 4-byte payload whose first byte is the slot id. Disable
 Slot takes a 1-byte request payload containing the slot id and returns only the
 status word. Address Device takes `[slot_id, root_port]` and returns eight

@@ -44,6 +44,7 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         let _ = clear_dcbaa_slot(&ctx.driver.dcbaa, slot_id, ctx.driver.layout.max_slots);
         let _ = ctx.driver.slots.take_resources(slot_id, ctx.driver.layout.max_slots);
     }
+    ctx.driver.event_ring.forget_slot(slot_id);
     let _ = ctx.driver.slots.mark_released(slot_id, ctx.driver.layout.max_slots);
     reply_with_status(tx, req, 0);
 }

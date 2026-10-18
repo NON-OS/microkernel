@@ -28,14 +28,17 @@ use crate::server::context::Context;
 pub const DCI_EP0: u8 = 1;
 
 /// Recover endpoint `dci` of `slot` if `err` left it halted or running on
-/// TRBs that will never complete. Other errors left nothing behind.
-pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) {
+/// TRBs that will never complete. Other errors left nothing behind. Whether
+/// the endpoint is usable now: a recovery that failed used to be dropped,
+/// and a STALL was still answered E_PIPE, telling the class driver the pipe
+/// was clear when it was not.
+pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) -> bool {
     if !matches!(err, XhciError::TransferCompletionFailed(_) | XhciError::TransferCompletionTimeout)
     {
-        return;
+        return true;
     }
     let d = &mut ctx.driver;
-    let Some(res) = d.slots.resources_mut(slot, d.layout.max_slots) else { return };
+    let Some(res) = d.slots.resources_mut(slot, d.layout.max_slots) else { return false };
     let ring = if dci == DCI_EP0 {
         &res.ep0
     } else if let Some(ep) = res.interrupt.iter_mut().find(|ep| ep.dci == dci) {
@@ -47,12 +50,12 @@ pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) {
         } else if dci == pipes.dci_out {
             &pipes.out_ring
         } else {
-            return;
+            return false;
         }
     } else {
-        return;
+        return false;
     };
-    let _ = recover_endpoint(
+    recover_endpoint(
         d.layout.doorbell_base,
         d.layout.primary_intr_base,
         &mut d.command_ring,
@@ -60,5 +63,6 @@ pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError) {
         ring,
         slot,
         dci,
-    );
+    )
+    .is_ok()
 }

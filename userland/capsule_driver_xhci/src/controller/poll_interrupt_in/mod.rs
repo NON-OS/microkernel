@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod arm;
+mod report;
 mod scan;
 use crate::error::{XhciError, XhciResult};
 use crate::rings::event::EventRing;
@@ -38,7 +39,7 @@ pub fn poll_interrupt_in(
     let slot = res.slot_id;
     let ep = res.interrupt_mut(dci).ok_or(XhciError::ControllerUnsupported)?;
     if ep.armed.is_none() {
-        arm::arm(doorbell_base, slot, ep, length)?;
+        arm::arm(doorbell_base, evt_ring, slot, ep, length)?;
     }
     scan::scan(intr_base, evt_ring, slot, ep, length)
 }

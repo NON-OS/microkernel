@@ -39,5 +39,6 @@ pub const fn reason(e: XhciError) -> &'static str {
         XhciError::CommandCompletionFailed(_) => "xhci: command completed with an error",
         XhciError::UnexpectedCompletionSlot => "xhci: completion named another slot",
         XhciError::TransferCompletionFailed(_) => "xhci: transfer completed with an error",
+        XhciError::CommandAbortFailed => "xhci: a stuck command could not be aborted",
     }
 }

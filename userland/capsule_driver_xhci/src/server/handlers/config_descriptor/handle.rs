@@ -43,7 +43,9 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     match transfer(ctx, body[0], &out, len) {
         Ok(actual) => reply_config(tx, req, &out, actual),
         Err(e) => {
-            recover_after(ctx, body[0], DCI_EP0, e);
+            // The error is reported either way; a failed recovery shows on the
+            // next request to the endpoint.
+            let _recovered = recover_after(ctx, body[0], DCI_EP0, e);
             reply_with_status(tx, req, E_IO)
         }
     }
