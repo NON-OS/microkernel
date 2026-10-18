@@ -16,5 +16,7 @@
 use crate::constants::DCBAAP_LO;
 use crate::regs::mmio_write64;
 pub fn dcbaap_program(op_base: u64, dcbaa_phys: u64) {
-    mmio_write64(op_base + DCBAAP_LO, dcbaa_phys & !0x3F);
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_write64(op_base + DCBAAP_LO, dcbaa_phys & !0x3F) };
 }

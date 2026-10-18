@@ -18,15 +18,12 @@
 //! cdc_ncm_bind_common takes, each failure named for the log.
 
 use nonos_libc::mk_idle_ms;
-use nonos_usbnet::desc::mac_from_string;
-use nonos_usbnet::found::string;
-use nonos_usbnet::xhci::E_IO;
-use nonos_usbnet::{Bus, Setup};
+use nonos_usbnet::{Bus, Setup, Station, Taken};
 
+use super::address::{filter, give};
 use super::function::NcmFunction;
 use super::init::init;
 use super::params::NtbParams;
-use super::requests::{FILTER, SET_ETHERNET_PACKET_FILTER};
 use super::setup::setup;
 
 /// cdc_ncm_bind_common's usleep_range(10000, 20000) between cdc_ncm_init
@@ -34,7 +31,7 @@ use super::setup::setup;
 /// silently fails to set up the interface without it.
 const SETTLE_MS: u64 = 10;
 
-pub(super) type Up = ([u8; 6], NtbParams, usize);
+pub(super) type Up = (Taken, NtbParams, usize);
 
 /// The controller is given the pipes before the device is told to use
 /// them (xHCI 1.2, 4.3.5), as for the ECM driver.
@@ -42,6 +39,7 @@ pub(super) fn start<B: Bus>(
     bus: &mut B,
     value: u8,
     f: &NcmFunction,
+    drawn: Station,
 ) -> Result<Up, (&'static str, i32)> {
     bus.configure_bulk(&f.pipes).map_err(|e| ("bulk pipes refused", e))?;
     let config = Setup::set_configuration(value);
@@ -51,16 +49,10 @@ pub(super) fn start<B: Bus>(
     let off = Setup::set_interface(f.data, 0);
     bus.control_out(off, &[]).map_err(|e| ("SET_INTERFACE 0 refused", e))?;
     let p = init(bus, f)?;
+    let given = give(bus, f, drawn);
     mk_idle_ms(SETTLE_MS);
     let on = Setup::set_interface(f.data, f.data_alt);
     bus.control_out(on, &[]).map_err(|e| ("SET_INTERFACE refused", e))?;
-    let mut raw = [0u8; 64];
-    let n = string(bus, f.mac_index, &mut raw).map_err(|e| ("MAC string unread", e))?;
-    let mac = mac_from_string(&raw[..n]).ok_or(("MAC string malformed", E_IO))?;
     let rx = setup(bus, f, &p)?;
-    // A device that does not filter answers with a STALL; Linux
-    // usbnet_cdc_update_filter does not look at the answer either.
-    let filter = Setup::class(false, SET_ETHERNET_PACKET_FILTER, FILTER, f.comm);
-    let _ = bus.control_out(filter, &[]);
-    Ok((mac, p, rx))
+    Ok((filter(bus, f, given), p, rx))
 }

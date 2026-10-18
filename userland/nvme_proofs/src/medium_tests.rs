@@ -21,21 +21,41 @@
 
 use crate::medium_rule::allows;
 use crate::protocol::{
-    OP_CAPACITY, OP_FLUSH, OP_HEALTHCHECK, OP_READ_BLOCKS, OP_WRITE_BLOCKS, OP_IDENTIFY_CONTROLLER, OP_IDENTIFY_NAMESPACE, OP_SMART_HEALTH, OP_CONTROLLER_INFO,
+    OP_CAPACITY, OP_CONTROLLER_INFO, OP_FLUSH, OP_HEALTHCHECK, OP_IDENTIFY_CONTROLLER,
+    OP_IDENTIFY_NAMESPACE, OP_READ_BLOCKS, OP_SMART_HEALTH, OP_WRITE_BLOCKS,
 };
 
 const STRANGER: u32 = 7;
 
 #[test]
 fn a_capsule_without_store_write_reaches_nothing_on_the_disk() {
-    for op in [OP_READ_BLOCKS, OP_WRITE_BLOCKS, OP_FLUSH, OP_CAPACITY, OP_IDENTIFY_CONTROLLER, OP_IDENTIFY_NAMESPACE, OP_SMART_HEALTH, OP_CONTROLLER_INFO, 0xffff] {
+    for op in [
+        OP_READ_BLOCKS,
+        OP_WRITE_BLOCKS,
+        OP_FLUSH,
+        OP_CAPACITY,
+        OP_IDENTIFY_CONTROLLER,
+        OP_IDENTIFY_NAMESPACE,
+        OP_SMART_HEALTH,
+        OP_CONTROLLER_INFO,
+        0xffff,
+    ] {
         assert!(!allows(op, STRANGER, false), "op {op:#x} answered a stranger");
     }
 }
 
 #[test]
 fn the_kernel_client_is_never_refused() {
-    for op in [OP_READ_BLOCKS, OP_WRITE_BLOCKS, OP_FLUSH, OP_CAPACITY, OP_IDENTIFY_CONTROLLER, OP_IDENTIFY_NAMESPACE, OP_SMART_HEALTH, OP_CONTROLLER_INFO] {
+    for op in [
+        OP_READ_BLOCKS,
+        OP_WRITE_BLOCKS,
+        OP_FLUSH,
+        OP_CAPACITY,
+        OP_IDENTIFY_CONTROLLER,
+        OP_IDENTIFY_NAMESPACE,
+        OP_SMART_HEALTH,
+        OP_CONTROLLER_INFO,
+    ] {
         assert!(allows(op, 0, false), "op {op:#x} refused the kernel");
     }
 }

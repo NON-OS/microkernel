@@ -7,8 +7,13 @@
 //! write hostile device-side fields, and run the real `consume` and `post`.
 //! Nothing is shimmed.
 
+// The server loop allocates its buffers through `alloc`, as in the capsule.
+extern crate alloc;
+
 #[path = "../../capsule_driver_e1000/src/constants/mod.rs"]
 pub mod constants;
+#[path = "../../capsule_driver_e1000/src/discover.rs"]
+pub mod discover;
 #[path = "../../capsule_driver_e1000/src/protocol/mod.rs"]
 pub mod protocol;
 // Upstream descriptor accessors are unsafe fns without a # Safety section;
@@ -16,10 +21,10 @@ pub mod protocol;
 pub mod init;
 #[path = "../../capsule_driver_e1000/src/queue/mod.rs"]
 pub mod queue;
-#[path = "../../capsule_driver_e1000/src/regs.rs"]
 pub mod regs;
 #[path = "../../capsule_driver_e1000/src/report/mod.rs"]
 pub mod report;
+pub mod server;
 pub mod setup;
 
 #[cfg(test)]

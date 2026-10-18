@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Before the reset nothing new may start and nothing in flight may be cut
-//! off. Linux e1000e_reset flushes the I219 rings (pch_spt and later), then
-//! reset_hw_ich8lan / reset_hw_82571 block new PCIe master requests
-//! (e1000e_disable_pcie_master), mask every cause, stop both units and wait
-//! out the transactions already issued. Firmware (PXE, UEFI UNDI) can leave
-//! the receiver running into memory this driver never gave it.
+//! off: Linux e1000e_reset flushes the I219 rings (pch_spt and later), then
+//! stops the part's DMA as `stop_dma` does. Firmware (PXE, UEFI UNDI) can
+//! leave the receiver running into memory this driver never gave it.
 
 use crate::constants::ctrl::CTRL_GIO_MASTER_DISABLE;
 use crate::constants::regs::{REG_CTRL, REG_IMC, REG_RCTL, REG_STATUS, REG_TCTL};
@@ -28,19 +26,27 @@ use crate::constants::status::STATUS_GIO_MASTER_ENABLE;
 use crate::constants::timeouts::{DMA_DRAIN_MS, MASTER_DISABLE_MS};
 use crate::constants::Family;
 use crate::log::say;
+use crate::regs::Regs;
 use crate::setup::Driver;
 use crate::wait::{idle_until, sleep_ms};
 
 use super::flush_rings;
 
-pub fn run(d: &Driver) {
-    let regs = &d.regs;
+/// True when the part holds descriptors a previous owner left (`flush_rings`).
+pub fn run(d: &Driver) -> bool {
     // SAFETY: `regs` is the broker-mapped BAR0 window; every offset in this
     // file is a 4-byte register inside it on every family.
-    unsafe { regs.w32(REG_IMC, 0xFFFF_FFFF) };
-    if d.family >= Family::PchSpt {
-        flush_rings::run(d);
-    }
+    unsafe { d.regs.w32(REG_IMC, 0xFFFF_FFFF) };
+    let theirs = d.family >= Family::PchSpt && flush_rings::run(d);
+    stop_dma(&d.regs, d.family);
+    theirs
+}
+
+/// reset_hw_ich8lan / reset_hw_82571 before CTRL.RST, "to prevent the PCI-E
+/// bus from sticking": new master requests blocked and those issued waited
+/// out (e1000e_disable_pcie_master), every cause masked, both units stopped,
+/// the DMA in flight drained. On the bare window, for a setup with no Driver.
+pub fn stop_dma(regs: &Regs, family: Family) {
     // SAFETY: as above.
     unsafe { regs.modify(REG_CTRL, 0, CTRL_GIO_MASTER_DISABLE) };
     // SAFETY: as above.
@@ -49,16 +55,21 @@ pub fn run(d: &Driver) {
         // Linux logs this and resets anyway; so does this driver.
         say("PCIe master requests still pending after 80 ms, resetting anyway");
     }
+    stop_units(regs, family);
+    sleep_ms(DMA_DRAIN_MS);
+}
+
+/// Every cause masked and both units stopped, the writes posted with a read.
+pub fn stop_units(regs: &Regs, family: Family) {
     // SAFETY: as above.
     unsafe {
         regs.w32(REG_IMC, 0xFFFF_FFFF);
         regs.w32(REG_RCTL, 0);
-        if d.family.is_pch() {
+        if family.is_pch() {
             regs.w32(REG_TCTL, TCTL_PSP);
         } else {
             regs.modify(REG_TCTL, TCTL_EN, 0);
         }
         let _ = regs.r32(REG_STATUS);
     }
-    sleep_ms(DMA_DRAIN_MS);
 }

@@ -24,7 +24,7 @@ use nonos_devmodel::FakeBar;
 use crate::constants::LPSS_PRIV_CAPS;
 use crate::init::proves_lpss_i2c;
 use crate::model::{live, WINDOW};
-use crate::regs::Regs;
+use crate::setup::regs;
 
 fn contents(bar: &FakeBar) -> Vec<u8> {
     (0..WINDOW).map(|o| bar.wrote8(o)).collect()
@@ -35,7 +35,7 @@ fn a_function_that_is_not_a_designware_core_is_refused_and_left_untouched() {
     // A thermal subsystem's window: nothing at the DesignWare offsets.
     let bar = FakeBar::new(WINDOW);
     let before = contents(&bar);
-    assert!(proves_lpss_i2c(Regs::new(bar.base())).is_err());
+    assert!(proves_lpss_i2c(regs(&bar)).is_err());
     assert_eq!(contents(&bar), before, "the look wrote into the window");
 }
 
@@ -43,7 +43,7 @@ fn a_function_that_is_not_a_designware_core_is_refused_and_left_untouched() {
 fn an_lpss_i2c_core_proves_itself() {
     let bar = live();
     let before = contents(&bar);
-    assert!(proves_lpss_i2c(Regs::new(bar.base())).is_ok());
+    assert!(proves_lpss_i2c(regs(&bar)).is_ok());
     assert_eq!(contents(&bar), before, "the look wrote into the window");
 }
 
@@ -52,6 +52,6 @@ fn an_lpss_uart_or_an_undecoded_capabilities_register_is_refused() {
     for caps in [1 << 4, 2 << 4, u32::MAX] {
         let bar = live();
         bar.present32(LPSS_PRIV_CAPS as usize, caps);
-        assert!(proves_lpss_i2c(Regs::new(bar.base())).is_err(), "caps {caps:#x} taken for I2C");
+        assert!(proves_lpss_i2c(regs(&bar)).is_err(), "caps {caps:#x} taken for I2C");
     }
 }

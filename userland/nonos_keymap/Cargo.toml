@@ -17,6 +17,9 @@ license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "NONOS keyboard layout tables and resolver"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 name = "nonos_keymap"
 path = "src/lib.rs"
