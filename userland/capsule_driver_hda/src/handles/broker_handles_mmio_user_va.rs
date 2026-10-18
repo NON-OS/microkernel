@@ -20,4 +20,10 @@ impl BrokerHandles {
     pub(crate) const fn mmio_user_va(&self) -> u64 {
         self.mmio_user_va
     }
+
+    /// The bytes mapped from `mmio_user_va`: the BAR's, or fewer when an
+    /// MSI-X table in the BAR cut the mapping short.
+    pub(crate) const fn mmio_len(&self) -> u64 {
+        self.mmio_len
+    }
 }

@@ -24,6 +24,8 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 # The audio service's wire format, for the Sound page's output device row.
 nonos_audio_proto = { path = "../audio_proto" }
+# NBTC v1, for the Bluetooth page: what driver.bt_usb0 answers.
+nonos_bt_proto = { path = "../bt_proto" }
 nonos_policy_proto = { path = "../policy_proto" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_wifi_client = { path = "../nonos_wifi_client" }

@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PCI Command value the claim writes.
+//! The PCI Command word.
 
 use nonos_libc::{MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE};
 
 /*
- * Only Memory Space and Bus Master go in. The broker takes a value carrying a
- * bit outside its allowlist verbatim and refuses it if any such bit differs
- * from what the firmware left (src/hardware/broker/pci/command.rs). The
- * record marks I/O Space for the card's port BAR, and UEFI firmware commonly
- * leaves I/O decode off, or SERR and parity on: the old word then differed in
- * a bit the driver may not flip, the write was refused and the card never
- * started. The driver reaches the part through its MMIO BAR alone, so I/O
- * decode is never needed, and the bits the firmware set stay as they were.
+ * Memory Space, which the MMIO BAR the driver reaches the part through needs,
+ * and Bus Master only when asked. Nothing outside the broker's allowlist goes
+ * in: the broker takes a value carrying such a bit verbatim and refuses it
+ * if the bit differs from what the firmware left (I/O decode off, SERR or
+ * parity on), and then the card never started. Bus Master is off from the
+ * claim until the part is reset and both rings name this driver's frames,
+ * and off again before the device goes back. The broker ORs the word into
+ * the register today, so "off" takes effect once it stores the word as
+ * written (src/hardware/broker/pci/command.rs); until then it changes
+ * nothing.
  */
-pub fn command_word(record_bits: u16) -> u16 {
-    (record_bits & MK_PCI_CMD_MEMORY_SPACE) | MK_PCI_CMD_BUS_MASTER
+pub fn command_word(bus_master: bool) -> u16 {
+    MK_PCI_CMD_MEMORY_SPACE | if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 }
 }

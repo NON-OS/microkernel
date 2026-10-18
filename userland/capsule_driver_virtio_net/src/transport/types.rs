@@ -28,6 +28,8 @@ pub enum Transport {
 
 #[derive(Clone, Copy)]
 pub struct Modern {
+    /// struct virtio_pci_common_cfg, for the reset at teardown.
+    pub common: Mmio,
     /// struct virtio_net_config.
     pub device: Mmio,
     pub notify: Mmio,

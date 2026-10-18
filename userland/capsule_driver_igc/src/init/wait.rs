@@ -20,11 +20,19 @@
 
 use nonos_libc::{mk_idle_ms, Deadline};
 
-/// True once `done` holds, false if `ms` milliseconds pass first. `done` is
-/// asked once more after the deadline, so a part that answered during the
-/// last sleep is not reported as silent.
+/// A deadline no sooner than `ms` milliseconds away. Uptime counts whole
+/// milliseconds, so one taken `ms` ahead can fall due up to one early, and
+/// where a bound is Linux's longest wait this driver would give up first;
+/// one more is added.
+pub fn at_least(ms: u64) -> Deadline {
+    Deadline::after_ms(ms + 1)
+}
+
+/// True once `done` holds, false only after at least `ms` milliseconds.
+/// `done` is asked once more after the deadline, so a part that answered
+/// during the last sleep is not reported as silent.
 pub fn until(ms: u64, mut done: impl FnMut() -> bool) -> bool {
-    let deadline = Deadline::after_ms(ms);
+    let deadline = at_least(ms);
     loop {
         if done() {
             return true;
@@ -36,10 +44,9 @@ pub fn until(ms: u64, mut done: impl FnMut() -> bool) -> bool {
     }
 }
 
-/// At least `ms` milliseconds. Uptime counts whole milliseconds, so a
-/// deadline `ms` ahead can fall due up to one early; one more is added.
+/// At least `ms` milliseconds.
 pub fn hold(ms: u64) {
-    let deadline = Deadline::after_ms(ms + 1);
+    let deadline = at_least(ms);
     while !deadline.expired() {
         let _ = mk_idle_ms(1);
     }

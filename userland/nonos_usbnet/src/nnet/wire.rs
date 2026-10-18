@@ -33,7 +33,10 @@ pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
-pub const OP_STATS: u16 = 6;
+/// The counters, off every number net.core sends: its 6 is OP_RX_BATCH,
+/// which these drivers do not serve, and a status-0 answer to 6 used to
+/// be read as a batch, so no received frame ever reached the stack.
+pub const OP_STATS: u16 = 0x0100;
 
 pub const E_INVAL: i32 = -22;
 pub const E_IO: i32 = -5;

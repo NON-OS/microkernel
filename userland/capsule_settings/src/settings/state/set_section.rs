@@ -40,5 +40,9 @@ pub fn set_section(state: &mut State, section: Section) {
     if section == Section::Sound {
         state.audio_output = probe_audio_output();
     }
+    // Asked in full each time the page opens; the tick keeps it current.
+    if section == Section::Bluetooth {
+        crate::bluetooth::poll(&mut state.bt, true);
+    }
     track_scroll(state);
 }

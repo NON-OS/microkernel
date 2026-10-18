@@ -1,0 +1,25 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The host side of the Host Controller Interface for an LE-only host
+# (Decision 21): the USB transport of HCI (Vol 4, Part B) over a pipe trait
+# a capsule fills in, and bringing a controller up with no vendor setup:
+# reset, check LE, read its address and buffers, set the event masks,
+# scan passively, then connect to one peer and encrypt the link. no_std
+# for the capsules; std under `cargo test` for the host proofs in
+# nonos_bt_hci_proofs.
+[package]
+name = "nonos_bt_hci"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

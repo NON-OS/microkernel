@@ -13,46 +13,34 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::Deadline;
 
-use crate::constants::{IC_DATA_CMD, IC_DATA_CMD_STOP};
 use crate::driver::Driver;
+use crate::transaction::pace::Pace;
 use crate::transaction::{TransferError, TransferRequest, TransferResult};
 
-use super::budget::{budget_ms, in_flight, CLOCK_EVERY};
+use super::budget::budget_ms;
 use super::check_abort::check_abort;
 use super::done::done;
 use super::drain_rx::drain_rx;
-use super::read_cmd::read_cmd;
-use super::rx_space::rx_space;
-use super::take_write::take_write;
-use super::tx_space::tx_space;
+use super::fill::fill;
 
-pub fn run(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, TransferError> {
+/// Run one transfer on an enabled core addressed to its target: feed the
+/// FIFO, drain what comes back into `out`, and end on completion, an abort
+/// or the transfer's time budget, whichever comes first.
+pub fn run(
+    driver: &Driver,
+    req: TransferRequest<'_>,
+    out: &mut TransferResult,
+) -> Result<(), TransferError> {
     let regs = driver.regs;
-    let mut out = TransferResult::empty();
     let total = req.write.len() + req.read_len;
     let (mut wi, mut ri, mut ci) = (0usize, 0usize, 0usize);
-    let deadline = Deadline::after_ms(budget_ms(total));
-    let mut spins = 0u32;
+    let mut pace = Pace::new(budget_ms(total));
     loop {
-        check_abort(regs, &mut out)?;
-        drain_rx(regs, &mut out, &mut ri, req.read_len);
-        while ci < total
-            && tx_space(regs, driver.tx_depth) > 0
-            && rx_space(regs, driver.rx_depth, in_flight(&req, ci, ri)) > 0
-        {
-            let mut cmd = if ci < req.write.len() {
-                take_write(req.write, &mut wi)
-            } else {
-                read_cmd(&req, ci)
-            };
-            if ci == total - 1 {
-                cmd |= IC_DATA_CMD_STOP;
-            }
-            regs.write32(IC_DATA_CMD, cmd);
-            ci += 1;
-        }
+        check_abort(regs, out)?;
+        let before = (ri, ci);
+        drain_rx(regs, out, &mut ri, req.read_len);
+        fill(driver, &req, &mut wi, &mut ci, ri);
         if ci >= total && ri >= req.read_len && done(regs) {
             /*
              * An aborted transfer empties the FIFO and idles the bus exactly
@@ -60,16 +48,15 @@ pub fn run(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, 
              * and it can land between the check at the top of this loop and
              * here, so it is checked again before the result is trusted.
              */
-            check_abort(regs, &mut out)?;
+            check_abort(regs, out)?;
             out.read_len = ri;
-            return Ok(out);
+            return Ok(());
         }
-        // The clock is a system call; reading it every few rounds keeps the
-        // bound in time without paying for it on every register poll.
-        spins = spins.wrapping_add(1);
-        if spins.is_multiple_of(CLOCK_EVERY) && deadline.expired() {
+        if (ri, ci) != before {
+            pace.moved();
+        }
+        if !pace.wait() {
             return Err(TransferError::Timeout);
         }
-        core::hint::spin_loop();
     }
 }

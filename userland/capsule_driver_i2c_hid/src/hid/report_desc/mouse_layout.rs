@@ -17,7 +17,7 @@
 //! Where the fields of a relative mouse report sit, as the descriptor walk
 //! found them. Offsets are in bits from the start of the report body.
 
-use super::layout::Field;
+use super::field::Field;
 
 /// The fields of a relative mouse report, located by parsing the HID report
 /// descriptor. `buttons` spans the button bits, button 1 first.

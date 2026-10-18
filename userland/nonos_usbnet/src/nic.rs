@@ -19,8 +19,13 @@
 //! own transfer framing (CDC-ECM, NCM blocks, RNDIS packets, vendor
 //! headers) into whole frames behind this.
 
+use crate::station::Taken;
+
 pub trait Nic {
+    /// The station address drawn for the run, never the device's own.
     fn mac(&self) -> [u8; 6];
+    /// How the device came to take frames for it, for the bind's log line.
+    fn taken(&self) -> Taken;
     fn link_up(&self) -> bool;
     /// Send one Ethernet frame, 14 to 1514 bytes, no FCS.
     fn send(&mut self, frame: &[u8]) -> Result<(), i32>;
@@ -28,8 +33,11 @@ pub trait Nic {
     fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32>;
     /// Work a driver does on its own clock, such as reading a link it has
     /// no notification for; run after each request is answered, so no
-    /// answer waits on it. Most drivers have none.
-    fn tick(&mut self) {}
+    /// answer waits on it. Most drivers have none. A failure counts toward
+    /// the device being taken as gone, as a failed transfer does.
+    fn tick(&mut self) -> Result<(), i32> {
+        Ok(())
+    }
 }
 
 /// The bytes of an Ethernet frame the stack hands down or takes up: the

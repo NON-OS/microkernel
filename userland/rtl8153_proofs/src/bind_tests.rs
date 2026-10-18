@@ -16,7 +16,7 @@
 
 //! Binding the model in Linux's order, and the state the bring-up leaves.
 
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::{Bind, Nic, Setup};
 
 use crate::chip::{bound, found, PHY, PLA, RTL8153_IDS, TEST_MAC, USB};
@@ -25,8 +25,9 @@ use crate::r8153::{bind, Version};
 #[test]
 fn the_vendor_configuration_is_chosen_after_the_version_is_read() {
     let (bus, _, found) = found(0x5c10, RTL8153_IDS);
-    let Bind::Ours(nic) = bind(bus.clone(), &found) else { panic!("not bound") };
-    assert_eq!((nic.mac(), nic.version()), (TEST_MAC, Version::V04));
+    let Bind::Ours(nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
+    assert_eq!((nic.mac(), nic.version()), (drawn().bytes(), Version::V04));
+    assert_ne!(nic.mac(), TEST_MAC, "not the model's PLA_BACKUP");
     let calls = bus.0.borrow().calls.clone();
     assert_eq!(calls[0], Call::In(Setup::new(0xc0, 0x05, 0xe610, 0x0100), 4));
     let Call::Configure(p) = calls[1] else { panic!("pipes not first") };
@@ -35,15 +36,16 @@ fn the_vendor_configuration_is_chosen_after_the_version_is_read() {
 }
 
 #[test]
-fn the_mac_goes_into_pla_idr_as_one_whole_dword_and_one_half() {
+fn the_drawn_address_goes_into_pla_idr_as_one_whole_dword_and_one_half() {
     let (bus, _, found) = found(0x5c10, RTL8153_IDS);
-    let _ = bind(bus.clone(), &found);
+    let _ = bind(bus.clone(), &found, drawn());
     let calls = bus.0.borrow().calls.clone();
     let at = calls.iter().position(|c| matches!(c, Call::Out(s, _) if s.value == 0xc000)).unwrap();
     let w = |v, i, d: &[u8]| Call::Out(Setup::new(0x40, 0x05, v, i), d.to_vec());
     assert_eq!(calls[at - 1], w(0xe81c, 0x0111, &[0xc0, 0, 0, 0]));
-    assert_eq!(calls[at], w(0xc000, 0x01ff, &TEST_MAC[..4]));
-    assert_eq!(calls[at + 1], w(0xc004, 0x0133, &[0x53, 0x01, 0, 0]));
+    let mac = drawn().bytes();
+    assert_eq!(calls[at], w(0xc000, 0x01ff, &mac[..4]));
+    assert_eq!(calls[at + 1], w(0xc004, 0x0133, &[mac[4], mac[5], 0, 0]));
     assert_eq!(calls[at + 2], w(0xe81c, 0x0111, &[0, 0, 0, 0]));
 }
 
@@ -53,7 +55,7 @@ fn an_rtl8153_is_left_ready_for_traffic_but_not_yet_passing_it() {
     let r = &chip.borrow().regs;
     assert!(!nic.link_up());
     assert_eq!(r.word(USB, 0xd406) & 0x0090, 0x0010, "RX_AGG_DISABLE on, RX_ZERO_EN off");
-    assert_eq!(r.read(PLA, 0xc000, 6), TEST_MAC);
+    assert_eq!(r.read(PLA, 0xc000, 6), drawn().bytes());
     assert_eq!(r.dword(PLA, 0xc010) & 0x0f, 0, "nothing accepted yet");
     assert_eq!(r.byte(PLA, 0xe813) & 0x0c, 0, "TX and RX off until the link");
     assert_eq!(r.word(PLA, 0xe85a) & 0x0008, 0x0008, "RX gate closed");

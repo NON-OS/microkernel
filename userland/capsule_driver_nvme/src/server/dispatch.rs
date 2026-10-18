@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One decoded request routed to the handler for its op.
+//! One decoded request routed to the handler for its op; `sender` the pid
+//! that sent it (0 the kernel), which a read, write or flush is told.
 
 use crate::protocol::{
     Request, E_INVAL, OP_CAPACITY, OP_CONTROLLER_INFO, OP_FLUSH, OP_HEALTHCHECK,
@@ -24,7 +25,13 @@ use crate::protocol::{
 use crate::server::{error, handlers};
 use crate::setup::Driver;
 
-pub(super) fn dispatch(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
+pub(super) fn dispatch(
+    driver: &mut Driver,
+    req: &Request,
+    sender: u32,
+    body: &[u8],
+    tx: &mut [u8],
+) {
     match req.op {
         OP_HEALTHCHECK
         | OP_CONTROLLER_INFO
@@ -41,9 +48,9 @@ pub(super) fn dispatch(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut
         OP_IDENTIFY_NAMESPACE => handlers::identify_namespace::handle(driver, req, tx),
         OP_SMART_HEALTH => handlers::smart_health::handle(driver, req, tx),
         OP_CAPACITY => handlers::capacity::handle(driver, req, tx),
-        OP_READ_BLOCKS => handlers::read::handle(driver, req, body, tx),
-        OP_WRITE_BLOCKS => handlers::write::handle(driver, req, body, tx),
-        OP_FLUSH => handlers::flush::handle(driver, req, tx),
+        OP_READ_BLOCKS => handlers::read::handle(driver, req, sender, body, tx),
+        OP_WRITE_BLOCKS => handlers::write::handle(driver, req, sender, body, tx),
+        OP_FLUSH => handlers::flush::handle(driver, req, sender, tx),
         _ => error::reply_with_status(tx, req, E_INVAL),
     }
 }

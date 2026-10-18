@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const IPC_PAYLOAD_MAX: usize = 256;
 pub const STATUS_LEN: usize = 4;
+/// The control queue's state, then the stalls recovered in place.
+pub const HEALTH_LEN: usize = 8;
 pub const CONTROLLER_INFO_LEN: usize = 40;
 pub const DISPLAY_INFO_LEN: usize = 12;
 pub const CONTROLQ_STATE_LEN: usize = 24;
-pub const CREATE_RESOURCE_REQ_LEN: usize = 16;
-pub const ATTACH_BACKING_REQ_LEN: usize = 24;
 pub const TRANSFER_TO_HOST_REQ_LEN: usize = 32;
 pub const SET_SCANOUT_REQ_LEN: usize = 24;
 pub const FLUSH_REQ_LEN: usize = 20;

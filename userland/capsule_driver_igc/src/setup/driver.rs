@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `Driver` is the live state the server loop holds: one grant per broker
-//! primitive, the ring states, the drawn station address, and the link state
-//! last logged. `release` gives the grants back in the reverse of the order
-//! the setup sequence took them.
+//! `Driver` is the live state the server loop holds: the claim, the BAR0
+//! window, the ring states over the four DMA grants, the drawn station
+//! address, the link state last logged, and the transmit watchdog. `release`
+//! gives the device back, and the broker frees every grant tied to it.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+use nonos_libc::Deadline;
 
 use crate::constants::MAC_LEN;
 use crate::link::LinkState;
@@ -28,12 +28,8 @@ use crate::regs::Regs;
 
 pub struct Driver {
     pub device_id: u64,
+    pub claim_epoch: u64,
     pub pci_device: u16,
-    pub mmio_grant: u64,
-    pub rx_ring_grant: u64,
-    pub rx_buffer_grant: u64,
-    pub tx_ring_grant: u64,
-    pub tx_buffer_grant: u64,
     pub rx_ring_device_addr: u64,
     pub tx_ring_device_addr: u64,
     pub regs: Regs,
@@ -43,17 +39,15 @@ pub struct Driver {
     /// What the last "igc: link" line said, so a poll that finds the same
     /// state prints nothing.
     pub link: Option<LinkState>,
+    /// Falls due once frames have sat in flight with the link up and no
+    /// completion for TX_HANG_MS; renewed on every sign of life.
+    pub tx_watch: Deadline,
 }
 
 impl Driver {
-    /// Each broker call is best-effort: an `EINVAL` from a doubly-dropped
-    /// grant is harmless because the broker has already revoked it.
+    /// Stand the part down and reset it, turn Bus Master off, then give the
+    /// device back, which frees every grant (see `rollback`).
     pub fn release(&self) {
-        let _ = mk_dma_unmap(self.tx_buffer_grant);
-        let _ = mk_dma_unmap(self.tx_ring_grant);
-        let _ = mk_dma_unmap(self.rx_buffer_grant);
-        let _ = mk_dma_unmap(self.rx_ring_grant);
-        let _ = mk_mmio_unmap(self.mmio_grant);
-        let _ = mk_device_release(self.device_id);
+        super::rollback::release(self.device_id, self.claim_epoch, &self.regs);
     }
 }

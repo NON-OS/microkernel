@@ -30,6 +30,9 @@ impl AdminQueue {
             Submission::identify_controller(cid, self.identify.device_addr()),
         );
         self.wait(regs, stride, cid, "identify controller (CNS 01h)")?;
+        // SAFETY: the identify region is mapped for IDENTIFY_BYTES, no fewer
+        // than IDENTIFY_SLICE_BYTES; its command has completed, and the slice
+        // borrows the queue, so no command that writes it goes in meanwhile.
         Ok(unsafe {
             core::slice::from_raw_parts(self.identify.user_va() as *const u8, IDENTIFY_SLICE_BYTES)
         })

@@ -17,10 +17,14 @@
 mod clear;
 mod post;
 mod post_packet;
+mod reclaim;
+mod ring;
 mod rx_queue;
+mod tx_error;
 mod tx_queue;
-mod used;
+pub mod used;
 
-pub use clear::clear_region;
+pub use clear::zero;
 pub use rx_queue::RxQueue;
+pub use tx_error::TxError;
 pub use tx_queue::TxQueue;

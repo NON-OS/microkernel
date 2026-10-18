@@ -16,13 +16,12 @@
 
 //! igc_configure_tx_ring for queue 0 at 0xE000.
 //!
-//! Not proven here: a queue whose enable never reads back. The model shares
-//! memory with the driver, so the driver's own write reads back before any
-//! concurrent model can undo it; that refusal rests on `until`, whose
-//! timeout is proven in wait_tests.
+//! An enable that never reads back, or reads back late, is in
+//! queue_enable_tests, where the part acts on the driver's looks at the
+//! clock, between its write and its first read.
 
 use crate::constants::regs::*;
-use crate::init::tx_queue::program;
+use crate::init::tx_queue::{enable, program};
 use crate::queue::layout::TxDesc;
 
 use super::memory::Memory;
@@ -35,7 +34,9 @@ fn queue_zero_is_programmed_at_0xe000_and_enabled() {
     let bar = window();
     let mut mem = Memory::new();
     mem.tx[3] = TxDesc { buffer_addr: 1, cmd_type_len: 2, olinfo_status: 3 };
-    assert_eq!(program(&regs(&bar), &mem.tx_ring(), RING), Ok(()));
+    program(&regs(&bar), &mem.tx_ring(), RING);
+    assert_eq!(bar.wrote32(0xE028), 0, "the queue stays off until Bus Master is on");
+    assert_eq!(enable(&regs(&bar)), Ok(()));
     assert_eq!(bar.wrote32(0xE000), 0x2345_6000, "TDBAL");
     assert_eq!(bar.wrote32(0xE004), 0x0000_0001, "TDBAH");
     assert_eq!(bar.wrote32(0xE008), 512, "TDLEN, 32 x 16 bytes");

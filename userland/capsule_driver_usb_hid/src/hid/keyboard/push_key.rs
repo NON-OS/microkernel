@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::{key_event::KeyEvent, keymap, post_key};
-use super::constants::CAP;
+use super::super::{key_event::KeyEvent, keymap, post_failures, post_key};
 use super::types::Keyboard;
 
 impl Keyboard {
@@ -40,18 +39,13 @@ impl Keyboard {
         self.post(scancode, pressed);
     }
 
-    // Post one key event, a press or its repeat or a release, and keep it for
-    // the poll API.
+    // Post one key event, a press or its repeat or a release. It is not
+    // kept: the kernel input ring is its one reader.
     pub(in crate::hid::keyboard) fn post(&mut self, scancode: u8, pressed: bool) {
         let ascii =
             if pressed { keymap::ascii(scancode, self.modifiers, self.caps_lock) } else { 0 };
         let event =
             KeyEvent { scancode, ascii, modifiers: self.modifiers, pressed, caps: self.caps_lock };
-        if !post_key::publish(event, &mut self.held) {
-            self.post_failures = self.post_failures.wrapping_add(1);
-        }
-        if self.events.len() < CAP {
-            self.events.push_back(event);
-        }
+        post_failures::count_key(post_key::publish(event, &mut self.held));
     }
 }

@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! AES-128 and two counter widths, and AES-256 in counter mode for onion
-//! services. net.anon is its one capsule; net.nym carries its own AES under
-//! `src/crypto/aes`.
+//! services; AES-128-CMAC and the inverse cipher for the Wi-Fi core and the
+//! Bluetooth Security Manager, so the system has one AES and one CMAC.
+//! net.anon, nonos_wifi_core and nonos_bt_smp use it; net.nym carries its own
+//! AES under `src/crypto/aes`.
 //!
 //! In a crate rather than behind a syscall. A bare stream cipher handed to
 //! every capsule is a footgun: reuse a key and counter once and the XOR of two
@@ -33,11 +35,15 @@
 #![no_std]
 
 mod aes256;
+mod cmac;
 mod ctr128;
 mod ctr256;
 mod ctr64;
+mod decrypt_block;
 mod encrypt_block;
 pub mod hardware;
+mod inv_steps;
+mod inv_sub_byte;
 mod key_schedule;
 mod mix_columns;
 mod shift_rows;
@@ -46,6 +52,7 @@ mod types;
 mod xtime;
 
 pub use aes256::{Aes256, KEY256_BYTES};
+pub use cmac::{aes_cmac, CMAC_BYTES};
 pub use ctr128::Ctr128Be;
 pub use ctr256::Ctr256Be;
 pub use ctr64::Ctr64Be;

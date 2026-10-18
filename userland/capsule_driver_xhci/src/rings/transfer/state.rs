@@ -13,25 +13,41 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{COMMAND_RING_TRBS, TRB_BYTES};
+use core::cell::Cell;
+
+use crate::constants::{TRANSFER_RING_TRBS, TRB_BYTES};
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
 use crate::trb::builders::link::LinkTrbBuilder;
 use crate::trb::write_volatile_at;
+use alloc::vec::Vec;
 pub struct TransferRing {
     pub(super) region: DmaRegion,
     pub(super) cycle: u8,
     pub(super) enqueue_index: usize,
+    /// TRBs queued that the controller is not known to have consumed
+    /// (`retire`). A cell, so the paths that hold the ring shared, endpoint
+    /// recovery among them, can retire it.
+    pub(super) pending: Cell<usize>,
+    /// Request buffers that TRBs still on the ring point at (`keep`).
+    pub(crate) kept: Cell<Vec<DmaRegion>>,
 }
 impl TransferRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
-        let bytes = (COMMAND_RING_TRBS as u64) * (TRB_BYTES as u64);
+        let bytes = (TRANSFER_RING_TRBS as u64) * (TRB_BYTES as u64);
         let region = pool.alloc(bytes)?;
         region.zero();
-        let link_va = region.user_va() + ((COMMAND_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
+        let link_va = region.user_va() + ((TRANSFER_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
         let link =
             LinkTrbBuilder::new().target(region.phys()).toggle_cycle(true).cycle(true).build();
-        write_volatile_at(link_va, link);
-        Ok(Self { region, cycle: 1, enqueue_index: 0 })
+        // SAFETY: the last TRB slot of the ring's own grant, just mapped.
+        unsafe { write_volatile_at(link_va, link) };
+        Ok(Self {
+            region,
+            cycle: 1,
+            enqueue_index: 0,
+            pending: Cell::new(0),
+            kept: Cell::default(),
+        })
     }
 }

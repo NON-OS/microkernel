@@ -14,29 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::mouse::{MouseParser, MouseRing};
-use crate::poll::Drainer;
-use crate::ring::Ring;
+use crate::poll::{Counters, Drainer};
+use crate::server::reinits::Reinits;
 use crate::setup::Driver;
+
 pub struct Context {
     pub driver: Driver,
-    pub ring: Ring,
+    pub counters: Counters,
     pub drainer: Drainer,
     pub mouse: MouseParser,
     pub mouse_ring: MouseRing,
     pub last_kbd_seq: u64,
     pub last_aux_seq: u64,
+    /// The lock LEDs as last sent to the keyboard; None before the first.
+    pub leds_sent: Option<u8>,
+    /// When a mouse that reset was last brought up again.
+    pub reinits: Reinits,
 }
+
 impl Context {
     pub fn new(driver: Driver) -> Self {
         let mouse = MouseParser::new(driver.mouse_wheel);
         Self {
             driver,
-            ring: Ring::new(),
+            counters: Counters::default(),
             drainer: Drainer::new(),
             mouse,
             mouse_ring: MouseRing::new(),
             last_kbd_seq: 0,
             last_aux_seq: 0,
+            leds_sent: None,
+            reinits: Reinits::default(),
         }
     }
 }

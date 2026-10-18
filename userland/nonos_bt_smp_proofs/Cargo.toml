@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_bt_smp: AES-CMAC on RFC 4493's examples,
+# the LE Secure Connections functions and P-256 against the sample data of
+# the Bluetooth Core Specification, and every refusal on its own input.
+[package]
+name = "nonos_bt_smp_proofs"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_bt_smp = { path = "../nonos_bt_smp" }
+nonos_bt_wire = { path = "../nonos_bt_wire" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

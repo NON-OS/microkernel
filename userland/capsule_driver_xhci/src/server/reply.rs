@@ -34,6 +34,11 @@ pub fn set_sender(pid: u32) {
     SENDER.store(pid, Ordering::Relaxed);
 }
 
+/// The pid of the client whose request is being served, 0 for the kernel.
+pub fn sender() -> u32 {
+    SENDER.load(Ordering::Relaxed)
+}
+
 /// While set, a handler's reply is held in its buffer rather than sent, so
 /// the controller multiplexer can read it, rewrite the ids in it, and send
 /// it itself (`mux`).

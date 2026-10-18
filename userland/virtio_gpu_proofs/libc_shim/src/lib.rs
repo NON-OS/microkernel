@@ -14,21 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The three things the included driver files take from `nonos_libc`.
+//! What the included driver files take from `nonos_libc`, on the host.
 //!
-//! The register type reaches the part through memory here, so the port I/O
-//! pair answers a refusal and the driver's own fallback handles it. `mk_yield`
-//! is what the queue wait calls between spins; answering zero lets the wait
-//! run to its limit, which is how the no-answer test reaches the timeout.
+//! A reply is kept for the test to read rather than sent, a debug line is
+//! kept rather than printed, a release or a PCI command write is kept and
+//! its moment shown to the test rather than made, a DMA grant is host
+//! memory, and a device record carries the three fields discovery matches
+//! on. Nothing here answers as a device would. There is no MkDmaUnmap and no
+//! MkExit: an included file that called either, and so freed the surface's
+//! frames, would not build.
 
-pub fn mk_yield() -> i64 {
-    0
+mod debug;
+mod dma;
+mod pci;
+mod release;
+mod reply;
+
+pub use debug::{mk_debug, said};
+pub use dma::{mk_dma_map, DmaMapOut};
+pub use pci::{mk_pci_config_write, on_pci_write, pci_writes, MK_PCI_CFG_COMMAND};
+pub use pci::{MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE};
+pub use release::{mk_device_release, on_release, releases};
+pub use reply::{mk_ipc_reply, replies};
+
+/// The fields of the broker's device record that discovery reads.
+pub struct DeviceRecord {
+    pub vendor: u16,
+    pub device: u16,
+    pub bus_kind: u8,
 }
 
-pub fn mk_pio_read(_grant_id: u64, _port_offset: u16, _width: u8, _value: &mut u32) -> i64 {
-    -1
-}
-
-pub fn mk_pio_write(_grant_id: u64, _port_offset: u16, _width: u8, _value: u32) -> i64 {
-    -1
-}
+pub const BUS_KIND_PCI: u8 = 1;

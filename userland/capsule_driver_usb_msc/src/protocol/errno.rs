@@ -26,5 +26,7 @@ pub const E_BAD_OP: i32 = -38;
 pub const E_NO_MSC: i32 = -61;
 pub const E_OVERFLOW: i32 = -75;
 pub const E_PHASE: i32 = -84;
+/// A request or a probe step that ran out of its time.
+pub const E_TIMEDOUT: i32 = -110;
 /// A logical unit with no medium in it: a card reader's empty slot.
 pub const E_NOMEDIUM: i32 = -123;

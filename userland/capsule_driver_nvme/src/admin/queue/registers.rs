@@ -21,6 +21,8 @@ use crate::regs::Regs;
 
 impl AdminQueue {
     pub fn program_registers(&self, regs: Regs) {
+        // SAFETY: AQA, ASQ and ACQ lie in the register block's first 0x40
+        // bytes, inside the window bring-up mapped (ControllerInfo::read).
         unsafe {
             regs.w32(REG_AQA, ((ADMIN_ENTRIES as u32 - 1) << 16) | (ADMIN_ENTRIES as u32 - 1));
             regs.w64(REG_ASQ, self.sq.device_addr());

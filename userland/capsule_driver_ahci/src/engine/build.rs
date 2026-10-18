@@ -19,10 +19,7 @@ use super::cmd_table::{CmdTable, PRDT_OFFSET};
 use super::fis::FisH2D;
 use super::port::Port;
 use super::prd_count::{data_bytes, prd_dbc};
-use crate::constants::ata::{
-    ATA_DEV_LBA, ATA_IDENTIFY, CMD_HEADER_WRITE, FIS_H2D_COMMAND, FIS_H2D_LEN_DWORDS,
-    FIS_TYPE_REG_H2D,
-};
+use crate::constants::ata::{ATA_DEV_LBA, ATA_IDENTIFY, CMD_HEADER_WRITE, FIS_H2D_LEN_DWORDS};
 use crate::error::{AhciError, AhciResult};
 
 /// Write slot 0's command header, FIS and single PRD entry. The PRD count
@@ -40,25 +37,7 @@ pub(super) fn build_slot0(
     let table_va = port.ctba.user_va();
     let data_phys = port.data.device_addr();
     let device = if cmd == ATA_IDENTIFY { 0 } else { ATA_DEV_LBA };
-    let fis = FisH2D {
-        fis_type: FIS_TYPE_REG_H2D,
-        pm: FIS_H2D_COMMAND,
-        command: cmd,
-        featurel: 0,
-        lba0: lba as u8,
-        lba1: (lba >> 8) as u8,
-        lba2: (lba >> 16) as u8,
-        device,
-        lba3: (lba >> 24) as u8,
-        lba4: (lba >> 32) as u8,
-        lba5: (lba >> 40) as u8,
-        featureh: 0,
-        countl: sectors as u8,
-        counth: (sectors >> 8) as u8,
-        icc: 0,
-        control: 0,
-        rsv: [0; 4],
-    };
+    let fis = FisH2D::command(cmd, lba, sectors, device);
     let mut flags = FIS_H2D_LEN_DWORDS;
     if write {
         flags |= CMD_HEADER_WRITE;
@@ -72,6 +51,9 @@ pub(super) fn build_slot0(
         ctba_high: (port.ctba.device_addr() >> 32) as u32,
         rsv: [0; 4],
     };
+    // SAFETY: the command table and list are mapped for the port's life,
+    // a page each, and hold a CmdTable and a CmdHeader at their starts. The
+    // engine fetches them only once PxCI is set, after this.
     unsafe {
         core::ptr::write_bytes(table_va as *mut u8, 0, core::mem::size_of::<CmdTable>());
         core::ptr::write_volatile(table_va as *mut FisH2D, fis);

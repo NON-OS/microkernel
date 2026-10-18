@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod abort;
 mod allocate;
 mod constants;
-mod cq0_head;
+pub(super) mod cq0_head;
 mod create_cq;
 mod create_sq;
 mod failure;
@@ -25,8 +26,9 @@ mod identify_controller;
 mod identify_namespace;
 mod log;
 mod registers;
+mod restart;
 mod set_features;
-mod sq0_tail;
+pub(super) mod sq0_tail;
 mod submit;
 mod types;
 mod wait;

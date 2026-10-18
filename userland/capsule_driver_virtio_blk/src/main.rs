@@ -16,11 +16,11 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
+mod clock;
 mod constants;
 mod discover;
 mod init;
 mod io;
-mod mark;
 mod protocol;
 mod queue;
 mod regs;
@@ -29,6 +29,10 @@ mod setup;
 mod transport;
 mod vectors;
 use nonos_libc::{bring_up, heap_init, mk_debug, mk_exit, EXIT_ABSENT, EXIT_GAVE_UP};
+/// # Safety
+///
+/// The capsule's entry point: the kernel calls it once, on a fresh stack,
+/// and nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

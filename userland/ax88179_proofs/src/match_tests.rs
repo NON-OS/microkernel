@@ -2,6 +2,7 @@
 //! Which devices are taken: products[] exactly, its interface, and the
 //! configuration Linux would choose.
 
+use nonos_usbnet::mock::drawn;
 use nonos_usbnet::Bind;
 
 use crate::ax::bind;
@@ -65,8 +66,8 @@ fn a_class_configuration_linux_would_choose_is_left_to_its_class_driver() {
 fn unlisted_devices_and_devices_without_the_interface_are_not_ours() {
     let bus = Chip::default().bus();
     let other = found(0x0b95, 0x2790, 0xff, &[&CONFIG]);
-    assert!(matches!(bind(bus.clone(), &other), Bind::NotOurs));
+    assert!(matches!(bind(bus.clone(), &other, drawn()), Bind::NotOurs));
     let no_if = found(0x0b95, 0x1790, 0xff, &[&CLASS_CONFIG]);
-    assert!(matches!(bind(bus.clone(), &no_if), Bind::NotOurs));
+    assert!(matches!(bind(bus.clone(), &no_if, drawn()), Bind::NotOurs));
     assert!(bus.0.borrow().calls.is_empty(), "the device is not touched");
 }

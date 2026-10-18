@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Bluetooth wire formats for an LE-only host (Decision 21): the HCI command,
+# event and ACL packets, the device address, the L2CAP basic frame and the
+# joining of ACL fragments into L2CAP PDUs, each from the Bluetooth Core
+# Specification. no_std for the capsules; std under `cargo test` for the
+# host proofs in nonos_bt_wire_proofs.
+[package]
+name = "nonos_bt_wire"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

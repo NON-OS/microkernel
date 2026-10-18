@@ -21,8 +21,8 @@
 use nonos_i2cmodel::regs::{IC_ENABLE, IC_TAR};
 use nonos_i2cmodel::{Config, Violation};
 
-use super::fixture::{bench, core, PAD};
-use crate::transaction::{transfer, TransferRequest};
+use super::fixture::{bench, core, transfer, PAD};
+use crate::transaction::TransferRequest;
 
 #[test]
 fn the_target_is_written_only_while_the_core_is_disabled() {

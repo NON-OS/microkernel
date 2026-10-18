@@ -42,8 +42,9 @@ fn an_82574_comes_up_under_a_drawn_address_with_autoneg_restarted() {
     let before = given_back().len();
     let d = finish(mem.driver(&bar, Family::I82574, 0x10D3)).expect("brought up");
     assert_eq!(given_back().len(), before, "a working attempt keeps its grants");
-    let up = format!("e1000e: up 10d3 mac {} family=82574 link=down", mac_text(&d.mac));
-    assert_eq!(logged().last(), Some(&up), "{:?}", logged());
+    let up = "e1000e: up 10d3 family=82574 link=down";
+    assert_eq!(logged().last().map(String::as_str), Some(up), "{:?}", logged());
+    assert!(logged().iter().all(|l| !l.contains(&mac_text(&d.mac))), "no station address logged");
     assert_eq!(d.mac[0] & 0x03, 0x02, "locally administered unicast");
     assert_ne!(bar.wrote32(REG_RCTL) & RCTL_EN, 0);
     assert_ne!(bar.wrote32(REG_TCTL) & TCTL_EN, 0);

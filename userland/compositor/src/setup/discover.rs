@@ -14,28 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::format;
+use core::sync::atomic::AtomicUsize;
+
 use nonos_libc::mk_service_lookup;
 
-/// The display drivers the compositor draws through, asked in this order.
-/// Each serves the same protocol and exits where its device is absent, so
-/// on any machine at most one answers.
-const GFX_SERVICES: [&[u8]; 2] = [b"driver.virtio_gpu0", b"driver.vmware_svga0"];
+use crate::say::say;
+
+mod order;
+
+/// The driver the display log last named, none at first.
+static SAID: AtomicUsize = AtomicUsize::new(usize::MAX);
 
 pub struct GfxEndpoint {
     pub port: u32,
 }
 
-// Resolves the gfx driver's port through the kernel service registry.
-// mk_ipc_call routes by port; the kernel verifies the owning pid is
-// alive before delivery, so the compositor does not need to hold it.
+// Resolves the gfx driver's port through the kernel service registry, in
+// `order`'s order, and names on the display log each driver it finds anew:
+// wait_for_setup names the virtio path whichever driver serves it, and the
+// GOP framebuffer when it takes that. mk_ipc_call routes by port; the
+// kernel verifies the owning pid is alive before delivery, so the
+// compositor does not need to hold it.
 pub fn lookup_gfx_endpoint() -> Result<GfxEndpoint, &'static str> {
-    GFX_SERVICES.iter().find_map(|name| lookup(name)).ok_or("gfx service not announced")
+    let found = order::first_announced(announced);
+    if let Some(driver) = order::news(&SAID, found.map(|(at, _)| at)) {
+        say(&format!("gfx lookup: {}", driver));
+    }
+    let (_, port) = found.ok_or("gfx service not announced")?;
+    Ok(GfxEndpoint { port })
 }
 
-fn lookup(name: &[u8]) -> Option<GfxEndpoint> {
+fn announced(name: &[u8]) -> Option<u32> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
     let rc =
         mk_service_lookup(name.as_ptr(), name.len(), &mut port as *mut u32, &mut pid as *mut u32);
-    (rc >= 0 && pid != 0 && port != 0).then_some(GfxEndpoint { port })
+    (rc >= 0 && pid != 0 && port != 0).then_some(port)
 }
