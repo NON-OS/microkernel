@@ -31,9 +31,17 @@ pub(super) fn init_core_services(handoff: &KernelHandoff) {
         fatal("security: speculation mitigations failed", e);
     }
     crate::sys::policy::hostname_init();
+    // A seed the firmware handed over goes in before the pool is judged: on a
+    // board with no RNG the kernel drives it is the only entropy there is.
+    if let Some(seed) = crate::arch::firmware_entropy() {
+        if crate::crypto::util::rng::seed_from_bootloader(&seed).is_err() {
+            fatal("crypto: the firmware's seed was refused", "entropy unavailable");
+        }
+    }
     if crate::crypto::util::rng::init_rng().is_err() {
         fatal("crypto: init_rng failed", "entropy unavailable");
     }
+    crate::crypto::util::rng::report_entropy_sources();
     if let Err(e) = crate::ipc::nonos_channel::init_ipc_secret() {
         fatal("ipc: init_ipc_secret failed", e);
     }

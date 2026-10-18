@@ -73,7 +73,7 @@ fn trusted(seg: &PcieSegment) -> bool {
         REFUSED => return false,
         _ => {}
     }
-    let ports = super::access::read32_unchecked(seg.start_bus, 0, 0, 0);
+    let ports = super::unchecked::read32_unchecked(seg.start_bus, 0, 0, 0);
     let ok = ports != !0 && ecam_read32(seg, seg.start_bus, 0, 0, 0) == Some(ports);
     TRUST.store(if ok { TRUSTED } else { REFUSED }, Ordering::Release);
     let verdict = if ok { "trusted" } else { "refused: id differs from the ports" };

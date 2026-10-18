@@ -53,6 +53,7 @@ state. It only enforces capabilities and revokes grants.
 | `OP_MAC_ADDRESS` | the station address drawn this boot | 6 bytes |
 | `OP_TX_PACKET` | transmit one Ethernet frame | status word |
 | `OP_RX_PACKET` | poll one received frame | length plus frame bytes |
+| `OP_RX_BATCH` | every frame waiting, numbered and kept until the next number; an empty request asks whether batches are served | count, then length plus frame bytes per frame |
 | `OP_STATS` | live register and ring cursor snapshot | 48-byte state record |
 
 ## Authority

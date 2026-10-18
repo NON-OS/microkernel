@@ -24,7 +24,7 @@ use super::held::callers_of;
 /// capsule; and every service a list names is one a spawn registers.
 #[test]
 fn every_driver_the_kernel_spawns_is_classified() {
-    const GATED_IN_DRIVER: [&str; 7] = [
+    const GATED_IN_DRIVER: [&str; 12] = [
         "driver.nvme0",
         "driver.ahci0",
         "driver.virtio_blk0",
@@ -32,6 +32,11 @@ fn every_driver_the_kernel_spawns_is_classified() {
         "driver.ufs0",
         "driver.uvc0",
         "driver.usb_mic0",
+        "driver.piix_ide0",
+        "driver.virtio_scsi0",
+        "driver.pvscsi0",
+        "driver.buslogic0",
+        "driver.mpt0",
     ];
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
     let mut registered = Vec::new();

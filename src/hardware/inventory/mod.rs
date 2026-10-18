@@ -24,6 +24,7 @@ mod emmc;
 mod family;
 mod intel_ethernet_ids;
 mod missing;
+mod platform_sd;
 mod present;
 mod realtek_ids;
 mod record;

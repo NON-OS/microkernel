@@ -45,3 +45,15 @@ pub use pci::{
 pub use reply::{mk_ipc_reply, take_reply};
 pub use sched::{busy_scheduler, mk_yield, yields, Busy};
 pub use time::{mk_uptime_ms, Deadline};
+
+// The real libc's register accessors and DMA barriers, mounted so the driver
+// files under test reach a device through the code they ship with.
+#[path = "../../libc/src/broker/dma_order.rs"]
+mod dma_order;
+#[path = "../../libc/src/broker/mmio_access.rs"]
+mod mmio_access;
+pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
+pub use mmio_access::{
+    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
+    mmio_write8,
+};

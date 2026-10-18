@@ -29,12 +29,12 @@ const INIT_FALSE: AtomicBool = AtomicBool::new(false);
 
 pub(super) static CONTEXT_JUST_RESTORED: [AtomicBool; MAX_CPUS] = [INIT_FALSE; MAX_CPUS];
 
-/// This CPU's slot. Wrapped rather than asserted: a CPU id past the table is a
-/// bring-up bug, and sharing a slot degrades the switch rather than faulting in
-/// the middle of one.
+/// This CPU's slot: its roster index, below MAX_CPUS (`cpu::cpu_id`). It
+/// was the scheduler's CPU id folded by MAX_CPUS, an affinity on aarch64,
+/// so cluster 1's first core (0x100) took the boot CPU's slot.
 #[inline]
 pub(super) fn current_cpu_index() -> usize {
-    (crate::process::scheduler::api::current_cpu_id() as usize) % MAX_CPUS
+    crate::arch::aarch64::cpu::cpu_id()
 }
 
 /// Mark the current CPU as having just come back from a saved context.

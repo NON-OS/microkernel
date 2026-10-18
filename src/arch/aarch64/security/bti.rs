@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod built;
 mod control;
 mod guard;
 mod landing;
 mod pad;
 
-pub use control::{bti_enabled, bti_supported, disable_bti, enable_bti, init_bti};
+pub use built::{built_with_bti, built_with_pac_ret};
+pub use control::{init_bti, kernel_guarded};
 pub use guard::BtiGuard;
 pub use landing::check_bti_landing_pad;
 pub use pad::is_bti_landing_pad;

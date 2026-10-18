@@ -21,11 +21,13 @@
 //! walker on. Each gets its own file because each has its own field layout to
 //! justify.
 
+mod e0pd;
 mod id;
 mod mair;
 mod sctlr;
 mod tcr;
 
+pub(super) use id::has_16_bit_asid;
 pub(super) use mair::configure_mair;
 pub(super) use sctlr::enable_mmu;
 pub(super) use tcr::configure_tcr;

@@ -24,6 +24,11 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         StorageUfs => "driver_ufs",
         StorageUsbMsc => "driver_usb_msc",
         StorageVirtioBlk => "driver_virtio_blk",
+        StorageIde => "driver_piix_ide",
+        StorageVirtioScsi => "driver_virtio_scsi",
+        StorageBuslogic => "driver_buslogic",
+        StorageMpt => "driver_mpt",
+        StorageVmwarePvscsi => "driver_pvscsi",
         NetworkVirtio => "driver_virtio_net",
         NetworkE1000 => "driver_e1000",
         NetworkE1000e => "driver_e1000e",
@@ -31,12 +36,19 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkIxgbe => "driver_ixgbe",
         NetworkRtl8139 => "driver_rtl8139",
         NetworkRtl8169 => "driver_rtl8169",
+        NetworkPcnet => "driver_pcnet",
+        NetworkVmxnet3 => "driver_vmxnet3",
+        NetworkTulip => "driver_tulip",
         NetworkRtl8821ce => "driver_rtl8821ce",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
-        // It keeps the firmware's mode and serves the gfx wire, so the
-        // compositor moves from the GOP blit to it without losing the screen.
+        // It keeps the firmware's mode until the compositor asks for another
+        // and serves the display wire, so the compositor moves from the GOP
+        // blit to it without losing the screen.
         DisplayBga => "driver_bga",
+        DisplayVmwareSvga => "driver_vmware_svga",
+        AudioAc97 => "driver_ac97",
+        InputVmmdev => "driver_vmmdev",
         UsbXhci => "driver_xhci",
         UsbUhci => "driver_uhci",
         UsbEhci => "driver_ehci",
@@ -44,6 +56,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         InputPs2 => "driver_ps2_input",
         InputUsbHid => "driver_usb_hid",
         InputI2cHid => "driver_i2c_hid",
+        InputVirtio => "driver_virtio_input",
         AudioHda => "driver_hda",
         SerialI2c => "driver_i2c_pci",
         SerialSmbus => "driver_smbus",

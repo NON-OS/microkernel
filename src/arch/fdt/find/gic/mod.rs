@@ -19,7 +19,7 @@ mod find;
 mod info;
 mod version;
 
-pub use compatible::classify;
+pub(in crate::arch::fdt::find) use compatible::NEEDLES;
 pub use find::find;
 pub use info::GicInfo;
 pub use version::GicVersion;

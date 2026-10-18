@@ -21,5 +21,5 @@ use crate::state::Context;
 /// handle, which setup releases again if a later step fails.
 pub fn register_overlay(ctx: &mut Context, overlay: &Overlay, z: u32) -> Result<u64, &'static str> {
     let rid = ctx.issue_request_id();
-    register::register_overlay(ctx.compositor_port, rid, overlay, z)
+    register::register_overlay(ctx.ports.compositor_port, rid, overlay, z)
 }

@@ -15,22 +15,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod apps;
+pub mod attention;
+pub mod brightness;
 pub mod chrome;
 pub mod context;
+pub mod ctx;
 pub mod delete_prompt;
 pub mod dialog_keys;
+pub mod display_keep;
+pub mod display_told;
 pub mod grab_rule;
 pub mod indicators;
+pub mod input_menu;
+pub mod input_menu_rule;
+pub mod input_names;
+pub mod input_offers;
+pub mod input_source_rule;
 pub mod instance;
 pub mod launch;
 pub mod launchpad_wheel;
+pub mod lid;
 pub mod live_prompt;
 pub mod menubar;
 pub mod notify;
 pub mod open_arg;
 pub mod paste_line;
 pub mod pkg_prompt;
+pub mod power_off;
 pub mod quiet_gap;
+mod request_id;
+pub mod router_notice;
 pub mod says;
 pub mod scale;
 pub mod store_word;
@@ -40,6 +54,8 @@ pub mod toast;
 pub mod toasts;
 pub mod tool_apps;
 pub mod tray;
+pub mod trusted;
+pub mod trusted_rule;
 pub mod volume;
 pub mod wm_notice;
 

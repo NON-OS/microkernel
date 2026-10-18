@@ -16,56 +16,28 @@
 
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
-use crate::arch::fdt::walker::Event;
 
-use super::compatible::classify;
+use super::compatible::NEEDLES;
+use super::describe::describe;
 use super::info::UartInfo;
-use super::kind::UartKind;
 
+/// The console: the UART `/chosen` names when it is one we drive, otherwise
+/// the first enabled one in the tree. A `stdout-path` naming a UART we do not
+/// drive, or naming nothing, is passed over rather than trusted with the
+/// wrong register layout; `Fdt::stdout` is where the reason can be read.
 pub fn find(fdt: &Fdt) -> Result<Option<UartInfo>, FdtError> {
-    let mut walker = fdt.walker();
-    let mut depth: i32 = -1;
-    let mut current_kind: Option<UartKind> = None;
-    let mut found_base: Option<u64> = None;
-    let mut address_cells: u32 = 2;
-    let mut size_cells: u32 = 1;
-
-    while let Some(event) = walker.next()? {
-        match event {
-            Event::BeginNode { .. } => {
-                depth += 1;
-                if depth == 1 {
-                    current_kind = None;
-                    found_base = None;
-                }
+    if let Ok(Some((node, options))) = fdt.stdout() {
+        if let (Some(needle), true) = (fdt.compatible_with(&node, NEEDLES)?, fdt.is_enabled(&node)?)
+        {
+            if let Some(info) = describe(fdt, &node, needle, options)? {
+                return Ok(Some(info));
             }
-            Event::EndNode => {
-                if depth == 1 {
-                    if let (Some(kind), Some(base)) = (current_kind, found_base) {
-                        return Ok(Some(UartInfo { kind, base }));
-                    }
-                    current_kind = None;
-                    found_base = None;
-                }
-                depth -= 1;
-            }
-            Event::Property(prop) => {
-                if depth == 0 {
-                    if prop.name == b"#address-cells" {
-                        address_cells = prop.u32()?;
-                    } else if prop.name == b"#size-cells" {
-                        size_cells = prop.u32()?;
-                    }
-                } else if depth == 1 {
-                    if prop.name == b"compatible" {
-                        current_kind = classify(&prop);
-                    } else if prop.name == b"reg" && current_kind.is_some() {
-                        if let Some((base, _)) = prop.reg_iter(address_cells, size_cells).next() {
-                            found_base = Some(base);
-                        }
-                    }
-                }
-            }
+        }
+    }
+    for found in fdt.devices(NEEDLES) {
+        let (node, needle) = found?;
+        if let Some(info) = describe(fdt, &node, needle, &[])? {
+            return Ok(Some(info));
         }
     }
     Ok(None)

@@ -27,6 +27,7 @@ fn every_failure() -> Vec<NvmeError> {
         NvmeError::BrokerCallFailed,
         NvmeError::UnsupportedController,
         NvmeError::UnsupportedPageSize,
+        NvmeError::NoNvmCommandSet,
         NvmeError::ControllerTimeout,
         NvmeError::ControllerFatal,
         NvmeError::ClockFailed,
@@ -39,6 +40,7 @@ fn every_failure() -> Vec<NvmeError> {
             | NvmeError::BrokerCallFailed
             | NvmeError::UnsupportedController
             | NvmeError::UnsupportedPageSize
+            | NvmeError::NoNvmCommandSet
             | NvmeError::ControllerTimeout
             | NvmeError::ControllerFatal
             | NvmeError::ClockFailed

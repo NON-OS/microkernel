@@ -168,6 +168,10 @@ name = "nonos_keymap"
 version = "0.3.0"
 
 [[package]]
+name = "nonos_mac"
+version = "0.3.0"
+
+[[package]]
 name = "nonos_p256"
 version = "0.1.0"
 dependencies = [
@@ -190,6 +194,7 @@ version = "0.3.0"
 name = "nonos_usbnet"
 version = "0.3.0"
 dependencies = [
+ "nonos_mac",
  "nonos_userland_libc",
 ]
 

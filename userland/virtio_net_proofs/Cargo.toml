@@ -14,6 +14,7 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nonos_libc = { package = "virtio_net_proofs_libc_shim", path = "libc_shim" }
 # The modern MAC read reaches the device region through the shared transport.
 nonos_virtio = { path = "../nonos_virtio" }
 

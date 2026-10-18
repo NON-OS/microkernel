@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 speculation decision: which
+# mitigation each CPU gets from its ID registers, MIDR and SMCCC answers,
+# and the entry word the EL0 vectors act on. The kernel's own source is
+# included via #[path].
+[package]
+name = "spectre_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

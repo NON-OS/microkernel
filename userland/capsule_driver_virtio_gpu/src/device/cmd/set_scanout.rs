@@ -26,7 +26,9 @@ pub fn set_scanout(
     resource_id: u32,
     rect: Rect,
 ) -> Result<(), &'static str> {
-    if scanout_id as usize >= VG_MAX_SCANOUTS || rect.width == 0 || rect.height == 0 {
+    // Resource 0 takes the scanout off whatever it showed; the rect is moot.
+    let empty = rect.width == 0 || rect.height == 0;
+    if scanout_id as usize >= VG_MAX_SCANOUTS || (resource_id != 0 && empty) {
         return Err("virtio-gpu: invalid set_scanout args");
     }
     let mut req = [0u8; REQ_LEN];

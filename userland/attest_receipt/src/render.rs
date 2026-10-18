@@ -20,9 +20,11 @@
 //! of twenty names. It is what nearly every reader is checking, and a property
 //! you have to count out of a list is one nobody checks twice.
 
-use crate::decode::{capability_names, reaches_network, Authority};
+use crate::decode::{capability_names, reaches_network};
 use crate::entries::Entry;
+use crate::firmware::{firmware, programs, FIRMWARE_LABEL, FIRMWARE_WHEN};
 use crate::hexcode::hex;
+use crate::summary::summary;
 
 /// Enough to compare against a published build by eye, not enough to mistake
 /// for the whole measurement.
@@ -30,12 +32,16 @@ fn short(measurement: &[u8; 32]) -> String {
     hex(&measurement[..6])
 }
 
-/// Call only after the fold has matched.
+/// Call only after the fold has matched. The firmware entry is folded like
+/// the rest but is no program, so it is counted and listed apart.
 pub fn render(entries: &[Entry]) -> String {
-    let mut out = format!("{} capsules, all folded into the signed root\n\n", entries.len());
+    let progs: Vec<&Entry> = programs(entries, |e| e.pid).collect();
+    let fw = firmware(entries, |e| e.pid);
+    let also = if fw.is_some() { " and the firmware tables" } else { "" };
+    let mut out = format!("{} capsules{also}, all folded into the signed root\n\n", progs.len());
     out.push_str("  pid  measurement   network  capabilities\n");
     out.push_str("  ---  ------------  -------  ------------\n");
-    for e in entries {
+    for e in &progs {
         let net = if reaches_network(e.caps) { "YES" } else { "no" };
         out.push_str(&format!(
             "  {:>3}  {}  {:^7}  {}\n",
@@ -45,23 +51,19 @@ pub fn render(entries: &[Entry]) -> String {
             capability_names(e.caps).join(", ")
         ));
     }
-    out.push_str(&summary(entries));
+    if let Some(f) = fw {
+        let (label, when) = (text(FIRMWARE_LABEL), text(FIRMWARE_WHEN));
+        out.push_str(&format!("    -  {}     -     {label}, {when}\n", short(&f.measurement)));
+        // Tables reach nothing; a mask here is the machine's fault, said aloud.
+        if f.caps != 0 {
+            let names = capability_names(f.caps).join(", ");
+            out.push_str(&format!("  WARNING: the pid 0 entry carries capabilities: {names}\n"));
+        }
+    }
+    out.push_str(&summary(&progs));
     out
 }
 
-fn summary(entries: &[Entry]) -> String {
-    let networked = entries.iter().filter(|e| reaches_network(e.caps)).count();
-    let vendor = entries.iter().filter(|e| e.authority == Authority::Vendor).count();
-    let publisher = entries.iter().filter(|e| e.authority == Authority::Publisher).count();
-    let developer = entries.len() - vendor - publisher;
-    format!(
-        "\n{} of {} capsules can reach the network. {} were proved by the vendor \
-         key, {} by a key enrolled on that machine, and {} carry a publisher \
-         signature with no proof behind it.\n",
-        networked,
-        entries.len(),
-        vendor,
-        developer,
-        publisher,
-    )
+fn text(b: &'static [u8]) -> &'static str {
+    core::str::from_utf8(b).unwrap_or("?")
 }

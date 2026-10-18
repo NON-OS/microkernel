@@ -16,31 +16,28 @@
 
 pub(super) fn spawn() {
     super::drivers_wifi::spawn();
+    spawn_gpio();
     spawn_i2c_pci();
     spawn_i2c_hid();
-    spawn_smbus();
+    super::drivers_smbus::spawn();
     super::drivers_spi::spawn();
 }
 
-/// The Intel SMBus host, only where the inventory saw one.
-#[cfg(feature = "nonos-capsule-driver-smbus")]
-fn spawn_smbus() {
-    use crate::hardware::inventory::{present, HardwareFamily};
-    use crate::hardware::smbus_capsule as c;
-    if !present(HardwareFamily::SerialSmbus) {
-        crate::sys::boot_log::ok("DRIVER-SMBUS", "no controller present, not spawned");
-        return;
-    }
+// Before the I2C driver: the GPIO capsule claims the controllers whose
+// pins the touchpad's interrupt runs through.
+#[cfg(feature = "nonos-capsule-driver-gpio")]
+fn spawn_gpio() {
+    use crate::hardware::gpio_capsule as c;
     super::boot::capsule(
-        "DRIVER-SMBUS",
-        "driver_smbus",
-        c::spawn_driver_smbus_capsule,
+        "DRIVER-GPIO",
+        "driver_gpio",
+        c::spawn_driver_gpio_capsule,
         c::shared_state,
     );
 }
 
-#[cfg(not(feature = "nonos-capsule-driver-smbus"))]
-fn spawn_smbus() {}
+#[cfg(not(feature = "nonos-capsule-driver-gpio"))]
+fn spawn_gpio() {}
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
 fn spawn_i2c_pci() {

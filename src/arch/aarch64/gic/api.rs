@@ -15,26 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::device::Gic;
-use super::state::{dist_base, redist_base, set_bases};
+use super::select::select;
+use super::state::{cpu_base, dist_base, set_layout, version};
+use super::version::GicVersion;
+use super::{announce, sysregs, v2};
 
-pub fn init_gic(dist: u64, redist: u64) {
-    set_bases(dist, redist);
-    let mut gic = Gic::new(dist, redist);
-    gic.init();
+/// Choose the GIC (see `select`), then bring up its distributor and the boot
+/// CPU's half. `cpu` is GICv2's CPU interface and `redist` GICv3's
+/// redistributor region; each is ignored by the other version.
+pub fn init_gic(
+    described: Option<GicVersion>,
+    dist: u64,
+    cpu: u64,
+    redist: u64,
+) -> Result<GicVersion, &'static str> {
+    let version = select(described, sysregs::present())?;
+    set_layout(version, dist, cpu, redist);
+    announce::chosen(version, dist, cpu, redist);
+    match version {
+        GicVersion::V3 => Gic::new(dist).init()?,
+        GicVersion::V2 => v2::init(dist, cpu)?,
+    }
+    Ok(version)
 }
 
-pub fn enable_irq(irq: u32) {
-    Gic::new(dist_base(), redist_base()).enable_irq(irq);
+/// The calling CPU's half of the GIC, for secondaries once `init_gic` ran.
+pub fn init_gic_cpu() -> Result<(), &'static str> {
+    match version() {
+        Some(GicVersion::V3) => super::cpu::init_gic_cpu(),
+        Some(GicVersion::V2) => v2::init_cpu(dist_base(), cpu_base()),
+        None => Err("GIC not brought up on the boot CPU"),
+    }
 }
 
-pub fn disable_irq(irq: u32) {
-    Gic::new(dist_base(), redist_base()).disable_irq(irq);
-}
-
-pub fn send_sgi(target: u32, intid: u32) -> Result<(), ()> {
-    super::icc::send_sgi(target, intid)
-}
-
-pub fn send_sgi_all_others(intid: u32) -> Result<(), ()> {
-    super::icc::send_sgi_all_others(intid)
+/// The GIC `init_gic` chose, once it has. A GICv3's CPU interface is system
+/// registers in the core, which a core that powers down loses.
+pub fn chosen_version() -> Option<GicVersion> {
+    version()
 }

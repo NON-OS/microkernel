@@ -22,6 +22,18 @@
 extern crate alloc;
 
 #[cfg(test)]
+pub mod acpi_event;
+#[cfg(test)]
+mod acpi_leave;
+#[cfg(test)]
+pub mod acpi_power;
+#[cfg(test)]
+pub mod acpi_region;
+#[cfg(test)]
+pub mod acpi_sleep;
+#[cfg(test)]
+pub mod acpi_tables;
+#[cfg(test)]
 pub mod addr_align;
 #[cfg(test)]
 pub mod aer_decode;
@@ -32,6 +44,8 @@ pub mod amd_vi;
 pub mod arch;
 #[cfg(test)]
 mod block_wire;
+#[cfg(test)]
+pub mod boot_cpu_id;
 #[cfg(test)]
 pub mod bti_pad;
 pub mod bus;
@@ -56,9 +70,15 @@ pub mod dmar_scope;
 #[cfg(test)]
 pub mod boot_screen;
 pub mod driver_end;
+pub mod described;
+pub mod firmware_message;
 pub mod device_windows;
 pub mod fs;
 pub mod hardware;
+#[cfg(test)]
+pub mod hypervisor_detect;
+#[cfg(test)]
+pub mod hyperv_synic;
 pub mod fb_frame;
 pub mod store_copy_span;
 pub mod store_errno;
@@ -83,6 +103,27 @@ pub mod guest_room;
 pub mod idt_vectors;
 #[cfg(test)]
 pub mod ioapic_line_mode;
+#[cfg(test)]
+pub mod smbios;
+#[cfg(test)]
+pub mod lpit;
+#[cfg(test)]
+pub mod wdat;
+#[cfg(test)]
+pub mod tpm2;
+#[cfg(test)]
+pub mod bgrt;
+#[cfg(test)]
+pub mod acpi_cpu;
+#[cfg(test)]
+pub mod late_probe;
+#[path = "../../../src/arch/aarch64/acpi/mod.rs"]
+#[allow(dead_code)] // the proofs read what an Arm machine's tables give
+pub mod arm_acpi;
+#[cfg(test)]
+mod arm_acpi_tests;
+#[cfg(test)]
+mod seeded_tables;
 #[cfg(test)]
 pub mod smp_bringup;
 #[cfg(test)]
@@ -111,6 +152,8 @@ pub mod iova_space;
 pub mod layout_slots;
 pub mod memory;
 #[cfg(test)]
+pub mod mmap_window;
+#[cfg(test)]
 pub mod mmio_window;
 #[cfg(test)]
 pub mod msi_layout;
@@ -118,6 +161,8 @@ pub mod msi_layout;
 pub mod narrowed_args;
 #[cfg(test)]
 pub mod pci_address;
+#[cfg(test)]
+pub mod pci_ecam;
 #[cfg(test)]
 pub mod pipe_counts;
 #[cfg(test)]
@@ -185,11 +230,15 @@ mod elf_section_tests;
 #[cfg(test)]
 mod elf_tests;
 #[cfg(test)]
+mod entry_ac_tests;
+#[cfg(test)]
 mod handover_tests;
 #[cfg(test)]
 mod inbox_name_tests;
 #[cfg(test)]
 mod ipc_held_tests;
+#[cfg(test)]
+mod irq_flag_tests;
 #[cfg(test)]
 mod ipc_peers_tests;
 #[cfg(test)]
@@ -200,6 +249,8 @@ mod supervisor_tests;
 mod permissions_tests;
 #[cfg(test)]
 mod refinement_tests;
+#[cfg(test)]
+mod registry_firmware_tests;
 #[cfg(test)]
 mod registry_fold_tests;
 #[cfg(test)]

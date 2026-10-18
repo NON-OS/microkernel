@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the SMMUv3 driver's pure parts: ID register
+# decoding, queue arithmetic, and the command, STE, CD and page table
+# encodings. The kernel's own source is included via #[path].
+[package]
+name = "smmu_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

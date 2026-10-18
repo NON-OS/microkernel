@@ -21,13 +21,26 @@
 //! the device then reaches all of memory, and the boot log states it.
 
 mod attach;
+mod avoid;
+mod capsule;
 mod detach;
+mod held;
+mod held_by;
 mod iova;
 mod iova_space;
 mod map;
+mod one;
 mod posture;
+mod refuse;
+mod reserve;
+mod say;
+mod streams;
 mod table;
+mod unreserve;
+mod verdict;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
+#[allow(unused_imports)] // read by the ACPI broker's SDEV posture, which only x86 builds
+pub(super) use held_by::held_by;
 pub(super) use map::{map, unmap};

@@ -44,7 +44,7 @@ fn open_retry(
 ) -> Result<(), &'static str> {
     for attempt in 0..OPEN_RETRIES {
         if wm_client::window_open(
-            ctx.wm_port,
+            ctx.ports.wm_port,
             ctx.issue_request_id(),
             window_id,
             WINDOW_KIND_POPUP,

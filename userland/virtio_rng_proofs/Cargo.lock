@@ -16,4 +16,9 @@ version = "0.1.0"
 dependencies = [
  "nonos_devmodel",
  "nonos_virtio",
+ "virtio_rng_proofs_libc_shim",
 ]
+
+[[package]]
+name = "virtio_rng_proofs_libc_shim"
+version = "0.1.0"

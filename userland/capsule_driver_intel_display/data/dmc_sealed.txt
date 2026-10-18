@@ -1,0 +1,3 @@
+# name, as `dmc::blob` gives it for a family, a space, and the blob's
+# chooses which blobs ship; until then no DMC is loaded and the display's
+# DC5 and DC6 power states stay off.

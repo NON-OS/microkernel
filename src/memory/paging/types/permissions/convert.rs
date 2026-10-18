@@ -32,6 +32,9 @@ impl PagePermissions {
         if self.contains(Self::NO_CACHE) {
             flags |= PTE_CACHE_DISABLE;
         }
+        if self.contains(Self::DEVICE) {
+            flags |= PTE_DEVICE;
+        }
         if self.contains(Self::GLOBAL) {
             flags |= PTE_GLOBAL;
         }

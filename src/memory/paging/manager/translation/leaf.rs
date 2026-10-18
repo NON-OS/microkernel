@@ -29,7 +29,7 @@
 //! with 2 MiB pages would otherwise read as unmapped.
 
 use super::super::core::PagingManager;
-use crate::arch::paging::read_root;
+use crate::arch::paging::root_for;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::layout;
 use crate::memory::paging::constants::*;
@@ -45,7 +45,7 @@ impl PagingManager {
     /// the answer is about the address space this CPU is running in.
     pub fn leaf_entry(&self, virtual_addr: VirtAddr) -> PagingResult<u64> {
         let va = virtual_addr.as_u64();
-        let root = PhysAddr::new(read_root() & !0xFFF);
+        let root = PhysAddr::new(root_for(va) & !0xFFF);
         let descend = [
             (pml4_index(va), PagingError::Pml4NotPresent),
             (pdpt_index(va), PagingError::PdptNotPresent),

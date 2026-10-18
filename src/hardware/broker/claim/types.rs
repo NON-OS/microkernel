@@ -31,4 +31,6 @@ pub enum ClaimError {
     Unconfined,
     /// The firmware's flash controller, or a device inside its window.
     Firmware,
+    /// The record is marked unusable (`DEVICE_FLAG_DISABLED`).
+    Disabled,
 }

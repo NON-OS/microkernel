@@ -24,25 +24,22 @@
 //! two arches differ in how they answer the questions in `KernelHandoff`, not
 //! in what happens afterwards.
 
+use super::dtb_adapter::Outcome;
 use super::info::BootInfo;
-use crate::boot::handoff::KernelHandoff;
 use crate::sys::serial;
 
 #[no_mangle]
 pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
-    // start.S has already set CPACR_EL1.FPEN and VBAR_EL1, so the vector
-    // registers the compiler uses for ordinary work are usable here and an
-    // exception is reported. This finishes the per-CPU setup: the SCTLR bits,
-    // SVE where it is implemented, and the instruction cache.
+    // start.S set CPACR_EL1.FPEN and VBAR_EL1; this finishes the per-CPU
+    // setup: the SCTLR bits, SVE where implemented, the instruction cache.
     crate::arch::aarch64::cpu::init_cpu();
 
     let mut info = BootInfo::default();
-
-    // Console next, on the default base, so everything after can report its own
-    // failure. The device tree may name a different UART, in which case `init`
-    // reopens the console on that one; until then the default is all there is,
-    // and a wrong guess costs less than a silent boot.
-    crate::arch::aarch64::uart::init_uart(info.uart_base);
+    // Console next, on virt's PL011, so what follows can report its failure;
+    // `init` moves it to the tree's UART. A wrong guess beats a silent boot.
+    if let Err(reason) = crate::arch::aarch64::uart::init_uart(&info.uart) {
+        super::refuse(b"console", reason.as_bytes());
+    }
     serial::print(b"[NONOS] dtb at ");
     serial::print_hex(dtb_ptr);
     serial::println(b"");
@@ -50,32 +47,19 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     #[cfg(feature = "nonos-trap-proof-sp0")]
     super::trap_proof::sp_el0_vector();
 
-    let parsed = super::dtb_adapter::populate(dtb_ptr, &mut info);
-
-    // Brings up the console, puts the MMU and caches into a known state, then
-    // installs the vector table, the GIC and the timer.
-    super::init(&info);
-
-    #[cfg(feature = "nonos-trap-proof-kernel-abort")]
-    super::trap_proof::kernel_data_abort();
-
-    if parsed {
-        serial::println(b"[NONOS] aarch64 boot init done");
-    } else {
-        // The defaults left in place describe the QEMU virt board. Say so:
-        // on any other board they are wrong, and a silent boot that wanders
-        // into the wrong MMIO is far worse than a loud one.
-        serial::println(b"[NONOS] no usable device tree, assuming QEMU virt");
+    let outcome = super::dtb_adapter::populate(dtb_ptr, &mut info);
+    if let Outcome::Broken(reason) = outcome {
+        super::refuse(b"device tree", reason);
+    }
+    // Signing starts here: after the tree, whose rng-seed may key it, in a
+    // function that never returns, and before `init` starts the other CPUs.
+    if let Some(key) = crate::arch::aarch64::security::pac::prepare() {
+        crate::arch::aarch64::security::pac::install_kernel_key!(key);
     }
 
-    // Arm the bootstrap heap before any shared code runs. It hands out of a
-    // static region, so it needs nothing but the MMU that init brought up.
-    // x86_64 does this inside its own early setup, which this path does not
-    // share; without it the first allocation is the frame allocator's bitmap
-    // and it fails with the heap reporting no memory at all.
-    crate::memory::heap::manager::init_bootstrap();
-
-    let handoff = KernelHandoff::from_aarch64(&info);
-    crate::kernel_core::microkernel_init(&handoff);
-    crate::kernel_core::microkernel_main()
+    // The console, the vectors, the MMU and caches; then the move to TTBR1
+    // and, from wherever the kernel then runs, the GIC, timer and the rest.
+    super::init(&info);
+    super::finish::set_parsed(matches!(outcome, Outcome::Parsed));
+    super::high::move_high(&info)
 }

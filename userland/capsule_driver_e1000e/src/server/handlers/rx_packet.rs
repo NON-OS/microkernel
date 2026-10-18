@@ -17,8 +17,6 @@
 //! `OP_RX_PACKET`: hand the frame at the ring's head to the caller, or say
 //! the ring is empty, and give the slot back to the part.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::regs::REG_RDT;
 use crate::protocol::{
     encode_response_header, write_status, Request, E_AGAIN, E_IO, RESP_HDR_LEN,
@@ -57,7 +55,7 @@ pub fn handle(sender: u32, driver: &mut Driver, req: &Request, tx: &mut [u8]) {
         core::ptr::copy_nonoverlapping(src, tx[body_off..].as_mut_ptr(), n);
     }
     // The copy out of the buffer ends before the part may write it again.
-    fence(Ordering::Release);
+    nonos_libc::dma_mb();
     // SAFETY: as for the RDT write above.
     unsafe { driver.regs.w32(REG_RDT, idx as u32) };
     reply(sender, tx, prefix_off + body_len);

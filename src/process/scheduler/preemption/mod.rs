@@ -19,6 +19,7 @@ mod hand_off;
 pub mod proc_ticks;
 mod state;
 mod switch;
+mod switch_trace;
 mod syscall_rsp;
 mod tick;
 mod yield_body;

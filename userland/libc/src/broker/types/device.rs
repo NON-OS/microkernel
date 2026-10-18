@@ -18,6 +18,20 @@ use super::bar::Bar;
 
 pub const DEVICE_FLAG_CLAIMED: u32 = 1 << 0;
 pub const DEVICE_FLAG_DISABLED: u32 = 1 << 1;
+/// Behind a PCIe port firmware calls external-facing: whoever can reach the
+/// connector chose what is plugged in, so it gets no untranslated DMA.
+pub const DEVICE_FLAG_EXTERNAL: u32 = 1 << 2;
+/// A device whose _DEP firmware could not satisfy, published flagged.
+pub const DEVICE_FLAG_DEPS_UNMET: u32 = 1 << 3;
+/// An ACPI platform device's `_CRS` interrupt: edge (set) or level.
+pub const DEVICE_FLAG_IRQ_EDGE: u32 = 1 << 4;
+/// An ACPI platform device's `_CRS` interrupt: active low (set) or high.
+pub const DEVICE_FLAG_IRQ_ACTIVE_LOW: u32 = 1 << 5;
+/// `numa_node` of a device no firmware table places, or past domain 254.
+pub const NUMA_UNKNOWN: u8 = 0xFF;
+/// The device's DMA does not snoop the CPU's caches: sync cacheable grants
+/// with `mk_dma_sync` around each transfer.
+pub const DEVICE_FLAG_DMA_NONCOHERENT: u32 = 1 << 6;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -34,7 +48,8 @@ pub struct DeviceRecord {
     pub bar_count: u8,
     pub irq_line: u8,
     pub irq_pin: u8,
-    pub _pad1: [u8; 1],
+    /// Proximity domain, `NUMA_UNKNOWN` when no firmware table places it.
+    pub numa_node: u8,
     pub irq_source: u32,
     pub bars: [Bar; 6],
 }
@@ -54,7 +69,7 @@ impl DeviceRecord {
             bar_count: 0,
             irq_line: 0xFF,
             irq_pin: 0,
-            _pad1: [0; 1],
+            numa_node: NUMA_UNKNOWN,
             irq_source: 0,
             bars: [Bar::empty(); 6],
         }

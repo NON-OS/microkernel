@@ -14,10 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Links one after another on a controller that is up: renew this host's
-//! address if due (between scans, the one time it may change: Vol 4, Part
-//! E, 7.8.4), look for a HID device while scanning is on, connect, pair or
-//! re-encrypt, serve it until it ends, and again; the board follows along.
+//! Links one after another on a controller that is up (Vol 4, Part E, 7.8.4).
 
 use nonos_bt_hci::host::{Connect, DEFAULT_LINK, DEFAULT_SCAN};
 use nonos_bt_hci::{usb::UsbHci, HciError, Host};
@@ -29,7 +26,6 @@ use crate::link::{begin, find_hid, serve, End, Private};
 use crate::nbtc::ops::{CONNECTING, IDLE, SCANNING, SECURING};
 use crate::usb::XhciPipes;
 
-/// How long a look waits while scanning is off, answering NBTC meanwhile.
 const IDLE_MS: u64 = 250;
 
 pub fn links(
@@ -37,12 +33,17 @@ pub fn links(
     mut us: Private,
     env: &mut CapsuleEnv,
 ) -> HciError {
+    let mut was_off = false;
     loop {
+        let scan = env.desk.board().scan;
+        if scan && was_off {
+            us.resume(); // back on after off: next address drawn fresh (E-72)
+        }
+        was_off = !scan;
         let me = match us.refresh(host, env) {
             Ok(me) => me,
             Err(e) => return e,
         };
-        let scan = env.desk.board().scan;
         env.desk.board().state = if scan { SCANNING } else { IDLE };
         if !scan {
             env.desk.wait(IDLE_MS);
@@ -59,8 +60,7 @@ pub fn links(
         let link = match host.connect(&c) {
             Ok(link) => link,
             Err(HciError::Transport(e)) => return HciError::Transport(e),
-            // It stopped advertising, or the controller would not: look again.
-            Err(_) => continue,
+            Err(_) => continue, // stopped advertising, or controller refused
         };
         say(&[b"connected"]);
         env.desk.board().state = SECURING;

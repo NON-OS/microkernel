@@ -17,6 +17,7 @@
 mod fixtures;
 
 mod decode_tests;
+mod firmware_tests;
 mod fold_tests;
 mod parse_tests;
 mod tamper_tests;

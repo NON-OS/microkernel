@@ -18,13 +18,15 @@
 //! doorbell rang. The STALL alone would have EP0 reset and moved on, but a
 //! failed controller is sent no command: the buffer stays with the slot, as
 //! it would had the wait ended on the failure itself (`dead_buffer_tests`).
+//! EP0 is not back, so the STALL is answered E_IO: E_PIPE would tell the
+//! class driver the pipe is clear.
 
 use nonos_libc::{start_log, take_log, Call};
 
 use super::bench::Bench;
 use super::hc_device::lock;
 use super::kept_bound_tests::{get_status, HIGH_SPEED};
-use crate::protocol::E_PIPE;
+use crate::protocol::E_IO;
 
 #[test]
 fn a_stall_on_a_controller_that_failed_meanwhile_is_not_recovered() {
@@ -33,7 +35,7 @@ fn a_stall_on_a_controller_that_failed_meanwhile_is_not_recovered() {
     (lock(&b.hc).stall_in, lock(&b.hc).race.fail_at_ep0) = (true, true);
     let commands = b.ran().len();
     start_log(|| 0);
-    assert_eq!(get_status(&mut b, slot), E_PIPE, "the device's STALL");
+    assert_eq!(get_status(&mut b, slot), E_IO, "a STALL on an EP0 not brought back");
     let freed = take_log().iter().filter(|l| matches!(l.call, Call::DmaUnmap(_))).count();
     assert_eq!(b.ran().len(), commands, "a recovery command went to a failed controller");
     assert_eq!(freed, 0, "freed while the failed controller may still write it");

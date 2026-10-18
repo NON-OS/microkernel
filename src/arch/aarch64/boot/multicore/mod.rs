@@ -15,10 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod ap_entry;
+mod outside;
 pub mod roster;
+mod roster_fill;
+pub mod roster_order;
+mod spin_table;
 mod start_cpus;
+mod start_one;
 mod state;
 
 pub use ap_entry::aarch64_ap_entry;
+pub use outside::park_outside_roster;
 pub use start_cpus::start_secondary_cpus;
 pub use state::{is_cpu_online, online_cpu_count, wait_for_cpus};

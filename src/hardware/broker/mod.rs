@@ -18,6 +18,8 @@
 // them in AML, which is an x86 firmware interface; the same parts on an ARM
 // board come out of the device tree instead, through `arch::fdt`.
 #[cfg(target_arch = "x86_64")]
+pub mod acpi;
+#[cfg(target_arch = "x86_64")]
 mod acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 mod acpi_i2c;
@@ -28,9 +30,11 @@ mod class;
 mod confine;
 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
 mod fdt_i2c;
+pub mod described;
 mod device;
 pub mod firmware_flash;
 pub mod dma;
+pub mod external_range;
 mod grant;
 // IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses
 // GICv3 SPIs; riscv64 uses PLIC external sources. Backend selection
@@ -48,7 +52,9 @@ pub mod pio;
 mod pio_absent;
 mod platform;
 mod power;
+pub mod reserved;
 mod table;
+mod vmbus;
 mod windows;
 
 #[cfg(target_arch = "x86_64")]
@@ -58,17 +64,22 @@ pub use acpi_i2c::register_acpi_i2c;
 // pub use census::render_and_hold as device_census; // bring-up diagnostic, silenced
 pub use claim::{
     claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
-    quiesce_held as quiesce_held_device,
-    release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
+    quiesce_held as quiesce_held_device, release as release_device,
+    release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
-pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
-pub use dma::{
-    map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
-    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
-    wipe_live_grants as dma_wipe_live_grants, DmaError,
-    DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
+pub use device::{
+    Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET,
+    DEVICE_FLAG_DISABLED, DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL,
+    DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
+pub use dma::{
+    covers as dma_covers, map_for_caller as dma_map_for_caller,
+    release_all_for_pid as dma_release_all_for_pid, release_for_device as dma_release_for_device,
+    unmap_grant as dma_unmap_grant, wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant,
+    DmaMapError, DmaMapRequest, DmaMapResult,
+};
+pub use external_range::ExternalRange;
 pub use grant::{GrantError, MmioGrant};
 pub use irq::{
     ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
@@ -94,5 +105,6 @@ pub use pio::{
 #[cfg(not(target_arch = "x86_64"))]
 pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use platform::register_legacy as register_legacy_platform_devices;
-pub use table::{contains, init_from_pci, list, list_by_class};
+pub use table::{contains, external_port_of, init_from_pci, list, list_by_class};
+pub use vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use windows::touches_device_window;

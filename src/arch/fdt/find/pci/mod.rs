@@ -14,9 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod bus_range;
 mod find;
 mod info;
+mod intx;
+mod intx_entry;
+mod intx_parse;
 mod ranges;
+mod rid_map;
 
-pub use find::find;
+pub use bus_range::bus_range;
+pub use find::{find, host};
 pub use info::PciHost;
+pub use intx::{IntxMap, IntxRoute, MAX_INTX};
+pub use intx_parse::interrupt_map;
+pub(in crate::arch::fdt::find) use rid_map::rid_map;

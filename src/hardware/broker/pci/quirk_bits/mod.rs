@@ -55,5 +55,4 @@ mod writable;
 pub use ident::Ident;
 #[allow(unreachable_pub)]
 pub use legsup::legsup_before;
-#[allow(unreachable_pub)]
-pub use writable::{only, writable};
+pub(crate) use writable::{only, writable};

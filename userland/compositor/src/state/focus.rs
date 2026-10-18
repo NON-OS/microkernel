@@ -32,6 +32,10 @@ impl FocusTable {
     // longer decides the draw order on its own: the scene's raise stamps do,
     // and the focus_set handler raises the focused layer, which repaints only
     // the rectangle that can change.
+    pub fn focused(&self) -> u32 {
+        self.focused_pid
+    }
+
     pub fn set(&mut self, pid: u32) -> bool {
         if self.focused_pid == pid {
             return false;

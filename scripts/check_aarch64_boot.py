@@ -29,6 +29,13 @@ trap-kernel-abort  built with nonos-trap-proof-kernel-abort: exactly two [TRAP]
                    with a level 0 translation fault on a read, and the faulting
                    address with its access, both as the trap contract prints them
 
+QEMU boots the arm64 Image made from the ELF (arm64_image.py), as real
+loaders do, with its device tree in x0. The kernel is a static PIE that
+relocates itself, and an ELF of type ET_DYN is not a form every QEMU's ELF
+loader takes. virt places the Image at RAM base 0x4000_0000 plus text_offset
+0x8_0000, which is the link address, so the ELR a trap reports is read
+against the ELF unchanged.
+
 A trap cell also fails if any kernel line follows the last [TRAP] line, or if
 the boot reaches Core ready. QEMU is stopped as soon
 as the cell has what it needs plus a short settle, or at the deadline. The log
@@ -46,6 +53,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from arm64_image import image, text_offset  # noqa: E402
 from check_kernel_elf import Elf, PF_X, PT_LOAD  # noqa: E402
 
 QEMU_FLAGS = ["-M", "virt,gic-version=3", "-cpu", "max", "-m", "512", "-nographic",
@@ -156,9 +164,14 @@ CELLS = {
 }
 
 
-def boot(qemu, elf_path, cell, deadline, log_path):
-    """Run QEMU until the cell is satisfied plus a settle, or the deadline."""
-    proc = subprocess.Popen([qemu, *QEMU_FLAGS, "-kernel", str(elf_path)],
+def boot(qemu, elf, cell, deadline, log_path):
+    """Run QEMU on the ELF's Image until the cell is satisfied plus a settle, or the deadline."""
+    img = image(elf)
+    if text_offset(img) != 0x8_0000:
+        raise ValueError(f"text_offset {text_offset(img):#x}: ELR would not match the ELF")
+    img_path = Path(tempfile.mkdtemp()) / "kernel.img"
+    img_path.write_bytes(img)
+    proc = subprocess.Popen([qemu, *QEMU_FLAGS, "-kernel", str(img_path)],
                             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     lines = []
@@ -226,7 +239,7 @@ def self_test():
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--cell", choices=sorted(CELLS))
-    ap.add_argument("--elf", type=Path, help="the kernel ELF to boot and to read ELR against")
+    ap.add_argument("--elf", type=Path, help="the kernel ELF whose Image is booted and ELR read against")
     ap.add_argument("--log", type=Path, help="where the serial log is written")
     ap.add_argument("--deadline", type=float, default=300.0, help="seconds before QEMU is stopped")
     ap.add_argument("--qemu", default="qemu-system-aarch64")
@@ -243,7 +256,7 @@ def main():
         note = f"replayed {a.replay}"
     else:
         log = a.log or Path(tempfile.mkdtemp()) / f"{a.cell}.log"
-        lines, elapsed, satisfied = boot(a.qemu, a.elf, a.cell, a.deadline, log)
+        lines, elapsed, satisfied = boot(a.qemu, elf, a.cell, a.deadline, log)
         note = f"{len(lines)} lines in {elapsed:.0f}s, log {log}" + ("" if satisfied else ", deadline hit")
     failed = CELLS[a.cell][0](lines, elf)
     if failed:

@@ -37,12 +37,12 @@ use crate::state::{Context, LAUNCHER_APPS};
 pub fn hand_over(ctx: &mut Context, index: usize, path: String) -> LaunchOutcome {
     let Some(app) = LAUNCHER_APPS.get(index) else { return LaunchOutcome::Failed };
     let Ok(service) = core::str::from_utf8(app.service) else { return LaunchOutcome::Failed };
-    ctx.pending_open.insert(String::from(service), path);
+    ctx.pending.pending_open.insert(String::from(service), path);
     let outcome = bring_up(ctx, index);
     if outcome == LaunchOutcome::Failed {
         // Nothing will take the path now; left behind, the next window of
         // the app would open a file nobody asked it for.
-        ctx.pending_open.remove(service);
+        ctx.pending.pending_open.remove(service);
     }
     outcome
 }
@@ -53,10 +53,10 @@ pub fn hand_command(ctx: &mut Context, line: String) -> LaunchOutcome {
     let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == TERMINAL) else {
         return LaunchOutcome::Failed;
     };
-    ctx.pending_command = Some(PendingCommand { line, at_ms: mk_uptime_ms() });
+    ctx.pending.pending_command = Some(PendingCommand { line, at_ms: mk_uptime_ms() });
     let outcome = bring_up(ctx, index);
     if outcome == LaunchOutcome::Failed {
-        ctx.pending_command = None;
+        ctx.pending.pending_command = None;
     }
     outcome
 }

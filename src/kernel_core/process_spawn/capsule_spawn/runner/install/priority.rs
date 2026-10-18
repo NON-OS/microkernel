@@ -16,8 +16,10 @@
 
 use crate::process::core::Priority;
 use crate::services::registry::nics;
+use crate::services::registry::displays::is_display;
 
-/// Capsules on the pointer/keyboard -> compositor -> scanout path.
+/// Capsules on the pointer/keyboard -> compositor -> scanout path; the
+/// display drivers that scan out are every name in `displays.rs`.
 ///
 /// Each one parks in the kernel when it has nothing to do (`mk_irq_wait`,
 /// `mk_input_event_wait`, `mk_ipc_recv_from` with a timeout), so the band is
@@ -25,8 +27,10 @@ use crate::services::registry::nics;
 /// running process, so a band holding a single runnable member always falls
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
-const INTERACTIVE: [&str; 5] =
-    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0", "driver.bga0"];
+const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
+// The same paths in a virtual machine (its network cards are on nics.rs).
+const INTERACTIVE_VM: [&str; 4] =
+    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers
@@ -58,13 +62,23 @@ const STORAGE_PATH: [&str; 6] = [
     "driver.sdhci0",
     "driver.ufs0",
 ];
+// The same in a virtual machine: its disk controllers poll a request out,
+// yielding and then sleeping a millisecond between looks.
+const STORAGE_PATH_VM: [&str; 5] = [
+    "driver.piix_ide0",
+    "driver.virtio_scsi0",
+    "driver.pvscsi0",
+    "driver.buslogic0",
+    "driver.mpt0",
+];
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    if INTERACTIVE.contains(&name)
+    let bands: [&[&str]; 5] =
+        [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &STORAGE_PATH, &STORAGE_PATH_VM];
+    if is_display(name)
         || nics::NICS.iter().any(|(card, _)| *card == name)
-        || PACKET_PATH.contains(&name)
-        || STORAGE_PATH.contains(&name)
+        || bands.iter().any(|band| band.contains(&name))
     {
         Priority::High
     } else {

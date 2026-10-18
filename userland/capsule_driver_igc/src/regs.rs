@@ -19,8 +19,6 @@
 //! reordering accesses the part cares about the order of. The base is the
 //! user_va the broker handed back from `mk_mmio_map`.
 
-use core::ptr;
-
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: u64,
@@ -36,13 +34,14 @@ impl Regs {
     /// window. The broker's `MmioMap` grant guarantees the page is present,
     /// user-mapped, uncached and read+write; the offset bound is the caller's.
     pub unsafe fn r32(&self, offset: usize) -> u32 {
-        ptr::read_volatile((self.base as usize + offset) as *const u32)
+        nonos_libc::mmio_read32(self.base as usize + offset)
     }
 
     /// # Safety
     /// Same conditions as `r32`. The part may observe the store any time
-    /// after it retires; a caller that needs ordering issues its own fence.
+    /// after it retires, after every earlier store to DMA memory: libc's
+    /// accessor orders them.
     pub unsafe fn w32(&self, offset: usize, value: u32) {
-        ptr::write_volatile((self.base as usize + offset) as *mut u32, value);
+        nonos_libc::mmio_write32(self.base as usize + offset, value);
     }
 }

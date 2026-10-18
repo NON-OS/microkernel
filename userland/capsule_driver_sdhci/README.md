@@ -44,7 +44,7 @@ The capsule talks to hardware only through the broker:
 - `MkDmaMap` and `MkDmaUnmap` hold the ADMA2 descriptor page and the data
   buffer every transfer goes through.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.sdhci0` on
-  `service:4236:driver.sdhci0`, replying to `endpoint.4294967324`.
+  `service:4260:driver.sdhci0`, replying to `endpoint.4294967324`.
 
 The kernel validates the capability token, owns address spaces and the IOMMU
 domain, and tears every grant down on exit. It holds no SDHCI or MMC logic.

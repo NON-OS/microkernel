@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod accessibility;
 mod appearance;
 mod bluetooth;
 mod developer;
@@ -25,6 +26,7 @@ mod sound;
 mod updates;
 mod wifi;
 
+pub use accessibility::ACCESSIBILITY;
 pub use appearance::APPEARANCE;
 pub use bluetooth::BLUETOOTH;
 pub use developer::DEVELOPER;

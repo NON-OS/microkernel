@@ -18,6 +18,7 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+mod build_branch_protection;
 mod build_info;
 
 fn main() {
@@ -43,6 +44,7 @@ fn main() {
     stage_device_policy_key();
     generate_manifest_and_signature();
     build_info::embed_kernel_build_info();
+    build_branch_protection::declare_branch_protection();
 }
 
 // The image capability ceiling is baked into the kernel, but most images do not
@@ -110,6 +112,11 @@ fn compile_arch_asm() {
 
     for f in &files {
         println!("cargo:rerun-if-changed={}", f.display());
+    }
+    // The headers the sources include: a change to one changes them.
+    let headers = dir.join("*.h").to_string_lossy().to_string();
+    for h in glob::glob(&headers).expect("glob arch asm headers").filter_map(Result::ok) {
+        println!("cargo:rerun-if-changed={}", h.display());
     }
 
     let mut build = cc::Build::new();
@@ -578,7 +585,7 @@ fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
             &["-mno-red-zone", "-mcmodel=kernel", "-mno-mmx", "-mno-sse", "-mno-sse2", "-mno-avx"]
                 [..],
         )),
-        "aarch64" => Some(("aarch64-unknown-none-elf", &[][..])),
+        "aarch64" => Some(("aarch64-unknown-none-elf", &["-mgeneral-regs-only"][..])),
         "riscv64" => Some(("riscv64-unknown-none-elf", &[][..])),
         _ => None,
     }

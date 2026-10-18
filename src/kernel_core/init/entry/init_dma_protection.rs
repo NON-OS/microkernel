@@ -58,4 +58,5 @@ pub(super) fn init_dma_protection() {
         }
         report_posture();
     }
+    crate::arch::report_dma_posture();
 }

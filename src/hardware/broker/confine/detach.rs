@@ -16,33 +16,44 @@
 
 extern crate alloc;
 
-use super::table::{say, CAPSULES};
+use super::say::say;
+use super::table::CAPSULES;
 
 /// Back to denied, not to the identity domain: nothing drives the device now,
 /// and the next claim attaches it afresh. The domain goes with the capsule's
-/// last device, which denies it everything it still mapped.
+/// last device, which denies it everything it still mapped; a reserved range
+/// goes sooner, at the detach of the last device naming it.
 pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
+    // Each of its requesters: a described device may have several streams.
+    while detach_one(pid, device_id) {}
+}
+
+/// Detach one of `device_id`'s requesters; false when none is left.
+fn detach_one(pid: u32, device_id: u64) -> bool {
     let mut all = CAPSULES.lock();
     let Some(pos) = all.iter().position(|c| c.pid == pid) else {
-        return;
+        return false;
     };
     let Some(i) = all[pos].devices.iter().position(|(d, _)| *d == device_id) else {
-        return;
+        return false;
     };
     let (_, address) = all[pos].devices.remove(i);
     // Another device behind the same VMD still needs the shared id.
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         say(b"released; requester id still shared", pid, address);
-        return;
+        return true;
     }
     if all[pos].domain.detach_device(address).is_err() {
         say(b"detach failed; the domain is kept", pid, address);
-        return;
+        return true;
     }
+    // Out of the domain, so its last-named reserved ranges come out too.
+    super::unreserve::release(&mut all[pos], address);
     say(b"released and denied", pid, address);
     if all[pos].devices.is_empty() {
         all.remove(pos);
     }
+    true
 }
 
 pub(in crate::hardware::broker) fn detach_all(pid: u32) {

@@ -20,7 +20,8 @@ mod version;
 
 pub use capabilities::PsciCapabilities;
 pub use query::{
-    features, has_affinity_info, has_cpu_off, has_cpu_on, has_cpu_suspend, has_mem_protect,
-    has_system_off, has_system_reset, has_system_reset2, has_system_suspend, is_function_supported,
+    cpu_suspend_features, features, has_affinity_info, has_cpu_off, has_cpu_on, has_cpu_suspend,
+    has_mem_protect, has_system_off, has_system_reset, has_system_reset2, has_system_suspend,
+    is_function_supported,
 };
 pub use version::{psci_version, PsciVersion};

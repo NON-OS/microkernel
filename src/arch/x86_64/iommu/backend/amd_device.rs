@@ -21,18 +21,21 @@ use crate::arch::x86_64::iommu::amd_vi::domain::{attach, detach, device_id};
 use crate::arch::x86_64::iommu::amd_vi::unit_covers;
 use crate::memory::iommu::{DeviceAddress, DomainId, IommuError};
 
-fn id(device: DeviceAddress) -> u16 {
-    device_id(device.pci_bus(), device.pci_device(), device.pci_function())
+use super::requester::segment0;
+
+fn id(device: DeviceAddress) -> Result<u16, IommuError> {
+    let (bus, dev, function) = segment0(device)?;
+    Ok(device_id(bus, dev, function))
 }
 
 pub(super) fn attach_device(domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
-    attach(domain.as_u16(), id(device)).map_err(|_| IommuError::DeviceAttachFailed)
+    attach(domain.as_u16(), id(device)?).map_err(|_| IommuError::DeviceAttachFailed)
 }
 
 pub(super) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
-    detach(id(device)).map_err(|_| IommuError::DeviceDetachFailed)
+    detach(id(device)?).map_err(|_| IommuError::DeviceDetachFailed)
 }
 
 pub(super) fn translates(device: DeviceAddress) -> bool {
-    unit_covers(device.pci_bus(), device.pci_device(), device.pci_function())
+    segment0(device).is_ok_and(|(bus, dev, function)| unit_covers(bus, dev, function))
 }

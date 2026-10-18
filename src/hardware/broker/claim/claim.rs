@@ -24,6 +24,11 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if super::firmware::is_firmware(device_id) {
         return Err(ClaimError::Firmware);
     }
+    let flags =
+        crate::hardware::broker::list().iter().find(|r| r.device_id == device_id).map(|r| r.flags);
+    if flags.is_some_and(|f| f & crate::hardware::broker::DEVICE_FLAG_DISABLED != 0) {
+        return Err(ClaimError::Disabled);
+    }
     let epoch = {
         let mut claims = CLAIMS.lock();
         if claims.iter().any(|c| c.device_id == device_id) {

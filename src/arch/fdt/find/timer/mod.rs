@@ -17,7 +17,6 @@
 mod compatible;
 mod find;
 mod info;
-mod intid;
 mod variant;
 
 pub use find::find;

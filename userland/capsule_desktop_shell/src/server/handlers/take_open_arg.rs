@@ -32,13 +32,14 @@ use crate::state::open_arg::{still_wanted, TERMINAL};
 use crate::state::Context;
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, tx: &mut [u8]) {
-    if ctx.pending_command.as_ref().is_some_and(|c| !still_wanted(c.at_ms, mk_uptime_ms())) {
-        ctx.pending_command = None;
+    if ctx.pending.pending_command.as_ref().is_some_and(|c| !still_wanted(c.at_ms, mk_uptime_ms()))
+    {
+        ctx.pending.pending_command = None;
     }
     // Nearly every ask finds nothing. Answering those before working out
     // which app is asking spares a registry lookup per instance of every app
     // on each tick of each window that asks.
-    if ctx.pending_open.is_empty() && ctx.pending_command.is_none() {
+    if ctx.pending.pending_open.is_empty() && ctx.pending.pending_command.is_none() {
         let _ = respond::status(sender_pid, req, 0, tx);
         return;
     }
@@ -46,8 +47,8 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, tx: &mut [u8]) 
     // may be any of its numbered instances.
     let svc = app_of_pid(sender_pid).and_then(|i| LAUNCHER_APPS.get(i)).map(|a| a.service);
     let arg = match svc {
-        Some(s) if s == TERMINAL && ctx.pending_command.is_some() => {
-            ctx.pending_command.take().map(|c| c.line)
+        Some(s) if s == TERMINAL && ctx.pending.pending_command.is_some() => {
+            ctx.pending.pending_command.take().map(|c| c.line)
         }
         _ => path_for(ctx, svc),
     };
@@ -63,5 +64,5 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, tx: &mut [u8]) 
 
 fn path_for(ctx: &mut Context, svc: Option<&[u8]>) -> Option<String> {
     let name = core::str::from_utf8(svc?).ok()?;
-    ctx.pending_open.remove(name)
+    ctx.pending.pending_open.remove(name)
 }
