@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod binding;
+mod device_for;
 mod enumerate;
 mod find_within;
 mod poll;
+mod report_descriptor;
 mod run;
 
 pub use run::run;

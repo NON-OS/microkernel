@@ -16,17 +16,20 @@
 
 //! A device a caller holds: found by driver, then read, written, flushed.
 
+mod capacity;
 mod discover;
 mod handle;
 mod identity;
 mod identity_parse;
 mod io;
+mod laid_out;
 mod native;
 mod nvme;
 mod present;
 mod read;
 mod refused;
 mod span;
+mod unserved;
 mod write;
 
 pub use discover::{discover, Found};

@@ -14,14 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The uptime clock, virtual: every read moves it on one millisecond, so a
-//! wait bounded by a deadline ends after a fixed number of polls however
-//! fast the host is, and a test can read how long the driver waited.
+//! The uptime clock, virtual: every read moves it on one millisecond, and a
+//! sleep by its length, so a wait bounded by a deadline ends after a fixed
+//! number of polls however fast the host is, and a test can read how long
+//! the driver waited and how much of that it slept.
 
 use std::cell::Cell;
 
 thread_local! {
     static NOW_MS: Cell<u64> = const { Cell::new(0) };
+    static SLEPT_MS: Cell<u64> = const { Cell::new(0) };
+}
+
+pub fn mk_idle_ms(ms: u64) -> i64 {
+    NOW_MS.with(|n| n.set(n.get() + ms));
+    SLEPT_MS.with(|s| s.set(s.get() + ms));
+    0
+}
+
+/// How many milliseconds the driver slept on this thread so far.
+pub fn slept_ms() -> u64 {
+    SLEPT_MS.with(Cell::get)
 }
 
 pub fn mk_uptime_ms() -> i64 {

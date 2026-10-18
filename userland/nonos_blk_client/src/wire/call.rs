@@ -28,9 +28,10 @@ use nonos_libc::mk_ipc_call_timeout;
 use super::encode_request;
 use crate::error::BlkError;
 
-/// Longer than the driver's own wait for a request (settle, then up to 30 s
-/// for the device), so the driver, not this call, is the one that says why a
-/// slow request failed.
+/// Longer than a driver's own wait for a request (virtio-blk's is 30 s for a
+/// flush; a request behind a reset also waits the device's fresh bring-up),
+/// so the driver, not this call, is the one that says why a slow request
+/// failed.
 const TIMEOUT_MS: u64 = 65_000;
 
 static REQUEST_ID: AtomicU32 = AtomicU32::new(1);

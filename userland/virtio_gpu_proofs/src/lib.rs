@@ -17,40 +17,54 @@
 //! The virtio-gpu driver, proved without the device.
 //!
 //! The `#[path]` includes pull in the shipping driver source, so these tests
-//! run the code that boots. The register type is built from base addresses,
-//! so windows in host memory stand in for the common, notify and device
-//! capability regions, and a queue region in host memory stands in for the
-//! DMA mapping. The discovery, broker and IPC server halves talk to the
-//! kernel rather than to the part and stay out.
+//! run the code that boots. Its register and DMA regions are bounds-checked
+//! views (`nonos_virtio::Mmio`), so windows in host memory stand in for the
+//! common, notify and device capability regions and for the queue's grant.
+//! The parts that talk to the kernel (discovery's list, the broker, the
+//! receive loop) stay out, but for the DMA grants, the PCI command and the
+//! release, which the shim makes and keeps; the clock counts each question
+//! a wait asks as a millisecond, and a test may let more pass.
 //!
-//! Two things are held to the specification here. The bring-up: the status
-//! handshake, the features the driver accepts against what was offered, and
-//! where it tells the part its rings are. The control queue: every command
-//! goes out as a two-descriptor chain, the part's answer is read back from
-//! the descriptor it named, and the wire bytes of each 2D command match the
-//! layouts in the virtio specification, checked by a part on its own thread
-//! that consumes the ring the way a device does.
+//! Held to the specification here: the bring-up on the shared transport
+//! (the status handshake, the features taken against those offered, where
+//! the rings are, the doorbell's bound, Bus Master only once the device is
+//! seen reset and never on a refusal), the control queue (each command a
+//! two-descriptor chain, its answer read from the descriptor the part
+//! named, a command that times out ending in a reset, never a stale chain
+//! run with new bytes), and the wire bytes of each command, checked by a
+//! part on its own thread that consumes the ring the way a device does.
 //!
-//! And since G-77, the driver on the display wire: a host model answers the
-//! ring on the driver's own thread through the yield the queue wait makes,
-//! keeps the host's side (resources, their pixels and backings, what each
-//! scanout shows), and can be cued to stop answering, or to kill the
-//! driver, at any command, under the wire server and its sweep.
+//! And the driver on the display wire (G-77): a host model answers the ring
+//! on the driver's own thread through the yield each wait makes, keeps the
+//! host's side (resources, their pixels and backings, what each scanout
+//! shows), and can be cued to stop answering, or to kill the driver, at any
+//! command, under the wire server and its sweep; and the recovery from a
+//! stall, every output shown again on its own surface, or to `Down` with
+//! nothing released.
 
 extern crate alloc;
 
+pub mod clock;
 #[path = "../../capsule_driver_virtio_gpu/src/constants/mod.rs"]
 pub mod constants;
 #[path = "../../capsule_driver_virtio_gpu/src/device/mod.rs"]
 pub mod device;
+pub mod discover;
 #[path = "../../capsule_driver_virtio_gpu/src/display/mod.rs"]
 pub mod display;
+#[path = "../../capsule_driver_virtio_gpu/src/driver.rs"]
+pub mod driver;
 #[path = "../../capsule_driver_virtio_gpu/src/init/mod.rs"]
 pub mod init;
+pub mod parts;
+#[path = "../../capsule_driver_virtio_gpu/src/regs.rs"]
 pub mod regs;
+pub mod server;
 pub mod setup;
 #[path = "../../capsule_driver_virtio_gpu/src/state/mod.rs"]
 pub mod state;
+#[path = "../../capsule_driver_virtio_gpu/src/virgl/mod.rs"]
+mod virgl;
 
 #[cfg(test)]
 mod tests;

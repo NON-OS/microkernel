@@ -33,8 +33,6 @@ pub struct EcmFunction {
     pub data: u8,
     pub data_alt: u8,
     pub pipes: Pipes,
-    /// The string descriptor index of the MAC address.
-    pub mac_index: u8,
 }
 
 pub fn find_ecm(raw: &[u8]) -> Option<EcmFunction> {
@@ -42,16 +40,12 @@ pub fn find_ecm(raw: &[u8]) -> Option<EcmFunction> {
     let comms = ifs.iter().filter(|i| i.class == CLASS_COMM && i.subclass == SUBCLASS_ECM);
     comms.filter(|c| c.alt == 0).find_map(|c| {
         let data = union_data(raw, c.number)?;
-        let eth = find_functional(raw, c.number, ETHERNET_FUNCTIONAL).filter(|d| d.len() >= 13)?;
+        // Its iMACAddress is never read, but a function without the
+        // descriptor is not an ECM function (CDC ECM 1.2, 5.4).
+        find_functional(raw, c.number, ETHERNET_FUNCTIONAL).filter(|d| d.len() >= 13)?;
         let on = ifs
             .iter()
             .find(|i| i.number == data && i.class == CLASS_CDC_DATA && i.has_bulk_pair())?;
-        Some(EcmFunction {
-            comm: c.number,
-            data,
-            data_alt: on.alt,
-            pipes: on.pipes,
-            mac_index: eth[3],
-        })
+        Some(EcmFunction { comm: c.number, data, data_alt: on.alt, pipes: on.pipes })
     })
 }

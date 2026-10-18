@@ -21,6 +21,8 @@
 use nonos_devmodel::FakeBar;
 
 use super::fence::sfence;
+use crate::constants::DISPI_INDEX_VIDEO_MEMORY_64K;
+use crate::dispi::dispi_off;
 use crate::dispi::DispiMode;
 use crate::display::Bga;
 use crate::edid::Panel;
@@ -37,7 +39,11 @@ pub struct Adapter {
 
 impl Adapter {
     pub fn new() -> Self {
-        Adapter { bar: FakeBar::new(BAR2), vram: vec![0; VRAM] }
+        let a = Adapter { bar: FakeBar::new(BAR2), vram: vec![0; VRAM] };
+        // VIDEO_MEMORY_64K reports all of it, as QEMU's does.
+        let units = dispi_off(DISPI_INDEX_VIDEO_MEMORY_64K) as usize;
+        a.bar.present16(units, (VRAM >> 16) as u16);
+        a
     }
 
     pub fn regs(&self) -> Regs {

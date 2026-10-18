@@ -7,6 +7,8 @@ extern crate alloc;
 pub mod ncm;
 
 #[cfg(test)]
+mod address_tests;
+#[cfg(test)]
 mod align_tests;
 #[cfg(test)]
 mod bind_tests;
@@ -20,6 +22,8 @@ mod function_tests;
 mod hostile_chain_tests;
 #[cfg(test)]
 mod hostile_tests;
+#[cfg(test)]
+mod input_size_tests;
 #[cfg(test)]
 mod limits_tests;
 #[cfg(test)]

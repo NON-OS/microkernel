@@ -14,23 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bulk pipes driver.xhci0 keeps for a slot.
+//! Transfers on the bulk pipes driver.xhci0 keeps for a slot.
 
 use super::call::call;
-use super::wire::{BULK_MAX, DATA_AT, E_IO, OP_BULK_IN_POLL, OP_BULK_OUT};
-use super::wire::{OP_CONFIGURE_BULK, OP_RESET_BULK};
-use crate::bus::Pipes;
-
-/// Add the bulk pipes to the slot. Byte 3 carries each pipe's SuperSpeed
-/// bMaxBurst, IN in bits 3:0 and OUT in bits 7:4.
-pub fn configure_bulk(xhci: u32, slot: u8, p: &Pipes) -> Result<(), i32> {
-    let bursts = (p.burst_in & 0x0F) | (p.burst_out & 0x0F) << 4;
-    let mut body = [slot, p.bulk_in, p.bulk_out, bursts, 0, 0, 0, 0];
-    body[4..6].copy_from_slice(&p.max_packet_in.to_le_bytes());
-    body[6..8].copy_from_slice(&p.max_packet_out.to_le_bytes());
-    let mut resp = [0u8; DATA_AT + 4];
-    call(xhci, OP_CONFIGURE_BULK, &body, &mut resp).map(|_| ())
-}
+use super::wire::{BULK_MAX, DATA_AT, E_INVAL, E_IO, OP_BULK_IN_POLL, OP_BULK_OUT};
 
 fn moved(resp: &[u8], len: usize) -> Result<usize, i32> {
     if len < 4 {
@@ -39,8 +26,12 @@ fn moved(resp: &[u8], len: usize) -> Result<usize, i32> {
     Ok(u16::from_le_bytes([resp[DATA_AT], resp[DATA_AT + 1]]) as usize)
 }
 
-/// Send `data`, 1 to BULK_MAX bytes. Returns the bytes the device took.
+/// Send `data`, 1 to BULK_MAX bytes; any other length is refused before
+/// it is sent. Returns the bytes the device took.
 pub fn bulk_out(xhci: u32, slot: u8, data: &[u8]) -> Result<usize, i32> {
+    if data.is_empty() || data.len() > BULK_MAX {
+        return Err(E_INVAL);
+    }
     let mut body = [0u8; 4 + BULK_MAX];
     body[0] = slot;
     body[2..4].copy_from_slice(&(data.len() as u16).to_le_bytes());
@@ -66,10 +57,4 @@ pub fn bulk_in_poll(xhci: u32, slot: u8, out: &mut [u8]) -> Result<Option<usize>
     }
     out[..n].copy_from_slice(&resp[DATA_AT + 4..DATA_AT + 4 + n]);
     Ok(Some(n))
-}
-
-/// Bring a stalled pipe back on the controller side.
-pub fn reset_bulk(xhci: u32, slot: u8, dir_in: bool) -> Result<(), i32> {
-    let mut resp = [0u8; DATA_AT + 4];
-    call(xhci, OP_RESET_BULK, &[slot, dir_in as u8], &mut resp).map(|_| ())
 }
