@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::hardware::broker::claim;
+use crate::hardware::broker::dma::acpi_stop::may_map;
 use crate::hardware::broker::dma::flags::{
     DMA_MAP_COHERENT, DMA_MAP_DMA32, DMA_MAP_HIGH, DMA_MAP_WC,
 };
@@ -50,7 +51,11 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<u64, DmaMapError
     if claim.epoch != req.claim_epoch {
         return Err(DmaMapError::StaleEpoch);
     }
-    let class = table::class_of(req.device_id).ok_or(DmaMapError::UnknownDevice)?;
+    let (bus, class) = table::kind_of(req.device_id).ok_or(DmaMapError::UnknownDevice)?;
+    // An ACPI kind with no stop gets no frames: its ceiling is nought.
+    if !may_map(bus, class) {
+        return Err(DmaMapError::BadLengthForClass);
+    }
     let pages = req.length / PAGE_SIZE;
     if pages > dma_page_limit_for_class(class) {
         return Err(DmaMapError::BadLengthForClass);
