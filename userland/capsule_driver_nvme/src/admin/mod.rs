@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod active_ns;
+mod cc_value;
 mod command;
 mod completion;
 mod completion_step;

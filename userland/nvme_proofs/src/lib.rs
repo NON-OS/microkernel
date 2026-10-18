@@ -15,6 +15,8 @@ pub mod server;
 #[cfg(test)]
 mod nvme_tests;
 #[cfg(test)]
+mod cc_tests;
+#[cfg(test)]
 mod reason_tests;
 
 #[cfg(kani)]
