@@ -20,7 +20,7 @@ use super::cleanup::secure_cleanup_before_jump;
 use super::fb_probe;
 use super::gather::gather_system_info;
 use super::handoff_init::init_boothandoff;
-use super::validate::{validate_and_jump, JumpAddresses};
+use super::validate::{halt_map_overflow, validate_and_jump, JumpAddresses};
 use crate::arch::x86_64::serial::com1_marker;
 use crate::firmware::FirmwareHandoff;
 use crate::handoff::jump::{copy_memory_map, finalize_mmap, settle_delay};
@@ -102,7 +102,13 @@ pub fn exit_and_jump(
     let (_runtime_st, final_mmap) = st.exit_boot_services();
     com1_marker(b"EBS1");
     fb_probe::dot(2);
-    let (mmap_ptr, entry_size, entry_count) = copy_memory_map(allocs.mmap_addr, &final_mmap);
+    // Boot services are gone, so a map that does not fit cannot be retried:
+    // the boot stops here rather than run on a map cut short.
+    let copied = copy_memory_map(allocs.mmap_addr, allocs.mmap_capacity, &final_mmap);
+    let Ok((mmap_ptr, entry_size, entry_count)) = copied else {
+        com1_marker(b"MMAPX");
+        halt_map_overflow()
+    };
     finalize_mmap(bh_ptr, mmap_ptr, entry_size, entry_count);
     com1_marker(b"MMAP1");
 

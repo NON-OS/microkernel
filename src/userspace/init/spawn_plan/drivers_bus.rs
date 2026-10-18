@@ -16,9 +16,26 @@
 
 pub(super) fn spawn() {
     super::drivers_wifi::spawn();
+    spawn_gpio();
     spawn_i2c_pci();
     spawn_i2c_hid();
 }
+
+// Before the I2C driver: the GPIO capsule claims the controllers whose
+// pins the touchpad's interrupt runs through.
+#[cfg(feature = "nonos-capsule-driver-gpio")]
+fn spawn_gpio() {
+    use crate::hardware::gpio_capsule as c;
+    super::boot::capsule(
+        "DRIVER-GPIO",
+        "driver_gpio",
+        c::spawn_driver_gpio_capsule,
+        c::shared_state,
+    );
+}
+
+#[cfg(not(feature = "nonos-capsule-driver-gpio"))]
+fn spawn_gpio() {}
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
 fn spawn_i2c_pci() {

@@ -19,6 +19,7 @@ pub enum Section {
     General,
     Network,
     Wifi,
+    Bluetooth,
     Security,
     Appearance,
     Privacy,
@@ -27,10 +28,11 @@ pub enum Section {
     Developer,
 }
 
-pub const SECTIONS: [Section; 9] = [
+pub const SECTIONS: [Section; 10] = [
     Section::General,
     Section::Network,
     Section::Wifi,
+    Section::Bluetooth,
     Section::Security,
     Section::Appearance,
     Section::Privacy,

@@ -8,7 +8,7 @@ The loader's `exit_and_jump` does the transfer. While UEFI boot services can sti
 
 The boot stack and the handoff structure are passed as directmap addresses, not physical ones, through `phys_to_directmap_virt` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:86-93`). The kernel later removes the identity window, and a directmap address stays valid on both sides of that change.
 
-The loader then calls `exit_boot_services`, copies the final UEFI memory map with `copy_memory_map` and records it in the handoff (`nonos-bootloader/src/handoff/exit/orchestrate.rs:102-106`). It loads the new page tables with `switch_to_kernel_pml4` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:115`). Before the jump, `validate_and_jump` checks the entry, stack and handoff addresses (`nonos-bootloader/src/handoff/exit/validate.rs:28-46`). `validate_handoff_address` refuses one that is zero, below 1 MiB, not 8-byte aligned or not canonical (`nonos-bootloader/src/handoff/jump/validate.rs:47-55`), and the loader then halts with code `0xE3` instead of jumping (`nonos-bootloader/src/handoff/exit/validate.rs:38-41`).
+The loader sizes the memory map buffer from the firmware's own map before it exits boot services, with room for 256 more descriptors and never fewer than 1024 entries (`nonos-bootloader/src/handoff/jump/mmap_copy.rs`, `mmap_capacity`). It then calls `exit_boot_services`, copies the final UEFI memory map with `copy_memory_map` and records it in the handoff (`nonos-bootloader/src/handoff/exit/orchestrate.rs:104-113`). A map that does not fit is not cut short: the loader writes `MMAPX` to COM1 and halts with POST code `0xE4` (`nonos-bootloader/src/handoff/exit/validate.rs`, `halt_map_overflow`). It loads the new page tables with `switch_to_kernel_pml4` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:121`). Before the jump, `validate_and_jump` checks the entry, stack and handoff addresses (`nonos-bootloader/src/handoff/exit/validate.rs:29-47`). `validate_handoff_address` refuses one that is zero, below 1 MiB, not 8-byte aligned or not canonical (`nonos-bootloader/src/handoff/jump/validate.rs:47-55`), and the loader then halts with code `0xE3` instead of jumping (`nonos-bootloader/src/handoff/exit/validate.rs:39-42`).
 
 The jump itself is `nonos_arch_handoff_jump` (`nonos-bootloader/src/arch/x86_64/asm/handoff_jump.S:33-53`). It masks interrupts, loads the stack pointer, moves the handoff address into `rdi` and the entry address into `rax`, clears every other general register and jumps through `rax`. There is no way back to the loader.
 
@@ -22,7 +22,7 @@ The [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) is one `#[
 | `flags` | the bits in the next table |
 | `entry_point` | the kernel entry address the loader jumped to |
 | `fb` | the UEFI GOP framebuffer: base, size, width, height, stride in bytes, pixel format, panel size in millimetres |
-| `mmap` | pointer, entry size and count of the UEFI memory map copy |
+| `mmap` | pointer, entry size and count of the UEFI memory map copy. The kernel reads it through the direct map and refuses a handoff whose map the direct map does not hold whole or whose count is over 65,536 (`src/boot/handoff/types/map_window.rs`, `map_window`) |
 | `acpi`, `smbios` | the ACPI RSDP and the SMBIOS entry point |
 | `modules` | pointer and count of loaded modules |
 | `timing` | the loader's TSC rate estimate and the UEFI time in Unix milliseconds |

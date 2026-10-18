@@ -16,7 +16,7 @@ The loader checks the kernel exactly as for a Standard boot, so a disk whose ker
 - First-boot setup is skipped, and a Terminal opens once the desktop is up.
 - Of the optional apps, only Files and the Editor are available, beside the Terminal and Settings every boot has.
 - The Terminal's splash reads `NONOS, Recovery boot: no network`.
-- The [store](../overview/glossary.md#store) and the [data volume](../overview/glossary-claim-epoch.md#data-volume) open as on any other boot of the same disk: the boot mode decides which programs start, not which storage is read.
+- The [store](../overview/glossary-linux-personality.md#store) and the [data volume](../overview/glossary-claim-epoch.md#data-volume) open as on any other boot of the same disk: the boot mode decides which programs start, not which storage is read.
 
 ## What you can do in Recovery
 

@@ -33,7 +33,7 @@ There is no login and no password. The `login` service starts with nothing on sc
 4. Mode. Where this machine keeps what you do:
    - `Amnesic (default)`: RAM only. Nothing is written to any disk, and setup runs again on the next boot.
    - `USB live (unavailable)`: cannot be chosen. It would keep an encrypted volume on the boot stick, and its screen says why it cannot: NONOS keeps state only on an NVMe, SATA or virtio disk today, and has no passphrase-keyed volume. The answers Install keeps on the stick, below, are plain records in its store, not that volume.
-   - `Install to this computer`: keeps your answers in the [package store](../overview/glossary.md#store) of the disk this boot came from, so setup does not run again, then opens the installer when setup ends.
+   - `Install to this computer`: keeps your answers in the [package store](../overview/glossary-linux-personality.md#store) of the disk this boot came from, so setup does not run again, then opens the installer when setup ends.
 
    After the boot menu's `Install NØNOS` entry, this step starts on Install.
 5. Network. The first row is `No network (default, private)`. Under it come up to six Wi-Fi networks the card has heard, strongest first. The list refreshes every 2 seconds, and `s` looks again.

@@ -24,7 +24,7 @@ driver](writing-a-driver.md#15-the-proof-crate) shows it in use.
 
 On the kernel side every call first passes the contract table, which checks the
 capability before any handler runs, for example `can_driver` for `MkDeviceClaim`
-(`src/syscall/contract/cap_table/mk_device.rs:24-37`). A handler in
+(`src/syscall/contract/cap_table/mk_device.rs:24-38`). A handler in
 `src/syscall/microkernel/` then turns the arguments into a request to
 `src/hardware/broker`. The register-level tables of numbers, arguments and
 return values are in the [Broker ABI](../abi/broker.md).

@@ -10,7 +10,7 @@ size is checked against `MAX_MESSAGE_SIZE` before anything is allocated
 (`src/syscall/microkernel/ipc/send.rs:45-47`).
 
 The `IPC` bit admits the IPC calls through `can_ipc`
-(`src/syscall/contract/cap_table/mk_ipc.rs:38-45`). It does not admit any
+(`src/syscall/contract/cap_table/mk_ipc.rs:38-46`). It does not admit any
 particular destination. Each [endpoint](../overview/glossary-dma-pool.md#endpoint) states
 the bits a sender must hold, and `caller_satisfies_endpoint` refuses a send
 unless the sender holds all of them
@@ -58,5 +58,5 @@ draining it, or blocking until it has events, needs `can_input_consumer`, which
 takes `InputConsumer` alone, held by input_router. [Driver
 capsules](../overview/glossary-dma-pool.md#driver-capsule) hold `Irq`, and neither `Irq`
 nor `Admin` opens either gate
-(`src/syscall/contract/cap_table/mk_surface.rs:30-36`). A driver capsule cannot
+(`src/syscall/contract/cap_table/mk_surface.rs:31-37`). A driver capsule cannot
 read what is typed into another program.

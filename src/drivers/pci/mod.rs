@@ -39,7 +39,8 @@ pub use capabilities::{
     get_msix_info, get_pcie_info, get_power_management_info, has_capability, CapabilityWalker,
 };
 pub use config::{
-    read32_unchecked, set_ecam_window, write32_unchecked, BridgeConfigSpace, ConfigSpace,
+    ecam, read32_unchecked, write32_unchecked, BridgeConfigSpace, ConfigSpace, EcamError,
+    EcamWindow,
 };
 pub use error::{PciError, Result};
 pub use manager::{

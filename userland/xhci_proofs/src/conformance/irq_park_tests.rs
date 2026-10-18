@@ -20,8 +20,8 @@
 
 use nonos_libc::{irq_waited_on, slept_ms, yields};
 
-use crate::controller::park::step::YIELD_BUDGET;
 use crate::controller::park::{IrqWait, SPIN_BUDGET};
+use nonos_libc::wait::YIELD_BUDGET;
 
 #[test]
 fn a_wait_past_both_budgets_with_no_interrupt_sleeps_instead_of_yielding() {

@@ -89,7 +89,7 @@ Each build writes the OR of the [capability ceilings](../overview/glossary-boot-
 
 ## Build profiles and boot modes
 
-A build profile decides what an image can ever do. A [boot mode](../overview/glossary.md#boot-mode) is chosen in the boot menu at each boot and narrows it further: Standard, Hardened, Safe Mode, Air-Gapped or Recovery (`BootProfile`, `src/boot/handoff/api/profile.rs:24-42`). A kernel started with no handoff from the loader runs Standard (`boot_profile`, `src/boot/handoff/api/profile.rs:60-63`).
+A build profile decides what an image can ever do. A [boot mode](../overview/glossary-amnesic-boot.md#boot-mode) is chosen in the boot menu at each boot and narrows it further: Standard, Hardened, Safe Mode, Air-Gapped or Recovery (`BootProfile`, `src/boot/handoff/api/profile.rs:24-42`). A kernel started with no handoff from the loader runs Standard (`boot_profile`, `src/boot/handoff/api/profile.rs:60-63`).
 
 | boot mode | network | what the kernel does differently |
 |---|---|---|

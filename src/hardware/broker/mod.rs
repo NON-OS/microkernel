@@ -18,6 +18,8 @@
 // them in AML, which is an x86 firmware interface; the same parts on an ARM
 // board come out of the device tree instead, through `arch::fdt`.
 #[cfg(target_arch = "x86_64")]
+pub mod acpi;
+#[cfg(target_arch = "x86_64")]
 mod acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 mod acpi_i2c;
@@ -28,6 +30,7 @@ mod class;
 mod confine;
 mod device;
 pub mod dma;
+pub mod external_range;
 mod grant;
 mod holder_choice;
 mod holder_space;
@@ -51,9 +54,11 @@ mod platform;
 mod quota;
 mod quota_log;
 mod power;
+pub mod reserved;
 mod table;
 mod va_space;
 mod va_window;
+mod vmbus;
 mod windows;
 
 mod api;

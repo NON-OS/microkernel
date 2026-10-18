@@ -19,6 +19,7 @@
 /// DeviceRecord bus kinds (device/bus.rs).
 pub(crate) const PCI: u8 = 1;
 pub(crate) const ACPI: u8 = 2;
+pub(crate) const VIRT: u8 = 3;
 
 /// What one entry of a row admits.
 pub(crate) enum Match {
@@ -31,6 +32,9 @@ pub(crate) enum Match {
     /// An ACPI record of this broker class; of this vendor and device when
     /// they are Some.
     Acpi { class: u32, vendor: Option<u16>, device: Option<u16> },
+    /// A record the kernel makes for a hypervisor's bus (BUS_KIND_VIRT),
+    /// such as the VMBus root, by its vendor and device.
+    Virt { vendor: u16, device: u16 },
 }
 
 /// The fields of a DeviceRecord a row reads.
@@ -61,5 +65,6 @@ pub(super) fn matches(m: &Match, d: &Seen) -> bool {
         Match::Acpi { class, vendor, device } => {
             d.bus == ACPI && d.class == class && is(vendor, d.vendor) && is(device, d.device)
         }
+        Match::Virt { vendor, device } => d.bus == VIRT && d.vendor == vendor && d.device == device,
     }
 }

@@ -16,21 +16,7 @@
 
 use core::arch::asm;
 
-#[inline]
-pub fn enable() {
-    // SAFETY: Enabling interrupts via STI instruction.
-    unsafe {
-        asm!("sti", options(nomem, nostack));
-    }
-}
-
-#[inline]
-pub fn disable() {
-    // SAFETY: Disabling interrupts via CLI instruction.
-    unsafe {
-        asm!("cli", options(nomem, nostack));
-    }
-}
+pub use crate::arch::x86_64::interrupt::irq_flag::{cli as disable, sti as enable};
 
 #[inline]
 pub fn are_enabled() -> bool {

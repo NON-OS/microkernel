@@ -24,6 +24,7 @@
 //! What a pid still owns at teardown goes from the tables it runs in, from
 //! any context (K10): a thread's, or tables handed to an heir, outlive it.
 
+use super::fence::{fence, Fenced};
 use crate::hardware::broker::claim::release_all_for_pid as drop_claims_for_pid;
 use crate::hardware::broker::grant::{self, GrantError, MmioGrant};
 use crate::hardware::broker::holder_space::unmap_from_holder;
@@ -49,6 +50,18 @@ pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
         }
     }
     retired + drained.len()
+}
+
+/// A device that left while `pid` held it: its grants are dropped without
+/// an unmap (the holder's space is not the active one) and each window is
+/// fenced until that space goes.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+pub fn revoke_for_device(pid: u32, device_id: u64) -> usize {
+    let drained = grant::drain_for_device(pid, device_id);
+    for g in &drained {
+        fence(Fenced { pid, start: g.physical_start, len: g.length });
+    }
+    drained.len()
 }
 
 fn unmap_one(g: &MmioGrant) {
