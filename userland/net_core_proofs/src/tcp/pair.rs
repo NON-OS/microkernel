@@ -22,7 +22,7 @@ use smoltcp::socket::tcp::{Socket, SocketBuffer, State};
 use smoltcp::time::{Duration, Instant};
 use smoltcp::wire::{HardwareAddress, IpAddress, IpCidr};
 
-use crate::tcp_link::Link;
+use super::link::Link;
 use crate::tcp_liveness::arm;
 
 pub struct Pair {

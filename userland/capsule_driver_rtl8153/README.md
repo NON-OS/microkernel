@@ -1,7 +1,6 @@
 # capsule_driver_rtl8153
 
 Status: not in the 0.9.2 image. The capsule builds and its host proofs
-pass, but it has no owner certificate and the kernel never spawns it:
 driver.xhci0 has no bulk IN poll or control OUT data stage yet.
 
 ## Role
@@ -87,7 +86,7 @@ NNET, the protocol net.core speaks with every NIC driver:
 | `OP_MAC_ADDRESS` (3) | none | six bytes, or `E_AGAIN` with no device |
 | `OP_TX_PACKET` (4) | one Ethernet frame, 14 to 1514 bytes | status |
 | `OP_RX_PACKET` (5) | none | `len_le32` and the frame, or `E_AGAIN` |
-| `OP_STATS` (6) | none | twelve 32-bit counters |
+| `OP_STATS` (7) | none | twelve 32-bit counters |
 
 ## Authority
 

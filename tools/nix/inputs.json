@@ -3629,6 +3629,8 @@
   "include": [
    ".cargo",
    "userland/capsule_net_core/src/autojoin/machine.rs",
+   "userland/capsule_net_core/src/device/batch_frames.rs",
+   "userland/capsule_net_core/src/device/probe_reply.rs",
    "userland/capsule_net_core/src/iface/lease_wait.rs",
    "userland/capsule_net_core/src/iface/link_watch.rs",
    "userland/capsule_net_core/src/protocol",

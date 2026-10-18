@@ -1,6 +1,6 @@
 # Ethernet drivers
 
-NONOS carries wired traffic through one driver [capsule](../../overview/glossary.md#capsule) per card family; this page lists every Ethernet driver in the tree, says which ones are in the image, shows how a frame reaches `net.core`, and describes the receive fault the three PCI drivers carry in 0.9.2.
+NONOS carries wired traffic through one driver [capsule](../../overview/glossary.md#capsule) per card family; this page lists every Ethernet driver in the tree, says which ones are in the image, shows how a frame reaches `net.core`, and records the receive fault the three PCI drivers carried in 0.9.2 and how it was fixed.
 
 ## Drivers at a glance
 
@@ -12,16 +12,16 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 
 | Family | PCI or USB ids | Capsule | In the image | State | Page |
 |---|---|---|---|---|---|
-| Intel 8254x (e1000) | 28 ids, vendor 8086 | `driver.e1000_0` | yes | Partial: [receive fault](#the-receive-fault), no QEMU run target | [intel.md](intel.md) |
+| Intel 8254x (e1000) | 28 ids, vendor 8086 | `driver.e1000_0` | yes | Partial: no QEMU run target, receive batches not yet booted | [intel.md](intel.md) |
 | Intel 82574, 82583, I217, I218, I219 (e1000e) | 64 ids, vendor 8086 | `driver.e1000e_0` | no | Not supported: capsule not built into any image | [intel.md](intel.md) |
 | Intel I225, I226 (igc) | 16 ids, vendor 8086 | `driver.igc_0` | no | Not supported: capsule not built into any image | [intel.md](intel.md) |
-| Realtek RTL8139 | 10ec:8139 | `driver.rtl8139_0` | yes | Partial: [receive fault](#the-receive-fault), no QEMU run target | [realtek.md](realtek.md) |
-| Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: [receive fault](#the-receive-fault), flake check fails on a lint | [realtek.md](realtek.md) |
+| Realtek RTL8139 | 10ec:8139 | `driver.rtl8139_0` | yes | Partial: no QEMU run target, receive batches not yet booted | [realtek.md](realtek.md) |
+| Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: receive batches not yet booted, flake check fails on a lint | [realtek.md](realtek.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek.md](realtek.md) |
 | virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
 | USB CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek RTL8153 | USB class or USB ids | five capsules | no | Not supported: not built, and the USB host driver lacks the transfer they need | [usb-net.md](usb-net.md) |
 
-No Ethernet driver has a hardware report in 0.9.2. Read from the code, the only wired driver that delivers received frames to `net.core` in this release is virtio-net, in a virtual machine; [the receive fault](#the-receive-fault) stops the other three in the image. For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
+No Ethernet driver has a hardware report in 0.9.2. In 0.9.2 the only wired driver that delivered received frames to `net.core` was virtio-net, in a virtual machine; [the receive fault](#the-receive-fault) stopped the other three. That fault is fixed in code on this branch and has not been booted. For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
 
 ## How a frame travels
 
@@ -40,7 +40,7 @@ flowchart LR
 
 Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through [grants](../../overview/glossary.md#grant) from the [hardware broker](../../overview/glossary.md#hardware-broker): a device claim, a register mapping or port range, and DMA buffers.
 
-Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is where they part. `net.core` and the virtio driver use it for a receive batch (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); e1000, RTL8139 and RTL8169 use it for a register snapshot (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`).
+Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is the receive batch, every waiting frame in one numbered reply (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); virtio-net, e1000, RTL8139 and RTL8169 serve it. Operation 7 is the register snapshot the PCI drivers and the USB core answer (`userland/capsule_driver_e1000/src/protocol/ops.rs:28-32`, `OP_STATS`).
 
 The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary.md#held-endpoint).
 
@@ -48,13 +48,19 @@ The kernel holds the four wired endpoints in the image to `net.core` and `net.l2
 
 ## The receive fault
 
-Read from the code on this commit, `net.core` takes no received frame from the e1000, RTL8139 or RTL8169 driver. No run on this commit shows it either way.
+In 0.9.2 `net.core` took no received frame from the e1000, RTL8139 or RTL8169 driver:
 
-1. On its first poll of a newly bound card, `net.core` sends operation 6 with no body. A status 0 reply marks the driver as one that serves receive batches (`userland/capsule_net_core/src/device/rx_probe.rs:32-38`, `serves`; `userland/capsule_net_core/src/device/batch_call.rs:54`, `OP_RX_BATCH`).
-2. The three drivers answer operation 6 with status 0 and twelve register words (`userland/capsule_driver_e1000/src/server/handlers/stats.rs:25-33`, `write_status`). The RTL8139 and RTL8169 handlers do the same.
-3. From then on `net.core` asks that card only for batches. It reads each snapshot as a batch, finds that the frame count does not match the body, and drops it with the line `[NET-CORE] rx batch unreadable, dropped` (`userland/capsule_net_core/src/device/rx_batch.rs:63-68`, `batch_frames`; `userland/capsule_net_core/src/device/batch_frames.rs:26-35`, `batch_frames`).
+1. On its first poll of a newly bound card, `net.core` sends operation 6 with no body, and took any status 0 reply as a driver that serves receive batches.
+2. The three drivers answered operation 6 with status 0 and twelve register words, their `OP_STATS` snapshot; e1000e, igc and the USB core did the same.
+3. From then on `net.core` asked that card only for batches, read each snapshot as one, found that the frame count did not match the body, and dropped it with the line `[NET-CORE] rx batch unreadable, dropped`.
 
-Transmit uses operation 4 and is not touched, but with no frame received, DHCP gets no lease through these drivers. The virtio driver serves real batches (`userland/capsule_driver_virtio_net/src/protocol/ops.rs:25`, `OP_RX_BATCH`). The Wi-Fi drivers do not answer operation 6 with status 0, so `net.core` falls back to operation 5 for them.
+Fixed on this branch, in code; not yet booted:
+
+- `net.core` takes a driver as a batch server only when the probe's reply body is an empty batch, exactly four zero bytes (`userland/capsule_net_core/src/device/probe_reply.rs:27`, `serves_batches`; `userland/capsule_net_core/src/device/rx_probe.rs:36`, `serves`). Any other answer leaves the card on operation 5, one frame per call.
+- The snapshot moved to operation 7 in all five PCI capsules, the USB core and the kernel's RTL8139 and RTL8169 clients (`userland/nonos_usbnet/src/nnet/wire.rs:38`, `OP_STATS`).
+- e1000, RTL8139 and RTL8169 serve operation 6 as virtio-net does: an empty request answers an empty batch, and a numbered batch is kept until the caller asks for the next number, so a reply that comes late is not lost (`userland/capsule_driver_e1000/src/server/handlers/rx_batch.rs:41`, `handle`). e1000 takes every completed descriptor in one pass of the ring (`userland/capsule_driver_e1000/src/queue/rx_batch.rs:38`, `take_batch`); the Realtek drivers call their receive routine up to the batch limit (`userland/capsule_driver_rtl8139/src/rx/batch.rs:40`, `gather`). A receive error after some frames ends the batch and is answered with `E_IO` on the next number (`userland/capsule_driver_rtl8139/src/server/handlers/rx_batch.rs:40`, `owed_error`).
+
+Transmit uses operation 4 and was never touched. The Wi-Fi drivers do not answer operation 6 with an empty batch, so `net.core` uses operation 5 for them.
 
 ## Behaviour every PCI driver shares
 
@@ -90,15 +96,15 @@ The flake check `proofs-virtio_net_proofs` passed with 20 tests on this commit.
 
 ## Tests on this commit
 
-Each [proof crate](../../overview/glossary.md#proof-crate) compiles its driver's own source with `#[path]` and runs it on the host against models. The flake runs `cargo test --release` with overflow checks on, then clippy with warnings denied (`tools/nix/checks.nix:85-94`, `testArgs`, `clippy`). None of these tests covers the exchange between `net.core` and a driver, which is where [the receive fault](#the-receive-fault) sits.
+Each [proof crate](../../overview/glossary.md#proof-crate) compiles its driver's own source with `#[path]` and runs it on the host against models. The flake runs `cargo test --release` with overflow checks on, then clippy with warnings denied (`tools/nix/checks.nix:85-94`, `testArgs`, `clippy`). `net_core_proofs` holds the probe rule against a driver that answers with a snapshot, and the e1000, RTL8139 and RTL8169 proofs drive their batch code; no test runs the two capsules against each other.
 
 | Check | Result |
 |---|---|
-| `proofs-e1000_proofs` | passed, 20 tests |
+| `proofs-e1000_proofs` | passed, 25 tests |
 | `proofs-e1000e_proofs` | passed, 48 tests |
 | `proofs-igc_proofs` | passed, 58 tests |
-| `proofs-rtl8139_proofs` | passed, 15 tests |
-| `proofs-rtl8169_proofs` | failed: the tests pass, then a clippy lint stops the check; see [realtek.md](realtek.md#tests) |
+| `proofs-rtl8139_proofs` | passed, 20 tests |
+| `proofs-rtl8169_proofs` | failed: the 72 tests pass, then a clippy lint stops the check; see [realtek.md](realtek.md#tests) |
 | `proofs-virtio_net_proofs` | passed, 20 tests |
 | `proofs-usbnet_proofs` | passed, 17 tests |
 | `proofs-cdc_ecm_proofs` | passed, 7 tests |
@@ -106,7 +112,7 @@ Each [proof crate](../../overview/glossary.md#proof-crate) compiles its driver's
 | `proofs-rndis_proofs` | passed, 22 tests |
 | `proofs-ax88179_proofs` | passed, 25 tests |
 | `proofs-rtl8153_proofs` | passed, 27 tests |
-| `proofs-net_core_proofs` | passed, 31 tests |
+| `proofs-net_core_proofs` | passed, 35 tests |
 
 ## See also
 
