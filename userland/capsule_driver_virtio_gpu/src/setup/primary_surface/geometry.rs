@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::setup::mode::MAX_SURFACE_BYTES;
 use crate::state::Scanout;
 #[derive(Clone, Copy)]
 pub struct Geometry {
@@ -26,7 +27,9 @@ pub fn derive(scanout: Scanout) -> Result<Option<Geometry>, &'static str> {
     let stride = scanout.width.checked_mul(4).ok_or("virtio-gpu: stride overflow")?;
     let byte_len =
         (stride as u64).checked_mul(scanout.height as u64).ok_or("virtio-gpu: surface overflow")?;
-    if byte_len > u32::MAX as u64 {
+    // `scanouts::seed` records only modes that fit; this holds the surface
+    // to the broker's display grant whatever the scanout says.
+    if byte_len > MAX_SURFACE_BYTES {
         return Err("virtio-gpu: surface too large");
     }
     Ok(Some(Geometry { stride, byte_len }))

@@ -13,8 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The request queue: one split ring, one request in flight at most.
+
+mod buffer;
+mod chain;
+mod data;
+mod direction;
+mod fault;
 mod layout;
 mod post;
+mod ring;
+mod state;
 mod used;
+
+pub use buffer::Buffer;
+pub use direction::Direction;
+pub use fault::Fault;
 pub use layout::Queue;
-pub use post::Direction;
+pub use ring::{avail_offset, fit, ring_bytes, used_offset};

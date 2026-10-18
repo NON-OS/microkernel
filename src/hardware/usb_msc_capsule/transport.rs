@@ -24,6 +24,7 @@ use spin::Mutex;
 
 use super::error::DriverUsbMscError as E;
 use super::protocol::*;
+use super::status::lift;
 use crate::services::lifecycle::transport;
 
 /// 0x1_0000_0013: the reply inbox the capsule's spawn registers.
@@ -54,18 +55,5 @@ pub(super) fn round_trip(op: u16, body: &[u8]) -> Result<Vec<u8>, E> {
         transport::TransportError::TransportFailure => E::TransportFailure,
         transport::TransportError::ProtocolMismatch => E::ProtocolMismatch,
     })?;
-    match resp.status {
-        0 => Ok(resp.body),
-        E_AGAIN => Err(E::NotReady),
-        E_NODEV => Err(E::NoDevice),
-        E_ACCES => Err(E::AccessDenied),
-        E_INVAL => Err(E::InvalidArgument),
-        E_NXIO => Err(E::OutOfRange),
-        E_MSGSIZE => Err(E::OversizedRequest),
-        E_NOTSUP => Err(E::BlockSize),
-        /*
-         * E_IO, and any status the driver does not document.
-         */
-        _ => Err(E::DeviceFailure),
-    }
+    lift(resp.status).map(|()| resp.body)
 }

@@ -16,7 +16,7 @@
 use super::keycodes::{
     KEYCODE_CAPS, KEYCODE_F1, KEYCODE_F10, KEYCODE_F11, KEYCODE_F12, KEYCODE_F2, KEYCODE_F3,
     KEYCODE_F4, KEYCODE_F5, KEYCODE_F6, KEYCODE_F7, KEYCODE_F8, KEYCODE_F9, KEYCODE_NUMLK,
-    KEYCODE_SCROLL,
+    KEYCODE_PRINT, KEYCODE_SCROLL,
 };
 
 pub(super) fn keycode_for(scan: u8) -> Option<u32> {
@@ -47,6 +47,8 @@ pub(super) fn keycode_for(scan: u8) -> Option<u32> {
         0x51 => b'3' as u32,
         0x52 => b'0' as u32,
         0x53 => b'.' as u32,
+        // SysRq: Print Screen pressed with Alt held.
+        0x54 => KEYCODE_PRINT,
         // The extra key an ISO board has between the left shift and Z.
         0x56 => nonos_keymap::KEY_ISO,
         0x57 => KEYCODE_F11,

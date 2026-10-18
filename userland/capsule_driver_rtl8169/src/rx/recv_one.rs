@@ -16,7 +16,8 @@
 
 use super::rearm::rearm;
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
-use crate::constants::regs::{DESC_FS, DESC_LEN_MASK, DESC_LS, DESC_OWN, ISR_ENABLED, ISR_RER};
+use crate::constants::regs::{DESC_FS, DESC_LEN_MASK, DESC_LS, DESC_OWN, DESC_RX_RES};
+use crate::constants::regs::{ISR_ENABLED, ISR_RER};
 use crate::constants::MAX_ETHERNET_FRAME;
 use crate::queue::desc::desc;
 use crate::regmap::{ack, read_events};
@@ -30,14 +31,19 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
     if (isr & ISR_RER as u32) != 0 {
         return Err("rtl8169 rx interrupt error");
     }
-    nonos_libc::dma_rmb();
     let idx = driver.rx.cur;
+    // SAFETY: `cur` is held below RX_DESC_COUNT, inside the mapped ring.
     let d = unsafe { desc(driver.rx.desc_va, idx) };
     if (d.opts1 & DESC_OWN) != 0 {
         return Ok(None);
     }
+    // The frame bytes are read only after OWN was seen clear.
+    nonos_libc::dma_rmb();
     let len = (d.opts1 & DESC_LEN_MASK) as usize;
+    // A frame the MAC completed with its error summary set is dropped, as
+    // Linux rtl_rx drops it: AcceptErr is clear, but chips still hand some up.
     if (d.opts1 & (DESC_FS | DESC_LS)) != (DESC_FS | DESC_LS)
+        || d.opts1 & DESC_RX_RES != 0
         || len <= 4
         || len > BUFFER_SIZE
         || len - 4 > MAX_ETHERNET_FRAME
@@ -50,6 +56,8 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
         return Err("rtl8169 rx descriptor error");
     }
     let frame_len = len - 4;
+    // SAFETY: slot `idx` of the buffer grant is BUFFER_SIZE bytes and
+    // `frame_len` was held below it and below `out.len()` above.
     unsafe {
         core::ptr::copy_nonoverlapping(
             driver.rx.buffer_va(idx) as *const u8,

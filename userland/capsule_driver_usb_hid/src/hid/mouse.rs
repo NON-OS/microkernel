@@ -14,50 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
-
 use super::mouse_event::MouseEvent;
 use super::mouse_report::mouse_event;
+use super::post_failures::count_pointer;
 use super::post_mouse;
 
-const CAP: usize = 64;
-
+/// One relative pointer interface's state: the buttons its last report
+/// held. Its motion is posted as it comes and not kept.
+#[derive(Default)]
 pub struct Mouse {
     buttons: u8,
-    events: VecDeque<MouseEvent>,
-    post_failures: u64,
 }
 
 impl Mouse {
     pub fn new() -> Self {
-        Self { buttons: 0, events: VecDeque::new(), post_failures: 0 }
+        Self { buttons: 0 }
     }
 
+    /// Take one boot report from the interrupt endpoint.
     pub fn feed(&mut self, report: &[u8]) {
-        let previous_buttons = self.buttons;
-        let Some(event) = mouse_event(report, previous_buttons) else { return };
-        self.push(event, previous_buttons);
+        if let Some(event) = mouse_event(report, self.buttons) {
+            self.apply(event);
+        }
+    }
+
+    /// Take one report, read in the boot layout or through a report
+    /// descriptor: its motion, its wheel and every button that changed.
+    pub fn apply(&mut self, event: MouseEvent) {
+        count_pointer(post_mouse::publish(event, self.buttons));
         self.buttons = event.buttons;
     }
 
-    pub fn pop(&mut self) -> Option<MouseEvent> {
-        self.events.pop_front()
-    }
-
-    pub fn pending(&self) -> u32 {
-        self.events.len() as u32
-    }
-
-    pub fn post_failures(&self) -> u64 {
-        self.post_failures
-    }
-
-    fn push(&mut self, event: MouseEvent, previous_buttons: u8) {
-        if !post_mouse::publish(event, previous_buttons) {
-            self.post_failures = self.post_failures.wrapping_add(1);
-        }
-        if self.events.len() < CAP {
-            self.events.push_back(event);
-        }
+    /// The mouse went away: every button it held comes up, so a drag ends.
+    pub fn release_all(&mut self) {
+        self.apply(MouseEvent { dx: 0, dy: 0, dz: 0, buttons: 0 });
     }
 }

@@ -13,6 +13,10 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# Register windows and DMA memory in host memory, for the driver to run on.
+nonos_devmodel = { path = "../nonos_devmodel" }
+# The interrupt line, the clock and the device list the driver calls, scripted.
+nonos_libc = { package = "virtio_blk_proofs_libc_shim", path = "libc_shim" }
 # The driver state holds the modern transport's register regions.
 nonos_virtio = { path = "../nonos_virtio" }
 

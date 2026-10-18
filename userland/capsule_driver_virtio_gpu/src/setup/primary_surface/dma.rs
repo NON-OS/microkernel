@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut, MK_DMA_MAP_HIGH};
+use nonos_libc::{mk_dma_map, DmaMapOut, MK_DMA_MAP_HIGH};
 const PAGE_SIZE: u64 = 4096;
 const PAGE_MASK: u64 = PAGE_SIZE - 1;
 pub fn map(device_id: u64, claim_epoch: u64, byte_len: u64) -> Result<DmaMapOut, &'static str> {
@@ -26,10 +26,4 @@ pub fn map(device_id: u64, claim_epoch: u64, byte_len: u64) -> Result<DmaMapOut,
         return Err("virtio-gpu: primary dma map failed");
     }
     Ok(dma)
-}
-pub fn rollback(grant_id: u64, label: &'static str) -> Result<(), &'static str> {
-    if mk_dma_unmap(grant_id) < 0 {
-        return Err(label);
-    }
-    Ok(())
 }

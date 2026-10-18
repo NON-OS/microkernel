@@ -16,9 +16,16 @@ requests, with IDENTIFY's medium byte set to 1 so the installer names it
 eMMC. The eMMC code is the self-contained `src/emmc/` tree (SDHCI host with
 ADMA2, High Speed at up to 52 MHz on the widest bus that reads back intact,
 CMD23 multi-block transfers, cache flush), proved by `userland/emmc_proofs`
-against a register-level model of a host with an eMMC behind it. It moves
-to a capsule of its own with that directory. It asks for no capability the
-SATA path did not already hold.
+against a register-level model of a host with an eMMC behind it. A host is
+reset (Software Reset For All read back clear, Present State then idle, ADMA2
+offered) before any DMA region is mapped or Bus Master goes on, so ADMA a
+dead driver left running reaches nothing; a host refused before then never
+gets Bus Master. On a host without 64-bit addressing the regions are asked
+for below 4 GiB (`MK_DMA_MAP_DMA32`), which 32-bit ADMA2 reaches. A host goes
+back stopped, with Bus Master written off (a no-op until the broker stores
+hand: `MkDeviceRelease` frees them once it reads Bus Master back off. It
+moves to a capsule of its own with that directory. It asks for no capability
+the SATA path did not already hold.
 
 This slice is a block-controller milestone. It proves discovery, claim, MMIO
 mapping, IRQ ownership, AHCI-mode enable, ATA identify, command-list/FIS/PRDT
@@ -100,13 +107,17 @@ plan magics. It serves the first disk carrying either, else the first that came 
 
 With no AHCI controller in the device list the capsule logs one line and exits
 `EXIT_ABSENT` (2) before claiming anything. A controller whose claim,
-memory and bus-master enable, MMIO map or HBA reset fails is skipped and
-released; when no disk comes up on any controller (none opened, or every port
-empty or failing), the whole walk is retried on the shared bounded schedule
-(`nonos_libc::bring_up`: seven tries, sleeping between them), and running out
-logs the last cause and exits `EXIT_GAVE_UP` (6). A port whose link, DMA,
-signature, or ATA identify fails is stopped; unserved ports are parked, other
-controllers released. Requests never touch a port that is not the one served.
+Memory Space write, MMIO map or HBA reset fails, or with a port still running
+after the reset and a stop of its own, is skipped and released without ever
+getting Bus Master; when no disk comes up on any controller (none opened, or
+every port empty or failing), the whole walk is retried on the shared bounded
+schedule (`nonos_libc::bring_up`: seven tries, sleeping between them), and
+running out logs the last cause and exits `EXIT_GAVE_UP` (6). A port whose
+link, DMA, signature, or ATA identify fails is stopped. Unserved ports on the
+controller kept are parked: stopped, then their regions unmapped, since the
+port served keeps Bus Master on. Every other controller goes back whole: its
+which frees their regions once it reads Bus Master back off. Requests never
+touch a port that is not the one served.
 
 Taken for an HBA: any SATA function (class 01h subclass 06h, whatever its
 prog-if) and an Intel RST RAID-mode function (01h/04h, which is AHCI
@@ -116,17 +127,22 @@ may be as small as one port's registers (0x180 bytes): Intel PCH ABARs are
 commonly 2 KiB and AMD FCH ones 1 KiB, often off a page boundary; the broker
 maps such a BAR by its page and hands back the VA of its first byte.
 
-Bring-up, per controller: BIOS/OS handoff when CAP2.BOH; GHC.HR within 1 s
-(a controller that does not reset is left alone), with CAP and PI written
-back when the reset cleared them; then PxCMD.SUD (and POD with CAP.CPD) on
-every implemented port, since with staggered spin-up a port sends no COMRESET
-until SUD is set and reads DET = 0 with a disk attached. Every implemented
-port is then tried: its own COMRESET decides whether a disk is there (the link
-quiet for 200 ms is an empty port), a disk gets up to 10 s to clear BSY while
-it spins up, and only an ATA signature is identified. Every wait is on the
-monotonic clock (`src/constants/timing.rs`). On an HBA without CAP.S64A every
-DMA buffer is asked for below 4 GiB (`MK_DMA_MAP_DMA32`). Each port tried
-logs one `[ahci]` serial line with PxSSTS, PxTFD, PxSERR, PxSIG and PxCMD.
+Bring-up, per controller: Memory Space at the claim, Bus Master not yet;
+BIOS/OS handoff when CAP2.BOH; GHC.HR within 1 s (a controller that does not
+reset is left alone), with CAP and PI written back when the reset cleared
+them; Bus Master only once every implemented port the window reaches reads
+PxCMD.ST, CR, FRE and FR clear and no slot in PxCI or PxSACT (a driver that
+died without its Drop leaves its engines armed on frames the kernel has
+freed), a port the reset did not stop given ST and FRE off and CR and FR
+waited out first; then PxCMD.SUD (and POD with CAP.CPD) on every implemented
+port, since with staggered spin-up a port sends no COMRESET until SUD is set
+and reads DET = 0 with a disk attached. Every implemented port is then tried:
+its own COMRESET decides whether a disk is there (the link quiet for 200 ms is
+an empty port), a disk gets up to 10 s to clear BSY while it spins up, and
+only an ATA signature is identified. Every wait is on the monotonic clock
+(`src/constants/timing.rs`). On an HBA without CAP.S64A every DMA buffer is
+asked for below 4 GiB (`MK_DMA_MAP_DMA32`). Each port tried logs one `[ahci]`
+serial line with PxSSTS, PxTFD, PxSERR, PxSIG and PxCMD.
 
 PI is the controller's own word, and its bits may be sparse: the walk covers
 up to CAP.NP + 1 ports or the highest PI bit, whichever is higher, and a zero
@@ -162,20 +178,46 @@ from `engine/prd_count.rs`: nonzero, even, at most the 32 KiB data buffer the
 driver owns and within the 4 MiB a PRD entry can carry. A count it refuses
 builds nothing.
 
-A command's end is judged from the port registers alone
-(`engine/completion.rs`). Before issue the device must have cleared BSY and
-DRQ and the port must show no slot issued or queued. While waiting, each look
-reads PxCI first, then PxSACT, PxIS and PxTFD. A fatal PxIS bit, an overflow
-(PxIS.OFS), ERR in PxTFD, a PxCI bit for any slot but 0, or any PxSACT bit
-fails the command. Slot 0 clear while PxTFD still shows BSY or DRQ is waited
-on, and a status that never settles times out. Only a clear slot 0 with a
-clean status read after it counts as done, so a failed or unfinished command
-never hands its buffer to a client: the reply is `E_IO`. The port is then
-recovered: its errors cleared, its engine stopped, a device stuck in BSY or
-DRQ freed by Command List Override (with CAP.SCLO) or else a COMRESET, and the
-engine started again with FIS receive back on, so the next command's status
-reaches PxTFD. A command, with any kick before it, has 3 s in all, inside the
-kernel's 5 s wait for a reply.
+A command's end is judged from the port registers alone (`engine/verdict.rs`,
+`engine/completion.rs`). Before issue the engine must run (PxCMD.ST and CR),
+the device must have cleared BSY and DRQ, and the port must show no slot
+issued or queued (`engine/prepare.rs`). A port that reads no device or its PHY
+offline (PxSSTS.DET 0 or 4, or any value but 1 and 3: the disk pulled) is
+refused at once. A device without a link (DET 1) has its link reset, at most
+once in ATA's 31 s window after the last COMRESET; inside that window the
+request is refused at once. A drive still busy within ATA's 31 s of the last
+COMRESET a recovery sent is still in that reset: the request fails after 1 s
+and the drive is left to finish. Any other port that is not so within 1 s is
+recovered once and given 1 s more, and is otherwise given no command. While
+waiting, each look reads PxCI first, then PxSACT, PxIS and PxTFD. A fatal PxIS
+bit, an overflow (PxIS.OFS), a link change (PxIS.PRCS or PCS: the PHY dropped,
+or the drive reset itself and dropped the command), a PxCI bit for any slot
+but 0, or any PxSACT bit fails the command. ERR in PxTFD fails it only once
+slot 0 is clear: PxTFD changes only when a FIS arrives, so while the slot is
+outstanding it may still hold the previous command's status. Slot 0 clear
+while PxTFD still shows BSY or DRQ is waited on, and a status that never
+settles times out. A read or a write is done only when the HBA's byte count
+(PRDBC) equals the request. A failed or unfinished command never hands its
+buffer to a client: the reply is PxTFD in the ATA status range only when the
+drive itself failed the command (PxIS.TFES, ERR set in PxTFD), since only then
+is the status the disk's; `E_TIMEDOUT` when it never finished; `E_NODEV` once
+the port is wedged; and `E_IO` otherwise: an HBA error of its own, a link
+change, slots the driver never issued, a short transfer, no disk.
+
+The port is then recovered by how the command failed (`engine/recover.rs`,
+`engine/kick.rs`): errors cleared, engine stopped, and, for a command the
+drive never finished, one the HBA failed with an error of its own (HBFS, HBDS,
+IFS, OFS), one ended by a link change, or one that left BSY or DRQ set, a
+COMRESET, which ends whatever the drive was still doing before slot 0's buffer
+takes the next command (`engine/cause.rs`). Command List Override, which
+clears only the HBA's copy of BSY and DRQ, is never used: a command sent past
+it reaches a drive still at work or still resetting. An engine that will not
+stop is met with a COMRESET and a second stop; one that still will not leaves
+the port wedged, and every later request fails at once with `E_NODEV` without
+touching its buffers. The engine restarts with FIS receive on. A request,
+waits and recoveries all, ends inside the kernel's 35 s wait for a reply
+(`constants/budget.rs`), and every wait sleeps between looks once it has spun
+for a millisecond.
 
 ## Current implemented surface
 
@@ -263,6 +305,13 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
   a healthy disk.
 - After a command fails (a forced error, or a disk pulled and reseated), the
   next command on the port succeeds: recovery turns FIS receive back on.
+- The real HBA writes the full byte count to PRDBC after every healthy read
+  and write, so neither is refused as short. Some HBAs may not count at all
+  (FreeBSD's AHCI_Q_NOCOUNT quirk); on such a part every transfer would fail,
+  so check this on each one.
+- A command the drive holds past 30 s (a disk deep in its own error recovery)
+  answers `E_TIMEDOUT` inside the kernel's 35 s, the drive is reset with a
+  COMRESET, and the next read returns its own sectors.
 - A controller whose ABAR is shorter than a full 32-port register file is
   walked without a fault, and ports past the mapped window are not touched.
 - A disk still spinning up links within the two second link window and clears

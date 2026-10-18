@@ -27,17 +27,23 @@
 //! and noise.
 
 /// Write `len` bytes at `va` back to memory and drop them from the cache.
-#[cfg(target_arch = "x86_64")]
+/// Every caller names part of one of this capsule's DMA grants.
 pub fn flush(va: u64, len: u64) {
-    // CLFLUSH covers at least 64 bytes on every x86 CPU (CPUID.01H:EBX[15:8]).
-    const LINE: u64 = 64;
     if len == 0 {
         return;
     }
+    flush_range(va, len);
+}
+
+#[cfg(target_arch = "x86_64")]
+fn flush_range(va: u64, len: u64) {
+    // CLFLUSH covers at least 64 bytes on every x86 CPU (CPUID.01H:EBX[15:8]).
+    const LINE: u64 = 64;
     let mut p = va & !(LINE - 1);
     let end = va + len;
     while p < end {
-        // SAFETY: CLFLUSH takes any mapped address and changes no memory.
+        // SAFETY: CLFLUSH changes no memory, and `p` is mapped: its line
+        // holds a byte of the DMA grant the caller named (`flush`).
         unsafe { core::arch::x86_64::_mm_clflush(p as *const u8) };
         p += LINE;
     }
@@ -46,10 +52,10 @@ pub fn flush(va: u64, len: u64) {
 }
 
 /// Elsewhere libc's clean and invalidate does the same, stepping by the line
-/// the CPU states; before, this was a no-op off x86, and a controller that
-/// does not snoop played whatever stale lines memory held.
+/// the CPU states; a no-op here would let a controller that does not snoop
+/// play whatever stale lines memory held.
 #[cfg(not(target_arch = "x86_64"))]
-pub fn flush(va: u64, len: u64) {
+fn flush_range(va: u64, len: u64) {
     // SAFETY: callers pass a range inside one of this driver's DMA grants.
     unsafe { nonos_libc::mk_dma_sync_for_cpu(va as *const u8, len) }
 }

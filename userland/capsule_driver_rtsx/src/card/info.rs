@@ -16,12 +16,25 @@
 
 //! What the identification found out about the card.
 
+use crate::sd::Cid;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Card {
     /// The relative card address from CMD3.
     pub rca: u16,
-    /// Block addressed (SDHC, SDXC, SDUC) rather than byte addressed.
+    /// Block addressed (SDHC, SDXC) rather than byte addressed.
     pub high_capacity: bool,
-    /// Size in 512-byte blocks, from the CSD.
+    /// Size in 512-byte blocks, from the CSD, all of it addressable.
     pub blocks: u64,
+    /// Which card this is; Debug prints none of it.
+    pub cid: Cid,
+}
+
+impl Card {
+    /// The same card as `other`, at whatever address it answers now: its
+    /// CID, and the size and addressing that go with it.
+    pub fn same(&self, other: &Card) -> bool {
+        self.cid == other.cid
+            && (self.blocks, self.high_capacity) == (other.blocks, other.high_capacity)
+    }
 }

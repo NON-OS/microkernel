@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod feed_key;
-pub mod feed_mouse;
 pub mod get_state;
 pub mod health;
-pub mod poll_keys;
-pub mod poll_mouse;
 pub mod probe_config;

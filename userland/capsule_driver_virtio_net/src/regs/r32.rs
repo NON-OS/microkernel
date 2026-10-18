@@ -19,9 +19,9 @@ use super::pio_read::pio_read;
 use super::regs_type::Regs;
 
 impl Regs {
-    pub unsafe fn r32(self, offset: usize) -> u32 {
+    pub fn r32(self, offset: usize) -> u32 {
         match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_read32(base.add(offset) as usize),
+            RegIo::Mmio(m) => m.r32(offset),
             RegIo::Pio(grant) => pio_read(grant, offset, 4),
         }
     }

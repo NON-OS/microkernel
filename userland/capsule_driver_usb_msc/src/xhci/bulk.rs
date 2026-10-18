@@ -17,9 +17,9 @@
 //! The bulk pipes driver.xhci0 keeps for this driver's device.
 
 use super::call::call;
+use super::reply::{data_in, moved};
 use super::wire::{BULK_MAX, DATA_AT, OP_BULK_IN, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_RESET_BULK};
 use crate::descriptors::MscBinding;
-use crate::protocol::E_IO;
 
 /// Add the bulk pipes to the slot. Byte 3 carries each pipe's SuperSpeed
 /// bMaxBurst, IN in bits 3:0 and OUT in bits 7:4.
@@ -30,13 +30,6 @@ pub fn configure_bulk(xhci: u32, slot: u8, b: &MscBinding) -> Result<(), i32> {
     body[6..8].copy_from_slice(&b.max_packet_out.to_le_bytes());
     let mut resp = [0u8; DATA_AT + 4];
     call(xhci, OP_CONFIGURE_BULK, &body, &mut resp).map(|_| ())
-}
-
-fn moved(resp: &[u8], len: usize) -> Result<usize, i32> {
-    if len < 4 {
-        return Err(E_IO);
-    }
-    Ok(u16::from_le_bytes([resp[DATA_AT], resp[DATA_AT + 1]]) as usize)
 }
 
 /// Send `data`, 1 to BULK_MAX bytes. Returns the bytes the device took.
@@ -55,12 +48,7 @@ pub fn bulk_in(xhci: u32, slot: u8, out: &mut [u8]) -> Result<usize, i32> {
     let want = (out.len() as u16).to_le_bytes();
     let mut resp = [0u8; DATA_AT + 4 + BULK_MAX];
     let len = call(xhci, OP_BULK_IN, &[slot, 0, want[0], want[1]], &mut resp)?;
-    let n = moved(&resp, len)?;
-    if n > out.len() || len < 4 + n {
-        return Err(E_IO);
-    }
-    out[..n].copy_from_slice(&resp[DATA_AT + 4..DATA_AT + 4 + n]);
-    Ok(n)
+    data_in(&resp, len, 4, out)
 }
 
 /// Bring a stalled pipe back on the controller side.

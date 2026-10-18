@@ -18,10 +18,7 @@
 //! expects MSI leaves the legacy line at 0xFF; such a controller must still
 //! be driven, so the line is asked for only when it was routed.
 
-#[path = "../../../capsule_driver_hda/src/setup/irq_plan.rs"]
-mod irq_plan;
-
-use irq_plan::{intx_routed, NO_LINE};
+use crate::setup::irq_plan::{intx_routed, NO_LINE};
 
 #[test]
 fn a_routed_line_is_asked_for_first() {

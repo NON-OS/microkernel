@@ -26,42 +26,46 @@ impl Regs {
 
     /// # Safety
     ///
-    /// `off` is a register the controller exposes in the mapped window.
+    /// The window is mapped and holds a byte register at `off` (`crate::regs`).
     pub unsafe fn r8(self, off: u32) -> u8 {
         nonos_libc::mmio_read8((self.base + off as u64) as usize)
     }
 
     /// # Safety
     ///
-    /// `off` is a register the controller exposes in the mapped window.
+    /// The window is mapped and holds a 16-bit register at `off`, aligned to
+    /// its width (`crate::regs`).
     pub unsafe fn r16(self, off: u32) -> u16 {
         nonos_libc::mmio_read16((self.base + off as u64) as usize)
     }
 
     /// # Safety
     ///
-    /// `off` is a register the controller exposes in the mapped window.
+    /// The window is mapped and holds a 32-bit register at `off`, aligned to
+    /// its width (`crate::regs`).
     pub unsafe fn r32(self, off: u32) -> u32 {
         nonos_libc::mmio_read32((self.base + off as u64) as usize)
     }
 
     /// # Safety
     ///
-    /// `off` is a register the controller exposes in the mapped window.
+    /// The window is mapped and holds a 32-bit register at `off`, aligned to
+    /// its width (`crate::regs`).
     pub unsafe fn w32(self, off: u32, value: u32) {
         nonos_libc::mmio_write32((self.base + off as u64) as usize, value);
     }
 
     /// # Safety
     ///
-    /// `off` is a register the controller exposes in the mapped window.
+    /// The window is mapped and holds a byte register at `off` (`crate::regs`).
     pub unsafe fn w8(self, off: u32, value: u8) {
         nonos_libc::mmio_write8((self.base + off as u64) as usize, value);
     }
 
     /// # Safety
     ///
-    /// `off` is a register the controller exposes in the mapped window.
+    /// The window is mapped and holds a 16-bit register at `off`, aligned to
+    /// its width (`crate::regs`).
     pub unsafe fn w16(self, off: u32, value: u16) {
         nonos_libc::mmio_write16((self.base + off as u64) as usize, value);
     }

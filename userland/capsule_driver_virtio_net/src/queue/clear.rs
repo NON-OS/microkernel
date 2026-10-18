@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::write_volatile;
+use nonos_virtio::Mmio;
 
-pub unsafe fn clear_region(ptr: u64, len: usize) {
-    let base = ptr as *mut u8;
-    for i in 0..len {
-        write_volatile(base.add(i), 0);
+/// Zero `len` bytes of `region` from `from`. The writes are volatile and
+/// bounds checked: bytes past the region are not reached.
+pub fn zero(region: Mmio, from: usize, len: usize) {
+    for at in from..from.saturating_add(len) {
+        region.w8(at, 0);
     }
 }

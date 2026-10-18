@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const STATUS_LEN: usize = 4;
 pub const MAX_POLL_EVENTS: usize = 256;
-pub const EVENT_WIRE_LEN: usize = 3;
 pub const MOUSE_EVENT_WIRE_LEN: usize = 8;
 pub const STATE_PAYLOAD_LEN: usize = 8 * 7;
-pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 28;
-pub const POLL_PAYLOAD_PREFIX_LEN: usize = STATUS_LEN + 4;
+pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 16;
 pub const MOUSE_POLL_PAYLOAD_PREFIX_LEN: usize = STATUS_LEN + 4;

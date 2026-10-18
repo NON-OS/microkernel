@@ -17,9 +17,11 @@
 //! Rings and buffers in host memory, and the driver record built over them.
 
 use nonos_devmodel::FakeBar;
+use nonos_libc::Deadline;
 
 use crate::chip::Chip;
-use crate::constants::queue::{RX_BUFFER_BYTES, RX_RING_BYTES, TX_BUFFER_BYTES, TX_RING_BYTES};
+use crate::constants::queue::TX_RING_BYTES;
+use crate::constants::queue::{RX_BUFFER_BYTES, RX_RING_BYTES, TX_BUFFER_BYTES, TX_HANG_MS};
 use crate::constants::MAC_LEN;
 use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
@@ -58,17 +60,14 @@ impl Memory {
         let va = |v: &mut Vec<u8>| v.as_mut_ptr() as u64;
         Driver {
             device_id: 1,
+            claim_epoch: 1,
             chip,
-            mmio_grant: 2,
-            rx_ring_grant: 4,
-            rx_buffer_grant: 5,
-            tx_ring_grant: 6,
-            tx_buffer_grant: 7,
             regs: Regs::new(bar.base()),
             mac: [0; MAC_LEN],
             link: None,
             rx: RxRing::new(va(&mut self.rx_desc), va(&mut self.rx_buf), RX_DESC_DA, RX_BUF_DA),
             tx: TxRing::new(va(&mut self.tx_desc), va(&mut self.tx_buf), TX_DESC_DA, TX_BUF_DA),
+            tx_watch: Deadline::after_ms(TX_HANG_MS),
         }
     }
 }

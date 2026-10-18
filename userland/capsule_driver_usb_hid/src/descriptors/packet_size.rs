@@ -16,7 +16,7 @@
 
 //! The interrupt IN packet size a binding can work with.
 
-use crate::protocol::{KEY_REPORT_LEN, MOUSE_REPORT_MIN, TABLET_REPORT_MIN};
+use crate::protocol::{KEY_REPORT_LEN, MOUSE_REPORT_MIN};
 
 use super::types::HidKind;
 
@@ -31,7 +31,9 @@ pub fn holds_a_report(kind: HidKind, max_packet_size: u16) -> bool {
     let report = match kind {
         HidKind::Keyboard => KEY_REPORT_LEN,
         HidKind::Mouse => MOUSE_REPORT_MIN,
-        HidKind::Tablet => TABLET_REPORT_MIN,
+        // The report descriptor says how long its reports are, and the
+        // binding is checked against that; a packet must hold a byte.
+        HidKind::Report => 1,
     };
     (report as u16..=MAX_INTERRUPT_PACKET).contains(&max_packet_size)
 }

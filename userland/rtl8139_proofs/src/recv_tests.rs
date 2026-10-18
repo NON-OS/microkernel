@@ -16,8 +16,10 @@
 
 //! The receive gate against packet headers the part wrote, good and
 //! hostile. The status word and raw length are the device's; a header no
-//! good frame carries restarts receive, a frame the caller cannot take is
-//! skipped, and nothing is ever copied for either.
+//! good frame carries restarts receive (`hostile`), a frame the caller
+//! cannot take is skipped, and nothing is ever copied for either.
+
+mod hostile;
 
 use crate::constants::dma::RX_BUF_BYTES;
 use crate::constants::regs::RX_STATUS_OK;
@@ -56,31 +58,6 @@ fn a_frame_still_arriving_is_left_for_the_next_poll() {
     let mut out = [0xEEu8; 2048];
     assert_eq!(recv_one(&mut d, &mut out), Ok(None));
     assert_eq!(d.rx_offset, 0);
-}
-
-#[test]
-fn a_header_no_good_frame_carries_restarts_receive_and_copies_nothing() {
-    let hostile: [(u16, u16); 5] = [
-        (0, 68),               // status without receive-OK
-        (RX_STATUS_OK, 0),     // no length at all
-        (RX_STATUS_OK, 7),     // shorter than any header
-        (RX_STATUS_OK, 1797),  // past the longest frame the part hands up
-        (RX_STATUS_OK, 0xFFFF),
-    ];
-    for (status, raw_len) in hostile {
-        let _part = part(false);
-        let ring = ring_with(status, raw_len, 0);
-        let mut d = driver_over(ring.as_ptr() as u64);
-        d.rx_offset = 0;
-        let mut out = [0xEEu8; 2048];
-        assert_eq!(
-            recv_one(&mut d, &mut out),
-            Err("rtl8139 rx ring restarted"),
-            "status {status:#x} length {raw_len} was trusted"
-        );
-        assert!(out.iter().all(|b| *b == 0xEE), "length {raw_len} copied something");
-        assert_eq!(d.rx_offset, 0, "receive starts over from the top of the ring");
-    }
 }
 
 #[test]

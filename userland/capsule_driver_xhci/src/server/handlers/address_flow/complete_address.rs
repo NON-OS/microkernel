@@ -18,15 +18,18 @@ use super::super::address_reply::reply_ok;
 use super::attach_resources::attach_resources;
 use super::command_address::command_address;
 use super::fix_ep0::fix_ep0;
-use crate::controller::{clear_dcbaa_slot, set_dcbaa_slot};
+use crate::controller::set_dcbaa_slot;
 use crate::protocol::{Request, E_INVAL, E_IO};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 use crate::slots::SlotResources;
 
 /// Install the output context, address the device, and settle EP0's max
-/// packet size. A failure after the slot is in the table leaves it there:
-/// the class driver's Disable Slot frees it once the controller has let go.
+/// packet size. A failure once the controller was given the contexts
+/// leaves them, and the DCBAA entry naming them, with the slot: a failed
+/// or aborted Address Device leaves the slot enabled, the controller may
+/// still reach them, and they are its only after Disable Slot. The class
+/// driver's Disable Slot frees them once the controller has let go.
 pub(super) fn complete_address(
     ctx: &mut Context,
     req: &Request,
@@ -40,7 +43,7 @@ pub(super) fn complete_address(
         return;
     }
     if command_address(ctx, &resources).is_err() {
-        let _ = clear_dcbaa_slot(&ctx.driver.dcbaa, slot, ctx.driver.layout.max_slots);
+        ctx.driver.slots.hold(resources);
         reply_with_status(tx, req, E_IO);
         return;
     }

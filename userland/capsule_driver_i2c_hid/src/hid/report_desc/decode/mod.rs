@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Decode one input report into an absolute touch sample using a parsed layout.
+//! Decode one input report through a parsed layout: a touch sample or a
+//! relative mouse sample.
 
+mod body;
 mod decode_mouse;
 mod decode_touch;
+mod position;
 mod types;
 
 pub use decode_mouse::decode_mouse;

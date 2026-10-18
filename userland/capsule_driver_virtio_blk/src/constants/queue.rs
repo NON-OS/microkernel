@@ -13,11 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-pub const MAX_QUEUE_SIZE: u16 = 256;
+
+//! The request queue's ring sizes and buffers. The ring's own layout, which
+//! follows from its size, is in `queue::ring`.
+
+/// The largest ring the modern transport asks for. A legacy device
+/// dictates its own size, and the ring grant is sized for it.
+pub const MODERN_QUEUE_SIZE: u16 = 256;
+/// The smallest ring the driver lays out: a power of two that holds the
+/// three descriptors one request chains.
+pub const MIN_QUEUE_SIZE: u16 = 4;
 pub const VRING_DESC_F_NEXT: u16 = 1;
 pub const VRING_DESC_F_WRITE: u16 = 2;
 pub const VQ_DESC_OFFSET: usize = 0;
-pub const VQ_REGION_SIZE: usize = 16384;
 pub const SECTOR_SIZE: usize = 512;
 pub const MAX_SECTORS_PER_REQUEST: u32 = 64;
 pub const HEADER_OFFSET: usize = 0;

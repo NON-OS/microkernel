@@ -20,4 +20,5 @@ pub fn slot_ready(ctx: &Context, slot_id: u8, port_id: u8) -> bool {
         && port_id <= ctx.driver.layout.max_ports
         && ctx.driver.slots.is_allocated(slot_id, ctx.driver.layout.max_slots)
         && !ctx.driver.slots.is_addressed(slot_id, ctx.driver.layout.max_slots)
+        && !ctx.driver.slots.has_resources(slot_id)
 }

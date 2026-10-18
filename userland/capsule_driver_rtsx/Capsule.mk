@@ -1,6 +1,10 @@
 # rtsx: Realtek PCIe SD card reader capsule (RTS5227, RTS522A). It owns the
 # broker claim, the register BAR, two DMA buffers below 4 GiB, the chip
 # bring-up and the SD card protocol; it polls the reader and takes no IRQ.
+# It serves the card as a block device on driver.rtsx0 to two clients only,
+# gated in the driver as the other disk drivers gate theirs
+# (src/serve/admits.rs): the kernel's block layer (pid 0) and a StoreWrite
+# holder, the installer.
 
 CAPSULE_SLUG             := driver-rtsx
 CAPSULE_HANDLE           := driver.rtsx0

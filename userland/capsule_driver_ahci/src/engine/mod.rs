@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod build;
+mod cause;
 mod cmd_header;
 mod cmd_table;
 mod completion;
+mod data;
 mod fis;
 mod flush;
+mod holdup;
 mod identify;
 mod init;
 mod issue;
@@ -27,20 +30,25 @@ mod kick;
 pub(crate) mod link;
 mod park;
 mod port;
+mod port_map;
 mod prd_count;
 mod prdt;
 mod prdt_write;
+mod prepare;
 mod program;
+mod ready;
 mod recover;
 mod region;
+mod region_io;
 mod span;
 mod start;
-mod stop;
+pub(crate) mod stop;
 mod transfer;
+mod verdict;
 
 pub use flush::flush;
 pub use init::init_port;
 pub use link::may_be_disk;
-pub use park::park;
+pub use park::{park, retire};
 pub use port::Port;
 pub use transfer::transfer;

@@ -16,9 +16,7 @@
 
 use nonos_libc::mk_ipc_reply;
 
-use crate::protocol::{
-    encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN,
-};
+use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};
 
 pub fn reply(sender_pid: u32, tx: &[u8], len: usize) -> bool {
     mk_ipc_reply(sender_pid, tx.as_ptr(), len) >= 0

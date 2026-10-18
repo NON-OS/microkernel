@@ -20,6 +20,8 @@ use super::translate::Translated;
 use nonos_keymap::HeldKeys;
 use nonos_libc::{mk_input_event_post, InputEvent, INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP};
 
+/// Post the key event `t` stands for. False when the kernel's input ring
+/// refused one of its events; a key that posts nothing refused nothing.
 pub fn publish(t: Translated, mods: u16, caps: bool, held: &mut HeldKeys) -> bool {
     // Printable keys carry their final character: the US base from the
     // scancode table resolved through the active layout, shift and caps
@@ -40,7 +42,7 @@ pub fn publish(t: Translated, mods: u16, caps: bool, held: &mut HeldKeys) -> boo
     if let Some(code) = posts.release_first {
         ok &= post(INPUT_KIND_KEY_UP, flags, code);
     }
-    let Some(code) = posts.code else { return false };
+    let Some(code) = posts.code else { return ok };
     let kind = if t.is_release { INPUT_KIND_KEY_UP } else { INPUT_KIND_KEY_DOWN };
     ok & post(kind, flags, code)
 }

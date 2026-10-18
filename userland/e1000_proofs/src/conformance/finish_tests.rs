@@ -19,38 +19,18 @@
 
 use nonos_libc::{entropy, given_back};
 
+use super::live::live_part;
 use super::memory::Memory;
-use super::model::{live_part, window};
+use super::model::window;
 use crate::init::finish;
-use crate::setup::Driver;
 
-const DEVICE: u64 = 9;
-const MMIO: u64 = 20;
-const RX_RING: u64 = 21;
-const RX_BUF: u64 = 22;
-const TX_RING: u64 = 23;
-const TX_BUF: u64 = 24;
+/// The claim `Memory::driver` records.
+const DEVICE: u64 = 1;
 
-fn with_grants(mut d: Driver) -> Driver {
-    d.device_id = DEVICE;
-    d.mmio_grant = MMIO;
-    d.rx_ring_grant = RX_RING;
-    d.rx_buffer_grant = RX_BUF;
-    d.tx_ring_grant = TX_RING;
-    d.tx_buffer_grant = TX_BUF;
-    d
-}
-
-/// What this attempt released, in order: the setup sequence's grants in
-/// reverse, then the claim, which on its own tears the rest down as well.
-const EVERYTHING: [(&str, u64); 6] = [
-    ("dma_unmap", TX_BUF),
-    ("dma_unmap", TX_RING),
-    ("dma_unmap", RX_BUF),
-    ("dma_unmap", RX_RING),
-    ("mmio_unmap", MMIO),
-    ("device_release", DEVICE),
-];
+/// What this attempt released: the claim alone, which tears every grant
+/// down after the broker has turned Bus Master off. A frame unmapped by hand
+/// before it would be freed while the part could still write it.
+const EVERYTHING: [(&str, u64); 1] = [("device_release", DEVICE)];
 
 fn released_since(before: usize) -> Vec<(&'static str, u64)> {
     given_back()[before..].to_vec()
@@ -63,7 +43,7 @@ fn a_part_that_cannot_get_an_address_gives_back_every_grant_and_the_claim() {
     let _part = live_part(&bar);
     let mut mem = Memory::new();
     let before = given_back().len();
-    let err = finish(with_grants(mem.driver(&bar))).err();
+    let err = finish(mem.driver(&bar)).err();
     assert_eq!(err, Some("no entropy for station address"));
     assert_eq!(released_since(before), EVERYTHING);
 }
@@ -73,7 +53,7 @@ fn a_part_that_never_leaves_reset_gives_back_every_grant_and_the_claim() {
     let bar = window();
     let mut mem = Memory::new();
     let before = given_back().len();
-    let err = finish(with_grants(mem.driver(&bar))).err();
+    let err = finish(mem.driver(&bar)).err();
     assert_eq!(err, Some("CTRL.RST did not self-clear"));
     assert_eq!(released_since(before), EVERYTHING);
 }
@@ -85,7 +65,7 @@ fn a_part_that_comes_up_keeps_every_grant() {
     let _part = live_part(&bar);
     let mut mem = Memory::new();
     let before = given_back().len();
-    let driver = finish(with_grants(mem.driver(&bar))).expect("brought up");
+    let driver = finish(mem.driver(&bar)).expect("brought up");
     assert!(released_since(before).is_empty(), "a working attempt releases nothing");
     assert_eq!(driver.device_id, DEVICE);
 }

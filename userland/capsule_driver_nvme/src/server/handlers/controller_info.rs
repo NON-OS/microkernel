@@ -23,7 +23,7 @@ use crate::protocol::{
 use crate::setup::Driver;
 
 pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
-    let info = crate::controller::ControllerInfo::read(driver.regs);
+    let info = crate::controller::ControllerInfo::read(driver.device.regs);
     let payload_len = (4 + CONTROLLER_INFO_PAYLOAD_LEN) as u32;
     encode_response_header(tx, req, payload_len);
     write_status(&mut tx[RESP_HDR_LEN..], 0);

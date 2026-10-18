@@ -22,9 +22,6 @@
 //! so every read is checked against the mapped window first: a pointer that
 //! leads out of the window ends the walk instead of faulting the capsule.
 
-use crate::constants::HCCPARAMS1;
-use crate::regs::mmio_read32;
-
 /// The longest list walked, so a list whose pointers loop still ends.
 const XECP_WALK_LIMIT: usize = 256;
 
@@ -63,10 +60,4 @@ pub fn walk_ext_caps(
         }
         offset += next * 4;
     }
-}
-
-/// The same walk over the mapped registers at `mmio_base`.
-pub fn ext_caps(mmio_base: u64, mapped_len: u64, need: u64, visit: impl FnMut(u64, u32) -> bool) {
-    let hccparams1 = mmio_read32(mmio_base + HCCPARAMS1);
-    walk_ext_caps(hccparams1, mapped_len, need, |off| mmio_read32(mmio_base + off), visit);
 }

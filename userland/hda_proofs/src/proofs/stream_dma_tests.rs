@@ -26,8 +26,8 @@
 use nonos_devmodel::FakeBar;
 
 use crate::constants::{SD_CTL, SD_FMT};
-use crate::controller::codec::format::PLAYBACK;
 use crate::controller::bdl::{BDL_IOC, N_PERIODS, PERIOD_BYTES};
+use crate::controller::codec::format::PLAYBACK;
 use crate::model::WINDOW;
 use crate::proofs::stream_tests::{play, BDL_BYTES, OFF, SAMPLE_DEV, TAG};
 

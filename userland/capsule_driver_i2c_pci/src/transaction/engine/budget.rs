@@ -19,9 +19,6 @@
 use crate::constants::{TRANSFER_BASE_MS, TRANSFER_PER_KIB_MS};
 use crate::transaction::TransferRequest;
 
-/// Rounds of the poll loop between two reads of the clock.
-pub const CLOCK_EVERY: u32 = 16;
-
 /// Milliseconds a transfer of `bytes` may take before it is a timeout.
 pub fn budget_ms(bytes: usize) -> u64 {
     TRANSFER_BASE_MS + (bytes as u64 * TRANSFER_PER_KIB_MS).div_ceil(1024)

@@ -28,8 +28,10 @@ use crate::wpa::supplicant::State as SupState;
 impl Mlme {
     /// Feed an 802.11 management frame received while joining.
     pub fn on_mgmt(&mut self, frame: &[u8]) -> MlmeOutput {
-        if matches!(self.state, MlmeState::Authenticating | MlmeState::Associating | MlmeState::FourWay)
-        {
+        if matches!(
+            self.state,
+            MlmeState::Authenticating | MlmeState::Associating | MlmeState::FourWay
+        ) {
             if let Some(reason) = parse_leave(frame, &self.our_mac, &self.bssid) {
                 return self.fail(MlmeFailure::Left(reason));
             }

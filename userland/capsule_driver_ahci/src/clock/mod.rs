@@ -20,5 +20,5 @@
 
 mod wait;
 
-pub use nonos_libc::Deadline;
-pub use wait::{pause_ms, wait_until};
+pub use nonos_libc::{mk_idle_ms, Deadline};
+pub use wait::{pause_ms, wait_until, Pace};

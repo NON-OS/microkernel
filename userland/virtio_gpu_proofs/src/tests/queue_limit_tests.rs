@@ -17,22 +17,24 @@
 //! The control queue at its edges: a request that cannot go, and a ring
 //! that has gone round.
 
-use crate::constants::{
-    LEG_QUEUE_NOTIFY, VG_CMD_GET_DISPLAY_INFO, VQ_AVAIL_OFFSET, VQ_USED_OFFSET,
-};
-use crate::tests::harness::harness;
-use crate::tests::model::QUEUE_SIZE;
+use crate::constants::{VG_CMD_GET_DISPLAY_INFO, VQ_AVAIL_OFFSET, VQ_USED_OFFSET};
+use crate::tests::harness::{harness, DOORBELL};
+use crate::tests::model::{NOTIFY_AT, QUEUE_SIZE};
 use crate::tests::part::{answering, Answer};
 use crate::tests::wire::request;
 
 #[test]
 fn a_request_that_does_not_fit_the_staging_page_is_refused_before_anything_is_published() {
     let h = harness();
-    h.regs.present16(LEG_QUEUE_NOTIFY, 0xFFFF);
+    h.regs.present16(NOTIFY_AT + DOORBELL, 0xFFFF);
+    for (req, resp) in [(4000, 200), (4096, 1), (1, 4096), (0, 24), (24, 0)] {
+        assert!(h.queue.submit(&vec![0u8; req], resp).is_err(), "{req} + {resp}");
+    }
     let err = h.queue.submit(&[0u8; 4000], 200).err();
     assert_eq!(err, Some("virtio-gpu: staging too small"));
     assert_eq!(h.region.wrote16(VQ_AVAIL_OFFSET + 2), 0, "nothing published");
-    assert_eq!(h.regs.wrote16(LEG_QUEUE_NOTIFY), 0xFFFF, "no doorbell");
+    assert_eq!(h.regs.wrote16(NOTIFY_AT + DOORBELL), 0xFFFF, "no doorbell");
+    assert!(!h.queue.is_reset(), "a refused request does not take the device down");
 }
 
 #[test]

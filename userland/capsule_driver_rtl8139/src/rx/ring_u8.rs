@@ -27,5 +27,7 @@ pub(super) fn ring_u8(base: u64, off: usize) -> u8 {
     if off >= RX_BUF_BYTES {
         return 0;
     }
+    // SAFETY: `base` is the receive grant, which setup::dma holds to
+    // RX_BUF_BYTES at least, and `off` is below that (checked above).
     unsafe { core::ptr::read_volatile((base + off as u64) as *const u8) }
 }
