@@ -46,14 +46,6 @@ pub mod cert_time_value;
 pub mod cert_valid_now;
 #[path = "../../nonos_tls/src/cert_window.rs"]
 pub mod cert_window;
-#[path = "../../nonos_tls/src/cert_verify_msg/mod.rs"]
-pub mod cert_verify_msg;
-#[path = "../../nonos_tls/src/chain_walk.rs"]
-pub mod chain_walk;
-#[path = "../../nonos_tls/src/crypto_port.rs"]
-pub mod crypto_port;
-#[path = "../../nonos_tls/src/crypto_status.rs"]
-pub mod crypto_status;
 #[path = "../../nonos_tls/src/der_tlv.rs"]
 pub mod der_tlv;
 #[path = "../../nonos_tls/src/ecdsa_sig_raw.rs"]
@@ -66,11 +58,3 @@ pub mod roots;
 pub mod rtc_now;
 #[path = "../../nonos_tls/src/spki_point.rs"]
 pub mod spki_point;
-#[path = "../../nonos_tls/src/verify_link/mod.rs"]
-pub mod verify_link;
-#[path = "../../nonos_tls/src/verify_p256.rs"]
-pub mod verify_p256;
-#[path = "../../nonos_tls/src/verify_p384.rs"]
-pub mod verify_p384;
-#[path = "../../nonos_tls/src/verify_rsa.rs"]
-pub mod verify_rsa;

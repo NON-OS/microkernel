@@ -64,8 +64,7 @@ once the surface is made. Served: get_primary, transfer, set_scanout, flush.
 ## Wire format
 
 NVGP, virtio-gpu's ops and statuses. OP_GET_PRIMARY_SURFACE (0x0C) hands
-the surface only to the pid `compositor` is registered to, others E_BUSY;
-OP_FLUSH (0x0A) copies the rectangle into VRAM; OP_TRANSFER_TO_HOST (0x08)
+the surface only to the pid `compositor` is registered to, others E_BUSY,
 names where it starts and moves nothing, the surface being the resource;
 OP_SET_SCANOUT (0x09) takes only the whole mode, E_DEVICE once the adapter
 drops it. A bad frame or rectangle is E_INVAL; an unserved op E_BAD_OP.

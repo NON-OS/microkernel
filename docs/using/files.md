@@ -4,8 +4,8 @@ Where your files live on NONOS, how to work with them in Files, and exactly what
 
 ## The short version
 
-- Every file you see lives in the [file store](../overview/glossary.md#file-store), `vfs_pool`, which holds it in memory. At power off it is gone, unless it was written to the disk.
-- NONOS forgets by default. The first mode setup offers is `Amnesic (default)`: RAM only, nothing written to any disk. This is an [amnesic boot](../overview/glossary.md#amnesic-boot).
+- Every file you see lives in the [file store](../overview/glossary-dma-pool.md#file-store), `vfs_pool`, which holds it in memory. At power off it is gone, unless it was written to the disk.
+- NONOS forgets by default. The first mode setup offers is `Amnesic (default)`: RAM only, nothing written to any disk. This is an [amnesic boot](../overview/glossary-amnesic-boot.md#amnesic-boot).
 - Even on a system installed to a disk, Files and Editor do not write your files to the disk in this release. The Terminal's `keep` command is the one way to keep a file you made. See [What is kept after power off](#what-is-kept-after-power-off).
 
 ## What Files shows
@@ -94,7 +94,7 @@ The file store is memory. A file reaches the disk only when the program that cre
 On an amnesic boot, the default, nothing is kept:
 
 - Every request to keep a file is refused, and the store logs `[VFS] refused persist: amnesic boot`.
-- On a live stick, the [data volume](../overview/glossary.md#data-volume) that holds Qwen models is held in memory, and nothing of this machine's is written to the stick.
+- On a live stick, the [data volume](../overview/glossary-claim-epoch.md#data-volume) that holds Qwen models is held in memory, and nothing of this machine's is written to the stick.
 - Setup asks its questions again at the next boot. If you install NONOS from this boot, the installer carries your answers to the new disk.
 
 On a machine where `Keep data across reboots` is on, as on a NONOS installed to a disk, these are kept:

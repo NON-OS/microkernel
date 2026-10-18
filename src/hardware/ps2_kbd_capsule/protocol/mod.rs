@@ -19,4 +19,4 @@ mod header;
 mod ops;
 
 pub(super) use codec::{decode_response, encode_request};
-pub(super) use ops::{OP_GET_STATE, OP_HEALTHCHECK, OP_POLL_EVENTS};
+pub(super) use ops::{OP_GET_STATE, OP_HEALTHCHECK};

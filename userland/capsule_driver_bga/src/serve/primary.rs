@@ -19,22 +19,30 @@
 //! is handed it (`compositor`), and maps it with MkSurfaceAttach and draws
 //! in it. That is asked at each get_primary, so any other process is E_BUSY
 //! whatever the kernel lets reach this service, and a compositor respawned
-//! under a new pid takes the surface over once the old one is gone.
+//! under a new pid takes the surface over once the old one is gone. The
+//! kernel lets only a process a share names attach it (K20): the
+//! compositor is named here, writable, the share answers the handle it is
+//! handed, and its exit takes the right back.
 
-use nonos_libc::SURFACE_FORMAT_ARGB8888;
+use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
+use nonos_libc::{mk_surface_share, SURFACE_FORMAT_ARGB8888};
 
 use super::compositor::compositor_pid;
 use super::held::PRIMARY_RESOURCE_ID;
-use super::wire::{E_BUSY, PRIMARY_LEN};
+use super::wire::{E_BUSY, E_DEVICE, PRIMARY_LEN};
 use crate::setup::Driver;
 
 pub fn handle(d: &mut Driver, sender: u32) -> Result<[u8; PRIMARY_LEN], i32> {
     if compositor_pid() != Some(sender) {
         return Err(E_BUSY);
     }
+    let handle = mk_surface_share(d.surface.sid, sender, SURFACE_SHARE_WRITE);
+    if handle <= 0 {
+        return Err(E_DEVICE);
+    }
     d.owner_pid = sender;
     let mut b = [0u8; PRIMARY_LEN];
-    b[0..8].copy_from_slice(&d.surface.handle.to_le_bytes());
+    b[0..8].copy_from_slice(&(handle as u64).to_le_bytes());
     b[8..12].copy_from_slice(&PRIMARY_RESOURCE_ID.to_le_bytes());
     b[12..16].copy_from_slice(&(d.width as u32).to_le_bytes());
     b[16..20].copy_from_slice(&(d.height as u32).to_le_bytes());

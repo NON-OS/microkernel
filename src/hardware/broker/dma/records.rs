@@ -23,6 +23,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
+use super::super::quota;
 use super::types::{DmaError, DmaGrant};
 
 pub(super) static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
@@ -32,8 +33,17 @@ pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
 }
 
-pub(super) fn insert(record: DmaGrant) {
-    RECORDS.lock().push(record);
+/// Within its holder's quota (K10); refused, the caller undoes the map.
+pub(super) fn insert(record: DmaGrant) -> Result<(), quota::Spent> {
+    let mut all = RECORDS.lock();
+    let mine = all.iter().filter(|g| g.pid == record.pid);
+    let (held, bytes) = mine.fold((0, 0u64), |(n, b), g| (n + 1, b.saturating_add(g.length)));
+    let (max, max_bytes) = (quota::MAX_DMA_GRANTS, quota::MAX_DMA_BYTES);
+    if let Some(spent) = quota::spent(held, bytes, record.length, max, max_bytes) {
+        return Err(spent);
+    }
+    all.push(record);
+    Ok(())
 }
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
@@ -55,4 +65,10 @@ pub(super) fn try_each(mut f: impl FnMut(&DmaGrant)) -> bool {
         f(g);
     }
     true
+}
+
+/// Every live grant as `(pid, start, len)`: frames the surface registry
+/// must never free page by page (surface_registry pin, K15).
+pub(crate) fn grant_ranges() -> Vec<(u32, u64, u64)> {
+    RECORDS.lock().iter().map(|g| (g.pid, g.physical_start, g.length)).collect()
 }

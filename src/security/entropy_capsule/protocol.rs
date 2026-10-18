@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Kernel-side mirror of `userland/capsule_entropy/src/protocol/*`.
-// Bit-for-bit identical layout — drift would manifest as
-// `EntropyCapsuleError::ProtocolMismatch`.
+// Bit-for-bit identical layout: a reply that drifted fails to decode, and
+// ask::poll drops it.
 
 use alloc::vec::Vec;
 
@@ -26,12 +26,8 @@ pub(super) const MAGIC: u32 = 0x4E4F_454E; // "NOEN"
 pub(super) const VERSION: u16 = 1;
 
 pub(super) const OP_GET_RANDOM: u16 = 1;
-pub(super) const OP_GET_STATS: u16 = 2;
-pub(super) const OP_RESEED: u16 = 3;
-pub(super) const OP_HEALTHCHECK: u16 = 4;
 
 pub(super) const MAX_RANDOM_BYTES: u32 = 4096;
-pub(super) const MAX_RESEED_BYTES: u32 = 256;
 pub(super) const MAX_PAYLOAD_BYTES: u32 = 4096;
 
 pub(super) use crate::services::lifecycle::transport::DecodedResponse;

@@ -24,7 +24,10 @@
 //! broker asks here before it moves a device into a capsule's domain, and leaves
 //! an uncovered device on its physical address, counted as unconfined.
 
-use crate::arch::x86_64::acpi::parser::other::{remap_unit_scopes, translated_by_some};
+use crate::arch::x86_64::acpi::parser::other::dmar_rmrr::names;
+use crate::arch::x86_64::acpi::parser::other::{
+    remap_unit_scopes, reserved_regions, translated_by_some,
+};
 
 /// PCI segment the config-space transport reaches. Only segment 0 is driven.
 const SEGMENT: u16 = 0;
@@ -33,6 +36,14 @@ const SEGMENT: u16 = 0;
 pub fn unit_covers(bus: u8, device: u8, function: u8) -> bool {
     let units = remap_unit_scopes();
     translated_by_some(&units, SEGMENT, (bus, device, function), &bridge_buses)
+}
+
+/// The reserved memory regions firmware listed for `bus:dev.func`, as
+/// `[base, end)` pairs: what bring-up maps it, and nothing more (K2).
+pub fn reserved_for(bus: u8, device: u8, function: u8) -> heapless::Vec<(u64, u64), 16> {
+    let bdf = (bus, device, function);
+    let named = reserved_regions().into_iter().filter(|r| names(r, SEGMENT, bdf, &bridge_buses));
+    named.map(|r| (r.base, r.end)).collect()
 }
 
 // A type-1 (bridge) function's secondary and subordinate bus numbers, or `None`

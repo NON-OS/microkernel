@@ -56,5 +56,5 @@ pub const GATED: [(i64, &[u8]); 20] = [
     (code(b"MLSG"), b"mint a signature trailer without LocalSign, MkLocalSign"),
     (code(b"MDRO"), b"enrol a signing root without EnrolDevRoot, MkDevRootLocal"),
     (code(b"MIEP"), b"inject input events without InputSource, MkInputEventPost"),
-    (code(b"MIED"), b"drain every keystroke without InputSource, MkInputEventDrain"),
+    (code(b"MIED"), b"drain every keystroke without InputConsumer, MkInputEventDrain"),
 ];
