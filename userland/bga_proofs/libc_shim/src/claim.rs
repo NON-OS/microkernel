@@ -1,0 +1,53 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The claim, and every grant and claim given back, per thread, with the
+//! adapter's registers as each give-back found them.
+
+use std::cell::RefCell;
+
+use crate::seal;
+
+thread_local! {
+    static GIVEN_BACK: RefCell<Vec<(&'static str, u64)>> = const { RefCell::new(Vec::new()) };
+    static SEEN: RefCell<Vec<Vec<u8>>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Every unmap and release made on this thread, as (call, id), in order.
+pub fn given_back() -> Vec<(&'static str, u64)> {
+    GIVEN_BACK.with(|g| g.borrow().clone())
+}
+
+/// The watched registers (`watch`) as the adapter held them at each of
+/// `given_back`, in the same order.
+pub fn registers_at_give_back() -> Vec<Vec<u8>> {
+    SEEN.with(|s| s.borrow().clone())
+}
+
+pub(crate) fn give_back(call: &'static str, id: u64) -> i64 {
+    GIVEN_BACK.with(|g| g.borrow_mut().push((call, id)));
+    SEEN.with(|s| s.borrow_mut().push(seal::adapter_holds()));
+    0
+}
+
+pub fn mk_device_claim(_device_id: u64) -> i64 {
+    1
+}
+
+pub fn mk_device_release(device_id: u64) -> i64 {
+    seal::unseal();
+    give_back("device_release", device_id)
+}

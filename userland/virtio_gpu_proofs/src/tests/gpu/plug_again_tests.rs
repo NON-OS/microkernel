@@ -35,13 +35,13 @@ fn off_again_before_it_was_shown_is_dark_again() {
     draw(&mut r, 0, PX);
     for d in [(0, 0), PANEL, (0, 0)] {
         raise(&mut r, 0, d);
-        assert!(r.s.display.events(), "{d:?} is a change");
+        assert!(r.d.server.display.events(), "{d:?} is a change");
     }
     assert_eq!(state(&mut r, 0).flags, 0, "dark again");
     assert_eq!(ask(&mut r, ops::MODE_SET, 0, &words(&[800, 600])).0, EAGAIN);
     assert!(shown(&r, 0).is_none(), "nothing set on a screen the host has off");
     raise(&mut r, 0, PANEL);
-    assert!(r.s.display.events());
+    assert!(r.d.server.display.events());
     assert_eq!(state(&mut r, 0).flags, LOST);
     let px = shown(&r, 0).expect("shown again");
     assert!(px.len() == 640 * 480 && px.iter().all(|&p| p == PX));
@@ -54,7 +54,7 @@ fn another_output_never_notices() {
     draw(&mut r, 0, PX);
     draw(&mut r, 1, PX);
     raise(&mut r, 1, (0, 0));
-    assert!(r.s.display.events());
+    assert!(r.d.server.display.events());
     assert_eq!((state(&mut r, 0).flags, state(&mut r, 1).flags), (SCANNING_OUT, 0));
     let px = shown(&r, 0).expect("output 0 still shows");
     assert!(px.iter().all(|&p| p == PX));

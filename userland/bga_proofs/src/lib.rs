@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The BGA display capsule, proved against a register window rather than
-//! against a display adapter.
-//!
-//! Each `#[path]` below pulls in the shipping driver source, so these tests
-//! run the code that boots, not a copy of it: the DISPI mode set and its
-//! read-back, the EDID read at BAR2, the start-up mode choice, and the
-//! adapter's half of the display wire (`nonos_gfx_serve::Display`).
-//!
-//! The interface is worth proving without hardware because Bochs, QEMU and
-//! their clones implement the same register set. A driver that programs the
-//! wrong bits-per-pixel, or leaves the linear framebuffer undecoded, is wrong
-//! against all of them, and a black screen is the same symptom for each.
+//! The BGA display capsule, proved against a register window and video
+//! memory in memory. Each `#[path]` pulls in the shipping driver source: the
+//! DISPI ID check, mode set and read-back, the firmware's state kept or
+//! written back, the EDID read at BAR2, the start-up mode, one bring-up
+//! attempt end to end against `libc_shim`'s broker and kernel, and the
+//! adapter's half of the display wire. Bochs, QEMU and their clones share
+//! the register set, so a driver wrong against one is wrong against all.
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
@@ -36,14 +31,8 @@ pub mod display;
 pub mod edid;
 #[path = "../../capsule_driver_bga/src/error.rs"]
 pub mod error;
-#[path = "../../capsule_driver_bga/src/regs.rs"]
+/// The shipping register access, each write answered by the adapter model.
 pub mod regs;
-#[path = "../../capsule_driver_bga/src/setup/mode.rs"]
-pub mod start;
-// The mode module under the name the bring-up's `fresh` reaches it by.
-pub use start as mode;
-#[path = "../../capsule_driver_bga/src/setup/fresh.rs"]
-pub mod fresh;
 #[path = "../../capsule_driver_bga/src/turn.rs"]
 pub mod turn;
 
@@ -57,6 +46,21 @@ use dgon::dgon_parse;
 #[path = "../../../src/services/registry/displays.rs"]
 #[allow(dead_code)]
 mod displays;
+
+/// One bring-up attempt end to end (`tests::setup_tests` and the rest),
+/// against `libc_shim`'s broker and kernel.
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/announce.rs"]
+mod announce;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/discover.rs"]
+mod discover;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/handles.rs"]
+mod handles;
+#[cfg(test)]
+#[path = "../../capsule_driver_bga/src/setup/mod.rs"]
+mod setup;
 
 #[cfg(test)]
 mod model;

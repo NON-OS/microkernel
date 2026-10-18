@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod device;
 mod driver;
 mod hmb;
 mod irq;
@@ -24,5 +25,6 @@ mod pci;
 mod say;
 mod sequence;
 
+pub use device::Device;
 pub use driver::Driver;
 pub use sequence::run;

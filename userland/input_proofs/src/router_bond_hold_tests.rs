@@ -22,7 +22,7 @@ use nonos_libc::mk_uptime_ms;
 
 use crate::clients::world;
 use crate::route::trusted_hold::told;
-use crate::router_bond_kit::*;
+use crate::router_tests::router_bond_kit::*;
 use crate::router_desk::*;
 
 const A: u32 = 20;

@@ -20,23 +20,31 @@
 //! Each turn reads the host's display events first, and an output that
 //! changed (turned off or back, or a new size wanted) is told to the
 //! compositor at once with OUTPUT_NOTICE rather than on its next poll.
+//! Each turn also settles the control queue (`recover`): a stall the last
+//! turn's commands hit is recovered in place, and a device left Down is
+//! told to the compositor as LEAVING.
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_uptime_ms, recv_ready};
 
-use nonos_gfx_wire::notice::OUTPUTS_CHANGED;
+use nonos_gfx_pool::Pool;
+use nonos_gfx_wire::notice::{LEAVING, OUTPUTS_CHANGED};
 
 use super::gone::{leave, tell};
+use super::recover::settle;
 use super::turn::{turn, Turn};
 use crate::driver::Driver;
 
 const SERVICE_INBOX: u64 = 0;
 const WATCH_MS: u64 = 500;
 
-pub fn run(mut driver: Driver) -> ! {
+pub fn run(mut driver: Driver<Pool>) -> ! {
     // Requests are at most 256 bytes; replies the header, status and 252.
     let (mut rx, mut tx) = ([0u8; 256], [0u8; 280]);
-    let server = &mut driver.server;
     loop {
+        if settle(&mut driver) {
+            tell(driver.server.owner, LEAVING);
+        }
+        let server = &mut driver.server;
         if server.display.events() {
             tell(server.owner, OUTPUTS_CHANGED);
         }

@@ -13,18 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::io::{submit, BlkError};
-use crate::protocol::{Request, E_INVAL, E_IO};
+
+use super::status::status_of;
+use crate::io::submit;
+use crate::protocol::Request;
 use crate::queue::Direction;
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
+
 pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let outcome =
         submit(driver.transport, &mut driver.queue, driver.irq_grant, Direction::Flush, 0, 0);
-    let status = match outcome {
-        Ok(()) => 0,
-        Err(BlkError::Unsupported) => E_INVAL,
-        Err(_) => E_IO,
-    };
-    reply_with_status(tx, req, status);
+    reply_with_status(tx, req, status_of(outcome));
 }

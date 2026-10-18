@@ -16,12 +16,15 @@
 
 //! The mode DISPI is scanning out, read back from its registers: firmware's
 //! (OVMF and SeaBIOS program DISPI for their own framebuffer) until this
-//! driver's first MODE_SET, which section 12 says a driver keeps.
+//! driver's first MODE_SET, which section 12 says a driver keeps. Only a
+//! mode scanned out from the start of video memory is one: an offset one
+//! would show a picture away from where every copy writes.
 
 use super::dispi_off::dispi_off;
 use crate::constants::{
     DISPI_BPP_32, DISPI_ENABLED, DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_VIRT_WIDTH,
-    DISPI_INDEX_XRES, DISPI_INDEX_YRES, DISPI_LFB_ENABLED,
+    DISPI_INDEX_XRES, DISPI_INDEX_X_OFFSET, DISPI_INDEX_YRES, DISPI_INDEX_Y_OFFSET,
+    DISPI_LFB_ENABLED,
 };
 use crate::regs::Regs;
 
@@ -38,7 +41,8 @@ pub fn current(regs: Regs) -> Option<DispiMode> {
     // SAFETY: every index read is in the DISPI block the window maps.
     let r = |i| unsafe { regs.r16(dispi_off(i)) };
     let on = DISPI_ENABLED | DISPI_LFB_ENABLED;
-    if r(DISPI_INDEX_ENABLE) & on != on || r(DISPI_INDEX_BPP) != DISPI_BPP_32 {
+    let at_start = r(DISPI_INDEX_X_OFFSET) == 0 && r(DISPI_INDEX_Y_OFFSET) == 0;
+    if r(DISPI_INDEX_ENABLE) & on != on || r(DISPI_INDEX_BPP) != DISPI_BPP_32 || !at_start {
         return None;
     }
     let (width, height) = (r(DISPI_INDEX_XRES) as u32, r(DISPI_INDEX_YRES) as u32);
