@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::scl;
+use super::sda_hold::sda_hold;
 use crate::constants::*;
 use crate::regs::Regs;
 
@@ -35,6 +36,6 @@ pub(super) fn program_clock(regs: Regs, clock_hz: u32) {
     regs.write32(IC_FS_SCL_LCNT, fs.lcnt);
     regs.write32(IC_FS_SPKLEN, scl::fs_spklen(clock_hz));
     if regs.read32(IC_COMP_VERSION) >= SDA_HOLD_MIN_VERSION {
-        regs.write32(IC_SDA_HOLD, scl::sda_hold(clock_hz));
+        regs.write32(IC_SDA_HOLD, sda_hold(clock_hz));
     }
 }

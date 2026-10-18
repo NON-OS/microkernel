@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::EventRing;
@@ -28,22 +27,11 @@ impl DrainBatch {
         Self { trbs: [Trb::zero(); DRAIN_BATCH], count: 0 }
     }
 }
-/// Take up to `DRAIN_BATCH` events between requests. A transfer event stops
-/// the drain: its endpoint's poll takes it. A command completion does not:
-/// the drain runs only between commands, so it is an orphan of an abort or
-/// of a wait that gave up, and is taken off and counted, where it used to
-/// stop the drain until the next command.
 pub fn drain_events(intr_base: u64, ring: &mut EventRing) -> DrainBatch {
     let mut batch = DrainBatch::new();
-    // Orphans count against the batch too, so a drain stays bounded.
-    let mut taken = 0;
-    while taken < DRAIN_BATCH && ring.has_event() {
-        taken += 1;
-        if ring.skip_orphan() {
-            continue;
-        }
+    while batch.count < DRAIN_BATCH && ring.has_event() {
         let trb = ring.current_trb();
-        if trb.get_type() == TRB_TYPE_TRANSFER_EVENT {
+        if reserved_for_waiter(trb.get_type()) {
             break;
         }
         batch.trbs[batch.count] = trb;
@@ -52,4 +40,13 @@ pub fn drain_events(intr_base: u64, ring: &mut EventRing) -> DrainBatch {
     }
     erdp_program(intr_base, ring.current_dequeue_phys(), true, 0);
     batch
+}
+/// Only a transfer event can still have a waiter here: an interrupt-IN TRB
+/// an earlier poll armed. No command is in flight between requests, since
+/// each runs to its completion, or is given up, inside the request that
+/// issued it; a Command Completion Event here is nobody's (a late answer to
+/// a command that timed out) and is consumed with the rest, so it cannot
+/// hold every report behind it.
+fn reserved_for_waiter(trb_type: u32) -> bool {
+    trb_type == TRB_TYPE_TRANSFER_EVENT
 }

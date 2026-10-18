@@ -14,57 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading blocks by DMA (sd_read_long_data and rtsx_pci_dma_transfer):
-//! the command and transfer size into the command buffer, the DMA engine
-//! pointed at the data buffer through one scatter-gather entry, an auto
-//! read transfer, and CMD12 after a multi-block read.
+//! Reading blocks by DMA (sd_read_long_data): the command and transfer
+//! size into the command buffer, the DMA engine pointed at the data buffer,
+//! an auto read transfer, and CMD12 after a multi-block read. A card pulled
+//! during the read ends it at once (engine/wait.rs).
 
-use super::command::{put_command, send_command};
+use super::command::put_command;
+use super::data::data_phase;
+use super::finish::stop_transmission;
 use super::info::Card;
 use super::select::select_sd;
-use crate::engine::{clear_error, start, start_read, wait};
-use crate::error::{Result, RtsxError};
-use crate::regs::card::{CARD_DATA_SOURCE, RING_BUFFER};
-use crate::regs::pm::*;
+use super::transfer::{address, end_entries, run_data, MAX_BLOCKS};
+use crate::error::Result;
 use crate::regs::sd::*;
 use crate::sd::Command;
 use crate::setup::Driver;
-use crate::wire::{CmdBuf, CmdKind};
-
-/// What the data buffer holds: 128 blocks of 512 bytes.
-pub const MAX_BLOCKS: u16 = 128;
+use crate::wire::CmdBuf;
 
 /// `count` blocks from `lba` into the data buffer.
 pub fn read_blocks(drv: &Driver, card: &Card, lba: u32, count: u16) -> Result<()> {
     let count = count.clamp(1, MAX_BLOCKS);
-    let len = count as u32 * 512;
-    let addr = if card.high_capacity { lba } else { lba.saturating_mul(512) };
     let multi = count > 1;
-    let cmd = if multi { Command::read_multiple(addr) } else { Command::read_single(addr) };
+    let cmd = Command::read(address(card, lba)?, multi);
     let mut buf = CmdBuf::new();
     select_sd(&mut buf);
     put_command(&mut buf, cmd);
-    buf.write(SD_BLOCK_CNT_L, 0xFF, count as u8).write(SD_BLOCK_CNT_H, 0xFF, (count >> 8) as u8);
-    buf.write(SD_BYTE_CNT_L, 0xFF, 0x00).write(SD_BYTE_CNT_H, 0xFF, 0x02);
-    buf.write(IRQSTAT0, DMA_DONE_INT, DMA_DONE_INT);
-    let tc = len.to_le_bytes();
-    buf.write(DMATC3, 0xFF, tc[3]).write(DMATC2, 0xFF, tc[2]);
-    buf.write(DMATC1, 0xFF, tc[1]).write(DMATC0, 0xFF, tc[0]);
-    buf.write(DMACTL, 0x03 | DMA_PACK_SIZE_MASK, DMA_DIR_FROM_CARD | DMA_EN | DMA_512);
-    buf.write(CARD_DATA_SOURCE, 0x01, RING_BUFFER);
+    data_phase(&mut buf, count, false);
     // Not a UHS card: the write CRC timeout check is off, as Linux has it.
     buf.write(SD_CFG2, 0xFF, SD_NO_CHECK_WAIT_CRC_TO | cmd.rsp.cfg2());
     buf.write(SD_TRANSFER, 0xFF, SD_TRANSFER_START | SD_TM_AUTO_READ_2);
-    buf.add(CmdKind::Check, SD_TRANSFER, SD_TRANSFER_END, SD_TRANSFER_END);
-    start(drv, &buf)?;
-    start_read(drv, len);
-    let done = wait(drv, 10_000, RtsxError::DataTimeout, RtsxError::DataFailed);
-    if done.is_err() {
-        clear_error(drv);
-    }
+    end_entries(&mut buf);
+    let done = run_data(drv, &buf, count as u32 * 512, true);
     if multi {
-        let stop = send_command(drv, Command::STOP_TRANSMISSION);
-        return done.and(stop.map(|_| ()));
+        return stop_transmission(drv, done);
     }
     done
 }

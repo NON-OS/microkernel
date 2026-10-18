@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Bringing a controller up: one attempt over every controller found, each
-//! controller from claim to enable, and what is read once it is enabled.
+//! controller taken and stopped before Bus Master, then enabled, and what
+//! is read once it is enabled.
 
 mod after_enable;
 mod bring_up;
 mod run;
 mod served;
+mod start;
 
 pub use run::run;

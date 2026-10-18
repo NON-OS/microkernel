@@ -23,7 +23,7 @@
 
 use crate::constants::IC_TAR;
 use crate::model::live;
-use crate::regs::Regs;
+use crate::setup::regs;
 use crate::transaction::control::set_target;
 
 const TOUCHPAD: u8 = 0x15;
@@ -31,7 +31,7 @@ const TOUCHPAD: u8 = 0x15;
 #[test]
 fn the_address_the_caller_asked_for_is_the_one_left_in_the_target_register() {
     let bar = live();
-    assert!(set_target(Regs::new(bar.base()), TOUCHPAD).is_ok(), "target change refused");
+    assert!(set_target(regs(&bar), TOUCHPAD).is_ok(), "target change refused");
     assert_eq!(bar.wrote32(IC_TAR as usize), TOUCHPAD as u32);
 }
 
@@ -45,6 +45,6 @@ fn only_the_seven_address_bits_reach_the_target_register() {
      * follows.
      */
     let bar = live();
-    assert!(set_target(Regs::new(bar.base()), 0x95).is_ok(), "target change refused");
+    assert!(set_target(regs(&bar), 0x95).is_ok(), "target change refused");
     assert_eq!(bar.wrote32(IC_TAR as usize), 0x15);
 }

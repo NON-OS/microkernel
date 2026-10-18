@@ -14,72 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
+//! Taking one received frame off the used ring.
+//!
+//! Everything in a used entry is the device's word. The frame is copied out
+//! of the buffer before the buffer goes back, so no borrow of memory the
+//! device writes ever leaves this function; the buffer is wiped first, so
+//! nothing of the frame stays behind once it is delivered.
 
 use core::sync::atomic::{fence, Ordering};
 
-use crate::constants::RING_SLOTS;
-use crate::queue::RxQueue;
+use crate::constants::MAX_ETHERNET_FRAME;
+use crate::queue::{used, zero, RxQueue};
 
-pub struct Frame<'a> {
-    pub bytes: &'a [u8],
-}
-
-
-
-
-
-
-
-
-pub unsafe fn take_one(rx: &mut RxQueue) -> Option<Frame<'static>> {
-    let used = rx.used_idx();
-    if used == rx.last_used {
+/// Copy the next received frame into `out` and give its buffer back; the
+/// frame's length, or `None` when nothing is waiting.
+///
+/// An entry whose id names no posted buffer is dropped and never posted
+/// back. One whose length leaves no frame after the header, runs past the
+/// buffer, or is longer than an Ethernet frame (or `out`) is dropped and its
+/// buffer recycled. A dropped entry is `Some(0)`, so a caller that counts
+/// entries still bounds its loop against a device that keeps reporting.
+pub fn take_one(rx: &mut RxQueue, out: &mut [u8]) -> Option<usize> {
+    if used::idx(rx.ring) == rx.last_used {
         return None;
     }
-    // The element and the frame are only valid once the index is seen.
+    // The entry and the frame are only valid once the index is seen.
     fence(Ordering::Acquire);
-    let ring_pos = rx.last_used % RING_SLOTS;
-    let (desc_id, used_len) = rx.used_elem_at(ring_pos);
+    let (id, used_len) = used::elem(rx.ring, rx.last_used);
     rx.last_used = rx.last_used.wrapping_add(1);
-
-    // An id past the primed buffers names no slot this queue posted. Folding
-    // it into range would read a slot the device may still be writing and
-    // post the wild id back to the device, so the entry is dropped and
-    // nothing is refilled.
-    if desc_id >= u32::from(rx.buf_count) {
-        rx.pending_refill = None;
-        return Some(Frame { bytes: &[] });
-    }
-
-
-
-
-
-    // The header is 10 bytes on the legacy transport and 12 under
-    // VERSION_1; a frame starts after whichever this queue was set up for,
-    // and never past the end of its slot.
-    let hdr_len = core::cmp::min(rx.hdr_len, rx.buf_len as usize);
-    let (payload_ptr, payload_len) = if used_len as usize > hdr_len {
-        let raw = (used_len as usize) - hdr_len;
-        let cap = (rx.buf_len as usize).saturating_sub(hdr_len);
-        let len = core::cmp::min(raw, cap);
-        let slot = desc_id as usize;
-        let base = rx.buf_va.add(rx.buf_len as usize * slot + hdr_len);
-        (base as *const u8, len)
-    } else {
-        (core::ptr::null::<u8>(), 0usize)
+    let Some(slot) = u16::try_from(id).ok().filter(|&s| s < rx.buf_count) else {
+        return Some(0);
     };
-
-    rx.pending_refill = Some(desc_id as u16);
-
-    if payload_len == 0 {
-        return Some(Frame { bytes: &[] });
+    let len = frame_len(rx, used_len).filter(|&n| n <= out.len()).unwrap_or(0);
+    let base = usize::from(slot) * rx.buf_len as usize;
+    for (i, b) in out.iter_mut().take(len).enumerate() {
+        *b = rx.bufs.r8(base + rx.hdr_len + i);
     }
-    let bytes: &'static [u8] = core::slice::from_raw_parts(payload_ptr, payload_len);
-    Some(Frame { bytes })
+    let written = core::cmp::min(used_len as usize, rx.buf_len as usize);
+    zero(rx.bufs, base, written);
+    rx.refill(slot);
+    Some(len)
+}
+
+/// The frame an entry of `used_len` bytes carries, if it is one to hand on.
+fn frame_len(rx: &RxQueue, used_len: u32) -> Option<usize> {
+    let len = (used_len as usize).checked_sub(rx.hdr_len)?;
+    let in_buffer = rx.hdr_len.checked_add(len)? <= rx.buf_len as usize;
+    (len > 0 && len <= MAX_ETHERNET_FRAME && in_buffer).then_some(len)
 }

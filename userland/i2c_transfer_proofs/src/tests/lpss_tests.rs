@@ -18,7 +18,7 @@
 //! order of register writes can be read back as a sequence.
 
 use nonos_i2cmodel::regs::{IC_ENABLE, LPSS_PRIV_RESETS};
-use nonos_i2cmodel::{Config, Designware, Bus};
+use nonos_i2cmodel::{Bus, Config, Designware};
 
 use super::fixture::{bench, core};
 use crate::bench::LPSS_PHYS;
@@ -29,7 +29,8 @@ use crate::transaction::{control, TransferError};
 fn the_function_is_put_in_reset_then_released_and_remapped_before_the_core_is_touched() {
     let _b = bench(Config::LPSS);
     core(|c| {
-        assert_eq!(c.writes_to(LPSS_PRIV_RESETS), [0, 0x7], "intel_lpss_init_dev order");
+        // The function alone is released; bit 2, the integrated DMA, stays held.
+        assert_eq!(c.writes_to(LPSS_PRIV_RESETS), [0, 0x3], "intel_lpss_init_dev order");
         assert_eq!(c.writes_to(0x240), [LPSS_PHYS as u32]);
         assert_eq!(c.writes_to(0x244), [(LPSS_PHYS >> 32) as u32]);
         let first_core = c.events().iter().position(|e| e.offset < 0x100).expect("core written");
@@ -48,10 +49,11 @@ fn a_core_that_never_reports_disabled_is_given_up_on_in_bounded_time() {
      * that is long on QEMU and short on silicon, and it keeps writing the
      * disable while it waits, as Linux __i2c_dw_disable does.
      */
-    let _attached = regs::attach(Designware::new(Config::LPSS, Bus::default()).never_acknowledges_enable());
-    regs::with(|c| c.write32(LPSS_PRIV_RESETS, 0x7));
+    let _attached =
+        regs::attach(Designware::new(Config::LPSS, Bus::default()).never_acknowledges_enable());
+    regs::with(|c| c.write32(LPSS_PRIV_RESETS, 0x3));
     let before = nonos_libc::mk_uptime_ms();
-    let outcome = control::disable(Regs::new(0));
+    let outcome = control::disable(Regs::new(0, 0x1000));
     let waited = nonos_libc::mk_uptime_ms() - before;
     assert!(matches!(outcome, Err(TransferError::Timeout)));
     assert!((25..200).contains(&waited), "waited {waited} ms of uptime");

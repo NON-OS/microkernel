@@ -10,7 +10,8 @@ use alloc::vec::Vec;
 
 // A USB device with 1, 2 or 4 KiB logical blocks is served to the kernel in
 // 512-byte sectors. These proofs hold the span a sector request becomes to
-// the device blocks that cover it exactly.
+// the device blocks that cover it exactly, and run the same read and
+// read-modify-write the driver does against a device kept in memory.
 
 #[test]
 fn only_the_block_lengths_a_sector_divides_are_served() {
@@ -54,8 +55,94 @@ fn a_device_holds_its_blocks_in_sectors() {
     assert_eq!(sectors(u64::MAX, 8), u64::MAX, "saturates");
 }
 
-// The read and read-modify-write over these spans run in `block_rw_tests`,
-// through the driver's own `block_rw.rs`.
+/// A device of `blocks` blocks of `len` bytes, in memory.
+struct Device {
+    len: usize,
+    bytes: Vec<u8>,
+    reads: usize,
+    writes: usize,
+}
+
+impl Device {
+    fn new(len: usize, blocks: usize) -> Self {
+        let bytes = (0..len * blocks).map(|i| (i * 7 + i / 512) as u8).collect();
+        Self { len, bytes, reads: 0, writes: 0 }
+    }
+    fn read(&mut self, first: u64, out: &mut [u8]) {
+        assert_eq!(out.len() % self.len, 0, "whole blocks only");
+        let at = first as usize * self.len;
+        out.copy_from_slice(&self.bytes[at..at + out.len()]);
+        self.reads += 1;
+    }
+    fn write(&mut self, first: u64, data: &[u8]) {
+        assert_eq!(data.len() % self.len, 0, "whole blocks only");
+        let at = first as usize * self.len;
+        self.bytes[at..at + data.len()].copy_from_slice(data);
+        self.writes += 1;
+    }
+}
+
+// The driver's read_sectors and write_sectors (server/handlers/block_rw.rs),
+// step for step, against the in-memory device.
+fn read_sectors(dev: &mut Device, lba: u64, count: u32) -> Vec<u8> {
+    let per = sectors_per_block(dev.len as u32).unwrap();
+    let sp = span(lba, count, per).unwrap();
+    let mut out = vec![0u8; count as usize * 512];
+    if sp.aligned {
+        dev.read(sp.first, &mut out);
+    } else {
+        let mut blocks = vec![0u8; sp.blocks as usize * dev.len];
+        dev.read(sp.first, &mut blocks);
+        let n = out.len();
+        out.copy_from_slice(&blocks[sp.head..sp.head + n]);
+    }
+    out
+}
+
+fn write_sectors(dev: &mut Device, lba: u64, data: &[u8]) {
+    let per = sectors_per_block(dev.len as u32).unwrap();
+    let sp = span(lba, (data.len() / 512) as u32, per).unwrap();
+    if sp.aligned {
+        return dev.write(sp.first, data);
+    }
+    let mut blocks = vec![0u8; sp.blocks as usize * dev.len];
+    dev.read(sp.first, &mut blocks);
+    blocks[sp.head..sp.head + data.len()].copy_from_slice(data);
+    dev.write(sp.first, &blocks);
+}
+
+#[test]
+fn sectors_read_and_written_on_a_4k_device_are_the_bytes_a_512_device_would_hold() {
+    for len in [512usize, 1024, 2048, 4096] {
+        let blocks = 40 * 4096 / len;
+        let mut dev = Device::new(len, blocks);
+        let mut model = dev.bytes.clone();
+        let mut seed = 0x9E37_79B9_7F4A_7C15u64;
+        for _ in 0..400 {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            let count = (seed % 64) as u32 + 1;
+            let lba = (seed >> 8) % (model.len() as u64 / 512 - count as u64);
+            let at = lba as usize * 512;
+            let n = count as usize * 512;
+            assert_eq!(read_sectors(&mut dev, lba, count), model[at..at + n], "read {lba}+{count}");
+            let data: Vec<u8> = (0..n).map(|i| (seed as usize + i * 13) as u8).collect();
+            write_sectors(&mut dev, lba, &data);
+            model[at..at + n].copy_from_slice(&data);
+            assert_eq!(dev.bytes, model, "write {lba}+{count} on {len}-byte blocks");
+        }
+    }
+}
+
+#[test]
+fn an_aligned_write_is_not_read_first() {
+    let mut dev = Device::new(4096, 16);
+    write_sectors(&mut dev, 8, &[0xAB; 8 * 512]);
+    assert_eq!((dev.reads, dev.writes), (0, 1));
+    write_sectors(&mut dev, 9, &[0xCD; 512]);
+    assert_eq!((dev.reads, dev.writes), (1, 2), "a part block is read, changed, written");
+}
 
 #[test]
 fn the_ten_byte_forms_are_kept_while_they_reach() {

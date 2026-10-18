@@ -29,9 +29,10 @@ use crate::constants::{
     IC_ENABLE, IC_FS_SCL_HCNT, IC_FS_SCL_LCNT, IC_SDA_HOLD, IC_SS_SCL_HCNT, IC_SS_SCL_LCNT,
 };
 use crate::init::bring_up;
-use crate::init::scl::{fast, sda_hold, standard};
-use crate::model::{live, refusal, stuck_enabled, CLOCK_HZ, SETUP};
-use crate::regs::Regs;
+use crate::init::scl::{fast, standard};
+use crate::init::sda_hold::sda_hold;
+use crate::model::{live, stuck_enabled};
+use crate::setup::{refusal, regs, CLOCK_HZ, SETUP};
 
 #[test]
 fn the_counts_are_not_programmed_until_the_controller_is_confirmed_disabled() {
@@ -43,7 +44,7 @@ fn the_counts_are_not_programmed_until_the_controller_is_confirmed_disabled() {
      * clock configuration on one that does not.
      */
     let bar = stuck_enabled();
-    let err = refusal(bring_up(Regs::new(bar.base()), SETUP));
+    let err = refusal(bring_up(regs(&bar), SETUP));
     assert!(err.contains("disable timeout"), "unexpected error: {err}");
 
     for reg in [IC_SS_SCL_HCNT, IC_SS_SCL_LCNT, IC_FS_SCL_HCNT, IC_FS_SCL_LCNT, IC_SDA_HOLD] {
@@ -58,7 +59,7 @@ fn a_completed_bring_up_leaves_the_controller_disabled_and_its_counts_loaded() {
      * the window, and nothing along the way turned the controller back on.
      */
     let bar = live();
-    bring_up(Regs::new(bar.base()), SETUP).expect("bring-up");
+    bring_up(regs(&bar), SETUP).expect("bring-up");
 
     assert_eq!(bar.wrote32(IC_ENABLE as usize), 0, "bring-up must not enable the controller");
     assert_eq!(bar.wrote32(IC_SS_SCL_HCNT as usize), standard(CLOCK_HZ).hcnt);

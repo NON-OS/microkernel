@@ -17,6 +17,7 @@
 //! The NNET frame service every NIC driver offers net.core and net.l2.
 
 mod answer;
+mod counters;
 mod encode;
 mod frames;
 mod stats;

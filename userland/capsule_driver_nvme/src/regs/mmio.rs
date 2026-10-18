@@ -28,22 +28,33 @@ impl Regs {
         Self { base }
     }
 
+    /// # Safety
+    /// `off` and the 4 bytes from it lie inside the register window `base`
+    /// maps; so for every accessor here.
     pub unsafe fn r32(self, off: u32) -> u32 {
         read_volatile((self.base + off as u64) as *const u32)
     }
 
     /// A 64-bit register read as its low dword and then its high one.
+    ///
+    /// # Safety
+    /// As `r32`, for the 8 bytes from `off`.
     pub unsafe fn r64(self, off: u32) -> u64 {
         let lo = self.r32(off);
         let hi = self.r32(off + 4);
         join_lo_hi(lo, hi)
     }
 
+    /// # Safety
+    /// As `r32`.
     pub unsafe fn w32(self, off: u32, value: u32) {
         write_volatile((self.base + off as u64) as *mut u32, value);
     }
 
     /// A 64-bit register written as its low dword and then its high one.
+    ///
+    /// # Safety
+    /// As `r32`, for the 8 bytes from `off`.
     pub unsafe fn w64(self, off: u32, value: u64) {
         let (lo, hi) = split_lo_hi(value);
         self.w32(off, lo);

@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::surface::Surface;
+use crate::dispi::Span;
 use crate::handles::BrokerHandles;
+use crate::regs::Regs;
 
+/// The adapter, driven. Fields drop in order: the surface is unmapped, then
+/// the handles write the firmware's DISPI state back, give up both mappings
+/// and release the claim last.
 pub struct Driver {
-    pub handles: BrokerHandles,
-    pub fb_user_va: u64,
+    pub surface: Surface,
+    pub _handles: BrokerHandles,
+    pub regs: Regs,
+    /// The mode's pixels in the framebuffer the adapter scans out.
+    pub fb: Span,
     pub width: u16,
     pub height: u16,
     pub stride: u32,
+    /// The compositor the primary surface was last handed to; 0 until it
+    /// asks.
+    pub owner_pid: u32,
 }

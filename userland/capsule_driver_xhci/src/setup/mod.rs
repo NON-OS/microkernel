@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod assemble;
+mod bring_up;
 mod claim;
 mod driver;
 mod irq_bind;
-mod layout;
+pub(crate) mod layout;
 mod marker;
 mod mmio_map;
 mod pci;
 mod require_window;
+mod revive;
 mod sequence;
+mod take_over;
+mod teardown;
 pub use driver::Driver;
 pub use sequence::run;

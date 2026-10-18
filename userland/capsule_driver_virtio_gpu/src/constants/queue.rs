@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-pub const VQ_REGION_SIZE: u64 = 16384;
+pub const VQ_REGION_SIZE: usize = 16384;
 pub const VQ_MAX_SIZE: u16 = 256;
 pub const VQ_DESC_OFFSET: usize = 0;
 pub const VQ_AVAIL_OFFSET: usize = 4096;

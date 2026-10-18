@@ -13,28 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::layout::QueueLayout;
-use core::ptr::{read_volatile, write_volatile};
+
+//! The available ring, which the driver writes.
+
 use core::sync::atomic::{fence, Ordering};
-#[inline]
-fn avail_idx_ptr(layout: QueueLayout) -> *mut u16 {
-    (layout.avail_va() as usize + 2) as *mut u16
-}
-#[inline]
-fn avail_ring_ptr(layout: QueueLayout, slot: u16) -> *mut u16 {
-    (layout.avail_va() as usize + 4 + (slot as usize) * 2) as *mut u16
-}
-pub fn read_idx(layout: QueueLayout) -> u16 {
-    unsafe { read_volatile(avail_idx_ptr(layout)) }
-}
-pub fn publish(layout: QueueLayout, desc_head: u16) {
-    let idx = read_idx(layout);
-    let slot = idx % layout.queue_size;
-    unsafe {
-        write_volatile(avail_ring_ptr(layout, slot), desc_head);
-    }
+
+use super::layout::QueueLayout;
+use crate::constants::VQ_AVAIL_OFFSET;
+
+const AVAIL_IDX: usize = VQ_AVAIL_OFFSET + 2;
+const AVAIL_RING: usize = VQ_AVAIL_OFFSET + 4;
+
+/// Offer chain `head` as available entry `next`, then publish the index.
+/// `next` is the driver's own count: the copy in shared memory is the
+/// device's to read, not the driver's to trust.
+pub fn publish(layout: QueueLayout, next: u16, head: u16) {
+    layout.ring.w16(AVAIL_RING + 2 * usize::from(next % layout.queue_size), head);
+    // The device may read the entry, its chain and the request the moment
+    // the index covers them.
     fence(Ordering::Release);
-    unsafe {
-        write_volatile(avail_idx_ptr(layout), idx.wrapping_add(1));
-    }
+    layout.ring.w16(AVAIL_IDX, next.wrapping_add(1));
 }

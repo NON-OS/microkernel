@@ -18,5 +18,6 @@ mod error;
 mod handlers;
 pub mod link_log;
 mod runner;
+mod tx_watch;
 
 pub use runner::run;

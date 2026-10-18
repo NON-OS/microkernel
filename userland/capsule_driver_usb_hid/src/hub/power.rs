@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Powering every port of a new hub and waiting, on the clock, for the
-//! power to be good (USB 2.0 section 11.11 and 11.23.2.1, Linux
-//! `hub_power_on`). A hub without power switching ignores the request; its
-//! ports are powered already.
-
-use nonos_libc::mk_idle_ms;
+//! Powering every port of a new hub (USB 2.0 section 11.11 and 11.23.2.1,
+//! Linux `hub_power_on`). A hub without power switching ignores the request;
+//! its ports are powered already. The wait for the power to be good is the
+//! hub's `ready_ms`, a deadline its ports are looked at against: slept
+//! through here, up to 510 ms, it held the poll loop, and every report with
+//! it, each time a hub, or a device posing as one, was plugged in.
 
 use super::descriptor::HubDescriptor;
 use super::request::{set_port_feature, PORT_POWER};
@@ -41,5 +41,4 @@ pub fn power_ports(xhci_port: u32, slot: u8, desc: &HubDescriptor) {
             .text(b" ports refused PORT_POWER")
             .say();
     }
-    let _ = mk_idle_ms(desc.power_on_ms as u64);
 }

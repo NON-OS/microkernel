@@ -30,7 +30,10 @@ pub enum XhciError {
     CommandCompletionFailed(u8),
     UnexpectedCompletionSlot,
     TransferCompletionFailed(u8),
-    /// A command timed out and the abort that should have freed the ring
-    /// did not stop it either: every later command waits behind it.
-    CommandAbortFailed,
+    /// Every place for an armed interrupt TRB's event is taken.
+    TooManyArmed,
+    /// USBSTS reads all ones (the controller is gone) or reports a Host
+    /// System Error or Host Controller Error, or an abort never stopped
+    /// the command ring.
+    ControllerDead,
 }

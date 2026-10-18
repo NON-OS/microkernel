@@ -16,9 +16,13 @@
 
 use core::ptr::write_volatile;
 
-pub fn clear(fb_user_va: u64, pixels: u64, color: u32) {
-    let base = fb_user_va as *mut u32;
-    for i in 0..pixels {
+use super::span::Span;
+
+pub fn clear(fb: &Span, color: u32) {
+    let base = fb.va as *mut u32;
+    for i in 0..fb.pixels {
+        // SAFETY: `span` made `fb` only for pixels that fit the mapping at
+        // `va`, so pixel `i` below `pixels` lies inside it.
         unsafe { write_volatile(base.add(i as usize), color) };
     }
 }

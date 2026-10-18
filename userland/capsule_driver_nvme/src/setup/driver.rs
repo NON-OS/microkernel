@@ -14,37 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::admin::{
-    reset_to_disabled, AdminQueue, ControllerIdentity, NamespaceIdentity, SmartHealth,
-};
-use crate::controller::ControllerInfo;
-use crate::handles::BrokerHandles;
+use super::device::Device;
+use super::hmb::Hmb;
+use crate::admin::{AdminQueue, ControllerIdentity, NamespaceIdentity, SmartHealth};
 use crate::nvm::IoQueue;
-use crate::regs::Regs;
 
+/// A controller brought up. Dropping one, as bring-up does with each it does
+/// not serve, disables the controller and then releases the device, which
+/// clears Bus Master before it drains its queues' memory (Device).
 pub struct Driver {
-    pub _admin: AdminQueue,
-    pub handles: BrokerHandles,
-    pub regs: Regs,
-    /// The registers as found at bring-up, for CAP.TO when it is disabled.
-    pub info: ControllerInfo,
+    pub device: Device,
+    pub admin: AdminQueue,
     pub identity: ControllerIdentity,
     pub namespace: NamespaceIdentity,
     pub health: SmartHealth,
+    /// None when the namespace is not served, or once the controller left
+    /// the bus or a reset failed (recover).
     pub io: Option<IoQueue>,
-    /// The host memory buffer the controller was given, if it asked; `drop`
-    /// lets it go only once the controller is disabled.
-    pub hmb: Option<super::hmb::Hmb>,
-}
-
-/// A controller brought up and then not chosen is disabled before its queue
-/// memory and claim go (the fields drop after this), so it is never left
-/// enabled with queue addresses that point at memory the broker took back.
-impl Drop for Driver {
-    fn drop(&mut self) {
-        let disabled = reset_to_disabled(self.regs, self.info).is_ok();
-        if let Some(hmb) = self.hmb.take() {
-            hmb.after_disable(disabled);
-        }
-    }
+    /// The host memory buffer the controller was given, if it asked.
+    pub hmb: Option<Hmb>,
 }

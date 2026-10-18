@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Powering the slot down after the card leaves (sd_power_off with
-//! rts5227_card_power_off). Over-current protection goes off with it on
-//! the RTS522A, as rtsx_pci_disable_ocp does.
+//! Powering the slot down after the card leaves, before a card is brought
+//! up again, and at teardown (sd_power_off with rts5227_card_power_off):
+//! the card's clock and outputs off, then its power. Over-current
+//! protection goes off with it on the RTS522A, as rtsx_pci_disable_ocp
+//! does. The slot is no longer watched once this starts.
 
+use super::limits::REGS_MS;
 use super::pull::pull_disable;
 use crate::chip::Family;
 use crate::error::Result;
@@ -30,11 +33,11 @@ use crate::setup::Driver;
 use crate::wire::CmdBuf;
 
 pub fn power_off(drv: &mut Driver) -> Result<()> {
-    drv.cur_clock = 0;
+    (drv.cur_clock, drv.card_on) = (0, false);
     let mut buf = CmdBuf::new();
     buf.write(CARD_CLK_EN, SD_CLK_EN, 0);
     buf.write(CARD_OE, SD_OUTPUT_EN, 0);
-    crate::engine::send(drv, &buf, 100)?;
+    crate::engine::send(drv, &buf, REGS_MS)?;
     let regs = drv.regs;
     if drv.family == Family::Rts522a {
         write_register(regs, REG_OCPCTL, SD_OCP_INT_EN | SD_DETECT_EN, 0)?;

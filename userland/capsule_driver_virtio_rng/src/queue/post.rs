@@ -14,49 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Push descriptor 0 into the available ring. virtio-rng has one
-//! virtqueue and one descriptor at a time is sufficient: the
-//! device fills the buffer descriptor 0 points at and posts the
-//! used ring with the byte count.
+//! Push descriptor 0 into the available ring. virtio-rng has one virtqueue
+//! and one request in flight at most: the device fills the buffer
+//! descriptor 0 points at and posts a used element with the byte count.
 
-use core::ptr::{read_volatile, write_volatile};
 use core::sync::atomic::{fence, Ordering};
 
+use super::fault::Fault;
 use super::layout::Queue;
+use super::wipe::wipe;
 use crate::constants::{VQ_DESC_OFFSET, VRING_DESC_F_WRITE};
 
-const DESC_SIZE: usize = 16; // VirtqDesc { addr, len, flags, next }
-
 impl Queue {
-    /// Write descriptor 0 to point at the entropy buffer with the
-    /// device-write flag set, then publish slot 0 in the available
-    /// ring.
-    ///
-    /// SAFETY: the descriptor and ring memory belong to the DMA
-    /// grant the broker handed the capsule; only the capsule
-    /// writes to them between requests, and the device reads them
-    /// after the queue-notify register is poked (which the caller
-    /// of this function does next).
-    pub fn post_request(&self) {
-        unsafe {
-            let desc_base = self.region_va.add(VQ_DESC_OFFSET);
-            // VirtqDesc layout: u64 addr, u32 len, u16 flags, u16 next
-            write_volatile(desc_base.cast::<u64>(), self.buf_phys);
-            write_volatile(desc_base.add(8).cast::<u32>(), self.buf_len);
-            write_volatile(desc_base.add(12).cast::<u16>(), VRING_DESC_F_WRITE);
-            write_volatile(desc_base.add(14).cast::<u16>(), 0u16);
-            let _ = DESC_SIZE; // documented size; the offsets above derive from it.
-
-            let avail = self.region_va.add(self.avail_offset).cast::<u16>();
-            // VirtqAvail layout: u16 flags, u16 idx, u16 ring[queue_size], u16 used_event.
-            // The device reads ring[idx % queue_size]; descriptor 0 goes there,
-            // not always into ring[0], which only the first request reads.
-            let idx = read_volatile(avail.add(1));
-            write_volatile(avail.add(2 + self.ring_pos(idx)), 0u16);
-            // Publish: bump idx after the slot write so the device
-            // never observes a partial ring update.
-            fence(Ordering::Release);
-            write_volatile(avail.add(1), idx.wrapping_add(1));
+    /// Point descriptor 0 at the emptied buffer, device-writable, and
+    /// publish it at the available ring's next position. Refused while an
+    /// earlier request may still be the device's: posting over it would let
+    /// its completion pass for this one.
+    pub fn post(&mut self) -> Result<(), Fault> {
+        if self.stalled || self.posted != self.used {
+            self.stalled = true;
+            return Err(Fault::Stalled);
         }
+        // A completion that wrote less than the buffer leaves zeros, never
+        // bytes an earlier request left behind.
+        wipe(self.buf);
+        let desc = VQ_DESC_OFFSET;
+        self.ring.w32(desc, self.buf_phys as u32);
+        self.ring.w32(desc + 4, (self.buf_phys >> 32) as u32);
+        self.ring.w32(desc + 8, u32::try_from(self.buf.len()).unwrap_or(u32::MAX));
+        self.ring.w16(desc + 12, VRING_DESC_F_WRITE);
+        self.ring.w16(desc + 14, 0);
+        // VirtqAvail: u16 flags, u16 idx, u16 ring[queue_size].
+        let slot = self.avail_offset + 4 + 2 * self.ring_pos(self.posted);
+        self.ring.w16(slot, 0);
+        // The device may read the entry and its descriptor the moment the
+        // index covers them.
+        fence(Ordering::Release);
+        self.posted = self.posted.wrapping_add(1);
+        self.ring.w16(self.avail_offset + 2, self.posted);
+        Ok(())
     }
 }

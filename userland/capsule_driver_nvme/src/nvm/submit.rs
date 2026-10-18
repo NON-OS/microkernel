@@ -16,21 +16,28 @@
 
 use core::ptr::write_volatile;
 
-use super::constants::IO_ENTRIES;
+use super::constants::{IO_ENTRIES, SQ_BYTES};
 use super::queue::IoQueue;
 use crate::admin::Submission;
 use crate::regs::Regs;
+
+// Every slot below IO_ENTRIES lies in the submission queue's DMA region.
+const _: () = assert!(IO_ENTRIES as u64 * core::mem::size_of::<Submission>() as u64 <= SQ_BYTES);
 
 impl IoQueue {
     pub(super) fn submit(&mut self, regs: Regs, cmd: Submission) {
         let slot =
             self.sq.user_va() + (self.sq_tail as u64) * (core::mem::size_of::<Submission>() as u64);
+        // SAFETY: `sq_tail` is below IO_ENTRIES (the assert above).
         unsafe { write_volatile(slot as *mut Submission, cmd) };
         self.sq_tail = (self.sq_tail + 1) % IO_ENTRIES;
         // The controller DMA-reads the submission entry only after it sees the
         // new tail in the doorbell. Order the entry store ahead of the doorbell
         // store so the device never fetches a stale or half-written command.
         core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+        // SAFETY: the queue's tail doorbell lies below its completion head
+        // doorbell, which bring-up checked fits the window
+        // (ControllerInfo::doorbells_fit).
         unsafe { regs.w32(self.sq_db, self.sq_tail as u32) };
     }
 }

@@ -19,12 +19,12 @@
 
 use super::mmio::Regs;
 use super::reg::{read_register, write_register};
-use crate::clock::{now, Budget};
+use crate::clock::{now, pause, Budget};
 use crate::error::{Result, RtsxError};
 use crate::regs::phy::{PHYADDR, PHYDATA0, PHYDATA1, PHYRWCTL, PHY_BUSY, PHY_WRITE_START};
 
 /// Linux polls up to 100000 times; on the clock that is generous at 50 ms.
-const PHY_MS: u64 = 50;
+pub const PHY_MS: u64 = 50;
 
 pub fn write_phy(regs: Regs, addr: u8, value: u16) -> Result<()> {
     write_register(regs, PHYDATA0, 0xFF, value as u8)?;
@@ -36,8 +36,10 @@ pub fn write_phy(regs: Regs, addr: u8, value: u16) -> Result<()> {
         if read_register(regs, PHYRWCTL)? & PHY_BUSY == 0 {
             return Ok(());
         }
-        if budget.spent(now()) {
+        let t = now();
+        if budget.spent(t) {
             return Err(RtsxError::PhyTimeout);
         }
+        pause(&budget, t);
     }
 }

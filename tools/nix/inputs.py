@@ -42,26 +42,20 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TOP = os.path.normpath(os.path.join(HERE, "..", ".."))
 OUT = os.path.join(HERE, "inputs.json")
 
-# The crate roots outside the capsule catalogue and the *_proofs crates
-# (tools/nix/checks.nix and image.nix name them).
+# The crate roots outside the capsule catalogue, the *_proofs crates and the
+# test lanes (tools/nix/checks.nix and image.nix name them).
 EXTRA_ROOTS = [
     ".",
     "nonos-bootloader",
-    "nonos-bootloader/boot_proofs",
     "nonos-bootloader/tools/embed-trailer",
     "nonos-bootloader/tools/sign-kernel",
     "nonos-sign",
     "nonos-stark-enroll",
     "nonos-mk",
     "nonos-verify",
-    "nonos-attest-path",
     "security/nonos-secops",
     "tools/nonos-pack",
     "toolchain/nonos-rt",
-    "userland/nonos_secp256k1",
-    "userland/nonos_ed25519",
-    "userland/nonos_i2cmodel",
-    "userland/attest_receipt",
     "userland/upstream-src/sd-1.0.0",
     "userland/upstream-src/tokio-smoke",
     "userland/upstream-src/grex",
@@ -384,6 +378,9 @@ def roots():
                 and f"{d}/Cargo.lock" in FILES:
             found.add(d)
     found.update(r for r in EXTRA_ROOTS if r == "." or r in CRATES)
+    # A crate that asks for a test lane (scripts/check_test_lanes.py).
+    with open(os.path.join(HERE, "test-lanes.json")) as f:
+        found.update(json.load(f))
     return sorted(found)
 
 

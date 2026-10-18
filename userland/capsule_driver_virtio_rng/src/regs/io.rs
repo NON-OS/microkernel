@@ -13,8 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use nonos_virtio::Mmio;
+
+/// Where the legacy registers are: a mapped memory BAR, bounds checked on
+/// every access, or an I/O BAR reached through the broker's port grant.
 #[derive(Debug, Clone, Copy)]
 pub enum RegIo {
-    Mmio(*mut u8),
+    Mmio(Mmio),
     Pio(u64),
 }

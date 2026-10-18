@@ -13,20 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::ids::{
-    PROBE_HEIGHT, PROBE_PIXEL, PROBE_RESOURCE_ID, PROBE_WIDTH, RENDER_CTX_ID,
-};
+use super::ids::{PROBE_HEIGHT, PROBE_PIXEL, PROBE_RESOURCE_ID, PROBE_WIDTH, RENDER_CTX_ID};
 use crate::device::cmd::{transfer_from_host_3d, Box3d};
 use crate::device::ControlQueue;
 use crate::state::FenceCounter;
 
 /// Pull the rendered surface back and check the host actually wrote the clear
 /// colour. An acknowledged command stream that produced no pixels fails here.
-pub fn readback(
-    q: &ControlQueue,
-    fences: &FenceCounter,
-    user_va: u64,
-) -> Result<(), &'static str> {
+pub fn readback(q: &ControlQueue, fences: &FenceCounter, user_va: u64) -> Result<(), &'static str> {
     let region = Box3d::whole_2d(PROBE_WIDTH, PROBE_HEIGHT);
     transfer_from_host_3d(q, RENDER_CTX_ID, fences.issue(), PROBE_RESOURCE_ID, &region, 0)?;
 

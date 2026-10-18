@@ -14,45 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where struct virtio_gpu_config is read on each transport.
-//!
-//! The field offsets are the structure's own (events_read 0, num_scanouts
-//! 8, num_capsets 12) and the register type adds where the structure starts:
-//! 0x14 in the legacy window, the device capability's place on the modern
-//! one. The legacy window's offsets used to be applied to both, so a modern
+//! Where struct virtio_gpu_config is read: at its field offsets (events_read
+//! 0, num_scanouts 8, num_capsets 12) inside the device configuration
+//! region. The legacy window's offsets used to be applied, so a modern
 //! device was asked for its scanout count 0x1C bytes into a 16-byte
 //! structure.
 
+use super::model::{modern_window, regs, view, DEVICE_AT, QUEUE_SIZE};
 use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS};
 use crate::regs::Regs;
-use crate::tests::model::{legacy_window, modern_regs, modern_window, DEVICE_AT, QUEUE_SIZE};
 
 #[test]
-fn a_modern_device_is_asked_inside_its_device_configuration() {
+fn a_device_is_asked_inside_its_device_configuration() {
     let bar = modern_window(0, QUEUE_SIZE);
     bar.present32(DEVICE_AT, 1);
     bar.present32(DEVICE_AT + 8, 2);
     bar.present32(DEVICE_AT + 12, 3);
-    let regs = modern_regs(&bar);
-    unsafe {
-        assert_eq!(regs.config_r32(GPU_CFG_EVENTS_READ), 1);
-        assert_eq!(regs.config_r32(GPU_CFG_NUM_SCANOUTS), 2);
-        assert_eq!(regs.config_r32(GPU_CFG_NUM_CAPSETS), 3);
-    }
+    let regs = regs(&bar);
+    assert_eq!(regs.config_r32(GPU_CFG_EVENTS_READ), 1);
+    assert_eq!(regs.config_r32(GPU_CFG_NUM_SCANOUTS), 2);
+    assert_eq!(regs.config_r32(GPU_CFG_NUM_CAPSETS), 3);
 }
 
 #[test]
-fn a_legacy_device_is_asked_where_its_window_puts_the_structure() {
-    let bar = legacy_window(0, QUEUE_SIZE);
-    bar.present32(0x14, 4);
-    bar.present32(0x1C, 5);
-    bar.present32(0x20, 6);
-    let regs = Regs::mmio(bar.base());
-    unsafe {
-        assert_eq!(regs.config_r32(GPU_CFG_EVENTS_READ), 4);
-        assert_eq!(regs.config_r32(GPU_CFG_NUM_SCANOUTS), 5);
-        assert_eq!(regs.config_r32(GPU_CFG_NUM_CAPSETS), 6);
-    }
+fn a_field_past_a_short_device_region_reads_all_ones_not_what_follows() {
+    let bar = modern_window(0, QUEUE_SIZE);
+    bar.present32(DEVICE_AT + 12, 3);
+    let short = Regs { device: view(&bar, DEVICE_AT, 12), ..regs(&bar) };
+    assert_eq!(short.config_r32(GPU_CFG_NUM_CAPSETS), u32::MAX);
 }
 
 #[test]

@@ -16,7 +16,5 @@
 
 mod direct;
 mod read_at;
-mod scan;
 
 pub use direct::probe_addr;
-pub use scan::probe_bus;

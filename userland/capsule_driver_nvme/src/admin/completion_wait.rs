@@ -33,35 +33,14 @@ pub fn wait_for_completion<R, D, X>(
     cursor: &mut CqCursor,
     sq_id: u16,
     cid: u16,
-    read_slot: R,
-    ring_head: D,
-    expired: X,
-) -> NvmeResult<()>
-where
-    R: FnMut(u16) -> Completion,
-    D: FnMut(u16),
-    X: FnMut() -> bool,
-{
-    wait_noting_foreign(cursor, sq_id, cid, read_slot, ring_head, expired, |_| {})
-}
-
-/// `wait_for_completion`, telling `foreign` the command id of each completion
-/// it consumes for another command: a command whose own wait ran out is known
-/// to be finished only when its completion is seen here.
-pub fn wait_noting_foreign<R, D, X, F>(
-    cursor: &mut CqCursor,
-    sq_id: u16,
-    cid: u16,
     mut read_slot: R,
     mut ring_head: D,
     mut expired: X,
-    mut foreign: F,
 ) -> NvmeResult<()>
 where
     R: FnMut(u16) -> Completion,
     D: FnMut(u16),
     X: FnMut() -> bool,
-    F: FnMut(u16),
 {
     let mut spins = 0u32;
     loop {
@@ -77,7 +56,6 @@ where
             // at the head for good: a completion that arrives after its own
             // wait timed out would fail every later command on the queue.
             CqStep::Foreign => {
-                foreign(entry.cid);
                 cursor.advance();
                 ring_head(cursor.head);
             }

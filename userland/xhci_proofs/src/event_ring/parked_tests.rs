@@ -14,64 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The parked table under a flood. It used to give up its oldest event to
-//! make room, even the completion an armed keyboard endpoint was waiting
-//! for; now only events no armed transfer awaits are given up.
+//! No event parked for a transfer that was given up is ever taken for a
+//! later transfer on the same ring. Only an armed TRB's event is parked,
+//! so each test arms the TRBs whose events it posts (`expect`).
 
-use super::events::{transfer, CC_SUCCESS};
+use super::command_at::{endpoint, quiet_context, ring_base};
+use super::events::{command, transfer, CC_SUCCESS};
 use super::fixture::{Fixture, BULK_IN_DCI, INT_DCI, SLOT, TRB};
-use crate::controller::{poll_interrupt_in, IntrPoll};
-use crate::error::XhciError;
-use crate::rings::event::{IssuedTransfer, ARMED, PARKED};
+use crate::controller::command::run_command::run_command;
+use crate::controller::recover_endpoint;
+use crate::rings::event::IssuedTransfer;
+use crate::trb::commands::noop_command;
+
+const CC_STOPPED: u8 = 26;
+const CC_STOPPED_LENGTH_INVALID: u8 = 27;
+const CC_STOPPED_SHORT_PACKET: u8 = 28;
 
 #[test]
-fn an_armed_completion_outlives_a_flood_of_unawaited_events() {
+fn a_stopped_event_is_never_parked() {
     let mut fx = Fixture::new();
-    let mut res = fx.hid_slot();
-    let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut res, INT_DCI, 8);
-    assert!(matches!(got, Ok(IntrPoll::Pending)), "armed, nothing came yet");
-    let issued = res.interrupt[0].armed.expect("armed");
-    // A bulk wait took the report's event off the ring and parked it.
-    fx.ring.park(transfer(issued, CC_SUCCESS, 3, SLOT, INT_DCI));
-    for i in 0..(PARKED + ARMED) as u64 * 2 {
-        fx.ring.park(transfer(0x9000 + i * TRB, CC_SUCCESS, 0, SLOT, BULK_IN_DCI));
+    let mut cmd = fx.command_ring();
+    let base = ring_base(&cmd);
+    let pipes = fx.bulk_pipes();
+    let at = pipes.in_ring.enqueue_phys();
+    let codes = [CC_STOPPED, CC_STOPPED_LENGTH_INVALID, CC_STOPPED_SHORT_PACKET, CC_SUCCESS];
+    for (i, code) in codes.into_iter().enumerate() {
+        let issued = IssuedTransfer { phys: at, slot: SLOT, dci: BULK_IN_DCI };
+        assert!(fx.ring.expect(issued));
+        fx.hc.post(transfer(at, code, 0, SLOT, BULK_IN_DCI));
+        fx.hc.post(command(base + i as u64 * TRB, CC_SUCCESS, 0));
+        let noop = noop_command(cmd.cycle() != 0);
+        run_command(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, noop).expect("noop");
+        assert_eq!(fx.ring.take_parked(issued).is_some(), code == CC_SUCCESS, "code {code}");
     }
-    assert!(fx.ring.parked_given_up() > 0, "the flood did not fit");
-    let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut res, INT_DCI, 8);
-    assert!(matches!(got, Ok(IntrPoll::Complete(5))), "the report was kept");
 }
 
 #[test]
-fn a_full_arming_table_refuses_another_arm() {
+fn recovering_an_endpoint_drops_its_parked_events_and_no_others() {
     let mut fx = Fixture::new();
-    for i in 0..ARMED as u64 {
-        let issued = IssuedTransfer { phys: 0x9000 + i * TRB, slot: SLOT, dci: BULK_IN_DCI };
-        fx.ring.arm(issued).expect("room");
-    }
-    let one_more = IssuedTransfer { phys: 0x1000, slot: SLOT, dci: INT_DCI };
-    assert_eq!(fx.ring.arm(one_more), Err(XhciError::TransferRingFull));
-}
-
-#[test]
-fn unawaited_events_keep_at_most_the_parked_bound() {
-    let mut fx = Fixture::new();
-    for i in 0..PARKED as u64 + 3 {
-        fx.ring.park(transfer(0x9000 + i * TRB, CC_SUCCESS, 0, SLOT, BULK_IN_DCI));
-    }
-    assert_eq!(fx.ring.parked_given_up(), 3, "the three oldest went");
-    let oldest = IssuedTransfer { phys: 0x9000, slot: SLOT, dci: BULK_IN_DCI };
-    assert!(fx.ring.take_parked(oldest).is_none());
-    let newest = IssuedTransfer { phys: 0x9000 + (PARKED as u64 + 2) * TRB, ..oldest };
-    assert!(fx.ring.take_parked(newest).is_some());
-}
-
-#[test]
-fn a_disabled_slot_leaves_no_arming_behind() {
-    let mut fx = Fixture::new();
-    for _ in 0..ARMED * 2 {
-        let mut res = fx.hid_slot();
-        let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut res, INT_DCI, 8);
-        assert!(matches!(got, Ok(IntrPoll::Pending)), "a replugged keyboard arms again");
-        fx.ring.forget_slot(SLOT);
-    }
+    let mut cmd = fx.command_ring();
+    let pipes = fx.bulk_pipes();
+    let base = ring_base(&cmd);
+    let bulk_at = pipes.in_ring.enqueue_phys();
+    let int_at = 0x1234_5670;
+    let bulk = IssuedTransfer { phys: bulk_at, slot: SLOT, dci: BULK_IN_DCI };
+    let int = IssuedTransfer { phys: int_at, slot: SLOT, dci: INT_DCI };
+    assert!(fx.ring.expect(bulk) && fx.ring.expect(int));
+    // A late completion of the bulk TRB that timed out, and an interrupt
+    // report, both arrive while the recovery's commands run.
+    fx.hc.post(transfer(bulk_at, CC_SUCCESS, 0, SLOT, BULK_IN_DCI));
+    fx.hc.post(transfer(int_at, CC_SUCCESS, 0, SLOT, INT_DCI));
+    fx.hc.post(command(base, CC_SUCCESS, SLOT));
+    fx.hc.post(command(base + TRB, CC_SUCCESS, SLOT));
+    let out = quiet_context(&fx);
+    let ep = endpoint(&pipes.in_ring, &out, BULK_IN_DCI);
+    recover_endpoint(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, ep).expect("recovered");
+    assert!(fx.ring.take_parked(bulk).is_none(), "the given-up transfer's event is gone");
+    assert!(fx.ring.take_parked(int).is_some(), "another endpoint's event is kept");
 }

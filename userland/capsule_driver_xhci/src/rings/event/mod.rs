@@ -18,17 +18,11 @@ mod current_dequeue_phys;
 mod current_trb;
 mod drained_total;
 mod erst_base_phys;
-mod finish;
+mod expect;
+mod failed;
 mod has_event;
 mod issued_transfer;
-mod orphan;
 mod park;
-mod parked;
-mod parked_forget;
-mod parked_ops;
 mod state;
 pub use issued_transfer::IssuedTransfer;
-// The table's sizes are reached by the host proofs, not by the capsule.
-#[allow(unused_imports)]
-pub use parked::{ARMED, PARKED};
 pub use state::EventRing;

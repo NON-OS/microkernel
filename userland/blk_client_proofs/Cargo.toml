@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_blk_client: the per-driver table it speaks
+# each block driver's dialect by, held to each driver's own protocol
+# constants (mounted by #[path]); the reply decoder over hostile replies;
+# sector spans on 4096-byte blocks; the status words. Builds for the host so
+# `cargo test` runs the client's own source.
+[package]
+name = "blk_client_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

@@ -14,55 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A ready device's size and its writes kept: READ CAPACITY(10) or (16)
-//! and SYNCHRONIZE CACHE(10).
+//! Bringing a logical unit up, one TEST UNIT READY at a time: the caller
+//! (scan/ask.rs) keeps how long it may go on and pauses between them, so
+//! the server answers requests while a unit spins up.
 
 use super::bot::command;
-use super::scsi_io::{sense_key, whole};
+use super::sense::{sense, MEDIUM_NOT_PRESENT, UNIT_ATTENTION};
 use super::types::{Data, Disk};
-use crate::protocol::E_IO;
-use crate::scsi::{
-    parse_capacity, parse_capacity16, read_capacity10, read_capacity16, CAPACITY16_DATA_LEN,
-    CAPACITY_DATA_LEN,
-};
+use crate::scsi::{start_unit, test_unit_ready};
 use crate::state::State;
 
-const ILLEGAL_REQUEST: u8 = 0x05;
-/// READ CAPACITY(10)'s last LBA when the device has more blocks than it
-/// can say: READ CAPACITY(16) has the count.
-const LAST_LBA_TOO_BIG: u32 = u32::MAX;
+const NOT_READY: u8 = 0x02;
 
-/// The block count and block length. A device past 2 TiB of 512-byte
-/// blocks reports a last LBA of 0xFFFFFFFF to READ CAPACITY(10) and is asked
-/// READ CAPACITY(16); it used to be served for its first 2^32 blocks only.
-pub fn capacity(disk: &Disk, state: &mut State) -> Result<(u64, u32), i32> {
-    let mut raw = [0u8; CAPACITY_DATA_LEN];
-    let outcome = command(disk, state, read_capacity10(), Data::In(&mut raw))?;
-    whole(disk, state, outcome)?;
-    let c = parse_capacity(&raw).ok_or(E_IO)?;
-    if c.last_lba != LAST_LBA_TOO_BIG {
-        return Ok((c.block_count(), c.block_len));
-    }
-    let mut raw = [0u8; CAPACITY16_DATA_LEN];
-    let outcome = command(disk, state, read_capacity16(), Data::In(&mut raw))?;
-    // A device may return fewer than the 32 bytes asked; the 12 that carry
-    // the count and the length are all that is needed.
-    match outcome {
-        (0, residue) if residue as usize <= CAPACITY16_DATA_LEN - 12 => {}
-        other => whole(disk, state, other)?,
-    }
-    parse_capacity16(&raw).ok_or(E_IO)
+/// What one TEST UNIT READY found.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Unit {
+    Ready,
+    /// No medium: said at once, as Linux's sd_spinup_disk says it, under
+    /// NOT READY or UNIT ATTENTION. It was waited out for thirty seconds on
+    /// a reader's last slot, and an empty single-slot reader held the
+    /// server that long every few seconds.
+    NoMedium,
+    /// Any other UNIT ATTENTION: a power-on, a reset, or a medium change,
+    /// which a device says once and Linux's sd_spinup_disk asks past;
+    /// `State` keeps it (`Said`).
+    Attention,
+    /// Spinning up, or a sense that did not read.
+    NotYet,
 }
 
-/// SYNCHRONIZE CACHE(10). A device that answers ILLEGAL REQUEST has no
-/// cache it lets the host flush, and its writes are already on the medium
-/// as far as it will say; that is taken as done.
-pub fn sync_cache(disk: &Disk, state: &mut State) -> Result<(), i32> {
-    let mut cdb = [0u8; 16];
-    cdb[0] = 0x35;
-    match command(disk, state, (cdb, 10), Data::None)? {
-        (0, _) => Ok(()),
-        _ if sense_key(disk, state)? == ILLEGAL_REQUEST => Ok(()),
-        _ => Err(E_IO),
+/// One TEST UNIT READY, and the sense of a failed one. A unit that waits to
+/// be told to spin up is sent one START UNIT, as Linux sd_spinup_disk sends,
+/// the first time it says NOT READY; `started` remembers. A transport that
+/// fails under the TEST UNIT READY or its sense is an error. A START UNIT
+/// that fails has its sense taken too, as any command's: a 28h the unit
+/// failed it for is said only then, and unread it was lost, so a held
+/// medium swapped under it was bound again rather than ended.
+pub fn test_ready(disk: &Disk, state: &mut State, started: &mut bool) -> Result<Unit, i32> {
+    if command(disk, state, test_unit_ready(), Data::None)?.0 == 0 {
+        return Ok(Unit::Ready);
     }
+    let Some(said) = sense(disk, state)? else { return Ok(Unit::NotYet) };
+    Ok(match (said.sense_key, said.asc) {
+        (NOT_READY | UNIT_ATTENTION, MEDIUM_NOT_PRESENT) => Unit::NoMedium,
+        (UNIT_ATTENTION, _) => Unit::Attention,
+        (NOT_READY, _) if !*started => {
+            *started = true;
+            let started_unit = command(disk, state, start_unit(), Data::None);
+            if started_unit.is_ok_and(|(status, _)| status != 0) {
+                let _ = sense(disk, state);
+            }
+            Unit::NotYet
+        }
+        _ => Unit::NotYet,
+    })
 }

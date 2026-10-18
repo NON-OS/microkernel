@@ -17,6 +17,11 @@
 //! Linux e1000_flush_rx_ring: stop the receiver, set the receive descriptor
 //! thresholds to prefetch 31 and host 1 counted in descriptors, and run the
 //! receiver for a moment so the part takes the change and lets go.
+//!
+//! Linux runs it on its own ring, as this does: `own_rings` has already
+//! named the queue's ring again, primed with this driver's own buffers, and
+//! written its own RCTL, so the receiver never runs with a buffer size
+//! another owner chose that would overrun the 2 KiB buffers.
 
 use crate::constants::regs::{REG_RCTL, REG_RXDCTL, REG_STATUS};
 use crate::constants::rxtx::{RCTL_EN, RXDCTL_THRESH_UNIT_DESC};

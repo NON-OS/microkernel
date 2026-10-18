@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod admits;
 mod dispatch;
 mod handlers;
-mod inbox;
-mod probe_pause;
 mod respond;
 mod runner;
+mod serve;
 
 pub use runner::run;

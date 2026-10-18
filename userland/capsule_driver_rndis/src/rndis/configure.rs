@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What follows INITIALIZE in Linux generic_rndis_bind: the permanent
-//! station address, which the bind cannot go on without, then the packet
-//! filter, without which an RNDIS device passes no data.
+//! What follows INITIALIZE: the run's station address, offered as
+//! OID_802_3_CURRENT_ADDRESS, then the packet filter, without which an
+//! RNDIS device passes no data, opened to every frame as Linux opens it.
+//! The device's permanent address, which Linux generic_rndis_bind reads
+//! here, is never asked for.
 
-use nonos_usbnet::xhci::E_IO;
-use nonos_usbnet::Bus;
+use nonos_usbnet::{Bus, Station, Taken};
 
 use super::control::Control;
-use super::message::{FILTER, OID_802_3_PERMANENT_ADDRESS, OID_GEN_CURRENT_PACKET_FILTER};
-use super::query::{query_msg, station, ADDRESS_PAYLOAD};
+use super::message::{FILTER, OID_802_3_CURRENT_ADDRESS, OID_GEN_CURRENT_PACKET_FILTER};
 use super::set::set_msg;
 
 pub(super) fn configure<B: Bus>(
     bus: &mut B,
     ctl: &mut Control,
     reply: &mut [u8],
-) -> Result<[u8; 6], (&'static str, i32)> {
-    let mut ask = query_msg(OID_802_3_PERMANENT_ADDRESS, ADDRESS_PAYLOAD);
-    let n = ctl.command(bus, &mut ask, reply).map_err(|e| ("RNDIS address query failed", e))?;
-    let mac = station(&reply[..n]).ok_or(("no permanent address", E_IO))?;
-    let mut filter = set_msg(OID_GEN_CURRENT_PACKET_FILTER, FILTER);
+    drawn: Station,
+) -> Result<Taken, (&'static str, i32)> {
+    let mut address = set_msg(OID_802_3_CURRENT_ADDRESS, &drawn.bytes());
+    let given = ctl.command(bus, &mut address, reply).is_ok();
+    let mut filter = set_msg(OID_GEN_CURRENT_PACKET_FILTER, &FILTER.to_le_bytes());
     ctl.command(bus, &mut filter, reply).map_err(|e| ("RNDIS packet filter refused", e))?;
-    Ok(mac)
+    Ok(if given { Taken::Programmed } else { Taken::Promiscuous })
 }

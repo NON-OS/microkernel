@@ -19,6 +19,8 @@ mod failure_tests;
 #[cfg(test)]
 mod layout;
 #[cfg(test)]
+mod link_fail_tests;
+#[cfg(test)]
 mod link_tests;
 #[cfg(test)]
 mod match_tests;
@@ -28,5 +30,7 @@ mod medium_tests;
 mod queue_tests;
 #[cfg(test)]
 mod rx_tests;
+#[cfg(test)]
+mod station_tests;
 #[cfg(test)]
 mod tx_tests;

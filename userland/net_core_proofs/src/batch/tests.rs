@@ -19,8 +19,12 @@
 //! snapshot, as e1000 and the Realtek drivers did, stays on the frame-at-a-
 //! time path instead of having every frame dropped as an unreadable batch.
 
-use super::batch_frames::batch_frames;
-use super::probe_reply::serves_batches;
+use crate::device::batch_frames::batch_frames;
+use crate::device::batch_served::served;
+
+fn serves_batches(body: &[u8]) -> bool {
+    served(Some(body))
+}
 
 /// e1000's OP_STATS reply body: twelve little-endian counters.
 fn snapshot(rx_packets: u32) -> Vec<u8> {

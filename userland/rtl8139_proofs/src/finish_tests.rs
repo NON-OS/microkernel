@@ -22,21 +22,12 @@ use nonos_libc::{attach, entropy, given_back};
 use crate::constants::regs::REG_MAC0;
 use crate::constants::MAC_LEN;
 use crate::init::finish;
-use crate::part::{driver_over, part, Refused, DEVICE, PIO_GRANT, RX_GRANT, TX_GRANT};
-use crate::setup::Driver;
+use crate::part::{driver_over, part, Refused, DEVICE};
 
-/// The grants `driver()` records, released in reverse setup order and then
-/// the claim, which on its own tears the rest down as well.
-const EVERYTHING: [(&str, u64); 4] = [
-    ("dma_unmap", TX_GRANT),
-    ("dma_unmap", RX_GRANT),
-    ("pio_release", PIO_GRANT),
-    ("device_release", DEVICE),
-];
-
-fn driver() -> Driver {
-    driver_over(0)
-}
+/// What an attempt releases: the claim alone, which tears every grant down
+/// after the broker has turned Bus Master off; a buffer unmapped by hand
+/// before that could still be written by a receiver left running.
+const EVERYTHING: [(&str, u64); 1] = [("device_release", DEVICE)];
 
 fn released_since(before: usize) -> Vec<(&'static str, u64)> {
     given_back()[before..].to_vec()
@@ -46,7 +37,7 @@ fn released_since(before: usize) -> Vec<(&'static str, u64)> {
 fn a_part_that_never_leaves_reset_gives_back_every_grant_and_the_claim() {
     let _part = part(true);
     let before = given_back().len();
-    assert_eq!(finish(driver()).err(), Some("rtl8139 reset timeout"));
+    assert_eq!(finish(driver_over(0)).err(), Some("rtl8139 reset timeout"));
     assert_eq!(released_since(before), EVERYTHING);
 }
 
@@ -55,7 +46,7 @@ fn a_part_that_cannot_get_an_address_gives_back_every_grant_and_the_claim() {
     let _turn = entropy(false);
     let _part = part(false);
     let before = given_back().len();
-    assert_eq!(finish(driver()).err(), Some("rtl8139 no entropy for station address"));
+    assert_eq!(finish(driver_over(0)).err(), Some("rtl8139 no entropy for station address"));
     assert_eq!(released_since(before), EVERYTHING);
 }
 
@@ -63,7 +54,7 @@ fn a_part_that_cannot_get_an_address_gives_back_every_grant_and_the_claim() {
 fn a_port_the_broker_refuses_gives_back_every_grant_and_the_claim() {
     let _port = attach(Box::new(Refused));
     let before = given_back().len();
-    assert_eq!(finish(driver()).err(), Some("pio write failed"));
+    assert_eq!(finish(driver_over(0)).err(), Some("pio write failed"));
     assert_eq!(released_since(before), EVERYTHING);
 }
 
@@ -72,7 +63,7 @@ fn a_part_that_comes_up_keeps_every_grant_and_filters_on_the_drawn_address() {
     let _turn = entropy(true);
     let _part = part(false);
     let before = given_back().len();
-    let d = finish(driver()).expect("brought up");
+    let d = finish(driver_over(0)).expect("brought up");
     assert!(released_since(before).is_empty(), "a working attempt releases nothing");
     let mut idr = [0u8; MAC_LEN];
     for (i, b) in idr.iter_mut().enumerate() {

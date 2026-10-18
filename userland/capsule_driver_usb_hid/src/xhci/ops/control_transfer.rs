@@ -17,6 +17,8 @@
 use crate::xhci::call::{call, XhciClientError};
 use crate::xhci::wire::{HDR_LEN, OP_CONTROL_TRANSFER, STATUS_LEN};
 
+use super::setup::Setup;
+
 const HDR_AND_STATUS: usize = HDR_LEN + STATUS_LEN;
 const REPLY_PREFIX: usize = 2;
 const MAX_DATA: usize = 512;
@@ -25,20 +27,16 @@ const RESP_BUF: usize = HDR_AND_STATUS + REPLY_PREFIX + MAX_DATA;
 pub fn control_transfer(
     xhci_port: u32,
     slot: u8,
-    bm_request_type: u8,
-    b_request: u8,
-    w_value: u16,
-    w_index: u16,
-    w_length: u16,
+    setup: Setup,
     data_out: &mut [u8],
 ) -> Result<usize, XhciClientError> {
     let mut body = [0u8; 10];
     body[0] = slot;
-    body[2] = bm_request_type;
-    body[3] = b_request;
-    body[4..6].copy_from_slice(&w_value.to_le_bytes());
-    body[6..8].copy_from_slice(&w_index.to_le_bytes());
-    body[8..10].copy_from_slice(&w_length.to_le_bytes());
+    body[2] = setup.request_type;
+    body[3] = setup.request;
+    body[4..6].copy_from_slice(&setup.value.to_le_bytes());
+    body[6..8].copy_from_slice(&setup.index.to_le_bytes());
+    body[8..10].copy_from_slice(&setup.length.to_le_bytes());
     let mut resp = [0u8; RESP_BUF];
     let (status, data_len) = call(xhci_port, OP_CONTROL_TRANSFER, &body, &mut resp)?;
     if status != 0 || data_len < REPLY_PREFIX {
