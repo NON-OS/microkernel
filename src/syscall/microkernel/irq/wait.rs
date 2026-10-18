@@ -46,7 +46,7 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     let token = crate::sched::wake_token(pid);
     let armed = match crate::hardware::broker::irq_wait_arm(pid, grant_id) {
         Ok(s) => s,
-        Err(e) => return super::errno_map::grant_errno(e),
+        Err(e) => return super::errno_map::grant_errno_for(pid, grant_id, e),
     };
     let mut deadline = None;
     if armed == last_seq {
@@ -58,6 +58,10 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     }
     let current = match crate::hardware::broker::irq_wait_disarm(pid, grant_id) {
         Ok(s) => s,
+        // Revoked while it slept: its device left.
+        Err(e) if crate::hardware::broker::irq::gone::departed(pid, grant_id) => {
+            return super::errno_map::grant_errno_for(pid, grant_id, e);
+        }
         Err(_) => armed,
     };
     if write_user_value(out_ptr, &current).is_err() {

@@ -1,0 +1,29 @@
+# NONOS userland: capsule_driver_vmbus
+#
+# Userland VMBus core for Hyper-V guests (and QEMU's vmbus-bridge). It
+# contacts the host through the kernel's SynIC calls on the VMBus root it
+# claims, takes the host's channel offers and keeps the bus. It opens no
+# channel: no host service is on until a driver for it is.
+
+[package]
+name = "nonos_capsule_driver_vmbus"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Hyper-V VMBus core driver capsule"
+
+[[bin]]
+name = "driver_vmbus"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

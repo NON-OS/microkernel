@@ -65,5 +65,10 @@ fn route_tail(nr: u64, args: Args) -> i64 {
     if let Some(result) = data::handle(nr, args) {
         return result;
     }
+    if let Some(result) =
+        crate::syscall::microkernel::acpi::handle(nr, args.a0, args.a1, args.a2, args.a3)
+    {
+        return result;
+    }
     -1
 }

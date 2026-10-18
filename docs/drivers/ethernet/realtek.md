@@ -6,11 +6,11 @@ NONOS has two Realtek PCI Ethernet driver [capsules](../../overview/glossary.md#
 
 | Driver | Chips | PCI ids, vendor 10ec | State |
 |---|---|---|---|
-| `driver.rtl8139_0` | RTL8139 | 8139 | Partial: in the image, host tests pass, no hardware report, no QEMU run target |
-| `driver.rtl8169_0` | RTL8169, RTL8110, RTL8168, RTL8111, RTL810x, RTL8125 | 8169, 8167, 8168, 8161, 8162, 2502, 2600, 8136, 8125, 3000 | Partial: in the image, no hardware report; its flake check fails on a lint |
+| `driver.rtl8139_0` | RTL8139 | 8139 | Partial: in the image, host tests pass, receive batches fixed in code but not booted ([the receive fault](README.md#the-receive-fault)), no hardware report, no QEMU run target |
+| `driver.rtl8169_0` | RTL8169, RTL8110, RTL8168, RTL8111, RTL810x, RTL8125 | 8169, 8167, 8168, 8161, 8162, 2502, 2600, 8136, 8125, 3000 | Partial: in the image, host tests pass, receive batches fixed in code but not booted ([the receive fault](README.md#the-receive-fault)), no hardware report; its flake check fails on a lint |
 | none | RTL8126A, RTL8127A | 8126, 8127 | Not supported: left out of the id table |
 
-Read from the code on this commit, `net.core` takes the frames either driver receives with operation 5, past [the receive fault](README.md#the-receive-fault) that had it drop every one (`userland/capsule_net_core/src/device/batch_served.rs:29-31`, `served`); no run shows a cable on these ports getting a DHCP lease.
+In 0.9.2 `net.core` dropped every frame either driver received, so a cable on these ports got no DHCP lease; see [the receive fault](README.md#the-receive-fault). It is fixed in code on this branch and has not been booted.
 
 The USB Realtek RTL8153 is a separate capsule, not in the image; see [USB networking](usb-net.md).
 
@@ -25,11 +25,11 @@ The driver takes vendor 0x10EC, device 0x8139, PCI class network, subclass Ether
 - Every register access goes through port I/O granted by the [hardware broker](../../overview/glossary.md#hardware-broker); packet buffers come from DMA grants.
 - It polls and binds no interrupt.
 - It draws a station address every boot and writes it into the IDR registers; the factory address is not a fallback (`userland/capsule_driver_rtl8139/src/init/mac.rs:23-34`, `program`).
-- Operation 6 returns a register snapshot, with status 0 whenever its port reads succeed (`userland/capsule_driver_rtl8139/src/protocol/ops.rs:17-22`, `OP_STATS`). `net.core` takes it as a driver without receive batches and reads frames with operation 5; read as a batch, it was [the receive fault](README.md#the-receive-fault).
+- Operation 6 serves receive batches and operation 7 the register snapshot (`userland/capsule_driver_rtl8139/src/protocol/ops.rs:21-26`, `OP_RX_BATCH`, `OP_STATS`); the snapshot sat at 6 in 0.9.2, see [the receive fault](README.md#the-receive-fault).
 
 ### Tests
 
-`rtl8139_proofs` checks the receive ring walk: every read lands at the wrapped offset and a frame copy never leaves the caller's buffer, whatever length the device writes. Kani harnesses for it sit in `userland/rtl8139_proofs/src/kani_proofs/`; the flake check does not run them. The flake check `proofs-rtl8139_proofs` passed with 15 tests on this commit.
+`rtl8139_proofs` checks the receive ring walk: every read lands at the wrapped offset and a frame copy never leaves the caller's buffer, whatever length the device writes. Kani harnesses for it sit in `userland/rtl8139_proofs/src/kani_proofs/`; the flake check does not run them. The flake check `proofs-rtl8139_proofs` passed with 15 tests on 0.9.2; with the receive batch tests it runs 20.
 
 ## See also
 

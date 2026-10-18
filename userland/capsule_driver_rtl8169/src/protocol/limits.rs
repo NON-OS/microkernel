@@ -22,3 +22,8 @@ pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
 pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
 pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
 pub const STATS_PAYLOAD_LEN: usize = 48;
+/// Frames one batch carries at most: most of the 16-slot ring, so the part keeps buffers to fill while the
+/// batch is on its way.
+pub const BATCH_MAX_FRAMES: usize = 12;
+/// Batch body bytes at most; net.core's reply buffer holds 64 KiB.
+pub const BATCH_MAX_BYTES: usize = 64 * 1024;

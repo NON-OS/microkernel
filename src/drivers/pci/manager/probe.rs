@@ -29,7 +29,7 @@ use super::super::security::{check_device_allowed, is_dma_capable};
 use super::super::stats;
 use super::super::types::{ClassCode, DeviceId, HeaderType, PciAddress, PciDevice};
 
-pub(super) fn probe_device(bus: u8, device_num: u8, function: u8) -> Option<PciDevice> {
+pub(crate) fn probe_device(bus: u8, device_num: u8, function: u8) -> Option<PciDevice> {
     let id = read32_unchecked(bus, device_num, function, CFG_VENDOR_ID as u8);
     let vendor_id = (id & 0xFFFF) as u16;
 

@@ -19,6 +19,7 @@ use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
 use super::{alloc, install, record, validate};
+use crate::hardware::broker::reserved;
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
 // record. Each step is a single responsibility in its own file; this
@@ -34,6 +35,12 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         Ok(start) => start,
         Err(e) => return fail("alloc", e),
     };
+    // RAM the allocator holds is never firmware's; if the memory map and
+    // the namespace disagree, the device gets neither.
+    if reserved::refuses(b"DMA", reserved::MEMORY, phys_start, req.length, false) {
+        alloc::free(phys_start, pages);
+        return fail("reserved", DmaMapError::NoMemory);
+    }
 
     let user_va = match install::install(pages, req.length, phys_start, req.flags) {
         Ok(va) => va,

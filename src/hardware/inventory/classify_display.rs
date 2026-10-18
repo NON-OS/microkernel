@@ -15,14 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::family::HardwareFamily;
+use crate::hardware::broker::{BarKind, DeviceRecord};
 
 pub(super) fn classify_display(vendor: u16) -> HardwareFamily {
     match vendor {
         0x1af4 => HardwareFamily::DisplayVirtioGpu,
         0x1234 => HardwareFamily::DisplayBga,
+        0x15ad => HardwareFamily::DisplayVmwareSvga,
+        // VBoxSVGA, or VBoxVGA under the same id: `svga_ports` tells them apart.
+        0x80ee => HardwareFamily::DisplayVmwareSvga,
         0x8086 => HardwareFamily::DisplayNativeIntel,
         0x1002 => HardwareFamily::DisplayNativeAmd,
         0x10de => HardwareFamily::DisplayNativeNvidia,
         _ => HardwareFamily::Unknown,
     }
+}
+
+/// Whether an SVGA II function has its index and value ports where its ids
+/// put them: BAR0 under VMware's id, BAR1 under VirtualBox's. VBoxVGA shares
+/// VBoxSVGA's id and has no such window.
+pub(super) fn svga_ports(rec: &DeviceRecord) -> bool {
+    let bar = if rec.vendor == 0x80ee { 1 } else { 0 };
+    rec.bar_count as usize > bar && rec.bars[bar].kind == BarKind::Pio as u8
 }

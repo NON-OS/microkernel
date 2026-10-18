@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the DEC 21140/21143 (tulip) driver. Builds for
+# the host so `cargo test` runs the real driver source (included via #[path])
+# against a register-level model of the 21x4x: the CSR file, the software
+# reset, the receive and transmit processes, the setup frame's perfect
+# filter, and descriptor DMA confined to the driver's grants.
+[package]
+name = "tulip_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_mac = { path = "../nonos_mac" }
+nonos_libc = { package = "tulip_proofs_libc_shim", path = "libc_shim" }

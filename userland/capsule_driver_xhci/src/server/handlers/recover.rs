@@ -30,22 +30,26 @@ pub const DCI_EP0: u8 = 1;
 
 /// Recover endpoint `dci` of `slot` if `err` left it halted or running on
 /// TRBs that will never complete, then let go of `buf`, the request's own
-/// DMA buffer those TRBs point at. It is freed only once nothing can run
-/// them: the endpoint confirmed stopped with its dequeue moved past them.
-/// When that failed it stays with the endpoint's ring until a later
-/// transfer completes on it or its dequeue moves (`recover_ring`); freed, a
-/// TRB the controller still ran would DMA into a frame the kernel had
-/// handed to someone else. A failed controller is sent no command.
-pub fn recover_after(ctx: &mut Context, slot: u8, dci: u8, err: XhciError, buf: Option<DmaRegion>) {
+/// DMA buffer, once nothing can run them; until then it stays with the ring
+/// (`recover_ring`), as a TRB the controller ran would DMA into a frame given
+/// to someone else. A failed controller is sent no command. Returns whether
+/// the endpoint is usable, so a STALL is not answered as a clear pipe.
+pub fn recover_after(
+    ctx: &mut Context,
+    slot: u8,
+    dci: u8,
+    err: XhciError,
+    buf: Option<DmaRegion>,
+) -> bool {
     let left_behind = matches!(
         err,
         XhciError::TransferCompletionFailed(_) | XhciError::TransferCompletionTimeout
     );
     if left_behind && !ctx.driver.failed() {
-        recover_ring(ctx, slot, dci, buf);
-    } else {
-        let _ = keep_if_failed(ctx, slot, err, buf);
+        return recover_ring(ctx, slot, dci, buf);
     }
+    let _ = keep_if_failed(ctx, slot, err, buf);
+    !left_behind
 }
 
 /// Let go of `regions`, DMA memory a request or a Configure Endpoint that

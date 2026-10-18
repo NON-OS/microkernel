@@ -44,6 +44,10 @@ mod floor_rule_tests;
 mod floor_seq_tests;
 #[cfg(test)]
 mod image_format_tests;
+#[cfg(test)]
+mod mmap_copy_tests;
+#[cfg(test)]
+mod mmap_size_tests;
 
 #[cfg(kani)]
 mod kani_proofs;
