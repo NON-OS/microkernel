@@ -18,6 +18,12 @@ use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut};
 
 use crate::error::{NvmeError, NvmeResult};
 
+/// Memory the controller may be given. Dropping a region unmaps nothing:
+/// memory the controller may have seen goes back only with the device's
+/// release, which turns bus mastering off before it drains the grants, so
+/// no frame is freed while the device can still write it (C2). A failed
+/// disable, a command never answered, or a drop order cannot change that.
+/// `unmap` gives back memory the controller never took.
 pub struct DmaRegion {
     grant_id: u64,
     user_va: u64,
@@ -41,10 +47,10 @@ impl DmaRegion {
     pub const fn device_addr(&self) -> u64 {
         self.device_addr
     }
-}
 
-impl Drop for DmaRegion {
-    fn drop(&mut self) {
+    /// Unmap now. Only for memory whose address no command has carried, or
+    /// that the controller refused.
+    pub fn unmap(self) {
         let _ = mk_dma_unmap(self.grant_id);
     }
 }

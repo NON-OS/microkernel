@@ -14,34 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The modern bring-up against parts that cannot be driven, which must be
-//! left marked FAILED and never DRIVER_OK.
+//! The bring-up against parts that cannot be driven, which must be left
+//! marked FAILED and never DRIVER_OK, with no queue enabled.
 
-use crate::constants::{
-    MOD_DEVICE_STATUS, MOD_QUEUE_ENABLE, STATUS_DRIVER_OK, STATUS_FAILED, VIRTIO_GPU_F_VIRGL,
-    VIRTIO_GPU_MODERN,
-};
-use crate::init::bring_up;
-use crate::tests::model::{modern_regs, modern_window, QUEUE_SIZE, REGION_PHYS};
+use nonos_devmodel::FakeBar;
+use nonos_virtio::common::{DEVICE_STATUS, QUEUE_ENABLE, STATUS_DRIVER_OK, STATUS_FAILED};
+
+use super::model::{bring_up, modern_window, NOTIFY_LEN, QUEUE_SIZE};
+use crate::constants::VIRTIO_GPU_F_VIRGL;
+
+fn refused(bar: &FakeBar, why: &str) {
+    assert_eq!(bring_up(bar, NOTIFY_LEN).err(), Some(why));
+    let status = bar.wrote8(DEVICE_STATUS);
+    assert_ne!(status & STATUS_FAILED, 0, "{why}: the part is told");
+    assert_eq!(status & STATUS_DRIVER_OK, 0, "{why}: and never told the driver is ready");
+    assert_eq!(bar.wrote16(QUEUE_ENABLE), 0, "{why}: no queue was enabled");
+}
 
 #[test]
 fn a_part_without_version_1_is_marked_failed_and_refused() {
-    let bar = modern_window(0, QUEUE_SIZE);
-    let err = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).err();
-    assert_eq!(err, Some("virtio-gpu: modern feature missing"));
-    let status = bar.wrote8(MOD_DEVICE_STATUS);
-    assert_ne!(status & STATUS_FAILED, 0, "the part is told");
-    assert_eq!(status & STATUS_DRIVER_OK, 0, "and never told the driver is ready");
-    assert_eq!(bar.wrote16(MOD_QUEUE_ENABLE), 0, "no queue was enabled");
+    refused(&modern_window(0, QUEUE_SIZE), "virtio: VERSION_1 not offered");
 }
 
 #[test]
 fn a_part_without_a_control_queue_is_marked_failed_and_refused() {
-    let bar = modern_window(VIRTIO_GPU_F_VIRGL, 0);
-    let err = bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).err();
-    assert_eq!(err, Some("virtio-gpu: missing control queue"));
-    let status = bar.wrote8(MOD_DEVICE_STATUS);
-    assert_ne!(status & STATUS_FAILED, 0);
-    assert_eq!(status & STATUS_DRIVER_OK, 0);
-    assert_eq!(bar.wrote16(MOD_QUEUE_ENABLE), 0);
+    refused(&modern_window(VIRTIO_GPU_F_VIRGL, 0), "virtio: queue missing");
+}
+
+#[test]
+fn a_ring_of_one_entry_is_refused() {
+    // A command is a chain of two descriptors.
+    refused(&modern_window(VIRTIO_GPU_F_VIRGL, 1), "virtio: queue smaller than the ring layout");
 }

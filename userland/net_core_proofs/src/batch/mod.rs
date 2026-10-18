@@ -14,9 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[path = "../../../capsule_net_core/src/device/batch_frames.rs"]
-pub mod batch_frames;
-#[path = "../../../capsule_net_core/src/device/probe_reply.rs"]
-pub mod probe_reply;
 #[cfg(test)]
 mod tests;

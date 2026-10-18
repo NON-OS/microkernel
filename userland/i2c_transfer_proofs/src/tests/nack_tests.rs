@@ -21,8 +21,8 @@
 use nonos_i2cmodel::regs::{IC_RAW_INTR_STAT, INTR_TX_ABRT};
 use nonos_i2cmodel::Config;
 
-use super::fixture::{bench, bench_with, core, pad, PAD};
-use crate::transaction::{transfer, TransferError, TransferRequest, TransferResult};
+use super::fixture::{bench, bench_with, core, pad, transfer, PAD};
+use crate::transaction::{TransferError, TransferRequest, TransferResult};
 
 const NOBODY: u8 = 0x2C;
 

@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const OP_HEALTHCHECK: u16 = 0x0001;
-pub const OP_POLL_EVENTS: u16 = 0x0002;
+// 0x0002 drained a ring of every scancode typed; it is gone with the ring
+// (plan/50 C8), and the number stays unused.
 pub const OP_GET_STATE: u16 = 0x0003;
 pub const OP_CONTROLLER_STATUS: u16 = 0x0004;
 pub const OP_POLL_MOUSE: u16 = 0x0005;

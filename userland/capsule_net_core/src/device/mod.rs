@@ -16,13 +16,13 @@
 
 pub mod batch_call;
 pub mod batch_frames;
+pub mod batch_served;
 pub mod budget;
 pub mod capabilities;
 pub mod link_up;
 pub mod mac;
 pub mod nic_device;
 pub mod poll_window;
-pub mod probe_reply;
 pub mod read_mac;
 pub mod receive;
 pub mod rx;

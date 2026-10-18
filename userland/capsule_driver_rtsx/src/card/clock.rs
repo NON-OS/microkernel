@@ -18,6 +18,7 @@
 //! when the SSC clock changes, the SSC programmed under CLK_LOW_FREQ and
 //! released once it has settled (SSC_CLOCK_STABLE_WAIT, 130 us).
 
+use super::limits::SSC_MS;
 use crate::clock::sleep_ms;
 use crate::error::{Result, RtsxError};
 use crate::hw::write_register;
@@ -41,7 +42,7 @@ pub fn switch_clock(drv: &mut Driver, hz: u32, depth: u8, initial: bool) -> Resu
     buf.write(SSC_CTL2, SSC_DEPTH_MASK, p.ssc_depth);
     buf.write(SSC_DIV_N_0, 0xFF, p.n);
     buf.write(SSC_CTL1, SSC_RSTB, SSC_RSTB);
-    crate::engine::send(drv, &buf, 2000)?;
+    crate::engine::send(drv, &buf, SSC_MS)?;
     sleep_ms(1);
     write_register(drv.regs, CLK_CTL, CLK_LOW_FREQ, 0)?;
     drv.cur_clock = p.clk_mhz;

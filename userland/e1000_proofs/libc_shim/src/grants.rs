@@ -17,12 +17,16 @@
 //! The broker release calls, recorded per thread so a test can see every
 //! grant and the claim handed back.
 
+use crate::pci::stop_bus_master;
+use crate::steps::{note, Step};
+
 thread_local! {
     static GIVEN_BACK: std::cell::RefCell<Vec<(&'static str, u64)>> =
         const { std::cell::RefCell::new(Vec::new()) };
 }
 
 fn give_back(call: &'static str, id: u64) -> i64 {
+    note(Step::Freed(call, id));
     GIVEN_BACK.with(|g| g.borrow_mut().push((call, id)));
     0
 }
@@ -34,8 +38,12 @@ pub fn given_back() -> Vec<(&'static str, u64)> {
     GIVEN_BACK.with(|g| g.borrow().clone())
 }
 
+/// Logged with Bus Master as the driver left it; the release then clears it
+/// before any grant goes, as `MkDeviceRelease` does.
 pub fn mk_device_release(device_id: u64) -> i64 {
-    give_back("device_release", device_id)
+    let r = give_back("device_release", device_id);
+    stop_bus_master();
+    r
 }
 pub fn mk_dma_unmap(grant: u64) -> i64 {
     give_back("dma_unmap", grant)

@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! igc_reset_hw_base against the register model: the quiesce, the master
-//! stop that gates the reset, and the NVM auto-read that is waited for but
-//! not required. The ordering itself is in reset_order_tests.
+//! stop that gates the reset, the reset waited out on the clock, and the NVM
+//! auto-read that is waited for but not required. The ordering itself is in
+//! reset_order_tests.
 
 use std::time::Duration;
 
@@ -30,18 +31,19 @@ use crate::init::reset::global::AUTO_READ_LATE;
 use crate::init::reset::master::MASTER_STUCK;
 use crate::init::reset::run;
 
-use super::model::{regs, timed, window};
+use super::model::{live, regs, timed, window};
+use super::reset_wait_tests::resets;
 
 #[test]
 fn a_part_that_stops_mastering_is_quiesced_and_reset() {
     let bar = window();
-    bar.present32(REG_EECD, EECD_AUTO_RD);
     bar.present32(REG_RCTL, 0x0400_8002);
+    let _part = live(&bar, resets(true));
     let start = said().len();
     assert_eq!(run(&regs(&bar)), Ok(()));
     let ctrl = bar.wrote32(REG_CTRL);
     assert_ne!(ctrl & CTRL_GIO_MASTER_DISABLE, 0);
-    assert_ne!(ctrl & CTRL_RST, 0);
+    assert_eq!(ctrl & CTRL_RST, 0, "the reset was waited out");
     assert_eq!(bar.wrote32(REG_IMC), 0xFFFF_FFFF);
     assert_eq!(bar.wrote32(REG_RCTL), 0, "receiver stopped");
     assert_eq!(bar.wrote32(REG_TCTL), TCTL_PSP, "transmitter stopped, PSP kept");
@@ -61,6 +63,7 @@ fn a_master_that_never_stops_ends_the_attempt_before_any_reset() {
 #[test]
 fn a_blank_nvm_is_logged_and_the_reset_goes_on() {
     let bar = window();
+    let _part = live(&bar, resets(false));
     assert_eq!(run(&regs(&bar)), Ok(()));
     assert!(said().contains(&format!("igc: {AUTO_READ_LATE}\n")));
     assert_eq!(bar.wrote32(REG_IMC), 0xFFFF_FFFF, "causes masked after it");

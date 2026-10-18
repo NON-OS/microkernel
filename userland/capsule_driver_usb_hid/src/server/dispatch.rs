@@ -18,14 +18,13 @@ use crate::protocol::*;
 use crate::server::{handlers, respond};
 use crate::state::State;
 
+/// There is no op that feeds a report in or reads a key back out: input
+/// reaches the kernel input ring and nothing else, so no holder of this
+/// endpoint can type into the system or read what was typed.
 pub(super) fn dispatch(state: &mut State, sender: u32, req: Request, body: &[u8], tx: &mut [u8]) {
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender, &req, tx),
         OP_PROBE_CONFIG => handlers::probe_config::handle(state, sender, &req, body, tx),
-        OP_FEED_KEYBOARD_REPORT => handlers::feed_key::handle(state, sender, &req, body, tx),
-        OP_FEED_MOUSE_REPORT => handlers::feed_mouse::handle(state, sender, &req, body, tx),
-        OP_POLL_KEYS if body.is_empty() => handlers::poll_keys::handle(state, sender, &req, tx),
-        OP_POLL_MOUSE if body.is_empty() => handlers::poll_mouse::handle(state, sender, &req, tx),
         OP_GET_STATE if body.is_empty() => handlers::get_state::handle(state, sender, &req, tx),
         _ if body.is_empty() => {
             let _ = respond::status(sender, &req, E_BAD_OP, tx);

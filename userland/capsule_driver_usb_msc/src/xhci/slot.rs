@@ -17,8 +17,14 @@
 //! Slots and addresses on driver.xhci0.
 
 use super::call::call;
+use super::window::Window;
 use super::wire::{DATA_AT, OP_ADDRESS_DEVICE, OP_DISABLE_SLOT, OP_ENABLE_SLOT};
 use crate::protocol::E_IO;
+
+/// Giving a slot back ends every probe that failed, a timed-out one too, so
+/// it has a window of its own; long enough for driver.xhci0 to finish a
+/// transfer an earlier call stopped waiting on.
+const RELEASE_MS: u64 = 6_000;
 
 pub fn enable_slot(xhci: u32) -> Result<u8, i32> {
     let mut resp = [0u8; DATA_AT + 4];
@@ -31,6 +37,7 @@ pub fn enable_slot(xhci: u32) -> Result<u8, i32> {
 }
 
 pub fn disable_slot(xhci: u32, slot: u8) {
+    let _window = Window::open(RELEASE_MS);
     let mut resp = [0u8; DATA_AT];
     /*
      * A slot that cannot be disabled stays allocated in the controller
