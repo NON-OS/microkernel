@@ -41,6 +41,7 @@ mod direct_only;
 mod frame;
 mod ipc;
 mod opening;
+mod patience;
 mod pick;
 mod refusal;
 mod slice;

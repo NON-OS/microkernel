@@ -17,36 +17,13 @@
 extern crate alloc;
 
 use crate::ipc::nonos_channel::IpcMessage;
-use crate::ipc::nonos_inbox::{try_enqueue_strict, StrictEnqueueError};
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{
-    ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_NOMEM,
-};
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM};
 
+use super::payload_in::copy_in;
 use super::pending_reply;
+use super::reply_deliver::deliver;
 use super::reply_inbox;
-
-fn trace(caller_pid: u32, dest_pid: u64, label: &[u8], rc: i64, inbox: &str) {
-    if caller_pid != 0x9 && dest_pid != 0x17 {
-        return;
-    }
-    crate::sys::serial::trace(b"[IPC-REPLY] from=");
-    crate::sys::serial::trace_hex(caller_pid as u64);
-    crate::sys::serial::trace(b" to=");
-    crate::sys::serial::trace_hex(dest_pid);
-    crate::sys::serial::trace(b" inbox=");
-    crate::sys::serial::trace(inbox.as_bytes());
-    crate::sys::serial::trace(b" ");
-    crate::sys::serial::trace(label);
-    crate::sys::serial::trace(b" rc=");
-    if rc < 0 {
-        crate::sys::serial::trace(b"-");
-        crate::sys::serial::trace_dec((-rc) as u64);
-    } else {
-        crate::sys::serial::trace_dec(rc as u64);
-    }
-    crate::sys::serial::traceln(b"");
-}
 
 pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     if len == 0
@@ -54,18 +31,12 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
         || dest_pid == 0
         || dest_pid > u32::MAX as u64
     {
-        trace(current_pid().unwrap_or(0), dest_pid, b"inval", ERRNO_INVAL, "");
         return ERRNO_INVAL;
     }
-    if crate::usercopy::validate_user_read(buf, len).is_err() {
-        trace(current_pid().unwrap_or(0), dest_pid, b"validate", ERRNO_FAULT, "");
-        return ERRNO_FAULT;
-    }
-    let mut data = alloc::vec![0u8; len];
-    if crate::usercopy::copy_from_user(buf, &mut data).is_err() {
-        trace(current_pid().unwrap_or(0), dest_pid, b"copy", ERRNO_FAULT, "");
-        return ERRNO_FAULT;
-    }
+    let data = match copy_in(buf, len) {
+        Ok(data) => data,
+        Err(e) => return e,
+    };
     let caller_pid = current_pid().unwrap_or(0);
     let dest = reply_inbox::for_pid(dest_pid as u32);
     // The token comes from the same pending-reply entry that authorizes this
@@ -73,41 +44,13 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     // than a separate per-client FIFO) keeps the stamp correct when several
     // callers have replies outstanding on this server at once.
     let Some(token) = pending_reply::remove(caller_pid, &dest) else {
-        trace(caller_pid, dest_pid, b"drop no-call", 0, &dest);
         return 0;
     };
     let from = alloc::format!("proc.{}", caller_pid);
     let mut msg = match IpcMessage::new(&from, &dest, &data) {
         Ok(msg) => msg,
-        Err(_) => {
-            trace(caller_pid, dest_pid, b"message", ERRNO_NOMEM, &dest);
-            return ERRNO_NOMEM;
-        }
+        Err(_) => return ERRNO_NOMEM,
     };
     msg.correlation = token;
-    let rc = match try_enqueue_strict(&dest, msg) {
-        Ok(()) => {
-            crate::sched::wake_process(dest_pid as u32);
-            crate::process::accounting::bump(caller_pid, crate::process::accounting::Kind::IpcTx);
-            crate::process::accounting::bump_total(crate::process::accounting::Total::IpcMessages);
-            0
-        }
-        Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
-        Err(StrictEnqueueError::QueueFull(_)) => ERRNO_BUSY,
-    };
-    // Wake unconditionally on delivery (state-checked and idempotent); the
-    // sleep-map gate strands a receiver that is Sleeping without an entry.
-    let mut woke = false;
-    if rc == 0 {
-        crate::sched::wake_process(dest_pid as u32);
-        woke = true;
-    }
-    trace(
-        caller_pid,
-        dest_pid,
-        if woke { b"enqueue wake=1" } else { b"enqueue wake=0" },
-        rc,
-        &dest,
-    );
-    rc
+    deliver(caller_pid, dest_pid, &dest, msg)
 }

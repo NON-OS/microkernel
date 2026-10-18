@@ -35,21 +35,20 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         Err(e) => return fail("alloc", e),
     };
 
-    let user_va = match install::install(pages, req.length, phys_start, req.flags) {
+    let user_va = match install::install(pid, pages, req.length, phys_start, req.flags) {
         Ok(va) => va,
         Err(e) => {
             alloc::free(phys_start, pages);
             return fail("install", e);
         }
     };
-    let placed = Placed { phys_start, pages, length: req.length, user_va };
+    let placed = Placed { pid, phys_start, pages, length: req.length, user_va };
 
-    let Some((device_addr, confined)) =
-        crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length)
-    else {
-        placed.undo();
-        return fail("confine", DmaMapError::MapFailed);
-    };
+    let (device_addr, confined) =
+        match crate::hardware::broker::confine::map(pid, req.device_id, phys_start, req.length) {
+            Ok(got) => got,
+            Err(no) => return fail("confine", placed.refused(no)),
+        };
     /*
      * A 32-bit device is handed an address that fits its descriptor or nothing.
      * The frames were placed below 4GB and an IOVA is drawn below 4GB, so this
@@ -61,6 +60,14 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         return fail("dma32", DmaMapError::Above4G);
     }
 
-    let grant_id = record::record(pid, &req, claim_epoch, &placed, device_addr, confined);
+    // Entered only while the claim holds and within the quota; a
+    // release since validate finds nothing to revoke, so the map comes out.
+    let grant_id = match record::record(pid, &req, claim_epoch, &placed, device_addr, confined) {
+        Ok(id) => id,
+        Err(e) => {
+            placed.undo_mapped(pid, device_addr, confined);
+            return fail("record", e);
+        }
+    };
     Ok(DmaMapResult { user_va, device_addr, length: req.length, grant_id })
 }

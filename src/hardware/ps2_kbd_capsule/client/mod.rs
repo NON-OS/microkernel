@@ -16,15 +16,11 @@
 
 mod get_state;
 mod healthcheck;
-mod poll_events;
 mod seq;
 mod status_map;
 mod transport;
-mod types;
 
 pub(super) use transport::REPLY_INBOX;
 
 pub use get_state::{get_state, RingState};
 pub use healthcheck::healthcheck;
-pub use poll_events::poll_events;
-pub use types::KeyEvent;

@@ -14,20 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One IOMMU domain per driver capsule. A device a capsule claims leaves the
-//! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
-//! grants a buffer, so the device reaches that capsule's grants and faults on
-//! everything else. Without a unit in service these are no-ops that say so:
-//! the device then reaches all of memory, and the boot log states it.
-
+#[cfg(target_arch = "x86_64")]
+mod acs;
+#[cfg(target_arch = "x86_64")]
+mod acs_alias;
+#[cfg(target_arch = "x86_64")]
+mod acs_kind;
+#[cfg(target_arch = "x86_64")]
+mod acs_layout;
+#[cfg(target_arch = "x86_64")]
+mod acs_path;
+#[cfg(target_arch = "x86_64")]
+mod acs_reach;
+#[cfg(target_arch = "x86_64")]
+mod acs_read;
+mod acs_refusal;
+#[cfg(target_arch = "x86_64")]
+mod acs_rule;
+#[cfg(target_arch = "x86_64")]
+mod acs_tree;
+#[cfg(target_arch = "x86_64")]
+mod acs_words;
 mod attach;
+mod decide;
 mod detach;
+mod gates;
+mod interrupts;
 mod iova;
 mod iova_space;
+mod join;
+mod join_alias;
+mod join_group;
 mod map;
+mod member;
 mod posture;
+mod refuse;
 mod table;
+mod unmap;
+mod virtio;
+mod virtio_read;
+mod virtio_rule;
 
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
-pub(super) use map::{map, unmap};
+pub(super) use map::{map, NoAddress};
+pub(super) use refuse::Refusal;
+pub(super) use unmap::unmap;

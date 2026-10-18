@@ -22,6 +22,7 @@ mod after_install;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod after_setup;
 mod loop_impl;
+mod park;
 mod watch;
 mod watch_rule;
 

@@ -18,7 +18,7 @@
 //! per PCI segment (amd/init.c, pci_seg->dev_table): 2 MiB, an entry for every
 //! requester id, each blocked until written, so unknown devices are denied.
 
-use core::sync::atomic::{compiler_fence, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::dte::{blocked, stray_writer, Dte};
 use super::error::AmdViError;
@@ -29,7 +29,7 @@ use crate::memory::phys::{alloc_contiguous, AllocFlags};
 static TABLE: AtomicU64 = AtomicU64::new(0);
 
 /// Entries per 4 KiB page: four quadwords each.
-const PER_PAGE: usize = 128;
+pub(super) const PER_PAGE: usize = 128;
 
 /// The table, allocated and filled with blocked entries on first use.
 pub(super) fn device_table() -> Result<u64, AmdViError> {
@@ -65,29 +65,4 @@ pub(super) fn deny_stray_writers(table: u64) -> Result<(), AmdViError> {
         }
     }
     Ok(())
-}
-
-/// Replace the entry for `device_id`, the first quadword (V, TV, mode and
-/// root) last, so a unit never reads a new root beside an old domain. The
-/// caller flushes the unit's cached copy afterwards.
-pub(super) fn write_dte(device_id: u16, entry: Dte) -> Result<(), AmdViError> {
-    let (words, at) = slot_of(device_id)?;
-    words[at + 3] = entry[3];
-    words[at + 2] = entry[2];
-    words[at + 1] = entry[1];
-    compiler_fence(Ordering::SeqCst);
-    words[at] = entry[0];
-    Ok(())
-}
-
-pub(super) fn read_dte(device_id: u16) -> Result<Dte, AmdViError> {
-    let (words, at) = slot_of(device_id)?;
-    Ok([words[at], words[at + 1], words[at + 2], words[at + 3]])
-}
-
-/// The page holding `device_id`'s entry, and the entry's first quadword in it.
-fn slot_of(device_id: u16) -> Result<(&'static mut [u64], usize), AmdViError> {
-    let page = device_table()? + (device_id as usize / PER_PAGE) as u64 * 4096;
-    let words = entries_mut(page).map_err(|_| AmdViError::TableUnreachable)?;
-    Ok((words, (device_id as usize % PER_PAGE) * 4))
 }

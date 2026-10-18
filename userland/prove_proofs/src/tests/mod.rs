@@ -16,6 +16,16 @@
 
 mod device_tests;
 mod ek_tests;
+mod market_buckets_tests;
+mod job_bound_tests;
+mod job_status_tests;
+mod market_check_tests;
+mod market_container_tests;
+mod market_delivery_tests;
+mod market_delivery_verify_tests;
+mod market_device_tests;
+mod market_sealed_tests;
+mod market_witness_tests;
 mod output_tests;
 mod prove_tests;
 mod reenroll_tests;

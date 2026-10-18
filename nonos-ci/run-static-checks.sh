@@ -1921,10 +1921,10 @@ fi
 # Capability split for the driver-broker syscalls. `MkMmioMap` and
 # `MkMmioUnmap` must route through `can_mmio()`; `MkDeviceClaim` /
 # `MkDeviceRelease` through `can_driver()`; only `MkDeviceList` may
-# share the old `can_device_enum()`. The cap_table::mk module is
-# the single source of truth, so the gate inspects that file
+# share the old `can_device_enum()`. The cap_table::mk_device module
+# holds the driver-broker rows, so the gate inspects that file
 # directly.
-mk_table='src/syscall/contract/cap_table/mk.rs'
+mk_table='src/syscall/contract/cap_table/mk_device.rs'
 if [ ! -f "${mk_table}" ]; then
     fail_with "missing ${mk_table}"
 elif ! grep -qE 'MkMmioMap[^=]*\|[^=]*MkMmioUnmap[^=]*=>[[:space:]]*caps\.can_mmio\(\)' "${mk_table}"; then
@@ -2016,7 +2016,7 @@ fi
 # and route the resulting rejection through `BadLengthForClass`.
 dma_limits='src/hardware/broker/dma/limits.rs'
 dma_validate='src/hardware/broker/dma/map/validate.rs'
-dma_errno_map='src/syscall/microkernel/dma.rs'
+dma_errno_map='src/syscall/microkernel/dma/errno.rs'
 dma_types='src/hardware/broker/dma/types.rs'
 if [ ! -f "${dma_limits}" ]; then
     fail_with "missing ${dma_limits} (DMA class-aware page bounds)"
@@ -3556,10 +3556,11 @@ unset pcb_ops_src
 # every fork is intersected against. Production builds keep
 # hardware authority (Driver/DeviceEnum/Mmio/Irq/Dma/Pio), Admin,
 # Debug, and the graphics caps out of the ambient set. The
-# const_assert in the file enforces this at compile time; this
-# gate proves the const_assert and the forbidden mask still exist
-# and that no forbidden bit was textually added to the ambient.
-inherit_src='src/process/core/table/inherit.rs'
+# const_assert beside the masks, in ambient.rs since the set moved out
+# of inherit.rs, enforces this at compile time; this gate proves the
+# const_assert and the forbidden mask still exist and that no
+# forbidden bit was textually added to the ambient.
+inherit_src='src/process/core/table/ambient.rs'
 if [ ! -f "${inherit_src}" ]; then
     fail_with "missing ${inherit_src}"
 elif ! grep -qE '^(pub(\([^)]*\))?[[:space:]]+)?const AMBIENT_CAPS:' "${inherit_src}"; then
@@ -3650,7 +3651,7 @@ unset graphics_cap_src graphics_park_src
 # Graphics capabilities stay out of the ambient inheritance set.
 # `FORBIDDEN_AMBIENT` already includes them; this gate fails loud
 # if a graphics variant is silently dropped from the forbidden mask.
-inherit_src='src/process/core/table/inherit.rs'
+inherit_src='src/process/core/table/ambient.rs'
 graphics_in_ambient="$(awk '/^(pub(\([^)]*\))?[ \t]+)?const AMBIENT_CAPS:/{g=1} g{print; if (/;/) exit}' "${inherit_src}" \
     | grep -E 'Capability::Graphics(DisplayQuery|SurfaceCreate|SurfaceMap|Present)' || true)"
 graphics_in_forbidden="$(awk '/^const FORBIDDEN_AMBIENT:/{g=1} g{print; if (/;/) exit}' "${inherit_src}" \
@@ -4136,7 +4137,7 @@ unset abi_registry_dir abi_registry_files syscall_defs convert_src graphics_park
 ipc_primitives='src/syscall/microkernel/ipc/recv_from.rs src/syscall/microkernel/ipc/send_to_pid.rs src/syscall/microkernel/ipc/lookup.rs'
 ipc_dispatch='src/syscall/microkernel/dispatch/ipc.rs'
 ipc_defs='src/syscall/numbers/defs.rs'
-ipc_cap='src/syscall/contract/cap_table/mk.rs'
+ipc_cap='src/syscall/contract/cap_table/mk_ipc.rs'
 ipc_libc='userland/libc/src/ipc/recv_from.rs userland/libc/src/ipc/send_to_pid.rs userland/libc/src/ipc/lookup.rs'
 ipc_missing=
 for f in ${ipc_primitives} ${ipc_libc}; do
@@ -4968,6 +4969,17 @@ else
     fail_with "check_test_lanes: a test runs in no lane and is not listed"
 fi
 unset lanes_out
+# each driver capsule's discover table stays inside its kernel scope row
+# (src/hardware/broker/scope_table.rs); the self-test first, so a parser that
+# stopped seeing ids cannot pass by finding none.
+if scope_out="$(python3 scripts/check_driver_scope.py --self-test 2>&1 \
+    && python3 scripts/check_driver_scope.py 2>&1)"; then
+    note ok "every driver's discover table is inside its scope row (check_driver_scope)"
+else
+    tail -n 5 <<< "${scope_out}" >&2
+    fail_with "check_driver_scope: a driver capsule names a device its scope row does not"
+fi
+unset scope_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

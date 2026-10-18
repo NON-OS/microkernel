@@ -55,6 +55,7 @@ inductive capabilities.types.defs.Capability where
 | LocalSign : capabilities.types.defs.Capability
 | StreamImport : capabilities.types.defs.Capability
 | DeviceSecret : capabilities.types.defs.Capability
+| InputConsumer : capabilities.types.defs.Capability
 
 /-- [nonos_caps::capabilities::types::defs::{nonos_caps::capabilities::types::defs::Capability}::bit]:
     Source: 'src/capabilities/../../../../../src/capabilities/types/table.rs', lines 28:12-32:13 -/
@@ -98,6 +99,7 @@ def capabilities.types.defs.Capability.bit
   | capabilities.types.defs.Capability.LocalSign => 1#u64 <<< 33#i32
   | capabilities.types.defs.Capability.StreamImport => 1#u64 <<< 34#i32
   | capabilities.types.defs.Capability.DeviceSecret => 1#u64 <<< 35#i32
+  | capabilities.types.defs.Capability.InputConsumer => 1#u64 <<< 36#i32
 
 /-- [nonos_caps::capabilities::bits::fold_caps]: loop body 0:
     Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5 -/

@@ -19,17 +19,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::flight::read_flight;
-use super::response::read_response;
+use super::deadline::REPLY_MS;
 use super::traits::{Io, SessionError};
-use crate::app_reader::AppReader;
-use crate::handshake_state::Refusal;
+use super::within::exchange_within;
 
-/// Bound on the handshake flight, so a server cannot make a caller allocate
-/// without limit before anything has been verified.
-const MAX_FLIGHT: usize = 128 * 1024;
-
-/// Handshake with `host`, send `request`, and return the decrypted response.
+/// Handshake with `host`, send `request`, and return the decrypted response,
+/// the response within REPLY_MS of the request.
 ///
 /// One request per connection. Keeping a session open would save a handshake,
 /// but it means carrying the plaintext offset across requests, and drift
@@ -41,26 +36,5 @@ pub fn exchange<S: Io>(
     now: u64,
     limit: usize,
 ) -> Result<Vec<u8>, SessionError> {
-    let cf = crate::client_flight(host.as_bytes()).ok_or(SessionError::Init)?;
-    io.write_all(&cf.record)?;
-
-    let (flight, state, end) = read_flight(io, &cf, MAX_FLIGHT)?;
-
-    /*
-     * The chain, the CertificateVerify and Finished are checked here, once,
-     * and the request is sealed only if all of them passed: sending it anyway
-     * would hand the payload to whoever answered.
-     */
-    let answer = state.answer(host.as_bytes(), now, request).map_err(|refusal| match refusal {
-        Refusal::Alert(description) => SessionError::PeerAlert(description),
-        Refusal::Unverified => SessionError::Certificate,
-        Refusal::Incomplete | Refusal::Seal => SessionError::Handshake,
-    })?;
-    io.write_all(&answer.flight)?;
-
-    /* Whatever followed the server's Finished in the same read is response. */
-    let buf = read_response(io, flight[end..].to_vec(), limit)?;
-    let mut reader = AppReader::new();
-    reader.feed(&answer.app, &buf);
-    Ok(reader.into_plaintext())
+    exchange_within(io, host, request, (now, limit), REPLY_MS)
 }

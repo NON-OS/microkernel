@@ -21,14 +21,20 @@
  * intel/irq_remapping.c.
  */
 
+#[path = "../../../../src/arch/x86_64/iommu/remap/ioapic_rte.rs"]
+pub mod ioapic_rte;
 #[path = "../../../../src/arch/x86_64/iommu/remap/irte.rs"]
 pub mod irte;
 #[path = "../../../../src/arch/x86_64/iommu/remap/msi.rs"]
 pub mod msi;
 #[path = "../../../../src/arch/x86_64/iommu/regs/offsets/remap.rs"]
 pub mod regs;
+#[path = "../../../../src/hardware/broker/irq/bind/remap_rule.rs"]
+pub mod remap_rule;
 #[path = "../../../../src/arch/x86_64/iommu/remap/slots.rs"]
 pub mod slots;
 mod message_tests;
+mod rte_tests;
 mod slot_tests;
+mod strict_tests;
 mod tests;

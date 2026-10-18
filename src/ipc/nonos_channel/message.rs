@@ -71,32 +71,4 @@ impl IpcMessage {
     pub fn validate_integrity(&self) -> bool {
         verify_checksum(&self.from, &self.to, &self.data, self.timestamp_ms, self.checksum64)
     }
-
-    #[inline]
-    pub fn age_ms(&self) -> u64 {
-        crate::time::timestamp_millis().saturating_sub(self.timestamp_ms)
-    }
-
-    #[inline]
-    pub fn payload_size(&self) -> usize {
-        self.data.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.data.is_empty()
-    }
-}
-
-impl core::fmt::Display for IpcMessage {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "IpcMessage[{} -> {}, {} bytes, {}ms old]",
-            self.from,
-            self.to,
-            self.data.len(),
-            self.age_ms()
-        )
-    }
 }

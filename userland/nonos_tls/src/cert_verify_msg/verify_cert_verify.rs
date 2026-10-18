@@ -18,21 +18,21 @@ use crate::cert_verify_msg::{constants, verify_ecdsa, verify_rsa};
 
 /// Check the server's CertificateVerify `body` against `leaf`, where `th` is
 /// the transcript hash through the Certificate message.
-pub fn verify_cert_verify(leaf: &[u8], th: &[u8; 32], body: &[u8]) -> bool {
+pub fn verify_cert_verify(leaf: &[u8], th: &[u8; 32], body: &[u8]) -> crate::crypto_port::Checked {
     if body.len() < 4 {
-        return false;
+        return Ok(false);
     }
     let scheme = u16::from_be_bytes([body[0], body[1]]);
     let siglen = u16::from_be_bytes([body[2], body[3]]) as usize;
     if 4 + siglen != body.len() {
-        return false;
+        return Ok(false);
     }
     let mut blob = [0x20u8; 64 + 33 + 1 + 32];
     blob[64..64 + constants::LABEL.len()].copy_from_slice(constants::LABEL);
     blob[64 + constants::LABEL.len()] = 0x00;
     blob[64 + constants::LABEL.len() + 1..].copy_from_slice(th);
     let Some(spki) = super::super::cert_spki::cert_spki(leaf) else {
-        return false;
+        return Ok(false);
     };
     match scheme {
         0x0403 => verify_ecdsa::verify_ecdsa(spki, &blob, &body[4..], 32),
@@ -40,6 +40,6 @@ pub fn verify_cert_verify(leaf: &[u8], th: &[u8; 32], body: &[u8]) -> bool {
         0x0804 => verify_rsa::verify_rsa(1, 0, spki, &body[4..], &blob),
         0x0805 => verify_rsa::verify_rsa(1, 1, spki, &body[4..], &blob),
         0x0401 => verify_rsa::verify_rsa(0, 0, spki, &body[4..], &blob),
-        _ => false,
+        _ => Ok(false),
     }
 }

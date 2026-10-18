@@ -22,6 +22,8 @@ mod discover;
 mod panel_mm;
 mod prime;
 mod prime_gop;
+mod prime_gop_backing;
+mod prime_gop_context;
 mod prime_once;
 mod upgrade;
 

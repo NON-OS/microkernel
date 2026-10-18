@@ -18,7 +18,7 @@ make nonos-mk-arm-run
 Not tested in this release.
 
 - Outside the flake's shell, a `nonos-mk-*` target enters `nix develop` first, so these need nothing but Nix (`NONOS_IN_FLAKE`, `Makefile:144-147`).
-- `nonos-mk-arm` builds the kernel with `ARM_KERNEL_BUILD_FLAGS` and the `microkernel-core` and `nonos-arch-preview` features, and sets `NONOS_USER_TARGET` so the kernel embeds [capsules](../overview/glossary.md#capsule) built for `aarch64-nonos-user` (`mk/20-build.mk:856-862`).
+- `nonos-mk-arm` builds the kernel with `ARM_KERNEL_BUILD_FLAGS` and the `microkernel-core` and `nonos-arch-preview` features, and sets `NONOS_USER_TARGET` so the kernel embeds [capsules](../overview/glossary-boot-root-record.md#capsule) built for `aarch64-nonos-user` (`mk/20-build.mk:856-862`).
 - The build signs the embedded manifest with an Ed25519 seed. When the file named by `SIGNING_KEY` does not exist, make writes 32 random bytes there first (`mk/10-qemu.mk:163-167`). That seed is for local images only.
 - `nonos-mk-arm-run` boots the ELF with `ARM_QEMU_FLAGS`: `-M virt,gic-version=3 -cpu max -m 512 -nographic -serial mon:stdio -device virtio-rng-pci` (`mk/20-build.mk:885-901`). The comment above it gives the reasons: the kernel drives a GICv3 and `virt` defaults to a GICv2, `-cpu max` makes the feature-guarded paths run, and the RNG refuses to seed without an entropy device.
 
@@ -106,7 +106,7 @@ The generic timer ticks every 10 ms and each tick calls the shared scheduler's `
 - A loader. `nonos-bootloader` is built for one target, `x86_64-unknown-uefi` (`targets`, `nonos-bootloader/rust-toolchain.toml:4`). QEMU starts the aarch64 kernel directly, so none of the loader's checks run before it.
 - A device tree under QEMU. QEMU passes none when it boots an ELF, and a device tree boot needs an Image-format target the build does not have (`ARM_QEMU_FLAGS`, `mk/20-build.mk:897-900`). Without one, `BootInfo` assumes the `virt` board, 512 MB of RAM at `0x4000_0000` and one CPU, whatever `-m` says (`ram_size`, `src/arch/aarch64/boot/info/types.rs:67-92`).
 - Any interrupt controller but a GICv3. `init` refuses a device tree that names another (`gic_unsupported`, `src/arch/aarch64/boot/init.rs:57-59`).
-- An SMMU driver. Every [IOMMU](../overview/glossary.md#iommu) mapping request on an ARM board is refused (`iommu`, `src/memory/mod.rs:43-46`).
+- An SMMU driver. Every [IOMMU](../overview/glossary-hardware-broker.md#iommu) mapping request on an ARM board is refused (`iommu`, `src/memory/mod.rs:43-46`).
 - PAN. The kernel prints `pan=off` from `report_el1_protection` rather than claim it (`src/kernel_core/init/entry/init_vm_and_protection.rs:78-89`).
 - Kernel stack guard pages. `arm_stack_guards` does nothing outside x86_64 (`src/kernel_core/init/entry/init_vm_and_protection.rs:75-76`).
 - Setting a thread's TLS register from a system call. `set_user_tls` reports failure, because the trap frame return would overwrite `tpidr_el0` (`src/arch/context/tls.rs:25-39`).

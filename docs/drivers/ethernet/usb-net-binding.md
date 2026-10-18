@@ -1,6 +1,6 @@
 # What each USB network capsule would bind
 
-The five USB network [capsules](../../overview/glossary.md#capsule) each take one kind of device; none runs in 0.9.2, for the reasons on the [USB networking](usb-net.md) page. Each capsule's own `BINDING.md` gives its steps in full.
+The five USB network [capsules](../../overview/glossary-boot-root-record.md#capsule) each take one kind of device; none runs in 0.9.2, for the reasons on the [USB networking](usb-net.md) page. Each capsule's own `BINDING.md` gives its steps in full.
 
 | Capsule | Service and port | Binds |
 |---|---|---|

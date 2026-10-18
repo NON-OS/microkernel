@@ -1,6 +1,6 @@
 # Realtek RTL8169 family, with the RTL8125
 
-One Realtek PCI Ethernet driver [capsule](../../overview/glossary.md#capsule), in the image, covers the RTL8169, RTL8168, RTL8111, RTL810x and the 2.5 GbE RTL8125. The RTL8139 driver is on the [Realtek Ethernet](realtek.md) page.
+One Realtek PCI Ethernet driver [capsule](../../overview/glossary-boot-root-record.md#capsule), in the image, covers the RTL8169, RTL8168, RTL8111, RTL810x and the 2.5 GbE RTL8125. The RTL8139 driver is on the [Realtek Ethernet](realtek.md) page.
 
 ## Identity
 

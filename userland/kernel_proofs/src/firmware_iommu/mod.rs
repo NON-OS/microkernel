@@ -25,8 +25,13 @@
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/control.rs"]
 #[allow(dead_code)]
 pub mod amd_control;
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/efr.rs"]
+pub mod amd_efr;
 /* Mounted once, in iommu_command; a second mount is clippy's duplicate_mod. */
 pub use crate::iommu_command::{behaviour, global};
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/ivrs_walk.rs"]
 pub mod ivrs_walk;
+mod efr_tests;
+mod stop_tests;
 mod tests;
+mod walk_tests;

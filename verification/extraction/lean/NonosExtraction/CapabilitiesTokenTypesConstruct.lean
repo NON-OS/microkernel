@@ -55,6 +55,7 @@ inductive capabilities.types.defs.Capability where
 | LocalSign : capabilities.types.defs.Capability
 | StreamImport : capabilities.types.defs.Capability
 | DeviceSecret : capabilities.types.defs.Capability
+| InputConsumer : capabilities.types.defs.Capability
 
 /-- [nonos_x_capabilities_token_types_construct::capabilities::token::types::defs::CapabilityToken]
     Source: 'src/capabilities/token/types/../../../../../../../../src/capabilities/token/types/defs.rs', lines 23:0-39:1

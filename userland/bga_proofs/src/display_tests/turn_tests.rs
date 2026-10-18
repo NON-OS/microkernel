@@ -18,7 +18,7 @@
 //! sleep holding the claim, a minute at a time, serving nothing. It waits in
 //! its receive now, for at most `WAIT_MS`, and answers what comes.
 
-use nonos_libc::bringup::policy::RECV_PARK_MS;
+use nonos_libc::bringup::recv_turn::RECV_PARK_MS;
 use nonos_libc::{idles, replies, send, waits};
 
 use super::frames::{fields, frame, status_of};

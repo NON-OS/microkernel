@@ -22,9 +22,8 @@ use std::sync::Arc;
 use nonos_devmodel::FakeBar;
 
 use super::client::{answer, call, flush};
-use super::frames::le32;
 use super::part::{answering, Answer};
-use super::{driver::driver, harness::harness};
+use super::{driver::driver, frames::le32, harness::harness};
 use crate::driver::Driver;
 use crate::protocol::{E_DEVICE, OP_FLUSH, OP_GET_PRIMARY_SURFACE, OP_HEALTHCHECK};
 use crate::setup::{resource, Primary};
@@ -32,6 +31,7 @@ use crate::state::Scanout;
 
 pub const CLIENT: u32 = 5;
 pub const PRIMARY: Primary = Primary {
+    sid: 0x31,
     handle: 0x77,
     resource_id: 1,
     width: 64,

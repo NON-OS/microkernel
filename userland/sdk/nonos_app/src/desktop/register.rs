@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_desktop::compositor_pid;
 use nonos_surface::{create, share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 pub(super) fn register_share(
@@ -31,12 +32,15 @@ pub(super) fn register_share(
         byte_len,
         base_va: base as u64,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = create(&desc);
     if sid < 0 {
         return None;
     }
-    let handle = share(sid as u64);
+    // Only the compositor maps it, read-only.
+    let handle = share(sid as u64, compositor_pid()?, 0);
     if handle <= 0 {
         return None;
     }

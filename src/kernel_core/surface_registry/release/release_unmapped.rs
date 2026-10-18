@@ -41,4 +41,5 @@ pub fn release_unmapped(owner: u32, handle: SurfaceHandle) {
         bump_generation(idx as usize);
     }
     attach_map::forget_handle(handle);
+    super::super::share::revoke(handle);
 }

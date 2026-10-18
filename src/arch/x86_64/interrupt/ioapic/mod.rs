@@ -42,7 +42,7 @@ pub use gsi_owners::{
 pub use init::init;
 pub use init_from_acpi::init_from_acpi;
 pub use ops::{
-    alloc_route, claim_gsi_for_msi, free_vector, gsi_for_irq, mask, program_route,
+    alloc_route, claim_gsi_for_msi, compat_allowed, free_vector, gsi_for_irq, mask, program_route,
     program_route_external, query, release_gsi_from_msi, restore, retarget, snapshot, status,
     IoApicStatus,
 };

@@ -22,4 +22,7 @@
 
 #[path = "../../../../src/hardware/broker/dma/placement.rs"]
 pub mod placement;
+#[path = "../../../../src/hardware/broker/dma/sources.rs"]
+pub mod sources;
+mod sources_tests;
 mod tests;

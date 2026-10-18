@@ -4,7 +4,8 @@ const COMPOSITOR_SERVICE: &[u8] = b"compositor";
 const INPUT_ROUTER_SERVICE: &[u8] = b"input_router";
 const POLICY_SERVICE: &[u8] = b"policy";
 
-fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
+/// The service's port and the pid that announced it.
+fn lookup(name: &[u8]) -> Result<(u32, u32), &'static str> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
     let rc =
@@ -12,7 +13,11 @@ fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
     if rc < 0 || pid == 0 || port == 0 {
         return Err("service lookup failed");
     }
-    Ok(port)
+    Ok((port, pid))
+}
+
+fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
+    lookup(name).map(|(port, _)| port)
 }
 
 fn lookup_optional(name: &[u8]) -> u32 {
@@ -42,6 +47,11 @@ pub fn wait_for_desktop() -> Result<(u32, u32), &'static str> {
 
 pub fn lookup_compositor_port() -> Result<u32, &'static str> {
     lookup_port(COMPOSITOR_SERVICE).map_err(|_| "lookup compositor")
+}
+
+/// The compositor's pid, the one process the overlay is shared with.
+pub fn lookup_compositor_pid() -> Result<u32, &'static str> {
+    lookup(COMPOSITOR_SERVICE).map(|(_, pid)| pid).map_err(|_| "lookup compositor")
 }
 
 pub fn lookup_router_port() -> Result<u32, &'static str> {

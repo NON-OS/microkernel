@@ -19,9 +19,7 @@
 //! the compositor. A flush copies from it into the framebuffer, so the
 //! framebuffer mapping, which is device memory, stays this driver's alone.
 
-use nonos_libc::{
-    mk_surface_register, mk_surface_share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
-};
+use nonos_libc::{mk_surface_register, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};
 
 use super::memory::{map, Memory};
 use crate::constants::{BYTES_PER_PIXEL, MAX_SURFACE_BYTES};
@@ -30,7 +28,9 @@ use crate::error::{BgaError, BgaResult};
 
 pub struct Surface {
     pub pixels: Span,
-    pub handle: u64,
+    /// What the kernel registered: shared with the compositor at its
+    /// get_primary, which answers the handle it is handed.
+    pub sid: u64,
     _memory: Memory,
 }
 
@@ -46,14 +46,19 @@ pub fn make(width: u16, height: u16) -> BgaResult<Surface> {
     let pixels = span(memory.va, byte_len, width, height)?;
     let (width, height, format) = (width as u32, height as u32, SURFACE_FORMAT_ARGB8888);
     let base_va = memory.va;
-    let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, flags: 0 };
+    // flags 0; owner_pid and writable are written by an attach, not here.
+    let desc = SurfaceDescriptor {
+        width,
+        height,
+        stride,
+        format,
+        byte_len,
+        base_va,
+        ..Default::default()
+    };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         return Err(BgaError::SurfaceRefused);
     }
-    let handle = mk_surface_share(sid as u64);
-    if handle <= 0 {
-        return Err(BgaError::SurfaceRefused);
-    }
-    Ok(Surface { pixels, handle: handle as u64, _memory: memory })
+    Ok(Surface { pixels, sid: sid as u64, _memory: memory })
 }

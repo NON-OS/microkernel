@@ -15,7 +15,7 @@ flowchart LR
 ```
 
 1. [Requirements](requirements.md). Check requirements first: an x86_64 processor with UEFI firmware, a USB stick of 2 GB or more, and an NVMe or SATA disk, or an Intel eMMC, if you want to install.
-2. [Get an image](get-an-image.md). Build and [seal](../overview/glossary.md#seal) `nonos.img` from this source tree.
+2. [Get an image](get-an-image.md). Build and [seal](../overview/glossary-rollback-index.md#seal) `nonos.img` from this source tree.
 3. [Write a USB stick](usb-stick.md). Write the image with `make usb` or `dd`, then compare the stick with the image.
 4. [Boot modes](boot-modes.md). Boot the stick and pick an entry in the NONOS boot menu: Standard, Hardened, Safe Mode, Air-Gapped, Recovery, Install or Shut down.
 5. [First boot](first-boot.md). Answer the thirteen steps of setup. Amnesic keeps nothing; Install keeps your answers and opens the installer.
@@ -29,7 +29,7 @@ flowchart LR
 - The stick boots [amnesic](../overview/glossary.md#amnesic): nothing reaches the machine's own disks unless you choose to install.
 - Installing replaces everything on one whole disk, the one you name. NONOS does not share a disk with another system, and the installer is not a secure wipe.
 - NONOS 0.9.2 has no in-place update. A newer release is installed over the old one, and that erases it.
-- Firmware with [Secure Boot](../overview/glossary.md#secure-boot) on starts the loader only if it trusts the NONOS db certificate, so expect to turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)).
+- Firmware with [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) on starts the loader only if it trusts the NONOS db certificate, so expect to turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)).
 - There is no login password. Setup asks for an account name, not a secret.
 - The boot menu, setup and the installer are driven from the keyboard.
 
@@ -44,9 +44,9 @@ make boot-installed
 
 Not tested in this release.
 
-- `make boot-install` boots the sealed image as every `make boot` does: its [ESP](../overview/glossary.md#esp) as a FAT drive and a virtio data disk made from the image, with a software [TPM](../overview/glossary.md#tpm). It adds the blank disk as NVMe.
+- `make boot-install` boots the sealed image as every `make boot` does: its [ESP](../overview/glossary-dma-pool.md#esp) as a FAT drive and a virtio data disk made from the image, with a software [TPM](../overview/glossary-stark-proof.md#tpm). It adds the blank disk as NVMe.
 - `make boot-installed` boots the disk the installer wrote, alone, which shows the machine starts from what was written.
-- Without the signing keys, `make dev-boot QEMU_ARGS=--install-target` does the same with the [development image](../overview/glossary.md#development-image) from `make dev-image`. `make boot-installed` then boots what it wrote, since a boot of the installed disk reads no image.
+- Without the signing keys, `make dev-boot QEMU_ARGS=--install-target` does the same with the [development image](../overview/glossary-claim-epoch.md#development-image) from `make dev-image`. `make boot-installed` then boots what it wrote, since a boot of the installed disk reads no image.
 
 ## Where this comes from
 

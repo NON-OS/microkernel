@@ -22,16 +22,13 @@
 //! UEFI machine: real hardware, VirtualBox, VMware, with no virtio-gpu.
 
 use nonos_libc::{
-    mk_mmap, mk_surface_attach, mk_surface_register, nonos_display_dimensions, SurfaceDescriptor,
+    mk_getpid, mk_surface_attach, mk_surface_register, mk_surface_share, SurfaceDescriptor,
     SURFACE_FORMAT_ARGB8888,
 };
 
-use crate::state::{
-    AttachCache, Context, CursorTracker, DamageAccumulator, FocusTable, SceneTable,
-};
-
-const PROT_READ_WRITE: i32 = 0x3;
-const MAP_PRIVATE_ANON: i32 = 0x22;
+use super::prime_gop_backing::{alloc_backing, display_dimensions};
+use super::prime_gop_context::gop_context;
+use crate::state::Context;
 
 pub fn run_gop_once() -> Result<Context, &'static str> {
     let (width, height) = display_dimensions()?;
@@ -47,12 +44,20 @@ pub fn run_gop_once() -> Result<Context, &'static str> {
         byte_len,
         base_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
-    if sid <= 0 {
+    if sid < 0 {
         return Err("gop: surface register rejected");
     }
-    let handle = sid as u64;
+    // A sid is a slot, not a handle: shared with its own process, the kernel
+    // hands back the handle and names no receiver.
+    let handle = mk_surface_share(sid as u64, mk_getpid(), 0);
+    if handle <= 0 {
+        return Err("gop: surface handle refused");
+    }
+    let handle = handle as u64;
 
     // Self-attach: the kernel returns this same mmap VA, which has a real
     // VMA the present path resolves against. We composite into it directly.
@@ -62,50 +67,5 @@ pub fn run_gop_once() -> Result<Context, &'static str> {
         return Err("gop: surface attach rejected");
     }
 
-    let mut damage = DamageAccumulator::new();
-    damage.mark_full(width, height);
-    Ok(Context {
-        gfx_port: 0,
-        resource_id: 0,
-        width,
-        height,
-        stride,
-        backing_len: byte_len,
-        backing_va: va as u64,
-        gop_mode: true,
-        surface_handle: handle,
-        first_scanout_done: true,
-        scanout_error_reported: false,
-        next_request_id: 2,
-        scene: SceneTable::new(),
-        damage,
-        focus: FocusTable::new(),
-        cursor: CursorTracker::at(width / 2, height / 2),
-        attach: AttachCache::new(),
-        scale: 1,
-        screen: crate::sw_blitter::Surface::default(),
-    })
-}
-
-fn display_dimensions() -> Result<(u32, u32), &'static str> {
-    let mut width: u32 = 0;
-    let mut height: u32 = 0;
-    let rc = nonos_display_dimensions(0, &mut width as *mut u32, &mut height as *mut u32);
-    if rc < 0 || width == 0 || height == 0 {
-        return Err("gop: no display dimensions");
-    }
-    Ok((width, height))
-}
-
-// Back the surface with its own anonymous mapping, not the heap. mmap
-// gives a dedicated, page-aligned VMA whose start is exactly base_va, so
-// the kernel's present path resolves the surface to a real region. A
-// heap allocation would sit inside the heap VMA and never match.
-fn alloc_backing(byte_len: u64) -> Result<u64, &'static str> {
-    let size = usize::try_from(byte_len).map_err(|_| "gop: backing too large")?;
-    let ptr = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-    if ptr.is_null() {
-        return Err("gop: backing mmap failed");
-    }
-    Ok(ptr as u64)
+    Ok(gop_context(width, height, stride, byte_len, va as u64, handle))
 }

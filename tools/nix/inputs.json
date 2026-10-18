@@ -26,6 +26,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -38,6 +41,19 @@
   "include": [
    ".cargo",
    "nonos-attest-path"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-boot-measure": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure"
   ],
   "md": [],
   "signed": []
@@ -275,6 +291,7 @@
    "src/arch/x86_64/acpi/devices/i2c/hids.rs",
    "src/arch/x86_64/acpi/devices/i2c/names.rs",
    "src/arch/x86_64/acpi/devices/i2c/parse.rs",
+   "src/arch/x86_64/acpi/devices/i2c/pci_hosts.rs",
    "src/arch/x86_64/acpi/devices/i2c/resources.rs",
    "src/arch/x86_64/acpi/devices/i2c/types.rs",
    "src/arch/x86_64/acpi/devices/i2c/walk.rs",
@@ -896,8 +913,12 @@
    "userland/capsule_driver_bga/src/setup",
    "userland/compositor/Capsule.mk",
    "userland/compositor/src/setup/discover",
+   "userland/libc/src/bringup/deadline.rs",
    "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/bringup/recv_turn.rs",
    "userland/libc/src/bringup/run.rs",
+   "userland/libc/src/bringup/say.rs",
+   "userland/libc/src/bringup/schedule.rs",
    "userland/nonos_devmodel"
   ],
   "md": [],
@@ -1130,6 +1151,7 @@
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/base64/src/decode.rs",
+   "userland/capsule_audio_player/src/fetch/io.rs",
    "userland/capsule_browser/src/browser/cookie",
    "userland/capsule_browser/src/browser/css",
    "userland/capsule_browser/src/browser/dom",
@@ -1223,6 +1245,7 @@
    "userland/capsule_crypto/src/server/handlers",
    "userland/capsule_crypto/src/server/wipe.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_prove_fetch/src/io.rs",
    "userland/inflate",
    "userland/libc",
    "userland/nonos_brotli",
@@ -1254,6 +1277,7 @@
    "userland/nonos_tls/src/cert_verify_msg",
    "userland/nonos_tls/src/cert_window.rs",
    "userland/nonos_tls/src/chacha_record.rs",
+   "userland/nonos_tls/src/chain_anchor.rs",
    "userland/nonos_tls/src/chain_walk.rs",
    "userland/nonos_tls/src/client_finished.rs",
    "userland/nonos_tls/src/client_flight.rs",
@@ -1295,7 +1319,9 @@
    "userland/nonos_tls/src/roots",
    "userland/nonos_tls/src/rtc_now.rs",
    "userland/nonos_tls/src/scan_messages.rs",
+   "userland/nonos_tls/src/scan_request.rs",
    "userland/nonos_tls/src/scan_server_finished.rs",
+   "userland/nonos_tls/src/scan_state.rs",
    "userland/nonos_tls/src/schedule.rs",
    "userland/nonos_tls/src/server_complete",
    "userland/nonos_tls/src/server_context.rs",
@@ -1311,6 +1337,7 @@
    "userland/nonos_tls/src/verify_p256.rs",
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/nonos_tls/src/verify_rsa_checked.rs",
    "userland/policy_client",
    "userland/policy_proto",
    "userland/tls_proofs",
@@ -1966,6 +1993,7 @@
    "userland/capsule_linux/src/linux/net/sock/types.rs",
    "userland/capsule_linux/src/linux/net/sock/unlisten.rs",
    "userland/capsule_linux/src/linux/run_mode.rs",
+   "userland/capsule_linux/src/linux/serve/trace_link.rs",
    "userland/capsule_linux/src/linux/store_why.rs",
    "userland/capsule_linux/src/linux/unix/cmsg.rs",
    "userland/capsule_linux/src/linux/unix/conn.rs",
@@ -2329,8 +2357,32 @@
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_prove",
+   "userland/isolation_stark",
    "userland/libc",
+   "userland/nonos_proof_abi",
    "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_prove_fetch": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_prove_fetch",
+   "userland/libc",
+   "userland/nonos_cap",
+   "userland/nonos_proof_abi",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto"
   ],
   "md": [],
   "signed": []
@@ -2987,6 +3039,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3044,7 +3099,10 @@
    "userland/capsule_driver_ahci/src/protocol",
    "userland/capsule_driver_ahci/src/server/handlers/rw_parse.rs",
    "userland/driver_proofs",
-   "userland/libc/src/bringup/policy.rs"
+   "userland/libc/src/bringup/deadline.rs",
+   "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/bringup/recv_turn.rs",
+   "userland/libc/src/bringup/schedule.rs"
   ],
   "md": [],
   "signed": []
@@ -3589,6 +3647,21 @@
   "md": [],
   "signed": []
  },
+ "userland/isolation_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/isolation_proofs",
+   "userland/isolation_stark",
+   "userland/nonos_proof_abi"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/iwlwifi_proofs": {
   "exclude": [],
   "include": [
@@ -3664,10 +3737,14 @@
    "userland/capsule_driver_usb_msc/src/scan/stage.rs",
    "userland/kernel_proofs",
    "userland/libc/src/bringup/policy.rs",
-   "userland/libc/src/broker/dma_lines.rs"
+   "userland/libc/src/broker/dma_lines.rs",
+   "userland/nonos_blk_client/src/disks/in_use.rs"
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3982,6 +4059,24 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_hash": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_http": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_http"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_i2cmodel": {
   "exclude": [],
   "include": [
@@ -4207,6 +4302,32 @@
   "md": [],
   "signed": []
  },
+ "userland/policy_proto": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/proof_abi_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/capsule_prove_fetch/src/desk",
+   "userland/isolation_stark",
+   "userland/nonos_proof_abi",
+   "userland/proof_abi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/prove_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz",
@@ -4230,9 +4351,20 @@
    "userland/capsule_prove/src/assemble/transcript_line.rs",
    "userland/capsule_prove/src/assemble/wipe.rs",
    "userland/capsule_prove/src/assemble/words.rs",
+   "userland/capsule_prove/src/job/bound.rs",
+   "userland/capsule_prove/src/job/status.rs",
+   "userland/capsule_prove/src/market/buckets.rs",
+   "userland/capsule_prove/src/market/check.rs",
+   "userland/capsule_prove/src/market/container.rs",
+   "userland/capsule_prove/src/market/delivery.rs",
+   "userland/capsule_prove/src/market/device.rs",
+   "userland/capsule_prove/src/market/isolation.rs",
+   "userland/capsule_prove/src/market/sealed.rs",
+   "userland/isolation_stark",
    "userland/libc/src/boot_slots/record.rs",
    "userland/libc/src/enroll/frame.rs",
    "userland/libc/src/heap/span.rs",
+   "userland/nonos_proof_abi",
    "userland/prove_proofs"
   ],
   "md": [],
@@ -4319,6 +4451,7 @@
    "userland/nonos_route_link/src/direct_only.rs",
    "userland/nonos_route_link/src/frame.rs",
    "userland/nonos_route_link/src/opening.rs",
+   "userland/nonos_route_link/src/patience.rs",
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_route_link/src/slice.rs",
@@ -4451,6 +4584,41 @@
    "userland/nonos_blk_client/src/status_text",
    "userland/nonos_blk_client/src/status_text.rs",
    "userland/rtsx_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/seal_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "src/arch/x86_64/syscall/manager/entry.rs",
+   "src/process/foreign/frame.rs",
+   "src/process/foreign/registry.rs",
+   "src/process/foreign/seal/absorb.rs",
+   "src/process/foreign/seal/family.rs",
+   "src/process/foreign/seal/family_calls.rs",
+   "src/process/foreign/seal/family_new.rs",
+   "src/process/foreign/seal/family_rows.rs",
+   "src/process/foreign/seal/finish.rs",
+   "src/process/foreign/seal/hist.rs",
+   "src/process/foreign/seal/live.rs",
+   "src/process/foreign/seal/meas.rs",
+   "src/process/foreign/seal/record.rs",
+   "src/process/foreign/seal/sealed.rs",
+   "src/process/foreign/seal/snapshot.rs",
+   "src/process/foreign/seal/table.rs",
+   "src/process/foreign/seal/trace.rs",
+   "src/process/foreign/seal/wipe.rs",
+   "src/process/foreign/trap_table.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "userland/libc/src/foreign_frame.rs",
+   "userland/nonos_proof_abi",
+   "userland/seal_proofs"
   ],
   "md": [],
   "signed": []
@@ -4741,10 +4909,14 @@
   ],
   "include": [
    ".cargo",
+   "userland/capsule_audio_player/src/fetch/io.rs",
    "userland/capsule_crypto/src/protocol",
    "userland/capsule_crypto/src/server/dispatch.rs",
    "userland/capsule_crypto/src/server/handlers",
    "userland/capsule_crypto/src/server/wipe.rs",
+   "userland/capsule_prove_fetch/src/io.rs",
+   "userland/nonos_route_link/src/patience.rs",
+   "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_tls/src/aes_gcm",
    "userland/nonos_tls/src/alert.rs",
    "userland/nonos_tls/src/app_keys.rs",
@@ -4770,6 +4942,7 @@
    "userland/nonos_tls/src/cert_verify_msg",
    "userland/nonos_tls/src/cert_window.rs",
    "userland/nonos_tls/src/chacha_record.rs",
+   "userland/nonos_tls/src/chain_anchor.rs",
    "userland/nonos_tls/src/chain_walk.rs",
    "userland/nonos_tls/src/client_finished.rs",
    "userland/nonos_tls/src/client_flight.rs",
@@ -4811,7 +4984,9 @@
    "userland/nonos_tls/src/roots",
    "userland/nonos_tls/src/rtc_now.rs",
    "userland/nonos_tls/src/scan_messages.rs",
+   "userland/nonos_tls/src/scan_request.rs",
    "userland/nonos_tls/src/scan_server_finished.rs",
+   "userland/nonos_tls/src/scan_state.rs",
    "userland/nonos_tls/src/schedule.rs",
    "userland/nonos_tls/src/server_complete",
    "userland/nonos_tls/src/server_context.rs",
@@ -4827,6 +5002,7 @@
    "userland/nonos_tls/src/verify_p256.rs",
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/nonos_tls/src/verify_rsa_checked.rs",
    "userland/tls_proofs"
   ],
   "md": [],
@@ -5409,6 +5585,15 @@
    "userland/capsule_driver_xhci/src/trb",
    "userland/nonos_devmodel",
    "userland/xhci_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "verification/trusted_path_poc": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "verification/trusted_path_poc"
   ],
   "md": [],
   "signed": []

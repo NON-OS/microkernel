@@ -19,7 +19,7 @@
 
 use super::event::{self, Event};
 use super::log_line::{log_event, log_hidden};
-use super::log_ring::LOGS;
+use super::log_ring::{restart_log, LOGS};
 use super::regs;
 use super::units::{is_enforcing, units};
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
@@ -47,6 +47,9 @@ pub fn drain_events() {
             if event::code(raw) == 0 {
                 break;
             }
+            if event::code(raw) == event::IO_PAGE_FAULT {
+                crate::memory::iommu::note_fault(event::device_id(raw));
+            }
             if budget.admit() {
                 log_event(unit.base_pa(), raw);
             }
@@ -58,8 +61,7 @@ pub fn drain_events() {
         // to the unit; it maps nothing.
         unsafe { unit.write64(regs::EVENT_HEAD, regs::ring_offset(head)) };
         if unit.read64(regs::STATUS).unwrap_or(0) & regs::STATUS_EVENT_OVERFLOW != 0 {
-            // SAFETY: eK@nonos.systems - write one to clear the overflow bit.
-            unsafe { unit.write64(regs::STATUS, regs::STATUS_EVENT_OVERFLOW) };
+            restart_log(index, unit);
             log_hidden(0, true);
         }
     }

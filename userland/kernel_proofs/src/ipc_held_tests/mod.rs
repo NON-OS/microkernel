@@ -22,9 +22,14 @@
 
 #[path = "../../../../src/services/registry/held.rs"]
 mod held;
+#[path = "../../../../src/services/registry/addressed.rs"]
+mod registry_addressed;
 
+mod addressed;
+mod callers;
 mod cards;
 mod classified;
+mod clients;
 mod common;
 mod devices;
 mod gates;
