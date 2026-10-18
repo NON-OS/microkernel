@@ -22,6 +22,7 @@
 //! lost its state, ends it with that error. However it ends, every key and
 //! button still down goes up.
 
+use super::answered::OFF;
 use super::end::End;
 use super::env::Env;
 use super::session::Session;
@@ -45,6 +46,11 @@ fn turns<T: Transport, E: Env>(
     loop {
         if let Some(end) = s.end {
             return Ok(end);
+        }
+        // Turned off: end the link before this turn sends anything (E-72).
+        if env.radio_off() {
+            s.give_up(OFF);
+            return Ok(End::GaveUp(OFF));
         }
         let now = env.now_ms();
         env.tick(now);
