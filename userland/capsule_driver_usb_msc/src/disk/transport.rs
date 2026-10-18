@@ -31,14 +31,3 @@ pub fn command(
         super::bot::command(disk, state, cdb, data)
     }
 }
-
-/// The transport brought back after a command that failed: BOT's reset
-/// recovery. UAS has no class reset, and its one command in flight left
-/// nothing armed once its exchange ended, so there is nothing to undo.
-pub fn recover(disk: &Disk) -> Result<(), i32> {
-    if disk.uas {
-        Ok(())
-    } else {
-        super::recover::reset_recovery(disk)
-    }
-}

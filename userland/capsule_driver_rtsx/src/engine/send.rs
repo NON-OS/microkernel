@@ -21,18 +21,25 @@ use super::wait::wait;
 use crate::error::{Result, RtsxError};
 use crate::regs::host::{BIPR, HCBAR, HCBCTLR};
 use crate::setup::Driver;
-use crate::wire::{hcbctlr, CmdBuf};
+use crate::wire::{classify, hcbctlr, CmdBuf, Outcome};
 
 /// Copy the entries into the DMA buffer, clear what BIPR still holds from
-/// the last run, and start the chip on them.
+/// the last run, and start the chip on them. Nothing starts on a reader
+/// gone from the bus, or for a card that left the slot since the last run:
+/// the change stays latched for the slot's watcher.
 pub fn start(drv: &Driver, buf: &CmdBuf) -> Result<()> {
     if buf.overflowed() {
         return Err(RtsxError::CmdOverflow);
     }
+    let pending = drv.regs.r32(BIPR);
+    match classify(pending, drv.card_on) {
+        Outcome::Gone => return Err(RtsxError::Gone),
+        Outcome::Removed => return Err(RtsxError::Removed),
+        _ => {}
+    }
     for (i, &word) in buf.words().iter().enumerate() {
         drv.resv.write_u32(i as u64 * 4, word);
     }
-    let pending = drv.regs.r32(BIPR);
     drv.regs.w32(BIPR, pending);
     drv.regs.w32(HCBAR, drv.resv.device_addr());
     drv.regs.w32(HCBCTLR, hcbctlr(buf.words().len()));

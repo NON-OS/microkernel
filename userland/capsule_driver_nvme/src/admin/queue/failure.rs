@@ -22,20 +22,25 @@ use crate::error::{reason, NvmeError};
 use crate::log::{emit, Line};
 
 impl AdminQueue {
-    /// Say on the console which admin command failed and how. A failed
-    /// command's completion is the entry the wait just consumed, the slot
-    /// behind the head, and it stays in the ring until the controller laps
-    /// it, so its status is read back from there.
+    /// The completion the last wait consumed: the slot behind the head,
+    /// which stays in the ring until the controller laps it, so its status
+    /// and DW0 are read back from there.
+    pub(super) fn last(&self) -> Completion {
+        let entries = self.cursor.entries;
+        let slot = (self.cursor.head + entries - 1) % entries;
+        let at = self.cq.user_va() + slot as u64 * core::mem::size_of::<Completion>() as u64;
+        // SAFETY: `slot` is below ADMIN_ENTRIES, which the completion queue's
+        // DMA region holds (the assert in wait_ms).
+        unsafe { read_volatile(at as *const Completion) }
+    }
+
+    /// Say on the console which admin command failed and how.
     pub(super) fn say_failed(&self, what: &str, e: NvmeError) {
         let mut line = Line::new();
         line.text(b"admin ").text(what.as_bytes());
         match e {
             NvmeError::AdminCommandFailed => {
-                let entries = self.cursor.entries;
-                let slot = (self.cursor.head + entries - 1) % entries;
-                let size = core::mem::size_of::<Completion>() as u64;
-                let at = self.cq.user_va() + slot as u64 * size;
-                let c = unsafe { read_volatile(at as *const Completion) };
+                let c = self.last();
                 line.text(b" failed: sct ")
                     .hex(c.status_code_type() as u64, 1)
                     .text(b" sc ")

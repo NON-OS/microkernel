@@ -31,6 +31,10 @@ pub fn send(driver: &mut Driver, frame: &[u8]) -> Result<(), &'static str> {
     let idx = driver.tx_cur % TX_SLOT_COUNT;
     let va = driver.tx_user_va + (idx * TX_SLOT_BYTES) as u64;
     let wire = frame.len().max(MIN_WIRE_FRAME);
+    // SAFETY: `idx` is below TX_SLOT_COUNT, so `va` starts a TX_SLOT_BYTES
+    // slot of the transmit grant, which setup::dma holds to TX_BUF_BYTES at
+    // least; the handler held the frame to MAX_ETHERNET_FRAME, and `wire` to
+    // at most that or MIN_WIRE_FRAME, both shorter than a slot.
     unsafe {
         let dst = va as *mut u8;
         core::ptr::copy_nonoverlapping(frame.as_ptr(), dst, frame.len());

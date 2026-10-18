@@ -23,7 +23,9 @@ mod model;
 mod standard;
 mod state;
 mod status;
+mod walk;
 
 pub use classes::{root_hub, Bind};
 pub use model::{Device, HubModel, Kind};
 pub use state::Fake;
+pub use walk::walk;

@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bring-up, in order: reset, station address, receive address filter
-//! and multicast table, receive ring, transmit ring. The driver's ring state
-//! is programmed in place; the server loop reads it afterwards.
+//! The bring-up, in order: reset, station address, then `start`: receive
+//! address filter and multicast table, both rings, Bus Master, the engines.
+//! The driver's ring state is programmed in place; the server loop reads it
+//! afterwards.
 
 use crate::constants::regs::{REG_CTRL, REG_STATUS};
 use crate::report;
 use crate::setup::Driver;
 
-use super::{mac_filter, reset, rx_setup, station_address, tx_setup};
+use super::{reset, start, station_address};
 
 pub fn bring_up(driver: &mut Driver) -> Result<(), &'static str> {
     reset::run(&driver.regs)?;
@@ -31,11 +32,8 @@ pub fn bring_up(driver: &mut Driver) -> Result<(), &'static str> {
      * card to every network it ever joins, which outlives a system that keeps
      * nothing on disk.
      */
-    let mac = station_address::draw()?;
-    driver.mac = mac;
-    mac_filter::program(&driver.regs, &mac);
-    rx_setup::program(&driver.regs, &driver.rx, driver.rx_ring_device_addr);
-    tx_setup::program(&driver.regs, &driver.tx, driver.tx_ring_device_addr);
+    driver.mac = station_address::draw()?;
+    start::run(driver)?;
     // SAFETY: `driver.regs` carries the broker MmioMap base for BAR0; CTRL
     // and STATUS are 32-bit aligned offsets in it.
     let (ctrl, status) = unsafe { (driver.regs.r32(REG_CTRL), driver.regs.r32(REG_STATUS)) };

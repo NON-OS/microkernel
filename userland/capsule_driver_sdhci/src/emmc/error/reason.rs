@@ -27,6 +27,7 @@ pub const fn reason(e: EmmcError) -> &'static str {
         EmmcError::NotEmbedded => "emmc: host slot is not embedded",
         EmmcError::NoAdma => "emmc: host has no ADMA2",
         EmmcError::HostReset => "emmc: host reset did not finish",
+        EmmcError::HostBusy => "emmc: host still busy after its reset",
         EmmcError::ClockUnstable => "emmc: host clock never stable",
         EmmcError::NoPower => "emmc: bus power did not stay on",
         EmmcError::NoVoltage => "emmc: no voltage shared by host and card",

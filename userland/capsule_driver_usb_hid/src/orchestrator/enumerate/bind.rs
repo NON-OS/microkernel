@@ -17,6 +17,7 @@
 //! Addressing one device on a root port, on a slot the caller gives back
 //! if nothing binds.
 
+use crate::orchestrator::place::Place;
 use crate::xhci::{address_device, PortSnapshot, XhciClientError};
 
 use super::classify::classify;
@@ -36,5 +37,5 @@ pub(super) fn bind(xhci_port: u32, slot: u8, snap: PortSnapshot, devs: &mut Devi
     {
         return Outcome::Failed;
     }
-    classify(xhci_port, slot, snap.port_id, &mut devs.eps)
+    classify(xhci_port, slot, Place::root(snap.port_id, dev.speed), devs)
 }

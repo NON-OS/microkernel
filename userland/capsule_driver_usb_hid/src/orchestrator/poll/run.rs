@@ -14,23 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
+use nonos_libc::mk_uptime_ms;
+
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::pump_once;
 use crate::state::State;
 use crate::xhci::Hosts;
 
-use super::constants::{PAD_REPORT_MAX, RESCAN_INTERVAL};
+use super::constants::PAD_REPORT_MAX;
 use super::drain_endpoints::drain_endpoints;
 use super::held::Held;
+use super::pace::{inbox_wait_ms, Pace};
 use super::refresh_endpoints::refresh_endpoints;
+use super::rescan::Rescan;
 
 pub fn run(mut hosts: Hosts<Held>) -> ! {
     refresh_endpoints(&mut hosts);
+    let mut ports = Rescan::new(now_ms());
     let mut state = State::new();
     let mut buf = [0u8; PAD_REPORT_MAX];
     let mut rx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
-    let mut idle_polls = 0u32;
     let mut announced = 0usize;
     loop {
         let mut bound = 0;
@@ -40,25 +46,31 @@ pub fn run(mut hosts: Hosts<Held>) -> ! {
             let _ = nonos_libc::mk_debug(MSG.as_ptr(), MSG.len());
         }
         announced = bound;
-        let _ = pump_once(&mut state, &mut rx, &mut tx);
+        let now = now_ms();
         let mut drained = false;
-        hosts.each(|_, held| drained |= drain_endpoints(&mut state, &mut held.devs.eps, &mut buf));
-        // A held key repeats from here: the keyboard reports only changes.
-        state.keyboard.tick(nonos_libc::mk_uptime_ms().max(0) as u64);
+        hosts.each(|_, held| {
+            drained |= drain_endpoints(&mut state, &mut held.devs.eps, &mut buf, now)
+        });
         if drained {
-            idle_polls = 0;
-        } else {
-            idle_polls = idle_polls.saturating_add(1);
+            ports.heard(now);
         }
-        /*
-         * Every port is looked at again while the devices are quiet, not
-         * only until the first one binds: a keyboard or mouse plugged in
-         * after another is bound, or pulled out and plugged back, was
-         * otherwise never bound.
-         */
-        if idle_polls >= RESCAN_INTERVAL {
+        // A held key repeats from here: the keyboard reports only changes.
+        hosts.each(|_, held| held.devs.eps.iter_mut().for_each(|ep| ep.dev.tick(now)));
+        // Every port is looked at again while the devices are quiet, not only
+        // until the first one binds: a keyboard or mouse plugged in after
+        // another is bound, or pulled out and plugged back, was otherwise
+        // never bound.
+        if ports.rescan(now) {
             refresh_endpoints(&mut hosts);
-            idle_polls = 0;
         }
+        // Asleep on the inbox until the first endpoint is due to be asked.
+        let mut paces = Vec::<Pace>::new();
+        hosts.each(|_, held| paces.extend(held.devs.eps.iter().map(|ep| ep.pace)));
+        let wait = inbox_wait_ms(now_ms(), paces.iter());
+        let _ = pump_once(&mut state, &mut rx, &mut tx, wait);
     }
+}
+
+fn now_ms() -> u64 {
+    mk_uptime_ms().max(0) as u64
 }

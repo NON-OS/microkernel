@@ -32,6 +32,8 @@ extern crate alloc;
 #[path = "../../capsule_driver_i2c_pci/src/constants/mod.rs"]
 pub mod constants;
 
+pub mod discover;
+
 #[path = "../../capsule_driver_i2c_pci/src/regs.rs"]
 pub mod regs;
 
@@ -49,27 +51,12 @@ pub mod driver;
 pub mod gpio0_wire;
 use gpio0_wire as gpio0;
 
-#[cfg(test)]
-mod clock_tests;
-#[cfg(test)]
-mod enable_state_tests;
-#[cfg(test)]
-mod gpio0_tests;
-#[cfg(test)]
-mod lpss_tests;
-#[cfg(test)]
-mod mmio_tests;
+#[path = "../../capsule_driver_i2c_pci/src/setup/pci.rs"]
+pub mod pci;
+
 #[cfg(test)]
 mod model;
 #[cfg(test)]
-mod request_refusal_tests;
+mod setup;
 #[cfg(test)]
-mod reset_tests;
-#[cfg(test)]
-mod scl_count_tests;
-#[cfg(test)]
-mod scl_tests;
-#[cfg(test)]
-mod target_tests;
-#[cfg(test)]
-mod unlisted_tests;
+mod tests;

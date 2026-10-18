@@ -33,12 +33,11 @@ pub(super) fn run(
         .resources_mut(slot, max_slots)
         .and_then(|r| r.pair_mut(second))
         .ok_or(XhciError::ControllerUnsupported)?;
-    let buf = pipes.buf.as_mut_ptr::<u8>();
-    /*
-     * SAFETY: `buf` is the slot's own DMA page of BULK_MAX bytes, and no
-     * transfer is outstanding on it while this one is set up or read back.
-     */
-    unsafe { core::ptr::copy_nonoverlapping(data.as_ptr(), buf, data.len()) };
+    // No transfer is outstanding on the slot's page while this one is set
+    // up or read back.
+    if !pipes.buf.copy_from(data) {
+        return Err(XhciError::ControllerUnsupported);
+    }
     let dir_in = into.is_some();
     let evt = &mut ctx.driver.event_ring;
     let moved = match stream {
@@ -47,10 +46,7 @@ pub(super) fn run(
     };
     if let Some(out) = into {
         let n = (moved as usize).min(out.len());
-        /*
-         * SAFETY: `n` is at most what came in, which is at most BULK_MAX.
-         */
-        unsafe { core::ptr::copy_nonoverlapping(buf, out.as_mut_ptr(), n) };
+        pipes.buf.copy_to(&mut out[..n]);
     }
     Ok(moved)
 }

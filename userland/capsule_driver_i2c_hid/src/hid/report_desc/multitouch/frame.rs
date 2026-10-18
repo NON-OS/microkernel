@@ -18,8 +18,9 @@
 //! many fingers the whole frame has, in hybrid mode only on its first
 //! report) and the clickpad button.
 
-use super::super::layout::Field;
+use super::super::decode::{holds, position};
 use super::super::read_bits::read_bits;
+use super::super::Field;
 use super::slots::{Slots, MAX_SLOTS};
 
 #[derive(Clone, Copy, Default, PartialEq, Eq, Debug)]
@@ -44,9 +45,12 @@ pub struct Frame {
 /// The report `body` (after its report id) read through `slots`; `None`
 /// when it is too short for every field, which a torn read is.
 pub fn decode_frame(body: &[u8], slots: &Slots, count: Field, button: Field) -> Option<Frame> {
+    let mut need = [count; MAX_SLOTS * 5 + 2];
     let used = slots.list[..slots.n].iter().flat_map(|s| [s.tip, s.confidence, s.id, s.x, s.y]);
-    let need = used.chain([count, button]).filter(|f| f.present());
-    if need.map(|f| f.bit_offset + f.bit_size).max().unwrap_or(0) > body.len() as u32 * 8 {
+    for (n, f) in need.iter_mut().zip(used.chain([button])) {
+        *n = f;
+    }
+    if !holds(body, &need) {
         return None;
     }
     let read = |f: Field| read_bits(body, f.bit_offset, f.bit_size);
@@ -56,8 +60,8 @@ pub fn decode_frame(body: &[u8], slots: &Slots, count: Field, button: Field) -> 
     for (t, s) in frame.touches.iter_mut().zip(&slots.list[..slots.n]) {
         *t = Touch {
             id: read(s.id),
-            x: read(s.x),
-            y: read(s.y),
+            x: position(body, &s.x).0,
+            y: position(body, &s.y).0,
             tip: read(s.tip) != 0,
             confidence: !s.confidence.present() || read(s.confidence) != 0,
         };

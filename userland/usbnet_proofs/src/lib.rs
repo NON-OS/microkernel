@@ -24,13 +24,17 @@ mod hosts_first;
 pub mod nic;
 #[path = "../../nonos_usbnet/src/nnet/mod.rs"]
 pub mod nnet;
-/// The port book; the scanner around it calls driver.xhci0.
+#[path = "../../nonos_usbnet/src/run/mod.rs"]
+pub mod run;
+#[path = "../../nonos_usbnet/src/say/mod.rs"]
 pub mod say;
+#[path = "../../nonos_usbnet/src/scan/mod.rs"]
 pub mod scan;
 #[path = "../../nonos_usbnet/src/setup.rs"]
 pub mod setup;
-/// The constants of the xHCI wire the pure modules name.
-#[path = "../../nonos_usbnet/src/xhci/wire.rs"]
+#[path = "../../nonos_usbnet/src/station.rs"]
+pub mod station;
+#[path = "../../nonos_usbnet/src/xhci/mod.rs"]
 pub mod xhci;
 
 /// The hub's status endpoint reader, swept with the same configurations.
@@ -50,15 +54,24 @@ pub use bus::{Bus, Notify, Pipes};
 pub use found::Found;
 pub use nic::Nic;
 pub use setup::Setup;
+pub use station::{Station, Taken};
 
 #[cfg(test)]
 mod batch_tests;
 #[cfg(test)]
 mod book_tests;
 #[cfg(test)]
+mod changing_tests;
+#[cfg(test)]
+mod contract_tests;
+#[cfg(test)]
+mod desc_fuzz_tests;
+#[cfg(test)]
 mod desc_tests;
 #[cfg(test)]
-mod changing_tests;
+mod fake_nic;
+#[cfg(test)]
+mod fake_xhci;
 #[cfg(test)]
 mod found_tests;
 #[cfg(test)]
@@ -68,12 +81,24 @@ mod hosts_model;
 #[cfg(test)]
 mod hosts_tests;
 #[cfg(test)]
+mod manifest_tests;
+#[cfg(test)]
 mod nnet_tests;
 #[cfg(test)]
 mod reader_sweep_tests;
+#[cfg(test)]
+mod say_tests;
+#[cfg(test)]
+mod scan_tests;
+#[cfg(test)]
+mod station_tests;
 #[cfg(test)]
 mod stats_tests;
 #[cfg(test)]
 mod total_sweep_tests;
 #[cfg(test)]
 mod walk_sweep_tests;
+#[cfg(test)]
+mod xhci_client_tests;
+#[cfg(test)]
+mod xhci_count_tests;

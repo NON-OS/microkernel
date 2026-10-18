@@ -25,13 +25,17 @@
 //! on its bus. Nothing between the driver's wire encoder and the pad's
 //! register file is a stand-in.
 //!
-//! The server loop and the diagnostics op table are not included: they are
-//! the loop around these functions, and the tests call the functions.
+//! The server loop and its op table are not included: they are the loop
+//! around these functions, and the tests call the functions.
 
 extern crate alloc;
 
 #[path = "../../capsule_driver_i2c_hid/src/diag.rs"]
 pub mod diag;
+/// What the serving loop does between two waits on its inbox: the pace of
+/// the reads, the interrupt line, recovery after a reset.
+#[path = "../../capsule_driver_i2c_hid/src/drive/mod.rs"]
+pub mod drive;
 // The input_mode files again, mounted as HID over SPI mounts them.
 #[cfg(test)]
 #[allow(clippy::duplicate_mod)]
@@ -46,7 +50,7 @@ pub mod input;
 /// passes before dispatch, and the reply encoder a refusal is answered with.
 #[path = "../../capsule_driver_i2c_hid/src/protocol/mod.rs"]
 pub mod protocol;
-#[path = "../../capsule_driver_i2c_hid/src/setup.rs"]
+#[path = "../../capsule_driver_i2c_hid/src/setup/mod.rs"]
 pub mod setup;
 #[path = "../../capsule_driver_i2c_hid/src/state/mod.rs"]
 pub mod state;

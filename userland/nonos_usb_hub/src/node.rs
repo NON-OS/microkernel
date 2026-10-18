@@ -16,11 +16,12 @@
 
 //! A hub this driver configured, and what it keeps for each of its ports.
 
+use crate::bringup::Bringup;
 use crate::descriptor::MAX_HUB_PORTS;
 use crate::place::Place;
 
 const PORTS: usize = MAX_HUB_PORTS as usize;
-/// Tries of one port that come to nothing before it is left alone.
+/// Tries of one root port that come to nothing before it is left alone.
 pub const TRIES: u8 = 3;
 
 pub struct Hub {
@@ -30,12 +31,17 @@ pub struct Hub {
     /// Per port, from port 1: the slot kept for the device there, 0 for
     /// none. A device that bound nothing has its slot given back.
     pub child: [u8; PORTS],
-    /// Per port: the tries that came to nothing since it was last empty.
-    pub tries: [u8; PORTS],
+    /// Per port: how far its device is brought up, and how often it was
+    /// tried.
+    pub bring: [Bringup; PORTS],
+    /// Its ports are first looked at from here, once their power is good
+    /// (bPwrOn2PwrGood after PORT_POWER), all of them; 0 once they were.
+    pub ready_ms: u64,
 }
 
 impl Hub {
     pub fn new(slot: u8, place: Place, ports: u8) -> Self {
-        Self { slot, place, ports: ports.min(MAX_HUB_PORTS), child: [0; PORTS], tries: [0; PORTS] }
+        let (child, bring) = ([0; PORTS], [Bringup::new(); PORTS]);
+        Self { slot, place, ports: ports.min(MAX_HUB_PORTS), child, bring, ready_ms: 0 }
     }
 }

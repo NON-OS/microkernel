@@ -42,7 +42,7 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(n) => send_prefix(tx, req, [n as u8, (n >> 8) as u8, 0, 0]),
         Err(crate::error::XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(e) => {
-            recover_after(ctx, slot, dci, e);
+            recover_after(ctx, slot, dci, e, None);
             reply_with_status(tx, req, E_IO)
         }
     }

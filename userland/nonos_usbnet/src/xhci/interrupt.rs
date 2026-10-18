@@ -23,7 +23,8 @@ use crate::bus::Notify;
 
 const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 const OP_INTERRUPT_IN: u16 = 0x000E;
-/// The most one look reads: the host's INTERRUPT_IN_MAX.
+/// The most one look takes. The host arms a report at the endpoint's whole
+/// payload; a notice longer than this is refused below, never cut.
 pub const NOTIFY_MAX: usize = 64;
 
 pub fn configure_interrupt(xhci: u32, slot: u8, ep: Notify) -> Result<u8, i32> {

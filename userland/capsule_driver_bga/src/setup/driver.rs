@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::surface::Shadow;
-use crate::dispi::Mode;
-use crate::gfx::Screen;
-use crate::handles::Claim;
+use super::surface::Surface;
+use crate::dispi::Span;
+use crate::handles::BrokerHandles;
+use crate::regs::Regs;
 
-/// Everything a served adapter holds. Field order is drop order: the shadow
-/// is released before the claim that took the VRAM mapping goes. The claim
-/// is held only for that drop, which releases the adapter.
+/// The adapter, driven. Fields drop in order: the surface is unmapped, then
+/// the handles write the firmware's DISPI state back, give up both mappings
+/// and release the claim last.
 pub struct Driver {
-    pub shadow: Shadow,
-    pub _claim: Claim,
-    pub fb_va: u64,
-    pub mode: Mode,
-    pub screen: Screen,
+    pub surface: Surface,
+    pub _handles: BrokerHandles,
+    pub regs: Regs,
+    /// The mode's pixels in the framebuffer the adapter scans out.
+    pub fb: Span,
+    pub width: u16,
+    pub height: u16,
+    pub stride: u32,
+    /// The compositor the primary surface was last handed to; 0 until it
+    /// asks.
+    pub owner_pid: u32,
 }

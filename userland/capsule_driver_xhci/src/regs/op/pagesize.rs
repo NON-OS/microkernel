@@ -28,7 +28,9 @@ const PAGESIZE: u64 = 0x08;
 pub const MAX_PAGE_BYTES: u64 = 32 * 1024;
 
 pub fn pagesize_read(op_base: u64) -> u32 {
-    mmio_read32(op_base + PAGESIZE)
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_read32(op_base + PAGESIZE) }
 }
 
 /// The page size in bytes the register names, the smallest when several

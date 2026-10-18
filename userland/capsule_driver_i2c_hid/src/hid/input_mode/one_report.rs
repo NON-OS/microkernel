@@ -17,34 +17,43 @@
 //! One feature report: read, changed where a target field is wrong, and
 //! written back only when a bit changed.
 
+use super::configure::MODE;
+use super::configured::Configured;
 use super::fallback::from_descriptor;
 use super::port::{FeaturePort, REPORT_MAX};
 use super::set_bits::set_bits;
 use crate::hid::Field;
 
 // Read-modify-write one feature report: apply every target field that lives
-// in it, write back only when a bit actually changed.
+// in it, write back only when a bit actually changed, and say in `c` what
+// its Input Mode field read back as and whether the write took. None when
+// there is nothing to write (no command register, a report too long to
+// build).
 pub(super) fn configure_one_report(
     port: &impl FeaturePort,
     id: u8,
     targets: &[(Field, u8, u32); 3],
-) -> bool {
+    c: &mut Configured,
+) -> Option<()> {
+    if !port.reaches(id) {
+        return None;
+    }
     let mut report = [0u8; REPORT_MAX];
     let mut report_len = port.get(id, &mut report);
-    let mut changed = false;
-    if report_len < 2 {
-        let Some(len) = from_descriptor(id, targets, &mut report) else { return false };
-        report_len = len;
-        changed = true;
+    let read_back = report_len >= 2;
+    let mut changed = !read_back;
+    if !read_back {
+        report_len = from_descriptor(id, targets, &mut report)?;
     }
-    for (field, field_id, value) in targets.iter() {
+    for (i, (field, field_id, value)) in targets.iter().enumerate() {
         if *field_id == id && field.present() {
-            changed |=
-                set_bits(&mut report[1..report_len], field.bit_offset, field.bit_size, *value);
+            let body = &mut report[1..report_len];
+            let flipped = set_bits(body, field.bit_offset, field.bit_size, *value);
+            changed |= flipped;
+            c.mode_lost |= i == MODE && read_back && flipped;
+            c.mode_unread |= i == MODE && !read_back;
         }
     }
-    if !changed {
-        return true;
-    }
-    port.set(&report[..report_len])
+    c.refused |= changed && !port.set(&report[..report_len]);
+    Some(())
 }
