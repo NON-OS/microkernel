@@ -190,6 +190,8 @@ mod inbox_name_tests;
 #[cfg(test)]
 mod ipc_held_tests;
 #[cfg(test)]
+mod irq_flag_tests;
+#[cfg(test)]
 mod ipc_peers_tests;
 #[cfg(test)]
 mod service_policy_tests;

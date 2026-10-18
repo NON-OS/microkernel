@@ -55,9 +55,8 @@ pub fn shutdown() -> AcpiResult<()> {
     let s5 = s5.ok_or(AcpiError::PowerStateNotSupported)?;
     let types = SleepTypes { a: s5.slp_typ_a, b: s5.slp_typ_b };
 
-    // SAFETY: CLI only masks maskable interrupts on this CPU; nothing past
-    // this point expects to be interrupted.
-    unsafe { core::arch::asm!("cli", options(nomem, nostack)) };
+    // Nothing past this point expects to be interrupted.
+    crate::arch::x86_64::interrupt::cli();
 
     let mut bus = PortBus;
     for _ in 0..2 {
