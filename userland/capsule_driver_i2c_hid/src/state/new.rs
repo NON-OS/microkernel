@@ -16,7 +16,12 @@
 
 //! A fresh state for a pad not yet found, and whether it has been.
 
-use super::{FrameRepeat, State};
+use alloc::vec;
+
+use nonos_libc::Deadline;
+
+use super::{FrameRepeat, LastRead, State, FRAME_MAX};
+use crate::drive::{Doorbell, Pace, Recover};
 use crate::hid::{MouseLayout, Multitouch, TouchLayout};
 use crate::input::TouchGesture;
 
@@ -36,20 +41,19 @@ impl State {
             input_reports: 0,
             post_failures: 0,
             woke: false,
-            touch_decoded: false,
-            polls_since_touch: 0,
-            doorbell_proven: false,
+            frame: vec![0; FRAME_MAX],
+            last_read: LastRead::default(),
             repeat: FrameRepeat::default(),
-            frame_dumps: 0,
             touch_layout: TouchLayout::default(),
             mt: Multitouch::default(),
             mouse_layout: MouseLayout::default(),
             gesture: TouchGesture::default(),
-            doorbell_absent: false,
-            doorbell_failures: 0,
-            doorbell_misses: 0,
-            last_read_had_report: false,
-            said: false,
+            doorbell: Doorbell::default(),
+            pace: Pace::default(),
+            recover: Recover::default(),
+            done: false,
+            probe_window: Deadline::at(0),
+            said_retrying: false,
         }
     }
 

@@ -20,6 +20,7 @@ use super::super::usb_hosts::USB_HOSTS;
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
+    ("driver.bt_usb0", BLUETOOTH_PANELS),
     ("driver.ps2_kbd0", KERNEL_ONLY),
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),
@@ -44,19 +45,16 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     (USB_HOSTS[3], USB_CLIENTS),
 ];
 
-/// The kernel polls the keyboards and pointers, reads the random source and
-/// serves USB storage itself, and the hub walker answers it alone; no
-/// capsule has reason to reach them. The SMBus
-/// host has no driver above it yet: a raw transfer reaches any device on the
-/// bus, so it is opened to one when one exists. A smart card signs and
-/// decrypts for whoever reaches its reader, and a security key signs for
-/// whoever reaches it once its user touches it: the owner names who.
-/// The SPI host moves raw bytes to any device on its bus: only the HID
-/// driver above it reaches it, and that driver posts input, serving no one.
+/// The kernel polls the keyboards and pointers, reads the random source and serves USB storage
+/// itself, and the hub walker answers it alone; no capsule has reason to reach them. The SMBus host
+/// has no driver above it yet: a raw transfer reaches any device on the bus, so it is opened to one
+/// when one exists. A smart card signs and decrypts for whoever reaches its reader, and a security
+/// key signs for whoever reaches it once its user touches it: the owner names who. The SPI host
+/// moves raw bytes to any device on its bus: only the HID driver above it reaches it, and that
+/// driver posts input, serving no one.
 const KERNEL_ONLY: &[&str] = &[];
 
-/// The hub walker and the class drivers above every USB host (usb_hosts.rs),
-/// each searching the ports, root and virtual, for its own kind of device.
+/// The hub walker and class drivers above every USB host (usb_hosts.rs), each finding its own kind.
 const USB_CLIENTS: &[&str] = &[
     "driver.usb_hub0",
     "driver.usb_hid0",
@@ -71,3 +69,8 @@ const USB_CLIENTS: &[&str] = &[
     "driver.cdc_ncm0",
     "driver.rndis0",
 ];
+
+/// Bluetooth answers Settings, which scans, pairs and forgets in any window, and the shell, which
+/// shows link and battery; the capsule checks each op again (letter E-25).
+const BLUETOOTH_PANELS: &[&str] =
+    &["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"];

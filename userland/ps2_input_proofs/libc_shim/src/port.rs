@@ -60,7 +60,8 @@ pub fn mk_pio_read(_grant_id: u64, offset: u16, _width: u8, out: *mut u32) -> i6
 }
 
 pub fn mk_pio_write(_grant_id: u64, offset: u16, _width: u8, value: u32) -> i64 {
-    let taken = PORT.with(|p| p.borrow_mut().as_mut().is_some_and(|port| port.write(offset, value as u8)));
+    let taken =
+        PORT.with(|p| p.borrow_mut().as_mut().is_some_and(|port| port.write(offset, value as u8)));
     if taken {
         0
     } else {

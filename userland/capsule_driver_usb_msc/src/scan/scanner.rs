@@ -14,50 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Looking for the device. Nothing tells the kernel that a USB
-//! mass-storage device is plugged in until the controller driver has
-//! enumerated its ports, so this driver starts wherever an xHCI controller
-//! is and decides here, within a bounded window, whether it has a device.
-//!
-//! The window ran from this driver's start. On a laptop whose controller
-//! takes seconds to come up, and a stick that takes seconds more to say it
-//! is ready, it could close before the stick was ever asked, and the boot
-//! went on with no store. It now runs from when the controller is found,
-//! and once it closes, ports are still looked at every few seconds: a port
-//! newly connected, or one that failed, is tried again, so a late stick is
-//! still taken.
+//! Looking for the device and keeping it, one bounded step at a time between
+//! requests (server/serve.rs): the probe that ran inline held every request
+//! about thirty-five seconds, every few seconds, for an empty card reader.
 
-use nonos_libc::Deadline;
-
+use super::asking::Asking;
+use super::identity::Identity;
+use super::medium::Medium;
+use super::ports::Ports;
 use super::report::Report;
+use super::searching::XHCI_WAIT_MS;
+use crate::clock::Deadline;
 use crate::xhci::{hosts, Hosts};
 
-/// How long a USB host is waited for before no device is assumed; how
-/// long after the first is found a device is looked for; how long a port is given
-/// to report its device; how often ports are looked at after that.
-const XHCI_WAIT_MS: u64 = 30_000;
-pub(super) const WINDOW_MS: u64 = 10_000;
-pub(super) const SETTLE_MS: u64 = 1_500;
-pub const RESCAN_MS: u64 = 5_000;
-
 pub struct Scanner {
-    /// Every host, each with its root ports' tries.
-    pub(super) hosts: Hosts<[u8; 256]>,
-    /// How many hosts have registered.
+    /// Every USB host, fastest first, each with what its root ports showed;
+    /// how many have registered.
+    pub(super) hosts: Hosts<Ports>,
     pub(super) known: usize,
+    /// While the search lasts a block request is asked to come again.
+    pub(super) searching: bool,
     pub(super) window: Deadline,
-    pub(super) settle: Option<Deadline>,
-    /// What the last pass found, which the kernel asks for (OP_GET_STATE).
+    pub(super) settle: Deadline,
+    /// When the ports are next listed; whether the last listing left any open.
+    pub(super) look: Deadline,
+    pub(super) open: bool,
+    pub(super) asking: Option<Asking>,
+    /// The device served this boot, once there is one (`identity`); the
+    /// host and port it was let go on while it stays there (`release`).
+    pub(super) served: Option<Identity>,
+    pub(super) left_on: Option<(u32, u8)>,
+    /// Devices served after the first, and media served afresh (`asked`),
+    /// which the kernel reads.
+    pub rebinds: u32,
+    pub medium: Medium,
+    /// What the search last found, which the kernel asks for (OP_GET_STATE).
     pub report: Report,
 }
 
 impl Scanner {
     pub fn new() -> Self {
+        let wait = Deadline::after_ms(XHCI_WAIT_MS);
         Self {
-            hosts: hosts(|| [0; 256]),
+            hosts: hosts(Ports::new),
             known: 0,
-            window: Deadline::after_ms(XHCI_WAIT_MS),
-            settle: None,
+            searching: true,
+            window: wait,
+            settle: wait,
+            look: Deadline::after_ms(0),
+            open: false,
+            asking: None,
+            served: None,
+            left_on: None,
+            rebinds: 0,
+            medium: Medium::Scanning,
             report: Report::new(),
         }
     }

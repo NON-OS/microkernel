@@ -7,10 +7,10 @@ The tree held five USB network driver [capsules](../../overview/glossary.md#caps
 USB Ethernet adapters and USB tethering from a phone do not work in NONOS 0.9.2. Four facts in that release's code stopped them, and each is now addressed on this tree:
 
 2. The USB host driver did not serve their polled bulk IN, operation 0x0014 (`userland/nonos_usbnet/src/xhci/wire.rs`, `OP_BULK_IN_POLL`). It now keeps one IN transfer armed per slot on its own page and answers each look at once (`userland/capsule_driver_xhci/src/controller/bulk/poll.rs`, `poll_bulk_in`).
-3. The kernel held `driver.xhci0` to the USB keyboard, storage and audio drivers alone; the five are now on its list (`src/services/registry/held_table.rs`, `XHCI_CLIENTS`), and each is held to `net.core` and `net.l2` through the card table (`src/services/registry/nics.rs`, `NICS`).
+3. The kernel held `driver.xhci0` to the USB keyboard, storage and audio drivers alone; the three are now on its list (`src/services/registry/held_table.rs`, `XHCI_CLIENTS`), and each is held to `net.core` and `net.l2` through the card table (`src/services/registry/nics.rs`, `NICS`).
 4. The shared core answered operation 6, which `net.core` asks first as its receive batch, with its counters and status 0, so `net.core` would have taken the counters for frames ([the receive fault](README.md#the-receive-fault)). The counters are now on 7 and 6 is refused (`userland/nonos_usbnet/src/nnet/wire.rs`, `OP_STATS`).
 
-`net.core` tries the five after the PCI cards, in the kernel's card table order (`userland/capsule_net_core/src/setup/candidates.rs`, `candidate`). For a machine with no supported Ethernet port, see [Wi-Fi chips with no driver](../wifi/not-supported.md#what-to-use-instead) for what does work.
+`net.core` tries the three after the PCI cards, in the kernel's card table order (`userland/capsule_net_core/src/setup/candidates.rs`, `candidate`). For a machine with no supported Ethernet port, see [Wi-Fi chips with no driver](../wifi/not-supported.md#what-to-use-instead) for what does work.
 
 ## How the pieces fit
 
@@ -22,41 +22,26 @@ flowchart LR
   Class --> Core["net.core"]
 ```
 
-Each class capsule holds only its binding and its framing. The shared core `nonos_usbnet` holds the client side of `driver.xhci0`, the descriptor walk, the search for a device on the root ports and the NNET frame service that `net.core` speaks (`userland/nonos_usbnet/src/lib.rs:17-21`, `run`). No USB network capsule touches the controller: it holds no Driver, DeviceEnum, Mmio, Irq, Dma or Pio [capability](../../overview/glossary.md#capability-word).
+Each class capsule holds only its binding and its framing. The shared core `nonos_usbnet` holds the client side of every USB host, the descriptor walk, the search for a device on the hosts' root ports and the NNET frame service that `net.core` speaks (`userland/nonos_usbnet/src/lib.rs`, `run`). No USB network capsule touches the controller: it holds no Driver, DeviceEnum, Mmio, Irq, Dma or Pio [capability](../../overview/glossary.md#capability-word). What each capsule binds is on [its own page](usb-net-binding.md).
 
-## What each capsule would bind
-
-| Capsule | Service and port | Binds |
-|---|---|---|
-| `capsule_driver_cdc_ecm` | `driver.cdc_ecm0`, 4250 | a communications interface of subclass 0x06 with a Union and an Ethernet Networking descriptor |
-| `capsule_driver_cdc_ncm` | `driver.cdc_ncm0`, 4252 | a communications interface of subclass 0x0D, protocol 0, with the NCM descriptor |
-| `capsule_driver_rndis` | `driver.rndis0`, 4254 | three RNDIS control classes, listed below |
-| `capsule_driver_ax88179` | `driver.ax88179_0`, 4256 | quarantined on drivers/b: see below |
-| `capsule_driver_rtl8153` | `driver.rtl8153_0`, 4258 | quarantined on drivers/b: see below |
-
-- CDC-ECM: `find_ecm` takes the first communications interface of subclass 0x06 at alternate 0 whose Union it masters and names a CDC Data interface, with a 13-byte Ethernet Networking descriptor and a data alternate 1 holding exactly one bulk IN and one bulk OUT (`userland/capsule_driver_cdc_ecm/src/ecm/function.rs:49-65`, `find_ecm`; `union.rs`, `data.rs`). Before configuring it holds every interface of the configuration with driver.xhci0, and stops if another driver holds one (`claim.rs`). With the RTL8153 capsule quarantined, it binds 0bda:8153 and 17ef:721e in their ECM configuration like any other device. One Ethernet frame goes in each bulk transfer, with one padding byte when its length is a multiple of 64 or of the packet size (`userland/capsule_driver_cdc_ecm/src/ecm/frame.rs:22-36`, `padded_len`).
-- CDC-NCM: `find_ncm` needs subclass 0x0D, protocol 0, and both the Ethernet Networking and the NCM functional descriptors (`userland/capsule_driver_cdc_ncm/src/ncm/function.rs:26-64`, `find_ncm`).
-- RNDIS: the control interface must be CDC ACM with the vendor protocol (0x02, 0x02, 0xFF), the wireless controller class phones use for tethering (0xE0, 0x01, 0x03), or the miscellaneous RNDIS class (0xEF, 0x04, 0x01) (`userland/capsule_driver_rndis/src/rndis/function.rs:27-31`, `CONTROL_CLASSES`). A communications function that declares modem capabilities is a modem and is skipped (`userland/capsule_driver_rndis/src/rndis/function.rs:57-64`, `acm_capable`).
-- ASIX AX88179: quarantined on drivers/b (branch `quarantine/ax88179`). Its register map, values and bring-up were taken from another driver, and no public programming reference exists to rewrite it from (Decision 10).
+The ASIX AX88179 and Realtek RTL8153 capsules are quarantined (branches `quarantine/ax88179` and `quarantine/rtl8153`): their register maps, values and bring-up order were taken from another driver, and no public programming reference exists to rewrite them from (Decision 10). RTL8153 adapters are bound by the CDC-ECM capsule in their ECM configuration.
 
 ## Addresses and capabilities
 
-Unlike the PCI drivers, these capsules use the adapter's own station address. They hold no Crypto capability to draw one.
+Like the PCI drivers, these capsules never use the adapter's own station address. Each draws one from `CryptoRandom` once a run, before the first bind, and hands the same one to every device it binds, so a device bound again after a loss keeps the address `net.core` took at the first bind; without entropy no device is bound (`userland/nonos_usbnet/src/station.rs`, `draw`; `userland/nonos_usbnet/src/scan/net.rs`, `NetScanner::new`). CDC-NCM gives it with SET_NET_ADDRESS when the device offers that, RNDIS sets OID_802_3_CURRENT_ADDRESS, and a device that cannot take it has its packet filter opened; CDC-ECM has no request for it, so its filter is always opened.
 
-All five ask for IPC and Memory, the mask 0x18, with Debug (0x100) optional, granted only by a build that compiles `capsule-serial-debug` (`userland/capsule_driver_cdc_ecm/Capsule.mk`, `CAPSULE_REQUIRED_CAPS`, `CAPSULE_OPTIONAL_CAPS`). Their loop drops the messages it sent itself by its own pid, which it reads back with `MkServiceLookup` under its service name rather than `MkGetPid`, so no CoreExec is needed (`userland/nonos_usbnet/src/run/me.rs`, `own_pid`). Earlier they asked for 0x200018, which grants InputSource and no Debug.
+All three ask for the capability mask 0x38: IPC, Memory and Crypto, the bit `CryptoRandom` is gated on, with Debug (0x100) optional (`userland/capsule_driver_cdc_ecm/Capsule.mk`, `CAPSULE_REQUIRED_CAPS`; `src/capabilities/types/defs.rs`, `Crypto`). Their loop drops the messages it sent itself by its own pid, which it reads back with `MkServiceLookup` under its service name rather than `MkGetPid`, so no CoreExec is needed (`userland/nonos_usbnet/src/run/me.rs`, `own_pid`). The kernel admits `MkDebug` only with Debug (`src/syscall/contract/cap_table/mk.rs`, `can_debug`), so the `[usbnet ...]` lines reach the log only in a build that compiles `capsule-serial-debug`.
 
 ## Tests on this commit
 
-Each capsule has a [proof crate](../../overview/glossary.md#proof-crate) that runs its binding and framing on the host against scripted devices, some of them built from QEMU's `usb-net` descriptors. No QEMU run and no hardware boot exists for any of them.
+Each capsule has a [proof crate](../../overview/glossary.md#proof-crate) that runs its binding and framing on the host against scripted devices, some of them built from QEMU's `usb-net` descriptors. No QEMU run and no hardware boot exists for any of them. The counts below are host `cargo test` runs on this commit; the flake checks have not been run on it.
 
-| Check | Result |
+| Crate | Result |
 |---|---|
-| `proofs-usbnet_proofs` | passed, 17 tests |
-| `proofs-cdc_ecm_proofs` | passed, 7 tests |
-| `proofs-cdc_ncm_proofs` | passed, 33 tests |
-| `proofs-rndis_proofs` | passed, 22 tests |
-| `proofs-ax88179_proofs` | passed, 25 tests (0.9.2; quarantined since) |
-| `proofs-rtl8153_proofs` | passed, 27 tests (0.9.2; quarantined since) |
+| `usbnet_proofs` | 52 tests pass |
+| `cdc_ecm_proofs` | 24 tests pass |
+| `cdc_ncm_proofs` | 46 tests pass |
+| `rndis_proofs` | 30 tests pass |
 
 ```sh
 cd userland/cdc_ncm_proofs && cargo test --release --config profile.release.overflow-checks=true
@@ -66,6 +51,7 @@ Not tested in this release.
 
 ## See also
 
+- [What each USB capsule binds](usb-net-binding.md)
 - [Ethernet drivers](README.md)
 - [Realtek Ethernet](realtek.md)
 - [USB host controller](../usb/README.md)

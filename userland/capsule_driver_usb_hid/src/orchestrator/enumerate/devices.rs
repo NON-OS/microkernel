@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 use super::types::HidEndpoint;
 
+#[derive(Default)]
 pub struct Devices {
     pub eps: Vec<HidEndpoint>,
 }

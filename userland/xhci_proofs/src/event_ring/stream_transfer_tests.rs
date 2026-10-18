@@ -19,7 +19,7 @@
 
 use super::events::{transfer, CC_SUCCESS};
 use super::fixture::{Fixture, BULK_IN_DCI, SLOT};
-use super::toggle_tests::{storage_slot, CONTEXT_SIZE};
+use super::toggle_slot::{storage_slot, CONTEXT_SIZE};
 use crate::controller::{
     bulk_transfer, poll_bulk_in, reset_bulk_endpoint, stream_transfer, StreamPipe,
 };

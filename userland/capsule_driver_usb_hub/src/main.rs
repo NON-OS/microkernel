@@ -26,6 +26,7 @@
 extern crate alloc;
 
 mod control;
+mod held;
 mod host;
 #[path = "../../nonos_usbnet/src/hosts.rs"]
 mod hosts;

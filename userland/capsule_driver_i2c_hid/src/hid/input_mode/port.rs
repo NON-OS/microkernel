@@ -26,4 +26,9 @@ pub trait FeaturePort {
     fn get(&self, id: u8, report: &mut [u8; REPORT_MAX]) -> usize;
     /// `report`, id byte first, written; whether the device took it.
     fn set(&self, report: &[u8]) -> bool;
+    /// Whether report `id` has anywhere to be read and written: false where
+    /// the transport names no register for it, which no retry changes.
+    fn reaches(&self, _id: u8) -> bool {
+        true
+    }
 }

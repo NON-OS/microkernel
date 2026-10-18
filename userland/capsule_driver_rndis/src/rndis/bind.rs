@@ -15,24 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Binding an RNDIS device (Remote NDIS 1.0, 3.1): the function found in
-//! a configuration, brought up (start.rs), and served with its link as
+//! a configuration, brought up (start.rs) with the run's drawn station
+//! address, and served with its link as
 //! the device last indicated it, up when it said nothing.
 
 use nonos_usbnet::desc::config_header;
-use nonos_usbnet::{Bind, Bus, Found};
+use nonos_usbnet::{Bind, Bus, Found, Station};
 
 use super::function::find_rndis;
 use super::link::Rndis;
 use super::start::start;
 
-pub fn bind<B: Bus>(mut bus: B, found: &Found) -> Bind<Rndis<B>> {
+pub fn bind<B: Bus>(mut bus: B, found: &Found, drawn: Station) -> Bind<Rndis<B>> {
     let pick = |raw: &alloc::vec::Vec<u8>| Some((config_header(raw)?.1, find_rndis(raw)?));
     let Some((value, f)) = found.configs.iter().find_map(pick) else { return Bind::NotOurs };
-    match start(&mut bus, value, &f) {
-        Ok((mac, limits, media)) => {
+    match start(&mut bus, value, &f, drawn) {
+        Ok((taken, limits, media)) => {
             // Without its notifications the link reads up, as it did before.
             let notify = f.notify.and_then(|ep| bus.configure_interrupt(ep).ok());
-            let mut nic = Rndis::new(bus, mac, f.pipes, limits);
+            let mut nic = Rndis::new(bus, (drawn.bytes(), taken), f.pipes, limits);
             (nic.comm, nic.notify) = (f.comm, notify);
             nic.link = media.unwrap_or(true);
             Bind::Ours(nic)

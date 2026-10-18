@@ -27,11 +27,11 @@ use crate::constants::{controller_index, HID_INFO_GPIO};
 use crate::discover::{AcpiTouchpad, Found};
 use crate::driver::Driver;
 
-fn line(s: String) {
+pub(super) fn line(s: String) {
     let _ = mk_debug(s.as_ptr(), s.len());
 }
 
-fn name(seg: &[u8; 4]) -> String {
+pub(super) fn name(seg: &[u8; 4]) -> String {
     seg.iter().take_while(|&&b| b != 0).map(|&b| b as char).collect()
 }
 
@@ -48,7 +48,7 @@ pub(super) fn say_bound(driver: &Driver, tg: Option<&AcpiTouchpad>) {
         driver.family,
         driver.pci_device,
         controller_index(driver.pci_device).map_or(String::from("?"), |i| format!("{}", i)),
-        driver.clock_hz / 1000,
+        driver.setup.clock_hz / 1000,
         driver.bound_addr,
         if driver.bound_by_probe { "answered" } else { "not answering yet" },
         pacing
@@ -62,18 +62,4 @@ pub(super) fn say_unreached(tg: &AcpiTouchpad, cands: &[Found]) {
         name(&tg.host_name),
         cands.len()
     ));
-}
-
-/// The machine declares a touchpad on I2C but has no I2C controller this
-/// driver supports: say so in words instead of leaving the pointer silently
-/// dead. Silent when nothing is declared (a desktop, or a PS/2 or USB pad).
-pub fn say_no_controller() {
-    let mut buf = [AcpiTouchpad::default(); crate::discover::MAX_TARGETS];
-    let t = crate::discover::find_touchpad_addrs(&mut buf);
-    if let Some(tg) = buf[..t].first() {
-        line(format!(
-            "driver.i2c_pci: the firmware declares a touchpad on I2C controller {}, but this machine's I2C controller is not one NONOS supports: no touchpad pointer\n",
-            name(&tg.host_name)
-        ));
-    }
 }

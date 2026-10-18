@@ -32,7 +32,7 @@ impl FeaturePort for Pad {
 /// Input mode a byte in report 3; surface and button switches bits 0 and 1
 /// of report 4.
 fn layout() -> TouchLayout {
-    let f = |bit_offset, bit_size| Field { bit_offset, bit_size, logical_max: 0 };
+    let f = |bit_offset, bit_size| Field { bit_offset, bit_size, ..Field::default() };
     let mut l = TouchLayout::default();
     (l.input_mode, l.input_mode_report_id) = (f(0, 8), 3);
     (l.surface_switch, l.surface_switch_report_id) = (f(0, 1), 4);
@@ -49,27 +49,27 @@ fn pad(mode: u8, switches: u8) -> Pad {
 #[test]
 fn a_pad_in_mouse_mode_is_switched_with_its_other_bits_kept() {
     let p = pad(0, 0b1111_0000);
-    assert!(configure_reporting(&p, &layout()));
+    assert!(!configure_reporting(&p, &layout()).refused);
     assert_eq!(*p.writes.borrow(), vec![vec![3, 3], vec![4, 0b1111_0011]]);
 }
 
 #[test]
 fn a_pad_already_right_is_not_written() {
     let p = pad(3, 0b11);
-    assert!(configure_reporting(&p, &layout()));
+    assert!(!configure_reporting(&p, &layout()).refused);
     assert!(p.writes.borrow().is_empty());
 }
 
 #[test]
 fn a_pad_that_will_not_say_gets_a_report_built_from_its_descriptor() {
     let p = Pad { silent: true, ..pad(0, 0) };
-    assert!(configure_reporting(&p, &layout()));
+    assert!(!configure_reporting(&p, &layout()).refused);
     assert_eq!(*p.writes.borrow(), vec![vec![3, 3], vec![4, 0b11]]);
 }
 
 #[test]
 fn a_pad_without_the_features_is_left_alone() {
     let p = pad(0, 0);
-    assert!(configure_reporting(&p, &TouchLayout::default()));
+    assert!(!configure_reporting(&p, &TouchLayout::default()).refused);
     assert!(p.writes.borrow().is_empty());
 }

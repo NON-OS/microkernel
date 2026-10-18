@@ -21,4 +21,4 @@ mod pio_write;
 mod read_data;
 mod wait_input_clear;
 mod write_data;
-pub use enable::enable_mouse;
+pub use enable::{enable_mouse, reenable_mouse};

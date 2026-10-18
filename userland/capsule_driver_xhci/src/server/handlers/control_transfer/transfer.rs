@@ -17,6 +17,7 @@ use crate::controller::{issue_control_transfer, ControlRequest};
 use crate::error::{XhciError, XhciResult};
 use crate::server::context::Context;
 
+/// The bytes the data stage moved.
 pub(super) fn do_transfer(ctx: &mut Context, slot: u8, req: ControlRequest) -> XhciResult<u16> {
     let res = ctx
         .driver

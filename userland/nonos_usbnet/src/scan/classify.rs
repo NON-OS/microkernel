@@ -20,35 +20,39 @@
 use super::bound::Bound;
 use super::probe::Probe;
 use crate::bind::Bind;
-use crate::found::fetch;
-use crate::run::BindFn;
+use crate::found::{fetch, Found};
 use crate::say::say_port;
 use crate::xhci::{address_device, XhciBus, E_BUSY};
 
-pub(super) fn classify<N>(mut bus: XhciBus, port: u8, tag: &[u8], bind: BindFn<N>) -> Probe<N> {
+pub(super) fn classify<N>(
+    mut bus: XhciBus,
+    port: u8,
+    tag: &[u8],
+    bind: &mut impl FnMut(XhciBus, &Found) -> Bind<N>,
+) -> Probe<N> {
     match address_device(bus.xhci, bus.slot, port) {
         Ok(()) => {}
         Err(E_BUSY) => return Probe::Busy,
         Err(e) => {
-            say_port(tag, port, (0, 0), b"address failed", Some(e));
+            say_port(tag, port, None, b"address failed", Some(e));
             return Probe::Failed;
         }
     }
     let found = match fetch(&mut bus, port) {
         Ok(found) => found,
         Err(e) => {
-            say_port(tag, port, (0, 0), b"descriptors unread", Some(e));
+            say_port(tag, port, None, b"descriptors unread", Some(e));
             return Probe::Failed;
         }
     };
-    let ids = (found.info.vendor, found.info.product);
+    let ids = Some((found.info.vendor, found.info.product));
     match bind(bus, &found) {
         Bind::Ours(nic) => {
-            say_port(tag, port, ids, b"bound", None);
+            say_port(tag, port, None, b"bound", None);
             Probe::Ours(Bound { nic, xhci: bus.xhci, slot: bus.slot, port })
         }
         Bind::NotOurs => {
-            say_port(tag, port, ids, b"not this driver's device", None);
+            say_port(tag, port, None, b"not this driver's device", None);
             Probe::NotOurs
         }
         Bind::Failed(what, e) => {

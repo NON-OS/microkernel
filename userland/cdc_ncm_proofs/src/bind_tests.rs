@@ -1,20 +1,20 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Binding an NCM device: every request in the order the bind sends it.
 
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::qemu_usb_net::{CONFIG_ECM, CONFIG_RNDIS};
-use nonos_usbnet::{Bind, Nic, Setup};
+use nonos_usbnet::{Bind, Nic, Setup, Taken};
 
 use crate::device::{calls, Dev};
 use crate::ncm::bind;
-use crate::spec::{config_ncm, config_vendor, MAC};
+use crate::spec::{config_ncm, config_vendor};
 
 #[test]
 fn a_plain_ncm_device_binds_with_every_request_in_order() {
     let dev = Dev::ncm(0);
     let (found, bus) = (dev.found(), dev.bus());
-    let Bind::Ours(nic) = bind(bus.clone(), &found) else { panic!("not bound") };
-    assert_eq!(nic.mac(), MAC);
+    let Bind::Ours(nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
+    assert_eq!((nic.mac(), nic.taken()), (drawn().bytes(), Taken::Promiscuous));
     assert!(nic.link_up());
     assert_eq!(nic.rx_max, 4096, "16 KiB offered, one bulk transfer asked");
     let c = calls(&bus);
@@ -23,11 +23,10 @@ fn a_plain_ncm_device_binds_with_every_request_in_order() {
     assert_eq!(c[2], Call::Out(Setup::set_interface(1, 0), vec![]));
     assert_eq!(c[3], Call::In(Setup::new(0xA1, 0x80, 0, 0), 28), "GET_NTB_PARAMETERS");
     assert_eq!(c[4], Call::Out(Setup::set_interface(1, 1), vec![]));
-    assert!(matches!(c[5], Call::In(s, _) if s.value == 0x0304), "the MAC string");
     let input_size = Call::Out(Setup::new(0x21, 0x86, 0, 0), 4096u32.to_le_bytes().to_vec());
-    assert_eq!(c[6], input_size, "SET_NTB_INPUT_SIZE, 4-byte form");
-    assert_eq!(c[7], Call::Out(Setup::new(0x21, 0x43, 0x0E, 0), vec![]), "packet filter");
-    assert_eq!(c.len(), 8, "no CRC, format or datagram size request without the bits");
+    assert_eq!(c[5], input_size, "SET_NTB_INPUT_SIZE, 4-byte form");
+    assert_eq!(c[6], Call::Out(Setup::new(0x21, 0x43, 0x0F, 0), vec![]), "packet filter, open");
+    assert_eq!(c.len(), 7, "no CRC, format, address or datagram size request without the bits");
     assert!(nonos_libc::slept_ms() >= 10, "the pause before the data alternate");
 }
 
@@ -36,7 +35,7 @@ fn the_ncm_configuration_is_found_after_others() {
     let mut dev = Dev::ncm(0);
     dev.configs = vec![config_vendor(), config_ncm(3, 0)];
     let (found, bus) = (dev.found(), dev.bus());
-    assert!(matches!(bind(bus.clone(), &found), Bind::Ours(_)));
+    assert!(matches!(bind(bus.clone(), &found, drawn()), Bind::Ours(_)));
     assert_eq!(calls(&bus)[1], Call::Out(Setup::set_configuration(3), vec![]));
 }
 
@@ -45,7 +44,7 @@ fn an_ecm_only_device_is_left_to_the_ecm_driver() {
     let mut dev = Dev::ncm(0);
     dev.configs = vec![CONFIG_RNDIS.to_vec(), CONFIG_ECM.to_vec()];
     let (found, bus) = (dev.found(), dev.bus());
-    assert!(matches!(bind(bus.clone(), &found), Bind::NotOurs));
+    assert!(matches!(bind(bus.clone(), &found, drawn()), Bind::NotOurs));
     assert!(calls(&bus).is_empty(), "nothing is sent to a device that is not ours");
 }
 
@@ -58,11 +57,11 @@ fn each_required_step_that_fails_is_named() {
     ] {
         let mut dev = Dev::ncm(0);
         dev.refuse = Some((request, -32));
-        let r = bind(dev.bus(), &dev.found());
+        let r = bind(dev.bus(), &dev.found(), drawn());
         assert!(matches!(r, Bind::Failed(w, -32) if w == what), "{what}");
     }
     let mut dev = Dev::ncm(0);
     dev.params.truncate(20);
-    let r = bind(dev.bus(), &dev.found());
+    let r = bind(dev.bus(), &dev.found(), drawn());
     assert!(matches!(r, Bind::Failed("NTB parameters short", -5)));
 }

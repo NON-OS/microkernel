@@ -17,10 +17,10 @@
 //! hub below a hub configured and walked, every other child parked with
 //! the host by OP_PARK, whose body nonos_usb_virt reads back whole.
 
-use nonos_usb_hub::{park_body, scan_hubs, Parker, Place, Tt, SPEED_HIGH, SPEED_LOW};
+use nonos_usb_hub::{park_body, Parker, Place, Tt, SPEED_HIGH, SPEED_LOW};
 use nonos_usb_virt::parse_park;
 
-use crate::fake::{root_hub, Device, Fake, HubModel, Kind};
+use crate::fake::{root_hub, walk, Device, Fake, HubModel, Kind};
 
 #[test]
 fn a_park_body_reads_back_as_written() {
@@ -41,8 +41,8 @@ fn children_are_parked_and_a_hub_below_is_walked() {
         .plug(1, Device { speed: SPEED_HIGH, kind: Kind::Hub(inner) })
         .plug(2, stick);
     let mut hubs = vec![root_hub(&mut h, outer, 1, SPEED_HIGH)];
-    scan_hubs(&mut h, &mut hubs, &mut Parker);
-    scan_hubs(&mut h, &mut hubs, &mut Parker);
+    walk(&mut h, &mut hubs, &mut Parker);
+    walk(&mut h, &mut hubs, &mut Parker);
     assert_eq!(hubs.len(), 2, "the inner hub is held");
     let parked: Vec<(u8, u32, (u8, u8), u16)> =
         h.parked.iter().map(|(s, p, m)| (*s, p.route, p.parent, *m)).collect();

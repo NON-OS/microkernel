@@ -28,6 +28,8 @@ pub enum EmmcError {
     NoAdma,
     /// A software reset bit did not clear within 100 ms.
     HostReset,
+    /// A command, data line or transfer still showed active after the reset.
+    HostBusy,
     /// The internal clock did not report stable within 150 ms.
     ClockUnstable,
     /// The host does not hold SD Bus Power on after it was written.

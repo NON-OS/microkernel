@@ -39,7 +39,7 @@ fn each_notification_is_held_to_its_kind() {
 #[test]
 fn the_link_follows_its_notifications_and_bad_ones_are_counted() {
     let (bus, mut nic) = qemu();
-    let looks = |nic: &mut crate::ecm::link::Ecm<_>| (0..8).for_each(|_| nic.tick());
+    let looks = |nic: &mut crate::ecm::link::Ecm<_>| (0..8).for_each(|_| nic.tick().unwrap());
     bus.0.borrow_mut().notices.push_back(n(0, 0, 0, &[]));
     looks(&mut nic);
     assert!(!nic.link_up());

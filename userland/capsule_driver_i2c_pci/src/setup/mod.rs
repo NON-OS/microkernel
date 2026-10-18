@@ -1,6 +1,5 @@
 mod claim;
 mod doorbell;
-mod irq;
 mod mmio;
 mod pci;
 mod sequence;

@@ -20,7 +20,7 @@
 //! and a HALT for a failure after INITIALIZE.
 
 use nonos_usbnet::xhci::{CONTROL_MAX, E_IO};
-use nonos_usbnet::{Bus, Setup};
+use nonos_usbnet::{Bus, Setup, Station, Taken};
 
 use super::configure::configure;
 use super::control::Control;
@@ -29,9 +29,9 @@ use super::halt::halt;
 use super::init::{init_done, init_msg, Limits};
 use super::link::RX_LEN;
 
-/// The station address, the device's limits and the media state it
-/// indicated while the bind waited, if any.
-pub(super) type Up = ([u8; 6], Limits, Option<bool>);
+/// How the device took the drawn station address, its limits and the
+/// media state it indicated while the bind waited, if any.
+pub(super) type Up = (Taken, Limits, Option<bool>);
 
 /// The controller is given the pipes before the device is told to use
 /// them (xHCI 1.2, 4.3.5). SET_CONFIGURATION selects alternate setting 0
@@ -41,6 +41,7 @@ pub(super) fn start<B: Bus>(
     bus: &mut B,
     value: u8,
     f: &RndisFunction,
+    drawn: Station,
 ) -> Result<Up, (&'static str, i32)> {
     bus.configure_bulk(&f.pipes).map_err(|e| ("bulk pipes refused", e))?;
     bus.control_out(Setup::set_configuration(value), &[])
@@ -54,8 +55,8 @@ pub(super) fn start<B: Bus>(
         .command(bus, &mut init_msg(RX_LEN as u32), &mut reply)
         .map_err(|e| ("RNDIS INITIALIZE failed", e))?;
     let up = init_done(&reply[..n]).map_err(|what| (what, E_IO)).and_then(|limits| {
-        let mac = configure(bus, &mut ctl, &mut reply)?;
-        Ok((mac, limits, ctl.media))
+        let taken = configure(bus, &mut ctl, &mut reply, drawn)?;
+        Ok((taken, limits, ctl.media))
     });
     if up.is_err() {
         halt(bus, f.comm);

@@ -44,6 +44,7 @@ pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
         reply_with_status(tx, req, E_NODEV);
         return;
     }
+    ctx.driver.slots.set_owner(slot_id, crate::server::reply::sender());
     let payload_len = (STATUS_LEN + SLOT_ENABLE_PAYLOAD_LEN) as u32;
     encode_response_header(tx, req, payload_len);
     write_status(&mut tx[RESP_HDR_LEN..], 0);

@@ -14,42 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::surface::Shadow;
-use super::{claim, mmio, pci, Driver};
-use crate::constants::{CLEAR_COLOR, FB_BAR, REG_BAR};
+use nonos_libc::mk_device_release;
+
+use super::{claim, mmio, mode, pci, surface, Driver};
+use crate::constants::{BYTES_PER_PIXEL, CLEAR_COLOR, FB_BAR, REG_BAR};
 use crate::discover::Found;
-use crate::dispi::{self, Choice};
+use crate::dispi;
 use crate::error::{BgaError, BgaResult};
-use crate::gfx::Screen;
+use crate::handles::BrokerHandles;
 use crate::regs::Regs;
 
-/// One bring-up attempt on the adapter discovery found. A failing step drops
-/// the claim, which releases the adapter and its grants, so the next attempt
-/// can claim it again.
+/// One bring-up attempt on the adapter discovery found. Each failing step
+/// releases the claim, which takes any mapping already made with it, so the
+/// next attempt can claim the adapter again. Both mappings are as long as
+/// the broker made them, not as the mode needs. The adapter must name a
+/// DISPI version before anything else is read. The state firmware left is
+/// read whole before any write and is written back when the handles drop,
+/// on a failed step as when the driver goes. The mode must fit before it is
+/// programmed and read back as set, and the surface must be made, before
+/// anything is drawn: one refused on the firmware's mode leaves its picture.
 pub fn run(dev: Found) -> BgaResult<Driver> {
-    let claim = claim::claim(dev.device_id)?;
-    pci::enable_memory(claim.device_id(), claim.epoch)?;
-    let reg = mmio::map(claim.device_id(), claim.epoch, REG_BAR, dev.reg_size)?;
-    // SAFETY: the broker mapped `reg_size` bytes, and discovery required at
-    // least REG_BAR_MIN; the claim held in the Driver keeps the map live.
-    let regs = unsafe { Regs::new(reg.user_va) };
-    dispi::id(&regs).ok_or(BgaError::NotDispi)?;
-    dispi::little_endian(&regs, dev.reg_size);
-    let vram = dispi::vram(&regs, dev.fb_size);
-    let choice = dispi::choose(dispi::seen(&regs), vram).ok_or(BgaError::NoMode)?;
-    let mode = match choice {
-        Choice::Keep(m) | Choice::Set(m) => m,
-    };
-    let fb_len = mode.bytes().next_multiple_of(4096).min(dev.fb_size);
-    let fb = mmio::map(claim.device_id(), claim.epoch, FB_BAR, fb_len)?;
-    if let Choice::Set(m) = choice {
-        if !dispi::set_mode(&regs, m) {
-            return Err(BgaError::ModeRefused);
-        }
-        let pixels = m.bytes() / 4;
-        // SAFETY: `fb` maps `mode.bytes()` bytes, `pixels * 4` of them.
-        unsafe { dispi::clear(fb.user_va, pixels, CLEAR_COLOR) };
+    let claim_epoch = claim::claim(dev.device_id)?;
+    if let Err(e) = pci::enable_memory(dev.device_id, claim_epoch) {
+        let _ = mk_device_release(dev.device_id);
+        return Err(e);
     }
-    let shadow = Shadow::new(mode)?;
-    Ok(Driver { shadow, _claim: claim, fb_va: fb.user_va, mode, screen: Screen::new(mode) })
+    let reg_map = mmio::map(dev.device_id, claim_epoch, REG_BAR, dev.reg_size)?;
+    let fb_map = mmio::map(dev.device_id, claim_epoch, FB_BAR, dev.fb_size)?;
+    let mut handles = BrokerHandles::new(dev.device_id, reg_map.grant_id, fb_map.grant_id);
+    if reg_map.length < dispi::regs_len() {
+        return Err(BgaError::RegisterWindowTooSmall);
+    }
+    let regs = Regs::new(reg_map.user_va);
+    dispi::identify(regs)?;
+    let firmware = dispi::read(regs);
+    handles.restore_at_drop(regs, firmware);
+    dispi::little_endian(regs, reg_map.length);
+    let m = mode::take(regs, &firmware, fb_map.user_va, fb_map.length)?;
+    let surface = surface::make(m.width, m.height)?;
+    dispi::clear(&m.fb, CLEAR_COLOR);
+    let stride = m.width as u32 * BYTES_PER_PIXEL;
+    let (width, height, fb) = (m.width, m.height, m.fb);
+    Ok(Driver { surface, _handles: handles, regs, fb, width, height, stride, owner_pid: 0 })
 }

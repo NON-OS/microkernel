@@ -33,6 +33,9 @@ pub mod ipc;
 #[path = "settings_schema.rs"]
 pub mod settings;
 
+// The Bluetooth page's logic, apart from its calls to driver.bt_usb0.
+pub mod bluetooth;
+
 // The notes under the rows a person sets, Sound's among them.
 #[path = "../../capsule_settings/src/settings/ui/field_note_user.rs"]
 pub mod field_note_user;
@@ -68,6 +71,8 @@ mod wipe;
 pub mod qwen_tier;
 
 #[cfg(test)]
+mod bt_tests;
+#[cfg(test)]
 mod handoff_tests;
 #[cfg(test)]
 mod hydrate_tests;
@@ -78,11 +83,11 @@ mod net_poll_tests;
 #[cfg(test)]
 mod panel_tests;
 #[cfg(test)]
-mod qwen_tier_tests;
-#[cfg(test)]
 mod paste_tests;
 #[cfg(test)]
 mod pending_tests;
+#[cfg(test)]
+mod qwen_tier_tests;
 #[cfg(test)]
 mod section_tests;
 #[cfg(test)]

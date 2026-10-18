@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The USB hub class (USB 2.0 chapter 11, USB 3.2 chapter 10): a hub's
-//! descriptor and ports, resetting a port, where a device below a hub
-//! sits, and the walk that brings up and forgets the devices on a hub's
+//! descriptor and ports, bringing a port's device up a step at a time,
+//! where a device below a hub sits, and the walk that brings up and forgets the devices on a hub's
 //! ports. The controller, the clock and the log are reached through
 //! `Host`; what a device is bound to is the caller's, through `Classes`.
 
@@ -25,6 +25,9 @@ extern crate alloc;
 
 mod attach;
 mod attach_child;
+mod bringup;
+mod budget;
+mod budget_left;
 mod classes;
 mod descriptor;
 mod ep0_size;
@@ -40,14 +43,19 @@ mod port_status;
 mod power;
 mod read;
 mod request;
-mod reset;
 mod roots;
 mod route;
 mod scan_hub;
 mod scan_hubs;
+mod stage;
 mod status_endpoint;
+mod step;
+mod step_port;
+mod timing;
 
 pub use attach::attach;
+pub use bringup::Bringup;
+pub use budget::{Budget, TRIES_PER_MINUTE};
 pub use classes::Classes;
 pub use descriptor::{parse_hub_descriptor, HubDescriptor, DT_HUB, DT_SS_HUB, MAX_HUB_PORTS};
 pub use ep0_size::ep0_size;
@@ -64,8 +72,8 @@ pub use port_status::{
 };
 pub use read::port_status;
 pub use request::{clear_port_feature, C_PORT_CONNECTION};
-pub use reset::reset_port;
 pub use roots::{roots, Root, RootHost};
 pub use route::{child_route, child_tt, Tt, MAX_HUB_DEPTH};
 pub use scan_hubs::scan_hubs;
 pub use status_endpoint::{status_endpoint, StatusEndpoint};
+pub use step::Step;

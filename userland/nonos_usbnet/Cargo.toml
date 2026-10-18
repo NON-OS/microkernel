@@ -18,6 +18,8 @@ description = "NONOS userland USB network class driver core"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The one rule every NIC driver draws its station address by.
+nonos_mac = { path = "../nonos_mac" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

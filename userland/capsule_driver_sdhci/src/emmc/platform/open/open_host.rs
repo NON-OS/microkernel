@@ -13,63 +13,59 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Opening a host: as a fixed slot, whose card must come up, or as a
-//! removable one, served with or without a card.
+//! removable one, served with or without a card. Either way the host is
+//! reset before any DMA region is mapped or bus mastering goes on.
 
 use super::super::super::disk::DATA_BUF_BYTES;
+use super::super::super::env::DmaBuf;
 use super::super::super::error::EmmcResult;
 use super::super::super::pci::Kind;
 use super::super::super::slot::{HostParts, Slot};
 use super::super::discover::Found;
-use super::super::dma::DmaRegion;
+use super::super::dma;
 use super::super::env::{MmioWindow, SerialLog, UptimeClock};
+use super::command::command;
 use super::embedded::{check_embedded, check_removable};
+use super::reset::reset_host;
 use super::say::say_dma;
 use super::sizes::DESC_TABLE_BYTES;
 use super::take::take;
 use super::Opened;
 
-/// Claim `dev`, map its slot and two DMA regions (the descriptor page and
-/// the 32 KiB data buffer), and bring its card up. Everything taken is
-/// given back on failure, so the next attempt can claim the host again.
+type Parts = HostParts<MmioWindow, UptimeClock, SerialLog>;
+
+/// Claim `dev`, map its slot and reset the host; only then map two DMA
+/// regions (the descriptor page and the 32 KiB data buffer), below 4 GiB on
+/// a host without 64-bit addressing, turn bus mastering on and bring the
+/// card up. On failure the host is stopped and the claim given back
+/// (`Claim`), which frees the regions, so the next attempt can claim it.
 pub fn open(dev: &Found) -> EmmcResult<Opened> {
-    let log = SerialLog;
-    let (io, claim, epoch) = take(&log, dev)?;
-    check_embedded(&log, dev, &io)?;
-    let (table, data) = regions(&log, dev, epoch)?;
-    let slot = Slot::fixed(parts(io, &table, dev), data.buf())?;
-    Ok(Opened { slot, _data: data, _table: table, _claim: claim })
+    let (parts, data, claim) = ready(dev, true)?;
+    Ok(Opened { slot: Slot::fixed(parts, data)?, _claim: claim })
 }
 
 /// The same for a removable slot, served with a card in it or without.
 pub fn open_removable(dev: &Found) -> EmmcResult<Opened> {
+    let (parts, data, claim) = ready(dev, false)?;
+    Ok(Opened { slot: Slot::removable(parts, data)?, _claim: claim })
+}
+
+fn ready(dev: &Found, fixed: bool) -> EmmcResult<(Parts, DmaBuf, super::claim::Claim)> {
     let log = SerialLog;
     let (io, claim, epoch) = take(&log, dev)?;
-    check_removable(&log, &io)?;
-    let (table, data) = regions(&log, dev, epoch)?;
-    let slot = Slot::removable(parts(io, &table, dev), data.buf())?;
-    Ok(Opened { slot, _data: data, _table: table, _claim: claim })
-}
-
-fn regions(log: &SerialLog, dev: &Found, epoch: u64) -> EmmcResult<(DmaRegion, DmaRegion)> {
-    let table =
-        DmaRegion::map(dev.device_id, epoch, DESC_TABLE_BYTES).inspect_err(|e| say_dma(log, *e))?;
-    let data = DmaRegion::map(dev.device_id, epoch, DATA_BUF_BYTES as u64)
-        .inspect_err(|e| say_dma(log, *e))?;
-    Ok((table, data))
-}
-
-fn parts(
-    io: MmioWindow,
-    table: &DmaRegion,
-    dev: &Found,
-) -> HostParts<MmioWindow, UptimeClock, SerialLog> {
-    HostParts {
-        io,
-        clock: UptimeClock,
-        log: SerialLog,
-        table: table.buf(),
-        intel_emmc: dev.kind == Kind::IntelEmmc,
+    if fixed {
+        check_embedded(&log, dev, &io)?;
+    } else {
+        check_removable(&log, &io)?;
     }
+    let dma64 = reset_host(io.clone(), dev)?.caps.dma64();
+    let region = |len| dma::map(dev.device_id, epoch, len, dma64).inspect_err(|e| say_dma(&log, *e));
+    let table = region(DESC_TABLE_BYTES)?;
+    let data = region(DATA_BUF_BYTES as u64)?;
+    if !dev.acpi {
+        command(&log, dev.device_id, epoch, true)?;
+    }
+    let parts = HostParts { io, clock: UptimeClock, log, table, intel_emmc: dev.kind == Kind::IntelEmmc };
+    Ok((parts, data, claim))
 }
