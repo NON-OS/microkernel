@@ -28,6 +28,11 @@ pub const REG_CMBSZ: u32 = 0x003c;
 pub const REG_DOORBELL_BASE: u32 = 0x1000;
 
 pub const CC_EN: u32 = 1 << 0;
+/// CC.CSS 000b: the NVM command set.
+pub const CC_CSS_NVM: u32 = 0 << 4;
+pub const CC_MPS_SHIFT: u32 = 7;
+/// CC.AMS 000b: round robin, the arbitration every controller supports.
+pub const CC_AMS_RR: u32 = 0 << 11;
 pub const CC_IOSQES_64: u32 = 6 << 16;
 pub const CC_IOCQES_16: u32 = 4 << 20;
 pub const CSTS_RDY: u32 = 1 << 0;

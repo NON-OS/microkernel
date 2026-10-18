@@ -34,8 +34,12 @@ mod cq_cursor;
 mod active_ns;
 #[path = "../../../capsule_driver_nvme/src/admin/disable_step.rs"]
 mod disable_step;
+// The real CC written at enable, from CAP alone.
+#[path = "../../../capsule_driver_nvme/src/admin/cc_value.rs"]
+mod cc_value;
 
 pub use active_ns::{first_active_nsid, lists_active_namespaces, FALLBACK_NSID};
+pub use cc_value::cc_value;
 pub use completion::Completion;
 pub use completion_step::{classify, CqStep};
 pub use completion_wait::{wait_for_completion, wait_noting_foreign, DEADLINE_CHECK_SPINS};
