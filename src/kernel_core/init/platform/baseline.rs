@@ -55,6 +55,9 @@ pub fn init_platform_baseline() {
     // entry runs, so this is where every architecture gets a device table.
     crate::bus::pci::init();
     seed_hardware_broker();
+    // After the device table, which settles what CPUID alone cannot: a
+    // VirtualBox guest signing as KVM, a TCG guest with the bit clear.
+    crate::arch::report_hypervisor();
     init_entropy();
     init_boot_session_nonce();
     init_token_signing_key();

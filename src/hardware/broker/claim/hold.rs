@@ -20,7 +20,7 @@
 use super::hold_platform::hold_for_platform;
 use super::hold_rule::{hold_for, hold_for_firmware, untranslated as untranslated_ids, Hold};
 use super::types::ClaimError;
-use crate::hardware::broker::{table, BusKind, DeviceRecord};
+use crate::hardware::broker::{table, BusKind, DeviceRecord, DEVICE_FLAG_DISABLED};
 
 /*
  * A bridge is never claimed (L58). Claim and release both clear its Bus
@@ -31,6 +31,9 @@ use crate::hardware::broker::{table, BusKind, DeviceRecord};
  * its Command, power or window registers exists.
  */
 pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
+    if table::flags_of(device_id).is_some_and(|f| f & DEVICE_FLAG_DISABLED != 0) {
+        return Err(ClaimError::Disabled);
+    }
     let pci = crate::hardware::broker::pci_index::lookup(device_id);
     if pci.is_some_and(|h| !h.standard) {
         return Err(ClaimError::Refused);
@@ -41,7 +44,8 @@ pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
     match hold {
         Hold::Open => Ok(()),
         Hold::ForService(name) if serves(pid, name) => Ok(()),
-        Hold::ForService(_) => Err(ClaimError::Held),
+        Hold::ForEither(a, b) if serves(pid, a) || serves(pid, b) => Ok(()),
+        Hold::ForService(_) | Hold::ForEither(..) => Err(ClaimError::Held),
         Hold::Refused => Err(ClaimError::Refused),
     }
 }

@@ -15,13 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which driver plays: a USB device someone plugged in, while it says it is
-//! ready, else the machine's HD Audio. Pure, for the proofs.
+//! ready, else the machine's own sink. The kernel registers each driver's
+//! name when it spawns it, before this capsule, and drops it when the driver
+//! finds no controller: HD Audio on most machines, AC'97 in the virtual
+//! machines that still present one. Pure, for the proofs.
+
+/// The machine's own PCM sink drivers, in the order they are preferred.
+pub const SINKS: [&str; 2] = ["driver.hda0", "driver.ac97_0"];
+/// The log line for each of `SINKS` when it is the one played through.
+pub const SINK_LINES: [&str; 2] =
+    ["[AUDIO] output driver.hda0\n", "[AUDIO] output driver.ac97_0\n"];
+
+/// Which of `SINKS` is the machine's own. `found[i]`: `SINKS[i]` is
+/// registered. One registered is taken as it is. With both, `ready(i)` asks
+/// each in turn whether this machine plays through it and the first that
+/// does is taken, so an HD Audio controller that cannot play (HDMI only, no
+/// codec) does not hide a working AC'97; with neither ready the first keeps
+/// its say on why not. `ready` is asked only when more than one is found.
+pub fn machine(found: [bool; 2], mut ready: impl FnMut(usize) -> bool) -> Option<usize> {
+    let first = found.iter().position(|&f| f)?;
+    if found.iter().filter(|&&f| f).count() == 1 {
+        return Some(first);
+    }
+    (0..found.len()).find(|&i| found[i] && ready(i)).or(Some(first))
+}
 
 /// The port to play through, given whether driver.usb_audio0 reports a
-/// device ready and which of the two drivers this machine registered.
-pub fn choose(usb_ready: bool, hda: Option<u32>, usb: Option<u32>) -> Option<u32> {
+/// device ready, the machine's own sink (`machine`) and the USB driver, each
+/// as this machine registered it.
+pub fn choose(usb_ready: bool, own: Option<u32>, usb: Option<u32>) -> Option<u32> {
     match (usb_ready, usb) {
         (true, Some(usb)) => Some(usb),
-        _ => hda.or(usb),
+        _ => own.or(usb),
     }
 }

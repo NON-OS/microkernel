@@ -59,7 +59,7 @@ pub(crate) fn released(pcb: &ProcessControlBlock) -> bool {
 }
 
 /// Another thread still on `pcb`'s tables, which then pass to it.
-fn holder_after(pcb: &ProcessControlBlock) -> Option<Arc<ProcessControlBlock>> {
+pub(crate) fn holder_after(pcb: &ProcessControlBlock) -> Option<Arc<ProcessControlBlock>> {
     let tables = pcb.cr3.load(Ordering::Acquire);
     if tables == 0 {
         return None;

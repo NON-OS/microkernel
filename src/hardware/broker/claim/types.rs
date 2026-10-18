@@ -71,4 +71,5 @@ pub enum ClaimError {
     Refused,
     /// Its last claim's wipe is under way, or its entry is going: ask again.
     Resetting,
+    Disabled, // the record is marked unusable (`DEVICE_FLAG_DISABLED`)
 }

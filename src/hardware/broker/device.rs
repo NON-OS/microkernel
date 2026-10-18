@@ -22,9 +22,9 @@ mod record;
 pub use bar::{Bar, BarKind};
 pub(super) use bar::{BAR_KIND_MMIO, BAR_KIND_PIO};
 pub use bus::BusKind;
-pub(super) use flags::{BAR_FLAG_FIXED, BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
 pub use flags::{
-    DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW,
-    DEVICE_FLAG_IRQ_EDGE,
+    BAR_FLAG_FIXED, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED,
+    DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,
 };
-pub use record::DeviceRecord;
+pub(super) use flags::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
+pub use record::{DeviceRecord, NUMA_UNKNOWN};

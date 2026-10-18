@@ -19,7 +19,7 @@
 //! holder, and a DMA grant could not be reclaimed that way. The refusal asks
 //! no length and stands before the only way to an Ok, so every length that
 //! got that far is refused; and every DMA map is validated before anything
-//! is allocated for it.
+//! is allocated for it, the frames taken where firmware's ranges are refused.
 
 use super::glue_text::{body, code, in_order};
 
@@ -27,6 +27,7 @@ const HEAD: &str =
     "pub(super)fnvalidate(req:&DmaMapRequest,pid:u32)->Result<claim::InUse,DmaMapError>{";
 const MAP: &str =
     "pubfnmap_for_caller(pid:u32,req:DmaMapRequest)->Result<DmaMapResult,DmaMapError>{";
+const TAKE: &str = "fntake(pages:u64,length:u64,flags:u32)->Result<u64,Refused>{";
 
 #[test]
 fn the_boot_framebuffer_record_is_refused_dma_at_any_length() {
@@ -47,7 +48,11 @@ fn the_boot_framebuffer_record_is_refused_dma_at_any_length() {
         &[
             "letheld=matchvalidate::validate(&req,pid){Ok(held)=>held,",
             "Err(e)=>returnfail(\"validate\",e),",
-            "alloc::alloc_and_zero(",
+            "unreserved::take(",
         ],
     );
+    // The frames come from there, and from nowhere before it.
+    let take = code("hardware/broker/dma/map/unreserved.rs");
+    assert!(body(&take, TAKE).starts_with("letphys_start=alloc_and_zero("), "allocated elsewhere");
+    assert_eq!(map.matches("alloc_and_zero(").count(), 0, "allocated before the take");
 }

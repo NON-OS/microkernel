@@ -19,7 +19,7 @@ use super::super::flags::DMA_MAP_DMA32;
 use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
-use super::{alloc, install, record, validate};
+use super::{alloc, install, record, unreserved, validate};
 use crate::memory::iommu::IommuProtection;
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
@@ -33,9 +33,9 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     let claim_epoch = held.epoch;
     let pages = req.length / validate::PAGE_SIZE;
 
-    let phys_start = match alloc::alloc_and_zero(pages, req.length, req.flags) {
+    let phys_start = match unreserved::take(pages, req.length, req.flags) {
         Ok(start) => start,
-        Err(e) => return fail("alloc", e),
+        Err((stage, e)) => return fail(stage, e),
     };
 
     let user_va = match install::install(pages, req.length, phys_start, req.flags) {

@@ -37,8 +37,9 @@ pub fn contains(device_id: u64) -> bool {
     TABLE.read().iter().any(|r| r.device_id == device_id)
 }
 
-pub(in crate::hardware::broker) fn class_of(device_id: u64) -> Option<u32> {
-    TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| r.class)
+/// The device's bus kind and class.
+pub(in crate::hardware::broker) fn kind_of(device_id: u64) -> Option<(u8, u32)> {
+    TABLE.read().iter().find(|r| r.device_id == device_id).map(|r| (r.bus_kind, r.class))
 }
 
 pub(in crate::hardware::broker) fn flags_of(device_id: u64) -> Option<u32> {

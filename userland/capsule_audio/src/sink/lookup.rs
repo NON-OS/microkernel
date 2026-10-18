@@ -18,7 +18,7 @@
 
 use nonos_libc::{mk_idle_ms, mk_service_lookup};
 
-/// The kernel registers driver.hda0 when it spawns the HD Audio driver,
+/// The kernel registers a sink driver's name when it spawns the driver,
 /// before this capsule, and drops it when that driver exits (no controller,
 /// or one that never came up). The lookup is retried for about two seconds,
 /// asleep between tries; it used to be 2000 tries a yield apart, which on an
@@ -26,13 +26,13 @@ use nonos_libc::{mk_idle_ms, mk_service_lookup};
 const LOOKUP_RETRIES: u32 = 100;
 const LOOKUP_PAUSE_MS: u64 = 20;
 
-/// The port `name` is served on, once it is registered.
-pub(super) fn resolve(name: &[u8]) -> Option<u32> {
+/// What `find` looks up, once it is registered.
+pub(super) fn resolve<T>(mut find: impl FnMut() -> Option<T>) -> Option<T> {
     (0..LOOKUP_RETRIES).find_map(|tries| {
         if tries > 0 {
             let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
         }
-        once(name)
+        find()
     })
 }
 

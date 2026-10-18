@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Moving the output between the USB device and HD Audio as one comes ready
-//! or goes.
+//! Moving the output between the USB device and the machine's own sink as
+//! one comes ready or goes.
 
 use nonos_audio_proto::OUTPUT_READY;
 
-use super::choose::choose;
-use super::client::Sink;
+use super::choose::{choose, SINK_LINES};
+use super::client::{status_at, Sink};
 use crate::mark::mark;
 
 impl Sink {
@@ -31,8 +31,8 @@ impl Sink {
         let Some(usb) = self.usb else {
             return false;
         };
-        let ready = matches!(self.status_at(usb, 0), Some((OUTPUT_READY, _)));
-        let Some(next) = choose(ready, self.hda, Some(usb)) else {
+        let ready = matches!(status_at(usb, 0), Some((OUTPUT_READY, _)));
+        let Some(next) = choose(ready, self.own.map(|(port, _)| port), Some(usb)) else {
             return false;
         };
         let was = self.port.replace(next);
@@ -46,10 +46,9 @@ impl Sink {
 
     /// The start's and each move's log line.
     pub fn output_line(&self) -> &'static str {
-        if Some(self.port.get()) == self.usb {
-            "[AUDIO] output driver.usb_audio0\n"
-        } else {
-            "[AUDIO] output driver.hda0\n"
+        match self.own {
+            Some((port, i)) if port == self.port.get() => SINK_LINES[i],
+            _ => "[AUDIO] output driver.usb_audio0\n",
         }
     }
 }

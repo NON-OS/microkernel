@@ -34,6 +34,9 @@ pub(super) fn classify_network(subclass: u8, vendor: u16, device: u16) -> Hardwa
         0x10ec if subclass == SUBCLASS_OTHER => HardwareFamily::NetworkRealtekWifi,
         0x10ec if device == RTL8139_DEVICE_ID => HardwareFamily::NetworkRtl8139,
         0x10ec if RTL8169_DEVICE_IDS.contains(&device) => HardwareFamily::NetworkRtl8169,
+        0x1022 if device == 0x2000 => HardwareFamily::NetworkPcnet,
+        0x15ad if device == 0x07b0 => HardwareFamily::NetworkVmxnet3,
+        0x1011 if device == 0x0009 || device == 0x0019 => HardwareFamily::NetworkTulip,
         _ => HardwareFamily::Unknown,
     }
 }

@@ -18,7 +18,8 @@
  * Which devices the broker keeps from whichever capsule asks first: VMMDev
  * for the capsule that serves it, virtio-balloon for no one yet, the boot
  * framebuffer for driver.bootfb0 alone; the records firmware tables publish
- * for the service that drives each kind, any other refused (L59). The
+ * for the service that drives each kind, the SCI's for the ACPI capsule,
+ * any other refused (L59); the VMBus root for the VMBus core alone. The
  * kernel's pure rules are included by path.
  */
 
@@ -27,5 +28,9 @@ mod firmware_tests;
 pub mod hold_platform;
 #[path = "../../../../src/hardware/broker/claim/hold_rule.rs"]
 pub mod hold_rule;
+#[path = "../../../../src/hardware/broker/claim/hold_virt.rs"]
+pub mod hold_virt;
+mod platform_sci_tests;
 mod platform_tests;
 mod tests;
+mod virt_tests;

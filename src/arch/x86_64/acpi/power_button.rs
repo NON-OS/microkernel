@@ -37,6 +37,7 @@ use super::hw::port_bus::PortBus;
 use super::hw::power_button::{acpi_mode, classify, clear_value, fresh, pressed, Button};
 use super::parser;
 use crate::arch::x86_64::port::{inw, outw};
+use crate::hardware::broker::acpi::button_owner::Press;
 use crate::kernel_core::surface_registry::{try_post_input, InputEvent};
 
 /// The Power key's code (KEYCODE_POWER in the keyboard drivers and
@@ -93,7 +94,7 @@ pub fn init() {
 /// One look at the button, from the boot CPU's paced tick.
 pub fn poll(ticks: u64) {
     let sts_a = STS_A.load(Ordering::Acquire);
-    if sts_a == 0 {
+    if sts_a == 0 || capsule_serves() {
         return;
     }
     let sts_b = STS_B.load(Ordering::Relaxed);
@@ -113,11 +114,27 @@ pub fn poll(ticks: u64) {
         a || b
     };
     if hit && accept(now_ms) {
-        PENDING.store(true, Ordering::Release);
+        // Once a capsule has served the button, a press while none does is
+        // its power-off still; before that, the desktop's Power key.
+        match crate::hardware::broker::acpi::button_owner::kernel_press() {
+            Press::Desktop => PENDING.store(true, Ordering::Release),
+            Press::PowerOff => crate::hardware::broker::acpi::leave_rule::press_in_gap(),
+        }
     }
     if PENDING.load(Ordering::Acquire) && deliver() {
         PENDING.store(false, Ordering::Release);
     }
+}
+
+/// The ACPI capsule's SCI reads the button while that capsule lives, and
+/// runs the wiped power-off on a press; both reading would lose presses.
+fn capsule_serves() -> bool {
+    #[cfg(feature = "nonos-capsule-acpi")]
+    let alive = crate::userspace::capsule_acpi::shared_state().pid();
+    // Without the capsule in the image nothing can take the button.
+    #[cfg(not(feature = "nonos-capsule-acpi"))]
+    let alive = 0;
+    crate::hardware::broker::acpi::button_owner::stands_down(alive)
 }
 
 fn accept(now_ms: u64) -> bool {

@@ -16,7 +16,13 @@
 
 //! Which endpoints are held, and to whom (held.rs says why).
 
+// The lists the entries name sit beside this file, mounted by path for the
+// same reason held.rs mounts this one.
+#[path = "held_lists.rs"]
+mod lists;
+
 use super::super::nics::{Link, NICS};
+use lists::{BLUETOOTH_PANELS, KERNEL_ONLY, WIFI_STACK, WIRED_STACK, XHCI_CLIENTS};
 
 /// The stack a network card is held to, when `endpoint` is one. The cards
 /// come from nics.rs, so a card the stack binds is never left unheld.
@@ -30,9 +36,14 @@ pub(super) fn card_callers(endpoint: &str) -> Option<&'static [&'static str]> {
 
 /// An endpoint held to a list, then the endpoints whose owners may send to it.
 pub(super) const HELD: &[(&str, &[&str])] = &[
+    ("driver.bt_usb0", BLUETOOTH_PANELS),
     ("driver.ps2_kbd0", KERNEL_ONLY),
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),
+    ("driver.virtio_input0", KERNEL_ONLY),
+    ("driver.vmmdev0", KERNEL_ONLY),
+    ("driver.vmmouse0", KERNEL_ONLY),
+    ("driver.vmbus0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
     ("driver.smbus0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
@@ -40,35 +51,14 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.bga0", &["compositor"]),
+    ("driver.vmware_svga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
     ("driver.usb_audio0", &["audio.server"]),
+    ("driver.ac97_0", &["audio.server"]),
+    // The GPIO controller's pins are held by the bus controller whose
+    // device's GpioInt names them; more holders join as their drivers do.
+    ("driver.gpio0", &["driver.i2c_pci0"]),
+    ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0", "driver.gpio0"]),
+    // The wiped power-off: only the shell asks for it (F-88).
+    ("power.off", &["desktop_shell"]),
 ];
-
-/// The kernel polls the keyboards and pointers, reads the random source and
-/// serves USB storage itself; no capsule has reason to reach them. The SMBus
-/// host has no driver above it yet: a raw transfer reaches any device on the
-/// bus, so it is opened to one when one exists.
-const KERNEL_ONLY: &[&str] = &[];
-
-/// The class drivers above the xHCI controller, each searching the ports
-/// for its own kind of device.
-const XHCI_CLIENTS: &[&str] = &[
-    "driver.usb_hid0",
-    "driver.usb_msc0",
-    "driver.usb_audio0",
-    "driver.cdc_ecm0",
-    "driver.cdc_ncm0",
-    "driver.rndis0",
-    "driver.ax88179_0",
-    "driver.rtl8153_0",
-];
-
-/// net.core carries the frames and asks each card for its link; net.l2 finds
-/// the wired cards.
-const WIRED_STACK: &[&str] = &["net.core", "net.l2"];
-/// A Wi-Fi card answers net.core, which carries its frames, and the panels
-/// that scan and join: Settings, in its first window or a later one
-/// (`src/userspace/capsule_settings/spawn.rs`), and the setup wizard. net.l2
-/// binds only a wired card.
-const WIFI_STACK: &[&str] =
-    &["net.core", "app.settings", "app.settings.1", "app.settings.2", "app.setup_wizard"];

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod abi;
+mod acpi_capsule;
 mod active_page_table_root;
 pub mod console;
 pub mod context;
@@ -23,6 +24,7 @@ pub mod cpu_random;
 #[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
 pub mod fdt;
 pub mod halt;
+mod hv;
 pub(crate) mod idle;
 mod init_boot_memory;
 mod device_reserved_regions;
@@ -56,11 +58,13 @@ pub mod aarch64;
 #[cfg(target_arch = "riscv64")]
 pub mod riscv64;
 pub use abi::ArchOps;
+pub(crate) use acpi_capsule::{acpi_capsule_exit, acpi_from_init};
 pub(crate) use active_page_table_root::active_page_table_root;
 #[cfg(target_arch = "x86_64")]
 pub use cpu::init_cpu_features;
 pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu};
 pub use halt::halt_loop;
+pub use hv::*;
 pub use image_holes::deliberately_unmapped;
 pub(crate) use init_boot_memory::init_boot_memory;
 pub(crate) use device_reserved_regions::device_reserved_regions;

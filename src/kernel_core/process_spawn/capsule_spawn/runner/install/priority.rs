@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::priority_vm::{INTERACTIVE_VM, STORAGE_PATH_VM};
 use crate::process::core::Priority;
 use crate::services::registry::nics;
 
@@ -61,11 +62,9 @@ const STORAGE_PATH: [&str; 6] = [
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    if INTERACTIVE.contains(&name)
-        || nics::NICS.iter().any(|(card, _)| *card == name)
-        || PACKET_PATH.contains(&name)
-        || STORAGE_PATH.contains(&name)
-    {
+    let bands: [&[&str]; 5] =
+        [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &STORAGE_PATH, &STORAGE_PATH_VM];
+    if nics::NICS.iter().any(|(card, _)| *card == name) || bands.iter().any(|b| b.contains(&name)) {
         Priority::High
     } else {
         Priority::Normal

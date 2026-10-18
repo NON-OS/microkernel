@@ -29,10 +29,9 @@ pub fn parse_rsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
             return Err(AcpiError::InvalidRsdtSignature);
         }
         if !header.validate_checksum(addr as *const u8) {
-            // Linux (acpi_tb_verify_checksum) reports a bad root table sum
-            // and keeps going; firmware that edits tables at boot without
-            // fixing the sum ships, and refusing the root table would lose
-            // every other table with it.
+            // A bad root table sum is warned of and the table kept: firmware
+            // that edits tables at boot without fixing the sum ships, and
+            // refusing the root table would lose every other table with it.
             crate::log_warn!("[ACPI] RSDT checksum mismatch, using it anyway");
         }
         // A length past the ceiling every walk keeps to is a lie, and is

@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acpi_stop;
 mod cache;
 pub(crate) mod covering;
+mod covers;
 mod direction;
 mod drain;
 mod flags;
@@ -30,11 +32,16 @@ mod pool;
 mod records;
 mod release;
 mod scrub;
+// Wired at release with the keep path that holds a device's frames until
+// its stop is confirmed; the rule and its proofs come first.
+#[allow(dead_code)]
+mod sdhci_stop;
 mod teardown;
 mod types;
 mod va;
 mod wipe;
 
+pub use covers::covers;
 pub use held_run::{free_held_run, grant_run_covering};
 pub(in crate::hardware::broker) use kept::kept_bytes;
 pub(in crate::hardware::broker) use kept_settle::settle_kept;
@@ -44,6 +51,6 @@ pub(crate) use pool::low32_default_pages;
 pub(crate) use pool::{init_display_pool, init_low32_pool};
 #[cfg(target_arch = "x86_64")]
 pub(crate) use pool::{low32_fit, low32_target_pages};
-pub use release::{release_all_for_pid, release_for_device, unmap_grant};
+pub use release::{release_all_for_pid, release_for_device, revoke_for_device, unmap_grant};
 pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
 pub use wipe::wipe_live_grants;

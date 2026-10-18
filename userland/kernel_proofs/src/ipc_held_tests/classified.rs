@@ -26,6 +26,8 @@ use super::held::callers_of;
 fn every_driver_the_kernel_spawns_is_classified() {
     const GATED_IN_DRIVER: [&str; 5] =
         ["driver.nvme0", "driver.ahci0", "driver.virtio_blk0", "driver.sdhci0", "driver.ufs0"];
+    // A virtual machine's disk controllers, gated the same way ("driver." each).
+    const GATED_IN_VM: [&str; 5] = ["piix_ide0", "virtio_scsi0", "pvscsi0", "buslogic0", "mpt0"];
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
     let mut registered = Vec::new();
     let mut stack = vec![root.join("hardware"), root.join("userspace")];
@@ -52,7 +54,9 @@ fn every_driver_the_kernel_spawns_is_classified() {
     assert!(drivers.len() >= 18, "found only {drivers:?}");
     for d in &drivers {
         assert!(
-            callers_of(d).is_some() || GATED_IN_DRIVER.contains(&d.as_str()),
+            callers_of(d).is_some()
+                || GATED_IN_DRIVER.contains(&d.as_str())
+                || d.strip_prefix("driver.").is_some_and(|n| GATED_IN_VM.contains(&n)),
             "{d} is spawned by the kernel and open to every capsule"
         );
     }

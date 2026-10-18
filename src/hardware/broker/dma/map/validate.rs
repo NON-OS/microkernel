@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hardware::broker::claim;
-use crate::hardware::broker::dma::direction::conflicting;
 use crate::hardware::broker::dma::flags::{
     DMA_MAP_COHERENT, DMA_MAP_DMA32, DMA_MAP_FROM_DEVICE, DMA_MAP_HIGH, DMA_MAP_TO_DEVICE,
     DMA_MAP_WC,
 };
 use crate::hardware::broker::dma::limits::dma_page_limit_for_class;
 use crate::hardware::broker::dma::types::{DmaMapError, DmaMapRequest};
-use crate::hardware::broker::table;
+use crate::hardware::broker::dma::{acpi_stop::may_map, direction::conflicting};
+use crate::hardware::broker::{claim, table};
 
 pub(super) const PAGE_SIZE: u64 = 4096;
 const PAGE_MASK: u64 = PAGE_SIZE - 1;
@@ -60,7 +59,11 @@ pub(super) fn validate(req: &DmaMapRequest, pid: u32) -> Result<claim::InUse, Dm
     if claim.epoch != req.claim_epoch {
         return Err(DmaMapError::StaleEpoch);
     }
-    let class = table::class_of(req.device_id).ok_or(DmaMapError::UnknownDevice)?;
+    let (bus, class) = table::kind_of(req.device_id).ok_or(DmaMapError::UnknownDevice)?;
+    // An ACPI kind with no stop gets no frames: its ceiling is nought (F-128).
+    if !may_map(bus, class) {
+        return Err(DmaMapError::BadLengthForClass);
+    }
     let pages = req.length / PAGE_SIZE;
     // None against the boot framebuffer: a takeover of its scanout reclaims
     // its MMIO from outside, and a DMA grant could not be (L79).

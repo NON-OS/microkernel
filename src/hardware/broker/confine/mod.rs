@@ -25,6 +25,7 @@ mod acs_span;
 mod attach;
 mod detach;
 mod enter;
+mod held;
 mod iova;
 mod iova_holes;
 mod iova_space;
@@ -42,5 +43,7 @@ pub use acs_groups::set_acs_groups;
 pub use acs_span::Port;
 pub(super) use attach::attach;
 pub(super) use detach::{detach, detach_all};
+#[allow(unused_imports)] // read by the ACPI broker's SDEV posture, which only x86 builds
+pub(super) use held::held_by;
 pub(super) use map::{map, unmap};
 pub(super) use map_fail::MapFail;

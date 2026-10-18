@@ -22,12 +22,13 @@ const HOST: Hold = Hold::ForService(I2C_HOST_SERVICE);
 const PS2: Hold = Hold::ForService(PS2_SERVICE);
 
 #[test]
-fn an_i2c_host_and_its_gpio_bank_are_held_for_the_i2c_host_driver() {
+fn an_i2c_host_is_held_for_the_i2c_host_driver_and_its_gpio_bank_for_either() {
     assert_eq!(hold_for_platform(ACPI, SERIAL, SERIAL_BUS, 0, 0), Some(HOST));
+    let bank = Hold::ForEither(GPIO_SERVICE, I2C_HOST_SERVICE);
     for uid in [0u16, 1, 2, 0xFFFF] {
-        assert_eq!(hold_for_platform(ACPI, GPIO_CTRL, 0, 0, uid), Some(HOST), "{uid}");
+        assert_eq!(hold_for_platform(ACPI, GPIO_CTRL, 0, 0, uid), Some(bank), "{uid}");
     }
-    assert_eq!(I2C_HOST_SERVICE, "driver.i2c_pci0");
+    assert_eq!((I2C_HOST_SERVICE, GPIO_SERVICE), ("driver.i2c_pci0", "driver.gpio0"));
 }
 
 #[test]
@@ -59,8 +60,9 @@ fn every_other_published_record_is_refused_until_named() {
 
 #[test]
 fn the_buses_other_rules_key_are_left_to_them() {
-    // PCI (1), the virtual bus (3) and firmware (5) are keyed elsewhere.
-    for bus in [0u8, 1, 3, 5, 6, 0xFF] {
+    // PCI (1) and firmware (5) are keyed elsewhere; the virtual bus (3) has
+    // its own rule here (`virt_tests`).
+    for bus in [0u8, 1, 5, 6, 0xFF] {
         assert_eq!(hold_for_platform(bus, SERIAL, SERIAL_BUS, PNP, PS2_KBD), None, "{bus}");
     }
 }

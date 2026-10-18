@@ -22,7 +22,9 @@ pub(super) fn finalize_teardown(pid: Pid) {
     }
     // Before the tables go: what they must keep is frozen first (L46).
     super::surfaces::give_up_if_last(pid, &pcb);
+    let heir = crate::process::address_space::lifecycle::holder::holder_after(&pcb);
     crate::process::address_space::lifecycle::release(&pcb);
+    crate::hardware::broker::mmio::fence::after_exit(pid, heir.map(|h| h.pid));
     /* Done at the exit already; again here for an exit that came another way. */
     release_names(pid, &pcb);
     if !super::postmortem::is_retained(pid) {

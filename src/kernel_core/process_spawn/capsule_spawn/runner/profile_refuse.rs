@@ -20,7 +20,8 @@ use crate::boot::handoff::BootProfile;
 use crate::services::registry::nics;
 
 /* Safe Mode: no audio, and no game or demo beside the tools. */
-const NOT_SAFE: [&str; 4] = ["driver.hda0", "audio.server", "app.snake", "app.hello"];
+const NOT_SAFE: [&str; 5] =
+    ["driver.hda0", "driver.ac97_0", "audio.server", "app.snake", "app.hello"];
 /* Fetches models over the network. */
 const NETWORK_TOOLS: [&str; 1] = ["tool.model-fetch"];
 

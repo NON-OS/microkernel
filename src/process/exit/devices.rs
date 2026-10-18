@@ -25,6 +25,9 @@ use crate::process::core::{Pid, ProcessState, PROCESS_TABLE};
 /// False only when the group's devices are still to go but a CPU still runs
 /// one of its threads: finalize then tries again on a later tick (L77).
 pub(super) fn release_if_last(pid: Pid, current: bool, wait: bool) -> bool {
+    // The ACPI capsule's events disarmed before its SCI grant goes, at the
+    // exit of the pid that serves it and before any thread's devices go.
+    crate::arch::acpi_capsule_exit(pid);
     if !last_of_group(pid) {
         return true;
     }

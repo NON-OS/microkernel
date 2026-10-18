@@ -19,13 +19,16 @@
 //! renumbered on one side alone would open a record the rule meant to hold.
 
 use super::hold_platform as p;
+use super::hold_virt as v;
 use crate::hardware::broker::class::ids;
 use crate::hardware::broker::platform as ps2;
-use crate::hardware::broker::BusKind;
+use crate::hardware::broker::{BusKind, VMBUS_DEVICE, VMBUS_VENDOR};
 
 const _: () = assert!(p::BUS_ACPI == BusKind::Acpi as u8);
 const _: () = assert!(p::SERIAL == ids::SERIAL && p::INPUT == ids::INPUT);
-const _: () = assert!(p::GPIO_CTRL == ids::GPIO_CTRL);
+const _: () = assert!(p::GPIO_CTRL == ids::GPIO_CTRL && p::OTHER == ids::OTHER);
 const _: () = assert!(p::PNP == ps2::PNP_VENDOR_PS2_KBD && p::PNP == ps2::PNP_VENDOR_PS2_AUX);
 const _: () = assert!(p::PS2_KBD == ps2::PNP_DEVICE_PS2_KBD);
 const _: () = assert!(p::PS2_AUX == ps2::PNP_DEVICE_PS2_AUX);
+const _: () = assert!(v::BUS_VIRT == BusKind::Virt as u8);
+const _: () = assert!(v::VMBUS_VENDOR == VMBUS_VENDOR && v::VMBUS_DEVICE == VMBUS_DEVICE);

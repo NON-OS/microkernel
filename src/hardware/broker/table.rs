@@ -14,12 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod add;
+mod external;
 mod init;
 mod list;
+mod numa;
 mod pci_record;
+mod remove;
 mod state;
 
+// For the ACPI broker, which only x86 builds.
+#[allow(unused_imports)]
+pub(in crate::hardware::broker) use add::add_pci_function;
+pub use external::external_port_of;
+#[allow(unused_imports)] // x86 alone declares ports yet
+pub(in crate::hardware::broker) use external::mark as mark_external;
 pub use init::init_from_pci;
 pub(super) use init::register_platform_device;
-pub(super) use list::{class_of, flags_of};
 pub use list::{contains, list, list_by_class};
+pub(super) use list::{flags_of, kind_of};
+#[allow(unused_imports)] // x86 alone knows domains yet
+pub(in crate::hardware::broker) use numa::set_numa_nodes;
+#[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
+pub(in crate::hardware::broker) use remove::remove;

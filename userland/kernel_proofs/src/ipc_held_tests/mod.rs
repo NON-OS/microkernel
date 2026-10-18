@@ -26,6 +26,7 @@ mod held;
 #[path = "../../../../src/services/registry/nics.rs"]
 mod nics;
 
+mod bluetooth;
 mod card_names;
 mod card_readers;
 mod cards;
@@ -34,4 +35,6 @@ mod common;
 mod devices;
 mod gates;
 mod names;
+mod power_off;
 mod single_client;
+mod vm_devices;
