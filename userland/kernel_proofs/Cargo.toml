@@ -18,5 +18,13 @@ path = "src/lib.rs"
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock"] }
 blake3 = { version = "1.5", default-features = false }
 
+# The kernel features a mounted file reads, declared so its cfg is checked;
+# none is on by default, which is the release posture (dev_unconfined.rs).
+[features]
+nonos-dev-unconfined-dma = []
+nonos-iommu-intremap = []
+nonos-production = []
+nonos-release = []
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

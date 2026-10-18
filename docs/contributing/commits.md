@@ -29,7 +29,7 @@ The body says what was wrong, what the change does, and how it was checked, in t
 
 1. What was wrong, and when it is known, the commit that introduced it, by its short hash.
 2. What the change does: the files, the behaviour, and the log line it prints if it prints one.
-3. A last paragraph that starts with `Verified:` and lists what ran and its numbers: the [proof crate](../overview/glossary.md#proof-crate) and its test count, clippy, `tools/nix/inputs.py --check`, a build for the [capsule](../overview/glossary.md#capsule) target. When something was not run, the paragraph ends by naming it, as in "Not verified on hardware." or "Not verified: a boot."
+3. A last paragraph that starts with `Verified:` and lists what ran and its numbers: the [proof crate](../overview/glossary-peer-list.md#proof-crate) and its test count, clippy, `tools/nix/inputs.py --check`, a build for the [capsule](../overview/glossary-boot-root-record.md#capsule) target. When something was not run, the paragraph ends by naming it, as in "Not verified on hardware." or "Not verified: a boot."
 
 In the last 50 commits, 29 bodies carry a `Verified:` paragraph, 14 say what was not verified, and 29 name an earlier commit by its hash. One body in full:
 
@@ -52,7 +52,7 @@ capsule_driver_rtl8153 for x86_64-nonos-user; inputs.py --check passes.
 ## What a commit leaves out
 
 - Trailers. None of the last 200 commits on `main` carries a sign-off or a co-author line; the only lines git reads as trailers are some of their `Verified:` paragraphs. Keep to that.
-- Key material of any kind. The flake build never holds a key; signing happens in the [seal](../overview/glossary.md#seal), a separate step (`seal`, `Makefile:11-14`). [Signing and publisher keys](../userland/signing-and-publisher-keys.md) explains where keys live.
+- Key material of any kind. The flake build never holds a key; signing happens in the [seal](../overview/glossary-rollback-index.md#seal), a separate step (`seal`, `Makefile:11-14`). [Signing and publisher keys](../userland/signing-and-publisher-keys.md) explains where keys live.
 - Unrelated changes. One concern per commit; a formatting pass over files you did not otherwise change goes in a commit of its own, or nowhere.
 
 ## History shape

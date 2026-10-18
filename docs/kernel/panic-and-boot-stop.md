@@ -1,6 +1,6 @@
 # Panic and boot stop
 
-What the NONOS kernel does when it cannot go on, what the panel and the [serial console](../overview/glossary.md#serial-console) show in each case, and what a person can do next.
+What the NONOS kernel does when it cannot go on, what the panel and the [serial console](../overview/glossary-rollback-index.md#serial-console) show in each case, and what a person can do next.
 
 ## At a glance
 
@@ -12,9 +12,9 @@ What the NONOS kernel does when it cannot go on, what the panel and the [serial 
 | Handoff refused | breadcrumb strip, VGA text | `[NONOS] Handoff FAIL` | not started yet |
 | Kernel panic | red band `KERNEL PANIC` | panic message | stopped by NMI |
 | Kernel CPU exception | nothing new | `[PANIC xx]`, after `[TRAP xx]` for some | not signalled |
-| Fault in a [capsule](../overview/glossary.md#capsule) | nothing | `[TRAP xx]` for `PF`, `GP`, `UD` | unaffected; the capsule ends |
+| Fault in a [capsule](../overview/glossary-boot-root-record.md#capsule) | nothing | `[TRAP xx]` for `PF`, `GP`, `UD` | unaffected; the capsule ends |
 | Kernel heap exhausted | VGA text | `[OOM]` lines | not signalled |
-| [TLB shootdown](../overview/glossary.md#tlb-shootdown) timeout | nothing new | `[FATAL]` line | stopped by NMI |
+| [TLB shootdown](../overview/glossary-stark-proof.md#tlb-shootdown) timeout | nothing new | `[FATAL]` line | stopped by NMI |
 
 Every stop ends in a loop that masks interrupts and halts the CPU, as `halt` does (`src/arch/x86_64/abi.rs:30-36`). NONOS does not restart the machine on its own. Nothing in the kernel arms, feeds or stops the chipset watchdog that `detect_tco_watchdog` can find (`src/arch/x86_64/watchdog/mod.rs:24-25`). Whether firmware ever leaves one running was not tested in this release.
 
@@ -27,7 +27,7 @@ Every stop ends in a loop that masks interrupts and halts the CPU, as `halt` doe
 
 ## A boot step fails
 
-A [boot stop](../overview/glossary.md#boot-stop) goes through `stop` (`src/boot/stop.rs:25-42`). It prints `[FATAL] <step>: <detail>` on the serial console, draws a notice band titled `NONOS BOOT STOPPED` with the step, the detail and a hint line pointing to the serial log, and halts. Stages of kernel init call it through `fatal`, which first prints the step as an `[ERROR]` line (`src/kernel_core/init/entry/fatal.rs:19-22`).
+A [boot stop](../overview/glossary-amnesic-boot.md#boot-stop) goes through `stop` (`src/boot/stop.rs:25-42`). It prints `[FATAL] <step>: <detail>` on the serial console, draws a notice band titled `NONOS BOOT STOPPED` with the step, the detail and a hint line pointing to the serial log, and halts. Stages of kernel init call it through `fatal`, which first prints the step as an `[ERROR]` line (`src/kernel_core/init/entry/fatal.rs:19-22`).
 
 These are the steps that stop the boot this way, with the step text the `[FATAL]` line and the band show:
 
@@ -66,7 +66,7 @@ Two cases show nothing on the panel. A stop between the removal of the low ident
 
 If the person chose to install from the boot menu and the image was built without first-boot setup or without the installer capsule, `HAS_INSTALLER` is false (`src/kernel_core/init/entry/install_refusal.rs:24-25`). `refuse_install_without_installer` then shows `Install NONOS: this image has no installer`, says that nothing was written to any disk and that the person should restart and choose another entry, and halts (`src/kernel_core/init/entry/install_refusal.rs:34-47`).
 
-If the kernel's own check of the bootloader refused it, or the boot carried no [boot-root record](../overview/glossary.md#boot-root-record) or loader [attestation trailer](../overview/glossary.md#attestation-trailer) to check, `refuse_unchecked_loader` shows `The bootloader failed the kernel's check` or `The bootloader could not be checked`, says that no program was started, and halts (`src/kernel_core/init/entry/loader_refusal.rs:27-48`). How that check works is on [boot chain and signatures](../security/boot-chain-and-signatures.md).
+If the kernel's own check of the bootloader refused it, or the boot carried no [boot-root record](../overview/glossary-boot-root-record.md#boot-root-record) or loader [attestation trailer](../overview/glossary-amnesic-boot.md#attestation-trailer) to check, `refuse_unchecked_loader` shows `The bootloader failed the kernel's check` or `The bootloader could not be checked`, says that no program was started, and halts (`src/kernel_core/init/entry/loader_refusal.rs:27-48`). How that check works is on [boot chain and signatures](../security/boot-chain-and-signatures.md).
 
 A refused handoff stops even earlier, before the kernel trusts any framebuffer. That case is on [boot handoff](boot-handoff.md).
 

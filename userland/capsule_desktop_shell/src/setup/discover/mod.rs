@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod compositor_pid;
 mod constants;
 mod disable_market;
 mod lookup_port;
@@ -24,6 +25,7 @@ mod require_wm;
 mod try_market;
 mod try_wallpaper;
 
+pub use compositor_pid::compositor_pid;
 pub use disable_market::disable_market;
 pub use require_compositor::require_compositor;
 pub use require_input_router::require_input_router;

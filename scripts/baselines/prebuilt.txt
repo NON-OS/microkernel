@@ -8,6 +8,8 @@ trust nonos-data/trust/*
 trust .keys/*.pub
 generated stark-attest/*
 generated userland/nonos_tls/src/roots/store.bin
+# The isolation statement's pinned image, from isolation_proofs' isolation_image.
+generated userland/nonos_proof_abi/src/isolation/program.bin
 generated userland/capsule_linux/guests/busybox.elf
 upstream nonos-bootloader/firmware/*
 upstream userland/capsule_linux/keys/alpine/*

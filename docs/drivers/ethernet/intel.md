@@ -1,6 +1,6 @@
 # Intel Ethernet
 
-NONOS has three Intel Ethernet driver [capsules](../../overview/glossary.md#capsule): e1000 for the 8254x family is in the image, while e1000e (82574, 82583, I217, I218, I219) and igc (I225, I226) are written and host-tested but built into no image in 0.9.2. This page covers e1000; [e1000e](intel-e1000e.md) and [igc](intel-igc.md) have their own pages.
+NONOS has three Intel Ethernet driver [capsules](../../overview/glossary-boot-root-record.md#capsule): e1000 for the 8254x family is in the image, while e1000e (82574, 82583, I217, I218, I219) and igc (I225, I226) are written and host-tested but built into no image in 0.9.2. This page covers e1000; [e1000e](intel-e1000e.md) and [igc](intel-igc.md) have their own pages.
 
 ## Which driver takes which chip
 
@@ -23,7 +23,7 @@ The driver takes an Intel PCI function of class network, subclass Ethernet, whos
 ### How it runs
 
 - The service is `driver.e1000_0` on port 4210 (`userland/capsule_driver_e1000/Capsule.mk:16`, `CAPSULE_SERVICE_ENDPOINT`).
-- The [capability](../../overview/glossary.md#capability-word) mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:23`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-65`, `requested_caps`), so the driver's own log lines are dropped in every build.
+- The [capability](../../overview/glossary-boot-root-record.md#capability-word) mask is 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with no optional Debug (`userland/capsule_driver_e1000/Capsule.mk:23`, `CAPSULE_REQUIRED_CAPS`). The kernel's spawn request is the same set (`src/hardware/e1000_capsule/spawn.rs:56-65`, `requested_caps`), so the driver's own log lines are dropped in every build.
 - It binds no interrupt line and never sets IMS (`userland/capsule_driver_e1000/src/setup/sequence.rs:24-27`, `IMS`); the reset masks every cause (`userland/capsule_driver_e1000/src/init/reset.rs:55`, `REG_IMC`).
 - It draws a new station address every boot and never uses the EEPROM address; without randomness it does not come up (`userland/capsule_driver_e1000/src/init/station_address.rs:22-31`, `draw`).
 - It answers health check (1), link status (2), MAC address (3), transmit (4), receive (5) and a register snapshot (6) (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`). `net.core` sends operation 6 as its receive-batch probe and takes the snapshot as a driver without batches, so it reads frames with operation 5; read as a batch, the snapshot was the cause of [the receive fault](README.md#the-receive-fault).
@@ -38,7 +38,7 @@ The make target `nonos-mk-ethernet-prod` builds the desktop with this driver, bu
 
 ## To run the proofs
 
-The flake runs each [proof crate](../../overview/glossary.md#proof-crate) with overflow checks on. The same run by hand:
+The flake runs each [proof crate](../../overview/glossary-peer-list.md#proof-crate) with overflow checks on. The same run by hand:
 
 ```sh
 cd userland/e1000_proofs && cargo test --release --config profile.release.overflow-checks=true

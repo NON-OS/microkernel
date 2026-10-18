@@ -28,11 +28,11 @@ The document's own component is the operating system `nonos`, at the version in 
 
 Crates that appear in several locks are listed once for each name, version and source (`crates`, `tools/nix/sbom.nix:8-10`).
 
-The lock files it reads are the kernel's, the loader's, the standard library's for `-Zbuild-std`, those of ripgrep and fd, of every [capsule](../overview/glossary.md#capsule) built from source, of the crates.io tools packaged as capsules, of `nonos-rt`, the startup object of `std` capsules, and of the host tools: the signing and enrollment tools, `embed-trailer`, `sign-kernel`, `nonos-mk`, `nonos-pack` and `nonos-verify` (`lockFiles`, `tools/nix/default.nix:26-34`).
+The lock files it reads are the kernel's, the loader's, the standard library's for `-Zbuild-std`, those of ripgrep and fd, of every [capsule](../overview/glossary-boot-root-record.md#capsule) built from source, of the crates.io tools packaged as capsules, of `nonos-rt`, the startup object of `std` capsules, and of the host tools: the signing and enrollment tools, `embed-trailer`, `sign-kernel`, `nonos-mk`, `nonos-pack` and `nonos-verify` (`lockFiles`, `tools/nix/default.nix:26-34`).
 
 ## What it leaves out
 
-- Test only crates: the locks of the [proof crates](../overview/glossary.md#proof-crate) and of the attestation test battery are not in `lockFiles`, so their dependencies are listed only when another lock names them too (`lockFiles`, `tools/nix/default.nix:26-34`).
+- Test only crates: the locks of the [proof crates](../overview/glossary-peer-list.md#proof-crate) and of the attestation test battery are not in `lockFiles`, so their dependencies are listed only when another lock names them too (`lockFiles`, `tools/nix/default.nix:26-34`).
 - Nix packages other than the four toolchain entries, such as QEMU, swtpm, Go or the image tools. They come from nixpkgs at the commit the `nixpkgs` component names, and the document does not list them one by one.
 - A hash for llama.cpp: its pin is a Nix tree hash rather than a SHA-256 hex string, so it is listed with its URL only (`source`, `tools/nix/sbom.nix:29-35`).
 
@@ -66,7 +66,7 @@ The `deny.toml` policy, for the kernel crate:
 | [tools/nix/sources.txt](../../tools/nix/sources.txt) | 47 sources and toolchain releases by URL and hash |
 | [tools/nix/git-sources.json](../../tools/nix/git-sources.json) | every git dependency other than STARKs by tree hash |
 | [tools/nix/inputs.json](../../tools/nix/inputs.json) | the files each cargo build reads |
-| [tools/nix/capsules.json](../../tools/nix/capsules.json) and [store.json](../../tools/nix/store.json) | every capsule and every entry of the [package store](../overview/glossary.md#package-store), as make declares them |
+| [tools/nix/capsules.json](../../tools/nix/capsules.json) and [store.json](../../tools/nix/store.json) | every capsule and every entry of the [package store](../overview/glossary-linux-personality.md#package-store), as make declares them |
 | `nonos-build.json` in `result/` | every artifact of one build by sha256, with the resolved configuration |
 | [third_party/pqclean/PROVENANCE.md](../../third_party/pqclean/PROVENANCE.md) | the vendored PQClean snapshot and the algorithms compiled from it |
 | [third_party/minimp3/LICENSE](../../third_party/minimp3/LICENSE) | the licence of the vendored minimp3 decoder |

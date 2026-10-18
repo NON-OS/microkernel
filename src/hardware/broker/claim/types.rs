@@ -29,4 +29,11 @@ pub enum ClaimError {
     NotClaimed,
     /// A remapping unit is in service and would not take the device.
     Unconfined,
+    /// The claimant's scope row does not name the device (K6f).
+    OutOfScope,
+    /// A claim or a retire is under way on the device (K10c).
+    Busy,
+    /// Another capsule holds a device this one reaches past the IOMMU, or
+    /// shares its requester id (K11b): said on the boot log, EBUSY here.
+    GroupHeld,
 }

@@ -34,4 +34,13 @@ impl Io for RouteIo {
     fn read(&mut self, into: &mut [u8]) -> Result<usize, SessionError> {
         self.0.read_wait(into, PATIENCE_MS).map_err(|_| SessionError::Io)
     }
+
+    /// The route's patience: a proxied stream waits as its network asks
+    /// (Proxy::patience_ms), a direct socket as the wire does.
+    fn patience_ms(&self) -> i64 {
+        match &self.0 {
+            RouteStream::Proxied(t) => t.proxy().patience_ms() as i64,
+            RouteStream::Direct(_) => 0,
+        }
+    }
 }

@@ -115,6 +115,14 @@ pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
 pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 /// Replace the program a parked guest is running.
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
+/// Take the newest final record sealed for an app, with its witness and
+/// measurements; it is dropped as it is read.
+pub const SYS_SEAL_READ: u64 = tag4(b"MSLR");
+/// A supervisor's note in its family's record: the app, or a diagnostic.
+pub const SYS_SEAL_NOTE: u64 = tag4(b"MSNT");
+/// Ask for the headless prover, app.prove.job: PROVE for the store, DELIVER
+/// for a vendor supervisor of a live family.
+pub const SYS_PROVE_JOB: u64 = tag4(b"MPJB");
 /// Mint a trailer for something this machine is installing.
 pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");
 /// Ask whether an image is proved under a root this machine trusts.

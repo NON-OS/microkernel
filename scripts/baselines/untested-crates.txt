@@ -14,8 +14,6 @@
 #   orphan  a test file no target's module tree reaches
 # Owners: the track that moves it (A, B, C, D), the lead, or upstream for a
 # third-party suite.
-. d A target-only kernel: the inline tests in src/syscall/microkernel/time.rs and src/security/hardening/memory_sanitization/scrub_asm.rs want a #[path] mount in kernel_proofs
-nonos-boot-measure a A passes on the host (29 passed, 26s)
 nonos-bootloader/tools/embed-trailer a lead checks.nix's attest-poc runs its one test target, kernel_self_attest_poc; that check is not a proofs lane, so this list holds it until the crate takes the marker in its place
 nonos-device-attest t A builds and nothing fails, but the run hit the 10-minute cap: each proof test runs over 60s
 nonos-shield-prove a B builds on the host; its one test is #[ignore]d (0 passed, 1 ignored, 16s)
@@ -43,9 +41,7 @@ userland/nonos_avi a C passes on the host (14 passed, 3s)
 userland/nonos_brotli a C passes on the host (7 passed, 33s)
 userland/nonos_gguf a C passes on the host (12 passed, 3s)
 userland/nonos_git a B passes on the host (73 passed, 23s)
-userland/nonos_hash a A passes on the host (2 passed, 3s)
 userland/nonos_hd c B the host run lacked the crate serde_json
-userland/nonos_http a A passes on the host (22 passed, 4s)
 userland/nonos_nox_broker a B passes on the host (9 passed, 2s)
 userland/nonos_nox_license c B the host run could not fetch libc v0.2.189
 userland/nonos_nox_receipt a B passes on the host (10 passed, 2s)
@@ -57,13 +53,11 @@ userland/nonos_vault a B passes on the host (13 passed, 2s)
 userland/nonos_vt a B passes on the host (69 passed, 26s)
 userland/nonos_wifi_core a C passes on the host (6 passed, 19s)
 userland/openpgp a C passes on the host (12 passed, 40s)
-userland/policy_proto a A passes on the host (37 passed, 6s)
 userland/shield_core a B passes on the host (247 passed, 200s)
 userland/shield_wire a B passes on the host (6 passed, 1s)
 userland/stark_proofs/src/forgery_tests.rs orphan A no mod line reaches it; re-added it does not compile: the Poseidon preimage AIR it imports is gone and StarkProof has no clone
 userland/stark_proofs/src/poseidon_tests.rs orphan A no mod line reaches it; re-added it does not compile: crypto::stark::poseidon is gone
 userland/stark_proofs/src/recursive_verifier_tests.rs orphan A no mod line reaches it; re-added it does not compile: FinalLayerConstant, FriTranscript and recursive_verify are gone from stark::air
-userland/stark_proofs/src/transcript_tests.rs orphan A no mod line reaches it; re-added it passes (8 tests)
 userland/toolkit d C no_std library and target-only capsule: its tests/host programs want a host proofs crate
 userland/toolkit/image_tests a C passes on the host (8 passed, 16s)
 userland/upstream-src/atty-0.2.14 c upstream third-party suite, not the NONOS patches; the host run lacked the crate winapi; it has no Cargo.lock of its own
@@ -89,4 +83,3 @@ userland/vendor/mio c upstream third-party suite, not the NONOS patches; the hos
 userland/vendor/tokio c upstream third-party suite, not the NONOS patches; the host run lacked the crate mio
 userland/xz a C passes on the host (6 passed, 19s)
 userland/zstd a C passes on the host (7 passed, 30s)
-verification/trusted_path_poc a A passes on the host (8 passed, 1s)

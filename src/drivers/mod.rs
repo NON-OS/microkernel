@@ -15,16 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Microkernel hardware bring-up surface. The boot path needs PCI
-// enumeration (from `init_core_systems`), the virtio-rng entropy probe
-// (from `init_entropy`), and the security helpers used by the trusted
-// memory/IPC paths.
+// enumeration (from `init_core_systems`) and the security helpers used by
+// the trusted memory/IPC paths. The kernel drives no RNG device (K9).
 //
 // `device_info` enumerates devices through the legacy `critical`
 // taxonomy and only ships diagnostics for the gated audio/gpu/xhci/ahci
 // stack; no microkernel caller reads it.
 pub mod pci;
 pub mod security;
-pub mod virtio_rng;
 
 pub use pci::{get_pci_manager, init_pci, PciBar, PciCapability, PciDevice, PciManager, PciStats};
 pub use security::{
@@ -32,7 +30,6 @@ pub use security::{
     validate_lba_range, validate_mmio_region, validate_pci_access, validate_prp_list, DriverError,
     DriverOpType, RateLimiter,
 };
-pub use virtio_rng::init_virtio_rng;
 
 // Legacy diagnostics. `critical` and `stats` enumerate the
 // audio/gpu/xhci/ahci device set; they cannot exist without the
