@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod bind;
 mod bring_up_one;
+mod brought_up;
 mod order;
 mod probe_pass;
 mod run;
