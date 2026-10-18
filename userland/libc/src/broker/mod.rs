@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod backdoor;
 mod device;
 // The kernel's one definition of DGON, the device-gone notice, by path.
 #[path = "../../../../src/hardware/broker/acpi/dgon_wire.rs"]
@@ -28,7 +29,9 @@ mod mmio;
 mod pci;
 mod pio;
 mod types;
+mod vmbus;
 
+pub use backdoor::mk_hv_backdoor;
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dma::{
     mk_dma_map, mk_dma_unmap, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32, MK_DMA_MAP_HIGH, MK_DMA_MAP_WC,
@@ -54,3 +57,7 @@ pub use types::{
     DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
 pub use dgon::{dgon_encode, dgon_parse, Dgon, DGON_LEN, DGON_TAG, DGON_VERSION, WHY_GONE};
+pub use vmbus::{
+    mk_hv_events, mk_hv_post, mk_hv_recv, mk_hv_signal, MK_HV_EVENT_WORDS, MK_HV_MESSAGE_BYTES,
+    MK_VMBUS_DEVICE, MK_VMBUS_VENDOR,
+};

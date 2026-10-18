@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the LSI Fusion-MPT driver. Builds for the host so
+# `cargo test` runs the real driver source and nonos_scsi_serve (included via
+# #[path]) against an MPI 1.x IOC model: the doorbell and its handshake
+# (IOC FACTS, IOC INIT, the message unit reset), the request FIFO, the reply
+# post and free FIFOs, and each SCSI IO request run on nonos_scsi's
+# simulated logical units, its DMA grant on host memory.
+[package]
+name = "mpt_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_scsi = { path = "../nonos_scsi" }
+nonos_libc = { package = "mpt_proofs_libc_shim", path = "libc_shim" }

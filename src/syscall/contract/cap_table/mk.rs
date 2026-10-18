@@ -140,7 +140,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkPioGrant
         | SyscallNumber::MkPioRead
         | SyscallNumber::MkPioWrite
-        | SyscallNumber::MkPioRelease => caps.can_pio(),
+        | SyscallNumber::MkPioRelease
+        | SyscallNumber::MkHvBackdoor => caps.can_pio(),
         /*
          * Firmware's AML reaches memory and ports no claim covers, so until the
          * owner names a bit of its own the ACPI calls are Admin's alone.
@@ -256,6 +257,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkTtySet => caps.can_ipc(),
         SyscallNumber::MkTtyQuery => true,
 
+        /* The VMBus core's SynIC calls; each also checks the VMBus root's claim. */
+        SyscallNumber::MkHvPost
+        | SyscallNumber::MkHvRecv
+        | SyscallNumber::MkHvEvents
+        | SyscallNumber::MkHvSignal => caps.can_driver(),
         _ => return None,
     })
 }

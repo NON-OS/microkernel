@@ -15,15 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which display driver the compositor draws through: virtio-gpu when it
-//! has announced itself, else the Bochs/QEMU adapter's driver, which speaks
-//! the same wire. Neither leaves the compositor on GOP (wait_for_setup), and
+//! has announced itself, else the Bochs/QEMU adapter's driver or VMware's
+//! SVGA II, each of which speaks the same wire. Neither leaves the compositor on GOP (wait_for_setup), and
 //! the GOP-mode probe asks again in the same order (upgrade).
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 
-pub const GFX_SERVICES: [&[u8]; 2] = [b"driver.virtio_gpu0", b"driver.bga0"];
+pub const GFX_SERVICES: [&[u8]; 3] =
+    [b"driver.virtio_gpu0", b"driver.bga0", b"driver.vmware_svga0"];
 /// What the display log calls the driver behind each of `GFX_SERVICES`.
-pub const DRIVERS: [&str; 2] = ["virtio-gpu", "bga"];
+pub const DRIVERS: [&str; 3] = ["virtio-gpu", "bga", "vmware-svga"];
 
 /// The first of `GFX_SERVICES` that `lookup` finds announced, as its place
 /// there and its port. One that is found ends the search: a later name is
