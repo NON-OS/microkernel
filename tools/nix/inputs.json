@@ -4275,6 +4275,15 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_scsi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_scsi"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_secp256k1": {
   "exclude": [],
   "include": [
