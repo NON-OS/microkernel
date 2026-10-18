@@ -775,6 +775,7 @@
    ".cargo",
    "userland/ax88179_proofs",
    "userland/capsule_driver_ax88179/src/ax",
+   "userland/libc/src/wait",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -2633,6 +2634,7 @@
    ".cargo",
    "userland/capsule_driver_cdc_ncm/src/ncm",
    "userland/cdc_ncm_proofs",
+   "userland/libc/src/wait",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -3930,6 +3932,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_rndis/src/rndis",
+   "userland/libc/src/wait",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -4020,6 +4023,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_rtl8153/src/r8153",
+   "userland/libc/src/wait",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
    "userland/nonos_usbnet/src/desc",
@@ -4714,6 +4718,7 @@
    "userland/capsule_driver_usb_msc/src/scsi",
    "userland/capsule_driver_usb_msc/src/span",
    "userland/capsule_driver_usb_msc/src/state",
+   "userland/libc/src/wait",
    "userland/usb_msc_proofs",
    "userland/xhci_proofs/libc_shim"
   ],
@@ -5030,6 +5035,7 @@
    "userland/capsule_driver_xhci/src/server/mux_ports.rs",
    "userland/capsule_driver_xhci/src/slots",
    "userland/capsule_driver_xhci/src/trb",
+   "userland/libc/src/wait",
    "userland/nonos_devmodel",
    "userland/xhci_proofs"
   ],
