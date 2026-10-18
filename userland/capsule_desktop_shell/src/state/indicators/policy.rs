@@ -73,8 +73,3 @@ pub fn clock_24h(port_slot: &mut u32) -> Read {
     }
     Read::Answered(Some(rx[HDR_LEN] != 0))
 }
-
-// Whole hours east of UTC; needs the port `clock_24h` found this tick.
-pub fn timezone(port: u32) -> Option<i8> {
-    (port != 0).then(|| nonos_policy_client::get_i8(port, nonos_policy_proto::Field::Timezone))?
-}

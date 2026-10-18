@@ -24,10 +24,19 @@
 //! mix of sector reads and writes must read back as a plain 512-byte disk
 //! would, and a write must never change a sector it was not given.
 
+#[path = "../../nonos_blk_client/src/device/chunks.rs"]
+mod chunks;
+#[path = "../../nonos_blk_client/src/device/geometry.rs"]
+pub(crate) mod geometry;
 #[path = "../../nonos_blk_client/src/device/span.rs"]
 mod span;
+#[path = "../../nonos_blk_client/src/device/transfer.rs"]
+pub(crate) mod transfer;
 
-use span::{max_transfer_bytes, read, write, Geometry, Native, DATA_BYTES, SECTOR};
+use chunks::Native;
+use geometry::Geometry;
+use span::{read, write};
+use transfer::{max_transfer_bytes, DATA_BYTES, SECTOR};
 
 struct Disk {
     g: Geometry,

@@ -18,16 +18,15 @@
 /// many were installed.
 ///
 /// x86_64 reads the ACPI tables and fills in IO-APIC redirection entries, so the
-/// count is the work done. aarch64 has no separate step: the GIC distributor is
-/// what routes device interrupts and it was configured during arch bring-up, so
-/// the honest answer is that no further routes were needed. Returning an error
-/// there would be reporting a failure for a stage that does not exist.
+/// count is the work done. aarch64's lines were routed when the GIC came up;
+/// what is left is the MSI controller, whose tables need memory that did not
+/// exist then. Without one PCI keeps INTx, which is not a failed stage.
 pub(crate) fn init_broker_irq_routing() -> Result<usize, ()> {
     #[cfg(target_arch = "x86_64")]
     return crate::arch::x86_64::interrupt::ioapic::init_from_acpi();
 
     #[cfg(target_arch = "aarch64")]
-    return Ok(0);
+    return Ok(crate::arch::aarch64::gic::msi::bring_up_and_report());
 
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     return Err(());

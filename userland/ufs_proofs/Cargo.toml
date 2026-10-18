@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the UFS driver. Builds for the host so `cargo test`
+# runs the real engine source (included via #[path]): the host enable, UIC
+# link startup, the UTP transfer request, the UPIUs, device initialisation
+# and the SCSI on each logical unit, against a register level model of a
+# UFSHCI host with a UFS device behind it.
+[package]
+name = "ufs_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

@@ -16,8 +16,7 @@
 
 //! The hard bounds on a report descriptor walk, under the names usb_hid's
 //! walker files reach for. A descriptor past any of them is refused whole,
-//! and the device it came from is not driven, as Linux refuses one past its
-//! own bounds.
+//! and the device it came from is not driven.
 
 /// A descriptor the walk refuses: past a bound, cut inside an item, or with
 /// a collection left open.
@@ -35,14 +34,14 @@ pub const MAX_PUSH: usize = 4;
 pub const MAX_USAGES: usize = 32;
 /// Input reports, and apart from them feature reports, by report ID.
 pub const MAX_REPORTS: usize = 16;
-/// The widest field a Report Size may give, as Linux allows. Only fields of
-/// 32 bits or fewer are ever read (field_at.rs).
+/// The widest field a Report Size may give. Only fields of 32 bits or fewer
+/// are ever read (field_at.rs).
 pub const MAX_FIELD_BITS: u32 = 256;
 /// One main item's Report Count, its report size times count, and one
-/// report's bits: Linux's report buffer (HID_MAX_BUFFER_SIZE, 16 KiB), so a
-/// vendor's firmware blob or raw-data report is no reason to refuse a pad.
+/// report's bits: 16 KiB, generous enough that a vendor's firmware blob or
+/// raw-data report is no reason to refuse a pad.
 pub const MAX_REPORT_BITS: u32 = 16384 * 8;
-/// The longest report in bytes, its ID byte included, as Linux takes one.
+/// The longest report in bytes, its ID byte included.
 pub const MAX_REPORT_BYTES: u16 = 16384;
 /// The longest input report, its ID byte included, that one 256-byte read
 /// of the input register holds after the two-byte length (state::FRAME_MAX).

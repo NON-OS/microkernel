@@ -83,7 +83,13 @@ DeviceRecord                       Bar
   carries the DesignWare source clock in Hz.
 - `flags`: `DEVICE_FLAG_CLAIMED` (1) and `DEVICE_FLAG_DISABLED` (2) are
   defined (`device/flags.rs`); no path sets either, so a listed record never
-  reports a claim.
+  reports a claim. `DEVICE_FLAG_DMA_NONCOHERENT` (4) says the device's DMA
+  does not snoop the CPU's caches (no `dma-coherent` in the tree, for it or
+  its PCI host bridge). Its `MkDmaMap` COHERENT and WC grants come from the
+  uncached pool, which the kernel too maps Non-cacheable, and fail with
+  `-ENOMEM` when that pool is empty or absent. Its cacheable grants need
+  `mk_dma_sync_for_device` before the device reads and
+  `mk_dma_sync_for_cpu` after it writes.
 - A PCI record carries `irq_line` and `irq_pin` from configuration space and
   `irq_source = irq_line`. An ACPI-bus I2C-HID record gives several fields its
   own meaning (`src/hardware/broker/acpi_i2c/hid_record.rs`).
@@ -243,7 +249,7 @@ to its width, inside the first 256 bytes, and returns the value
 (`src/hardware/broker/pci/read.rs`). A write is one 16-bit register and may
 change only the Command register's Memory Space (bit 1), Bus Master (bit 2) and
 Interrupt Disable (bit 10) bits, the MSI-X Message Control register's Function
-Mask and Enable bits, and the vendor bits `pci/quirk_bits.rs` names for audio
+Mask and Enable bits, and the vendor bits `pci/quirk_bits/` names for audio
 and network functions (`src/hardware/broker/pci/allowlist.rs`). Anything else
 is `EINVAL`. A value too wide to be a 16-bit register is refused by the
 dispatch arm with `EINVAL` rather than written with its top half dropped.

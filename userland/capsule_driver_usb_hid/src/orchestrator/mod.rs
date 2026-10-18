@@ -18,6 +18,7 @@ mod binding;
 mod device_for;
 mod enumerate;
 mod find_within;
+mod place;
 mod poll;
 mod report_descriptor;
 mod run;

@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs that the aarch64 and riscv64 ticks record whether
+# they interrupted user mode (C-43), as x86_64's does: the level each takes
+# it from, set before the tick runs, and read by the tick's dead-thread
+# switch and band wake. The kernel's own source is included via #[path].
+[package]
+name = "tick_origin_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

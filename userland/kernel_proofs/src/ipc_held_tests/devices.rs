@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the kernel drives.
+//! What the kernel drives, which no capsule reaches.
 
 use super::common::{owner, IPC};
 use super::held::{callers_of, endpoint_admits, inbox_admits};
 
-/// A keyboard's or pointer's driver, the random source and USB storage
-/// answer the kernel alone: no capsule reaches them, whatever it owns.
+/// Keyboards, pointers, the random source, USB storage and the hub walker
+/// answer the kernel alone.
 #[test]
 fn what_the_kernel_drives_no_capsule_reaches() {
     let everyone: &'static [&'static str] = &[
@@ -40,6 +40,7 @@ fn what_the_kernel_drives_no_capsule_reaches() {
         "driver.usb_hid0",
         "driver.i2c_hid0",
         "driver.usb_msc0",
+        "driver.usb_hub0",
         "driver.virtio_rng",
     ] {
         assert_eq!(callers_of(ep), Some(&[][..]), "{ep} names a caller");

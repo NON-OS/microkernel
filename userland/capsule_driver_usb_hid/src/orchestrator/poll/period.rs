@@ -22,7 +22,9 @@
 //! high speed and above it is n plus one. No report comes more often, so
 //! the poll loop asks for one no more often.
 
-use crate::hub::SPEED_HIGH;
+/// The Port Speed id of high speed (xHCI 1.2 section 7.2.2.1.1, as
+/// recalled, unverified).
+const SPEED_HIGH: u8 = 3;
 
 pub fn period_ms(speed: u8, b_interval: u8) -> u64 {
     let exp = if speed >= SPEED_HIGH {

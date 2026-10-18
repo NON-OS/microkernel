@@ -31,9 +31,12 @@ mod configure;
 mod configured;
 mod fallback;
 mod get;
+mod i2c;
 mod one_report;
+mod port;
 mod set;
 mod set_bits;
 
 pub use configure::configure_reporting;
 pub use configured::Configured;
+pub use i2c::I2cFeatures;

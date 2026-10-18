@@ -49,4 +49,32 @@ impl Regs {
         self.shipped.w16(off, value);
         nonos_libc::wrote16(self.base + off as u64, value);
     }
+
+    /// # Safety
+    ///
+    /// As for the shipping `r8`.
+    pub unsafe fn r8(self, off: u32) -> u8 {
+        self.shipped.r8(off)
+    }
+
+    /// # Safety
+    ///
+    /// As for the shipping `w8`.
+    pub unsafe fn w8(self, off: u32, value: u8) {
+        self.shipped.w8(off, value);
+    }
+
+    /// # Safety
+    ///
+    /// As for the shipping `r32`.
+    pub unsafe fn r32(self, off: u32) -> u32 {
+        self.shipped.r32(off)
+    }
+
+    /// # Safety
+    ///
+    /// As for the shipping `w32`.
+    pub unsafe fn w32(self, off: u32, value: u32) {
+        self.shipped.w32(off, value);
+    }
 }

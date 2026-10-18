@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,16 +16,16 @@
 
 //! Saying, once, which disk the block layer settled on.
 
-use super::backend::Backend;
+use alloc::format;
 
-pub(super) fn announce(backend: Backend) -> Backend {
-    let line = match backend {
-        Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
-        Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
-        Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
-        Backend::UsbMsc => "[BLOCK] NONOS disk on USB mass storage (driver.usb_msc0)",
-    };
+use super::backend::Backend;
+use super::gpt::Places;
+
+pub(super) fn announce(b: Backend, p: &Places) -> Backend {
+    let (store, plan) = (p.store.first, p.plan.first);
+    let disk = (b.disk.announced)(b.key);
+    let line = format!("[BLOCK] NONOS disk on {disk}: store at LBA {store}, plan at LBA {plan}");
     crate::sys::serial::println(line.as_bytes());
     crate::log::info!("{}", line);
-    backend
+    b
 }

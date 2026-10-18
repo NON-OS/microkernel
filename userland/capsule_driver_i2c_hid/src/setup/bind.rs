@@ -17,13 +17,13 @@ use super::report_desc::read_report_descriptor;
 use super::say::{say, say_retrying};
 use crate::drive::configure;
 use crate::hid::{input_len, input_register, parse_mouse_layout, parse_report_descriptor};
-use crate::hid::{sleep, wake, HID_DESC_LEN};
+use crate::hid::{sleep, wake, Multitouch, Surface, HID_DESC_LEN};
 use crate::state::State;
 
 /// Bind the device whose HID descriptor was just read at `addr`: wake it,
-/// read its report descriptor, and drive it when that declares a touch pad
-/// or a relative mouse. Anything else (an I2C keyboard, a sensor hub, a
-/// touch screen) is put back to sleep and released: its reports are never
+/// read its report descriptor, and drive it when that declares a touch pad,
+/// a touch screen or a relative mouse. Anything else (an I2C keyboard, a
+/// sensor hub) is put back to sleep and released: its reports are never
 /// read as pointer input, and the driver leaves.
 pub(super) fn bind(state: &mut State, addr: u8) {
     state.addr = addr;
@@ -40,10 +40,12 @@ pub(super) fn bind(state: &mut State, addr: u8) {
     };
     state.touch_layout = parse_report_descriptor(&report_desc);
     state.mouse_layout = parse_mouse_layout(&report_desc);
+    state.mt = Multitouch::new(&report_desc);
     let touchpad = state.touch_layout.is_absolute_touch();
-    if !touchpad && !state.mouse_layout.is_relative_mouse() {
+    let screen = state.mt.surface == Surface::Screen && state.mt.serves();
+    if !touchpad && !screen && !state.mouse_layout.is_relative_mouse() {
         let _ = sleep(state.i2c_port, addr, &state.descriptor);
-        say("driver.i2c_hid: the HID-over-I2C device found is no touchpad or mouse (a keyboard or a sensor hub); left asleep, not driven\n");
+        say("driver.i2c_hid: the HID-over-I2C device found is no touchpad, touchscreen or mouse (a keyboard or a sensor hub); left asleep, not driven\n");
         state.done = true;
         return;
     }
@@ -53,7 +55,11 @@ pub(super) fn bind(state: &mut State, addr: u8) {
     // feature report, so a pad left muted or mode-switched by a previous
     // session is repaired and a correct one sees no writes.
     configure(state);
-    let kind = if touchpad { "a precision touchpad" } else { "a mouse" };
+    let kind = match (touchpad, screen) {
+        (_, true) => "a touchscreen",
+        (true, false) => "a precision touchpad",
+        (false, false) => "a mouse",
+    };
     let reset = if state.woke { "reset acknowledged" } else { "no reset report" };
     crate::diag::line(alloc::format!(
         "driver.i2c_hid: bound at {addr:#04x}, read as {kind}; {reset}\n"

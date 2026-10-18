@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 IORT reader: every root complex's
+# SMMU and ITS routes, read into the records the device-tree path fills.
+# The kernel's own source is included via #[path].
+[package]
+name = "iort_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

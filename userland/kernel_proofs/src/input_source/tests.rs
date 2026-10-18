@@ -16,15 +16,15 @@
 
 //! The stamp and the poster table, as MkInputEventPost runs them.
 
-use super::source::{index_of, stamp, KERNEL, SLOTS, UNREGISTERED};
+use super::source::{index_of, stamp, KERNEL, SLOTS, SOURCE_BITS, UNREGISTERED};
 
 #[test]
 fn a_posters_own_high_byte_is_always_overwritten() {
     for flags in 0..=u16::MAX {
-        for source in [KERNEL, 1, 2, 0x7F, 0x80, 0xFE, UNREGISTERED] {
+        for source in [KERNEL, 1, 2, 0x1F, 0x20, 0x3E, UNREGISTERED] {
             let out = stamp(flags, source);
-            assert_eq!(out >> 8, u16::from(source), "{flags:#06x} by {source}");
-            assert_eq!(out & 0xFF, flags & 0xFF, "the modifiers kept");
+            assert_eq!((out & SOURCE_BITS) >> 8, u16::from(source), "{flags:#06x} by {source}");
+            assert_eq!(out & !SOURCE_BITS, flags & !SOURCE_BITS, "modifiers and bond marks kept");
         }
     }
 }

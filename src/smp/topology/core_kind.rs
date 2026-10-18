@@ -14,16 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Performance and efficiency cores on Intel hybrid parts, decoded from
-//! CPUID. Pure, so the host proofs can hold the decoding.
-
-/// CPUID.(EAX=07H, ECX=0):EDX[15], Hybrid. Intel SDM vol. 2A, CPUID.
-pub(crate) const LEAF7_EDX_HYBRID: u32 = 1 << 15;
-/// The leaf that names the core type, CPUID.1AH. Intel SDM vol. 2A, CPUID.
-pub(crate) const LEAF_CORE_TYPE: u32 = 0x1A;
-/// CPUID.1AH:EAX[31:24] values: Intel Atom and Intel Core.
-const TYPE_ATOM: u32 = 0x20;
-const TYPE_CORE: u32 = 0x40;
+//! Performance and efficiency cores, as each architecture names them (on
+//! x86, Intel hybrid parts: `arch::x86_64::cpu::hybrid`). Pure, so the host
+//! proofs can hold it.
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,14 +27,6 @@ pub(crate) enum CoreKind {
 }
 
 impl CoreKind {
-    pub(crate) fn from_leaf_1a(eax: u32) -> Self {
-        match eax >> 24 {
-            TYPE_CORE => CoreKind::Performance,
-            TYPE_ATOM => CoreKind::Efficiency,
-            _ => CoreKind::Unknown,
-        }
-    }
-
     pub(crate) fn from_u8(raw: u8) -> Self {
         match raw {
             1 => CoreKind::Performance,

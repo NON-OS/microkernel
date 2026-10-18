@@ -22,6 +22,7 @@
 
 mod bits;
 mod build;
+mod memory_type;
 mod read;
 
 pub use bits::ADDR_MASK;

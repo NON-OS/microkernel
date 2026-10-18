@@ -19,48 +19,37 @@
 
 extern crate alloc;
 
-#[cfg(test)]
-pub mod acpi_span;
 pub mod arch;
 pub mod bus;
 pub mod capabilities;
-pub mod pci_quirk_bits;
+pub mod device_windows;
 #[cfg(test)]
 pub mod dmar_scope;
 pub mod driver_end;
 /// The driver-grant surface (A10): each call's cap, hold and grant.
 pub mod driver_grants;
-pub mod device_windows;
+pub mod elf;
+pub mod fb_frame;
 pub mod fs;
 pub mod hardware;
-pub mod fb_frame;
-pub mod store_copy_span;
-pub mod store_errno;
-pub mod elf;
 #[cfg(test)]
 pub mod idt_vectors;
 #[cfg(test)]
 pub mod iommu_command;
 pub mod memory;
+pub mod pci_quirk_bits;
 #[cfg(test)]
 pub mod process;
 pub mod security;
 /// Which registered services take Network to reach.
 #[path = "../../../src/services/registry/policy.rs"]
 pub mod service_policy;
+pub mod store_copy_span;
+pub mod store_errno;
 #[cfg(test)]
 pub use proofs_4::{lifecycle_state, usb_msc_report_words, watch_rule};
 #[cfg(test)]
 pub use proofs_5::{arm_acpi, arm_acpi_tests, bgrt, seeded_tables, smbios};
-pub mod spec;
-pub mod sys;
-pub mod syscall;
-pub mod time;
-pub mod usercopy;
-#[cfg(test)]
-pub mod unit_base;
-#[cfg(test)]
-mod registry_support;
 #[cfg(kani)]
 mod kani_proofs;
 #[cfg(test)]
@@ -73,3 +62,12 @@ pub mod proofs_3;
 pub mod proofs_4;
 #[cfg(test)]
 pub mod proofs_5;
+#[cfg(test)]
+pub mod proofs_6;
+#[cfg(test)]
+mod registry_support;
+pub mod spec;
+pub mod sys;
+pub mod syscall;
+pub mod time;
+pub mod usercopy;

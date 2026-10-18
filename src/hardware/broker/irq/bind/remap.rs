@@ -17,9 +17,9 @@
 //! Taking and giving back a VT-d interrupt remapping entry for a broker
 //! vector, when the kernel is built with nonos-iommu-intremap.
 
-use super::super::grant::NO_IRTE;
 use super::message::Routed;
 use super::remap_rule::Attempt;
+use super::sentinels::NO_IRTE;
 use crate::arch::x86_64::iommu::remap::{is_remapping, release_msi, route_msi};
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};

@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::descriptors::HidKind;
 use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 use crate::xhci::interrupt_in;
 
-use super::constants::HID_REPORT_MAX;
+use super::constants::PAD_REPORT_MAX;
 use super::feed_report::feed_report;
-use super::read_len::read_len;
+use super::read_len::{pad_read_len, read_len};
 
 /// Reports read from one endpoint in one poll at most. A device that always
 /// has another ready held the loop on its endpoint: no other device, no
@@ -33,14 +34,17 @@ const REPORTS_PER_POLL: u32 = 16;
 pub(super) fn drain_endpoint(
     state: &mut State,
     ep: &mut HidEndpoint,
-    buf: &mut [u8; HID_REPORT_MAX],
+    buf: &mut [u8; PAD_REPORT_MAX],
     now_ms: u64,
 ) -> bool {
     if !ep.pace.due(now_ms) {
         return false;
     }
     let mut drained = false;
-    let len = read_len(ep.max_packet);
+    let len = match ep.kind {
+        HidKind::Gamepad => pad_read_len(ep.max_packet),
+        _ => read_len(ep.max_packet),
+    };
     for _ in 0..REPORTS_PER_POLL {
         let Ok(Some(n)) = interrupt_in(ep.port, ep.slot, ep.dci, len, buf) else { break };
         feed_report(state, ep, buf, n);

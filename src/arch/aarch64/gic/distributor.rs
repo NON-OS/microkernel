@@ -19,9 +19,13 @@ mod constants;
 mod device;
 mod enable;
 mod init;
+mod lpis;
 mod pending;
 mod priority;
 mod registers;
 mod route;
+mod settle;
+mod sgir;
+mod v2;
 
 pub use device::GicDistributor;

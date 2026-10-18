@@ -26,6 +26,7 @@ const SUBCLASS_IDE: u8 = 0x01;
 const SUBCLASS_RAID: u8 = 0x04;
 const SUBCLASS_SATA: u8 = 0x06;
 const SUBCLASS_NVM: u8 = 0x08;
+const SUBCLASS_UFS: u8 = 0x09;
 
 /*
  * An Intel RST SATA controller in "RAID On" mode reports subclass 04h (RAID)
@@ -60,6 +61,7 @@ pub(super) fn classify_storage(subclass: u8, vendor: u16, device: u16) -> Hardwa
         SUBCLASS_SATA => HardwareFamily::StorageAhci,
         SUBCLASS_RAID if vendor == VENDOR_INTEL => HardwareFamily::StorageAhci,
         SUBCLASS_NVM => HardwareFamily::StorageNvme,
+        SUBCLASS_UFS => HardwareFamily::StorageUfs,
         _ => HardwareFamily::Unknown,
     }
 }
