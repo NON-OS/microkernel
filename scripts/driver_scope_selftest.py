@@ -42,4 +42,10 @@ def self_test():
         assert drift(root, [("driver.decoy0", "decoy/ids.rs", "ids")]), "a range past it was missed"
         assert drift(root, [("driver.gone0", "decoy/ids.rs", "IDS")]), "a missing row was missed"
         assert drift(root, [("driver.decoy0", "decoy/ids.rs", "GONE")]), "a missing item was missed"
+        cap.write_text("pub const IDS: &[u16] = &[0x1000];\n")
+        assert not drift(root, case), "a row range the table names in part was reported"
+        (root / BROKER / "scope_ids.rs").write_text(
+            "pub(crate) const DECOY: &[u16] = &[\n    0x1000, 0x1007, 0x2000, 0x2000,\n];\n"
+        )
+        assert drift(root, case), "a row range the table never names was missed"
     print("driver scope: self-test passed, the decoys were reported")
