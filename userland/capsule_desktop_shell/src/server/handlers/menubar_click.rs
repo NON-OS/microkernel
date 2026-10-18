@@ -26,8 +26,8 @@ pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
         let same = ctx.menubar.open == Some(title);
         ctx.menubar.open = if same { None } else { Some(title) };
         ctx.menubar.hover = None;
-        ctx.desktop_menu = None;
-        ctx.menu_target = None;
+        ctx.desk_ui.desktop_menu = None;
+        ctx.desk_ui.menu_target = None;
         return true;
     }
     let Some(title) = ctx.menubar.open else {

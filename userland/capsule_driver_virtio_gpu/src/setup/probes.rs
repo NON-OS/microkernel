@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The best-effort probes after the scanouts: the panel's size, then the 3D
-//! path. A host without EDID or a GL backend still gets the full 2D scanout
-//! path, and the boot log records which one this is. A command either probe
-//! sends may stall, which resets the device: the queue is then
-//! restarted on the same grant, so the primary surface still goes up on the
-//! 2D path, with virgl off. The reset queue used to be handed on, so the
-//! surface was refused and the attempt failed: a host whose virgl stalled
-//! lost 2D with it once the attempts ran out.
+//! The best-effort probes after the scanouts: the panel's EDID, then the
+//! 3D path. A host without EDID or a GL backend still gets the full 2D
+//! scanout path, and the boot log records which one this is. A command
+//! either probe sends may stall, which resets the device: the
+//! queue is then restarted on the same grant, so the outputs still go up on
+//! the 2D path. The reset queue used to be handed on, so every surface was
+//! refused and the attempt failed: a host whose virgl stalled lost 2D with
+//! it once the attempts ran out.
 
+use nonos_gfx_serve::Panel;
 use nonos_libc::mk_debug;
 use nonos_virtio::common::NotifyArea;
 
@@ -36,11 +37,8 @@ const RESTARTED: &[u8] = b"[GPU] probe stalled; device reset, control queue rest
 
 pub struct Probed {
     pub queue: ControlQueue,
-    /// The features in force: a restart settles them again.
-    pub features: u64,
-    /// Render context 1 exists on the host: RESOURCE_CREATE_3D and
-    /// SUBMIT_3D are usable.
-    pub virgl_ready: bool,
+    /// The monitor's EDID for output 0, or an empty panel.
+    pub panel: Panel,
 }
 
 pub fn run(
@@ -48,16 +46,15 @@ pub fn run(
     features: u64,
     notify: NotifyArea,
     fences: &FenceCounter,
-    device_id: u64,
-    claim_epoch: u64,
+    (device_id, claim_epoch): (u64, u64),
 ) -> Result<Probed, &'static str> {
-    edid::fetch(&q, features & u64::from(VIRTIO_GPU_F_EDID) != 0);
+    let panel = edid::panel(&q, features & u64::from(VIRTIO_GPU_F_EDID) != 0);
     let (q, features) = in_service(q, features, notify)?;
+    // Logged only: nothing on the display wire draws through the 3D path.
     let virgl = features & u64::from(VIRTIO_GPU_F_VIRGL) != 0;
-    // A stall reset the device, and the render context with it.
-    let virgl_ready = probe_3d::probe(&q, fences, virgl, device_id, claim_epoch) && !q.is_reset();
-    let (queue, features) = in_service(q, features, notify)?;
-    Ok(Probed { queue, features, virgl_ready })
+    let _ = probe_3d::probe(&q, fences, virgl, device_id, claim_epoch);
+    let (queue, _) = in_service(q, features, notify)?;
+    Ok(Probed { queue, panel })
 }
 
 /// The queue as it is, or restarted if a probe's command stalled on it.

@@ -27,6 +27,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::about::data::proofs::firmware::firmware;
 use crate::about::data::verify::attested;
 use crate::about::state::State;
 
@@ -55,8 +56,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     let y = -(state.scroll as i32);
     verify_live::paint(&mut pane, y, rect.w);
     let doc_y = y + (verify_live::HEIGHT + CARD_GAP) as i32;
-    verify_doc::paint(&mut pane, doc_y, rect.w, &state.attest);
     let list = attested();
+    let listed = list.as_deref().map(|l| firmware(l, |a| a.pid).is_some());
+    verify_doc::paint(&mut pane, doc_y, rect.w, &state.attest, listed);
     let spawn_y = doc_y + (verify_doc::HEIGHT + CARD_GAP) as i32;
     verify_spawn::paint(&mut pane, spawn_y, rect.w, list.as_deref());
     let boot_y = spawn_y + (verify_spawn::height(list.as_deref()) + CARD_GAP) as i32;

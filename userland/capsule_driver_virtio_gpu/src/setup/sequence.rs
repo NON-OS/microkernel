@@ -18,6 +18,7 @@
 //! register window is mapped the device is reset first, and
 //! then the claim goes, and every grant with it.
 
+use nonos_gfx_pool::Pool;
 use nonos_libc::mk_device_release;
 use nonos_virtio::common::reset_until;
 
@@ -27,7 +28,7 @@ use crate::constants::RESET_MS;
 use crate::discover::{find_virtio_gpu, Found};
 use crate::driver::Driver;
 
-pub fn run() -> Result<Driver, &'static str> {
+pub fn run() -> Result<Driver<Pool>, &'static str> {
     let dev = find_virtio_gpu().ok_or("virtio-gpu: device not found")?;
     let claim_epoch = claim::claim(dev.device_id)?;
     let attempt = claimed(dev, claim_epoch);
@@ -43,7 +44,7 @@ pub fn run() -> Result<Driver, &'static str> {
     attempt
 }
 
-fn claimed(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
+fn claimed(dev: Found, claim_epoch: u64) -> Result<Driver<Pool>, &'static str> {
     /*
      * No interrupt is bound: the driver polls, and DECODE takes the device
      * off its legacy line so it cannot hold a shared line up.

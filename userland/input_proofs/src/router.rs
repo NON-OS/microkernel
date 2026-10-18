@@ -47,3 +47,7 @@ pub mod protocol;
 
 // Which process a key press goes to, by what the window manager answered.
 pub use crate::route::key_target as router_key_target;
+
+// The shell's reading of the router's notice frame.
+#[path = "../../capsule_desktop_shell/src/state/router_notice.rs"]
+pub mod shell_router_notice;

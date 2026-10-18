@@ -33,19 +33,19 @@ const INSET_LOGICAL: u32 = 4;
 const DELETE_ROW: usize = 2;
 
 pub fn paint(ctx: &Context) {
-    if ctx.desktop_menu.is_none() {
+    if ctx.desk_ui.desktop_menu.is_none() {
         return;
     }
     let (ox, oy) = origin(ctx);
     let (w, rh, s) = (width(ctx), row_h(), scale());
     let inset = px(INSET_LOGICAL);
-    let with_glyph = ctx.menu_target.is_none();
+    let with_glyph = ctx.desk_ui.menu_target.is_none();
     let frame = Rect { x: ox, y: oy, width: w, height: height(ctx) };
     shadow_panel(ctx, frame, palette::R_CARD, palette::PANEL, palette::LINE);
 
     for (i, label) in items(ctx).iter().enumerate() {
         let top = oy + pad_y() + i as u32 * rh;
-        if ctx.menu_hover == Some(i) {
+        if ctx.desk_ui.menu_hover == Some(i) {
             let width = w.saturating_sub(inset * 2);
             let hl = Rect { x: ox + inset, y: top, width, height: rh };
             round_fill(ctx, hl, palette::R_TILE, palette::ACCENT_HOVER);

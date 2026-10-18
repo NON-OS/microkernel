@@ -47,10 +47,8 @@ pub mod input {
     pub use crate::sample;
 }
 
-/*
- * The HID report-descriptor parser and the absolute-touch decoder, under the
- * path the driver's own files name them by, `crate::hid`.
- */
+// The HID report-descriptor parser and the absolute-touch decoder, under
+// the path the driver's own files name them by, `crate::hid`.
 pub mod hid;
 
 // The touchpad gesture state machine (tap, move, two-finger scroll).
@@ -59,7 +57,7 @@ pub mod gesture;
 
 // The compositor's damage accumulator, whose coalescing must never drop a
 // damaged pixel or the screen tears.
-#[path = "../../compositor/src/state/damage.rs"]
+#[path = "../../compositor/src/state/damage/mod.rs"]
 pub mod damage;
 
 // The input router's routing, whole (router.rs), and its route tree.
@@ -70,5 +68,7 @@ pub mod route;
 
 #[cfg(test)]
 mod router_desk;
+#[cfg(test)]
+mod router_tests;
 #[cfg(test)]
 mod tests;

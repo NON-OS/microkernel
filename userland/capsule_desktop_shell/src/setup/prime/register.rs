@@ -22,20 +22,6 @@ use nonos_libc::{
 use super::overlay::Overlay;
 use crate::compositor_client::push_scene_submit;
 
-/// The desk's band: over the wallpaper's (0), under every application
-/// window's (2).
-pub const DESK_Z: u32 = 1;
-
-/// The chrome's band: over every application window, under the boot splash
-/// (4_000_000), which covers the whole screen while the system starts.
-///
-/// The shell used to hold one surface only, in the desk's band, so its menus,
-/// the Launchpad, the right-click menu, toasts and consent dialogs all drew
-/// under any window open where they opened, while their clicks were still
-/// meant for them. The compositor keeps one layer per process and band, so
-/// the shell holds both without anything new being granted to it.
-pub const CHROME_Z: u32 = 3_000_000;
-
 pub fn register_overlay(
     compositor_port: u32,
     request_id: u32,

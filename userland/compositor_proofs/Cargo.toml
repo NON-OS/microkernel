@@ -14,3 +14,4 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }

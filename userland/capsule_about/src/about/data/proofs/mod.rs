@@ -23,6 +23,7 @@
 //! anything itself.
 
 pub mod census;
+pub mod firmware;
 mod read;
 pub mod session;
 pub mod words;

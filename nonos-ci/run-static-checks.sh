@@ -680,13 +680,13 @@ if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virt
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
    ! grep -q 'mk_dma_map' userland/capsule_driver_virtio_gpu/src/setup/dma.rs ||
-   ! grep -rq 'GPU_CFG_NUM_SCANOUTS' userland/capsule_driver_virtio_gpu/src/constants ||
-   ! grep -q 'OP_DISPLAY_INFO' userland/capsule_driver_virtio_gpu/src/protocol/ops.rs ||
+   ! grep -rq 'GPU_CFG_EVENTS_READ' userland/capsule_driver_virtio_gpu/src/constants ||
+   ! grep -q 'impl Display for Gpu' userland/capsule_driver_virtio_gpu/src/display/wire.rs ||
    ! grep -rq 'spawn_driver_virtio_gpu_capsule' src/userspace/init/ ||
    ! grep -q 'pub mod virtio_gpu_capsule' src/hardware/mod.rs; then
-    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + display-info IPC"
+    fail_with "capsule_driver_virtio_gpu must expose brokered device setup + the display wire"
 else
-    note ok "capsule_driver_virtio_gpu exposes brokered device setup + display-info IPC"
+    note ok "capsule_driver_virtio_gpu exposes brokered device setup + the display wire"
 fi
 
 gpu_endpoint_marker="$( { grep -rn 'driver\.virtio_gpu0' userland/capsule_driver_virtio_gpu src/hardware/virtio_gpu_capsule --include='*.rs' || true; } )"
@@ -2640,10 +2640,10 @@ unset unguarded_driver_spawns
 compositor_ops='userland/compositor/src/protocol/ops.rs'
 compositor_runner='userland/compositor/src/server/runner'
 compositor_prime='userland/compositor/src/setup/prime.rs'
-compositor_wire='userland/compositor/src/gfx_client/wire.rs'
+compositor_wire='userland/compositor/src/display/call.rs'
 if [ ! -f "${compositor_ops}" ] || [ ! -d "${compositor_runner}" ] \
         || [ ! -f "${compositor_prime}" ] || [ ! -f "${compositor_wire}" ]; then
-    fail_with "compositor runtime missing protocol/runner/setup/gfx_client modules"
+    fail_with "compositor runtime missing protocol/runner/setup/display wire modules"
 elif ! grep -q 'OP_SCENE_SUBMIT' "${compositor_ops}"; then
     fail_with "${compositor_ops} must define OP_SCENE_SUBMIT"
 elif ! grep -q 'OP_SCENE_REMOVE' "${compositor_ops}"; then
@@ -2656,14 +2656,14 @@ elif ! grep -rq 'mk_ipc_recv_from' "${compositor_runner}"; then
     fail_with "${compositor_runner} must receive via mk_ipc_recv_from"
 elif ! grep -rq 'mk_surface_attach' userland/compositor/src/setup; then
     fail_with "compositor setup must map the primary surface via mk_surface_attach"
-elif ! grep -rq 'mk_ipc_call' userland/compositor/src/gfx_client/wire; then
+elif ! grep -q 'mk_ipc_call' "${compositor_wire}"; then
     fail_with "${compositor_wire} must drive gfx requests via mk_ipc_call"
 elif find userland/compositor/src -name '*.rs' -print0 2>/dev/null \
         | xargs -0 grep -lE 'nonos_surface_create|nonos_surface_present_full|nonos_surface_destroy' 2>/dev/null \
         | grep -q .; then
     fail_with "compositor still uses legacy nonos_surface_* graphics syscalls"
 else
-    note ok "compositor runtime owns scene/damage/cursor through the Mk* + gfx_client path"
+    note ok "compositor runtime owns scene/damage/cursor through the Mk* + display wire path"
 fi
 unset compositor_ops compositor_runner compositor_prime compositor_wire
 

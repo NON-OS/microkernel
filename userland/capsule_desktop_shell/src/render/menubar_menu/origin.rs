@@ -17,7 +17,8 @@
 //! Top-left corner of an open drop-down, clamped so a title near the right
 //! edge still shows its whole panel.
 
-use super::metrics::{panel_w, title_x};
+use super::metrics::panel_w;
+use super::title_geom::title_x;
 use crate::render::layout::menubar_height;
 use crate::state::Context;
 

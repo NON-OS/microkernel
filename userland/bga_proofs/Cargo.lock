@@ -8,6 +8,8 @@ version = "0.1.0"
 dependencies = [
  "bga_proofs_libc_shim",
  "nonos_devmodel",
+ "nonos_gfx_serve",
+ "nonos_gfx_wire",
 ]
 
 [[package]]
@@ -17,3 +19,29 @@ version = "0.1.0"
 [[package]]
 name = "nonos_devmodel"
 version = "0.1.0"
+
+[[package]]
+name = "nonos_edid"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_gfx_serve"
+version = "0.1.0"
+dependencies = [
+ "nonos_edid",
+ "nonos_gfx_wire",
+]
+
+[[package]]
+name = "nonos_gfx_wire"
+version = "0.1.0"
+dependencies = [
+ "nonos_modes",
+]
+
+[[package]]
+name = "nonos_modes"
+version = "0.1.0"
+dependencies = [
+ "nonos_edid",
+]

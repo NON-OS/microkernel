@@ -13,22 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! One recovery try (`tries`): the device reset and its queue restarted on
-//! the same grant with the features settled again, then the primary resource
-//! made again under the same id on the same frames and shown.
+//! the same grant with the features settled again, then every output shown
+//! again on its own surface (`display::reshow`).
+
+use nonos_gfx_serve::Platform;
 
 use crate::driver::Driver;
 use crate::init::restart;
-use crate::setup::prime;
 
-pub fn attempt(driver: &mut Driver) -> Result<(), &'static str> {
-    let (queue, features) = restart(&driver.control_queue, driver.notify)?;
-    driver.control_queue = queue;
-    driver.host_features = features as u32;
-    driver.queue_size = driver.control_queue.layout.queue_size;
-    match driver.primary {
-        Some(p) => prime::show(&driver.control_queue, &driver.fences, &p),
-        None => Ok(()),
-    }
+pub fn attempt<P: Platform>(driver: &mut Driver<P>) -> Result<(), &'static str> {
+    let gpu = &mut driver.server.display;
+    let (queue, _) = restart(&gpu.q, driver.notify)?;
+    gpu.q = queue;
+    gpu.reshow().map_err(|_| "virtio-gpu: outputs not shown again")
 }

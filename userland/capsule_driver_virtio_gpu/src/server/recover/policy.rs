@@ -19,6 +19,8 @@
 //! and a stalled queue is recovered, once per stall, until they run out.
 
 use super::tries::{down, recover, IN_A_ROW_DOWN};
+use nonos_gfx_serve::Platform;
+
 use crate::clock::now_ms;
 use crate::constants::CTRLQ_MS;
 use crate::driver::Driver;
@@ -41,22 +43,24 @@ pub const IN_A_ROW: u32 = 3;
 /// is forgiven within half a minute.
 pub const SERVED_MS: u64 = 15 * CTRLQ_MS;
 
-/// After every request. A driver already down is left answering E_DEVICE.
-pub fn settle(driver: &mut Driver) {
-    let q = &driver.control_queue;
-    if !q.is_reset() {
+/// After every turn. Whether the device went Down on it, so the compositor
+/// is told LEAVING once; a driver already Down is left answering LOST.
+pub fn settle<P: Platform>(driver: &mut Driver<P>) -> bool {
+    let (gpu, t) = (&driver.server.display, &mut driver.tally);
+    if !gpu.q.is_reset() {
         // In service, so no command stalled since the last recovery ended.
-        let answered = q.published() != driver.recovered_at;
-        if answered && now_ms().saturating_sub(driver.recovered_ms) >= SERVED_MS {
-            driver.in_a_row = 0;
+        let answered = gpu.q.published() != t.recovered_at;
+        if answered && now_ms().saturating_sub(t.recovered_ms) >= SERVED_MS {
+            t.in_a_row = 0;
         }
-    } else if driver.health == Health::Live {
-        // The reset took render context 1 with every host resource.
-        driver.virgl_ready = false;
-        if driver.in_a_row < IN_A_ROW {
-            recover(driver);
-        } else {
-            down(driver, IN_A_ROW_DOWN);
-        }
+        return false;
     }
+    if gpu.health == Health::Down {
+        return false;
+    }
+    match t.in_a_row < IN_A_ROW {
+        true => recover(driver),
+        false => down(driver, IN_A_ROW_DOWN),
+    }
+    driver.server.display.health == Health::Down
 }

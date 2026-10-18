@@ -24,7 +24,26 @@ dependencies = [
 name = "nonos_compositor"
 version = "0.3.0"
 dependencies = [
+ "nonos_gfx_wire",
  "nonos_userland_libc",
+]
+
+[[package]]
+name = "nonos_edid"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_gfx_wire"
+version = "0.1.0"
+dependencies = [
+ "nonos_modes",
+]
+
+[[package]]
+name = "nonos_modes"
+version = "0.1.0"
+dependencies = [
+ "nonos_edid",
 ]
 
 [[package]]

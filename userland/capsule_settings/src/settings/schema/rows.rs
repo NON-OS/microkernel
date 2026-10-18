@@ -16,6 +16,7 @@
 
 use nonos_policy_proto::Field;
 
+use super::access_knob::Knob;
 pub use super::bt_live::BtLive;
 
 /// A value the panel reads from the running system rather than from policy.
@@ -45,8 +46,7 @@ pub enum Tone {
     Idle,
 }
 
-/// The badge on a card header. `Net` and `Radio` resolve against live state at
-/// paint time. There is no fixed badge: a card's badge reports something read.
+/// The badge on a card header, resolved against live state at paint time.
 #[derive(Clone, Copy)]
 pub enum Pill {
     None,
@@ -61,8 +61,8 @@ pub enum Row {
     Live(&'static str, Live),
     Networks,
     Saved,
-    /// Every wallpaper in the collection, a row each, switched kept or not.
-    Wallpapers,
+    Wallpapers, // Every wallpaper, a row each.
+    Access(Knob), // A row the compositor holds (`access_knob`).
     BtDevices,
 }
 

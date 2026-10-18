@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod backdoor;
+mod boot_framebuffer;
 mod device;
 // The kernel's one definition of DGON, the device-gone notice, by path.
 #[path = "../../../../src/hardware/broker/acpi/dgon_wire.rs"]
@@ -37,6 +38,7 @@ mod types;
 mod vmbus;
 
 pub use backdoor::mk_hv_backdoor;
+pub use boot_framebuffer::{mk_boot_framebuffer, BootFramebufferInfo, FIRMWARE_BOOT_FRAMEBUFFER};
 pub use device::{mk_device_claim, mk_device_list, mk_device_release};
 pub use dgon::{dgon_encode, dgon_parse, Dgon, DGON_LEN, DGON_TAG, DGON_VERSION, WHY_GONE};
 pub use dma::{
@@ -64,9 +66,9 @@ pub use pio::{mk_pio_grant, mk_pio_read, mk_pio_release, mk_pio_write};
 pub use types::{
     Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut, BAR_FLAG_MEM64,
     BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_FDT,
-    BUS_KIND_PCI, BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED,
-    DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW,
-    DEVICE_FLAG_IRQ_EDGE, FDT_AHCI, FDT_SDHCI, FDT_XHCI, NUMA_UNKNOWN,
+    BUS_KIND_FIRMWARE, BUS_KIND_PCI, BUS_KIND_VIRT, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DEPS_UNMET,
+    DEVICE_FLAG_DISABLED, DEVICE_FLAG_DMA_NONCOHERENT, DEVICE_FLAG_EXTERNAL,
+    DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, FDT_AHCI, FDT_SDHCI, FDT_XHCI, NUMA_UNKNOWN,
 };
 pub use vmbus::{
     mk_hv_events, mk_hv_post, mk_hv_recv, mk_hv_signal, MK_HV_EVENT_WORDS, MK_HV_MESSAGE_BYTES,

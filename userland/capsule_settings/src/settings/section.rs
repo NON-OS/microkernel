@@ -22,19 +22,21 @@ pub enum Section {
     Bluetooth,
     Security,
     Appearance,
+    Accessibility,
     Privacy,
     Sound,
     Updates,
     Developer,
 }
 
-pub const SECTIONS: [Section; 10] = [
+pub const SECTIONS: [Section; 11] = [
     Section::General,
     Section::Network,
     Section::Wifi,
     Section::Bluetooth,
     Section::Security,
     Section::Appearance,
+    Section::Accessibility,
     Section::Privacy,
     Section::Sound,
     Section::Updates,

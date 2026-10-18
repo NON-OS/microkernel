@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::process::core::Priority;
+use crate::services::registry::displays::is_display;
 
-/// Capsules on the pointer/keyboard -> compositor -> scanout path.
+/// Capsules on the pointer/keyboard -> compositor -> scanout path; the
+/// display drivers that scan out are every name in `displays.rs`.
 ///
 /// Each one parks in the kernel when it has nothing to do (`mk_irq_wait`,
 /// `mk_input_event_wait`, `mk_ipc_recv_from` with a timeout), so the band is
@@ -24,16 +26,10 @@ use crate::process::core::Priority;
 /// running process, so a band holding a single runnable member always falls
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
-const INTERACTIVE: [&str; 4] =
-    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0"];
+const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
 // The same paths in a virtual machine (its network cards: PACKET_PATH_VM).
-const INTERACTIVE_VM: [&str; 5] = [
-    "driver.virtio_input0",
-    "driver.vmmdev0",
-    "driver.vmmouse0",
-    "driver.vmware_svga0",
-    "driver.vmbus0",
-];
+const INTERACTIVE_VM: [&str; 4] =
+    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers and
@@ -88,7 +84,7 @@ pub(super) fn for_capsule(name: &str) -> Priority {
         &STORAGE_PATH,
         &STORAGE_PATH_VM,
     ];
-    if bands.iter().any(|band| band.contains(&name)) {
+    if is_display(name) || bands.iter().any(|band| band.contains(&name)) {
         Priority::High
     } else {
         Priority::Normal
