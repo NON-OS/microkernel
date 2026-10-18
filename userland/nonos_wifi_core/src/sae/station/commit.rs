@@ -21,14 +21,14 @@ use super::*;
 impl SaeStation {
     pub(super) fn accept_commit(&mut self, body: &[u8]) -> SaeStep {
         let Some(peer) = parse_commit(body) else {
-            return self.fail(SaeFailure::BadCommit);
+            return self.discard(SaeFailure::BadCommit);
         };
         // A commit equal to this station's own is a reflection: drop it silently.
         if peer.scalar_bytes == self.own_scalar && peer.element_bytes == self.own_element {
             return SaeStep::Ignore;
         }
         let Some(keys) = self.commit.derive_keys(&peer.scalar, &peer.element) else {
-            return self.fail(SaeFailure::BadCommit);
+            return self.discard(SaeFailure::BadCommit);
         };
         self.keys = keys;
         self.peer_scalar = peer.scalar_bytes;

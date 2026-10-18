@@ -30,6 +30,6 @@ fn no_key_is_out_before_the_aps_confirm_verifies() {
     sta.on_frame(1, ap_st, &ap_commit);
     assert_eq!((sta.state(), sta.pmk()), (SaeState::Confirmed, None));
     c[10] ^= 1;
-    assert!(matches!(sta.on_frame(2, 0, &c), SaeStep::Failed));
+    assert!(matches!(sta.on_frame(2, 0, &c), SaeStep::Ignore));
     assert_eq!((sta.failure(), sta.pmk()), (Some(SaeFailure::BadConfirm), None));
 }

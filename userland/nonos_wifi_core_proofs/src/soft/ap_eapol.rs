@@ -41,6 +41,10 @@ impl SimAp {
             self.tk = self.ptk.as_ref().and_then(|(c, p)| TemporalKey::new(*c, &p[32..]));
             return vec![];
         }
+        // Keyed, this AP starts no rekey: no message 2 now answers its own.
+        if self.tk.is_some() {
+            return vec![];
+        }
         let cipher =
             rsne_of(k.key_data).filter(|r| r.pairwise_gcmp256).map_or(Ccmp128, |_| Gcmp256);
         let mut ptk = vec![0u8; 32 + cipher.tk_len()];

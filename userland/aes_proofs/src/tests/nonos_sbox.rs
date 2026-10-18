@@ -15,10 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The S-box nonos_aes computes, compiled in from its own source so the test
-//! sees exactly the code the crate ships and its API stays unchanged.
+//! sees exactly the code the crate ships and its API stays unchanged. The
+//! source is mounted once, at the crate root, where its inverse names it.
 
-#[path = "../../../nonos_aes/src/xtime.rs"]
-mod xtime;
-
-#[path = "../../../nonos_aes/src/sub_byte.rs"]
-pub(super) mod sub_byte;
+pub(super) use crate::sub_byte;

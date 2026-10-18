@@ -18,9 +18,6 @@
 
 use super::*;
 
-/// KCK and KEK then the longest TK (GCMP-256's).
-pub(in crate::wpa::supplicant) const PTK_MAX: usize = 64;
-
 #[derive(Clone)]
 pub struct Supplicant {
     pub(in crate::wpa::supplicant) state: State,
@@ -71,4 +68,7 @@ pub struct Supplicant {
     pub(in crate::wpa::supplicant) failure: Option<Failure>,
     /// Message 3's Transition Disable bits (`transition_disable`).
     pub(in crate::wpa::supplicant) transition_disable: Option<u8>,
+    /// The rekey SNonce's seed (`reseed_rekey`) and the rekeys finished.
+    pub(in crate::wpa::supplicant) rekey_seed: [u8; 32],
+    pub(in crate::wpa::supplicant) rekeys: u64,
 }

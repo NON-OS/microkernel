@@ -17,7 +17,9 @@
 //! The four-way and group key handshakes of IEEE Std 802.11-2020, 12.7.6 and
 //! 12.7.7, driven by frames an access point would send.
 
+mod forged_m1_tests;
 mod four_way_tests;
+mod fuzz_tests;
 mod group_tests;
 mod refusal_tests;
 mod reinstall_sim;

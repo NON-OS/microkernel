@@ -54,14 +54,8 @@ nonos-mk-qwenchat-why-check: $(LLAMA_CPP_DIR)/.rev
 		$(LINUX_GUESTS_DIR)/cpp/qwenwhy_check.cpp $(LINUX_GUESTS_DIR)/cpp/qwenchat_why.cpp -o $(TARGET_DIR)/qwenwhy-check
 	@$(TARGET_DIR)/qwenwhy-check
 
-# qwenchat's window takes the size the display server configures, full screen
-# and back, over a socketpair standing in for the display (cpp/qwenresize_check.cpp).
-QWENRESIZE_SRC := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwenresize_check.cpp qwenwl_loop.cpp \
-	qwenwl_open.cpp qwenwl_resize.cpp qwenwl_wire.cpp qwenwl_event.cpp)
-.PHONY: nonos-mk-qwenresize-check
-nonos-mk-qwenresize-check:
-	@$(CXX) -std=c++17 -Wall -Wextra $(QWENRESIZE_SRC) -o $(TARGET_DIR)/qwenresize-check
-	@$(TARGET_DIR)/qwenresize-check
+# qwenchat's window checks, over a socketpair standing in for the display.
+include $(LINUX_GUESTS_DIR)/QwenWindow.mk
 
 # The tier qwenchat offers when one does not fit: the next clearly smaller,
 # never a same-sized twin, held to the shortfall (cpp/qwensmaller_check.cpp).

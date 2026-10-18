@@ -93,7 +93,7 @@ pub use data::{
 pub use debug::mk_debug;
 pub use foreign::{
     mk_foreign_exec, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn, mk_foreign_start,
-    mk_foreign_thread, mk_foreign_wait,
+    mk_foreign_thread, mk_foreign_wait, mk_linux_run_net,
 };
 pub use foreign_fork::{mk_foreign_fork, mk_foreign_fork_at};
 pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED};

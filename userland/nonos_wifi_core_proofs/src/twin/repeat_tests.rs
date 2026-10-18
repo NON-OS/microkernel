@@ -33,7 +33,7 @@ fn a_repeated_key_is_never_handed_to_the_driver_again() {
     let mut take = |s: &mut nonos_wifi_core::station::LinkStation, eapol: Vec<u8>| {
         pn += 1;
         match s.receive(&from_ap(SPA, &eapol_body(&eapol), Some(&tk), pn, 0, true), false) {
-            Rx::Handshake { frame, group_key } => (frame.is_some(), group_key.map(|k| k.0)),
+            Rx::Handshake { frame, group_key, .. } => (frame.is_some(), group_key.map(|k| k.0)),
             _ => (false, None),
         }
     };

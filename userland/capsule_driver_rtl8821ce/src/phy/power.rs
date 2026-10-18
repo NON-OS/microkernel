@@ -25,14 +25,9 @@ use super::regs::{
     FEN_BB_GLB_RST, FEN_BB_RSTB, FEN_PCIEA, REG_RF_CTRL, REG_SYS_FUNC_EN, REG_WLRF1, RF_EN_RSTB,
 };
 use crate::regs::Mmio;
+use crate::wait::delay_ms;
 
 const BB_RST: u8 = FEN_BB_RSTB | FEN_BB_GLB_RST;
-
-fn settle() {
-    for _ in 0..1024 {
-        core::hint::spin_loop();
-    }
-}
 
 /// Bring the baseband and RF domains out of reset.
 pub fn power_on<M: Mmio>(mmio: &M) {
@@ -44,8 +39,9 @@ pub fn power_on<M: Mmio>(mmio: &M) {
     mmio.write8(REG_SYS_FUNC_EN, val & !BB_RST);
     mmio.write8(REG_SYS_FUNC_EN, val | BB_RST);
     // Enable RF and release its resets on both control registers.
+    // rtw88 lets each settle 10 us; the clock's tick is the least it gives.
     mmio.write8(REG_RF_CTRL, RF_EN_RSTB);
-    settle();
+    delay_ms(1);
     mmio.write8(REG_WLRF1 + 3, RF_EN_RSTB);
-    settle();
+    delay_ms(1);
 }

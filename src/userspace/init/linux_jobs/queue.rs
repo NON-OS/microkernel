@@ -27,9 +27,9 @@ pub(super) enum Job {
     Install(String, String),
     /// A listing whose installed package should be taken away.
     Uninstall(String),
-    /// A package whose program should start, and whether its name is kept
-    /// off the log (true for a shipped tier a terminal asked for).
-    Run(String, bool),
+    /// A package whose program should start, and how (run::How): whether
+    /// its name is kept off the log, or it starts again with the network.
+    Run(String, super::run::How),
 }
 
 static PENDING: Mutex<Vec<Job>> = Mutex::new(Vec::new());
@@ -66,16 +66,16 @@ pub(crate) fn request_uninstall(listing: String) -> bool {
 
 /// Queue a run. False when full or already queued.
 pub(crate) fn request_run(package: String) -> bool {
-    push(Job::Run(package, false))
+    push(Job::Run(package, super::run::How::Named))
 }
 
 /// Queue a run whose package name never reaches the log. False when full
 /// or already queued.
 pub(crate) fn request_quiet_run(package: String) -> bool {
-    push(Job::Run(package, true))
+    push(Job::Run(package, super::run::How::Quiet))
 }
 
-fn push(job: Job) -> bool {
+pub(super) fn push(job: Job) -> bool {
     let mut q = PENDING.lock();
     if q.len() >= DEPTH || q.contains(&job) {
         return false;

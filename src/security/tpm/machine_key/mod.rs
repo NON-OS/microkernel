@@ -30,6 +30,7 @@
 //! nothing. Clearing the owner hierarchy changes the seed and every key with
 //! it, which is the documented way to make the data unrecoverable on purpose.
 
+mod bound_label;
 pub(in crate::security::tpm) mod consts;
 pub(in crate::security::tpm) mod create;
 pub(in crate::security::tpm) mod derive;
@@ -43,6 +44,7 @@ pub(in crate::security::tpm) mod run;
 pub(in crate::security::tpm) mod session;
 pub(in crate::security::tpm) mod wire;
 
+pub use bound_label::{bound_label, BOUND_PREFIX};
 pub use consts::LABEL_MAX;
 pub use derive::derive;
 pub use error::KeyError;

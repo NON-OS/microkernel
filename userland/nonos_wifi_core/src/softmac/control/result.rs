@@ -33,6 +33,8 @@ pub const CODE_BAD_PASSPHRASE: i32 = -9;
 pub const CODE_WRONG_PASSWORD: i32 = -10;
 pub const CODE_IE_MISMATCH: i32 = -11;
 pub const CODE_NO_ENTROPY: i32 = -12;
+/// SAE could not start from the join's randomness; the drivers' code too.
+pub const CODE_SAE_START: i32 = -14;
 /// The radio could not take the network's address (`crate::address`).
 pub const CODE_NO_ADDRESS: i32 = -15;
 
@@ -46,6 +48,7 @@ pub fn failure_code(f: MlmeFailure) -> (i32, u16) {
         | MlmeFailure::NeedsHt => (CODE_UNSUPPORTED, 0),
         MlmeFailure::BadPassphrase => (CODE_BAD_PASSPHRASE, 0),
         MlmeFailure::NoEntropy => (CODE_NO_ENTROPY, 0),
+        MlmeFailure::SaeStart => (CODE_SAE_START, 0),
         MlmeFailure::Sae(SaeFailure::BadConfirm) => (CODE_WRONG_PASSWORD, 0),
         MlmeFailure::Sae(SaeFailure::Rejected(status)) => (CODE_REFUSED, status),
         MlmeFailure::Sae(_) => (CODE_REFUSED, 0),

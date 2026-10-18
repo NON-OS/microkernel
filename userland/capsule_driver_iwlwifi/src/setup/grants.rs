@@ -21,31 +21,46 @@
 //! the staging DMA all still held; a retry was then refused its own leftover
 //! claim, and only the process exit gave them back.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap};
+use nonos_libc::{mk_device_release, mk_irq_unbind, mk_mmio_unmap};
 
-use crate::init::{bring_up, InitState};
+use super::command::command;
+use crate::init::bring_up;
 use crate::regs::Regs;
 
-#[derive(Clone, Copy)]
+/// Each grant is held until it is given back, then gone: a handle given back
+/// may name a newer grant of this process, so it is never given back twice.
 pub struct Grants {
     pub device_id: u64,
-    pub mmio: u64,
-    pub irq: u64,
-    pub dma: u64,
+    /// The claim's epoch while the claim is held.
+    pub claim: Option<u64>,
+    pub mmio: Option<u64>,
+    pub irq: Option<u64>,
 }
 
 impl Grants {
-    /// Every grant in the reverse of the order it was taken, then the claim,
-    /// which on its own tears the rest down as well.
-    pub fn release(&self) {
-        let _ = mk_dma_unmap(self.dma);
-        let _ = mk_irq_unbind(self.irq);
-        let _ = mk_mmio_unmap(self.mmio);
-        let _ = mk_device_release(self.device_id);
+    /// Bus Master off first, so the device reaches no memory of ours,
+    /// then every grant in the reverse of the order it was taken, then the
+    /// claim, which on its own tears the rest down as well. Each is taken
+    /// as it goes, so a second release sends nothing.
+    pub fn release(&mut self) {
+        if let Some(epoch) = self.claim {
+            let _ = command(self.device_id, epoch, false);
+        }
+        if let Some(irq) = self.irq.take() {
+            let _ = mk_irq_unbind(irq);
+        }
+        if let Some(mmio) = self.mmio.take() {
+            let _ = mk_mmio_unmap(mmio);
+        }
+        if self.claim.take().is_some() {
+            let _ = mk_device_release(self.device_id);
+        }
     }
 }
 
-/// Wake the chip on an attempt's grants, or give all of them back.
-pub fn init_or_release(regs: Regs, grants: &Grants) -> Result<InitState, &'static str> {
+/// Wake the chip on an attempt's grants, or give all of them back. Bus
+/// Master stays off: it goes on only right before the firmware boots, once
+/// the device's own master read back stopped (`gen3::outcome::master_on`).
+pub fn init_or_release(regs: Regs, grants: &mut Grants) -> Result<(), &'static str> {
     bring_up(regs).inspect_err(|_| grants.release())
 }

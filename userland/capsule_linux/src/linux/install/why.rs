@@ -111,6 +111,10 @@ pub enum Why {
     /// The store holds the program and it could not be read; the serial
     /// line before the exit names the store's reason.
     ProgramUnreadable = 35,
+    /// A market program's policy was not one this machine may vouch for: not
+    /// canonical, not market ready, naming another listing, release or
+    /// program, or not written. Nothing of the package is left (`market`).
+    Policy = 36,
 }
 
 impl Why {

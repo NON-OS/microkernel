@@ -21,12 +21,15 @@
 //! confirm again with the send-confirm counter one higher (IEEE Std
 //! 802.11-2020, 12.4.8.6.5, recalled), at most `CONFIRMS_MAX` confirms in
 //! all. Any other commit then is not the AP's and is ignored. Past either
-//! bound the exchange fails, and no work is done for the frame that
-//! crossed it.
+//! bound the frame that crossed it is discarded and no work is done for it;
+//! nothing unauthenticated ends the exchange, only the AP's confirm or the
+//! driver's deadline.
 
 use super::*;
 
-/// Anti-clogging tokens taken in one exchange: an AP under load asks once.
+/// Anti-clogging tokens taken in one exchange: an AP under load asks once. A
+/// forger who keeps asking costs this many commits, not one per request
+/// until the deadline.
 pub const TOKENS_MAX: u8 = 3;
 /// Confirms sent in one exchange, the first included.
 pub const CONFIRMS_MAX: u16 = 3;
@@ -40,7 +43,7 @@ impl SaeStation {
             return SaeStep::Ignore;
         }
         if self.confirms >= CONFIRMS_MAX {
-            return self.fail(SaeFailure::Looping);
+            return self.discard(SaeFailure::Looping);
         }
         self.send_confirm()
     }

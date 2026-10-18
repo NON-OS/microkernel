@@ -23,6 +23,8 @@ mod status;
 mod supplicant;
 mod transition;
 mod wipe;
+#[cfg(test)]
+mod wipe_tests;
 use super::ie::Ie;
 use crate::eapol::build::EAPOL_VERSION_DEFAULT;
 use crate::rsn::{parse_rsne, Cipher};

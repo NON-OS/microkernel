@@ -147,6 +147,7 @@ syscalls.numbers MKIL 1279871821
 syscalls.numbers MLCG 1195592781
 syscalls.numbers MLCR 1380142157
 syscalls.numbers MLOG 1196379213
+syscalls.numbers MLRN 1314016333
 syscalls.numbers MLSG 1196641357
 syscalls.numbers MLVF 1180060749
 syscalls.numbers MMAP 1346456909
