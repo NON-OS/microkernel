@@ -1,6 +1,6 @@
 # Intel Wi-Fi (iwlwifi)
 
-The iwlwifi driver [capsule](../../overview/glossary.md#capsule) finds Intel Wi-Fi cards from the 7260 to the AX210 family; in 0.9.2 it boots firmware, scans and joins only on the SO platforms (AX211, and AX201 modules on those platforms), and that path has run only against a modelled device.
+The iwlwifi driver [capsule](../../overview/glossary-boot-root-record.md#capsule) finds Intel Wi-Fi cards from the 7260 to the AX210 family; in 0.9.2 it boots firmware, scans and joins only on the SO platforms (AX211, and AX201 modules on those platforms), and that path has run only against a modelled device.
 
 ## State in this release
 
@@ -54,7 +54,7 @@ flowchart TD
   Up --> Join["joins, when can_join"]
 ```
 
-1. Setup claims the function and maps BAR0. It binds INTx when firmware routed a line, else one MSI-X vector, else runs polled (`userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs:17-25`, `ERRNO_STALE`). It maps a 64-page staging grant (`userland/capsule_driver_iwlwifi/src/constants/pci.rs:16-20`, `FW_STAGING_SIZE`). That is the most the [hardware broker](../../overview/glossary.md#hardware-broker) gives a network-class device in one DMA grant (`src/hardware/broker/dma/limits.rs:31-37`, `dma_page_limit_for_class`), so the driver spreads its memory over several grants.
+1. Setup claims the function and maps BAR0. It binds INTx when firmware routed a line, else one MSI-X vector, else runs polled (`userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs:17-25`, `ERRNO_STALE`). It maps a 64-page staging grant (`userland/capsule_driver_iwlwifi/src/constants/pci.rs:16-20`, `FW_STAGING_SIZE`). That is the most the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker) gives a network-class device in one DMA grant (`src/hardware/broker/dma/limits.rs:31-37`, `dma_page_limit_for_class`), so the driver spreads its memory over several grants.
 2. `bring_up` takes the NIC, reads CSR_HW_REV and CSR_HW_RF_ID, selects the image and maps the control, receive and firmware regions (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:102-135`, `map_all`).
 3. It boots the firmware to ALIVE, then runs the post-ALIVE commands (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:149-196`, `boot`, `up`).
 4. After ALIVE every device interrupt is masked and the driver polls; the cause registers still latch for the error checks (`userland/capsule_driver_iwlwifi/src/firmware/gen3/start.rs:138-146`, `mask_interrupts`). The interrupt bound at setup is acknowledged once there and never waited on.
@@ -86,7 +86,7 @@ A join returns the RTL8821CE's status codes, plus -3 and -4 when the pairwise or
 
 ## Authority
 
-The [manifest](../../overview/glossary.md#manifest) asks for the [capability](../../overview/glossary.md#capability-word) mask 0xF8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio, Irq and Dma (`userland/capsule_driver_iwlwifi/Capsule.mk:15-17`, `CAPSULE_REQUIRED_CAPS`). The service is `driver.iwlwifi0` on port 4228 (`userland/capsule_driver_iwlwifi/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`). The kernel's spawn request holds no Debug in any build (`src/hardware/iwlwifi_capsule/spawn.rs:50-59`, `requested_caps`), so the driver's own console lines never reach the log. The Settings panel's stage line and the status reply are the record.
+The [manifest](../../overview/glossary-linux-personality.md#manifest) asks for the [capability](../../overview/glossary-boot-root-record.md#capability-word) mask 0xF8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio, Irq and Dma (`userland/capsule_driver_iwlwifi/Capsule.mk:15-17`, `CAPSULE_REQUIRED_CAPS`). The service is `driver.iwlwifi0` on port 4228 (`userland/capsule_driver_iwlwifi/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`). The kernel's spawn request holds no Debug in any build (`src/hardware/iwlwifi_capsule/spawn.rs:50-59`, `requested_caps`), so the driver's own console lines never reach the log. The Settings panel's stage line and the status reply are the record.
 
 ## Reading the status reply
 

@@ -25,5 +25,7 @@ pub fn build(scanout: Scanout, geom: Geometry, base_va: u64) -> SurfaceDescripto
         byte_len: geom.byte_len,
         base_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     }
 }

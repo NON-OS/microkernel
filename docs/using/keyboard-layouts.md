@@ -61,7 +61,7 @@ flowchart LR
 
 The layout is resolved in the keyboard driver and nowhere else. The PS/2 driver, `capsule_driver_ps2_input`, serves the keyboard behind the i8042 controller. The USB driver, `capsule_driver_usb_hid`, serves keyboards of the USB HID class, interface class 0x03. Both resolve every key through the same crate, `nonos_keymap`, so the two kinds of keyboard agree on every layout, Shift and AltGr state.
 
-Each driver asks the [policy store](../overview/glossary.md#policy-store) for the `Keyboard layout` field on a key press, at most once a second. The input router and the focused window then receive the final character. No app applies a layout of its own, so the Terminal, Settings, the browser and Linux programs all type the same characters.
+Each driver asks the [policy store](../overview/glossary-peer-list.md#policy-store) for the `Keyboard layout` field on a key press, at most once a second. The input router and the focused window then receive the final character. No app applies a layout of its own, so the Terminal, Settings, the browser and Linux programs all type the same characters.
 
 A key's release is sent with the same code as its press, even when Shift was let go in between, so a held key never sticks in an app that tracks held keys.
 

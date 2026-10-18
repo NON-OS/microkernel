@@ -44,9 +44,14 @@ pub enum VtdError {
     Timeout,
     /// The unit refused a queued invalidation descriptor (Fault Status IQE).
     InvalidationRejected,
+    /// The unit reported a queue head past its ring: it has failed (K12).
+    QueueHeadOutOfRange,
     /// Interrupt remapping is not on, so there is no entry to route through.
     InterruptRemappingOff,
     /// An xAPIC-format entry names eight bits of APIC id; this CPU's is wider.
     DestinationTooWide,
     RemapTableFull,
+    /// A failed map's leaves could not be made unreachable: the unit may
+    /// still hold them, so the frames must never be reused.
+    Stranded,
 }

@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_uptime_ms, mk_yield};
 
+use super::deadline::REPLY_TOO_SLOW;
 use super::traits::{Io, SessionError};
 
 /// The request asks the server to close after answering, so the response ends
@@ -29,11 +30,14 @@ use super::traits::{Io, SessionError};
 /// and an empty read costs far less than the round trip being waited on.
 const QUIET_MS: i64 = 4_000;
 
-/// Read on from `buf`, which holds what already arrived behind the flight.
-pub(super) fn read_response<S: Io>(
+/// Read on from `buf`, which holds what already arrived behind the flight,
+/// until the socket goes quiet, or fail as REPLY_TOO_SLOW once uptime
+/// reaches `end`.
+pub(crate) fn read_response<S: Io>(
     io: &mut S,
     mut buf: Vec<u8>,
     limit: usize,
+    end: i64,
 ) -> Result<Vec<u8>, SessionError> {
     if buf.len() > limit {
         return Err(SessionError::TooLarge);
@@ -41,6 +45,9 @@ pub(super) fn read_response<S: Io>(
     let mut chunk = [0u8; 4096];
     let mut quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
     loop {
+        if mk_uptime_ms() >= end {
+            return Err(REPLY_TOO_SLOW);
+        }
         let n = io.read(&mut chunk)?;
         if n == 0 {
             if mk_uptime_ms() >= quiet_until {

@@ -16,6 +16,7 @@
 
 //! Registering the NONOS surface the pixels land on.
 
+use nonos_app_skeleton::discover::lookup_service;
 use nonos_libc::{mk_surface_register, mk_surface_share, SurfaceDescriptor};
 
 use super::reshape::Shape;
@@ -38,9 +39,13 @@ pub fn register(pixels: &Pixels, (width, height, stride): Shape) -> Option<u64> 
         byte_len,
         base_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
+    // Only the compositor maps it, read-only (K20).
+    let compositor = lookup_service(b"compositor").map_or(0, |peer| peer.pid);
     let sid = mk_surface_register(&desc);
-    let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64) };
+    let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64, compositor, 0) };
     if handle <= 0 {
         say(alloc::format!("[WAYLAND] surface {width}x{height} refused, rc {handle}\n"));
         return None;

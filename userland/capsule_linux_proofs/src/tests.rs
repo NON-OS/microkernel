@@ -98,6 +98,7 @@ mod stat_tests;
 mod tar_link_tests;
 mod tasks_tests;
 mod tar_tests;
+mod trace_link_tests;
 mod wait_option_tests;
 mod walk_tests;
 mod wire_tests;
