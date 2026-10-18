@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 
 use super::fadt::parse_fadt;
 use super::madt::parse_madt;
-use super::other::{parse_dmar, parse_hpet, parse_ivrs, parse_mcfg, parse_srat};
+use super::other::parse_other_tables;
 use super::rsdp::find_rsdp;
 use super::state::{TableRegistry, INITIALIZED, STATS, TABLES};
 use super::{parse_rsdt, parse_xsdt};
@@ -40,7 +40,7 @@ pub fn init() -> AcpiResult<()> {
 
     // ACPI 2.0+ firmware must be read through the XSDT (64-bit pointers,
     // tables above 4 GiB). The RSDT is the fallback only when there is no
-    // XSDT or it cannot be read, as in ACPICA's acpi_tb_parse_root_table.
+    // XSDT or it cannot be read (ACPI 6.5, 5.2.5.3; recalled, unverified).
     let mut root = Err(AcpiError::NoRootTable);
     if rsdp.has_xsdt() {
         root = parse_xsdt(&mut registry, rsdp.xsdt_address);
@@ -63,11 +63,7 @@ pub fn init() -> AcpiResult<()> {
         return Err(e);
     }
     parse_madt(&mut registry);
-    parse_hpet(&mut registry);
-    parse_mcfg(&mut registry);
-    parse_srat(&mut registry);
-    parse_dmar(&mut registry);
-    parse_ivrs(&mut registry);
+    parse_other_tables(&mut registry);
 
     {
         let mut stats = STATS.write();
@@ -97,7 +93,7 @@ pub fn init() -> AcpiResult<()> {
         )
     };
     if s5.is_none() {
-        crate::log_warn!("[ACPI] no constant \\_S5 package found; soft-off unavailable");
+        crate::log_warn!("[ACPI] no constant \\_S5 package; soft-off waits on the ACPI capsule");
     }
     if let Some(reg) = TABLES.write().as_mut() {
         reg.data.s5 = s5;

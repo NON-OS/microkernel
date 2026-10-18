@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
+//! HPET read once at boot through the one pure decoder (`hpet_decode`).
+
+#[path = "hpet_decode.rs"]
+pub(super) mod hpet_decode;
 
 use super::super::state::TableRegistry;
-use crate::arch::x86_64::acpi::tables::{Hpet, SIG_HPET};
+use super::raw_table::bytes;
 
 pub fn parse_hpet(registry: &mut TableRegistry) {
-    if let Some(&addr) = registry.tables.get(&SIG_HPET) {
-        let addr = match super::super::phys::directmap(addr) {
-            Some(v) => v,
-            None => return,
-        };
-        unsafe {
-            let hpet = ptr::read_volatile(addr as *const Hpet);
-            if hpet.is_valid() {
-                registry.data.hpet_address = Some(hpet.address());
-            }
-        }
+    let Some(table) = bytes(registry, b"HPET") else { return };
+    if let Some(base) = hpet_decode::hpet_base(table) {
+        registry.data.hpet_address = Some(base);
     }
 }

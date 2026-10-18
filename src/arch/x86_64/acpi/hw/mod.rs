@@ -21,6 +21,7 @@
 
 pub mod fadt_decode;
 pub mod gas;
+pub mod leave_events;
 pub mod madt_cpu;
 pub mod port_bus;
 pub mod power_button;

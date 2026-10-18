@@ -1,0 +1,27 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+mod entry_tests;
+mod walk_tests;
+mod seeded_entries;
+mod seeded_entry_tests;
+mod seeded_firmware;
+mod seeded_kernel_tests;
+mod seeded_gen;
+mod seeded_lies;
+mod seeded_walk_tests;
+mod quirk_tests;
+mod quirk_table_tests;

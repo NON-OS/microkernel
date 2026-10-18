@@ -48,10 +48,10 @@ pub fn run() -> ! {
         #[cfg(feature = "nonos-audio-smoketest")]
         Some(ref s) => crate::selftest::boot(&mut mixer, s),
         #[cfg(not(feature = "nonos-audio-smoketest"))]
-        Some(_) => mark("[AUDIO] output driver.hda0\n"),
-        /* driver.hda0 is registered before this capsule is spawned and
-         * dropped when the driver finds no controller, so its absence after
-         * the lookup's two seconds means this machine has no output. A
+        Some(ref s) => mark(&alloc::format!("[AUDIO] output {}\n", s.name())),
+        /* A sink driver is registered before this capsule is spawned and
+         * dropped when it finds no controller, so no sink after the
+         * lookup's two seconds means this machine has no output. A
          * client asking why is told there is no sound hardware, a stream
          * open is refused with E_NODEV, everything else with E_INVAL, and
          * the desktop's chime and alerts are skipped without a sound. A
