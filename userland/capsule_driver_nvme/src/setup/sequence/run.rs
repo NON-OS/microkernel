@@ -16,7 +16,8 @@
 
 use alloc::vec::Vec;
 
-use super::bring_up::bring_up;
+use super::bring_up::stopped;
+use super::start::start;
 use crate::discover::choice::{choose, settled, Choice, Outcome};
 use crate::discover::Candidates;
 use crate::error::{NvmeError, NvmeResult};
@@ -33,7 +34,7 @@ pub fn run(found: &Candidates) -> NvmeResult<Driver> {
     let mut last_err = NvmeError::UnsupportedController;
     for dev in found.iter() {
         let asked = hmb::extras();
-        let outcome = match bring_up(*dev) {
+        let outcome = match stopped(*dev).and_then(|(device, epoch)| start(*dev, device, epoch)) {
             Ok(driver) => {
                 let outcome = if driver.io.is_some() { Outcome::Io } else { Outcome::NoIo };
                 up.push(Some(driver));

@@ -22,13 +22,6 @@
 //! different packet size, so each port's protocol is read before it is
 //! touched.
 
-use super::xecp::walk_ext_caps;
-use crate::constants::HCCPARAMS1;
-use crate::regs::mmio_read32;
-
-const XECP_ID_SUPPORTED_PROTOCOL: u32 = 2;
-/// The capability's first three dwords: revision, name, and port range.
-const SUPPORTED_PROTOCOL_BYTES: u64 = 12;
 const PORT_SLOTS: usize = 256;
 
 /// The USB major revision of each root port, 0 where no capability names it.
@@ -63,31 +56,5 @@ impl PortProtocols {
     /// A USB 3 (SuperSpeed or faster) port.
     pub fn is_usb3(&self, port: u8) -> bool {
         self.major(port) >= 3
-    }
-
-    /// Read every Supported Protocol capability through `read` (an offset
-    /// from the register base), as `walk_ext_caps` bounds it.
-    pub fn parse(hccparams1: u32, mapped_len: u64, read: impl Fn(u64) -> u32) -> Self {
-        let mut out = Self::unknown();
-        walk_ext_caps(hccparams1, mapped_len, SUPPORTED_PROTOCOL_BYTES, &read, |off, dw0| {
-            if dw0 & 0xFF == XECP_ID_SUPPORTED_PROTOCOL {
-                out.record_capability(dw0, read(off + 8));
-            }
-            true
-        });
-        out
-    }
-
-    /// The same, over the mapped registers at `mmio_base`.
-    pub fn read(mmio_base: u64, mapped_len: u64) -> Self {
-        let hccparams1 = mmio_read32(mmio_base + HCCPARAMS1);
-        Self::parse(hccparams1, mapped_len, |off| mmio_read32(mmio_base + off))
-    }
-
-    fn record_capability(&mut self, dw0: u32, dw2: u32) {
-        let major = (dw0 >> 24) as u8;
-        let first = (dw2 & 0xFF) as u8;
-        let count = ((dw2 >> 8) & 0xFF) as u8;
-        self.record(major, first, count);
     }
 }

@@ -14,22 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The uptime deadline the reset waits on, on the host clock.
+//! The uptime deadline the reset waits on and the transmit watchdog keeps,
+//! on the host clock counted as the real one is: whole milliseconds since
+//! the first look. A deadline `ms` ahead can then fall due up to one
+//! millisecond short of `ms`, as it can on the machine, and the tests wait
+//! the reset's bounds for real. A test's part can act on each look
+//! (`on_clock`).
 
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
-/// A deadline on the host clock, with the capsule's API. The reset holds the
-/// part for the milliseconds the 8254x manual asks, and the tests wait them.
+use crate::look::look;
+
+static START: OnceLock<Instant> = OnceLock::new();
+
+/// Whole milliseconds since the first look.
+pub fn uptime_ms() -> u64 {
+    START.get_or_init(Instant::now).elapsed().as_millis() as u64
+}
+
 pub struct Deadline {
-    end: Instant,
+    end_ms: u64,
 }
 
 impl Deadline {
     pub fn after_ms(timeout_ms: u64) -> Self {
-        Self { end: Instant::now() + Duration::from_millis(timeout_ms) }
+        look();
+        Self { end_ms: uptime_ms().saturating_add(timeout_ms) }
     }
 
+    /// Past the deadline, and, while a device model is running
+    /// (nonos_devmodel::run), only after that model has taken two more
+    /// turns, as rtl8169_proofs' clock does. The driver busy-waits on this
+    /// while the model answers from another thread; on a loaded builder the
+    /// driver can hold the core past its whole deadline before the model is
+    /// scheduled, and a reset the model would have completed reads as a
+    /// timeout. With this the driver's last look always follows the model's
+    /// turn; a part that never answers still times out, on the same clock.
+    /// Five seconds bound the wait for a model that has stopped.
     pub fn expired(&self) -> bool {
-        Instant::now() >= self.end
+        look();
+        if uptime_ms() < self.end_ms {
+            return false;
+        }
+        if let Some(seen) = nonos_devmodel::turns() {
+            let give_up = Instant::now() + Duration::from_secs(5);
+            while nonos_devmodel::turns().is_some_and(|t| t < seen + 2) && Instant::now() < give_up
+            {
+                std::thread::yield_now();
+            }
+        }
+        true
     }
 }

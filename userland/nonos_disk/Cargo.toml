@@ -3,12 +3,12 @@
 #
 # Writes a whole NONOS disk: a protective MBR and a GPT naming four
 # partitions; the package store at LBA 256 with what the installer carries
-# over; the disk plan and a cleared key header at 65536; the data volume's
-# header ring zeroed at 131072; and a FAT32 EFI system partition at the end
-# of the disk with the bootloader and the attested kernel image. Pure layout
-# code over a sector sink, so both installers and the host tests drive the
-# same bytes; the host tests read the result back through the kernel's own
-# plan and key-header parsers and the vfs's own store decoder.
+# over; the disk plan at 245760 and a cleared key header after it; the data
+# volume's header ring zeroed at 262144; and a FAT32 EFI system partition at
+# the end of the disk with the bootloader and the attested kernel image.
+# Pure layout code over a sector sink, so both installers and the host tests
+# drive the same bytes; the host tests read the result back through the
+# kernel's own plan and key-header parsers and the vfs's own store decoder.
 
 [package]
 name = "nonos_disk"
@@ -18,6 +18,9 @@ publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "Disk writer for the NONOS installer"
+
+[package.metadata.nonos]
+test-lane = true
 
 [lib]
 

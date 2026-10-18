@@ -22,14 +22,19 @@ pub const CMD_FR: u32 = 1 << 14;
 pub const CMD_CR: u32 = 1 << 15;
 pub const CMD_POD: u32 = 1 << 2;
 pub const CMD_SUD: u32 = 1 << 1;
-/// PxCMD.CLO: clear BSY and DRQ in PxTFD so a stuck port can take a command.
-pub const CMD_CLO: u32 = 1 << 3;
 
 pub const TFD_ERR: u32 = 1 << 0;
 pub const TFD_DRQ: u32 = 1 << 3;
 pub const TFD_BSY: u32 = 1 << 7;
 pub const IS_ERR_MASK: u32 = 1 << 30 | 1 << 29 | 1 << 28 | 1 << 27;
+/// PxIS.TFES: the device ended the command with ERR in its status. The
+/// other IS_ERR_MASK bits are the HBA's own fatal errors.
+pub const IS_TFES: u32 = 1 << 30;
 /// PxIS.OFS: the device sent more data than the PRD entries describe.
 pub const IS_OFS: u32 = 1 << 24;
+/// PxIS.PRCS and PCS: PhyRdy changed, or the device sent COMINIT (it reset
+/// itself, or another was plugged in). They mirror PxSERR.DIAG.N and X and
+/// clear only with them (AHCI 1.3.1, 3.3.5).
+pub const IS_LINK_CHANGE: u32 = 1 << 22 | 1 << 6;
 pub const SCTL_IPM_DISABLE: u32 = 7 << 8;
 pub const PORT_IE_DEFAULT: u32 = 0b1_0111;

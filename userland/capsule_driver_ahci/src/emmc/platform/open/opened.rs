@@ -17,19 +17,16 @@
 //! An opened host and the order its resources are given back in.
 
 use super::super::super::disk::EmmcDisk;
-use super::super::dma::DmaRegion;
 use super::super::env::{MmioWindow, SerialLog, UptimeClock};
 use super::claim::Claim;
 
 pub type Disk = EmmcDisk<MmioWindow, UptimeClock, SerialLog>;
 
-/// A host with its card up. Dropping it stops the host first, then frees
-/// the DMA regions, then the window and the claim, so the controller never
-/// reaches memory that is gone.
+/// A host with its card up. Dropping it stops the host first, then gives the
+/// claim back (`Claim`): bus mastering off, then the release, which frees the
+/// DMA regions, so the controller never reaches memory that is gone.
 pub struct Opened {
     pub disk: Disk,
-    pub(super) _data: DmaRegion,
-    pub(super) _table: DmaRegion,
     pub(super) _claim: Claim,
 }
 

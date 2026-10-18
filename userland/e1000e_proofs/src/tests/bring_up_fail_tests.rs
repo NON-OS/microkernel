@@ -27,15 +27,9 @@ use crate::model::window::{i82574, phy_at};
 use nonos_libc::{entropy, given_back};
 use std::sync::atomic::Ordering;
 
-/// The setup grants in reverse, then the claim.
-const EVERYTHING: [(&str, u64); 6] = [
-    ("dma_unmap", 24),
-    ("dma_unmap", 23),
-    ("dma_unmap", 22),
-    ("dma_unmap", 21),
-    ("mmio_unmap", 20),
-    ("device_release", 9),
-];
+/// The claim alone, which frees every grant once the broker has turned Bus
+/// Master off; a frame unmapped by hand before it could still be written.
+const EVERYTHING: [(&str, u64); 1] = [("device_release", 9)];
 
 #[test]
 fn without_entropy_every_grant_goes_back_and_the_step_is_named() {

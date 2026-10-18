@@ -14,64 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the included controller files take from `nonos_libc`.
+//! What the included driver files take from `nonos_libc`.
 //!
 //! Standing in, not stubbing out: `Deadline` keeps real time so a wait that
-//! the specification says must give up really gives up, `mk_yield` yields,
-//! `mk_idle_ms` sleeps, and `mk_irq_wait` answers that there is no interrupt
-//! grant, which is a state the driver handles by polling without one. Yields
-//! and sleeps are counted per thread, so a test can tell a wait that parks
-//! from one that spins. DMA grants are host memory (see [`dma`]).
+//! the specification says must give up really gives up, and DMA grants are
+//! host memory a test can reach as the controller would (`grants`). The
+//! broker serves one device per test thread: a register window the test
+//! offers, the interrupt kinds it says the device has, and an ordered log
+//! of everything given back (`log`). The server's replies are kept for the
+//! test (`ipc`).
 
+mod broker;
+mod clock;
+mod device_dma;
 mod dma;
+mod dma_refuse;
+mod grants;
+mod ipc;
+mod irq;
+mod irq_wait;
+mod log;
+mod mmio;
+mod pci_command;
+mod process;
+mod unmap;
 
-use std::cell::Cell;
-use std::time::{Duration, Instant};
-
-pub use dma::{dma_host, mk_dma_map, mk_dma_unmap, DmaMapOut};
-
-thread_local! {
-    static YIELDS: Cell<u64> = const { Cell::new(0) };
-    static SLEPT_MS: Cell<u64> = const { Cell::new(0) };
-}
-
-/// Yields made on this thread so far.
-pub fn yields() -> u64 {
-    YIELDS.with(|c| c.get())
-}
-
-/// Milliseconds asked of `mk_idle_ms` on this thread so far.
-pub fn slept_ms() -> u64 {
-    SLEPT_MS.with(|c| c.get())
-}
-
-pub fn mk_idle_ms(ms: u64) -> i64 {
-    SLEPT_MS.with(|c| c.set(c.get().saturating_add(ms)));
-    std::thread::sleep(Duration::from_millis(ms));
-    0
-}
-
-pub struct Deadline {
-    end: Instant,
-}
-
-impl Deadline {
-    pub fn after_ms(timeout_ms: u64) -> Self {
-        Self { end: Instant::now() + Duration::from_millis(timeout_ms) }
-    }
-    pub fn expired(&self) -> bool {
-        Instant::now() >= self.end
-    }
-}
-
-pub fn mk_yield() -> i64 {
-    YIELDS.with(|c| c.set(c.get().saturating_add(1)));
-    std::thread::yield_now();
-    0
-}
-
-/// No interrupt path exists on the host. A negative answer is what the driver
-/// gets from a kernel that refused the grant, and it copes the same way.
-pub extern "C" fn mk_irq_wait(_grant: u64, _last_seq: u64, _timeout_ms: u64, _out: *mut u64) -> i64 {
-    -1
-}
+pub use broker::{
+    mk_debug, mk_device_claim, mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND,
+    MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE, MK_PCI_CMD_MEMORY_SPACE,
+};
+pub use clock::{mk_idle_ms, mk_yield, slept_ms, yields, Deadline};
+pub use device_dma::{device_read64, DmaFault};
+pub use dma::{mk_dma_map, DmaMapOut};
+pub use dma_refuse::refuse_dma_after;
+pub use grants::dma_host;
+pub use ipc::{mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send, recv_ready, take_replies};
+pub use irq::{irq_tried, mk_irq_bind, offer_irq, IrqBindOut, MK_IRQ_BIND_MSI, MK_IRQ_BIND_MSIX};
+pub use irq_wait::{irq_waited_on, mk_irq_ack, mk_irq_unbind, mk_irq_wait};
+pub use log::{start_log, take_log, Call, Logged};
+pub use mmio::{mk_mmio_map, mk_mmio_unmap, offer_mmio, MmioMapOut, MMIO_GRANT};
+pub use pci_command::{pci_command_reg, PciCommandReg};
+pub use process::{mk_pid_alive, pid_exits};
+pub use unmap::mk_dma_unmap;

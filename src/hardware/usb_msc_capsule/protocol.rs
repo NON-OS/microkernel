@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The wire the kernel client and driver.usb_msc0 speak, mirrored at
-//! `userland/capsule_driver_usb_msc/src/protocol/{header,ops,limits,errno}.rs`.
+//! `userland/capsule_driver_usb_msc/src/protocol/{header,ops,limits}.rs`;
+//! the errnos are in status.rs.
 
 use alloc::vec::Vec;
 
@@ -32,14 +33,6 @@ pub(super) const SECTOR_SIZE: usize = 512;
 /// Sectors one request moves: 64, 32 KiB, as the driver caps them.
 pub(super) const MAX_RW_BYTES: usize = 64 * SECTOR_SIZE;
 const MAX_PAYLOAD_BYTES: u32 = MAX_RW_BYTES as u32 + 64;
-
-pub(super) const E_NXIO: i32 = -6;
-pub(super) const E_AGAIN: i32 = -11;
-pub(super) const E_ACCES: i32 = -13;
-pub(super) const E_NODEV: i32 = -19;
-pub(super) const E_INVAL: i32 = -22;
-pub(super) const E_MSGSIZE: i32 = -90;
-pub(super) const E_NOTSUP: i32 = -95;
 
 pub(super) fn encode_request(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
     transport::encode_request(MAGIC, VERSION, op, 0, request_id, body)
