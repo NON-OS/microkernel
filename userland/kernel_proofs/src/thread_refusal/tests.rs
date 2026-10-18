@@ -18,7 +18,7 @@ use super::thread_start::{start_in_user_half, USER_VA_MAX};
 
 const BUILDER: &str = include_str!("../../../../src/arch/x86_64/context/setup.rs");
 const SPAWN: &str = include_str!("../../../../src/process/core/table/thread_spawn.rs");
-const MK_THREAD: &str = include_str!("../../../../src/syscall/microkernel/process.rs");
+const MK_THREAD: &str = include_str!("../../../../src/syscall/microkernel/process/thread.rs");
 const FOREIGN_THREAD: &str = include_str!("../../../../src/process/foreign/thread.rs");
 
 /// The bound the x86_64 user entry builder states, read from its source.

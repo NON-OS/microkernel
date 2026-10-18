@@ -23,39 +23,3 @@ pub mod tail;
 pub use core::init;
 pub use line::Line;
 pub use print::{print, print_dec, print_dec as print_u64, print_hex, print_str, println};
-
-use ::core::sync::atomic::{AtomicBool, Ordering};
-static DEBUG_ENABLED: AtomicBool = AtomicBool::new(false);
-
-pub fn set_debug_enabled(v: bool) {
-    DEBUG_ENABLED.store(v, Ordering::SeqCst);
-}
-pub fn is_debug_enabled() -> bool {
-    DEBUG_ENABLED.load(Ordering::Relaxed)
-}
-
-pub fn trace(s: &[u8]) {
-    if is_debug_enabled() {
-        print::print(s);
-    }
-}
-pub fn trace_str(s: &str) {
-    if is_debug_enabled() {
-        print::print_str(s);
-    }
-}
-pub fn traceln(s: &[u8]) {
-    if is_debug_enabled() {
-        print::println(s);
-    }
-}
-pub fn trace_hex(v: u64) {
-    if is_debug_enabled() {
-        print::print_hex(v);
-    }
-}
-pub fn trace_dec(v: u64) {
-    if is_debug_enabled() {
-        print::print_dec(v);
-    }
-}

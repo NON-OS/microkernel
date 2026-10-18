@@ -17,20 +17,26 @@
 use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{decode_handle, RegistryError, SurfaceHandle};
 
+/*
+ * Name `receiver` the one process besides the owner that attaches `handle`
+ *; `write` maps its view writable. The right is no reference: the
+ * receiver's attach takes one, and the owner's release revokes the right.
+ */
 pub fn share_surface(
     owner_pid: u32,
     handle: SurfaceHandle,
+    receiver: u32,
+    write: bool,
 ) -> Result<SurfaceHandle, RegistryError> {
     let (idx, epoch) = decode_handle(handle);
-    let mut slots = SLOTS.lock();
-    let slot =
-        slots.get_mut(idx as usize).and_then(|s| s.as_mut()).ok_or(RegistryError::BadHandle)?;
+    let slots = SLOTS.lock();
+    let slot = slots.get(idx as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::BadHandle)?;
     if slot.epoch != epoch {
         return Err(RegistryError::BadHandle);
     }
     if slot.owner_pid != owner_pid {
         return Err(RegistryError::NotOwner);
     }
-    slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
+    super::rights::record(handle, receiver, write)?;
     Ok(handle)
 }

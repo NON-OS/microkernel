@@ -19,6 +19,8 @@ use crate::protocol::{
     Request, E_BUSY, E_DEVICE, GET_PRIMARY_SURFACE_RESP_LEN, HDR_LEN, STATUS_LEN,
 };
 use crate::server::respond;
+use nonos_libc::mk_surface_share;
+use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
     let Some(primary) = driver.primary.as_ref() else {
         respond::status(sender_pid, req, E_DEVICE, tx);
@@ -40,8 +42,15 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
         respond::status(sender_pid, req, E_BUSY, tx);
         return;
     }
+    // The compositor draws the screen into it: it alone maps it, writable,
+    // by the handle this share answers.
+    let handle = mk_surface_share(primary.sid, sender_pid, SURFACE_SHARE_WRITE);
+    if handle <= 0 {
+        respond::status(sender_pid, req, E_DEVICE, tx);
+        return;
+    }
     let off = HDR_LEN + STATUS_LEN;
-    tx[off..off + 8].copy_from_slice(&primary.handle.to_le_bytes());
+    tx[off..off + 8].copy_from_slice(&(handle as u64).to_le_bytes());
     tx[off + 8..off + 12].copy_from_slice(&primary.resource_id.to_le_bytes());
     tx[off + 12..off + 16].copy_from_slice(&primary.width.to_le_bytes());
     tx[off + 16..off + 20].copy_from_slice(&primary.height.to_le_bytes());

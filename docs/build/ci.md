@@ -26,29 +26,29 @@ flowchart LR
 |---|---|
 | `build` | `nix build .#default` on Linux x86_64, Linux aarch64 and macOS; `make build` and `make check` inside WSL2 on Windows; `nix build` inside the devcontainer; and the `nonos-verify build` checks (`platforms`, `.github/workflows/ci-build.yml:39-49`) |
 | `build-aarch64`, `boot-aarch64` | the aarch64 kernel through `make nonos-mk-arm`, checked as a loadable ELF, then booted under QEMU with each serial log held to its expected lines (`.github/workflows/ci-build-aarch64.yml`) |
-| `trust-ledger` | `sha256sum -c MANIFEST.sha256` over the committed [trust set](../overview/glossary.md#trust-set) (`run`, `.github/workflows/ci.yml:41-50`) |
+| `trust-ledger` | `sha256sum -c MANIFEST.sha256` over the committed [trust set](../overview/glossary-stark-proof.md#trust-set) (`run`, `.github/workflows/ci.yml:41-50`) |
 | `reproducible` | the three-machine comparison of [reproducible-builds.md](reproducible-builds.md) (`reproducible`, `.github/workflows/ci.yml:55-59`) |
 | `production-build` | the build a release tag runs, against the committed trust set; skipped for Dependabot (`production`, `.github/workflows/ci.yml:64-69`) |
 | `supply-chain` | the bill of materials and the policy checks of [sbom.md](sbom.md) |
-| `trust-chain` | `nonos-verify trust-chain`: every embedded [capsule](../overview/glossary.md#capsule)'s certificate and manifest checked against the [trust anchor](../overview/glossary.md#trust-anchor) policy, through `nonos_capsule_sign`, as the kernel checks it at spawn (`nonos_capsule_sign`, `.github/workflows/ci-trust-chain.yml:3-6`) |
+| `trust-chain` | `nonos-verify trust-chain`: every embedded [capsule](../overview/glossary-boot-root-record.md#capsule)'s certificate and manifest checked against the [trust anchor](../overview/glossary-stark-proof.md#trust-anchor) policy, through `nonos_capsule_sign`, as the kernel checks it at spawn (`nonos_capsule_sign`, `.github/workflows/ci-trust-chain.yml:3-6`) |
 | `adversarial` | `nonos-verify adversarial`: a valid signed capsule tampered with in many ways, each of which must be refused (`adversarial`, `.github/workflows/ci-adversarial.yml:3-7`) |
 | `evidence`, `benchmark` | the evidence and benchmark reports |
 
 ### verify
 
-`verify.yml` runs `nix flake check -L --keep-going` on Linux and on macOS, one `matrix` entry each, so every [proof crate](../overview/glossary.md#proof-crate) and static check of [nix-flake.md](nix-flake.md) runs on both (`.github/workflows/verify.yml:39-60`). Beside it run the checkers that pin their own toolchains:
+`verify.yml` runs `nix flake check -L --keep-going` on Linux and on macOS, one `matrix` entry each, so every [proof crate](../overview/glossary-peer-list.md#proof-crate) and static check of [nix-flake.md](nix-flake.md) runs on both (`.github/workflows/verify.yml:39-60`). Beside it run the checkers that pin their own toolchains:
 
 | job | what it checks |
 |---|---|
 | `kani` | Kani 0.67.0 over `userland/fs_proofs` (`kani`, `.github/workflows/verify.yml:62-72`) |
 | `verus` | the capability theorems in `verification/verus` (`verus`, `.github/workflows/verify.yml:74-92`) |
-| `proof-crates-kani` | Kani over fifteen proof crates, the trailer parser and the loader's [rollback floor](../overview/glossary.md#rollback-floor) (`crate`, `.github/workflows/verify.yml:94-122`) |
+| `proof-crates-kani` | Kani over fifteen proof crates, the trailer parser and the loader's [rollback floor](../overview/glossary-peer-list.md#rollback-floor) (`crate`, `.github/workflows/verify.yml:94-122`) |
 | `lean` | the Lean specification theorems (`lean`, `.github/workflows/verify.yml:124-149`) |
 | `extraction` | the Charon and Aeneas extraction, checked for drift, and its refinement theorems (`extraction`, `.github/workflows/verify.yml:151-194`) |
 
 ### ci-boot-smoke
 
-The boot test of every pull request; its header calls it the blocking boot check. It makes scratch keys that exist only on the runner, [seals](../overview/glossary.md#seal) the qemu profile, and boots it headless with a software [TPM](../overview/glossary.md#tpm) and no network (`Seal`, `.github/workflows/ci-boot-smoke.yml:82-96`). The boot passes when the [serial console](../overview/glossary.md#serial-console) shows `Handoff OK`, `Capsules spawned`, the [package store](../overview/glossary.md#package-store) being served, and `[BOOT-ATTEST] bootloader measured and enrolled`. A second boot plugs the same image into the xHCI controller as a USB stick and expects the first three lines again, then the USB mass storage driver binding and the NONOS disk found on it (`expect`, `.github/workflows/ci-boot-smoke.yml:100-106`). With KVM the deadline is 300 seconds; on a runner without KVM the boot runs under TCG with 900 seconds (`BOOT_TIMEOUT`, `.github/workflows/ci-boot-smoke.yml:74-81`).
+The boot test of every pull request; its header calls it the blocking boot check. It makes scratch keys that exist only on the runner, [seals](../overview/glossary-rollback-index.md#seal) the qemu profile, and boots it headless with a software [TPM](../overview/glossary-stark-proof.md#tpm) and no network (`Seal`, `.github/workflows/ci-boot-smoke.yml:82-96`). The boot passes when the [serial console](../overview/glossary-rollback-index.md#serial-console) shows `Handoff OK`, `Capsules spawned`, the [package store](../overview/glossary-linux-personality.md#package-store) being served, and `[BOOT-ATTEST] bootloader measured and enrolled`. A second boot plugs the same image into the xHCI controller as a USB stick and expects the first three lines again, then the USB mass storage driver binding and the NONOS disk found on it (`expect`, `.github/workflows/ci-boot-smoke.yml:100-106`). With KVM the deadline is 300 seconds; on a runner without KVM the boot runs under TCG with 900 seconds (`BOOT_TIMEOUT`, `.github/workflows/ci-boot-smoke.yml:74-81`).
 
 As written at this commit, the test cannot reach either boot. Its scratch keys include no market operator key, and without one the seal stops in its first phase for any image whose loader is not the development one (`required`, `tools/nonos_seal/market.py:71-81`); [The seal](seal.md#without-the-release-keys) has the detail. Neither boot passes `--smp`, so the guest has 8 CPUs, or the runner's cores when fewer (`cpus`, `tools/nonos_qemu/machine.py:39-46`), and no expected line checks how many of them came up.
 
@@ -63,7 +63,7 @@ As written at this commit, the test cannot reach either boot. Its scratch keys i
 | `ci`, `verify`, `lean` | push to `main` or `develop` | the same as on a pull request |
 | `ci-boot-smoke` | push to `main` | the same as on a pull request |
 | `nightly` | daily, 06:00 UTC | build, trust chain, adversarial, supply chain, evidence, the QEMU runtime checks and the reproducibility comparison (`cron`, `.github/workflows/nightly.yml:7-10`) |
-| `ci-boot-matrix` | daily, 06:00 UTC | boots every cell of the machine matrix; its header says it is not a merge check and that the [SMP](../overview/glossary.md#smp) cells are known to fail (`schedule`, `.github/workflows/ci-boot-matrix.yml:3-14`) |
+| `ci-boot-matrix` | daily, 06:00 UTC | boots every cell of the machine matrix; its header says it is not a merge check and that the [SMP](../overview/glossary-rollback-index.md#smp) cells are known to fail (`schedule`, `.github/workflows/ci-boot-matrix.yml:3-14`) |
 | `fuzz` | daily, 01:00 UTC | 30 minutes per fuzz target over the parsers of untrusted input; a crash fails the run and keeps its input (`cron`, `.github/workflows/fuzz.yml:3-12`) |
 | `benchmark` | daily, 06:30 UTC | the benchmark suite (`cron`, `.github/workflows/benchmark.yml:27`) |
 | `starks-bump` | daily, 05:17 UTC | moves the `starks` input to STARKs main, syncs every lock, runs `nix flake check` and opens a pull request; it never merges (`cron`, `.github/workflows/starks-bump.yml:3-14`) |

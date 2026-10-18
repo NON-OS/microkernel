@@ -33,6 +33,9 @@ pub const INSTALL_SOURCE_BOOT_ROOT_RECORD: u64 = 6;
 /* The release's approval of the kernel, `kernel.approval`; the kernel holds
  * none when the running image had none. */
 pub const INSTALL_SOURCE_KERNEL_APPROVAL: u64 = 0x100;
+/* Not an image: four bytes naming the disk this boot's block layer chose,
+ * backend and instance, so an installer leaves it off its list. */
+pub const INSTALL_SOURCE_IN_USE_DISK: u64 = 0x101;
 
 /// Copy up to `out.len()` bytes of image `kind` starting at `offset`. Returns
 /// the bytes written, zero at the end of the image, or a negative errno. The

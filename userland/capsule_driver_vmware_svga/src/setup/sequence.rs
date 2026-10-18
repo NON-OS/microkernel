@@ -65,8 +65,8 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     }
     let fb_map = map(dev.device_id, epoch, dev.layout.fb, layout.offset as u64, fb_len)
         .map_err(|e| undo(&[fifo_map.grant_id], e))?;
-    let (surface, handle) =
+    let (surface, sid) =
         surface::create(w, h).map_err(|e| undo(&[fifo_map.grant_id, fb_map.grant_id], e))?;
     let fb = Plane { va: fb_map.user_va, stride: layout.pitch, width: w, height: h };
-    Ok(Driver { regs, fifo, fb, surface, handle, owner: 0 })
+    Ok(Driver { regs, fifo, fb, surface, sid, handle: 0, owner: 0 })
 }

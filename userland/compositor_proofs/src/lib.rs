@@ -91,6 +91,8 @@ mod foreign_pixel_tests;
 #[cfg(test)]
 mod frame_model;
 #[cfg(test)]
+mod k20_tests;
+#[cfg(test)]
 mod present_retry_tests;
 #[cfg(test)]
 mod parse_tests;

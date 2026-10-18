@@ -25,7 +25,7 @@
 use crate::security::attest_registry::authority_of;
 use crate::security::dev_roots::Authority;
 
-pub(super) fn device_secret_caller() -> bool {
+pub(crate) fn device_secret_caller() -> bool {
     if !crate::syscall::caps::current_caps_or_default().can_device_secret() {
         return false;
     }

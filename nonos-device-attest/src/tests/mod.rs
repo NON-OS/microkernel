@@ -25,3 +25,4 @@ mod proof_tests;
 mod registry_tests;
 mod satisfy;
 mod shape_tests;
+mod share_tests;

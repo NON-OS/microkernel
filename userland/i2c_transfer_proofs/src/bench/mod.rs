@@ -24,4 +24,4 @@ mod settled;
 
 pub use bound::driver;
 pub use controller::{controller, GEMINI_LAKE_HZ, LPSS_PHYS};
-pub use settled::{settled, unaddressed};
+pub use settled::{settled, settled_on, unaddressed};

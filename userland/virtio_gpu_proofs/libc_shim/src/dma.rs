@@ -32,6 +32,9 @@ pub struct DmaMapOut {
     pub grant_id: u64,
 }
 
+/// The libc flag the primary surface's map asks with: frames anywhere.
+pub const MK_DMA_MAP_HIGH: u32 = 1 << 0;
+
 const EINVAL: i64 = -22;
 /// The largest grant the driver asks for: a 3840x2160 primary surface.
 const MAX_GRANT: u64 = 32 << 20;

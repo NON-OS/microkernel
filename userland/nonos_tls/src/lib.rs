@@ -54,11 +54,14 @@ pub use cert_is_ca::cert_is_ca;
 /// read after the refusal and decides nothing.
 pub use cert_problem::CertProblem;
 pub use client_flight::client_flight;
+pub use crypto_port::CRYPTO_WAIT_MS;
 pub use handshake_alert::handshake_alert;
 pub use handshake_fault::handshake_fault;
-pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};
+pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start, Unverified};
 pub use rtc_now::rtc_now;
 pub use verify_rsa::verify_rsa;
 pub use server_complete::{server_complete, server_complete_unauthenticated, ServerComplete};
-pub use session::{exchange, Io, SessionError};
+pub use session::{
+    exchange, exchange_within, Io, SessionError, HANDSHAKE_MS, REPLY_MS, REPLY_TOO_SLOW,
+};
 pub use traffic_keys::TrafficKeys;

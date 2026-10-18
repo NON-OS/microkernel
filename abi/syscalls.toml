@@ -197,6 +197,9 @@ MSPR = 0x5250534D
 MDVW = 0x5756444D
 MIEP = 0x5045494D
 MIED = 0x4445494D
+MSLR = 0x524C534D
+MSNT = 0x544E534D
+MPJB = 0x424A504D
 
 [desc.CMKY]
 nr   = 0x594B4D43
@@ -267,7 +270,7 @@ ret  = {type="i64"}
 [desc.MIRF]
 nr   = 0x4652494D
 caps = ["IPC"]
-args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="src_pid_out",type="u32*",dir="out"}]
+args = [{name="endpoint",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="src_pid_out",type="u32*",dir="out"},{name="enqueued_ms_out",type="u64*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MISP]
@@ -344,115 +347,115 @@ ret  = {type="i64"}
 
 [desc.MDCL]
 nr   = 0x4C43444D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDRL]
 nr   = 0x4C52444D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MMMP]
 nr   = 0x504D4D4D
-caps_any = ["Admin", "Mmio"]
+caps = ["Mmio"]
 args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="bar_and_flags",type="u64",dir="in"},{name="offset",type="u64",dir="in"},{name="length",type="u64",dir="in"},{name="map_out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MMUM]
 nr   = 0x4D554D4D
-caps_any = ["Admin", "Mmio"]
+caps = ["Mmio"]
 args = [{name="grant_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MIRB]
 nr   = 0x4252494D
-caps_any = ["Admin", "Irq"]
+caps = ["Irq"]
 args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="irq_source",type="u32",dir="in"},{name="flags",type="u32",dir="in"},{name="vector_count",type="u32",dir="in"},{name="bind_out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MIRU]
 nr   = 0x5552494D
-caps_any = ["Admin", "Irq"]
+caps = ["Irq"]
 args = [{name="grant_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MIRA]
 nr   = 0x4152494D
-caps_any = ["Admin", "Irq"]
+caps = ["Irq"]
 args = [{name="slot",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MIRP]
 nr   = 0x5052494D
-caps_any = ["Admin", "Irq"]
+caps = ["Irq"]
 args = [{name="slot",type="u32",dir="in"},{name="seq_out",type="u64*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MDMM]
 nr   = 0x4D4D444D
-caps_any = ["Admin", "Dma"]
+caps = ["Dma"]
 args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="length",type="usize",dir="in"},{name="flags",type="u32",dir="in"},{name="grant_out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MDMU]
 nr   = 0x554D444D
-caps_any = ["Admin", "Dma"]
+caps = ["Dma"]
 args = [{name="grant_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPGT]
 nr   = 0x5447504D
-caps_any = ["Admin", "Pio"]
+caps = ["Pio"]
 args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="port_base",type="u16",dir="in"},{name="port_count",type="u16",dir="in"},{name="grant_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MPRD]
 nr   = 0x4452504D
-caps_any = ["Admin", "Pio"]
+caps = ["Pio"]
 args = [{name="grant_id",type="u32",dir="in"},{name="offset",type="u16",dir="in"},{name="width",type="u8",dir="in"},{name="value_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MPWR]
 nr   = 0x5257504D
-caps_any = ["Admin", "Pio"]
+caps = ["Pio"]
 args = [{name="grant_id",type="u32",dir="in"},{name="offset",type="u16",dir="in"},{name="width",type="u8",dir="in"},{name="value",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPRL]
 nr   = 0x4C52504D
-caps_any = ["Admin", "Pio"]
+caps = ["Pio"]
 args = [{name="grant_id",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MHVB]
 nr   = 0x4256484D
-caps_any = ["Admin", "Pio"]
+caps = ["Pio"]
 args = [{name="cmd",type="u32",dir="in"},{name="arg",type="u32",dir="in"},{name="regs_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MHVP]
 nr   = 0x5056484D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="connection",type="u32",dir="in"},{name="msg_type",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MHVR]
 nr   = 0x5256484D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="message_out",type="u8*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MHVE]
 nr   = 0x4556484D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="flags_out",type="u64*",dir="out"},{name="words",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MHVS]
 nr   = 0x5356484D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="connection",type="u32",dir="in"}]
 ret  = {type="i64"}
 
@@ -471,7 +474,7 @@ ret  = {type="i64"}
 [desc.MSSH]
 nr   = 0x4853534D
 caps = ["GraphicsSurfaceCreate"]
-args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"}]
+args = [{name="surface_id",type="u32",dir="in"},{name="target_pid",type="u32",dir="in"},{name="flags",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSAT]
@@ -500,13 +503,13 @@ ret  = {type="i64"}
 
 [desc.MIEP]
 nr   = 0x5045494D
-caps_any = ["Admin", "InputSource", "Irq"]
+caps = ["InputSource"]
 args = [{name="event_kind",type="u32",dir="in"},{name="payload",type="u8*",dir="in"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MIED]
 nr   = 0x4445494D
-caps_any = ["Admin", "InputSource"]
+caps = ["InputConsumer"]
 args = [{name="buf",type="u8*",dir="out"},{name="cap",type="usize",dir="in"},{name="count_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
@@ -605,13 +608,13 @@ ret  = {type="i64"}
 
 [desc.MIEW]
 nr   = 0x5745494D
-caps_any = ["Admin", "InputSource"]
+caps = ["InputConsumer"]
 args = [{name="last_seq",type="u64",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MIRW]
 nr   = 0x5752494D
-caps_any = ["Admin", "Irq"]
+caps = ["Irq"]
 args = [{name="grant_id",type="u64",dir="in"},{name="last_seq",type="u64",dir="in"},{name="timeout_ms",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"}]
 ret  = {type="i64"}
 
@@ -647,13 +650,13 @@ ret  = {type="i64"}
 
 [desc.MPCR]
 nr   = 0x5243504D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="offset",type="u32",dir="in"},{name="width",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPCW]
 nr   = 0x5743504D
-caps_any = ["Admin", "Driver"]
+caps = ["Driver"]
 args = [{name="device_id",type="u64",dir="in"},{name="claim_epoch",type="u64",dir="in"},{name="offset",type="u32",dir="in"},{name="value",type="u32",dir="in"}]
 ret  = {type="i64"}
 
@@ -763,6 +766,24 @@ ret  = {type="i64"}
 nr   = 0x4E524C4D
 caps = ["ForeignExec"]
 args = [{name="pid",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSLR]
+nr   = 0x524C534D
+caps = ["DeviceSecret"]
+args = [{name="app_id_ptr",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"},{name="pid",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSNT]
+nr   = 0x544E534D
+caps = ["ForeignExec"]
+args = [{name="slot",type="u64",dir="in"},{name="word_ptr",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPJB]
+nr   = 0x424A504D
+caps = ["IPC"]
+args = [{name="kind",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MLSG]

@@ -19,10 +19,15 @@
 //! calls itself, and the word that confirms it.
 
 mod booted;
+mod chosen;
 mod confirm;
 mod contents;
 mod describe;
+mod disk;
+mod fault;
+pub mod in_use;
 mod probe;
+mod rows;
 mod scan;
 mod word;
 

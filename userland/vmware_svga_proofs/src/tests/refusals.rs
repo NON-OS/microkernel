@@ -64,7 +64,7 @@ fn a_short_fifo_or_vram_is_refused() {
 fn a_refused_surface_gives_its_memory_back() {
     let mut bench = Bench::standard();
     nonos_libc::fail_surface();
-    assert_eq!(run(bench.with(|_| {})).err(), Some("surface register or share refused"));
+    assert_eq!(run(bench.with(|_| {})).err(), Some("surface register refused"));
     assert_eq!(nonos_libc::surfaces().1.len(), 1, "the surface memory unmapped");
     let back = released();
     assert_eq!(&back[..2], &[("mmio_unmap", 101), ("mmio_unmap", 102)]);

@@ -1,5 +1,6 @@
 {
  "nonos-attest-path": "",
+ "nonos-boot-measure": "",
  "nonos-bootloader/boot_proofs": "",
  "nonos-mk": "",
  "nonos-sign": "--lib --bins --test host_trust --test release",
@@ -20,6 +21,8 @@
  "userland/nonos_eth_rpc": "",
  "userland/nonos_gguf": "",
  "userland/nonos_git": "",
+ "userland/nonos_hash": "",
+ "userland/nonos_http": "",
  "userland/nonos_i2cmodel": "",
  "userland/nonos_keymap": "",
  "userland/nonos_linux_policy": "",
@@ -40,10 +43,12 @@
  "userland/nonos_wifi_core": "",
  "userland/openpgp": "",
  "userland/payment_proto": "",
+ "userland/policy_proto": "",
  "userland/settle_proto": "",
  "userland/shield_core": "",
  "userland/shield_wire": "",
  "userland/toolkit/image_tests": "",
  "userland/xz": "",
- "userland/zstd": ""
+ "userland/zstd": "",
+ "verification/trusted_path_poc": ""
 }

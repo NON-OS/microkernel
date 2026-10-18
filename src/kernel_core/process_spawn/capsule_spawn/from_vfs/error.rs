@@ -23,5 +23,7 @@ use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 pub enum LoadError {
     Manifest,
     TrustAnchor,
+    /// An endpoint name the image reserves, or outside the publisher's own.
+    ReservedName,
     Spawn(SpawnError),
 }

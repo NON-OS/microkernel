@@ -37,6 +37,7 @@ pub(super) fn tls_fault(cause: SessionError) -> LinkError {
     trace::say(match cause {
         SessionError::Init => b"guard tls: client hello could not be built" as &[u8],
         SessionError::Io => b"guard tls: socket failed mid handshake",
+        SessionError::TooSlow => b"guard tls: reply outran its budget",
         SessionError::Handshake => b"guard tls: server flight never completed",
         SessionError::Certificate => b"guard tls: chain did not verify",
         SessionError::TooLarge => b"guard tls: server sent more than allowed",

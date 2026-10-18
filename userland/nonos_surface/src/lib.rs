@@ -27,5 +27,5 @@ pub use attach::attach;
 pub use create::create;
 pub use damage::damage;
 pub use destroy::destroy;
-pub use share::share;
+pub use share::{share, SHARE_WRITE};
 pub use types::{SurfaceDescriptor, SURFACE_FORMAT_ARGB8888};

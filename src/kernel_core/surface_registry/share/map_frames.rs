@@ -19,13 +19,15 @@ use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::map_page_in_asid;
 use crate::memory::paging::types::PagePermissions;
 
-/* Map `frames` user read-write at consecutive pages from `base` in `asid`. */
+/* Map `frames` at consecutive pages from `base` in `asid`, user read-only
+ * unless the receiver was named to write. */
 pub(super) fn map_frames(
     asid: u32,
     base: VirtAddr,
     frames: &[PhysAddr],
+    write: bool,
 ) -> Result<(), RegistryError> {
-    let perms = PagePermissions::user_rw();
+    let perms = if write { PagePermissions::user_rw() } else { PagePermissions::user_ro() };
     for (i, frame) in frames.iter().enumerate() {
         let va = VirtAddr::new(base.as_u64() + (i as u64) * 4096);
         map_page_in_asid(asid, va, *frame, perms).map_err(|_| RegistryError::MapFailed)?;

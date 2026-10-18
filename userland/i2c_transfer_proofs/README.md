@@ -4,10 +4,9 @@ Host-runnable proofs for the Intel LPSS I2C capsule's transfer engine, probe
 and IPC handler. The shipping driver source is included through `#[path]`;
 the register accessor alone is replaced with one that forwards to the
 DesignWare core in `nonos_i2cmodel`, with a HID touchpad on the bus behind it.
-Setup's settling of a bind and its sweep are included too; the claim, the
-mapping and the bring-up of each controller go through the broker, and the
-bench (`src/bench`) brings the modelled core up in their place. The defects
-these proofs caught are in [FOUND.md](FOUND.md).
+Discovery, and setup's bind, sweep, order and claimed bring-up, are in too;
+the shim answers the device list (`src/tests/records.rs`, `src/bench`).
+The defects these proofs caught are in [FOUND.md](FOUND.md).
 
 ## What is proved
 
@@ -62,8 +61,9 @@ narrowed reach are handled (`named_hostile_tests`). The doorbell says absent
 once the bound pad is out of reach, and a probe-bound pad keeps its line
 (`doorbell_tests`). An input report, the longest read, one byte past it, a NACK,
 a refusal and a probe leave nothing in the reply buffer (`retained_tests`), and
-the engine's copy of the bytes read is wiped where it is dropped
-(`bounce_tests`).
+the engine's copy of the bytes read is wiped where dropped (`bounce_tests`).
+Pads pair by host id, else on PCI by "I2Cn", never by address (`host_*_tests`),
+and remap by the base read back once claimed (`remap_tests`, `reread_tests`).
 
 ## Run
 

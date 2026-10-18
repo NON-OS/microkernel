@@ -20,5 +20,6 @@ mod frames;
 mod frames_stall;
 mod pure;
 mod refusals;
+mod share;
 mod util;
 mod vbox;

@@ -45,7 +45,7 @@ The Settings tests hold these ids to `has_driver` returning false (`userland/cap
 
 The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852 family included: for vendor 10ec, only device c821 has a driver. Intel BE200 and BE201 (8086:272b and 8086:a840) are named by the iwlwifi driver but are not in its id table, so it never takes them (`userland/capsule_driver_iwlwifi/src/firmware/generation.rs:59-60`, `family_for_device`).
 
-No driver [capsule](../../overview/glossary.md#capsule) for any of these chips exists in the tree.
+No driver [capsule](../../overview/glossary-boot-root-record.md#capsule) for any of these chips exists in the tree.
 
 ## Firmware files are not drivers
 

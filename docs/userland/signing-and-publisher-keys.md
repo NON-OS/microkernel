@@ -1,13 +1,13 @@
 # Signing and publisher keys
 
-Every [capsule](../overview/glossary.md#capsule) is signed with two hybrid key pairs and enrolled once with the rest of the set, and the kernel refuses any capsule whose certificate, [manifest](../overview/glossary.md#manifest), signatures or proof do not check out.
+Every [capsule](../overview/glossary-boot-root-record.md#capsule) is signed with two hybrid key pairs and enrolled once with the rest of the set, and the kernel refuses any capsule whose certificate, [manifest](../overview/glossary-linux-personality.md#manifest), signatures or proof do not check out.
 
 ## The keys
 
 Two kinds of key sign a capsule, and both come as a hybrid pair: one Ed25519 key and one ML-DSA-65 key.
 
-- The [trust anchor](../overview/glossary.md#trust-anchor) signs every [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate). Its public halves are `nonos_trust_anchor_ed25519.pub` and `nonos_trust_anchor_mldsa65.pub` under `nonos-data/trust/keys/` (`tools/nonos_seal/keys.py:32`, `TA_PUBS`). The trust anchor policy built from them is baked into the kernel (`mk/20-build.mk:200-203`, `BAKED_TRUST_ANCHOR_POLICY`).
-- A [publisher](../overview/glossary.md#publisher) key pair signs a capsule's manifest. Each capsule has its own pair, named after its binary: `<bin>_publisher_ed25519.pub` and `<bin>_publisher_mldsa65.pub` in the same directory (`nonos-mk/capsule.mk:85`, `CAPSULE_KEY_PUB_PREFIX`). The 19 Linux userland programs share one publisher, `linux_userland_publisher` (`userland/linux_userland/Userland.mk:119-120`, `CAPSULE_KEY_PUB_PREFIX`).
+- The [trust anchor](../overview/glossary-stark-proof.md#trust-anchor) signs every [NONOS ID certificate](../overview/glossary-linux-personality.md#nonos-id-certificate). Its public halves are `nonos_trust_anchor_ed25519.pub` and `nonos_trust_anchor_mldsa65.pub` under `nonos-data/trust/keys/` (`tools/nonos_seal/keys.py:32`, `TA_PUBS`). The trust anchor policy built from them is baked into the kernel (`mk/20-build.mk:200-203`, `BAKED_TRUST_ANCHOR_POLICY`).
+- A [publisher](../overview/glossary-peer-list.md#publisher) key pair signs a capsule's manifest. Each capsule has its own pair, named after its binary: `<bin>_publisher_ed25519.pub` and `<bin>_publisher_mldsa65.pub` in the same directory (`nonos-mk/capsule.mk:85`, `CAPSULE_KEY_PUB_PREFIX`). The 19 Linux userland programs share one publisher, `linux_userland_publisher` (`userland/linux_userland/Userland.mk:119-120`, `CAPSULE_KEY_PUB_PREFIX`).
 
 The `.pub` files, certificates, manifests, trailers and the policy are committed under `nonos-data/trust/`. The private halves are seeds kept in `.keys/`, a directory `.gitignore` keeps out of git (`nonos-mk/capsule.mk:56-63`, `NONOS_BAKED_TRUST_DIR`). Key files are self-tagged binary blobs, `NONOSSK1` for a seed and `NONOSPK1` for a public key (`nonos-sign/src/cli/usage.rs:35-37`, `keygen`).
 
@@ -37,15 +37,15 @@ sequenceDiagram
   M->>E: capsules
 ```
 
-The template in `nonos-mk/capsule.mk` drives `capsule-sign` for each capsule, and the [seal](../overview/glossary.md#seal), `tools/nonos_seal/capsules.py`, runs the same steps with the same arguments read from `tools/nix/capsules.json` (`tools/nonos_seal/capsules.py:77-96`, `sign`).
+The template in `nonos-mk/capsule.mk` drives `capsule-sign` for each capsule, and the [seal](../overview/glossary-rollback-index.md#seal), `tools/nonos_seal/capsules.py`, runs the same steps with the same arguments read from `tools/nix/capsules.json` (`tools/nonos_seal/capsules.py:77-96`, `sign`).
 
 1. The publisher's NONOS ID is a BLAKE3 hash over the domain string `nonos.id.v1` and the length-prefixed handle, domain and recovery string, so it survives a certificate renewal (`src/security/nonos_id_cert/derive.rs:22-39`, `derive_nonos_id`). The template recomputes it on every signing with `derive-id` (`nonos-mk/capsule.mk:213-218`, `nonos_id`).
 2. Before signing, `scripts/check_device_secret_cap.py` refuses DeviceSecret in any capsule but `prove` (`nonos-mk/capsule.mk:255-256`, `check_device_secret_cap`).
-3. `sign-id-cert` writes the certificate: serial, NONOS ID, namespace glob, [capability ceiling](../overview/glossary.md#capability-ceiling), trust anchor epoch, validity window and both publisher public keys, signed with both trust anchor seeds (`nonos-mk/capsule.mk:257-271`, `CAPSULE_SIGN_BIN`). The seal issues every certificate under epoch 1, valid from 2026-01-01 to 2030-01-01 in Unix milliseconds (`tools/nonos_seal/capsules.py:32-34`, `VALID_FROM_MS`).
+3. `sign-id-cert` writes the certificate: serial, NONOS ID, namespace glob, [capability ceiling](../overview/glossary-boot-root-record.md#capability-ceiling), trust anchor epoch, validity window and both publisher public keys, signed with both trust anchor seeds (`nonos-mk/capsule.mk:257-271`, `CAPSULE_SIGN_BIN`). The seal issues every certificate under epoch 1, valid from 2026-01-01 to 2030-01-01 in Unix milliseconds (`tools/nonos_seal/capsules.py:32-34`, `VALID_FROM_MS`).
 4. `sign-manifest` hashes the ELF and signs the manifest with both publisher seeds, then `verify-manifest` checks the result against the trust anchor policy (`nonos-mk/capsule.mk:279-297`, `CAPSULE_SIGN_BIN`).
-5. `nonos-stark-enroll capsules` takes every capsule as `CAPS:elf:trailer` and writes the [policy root](../overview/glossary.md#policy-root) and one [attestation trailer](../overview/glossary.md#attestation-trailer) per capsule in one run (`mk/20-build.mk:600-605`, `NONOS_STARK_ENROLL`).
+5. `nonos-stark-enroll capsules` takes every capsule as `CAPS:elf:trailer` and writes the [policy root](../overview/glossary-peer-list.md#policy-root) and one [attestation trailer](../overview/glossary-amnesic-boot.md#attestation-trailer) per capsule in one run (`mk/20-build.mk:600-605`, `NONOS_STARK_ENROLL`).
 
-The seal does not repeat a long [enrollment](../overview/glossary.md#enrollment) it can reuse. When the root and trailers in the tree still pass the [spawn gate](../overview/glossary.md#spawn-gate)'s check for every capsule built, it keeps them; otherwise it enrolls the whole set again (`tools/nonos_seal/capsules.py:104-134`, `enrolled`).
+The seal does not repeat a long [enrollment](../overview/glossary-dma-pool.md#enrollment) it can reuse. When the root and trailers in the tree still pass the [spawn gate](../overview/glossary-rollback-index.md#spawn-gate)'s check for every capsule built, it keeps them; otherwise it enrolls the whole set again (`tools/nonos_seal/capsules.py:104-134`, `enrolled`).
 
 A build with `NONOS_TRUST_REUSE=1` signs nothing at all. It requires the committed certificate and manifest, verifies them under the baked policy and checks that the freshly built ELF measures to the enrolled payload hash; a capsule that drifts fails by name (`nonos-mk/capsule.mk:220-248`, `NONOS_TRUST_REUSE`).
 
@@ -94,7 +94,7 @@ The market service `market.index` holds the signed catalogue and answers what is
 
 The catalogue format lives in `marketplace_abi`. A publisher signs a release under the domain `NONOS.marketplace.release.v2` (`userland/marketplace_abi/src/codec/release_signing.rs:27`, `RELEASE_SIGNING_DOMAIN`). A catalogue holds at most 1024 entries of at most 64 releases each, and a blob over 2 MiB is refused before it is parsed (`userland/marketplace_abi/src/limits.rs:26-41`, `MAX_INDEX_BLOB`). The `market_proofs` host tests, 62 of them, passed on this commit.
 
-Installing goes through the kernel. `MkAppInstall` needs AppInstall (`abi/syscalls.toml:732-736`, `MAIN`). A capsule the installer reads from the [file store](../overview/glossary.md#file-store) is started with `MkCapsuleLoad`, which runs the same spawn path as a capsule in the kernel image, and takes its service name and endpoints from the signed manifest, never from the caller (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:26-33`, `load_capsule_from_vfs`). The call itself needs only CoreExec, IPC and Memory, which every app holds (`abi/syscalls.toml:538-541`, `MCLD`): what the loaded capsule may do is fixed by its own manifest and proof, not by its caller. How a person uses this is in [Marketplace](../using/marketplace.md).
+Installing goes through the kernel. `MkAppInstall` needs AppInstall (`abi/syscalls.toml:732-736`, `MAIN`). A capsule the installer reads from the [file store](../overview/glossary-dma-pool.md#file-store) is started with `MkCapsuleLoad`, which runs the same spawn path as a capsule in the kernel image, and takes its service name and endpoints from the signed manifest, never from the caller (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:26-33`, `load_capsule_from_vfs`). The call itself needs only CoreExec, IPC and Memory, which every app holds (`abi/syscalls.toml:538-541`, `MCLD`): what the loaded capsule may do is fixed by its own manifest and proof, not by its caller. How a person uses this is in [Marketplace](../using/marketplace.md).
 
 ## What the kernel refuses
 
@@ -106,9 +106,9 @@ For a capsule loaded from the file store, `MkCapsuleLoad` answers with an errno:
 
 | Answer | When |
 |---|---|
-| `-EINVAL` | an artifact is empty or over 16 MiB, the manifest does not decode, or it declares no service or no reply [endpoint](../overview/glossary.md#endpoint) |
+| `-EINVAL` | an artifact is empty or over 16 MiB, the manifest does not decode, or it declares no service or no reply [endpoint](../overview/glossary-dma-pool.md#endpoint) |
 | `-EEXIST` | a live instance already holds the service or reply endpoint |
-| `-EACCES` | the certificate, the manifest, a signature, the trailer or the [boot profile](../overview/glossary.md#boot-profile) refused it, or the spawn failed after the checks, for example loading the ELF |
+| `-EACCES` | the certificate, the manifest, a signature, the trailer or the [boot profile](../overview/glossary-amnesic-boot.md#boot-profile) refused it, or the spawn failed after the checks, for example loading the ELF |
 | `-EFAULT` | a pointer in the request is not readable user memory |
 | `-ENOMEM` | the kernel heap cannot hold an artifact |
 

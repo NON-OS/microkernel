@@ -21,7 +21,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::handshake_state::HandshakeState;
+use crate::handshake_state::{HandshakeState, Unverified};
 use crate::session::{Io, SessionError};
 
 use super::types::Stream;
@@ -40,10 +40,20 @@ pub(super) fn settle<S: Io>(
     peer: Option<(&[u8], u64)>,
 ) -> Result<Stream, SessionError> {
     let done = match peer {
-        Some((host, now)) => state.verify(host, now, true).ok_or(SessionError::Certificate)?,
-        None => state.verify(&[], 0, false).ok_or(SessionError::Handshake)?,
+        Some((host, now)) => {
+            state.verify(host, now, true).map_err(|why| fault(why, SessionError::Certificate))?
+        }
+        None => state.verify(&[], 0, false).map_err(|why| fault(why, SessionError::Handshake))?,
     };
     let record = crate::client_finished::client_reply(&done).ok_or(SessionError::Handshake)?;
     io.write_all(&record)?;
     Ok(Stream::new(done.app, done.certificates, buf[end..].to_vec()))
+}
+
+/// A pool that never answered is TooSlow; any other failure is `failed`.
+fn fault(why: Unverified, failed: SessionError) -> SessionError {
+    match why {
+        Unverified::TooSlow => SessionError::TooSlow,
+        Unverified::Failed => failed,
+    }
 }

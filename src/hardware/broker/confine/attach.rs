@@ -18,34 +18,32 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::decide::{verdict, Verdict};
 use super::iova::IOVA_BASE;
 use super::posture::unconfined_allowed;
-use super::table::{pci_address, say, Capsule, CAPSULES};
+use super::refuse::{without_domain, Refusal, Refused};
+use super::table::{pci_address, Capsule, CAPSULES};
+use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 use crate::memory::iommu::IommuDomain;
 
-/// The unit is in service and would not take the device, so the claim is
-/// refused rather than granted with a device that reaches all of memory.
-pub(in crate::hardware::broker) struct Refused;
-
-pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refused> {
+pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
-        return Ok(());
+        // No requester id, no bus master: map.rs refuses its DMA grants.
+        return match verdict(false, false, Ok(()), OPT_IN, PRODUCTION) {
+            Verdict::Refuse => Err(Refused.into()),
+            _ => Ok(()),
+        };
     };
     /*
      * A device no unit in service covers is not translated, and an IOVA
      * handed to it would be used as a physical address: with only the first
      * unit programmed, the RTL8821CE behind a laptop's second unit staged its
-     * firmware from whatever lived at 0x100000. Such a device stays on
-     * physical addresses, said and counted.
+     * firmware from whatever lived at 0x100000. Such a device is refused.
      */
     if !crate::memory::iommu::translates(address) {
-        say(
-            b"unconfined: no remapping unit in service covers it, reaches all memory",
-            pid,
-            address,
-        );
-        return Ok(());
+        return Ok(without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?);
     }
+    let (group, aliases) = super::gates::admit(device_id)?;
     let mut all = CAPSULES.lock();
     let pos = match all.iter().position(|c| c.pid == pid) {
         Some(i) => i,
@@ -55,47 +53,16 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
                 all.len() - 1
             }
             /*
-             * The posture on most hardware: said per claim, not only at boot.
              * No unit in service is the same whether none was found, none is
-             * up yet, or the one found (AMD-Vi) has no backend here.
+             * up yet, or the one found (AMD-Vi) has no backend here: refused.
+             * A unit in service with no domain left: refused as well.
              */
-            Err(e) if unconfined_allowed(e) => {
-                say(b"unconfined: no remapping unit in service, reaches all memory", pid, address);
-                return Ok(());
-            }
-            Err(_) => {
-                say(b"refused: no domain left", pid, address);
-                return Err(Refused);
+            Err(e) => {
+                let v = verdict(true, true, Err(unconfined_allowed(e)), OPT_IN, PRODUCTION);
+                return Ok(without_domain(v)?);
             }
         },
     };
-    // Drives behind one VMD share its requester id. One capsule may hold
-    // several of them in its domain; a second capsule cannot take the id
-    // without pulling it out from under the first.
-    if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
-    {
-        say(b"refused: requester id held by another capsule", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
-    }
-    if all[pos].devices.iter().any(|(_, a)| *a == address) {
-        all[pos].devices.push((device_id, address));
-        say(b"confined to its capsule's domain (shared requester id)", pid, address);
-        return Ok(());
-    }
-    // Out of the identity domain first. Between the two writes the device has
-    // no context entry, which denies it: the safe side to be on.
-    let _ = all[pos].domain.detach_device(address);
-    if all[pos].domain.attach_device(address).is_err() {
-        say(b"refused: attach failed", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
-    }
-    all[pos].devices.push((device_id, address));
-    say(b"confined to its capsule's domain", pid, address);
-    Ok(())
+    super::join::join(&mut all, pos, device_id, address, (&group, &aliases))?;
+    Ok(super::join_alias::join_aliases(&mut all, pid, device_id, &aliases)?)
 }

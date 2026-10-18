@@ -16,26 +16,11 @@
 
 use crate::crypto::util::rng;
 
-const HW_BUF_LEN: usize = 64;
-
 pub(super) fn mix_hardware_entropy(buffer: &mut [u8]) {
     if buffer.is_empty() {
         return;
     }
-    mix_virtio_rng(buffer);
     mix_cpu_rng(buffer);
-}
-
-fn mix_virtio_rng(buffer: &mut [u8]) {
-    if !crate::drivers::virtio_rng::is_available() {
-        return;
-    }
-
-    let mut hw_buf = [0u8; HW_BUF_LEN];
-    if crate::drivers::virtio_rng::fill_random(&mut hw_buf).is_ok() {
-        xor_repeating(buffer, &hw_buf);
-    }
-    zeroize(&mut hw_buf);
 }
 
 fn mix_cpu_rng(buffer: &mut [u8]) {
@@ -56,16 +41,4 @@ fn mix_cpu_rng(buffer: &mut [u8]) {
 
 fn next_cpu_random() -> Option<u64> {
     rng::cpu_entropy64().or_else(rng::cpu_random64)
-}
-
-fn xor_repeating(out: &mut [u8], input: &[u8]) {
-    for (idx, byte) in out.iter_mut().enumerate() {
-        *byte ^= input[idx % input.len()];
-    }
-}
-
-fn zeroize(bytes: &mut [u8]) {
-    for byte in bytes {
-        unsafe { core::ptr::write_volatile(byte, 0) };
-    }
 }

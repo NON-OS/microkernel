@@ -28,7 +28,7 @@ import sys
 
 ATTACKS = """trailer-flip trailer-extra-cap trailer-kernel-kind trailer-stale-epoch cap-escape
 foreign-memory service-squat kernel-replay chainload linux-fs-escape linux-foreign-memory
-linux-raw-syscall fault-containment""".split()
+linux-raw-syscall fault-containment held-escape""".split()
 LINE = re.compile(r"\[ATTACK\] ([a-z0-9-]+) (refused|ESCAPED): ?([^\n]*)")
 
 # Each matrix row, the attack that carries it, and every refusal it needs.
@@ -52,6 +52,11 @@ ROWS = [
     # Keyboards, controllers, the GPU and the sound card, held the same way.
     ("cap-escape: a device driver", "cap-escape",
      [r"device's driver by name", r"device's driver by its pid"]),
+    # Every name a process owns is read from its one inbox: a reply port too
+    #.
+    ("held-escape: a reply port", "held-escape",
+     [r"held driver by its reply port", r"net service by its reply port without Network",
+      r"xhci's bulk-IN by its reply port"]),
     ("foreign-memory: kernel via Debug", "foreign-memory", [r"a kernel address to MkDebug"]),
     ("foreign-memory: other aspace via Debug", "foreign-memory",
      [r"another address space's address to MkDebug"]),
@@ -146,7 +151,10 @@ foreign-memory refused: another address space's address to MkDebug EFAULT (14)
 foreign-memory refused: a kernel address as an IPC message, MkIpcSend EFAULT (14)
 foreign-memory refused: a fixed mapping at a kernel address, MkMmap EPERM (1)
 service-squat refused: MkServiceRegister net.sockets EPERM (1)
-service-squat refused: MkServiceRegister app.file_manager EPERM (1)"""
+service-squat refused: MkServiceRegister app.file_manager EPERM (1)
+held-escape refused: a held driver by its reply port, MkIpcSend EPERM (1)
+held-escape refused: a net service by its reply port without Network, MkIpcSend EPERM (1)
+held-escape refused: xhci's bulk-IN by its reply port, MkIpcCall EPERM (1)"""
 FAULTED = """[ATTACK-FAULT] pid 41 writes address 0x0
 [TRAP PF] cpl=3 rip=0x0000000000402832 rsp=0x00007fffffffe000 cs=0x0000000000000033 ss=0x000000000000002b rflags=0x0000000000010246 cr3=0x0000000001234000 asid=0x0000000000000009 pid=0x0000000000000029 err=0x0000000000000006 cr2=0x0000000000000000
 [TRAP WALK] l4=0
@@ -168,6 +176,7 @@ def self_test():
     assert judge(full.replace("inbox by its pid", "inbox"))[1]
     assert judge(full.replace("driver by its pid", "driver"))[1]
     assert judge(full.replace("a device's driver by name", "a device"))[1]
+    assert judge(full.replace("xhci's bulk-IN by its reply port", "xhci"))[1]
     # The fault: no trap for that pid, a log that stops, or a kernel fault.
     assert judge(full.replace("pid=0x0000000000000029", "pid=0x000000000000002a"))[1]
     assert judge(full.replace("[NET] dhcp lease renewed\n", ""))[1]

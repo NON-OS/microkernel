@@ -1,6 +1,6 @@
 # Realtek RTL8821CE
 
-The RTL8821CE driver [capsule](../../overview/glossary.md#capsule) runs the Wi-Fi function of the Realtek RTL8821CE PCIe card on 2.4 GHz: it scans, joins WPA2 and WPA3 networks and carries traffic for `net.core`.
+The RTL8821CE driver [capsule](../../overview/glossary-boot-root-record.md#capsule) runs the Wi-Fi function of the Realtek RTL8821CE PCIe card on 2.4 GHz: it scans, joins WPA2 and WPA3 networks and carries traffic for `net.core`.
 
 ## What works
 
@@ -16,7 +16,7 @@ The kernel starts the capsule only when the boot PCI scan found 10ec:c821 (`src/
 
 ## Authority
 
-The [manifest](../../overview/glossary.md#manifest) asks for the [capability](../../overview/glossary.md#capability-word) mask 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with Debug (0x100) optional (`userland/capsule_driver_rtl8821ce/Capsule.mk:26-29`, `CAPSULE_REQUIRED_CAPS`, `CAPSULE_OPTIONAL_CAPS`). The kernel's spawn request matches it and adds Debug only through `serial_debug_cap` (`src/hardware/rtl8821ce_capsule/spawn.rs:50-60`, `requested_caps`), which returns Debug only in a build with the `capsule-serial-debug` feature (`src/capabilities/serial_debug.rs:37-50`, `serial_debug_cap`).
+The [manifest](../../overview/glossary-linux-personality.md#manifest) asks for the [capability](../../overview/glossary-boot-root-record.md#capability-word) mask 0xB8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio and Dma, with Debug (0x100) optional (`userland/capsule_driver_rtl8821ce/Capsule.mk:26-29`, `CAPSULE_REQUIRED_CAPS`, `CAPSULE_OPTIONAL_CAPS`). The kernel's spawn request matches it and adds Debug only through `serial_debug_cap` (`src/hardware/rtl8821ce_capsule/spawn.rs:50-60`, `requested_caps`), which returns Debug only in a build with the `capsule-serial-debug` feature (`src/capabilities/serial_debug.rs:37-50`, `serial_debug_cap`).
 
 - No Irq: the driver polls its rings and binds no interrupt.
 - Crypto is there for `CryptoRandom`, which draws the station address, the handshake nonce and the SAE secrets.

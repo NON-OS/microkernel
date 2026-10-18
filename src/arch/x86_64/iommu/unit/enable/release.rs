@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Taking a unit back from firmware. Pre-boot DMA protection leaves the
-//! protected memory regions on, or translation on through firmware's own
-//! tables, on some machines past ExitBootServices. Either blocks the DMA the
-//! kernel's drivers issue, whether or not this kernel then programs the unit,
-//! so both are turned off first, as Linux does when it takes over a unit.
+//! Taking a unit back from firmware, whose protected memory regions or
+//! translation may still be on past ExitBootServices. Both are protection:
+//! let go only as iommu::handover says.
 
 use crate::arch::x86_64::iommu::regs::{cap, offsets};
 use crate::arch::x86_64::iommu::types::VtdError;
@@ -31,20 +29,30 @@ pub struct Released {
     pub translation: bool,
 }
 
+/// True when firmware's protected regions were on and are now off.
+///
 /// # Safety
-/// Turns protection off: until the kernel programs the unit, devices behind
-/// it reach memory directly. Called once, before any table is installed.
-pub unsafe fn release_from_firmware(unit: &RemapUnit) -> Result<Released, VtdError> {
-    let mut released = Released::default();
-    if cap::has_protected_regions(unit.read64(offsets::CAP))
-        && unit.read32(offsets::PMEN) & offsets::PMEN_EPM != 0
+/// Widens what devices behind the unit reach: called once the unit
+/// translates with the kernel's tables, or under the development opt-in.
+pub unsafe fn release_protected_regions(unit: &RemapUnit) -> Result<bool, VtdError> {
+    if !cap::has_protected_regions(unit.read64(offsets::CAP))
+        || unit.read32(offsets::PMEN) & offsets::PMEN_EPM == 0
     {
-        // SAFETY: eK@nonos.systems - clearing EPM only widens what devices
-        // reach, and the caller accepted that until bring-up.
-        unsafe { unit.write32(offsets::PMEN, 0) };
-        wait(|| unit.read32(offsets::PMEN) & offsets::PMEN_PRS == 0)?;
-        released.protected_regions = true;
+        return Ok(false);
     }
+    // SAFETY: eK@nonos.systems - as the caller promised above.
+    unsafe { unit.write32(offsets::PMEN, 0) };
+    wait(|| unit.read32(offsets::PMEN) & offsets::PMEN_PRS == 0)?;
+    Ok(true)
+}
+
+/// # Safety
+/// Turns all protection off: until the kernel programs the unit, devices
+/// behind it reach memory directly. The development opt-in only.
+pub unsafe fn release_from_firmware(unit: &RemapUnit) -> Result<Released, VtdError> {
+    // SAFETY: eK@nonos.systems - the caller's promise, the same.
+    let protected_regions = unsafe { release_protected_regions(unit)? };
+    let mut released = Released { protected_regions, translation: false };
     let status = unit.read32(offsets::GSTS);
     if status & offsets::GSTS_TES != 0 {
         // SAFETY: eK@nonos.systems - as above; firmware's tables stop being

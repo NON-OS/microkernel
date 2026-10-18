@@ -20,11 +20,12 @@
 //! times height, as the kernel registered them. The surface is the driver's
 //! own memory; the framebuffer is never handed over.
 
-use nonos_libc::{registered, SHARED_HANDLE_BASE, SURFACE_FORMAT_ARGB8888};
+use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
+use nonos_libc::{registered, shares, Share, SHARED_HANDLE_BASE, SURFACE_FORMAT_ARGB8888};
 
 use super::frames::ask;
-use super::model::{served, COMPOSITOR};
-use crate::serve::{OP_GET_PRIMARY_SURFACE, PRIMARY_RESOURCE_ID};
+use super::model::{served, COMPOSITOR, OTHER};
+use crate::serve::{E_BUSY, OP_GET_PRIMARY_SURFACE, PRIMARY_RESOURCE_ID};
 
 fn u32_at(b: &[u8], at: usize) -> u32 {
     u32::from_le_bytes(b[at..at + 4].try_into().expect("four bytes"))
@@ -47,4 +48,15 @@ fn get_primary_hands_over_the_surface_the_kernel_registered() {
     assert_eq!((d.width, d.height, d.stride, d.format), (64, 48, 256, SURFACE_FORMAT_ARGB8888));
     assert_eq!((d.byte_len, d.base_va), (256 * 48, s.a.surface.base()));
     assert_ne!(d.base_va, s.a.fb.base(), "the framebuffer was handed to the compositor");
+}
+
+#[test]
+fn the_compositor_alone_is_named_the_surfaces_writable_receiver() {
+    let mut s = served(64, 48);
+    assert_eq!(shares(), [], "shared before the compositor asked");
+    assert_eq!(ask(&mut s.d, OTHER, OP_GET_PRIMARY_SURFACE, &[]).0, E_BUSY);
+    assert_eq!(shares(), [], "a capsule refused the primary was named its receiver");
+    assert_eq!(ask(&mut s.d, COMPOSITOR, OP_GET_PRIMARY_SURFACE, &[]).0, 0);
+    let named = Share { sid: 0, target_pid: COMPOSITOR, flags: SURFACE_SHARE_WRITE };
+    assert_eq!(shares(), [named], "the compositor not named, writable");
 }

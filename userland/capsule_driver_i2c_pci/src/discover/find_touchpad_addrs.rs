@@ -13,23 +13,27 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::{mk_device_list, DeviceRecord, BUS_KIND_ACPI};
+use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_NONE, BUS_KIND_ACPI};
 
 use super::acpi_touchpad::AcpiTouchpad;
 use super::defs::{CLASS_I2C_HID, MAX_DEVICES};
 
 /// The touchpad entry a kernel I2C-HID record describes. The record layout
-/// is set by src/hardware/broker/acpi_i2c/hid_record.rs.
+/// is set by src/hardware/broker/acpi_i2c/hid_record.rs. Its bars[0] is
+/// kind None, a name the list shows every caller, and its base the host's
+/// device_id: u64::MAX for none, and 0 a PCI id like any other. A bar of
+/// any other kind is a window whose base reads 0 to us, so it names none.
 fn touchpad_of(r: &DeviceRecord) -> Option<AcpiTouchpad> {
     if r.bus_kind != BUS_KIND_ACPI || r.class != CLASS_I2C_HID {
         return None;
     }
     let bar = r.bars[0];
+    let named = bar.kind == BAR_KIND_NONE && bar.base != u64::MAX;
     Some(AcpiTouchpad {
         addr: (r.vendor & 0x7F) as u8,
         desc_reg: r.device,
         controller_idx: r.pci_progif.checked_sub(1),
-        host_base: bar.base,
+        host: named.then_some(bar.base),
         host_name: (bar.size as u32).to_le_bytes(),
         speed_hz: bar.aux,
         info: bar.flags,

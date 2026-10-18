@@ -32,6 +32,7 @@ mod stall;
 mod wire;
 
 mod boundary_frame_tests;
+mod create_tests;
 mod config_tests;
 mod discovery_tests;
 mod dispatch_tests;
@@ -56,6 +57,7 @@ mod recover_try_tests;
 mod reply_refusal_tests;
 mod reply_tests;
 mod request_refusal_tests;
+mod share_tests;
 mod teardown_tests;
 mod wire_scanout_tests;
 mod wire_tests;

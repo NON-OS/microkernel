@@ -22,7 +22,7 @@ sequenceDiagram
     X-->>H: E_INVAL
 ```
 
-Hubs are handled by the USB HID [capsule](../../overview/glossary.md#capsule), `driver.usb_hid0`:
+Hubs are handled by the USB HID [capsule](../../overview/glossary-boot-root-record.md#capsule), `driver.usb_hid0`:
 
 1. It addresses the hub on its root port like any device and reads its configuration. An interface of class 09h marks a hub (`userland/capsule_driver_usb_hid/src/descriptors/config.rs:40-56`, `is_hub`).
 2. It reads the hub descriptor and sets the hub depth on a SuperSpeed hub (`userland/capsule_driver_usb_hid/src/hub/attach.rs:32-37`, `attach`).
@@ -31,7 +31,7 @@ Hubs are handled by the USB HID [capsule](../../overview/glossary.md#capsule), `
 5. It asks `driver.xhci0` with op 0x20 to address the device through its route (`userland/capsule_driver_usb_hid/src/xhci/wire/constants.rs:22-25`, `OP_ADDRESS_ROUTED`). The answer is `E_INVAL` again, and the slot is given back (`userland/capsule_driver_usb_hid/src/orchestrator/enumerate/attach_child.rs:51-55`, `disable_slot`).
 6. Each port is tried three times, then left alone until its device is unplugged (`userland/capsule_driver_usb_hid/src/orchestrator/enumerate/scan_hub.rs:42-48`, `TRIES`).
 
-The driver has words for both refusals: `the controller driver was not told this is a hub (op 0x21 refused); low and full speed devices below it will not work` and `the controller driver cannot address a device behind a hub yet (op 0x20 refused)` (`userland/capsule_driver_usb_hid/src/hub/error.rs:51-53`, `E_INVAL`). It writes them as `[usb-hub]` lines with `mk_debug` (`userland/capsule_driver_usb_hid/src/hub/say.rs:57-60`, `say`). The kernel grants `driver.usb_hid0` only IPC, Memory and InputSource, no Debug (`src/userspace/capsule_driver_usb_hid/spawn.rs:51-53`, `requested_caps`), so these lines do not reach the [serial console](../../overview/glossary.md#serial-console) in this release, and a hub with a device behind it fails silently.
+The driver has words for both refusals: `the controller driver was not told this is a hub (op 0x21 refused); low and full speed devices below it will not work` and `the controller driver cannot address a device behind a hub yet (op 0x20 refused)` (`userland/capsule_driver_usb_hid/src/hub/error.rs:51-53`, `E_INVAL`). It writes them as `[usb-hub]` lines with `mk_debug` (`userland/capsule_driver_usb_hid/src/hub/say.rs:57-60`, `say`). The kernel grants `driver.usb_hid0` only IPC, Memory and InputSource, no Debug (`src/userspace/capsule_driver_usb_hid/spawn.rs:51-53`, `requested_caps`), so these lines do not reach the [serial console](../../overview/glossary-rollback-index.md#serial-console) in this release, and a hub with a device behind it fails silently.
 
 ## What is ready for the routed step
 
@@ -45,7 +45,7 @@ What is missing is the xHCI side: writing the route string, the speed and the tr
 
 ## How it was verified
 
-`userland/usb_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the class side. It holds the hub descriptor parse, hub port status, and route and transaction translator tests, and its 83 tests pass on this commit. No QEMU target in `mk/` attaches a USB hub, and hubs have not been tested on hardware in this release.
+`userland/usb_proofs` is the [proof crate](../../overview/glossary-peer-list.md#proof-crate) for the class side. It holds the hub descriptor parse, hub port status, and route and transaction translator tests, and its 83 tests pass on this commit. No QEMU target in `mk/` attaches a USB hub, and hubs have not been tested on hardware in this release.
 
 ## See also
 

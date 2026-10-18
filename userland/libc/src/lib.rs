@@ -52,6 +52,8 @@ pub mod proc_output;
 pub mod process;
 pub mod procstat;
 pub mod procstat_header;
+mod prove;
+mod seal;
 pub mod spawn_instance;
 pub mod store;
 pub mod surface_registry;
@@ -123,6 +125,8 @@ pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
 pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
+pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
+pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
 pub use store::{mk_store_read, mk_store_write};
 pub use surface_registry::{

@@ -22,7 +22,7 @@ nothing, and the driver keeps the layout it has (`from_policy`,
 `userland/nonos_keymap/src/policy.rs:32-42`).
 
 The drivers read the layout from the [policy
-store](../../overview/glossary.md#policy-store) at most once a second (`POLICY`,
+store](../../overview/glossary-peer-list.md#policy-store) at most once a second (`POLICY`,
 `userland/capsule_driver_ps2_input/src/keymap/active.rs:31`). Ctrl+Alt+Space
 moves to the next layout in the order above, and the driver consumes that chord,
 so no application sees it (`layout_chord`,

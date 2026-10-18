@@ -17,6 +17,7 @@
 //! Every proof, by the thing it constrains.
 
 mod random;
+mod trace_link_tests;
 
 mod calls;
 mod install;

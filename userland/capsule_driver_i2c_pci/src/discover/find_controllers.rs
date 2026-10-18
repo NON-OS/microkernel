@@ -38,7 +38,6 @@ pub fn find_controllers(out: &mut [Found]) -> usize {
         if r.bar_count != 0 && bar0.kind == BAR_KIND_MMIO && bar0.size != 0 {
             out[count] = Found {
                 device_id: r.device_id,
-                bar0_base: bar0.base,
                 bar0_size: bar0.size,
                 pci_device: r.device,
                 clock_hz,

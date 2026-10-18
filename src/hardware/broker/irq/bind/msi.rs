@@ -45,7 +45,7 @@ pub(super) fn bind_msi(
         Ok(r) => r,
         Err(e) => {
             slots::free_slot(slot);
-            crate::log::info!("[IRQ] {} msi bind failed: {:?}", handle.address, e);
+            crate::log::info!("[IRQ] msi bind failed: {:?}", e);
             return Err(e);
         }
     };
@@ -63,6 +63,6 @@ pub(super) fn bind_msi(
         irte,
     });
     slots::activate(slot, grant_id, NO_LINE);
-    crate::log::info!("[IRQ] {} msi vector {:#x}", handle.address, vector);
+    crate::log::info!("[IRQ] msi vector {:#x}", vector);
     Ok(IrqBindResult { grant_id, vector })
 }

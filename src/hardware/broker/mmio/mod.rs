@@ -16,12 +16,22 @@
 
 pub mod bar_select;
 pub mod fence;
+mod forbidden;
+mod forbidden_image;
+mod forbidden_iommu;
+mod forbidden_ranges;
 mod map;
+mod map_record;
+mod map_resolve;
+mod map_shared;
 pub mod msix_exclusion;
 mod release;
+mod revoke;
 mod types;
 pub mod window;
 
 pub use map::map_for_caller;
-pub use release::{release_all_for_pid, release_for_device, revoke_for_device, unmap_grant};
+pub use release::{release_all_for_pid, revoke_for_device, unmap_grant};
+pub(crate) use forbidden_ranges::ram as boot_ram_ranges;
+pub(crate) use revoke::{revoke_taken, take_for_device};
 pub use types::{MmioMapError, MmioMapRequest, MmioMapResult};

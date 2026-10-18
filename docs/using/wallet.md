@@ -87,7 +87,7 @@ On a boot that keeps data, the wallet writes these files under `/data` in the NO
 | `/data/wallet.kind` | Whether the wallet came from words or a private key. Not secret. |
 | `/data/wallet.network` | Mainnet or Sepolia. Not secret. |
 
-The seal is a key derived for each record from the [machine key](../overview/glossary.md#machine-key), which the TPM computes under an object bound to PCRs 0, 4, 7 and 9. Nothing stores that key. It is the same on every boot of this machine with this firmware and this kernel, and different anywhere else. That is why an update, or another machine, cannot open the sealed copy.
+The seal is a key derived for each record from the [machine key](../overview/glossary-linux-personality.md#machine-key), which the TPM computes under an object bound to PCRs 0, 4, 7 and 9. Nothing stores that key. It is the same on every boot of this machine with this firmware and this kernel, and different anywhere else. That is why an update, or another machine, cannot open the sealed copy.
 
 When the wallet cannot be kept, the status line says why and what to do, for example:
 

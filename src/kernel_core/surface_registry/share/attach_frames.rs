@@ -27,6 +27,7 @@ pub(super) fn attach_frames(
     receiver_pid: u32,
     handle: SurfaceHandle,
     out_desc: &mut SurfaceDescriptor,
+    write: bool,
 ) -> Result<u64, RegistryError> {
     let (idx, epoch) = decode_handle(handle);
     let frames = {
@@ -47,7 +48,7 @@ pub(super) fn attach_frames(
     let base = proc
         .reserve_vma(frames.len().saturating_mul(4096), asid)
         .map_err(|_| RegistryError::MapFailed)?;
-    super::map_frames::map_frames(asid, base, &frames)?;
+    super::map_frames::map_frames(asid, base, &frames, write)?;
     desc.base_va = base.as_u64();
     *out_desc = desc;
     super::super::attach_map::record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);

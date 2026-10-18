@@ -28,8 +28,11 @@ pub unsafe fn enable_translation(unit: &RemapUnit) -> Result<(), VtdError> {
     // the same write that turns translation on; `gcmd_with` drops the one-shots.
     let command = offsets::gcmd_with(unit.read32(offsets::GSTS), offsets::GCMD_TE);
     // SAFETY: eK@nonos.systems - the caller promised the ordering above, and
-    // the tables this enables deny by default.
+    // the tables this enables deny by default. Faults are polled, so the
+    // fault event interrupt is masked first: the address and data firmware
+    // left in FEADDR and FEDATA are never sent.
     unsafe {
+        unit.write32(offsets::FECTL, offsets::FECTL_IM);
         unit.write32(offsets::GCMD, command);
     }
     for _ in 0..offsets::COMMAND_SPINS {

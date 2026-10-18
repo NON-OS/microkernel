@@ -18,8 +18,10 @@
  * The kernel's hardware types the proofs need, by path.
  */
 
+pub mod ahci_capsule;
 pub mod block_device;
 pub mod broker;
 #[path = "../../../../src/hardware/inventory/platform_sd.rs"]
 #[allow(dead_code)] // only the proofs read it
 pub mod platform_sd;
+pub mod usb_msc_capsule;
