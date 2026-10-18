@@ -24,23 +24,52 @@ use crate::memory::phys::free_contiguous;
 const PAGE_SIZE: u64 = 4096;
 
 pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
-    if unmap_pages {
+    if withdraw(g, unmap_pages) {
+        release_frames(g);
+    }
+}
+
+/// The grant out of its holder's pages and its device's domain, the IOTLB
+/// invalidation waited on. False when the domain will not give it up: the
+/// frames are then leaked, never reused.
+pub(super) fn withdraw(g: &DmaGrant, unmap_pages: bool) -> bool {
+    // From the holder's tables, from any context (K10): tables that outlive
+    // it, a thread's or an heir's, keep no page onto the frames freed below.
+    if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {
+        super::va::release(g.pid, g.user_va, g.length);
+    } else if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
-    // The device loses the grant before anyone else can gain the frames. If
-    // its domain will not give it up, the frames are leaked, never reused.
     if !super::super::confine::unmap(g.pid, g.device_addr, g.length, g.confined) {
         crate::sys::serial::println(
             b"[DMA] grant still reachable by its device; frames quarantined",
         );
-        return;
-    }
-    super::scrub::scrub(g.physical_start, g.length);
-    let pages = (g.length / PAGE_SIZE) as usize;
-    if !pool::give_back(g.physical_start, pages) {
-        let _ = free_contiguous(g.physical_start, pages);
+        return false;
     }
     if !g.confined {
         crate::memory::iommu::note_unconfined_released(1);
+    }
+    true
+}
+
+/// A withdrawn grant's frames back to the allocator, or kept for a surface
+/// another process still maps (K15), which frees them once nobody does.
+pub(super) fn release_frames(g: &DmaGrant) {
+    if crate::kernel_core::surface_registry::pin::dma_hold::hold_dma(
+        g.pid,
+        g.physical_start,
+        g.length,
+    ) {
+        return;
+    }
+    free_frames(g.physical_start, g.length);
+}
+
+/// Scrub a grant's frames and return them to the pool they came from.
+pub(crate) fn free_frames(start: u64, len: u64) {
+    super::scrub::scrub(start, len);
+    let pages = (len / PAGE_SIZE) as usize;
+    if !pool::give_back(start, pages) {
+        let _ = free_contiguous(start, pages);
     }
 }

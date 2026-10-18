@@ -25,7 +25,7 @@ use nonos_virtio::common::{DEVICE_FEATURE, DEVICE_STATUS};
 
 use super::harness::HANDSHAKE;
 use super::part::{answering_after_reset, Answer};
-use super::stall::{handle, stalled, PRIMARY};
+use super::stall::{handle, stalled, HANDLE};
 use crate::constants::VIRTIO_GPU_F_VIRGL;
 use crate::server::recover::settle;
 use crate::state::Health;
@@ -54,6 +54,6 @@ fn a_device_that_drops_version_1_after_the_reset_is_never_driven() {
     assert_eq!(regs.wrote8(DEVICE_STATUS), 0, "the device is left reset");
     assert!(!d.virgl_ready, "the reset took render context 1");
     assert_eq!(said().len(), 4, "three tries and the state: {:?}", said());
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "the surface is still served");
+    assert_eq!(handle(&d), Some(HANDLE), "the surface is still served");
     assert_eq!(releases(), 0);
 }

@@ -40,6 +40,8 @@ fn main() {
         byte_len: (W * H * 4) as u64,
         base_va: 0,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let handle = surface::create(&desc);
     if handle < 0 {

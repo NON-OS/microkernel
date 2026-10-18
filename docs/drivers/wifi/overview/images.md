@@ -1,6 +1,6 @@
 ## Which images carry them
 
-The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` [build profile](../../../overview/glossary.md#build-profile), `make PROFILE=qemu`, builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the [serial console](../../../overview/glossary.md#serial-console) for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
+The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` [build profile](../../../overview/glossary-boot-root-record.md#build-profile), `make PROFILE=qemu`, builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the [serial console](../../../overview/glossary-rollback-index.md#serial-console) for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
 
 ## Firmware and its licence
 

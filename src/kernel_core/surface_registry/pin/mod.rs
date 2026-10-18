@@ -15,12 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim_owned;
+pub mod closing;
+mod closing_rule;
+mod dma_held;
+pub mod dma_hold;
+mod dma_plan;
+mod dma_rule;
 pub mod drop_attach;
 pub mod exit;
+mod exit_owned;
 mod frames_of;
 pub mod gate;
 pub mod held;
 pub mod orphans;
+pub(super) mod process_of;
 mod unmap_receiver;
 pub mod unmap_rule;
 mod window;

@@ -24,7 +24,8 @@ pub(super) fn stage(raw: &Result<Vec<u8>, SessionError>) -> u64 {
     match raw {
         Ok(body) => body.len() as u64,
         Err(SessionError::Init) => 1,
-        Err(SessionError::Io) => 2,
+        // Reported as the socket stage, as before TooSlow was named.
+        Err(SessionError::Io | SessionError::TooSlow) => 2,
         Err(SessionError::Handshake) => 3,
         Err(SessionError::Certificate) => 4,
         Err(SessionError::TooLarge) => 5,

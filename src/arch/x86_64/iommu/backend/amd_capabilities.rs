@@ -16,21 +16,24 @@
 
 //! What AMD-Vi guarantees while its units are in service. Leaves carry FC,
 //! so every translated access snoops CPU caches, which is what snoop control
-//! means on VT-d.
+//! means on VT-d. Interrupts are remapped whenever the units are.
 
+use crate::arch::x86_64::acpi::parser::other::amd_units_left_off;
 use crate::arch::x86_64::iommu::amd_vi::domain::MAX_DOMAINS;
 use crate::arch::x86_64::iommu::amd_vi::is_enforcing;
 use crate::memory::iommu::{IommuCapabilities, IommuVendor};
 
 pub(super) fn amd_vi() -> IommuCapabilities {
-    if !is_enforcing() {
+    // An IOMMU IVRS left off translates nothing its devices send (K11).
+    if !is_enforcing() || amd_units_left_off() {
         return IommuCapabilities::none_in_force(IommuVendor::AmdVi);
     }
     IommuCapabilities {
         vendor: IommuVendor::AmdVi,
         enforcing: true,
         address_width_bits: 48,
-        interrupt_remapping: false,
+        // Every entry has IV from bring-up on (K4): remapped, or refused.
+        interrupt_remapping: true,
         page_sizes: 1 << 12,
         snoop_control: true,
         domain_count: MAX_DOMAINS as u32,

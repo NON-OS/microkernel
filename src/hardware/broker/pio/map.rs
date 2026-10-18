@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Issue a PIO grant against a device's PIO BAR. Mirrors
-//! `mmio::map_for_caller`: resolve claim, resolve device, validate
-//! BAR is PIO and fits in 16-bit port space, allocate grant id,
-//! record the grant. Reads and writes off the new id go through
-//! `access`; the kernel is the only side that ever executes the
-//! `in`/`out` instructions.
+//! Issue a PIO grant against a device's PIO BAR, as mmio::map_for_caller
+//! does: the claim, the device, a PIO BAR inside the 16-bit port space and
+//! clear of firmware's ports, then the record, while the claim still holds
+//! (K10). Access goes through `access`; only the kernel executes `in`/`out`.
 
 use super::grant::{self, PioGrant};
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
-use crate::hardware::broker::claim;
+use super::window::{window, Refused};
 use crate::hardware::broker::device::BAR_KIND_PIO;
-use crate::hardware::broker::reserved;
-use crate::hardware::broker::table;
+use crate::hardware::broker::{claim, reserved, table};
 
 const FLAGS_KNOWN: u32 = 0;
 
@@ -56,27 +53,23 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     if bar.size == 0 {
         return Err(PioError::ZeroSize);
     }
-    if bar.base > u16::MAX as u64 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_base = bar.base as u16;
-    let last_port = bar.base.checked_add(bar.size).ok_or(PioError::PortOverflow)?;
-    if last_port > u16::MAX as u64 + 1 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_count = (bar.size & u16::MAX as u64) as u16;
+    let (port_base, port_count) = window(bar.base, bar.size).map_err(|r| match r {
+        Refused::Overflow => PioError::PortOverflow,
+        Refused::Reserved => PioError::ReservedPort,
+    })?;
     if reserved::refuses(b"PIO", reserved::IO, bar.base, bar.size, true) {
         return Err(PioError::FirmwareReserved);
     }
-
     let grant_id = grant::allocate_id();
-    grant::insert(PioGrant {
+    let record = PioGrant {
         grant_id,
         pid,
         device_id: req.device_id,
         claim_epoch: claim.epoch,
         port_base,
         port_count,
-    });
+    };
+    claim::record_while_held(pid, req.device_id, claim.epoch, || grant::insert(record))
+        .ok_or(PioError::StaleEpoch)?;
     Ok(PioGrantResult { port_base, port_count, grant_id })
 }

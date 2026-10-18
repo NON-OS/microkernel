@@ -24,19 +24,12 @@ use super::super::attach_map::snapshot::has_foreign_holder;
 use super::super::types::SurfaceHandle;
 use super::gate::GATE;
 
-pub(super) struct Orphan {
-    pub owner: u32,
-    pub handle: SurfaceHandle,
-    /* The surface's frame list, by page index, for matching mappings. */
-    pub frames: Vec<PhysAddr>,
-    /* The frames the owner really unmapped, freed by `reclaim`. */
-    pub free: Vec<PhysAddr>,
-}
+/* An orphan: its frames, by page index, for matching mappings, and the ones
+ * the owner really unmapped, freed by `reclaim` (dma_rule.rs). */
+pub(super) type Orphan = super::dma_rule::PageOrphan<SurfaceHandle, PhysAddr>;
 
-/*
- * Frames of surfaces the owner unmapped while another process still had
- * them attached, owned by the registry until no attach record is left.
- */
+/* Frames of surfaces the owner gave up while another process still had them
+ * attached, the registry's until no attach record is left. */
 pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());
 
 /* Free every orphaned frame list that no other process maps any more. */
@@ -57,20 +50,21 @@ pub fn reclaim() {
     for orphan in done {
         // The owner gave the surface up when it unmapped all of it; now that
         // nobody maps it, its slot goes too.
-        crate::kernel_core::surface_registry::release::release_unmapped(orphan.owner, orphan.handle);
+        crate::kernel_core::surface_registry::release::release_unmapped(
+            orphan.owner,
+            orphan.handle,
+        );
         for frame in orphan.free {
             if crate::memory::frame_alloc::deallocate_frame(frame).is_err() {
                 crate::sys::serial::println(b"[SURFACE] orphan_frame_release_failed");
             }
         }
     }
+    super::dma_held::reclaim_dma(); // and the DMA grants held for them (K15)
 }
 
-/*
- * `pid` exits. Its orphans stay listed: the other holders' attach records
- * outlive the owner (`release_owned_by_pid` forgets only the owner's), so
- * `reclaim` frees each one when its last holder releases it.
- */
+/* `pid` exits. Its orphans stay listed: the other holders' attach records
+ * outlive the owner, so `reclaim` frees each when its last holder lets go. */
 pub fn abandon_owner(_pid: u32) {
     reclaim();
 }

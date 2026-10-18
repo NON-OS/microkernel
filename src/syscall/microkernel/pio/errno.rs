@@ -36,7 +36,7 @@ pub(super) fn errno_for(e: PioError) -> i64 {
         | PioError::ZeroSize
         | PioError::PortOverflow
         | PioError::UnknownGrant => ERRNO_INVAL,
-        PioError::NotHolder => ERRNO_PERM,
+        PioError::NotHolder | PioError::ReservedPort => ERRNO_PERM,
         PioError::FirmwareReserved => ERRNO_ACCES,
     }
 }
