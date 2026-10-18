@@ -26,6 +26,7 @@ use nonos_gfx_wire::{kind, Caps, Errno, State};
 
 use super::gpu::{Gpu, GRANT_BYTES, MAX_SIDE};
 use super::plug::Plug;
+use crate::state::Health;
 
 pub fn caps(g: &Gpu) -> Caps {
     Caps {
@@ -49,11 +50,21 @@ pub fn state(g: &Gpu, output: u16) -> Result<State, Errno> {
         height: h.shown.height,
         hint_width: h.hint.0,
         hint_height: h.hint.1,
-        flags: match h.plug {
-            Plug::In => SCANNING_OUT,
-            Plug::Out => 0,
-            Plug::Back => LOST,
+        flags: match (g.health, h.plug) {
+            (Health::Down, _) => LOST,
+            (_, Plug::In) => SCANNING_OUT,
+            (_, Plug::Out) => 0,
+            (_, Plug::Back) => LOST,
         },
         ..State::default()
     })
+}
+
+/// A Down device takes nothing: its queue is reset for good, so no output
+/// can show a frame again (`recover`).
+pub fn live(g: &Gpu) -> Result<(), Errno> {
+    match g.health {
+        Health::Live => Ok(()),
+        Health::Down => Err(ENXIO),
+    }
 }

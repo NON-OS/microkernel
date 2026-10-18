@@ -22,7 +22,7 @@ use nonos_libc::mk_uptime_ms;
 use crate::route::pad::{PAD_AXIS, PAD_BUTTON_DOWN, PAD_BUTTON_UP};
 use crate::route::trusted_hold::told;
 use crate::router_desk::*;
-use crate::router_pad_tests::{pad, two_windows, SOUTH};
+use crate::router_tests::router_pad_tests::{pad, two_windows, SOUTH};
 
 #[test]
 fn under_a_prompt_the_pad_is_the_holders() {

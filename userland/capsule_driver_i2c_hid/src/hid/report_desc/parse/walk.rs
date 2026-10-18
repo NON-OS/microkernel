@@ -14,49 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::find_touch_report_id::find_touch_report_id;
-use super::item::{next, TYPE_GLOBAL, TYPE_LOCAL, TYPE_MAIN};
-use super::touch_walk::TouchWalk;
-use super::usage_for::MAX_USAGES;
-use crate::hid::report_desc::layout::TouchLayout;
+//! The walk: every item in order under the bounds, each data field handed
+//! on as it is laid out. A caller drops what it gathered when the walk is
+//! refused, as a refusal can come after the last field, and what it took
+//! from an input report too long to read.
 
-pub fn parse(desc: &[u8]) -> TouchLayout {
-    // A precision touchpad's descriptor declares the vestigial mouse
-    // collection first (relative X/Y, no tip switch) and the absolute touch
-    // collection after it. Only the touch collection carries a Digitizer Tip
-    // Switch, so find that report id first and take every input field from it
-    // alone; otherwise the parser locks onto the mouse collection's X and the
-    // whole touch layout collapses to the relative boot-mouse path: random,
-    // fast, click-spraying motion. Zero means the device uses no report ids
-    // (single report), in which case every field is in that one report.
-    let touch_rid = find_touch_report_id(desc);
-    parse_with_rid(desc, touch_rid)
+use super::cursors::Cursors;
+use super::global_state::GlobalState;
+use super::item::next;
+use super::limits::{Refused, MAX_ITEMS};
+use super::locals::Locals;
+use super::long::Long;
+use super::main_item::Hand;
+
+#[derive(Default)]
+pub(super) struct Walk {
+    pub g: GlobalState,
+    pub l: Locals,
+    pub depth: u8,
+    /// The usage of the application (top level) collection open now.
+    pub app: u32,
+    /// Where each input report has got, and apart from them each feature
+    /// report; None once a feature report was past a bound, after which no
+    /// feature field is laid out.
+    pub inputs: Cursors,
+    pub features: Option<Cursors>,
+    pub long: Long,
 }
 
-fn parse_with_rid(desc: &[u8], touch_rid: u8) -> TouchLayout {
-    let mut layout = TouchLayout::default();
-    let mut w = TouchWalk::default();
-    let mut i = 0;
-    while let Some(item) = next(desc, &mut i) {
-        let data = item.data;
-        match (item.btype, item.tag) {
-            (TYPE_GLOBAL, 0x0) => w.usage_page = data as u16,
-            (TYPE_GLOBAL, 0x2) => w.logical_max = data as i32,
-            (TYPE_GLOBAL, 0x7) => w.report_size = data,
-            (TYPE_GLOBAL, 0x8) => {
-                w.report_id = data as u8;
-                w.bit_offset = 0;
-                w.feature_bit_offset = 0;
-            }
-            (TYPE_GLOBAL, 0x9) => w.report_count = data,
-            // Local Usage; ignore usage min/max ranges for this purpose.
-            (TYPE_LOCAL, 0x0) if w.usages.n < MAX_USAGES => {
-                w.usages.list[w.usages.n] = data as u16;
-                w.usages.n += 1;
-            }
-            (TYPE_MAIN, tag) => w.main_item(&mut layout, tag, touch_rid),
-            _ => {}
-        }
+/// The input reports too long to read, when the descriptor is not refused.
+pub(super) fn walk(desc: &[u8], f: Hand<'_>) -> Result<Long, Refused> {
+    let mut w = Walk { features: Some(Cursors::default()), ..Walk::default() };
+    let mut at = 0;
+    for _ in 0..MAX_ITEMS {
+        let Some(item) = next(desc, &mut at)? else { return w.finish().map(|()| w.long) };
+        w.take(item, f)?;
     }
-    layout
+    if at < desc.len() {
+        return Err(Refused);
+    }
+    w.finish().map(|()| w.long)
 }

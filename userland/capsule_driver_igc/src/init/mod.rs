@@ -23,12 +23,15 @@ mod finish;
 pub mod link;
 pub mod mac_filter;
 pub mod phy;
+mod recover;
 pub mod reset;
 mod run;
 pub mod rx_queue;
-mod stand_down;
+pub mod stand_down;
+mod start;
 mod station_address;
 pub mod tx_queue;
 pub mod wait;
 
 pub use finish::finish;
+pub use recover::recover;

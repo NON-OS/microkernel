@@ -18,16 +18,25 @@ use crate::constants::{COMMAND_RING_TRBS, TRB_BYTES};
 use crate::error::{XhciError, XhciResult};
 use crate::trb::builders::link::LinkTrbBuilder;
 use crate::trb::{write_volatile_at, Trb};
+/// Commands that may wait on the ring at once: all but the Link and one.
+const MAX_PENDING: usize = COMMAND_RING_TRBS - 2;
 impl CommandRing {
+    /// Queue `trb`. Refused, the ring untouched, while `MAX_PENDING`
+    /// commands are queued that no completion has retired: commands given
+    /// up unanswered stay queued as No Ops, and writing on would lap the
+    /// controller once it runs.
     pub fn enqueue(&mut self, mut trb: Trb) -> XhciResult<u64> {
-        if self.enqueue_index == COMMAND_RING_TRBS - 1 {
+        if self.pending >= MAX_PENDING {
             return Err(XhciError::CommandRingFull);
         }
         trb.set_cycle(self.cycle != 0);
         let slot_va = self.region.user_va() + (self.enqueue_index as u64) * (TRB_BYTES as u64);
         let slot_phys = self.region.phys() + (self.enqueue_index as u64) * (TRB_BYTES as u64);
-        write_volatile_at(slot_va, trb);
+        // SAFETY: `enqueue_index` is below the Link's index (reset to 0 when
+        // it reaches it), so the slot is inside the ring's grant.
+        unsafe { write_volatile_at(slot_va, trb) };
         self.enqueue_index += 1;
+        self.pending += 1;
         if self.enqueue_index == COMMAND_RING_TRBS - 1 {
             let link = LinkTrbBuilder::new()
                 .target(self.region.phys())
@@ -36,10 +45,16 @@ impl CommandRing {
                 .build();
             let link_va =
                 self.region.user_va() + ((COMMAND_RING_TRBS as u64) - 1) * (TRB_BYTES as u64);
-            write_volatile_at(link_va, link);
+            // SAFETY: the last TRB slot of the ring's own grant.
+            unsafe { write_volatile_at(link_va, link) };
             self.cycle ^= 1;
             self.enqueue_index = 0;
         }
         Ok(slot_phys)
+    }
+    /// Every command queued so far has been consumed: one completed, so
+    /// the controller ran all before it.
+    pub fn retire(&mut self) {
+        self.pending = 0;
     }
 }

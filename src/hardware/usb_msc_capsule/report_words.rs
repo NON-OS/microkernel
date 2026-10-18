@@ -45,9 +45,19 @@ pub(crate) fn words(r: &[u8]) -> String {
             aux & 0xff
         ),
         7 => format!("port {port}: SET_CONFIGURATION or its bulk pipes were refused (errno {detail})"),
-        8 => format!("port {port}: did not say it was ready in thirty seconds (errno {detail})"),
+        8 => format!(
+            "port {port}: not ready: not in thirty seconds, three transport failures in a row, a \
+             failed check, or three failed requests in a row (errno {detail})"
+        ),
         9 => format!("port {port}: READ CAPACITY failed (errno {detail})"),
         10 => format!("port {port}: bound, {blocks} blocks of {aux} bytes"),
+        11 => format!("port {port}: the stick served left its port; only it is served again"),
+        12 => format!("port {port}: no medium in any of its units (an empty card reader)"),
+        13 => format!("port {port}: not the stick served before it was let go, so not taken"),
+        14 => format!(
+            "port {port}: served no more this boot: its medium changed or was taken out, or it \
+             has no serial number to know it by (errno {detail})"
+        ),
         s => format!("an unknown stage {s}"),
     };
     format!("[USB-MSC] {what}; {connected} port(s) connected, {closed} given up")

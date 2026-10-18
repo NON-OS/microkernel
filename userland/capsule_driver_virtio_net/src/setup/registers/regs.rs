@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_virtio::Mmio;
+
 use super::register_grant::RegisterGrant;
 use crate::regs::Regs;
 
 impl RegisterGrant {
-    /// The legacy register window. A modern grant has none.
+    /// The legacy register window. `None` for a memory mapping the address
+    /// space cannot hold.
     pub fn regs(self) -> Option<Regs> {
         match self {
-            Self::Mmio(g) => Some(Regs::mmio(g.user_va)),
+            Self::Mmio(g) => {
+                let base = usize::try_from(g.user_va).ok()? as *mut u8;
+                let len = usize::try_from(g.length).ok()?;
+                // SAFETY: MkMmioMap mapped `length` bytes at `user_va`, read
+                // and write, and they stay until the claim is released; the
+                // driver reaches no register after that.
+                Some(Regs::mmio(unsafe { Mmio::new(base, len) }))
+            }
             Self::Pio(g) => Some(Regs::pio(g.grant_id)),
-            Self::Modern(_) => None,
         }
     }
 }

@@ -18,10 +18,16 @@ use super::read_data::read_data;
 use super::write_data::write_data;
 use crate::constants::{CTL_WRITE_AUX, MOUSE_ACK};
 
-pub(super) fn mouse_command(grant_id: u64, cmd: u8) -> Result<(), &'static str> {
+/// Send the mouse `cmd` and take its ACK; a keyboard byte that lands
+/// before the ACK goes to `keys`.
+pub(super) fn mouse_command(
+    grant_id: u64,
+    cmd: u8,
+    keys: &mut dyn FnMut(u8),
+) -> Result<(), &'static str> {
     command(grant_id, CTL_WRITE_AUX)?;
     write_data(grant_id, cmd)?;
-    if read_data(grant_id)? == MOUSE_ACK {
+    if read_data(grant_id, keys)? == MOUSE_ACK {
         Ok(())
     } else {
         Err("mouse command not acknowledged")

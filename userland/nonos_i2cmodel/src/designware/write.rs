@@ -25,7 +25,7 @@ impl Designware {
     pub fn write32(&mut self, offset: u64, value: u32) {
         self.events.push(RegEvent { offset, value });
         if offset == LPSS_PRIV_RESETS {
-            self.resets = value;
+            self.lpss_resets(value);
             return;
         }
         if offset < CORE_END && !self.core_released() {

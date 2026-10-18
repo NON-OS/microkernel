@@ -30,9 +30,9 @@ const PX: u32 = 0x0012_3456;
 
 fn off_and_back(r: &mut Rig) {
     raise(r, 0, (0, 0));
-    r.s.display.events();
+    r.d.server.display.events();
     raise(r, 0, PANEL);
-    r.s.display.events();
+    r.d.server.display.events();
     state(r, 0);
 }
 
@@ -62,7 +62,7 @@ fn off_and_back_wrong_at_any_command_ends_whole() {
         let px = shown(&r, 0).expect("shown");
         assert!(px.len() == 640 * 480 && px.iter().all(|&p| p == PX), "{w:?}: whole");
         state(&mut r, 0);
-        assert!(r.s.display.limbo.is_empty(), "{w:?}: nothing in limbo");
+        assert!(r.d.server.display.limbo.is_empty(), "{w:?}: nothing in limbo");
         assert_eq!(r.host.borrow().res.len(), 1, "{w:?}: one surface on the host");
     }
 }

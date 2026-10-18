@@ -16,8 +16,7 @@
 
 pub const OP_HEALTHCHECK: u16 = 0x0001;
 pub const OP_PROBE_CONFIG: u16 = 0x0002;
-pub const OP_FEED_KEYBOARD_REPORT: u16 = 0x0003;
-pub const OP_FEED_MOUSE_REPORT: u16 = 0x0004;
-pub const OP_POLL_KEYS: u16 = 0x0005;
-pub const OP_POLL_MOUSE: u16 = 0x0006;
+// 0x0003 to 0x0006 fed keyboard and mouse reports in and read key and
+// mouse events back out. They are gone and answered as unknown ops:
+// E_BAD_OP without a body, E_INVAL with one.
 pub const OP_GET_STATE: u16 = 0x0007;

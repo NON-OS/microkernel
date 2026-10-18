@@ -18,8 +18,9 @@
 
 use nonos_libc::entropy;
 
+use super::live::live_part;
 use super::memory::Memory;
-use super::model::{live_part, receive_address, window, EEPROM};
+use super::model::{receive_address, window, EEPROM};
 use crate::constants::regs::{REG_RCTL, REG_TCTL};
 use crate::constants::status::{RCTL_EN, TCTL_EN};
 use crate::init::bring_up;

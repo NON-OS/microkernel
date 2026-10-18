@@ -16,7 +16,8 @@
 //! A silent owner's blank (G-72's, run by the wire server) gone wrong at
 //! every command: the primaries are zeroed and flushed twice, so the host's
 //! copy and the screen hold none of the owner's frame once a transfer has
-//! landed, and a host back again has the next wake finish the blank.
+//! landed, and a host back again has the next wake finish the blank (each
+//! wake a turn of the serve loop, which settles the queue first).
 
 use nonos_gfx_serve::OWNER_SILENCE_MS;
 
@@ -24,6 +25,7 @@ use super::kit::{draw, shown};
 use super::rig::rig;
 use super::wrong::{run, wrongs, Wrong};
 use crate::constants::VG_CMD_TRANSFER_TO_HOST_2D;
+use crate::server::recover::settle;
 
 const SECRET: u32 = 0x5EC2_E7ED;
 
@@ -32,9 +34,9 @@ fn a_silent_owner_s_blank_wrong_at_any_command_leaves_none_of_its_frame() {
     let n = {
         let mut r = rig();
         draw(&mut r, 0, SECRET);
-        r.s.heard(7, 0);
+        r.d.server.heard(7, 0);
         let from = r.host.borrow().steps();
-        assert!(r.s.watch(OWNER_SILENCE_MS));
+        assert!(r.d.server.watch(OWNER_SILENCE_MS));
         let to = r.host.borrow().steps();
         to - from
     };
@@ -42,9 +44,9 @@ fn a_silent_owner_s_blank_wrong_at_any_command_leaves_none_of_its_frame() {
     for w in wrongs(n) {
         let mut r = rig();
         draw(&mut r, 0, SECRET);
-        r.s.heard(7, 0);
+        r.d.server.heard(7, 0);
         let from = r.host.borrow().steps() as usize;
-        let done = run(&mut r, w, |r| r.s.watch(OWNER_SILENCE_MS));
+        let done = run(&mut r, w, |r| r.d.server.watch(OWNER_SILENCE_MS));
         let sent = r.host.borrow().log[from..]
             .iter()
             .any(|c| c.landed && c.kind == VG_CMD_TRANSFER_TO_HOST_2D);
@@ -56,7 +58,8 @@ fn a_silent_owner_s_blank_wrong_at_any_command_leaves_none_of_its_frame() {
             let mut t = OWNER_SILENCE_MS;
             while shown(&r, 0).unwrap().contains(&SECRET) && t < OWNER_SILENCE_MS + 2_500 {
                 t += 500;
-                r.s.watch(t);
+                settle(&mut r.d);
+                r.d.server.watch(t);
             }
             assert!(shown(&r, 0).unwrap().iter().all(|&p| p == 0), "{w:?}: blank at last");
         }

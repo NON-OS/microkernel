@@ -23,17 +23,21 @@
 //! mode is chosen as section 12 says (`mode.rs`).
 
 use super::mode::starting;
+use crate::dispi::video_memory;
 use crate::display::{fits, wipe, Bga};
 use crate::edid::Panel;
+use crate::error::BgaResult;
 use crate::regs::Regs;
 
-/// The adapter at `regs` with `vram_len` bytes of video memory at `vram`
-/// and the EDID `blob`, or None when no mode can be started.
-pub fn fresh(regs: Regs, (vram, vram_len): (u64, usize), blob: &[u8], fence: fn()) -> Option<Bga> {
-    // SAFETY: `vram` maps `vram_len` bytes, this driver's while it runs.
-    unsafe { wipe(vram, vram_len) };
+/// The adapter at `regs` with `mapped` bytes of BAR0 mapped at `vram` and
+/// the EDID `blob`, or why no mode can be started. Every mode is held to
+/// the smaller of the mapping and the adapter's own video memory.
+pub fn fresh(regs: Regs, (vram, mapped): (u64, u64), blob: &[u8], fence: fn()) -> BgaResult<Bga> {
+    // SAFETY: `vram` maps `mapped` bytes, this driver's while it runs.
+    unsafe { wipe(vram, mapped as usize) };
     fence();
+    let vram_len = video_memory(regs).min(mapped) as usize;
     let panel = Panel::read(blob, |w, h| fits(vram_len, w, h));
-    let mode = starting(regs, &panel, vram_len)?;
-    Some(Bga { regs, vram, vram_len, panel, mode, generation: 1, fence })
+    let mode = starting(regs, &panel, (video_memory(regs), mapped))?;
+    Ok(Bga { regs, vram, vram_len, panel, mode, generation: 1, fence })
 }

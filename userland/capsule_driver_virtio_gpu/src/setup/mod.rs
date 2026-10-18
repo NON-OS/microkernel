@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod claim;
-mod claimed;
 mod dma;
 mod edid;
+mod live;
 mod mmio;
-mod modern_caps;
+mod mode;
 mod pci;
 mod probe_3d;
+mod probes;
 mod scanouts;
 mod sequence;
+mod transport;
 pub use sequence::run;

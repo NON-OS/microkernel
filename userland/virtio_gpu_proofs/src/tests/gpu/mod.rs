@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! virtio-gpu on the display wire, against the host model: the
 //! takeover, MODES and STATE, flushes, mode sets, the host's display
-//! events, and a dead host, a killed driver or a silent owner at every
-//! command, each judged from the host's own side.
+//! events, a dead host, a killed driver or a silent owner at every command,
+//! and a stalled queue recovered in place or left Down, each judged from
+//! the host's own side.
 
 pub mod ask;
 pub mod kit;
+pub mod recover_kit;
 pub mod rig;
 pub mod wrong;
 
@@ -32,6 +34,9 @@ mod mode_sweep_tests;
 mod plug_again_tests;
 mod plug_sweep_tests;
 mod plug_tests;
+mod recover_down_tests;
+mod recover_row_tests;
+mod recover_tests;
 mod restart_tests;
 mod silence_sweep_tests;
 mod take_tests;

@@ -24,7 +24,7 @@ use nonos_libc::INPUT_KIND_KEY_DOWN;
 use crate::clients::world;
 use crate::route::bond::{BOND_AUTHENTICATED, BOND_BITS};
 use crate::route::chord::KEY_DELETE;
-use crate::router_bond_kit::*;
+use crate::router_tests::router_bond_kit::*;
 use crate::router_desk::*;
 
 const A: u32 = 20;

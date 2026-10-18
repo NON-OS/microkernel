@@ -18,7 +18,8 @@
 //! drives this host (mmc_power_up, then mmc_attach_sd): 1-bit bus, slot
 //! power, default timing, the identification clock, 3.3 V signalling, the
 //! initial clocks stopped, then identification. Each step that stops is
-//! named in the log.
+//! named in the log. From the first step the card is driven, so every wait
+//! watches the slot; the caller powers the slot down when this fails.
 
 use super::attach::attach;
 use super::clock::switch_clock;
@@ -39,6 +40,7 @@ use crate::setup::Driver;
 const POWER_DELAY_MS: u64 = 10;
 
 pub fn bring_up(drv: &mut Driver) -> Result<Card> {
+    drv.card_on = true;
     let regs = drv.regs;
     step(b"1-bit bus", write_register(regs, SD_CFG1, SD_BUS_WIDTH_MASK, SD_BUS_WIDTH_1BIT))?;
     step(b"slot power", power_on(drv))?;

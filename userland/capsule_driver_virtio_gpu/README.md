@@ -33,11 +33,14 @@ CAPSULE_OPTIONAL_CAPS = 0x100
 
 The optional bit is `Debug`, which only a `capsule-serial-debug` build grants.
 `GraphicsSurfaceCreate` admits `MkSurfaceRegister` and `MkSurfaceShare`, which
-publish each primary as a surface.
+publish each primary as a surface. `Pio` is no longer used: it served
+only the legacy transport, which is gone; the bit can leave the manifest at
+its next signing.
 
 The capsule reaches hardware only through `MkDeviceList`, `MkDeviceClaim`,
-`MkMmioMap`/`MkPioGrant`, and `MkDmaMap`; it polls and binds no interrupt, so
-the manifest holds no `Irq`. The kernel brokers
+`MkPciConfigRead`/`MkPciConfigWrite`, `MkMmioMap` and `MkDmaMap`; it polls and
+binds no interrupt, so the manifest holds no `Irq`. It never unmaps a DMA
+grant itself: `MkDeviceRelease` takes them back once bus mastering is off. The kernel brokers
 grants, routes IPC, validates the signed manifest, and tears grants down on
 exit. It does not
 interpret GPU resources, scanout policy, composition, cursor policy, or window
@@ -66,12 +69,15 @@ back, or a new wanted size) is told to the compositor at once with
 outputs: one the host turns on for the first time later is not driven.
 
 A frame from sender 0 is a DGON: one naming this device ends the driver.
+The driver's own private ops (`OP_HEALTHCHECK`, `OP_GET_PRIMARY_SURFACE` and
+state shows on the wire as each output's STATE (below, Failure model).
 
 ## Authority
 
-The capsule may claim the virtio GPU PCI device, map its register BAR or take a
-PIO grant, allocate broker-owned DMA for control queue 0 and for the primary
-scanout's backing, and register and share that backing as a surface. It binds
+The capsule may claim the virtio GPU PCI device, map the virtio 1.0 structures
+its capabilities place in a memory BAR, allocate broker-owned DMA for control
+queue 0 and for each output's surface, and register and share the
+primaries' pages as surfaces. It binds
 no interrupt. It has no framebuffer MMIO grant, no compositor authority, no
 input authority, and no filesystem or network authority.
 
@@ -86,25 +92,58 @@ scanout, surface and the host's wanted size), and surfaces in limbo.
 
 ## Runtime lifecycle
 
-Startup discovers a virtio-gpu PCI function, claims it, takes it off its
-legacy interrupt line, maps its registers, allocates queue DMA, runs
-a device reset (status 0, then read back until it reads 0) and
-ACK/DRIVER/FEATURES_OK/DRIVER_OK, selects control queue 0, reads the scanouts,
-reads output 0's EDID when offered (the wire's panel), runs a best-effort virgl
-render probe that only logs whether 3D works, and takes every enabled scanout
+Startup discovers a virtio-gpu PCI function (1af4:1050), claims it, turns
+memory decode on with its legacy interrupt line off, maps the common, notify
+and device structures through the shared transport (`userland/nonos_virtio`),
+resets it (status 0, read back by the clock), negotiates features (VERSION_1,
+VIRGL and EDID when offered, and ACCESS_PLATFORM whenever offered), allocates
+queue DMA, programs control queue 0, and only then turns bus mastering on and
+sets DRIVER_OK: a device left live by a dead predecessor may reach memory only
+once it reads back reset and its queue is on this grant, and a device refused
+at any step never may. It then reads the scanouts, reads output 0's EDID when
+offered (the wire's panel), runs a best-effort virgl render probe that only
+logs whether 3D works, and takes every enabled scanout
 (`src/display/take.rs`): a zeroed DMA surface of the host's size, a 2D resource
-on it, sent whole, set on the scanout and flushed. It then serves the display
-Shutdown relies on process teardown and broker grant revocation.
+on it, sent whole, set on the scanout and flushed. A probe command that stalls
+resets the device; the queue is restarted on the same grant and the outputs
+are still taken (`src/setup/probes.rs`). It then serves the display wire,
+Whether the claim is confined to an IOMMU domain is the kernel's to enforce at
+claim time; the capsule does not guess.
 
 ## Failure model
 
-Every setup phase rolls back prior broker grants on failure, and a failed
-attempt releases the claim, which takes every grant with it, whichever step
-failed. Bring-up is tried a bounded number of times with a sleep between tries
+A failed attempt resets the device once its window is mapped and then
+releases the claim, which takes every grant with it, whichever step failed;
+nothing is unmapped before that. Bring-up is tried a bounded number of times with a sleep between tries
 (`nonos_libc::bring_up`); the capsule exits 2 when no virtio-gpu is present and
 6 when one is present but never comes up, and the compositor falls back to GOP.
-Missing BAR0, zero queue size, or FEATURES_OK rejection prevents the capsule
-from serving. The resource ops post controlq commands; the others read state.
+A missing common, notify or device configuration (refused by the one it
+lacks), no VERSION_1, a zero queue size, or FEATURES_OK rejection prevents the
+capsule from serving. A scanout mode under 16x16, or whose frame would not fit
+the broker's display grant (32 MiB, one 3840x2160 frame), is recorded as
+1280x720 rather than failing the bring-up; any other is taken as the device
+gives it.
+
+One control command is in flight at most, counted by the driver. A command
+the device does not answer within `CTRLQ_MS` (2 s, by the uptime clock), or
+answers out of turn, ends in a device reset: its chain named the staging page
+the next command would reuse. By then the compositor draws into the
+primaries and every output shows a surface whose pages the driver holds, so
+the server never gives the device back or exits (the kernel would free the
+pages under the host, and nothing restarts a driver). It recovers in place
+on the next turn of the receive loop (`src/server/recover/`): the queue
+restarted on the same grant, every output's surface made again under its own
+id on its own pages, loaded whole and set on its scanout
+(`src/display/reshow.rs`), at most three tries, each logged
+(`driver.virtio_gpu0: control queue stalled; device reset, recovering (try 1
+of 3)`). Surfaces in limbo go back to the kernel then: a reset host holds
+none. If no try works, or the device stalls again after three recoveries in a
+row without serving 30 s after any of them, it stays up and `Down`: the
+device left reset, the claim and every grant kept, every output's STATE LOST
+and dark under a new generation, FLUSH and MODE_SET `ENXIO`, and the
+compositor told `OUTPUT_NOTICE` `LEAVING` once, so it drives another display.
+Only a failed service registration, before anyone holds a primary, resets the
+device and gives it back before exit 1.
 
 flushed twice, so each surface, the host's copy and the screen hold none of its
 frame. A blank a device did not take whole is tried again on the next wake. A
@@ -114,12 +153,13 @@ every mode set and STATE (`src/display/limbo.rs`).
 
 ## Current implemented surface
 
-- Virtio GPU PCI discovery for transitional and modern IDs.
+- Virtio GPU PCI discovery for the modern ID (virtio-gpu has no
+  transitional form, and nothing presents 0x1010).
 - Brokered device claim, register map, and DMA queue allocation; polled.
-- Legacy virtio control-queue initialization.
-- Modern (virtio 1.0) initialization for the modern ID, with the vendor
-  capabilities parsed by the shared `userland/nonos_virtio` (first usable of
-  each type, lengths and BARs checked, MSI-X table pages skipped).
+- Virtio 1.0 initialization on the shared `userland/nonos_virtio`: the vendor
+  capabilities parsed (first usable of each type, lengths and BARs checked,
+  MSI-X table pages skipped), the regions mapped and bounds-checked, the
+  features negotiated and the queue programmed.
 - Config reads for events, scanout count, and capset count.
 - The display wire: CAPS, MODES, STATE (with the host's display events),
   SURFACE, FLUSH, MODE_SET and RETIRE, through `nonos_gfx_serve`, for every
@@ -189,13 +229,20 @@ surfaces, input routing, cursor policy, or window management.
 
 ## Real bring-up checklist
 
-Proved on the host, without a device: the capability parse the modern path
-uses (`userland/virtio_transport_proofs`), and the legacy and modern
-handshakes, the control queue and its wire formats, the device configuration
-offsets on both transports and the doorbell bound (`userland/virtio_gpu_proofs`).
-Only a boot shows the rest. Under QEMU q35, confirm both ways:
+Proved on the host, without a device: the capability parse and the steps of
+the shared transport (`userland/virtio_transport_proofs`), and the handshake,
+the features taken, the control queue (a timed-out command reset, never run
+with the next command's bytes) and its wire formats, the device configuration
+offsets, the doorbell bound, Bus Master only after the reset and the queue
+and never on a refusal, the scanout mode, the server's answers, the
+recovery from a stall on the same surfaces or to `Down` with nothing released,
+the recoveries in a row bounded, a probe stall at bring-up still ending in the
+outputs taken, and the reset-before-release orders
+(`userland/virtio_gpu_proofs`). Only a boot shows
+the rest. Under QEMU q35, confirm both ways:
 
-- Without an IOMMU (the default `virtio-vga,disable-modern=on`, legacy): the
+- Without an IOMMU (the default `virtio-vga`, which QEMU builds modern-only,
+  1af4:1050): the driver binds modern; the
   mode is set at QEMU_XRES x QEMU_YRES; the display query reports the real
   scanout count; the compositor's requested resolutions are set; with
   `edid=on` the EDID preferred mode is what HiDPI negotiation picks.
@@ -209,3 +256,8 @@ Only a boot shows the rest. Under QEMU q35, confirm both ways:
 - A device that cannot come up: at most seven attempts, one
   `driver.virtio_gpu0: device present, bring-up failed` line, exit 6, and
   the compositor falls back to GOP. No virtio-gpu at all: exit 2 at once.
+- A device that stalls once the desktop is up: a `recovering (try 1 of 3)`
+  line, then `recovered in place, same surface`, and the desktop presents
+  again; one that never answers again: three tries, then `down`, the last
+  frame stays, the capsule does not exit and the VT-d log shows no fault. One
+  that stalls again within 30 s of each recovery: `down` after the third.
