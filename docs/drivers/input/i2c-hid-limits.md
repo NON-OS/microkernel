@@ -33,7 +33,7 @@ they are checked. What they are is in [I2C-HID touchpads](i2c-hid.md).
 
 ## How this is checked
 
-- [Proof crates](../../overview/glossary.md#proof-crate) at commit bff12b97, all
+- [Proof crates](../../overview/glossary-peer-list.md#proof-crate) at commit bff12b97, all
   passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled
   DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds
   the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds

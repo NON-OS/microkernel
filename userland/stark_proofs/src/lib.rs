@@ -61,6 +61,8 @@ mod recursion_assembly_tests;
 mod shared_root_tests;
 #[cfg(test)]
 mod stark_selftest_gen;
+#[cfg(test)]
+mod transcript_tests;
 
 // Machine-checked proof harnesses, compiled only under `cargo kani`.
 #[cfg(kani)]

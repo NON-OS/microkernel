@@ -18,7 +18,9 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::hardware::broker::DeviceRecord;
+use crate::hardware::broker::claim::lookup;
+use crate::hardware::broker::shown::{shown_base, KIND_NONE};
+use crate::hardware::broker::{BarKind, DeviceRecord};
 
 use super::state::TABLE;
 
@@ -31,6 +33,21 @@ pub fn list_by_class(class: u32) -> Vec<DeviceRecord> {
         return list();
     }
     TABLE.read().iter().filter(|r| r.class == class).copied().collect()
+}
+
+const _: () = assert!(BarKind::None as u8 == KIND_NONE);
+
+/// `list_by_class` as `pid` may read it: the window bases of every record
+/// it does not hold read zero.
+pub fn list_shown(class: u32, pid: u32) -> Vec<DeviceRecord> {
+    let mut records = list_by_class(class);
+    for rec in &mut records {
+        let held = lookup(rec.device_id).is_some_and(|c| c.pid == pid);
+        for bar in &mut rec.bars {
+            bar.base = shown_base(bar.base, bar.kind, held);
+        }
+    }
+    records
 }
 
 pub fn contains(device_id: u64) -> bool {

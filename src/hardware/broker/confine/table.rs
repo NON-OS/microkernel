@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! One IOMMU domain per driver capsule. A device a capsule claims leaves the
+//! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
+//! grants a buffer, so the device reaches that capsule's grants and faults on
+//! everything else. A device no unit confines is refused (decide.rs).
+
 extern crate alloc;
 
 use alloc::vec::Vec;
@@ -42,12 +47,9 @@ pub(super) fn pci_address(device_id: u64) -> Option<DeviceAddress> {
     Some(DeviceAddress::pci(a.bus, a.device, a.function))
 }
 
-pub(super) fn say(what: &[u8], pid: u32, device: DeviceAddress) {
-    let serial = crate::sys::serial::print;
-    serial(b"[VT-D] pid=");
-    crate::sys::serial::print_dec(pid as u64);
-    serial(b" device=");
-    crate::sys::serial::print_hex(device.as_u32() as u64);
-    serial(b" ");
+/// What a confinement step did, with no pid or requester id: the log
+/// leaves the machine in photos and bug reports.
+pub(super) fn say(what: &[u8]) {
+    crate::sys::serial::print(b"[VT-D] ");
     crate::sys::serial::println(what);
 }

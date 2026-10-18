@@ -15,14 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod held;
+mod leaving;
 mod lookup;
 mod no_snoop;
 mod quiesce;
 mod release;
+mod reset;
+mod reset_function;
+mod reset_io;
+mod reset_restore;
+mod reset_rule;
+mod reset_run;
+mod reset_wait;
+mod retire;
+mod retire_io;
+mod scope_check;
 mod state;
+mod still_held;
 mod types;
 
 pub use claim::claim;
 pub use lookup::lookup;
-pub use release::{quiesce_all, quiesce_held, release, release_all_for_pid};
+pub use held::quiesce_all;
+pub use release::{release, release_all_for_pid};
+pub(crate) use still_held::record_while_held;
 pub use types::{Claim, ClaimError};

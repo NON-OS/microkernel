@@ -59,6 +59,8 @@ pub enum DmaMapError {
     Above4G,
     NoVaSpace,
     MapFailed,
+    /// No IOMMU domain confines the device.
+    Unconfined,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

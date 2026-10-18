@@ -23,6 +23,8 @@
 #[path = "../../../../src/syscall/microkernel/data/plan_errno.rs"]
 mod plan_errno;
 
+mod in_use;
+
 #[cfg(test)]
 mod tests {
     use super::plan_errno::plan_errno;
