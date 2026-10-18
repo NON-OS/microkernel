@@ -15,16 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A key while a dialog or a menu is up belongs to it, in the order a press
-//! is offered to them (server/input.rs): the dialog drawn on top answers
-//! first. Tab moves between a dialog's buttons, Enter presses the one with
+//! is offered to them (`server/input/`): the dialog drawn on top answers
+//! first, and the display input menu, a list, takes its own keys. Tab moves between a dialog's buttons, Enter presses the one with
 //! the ring, Esc leaves things as they are; Esc closes an open menu.
 
+use super::menu_key::menu_key;
 use crate::server::repaint::repaint;
-use crate::state::dialog_keys::{Choice, KEY_ESC};
+use crate::state::dialog_keys::Choice;
+use crate::state::input_source_rule::Routed;
 use crate::state::Context;
 
 #[derive(Clone, Copy)]
 enum Dialog {
+    Attention,
+    PowerOff,
     Live,
     Delete,
     Consent,
@@ -32,49 +36,40 @@ enum Dialog {
 }
 
 /// Whether the key went to a dialog or a menu.
-pub fn key(ctx: &mut Context, code: u32) -> bool {
-    let which = if ctx.live_prompt.showing() {
+pub fn key(ctx: &mut Context, by: Routed, code: u32) -> bool {
+    // The input menu is a list, not two buttons: it takes its own keys.
+    if !ctx.trusted.attention.prompt() && super::input_menu::key(ctx, by, code) {
+        return true;
+    }
+    let which = if ctx.trusted.attention.prompt() {
+        Dialog::Attention
+    } else if ctx.trusted.power_off.showing() {
+        Dialog::PowerOff
+    } else if ctx.pending.live_prompt.showing() {
         Dialog::Live
-    } else if ctx.pending_delete.showing() {
+    } else if ctx.pending.pending_delete.showing() {
         Dialog::Delete
-    } else if ctx.pending_consent.is_some() {
+    } else if ctx.pending.pending_consent.is_some() {
         Dialog::Consent
-    } else if ctx.pending_pkg_install.is_some() {
+    } else if ctx.pending.pending_pkg_install.is_some() {
         Dialog::Package
     } else {
         return menu_key(ctx, code);
     };
     match ctx.dialog_focus.key(code) {
-        Some(choice) => answer(ctx, which, choice),
+        Some(choice) => answer(ctx, by, which, choice),
         None => repaint(ctx),
     }
     true
 }
 
-fn answer(ctx: &mut Context, which: Dialog, choice: Choice) {
+fn answer(ctx: &mut Context, by: Routed, which: Dialog, choice: Choice) {
     match which {
+        Dialog::Attention => super::attention::answer(ctx, choice),
+        Dialog::PowerOff => super::power_off::answer(ctx, by, choice),
         Dialog::Live => super::live_prompt::answer(ctx, choice),
         Dialog::Delete => super::delete_prompt::answer(ctx, choice),
         Dialog::Consent => super::consent::answer(ctx, choice),
         Dialog::Package => super::pkg_consent::answer(ctx, choice),
     }
-}
-
-/// Esc closes the menu bar's drop-down or the desktop's right-click menu.
-/// Any other key is swallowed while one is open: the menu holds the keys,
-/// and a letter typed into it must not reach the window under it.
-fn menu_key(ctx: &mut Context, code: u32) -> bool {
-    let open = ctx.menubar.open.is_some() || ctx.desktop_menu.is_some();
-    if !open {
-        return false;
-    }
-    if code == KEY_ESC {
-        ctx.menubar.open = None;
-        ctx.menubar.hover = None;
-        ctx.desktop_menu = None;
-        ctx.menu_hover = None;
-        ctx.menu_target = None;
-        repaint(ctx);
-    }
-    true
 }

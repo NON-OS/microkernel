@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 boot page tables: RAM in any number of
+# gigabytes, registers sharing a gigabyte with RAM, the direct map's end, and
+# map_page's refusals. The kernel's own source is included via #[path]; each
+# test binary builds its tables once, since the tables are statics.
+[package]
+name = "boot_tables_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

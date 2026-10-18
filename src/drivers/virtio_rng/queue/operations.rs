@@ -29,7 +29,7 @@ impl RngQueue {
         (self.vq_base + AVAIL_OFFSET) as *mut VirtqAvail
     }
     #[inline]
-    fn used_ptr(&self) -> *mut VirtqUsed {
+    pub(super) fn used_ptr(&self) -> *mut VirtqUsed {
         (self.vq_base + USED_OFFSET) as *mut VirtqUsed
     }
 
@@ -39,7 +39,7 @@ impl RngQueue {
         unsafe {
             ptr::write_bytes(self.buf_base as *mut u8, 0, BUFFER_SIZE);
             let desc = &mut *self.desc_ptr();
-            desc.addr = self.buf_base as u64;
+            desc.addr = crate::arch::paging::kernel_dma(self.buf_base as u64);
             desc.len = len as u32;
             desc.flags = VIRTQ_DESC_F_WRITE;
             desc.next = 0;
@@ -52,44 +52,5 @@ impl RngQueue {
         }
         self.kick();
         Ok(())
-    }
-
-    pub(crate) fn has_completed(&self) -> bool {
-        unsafe {
-            let used = &*self.used_ptr();
-            used.idx != self.last_used_idx
-        }
-    }
-
-    pub(crate) fn get_received_bytes(&mut self, buf: &mut [u8]) -> usize {
-        let received_len = unsafe {
-            let used = &*self.used_ptr();
-            if used.idx == self.last_used_idx {
-                return 0;
-            }
-            let used_elem = &used.ring[(self.last_used_idx % QUEUE_SIZE) as usize];
-            self.last_used_idx = self.last_used_idx.wrapping_add(1);
-            used_elem.len as usize
-        };
-        let copy_len = received_len.min(buf.len()).min(self.pending_len);
-        unsafe {
-            ptr::copy_nonoverlapping(self.buf_base as *const u8, buf.as_mut_ptr(), copy_len);
-        }
-        self.pending_len = 0;
-        copy_len
-    }
-
-    fn kick(&self) {
-        core::sync::atomic::fence(Ordering::SeqCst);
-        if self.notify_port != 0 {
-            // SAFETY: the probe claimed this port for this device.
-            unsafe {
-                crate::sys::io::outw(self.notify_port, 0);
-            }
-        } else if self.notify_mmio != 0 {
-            unsafe {
-                ptr::write_volatile(self.notify_mmio as *mut u16, 0);
-            }
-        }
     }
 }

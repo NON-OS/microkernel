@@ -31,8 +31,9 @@ impl PagingManager {
     ) -> PagingResult<(PhysAddr, PendingFlush)> {
         let address_space =
             self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
-        let cr3 = address_space.cr3_value;
         let va_val = va.as_u64();
+        let cr3 =
+            PhysAddr::new(crate::arch::paging::root_in(address_space.cr3_value.as_u64(), va_val));
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
 

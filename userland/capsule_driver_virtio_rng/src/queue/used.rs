@@ -17,8 +17,6 @@
 //! The used ring, which the device writes: the index and element are its
 //! word, and are taken only when they name the one request in flight.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::fault::Fault;
 use super::layout::Queue;
 use super::wipe::wipe;
@@ -43,7 +41,7 @@ impl Queue {
             return None;
         }
         // The element is valid only once the index that covers it is seen.
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         let at = USED_RING + USED_ELEM_SIZE * self.ring_pos(self.used);
         let (id, len) = (self.ring.r32(at), self.ring.r32(at + 4));
         if self.posted == self.used || idx != self.posted || id != POSTED_DESC {

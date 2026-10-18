@@ -53,6 +53,13 @@ pub struct ExceptionFrame {
     pub spsr: u64,
     pub esr: u64,
     pub far: u64,
+    /// The IA key EL0 had when it trapped, put back before the `eret` to it
+    /// (security::pac). Written only for an exception from EL0 with pointer
+    /// authentication on; otherwise unused.
+    pub pac_ia: [u64; 2],
 }
 
 pub const FRAME_SIZE: usize = core::mem::size_of::<ExceptionFrame>();
+
+// vectors.S lays the frame out by hand with `.equ FRAME_SIZE, 304`.
+const _: () = assert!(FRAME_SIZE == 304);

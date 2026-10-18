@@ -47,4 +47,7 @@ pub trait Desk {
     fn may_pair(&mut self) -> bool;
     /// Whether the user asked for the link to end, its bond forgotten.
     fn hang_up(&mut self) -> bool;
+    /// Whether the radio is turned off: a live link ends and nothing more
+    /// is sent on it, the bond kept for when it comes back (E-72).
+    fn radio_off(&mut self) -> bool;
 }

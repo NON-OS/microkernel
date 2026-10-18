@@ -1,0 +1,25 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The SCSI command layer the SCSI host drivers share: the CDBs they send,
+# the sense data they read back and what it means, INQUIRY, READ CAPACITY
+# and REPORT LUNS, and a disk's probe, reads, writes and flush over an `Hba`
+# trait that only moves a CDB and its data. Pure, no dependencies: each host
+# driver (virtio-scsi, Fusion-MPT, PVSCSI, BusLogic, storvsc) implements the
+# trait, and `cargo test` here runs every decision on the host.
+[package]
+name = "nonos_scsi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[package.metadata.nonos]
+# Pure library; its unit tests run with `cargo test` here and in the host
+# driver proof crates that mount it.
+test-lane = true

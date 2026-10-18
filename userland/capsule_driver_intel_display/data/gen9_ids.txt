@@ -1,0 +1,101 @@
+# PCI device ids of Intel's Gen9 graphics (vendor 8086, class 03) whose
+# display engine this driver takes over: one id (hex) and its family per
+# line. skl Skylake, kbl Kaby Lake (with Amber Lake 87C0 and 87CA), cfl
+# Coffee Lake (with Whiskey Lake), cml Comet Lake. Broxton, Apollo Lake
+# and Gemini Lake are Gen9 too but drive their ports through other PHYs
+# and wait for their own unit.
+#
+# Source: Intel's published device id lists for these processors, the
+# Configurations volume (Volume 4) of each family's graphics PRM and
+# Intel's processor graphics device id support page. Device ids are facts;
+# this list was written down without a copy of either at hand and is
+# unverified line by line: the owner should check it against them. An id
+# missing here only leaves that machine on the boot framebuffer.
+1902 skl
+1906 skl
+190A skl
+190B skl
+190E skl
+1912 skl
+1913 skl
+1915 skl
+1916 skl
+1917 skl
+191A skl
+191B skl
+191D skl
+191E skl
+1921 skl
+1923 skl
+1926 skl
+1927 skl
+192A skl
+192B skl
+192D skl
+1932 skl
+193A skl
+193B skl
+193D skl
+5902 kbl
+5906 kbl
+5908 kbl
+590A kbl
+590B kbl
+590E kbl
+5912 kbl
+5913 kbl
+5915 kbl
+5916 kbl
+5917 kbl
+591A kbl
+591B kbl
+591C kbl
+591D kbl
+591E kbl
+5921 kbl
+5923 kbl
+5926 kbl
+5927 kbl
+593B kbl
+87C0 kbl
+87CA kbl
+3E90 cfl
+3E91 cfl
+3E92 cfl
+3E93 cfl
+3E94 cfl
+3E96 cfl
+3E98 cfl
+3E99 cfl
+3E9A cfl
+3E9B cfl
+3E9C cfl
+3EA0 cfl
+3EA1 cfl
+3EA2 cfl
+3EA3 cfl
+3EA4 cfl
+3EA5 cfl
+3EA6 cfl
+3EA7 cfl
+3EA8 cfl
+3EA9 cfl
+9B21 cml
+9B41 cml
+9BA0 cml
+9BA2 cml
+9BA4 cml
+9BA5 cml
+9BA8 cml
+9BAA cml
+9BAC cml
+9BC0 cml
+9BC2 cml
+9BC4 cml
+9BC5 cml
+9BC6 cml
+9BC8 cml
+9BCA cml
+9BCC cml
+9BE6 cml
+9BF6 cml

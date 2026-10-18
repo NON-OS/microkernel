@@ -17,22 +17,30 @@
 use core::ptr::{read_volatile, write_volatile};
 
 use super::device::GicRedistributor;
+use crate::arch::aarch64::mmu::pointer::device;
 
 impl GicRedistributor {
     pub(super) fn read_reg(&self, offset: u64) -> u32 {
-        let addr = (self.base + offset) as *const u32;
+        let addr = device::<u32>(self.base, offset);
         unsafe { read_volatile(addr) }
     }
 
     pub(super) fn write_reg(&self, offset: u64, value: u32) {
-        let addr = (self.base + offset) as *mut u32;
+        let addr = device::<u32>(self.base, offset);
         unsafe {
             write_volatile(addr, value);
         }
     }
 
     pub(super) fn read_reg64(&self, offset: u64) -> u64 {
-        let addr = (self.base + offset) as *const u64;
+        let addr = device::<u64>(self.base, offset);
         unsafe { read_volatile(addr) }
+    }
+
+    pub(super) fn write_reg64(&self, offset: u64, value: u64) {
+        let addr = device::<u64>(self.base, offset);
+        // SAFETY: `base` is this frame's RD_base, mapped as device memory at
+        // boot, and `offset` is one of its 64-bit registers.
+        unsafe { write_volatile(addr, value) }
     }
 }

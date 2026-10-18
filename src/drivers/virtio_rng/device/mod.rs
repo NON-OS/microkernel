@@ -17,6 +17,7 @@
 mod core;
 mod init;
 mod io;
+mod io_wide;
 mod random;
 mod types;
 

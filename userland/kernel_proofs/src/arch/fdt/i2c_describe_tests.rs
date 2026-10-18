@@ -29,7 +29,7 @@ fn own<'a>(fdt: &Fdt<'a>) -> Vec<Property<'a>> {
     let (mut w, mut inside, mut out) = (fdt.walker(), false, Vec::new());
     while let Some(e) = w.next().unwrap() {
         match e {
-            Event::BeginNode { name } => inside = name == b"i2c",
+            Event::BeginNode { name, .. } => inside = name == b"i2c",
             Event::Property(p) if inside => out.push(p),
             _ => {}
         }
@@ -38,7 +38,7 @@ fn own<'a>(fdt: &Fdt<'a>) -> Vec<Property<'a>> {
 }
 
 fn bus(blob: &[u8]) -> I2cBus {
-    let fdt = Fdt::from_ptr(blob.as_ptr()).unwrap();
+    let fdt = Fdt::from_bytes(blob).unwrap();
     describe(&fdt, own(&fdt)).unwrap()
 }
 
