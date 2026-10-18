@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What find reads of a PCI record, and what a holder of it may map, read
-//! as text (L79). Each present BAR sits in its own slot, a memory BAR as
-//! memory at its base and size, and the count reaches the last present
-//! slot; the bus is PCI and the class is what the class code maps to. A map
-//! is refused a slot past the count and a BAR that is not memory, the very
-//! BARs the cover rule leaves unread, so it reads every BAR a holder could
-//! map and no other.
+//! What find reads of a PCI record, read as text (L79). Each present BAR
+//! sits in its own slot, a memory BAR as memory at its base and size, and
+//! the count reaches the last present slot; the bus is PCI and the class is
+//! what the class code maps to. What a holder may map is `map_glue_tests`.
 
 use super::glue_text::{body, code, in_order};
 
@@ -54,21 +51,4 @@ fn a_pci_record_holds_every_present_bar_its_count_and_its_class() {
         "Bar{base,size:b.size(),kind:BarKind::Mmioasu8,flags,aux:0,_pad:[0;2]}",
     );
     assert!(mem.ends_with(tail), "a memory BAR's base, size or kind changed");
-}
-
-#[test]
-fn a_map_is_refused_the_bars_the_rule_leaves_unread() {
-    let src = code("hardware/broker/mmio/map_bar.rs");
-    let head = "fnclaimed_bar(pid:u32,req:&MmioMapRequest)->Result<Claimed,MmioMapError>{";
-    in_order(
-        body(&src, head),
-        &[
-            "letdevice=table::list().into_iter().find(|r|r.device_id==req.device_id)",
-            "letbar_idx=req.bar_indexasusize;",
-            "ifbar_idx>=device.bars.len()||bar_idx>=device.bar_countasusize{",
-            "returnErr(MmioMapError::BadBarIndex);}letbar=device.bars[bar_idx];",
-            "ifbar.kind!=BAR_KIND_MMIO{returnErr(MmioMapError::NotMmioBar);}",
-            "Ok(Claimed{",
-        ],
-    );
 }

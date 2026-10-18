@@ -48,6 +48,7 @@ mod covers_tests;
 mod dma_glue_tests;
 mod glue_lex;
 mod glue_text;
+mod map_glue_tests;
 mod record_glue_tests;
 mod register_glue_tests;
 mod register_pin_tests;

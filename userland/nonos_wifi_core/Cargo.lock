@@ -146,11 +146,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37c93d8daa9d8a012fd8ab92f088405fb202ea0b6ab73ee2482ae66af4f42091"
 
 [[package]]
+name = "nonos_aes"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_p256"
+version = "0.1.0"
+dependencies = [
+ "p256",
+]
+
+[[package]]
 name = "nonos_wifi_core"
 version = "0.3.0"
 dependencies = [
  "hmac",
- "p256",
+ "nonos_aes",
+ "nonos_p256",
  "sha2",
 ]
 

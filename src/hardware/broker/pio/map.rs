@@ -26,6 +26,7 @@ use super::grant::{self, PioGrant};
 use super::grant_insert::insert_exclusive;
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
 use crate::hardware::broker::claim;
+use crate::hardware::broker::reserved;
 use crate::hardware::broker::table;
 
 const FLAGS_KNOWN: u32 = 0;
@@ -50,6 +51,10 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
         return Err(PioError::BadBarIndex);
     }
     let (port_base, port_count) = port_window(device.bars[bar_idx])?;
+    let bar = device.bars[bar_idx];
+    if reserved::refuses(b"PIO", reserved::IO, bar.base, bar.size, true) {
+        return Err(PioError::FirmwareReserved);
+    }
 
     let grant_id = grant::allocate_id();
     insert_exclusive(PioGrant {

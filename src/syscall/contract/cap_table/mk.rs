@@ -50,7 +50,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          * capability mask, the machine's inventory, so reading them takes a
          * capability of its own, which the programs that render a receipt hold.
          */
-        SyscallNumber::MkAttestEntries => caps.can_attest_read(),
+        SyscallNumber::MkAttestEntries | SyscallNumber::MkAcpiMeasured => caps.can_attest_read(),
         SyscallNumber::MkLogTail => caps.can_attest_read(),
         /* The witness of the anonymous device proof, for nonos.prove alone. */
         SyscallNumber::MkDeviceSecret => caps.can_device_secret(),
@@ -113,6 +113,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcSendToPid
         | SyscallNumber::MkServiceLookup
+        | SyscallNumber::MkThreadGroup
         | SyscallNumber::MkServiceRegister => caps.can_ipc(),
         /*
          * The handlers ask for Admin again and refuse a bit the caller lacks;
@@ -120,7 +121,13 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkCapGrant | SyscallNumber::MkCapRevoke => caps.can_admin(),
 
-        SyscallNumber::MkDeviceList => caps.can_device_enum(),
+        SyscallNumber::MkDeviceList
+        | SyscallNumber::MkAcpiDeviceName
+        | SyscallNumber::MkUsbPortFacts
+        | SyscallNumber::MkNumaNodeOf
+        | SyscallNumber::MkNumaDistance
+        | SyscallNumber::MkDeviceNode
+        | SyscallNumber::MkNumaHmat => caps.can_device_enum(),
         SyscallNumber::MkDeviceClaim | SyscallNumber::MkDeviceRelease => caps.can_driver(),
         SyscallNumber::MkMmioMap | SyscallNumber::MkMmioUnmap => caps.can_mmio(),
         SyscallNumber::MkBootFramebuffer => caps.can_mmio(),
@@ -134,7 +141,37 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkPioGrant
         | SyscallNumber::MkPioRead
         | SyscallNumber::MkPioWrite
-        | SyscallNumber::MkPioRelease => caps.can_pio(),
+        | SyscallNumber::MkPioRelease
+        | SyscallNumber::MkHvBackdoor => caps.can_pio(),
+        /*
+         * Firmware's AML reaches memory and ports no claim covers, so until the
+         * owner names a bit of its own the ACPI calls are Admin's alone.
+         */
+        SyscallNumber::MkAcpiTable
+        | SyscallNumber::MkAcpiRegion
+        | SyscallNumber::MkAcpiPort
+        | SyscallNumber::MkAcpiPci
+        | SyscallNumber::MkAcpiEvent
+        | SyscallNumber::MkAcpiSleep
+        | SyscallNumber::MkSmbiosTable
+        | SyscallNumber::MkAcpiCpu
+        | SyscallNumber::MkAcpiHolds
+        | SyscallNumber::MkPciProbeFunction
+        | SyscallNumber::MkPciDepart
+        | SyscallNumber::MkAcpiFunctionOf
+        | SyscallNumber::MkAcpiHwError
+        | SyscallNumber::MkAcpiPlatformDevice
+        | SyscallNumber::MkAcpiUsbPorts
+        | SyscallNumber::MkAcpiExternalPort
+        | SyscallNumber::MkAcpiReserved
+        | SyscallNumber::MkAcpiProximity
+        | SyscallNumber::MkAcpiOscGrant
+        | SyscallNumber::MkAcpiFirstPass
+        | SyscallNumber::MkAcpiSlot
+        | SyscallNumber::MkAcpiLoaded
+        | SyscallNumber::MkAcpiThermalLimit
+        | SyscallNumber::MkAcpiLpit
+        | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
         SyscallNumber::MkDebug => caps.can_debug(),
         SyscallNumber::MkStdoutWrite | SyscallNumber::MkPrivateWrite => caps.can_ipc(),
@@ -184,7 +221,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
-        | SyscallNumber::MkSurfaceRelease => caps.can_surface_create(),
+        | SyscallNumber::MkSurfaceRelease
+        | SyscallNumber::MkBootLogo => caps.can_surface_create(),
         SyscallNumber::MkSurfaceAttach => caps.can_surface_map(),
         SyscallNumber::MkSurfacePresent => caps.can_present(),
         SyscallNumber::MkDisplayVsyncWait => caps.can_display_query(),
@@ -218,6 +256,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkTtySet => caps.can_ipc(),
         SyscallNumber::MkTtyQuery => true,
 
+        /* The VMBus core's SynIC calls; each also checks the VMBus root's claim. */
+        SyscallNumber::MkHvPost
+        | SyscallNumber::MkHvRecv
+        | SyscallNumber::MkHvEvents
+        | SyscallNumber::MkHvSignal => caps.can_driver(),
         _ => return None,
     })
 }

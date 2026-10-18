@@ -21,15 +21,25 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
     match family {
         StorageVirtioBlk | StorageUsbMsc | StorageAhci | StorageNvme => DataPath,
         StorageEmmc | StorageSdhci | StorageUfs => DataPath,
+        StorageIde | StorageVirtioScsi | StorageVmwarePvscsi | StorageBuslogic | StorageMpt => {
+            DataPath
+        }
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
         NetworkE1000e | NetworkIgb | NetworkIxgbe => DataPath,
         NetworkRtl8821ce => DataPath,
+        NetworkPcnet => DataPath,
+        NetworkVmxnet3 => DataPath,
+        NetworkTulip => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
+        DisplayVmwareSvga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
+        InputVirtio => DataPath,
+        AudioAc97 => DataPath,
+        InputVmmdev => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         SerialSmbus => DataPath,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
-        StorageVmd | NetworkRealtekWifi => EnumerateOnly,
+        StorageVmd | StoragePlatformSd | NetworkRealtekWifi => EnumerateOnly,
         NetworkIgc => EnumerateOnly,
         UsbEhci | UsbOhci | UsbUhci | SerialSpi | BridgePci | SystemPeripheral | Unknown => {
             EnumerateOnly
