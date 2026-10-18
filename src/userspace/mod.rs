@@ -34,6 +34,8 @@ pub use network::*;
 
 #[cfg(feature = "nonos-attest-refusal-smoketest")]
 pub mod attest_refusal;
+#[cfg(feature = "nonos-capsule-acpi")]
+pub mod capsule_acpi;
 pub mod capsule_attest;
 pub mod capsule_boot_splash;
 pub mod capsule_clipboard;
