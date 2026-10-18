@@ -13,59 +13,63 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{DATA_BUF_LEN, MAX_QUEUE_SIZE, VQ_DESC_OFFSET, VQ_REGION_SIZE};
-use core::ptr::write_bytes;
-#[derive(Clone, Copy)]
+
+//! The queue's memory and the driver's own count of what it posted and took
+//! back. Each grant is reached through a bounds-checked view, so no index
+//! touches memory outside it; the ring's copies of the counts are the
+//! device's, believed only as they agree with these. Not `Copy`: one owner.
+
+use nonos_virtio::Mmio;
+
+use super::buffer::Buffer;
+use super::data::wipe;
+use super::fault::Fault;
+use super::ring::ring_bytes;
+use crate::constants::{DATA_BUF_LEN, STATUS_OFFSET};
+
 pub struct Queue {
-    pub region_va: *mut u8,
-    pub queue_size: u16,
-    pub avail_offset: usize,
-    pub used_offset: usize,
-    pub header_va: *mut u8,
-    pub header_phys: u64,
-    pub data_va: *mut u8,
-    pub data_phys: u64,
-    pub data_len: u32,
-    pub last_used: u16,
+    pub(super) ring: Mmio,
+    pub(super) header: Buffer,
+    pub(super) data: Buffer,
+    /// Ring entries the device was told: positions run modulo this.
+    pub(super) size: u16,
+    /// Requests published, and completions taken.
+    pub(super) posted: u16,
+    pub(super) used: u16,
+    /// The device-writable bytes of the request in flight.
+    pub(super) expect: u32,
+    /// Why the queue waits for a reset, once it does.
+    pub(super) stalled: Option<Fault>,
+    /// The device answered OK since the server last asked (`take_served`).
+    pub(super) served: bool,
+    /// The legacy transport: a used length is believed only as far as the
+    /// status byte (`completion`).
+    pub(super) legacy: bool,
 }
+
 impl Queue {
-    pub fn new(
-        region_va: u64,
-        _region_phys: u64,
-        queue_size: u16,
-        header_va: u64,
-        header_phys: u64,
-        data_va: u64,
-        data_phys: u64,
-    ) -> Self {
-        let avail_offset = avail_offset(queue_size);
-        let used_offset = used_offset(queue_size);
-        unsafe {
-            write_bytes(region_va as *mut u8, 0, VQ_REGION_SIZE);
+    /// A queue of `size` entries over `ring`, emptied, so the device starts
+    /// with no entry. `None` when a view is too small for what is laid in
+    /// it: the ring, the header to the status byte, the most one request moves.
+    pub fn new(ring: Mmio, size: u16, header: Buffer, data: Buffer) -> Option<Self> {
+        let fits = ring_bytes(size).is_some_and(|n| ring.len() >= n)
+            && header.view.len() > STATUS_OFFSET
+            && data.view.len() as u64 >= DATA_BUF_LEN;
+        if !fits {
+            return None;
         }
-        Self {
-            region_va: region_va as *mut u8,
-            queue_size,
-            avail_offset,
-            used_offset,
-            header_va: header_va as *mut u8,
-            header_phys,
-            data_va: data_va as *mut u8,
-            data_phys,
-            data_len: DATA_BUF_LEN as u32,
-            last_used: 0,
-        }
+        wipe(ring, ring.len());
+        Some(Self {
+            ring,
+            header,
+            data,
+            size,
+            posted: 0,
+            used: 0,
+            expect: 0,
+            stalled: None,
+            served: false,
+            legacy: false,
+        })
     }
-    pub const fn max_supported_size() -> u16 {
-        MAX_QUEUE_SIZE
-    }
-}
-const fn align_up(value: usize, align: usize) -> usize {
-    (value + align - 1) & !(align - 1)
-}
-const fn avail_offset(queue_size: u16) -> usize {
-    VQ_DESC_OFFSET + (queue_size as usize) * 16
-}
-const fn used_offset(queue_size: u16) -> usize {
-    align_up(avail_offset(queue_size) + 6 + (queue_size as usize) * 2, 4096)
 }

@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::collections::VecDeque;
-
-use super::super::key_event::KeyEvent;
-
+/// One keyboard interface's state: the keys its last report held, its
+/// modifiers and lock, and the key it repeats. A key event is posted to the
+/// kernel input ring and not kept: nothing here outlives the key it is for.
+#[derive(Default)]
 pub struct Keyboard {
     pub(in crate::hid::keyboard) prev: [u8; 6],
     pub(in crate::hid::keyboard) modifiers: u8,
     pub(in crate::hid::keyboard) caps_lock: bool,
-    pub(in crate::hid::keyboard) events: VecDeque<KeyEvent>,
-    pub(in crate::hid::keyboard) post_failures: u64,
     // The code each held key went down with, so its release carries it.
     pub(in crate::hid::keyboard) held: nonos_keymap::HeldKeys,
     // The held key the driver repeats, which a USB keyboard does not.

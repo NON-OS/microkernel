@@ -16,5 +16,7 @@
 use crate::constants::ERSTSZ;
 use crate::regs::mmio_write32;
 pub fn erstsz_program(intr_base: u64, entries: u16) {
-    mmio_write32(intr_base + ERSTSZ, entries as u32);
+    // SAFETY: `intr_base` is interrupter 0's register set, 32 bytes into the runtime page
+    // `read_layout` checked lies inside the mapped window.
+    unsafe { mmio_write32(intr_base + ERSTSZ, entries as u32) };
 }

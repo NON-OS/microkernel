@@ -26,11 +26,7 @@ pub(super) fn reply_config(tx: &mut [u8], req: &Request, out: &DmaRegion, actual
     let o = RESP_HDR_LEN + STATUS_LEN;
     tx[o..o + 2].copy_from_slice(&(actual as u16).to_le_bytes());
     tx[o + 2..o + CONFIG_DESCRIPTOR_REPLY_PREFIX].fill(0);
-    for i in 0..actual {
-        unsafe {
-            tx[o + CONFIG_DESCRIPTOR_REPLY_PREFIX + i] =
-                core::ptr::read_volatile(out.as_mut_ptr::<u8>().add(i));
-        }
-    }
+    let at = o + CONFIG_DESCRIPTOR_REPLY_PREFIX;
+    out.copy_to(&mut tx[at..at + actual]);
     crate::server::reply::send(tx.as_ptr(), RESP_HDR_LEN + payload_len as usize);
 }

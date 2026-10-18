@@ -38,11 +38,26 @@ pub mod init;
 pub mod mouse;
 #[path = "../../capsule_driver_ps2_input/src/setup/mod.rs"]
 pub mod setup;
-// The scan set 1 decode, and the event flags it reads the prefix and the
-// break bit from, at the `crate::ring` path the decode names them by.
+// The scan set 1 decode, the flags it reads the prefix and the break bit
+// from, the lock keys, the modifiers and the post to the input ring.
 pub mod keymap;
-#[path = "../../capsule_driver_ps2_input/src/ring/flags.rs"]
-pub mod ring;
+// The drain the serve loop runs: each byte routed by its port, keyboard
+// bytes framed by their prefixes, decoded and posted, aux bytes assembled
+// into packets.
+#[path = "../../capsule_driver_ps2_input/src/poll/mod.rs"]
+pub mod poll;
+pub use poll::prefix;
+// The serve loop's state and its upkeep between two waits.
+pub mod server;
+
+// The capsule makes its one `Drainer` with the const `new` and has no use
+// for `Default`; exported from this library, the type gets one, as clippy
+// asks of a public type with a `new`.
+impl Default for poll::Drainer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[cfg(test)]
 mod tests;

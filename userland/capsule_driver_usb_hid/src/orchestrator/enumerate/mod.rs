@@ -25,13 +25,16 @@ mod drop_port;
 mod forget;
 mod forget_slot;
 mod read_configuration;
+mod root_ports;
 mod run;
 mod say_port;
 mod scan_hub;
 mod scan_hubs;
+mod step_port;
 mod types;
 
 pub use devices::Devices;
+pub use root_ports::RootPorts;
 pub use run::enumerate;
 pub use scan_hubs::scan_hubs;
 pub use types::HidEndpoint;

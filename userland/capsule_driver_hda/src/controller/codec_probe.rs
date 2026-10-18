@@ -24,21 +24,17 @@
 //! address it answers; the analog codec is not always at 0, and the display
 //! codec is usually at 2.
 
+/* The proofs mount this file by its path, so its child is named by path. */
+#[path = "codec_probe/record.rs"]
+mod record;
+
+pub use record::{CodecProbe, MAX_CODECS};
+
 use crate::constants::{PARAM_VENDOR_ID, VERB_GET_PARAMETER};
 use crate::controller::compose_verb;
 use crate::controller::immediate;
 use crate::controller::verb::Link;
-
-pub const MAX_CODECS: usize = 15;
-
-#[derive(Clone, Copy)]
-pub struct CodecProbe {
-    pub address: u8,
-    pub present: u8,
-    pub ok: u8,
-    pub vendor_id: u16,
-    pub device_id: u16,
-}
+use record::{decode, empty};
 
 pub fn probe(link: &mut Link, statests: u16) -> [CodecProbe; MAX_CODECS] {
     let mut out = [empty(); MAX_CODECS];
@@ -66,18 +62,4 @@ fn read_vendor(link: &mut Link, address: u8) -> CodecProbe {
             None => CodecProbe { address, present: 1, ok: 0, vendor_id: 0, device_id: 0 },
         },
     }
-}
-
-fn decode(address: u8, id: u32) -> CodecProbe {
-    CodecProbe {
-        address,
-        present: 1,
-        ok: 1,
-        vendor_id: (id >> 16) as u16,
-        device_id: id as u16,
-    }
-}
-
-const fn empty() -> CodecProbe {
-    CodecProbe { address: 0, present: 0, ok: 0, vendor_id: 0, device_id: 0 }
 }
