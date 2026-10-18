@@ -3738,6 +3738,7 @@
    ".cargo",
    "src/hardware/nvme_capsule/client/lba_map.rs",
    "userland/capsule_driver_nvme/src/admin/active_ns.rs",
+   "userland/capsule_driver_nvme/src/admin/cc_value.rs",
    "userland/capsule_driver_nvme/src/admin/completion.rs",
    "userland/capsule_driver_nvme/src/admin/completion_step.rs",
    "userland/capsule_driver_nvme/src/admin/completion_wait.rs",
