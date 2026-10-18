@@ -4717,6 +4717,7 @@
    "userland/capsule_driver_usb_msc/src/disk",
    "userland/capsule_driver_usb_msc/src/protocol",
    "userland/capsule_driver_usb_msc/src/scsi",
+   "userland/capsule_driver_usb_msc/src/server/handlers/block_rw.rs",
    "userland/capsule_driver_usb_msc/src/span",
    "userland/capsule_driver_usb_msc/src/state",
    "userland/libc/src/wait",

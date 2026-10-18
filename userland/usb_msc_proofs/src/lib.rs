@@ -18,15 +18,28 @@ pub mod span;
 pub mod state;
 /// The device behind driver.xhci0, scripted, where `disk` calls it.
 pub mod xhci;
+/// A disk the scripted device can answer from.
+pub mod store;
 
+// The driver's sector reads and writes, run against `store`.
+extern crate alloc;
+#[path = "../../capsule_driver_usb_msc/src/server/handlers/block_rw.rs"]
+pub mod block_rw;
+
+#[cfg(test)]
+mod block_rw_tests;
 #[cfg(test)]
 mod codec_tests;
 #[cfg(test)]
 mod msc_tests;
 #[cfg(test)]
+mod ready_tests;
+#[cfg(test)]
 mod request_refusal_tests;
 #[cfg(test)]
 mod span_tests;
+#[cfg(test)]
+mod stall_tests;
 #[cfg(test)]
 mod transport_tests;
 

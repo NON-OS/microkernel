@@ -9,6 +9,7 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 
 use crate::protocol::E_IO;
+use crate::store::Store;
 
 pub const BULK_MAX: usize = 4096;
 pub const E_PIPE: i32 = -32;
@@ -24,6 +25,8 @@ pub enum Answer {
     Zlp,
     /// Sends its CSW for the last CBW.
     Csw { residue: u32, status: u8 },
+    /// Sends a CSW that echoes `tag`, whatever the last CBW's was.
+    CswTag { tag: u32, residue: u32, status: u8 },
     /// Stalls the pipe.
     Stall,
 }
@@ -36,6 +39,8 @@ pub struct Device {
     pub controls: Vec<(u8, u8, u16, u16)>,
     /// Each pipe reset, IN or not.
     pub resets: Vec<bool>,
+    /// A disk the READ and WRITE CBWs are answered from, in place of a script.
+    pub store: Option<Store>,
 }
 
 thread_local! {
@@ -47,16 +52,28 @@ pub fn script(answers: Vec<Answer>) {
     DEVICE.with(|d| *d.borrow_mut() = Device { answers: answers.into(), ..Device::default() });
 }
 
+/// Start over with a disk of `blocks` blocks of `len` bytes behind the pipes.
+pub fn attach(len: usize, blocks: usize) {
+    script(Vec::new());
+    DEVICE.with(|d| d.borrow_mut().store = Some(Store::new(len, blocks)));
+}
+
 /// Look at the device.
 pub fn device<T>(f: impl FnOnce(&Device) -> T) -> T {
     DEVICE.with(|d| f(&d.borrow()))
 }
 
 pub fn bulk_out(_xhci: u32, _slot: u8, data: &[u8]) -> Result<usize, i32> {
-    if data.len() == 31 && data[0..4] == CBW_SIGNATURE {
-        let tag = u32::from_le_bytes([data[4], data[5], data[6], data[7]]);
-        DEVICE.with(|d| d.borrow_mut().tag = tag);
-    }
+    DEVICE.with(|d| {
+        let d = &mut *d.borrow_mut();
+        let cbw = data.len() == 31 && data[0..4] == CBW_SIGNATURE;
+        if cbw {
+            d.tag = u32::from_le_bytes([data[4], data[5], data[6], data[7]]);
+        }
+        if let Some(store) = d.store.as_mut() {
+            store.out(data, &mut d.answers);
+        }
+    });
     Ok(data.len())
 }
 
@@ -68,13 +85,8 @@ pub fn bulk_in(_xhci: u32, _slot: u8, out: &mut [u8]) -> Result<usize, i32> {
         let bytes = match d.answers.pop_front() {
             Some(Answer::Data(bytes)) => bytes,
             Some(Answer::Zlp) => Vec::new(),
-            Some(Answer::Csw { residue, status }) => {
-                let mut csw = CSW_SIGNATURE.to_vec();
-                csw.extend_from_slice(&d.tag.to_le_bytes());
-                csw.extend_from_slice(&residue.to_le_bytes());
-                csw.push(status);
-                csw
-            }
+            Some(Answer::Csw { residue, status }) => csw(d.tag, residue, status),
+            Some(Answer::CswTag { tag, residue, status }) => csw(tag, residue, status),
             Some(Answer::Stall) => return Err(E_PIPE),
             None => return Err(E_IO),
         };
@@ -82,6 +94,14 @@ pub fn bulk_in(_xhci: u32, _slot: u8, out: &mut [u8]) -> Result<usize, i32> {
         out[..n].copy_from_slice(&bytes[..n]);
         Ok(n)
     })
+}
+
+fn csw(tag: u32, residue: u32, status: u8) -> Vec<u8> {
+    let mut csw = CSW_SIGNATURE.to_vec();
+    csw.extend_from_slice(&tag.to_le_bytes());
+    csw.extend_from_slice(&residue.to_le_bytes());
+    csw.push(status);
+    csw
 }
 
 pub fn control_no_data(
