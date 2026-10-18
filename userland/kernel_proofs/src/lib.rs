@@ -115,6 +115,8 @@ pub mod narrowed_args;
 #[cfg(test)]
 pub mod pci_address;
 #[cfg(test)]
+pub mod pci_ecam;
+#[cfg(test)]
 pub mod pipe_counts;
 #[cfg(test)]
 pub mod install_stages;

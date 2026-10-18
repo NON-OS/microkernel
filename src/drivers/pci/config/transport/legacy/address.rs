@@ -15,17 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// The value port 0xCF8 takes: enable bit, then bus, device, function and the
-/// dword-aligned register number.
+/// dword-aligned register number. `None` for anything the word cannot carry:
+/// an offset of 0x100 or more would otherwise alias onto the first 256 bytes,
+/// and a device or function out of range onto a neighbour.
 #[inline]
-pub(in crate::drivers::pci::config) fn config_address(
+pub(in crate::drivers::pci::config) const fn config_address(
     bus: u8,
     device: u8,
     function: u8,
     offset: u16,
-) -> u32 {
-    (1u32 << 31)
-        | ((bus as u32) << 16)
-        | ((device as u32) << 11)
-        | ((function as u32) << 8)
-        | ((offset as u32) & 0xFC)
+) -> Option<u32> {
+    if device > 31 || function > 7 || offset >= super::super::route::LEGACY_LIMIT {
+        return None;
+    }
+    Some(
+        (1u32 << 31)
+            | ((bus as u32) << 16)
+            | ((device as u32) << 11)
+            | ((function as u32) << 8)
+            | ((offset as u32) & 0xFC),
+    )
 }
