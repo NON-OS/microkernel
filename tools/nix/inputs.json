@@ -72,6 +72,8 @@
    "nonos-bootloader/boot_proofs",
    "nonos-bootloader/src/display/gop/order.rs",
    "nonos-bootloader/src/display/gop/pick.rs",
+   "nonos-bootloader/src/handoff/jump/mmap_copy.rs",
+   "nonos-bootloader/src/handoff/jump/types.rs",
    "nonos-bootloader/src/handoff/types/constants.rs",
    "nonos-bootloader/src/image_format/footer.rs",
    "nonos-bootloader/src/image_format/parse",
