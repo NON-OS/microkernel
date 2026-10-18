@@ -23,7 +23,14 @@
 //! cursor to wherever the finger lands. Pure state so it can be exercised by
 //! host tests without a device.
 
+mod debounce;
+mod motion;
 mod on_touch;
+mod palm;
+mod scroll;
+mod several;
+mod tap;
+mod tuning;
 mod types;
 
 pub use types::{TouchActions, TouchGesture};

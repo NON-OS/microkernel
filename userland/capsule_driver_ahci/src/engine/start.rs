@@ -23,11 +23,13 @@ use crate::regs::Regs;
 /// Start the command list engine. ST may be set only once CR reads clear
 /// (AHCI 1.3.1, 10.3.1); a CR that never clears leaves the engine off.
 pub(super) fn start(regs: Regs, base: u32) -> AhciResult<()> {
+    // SAFETY: the port's register block lies inside the mapped ABAR.
     if !wait_until(ENGINE_STOP_MS, || unsafe { regs.r32(base + PORT_CMD) } & CMD_CR == 0) {
         return Err(AhciError::Timeout);
     }
     // FRE was already enabled during program(); only ST is set here, after
     // the link is up, so command processing starts against a ready device.
+    // SAFETY: as above.
     unsafe {
         let cmd = regs.r32(base + PORT_CMD);
         regs.w32(base + PORT_CMD, cmd | CMD_ST);

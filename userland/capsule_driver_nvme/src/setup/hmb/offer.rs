@@ -16,7 +16,7 @@
 
 use super::held::say;
 use super::{map::map, Hmb};
-use crate::admin::hmb::{enable_dwords, ends_attempt, plan, ENABLE_TIMEOUT_MS};
+use crate::admin::hmb::{ends_attempt, plan, ENABLE_TIMEOUT_MS};
 use crate::admin::set_features::FID_HOST_MEMORY_BUFFER;
 use crate::admin::{AdminQueue, ControllerIdentity};
 use crate::controller::ControllerInfo;
@@ -26,7 +26,8 @@ use crate::regs::Regs;
 /// Offer the host memory buffer the controller asks for. `Ok(None)` when it
 /// asks for none, the memory could not be had, or it refused the buffer;
 /// the drive is served without one, as the spec allows. No answer fails
-/// the attempt, with the controller disabled before the memory goes.
+/// the attempt, whose teardown disables the controller before the memory
+/// goes.
 pub fn host_memory(
     admin: &mut AdminQueue,
     regs: Regs,
@@ -52,11 +53,11 @@ pub fn host_memory(
     let pages = hmb.pieces.len() as u32 * p.piece_pages;
     if hmb.pieces.is_empty() || pages < ask.minimum {
         say(b"host memory buffer not offered: pages mapped ", pages as u64);
+        hmb.unmap();
         return Ok(None);
     }
-    let dw = enable_dwords(pages, hmb.list.device_addr(), hmb.pieces.len() as u32);
-    let what = "enable host memory buffer";
-    let stride = info.doorbell_stride();
+    let (what, stride) = ("enable host memory buffer", info.doorbell_stride());
+    let dw = hmb.enable;
     match admin.set_features(regs, stride, FID_HOST_MEMORY_BUFFER, dw, what, ENABLE_TIMEOUT_MS) {
         Ok(()) => {
             say(b"host memory buffer given, pages ", pages as u64);
@@ -65,11 +66,10 @@ pub fn host_memory(
         // An error completion: the controller never took the memory.
         Err(e) if !ends_attempt(e) => {
             say(b"host memory buffer refused; served without, pages asked ", pages as u64);
+            hmb.unmap();
             Ok(None)
         }
-        Err(e) => {
-            hmb.release(regs, info);
-            Err(e)
-        }
+        // No answer: the controller may hold it, so it stays mapped.
+        Err(e) => Err(e),
     }
 }

@@ -14,26 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One-shot bind diagnostics on the boot console. Real laptops have no
-//! serial port, so the framebuffer console is the only place the parsed
-//! report layout and the first raw frames can be read back from a running
-//! machine; one photograph of these lines pins the exact bit positions the
-//! device uses, ending any disagreement between parser and hardware.
+//! The driver's lines on the boot console: what it bound, gave up or left,
+//! in plain words. No report, frame or device identifier is ever printed.
 
-use alloc::format;
-use alloc::string::String;
-
-pub fn line(s: String) {
+pub fn line(s: alloc::string::String) {
     let b = s.as_bytes();
     let len = b.len().min(256);
     let _ = nonos_libc::mk_debug(b.as_ptr(), len);
-}
-
-pub fn hex_line(tag: &str, bytes: &[u8]) {
-    let mut s = String::from(tag);
-    for b in bytes {
-        s.push_str(&format!(" {:02x}", b));
-    }
-    s.push('\n');
-    line(s);
 }
