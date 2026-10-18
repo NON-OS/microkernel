@@ -22,6 +22,7 @@ pub mod link_up;
 pub mod mac;
 pub mod nic_device;
 pub mod poll_window;
+pub mod probe_reply;
 pub mod read_mac;
 pub mod receive;
 pub mod rx;
