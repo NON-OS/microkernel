@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Stands in for nonos_libc under the included AC'97 driver files: the broker
+# calls recorded per thread, port I/O handed to the test's model, the DMA
+# grant on host memory.
+[package]
+name = "ac97_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"

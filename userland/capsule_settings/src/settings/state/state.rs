@@ -35,8 +35,7 @@ pub struct State {
     pub policy_ready: bool,
     pub section: Section,
     pub cursor: [usize; SECTION_COUNT],
-    /// Pixel scroll per section. The pane lays out cards of differing heights,
-    /// so a row-index offset cannot address a position inside one.
+    /// Pixel scroll per section: cards differ in height, so no row index.
     pub scroll_px: [u32; SECTION_COUNT],
     /// The titlebar search: its query, focus, result cursor and scroll.
     pub search: Search,
@@ -64,10 +63,11 @@ pub struct State {
     pub machine_key: MachineKey,
     /// What audio.server said the last time the Sound page asked.
     pub audio_output: AudioOutput,
-    /// The Accessibility page's display and what the compositor holds for it.
+    /// The Accessibility page's display, and the displays' arrangement, as
+    /// the compositor holds them; what driver.bt_usb0 last said.
     pub access: crate::settings::access::AccessPage,
-    /// The displays' arrangement and scales as the compositor lays them out.
     pub screens: crate::settings::screens::ScreenPage,
+    pub bt: crate::bluetooth::Panel,
     /// Window size as of the last paint: the window is resizable, so layout
     /// and hit tests read this, never the manifest's starting size.
     pub win_w: u32,

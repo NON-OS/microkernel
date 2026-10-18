@@ -29,6 +29,9 @@ mod cq_cursor;
 mod active_ns;
 #[path = "../../../capsule_driver_nvme/src/admin/disable_step.rs"]
 mod disable_step;
+// The real CC written at enable, from CAP alone.
+#[path = "../../../capsule_driver_nvme/src/admin/cc_value.rs"]
+mod cc_value;
 // The real submission entries both queues send, the admin queue that sends
 // them, and the controller's enable and disable.
 #[path = "../../../capsule_driver_nvme/src/admin/command/mod.rs"]
@@ -41,6 +44,7 @@ mod doorbells;
 mod queue;
 
 pub use active_ns::{first_active_nsid, lists_active_namespaces, FALLBACK_NSID};
+pub use cc_value::cc_value;
 pub use command::{set_features, Submission};
 pub use completion::Completion;
 pub use completion_step::{classify, CqStep};

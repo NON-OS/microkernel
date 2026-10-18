@@ -72,11 +72,11 @@ A send straight to a process's [inbox](../overview/glossary.md#inbox) by pid (`M
 
 The kernel names the sender. `IpcMessage::new` is given `proc.<pid>` of the calling process (`src/syscall/microkernel/ipc/send_to_pid.rs:68-70`), so a service can trust the sender's pid rather than a pid written in the payload. The keyring relies on this; see [Device secrets and keys](device-secrets-and-keys.md).
 
-Keystrokes have their own rule. [Driver capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputSource` or `Admin` (`src/syscall/contract/cap_table/mk.rs:190-200`). A driver capsule cannot read what is typed into another program.
+Keystrokes have their own rule. [Driver capsules](../overview/glossary.md#driver-capsule) hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputSource` or `Admin` (`src/syscall/contract/cap_table/mk.rs:191-201`). A driver capsule cannot read what is typed into another program.
 
 ## Drivers: the broker and the IOMMU
 
-A driver is a capsule that holds broker bits, and each broker call asks for its own bit, starting with `can_device_enum` for the device list (`src/syscall/contract/cap_table/mk.rs:123-136`).
+A driver is a capsule that holds broker bits, and each broker call asks for its own bit, starting with `can_device_enum` for the device list (`src/syscall/contract/cap_table/mk.rs:123-137`).
 
 | Bit | Calls | What it grants |
 |---|---|---|
@@ -111,11 +111,11 @@ The other broker paths are narrow too:
 
 The [Linux personality](../overview/glossary.md#linux-personality), `capsule_linux`, runs unmodified x86_64 Linux programs as guests and answers their system calls. [Linux personality](../userland/linux-personality.md) lists which calls are served and which are refused.
 
-A guest holds nothing. `empty_guest` creates the process, installs an empty capability set with `install_spawn`, and logs `[FOREIGN] guest pid=<pid> caps=<mask>` with the mask read back (`src/process/foreign/spawn.rs:53-79`). With no bits, every NONOS call a guest could make fails the cap table, except `MkTtyQuery`, which only describes the caller's own streams (`src/syscall/contract/cap_table/mk.rs:214-220`).
+A guest holds nothing. `empty_guest` creates the process, installs an empty capability set with `install_spawn`, and logs `[FOREIGN] guest pid=<pid> caps=<mask>` with the mask read back (`src/process/foreign/spawn.rs:53-79`). With no bits, every NONOS call a guest could make fails the cap table, except `MkTtyQuery`, which only describes the caller's own streams (`src/syscall/contract/cap_table/mk.rs:215-221`).
 
 A NONOS system call number is four ASCII bytes packed by `tag4` (`src/syscall/abi/tag.rs:20-22`), so a Linux number never matches one. `syscall_handler` finds no `SyscallNumber` for it and passes it to `redirect` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`). `redirect` parks the guest thread and wakes its supervisor, the capsule that created it, which answers; a process with no supervisor gets `ENOSYS` (`src/process/foreign/trap.rs:28-57`).
 
-The supervisor needs `ForeignExec` for every call that touches a guest (`can_foreign_exec` in `src/syscall/contract/cap_table/mk.rs:153-167`). Among the `Capsule.mk` files in this tree, only `capsule_linux` requests it, in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_linux/Capsule.mk:45`). A supervisor reaches only its own guests: the map, copy, protect and unmap peer calls start with `supervised_asid`, which refuses a pid the caller does not supervise (`src/process/foreign/peer_guard.rs:65-73`), and `sys_peer_tls` makes the same check (`src/process/foreign/peer_tls.rs:24-34`). A peer call touches only the guest's user half and moves at most `MAX_SPAN`, 1 MiB, at a time (`src/process/foreign/peer_guard.rs:28-39`). One supervisor holds at most `MAX_GUESTS`, 1024 guests and guest threads; past that a spawn is `EAGAIN` (`src/process/foreign/room.rs:33-38`).
+The supervisor needs `ForeignExec` for every call that touches a guest (`can_foreign_exec` in `src/syscall/contract/cap_table/mk.rs:154-168`). Among the `Capsule.mk` files in this tree, only `capsule_linux` requests it, in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_linux/Capsule.mk:45`). A supervisor reaches only its own guests: the map, copy, protect and unmap peer calls start with `supervised_asid`, which refuses a pid the caller does not supervise (`src/process/foreign/peer_guard.rs:65-73`), and `sys_peer_tls` makes the same check (`src/process/foreign/peer_tls.rs:24-34`). A peer call touches only the guest's user half and moves at most `MAX_SPAN`, 1 MiB, at a time (`src/process/foreign/peer_guard.rs:28-39`). One supervisor holds at most `MAX_GUESTS`, 1024 guests and guest threads; past that a spawn is `EAGAIN` (`src/process/foreign/room.rs:33-38`).
 
 Inside `capsule_linux`:
 

@@ -19,4 +19,5 @@ pub(in super::super) const OP_LINK_STATUS: u16 = 2;
 pub(in super::super) const OP_MAC_ADDRESS: u16 = 3;
 pub(in super::super) const OP_TX_PACKET: u16 = 4;
 pub(in super::super) const OP_RX_PACKET: u16 = 5;
-pub(in super::super) const OP_STATS: u16 = 6;
+/// 7, as the capsule now serves it; 6 is the receive batch.
+pub(in super::super) const OP_STATS: u16 = 7;

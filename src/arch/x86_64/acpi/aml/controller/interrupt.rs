@@ -17,7 +17,7 @@
 /// Decode an Extended Interrupt descriptor payload (ACPI 6.x 6.4.3.6): the
 /// interrupt table length at offset 1 and the first interrupt number, a
 /// little-endian dword, at offset 2. An empty table is treated as absent.
-pub(super) fn parse_extended_interrupt(data: &[u8]) -> Option<u32> {
+pub(in super::super) fn parse_extended_interrupt(data: &[u8]) -> Option<u32> {
     if *data.get(1)? == 0 {
         return None;
     }

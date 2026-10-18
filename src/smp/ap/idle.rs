@@ -33,13 +33,10 @@ pub(super) fn ap_idle_loop(cpu_id: u32) -> ! {
     loop {
         /*
          * Interrupts off across the test, so work appearing between the test
-         * and the halt cannot be missed.
-         * SAFETY: eK@nonos.systems - masking interrupts on this CPU only. The
-         * window is closed again by the wait below on every path.
+         * and the halt cannot be missed. The wait below opens the window again
+         * on every path.
          */
-        unsafe {
-            core::arch::asm!("cli", options(nostack, nomem));
-        }
+        crate::arch::interrupt::cli();
 
         /*
          * Idle is published before the queue is read. A CPU that enqueues

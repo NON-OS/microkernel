@@ -26,6 +26,54 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ac97.manifest.bin",
+   "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
+   "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_gpio.manifest.bin",
+   "nonos-data/trust/capsules/driver_gpio.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_gpio.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_mpt.manifest.bin",
+   "nonos-data/trust/capsules/driver_mpt.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_mpt.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
+   "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_piix_ide.manifest.bin",
+   "nonos-data/trust/capsules/driver_piix_ide.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_piix_ide.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_tulip.manifest.bin",
+   "nonos-data/trust/capsules/driver_tulip.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_tulip.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
+   "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmbus.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmbus.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmbus.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -72,6 +120,8 @@
    "nonos-bootloader/boot_proofs",
    "nonos-bootloader/src/display/gop/order.rs",
    "nonos-bootloader/src/display/gop/pick.rs",
+   "nonos-bootloader/src/handoff/jump/mmap_copy.rs",
+   "nonos-bootloader/src/handoff/jump/types.rs",
    "nonos-bootloader/src/handoff/types/constants.rs",
    "nonos-bootloader/src/image_format/footer.rs",
    "nonos-bootloader/src/image_format/parse",
@@ -247,6 +297,37 @@
    "third_party/pqclean",
    "tools/nonos-pack",
    "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ac97_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/ac97_proofs",
+   "userland/capsule_audio/src/sink/wire.rs",
+   "userland/capsule_driver_ac97/src/audio/periods.rs",
+   "userland/capsule_driver_ac97/src/audio/queue.rs",
+   "userland/capsule_driver_ac97/src/codec",
+   "userland/capsule_driver_ac97/src/constants",
+   "userland/capsule_driver_ac97/src/discover.rs",
+   "userland/capsule_driver_ac97/src/engine/bdl.rs",
+   "userland/capsule_driver_ac97/src/engine/control.rs",
+   "userland/capsule_driver_ac97/src/engine/position.rs",
+   "userland/capsule_driver_ac97/src/protocol",
+   "userland/capsule_driver_ac97/src/regs",
+   "userland/capsule_driver_ac97/src/say",
+   "userland/capsule_driver_ac97/src/server/dispatch.rs",
+   "userland/capsule_driver_ac97/src/server/refill.rs",
+   "userland/capsule_driver_ac97/src/server/respond.rs",
+   "userland/capsule_driver_ac97/src/server/stream.rs",
+   "userland/capsule_driver_ac97/src/setup/claim.rs",
+   "userland/capsule_driver_ac97/src/setup/dma.rs",
+   "userland/capsule_driver_ac97/src/setup/driver.rs",
+   "userland/capsule_driver_ac97/src/setup/grants.rs",
+   "userland/capsule_driver_ac97/src/setup/sequence.rs",
+   "userland/capsule_driver_ac97/src/wait.rs"
   ],
   "md": [],
   "signed": []
@@ -622,7 +703,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/apps_proofs",
    "userland/assets/icons",
@@ -814,6 +895,7 @@
    "userland/capsule_audio/src/server/proto.rs",
    "userland/capsule_audio/src/server/ring.rs",
    "userland/capsule_audio/src/server/streams.rs",
+   "userland/capsule_audio/src/sink/choose.rs",
    "userland/capsule_audio/src/sink/wire.rs",
    "userland/capsule_audio/src/volume.rs"
   ],
@@ -832,6 +914,7 @@
    "userland/capsule_driver_rndis/Capsule.mk",
    "userland/capsule_driver_rtl8153/Capsule.mk",
    "userland/capsule_net_core/src/protocol/ops.rs",
+   "userland/libc/src/wait",
    "userland/nonos_mac",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
@@ -869,7 +952,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/services/registry/displays.rs",
    "userland/bga_proofs",
    "userland/capsule_driver_bga/Capsule.mk",
@@ -1015,6 +1098,56 @@
   "md": [],
   "signed": []
  },
+ "userland/bt_usb_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/bt_proto",
+   "userland/bt_usb_proofs",
+   "userland/capsule_driver_bt_usb/src/hid/modifier.rs",
+   "userland/capsule_driver_bt_usb/src/link",
+   "userland/capsule_driver_bt_usb/src/nbtc",
+   "userland/capsule_driver_bt_usb/src/ring/answer.rs",
+   "userland/capsule_driver_bt_usb/src/ring/keyring.rs",
+   "userland/capsule_driver_bt_usb/src/ring/wire.rs",
+   "userland/capsule_driver_bt_usb/src/usb/choose.rs",
+   "userland/capsule_driver_bt_usb/src/usb/limit.rs",
+   "userland/nonos_aes",
+   "userland/nonos_bt_bond",
+   "userland/nonos_bt_hci",
+   "userland/nonos_bt_hci_proofs/src/sim",
+   "userland/nonos_bt_hogp",
+   "userland/nonos_bt_hogp_proofs/src/sim",
+   "userland/nonos_bt_smp",
+   "userland/nonos_bt_smp_proofs/src/sim",
+   "userland/nonos_bt_wire",
+   "userland/nonos_p256"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/buslogic_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/buslogic_proofs",
+   "userland/capsule_driver_buslogic/src/adapter.rs",
+   "userland/capsule_driver_buslogic/src/constants",
+   "userland/capsule_driver_buslogic/src/discover.rs",
+   "userland/capsule_driver_buslogic/src/hba.rs",
+   "userland/capsule_driver_buslogic/src/port.rs",
+   "userland/capsule_driver_buslogic/src/setup/driver.rs",
+   "userland/capsule_driver_buslogic/src/setup/sequence.rs",
+   "userland/capsule_driver_buslogic/src/wait.rs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_about": {
   "exclude": [
    "userland/toolkit/image_tests"
@@ -1023,7 +1156,7 @@
    ".cargo",
    "LICENSE",
    "VERSION",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/services/registry/displays.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
@@ -1041,6 +1174,45 @@
    "nonos-data/trust/COMMIT"
   ]
  },
+ "userland/capsule_acpi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/s5_choice.rs",
+   "src/hardware/broker/acpi/sleep_request.rs",
+   "src/hardware/broker/acpi/slot_rule.rs",
+   "src/hardware/broker/acpi/slot_wire.rs",
+   "userland/capsule_acpi/src/aei/rate.rs",
+   "userland/capsule_acpi/src/backlight/engine_rule.rs",
+   "userland/capsule_acpi/src/boot/pass.rs",
+   "userland/capsule_acpi/src/cooling/ceilings.rs",
+   "userland/capsule_acpi/src/cpu/caps.rs",
+   "userland/capsule_acpi/src/cpu/caps_kernel.rs",
+   "userland/capsule_acpi/src/dpower/wake_sweep.rs",
+   "userland/capsule_acpi/src/host/region.rs",
+   "userland/capsule_acpi/src/host/spaces.rs",
+   "userland/capsule_acpi/src/host/told.rs",
+   "userland/capsule_acpi/src/hotplug/native/fault.rs",
+   "userland/capsule_acpi/src/hotplug/native/read.rs",
+   "userland/capsule_acpi/src/hotplug/native/regs.rs",
+   "userland/capsule_acpi/src/hotplug/native/slot.rs",
+   "userland/capsule_acpi/src/hotplug/native/step.rs",
+   "userland/capsule_acpi/src/hotplug/native/step_timed.rs",
+   "userland/capsule_acpi/src/hotplug/native/times.rs",
+   "userland/capsule_acpi/src/power/off/rule.rs",
+   "userland/capsule_acpi/src/power/off/wire.rs",
+   "userland/capsule_acpi/src/props/wire.rs",
+   "userland/capsule_acpi/src/props/wire_cursor.rs",
+   "userland/capsule_acpi/src/props/wire_read.rs",
+   "userland/capsule_acpi/src/props/wire_write.rs",
+   "userland/capsule_acpi/src/serial/bus_key.rs",
+   "userland/capsule_acpi/src/server/policy.rs",
+   "userland/capsule_acpi/src/sleep",
+   "userland/capsule_acpi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_app_store": {
   "exclude": [
    "userland/toolkit/image_tests"
@@ -1048,7 +1220,7 @@
   "include": [
    ".cargo",
    "LICENSE",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1078,7 +1250,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_attest",
    "userland/libc",
    "userland/route_proof"
@@ -1090,7 +1262,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/audio_proto",
    "userland/capsule_audio",
    "userland/libc"
@@ -1104,7 +1276,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "third_party/minimp3",
    "userland/app_skeleton",
@@ -1132,7 +1304,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_boot_splash",
    "userland/libc",
@@ -1147,7 +1319,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1186,7 +1358,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1386,7 +1558,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_calculator",
@@ -1401,7 +1573,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_clipboard",
    "userland/libc"
   ],
@@ -1414,7 +1586,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_clock",
@@ -1429,7 +1601,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_crypto",
    "userland/libc"
   ],
@@ -1452,7 +1624,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1475,7 +1647,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_ahci",
    "userland/libc"
   ],
@@ -1486,7 +1658,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_e1000",
    "userland/libc",
    "userland/nonos_mac"
@@ -1498,7 +1670,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_hda",
    "userland/libc"
   ],
@@ -1509,7 +1681,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_i2c_hid",
    "userland/capsule_driver_usb_hid/src/descriptors/report/cursors.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/report/global_state.rs",
@@ -1524,7 +1696,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_i2c_pci",
    "userland/libc",
    "userland/nonos_pinctrl"
@@ -1542,10 +1714,12 @@
    "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_iwlwifi",
    "userland/libc",
+   "userland/nonos_aes",
    "userland/nonos_mac",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core"
   ],
   "md": [],
@@ -1555,7 +1729,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_nvme",
    "userland/libc"
   ],
@@ -1566,7 +1740,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_driver_ps2_input",
    "userland/libc",
@@ -1581,7 +1755,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_rtl8139",
    "userland/libc",
    "userland/nonos_mac"
@@ -1593,7 +1767,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_rtl8169",
    "userland/libc",
    "userland/nonos_mac"
@@ -1606,10 +1780,12 @@
   "include": [
    ".cargo",
    "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_rtl8821ce",
    "userland/libc",
+   "userland/nonos_aes",
    "userland/nonos_mac",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core"
   ],
   "md": [],
@@ -1619,7 +1795,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_driver_usb_hid",
    "userland/libc",
@@ -1634,7 +1810,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_usb_msc",
    "userland/libc"
   ],
@@ -1645,7 +1821,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_blk",
    "userland/libc",
    "userland/nonos_virtio"
@@ -1657,7 +1833,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_gpu",
    "userland/libc",
    "userland/nonos_edid",
@@ -1674,7 +1850,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_net",
    "userland/libc",
    "userland/nonos_mac",
@@ -1687,7 +1863,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_rng",
    "userland/libc",
    "userland/nonos_virtio"
@@ -1699,7 +1875,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_xhci",
    "userland/libc"
   ],
@@ -1712,7 +1888,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_egui_proof",
@@ -1727,7 +1903,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_entropy",
    "userland/libc"
   ],
@@ -1740,7 +1916,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1760,7 +1936,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_game_2048",
@@ -1778,7 +1954,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_gui_demo",
@@ -1795,7 +1971,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_hello",
@@ -1812,7 +1988,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_image_codec",
    "userland/libc",
@@ -1827,7 +2003,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_image_viewer",
@@ -1842,7 +2018,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_input_probe",
    "userland/libc"
   ],
@@ -1855,7 +2031,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_input_proof",
@@ -1870,7 +2046,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_input_router",
    "userland/libc"
   ],
@@ -1894,7 +2070,7 @@
    "src/fs/blockfs_volume/plan_types.rs",
    "src/hardware/block_device/identify.rs",
    "src/hardware/block_device/store_copy/span.rs",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/syscall/microkernel/store_read.rs",
    "src/syscall/microkernel/store_write.rs",
    "src/userspace/init/app_choice/bits.rs",
@@ -1927,7 +2103,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "tools/nonos-pack/core",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -1943,7 +2119,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_keyring",
    "userland/libc",
    "userland/nonos_hash",
@@ -1961,7 +2137,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2127,7 +2303,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_login",
    "userland/libc"
   ],
@@ -2141,7 +2317,7 @@
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2165,7 +2341,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2181,7 +2357,7 @@
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_linux/src/linux/file/models/hex.rs",
    "userland/capsule_linux/src/linux/file/models/pinned.rs",
@@ -2210,7 +2386,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_anon",
    "userland/inflate",
    "userland/libc",
@@ -2231,7 +2407,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2251,7 +2427,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_dhcp",
    "userland/libc"
   ],
@@ -2262,7 +2438,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_dns",
    "userland/libc"
   ],
@@ -2273,7 +2449,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_ip",
    "userland/libc"
   ],
@@ -2284,7 +2460,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_l2",
    "userland/libc"
   ],
@@ -2295,7 +2471,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_net_ntp",
    "userland/libc",
@@ -2315,7 +2491,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_nym",
    "userland/libc",
    "userland/nonos_ed25519",
@@ -2333,7 +2509,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_sockets",
    "userland/libc"
   ],
@@ -2344,7 +2520,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_tcp",
    "userland/libc"
   ],
@@ -2355,7 +2531,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_net_udp",
    "userland/libc"
   ],
@@ -2375,7 +2551,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_payment",
    "userland/libc"
   ],
@@ -2388,7 +2564,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2405,7 +2581,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_power",
    "userland/libc"
   ],
@@ -2418,7 +2594,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2433,7 +2609,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_proof_io",
    "userland/libc"
   ],
@@ -2449,7 +2625,7 @@
    ".cargo",
    "nonos-attest-path",
    "nonos-device-attest",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2466,7 +2642,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2481,7 +2657,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_ramfs",
    "userland/libc"
   ],
@@ -2495,11 +2671,12 @@
   "include": [
    ".cargo",
    "VERSION",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/audio_proto",
+   "userland/bt_proto",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_settings",
    "userland/capsule_setup_wizard/src/qwen/labels.rs",
@@ -2521,16 +2698,18 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
+   "userland/bt_proto",
    "userland/capsule_audio_player/src/model.rs",
    "userland/capsule_desktop_shell/src/sound/levels.rs",
    "userland/capsule_desktop_shell/src/state/display_keep.rs",
    "userland/capsule_desktop_shell/src/state/display_told.rs",
    "userland/capsule_driver_iwlwifi/src/firmware/family.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_settings/src/bluetooth/panel",
    "userland/capsule_settings/src/settings/access/knobs.rs",
    "userland/capsule_settings/src/settings/access/text.rs",
    "userland/capsule_settings/src/settings/access/wire.rs",
@@ -2588,7 +2767,7 @@
   "include": [
    ".cargo",
    "VERSION",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2613,7 +2792,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_shield",
    "userland/libc",
@@ -2638,7 +2817,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_shield_vectors",
    "userland/libc"
   ],
@@ -2651,7 +2830,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2669,7 +2848,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_socks5",
    "userland/libc"
   ],
@@ -2722,7 +2901,7 @@
    ".cargo",
    "VERSION",
    "nonos-bench",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -2755,7 +2934,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2778,7 +2957,7 @@
    "src/fs/blockfs_volume/plan_types.rs",
    "src/hardware/block_device/identify.rs",
    "src/hardware/block_device/store_copy/span.rs",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/syscall/microkernel/store_read.rs",
    "src/syscall/microkernel/store_write.rs",
    "src/userspace/init/app_choice/bits.rs",
@@ -2803,7 +2982,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2821,7 +3000,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/etna/etna-0b0046f5f585.png",
@@ -2864,7 +3043,7 @@
   "include": [
    ".cargo",
    "nonos-data/wallpapers/special-variant-9.jpg",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/assets/icons",
    "userland/capsule_wallpaper",
@@ -2881,7 +3060,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2898,7 +3077,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_wm",
    "userland/libc"
@@ -2949,6 +3128,7 @@
    "userland/capsule_driver_rtl8153/Capsule.mk",
    "userland/capsule_net_core/src/protocol/ops.rs",
    "userland/cdc_ncm_proofs",
+   "userland/libc/src/wait",
    "userland/nonos_mac",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
@@ -2998,7 +3178,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/services/registry/displays.rs",
    "userland/compositor",
    "userland/libc",
@@ -3135,7 +3315,7 @@
   "include": [
    ".cargo",
    "nonos-data/trust/capsules",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace",
    "userland/app_skeleton",
    "userland/assets/icons",
@@ -3206,6 +3386,9 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -3583,6 +3766,16 @@
   "md": [],
   "signed": []
  },
+ "userland/gpio_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/gpio_proofs",
+   "userland/nonos_gpio"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/hda_proofs": {
   "exclude": [],
   "include": [
@@ -3764,7 +3957,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_browser_proofs/fixtures/img/gray_prog.jpg",
    "userland/capsule_browser_proofs/fixtures/img/prog_420.jpg",
@@ -3797,7 +3990,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/base64",
@@ -3864,7 +4057,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_intel_display/data",
    "userland/capsule_driver_intel_display/src/ddc",
    "userland/capsule_driver_intel_display/src/display",
@@ -3965,10 +4158,13 @@
    "userland/capsule_driver_iwlwifi/src/wpa/sha1.rs",
    "userland/capsule_driver_iwlwifi/src/wpa/supplicant",
    "userland/iwlwifi_proofs",
+   "userland/nonos_aes",
+   "userland/nonos_p256",
    "userland/nonos_wifi_client/src/driver/services.rs",
    "userland/nonos_wifi_client/src/join_wire.rs",
    "userland/nonos_wifi_client/src/network.rs",
    "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs"
   ],
   "md": [],
@@ -3986,6 +4182,7 @@
    "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
    "nonos-data/trust/policy/zk_capsule_policy_root.bin",
    "src",
+   "userland/capsule_acpi/Capsule.mk",
    "userland/capsule_driver_usb_msc/src/protocol/errno.rs",
    "userland/capsule_driver_usb_msc/src/scan/interface.rs",
    "userland/capsule_driver_usb_msc/src/scan/report.rs",
@@ -3996,6 +4193,54 @@
   ],
   "md": [],
   "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_ac97.manifest.bin",
+   "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_buslogic.manifest.bin",
+   "nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_gpio.manifest.bin",
+   "nonos-data/trust/capsules/driver_gpio.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_gpio.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_mpt.manifest.bin",
+   "nonos-data/trust/capsules/driver_mpt.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_mpt.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_pcnet.manifest.bin",
+   "nonos-data/trust/capsules/driver_pcnet.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_pcnet.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_piix_ide.manifest.bin",
+   "nonos-data/trust/capsules/driver_piix_ide.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_piix_ide.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_pvscsi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_tulip.manifest.bin",
+   "nonos-data/trust/capsules/driver_tulip.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_tulip.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_virtio_input.manifest.bin",
+   "nonos-data/trust/capsules/driver_virtio_input.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_virtio_input.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.manifest.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_virtio_scsi.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmbus.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmbus.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmbus.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmdev.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmmouse.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmware_svga.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -4169,6 +4414,27 @@
   "md": [],
   "signed": []
  },
+ "userland/mpt_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_mpt/src/constants",
+   "userland/capsule_driver_mpt/src/discover.rs",
+   "userland/capsule_driver_mpt/src/handshake.rs",
+   "userland/capsule_driver_mpt/src/hba.rs",
+   "userland/capsule_driver_mpt/src/ioc.rs",
+   "userland/capsule_driver_mpt/src/regs.rs",
+   "userland/capsule_driver_mpt/src/wait.rs",
+   "userland/mpt_proofs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/net_anon_proofs": {
   "exclude": [],
   "include": [
@@ -4249,6 +4515,119 @@
    "userland/capsule_net_udp/src/state/table.rs",
    "userland/capsule_net_udp/src/udp",
    "userland/net_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_aml_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/s5_choice.rs",
+   "userland/capsule_acpi/src/boot/bringup_say.rs",
+   "userland/capsule_acpi/src/boot/load_rule.rs",
+   "userland/capsule_acpi/src/dpower/wake_sweep.rs",
+   "userland/capsule_acpi/src/sleep",
+   "userland/nonos_aml/src/aei",
+   "userland/nonos_aml/src/apei",
+   "userland/nonos_aml/src/arena",
+   "userland/nonos_aml/src/block.rs",
+   "userland/nonos_aml/src/button",
+   "userland/nonos_aml/src/cpu",
+   "userland/nonos_aml/src/deps",
+   "userland/nonos_aml/src/device_power",
+   "userland/nonos_aml/src/ec",
+   "userland/nonos_aml/src/error.rs",
+   "userland/nonos_aml/src/events",
+   "userland/nonos_aml/src/exec",
+   "userland/nonos_aml/src/fan",
+   "userland/nonos_aml/src/ged",
+   "userland/nonos_aml/src/grammar",
+   "userland/nonos_aml/src/hotplug",
+   "userland/nonos_aml/src/legacy",
+   "userland/nonos_aml/src/load",
+   "userland/nonos_aml/src/motherboard",
+   "userland/nonos_aml/src/namespace",
+   "userland/nonos_aml/src/object",
+   "userland/nonos_aml/src/op",
+   "userland/nonos_aml/src/parse",
+   "userland/nonos_aml/src/pci_dsm",
+   "userland/nonos_aml/src/platform",
+   "userland/nonos_aml/src/platform_device",
+   "userland/nonos_aml/src/ports",
+   "userland/nonos_aml/src/power",
+   "userland/nonos_aml/src/power_meter",
+   "userland/nonos_aml/src/props",
+   "userland/nonos_aml/src/region",
+   "userland/nonos_aml/src/serial",
+   "userland/nonos_aml/src/shape",
+   "userland/nonos_aml/src/sleep",
+   "userland/nonos_aml/src/suspend",
+   "userland/nonos_aml/src/thermal",
+   "userland/nonos_aml/src/time_alarm",
+   "userland/nonos_aml/src/tpm_ppi",
+   "userland/nonos_aml/src/video",
+   "userland/nonos_aml/src/wmi",
+   "userland/nonos_aml_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_bt_bond_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_aes",
+   "userland/nonos_bt_bond",
+   "userland/nonos_bt_bond_proofs",
+   "userland/nonos_bt_smp",
+   "userland/nonos_bt_wire",
+   "userland/nonos_p256"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_bt_hci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_bt_hci",
+   "userland/nonos_bt_hci_proofs",
+   "userland/nonos_bt_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_bt_hogp_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_bt_hogp",
+   "userland/nonos_bt_hogp_proofs",
+   "userland/nonos_bt_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_bt_smp_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_aes",
+   "userland/nonos_bt_smp",
+   "userland/nonos_bt_smp_proofs",
+   "userland/nonos_bt_wire",
+   "userland/nonos_p256"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_bt_wire_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_bt_wire",
+   "userland/nonos_bt_wire_proofs"
   ],
   "md": [],
   "signed": []
@@ -4358,6 +4737,25 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_p256_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_p256",
+   "userland/nonos_p256_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_scsi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_scsi"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_secp256k1": {
   "exclude": [],
   "include": [
@@ -4368,10 +4766,55 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_smbios_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/smbios_copy.rs",
+   "src/hardware/broker/acpi/smbios_entry.rs",
+   "userland/nonos_smbios/src/chassis.rs",
+   "userland/nonos_smbios/src/entry.rs",
+   "userland/nonos_smbios/src/identity.rs",
+   "userland/nonos_smbios/src/quirk",
+   "userland/nonos_smbios/src/structure.rs",
+   "userland/nonos_smbios/src/text.rs",
+   "userland/nonos_smbios/src/walk.rs",
+   "userland/nonos_smbios_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_ucsi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_ucsi/src/capability.rs",
+   "userland/nonos_ucsi/src/command.rs",
+   "userland/nonos_ucsi/src/contract.rs",
+   "userland/nonos_ucsi/src/exchange.rs",
+   "userland/nonos_ucsi/src/layout.rs",
+   "userland/nonos_ucsi/src/offered.rs",
+   "userland/nonos_ucsi/src/pdo.rs",
+   "userland/nonos_ucsi/src/poll.rs",
+   "userland/nonos_ucsi/src/ppm.rs",
+   "userland/nonos_ucsi/src/recover.rs",
+   "userland/nonos_ucsi/src/serve.rs",
+   "userland/nonos_ucsi/src/session.rs",
+   "userland/nonos_ucsi/src/start.rs",
+   "userland/nonos_ucsi/src/status.rs",
+   "userland/nonos_ucsi/src/storm.rs",
+   "userland/nonos_ucsi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_wifi_core_proofs": {
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/nonos_aes",
+   "userland/nonos_mac",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs"
   ],
@@ -4384,6 +4827,7 @@
    ".cargo",
    "src/hardware/nvme_capsule/client/lba_map.rs",
    "userland/capsule_driver_nvme/src/admin/active_ns.rs",
+   "userland/capsule_driver_nvme/src/admin/cc_value.rs",
    "userland/capsule_driver_nvme/src/admin/command",
    "userland/capsule_driver_nvme/src/admin/completion.rs",
    "userland/capsule_driver_nvme/src/admin/completion_step.rs",
@@ -4527,6 +4971,61 @@
   "md": [],
   "signed": []
  },
+ "userland/pcnet_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_pcnet/src/constants",
+   "userland/capsule_driver_pcnet/src/init/chip.rs",
+   "userland/capsule_driver_pcnet/src/init/finish.rs",
+   "userland/capsule_driver_pcnet/src/init/hold.rs",
+   "userland/capsule_driver_pcnet/src/init/init_block.rs",
+   "userland/capsule_driver_pcnet/src/init/reset.rs",
+   "userland/capsule_driver_pcnet/src/init/run.rs",
+   "userland/capsule_driver_pcnet/src/init/start.rs",
+   "userland/capsule_driver_pcnet/src/init/station_address.rs",
+   "userland/capsule_driver_pcnet/src/protocol",
+   "userland/capsule_driver_pcnet/src/queue",
+   "userland/capsule_driver_pcnet/src/regs/csr.rs",
+   "userland/capsule_driver_pcnet/src/report",
+   "userland/capsule_driver_pcnet/src/server/handlers/rx_fill.rs",
+   "userland/capsule_driver_pcnet/src/server/handlers/tx_stage.rs",
+   "userland/capsule_driver_pcnet/src/setup/driver.rs",
+   "userland/capsule_driver_pcnet/src/setup/grant.rs",
+   "userland/capsule_driver_pcnet/src/setup/pci.rs",
+   "userland/nonos_mac",
+   "userland/pcnet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/piix_ide_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/table/legacy_ide.rs",
+   "userland/capsule_driver_piix_ide/src/channel",
+   "userland/capsule_driver_piix_ide/src/constants",
+   "userland/capsule_driver_piix_ide/src/discover.rs",
+   "userland/capsule_driver_piix_ide/src/disk",
+   "userland/capsule_driver_piix_ide/src/io",
+   "userland/capsule_driver_piix_ide/src/regs",
+   "userland/capsule_driver_piix_ide/src/say",
+   "userland/capsule_driver_piix_ide/src/server/dispatch.rs",
+   "userland/capsule_driver_piix_ide/src/server/endpoint.rs",
+   "userland/capsule_driver_piix_ide/src/server/handlers.rs",
+   "userland/capsule_driver_piix_ide/src/server/medium.rs",
+   "userland/capsule_driver_piix_ide/src/server/reply.rs",
+   "userland/capsule_driver_piix_ide/src/server/runner.rs",
+   "userland/capsule_driver_piix_ide/src/server/rw.rs",
+   "userland/capsule_driver_piix_ide/src/setup",
+   "userland/capsule_driver_piix_ide/src/wait.rs",
+   "userland/capsule_driver_piix_ide/src/wire",
+   "userland/piix_ide_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/pinctrl_proofs": {
   "exclude": [],
   "include": [
@@ -4623,6 +5122,26 @@
   "md": [],
   "signed": []
  },
+ "userland/pvscsi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_pvscsi/src/adapter.rs",
+   "userland/capsule_driver_pvscsi/src/constants",
+   "userland/capsule_driver_pvscsi/src/discover.rs",
+   "userland/capsule_driver_pvscsi/src/hba.rs",
+   "userland/capsule_driver_pvscsi/src/regs.rs",
+   "userland/capsule_driver_pvscsi/src/wait.rs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire",
+   "userland/pvscsi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/rndis_proofs": {
   "exclude": [],
   "include": [
@@ -4634,6 +5153,7 @@
    "userland/capsule_driver_rndis/src/rndis",
    "userland/capsule_driver_rtl8153/Capsule.mk",
    "userland/capsule_net_core/src/protocol/ops.rs",
+   "userland/libc/src/wait",
    "userland/nonos_mac",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
@@ -4723,6 +5243,7 @@
    "userland/capsule_driver_rtl8153/Capsule.mk",
    "userland/capsule_driver_rtl8153/src/r8153",
    "userland/capsule_net_core/src/protocol/ops.rs",
+   "userland/libc/src/wait",
    "userland/nonos_mac",
    "userland/nonos_usbnet/src/bind.rs",
    "userland/nonos_usbnet/src/bus.rs",
@@ -4781,7 +5302,10 @@
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
+   "userland/nonos_aes",
+   "userland/nonos_p256",
    "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
    "userland/rtl8821ce_proofs"
   ],
@@ -4841,7 +5365,7 @@
   "include": [
    ".cargo",
    "VERSION",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/kernel_core/init/framebuffer/hidpi.rs",
    "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
@@ -5004,7 +5528,7 @@
   "include": [
    ".cargo",
    "VERSION",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
    "src/userspace/tool_capsules/registry.rs",
@@ -5223,7 +5747,7 @@
    "src/fs/blockfs_volume/plan_types.rs",
    "src/hardware/block_device/identify.rs",
    "src/hardware/block_device/store_copy/span.rs",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "src/syscall/microkernel/store_read.rs",
    "src/syscall/microkernel/store_write.rs",
    "src/userspace/init/app_choice/bits.rs",
@@ -5253,7 +5777,7 @@
   ],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/libc",
    "userland/toolkit"
@@ -5326,6 +5850,34 @@
    "src/security/tpm/machine_key/session.rs",
    "src/security/tpm/machine_key/wire.rs",
    "userland/tpm_key_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/tulip_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_tulip/src/constants",
+   "userland/capsule_driver_tulip/src/discover.rs",
+   "userland/capsule_driver_tulip/src/init/finish.rs",
+   "userland/capsule_driver_tulip/src/init/hold.rs",
+   "userland/capsule_driver_tulip/src/init/reset.rs",
+   "userland/capsule_driver_tulip/src/init/run.rs",
+   "userland/capsule_driver_tulip/src/init/setup_frame.rs",
+   "userland/capsule_driver_tulip/src/init/start.rs",
+   "userland/capsule_driver_tulip/src/init/station_address.rs",
+   "userland/capsule_driver_tulip/src/protocol",
+   "userland/capsule_driver_tulip/src/queue",
+   "userland/capsule_driver_tulip/src/regs/csr.rs",
+   "userland/capsule_driver_tulip/src/report",
+   "userland/capsule_driver_tulip/src/server/handlers/rx_fill.rs",
+   "userland/capsule_driver_tulip/src/server/handlers/tx_stage.rs",
+   "userland/capsule_driver_tulip/src/setup/driver.rs",
+   "userland/capsule_driver_tulip/src/setup/grant.rs",
+   "userland/capsule_driver_tulip/src/setup/pci.rs",
+   "userland/nonos_mac",
+   "userland/tulip_proofs"
   ],
   "md": [],
   "signed": []
@@ -5581,7 +6133,7 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_virtio_blk/src",
    "userland/libc/src/bringup",
    "userland/libc/src/broker",
@@ -5616,6 +6168,30 @@
   "md": [],
   "signed": []
  },
+ "userland/virtio_input_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ps2_input/src/keymap/set1",
+   "userland/capsule_driver_ps2_input/src/keymap/set1_e0.rs",
+   "userland/capsule_driver_virtio_input/src/constants",
+   "userland/capsule_driver_virtio_input/src/events",
+   "userland/capsule_driver_virtio_input/src/init/axes.rs",
+   "userland/capsule_driver_virtio_input/src/init/name.rs",
+   "userland/capsule_driver_virtio_input/src/keyboard/codes",
+   "userland/capsule_driver_virtio_input/src/keyboard/modifiers.rs",
+   "userland/capsule_driver_virtio_input/src/keyboard/publish.rs",
+   "userland/capsule_driver_virtio_input/src/keyboard/state.rs",
+   "userland/capsule_driver_virtio_input/src/post.rs",
+   "userland/capsule_driver_virtio_input/src/queue",
+   "userland/libc/src/surface_registry/abs.rs",
+   "userland/nonos_keymap",
+   "userland/nonos_virtio",
+   "userland/virtio_input_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/virtio_net_proofs": {
   "exclude": [],
   "include": [
@@ -5639,6 +6215,28 @@
   "md": [],
   "signed": []
  },
+ "userland/virtio_scsi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_scsi/src/constants",
+   "userland/capsule_driver_virtio_scsi/src/discover.rs",
+   "userland/capsule_driver_virtio_scsi/src/hba.rs",
+   "userland/capsule_driver_virtio_scsi/src/queue",
+   "userland/capsule_driver_virtio_scsi/src/setup/handshake.rs",
+   "userland/capsule_driver_virtio_scsi/src/wait.rs",
+   "userland/nonos_scsi",
+   "userland/nonos_scsi_serve/src/say",
+   "userland/nonos_scsi_serve/src/server",
+   "userland/nonos_scsi_serve/src/units.rs",
+   "userland/nonos_scsi_serve/src/wire",
+   "userland/nonos_virtio",
+   "userland/virtio_scsi_proofs",
+   "userland/virtio_transport_proofs/src/tests/device.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/virtio_transport_proofs": {
   "exclude": [],
   "include": [
@@ -5654,6 +6252,117 @@
    "userland/nonos_virtio/src/pci",
    "userland/nonos_virtio/src/select.rs",
    "userland/virtio_transport_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmbus_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/hypervisor/hv/regs.rs",
+   "src/arch/x86_64/hypervisor/hv/vmbus_out.rs",
+   "userland/capsule_driver_vmbus/src/connect.rs",
+   "userland/capsule_driver_vmbus/src/constants.rs",
+   "userland/capsule_driver_vmbus/src/discover.rs",
+   "userland/capsule_driver_vmbus/src/guid.rs",
+   "userland/capsule_driver_vmbus/src/hv.rs",
+   "userland/capsule_driver_vmbus/src/msg.rs",
+   "userland/capsule_driver_vmbus/src/offers.rs",
+   "userland/capsule_driver_vmbus/src/say.rs",
+   "userland/capsule_driver_vmbus/src/serve.rs",
+   "userland/capsule_driver_vmbus/src/setup",
+   "userland/capsule_driver_vmbus/src/wait.rs",
+   "userland/vmbus_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmmdev_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_vmmdev/src/constants",
+   "userland/capsule_driver_vmmdev/src/discover.rs",
+   "userland/capsule_driver_vmmdev/src/post.rs",
+   "userland/capsule_driver_vmmdev/src/regs",
+   "userland/capsule_driver_vmmdev/src/req",
+   "userland/capsule_driver_vmmdev/src/say.rs",
+   "userland/capsule_driver_vmmdev/src/serve.rs",
+   "userland/capsule_driver_vmmdev/src/setup/claim.rs",
+   "userland/capsule_driver_vmmdev/src/setup/driver.rs",
+   "userland/capsule_driver_vmmdev/src/setup/grants.rs",
+   "userland/capsule_driver_vmmdev/src/setup/page.rs",
+   "userland/capsule_driver_vmmdev/src/setup/sequence.rs",
+   "userland/libc/src/surface_registry/abs.rs",
+   "userland/vmmdev_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmmouse_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/hypervisor/backdoor_rule.rs",
+   "src/arch/x86_64/hypervisor/vendor.rs",
+   "userland/capsule_driver_vmmouse/src/backdoor.rs",
+   "userland/capsule_driver_vmmouse/src/constants.rs",
+   "userland/capsule_driver_vmmouse/src/packet.rs",
+   "userland/capsule_driver_vmmouse/src/post.rs",
+   "userland/capsule_driver_vmmouse/src/say.rs",
+   "userland/capsule_driver_vmmouse/src/serve.rs",
+   "userland/capsule_driver_vmmouse/src/setup.rs",
+   "userland/libc/src/surface_registry/abs.rs",
+   "userland/vmmouse_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmware_svga_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_vmware_svga/src/constants",
+   "userland/capsule_driver_vmware_svga/src/discover.rs",
+   "userland/capsule_driver_vmware_svga/src/fifo",
+   "userland/capsule_driver_vmware_svga/src/init",
+   "userland/capsule_driver_vmware_svga/src/protocol",
+   "userland/capsule_driver_vmware_svga/src/regs/svga.rs",
+   "userland/capsule_driver_vmware_svga/src/screen",
+   "userland/capsule_driver_vmware_svga/src/server/dispatch.rs",
+   "userland/capsule_driver_vmware_svga/src/server/handlers",
+   "userland/capsule_driver_vmware_svga/src/server/respond.rs",
+   "userland/capsule_driver_vmware_svga/src/setup",
+   "userland/vmware_svga_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/vmxnet3_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_vmxnet3/src/constants",
+   "userland/capsule_driver_vmxnet3/src/init/activate.rs",
+   "userland/capsule_driver_vmxnet3/src/init/finish.rs",
+   "userland/capsule_driver_vmxnet3/src/init/run.rs",
+   "userland/capsule_driver_vmxnet3/src/init/shared_area.rs",
+   "userland/capsule_driver_vmxnet3/src/init/station_address.rs",
+   "userland/capsule_driver_vmxnet3/src/init/version.rs",
+   "userland/capsule_driver_vmxnet3/src/protocol",
+   "userland/capsule_driver_vmxnet3/src/queue",
+   "userland/capsule_driver_vmxnet3/src/regs/device.rs",
+   "userland/capsule_driver_vmxnet3/src/regs/doorbell.rs",
+   "userland/capsule_driver_vmxnet3/src/report",
+   "userland/capsule_driver_vmxnet3/src/server/handlers/rx_fill.rs",
+   "userland/capsule_driver_vmxnet3/src/server/handlers/tx_stage.rs",
+   "userland/capsule_driver_vmxnet3/src/setup/driver.rs",
+   "userland/capsule_driver_vmxnet3/src/setup/grant.rs",
+   "userland/capsule_driver_vmxnet3/src/setup/pci.rs",
+   "userland/capsule_driver_vmxnet3/src/shared",
+   "userland/nonos_mac",
+   "userland/vmxnet3_proofs"
   ],
   "md": [],
   "signed": []
@@ -5711,7 +6420,7 @@
   "include": [
    ".cargo",
    "nonos-data/wallpapers",
-   "src/hardware/broker/acpi",
+   "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/capsule_wallpaper/src/catalog_client",
    "userland/capsule_wallpaper/src/paint/decode_jpeg.rs",
@@ -5738,9 +6447,12 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/nonos_seal",
    "userland/nonos_wifi_client/src/driver/fw_step.rs",
    "userland/nonos_wifi_client/src/join_wire.rs",
    "userland/nonos_wifi_client/src/network.rs",
+   "userland/nonos_wifi_client/src/saved/error.rs",
+   "userland/nonos_wifi_client/src/saved/file.rs",
    "userland/nonos_wifi_client/src/saved/list.rs",
    "userland/nonos_wifi_client/src/saved/list_codec.rs",
    "userland/nonos_wifi_client/src/wipe.rs",
@@ -5799,6 +6511,7 @@
    "userland/capsule_driver_xhci/src/setup",
    "userland/capsule_driver_xhci/src/slots",
    "userland/capsule_driver_xhci/src/trb",
+   "userland/libc/src/wait",
    "userland/nonos_devmodel",
    "userland/xhci_proofs"
   ],

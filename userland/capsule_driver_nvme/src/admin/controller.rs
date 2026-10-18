@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cc_value::cc_value;
 use super::disable_step::{await_ready_before_disable, disable_start, DisableStart};
 use super::ready_wait::wait_ready;
 use crate::clock::uptime_ms;
-use crate::constants::{CC_EN, CC_IOCQES_16, CC_IOSQES_64, REG_CC, REG_CSTS};
+use crate::constants::{REG_CC, REG_CSTS};
 use crate::controller::ControllerInfo;
 use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
@@ -40,10 +41,7 @@ pub fn reset_to_disabled(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
 }
 
 pub fn enable(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
-    if info.min_page_shift() != 12 {
-        return Err(NvmeError::UnsupportedPageSize);
-    }
-    let cc = CC_EN | CC_IOSQES_64 | CC_IOCQES_16;
+    let cc = cc_value(info.cap)?;
     // SAFETY: CC and CSTS lie in the register block's first 0x40 bytes,
     // inside the window bring-up mapped (ControllerInfo::read).
     unsafe { regs.w32(REG_CC, cc) };

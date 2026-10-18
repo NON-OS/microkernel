@@ -22,4 +22,5 @@
 
 #[path = "../../../../src/hardware/broker/dma/placement.rs"]
 pub mod placement;
+mod stop;
 mod tests;

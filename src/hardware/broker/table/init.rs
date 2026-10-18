@@ -22,7 +22,7 @@ use crate::drivers::pci::types::PciDevice;
 use crate::hardware::broker::DeviceRecord;
 
 use super::pci_record::record_from_pci;
-use super::state::TABLE;
+use super::state::{next_id, TABLE};
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 pub fn init_from_pci(devices: &[PciDevice]) {
@@ -44,8 +44,27 @@ pub fn init_from_pci(devices: &[PciDevice]) {
 
 pub(in crate::hardware::broker) fn register_platform_device(mut record: DeviceRecord) -> u64 {
     let mut table = TABLE.write();
-    let next = table.iter().map(|r| r.device_id).max().map(|m| m + 1);
-    record.device_id = next.unwrap_or(0x1_0000_0000);
+    let max = table.iter().map(|r| r.device_id).max();
+    record.device_id = next_id(max, 0x1_0000_0000);
     table.push(record);
     record.device_id
+}
+
+/// A PCI function that answered only after firmware powered it up (`_PS0`),
+/// added after the boot scan under the next free id, with its index handle.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+/// `disabled` marks a function no driver may claim (its BARs unassigned).
+pub(in crate::hardware::broker) fn add_pci_function(dev: &PciDevice, disabled: bool) -> u64 {
+    let external = super::external::flag_for(&dev.address);
+    let mut table = TABLE.write();
+    let id = next_id(table.iter().map(|r| r.device_id).max(), 0);
+    let mut record = record_from_pci(id, dev);
+    record.flags |= external;
+    if disabled {
+        record.flags |= crate::hardware::broker::DEVICE_FLAG_DISABLED;
+    }
+    table.push(record);
+    let (address, bars, msi, msix) = (dev.address, dev.bars, dev.msi, dev.msix);
+    pci_index::push(PciHandle { device_id: id, address, bars, msi, msix });
+    id
 }

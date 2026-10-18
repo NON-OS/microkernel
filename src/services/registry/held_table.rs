@@ -23,16 +23,31 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.e1000_0", WIRED_STACK),
     ("driver.rtl8169_0", WIRED_STACK),
     ("driver.rtl8139_0", WIRED_STACK),
+    ("driver.pcnet0", WIRED_STACK),
+    ("driver.vmxnet3_0", WIRED_STACK),
+    ("driver.tulip0", WIRED_STACK),
     ("driver.iwlwifi0", WIFI_STACK),
     ("driver.rtl8821ce0", WIFI_STACK),
+    ("driver.bt_usb0", BLUETOOTH_PANELS),
     ("driver.ps2_kbd0", KERNEL_ONLY),
     ("driver.usb_hid0", KERNEL_ONLY),
     ("driver.i2c_hid0", KERNEL_ONLY),
+    ("driver.virtio_input0", KERNEL_ONLY),
+    ("driver.vmmdev0", KERNEL_ONLY),
+    ("driver.vmmouse0", KERNEL_ONLY),
+    ("driver.vmbus0", KERNEL_ONLY),
     ("driver.usb_msc0", KERNEL_ONLY),
     ("driver.virtio_rng", KERNEL_ONLY),
     ("driver.xhci0", &["driver.usb_hid0", "driver.usb_msc0"]),
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.hda0", &["audio.server"]),
+    ("driver.ac97_0", &["audio.server"]),
+    // The GPIO controller's pins are held by the bus controller whose
+    // device's GpioInt names them; more holders join as their drivers do.
+    ("driver.gpio0", &["driver.i2c_pci0"]),
+    ("acpi", &["power", "desktop_shell", "driver.i2c_pci0", "driver.i2c_hid0", "driver.gpio0"]),
+    // The wiped power-off: only the shell asks for it (F-88).
+    ("power.off", &["desktop_shell"]),
 ];
 
 /// A display driver shows whatever it is given over the whole screen: only
@@ -52,3 +67,9 @@ const WIRED_STACK: &[&str] = &["net.core", "net.l2"];
 /// binds only a wired card.
 const WIFI_STACK: &[&str] =
     &["net.core", "app.settings", "app.settings.1", "app.settings.2", "app.setup_wizard"];
+
+/// The Bluetooth host answers Settings, which scans, pairs and forgets in any
+/// of its windows, and the shell, which shows the link and battery levels;
+/// the capsule checks each op again (letter E-25).
+const BLUETOOTH_PANELS: &[&str] =
+    &["app.settings", "app.settings.1", "app.settings.2", "desktop_shell"];

@@ -16,6 +16,7 @@
  */
 .intel_syntax noprefix
 .text
+#include "clear_ac.inc"
 #include "gprs.inc"
 
 /* The shared body every numbered gate jumps to, with vector and error code
@@ -32,6 +33,7 @@ interrupt_common:
 1:
     PUSH_GPRS
     cld
+    CLEAR_AC
     mov     ax, ds
     push    rax
     mov     ax, 0x10

@@ -1,0 +1,27 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The driver's live state and the DMA grant rule, without the broker
+//! sequence that builds the state; the tests build one over host memory.
+
+#[path = "../../../capsule_driver_vmxnet3/src/setup/driver.rs"]
+mod driver;
+#[path = "../../../capsule_driver_vmxnet3/src/setup/grant.rs"]
+pub mod grant;
+#[path = "../../../capsule_driver_vmxnet3/src/setup/pci.rs"]
+pub mod pci;
+
+pub use driver::Driver;

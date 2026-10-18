@@ -27,6 +27,9 @@ use crate::services::registry::displays::is_display;
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
 const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
+// The same paths in a virtual machine (its network cards: PACKET_PATH_VM).
+const INTERACTIVE_VM: [&str; 4] =
+    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers and
@@ -50,6 +53,7 @@ const PACKET_PATH: [&str; 7] = [
     "driver.rtl8821ce0",
     "net.core",
 ];
+const PACKET_PATH_VM: [&str; 3] = ["driver.pcnet0", "driver.vmxnet3_0", "driver.tulip0"];
 
 /*
  * The disk drivers. Each waits in `mk_ipc_recv_from` with no timeout and
@@ -60,11 +64,27 @@ const PACKET_PATH: [&str; 7] = [
  */
 const STORAGE_PATH: [&str; 4] =
     ["driver.virtio_blk0", "driver.ahci0", "driver.nvme0", "driver.usb_msc0"];
+// The same in a virtual machine: its disk controllers poll a request out,
+// yielding and then sleeping a millisecond between looks.
+const STORAGE_PATH_VM: [&str; 5] = [
+    "driver.piix_ide0",
+    "driver.virtio_scsi0",
+    "driver.pvscsi0",
+    "driver.buslogic0",
+    "driver.mpt0",
+];
 
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    let interactive = INTERACTIVE.contains(&name) || is_display(name);
-    if interactive || PACKET_PATH.contains(&name) || STORAGE_PATH.contains(&name) {
+    let bands: [&[&str]; 6] = [
+        &INTERACTIVE,
+        &INTERACTIVE_VM,
+        &PACKET_PATH,
+        &PACKET_PATH_VM,
+        &STORAGE_PATH,
+        &STORAGE_PATH_VM,
+    ];
+    if is_display(name) || bands.iter().any(|band| band.contains(&name)) {
         Priority::High
     } else {
         Priority::Normal
