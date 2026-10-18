@@ -13,10 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The kernel's record of one ACPI-declared HID-over-I2C device, and which
-//! controller it names.
+//! An ACPI-declared HID-over-I2C device, as the kernel's record carries it;
+//! which controller it names is in pairing.rs.
 
-use super::found::Found;
 use crate::constants::HID_INFO_TEN_BIT;
 
 /// An ACPI-declared HID-over-I2C device, as the kernel's record carries it.
@@ -29,9 +28,9 @@ pub struct AcpiTouchpad {
     pub desc_reg: u16,
     /// The controller index the `_CRS` ResourceSource "I2Cn" names.
     pub controller_idx: Option<u8>,
-    /// MMIO base of the platform controller the ResourceSource names, zero
-    /// when it is a PCI function or unresolved.
-    pub host_base: u64,
+    /// The device_id of the controller the ResourceSource names, as the
+    /// kernel resolved it; None when it resolved none.
+    pub host: Option<u64>,
     /// The controller's ACPI NameSeg, for the console.
     pub host_name: [u8; 4],
     /// ConnectionSpeed in Hz, zero when unknown.
@@ -47,20 +46,6 @@ impl AcpiTouchpad {
     /// A 7-bit address is declared, so the device can be addressed.
     pub fn addressed(&self) -> bool {
         self.addr != 0 && self.info & HID_INFO_TEN_BIT == 0
-    }
-
-    /// The ResourceSource resolved to no controller this driver can match.
-    pub fn names_none(&self) -> bool {
-        self.controller_idx.is_none() && self.host_base == 0
-    }
-
-    /// Whether `dev` is the controller this record's ResourceSource names.
-    pub fn names(&self, dev: &Found, index_of: impl Fn(u16) -> Option<u8>) -> bool {
-        if dev.is_acpi {
-            self.host_base != 0 && self.host_base == dev.bar0_base
-        } else {
-            self.controller_idx.is_some() && index_of(dev.pci_device) == self.controller_idx
-        }
     }
 
     /// The device asks for a bus speed below fast mode.

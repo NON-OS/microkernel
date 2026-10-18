@@ -31,6 +31,8 @@ pub struct SurfaceDescriptor {
     pub byte_len: u64,
     pub base_va: u64,
     pub flags: u64,
+    pub owner_pid: u32,
+    pub writable: u32,
 }
 
 thread_local! {
@@ -66,8 +68,4 @@ pub fn mk_surface_register(desc: *const SurfaceDescriptor) -> i64 {
     // SAFETY: the caller hands a live descriptor.
     SURFACES.with(|s| s.borrow_mut().push(unsafe { *desc }));
     3
-}
-
-pub fn mk_surface_share(sid: u64) -> i64 {
-    0x5000 + sid as i64
 }

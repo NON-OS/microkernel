@@ -1,0 +1,20 @@
+program_hash 3fcb74834a5403037442828cc901d096eafb195fd4888800406cd50fc1ae0362
+periodic_root 2fbd5a479aaab219ef345b11b11f845c1b50eaf6fb87db8117226532f56f6c6b
+params ea501bb109866b36869531367eb72405a7f02b17cfab28726c2e19566aa08c44
+queries 26
+grind_bits 28
+extra_blowup_bits 5
+words 8
+trace_width 37
+region_width 29
+window 2
+constraint_degree 8
+mask_pair Some((35, 36))
+challenge_lanes 2
+program_bytes 7678
+log_domain 23
+fri_log_blowup 6
+n_periodic 43
+public_words 8
+transitions 36
+boundaries 28

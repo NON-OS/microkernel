@@ -19,6 +19,7 @@ mod capsule_boot;
 mod entry;
 mod instance_spawn;
 mod linux_jobs;
+mod prove_job;
 use instance_spawn::set_drain_priority as set_init_priority;
 mod spawn_plan;
 mod supervisor;
@@ -30,6 +31,10 @@ pub(crate) use linux_jobs::{
 };
 pub(crate) use linux_jobs::has_pending as installs_pending;
 pub(crate) use linux_jobs::service as service_installs;
+pub(crate) use prove_job::{
+    has_pending as prove_job_pending, request as request_prove_job, service as service_prove_job,
+    ask_for as prove_job_ask, Caller as ProveCaller,
+};
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
 pub(crate) use instance_spawn::service as service_instance_spawns;
 pub use instance_spawn::{request as request_instance, PendingApp};

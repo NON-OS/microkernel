@@ -33,4 +33,7 @@ pub enum IommuError {
     AmdViNotDriven,
     /// The firmware described neither a DMAR remapping unit nor an IVRS table.
     NoIommu,
+    /// A failed map whose entries the unit may still hold: its frames must
+    /// never be freed or reused (plan/50 P5).
+    Stranded,
 }

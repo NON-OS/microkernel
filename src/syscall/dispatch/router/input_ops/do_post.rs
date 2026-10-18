@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::consts::{EFAULT, ENOMEM};
-use crate::kernel_core::surface_registry::{post_input, InputEvent};
+use crate::kernel_core::surface_registry::{post_input_from, InputEvent};
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::SyscallResult;
 use crate::usercopy::read_user_value;
@@ -28,7 +28,9 @@ pub(super) fn do_post(ev_ptr: u64) -> SyscallResult {
     if option_env!("NONOS_FBCONSOLE").is_some() {
         crate::interrupts::timer::heartbeat::input_post_blip();
     }
-    match post_input(ev) {
+    // Stamped with the caller's source over its own high byte (K8b).
+    let pid = crate::process::current_pid().unwrap_or(0);
+    match post_input_from(pid, ev) {
         Ok(()) => SyscallResult::success_audited(0),
         Err(_) => errno(ENOMEM),
     }

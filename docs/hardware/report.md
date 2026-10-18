@@ -4,7 +4,7 @@ Tell the NONOS team what NONOS 0.9.2 did on your machine, so it can enter the [s
 
 ## What a useful report holds
 
-- Which image you ran: the file name and where it came from, or, if you built it, the commit and the [build profile](../overview/glossary.md#build-profile) (Standard, Hardened, Air-Gapped, QEMU).
+- Which image you ran: the file name and where it came from, or, if you built it, the commit and the [build profile](../overview/glossary-boot-root-record.md#build-profile) (Standard, Hardened, Air-Gapped, QEMU).
 - The CPU family and the memory size, for example Intel Gemini Lake, 8 GB.
 - The ids of the chips that matter: PCI vendor:device for controllers, USB vendor:product for adapters.
 - The NONOS log lines for those devices.
@@ -14,7 +14,7 @@ A device that works is worth reporting too. The matrix lists real hardware only 
 
 ## Read the log in the NONOS Terminal
 
-You do not need a serial port. The kernel keeps what it writes to its [serial console](../overview/glossary.md#serial-console) in memory: the first 64 KiB of the boot for good, then the latest 64 KiB. The Terminal's `log` command reads it back.
+You do not need a serial port. The kernel keeps what it writes to its [serial console](../overview/glossary-rollback-index.md#serial-console) in memory: the first 64 KiB of the boot for good, then the latest 64 KiB. The Terminal's `log` command reads it back.
 
 ```mermaid
 flowchart LR
@@ -38,9 +38,9 @@ log warn error
 
 Not tested in this release.
 
-`log` alone shows the newest 200 lines. With words, it shows every line that names any of them, ignoring case. Like any command, its output can go to a file, as in `log hda > hda-log.txt`. That file lives in the [file store](../overview/glossary.md#file-store), in memory, and NONOS 0.9.2 cannot copy it to a USB stick. To take it off the machine, `push hda-log.txt host:port/path` sends it as an HTTP PUT to a server on your network that accepts uploads, and only when the default network is Direct. Otherwise copy the lines you need by hand.
+`log` alone shows the newest 200 lines. With words, it shows every line that names any of them, ignoring case. Like any command, its output can go to a file, as in `log hda > hda-log.txt`. That file lives in the [file store](../overview/glossary-dma-pool.md#file-store), in memory, and NONOS 0.9.2 cannot copy it to a USB stick. To take it off the machine, `push hda-log.txt host:port/path` sends it as an HTTP PUT to a server on your network that accepts uploads, and only when the default network is Direct. Otherwise copy the lines you need by hand.
 
-The log is there only on images built with `capsule-serial-debug`: Standard, QEMU and [development images](../overview/glossary.md#development-image). A Hardened or Air-Gapped image keeps nothing, and `log` answers `log: no line matches`. On such an image the kernel's lines still reach a serial port, if the machine has one. They do not reach the screen: the kernel's on-screen boot log is off unless the kernel is built with `NONOS_FBCONSOLE=1`, which no build profile sets (see [Logging](../kernel/logging.md)). Without a serial port, describe what the screen and Settings showed instead.
+The log is there only on images built with `capsule-serial-debug`: Standard, QEMU and [development images](../overview/glossary-claim-epoch.md#development-image). A Hardened or Air-Gapped image keeps nothing, and `log` answers `log: no line matches`. On such an image the kernel's lines still reach a serial port, if the machine has one. They do not reach the screen: the kernel's on-screen boot log is off unless the kernel is built with `NONOS_FBCONSOLE=1`, which no build profile sets (see [Logging](../kernel/logging.md)). Without a serial port, describe what the screen and Settings showed instead.
 
 ## What the lines mean
 
@@ -56,7 +56,7 @@ The log is there only on images built with `capsule-serial-debug`: Standard, QEM
 
 The kernel writes the `[DRIVER-...]` lines when it starts a driver or decides not to, and the `[EXIT]` line when a driver ends with any status other than 0, in words for status 2 and 6 and as `ended with an error` for the rest. A driver ended by a signal gets no `[EXIT]` line; a fault has the trap handler's line already.
 
-A driver writes lines of its own only when the kernel grants it the Debug [capability](../overview/glossary.md#capability). The sound, NVMe, RTL8821CE Wi-Fi and I2C-HID touchpad drivers get it, and so do the virtio disk, network and display drivers. The PS/2, I2C controller, xHCI, USB HID, USB storage, AHCI, Intel Wi-Fi and wired Ethernet drivers are started without it. For those drivers the kernel's `[DRIVER-...]` and `[EXIT]` lines are all the log has.
+A driver writes lines of its own only when the kernel grants it the Debug [capability](../overview/glossary-boot-root-record.md#capability). The sound, NVMe, RTL8821CE Wi-Fi and I2C-HID touchpad drivers get it, and so do the virtio disk, network and display drivers. The PS/2, I2C controller, xHCI, USB HID, USB storage, AHCI, Intel Wi-Fi and wired Ethernet drivers are started without it. For those drivers the kernel's `[DRIVER-...]` and `[EXIT]` lines are all the log has.
 
 Three more Terminal commands help:
 
@@ -68,7 +68,7 @@ display
 
 Not tested in this release.
 
-`version` names the release and who signed the Terminal. `capsules` lists every [capsule](../overview/glossary.md#capsule) running, with the capabilities the kernel granted it, so you can see which drivers are up. `display` prints the screen size.
+`version` names the release and who signed the Terminal. `capsules` lists every [capsule](../overview/glossary-boot-root-record.md#capsule) running, with the capabilities the kernel granted it, so you can see which drivers are up. `display` prints the screen size.
 
 ## Read the ids on another operating system
 

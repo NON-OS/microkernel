@@ -19,11 +19,12 @@
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
+use super::control::{CONTROL, EVENT_LOG_EN};
 use super::error::AmdViError;
 use super::mmio::Unit;
 use super::regs;
 use crate::arch::x86_64::acpi::parser::other::ivrs_walk::MAX_AMD_IOMMUS;
-use crate::arch::x86_64::iommu::tables::frame::allocate_table;
+use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
 
 const NONE: AtomicU64 = AtomicU64::new(0);
 
@@ -50,4 +51,25 @@ pub(super) unsafe fn attach_log(index: usize, unit: &Unit) -> Result<(), AmdViEr
         unit.write64(regs::EVENT_TAIL, 0);
     }
     Ok(())
+}
+
+/// After an overflow a unit logs nothing more until EventLogEn is cycled
+/// (K12): off, the overflow cleared, the log emptied, on again, as Linux
+/// restarts it (amd/init.c, amd_iommu_restart_event_logging).
+pub(super) fn restart_log(index: usize, unit: &Unit) {
+    let (Some(control), Some(slot)) = (unit.read64(CONTROL), LOGS.get(index)) else {
+        return;
+    };
+    if let Ok(words) = entries_mut(slot.load(Ordering::Acquire)) {
+        words.fill(0);
+    }
+    // SAFETY: eK@nonos.systems - logging is off while the pointers move, and
+    // the page stays the kernel's; nothing here maps or translates.
+    unsafe {
+        unit.write64(CONTROL, control & !EVENT_LOG_EN);
+        unit.write64(regs::STATUS, regs::STATUS_EVENT_OVERFLOW);
+        unit.write64(regs::EVENT_HEAD, 0);
+        unit.write64(regs::EVENT_TAIL, 0);
+        unit.write64(CONTROL, control | EVENT_LOG_EN);
+    }
 }

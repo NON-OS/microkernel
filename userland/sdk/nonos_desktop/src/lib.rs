@@ -28,5 +28,5 @@ mod wm;
 pub use compositor::{damage_commit, scene_remove, scene_submit};
 pub use input::drain_input;
 pub use input_router::subscribe;
-pub use peers::{lookup_peers, Peers};
+pub use peers::{compositor_pid, lookup_peers, Peers};
 pub use wm::{window_close, window_focus, window_open};

@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The primary surface the compositor draws into: the capsule's own memory,
-//! registered with the kernel and shared by handle. The framebuffer itself
-//! is never handed out; a device page in another process's map would
-//! outlive the broker's revocation of this capsule's grant.
+//! registered with the kernel and shared with the compositor alone at its
+//! get_primary (K20). The framebuffer itself is never handed out; a device
+//! page in another process's map would outlive the broker's revocation of
+//! this capsule's grant.
 
 use nonos_libc::{
-    mk_mmap, mk_munmap, mk_surface_register, mk_surface_share, SurfaceDescriptor,
-    SURFACE_FORMAT_ARGB8888,
+    mk_mmap, mk_munmap, mk_surface_register, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
 };
 
 use crate::constants::mode::BYTES_PER_PIXEL;
@@ -30,7 +30,8 @@ use crate::screen::Plane;
 const PROT_READ_WRITE: i32 = 0x1 | 0x2;
 const MAP_PRIVATE_ANON: i32 = 0x02 | 0x20;
 
-/// The surface's plane and its shareable handle.
+/// The surface's plane and the id the kernel registered it under. The
+/// driver draws through its own mapping and takes no handle of its own.
 pub fn create(width: u32, height: u32) -> Result<(Plane, u64), &'static str> {
     let stride = width * BYTES_PER_PIXEL;
     let bytes = (stride as u64 * height as u64 + 0xFFF) & !0xFFF;
@@ -46,13 +47,12 @@ pub fn create(width: u32, height: u32) -> Result<(Plane, u64), &'static str> {
         format: SURFACE_FORMAT_ARGB8888,
         byte_len: bytes,
         base_va: base as u64,
-        flags: 0,
+        ..Default::default()
     };
     let sid = mk_surface_register(&desc);
-    let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64) };
-    if handle < 0 {
+    if sid < 0 {
         let _ = mk_munmap(base, bytes as usize);
-        return Err("surface register or share refused");
+        return Err("surface register refused");
     }
-    Ok((Plane { va: base as u64, stride, width, height }, handle as u64))
+    Ok((Plane { va: base as u64, stride, width, height }, sid as u64))
 }

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod answer;
+mod gpu_bench;
 mod sys_ipc_call;
-mod trace;
+mod token;
 
 pub use sys_ipc_call::sys_ipc_call;

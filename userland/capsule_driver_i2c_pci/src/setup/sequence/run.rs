@@ -19,7 +19,6 @@ use super::bring_up_one::bring_up_one;
 use super::order::{declared, standard_mode};
 use super::probe_pass::find_descriptor;
 use super::say::say_unreached;
-use crate::constants::controller_index;
 use crate::discover::{find_touchpad_addrs, AcpiTouchpad, Found, MAX_TARGETS};
 use crate::driver::Driver;
 use crate::transaction::Presence;
@@ -51,7 +50,7 @@ pub fn run(cands: &[Found]) -> Result<Driver, &'static str> {
         }
     }
     for tg in targets {
-        for dev in cands.iter().filter(|d| tg.names(d, controller_index)) {
+        for dev in cands.iter().filter(|d| tg.names(d)) {
             if let Ok(driver) = bring_up_one(*dev, standard_mode(dev, targets)) {
                 return Ok(bind(driver, dev, tg, Presence::Absent, targets));
             }
@@ -61,10 +60,10 @@ pub fn run(cands: &[Found]) -> Result<Driver, &'static str> {
         say_unreached(tg, cands);
     }
     // Last resort so a single-controller box still works, with the declared
-    // addresses, and only those, in reach.
+    // addresses that may sit on it, and only those, in reach.
     for dev in cands {
         if let Ok(driver) = bring_up_one(*dev, standard_mode(dev, targets)) {
-            driver.reach.set(declared(targets));
+            driver.reach.set(declared(dev, targets));
             return Ok(driver);
         }
     }

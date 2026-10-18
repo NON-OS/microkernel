@@ -31,6 +31,8 @@ pub fn sys_foreign_start(pid: u64, entry: u64, rsp: u64) -> i64 {
     if super::registry::supervisor_of(pid) != Some(caller) {
         return ERRNO_PERM;
     }
+    // From here the app is fixed: slot 0 takes no note after a start.
+    super::seal::started(caller);
     /*
      * An entry of zero means the guest already holds the state it should wake
      * in, which is what a fork leaves behind.
