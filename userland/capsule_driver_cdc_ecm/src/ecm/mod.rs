@@ -23,7 +23,6 @@ pub mod data;
 pub mod frame;
 pub mod function;
 pub mod link;
-pub mod mac;
 mod nic;
 pub mod notice;
 mod receive;

@@ -3,7 +3,7 @@
 //! unverified): laid out on the device's alignment, and one byte longer
 //! only when it would end on a packet boundary below dwNtbOutMaxSize.
 
-use nonos_usbnet::mock::Call;
+use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::{Bind, Nic};
 
 use crate::device::{calls, Dev};
@@ -16,7 +16,7 @@ use crate::ncm::shape::TxShape;
 fn a_frame_goes_out_as_nth16_ndp16_and_the_datagram_on_its_divisor() {
     let dev = Dev::ncm(0);
     let bus = dev.bus();
-    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(bus.clone(), &dev.found(), drawn()) else { panic!("not bound") };
     nic.send(&[0x11; 60]).unwrap();
     let head: [u8; 30] = [
         0x4E, 0x43, 0x4D, 0x48, 0x0C, 0x00, 0x00, 0x00, 0x5A, 0x00, 0x0C, 0x00, // NTH16
@@ -58,6 +58,6 @@ fn a_frame_that_does_not_fit_the_block_is_refused() {
     assert_eq!(build(&mut out[..100], &[1; 60], 0, &shape(4095, 16384, 512)), Some(90));
     assert_eq!(build(&mut out[..89], &[1; 60], 0, &shape(4095, 16384, 512)), None, "out short");
     let dev = Dev::ncm(0);
-    let Bind::Ours(mut nic) = bind(dev.bus(), &dev.found()) else { panic!("not bound") };
+    let Bind::Ours(mut nic) = bind(dev.bus(), &dev.found(), drawn()) else { panic!("not bound") };
     assert_eq!(nic.send(&[0; 4080]), Err(-22));
 }

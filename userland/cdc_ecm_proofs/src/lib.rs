@@ -11,6 +11,8 @@ mod address_tests;
 #[cfg(test)]
 mod bind_tests;
 #[cfg(test)]
+mod config_fuzz_tests;
+#[cfg(test)]
 mod device;
 #[cfg(test)]
 mod frame_tests;
@@ -18,6 +20,8 @@ mod frame_tests;
 mod function_tests;
 #[cfg(test)]
 mod hold_tests;
+#[cfg(test)]
+mod hostile_tests;
 #[cfg(test)]
 mod notice_tests;
 #[cfg(test)]

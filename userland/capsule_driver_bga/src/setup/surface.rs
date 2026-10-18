@@ -14,62 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The shadow: memory the compositor draws into, shared as a surface. The
-//! adapter has no DMA, so a present copies the damaged rect into VRAM.
+//! The surface the compositor draws in: ordinary memory, mapped here,
+//! registered with the kernel and shared under the handle get_primary hands
+//! the compositor. A flush copies from it into the framebuffer, so the
+//! framebuffer mapping, which is device memory, stays this driver's alone.
 
 use nonos_libc::{
-    mk_mmap, mk_munmap, mk_surface_register, mk_surface_release, mk_surface_share,
-    SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
+    mk_surface_register, mk_surface_share, SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
 };
 
-use crate::dispi::Mode;
+use super::memory::{map, Memory};
+use crate::constants::{BYTES_PER_PIXEL, MAX_SURFACE_BYTES};
+use crate::dispi::{span, Span};
 use crate::error::{BgaError, BgaResult};
 
-const PROT_READ_WRITE: i32 = 0x3;
-const MAP_PRIVATE_ANON: i32 = 0x22;
-
-pub struct Shadow {
-    pub va: u64,
-    pub len: usize,
-    /// What the compositor attaches; 0 until shared.
+pub struct Surface {
+    pub pixels: Span,
     pub handle: u64,
+    _memory: Memory,
 }
 
-impl Shadow {
-    pub fn new(m: Mode) -> BgaResult<Self> {
-        let len = usize::try_from(m.bytes()).map_err(|_| BgaError::Surface(-12))?;
-        let p = mk_mmap(core::ptr::null_mut(), len, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
-        if p.is_null() || (p as i64) < 0 {
-            return Err(BgaError::Surface(p as i64));
-        }
-        let mut s = Shadow { va: p as u64, len, handle: 0 };
-        let desc = SurfaceDescriptor {
-            width: m.width,
-            height: m.height,
-            stride: m.stride,
-            format: SURFACE_FORMAT_ARGB8888,
-            byte_len: m.bytes(),
-            base_va: s.va,
-            flags: 0,
-        };
-        let sid = mk_surface_register(&desc);
-        if sid < 0 {
-            return Err(BgaError::Surface(sid));
-        }
-        let handle = mk_surface_share(sid as u64);
-        if handle <= 0 {
-            return Err(BgaError::Surface(handle));
-        }
-        s.handle = handle as u64;
-        Ok(s)
+/// A `width` x `height` surface, one 32-bit pixel each, lines packed.
+pub fn make(width: u16, height: u16) -> BgaResult<Surface> {
+    // Two 16-bit sides of four bytes a pixel stay below 2^34: no overflow.
+    let stride = width as u32 * BYTES_PER_PIXEL;
+    let byte_len = stride as u64 * height as u64;
+    if byte_len == 0 || byte_len > MAX_SURFACE_BYTES {
+        return Err(BgaError::SurfaceRefused);
     }
-}
-
-impl Drop for Shadow {
-    fn drop(&mut self) {
-        if self.handle != 0 {
-            let _ = mk_surface_release(self.handle);
-        }
-        let _ = mk_munmap(self.va as *mut u8, self.len);
+    let memory = map(byte_len as usize)?;
+    let pixels = span(memory.va, byte_len, width, height)?;
+    let (width, height, format) = (width as u32, height as u32, SURFACE_FORMAT_ARGB8888);
+    let base_va = memory.va;
+    let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, flags: 0 };
+    let sid = mk_surface_register(&desc);
+    if sid < 0 {
+        return Err(BgaError::SurfaceRefused);
     }
+    let handle = mk_surface_share(sid as u64);
+    if handle <= 0 {
+        return Err(BgaError::SurfaceRefused);
+    }
+    Ok(Surface { pixels, handle: handle as u64, _memory: memory })
 }

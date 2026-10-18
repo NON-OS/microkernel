@@ -3,8 +3,8 @@
 //! ones: QEMU's ICH9, Intel Gemini Lake, Intel RST in RAID mode, AMD FCH,
 //! and the Intel VMDs that look like RAID controllers and are not HBAs.
 
+use crate::discover::kernel_vmd;
 use crate::discover::rule::{abar_usable, is_ahci_function, INTEL_VMD_DEVICE_IDS, MIN_ABAR_BYTES};
-use crate::kernel_vmd;
 
 #[test]
 fn the_named_sata_controllers_are_taken() {

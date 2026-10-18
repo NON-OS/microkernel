@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 
 use nonos_usbnet::found::{fetch, Found};
-use nonos_usbnet::mock::{descriptors, MockBus};
+use nonos_usbnet::mock::{descriptors, drawn, MockBus};
 use nonos_usbnet::qemu_usb_net::{CONFIG_ECM, CONFIG_RNDIS, DEVICE, MAC_STRING};
 use nonos_usbnet::Bind;
 
@@ -32,7 +32,7 @@ impl Claim for MockBus {
 }
 
 /// The ECM configuration with `change` made to its bytes, and string 3 as
-/// `mac`; every other request accepted.
+/// `mac`, which the driver never reads; every other request accepted.
 pub fn device(change: impl Fn(&mut Vec<u8>), mac: &[u8]) -> (MockBus, Found) {
     let mut ecm = CONFIG_ECM.to_vec();
     change(&mut ecm);
@@ -49,7 +49,7 @@ pub fn device(change: impl Fn(&mut Vec<u8>), mac: &[u8]) -> (MockBus, Found) {
 
 pub fn bound(change: impl Fn(&mut Vec<u8>), mac: &[u8]) -> Result<(MockBus, Ecm<MockBus>), String> {
     let (bus, found) = device(change, mac);
-    match bind(bus.clone(), &found) {
+    match bind(bus.clone(), &found, drawn()) {
         Bind::Ours(nic) => Ok((bus, nic)),
         Bind::NotOurs => Err("not ours".into()),
         Bind::Failed(what, e) => Err(format!("{what} {e}")),

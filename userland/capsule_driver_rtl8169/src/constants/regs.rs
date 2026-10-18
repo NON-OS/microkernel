@@ -60,3 +60,6 @@ pub const DESC_EOR: u32 = 1 << 30;
 pub const DESC_FS: u32 = 1 << 29;
 pub const DESC_LS: u32 = 1 << 28;
 pub const DESC_LEN_MASK: u32 = 0x3FFF;
+/// RxRES, the error summary a received descriptor carries over RxCRC,
+/// RxRUNT and RxRWT (Linux enum rtl_rx_desc_bit).
+pub const DESC_RX_RES: u32 = 1 << 21;

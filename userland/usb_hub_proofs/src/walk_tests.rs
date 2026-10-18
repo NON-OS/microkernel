@@ -16,9 +16,9 @@
 //! The hub walk over a modelled high-speed hub: attach, a device brought
 //! up through its route and TT, unplugged, and a device nothing binds.
 
-use nonos_usb_hub::{scan_hubs, Place, Tt, SPEED_FULL, SPEED_HIGH};
+use nonos_usb_hub::{Place, Tt, SPEED_FULL, SPEED_HIGH};
 
-use crate::fake::{root_hub, Bind, Device, Fake, HubModel, Kind};
+use crate::fake::{root_hub, walk, Bind, Device, Fake, HubModel, Kind};
 
 fn dev(speed: u8, kind: Kind) -> Device {
     Device { speed, kind }
@@ -31,7 +31,9 @@ fn a_hub_is_told_to_the_controller_claimed_and_powered() {
     assert_eq!(h.configured, vec![(1, 4, 1)], "4 ports, think time 1");
     assert_eq!(h.claimed, vec![1], "its status endpoint");
     assert!(h.hubs[&1].ports.iter().all(|p| p.powered));
-    assert!(h.now >= 100, "power-on time waited: {}", h.now);
+    // The power-on time is a deadline the ports are first looked at
+    // against, not a sleep.
+    assert!(hub.ready_ms >= h.now as u64 + 100, "power-on time to wait: {}", hub.ready_ms);
     assert_eq!((hub.slot, hub.ports, hub.place.depth), (1, 4, 0));
     assert!(h.said("high speed hub in slot 1, tier 1, 4 ports"));
 }
@@ -42,7 +44,7 @@ fn a_full_speed_device_is_addressed_through_its_route_and_the_hubs_tt() {
     let model = HubModel::new(false, 4).plug(3, dev(SPEED_FULL, Kind::Bind));
     let mut hubs = vec![root_hub(&mut h, model, 2, SPEED_HIGH)];
     let mut c = Bind::default();
-    scan_hubs(&mut h, &mut hubs, &mut c);
+    walk(&mut h, &mut hubs, &mut c);
     let tt = Some(Tt { hub_slot: 1, port: 3 });
     let want = Place { root_port: 2, route: 0x3, depth: 1, speed: SPEED_FULL, tt, parent: (1, 3) };
     assert_eq!(h.addressed, vec![(2, want)]);
@@ -51,7 +53,7 @@ fn a_full_speed_device_is_addressed_through_its_route_and_the_hubs_tt() {
     assert!(!h.port(1, 3).c_connection && !h.port(1, 3).c_reset, "change bits cleared");
     // Unplugged: forgotten, its slot given back, the port empty again.
     h.unplug(1, 3);
-    scan_hubs(&mut h, &mut hubs, &mut c);
+    walk(&mut h, &mut hubs, &mut c);
     assert_eq!((c.forgotten, h.disabled.clone(), hubs[0].child[2]), (vec![2], vec![2], 0));
     assert!(h.said("device unplugged"));
 }
@@ -62,14 +64,14 @@ fn a_device_nothing_binds_is_given_back_and_tried_again_only_when_replugged() {
     let model = HubModel::new(false, 2).plug(1, dev(SPEED_HIGH, Kind::Ignore));
     let mut hubs = vec![root_hub(&mut h, model, 1, SPEED_HIGH)];
     let mut c = Bind::default();
-    scan_hubs(&mut h, &mut hubs, &mut c);
-    scan_hubs(&mut h, &mut hubs, &mut c);
+    walk(&mut h, &mut hubs, &mut c);
+    walk(&mut h, &mut hubs, &mut c);
     assert_eq!((h.addressed.len(), h.disabled.clone()), (1, vec![2]), "once, then left");
     assert_eq!(h.addressed[0].1.tt, None, "no TT for a high-speed device");
     h.unplug(1, 1);
-    scan_hubs(&mut h, &mut hubs, &mut c);
+    walk(&mut h, &mut hubs, &mut c);
     h.port(1, 1).device = Some(dev(SPEED_HIGH, Kind::Bind));
     h.port(1, 1).c_connection = true;
-    scan_hubs(&mut h, &mut hubs, &mut c);
+    walk(&mut h, &mut hubs, &mut c);
     assert_eq!((h.addressed.len(), c.bound), (2, vec![3]), "the new device is looked at");
 }

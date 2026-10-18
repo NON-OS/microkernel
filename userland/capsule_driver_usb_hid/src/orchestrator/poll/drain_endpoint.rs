@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::descriptors::HidKind;
 use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 use crate::xhci::interrupt_in;
@@ -21,25 +22,35 @@ use crate::xhci::interrupt_in;
 use super::constants::PAD_REPORT_MAX;
 use super::feed_report::feed_report;
 use super::read_len::{pad_read_len, read_len};
-use crate::descriptors::HidKind;
 
+/// Reports read from one endpoint in one poll at most. A device that always
+/// has another ready held the loop on its endpoint: no other device, no
+/// request and no key repeat was served while it streamed.
+const REPORTS_PER_POLL: u32 = 16;
+
+/// Read the endpoint if it is due at `now_ms` (`Pace`); whether a report
+/// came. The buffer is cleared once each report is handed on: it lives as
+/// long as the driver, and the keys a keyboard last held stayed in it.
 pub(super) fn drain_endpoint(
     state: &mut State,
     ep: &mut HidEndpoint,
     buf: &mut [u8; PAD_REPORT_MAX],
+    now_ms: u64,
 ) -> bool {
+    if !ep.pace.due(now_ms) {
+        return false;
+    }
     let mut drained = false;
     let len = match ep.kind {
         HidKind::Gamepad => pad_read_len(ep.max_packet),
         _ => read_len(ep.max_packet),
     };
-    loop {
-        match interrupt_in(ep.port, ep.slot, ep.dci, len, buf) {
-            Ok(Some(n)) => {
-                feed_report(state, ep, buf, n);
-                drained = true;
-            }
-            _ => return drained,
-        }
+    for _ in 0..REPORTS_PER_POLL {
+        let Ok(Some(n)) = interrupt_in(ep.port, ep.slot, ep.dci, len, buf) else { break };
+        feed_report(state, ep, buf, n);
+        buf.fill(0);
+        drained = true;
     }
+    ep.pace.asked(now_ms, drained);
+    drained
 }

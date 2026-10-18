@@ -8,7 +8,7 @@
 use crate::protocol::*;
 use crate::slots::binds::binds;
 
-const FORWARD: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_forward.rs");
+const FORWARD: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_entry.rs");
 const ENABLE: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_enable.rs");
 const AUTH: &str = include_str!("../../../capsule_driver_xhci/src/server/mux_auth.rs");
 
@@ -33,7 +33,7 @@ fn the_server_weighs_a_bind_before_any_controller_sees_it() {
     let gate = FORWARD.find("if !self.bind_refused(req, body, tx)").expect("the gate");
     assert!(real < gate && gate < FORWARD.rfind("self.inner(req, body, tx)").unwrap());
     assert!(ENABLE.contains("self.share.auth.forget(tx[at])"));
-    let bind = include_str!("../../../capsule_driver_xhci/src/server/mux_bind.rs");
+    let bind = include_str!("../../../capsule_driver_xhci/src/server/mux_admit.rs");
     assert!(bind.contains("Some(v) => m.share.auth.admit_set(slot, v),"), "SET weighs its own");
     assert!(AUTH.contains("_ if sender() != 0 => E_PERM,"));
 }

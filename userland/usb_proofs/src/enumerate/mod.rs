@@ -14,10 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The driver's port bookkeeping, loaded from its own files.
+//! The driver's port bookkeeping, loaded from its own files. Hubs are
+//! driver.usb_hub0's; their bring-up is proven in usb_hub_proofs.
 
+#[path = "../../../capsule_driver_usb_hid/src/orchestrator/enumerate/devices.rs"]
+pub mod devices;
 #[path = "../../../capsule_driver_usb_hid/src/orchestrator/enumerate/drop_port.rs"]
 pub mod drop_port;
-#[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/orchestrator/enumerate/types.rs"]
 pub mod types;
+
+pub use devices::Devices;
+pub use types::HidEndpoint;
+
+#[cfg(test)]
+mod unplug_pointer_tests;
+#[cfg(test)]
+mod unplug_release_tests;
+#[cfg(test)]
+mod unplug_slot_tests;

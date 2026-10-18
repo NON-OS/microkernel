@@ -28,23 +28,27 @@ use crate::protocol::{device_status, E_IO, E_TIMEDOUT};
 
 impl IoQueue {
     /// The reply status for `e`, the error a transfer, flush or settle just
-    /// returned. A completion with an error status is the entry the wait just
-    /// consumed, the slot behind the head, and it stays in the ring until the
-    /// controller laps it, so its status is read back from there.
+    /// returned.
     pub fn failure_status(&self, e: NvmeError) -> i32 {
         match e {
             NvmeError::ControllerTimeout | NvmeError::ClockFailed => E_TIMEDOUT,
             NvmeError::AdminCommandFailed => {
-                let entries = self.cursor.entries;
-                let slot = (self.cursor.head + entries - 1) % entries;
-                let size = core::mem::size_of::<Completion>() as u64;
-                let at = self.cq.user_va() + slot as u64 * size;
-                // SAFETY: `slot` is below the ring's entries, which the
-                // completion queue's DMA region holds (nvm::wait).
-                let c = unsafe { read_volatile(at as *const Completion) };
+                let c = self.last();
                 device_status(c.status_code_type(), c.status_code())
             }
             _ => E_IO,
         }
+    }
+
+    /// The completion the last wait consumed. A completion with an error
+    /// status is that entry, the slot behind the head, and it stays in the
+    /// ring until the controller laps it, so it is read back from there.
+    pub(super) fn last(&self) -> Completion {
+        let entries = self.cursor.entries;
+        let slot = (self.cursor.head + entries - 1) % entries;
+        let at = self.cq.user_va() + slot as u64 * core::mem::size_of::<Completion>() as u64;
+        // SAFETY: `slot` is below the ring's entries, which the completion
+        // queue's DMA region holds (the assert in nvm::ring_wait).
+        unsafe { read_volatile(at as *const Completion) }
     }
 }

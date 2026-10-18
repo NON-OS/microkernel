@@ -16,7 +16,7 @@
 
 //! A bound ECM device as the frame service calls it (link.rs holds it).
 
-use nonos_usbnet::{Bus, Nic};
+use nonos_usbnet::{Bus, Nic, Taken};
 
 use super::link::Ecm;
 use super::receive::recv;
@@ -26,6 +26,10 @@ use super::watch::watch;
 impl<B: Bus> Nic for Ecm<B> {
     fn mac(&self) -> [u8; 6] {
         self.mac
+    }
+
+    fn taken(&self) -> Taken {
+        self.taken
     }
 
     fn link_up(&self) -> bool {
@@ -40,7 +44,8 @@ impl<B: Bus> Nic for Ecm<B> {
         recv(self, out)
     }
 
-    fn tick(&mut self) {
-        watch(self)
+    fn tick(&mut self) -> Result<(), i32> {
+        watch(self);
+        Ok(())
     }
 }

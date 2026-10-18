@@ -14,24 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading and writing whole device blocks, each run over one BOT command.
+//! Reading and writing whole device blocks, each run over one BOT or UAS command.
 
+use super::sense::whole;
 use super::transport::command;
 use super::types::{Data, Disk};
-use crate::protocol::{E_INVAL, E_IO};
-use super::sense::sense_key;
+use crate::protocol::E_INVAL;
 use crate::scsi::{read10, read16, write10, write16};
 use crate::span::needs_cdb16;
 use crate::state::State;
-
-/// A good status with every byte moved, or `E_IO` with the condition cleared.
-pub(super) fn whole(disk: &Disk, state: &mut State, outcome: (u8, u32)) -> Result<(), i32> {
-    match outcome {
-        (0, 0) => Ok(()),
-        (0, _) => Err(E_IO),
-        _ => sense_key(disk, state).and(Err(E_IO)),
-    }
-}
 
 /// Read the device blocks `out` holds from block `lba`.
 pub fn read(disk: &Disk, state: &mut State, lba: u64, out: &mut [u8]) -> Result<(), i32> {

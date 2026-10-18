@@ -24,7 +24,8 @@ const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 const OP_INTERRUPT_IN: u16 = 0x000E;
 /// A reply's data: after its 20-byte header and its status word.
 const DATA_AT: usize = 24;
-/// SERIAL_STATE is ten bytes; the host reads at most 64 (INTERRUPT_IN_MAX).
+/// SERIAL_STATE is ten bytes. The host arms a report at the endpoint's whole
+/// payload; a notice longer than this is refused below, never cut.
 pub const NOTICE_MAX: usize = 64;
 
 /// The endpoint's DCI on the host.

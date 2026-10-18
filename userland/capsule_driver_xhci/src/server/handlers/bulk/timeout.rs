@@ -39,5 +39,5 @@ pub(super) fn recover_timeout(
         Some(p) => p.dci_out,
         None => return,
     };
-    recover_after(ctx, slot, dci, XhciError::TransferCompletionTimeout);
+    recover_after(ctx, slot, dci, XhciError::TransferCompletionTimeout, None);
 }

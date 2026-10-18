@@ -18,10 +18,10 @@
 //! data pipes beside its command and status pipes. A reset of it touches
 //! its own endpoint and ring (pair_admit_tests.rs has its admission).
 
+use super::command_at::{command_at, ring_base, RESET_ENDPOINT, SET_TR_DEQUEUE};
 use super::events::{command, CC_SUCCESS};
 use super::fixture::{Fixture, SLOT, TRB};
-use super::toggle_tests::{command_at, ring_base, storage_slot, CONTEXT_SIZE};
-use super::toggle_tests::{RESET_ENDPOINT, SET_TR_DEQUEUE};
+use super::toggle_slot::{storage_slot, CONTEXT_SIZE};
 use crate::controller::{reset_bulk_endpoint, BulkPipes};
 
 const DATA_IN_DCI: u8 = 6;

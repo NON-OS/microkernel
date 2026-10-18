@@ -32,8 +32,10 @@ pub fn scan_ports(regs: Regs, pi: u32, max_ports: u8) -> [PortInfo; MAX_PORTS] {
             continue;
         }
         let base = PORT_BASE + (i as u32 * PORT_STRIDE);
-        let ssts = unsafe { regs.r32(base + PORT_SSTS) };
-        let sig = unsafe { regs.r32(base + PORT_SIG) };
+        // SAFETY: `pi` holds only ports whose registers lie inside the
+        // mapped ABAR window (`ports_in_window`).
+        let r = |off: u32| unsafe { regs.r32(base + off) };
+        let (ssts, sig) = (r(PORT_SSTS), r(PORT_SIG));
         let present = u8::from(device_present(ssts));
         *slot = PortInfo {
             index: i as u8,
@@ -42,12 +44,12 @@ pub fn scan_ports(regs: Regs, pi: u32, max_ports: u8) -> [PortInfo; MAX_PORTS] {
             kind: if present == 0 { PORT_KIND_NONE } else { signature::classify(sig) },
             ssts,
             sig,
-            interrupt_status: unsafe { regs.r32(base + PORT_IS) },
-            command_status: unsafe { regs.r32(base + PORT_CMD) },
-            task_file_data: unsafe { regs.r32(base + PORT_TFD) },
-            sata_error: unsafe { regs.r32(base + PORT_SERR) },
-            active_commands: unsafe { regs.r32(base + PORT_SACT) },
-            issued_commands: unsafe { regs.r32(base + PORT_CI) },
+            interrupt_status: r(PORT_IS),
+            command_status: r(PORT_CMD),
+            task_file_data: r(PORT_TFD),
+            sata_error: r(PORT_SERR),
+            active_commands: r(PORT_SACT),
+            issued_commands: r(PORT_CI),
         };
     }
     out

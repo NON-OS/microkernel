@@ -17,9 +17,21 @@
 //! library itself (a path dependency, so the code is the drivers' own).
 
 #[cfg(test)]
+mod bringup_failure_tests;
+#[cfg(test)]
+mod bringup_steps;
+#[cfg(test)]
+mod bringup_swap_tests;
+#[cfg(test)]
+mod bringup_tests;
+#[cfg(test)]
+mod bringup_turn_tests;
+#[cfg(test)]
 mod enum_hostile_tests;
 #[cfg(test)]
 mod fake;
+#[cfg(test)]
+mod hub_clock_tests;
 #[cfg(test)]
 mod hub_descriptor_tests;
 #[cfg(test)]

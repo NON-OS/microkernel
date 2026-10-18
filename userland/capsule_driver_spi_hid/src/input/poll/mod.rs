@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[path = "../../../../capsule_driver_i2c_hid/src/input/poll/cycle.rs"]
 mod cycle;
-#[path = "../../../../capsule_driver_i2c_hid/src/input/poll/multitouch.rs"]
 mod multitouch;
 mod read_frame;
-#[path = "../../../../capsule_driver_i2c_hid/src/input/poll/repeat.rs"]
 mod repeat;
-#[path = "../../../../capsule_driver_i2c_hid/src/input/poll/signal_raw_report.rs"]
 mod signal_raw_report;
-#[path = "../../../../capsule_driver_i2c_hid/src/input/poll/touch_frame.rs"]
 mod touch_frame;
 
 pub use cycle::poll;

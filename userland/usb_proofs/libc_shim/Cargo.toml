@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Stands in for nonos_libc under the included USB HID driver files: input
+# events land in a list the tests read back, and the clock moves only when a
+# test or an idle moves it. Named nonos_libc on the library side so the
+# driver's `use` lines resolve unchanged.
+[package]
+name = "usb_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"

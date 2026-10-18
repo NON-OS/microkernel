@@ -66,6 +66,7 @@ fn route(state: &mut State, x: i32, y: i32) -> EventOutcome {
             click_network(state, i);
             EventOutcome::Repaint
         }
+        Hit::BtDevice(i) => super::on_event_bt::pick_device(state, i),
         Hit::Scan => {
             run_wifi_scan(state);
             EventOutcome::Repaint
