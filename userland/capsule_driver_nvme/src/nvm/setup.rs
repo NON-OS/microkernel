@@ -30,7 +30,15 @@ pub fn bring_up(
     geometry: NamespaceGeometry,
 ) -> NvmeResult<IoQueue> {
     let io = IoQueue::allocate(device_id, epoch, stride, IO_QID, &geometry)?;
-    admin.create_io_cq(regs, stride, IO_QID, IO_ENTRIES, io.cq.device_addr())?;
-    admin.create_io_sq(regs, stride, IO_QID, IO_QID, IO_ENTRIES, io.sq.device_addr())?;
+    io.create(admin, regs, stride)?;
     Ok(io)
+}
+
+impl IoQueue {
+    /// Create the queue pair on the controller, in this queue's memory: at
+    /// bring-up, and again after a reset, which deletes every I/O queue.
+    pub(crate) fn create(&self, admin: &mut AdminQueue, regs: Regs, stride: u8) -> NvmeResult<()> {
+        admin.create_io_cq(regs, stride, IO_QID, IO_ENTRIES, self.cq.device_addr())?;
+        admin.create_io_sq(regs, stride, IO_QID, IO_QID, IO_ENTRIES, self.sq.device_addr())
+    }
 }

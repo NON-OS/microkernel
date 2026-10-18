@@ -17,7 +17,8 @@
 //! The count values themselves, pinned per input clock, and the floors that
 //! keep a misreported clock from stopping the bus.
 
-use crate::init::scl::{fast, fs_spklen, sda_hold, standard};
+use crate::init::scl::{fast, fs_spklen, standard};
+use crate::init::sda_hold::sda_hold;
 
 const GEMINI_LAKE: u32 = 133_000_000;
 const TIGER_LAKE: u32 = 100_000_000;

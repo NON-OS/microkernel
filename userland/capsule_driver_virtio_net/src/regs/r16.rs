@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::read_volatile;
-
 use super::io::RegIo;
 use super::pio_read::pio_read;
 use super::regs_type::Regs;
 
 impl Regs {
-    pub unsafe fn r16(self, offset: usize) -> u16 {
+    pub fn r16(self, offset: usize) -> u16 {
         match self.io {
-            RegIo::Mmio(base) => read_volatile(base.add(offset).cast()),
+            RegIo::Mmio(m) => m.r16(offset),
             RegIo::Pio(grant) => pio_read(grant, offset, 2) as u16,
         }
     }

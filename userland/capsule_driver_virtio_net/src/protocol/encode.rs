@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-
-
 use super::header::{Request, MAGIC, VERSION};
 
 pub fn encode_response_header(out: &mut [u8], req: &Request, payload_len: u32) {

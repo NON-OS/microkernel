@@ -37,21 +37,30 @@ impl MmioWindow {
 
 impl Mmio for MmioWindow {
     fn r8(&self, off: u32) -> u8 {
+        // SAFETY: `new`'s contract keeps the 256-byte register set mapped
+        // at `base`, and the engine passes only the SDHCI register offsets
+        // (`sdhci::regs`), the last HOST_VERSION at 0xfe, so the access
+        // lies inside it, at the register's own alignment.
         unsafe { read_volatile((self.base + off as u64) as *const u8) }
     }
     fn r16(&self, off: u32) -> u16 {
+        // SAFETY: as in `r8`.
         unsafe { read_volatile((self.base + off as u64) as *const u16) }
     }
     fn r32(&self, off: u32) -> u32 {
+        // SAFETY: as in `r8`.
         unsafe { read_volatile((self.base + off as u64) as *const u32) }
     }
     fn w8(&self, off: u32, v: u8) {
+        // SAFETY: as in `r8`.
         unsafe { write_volatile((self.base + off as u64) as *mut u8, v) }
     }
     fn w16(&self, off: u32, v: u16) {
+        // SAFETY: as in `r8`.
         unsafe { write_volatile((self.base + off as u64) as *mut u16, v) }
     }
     fn w32(&self, off: u32, v: u32) {
+        // SAFETY: as in `r8`.
         unsafe { write_volatile((self.base + off as u64) as *mut u32, v) }
     }
 }

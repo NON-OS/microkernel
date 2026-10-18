@@ -14,52 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The request queue: where the part is told it is, and how big.
+//! The legacy request queue's size is the device's: QUEUE_NUM is read-only
+//! and the device lays the ring out for it. A size the region holds is
+//! taken as offered, any other refused; it used to be cut to 16.
 
-use crate::constants::{LEG_QUEUE_PFN, LEG_QUEUE_SEL};
-use crate::init::bring_up;
-use crate::regs::Regs;
-
-use super::model::device;
+use super::model::{device, handshake, regs};
+use crate::constants::{
+    LEGACY_MAX, LEG_QUEUE_PFN, LEG_QUEUE_SEL, LEG_STATUS, STATUS_DRIVER_OK, STATUS_FAILED,
+    VQ_REGION_SIZE, VQ_USED_OFFSET,
+};
 
 #[test]
-fn the_queue_address_is_written_as_a_page_number_not_a_byte_address() {
-    /*
-     * The legacy queue register takes a page frame number. Writing the byte
-     * address instead is the classic way to point a device at memory 4096
-     * times further up than intended, and it is invisible until the device
-     * does a DMA. `0x1234_5000 >> 12` is the number that belongs there.
-     */
-    let bar = device(64);
-    bring_up(Regs::mmio(bar.base()), 0x1234_5000, 64).expect("bring-up");
-    assert_eq!(bar.wrote32(LEG_QUEUE_PFN), 0x0001_2345);
+fn a_legacy_size_the_region_holds_is_taken_as_the_device_offers_it() {
+    for qmax in [1, 8, 16, 64, 128, LEGACY_MAX] {
+        let bar = device(qmax);
+        assert_eq!(handshake(regs(&bar), 0x1000), Ok(qmax), "{qmax}");
+        assert_eq!(bar.wrote32(LEG_QUEUE_PFN), 1, "{qmax}");
+    }
+}
+
+#[test]
+fn a_legacy_size_the_region_cannot_hold_is_refused_never_cut() {
+    for qmax in [LEGACY_MAX + 1, 256, 1024, u16::MAX] {
+        let bar = device(qmax);
+        let err = handshake(regs(&bar), 0x1000).expect_err("refused");
+        assert_eq!(err, "virtio-rng: legacy queue does not fit the ring region", "{qmax}");
+        let status = bar.wrote8(LEG_STATUS);
+        assert_ne!(status & STATUS_FAILED, 0, "{qmax}: the device is told");
+        assert_eq!(status & STATUS_DRIVER_OK, 0, "{qmax}");
+        assert_eq!(bar.wrote32(LEG_QUEUE_PFN), 0, "{qmax}: no ring was handed over");
+    }
+}
+
+/// The end of a legacy ring of `q`: descriptors, then the available ring.
+const fn avail_end(q: usize) -> usize {
+    16 * q + 6 + 2 * q
+}
+
+// The largest legacy ring ends where the legacy layout puts the used ring,
+// one more entry would not, and its used ring fits the region.
+const _: () = assert!(avail_end(LEGACY_MAX as usize) <= VQ_USED_OFFSET);
+const _: () = assert!(avail_end(LEGACY_MAX as usize + 1) > VQ_USED_OFFSET);
+const _: () = assert!(VQ_USED_OFFSET + 6 + 8 * LEGACY_MAX as usize <= VQ_REGION_SIZE);
+
+#[test]
+fn a_ring_past_the_32_bit_page_number_is_refused() {
+    let bar = device(8);
+    let err = handshake(regs(&bar), 1 << 44).expect_err("refused");
+    assert_eq!(err, "virtio-rng: ring above the legacy page range");
+    assert_eq!(bar.wrote32(LEG_QUEUE_PFN), 0);
+    assert_ne!(bar.wrote8(LEG_STATUS) & STATUS_FAILED, 0);
 }
 
 #[test]
 fn the_queue_is_selected_before_its_size_is_believed() {
-    /*
-     * Queue 0 is the requestq. Reading the size without selecting first reads
-     * whichever queue the device happened to have selected.
-     */
-    let bar = device(64);
-    bring_up(Regs::mmio(bar.base()), 0x1000, 64).expect("bring-up");
-    assert_eq!(bar.wrote16(LEG_QUEUE_SEL), 0);
-}
-
-#[test]
-fn the_queue_size_is_clamped_to_what_the_device_offers() {
-    /*
-     * Asking for more than the device has is the driver's error to absorb, not
-     * the device's to police.
-     */
-    let bar = device(16);
-    let size = bring_up(Regs::mmio(bar.base()), 0x1000, 64).expect("bring-up");
-    assert_eq!(size, 16);
-}
-
-#[test]
-fn a_generous_device_does_not_widen_the_queue_past_the_request() {
-    let bar = device(1024);
-    let size = bring_up(Regs::mmio(bar.base()), 0x1000, 64).expect("bring-up");
-    assert_eq!(size, 64);
+    let bar = device(8);
+    bar.present16(LEG_QUEUE_SEL, 0xFFFF);
+    handshake(regs(&bar), 0x1000).expect("bring-up");
+    assert_eq!(bar.wrote16(LEG_QUEUE_SEL), 0, "queue 0 is the requestq");
 }

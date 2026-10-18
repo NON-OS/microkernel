@@ -16,6 +16,10 @@
 use crate::constants::CONFIG;
 use crate::regs::{mmio_read32, mmio_write32};
 pub fn config_set_max_slots(op_base: u64, max_slots: u8) {
-    let cur = mmio_read32(op_base + CONFIG) & !0xFF;
-    mmio_write32(op_base + CONFIG, cur | (max_slots as u32));
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    let cur = unsafe { mmio_read32(op_base + CONFIG) } & !0xFF;
+    // SAFETY: `op_base` is the operational base, which `read_layout` checked lies with the page
+    // after it inside the mapped window.
+    unsafe { mmio_write32(op_base + CONFIG, cur | (max_slots as u32)) };
 }

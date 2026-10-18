@@ -43,14 +43,11 @@ fn link_changes_read_as_speed_and_duplex() {
 }
 
 #[test]
-fn ids_and_addresses_print_as_lowercase_hex() {
+fn ids_print_as_lowercase_hex() {
     clear_log();
-    Line::new().text("up ").hex16(0x0D4E).text(" mac ").mac(&[0x02, 0xAB, 0, 9, 0x10, 0xFF]).send();
+    Line::new().text("up ").hex16(0x0D4E).text(" family=").text("82574").send();
     say("reset did not clear in 50 ms");
-    assert_eq!(
-        logged(),
-        ["e1000e: up 0d4e mac 02:ab:00:09:10:ff", "e1000e: reset did not clear in 50 ms"]
-    );
+    assert_eq!(logged(), ["e1000e: up 0d4e family=82574", "e1000e: reset did not clear in 50 ms"]);
 }
 
 #[test]

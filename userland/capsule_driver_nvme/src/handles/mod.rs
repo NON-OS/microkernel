@@ -18,5 +18,7 @@ mod broker_handles;
 mod broker_handles_drop;
 mod broker_handles_irq_grant_id;
 mod broker_handles_mmio_user_va;
+mod release;
 
 pub use broker_handles::BrokerHandles;
+pub use release::release;
