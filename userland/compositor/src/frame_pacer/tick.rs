@@ -14,57 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::frame_pacer::composite;
-
 use crate::state::Context;
-use core::sync::atomic::{fence, Ordering};
+
+use super::show::show;
+use super::to_screen::to_screen;
 
 pub fn tick(ctx: &mut Context) -> Result<(), &'static str> {
+    // A dark lid presents nothing; its damage waits for the wake, which
+    // damages the whole canvas anyway (state/lid_rule.rs).
+    if super::first_frame::holding(ctx) || !ctx.lid.presents() {
+        return Ok(());
+    }
+    let done = frame(ctx);
+    ctx.lid = ctx.lid.after_frame(done.is_err());
+    done
+}
+
+fn frame(ctx: &mut Context) -> Result<(), &'static str> {
+    super::band_watch::watch(ctx);
+    super::lens::refresh(ctx);
     // Composite every damaged rectangle this frame. Each is small and separate,
     // so the empty space between far-apart damage is never touched. A
-    // rectangle the display refused stays damaged for the next frame.
-    super::drain_damage::drain_damage(ctx, |ctx| &mut ctx.damage, show)
-}
-
-/// Compose `rect` of the canvas and put it on the display.
-fn show(ctx: &mut Context, rect: crate::state::damage::Rect) -> Result<(), &'static str> {
-    composite::paint(ctx, rect);
-    /* Composed on the canvas; doubled or shrunk onto the screen when they
-     * differ. A canvas larger than the screen is the floor one. */
-    let shrunk = ctx.width > ctx.screen.width || ctx.height > ctx.screen.height;
-    let on_screen = match ctx.scale {
-        _ if shrunk => crate::sw_blitter::downscale(canvas(ctx), ctx.screen, rect),
-        1 => Some(rect),
-        scale => crate::sw_blitter::upscale(canvas(ctx), ctx.screen, rect, scale),
-    };
-    let Some(rect) = on_screen else {
-        return Ok(());
-    };
-    if ctx.gop_mode {
-        // The kernel copies whatever it is handed with the CPU, so give it
-        // the rectangle that changed, not the screen.
-        let Some(r) = super::clip::clip_to_screen(ctx, rect) else {
-            return Ok(());
+    // rectangle the display refused stays damaged for the next frame. On the
+    // wire a frame goes in batches, one FLUSH each.
+    if ctx.wire.is_some() {
+        super::hw_cursor::sync(ctx);
+        let prepare = |ctx: &mut Context, r| {
+            let shown = to_screen(ctx, r);
+            super::extend::draw_heads(ctx, r);
+            shown.and_then(|r| super::clip::clip_to_screen(ctx, r))
         };
-        fence(Ordering::Release);
-        let rc =
-            nonos_libc::mk_surface_present_rect(ctx.surface_handle, r.x, r.y, r.width, r.height);
-        if rc < 0 {
-            return Err("gop present rejected");
-        }
-        Ok(())
-    } else {
-        super::present_virtio::present_rect(ctx, rect)
+        let send = super::present_wire::present_rects;
+        let done = super::drain_batch::drain_batched(ctx, |ctx| &mut ctx.damage, prepare, send);
+        super::extend::flush_heads(ctx);
+        return done;
     }
-}
-
-/// The canvas clients draw on, as the blitter reads it.
-fn canvas(ctx: &Context) -> crate::sw_blitter::Surface {
-    crate::sw_blitter::Surface {
-        base_va: ctx.backing_va,
-        stride: ctx.stride,
-        width: ctx.width,
-        height: ctx.height,
-        byte_len: ctx.backing_len,
-    }
+    super::drain_damage::drain_damage(ctx, |ctx| &mut ctx.damage, show)
 }
