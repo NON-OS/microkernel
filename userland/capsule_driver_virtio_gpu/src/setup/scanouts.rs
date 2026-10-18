@@ -13,14 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::mode;
 use crate::constants::VG_MAX_SCANOUTS;
 use crate::device::cmd;
 use crate::device::virtqueue::ControlQueue;
 use crate::state::{FenceCounter, Scanout, ScanoutTable};
-const DEFAULT_SCANOUT_WIDTH: u32 = 1280;
-const DEFAULT_SCANOUT_HEIGHT: u32 = 720;
-const MIN_SCANOUT_WIDTH: u32 = 640;
-const MIN_SCANOUT_HEIGHT: u32 = 480;
 pub fn seed(
     q: &ControlQueue,
     table: &ScanoutTable,
@@ -33,11 +30,7 @@ pub fn seed(
         if s.enabled == 0 || s.width == 0 || s.height == 0 {
             continue;
         }
-        let (width, height) = if s.width < MIN_SCANOUT_WIDTH || s.height < MIN_SCANOUT_HEIGHT {
-            (DEFAULT_SCANOUT_WIDTH, DEFAULT_SCANOUT_HEIGHT)
-        } else {
-            (s.width, s.height)
-        };
+        let (width, height) = mode::fit(s.width, s.height);
         if !table.record(
             i as u32,
             Scanout { x: s.x, y: s.y, width, height, current_resource_id: 0, enabled: true },
@@ -57,8 +50,8 @@ fn seed_default(table: &ScanoutTable) -> Result<(), &'static str> {
         Scanout {
             x: 0,
             y: 0,
-            width: DEFAULT_SCANOUT_WIDTH,
-            height: DEFAULT_SCANOUT_HEIGHT,
+            width: mode::DEFAULT.0,
+            height: mode::DEFAULT.1,
             current_resource_id: 0,
             enabled: true,
         },

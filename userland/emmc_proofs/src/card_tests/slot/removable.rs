@@ -26,7 +26,7 @@ pub type TestSlot = Slot<SimBus, TestClock, TestLog>;
 
 pub fn empty() -> (Rig, TestSlot) {
     let rig = Rig::empty_slot(sd_slot());
-    let slot = Slot::removable(rig.parts(false), rig.data).expect("host up");
+    let slot = Slot::removable(rig.reset(false), rig.parts(false), rig.data);
     (rig, slot)
 }
 

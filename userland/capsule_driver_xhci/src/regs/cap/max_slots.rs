@@ -16,5 +16,7 @@
 use crate::constants::HCSPARAMS1;
 use crate::regs::mmio_read32;
 pub fn max_slots(mmio_base: u64) -> u8 {
-    (mmio_read32(mmio_base + HCSPARAMS1) & 0xFF) as u8
+    // SAFETY: `mmio_base` starts the mapped window, and the capability registers are its first 32
+    // bytes.
+    (unsafe { mmio_read32(mmio_base + HCSPARAMS1) } & 0xFF) as u8
 }

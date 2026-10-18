@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The virtio 1.0 bring-up, for a function that has no legacy register
-//! window (a modern-only virtio-rng, as QEMU builds behind its IOMMU).
+//! The virtio 1.0 bring-up, for every function that presents it: a
+//! modern-only virtio-rng, as QEMU builds behind its IOMMU, and a
+//! transitional one beside its legacy window.
 
-mod pci;
 mod queue;
 mod run;
 

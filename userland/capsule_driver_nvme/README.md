@@ -16,7 +16,8 @@ read/write/flush block requests.
 ```text
 driver.nvme0
     |
-    | MkDeviceClaim + MkPciConfigWrite(memory space, bus master, INTx off)
+    | MkDeviceClaim + MkPciConfigWrite(memory space, INTx off; bus master
+    |                                  once the controller is seen stopped)
     v
 NVMe PCI function
     |
@@ -34,9 +35,11 @@ The capsule uses the microkernel as mechanism, not as an NVMe driver:
 - `MkPciConfigWrite` sets Memory Space, Bus Master and Interrupt Disable
   through the broker, the three Command bits its allowlist lets a driver set.
 - `MkMmioMap` maps BAR0 controller registers.
-- `MkIrqBind`, `MkIrqPoll`, and `MkIrqAck` own the MSI-X interrupt path.
-- `MkDmaMap` and `MkDmaUnmap` allocate and revoke admin queue, IO queue, PRP,
-  identify, health, and sector data DMA.
+- `MkIrqBind`, `MkIrqWait`, `MkIrqPoll`, and `MkIrqAck` own the MSI-X
+  interrupt path.
+- `MkDmaMap` allocates admin queue, IO queue, PRP, identify, health, and
+  sector data DMA. `MkDmaUnmap` gives back only host memory buffer pieces the
+  controller never took; `MkDeviceRelease` drains the rest.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.nvme0` on
   `service:4220:driver.nvme0`.
 
@@ -86,26 +89,37 @@ are revoked when the capsule exits.
 The capsule lists every NVMe PCI function (one console line each), tries them
 in order with an Intel Optane memory cache module last, and serves one: the
 first disk whose namespace gets an I/O queue. For each one tried it claims the
-function, sets Memory Space, Bus Master and Interrupt Disable, maps BAR0, binds
-MSI-X, allocates admin and IO queue DMA, disables the controller, programs
-AQA/ASQ/ACQ, enables the controller, identifies it, asks for one I/O queue
+function, sets Memory Space and Interrupt Disable, maps BAR0, binds MSI-X,
+disables the controller and waits for RDY to read 0, and only then sets Bus
+Master: a predecessor that died without its teardown can leave the
+controller running on queues and a host memory buffer the kernel has freed,
+and no refusal path sets it. It then allocates admin and IO queue DMA,
+programs AQA/ASQ/ACQ, enables the controller, identifies it, asks for one I/O queue
 pair (SET FEATURES Number of Queues) and gives a DRAM-less drive the host
 memory buffer it asks for (SET FEATURES Host Memory Buffer, up to 64 MiB in
 4 MiB pieces, or HMMIN when larger, never past 128 MiB), identifies the
 namespace, reads the SMART / health log, and creates one IO queue pair. A
 refused queue count or buffer is carried on from; one never answered fails
-the attempt, the controller disabled before the buffer's memory goes, and
-once an attempt that asked for them fails no later attempt asks; a controller not chosen is disabled
-and released. It then serves IPC. Teardown unmaps DMA, unbinds IRQ, unmaps MMIO, and releases the
-device claim.
+the attempt, and once an attempt that asked for them fails no later attempt
+asks; a controller not chosen is disabled and released. It then serves IPC.
+
+Teardown, on every path (`setup/device.rs`), disables the controller while its
+memory is still mapped, writes the PCI Command register without Bus Master,
+unbinds the IRQ, unmaps MMIO and releases the claim. The release is the guard:
+it clears Bus Master, reads it back, and only then drains every DMA grant. The
+driver never unmaps memory it gave the controller, so no frame is freed while
+a controller whose disable failed can still write it. The driver's own Command
+write is defence in depth: the broker ORs Command bits in today
+(`src/hardware/broker/pci/command.rs`), and the write takes effect once the
+kernel's K6 (plan/54) makes it store exactly the bits named.
 
 ## Failure model
 
 Every setup phase is a barrier with reverse-order rollback. Controller timeout,
 admin completion error, stale claim, or DMA allocation failure prevents service
-start; a refused MSI-X bind leaves the driver polling, which it does for every
-completion anyway. Runtime block requests validate size and capacity before
-submitting commands.
+start; a refused MSI-X bind leaves the I/O waits yielding between rounds of
+polling instead of parking on the interrupt. Runtime block requests validate
+size and capacity before submitting commands.
 
 The controller's registers and completion entries are treated as hostile:
 
@@ -136,8 +150,63 @@ The controller's registers and completion entries are treated as hostile:
   queue. Any bit in the status field above the phase tag fails the command.
   The SQ head the controller reports is never read into the driver's state;
   the driver's head and tail stay below the ring sizes, and each ring fits its
-  DMA region by a compile-time check. Each wait ends 5 s after it began
-  (checked every 1024 polls), whatever the controller writes.
+  DMA region by a compile-time check. An admin wait ends 5 s after it began
+  (30 s for SET FEATURES Host Memory Buffer) and an I/O wait 30 s, or sooner
+  when its request is due sooner (checked every 1024 polls), whatever the
+  controller writes. Between rounds of polls an I/O wait parks on the MSI-X interrupt the
+  I/O completion queue raises, at most 2 ms a park, so it does not spin a core.
+- Recovery (`src/recover/`). An I/O command with no completion in its 30 s
+  stays the controller's, its buffer untouched, until its completion is seen;
+  a late completion of any status retires it. Every read, write and flush is
+  answered within 33 s of the driver taking it from its inbox (to a 2 ms
+  park), inside the kernel's 35 s, which runs from when the kernel queued
+  it. A timed-out request is answered `E_TIMEDOUT` first, and recovery runs
+  before the next request is taken. A request already waiting when it is
+  taken (the kernel queues its next as the reply reaches it) is answered
+  within 33 s of that reply, its waits cut to what is left, or refused
+  `E_TIMEDOUT` with nothing sent if no time is left; a kernel request (pid
+  0) refused this way hands the next waiting one a bound 35 s on, as the
+  kernel queues its next only once it stopped waiting. The bound is the
+  kernel's request's. Another sender's request (the installers capsule_install
+  and tool_install hold StoreWrite and reach driver.nvme0 through
+  `nonos_blk_client`; vfs or capsule_linux could) is held to it but leaves it.
+  The bound lasts until the inbox is seen empty (a 1 ms receive) or any of the
+  first four other senders it served sends again: a sender has one call out at
+  a time and the inbox is FIFO, so by then every request queued while the
+  recovery ran was taken. A fifth sender is not named, so its next request
+  ends nothing: the bound lasts longer than it need, and that sender's
+  requests are refused, nothing sent, once it passes. After a recovery that
+  followed the kernel's own request the kernel's request is answered within
+  its 35 s or refused with nothing sent; after one that followed another
+  sender's stall, too, the bound then counting from when that sender's request
+  was taken. All this guesses at what the kernel knows; plan/58's K14 (a
+  message's kernel-stamped `timestamp_ms`, and a true try-receive) replaces
+  the guess: D5b then removes these heuristics and bounds each request from
+  its kernel-stamped enqueue time. Until it lands these remain: a kernel
+  request queued before the stalled sender's request was taken; a sender with
+  two requests queued at once; a sender resending each refusal at once, which
+  keeps the bound and the kernel's request refused; a non-I/O request, which
+  never touches the bound; another sender's own request taken after a long
+  recovery, which can be served after it stopped waiting (its call waits 65 s
+  from a send the driver cannot see); and, with no recovery at all, a kernel
+  request queued behind another sender's slow command, which can be answered
+  after the kernel stopped waiting. The refusals are conservative: the bound
+  assumes the kernel queued once every 35 s, so a request with time left can
+  be refused, nothing sent. A bound set while the clock cannot be read counts
+  from when its request was taken, which came before the reply.
+  Recovery: CSTS all ones names the controller gone; one ready and not fatal
+  is sent an Abort for the command (on the admin deadline); if it says it
+  aborted it (DW0 bit 0 clear) the command gets 2 s to come back, and
+  otherwise the ring is looked at once, for a command done before the Abort
+  reached it. A command
+  still out is reset away: CC.EN cleared within CAP.TO, the admin and I/O
+  rings zeroed, the controller enabled, the host memory buffer given again,
+  and the I/O queues created again in the same DMA frames. One console line
+  names how it ended (it came back, reset, gone, reset failed). Gone or a
+  failed reset ends all I/O (`E_NODEV`), as the device may still own the
+  data buffer. A failed command without Do Not Retry and not a media error
+  is sent again, at most twice, while it goes out within 3 s of the
+  request's start, so its own 30 s still ends by 33 s.
 - Namespace. The served NSID is the first one Identify CNS 02h lists as
   active (NSID 1 when the controller refuses the list, as NVMe 1.0 does, or
   its VS is below 1.1). It gets an I/O queue only when the controller reports at
@@ -159,8 +228,12 @@ The controller's registers and completion entries are treated as hostile:
   shift mean the buffer. Larger requests are refused before submission.
 
 `userland/nvme_proofs` runs this code on the host against scripted
-controllers, a hostile fuzz and a named boundary set. What it cannot run is
-the MMIO and DMA themselves and the order of calls in `setup/sequence.rs`.
+controllers, a hostile fuzz and a named boundary set, and runs the I/O queue,
+recovery, teardown and `setup/sequence/bring_up.rs` (the claim through Bus
+Master, on controllers a predecessor left running, mid-enable, mid-disable
+or fatal) over a libc shim against a controller played on host memory. What
+it cannot run is real MMIO and DMA and the order of calls in
+`setup/sequence/start.rs` and `run.rs`.
 
 With no NVMe controller in the device list the capsule logs one line and
 exits `EXIT_ABSENT` (2) before claiming anything. A controller that is present
@@ -172,10 +245,11 @@ having released its claim); running out logs the last cause and exits
 ## Current implemented surface
 
 - Claims a real NVMe PCI function.
-- Sets Memory Space, Bus Master and Interrupt Disable through brokered PCI
-  config write.
+- Sets Memory Space and Interrupt Disable through brokered PCI config write,
+  and Bus Master once the controller is seen stopped.
 - Maps controller registers.
-- Binds MSI-X for admin completion.
+- Binds MSI-X; the I/O completion queue raises it and the I/O waits park on
+  it.
 - Allocates and zeroes admin queue DMA through the broker.
 - Programs AQA/ASQ/ACQ and enables the controller.
 - Issues Identify Controller.
@@ -186,6 +260,8 @@ having released its claim); running out logs the last cause and exits
 - Creates one IO submission/completion queue pair.
 - Allocates PRP list and sector data DMA.
 - Serves capacity, read, write, and flush requests over IPC.
+- Aborts an I/O command that timed out, and resets the controller and
+  rebuilds its queues in place when the Abort does not settle it.
 - Exposes controller and namespace identity over IPC.
 - Exposes selected health counters over IPC without exposing raw log DMA.
 
@@ -257,6 +333,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 - Identify controller, identify namespace and the SMART log read back sensible values; both 512 and 4096 byte LBA formats get an I/O queue.
 - Read, write and flush round-trip data on a scratch namespace; an error completion is reported to the caller without wedging the queue.
 - With MSI-X refused the driver polls and still completes I/O.
+- An I/O command that never completes ends, after its 30 s, in one console
+  line naming how recovery ended, and a drive that was reset serves again.
 - A laptop SSD whose firmware left Memory Space clear answers CAP and CSTS
   (not all ones) once the Command write sets it.
 - On a machine with an Optane memory module beside the SSD, the console lists
@@ -282,8 +360,9 @@ filesystem, encryption, or cache policy is exposed here.
 - Static gate: `bash nonos-ci/run-static-checks.sh`
 - Architecture check: NVMe must not import kernel driver or memory internals;
   it must use `MkMmioMap`, `MkIrqBind`, and `MkDmaMap`.
-- Broker check: setup rollback must unmap DMA, unbind IRQ, unmap MMIO, and
-  release the device claim on failure.
+- Broker check: setup rollback must unbind IRQ, unmap MMIO and release the
+  device claim on failure; the release drains every DMA grant, which the
+  driver never unmaps itself.
 - Proofs: `(cd userland/nvme_proofs && cargo test --release)`.
 - Handbook: [drivers](../../docs/handbook/drivers.md),
   [storage](../../docs/handbook/storage.md).

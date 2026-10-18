@@ -4,8 +4,7 @@
 mod request;
 
 use crate::protocol::Request;
-use crate::setup::Driver;
 
-pub fn parse_read(driver: &Driver, req: &Request, body: &[u8]) -> Result<(u64, u32, usize), i32> {
-    request::read_request(driver, req, body).map(|r| (r.lba, r.nsectors, r.bytes_n))
+pub fn parse_read(capacity: u64, req: &Request, body: &[u8]) -> Result<(u64, u32, usize), i32> {
+    request::read_request(capacity, req, body).map(|r| (r.lba, r.nsectors, r.bytes_n))
 }

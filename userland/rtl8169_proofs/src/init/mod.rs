@@ -24,17 +24,24 @@
 mod finish;
 #[path = "../../../capsule_driver_rtl8169/src/init/mac.rs"]
 mod mac;
+#[path = "../../../capsule_driver_rtl8169/src/init/recover.rs"]
+mod recover;
 #[path = "../../../capsule_driver_rtl8169/src/init/reset.rs"]
 mod reset;
 #[path = "../../../capsule_driver_rtl8169/src/init/run.rs"]
 mod run;
 #[path = "../../../capsule_driver_rtl8169/src/init/rx_setup.rs"]
 mod rx_setup;
+#[path = "../../../capsule_driver_rtl8169/src/init/start.rs"]
+mod start;
 #[path = "../../../capsule_driver_rtl8169/src/init/tx_setup.rs"]
 mod tx_setup;
 
 pub use finish::finish;
+pub use mac::draw as mac_draw;
 pub use mac::program as mac_program;
+pub use recover::recover;
+pub use reset::part as reset_part;
 pub use reset::run as reset_run;
 pub use run::bring_up;
 pub use rx_setup::configure as rx_configure;

@@ -13,77 +13,25 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use nonos_virtio::Mmio;
+
 use super::io::RegIo;
-use super::pio;
+
+/// The legacy register window. Every access stays inside it: a memory
+/// window checks each offset against its mapped length, and a port grant
+/// is checked by the broker.
 #[derive(Debug, Clone, Copy)]
 pub struct Regs {
-    io: RegIo,
+    pub(super) io: RegIo,
 }
+
 impl Regs {
-    pub const fn mmio(base: u64) -> Self {
-        Self { io: RegIo::Mmio(base as *mut u8) }
+    pub const fn mmio(window: Mmio) -> Self {
+        Self { io: RegIo::Mmio(window) }
     }
+
     pub const fn pio(grant_id: u64) -> Self {
         Self { io: RegIo::Pio(grant_id) }
-    }
-    #[inline]
-    /// # Safety
-    ///
-    /// The address the caller mapped, at an offset inside it.
-    pub unsafe fn r8(self, offset: usize) -> u8 {
-        match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_read8(base.add(offset) as usize),
-            RegIo::Pio(grant) => pio::read(grant, offset, 1) as u8,
-        }
-    }
-    #[inline]
-    /// # Safety
-    ///
-    /// The address the caller mapped, at an offset inside it.
-    pub unsafe fn r16(self, offset: usize) -> u16 {
-        match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_read16(base.add(offset) as usize),
-            RegIo::Pio(grant) => pio::read(grant, offset, 2) as u16,
-        }
-    }
-    #[inline]
-    /// # Safety
-    ///
-    /// The address the caller mapped, at an offset inside it.
-    pub unsafe fn r32(self, offset: usize) -> u32 {
-        match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_read32(base.add(offset) as usize),
-            RegIo::Pio(grant) => pio::read(grant, offset, 4),
-        }
-    }
-    #[inline]
-    /// # Safety
-    ///
-    /// The address the caller mapped, at an offset inside it.
-    pub unsafe fn w8(self, offset: usize, value: u8) {
-        match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_write8(base.add(offset) as usize, value),
-            RegIo::Pio(grant) => pio::write(grant, offset, 1, value as u32),
-        }
-    }
-    #[inline]
-    /// # Safety
-    ///
-    /// The address the caller mapped, at an offset inside it.
-    pub unsafe fn w16(self, offset: usize, value: u16) {
-        match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_write16(base.add(offset) as usize, value),
-            RegIo::Pio(grant) => pio::write(grant, offset, 2, value as u32),
-        }
-    }
-    #[inline]
-    /// # Safety
-    ///
-    /// The address the caller mapped, at an offset inside it.
-    pub unsafe fn w32(self, offset: usize, value: u32) {
-        match self.io {
-            RegIo::Mmio(base) => nonos_libc::mmio_write32(base.add(offset) as usize, value),
-            RegIo::Pio(grant) => pio::write(grant, offset, 4, value),
-        }
     }
 }

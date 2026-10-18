@@ -16,31 +16,18 @@
 
 use nonos_libc::{mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
 
-use crate::constants::REG_INTMS;
 use crate::discover::Found;
-use crate::regs::Regs;
 
 pub fn bind(dev: Found, claim_epoch: u64) -> IrqBindOut {
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };
     let r = mk_irq_bind(dev.device_id, claim_epoch, 0, MK_IRQ_BIND_MSIX, 1, &mut out);
     if r < 0 {
-        // MSI-X binding is best effort. The driver polls every admin and I/O
-        // completion (admin/queue/wait.rs, nvm/wait.rs) and never waits on the
-        // interrupt, so a failed bind is not fatal. Continue in polling mode
-        // with a zero grant, which BrokerHandles::drop unbinds harmlessly.
+        // MSI-X binding is best effort. Every wait polls its completion ring;
+        // the I/O waits park on the interrupt between rounds of polling, and
+        // with none bound they yield instead (nvm/park.rs), so a failed bind
+        // is not fatal. Continue with a zero grant, which BrokerHandles::drop
+        // unbinds harmlessly and Device::enable answers by masking INTMS.
         return IrqBindOut { grant_id: 0, vector: 0 };
     }
     out
-}
-
-/// We poll every completion. Without MSI-X the controller would signal on
-/// its legacy pin or MSI, which nothing services: mask them all, so a level
-/// interrupt cannot stay asserted. INTMS is off limits under MSI-X (NVMe
-/// 3.1.4), so it is written only when the bind failed (`grant_id` zero).
-pub fn mask_unbound(regs: Regs, grant_id: u64) {
-    if grant_id == 0 {
-        // SAFETY: REG_INTMS lies in the controller's register block, which
-        // bring-up checked fits the mapped BAR before any register access.
-        unsafe { regs.w32(REG_INTMS, u32::MAX) };
-    }
 }
