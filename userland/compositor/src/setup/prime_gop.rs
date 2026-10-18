@@ -22,12 +22,13 @@
 //! UEFI machine: real hardware, VirtualBox, VMware, with no virtio-gpu.
 
 use nonos_libc::{
-    mk_getpid, mk_surface_attach, mk_surface_register, mk_surface_share, SurfaceDescriptor,
+    mk_service_lookup, mk_surface_attach, mk_surface_register, mk_surface_share, SurfaceDescriptor,
     SURFACE_FORMAT_ARGB8888,
 };
 
 use super::prime_gop_backing::{alloc_backing, display_dimensions};
 use super::prime_gop_context::gop_context;
+use super::prime_gop_handle::own_handle;
 use crate::state::Context;
 
 pub fn run_gop_once() -> Result<Context, &'static str> {
@@ -51,13 +52,9 @@ pub fn run_gop_once() -> Result<Context, &'static str> {
     if sid < 0 {
         return Err("gop: surface register rejected");
     }
-    // A sid is a slot, not a handle: shared with its own process, the kernel
-    // hands back the handle and names no receiver.
-    let handle = mk_surface_share(sid as u64, mk_getpid(), 0);
-    if handle <= 0 {
-        return Err("gop: surface handle refused");
-    }
-    let handle = handle as u64;
+    // Shared with its own process, found by its own name (prime_gop_handle).
+    let share = |sid, pid, flags| mk_surface_share(sid, pid, flags);
+    let handle = own_handle(sid as u64, registered_pid, share)?;
 
     // Self-attach: the kernel returns this same mmap VA, which has a real
     // VMA the present path resolves against. We composite into it directly.
@@ -68,4 +65,11 @@ pub fn run_gop_once() -> Result<Context, &'static str> {
     }
 
     Ok(gop_context(width, height, stride, byte_len, va as u64, handle))
+}
+
+/// The pid the kernel's registry holds `name` for, or None.
+fn registered_pid(name: &[u8]) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc >= 0 && pid != 0).then_some(pid)
 }
