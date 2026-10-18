@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::rule::over;
 use super::value::ceiling;
 
 pub const fn excess(requested: u64) -> u64 {
-    requested & !ceiling()
+    over(requested, ceiling())
 }
 
 pub const fn admits(requested: u64) -> bool {
@@ -47,15 +48,5 @@ pub fn report(name: &str, requested: u64) {
 pub fn report_pid(pid: u32, requested: u64) {
     crate::sys::serial::print(b"[CEILING] refused pid ");
     crate::sys::serial::print_dec(pid as u64);
-    name_the_excess(requested);
-}
-
-/// What the ceiling would have refused, on a path that admitted it anyway.
-pub fn would_refuse(name: &str, requested: u64) {
-    if admits(requested) {
-        return;
-    }
-    crate::sys::serial::print(b"[CEILING] not enforced, would refuse ");
-    crate::sys::serial::print(name.as_bytes());
     name_the_excess(requested);
 }

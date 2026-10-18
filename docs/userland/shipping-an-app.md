@@ -15,11 +15,11 @@ flowchart LR
     G --> H[LAUNCHER_APPS]
 ```
 
-The `Capsule.mk` declares the app. An include line in `mk/20-build.mk` makes the build see it, and `tools/nix/capsules.json` lists it for the flake and the [seal](../overview/glossary.md#seal). The seal signs and enrolls it, and the [kernel mirror](../overview/glossary.md#kernel-mirror) embeds what the seal wrote when the Cargo feature is on. The spawn plan starts it at boot, and a `LAUNCHER_APPS` row gives it a tile that opens its window.
+The `Capsule.mk` declares the app. An include line in `mk/20-build.mk` makes the build see it, and `tools/nix/capsules.json` lists it for the flake and the [seal](../overview/glossary-rollback-index.md#seal). The seal signs and enrolls it, and the [kernel mirror](../overview/glossary-hardware-broker.md#kernel-mirror) embeds what the seal wrote when the Cargo feature is on. The spawn plan starts it at boot, and a `LAUNCHER_APPS` row gives it a tile that opens its window.
 
 ## 1. The Capsule.mk
 
-A [capsule](../overview/glossary.md#capsule) is declared once, in its `Capsule.mk`: its identity, its service and reply [endpoints](../overview/glossary.md#endpoint) and its [capability word](../overview/glossary.md#capability-word). This is hello's, whole:
+A [capsule](../overview/glossary-boot-root-record.md#capsule) is declared once, in its `Capsule.mk`: its identity, its service and reply [endpoints](../overview/glossary-dma-pool.md#endpoint) and its [capability word](../overview/glossary-boot-root-record.md#capability-word). This is hello's, whole:
 
 ```make
 CAPSULE_SLUG             := hello
@@ -42,8 +42,8 @@ include nonos-mk/capsule.mk
 ```
 
 - The template stops the build when the slug, binary, directory, handle, domain, namespace, either endpoint or the required capabilities are missing (`nonos-mk/capsule.mk:28-54`, `CAPSULE_SLUG`).
-- Left out, the optional bits default to 0x0, the target to `x86_64-nonos-user`, the version to 0.1.0 and the feature to `nonos-capsule-<slug>`; the certificate's [capability ceiling](../overview/glossary.md#capability-ceiling) defaults to required plus optional (`nonos-mk/capsule.mk:69-88`, `CAPSULE_FEATURE`).
-- A namespace of `systems.nonos` or below it puts the capsule in the enrolled tier, any other in the [publisher](../overview/glossary.md#publisher) tier (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`, `classify`). [Signing and publisher keys](signing-and-publisher-keys.md) says what each tier means.
+- Left out, the optional bits default to 0x0, the target to `x86_64-nonos-user`, the version to 0.1.0 and the feature to `nonos-capsule-<slug>`; the certificate's [capability ceiling](../overview/glossary-boot-root-record.md#capability-ceiling) defaults to required plus optional (`nonos-mk/capsule.mk:69-88`, `CAPSULE_FEATURE`).
+- A namespace of `systems.nonos` or below it puts the capsule in the enrolled tier, any other in the [publisher](../overview/glossary-peer-list.md#publisher) tier (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`, `classify`). [Signing and publisher keys](signing-and-publisher-keys.md) says what each tier means.
 - Pick a service port and a reply port that no other `Capsule.mk` declares. `clashes` collects every port of every declaration and fails on a shared one (`scripts/check_capsule_ports.py:32-39`, `clashes`):
 
 ```sh
@@ -56,8 +56,8 @@ On this tree it prints `capsule ports: 498 ports declared, 0 shared`.
 
 Start from hello's five bits and add one only for a call your app makes. 0x1819 is `CORE_EXEC`, `IPC`, `MEMORY`, `GRAPHICS_DISPLAY_QUERY` and `GRAPHICS_SURFACE_CREATE` (`abi/caps.toml:6-18`, `GRAPHICS_SURFACE_CREATE`). Snake adds FileSystem for the files it keeps through vfs, 0x1859 (`userland/capsule_snake/Capsule.mk:12`, `CAPSULE_REQUIRED_CAPS`), because vfs answers only a sender the kernel says holds FileSystem (`userland/capsule_vfs/src/server/fs_gate.rs:38-44`, `CAP_FILE_SYSTEM`). Clock adds TimeSet to set the time, 0x401819 (`userland/capsule_clock/Capsule.mk:12`, `CAPSULE_REQUIRED_CAPS`). [Capabilities](../abi/capabilities.md) lists every bit.
 
-- Keep Debug, 0x100, optional, as hello does. `serial_debug_cap` adds it to what the spawn site offers only in a kernel built with `capsule-serial-debug` (`src/capabilities/serial_debug.rs:41-50`, `serial_debug_cap`), which the hardened and airgapped [build profiles](../overview/glossary.md#build-profile) leave out.
-- The kernel installs the required bits plus the optional bits the spawn site grants (`src/security/capsule_manifest/verify/caps_bits.rs:45-47`, `install_caps`), and refuses an offer wider than the [manifest](../overview/glossary.md#manifest) with `GrantOutsideManifest` (`src/security/capsule_manifest/verify/caps.rs:31-38`, `check_grant`).
+- Keep Debug, 0x100, optional, as hello does. `serial_debug_cap` adds it to what the spawn site offers only in a kernel built with `capsule-serial-debug` (`src/capabilities/serial_debug.rs:41-50`, `serial_debug_cap`), which the hardened and airgapped [build profiles](../overview/glossary-boot-root-record.md#build-profile) leave out.
+- The kernel installs the required bits plus the optional bits the spawn site grants (`src/security/capsule_manifest/verify/caps_bits.rs:45-47`, `install_caps`), and refuses an offer wider than the [manifest](../overview/glossary-linux-personality.md#manifest) with `GrantOutsideManifest` (`src/security/capsule_manifest/verify/caps.rs:31-38`, `check_grant`).
 - Signing refuses DeviceSecret in any capsule but `prove`, in make (`nonos-mk/capsule.mk:255-256`, `check_device_secret_cap`) and in the seal (`tools/nonos_seal/capsules.py:80`, `check_device_secret_cap`).
 
 The capability audit holds each bit to a call the code makes (`scripts/cap_audit.py:17-23`, `CAPSULE_REQUIRED_CAPS`), and the static checks run it with `--strict` (`nonos-ci/run-static-checks.sh:4825-4830`, `cap_audit_out`). Run it on your capsule alone:
@@ -94,8 +94,8 @@ The feature then goes into a feature set. hello's is in `microkernel-full-gui` (
 
 The mirror is a directory with four files, named in the declaration as `CAPSULE_KERNEL_MIRROR` (`userland/capsule_hello/Capsule.mk:15`, `CAPSULE_KERNEL_MIRROR`), and declared as a module in `src/userspace/apps.rs` (`src/userspace/apps.rs:33-34`, `capsule_hello`).
 
-- `embed.rs` includes the ELF from the crate's `target/` directory and the certificate, manifest and [trailer](../overview/glossary.md#attestation-trailer) from the [trust set](../overview/glossary.md#trust-set), behind the feature, as `HELLO_ELF` and its neighbours, and empty slices without it (`src/userspace/capsule_hello/embed.rs:17-47`, `HELLO_ELF`).
-- `spawn.rs` names the service and reply endpoints again, `SERVICE_PORT` 4810 and `REPLY_PORT` 4811, which must match the declaration (`src/userspace/capsule_hello/spawn.rs:28-32`, `SERVICE_PORT`). Its `requested_caps` are the five required bits and `serial_debug_cap()` (`src/userspace/capsule_hello/spawn.rs:47-52`, `requested_caps`), and it hands the spec to the [spawn gate](../overview/glossary.md#spawn-gate) through `spawn_verified` (`src/userspace/capsule_hello/spawn.rs:55`, `spawn_verified`).
+- `embed.rs` includes the ELF from the crate's `target/` directory and the certificate, manifest and [trailer](../overview/glossary-amnesic-boot.md#attestation-trailer) from the [trust set](../overview/glossary-stark-proof.md#trust-set), behind the feature, as `HELLO_ELF` and its neighbours, and empty slices without it (`src/userspace/capsule_hello/embed.rs:17-47`, `HELLO_ELF`).
+- `spawn.rs` names the service and reply endpoints again, `SERVICE_PORT` 4810 and `REPLY_PORT` 4811, which must match the declaration (`src/userspace/capsule_hello/spawn.rs:28-32`, `SERVICE_PORT`). Its `requested_caps` are the five required bits and `serial_debug_cap()` (`src/userspace/capsule_hello/spawn.rs:47-52`, `requested_caps`), and it hands the spec to the [spawn gate](../overview/glossary-rollback-index.md#spawn-gate) through `spawn_verified` (`src/userspace/capsule_hello/spawn.rs:55`, `spawn_verified`).
 - `state.rs` holds the capsule's lifecycle state, and `mod.rs` exports `spawn_hello_capsule` and `shared_state` (`src/userspace/capsule_hello/mod.rs:17-22`, `shared_state`).
 
 `check_mirror_caps.py` evaluates every mirror's `requested_caps` against its declaration (`scripts/check_mirror_caps.py:17-30`, `requested_caps`):
@@ -114,7 +114,7 @@ A plain `make` on a tree where a capsule the profile ships has no certificate, m
 
 - `capsule` skips an app turned off at first-boot setup (`src/userspace/init/spawn_plan/boot.rs:20-31`, `capsule_off`). Only the names `capsule_off` lists can be turned off, so a new app always starts unless it is given a switch (`src/userspace/init/app_choice/names.rs:24-36`, `capsule_off`).
 - The serial log then shows `[APP-HELLO] capsule spawned`, or the reason the gate refused it (`src/userspace/init/capsule_boot/run.rs:21-33`, `boot_log`).
-- Safe Mode refuses the names in `NOT_SAFE`, which include `app.hello` (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:30`, `NOT_SAFE`). A new app runs under every [boot profile](../overview/glossary.md#boot-profile) unless it is added there. [Boot modes](../install/boot-modes.md) describes the five.
+- Safe Mode refuses the names in `NOT_SAFE`, which include `app.hello` (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:30`, `NOT_SAFE`). A new app runs under every [boot profile](../overview/glossary-amnesic-boot.md#boot-profile) unless it is added there. [Boot modes](../install/boot-modes.md) describes the five.
 - Init restarts the system services in `WATCHED` when they end, and no app is among them (`src/userspace/init/supervisor/watch_rule.rs:17-28`, `WATCHED`). An app started at boot does not exit when its window closes; if it ends anyway, an app with no extra-window slots stays gone until the next boot.
 
 ## 6. The Launchpad row
@@ -139,7 +139,7 @@ An app that opens a new window per click, as Snake does, also needs:
 
 ## 7. Publisher keys, signing and enrollment
 
-By default each capsule has its own pair of publisher keys, one Ed25519 and one ML-DSA-65, named after its binary: `<bin>_publisher_ed25519` and `<bin>_publisher_mldsa65` (`nonos-mk/capsule.mk:85-86`, `CAPSULE_KEY_PUB_PREFIX`). The public halves are committed with the trust set, and the seeds stay in `.keys/`, out of git (`nonos-mk/capsule.mk:56-64`, `NONOS_BAKED_TRUST_DIR`). The seal issues the [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate), signs the manifest and runs one [enrollment](../overview/glossary.md#enrollment) of the whole capsule set, which writes every capsule's [attestation trailer](../overview/glossary.md#attestation-trailer). [Signing and publisher keys](signing-and-publisher-keys.md) walks through each step and what the kernel refuses.
+By default each capsule has its own pair of publisher keys, one Ed25519 and one ML-DSA-65, named after its binary: `<bin>_publisher_ed25519` and `<bin>_publisher_mldsa65` (`nonos-mk/capsule.mk:85-86`, `CAPSULE_KEY_PUB_PREFIX`). The public halves are committed with the trust set, and the seeds stay in `.keys/`, out of git (`nonos-mk/capsule.mk:56-64`, `NONOS_BAKED_TRUST_DIR`). The seal issues the [NONOS ID certificate](../overview/glossary-linux-personality.md#nonos-id-certificate), signs the manifest and runs one [enrollment](../overview/glossary-dma-pool.md#enrollment) of the whole capsule set, which writes every capsule's [attestation trailer](../overview/glossary-amnesic-boot.md#attestation-trailer). [Signing and publisher keys](signing-and-publisher-keys.md) walks through each step and what the kernel refuses.
 
 To see the key names a build needs:
 
@@ -149,7 +149,7 @@ python3 tools/nonos-capsule-key-prefixes
 
 On this tree it prints 97 names on one line, `hello` the 38th. For a release, the key ceremony, `tools/nonos-key-ceremony`, makes one pair per name (`tools/nonos-capsule-key-prefixes:17-19`, `CAPSULE_BIN_NAME`).
 
-A [development image](../overview/glossary.md#development-image) needs no real key. On every run, `tools/nonos-dev-image` runs the CI bootstrap in its keys-only mode, inside its copy of the tree (`tools/nonos-dev-image:117-126`, `keys`). That makes throwaway keys there, among them a pair for every capsule an include line names and a pair for each other entry of `tools/nix/capsules.json` that has none (`nonos-ci/scratch-trust-bootstrap.sh:86-109`, `NONOS_SCRATCH_KEYS_ONLY`). The seal stops at a catalogue entry without keys (`tools/nonos_seal/capsules.py:77-78`, `require`), and signs nothing the catalogue does not list.
+A [development image](../overview/glossary-claim-epoch.md#development-image) needs no real key. On every run, `tools/nonos-dev-image` runs the CI bootstrap in its keys-only mode, inside its copy of the tree (`tools/nonos-dev-image:117-126`, `keys`). That makes throwaway keys there, among them a pair for every capsule an include line names and a pair for each other entry of `tools/nix/capsules.json` that has none (`nonos-ci/scratch-trust-bootstrap.sh:86-109`, `NONOS_SCRATCH_KEYS_ONLY`). The seal stops at a catalogue entry without keys (`tools/nonos_seal/capsules.py:77-78`, `require`), and signs nothing the catalogue does not list.
 
 ## 8. Build a development image and see it run
 

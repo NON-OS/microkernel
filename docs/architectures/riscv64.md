@@ -4,7 +4,7 @@ What exists of the riscv64 port of NONOS, why it does not build into a kernel, a
 
 ## Status
 
-riscv64 is not supported. The tree holds a backend under `src/arch/riscv64`, a linker script and a [capsule](../overview/glossary.md#capsule) target file, but no kernel target file, no make target and no CI job, and the backend's entry calls a function that does not exist. No page here gives a date for the port.
+riscv64 is not supported. The tree holds a backend under `src/arch/riscv64`, a linker script and a [capsule](../overview/glossary-boot-root-record.md#capsule) target file, but no kernel target file, no make target and no CI job, and the backend's entry calls a function that does not exist. No page here gives a date for the port.
 
 The comment on `nonos-arch-preview` says the feature compiles and boots the `aarch64` and `riscv64` trees in QEMU (`Cargo.toml:53-55`). For riscv64 that is not so.
 
@@ -69,7 +69,7 @@ The facade modules in `src/arch` have no riscv64 branch, so riscv64 gets each on
 - `unix_timestamp` answers `None`, so there is no wall clock before the network (`src/arch/wall_clock.rs:29-36`).
 - `random_u64` answers `None` (`src/arch/cpu_random/read.rs:29-41`).
 - `send_ipi` answers an error (`src/arch/interrupt_controller/ipi.rs:28-38`).
-- `init_broker_irq_routing`, which installs the routes that carry device interrupts for the [hardware broker](../overview/glossary.md#hardware-broker), answers an error (`src/arch/init_broker_irq_routing.rs:17-34`).
+- `init_broker_irq_routing`, which installs the routes that carry device interrupts for the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker), answers an error (`src/arch/init_broker_irq_routing.rs:17-34`).
 - Port I/O compiles its `backend` from `unsupported.rs` (`src/arch/port_io/mod.rs:35-37`).
 - `set_user_tls` reports failure (`src/arch/context/tls.rs:25-39`).
 

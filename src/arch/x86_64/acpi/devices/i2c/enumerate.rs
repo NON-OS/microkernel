@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use super::parse::{parse_hid_devices, parse_platform_controllers, I2cHostName};
+use super::pci_hosts::{parse_pci_controllers, I2cPciHost};
 use super::types::I2cHidDevice;
 use crate::arch::x86_64::acpi::aml::tables::aml_blocks;
 
@@ -36,6 +37,15 @@ pub fn enumerate_platform_i2c_hosts() -> Vec<I2cHostName> {
     let mut out = Vec::new();
     for aml in aml_blocks() {
         out.extend(parse_platform_controllers(&aml));
+    }
+    out
+}
+
+/// Every Device with a constant `_ADR`, the PCI I2C hosts among them (K10g).
+pub fn enumerate_pci_i2c_hosts() -> Vec<I2cPciHost> {
+    let mut out = Vec::new();
+    for aml in aml_blocks() {
+        out.extend(parse_pci_controllers(&aml));
     }
     out
 }
