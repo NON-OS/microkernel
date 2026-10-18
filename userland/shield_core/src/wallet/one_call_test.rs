@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 use super::one_call;
 
 /// A shape A package whose body bytes each carry their own position, so every slice of the output

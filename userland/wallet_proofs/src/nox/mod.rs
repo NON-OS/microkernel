@@ -28,7 +28,6 @@ pub mod format_apr;
 pub mod format_nox;
 #[path = "../../../capsule_wallet_nonos/src/wallet/nox/q32_to_u128.rs"]
 pub mod q32_to_u128;
-#[allow(dead_code)]
 #[path = "../../../capsule_wallet_nonos/src/wallet/nox/stakeable.rs"]
 pub mod stakeable;
 #[path = "../../../capsule_wallet_nonos/src/wallet/nox/staking.rs"]

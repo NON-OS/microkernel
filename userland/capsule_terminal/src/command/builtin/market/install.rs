@@ -26,14 +26,12 @@ use alloc::string::String;
 
 use nonos_libc::{mk_app_install, mk_app_install_status};
 use nonos_market_proto::reason::WHY_NOT_INSTALLED;
-use nonos_market_proto::{pair_body, parse_readiness, reason, Stage, GATES, OP_INSTALL_READY};
+use nonos_market_proto::{reason, Stage, GATES};
 
-use super::call::call;
+use super::install_said::said;
+use super::ready::readiness;
 use super::stage_text::stage_text;
 use crate::command::output::Output;
-
-const EBUSY: i64 = -16;
-const EINVAL: i64 = -22;
 
 pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
     let name = String::from_utf8_lossy(id).into_owned();
@@ -59,7 +57,7 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
         }
         _ => {}
     }
-    let ready = call(OP_INSTALL_READY, &pair_body(id, b"")).map(|b| parse_readiness(&b));
+    let ready = readiness(id);
     match ready {
         Ok(Some(r)) if !r.install_ready => {
             out.writeln(format!("market: {name} cannot install on this machine yet:").as_bytes());
@@ -72,13 +70,5 @@ pub(super) fn run(out: &mut Output<'_>, id: &[u8]) {
         Ok(None) => return super::failure::Failure::Malformed.say(out, ""),
         Err(why) => return why.say(out, super::failure::NO_LISTING),
     }
-    let line = match mk_app_install(id, b"") {
-        0 => format!(
-            "market: {name} queued; `market info {name}` shows how it goes, as does the Marketplace"
-        ),
-        EBUSY => format!("market: {name} is queued already, or the queue is full (EBUSY)"),
-        EINVAL => format!("market: the system refused {name} as a listing id (EINVAL)"),
-        e => format!("market: the system refused the install (errno {})", -e),
-    };
-    out.writeln(line.as_bytes());
+    out.writeln(said(&name, mk_app_install(id, b"")).as_bytes());
 }

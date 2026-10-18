@@ -27,6 +27,10 @@
 
 use alloc::vec::Vec;
 
+#[path = "expand_designator.rs"]
+mod expand_designator;
+use expand_designator::{designator, lookup};
+
 /// What went wrong, so the caller can say so rather than run something else.
 #[derive(Debug, PartialEq, Eq)]
 pub enum ExpandError {
@@ -68,54 +72,4 @@ pub fn expand<E: Entries>(line: &[u8], history: &E) -> Option<Result<Vec<u8>, Ex
         }
     }
     changed.then_some(Ok(out))
-}
-
-enum Designator<'a> {
-    /// `!!`, the previous command.
-    Last,
-    /// `!n`, counting from one as `history` prints them.
-    Index(usize),
-    /// `!text`, the most recent command starting with `text`.
-    Prefix(&'a [u8]),
-}
-
-/// Read a whole token as a designator, or nothing.
-///
-/// A token must be entirely the form for it to count. `foo!bar` and a bare `!`
-/// are ordinary text, which keeps this away from anything a reader meant
-/// literally.
-fn designator(token: &[u8]) -> Option<Designator<'_>> {
-    let rest = token.strip_prefix(b"!")?;
-    if rest.is_empty() {
-        return None;
-    }
-    if rest == b"!" {
-        return Some(Designator::Last);
-    }
-    if rest.iter().all(|b| b.is_ascii_digit()) {
-        // Saturating, not checked. A number too large to hold is still
-        // unmistakably an index, and returning "not a designator" here would
-        // hand `!99999999999999999999999999` back as literal text for the
-        // shell to try to run. Saturated, it is an index past the end and is
-        // refused, which is what the reader meant to be told.
-        let mut n = 0usize;
-        for b in rest {
-            n = n.saturating_mul(10).saturating_add((b - b'0') as usize);
-        }
-        return Some(Designator::Index(n));
-    }
-    Some(Designator::Prefix(rest))
-}
-
-fn lookup<'e, E: Entries>(d: Designator<'_>, history: &'e E) -> Option<&'e [u8]> {
-    let count = history.count();
-    match d {
-        Designator::Last => (count > 0).then(|| history.get(count - 1)),
-        // One-based, because that is how `history` numbers what it prints and
-        // an off-by-one here runs a command the reader did not choose.
-        Designator::Index(n) => (n >= 1 && n <= count).then(|| history.get(n - 1)),
-        Designator::Prefix(p) => {
-            (0..count).rev().map(|i| history.get(i)).find(|e| e.starts_with(p))
-        }
-    }
 }

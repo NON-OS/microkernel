@@ -50,6 +50,9 @@ mod input_probe_fleet;
 mod install_first;
 mod network;
 mod orchestrator;
+#[cfg(not(feature = "microkernel-input-probe"))]
+mod nox_settle;
+mod payment;
 mod platform_acpi;
 mod services_audio;
 mod vm;

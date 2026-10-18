@@ -14,19 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
 
-use crate::command::builtin::direct_gate::{refusal_line, NSLOOKUP};
-use crate::command::builtin::offline_probe::offline;
 use crate::term::state::State;
-use crate::term::util::format_u64;
 
 const SERVICE: &[u8] = b"net.dns";
-const MAGIC: u32 = 0x4E44_4E53;
 const HDR_LEN: usize = 20;
-const OP_RESOLVE_A: u16 = 2;
 const TIMEOUT_MS: u64 = 2000;
+
+#[path = "nslookup_ask.rs"]
+mod nslookup_ask;
+#[path = "nslookup_gate.rs"]
+mod nslookup_gate;
+#[path = "nslookup_said.rs"]
+mod nslookup_said;
+
+use nslookup_ask::request;
+use nslookup_gate::may_ask;
+use nslookup_said::answer_line;
 
 pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let Some(&host) = args.first() else {
@@ -45,23 +50,10 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
         state.scrollback.push_error(b"nslookup: dns unavailable");
         return false;
     }
-    let refused = nonos_route_link::direct_refusal();
-    if let Some(line) = refusal_line(b"nslookup", NSLOOKUP, refused) {
-        state.scrollback.push_error(&line);
+    if !may_ask(state) {
         return false;
     }
-    if let Some(line) = offline(b"nslookup") {
-        state.scrollback.push_error(&line);
-        return false;
-    }
-    let mut tx: Vec<u8> = Vec::with_capacity(HDR_LEN + host.len());
-    tx.extend_from_slice(&MAGIC.to_le_bytes());
-    tx.extend_from_slice(&1u16.to_le_bytes());
-    tx.extend_from_slice(&OP_RESOLVE_A.to_le_bytes());
-    tx.extend_from_slice(&0u32.to_le_bytes());
-    tx.extend_from_slice(&1u32.to_le_bytes());
-    tx.extend_from_slice(&(host.len() as u32).to_le_bytes());
-    tx.extend_from_slice(host);
+    let tx = request(host);
     let mut rx = [0u8; HDR_LEN + 4];
     let n = mk_ipc_call_timeout(
         port as u64,
@@ -75,17 +67,7 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
         state.scrollback.push_error(b"nslookup: not resolved");
         return false;
     }
-    let mut line: Vec<u8> = Vec::new();
-    line.extend_from_slice(host);
-    line.extend_from_slice(b" -> ");
-    for (i, &b) in rx[HDR_LEN..HDR_LEN + 4].iter().enumerate() {
-        if i > 0 {
-            line.push(b'.');
-        }
-        let mut buf = [0u8; 24];
-        let k = format_u64(b as u64, &mut buf);
-        line.extend_from_slice(&buf[..k]);
-    }
+    let line = answer_line(host, &rx);
     state.scrollback.push_line(&line);
     true
 }

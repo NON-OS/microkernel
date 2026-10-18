@@ -25,27 +25,16 @@ use super::rail_telemetry;
 use super::rail_text::RAIL_PAD;
 use super::tab_label::session_name;
 use super::tokens::DOT_IDLE;
+use super::Scene;
 use crate::layout::Rect;
-use crate::rail::Rail;
-use crate::term::prefs::types::Project;
-use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
 /// The one rail, painted as a single scrolled column: the sessions this window
 /// owns, the paths the user has pinned, then the machine telemetry. Everything
 /// is drawn into a sub-buffer covering the rail, so a band scrolled past either
 /// edge is cut by the buffer instead of bleeding into the rest of the chrome.
-pub fn draw(
-    fb: &mut PaintBuffer,
-    r: Rect,
-    tabs: &[State],
-    active: usize,
-    projects: &[Project],
-    rail: &Rail,
-    telemetry: bool,
-    scroll: u32,
-    t: &Theme,
-) {
+pub fn draw(fb: &mut PaintBuffer, r: Rect, scene: &Scene, t: &Theme) {
+    let Scene { tabs, active, projects, rail, monitor: telemetry, scroll, .. } = *scene;
     if r.w == 0 || r.h == 0 {
         return;
     }

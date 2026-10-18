@@ -55,7 +55,7 @@ let
     "nonos-capsule-net-tcp" "nonos-capsule-net-dns" "nonos-capsule-net-ntp" "nonos-capsule-net-core"
     "nonos-capsule-net-sockets" "nonos-capsule-net-nym" "nonos-capsule-net-anon" "nonos-capsule-socks5"
     "nonos-capsule-browser" "nonos-capsule-app-store" "nonos-capsule-market" "nonos-capsule-installer"
-    "nonos-capsule-model-fetch" "nonos-capsule-shield"
+    "nonos-capsule-model-fetch" "nonos-capsule-shield" "nonos-capsule-nox-settle"
   ];
 
   # Lets service capsules write to the serial console, which a hardened image

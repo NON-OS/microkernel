@@ -15,7 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod handle;
-mod read_lp_string;
-mod write_lp_string;
 
 pub(crate) use handle::handle;

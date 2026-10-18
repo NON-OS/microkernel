@@ -21,12 +21,10 @@
  * typed override. A grey button says which of these it waits for.
  */
 
-use alloc::format;
-use alloc::string::String;
-
+pub use super::check_why::held_back;
 use super::consts::OVERRIDE;
 pub use super::typed::{address_ok, amount_ok};
-use crate::wallet::state::shield_ui::{ShieldUi, SHIELD_DEPOSIT, SHIELD_SEND};
+use crate::wallet::state::shield_ui::ShieldUi;
 
 /* Matured, or not yet counted (the service checks again), or overridden. */
 pub fn wait_ok(ui: &ShieldUi) -> bool {
@@ -43,41 +41,4 @@ pub fn withdraw_ready(ui: &ShieldUi) -> bool {
 
 pub fn send_ready(ui: &ShieldUi) -> bool {
     ui.opened && ui.waiting.is_none() && address_ok(&ui.to) && amount_ok(&ui.amount) && wait_ok(ui)
-}
-
-/* Why the button on `screen` is grey: the first need not met, in the order
- * above, or nothing when it is lit. */
-pub fn held_back(ui: &ShieldUi, screen: u8) -> Option<String> {
-    if let Some(w) = ui.waiting {
-        return Some(format!(
-            "Waits for the shield service, which is {} now.",
-            super::proving::doing(w.op)
-        ));
-    }
-    if !ui.opened {
-        return Some(String::from("Waits for the shield to open for this account."));
-    }
-    let send = screen == SHIELD_SEND;
-    if !send && ui.size.is_none() {
-        return Some(String::from("Pick a size above."));
-    }
-    if send && ui.to.is_empty() {
-        return Some(String::from("Paste the payee's nox1 address into To (Ctrl+V)."));
-    }
-    if send && !address_ok(&ui.to) {
-        return Some(format!(
-            "To holds {} letters that are not a whole nox1 address, which is 2,009 letters. \
-             Paste it again: a paste replaces what is there.",
-            ui.to.len()
-        ));
-    }
-    if send && !amount_ok(&ui.amount) {
-        return Some(String::from("Type an amount above zero, with at most 18 decimals."));
-    }
-    if !wait_ok(ui) && screen != SHIELD_DEPOSIT {
-        return Some(format!(
-            "The notes are still waiting, as the meter shows. Type \"{OVERRIDE}\" to spend now."
-        ));
-    }
-    None
 }

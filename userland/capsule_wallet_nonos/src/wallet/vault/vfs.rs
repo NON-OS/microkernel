@@ -16,11 +16,9 @@
 
 //! The three calls this needs from vfs_pool, and nothing else.
 
-use alloc::vec::Vec;
-
-use nonos_libc::mk_ipc_call_timeout;
-
-use super::answer::Answer;
+#[path = "vfs_call.rs"]
+mod vfs_call;
+pub(super) use vfs_call::call;
 
 const VFS_PORT: u32 = 4104;
 const MAGIC: u32 = 0x4E4F_5646;
@@ -43,36 +41,3 @@ pub(super) const O_CREATE: u32 = 1 << 0;
 /// is here because a format that grows would otherwise read back as a valid
 /// blob with a corrupt tail.
 pub(super) const O_TRUNC: u32 = 1 << 1;
-
-/// Longer than the shell's 300ms: this runs when the user saves or restores a
-/// wallet, not on a paint path, and the store may be busy staging packages.
-const TIMEOUT_MS: u64 = 1000;
-
-pub(super) fn call(op: u16, body: &[u8], rx: &mut [u8]) -> Answer {
-    let mut tx = Vec::with_capacity(HDR_LEN + body.len());
-    tx.extend_from_slice(&MAGIC.to_le_bytes());
-    tx.extend_from_slice(&VERSION.to_le_bytes());
-    tx.extend_from_slice(&op.to_le_bytes());
-    tx.extend_from_slice(&0u16.to_le_bytes());
-    tx.extend_from_slice(&0u16.to_le_bytes());
-    tx.extend_from_slice(&1u32.to_le_bytes());
-    tx.extend_from_slice(&(body.len() as u32).to_le_bytes());
-    tx.extend_from_slice(body);
-    let rc = mk_ipc_call_timeout(
-        VFS_PORT as u64,
-        tx.as_ptr(),
-        tx.len(),
-        rx.as_mut_ptr(),
-        rx.len(),
-        TIMEOUT_MS,
-    );
-    if rc <= 0 || (rc as usize) < HDR_LEN + 4 {
-        return Answer::Silent;
-    }
-    let status =
-        i32::from_le_bytes([rx[HDR_LEN], rx[HDR_LEN + 1], rx[HDR_LEN + 2], rx[HDR_LEN + 3]]);
-    if status != 0 {
-        return Answer::Refused(status);
-    }
-    Answer::Ok(rc as usize)
-}
