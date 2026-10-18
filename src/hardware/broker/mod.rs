@@ -50,6 +50,7 @@ mod platform;
 mod power;
 pub mod reserved;
 mod table;
+mod vmbus;
 mod windows;
 
 #[cfg(target_arch = "x86_64")]
@@ -69,7 +70,8 @@ pub use device::{
     NUMA_UNKNOWN,
 };
 pub use dma::{
-    map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
+    covers as dma_covers, map_for_caller as dma_map_for_caller,
+    release_all_for_pid as dma_release_all_for_pid,
     release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
     wipe_live_grants as dma_wipe_live_grants, DmaError, DmaGrant, DmaMapError, DmaMapRequest,
     DmaMapResult,
@@ -101,4 +103,5 @@ pub use pio::{
 pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use platform::register_legacy as register_legacy_platform_devices;
 pub use table::{contains, external_port_of, init_from_pci, list, list_by_class};
+pub use vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use windows::touches_device_window;
