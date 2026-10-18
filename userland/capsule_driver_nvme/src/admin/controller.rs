@@ -26,18 +26,25 @@ use crate::regs::Regs;
 /// Reset the controller: wait out an enable firmware left half done, clear
 /// CC.EN, and wait for RDY (and CFS) to clear.
 pub fn reset_to_disabled(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
+    // SAFETY: CSTS lies in the register block's first 0x40 bytes, inside the
+    // window bring-up mapped (ControllerInfo::read).
     let csts = || unsafe { regs.r32(REG_CSTS) };
+    // SAFETY: CC, likewise.
     match disable_start(unsafe { regs.r32(REG_CC) }, csts()) {
         DisableStart::Gone => return Err(NvmeError::UnsupportedController),
         DisableStart::AwaitReady => await_ready_before_disable(info.cap, csts, uptime_ms)?,
         DisableStart::Clear => {}
     }
+    // SAFETY: CC, likewise.
     unsafe { regs.w32(REG_CC, 0) };
     wait_ready(info.cap, false, csts, uptime_ms)
 }
 
 pub fn enable(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
     let cc = cc_value(info.cap)?;
+    // SAFETY: CC and CSTS lie in the register block's first 0x40 bytes,
+    // inside the window bring-up mapped (ControllerInfo::read).
     unsafe { regs.w32(REG_CC, cc) };
+    // SAFETY: as above.
     wait_ready(info.cap, true, || unsafe { regs.r32(REG_CSTS) }, uptime_ms)
 }

@@ -48,6 +48,21 @@ returned payload slice is precisely that region, and short, mistagged, or
 misframed buffers are rejected. A Kani harness proves totality and exact
 framing over every buffer within its bound.
 
+## Liveness and access
+
+The probe, the check after a failed request, and the request path run on a test
+clock against a scripted driver.xhci0 (`src/xhci`), with the driver's `scan` and
+`server` unchanged, stepped after each request as `server/runner.rs` does. An
+empty card reader is passed on its second TEST UNIT READY, a second after
+configuration, and asked again after 5 s, then 10 s; no step or request outlives
+its window. After a let-go only the same unit, size and serial number is served,
+on its own port while it stays. A card taken out, a stick with no serial number
+let go, and a medium change once a sector is held end serving. Before that, or
+on any other UNIT ATTENTION, an unread sense or a lost phase, the medium is
+served afresh and the state reply's generation rises; three failed requests in a
+row let a device go. Only the kernel is served, a health check aside. A hostile
+reply from driver.xhci0 never panics and is never read past its end.
+
 ## Run
 
 ```sh

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_virtio::Mmio;
+
 use super::io::RegIo;
 use super::regs_type::Regs;
 
 impl Regs {
-    pub const fn mmio(base: u64) -> Self {
-        Self { io: RegIo::Mmio(base as *mut u8) }
+    pub const fn mmio(region: Mmio) -> Self {
+        Self { io: RegIo::Mmio(region) }
     }
 }

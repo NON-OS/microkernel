@@ -15,5 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const TRB_BYTES: usize = 16;
 pub const COMMAND_RING_TRBS: usize = 64;
+pub const TRANSFER_RING_TRBS: usize = 64;
 pub const EVENT_RING_SEGMENT_TRBS: usize = 64;
 pub const EVENT_RING_SEGMENT_TABLE_ENTRIES: usize = 1;

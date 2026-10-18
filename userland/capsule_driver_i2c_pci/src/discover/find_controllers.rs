@@ -16,7 +16,8 @@
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO};
 
 use super::classify::classify;
-use super::defs::{Found, MAX_DEVICES};
+use super::defs::MAX_DEVICES;
+use super::found::Found;
 
 /// Collect every LPSS I2C host controller with a usable MMIO window into `out`,
 /// returning how many were written. The touchpad may hang off any one of them,
@@ -37,7 +38,6 @@ pub fn find_controllers(out: &mut [Found]) -> usize {
         if r.bar_count != 0 && bar0.kind == BAR_KIND_MMIO && bar0.size != 0 {
             out[count] = Found {
                 device_id: r.device_id,
-                irq_line: r.irq_line,
                 bar0_base: bar0.base,
                 bar0_size: bar0.size,
                 pci_device: r.device,

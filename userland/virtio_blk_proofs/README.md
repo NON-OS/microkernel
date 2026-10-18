@@ -1,62 +1,59 @@
 # virtio_blk_proofs
 
-Host-runnable proofs for the virtio-blk driver's untrusted-input parsers. The
-real driver source is included through `#[path]` and run on the host.
+Host-runnable proofs for the virtio-blk driver. The shipping source is
+included through `#[path]` and run on the host, bring-up included; its kernel
+calls resolve to `libc_shim`.
 
-## No shims, and no device memory
+## The shim
 
-The crate depends only on `nonos_virtio`, because the driver state holds the
-modern transport's register regions.
+`libc_shim` stands in for `nonos_libc`: an interrupt line a test scripts and
+a clock that moves only when a wait takes time, so a wait bounded by the
+clock and one bounded by a count of wakes come apart as on a machine; a
+broker that grants and logs each request, with a hook run at that moment; a
+device list; port I/O answered by a device model, which reaches the DMA
+grants by their device addresses; MkExit unwinding the test's thread with
+its code. The record types and the bring-up schedule are the libc's own; the
+few flag values it cannot mount are held to the libc's text (`abi_tests`).
 
-The request parsers take the driver state by reference, so the proofs build a
-real `Driver` value: the true struct from the driver source, holding a real
-`Queue` whose pointers are null and a `Regs` made with the real constructor.
-Nothing is replaced or reimplemented. Because the queue pointers are null,
-the proofs also establish that parsing never touches device memory: a
-dereference would crash the tests and fail the Kani harnesses.
+## What is held
 
-## Read and write bounds
-
-A block request carries an attacker-controlled LBA and sector count, and for
-writes the data itself. The proofs establish that both parsers never panic,
-that an accepted request has a sector count within range and `lba + count`
-neither overflows nor exceeds the device capacity, and that the framing is
-exact: a read must declare precisely a header's payload, and a write is
-accepted only when the body length and the declared payload length both equal
-the header plus the data for the requested sector count. A byte more or less
-is a framing error, so no stale queue data can ever be sent to the device in
-place of missing payload. Kani harnesses prove the bounds and the exact
-framing over every body within their bounds, every capacity, and every
-declared payload length.
-
-This completes the block-driver set: the same isolation property is proven
-for AHCI in `driver_proofs` and for NVMe in `nvme_proofs`.
-
-## The medium rule
-
-`server/acl/rule.rs` is included as it ships: every op but the health check
-answers only the kernel's client (sender pid 0) or a sender the kernel says
-holds `StoreWrite`. A Kani harness proves that over every op, sender and
-answer.
-
-## Modern capacity read
-
-`capacity_tests` runs the modern-transport capacity read and refuses a device
-region too short to hold the capacity.
-
-## Field readers and the wire header
-
-The bounds-checked little-endian readers behind the parsers return `None`
-rather than reading out of bounds, including when the offset plus the width
-would overflow a `usize`. Header decoding is total and reads every field from
-its wire offset. Kani proves both over all inputs within their bounds.
+- The request wait ends by the clock, never by a count of wakes: a line that
+  keeps firing cannot hold a request past its budget, nor end a healthy one
+  early. A request the device never answers stalls the queue by name; the
+  next one is refused at once, and the server resets the device. The stall
+  after three resets in a row, with under a minute served since the last,
+  stops the device, gives it back and ends the driver within a bound: the
+  disk reads as gone, not reset for good (`streak_tests`).
+- The used element is taken only when it names the request in flight with the
+  length that request has (on legacy, any that covers the status byte, as
+  the specification's legacy notes allow: bhyve reports one); an index moved
+  out of turn stalls the queue. A read's buffer is emptied before the device
+  is given it.
+- The chain, the available ring and the ring sizes as the specification lays
+  them out, every power of two from 4 to 32768, across the index wrap.
+- Bring-up against a legacy device on ports (`tests::legacy_dev`) that can
+  start with a queue a dead predecessor left running: Bus Master goes on
+  only once the device was reset and seen stopped, and never for a device
+  that does not stop; MSI-X before INTx, and a function with neither refused
+  by name; a refused bring-up and teardown reset the device and switch bus
+  mastering off before the claim is given back, last. Nothing unmaps DMA.
+- The legacy handshake takes FLUSH alone; the register accessors cannot
+  reach outside their window.
+- The request parsers: exact framing, every accepted request on the disk.
+  Kani harnesses prove the bounds and the framing over every body within
+  their bounds, every capacity and every declared payload length.
+- The medium rule (`server/acl/rule.rs`): every op but the health check
+  answers only the kernel's client or a sender holding `StoreWrite`.
+- Orders the host cannot run (barriers, the modern handshake, the server
+  loop's turn) and rules over the whole driver (no unsafe block without a SAFETY
+  comment, no file over 75 lines) are held in the shipping text.
 
 ## Run
 
 ```sh
 cd userland/virtio_blk_proofs
-cargo test --release
-cargo kani                # bounds, framing, readers, header, medium rule (requires Kani)
+cargo test --offline
+cargo kani                # bounds, framing, readers, header, medium rule
 ```
 
 See [drivers](../../docs/handbook/drivers.md) and
