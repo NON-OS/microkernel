@@ -20,16 +20,22 @@
 mod finish;
 #[path = "../../../capsule_driver_rtl8139/src/init/mac.rs"]
 mod mac;
+#[path = "../../../capsule_driver_rtl8139/src/init/recover.rs"]
+mod recover;
 #[path = "../../../capsule_driver_rtl8139/src/init/reset.rs"]
 mod reset;
 #[path = "../../../capsule_driver_rtl8139/src/init/run.rs"]
 mod run;
 #[path = "../../../capsule_driver_rtl8139/src/init/rx_setup.rs"]
 mod rx_setup;
+#[path = "../../../capsule_driver_rtl8139/src/init/start.rs"]
+mod start;
 #[path = "../../../capsule_driver_rtl8139/src/init/tx_setup.rs"]
 mod tx_setup;
 
 pub use finish::finish;
+pub use recover::recover;
+pub use reset::run as reset_part;
 pub use run::bring_up;
 pub use rx_setup::restart as restart_rx;
 pub use tx_setup::TCR;

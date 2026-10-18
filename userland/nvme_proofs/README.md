@@ -134,9 +134,10 @@ reported in 512-byte sectors.
 ## What stays unproven on the host
 
 The proofs run the driver's decisions and loops, not its MMIO and DMA: the
-volatile reads and writes, the order of calls in `setup/sequence.rs` (that
-the doorbell check and the namespace check are made, and that disable comes
-before enable) and the kernel's uptime clock advancing are read from the
+volatile reads and writes, the order of calls in `setup/sequence/start.rs`
+and `run.rs` (the admin queue, the enable and the namespace check after
+`bring_up.rs`, whose claim, register-block check, disable and Bus Master
+run on the fake) and the kernel's uptime clock advancing are read from the
 code, not executed. So are the console lines reaching serial (they need the
 Debug capability, granted only by a `capsule-serial-debug` build), which
 controller a real machine lists first, and the kernel client's IPC round

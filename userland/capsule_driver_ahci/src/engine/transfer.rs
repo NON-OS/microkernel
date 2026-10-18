@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::cmd_header::CmdHeader;
 use super::port::Port;
-use crate::constants::regs::PORT_TFD;
+use super::prd_count::data_bytes;
 use crate::constants::ata::{ATA_READ_DMA_EXT, ATA_WRITE_DMA_EXT};
 use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
 /// Read or write `sectors` sectors at `lba`. The span is held to the served
 /// capacity here, before any command is built, whatever the caller checked.
+/// A read or a write is done only when the HBA moved every byte it asked
+/// for: PRDBC counts both directions (AHCI 1.3.1, 4.2.2), so a write the
+/// drive never took is an error, not Ok.
 pub fn transfer(
     port: &mut Port,
     regs: Regs,
@@ -32,13 +36,25 @@ pub fn transfer(
     if !super::span::within(port.capacity_sectors, lba, sectors) {
         return Err(AhciError::OutOfRange);
     }
+    let bytes = data_bytes(sectors).ok_or(AhciError::OutOfRange)?;
+    // The HBA of a wedged port may still own the command table.
+    if port.wedged {
+        return Err(AhciError::Wedged);
+    }
     let cmd = if write { ATA_WRITE_DMA_EXT } else { ATA_READ_DMA_EXT };
     super::build::build_slot0(port, cmd, lba, sectors, write)?;
-    if let Err(e) = super::issue::issue_slot0(regs, port.base, port.sclo) {
-        // SAFETY: the port's register block lies inside the mapped ABAR.
-        port.last_tfd = unsafe { regs.r32(port.base + PORT_TFD) };
-        let _ = super::recover::recover(regs, port.base, port.sclo);
-        return Err(e);
+    super::issue::run(port, regs)?;
+    if moved(port) != bytes {
+        return Err(AhciError::ShortTransfer);
     }
     Ok(())
+}
+
+/// The bytes the HBA moved for slot 0's command: PRDBC in its command
+/// header (AHCI 1.3.1, 4.2.2), written by the HBA, so read volatile.
+fn moved(port: &Port) -> u32 {
+    let at = port.clb.user_va() + core::mem::offset_of!(CmdHeader, prdbc) as u64;
+    // SAFETY: the command list is mapped for the port's life and slot 0's
+    // header is its first 32 bytes; PRDBC is a dword at offset 4, aligned.
+    unsafe { core::ptr::read_volatile(at as *const u32) }
 }

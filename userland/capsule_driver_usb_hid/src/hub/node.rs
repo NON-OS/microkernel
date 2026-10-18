@@ -16,6 +16,7 @@
 
 //! A hub this driver configured, and what it keeps for each of its ports.
 
+use super::bringup::Bringup;
 use super::descriptor::MAX_HUB_PORTS;
 use super::place::Place;
 
@@ -28,12 +29,17 @@ pub struct Hub {
     /// Per port, from port 1: the slot kept for the device there, 0 for
     /// none. A device that bound nothing has its slot given back.
     pub child: [u8; PORTS],
-    /// Per port: the tries that came to nothing since it was last empty.
-    pub tries: [u8; PORTS],
+    /// Per port: how far its device is brought up, and how often it was
+    /// tried.
+    pub bring: [Bringup; PORTS],
+    /// Its ports are first looked at from here, once their power is good
+    /// (bPwrOn2PwrGood after PORT_POWER), all of them; 0 once they were.
+    pub ready_ms: u64,
 }
 
 impl Hub {
     pub fn new(slot: u8, place: Place, ports: u8) -> Self {
-        Self { slot, place, ports: ports.min(MAX_HUB_PORTS), child: [0; PORTS], tries: [0; PORTS] }
+        let (child, bring) = ([0; PORTS], [Bringup::new(); PORTS]);
+        Self { slot, place, ports: ports.min(MAX_HUB_PORTS), child, bring, ready_ms: 0 }
     }
 }

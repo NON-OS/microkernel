@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::region::DmaRegion;
+use crate::clock::Deadline;
 use crate::identity::Names;
 
 pub struct Port {
@@ -24,11 +25,20 @@ pub struct Port {
     pub(crate) data: DmaRegion,
     pub(crate) base: u32,
     pub(crate) capacity_sectors: u64,
-    /// CAP.SCLO of the port's HBA: recovery may use Command List Override.
-    pub(crate) sclo: bool,
     /// Model and serial from the disk's IDENTIFY block.
     pub(crate) names: Names,
     /// PxTFD as the last failed command left it, read before recovery
     /// clears it: the disk's own status and error registers.
     pub(crate) last_tfd: u32,
+    /// Recovery could not stop the command engine: nothing more is built,
+    /// copied into the data buffer, or issued on this port.
+    pub(crate) wedged: bool,
+    /// Each command's budget: BRING_UP_COMMAND_MS while the walk tries the
+    /// disk, COMMAND_MS once it is served.
+    pub(crate) command_ms: u64,
+    /// When ATA's window for the drive to come out of the last COMRESET a
+    /// recovery sent closes (RESET_WINDOW_MS); `None` before any. Until
+    /// then a drive that shows BSY or DRQ is still in that reset, and is
+    /// waited out (`prepare`).
+    pub(crate) reset_window: Option<Deadline>,
 }

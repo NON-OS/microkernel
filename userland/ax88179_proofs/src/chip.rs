@@ -16,6 +16,8 @@ pub const BMCR: u16 = 0x1140;
 pub struct Chip {
     pub node_id: Vec<u8>,
     pub physr: Rc<Cell<u16>>,
+    /// Set, the PHY no longer answers: every PHYSR read fails.
+    pub phy_gone: Rc<Cell<bool>>,
     pub link_sts: u8,
     pub eeprom: Option<u16>,
     pub fifo_busy: bool,
@@ -25,15 +27,16 @@ pub struct Chip {
 
 impl Default for Chip {
     fn default() -> Self {
-        let physr = Rc::new(Cell::new(0));
-        let (node_id, link_sts) = (MAC.to_vec(), 0x04);
-        Self { node_id, physr, link_sts, eeprom: None, fifo_busy: false, refuse: None }
+        let (physr, phy_gone) = (Rc::new(Cell::new(0)), Rc::new(Cell::new(false)));
+        let (node_id, link_sts, eeprom, fifo_busy) = (MAC.to_vec(), 0x04, None, false);
+        Self { node_id, physr, phy_gone, link_sts, eeprom, fifo_busy, refuse: None }
     }
 }
 
 impl Chip {
     pub fn bus(&self) -> MockBus {
         let (id, physr, sts) = (self.node_id.clone(), self.physr.clone(), self.link_sts);
+        let gone = self.phy_gone.clone();
         let (eeprom, busy, refuse) = (self.eeprom, self.fifo_busy, self.refuse);
         MockBus::new(Box::new(move |call| {
             let key = |s: &Setup| (s.request, s.value, s.index);
@@ -41,6 +44,7 @@ impl Chip {
                 (Call::In(s, _) | Call::Out(s, _), Some((r, v, i, e))) if key(s) == (r, v, i) => {
                     Err(e)
                 }
+                (Call::In(s, _), _) if gone.get() && key(s) == (0x02, 3, 0x11) => Err(-71),
                 (Call::In(s, _), _) => match key(s) {
                     (0x01, 0x10, 6) => Ok(id.clone()),
                     (0x01, 0x02, 1) => Ok(vec![sts]),

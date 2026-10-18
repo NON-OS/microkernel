@@ -18,15 +18,24 @@
 
 use nonos_libc::{mk_device_release, mk_mmio_unmap};
 
-/// The claim and the register window; dropping it unmaps the window and
-/// releases the claim (the broker stops bus mastering on release).
+use super::super::env::SerialLog;
+use super::command::command;
+
+/// The claim and the register window. Dropped once the host is stopped, it
+/// turns bus mastering off, unmaps the window and releases the claim; the
+/// release frees the DMA regions after the broker reads Bus Master back off.
 pub(super) struct Claim {
     pub(super) device_id: u64,
+    pub(super) epoch: u64,
     pub(super) mmio_grant: Option<u64>,
 }
 
 impl Drop for Claim {
     fn drop(&mut self) {
+        // The broker ORs Command bits until K6, so this "off" write changes
+        // nothing yet and the release's own stop is what holds; it is written
+        // so the order holds on its own once the broker stores the word.
+        let _ = command(&SerialLog, self.device_id, self.epoch, false);
         if let Some(g) = self.mmio_grant {
             let _ = mk_mmio_unmap(g);
         }
