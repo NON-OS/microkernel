@@ -16,13 +16,11 @@
 
 mod alloc;
 mod cmdline;
-mod constants;
 mod fatal;
 mod flags;
 mod security;
 
 pub use alloc::{allocate_handoff_resources, HandoffAllocations};
-pub use constants::{MAX_MMAP_ENTRIES, MMAP_PAGES};
 pub use fatal::fatal_alloc_error;
 pub use flags::build_handoff_flags;
 pub use security::{detect_cpu_security_features, estimate_tsc_frequency};
