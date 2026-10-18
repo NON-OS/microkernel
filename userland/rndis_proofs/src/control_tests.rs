@@ -1,15 +1,16 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Binding QEMU usb-net's RNDIS configuration: every request in Linux
-//! generic_rndis_bind's order and layout, and the control channel passing
-//! over what is not its answer.
+//! generic_rndis_bind's order and layout, the drawn address where Linux
+//! reads the permanent one, and the control channel passing over what is
+//! not its answer.
 
 use std::time::Instant;
 
 use nonos_usbnet::found::fetch;
-use nonos_usbnet::mock::{Call, MockBus};
-use nonos_usbnet::{Bind, Nic, Setup};
+use nonos_usbnet::mock::{drawn, Call, MockBus};
+use nonos_usbnet::{Bind, Nic, Setup, Taken};
 
-use crate::device::{indicate, set_cmplt, words, NIC_MAC, STATUS_MEDIA_CONNECT};
+use crate::device::{indicate, set_cmplt, words, STATUS_MEDIA_CONNECT};
 use crate::qemu::{honest, usb_net, Tamper};
 use crate::rndis::bind;
 
@@ -20,7 +21,7 @@ pub fn bind_with(tamper: Tamper) -> (MockBus, Bind<crate::rndis::link::Rndis<Moc
     let bus = usb_net(tamper);
     let found = fetch(&mut bus.clone(), 2).unwrap();
     bus.0.borrow_mut().calls.clear();
-    let r = bind(bus.clone(), &found);
+    let r = bind(bus.clone(), &found, drawn());
     (bus, r)
 }
 
@@ -28,17 +29,17 @@ pub fn bind_with(tamper: Tamper) -> (MockBus, Bind<crate::rndis::link::Rndis<Moc
 fn qemu_usb_net_binds_in_configuration_two_in_linux_order() {
     let (bus, r) = bind_with(honest());
     let Bind::Ours(nic) = r else { panic!("not bound") };
-    assert_eq!(nic.mac(), NIC_MAC);
+    assert_eq!((nic.mac(), nic.taken()), (drawn().bytes(), Taken::Promiscuous));
     let calls = bus.0.borrow().calls.clone();
     assert!(matches!(calls[0], Call::Configure(p) if p.bulk_in == 0x82 && p.bulk_out == 0x02));
     assert_eq!(calls[1], Call::Out(Setup::set_configuration(2), vec![]));
     assert_eq!(calls[2], Call::Out(SEND, words(&[2, 24, 1, 1, 0, 4096])));
     assert_eq!(calls[3], Call::In(GET, 512));
-    let mut query = words(&[4, 76, 2, 0x0101_0101, 48, 20, 0]);
-    query.resize(76, 0);
-    assert_eq!(calls[4], Call::Out(SEND, query));
+    let mut address = words(&[5, 34, 2, 0x0101_0102, 6, 20, 0]);
+    address.extend_from_slice(&drawn().bytes());
+    assert_eq!(calls[4], Call::Out(SEND, address), "the drawn address, which QEMU refuses");
     assert_eq!(calls[5], Call::In(GET, 512));
-    assert_eq!(calls[6], Call::Out(SEND, words(&[5, 32, 3, 0x0001_010E, 4, 20, 0, 0x0D])));
+    assert_eq!(calls[6], Call::Out(SEND, words(&[5, 32, 3, 0x0001_010E, 4, 20, 0, 0x2D])));
     assert_eq!(calls[7], Call::In(GET, 512));
     assert_eq!(calls.len(), 8, "no SET_INTERFACE: the pipes are on alternate 0");
 }

@@ -25,20 +25,29 @@ mod hold;
 mod link_up;
 #[path = "../../../capsule_driver_e1000/src/init/mac_filter.rs"]
 mod mac_filter;
+#[path = "../../../capsule_driver_e1000/src/init/recover.rs"]
+mod recover;
 #[path = "../../../capsule_driver_e1000/src/init/reset.rs"]
 mod reset;
+#[path = "../../../capsule_driver_e1000/src/init/reset_part.rs"]
+mod reset_part;
 #[path = "../../../capsule_driver_e1000/src/init/run.rs"]
 mod run;
 #[path = "../../../capsule_driver_e1000/src/init/rx_setup.rs"]
 mod rx_setup;
+#[path = "../../../capsule_driver_e1000/src/init/start.rs"]
+mod start;
 #[path = "../../../capsule_driver_e1000/src/init/station_address.rs"]
 mod station_address;
 #[path = "../../../capsule_driver_e1000/src/init/tx_setup.rs"]
 mod tx_setup;
 
 pub use finish::finish;
+pub use hold::{hold_ms, until};
 pub use mac_filter::program as mac_program;
+pub use recover::recover;
 pub use reset::run as reset_run;
+pub use reset_part::run as reset_part;
 pub use run::bring_up;
 pub use rx_setup::program as rx_program;
 pub use station_address::draw;

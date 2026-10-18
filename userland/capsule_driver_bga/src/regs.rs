@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The register BAR as mapped: volatile access at an offset into it.
+//! The register BAR as mapped: volatile access at an offset into it. The
+//! VGA ports below the DISPI block are 8-bit, the DISPI registers 16-bit and
+//! the extension block above them 32-bit, each reached at its own width.
 
 use core::ptr::{read_volatile, write_volatile};
 
@@ -24,11 +26,7 @@ pub struct Regs {
 }
 
 impl Regs {
-    /// # Safety
-    ///
-    /// `base` is a live mapping of the adapter's register BAR, at least
-    /// `REG_BAR_MIN` bytes long, for as long as this value is used.
-    pub const unsafe fn new(base: u64) -> Self {
+    pub const fn new(base: u64) -> Self {
         Self { base }
     }
 
@@ -36,33 +34,40 @@ impl Regs {
         (self.base + off as u64) as *mut T
     }
 
-    pub fn r8(self, off: u32) -> u8 {
-        // SAFETY: `new`'s contract; every offset used is below REG_BAR_MIN.
-        unsafe { read_volatile(self.at(off)) }
+    /// # Safety
+    ///
+    /// `off` is a register the adapter exposes in the mapped window at `base`.
+    pub unsafe fn r8(self, off: u32) -> u8 {
+        read_volatile(self.at(off))
     }
 
-    pub fn w8(self, off: u32, value: u8) {
-        // SAFETY: as `r8`.
-        unsafe { write_volatile(self.at(off), value) }
+    /// # Safety
+    /// As for `r8`.
+    pub unsafe fn w8(self, off: u32, value: u8) {
+        write_volatile(self.at(off), value);
     }
 
-    pub fn r16(self, off: u32) -> u16 {
-        // SAFETY: as `r8`; DISPI registers are 16-bit aligned.
-        unsafe { read_volatile(self.at(off)) }
+    /// # Safety
+    /// As for `r8`, and `off` is 16-bit aligned.
+    pub unsafe fn r16(self, off: u32) -> u16 {
+        read_volatile(self.at(off))
     }
 
-    pub fn w16(self, off: u32, value: u16) {
-        // SAFETY: as `r16`.
-        unsafe { write_volatile(self.at(off), value) }
+    /// # Safety
+    /// As for `r16`.
+    pub unsafe fn w16(self, off: u32, value: u16) {
+        write_volatile(self.at(off), value);
     }
 
-    pub fn r32(self, off: u32) -> u32 {
-        // SAFETY: as `r8`; the extension registers are 32-bit aligned.
-        unsafe { read_volatile(self.at(off)) }
+    /// # Safety
+    /// As for `r8`, and `off` is 32-bit aligned.
+    pub unsafe fn r32(self, off: u32) -> u32 {
+        read_volatile(self.at(off))
     }
 
-    pub fn w32(self, off: u32, value: u32) {
-        // SAFETY: as `r32`.
-        unsafe { write_volatile(self.at(off), value) }
+    /// # Safety
+    /// As for `r32`.
+    pub unsafe fn w32(self, off: u32, value: u32) {
+        write_volatile(self.at(off), value);
     }
 }

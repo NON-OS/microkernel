@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Each driver's request magic and opcodes, copied from its `protocol`
-//! module; the driver's own tests hold the two together.
+//! module; the proofs and the drivers' own tests hold the two together.
 
 use super::table::Driver;
 
@@ -34,7 +34,10 @@ impl Driver {
             Driver::VirtioBlk => 0x4E42_4C4B,
             Driver::Nvme => 0x4E4E_564D,
             Driver::Ahci => 0x4E41_4843,
-            Driver::Wire | Driver::Ufs => 0x4E42_5731,
+            // One arm each: scripts/check_blk_wire.py reads a row per driver.
+            Driver::Wire => 0x4E42_5731,
+            Driver::Ufs => 0x4E42_5731,
+            Driver::Rtsx => 0x4E53_4452,
         }
     }
 
@@ -44,7 +47,9 @@ impl Driver {
             Driver::Nvme => Ops { capacity: 6, read: 7, write: 8, flush: 9 },
             Driver::Ahci => Ops { capacity: 4, read: 5, write: 6, flush: 7 },
             // GEOMETRY opens with the block count, as a capacity reply does.
-            Driver::Wire | Driver::Ufs => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Wire => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Ufs => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
+            Driver::Rtsx => Ops { capacity: 2, read: 3, write: 4, flush: 5 },
         }
     }
 }

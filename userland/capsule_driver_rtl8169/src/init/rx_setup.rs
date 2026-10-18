@@ -35,10 +35,15 @@ pub fn program(regs: &Regs, rx: &RxRing) {
             addr_lo: addr as u32,
             addr_hi: (addr >> 32) as u32,
         };
+        // SAFETY: `rx.desc_va` is the ring grant, RX_DESC_COUNT descriptors
+        // long, and `i` is below that. The reset before this left the
+        // receiver off, at bring-up and on recovery, so the part owns none.
         unsafe {
             desc_mut(rx.desc_va, i, d);
         }
     }
+    // SAFETY: RMS (0xDA) and RxDescAddr (0xE4..0xEB) lie inside every mapped
+    // window.
     unsafe {
         regs.w16(REG_RMS, BUFFER_SIZE as u16);
         regs.w32(REG_RXDESC_ADDR_LO, rx.desc_da as u32);

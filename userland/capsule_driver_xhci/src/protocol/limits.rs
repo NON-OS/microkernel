@@ -18,23 +18,36 @@ pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;
-/// The larger of a bulk OUT and an isoch OUT request.
+/// The longest request: an isoch OUT batch, which neither a bulk OUT nor a
+/// control OUT with its data stage passes.
 pub const MAX_REQUEST_PAYLOAD_LEN: usize = ISOCH_REQUEST_MAX;
+const _: () = assert!(MAX_REQUEST_PAYLOAD_LEN >= BULK_HEADER_LEN + BULK_MAX);
+const _: () =
+    assert!(MAX_REQUEST_PAYLOAD_LEN >= CONTROL_TRANSFER_REQUEST_LEN + CONTROL_DATA_MAX as usize);
 pub const SLOT_ENABLE_PAYLOAD_LEN: usize = 4;
 pub const SLOT_DISABLE_PAYLOAD_LEN: usize = 1;
 pub const ADDRESS_DEVICE_REQUEST_LEN: usize = 2;
 pub const ADDRESS_DEVICE_REPLY_LEN: usize = 8;
+pub const ADDRESS_ROUTED_REQUEST_LEN: usize = 9;
+pub const CONFIGURE_HUB_REQUEST_LEN: usize = 4;
 pub const DEVICE_DESCRIPTOR_REQUEST_LEN: usize = 1;
 pub const DEVICE_DESCRIPTOR_REPLY_LEN: usize = 18;
 pub const CONFIG_DESCRIPTOR_REQUEST_LEN: usize = 4;
 pub const CONFIG_DESCRIPTOR_REPLY_PREFIX: usize = 4;
 pub const CONTROL_TRANSFER_REQUEST_LEN: usize = 10;
 pub const CONTROL_TRANSFER_REPLY_PREFIX: usize = 2;
+/// The largest control data stage, configuration descriptors included: one
+/// page, so its one TRB never crosses a 64 KiB boundary, and the reply
+/// fits the server's buffer.
+pub const CONTROL_DATA_MAX: u16 = 4096;
 pub const ALLOC_TRANSFER_RING_REQUEST_LEN: usize = 6;
 pub const ALLOC_TRANSFER_RING_REPLY_LEN: usize = 4;
 pub const INTERRUPT_IN_REQUEST_LEN: usize = 4;
 pub const INTERRUPT_IN_REPLY_PREFIX: usize = 2;
-pub const HID_REPORT_MAX: usize = 8;
+/// The longest interrupt-IN read the controller takes: three packets of
+/// 1024 bytes, the most an interrupt endpoint of any speed moves in one
+/// service interval. Each report is armed at its endpoint's own payload.
+pub const INTERRUPT_PAYLOAD_MAX: u16 = 3072;
 /// One bulk transfer moves at most one page: the slot's DMA buffer.
 pub const BULK_MAX: usize = 4096;
 pub const BULK_HEADER_LEN: usize = 4;

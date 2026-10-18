@@ -26,6 +26,7 @@ fn every_failure_has_its_own_reason() {
         EmmcError::NotEmbedded,
         EmmcError::NoAdma,
         EmmcError::HostReset,
+        EmmcError::HostBusy,
         EmmcError::ClockUnstable,
         EmmcError::NoPower,
         EmmcError::NoVoltage,
@@ -45,6 +46,7 @@ fn every_failure_has_its_own_reason() {
         EmmcError::BusWidth,
         EmmcError::DmaAddress,
         EmmcError::OutOfRange,
+        EmmcError::NoMedium,
     ];
     let mut seen = std::collections::HashSet::new();
     for e in all {
