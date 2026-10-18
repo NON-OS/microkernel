@@ -12,6 +12,9 @@ edition = "2021"
 publish = false
 license = "AGPL-3.0-or-later"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 path = "src/lib.rs"
 

@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(in crate::userspace::capsule_driver_usb_hid) const OP_HEALTHCHECK: u16 = 0x0001;
-pub(in crate::userspace::capsule_driver_usb_hid) const OP_PROBE_CONFIG: u16 = 0x0002;
-pub(in crate::userspace::capsule_driver_usb_hid) const OP_FEED_KEYBOARD_REPORT: u16 = 0x0003;
-pub(in crate::userspace::capsule_driver_usb_hid) const OP_FEED_MOUSE_REPORT: u16 = 0x0004;
-pub(in crate::userspace::capsule_driver_usb_hid) const OP_POLL_KEYS: u16 = 0x0005;
-pub(in crate::userspace::capsule_driver_usb_hid) const OP_POLL_MOUSE: u16 = 0x0006;
+// 0x0002 probes a configuration descriptor, which nothing in the kernel
+// asks. 0x0003 to 0x0006 fed reports in and read key and mouse events back
+// out; the driver removed them and answers them as unknown ops: E_BAD_OP
+// without a body, E_INVAL with one.
 pub(in crate::userspace::capsule_driver_usb_hid) const OP_GET_STATE: u16 = 0x0007;

@@ -58,7 +58,7 @@ fn recover_timeout(ctx: &mut Context, slot: u8, dir_in: bool, moved: XhciResult<
         Some(p) => p.dci_out,
         None => return,
     };
-    recover_after(ctx, slot, dci, XhciError::TransferCompletionTimeout);
+    recover_after(ctx, slot, dci, XhciError::TransferCompletionTimeout, None);
 }
 fn finish(moved: XhciResult<u32>, req: &Request, tx: &mut [u8]) {
     match moved {

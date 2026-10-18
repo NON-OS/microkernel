@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod bring_up;
+
 mod current_tests;
 mod edid_read_tests;
 mod fresh_tests;
@@ -23,6 +25,7 @@ mod mode_tests;
 mod offset_tests;
 mod panel_tests;
 mod reason_tests;
+mod service_tests;
 mod silence_tests;
 mod size_tests;
 mod start_tests;

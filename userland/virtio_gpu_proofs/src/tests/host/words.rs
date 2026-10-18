@@ -18,6 +18,8 @@
 use super::state::Res;
 use crate::constants::{VG_MAX_SCANOUTS, VG_RESP_OK_DISPLAY_INFO};
 use crate::tests::part::answers::header;
+use crate::tests::part::ring::region_at;
+use nonos_devmodel::FakeBar;
 
 /// The panel the host reports on scanout 0.
 pub const PANEL: (u32, u32) = (640, 480);
@@ -41,4 +43,9 @@ pub fn display_info(displays: &[(u32, u32)]) -> Vec<u8> {
     }
     out.resize(24 + 24 * VG_MAX_SCANOUTS, 0);
     out
+}
+
+/// Where `len` bytes at device address `addr` lie in the ring region.
+pub fn at(bar: &FakeBar, addr: u64, len: u32) -> usize {
+    region_at(bar, addr, len as usize).expect("a buffer outside the ring region")
 }
