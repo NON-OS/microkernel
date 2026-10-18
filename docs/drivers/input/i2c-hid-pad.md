@@ -36,9 +36,10 @@ finds the pad's register:
 - on Broxton, Apollo Lake and Gemini Lake, from the community the firmware
   names, at the pin's index (`is_bxt_family`,
   `userland/capsule_driver_i2c_pci/src/constants/device_info.rs:71-74`);
-- on Intel chipsets from Sunrise Point to Meteor Lake and on AMD, through the
-  tables in `nonos_pinctrl` (`locate`,
-  `userland/nonos_pinctrl/src/locate.rs:32`).
+- on AMD, through `nonos_pinctrl` (`locate`,
+  `userland/nonos_pinctrl/src/locate.rs`). On Intel chipsets from Sunrise Point
+  on no pad layout is kept since the originality audit (F 46), so the driver
+  reads on a timer there.
 
 `driver.i2c_hid0` trusts the doorbell once it has rung. It then reads only when
 the line is active, and falls back to timed reads after 2500 quiet turns, or for

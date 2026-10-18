@@ -32,23 +32,19 @@ const SPIN_ROUNDS: u32 = 4096;
 #[inline]
 pub(crate) fn wait_for_interrupt() {
     if crate::arch::x86_64::interrupt::apic::idle_timer::halt_safe() {
-        // SAFETY: sti/hlt/cli touch no memory and the STI shadow closes the
-        // window between unmasking and halting.
+        // SAFETY: the STI shadow closes the window between unmasking and
+        // halting. Not `nomem`, so no access moves across the open window.
         unsafe {
-            core::arch::asm!("sti", "hlt", "cli", options(nomem, nostack));
+            core::arch::asm!("sti", "hlt", "cli", options(nostack));
         }
         return;
     }
 
-    // SAFETY: unmasking so the pending wake can land, then remasking below.
-    unsafe {
-        core::arch::asm!("sti", options(nomem, nostack));
-    }
+    // Unmask so the pending wake can land, then restore the masked state the
+    // caller was in.
+    super::interrupt::sti();
     for _ in 0..SPIN_ROUNDS {
         core::hint::spin_loop();
     }
-    // SAFETY: restores the masked state the caller was in.
-    unsafe {
-        core::arch::asm!("cli", options(nomem, nostack));
-    }
+    super::interrupt::cli();
 }

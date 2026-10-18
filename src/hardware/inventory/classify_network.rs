@@ -24,6 +24,9 @@ pub(super) fn classify_network(subclass: u8, vendor: u16, device: u16) -> Hardwa
         0x10ec if device == 0x8139 => HardwareFamily::NetworkRtl8139,
         0x10ec if device == 0xc821 => HardwareFamily::NetworkRtl8821ce,
         0x10ec => HardwareFamily::NetworkRtl8169,
+        0x1022 if device == 0x2000 => HardwareFamily::NetworkPcnet,
+        0x15ad if device == 0x07b0 => HardwareFamily::NetworkVmxnet3,
+        0x1011 if device == 0x0009 || device == 0x0019 => HardwareFamily::NetworkTulip,
         _ => HardwareFamily::Unknown,
     }
 }

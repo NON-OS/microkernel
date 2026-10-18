@@ -14,34 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_pinctrl::{controller, Controller};
+//! The controller each `_HID` picks: the AMD bank by its ids (seven
+//! characters with the trailing zero, or eight), and every Intel id
+//! refused while no layout derived from a published datasheet exists.
 
-fn intel_name(hid: &[u8; 8]) -> Option<&'static str> {
-    match controller(hid)? {
-        Controller::Intel(l) => Some(l.name),
-        Controller::Amd => None,
-    }
-}
-
-#[test]
-fn seven_character_ids_need_the_trailing_zero() {
-    assert_eq!(intel_name(b"INT344B\0"), Some("Sunrise Point-LP"));
-    assert_eq!(intel_name(b"INT344BX"), None);
-    assert_eq!(intel_name(b"INT34BB\0"), Some("Cannon Point-LP"));
-}
-
-#[test]
-fn alder_lake_p_uses_the_tiger_lake_lp_layout() {
-    // Linux pinctrl-tigerlake.c binds INTC1055 to tgllp_soc_data.
-    assert_eq!(intel_name(b"INTC1055"), Some("Tiger Lake-LP"));
-    assert_eq!(intel_name(b"INT34C5\0"), Some("Tiger Lake-LP"));
-}
+use nonos_pinctrl::{controller, locate, Controller, PinError, LAYOUTS};
 
 #[test]
 fn amd_ids_and_unknown_ids() {
     for id in [b"AMD0030\0", b"AMDI0030", b"AMDI0031", b"AMDI0033"] {
         assert!(matches!(controller(id), Some(Controller::Amd)));
     }
+    assert!(controller(b"AMD0030X").is_none(), "seven characters need the trailing zero");
     assert!(controller(b"AMDI0010").is_none(), "the AMD I2C controller is not GPIO");
     assert!(controller(b"\0\0\0\0\0\0\0\0").is_none());
+}
+
+#[test]
+fn intel_controllers_are_refused_without_a_published_layout() {
+    assert!(LAYOUTS.is_empty());
+    for id in [b"INT344B\0", b"INT34BB\0", b"INTC1055", b"INTC105E"] {
+        assert!(controller(id).is_none());
+        assert_eq!(locate(id, 103), Err(PinError::UnknownController), "never guessed");
+    }
+    assert!(matches!(locate(b"AMDI0030", 9), Ok(nonos_pinctrl::Line::Amd { pin: 9 })));
 }

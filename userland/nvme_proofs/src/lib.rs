@@ -25,6 +25,8 @@ pub use host::{clock, dma, handles, log, regs};
 #[cfg(test)]
 mod completion_tests;
 #[cfg(test)]
+mod cc_tests;
+#[cfg(test)]
 mod doorbell_tests;
 #[cfg(test)]
 mod foreign_tests;

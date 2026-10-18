@@ -53,6 +53,9 @@ pub mod link_watch;
 #[path = "../../capsule_net_core/src/server/handlers/tcp/connect/liveness.rs"]
 pub mod tcp_liveness;
 
+// Whether a driver serves receive batches, and how a batch is read.
+pub mod batch;
+
 #[cfg(test)]
 mod autojoin_tests;
 #[cfg(test)]
@@ -68,8 +71,4 @@ mod link_watch_tests;
 #[cfg(test)]
 mod refusal_tests;
 #[cfg(test)]
-mod tcp_link;
-#[cfg(test)]
-mod tcp_liveness_tests;
-#[cfg(test)]
-mod tcp_pair;
+mod tcp;
