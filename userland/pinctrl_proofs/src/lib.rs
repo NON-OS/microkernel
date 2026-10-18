@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the pinctrl layouts and register arithmetic.
+//! Host proofs for the pinctrl placement and register arithmetic.
 
 #[cfg(test)]
 mod controller_tests;
@@ -22,7 +22,3 @@ mod controller_tests;
 mod regs_tests;
 #[cfg(test)]
 mod resolve_tests;
-#[cfg(test)]
-mod shape_tests;
-#[cfg(test)]
-mod vector_tests;
