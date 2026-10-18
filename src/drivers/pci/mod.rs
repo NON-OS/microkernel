@@ -16,6 +16,7 @@
 
 mod api;
 pub mod bar;
+mod bar_page;
 pub mod capabilities;
 // Config access is ECAM or the PC port pair, chosen at run time by what the
 // platform published, so the module itself is not architecture specific.
@@ -34,6 +35,7 @@ pub use api::{
     pci_read_config32, pci_read_config32_safe, pci_write_config32, pci_write_config32_safe,
 };
 pub use bar::{decode_all_bars, decode_all_bars_unchecked, decode_bar, enumerate_bars, BarInfo};
+pub use bar_page::with_bar_page;
 pub use capabilities::{
     enumerate_capabilities, enumerate_pcie_capabilities, find_capability, get_msi_info,
     get_msix_info, get_pcie_info, get_power_management_info, has_capability, CapabilityWalker,
