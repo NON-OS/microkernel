@@ -24,6 +24,9 @@
 //! from one that spins. DMA grants are host memory (see [`dma`]).
 
 mod dma;
+/// libc's own park policy, run against the stand-ins below.
+#[path = "../../../libc/src/wait/mod.rs"]
+pub mod wait;
 
 use std::cell::Cell;
 use std::time::{Duration, Instant};
