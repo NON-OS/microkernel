@@ -31,3 +31,4 @@ mod devices;
 mod gates;
 mod names;
 mod power_off;
+mod vm_devices;

@@ -52,6 +52,7 @@ mod network;
 mod orchestrator;
 mod platform_acpi;
 mod services_audio;
+mod vm;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;
