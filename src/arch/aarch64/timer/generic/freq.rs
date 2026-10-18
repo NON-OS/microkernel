@@ -16,10 +16,23 @@
 
 use core::arch::asm;
 
+/// Counter ticks per second: the rate `init_timer` latched, and before it
+/// runs, CNTFRQ_EL0 itself. Every conversion reads this, so a rate taken
+/// from the device tree, when the register reads 0, reaches all of them.
 pub fn frequency() -> u64 {
+    match super::super::state::frequency() {
+        0 => cntfrq(),
+        hz => hz,
+    }
+}
+
+/// CNTFRQ_EL0 as firmware left it. It is only a register firmware writes for
+/// software to read (Arm ARM D11.1.2); the counter runs whatever it says.
+pub(in crate::arch::aarch64::timer) fn cntfrq() -> u64 {
     let freq: u64;
+    // SAFETY: CNTFRQ_EL0 is readable at EL1 and reading it has no effect.
     unsafe {
-        asm!("mrs {}, cntfrq_el0", out(reg) freq);
+        asm!("mrs {}, cntfrq_el0", out(reg) freq, options(nomem, nostack, preserves_flags));
     }
     freq
 }

@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{Request, DAMAGE_COMMIT_REQ_LEN, E_INVAL};
+use crate::protocol::{Request, E_INVAL};
 use crate::server::respond;
-use crate::state::{damage::Rect, Context};
+use crate::state::damage::Rect;
+use crate::state::damage_bound as bound;
+use crate::state::Context;
 
 pub fn handle(
     ctx: &mut Context,
@@ -25,31 +27,19 @@ pub fn handle(
     body: &[u8],
     tx: &mut [u8],
 ) -> Result<(), &'static str> {
-    if body.len() != DAMAGE_COMMIT_REQ_LEN {
+    // Only an empty rectangle or one off the canvas is refused; one past
+    // an edge is cut to it (requests/area.rs).
+    let area = crate::requests::area::damage_commit(body);
+    let Some(a) = area.and_then(|a| a.clip(ctx.width, ctx.height)) else {
         return respond::status(sender_pid, req, E_INVAL, tx);
+    };
+    let (x, y, width, height) = (a.x, a.y, a.width, a.height);
+    // Only where the sender's own layers are (state/damage_bound.rs). Damage
+    // past them is answered 0, not refused: a window that damages the place
+    // it just left was already repainted there by its move.
+    let r = Rect { x, y, width, height };
+    for part in bound::by_owner(r, ctx.scene.layers(), sender_pid) {
+        ctx.damage.accumulate(part);
     }
-    let Some(x) = super::u32_at(body, 0) else {
-        return respond::status(sender_pid, req, E_INVAL, tx);
-    };
-    let Some(y) = super::u32_at(body, 4) else {
-        return respond::status(sender_pid, req, E_INVAL, tx);
-    };
-    let Some(width) = super::u32_at(body, 8) else {
-        return respond::status(sender_pid, req, E_INVAL, tx);
-    };
-    let Some(height) = super::u32_at(body, 12) else {
-        return respond::status(sender_pid, req, E_INVAL, tx);
-    };
-    // Reject only a degenerate or fully off-screen rect. A rect that merely
-    // runs past the edge is clipped to the display, not refused: the WM clamps
-    // windows to its own display size, which can sit a pixel off the
-    // compositor's, and a hard reject there left an app's very first paint
-    // refused and its window blank.
-    if width == 0 || height == 0 || x >= ctx.width || y >= ctx.height {
-        return respond::status(sender_pid, req, E_INVAL, tx);
-    }
-    let width = width.min(ctx.width - x);
-    let height = height.min(ctx.height - y);
-    ctx.damage.accumulate(Rect { x, y, width, height });
     respond::status(sender_pid, req, 0, tx)
 }

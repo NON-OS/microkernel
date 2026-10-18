@@ -16,7 +16,7 @@
 
 use crate::state::Context;
 
-use super::super::fill::blit_rgba8_scaled;
+use super::super::blit::blit_rgba8_scaled;
 
 // Real brand mark, from the shared icon source at 512x556 RGBA and
 // alpha-blitted so the dock icon stays crisp at any size. `color` is ignored:

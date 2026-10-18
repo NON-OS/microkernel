@@ -20,8 +20,6 @@
 //! about ordering on. The base is the user_va the broker handed
 //! back from `mk_mmio_map`.
 
-use core::ptr;
-
 #[derive(Clone, Copy)]
 pub struct Regs {
     base: u64,
@@ -39,14 +37,14 @@ impl Regs {
     /// uncached, and read+write; the offset bound is the caller's
     /// responsibility.
     pub unsafe fn r32(&self, offset: usize) -> u32 {
-        ptr::read_volatile((self.base as usize + offset) as *const u32)
+        nonos_libc::mmio_read32(self.base as usize + offset)
     }
 
     /// # Safety
     /// Same conditions as `r32`. The device may
-    /// observe the write any time after the volatile store retires;
-    /// callers that need a fence should issue one themselves.
+    /// observe the write any time after the store retires, and sees every
+    /// earlier store to DMA memory first: libc's accessor orders them.
     pub unsafe fn w32(&self, offset: usize, value: u32) {
-        ptr::write_volatile((self.base as usize + offset) as *mut u32, value);
+        nonos_libc::mmio_write32(self.base as usize + offset, value);
     }
 }

@@ -14,14 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::handlers::instances::app_of_pid;
-use super::refresh_taskbar::refresh_taskbar;
-use super::wm_notify_toast::toast_window_event;
 use crate::state::wm_notice::{decode_wm_notice, WmEvent};
-use crate::state::{
-    set_full_screen, track_window_closed, track_window_opened, Context, TASKBAR_WINDOW_ID,
-    TOAST_WINDOW_ID,
-};
+use crate::state::{set_full_screen, Context, TASKBAR_WINDOW_ID, TOAST_WINDOW_ID};
 
 pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     let Some(notice) = decode_wm_notice(buf) else {
@@ -52,30 +46,6 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     // ranks the shell's popup windows over every other window whatever their
     // z, so what is drawn on top and what a press there reaches stay one.
     let opened = notice.event == WmEvent::Opened;
-    let named = ctx.taskbar.active;
-    // Any instance of an app counts as that app ("app.terminal.2" is the
-    // Terminal), so the dock marks it, the menubar names it and the toast
-    // says which app opened. A close is matched by window id to the open the
-    // shell saw: the closing process may already be out of the registry.
-    let app = if opened {
-        let app = app_of_pid(owner_pid);
-        if let Some(index) = app {
-            track_window_opened(&mut ctx.taskbar, window_id, owner_pid, index);
-        }
-        app
-    } else {
-        track_window_closed(&mut ctx.taskbar, owner_pid, window_id)
-    };
-    if let Some(index) = app {
-        // The menubar names the active app. Only the dock was presented here,
-        // so after a close the bar went on naming the app that had gone until
-        // something else repainted it.
-        if ctx.taskbar.active != named {
-            super::repaint::repaint(ctx);
-        } else {
-            refresh_taskbar(ctx);
-        }
-        toast_window_event(ctx, opened, index);
-    }
+    super::wm_notify_track::track(ctx, owner_pid, window_id, opened);
     true
 }

@@ -17,56 +17,31 @@
 use crate::arch::fdt::endian::be_cells;
 use crate::arch::fdt::error::FdtError;
 use crate::arch::fdt::parser::Fdt;
-use crate::arch::fdt::walker::Event;
+
+use super::node::is_cpu;
 
 // Walk `/cpus/cpu@*` and collect each CPU's `reg` (MPIDR Aff bits on
-// aarch64, hart id on riscv64). Returns the number of ids written.
+// aarch64, hart id on riscv64). Returns the number of ids written; ids past
+// `out.len()` are dropped, which leaves those CPUs parked.
 pub fn find(fdt: &Fdt, out: &mut [u64]) -> Result<usize, FdtError> {
-    let mut walker = fdt.walker();
-    let mut depth: i32 = -1;
-    let mut in_cpus = false;
-    let mut at_cpu = false;
-    let mut address_cells: u32 = 1;
+    let Some(cpus) = fdt.find_path(b"/cpus")? else {
+        return Ok(0);
+    };
     let mut filled = 0usize;
-
-    while let Some(event) = walker.next()? {
-        match event {
-            Event::BeginNode { name } => {
-                depth += 1;
-                if depth == 1 && name == b"cpus" {
-                    in_cpus = true;
-                }
-                if in_cpus && depth == 2 && (name == b"cpu" || starts_with(name, b"cpu@")) {
-                    at_cpu = true;
-                }
-            }
-            Event::EndNode => {
-                if at_cpu && depth == 2 {
-                    at_cpu = false;
-                }
-                if in_cpus && depth == 1 {
-                    in_cpus = false;
-                }
-                depth -= 1;
-            }
-            Event::Property(prop) => {
-                if in_cpus && depth == 1 && prop.name == b"#address-cells" {
-                    address_cells = prop.u32()?;
-                } else if at_cpu && prop.name == b"reg" {
-                    if let Ok(id) = be_cells(prop.data, 0, address_cells) {
-                        if filled < out.len() {
-                            out[filled] = id;
-                            filled += 1;
-                        }
-                    }
-                }
-            }
+    for node in fdt.children(&cpus)? {
+        let node = node?;
+        if !is_cpu(fdt, &node)? {
+            continue;
+        }
+        let Some(reg) = fdt.property(&node, b"reg")? else {
+            continue;
+        };
+        // The first address of `reg`; a CPU has no size.
+        let id = be_cells(reg.data, 0, node.cells.address)?;
+        if let Some(slot) = out.get_mut(filled) {
+            *slot = id;
+            filled += 1;
         }
     }
     Ok(filled)
-}
-
-#[inline]
-fn starts_with(haystack: &[u8], prefix: &[u8]) -> bool {
-    haystack.len() >= prefix.len() && &haystack[..prefix.len()] == prefix
 }

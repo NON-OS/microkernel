@@ -21,7 +21,13 @@
 //! structure.
 
 use super::model::{modern_window, regs, view, DEVICE_AT, QUEUE_SIZE};
-use crate::constants::{GPU_CFG_EVENTS_READ, GPU_CFG_NUM_CAPSETS, GPU_CFG_NUM_SCANOUTS};
+use crate::constants::GPU_CFG_EVENTS_READ;
+
+/// The device configuration's num_scanouts and num_capsets words, as the
+/// virtio-gpu layout places them (recalled; unverified). The driver reads
+/// neither since G-77: the host's display info names the scanouts.
+const GPU_CFG_NUM_SCANOUTS: usize = 0x08;
+const GPU_CFG_NUM_CAPSETS: usize = 0x0C;
 use crate::regs::Regs;
 
 #[test]

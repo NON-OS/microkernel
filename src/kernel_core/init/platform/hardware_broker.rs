@@ -25,6 +25,8 @@ pub(super) fn seed_hardware_broker() {
         }
     };
     crate::hardware::broker::init_from_pci(&devices);
+    // After, since the PCI table replaces whatever was there.
+    let _ = crate::arch::publish_described_devices();
     #[cfg(target_arch = "x86_64")]
     crate::bus::pci::report_aer(&devices);
     let _ = crate::hardware::broker::register_legacy_platform_devices();
@@ -35,6 +37,9 @@ pub(super) fn seed_hardware_broker() {
     {
         crate::hardware::broker::register_acpi_i2c();
         crate::hardware::broker::register_acpi_gpio();
+        let _ = crate::hardware::broker::acpi::register_sci();
+        crate::hardware::broker::acpi::numa_refresh::refresh();
+        crate::hardware::broker::acpi::sdev_posture::sdev_posture();
     }
     serial::println(b"[NONOS] hardware broker seeded");
 }

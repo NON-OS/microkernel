@@ -16,12 +16,11 @@
 
 mod claim;
 mod driver;
-mod memory;
+pub mod fresh;
 mod mmio;
-mod mode;
+pub mod mode;
 mod pci;
 mod sequence;
-mod surface;
 
 pub use driver::Driver;
 pub use sequence::run;

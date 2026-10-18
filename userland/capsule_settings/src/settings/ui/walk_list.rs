@@ -35,6 +35,6 @@ pub fn list_of(state: &State, r: &Row) -> Option<List> {
         Row::Saved => Some((saved_rows(state), Item::Saved)),
         Row::Wallpapers => Some((WALLPAPER_LABELS.len(), |i| Item::Wallpaper(i as u8))),
         Row::BtDevices => Some((bt_rows(state), Item::BtDevice)),
-        Row::Field(_) | Row::Live(..) => None,
+        Row::Field(_) | Row::Live(..) | Row::Access(_) => None,
     }
 }
