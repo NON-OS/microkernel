@@ -20,6 +20,7 @@ mod load_elf_into_pid;
 mod own_inboxes;
 mod params;
 mod priority;
+mod priority_vm;
 mod spawn_log;
 mod trace;
 

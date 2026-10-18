@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for nonos_gpio against controller models that behave as the
+# registers do: write-one-to-clear status, interrupts raised only while
+# enabled, outputs only where the pad says it drives.
+[package]
+name = "gpio_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_gpio = { path = "../nonos_gpio" }

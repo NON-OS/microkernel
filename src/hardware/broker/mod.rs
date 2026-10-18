@@ -18,6 +18,8 @@
 // them in AML, which is an x86 firmware interface; the same parts on an ARM
 // board come out of the device tree instead, through `arch::fdt`.
 #[cfg(target_arch = "x86_64")]
+pub mod acpi;
+#[cfg(target_arch = "x86_64")]
 mod acpi_gpio;
 #[cfg(target_arch = "x86_64")]
 mod acpi_i2c;
@@ -31,6 +33,9 @@ mod class;
 mod confine;
 mod device;
 pub mod dma;
+// What the broker gives the rest of the kernel, kept beside it.
+mod exports;
+pub mod external_range;
 mod grant;
 mod holder;
 // IRQ broker is cross-arch: x86 uses IO-APIC + MSI-X; aarch64 uses
@@ -52,61 +57,12 @@ mod pio_absent;
 mod pio_absent_claim;
 mod platform;
 mod power;
+pub mod reserved;
 mod table;
+mod vmbus;
 mod windows;
 
-#[cfg(target_arch = "x86_64")]
-pub use acpi_gpio::register_acpi_gpio;
-#[cfg(target_arch = "x86_64")]
-pub use acpi_i2c::register_acpi_i2c;
-pub use bootfb::{
-    info_for as boot_framebuffer_info, register_boot_framebuffer, BootFbInfoError,
-};
-// pub use census::render_and_hold as device_census; // bring-up diagnostic, silenced
-pub use claim::{
-    claim as claim_device, quiesce_all as quiesce_all_devices,
-    quiesce_held as quiesce_held_device,
-    exit_begin as claims_exit_begin, exit_end as claims_exit_end, release as release_device, Claim,
-    ClaimError,
-};
-pub use class::{classify_pci, Class};
-pub use confine::{set_acs_groups, Port as AcsPort};
-pub use give_back::give_back;
-pub use device::{
-    Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED,
-    DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE,
-};
-pub use dma::{
-    free_held_run as dma_free_held_run, grant_run_covering as dma_grant_run_covering,
-    map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
-    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
-    wipe_live_grants as dma_wipe_live_grants, DmaError,
-    DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
-};
-pub use grant::{GrantError, MmioGrant};
-pub(crate) use holder::others_alive;
-pub use holder::holder_of;
-pub use irq::{
-    ack_grant as irq_ack_grant, bind as irq_bind, poll as irq_poll,
-    release_all_for_pid as irq_release_all_for_pid, release_for_device as irq_release_for_device,
-    unmap_grant as irq_unmap_grant, wait_arm as irq_wait_arm, wait_disarm as irq_wait_disarm,
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqError, IrqPollResult,
-};
-pub use mmio::{
-    map_for_caller, release_all_for_pid, release_for_device, unmap_grant, MmioMapError,
-    MmioMapRequest, MmioMapResult,
-};
-pub use pci::{
-    read as pci_config_read, write as pci_config_write, PciReadError, PciReadRequest,
-    PciWriteError, PciWriteRequest,
-};
-#[cfg(target_arch = "x86_64")]
-pub use pio::{
-    grant_for_caller as pio_grant_for_caller, read as pio_read,
-    release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,
-    release_grant as pio_release_grant, write as pio_write, PioError, PioGrantRequest,
-    PioGrantResult, PioWidth,
-};
+pub use exports::*;
 #[cfg(not(target_arch = "x86_64"))]
 pub use pio_absent::{
     pio_release_all_for_pid, pio_release_for_device as pio_release_for_device_unkeyed,
@@ -114,5 +70,6 @@ pub use pio_absent::{
 #[cfg(not(target_arch = "x86_64"))]
 pub use pio_absent_claim::pio_release_for_device;
 pub use platform::register_legacy as register_legacy_platform_devices;
-pub use table::{contains, init_from_pci, list, list_by_class};
+pub use table::{contains, external_port_of, init_from_pci, list, list_by_class};
+pub use vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use windows::touches_device_window;

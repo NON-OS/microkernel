@@ -3,28 +3,36 @@
 `audio_server` is the system audio service registered as `audio.server`. Client capsules (the
 audio player is one, through `userland/capsule_audio_player/src/audio_client/`) send it tones, PCM
 blocks or stream feeds; it mixes them additively into signed 16-bit stereo and forwards the result
-to a PCM sink over IPC: `driver.usb_audio0` while it reports a USB device ready, else
-`driver.hda0`. It owns no hardware. The handbook page is
+to a PCM sink over IPC: `driver.usb_audio0` while it reports a USB device ready, else the
+machine's own, `driver.hda0` (HD Audio) or `driver.ac97_0` (Intel ICH AC'97, as virtual machines
+present it), which speak the same wire. It owns no hardware. The handbook page is
 [Audio and media](../../docs/handbook/audio-and-media.md).
 
 ## Role
 
 A `no_std` service (`src/main.rs` calls `server::run`). The kernel spawns it from
 `src/hardware/audio_capsule/spawn.rs` under the feature `nonos-capsule-audio`, requesting
-`IPC | Memory`, and `Debug` when it compiles `capsule-serial-debug`. At start `src/server/run.rs` resolves the sink: one lookup of
-`driver.usb_audio0`, which the kernel spawns just before it wherever an xHCI controller is, and up to 100 lookups of
-`driver.hda0`, 20 ms apart, about two seconds in all (`src/sink/lookup.rs`). It plays through HD Audio first, or the USB driver
-when there is no HD Audio. It then serves its inbox with a 5 ms receive timeout and runs the stream pump whenever the inbox is
-idle. Every two seconds it asks `driver.usb_audio0` for its output status and moves to it when it reports a device ready, or back
-to `driver.hda0` when it does not (`src/sink/switch.rs`, `src/sink/choose.rs`): the driver left is told to stop, and the pump starts
-the new one with its next period. Each move logs `[AUDIO] output driver.usb_audio0` or `[AUDIO] output driver.hda0`.
+`IPC | Memory`, and `Debug` when it compiles `capsule-serial-debug`. At start `src/server/run.rs`
+resolves the sink: one lookup of `driver.usb_audio0`, which the kernel spawns just before it
+wherever an xHCI controller is, and up to 100 lookups of `driver.hda0` and `driver.ac97_0`, 20 ms
+apart, about two seconds in all (`src/sink/lookup.rs`, `src/sink/client.rs`). One of those two
+registered is taken as it is; with both, the first whose `OP_OUTPUT_STATUS` says it plays, else
+`driver.hda0`, whose status then says why not (`src/sink/choose.rs`). It plays through that
+machine sink first, or the USB driver when there is neither. It then serves its inbox with a 5 ms
+receive timeout and runs the stream pump whenever the inbox is idle. Every two seconds it asks
+`driver.usb_audio0` for its output status and moves to it when it reports a device ready, or back
+to the machine sink when it does not (`src/sink/switch.rs`, `src/sink/choose.rs`): the driver left
+is told to stop, and the pump starts the new one with its next period. Each move logs
+`[AUDIO] output driver.usb_audio0`, or the machine sink's `[AUDIO] output driver.hda0` or
+`[AUDIO] output driver.ac97_0`.
 
 ## Capabilities
 
 `CAPSULE_REQUIRED_CAPS := 0x18`, commented in `Capsule.mk` as `IPC | Memory`, and
 `CAPSULE_OPTIONAL_CAPS := 0x100`:
 
-- `0x008` IPC: receive client requests, call the `driver.usb_audio0` and `driver.hda0` sinks.
+- `0x008` IPC: receive client requests, call the `driver.usb_audio0`, `driver.hda0` and
+  `driver.ac97_0` sinks.
 - `0x010` Memory: heap for the stream rings.
 - `0x100` Debug, optional: the `[AUDIO]` serial markers written by `src/mark.rs`; only a `capsule-serial-debug` build grants it,
   and without it the markers are dropped.
@@ -74,8 +82,9 @@ stored, and the capsule has no FileSystem, Network or hardware bits.
 - The `nonos-audio-smoketest` feature, which only `nonos-mk-driver-hda-smoketest-test` turns on,
   plays the self-tests (two tones, a two stream mix, a 4096-byte square tone) on start and logs
   `[AUDIO] sink-ok` or `[AUDIO] sink-fail`. A shipped image is built without it and plays
-  nothing at boot; it logs `[AUDIO] output driver.hda0` (or `driver.usb_audio0` where there is no
-  HD Audio), or `[AUDIO] no output device, playback refused` when no sink resolves.
+  nothing at boot; it logs `[AUDIO] output driver.hda0` (or `driver.ac97_0`, or
+  `driver.usb_audio0` where there is neither), or `[AUDIO] no output device, playback refused`
+  when no sink resolves.
 - `userland/audio_proto_proofs` checks the shared wire format, the refusal replies, stream
   ownership and the choice of sink on the host.
 - `tests/host/` holds small programs that include `ring.rs`, `streams.rs`, `proto.rs` and
