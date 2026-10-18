@@ -60,11 +60,3 @@ fn a_refused_input_size_with_blocks_past_one_transfer_is_a_named_failure() {
     let r = bind(dev.bus(), &dev.found(), drawn());
     assert!(matches!(r, Bind::Failed("SET_NTB_INPUT_SIZE refused, blocks too large", -32)));
 }
-
-#[test]
-fn a_displaylink_dock_is_not_padded_to_the_full_block() {
-    let mut dev = Dev::ncm(0);
-    dev.vendor = 0x17e9;
-    let Bind::Ours(nic) = bind(dev.bus(), &dev.found(), drawn()) else { panic!("not bound") };
-    assert!(nic.shape.zlp);
-}

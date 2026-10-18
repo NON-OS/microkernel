@@ -18,7 +18,7 @@
 //! against the length the window was mapped with, so a computed offset that
 //! strays (a GPIO pad index, a PADBAR read from dead MMIO) reads as an
 //! undecoded bus, all ones, and writes nowhere, instead of touching memory
-//! past the mapping.
+//! past the mapping. The access itself is libc's, ordered against DMA memory.
 
 #[derive(Clone, Copy)]
 pub struct Regs {
@@ -47,7 +47,7 @@ impl Regs {
          * SAFETY: `at` is dword aligned and its four bytes lie inside the
          * window, which `new`'s caller promised is mapped and aligned.
          */
-        unsafe { core::ptr::read_volatile(self.base.add(at) as *const u32) }
+        unsafe { nonos_libc::mmio_read32(self.base.add(at) as usize) }
     }
 
     pub fn write32(&self, offset: u64, value: u32) {
@@ -56,6 +56,6 @@ impl Regs {
          * SAFETY: as in read32; the window is the device's own registers, so
          * the store changes nothing the driver does not own.
          */
-        unsafe { core::ptr::write_volatile(self.base.add(at) as *mut u32, value) }
+        unsafe { nonos_libc::mmio_write32(self.base.add(at) as usize, value) }
     }
 }

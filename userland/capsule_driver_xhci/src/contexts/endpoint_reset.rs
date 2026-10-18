@@ -16,7 +16,7 @@
 
 //! The input context that resets one endpoint's data toggle or sequence
 //! number on the host side: Configure Endpoint with the endpoint both
-//! dropped and added (xHCI 1.2 section 4.6.6, Linux `xhci_endpoint_reset`).
+//! dropped and added (xHCI 1.2 section 4.6.6).
 //! Reset Endpoint does this only for a Halted endpoint. A bulk pipe the
 //! class driver resets after a timeout is Running or Stopped, so it is
 //! stopped instead, and the host kept its toggle while CLEAR_FEATURE

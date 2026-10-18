@@ -38,8 +38,10 @@ mod remap;
 mod remap_amd;
 mod remap_rule;
 mod remap_vendor;
+mod sentinels;
 mod teardown;
 
 pub use bind::bind;
 pub(super) use message::release_for as release_irte;
+pub(super) use sentinels::NO_LINE;
 pub(super) use teardown::{disable_msi_for_device, disable_msix_for_device, teardown_msix_vector};

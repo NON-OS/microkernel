@@ -28,11 +28,20 @@ from pathlib import Path
 from blk_wire import CLIENT, WANT, consts, handles, table
 
 
+def protocol_files(root, crate):
+    """A capsule's protocol files, and the shared block wire's when it serves
+    that wire (its protocol re-exports `nonos_blk_wire`)."""
+    files = sorted((crate / "src/protocol").glob("*.rs"))
+    if any("nonos_blk_wire" in f.read_text() for f in files):
+        files += sorted((Path(root) / "userland/nonos_blk_wire/src").glob("*.rs"))
+    return files
+
+
 def problems(root):
     wire, rows, owners, out = consts((root / CLIENT / "wire").glob("*.rs")), table(root), handles(root), []
     for d, row in sorted(rows.items()):
         crate = owners.get(row.get("service"))
-        theirs = consts(sorted((crate / "src/protocol").glob("*.rs"))) if crate else {}
+        theirs = consts(protocol_files(root, crate)) if crate else {}
         for key, names in WANT.items():
             ours = row.get(key, wire.get(key))
             got = next((theirs[n] for n in names.split() if n in theirs), None)

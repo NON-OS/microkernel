@@ -42,14 +42,15 @@ impl Regs {
     }
     pub fn read32(&self, off: usize) -> u32 {
         let Some(p) = self.at(off) else { return u32::MAX };
-        // SAFETY: `new`'s caller vouched for `len` bytes at `base`, and `at`
-        // put this aligned word inside them.
-        unsafe { core::ptr::read_volatile(p as *const u32) }
+        // SAFETY: `new`'s caller vouched for `len` bytes at `base`, the BAR0
+        // window the broker mapped uncached for this process, and `at` put
+        // this aligned word inside them.
+        unsafe { nonos_libc::mmio_read32(p) }
     }
     pub fn write32(&self, off: usize, val: u32) {
         let Some(p) = self.at(off) else { return };
         // SAFETY: as for `read32`.
-        unsafe { core::ptr::write_volatile(p as *mut u32, val) }
+        unsafe { nonos_libc::mmio_write32(p, val) }
     }
     pub fn set_bits(&self, off: usize, bits: u32) {
         self.write32(off, self.read32(off) | bits);

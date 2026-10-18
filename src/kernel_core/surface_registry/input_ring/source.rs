@@ -14,23 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Each input event's source, pure. The kernel writes it into the high
-//! byte of `flags`, over whatever the poster put there, so input_router knows
-//! which device typed and no poster can claim to be another. It is a small
-//! index a poster gets on its first post, never a pid; input_router clears it
-//! before an event reaches an app. Every modifier bit in use is in bits 0 to 6
-//! (app_skeleton input/modifiers.rs). Proven in kernel_proofs::input_source.
+//! Each input event's source, pure. The kernel writes it into bits 8
+//! to 13 of `flags`, over whatever the poster put there, so input_router
+//! knows which device typed and no poster can claim to be another. It is a
+//! small index a poster gets on its first post, never a pid; input_router
+//! clears it before an event reaches an app. Every modifier bit in use is in
+//! bits 0 to 6 (app_skeleton input/modifiers.rs); bits 14 and 15 stay the
+//! poster's, the Bluetooth capsule's bond marks (input_router route/bond.rs).
+//! Proven in kernel_proofs::input_source.
 
 /// The kernel's own events: the power button, the probe injector.
 pub(crate) const KERNEL: u8 = 0;
 /// A poster past the table's last slot.
-pub(crate) const UNREGISTERED: u8 = 255;
+pub(crate) const UNREGISTERED: u8 = 63;
 /// Slots for posting processes; slot `i` is source `i + 1`.
-pub(crate) const SLOTS: usize = 254;
+pub(crate) const SLOTS: usize = 62;
+/// The bits of `flags` a source takes.
+pub(crate) const SOURCE_BITS: u16 = 0x3F00;
 
-/// `flags` with its high byte replaced by `source`.
+/// `flags` with bits 8 to 13 replaced by `source`, the rest kept.
 pub(crate) const fn stamp(flags: u16, source: u8) -> u16 {
-    (flags & 0x00FF) | ((source as u16) << 8)
+    (flags & !SOURCE_BITS) | ((source as u16 & 0x3F) << 8)
 }
 
 /// The source of the process `poster`, registering it in the first free

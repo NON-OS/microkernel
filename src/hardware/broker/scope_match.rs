@@ -20,6 +20,7 @@
 pub(crate) const PCI: u8 = 1;
 pub(crate) const ACPI: u8 = 2;
 pub(crate) const VIRT: u8 = 3;
+pub(crate) const FDT: u8 = 4;
 
 /// What one entry of a row admits.
 pub(crate) enum Match {
@@ -35,6 +36,9 @@ pub(crate) enum Match {
     /// A record the kernel makes for a hypervisor's bus (BUS_KIND_VIRT),
     /// such as the VMBus root, by its vendor and device.
     Virt { vendor: u16, device: u16 },
+    /// A device-tree record (BUS_KIND_FDT) of this register interface, its
+    /// `device` field (described/interface.rs).
+    Fdt(u16),
 }
 
 /// The fields of a DeviceRecord a row reads.
@@ -66,5 +70,6 @@ pub(super) fn matches(m: &Match, d: &Seen) -> bool {
             d.bus == ACPI && d.class == class && is(vendor, d.vendor) && is(device, d.device)
         }
         Match::Virt { vendor, device } => d.bus == VIRT && d.vendor == vendor && d.device == device,
+        Match::Fdt(interface) => d.bus == FDT && d.device == interface,
     }
 }

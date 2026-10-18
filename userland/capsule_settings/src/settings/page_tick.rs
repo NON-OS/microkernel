@@ -23,7 +23,7 @@
 use crate::bluetooth::{panel::poll_ms, poll};
 
 use super::section::Section;
-use super::state::wifi_enter::refresh_wifi_status;
+use super::state::wifi::status::refresh_wifi_status;
 use super::state::State;
 
 /// Whether the page changed and wants painting.

@@ -19,7 +19,6 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 | Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, flake check fails on a lint | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | virtio network device | 1af4:1000, 1af4:1041 | `driver.virtio_net0` | yes | Works: the QEMU run targets attach it | this page |
-| USB CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek RTL8153 | USB class or USB ids | five capsules | no | Not supported: not built, and the USB host driver lacks the transfer they need | [usb-net.md](usb-net.md) |
 
 No Ethernet driver has a hardware report in 0.9.2. Read from the code on this commit, `net.core` takes received frames from the e1000, RTL8139 and RTL8169 drivers in batches with operation 6, past [the receive fault](#the-receive-fault), but only virtio-net, in a virtual machine, has a run that shows a frame received. For a machine that needs a network now, read [what to use instead](../wifi/not-supported.md#what-to-use-instead).
 
@@ -30,7 +29,7 @@ In 0.9.2 the e1000, e1000e, igc, RTL8139 and RTL8169 drivers numbered operation 
 Fixed in code on this commit, from both sides; not yet booted:
 
 - `net.core` takes only an empty batch, a status 0 reply whose body is a zero count word, as the probe's yes (`userland/capsule_net_core/src/device/batch_served.rs:29-31`, `served`). Any other answer leaves the card on operation 5, one frame per call, as the Wi-Fi drivers are read (`userland/capsule_net_core/src/device/receive.rs:22-32`, `receive`).
-- The snapshot moved to operation 7 in the five PCI capsules and in the kernel's RTL8139 and RTL8169 clients (`userland/capsule_driver_e1000/src/protocol/ops.rs:32`, `OP_STATS`). The USB core keeps its counters at 0x0100 and answers operation 6 with `E_INVAL` (`userland/nonos_usbnet/src/nnet/wire.rs:39`, `OP_STATS`).
+- The snapshot moved to operation 7 in the five PCI capsules and in the kernel's RTL8139 and RTL8169 clients (`userland/capsule_driver_e1000/src/protocol/ops.rs:32`, `OP_STATS`). The USB core keeps its counters at 7 too and answers operation 6 with `E_INVAL` (`userland/nonos_usbnet/src/nnet/wire.rs:41`, `OP_STATS`).
 - e1000, RTL8139 and RTL8169 serve operation 6 as virtio-net does: an empty request answers an empty batch, and a numbered batch is kept until the caller asks for the next number, so a reply that comes late is not lost (`userland/capsule_driver_e1000/src/server/handlers/rx_batch.rs:41`, `handle`). e1000 takes every completed descriptor in one pass of the ring (`userland/capsule_driver_e1000/src/queue/rx_batch.rs:38`, `take_batch`); the Realtek drivers call their receive routine up to the batch limit (`userland/capsule_driver_rtl8139/src/rx/batch.rs:40`, `gather`). A receive error after some frames ends the batch and is answered with `E_IO` on the next number.
 
 No run on this commit shows a frame received through the PCI drivers either way.

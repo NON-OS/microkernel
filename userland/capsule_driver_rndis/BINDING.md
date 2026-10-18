@@ -11,7 +11,7 @@ link, and what it says on the log. The contract is in
    or 0xEF/0x04/0x01, and its data interface: the Union's, else the call
    management descriptor's bDataInterface, else interface 1 for a control
    interface 0. QEMU's usb-net offers RNDIS first (bConfigurationValue 2).
-2. The bulk pipes go to driver.xhci0, then SET_CONFIGURATION. No
+2. The bulk pipes go to the host, then SET_CONFIGURATION. No
    SET_INTERFACE unless the pipes sit on a nonzero alternate setting.
 3. INITIALIZE (RNDIS 1.0, host MaxTransferSize 4096), then the completion's
    status, medium (802.3) and MaxTransferSize (a full frame, its header and
@@ -19,18 +19,18 @@ link, and what it says on the log. The contract is in
 4. SET OID_802_3_CURRENT_ADDRESS to the run's drawn station address. A
    device that refuses it, as QEMU's usb-net does, is bound all the same.
 5. SET OID_GEN_CURRENT_PACKET_FILTER: directed, broadcast, all multicast and
-   promiscuous, Linux's RNDIS_DEFAULT_FILTER, whether or not the device took
-   the address; a device that took it may still filter on its own, and
+   promiscuous, whether or not the device took the address; a device that took it may still filter on its own, and
    net.core drops unicast meant for another station. A refusal fails the
    bind.
 
-The device's OID_802_3_PERMANENT_ADDRESS, which Linux generic_rndis_bind
-reads, is never asked for: no QUERY is sent.
+The device's OID_802_3_PERMANENT_ADDRESS is never asked for: no QUERY is
+sent.
 
 Each command is SEND_ENCAPSULATED_COMMAND, then GET_ENCAPSULATED_RESPONSE
-polled every 10 ms for up to a second, matching the type and RequestID and
-passing over INDICATE_STATUS messages. A failure after INITIALIZE sends
-HALT.
+polled every 10 ms for up to a second, matching the type and RequestID
+against only the bytes the device sent. INDICATE_STATUS messages are not
+the answer; a media state among them is kept, and the link starts from the
+last one. A failure after INITIALIZE sends HALT.
 
 ## Framing
 
@@ -42,8 +42,16 @@ per receive. A malformed message is dropped.
 
 ## Link
 
-The link reads up once bound: media state comes on the interrupt endpoint,
-which driver.xhci0 does not configure beside bulk pipes.
+The link reads up once bound unless the device indicated a disconnect
+while the bind waited, and from then on follows what the device sends
+unasked. Its control interface's interrupt IN endpoint is configured and
+looked at once every 64 receives. When it says a response waits, one
+GET_ENCAPSULATED_RESPONSE is read: INDICATE_STATUS with MEDIA_CONNECT or
+MEDIA_DISCONNECT sets the link, and a KEEPALIVE is answered with
+KEEPALIVE_CMPLT under its RequestID (Remote NDIS 1.0, as recalled,
+unverified). Each message's length is checked against what came and
+against its own header (20 bytes for INDICATE_STATUS, 12 for KEEPALIVE). A
+device without the endpoint reads up while bound.
 
 ## Log
 

@@ -22,7 +22,8 @@ use crate::server::error::reply_with_status;
 use crate::slots::dci_from_ep_address;
 
 /// `OP_ALLOC_TRANSFER_RING` (`slot, ep_address, wMaxPacketSize_le16,
-/// bInterval, ss_burst`): an interrupt-IN endpoint for an addressed slot.
+/// bInterval, ss_burst`): an interrupt endpoint, IN or OUT, for an
+/// addressed slot.
 /// `ss_burst`, a reserved zero before, is the SuperSpeed Endpoint
 /// Companion's bMaxBurst, ignored below SuperSpeed.
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {

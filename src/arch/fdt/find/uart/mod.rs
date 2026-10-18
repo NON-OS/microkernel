@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod clock;
 mod compatible;
+mod describe;
 mod find;
 mod info;
 mod kind;
+mod layout;
+mod speed;
 
 pub use find::find;
 pub use info::UartInfo;

@@ -25,7 +25,7 @@ capsule](../overview/glossary-dma-pool.md#driver-capsule) an [IOMMU
 domain](../overview/glossary-hardware-broker.md#iommu-domain) of its own and moves each claimed
 device into it. A device that no unit in service covers stays on physical
 addresses, as `translates` decides
-(`src/hardware/broker/confine/attach.rs:30-48`), and each DMA grant made for it
+(`src/hardware/broker/confine/attach.rs:36-44`), and each DMA grant made for it
 is counted with `note_unconfined` until it is given back
 (`src/hardware/broker/dma/map/record.rs:45-51`). The boot log carries one
 posture line from `posture_line`, `[IOMMU] <vendor> present, enforcing=<0 or 1>,

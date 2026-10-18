@@ -42,11 +42,15 @@ section "Input routing".
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
 | `OP_SUBSCRIBE` | 0x0002 | register the sender with a mask of the input kinds it takes |
-| `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may |
+| `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may, and only while focused (`route/grab_rule.rs`) |
 | `OP_GRAB_RELEASE` | 0x0004 | give the grab back |
+| `OP_TRUSTED_HOLD` | 0x0005 | from the compositor only, one-way and never answered: the pid holding its trusted band (0: none); a hold not heard again for 3 s lapses (`route/trusted_hold.rs`) |
 
 `GRABBERS` is the boot splash, the setup wizard, the input probe, the desktop
-shell and the installer. A grab holder that cannot receive loses its grab. A
+shell and the installer. Each may grab only while its window has focus, the
+shell while the desktop has it; with no window manager answering (setup, the
+installer) the name alone decides. A grab holder that cannot receive loses its
+grab. A
 frame whose header `parse` refuses is answered with `E_BAD_MAGIC`,
 `E_BAD_VERSION` or `E_BAD_LEN` and the op and request id it named.
 
@@ -61,3 +65,5 @@ frame whose header `parse` refuses is answered with `E_BAD_MAGIC`,
 - Keys: a key press goes to the pid `OP_QUERY_FOCUS` names; its release goes to
   the pid that got the press.
 - Every delivery needs a subscription whose kind mask allows the event.
+- Reserved keys, the trusted band, Bluetooth pairing and gamepads come first:
+  [Routing ahead of focus](input-router-ahead-of-focus.md).

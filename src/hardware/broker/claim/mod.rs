@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod claim;
+mod firmware;
 mod held;
 mod leaving;
 mod lookup;
 mod no_snoop;
 pub(super) mod quiesce;
+mod refusal;
 mod release;
 mod reset;
 mod reset_function;
@@ -36,9 +38,9 @@ mod still_held;
 mod types;
 
 pub use claim::claim;
-pub use lookup::lookup;
 pub use held::quiesce_all;
-pub use release::{release, release_all_for_pid};
+pub use lookup::lookup;
 pub(crate) use release::release_as;
+pub use release::{release, release_all_for_pid};
 pub(crate) use still_held::record_while_held;
 pub use types::{Claim, ClaimError};

@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for described devices confined through `iommus`
+# (C-42): the claim's verdict over every description, unit state and
+# coverage (never unconfined behind a unit), and the order the claim and
+# its release keep. The kernel's own source is included via #[path].
+[package]
+name = "stream_confine_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

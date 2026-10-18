@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A PCI device into the claiming capsule's domain, once it has one: a
+//! A device into the claiming capsule's domain, once it has one: a
 //! requester id shared behind a VMD joins the capsule that holds it, and is
-//! refused to any other.
+//! refused to any other; its reserved ranges go in before it does.
 
 extern crate alloc;
 
@@ -24,8 +24,11 @@ use alloc::vec::Vec;
 
 use super::join_group::group_held;
 use super::member::Member;
-use super::refuse::Refusal;
-use super::table::{say, Capsule};
+use super::refuse::{refuse, Refusal};
+use super::reserve::reserve;
+use super::say::say;
+use super::table::Capsule;
+use super::unreserve::release;
 use crate::memory::iommu::DeviceAddress;
 
 pub(super) fn join(
@@ -46,26 +49,25 @@ pub(super) fn join(
     // without pulling it out from under the first.
     if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
     {
-        say(b"refused: requester id held by another capsule");
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refusal::GroupHeld);
+        let why = b"refused: requester id held by another capsule";
+        return refuse(all, pos, why, Refusal::GroupHeld);
     }
     if all[pos].devices.iter().any(|(_, a)| *a == address) {
         all[pos].devices.push((device_id, address));
         say(b"confined to its capsule's domain (shared requester id)");
         return Ok(());
     }
+    // Its reserved ranges in the new domain before it is attached there, so
+    // it never runs without them; all of them, or the claim is refused.
+    if let Err(why) = reserve(&mut all[pos], address) {
+        return refuse(all, pos, why, Refusal::Refused);
+    }
     // Out of its bring-up domain first. Between the two writes the device has
     // no context entry, which denies it: the safe side to be on.
     let _ = all[pos].domain.detach_device(address);
     if all[pos].domain.attach_device(address).is_err() {
-        say(b"refused: attach failed");
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refusal::Refused);
+        release(&mut all[pos], address);
+        return refuse(all, pos, b"refused: attach failed", Refusal::Refused);
     }
     all[pos].devices.push((device_id, address));
     say(b"confined to its capsule's domain");

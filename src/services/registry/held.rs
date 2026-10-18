@@ -30,19 +30,28 @@
 //! which the kernel registered for it at spawn and no other capsule may claim.
 //!
 //! Pure: the kernel's registry supplies who owns what; the table is
-//! held_table.rs. Held in kernel_proofs.
+//! held_table.rs, and the cards' held_cards.rs. Held in kernel_proofs.
 
-// The table sits beside this file and is mounted by path, so kernel_proofs,
-// which mounts this file alone, reads the same table.
+// The tables beside this file are mounted by path, so kernel_proofs, which
+// mounts this file alone, reads them too; the registry re-exports displays.
+#[path = "held_cards.rs"]
+mod cards;
+#[path = "displays.rs"]
+pub(crate) mod displays;
 #[path = "held_table.rs"]
 mod table;
 
-use table::HELD;
+use cards::card_callers;
+use table::{DISPLAY_CALLERS, HELD};
 
 /// The services that may reach `endpoint`, or None when anyone the
 /// endpoint's capabilities admit may.
 pub(crate) fn callers_of(endpoint: &str) -> Option<&'static [&'static str]> {
-    HELD.iter().find(|(name, _)| *name == endpoint).map(|(_, callers)| *callers)
+    if displays::is_display(endpoint) {
+        return Some(DISPLAY_CALLERS);
+    }
+    card_callers(endpoint)
+        .or_else(|| HELD.iter().find(|(name, _)| *name == endpoint).map(|(_, callers)| *callers))
 }
 
 /// Whether a caller may send to `endpoint`, given `owns`, which says whether

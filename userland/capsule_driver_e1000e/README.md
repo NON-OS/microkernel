@@ -1,7 +1,8 @@
 # capsule_driver_e1000e
 
-Status: not in the 0.9.2 image. The capsule builds and its host proofs
-it is not yet wired into the kernel mirror and the stack.
+Status: wired, not yet signed. The kernel mirror (`src/hardware/e1000e_capsule`)
+embeds and spawns it under `nonos-capsule-driver-e1000e` (the
+`microkernel-driver-e1000e` build), and net.core and net.l2 reach it through
 
 ## Role
 
@@ -46,7 +47,7 @@ No interrupt is bound and IMS is never written.
 
 Same operations as `driver.e1000_0`: `OP_HEALTHCHECK`, `OP_LINK_STATUS`
 (1 byte), `OP_MAC_ADDRESS` (6 bytes), `OP_TX_PACKET`, `OP_RX_PACKET`
-(length and frame), `OP_STATS` (48-byte snapshot).
+(length and frame), `OP_STATS` on 7 (48-byte snapshot).
 
 ## Authority
 
@@ -136,6 +137,7 @@ line and a `link up` line, and DHCP completing through `net.core`.
 
 ## Release checklist
 
+  net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - QEMU `-device e1000e` frame round trip.
 - One I219 boot photographed with the lines in `docs/hardware/e1000e.md`.
 

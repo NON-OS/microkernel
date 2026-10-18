@@ -50,6 +50,7 @@ the event ring the drivers post to.
 | Reply builder | `server/respond.rs` |
 | Kernel ring | `sources/kernel_ring.rs` |
 | Routing | `route/{dispatch,keyboard,deliver}.rs`, `route/pointer/*.rs` |
+| Bluetooth pairing on the secure path | `route/{bond,refuse,notice}.rs` |
 | State | `state/{cursor,press,hover,key_targets}.rs`, `state/grabs/*.rs`, `state/subscriptions/*.rs`, `state/context/*.rs` |
 | Clients for wm, compositor, policy | `clients/*` |
 | Wire protocol | `protocol/*.rs` |
@@ -60,7 +61,8 @@ Requests: 20-byte header, magic `0x4E49_5253` ("NIRS"), version 1, op at offset
 6, flags at 8, request id at 12, payload length at 16. Deliveries: 8-byte header
 with magic `0x4E49_4E50` ("NINP") followed by the 32-byte `InputEvent` (kind
 u16, flags u16, code u32, x, y, delta_x, delta_y as i32, timestamp u64), the
-shape app_skeleton reads.
+shape app_skeleton reads; the header's flags are in [Routing ahead of
+focus](input-router-ahead-of-focus.md#notices).
 
 ## Release checklist
 

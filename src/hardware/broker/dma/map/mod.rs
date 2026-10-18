@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod alloc;
+mod bus_window;
 mod fail;
+mod given;
 mod install;
 mod placed;
 mod record;
+mod take;
 mod transaction;
+mod uncached;
 mod validate;
 mod zero;
 

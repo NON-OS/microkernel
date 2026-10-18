@@ -25,6 +25,11 @@ pub const DELIVERY_VERSION: u16 = 1;
 const HDR_LEN: usize = 8;
 const EVENT_LEN: usize = core::mem::size_of::<InputEvent>();
 pub const DELIVERY_LEN: usize = HDR_LEN + EVENT_LEN;
+/// Envelope flags: the frame is the router's notice that an unauthenticated
+/// Bluetooth device was refused on the secure path (route/notice.rs).
+pub const NOTICE_UNPROVEN: u16 = 1;
+/// The event kind a notice carries: none an input device posts.
+pub const NOTICE_KIND: u16 = 0xFFFF;
 
 pub fn encode_delivery(out: &mut [u8; DELIVERY_LEN], event: &InputEvent) {
     out[0..4].copy_from_slice(&DELIVERY_MAGIC.to_le_bytes());

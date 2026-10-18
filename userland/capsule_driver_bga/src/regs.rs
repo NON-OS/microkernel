@@ -39,4 +39,32 @@ impl Regs {
     pub unsafe fn w16(self, off: u32, value: u16) {
         write_volatile((self.base + off as u64) as *mut u16, value);
     }
+
+    /// # Safety
+    ///
+    /// `off` is a byte register the adapter exposes in the mapped window.
+    pub unsafe fn r8(self, off: u32) -> u8 {
+        read_volatile((self.base + off as u64) as *const u8)
+    }
+
+    /// # Safety
+    ///
+    /// `off` is a byte register the adapter exposes in the mapped window.
+    pub unsafe fn w8(self, off: u32, value: u8) {
+        write_volatile((self.base + off as u64) as *mut u8, value);
+    }
+
+    /// # Safety
+    ///
+    /// `off` is a 32-bit register the adapter exposes in the mapped window.
+    pub unsafe fn r32(self, off: u32) -> u32 {
+        read_volatile((self.base + off as u64) as *const u32)
+    }
+
+    /// # Safety
+    ///
+    /// `off` is a 32-bit register the adapter exposes in the mapped window.
+    pub unsafe fn w32(self, off: u32, value: u32) {
+        write_volatile((self.base + off as u64) as *mut u32, value);
+    }
 }

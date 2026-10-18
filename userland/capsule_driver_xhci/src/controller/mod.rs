@@ -18,6 +18,8 @@ pub(crate) mod bringup;
 pub(crate) mod command;
 mod dcbaa_slot;
 pub(crate) mod drain_events;
+mod interrupt_out;
+mod isoch;
 pub(crate) mod park;
 mod port;
 pub(crate) mod ring_doorbell;
@@ -27,8 +29,15 @@ pub use bringup::*;
 pub use command::*;
 pub use dcbaa_slot::{clear_dcbaa_slot, set_dcbaa_slot};
 pub use drain_events::drain_events;
+pub use interrupt_out::interrupt_out;
+pub use isoch::{isoch_endpoint, isoch_in, isoch_out, write_isoch_input, IsochEndpoint, IsochPipe};
 pub use port::{power_all_ports, reset_port};
 // Reached by the host proofs (userland/xhci_proofs), not by the capsule.
 #[allow(unused_imports)]
 pub use port::{port_action, PortAction};
+// Reached by the host proofs (userland/xhci_proofs), not by the capsule.
+#[allow(unused_imports)]
+pub use isoch::{batch_fits, burst_fields, in_batch_fits, lengths, pack, td_bytes};
 pub use transfer::*;
+#[allow(unused_imports)]
+pub use transfer::{complete, moved, short_on, stopped_early};

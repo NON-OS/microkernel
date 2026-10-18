@@ -32,6 +32,8 @@ pub mod apic_plan;
 pub mod boot_claim;
 #[path = "../../../../src/smp/topology/core_kind.rs"]
 pub mod core_kind;
+#[path = "../../../../src/arch/x86_64/cpu/hybrid.rs"]
+pub mod hybrid;
 #[path = "../../../../src/smp/topology/detection/probe_x86_64/plan.rs"]
 pub mod madt_plan;
 // Only the timer band is checked; the TSC band and the cache are kernel-side.

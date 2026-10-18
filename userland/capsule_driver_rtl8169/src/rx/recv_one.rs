@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::rearm::rearm;
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
 use crate::constants::regs::{DESC_FS, DESC_LEN_MASK, DESC_LS, DESC_OWN, DESC_RX_RES};
@@ -40,7 +38,7 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
         return Ok(None);
     }
     // The frame bytes are read only after OWN was seen clear.
-    fence(Ordering::Acquire);
+    nonos_libc::dma_rmb();
     let len = (d.opts1 & DESC_LEN_MASK) as usize;
     // A frame the MAC completed with its error summary set is dropped, as
     // Linux rtl_rx drops it: AcceptErr is clear, but chips still hand some up.

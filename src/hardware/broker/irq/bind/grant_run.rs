@@ -21,10 +21,11 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::super::grant::{IrqGrant, IrqGrantKind, NO_LINE};
+use super::super::grant::{IrqGrant, IrqGrantKind};
 use super::super::records;
 use super::super::slots;
 use super::super::types::{IrqBindRequest, IrqBindResult};
+use super::sentinels::NO_LINE;
 
 pub(super) fn record_run(
     pid: u32,

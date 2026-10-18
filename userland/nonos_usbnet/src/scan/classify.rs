@@ -15,24 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Addressing the device on a port, reading what it offers, and asking the
-//! driver, with the run's station address, whether it is its own; each
-//! step that fails says so on the log.
+//! driver whether it is its own; each step that fails says so on the log.
 
 use super::bound::Bound;
 use super::probe::Probe;
 use crate::bind::Bind;
-use crate::found::fetch;
-use crate::run::BindFn;
+use crate::found::{fetch, Found};
 use crate::say::say_port;
-use crate::station::Station;
 use crate::xhci::{address_device, XhciBus, E_BUSY};
 
 pub(super) fn classify<N>(
     mut bus: XhciBus,
     port: u8,
     tag: &[u8],
-    bind: BindFn<N>,
-    station: Station,
+    bind: &mut impl FnMut(XhciBus, &Found) -> Bind<N>,
 ) -> Probe<N> {
     match address_device(bus.xhci, bus.slot, port) {
         Ok(()) => {}
@@ -50,7 +46,7 @@ pub(super) fn classify<N>(
         }
     };
     let ids = Some((found.info.vendor, found.info.product));
-    match bind(bus, &found, station) {
+    match bind(bus, &found) {
         Bind::Ours(nic) => {
             say_port(tag, port, None, b"bound", None);
             Probe::Ours(Bound { nic, xhci: bus.xhci, slot: bus.slot, port })

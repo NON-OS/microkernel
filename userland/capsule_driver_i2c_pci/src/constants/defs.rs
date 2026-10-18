@@ -41,3 +41,8 @@ pub const IC_ENABLE_STATUS: u64 = 0x9C;
 pub const IC_COMP_PARAM_1: u64 = 0xF4;
 pub const IC_COMP_VERSION: u64 = 0xF8;
 pub const IC_COMP_TYPE: u64 = 0xFC;
+
+/// Clock assumed for an Intel LPSS I2C function whose id is not in the
+/// table (a newer platform): the fastest rate any LPSS generation uses, so
+/// the bus can only come out slower than programmed.
+pub const UNKNOWN_LPSS_CLOCK_HZ: u32 = 216_000_000;

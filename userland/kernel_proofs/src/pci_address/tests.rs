@@ -36,12 +36,15 @@ fn device_address_never_leaves_its_bus() {
     for device in 0..=u8::MAX {
         for function in 0..=u8::MAX {
             let a = DeviceAddress::pci(0, device, function);
-            assert_eq!(a.pci_bus(), 0, "device {device} function {function}");
-            assert_eq!(a.pci_device(), device & 0x1F);
-            assert_eq!(a.pci_function(), function & 0x7);
+            let want = (0, device & 0x1F, function & 0x7);
+            assert_eq!(a.bdf(), Some(want), "device {device} function {function}");
         }
     }
     assert_ne!(DeviceAddress::pci(0, 32, 0), DeviceAddress::pci(1, 0, 0));
+    // Nor its segment: the same id in another segment, or as a StreamID, is not it.
+    let (a, s) = (DeviceAddress::pci_in(1, 0x3a, 2, 1), DeviceAddress::stream(0x3a11));
+    assert_eq!((a.segment(), a.rid(), s.segment(), s.rid()), (Some(1), Some(0x3a11), None, None));
+    assert_ne!(a, DeviceAddress::pci(0x3a, 2, 1));
 }
 
 #[test]

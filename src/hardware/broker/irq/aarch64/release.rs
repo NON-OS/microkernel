@@ -37,39 +37,34 @@ fn tear_down(e: &'static Entry) {
 }
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
-    let e = super::pending::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
+    let e = super::pending_find::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
     if e.pid.load(Ordering::Acquire) != pid {
         return Err(IrqError::NotHolder);
+    }
+    if e.message.load(Ordering::Acquire) {
+        return super::message::unmap_vector(pid, grant_id);
     }
     tear_down(e);
     Ok(())
 }
 
 pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    let mut n = 0;
-    for e in SLOTS.iter() {
-        if e.intid.load(Ordering::Acquire) == 0 {
-            continue;
-        }
-        if e.pid.load(Ordering::Acquire) == pid && e.device_id.load(Ordering::Acquire) == device_id
-        {
-            tear_down(e);
-            n += 1;
-        }
-    }
-    n
+    let messages = super::message::release_where(|b| b.pid == pid && b.device_id == device_id);
+    let lines = release_lines(|e| {
+        e.pid.load(Ordering::Acquire) == pid && e.device_id.load(Ordering::Acquire) == device_id
+    });
+    messages + lines
 }
 
 pub fn release_all_for_pid(pid: u32) -> usize {
-    let mut n = 0;
-    for e in SLOTS.iter() {
-        if e.intid.load(Ordering::Acquire) == 0 {
-            continue;
-        }
-        if e.pid.load(Ordering::Acquire) == pid {
-            tear_down(e);
-            n += 1;
-        }
-    }
-    n
+    let messages = super::message::release_where(|b| b.pid == pid);
+    messages + release_lines(|e| e.pid.load(Ordering::Acquire) == pid)
+}
+
+/// Tear down the line grants `which` picks; message vectors go with their
+/// bind, through its own teardown.
+fn release_lines(which: impl Fn(&Entry) -> bool) -> usize {
+    let live = |e: &&Entry| e.intid.load(Ordering::Acquire) != 0;
+    let lines = SLOTS.iter().filter(live).filter(|e| !e.message.load(Ordering::Acquire));
+    lines.filter(|e| which(e)).map(tear_down).count()
 }

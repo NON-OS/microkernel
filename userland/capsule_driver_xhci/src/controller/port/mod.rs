@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Bringing one root port to Enabled before Address Device (xHCI 1.2
-//! sections 4.3 and 4.19, USB 2.0 section 7.1.7.3, Linux `hub_port_reset`).
+//! sections 4.3 and 4.19, USB 2.0 section 7.1.7.3).
 //!
 //! A USB 2 port is enabled only by a port reset. A USB 3 port enables itself
 //! once its link trains, so one that already shows PED is used as it is; one

@@ -1,0 +1,29 @@
+# NONOS userland: capsule_driver_smbus
+# eK@nonos.systems
+#
+# Intel i801 SMBus host capsule: the SMBus controller of every Intel ICH and
+# PCH, reached through its I/O BAR. It serves SMBus transfers on
+# driver.smbus0 and owns no device on the bus.
+
+[package]
+name = "nonos_capsule_driver_smbus"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel i801 SMBus host controller capsule"
+
+[[bin]]
+name = "driver_smbus"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

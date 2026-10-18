@@ -22,7 +22,7 @@ use super::valbuf::ValBuf;
 
 pub fn link_state(state: &State) -> (ValBuf, Tone) {
     let mut b = ValBuf::new();
-    let tone = match state.wifi_net {
+    let tone = match state.wifi_diag.net {
         NetStatus::Bound { .. } => {
             b.push_str("Connected");
             Tone::Ok
@@ -44,7 +44,7 @@ pub fn link_state(state: &State) -> (ValBuf, Tone) {
 }
 
 pub fn addr(b: &mut ValBuf, state: &State, pick: fn(&Lease) -> [u8; 4]) -> Tone {
-    match &state.wifi_net {
+    match &state.wifi_diag.net {
         NetStatus::Bound { lease, .. } => b.push_ipv4(pick(lease)),
         _ => b.push_str("--"),
     }

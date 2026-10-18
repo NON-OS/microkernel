@@ -16,7 +16,9 @@
 
 use crate::drivers::pci::types::{PciBar, PciDevice};
 use crate::hardware::broker::device::{BAR_FLAG_MEM64, BAR_FLAG_PREFETCH};
-use crate::hardware::broker::{classify_pci, Bar, BarKind, BusKind, DeviceRecord};
+use crate::hardware::broker::{
+    classify_pci, Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_DMA_NONCOHERENT,
+};
 
 pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
     let mut bars = [Bar::empty(); 6];
@@ -37,12 +39,12 @@ pub(super) fn record_from_pci(device_id: u64, dev: &PciDevice) -> DeviceRecord {
         class: classify_pci(dev.class, dev.subclass, dev.progif).id(),
         vendor: dev.vendor_id,
         device: dev.device_id,
-        flags: 0,
+        flags: if crate::arch::pci_dma_coherent() { 0 } else { DEVICE_FLAG_DMA_NONCOHERENT },
         bar_count: bar_span,
         irq_line: dev.interrupt_line,
         irq_pin: dev.interrupt_pin,
         numa_node: crate::hardware::broker::NUMA_UNKNOWN,
-        irq_source: dev.interrupt_line as u32,
+        irq_source: crate::arch::pci_intx_source(dev),
         bars,
     }
 }

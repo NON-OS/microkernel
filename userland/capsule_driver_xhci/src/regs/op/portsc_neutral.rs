@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The value to write to PORTSC to change one thing and nothing else, as
-//! Linux's `xhci_port_state_to_neutral` builds it. PORTSC mixes read-only
+//! The value to write to PORTSC to change one thing and nothing else
+//! (xHCI 1.2 section 5.4.8, as recalled, unverified). PORTSC mixes read-only
 //! bits, RWS bits that must be written back as read (power, link state,
 //! indicator, wake enables), and RW1C/RW1S bits where writing back a one
 //! acts: a one in PED disables the port, a one in a change bit acknowledges

@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding an NCM function in a configuration (NCM 1.0, section 5): a
-//! communications interface of subclass 0x0D, protocol 0, whose Union names
-//! a data interface, with the Ethernet Networking and NCM functional
-//! descriptors that cdc_ncm_bind_common requires, and the alternate setting
-//! of the data interface that carries the bulk pipes.
+//! Finding an NCM function (NCM 1.0, 5): a communications interface of
+//! subclass 0x0D, protocol 0, with a Union, Ethernet Networking and NCM
+//! functional descriptors, and its data interface's bulk alternate.
 
-use nonos_usbnet::desc::{find_functional, interfaces, union_data, CLASS_CDC_DATA, CLASS_COMM};
-use nonos_usbnet::Pipes;
+use nonos_usbnet::desc::{
+    find_functional, interfaces, notify_ep, union_data, CLASS_CDC_DATA, CLASS_COMM,
+};
+use nonos_usbnet::{Notify, Pipes};
 
 const SUBCLASS_NCM: u8 = 0x0D;
-/// USB_CDC_PROTO_NONE: the only protocol Linux cdc_devs[] matches for NCM.
+/// No class-specific protocol (NCM 1.0, 4.2, as recalled, unverified).
 const PROTOCOL_NONE: u8 = 0x00;
-/// The Ethernet Networking functional descriptor (CDC ECM 1.2, 5.4).
+/// Ethernet Networking (ECM 1.2, 5.4) and NCM (NCM 1.0, 5.2.1) descriptors.
 const ETHERNET_FUNCTIONAL: u8 = 0x0F;
-/// The NCM functional descriptor (NCM 1.0, 5.2.1; USB_CDC_NCM_TYPE).
 const NCM_FUNCTIONAL: u8 = 0x1A;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -41,6 +40,8 @@ pub struct NcmFunction {
     pub max_segment: u16,
     /// bmNetworkCapabilities of the NCM functional descriptor.
     pub caps: u8,
+    /// Its notification endpoint, when it has one.
+    pub notify: Option<Notify>,
 }
 
 pub fn find_ncm(raw: &[u8]) -> Option<NcmFunction> {
@@ -50,13 +51,14 @@ pub fn find_ncm(raw: &[u8]) -> Option<NcmFunction> {
     };
     ifs.iter().filter(ncm).filter(|c| c.alt == 0).find_map(|c| {
         let data = union_data(raw, c.number)?;
-        let eth = find_functional(raw, c.number, ETHERNET_FUNCTIONAL).filter(|d| d.len() >= 13)?;
-        let func = find_functional(raw, c.number, NCM_FUNCTIONAL).filter(|d| d.len() >= 6)?;
+        let eth = find_functional(raw, c.number, ETHERNET_FUNCTIONAL, 13)?;
+        let func = find_functional(raw, c.number, NCM_FUNCTIONAL, 6)?;
         let on = ifs
             .iter()
             .find(|i| i.number == data && i.class == CLASS_CDC_DATA && i.has_bulk_pair())?;
         let max_segment = u16::from_le_bytes([eth[8], eth[9]]);
         let (data_alt, pipes, caps) = (on.alt, on.pipes, func[5]);
-        Some(NcmFunction { comm: c.number, data, data_alt, pipes, max_segment, caps })
+        let notify = notify_ep(raw, c.number);
+        Some(NcmFunction { comm: c.number, data, data_alt, pipes, max_segment, caps, notify })
     })
 }

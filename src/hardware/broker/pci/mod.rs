@@ -17,8 +17,9 @@
 pub mod allowlist;
 mod command;
 pub(crate) mod command_rule;
-pub(crate) mod quirk_bits;
+mod ident_read;
 pub mod ownership;
+pub(crate) mod quirk_bits;
 mod read;
 mod types;
 mod write;

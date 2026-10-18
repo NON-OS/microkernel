@@ -52,7 +52,7 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
      * kept first, so there is one to compare. */
     let _ = crate::hardware::block_device::selected();
     crate::hardware::block_device::store_copy::check_against_disk();
-    match crate::hardware::block_device::write(lba, &buf[..len]) {
+    match crate::hardware::block_device::write_store(lba, &buf[..len]) {
         Ok(()) => {
             crate::hardware::block_device::store_copy::wrote(lba, &buf[..len]);
             crate::sys::serial::print(b"[STORE-WR] ok\n");

@@ -30,6 +30,8 @@
   new seal or --fresh starts it again from the sealed image.
   nix run .#qemu -- --install-target      with a blank NVMe disk to install to
   nix run .#qemu -- --installed           the installed disk alone
+  nix run .#qemu -- --lane nic=e1000e --lane emmc
+                                          device lanes, to boot a driver (lanes.py)
   nix run .#qemu -- --headless --timeout 300 --expect '\\[BOOT-ATTEST\\].*enrolled'
                                           a boot smoke: passes when every
                                           pattern is on the serial console"""
@@ -42,7 +44,7 @@ import subprocess
 import sys
 import time
 
-from . import disk, machine, tpm
+from . import disk, lanes, machine, tpm
 
 TARGET = "target/qemu"
 
@@ -65,6 +67,8 @@ def args():
     ap.add_argument("--net", choices=["nat", "off"], default="nat")
     ap.add_argument("--install-target", action="store_true", help="attach a blank NVMe disk to install to")
     ap.add_argument("--installed", action="store_true", help="boot the NVMe disk the installer wrote, alone")
+    ap.add_argument("--lane", action="append", default=[], metavar="LANE",
+                    help="add a device lane: " + ", ".join(lanes.NAMES))
     ap.add_argument("--headless", action="store_true", help="no window; serial to --serial")
     ap.add_argument("--serial", default=f"{TARGET}/serial.log")
     ap.add_argument("--timeout", type=int, default=0, help="seconds before a headless boot is stopped")
@@ -126,6 +130,13 @@ def main():
         sys.exit("no install target yet: boot with --install-target and install first")
     if a.usb and (not a.stick or a.installed):
         sys.exit("--usb plugs in the sealed stick: give it with --stick")
+    try:
+        lane = lanes.plan(a.lane, TARGET, machine.audio())
+    except lanes.LaneError as e:
+        sys.exit(str(e))
+    if ("nic" in lane.swaps and a.net == "off") or ("tpm" in lane.swaps and not a.tpm):
+        sys.exit("a nic= lane needs the network on, and tpm-tis needs --tpm: each swaps a device in")
+    lanes.make_images(lane.images)
     vars_copy = os.path.join(TARGET, "OVMF_VARS.fd")
     shutil.copyfile(os.environ["OVMF_VARS"], vars_copy)
     os.chmod(vars_copy, 0o644)
@@ -143,7 +154,7 @@ def main():
     cmd = ["qemu-system-x86_64", "-machine", "q35", "-m", a.mem, "-smp", str(machine.cpus(a.smp)), *machine.accel(),
            *machine.firmware(os.environ["OVMF"], vars_copy),
            *machine.disks(boot, target if (a.install_target or a.installed) else None, a.installed, a.usb),
-           *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock")),
+           *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps), *lane.args,
            *(machine.usb_stick(stick) if a.usb else []),
            *serial, *machine.display(a.headless), "-no-reboot"]
     print(" ".join(cmd), flush=True)

@@ -29,6 +29,8 @@ pub mod bus;
 pub mod desc;
 pub mod found;
 pub mod halt;
+pub mod hosts;
+mod hosts_first;
 pub mod nic;
 pub mod nnet;
 pub mod run;
@@ -39,7 +41,7 @@ pub mod station;
 pub mod xhci;
 
 pub use bind::Bind;
-pub use bus::{Bus, Pipes};
+pub use bus::{Bus, Notify, Pipes};
 pub use found::Found;
 pub use nic::Nic;
 pub use run::run;

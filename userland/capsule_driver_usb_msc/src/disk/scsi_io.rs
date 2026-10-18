@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading and writing whole device blocks, each run over one BOT command.
+//! Reading and writing whole device blocks, each run over one BOT or UAS command.
 
-use super::bot::command;
 use super::sense::whole;
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::E_INVAL;
 use crate::scsi::{read10, read16, write10, write16};

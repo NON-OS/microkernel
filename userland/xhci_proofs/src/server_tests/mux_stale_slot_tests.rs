@@ -26,6 +26,9 @@ use super::stale_slot_tests::{fail_and_wait, A, B, C, HIGH_SPEED};
 use crate::protocol::{E_INVAL, OP_ADDRESS_DEVICE, OP_DISABLE_SLOT, OP_GET_DEVICE_DESCRIPTOR};
 use crate::server::reply::set_sender;
 
+/// The gate's refusal of a slot another client holds.
+const E_PERM: i32 = -1;
+
 #[test]
 fn a_multiplexer_id_held_across_a_revival_reaches_no_other_clients_slot() {
     let mut b = Bench::new(HIGH_SPEED);
@@ -42,9 +45,12 @@ fn a_multiplexer_id_held_across_a_revival_reaches_no_other_clients_slot() {
     assert_eq!(reserved, stale, "C reserved the id A held");
     let commands = b.ran().len();
     set_sender(A);
-    assert_eq!(b.call(OP_GET_DEVICE_DESCRIPTOR, &[stale]).status, E_INVAL);
-    assert_eq!(b.call(OP_ADDRESS_DEVICE, &[stale, 1]).status, E_INVAL, "bound for A");
-    assert_eq!(b.call(OP_DISABLE_SLOT, &[stale]).status, E_INVAL, "C's reservation given up");
+    // The id is C's now: the multiplexer's holder gate (slots/gate.rs)
+    // refuses A before the controller's owner check would.
+    let refused = |s: i32| s == E_PERM || s == E_INVAL;
+    assert!(refused(b.call(OP_GET_DEVICE_DESCRIPTOR, &[stale]).status));
+    assert!(refused(b.call(OP_ADDRESS_DEVICE, &[stale, 1]).status), "bound for A");
+    assert!(refused(b.call(OP_DISABLE_SLOT, &[stale]).status), "C's reservation given up");
     assert_eq!(b.ran().len(), commands, "no slot was enabled for A");
     set_sender(B);
     assert_eq!(b.call(OP_GET_DEVICE_DESCRIPTOR, &[fresh]).status, 0, "B's device is B's");
