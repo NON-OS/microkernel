@@ -30,6 +30,7 @@ mod reserved;
 
 pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
+pub(crate) use held::displays;
 pub use error::RegError;
 pub use peers_check::{caller_may_reach, caller_may_reach_pid, caller_may_write_inbox};
 pub use policy::required_caps;
