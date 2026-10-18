@@ -20,7 +20,7 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_getpid, Deadline};
+use nonos_libc::Deadline;
 
 use super::bind_fn::BindFn;
 use super::one::serve_one;
@@ -32,21 +32,22 @@ use crate::xhci::disable_slot;
 
 /// How long a receive waits before the next pass while no device is bound.
 const SEARCH_POLL_MS: u64 = 1_000;
-/// Transfers failed in a row before the device is taken as gone.
-const LOST_AFTER: u32 = 8;
+/// Failures in a row, transfers and the driver's own looks alike, before
+/// the device is taken as gone.
+pub const LOST_AFTER: u32 = 8;
 
 pub fn run<N: Nic>(tag: &'static [u8], bind: BindFn<N>) -> ! {
     let mut rx = vec![0u8; HDR_LEN + ETH_FRAME_MAX + 64];
     let mut tx = vec![0u8; DATA_AT + 4 + ETH_FRAME_MAX + 64];
-    let (mut stats, mut scanner) = (Stats::default(), Scanner::new());
-    let mut bound: Option<Bound<N>> = None;
-    let (me, mut next_pass) = (mk_getpid(), Deadline::after_ms(0));
     say(tag, &[b"started, looking for a device"]);
+    let (mut stats, mut scanner) = (Stats::default(), Scanner::new(tag));
+    let mut bound: Option<Bound<N>> = None;
+    let mut next_pass = Deadline::after_ms(0);
     loop {
         let wait = if bound.is_some() { 0 } else { SEARCH_POLL_MS };
-        serve_one(&mut rx, &mut tx, wait, me, bound.as_mut().map(|b| &mut b.nic), &mut stats);
+        serve_one(&mut rx, &mut tx, wait, bound.as_mut().map(|b| &mut b.nic), &mut stats);
         if let Some(b) = bound.as_mut() {
-            b.nic.tick();
+            stats.ticked(b.nic.tick());
         }
         if stats.failing >= LOST_AFTER {
             if let Some(b) = bound.take() {
@@ -62,7 +63,7 @@ pub fn run<N: Nic>(tag: &'static [u8], bind: BindFn<N>) -> ! {
             next_pass = Deadline::after_ms(SEARCH_POLL_MS);
             bound = scanner.pass(tag, bind);
             if let Some(b) = &bound {
-                say_up(tag, b.port, b.nic.mac());
+                say_up(tag, b.port, b.nic.taken());
                 stats.binds = stats.binds.saturating_add(1);
             }
         }

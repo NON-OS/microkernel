@@ -14,7 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+//! `Driver` is the live state the server loop holds: the claim, the BAR
+//! window, the chip, the rings over the four DMA grants, and the transmit
+//! watchdog. `release` gives the device back, and the broker frees every
+//! grant tied to it.
+
+use nonos_libc::Deadline;
 
 use crate::chip::Chip;
 use crate::constants::MAC_LEN;
@@ -24,27 +29,23 @@ use crate::regs::Regs;
 
 pub struct Driver {
     pub device_id: u64,
+    pub claim_epoch: u64,
     pub chip: Chip,
-    pub mmio_grant: u64,
-    pub rx_ring_grant: u64,
-    pub rx_buffer_grant: u64,
-    pub tx_ring_grant: u64,
-    pub tx_buffer_grant: u64,
     pub regs: Regs,
     pub mac: [u8; MAC_LEN],
     /// The link last logged; None until the first look.
     pub link: Option<LinkState>,
     pub rx: RxRing,
     pub tx: TxRing,
+    /// Falls due once the next transmit slot has stayed the part's with the
+    /// link up for TX_HANG_MS; renewed whenever a slot is free.
+    pub tx_watch: Deadline,
 }
 
 impl Driver {
+    /// Stop and reset the part, turn Bus Master off, then give the device
+    /// back, which frees every grant (see `rollback`).
     pub fn release(&self) {
-        let _ = mk_dma_unmap(self.tx_buffer_grant);
-        let _ = mk_dma_unmap(self.tx_ring_grant);
-        let _ = mk_dma_unmap(self.rx_buffer_grant);
-        let _ = mk_dma_unmap(self.rx_ring_grant);
-        let _ = mk_mmio_unmap(self.mmio_grant);
-        let _ = mk_device_release(self.device_id);
+        super::rollback::release(self.device_id, self.claim_epoch, &self.regs, self.chip.ver);
     }
 }

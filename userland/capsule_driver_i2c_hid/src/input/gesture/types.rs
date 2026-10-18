@@ -14,43 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Nominal width, in screen-pixel-like units, that one edge-to-edge pad
-/// traversal covers at gain 1.0. Deliberately conservative: the router
-/// stacks a user-policy sensitivity of up to 2.0x on top of this, so the
-/// driver curve must stay controllable even at that ceiling.
-pub(super) const NOMINAL_WIDTH: i64 = 800;
-/// Acceleration curve in 1/16 gain steps: floor for slow precise motion,
-/// one step per SPEED_DIV normalized pixels of per-report speed, and a low
-/// ceiling so a flick crosses the screen without becoming untrackable.
-pub(super) const GAIN_FLOOR_X16: i64 = 8;
-pub(super) const GAIN_SPEED_DIV: i64 = 3;
-pub(super) const GAIN_CEIL_X16: i64 = 22;
-/// Hard per-report output cap. Whatever the math says, no single report may
-/// jump the cursor further than this; it bounds torn-read spikes and keeps a
-/// runaway curve physically manageable.
-pub(super) const MOTION_CAP: i32 = 36;
-/// Contact-continuity bound: a real finger cannot cross more than this
-/// fraction of the pad between two consecutive reports. Anything larger is a
-/// torn read or a contact swap, and emitting it would teleport the cursor.
-pub(super) const CONTINUITY_DIV: i64 = 8;
-/// Tap-to-click: a single finger that touches down and lifts within this many
-/// reports, having travelled less than 1/`TAP_TRAVEL_DIV` of the pad, is a tap
-/// and emits a left click. Generous frame bound so a tap registers across pad
-/// report rates; the travel bound is what actually separates a tap from a drag.
-pub(super) const TAP_MAX_FRAMES: u16 = 40;
-pub(super) const TAP_TRAVEL_DIV: i64 = 16;
-/// Two-finger scroll: one wheel notch for every 1/`SCROLL_NOTCHES_PER_PAD`
-/// of the pad's height, about 2 mm on a laptop pad, which is what one notch
-/// of a mouse wheel scrolls in an app. A full swipe is a long scroll, a short
-/// flick a few lines.
-pub(super) const SCROLL_NOTCHES_PER_PAD: u32 = 32;
-/// Natural (content follows the fingers) or traditional (the view moves the
-/// way the fingers do, as a scroll wheel turned toward the user scrolls
-/// down) direction. Traditional is the default.
-pub(super) const NATURAL_SCROLL: bool = false;
-/// A jump of the scrolling finger beyond this fraction of the pad between
-/// two of its reports is a torn read or a swapped contact, not a swipe.
-pub(super) const SCROLL_JUMP_DIV: u32 = 4;
+//! The gesture engine's state between frames, and what one frame asks the
+//! driver to post.
 
 #[derive(Default)]
 pub struct TouchGesture {
@@ -80,6 +45,13 @@ pub struct TouchGesture {
     pub(super) tip_frames: u16,
     pub(super) tap_travel: i64,
     pub(super) tap_ok: bool,
+}
+
+impl TouchGesture {
+    /// The clickpad's button is down, as the last debounced edge said.
+    pub fn button_held(&self) -> bool {
+        self.was_button
+    }
 }
 
 /// What one sample should do. The driver posts these as input events.

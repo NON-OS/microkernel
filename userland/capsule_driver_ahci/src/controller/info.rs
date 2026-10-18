@@ -32,15 +32,11 @@ pub struct ControllerInfo {
 
 impl ControllerInfo {
     pub fn read(regs: Regs) -> Self {
-        let cap = unsafe { regs.r32(HBA_CAP) };
-        let pi = unsafe { regs.r32(HBA_PI) };
-        Self {
-            cap,
-            ghc: unsafe { regs.r32(HBA_GHC) },
-            pi,
-            version: unsafe { regs.r32(HBA_VS) },
-            cap2: unsafe { regs.r32(HBA_CAP2) },
-            port_count: port_count(cap, pi),
-        }
+        // SAFETY: `regs` maps this controller's ABAR, which holds every
+        // global register read here.
+        let r = |off: u32| unsafe { regs.r32(off) };
+        let (cap, pi) = (r(HBA_CAP), r(HBA_PI));
+        let (ghc, version, cap2) = (r(HBA_GHC), r(HBA_VS), r(HBA_CAP2));
+        Self { cap, ghc, pi, version, cap2, port_count: port_count(cap, pi) }
     }
 }

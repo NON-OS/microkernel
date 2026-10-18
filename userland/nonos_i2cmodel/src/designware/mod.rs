@@ -25,6 +25,7 @@ mod phase;
 mod read;
 mod record;
 pub mod regs;
+mod stall;
 mod state;
 mod status;
 mod write;

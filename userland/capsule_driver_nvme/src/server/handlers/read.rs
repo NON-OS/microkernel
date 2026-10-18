@@ -23,9 +23,8 @@ use crate::protocol::{
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
-pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let regs = driver.regs;
-    let io = match driver.io.as_mut() {
+pub fn handle(driver: &mut Driver, req: &Request, sender: u32, body: &[u8], tx: &mut [u8]) {
+    let io = match driver.io.as_ref() {
         Some(i) => i,
         None => return reply_with_status(tx, req, E_NODEV),
     };
@@ -37,20 +36,22 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(v) => v,
         Err(s) => return reply_with_status(tx, req, s),
     };
-    let lba_size = io.lba_size as usize;
-    if let Err(e) = io.transfer(regs, lba, nsectors, false) {
-        return reply_with_status(tx, req, io.failure_status(e));
-    }
-    let bytes = nsectors as usize * lba_size;
+    let bytes = nsectors as usize * io.lba_size as usize;
+    driver.io_command(
+        sender,
+        tx,
+        |io, regs, tx| io.read_into(regs, lba, nsectors, &mut tx[RESP_HDR_LEN + STATUS_LEN..]),
+        |tx, done| match done {
+            Ok(()) => reply_with_blocks(tx, req, bytes),
+            Err(status) => reply_with_status(tx, req, status),
+        },
+    );
+}
+
+/// Status 0 and the `bytes` read, which `tx` holds after its header.
+fn reply_with_blocks(tx: &mut [u8], req: &Request, bytes: usize) {
     let payload = STATUS_LEN + bytes;
     encode_response_header(tx, req, payload as u32);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            io.data.user_va() as *const u8,
-            tx[RESP_HDR_LEN + STATUS_LEN..].as_mut_ptr(),
-            bytes,
-        );
-    }
     let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + payload);
 }

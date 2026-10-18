@@ -34,14 +34,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != RW_HEADER_LEN + bytes || req.payload_len as usize != RW_HEADER_LEN + bytes {
         return reply_with_status(tx, req, E_MSGSIZE);
     }
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            body[RW_HEADER_LEN..].as_ptr(),
-            port.data.user_va() as *mut u8,
-            bytes,
-        );
-    }
-    let status = match transfer(port, regs, lba, nsectors, true) {
+    let payload = body.get(RW_HEADER_LEN..).unwrap_or_default();
+    let status = match port.load(payload).and_then(|()| transfer(port, regs, lba, nsectors, true)) {
         Ok(()) => 0,
         Err(e) => super::failure::status(port, e),
     };

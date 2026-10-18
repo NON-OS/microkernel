@@ -28,10 +28,14 @@ pub fn program(regs: &Regs, tx: &TxRing) {
         let addr = tx.buffer_da(i);
         let d =
             Descriptor { opts1: eor, opts2: 0, addr_lo: addr as u32, addr_hi: (addr >> 32) as u32 };
+        // SAFETY: `tx.desc_va` is the ring grant, TX_DESC_COUNT descriptors
+        // long, and `i` is below that. The reset before this left the
+        // transmitter off, at bring-up and on recovery, so the part owns none.
         unsafe {
             desc_mut(tx.desc_va, i, d);
         }
     }
+    // SAFETY: TxDescAddr (0x20..0x27) lies inside every mapped window.
     unsafe {
         regs.w32(REG_TXDESC_ADDR_LO, tx.desc_da as u32);
         regs.w32(REG_TXDESC_ADDR_HI, (tx.desc_da >> 32) as u32);

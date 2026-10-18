@@ -21,4 +21,4 @@ mod budget;
 mod wait;
 
 pub use budget::Budget;
-pub use wait::{now, sleep_ms};
+pub use wait::{now, pause, sleep_ms};
