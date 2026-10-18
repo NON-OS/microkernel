@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The firmware's touchpad declaration as setup reads it, and the record of
-//! the controller one names. Discovery itself lists devices through the
-//! broker and stays out.
+//! The broker's device record, its bars and their kinds, as libc defines
+//! them: the shipping files themselves, so a record a test builds has the
+//! layout the driver reads.
 
-#[path = "../../capsule_driver_i2c_pci/src/discover/acpi_touchpad.rs"]
-mod acpi_touchpad;
-#[path = "../../capsule_driver_i2c_pci/src/discover/found.rs"]
-mod found;
+#[path = "../../libc/src/broker/types/bar.rs"]
+mod bar;
+#[path = "../../libc/src/broker/types/bus.rs"]
+mod bus;
+#[path = "../../libc/src/broker/types/device.rs"]
+mod device;
 
-pub use acpi_touchpad::{AcpiTouchpad, MAX_TARGETS};
-pub use found::{Found, MAX_CONTROLLERS};
+pub use bar::{Bar, BAR_FLAG_MEM64, BAR_FLAG_PREFETCH, BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO};
+pub use bus::{BUS_KIND_ACPI, BUS_KIND_PCI, BUS_KIND_VIRT};
+pub use device::{DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
