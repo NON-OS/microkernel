@@ -20,8 +20,11 @@
 mod bound_tests;
 mod commit_tests;
 mod confirm_first_tests;
+mod discard;
 mod edge_tests;
 mod exchange_tests;
+mod hostile;
 mod refusal_tests;
+mod tokens;
 mod vector_tests;
 mod vectors;

@@ -35,7 +35,9 @@ pub enum Restore {
 /// read already saw the loaded store, so an absent token is really absent.
 pub fn restore() -> Restore {
     let settled = !matches!(vfs::store_settled(), Ok(false));
-    let raw = match vfs::read_file(mk_getpid(), TOKEN, 32) {
+    // One byte past the token, so a longer file fails the 32-byte
+    // conversion below rather than giving up its prefix as a token.
+    let raw = match vfs::read_file(mk_getpid(), TOKEN, 33) {
         Ok(raw) => raw,
         Err(_) if !settled => return Restore::NotYet,
         Err(_) => return Restore::Known(false),

@@ -23,19 +23,9 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::fd::{install, SOCK_CLOEXEC, SOCK_NONBLOCK};
-use super::policy::refuse;
-use super::sock::{self, Domain, Proto};
+use super::sock::{self, Domain};
 use super::sockaddr::{AF_INET, AF_UNIX};
-
-const SOCK_STREAM: u64 = 1;
-const SOCK_DGRAM: u64 = 2;
-const SOCK_RAW: u64 = 3;
-const SOCK_SEQPACKET: u64 = 5;
-const TYPE_MASK: u64 = 0xF;
-const IPPROTO_TCP: u64 = 6;
-const IPPROTO_UDP: u64 = 17;
-/// The one protocol a Unix socket takes besides 0.
-const PF_UNIX: u64 = 1;
+use super::socket_kind::TYPE_MASK;
 
 pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
     let flags = kind & (SOCK_NONBLOCK | SOCK_CLOEXEC);
@@ -43,26 +33,20 @@ pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
         return errno::fail(errno::EINVAL);
     }
     let domain = match family {
+        f if f == u64::from(AF_INET) && !crate::linux::app::inet(guest) => {
+            return crate::linux::app::refuse(
+                "an internet socket",
+                "NET_ANON or NET_LISTEN_LO",
+                errno::EACCES,
+            )
+        }
         f if f == u64::from(AF_INET) => Domain::Inet,
         f if f == u64::from(AF_UNIX) => Domain::Unix,
         _ => return errno::fail(errno::EAFNOSUPPORT),
     };
-    let (proto, own) = match (kind & TYPE_MASK, domain) {
-        (SOCK_STREAM, Domain::Inet) => (Proto::Stream, IPPROTO_TCP),
-        (SOCK_DGRAM, Domain::Inet) => (Proto::Dgram, IPPROTO_UDP),
-        (SOCK_RAW, Domain::Inet) => {
-            return refuse("SOCK_RAW: raw sockets reach below any confinement", errno::EPERM)
-        }
-        (SOCK_STREAM, Domain::Unix) => (Proto::Stream, PF_UNIX),
-        /* Linux gives a raw Unix socket datagram semantics. */
-        (SOCK_DGRAM | SOCK_RAW, Domain::Unix) => (Proto::Dgram, PF_UNIX),
-        (SOCK_SEQPACKET, Domain::Unix) => {
-            return refuse(
-                "SOCK_SEQPACKET: a Unix stream here does not keep message boundaries",
-                errno::ESOCKTNOSUPPORT,
-            )
-        }
-        _ => return errno::fail(errno::ESOCKTNOSUPPORT),
+    let (proto, own) = match super::socket_kind::kind(kind, domain) {
+        Ok(k) => k,
+        Err(e) => return e,
     };
     /*
      * Anything but the type's own protocol, MPTCP included, is one this

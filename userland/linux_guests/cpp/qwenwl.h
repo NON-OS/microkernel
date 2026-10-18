@@ -25,6 +25,12 @@ struct Wl {
     int want_w = 0, want_h = 0;
     /* Pixels at a new size, not drawn yet: the caller draws and presents. */
     bool resized = false;
+    /* The keyboard (qwenwl_keys.cpp): xkb's held and locked modifiers, the
+     * key held for repeating and when it next types, and the server's rate
+     * a second and delay in ms. */
+    uint32_t depressed = 0, locked = 0, held = 0;
+    long long next_ms = 0;
+    int rate = 0, delay_ms = 0;
 };
 
 /* One request under construction: object, opcode, then arguments. */
@@ -36,7 +42,7 @@ struct Req {
     Req &str(const std::string &s);
 };
 
-/* A key the user pressed: a NONOS key code, which for text is the character. */
+/* A key the user typed: the character, or 0x0D Enter, 0x08 Backspace, 0x1B Escape. */
 struct Key {
     uint32_t code;
 };
@@ -56,7 +62,7 @@ bool wl_buffer(Wl &w, int width, int height, uint32_t pool, uint32_t buf, uint32
  * when there is no memory for the new one.
  */
 bool wl_resize(Wl &w, int width, int height);
-/* Answer pings and configures; append keys pressed. False once closed. */
+/* Answer pings and configures; append keys typed and repeated. False once closed. */
 bool wl_poll(Wl &w, std::vector<Key> &keys);
 void wl_present(Wl &w);
 /*

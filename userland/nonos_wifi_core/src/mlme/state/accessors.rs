@@ -28,33 +28,6 @@ impl Mlme {
         self.channel
     }
 
-    /// The supplicant, once connected: the data path keeps answering the
-    /// access point's group key handshakes with it.
-    pub fn supplicant(&self) -> Option<Supplicant> {
-        self.supplicant.clone().filter(|_| self.state == MlmeState::Connected)
-    }
-
-    /// The AP accepted the (re)association: the handshake began, whatever
-    /// became of it.
-    pub fn accepted(&self) -> bool {
-        self.supplicant.is_some()
-    }
-
-    /// The pairwise temporal key, valid once Connected.
-    pub fn tk(&self) -> Option<&[u8]> {
-        self.supplicant.as_ref().filter(|_| self.state == MlmeState::Connected).map(|s| s.tk())
-    }
-
-    /// The group temporal key, valid once Connected.
-    pub fn gtk(&self) -> Option<&[u8]> {
-        self.supplicant.as_ref().filter(|_| self.state == MlmeState::Connected).map(|s| s.gtk())
-    }
-
-    /// The group key's index, valid once Connected.
-    pub fn gtk_id(&self) -> Option<u8> {
-        self.supplicant.as_ref().filter(|_| self.state == MlmeState::Connected).map(|s| s.gtk_id())
-    }
-
     /// The station MAC and the joined AP's BSSID, needed by the data path to
     /// address encrypted frames. Meaningful once a BSS has been selected.
     pub fn our_mac(&self) -> [u8; 6] {
