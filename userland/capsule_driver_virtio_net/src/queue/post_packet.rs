@@ -14,31 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr::{read_volatile, write_volatile};
-use core::sync::atomic::{fence, Ordering};
+//! Handing a frame to the device without waiting for it: copied into a free
+//! buffer behind a zeroed header (no offloads, one buffer), padded to the
+//! Ethernet minimum and offered. Buffers come back in `reclaim`.
 
-use super::TxQueue;
-use crate::constants::{RING_SLOTS, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET};
-
-const DESC_SIZE: usize = 16;
-const AVAIL_RING_OFFSET: usize = 4;
+use super::clear::zero;
+use super::ring::{publish, write_desc};
+use super::{TxError, TxQueue};
+use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
 
 impl TxQueue {
-    pub fn post_packet(&self, slot: u16, length: u32) {
-        unsafe {
-            let desc = self.region_va.add(VQ_DESC_OFFSET).add(DESC_SIZE * slot as usize);
-            write_volatile(desc.cast::<u64>(), self.buf_phys + self.buf_len as u64 * slot as u64);
-            write_volatile(desc.add(8).cast::<u32>(), length);
-            write_volatile(desc.add(12).cast::<u16>(), 0u16);
-            write_volatile(desc.add(14).cast::<u16>(), 0u16);
-            let avail = self.region_va.add(VQ_AVAIL_OFFSET).cast::<u16>();
-            let idx = read_volatile(avail.add(1));
-            let pos = (idx % RING_SLOTS) as usize;
-            write_volatile(avail.add(AVAIL_RING_OFFSET / 2 + pos), slot);
-            // The frame bytes are plain stores; volatile alone would let them
-            // land after the index that tells the device to read them.
-            fence(Ordering::Release);
-            write_volatile(avail.add(1), idx.wrapping_add(1));
+    pub fn post(&mut self, frame: &[u8]) -> Result<(), TxError> {
+        let wire = core::cmp::max(frame.len(), MIN_ETHERNET_FRAME);
+        let total = self.hdr_len.checked_add(wire).filter(|&t| t <= self.buf_len as usize);
+        let Some(total) = total.filter(|_| frame.len() <= MAX_ETHERNET_FRAME) else {
+            return Err(TxError::TooLong);
+        };
+        self.reclaim();
+        let Some(slot) = self.free_slot() else {
+            return Err(TxError::Full);
+        };
+        // A buffer came back since the ring was last full: not stalled.
+        self.full_since = None;
+        let base = usize::from(slot) * self.buf_len as usize;
+        zero(self.bufs, base, self.hdr_len);
+        for (i, &b) in frame.iter().enumerate() {
+            self.bufs.w8(base + self.hdr_len + i, b);
         }
+        zero(self.bufs, base + self.hdr_len + frame.len(), wire - frame.len());
+        // The grant was checked not to wrap (setup::grant), so neither does this.
+        let addr = self.buf_phys.wrapping_add(base as u64);
+        write_desc(self.ring, slot, addr, total as u32, 0);
+        self.in_flight |= 1 << slot;
+        publish(self.ring, &mut self.next_avail, slot);
+        Ok(())
     }
 }

@@ -13,9 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{PORTSC_BASE, PORT_REG_STRIDE};
+use super::portsc_addr::portsc_addr;
 use crate::regs::mmio_read32;
 pub fn portsc_read(op_base: u64, port: u8) -> u32 {
-    let reg = op_base + PORTSC_BASE + ((port as u64) - 1) * PORT_REG_STRIDE;
-    mmio_read32(reg)
+    let Some(reg) = portsc_addr(op_base, port) else { return 0 };
+    // SAFETY: `read_layout` checked every root port's register set lies inside the mapped window
+    // (`require_ports`), and the callers pass a port from 1 to the controller's count.
+    unsafe { mmio_read32(reg) }
 }

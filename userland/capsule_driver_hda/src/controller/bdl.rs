@@ -26,7 +26,8 @@ pub const BDL_ALIGN: u64 = 128;
 /// The DMA position buffer shares the BDL's page, 128-byte aligned as
 /// DPLBASE requires, one 8-byte entry per stream descriptor.
 pub const POSBUF_OFFSET: u64 = 0x800;
-const _: () = assert!(PERIOD_BYTES.is_multiple_of(BDL_ALIGN) && POSBUF_OFFSET.is_multiple_of(BDL_ALIGN));
+const _: () =
+    assert!(PERIOD_BYTES.is_multiple_of(BDL_ALIGN) && POSBUF_OFFSET.is_multiple_of(BDL_ALIGN));
 
 pub struct BdlEntry {
     pub addr: u64,

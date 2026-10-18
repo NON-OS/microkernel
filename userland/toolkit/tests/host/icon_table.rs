@@ -18,8 +18,8 @@ fn main() {
     // Kept in step with IconId::ALL by hand, which is the point: a count that
     // updated itself would not catch an icon added to one list and not the
     // other.
-    if all.len() != 50 {
-        println!("expected 50 icons, got {}", all.len());
+    if all.len() != 51 {
+        println!("expected 51 icons, got {}", all.len());
         fail += 1;
     }
     for (i, a) in all.iter().enumerate() {
