@@ -24,6 +24,7 @@ use super::failure::Failure;
 use super::wire::exchange;
 
 pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Result<Detail, Failure> {
-    let body = exchange(port, OP_GET_APP, request_id, &listing_body(listing))?;
+    let body =
+        exchange(port, OP_GET_APP, request_id, &listing_body(listing).ok_or(Failure::Malformed)?)?;
     parse_app(&body).ok_or(Failure::Malformed)
 }

@@ -55,6 +55,8 @@ pub mod capsule_install;
 pub mod capsule_installer;
 pub mod capsule_linux;
 pub mod capsule_login;
+pub mod capsule_nox_settle;
+pub mod capsule_payment;
 #[cfg(feature = "nonos-capsule-nonos-install")]
 pub mod capsule_nonos_install;
 pub mod capsule_policy;

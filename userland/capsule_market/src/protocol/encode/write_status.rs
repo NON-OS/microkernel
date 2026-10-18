@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) fn write_status(out: &mut [u8], status: i32) {
-    out[0..4].copy_from_slice(&status.to_le_bytes());
+/// None when `out` has no room for the status word.
+pub(crate) fn write_status(out: &mut [u8], status: i32) -> Option<()> {
+    out.get_mut(..4)?.copy_from_slice(&status.to_le_bytes());
+    Some(())
 }

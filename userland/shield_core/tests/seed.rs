@@ -1,14 +1,3 @@
-/*
- * A test asserts by panicking, and a measurement prints what it read, so the
- * lints that forbid panicking and indexing are off here and nowhere else.
- */
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 use nox_shield_core::entropy::ProofSeed;
 use nox_shield_core::error::ProveError;
 

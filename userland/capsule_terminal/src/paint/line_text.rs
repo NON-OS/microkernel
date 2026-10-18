@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::line_chars::chars_of;
+use super::metrics::Metrics;
 use super::syntax::Part;
 use crate::term::theme::types::Theme;
 use nonos_vt::width::width as char_width;
@@ -45,10 +46,10 @@ pub fn text_parts(
     y: u32,
     bytes: &[u8],
     parts: &[Part],
-    adv: u32,
-    px: f32,
+    m: Metrics,
     t: &Theme,
 ) {
+    let (adv, px) = (m.adv, m.px);
     let mut buf = [0u8; 4];
     let mut at = 0usize;
     for ch in chars_of(bytes) {

@@ -15,19 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use nonos_app_skeleton::clients::vfs::read_file;
 
 use super::exec::exec;
 use super::outcome::Outcome;
 use super::pipeline::{run_filters, run_pipeline};
 use super::redirect::{plan, Sink, Source};
-use super::write_redirect::write_redirect;
 use crate::command::builtin;
 use crate::command::parse::Argv;
-use crate::term::cwd::resolve;
 use crate::term::state::State;
 
-const MAX_INPUT: u32 = 65536;
+#[path = "run_sink.rs"]
+mod run_sink;
+#[path = "run_source.rs"]
+mod run_source;
+
+use run_sink::deliver;
+use run_source::read_input;
 
 pub fn run(state: &mut State, argv: &Argv<'_>) -> Outcome {
     if argv.argc == 0 {
@@ -64,24 +67,6 @@ pub fn run(state: &mut State, argv: &Argv<'_>) -> Outcome {
             state.scrollback.end_capture()
         }
     };
-    match plan.output {
-        Sink::File { path, append } => write_redirect(state, &lines, append, path),
-        Sink::Null => {}
-        Sink::Screen => {
-            for line in &lines {
-                state.scrollback.push_line(line);
-            }
-        }
-    }
+    deliver(state, plan.output, lines);
     Outcome::Repaint
-}
-fn read_input(state: &mut State, path_arg: &[u8]) -> Vec<Vec<u8>> {
-    let path = resolve(state.cwd.as_bytes(), path_arg);
-    match read_file(state.owner_pid, &path, MAX_INPUT) {
-        Ok(data) => super::filter::input::lines_of(&data),
-        Err(e) => {
-            state.scrollback.push_line(e.as_bytes());
-            Vec::new()
-        }
-    }
 }

@@ -31,7 +31,7 @@ pub fn run() -> ! {
         if n <= 0 {
             continue;
         }
-        let resp = match decode_request(&buf[..n as usize]) {
+        let resp = match decode_request(buf.get(..n as usize).unwrap_or(&[])) {
             Some(req) => dispatch(req, sender_pid),
             /*
              * Refused by the decode: answered under a zero sequence number.

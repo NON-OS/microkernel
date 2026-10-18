@@ -2,7 +2,6 @@
 //!
 //! The indexing and arithmetic below run in the compiler, on constant input,
 //! and a bad digit fails the build. Nothing here runs on a phone.
-#![allow(clippy::indexing_slicing, clippy::arithmetic_side_effects)]
 
 /// Forty hex digits as twenty bytes, at compile time, so a typo in an address
 /// is a build failure, not a wrong recipient.

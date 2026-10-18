@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use super::rewards_vectors::{address, hex, phrase_account, M, SIGNED, T};
 use super::*;
 

@@ -8,7 +8,8 @@ in [docs/handbook/apps/terminal.md](../../docs/handbook/apps/terminal.md).
 
 ## What is under test
 
-From the terminal, as `src/lib.rs` mounts them: the line editor
+From the terminal, as `src/lib.rs` and its topic groups (`src/input_line.rs`,
+`src/filters.rs`, `src/shell.rs` and the rest) mount them: the line editor
 (`term/line/`), history expansion, command suggestions, the flag parser, the
 pipeline text filters, the `tree` renderer, `grep` highlighting, the line
 editing a foreground program gets (`event/cooked.rs`, `cooked_kill.rs`),
@@ -47,8 +48,7 @@ cargo test --release
 ```
 
 CI runs it through `nix flake check` (`tools/nix/checks.nix`), with overflow
-checks on, then clippy over the library only: the crate is in the `lintLib`
-list, whose tests are not lint-clean yet.
+checks on, then clippy over all targets, tests included, with `-D warnings`.
 
 ## Not covered
 

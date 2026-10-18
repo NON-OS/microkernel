@@ -296,6 +296,10 @@ name = "nonos_market_proto"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_policy_client"
 version = "0.1.0"
 dependencies = [
@@ -335,6 +339,7 @@ dependencies = [
  "nonos_http",
  "nonos_inflate",
  "nonos_market_proto",
+ "nonos_nox_config",
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_route_link",

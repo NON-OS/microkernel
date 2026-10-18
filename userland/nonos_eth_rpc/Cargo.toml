@@ -1,0 +1,18 @@
+# NONOS userland: nonos_eth_rpc
+#
+# Ethereum JSON-RPC as bytes for no_std capsules: request builders, answer
+# readers, eth_getLogs by address and topic0, HTTP/1.1 framing. No syscalls.
+
+[package]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "Ethereum JSON-RPC requests and answers as bytes, no_std"
+
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+crate-type = ["rlib"]

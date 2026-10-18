@@ -16,11 +16,16 @@
 
 mod alias_expand;
 mod exec;
+mod exec_files;
+mod exec_info;
+mod exec_net;
+mod exec_session;
 mod expand;
 mod filter;
 mod outcome;
 mod pipeline;
 mod redirect;
+mod route;
 mod run;
 mod statements;
 mod tool_admit;

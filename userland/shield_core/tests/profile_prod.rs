@@ -1,7 +1,3 @@
-// Tests assert by panicking and print measurements, so those lints are off here only.
-#![allow(clippy::expect_used, clippy::indexing_slicing, clippy::integer_division)]
-#![allow(clippy::arithmetic_side_effects)]
-
 //! Where a production proof spends its time and memory, phase by phase, for the pinned 37-limb
 //! transfer in `PROD_VECTORS`. A first run proves from nothing and writes the periodic cache to
 //! `PROD_CACHE`, and the next proves from it, one run per process so each peak is its own.

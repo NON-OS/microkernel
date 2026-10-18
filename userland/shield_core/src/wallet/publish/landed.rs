@@ -2,7 +2,7 @@
 
 use crate::error::{StoreError, WalletError};
 use crate::net::rpc::RawLog;
-use crate::prover::launch::publics::{pool_words, LIMBS};
+use crate::prover::launch::publics::{digest_words, LIMBS};
 use crate::wallet::relay_body::{limbs, read};
 
 /// What the history shows of the two nullifiers.
@@ -17,7 +17,7 @@ pub enum Seen {
 
 /// The two nullifiers of a spend, as the pool emits them, from its public limbs.
 pub fn nullifiers(limbs: &[u64; LIMBS]) -> [[u8; 32]; 2] {
-    let words = pool_words(limbs);
+    let words = digest_words(limbs);
     [words[2], words[3]]
 }
 

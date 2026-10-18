@@ -34,7 +34,7 @@ fn each_network_has_its_own_chain_id_and_name() {
 #[test]
 fn only_sepolia_has_the_shield_and_only_mainnet_staking() {
     /* Read through the pick, as the screens read it. */
-    let _held = crate::fetch_tests::hold();
+    let _held = super::fetch_tests::hold();
     pick(false);
     assert!(!current().shield);
     pick(true);

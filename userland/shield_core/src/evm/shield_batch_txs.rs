@@ -17,8 +17,14 @@ pub struct Batch {
     pub max_network_fee: u128,
 }
 
+/// What a public review says when ETH falls short of the values and the fees.
+pub const BATCH_ETH_SHORT: &str =
+    "The ETH balance does not cover these and the most their network fees can be.";
+
 pub enum BatchChecked {
     Ready(Batch),
+    /// The ETH it lacks for the values and the most the network fees can be.
+    ShortOfEth(u128),
     /// The pool may not pull the whole amount yet. The exact approval comes first.
     Approve,
     Refused(&'static str),
@@ -37,8 +43,7 @@ pub(super) fn build(
         return Err(NetError::ReplyShape);
     };
     if !nox_verified::fee::covers(ether, value, max_network_fee) {
-        let why = "The ETH balance does not cover these and the most their network fees can be.";
-        return Ok(BatchChecked::Refused(why));
+        return Ok(BatchChecked::ShortOfEth(short(ether, value, max_network_fee)));
     }
     let mut txs = Vec::with_capacity(deposits.len());
     for (i, (deposit, gas)) in deposits.iter().zip(gas).enumerate() {
@@ -56,6 +61,11 @@ pub(super) fn build(
         });
     }
     Ok(BatchChecked::Ready(Batch { txs, max_network_fee }))
+}
+
+/// What `ether` lacks for `value` and `fee`.
+pub fn short(ether: u128, value: u128, fee: u128) -> u128 {
+    value.checked_add(fee).map_or(u128::MAX, |need| need.saturating_sub(ether))
 }
 
 #[cfg(test)]

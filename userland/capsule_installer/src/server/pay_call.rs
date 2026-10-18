@@ -14,35 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! One PAY v2 call to the meter, on payment_proto's wire. The reply is
+//! believed only for this call, and only as one whole signed voucher.
+
 use alloc::vec;
 use alloc::vec::Vec;
 
-use nonos_libc::mk_ipc_call;
+use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_time_millis};
+use nonos_payment_proto::{reply_body, request, ReplyError, VoucherRecord};
+use nonos_payment_proto::{
+    EAGAIN, EINVAL, EIO, HDR_LEN, OP_PAY, SERVICE, STATUS_LEN, VOUCHER_RECORD_LEN,
+};
 
-use super::consts::PAYMENT_OP_PAY;
-use super::fields::InstallReq;
+/// The meter asks the market and the keyring before it answers.
+const TIMEOUT_MS: u64 = 10_000;
 
-pub fn request_payment(port: u32, r: &InstallReq) -> Result<[u8; 32], i32> {
-    let mut tx: Vec<u8> = Vec::with_capacity(8 + 124);
-    tx.extend_from_slice(&0u32.to_le_bytes());
-    tx.extend_from_slice(&PAYMENT_OP_PAY.to_le_bytes());
-    tx.extend_from_slice(&0u16.to_le_bytes());
-    tx.extend_from_slice(&r.owner_pid.to_le_bytes());
-    tx.extend_from_slice(&r.wallet_id.to_le_bytes());
-    tx.extend_from_slice(&r.capsule_id);
-    tx.extend_from_slice(&r.publisher);
-    tx.extend_from_slice(&r.amount);
-    tx.extend_from_slice(&r.receipt_type);
-    let mut rx = vec![0u8; 8 + 32];
-    let rc = mk_ipc_call(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
-    if rc < (8 + 32) as i64 {
-        return Err(-11);
+/// The meter's signed voucher for `body`, a PayRequest, or its status.
+pub fn request_payment(body: &[u8]) -> Result<Vec<u8>, i32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    if mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut port, &mut pid) != 0 {
+        return Err(EAGAIN);
     }
-    let status = i32::from_le_bytes([rx[4], rx[5], rx[6], rx[7]]);
-    if status != 0 {
-        return Err(status);
+    let id = mk_time_millis() as u32;
+    let tx = request(OP_PAY, id, body).ok_or(EINVAL)?;
+    let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + VOUCHER_RECORD_LEN];
+    let n = mk_ipc_call_timeout(
+        port as u64,
+        tx.as_ptr(),
+        tx.len(),
+        rx.as_mut_ptr(),
+        rx.len(),
+        TIMEOUT_MS,
+    );
+    if n <= 0 {
+        return Err(EAGAIN);
     }
-    let mut sh = [0u8; 32];
-    sh.copy_from_slice(&rx[8..40]);
-    Ok(sh)
+    let voucher = match reply_body(rx.get(..n as usize).unwrap_or(&[]), OP_PAY, id) {
+        Ok(b) => b,
+        Err(ReplyError::Status(s)) => return Err(s),
+        Err(_) => return Err(EIO),
+    };
+    VoucherRecord::parse(voucher).ok_or(EIO)?;
+    Ok(voucher.to_vec())
 }

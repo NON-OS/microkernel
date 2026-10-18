@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 use super::{anchor_where, limbs, Anchor, AnchorRefusal};
 use crate::discovery::Log;
 use crate::notes::wire_digest;

@@ -2,12 +2,14 @@
 //! The byte layout is the prover's `note_seal::Payee::address` and must not drift from it.
 //! Text form: prefix, then base32 of the bytes and a four-byte checksum.
 
+#[path = "receiving_address_read.rs"]
+mod read;
+
+pub use read::parse_receiving_address;
+
 use super::base32::encode;
-use super::base32_read::decode;
 use super::domain::RECEIVE_ADDRESS_TAG;
 use super::receive::ENCAPSULATION_KEY_BYTES;
-use crate::error::WalletError;
-use nonos_stark::field::P;
 
 pub const RECEIVING_ADDRESS_VERSION: u8 = 0x01;
 pub const RECEIVING_ADDRESS_BYTES: usize = 1 + 32 + ENCAPSULATION_KEY_BYTES;
@@ -46,34 +48,4 @@ pub fn receiving_address_text(a: &[u8; RECEIVING_ADDRESS_BYTES]) -> String {
     let mut text = String::from(PREFIX);
     text.push_str(&encode(&bytes).unwrap_or_default());
     text
-}
-
-/// Read a pasted or scanned address. A bad checksum, spend word or encapsulation key is refused.
-pub fn parse_receiving_address(
-    text: &str,
-) -> Result<([u64; 4], [u8; ENCAPSULATION_KEY_BYTES]), WalletError> {
-    let cleaned: String =
-        text.chars().filter(|c| !c.is_whitespace()).collect::<String>().to_lowercase();
-    let body = cleaned.strip_prefix(PREFIX).ok_or(WalletError::Address)?;
-    let bytes = decode(body).ok_or(WalletError::Address)?;
-    if bytes.len() != RECEIVING_ADDRESS_BYTES + CHECK {
-        return Err(WalletError::Address);
-    }
-    let (a, check) = bytes.split_at(RECEIVING_ADDRESS_BYTES);
-    if checksum(a)[..] != *check || a.first() != Some(&RECEIVING_ADDRESS_VERSION) {
-        return Err(WalletError::Address);
-    }
-    let (keys, ek) = a.get(1..).ok_or(WalletError::Address)?.split_at(32);
-    let mut spend_pk = [0u64; 4];
-    for (w, chunk) in spend_pk.iter_mut().zip(keys.chunks_exact(8)) {
-        let mut le = [0u8; 8];
-        le.copy_from_slice(chunk);
-        *w = u64::from_le_bytes(le);
-        if *w >= P {
-            return Err(WalletError::Address);
-        }
-    }
-    let ek: [u8; ENCAPSULATION_KEY_BYTES] = ek.try_into().map_err(|_| WalletError::Address)?;
-    x_wing::EncapsulationKey::try_from(ek.as_slice()).map_err(|_| WalletError::Address)?;
-    Ok((spend_pk, ek))
 }

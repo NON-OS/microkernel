@@ -1,0 +1,41 @@
+# NONOS userland: capsule_nox_settle
+# eK@nonos.systems
+#
+# The chain's reader and broadcaster: views from a fixed table,
+# intents checked against a fixed kind table and quoted, release bytes
+# fetched and verified, signed transactions sent. No key. Every connection
+# goes over Route::for_wallet(), never Direct.
+
+[package]
+name = "nonos_capsule_nox_settle"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS nox_settle: reads the chain and broadcasts for the meter and the wallet"
+
+[[bin]]
+name = "nox_settle"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_eth_rpc = { path = "../nonos_eth_rpc" }
+nonos_nox_config = { path = "../nonos_nox_config" }
+# A release document decoded, and its v3 signing form hashed (FETCH).
+nonos_marketplace_abi = { path = "../marketplace_abi" }
+# settle() as the meter encodes it, for the estimate of a drain round.
+nonos_nox_meter = { path = "../nonos_nox_meter" }
+nonos_payment_proto = { path = "../payment_proto" }
+nonos_route_link = { path = "../nonos_route_link" }
+nonos_settle_proto = { path = "../settle_proto" }
+nonos_tls = { path = "../nonos_tls" }
+sha3 = { version = "=0.10.9", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

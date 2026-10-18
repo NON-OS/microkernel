@@ -148,6 +148,11 @@ nonos-capsule-entropy           = []
 nonos-capsule-crypto            = []
 nonos-capsule-vfs               = []
 nonos-capsule-installer         = []
+# payment: the meter, which signs NOX vouchers with its own key.
+nonos-capsule-payment           = []
+# nox_settle: reads the chain and broadcasts for the meter and the wallet,
+# over the wallet's route only; in networkFeatures.
+nonos-capsule-nox-settle        = []
 nonos-capsule-driver-virtio-rng = []
 nonos-capsule-driver-virtio-blk = []
 nonos-capsule-driver-virtio-gpu = []

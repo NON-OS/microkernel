@@ -16,7 +16,8 @@
 
 //! Why a listing can or cannot be installed.
 
-use nonos_market_proto::{pair_body, parse_readiness, OP_INSTALL_READY};
+use nonos_market_proto::{parse_readiness, ready_body, OP_INSTALL_READY};
+use nonos_nox_config::SEPOLIA;
 
 pub use nonos_market_proto::{Readiness, GATES};
 
@@ -24,8 +25,14 @@ use super::failure::Failure;
 use super::wire::exchange;
 
 /// The release is left unnamed: the capsule resolves the default then,
-/// the same way `get_release` does, so the two describe one release.
+/// the same way `get_release` does, so the two describe one release. The
+/// bond is read on Sepolia, the one chain the contracts are on (v1.4.23).
 pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Result<Readiness, Failure> {
-    let body = exchange(port, OP_INSTALL_READY, request_id, &pair_body(listing, b""))?;
+    let body = exchange(
+        port,
+        OP_INSTALL_READY,
+        request_id,
+        &ready_body(listing, b"", SEPOLIA).ok_or(Failure::Malformed)?,
+    )?;
     parse_readiness(&body).ok_or(Failure::Malformed)
 }

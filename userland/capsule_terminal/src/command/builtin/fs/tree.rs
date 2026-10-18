@@ -26,17 +26,16 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs;
 
 use super::pid;
-use super::tree_render::{counts, render};
 use crate::command::output::Output;
 use crate::term::cwd::resolve;
 use crate::term::state::State;
 
-/// Most nodes drawn before stopping.
-///
-/// Deliberately well under `SCROLLBACK_ROWS`, because the scrollback is a ring
-/// and a tree allowed to fill it would push out everything the reader ran
-/// before, including the command they are reading the tree to answer.
-const MAX_NODES: usize = 180;
+#[path = "tree_show.rs"]
+mod tree_show;
+#[path = "tree_summary.rs"]
+mod tree_summary;
+
+use tree_show::show;
 
 pub fn tree(state: &mut State, argv: &[&[u8]]) {
     let arg = argv.get(1).copied().unwrap_or(b".");
@@ -71,48 +70,6 @@ pub fn tree(state: &mut State, argv: &[&[u8]]) {
         state.last_status = 0;
         return;
     }
-
-    let lines = render(&rel);
-    let shown = lines.len().min(MAX_NODES);
-    for row in lines.iter().take(shown) {
-        // Directories take the same colour they take in a listing, so the two
-        // commands agree about what a directory looks like.
-        if row.is_dir {
-            out.writeln_dir(&row.line[..row.name_at], &row.line[row.name_at..]);
-        } else {
-            out.writeln(&row.line);
-        }
-    }
-    if lines.len() > shown {
-        out.writeln(b"... more, narrow the path to see the rest");
-    }
-
-    let (dirs, files) = counts(&lines);
-    out.writeln(&summary(dirs, files));
+    show(&mut out, rel);
     state.last_status = 0;
-}
-
-/// "N directories, M files", built without a formatter.
-fn summary(dirs: usize, files: usize) -> Vec<u8> {
-    let mut line = Vec::new();
-    push_num(&mut line, dirs);
-    line.extend_from_slice(if dirs == 1 { b" directory, " } else { b" directories, " });
-    push_num(&mut line, files);
-    line.extend_from_slice(if files == 1 { b" file" } else { b" files" });
-    line
-}
-
-fn push_num(out: &mut Vec<u8>, mut n: usize) {
-    if n == 0 {
-        out.push(b'0');
-        return;
-    }
-    let mut digits = [0u8; 20];
-    let mut i = digits.len();
-    while n > 0 {
-        i -= 1;
-        digits[i] = b'0' + (n % 10) as u8;
-        n /= 10;
-    }
-    out.extend_from_slice(&digits[i..]);
 }

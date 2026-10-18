@@ -1,0 +1,28 @@
+# NONOS userland: settle_proto
+#
+# The wire of capsule_nox_settle (service "nox_settle"), shared by the
+# settle capsule and its callers so the two cannot drift.
+
+[package]
+name = "nonos_settle_proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "capsule_nox_settle's ops and bodies, no_std"
+
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+nonos_nox_config = { path = "../nonos_nox_config" }
+# log_pages pages a judged range with its block_pages.
+nonos_eth_rpc = { path = "../nonos_eth_rpc" }
+
+[dev-dependencies]
+# keccak-256 on the host only, so the tests derive every pinned selector
+# from its signature.
+sha3 = { version = "=0.10.9", default-features = false }

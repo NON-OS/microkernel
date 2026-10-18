@@ -15,14 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::ensure_pid::ensure_pid;
-use super::conn::Conn;
 use super::ctx::Ctx;
 use super::walk::walk;
-use super::{args, fetch, progress, store};
+use super::{args, progress, store};
 use crate::command::builtin::direct_gate::{refusal_line, PULL};
 use crate::command::builtin::offline_probe::offline;
 use crate::term::cwd::resolve;
 use crate::term::state::State;
+
+#[path = "run_file.rs"]
+mod run_file;
+#[path = "run_store.rs"]
+mod run_store;
+#[path = "run_verify.rs"]
+mod run_verify;
+
+pub(super) use run_file::one_file;
 
 pub fn run(state: &mut State, argv: &[&[u8]]) -> bool {
     let a = match args::parse(argv) {
@@ -64,71 +72,4 @@ pub fn run(state: &mut State, argv: &[&[u8]]) -> bool {
     }
     state.scrollback.push_line(&progress::summary(&tally));
     true
-}
-
-pub(super) fn one_file(
-    state: &mut State,
-    ctx: &Ctx<'_>,
-    conn: &mut Option<Conn>,
-    path: &[u8],
-    dest: &[u8],
-    tally: &mut progress::Tally,
-) -> bool {
-    let (pid, ip, a) = (ctx.pid, ctx.ip, ctx.args);
-    if a.no_clobber && store::exists(pid, dest) {
-        tally.skipped += 1;
-        return true;
-    }
-    let extra = super::auth::extra_headers(&a.auth, &a.headers);
-    if a.skip_unchanged {
-        if let Some(local) = store::size(pid, dest) {
-            if fetch::head_reuse(conn, ip, a.target.port, &a.target.host, path, &extra)
-                == Some(local as usize)
-            {
-                tally.skipped += 1;
-                return true;
-            }
-        }
-    }
-    if !store::has_free_slot(pid) {
-        state.scrollback.push_error(b"pull: vfs store full");
-        tally.failed += 1;
-        return false;
-    }
-    match fetch::get_reuse(conn, ip, a.target.port, &a.target.host, path, &extra) {
-        Ok(body) => {
-            if a.verify {
-                if let Err(e) = super::verify::check(
-                    conn,
-                    ip,
-                    a.target.port,
-                    &a.target.host,
-                    path,
-                    &extra,
-                    &body,
-                ) {
-                    state.scrollback.push_error(e.as_bytes());
-                    tally.failed += 1;
-                    return false;
-                }
-            }
-            match store::write(pid, dest, &body) {
-                Ok(()) => {
-                    state.scrollback.push_line(&progress::file_line(dest, body.len()));
-                    tally.ok += 1;
-                    true
-                }
-                Err(e) => {
-                    state.scrollback.push_error(e.as_bytes());
-                    tally.failed += 1;
-                    false
-                }
-            }
-        }
-        Err(e) => {
-            state.scrollback.push_error(e.as_bytes());
-            tally.failed += 1;
-            false
-        }
-    }
 }

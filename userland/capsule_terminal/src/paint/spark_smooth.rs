@@ -24,9 +24,9 @@ pub fn smooth(src: &[u8], head: usize, out: &mut [u8]) -> usize {
         return 0;
     }
     let at = |i: usize| src[(head + i) % src.len()] as u32;
-    for i in 0..n {
+    for (i, o) in out.iter_mut().enumerate().take(n) {
         let v = (at(i.saturating_sub(1)) + at(i) + at((i + 1).min(n - 1))) / 3;
-        out[i] = v.min(100) as u8;
+        *o = v.min(100) as u8;
     }
     n
 }

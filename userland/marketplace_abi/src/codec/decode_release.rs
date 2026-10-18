@@ -18,9 +18,11 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use super::decode_release_ext;
 use super::decode_validation;
 use super::error::DecodeError;
 use super::reader::Reader;
+use super::schema::SCHEMA_V3;
 use super::strings::{bounded_bytes, bounded_count, bounded_string};
 use crate::limits::{
     MAX_ARCHES, MAX_CAPABILITIES, MAX_NAME, MAX_PUBLISHER, MAX_SIGNATURE, MAX_SUPPORTED_ARCH_LEN,
@@ -28,7 +30,7 @@ use crate::limits::{
 };
 use crate::types::CapsuleRelease;
 
-pub(super) fn read(r: &mut Reader<'_>) -> Result<CapsuleRelease, DecodeError> {
+pub(super) fn read(r: &mut Reader<'_>, schema: u32) -> Result<CapsuleRelease, DecodeError> {
     let release_id = bounded_string(r, MAX_NAME)?;
     let manifest_hash = r.fixed::<32>()?;
     let package_hash = r.fixed::<32>()?;
@@ -51,6 +53,7 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<CapsuleRelease, DecodeError> {
     }
 
     let zk_trailer_hash = r.fixed::<32>()?;
+    let ext = if schema >= SCHEMA_V3 { Some(decode_release_ext::read(r)?) } else { None };
     let validation = decode_validation::read(r)?;
 
     Ok(CapsuleRelease {
@@ -63,6 +66,7 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<CapsuleRelease, DecodeError> {
         kernel_abi_min,
         required_capabilities,
         zk_trailer_hash,
+        ext,
         validation,
     })
 }

@@ -23,4 +23,8 @@ mod answer;
 mod read_judge;
 
 #[cfg(test)]
+mod blob_tests;
+#[cfg(test)]
+mod rig;
+#[cfg(test)]
 mod tests;

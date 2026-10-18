@@ -1,12 +1,11 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used)]
-
 //! The account search after a restore, against the live pool and both networks over Tor. A new
 //! phrase has never been used, so the search stops after five empty accounts and keeps one.
 
-mod keystore;
+/// The stand ins this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 
 use keystore::TestGuard;
 use nox_shield_core::ffi::Wallet;

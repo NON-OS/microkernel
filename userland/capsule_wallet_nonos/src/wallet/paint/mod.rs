@@ -17,10 +17,7 @@
 //! The wallet's painter: the one dispatch to the Etna screens, the mark,
 //! and the figure formatters the proofs crate checks.
 
-pub mod format_typed;
-pub mod format_u128;
+mod dispatch;
 pub mod logo;
-mod paint;
-pub mod scale;
 
-pub use paint::paint;
+pub use dispatch::paint;

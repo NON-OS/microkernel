@@ -7,6 +7,9 @@ license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
 description = "nonos.shield: the NOX Shield wallet service, 1:1 with the phone apps"
 
+[package.metadata.nonos]
+test-lane = true
+
 [[bin]]
 name = "shield"
 path = "src/main.rs"
@@ -20,6 +23,8 @@ nox_prover = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", fe
 rayon = "=1.12.0"
 shield_wire = { path = "../shield_wire" }
 nonos_vault = { path = "../nonos_vault" }
+# Keys and words are wiped through zeroize's volatile writes, with no unsafe here.
+zeroize = "=1.8.2"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
 # The randomness every crate below asks for comes from the kernel's CSPRNG.
 getrandom02 = { package = "getrandom", version = "=0.2.17", features = ["custom"] }

@@ -44,7 +44,7 @@ include nonos-mk/capsule.mk
 - The template stops the build when the slug, binary, directory, handle, domain, namespace, either endpoint or the required capabilities are missing (`nonos-mk/capsule.mk:28-54`, `CAPSULE_SLUG`).
 - Left out, the optional bits default to 0x0, the target to `x86_64-nonos-user`, the version to 0.1.0 and the feature to `nonos-capsule-<slug>`; the certificate's [capability ceiling](../overview/glossary.md#capability-ceiling) defaults to required plus optional (`nonos-mk/capsule.mk:69-88`, `CAPSULE_FEATURE`).
 - A namespace of `systems.nonos` or below it puts the capsule in the enrolled tier, any other in the [publisher](../overview/glossary.md#publisher) tier (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`, `classify`). [Signing and publisher keys](signing-and-publisher-keys.md) says what each tier means.
-- Pick a service port and a reply port that no other `Capsule.mk` declares. `clashes` collects every port of every declaration and fails on a shared one (`scripts/check_capsule_ports.py:32-39`, `clashes`):
+- Pick a service port and a reply port that no other `Capsule.mk` declares. `clashes` collects every port of every declaration and fails on a shared one (`scripts/check_capsule_ports.py:33-40`, `clashes`):
 
 ```sh
 python3 scripts/check_capsule_ports.py

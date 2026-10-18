@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod artifacts;
+
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs::read_file;
 use nonos_libc::{mk_capsule_load, mk_getpid, CapsuleLoadRequest};
 
 use crate::protocol::{encode_response, Request, EINVAL};
-
-// A capsule ELF can be several MB. The artifacts are read here, one file at a
-// time, so a multi-MB ELF never has to cross the IPC boundary in a single
-// message: the caller sends only the name, and the verified blobs are read
-// straight from the store.
-const MAX_ARTIFACT: u32 = 16 * 1024 * 1024;
+use artifacts::Artifacts;
 
 // Request payload: requested_caps(8) | name_len(1) | name | args.
 //
@@ -59,45 +55,17 @@ pub fn load_by_name(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         return encode_response(req.seq, EINVAL, &[]);
     }
 
-    let pid = mk_getpid();
-    let (Ok(elf), Ok(cert), Ok(manifest), Ok(trailer)) = (
-        read_artifact(pid, name, b".elf"),
-        read_artifact(pid, name, b".nonos_id_cert.bin"),
-        read_artifact(pid, name, b".manifest.bin"),
-        read_artifact(pid, name, b".zk_trailer.bin"),
-    ) else {
+    let Some(artifacts) = Artifacts::read(mk_getpid(), name) else {
         return encode_response(req.seq, EINVAL, &[]);
     };
-
-    let load = CapsuleLoadRequest {
-        elf_ptr: elf.as_ptr() as u64,
-        cert_ptr: cert.as_ptr() as u64,
-        manifest_ptr: manifest.as_ptr() as u64,
-        trailer_ptr: trailer.as_ptr() as u64,
-        requested_caps: caps,
-        args_ptr: if args.is_empty() { 0 } else { args.as_ptr() as u64 },
-        elf_len: elf.len() as u32,
-        cert_len: cert.len() as u32,
-        manifest_len: manifest.len() as u32,
-        trailer_len: trailer.len() as u32,
-        args_len: args.len() as u32,
-        on_behalf_of: sender_pid,
-    };
-    // The blobs above stay owned by this stack frame until the syscall
-    // returns, so the kernel's copy reads live memory.
+    let load = artifacts.request(caps, args, sender_pid);
+    // The blobs in `artifacts` stay owned by this stack frame until the
+    // syscall returns, so the kernel's copy reads live memory.
     let rc = mk_capsule_load(&load as *const CapsuleLoadRequest);
     if rc < 0 {
         return encode_response(req.seq, rc as i32, &[]);
     }
     encode_response(req.seq, 0, &(rc as u32).to_le_bytes())
-}
-
-fn read_artifact(pid: u32, name: &[u8], ext: &[u8]) -> Result<Vec<u8>, &'static str> {
-    let mut path = Vec::with_capacity(10 + name.len() + ext.len());
-    path.extend_from_slice(b"/capsules/");
-    path.extend_from_slice(name);
-    path.extend_from_slice(ext);
-    read_file(pid, &path, MAX_ARTIFACT)
 }
 
 pub(super) fn valid_name(name: &[u8]) -> bool {

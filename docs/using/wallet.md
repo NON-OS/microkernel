@@ -132,12 +132,12 @@ The code behind each section, at the commit in the footer.
 - Send
   - The 1000 gwei fee ceiling: `FEE_CEILING_WEI` in `userland/capsule_wallet_nonos/src/wallet/send/gas.rs:34`.
 - Where keys live and how signing works
-  - The shown key wiped when hidden: `toggle_export` in `userland/capsule_wallet_nonos/src/wallet/event/export_key.rs:28`.
+  - The shown key wiped when hidden: `toggle_export` in `userland/capsule_wallet_nonos/src/wallet/event/custody/export_key.rs:30`.
   - 128 keys, 16 for one program: `MAX_KEYS` and `MAX_KEYS_PER_OWNER` in `userland/capsule_keyring/src/store/types/constants.rs:17-21`.
 - What NONOS keeps, and the TPM
   - The five files under `/data`: `VAULT_PATH` and the paths beside it in `userland/capsule_wallet_nonos/src/wallet/vault/path.rs:23-42`.
   - PCRs 0, 4, 7 and 9: `BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs:24`.
-  - The status lines when nothing can be kept: `kept_status` in `userland/capsule_wallet_nonos/src/wallet/event/keep_plan.rs:76-93`.
+  - The status lines when nothing can be kept: `kept_status` in `userland/capsule_wallet_nonos/src/wallet/event/locking/kept_status.rs:23-42`.
 - Network use
   - Nym or Anyone for the wallet, never direct: `for_wallet` in `userland/nonos_route_link/src/chosen.rs:46-48`.
   - No shield connection under a Direct default: `anonymous_route` in `userland/shield_core/src/net/tor/stream.rs:15-19`.
