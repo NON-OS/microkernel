@@ -47,4 +47,7 @@ impl Desk for CapsuleEnv {
     fn hang_up(&mut self) -> bool {
         core::mem::take(&mut self.desk.board().drop_link)
     }
+    fn radio_off(&mut self) -> bool {
+        !self.desk.board().scan
+    }
 }

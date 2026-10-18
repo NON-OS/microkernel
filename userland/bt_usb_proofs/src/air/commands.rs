@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The controller's side: each command packet answered as its section
-//! says, with bring-up left to the HCI proofs' controller.
+//! The controller's side: each command answered as its section says.
 
 use super::events::connected;
 use super::state::{Air, OURS};
@@ -61,6 +60,7 @@ impl Air {
             }
             op::LE_ENABLE_ENCRYPTION => self.encrypt(p),
             op::DISCONNECT if self.lies.forgot => vec![status(0x02, 1, o)],
+            op::DISCONNECT if self.lies.linger => vec![status(0, 1, o)],
             op::DISCONNECT => {
                 vec![status(0, 1, o), disconnected(u16::from_le_bytes([p[0], p[1]]), ENDED_BY_US)]
             }

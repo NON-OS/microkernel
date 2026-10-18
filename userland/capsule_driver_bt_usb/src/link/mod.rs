@@ -47,7 +47,7 @@ pub mod trust;
 pub mod us;
 mod user;
 
-pub use answered::FORGOTTEN;
+pub use answered::{FORGOTTEN, OFF};
 pub use begin::begin;
 pub use desk::{Answer, Asked, Desk};
 pub use end::End;
