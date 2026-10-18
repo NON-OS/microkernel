@@ -23,7 +23,7 @@ use nonos_bt_hci::{HciError, Host};
 
 use super::desk::Desk;
 use super::say::say;
-use crate::link::{hang_up, End, FORGOTTEN};
+use crate::link::{hang_up, End, FORGOTTEN, OFF};
 use crate::nbtc::ops::IDLE;
 use crate::usb::XhciPipes;
 
@@ -43,7 +43,8 @@ pub fn ended(
             say(&[b"link ended: ", why.as_bytes()]);
             hang_up(host, handle)?;
             // The user ended this one; nothing about the device was wrong.
-            if why != FORGOTTEN {
+            // Off keeps the bond and takes no back-off, so On resumes at once.
+            if why != FORGOTTEN && why != OFF {
                 desk.board().state = IDLE;
                 desk.wait(BACK_OFF_MS);
             }
