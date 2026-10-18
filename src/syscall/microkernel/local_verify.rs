@@ -48,7 +48,10 @@ pub fn sys_local_verify(
         return ERRNO_PERM;
     }
     match verify_capsule_attestation(&trailer, &elf, caps) {
-        Ok(_) => 0,
+        Ok(p) => {
+            crate::process::foreign::seal::measured(&p.measurement);
+            0
+        }
         Err(_) => ERRNO_PERM,
     }
 }

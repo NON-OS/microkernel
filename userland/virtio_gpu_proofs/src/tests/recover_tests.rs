@@ -27,7 +27,7 @@ use nonos_virtio::common::DEVICE_STATUS;
 use super::client::call;
 use super::frames::le32;
 use super::part::{answering_after_reset, Answer};
-use super::stall::{handle, health, stalled, whole_flush, CLIENT, PRIMARY};
+use super::stall::{handle, health, stalled, whole_flush, CLIENT, HANDLE, PRIMARY};
 use crate::constants::{VG_CMD_RESOURCE_ATTACH_BACKING, VG_CMD_RESOURCE_CREATE_2D};
 use crate::constants::{VG_CMD_RESOURCE_FLUSH, VG_CMD_SET_SCANOUT, VG_CMD_TRANSFER_TO_HOST_2D};
 use crate::protocol::{E_DEVICE, OP_FLUSH};
@@ -49,7 +49,7 @@ fn a_stall_then_a_working_device_is_recovered_on_the_same_surface() {
     assert_eq!(seen[1][32..40], PRIMARY.backing_addr.to_le_bytes(), "on the same frames");
     assert_eq!(le32(&seen[1], 40), PRIMARY.backing_len);
     assert_eq!(call(&d, CLIENT, OP_FLUSH, &whole_flush()), 0, "presenting again");
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "under the same surface handle");
+    assert_eq!(handle(&d), Some(HANDLE), "under the same surface handle");
     assert_eq!(health(&d), (0, 1));
     assert_eq!(releases(), 0, "the device was never given back");
     let said = said();
@@ -67,7 +67,7 @@ fn a_stall_then_a_dead_device_leaves_the_driver_up_answering_e_device() {
     assert!(said[2].contains("(try 3 of 3)") && said[3].contains("down"));
     assert_eq!(regs.wrote8(DEVICE_STATUS), 0, "the device is left reset");
     assert_eq!(call(&d, CLIENT, OP_FLUSH, &whole_flush()), E_DEVICE);
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "the surface is still served");
+    assert_eq!(handle(&d), Some(HANDLE), "the surface is still served");
     assert_eq!(health(&d), (1, 0));
     settle(&mut d);
     assert_eq!(nonos_libc::said().len(), 4, "a driver down is not tried again");

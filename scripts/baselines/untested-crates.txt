@@ -14,8 +14,6 @@
 #   orphan  a test file no target's module tree reaches
 # Owners: the track that moves it (A, B, C, D), the lead, or upstream for a
 # third-party suite.
-. d A target-only kernel: the inline tests in src/syscall/microkernel/time.rs and src/security/hardening/memory_sanitization/scrub_asm.rs want a #[path] mount in kernel_proofs
-nonos-boot-measure a A passes on the host (29 passed, 26s)
 nonos-bootloader/tools/embed-trailer a lead checks.nix's attest-poc runs its one test target, kernel_self_attest_poc; that check is not a proofs lane, so this list holds it until the crate takes the marker in its place
 nonos-device-attest t A builds and nothing fails, but the run hit the 10-minute cap: each proof test runs over 60s
 nonos-shield-prove a B builds on the host; its one test is #[ignore]d (0 passed, 1 ignored, 16s)
@@ -32,15 +30,11 @@ userland/capsule_net_nym/tests/live_gateway c A needs the sphinx-packet git sour
 userland/capsule_process_manager d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_settings d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
 userland/capsule_snake d C no_std capsule: its tests/host programs (fn main) want a host proofs crate
-userland/nonos_hash a A passes on the host (2 passed, 3s)
 userland/nonos_hd c B the host run lacked the crate serde_json
-userland/nonos_http a A passes on the host (22 passed, 4s)
 userland/nonos_qjs c C the host run could not fetch cc v1.2.67
-userland/policy_proto a A passes on the host (37 passed, 6s)
 userland/stark_proofs/src/forgery_tests.rs orphan A no mod line reaches it; re-added it does not compile: the Poseidon preimage AIR it imports is gone and StarkProof has no clone
 userland/stark_proofs/src/poseidon_tests.rs orphan A no mod line reaches it; re-added it does not compile: crypto::stark::poseidon is gone
 userland/stark_proofs/src/recursive_verifier_tests.rs orphan A no mod line reaches it; re-added it does not compile: FinalLayerConstant, FriTranscript and recursive_verify are gone from stark::air
-userland/stark_proofs/src/transcript_tests.rs orphan A no mod line reaches it; re-added it passes (8 tests)
 userland/toolkit d C no_std library and target-only capsule: its tests/host programs want a host proofs crate
 userland/upstream-src/atty-0.2.14 c upstream third-party suite, not the NONOS patches; the host run lacked the crate winapi; it has no Cargo.lock of its own
 userland/upstream-src/choose c upstream third-party suite, not the NONOS patches; the host run lacked the crate regex
@@ -63,4 +57,3 @@ userland/upstream-src/tools-2048 a upstream third-party suite, not the NONOS pat
 userland/vendor/is-terminal c upstream third-party suite, not the NONOS patches; the host run lacked the crate rustix
 userland/vendor/mio c upstream third-party suite, not the NONOS patches; the host run lacked the crate env_logger
 userland/vendor/tokio c upstream third-party suite, not the NONOS patches; the host run lacked the crate mio
-verification/trusted_path_poc a A passes on the host (8 passed, 1s)

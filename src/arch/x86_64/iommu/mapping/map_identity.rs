@@ -21,16 +21,20 @@ use crate::arch::x86_64::iommu::tables::touched::Touched;
 use crate::arch::x86_64::iommu::tables::walk::walk_create_to;
 use crate::arch::x86_64::iommu::types::VtdError;
 
-/// Identity map `[0, limit)`, leaves at `leaf_level`: 1 for 4 KiB, 2 for
-/// 2 MiB, 3 for 1 GiB. `limit` rounds up to the leaf size, since a partial
-/// leaf cannot be expressed and under-mapping breaks a device mid transfer.
+/// Identity map `[start, limit)`, leaves at `leaf_level`: 1 for 4 KiB, 2 for
+/// 2 MiB, 3 for 1 GiB. `start` must sit on a leaf; `limit` rounds up to the
+/// leaf size, since a partial leaf cannot be expressed and under-mapping
+/// breaks a device mid transfer.
 ///
-/// This is what a device gets when the kernel knows about it but has not yet
-/// been taught which memory it legitimately touches. It is not protection for
-/// that device; it is what lets translation be turned on at all, so every
-/// device the kernel did not enumerate is denied.
-pub fn map_identity(root: u64, levels: u8, limit: u64, leaf_level: u8) -> Result<u64, VtdError> {
-    if leaf_level == 0 || leaf_level > levels {
+/// What a device firmware listed reserved memory for gets, over exactly
+/// those ranges (bring-up, K2): nothing else is mapped for it.
+pub fn map_identity(
+    root: u64,
+    levels: u8,
+    (start, limit): (u64, u64),
+    leaf_level: u8,
+) -> Result<u64, VtdError> {
+    if leaf_level == 0 || leaf_level > levels || start & (level_span(leaf_level) - 1) != 0 {
         return Err(VtdError::RangeOutOfBounds);
     }
     let span = level_span(leaf_level);
@@ -42,7 +46,7 @@ pub fn map_identity(root: u64, levels: u8, limit: u64, leaf_level: u8) -> Result
     // another table, and the unit walks into nothing.
     let large = if leaf_level > 1 { SL_LARGE } else { 0 };
 
-    let mut addr = 0u64;
+    let mut addr = start;
     let mut touched = Touched::default();
     while addr < end {
         let slot = walk_create_to(root, addr, levels, leaf_level)?;

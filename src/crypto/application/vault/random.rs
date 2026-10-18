@@ -33,14 +33,5 @@ fn generate_secure_u64() -> CryptoResult<u64> {
     if let Some(value) = crate::arch::cpu_random::entropy_u64() {
         return Ok(value);
     }
-    if let Ok(buf) = try_virtio_rng() {
-        return Ok(u64::from_le_bytes(buf));
-    }
     Err(crate::crypto::CryptoError::InsufficientEntropy)
-}
-
-fn try_virtio_rng() -> Result<[u8; 8], ()> {
-    let mut buf = [0u8; 8];
-    crate::drivers::virtio_rng::fill_random(&mut buf).map_err(|_| ())?;
-    Ok(buf)
 }

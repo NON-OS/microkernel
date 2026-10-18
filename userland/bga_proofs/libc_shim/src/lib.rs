@@ -16,8 +16,8 @@
 
 //! The things the included BGA driver takes from `nonos_libc`: the device
 //! list discovery reads, the claim, the PCI command register, the two BAR
-//! mappings, the surface's memory and its registration, the service and its
-//! inbox. A test says what each BAR maps to and how long the broker says the
+//! mappings, the surface's memory, its registration and each share of it,
+//! the service and its inbox. A test says what each BAR maps to and how long the broker says the
 //! mapping is, so a mapping shorter than the memory behind it shows any
 //! write past its end, and a register mapping given back holds poison until
 //! the release (`seal`). A test's adapter model answers each register write
@@ -35,12 +35,13 @@ mod records;
 mod seal;
 mod service;
 mod surface;
+pub mod surface_registry;
 mod watch;
 
 pub use bringup::run::recv_ready;
 pub use claim::{given_back, mk_device_claim, mk_device_release, registers_at_give_back};
 pub use hook::{on_w16, wrote16};
-pub use idle::{idles, mk_debug, mk_idle_ms};
+pub use idle::{idles, mk_debug, mk_idle_ms, mk_uptime_ms};
 pub use ipc::{mk_ipc_recv_from, mk_ipc_reply, replies, send, waits, ERRNO_TIMEDOUT};
 pub use mem::{lend, mk_mmap, mk_munmap};
 pub use mmio::{map_bar, mk_mmio_map, mk_mmio_unmap, MmioMapOut};
@@ -52,7 +53,8 @@ pub use records::{mk_device_list, offer, Bar, DeviceRecord, BAR_KIND_MMIO, BUS_K
 pub use seal::untouched_since_unmap;
 pub use service::{hold, mk_service_lookup, mk_service_register, services};
 pub use surface::{
-    mk_surface_register, mk_surface_share, refuse_surfaces, registered, SurfaceDescriptor,
-    SHARED_HANDLE_BASE, SURFACE_FORMAT_ARGB8888,
+    mk_surface_register, refuse_surfaces, registered, SurfaceDescriptor, SHARED_HANDLE_BASE,
+    SURFACE_FORMAT_ARGB8888,
 };
+pub use surface_registry::{mk_surface_share, shares, Share};
 pub use watch::watch;

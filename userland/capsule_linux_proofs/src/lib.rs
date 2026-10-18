@@ -149,5 +149,9 @@ pub mod image;
 /// The installer's parsers, which read bytes fetched off a network.
 pub mod install;
 
+/// The sealed diagnostic chain's link (plan/32).
+#[path = "../../capsule_linux/src/linux/serve/trace_link.rs"]
+pub mod trace_link;
+
 #[cfg(test)]
 mod tests;

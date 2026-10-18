@@ -22,6 +22,8 @@ extern crate alloc;
 mod abi;
 mod app;
 mod assemble;
+mod job;
+mod market;
 
 use nonos_app_skeleton::run;
 
@@ -32,5 +34,9 @@ use nonos_app_skeleton::run;
 pub unsafe extern "C" fn _start() -> ! {
     /* The floor is held, or refused, before the first allocation. */
     let memory = app::claim();
+    // The store's headless job serves one PROVE and exits; no window.
+    if job::is_job() {
+        job::serve(memory == app::Memory::Held, job::bound());
+    }
     run(move || app::Prove::new(memory))
 }

@@ -51,8 +51,8 @@ src/security/crypto_capsule/protocol.rs:47 AEAD_KEY_BYTES
 src/security/crypto_capsule/protocol.rs:48 AEAD_NONCE_BYTES
 src/security/image_ceiling/admits.rs:58 logs
 src/security/kernel_attest.rs:40 verify_kernel_self_attestation
-src/security/policy/advanced.rs:209 enforce_wx_policy
-src/security/policy/advanced.rs:212 enforce_nx_stack
+src/security/policy/advanced/flags.rs:24 enforce_wx_policy
+src/security/policy/advanced/flags.rs:27 enforce_nx_stack
 src/security/policy/capability/types.rs:112 can_delegate
 src/security/policy/session/manager.rs:211 check_privilege
 src/security/policy/session/types.rs:25 MAX_SESSIONS

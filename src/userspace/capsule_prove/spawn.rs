@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Opening the prover's window through the verified path every capsule takes,
-//! as an on-demand instance: one slot, so one prover at a time, since each
-//! holds its heap while it is open.
+//! The prover's window, through the verified path every capsule takes, as
+//! an on-demand instance: one slot, one prover at a time, each holding its heap.
 
 use super::embed::{
     PROVE_ATTESTATION_BYTES, PROVE_ELF, PROVE_MANIFEST_BYTES, PROVE_NONOS_ID_CERT_BYTES,
@@ -29,8 +28,9 @@ use crate::kernel_core::process_spawn::capsule_spawn::{
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 /// The window's endpoints, declared in the signed manifest.
+pub(super) const WINDOW: &str = "app.prove.1";
 const PROVE_INSTANCES: &[InstanceEndpoint] = &[InstanceEndpoint {
-    name: "app.prove.1",
+    name: WINDOW,
     port: 4952,
     reply_inbox: "endpoint.app.prove.1.reply",
     reply_port: 4953,
@@ -58,6 +58,9 @@ pub const PROVE_CAPS: u64 = Capability::CoreExec.bit()
 pub fn spawn_prove_instance() -> Result<u32, SpawnError> {
     if PROVE_ELF.is_empty() {
         return Err(SpawnError::FeatureDisabled);
+    }
+    if crate::services::registry::lookup_service(super::job::JOB).is_some() {
+        return Err(SpawnError::EndpointCollision);
     }
     spawn_next_instance(&InstanceSpawn {
         elf: PROVE_ELF,

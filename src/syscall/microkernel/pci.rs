@@ -66,7 +66,7 @@ fn read_errno(e: PciReadError) -> i64 {
 
 fn write_errno(e: PciWriteError) -> i64 {
     match e {
-        PciWriteError::NotClaimed => ERRNO_PERM,
+        PciWriteError::NotClaimed | PciWriteError::BusMasterWithoutDma => ERRNO_PERM,
         PciWriteError::StaleEpoch => ERRNO_STALE,
         PciWriteError::NoDeviceHandle | PciWriteError::PlatformError => ERRNO_NODEV,
         PciWriteError::OffsetNotAllowed | PciWriteError::BitsNotAllowed => ERRNO_INVAL,

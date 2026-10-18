@@ -27,7 +27,7 @@ use nonos_libc::{releases, said};
 use super::client::{call, flush};
 use super::model::NOTIFY_AT;
 use super::part::{answering_after_reset, ring::bytes, Answer};
-use super::stall::{handle, health, stalled, whole_flush, CLIENT, PRIMARY};
+use super::stall::{handle, health, stalled, whole_flush, CLIENT, HANDLE, PRIMARY};
 use crate::clock::{now_ms, pass};
 use crate::constants::VQ_REGION_SIZE;
 use crate::driver::Driver;
@@ -69,6 +69,6 @@ fn a_device_that_stalls_on_every_present_is_down_after_in_a_row_recoveries() {
     assert!(bytes(&region, 0, VQ_REGION_SIZE) == rings, "written to the rings once down");
     assert_eq!(regs.wrote16(bell), 0xFFFF, "the doorbell rung once it was down");
     assert_eq!(now_ms(), from, "a wait on the device once it was down");
-    assert_eq!(handle(&d), Some(PRIMARY.handle), "the surface is still served");
+    assert_eq!(handle(&d), Some(HANDLE), "the surface is still served");
     assert_eq!(releases(), 0, "the claim and every grant are kept");
 }

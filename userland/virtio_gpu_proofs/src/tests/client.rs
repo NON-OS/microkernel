@@ -17,10 +17,16 @@
 //! The compositor's side of driver.virtio_gpu0, as the tests play it.
 
 use nonos_libc::replies;
+use nonos_libc::surface_registry::SHARED_HANDLE_BASE;
 
+use super::stall::PRIMARY;
 use crate::driver::Driver;
 use crate::protocol::{Request, HDR_LEN, IPC_PAYLOAD_MAX};
 use crate::server::dispatch::dispatch;
+
+/// The handle get_primary hands the client for PRIMARY: what its share
+/// answers (the shim's numbering), as the driver keeps none of its own.
+pub const HANDLE: u64 = (SHARED_HANDLE_BASE + PRIMARY.sid as i64) as u64;
 
 /// Send `body` as `op` from `pid`: the reply it drew, from the status word.
 pub fn answer(d: &Driver, pid: u32, op: u16, body: &[u8]) -> Vec<u8> {

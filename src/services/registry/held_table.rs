@@ -41,6 +41,7 @@ pub(super) const HELD: &[(&str, &[&str])] = &[
     ("driver.i2c_pci0", &["driver.i2c_hid0"]),
     ("driver.virtio_gpu0", &["compositor"]),
     ("driver.vmware_svga0", &["compositor"]),
+    ("driver.bga0", &["compositor"]),
     ("driver.hda0", &["audio.server"]),
     ("driver.ac97_0", &["audio.server"]),
     // The GPIO controller's pins are held by the bus controller whose

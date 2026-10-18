@@ -37,5 +37,5 @@ pub(super) fn complete(
     if !matches!(progress, Progress::Complete(_)) {
         return None;
     }
-    state.verify(host, now, require_chain)
+    state.verify(host, now, require_chain).ok()
 }
