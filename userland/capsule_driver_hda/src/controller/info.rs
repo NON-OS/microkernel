@@ -38,22 +38,26 @@ pub struct ControllerInfo {
 
 impl ControllerInfo {
     pub fn read(regs: Regs) -> Self {
+        // SAFETY: GCAP is a global register, inside the window (`crate::regs`).
         let gcap = unsafe { regs.r16(GCAP) };
-        Self {
-            gcap,
-            vmin: unsafe { regs.r8(VMIN) },
-            vmaj: unsafe { regs.r8(VMAJ) },
-            outpay: unsafe { regs.r16(OUTPAY) },
-            inpay: unsafe { regs.r16(INPAY) },
-            gctl: unsafe { regs.r32(GCTL) },
-            statests: unsafe { regs.r16(STATESTS) },
-            gsts: unsafe { regs.r16(GSTS) },
-            intctl: unsafe { regs.r32(INTCTL) },
-            intsts: unsafe { regs.r32(INTSTS) },
-            input_streams: streams::input_streams(gcap),
-            output_streams: streams::output_streams(gcap),
-            bidi_streams: streams::bidi_streams(gcap),
-            addr64: streams::addr64(gcap),
+        // SAFETY: as GCAP, each register read here.
+        unsafe {
+            Self {
+                gcap,
+                vmin: regs.r8(VMIN),
+                vmaj: regs.r8(VMAJ),
+                outpay: regs.r16(OUTPAY),
+                inpay: regs.r16(INPAY),
+                gctl: regs.r32(GCTL),
+                statests: regs.r16(STATESTS),
+                gsts: regs.r16(GSTS),
+                intctl: regs.r32(INTCTL),
+                intsts: regs.r32(INTSTS),
+                input_streams: streams::input_streams(gcap),
+                output_streams: streams::output_streams(gcap),
+                bidi_streams: streams::bidi_streams(gcap),
+                addr64: streams::addr64(gcap),
+            }
         }
     }
 }

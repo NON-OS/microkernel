@@ -27,3 +27,15 @@ pub struct Driver {
     pub ports: [PortInfo; MAX_PORTS],
     pub block: Option<Port>,
 }
+
+impl Drop for Driver {
+    /// Stop the served port and leave its regions to the release, which
+    /// frees them once it reads Bus Master back off (`retire`). This runs
+    /// before the fields drop: `handles` releases the claim, and the port's
+    /// regions, freed by then, must not be given back a second time.
+    fn drop(&mut self) {
+        if let Some(port) = self.block.take() {
+            crate::engine::retire(port, self.regs);
+        }
+    }
+}

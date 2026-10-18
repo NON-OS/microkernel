@@ -5,6 +5,9 @@ edition = "2021"
 license = "AGPL-3.0-or-later"
 description = "Locally administered MAC addresses for NONOS network drivers"
 
+[package.metadata.nonos]
+test-lane = true
+
 [dependencies]
 
 [profile.release]

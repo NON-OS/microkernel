@@ -46,6 +46,10 @@ pub const KEYCODE_PGUP: u32 = 0x1207;
 pub const KEYCODE_PGDN: u32 = 0x1208;
 pub const KEYCODE_INS: u32 = 0x1209;
 pub const KEYCODE_DEL: u32 = 0x120A;
+// Print Screen (E0 37, and SysRq 54 with Alt held) and Pause (the E1
+// sequence, and Break, E0 46, with Ctrl held), at the end of the block.
+pub const KEYCODE_PRINT: u32 = 0x120B;
+pub const KEYCODE_PAUSE: u32 = 0x120C;
 // The system keys: the laptop's Fn volume keys and the power button. The
 // router hands them to the desktop shell whatever window has focus.
 pub const KEYCODE_MUTE: u32 = 0x1301;

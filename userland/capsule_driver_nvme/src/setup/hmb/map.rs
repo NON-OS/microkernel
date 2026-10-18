@@ -17,7 +17,9 @@
 use alloc::vec::Vec;
 
 use super::Hmb;
-use crate::admin::hmb::{descriptor, HmbPlan, DESCRIPTOR_BYTES, MAX_DESCRIPTORS, PAGE};
+use crate::admin::hmb::{
+    descriptor, enable_dwords, HmbPlan, DESCRIPTOR_BYTES, MAX_DESCRIPTORS, PAGE,
+};
 use crate::dma::DmaRegion;
 
 // Every descriptor a plan can ask for fits the one list page.
@@ -34,7 +36,11 @@ pub(super) fn map(device_id: u64, epoch: u64, p: HmbPlan) -> Option<Hmb> {
             Err(_) => break,
         }
     }
-    let list = DmaRegion::map(device_id, epoch, PAGE).ok()?;
+    let Ok(list) = DmaRegion::map(device_id, epoch, PAGE) else {
+        // No command has named the pieces yet: they go back now.
+        pieces.into_iter().for_each(DmaRegion::unmap);
+        return None;
+    };
     for (i, piece) in pieces.iter().enumerate() {
         let d = descriptor(piece.device_addr(), p.piece_pages);
         let at = list.user_va() + (i * DESCRIPTOR_BYTES) as u64;
@@ -46,5 +52,7 @@ pub(super) fn map(device_id: u64, epoch: u64, p: HmbPlan) -> Option<Hmb> {
     // The list is complete in memory before the command that names it is
     // submitted (the submission's own fence orders the doorbell after it).
     core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
-    Some(Hmb { list, pieces })
+    let count = pieces.len() as u32;
+    let enable = enable_dwords(count * p.piece_pages, list.device_addr(), count);
+    Some(Hmb { list, pieces, enable })
 }

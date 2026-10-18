@@ -24,7 +24,7 @@ mod r8153;
 use nonos_libc::{heap_init, mk_exit};
 use nonos_usbnet::say::say;
 use nonos_usbnet::xhci::XhciBus;
-use nonos_usbnet::{Bind, Found};
+use nonos_usbnet::{Bind, Found, Station};
 
 use r8153::Rtl8153;
 
@@ -43,8 +43,8 @@ pub unsafe extern "C" fn _start() -> ! {
 
 /// The driver's binding, with the chip it found and its link changes put
 /// on the log; the proofs run the binding without a log.
-fn bind(bus: XhciBus, found: &Found) -> Bind<Rtl8153<XhciBus>> {
-    let mut out = r8153::bind(bus, found);
+fn bind(bus: XhciBus, found: &Found, drawn: Station) -> Bind<Rtl8153<XhciBus>> {
+    let mut out = r8153::bind(bus, found, drawn);
     if let Bind::Ours(nic) = &mut out {
         nic.note = note;
         say(TAG, &[b"chip ", nic.version().name()]);

@@ -23,8 +23,7 @@
 //! no error path to catch this on hardware, which is why it is checked here.
 
 use crate::constants::{
-    PARAM_VENDOR_ID, POWER_D0, VERB_GET_PARAMETER, VERB_SET_POWER_STATE,
-    VERB_SET_STREAM_FORMAT,
+    PARAM_VENDOR_ID, POWER_D0, VERB_GET_PARAMETER, VERB_SET_POWER_STATE, VERB_SET_STREAM_FORMAT,
 };
 use crate::controller::codec::format::PLAYBACK;
 use crate::controller::{compose_verb, compose_verb_long};

@@ -17,7 +17,7 @@
 mod bring_up;
 mod disk_sig;
 pub(crate) mod established;
-mod ready;
+pub(crate) mod ready;
 
 pub(crate) use bring_up::link_up;
 pub use disk_sig::{is_ata_disk, may_be_disk};

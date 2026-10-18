@@ -13,64 +13,54 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::buffer::data_buffer;
 use super::reply::send_reply;
 use super::transfer::do_transfer;
+use crate::controller::ControlRequest;
 use crate::error::XhciError;
-use crate::protocol::{Request, CONTROL_TRANSFER_REQUEST_LEN, E_INVAL, E_IO, E_PIPE};
+use crate::protocol::{
+    Request, CONTROL_DATA_MAX, CONTROL_TRANSFER_REQUEST_LEN, E_INVAL, E_IO, E_PIPE,
+};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 use crate::server::handlers::recover::{recover_after, DCI_EP0};
 
-// Largest data stage this handler will accept. The reply is copied into the
-// fixed-size `tx` buffer, so w_len must be clamped or a client-chosen w_len up
-// to 65535 overflows tx (heap OOB write). 512 matches the config-descriptor cap
-// and leaves ample headroom in tx (512 + header < 2068).
-const CONTROL_TRANSFER_DATA_MAX: u16 = 512;
+const DEVICE_TO_HOST: u8 = 0x80;
+const CC_STALL: u8 = 6;
 
+/// `OP_CONTROL_TRANSFER` (`slot, 0, bmRequestType, bRequest, wValue,
+/// wIndex, wLength`, little-endian): one EP0 request with no data stage or
+/// an IN one, whose reply carries the bytes the device really sent.
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != CONTROL_TRANSFER_REQUEST_LEN {
-        reply_with_status(tx, req, E_INVAL);
-        return;
+        return reply_with_status(tx, req, E_INVAL);
     }
-    let (slot, bm_rt, b_req) = (body[0], body[2], body[3]);
-    let w_value = u16::from_le_bytes([body[4], body[5]]);
-    let w_index = u16::from_le_bytes([body[6], body[7]]);
-    let w_len = u16::from_le_bytes([body[8], body[9]]).min(CONTROL_TRANSFER_DATA_MAX);
-    let region = if w_len > 0 {
-        match ctx.driver.dma_pool.alloc(w_len as u64) {
-            Ok(r) => {
-                r.zero();
-                Some(r)
-            }
-            Err(_) => {
-                reply_with_status(tx, req, E_IO);
-                return;
-            }
-        }
-    } else {
-        None
-    };
-    let (data_phys, data_len) = region.as_ref().map_or((0u64, 0u16), |r| (r.phys(), w_len));
-    let request = crate::controller::ControlRequest {
+    let (slot, bm_rt) = (body[0], body[2]);
+    let le = |at: usize| u16::from_le_bytes([body[at], body[at + 1]]);
+    // A host-to-device data stage needs bytes this request carries none
+    // of: sent, it was the zeroed buffer, and reported a success.
+    if bm_rt & DEVICE_TO_HOST == 0 && le(8) > 0 {
+        return reply_with_status(tx, req, E_INVAL);
+    }
+    // Clamped, so a client's wLength of up to 65535 still fits `tx`.
+    let w_len = le(8).min(CONTROL_DATA_MAX);
+    let Ok(region) = data_buffer(ctx, w_len) else { return reply_with_status(tx, req, E_IO) };
+    let request = ControlRequest {
         bm_request_type: bm_rt,
-        b_request: b_req,
-        w_value,
-        w_index,
-        data_phys,
-        data_len,
+        b_request: body[3],
+        w_value: le(4),
+        w_index: le(6),
+        data_phys: region.as_ref().map_or(0, |r| r.phys()),
+        data_len: w_len,
     };
     match do_transfer(ctx, slot, request) {
-        Ok(()) => send_reply(tx, req, data_len, region.as_ref()),
+        Ok(moved) => send_reply(tx, req, moved, region.as_ref()),
         Err(e) => {
-            recover_after(ctx, slot, DCI_EP0, e);
-            reply_with_status(tx, req, if is_stall(e) { E_PIPE } else { E_IO })
+            recover_after(ctx, slot, DCI_EP0, e, region);
+            // A STALL is a request the device does not support, which the
+            // class driver may take as an answer rather than a fault.
+            let stall = e == XhciError::TransferCompletionFailed(CC_STALL);
+            reply_with_status(tx, req, if stall { E_PIPE } else { E_IO })
         }
     }
 }
-
-/// The device answered with a STALL: a request it does not support, which
-/// the class driver may take as an answer rather than a fault.
-fn is_stall(e: XhciError) -> bool {
-    e == XhciError::TransferCompletionFailed(CC_STALL)
-}
-const CC_STALL: u8 = 6;
