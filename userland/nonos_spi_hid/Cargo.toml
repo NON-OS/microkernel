@@ -1,0 +1,16 @@
+# NONOS userland: nonos_spi_hid
+# eK@nonos.systems
+#
+# HID over SPI, the protocol alone: report framing and the device
+# descriptor, shared by driver.spi_hid0 and its proofs.
+
+[package]
+name = "nonos_spi_hid"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland HID over SPI protocol"
+
+[dependencies]

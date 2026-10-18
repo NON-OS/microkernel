@@ -23,7 +23,7 @@ Control register and a short list of vendor bits, and refuses every other offset
 - `writable` adds a few vendor bits: on Intel HD Audio, TCSEL at 0x44, the
   clock-gating bit at 0x48 and the no-snoop bit at 0x78; on AMD and ATI HD
   Audio, the snoop bits at 0x42; on any network function, the PCIe completion
-  timeout bits (`src/hardware/broker/pci/quirk_bits.rs:49-61`).
+  timeout bits (`src/hardware/broker/pci/quirk_bits/writable.rs:25-41`).
 
 The constants a driver passes are `MK_PCI_CFG_COMMAND` (0x04),
 `MK_PCI_CMD_MEMORY_SPACE` (bit 1), `MK_PCI_CMD_BUS_MASTER` (bit 2),

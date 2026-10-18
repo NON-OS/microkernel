@@ -1,8 +1,9 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Where a sent NDP and datagram start, as Linux cdc_ncm_fix_modulus and
-//! cdc_ncm_align_tail place them.
+//! Where a sent NDP and datagram start (NCM 1.0, table 6-3, as recalled,
+//! unverified): the device's alignment, divisor and remainder checked, and
+//! the first offset that meets them.
 
-use crate::ncm::align::{align_tail, out_align, OutAlign};
+use crate::ncm::align::{next, out_align, OutAlign};
 use crate::ncm::params::NtbParams;
 
 fn align(divisor: u16, remainder: u16, alignment: u16, tx: usize) -> OutAlign {
@@ -34,10 +35,11 @@ fn alignments_are_checked_and_the_remainder_moved_back_by_the_ethernet_header() 
 }
 
 #[test]
-fn align_tail_rounds_up_adds_the_remainder_and_stops_at_the_end() {
-    assert_eq!(align_tail(12, 4, 0, 4095), 12);
-    assert_eq!(align_tail(12, 16, 0, 4095), 16);
-    assert_eq!(align_tail(28, 4, 2, 4095), 30);
-    assert_eq!(align_tail(29, 4, 2, 4095), 34);
-    assert_eq!(align_tail(4090, 8, 4, 4095), 4095);
+fn next_is_the_first_offset_with_the_remainder() {
+    assert_eq!(next(12, 4, 0), 12);
+    assert_eq!(next(12, 16, 0), 16);
+    assert_eq!(next(28, 4, 2), 30);
+    assert_eq!(next(29, 4, 2), 30, "not a further divisor on");
+    assert_eq!(next(30, 4, 2), 30, "already there");
+    assert_eq!(next(4090, 8, 4), 4092, "no end clamp: the caller checks the block");
 }

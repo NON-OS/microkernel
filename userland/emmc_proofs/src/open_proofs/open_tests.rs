@@ -39,7 +39,7 @@ pub const SLOT: Bar =
 pub fn found(kind: Kind, bar: Bar) -> Found {
     let mut bars = [Bar::empty(); 6];
     bars[0] = bar;
-    Found { device_id: 5, vendor: 0x8086, device: 0x31cc, kind, bars, bar_count: 1 }
+    Found { device_id: 5, vendor: 0x8086, device: 0x31cc, kind, bars, bar_count: 1, acpi: false }
 }
 
 #[test]
@@ -49,7 +49,8 @@ fn a_host_left_running_adma_is_reset_before_bus_master_goes_on() {
     bus_master_after_reset(&seen());
     let violations = host.borrow().sim.0.borrow().violations.clone();
     assert!(violations.is_empty(), "{violations:?}");
-    assert!(opened.disk.card.sectors > 0, "sector 0 was read through the regions");
+    let disk = opened.slot.disk.as_ref().expect("the card is up");
+    assert!(disk.capacity_sectors() > 0, "sector 0 was read through the regions");
     drop(opened);
     let seen = seen();
     bus_master_off_after_stop(&seen);

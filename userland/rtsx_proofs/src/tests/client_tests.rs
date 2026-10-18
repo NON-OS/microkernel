@@ -37,7 +37,7 @@ fn the_client_table_speaks_this_drivers_wire() {
     assert_eq!((Driver::Rtsx.service(1), Driver::Rtsx.instances()), (None, 1));
     let kinds = [Controller::Nvme, Controller::Ahci, Controller::VirtioBlk, Controller::Emmc];
     assert!(kinds.iter().all(|&c| !Driver::Rtsx.serves(c)));
-    assert!(Driver::Ahci.serves(Controller::Emmc) && Driver::Nvme.serves(Controller::Nvme));
+    assert!(Driver::Wire.serves(Controller::Emmc) && Driver::Nvme.serves(Controller::Nvme));
     assert_eq!(Driver::Rtsx.label(), b"SD");
 }
 

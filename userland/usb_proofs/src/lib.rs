@@ -11,7 +11,6 @@ pub mod enumerate;
 #[path = "../../capsule_driver_usb_hid/src/orchestrator/find_within.rs"]
 pub mod find_within;
 pub mod hid;
-pub mod hub;
 pub mod orchestrator;
 pub mod poll;
 pub mod protocol;
@@ -23,13 +22,16 @@ pub mod state;
 #[allow(clippy::duplicate_mod)]
 #[path = "../../capsule_driver_usb_hid/src/protocol/mod.rs"]
 pub mod usb_hid_wire;
-/// The controller driver the hub code calls, played on the host.
+/// The controller driver the binding and poll code calls, played on the
+/// host.
 pub mod xhci;
 /// The controller driver's request limits, which the driver's reads must
 /// stay inside.
 #[path = "../../capsule_driver_xhci/src/protocol/limits.rs"]
 pub mod xhci_limits;
 
+#[cfg(test)]
+mod application_tests;
 #[cfg(test)]
 mod boundary;
 #[cfg(test)]
@@ -43,15 +45,28 @@ mod find_within_tests;
 #[cfg(test)]
 pub mod fuzz;
 #[cfg(test)]
-mod hub_descriptor_tests;
+mod key_post_bt_tests;
 #[cfg(test)]
-mod hub_port_tests;
+mod key_post_seq;
 #[cfg(test)]
-mod hub_route_tests;
+mod key_post_tests;
 #[cfg(test)]
 mod keyboard_tests;
 #[cfg(test)]
 mod mouse;
+#[cfg(test)]
+mod pad_decode_tests;
+#[cfg(test)]
+mod pad_hostile_tests;
+#[cfg(test)]
+mod pad_layout_tests;
+/// A seeded sweep over gamepad report descriptors and their reports.
+#[cfg(test)]
+mod pad_sweep;
+#[cfg(test)]
+mod pad_sweep_tests;
+#[cfg(test)]
+mod pad_wide_tests;
 #[cfg(test)]
 mod read_len_tests;
 #[cfg(test)]

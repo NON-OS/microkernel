@@ -5,7 +5,7 @@
 use nonos_libc::{advance, calls, lines, play, serial};
 
 use crate::fake_xhci::{answer, op, OP_CONTROL_TRANSFER, OP_DISABLE_SLOT, OP_ENABLE_SLOT};
-use crate::scan::Scanner;
+use crate::scan::NetScanner;
 use crate::xhci::XhciBus;
 use crate::{Bind, Bus, Found, Setup, Station};
 
@@ -38,7 +38,7 @@ fn a_bind_that_keeps_a_slow_device_talking_is_cut_off_by_its_budget() {
         advance(1_000);
         Some(answer(req))
     });
-    assert!(Scanner::new(b"t").pass(b"t", chatty).is_none());
+    assert!(NetScanner::new(b"t").pass(b"t", chatty).is_none());
     assert!(count(OP_CONTROL_TRANSFER) < 30, "{} transfers", count(OP_CONTROL_TRANSFER));
     let last = calls().last().map(|a| op(&a.req));
     assert_eq!(last, Some(OP_DISABLE_SLOT), "the slot is given back after the budget");
@@ -48,7 +48,7 @@ fn a_bind_that_keeps_a_slow_device_talking_is_cut_off_by_its_budget() {
 fn a_port_that_keeps_failing_is_tried_less_and_less_often() {
     let _one = serial();
     play(|req| Some(answer(req)));
-    let mut scanner = Scanner::new(b"t");
+    let mut scanner = NetScanner::new(b"t");
     for _ in 0..4 * 3600 {
         advance(1_000);
         assert!(scanner.pass(b"t", refuse).is_none());
@@ -60,10 +60,10 @@ fn a_port_that_keeps_failing_is_tried_less_and_less_often() {
 fn the_device_model_is_named_only_when_a_bind_fails() {
     let _one = serial();
     play(|req| Some(answer(req)));
-    assert!(Scanner::new(b"t").pass(b"t", take).is_some());
+    assert!(NetScanner::new(b"t").pass(b"t", take).is_some());
     let said = lines().concat();
     assert!(!said.windows(9).any(|w| w == b"0525:a4a2"), "{}", String::from_utf8_lossy(&said));
     play(|req| Some(answer(req)));
-    assert!(Scanner::new(b"t").pass(b"t", refuse).is_none());
+    assert!(NetScanner::new(b"t").pass(b"t", refuse).is_none());
     assert!(lines().concat().windows(9).any(|w| w == b"0525:a4a2"));
 }

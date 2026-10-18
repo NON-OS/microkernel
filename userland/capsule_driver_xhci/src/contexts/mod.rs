@@ -36,7 +36,7 @@ pub use ep0::{
 pub use evaluate::write_evaluate_ep0_input;
 pub use hub::write_configure_hub_input;
 pub use input::write_address_device_input;
-pub use interval::interrupt_interval;
+pub use interval::{interrupt_interval, isoch_interval};
 pub use payload::interrupt_payload;
 pub use route::{parent_of, route_depth, Topology, MAX_HUB_PORTS, MAX_TIERS};
 pub use size::{device_context_bytes, input_context_bytes};

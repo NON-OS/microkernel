@@ -16,9 +16,11 @@
 
 //! The drivers' dialects, and the controllers on the bus they serve.
 
-mod names;
+mod bus;
+mod dialect;
 mod pci;
 mod table;
 
+pub use dialect::CAPACITY_BODY_MAX;
 pub use pci::{classify, Controller};
 pub use table::{Driver, ALL};

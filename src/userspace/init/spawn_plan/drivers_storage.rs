@@ -21,15 +21,14 @@ pub(super) fn spawn() {
     spawn_ahci();
     spawn_hda();
     spawn_nvme();
+    super::drivers_sdhci::spawn();
+    super::drivers_ufs::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-ahci")]
 fn spawn_ahci() {
     use crate::hardware::ahci_capsule as c;
-    // The capsule also serves Intel eMMC hosts until the eMMC driver has
-    // publisher keys of its own, so either kind of controller starts it.
-    let emmc = crate::hardware::inventory::present(HardwareFamily::StorageEmmc);
-    if !emmc && !super::device_present::present("DRIVER-AHCI", HardwareFamily::StorageAhci) {
+    if !super::device_present::present("DRIVER-AHCI", HardwareFamily::StorageAhci) {
         return;
     }
     super::boot::capsule(

@@ -18,20 +18,23 @@
 //! SET_PROTOCOL(boot) is read in its fixed boot layout. One that refuses it
 //! stays in report protocol, where a report may start with a report ID the
 //! boot layout would take for the modifier keys; it is read through its
-//! report descriptor, as any other HID interface is. That binds only when
-//! the descriptor names reports this driver reads, each short enough to
-//! come in one interrupt read: a gamepad, a UPS or a vendor channel was
-//! read as QEMU's tablet before, and clicked and moved a pointer that was
-//! not there.
+//! report descriptor, as any other HID interface is. That binds when the
+//! descriptor names reports this driver reads, each short enough to come in
+//! one interrupt read, or lays out a joystick or game pad, read as a pad
+//! (`pad`). A UPS or a vendor channel was read as QEMU's tablet before, and
+//! clicked and moved a pointer that was not there; a security key is
+//! driver.fido0's.
 
 use alloc::boxed::Box;
 
-use crate::descriptors::{HidBinding, HidKind};
-use crate::hid::{Device, Keyboard, Mouse, ReportDevice};
+use crate::descriptors::report::parse;
+use crate::descriptors::{pad_layout, HidBinding, HidKind};
+use crate::hid::{Device, Keyboard, Mouse, Pad, ReportDevice};
+use crate::protocol::REPORT_DESCRIPTOR_MAX;
 use crate::xhci::{control_transfer, Setup};
 
 use super::poll::read_len;
-use super::report_descriptor::read_layout;
+use super::report_descriptor::read_report;
 
 /// A class request to an interface, host to device (HID 1.11, 7.2).
 const RT_CLASS_INTERFACE_OUT: u8 = 0x21;
@@ -44,17 +47,23 @@ pub fn device_for(xhci_port: u32, slot: u8, binding: HidBinding) -> Option<(HidB
     let boot = match binding.kind {
         HidKind::Keyboard => Some(Device::Keyboard(Keyboard::new())),
         HidKind::Mouse => Some(Device::Mouse(Mouse::new())),
-        HidKind::Report => None,
+        HidKind::Report | HidKind::Gamepad => None,
     };
     if let Some(dev) = boot {
         if set_boot_protocol(xhci_port, slot, binding.interface_number) {
             return Some((binding, dev));
         }
     }
-    let layout = read_layout(xhci_port, slot, binding)?;
-    let report = HidBinding { kind: HidKind::Report, ..binding };
-    let dev = || Device::Report(Box::new(ReportDevice::new(layout)));
-    layout.bindable(read_len(binding.max_packet_size)).then(|| (report, dev()))
+    let mut buf = [0u8; REPORT_DESCRIPTOR_MAX];
+    let n = read_report(xhci_port, slot, binding, &mut buf)?;
+    let raw = &buf[..n];
+    if let Some(layout) = parse(raw).ok().filter(|l| l.bindable(read_len(binding.max_packet_size)))
+    {
+        let report = HidBinding { kind: HidKind::Report, ..binding };
+        return Some((report, Device::Report(Box::new(ReportDevice::new(layout)))));
+    }
+    let pad = pad_layout(raw)?;
+    Some((HidBinding { kind: HidKind::Gamepad, ..binding }, Device::Pad(Box::new(Pad::new(pad)))))
 }
 
 /// SET_PROTOCOL(boot) (HID 1.11, 7.2.6); whether the interface took it.

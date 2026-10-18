@@ -1,0 +1,21 @@
+# NONOS userland: nonos_modes
+#
+# Display timings every display driver computes the same way: the VESA DMT
+# table, CVT 1.2 with both reduced-blanking versions, pixel clock and link
+# bandwidth checks, and the display wire's rule for fitting a wanted size.
+
+[package]
+name = "nonos_modes"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS display timings: DMT, CVT 1.2, link checks, fit"
+
+[lib]
+name = "nonos_modes"
+path = "src/lib.rs"
+
+[dependencies]
+# The timing type every crate shares, and the EDID timings resolved here.
+nonos_edid = { path = "../nonos_edid" }

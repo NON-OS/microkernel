@@ -26,7 +26,18 @@ use crate::protocol::{Request, CONFIGURE_BULK_REQUEST_LEN, E_INVAL, E_IO};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 use crate::slots::dci_from_ep_address;
+/// OP_CONFIGURE_BULK: the first pair.
 pub fn configure(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
+    configure_pair(ctx, req, body, tx, false)
+}
+
+/// OP_CONFIGURE_BULK2 (0x23): the second pair, on endpoints the first
+/// does not hold; the same request and reply.
+pub fn configure_second(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
+    configure_pair(ctx, req, body, tx, true)
+}
+
+fn configure_pair(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8], second: bool) {
     let well_formed = body.len() == CONFIGURE_BULK_REQUEST_LEN
         && body[1] & 0x80 != 0
         && body[2] & 0x80 == 0
@@ -38,7 +49,7 @@ pub fn configure(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let (dci_in, dci_out) = (dci_from_ep_address(body[1]), dci_from_ep_address(body[2]));
     let mps = |at: usize| u16::from_le_bytes([body[at], body[at + 1]]);
     let bursts = Bursts { bulk_in: body[3] & 0x0F, bulk_out: body[3] >> 4 };
-    match run(ctx, body[0], (dci_in, mps(4)), (dci_out, mps(6)), bursts) {
+    match run(ctx, (body[0], second), (dci_in, mps(4)), (dci_out, mps(6)), bursts) {
         Ok(()) => send_prefix(tx, req, [dci_in, dci_out, 0, 0]),
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(_) => reply_with_status(tx, req, E_IO),

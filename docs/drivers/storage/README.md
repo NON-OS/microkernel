@@ -9,7 +9,7 @@ Which disks NONOS can read and write, which capsule drives each kind, and how on
 | NVMe SSD | PCI class 01h, subclass 08h, prog-if 02h | `driver.nvme0` | Works. See [NVMe](nvme.md). |
 | SATA disk on an AHCI controller | PCI class 01h, subclass 06h; Intel class 01h, subclass 04h | `driver.ahci0` | Works, one disk. See [AHCI and Intel RST](ahci-and-rst.md). |
 | NVMe behind an Intel VMD | 13 Intel VMD device ids | kernel PCI layer, then `driver.nvme0` | Partial: in the kernel, not run on hardware or under QEMU. See [Intel VMD](vmd.md). |
-| eMMC on an SD host controller | PCI class 08h, subclass 05h | `driver.ahci0` | Works when no SATA disk comes up, not tested on hardware. See [SD cards and eMMC](sd-and-emmc.md). |
+| eMMC on an SD host controller | PCI class 08h, subclass 05h | `driver.sdhci0` | Served on the block wire, not tested on hardware. See [SD cards and eMMC](sd-and-emmc.md). |
 | Realtek PCIe SD card reader | 10ec:5227, 10ec:522a | `driver.rtsx0` | Not supported: source and host proofs only, not in the image. See [SD cards and eMMC](sd-and-emmc.md). |
 | USB stick or USB disk | interface class 08h, subclass 06h, protocol 50h | `driver.usb_msc0` | Works on root ports. See [USB mass storage](usb-mass-storage.md). |
 | virtio-blk under QEMU | 1af4:1001, 1af4:1042 | `driver.virtio_blk0` | Works. |
@@ -115,7 +115,7 @@ Each [proof crate](../../overview/glossary-peer-list.md#proof-crate) runs the dr
 |---|---|---|---|
 | `driver.nvme0` | `userland/nvme_proofs`, 81 tests pass | blank `nvme` install target | see below |
 | `driver.ahci0`, SATA | `userland/ahci_link_proofs`, 99 tests pass | the q35 machine's own AHCI controller, see [AHCI and Intel RST](ahci-and-rst.md#how-it-was-verified) | not tested in this release |
-| `driver.ahci0`, eMMC | `userland/emmc_proofs`, 83 tests pass | none | not tested in this release |
+| `driver.sdhci0`, eMMC | `userland/emmc_proofs`, 90 tests pass | none | not tested in this release |
 | VMD bring-up | `userland/kernel_proofs`, 388 tests pass for the crate | none | not tested in this release |
 | `driver.rtsx0` | `userland/rtsx_proofs`, 26 tests pass | none | not tested in this release |
 | `driver.usb_msc0` | `userland/usb_msc_proofs`: its check fails on this commit at the clippy step | boot matrix cells with 512 and 4096-byte sticks | not tested in this release |

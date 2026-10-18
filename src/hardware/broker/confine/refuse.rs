@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim refused for want of a domain, said once per claim.
+//! A claim refused, said once per claim.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 
 use super::decide::Verdict;
-use super::table::say;
+use super::say::say;
+use super::table::Capsule;
 
 /// No unit confines the device, or the one in service would not take it, so
 /// the claim is refused rather than granted with a device that reaches all
@@ -45,4 +50,18 @@ pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
     }
     say(b"refused: no remapping unit confines it");
     Err(Refused)
+}
+
+/// Say why, and drop the capsule's entry if this was to be its first device.
+pub(super) fn refuse(
+    all: &mut Vec<Capsule>,
+    pos: usize,
+    why: &[u8],
+    refusal: Refusal,
+) -> Result<(), Refusal> {
+    say(why);
+    if all[pos].devices.is_empty() {
+        all.remove(pos);
+    }
+    Err(refusal)
 }

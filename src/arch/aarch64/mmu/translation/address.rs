@@ -16,23 +16,16 @@
 
 use super::stage::translate_stage1_read;
 
-const PHYS_OFFSET: u64 = 0xFFFF_0000_0000_0000;
-const KERNEL_OFFSET: u64 = 0xFFFF_8000_0000_0000;
+const DIRECT_START: u64 = 0xFFFF_8000_0000_0000;
+/// The direct map's one top-level slot, 512 GiB.
+const DIRECT_END: u64 = DIRECT_START + (1 << 39);
 
+/// The physical address behind kernel virtual `virt`. Inside the direct
+/// map it is arithmetic; anywhere else (the heap, mapped windows, the rest
+/// of the high half) only the MMU knows, so it is asked (AT S1E1R).
 pub fn virt_to_phys(virt: u64) -> Option<u64> {
-    if virt >= KERNEL_OFFSET {
-        return Some(virt - KERNEL_OFFSET);
-    }
-    if virt >= PHYS_OFFSET {
-        return Some(virt - PHYS_OFFSET);
+    if (DIRECT_START..DIRECT_END).contains(&virt) {
+        return Some(virt - DIRECT_START);
     }
     translate_stage1_read(virt).ok()
-}
-
-pub fn phys_to_virt(phys: u64) -> u64 {
-    PHYS_OFFSET + phys
-}
-
-pub fn kernel_phys_to_virt(phys: u64) -> u64 {
-    KERNEL_OFFSET + phys
 }

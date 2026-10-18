@@ -42,7 +42,7 @@ pub mod error;
 pub mod features;
 #[path = "../../nonos_virtio/src/map/mod.rs"]
 pub mod map;
-#[path = "../../nonos_virtio/src/mmio.rs"]
+#[path = "../../nonos_virtio/src/mmio/mod.rs"]
 pub mod mmio;
 #[path = "../../nonos_virtio/src/notify.rs"]
 pub mod notify;

@@ -17,7 +17,8 @@
 use crate::settings::section::Section;
 
 use super::blocks::{
-    APPEARANCE, BLUETOOTH, DEVELOPER, GENERAL, NETWORK, PRIVACY, SECURITY, SOUND, UPDATES, WIFI,
+    ACCESSIBILITY, APPEARANCE, BLUETOOTH, DEVELOPER, GENERAL, NETWORK, PRIVACY, SECURITY, SOUND,
+    UPDATES, WIFI,
 };
 use super::rows::Block;
 
@@ -29,6 +30,7 @@ pub const fn blocks_for(section: Section) -> &'static [Block] {
         Section::Bluetooth => BLUETOOTH,
         Section::Security => SECURITY,
         Section::Appearance => APPEARANCE,
+        Section::Accessibility => ACCESSIBILITY,
         Section::Privacy => PRIVACY,
         Section::Sound => SOUND,
         Section::Updates => UPDATES,

@@ -34,6 +34,8 @@ pub fn holds_a_report(kind: HidKind, max_packet_size: u16) -> bool {
         // The report descriptor says how long its reports are, and the
         // binding is checked against that; a packet must hold a byte.
         HidKind::Report => 1,
+        // Its fields say where they sit; one past the data is never read.
+        HidKind::Gamepad => 1,
     };
     (report as u16..=MAX_INTERRUPT_PACKET).contains(&max_packet_size)
 }

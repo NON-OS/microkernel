@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The bus voltage: first the host's highest, then the lowest voltage both
-//! the host and the card's OCR name, as Linux chooses.
+//! the host and the card's OCR name, with the bits naming that supply.
 
 use crate::emmc::sdhci::caps::Caps;
 use crate::emmc::sdhci::power::*;

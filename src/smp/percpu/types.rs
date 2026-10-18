@@ -64,32 +64,9 @@ pub struct PerCpuData {
     /// Whether the tick this CPU is handling interrupted CPL 3. The timer
     /// trampoline writes it and the same CPU's scheduler tick reads it.
     pub tick_from_user: AtomicBool,
-    _reserved: [u8; 4096 - 134],
-}
-
-impl PerCpuData {
-    pub const fn new() -> Self {
-        Self {
-            self_ptr: 0,
-            cpu_id: 0,
-            apic_id: 0,
-            current_process: AtomicU64::new(0),
-            current_thread: AtomicU64::new(0),
-            kernel_stack_top: 0,
-            user_stack_saved: 0,
-            syscall_scratch: [0; 4],
-            irq_nesting: 0,
-            sched_lock_held: 0,
-            random_state: AtomicU64::new(0),
-            last_tick_tsc: AtomicU64::new(0),
-            interrupt_disable_depth: 0,
-            active_asid: AtomicU32::new(ASID_NONE),
-            time_slice: AtomicU64::new(0),
-            need_resched: AtomicU32::new(0),
-            tlb_flush_pending: AtomicU32::new(0),
-            accounting_idle: AtomicBool::new(false),
-            tick_from_user: AtomicBool::new(false),
-            _reserved: [0; 4096 - 134],
-        }
-    }
+    /// aarch64 pointer authentication, read by the vectors at fixed offsets
+    /// (`asm/percpu.h`): words 0-1 the IA key of the process this CPU next
+    /// enters EL0 with, 2-3 the kernel's, 4 non-zero once keys are switched.
+    pub pac: [AtomicU64; 5],
+    pub(super) _reserved: [u8; 4096 - 176],
 }

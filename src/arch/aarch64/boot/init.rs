@@ -15,54 +15,40 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::info::BootInfo;
-use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, timer, uart};
+use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, uart};
 
 pub fn init(boot_info: &BootInfo) {
-    uart::init_uart(boot_info.uart_base);
+    if let Err(reason) = uart::init_uart(&boot_info.uart) {
+        super::refuse(b"console", reason.as_bytes());
+    }
     cpu::init_cpu();
     // Latch the CPU list before anything asks which CPU it is running on. The
     // GIC does, one call below, and its answer decides which redistributor
-    // this core talks to.
-    //
-    // SAFETY: this is the boot CPU, this runs once, and no secondary has been
-    // released yet, so nothing else can be touching the roster.
-    unsafe {
-        super::multicore::roster::populate(
-            &boot_info.cpu_affinities[..boot_info.cpu_affinity_count],
-        );
-    }
-    // Port numbers are offsets into the bridge's I/O window on this arch, so
-    // the window has to be known before any driver reaches for a port. ECAM is
-    // the only way to config space here, and enumeration needs it.
-    crate::arch::port_io::set_io_window(
-        boot_info.pci_io_cpu_base,
-        boot_info.pci_io_port_base,
-        boot_info.pci_io_size,
-    );
-    super::pci_windows::publish(boot_info);
-    // Bus addresses, so the I/O window is named by its port base rather than
-    // where the CPU reaches it.
-    crate::bus::pci::set_windows(
-        boot_info.pci_mmio_base,
-        boot_info.pci_mmio_size,
-        boot_info.pci_io_port_base,
-        boot_info.pci_io_size,
-    );
-    crate::arch::aarch64::rtc::set_base(boot_info.rtc_base);
+    // this core talks to. This is the boot CPU, before any secondary starts.
+    super::multicore::roster::populate(&boot_info.cpu_affinities[..boot_info.cpu_affinity_count]);
+    super::platform_windows::publish(boot_info);
+    // The keys below go into this CPU's per-CPU block, so it is named first.
+    cpu::percpu::install_here();
     exceptions::install_vbar_el1();
-    if let Err(error) = security::init_all() {
-        super::refuse(b"security", super::security_reason(error));
-    }
+    security::init_all();
+    security::pac::bind_this_cpu();
+    security::report();
     mmu::init_mmu(boot_info);
-    if boot_info.gic_unsupported {
-        super::refuse(b"gic", b"the device tree names a GIC other than v3, the only one driven");
+}
+
+/// The rest of bring-up, wherever the kernel runs after the MMU is on: the
+/// GIC, the timer, the other CPUs, then interrupts.
+pub(super) fn bring_up(boot_info: &BootInfo) {
+    let gic = gic::init_gic(
+        boot_info.gic_version,
+        boot_info.gic_dist_base,
+        boot_info.gic_cpu_base,
+        boot_info.gic_redist_base,
+    );
+    if let Err(reason) = gic {
+        super::refuse(b"gic", reason.as_bytes());
     }
-    gic::init_gic(boot_info.gic_dist_base, boot_info.gic_redist_base);
-    timer::init_timer();
-    timer::configure_preemption_intid(boot_info.timer_phys_intid);
-    if let Err(reason) = timer::install_on_cpu() {
-        super::refuse(b"timer tick", reason.as_bytes());
-    }
+    super::start_clock::start_clock(boot_info);
     if super::multicore::roster::len() > 1 {
         super::multicore::start_secondary_cpus(boot_info);
     }

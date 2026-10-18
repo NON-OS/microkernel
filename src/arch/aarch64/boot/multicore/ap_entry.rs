@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::aarch64::boot::{refuse, security_reason};
+use crate::arch::aarch64::boot::refuse;
 use crate::arch::aarch64::cpu;
 use crate::arch::aarch64::exceptions::install_vbar_el1;
 use crate::arch::aarch64::gic::init_gic_cpu;
@@ -24,21 +24,41 @@ use crate::arch::aarch64::security;
 use crate::arch::aarch64::timer::{init_timer_cpu, install_on_cpu as install_preemption_tick};
 use crate::arch::cpu::idle_cpu;
 
+use super::outside::park_outside_roster;
+use super::roster;
 use super::state::CPUS_ONLINE;
 
 #[no_mangle]
 pub extern "C" fn aarch64_ap_entry() -> ! {
+    // A CPU the roster does not hold stops before anything below indexes a
+    // per-CPU table by it.
+    let Some(index) = roster::index_of(cpu::mpidr_affinity()) else {
+        park_outside_roster(cpu::mpidr_affinity())
+    };
+    // Then, in this function that never returns: every CPU signs with the
+    // boot CPU's key or none does (security::pac).
+    match security::pac::secondary_key() {
+        Ok(Some(key)) => security::pac::install_kernel_key!(key),
+        Ok(None) => {}
+        Err(reason) => refuse(b"secondary pointer authentication", reason.as_bytes()),
+    }
+    // The keys go into this CPU's per-CPU block, so it is named first.
+    cpu::percpu::install_here();
+    security::pac::bind_this_cpu();
     install_vbar_el1();
     cpu::init_cpu();
-    if let Err(error) = security::init_all() {
-        refuse(b"secondary security", security_reason(error));
+    security::init_all();
+    if let Err(reason) = init_gic_cpu() {
+        refuse(b"secondary gic", reason.as_bytes());
     }
-    init_gic_cpu();
     init_timer_cpu();
     if let Err(reason) = install_preemption_tick() {
         refuse(b"secondary timer tick", reason.as_bytes());
     }
 
+    // Its own descriptor, at its roster index, before it counts as online:
+    // `smp::cpu_id()` answers that index, and IPIs find it by this id.
+    crate::smp::register_secondary(index, cpu::cpu_affinity());
     CPUS_ONLINE.fetch_add(1, Ordering::AcqRel);
 
     loop {

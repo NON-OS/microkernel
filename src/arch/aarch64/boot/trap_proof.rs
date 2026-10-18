@@ -58,9 +58,13 @@ pub(super) fn sp_el0_vector() {
 #[cfg(feature = "nonos-trap-proof-kernel-abort")]
 pub(super) fn kernel_data_abort() {
     const UNMAPPED: u64 = 0x0000_4000_0000_0000;
+    // An address chosen to be nowhere, not a physical one: counted by
+    // run-static-checks.sh.
+    #[cfg_attr(target_os = "none", allow(fuzzy_provenance_casts))]
+    let at = UNMAPPED as *const u64;
     // SAFETY: nothing maps UNMAPPED, so the read faults and never returns
     // data; the fault is terminal and the CPU parks in the trap path.
-    let value = unsafe { core::ptr::read_volatile(UNMAPPED as *const u64) };
+    let value = unsafe { core::ptr::read_volatile(at) };
     crate::sys::serial::Line::new()
         .str(b"[TRAP-PROOF] read of an unmapped address returned ")
         .hex(value)

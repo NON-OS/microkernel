@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The server's handlers, its reply encoder, its dispatch and its recovery
-//! from a stall, as they ship. The receive loop calls the kernel and stays
-//! out.
+//! The server's recovery from a stall, as it ships. The receive loop, the
+//! DGON turn and the notice it sends call the kernel and stay out.
 
-#[path = "../../../capsule_driver_virtio_gpu/src/server/runner/dispatch.rs"]
-pub mod dispatch;
-#[path = "../../../capsule_driver_virtio_gpu/src/server/handlers/mod.rs"]
-pub mod handlers;
 #[path = "../../../capsule_driver_virtio_gpu/src/server/recover/mod.rs"]
 pub mod recover;
-#[path = "../../../capsule_driver_virtio_gpu/src/server/respond.rs"]
-pub mod respond;

@@ -22,8 +22,6 @@ use nonos_libc::{
 use super::overlay::Overlay;
 use crate::compositor_client::push_scene_submit;
 
-pub use super::bands::{CHROME_Z, DESK_Z};
-
 pub fn register_overlay(
     compositor_port: u32,
     request_id: u32,
