@@ -14,24 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem::size_of;
-use core::sync::atomic::{AtomicU32, Ordering};
-
 use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
+use core::mem::size_of;
 
 use super::out::IrqPollOut;
-
-static IRQ_POLL_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn trace(label: &[u8], pid: u32) {
-    if !matches!(pid, 7 | 8 | 0x1c) || IRQ_POLL_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 48 {
-        return;
-    }
-    crate::sys::serial::print(b"[IRQ-POLL] ");
-    crate::sys::serial::println(label);
-}
 
 // Poll only exposes the caller-owned grant's pending state; the
 // broker's ownership check prevents cross-pid leak.
@@ -46,16 +34,13 @@ pub fn sys_irq_poll(grant_id: u64, out_ptr: u64) -> i64 {
     if validate_user_write(out_ptr, size_of::<IrqPollOut>()).is_err() {
         return ERRNO_FAULT;
     }
-    trace(b"enter", pid);
     let res = match crate::hardware::broker::irq_poll(pid, grant_id) {
         Ok(r) => r,
         Err(e) => return super::errno_map::grant_errno_for(pid, grant_id, e),
     };
-    trace(b"broker ok", pid);
     let out = IrqPollOut { seq: res.seq, overflow: res.overflow };
     if write_user_value(out_ptr, &out).is_err() {
         return ERRNO_FAULT;
     }
-    trace(b"copy ok", pid);
     0
 }

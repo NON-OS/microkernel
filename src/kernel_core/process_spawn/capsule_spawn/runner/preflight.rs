@@ -55,7 +55,12 @@ pub(crate) fn run(
         &declared,
     )?;
     let install_caps = verification.1;
-    crate::security::image_ceiling::would_refuse(spec.name, install_caps);
+    // The image ceiling binds every capsule: over it, no spawn.
+    let ceiling = crate::security::image_ceiling::ceiling();
+    if crate::security::image_ceiling::gate(install_caps, ceiling).is_err() {
+        crate::security::image_ceiling::report(spec.name, install_caps);
+        return Err(SpawnError::ImageCeiling);
+    }
     let capsule_id = verification.0.capsule_id;
     let required_caps = verification.0.manifest.required_caps;
     let namespace = verification.0.manifest.namespace_str();
@@ -66,6 +71,5 @@ pub(crate) fn run(
             super::publisher_gate::publisher_gate(spec, namespace, required_caps)?
         }
     };
-
     Ok(Preflighted { install_caps, proved, capsule_id, namespace_hash })
 }

@@ -33,6 +33,8 @@ use crate::syscall::microkernel::errnos::ERRNO_NOSYS;
 mod peer;
 #[path = "foreign_absent_query.rs"]
 mod query;
+#[path = "foreign_absent_seal.rs"]
+pub(crate) mod seal;
 pub use peer::*;
 pub use query::*;
 

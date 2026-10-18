@@ -26,17 +26,25 @@ const IVHD_TYPES: [u8; 3] = [0x10, 0x11, 0x40];
 
 pub const MAX_AMD_IOMMUS: usize = 8;
 
-/// Distinct IOMMU base addresses, in table order, written to `out`; returns
-/// how many. Stops at the first block whose length is short or runs past the
-/// table, or when `out` is full; never reads out of bounds.
-pub fn iommu_bases(table: &[u8], out: &mut [u64]) -> usize {
+/// What a walk of the IVHD blocks found, and whether it read them all.
+pub struct Walk {
+    pub found: usize,
+    /// False when a block was short or ran past the table, or a distinct
+    /// IOMMU did not fit `out`: an IOMMU may then be left off.
+    pub complete: bool,
+}
+
+/// Distinct IOMMU base addresses, in table order, written to `out`. Stops
+/// at the first block whose length is short or runs past the table, or when
+/// `out` is full; never reads out of bounds.
+pub fn walk(table: &[u8], out: &mut [u64]) -> Walk {
     let mut found = 0;
     let mut at = FIRST_BLOCK;
     while at + 4 <= table.len() {
         let kind = table[at];
         let length = u16::from_le_bytes([table[at + 2], table[at + 3]]) as usize;
         if length < 4 || at + length > table.len() {
-            break;
+            return Walk { found, complete: false };
         }
         if IVHD_TYPES.contains(&kind) && length >= 24 {
             let mut raw = [0u8; 8];
@@ -44,7 +52,7 @@ pub fn iommu_bases(table: &[u8], out: &mut [u64]) -> usize {
             let base = u64::from_le_bytes(raw);
             if base != 0 && !out[..found].contains(&base) {
                 if found == out.len() {
-                    break;
+                    return Walk { found, complete: false };
                 }
                 out[found] = base;
                 found += 1;
@@ -52,5 +60,5 @@ pub fn iommu_bases(table: &[u8], out: &mut [u64]) -> usize {
         }
         at += length;
     }
-    found
+    Walk { found, complete: true }
 }

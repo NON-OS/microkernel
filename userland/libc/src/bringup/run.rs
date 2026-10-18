@@ -16,10 +16,14 @@
 
 //! The bring-up loop every driver shares.
 
-use super::policy::{decide, next, recv_turn, Next, RecvTurn, RECV_PARK_MS};
-use crate::{mk_debug, mk_idle_ms};
+use super::deadline::retry_after;
+use super::recv_turn::{recv_turn, RecvTurn, RECV_PARK_MS};
+use super::say::say_gave_up;
+use super::schedule::delay_after;
+use crate::mk_idle_ms;
 
-/// Try `attempt` until it succeeds or the schedule in `policy` runs out.
+/// Try `attempt` until it succeeds or BRINGUP_BUDGET_MS have passed since
+/// the first try began (deadline.rs), sleeping the schedule's delays between.
 ///
 /// Each failed attempt must already have released whatever it claimed; the
 /// next one claims afresh. The sleeps are real sleeps (`mk_idle_ms`), so a
@@ -30,6 +34,7 @@ pub fn bring_up<T>(
     driver: &[u8],
     mut attempt: impl FnMut() -> Result<T, &'static str>,
 ) -> Result<T, &'static str> {
+    let start = uptime();
     let mut done = 0u32;
     loop {
         let err = match attempt() {
@@ -37,11 +42,11 @@ pub fn bring_up<T>(
             Err(e) => e,
         };
         done = done.saturating_add(1);
-        match next(done) {
-            Next::Retry(ms) => {
+        match retry_after(uptime().saturating_sub(start), delay_after(done)) {
+            Some(ms) => {
                 let _ = mk_idle_ms(ms);
             }
-            Next::GiveUp => {
+            None => {
                 say_gave_up(driver, err);
                 return Err(err);
             }
@@ -49,44 +54,9 @@ pub fn bring_up<T>(
     }
 }
 
-/// A driver's whole start: leave at once, saying so, when discovery found
-/// nothing (`found` is `None`); otherwise bring the device up within the
-/// bounded schedule. `Err` carries the code for `mk_exit`, `EXIT_ABSENT` or
-/// `EXIT_GAVE_UP`, and by then nothing the driver claimed is still held.
-pub fn start_driver<F, T>(
-    driver: &[u8],
-    found: Option<F>,
-    mut attempt: impl FnMut(&F) -> Result<T, &'static str>,
-) -> Result<T, i32> {
-    decide(found, || say_absent(driver), |device| bring_up(driver, || attempt(&device)))
-}
-
-/// The one line a driver logs when the machine has none of its devices.
-pub fn say_absent(driver: &[u8]) {
-    say(&[driver, b": no controller present, not started"]);
-}
-
-fn say_gave_up(driver: &[u8], reason: &str) {
-    say(&[driver, b": device present, bring-up failed; not started (", reason.as_bytes(), b")"]);
-}
-
-/// One console line from `parts`, cut to fit and always ending in a newline,
-/// so the next line on the serial console starts on its own.
-fn say(parts: &[&[u8]]) {
-    let mut line = [0u8; 160];
-    let room = line.len() - 1;
-    let mut n = 0usize;
-    for part in parts {
-        for &b in *part {
-            if n == room {
-                break;
-            }
-            line[n] = b;
-            n += 1;
-        }
-    }
-    line[n] = b'\n';
-    let _ = mk_debug(line.as_ptr(), n + 1);
+/// Milliseconds since boot; a clock that will not say reads as 0.
+fn uptime() -> u64 {
+    u64::try_from(crate::mk_uptime_ms()).unwrap_or(0)
 }
 
 /// Whether a serve loop has a message to serve after its receive returned

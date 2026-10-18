@@ -36,4 +36,4 @@ pub(super) use init::register_platform_device;
 pub(super) use list::kind_of;
 #[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds
 pub(in crate::hardware::broker) use remove::remove;
-pub use list::{contains, list, list_by_class};
+pub use list::{contains, list, list_by_class, list_shown};

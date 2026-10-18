@@ -18,3 +18,6 @@ path = "src/lib.rs"
 
 # Standalone: its own workspace root so it does not join the kernel workspace.
 [workspace]
+
+[package.metadata.nonos]
+test-lane = true

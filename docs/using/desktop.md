@@ -95,7 +95,7 @@ These are the apps the dock and the Launchpad know, in dock order:
 | Calculator | `app.calculator` | Arithmetic, scientific and programmer modes, and unit conversion. See [Everyday apps](apps.md#calculator). |
 | Wallet | `app.nonos_wallet` | Keys and payments. See [Wallet](wallet.md). |
 | Browser | `app.browser` | Web pages over the network you chose. See [The Browser](browser.md). |
-| Qwen | `tool.qwen` | A chat with the local Qwen model. It is not a [capsule](../overview/glossary.md#capsule): the [Linux personality](../overview/glossary.md#linux-personality) runs it in a window of its own. See [Local model](local-ai.md). |
+| Qwen | `tool.qwen` | A chat with the local Qwen model. It is not a [capsule](../overview/glossary-boot-root-record.md#capsule): the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) runs it in a window of its own. See [Local model](local-ai.md). |
 | Music | `app.audio_player` | The music player, titled `Resonare`. See [Sound and media](audio.md). |
 | Video | `app.video_player` | The video player. See [Sound and media](audio.md). |
 | Snake | `app.snake` | A game. See [Everyday apps](apps.md#snake). |
@@ -121,7 +121,7 @@ One more chord never reaches a window: `Ctrl+Alt+Space` cycles the keyboard layo
 
 The power key does not power the machine off, whether it comes from a keyboard or from the machine's ACPI power button, which the kernel turns into the same key. The desktop has no Shut Down in this release: the power service capsule is built but not started, and the shell offers no shutdown action.
 
-The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
 
 ## Copy and paste
 
@@ -154,8 +154,8 @@ What the clipboard holds, and for how long:
 About is the machine's account of itself. Its sidebar has seven sections: Overview, Proofs, System, Trust, Verify, Display and Licenses.
 
 - Overview shows the version and this window's admission badge. The badge reads `Verified` only when the kernel admitted the window under a proof. `Signed, no proof`, `Not admitted` and `Unknown` are never drawn as a pass.
-- Proofs answers two questions in one headline: is this boot [attested](../overview/glossary.md#attestation), and is its traffic anonymous. It reads the boot verdicts and the process table from the kernel, the chosen network from the policy store, and the latest route proof from the `attest` service.
-- System shows the build, memory and uptime. Trust decodes the [capability word](../overview/glossary.md#capability-word) the kernel recorded for this window. Verify runs the checks the machine can do on itself. Display names the framebuffer size and whether the compositor presents through virtio-gpu or the firmware framebuffer. Licenses holds the text of the AGPL-3.0-or-later licence the image is under, and the third-party licences.
+- Proofs answers two questions in one headline: is this boot [attested](../overview/glossary-amnesic-boot.md#attestation), and is its traffic anonymous. It reads the boot verdicts and the process table from the kernel, the chosen network from the policy store, and the latest route proof from the `attest` service.
+- System shows the build, memory and uptime. Trust decodes the [capability word](../overview/glossary-boot-root-record.md#capability-word) the kernel recorded for this window. Verify runs the checks the machine can do on itself. Display names the framebuffer size and whether the compositor presents through virtio-gpu or the firmware framebuffer. Licenses holds the text of the AGPL-3.0-or-later licence the image is under, and the third-party licences.
 
 The Proofs headline is one of six sentences:
 

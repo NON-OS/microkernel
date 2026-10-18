@@ -20,9 +20,8 @@ use crate::arch::x86_64::acpi::tables::{sdt_entry_count, SdtHeader, SIG_SSDT, SI
 use core::{mem, ptr};
 
 pub fn parse_xsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
-    let addr = super::phys::directmap(addr).ok_or(AcpiError::InvalidXsdtSignature)?;
+    let (addr, header) = super::phys::mapped_table(addr).ok_or(AcpiError::InvalidXsdtSignature)?;
     unsafe {
-        let header = ptr::read_volatile(addr as *const SdtHeader);
         if header.signature != SIG_XSDT {
             return Err(AcpiError::InvalidXsdtSignature);
         }

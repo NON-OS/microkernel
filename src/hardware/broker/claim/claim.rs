@@ -14,37 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{next_epoch, CLAIMS};
+use super::leaving::{claimable, done};
+use super::state::{next_epoch, BUSY, CLAIMS};
 use super::types::{Claim, ClaimError};
+use crate::hardware::broker::confine::Refusal;
 
 // Register a claim. Returns the granted epoch on success. The caller
 // must have already verified that `device_id` exists in the broker
 // table.
+/*
+ * The claim is published last (K5, A10 gap 4): until it is in CLAIMS no
+ * epoch exists, so no thread of the caller can reach the device's config
+ * space or set Bus Master before it is confined, powered and snooping.
+ */
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let flags =
         crate::hardware::broker::list().iter().find(|r| r.device_id == device_id).map(|r| r.flags);
     if flags.is_some_and(|f| f & crate::hardware::broker::DEVICE_FLAG_DISABLED != 0) {
         return Err(ClaimError::Disabled);
     }
-    let epoch = {
-        let mut claims = CLAIMS.lock();
-        if claims.iter().any(|c| c.device_id == device_id) {
-            return Err(ClaimError::AlreadyClaimed);
-        }
-        let epoch = next_epoch();
-        claims.push(Claim { pid, device_id, epoch });
-        epoch
-    };
-    // Confined before it is powered, so the device never runs unconfined.
-    if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
-        CLAIMS.lock().retain(|c| !(c.pid == pid && c.device_id == device_id));
-        return Err(ClaimError::Unconfined);
+    // Reserved first: no other claim, and no retire, works on the
+    // device while this one does, and a device still retiring is refused.
+    {
+        let claims = CLAIMS.lock();
+        let mut busy = BUSY.lock();
+        claimable(&claims, &busy, device_id)?;
+        busy.push(device_id);
     }
+    let claimed = claim_reserved(pid, device_id);
+    done(&mut BUSY.lock(), device_id);
+    claimed
+}
+
+fn claim_reserved(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    // Only what the driver's row names, before the device is touched.
+    if !super::scope_check::admitted(pid, device_id) {
+        return Err(ClaimError::OutOfScope);
+    }
+    // Confined before it is powered, so the device never runs unconfined.
+    match crate::hardware::broker::confine::attach(pid, device_id) {
+        Ok(()) => {}
+        Err(Refusal::GroupHeld) => return Err(ClaimError::GroupHeld),
+        Err(Refusal::Refused) => return Err(ClaimError::Unconfined),
+    }
+    // Bus Master off: the driver turns it on itself, once it holds Dma.
+    super::quiesce::stop_bus_master_quietly(device_id);
     // Bring the device to power state D0 before its driver maps MMIO. Done
     // outside the claims lock: it touches config space and settles for a moment.
     crate::hardware::broker::power::power_on_device(device_id);
+    // Powered, so its reset takes: armed engines stop before the driver.
+    super::reset::at_claim(device_id, pid);
     // Before the driver can turn bus mastering on, so no request it ever
     // makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
+    let epoch = next_epoch();
+    CLAIMS.lock().push(Claim { pid, device_id, epoch });
     Ok(epoch)
 }
