@@ -20,16 +20,16 @@
 //! nonos_blk_client disks/in_use.rs. kernel_proofs::install_in_use.
 
 /// The record's length.
-pub const IN_USE_LEN: usize = 4;
+pub(crate) const IN_USE_LEN: usize = 4;
 
 /// Backend codes, shared with nonos_blk_client.
-pub const VIRTIO_BLK: u8 = 1;
-pub const AHCI: u8 = 2;
-pub const NVME: u8 = 3;
-pub const USB_MSC: u8 = 4;
+pub(crate) const VIRTIO_BLK: u8 = 1;
+pub(crate) const AHCI: u8 = 2;
+pub(crate) const NVME: u8 = 3;
+pub(crate) const USB_MSC: u8 = 4;
 
 /// The backend, its instance (the number in its `driver.<name>N` service),
 /// and two reserved zero bytes.
-pub const fn in_use_record(backend: u8, instance: u8) -> [u8; IN_USE_LEN] {
+pub(crate) const fn in_use_record(backend: u8, instance: u8) -> [u8; IN_USE_LEN] {
     [backend, instance, 0, 0]
 }

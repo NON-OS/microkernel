@@ -32,7 +32,7 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
 
 // `release` from a path other than the holder's own syscall: a depart
 // (acpi/depart.rs) names no sleeper and runs outside the holder's tables.
-pub fn release_as(
+pub(crate) fn release_as(
     pid: u32,
     device_id: u64,
     sleeper: Option<u32>,
