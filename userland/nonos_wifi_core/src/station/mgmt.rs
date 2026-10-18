@@ -19,11 +19,19 @@
 //! always has. With it, only a protected one does: under the pairwise key when
 //! addressed to this station, under BIP when group addressed. An unprotected
 //! one saying the AP lost the association (reason 6 or 7) asks for an SA
-//! Query instead, since anyone can send it; every other one is dropped.
+//! Query instead, since anyone can send it; every other one is dropped. Any
+//! frame the AP sends, to this station or to all, counts as hearing it, and
+//! one with the Order bit set (an HT Control field after Address 3, which no
+//! frame the link acts on carries) is refused as malformed.
 
 use super::mgmt_rx::{leave_reason, MgmtDrop, MgmtRx};
 use super::LinkStation;
-use crate::dot11::header::{fc_subtype, fc_type, FC_PROTECTED, MAC_HEADER_LEN, TYPE_MGMT};
+use crate::dot11::header::{
+    fc_subtype, fc_type, FC_PROTECTED, MAC_HEADER_LEN, SUBTYPE_BEACON, TYPE_MGMT,
+};
+
+/// The Order bit of the frame control field.
+const FC_ORDER: u16 = 0x8000;
 
 impl LinkStation {
     /// Check and act on one received management frame (FCS removed).
@@ -38,7 +46,7 @@ impl LinkStation {
             return Err(MgmtDrop::NotAssociated);
         }
         let fc = u16::from_le_bytes([*f.first().unwrap_or(&0), *f.get(1).unwrap_or(&0)]);
-        if f.len() < MAC_HEADER_LEN || fc_type(fc) != TYPE_MGMT {
+        if f.len() < MAC_HEADER_LEN || fc_type(fc) != TYPE_MGMT || fc & FC_ORDER != 0 {
             return Err(MgmtDrop::Malformed);
         }
         let group = f[4] & 0x01 != 0;
@@ -49,6 +57,9 @@ impl LinkStation {
             return Err(MgmtDrop::NotOurs);
         }
         let sub = fc_subtype(fc);
+        if !(sub == SUBTYPE_BEACON && self.pmf.bigtk.is_some()) {
+            self.watch.heard();
+        }
         match (self.pmf.on, group, fc & FC_PROTECTED != 0) {
             (false, _, false) => self.leave(leave_reason(sub, &f[MAC_HEADER_LEN..])),
             (false, _, true) => Err(MgmtDrop::NotHandled),

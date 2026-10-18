@@ -21,6 +21,7 @@
 
 pub mod command;
 mod cycle;
+mod master;
 mod poll;
 mod presys;
 mod rpwm;
@@ -30,6 +31,7 @@ mod sysinit;
 mod tables;
 
 pub use cycle::{CARD_DISABLE, CARD_EMULATE, CR_UNPOWERED};
+pub use master::{power_on_then_master, NoMaster};
 pub use run::run_pwr_seq;
 pub use switch::{power_on, PowerOn};
 pub use tables::CARD_ENABLE;

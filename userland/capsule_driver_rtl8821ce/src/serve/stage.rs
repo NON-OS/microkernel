@@ -24,10 +24,8 @@ pub enum Stage {
     Ready = 0,
     /// The device could not be claimed or its registers mapped.
     NotClaimed = 1,
-    /// The power-on sequence never reached readiness.
-    PowerFailed = 2,
-    /// The register window read back dead after power-on.
-    DeadMmio = 3,
+    // 2 and 3 (power failed, dead registers) are not served: such a chip is
+    // given back and the driver leaves (`start::bring_up`).
     /// The firmware download did not complete.
     FirmwareFailed = 4,
     /// Bring-up succeeded but the transmit/receive DMA could not be mapped.

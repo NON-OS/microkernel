@@ -18,6 +18,9 @@ mod group_keys;
 mod integrity;
 mod store;
 mod unwrapped_max;
+mod wipe_keys;
+#[cfg(test)]
+mod wipe_tests;
 use super::state::Supplicant;
 use crate::ccmp::keywrap::{aes_unwrap, MAX_BLOCKS};
 use crate::eapol::kde::{parse_key_data, IgtkKde, KeyData};
