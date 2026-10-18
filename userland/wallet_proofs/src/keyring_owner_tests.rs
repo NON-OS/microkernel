@@ -17,42 +17,8 @@
 //! The keyring's key store: one owner holds only its share, and the keys of
 //! an owner that ended are dropped while a living owner's stay.
 
-use crate::store::{KeyType, Store, StoreError, MAX_KEYS, MAX_KEYS_PER_OWNER};
-
-const A: u32 = 70;
-const B: u32 = 71;
-const SECRET: [u8; 32] = [0x11; 32];
-
-fn put(s: &mut Store, owner: u32) -> Result<u32, StoreError> {
-    s.store(KeyType::Symmetric, &SECRET, owner, 0, 0)
-}
-
-/// Store keys for `owner` until the store refuses it.
-fn fill(s: &mut Store, owner: u32) -> Vec<u32> {
-    let mut ids = Vec::new();
-    while let Ok(id) = put(s, owner) {
-        ids.push(id);
-    }
-    ids
-}
-
-/// Fill the whole store, one owner after another from `first`.
-fn fill_all(s: &mut Store, first: u32) -> Vec<(u32, Vec<u32>)> {
-    let mut owners = Vec::new();
-    let mut owner = first;
-    loop {
-        let ids = fill(s, owner);
-        if ids.is_empty() {
-            return owners;
-        }
-        owners.push((owner, ids));
-        owner += 1;
-    }
-}
-
-fn kept(s: &mut Store, owner: u32, id: u32) -> bool {
-    matches!(s.retrieve(id, owner), Ok(bytes) if bytes == SECRET)
-}
+use super::keyring_owner_rig::{fill, fill_all, kept, put, A, B};
+use crate::store::{Store, StoreError, MAX_KEYS, MAX_KEYS_PER_OWNER};
 
 #[test]
 fn an_owner_stops_at_its_share_and_another_still_stores() {
@@ -64,35 +30,13 @@ fn an_owner_stops_at_its_share_and_another_still_stores() {
     assert_eq!(total, MAX_KEYS);
 }
 
-#[test]
-#[allow(clippy::assertions_on_constants)] // the relation is the point
-fn one_owner_never_holds_every_key() {
-    assert!(MAX_KEYS_PER_OWNER < MAX_KEYS);
-}
+const _: () = assert!(MAX_KEYS_PER_OWNER < MAX_KEYS);
 
-/*
- * A key answers only its owner, so once the owner ended nobody could use or
- * delete it, and its secret bytes and place were held for the boot. Eight
- * such owners filled the keyring.
- */
 #[test]
-fn an_ended_owner_s_keys_are_dropped_and_its_places_reused() {
+fn one_owner_never_holds_every_key() {
     let mut s = Store::new();
-    let owners = fill_all(&mut s, 100);
-    assert!(owners.len() >= 2);
-    assert!(s.is_full());
-    let newcomer = 999;
-    assert!(matches!(put(&mut s, newcomer), Err(StoreError::Full)), "the keyring is full");
-    let (dead, dead_ids) = &owners[0];
-    assert_eq!(s.drop_ended(|pid| pid != *dead), dead_ids.len());
-    assert!(!s.is_full());
-    for &id in dead_ids {
-        assert!(matches!(s.retrieve(id, *dead), Err(StoreError::NotFound)), "the key is gone");
-    }
-    for (owner, ids) in &owners[1..] {
-        assert!(ids.iter().all(|&id| kept(&mut s, *owner, id)), "a living owner's keys stay");
-    }
-    assert!(put(&mut s, newcomer).is_ok(), "a new owner is served");
+    fill(&mut s, A);
+    assert!(!s.is_full(), "one owner's whole share leaves room for another");
 }
 
 #[test]

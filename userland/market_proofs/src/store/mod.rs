@@ -27,6 +27,33 @@ pub mod search;
 
 #[path = "../../../capsule_app_store/src/store/listing.rs"]
 pub mod listing;
+#[path = "../../../capsule_app_store/src/store/source.rs"]
+pub mod source;
+
+#[path = "../../../capsule_app_store/src/store/price.rs"]
+pub mod price;
+
+/* The payee a paid listing pays, as the wallet's consent will name it. */
+#[path = "../../../capsule_app_store/src/store/payee.rs"]
+pub mod payee;
+
+#[path = "../../../capsule_app_store/src/store/verdict.rs"]
+pub mod verdict;
+
+#[path = "../../../capsule_app_store/src/store/reasons.rs"]
+pub mod reasons;
+
+/* What the store says after asking, and which listings the wallet buys. */
+#[path = "../../../capsule_app_store/src/store/asked.rs"]
+pub mod asked;
+#[path = "../../../capsule_app_store/src/store/asked_label.rs"]
+pub mod asked_label;
+#[path = "../../../capsule_app_store/src/store/channel_held.rs"]
+pub mod channel_held;
+#[path = "../../../capsule_app_store/src/store/order_line.rs"]
+pub mod order_line;
+#[path = "../../../capsule_app_store/src/store/purchase_said.rs"]
+pub mod purchase_said;
 
 #[path = "../../../capsule_app_store/src/store/tab.rs"]
 pub mod tab;
@@ -36,7 +63,6 @@ pub mod progress;
 
 #[path = "../../../capsule_app_store/src/store/fill_order.rs"]
 pub mod fill_order;
-
 #[path = "../../../capsule_app_store/src/store/next_step.rs"]
 pub mod next_step;
 

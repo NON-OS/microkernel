@@ -25,6 +25,11 @@ use alloc::vec::Vec;
 
 use crate::command::flags::Spec;
 
+#[path = "input_lines.rs"]
+mod input_lines;
+
+pub use input_lines::{lines_of, without};
+
 /// The names that read lines rather than files when they follow a `|`.
 pub const FILTERS: [&[u8]; 10] =
     [b"grep", b"sort", b"uniq", b"cut", b"nl", b"wc", b"head", b"tail", b"tac", b"rev"];
@@ -44,28 +49,6 @@ pub fn spec_for(name: &[u8]) -> Option<Spec<'_>> {
         b"rev" => Spec::new(b"rev", b""),
         _ => return None,
     })
-}
-
-/// A file's lines as a filter sees them: a newline ends a line rather than
-/// starting an empty one, so `sort` of a file that ends in a newline does not
-/// sort an empty line to the top.
-pub fn lines_of(bytes: &[u8]) -> Vec<Vec<u8>> {
-    if bytes.is_empty() {
-        return Vec::new();
-    }
-    let body = bytes.strip_suffix(b"\n").unwrap_or(bytes);
-    body.split(|&b| b == b'\n').map(<[u8]>::to_vec).collect()
-}
-
-/// `args` without the file operands, by identity, for running a filter over
-/// files: what is left is the name and its flags.
-pub fn without<'a>(args: &[&'a [u8]], files: &[&[u8]]) -> Vec<&'a [u8]> {
-    args.iter()
-        .copied()
-        .filter(|a| {
-            !files.iter().any(|f| core::ptr::eq(f.as_ptr(), a.as_ptr()) && f.len() == a.len())
-        })
-        .collect()
 }
 
 /// What a pipe stage that is not a filter says: it would have dropped the

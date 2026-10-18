@@ -27,27 +27,10 @@
 
 use alloc::vec::Vec;
 
-/// Every position in `hay` where `needle` starts, without overlapping.
-///
-/// Case folding matches the search that selected the line, or the marks would
-/// land somewhere other than what was found.
-fn matches(hay: &[u8], needle: &[u8], fold: bool) -> Vec<usize> {
-    let mut at = Vec::new();
-    if needle.is_empty() || needle.len() > hay.len() {
-        return at;
-    }
-    let eq = |a: u8, b: u8| if fold { a.eq_ignore_ascii_case(&b) } else { a == b };
-    let mut i = 0;
-    while i + needle.len() <= hay.len() {
-        if hay[i..].iter().zip(needle).all(|(h, n)| eq(*h, *n)) {
-            at.push(i);
-            i += needle.len();
-        } else {
-            i += 1;
-        }
-    }
-    at
-}
+#[path = "grep_paint_matches.rs"]
+mod grep_paint_matches;
+
+use grep_paint_matches::matches;
 
 /// The line with its matches wrapped in a highlight, or `None` when there is
 /// nothing to mark and the plain row will do.

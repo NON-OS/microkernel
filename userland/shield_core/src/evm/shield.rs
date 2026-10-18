@@ -7,12 +7,14 @@ use super::calls::{balance, call, latest_block, nonce, priority_fee};
 use super::network::Network;
 use super::nox::{with_address, BALANCE_OF};
 use super::rpc::ask;
-pub use super::shield_order::{ShieldChecked, ShieldOrder, Shielding};
+pub use super::shield_order::{ShieldChecked, ShieldOrder, Shielding, ETH_SHORT};
 use crate::error::NetError;
 use crate::net::tor::Tor;
 
 /// `allowance(address,address)`.
 const ALLOWANCE: [u8; 4] = [0xdd, 0x62, 0xed, 0x3e];
+/// What a public review says when the account lacks ETH for the fee.
+pub const NO_ETH: &str = "This account needs Sepolia ETH to pay the network fee.";
 
 pub fn review_shield(
     tor: &Tor,
@@ -36,11 +38,6 @@ pub fn review_shield(
     let Some(fees) = super::gas::fees(at(2)?, at(3)?)? else {
         return Ok(ShieldChecked::Refused("Network fees are far above normal. Try again later."));
     };
-    if ether == 0 {
-        return Ok(ShieldChecked::Refused(
-            "This account needs Sepolia ETH to pay the network fee.",
-        ));
-    }
     let approval = match order.token {
         Some(_) if at(5)?.word()? < order.amount => {
             return Ok(ShieldChecked::Refused("The NOX balance does not cover that."));
@@ -48,5 +45,13 @@ pub fn review_shield(
         Some(_) => at(4)?.word()? < order.amount,
         None => false,
     };
-    super::shield_tx::finish(tor, &chain, from, order, approval, ether, pending, fees, sends)
+    if ether == 0 && approval {
+        let gas = u128::from(nonos_nox_config::APPROVE_GAS);
+        return Ok(ShieldChecked::ShortOfEth(gas.saturating_mul(fees.max_fee)));
+    }
+    if ether == 0 {
+        return Ok(ShieldChecked::Refused(NO_ETH));
+    }
+    let sender = super::sender::Sender { tor, chain: &chain, from };
+    super::shield_tx::finish(sender, order, approval, ether, pending, fees, sends)
 }

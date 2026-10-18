@@ -18,15 +18,11 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs;
-
-use super::{abspath, pid};
+use super::read_file::slurp;
 use crate::command::flags::{parse, Spec};
 use crate::command::output::Output;
 use crate::term::state::State;
 use crate::term::util::format_u64;
-
-const MAX_READ: u32 = 256 * 1024;
 
 pub fn cat(state: &mut State, argv: &[&[u8]]) {
     let parsed = match parse(&Spec::new(b"cat", b"n"), &argv[1..]) {
@@ -40,21 +36,16 @@ pub fn cat(state: &mut State, argv: &[&[u8]]) {
     let number = parsed.has(b'n');
     let mut seq = 0u64;
     for arg in parsed.operands {
-        let path = abspath(state, arg);
-        let owner = pid(state);
-        match vfs::read_file(owner, &path, MAX_READ) {
-            Ok(bytes) => {
-                let mut out = Output::new(&mut state.scrollback);
-                for line in bytes.split(|&b| b == b'\n') {
-                    if !number {
-                        out.writeln(line);
-                        continue;
-                    }
-                    seq += 1;
-                    out.writeln(&numbered(seq, line));
-                }
+        /* Whole or not at all: slurp refuses a file past what it reads. */
+        let Some(bytes) = slurp(state, arg) else { continue };
+        let mut out = Output::new(&mut state.scrollback);
+        for line in bytes.split(|&b| b == b'\n') {
+            if !number {
+                out.writeln(line);
+                continue;
             }
-            Err(e) => Output::new(&mut state.scrollback).writeln(e.as_bytes()),
+            seq += 1;
+            out.writeln(&numbered(seq, line));
         }
     }
 }

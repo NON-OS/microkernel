@@ -21,23 +21,16 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_uptime_ms;
 
 use super::fetch_banner::draw_banner;
-use super::fetch_palette::draw_palette;
 use super::fetch_uptime::uptime_str;
 use super::user_host::draw_fetch_id;
 use crate::term::theme::types::Theme;
 
-// Breathing room between the titlebar and the top of the banner. Anchored to
-// the body rect so the art starts inside the content area, not butted against
-// the chrome above it.
-const BANNER_PAD: i32 = 14;
-const RULE_W: i32 = 300;
-const INFO_PX: f32 = 14.0;
-const ROW: i32 = 20;
-
-fn row(fb: &mut PaintBuffer, x: i32, y: i32, label: &str, value: &str, t: &Theme) {
-    let _ = fb.text_ttf_mono(x, y, label, t.accent, INFO_PX);
-    let _ = fb.text_ttf_mono(x + 96, y, value, t.fg, INFO_PX);
-}
+#[path = "fetch_palette.rs"]
+mod fetch_palette;
+#[path = "fetch_row.rs"]
+mod fetch_row;
+use fetch_palette::draw_palette;
+use fetch_row::{row, BANNER_PAD, INFO_PX, ROW, RULE_W};
 
 pub fn draw_fetch(fb: &mut PaintBuffer, x: u32, body_y: u32, right: u32, t: &Theme) {
     let ix = x as i32;

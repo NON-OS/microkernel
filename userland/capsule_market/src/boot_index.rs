@@ -19,6 +19,7 @@
 use nonos_app_skeleton::clients::vfs::read_file;
 use nonos_libc::{mk_debug, mk_getpid};
 
+use crate::baseline::BASELINE;
 use crate::ingest::{load_verified, IngestError};
 use crate::store::Store;
 use crate::verify::Verifier;
@@ -30,18 +31,17 @@ const PATH: &[u8] = b"/nonos/marketplace/index.bin";
 /// one package.
 const MAX: u32 = 8 << 20;
 
-/// The catalogue this image shipped with, written by tools/nonos-market-index.
-/// Empty when the build had no operator seed, which reads as "no baseline"
-/// rather than as a failure.
-static BASELINE: &[u8] = include_bytes!("../../../target/market/index.bin");
-
 pub fn load<V: Verifier>(store: &mut Store, verifier: &V) {
     match BASELINE.is_empty() {
         false => take(store, verifier, BASELINE, b"built-in"),
         true => say(b"[MARKET] this image was built with no catalogue; nothing to list\n"),
     }
-    if let Ok(blob) = read_file(mk_getpid(), PATH, MAX) {
-        take(store, verifier, &blob, b"operator's");
+    // One byte past the cap, so a longer catalogue is refused, never cut.
+    if let Ok(blob) = read_file(mk_getpid(), PATH, MAX + 1) {
+        match blob.len() > MAX as usize {
+            true => say(b"[MARKET] the operator's catalogue was refused: it is past 8 MiB\n"),
+            false => take(store, verifier, &blob, b"operator's"),
+        }
     }
 }
 

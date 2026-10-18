@@ -17,6 +17,7 @@
 pub mod codec;
 pub mod gate;
 pub mod paths;
+mod project;
 pub mod projects;
 mod rail_flags;
 pub mod store;

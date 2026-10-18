@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
-
 //! A view key reads back to the keys it was made from, and a changed symbol or a relabelled
 //! prefix is refused.
 

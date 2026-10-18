@@ -17,6 +17,7 @@
 
 pub mod ask;
 mod https;
+mod https_transport;
 mod io;
 mod round_trip;
 mod stepped;

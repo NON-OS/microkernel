@@ -1,8 +1,5 @@
 //! The profile proves the vector it names, and its times account for the whole proof.
 
-// A test asserts by panicking and builds instants by hand, so those lints are off here only.
-#![allow(clippy::expect_used, clippy::arithmetic_side_effects, clippy::panic)]
-
 use super::marks::split;
 use super::report::ProofPhase::{self, *};
 use super::{pool, vector};

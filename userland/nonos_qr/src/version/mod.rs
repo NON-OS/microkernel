@@ -17,6 +17,7 @@
 //! Version geometry and error-correction block tables (ISO/IEC 18004).
 
 mod alignment;
+mod block_tables;
 mod blocks;
 mod ecc;
 mod size;

@@ -15,14 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Text set in a column: words broken onto lines no wider than the column,
-//! for the lead sentence and every other run of prose.
+//! for the project sentence and every other run of prose.
 
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use zeroize::Zeroizing;
 
 use super::roles::Role;
 use super::text::{draw_in, line, width};
+
+#[path = "wrap_height.rs"]
+mod wrap_height;
+pub use wrap_height::wrapped_height;
 
 /// Draw `text` wrapped to `w` and return the height it took.
 pub fn wrapped(
@@ -36,14 +41,13 @@ pub fn wrapped(
 ) -> i32 {
     let step = line(role);
     let mut y = top;
-    let mut row = String::new();
+    let mut row = Zeroizing::new(String::new());
     for word in text.split(' ') {
-        let trial =
-            if row.is_empty() { String::from(word) } else { alloc::format!("{row} {word}") };
+        let trial = joined(&row, word);
         if !row.is_empty() && width(role, &trial) > w {
             draw_in(fb, x, y, role, &row, argb);
             y += step;
-            row = String::from(word);
+            row = joined("", word);
         } else {
             row = trial;
         }
@@ -55,22 +59,14 @@ pub fn wrapped(
     y - top
 }
 
-/// The height `text` wrapped to `w` would take, drawing nothing.
-pub fn wrapped_height(w: i32, role: Role, text: &str) -> i32 {
-    let mut rows = 0;
-    let mut row = String::new();
-    for word in text.split(' ') {
-        let trial =
-            if row.is_empty() { String::from(word) } else { alloc::format!("{row} {word}") };
-        if !row.is_empty() && width(role, &trial) > w {
-            rows += 1;
-            row = String::from(word);
-        } else {
-            row = trial;
-        }
-    }
+/// `row` and `word` with a space between, at their full size and zeroed when
+/// dropped: wrapped text can be a key or words shown on purpose.
+pub(super) fn joined(row: &str, word: &str) -> Zeroizing<String> {
+    let mut t = Zeroizing::new(String::with_capacity(row.len() + 1 + word.len()));
     if !row.is_empty() {
-        rows += 1;
+        t.push_str(row);
+        t.push(' ');
     }
-    rows * line(role)
+    t.push_str(word);
+    t
 }

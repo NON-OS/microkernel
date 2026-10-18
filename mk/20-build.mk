@@ -532,6 +532,7 @@ include userland/capsule_process_manager/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_payment/Capsule.mk
+include userland/capsule_nox_settle/Capsule.mk
 include userland/capsule_installer/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
 include userland/capsule_driver_ps2_input/Capsule.mk
