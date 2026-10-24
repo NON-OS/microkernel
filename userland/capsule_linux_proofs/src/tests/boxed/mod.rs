@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod allow_fuzz_tests;
+mod fuzz_tests;
 mod hash_bytes_tests;
 mod hash_tests;
 mod identity_box_tests;

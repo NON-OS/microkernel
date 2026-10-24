@@ -19,7 +19,8 @@
 use crate::boxed::hash::box_hash;
 use crate::boxed::kind::Kind;
 use crate::boxed::preset::parse;
-use crate::boxed::report::{box_line, hex, report, SOURCE};
+use crate::boxed::line::box_line;
+use crate::boxed::report::{hex, report, SOURCE};
 use crate::boxed::tally::Tally;
 
 fn demo() -> Tally {
@@ -38,7 +39,7 @@ fn the_demo_reports_exactly_its_two_refusals() {
     let p = parse(b"strict").unwrap();
     let h = box_hash(&p);
     let want = format!(
-        "BOX REPORT\n  policy   strict {}\n  allowed  write /tmp\n  allowed  read the image, read-only\n  allowed  network none\n  allowed  execve, each program held to this box\n  refused  2\n    write         1  /home/out.txt\n    network       1  an internet socket\n  exit     0\n  {SOURCE}\n",
+        "BOX REPORT v1\n  policy   strict {}\n  allowed  write /tmp\n  allowed  read the image, read-only\n  allowed  network none\n  allowed  execve, each program held to this box\n  refused  2\n    write         1  /home/out.txt\n    network       1  an internet socket\n  exit     0\n  {SOURCE}\n",
         hex(&h)
     );
     assert_eq!(report(&p, &h, &demo(), 0), want);
@@ -49,7 +50,7 @@ fn the_serial_line_carries_every_kind_and_the_exit() {
     let p = parse(b"strict").unwrap();
     let h = box_hash(&p);
     let want = format!(
-        "[BOX] preset=strict policy={} refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 exit=3 source=capsule_linux\n",
+        "[BOX] v=1 preset=strict policy={} refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 exit=3 source=capsule_linux\n",
         hex(&h)
     );
     assert_eq!(box_line(&p, &h, &demo(), 3), want);
