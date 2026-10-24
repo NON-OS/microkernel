@@ -29,6 +29,10 @@ pub const RIRBWP: u32 = 0x58;
 pub const RINTCNT: u32 = 0x5a;
 pub const RIRBCTL: u32 = 0x5c;
 pub const RIRBSTS: u32 = 0x5d;
+/// CORBSTS (HDA 1.0a 3.3.21): bit 0, CMEI, the controller hit a memory error
+/// fetching a command.
+pub const CORBSTS: u32 = 0x4d;
+pub const CORBSTS_CMEI: u8 = 1 << 0;
 pub const RIRBSIZE: u32 = 0x5e;
 
 pub const CORBCTL_RUN: u8 = 1 << 1;
@@ -45,6 +49,9 @@ pub const RIRBCTL_DMAEN: u8 = 1 << 1;
 pub const RIRBCTL_RINTCTL: u8 = 1 << 0;
 pub const RIRBWP_RST: u16 = 1 << 15;
 pub const RIRBSTS_INTFL: u8 = 1 << 0;
+/// RIRBSTS bit 2, RIRBOIS (HDA 1.0a 3.3.28): a response arrived with the RIRB
+/// full and was dropped. Write one to clear.
+pub const RIRBSTS_OIS: u8 = 1 << 2;
 pub const RINTCNT_ONE: u16 = 1;
 /// The upper word of a RIRB entry: the answering codec's address in bits 3:0
 /// and, in bit 4, whether the entry is an unsolicited response.
