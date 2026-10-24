@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! OP_POWER_OFF, the kernel's alone (server::medium_rule): the normal
-//! shutdown and the reset (setup::power_off), with no flush ahead of them
+//! shutdown (setup::power_off), with no flush ahead of it and no reset after
 //! (server::power_off_rule says why). The I/O queue is dropped after either
 //! way, so a request that comes later is answered E_NODEV and nothing
 //! reaches a controller that was told power is going.
