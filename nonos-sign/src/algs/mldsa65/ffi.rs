@@ -38,4 +38,7 @@ extern "C" {
     ) -> core::ffi::c_int;
 
     pub fn NONOS_mldsa65_deterministic_random(enabled: core::ffi::c_int);
+    #[cfg(test)]
+    pub fn NONOS_mldsa65_force_random_failure(enabled: core::ffi::c_int);
+    pub fn NONOS_mldsa65_take_random_failure() -> core::ffi::c_int;
 }
