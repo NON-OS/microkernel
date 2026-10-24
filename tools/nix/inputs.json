@@ -6858,6 +6858,38 @@
   "md": [],
   "signed": []
  },
+ "userland/nsh_attest_proofs": {
+  "exclude": [
+   "userland/nsh_attest_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-boot-measure/src/tcg",
+   "nonos-mldsa65",
+   "src/capabilities/types/as_str.rs",
+   "src/capabilities/types/defs.rs",
+   "src/capabilities/types/guard.rs",
+   "src/capabilities/types/table.rs",
+   "src/crypto/asymmetric/p256/constants.rs",
+   "src/crypto/asymmetric/p256/field",
+   "src/crypto/asymmetric/p256/point",
+   "src/crypto/asymmetric/p256/scalar",
+   "src/security/attest_doc/binding.rs",
+   "src/security/attest_registry/format.rs",
+   "third_party/pqclean",
+   "userland/attest_receipt",
+   "userland/capsule_about/src/about/data/proofs/firmware.rs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_attest",
+   "userland/nsh_attest_proofs",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nsh_crypto_proofs": {
   "exclude": [],
   "include": [
@@ -6866,6 +6898,26 @@
    "userland/nonos_seal",
    "userland/nsh_crypto",
    "userland/nsh_crypto_proofs",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_roles_proofs": {
+  "exclude": [
+   "userland/nsh_roles_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "src/capabilities/types/defs.rs",
+   "third_party/pqclean",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_crypto",
+   "userland/nsh_roles",
+   "userland/nsh_roles_proofs",
    "userland/nsh_wire"
   ],
   "md": [],

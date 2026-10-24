@@ -34,7 +34,7 @@ pub(super) fn range(base: i64, start: i64, len: i64) -> Option<(u64, u64)> {
         l if l > 0 => (at, at.checked_add(l)?),
         l => (at.checked_add(l)?, at),
     };
-    (from >= 0).then(|| (from as u64, if to == i64::MAX { u64::MAX } else { to as u64 }))
+    (from >= 0).then_some((from as u64, if to == i64::MAX { u64::MAX } else { to as u64 }))
 }
 
 /* F_GETLK: the lock in the way, or F_UNLCK when there is none. */
