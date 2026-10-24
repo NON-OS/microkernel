@@ -40,11 +40,13 @@ ACPI and power capsules and the installers hold it by their signed manifests; a
 standard, qemu or dev image grants `Debug` to every capsule whose manifest asks
 for it (`capsule-serial-debug`), and the Linux personality holds it on every
 image (`LINUX_CAPS`, `src/userspace/capsule_linux/spawn.rs`). They now state
-what holds, and a holder outside the named set is still a red. On an image built
-with `capsule-serial-debug`, the secrets check can read broken by the code: the
-proof capsule (`DeviceSecret`) and the input drivers (`InputSource`) take
-`Debug` there when their manifests ask for it. That red is a true finding about
-that image, not a fault in the check.
+what holds, and a holder outside the named set is still a red. Off the dev
+profile the kernel withholds `Debug` from any capsule that also holds
+`InputSource`, `InputConsumer`, `Keyring` or `DeviceSecret`, whatever its
+manifest offers (`unlogged`,
+`src/kernel_core/process_spawn/capsule_spawn/runner/secret_log.rs`), so the
+input drivers and the proof capsule write nothing to the console on a standard
+image; `kernel_proofs` holds every manifest in the tree to that rule.
 
 Beside them a census counts the capsules, the holders of `FileSystem`, and the
 holders of any of `Hardware`, `Driver`, `Mmio`, `Irq`, `Dma` and `Pio`
