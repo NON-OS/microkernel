@@ -54,11 +54,11 @@ pub fn fit_manifest(mut manifest: AppManifest, width: u32, height: u32) -> AppMa
 
     if shrunk {
         // The manifest's origin was chosen for the larger size; centre instead.
-        manifest.initial_x = (width - manifest.width) / 2;
+        manifest.initial_x = width.saturating_sub(manifest.width) / 2;
         manifest.initial_y = bar + work_h.saturating_sub(manifest.height) / 2;
     } else {
         // Keep the requested origin but pull the window fully on screen.
-        manifest.initial_x = manifest.initial_x.min(width - manifest.width);
+        manifest.initial_x = manifest.initial_x.min(width.saturating_sub(manifest.width));
         let lowest = height.saturating_sub(dock + manifest.height).max(bar);
         manifest.initial_y = manifest.initial_y.max(bar).min(lowest);
     }
