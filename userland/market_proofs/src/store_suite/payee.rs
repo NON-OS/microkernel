@@ -20,9 +20,12 @@
 use nonos_marketplace_abi::{commerce_bytes, commerce_from_bytes, Commerce, SettleMode};
 use nonos_nox_config::UNIT_INSTALL;
 
-use crate::chain_hosts::Host;
+/* The store's own keccak, in process from sha3: the line it ships. */
+#[path = "../../../capsule_app_store/src/store/market/kec.rs"]
+mod kec;
 use crate::store::payee::{payee_line, CHECKED};
 use crate::store::price::Price;
+use kec::Kec as Host;
 
 /* From EIP-55: every capital is the checksum's. */
 pub const EXAMPLES: [&str; 8] = [

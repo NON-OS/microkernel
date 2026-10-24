@@ -29,7 +29,6 @@ use core::sync::atomic::{AtomicU8, Ordering};
 use nonos_libc::mk_args;
 
 use super::launch::Launch;
-use crate::linux::say::say;
 
 /// 0 not yet looked, 1 not started by the terminal, 2 started by it.
 static STARTED: AtomicU8 = AtomicU8::new(0);
@@ -56,8 +55,7 @@ pub(super) fn requested(max_image: u32) -> Option<Option<Launch>> {
     if parts.next()? != b"linux" {
         return None;
     }
-    let Some(program) = parts.next().filter(|p| !p.is_empty()) else {
-        say(b"usage: linux <program> [arguments]\n");
+    let Some(program) = super::terminal_box::program(&mut parts) else {
         return Some(None);
     };
     let args: Vec<Vec<u8>> = parts.map(<[u8]>::to_vec).collect();

@@ -20,6 +20,7 @@ use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms};
 
 use super::announce::announce;
 use super::pump::PumpState;
+use super::pump_rule::rechoose_now;
 use super::streams::StreamTable;
 use super::tidy::tidy;
 use super::{handle, no_sink};
@@ -53,7 +54,7 @@ pub fn run() -> ! {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), RX_LEN, RECV_TIMEOUT_MS, &mut sender);
         let now = mk_uptime_ms();
-        if now.wrapping_sub(last_reap) >= REAP_GAP_MS {
+        if rechoose_now(now.wrapping_sub(last_reap) >= REAP_GAP_MS, pump.take_lost()) {
             last_reap = now;
             tidy(&mut table, &mut pump, sink.as_ref());
         }

@@ -44,7 +44,7 @@ pub fn step(state: &mut PumpState, table: &mut StreamTable, sink: &Sink) {
         }
         if !still_running(status) {
             // Kept, to go out first once the stream is started again.
-            state.running = false;
+            (state.running, state.lost) = (false, true);
             return;
         }
         state.pending = None;
@@ -56,6 +56,7 @@ pub fn step(state: &mut PumpState, table: &mut StreamTable, sink: &Sink) {
         let status = sink.write_pcm_status(&to_bytes(&samples), state.sent as u32);
         if status == E_AGAIN || !still_running(status) {
             state.running = still_running(status);
+            state.lost |= !state.running;
             state.pending = Some(samples);
             break;
         }
