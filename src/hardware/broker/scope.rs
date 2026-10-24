@@ -31,6 +31,8 @@
 mod hosts;
 #[path = "scope_ids.rs"]
 mod ids;
+#[path = "scope_ids_nic.rs"]
+mod ids_nic;
 #[path = "scope_lpss.rs"]
 mod lpss;
 #[path = "scope_rows.rs"]
