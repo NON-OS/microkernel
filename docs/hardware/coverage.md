@@ -19,7 +19,8 @@ Each row is a part, or a family that one driver serves, with:
   from the tree. "By class": the driver matches the class code, not ids. "No driver": no
   table in the tree names the part.
 - **In Standard.** Whether the Standard image carries the driver: "yes" or "no" by the
-  kernel's Cargo features, "kernel" for kernel code every image has, and "no feature" for a
+  kernel's Cargo features, "listed, unsealed" when it is listed but its trust files are not
+  committed, "kernel" for kernel code every image has, and "no feature" for a
   driver no build can include.
 - **Owner.** The session that closes the gap: A (kernel and driver hardening), B (drivers and
   the block wire), E (Wi-Fi and Bluetooth), F (ACPI and platform), G (graphics), hw (this map,
