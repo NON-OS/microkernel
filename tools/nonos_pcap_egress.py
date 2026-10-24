@@ -18,9 +18,15 @@
 whether any of it names the machine or the person outside the anonymity
 networks.
 
-The capture holds both directions. A frame is the guest's when its source MAC
-is not the user-net host's (52:55:0a:00:02:02 under QEMU's slirp); only those
-are judged. Each one is classified, and these fail the run:
+The capture holds both directions. A frame from a user-net host MAC (QEMU's
+slirp answers as 52:55:0a:00:02:02, and as 52:56:00:00:00:02 for IPv6) is the
+host's and is not judged. A frame from the NIC's own assigned MAC (--nic-mac,
+QEMU's 52:54:00:12:34:56 by default) before the guest has sent from any other
+address is the firmware's: UEFI brings the NIC up with it before NONOS runs.
+Those are counted and listed, not judged. NONOS replaces that address with a
+random one, so a frame from it once another guest address has appeared
+fails as `mac`. Every other frame is the guest's, is classified, and these
+fail the run:
 
   dns        any UDP or TCP to port 53, or 853 (DoT): a name in the clear
   ntp        UDP to 123: the clock, and the machine, to a time server
@@ -60,6 +66,8 @@ import zlib
 from collections import Counter, defaultdict
 
 SLIRP_HOST_MAC = bytes.fromhex("52550a000202")
+SLIRP_HOST_MACS = (SLIRP_HOST_MAC, bytes.fromhex("525600000002"))
+QEMU_NIC_MAC = bytes.fromhex("525400123456")
 
 DNS_PORTS = {53, 853}
 NTP_PORTS = {123}
@@ -192,14 +200,16 @@ def _inflate(body):
         return b""
 
 
-def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
+def judge(data, allow_ips=(), allow_names=(), host_macs=SLIRP_HOST_MACS, nic_mac=QEMU_NIC_MAC):
     """The report for a capture's bytes: every guest frame classified."""
     allow_names = set(allow_names)
     pinned = set(allow_ips)
     learned = relays(data, pinned)
     allow_ips = pinned | learned
     failures, peers = [], Counter()
-    seen = {"frames": 0, "guest_frames": 0, "macs": set(), "dhcp_params": [], "sni": Counter(), "http": Counter()}
+    seen = {"frames": 0, "guest_frames": 0, "firmware_frames": 0, "macs": set(), "dhcp_params": [],
+            "sni": Counter(), "http": Counter()}
+    os_started = False
 
     def fail(kind, what):
         failures.append({"kind": kind, "what": what})
@@ -209,8 +219,15 @@ def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
         if len(f) < 14:
             continue
         dst_mac, src_mac, ethertype = f[0:6], f[6:12], struct.unpack_from(">H", f, 12)[0]
-        if src_mac == host_mac:
+        if src_mac in host_macs:
             continue
+        if src_mac == nic_mac and not os_started:
+            seen["firmware_frames"] += 1
+            continue
+        if src_mac == nic_mac:
+            fail("mac", f"a frame from the NIC's own address {mac_text(src_mac)} after the guest had another")
+        else:
+            os_started = True
         seen["guest_frames"] += 1
         if src_mac not in seen["macs"]:
             seen["macs"].add(src_mac)
@@ -273,6 +290,7 @@ def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
         "status": "fail" if failures else "pass",
         "frames": seen["frames"],
         "guest_frames": seen["guest_frames"],
+        "firmware_frames": seen["firmware_frames"],
         "guest_macs": sorted(mac_text(m) for m in seen["macs"]),
         "dhcp_parameter_lists": seen["dhcp_params"],
         "tls_server_names": dict(seen["sni"]),
@@ -395,6 +413,16 @@ def self_test():
     tcp_dns = _tcp((10, 0, 2, 3), 853, b"\x00" * 10)
     assert {f["kind"] for f in judge(_pcap([tcp_dns]))["failures"]} >= {"dns"}, "DNS over TLS"
 
+    # The firmware's frames from the NIC's own address, before the OS sends,
+    # are counted, not judged; the same address once the OS has sent fails.
+    fw = _eth(b"\x60" + bytes(39), src=QEMU_NIC_MAC, ethertype=0x86DD)
+    r = judge(_pcap([fw, fw] + clean), **allow)
+    assert r["status"] == "pass" and r["firmware_frames"] == 2, r
+    r = judge(_pcap(clean + [_udp((92, 39, 63, 14), 9999, b"x", src=QEMU_NIC_MAC)]), **allow)
+    assert "mac" in {f["kind"] for f in r["failures"]}, "the hardware address after the OS started"
+    v6router = _eth(b"\x60" + bytes(39), src=bytes.fromhex("525600000002"), ethertype=0x86DD)
+    assert judge(_pcap([v6router] + clean), **allow)["status"] == "pass", "slirp's IPv6 router"
+
     for bad in (b"", b"\x00" * 10, b"not a pcap at all, not even close!!"):
         try:
             judge(bad)
@@ -423,7 +451,10 @@ def main(argv=None):
     ap.add_argument("--self-test", action="store_true", help="check the rules on captures built here")
     ap.add_argument("--allow", action="append", default=[], help="an IPv4 peer that is expected")
     ap.add_argument("--allow-name", action="append", default=[], help="a TLS server name or HTTP host that is expected")
-    ap.add_argument("--host-mac", default=mac_text(SLIRP_HOST_MAC), help="the user-net host's MAC, whose frames are not the guest's")
+    ap.add_argument("--host-mac", action="append", default=[],
+                    help="a user-net host MAC, whose frames are not the guest's (default: QEMU slirp's two)")
+    ap.add_argument("--nic-mac", default=mac_text(QEMU_NIC_MAC),
+                    help="the NIC's own assigned MAC, which only the firmware may send from")
     ap.add_argument("--json", help="write the report here as well")
     a = ap.parse_args(argv)
     if a.self_test:
@@ -432,7 +463,8 @@ def main(argv=None):
         ap.error("a capture is required")
     try:
         with open(a.pcap, "rb") as fh:
-            report = judge(fh.read(), a.allow, a.allow_name, bytes.fromhex(a.host_mac.replace(":", "")))
+            hosts = tuple(bytes.fromhex(m.replace(":", "")) for m in a.host_mac) or SLIRP_HOST_MACS
+            report = judge(fh.read(), a.allow, a.allow_name, hosts, bytes.fromhex(a.nic_mac.replace(":", "")))
     except (OSError, Unreadable, ValueError) as e:
         print(f"[egress] cannot read {a.pcap}: {e}", file=sys.stderr)
         return 2
@@ -448,7 +480,8 @@ def main(argv=None):
     print(f"[egress] guest MACs {', '.join(report['guest_macs']) or 'none'}")
     for f in report["failures"]:
         print(f"[egress] FAIL {f['kind']}: {f['what']}")
-    print(f"[egress] {report['status'].upper()}: {report['guest_frames']} guest frames of {report['frames']}")
+    print(f"[egress] {report['status'].upper()}: {report['guest_frames']} guest frames, "
+          f"{report['firmware_frames']} firmware frames, of {report['frames']}")
     if a.json:
         with open(a.json, "w") as fh:
             json.dump(report, fh, indent=1)
