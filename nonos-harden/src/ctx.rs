@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the checks share: the inputs, and what the earlier checks found (the
-//! record once it parsed, the kind of image it describes), so a later check
-//! that depends on one says so instead of guessing.
+//! record and receipt once they parsed, the kind of image, the tree's HEAD),
+//! so a later check that depends on one says so instead of guessing.
 
+use crate::release::receipt::Receipt;
 use crate::release::record::Record;
+use crate::tree::runner::Runner;
 use serde::Serialize;
 use std::path::PathBuf;
 
@@ -34,13 +36,22 @@ pub enum Kind {
 pub struct Ctx {
     pub release: PathBuf,
     pub tree: Option<PathBuf>,
+    pub runner: Box<dyn Runner>,
     pub record: Option<Record>,
     pub record_sha256: Option<String>,
+    pub receipt: Option<Receipt>,
+    pub tree_head: Option<String>,
     pub kind: Kind,
 }
 
 impl Ctx {
+    #[cfg(test)]
     pub fn new(release: PathBuf, tree: Option<PathBuf>) -> Self {
-        Self { release, tree, record: None, record_sha256: None, kind: Kind::Unknown }
+        Self::with_runner(release, tree, Box::new(crate::tree::runner::System))
+    }
+    pub fn with_runner(release: PathBuf, tree: Option<PathBuf>, runner: Box<dyn Runner>) -> Self {
+        let (record, record_sha256, receipt, tree_head) = (None, None, None, None);
+        let kind = Kind::Unknown;
+        Self { release, tree, runner, record, record_sha256, receipt, tree_head, kind }
     }
 }

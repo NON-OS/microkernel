@@ -37,6 +37,8 @@ pub fn decide(kind: Kind, checks: &[Check]) -> (Overall, String) {
         }
         (None, Kind::Release) => (Overall::Go, "GO".into()),
         (None, Kind::Development) => (Overall::Go, DEV_GO.into()),
-        (None, Kind::Unknown) => (Overall::NoGo, "NO-GO: the kind of image was not established".into()),
+        (None, Kind::Unknown) => {
+            (Overall::NoGo, "NO-GO: the kind of image was not established".into())
+        }
     }
 }

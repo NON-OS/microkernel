@@ -55,3 +55,16 @@ impl Check {
         Self { id, status, reason: reason.into(), limits: Vec::new() }
     }
 }
+
+/// Reasons name at most this many problems, then say how many more.
+pub const NAMED: usize = 8;
+
+/// The first problems by name, then a count of the rest.
+pub fn named(problems: Vec<String>) -> String {
+    let more = problems.len().saturating_sub(NAMED);
+    let mut s = problems.into_iter().take(NAMED).collect::<Vec<_>>().join("; ");
+    if more > 0 {
+        s += &format!("; and {more} more");
+    }
+    s
+}
