@@ -27,7 +27,10 @@ fn every_other_shape_is_refused_with_a_reason() {
     let cases: Vec<Vec<u8>> = vec![
         b"not json".to_vec(),
         b"[]".to_vec(),
-        serde_json::to_vec(&json!({"format": "nonos-release/2", "config": {"release": true}, "sealed": ok})).unwrap(),
+        serde_json::to_vec(
+            &json!({"format": "nonos-release/2", "config": {"release": true}, "sealed": ok}),
+        )
+        .unwrap(),
         serde_json::to_vec(&json!({"config": {"release": true}, "sealed": ok})).unwrap(),
         rec(json!({"release": "yes"}), ok.clone()),
         rec(json!({"release": true, "features": "nonos-dev-attest"}), ok.clone()),

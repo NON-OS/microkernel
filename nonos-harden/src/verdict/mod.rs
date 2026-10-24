@@ -18,16 +18,18 @@
 //! form is an interface named by `format`; a change to what any field means
 //! is a new format number, never a silent change.
 
+mod build;
 mod decide;
 pub mod json;
 pub mod text;
 
+pub use build::build;
 pub use decide::decide;
 #[cfg(test)]
 pub use decide::DEV_GO;
 
 use crate::check::Check;
-use crate::ctx::{Ctx, Kind};
+use crate::ctx::Kind;
 use serde::Serialize;
 
 pub const FORMAT: &str = "nonos-harden-verdict/1";
@@ -51,15 +53,8 @@ pub struct Verdict {
     pub kind: Kind,
     pub release: String,
     pub record_sha256: Option<String>,
+    pub tree: Option<String>,
+    pub tree_head: Option<String>,
     pub scope: &'static str,
     pub checks: Vec<Check>,
-}
-
-pub fn build(ctx: &Ctx, checks: Vec<Check>) -> Verdict {
-    let (overall, verdict) = decide(ctx.kind, &checks);
-    let tool = format!("nonos-harden {}", env!("CARGO_PKG_VERSION"));
-    let release = ctx.release.display().to_string();
-    let record_sha256 = ctx.record_sha256.clone();
-    let (format, scope, kind) = (FORMAT, SCOPE, ctx.kind);
-    Verdict { format, tool, overall, verdict, kind, release, record_sha256, scope, checks }
 }

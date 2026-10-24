@@ -14,62 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The whole command: every check runs in order every time; GO, NO-GO and an
-//! undelivered verdict each come out as the interface says.
+//! The whole command runs every check in order every time, and every verifier
+//! of the tree.
 
-use super::fixture::Release;
-use crate::cli::CheckArgs;
+use super::fake::Fake;
+use super::sealed_fixture::Sealed;
 use crate::ctx::Ctx;
 use crate::exit;
-use crate::plan::{check, run, STEPS};
-use crate::verdict::DEV_GO;
-use std::path::Path;
+use crate::plan::{run, STEPS};
 
 /// Written out, not read from the plan, so a check dropped from it fails here.
-const EXPECTED: &[&str] = &["release.record", "release.sealed", "release.kind"];
-
-pub fn verdict(release: &Path) -> (u8, serde_json::Value) {
-    let out = tempfile::tempdir().unwrap();
-    let file = out.path().join("verdict.json");
-    let args = CheckArgs { release: release.into(), tree: None, out: Some(file.clone()), json: true };
-    let code = check(&args);
-    (code, serde_json::from_slice(&std::fs::read(file).unwrap()).unwrap())
-}
+pub const EXPECTED: &[&str] = &[
+    "release.record",
+    "release.sealed",
+    "release.kind",
+    "release.receipt",
+    "tree.source",
+    "tree.ledger",
+    "release.kernel-signature",
+    "tree.build-inputs",
+    "verify.hygiene",
+    "verify.trust-chain",
+    "verify.supply-chain",
+    "matrix.static-checks",
+    "matrix.proof-crates",
+];
 
 #[test]
 fn every_check_runs_in_order_every_time() {
-    for dir in [Release::dev().dir, tempfile::tempdir().unwrap()] {
-        let ids: Vec<_> = run(&mut Ctx::new(dir.path().into(), None)).iter().map(|c| c.id).collect();
-        assert_eq!(ids, EXPECTED);
-    }
+    let s = Sealed::dev();
+    let ids = |mut ctx: Ctx| run(&mut ctx).iter().map(|c| c.id).collect::<Vec<_>>();
+    assert_eq!(ids(s.ctx(Fake::default())), EXPECTED);
+    assert_eq!(ids(Ctx::new(tempfile::tempdir().unwrap().path().into(), None)), EXPECTED);
     for (id, step) in STEPS {
-        assert_eq!(step(&mut Ctx::new(Release::dev().path().into(), None)).id, *id);
+        assert_eq!(step(&mut s.ctx(Fake::default())).id, *id);
     }
 }
 
 #[test]
-fn a_passing_development_release_reads_go_not_a_release() {
-    let (code, v) = verdict(Release::dev().path());
-    assert_eq!((code, v["verdict"].as_str()), (exit::GO, Some(DEV_GO)));
-    assert_eq!(v["kind"], "development");
-}
-
-#[test]
-fn a_passing_release_reads_go() {
-    let (code, v) = verdict(Release::release().path());
-    assert_eq!((code, v["verdict"].as_str(), v["kind"].as_str()), (exit::GO, Some("GO"), Some("release")));
-}
-
-#[test]
-fn a_directory_that_is_not_a_release_is_no_go() {
-    let (code, v) = verdict(tempfile::tempdir().unwrap().path());
-    assert_eq!((code, v["checks"][0]["status"].as_str()), (exit::NO_GO, Some("fail")));
-}
-
-#[test]
-fn a_verdict_that_cannot_be_written_is_not_delivered() {
-    let r = Release::dev();
-    let out = Some(r.path().join("no/such/dir/verdict.json"));
-    let args = CheckArgs { release: r.path().into(), tree: None, out, json: false };
-    assert_eq!(check(&args), exit::NOT_DELIVERED);
+fn every_verifier_of_the_tree_is_run() {
+    let fake = Fake::default();
+    let ran = fake.ran.clone();
+    assert_eq!(Sealed::dev().verdict(fake).0, exit::GO);
+    let want = ["python3 --check", "cargo hygiene", "cargo trust-chain", "cargo supply-chain"];
+    let want = [&want[..], &["python3 static-checks", "python3 proof-crates"]].concat();
+    assert_eq!(*ran.borrow(), want);
 }

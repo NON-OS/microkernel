@@ -55,7 +55,8 @@ fn the_text_verdict_cannot_be_steered_by_what_it_quotes() {
 fn the_json_verdict_names_its_format_kind_and_every_check() {
     let mut ctx = Ctx::new("r".into(), None);
     ctx.kind = Kind::Development;
-    let v = build(&ctx, vec![ok("a"), Check::not_run("b", "no tree").with_limits(vec!["l".into()])]);
+    let v =
+        build(&ctx, vec![ok("a"), Check::not_run("b", "no tree").with_limits(vec!["l".into()])]);
     let j: serde_json::Value = serde_json::from_str(&json::render(&v).unwrap()).unwrap();
     assert_eq!(j["format"], FORMAT);
     assert_eq!((j["overall"].as_str(), j["kind"].as_str()), (Some("no-go"), Some("development")));

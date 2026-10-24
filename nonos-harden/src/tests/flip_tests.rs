@@ -16,32 +16,43 @@
 
 //! A copy of a passing release with one byte flipped by the tree's own
 //! negative-test tool (tools/nonos-flip-byte) reads NO-GO, and the verdict
-//! names the one check that caught it and the file it caught it in.
+//! names every check that caught it and the file it caught it in.
 
-use super::fixture::Release;
-use super::plan_tests::verdict;
+use super::fake::Fake;
+use super::sealed_fixture::Sealed;
 use crate::exit;
-use std::path::Path;
 use std::process::Command;
 
 const FLIP: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../tools/nonos-flip-byte");
 
-#[test]
-fn a_copy_with_one_flipped_byte_reads_no_go_naming_the_check() {
-    let r = Release::dev();
+/// The ids of the checks that did not pass when `file` is flipped in a copy.
+fn caught(file: &str) -> Vec<String> {
+    let s = Sealed::dev();
     let copy = tempfile::tempdir().unwrap();
-    let src = format!("{}/.", r.path().display());
+    let src = format!("{}/.", s.release.path().display());
     assert!(Command::new("cp").args(["-a", &src]).arg(copy.path()).status().unwrap().success());
-    let img = |d: &Path| d.join("nonos.img");
-    let flip = Command::new("python3").arg(FLIP).arg(img(r.path())).arg(img(copy.path())).status();
-    assert!(flip.unwrap().success());
-    let (code, v) = verdict(copy.path());
+    let mut flip = Command::new("python3");
+    flip.arg(FLIP).arg(s.release.path().join(file)).arg(copy.path().join(file));
+    assert!(flip.status().unwrap().success());
+    let (code, v) = s.verdict_of(copy.path(), Fake::default());
     assert_eq!(code, exit::NO_GO);
-    let checks = v["checks"].as_array().unwrap();
-    let caught: Vec<_> = checks.iter().filter(|c| c["status"] != "pass").collect();
-    assert_eq!(caught.len(), 1, "exactly one check caught it");
-    assert_eq!(caught[0]["id"], "release.sealed");
-    assert!(caught[0]["reason"].as_str().unwrap().contains("nonos.img"));
-    assert!(v["verdict"].as_str().unwrap().ends_with("first release.sealed"));
-    assert_eq!(verdict(r.path()).0, exit::GO, "and the release it was copied from still passes");
+    let missed: Vec<_> =
+        v["checks"].as_array().unwrap().iter().filter(|c| c["status"] != "pass").collect();
+    assert!(missed.iter().all(|c| c["reason"].as_str().unwrap().contains(file)), "{missed:#?}");
+    assert_eq!(
+        s.verdict(Fake::default()).0,
+        exit::GO,
+        "the release it was copied from still passes"
+    );
+    missed.iter().map(|c| c["id"].as_str().unwrap().to_string()).collect()
+}
+
+#[test]
+fn a_flipped_byte_in_the_image_reads_no_go_naming_the_check() {
+    assert_eq!(caught("nonos.img"), ["release.sealed"]);
+}
+
+#[test]
+fn a_flipped_byte_in_the_kernel_is_caught_by_its_digest_and_its_signature() {
+    assert_eq!(caught("kernel.bin"), ["release.sealed", "release.kernel-signature"]);
 }

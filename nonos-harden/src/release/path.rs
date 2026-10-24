@@ -16,7 +16,7 @@
 
 //! A path the record names is trusted only to stay inside the release: it is
 //! relative and every component is an ordinary name. No `..`, no root, no
-//! `.`, no empty component, no backslash or NUL, so it means the same thing
+//! `.`, no empty component, no backslash or control character, so it means the same thing
 //! on any host and cannot climb out of the directory being checked.
 
 const MAX_LEN: usize = 4096;
@@ -24,7 +24,7 @@ const MAX_LEN: usize = 4096;
 pub fn safe(rel: &str) -> bool {
     !rel.is_empty()
         && rel.len() <= MAX_LEN
-        && !rel.contains(['\\', '\0'])
+        && !rel.chars().any(|c| c == '\\' || c.is_control())
         && rel.split('/').all(|c| !c.is_empty() && c != "." && c != "..")
 }
 

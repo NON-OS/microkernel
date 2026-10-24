@@ -25,8 +25,14 @@ fn args(a: &[&str]) -> Vec<String> {
 
 #[test]
 fn a_full_command_is_read_as_given() {
-    let c = parse(&args(&["check", "--release", "r", "--tree", "t", "--format", "json", "--out", "o"]));
-    let want = CheckArgs { release: "r".into(), tree: Some("t".into()), out: Some("o".into()), json: true };
+    let c =
+        parse(&args(&["check", "--release", "r", "--tree", "t", "--format", "json", "--out", "o"]));
+    let want = CheckArgs {
+        release: "r".into(),
+        tree: Some("t".into()),
+        out: Some("o".into()),
+        json: true,
+    };
     assert_eq!(c, Ok(Command::Check(want)));
     assert_eq!(parse(&args(&["--help"])), Ok(Command::Help));
     assert_eq!(parse(&args(&["--version"])), Ok(Command::Version));

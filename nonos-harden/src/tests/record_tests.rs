@@ -23,7 +23,8 @@ use serde_json::{json, Value};
 pub const H: &str = "a3f1c9b2d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f";
 
 pub fn rec(config: Value, sealed: Value) -> Vec<u8> {
-    serde_json::to_vec(&json!({"format": "nonos-release/1", "config": config, "sealed": sealed})).unwrap()
+    serde_json::to_vec(&json!({"format": "nonos-release/1", "config": config, "sealed": sealed}))
+        .unwrap()
 }
 fn one(sealed: Value) -> Result<crate::release::record::Record, String> {
     parse(&rec(json!({"release": false}), sealed))
@@ -31,7 +32,9 @@ fn one(sealed: Value) -> Result<crate::release::record::Record, String> {
 
 #[test]
 fn the_shape_the_seal_writes_is_read_whole() {
-    let r = one(json!({"usb": {"file": "nonos.img", "sha256": H}, "esp": {"dir": "esp", "files": {"EFI/x": H}}}));
+    let r = one(
+        json!({"usb": {"file": "nonos.img", "sha256": H}, "esp": {"dir": "esp", "files": {"EFI/x": H}}}),
+    );
     let r = r.unwrap();
     assert_eq!((r.release, r.sealed.len()), (false, 2));
     assert!(r.sealed.iter().any(|s| s.item == Item::File(H.into()) && s.rel == "nonos.img"));

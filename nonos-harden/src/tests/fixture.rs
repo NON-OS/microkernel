@@ -16,6 +16,7 @@
 
 //! A sealed release for a proof: real files and a record of their real digests.
 
+pub use super::configs::{dev_config, release_config};
 use crate::hash::sha256_hex;
 use serde_json::{json, Map, Value};
 use std::fs;
@@ -26,23 +27,20 @@ pub const ESP: [&str; 2] = ["EFI/BOOT/BOOTX64.EFI", "kernel.bin"];
 
 pub struct Release {
     pub dir: TempDir,
+    pub config: Value,
 }
 
 impl Release {
     pub fn dev() -> Self {
-        Self::with(json!({"release": false, "profile": "qemu-dev", "features": ["nonos-dev-attest"]}))
-    }
-    pub fn release() -> Self {
-        Self::with(json!({"release": true, "profile": "qemu", "features": [], "rollback_index": 1}))
+        Self::with(dev_config())
     }
     pub fn with(config: Value) -> Self {
-        let r = Self { dir: tempfile::tempdir().unwrap() };
-        let image: Vec<u8> = (0..4096u32).map(|i| (i * 7 % 251) as u8).collect();
-        r.put("nonos.img", &image);
+        let r = Self { dir: tempfile::tempdir().unwrap(), config };
+        r.put("nonos.img", &(0..4096u32).map(|i| (i * 7 % 251) as u8).collect::<Vec<_>>());
         r.put("kernel.bin", b"the signed kernel");
-        r.put("esp/EFI/BOOT/BOOTX64.EFI", b"the loader");
         r.put("esp/kernel.bin", b"the signed kernel");
-        r.record(config);
+        r.put("esp/EFI/BOOT/BOOTX64.EFI", b"the loader");
+        r.record();
         r
     }
     pub fn path(&self) -> &Path {
@@ -53,23 +51,16 @@ impl Release {
         fs::create_dir_all(p.parent().unwrap()).unwrap();
         fs::write(p, bytes).unwrap();
     }
-    fn sha(&self, rel: &str) -> String {
+    pub fn sha(&self, rel: &str) -> String {
         sha256_hex(&fs::read(self.path().join(rel)).unwrap())
     }
     /// The record over what the directory holds now, every digest real.
-    pub fn record(&self, config: Value) {
+    pub fn record(&self) {
         let file = |rel: &str| json!({"file": rel, "sha256": self.sha(rel)});
-        let esp: Map<String, Value> = ESP.iter().map(|f| (f.to_string(), json!(self.sha(&format!("esp/{f}"))))).collect();
+        let esp: Map<String, Value> =
+            ESP.iter().map(|f| (f.to_string(), json!(self.sha(&format!("esp/{f}"))))).collect();
         let sealed = json!({"usb": file("nonos.img"), "kernel": file("kernel.bin"), "esp": {"dir": "esp", "files": esp}});
-        let rec = json!({"format": "nonos-release/1", "config": config, "build": {}, "sealed": sealed});
-        fs::write(self.path().join("nonos-release.json"), serde_json::to_vec_pretty(&rec).unwrap()).unwrap();
-    }
-    /// The middle byte of `rel` inverted, as tools/nonos-flip-byte does.
-    pub fn flip(&self, rel: &str) {
-        let p = self.path().join(rel);
-        let mut b = fs::read(&p).unwrap();
-        let at = b.len() / 2;
-        b[at] ^= 0xFF;
-        fs::write(p, b).unwrap();
+        let rec = json!({"format": "nonos-release/1", "config": self.config, "build": {}, "sealed": sealed});
+        fs::write(self.path().join("nonos-release.json"), rec.to_string()).unwrap();
     }
 }

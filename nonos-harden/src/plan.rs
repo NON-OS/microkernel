@@ -23,19 +23,41 @@ use crate::check::Check;
 use crate::cli::CheckArgs;
 use crate::ctx::Ctx;
 use crate::deliver::deliver;
-use crate::release::{kind, load, sealed};
+use crate::release::{kernel_check, kind, load, receipt_check, sealed};
+use crate::tree::runner::{Runner, System};
+use crate::tree::{find, inputs, ledger, matrix, source, verify};
 use crate::verdict;
 
 pub type Step = (&'static str, fn(&mut Ctx) -> Check);
 
-pub const STEPS: &[Step] = &[(load::ID, load::check), (sealed::ID, sealed::check), (kind::ID, kind::check)];
+pub const STEPS: &[Step] = &[
+    (load::ID, load::check),
+    (sealed::ID, sealed::check),
+    (kind::ID, kind::check),
+    (receipt_check::ID, receipt_check::check),
+    (source::ID, source::check),
+    (ledger::ID, ledger::check),
+    (kernel_check::ID, kernel_check::check),
+    (inputs::ID, inputs::check),
+    (verify::HYGIENE, verify::hygiene),
+    (verify::TRUST_CHAIN, verify::trust_chain),
+    (verify::SUPPLY_CHAIN, verify::supply_chain),
+    (matrix::STATIC, matrix::static_checks),
+    (matrix::PROOFS, matrix::proof_crates),
+];
 
 pub fn run(ctx: &mut Ctx) -> Vec<Check> {
     STEPS.iter().map(|(_, step)| step(ctx)).collect()
 }
 
 pub fn check(args: &CheckArgs) -> u8 {
-    let mut ctx = Ctx::new(args.release.clone(), args.tree.clone());
+    check_with(args, Box::new(System))
+}
+
+pub fn check_with(args: &CheckArgs, runner: Box<dyn Runner>) -> u8 {
+    let here = || std::env::current_dir().ok().and_then(|d| find(&d));
+    let tree = args.tree.clone().or_else(here);
+    let mut ctx = Ctx::with_runner(args.release.clone(), tree, runner);
     let checks = run(&mut ctx);
     deliver(&verdict::build(&ctx, checks), args)
 }

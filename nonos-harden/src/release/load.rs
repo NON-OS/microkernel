@@ -18,19 +18,17 @@
 //! tool reads. Every other check over the release starts from it, and the
 //! verdict names the record by its SHA-256, so a verdict is tied to bytes.
 
+use super::read::read_regular;
 use super::record::{parse, FORMAT, MAX_BYTES};
 use super::RECORD;
 use crate::check::Check;
 use crate::ctx::Ctx;
 use crate::hash::sha256_hex;
-use std::fs::{self, File};
-use std::io::Read;
-use std::path::Path;
 
 pub const ID: &str = "release.record";
 
 pub fn check(ctx: &mut Ctx) -> Check {
-    let bytes = match read(&ctx.release.join(RECORD)) {
+    let bytes = match read_regular(&ctx.release.join(RECORD), MAX_BYTES) {
         Ok(b) => b,
         Err(e) => return Check::fail(ID, format!("{RECORD}: {e}")),
     };
@@ -43,17 +41,4 @@ pub fn check(ctx: &mut Ctx) -> Check {
         }
         Err(e) => Check::fail(ID, format!("{RECORD}: {e}")),
     }
-}
-
-/// The record's bytes, when it is a regular file; read no further than one
-/// byte past the largest record, which `parse` then refuses.
-fn read(at: &Path) -> Result<Vec<u8>, String> {
-    let md = fs::symlink_metadata(at).map_err(|_| "not found; this is not a sealed release")?;
-    if !md.file_type().is_file() {
-        return Err("not a regular file".into());
-    }
-    let unreadable = |e: std::io::Error| format!("unreadable ({e})");
-    let mut bytes = Vec::new();
-    File::open(at).map_err(unreadable)?.take(MAX_BYTES + 1).read_to_end(&mut bytes).map_err(unreadable)?;
-    Ok(bytes)
 }

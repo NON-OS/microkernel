@@ -19,13 +19,22 @@
 
 mod config;
 mod entry;
+pub mod kernel;
+pub mod kernel_check;
+pub mod kernel_keys;
 pub mod kind;
 pub mod load;
 pub mod path;
+pub mod read;
+pub mod receipt;
+mod receipt_agree;
+pub mod receipt_check;
+mod receipt_parts;
 pub mod record;
+pub mod resolve;
 pub mod sealed;
 mod sealed_dir;
-mod walk;
+pub mod walk;
 
 /// The record the seal writes beside what it sealed.
 pub const RECORD: &str = "nonos-release.json";
