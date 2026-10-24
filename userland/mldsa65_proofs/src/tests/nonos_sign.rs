@@ -21,7 +21,7 @@
 //! must give the same bytes from the same inputs, and verify all of them.
 
 use crate::hex::de;
-use nonos_mldsa65::{keypair, sign, verify, SecretKey, PUBLIC_LEN, SECRET_LEN};
+use nonos_mldsa65::{keypair, sign, verify, SecretKey, PUBLIC_LEN};
 
 fn zeros(b: &mut [u8]) -> bool {
     b.fill(0);
@@ -33,7 +33,7 @@ fn messages() -> [Vec<u8>; 4] {
 }
 
 fn key(pk: &str, sk: &str) -> ([u8; PUBLIC_LEN], SecretKey) {
-    (de(pk).try_into().unwrap(), SecretKey(de(sk).try_into().unwrap()))
+    (de(pk).try_into().unwrap(), SecretKey::from_bytes(&de(sk).try_into().unwrap()))
 }
 
 #[test]
@@ -43,9 +43,12 @@ fn every_vector_from_nonos_sign_is_reproduced() {
     assert_eq!(lines.len(), 6);
     let (zpk, zsk) = key(lines[0][1], lines[0][2]);
     let (made_pk, made_sk) = keypair(&mut zeros).unwrap();
-    assert_eq!((made_pk, made_sk.0), (zpk, zsk.0), "the zero-randomness key pair");
+    assert_eq!(
+        (made_pk, made_sk.as_bytes()),
+        (zpk, zsk.as_bytes()),
+        "the zero-randomness key pair"
+    );
     let (rpk, rsk) = key(lines[1][1], lines[1][2]);
-    assert_eq!(rsk.0.len(), SECRET_LEN);
     for (i, m) in messages().iter().enumerate() {
         let l = &lines[2 + i];
         assert_eq!((l[1], l[2]), (i.to_string().as_str(), m.len().to_string().as_str()));
