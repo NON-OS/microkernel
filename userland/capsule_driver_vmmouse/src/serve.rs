@@ -17,7 +17,8 @@
 //! The poll loop: the pointer's status looked at every few milliseconds,
 //! whole packets read off its queue and posted. A status the host flags
 //! as an error, or a queue that is no whole number of packets, is the
-//! pointer lost: it is enabled again, as Linux's vmmouse does, and when
+//! pointer lost: it is enabled again — the same ENABLE / STATUS / DATA
+//! sequence as bring-up, which QEMU's hw/i386/vmmouse.c answers — and when
 //! that fails it is left for a while before the next try.
 
 use nonos_libc::mk_idle_ms;
