@@ -21,7 +21,7 @@ print("\n".join(sorted(k for k in f if k not in on)))
 EOF
 ```
 
-Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 140 features. Of those, 91 are `microkernel-*` lane sets and 49 are the features in the tables.
+Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 141 features. Of those, 91 are `microkernel-*` lane sets and 50 are the features in the tables.
 
 ## What the default image carries
 
@@ -36,21 +36,21 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, BusLogic, MPT, SDHCI, UFS and USB mass storage;
   - USB host controllers: xHCI, EHCI, OHCI and UHCI, and USB hubs;
   - input: PS/2, virtio-input, USB HID, I2C HID and SPI HID;
-  - display: virtio-gpu, VMware SVGA, Bochs (BGA) and Intel;
+  - display: virtio-gpu, VMware SVGA and Bochs (BGA);
   - audio: HDA, AC'97, USB audio and USB microphones;
   - USB cameras (UVC), USB serial (CDC-ACM), smart cards (CCID) and FIDO security keys;
   - the SPI, SMBus and I2C buses;
   - VirtualBox and Hyper-V guest support.
 
-The `hardened` and `airgapped` profiles start from the same set. `hardened` takes out `capsule-serial-debug`, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`).
+`standard` takes `capsule-serial-debug` out of that set, so no capsule writes to the serial console (`drop`, `tools/nix/config.nix`). The `hardened` and `airgapped` profiles start from the same set and take out the same feature, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`).
 
 ## A capsule that is in the image but not yet sealed
 
 
 - On 2026-10-24, before this change, 15 capsules that the default image already carried had no trust set: pcnet, vmxnet3, tulip, virtio-input, vmware-svga, ac97, vmmdev, vmmouse, vmbus, piix-ide, virtio-scsi, pvscsi, buslogic, mpt and sdhci. Host-tested: the gate's own condition, run over `tools/nix/capsules.json`.
-- The 24 capsules this change adds have no trust set either: the 22 drivers, plus nox-settle and prove-fetch.
+- The 23 capsules this change adds have no trust set either: the 21 drivers, plus nox-settle and prove-fetch.
 
-So `nix build` of the default image waits for the next release seal, which writes all 39 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 38 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
 ## Off, and why
 
@@ -101,9 +101,9 @@ So `nix build` of the default image waits for the next release seal, which write
 | `nonos-capsule-flacprobe` | Its kernel module and capsule were not in the tree, so the feature could not compile. Removed, with its cfg arms in `src/userspace/init/entry.rs` and `src/userspace/mod.rs` and its guarded include in `mk/20-build.mk`. |
 | `sha1-legacy` | Nothing referred to it. |
 
-## On in the default image, with a privacy cost
+## Taken out of the default image
 
-`capsule-serial-debug` is on in `standard` and `qemu` and off in `hardened` and `airgapped`. It lets capsules write to the serial console, which `Cargo.toml` calls "an information-leak surface". Whether `standard` should drop it is open, because bare-metal diagnosis reads those lines. [Privacy guarantees](../security/privacy-guarantees.md) says what it exposes.
+`capsule-serial-debug` lets capsules write to the serial console. `Cargo.toml` calls it "an information-leak surface". `standard` now takes it out, as `hardened` and `airgapped` already did. The `qemu` and `dev` profiles, and a profile's development twin, keep it for diagnosis. What changes for a person: the Terminal's `log` keeps nothing on a `standard` image (`keep`, `src/sys/serial/tail.rs`).
 
 ## The `microkernel-*` sets
 
