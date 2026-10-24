@@ -21,6 +21,7 @@
 mod scope;
 
 mod claims_nothing;
+mod display_rows;
 mod edges;
 mod host_rows;
 mod hostile;
