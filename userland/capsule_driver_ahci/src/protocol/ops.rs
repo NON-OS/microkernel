@@ -24,3 +24,6 @@ pub const OP_FLUSH: u16 = 7;
 /// The served disk's size, sector size, model and serial; no request
 /// payload. Reply layout in `identify_reply`.
 pub const OP_IDENTIFY: u16 = 8;
+/// FLUSH CACHE EXT, then STANDBY IMMEDIATE, before power goes; the
+/// kernel's alone (server::medium_rule).
+pub const OP_POWER_OFF: u16 = 9;
