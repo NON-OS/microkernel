@@ -33,11 +33,11 @@ pub const E_STATE_CALL: u16 = 200;
 pub const RX_EMPTY: u16 = 11;
 
 /*
- * Two of net.tcp's connect refusals, named here because they mean different
- * things to this capsule. `UNADDRESSABLE` is the stack saying it has no route
- * yet, which before the DHCP lease is every attempt and is worth waiting out
- * rather than retrying at full speed. `LOCAL_PORT_IN_USE` is a defect in the
- * service and waiting will not help.
+ * Two of net.core's connect refusals, which mean the network is not there
+ * yet rather than that an authority said no. `NOT_UP` is what net.core sends
+ * while no link is bound (and, rarely, when its socket table is full);
+ * `NO_ROUTE` is a bound link with no lease. Both are worth waiting out, not
+ * retrying at full speed, and neither reached the far end.
  */
-pub const UNADDRESSABLE: u16 = 14;
-pub const LOCAL_PORT_IN_USE: u16 = 15;
+pub const NOT_UP: u16 = 5;
+pub const NO_ROUTE: u16 = 12;
