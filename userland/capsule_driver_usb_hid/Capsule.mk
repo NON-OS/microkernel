@@ -13,5 +13,10 @@ CAPSULE_NAMESPACE        := systems.nonos.driver.usb_hid0
 CAPSULE_SERVICE_ENDPOINT := service:4222:driver.usb_hid0
 CAPSULE_REPLY_ENDPOINT   := reply:4223:endpoint.4294967314
 CAPSULE_REQUIRED_CAPS    := 0x200018
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the driver's own lines reach the console there and
+# nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 
 include nonos-mk/capsule.mk
