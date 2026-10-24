@@ -131,8 +131,8 @@ desktop through `driver.bga0`.
 - Track A's held-table entry, kernel mirror, spawn and `DisplayBga`
   dispatch (`src/hardware/inventory`): in place. A capsule loaded at runtime
   may claim only names it already holds (`src/services/registry/reserved.rs`),
-  so none can take `compositor`, and with it the primaries; track A to
-  confirm.
+  so none can take `compositor`, and with it the primaries: proved on the
+  kernel's own files in `bga_proofs` (`syscall/microkernel/ipc/claim_tests`).
 
 ## Real hardware bring-up checklist
 
