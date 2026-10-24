@@ -28,7 +28,7 @@ const WALLET: &str = "../capsule_wallet_nonos/src/wallet";
 // The rule the wallet's requests leave by, as nonos_route_link ships it,
 // re-exported at the root where its own `crate::pick` paths look for it.
 mod route_link;
-pub use route_link::{describe, pick};
+pub use route_link::{describe, patience, pick, refusal};
 
 #[path = "../../capsule_wallet_nonos/src/wallet/event/hex_digit.rs"]
 pub mod hex_digit;

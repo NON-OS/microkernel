@@ -17,8 +17,6 @@
 //! The link's keys and its view of the association: what the join handed
 //! over, what a group rekey replaced, and what the driver may ask about.
 
-use alloc::vec::Vec;
-
 use super::cipher::seal;
 use super::{Ccmp, LinkStation};
 use crate::rsn::TemporalKey;
@@ -38,21 +36,24 @@ impl LinkStation {
     /// Take a group key for software decryption, with its Key RSC as the
     /// replay floor. The key its slot already holds keeps its counter: an AP
     /// that hands back a key it rotated away from, or a handshake replayed,
-    /// never resets a key in use to an older floor.
-    pub fn set_group_key(&mut self, key_id: u8, key: TemporalKey, rsc: u64) {
-        if let Some(slot) = self.group_keys.get_mut(key_id as usize) {
-            if slot.as_ref() == Some(&key) {
-                return;
-            }
-            *slot = Some(key);
-            self.replay.set_group(key_id, rsc);
+    /// never resets a key in use to an older floor. Returns whether it was taken:
+    /// a key the slot holds is not installed again (802.11-2020, 12.7.7.3).
+    pub fn set_group_key(&mut self, key_id: u8, key: TemporalKey, rsc: u64) -> bool {
+        let Some(slot) = self.group_keys.get_mut(key_id as usize) else {
+            return false;
+        };
+        if slot.as_ref() == Some(&key) {
+            return false;
         }
+        *slot = Some(key);
+        self.replay.set_group(key_id, rsc);
+        true
     }
 
     /// Protect a robust management frame to the AP (a deauthentication, with
     /// management frame protection on) under the pairwise key, advancing the
     /// packet number data frames share. `None` without a software key.
-    pub fn protect_mgmt(&mut self, frame: &[u8]) -> Option<Vec<u8>> {
+    pub fn protect_mgmt(&mut self, frame: &[u8]) -> Option<alloc::vec::Vec<u8>> {
         let tk = self.pairwise_key()?;
         let pn = self.pn.wrapping_add(1);
         let out = seal(frame, pn, &tk)?;

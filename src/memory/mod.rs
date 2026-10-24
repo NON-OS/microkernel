@@ -40,9 +40,9 @@ pub mod encryption;
 pub mod frame_alloc;
 pub mod hardening;
 pub mod heap;
-// The backend inside picks VT-d or the unsupported stand-in by target and
-// feature, so this builds anywhere. An ARM board has no SMMU driver behind it
-// yet, which means every mapping request is refused rather than ignored.
+// The backend inside picks VT-d, AMD-Vi or Arm's SMMUv3 by target and
+// feature, and with no unit in service every mapping request is refused
+// rather than ignored.
 pub mod iommu;
 pub mod kaslr;
 pub mod layout;

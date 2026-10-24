@@ -5057,6 +5057,19 @@ else
 fi
 unset scope_out
 
+# nonos-harden reads GO over a nonos-verify gap only when the gap is on
+# scripts/baselines/declared-limits.txt; the list follows the source and may
+# only shrink. The self-test first, so a parser that stopped seeing gaps
+# cannot pass by finding none.
+if limits_out="$(python3 scripts/check_declared_limits.py --self-test 2>&1 \
+    && python3 scripts/check_declared_limits.py 2>&1)"; then
+    note ok "nonos-harden's declared limits are in the source and only shrink (check_declared_limits)"
+else
+    tail -n 5 <<< "${limits_out}" >&2
+    fail_with "check_declared_limits: the declared-limits list names a gap it may not"
+fi
+unset limits_out
+
 if [ "${fail}" -ne 0 ]; then
     echo
     echo "static-checks: FAIL"

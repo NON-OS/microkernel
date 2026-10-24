@@ -52,7 +52,9 @@ const RATE_ID_DEFAULT: u32 = 6;
 pub const DESC_RATE_6M: u8 = 0x04;
 
 /// Hardware CCMP (AES) encryption, keyed by the security CAM entry the receiver
-/// address maps to. Zero selects no hardware encryption.
+/// address maps to. Zero selects no hardware encryption. Only its proof names it:
+/// the capsule encrypts what it transmits in software.
+#[cfg(test)]
 pub const SEC_TYPE_CCMP: u8 = 0x03;
 
 /// The per-frame descriptor inputs the queue selector cannot supply on its own.
@@ -66,7 +68,7 @@ pub struct FrameMeta {
     pub rate: Option<u8>,
     /// The 802.11 sequence number.
     pub seq: u16,
-    /// The hardware security type: zero for none, or [`SEC_TYPE_CCMP`]. When
+    /// The hardware security type: zero for none, or 0x03 for CCMP. When
     /// CCMP, hardware encrypts using the CAM key for the receiver address.
     pub sec_type: u8,
 }

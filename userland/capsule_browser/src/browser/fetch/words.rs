@@ -116,6 +116,10 @@ pub fn words(code: &str, way: Way, host: &str) -> String {
             "{host} refused the secure connection. It may need something this browser does not \
              offer."
         ),
+        "tls too slow" => format!(
+            "The signature {host} sent could not be checked in time, so nothing was sent. \
+             Reload to try again."
+        ),
         "tls record failed" => format!(
             "A secure record from {host} could not be decrypted, so what came was dropped. \
              Reload to try again."
