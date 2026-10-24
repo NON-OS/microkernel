@@ -1,7 +1,7 @@
 # rng_fail_closed_proofs
 
 Host proofs that the kernel's randomness callers fail closed, and that the
-boot line naming a draw made before seeding is right. There are 19 tests.
+boot line naming a draw made before seeding is right. There are 21 tests.
 
 **What is mounted.** The kernel's own files, by `#[path]` (`src/mount.rs`):
 
@@ -26,7 +26,8 @@ test sees which one answered.
 
 - ASLR takes the CPU's instruction, then the seeded RNG. When neither
   answers, every placement is refused and `reseed` says so; nothing is made
-  from a constant. A stack too low for its slide is refused, not wrapped.
+  from a constant. A slide that would carry a stack below zero, or a base
+  or heap past the top, is refused, not wrapped.
   Turned-off randomisation needs no draw.
 - A token's 128-bit nonce is refused before seeding, never zeros. The
   64-bit nonce draws when it can and counts when it cannot. The counter has
@@ -47,9 +48,9 @@ once a process.
 two callers) and `security/policy/capability/api.rs` are not mounted: they
 reach most of the kernel. Each is a `?` on a refusal shown above.
 
-**Mutants.** 34 mutants of the kernel's sources, applied one at a time, were
+**Mutants.** 36 mutants of the kernel's sources, applied one at a time, were
 all caught. They include the ASLR constant seed restored, the source order
 swapped, each placement ignoring a failed draw, `reseed` claiming success,
-the stack slide wrapping, the 128-bit nonce taking zeros, the 64-bit nonce repeating, the secure byte
-call falling back, the `misc` helpers falling back to the clock, and each
-layer's `#[track_caller]` removed.
+each slide wrapping, the 128-bit nonce taking zeros, the 64-bit nonce
+repeating, the secure byte call falling back, the `misc` helpers falling
+back to the clock, and each layer's `#[track_caller]` removed.

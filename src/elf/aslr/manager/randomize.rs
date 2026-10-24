@@ -22,12 +22,13 @@ use super::{
 
 impl AslrManager {
     /// Each placement is `None` when randomisation is on and no randomness
-    /// answers; with randomisation off the base is kept as given.
+    /// answers, or when the slide would carry the address past either end
+    /// of the address space; with randomisation off the base is kept.
     pub fn randomize_base(&mut self, preferred_base: u64) -> Option<u64> {
         if !self.executable_randomization {
             return Some(preferred_base);
         }
-        Some((preferred_base + self.random_offset(EXEC_RANDOMIZATION_RANGE)?) & !0xFFF)
+        Some(preferred_base.checked_add(self.random_offset(EXEC_RANDOMIZATION_RANGE)?)? & !0xFFF)
     }
     pub fn randomize_stack(&mut self, base_stack: u64) -> Option<u64> {
         if !self.stack_randomization {
@@ -39,7 +40,7 @@ impl AslrManager {
         if !self.heap_randomization {
             return Some(base_heap);
         }
-        Some((base_heap + self.random_offset(HEAP_RANDOMIZATION_RANGE)?) & !0xFFF)
+        Some(base_heap.checked_add(self.random_offset(HEAP_RANDOMIZATION_RANGE)?)? & !0xFFF)
     }
 
     pub fn random_address(min: usize, max: usize, size: usize) -> Option<usize> {
