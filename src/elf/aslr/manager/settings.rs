@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{entropy::gather_entropy, state::AslrManager};
+use super::{entropy::draw, state::AslrManager};
 
 impl AslrManager {
     pub fn new() -> Self {
@@ -22,7 +22,8 @@ impl AslrManager {
     }
     pub fn with_settings(stack: bool, heap: bool, executable: bool) -> Self {
         Self {
-            entropy_pool: gather_entropy(),
+            // Only a start: every offset mixes in a fresh draw, or is refused.
+            entropy_pool: draw().unwrap_or(0),
             stack_randomization: stack,
             heap_randomization: heap,
             executable_randomization: executable,
