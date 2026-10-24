@@ -22,7 +22,8 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::fetch::fetch;
-use super::index::{find, load};
+use super::find::find;
+use super::index::load;
 use super::keyring::pinned;
 use super::packages::Record;
 use super::source::source;
@@ -45,7 +46,9 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let (max, mut done): (usize, Vec<String>) = (max_packages(), Vec::new());
     let mut wanted: Vec<Vec<String>> = vec![vec![String::from(name)]];
     while let Some(group) = wanted.pop() {
-        let Some(rec): Option<&Record> = group.iter().find_map(|n| find(&index, n)) else {
+        let Some(rec): Option<&Record> =
+            group.iter().find_map(|n| find(&index, n, done.is_empty()))
+        else {
             return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
         };
         if done.contains(&rec.name) {

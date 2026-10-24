@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 
 use super::db::load;
 use super::fetch::fetch;
+use super::find::find;
 use super::keyring::pinned;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
@@ -43,7 +44,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
-        let Some((rec, repo)) = db.find(&next) else {
+        let Some((rec, repo)) = find(&db.records, &next, done.is_empty()) else {
             return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
         };
         if done.contains(&rec.name) {
