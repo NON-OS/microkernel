@@ -27,6 +27,7 @@
 mod calls;
 mod checks;
 mod clock;
+mod config;
 mod console;
 mod device;
 mod dma;
@@ -40,6 +41,7 @@ mod types;
 pub use calls::{Call, Engines, Seen};
 pub use checks::{bus_master_after_reset, first_bus_master, refused_without_bus_master};
 pub use clock::{mk_uptime_ms, uptime};
+pub use config::{config_reads, set_config};
 pub use console::{mk_debug, said};
 pub use device::{mk_device_claim, mk_device_release, mk_pci_config_read, mk_pci_config_write};
 pub use dma::mk_dma_map;
