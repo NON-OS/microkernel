@@ -50,7 +50,7 @@ pub fn check(ctx: &mut Ctx) -> Check {
     }
 }
 
-fn verify(bytes: &[u8], tree: &Path, rollback: Option<u32>) -> Result<String, String> {
+pub(crate) fn verify(bytes: &[u8], tree: &Path, rollback: Option<u32>) -> Result<String, String> {
     let a = parse(bytes)?;
     if rollback.is_some_and(|r| r != a.rollback) {
         return Err(format!("it carries rollback index {}, the record {rollback:?}", a.rollback));

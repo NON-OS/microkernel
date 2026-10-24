@@ -38,7 +38,7 @@ pub fn load(path: &Path, tree: Option<&Path>) -> Result<SigningKey, String> {
     Ok(key)
 }
 
-fn seed(bytes: &[u8], path: &Path) -> Result<[u8; 32], String> {
+pub(crate) fn seed(bytes: &[u8], path: &Path) -> Result<[u8; 32], String> {
     if let Ok(raw) = <[u8; 32]>::try_from(bytes) {
         return Ok(raw);
     }
