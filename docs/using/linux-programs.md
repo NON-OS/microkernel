@@ -19,7 +19,7 @@ Not tested in this release.
 
 All but `linux sqlite3` come from the tour the image carries at `/usr/share/nonos/tour/README` in the Linux tree, which lists a few more, such as `linux zstd -b1`.
 
-- A bare name is looked for along the guest's PATH; a name with a slash is a path in the Linux tree. `linux` alone prints `usage: linux <program> [arguments]`.
+- A bare name is looked for along the guest's PATH; a name with a slash is a path in the Linux tree. `linux` alone prints `usage: linux [--box strict|offline|allow:<folder|net:host:port>,...] <program> [arguments]`. To run a program in a sealed box and get a report of what it tried, see [Run a program in a box](linux-box.md).
 - The program's output appears in the Terminal and the keyboard is its input. `Ctrl+C` interrupts it.
 - One Linux program runs at a time. A second one is refused with `linux: a Linux program is already running in a terminal; one runs at a time, so end it (Ctrl-C) first`.
 - A name nothing holds is answered with `command not found`, and the line says where it looked.
