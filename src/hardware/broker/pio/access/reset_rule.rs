@@ -25,11 +25,11 @@
 //! sends goes as before. A wider write is judged by the byte it puts at 0x64.
 
 /// The i8042 command port.
-pub const I8042_COMMAND: u16 = 0x64;
+pub(super) const I8042_COMMAND: u16 = 0x64;
 
 /// Whether writing `value`, `width` bytes wide, at `port` would put a reset
 /// command on the i8042.
-pub fn resets_machine(port: u16, width: u8, value: u32) -> bool {
+pub(super) fn resets_machine(port: u16, width: u8, value: u32) -> bool {
     let Some(at) = I8042_COMMAND.checked_sub(port) else {
         return false;
     };
