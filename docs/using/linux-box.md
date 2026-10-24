@@ -34,9 +34,7 @@ A box named wrongly is refused before anything runs, with the reason, such as `l
 
 ## The report
 
-When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report, and it is drawn only after the program's output has ended and any half-written escape sequence it left has been cut off. A program can scroll the screen but cannot write, hide or change its own report.
-
-
+When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report. It is drawn only after the program's output has ended, at the foot of a screen put back to its defaults first (the main screen, the whole screen as the scroll region, normal video, plain characters, no insert mode), so nothing the program left behind can hide or bend it. A program can scroll the screen but cannot write, hide or change its own report.
 
 ```
 BOX REPORT v1
@@ -60,7 +58,9 @@ BOX REPORT v1
 - `started  no: <reason>` appears when the program never started (it was not found, or its proof was refused); nothing ran, so nothing was refused.
 - `exit` is the program's exit status.
 
-If no report arrives, the Terminal says `linux: the box sent no report; it may have been stopped`. If the run is stopped with `Ctrl+C` before its report arrives, it says `linux: stopped before the box's report arrived`.
+If no report arrives, the Terminal says `linux: the box sent no report; it may have been stopped`. If only part of it arrives, the Terminal shows that part and says `linux: the box's report arrived incomplete`. If the run is stopped with `Ctrl+C`, a report that had already arrived whole is still shown; otherwise the Terminal says `linux: stopped before the box's report arrived`.
+
+A boxed run in the background that ends, or is stopped, while another program holds the screen keeps its report until that program has ended, then shows it.
 
 The counts are made by `capsule_linux` as it refuses each action. They are not the kernel's sealed histogram, which counts every call by the error it returned and is what a proof of a run reads.
 
@@ -72,12 +72,12 @@ The Terminal also writes the same summary to the serial log as one line, in a bu
 [BOX] v=1 preset=strict policy=<hash> refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 started=yes exit=0 source=capsule_linux
 ```
 
-Every kind is always present. `v=1` is the format; a reader should refuse any other number.
+Every kind is always present. `v=1` is the format; a reader should refuse any other number. The line is written whole, in pieces the log joins, however long the box's hash and counts make it; if the log refuses it, the Terminal says `linux: the [BOX] line could not be written to the log`. A build without `capsule-serial-debug`, such as a hardened release, has no such log: no line is written, and the Terminal says nothing of it. Only the Terminal writes this line, from the report's keyed frames: a `[BOX]` line the program prints itself never reaches the log.
 
 ## Where this comes from
 
 - The boxes, the hash and the report: `userland/capsule_linux/src/linux/boxed/`.
-- The report taken and drawn by the Terminal: `userland/capsule_terminal/src/jobs/box_hold.rs` and `box_draw.rs`.
+- The report taken and drawn by the Terminal: `userland/capsule_terminal/src/jobs/box_hold.rs`, `box_screen.rs`, `box_draw.rs`, `box_wait.rs` and `box_log.rs`.
 - How a box narrows a program's own policy: `userland/capsule_linux/src/linux/app/identity_box.rs`.
 - The tests: `userland/capsule_linux_proofs/src/tests/boxed/`, `userland/terminal_line_proofs/src/jobs/box_*`, and the fuzz target `box_word` in `userland/capsule_linux_proofs/fuzz/`.
 
