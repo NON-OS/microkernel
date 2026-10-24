@@ -119,6 +119,8 @@ The evidence is in [`privacy-evidence/2026-10-24/`](privacy-evidence/2026-10-24/
 - The DHCP parameter request list was Windows'.
 - `egress-verdict.txt` is the tool's output, `egress-report.json` its report, `egress.pcap` the capture and `egress-serial.log` the serial console.
 
+**Network, on other NICs** (the driver lanes, `docs/build/feature-inventory.md`): the same capture with an emulated Intel NIC in place of virtio-net. The e1000e lane passed with 2313 guest frames and the igb lane with 2307, every peer pinned. The usb-net lane is `EMPTY`, not a pass: the guest sent nothing over it. Each lane's report and serial console are in the evidence folder as `lane-<A|B|C|E>-report.json` and `lane-<…>-serial.log`, with the two NIC captures as `lane-A-e1000e.pcap` and `lane-B-igb.pcap`. Lanes A to C booted the image named at the top; lane E booted `2f423b3b…`, commit e90c51abf.
+
 **Amnesic** (`scripts/amnesic_boot_check.sh` with the same lane): PASS.
 
 - The data disk's sha256 was `1815711f…7b9b8310` before and after the boot.
@@ -130,5 +132,5 @@ The evidence is in [`privacy-evidence/2026-10-24/`](privacy-evidence/2026-10-24/
 - They are idle first boots. Nobody chose to keep data, opened an app or browsed. The persist, remove and uninstall gates on such a boot are host-tested (§1); no boot exercised them through the UI.
 - The Anyone client reached its authorities, but no relay appears in the capture, so the relay path, and the consensus-learned allowlist with it, was not exercised.
 - The Nym client reached its gateways. Whether a mixnet session carried traffic is not shown.
-- Real hardware is not covered: firmware differs, Wi-Fi drivers probe for SSIDs, and real NICs replace virtio-net.
+- Real hardware is not covered: firmware differs, Wi-Fi drivers probe for SSIDs, and real NICs replace the emulated ones.
 - No RAM was dumped. The wipes in §2 are host-tested and modelled, not observed.
