@@ -20,6 +20,7 @@ mod handlers;
 mod medium;
 pub mod medium_rule;
 mod poll_irq;
+mod power_off_rule;
 mod runner;
 mod take;
 

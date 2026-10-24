@@ -47,7 +47,7 @@ def capsule_ids(body):
 
 def row_ranges(root, service):
     """The (lo, hi) ranges of every Ids entry in `service`'s row, or None."""
-    files = ["scope_table.rs", "scope_rows.rs", "scope_hosts.rs", "scope_ids.rs", "scope_lpss.rs"]
+    files = ["scope_table.rs", "scope_rows.rs", "scope_hosts.rs", "scope_ids.rs", "scope_ids_nic.rs", "scope_lpss.rs"]
     text = "\n".join((root / BROKER / f).read_text() for f in files)
     m = re.search(r'\("' + re.escape(service) + r'",\s*([^\n]*)\),', text)
     if not m:

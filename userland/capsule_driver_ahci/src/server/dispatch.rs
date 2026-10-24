@@ -18,7 +18,7 @@
 
 use crate::protocol::{
     Request, E_INVAL, OP_CAPACITY, OP_CONTROLLER_INFO, OP_FLUSH, OP_HEALTHCHECK, OP_IDENTIFY,
-    OP_PORT_LIST, OP_READ_BLOCKS, OP_WRITE_BLOCKS,
+    OP_PORT_LIST, OP_POWER_OFF, OP_READ_BLOCKS, OP_WRITE_BLOCKS,
 };
 use crate::server::{error, handlers};
 use crate::setup::Driver;
@@ -33,6 +33,7 @@ pub(super) fn dispatch(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut
         OP_WRITE_BLOCKS => handlers::write::handle(driver, req, body, tx),
         OP_FLUSH => handlers::flush::handle(driver, req, tx),
         OP_IDENTIFY => handlers::identify::handle(driver, req, tx),
+        OP_POWER_OFF => handlers::power_off::handle(driver, req, tx),
         _ => error::reply_with_status(tx, req, E_INVAL),
     }
 }

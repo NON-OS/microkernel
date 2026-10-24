@@ -26,11 +26,15 @@ mod open;
 mod open_tests;
 #[path = "../../../capsule_driver_ahci/src/setup/pci.rs"]
 mod pci;
+#[cfg(test)]
+mod port_map_tests;
 mod refused_write_tests;
 #[path = "../../../capsule_driver_ahci/src/setup/remap.rs"]
 mod remap;
 #[path = "../../../capsule_driver_ahci/src/setup/say_hba.rs"]
 mod say_hba;
+#[path = "../../../capsule_driver_ahci/src/setup/say_port_map.rs"]
+mod say_port_map;
 #[path = "../../../capsule_driver_ahci/src/setup/serve.rs"]
 mod serve;
 mod serve_tests;
