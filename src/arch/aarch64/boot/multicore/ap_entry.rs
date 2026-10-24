@@ -21,7 +21,7 @@ use crate::arch::aarch64::cpu;
 use crate::arch::aarch64::exceptions::install_vbar_el1;
 use crate::arch::aarch64::gic::init_gic_cpu;
 use crate::arch::aarch64::security;
-use crate::arch::aarch64::timer::{init_timer_cpu, install_on_cpu as install_preemption_tick};
+use crate::arch::aarch64::timer::{arm_on_secondary as install_preemption_tick, init_timer_cpu};
 use crate::arch::cpu::idle_cpu;
 
 use super::outside::park_outside_roster;
