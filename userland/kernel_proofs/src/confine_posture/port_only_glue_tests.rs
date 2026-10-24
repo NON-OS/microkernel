@@ -35,12 +35,13 @@ fn members_across_a_shared_bus_are_marked_and_the_capsule_records_its_claim() {
     assert!(ACS.contains("let across = shared(&hops);"));
     assert!(ACS.contains("shared: across.contains(&at)"));
     assert!(ONE.contains("capsule_for(&mut all, pid, (must, port_only))"));
+    assert!(ATTACH.contains("attach_one(pid, device_id, address, (false, port_only)"));
     assert!(ONE.contains("port_only(has(Capability::Dma), has(Capability::Mmio))"));
 }
 
 #[test]
 fn a_port_only_claim_closes_memory_space_before_the_device_is_powered() {
-    assert!(ATTACH.contains("attach_as(pid, device_id).map(|()| port_only)"));
+    assert!(ATTACH.contains("attach_as(pid, device_id, port_only).map(|()| port_only)"));
     let close = CLAIM.find("super::port_only::port_only_quietly(device_id);").expect("not closed");
     let gate = CLAIM.find("if port_only {").expect("closed for every claim");
     let power = CLAIM.find("power_on_device(device_id)").expect("never powered");
