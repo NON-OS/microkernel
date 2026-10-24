@@ -30,7 +30,10 @@ pub(super) const SIZE_MAX: usize = 65536;
 
 const NAMESPACES: [&[u8]; 3] = [b"user.", b"trusted.", b"security."];
 
-pub(super) struct Attrs(pub(super) RefCell<Vec<(Vec<u8>, Vec<u8>, Vec<u8>)>>);
+/// A path, an attribute name and its value.
+type Entry = (Vec<u8>, Vec<u8>, Vec<u8>);
+
+pub(super) struct Attrs(pub(super) RefCell<Vec<Entry>>);
 
 /*
  * SAFETY: one personality process serves one family from one serve loop,

@@ -200,6 +200,7 @@ let
     marketplace-index = hostTool { name = "marketplace-index"; dir = "nonos-mk"; bins = [ "marketplace-index" ]; args = "--bin marketplace-index"; };
     nonos-pack = hostTool { name = "nonos-pack"; dir = "tools/nonos-pack"; bins = [ "nonos-pack" ]; args = "--bin nonos-pack"; };
     nonos-verify = hostTool { name = "nonos-verify"; dir = "nonos-verify"; bins = [ "nonos-verify" ]; };
+    proof-verify = hostTool { name = "proof-verify"; dir = "nonos-proof-verify"; bins = [ "nonos-proof-verify" ]; };
   };
   # The loader compiles in the kernel's public keys and root, which the seal
   # writes and ek commits. Until the first seal is committed the tree has none,
