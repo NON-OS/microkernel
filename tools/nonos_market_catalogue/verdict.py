@@ -17,34 +17,32 @@
 
     PYTHONPATH=tools python3 -m nonos_market_catalogue.verdict [--write] APP=LOG ...
 
-An app passes when its logs (one per debug run; several unite) show the
-install start in its release's box, no policy refusal, and a measured set.
+An app passes when each of its logs (one per debug run of HANDOFF/catalogue/
+05; several unite) shows the install start in its release's box, no policy
+refusal, the workload ending well (a process exiting status 0, none exiting
+otherwise or on a signal), and exactly one measured set, the app's own.
 --write puts each passing set into its recipe. Exit 0 when every app passes."""
 
 import json
 import sys
 from pathlib import Path
 
-from nonos_linux_pack.syscalls import buckets, market_set
+from nonos_linux_pack.syscalls import market_set
+
+from .verdict_run import run_verdict
 
 RECIPES = Path("userland/capsule_market/linux-catalogue.json")
-STARTED, REFUSED = b"[LINUX-INSTALL] started, in its release's box linux.", (
-    b"[LINUX] refused the market's policy", b"the market does not vouch for its box")
 
 
-def verdict(app: str, log: bytes):
-    """(ok, calls hex or "", why) for one app's logs."""
-    if STARTED + app.encode() not in log:
-        return False, "", "the install never started in its release's box"
-    if any(r in log for r in REFUSED):
-        return False, "", "the install role refused the policy"
-    try:
-        sets = buckets(log)
-    except ValueError as why:
-        return False, "", f"its measured set is malformed: {why}"
-    if not sets:
-        return False, "", "no measured set: run it on a debug build and prove it"
-    return True, market_set(sets), "installed in its box, set measured"
+def verdict(app: str, logs: list):
+    """(ok, calls hex or "", why) for every run of one app; their sets unite."""
+    sets = []
+    for at, log in enumerate(logs, 1):
+        ok, got, why = run_verdict(app, log)
+        if not ok:
+            return False, "", f"run {at}: {why}"
+        sets += got
+    return True, market_set(sets), f"{len(logs)} run(s): installed in its box, workload ran, set measured"
 
 
 def write(found: dict) -> None:
@@ -62,7 +60,7 @@ def main(argv) -> int:
         return print(__doc__, file=sys.stderr) or 2
     logs = {}
     for app, log in pairs:  # several logs of one app are its runs, united
-        logs[app] = logs.get(app, b"") + Path(log).read_bytes() + b"\n"
+        logs.setdefault(app, []).append(Path(log).read_bytes())
     results = {app: verdict(app, log) for app, log in logs.items()}
     for app, (ok, _, why) in results.items():
         print(f"{app}: {'PASS' if ok else 'FAIL'}: {why}")
