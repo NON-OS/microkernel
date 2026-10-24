@@ -19,6 +19,7 @@
 mod random;
 mod trace_link_tests;
 
+mod boxed;
 mod calls;
 mod install;
 mod wayland;
