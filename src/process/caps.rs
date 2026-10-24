@@ -107,6 +107,11 @@ pub fn revoke(pid: u32, mask: u64) -> Option<()> {
     .flatten()
 }
 
+/// Record that the spawn gate withheld Debug from `pid`, for `MkProcStat`.
+pub fn mark_debug_withheld(pid: u32) {
+    with_process_mut(pid, |pcb| pcb.debug_withheld.store(true, Ordering::Relaxed));
+}
+
 /// One-shot manifest install. Replaces whatever inheritance-derived
 /// token the PCB was born with. A second call is rejected so a stale
 /// spawn path cannot re-issue authority.

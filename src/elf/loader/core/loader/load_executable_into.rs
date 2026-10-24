@@ -24,7 +24,7 @@ impl ElfLoader {
         let header = super::super::parse_header::parse_elf_header(elf_data)?;
         super::super::parse_header::validate_elf(&header)?;
         let program_headers = super::super::parse_header::parse_program_headers(elf_data, &header)?;
-        let base_addr = base_addr::load_base(&header, &mut self.aslr_manager);
+        let base_addr = base_addr::load_base(&header, &mut self.aslr_manager)?;
         let parts = load_parts::load(elf_data, &program_headers, base_addr, target_asid)?;
         Ok(build_image::from_parts(&header, base_addr, parts))
     }
