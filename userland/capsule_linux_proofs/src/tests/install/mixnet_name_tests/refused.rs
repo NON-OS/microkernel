@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A name on a mixnet socket is refused; an address, and other sockets, go as before.
+//! A name on a mixnet socket is refused, and on any socket while the chosen
+//! network is not Direct; an address goes as it was given.
 
 use crate::host_body::host_body;
 use crate::protocol::{E_BAD_ADDR, E_NAME_REFUSED};
@@ -28,10 +29,20 @@ pub(super) fn connect_by_host(
     host: &[u8],
     answer: Result<[u8; 4], u16>,
 ) -> (Result<[u8; 4], u16>, usize) {
+    connect_under(true, mixnet, host, answer)
+}
+
+/// The same, with the chosen network Direct or not.
+pub(super) fn connect_under(
+    direct: bool,
+    mixnet: bool,
+    host: &[u8],
+    answer: Result<[u8; 4], u16>,
+) -> (Result<[u8; 4], u16>, usize) {
     let body = host_body(9, 443, host).unwrap_or_default();
     let Some((_, _, name)) = parse(&body) else { panic!("the server reads what the capsule sent") };
     let mut asked = 0usize;
-    let got = host_target(mixnet, name, |_| {
+    let got = host_target(mixnet, name, || direct, |_| {
         asked += 1;
         answer
     });
@@ -63,4 +74,23 @@ fn other_sockets_resolve_as_they_did() {
     assert_eq!((got, asked), (Err(E_BAD_ADDR), 1));
     let (got, asked) = connect_by_host(false, b"10.0.2.2", Err(7));
     assert_eq!((got, asked), (Ok([10, 0, 2, 2]), 0));
+}
+
+#[test]
+fn a_name_on_a_plain_socket_is_refused_unless_direct_is_chosen() {
+    for mixnet in [false, true] {
+        for host in [&b"example.com"[..], b"dl-cdn.alpinelinux.org"] {
+            let (got, asked) = connect_under(false, mixnet, host, Ok([93, 184, 216, 34]));
+            assert_eq!(got, Err(E_NAME_REFUSED), "mixnet={mixnet} {host:?}");
+            assert_eq!(asked, 0, "net.dns was asked for {host:?} off Direct");
+        }
+    }
+}
+
+#[test]
+fn an_address_goes_whatever_the_chosen_network() {
+    for mixnet in [false, true] {
+        let (got, asked) = connect_under(false, mixnet, b"10.0.2.2", Err(7));
+        assert_eq!((got, asked), (Ok([10, 0, 2, 2]), 0));
+    }
 }
