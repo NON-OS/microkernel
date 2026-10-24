@@ -18,6 +18,7 @@
 //! The kinds and their bodies are in `record::body`.
 
 use crate::keys::DIGEST_LEN;
+use crate::record::boxed::BoxRun;
 use crate::{CapNames, Reader, Reason, WireError};
 
 /// The longest command line a record keeps.
@@ -50,6 +51,7 @@ pub enum EntryBody<'a> {
     Exit(i32),
     /// SHA-256 of a command line, for a role that keeps no command text.
     CommandDigest(&'a [u8; 32]),
+    Box(BoxRun<'a>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
