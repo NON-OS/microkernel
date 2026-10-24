@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One line per capsule: pid, name, the three reach columns, who signed the
-//! ceiling, and every capability by name.
+//! One line per capsule: pid, name, reach, signer, every capability.
 
 use alloc::vec::Vec;
 
 use super::format::{printable, NAME_W};
 use super::join::Row;
-use super::reach::{names, reaches, AREAS};
+use super::names::names;
+use super::reach::{reaches, AREAS};
 use super::withheld::note;
 use crate::command::builtin::receipt::own::signer;
 use crate::term::util::format_u64;
@@ -41,10 +41,10 @@ pub fn name(row: &Row) -> Vec<u8> {
     printable(row.name.as_deref().unwrap_or(b"(exited)"))
 }
 
-pub fn list(line: &mut Vec<u8>, caps: &[&[u8]]) {
+pub fn list<T: AsRef<[u8]>>(line: &mut Vec<u8>, caps: &[T]) {
     for (i, c) in caps.iter().enumerate() {
         line.extend_from_slice(if i == 0 { b"" } else { b", " });
-        line.extend_from_slice(c);
+        line.extend_from_slice(c.as_ref());
     }
 }
 
