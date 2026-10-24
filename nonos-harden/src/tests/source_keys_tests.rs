@@ -25,11 +25,9 @@ use crate::check::{Check, Status};
 use crate::release::kernel_keys::ED_PUB;
 use crate::release::{kind, load, receipt_check};
 use crate::tree::source;
-use nonos_capsule_sign::algs::AlgId;
-use nonos_capsule_sign::keys::write_pub;
 
 fn with_other_kernel_key(s: &Sealed) -> Check {
-    write_pub(&s.tree.path().join(ED_PUB), AlgId::Ed25519, &[9; 32]).unwrap();
+    std::fs::write(s.tree.path().join(ED_PUB), [9u8; 32]).unwrap();
     let mut ctx = s.ctx(Fake::default());
     load::check(&mut ctx);
     kind::check(&mut ctx);

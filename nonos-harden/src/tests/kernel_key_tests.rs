@@ -30,7 +30,7 @@ use serde_json::json;
 fn a_kernel_signed_by_another_key_is_refused() {
     let s = Sealed::dev();
     let other = SigningKey::from_bytes(&[9; 32]).verifying_key().to_bytes();
-    write_pub(&s.tree.path().join(ED_PUB), AlgId::Ed25519, &other).unwrap();
+    std::fs::write(s.tree.path().join(ED_PUB), other).unwrap();
     let c = kernel_of(&s);
     assert!(
         c.status == Status::Fail && c.reason.contains("Ed25519 signature is by a key"),
@@ -49,10 +49,15 @@ fn a_kernel_signed_by_another_key_is_refused() {
 #[test]
 fn a_key_file_of_the_wrong_kind_is_refused() {
     let s = Sealed::dev();
-    let ed = std::fs::read(s.tree.path().join(ED_PUB)).unwrap();
-    std::fs::write(s.tree.path().join(PQ_PUB), ed).unwrap();
+    let ed = SigningKey::from_bytes(&[9; 32]).verifying_key().to_bytes();
+    write_pub(&s.tree.path().join(PQ_PUB), AlgId::Ed25519, &ed).unwrap();
     let c = kernel_of(&s);
     assert!(c.status == Status::Fail && c.reason.contains("is not a mldsa65 key"), "{c:?}");
+    // The Ed25519 key in any form but the raw one the seal writes.
+    let s = Sealed::dev();
+    write_pub(&s.tree.path().join(ED_PUB), AlgId::Ed25519, &ed).unwrap();
+    let c = kernel_of(&s);
+    assert!(c.status == Status::Fail && c.reason.contains("not the raw 32-byte key"), "{c:?}");
 }
 
 #[test]

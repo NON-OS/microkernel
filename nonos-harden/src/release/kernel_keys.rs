@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's public keys as the tree holds them, and the two signature
+//! The kernel's public keys as the tree holds them (the Ed25519 key raw, the
+//! ML-DSA-65 key in nonos-sign's NONOSPK1 file), and the two signature
 //! checks the loader makes; a key id not the tree's is refused first.
 
 use super::kernel::Attested;
+use super::kernel_key_files::{ed_key, key};
 use ed25519_dalek::{Signature, VerifyingKey};
 use nonos_capsule_sign::algs::{mldsa65::MlDsa65, AlgId, Verifier};
-use nonos_capsule_sign::keys::read_pub;
 use std::path::Path;
 
 pub const ED_PUB: &str = "nonos-data/trust/keys/kernel_signing_ed25519.pub";
@@ -33,7 +34,7 @@ pub struct KernelKeys {
 
 impl KernelKeys {
     pub fn load(tree: &Path) -> Result<Self, String> {
-        Ok(Self { ed: key(tree, ED_PUB, AlgId::Ed25519)?, pq: key(tree, PQ_PUB, AlgId::MlDsa65)? })
+        Ok(Self { ed: ed_key(tree)?, pq: key(tree, PQ_PUB, AlgId::MlDsa65)? })
     }
     pub fn verify(&self, a: &Attested<'_>) -> Result<(), String> {
         if key_id("NONOS:KEYID:ED25519:v1", &self.ed) != a.ed_key_id {
@@ -59,14 +60,6 @@ impl KernelKeys {
             Ok(true) => Ok(()),
             _ => Err("its ML-DSA-65 signature does not verify".into()),
         }
-    }
-}
-
-fn key(tree: &Path, rel: &str, alg: AlgId) -> Result<Vec<u8>, String> {
-    let k = read_pub(&tree.join(rel)).map_err(|e| format!("{rel}: {e}"))?;
-    match k.alg == alg {
-        true => Ok(k.bytes.clone()),
-        false => Err(format!("{rel} is not a {} key", alg.label())),
     }
 }
 
