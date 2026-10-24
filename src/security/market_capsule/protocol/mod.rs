@@ -20,5 +20,6 @@ mod ops;
 
 pub(super) use codec::{decode_response, encode_request};
 pub(super) use ops::{
-    OP_GET_APP, OP_GET_RELEASE, OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX,
+    OP_GET_APP, OP_GET_LINUX_POLICY, OP_GET_RELEASE, OP_HEALTHCHECK, OP_INSTALL_READY,
+    OP_LIST_APPS, OP_LOAD_INDEX,
 };
