@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the boot splash's logo path, on the splash's own source
-//! through `#[path]`. `fetch.rs` is left out: it is the one file that asks
-//! the kernel, and everything it hands on is proven here.
+//! Host proofs for the boot splash's logo, text layout and status line, on
+//! its own source through `#[path]`; `fetch.rs`, which asks the kernel, aside.
 
 extern crate alloc;
 
@@ -42,11 +41,24 @@ pub mod logo {
 }
 
 #[cfg(test)]
+#[path = "../../capsule_boot_splash/src/layout.rs"]
+pub mod layout;
+#[cfg(test)]
+#[path = "../../capsule_boot_splash/src/status.rs"]
+pub mod status;
+#[cfg(test)]
+#[allow(dead_code)] // `fill`, the whole-surface wash the proofs do not draw
+#[path = "../../capsule_boot_splash/src/vignette.rs"]
+pub mod vignette;
+
+#[cfg(test)]
 mod bmp_tests;
 #[cfg(test)]
 mod build;
 #[cfg(test)]
 mod draw_tests;
+#[cfg(test)]
+mod logo_clear_tests;
 #[cfg(test)]
 mod mode_tests;
 #[cfg(test)]
@@ -57,5 +69,7 @@ mod prepare_tests;
 mod record_tests;
 #[cfg(test)]
 mod refuse_tests;
+#[cfg(test)]
+mod splash_layout_tests;
 #[cfg(test)]
 mod turn_tests;

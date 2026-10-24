@@ -1,9 +1,11 @@
 # capsule_driver_bga
 
-Status: wired, not yet signed. The kernel mirror (`src/hardware/bga_capsule`)
-embeds and spawns it under `nonos-capsule-driver-bga` when the inventory sees
-`DisplayBga`. It has no owner certificate yet, so no image carries it until
-the owner signs it (see the release checklist).
+Status: wired, in its own `microkernel-driver-bga` profile; not yet signed.
+The kernel mirror (`src/hardware/bga_capsule`) embeds and spawns it under
+`nonos-capsule-driver-bga` when the inventory sees `DisplayBga`. It joins
+`microkernel-full-gui` (the image `make` builds) with its owner certificate
+in the 0.9.3 seal (see the release checklist); until then it is in
+`scripts/baselines/display_profiles.txt`.
 
 ## Role
 
@@ -13,8 +15,8 @@ driver, serving the display wire (NVGP v1, PLAN-coverage section 12) on
 `driver.virtio_gpu0` and before GOP. It keeps the mode firmware left until
 the compositor asks for another, so it no longer destroys the firmware
 scanout that kept `DisplayBga` undispatched
-(`src/hardware/inventory/driver.rs`). Its `Capsule.mk` keeps it out of the
-image until its trust artifacts are sealed (HANDOFF letter G-12).
+(`src/hardware/inventory/driver.rs`). Its trust artifacts (`Capsule.mk`)
+are sealed with the 0.9.3 batch (HANDOFF letters G-12, G-84).
 
 ## Microkernel contract
 
@@ -132,9 +134,10 @@ desktop through `driver.bga0`.
 
 - The owner's keys and certificate (owner only).
 - Track A's held-table entry, kernel mirror, spawn and `DisplayBga`
-  dispatch (`src/hardware/inventory`). The embed and spawn wait for A's
-  kernel fix reserving baked service names: a capsule loaded at runtime can
-  take `compositor` while it is free today, and with it the primaries.
+  dispatch (`src/hardware/inventory`): in place. A capsule loaded at runtime
+  may claim only names it already holds (`src/services/registry/reserved.rs`),
+  so none can take `compositor`, and with it the primaries: proved on the
+  kernel's own files in `bga_proofs` (`syscall/microkernel/ipc/claim_tests`).
 
 ## Real hardware bring-up checklist
 

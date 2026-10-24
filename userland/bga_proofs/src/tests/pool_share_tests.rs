@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! K20 on the display framework's surface pool, which bga and virtio-gpu
-//! register and share each output through (nonos_gfx_pool): the share names
-//! the compositor, writable, and no one else; with no compositor running
-//! nothing is registered or shared; a withdrawn output gives its handle back.
+//! K20 on the surface pool bga and virtio-gpu share outputs through
+//! (nonos_gfx_pool): the share names the compositor, writable, alone; with no compositor running
+//! nothing is registered or shared; a withdrawn output gives its handle back;
+//! only the compositor started again is named, by the sid the pool kept.
 
 #[path = "../../../nonos_gfx_pool/src/surface.rs"]
 mod pool_surface;
+#[path = "../../../nonos_gfx_pool/src/receiver.rs"]
+mod receiver;
 
 use nonos_gfx_serve::Region;
 use nonos_gfx_wire::errno::EINVAL;
@@ -28,6 +30,7 @@ use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
 use nonos_libc::{hold, registered, released, shares, Share, SHARED_HANDLE_BASE};
 
 use pool_surface::{publish, withdraw};
+use receiver::reshare;
 
 const COMPOSITOR: u32 = 42;
 
@@ -38,9 +41,10 @@ fn output() -> Region {
 #[test]
 fn the_pool_names_the_compositor_alone_as_the_writable_receiver() {
     hold(b"compositor", Some(COMPOSITOR));
-    let handle = publish(output(), 640, 480, 640 * 4).expect("shared");
+    let (handle, sid) = publish(output(), 640, 480, 640 * 4).expect("shared");
     assert_eq!(shares(), [Share { sid: 0, target_pid: COMPOSITOR, flags: SURFACE_SHARE_WRITE }]);
     assert_eq!(handle, SHARED_HANDLE_BASE as u64, "the share's handle, never the surface id");
+    assert_eq!(sid, 0, "the sid kept beside it, for a later receiver");
     assert_eq!((registered()[0].width, registered()[0].byte_len), (640, 640 * 480 * 4));
 }
 
@@ -54,7 +58,18 @@ fn with_no_compositor_nothing_is_registered_or_shared() {
 #[test]
 fn a_withdrawn_output_gives_its_share_back() {
     hold(b"compositor", Some(COMPOSITOR));
-    let handle = publish(output(), 640, 480, 640 * 4).expect("shared");
+    let (handle, _) = publish(output(), 640, 480, 640 * 4).expect("shared");
     withdraw(handle);
     assert_eq!(released(), [handle]);
+}
+
+#[test]
+fn a_compositor_started_again_is_named_by_the_kept_sid_writable() {
+    hold(b"compositor", Some(COMPOSITOR));
+    let (_, sid) = publish(output(), 640, 480, 640 * 4).expect("shared");
+    assert_eq!(reshare(sid, COMPOSITOR + 1), Err(EINVAL), "a pid not the compositor");
+    hold(b"compositor", Some(COMPOSITOR + 1));
+    assert_eq!(reshare(sid, COMPOSITOR + 1), Ok(()));
+    let later = Share { sid, target_pid: COMPOSITOR + 1, flags: SURFACE_SHARE_WRITE };
+    assert_eq!(shares().last(), Some(&later));
 }
