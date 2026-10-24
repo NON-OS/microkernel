@@ -17,7 +17,8 @@
 //! A host that stops reading costs one refused flush, not a hang, and the
 //! next flush once it reads again is redrawn.
 
-use super::util::{ask, primed, up, words};
+use super::ask::{ask, primed, words};
+use super::util::up;
 use crate::bench::Bench;
 use crate::model::with_svga;
 use nonos_gfx_wire::errno::ETIMEDOUT;
