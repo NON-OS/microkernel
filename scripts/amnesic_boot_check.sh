@@ -23,6 +23,10 @@
 #   NONOS_AMNESIC_IMAGE    the sealed nonos.img to boot (required)
 #   NONOS_AMNESIC_TIMEOUT  seconds the boot runs (default 180)
 #   NONOS_AMNESIC_NET      nat (default) or off
+#   NONOS_QEMU_LANES       tools/nonos-qemu lanes, space separated; a release
+#                          image refuses device DMA without an IOMMU, so under
+#                          QEMU give it `iommu=intel`, or its disk driver never
+#                          comes up and the boot cannot write the stick at all
 #
 # OVMF and OVMF_VARS name the firmware, as `nix develop` and `nix run .#qemu`
 # set them. The boot is the first boot of a fresh stick: nobody answers
@@ -48,9 +52,11 @@ sum() { sha256sum "$1" | cut -d' ' -f1; }
 image_before=$(sum "$image")
 vars_before=$(sum "$OVMF_VARS")
 
+set --
+for l in ${NONOS_QEMU_LANES:-}; do set -- "$@" --lane "$l"; done
 set +e
 python3 tools/nonos-qemu --image "$image" --stick --net "$net" --headless \
-  --serial "$out/serial.log" --timeout "$timeout_secs"
+  --serial "$out/serial.log" --timeout "$timeout_secs" "$@"
 rc=$?
 set -e
 
