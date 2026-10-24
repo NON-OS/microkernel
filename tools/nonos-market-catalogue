@@ -419,7 +419,7 @@ def main() -> int:
     if args.catalogue:
         # Loaded only when asked: the catalogue's own modules, beside this one.
         from nonos_market_catalogue.run import catalogue_run
-        entries += catalogue_run(args.catalogue, args.cache, f"{MIRROR}/{args.alpine_release}",
+        entries += catalogue_run(args.catalogue, args.cache, MIRROR, args.alpine_release,
                                  args.alpine_arch, key, when_ms)
         ids = [e["listing_id"] for e in entries]
         twice = sorted({i for i in ids if ids.count(i) > 1})
