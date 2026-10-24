@@ -5076,6 +5076,18 @@ else
 fi
 unset display_out
 
+# The GPU pages in docs/hardware say what each GPU gets today; the check holds
+# them to the code they describe. The self-test first, so a check that stopped
+# reading the pages cannot pass by finding nothing.
+if gpu_doc_out="$(python3 scripts/check_gpu_doc.py --self-test 2>&1 \
+    && python3 scripts/check_gpu_doc.py 2>&1)"; then
+    note ok "the GPU pages match the tree (check_gpu_doc)"
+else
+    tail -n 5 <<< "${gpu_doc_out}" >&2
+    fail_with "check_gpu_doc: docs/hardware/gpu*.md is out of step with the tree"
+fi
+unset gpu_doc_out
+
 # nonos-harden reads GO over a nonos-verify gap only when the gap is on
 # scripts/baselines/declared-limits.txt; the list follows the source and may
 # only shrink. The self-test first, so a parser that stopped seeing gaps

@@ -42,3 +42,5 @@ pub mod look_matrix;
 pub mod night_tint;
 #[path = "../../../compositor/src/frame_pacer/own_look.rs"]
 pub mod own_look;
+#[path = "../../../compositor/src/frame_pacer/present_note.rs"]
+pub mod present_note;
