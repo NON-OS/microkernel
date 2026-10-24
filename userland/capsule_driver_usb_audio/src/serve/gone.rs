@@ -44,8 +44,8 @@ pub fn give_back(
     play.lost();
 }
 
-/// While bound and idle, about once each `every_ms`: whether the device is
-/// gone from its port. Only CCS is read, never CSC, which driver.xhci0
+/// While bound, playing or not, about once each `every_ms` (look.rs):
+/// whether the device is gone from its port. Only CCS is read, never CSC, which driver.xhci0
 /// clears on read and which every class driver shares.
 pub fn unplugged(
     bound: &Option<Bound<Speaker>>,
@@ -53,10 +53,10 @@ pub fn unplugged(
     next: &mut Deadline,
     every_ms: u64,
 ) -> bool {
-    let Some(b) = bound.as_ref() else { return false };
-    if play.running || !next.expired() {
+    if !super::look::look_now(bound.is_some(), play.running, next.expired()) {
         return false;
     }
+    let Some(b) = bound.as_ref() else { return false };
     *next = Deadline::after_ms(every_ms);
     port_connected(b.xhci, b.port) == Some(false)
 }
