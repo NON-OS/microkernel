@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The MPI 1.x system interface (LSI's MPI specification; Linux's
-//! mpi.h, mpi_ioc.h; QEMU's hw/scsi/mptsas.c, VirtualBox's
-//! DevLsiLogicSCSI.cpp).
+//! The MPI 1.x system interface, from LSI's MPI specification (the
+//! register map, the doorbell states and the message layout are its
+//! facts); cross-checked against the emulated device in QEMU's
+//! hw/scsi/mptsas.c and VirtualBox's DevLsiLogicSCSI.cpp.
 
 pub const REG_DOORBELL: usize = 0x00;
 pub const REG_HOST_INTERRUPT_STATUS: usize = 0x30;
