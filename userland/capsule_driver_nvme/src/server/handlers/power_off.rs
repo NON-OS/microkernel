@@ -14,46 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_POWER_OFF, the kernel's alone (server::medium_rule): before power goes,
-//! a flush, so the volatile write cache is on the medium; then the normal
-//! shutdown and the reset (setup::power_off). The I/O queue is dropped after
-//! either way, so a request that comes later is answered E_NODEV and nothing
-//! reaches a controller that was told power is going. No recovery runs: a
-//! flush that stalls is given up, and the shutdown still goes.
+//! OP_POWER_OFF, the kernel's alone (server::medium_rule): the normal
+//! shutdown and the reset (setup::power_off), with no flush ahead of them
+//! (server::power_off_rule says why). The I/O queue is dropped after either
+//! way, so a request that comes later is answered E_NODEV and nothing
+//! reaches a controller that was told power is going.
 
 use crate::error::reason;
 use crate::log::{emit, Line};
 use crate::protocol::Request;
 use crate::server::error::reply_with_status;
-use crate::server::power_off_rule::{power_off, PoweredOff};
+use crate::server::power_off_rule::status;
 use crate::setup::Driver;
 
 pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
-    let regs = driver.device.regs;
-    let rtd3e_us = driver.identity.rtd3e_us;
-    let Driver { device, io, .. } = driver;
-    let flush = || match io.as_mut() {
-        Some(q) => q.retried(0, |q| q.flush(regs)).map_err(|e| q.failure_status(e)),
-        None => Ok(()),
-    };
-    let done = power_off(flush, || device.power_off(rtd3e_us));
-    *io = None;
-    say(&done);
-    reply_with_status(tx, req, done.status());
-}
-
-fn say(done: &PoweredOff) {
+    let shut = driver.device.power_off(driver.identity.rtd3e_us);
+    driver.io = None;
     let mut line = Line::new();
     line.text(b"power-off: ");
-    match done.flushed {
-        Ok(()) => line.text(b"flushed, "),
-        Err(status) => {
-            line.text(b"flush failed with -").dec(status.unsigned_abs() as u64).text(b", ")
-        }
-    };
-    match done.shut {
+    match shut {
         Ok(()) => line.text(b"shut down"),
         Err(e) => line.text(reason(e).as_bytes()),
     };
     emit(&mut line);
+    reply_with_status(tx, req, status(shut));
 }

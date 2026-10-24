@@ -28,8 +28,16 @@ pub fn flush(port: &mut Port, regs: Regs) -> AhciResult<()> {
     non_data(port, regs, ATA_FLUSH_EXT, ATA_DEV_LBA)
 }
 
-/// STANDBY IMMEDIATE, the power-off's last command to the disk.
-pub fn standby(port: &mut Port, regs: Regs) -> AhciResult<()> {
+/// FLUSH CACHE EXT in the power-off, with its budget `ms` in place of the
+/// served port's (server::power_off_rule): the port is retired after.
+pub fn flush_within(port: &mut Port, regs: Regs, ms: u64) -> AhciResult<()> {
+    port.command_ms = ms;
+    flush(port, regs)
+}
+
+/// STANDBY IMMEDIATE, the power-off's last command to the disk, with `ms`.
+pub fn standby_within(port: &mut Port, regs: Regs, ms: u64) -> AhciResult<()> {
+    port.command_ms = ms;
     non_data(port, regs, ATA_STANDBY_IMMEDIATE, 0)
 }
 

@@ -18,12 +18,15 @@
 
 use super::leg::Leg;
 use super::rule::Poll;
+use crate::services::lifecycle::transport::TransportError;
 use crate::services::lifecycle::transport_nowait::{landed, post};
 
 impl Leg {
     /// One round: take the lock if it is free, post the next request once,
     /// then look for its reply. Replies to an older request are read and
-    /// dropped.
+    /// dropped. A post the driver's inbox has no room for, or that could not
+    /// be built, is tried again next round inside the budget; only a driver
+    /// gone ends the leg.
     pub(crate) fn poll(&mut self) -> Poll {
         if self.held.is_none() {
             match self.wire.lock.try_lock() {
@@ -37,7 +40,8 @@ impl Leg {
                 Some(gen) => gen,
                 None => match post(request, self.wire.sender, self.wire.state) {
                     Ok(gen) => *self.posted.insert(gen),
-                    Err(_) => return Poll::Gone,
+                    Err(TransportError::Dead) => return Poll::Gone,
+                    Err(_) => return Poll::Waiting,
                 },
             };
             if !self.wire.state.is_alive() || self.wire.state.generation() != gen {

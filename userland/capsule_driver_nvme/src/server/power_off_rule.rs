@@ -14,39 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The order of the power-off and the status it answers. The flush comes
-//! first and the shutdown runs whatever the flush did: a cache the flush
-//! could not write is what the shutdown notification may still save. Pure,
-//! so the host proofs hold both.
+//! The status the power-off answers. No flush comes first: a normal
+//! shutdown (CC.SHN 01b, NVMe 2.0 3.6.2) is the controller's word that its
+//! volatile state, the write cache with it, is on the medium, and a flush
+//! ahead of it would hold the notification behind the I/O queue's 30 s
+//! window, past the kernel's budget for this driver. Pure, so the host
+//! proofs hold it.
 
 use crate::error::{NvmeError, NvmeResult};
 use crate::protocol::{E_IO, E_TIMEDOUT};
 
-/// What a power-off did: the flush's reply status, and the shutdown's end.
-pub struct PoweredOff {
-    pub flushed: Result<(), i32>,
-    pub shut: NvmeResult<()>,
-}
-
-/// Run `flush`, then `shut` whatever `flush` returned.
-pub fn power_off<F, S>(flush: F, shut: S) -> PoweredOff
-where
-    F: FnOnce() -> Result<(), i32>,
-    S: FnOnce() -> NvmeResult<()>,
-{
-    let flushed = flush();
-    PoweredOff { flushed, shut: shut() }
-}
-
-impl PoweredOff {
-    /// The reply: the flush's failure first, then a shutdown that ran out of
-    /// time as E_TIMEDOUT, any other as E_IO, else 0.
-    pub fn status(&self) -> i32 {
-        match (self.flushed, self.shut) {
-            (Err(status), _) => status,
-            (Ok(()), Err(NvmeError::ShutdownTimeout)) => E_TIMEDOUT,
-            (Ok(()), Err(_)) => E_IO,
-            (Ok(()), Ok(())) => 0,
-        }
+/// The reply for a power-off whose shutdown ended in `shut`: one that ran
+/// out of time as E_TIMEDOUT, any other failure as E_IO, else 0.
+pub fn status(shut: NvmeResult<()>) -> i32 {
+    match shut {
+        Ok(()) => 0,
+        Err(NvmeError::ShutdownTimeout) => E_TIMEDOUT,
+        Err(_) => E_IO,
     }
 }

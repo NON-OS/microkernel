@@ -16,8 +16,15 @@
 
 //! The leave phase's schedule (src/hardware/block_device/leave/rule.rs):
 //! every leg polled each round, each ended by its own budget or the total,
-//! whichever comes first, and a clock that cannot be read ends them all.
+//! whichever comes first, and a clock that cannot be read ends them all;
+//! and one leg's round (leg_poll.rs) on the stand-in transport.
 
+// The leave lines read `name` and `budget_ms` (leave/run.rs, not mounted).
+#[allow(dead_code)]
+#[path = "../../../../src/hardware/block_device/leave/leg.rs"]
+mod leg;
+#[path = "../../../../src/hardware/block_device/leave/leg_poll.rs"]
+mod leg_poll;
 #[path = "../../../../src/hardware/block_device/leave/poll.rs"]
 mod poll;
 #[path = "../../../../src/hardware/block_device/leave/rule.rs"]
@@ -28,3 +35,9 @@ mod tests;
 
 #[cfg(test)]
 mod order_tests;
+
+#[cfg(test)]
+mod leg_tests;
+
+#[cfg(test)]
+mod critical_tests;
