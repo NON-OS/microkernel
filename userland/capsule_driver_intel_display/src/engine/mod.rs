@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod access;
+pub use nonos_intel_display_hw::access;
 pub mod aux_ch;
 pub mod aux_regs;
 pub mod backlight;
@@ -28,7 +28,7 @@ pub mod dpll_cfgcr;
 pub mod dpll_ctrl;
 pub mod dpll_hdmi;
 pub mod dpll_split;
-pub mod error;
+pub use nonos_intel_display_hw::error;
 pub mod fault;
 pub mod flip;
 pub mod gen;
@@ -45,7 +45,7 @@ pub mod mn;
 pub mod modeset;
 pub mod modeset_off;
 pub mod pcode;
-pub mod pipe;
+pub use nonos_intel_display_hw::pipe;
 pub mod plane;
 pub mod plane_kind;
 pub mod plane_read;
