@@ -16,8 +16,7 @@
 
 use nonos_market_proto::linux_policy_body;
 
-use super::super::install_ready::find_release::find_release;
-use super::encode::encode;
+use super::encode::answer;
 use crate::protocol::{Request, E_INVAL, E_MSGSIZE, E_NODATA};
 use crate::server::error::reply_status;
 use crate::server::lp::parse_pair;
@@ -31,19 +30,13 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
     let Some((listing_id, release_id)) = parse_pair(body) else {
         return reply_status(tx, req, E_INVAL);
     };
-    // The resolution readiness and the release lookup use, so all agree on
-    // which release an empty id means.
-    let Some((entry_index, release_index, release)) =
-        find_release(&accepted.index, listing_id, release_id)
-    else {
+    let publisher = |entry, release| accepted.publisher_signature_verified(entry, release);
+    let found =
+        answer(&accepted.index, accepted.signature_verified, publisher, listing_id, release_id);
+    let Some((reply, package_hash)) = found else {
         return reply_status(tx, req, E_NODATA);
     };
-    let Some(entry) = accepted.index.entries.get(entry_index) else {
-        return reply_status(tx, req, E_NODATA);
-    };
-    let publisher_signed = accepted.publisher_signature_verified(entry_index, release_index);
-    let out =
-        linux_policy_body(&encode(entry, release, accepted.signature_verified, publisher_signed));
+    let out = linux_policy_body(&reply, &package_hash);
     let Some(slot) = body_slot(tx, out.len()) else {
         return reply_status(tx, req, E_MSGSIZE);
     };

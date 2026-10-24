@@ -16,8 +16,9 @@
 
 //! Taking a package that did not land whole back out of the store.
 //!
-//! Each file written for it goes, with the trailer minted beside a program,
-//! so nothing of a half-installed package can be started or vouched for.
+//! Each file written for it goes, with what was written beside it
+//! (minted.rs), so nothing of a half-installed package can be started or
+//! vouched for.
 //! Packages of the same install that landed whole before it stay: each is a
 //! complete package on its own. A path the package overwrote held the new
 //! bytes by then, so taking it out loses nothing the old file still had.
@@ -27,20 +28,14 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
+use super::super::minted::take_out;
 use super::super::Why;
-use crate::linux::attest_paths::beside;
-use crate::linux::file::{key, store_unlink};
+use crate::linux::file::{key, store_stat, store_unlink};
 
 /// `why` says what was not written: files, or the link table.
 pub(super) fn undo(landed: &[Vec<u8>], why: &str) {
-    let mut left = 0usize;
-    for at in landed {
-        if store_unlink(&key(at)).is_err() {
-            left += 1;
-        }
-        // Only a program has one; for any other file there is nothing here.
-        let _ = store_unlink(&key(&beside(at, b".zk_trailer.bin")));
-    }
+    let mut gone = |p: &[u8]| store_unlink(&key(p)).is_ok() || store_stat(&key(p)).is_err();
+    let left = landed.iter().filter(|at| !take_out(at, &mut gone)).count();
     let line = format!(
         "[LINUX] install failed, {why} not written: took out {} of {} file(s), {left} would not go\n",
         landed.len() - left,

@@ -30,28 +30,33 @@ fn arg() -> [u8; MARKET_ARG_LEN] {
     m
 }
 
+const HASH: [u8; 32] = [7; 32];
+
 #[test]
-fn every_kind_reads_back_as_written() {
+fn every_kind_reads_back_as_written_with_its_release_s_hash() {
     for reply in [LinuxPolicy::NoPolicy, LinuxPolicy::Refused, LinuxPolicy::Policy(Box::new(arg()))]
     {
-        assert_eq!(parse_linux_policy(&linux_policy_body(&reply)), Some(reply));
+        assert_eq!(parse_linux_policy(&linux_policy_body(&reply, &HASH)), Some((reply, HASH)));
     }
 }
 
 #[test]
 fn a_cut_long_or_foreign_reply_is_refused() {
-    let full = linux_policy_body(&LinuxPolicy::Policy(Box::new(arg())));
+    let full = linux_policy_body(&LinuxPolicy::Policy(Box::new(arg())), &HASH);
+    let none = linux_policy_body(&LinuxPolicy::NoPolicy, &HASH);
     let (_, cut) = full.split_last().expect("not empty");
+    let (_, cut_none) = none.split_last().expect("not empty");
     let foreign: Vec<u8> =
-        full.iter().enumerate().map(|(i, b)| if i == 0 { 2 } else { *b }).collect();
+        full.iter().enumerate().map(|(i, b)| if i == 0 { 1 } else { *b }).collect();
     let bad: Vec<Vec<u8>> = alloc::vec![
         cut.to_vec(),
+        cut_none.to_vec(),
         [full.as_slice(), &[0]].concat(),
+        [none.as_slice(), &[0]].concat(),
         foreign,
-        alloc::vec![LINUX_POLICY_VERSION, 3],
-        alloc::vec![2, KIND_NONE],
-        alloc::vec![0, KIND_REFUSED],
-        alloc::vec![LINUX_POLICY_VERSION, KIND_NONE, 0],
+        [&[LINUX_POLICY_VERSION, 3][..], &HASH].concat(),
+        [&[1, KIND_NONE][..], &HASH].concat(),
+        alloc::vec![LINUX_POLICY_VERSION, KIND_NONE],
         alloc::vec![LINUX_POLICY_VERSION, KIND_POLICY],
         alloc::vec![LINUX_POLICY_VERSION],
         Vec::new(),
@@ -64,6 +69,7 @@ fn a_cut_long_or_foreign_reply_is_refused() {
 #[test]
 fn the_op_and_lengths_are_pinned() {
     assert_eq!(super::ops::OP_GET_LINUX_POLICY, 8);
-    assert_eq!(linux_policy_body(&LinuxPolicy::Policy(Box::new(arg()))).len(), 322);
-    assert_eq!((KIND_NONE, KIND_POLICY, KIND_REFUSED, LINUX_POLICY_VERSION), (0, 1, 2, 1));
+    assert_eq!(linux_policy_body(&LinuxPolicy::Policy(Box::new(arg())), &HASH).len(), 354);
+    assert_eq!(linux_policy_body(&LinuxPolicy::Refused, &HASH).len(), LINUX_POLICY_HEAD);
+    assert_eq!((KIND_NONE, KIND_POLICY, KIND_REFUSED, LINUX_POLICY_VERSION), (0, 1, 2, 2));
 }
