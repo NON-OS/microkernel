@@ -35,11 +35,17 @@ are judged. Each one is classified, and these fail the run:
              peer not in --allow (a directory authority, pinned by address,
              is asked without a Host)
 
-Everything else is listed: each TCP and UDP peer with a count, the DHCP
-parameter list, every TLS server name and HTTP host. A TCP or UDP peer outside
---allow is marked `listed`, not failed: the Nym and Anyone clients reach
-gateways and relays they learn from a directory at run time, which no fixed
-list can name, and the checks above are what tells a relay from a leak.
+  peer       a TCP or UDP peer the image did not choose: not given with --allow
+             (the bootstrap the capsules pin), not a relay the consensus a
+             pinned authority sent in this same capture names, and not the
+             DHCP server's broadcast
+
+The relays are read from the capture itself: every reply a peer given with
+--allow sent on a TCP stream is gathered, its HTTP body inflated when it is
+zlib, and each `r` line's address taken, which is how an onion network's
+consensus names its relays. A consensus only an allowed authority sent can
+widen the set, so a host that is not one cannot vouch for itself. Each
+peer, DHCP parameter list, TLS server name and HTTP host is listed too.
 
 The verdict and every finding go to --json as well. Exit 0 pass, 1 fail,
 2 when the capture cannot be read.
@@ -47,9 +53,11 @@ The verdict and every finding go to --json as well. Exit 0 pass, 1 fail,
 
 import argparse
 import json
+import re
 import struct
 import sys
-from collections import Counter
+import zlib
+from collections import Counter, defaultdict
 
 SLIRP_HOST_MAC = bytes.fromhex("52550a000202")
 
@@ -150,9 +158,46 @@ def http_host(payload):
     return ""
 
 
+RELAY_LINE = re.compile(rb"^r \S+ \S+ (?:\S+ )?\S+ \S+ (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \d+ \d+", re.M)
+
+
+def relays(data, authorities):
+    """The relay addresses every consensus a host in `authorities` sent on a
+    TCP stream in the capture names. Each stream's bytes are joined in
+    capture order; the HTTP body is inflated when it is zlib."""
+    streams = defaultdict(bytearray)
+    for f in frames(data):
+        if len(f) < 34 or f[12:14] != b"\x08\x00" or f[23] != 6:
+            continue
+        src = ip_text(f[26:30])
+        if src not in authorities:
+            continue
+        l4 = f[14 + (f[14] & 0x0F) * 4 :]
+        if len(l4) < 20:
+            continue
+        sport, dport = struct.unpack_from(">HH", l4)
+        streams[(src, sport, dport)] += l4[(l4[12] >> 4) * 4 :]
+    found = set()
+    for raw in streams.values():
+        body = bytes(raw).split(b"\r\n\r\n", 1)[-1]
+        for text in (body, _inflate(body)):
+            found.update(m.group(1).decode() for m in RELAY_LINE.finditer(text))
+    return found
+
+
+def _inflate(body):
+    try:
+        return zlib.decompressobj().decompress(body)
+    except zlib.error:
+        return b""
+
+
 def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
     """The report for a capture's bytes: every guest frame classified."""
-    allow_ips, allow_names = set(allow_ips), set(allow_names)
+    allow_names = set(allow_names)
+    pinned = set(allow_ips)
+    learned = relays(data, pinned)
+    allow_ips = pinned | learned
     failures, peers = [], Counter()
     seen = {"frames": 0, "guest_frames": 0, "macs": set(), "dhcp_params": [], "sni": Counter(), "http": Counter()}
 
@@ -192,7 +237,7 @@ def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
             fail("discovery", f"{name} to {where}")
         if proto == 17:
             payload = l4[8:]
-            if sport == 68 and dport == 67:
+            if sport == 68 and dport == 67 and ip_text(dst) == "255.255.255.255":
                 opts = dhcp_options(payload)
                 if opts is not None:
                     for code, label in DHCP_NAMING.items():
@@ -217,9 +262,13 @@ def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
         peers[(name, ip_text(dst), dport)] += 1
 
     listed = [
-        {"proto": p, "ip": ip, "port": port, "frames": n, "allowed": ip in allow_ips}
+        {"proto": p, "ip": ip, "port": port, "frames": n, "allowed": ip in allow_ips,
+         "why": "pinned" if ip in pinned else "relay" if ip in learned else "unchosen"}
         for (p, ip, port), n in sorted(peers.items())
     ]
+    for p in listed:
+        if not p["allowed"]:
+            fail("peer", f"{p['proto']} to {p['ip']}:{p['port']}, a peer the image did not choose")
     return {
         "status": "fail" if failures else "pass",
         "frames": seen["frames"],
@@ -228,6 +277,7 @@ def judge(data, allow_ips=(), allow_names=(), host_mac=SLIRP_HOST_MAC):
         "dhcp_parameter_lists": seen["dhcp_params"],
         "tls_server_names": dict(seen["sni"]),
         "http_hosts": dict(seen["http"]),
+        "relays_learned": len(learned),
         "peers": listed,
         "failures": failures,
     }
@@ -282,6 +332,19 @@ def _hello(name):
     return b"\x16\x03\x01" + struct.pack(">H", len(hs)) + hs
 
 
+def _from(src_ip, sport, body):
+    """A TCP segment from `src_ip` to the guest: a server's reply."""
+    tcp = struct.pack(">HHIIBBHHH", sport, 41000, 1, 1, 0x50, 0x18, 1024, 0, 0) + body
+    return GUEST + SLIRP_HOST_MAC + b"\x08\x00" + _ip(6, (10, 0, 2, 15), tcp, src=src_ip)
+
+
+def _consensus(*addrs):
+    lines = b"network-status-version 3 microdesc\n" + b"".join(
+        b"r relay%d AAAA 2026-10-24 12:00:00 %s 9001 0\nm abc\n" % (i, a.encode())
+        for i, a in enumerate(addrs))
+    return b"HTTP/1.0 200 OK\r\nContent-Encoding: deflate\r\n\r\n" + zlib.compress(lines)
+
+
 def _inbound():
     return SLIRP_HOST_MAC[:0] + GUEST + SLIRP_HOST_MAC + b"\x08\x00" + _ip(17, (10, 0, 2, 15), struct.pack(">HHHH", 53, 40000, 8, 0), src=(10, 0, 2, 3))
 
@@ -292,14 +355,20 @@ def self_test():
         _tcp((92, 39, 63, 14), 443, _hello("validator.nymtech.net")),
         _tcp((188, 172, 228, 15), 9000, b"\x00" * 40),
         _inbound(),
+        _tcp((49, 13, 145, 234), 9230, b"GET /tor/status-vote/current/consensus-microdesc.z HTTP/1.0\r\n\r\n"),
+        _from((49, 13, 145, 234), 9230, _consensus("5.6.7.8", "9.9.9.9")),
+        _tcp((5, 6, 7, 8), 9001, _hello("www.abcdefgh.net")),
     ]
-    allow = {"allow_names": ["validator.nymtech.net"], "allow_ips": ["92.39.63.14"]}
+    allow = {"allow_names": ["validator.nymtech.net", "www.abcdefgh.net"],
+             "allow_ips": ["92.39.63.14", "188.172.228.15", "49.13.145.234"]}
     r = judge(_pcap(clean), **allow)
     assert r["status"] == "pass", r["failures"]
-    assert r["guest_frames"] == 3, "the host's reply to the guest is not judged"
-    assert r["tls_server_names"] == {"validator.nymtech.net": 1}
+    assert r["guest_frames"] == 5, "the hosts' replies to the guest are not judged"
+    assert r["tls_server_names"] == {"validator.nymtech.net": 1, "www.abcdefgh.net": 1}
     assert r["dhcp_parameter_lists"] == [[1, 3, 6]]
-    assert [p["allowed"] for p in r["peers"]] == [False, True], r["peers"]
+    assert r["relays_learned"] == 2
+    assert {p["ip"]: p["why"] for p in r["peers"]} == {
+        "188.172.228.15": "pinned", "49.13.145.234": "pinned", "5.6.7.8": "relay", "92.39.63.14": "pinned"}, r["peers"]
 
     cases = {
         "dns": _udp((10, 0, 2, 3), 53, b"\x00" * 20),
@@ -310,17 +379,21 @@ def self_test():
         "dhcp-id": _dhcp([(53, b"\x01"), (12, b"nonos-laptop")]),
         "sni": _tcp((1, 2, 3, 4), 443, _hello("tracker.example")),
         "http": _tcp((1, 2, 3, 4), 80, b"GET / HTTP/1.1\r\nHost: telemetry.example\r\n\r\n"),
+        "peer": _tcp((203, 0, 113, 9), 443, b"\x00" * 40),
     }
     for kind, frame in cases.items():
         r = judge(_pcap(clean + [frame]), **allow)
         kinds = {f["kind"] for f in r["failures"]}
         assert kind in kinds, f"{kind} not caught: {r['failures']}"
         assert r["status"] == "fail"
+    # A host nobody pinned cannot vouch for itself with a consensus of its own.
+    rogue = [_from((203, 0, 113, 9), 80, _consensus("203.0.113.9")), _tcp((203, 0, 113, 9), 80, b"\x00" * 8)]
+    assert {f["kind"] for f in judge(_pcap(rogue), **allow)["failures"]} == {"peer"}, "self-vouching"
     dirauth = _tcp((92, 39, 63, 14), 9230, b"GET /tor/status-vote/current/consensus HTTP/1.0\r\n\r\n")
     assert judge(_pcap([dirauth]), **allow)["status"] == "pass", "a pinned authority, asked without a Host"
     assert judge(_pcap([dirauth]))["status"] == "fail", "the same request to a peer nobody pinned"
     tcp_dns = _tcp((10, 0, 2, 3), 853, b"\x00" * 10)
-    assert {f["kind"] for f in judge(_pcap([tcp_dns]))["failures"]} == {"dns"}, "DNS over TLS"
+    assert {f["kind"] for f in judge(_pcap([tcp_dns]))["failures"]} >= {"dns"}, "DNS over TLS"
 
     for bad in (b"", b"\x00" * 10, b"not a pcap at all, not even close!!"):
         try:
@@ -364,7 +437,7 @@ def main(argv=None):
         print(f"[egress] cannot read {a.pcap}: {e}", file=sys.stderr)
         return 2
     for p in report["peers"]:
-        mark = "" if p["allowed"] else "  listed"
+        mark = f"  {p['why']}"
         print(f"[egress] {p['proto']} {p['ip']:15} {p['port']:5} {p['frames']:6} frames{mark}")
     for name, n in report["tls_server_names"].items():
         print(f"[egress] tls {name} x{n}")

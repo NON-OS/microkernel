@@ -74,9 +74,12 @@ fi
 # The names the anonymity networks may be reached by in the clear: the
 # bootstrap hosts their capsules pin by address and check by certificate.
 names=$(sed -n 's/.*("\([a-z0-9.-]*\)", \[[0-9, ]*\]).*/\1/p' userland/capsule_net_nym/src/directory_sync/pinned.rs)
-# The addresses they are pinned at: Nym's directory API and Anyone's
-# directory authorities, each asked before there is a network to ask through.
-ips=$(cat userland/capsule_net_nym/src/directory_sync/live.rs userland/capsule_net_anon/src/directory/authority/list.rs \
+# The addresses they are pinned at: Nym's directory API and the bootstrap
+# gateways it enters the mixnet through (it reaches no mix node itself), and
+# Anyone's directory authorities. The relays Anyone then uses are learned
+# from the consensus those authorities send, inside the capture itself.
+ips=$(cat userland/capsule_net_nym/src/directory_sync/live.rs userland/capsule_net_nym/src/state/bootstrap.rs \
+  userland/capsule_net_anon/src/directory/authority/list.rs \
   | sed -n 's/.*\[\([0-9]\{1,3\}\), \([0-9]\{1,3\}\), \([0-9]\{1,3\}\), \([0-9]\{1,3\}\)\].*/\1.\2.\3.\4/p' | sort -u)
 set --
 for n in $names; do set -- "$@" --allow-name "$n"; done
