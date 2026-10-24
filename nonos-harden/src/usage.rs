@@ -18,7 +18,9 @@
 //! each check covers is docs/release/nonos-harden.md.
 
 pub const SHORT: &str = "\
-usage: nonos-harden check --release DIR [--tree DIR] [--format text|json] [--out FILE]
+usage: nonos-harden check --release DIR [--tree DIR] [--format text|json]
+                          [--out FILE [--sign-key KEY]]
+       nonos-harden verify-signature --verdict FILE --signature FILE --public-key KEY
        nonos-harden --help | --version
 ";
 
@@ -26,7 +28,9 @@ pub const LONG: &str = "\
 nonos-harden: one GO or NO-GO before an image touches a machine
 
 usage:
-  nonos-harden check --release DIR [--tree DIR] [--format text|json] [--out FILE]
+  nonos-harden check --release DIR [--tree DIR] [--format text|json]
+                     [--out FILE [--sign-key KEY]]
+  nonos-harden verify-signature --verdict FILE --signature FILE --public-key KEY
   nonos-harden --help | --version
 
 `check` runs every verifier this tree holds over the sealed release in DIR
@@ -41,9 +45,18 @@ names it and says why. A development image that passes reads
                   is run inside)
   --format F      text (the default) or json (format nonos-harden-verdict/1)
   --out FILE      also write the verdict to FILE
+  --sign-key KEY  sign FILE with your own Ed25519 key (its 32-byte seed, 64
+                  hex digits, or a nonos-sign seed file), into FILE.sig;
+                  a NONOS key is refused, before any check runs
+
+`verify-signature` checks that FILE.sig is KEY's signature of FILE, byte for
+byte, and that FILE names KEY (64 hex digits, or a public key file) as its
+signer. It does not say whether the verdict is GO; the verdict does.
 
 exit status:
-  0 GO    1 NO-GO    2 bad command line    3 the verdict could not be written
+  0 GO (or: the signature verifies)    1 NO-GO    2 bad command line, or a
+  key refused    3 the verdict could not be written or signed    4 the
+  signature does not verify
 
 Every check, what it covers, and what GO does not mean:
   docs/release/nonos-harden.md

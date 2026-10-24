@@ -45,6 +45,9 @@ pub fn render(v: &Verdict) -> String {
             s += &format!("  {:<7}  {:<w$}  does not cover: {}\n", "", "", clean(l));
         }
     }
+    if let Some(k) = &v.signer {
+        s += &format!("signer: {k}\n");
+    }
     s + &format!("scope: {}\n{}\n", v.scope, v.verdict)
 }
 
