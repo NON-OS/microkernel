@@ -65,7 +65,7 @@ fn run(ctx: &mut Ctx, id: &'static str, sub: &str) -> Check {
 
 fn command(tree: &Path, sub: &str, reports: &Path) -> Cmd {
     let manifest = tree.join("nonos-verify/Cargo.toml").display().to_string();
-    let args = ["run", "--quiet", "--release", "--manifest-path", &manifest, "--", sub];
+    let args = ["run", "--quiet", "--release", "--locked", "--manifest-path", &manifest, "--", sub];
     let env = vec![("NONOS_VERIFY_REPORTS".to_string(), reports.display().to_string())];
     let args = args.map(String::from).to_vec();
     Cmd { program: "cargo".into(), args, cwd: tree.into(), env, limit: LIMIT }

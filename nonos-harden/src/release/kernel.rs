@@ -51,10 +51,17 @@ pub fn parse(b: &[u8]) -> Result<Attested<'_>, String> {
             "its footer names other algorithms than BLAKE3 with Ed25519 and ML-DSA-65".into()
         );
     }
+    // As embed-trailer writes it (footer/create.rs): flags 1, reserved 0, 1 at 48.
+    let zero =
+        [14..16, 24..28, 52..56, 60..64].iter().all(|r| f[r.clone()].iter().all(|&b| b == 0));
+    if u16::from_le_bytes([f[10], f[11]]) != 1 || !zero || u32_at(48) != 1 {
+        return Err("its footer's reserved bytes are not as embed-trailer writes them".into());
+    }
     let total = u64::from_le_bytes([f[16], f[17], f[18], f[19], f[20], f[21], f[22], f[23]]);
     let (kernel, sig, proof_at, proof) = (u32_at(28), u32_at(36), u32_at(40), u32_at(44));
-    let fills =
-        kernel.checked_add(sig) == Some(proof_at) && proof_at.checked_add(proof) == Some(at);
+    let fills = kernel.checked_add(sig) == Some(proof_at)
+        && proof_at.checked_add(proof) == Some(at)
+        && proof > 0;
     if total != b.len() as u64 || u32_at(32) != kernel || !fills || kernel == 0 {
         return Err("the sizes its footer gives do not add up to the file".into());
     }

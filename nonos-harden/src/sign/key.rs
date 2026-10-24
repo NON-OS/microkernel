@@ -23,7 +23,6 @@ use super::refuse::{by_place, by_public};
 use crate::release::read::read_regular;
 use ed25519_dalek::SigningKey;
 use nonos_capsule_sign::algs::AlgId;
-use nonos_capsule_sign::keys::read_seed;
 use std::path::Path;
 
 pub fn load(path: &Path, tree: Option<&Path>) -> Result<SigningKey, String> {
@@ -42,10 +41,15 @@ pub(crate) fn seed(bytes: &[u8], path: &Path) -> Result<[u8; 32], String> {
     if let Ok(raw) = <[u8; 32]>::try_from(bytes) {
         return Ok(raw);
     }
-    if bytes.starts_with(b"NONOSSK1") {
-        let k = read_seed(path).map_err(|e| format!("{}: {e}", path.display()))?;
-        let ed = (k.alg == AlgId::Ed25519).then(|| <[u8; 32]>::try_from(k.bytes.as_slice()).ok());
-        return ed.flatten().ok_or("a NONOS seed file, but not an Ed25519 one".into());
+    // nonos-sign's seed file (keys/read.rs), read from the bytes in hand so
+    // they are the bytes cleared: magic, algorithm, length (big-endian), seed.
+    if let Some(rest) = bytes.strip_prefix(b"NONOSSK1") {
+        let ed = rest.first().is_some_and(|&a| AlgId::from_u8(a).ok() == Some(AlgId::Ed25519));
+        return match (ed, rest.get(1..3), rest.get(3..)) {
+            (true, Some([0, 32]), Some(k)) if k.len() == 32 => Ok(k.try_into().unwrap_or([0; 32])),
+            (false, _, _) => Err("a NONOS seed file, but not an Ed25519 one".into()),
+            _ => Err(format!("{}: not a well-formed NONOS seed file", path.display())),
+        };
     }
     let mut out = [0u8; 32];
     let text = std::str::from_utf8(bytes).map(str::trim).unwrap_or_default();

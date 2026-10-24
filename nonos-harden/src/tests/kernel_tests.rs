@@ -31,13 +31,15 @@ pub fn kernel_of(s: &Sealed) -> Check {
     kernel_check::check(&mut ctx)
 }
 
-/// The sealed kernel with one byte changed; the record is left as it was.
+/// One byte of the kernel changed, on the ESP too, and the record rewritten to
+/// match, as one who holds the release can: only the signature can catch it.
 pub fn poke(s: &Sealed, at: impl Fn(usize) -> usize) {
-    let path = s.release.path().join("kernel.bin");
-    let mut b = fs::read(&path).unwrap();
+    let mut b = fs::read(s.release.path().join("kernel.bin")).unwrap();
     let i = at(b.len());
     b[i] ^= 0x01;
-    fs::write(path, b).unwrap();
+    s.release.put("kernel.bin", &b);
+    s.release.put("esp/kernel.bin", &b);
+    s.release.record();
 }
 
 pub fn fails_with(s: &Sealed, why: &str) {
