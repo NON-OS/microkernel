@@ -46,9 +46,10 @@ pub(super) fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8], wake_ms: i6
             return;
         }
         let msg = &rx[..n as usize];
-        // Window notices and input are believed only from the window manager
-        // and the input router (`server::peer`); from anyone else they are
-        // dropped, never parsed as a request.
+        // A window notice is believed only from the window manager
+        // (`server::peer`), an input frame only from the input router
+        // (`server::input_source`); from anyone else either is dropped,
+        // never parsed as a request.
         if crate::state::wm_notice::decode_wm_notice(msg).is_some() {
             if crate::server::peer::WM.sent(sender_pid) {
                 crate::server::wm_notify::handle(ctx, msg);
@@ -56,12 +57,12 @@ pub(super) fn drain(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8], wake_ms: i6
             continue;
         }
         if msg.get(..4) == Some(&INPUT_MAGIC[..]) {
-            if crate::server::peer::INPUT_ROUTER.sent(sender_pid) {
-                crate::server::input::handle(ctx, msg);
+            if let Some(by) = crate::server::input_source::routed(sender_pid) {
+                crate::server::input::handle(ctx, by, msg);
             }
             continue;
         }
-        let (req, body) = match parse(&rx[..n as usize]) {
+        let (req, body) = match parse(msg) {
             Ok(parsed) => parsed,
             Err((code, req)) => {
                 let _ = respond::status(sender_pid, &req, code, tx);

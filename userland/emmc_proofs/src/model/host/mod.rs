@@ -23,6 +23,7 @@
 //! descriptor with End). A broken rule is recorded in `violations`.
 
 mod answer;
+mod bus;
 mod cfg;
 mod check;
 mod clock;
@@ -31,6 +32,7 @@ mod data;
 mod data_check;
 mod dev;
 mod dma;
+mod lie;
 mod mmio;
 mod power;
 mod present;
@@ -43,6 +45,7 @@ mod walk;
 mod walk_desc;
 mod write;
 
+pub use bus::SimBus;
 pub use cfg::{HostCfg, GLK_CAPS};
-pub use sim::{Sim, SimBus};
+pub use sim::Sim;
 pub use types::CmdRec;

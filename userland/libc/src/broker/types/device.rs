@@ -29,6 +29,9 @@ pub const DEVICE_FLAG_IRQ_EDGE: u32 = 1 << 4;
 pub const DEVICE_FLAG_IRQ_ACTIVE_LOW: u32 = 1 << 5;
 /// `numa_node` of a device no firmware table places, or past domain 254.
 pub const NUMA_UNKNOWN: u8 = 0xFF;
+/// The device's DMA does not snoop the CPU's caches: sync cacheable grants
+/// with `mk_dma_sync` around each transfer.
+pub const DEVICE_FLAG_DMA_NONCOHERENT: u32 = 1 << 6;
 
 #[repr(C)]
 #[derive(Clone, Copy)]

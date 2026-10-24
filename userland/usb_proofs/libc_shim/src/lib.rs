@@ -24,8 +24,8 @@ mod post;
 pub use clock::{advance_ms, idled_ms, mk_idle_ms, mk_uptime_ms};
 pub use post::{
     mk_input_event_post, take_posted, InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
-    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL,
-    INPUT_KIND_WHEEL,
+    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN,
+    INPUT_KIND_PAD_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
 };
 
 /// A debug line goes nowhere on the host.

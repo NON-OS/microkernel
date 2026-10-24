@@ -14,32 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Finding driver.xhci0: at every step while the search lasts, so a device
-//! is found as soon as the controller registers, and after it every few
-//! seconds, as the ports are. It was looked up every 5 ms for as long as no
-//! controller registered, on a machine with no USB at all for the boot.
+//! Finding the USB hosts (usb_hosts.rs, fastest first): those not yet
+//! registered are looked up at every step while the search lasts, so a
+//! device is found as soon as its host registers, and after it every few
+//! seconds, as the ports are. They were looked up every 5 ms for as long as
+//! none registered, on a machine with no USB at all for the boot.
 
 use super::report::Report;
 use super::scanner::Scanner;
 use super::searching::RESCAN_MS;
 use crate::clock::Deadline;
-use crate::xhci::lookup;
+use crate::xhci::host;
 
 impl Scanner {
-    /// driver.xhci0, once it has registered; the search restarts then.
-    pub(super) fn found(&mut self) -> Option<u32> {
-        if self.xhci.is_some() || !(self.searching || self.look.expired()) {
-            return self.xhci;
+    /// Whether any host has registered; the search restarts when the first
+    /// does.
+    pub(super) fn found(&mut self) -> bool {
+        if !(self.searching || self.look.expired()) {
+            return self.known > 0;
         }
-        self.xhci = lookup();
-        match self.xhci {
-            None => {
+        let known = self.hosts.find(host);
+        match (self.known, known) {
+            (_, 0) => {
                 self.report = Report::new();
                 self.look = Deadline::after_ms(RESCAN_MS);
             }
-            Some(_) if self.searching => self.restart(),
-            Some(_) => {}
+            (0, _) if self.searching => self.restart(),
+            _ => {}
         }
-        self.xhci
+        self.known = known;
+        known > 0
     }
 }

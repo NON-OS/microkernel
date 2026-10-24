@@ -17,8 +17,11 @@
 mod held;
 mod ops;
 mod said;
+mod sense;
 mod snapshot;
 mod types;
+mod uas_tag;
 
 pub use said::Said;
+pub use sense::SENSE_KEPT;
 pub use types::State;

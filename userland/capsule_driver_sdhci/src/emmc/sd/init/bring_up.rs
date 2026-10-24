@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SD bring-up sequence, in the order Linux's mmc_attach_sd and
-//! mmc_sd_init_card take: power, CMD0, CMD8, ACMD41, CID, address, CSD,
-//! select, block length, bus width and clock.
+//! The SD bring-up, in the SD Physical Layer's initialisation order (as
+//! recalled, unverified): power, CMD0, CMD8, ACMD41 until ready, CID,
+//! address, CSD, select; then block length, bus width and clock.
 
 use super::super::super::env::{Clock, Log, Mmio};
 use super::super::super::error::EmmcResult;
@@ -40,12 +40,13 @@ pub fn bring_up<M: Mmio, C: Clock, L: Log>(h: &mut Host<M, C, L>) -> EmmcResult<
         h.say(Line::new().s(b"no SD card answered ACMD41"));
         return Ok(None);
     };
-    let (cid, rca, sectors) = identify(h)?;
+    // CCS means something only to a host that set HCS.
+    let sector_mode = v2 && ccs(ocr);
+    let (cid, rca, sectors) = identify(h, sector_mode)?;
     let mut card = Card {
         rca,
         ocr,
-        // CCS means something only to a host that set HCS.
-        sector_mode: v2 && ccs(ocr),
+        sector_mode,
         cid,
         ext: None,
         sectors,

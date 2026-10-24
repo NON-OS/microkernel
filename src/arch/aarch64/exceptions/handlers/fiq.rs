@@ -19,13 +19,13 @@ use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
 use super::fatal::fatal_interrupt;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_fiq_current(frame: *mut ExceptionFrame) -> ! {
+pub(crate) extern "C" fn aarch64_exc_fiq_current(frame: *mut ExceptionFrame) -> ! {
     let frame = unsafe { &*frame };
     fatal_interrupt(b"FIQ EL1", None, frame)
 }
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_fiq_lower(frame: *mut ExceptionFrame) -> ! {
+pub(crate) extern "C" fn aarch64_exc_fiq_lower(frame: *mut ExceptionFrame) -> ! {
     let frame = unsafe { &*frame };
     fatal_interrupt(b"FIQ EL0", None, frame)
 }

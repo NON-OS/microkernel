@@ -17,33 +17,32 @@
 //! The callers the held endpoints are held to (held_table.rs).
 
 /// The kernel polls the keyboards and pointers, reads the random source and
-/// serves USB storage itself; no capsule has reason to reach them. The SMBus
-/// host has no driver above it yet: a raw transfer reaches any device on the
-/// bus, so it is opened to one when one exists.
+/// serves USB storage itself, and the hub walker answers it alone; no capsule
+/// has reason to reach them. The SMBus host has no driver above it yet: a raw
+/// transfer reaches any device on the bus, so it is opened to one when one
+/// exists. A smart card signs and decrypts for whoever reaches its reader,
+/// and a security key signs for whoever reaches it once its user touches it:
+/// the owner names who. The SPI host moves raw bytes to any device on its
+/// bus: only the HID driver above it reaches it, and that driver posts input,
+/// serving no one.
 pub(super) const KERNEL_ONLY: &[&str] = &[];
 
-/// The class drivers above the xHCI controller, each searching the ports
-/// for its own kind of device.
-pub(super) const XHCI_CLIENTS: &[&str] = &[
+/// The hub walker and class drivers above every USB host (usb_hosts.rs),
+/// each finding its own kind of device.
+pub(super) const USB_CLIENTS: &[&str] = &[
+    "driver.usb_hub0",
     "driver.usb_hid0",
     "driver.usb_msc0",
     "driver.usb_audio0",
+    "driver.uvc0",
+    "driver.cdc_acm0",
+    "driver.usb_mic0",
+    "driver.ccid0",
+    "driver.fido0",
     "driver.cdc_ecm0",
     "driver.cdc_ncm0",
     "driver.rndis0",
-    "driver.ax88179_0",
-    "driver.rtl8153_0",
 ];
-
-/// net.core carries the frames and asks each card for its link; net.l2 finds
-/// the wired cards.
-pub(super) const WIRED_STACK: &[&str] = &["net.core", "net.l2"];
-/// A Wi-Fi card answers net.core, which carries its frames, and the panels
-/// that scan and join: Settings, in its first window or a later one
-/// (`src/userspace/capsule_settings/spawn.rs`), and the setup wizard. net.l2
-/// binds only a wired card.
-pub(super) const WIFI_STACK: &[&str] =
-    &["net.core", "app.settings", "app.settings.1", "app.settings.2", "app.setup_wizard"];
 
 /// The Bluetooth host answers Settings, which scans, pairs and forgets in any
 /// of its windows, and the shell, which shows the link and battery levels;

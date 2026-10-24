@@ -34,11 +34,6 @@ impl Rig {
         )
     }
 
-    /// The driver's host, reset as every open readies it (`EmmcDisk::reset`).
-    pub fn reset(&self, intel_emmc: bool) -> TestHost {
-        EmmcDisk::reset(self.host(intel_emmc)).expect("host reset")
-    }
-
     pub fn disk(&self, intel_emmc: bool) -> EmmcResult<TestDisk> {
         EmmcDisk::reset(self.host(intel_emmc)).and_then(|h| EmmcDisk::bring_up(h, self.data))
     }

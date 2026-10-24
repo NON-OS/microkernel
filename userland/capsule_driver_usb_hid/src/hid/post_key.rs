@@ -18,25 +18,20 @@ use nonos_keymap::HeldKeys;
 use nonos_libc::{INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP};
 
 use super::key_event::KeyEvent;
+use super::key_post::key_posts;
 use super::keymap;
 use super::post_wire::send;
 use super::usage_keycode::usage_keycode;
 
-pub fn publish(ev: KeyEvent, held: &mut HeldKeys) -> bool {
-    // A release carries the code its press went down with. Resolved again it
-    // differed for every Enter, Escape, Backspace and Tab (a release has no
-    // ASCII byte, so it posted the raw usage) and for a letter let go after
-    // Shift: the router could not pair it with its press, and a Wayland
-    // client held the key, repeating it, for good.
-    let posts = held.event(u32::from(ev.scancode), !ev.pressed, key_code(ev));
-    let flags = flags(ev.modifiers, ev.caps);
+/// Post `ev`, with `extra` added to its flags above the modifier bits: 0
+/// from a wired keyboard, which posts what it always has.
+pub fn publish(ev: KeyEvent, held: &mut HeldKeys, extra: u16) -> bool {
     let mut ok = true;
-    if let Some(code) = posts.release_first {
-        ok &= send(INPUT_KIND_KEY_UP, flags, code, 0, 0);
+    for p in key_posts(ev, held, key_code(ev), extra).into_iter().flatten() {
+        let kind = if p.down { INPUT_KIND_KEY_DOWN } else { INPUT_KIND_KEY_UP };
+        ok &= send(kind, p.flags, p.code, 0, 0);
     }
-    let Some(code) = posts.code else { return ok };
-    let kind = if ev.pressed { INPUT_KIND_KEY_DOWN } else { INPUT_KIND_KEY_UP };
-    ok & send(kind, flags, code, 0, 0)
+    ok
 }
 
 fn key_code(ev: KeyEvent) -> u32 {
@@ -56,14 +51,4 @@ fn resolved_or_usage(ev: KeyEvent) -> u32 {
         b'\n' => 0x0D,
         c => c as u32,
     }
-}
-
-fn flags(modifiers: u8, caps: bool) -> u16 {
-    let shift = u16::from((modifiers & 0x22) != 0);
-    let ctrl = u16::from((modifiers & 0x11) != 0) << 1;
-    let alt = u16::from((modifiers & 0x04) != 0) << 2;
-    let altgr = u16::from((modifiers & 0x40) != 0) << 6;
-    let meta = u16::from((modifiers & 0x88) != 0) << 3;
-    let caps = u16::from(caps) << 4;
-    shift | ctrl | alt | altgr | meta | caps
 }

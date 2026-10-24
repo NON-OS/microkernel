@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod block;
-mod check;
+mod buffer;
+mod engine;
 mod kind;
+pub mod plan;
 mod request;
-mod run;
-mod wait;
+pub mod status;
+mod take;
+mod watch;
 
+pub use engine::transfer;
 pub use kind::Kind;
 pub use request::{parse, Xfer, BLOCK_MAX, HEAD};
-pub use run::transfer;

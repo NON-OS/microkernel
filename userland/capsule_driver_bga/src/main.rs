@@ -17,16 +17,25 @@
 #![no_std]
 #![no_main]
 
+mod announce;
 mod constants;
 mod discover;
 mod dispi;
+mod display;
+mod edid;
 mod error;
+mod gone;
 mod handles;
 mod regs;
 mod serve;
 mod setup;
+mod turn;
 
+use nonos_gfx_pool::Pool;
 use nonos_libc::{mk_exit, start_driver};
+// `turn` reaches the DGON parser here, where its proofs mount the kernel's
+// own definition under the same name.
+use nonos_libc::dgon_parse;
 
 use crate::error::reason;
 
@@ -35,8 +44,8 @@ const EXIT_UNANNOUNCED: i32 = 1;
 
 /// Without an adapter the driver says so and leaves (`EXIT_ABSENT`) before
 /// claiming anything. An adapter that is there is set up on the shared
-/// bounded schedule and running out is `EXIT_GAVE_UP`. Once it is up the
-/// driver serves the compositor the display wire, waiting in its receive.
+/// bounded schedule, and running out is `EXIT_GAVE_UP`. Once up, the driver
+/// announces `driver.bga0` and serves the display wire until it is stopped.
 ///
 /// # Safety
 ///
@@ -44,20 +53,21 @@ const EXIT_UNANNOUNCED: i32 = 1;
 /// and nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    let started = start_driver(serve::SERVICE_NAME, discover::find_bga(), |dev| {
-        setup::run(*dev).map_err(reason)
+    let started = start_driver(announce::SERVICE_NAME, discover::find_bga(), |dev| {
+        setup::run(*dev, Pool).map_err(reason)
     });
-    let driver = match started {
+    let mut driver = match started {
         Ok(driver) => driver,
         Err(code) => mk_exit(code),
     };
-    if !serve::announce() {
-        // The compositor finds the surface only through the service, so
-        // nothing holds it: the adapter is given back showing the
+    if !announce::announce() {
+        // The compositor finds the display only through the service, so
+        // nothing holds a primary: the adapter is given back showing the
         // firmware's mode before the capsule leaves, not left on grants
         // the exit frees.
         drop(driver);
         mk_exit(EXIT_UNANNOUNCED);
     }
-    serve::run(driver)
+    let device_id = driver.handles.device_id();
+    serve::run(&mut driver.server, device_id)
 }

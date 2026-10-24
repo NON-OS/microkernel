@@ -22,7 +22,7 @@
 //! whose remapping unit confines it, and only there.
 
 use super::attach::Refused;
-use super::table::say;
+use super::say::say;
 use crate::hardware::broker::table::flags_of;
 use crate::hardware::broker::DEVICE_FLAG_EXTERNAL;
 use crate::memory::iommu::DeviceAddress;

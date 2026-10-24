@@ -33,7 +33,7 @@ pub(super) fn body(report: &[u8], id: u8) -> Option<&[u8]> {
 /// Whether `body` holds every present field whole. A torn or short polled
 /// read is dropped whole: read_bits reads zeros past the end, which would
 /// turn a cut coordinate into a jump toward the origin instead of nothing.
-pub(super) fn holds(body: &[u8], fields: &[Field]) -> bool {
+pub(crate) fn holds(body: &[u8], fields: &[Field]) -> bool {
     let bits = (body.len() as u64).saturating_mul(8);
     fields.iter().filter(|f| f.present()).all(|f| f.end().is_some_and(|e| u64::from(e) <= bits))
 }

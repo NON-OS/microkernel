@@ -25,10 +25,11 @@ use crate::config_blob::{keyboard, HID, INTERRUPT};
 use crate::descriptors::HidKind;
 
 #[test]
-fn a_gamepad_or_a_ups_binds_nothing_and_its_slot_is_given_back() {
+fn a_gamepad_binds_as_a_pad_and_a_ups_binds_nothing() {
     // The gamepad's idle report, 0x7F in every axis byte, held left, right
-    // and middle down and pinned the pointer when it was read as a tablet.
-    assert_eq!(bound(&one_interface(8), GAMEPAD), vec![]);
+    // and middle down and pinned the pointer when it was read as a tablet:
+    // it is read as a pad, never as a pointer.
+    assert_eq!(bound(&one_interface(8), GAMEPAD), vec![(HidKind::Gamepad, 0)]);
     assert_eq!(bound(&one_interface(8), UPS), vec![]);
 }
 
@@ -44,8 +45,10 @@ fn a_keyboards_media_keys_bind_beside_its_boot_keyboard() {
     let cfg = keyboard(0).iface(1, HID, 0, 0).hid().ep(0x82, INTERRUPT, 8, 10).build();
     let want = vec![(HidKind::Keyboard, 0), (HidKind::Report, 1)];
     assert_eq!(bound(&cfg, MEDIA_KEYS), want);
-    // A vendor channel there is left alone; the keyboard still binds.
-    assert_eq!(bound(&cfg, GAMEPAD), vec![(HidKind::Keyboard, 0)]);
+    // A UPS there is left alone; the keyboard still binds. A gamepad there
+    // is a pad.
+    assert_eq!(bound(&cfg, UPS), vec![(HidKind::Keyboard, 0)]);
+    assert_eq!(bound(&cfg, GAMEPAD), vec![(HidKind::Keyboard, 0), (HidKind::Gamepad, 1)]);
 }
 
 #[test]

@@ -16,7 +16,8 @@
 
 //! A device claim's and release's refusals as errnos. Resetting (L78) is
 //! EAGAIN: a wipe under way ends within a bound, and libc asks again. A
-//! record marked unusable is no device to claim.
+//! record marked unusable is no device to claim; the firmware's flash is one
+//! no capsule may have.
 
 use super::super::errnos::{ERRNO_AGAIN, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
 use crate::hardware::broker::ClaimError;
@@ -26,7 +27,7 @@ pub(super) fn claim_errno(e: ClaimError) -> i64 {
         ClaimError::AlreadyClaimed | ClaimError::Held => ERRNO_BUSY,
         ClaimError::UnknownDevice | ClaimError::Disabled => ERRNO_NODEV,
         ClaimError::NotHolder | ClaimError::NotClaimed => ERRNO_INVAL,
-        ClaimError::Unconfined | ClaimError::Refused => ERRNO_PERM,
+        ClaimError::Unconfined | ClaimError::Refused | ClaimError::Firmware => ERRNO_PERM,
         ClaimError::Resetting => ERRNO_AGAIN,
     }
 }
@@ -39,6 +40,7 @@ pub(super) fn release_errno(e: ClaimError) -> i64 {
         | ClaimError::UnknownDevice
         | ClaimError::Unconfined
         | ClaimError::Disabled
+        | ClaimError::Firmware
         | ClaimError::Held
         | ClaimError::Refused
         | ClaimError::Resetting => ERRNO_INVAL,

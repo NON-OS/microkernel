@@ -10,6 +10,7 @@ use nonos_usbnet::{Bind, Nic};
 
 use crate::ecm::bind;
 use crate::ecm::frame::received_len;
+use crate::ecm::link::RX_LEN;
 use crate::qemu::usb_net;
 
 pub fn next(seed: &mut u64) -> u64 {
@@ -35,17 +36,22 @@ fn random_bulk_ins_come_up_whole_or_not_at_all() {
     let found = fetch(&mut bus.clone(), 2).unwrap();
     let Bind::Ours(mut nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
     let mut seed = 0x2545_F491_4F6C_DD1D;
+    // A transfer that fills the receive buffer has not ended: it and the
+    // transfer after it, its rest, are let go whatever they hold.
+    let mut unended = false;
     for _ in 0..20_000 {
-        let len = (next(&mut seed) % 2049) as usize;
+        let len = (next(&mut seed) % (RX_LEN as u64 + 1)) as usize;
         let xfer: Vec<u8> = (0..len).map(|_| next(&mut seed) as u8).collect();
         bus.0.borrow_mut().bulk_in.push_back(Ok(Some(xfer.clone())));
         let mut out = [0u8; 1514];
+        let let_go = std::mem::replace(&mut unended, len == RX_LEN) || len == RX_LEN;
         match nic.recv(&mut out) {
             Ok(Some(n)) => {
+                assert!(!let_go, "{len} bytes went up inside an unended transfer");
                 assert!(n == len || (len == 1515 && n == 1514), "{len} came, {n} went up");
                 assert_eq!(out[..n], xfer[..n]);
             }
-            Ok(None) => assert!(!(14..=1515).contains(&len), "{len} bytes dropped"),
+            Ok(None) => assert!(let_go || !(14..=1515).contains(&len), "{len} bytes dropped"),
             Err(e) => panic!("{len} bytes: {e}"),
         }
     }

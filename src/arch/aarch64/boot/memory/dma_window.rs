@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::dma_place::place;
+use super::dma_size::{low_usable, sizes};
 use super::regions::bounds;
 use super::PAGE_SIZE;
 use crate::arch::aarch64::boot::info::{BootInfo, MemoryType};
-use crate::hardware::broker::dma;
 
 /// Off the first 16 MiB, where a board whose RAM starts at zero keeps
 /// firmware and the secondary-CPU trampoline.
@@ -36,15 +36,13 @@ pub(super) struct LowPool {
 
 /// A pool clear of the allocator's span `main`, the kernel `image` and every
 /// range the tree reserved, or, failing that, one carved from inside `main`
-/// clear of the image and the reservations. `None` when RAM below 4 GiB has
-/// no room either way.
+/// clear of the image and the reservations, at the largest size `dma_size`
+/// offers that fits. `None` when RAM below 4 GiB has no room either way.
 pub(super) fn find_low_dma_region(
     info: &BootInfo,
     main: (u64, u64),
     image: (u64, u64),
 ) -> Option<LowPool> {
-    let pages = dma::low32_default_pages();
-    let want = pages as u64 * PAGE_SIZE;
     let mut available = [(0u64, 0u64); 8];
     let mut n = 0;
     let usable = info.memory_map().iter().filter(|r| r.region_type == MemoryType::Available);
@@ -61,8 +59,14 @@ pub(super) fn find_low_dma_region(
     avoid[1] = image;
     avoid[2..2 + reserved.len()].copy_from_slice(reserved);
     let avoid = &avoid[..2 + reserved.len()];
-    if let Some(base) = place(&available[..n], avoid, FLOOR, want) {
-        return Some(LowPool { base, pages, carved: false });
+    for want in sizes(low_usable(&available[..n], FLOOR)) {
+        let pages = (want / PAGE_SIZE) as usize;
+        if let Some(base) = place(&available[..n], avoid, FLOOR, want) {
+            return Some(LowPool { base, pages, carved: false });
+        }
+        if let Some(base) = place(&[main], &avoid[1..], FLOOR, want) {
+            return Some(LowPool { base, pages, carved: true });
+        }
     }
-    place(&[main], &avoid[1..], FLOOR, want).map(|base| LowPool { base, pages, carved: true })
+    None
 }

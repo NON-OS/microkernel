@@ -21,17 +21,14 @@ use crate::constants::{LEG_ISR, LEG_QUEUE_NOTIFY, LEG_STATUS, STATUS_NEEDS_RESET
 
 impl Transport {
     /// Tell the device queue `queue` has a request. The available index
-    /// was published after libc's write barrier (`queue::post`); another
-    /// keeps the doorbell after the index, so a device on a weakly ordered
-    /// machine never finds the bell rung over a ring it cannot see yet. A
-    /// legacy window write takes that barrier itself (`regs::write`).
+    /// was published after a DMA write barrier (`queue::post`); this keeps
+    /// the doorbell after the index, so a device on a weakly ordered
+    /// machine never finds the bell rung over a ring it cannot see yet.
     pub fn notify(self, queue: u16) {
+        nonos_libc::dma_wmb();
         match self {
             Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
-            Self::Modern(m) => {
-                nonos_libc::dma_wmb();
-                m.notify.w16(m.doorbell, queue)
-            }
+            Self::Modern(m) => m.notify.w16(m.doorbell, queue),
         }
     }
 

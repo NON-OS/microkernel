@@ -23,8 +23,8 @@ use crate::rings::event::EventRing;
 /// own completion came, the controller may never have taken the TRB up: a
 /// ring that was not running, or one stopped before it fetched it, whose
 /// Command Ring Stopped names the TRB itself (xHCI 1.2 section 4.6.1.2).
-/// The next doorbell would run it, so it becomes a No Op (Linux
-/// `trb_to_noop`), and stays queued until a later command completes.
+/// The next doorbell would run it, so it becomes a No Op (xHCI 1.2 section
+/// 4.6.2, as recalled, unverified), and stays queued until a later command completes.
 pub(super) fn give_up(
     intr_base: u64,
     cmd_ring: &mut CommandRing,

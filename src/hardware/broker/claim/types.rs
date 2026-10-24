@@ -20,8 +20,7 @@ pub struct Claim {
     pub device_id: u64,
     pub epoch: u64,
     pub(crate) stage: Stage,
-    /// Grant paths inside the claim now, each holding it until its grant is
-    /// recorded (L66).
+    /// Grant paths inside the claim now, each holding it until its grant is recorded (L66).
     pub(crate) inflight: u32,
     /// Releases under way, a `give_back`'s or an exit's. The entry goes only
     /// when the last of them and the last path inside it are done, so while
@@ -71,5 +70,6 @@ pub enum ClaimError {
     Refused,
     /// Its last claim's wipe is under way, or its entry is going: ask again.
     Resetting,
+    Firmware, // the firmware's flash controller, or a device inside its window
     Disabled, // the record is marked unusable (`DEVICE_FLAG_DISABLED`)
 }

@@ -25,6 +25,6 @@ mod state;
 pub use calls::{affinity_info, cpu_off, cpu_on, cpu_suspend, migrate_info_type};
 pub use calls::{system_off, system_reset, system_reset2};
 pub use error::PsciError;
-pub use features::{features, psci_version, PsciVersion};
-pub use method::{set_method, PsciMethod};
+pub use features::{cpu_suspend_features, features, psci_version, PsciVersion};
+pub use method::{conduit, is_present, set_method, PsciMethod};
 pub use raw::{psci_call, psci_call0, psci_call1, psci_call2};

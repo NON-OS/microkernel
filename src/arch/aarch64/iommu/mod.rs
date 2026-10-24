@@ -16,4 +16,5 @@
 
 //! Device DMA confinement on aarch64.
 
+pub mod reserved;
 pub mod smmu;

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What every opened host takes first: the claim, with memory decoding on
-//! and bus mastering not yet, and slot 0's register window.
+//! What every opened host takes first: the claim, memory decoding with bus
+//! mastering still off, and slot 0's register window.
 
 use nonos_libc::mk_device_claim;
 
@@ -29,10 +29,10 @@ use super::command::command;
 use super::map_slot::map_slot;
 use super::say::say_host;
 
-/// Claim `dev` with memory decoding on and its INTx pin quiet (completions
-/// are polled), bus mastering left for after the host reset (`arm`), and
-/// map slot 0. Returns the window, the claim that gives it all back when
-/// dropped, and the epoch the DMA regions are granted under.
+/// Claim `dev`, turn on its memory decoding with its INTx pin quiet
+/// (completions are polled) and bus mastering off until the host is reset
+/// (`reset`), and map slot 0. Returns the window, the claim that gives it
+/// all back when dropped, and the epoch the DMA regions are granted under.
 pub(super) fn take(log: &SerialLog, dev: &Found) -> EmmcResult<(MmioWindow, Claim, u64)> {
     say_host(log, dev);
     let epoch = mk_device_claim(dev.device_id);
@@ -42,7 +42,10 @@ pub(super) fn take(log: &SerialLog, dev: &Found) -> EmmcResult<(MmioWindow, Clai
     }
     let epoch = epoch as u64;
     let mut claim = Claim { device_id: dev.device_id, epoch, mmio_grant: None };
-    command(log, dev.device_id, epoch, false)?;
+    // An ACPI host has no command register: its decoding is the firmware's.
+    if !dev.acpi {
+        command(log, dev.device_id, epoch, false)?;
+    }
     let io = map_slot(log, dev, epoch, &mut claim)?;
     Ok((io, claim, epoch))
 }

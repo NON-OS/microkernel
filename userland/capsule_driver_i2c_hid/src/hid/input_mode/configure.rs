@@ -19,12 +19,14 @@
 
 use super::configured::Configured;
 use super::one_report::configure_one_report;
-use crate::hid::report_desc::TouchLayout;
+use super::port::FeaturePort;
+use crate::hid::TouchLayout;
 
 /// The Precision Touchpad collection. Modern PTP-only pads implement the
 /// mouse collection for compliance only, and it never generates reports;
-/// Windows and Linux both switch such pads to mode 3 on bind, so touch
-/// mode is the only mode this device class actually reports in. Read
+/// Microsoft's precision touchpad specification has the host set mode 3
+/// (as recalled, unverified), so touch mode is the only mode this device
+/// class actually reports in. Read
 /// pacing comes from the GPIO doorbell.
 const INPUT_MODE_TOUCHPAD: u32 = 3;
 const SWITCH_ON: u32 = 1;
@@ -34,12 +36,7 @@ pub(super) const MODE: usize = 0;
 
 /// Drive input mode to touchpad and both reporting switches on, touching only
 /// feature reports that need a change.
-pub fn configure_reporting(
-    port: u32,
-    addr: u8,
-    desc: &[u8; 30],
-    layout: &TouchLayout,
-) -> Configured {
+pub fn configure_reporting(port: &impl FeaturePort, layout: &TouchLayout) -> Configured {
     let targets = [
         (layout.input_mode, layout.input_mode_report_id, INPUT_MODE_TOUCHPAD),
         (layout.surface_switch, layout.surface_switch_report_id, SWITCH_ON),
@@ -56,7 +53,7 @@ pub fn configure_reporting(
         }
         done_ids[done] = id;
         done += 1;
-        if configure_one_report(port, addr, desc, id, &targets, &mut c).is_none() {
+        if configure_one_report(port, id, &targets, &mut c).is_none() {
             c.mode_unwritable |= id == layout.input_mode_report_id;
         }
     }

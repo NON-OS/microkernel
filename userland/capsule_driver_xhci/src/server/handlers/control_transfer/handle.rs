@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::buffer::{data_buffer, stage_fits};
+use super::region::{data_region, stage_fits};
 use super::reply::send_reply;
 use super::transfer::do_transfer;
 use crate::controller::ControlRequest;
@@ -44,7 +44,7 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     }
     // Clamped, so a client's wLength of up to 65535 still fits `tx`.
     let w_len = le(8).min(CONTROL_DATA_MAX);
-    let Ok(region) = data_buffer(&ctx.driver.dma_pool, w_len, out) else {
+    let Ok(region) = data_region(&ctx.driver.dma_pool, w_len, out) else {
         return reply_with_status(tx, req, E_IO);
     };
     let request = ControlRequest {
@@ -58,11 +58,12 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     match do_transfer(ctx, slot, request) {
         Ok(moved) => send_reply(tx, req, moved, region.as_ref()),
         Err(e) => {
-            recover_after(ctx, slot, DCI_EP0, e, region);
+            let clear = recover_after(ctx, slot, DCI_EP0, e, region);
             // A STALL is a request the device does not support, which the
-            // class driver may take as an answer rather than a fault.
+            // class driver may take as an answer rather than a fault, but
+            // only once EP0 is back; otherwise the pipe is not clear.
             let stall = e == XhciError::TransferCompletionFailed(CC_STALL);
-            reply_with_status(tx, req, if stall { E_PIPE } else { E_IO })
+            reply_with_status(tx, req, if stall && clear { E_PIPE } else { E_IO })
         }
     }
 }

@@ -55,9 +55,13 @@ pub fn has_feature(feature: CpuFeature) -> bool {
         CpuFeature::Rng => ((aa64isar0 >> 60) & 0xF) >= 1,
         // ID_AA64MMFR1_EL1.PAN is [23:20]; [3:0] is HAFDBS, a different feature.
         CpuFeature::Pan => ((read_aa64mmfr1() >> 20) & 0xF) >= 1,
+        CpuFeature::E0pd => (super::registers_encoded::read_aa64mmfr2() >> 60) >= 1,
     }
 }
 
+/// Address authentication by any algorithm: APA (QARMA5) or API (IMPDEF)
+/// in ID_AA64ISAR1_EL1, or APA3 (QARMA3) in ID_AA64ISAR2_EL1.
 fn has_pauth(aa64isar1: u64) -> bool {
-    ((aa64isar1 >> 4) & 0xF) >= 1 || ((aa64isar1 >> 8) & 0xF) >= 1
+    let apa3 = (super::registers_encoded::read_aa64isar2() >> 12) & 0xF;
+    ((aa64isar1 >> 4) & 0xF) >= 1 || ((aa64isar1 >> 8) & 0xF) >= 1 || apa3 >= 1
 }

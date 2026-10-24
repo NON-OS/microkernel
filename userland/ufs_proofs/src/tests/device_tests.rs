@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The device: NOP OUT answered, retried or timed out as Linux does, and
+//! The device: NOP OUT answered, retried or timed out, and
 //! fDeviceInit set and seen cleared within its bound.
 
 use crate::model::{Cfg, Rig};
 use crate::ufs::error::UfsError;
-use crate::ufs::time::{DEVICE_INIT_MS, NOP_MS};
-use crate::ufs::upiu::codes::RESPONSE;
+use crate::ufs::facts::bounds::{DEVICE_INIT_MS, NOP_MS};
+use crate::ufs::facts::upiu::RESPONSE;
 
 /// A NOP that times out is not retried, and its slot is cleared through
 /// UTRLCLR (a 0 for slot 0), so the doorbell is free again.
@@ -31,7 +31,7 @@ fn a_silent_device_ends_at_the_first_nop_with_its_slot_cleared() {
     let h = rig.m.host.borrow();
     assert_eq!(h.utrds.len(), 1);
     assert_eq!(h.clears, vec![!1u32]);
-    assert_eq!(h.regs[(crate::ufs::hci::regs::UTRLDBR / 4) as usize], 0);
+    assert_eq!(h.regs[(crate::ufs::facts::hci::UTRLDBR / 4) as usize], 0);
     assert!(rig.m.now.get() >= NOP_MS);
     assert!(rig.m.said("NOP OUT failed: timed out"));
 }
@@ -58,7 +58,7 @@ fn device_init_is_waited_out_and_bounded() {
 }
 
 /// UFSHCI 1.1 numbers itself 0x0001_0100 and takes command type 2 for
-/// device management and 0 for SCSI (ufshcd_get_ufs_version).
+/// device management and 0 for SCSI (facts::utp, facts::hci::VER_1X).
 #[test]
 fn a_ufshci_1_1_host_gets_the_older_command_types() {
     let rig = Rig::new(Cfg { ver: 0x0001_0100, ..Cfg::default() });

@@ -19,7 +19,7 @@ mod frame;
 mod held;
 mod hex;
 pub(crate) mod hidpi;
-mod init;
+pub(crate) mod init;
 mod log;
 mod marker;
 mod report;

@@ -21,9 +21,9 @@ use std::sync::atomic::Ordering;
 
 use nonos_libc::{entropy, given_back, said};
 
-use crate::constants::regs::*;
-use crate::init::finish;
-use crate::init::media::SERDES;
+use crate::bring::finish;
+use crate::bring::port::SERDES;
+use crate::facts::regs::*;
 
 use super::memory::Memory;
 use super::model::{live, window};

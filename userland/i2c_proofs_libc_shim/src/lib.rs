@@ -35,7 +35,7 @@ mod time;
 pub use call::{mk_ipc_call_timeout, mk_service_lookup, serve, Served, SERVICE_PID, SERVICE_PORT};
 pub use input::{
     mk_input_event_post, take_events, InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
-    INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
+    INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
 };
 pub use misc::{mk_debug, mk_idle_ms, slept_ms, take_debug};
 pub use pci::{

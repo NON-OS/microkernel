@@ -49,4 +49,4 @@ pub use endpoint::{Endpoint, Slot, MAX_UNITS};
 pub use error::WireError;
 pub use identity::Identity;
 pub use ops::{healthcheck, identify};
-pub(super) use row::rows;
+pub(super) use row::{endpoint_of, rows};

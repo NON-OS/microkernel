@@ -60,6 +60,7 @@ mod verify_mark;
 mod verify_open;
 mod verify_row;
 mod verify_spawn;
+mod verify_spawn_firmware;
 mod verify_spawn_row;
 
 pub mod display;

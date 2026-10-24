@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The broker's records, class table (its code map checked whole, L79), BAR
- * choice, external-facing ports and firmware's reserved ranges, by path.
- */
+// The broker's records, class table (its code map checked whole, L79), BAR choice, external-facing
+// ports, firmware's reserved ranges and the device tree's DesignWare I2C stop routine, by path.
 
 pub mod acpi;
 #[path = "../../../../../src/hardware/broker/class.rs"]
@@ -26,6 +24,8 @@ pub mod class;
 pub mod device;
 #[path = "../../../../../src/hardware/broker/external_range.rs"]
 pub mod external_range;
+#[cfg(test)]
+mod fdt_i2c;
 #[path = "../../../../../src/hardware/broker/irq/gone.rs"]
 pub mod irq_gone;
 pub mod mmio;

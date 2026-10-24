@@ -21,7 +21,7 @@ use crate::arch::fdt::parser::Fdt;
 
 /// The bridge's `bus-range`, or the whole 0 to 255 the binding defaults to.
 /// Two cells, first no greater than last, each a bus number.
-pub(super) fn bus_range(fdt: &Fdt, node: &NodeRef) -> Result<(u8, u8), FdtError> {
+pub fn bus_range(fdt: &Fdt, node: &NodeRef) -> Result<(u8, u8), FdtError> {
     let Some(prop) = fdt.property(node, b"bus-range")? else {
         return Ok((0, 255));
     };

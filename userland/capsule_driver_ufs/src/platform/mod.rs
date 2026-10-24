@@ -21,6 +21,7 @@ mod attempt;
 mod discover;
 mod env;
 mod grants;
+mod held;
 pub mod hosts;
 mod open;
 mod say;

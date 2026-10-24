@@ -13,5 +13,9 @@ edition = "2021"
 [lib]
 path = "src/lib.rs"
 
+[dependencies]
+# The UAS transport's IU codec and exchange, which disk/uas.rs runs on.
+nonos_uas = { path = "../nonos_uas" }
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

@@ -39,7 +39,9 @@ pub fn paint_launchpad(ctx: &Context) {
     for (i, t) in page_slice(ctx).iter().enumerate() {
         tile::paint(ctx, i, *t);
     }
-    if let Some(lines) = launchpad_empty(&ctx.launchpad_query, ctx.launchpad_view.len()) {
+    if let Some(lines) =
+        launchpad_empty(&ctx.launchpad_ui.launchpad_query, ctx.launchpad_ui.launchpad_view.len())
+    {
         let mut y = grid_top();
         for (i, line) in lines.iter().enumerate() {
             let x = ctx.width.saturating_sub(measure_aa_bytes(line.as_bytes(), UI_PX)) / 2;

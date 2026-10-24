@@ -56,3 +56,16 @@ fn the_address_changes_only_when_its_fifteen_minutes_are_up() {
     assert!(resolves(&IRK, &second));
     assert_eq!(addresses_set(&mut host), 2);
 }
+
+#[test]
+fn coming_back_on_after_off_draws_a_fresh_address() {
+    let (mut host, ours, mut env) = keyboard();
+    let mut private = Private::new(LocalIrk::new(IRK).unwrap(), ours);
+    let first = private.refresh(&mut host, &mut env).unwrap().addr;
+    env.now += 10; // nowhere near the fifteen minutes: it would keep `first`
+    private.resume(); // the radio went off and is coming back on (E-72)
+    let next = private.refresh(&mut host, &mut env).unwrap().addr;
+    assert_ne!(next, first, "a fresh address, not the one it went off under");
+    assert!(resolves(&IRK, &next));
+    assert_eq!(addresses_set(&mut host), 2);
+}

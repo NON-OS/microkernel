@@ -24,7 +24,7 @@ use crate::controller::park::IrqWait;
 use crate::error::{XhciError, XhciResult};
 use crate::regs::op::{portsc_clear_changes, portsc_neutral, portsc_read, portsc_write};
 
-/// Reset recovery (TRSTRCY, 10 ms) plus the margin Linux gives devices.
+/// Reset recovery (TRSTRCY, 10 ms) plus a margin (as observed, unverified).
 const RESET_RECOVERY_MS: u64 = 50;
 
 /// Power, debounce and enable `port`. `usb3` is the port's protocol from the

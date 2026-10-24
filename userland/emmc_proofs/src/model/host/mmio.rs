@@ -16,7 +16,7 @@
 
 //! The register-level view the driver's `Mmio` sees.
 
-use super::sim::SimBus;
+use super::bus::SimBus;
 
 impl crate::emmc::env::Mmio for SimBus {
     fn r8(&self, off: u32) -> u8 {

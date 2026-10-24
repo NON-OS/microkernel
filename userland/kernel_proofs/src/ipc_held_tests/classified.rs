@@ -19,13 +19,15 @@
 use super::held::callers_of;
 
 /// Every driver the kernel spawns is either held here or gates its medium in
-/// its own driver (the disks, by StoreWrite), so a new driver cannot arrive
-/// open to every capsule; and every service a list names is one a spawn
-/// registers.
+/// its own driver (the disks, by StoreWrite; the camera and microphone, by
+/// their capture bits), so a new driver cannot arrive open to every
+/// capsule; and every service a list names is one a spawn registers.
 #[test]
 fn every_driver_the_kernel_spawns_is_classified() {
     const GATED_IN_DRIVER: [&str; 5] =
         ["driver.nvme0", "driver.ahci0", "driver.virtio_blk0", "driver.sdhci0", "driver.ufs0"];
+    // The USB camera and microphone, gated the same way.
+    const GATED_IN_USB: [&str; 2] = ["driver.uvc0", "driver.usb_mic0"];
     // A virtual machine's disk controllers, gated the same way ("driver." each).
     const GATED_IN_VM: [&str; 5] = ["piix_ide0", "virtio_scsi0", "pvscsi0", "buslogic0", "mpt0"];
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
@@ -56,6 +58,7 @@ fn every_driver_the_kernel_spawns_is_classified() {
         assert!(
             callers_of(d).is_some()
                 || GATED_IN_DRIVER.contains(&d.as_str())
+                || GATED_IN_USB.contains(&d.as_str())
                 || d.strip_prefix("driver.").is_some_and(|n| GATED_IN_VM.contains(&n)),
             "{d} is spawned by the kernel and open to every capsule"
         );

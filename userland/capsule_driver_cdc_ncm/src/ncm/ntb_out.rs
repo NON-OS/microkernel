@@ -14,42 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One frame as an NTB16 (NCM 1.0, 3.2 and 3.3): the NTH16, an NDP16 with
-//! one entry and the zero entry that ends it, and the datagram, placed as
-//! Linux cdc_ncm_fill_tx_frame places the first datagram of a block.
+//! One frame as an NTB16 (NCM 1.0, 3.2.1 and 3.3.1, as recalled,
+//! unverified): the NTH16, an NDP16 on the device's alignment with one
+//! entry and the zero entry that ends it, then the datagram where its
+//! payload meets the device's divisor and remainder.
 
-use super::align::align_tail;
+use super::align::{next, OutAlign};
 use super::pad::padded;
 use super::shape::TxShape;
 
-/// "NCMH" and "NCM0" (USB_CDC_NCM_NTH16_SIGN, USB_CDC_NCM_NDP16_NOCRC_SIGN).
+/// "NCMH" and "NCM0".
 pub const NTH16_SIGN: u32 = 0x484D_434E;
 pub const NDP16_NOCRC_SIGN: u32 = 0x304D_434E;
 pub const NTH16_LEN: usize = 12;
-/// An NDP16 with one entry and its terminator, USB_CDC_NCM_NDP16_LENGTH_MIN.
+/// An NDP16 with one entry and its terminator: 8 + 4 + 4 bytes.
 pub const NDP16_ONE: usize = 16;
 
+/// Where the NDP16 and the datagram start.
+pub fn layout(a: &OutAlign) -> (usize, usize) {
+    let ndp = next(NTH16_LEN, a.ndp, 0);
+    (ndp, next(ndp + NDP16_ONE, a.modulus, a.remainder))
+}
+
 /// Lay `frame` out in `out` as block `seq`: its length, or `None` when it
-/// does not fit in `s.max` bytes (Linux drops it: "won't fit, MTU
-/// problem?").
+/// does not fit in `s.max` bytes or `out` cannot hold it padded.
 pub fn build(out: &mut [u8], frame: &[u8], seq: u16, s: &TxShape) -> Option<usize> {
-    let (max, a) = (s.max, s.align);
-    if out.len() < max {
-        return None;
-    }
-    let ndp = align_tail(NTH16_LEN, a.ndp, 0, max);
-    // cdc_ncm_ndp16: room for the NDP, the datagram and its alignment.
-    let reserve = frame.len() + a.modulus + a.remainder;
-    if max.checked_sub(ndp)?.checked_sub(reserve)? < NDP16_ONE {
-        return None;
-    }
-    let at = align_tail(ndp + NDP16_ONE, a.modulus, a.remainder, max);
-    let end = at + frame.len();
-    if end > max {
-        return None;
-    }
+    let (ndp, at) = layout(&s.align);
+    let end = at.checked_add(frame.len()).filter(|&e| e <= s.max)?;
     let len = padded(end, s);
-    out[..len].fill(0);
+    let out = out.get_mut(..len)?;
+    out.fill(0);
     put(out, 0, &NTH16_SIGN.to_le_bytes());
     let nth = [NTH16_LEN as u16, seq, len as u16, ndp as u16];
     nth.iter().enumerate().for_each(|(i, v)| put(out, 4 + 2 * i, &v.to_le_bytes()));

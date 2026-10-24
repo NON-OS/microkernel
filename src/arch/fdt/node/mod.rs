@@ -19,6 +19,8 @@ mod cells;
 mod chain;
 mod children;
 mod devices;
+mod dma_narrow;
+mod dma_window;
 mod iter;
 mod mmio;
 mod node_ref;
@@ -30,5 +32,6 @@ mod translate;
 
 pub use cells::Cells;
 pub use chain::Chain;
+pub use dma_window::DmaWindow;
 pub use iter::NodeIter;
 pub use node_ref::NodeRef;

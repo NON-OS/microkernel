@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const BTI_C: u32 = 0xD503245F;
-pub const BTI_J: u32 = 0xD503249F;
-pub const BTI_JC: u32 = 0xD50324DF;
-pub const PACIASP: u32 = 0xD503233F;
-pub const PACIBSP: u32 = 0xD503237F;
+pub(crate) const BTI_C: u32 = 0xD503245F;
+pub(crate) const BTI_J: u32 = 0xD503249F;
+pub(crate) const BTI_JC: u32 = 0xD50324DF;
+pub(crate) const PACIASP: u32 = 0xD503233F;
+pub(crate) const PACIBSP: u32 = 0xD503237F;
 
 /* Whether an indirect branch may land on this instruction in a guarded page.
 BTI c, j and jc are landing pads, and PACIASP and PACIBSP act as BTI c. A NOP

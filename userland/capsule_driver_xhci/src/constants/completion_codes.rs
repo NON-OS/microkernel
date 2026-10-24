@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const CC_SUCCESS: u8 = 1;
+/// A bus error on one transaction; for an isoch packet, that packet is lost.
+pub const CC_USB_TRANSACTION: u8 = 4;
 /// A command named a slot the controller does not have enabled.
 pub const CC_SLOT_NOT_ENABLED: u8 = 11;
 pub const CC_SHORT_PACKET: u8 = 13;

@@ -22,10 +22,10 @@
 //! No interrupt line is bound. The driver polls and masks every cause, and a
 //! bound INTx line it never services would starve whatever shares it.
 
-use crate::constants::MAC_LEN;
 use crate::discover::Found;
 use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
+use crate::sizes::MAC_LEN;
 
 use super::driver::Driver;
 use super::{claim, dma, mmio, pci};

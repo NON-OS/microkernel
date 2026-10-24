@@ -1,6 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Binding an NCM device in the order Linux cdc_ncm_bind_common,
-//! cdc_ncm_init and cdc_ncm_setup take.
+//! Binding an NCM device: every request in the order the bind sends it.
 
 use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::qemu_usb_net::{CONFIG_ECM, CONFIG_RNDIS};
@@ -11,7 +10,7 @@ use crate::ncm::bind;
 use crate::spec::{config_ncm, config_vendor};
 
 #[test]
-fn a_plain_ncm_device_binds_with_every_request_in_linux_order() {
+fn a_plain_ncm_device_binds_with_every_request_in_order() {
     let dev = Dev::ncm(0);
     let (found, bus) = (dev.found(), dev.bus());
     let Bind::Ours(nic) = bind(bus.clone(), &found, drawn()) else { panic!("not bound") };
@@ -28,7 +27,7 @@ fn a_plain_ncm_device_binds_with_every_request_in_linux_order() {
     assert_eq!(c[5], input_size, "SET_NTB_INPUT_SIZE, 4-byte form");
     assert_eq!(c[6], Call::Out(Setup::new(0x21, 0x43, 0x0F, 0), vec![]), "packet filter, open");
     assert_eq!(c.len(), 7, "no CRC, format, address or datagram size request without the bits");
-    assert!(nonos_libc::slept_ms() >= 10, "cdc_ncm_bind_common's pause before the data alternate");
+    assert!(nonos_libc::slept_ms() >= 10, "the pause before the data alternate");
 }
 
 #[test]

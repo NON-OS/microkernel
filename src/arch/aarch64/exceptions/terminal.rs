@@ -81,9 +81,8 @@ pub(crate) fn enter() -> bool {
     }
 }
 
-/// This CPU's roster index. Every CPU the kernel starts has its own; before the
-/// roster is latched it is 0, which is right because only the boot CPU runs
-/// then. The lookup is a load-acquire and plain loads, nothing exclusive.
+/// This CPU's roster index, below MAX_CPUS (`cpu::cpu_id`). The lookup is a
+/// load-acquire and plain loads, nothing exclusive.
 fn slot() -> usize {
-    cpu_id() % MAX_CPUS
+    cpu_id()
 }

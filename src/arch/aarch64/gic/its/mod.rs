@@ -27,6 +27,8 @@ mod memory;
 mod queue;
 mod queue_run;
 mod regs;
+mod ring;
+mod ring_types;
 mod slots;
 mod state;
 mod tables;

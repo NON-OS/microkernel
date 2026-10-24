@@ -14,35 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::mmap_copy::{copy_entries, MapOverflow};
 use super::types::MemoryMapEntry;
-use crate::handoff::prepare::MAX_MMAP_ENTRIES;
 use crate::handoff::types::{BootHandoffV1, MemoryMap};
 use uefi::table::boot::MemoryMap as UefiMemoryMap;
 
-/// Copy UEFI memory map to kernel-readable format. Called after ExitBootServices.
-pub fn copy_memory_map(mmap_addr: u64, final_mmap: &UefiMemoryMap<'_>) -> (u64, u32, u32) {
+/// Copy the UEFI memory map into the kernel's format, after
+/// ExitBootServices: the address, the entry size and the count, or the
+/// overflow when the map does not fit the `capacity` entries allocated.
+pub fn copy_memory_map(
+    mmap_addr: u64,
+    capacity: usize,
+    final_mmap: &UefiMemoryMap<'_>,
+) -> Result<(u64, u32, u32), MapOverflow> {
     if mmap_addr == 0 {
-        return (0, 0, 0);
+        return Ok((0, 0, 0));
     }
-    let mmap_buffer = mmap_addr as *mut MemoryMapEntry;
-    let mut entry_count: u32 = 0;
-    // SAFETY: mmap_addr allocated by prepare_handoff_allocation with sufficient size
-    unsafe {
-        for desc in final_mmap.entries() {
-            if (entry_count as usize) >= MAX_MMAP_ENTRIES {
-                break;
-            }
-            let entry = mmap_buffer.add(entry_count as usize);
-            (*entry).memory_type = desc.ty.0;
-            (*entry)._pad = 0;
-            (*entry).physical_start = desc.phys_start;
-            (*entry).virtual_start = desc.virt_start;
-            (*entry).page_count = desc.page_count;
-            (*entry).attribute = desc.att.bits();
-            entry_count += 1;
-        }
-    }
-    (mmap_addr, MemoryMapEntry::SIZE as u32, entry_count)
+    // SAFETY: `allocate_handoff_resources` allocated `capacity` entries at
+    // `mmap_addr`, loader data that nothing else holds.
+    let out =
+        unsafe { core::slice::from_raw_parts_mut(mmap_addr as *mut MemoryMapEntry, capacity) };
+    let entries = final_mmap.entries().map(|desc| MemoryMapEntry {
+        memory_type: desc.ty.0,
+        _pad: 0,
+        physical_start: desc.phys_start,
+        virtual_start: desc.virt_start,
+        page_count: desc.page_count,
+        attribute: desc.att.bits(),
+    });
+    let count = copy_entries(entries, out)?;
+    Ok((mmap_addr, MemoryMapEntry::SIZE as u32, count))
 }
 
 /// Write final memory map info to handoff struct.

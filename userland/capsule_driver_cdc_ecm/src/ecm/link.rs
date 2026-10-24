@@ -14,56 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound ECM device as the frame service sees it.
+//! A bound ECM device: its pipes, its link, and what it sent that was let go.
 
 use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_usbnet::nic::ETH_FRAME_MAX;
-use nonos_usbnet::{Bus, Nic, Pipes, Taken};
+use nonos_usbnet::{Pipes, Taken};
 
-use super::transfer::{recv, send};
+use super::counts::Counts;
+use super::function::EcmFunction;
+use super::watch::armed;
 
-/// One bulk IN: a whole frame and room for a padding byte, a multiple of
-/// every bulk packet size, so a frame always ends in a short packet.
-const RX_LEN: usize = 2048;
+/// One bulk IN: a whole frame and room past it, a multiple of every bulk
+/// packet size, so a frame of any allowed length ends in a short packet.
+pub const RX_LEN: usize = 2048;
 
 pub struct Ecm<B> {
     pub(super) bus: B,
     pub(super) mac: [u8; 6],
+    /// How the device came to take frames for the drawn address.
     pub(super) taken: Taken,
+    pub(super) comm: u8,
     pub(super) pipes: Pipes,
+    /// The notification endpoint's DCI, and what one look at it arms.
+    pub(super) notify: Option<u8>,
+    pub(super) notice_len: usize,
+    /// Up from bind until NETWORK_CONNECTION says down, so a device that
+    /// never notifies still carries traffic.
+    pub(super) link: bool,
+    pub(super) looks: u32,
+    /// The rest of a transfer that overran the receive buffer is let go.
+    pub(super) overrun: bool,
     pub(super) rx: Vec<u8>,
     pub(super) tx: Vec<u8>,
+    pub counts: Counts,
 }
 
-impl<B: Bus> Ecm<B> {
-    pub fn new(bus: B, mac: [u8; 6], taken: Taken, pipes: Pipes) -> Self {
-        let (rx, tx) = (vec![0; RX_LEN], vec![0; ETH_FRAME_MAX + 1]);
-        Self { bus, mac, taken, pipes, rx, tx }
-    }
-}
-
-impl<B: Bus> Nic for Ecm<B> {
-    fn mac(&self) -> [u8; 6] {
-        self.mac
-    }
-
-    fn taken(&self) -> Taken {
-        self.taken
-    }
-
-    /// The link is the device being bound: its notifications come on an
-    /// interrupt endpoint driver.xhci0 does not configure beside bulk pipes.
-    fn link_up(&self) -> bool {
-        true
-    }
-
-    fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
-        send(self, frame)
-    }
-
-    fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
-        recv(self, out)
+impl<B> Ecm<B> {
+    pub fn new(bus: B, mac: [u8; 6], taken: Taken, f: &EcmFunction, notify: Option<u8>) -> Self {
+        let notice_len = armed(f.notify.map_or(0, |n| n.max_packet));
+        Self {
+            bus,
+            mac,
+            taken,
+            comm: f.comm,
+            pipes: f.pipes,
+            notify,
+            notice_len,
+            link: true,
+            looks: 0,
+            overrun: false,
+            rx: vec![0; RX_LEN],
+            tx: vec![0; ETH_FRAME_MAX + 1],
+            counts: Counts::default(),
+        }
     }
 }

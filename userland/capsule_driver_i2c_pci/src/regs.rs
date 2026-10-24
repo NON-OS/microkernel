@@ -18,7 +18,7 @@
 //! against the length the window was mapped with, so a computed offset that
 //! strays (a GPIO pad index, a PADBAR read from dead MMIO) reads as an
 //! undecoded bus, all ones, and writes nowhere, instead of touching memory
-//! past the mapping.
+//! past the mapping. The access itself is libc's, ordered against DMA memory.
 
 #[derive(Clone, Copy)]
 pub struct Regs {

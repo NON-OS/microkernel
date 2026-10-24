@@ -34,7 +34,7 @@ pub fn pagesize_read(op_base: u64) -> u32 {
 }
 
 /// The page size in bytes the register names, the smallest when several
-/// bits are set (as Linux takes it), or `None` when no bit is set.
+/// bits are set, or `None` when no bit is set.
 pub fn page_bytes(pagesize: u32) -> Option<u64> {
     let bits = pagesize & 0xFFFF;
     if bits == 0 {

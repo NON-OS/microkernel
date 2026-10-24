@@ -26,7 +26,7 @@ static BOOT_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// Frequency latched at anchor time. Calibration on x86_64 can cost a PIT
 /// measurement, and time is read constantly, so it is paid once here.
-static COUNTER_HZ: AtomicU64 = AtomicU64::new(0);
+pub(super) static COUNTER_HZ: AtomicU64 = AtomicU64::new(0);
 
 /// Anchor the clock to now. Called once the counter is trustworthy.
 pub(crate) fn anchor() {
@@ -44,17 +44,4 @@ pub(crate) fn ticks_since_anchor() -> u64 {
 /// Latched counter frequency, or zero when the platform could not say.
 pub(crate) fn counter_hz() -> u64 {
     COUNTER_HZ.load(Ordering::Relaxed)
-}
-
-/// Fill in the counter rate when the anchor could not measure it, from a
-/// reference only available later in boot (the ACPI PM timer, once the FADT
-/// is parsed). A rate already latched is never replaced: elapsed times
-/// handed out so far were measured against it.
-pub(crate) fn set_counter_hz_if_unknown(hz: u64) -> bool {
-    COUNTER_HZ.compare_exchange(0, hz, Ordering::AcqRel, Ordering::Relaxed).is_ok()
-}
-
-/// Whether the anchor latched a real rate.
-pub(crate) fn counter_hz_known() -> bool {
-    COUNTER_HZ.load(Ordering::Relaxed) != 0
 }

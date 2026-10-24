@@ -19,18 +19,18 @@
 
 use nonos_devmodel::FakeBar;
 
-use crate::constants::queue::{RX_DESC_COUNT, TX_DESC_COUNT};
-use crate::constants::MAC_LEN;
 use crate::queue::layout::{RxDesc, TxDesc};
 use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
 use crate::setup::Driver;
+use crate::sizes::ring::{RX_DESC_COUNT, TX_DESC_COUNT};
+use crate::sizes::MAC_LEN;
 
 pub const RX_RING_PHYS: u64 = 0x1_0000_1000;
 pub const TX_RING_PHYS: u64 = 0x1_0000_2000;
 pub const RX_BUF_PHYS: u64 = 0x1_0010_0000;
 pub const TX_BUF_PHYS: u64 = 0x1_0020_0000;
-pub const PCI_DEVICE: u16 = 0x10C9; // E1000_DEV_ID_82576, QEMU's igb
+pub const PCI_DEVICE: u16 = 0x10C9; // the 82576, as QEMU models it
 
 pub struct Memory {
     pub rx: Box<[RxDesc; RX_DESC_COUNT]>,
@@ -57,7 +57,7 @@ impl Memory {
         Driver {
             device_id: 9,
             pci_device: PCI_DEVICE,
-            part: crate::constants::part::Part::I82576,
+            part: crate::facts::parts::Part::I82576,
             mmio_grant: 20,
             rx_ring_grant: 21,
             rx_buffer_grant: 22,

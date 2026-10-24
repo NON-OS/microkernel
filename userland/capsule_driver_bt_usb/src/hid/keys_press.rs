@@ -51,6 +51,6 @@ impl Keys {
         let (m, caps) = (self.modifiers, self.caps);
         let ascii = if pressed { keymap::ascii(usage, m, caps) } else { 0 };
         let event = KeyEvent { scancode: usage, ascii, modifiers: m, pressed, caps };
-        post_key::publish(event, &mut self.held)
+        post_key::publish(event, &mut self.held, self.source)
     }
 }

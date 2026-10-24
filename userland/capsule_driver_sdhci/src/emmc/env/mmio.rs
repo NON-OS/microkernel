@@ -17,7 +17,7 @@
 //! The slot's register window.
 
 /// The slot's register window. Offsets are from the slot base (SDHCI 3.0,
-/// 2.1). Implementations access the device with volatile, naturally sized
+/// as recalled, unverified). Implementations access the device with volatile, naturally sized
 /// loads and stores.
 pub trait Mmio {
     fn r8(&self, off: u32) -> u8;

@@ -18,7 +18,7 @@
 
 use super::rsp::upiu;
 use super::sim::Model;
-use crate::ufs::upiu::codes::*;
+use crate::ufs::facts::upiu::*;
 
 /// QUERY_RESULT_INVALID_IDN and _INVALID_OPCODE.
 const INVALID_IDN: u8 = 0xFD;
@@ -42,6 +42,11 @@ impl Model {
         let mut r = upiu(QUERY_RSP, func, 0, 0);
         r[12] = op;
         r[13] = idn;
+        d.queries += 1;
+        if d.queries <= d.refuse_queries {
+            r[6] = INVALID_OPCODE;
+            return Some(r);
+        }
         if idn != FLAG_DEVICE_INIT {
             r[6] = INVALID_IDN;
             return Some(r);

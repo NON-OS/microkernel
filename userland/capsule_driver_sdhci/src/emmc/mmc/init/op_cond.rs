@@ -23,8 +23,8 @@ use super::super::cmds::SEND_OP_COND;
 use super::super::ops::say_failed;
 use super::super::regs::ocr_ready;
 
-/// The card finishes power up within a second (Linux mmc_send_op_cond: 100
-/// tries 10 ms apart).
+/// The card finishes power up within a second (JESD84, as recalled,
+/// unverified), asked every 10 ms.
 pub const OP_COND_MS: u64 = 1_000;
 pub const OP_COND_POLL_MS: u64 = 10;
 

@@ -1,6 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! One frame per NTB16 out, laid out and padded as cdc_ncm_fill_tx_frame
-//! lays out and pads the first datagram of a block.
+//! One frame per NTB16 out (NCM 1.0, 3.2.1 and 3.3.1, as recalled,
+//! unverified): laid out on the device's alignment, and one byte longer
+//! only when it would end on a packet boundary below dwNtbOutMaxSize.
 
 use nonos_usbnet::mock::{drawn, Call};
 use nonos_usbnet::{Bind, Nic};
@@ -30,33 +31,32 @@ fn a_frame_goes_out_as_nth16_ndp16_and_the_datagram_on_its_divisor() {
     assert_eq!(&next[6..8], &[1, 0], "wSequence counts blocks");
 }
 
-fn shape(max: usize, mps: usize, zlp: bool) -> TxShape {
-    let min_pkt = crate::ncm::limits::min_tx_pkt(max, mps);
-    TxShape { max, min_pkt, mps, zlp, align: OutAlign { ndp: 4, modulus: 4, remainder: 2 } }
+fn shape(max: usize, out_max: usize, mps: usize) -> TxShape {
+    TxShape { max, out_max, mps, align: OutAlign { ndp: 4, modulus: 4, remainder: 2 } }
 }
 
 #[test]
-fn a_block_ending_on_a_packet_gets_one_byte_and_a_long_one_the_full_size() {
-    let mut out = vec![0u8; 4095];
-    let n = build(&mut out, &[1; 98], 0, &shape(4095, 512, false)).unwrap();
+fn a_block_ending_on_a_packet_below_the_devices_size_gets_one_byte() {
+    let mut out = vec![0u8; 4096];
+    let n = build(&mut out, &[1; 98], 0, &shape(4095, 16384, 512)).unwrap();
     assert_eq!(n, 129, "30 + 98 = 128, a multiple of 64");
     assert_eq!(&out[8..10], &129u16.to_le_bytes(), "wBlockLength is the padded length");
-    assert_eq!(build(&mut out, &[1; 482], 0, &shape(4095, 512, false)), Some(513));
-    let n = build(&mut out, &[1; 1514], 0, &shape(4095, 1024, false)).unwrap();
-    assert_eq!(n, 4095, "past min_tx_pkt on SuperSpeed: padded to tx_max");
-    assert!(out[1544..4095].iter().all(|&b| b == 0), "the padding is zeros");
-    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(4095, 1024, true)), Some(1544), "ZLP device");
-    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(4095, 512, false)), Some(1544));
+    assert_eq!(out[128], 0, "the byte is zero");
+    assert_eq!(build(&mut out, &[1; 482], 0, &shape(4095, 16384, 512)), Some(513));
+    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(4095, 16384, 1024)), Some(1544));
+    assert_eq!(build(&mut out, &[1; 98], 0, &shape(128, 128, 64)), Some(128), "its own size");
+    assert_eq!(build(&mut out, &[1; 4066], 0, &shape(4095, 16384, 512)), None, "past 4095");
+    assert_eq!(build(&mut out, &[1; 4002], 0, &shape(4095, 16384, 512)), Some(4033));
 }
 
 #[test]
 fn a_frame_that_does_not_fit_the_block_is_refused() {
-    let mut out = vec![0u8; 4095];
-    // cdc_ncm_ndp16 reserves the frame, the divisor and the remainder after
-    // the NDP: 12 + 16 + 1514 + 4 + 2 bytes.
-    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(1547, 512, false)), None);
-    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(1548, 512, false)), Some(1548));
-    assert_eq!(build(&mut out[..100], &[1; 60], 0, &shape(4095, 512, false)), None);
+    let mut out = vec![0u8; 4096];
+    // 12 + 16 + 2 bytes to reach the remainder, then the frame.
+    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(1543, 1543, 512)), None);
+    assert_eq!(build(&mut out, &[1; 1514], 0, &shape(1544, 1544, 512)), Some(1544));
+    assert_eq!(build(&mut out[..100], &[1; 60], 0, &shape(4095, 16384, 512)), Some(90));
+    assert_eq!(build(&mut out[..89], &[1; 60], 0, &shape(4095, 16384, 512)), None, "out short");
     let dev = Dev::ncm(0);
     let Bind::Ours(mut nic) = bind(dev.bus(), &dev.found(), drawn()) else { panic!("not bound") };
     assert_eq!(nic.send(&[0; 4080]), Err(-22));

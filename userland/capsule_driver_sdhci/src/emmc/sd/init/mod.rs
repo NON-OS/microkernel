@@ -18,6 +18,7 @@
 
 mod app;
 mod bring_up;
+mod csd;
 mod finish;
 mod identify;
 mod op_cond;

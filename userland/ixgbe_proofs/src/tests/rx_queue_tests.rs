@@ -13,20 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! ixgbe_configure_rx_ring for queue 0 at 0x1000: the queue seen disabled
-//! first, SRRCTL (at 0x2100) written whole for one advanced buffer of 2 KiB,
-//! every descriptor in read format, and slots handed to the part only once
-//! the enable reads back.
+//! Receive queue 0 at 0x1000: the queue seen disabled first, SRRCTL (at
+//! 0x2100) written whole for one advanced buffer of 2 KiB, every descriptor
+//! in read format, and slots handed to the part only once the enable reads
+//! back.
 //!
 //! Not proven here: a queue whose enable never reads back. The model shares
 //! memory with the driver, so the driver's own write reads back before any
 //! concurrent model can undo it; that refusal rests on `until`, whose
 //! timeout is proven in wait_tests.
 
-use crate::constants::queue::{RX_BUFFER_LEN, RX_DESC_COUNT};
-use crate::constants::regs::*;
-use crate::init::rx_queue::program;
+use crate::bring::rings::rx::program;
+use crate::facts::regs::*;
 use crate::queue::layout::RxDesc;
+use crate::sizes::ring::{RX_BUFFER_LEN, RX_DESC_COUNT};
 
 use super::memory::{Memory, RX_BUF_PHYS};
 use super::model::{regs, window};

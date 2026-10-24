@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! When find runs, read as text (L79). The broker is seeded in one fixed
-//! order: the PCI table first, its port windows and the legacy records
-//! next, then the framebuffer's registration, which finds who covers it; so
-//! every PCI record and its BARs exist when find reads the table. The
+//! order: the PCI table first, the devices the firmware's description names
+//! (C's, on aarch64), its port windows and the legacy records next, then the
+//! framebuffer's registration, which finds who covers it; so every record
+//! and its BARs exist when find reads the table. The
 //! firmware's I2C and GPIO controllers, the SCI, the NUMA facts and the
 //! SDEV posture come after, and none of them is asked.
 
@@ -27,6 +28,7 @@ const SEED: &str = "kernel_core/init/platform/hardware_broker.rs";
 
 const ORDER: &str = concat!(
     "crate::hardware::broker::init_from_pci(&devices);",
+    "let_=crate::arch::publish_described_devices();",
     "#[cfg(target_arch=\"x86_64\")]{",
     "crate::bus::pci::report_aer(&devices);",
     "crate::arch::iommu::acs::close_switches(&devices);",

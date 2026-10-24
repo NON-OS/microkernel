@@ -19,7 +19,9 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
-use super::{iova::IOVA_BASE, reserved_rule::Held};
+use super::held::Held;
+use super::iova::IOVA_BASE;
+use super::reserved_rule::Held as HeldRmrr;
 use crate::memory::iommu::{DeviceAddress, IommuDomain};
 
 /// A capsule's domain and what it holds. Dropping the entry frees the domain.
@@ -30,15 +32,25 @@ pub(super) struct Capsule {
     pub next_iova: u64,
     /// Device address space freed below `next_iova`, reused before it grows.
     pub holes: Vec<(u64, u64)>,
-    /// Reserved regions mapped one to one for a device's sake (L60).
+    /// RMRR regions mapped one to one for a device's sake (L60).
+    pub rmrr: Vec<HeldRmrr>,
+    /// Its devices' reserved ranges from the device tree (C-41), mapped while
+    /// a device naming them is attached; their IOVAs are never handed to a grant.
     pub reserved: Vec<Held>,
 }
 
 impl Capsule {
     /// Before its first grant: nothing mapped, the whole space ahead of it.
     pub(super) fn new(pid: u32, domain: IommuDomain) -> Self {
-        let (devices, holes, reserved) = (Vec::new(), Vec::new(), Vec::new());
-        Self { pid, domain, devices, next_iova: IOVA_BASE, holes, reserved }
+        let (devices, holes, rmrr, reserved) = (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+        Self { pid, domain, devices, next_iova: IOVA_BASE, holes, rmrr, reserved }
+    }
+
+    /// Every IOVA span its RMRR regions and reserved ranges hold, `(start, end)`.
+    pub(super) fn reserved_spans(&self) -> Vec<(u64, u64)> {
+        let rmrr = self.rmrr.iter().map(|h| (h.base, h.end));
+        let tree = self.reserved.iter().map(|h| (h.range.iova, h.range.iova + h.range.len));
+        rmrr.chain(tree).collect()
     }
 }
 
@@ -53,23 +65,4 @@ pub(super) fn pci_address(device_id: u64) -> Option<DeviceAddress> {
     let handle = crate::hardware::broker::pci_index::lookup(device_id)?;
     let a = crate::drivers::pci::vmd::dma_requester(handle.address);
     Some(DeviceAddress::pci(a.bus, a.device, a.function))
-}
-
-pub(super) fn say(what: &[u8], pid: u32, device: DeviceAddress) {
-    let serial = crate::sys::serial::print;
-    serial(b"[VT-D] pid=");
-    crate::sys::serial::print_dec(pid as u64);
-    // Segment above the requester id, so segment 0 prints as it always has.
-    match device {
-        DeviceAddress::Pci { segment, rid } => {
-            serial(b" device=");
-            crate::sys::serial::print_hex((segment as u64) << 16 | rid as u64);
-        }
-        DeviceAddress::Stream(sid) => {
-            serial(b" stream=");
-            crate::sys::serial::print_hex(sid as u64);
-        }
-    }
-    serial(b" ");
-    crate::sys::serial::println(what);
 }

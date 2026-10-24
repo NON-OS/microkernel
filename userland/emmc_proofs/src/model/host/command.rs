@@ -42,6 +42,11 @@ impl Sim {
             at: now,
         });
         self.check_issue(index, word);
+        if self.cfg.swap_at_cmd == Some(self.cmds.len()) {
+            self.cfg.swap_at_cmd = None;
+            self.take_card();
+            self.put_sd(super::super::sd::SdCfg::default());
+        }
         let hz = self.sd_hz();
         if self.regs[0x29] & 1 == 0 || hz == 0 {
             self.int |= 1 << 15 | 1 << 16;

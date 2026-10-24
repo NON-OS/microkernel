@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_fido
+# eK@nonos.systems
+#
+# USB FIDO2 security key capsule, driver.fido0: a CTAPHID
+# key on any USB host's port (root or virtual), its CTAP2 requests
+# passed through for one client at a time.
+
+[package]
+name = "nonos_capsule_driver_fido"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB FIDO2 security key capsule"
+
+[[bin]]
+name = "driver_fido"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

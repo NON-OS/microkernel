@@ -22,6 +22,7 @@ mod icache;
 pub mod id;
 mod init;
 mod irq;
+pub mod percpu;
 mod sctlr;
 pub mod state;
 mod wait;

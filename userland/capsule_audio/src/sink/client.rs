@@ -19,31 +19,39 @@ use core::cell::Cell;
 use nonos_audio_proto::OUTPUT_READY;
 
 use super::call::call;
-use super::choose::{choose, machine, SINKS};
-use super::lookup::{once, resolve};
+use super::choose::SINK_LINES;
+use super::lookup::{fixed, once};
 use super::wire;
 
 const USB: &[u8] = b"driver.usb_audio0";
 
-/// The driver played through, and the ones it can be: the machine's own
-/// (its port and its place in `SINKS`) and the USB driver. A cell: the run
-/// loop moves it while the handlers hold the sink shared.
+/// The driver played through, the fixed sink chosen at start (its port and
+/// its place in `SINKS`), and the USB driver. A cell: the run loop moves it
+/// while the handlers hold the sink shared.
 pub struct Sink {
     pub(super) port: Cell<u32>,
-    pub(super) own: Option<(u32, usize)>,
+    pub(super) fixed: Option<(u32, usize)>,
     pub(super) usb: Option<u32>,
 }
 
 impl Sink {
-    /// The machine's own sink to start with, HD Audio or AC'97. The USB
-    /// driver is spawned just before this capsule wherever an xHCI
-    /// controller is, so one lookup finds it; its device is looked for later
-    /// (`rechoose`), once it can have bound one.
+    /// The fixed sink to start with. driver.usb_audio0 is spawned just
+    /// before this capsule wherever an xHCI controller is, so one lookup
+    /// finds it; its device is looked for later (`rechoose`), once it can
+    /// have bound one.
     pub fn resolve() -> Option<Sink> {
         let usb = once(USB);
-        let own = resolve(own_sink);
-        let port = choose(false, own.map(|(port, _)| port), usb)?;
-        Some(Sink { port: Cell::new(port), own, usb })
+        let fixed = fixed(ready_at);
+        let port = fixed.map(|(port, _)| port).or(usb)?;
+        Some(Sink { port: Cell::new(port), fixed, usb })
+    }
+
+    /// The start's and each move's log line, naming the driver played through.
+    pub fn output_line(&self) -> &'static str {
+        match self.fixed {
+            Some((port, i)) if port == self.port.get() => SINK_LINES[i],
+            _ => "[AUDIO] output driver.usb_audio0\n",
+        }
     }
 
     /// The driver's verdict on this machine's audio and its output flags,
@@ -53,20 +61,12 @@ impl Sink {
     }
 }
 
-/// The machine's own sink, if one is registered now: one is taken as it
-/// is, and with both the first whose status says it plays (`machine`).
-fn own_sink() -> Option<(u32, usize)> {
-    let ports = SINKS.map(|name| once(name.as_bytes()));
-    let plays = |i: usize| {
-        let verdict = ports[i].and_then(|port| status_at(port, 0));
-        matches!(verdict, Some((OUTPUT_READY, _)))
-    };
-    let i = machine(ports.map(|port| port.is_some()), plays)?;
-    Some((ports[i]?, i))
+/// Whether the driver on `port` says this machine plays through it.
+pub(super) fn ready_at(port: u32) -> bool {
+    status_at(port, 0).is_some_and(|(verdict, _)| verdict == OUTPUT_READY)
 }
 
-/// The verdict of the driver on `port`, or none when it does not answer.
-pub(super) fn status_at(port: u32, request_id: u32) -> Option<(u32, u32)> {
+fn status_at(port: u32, request_id: u32) -> Option<(u32, u32)> {
     let mut tx = [0u8; wire::HDR_LEN];
     let n = wire::output_status_request(request_id, &mut tx);
     let mut rx = [0u8; wire::OUTPUT_REPLY_LEN];

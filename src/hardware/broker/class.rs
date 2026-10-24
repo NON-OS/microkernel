@@ -27,6 +27,7 @@ pub(in crate::hardware::broker) mod ids {
     /// Subset of INPUT: an ACPI-declared I2C-HID touchpad, carrying its I2C
     /// slave address and HID descriptor register for the HID driver to bind
     /// without probing.
+    #[allow(dead_code)] // ABI id on every arch; only x86's ACPI enumerator records it
     pub(in crate::hardware::broker) const I2C_HID: u32 = 0x0041;
     pub(in crate::hardware::broker) const AUDIO: u32 = 0x0050;
     pub(in crate::hardware::broker) const SERIAL: u32 = 0x0060;
@@ -39,6 +40,7 @@ pub(in crate::hardware::broker) mod ids {
     /// A platform GPIO community controller enumerated from ACPI. The input
     /// driver claims the community a touchpad's GpioInt names and maps its
     /// MMIO window to poll the pad's interrupt status register.
+    #[allow(dead_code)] // ABI id on every arch; only x86's ACPI enumerator records it
     pub(in crate::hardware::broker) const GPIO_CTRL: u32 = 0x0080;
     pub(in crate::hardware::broker) const OTHER: u32 = 0xFFFF;
 }

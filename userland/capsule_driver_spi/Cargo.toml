@@ -1,0 +1,29 @@
+# NONOS userland: capsule_driver_spi
+# eK@nonos.systems
+#
+# Intel LPSS SPI host capsule: the SSP-type SPI core of an LPSS function,
+# its raw transfers served on driver.spi0 to one client. Never the
+# firmware's flash controller, which the broker refuses to any capsule.
+
+[package]
+name = "nonos_capsule_driver_spi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel LPSS SPI host capsule"
+
+[[bin]]
+name = "driver_spi"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

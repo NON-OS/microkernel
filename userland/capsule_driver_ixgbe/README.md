@@ -3,11 +3,13 @@
 Status: wired, not yet signed. The kernel mirror (`src/hardware/ixgbe_capsule`)
 embeds and spawns it under `nonos-capsule-driver-ixgbe` (the
 `microkernel-driver-ixgbe` build), and net.core and net.l2 reach it through
+`src/services/registry/nics.rs`. It has no owner certificate yet, so no image
+carries it until the owner signs it.
 
 ## Role
 
 `capsule_driver_ixgbe` is the Intel 82599 (X520), X540 and X550 10GbE
-Ethernet driver capsule (Linux `ixgbe`). It owns the PCI function, BAR0, one
+Ethernet driver capsule. It owns the PCI function, BAR0, one
 advanced RX queue, one advanced TX queue and raw Ethernet frame movement,
 and stops at the frame boundary. QEMU has no ixgbe device: this driver runs
 on hardware only.
@@ -25,7 +27,7 @@ driver.ixgbe_0 -- broker MMIO + DMA rings --> 82599 / X540 / X550
 ## Microkernel contract
 
 - `MkDeviceList` finds the first Intel Ethernet function whose ID is in the
-  table: the 82599, X540 and X550 entries of Linux `ixgbe_pci_tbl`.
+  table: `facts/ids.rs` (as observed, unverified).
 - `MkDeviceClaim` claims it; `MkPciConfigWrite` turns on Memory Space and
   Bus Master Enable.
 - `MkMmioMap` maps BAR0; `MkDmaMap` takes the RX ring, RX buffers, TX ring
@@ -39,7 +41,7 @@ No interrupt is bound and every cause is masked (EIMC and EIMC_EX).
 
 Same operations as `driver.e1000_0`: `OP_HEALTHCHECK`, `OP_LINK_STATUS`
 (1 byte), `OP_MAC_ADDRESS` (6 bytes), `OP_TX_PACKET`, `OP_RX_PACKET`
-(length and frame), `OP_STATS` (48-byte snapshot, with RXCTRL and DMATXCTL
+(length and frame), `OP_STATS` on 7 (48-byte snapshot, with RXCTRL and DMATXCTL
 where e1000 has RCTL and TCTL).
 
 ## Authority
@@ -59,7 +61,7 @@ entropy. Nothing is stored.
 ## Runtime lifecycle
 
 Discover, claim, enable bus mastering, map, take DMA grants, then bring the
-part up in Linux's order:
+part up stage by stage (`bring/stage.rs`):
 
 1. stop the adapter and the PCIe master, then the double MAC reset and the
    EEPROM auto-read;
@@ -112,6 +114,7 @@ completing through `net.core`.
 
 ## Release checklist
 
+- Signed by the owner and added to the image's features, with net.core,
   net.l2, the setup wizard and capsule_attack re-signed for the NIC table.
 - One machine of each MAC photographed with those lines.
 

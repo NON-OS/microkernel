@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! igb_configure_tx_ring for queue 0 at 0x3800, E1000_TDBAL(0).
+//! Transmit queue 0 at 0x3800.
 //!
 //! Not proven here: a queue whose enable never reads back. The model shares
 //! memory with the driver, so the driver's own write reads back before any
 //! concurrent model can undo it; that refusal rests on `until`, whose
 //! timeout is proven in wait_tests.
 
-use crate::constants::regs::*;
-use crate::init::tx_queue::program;
+use crate::bring::rings::tx::program;
+use crate::facts::regs::*;
 use crate::queue::layout::TxDesc;
 
 use super::memory::Memory;

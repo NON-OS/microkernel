@@ -21,16 +21,16 @@ use super::super::super::error::{EmmcError, EmmcResult};
 use super::super::super::sdhci::{Cmd, Host, Resp};
 use super::super::super::text::Line;
 use super::super::cmds::{rca_arg, RCA, SELECT_CARD, SEND_CSD, SET_RELATIVE_ADDR};
-use super::super::r1::CARD_IS_LOCKED;
+use super::super::r1::{CARD_IS_LOCKED, STATE_IDENT, STATE_STBY};
 use super::super::regs::{r2, Csd};
-use super::step::{r1_ok, step};
+use super::step::{r1_in, step};
 
 /// Give the card its address, read its CSD and select it. A password
 /// locked card fails here.
 pub(super) fn select_card<M: Mmio, C: Clock, L: Log>(h: &mut Host<M, C, L>) -> EmmcResult<Csd> {
     let r =
         step(h, &Cmd::new(SET_RELATIVE_ADDR, rca_arg(RCA), Resp::R1), b"CMD3 SET_RELATIVE_ADDR")?;
-    r1_ok(h, SET_RELATIVE_ADDR, r[0])?;
+    r1_in(h, SET_RELATIVE_ADDR, r[0], STATE_IDENT)?;
     let csd =
         Csd::parse(r2(step(h, &Cmd::new(SEND_CSD, rca_arg(RCA), Resp::R2), b"CMD9 SEND_CSD")?));
     h.say(
@@ -47,6 +47,6 @@ pub(super) fn select_card<M: Mmio, C: Clock, L: Log>(h: &mut Host<M, C, L>) -> E
         h.say(Line::new().s(b"card is password locked"));
         return Err(EmmcError::Locked);
     }
-    r1_ok(h, SELECT_CARD, r[0])?;
+    r1_in(h, SELECT_CARD, r[0], STATE_STBY)?;
     Ok(csd)
 }

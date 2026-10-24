@@ -53,6 +53,12 @@ impl Rotation {
         self.current.map(|(a, _)| a)
     }
 
+    /// Drop the current address so the next `renew` makes a fresh one: the
+    /// radio coming back on never reuses the address it went off under (E-72).
+    pub fn expire(&mut self) {
+        self.current = None;
+    }
+
     pub fn irk(&self) -> &LocalIrk {
         &self.irk
     }

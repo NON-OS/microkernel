@@ -24,8 +24,11 @@ pub mod active;
 pub mod button_changes;
 #[path = "../../../capsule_driver_usb_hid/src/hid/device.rs"]
 pub mod device;
+/// What one key event posts: pure, apart from the posting.
 #[path = "../../../capsule_driver_usb_hid/src/hid/key_event.rs"]
 pub mod key_event;
+#[path = "../../../capsule_driver_usb_hid/src/hid/key_post.rs"]
+pub mod key_post;
 pub mod keyboard;
 #[path = "../../../capsule_driver_usb_hid/src/hid/keymap/mod.rs"]
 pub mod keymap;
@@ -35,6 +38,8 @@ pub mod mouse;
 pub mod mouse_event;
 #[path = "../../../capsule_driver_usb_hid/src/hid/mouse_report.rs"]
 pub mod mouse_report;
+#[path = "../../../capsule_driver_usb_hid/src/hid/pad.rs"]
+pub mod pad;
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_failures.rs"]
 pub mod post_failures;
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_key.rs"]
@@ -52,5 +57,6 @@ pub mod usage_keycode;
 pub use device::Device;
 pub use keyboard::Keyboard;
 pub use mouse::Mouse;
+pub use pad::Pad;
 pub use report::ReportDevice;
 pub use tablet::Tablet;

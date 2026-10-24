@@ -18,7 +18,8 @@
 //! are the contract those capsules publish; a change there is a change
 //! here, and blk_client_proofs, the drivers' own tests and
 //! scripts/check_blk_wire.py hold the two together until the protocols
-//! become one. The wire each speaks is in `dialect.rs`, the bus in `bus.rs`.
+//! become one. Magics and opcodes are in `dialect.rs`, the controllers each
+//! serves in `bus.rs`.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {

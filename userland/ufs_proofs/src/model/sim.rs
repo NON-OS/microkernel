@@ -29,6 +29,10 @@ pub struct Model {
     pub dev: RefCell<Dev>,
     pub now: Cell<u64>,
     pub lines: RefCell<Vec<String>>,
+    /// A device that lies: in its responses of this type, this byte.
+    pub lie: Cell<Option<(u8, usize, u8)>>,
+    /// A device that answers GOOD but sends no data for this opcode.
+    pub mute: Cell<Option<u8>>,
 }
 
 impl Model {
@@ -39,6 +43,8 @@ impl Model {
             host: RefCell::new(host),
             dev: RefCell::new(Dev::default()),
             now: Cell::new(0),
+            lie: Cell::new(None),
+            mute: Cell::new(None),
             lines: RefCell::new(Vec::new()),
         };
         let (cap, ver) = (m.cfg.borrow().cap, m.cfg.borrow().ver);

@@ -19,7 +19,7 @@ use super::super::flags::DMA_MAP_DMA32;
 use super::super::types::{DmaMapError, DmaMapRequest, DmaMapResult};
 use super::fail::fail;
 use super::placed::Placed;
-use super::{alloc, install, record, unreserved, validate};
+use super::{alloc, bus_window, install, record, uncached, unreserved, validate};
 use crate::memory::iommu::IommuProtection;
 
 // `MkDmaMap`: validate -> alloc+zero frames -> install user pages ->
@@ -32,12 +32,15 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
     };
     let claim_epoch = held.epoch;
     let pages = req.length / validate::PAGE_SIZE;
-
-    let phys_start = match unreserved::take(pages, req.length, req.flags) {
+    let flags = match bus_window::alloc_flags(req.device_id, req.flags) {
+        Ok(flags) => flags,
+        Err(e) => return fail("window", e),
+    };
+    let uncached = uncached::needs_uncached_frames(req.device_id, req.flags);
+    let phys_start = match unreserved::take(pages, req.length, flags, uncached) {
         Ok(start) => start,
         Err((stage, e)) => return fail(stage, e),
     };
-
     let user_va = match install::install(pages, req.length, phys_start, req.flags) {
         Ok(va) => va,
         Err(e) => {
@@ -46,29 +49,26 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         }
     };
     let placed = Placed { phys_start, pages, length: req.length, user_va };
-
-    let access = IommuProtection {
-        read: device_reads(req.flags),
-        write: device_writes(req.flags),
-        mmio: false,
-    };
-    let Some((device_addr, confined)) = placed.confine(pid, req.device_id, access) else {
+    let (read, write) = (device_reads(req.flags), device_writes(req.flags));
+    let access = IommuProtection { read, write, mmio: false };
+    let Some((given, confined)) = placed.confine(pid, req.device_id, access) else {
         return fail("confine", DmaMapError::MapFailed);
     };
-    /*
-     * A 32-bit device is handed an address that fits its descriptor or nothing.
-     * The frames were placed below 4GB and an IOVA is drawn below 4GB, so this
-     * holds by construction; it is checked so a change to either cannot hand the
-     * device a truncated address in silence.
-     */
+    let moved = bus_window::device_address(req.device_id, phys_start, req.length, given, confined);
+    let Some(device_addr) = moved else {
+        placed.undo_mapped(pid, given, confined);
+        return fail("window", DmaMapError::Above4G);
+    };
+    // A 32-bit device is handed an address that fits its descriptor or nothing.
+    // Frames and IOVAs are both drawn below 4GB, so this holds by construction;
+    // it is checked so a change to either cannot truncate an address in silence.
     if req.flags & DMA_MAP_DMA32 != 0 && !alloc::fits_below_4g(device_addr, pages) {
-        placed.undo_mapped(pid, device_addr, confined);
+        placed.undo_mapped(pid, given, confined);
         return fail("dma32", DmaMapError::Above4G);
     }
-
     let Some(grant_id) = record::record(pid, &req, claim_epoch, &placed, device_addr, confined)
     else {
-        placed.undo_mapped(pid, device_addr, confined);
+        placed.undo_mapped(pid, given, confined);
         return fail("record", DmaMapError::NotClaimed);
     };
     Ok(DmaMapResult { user_va, device_addr, length: req.length, grant_id })

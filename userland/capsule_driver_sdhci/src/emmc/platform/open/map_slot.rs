@@ -36,7 +36,9 @@ pub(super) fn map_slot(
     epoch: u64,
     claim: &mut Claim,
 ) -> EmmcResult<MmioWindow> {
-    let info = mk_pci_config_read(dev.device_id, epoch, PCI_SLOT_INFO, 1);
+    // An ACPI host has no Slot Information byte: its first window is slot 0.
+    let info =
+        if dev.acpi { -1 } else { mk_pci_config_read(dev.device_id, epoch, PCI_SLOT_INFO, 1) };
     let bar = if info < 0 { 0 } else { first_bar(info as u8) };
     let b = dev.bars[bar as usize];
     // The broker maps whole pages, so the window is the BAR's size rounded

@@ -21,12 +21,13 @@
 
 use alloc::boxed::Box;
 
-use super::{Keyboard, Mouse, ReportDevice};
+use super::{Keyboard, Mouse, Pad, ReportDevice};
 
 pub enum Device {
     Keyboard(Keyboard),
     Mouse(Mouse),
     Report(Box<ReportDevice>),
+    Pad(Box<Pad>),
 }
 
 impl Device {
@@ -35,6 +36,7 @@ impl Device {
             Device::Keyboard(k) => k.feed(raw),
             Device::Mouse(m) => m.feed(raw),
             Device::Report(r) => r.feed(raw),
+            Device::Pad(p) => p.feed(raw),
         }
     }
 
@@ -42,7 +44,7 @@ impl Device {
     pub fn tick(&mut self, now_ms: u64) {
         match self {
             Device::Keyboard(k) => k.tick(now_ms),
-            Device::Mouse(_) => {}
+            Device::Mouse(_) | Device::Pad(_) => {}
             Device::Report(r) => r.tick(now_ms),
         }
     }
@@ -54,6 +56,7 @@ impl Device {
             Device::Keyboard(k) => k.release_all(),
             Device::Mouse(m) => m.release_all(),
             Device::Report(r) => r.release_all(),
+            Device::Pad(p) => p.release_all(),
         }
     }
 }

@@ -61,5 +61,6 @@ fn describe(l: &mut Line, e: UfsError) {
         UfsError::Status(s) => l.s(b"SCSI status ").hex(s as u64),
         UfsError::Dma32 => l.s(b"DMA above 4 GiB and no 64-bit addressing"),
         UfsError::BlockSize(n) => l.s(b"block size ").dec(n as u64),
+        UfsError::Capacity(n) => l.s(b"capacity of ").dec(n).s(b" blocks"),
     };
 }

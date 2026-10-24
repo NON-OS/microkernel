@@ -22,11 +22,4 @@ impl TransferRing {
     pub(super) fn max_pending(&self) -> usize {
         self.trbs - 2
     }
-    /// A TD on the ring completed, and only the last `left` TRBs, queued
-    /// after it, may still wait: an isoch stream keeps its next batch
-    /// queued while the one before plays. Buffers kept stay kept until a
-    /// full `retire`.
-    pub fn retire_but(&self, left: usize) {
-        self.pending.set(self.pending.get().min(left));
-    }
 }

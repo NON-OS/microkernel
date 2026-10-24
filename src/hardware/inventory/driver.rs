@@ -42,13 +42,17 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkRtl8821ce => "driver_rtl8821ce",
         NetworkIwlwifi => "driver_iwlwifi",
         DisplayVirtioGpu => "driver_virtio_gpu",
-        DisplayVmwareSvga => "driver_vmware_svga",
-        // It keeps the firmware's mode and serves the gfx wire, so the
-        // compositor moves from the GOP blit to it without losing the screen.
+        // It keeps the firmware's mode until the compositor asks for another
+        // and serves the display wire, so the compositor moves from the GOP
+        // blit to it without losing the screen.
         DisplayBga => "driver_bga",
+        DisplayVmwareSvga => "driver_vmware_svga",
         AudioAc97 => "driver_ac97",
         InputVmmdev => "driver_vmmdev",
         UsbXhci => "driver_xhci",
+        UsbUhci => "driver_uhci",
+        UsbEhci => "driver_ehci",
+        UsbOhci => "driver_ohci",
         InputPs2 => "driver_ps2_input",
         InputUsbHid => "driver_usb_hid",
         InputI2cHid => "driver_i2c_hid",

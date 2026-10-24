@@ -62,6 +62,7 @@ pub mod tool_run;
 pub mod transport;
 pub mod tty;
 mod unistd;
+pub mod wait;
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
 pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
 pub use attest::{
@@ -101,6 +102,7 @@ pub use foreign_signal::{
     SIGNAL_RETURN,
 };
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
+pub use graphics::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
 pub use install_source::{
@@ -129,8 +131,9 @@ pub use surface_registry::{
     mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,
     mk_surface_register, mk_surface_release, mk_surface_share, mk_surface_share_to, InputEvent,
     SurfaceDescriptor, INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
-    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL,
-    INPUT_KIND_TOUCH, INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN,
+    INPUT_KIND_PAD_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};

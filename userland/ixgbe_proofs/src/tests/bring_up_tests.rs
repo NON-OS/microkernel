@@ -23,9 +23,9 @@ use std::sync::Arc;
 
 use nonos_libc::{entropy, said};
 
-use crate::constants::ctrl::*;
-use crate::constants::regs::*;
-use crate::init::finish;
+use crate::bring::finish;
+use crate::facts::mac::*;
+use crate::facts::regs::*;
 use crate::link::LinkState;
 
 use super::memory::Memory;

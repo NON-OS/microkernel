@@ -48,7 +48,8 @@ pub use capabilities::{
 };
 
 pub use config::{
-    read32_unchecked, set_ecam_window, write32_unchecked, BridgeConfigSpace, ConfigSpace,
+    ecam, read32_unchecked, write32_unchecked, BridgeConfigSpace, ConfigSpace, EcamError,
+    EcamWindow,
 };
 
 pub use error::{PciError, Result};

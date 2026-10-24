@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod bind;
+mod rate;
 mod serve;
 mod uac;
 mod wire;

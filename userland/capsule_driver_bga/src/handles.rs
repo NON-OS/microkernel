@@ -43,6 +43,11 @@ impl BrokerHandles {
     pub fn restore_at_drop(&mut self, regs: Regs, firmware: Dispi) {
         self.firmware = Some((regs, firmware));
     }
+
+    /// The broker's id of the adapter, which a DGON names when it leaves.
+    pub fn device_id(&self) -> u64 {
+        self.device_id
+    }
 }
 
 impl Drop for BrokerHandles {

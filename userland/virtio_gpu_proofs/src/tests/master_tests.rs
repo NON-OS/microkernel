@@ -43,7 +43,10 @@ fn a_device_left_live_is_seen_reset_and_on_this_grant_before_it_may_master_the_b
     assert_eq!(pci_writes(), [(MK_PCI_CFG_COMMAND, pci::MASTER)]);
     let (status, ring) = at_master.get();
     assert_eq!(status, HANDSHAKE & !STATUS_DRIVER_OK, "Bus Master before the reset was seen");
-    assert_eq!(ring, ready.queue.device_addr as u32, "Bus Master with the rings still stale");
+    assert_eq!(
+        ring, ready.control_queue.layout.region_device_addr as u32,
+        "Bus Master with the rings still stale"
+    );
     assert_eq!(bar.wrote8(DEVICE_STATUS), HANDSHAKE, "DRIVER_OK once the device may reach memory");
 }
 

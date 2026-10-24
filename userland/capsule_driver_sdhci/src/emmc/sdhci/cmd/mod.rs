@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Command and Transfer Mode words (SDHCI 3.0, 2.2.6 and 2.2.7), built
-//! as Linux's sdhci_send_command and sdhci_set_transfer_mode build them.
+//! The Command and Transfer Mode words, built from those registers' field
+//! definitions (SDHCI 3.0, as recalled, unverified).
 
 mod command_word;
 mod resp;

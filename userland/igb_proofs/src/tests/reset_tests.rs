@@ -13,23 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! igb_reset_hw_82575 against the register model: the quiesce, the master
-//! stop that gates the reset, and the NVM auto-read that is waited for but
-//! not required. The ordering is in reset_order_tests, the 82575 with no NVM
-//! in reset_nvm_tests.
+//! The reset stage against the register model: the quiet, the master stop
+//! that gates the reset, and the NVM auto-read that is waited for but not
+//! required. The ordering is in reset_order_tests, the 82575 with no NVM in
+//! reset_nvm_tests.
 
 use std::time::Duration;
 
 use nonos_libc::said;
 
-use crate::constants::ctrl::*;
-use crate::constants::part::Part;
-use crate::constants::regs::*;
-use crate::constants::timeouts::MASTER_DISABLE_MS;
-use crate::constants::tx_bits::TCTL_PSP;
-use crate::init::reset::global::AUTO_READ_LATE;
-use crate::init::reset::master::MASTER_STUCK;
-use crate::init::reset::run;
+use crate::bring::quiet::MASTER_STUCK;
+use crate::bring::reset::run;
+use crate::bring::reset::AUTO_READ_LATE;
+use crate::facts::bounds::MASTER_DISABLE_MS;
+use crate::facts::mac::*;
+use crate::facts::parts::Part;
+use crate::facts::regs::*;
+use crate::facts::tx::TCTL_PSP;
 
 use super::model::{regs, timed, window};
 

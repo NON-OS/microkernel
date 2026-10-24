@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::posture::unconfined_allowed;
-use super::shared::held_elsewhere;
-use super::table::{pci_address, say, Capsule, CAPSULES};
+use super::one::attach_one;
+use super::streams::attach_streams;
+use super::table::pci_address;
 use super::unconfined::unconfined;
-use crate::memory::iommu::IommuDomain;
 
 /// The unit is in service and would not take the device, so the claim is
 /// refused rather than granted with a device that reaches all of memory.
 pub(in crate::hardware::broker) struct Refused;
 
 pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refused> {
-    let Some(address) = pci_address(device_id) else { return Ok(()) };
+    let Some(address) = pci_address(device_id) else {
+        // A device the firmware description names: confined through its
+        // `iommus`, or refused (streams.rs).
+        return match crate::hardware::broker::described::iommus(device_id) {
+            Some(iommus) => attach_streams(pid, device_id, iommus),
+            None => Ok(()),
+        };
+    };
     /*
      * A device no unit in service covers is not translated, and an IOVA
      * handed to it would be used as a physical address: with only the first
@@ -37,35 +43,5 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
         let why = b"unconfined: no remapping unit in service covers it, reaches all memory";
         return unconfined(pid, device_id, address, why);
     }
-    let mut all = CAPSULES.lock();
-    let pos = match all.iter().position(|c| c.pid == pid) {
-        Some(i) => i,
-        None => match IommuDomain::allocate() {
-            Ok(domain) => {
-                all.push(Capsule::new(pid, domain));
-                all.len() - 1
-            }
-            /*
-             * The posture on most hardware: said per claim, not only at boot.
-             * No unit in service is the same whether none was found, none is
-             * up yet, or the one found (AMD-Vi) has no backend here.
-             */
-            Err(e) if unconfined_allowed(e) => {
-                let why = b"unconfined: no remapping unit in service, reaches all memory";
-                return unconfined(pid, device_id, address, why);
-            }
-            Err(_) => {
-                say(b"refused: no domain left", pid, address);
-                return Err(Refused);
-            }
-        },
-    };
-    if let Some(why) = held_elsewhere(&all, pos, address) {
-        say(why, pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
-    }
-    super::enter::enter(&mut all, pos, pid, device_id, address)
+    attach_one(pid, device_id, address, false)
 }

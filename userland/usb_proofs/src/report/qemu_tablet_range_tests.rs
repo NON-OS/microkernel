@@ -31,11 +31,14 @@ fn every_position_is_clamped_to_the_logical_range() {
 
 #[test]
 fn no_position_scales_past_the_screen_the_input_router_maps_it_onto() {
-    // The router places an absolute pointer at x * (width - 1) / 0x7FFF
-    // (capsule_input_router state/cursor.rs). Its divisor and this
-    // driver's ceiling must stay the same number.
+    // The router places an absolute pointer at x * (width - 1) /
+    // INPUT_ABS_MAX (capsule_input_router state/cursor.rs), and libc fixes
+    // that at 0x7FFF. Its divisor and this driver's ceiling must stay the
+    // same number.
     let router = include_str!("../../../capsule_input_router/src/state/cursor.rs");
-    assert!(router.contains("const ABS_RANGE_MAX: i64 = 0x7FFF;"));
+    assert!(router.contains("const ABS_RANGE_MAX: i64 = INPUT_ABS_MAX as i64;"));
+    let abs = include_str!("../../../libc/src/surface_registry/abs.rs");
+    assert!(abs.contains("pub const INPUT_ABS_MAX: i32 = 0x7FFF;"));
     for width in [1i64, 2, 640, 1024, 1920, 3840, 7680, 1 << 16] {
         let max = width - 1;
         for v in 0..=u16::MAX {

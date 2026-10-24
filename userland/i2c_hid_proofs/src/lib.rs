@@ -36,6 +36,10 @@ pub mod diag;
 /// the reads, the interrupt line, recovery after a reset.
 #[path = "../../capsule_driver_i2c_hid/src/drive/mod.rs"]
 pub mod drive;
+// The input_mode files again, mounted as HID over SPI mounts them.
+#[cfg(test)]
+#[allow(clippy::duplicate_mod)]
+mod feature;
 #[path = "../../capsule_driver_i2c_hid/src/hid/mod.rs"]
 pub mod hid;
 #[path = "../../capsule_driver_i2c_hid/src/i2c_client/mod.rs"]
@@ -51,6 +55,8 @@ pub mod setup;
 #[path = "../../capsule_driver_i2c_hid/src/state/mod.rs"]
 pub mod state;
 
+#[cfg(test)]
+mod feature_tests;
 #[cfg(test)]
 mod request_refusal_tests;
 #[cfg(test)]

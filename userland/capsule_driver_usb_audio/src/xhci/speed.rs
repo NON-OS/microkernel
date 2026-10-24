@@ -20,7 +20,7 @@
 use nonos_usbnet::xhci::{call, E_IO};
 
 use super::isoch::DATA_AT;
-use super::portsc::speed_in;
+use super::portsc::{connected_in, speed_in};
 
 const OP_PORT_STATUS: u16 = 0x0003;
 /// 255 ports of 8 bytes and the 4-byte head.
@@ -30,4 +30,12 @@ pub fn port_speed(xhci: u32, port: u8) -> Result<u8, i32> {
     let mut resp = [0u8; DATA_AT + DATA_MAX];
     let len = call(xhci, OP_PORT_STATUS, &[], &mut resp)?;
     speed_in(&resp[DATA_AT..DATA_AT + len.min(DATA_MAX)], port).ok_or(E_IO)
+}
+
+/// Whether a device is still on `port`; `None` when driver.xhci0 did not
+/// answer, which is not taken for the device gone.
+pub fn port_connected(xhci: u32, port: u8) -> Option<bool> {
+    let mut resp = [0u8; DATA_AT + DATA_MAX];
+    let len = call(xhci, OP_PORT_STATUS, &[], &mut resp).ok()?;
+    Some(connected_in(&resp[DATA_AT..DATA_AT + len.min(DATA_MAX)], port))
 }

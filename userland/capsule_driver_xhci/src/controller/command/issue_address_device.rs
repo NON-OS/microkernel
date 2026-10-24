@@ -18,8 +18,8 @@
 //! SET_ADDRESS (xHCI 1.2 section 4.6.5). The device may then ignore Setup
 //! packets for its SetAddress recovery interval (USB 2.0 section 9.2.6.3,
 //! 2 ms), and the next request, the class driver's descriptor read, came
-//! over IPC well inside it. Linux's hub_port_init sleeps 10 ms here ("let
-//! SET_ADDRESS settle, some device hardware wants it"), and so does this.
+//! over IPC well inside it. Some devices want 10 ms
+//! here (as observed, unverified), and this waits that long.
 use nonos_libc::mk_idle_ms;
 
 use super::run_command::run_command_within;
@@ -28,10 +28,10 @@ use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
 use crate::trb::commands::address_device_command;
 
-/// The settle time after SET_ADDRESS, as Linux gives it.
+/// The settle time after SET_ADDRESS (as observed, unverified).
 pub const SET_ADDRESS_SETTLE_MS: u64 = 10;
 /// A device has 50 ms to finish SET_ADDRESS (USB 2.0 section 9.2.6.3);
-/// Linux gives one that needs it 500 ms. One that NAKs its status stage
+/// slower ones are given 500 ms (as observed, unverified). One that NAKs its status stage
 /// for good is given up then, not after the 5 s other commands get: the
 /// server serves one request at a time, so that wait stalled every
 /// keyboard and disk on the machine.

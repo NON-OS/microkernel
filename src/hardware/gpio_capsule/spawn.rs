@@ -29,9 +29,9 @@ use crate::security::nonos_trust_anchor::{
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.gpio0";
-const SERVICE_PORT: u32 = 4534;
-const REPLY_INBOX: &str = "endpoint.4294967440";
-const REPLY_PORT: u32 = 4535;
+const SERVICE_PORT: u32 = 4236;
+const REPLY_INBOX: &str = "endpoint.4294967392";
+const REPLY_PORT: u32 = 4237;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 pub fn spawn_driver_gpio_capsule() -> Result<(), SpawnError> {

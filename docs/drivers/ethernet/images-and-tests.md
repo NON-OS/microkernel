@@ -22,15 +22,13 @@ Each [proof crate](../../overview/glossary.md#proof-crate) compiles its driver's
 | `proofs-rtl8139_proofs` | passed, 15 tests |
 | `proofs-rtl8169_proofs` | failed: the tests pass, then a clippy lint stops the check; see [the RTL8169 family](realtek-rtl8169.md#tests) |
 | `proofs-virtio_net_proofs` | passed, 20 tests |
-| `usbnet_proofs` | 38 tests pass under `cargo test` on the host |
-| `cdc_ecm_proofs` | 13 tests pass under `cargo test` on the host |
-| `cdc_ncm_proofs` | 36 tests pass under `cargo test` on the host |
-| `rndis_proofs` | 22 tests pass under `cargo test` on the host |
-| `ax88179_proofs` | 27 tests pass under `cargo test` on the host |
-| `rtl8153_proofs` | 31 tests pass under `cargo test` on the host |
+| `usbnet_proofs` | 52 tests pass under `cargo test` on the host |
+| `cdc_ecm_proofs` | 24 tests pass under `cargo test` on the host |
+| `cdc_ncm_proofs` | 46 tests pass under `cargo test` on the host |
+| `rndis_proofs` | 30 tests pass under `cargo test` on the host |
 | `net_core_proofs` | 33 tests pass under `cargo test` on the host |
 
-The last seven crates changed on this commit; their rows are host `cargo test` runs, and their flake checks have not been run on it.
+The last five crates changed on this commit; their rows are host `cargo test` runs, and their flake checks have not been run on it.
 
 ## See also
 

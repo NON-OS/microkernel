@@ -14,62 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The RNDIS control channel (Remote NDIS 1.0, 3.1; Linux rndis_command):
-//! a message out as SEND_ENCAPSULATED_COMMAND, then GET_ENCAPSULATED_RESPONSE
-//! polled on the clock until its completion comes. RESPONSE_AVAILABLE comes
-//! on an interrupt endpoint driver.xhci0 does not configure beside the bulk
-//! pipes, so it is not waited for; Linux polls without it too.
+//! The RNDIS control channel (Remote NDIS 1.0, 3.1): a message out as
+//! SEND_ENCAPSULATED_COMMAND, then its completion waited for (wait.rs).
 
-use nonos_libc::{mk_idle_ms, Deadline};
-use nonos_usbnet::xhci::CONTROL_MAX;
 use nonos_usbnet::{Bus, Setup};
 
-use super::message::{le32, put32, COMPLETION, E_REFUSED, E_TIMEDOUT, STATUS_SUCCESS};
-use super::message::{GET_ENCAPSULATED_RESPONSE, SEND_ENCAPSULATED_COMMAND};
-use super::reply::{answer, Answer};
-
-/// Linux tries ten times 40 ms apart; a second on the clock covers that.
-const ANSWER_MS: u64 = 1_000;
-const RETRY_MS: u64 = 10;
+use super::message::{le32, put32, COMPLETION, SEND_ENCAPSULATED_COMMAND};
+use super::wait::wait;
 
 pub struct Control {
     pub comm: u8,
     next_id: u32,
+    /// The last media state indicated while a command waited, so the bind
+    /// starts from it rather than from up.
+    pub media: Option<bool>,
 }
 
 impl Control {
     pub fn new(comm: u8) -> Self {
-        Self { comm, next_id: 1 }
+        Self { comm, next_id: 1, media: None }
     }
 
     /// Send `msg` under a fresh RequestID and wait for its completion in
-    /// `reply`, at most CONTROL_MAX bytes asked for; its MessageLength.
+    /// `reply`, at most CONTROL_MAX bytes asked for; its MessageLength,
+    /// never more than the bytes the device sent.
     pub fn command<B: Bus>(
         &mut self,
         bus: &mut B,
         msg: &mut [u8],
         reply: &mut [u8],
     ) -> Result<usize, i32> {
-        // RequestID 0 is never used: Linux skips it, and HALT carries it.
+        // RequestID 0 is never used, so no completion can match a HALT.
         let id = self.next_id;
         self.next_id = id.wrapping_add(1).max(1);
         put32(msg, 8, id);
         let kind = le32(msg, 0).unwrap_or(0) | COMPLETION;
         bus.control_out(Setup::class(false, SEND_ENCAPSULATED_COMMAND, 0, self.comm), msg)?;
-        let get = Setup::class(true, GET_ENCAPSULATED_RESPONSE, 0, self.comm);
-        let room = reply.len().min(CONTROL_MAX);
-        let deadline = Deadline::after_ms(ANSWER_MS);
-        loop {
-            // A STALL here means no answer yet; Linux ignores it the same way.
-            if let Ok(n) = bus.control_in(get, &mut reply[..room]) {
-                if let Answer::Done { status, len } = answer(&reply[..n.min(room)], kind, id) {
-                    return if status == STATUS_SUCCESS { Ok(len) } else { Err(E_REFUSED) };
-                }
-            }
-            if deadline.expired() {
-                return Err(E_TIMEDOUT);
-            }
-            mk_idle_ms(RETRY_MS);
-        }
+        wait(bus, self.comm, (kind, id), reply, &mut self.media)
     }
 }

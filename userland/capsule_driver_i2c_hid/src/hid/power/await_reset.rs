@@ -19,13 +19,13 @@ use super::settle::settle;
 use crate::i2c_client::write_read;
 
 // After RESET the device raises its interrupt and serves a zero-length report
-// on the input register (HID over I2C v1.0 section 7.2.1). Linux waits up to
-// one second for that interrupt and carries on without it (the
-// I2C_HID_QUIRK_NO_IRQ_AFTER_RESET parts never send it); this driver reads
-// the register instead of waiting on the line, every few milliseconds over
-// the same second. A polled read cannot tell the sentinel from "nothing
-// pending", so a sentinel seen early is held to the 100 ms Linux allows a
-// part that resets without the interrupt.
+// on the input register (HID over I2C v1.0 section 7.2.1). Some parts never
+// raise it, so the wait is bounded at one second and carries on without it
+// (as observed on devices, unverified). This driver reads the register instead
+// of waiting on the line, every few milliseconds over that second. A polled
+// read cannot tell the sentinel from "nothing pending", so a sentinel seen
+// early is held to 100 ms, time enough for a part that resets without the
+// interrupt (as observed on devices, unverified).
 pub(super) const RESET_TIMEOUT_MS: u64 = 1_000;
 pub(super) const RESET_POLL_MS: u64 = 5;
 pub(super) const RESET_MIN_MS: u64 = 100;

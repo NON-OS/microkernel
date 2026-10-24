@@ -38,8 +38,7 @@ impl TransferRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
         Self::with_trbs(pool, TRANSFER_RING_TRBS)
     }
-    /// A ring of `trbs` TRB slots, more than two: an isoch stream keeps two
-    /// batches queued, more than the default ring has room for.
+    /// A ring of `trbs` TRB slots, more than two, the Link in the last.
     pub fn with_trbs(pool: &DmaPool, trbs: usize) -> XhciResult<Self> {
         let bytes = (trbs as u64) * (TRB_BYTES as u64);
         let region = pool.alloc(bytes)?;

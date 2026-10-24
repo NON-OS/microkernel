@@ -19,9 +19,9 @@
 
 extern crate alloc;
 
-mod constants;
+mod bring;
 mod discover;
-mod init;
+mod facts;
 mod link;
 mod log;
 mod protocol;
@@ -29,6 +29,7 @@ mod queue;
 mod regs;
 mod server;
 mod setup;
+mod sizes;
 
 use nonos_libc::{heap_init, mk_exit, start_driver};
 
@@ -45,7 +46,7 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(EXIT_HEAP_INIT);
     }
     let started =
-        start_driver(DRIVER, discover::find_igb(), |dev| setup::run(*dev).and_then(init::finish));
+        start_driver(DRIVER, discover::find_igb(), |dev| setup::run(*dev).and_then(bring::finish));
     let mut driver = match started {
         Ok(d) => d,
         Err(code) => mk_exit(code),

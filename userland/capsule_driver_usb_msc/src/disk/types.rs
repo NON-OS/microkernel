@@ -16,9 +16,11 @@
 
 //! The one device this driver serves, once it is bound.
 
+pub use super::data::Data;
 use crate::descriptors::MscBinding;
 
-/// A bound BOT device: where driver.xhci0 keeps it and what it reported.
+/// A bound device, BOT or UAS: where driver.xhci0 keeps it and what it
+/// reported.
 #[derive(Clone, Copy)]
 pub struct Disk {
     pub xhci: u32,
@@ -26,8 +28,13 @@ pub struct Disk {
     pub port: u8,
     pub slot: u8,
     pub interface: u8,
+    /// BOT's bulk pair; UAS's data pipes (the second pair).
     pub ep_in: u8,
     pub ep_out: u8,
+    /// It speaks UAS (disk/uas.rs): command and status on the first pair.
+    pub uas: bool,
+    /// UAS on SuperSpeed streams: status and data on the tag's stream.
+    pub streams: bool,
     /// The logical unit commands go to: 0 on a stick, the slot with a card
     /// in it on a multi-slot card reader.
     pub lun: u8,
@@ -39,27 +46,11 @@ pub struct Disk {
 }
 
 impl Disk {
-    /// The device on `slot` bound through `b`, before its port is set and
-    /// its size asked.
+    /// The device on `slot` bound through `b`, by BOT until it is told
+    /// otherwise, before its port is set and its size asked.
     pub fn bound(xhci: u32, slot: u8, b: &MscBinding) -> Self {
         let (interface, ep_in, ep_out) = (b.interface, b.bulk_in, b.bulk_out);
-        Self { xhci, port: 0, slot, interface, ep_in, ep_out, lun: 0, blocks: 0, block_len: 0 }
-    }
-}
-
-/// The data phase of one command.
-pub enum Data<'a> {
-    None,
-    In(&'a mut [u8]),
-    Out(&'a [u8]),
-}
-
-impl Data<'_> {
-    pub fn len(&self) -> usize {
-        match self {
-            Data::None => 0,
-            Data::In(b) => b.len(),
-            Data::Out(b) => b.len(),
-        }
+        let (uas, streams, lun, blocks, block_len) = (false, false, 0, 0, 0);
+        Self { xhci, port: 0, slot, interface, ep_in, ep_out, uas, streams, lun, blocks, block_len }
     }
 }

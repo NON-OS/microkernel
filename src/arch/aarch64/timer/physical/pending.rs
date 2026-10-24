@@ -26,4 +26,14 @@ impl PhysicalTimer {
         }
         (ctl & (1 << 2)) != 0
     }
+
+    /// ENABLE set and IMASK clear in CNTP_CTL_EL0: the compare value is a
+    /// deadline this CPU will be interrupted at.
+    pub fn is_armed() -> bool {
+        let ctl: u64;
+        unsafe {
+            asm!("mrs {}, cntp_ctl_el0", out(reg) ctl);
+        }
+        ctl & 0b11 == 0b01
+    }
 }

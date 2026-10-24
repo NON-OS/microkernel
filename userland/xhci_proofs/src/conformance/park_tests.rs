@@ -19,8 +19,8 @@
 //! a controller that stops answering costs wakeups, never a whole core.
 //! What one step does is `irq_park_tests`.
 
-use crate::controller::park::step::{step, Step, YIELD_BUDGET};
 use crate::controller::park::SPIN_BUDGET;
+use nonos_libc::wait::{step, Step, YIELD_BUDGET};
 
 #[test]
 fn the_first_polls_spin_whether_or_not_an_interrupt_is_bound() {

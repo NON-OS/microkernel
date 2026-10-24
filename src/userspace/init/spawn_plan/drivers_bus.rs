@@ -20,6 +20,7 @@ pub(super) fn spawn() {
     spawn_i2c_pci();
     spawn_i2c_hid();
     super::drivers_smbus::spawn();
+    super::drivers_spi::spawn();
 }
 
 // Before the I2C driver: the GPIO capsule claims the controllers whose

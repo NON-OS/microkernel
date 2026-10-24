@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Addressing the device on a port, reading what it offers, and asking the
-//! driver's binding (a network driver's holds the run's station address)
-//! whether it is its own; each step that fails says so on the log.
+//! driver whether it is its own; each step that fails says so on the log.
 
 use super::bound::Bound;
 use super::probe::Probe;
@@ -29,7 +28,7 @@ pub(super) fn classify<N>(
     mut bus: XhciBus,
     port: u8,
     tag: &[u8],
-    bind: impl Fn(XhciBus, &Found) -> Bind<N>,
+    bind: &mut impl FnMut(XhciBus, &Found) -> Bind<N>,
 ) -> Probe<N> {
     match address_device(bus.xhci, bus.slot, port) {
         Ok(()) => {}

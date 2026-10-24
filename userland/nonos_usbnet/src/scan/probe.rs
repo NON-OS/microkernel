@@ -37,7 +37,7 @@ pub(super) fn probe<N>(
     xhci: u32,
     port: u8,
     tag: &[u8],
-    bind: impl Fn(XhciBus, &Found) -> Bind<N>,
+    bind: &mut impl FnMut(XhciBus, &Found) -> Bind<N>,
 ) -> Probe<N> {
     let slot = match enable_slot(xhci) {
         Ok(slot) => slot,

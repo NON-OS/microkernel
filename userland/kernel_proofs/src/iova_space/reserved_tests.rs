@@ -49,7 +49,8 @@ fn the_same_region_for_a_second_device_is_held_and_a_partial_one_refused() {
 
 #[test]
 fn no_grant_is_ever_placed_on_a_held_region() {
-    let h = [held(0x20_0000, 0x30_0000, 1), held(0x30_0000, 0x31_0000, 2), held(STOLEN.0, STOLEN.1, 3)];
+    let (b, e) = STOLEN;
+    let h = [held(0x20_0000, 0x30_0000, 1), held(0x30_0000, 0x31_0000, 2), held(b, e, 3)];
     let mut next = IOVA_BASE;
     for length in [0x1000u64, 0x10_0000, 0x20_0000, 0x7000_0000, 0x1000, 0x40_0000] {
         let Some((start, end)) = place_clear(next, length, &h) else { break };
@@ -60,4 +61,14 @@ fn no_grant_is_ever_placed_on_a_held_region() {
     }
     assert_eq!(place_clear(IOVA_BASE, 0x20_0000, &h), Some((0x31_0000, 0x51_0000)));
     assert_eq!(place_clear(IOVA_BASE, IOVA_LIMIT, &h), None, "never past the limit");
+}
+
+#[test]
+fn the_kernel_places_every_grant_past_its_rmrr_regions_and_reserved_ranges() {
+    let table = include_str!("../../../../src/hardware/broker/confine/table.rs");
+    assert!(table.contains("let rmrr = self.rmrr.iter().map(|h| (h.base, h.end));"));
+    assert!(table.contains("rmrr.chain(tree).collect()"), "both, not one of them");
+    let iova = include_str!("../../../../src/hardware/broker/confine/iova.rs");
+    assert!(iova.contains("let spans = c.reserved_spans();"));
+    assert!(iova.contains("place_avoiding(c.next_iova, length, &spans)?"));
 }

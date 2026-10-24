@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_ccid
+# eK@nonos.systems
+#
+# USB CCID smart-card reader capsule, driver.ccid0: an APDU-level
+# reader on any USB host's port (root or virtual), its cards' APDUs
+# passed through for one client at a time.
+
+[package]
+name = "nonos_capsule_driver_ccid"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB CCID smart-card reader capsule"
+
+[[bin]]
+name = "driver_ccid"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

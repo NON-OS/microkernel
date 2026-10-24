@@ -31,7 +31,6 @@
     feature = "nonos-capsule-driver-ufs",
     feature = "nonos-capsule-driver-virtio-blk",
     feature = "nonos-capsule-driver-virtio-net",
-    feature = "nonos-capsule-driver-usb-msc",
     feature = "nonos-capsule-driver-iwlwifi",
     feature = "nonos-capsule-driver-rtl8821ce"
 ))]

@@ -52,8 +52,10 @@ fn a_packet_size_binds_only_when_it_holds_one_report_and_fits_an_interrupt_endpo
         for wmax in 0..=u16::MAX {
             let raw =
                 config().iface(0, HID, subclass, protocol).ep(0x81, INTERRUPT, wmax, 10).build();
+            // Bits 12:11 count transactions and are read past; 15:13 are
+            // reserved and refuse the endpoint (the the ruling, B 75).
             let size = wmax & 0x07ff;
-            let want = usize::from((least..=1024).contains(&size));
+            let want = usize::from(wmax >> 13 == 0 && (least..=1024).contains(&size));
             let got = hid_bindings(&raw).expect("well formed").len();
             assert_eq!(got, want, "protocol {protocol} wMaxPacketSize {wmax:#x}");
         }

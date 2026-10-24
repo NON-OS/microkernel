@@ -14,58 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claimed device's reserved regions in its capsule's domain (L60). Each
-//! RMRR that names the device is mapped one to one before the device enters
-//! the domain, so the DMA firmware said it keeps doing (integrated graphics'
-//! stolen memory, USB legacy buffers) still lands. A region that fails a
-//! check is left out and said: mapping too little only denies the device,
-//! which is how every claim stood before.
+//! A device's reserved ranges into its capsule's domain, before the device
+//! is attached to it (the C-34 ruling): all of them or the claim is refused.
 
+extern crate alloc;
 
-use super::reserved_rule::{verdict, Held, Verdict};
-use super::table::{say, Capsule};
+use alloc::vec::Vec;
+
+use super::held::{name, unheld};
+use super::iova::IOVA_BASE;
+use super::table::Capsule;
 use crate::memory::addr::PhysAddr;
+use crate::memory::iommu::reserved::admit;
 use crate::memory::iommu::{DeviceAddress, IommuProtection};
 
-/// `others`: every region another capsule's domain holds, never shared (L63).
-pub(super) fn map_reserved(
-    c: &mut Capsule,
-    pid: u32,
-    device_id: u64,
-    address: DeviceAddress,
-    others: &[(u64, u64)],
-) {
-    let (Some(segment), Some(bdf)) = (address.segment(), address.bdf()) else { return };
-    let found = crate::arch::device_reserved_regions(segment, bdf);
-    if found.unresolved {
-        say(b"an RMRR that may name it could not be resolved; not mapped", pid, address);
+/// Map `device`'s ranges into `c`'s domain, hold their IOVAs from the
+/// allocator and record `device` as naming them; or why not, in which case
+/// nothing new was left mapped and nothing recorded.
+pub(super) fn reserve(c: &mut Capsule, device: DeviceAddress) -> Result<(), &'static [u8]> {
+    let found = crate::arch::device_reserved_regions(device);
+    if let Some(why) = found.unresolved {
+        return Err(why);
     }
-    if found.shared {
-        say(b"an RMRR it shares with other devices; not mapped", pid, address);
+    // A range the domain already holds exactly, from another function behind
+    // the same host bridge, is in place; anything else must be admitted.
+    let ranges = unheld(&c.reserved, found.ranges());
+    // Everything below the bump pointer may be granted: held as one span.
+    // Its RMRR regions (L60) are held too, so no range lands on one.
+    let mut held: Vec<(u64, u64)> = c.reserved_spans();
+    if c.next_iova > IOVA_BASE {
+        held.push((IOVA_BASE, c.next_iova));
     }
-    for &(base, end) in found.ranges.iter() {
-        let ram = crate::memory::phys::touches_usable(base, end);
-        let foreign = others.iter().any(|&(b, e)| b < end && base < e);
-        match verdict(base, end, c.next_iova, &c.reserved, ram || foreign) {
-            Verdict::Refuse(why) => say(why, pid, address),
-            Verdict::Held => c.reserved.push(Held { base, end, device: device_id }),
-            Verdict::Map => {
-                let len = (end - base) as usize;
-                // SAFETY: eK@nonos.systems - `[base, end)` is a region firmware
-                // reserved for this device's DMA, outside every usable RAM run
-                // the allocator was given, so no frame of it is ever handed
-                // out; its IOVA overlaps no grant and no other region here.
-                let map = |c: &Capsule| unsafe {
-                    c.domain.map(base, PhysAddr::new(base), len, IommuProtection::READ_WRITE)
-                };
-                if map(c).is_ok() {
-                    c.reserved.push(Held { base, end, device: device_id });
-                    say(b"its RMRR mapped one to one", pid, address);
-                } else {
-                    let _ = c.domain.unmap(base, len);
-                    say(b"its RMRR would not map; left out", pid, address);
-                }
+    admit(&ranges, &held, crate::arch::reserved_memory_regions()).map_err(|r| r.reason())?;
+    for (i, range) in ranges.iter().enumerate() {
+        // SAFETY: `[phys, phys + len)` lies in a reserved-memory region
+        // (`admit`), which the frame allocator never hands out, and is what
+        // firmware set aside for this device. `[iova, iova + len)` meets no
+        // grant and no other reserved range in this domain, so nothing is
+        // mapped there. Both are page aligned (`admit`).
+        let mapped = unsafe {
+            c.domain.map(
+                range.iova,
+                PhysAddr::new(range.phys),
+                range.len as usize,
+                IommuProtection::READ_WRITE,
+            )
+        };
+        if mapped.is_err() {
+            // One refused after its entries were written may have left some.
+            let _ = c.domain.unmap(range.iova, range.len as usize);
+            for done in &ranges[..i] {
+                let _ = c.domain.unmap(done.iova, done.len as usize);
             }
+            return Err(b"a reserved range could not be mapped");
         }
     }
+    name(&mut c.reserved, found.ranges(), device);
+    Ok(())
 }

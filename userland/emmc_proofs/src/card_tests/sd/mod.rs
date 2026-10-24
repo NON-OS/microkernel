@@ -18,6 +18,7 @@
 //! reads and writes, against the model SD card.
 
 mod bring_up;
+mod hostile;
 mod io;
 mod refused;
 mod registers;

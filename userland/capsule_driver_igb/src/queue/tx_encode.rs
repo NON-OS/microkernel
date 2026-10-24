@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The two words of an advanced transmit data descriptor for one whole frame
-//! in one buffer. igb_tx_cmd_type sets DTYP_DATA, DEXT and IFCS; IGB_TXD_DCMD
-//! adds EOP and RS on the last descriptor, and the buffer length sits in the
-//! low 16 bits (igb_tx_map). igb_tx_olinfo_status puts the payload length,
-//! the whole frame without TSO, at PAYLEN_SHIFT in olinfo_status.
+//! in one buffer: the data descriptor type, extended format and FCS insert;
+//! end of packet and report status, since every frame is one descriptor;
+//! the buffer length in the low 16 bits; and the payload length, the whole
+//! frame without segmentation offload, at PAYLEN_SHIFT in olinfo_status
+//! (fields in facts::tx).
 
-use crate::constants::tx_bits::{
+use crate::facts::tx::{
     ADVTXD_DCMD_DEXT, ADVTXD_DCMD_EOP, ADVTXD_DCMD_IFCS, ADVTXD_DCMD_RS, ADVTXD_DTYP_DATA,
     ADVTXD_LEN_MASK, ADVTXD_PAYLEN_SHIFT,
 };

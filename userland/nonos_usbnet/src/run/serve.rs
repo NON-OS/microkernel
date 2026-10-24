@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The driver's life: look for its device, serve the stack's NNET
 //! requests, and when the device stops answering, give it back and look
 //! again. Requests are answered while looking: the link reads down.
@@ -28,7 +27,7 @@ use super::one::serve_one;
 use crate::nic::{Nic, ETH_FRAME_MAX};
 use crate::nnet::{Stats, DATA_AT, HDR_LEN};
 use crate::say::{say, say_up};
-use crate::scan::{Bound, Scanner};
+use crate::scan::{Bound, NetScanner};
 use crate::xhci::disable_slot;
 
 /// How long a receive waits before the next pass while no device is bound.
@@ -42,7 +41,7 @@ pub fn run<N: Nic>(tag: &'static [u8], service: &str, bind: BindFn<N>) -> ! {
     let mut rx = vec![0u8; HDR_LEN + ETH_FRAME_MAX + 64];
     let mut tx = vec![0u8; DATA_AT + 4 + ETH_FRAME_MAX + 64];
     say(tag, &[b"started, looking for a device"]);
-    let (mut stats, mut scanner) = (Stats::default(), Scanner::new(tag));
+    let (mut stats, mut scanner) = (Stats::default(), NetScanner::new(tag));
     let mut bound: Option<Bound<N>> = None;
     let (me, mut next_pass) = (own_pid(service), Deadline::after_ms(0));
     loop {
@@ -55,7 +54,7 @@ pub fn run<N: Nic>(tag: &'static [u8], service: &str, bind: BindFn<N>) -> ! {
             if let Some(b) = bound.take() {
                 say(tag, &[b"device stopped answering, given back"]);
                 disable_slot(b.xhci, b.slot);
-                scanner.lost(b.port);
+                scanner.lost(b.xhci, b.port);
                 (stats.losses, stats.failing) = (stats.losses.saturating_add(1), 0);
             }
         }

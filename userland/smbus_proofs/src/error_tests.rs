@@ -40,7 +40,7 @@ fn flags_a_transfer_left_are_cleared_before_the_next() {
 }
 
 #[test]
-fn the_last_error_bit_linux_tests_wins() {
+fn a_lost_arbitration_outranks_a_missing_device_outranks_a_kill() {
     for (bits, want) in [
         (STS_BUS_ERR | STS_DEV_ERR | STS_FAILED, E_AGAIN),
         (STS_DEV_ERR | STS_FAILED, E_NXIO),

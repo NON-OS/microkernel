@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-
 use crate::memory::addr::PhysAddr;
 
+/// With the root's own ASID: written bare, every root ran as ASID 0 and a
+/// switch flushed nothing, so one process could hit another's entries.
 #[inline(always)]
 pub(super) unsafe fn switch(root: PhysAddr) {
-    asm!(
-        "msr ttbr0_el1, {0}",
-        "isb",
-        in(reg) root.as_u64(),
-        options(nostack),
-    );
+    crate::arch::aarch64::mmu::asid::switch_root(root.as_u64());
 }

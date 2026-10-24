@@ -47,20 +47,4 @@ impl Mux {
         local[0] = slot;
         dispatch(&mut self.ctxs[ctrl as usize], req, &local, tx);
     }
-
-    /// A controller brought back since its slots were bound dropped every
-    /// slot it had: the ids bound to it name nothing now, and are free.
-    pub(super) fn forget_revived(&mut self) {
-        for (i, ctx) in self.ctxs.iter().enumerate() {
-            if self.generations[i] == ctx.driver.generation {
-                continue;
-            }
-            self.generations[i] = ctx.driver.generation;
-            for v in self.vslots.iter_mut() {
-                if matches!(*v, VSlot::Bound { ctrl, .. } if ctrl as usize == i) {
-                    *v = VSlot::Free;
-                }
-            }
-        }
-    }
 }

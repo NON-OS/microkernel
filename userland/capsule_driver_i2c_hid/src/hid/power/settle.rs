@@ -18,10 +18,12 @@ use nonos_libc::mk_idle_ms;
 
 /// How long a device with no input register to poll is given after RESET.
 pub(super) const SETTLE_MS: u64 = 20;
-/// The pause after SET_POWER(ON) before RESET, from Linux i2c_hid_set_power.
+/// The pause after SET_POWER(ON) before RESET (as observed on devices,
+/// unverified).
 pub(super) const POWER_ON_MS: u64 = 60;
-/// The pause before a NACKed power-on is sent again; Linux sleeps 400 to
-/// 500 us, and a millisecond is the finest sleep there is here.
+/// The pause before a NACKed power-on is sent again: about 400 us is enough
+/// (as observed on devices, unverified), and a millisecond is the finest
+/// here.
 pub(super) const RETRY_MS: u64 = 1;
 
 /// A fixed pause for a device with no addressable reset sentinel. A real

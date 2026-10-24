@@ -17,6 +17,7 @@
 mod ended;
 mod entry;
 pub mod fit;
+mod labels;
 mod table;
 
 pub use entry::TrayEntry;

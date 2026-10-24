@@ -35,7 +35,7 @@ const IDLE: u32 = u32::MAX;
 static SLOTS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(IDLE) }; MAX_CPUS];
 
 fn slot() -> &'static AtomicU32 {
-    &SLOTS[cpu_id().min(MAX_CPUS - 1)]
+    &SLOTS[cpu_id()]
 }
 
 /// Mark `acked` as in service and return what was there before, which is

@@ -20,6 +20,7 @@
 /// `addr` is a 4-byte aligned register inside a register window this
 /// process mapped (`mk_mmio_map`) and still holds.
 pub(crate) unsafe fn mmio_read32(addr: u64) -> u32 {
-    // SAFETY: the caller's contract.
+    // SAFETY: the caller's contract; libc's access is ordered against
+    // DMA memory, so a doorbell follows the TRBs it announces.
     unsafe { nonos_libc::mmio_read32(addr as usize) }
 }

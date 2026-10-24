@@ -35,7 +35,7 @@ impl Sim {
                 return;
             }
             Reply::Nothing => {}
-            Reply::Short(r) => self.put(0x10, 4, r),
+            Reply::Short(r) => self.put(0x10, 4, self.lied(index, r)),
             Reply::Long(v) => {
                 let reg = v >> 8;
                 for i in 0..4 {

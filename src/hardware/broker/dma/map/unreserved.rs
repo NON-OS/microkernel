@@ -26,9 +26,10 @@ use crate::hardware::broker::reserved;
 /// The stage that refused a run, as `fail` names it, and its error.
 type Refused = (&'static str, DmaMapError);
 
-/// The run's start, or why there is none.
-pub(super) fn take(pages: u64, length: u64, flags: u32) -> Result<u64, Refused> {
-    let phys_start = alloc_and_zero(pages, length, flags).map_err(|e| ("alloc", e))?;
+/// The run's start, or why there is none. `uncached`: from the uncached
+/// pool or not at all (`uncached.rs`).
+pub(super) fn take(pages: u64, length: u64, flags: u32, uncached: bool) -> Result<u64, Refused> {
+    let phys_start = alloc_and_zero(pages, length, flags, uncached).map_err(|e| ("alloc", e))?;
     if reserved::refuses(b"DMA", reserved::MEMORY, phys_start, length, false) {
         free(phys_start, pages);
         return Err(("reserved", DmaMapError::NoMemory));

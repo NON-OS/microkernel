@@ -39,7 +39,10 @@ use crate::handles::BrokerHandles;
 /// section 5.5.2.3.2), and qemu-xhci shows HCE if it cannot.
 pub fn run(dev: Found) -> XhciResult<Driver> {
     let claim_epoch = claim(dev.device_id)?;
-    if let Err(e) = enable_decode(dev.device_id, claim_epoch) {
+    // A device-tree controller has no config space: it decodes and masters
+    // from reset.
+    let decoding = if dev.on_pci { enable_decode(dev.device_id, claim_epoch) } else { Ok(()) };
+    if let Err(e) = decoding {
         let _ = mk_device_release(dev.device_id);
         return Err(e);
     }
@@ -50,7 +53,9 @@ pub fn run(dev: Found) -> XhciResult<Driver> {
     let layout = read_layout(&handles, mmio.length)?;
     take_over(&layout, mmio.user_va, mmio.length)?;
     let mut driver = assemble(handles, layout, claim_epoch)?;
-    enable_bus_master(dev.device_id, claim_epoch)?;
+    if dev.on_pci {
+        enable_bus_master(dev.device_id, claim_epoch)?;
+    }
     program(&mut driver);
     start_checked(&mut driver)?;
     Ok(driver)

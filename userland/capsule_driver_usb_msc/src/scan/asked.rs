@@ -43,8 +43,8 @@ impl Scanner {
         };
         disable_slot(xhci, disk.slot);
         match stage {
-            Stage::Other => self.ports.set(disk.port, true),
-            _ => self.ports.failed(disk.port, e == E_NOMEDIUM),
+            Stage::Other => self.ports_of(xhci, |p| p.set(disk.port, true)),
+            _ => self.ports_of(xhci, |p| p.failed(disk.port, e == E_NOMEDIUM)),
         }
         self.report = Report { connected, closed, ..Report::at(stage, disk.port, e) };
     }

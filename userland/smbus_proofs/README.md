@@ -9,15 +9,18 @@ addresses.
 
 ## What it proves
 
-22 `#[test]` functions:
+26 `#[test]` functions:
 
 - byte, byte data, word data and quick transfers, and the registers each
   writes (`transfer_tests`);
 - block reads and writes through the buffer, a bad length, and a host
   without the buffer (`block_tests`);
-- a missing device, a busy host, leftover flags, Linux's error-bit order, a
-  host idle before its result shows, and a timeout with its kill
-  (`error_tests`);
+- a missing device, a busy host, leftover flags, which error bit is
+  answered first, a host idle before its result shows, and a timeout with
+  its kill (`error_tests`);
+- each protocol's plan: command, data registers, address byte
+  (`plan_tests`), and the status read as running, finished or a fault
+  (`status_tests`);
 - what a request may carry (`parse_tests`);
 - HOSTC (`hostc_tests`);
 - the answers (`answer_tests`).

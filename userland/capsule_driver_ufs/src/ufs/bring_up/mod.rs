@@ -18,5 +18,7 @@
 
 mod run;
 mod say;
+mod stage;
+mod units;
 
 pub use run::bring_up;

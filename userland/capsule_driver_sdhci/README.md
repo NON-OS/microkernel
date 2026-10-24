@@ -48,7 +48,7 @@ The capsule talks to hardware only through the broker:
   64-bit addressing, which 32-bit ADMA2 reaches. Neither is unmapped by
   hand: `MkDeviceRelease` frees them once it reads Bus Master back off.
 - `MkIpcRecv` and `MkIpcSend` serve `driver.sdhci0` on
-  `service:4236:driver.sdhci0`, replying to `endpoint.4294967324`.
+  `service:4260:driver.sdhci0`, replying to `endpoint.4294967324`.
 
 The kernel validates the capability token, owns address spaces and the IOMMU
 domain, and tears every grant down on exit. It holds no SDHCI or MMC logic.
@@ -110,6 +110,7 @@ With no SDHCI function in the device list the capsule logs one line and
 exits `EXIT_ABSENT` (2) before claiming anything. A host whose claim,
 command write, mapping, reset, DMA or card bring-up fails is quiesced
 (reset, power off), has bus mastering written off (a no-op until the broker
+stores Command words as written, K6), and is released; a host still busy
 after its reset is refused (`HostBusy`). When no host gives a card, the
 whole walk is retried on the shared bounded schedule
 (`nonos_libc::bring_up`), and running out logs the first host's reason and
@@ -130,6 +131,10 @@ protect switch is on refuses WRITE with -30.
 - eMMC bring-up: OCR, CID, CSD, EXT_CSD, bus width and High Speed.
 - SD memory card bring-up: CMD8, ACMD41 with HCS, the card's own RCA, CSD
   versions 1.0 and 2.0, four lines at Default Speed.
+- A card's answers held to what it may say: each bring-up command must
+  find the card in the state the sequence put it in; an SD CSD version
+  that disagrees with the card's CCS, an RCA of 0, and a sector-mode eMMC
+  CSD that does not defer to SEC_COUNT are refused, not followed.
 - 512-byte block read, write and cache flush, up to 64 blocks a request.
 - The block wire: health, geometry, read, write, flush, identify.
 

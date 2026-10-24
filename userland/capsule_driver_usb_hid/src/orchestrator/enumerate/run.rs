@@ -25,7 +25,7 @@ use super::forget::forget;
 use super::root_ports::RootPorts;
 use super::types::Outcome;
 
-/// Bind the HID devices and hubs on root ports no class driver holds,
+/// Bind the HID devices on the ports no class driver holds,
 /// adding them to `devs`, and forget the ports whose device left. A port is
 /// decided once its tries that came to nothing reach `TRIES`, and an empty
 /// port starts again from none; whatever comes, it is tried only as often

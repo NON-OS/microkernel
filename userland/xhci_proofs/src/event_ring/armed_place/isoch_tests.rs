@@ -49,8 +49,8 @@ fn a_batchs_completion_read_by_a_bulk_wait_is_kept_for_the_next_batch() {
 fn full_batches_keep_coming_and_a_ring_left_full_refuses_the_next_whole() {
     let mut fx = Fixture::new();
     let mut p = pipe(&fx);
-    let (lens, base) = ([6u16; ISOCH_PACKETS_MAX], p.ring.phys());
-    let last = |k: u64| base + ((32 * k + 31) % ISOCH_SLOTS) * TRB;
+    let (lens, base, n) = ([6u16; ISOCH_PACKETS_MAX], p.ring.phys(), ISOCH_PACKETS_MAX as u64);
+    let last = |k: u64| base + ((n * k + n - 1) % ISOCH_SLOTS) * TRB;
     assert_eq!(send(&mut fx, &mut p, &lens, 0), Ok(CC_SUCCESS));
     for k in 1..8u64 {
         fx.hc.post(transfer(last(k - 1), CC_SUCCESS, 0, SLOT, DCI));

@@ -33,9 +33,6 @@ mod consts;
 mod debug;
 mod device;
 mod dma;
-// The real libc's DMA barriers, so the driver files order as they ship.
-#[path = "../../../libc/src/broker/dma_order.rs"]
-mod dma_order;
 mod events;
 mod exit;
 mod grants;
@@ -53,7 +50,6 @@ pub use consts::*;
 pub use debug::{mk_debug, said};
 pub use device::{mk_device_list, present};
 pub use dma::mk_dma_map;
-pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
 pub use events::{events, on_event, Event};
 pub use exit::mk_exit;
 pub use grants::{mk_irq_bind, mk_mmio_map, mk_mmio_unmap, mk_pio_grant, offer_irq};
@@ -68,3 +64,15 @@ pub use types::dma::DmaMapOut;
 pub use types::irq::{IrqBindOut, IrqPollOut};
 pub use types::mmio::MmioMapOut;
 pub use types::pio::PioGrantOut;
+
+// The real libc's register accessors and DMA barriers, mounted so the driver
+// files under test reach a device through the code they ship with.
+#[path = "../../../libc/src/broker/dma_order.rs"]
+mod dma_order;
+#[path = "../../../libc/src/broker/mmio_access.rs"]
+mod mmio_access;
+pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
+pub use mmio_access::{
+    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
+    mmio_write8,
+};

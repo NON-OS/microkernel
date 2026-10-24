@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// The Intel SMBus host, only where the inventory saw one.
-#[cfg(feature = "nonos-capsule-driver-smbus")]
+//! The Intel SMBus host, only where the inventory saw one.
+
 pub(super) fn spawn() {
+    spawn_smbus();
+}
+
+#[cfg(feature = "nonos-capsule-driver-smbus")]
+fn spawn_smbus() {
     use crate::hardware::inventory::{present, HardwareFamily};
     use crate::hardware::smbus_capsule as c;
     if !present(HardwareFamily::SerialSmbus) {
@@ -32,4 +37,4 @@ pub(super) fn spawn() {
 }
 
 #[cfg(not(feature = "nonos-capsule-driver-smbus"))]
-pub(super) fn spawn() {}
+fn spawn_smbus() {}

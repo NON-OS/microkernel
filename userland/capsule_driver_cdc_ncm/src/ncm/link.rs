@@ -32,12 +32,18 @@ pub struct Ncm<B> {
     pub(super) pipes: Pipes,
     /// The NTB input size the device was given; one bulk IN is this long.
     pub rx_max: usize,
+    /// The device offered 32-bit NTBs, so one it sends is read.
+    pub ntb32: bool,
     pub shape: TxShape,
     pub(super) rx: Vec<u8>,
     pub(super) tx: Vec<u8>,
     pub(super) seq: u16,
     /// Each datagram of the last block, as its index and length in `rx`.
     pub(super) pending: VecDeque<(usize, usize)>,
+    /// The notification endpoint's DCI, and the link it last reported.
+    pub notify: Option<u8>,
+    pub(super) link: bool,
+    pub(super) looks: u32,
 }
 
 impl<B: Bus> Ncm<B> {
@@ -48,7 +54,24 @@ impl<B: Bus> Ncm<B> {
         rx_max: usize,
         shape: TxShape,
     ) -> Self {
-        let (rx, tx) = (vec![0; rx_max], vec![0; shape.max]);
-        Self { bus, station, pipes, rx_max, shape, rx, tx, seq: 0, pending: VecDeque::new() }
+        // Room for the block and the byte that may end it (pad.rs).
+        let (rx, tx) = (vec![0; rx_max], vec![0; shape.max + 1]);
+        let pending = VecDeque::new();
+        let (notify, link, looks, ntb32) = (None, true, 0, false);
+        Self {
+            bus,
+            station,
+            pipes,
+            rx_max,
+            ntb32,
+            shape,
+            rx,
+            tx,
+            seq: 0,
+            pending,
+            notify,
+            link,
+            looks,
+        }
     }
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{Request, E_INVAL, SCENE_REMOVE_REQ_LEN};
+use crate::protocol::{Request, E_INVAL};
 use crate::server::respond;
 use crate::state::attach_kernel::Kernel;
 use crate::state::{scene_remove, Context};
@@ -26,11 +26,14 @@ pub fn handle(
     body: &[u8],
     tx: &mut [u8],
 ) -> Result<(), &'static str> {
-    if body.len() != SCENE_REMOVE_REQ_LEN {
+    let Some(ask) = crate::requests::place::scene_remove(body).filter(|_| sender_pid != 0) else {
         return respond::status(sender_pid, req, E_INVAL, tx);
-    }
-    if sender_pid == 0 {
-        return respond::status(sender_pid, req, E_INVAL, tx);
+    };
+    // BAND_ONLY drops the sender's layer in band z alone (the shell moving
+    // its chrome in or out of the trusted band); without it every layer the
+    // sender holds goes, as before.
+    if ask.band_only {
+        return super::scene_remove_band::handle(ctx, sender_pid, ask.z, req, tx);
     }
     let owner_pid = sender_pid;
     let mut gone = [0u64; 32];

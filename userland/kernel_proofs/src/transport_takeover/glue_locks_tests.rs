@@ -23,7 +23,8 @@
 use super::text::{between, code};
 
 const FOUND: &str = include_str!("../../../../src/hardware/block_device/found.rs");
-const SELECT: &str = include_str!("../../../../src/hardware/block_device/select.rs");
+// The pass's end is settled in kept.rs, which select.rs calls.
+const SELECT: &str = include_str!("../../../../src/hardware/block_device/kept.rs");
 const WAIT: &str = include_str!("../../../../src/hardware/block_device/wait.rs");
 const FAST: &str = include_str!("../../../../src/security/entropy_capsule/fast.rs");
 

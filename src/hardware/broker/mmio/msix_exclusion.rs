@@ -38,7 +38,8 @@ use crate::hardware::broker::pci_index;
 
 /// The physical `[start, end)` of every MSI-X table and PBA the kernel knows.
 pub fn protected_regions() -> Vec<(u64, u64)> {
-    let mut out = Vec::new();
+    // The firmware flash's window is never mapped, by any device's grant.
+    let mut out = alloc::vec![crate::hardware::broker::firmware_flash::FLASH_WINDOW];
     for h in pci_index::all() {
         let Some(m) = h.msix else { continue };
         if let Some(r) = locate(&h.bars, m.table_bar, table_region(&m)) {

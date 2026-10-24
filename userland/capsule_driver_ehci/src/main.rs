@@ -1,0 +1,56 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! driver.ehci0: an EHCI host controller served on the host wire that
+//! driver.xhci0 serves, so the USB class drivers reach high-speed devices
+//! on EHCI hosts; full- and low-speed devices go to its companion hosts.
+
+#![no_std]
+#![no_main]
+
+mod devices;
+mod env;
+mod facts;
+mod hc;
+mod platform;
+mod run;
+mod say;
+mod sched;
+mod server;
+mod setup;
+mod wire;
+mod xfer;
+
+use nonos_libc::{mk_exit, start_driver};
+
+const DRIVER: &[u8] = b"driver.ehci";
+
+/// Without an EHCI controller the driver says so and leaves before claiming
+/// anything; one that is there is started and then served.
+///
+/// # Safety
+/// The kernel enters here once, on the capsule's own fresh stack.
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    match start_driver(DRIVER, setup::find(), |dev| setup::run(*dev)) {
+        Ok(first) => {
+            let host = setup::Host::new(first);
+            say::started(&host);
+            run::run(host)
+        }
+        Err(code) => mk_exit(code),
+    }
+}

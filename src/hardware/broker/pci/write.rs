@@ -21,8 +21,8 @@ use crate::hardware::broker::claim;
 
 use super::allowlist::validate;
 use super::change::split;
+use super::ident_read::ident;
 use super::ownership::resolve;
-use super::quirk_bits::Ident;
 use super::types::{PciWriteError, PciWriteRequest};
 
 pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
@@ -30,36 +30,12 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let cfg = ConfigSpace::new(handle.address);
     let (register, _) = split(req.offset).ok_or(PciWriteError::OffsetNotAllowed)?;
     let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;
-    let ident = ident(&cfg)?;
+    // The register, not the call's argument: a masked write's mask is above it.
+    let ident = ident(&cfg, register as u32)?;
     let judge = |now| validate(&req, handle.msix.as_ref(), &ident, now);
     let action = judge(current)?;
     // Never after an exit moved the claim on and stopped the device (L69).
     let make = || super::apply::apply(&cfg, action, judge);
     let applied = claim::while_live(pid, req.device_id, req.claim_epoch, make);
     applied.unwrap_or(Err(PciWriteError::NotClaimed))
-}
-
-/// The function's vendor, class and PCI Express capability, read from its
-/// own config space at the time of the write.
-fn ident(cfg: &ConfigSpace) -> Result<Ident, PciWriteError> {
-    let vendor = cfg.read16(0x00).map_err(|_| PciWriteError::PlatformError)?;
-    let class = cfg.read32(0x08).map_err(|_| PciWriteError::PlatformError)?;
-    /*
-     * The capability walk reads segment 0. A function behind a VMD lives in
-     * a domain of its own, so the same bus, device and function there name
-     * another device: none of its capability bits are offered.
-     */
-    let at = cfg.address();
-    let pcie_cap = (at.segment == 0)
-        .then(|| {
-            crate::drivers::pci::capabilities::find_capability(
-                at.bus,
-                at.device,
-                at.function,
-                crate::drivers::pci::constants::CAP_ID_PCIE,
-            )
-        })
-        .flatten()
-        .map(|c| c.offset as u16);
-    Ok(Ident { vendor, class: (class >> 24) as u8, subclass: (class >> 16) as u8, pcie_cap })
 }

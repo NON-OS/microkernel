@@ -2,12 +2,19 @@
  * Caller must have CPACR_EL1.FPEN granting EL1 FP access; otherwise
  * the stp/q* instructions trap. */
 
+/* The kernel is built without FP/SIMD (-mgeneral-regs-only, softfloat), so
+ * a task's vector registers survive every kernel entry. This file is one of
+ * the few that move them on purpose. */
+.arch_extension fp
+.arch_extension simd
+
 .section .text.aarch64_fpu_save, "ax", %progbits
 .balign 16
 .globl aarch64_fpu_save
 .type  aarch64_fpu_save, %function
 
 aarch64_fpu_save:
+    hint    #34                         /* BTI c: a landing pad (FEAT_BTI) */
     stp     q0,  q1,  [x0, #0x000]
     stp     q2,  q3,  [x0, #0x020]
     stp     q4,  q5,  [x0, #0x040]

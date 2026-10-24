@@ -19,6 +19,7 @@
 #![feature(abi_x86_interrupt)]
 #![feature(c_variadic)]
 #![feature(thread_local)]
+#![feature(strict_provenance_lints)]
 #![allow(unsafe_op_in_unsafe_fn)]
 #![allow(unexpected_cfgs)]
 #![allow(clippy::integer_division)]

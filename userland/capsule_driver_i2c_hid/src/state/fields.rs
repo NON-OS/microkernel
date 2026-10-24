@@ -20,7 +20,7 @@ use nonos_libc::Deadline;
 
 use super::{FrameRepeat, LastRead};
 use crate::drive::{Doorbell, Pace, Recover};
-use crate::hid::{MouseLayout, TouchLayout};
+use crate::hid::{MouseLayout, Multitouch, TouchLayout};
 use crate::input::TouchGesture;
 
 pub struct State {
@@ -47,6 +47,8 @@ pub struct State {
     // The absolute field map from the report descriptor, and the gesture state
     // that turns its reports into pointer events. Empty for a relative mouse.
     pub touch_layout: TouchLayout,
+    /// Every finger: a touchscreen, or a pad that reports them in parallel.
+    pub mt: Multitouch,
     /// The relative mouse collection, parsed from the same descriptor: what a
     /// pad reports while it stays in mouse mode (it refused input mode 3, or
     /// has no precision touchpad collection).

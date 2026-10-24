@@ -22,10 +22,10 @@ use std::sync::Arc;
 
 use nonos_libc::entropy;
 
-use crate::constants::ctrl::*;
-use crate::constants::part::Part;
-use crate::constants::regs::*;
-use crate::init::finish;
+use crate::bring::finish;
+use crate::facts::mac::*;
+use crate::facts::parts::Part;
+use crate::facts::regs::*;
 
 use super::memory::Memory;
 use super::model::{live, window};

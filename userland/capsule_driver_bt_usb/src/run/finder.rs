@@ -21,13 +21,15 @@
 
 use nonos_libc::Deadline;
 use nonos_usbnet::scan::Book;
-use nonos_usbnet::xhci::{connected_ports, disable_slot, enable_slot, lookup, XhciBus};
+use nonos_usbnet::xhci::{connected_ports, disable_slot, enable_slot, host, XhciBus};
 
 use super::desk::Desk;
 use super::probe::{probe, Probe};
 use crate::usb::Bound;
 
 const RETRY_ALL_MS: u64 = 60_000;
+/// The radio's interrupt and bulk pipes are served by the xHCI host alone.
+const XHCI: &str = "driver.xhci0";
 
 pub struct Finder {
     xhci: Option<u32>,
@@ -45,7 +47,7 @@ impl Finder {
     pub fn pass(&mut self, desk: &Desk) -> Option<(Bound, u8)> {
         let xhci = match self.xhci {
             Some(x) => x,
-            None => *self.xhci.insert(lookup()?),
+            None => *self.xhci.insert(host(XHCI)?),
         };
         if self.retry_all.expired() {
             self.book.retry_all();

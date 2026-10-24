@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The register file. HCE goes to 0 at once and back to 1 after a few
-//! reads, as a host initialising; IS clears what is written to it; a write
-//! to UICCMD runs the command and a doorbell runs the request, at once.
+//! The register file: HCE to 0 at once and back to 1 after a few reads; IS
+//! clears what is written; UICCMD and the doorbell run at once.
 
 use super::sim::Model;
 use crate::ufs::env::Mmio;
-use crate::ufs::hci::regs::*;
+use crate::ufs::facts::hci::*;
 
 impl Mmio for Model {
     fn r32(&self, off: u32) -> u32 {
@@ -44,7 +43,9 @@ impl Mmio for Model {
             UTRLCLR => {
                 let mut h = self.host.borrow_mut();
                 h.clears.push(v);
-                h.regs[(UTRLDBR / 4) as usize] &= v;
+                if !self.cfg.borrow().clear_never {
+                    h.regs[(UTRLDBR / 4) as usize] &= v;
+                }
             }
             _ => self.host.borrow_mut().regs[(off / 4) as usize] = v,
         }
@@ -57,8 +58,9 @@ impl Model {
         let mut h = self.host.borrow_mut();
         let i = |r: u32| (r / 4) as usize;
         if v & HCE_ENABLE == 0 {
-            h.regs[i(HCE)] = 0;
-            h.regs[i(HCS)] = 0;
+            if !cfg.hce_stuck_on {
+                (h.regs[i(HCE)], h.regs[i(HCS)]) = (0, 0);
+            }
             return;
         }
         h.enables += 1;

@@ -19,41 +19,47 @@ use super::super::wait::until;
 use super::encode::cmd::Cmd;
 use super::encode::route::sync;
 use super::memory::{clean, view};
-use super::queue::{Queue, BYTES, MAX_BATCH, SLOT};
-use super::regs::{Regs, CREADR, CREADR_STALLED, CWRITER, QUEUE_OFFSET};
+use super::queue::Queue;
+use super::regs::{Regs, CREADR, CWRITER};
+use super::ring_types::{Progress, Refused, BYTES, SLOT};
 
 impl Queue {
     /// Run `cmds` and a SYNC to the collection's redistributor, and wait
-    /// for the ITS to consume them all.
+    /// for the ITS to consume them all. A batch that does not finish closes
+    /// the queue: every later one is refused (`ring`).
     pub(super) fn run(&mut self, regs: Regs, cmds: &[Cmd]) -> Result<(), MsiError> {
-        if cmds.len() >= MAX_BATCH {
-            return Err(MsiError::Exhausted);
-        }
-        let page = view(&self.region).ok_or(MsiError::Hardware)?;
-        for cmd in cmds.iter().chain(core::iter::once(&sync(self.target))) {
-            let at = self.write as usize;
-            for (n, word) in cmd.iter().enumerate() {
-                page[at + n * 8..at + n * 8 + 8].copy_from_slice(&word.to_le_bytes());
+        let start = self.ring.place(cmds.len() + 1).map_err(|refused| match refused {
+            Refused::TooLong => MsiError::Exhausted,
+            Refused::Closed => MsiError::Hardware,
+        })?;
+        let Some(page) = view(&self.region) else {
+            self.ring.close();
+            return Err(MsiError::Hardware);
+        };
+        let sync = sync(self.target);
+        for (n, cmd) in cmds.iter().chain(core::iter::once(&sync)).enumerate() {
+            let at = (start + n as u64 * SLOT) % BYTES;
+            for (w, word) in cmd.iter().enumerate() {
+                let byte = at as usize + w * 8;
+                page[byte..byte + 8].copy_from_slice(&word.to_le_bytes());
             }
             if !self.coherent {
-                clean(&self.region, self.write, SLOT);
+                clean(&self.region, at, SLOT);
             }
-            self.write = (self.write + SLOT) % BYTES;
         }
         // The commands are in memory before the ITS is told where they end.
         // SAFETY: a barrier; it touches no memory and changes no state.
         unsafe { core::arch::asm!("dsb ishst", options(nostack, preserves_flags)) }
-        regs.write64(CWRITER, self.write);
-        let mut stalled = false;
-        let done = until(|| {
-            let read = regs.read64(CREADR);
-            stalled = read & CREADR_STALLED != 0;
-            stalled || read & QUEUE_OFFSET == self.write
+        regs.write64(CWRITER, self.ring.write());
+        let mut progress = Progress::Pending;
+        let finished = until(|| {
+            progress = self.ring.progress(regs.read64(CREADR));
+            progress != Progress::Pending
         });
-        if done && !stalled {
-            Ok(())
-        } else {
-            Err(MsiError::Hardware)
+        if finished && progress == Progress::Done {
+            return Ok(());
         }
+        self.ring.close();
+        Err(MsiError::Hardware)
     }
 }

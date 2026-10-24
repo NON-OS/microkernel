@@ -36,12 +36,11 @@ pub enum HardwareFamily {
     /// Pentium Silver laptops. Served by the SD host controller capsule.
     StorageEmmc,
     /// Any other SD host (`sd_host`): a card reader, or an embedded slot
-    /// the eMMC list does not name. Served by the same capsule.
+    /// the eMMC list does not name; and an SD host the ACPI capsule
+    /// published with no PCI function (`platform_sd`). Served by the same
+    /// capsule.
     StorageSdhci,
-    /// An SD host the ACPI capsule published (`platform_sd`), no PCI
-    /// function: its own family, enumerated only, no driver started yet.
-    StoragePlatformSd,
-    /// A UFS host controller, class 01h subclass 09h: no capsule yet.
+    /// A UFS host controller, class 01h subclass 09h: driver.ufs0's.
     StorageUfs,
     /// Intel PIIX3/PIIX4 IDE (8086:7010, 8086:7111): QEMU's pc machine,
     /// VirtualBox's default, Hyper-V Generation 1.

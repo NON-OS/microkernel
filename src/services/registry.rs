@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
 use alloc::vec::Vec;
 use spin::Mutex;
 
@@ -29,10 +28,12 @@ mod peers_check;
 mod policy;
 mod reserved;
 mod system_names;
+pub(crate) mod usb_hosts;
 
 pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
 pub use error::RegError;
+pub(crate) use held::displays;
 pub use peers_check::{caller_may_reach, caller_may_reach_pid, caller_may_write_inbox};
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
@@ -60,8 +61,7 @@ pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(
     Ok(())
 }
 
-/// True if the current process is allowed to register a service name it does
-/// not already own.
+/// True if the current process may register a service name it does not own yet.
 pub(crate) fn caller_has_register_right() -> bool {
     auth::caller_has_register_right()
 }

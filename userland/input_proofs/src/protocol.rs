@@ -20,4 +20,4 @@
 #[path = "../../capsule_input_router/src/protocol/delivery.rs"]
 mod delivery;
 
-pub use delivery::{encode_delivery, DELIVERY_LEN};
+pub use delivery::{encode_delivery, DELIVERY_LEN, NOTICE_KIND, NOTICE_UNPROVEN};

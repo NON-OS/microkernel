@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! STATUS decoded the way igb_check_for_copper_link reads link up (LU) and
-//! igb_get_speed_and_duplex_copper reads speed and duplex. The I354's 2.5
-//! Gb/s strap is not read: its ports are backplane or SGMII, which this
-//! driver refuses before any link is reported (init/media.rs).
+//! STATUS decoded: link up (LU), speed and duplex (facts::mac). The I354's
+//! 2.5 Gb/s strap is not read: its ports are backplane or SGMII, which this
+//! driver refuses before any link is reported (bring/port.rs).
 
-use crate::constants::ctrl::{STATUS_FD, STATUS_LU, STATUS_SPEED_100, STATUS_SPEED_1000};
+use crate::facts::mac::{STATUS_FD, STATUS_LU, STATUS_SPEED_100, STATUS_SPEED_1000};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct LinkState {

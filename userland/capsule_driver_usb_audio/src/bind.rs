@@ -15,15 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Whether a device is a speaker this driver plays, and setting it up:
-//! its configuration, its playback alternate setting, its rate where it
-//! takes one, and the isoch endpoint on driver.xhci0.
+//! its configuration, its playback alternate setting (USB Audio 1.0 or
+//! 2.0), its rate, and the isoch endpoint on driver.xhci0.
 
 use nonos_usbnet::bus::Bus;
 use nonos_usbnet::setup::Setup;
 use nonos_usbnet::xhci::{XhciBus, E_INVAL};
 use nonos_usbnet::{Bind, Found};
 
-use crate::uac::{outputs, playback, set_rate, timing, Outputs, Timing, RATE_HZ};
+use crate::rate::rate;
+use crate::uac::{outputs, playback, timing, Outputs, Timing};
 use crate::xhci::{configure_isoch, port_speed};
 
 pub struct Speaker {
@@ -39,7 +40,7 @@ pub fn bind(mut bus: XhciBus, found: &Found) -> Bind<Speaker> {
         Ok(s) => s,
         Err(e) => return Bind::Failed("port speed unread", e),
     };
-    let Some(timing) = timing(speed, p.b_interval, p.max_packet) else {
+    let Some(timing) = timing(speed, p.b_interval, p.max_packet, p.channels) else {
         return Bind::Failed("no 48 kHz packet fits its endpoint", E_INVAL);
     };
     if let Err(e) = bus.control_out(Setup::set_configuration(config), &[]) {
@@ -48,11 +49,8 @@ pub fn bind(mut bus: XhciBus, found: &Found) -> Bind<Speaker> {
     if let Err(e) = bus.control_out(Setup::set_interface(p.interface, p.alt), &[]) {
         return Bind::Failed("set interface", e);
     }
-    if p.rate_control {
-        let (setup, rate) = set_rate(p.ep_address, RATE_HZ);
-        if let Err(e) = bus.control_out(setup, &rate) {
-            return Bind::Failed("set sampling rate", e);
-        }
+    if let Err((why, e)) = rate(&mut bus, raw, &p) {
+        return Bind::Failed(why, e);
     }
     if let Err(e) = configure_isoch(bus.xhci, bus.slot, &p) {
         return Bind::Failed("configure isoch endpoint", e);

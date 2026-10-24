@@ -29,8 +29,8 @@ pub enum Said {
     /// does not here, or a command whose phase was lost on the bus, which
     /// may have taken a 28h with it (disk/recover.rs). The medium may be
     /// another: a reader whose transport was reset may say a power-on where
-    /// it would have said 28h, as Linux takes any UNIT ATTENTION on a
-    /// removable device for a change.
+    /// it would have said 28h (as observed, unverified), so any UNIT
+    /// ATTENTION on a removable device is taken for a change.
     Attention,
     /// UNIT ATTENTION 28h: the medium may have changed.
     Changed,

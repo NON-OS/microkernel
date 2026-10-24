@@ -22,7 +22,7 @@
 //! as something else: a pointing stick or the pad's own buttons report on
 //! the mouse collection too (input/poll/pointer.rs).
 
-use crate::hid::{configure_reporting, Configured};
+use crate::hid::{configure_reporting, Configured, I2cFeatures};
 use crate::input::release_held;
 use crate::state::State;
 
@@ -33,7 +33,8 @@ use crate::state::State;
 /// kept beside it.
 pub fn configure(state: &mut State) -> Configured {
     let l = &state.touch_layout;
-    let c = configure_reporting(state.i2c_port, state.addr, &state.descriptor, l);
+    let features = I2cFeatures { port: state.i2c_port, addr: state.addr, desc: &state.descriptor };
+    let c = configure_reporting(&features, l);
     let touch_mode = l.is_absolute_touch() && l.input_mode.present() && !c.mode_unwritable;
     (state.recover.touch_mode, state.recover.mode_unread) = (touch_mode, c.mode_unread);
     c

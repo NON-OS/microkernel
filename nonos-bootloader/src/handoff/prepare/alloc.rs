@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::cmdline::allocate_cmdline;
-use super::constants::MMAP_PAGES;
 use super::fatal::fatal_alloc_error;
+use crate::handoff::jump::{mmap_capacity, mmap_pages};
 use uefi::prelude::*;
 use uefi::table::boot::{AllocateType, MemoryType};
 
@@ -26,6 +26,8 @@ pub struct HandoffAllocations {
     pub stack_addr: u64,
     pub stack_top: usize,
     pub mmap_addr: u64,
+    /// Entries the memory map buffer holds.
+    pub mmap_capacity: usize,
     pub cmdline_addr: u64,
     pub modules_addr: u64,
 }
@@ -44,8 +46,12 @@ pub fn allocate_handoff_resources(
         .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, stack_pages)
         .unwrap_or_else(|_| fatal_alloc_error(st, "stack"));
     let stack_top = (stack_addr as usize) + (stack_pages * 0x1000) - 16;
+    // Sized from the firmware's map as it stands, with room for what the
+    // allocations still to come add to it.
+    let size = bs.memory_map_size();
+    let mmap_capacity = mmap_capacity(size.map_size, size.entry_size);
     let mmap_addr = bs
-        .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, MMAP_PAGES)
+        .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, mmap_pages(mmap_capacity))
         .unwrap_or_else(|_| fatal_alloc_error(st, "mmap"));
     let cmdline_addr = allocate_cmdline(bs, cmdline);
     // The module array outlives boot services like everything else here:
@@ -58,6 +64,7 @@ pub fn allocate_handoff_resources(
         stack_addr,
         stack_top,
         mmap_addr,
+        mmap_capacity,
         cmdline_addr,
         modules_addr,
     }

@@ -16,13 +16,13 @@
 
 use nonos_libc::{DeviceRecord, BUS_KIND_PCI};
 
-use crate::constants::part::Part;
-use crate::constants::pci::{part_of, INTEL_VENDOR_ID};
+use crate::facts::ids::{part_of, INTEL_VENDOR_ID};
+use crate::facts::parts::Part;
 
 const PCI_CLASS_NETWORK: u8 = 0x02;
 const PCI_SUBCLASS_ETHERNET: u8 = 0x00;
 
-/// The MAC of an Intel Ethernet function whose device ID is in igb_pci_tbl.
+/// The MAC of an Intel Ethernet function whose device id is in facts::ids.
 /// Nothing else is taken: the I225/I226 is igc's, with another reset and PHY.
 pub fn part(r: &DeviceRecord) -> Option<Part> {
     if r.vendor != INTEL_VENDOR_ID
