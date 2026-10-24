@@ -6,9 +6,18 @@ Part of [Checking the security claims yourself](checking-the-claims.md).
 
 Every boot is amnesic until first-boot setup records the choice to keep data. On
 such a boot the file store refuses to keep a file with `EACCES` and writes
-`[VFS] refused persist: amnesic boot` through `mk_debug`; a write of all zeros,
-which withdraws a record, is let through (`require_persistent`,
-`userland/capsule_vfs/src/server/handlers/persist_gate.rs:33-41`).
+`[VFS] refused persist: amnesic boot` through `mk_debug`. A write of all zeros,
+an empty one included, is taken only as a withdrawal (`keep`,
+`userland/capsule_vfs/src/server/handlers/persist_rule.rs`): it overwrites a
+record the disk already holds, at that record's length, and a name the disk
+does not hold is never added (`withdraw`,
+`userland/capsule_vfs/src/blk/store_write.rs`). Removing a store entry is refused
+and an uninstall drops only the RAM copy on such a boot (`store_remove.rs`,
+`store_uninstall.rs` in the same directory). Host-tested:
+`userland/fs_proofs/src/vfs_disk/tests_withdraw.rs` holds the disk sector for
+sector unchanged for zeros and an empty payload under a new name, and
+`userland/fs_proofs/src/vfs_persist_rule_tests.rs` walks the rule; both are
+caught by a mutant restoring the old append (2026-10-24).
 
 `tools/nonos-amnesic-check` reads the [package
 store](../overview/glossary-linux-personality.md#package-store) table of a raw
