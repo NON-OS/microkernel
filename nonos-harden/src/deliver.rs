@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Printing the verdict, and writing it to `--out` when asked. A verdict that
-//! cannot be written where it was asked for is not delivered (exit 3), even a
-//! GO: an operator who asked for the file must not go on without it. The file
-//! is written whole or not at all.
+//! The verdict printed, and written to `--out` (signed beside it) when asked.
+//! One not written or signed as asked is not delivered (exit 3), even a GO,
+//! and no unsigned file is left in its place.
 
 use crate::cli::CheckArgs;
 use crate::exit;
+use crate::sign::sign;
 use crate::verdict::{json, text, Overall, Verdict};
+use crate::write::{sig_path, write_whole};
+use ed25519_dalek::SigningKey;
 use std::fs;
-use std::io;
-use std::path::Path;
 
-pub fn deliver(v: &Verdict, args: &CheckArgs) -> u8 {
+pub fn deliver(v: &Verdict, args: &CheckArgs, key: Option<&SigningKey>) -> u8 {
     let body = match args.json {
         false => text::render(v),
         true => match json::render(v) {
@@ -39,6 +39,13 @@ pub fn deliver(v: &Verdict, args: &CheckArgs) -> u8 {
         if let Err(e) = write_whole(out, body.as_bytes()) {
             return refuse(&format!("the verdict was not written to {}: {e}", out.display()));
         }
+        if let Some(k) = key {
+            let sig = sig_path(out);
+            if let Err(e) = write_whole(&sig, sign(k, body.as_bytes()).as_bytes()) {
+                let _ = fs::remove_file(out);
+                return refuse(&format!("the signature was not written to {}: {e}", sig.display()));
+            }
+        }
     }
     match v.overall {
         Overall::Go => exit::GO,
@@ -49,14 +56,4 @@ pub fn deliver(v: &Verdict, args: &CheckArgs) -> u8 {
 fn refuse(why: &str) -> u8 {
     eprintln!("nonos-harden: {}", text::clean(why));
     exit::NOT_DELIVERED
-}
-
-/// Write beside the target, then rename over it, so a reader never sees half.
-pub fn write_whole(path: &Path, bytes: &[u8]) -> io::Result<()> {
-    let mut partial = path.as_os_str().to_owned();
-    partial.push(".partial");
-    fs::write(&partial, bytes)?;
-    fs::rename(&partial, path).inspect_err(|_| {
-        let _ = fs::remove_file(&partial);
-    })
 }

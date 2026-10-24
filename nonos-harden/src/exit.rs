@@ -26,3 +26,5 @@ pub const NO_GO: u8 = 1;
 pub const USAGE: u8 = 2;
 /// The checks ran, but the verdict could not be written or signed as asked.
 pub const NOT_DELIVERED: u8 = 3;
+/// `verify-signature`: the signature does not verify, or could not be checked.
+pub const SIGNATURE_BAD: u8 = 4;

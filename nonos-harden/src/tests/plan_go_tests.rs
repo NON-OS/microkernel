@@ -59,6 +59,7 @@ fn a_verdict_that_cannot_be_written_is_not_delivered() {
         release: s.release.path().into(),
         tree: Some(s.tree.path().into()),
         out,
+        sign_key: None,
         json: false,
     };
     assert_eq!(check_with(&args, Box::new(Fake::default())), exit::NOT_DELIVERED);
