@@ -28,14 +28,15 @@ fn hostile_tables_never_panic_or_print_control_bytes() {
                 (pid, (0..next(&mut x) % 40).map(|_| next(&mut x) as u8).collect())
             })
             .collect();
-        let procs: Vec<(u32, &[u8])> = procs_owned.iter().map(|(p, n)| (*p, &n[..])).collect();
+        let procs: Vec<(u32, &[u8], bool)> =
+            procs_owned.iter().map(|(p, n)| (*p, &n[..], n.len() % 2 == 1)).collect();
         let Some(rows) = join(&regs, &procs) else {
             assert!(!n.is_multiple_of(ENTRY_LEN), "a whole registry is never refused");
             refused += 1;
             continue;
         };
         assert!(n.is_multiple_of(ENTRY_LEN));
-        for &(pid, _) in procs.iter().filter(|p| p.0 != 0) {
+        for &(pid, _, _) in procs.iter().filter(|p| p.0 != 0) {
             assert!(rows.iter().any(|r| r.pid == pid), "listed pid {pid} kept");
         }
         for r in &rows {
