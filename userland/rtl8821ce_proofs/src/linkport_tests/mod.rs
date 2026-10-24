@@ -23,6 +23,8 @@ mod checks;
 mod clear;
 mod deauth;
 mod group;
+mod krack;
+mod krack_rig;
 mod pmf;
 mod receive;
 mod replay;

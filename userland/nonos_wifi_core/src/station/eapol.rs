@@ -47,13 +47,15 @@ impl LinkStation {
         let fresh = fresh.flatten();
         // Only a CCMP-128 key goes to the chip's key cache; a GCMP-256 one
         // stays with the station, which decrypts group frames under it.
-        let group_key = match &fresh {
+        let chip = match &fresh {
             Some(TemporalKey::Ccmp128(k)) => Some((id, *k)),
             _ => None,
         };
-        if let Some(key) = fresh {
-            self.set_group_key(id, key, rsc);
-        }
+        // A key the station already holds in that slot, an AP handing back
+        // one it rotated away from among them, is not installed again: not
+        // here, and not in the chip's key cache (802.11-2020, 12.7.7.3).
+        let taken = fresh.is_some_and(|key| self.set_group_key(id, key, rsc));
+        let group_key = chip.filter(|_| taken);
         let frame = out.reply.and_then(|r| self.eapol_frame(&r, protected));
         if n != 0 {
             self.set_pairwise_key(&tk[..n]);
