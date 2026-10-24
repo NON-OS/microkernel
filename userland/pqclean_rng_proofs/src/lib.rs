@@ -62,10 +62,13 @@ pub mod crypto {
         pub mod kyber;
 
         pub mod ml_dsa_65 {
+            mod api;
             mod constants;
             mod drawn;
             mod ffi;
             pub mod types;
+            mod verify_stack;
+            pub use api::ml_dsa_65_verify;
             pub use drawn::{ml_dsa_65_keypair, ml_dsa_65_sign};
         }
     }
