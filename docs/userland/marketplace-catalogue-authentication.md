@@ -17,4 +17,4 @@ The gzip and tar readers copy the installer's own:
 
 RSA verification is PKCS#1 v1.5, in plain Python (`rsa.py`), on strict DER (`rsa_key.py`), with the bounds the device's RSA takes: 2048 to 4096 bits, an odd exponent from 3 to 2^33. `.PKGINFO` is read with Rust's `lines` and `trim` (`rust_text.py`).
 
-A package that fails any step is left out and its cached copy dropped, so the next run fetches it again. The test vector in `tools/nonos_market_catalogue/vectors/` is a real Alpine package, so the chain is tested against Alpine's own signature.
+A package that fails any step stops the run by name, so a seal never signs a catalogue with an app silently missing. Its cached copy is dropped, so the next run fetches it again. The test vector in `tools/nonos_market_catalogue/vectors/` is a real Alpine package, so the chain is tested against Alpine's own signature.

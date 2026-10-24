@@ -13,12 +13,13 @@ MARKET_GUEST_LIST    := userland/capsule_market/linux-guests.json
 # Curated Alpine apps, each listed with the box it runs in, authenticated as
 # the device authenticates them (docs/userland/marketplace-catalogue.md).
 MARKET_CATALOGUE     := userland/capsule_market/linux-catalogue.json
+MARKET_CATALOGUE_LOCK := userland/capsule_market/linux-catalogue.lock.json
 MARKET_INDEX_BIN     := $(TARGET_DIR)/market/index.bin
 # The index pins the Qwen runner by its BLAKE3, so the runner is built first.
 $(MARKET_INDEX_BIN): $(LINUX_USERLAND_OUT)/qwenchat
 
 $(MARKET_INDEX_BIN): $(MARKETPLACE_INDEX_TOOL) $(MARKET_OPERATOR_PUB) $(MARKET_LINUX_LIST) \
-		$(MARKET_GUEST_LIST) $(MARKET_CATALOGUE) tools/nonos-market-index tools/nonos-market-catalogue \
+		$(MARKET_GUEST_LIST) $(MARKET_CATALOGUE) $(MARKET_CATALOGUE_LOCK) tools/nonos-market-index tools/nonos-market-catalogue \
 		$(wildcard tools/nonos_market_catalogue/*.py) $(wildcard tools/nonos_linux_pack/*.py) \
 		$(wildcard $(MARKET_OPERATOR_SEED))
 	@$(NONOS_PYTHON) tools/nonos-market-index --out $@ --cli $(MARKETPLACE_INDEX_TOOL) \

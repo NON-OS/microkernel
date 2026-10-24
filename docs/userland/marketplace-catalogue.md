@@ -15,6 +15,8 @@ The policy's listing and release ids are derived from the publisher key by `mark
 
 init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and hands it to the installer, which installs the app only in that box. A policy the market does not vouch for refuses the install, and no package from an index installs without one (`userland/capsule_linux/src/linux/install/market.rs`, `install_from`). Each release's note says so (`tools/nonos_market_catalogue/catalogue.py:30`, `NOTE`).
 
+A market release's policy names one program, the one its listing starts. Every other ELF of that package stays held: the installer writes an unvouched policy beside each one before its bytes land, and the program it starts gets its real policy only once that policy is bound. So nothing of a market package starts outside its box. That holds if its install is cut off, and if an uninstall leaves some of it behind (`userland/capsule_linux/src/linux/install/minted.rs`). The other programs of a package do not run until they have a policy of their own. In 0.9.3 those are git's HTTP and SSH helpers, age's `age-keygen` and flac's `metaflac`, and their listings say so.
+
 Nothing is listed until the generator has authenticated it as the device does, under the Alpine keys the device pins: [Catalogue authentication](marketplace-catalogue-authentication.md).
 
 ## The recipes file
@@ -54,16 +56,34 @@ For each recipe, the generator:
 
 Downloads are capped before they are read and written to the cache only whole (`fetch.py`). Each package is cached under the branch that served it, so a warm cache never names another branch in a release's `package_url` (`sources.py`, `cached`).
 
-A package that fails alone is left out with a line on stderr, never listed unready, and its cached copy is dropped. A missing or malformed recipes file, a bad publisher key, or an index that fails its signature stops the run with a message. A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
+Any fault stops the run with a message, so a seal lists every recipe or none. That covers a missing or malformed recipes file or lock, a bad publisher key, an index that fails its signature or has moved past the lock, and a package that fails any check. A failed package's cached copy is dropped, so the next run fetches it again (`tools/nonos_market_catalogue/run.py`, `catalogue_run`). A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
 
-The catalogue is not wired into `mk/21-market.mk` or the seal. Putting it in the signed baseline publishes it, and that is the decision.
+
+## The lock
+
+`userland/capsule_market/linux-catalogue.lock.json` pins the version, checksum (`C:`) and size of the package each recipe resolved to. Its shape is `{"format": "nonos.linux-catalogue-lock.v1", "packages": {...}}`, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/lock.py`, `read`).
+
+Every run fetches the signed indexes fresh, then holds them to the lock. A run stops, naming every package, if the index:
+
+- resolves a recipe to another version or checksum;
+- lacks a recipe's package;
+- has a recipe with no pin, or a pin with no recipe.
+
+So two seals of one tree sign the same bytes or the second one stops. Alpine replaces a package's version in place, so a security update stops the next seal by name. `--update-lock` writes the lock from a run instead of holding it to the lock. That is a developer's deliberate step, and its diff is reviewed and committed like any other change.
 
 ## Adding an app
 
 1. Check that the package is in Alpine v3.20, that its licence is on the allowlist, and that it needs nothing the platform lacks: no pty, no program over 64 MiB, no inbound network.
 2. Add its recipe with the narrowest mask it works in.
 3. Run the generator and the documents step, and commit the new document.
-4. After the boot session's runs, `python3 -m nonos_market_catalogue.verdict --write APP=LOG ...` checks each app installed in its box and writes its measured set into its recipe.
+4. Run once with `--update-lock` and commit the lock with the recipe.
+5. After the boot session's runs, run `python3 -m nonos_market_catalogue.verdict --write APP=LOG ...`. It checks each log, one per run:
+   - the app installed in its box;
+   - no policy refusal;
+   - the workload ended well, with a process exiting status 0 and none exiting otherwise or on a signal;
+   - exactly one measured set, the app's own.
+
+   It then writes the union of the runs' sets into the recipe (`tools/nonos_market_catalogue/verdict_run.py`, `run_verdict`).
 
 ## Proofs
 
@@ -72,4 +92,4 @@ The catalogue is not wired into `mk/21-market.mk` or the seal. Putting it in the
 - **A real package:** `vectors/` holds one real Alpine package (CC0-1.0) and its signed index record. RSA verification and the package chain are tested against Alpine's own signature, and a test key covers the padding and length rules.
 - **Hostile inputs:** tests for every refusal: gzip, tar, pax, the chain, the index, names, recipes, documents, fetches and the run.
 - **A seeded fuzz sweep:** `test_fuzz.py`, over every parser of untrusted input. Use NONOS_FUZZ_ITERS and NONOS_FUZZ_SEED for a long run.
-- **Mutants:** `test_mutants.py` applies each of the 99 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.
+- **Mutants:** `test_mutants.py` applies each of the 118 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.

@@ -13,8 +13,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""A package the run leaves out is dropped from every branch's cache, and
-the cleanup never follows a hostile version out of it. Run:
+"""A package that fails stops the run, and is dropped from every branch's
+cache; the cleanup never follows a hostile version out of it. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import tempfile
@@ -36,7 +36,9 @@ class Cleanup(unittest.TestCase):
             rec = {"P": "x", "V": "1/../../evil", "S": "1"}
             with mock.patch.object(run, "load", return_value=[{"package": "x"}]), \
                     mock.patch.object(run, "table", return_value={"x": rec}), \
-                    mock.patch.object(run, "catalogue_entries", return_value=[]):
+                    mock.patch.object(run, "catalogue_entries", return_value=[]), \
+                    mock.patch.object(run.lock, "read", return_value={}), mock.patch.object(run.lock, "held"), \
+                    self.assertRaises(SystemExit):
                 run.catalogue_run(Path("x.json"), Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1)
             self.assertTrue(kept.exists())
 
@@ -50,10 +52,11 @@ class Cleanup(unittest.TestCase):
                 at.write_bytes(b"x")
             with mock.patch.object(run, "load", return_value=[{"package": "x"}]), \
                     mock.patch.object(run, "table", return_value={"x": rec}), \
-                    mock.patch.object(run, "catalogue_entries", return_value=[]):
+                    mock.patch.object(run, "catalogue_entries", return_value=[]), \
+                    mock.patch.object(run.lock, "read", return_value={}), mock.patch.object(run.lock, "held"), \
+                    self.assertRaises(SystemExit):
                 run.catalogue_run(Path("x.json"), Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1)
             self.assertEqual([at.exists() for at in held], [False, False])
-
 
 
 if __name__ == "__main__":

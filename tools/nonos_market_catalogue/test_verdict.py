@@ -29,18 +29,29 @@ from . import verdict
 
 SET = "02" + "00" * 64  # bucket 1 only; exit and exit_group are always added
 OTHER = "01" + "00" * 64
-OK = b"[LINUX-INSTALL] started, in its release's box linux.age\n[PROVE] syscall buckets ok=" + SET.encode()
+RUN = b"[LINUX-INSTALL] started, in its release's box linux.age\n[LINUX] process 2 exited, status 0\n"
+OK = RUN + b"[PROVE] syscall buckets ok=" + SET.encode()
 
 
 class Verdict(unittest.TestCase):
     def test_only_a_boxed_unrefused_measured_run_passes(self):
-        self.assertTrue(verdict.verdict("age", OK)[0])
-        self.assertFalse(verdict.verdict("git", OK)[0], "another app's log")
-        self.assertFalse(verdict.verdict("age", OK.replace(b", in its release's box", b""))[0])
-        self.assertFalse(verdict.verdict("age", OK + b"\n[LINUX] refused the market's policy: x")[0])
-        self.assertFalse(verdict.verdict("age", OK.split(b"\n")[0])[0], "no set")
+        self.assertTrue(verdict.verdict("age", [OK])[0])
+        self.assertFalse(verdict.verdict("git", [OK])[0], "another app's log")
+        self.assertFalse(verdict.verdict("age", [OK.replace(b", in its release's box", b"")])[0])
+        self.assertFalse(verdict.verdict("age", [OK + b"\n[LINUX] refused the market's policy: x"])[0])
+        self.assertFalse(verdict.verdict("age", [RUN])[0], "no set")
         bad = OK.replace(SET.encode(), ("00" * 64 + "02").encode())
-        self.assertFalse(verdict.verdict("age", bad)[0], "a bit past 512")
+        self.assertFalse(verdict.verdict("age", [bad])[0], "a bit past 512")
+        self.assertFalse(verdict.verdict("age", [OK, RUN])[0], "every run must pass")
+
+    def test_the_workload_must_end_well_and_be_the_only_set(self):
+        failed = OK.replace(b"status 0", b"status 128")  # git clone with no helper to run
+        self.assertIn("workload failed", verdict.verdict("age", [failed])[2])
+        signalled = OK + b"\n[LINUX] process 3 ended by signal 11"
+        self.assertIn("workload failed", verdict.verdict("age", [signalled])[2])
+        self.assertIn("never ended", verdict.verdict("age", [OK.replace(b"exited, status 0", b"")])[2])
+        two = OK + b"\n[PROVE] syscall buckets ok=" + OTHER.encode()
+        self.assertIn("2 measured sets", verdict.verdict("age", [two])[2])
 
     def test_runs_unite_and_only_passing_recipes_are_written(self):
         with tempfile.TemporaryDirectory() as d:
