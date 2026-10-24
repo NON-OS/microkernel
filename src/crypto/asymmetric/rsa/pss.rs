@@ -16,7 +16,6 @@
 
 use super::keys::{rsa_private_operation, rsa_public_operation, RsaPrivateKey, RsaPublicKey};
 use super::mgf1;
-use crate::crypto::entropy::get_entropy;
 use crate::crypto::hash::sha256;
 use crate::crypto::hash::sha384::sha384;
 use crate::crypto::util::bigint::BigUint;
@@ -25,7 +24,7 @@ use alloc::vec::Vec;
 
 pub fn sign_pss(msg: &[u8], key: &RsaPrivateKey) -> Result<Vec<u8>, &'static str> {
     let hash = sha256(msg);
-    let salt = get_entropy(32);
+    let salt = crate::crypto::random_api::get_vec_secure(32).map_err(|_| "no randomness")?;
 
     let em_bits = key.bits - 1;
     let em_len = em_bits.div_ceil(8);

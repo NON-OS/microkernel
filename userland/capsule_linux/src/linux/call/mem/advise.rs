@@ -41,7 +41,7 @@ pub fn madvise(guest: &mut Guest, addr: u64, len: u64, advice: u64) -> u64 {
     let dontneed = advice == DONTNEED || advice == DONTNEED_LOCKED;
     let known = dontneed || [&HINTS[..], &REFUSED, &PRIVILEGED].iter().any(|s| s.contains(&advice));
     let end = len.checked_add(PAGE - 1).map(|l| l & !(PAGE - 1)).and_then(|l| addr.checked_add(l));
-    let Some(end) = end.filter(|_| known && addr % PAGE == 0) else {
+    let Some(end) = end.filter(|_| known && addr.is_multiple_of(PAGE)) else {
         return errno::fail(errno::EINVAL);
     };
     if end == addr {

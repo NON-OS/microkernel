@@ -31,8 +31,8 @@ fn pipe_d_is_output_3_from_gen12_and_never_read_before() {
     assert_eq!((o.transcoder, o.width, o.height), (Transcoder::D, 1920, 1080));
     assert!(read_outputs(&mut m, &GEN9)[3].is_none());
     assert!(read_outputs(&mut m, &GEN12_3)[3].is_none(), "Rocket Lake has three");
-    assert_eq!(Pipe::from_output(&GEN12, 3), Some(Pipe::D));
-    assert_eq!(Pipe::from_output(&GEN11, 3), None);
+    assert_eq!(Pipe::from_output(GEN12.pipes, 3), Some(Pipe::D));
+    assert_eq!(Pipe::from_output(GEN11.pipes, 3), None);
 }
 
 #[test]
