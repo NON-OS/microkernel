@@ -19,7 +19,7 @@ mod driver;
 mod map;
 mod restore;
 mod sequence;
-mod surface;
 
 pub use driver::Driver;
+pub use restore::Saved;
 pub use sequence::run;
