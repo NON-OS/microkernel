@@ -2744,7 +2744,6 @@
       "lean": "DriversPciTypesMsi",
       "generated": "DriversPciTypesMsi.lean",
       "starts": [
-        "nonos_x_drivers_pci_types_msi::msiinfo_max_vectors",
         "nonos_x_drivers_pci_types_msi::msiinfo_allocated_vectors",
         "nonos_x_drivers_pci_types_msi::msixinfo_vector_count",
         "nonos_x_drivers_pci_types_msi::msimessage_new",
