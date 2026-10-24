@@ -15,20 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The one-field bodies: a `SIGNAL`, the reason code of an `ABORT` or
-//! `AUTH_REFUSED`, and the status of an `EXIT`. An `ABORT` or a refusal
-//! carrying `OK` is refused: a peer that says "stopped, because all is
-//! well" is not speaking nsh/1.
+//! `AUTH_REFUSED`, and the status of an `EXIT`. Each reason must be one its
+//! frame may carry (`reason_sets`); none of them may carry `OK`.
 
 use crate::{Reader, Reason, WireError};
 
-pub fn reason_body(body: &[u8]) -> Result<Reason, WireError> {
+fn reason_in(body: &[u8], set: fn(Reason) -> bool) -> Result<Reason, WireError> {
     let mut r = Reader::new(body);
     let reason = Reason::from_code(r.u16()?)?;
     r.finish()?;
-    match reason {
-        Reason::Ok => Err(WireError::Value),
-        reason => Ok(reason),
-    }
+    set(reason).then_some(reason).ok_or(WireError::Value)
+}
+
+/// A plaintext `ABORT`, before the keys: `VERSION` or `BUSY` only.
+pub fn plain_abort(body: &[u8]) -> Result<Reason, WireError> {
+    reason_in(body, Reason::before_keys)
+}
+
+/// A sealed `ABORT`.
+pub fn abort(body: &[u8]) -> Result<Reason, WireError> {
+    reason_in(body, Reason::ends_session)
+}
+
+pub fn auth_refused(body: &[u8]) -> Result<Reason, WireError> {
+    reason_in(body, Reason::refuses_login)
 }
 
 pub fn exit_status(body: &[u8]) -> Result<i32, WireError> {

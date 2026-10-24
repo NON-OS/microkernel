@@ -38,6 +38,13 @@ fn a_record_places_its_header_entries_and_footer() {
     assert_eq!((r.footer.count, r.footer.end_ms, r.footer.end_reason), (2, 1_300, 1));
     assert_eq!(r.signed, &bytes[..bytes.len() - 3373]);
     assert_eq!(&bytes[..r.header.bytes.len()], r.header.bytes);
+    assert_eq!((r.header.transcript, r.header.host.ed), (&[0x7A; 64], &[0x4B; 32]));
+    assert_eq!(r.header.enrol.host, b"db-1.eu.example");
+}
+
+#[test]
+fn a_header_names_at_least_one_capability() {
+    assert_eq!(parse(&RecordB { caps: vec![], ..RecordB::default() }), Err(WireError::Value));
 }
 
 #[test]

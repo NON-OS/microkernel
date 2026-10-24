@@ -18,7 +18,8 @@
 //! version defines is refused, as is an end reason or a refusal code that
 //! is out of range.
 
-use crate::cap_names::{check, MAX_CAP_NAME};
+use crate::cap_names::MAX_CAP_NAME;
+use crate::names;
 use crate::record::entry::EntryBody;
 use crate::{CapNames, Reader, Reason, WireError};
 
@@ -31,7 +32,7 @@ impl<'a> EntryBody<'a> {
             3 => {
                 let tag = r.u32()?;
                 let cap = r.bytes8(1, MAX_CAP_NAME)?;
-                check(cap)?;
+                names::cap(cap)?;
                 EntryBody::RefusedCall { tag, cap }
             }
             4 => {
@@ -43,8 +44,10 @@ impl<'a> EntryBody<'a> {
                 EntryBody::EscGranted { grant, expires_ms, caps }
             }
             5 => match Reason::from_code(r.u16()?)? {
-                Reason::Ok => return Err(WireError::Value),
-                reason => EntryBody::EscRefused { reason, grant: r.array()? },
+                reason if reason.refuses_escalation() => {
+                    EntryBody::EscRefused { reason, grant: r.array()? }
+                }
+                _ => return Err(WireError::Value),
             },
             6 => {
                 let grant = r.array()?;
