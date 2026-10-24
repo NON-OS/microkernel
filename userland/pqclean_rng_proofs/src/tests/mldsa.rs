@@ -20,7 +20,7 @@
 //! works is used as normal.
 
 use crate::crypto::pqc::ml_dsa_65::types::MlDsa65Error;
-use crate::crypto::pqc::ml_dsa_65::{ml_dsa_65_keypair, ml_dsa_65_sign};
+use crate::crypto::pqc::ml_dsa_65::{ml_dsa_65_keypair, ml_dsa_65_sign, ml_dsa_65_verify};
 use crate::stand_in::{fail_draws, turn};
 
 extern "C" {
@@ -33,7 +33,8 @@ fn with_a_working_rng_a_key_pair_signs() {
     fail_draws(None);
     let kp = ml_dsa_65_keypair().expect("key pair");
     let sig = ml_dsa_65_sign(&kp.secret_key, b"nonos").expect("signature");
-    assert!(sig.bytes.iter().any(|b| *b != 0));
+    assert!(ml_dsa_65_verify(&kp.public_key, b"nonos", &sig), "it signs the message given");
+    assert!(!ml_dsa_65_verify(&kp.public_key, b"nonot", &sig));
 }
 
 #[test]

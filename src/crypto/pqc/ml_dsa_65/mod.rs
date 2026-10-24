@@ -27,8 +27,8 @@ pub use api::{
     ml_dsa_65_serialize_secret_key, ml_dsa_65_serialize_signature, ml_dsa_65_verify,
     ml_dsa_65_verify_bytes,
 };
-pub use drawn::{ml_dsa_65_keypair, ml_dsa_65_sign};
 pub use constants::{PARAM_NAME, PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
+pub use drawn::{ml_dsa_65_keypair, ml_dsa_65_sign};
 pub use types::{
     MlDsa65Error, MlDsa65KeyPair, MlDsa65PublicKey, MlDsa65SecretKey, MlDsa65Signature,
 };
