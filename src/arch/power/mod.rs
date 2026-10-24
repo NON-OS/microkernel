@@ -22,6 +22,8 @@
 
 mod enter;
 mod kind;
+mod prepared;
 
 pub(crate) use enter::enter;
 pub(crate) use kind::PowerOff;
+pub(crate) use prepared::{enter_prepared, prepare};

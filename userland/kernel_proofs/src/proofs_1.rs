@@ -49,6 +49,8 @@ pub mod dma_sync_lines;
 pub mod dma_wipe;
 #[path = "pio_reset/mod.rs"]
 pub mod pio_reset;
+#[path = "panic_plan/mod.rs"]
+pub mod panic_plan;
 /// DMAR reserved memory regions (K2).
 #[path = "dmar_reserved/mod.rs"]
 pub mod dmar_reserved;
