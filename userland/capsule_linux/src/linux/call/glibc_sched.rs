@@ -29,7 +29,7 @@ use crate::linux::guest::Guest;
 pub fn sched_getaffinity(guest: &Guest, size: u64, mask: u64) -> u64 {
     let cpus = crate::linux::file::machine::cpus() as usize;
     let bytes = cpus.div_ceil(64) * 8;
-    if (size as usize) < bytes || size % 8 != 0 {
+    if (size as usize) < bytes || !size.is_multiple_of(8) {
         return errno::fail(errno::EINVAL);
     }
     let mut out = alloc::vec![0u8; bytes];
