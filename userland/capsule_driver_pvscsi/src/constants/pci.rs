@@ -17,6 +17,7 @@
 pub const VMWARE_VENDOR_ID: u16 = 0x15AD;
 pub const PVSCSI_DEVICE_ID: u16 = 0x07C0;
 /// The register window: a memory BAR of at least 32 KiB. VMware puts it in
-/// BAR1 behind an I/O BAR0, QEMU in BAR0; the first memory BAR that large
-/// is the one, as Linux takes it.
+/// BAR1 behind an I/O BAR0, QEMU in BAR0 (observed in QEMU's
+/// hw/scsi/vmw_pvscsi.c, which registers one 0x8000 MMIO BAR); this driver
+/// takes the first memory BAR that large.
 pub const MEM_SPACE: u64 = 0x8000;
