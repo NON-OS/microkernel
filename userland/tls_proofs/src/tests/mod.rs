@@ -42,6 +42,7 @@ mod crypto_requests;
 mod crypto_wait;
 mod der_build;
 mod fake_server;
+mod key_wipe;
 mod handshake_deadline;
 mod handshake_flight_cap;
 mod flight_alert;
