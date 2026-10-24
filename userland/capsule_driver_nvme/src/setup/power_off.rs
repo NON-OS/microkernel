@@ -21,12 +21,11 @@ use crate::admin::shut_down;
 use crate::error::NvmeResult;
 
 impl Device {
-    /// The power-off: the shutdown notification and its bounded wait, then the
-    /// reset, whichever way the wait ended, so the controller is disabled
-    /// before power goes. The shutdown's own failure is the one returned.
+    /// The power-off: the shutdown notification and its bounded wait, and no
+    /// reset after. A controller showing SHST complete is safe for power to
+    /// go, the next boot's bring-up resets it anyway, and a reset's wait runs
+    /// as long as CAP.TO, past the kernel's budget for this driver.
     pub fn power_off(&mut self, rtd3e_us: u32) -> NvmeResult<()> {
-        let shut = shut_down(self.regs, rtd3e_us);
-        let reset = self.disable();
-        shut.and(reset)
+        shut_down(self.regs, rtd3e_us)
     }
 }
