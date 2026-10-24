@@ -52,6 +52,8 @@ EXTRA_ROOTS = [
     "nonos-shield-prove",
     "nonos-sign",
     "nonos-stark-enroll",
+    "nonos-proof-verify",
+    "nonos-proof-verify/wasm",
     "nonos-mk",
     "nonos-verify",
     "security/nonos-secops",

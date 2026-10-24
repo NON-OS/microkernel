@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! What every Intel display engine generation's code shares: how it reaches
 //! the hardware (`access`), why it refuses (`error`), the pipes and
 //! transcoders (`pipe`), and the contract a generation's mode setting meets
