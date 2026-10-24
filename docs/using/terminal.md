@@ -133,6 +133,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `about` | What this terminal is and how it reaches the rest of the system. |
 | `version` | The release this terminal was built in, and who signed it. |
 | `receipt [--hex]` | Every capsule as the kernel recorded it: measurement, signer, capabilities. |
+| `audit [--agent <name>]` | Who can reach the network, storage and devices now, and the signed ceiling that authority came from. The device column is capability bits, not live grants. |
 | `log [word ...]` | The kernel's console lines, newest last. With words, only the lines naming one. |
 | `bench` | Cycle costs of the kernel primitives, as percentiles. |
 | `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
