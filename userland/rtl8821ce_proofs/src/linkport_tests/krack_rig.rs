@@ -16,7 +16,7 @@ use crate::ap_sim::{gtk_kde, message1, message3, ANONCE, AP_RSNE_MIXED, GTK, SNO
 use crate::link::RtlLink;
 
 // The four-way handshake finished: the supplicant, its PTK and its TK.
-pub(super) fn joined() -> (Supplicant, [u8; 48], [u8; 16]) {
+pub(crate) fn joined() -> (Supplicant, [u8; 48], [u8; 16]) {
     let key = pmk(b"ThisIsAPassword", b"ThisIsASSID");
     let mut sup = supplicant(false);
     sup.step(&message1(Akm::Psk, 1, &ANONCE));
@@ -29,14 +29,14 @@ pub(super) fn joined() -> (Supplicant, [u8; 48], [u8; 16]) {
     (sup, p, tk)
 }
 
-pub(super) fn msg3_kd() -> Vec<u8> {
+pub(crate) fn msg3_kd() -> Vec<u8> {
     [AP_RSNE_MIXED.to_vec(), gtk_kde(1, &GTK)].concat()
 }
 
-pub(super) type Link = RtlLink<Card, Dma, RxBuf>;
+pub(crate) type Link = RtlLink<Card, Dma, RxBuf>;
 
 // A link joined to the AP, with the given EAPOL messages waiting on the ring.
-pub(super) fn link_after_join(eapols: &[Vec<u8>]) -> (Link, Card) {
+pub(crate) fn link_after_join(eapols: &[Vec<u8>]) -> (Link, Card) {
     let (sup, _, tk) = joined();
     let mut rx = RxBuf::new(0x4000_0000);
     for (i, m) in eapols.iter().enumerate() {

@@ -27,3 +27,8 @@ pub use mmio_access::{
     mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
     mmio_write8,
 };
+
+/// The driver's debug line (`status::debug`): written nowhere in the proofs.
+pub fn mk_debug(_buf: *const u8, _len: usize) -> i64 {
+    0
+}
