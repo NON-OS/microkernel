@@ -36,4 +36,7 @@ SWAPS = {
     **{f"nic={n}": ("nic", n) for n in NICS},
     "tpm-tis": ("tpm", "tpm-tis"),
     "vmware-svga": ("gpu", "vmware-svga"),
+    # Not a device in place of another: iommu.py rewrites the machine for it.
+    "iommu=intel": ("iommu", "intel"),
+    "iommu=amd": ("iommu", "amd"),
 }
