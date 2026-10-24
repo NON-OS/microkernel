@@ -14,14 +14,19 @@ session has exactly one terminal.
 | 0x40 | `ESCALATE` | C to S | grant: `bytes16` (see roles.md) |
 | 0x41 | `ESCALATE_RESULT` | S to C | reason: u16, expires_ms: u64 |
 | 0x50 | `EXIT` | S to C | status: i32 |
-| 0x51 | `RECORD` | S to C | the sealed record, `u32` length then the bytes (see record.md) |
+| 0x51 | `RECORD` | S to C | one part of the record: last: u8 (0 or 1), then 1 to 16383 bytes (see record.md) |
 | 0x52 | `CLOSE` | either way | empty |
-| 0x7F | `ABORT` | either way | reason: u16 |
+| 0x7F | `ABORT` | either way | reason: u16, never `OK` |
 
 ## Field rules
 
-- **`AUTH_OK`.** The session id comes from the server's entropy. The cap
-  names listed are the capabilities the session capsule was actually given.
+- **`AUTH_OK`.** The session id comes from the server's entropy. `idle_s`
+  is between 1 and 86400.
+- **Cap names.** A cap name matches `[A-Z][A-Za-z0-9]{0,31}`. A list holds
+  at most 37 names and never repeats one. The names listed in `AUTH_OK` are
+  the capabilities the session capsule was actually given.
+- **`RECORD`.** The record arrives in parts. The client joins the parts in
+  order, up to and including the one with `last = 1`.
 - **`WINDOW`.** Both `cols` and `rows` must be between 1 and 1000.
 - **`SIGNAL`.** `sig` is 1 to interrupt the foreground job or 2 to end it.
   Any other value is refused.

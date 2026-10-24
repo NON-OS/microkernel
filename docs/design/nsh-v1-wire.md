@@ -9,10 +9,13 @@
 - Every frame is laid out as `len: u32 | type: u8 | body`. `len` counts the
   type and the body. A reader refuses a frame whose `len` is over the
   phase's cap. It does this before it reads the body.
-- The phase caps on `len`:
+- Each stage caps the type byte and the body together:
   - Hellos: 2048.
-  - `HOST_PROOF`: 262144.
-  - Every other frame: 16384 plus the 16-byte tag.
+  - From `SERVER_HELLO` until login is settled (`HOST_PROOF`, `USER_AUTH`,
+    `AUTH_OK` or `AUTH_REFUSED`, or an `ABORT`): 262144.
+  - After login: 16385, which is one type byte and 16384 bytes of body.
+
+  A sealed frame's `len` is that plus the 16-byte tag.
 - A body must be consumed exactly. Trailing bytes are refused, a short body
   is refused, and a nonzero reserved field or flag is refused. Any of these
   ends the session with `ABORT(PROTOCOL)`.
@@ -43,7 +46,10 @@
 | 10 | server_random | 32 |
 | 42 | X-Wing ciphertext | 1120 |
 
-A server that sees a version or suite other than 1 sends
+The preamble (magic, version, suite and flags) is judged before the
+length. After it, the hello must be exactly the random and the key or
+ciphertext: nothing short and nothing more. A server that sees a version
+or suite other than 1 sends
 `ABORT(VERSION)` in plaintext and closes. That is type 0x7F with a body of
 `reason: u16`, the only plaintext frame after the hellos. Sending an
 `ABORT` reveals nothing: it is sent before any key exists.

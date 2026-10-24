@@ -8,7 +8,7 @@
 | host ML-DSA-65 public key | 1952 |
 | enrolment certificate | `bytes16` (below) |
 | attestation document, `NONOSATT` from `MkAttestDoc` | u32 length, then the bytes; at most 196608 |
-| registry entries from `MkAttestEntries` | u32 length, then 45 × n bytes |
+| registry entries from `MkAttestEntries` | u32 length, then 45 × n bytes, with n from 1 to 1024 |
 | Ed25519 signature | 64 |
 | ML-DSA-65 signature | 3309 |
 
@@ -85,8 +85,8 @@ refuses a policy whose signature is bad. It holds:
 | magic `"NSHE"` | 4 |
 | version = 1 | u16 |
 | reserved = 0 | u16 |
-| fleet_id | 16 |
-| host name | `bytes8`, a lowercase DNS name |
+| fleet_id, never all zeros | 16 |
+| host name | `bytes8`: labels of 1 to 63 of `[a-z0-9-]`, no label starting or ending with `-`, at most 253 bytes |
 | `ak_public` | 64 |
 | H(host keys) | 64 |
 | PCR 0, 1, 2 and 7 | 4 × 32 |

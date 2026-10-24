@@ -37,17 +37,26 @@ never in any ceiling: the role table parser refuses them.
 | subject: H(user Ed25519 key, user ML-DSA-65 key) | 64 |
 | user name | `bytes8`, matching `[a-z][a-z0-9._-]{0,31}` |
 | role | `bytes8`, matching `[a-z][a-z0-9-]{0,15}` |
-| capabilities | count: u8 (at most 37), then that many names as `bytes8` |
+| capabilities | count: u8 (1 to 37), then that many names as `bytes8`, none repeated |
 | not_before_ms | u64 |
 | not_after_ms | u64 |
 | issuer key id | 32 |
 | Ed25519 signature | 64 |
 | ML-DSA-65 signature | 3309 |
-| approvals | count: u8 (at most 2); each is a key id (32), an Ed25519 signature (64) and an ML-DSA-65 signature (3309) |
+| approvals | count: u8 (0 for a base grant, at most 2 otherwise); each is a key id (32), an Ed25519 signature (64) and an ML-DSA-65 signature (3309) |
 
 - The issuer signs `H("nsh/1 grant\0" || every field before the issuer
   signatures)`.
 - An approver signs `H("nsh/1 approve\0" || the same digest)`.
+- A key id is SHA-256 of the hybrid public key (Ed25519, then ML-DSA-65).
+  The subject is SHA-512 of the same bytes.
+- What the bytes alone settle, a reader refuses before any signature is
+  checked:
+  - `grant_id` and `fleet_id` are not all zeros;
+  - `parent_id` is zeros for a base grant, and for an escalation is
+    neither zeros nor its own `grant_id`;
+  - `not_before < not_after`;
+  - an approver is not the issuer, and two approvers differ.
 - A capability name must be one the host knows. Names, not bit numbers,
   cross the wire, so a renumbered kernel cannot silently change a grant.
 

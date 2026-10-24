@@ -23,17 +23,22 @@ footer. A host tool and the client library check it offline.
 ## Entries
 
 Each entry is laid out as `seq: u32 | at_ms: u64 | kind: u8 | body: bytes16`.
-`seq` starts at 0 and counts up by one; `at_ms` is the host clock's value.
+`seq` starts at 0 and counts up by one. `at_ms` is the host clock's value;
+it is never before `start_ms` and never before the entry ahead of it. A
+body is at most 4096 bytes. A record is at most 64 MiB and holds at most
+2^20 entries. The footer's count must equal the number of entries, and its
+`end_ms` must not be before the last entry.
 
 | Kind | Name | Body |
 |---|---|---|
-| 1 | `COMMAND` | the command line as typed, at most 4096 bytes |
+| 1 | `COMMAND` | the command line as typed, 1 to 4096 bytes |
 | 2 | `OUTPUT` | bytes: u64, then SHA-256 of the command's output (output itself is never kept) |
 | 3 | `REFUSED_CALL` | syscall tag: u32, capability name: `bytes8` |
 | 4 | `ESC_GRANTED` | H(grant): 64, expires_ms: u64, capability names |
 | 5 | `ESC_REFUSED` | reason: u16, H(grant): 64 |
 | 6 | `ESC_ENDED` | H(grant): 64, why: u8 (1 expired, 2 user, 3 session end) |
 | 7 | `EXIT` | status: i32 |
+| 8 | `COMMAND_DIGEST` | SHA-256 of the command line, for a role set to `record-commands: digest` |
 
 ## The chain
 
@@ -75,4 +80,5 @@ unless all of these hold:
   as complete.
 - Command lines may contain secrets typed by the user. The record keeps
   what was typed. The role table can mark a role `record-commands: digest`,
-  which keeps SHA-256 of each command line instead of its text.
+  which keeps SHA-256 of each command line (`COMMAND_DIGEST`) instead of its
+  text.
