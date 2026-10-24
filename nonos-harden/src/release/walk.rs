@@ -18,53 +18,38 @@
 //! followed, so a link planted in the release cannot point a check elsewhere.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 const MAX_DEPTH: usize = 64;
 
-/// `root/rel`, when every component exists and none is a link; the last is a
-/// directory if `dir`, else a regular file.
-pub fn resolve(root: &Path, rel: &str, dir: bool) -> Result<PathBuf, String> {
-    let mut at = root.to_path_buf();
-    let parts: Vec<&str> = rel.split('/').collect();
-    for (i, part) in parts.iter().enumerate() {
-        at.push(part);
-        let t = fs::symlink_metadata(&at).map_err(|_| format!("{rel} is missing"))?.file_type();
-        let last = i + 1 == parts.len();
-        if t.is_symlink() {
-            return Err(format!("{rel} passes through a symbolic link"));
-        }
-        let want_dir = !last || dir;
-        if want_dir && !t.is_dir() || !want_dir && !t.is_file() {
-            let what = if want_dir { "a directory" } else { "a regular file" };
-            return Err(format!("{rel} is not {what}"));
-        }
-    }
-    Ok(at)
-}
-
 /// Every regular file under `dir`, relative and sorted, at most `limit`.
 pub fn files(dir: &Path, limit: usize) -> Result<Vec<String>, String> {
-    let mut out = Vec::new();
-    walk(dir, "", 0, limit, &mut out)?;
-    out.sort();
-    Ok(out)
+    let mut found = Found { limit, files: Vec::new() };
+    walk(dir, "", 0, &mut found)?;
+    found.files.sort();
+    Ok(found.files)
 }
 
-fn walk(dir: &Path, at: &str, depth: usize, limit: usize, out: &mut Vec<String>) -> Result<(), String> {
+struct Found {
+    limit: usize,
+    files: Vec<String>,
+}
+
+fn walk(dir: &Path, at: &str, depth: usize, out: &mut Found) -> Result<(), String> {
     if depth > MAX_DEPTH {
         return Err(format!("{at} is nested deeper than a sealed directory goes"));
     }
     let unreadable = |e: std::io::Error| format!("{at}: unreadable ({e})");
     for e in fs::read_dir(dir).map_err(unreadable)? {
         let e = e.map_err(unreadable)?;
-        let name = e.file_name().into_string().map_err(|_| format!("{at}: a name that is not UTF-8"))?;
+        let not_utf8 = |_| format!("{at}: a name that is not UTF-8");
+        let name = e.file_name().into_string().map_err(not_utf8)?;
         let rel = if at.is_empty() { name } else { format!("{at}/{name}") };
         let t = e.file_type().map_err(unreadable)?;
         if t.is_dir() {
-            walk(&e.path(), &rel, depth + 1, limit, out)?;
-        } else if t.is_file() && out.len() < limit {
-            out.push(rel);
+            walk(&e.path(), &rel, depth + 1, out)?;
+        } else if t.is_file() && out.files.len() < out.limit {
+            out.files.push(rel);
         } else if t.is_file() {
             return Err("it holds more files than the record names".into());
         } else {

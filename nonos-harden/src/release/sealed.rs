@@ -20,16 +20,14 @@
 //! anywhere in what was sealed fails this check, and the reason names where.
 
 use super::record::{Item, Sealed};
+use super::resolve::resolve;
 use super::sealed_dir::compare;
-use super::walk::resolve;
-use crate::check::Check;
+use crate::check::{named, Check};
 use crate::ctx::Ctx;
 use crate::hash::{sha256_file, short};
 use std::path::Path;
 
 pub const ID: &str = "release.sealed";
-/// A reason names at most this many differences, then says how many more.
-const NAMED: usize = 8;
 
 pub fn check(ctx: &mut Ctx) -> Check {
     let Some(rec) = &ctx.record else {
@@ -41,14 +39,12 @@ pub fn check(ctx: &mut Ctx) -> Check {
     }
     let n = rec.sealed.len();
     if bad.is_empty() {
-        return Check::pass(ID, format!("all {n} sealed artifacts have the bytes the record names"));
+        return Check::pass(
+            ID,
+            format!("all {n} sealed artifacts have the bytes the record names"),
+        );
     }
-    let more = bad.len().saturating_sub(NAMED);
-    let mut reason = bad.into_iter().take(NAMED).collect::<Vec<_>>().join("; ");
-    if more > 0 {
-        reason += &format!("; and {more} more");
-    }
-    Check::fail(ID, reason)
+    Check::fail(ID, named(bad))
 }
 
 fn one(root: &Path, s: &Sealed, bad: &mut Vec<String>) {
@@ -61,10 +57,12 @@ fn one(root: &Path, s: &Sealed, bad: &mut Vec<String>) {
     }
 }
 
-pub(super) fn digest(at: &Path, want: &str, shown: &str, bad: &mut Vec<String>) {
+pub(crate) fn digest(at: &Path, want: &str, shown: &str, bad: &mut Vec<String>) {
     match sha256_file(at) {
         Ok(got) if got == want => {}
-        Ok(got) => bad.push(format!("{shown}: sha256 {}… is not the sealed {}…", short(&got), short(want))),
+        Ok(got) => {
+            bad.push(format!("{shown}: sha256 {}… is not the sealed {}…", short(&got), short(want)))
+        }
         Err(e) => bad.push(format!("{shown}: unreadable ({e})")),
     }
 }

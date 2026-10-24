@@ -27,6 +27,7 @@ mod exit;
 mod hash;
 mod plan;
 mod release;
+mod tree;
 mod usage;
 mod verdict;
 

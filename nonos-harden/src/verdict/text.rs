@@ -28,6 +28,11 @@ pub fn render(v: &Verdict) -> String {
     if let Some(sha) = &v.record_sha256 {
         s += &format!("record sha256: {sha}\n");
     }
+    match (&v.tree, &v.tree_head) {
+        (Some(t), Some(h)) => s += &format!("tree: {} at {h}\n", clean(t)),
+        (Some(t), None) => s += &format!("tree: {}\n", clean(t)),
+        _ => s += "tree: none found; give --tree\n",
+    }
     let w = v.checks.iter().map(|c| c.id.len()).max().unwrap_or(0);
     for c in &v.checks {
         let tag = match c.status {
@@ -45,7 +50,8 @@ pub fn render(v: &Verdict) -> String {
 
 pub fn clean(s: &str) -> String {
     let unsafe_char = |c: char| {
-        c.is_control() || matches!(c, '\u{200E}' | '\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}')
+        c.is_control()
+            || matches!(c, '\u{200E}' | '\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}')
     };
     s.chars().map(|c| if unsafe_char(c) { '\u{FFFD}' } else { c }).collect()
 }
