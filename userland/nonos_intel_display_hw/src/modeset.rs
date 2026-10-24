@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! The contract a generation's mode setting meets. The capsule holds one
 //! for its function's generation and calls it on MODE_SET and on the
 //! hot-plug poll; the generation's code does the programming.
