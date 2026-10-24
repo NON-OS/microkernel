@@ -17,7 +17,7 @@
 use super::constants::{AAD_PREFIX, NONCE_BYTES, PLAIN_BLOCK_BYTES, SECTOR_BYTES};
 use super::CryptoBlockError;
 use crate::crypto::chacha20poly1305::aead_encrypt;
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 
 pub fn seal(
     key: &[u8; 32],
@@ -35,7 +35,7 @@ pub fn seal(
         return Err(CryptoBlockError::InvalidLength);
     }
     let mut nonce = [0u8; NONCE_BYTES];
-    fill_random_bytes(&mut nonce);
+    fill_random_bytes_secure(&mut nonce).map_err(|_| CryptoBlockError::NoRandomness)?;
     let mut aad = [0u8; 24];
     aad[..16].copy_from_slice(AAD_PREFIX);
     aad[16..].copy_from_slice(&lba.to_le_bytes());

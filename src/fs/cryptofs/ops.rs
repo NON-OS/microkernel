@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::{string::ToString, vec::Vec};
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 
 use super::core::{require_cryptofs, CRYPTOFS};
 use super::crypto::{decrypt_data, derive_key, encrypt_data, validate_path};
@@ -39,7 +39,7 @@ pub fn create_encrypted_file(_parent_inode: u64, path: &str, _caps: &[u8]) -> Cr
     let inode = inner.next_inode.fetch_add(1, Ordering::Relaxed);
 
     let mut salt = [0u8; SALT_SIZE];
-    fill_random_bytes(&mut salt);
+    fill_random_bytes_secure(&mut salt).map_err(|_| CryptoFsError::RngFailed)?;
     let key = derive_key(path, &salt);
     let now = crate::time::current_ticks();
 
@@ -70,7 +70,7 @@ pub fn create_ephemeral_file(path: &str, data: &[u8]) -> CryptoResult<u64> {
     let inode = inner.next_inode.fetch_add(1, Ordering::Relaxed);
 
     let mut salt = [0u8; SALT_SIZE];
-    fill_random_bytes(&mut salt);
+    fill_random_bytes_secure(&mut salt).map_err(|_| CryptoFsError::RngFailed)?;
     let key = derive_key(path, &salt);
     let now = crate::time::current_ticks();
 
@@ -207,7 +207,7 @@ pub fn rotate_file_key(path: &str) -> CryptoResult<()> {
     let entry = inner.files.get_mut(path).ok_or(CryptoFsError::NotFound)?;
 
     let mut new_salt = [0u8; SALT_SIZE];
-    fill_random_bytes(&mut new_salt);
+    fill_random_bytes_secure(&mut new_salt).map_err(|_| CryptoFsError::RngFailed)?;
     let new_key = derive_key(path, &new_salt);
 
     secure_zeroize_array(&mut entry.key);

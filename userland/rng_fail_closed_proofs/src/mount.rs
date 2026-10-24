@@ -21,7 +21,7 @@
 mod stand_in;
 #[path = "../src/stand_in_rng.rs"]
 mod stand_in_rng;
-
+extern crate alloc;
 pub use stand_in::{arch, sys};
 
 // The kernel's src/crypto: each module not written out inline is its file.
@@ -38,7 +38,7 @@ pub mod crypto {
         mod basic;
         mod entropy_check;
         mod hardware_mix;
-        pub use basic::{fill_bytes, get_bytes, get_bytes_checked, get_bytes_secure};
+        pub use basic::{fill_bytes, get_bytes, get_bytes_checked, get_bytes_secure, get_vec_secure};
     }
 
     pub mod util {
