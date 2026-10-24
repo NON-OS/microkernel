@@ -34,7 +34,11 @@
 //! interrupted. Interrupts stay masked, so the single-CPU reasoning above is
 //! untouched, and the cross-CPU request is still serviced.
 
+use core::panic::Location;
 use spin::{Mutex, MutexGuard};
+
+use super::spin_holders::{note, stack_mark};
+use super::spin_wait::wait;
 
 /// Acquire `lock`, servicing TLB shootdowns while it is contended.
 ///
@@ -42,12 +46,19 @@ use spin::{Mutex, MutexGuard};
 /// disabled. `handle_shootdown_ipi` is written to be driven either by its
 /// vector or by hand: it clears this CPU's pending flag before acknowledging,
 /// so being called from both cannot acknowledge one round twice.
+///
+/// A wait that lasts `REPORT_MS` says so once, naming this call site and the
+/// one that took the lock (spin_report.rs): a spin that can never end, such as
+/// a holder taking its own lock again, is otherwise a CPU stopped in silence.
+#[track_caller]
 pub fn lock_responsive<T>(lock: &Mutex<T>) -> MutexGuard<'_, T> {
-    loop {
-        if let Some(guard) = lock.try_lock() {
-            return guard;
-        }
-        super::serve::serve_shootdowns();
-        core::hint::spin_loop();
-    }
+    let site = Location::caller();
+    let sp = stack_mark();
+    let addr = lock as *const Mutex<T> as usize;
+    let guard = match lock.try_lock() {
+        Some(guard) => guard,
+        None => wait(lock, addr, site, sp),
+    };
+    note(addr, site, sp);
+    guard
 }
