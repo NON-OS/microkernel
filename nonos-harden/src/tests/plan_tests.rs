@@ -55,7 +55,7 @@ fn every_check_runs_in_order_every_time() {
 fn every_verifier_of_the_tree_is_run() {
     let fake = Fake::default();
     let ran = fake.ran.clone();
-    assert_eq!(Sealed::dev().verdict(fake).0, exit::GO);
+    assert_eq!(Sealed::dev().verdict(fake).0, exit::DEV_GO);
     let want = ["python3 --check", "cargo hygiene", "cargo trust-chain", "cargo supply-chain"];
     let want = [&want[..], &["python3 static-checks", "python3 proof-crates"]].concat();
     assert_eq!(*ran.borrow(), want);

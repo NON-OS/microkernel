@@ -41,7 +41,7 @@ fn caught(file: &str) -> Vec<String> {
     assert!(missed.iter().all(|c| c["reason"].as_str().unwrap().contains(file)), "{missed:#?}");
     assert_eq!(
         s.verdict(Fake::default()).0,
-        exit::GO,
+        exit::DEV_GO,
         "the release it was copied from still passes"
     );
     missed.iter().map(|c| c["id"].as_str().unwrap().to_string()).collect()
