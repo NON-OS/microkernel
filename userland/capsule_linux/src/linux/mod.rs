@@ -56,6 +56,7 @@ mod start;
 mod start_guest;
 mod start_install;
 mod start_say;
+mod start_stop;
 mod store_why;
 mod terminal;
 mod terminal_box;

@@ -32,8 +32,11 @@ pub fn step(job: &mut JobRecord, out: &mut Output<'_>, held: bool) -> JobProgres
          * set, the alternate screen, a hidden cursor, a colour left on: it
          * ends here the way a program that exits on its own ends. What it
          * wrote after the key is dropped, as a tty drops it on an interrupt. */
-        if let JobWork::ExternalStage { pid, ref capture, .. } = job.work {
+        if let JobWork::ExternalStage { pid, ref capture, ref boxed, .. } = job.work {
             super::super::external_io::discard_output(pid);
+            if boxed.is_some() {
+                super::super::box_draw::interrupted(out);
+            }
             if !leave_modes {
                 out.program_ended();
             }
@@ -54,13 +57,16 @@ pub fn step(job: &mut JobRecord, out: &mut Output<'_>, held: bool) -> JobProgres
             }
         },
         JobWork::InstallDrain(job) => job.step_once(out),
-        JobWork::ExternalStage { pid, stdin, capture } => super::super::external::step_external(
-            *pid,
-            stdin,
-            capture.as_deref_mut(),
-            out,
-            leave_modes,
-        ),
+        JobWork::ExternalStage { pid, stdin, capture, boxed } => {
+            super::super::external::step_external(
+                *pid,
+                stdin,
+                capture.as_deref_mut(),
+                boxed.as_deref_mut(),
+                out,
+                leave_modes,
+            )
+        }
         JobWork::Http(job) => job.step_once(out),
         JobWork::GitClone(job) => job.step_once(out),
         JobWork::Pkg(job) => job.step_once(out),
