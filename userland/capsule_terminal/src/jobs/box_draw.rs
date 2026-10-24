@@ -28,7 +28,7 @@ pub(super) fn draw(hold: &BoxHold, out: &mut Output<'_>) {
     out.feed_raw(SCREEN_RESET);
     let (shown, line) = hold.lines();
     if shown.is_empty() {
-        out.writeln_error(b"linux: the box sent no report; it may have been stopped");
+        out.writeln_error(b"linux: the box sent no report; the run ended before it could");
     }
     for l in shown {
         out.writeln(l);
