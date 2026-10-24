@@ -57,6 +57,12 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
         Refused::Overflow => PioError::PortOverflow,
         Refused::Reserved => PioError::ReservedPort,
     })?;
+    // The FADT's PM1 control, sleep control and reset registers: the kernel
+    // enters soft-off and resets through them, after the wipe.
+    let end = u64::from(port_base) + u64::from(port_count);
+    if crate::hardware::broker::acpi::power_io_touched(u64::from(port_base), end) {
+        return Err(PioError::ReservedPort);
+    }
     if reserved::refuses(b"PIO", reserved::IO, bar.base, bar.size, true) {
         return Err(PioError::FirmwareReserved);
     }

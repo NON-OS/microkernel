@@ -116,3 +116,9 @@ pub use port_access::{port_read, port_write};
 pub use sci::{register_sci, PNP_DEVICE_ACPI, PNP_VENDOR};
 pub use table_check::TableError;
 pub use table_report::table_for_capsule;
+
+/// Whether ports [base, end) touch a power control register the FADT names:
+/// what a PIO grant may never include (`broker::pio::map`).
+pub(crate) fn power_io_touched(base: u64, end: u64) -> bool {
+    kernel::power_regs::touches(rule::SPACE_IO, base, end)
+}
