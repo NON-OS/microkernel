@@ -311,6 +311,15 @@
   "md": [],
   "signed": []
  },
+ "nonos-shield-prove": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-shield-prove"
+  ],
+  "md": [],
+  "signed": []
+ },
  "nonos-sign": {
   "exclude": [
    "userland/admission_proofs/fuzz"
@@ -8493,6 +8502,7 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_audio_player/src/fetch/io.rs",
    "userland/capsule_crypto/src/protocol",
    "userland/capsule_crypto/src/server/dispatch.rs",
@@ -8500,6 +8510,7 @@
    "userland/capsule_crypto/src/server/wipe.rs",
    "userland/capsule_prove_fetch/src/io.rs",
    "userland/nonos_route_link/src/patience.rs",
+   "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_tls/src/aes_gcm",
    "userland/nonos_tls/src/alert.rs",
@@ -8587,6 +8598,7 @@
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
    "userland/nonos_tls/src/verify_rsa_checked.rs",
+   "userland/policy_proto",
    "userland/tls_proofs"
   ],
   "md": [],
@@ -9481,7 +9493,9 @@
    "userland/nonos_nox_config",
    "userland/nonos_route_link/src/bounds.rs",
    "userland/nonos_route_link/src/describe.rs",
+   "userland/nonos_route_link/src/patience.rs",
    "userland/nonos_route_link/src/pick.rs",
+   "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_seal",
    "userland/nonos_secp256k1",
    "userland/payment_proto",
