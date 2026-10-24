@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! About on every mode and driver, every section: the window wholly on the
-//! screen and between the menubar and the dock, and each section painted.
+//! screen and between the menubar and the dock, each section painted, and
+//! the Display tile's mode inside its ring, never across it.
 
 use nonos_app_skeleton::runner::chrome::{dock_for, menubar_for};
 use nonos_app_skeleton::{App, InputEvent, InputKind, KEY_TAB};
@@ -24,6 +25,7 @@ use nonos_libc::show;
 use super::frame::shoot;
 use super::modes::{tag, DRIVERS, MODES};
 use super::png::save;
+use super::ring::whole_per_mille;
 use demo_screen_proofs::about::About;
 
 const SECTIONS: [&str; 7] =
@@ -55,6 +57,13 @@ fn about_opens_whole_on_every_demo_mode_and_paints_every_section() {
                 assert!(at.initial_y >= menubar_for(w, h), "{w}x{h}: under the menubar");
                 assert!(at.initial_y + at.height <= h - dock_for(w, h), "{w}x{h}: under the dock");
                 save(&format!("about-{}-{w}x{h}-{name}", tag(driver)), &shot.pixels, at.width);
+                if name == "overview" {
+                    let whole = whole_per_mille(&shot.pixels, at.width).expect("the display ring");
+                    assert!(
+                        whole >= 995,
+                        "{w}x{h}: the mode is written across its ring ({whole}/1000)"
+                    );
+                }
                 about.on_event(tab());
             }
         }

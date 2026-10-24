@@ -23,4 +23,5 @@ mod about_shots;
 mod frame;
 mod modes;
 mod png;
+mod ring;
 mod terminal_shots;
