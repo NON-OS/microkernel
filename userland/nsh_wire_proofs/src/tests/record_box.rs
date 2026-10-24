@@ -38,8 +38,9 @@ pub(super) fn run(b: &[u8]) -> Result<BoxRun<'_>, WireError> {
 }
 
 #[test]
-fn the_report_s_example_reads_field_for_field() {
-    // The report's own example: strict, write=1 network=1, exit 1.
+fn the_described_example_reads_field_for_field() {
+    // The example line in the report's description: strict, write=1
+    // network=1, exit 1.
     let b = layout(0, 1, 1, [1, 1, 0, 0, 0, 0, 0, 0, 0]);
     assert_eq!(b.len(), BOX_BODY);
     assert_eq!(BOX_BODY, 110);
