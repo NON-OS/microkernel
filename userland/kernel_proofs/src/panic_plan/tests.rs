@@ -41,7 +41,11 @@ fn exact(wipe: Span, keep: &[Span]) {
     for at in lo..wipe.end + 64 {
         let in_heap = wipe.start <= at && at < wipe.end;
         let kept = keep.iter().any(|k| k.start <= at && at < k.end);
-        assert_eq!(covered(&spans, at), in_heap && !kept, "byte {at:#x}: heap {wipe:?} keep {keep:?} plan {spans:?}");
+        assert_eq!(
+            covered(&spans, at),
+            in_heap && !kept,
+            "byte {at:#x}: heap {wipe:?} keep {keep:?} plan {spans:?}"
+        );
     }
 }
 
@@ -54,7 +58,9 @@ fn a_heap_that_overlaps_nothing_is_wiped_whole() {
 #[test]
 fn the_running_stack_is_never_wiped_wherever_it_sits() {
     let heap = span(0x1000, 0x5000);
-    for (a, b) in [(0x0, 0x1800), (0x2000, 0x3000), (0x4800, 0x6000), (0x0, 0x9000), (0x1000, 0x5000)] {
+    for (a, b) in
+        [(0x0, 0x1800), (0x2000, 0x3000), (0x4800, 0x6000), (0x0, 0x9000), (0x1000, 0x5000)]
+    {
         exact(heap, &[span(a, b)]);
     }
 }
@@ -84,10 +90,12 @@ fn many_layouts_are_exact() {
     for _ in 0..400 {
         let a = next(0x800);
         let heap = span(a, a + next(0x800));
-        let keep: Vec<Span> = (0..next(MAX_KEEP as u64 + 1)).map(|_| {
-            let s = next(0x1000);
-            span(s, s + next(0x300))
-        }).collect();
+        let keep: Vec<Span> = (0..next(MAX_KEEP as u64 + 1))
+            .map(|_| {
+                let s = next(0x1000);
+                span(s, s + next(0x300))
+            })
+            .collect();
         exact(heap, &keep);
     }
 }
