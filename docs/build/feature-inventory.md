@@ -21,7 +21,7 @@ print("\n".join(sorted(k for k in f if k not in on)))
 EOF
 ```
 
-Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 145 features. Of those, 91 are `microkernel-*` lane sets and 54 are the features in the tables.
+Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 154 features. Of those, 92 are `microkernel-*` lane sets and 62 are the features in the tables.
 
 ## What the default image carries
 
@@ -32,25 +32,49 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
 - the NOX settle and proof fetch services: `nonos-capsule-nox-settle`, `nonos-capsule-prove-fetch`;
 - first-boot setup and the installer;
 - every production hardware driver:
-  - NICs: virtio, e1000, e1000e, igb, ixgbe, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi and rtl8821ce, plus USB networking through CDC-ECM, CDC-NCM and RNDIS;
+  - NICs: virtio, e1000, e1000e, igb, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi and rtl8821ce;
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, BusLogic, MPT, SDHCI, UFS and USB mass storage;
   - USB host controllers: xHCI, EHCI, OHCI and UHCI, and USB hubs;
   - input: PS/2, virtio-input, USB HID and I2C HID;
-  - display: virtio-gpu, VMware SVGA and Bochs (BGA);
-  - audio: HDA, AC'97, USB audio and USB microphones;
-  - USB cameras (UVC), USB serial (CDC-ACM), smart cards (CCID) and FIDO security keys;
+  - display: virtio-gpu and VMware SVGA;
+  - audio: HDA, AC'97 and USB audio;
+  - USB cameras (UVC), smart cards (CCID) and FIDO security keys;
   - the I2C bus;
   - VirtualBox and Hyper-V guest support.
 
 `standard` takes `capsule-serial-debug` out of that set, so no capsule writes to the serial console (`drop`, `tools/nix/config.nix`). The `hardened` and `airgapped` profiles start from the same set and take out the same feature, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`).
 
+## The drivers this change adds, and what booted
+
+
+| driver | lane | what the boot showed | level |
+|---|---|---|---|
+| e1000e | A: `nic=e1000e ehci ufs usb-audio` | carried every frame of the boot: 2313 frames, egress PASS, MAC `02:75:03:de:83:9a` | booted, working |
+| igb | B: `nic=igb uhci ohci` | carried every frame: 2307 frames, egress PASS, MAC `32:c8:c4:83:14:a0` | booted, working |
+| ehci | A | up, with the lane's USB stick behind it | booted, up |
+| uhci | C: `uhci` | up beside AHCI, with no refusal in the run (egress PASS, 2278 frames) | booted, up |
+| ohci | E: `nic=usb-net bochs-display usb-ccid ohci` | up, with AHCI up beside it and no refusal in the run | booted, up |
+| | B, before the fix | status 6: it asked for its 256-byte BAR rounded up to a page, which the broker refuses as past the BAR (`[MMIO] err` EINVAL). Its retries took AHCI down with it. Fixed in the driver (`register_grant`, `facts/pci.rs`); EHCI had the same rounding, which QEMU's 4 KiB BAR hid and an Intel 1 KiB BAR would not. `ohci_proofs` and `ehci_proofs` check the grant against the broker's own window rule, and the old rounding is caught | host-tested |
+| ufs | A | up, its UFS device present | booted, up |
+| usb-hub, usb-audio | A, B | up | booted, up |
+| ccid | E | up with a card reader present (`usb-ccid`, no card) | booted, up |
+| uvc, fido | every lane | up and idle with no device; QEMU has no UVC camera, and a FIDO key needs the host's | booted, idle |
+| prove-fetch | every lane | up; it sent no frame the capture failed | booted, up |
+| nox-settle | none | not reached: every lane's boot waits at first-boot setup (`app.setup_wizard`), and nox-settle comes up with the desktop services after it (`desktop_services.rs`) | host-tested |
+
+## Taken back out, after the lanes
+
+These were in this change's first draft and are out of the default image again. Each is listed under "Real, but held back" with what would let it ship.
+
+- ixgbe, igc, cdc-ncm, cdc-acm and usb-mic: QEMU has no device for them (no 82599 or I225, no NCM function, its `usb-serial` is FTDI, its `usb-audio` plays only), so no lane can show them working.
+
 ## A capsule that is in the image but not yet sealed
 
 
 - On 2026-10-24, before this change, 15 capsules that the default image already carried had no trust set: pcnet, vmxnet3, tulip, virtio-input, vmware-svga, ac97, vmmdev, vmmouse, vmbus, piix-ide, virtio-scsi, pvscsi, buslogic, mpt and sdhci. Host-tested: the gate's own condition, run over `tools/nix/capsules.json`.
-- The 20 capsules this change adds have no trust set either: the 18 drivers, plus nox-settle and prove-fetch.
+- The 13 capsules this change adds have no trust set either: the 11 drivers, plus nox-settle and prove-fetch.
 
-So `nix build` of the default image waits for the next release seal, which writes all 35 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 28 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
 ## Off, and why
 
@@ -92,6 +116,8 @@ So `nix build` of the default image waits for the next release seal, which write
 |---|---|---|
 | `nonos-capsule-net-ntp` | Not spawned beside `net.core` (`spawn_legacy_stack`). It is direct UDP to a time server, allowed only on the Direct route (`capsule_net_ntp/src/main.rs`), and its request carries the raw local clock (`sync.rs`), which fingerprints the machine. The desktop therefore has no network time sync, by design for now. | Send a random transmit timestamp in place of the clock, add a time source that crosses the anonymity networks, and spawn it beside `net.core` |
 | `nonos-capsule-driver-smbus` | Booted (standard-dev, QEMU q35 with VT-d, 2026-10-24): `driver.smbus0` claimed the ICH9 SMBus function 00:1f.3. That shares an IOMMU group with the SATA controller 00:1f.2, with no ACS between them, so the IOMMU then refused AHCI (`[VT-D] refused: 00:1f.3 reaches it through 00:1f.2 without ACS; driver.smbus0 holds it`), and `driver.ahci0` gave up (status 6). On a chipset grouped the same way, carrying SMBus takes the SATA boot disk away. | Claim order or group handling that keeps the disk controller's claim ahead of the SMBus one, shown on such a machine |
+| `nonos-capsule-driver-cdc-ecm`, `nonos-capsule-driver-rndis` | The `nic=usb-net` lane (QEMU's usb-net, RNDIS and CDC-ECM configurations) captured no frame from the guest: neither driver carried traffic | A lane that carries the boot's traffic over usb-net, with a debug image to find where it stops |
+| `nonos-capsule-driver-cdc-ncm`, `nonos-capsule-driver-cdc-acm`, `nonos-capsule-driver-usb-mic` | QEMU has no NCM function, its `usb-serial` is FTDI rather than ACM, and its `usb-audio` has no input, so no lane can show them working | A boot with the device, on hardware or another emulator |
 | `nonos-capsule-clock` | Built and sealed, but nothing in the desktop opens it (`docs/using/apps.md`: no tile anywhere). It holds TimeSet. | A launcher tile, then add it to `microkernel-desktop-offline` |
 | `nonos-capsule-image-viewer` | The desktop's open path has no `app.image_viewer` (`PendingApp::named`, `src/userspace/init/instance_spawn/named.rs`) | A `PendingApp` variant, then add it to `microkernel-desktop-offline` |
 | `nonos-capsule-ripgrep`, `nonos-capsule-sd` | With the feature on, init runs each once at boot (`src/userspace/init/entry.rs`). They are not in the terminal's tool registry. | An entry in `src/userspace/tool_capsules/registry.rs` in place of the boot spawn |
