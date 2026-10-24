@@ -50,7 +50,8 @@ fn change(full: &[u8], mode: u64) -> u64 {
     if look(full).is_none() {
         return errno::fail(errno::ENOENT);
     }
-    if synth::owns(full) || (!cache::held(full) && resolve::key(full).writable().is_err()) {
+    if synth::refused_write(full) || (!cache::held(full) && resolve::key(full).writable().is_err())
+    {
         return errno::fail(errno::EROFS);
     }
     modes::set(full, mode as u32);
