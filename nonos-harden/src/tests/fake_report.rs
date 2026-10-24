@@ -19,6 +19,11 @@
 
 use serde_json::{json, Value};
 
+/// The declared list the fixture tree holds: the one gap a proof may state
+/// while trust-chain still passes.
+pub const DECLARED: &[u8] =
+    b"# format: nonos-harden-declared-limits/1\ntrust-chain: field asserts\n";
+
 pub fn report(checks: &[(&str, &str)], gaps: &[(&str, &str)]) -> Value {
     let checks: Vec<Value> = checks
         .iter()
@@ -26,4 +31,20 @@ pub fn report(checks: &[(&str, &str)], gaps: &[(&str, &str)]) -> Value {
         .collect();
     let gaps: Vec<Value> = gaps.iter().map(|(w, n)| json!({"what": w, "needs": n})).collect();
     json!({"module": "m", "commit": "c", "status": "pass", "blocking": true, "checks": checks, "gaps": gaps})
+}
+
+/// The gap trust-chain declares, stated by trust-chain alone.
+pub fn gap(sub: &str) -> Option<Value> {
+    let gaps: &[_] =
+        if sub == "trust-chain" { &[("field asserts", "exposed fields")] } else { &[] };
+    Some(report(&[("a", "pass")], gaps))
+}
+pub fn other_gap(sub: &str) -> Option<Value> {
+    let gaps: &[_] =
+        if sub == "trust-chain" { &[("field asserts", "x"), ("a new gap", "y")] } else { &[] };
+    Some(report(&[("a", "pass")], gaps))
+}
+// The gap trust-chain declares, stated by every module.
+pub fn gap_everywhere(_: &str) -> Option<Value> {
+    Some(report(&[("a", "pass")], &[("field asserts", "exposed fields")]))
 }

@@ -27,12 +27,14 @@ pub fn build(ctx: &Ctx, checks: Vec<Check>, signer: Option<String>) -> Verdict {
     let (record_sha256, tree_head) = (ctx.record_sha256.clone(), ctx.tree_head.clone());
     let tree = ctx.tree.as_ref().map(|t| t.display().to_string());
     let (format, scope, kind) = (FORMAT, SCOPE, ctx.kind);
+    let limits = checks.iter().map(|c| c.limits.len()).sum();
     Verdict {
         format,
         tool,
         overall,
         verdict,
         kind,
+        limits,
         release,
         record_sha256,
         tree,
