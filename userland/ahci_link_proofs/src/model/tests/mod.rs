@@ -15,6 +15,7 @@ mod foreign;
 mod identify;
 mod pace;
 mod power_off;
+mod power_off_time;
 mod prdbc;
 mod replies;
 mod self_reset;
