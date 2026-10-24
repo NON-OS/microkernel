@@ -6,10 +6,10 @@ Part of [Rust to Lean extraction](README.md).
 
 Extraction covers the pure safe decision cores. The table below is the nine
 hand-built crates this pipeline started with. `crates.json` now lists 285 crates
-with 979 entry points: 13 hand-built, 129 made by
+with 978 entry points: 13 hand-built, 129 made by
 `tools/extraction/closure_crate.py` under `tree/` and 143 made by
 `tools/extraction/sweep.py` under `sweep/`. `tools/ratchets/proven_functions.py`
-counts all 979 as carrying a proof, 492 of them with a property beyond the
+counts all 978 as carrying a proof, 492 of them with a property beyond the
 theorem that the forwarding wrapper equals its method. Each crate mirrors the
 kernel's module paths with `#[path]` so the included files find each other at
 the paths they already use, and each one holds no lock, no atomic and no

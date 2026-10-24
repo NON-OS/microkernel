@@ -32,9 +32,6 @@ namespace NonosExtraction.DriversPciTypesMsi
 
 /-! ### The forwarding functions add nothing -/
 
-theorem the_msiinfo_max_vectors_wrapper_is_its_method (a : drivers.pci.types.msi.MsiInfo) :
-    msiinfo_max_vectors a = drivers.pci.types.msi.MsiInfo.max_vectors a := rfl
-
 theorem the_msiinfo_allocated_vectors_wrapper_is_its_method (a : drivers.pci.types.msi.MsiInfo) :
     msiinfo_allocated_vectors a = drivers.pci.types.msi.MsiInfo.allocated_vectors a := rfl
 
@@ -42,14 +39,13 @@ theorem the_msixinfo_vector_count_wrapper_is_its_method (a : drivers.pci.types.m
     msixinfo_vector_count a = drivers.pci.types.msi.MsixInfo.vector_count a := rfl
 
 theorem the_msimessage_new_wrapper_is_its_method (a : Std.U8) (b : Std.U8) (c : Bool) (d : Bool) :
-    msimessage_new a b c d = drivers.pci.types.msi.MsiMessage.new a b c d := rfl
+    msimessage_new a b c d = drivers.pci.types.msi_message.MsiMessage.new a b c d := rfl
 
 theorem the_msimessage_for_local_apic_wrapper_is_its_method (a : Std.U8) (b : Std.U8) :
-    msimessage_for_local_apic a b = drivers.pci.types.msi.MsiMessage.for_local_apic a b := rfl
+    msimessage_for_local_apic a b = drivers.pci.types.msi_message.MsiMessage.for_local_apic a b := rfl
 
 /-! ### Axiom profile -/
 
-#print axioms NonosExtraction.DriversPciTypesMsi.the_msiinfo_max_vectors_wrapper_is_its_method
 #print axioms NonosExtraction.DriversPciTypesMsi.the_msiinfo_allocated_vectors_wrapper_is_its_method
 #print axioms NonosExtraction.DriversPciTypesMsi.the_msixinfo_vector_count_wrapper_is_its_method
 #print axioms NonosExtraction.DriversPciTypesMsi.the_msimessage_new_wrapper_is_its_method

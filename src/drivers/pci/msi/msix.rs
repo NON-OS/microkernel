@@ -17,39 +17,7 @@
 use super::super::config::ConfigSpace;
 use super::super::constants::*;
 use super::super::error::Result;
-use super::super::types::{MsiMessage, MsixInfo, PciBar};
-use super::msix_entry::map_msix_table_entry;
-
-pub fn configure_msix(
-    _config: &ConfigSpace,
-    msix: &MsixInfo,
-    bars: &[PciBar; 6],
-    vector: u16,
-    irq_vector: u8,
-    dest_apic_id: u8,
-) -> Result<()> {
-    let msg = MsiMessage::for_local_apic(irq_vector, dest_apic_id);
-    let entry = map_msix_table_entry(msix, bars, vector)?;
-
-    crate::memory::mmio::mmio_w32(entry.addr, msg.address as u32);
-    crate::memory::mmio::mmio_w32(entry.addr + 4u64, (msg.address >> 32) as u32);
-    crate::memory::mmio::mmio_w32(entry.addr + 8u64, msg.data);
-    crate::memory::mmio::mmio_w32(entry.addr + 12u64, 0);
-
-    Ok(())
-}
-
-pub fn configure_msix_single(
-    config: &ConfigSpace,
-    msix: &MsixInfo,
-    bars: &[PciBar; 6],
-    irq_vector: u8,
-    dest_apic_id: u8,
-) -> Result<()> {
-    configure_msix(config, msix, bars, 0, irq_vector, dest_apic_id)?;
-    enable_msix(config, msix)?;
-    Ok(())
-}
+use super::super::types::MsixInfo;
 
 pub fn enable_msix(config: &ConfigSpace, msix: &MsixInfo) -> Result<()> {
     let offset = msix.offset as u16;
