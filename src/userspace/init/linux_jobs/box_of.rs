@@ -24,18 +24,23 @@ use alloc::boxed::Box;
 use alloc::format;
 
 use crate::security::market_capsule::client::linux_policy_wire::{
-    LinuxPolicyReply, MARKET_ARG_LEN,
+    held_to, LinuxPolicyReply, MARKET_ARG_LEN,
 };
 use crate::security::market_capsule::client::queued_get_linux_policy;
 use crate::sys::serial::println;
 
 pub(super) type Arg = Box<[u8; MARKET_ARG_LEN]>;
 
-pub(super) fn box_of(listing: &str, release: &str) -> Result<Option<Arg>, ()> {
-    let said = match queued_get_linux_policy(listing, release) {
-        Ok(LinuxPolicyReply::NoPolicy) => return Ok(None),
-        Ok(LinuxPolicyReply::Policy(m)) => return Ok(Some(m)),
-        Ok(LinuxPolicyReply::Refused) => format!("the market refuses the box {release} names"),
+/// `pin` is the package hash init was given for this release: an answer made
+/// from another, as when the index was replaced between asks, is refused.
+pub(super) fn box_of(listing: &str, release: &str, pin: &[u8; 32]) -> Result<Option<Arg>, ()> {
+    let said = match queued_get_linux_policy(listing, release).map(|answer| held_to(answer, pin)) {
+        Ok(None) => format!("the market answered for another {release}; the index changed"),
+        Ok(Some(LinuxPolicyReply::NoPolicy)) => return Ok(None),
+        Ok(Some(LinuxPolicyReply::Policy(m))) => return Ok(Some(m)),
+        Ok(Some(LinuxPolicyReply::Refused)) => {
+            format!("the market refuses the box {release} names")
+        }
         // Which failure, so a market that cannot answer is not read as a refusal.
         Err(e) => format!("the market could not say its box: {e:?}"),
     };

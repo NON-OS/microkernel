@@ -21,17 +21,25 @@
 
 use nonos_market_proto::{linux_policy_body, parse_linux_policy, LinuxPolicy, MARKET_ARG_LEN};
 
-use super::kernel_linux_policy::{parse, LinuxPolicyReply, MARKET_ARG_LEN as KERNEL_LEN};
+use super::kernel_linux_policy::{held_to, parse, LinuxPolicyReply, MARKET_ARG_LEN as KERNEL_LEN};
 
-fn same(proto: Option<LinuxPolicy>, kernel: Option<LinuxPolicyReply>) -> bool {
+type Proto = Option<(LinuxPolicy, [u8; 32])>;
+type Kernel = Option<(LinuxPolicyReply, [u8; 32])>;
+
+fn same(proto: Proto, kernel: Kernel) -> bool {
     match (proto, kernel) {
         (None, None) => true,
-        (Some(LinuxPolicy::NoPolicy), Some(LinuxPolicyReply::NoPolicy)) => true,
-        (Some(LinuxPolicy::Refused), Some(LinuxPolicyReply::Refused)) => true,
-        (Some(LinuxPolicy::Policy(a)), Some(LinuxPolicyReply::Policy(b))) => a == b,
+        (Some((p, a)), Some((k, b))) if a == b => match (p, k) {
+            (LinuxPolicy::NoPolicy, LinuxPolicyReply::NoPolicy) => true,
+            (LinuxPolicy::Refused, LinuxPolicyReply::Refused) => true,
+            (LinuxPolicy::Policy(a), LinuxPolicyReply::Policy(b)) => a == b,
+            _ => false,
+        },
         _ => false,
     }
 }
+
+const HASH: [u8; 32] = [5; 32];
 
 #[test]
 fn the_kernel_reads_every_reply_the_market_writes() {
@@ -39,8 +47,10 @@ fn the_kernel_reads_every_reply_the_market_writes() {
     let mut m = [0u8; MARKET_ARG_LEN];
     m.iter_mut().enumerate().for_each(|(i, b)| *b = (i * 7 % 256) as u8);
     for reply in [LinuxPolicy::NoPolicy, LinuxPolicy::Refused, LinuxPolicy::Policy(Box::new(m))] {
-        let body = linux_policy_body(&reply);
-        assert!(same(parse_linux_policy(&body), parse(&body)));
+        let body = linux_policy_body(&reply, &HASH);
+        let read = parse(&body);
+        assert!(read.as_ref().is_some_and(|(_, h)| *h == HASH));
+        assert!(same(parse_linux_policy(&body), read));
     }
 }
 
@@ -48,13 +58,27 @@ fn the_kernel_reads_every_reply_the_market_writes() {
 fn the_two_copies_agree_on_every_short_body_and_every_length() {
     for a in 0..=255u8 {
         for b in 0..=255u8 {
-            for body in [vec![a], vec![a, b], vec![a, b, 0]] {
+            for tail in [0usize, 1, 31, 32, 33] {
+                let body = [&[a, b][..], &vec![0u8; tail]].concat();
                 assert!(same(parse_linux_policy(&body), parse(&body)), "{body:?}");
             }
         }
+        assert!(same(parse_linux_policy(&[a]), parse(&[a])));
     }
-    for len in 0..=(MARKET_ARG_LEN + 4) {
-        let body = [&[1u8, 1][..], &vec![9u8; len]].concat();
-        assert!(same(parse_linux_policy(&body), parse(&body)), "{len} bytes");
+    for kind in 0..=3u8 {
+        for len in 0..=(MARKET_ARG_LEN + 4) {
+            let body = [&[2u8, kind][..], &HASH, &vec![9u8; len]].concat();
+            assert!(same(parse_linux_policy(&body), parse(&body)), "kind {kind}, {len} bytes");
+        }
     }
+}
+
+/* init holds the answer to the pin get_release gave it: an answer made from
+ * another release, as when the index was replaced between asks, is none. */
+#[test]
+fn an_answer_for_another_release_is_never_taken() {
+    let body = linux_policy_body(&LinuxPolicy::NoPolicy, &HASH);
+    let answer = parse(&body).expect("reads");
+    assert_eq!(held_to(answer.clone(), &HASH), Some(LinuxPolicyReply::NoPolicy));
+    assert_eq!(held_to(answer, &[6; 32]), None);
 }

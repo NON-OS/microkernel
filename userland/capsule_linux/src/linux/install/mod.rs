@@ -39,6 +39,8 @@ mod hex;
 mod http;
 mod model_dep;
 mod model_remove;
+mod hold;
+mod minted;
 mod place;
 mod record;
 mod remove;

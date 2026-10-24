@@ -16,26 +16,15 @@
 
 //! A package's files going, each with what the machine wrote beside it: the
 //! trailer it minted, and for a market program the policy it vouched and that
-//! policy's trailer (`market`), so nothing it vouched outlives the program.
+//! policy's trailer, in the order minted.rs proves keeps a program that would
+//! not go in its box.
 
 use alloc::vec::Vec;
 
-use crate::linux::attest_paths::beside;
 use crate::linux::file::{key, store_stat, store_unlink};
-
-const MINTED: [&[u8]; 3] =
-    [b".zk_trailer.bin", b".nonos_linux_policy.bin", b".nonos_linux_policy.zk_trailer.bin"];
 
 /// The files that would not go; gone already is as good as taken out.
 pub(super) fn take_out(files: &[Vec<u8>]) -> Vec<Vec<u8>> {
-    let mut left = Vec::new();
-    for at in files {
-        if store_unlink(&key(at)).is_err() && store_stat(&key(at)).is_ok() {
-            left.push(at.clone());
-        }
-        for suffix in MINTED {
-            let _ = store_unlink(&key(&beside(at, suffix)));
-        }
-    }
-    left
+    let mut gone = |p: &[u8]| store_unlink(&key(p)).is_ok() || store_stat(&key(p)).is_err();
+    files.iter().filter(|at| !super::super::minted::take_out(at, &mut gone)).cloned().collect()
 }
