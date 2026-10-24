@@ -19,12 +19,14 @@
 
 #![no_std]
 
+mod hkdf512;
 mod hmac512;
 mod sha256;
 mod sha256_stream;
 mod sha512;
 mod wipe;
 
+pub use hkdf512::{hkdf512_expand, hkdf512_extract, HkdfTooLong, HKDF512_MAX};
 pub use hmac512::{hmac_sha512, HmacSha512};
 pub use sha256::sha256;
 pub use sha256_stream::Sha256;
