@@ -50,8 +50,12 @@ record never sums the two.
 
 ## The `BOX` entry
 
-It carries BOX REPORT v1 (`userland/capsule_linux/src/linux/boxed/`), field
-for field, without the examples:
+**Provisional.** This layout follows BOX REPORT v1 as B described it on 24
+Oct (letter `b/103`), without the examples. B's source
+(`userland/capsule_linux/src/linux/boxed/`) is not yet in this tree. Until
+the layout has been checked against that source, kind 9 is provisional:
+its kind order, preset values and field types may still change, and no
+host signs a record holding one.
 
 | Field | Size |
 |---|---|
@@ -84,9 +88,14 @@ The verifier refuses an entry with:
 - a body of any other length.
 
 The examples are left out on purpose: they are paths and addresses the
-program asked for, and the screen report keeps them. The entry is written
-from the frames `capsule_linux` keys to that run, never from text the
-program printed. A box report version other than 1 needs a new entry kind.
+program asked for, and the screen report keeps them. The entry is to be
+written from the frames `capsule_linux` keys to that run, never from text
+the program printed; that interface is still to be agreed with B. A box
+report version other than 1 needs a new entry kind.
+
+Still open with B: whether a run that never started (`started` 0) can
+carry counts or an exit status other than 0. Until that is settled, the
+verifier accepts both.
 
 ## The chain
 
