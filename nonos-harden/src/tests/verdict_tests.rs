@@ -44,7 +44,7 @@ fn the_text_verdict_cannot_be_steered_by_what_it_quotes() {
     ctx.kind = Kind::Development;
     let quoted = "\u{1b}]0;GO\u{7}x\u{202e}gnp.exe\r\nGO";
     let c = Check::fail("release.sealed", quoted).with_limits(vec!["\u{2066}hidden".into()]);
-    let out = text::render(&build(&ctx, vec![c]));
+    let out = text::render(&build(&ctx, vec![c], None));
     for bad in ['\u{1b}', '\u{7}', '\r', '\u{202e}', '\u{2066}'] {
         assert!(!out.contains(bad), "{bad:?} reached the terminal");
     }
@@ -55,8 +55,11 @@ fn the_text_verdict_cannot_be_steered_by_what_it_quotes() {
 fn the_json_verdict_names_its_format_kind_and_every_check() {
     let mut ctx = Ctx::new("r".into(), None);
     ctx.kind = Kind::Development;
-    let v =
-        build(&ctx, vec![ok("a"), Check::not_run("b", "no tree").with_limits(vec!["l".into()])]);
+    let v = build(
+        &ctx,
+        vec![ok("a"), Check::not_run("b", "no tree").with_limits(vec!["l".into()])],
+        None,
+    );
     let j: serde_json::Value = serde_json::from_str(&json::render(&v).unwrap()).unwrap();
     assert_eq!(j["format"], FORMAT);
     assert_eq!((j["overall"].as_str(), j["kind"].as_str()), (Some("no-go"), Some("development")));

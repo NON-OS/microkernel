@@ -27,9 +27,11 @@ mod exit;
 mod hash;
 mod plan;
 mod release;
+mod sign;
 mod tree;
 mod usage;
 mod verdict;
+mod write;
 
 #[cfg(test)]
 mod tests;
@@ -59,5 +61,6 @@ fn run(cmd: cli::Command) -> u8 {
             exit::GO
         }
         cli::Command::Check(args) => plan::check(&args),
+        cli::Command::VerifySignature(args) => sign::verify::run(&args),
     }
 }
