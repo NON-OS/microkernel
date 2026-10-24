@@ -287,7 +287,9 @@ def judge(data, allow_ips=(), allow_names=(), host_macs=SLIRP_HOST_MACS, nic_mac
         if not p["allowed"]:
             fail("peer", f"{p['proto']} to {p['ip']}:{p['port']}, a peer the image did not choose")
     return {
-        "status": "fail" if failures else "pass",
+        # A capture the guest sent nothing in shows no path was clean, only
+        # that none was used: it is empty, not a pass.
+        "status": "fail" if failures else "pass" if seen["guest_frames"] else "empty",
         "frames": seen["frames"],
         "guest_frames": seen["guest_frames"],
         "firmware_frames": seen["firmware_frames"],
@@ -440,7 +442,8 @@ def self_test():
             b[rng.randrange(24, len(b))] = rng.randrange(256)
         b = bytes(b[: rng.randrange(24, len(b) + 1)])
         r = judge(b)
-        assert r["status"] in ("pass", "fail")
+        assert r["status"] in ("pass", "fail", "empty")
+    assert judge(_pcap([]))["status"] == "empty", "a capture the guest sent nothing in"
     print("nonos-pcap-egress: self-test passed")
     return 0
 
@@ -455,6 +458,8 @@ def main(argv=None):
                     help="a user-net host MAC, whose frames are not the guest's (default: QEMU slirp's two)")
     ap.add_argument("--nic-mac", default=mac_text(QEMU_NIC_MAC),
                     help="the NIC's own assigned MAC, which only the firmware may send from")
+    ap.add_argument("--expect-silence", action="store_true",
+                    help="a capture the guest sent nothing in is the claim (an airgapped image), not a gap")
     ap.add_argument("--json", help="write the report here as well")
     a = ap.parse_args(argv)
     if a.self_test:
@@ -485,4 +490,7 @@ def main(argv=None):
     if a.json:
         with open(a.json, "w") as fh:
             json.dump(report, fh, indent=1)
+    if report["status"] == "empty" and not a.expect_silence:
+        print("[egress] the guest sent nothing: the capture shows no path, so it proves none clean")
+        return 3
     return 1 if report["failures"] else 0
