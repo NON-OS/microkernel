@@ -5176,6 +5176,7 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/gic/intid.rs",
+   "src/arch/aarch64/gic/irq_handlers",
    "src/arch/aarch64/gic/its/encode",
    "src/arch/aarch64/gic/its/ring.rs",
    "src/arch/aarch64/gic/its/ring_types.rs",
