@@ -32,10 +32,11 @@ mod preset;
 mod report;
 mod state;
 mod tally;
+mod terminal_run;
 
 pub use finish::{finish, not_started};
 pub use frames::key_of;
 pub use kind::{of_needs, Kind};
 pub use notes::{call_begins, may_write, note};
-pub use preset::parse;
 pub use state::{arm, narrow};
+pub use terminal_run::for_terminal;

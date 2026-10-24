@@ -69,8 +69,9 @@ The terminal's `linux --box <box> <program> [args]` runs the program held to a n
 - `strict`: no network; only the run's own `/tmp` is written.
 - `offline`: no network; the image is read-only, and the run's own folders (`/tmp`, `/home`,
   `/root`, `/run`, `/var/tmp`, `/dev/shm`) are written.
-- `allow:<item>,...`: only the folders named (inside those) and the destinations named
-  (`net:<IPv4 or name>:<port>`) are reached.
+- `allow:<folder>,...`: only the folders named, each inside those, are written. A destination
+  item (`net:<IPv4 or name>:<port>`) parses, but a terminal run, the only kind that takes a box,
+  refuses it: it has no network in this release (`boxed/terminal_run.rs`).
 
 Each box grants a terminal and execve; every program the run execs is held to it too. The box
 narrows the program's own policy (`app/identity_box.rs`) and never widens it: a program whose
