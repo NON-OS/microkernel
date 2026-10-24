@@ -31,6 +31,7 @@ mod queue;
 mod ready_step;
 mod ready_wait;
 mod shutdown_step;
+mod shutdown_wait;
 
 pub use active_ns::{first_active_nsid, lists_active_namespaces, FALLBACK_NSID};
 pub use command::set_features;

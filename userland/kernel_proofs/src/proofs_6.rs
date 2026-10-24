@@ -33,6 +33,9 @@ mod inventory_ids;
 /// The power-off's leave phase: every disk driver asked, each bounded.
 #[path = "leave_rule/mod.rs"]
 mod leave_rule;
+/// terminate()'s once: one caller to the wipe, however many race.
+#[path = "terminate_once/mod.rs"]
+mod terminate_once;
 #[path = "unit_base/mod.rs"]
 pub mod unit_base;
 #[path = "secret_log/mod.rs"]

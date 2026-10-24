@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,9 +16,12 @@
 
 //! The leave phase of an ordinary power-off or reboot, before the other CPUs
 //! stop: every running disk driver made safe within its budget and all of
-//! them within 15 s (hardware::block_device::leave). Never on the panic
-//! path, whose kernel can no longer trust a capsule to answer.
+//! them within `total_ms` (hardware::block_device::leave). Never on the
+//! panic path, whose kernel can no longer trust a capsule to answer.
 
-pub(super) fn run() {
-    crate::hardware::block_device::leave::power_off_disks();
+use crate::arch::power::PowerOff;
+
+pub(super) fn run(off: PowerOff, total_ms: u64) {
+    let restart = matches!(off, PowerOff::Reboot);
+    crate::hardware::block_device::leave::power_off_disks(restart, total_ms);
 }

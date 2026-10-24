@@ -16,48 +16,19 @@
 
 //! The leave phase, before power goes (zerostate terminate): every running
 //! disk driver asked at once to make its disks safe, NVMe and AHCI with
-//! their power-off op (flush, then the controller's shutdown or the disk's
-//! standby), the rest with a flush. Each is bounded by its own budget and
+//! their power-off op (the controller's shutdown; the disk's flush, then
+//! its standby), the rest with a flush. Each is bounded by its own budget and
 //! all of them by the total (rule.rs), so a disk that never answers costs
 //! its budget and the power-off goes on. One line per driver says how it
 //! ended. An amnesic boot flushes too: the drive's own cache must settle.
+//! A restart flushes AHCI disks without spinning them down (run.rs).
 
 mod leg;
 mod leg_poll;
 mod poll;
 mod rule;
-
-use alloc::format;
-use alloc::vec::Vec;
+mod run;
 
 pub(crate) use leg::{Leg, Wire};
-use rule::{run, Ended, TOTAL_MS};
-
-pub(crate) fn power_off_disks() {
-    let mut legs: Vec<Leg> = Vec::new();
-    legs.extend(crate::hardware::nvme_capsule::leave_leg());
-    legs.extend(crate::hardware::ahci_capsule::leave_leg());
-    legs.extend(crate::hardware::virtio_blk_capsule::leave_leg());
-    legs.extend(crate::hardware::usb_msc_capsule::leave_leg());
-    legs.extend(super::wire::leave_legs());
-    let budgets: Vec<u64> = legs.iter().map(|l| l.budget_ms).collect();
-    let mut round = 0u32;
-    let now = || Some(crate::time::timestamp_millis());
-    let rest = || {
-        crate::services::lifecycle::rest(round);
-        round = round.saturating_add(1);
-    };
-    let ended = run(&budgets, TOTAL_MS, now, |i| legs[i].poll(), rest);
-    for (leg, end) in legs.iter().zip(ended) {
-        let line = match end {
-            Ended::Answered(0) => format!("{} done", leg.name),
-            Ended::Answered(status) => format!("{} answered {}", leg.name, status),
-            Ended::Gone => format!("{} not running, skipped", leg.name),
-            Ended::Missed => {
-                format!("{} missed its {} ms budget, skipped", leg.name, leg.budget_ms)
-            }
-            Ended::NoClock => format!("{} not waited on: the clock cannot be read", leg.name),
-        };
-        crate::sys::boot_log::ok("POWER", &format!("leave: {line}"));
-    }
-}
+pub(crate) use rule::{CRITICAL_TOTAL_MS, TOTAL_MS};
+pub(crate) use run::power_off_disks;

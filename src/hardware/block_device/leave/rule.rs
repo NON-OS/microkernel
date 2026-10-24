@@ -26,6 +26,10 @@ pub(crate) use super::poll::{Ended, Poll};
 
 /// The most the leave phase takes, however many disks there are.
 pub(crate) const TOTAL_MS: u64 = 15_000;
+/// The most it takes when a thermal zone or the battery is critical and the
+/// machine must go now: enough for an NVMe shutdown and a disk's flush on a
+/// working machine, short of what a failing one may want.
+pub(crate) const CRITICAL_TOTAL_MS: u64 = 6_000;
 
 /// Run every leg until each has ended. `budgets[i]` bounds leg `i`, measured
 /// from the first clock read; `total_ms` bounds them all. `poll(i)` is asked
