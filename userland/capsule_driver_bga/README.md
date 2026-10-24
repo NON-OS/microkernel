@@ -1,9 +1,10 @@
 # capsule_driver_bga
 
-Status: wired, in `microkernel-full-gui` (the image `make` builds) and its
-own `microkernel-driver-bga` profile. The kernel mirror
-(`src/hardware/bga_capsule`) embeds and spawns it under
-certificate comes with the 0.9.3 seal (see the release checklist).
+Status: wired, in its own `microkernel-driver-bga` profile; not yet signed.
+The kernel mirror (`src/hardware/bga_capsule`) embeds and spawns it under
+`nonos-capsule-driver-bga` when the inventory sees `DisplayBga`. It joins
+in the 0.9.3 seal (see the release checklist); until then it is in
+`scripts/baselines/display_profiles.txt`.
 
 ## Role
 
