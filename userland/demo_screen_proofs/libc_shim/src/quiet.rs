@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The rest: no service answers, no app store, no battery, no log; a
-//! yield or an idle returns at once; a hash is refused.
+//! yield or an idle returns at once; a hash or a random draw is refused.
 
 const ENOSYS: i64 = -38;
 const ENODEV: i64 = -19;
@@ -67,4 +67,7 @@ pub fn mk_ipc_reply(_dest_pid: u32, _buf: *const u8, _len: usize) -> i64 {
 }
 pub fn mk_ipc_recv_from(_: u64, _: *mut u8, _: usize, _: u64, _: *mut u32) -> i64 {
     -110
+}
+pub fn crypto_random(_out: *mut u8, _len: usize) -> i64 {
+    ENOSYS
 }
