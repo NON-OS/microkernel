@@ -47,8 +47,11 @@ pub fn spawn_boot_splash_capsule() -> Result<(), SpawnError> {
         manifest_bytes: BOOT_SPLASH_MANIFEST_BYTES,
         attestation_trailer: BOOT_SPLASH_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
+        // Debug only on a `capsule-serial-debug` build: its up and
+        // stepped-aside lines, the boot's reading of where the splash stood.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            | crate::capabilities::serial_debug_cap()
             | Capability::GraphicsSurfaceCreate.bit(),
         debug_tag: b"",
     };
