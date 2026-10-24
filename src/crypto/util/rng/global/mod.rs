@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod fallback;
 mod generate;
 mod init;
+mod range;
 mod reseed;
 mod seed;
 mod state;
 
 pub use generate::{
     fill_random_bytes, fill_random_bytes_secure, get_random_bytes, get_random_bytes_secure,
-    random_range, random_range_secure, random_u32, random_u32_secure, random_u64,
-    random_u64_secure,
+    random_u32, random_u32_secure, random_u64, random_u64_secure,
 };
-pub use init::{init_rng, init_rng_simple, is_initialized};
+pub use init::{init_rng, is_initialized};
+pub use range::{random_range, random_range_secure};
 pub use seed::{seed_direct, seed_from_bootloader, seed_rng};
 pub use state::GLOBAL_COUNTER;
