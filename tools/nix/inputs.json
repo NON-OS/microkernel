@@ -263,6 +263,38 @@
   "md": [],
   "signed": []
  },
+ "nonos-harden": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "userland/admission_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-bootloader/.cargo",
+   "nonos-bootloader/tools/embed-trailer",
+   "nonos-bootloader/tools/sign-kernel",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-harden",
+   "nonos-sign",
+   "src/crypto/asymmetric/alg_id/lengths.rs",
+   "src/crypto/asymmetric/alg_id/types.rs",
+   "src/security/capsule_manifest/cursor.rs",
+   "src/security/capsule_manifest/decode",
+   "src/security/capsule_manifest/error.rs",
+   "src/security/capsule_manifest/schema",
+   "src/security/nonos_id_cert/cursor.rs",
+   "src/security/nonos_id_cert/decode",
+   "src/security/nonos_id_cert/error.rs",
+   "src/security/nonos_id_cert/schema",
+   "third_party/pqclean",
+   "tools/nonos-flip-byte",
+   "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "nonos-mk": {
   "exclude": [],
   "include": [
