@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A `BOX` entry: one Linux program's run in a box, as `capsule_linux`
-//! enforced it. It carries BOX REPORT v1's fields without the examples:
+//! enforced it. Provisional: the layout follows BOX REPORT v1 as described,
+//! not yet checked against its source, which is not in this tree:
 //! `preset: u8 | policy: 32 | started: u8 | exit: i32 | counts: 9 x u64`.
-//! These counts are `capsule_linux`'s, not the kernel's.
 
 use crate::{Reader, WireError};
 
