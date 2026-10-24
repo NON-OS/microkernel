@@ -1,0 +1,42 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The nsh/1 cryptography (docs/design/nsh-v1-wire.md): the X-Wing key
+# exchange, the transcript chain, the key schedule, the labelled digests
+# that are signed, and the sealed frames. Every primitive is one the tree
+# already carries: X-Wing from the x-wing crate shield_core pins, SHA-512,
+# HMAC and HKDF from nonos_hash, ChaCha20-Poly1305 from nonos_seal. Signing
+# is not here; the hybrid signatures are made by their own crates.
+
+[package]
+name = "nsh_crypto"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+nonos_hash = { path = "../nonos_hash" }
+nonos_seal = { path = "../nonos_seal" }
+nsh_wire = { path = "../nsh_wire" }
+x-wing = { version = "=0.1.0", default-features = false, features = ["zeroize"] }
+
+[features]
+# For the proof crate only: start a direction's count at a given point, so
+# the frame and byte limits can be shown without sealing 2^32 frames.
+proofs = []

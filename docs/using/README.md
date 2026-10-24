@@ -16,6 +16,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [The desktop](desktop.md) | work the menu bar, the dock, the Launchpad and windows, copy and paste between apps, and see which apps ship |
 | [Everyday apps](apps.md) | use Editor, Calculator, Processes and Snake, and learn what each keeps |
 | [Terminal](terminal.md) | use the shell: tabs, pipes, jobs, every built-in command, and git |
+| [The exposure map](audit.md) | see which capsule can reach the network, storage or devices, and on whose signature |
 | [Command-line tools](command-line-tools.md) | run `grex`, `jsonxf`, `tokei` and the other four tools that ship, and give them files |
 | [Files](files.md) | find your files, and learn exactly what survives a reboot |
 | [Settings](settings.md) | see every Settings panel and what each row changes |

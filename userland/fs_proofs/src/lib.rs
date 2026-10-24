@@ -209,6 +209,8 @@ mod vfs_path_tests;
 
 // The kernel directory-record layout: entry offsets, name matching, chaining.
 pub mod blockfs_dir;
+#[cfg(test)]
+mod blockfs_ring;
 
 // The kernel's byte helpers both blockfs layers read and write through. Each
 // file is mounted once, here at the root, because the kernel declares its

@@ -35,7 +35,7 @@ pub use error::{RngError, RngResult};
 
 pub use global::{
     fill_random_bytes, fill_random_bytes_secure, get_random_bytes, get_random_bytes_secure,
-    init_rng, init_rng_simple, is_initialized, random_range, random_range_secure, random_u32,
+    init_rng, is_initialized, random_range, random_range_secure, random_u32,
     random_u32_secure, random_u64, random_u64_secure, seed_direct, seed_from_bootloader, seed_rng,
     GLOBAL_COUNTER,
 };
