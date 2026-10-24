@@ -17,6 +17,8 @@
 //! The checks over the tree that built the image: that it is the release's
 //! source, that its trust ledger holds, and the tree's own verifiers run on it.
 
+mod blob_same;
+mod blobs;
 pub mod declared;
 pub mod git;
 pub mod inputs;
@@ -29,6 +31,8 @@ pub mod runner;
 pub mod scratch;
 pub mod source;
 pub mod summary;
+mod system;
+mod untracked;
 pub mod verify;
 
 use std::path::{Path, PathBuf};
@@ -40,4 +44,19 @@ pub fn find(start: &Path) -> Option<PathBuf> {
         d.join("nonos-verify/Cargo.toml").is_file() && d.join("tools/nonos-verify-matrix").is_file()
     };
     start.ancestors().find(holds).map(Path::to_path_buf)
+}
+
+/// The tree to check against: the one given, or else the one the command is
+/// run inside. Never one at or inside the release: a release must not bring
+/// the verifiers that judge it.
+pub fn choose(given: Option<PathBuf>, release: &Path) -> Result<Option<PathBuf>, String> {
+    let here = || std::env::current_dir().ok().and_then(|d| find(&d));
+    let Some(tree) = given.or_else(here) else { return Ok(None) };
+    let (t, r) = (std::fs::canonicalize(&tree), std::fs::canonicalize(release));
+    match (t, r) {
+        (Ok(t), Ok(r)) if t.starts_with(&r) => {
+            Err(format!("the tree {} lies inside the release it would judge", tree.display()))
+        }
+        _ => Ok(Some(tree)),
+    }
 }

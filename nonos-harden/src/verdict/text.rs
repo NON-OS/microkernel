@@ -49,7 +49,7 @@ pub fn render(v: &Verdict) -> String {
     s += &format!("scope: {}\n{}\n", v.scope, v.verdict);
     for c in &v.checks {
         for l in &c.limits {
-            s += &format!("  limit: {}: does not cover {}\n", c.id, clean(l));
+            s += &format!("  limit: {}: {}\n", c.id, clean(l));
         }
     }
     s

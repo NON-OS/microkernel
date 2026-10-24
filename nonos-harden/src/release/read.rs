@@ -14,23 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading a file the release or the tree holds: it must be a regular file
-//! (not a link), and no more than one byte past `max` is read, so a file far
-//! larger than what it claims to be costs nothing to refuse.
+//! Reading a file the release or the tree holds. It is opened once, without
+//! following a link at its last component and without blocking on a FIFO, and
+//! what was opened must be a regular file: every check reads the bytes it
+//! judges through this handle, never by opening the path a second time. No
+//! more than one byte past `max` is read, so an oversized file costs nothing.
 
-use std::fs::{self, File};
+use std::fs::{File, OpenOptions};
 use std::io::Read;
+use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
 
-pub fn read_regular(at: &Path, max: u64) -> Result<Vec<u8>, String> {
-    let md = fs::symlink_metadata(at).map_err(|_| "not found".to_string())?;
-    if !md.file_type().is_file() {
-        return Err("not a regular file".into());
+/// The open file and its length, when `at` is a regular file and not a link.
+pub fn open_regular(at: &Path) -> Result<(File, u64), String> {
+    let mut o = OpenOptions::new();
+    o.read(true).custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK | libc::O_CLOEXEC);
+    let f = o.open(at).map_err(|e| match e.raw_os_error() {
+        Some(libc::ELOOP) => "a symbolic link".to_string(),
+        Some(libc::ENOENT) => "not found".to_string(),
+        _ => format!("unreadable ({e})"),
+    })?;
+    let md = f.metadata().map_err(|e| format!("unreadable ({e})"))?;
+    match md.file_type().is_file() {
+        true => Ok((f, md.len())),
+        false => Err("not a regular file".into()),
     }
-    let unreadable = |e: std::io::Error| format!("unreadable ({e})");
+}
+
+pub fn read_regular(at: &Path, max: u64) -> Result<Vec<u8>, String> {
+    let (f, len) = open_regular(at)?;
+    if len > max {
+        return Err(format!("larger than the {max} bytes it can be"));
+    }
     let mut bytes = Vec::new();
-    let f = File::open(at).map_err(unreadable)?;
-    f.take(max + 1).read_to_end(&mut bytes).map_err(unreadable)?;
+    f.take(max + 1).read_to_end(&mut bytes).map_err(|e| format!("unreadable ({e})"))?;
     if bytes.len() as u64 > max {
         return Err(format!("larger than the {max} bytes it can be"));
     }

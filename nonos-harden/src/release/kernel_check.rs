@@ -21,6 +21,7 @@
 //! rollback index the image carries must be the one the record names.
 
 use super::kernel::parse;
+use super::kernel_bind::bound;
 use super::kernel_keys::KernelKeys;
 use super::read::read_regular;
 use super::record::Item;
@@ -39,12 +40,20 @@ pub fn check(ctx: &mut Ctx) -> Check {
             "needs the record and the tree that holds the kernel's public keys",
         );
     };
-    let kernel = rec.sealed.iter().find(|s| s.name == "kernel" && matches!(s.item, Item::File(_)));
-    let Some(k) = kernel else {
+    let kernel = rec.sealed.iter().find_map(|s| match &s.item {
+        Item::File(sha) if s.name == "kernel" => Some((s, sha)),
+        _ => None,
+    });
+    let Some((k, want)) = kernel else {
         return Check::fail(ID, "the record seals no kernel file");
     };
+    let Some(rollback) = rec.rollback_index else {
+        return Check::fail(ID, "the record names no rollback index to hold the kernel to");
+    };
     let bytes = resolve(&ctx.release, &k.rel, false).and_then(|at| read_regular(&at, MAX_KERNEL));
-    match bytes.and_then(|b| verify(&b, tree, rec.rollback_index)) {
+    let verified =
+        bytes.and_then(|b| bound(rec, want, &b).and_then(|()| verify(&b, tree, Some(rollback))));
+    match verified {
         Ok(why) => Check::pass(ID, why),
         Err(e) => Check::fail(ID, format!("{}: {e}", k.rel)),
     }

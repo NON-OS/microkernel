@@ -16,13 +16,11 @@
 
 //! Running the tree's own verifiers. Each runs with no input, its output to a
 //! log, and a time limit: a verifier that never ends is stopped and counted as
-//! not having run, so a hung tool cannot hold the verdict back or pass it.
+//! not having run, with every process it started, so a hung tool cannot hold
+//! the verdict back or pass it.
 
-use super::scratch::tail;
-use std::fs::File;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 pub struct Cmd {
     pub program: String,
@@ -43,32 +41,4 @@ pub trait Runner {
     fn run(&self, cmd: &Cmd, log: &Path) -> Result<Done, String>;
 }
 
-pub struct System;
-
-impl Runner for System {
-    fn run(&self, cmd: &Cmd, log: &Path) -> Result<Done, String> {
-        let out = File::create(log).map_err(|e| format!("cannot write {} ({e})", log.display()))?;
-        let err = out.try_clone().map_err(|e| e.to_string())?;
-        let mut c = Command::new(&cmd.program);
-        c.args(&cmd.args).current_dir(&cmd.cwd).envs(cmd.env.iter().map(|(k, v)| (k, v)));
-        let spawned = c.stdin(Stdio::null()).stdout(out).stderr(err).spawn();
-        let mut child = spawned.map_err(|e| format!("`{}` did not start ({e})", cmd.program))?;
-        let started = Instant::now();
-        let code = loop {
-            match child.try_wait().map_err(|e| e.to_string())? {
-                Some(status) => break status.code(),
-                None if started.elapsed() > cmd.limit => {
-                    let _ = child.kill();
-                    let _ = child.wait();
-                    let mins = cmd.limit.as_secs() / 60;
-                    return Err(format!(
-                        "`{}` ran past its {mins} minute limit and was stopped",
-                        cmd.program
-                    ));
-                }
-                None => std::thread::sleep(Duration::from_millis(100)),
-            }
-        };
-        Ok(Done { code, tail: tail(log) })
-    }
-}
+pub use super::system::System;

@@ -119,9 +119,9 @@
     "caught_by": "tests::kernel_key_tests::a_rollback_index_the_record_does_not_name_is_refused"
   },
   {
-    "name": "source-allows-changes-outside-trust-set",
+    "name": "source-allows-changes-outside-staging",
     "file": "src/tree/source.rs",
-    "old": "filter(|p| !p.starts_with(TRUST_SET))",
+    "old": "filter(|p| !STAGED.iter().any(|s| p.starts_with(s)))",
     "new": "filter(|_| false)",
     "caught_by": "tests::source_tests::a_change_or_an_addition_outside_the_trust_set_fails_and_is_named"
   },
@@ -177,8 +177,8 @@
   {
     "name": "sign-nonos-public-key-not-refused",
     "file": "src/sign/refuse.rs",
-    "old": "if published.is_some() {",
-    "new": "if false {",
+    "old": "if ed.is_some_and(",
+    "new": "if false && ed.is_some_and(",
     "caught_by": "tests::sign_refuse_more_tests::a_key_the_trust_set_publishes_is_refused"
   },
   {
@@ -238,17 +238,122 @@
     "caught_by": "tests::declared_tests::without_a_declared_list_in_its_format_no_verifier_passes"
   },
   {
-    "name": "decide-go-line-hides-limit-count",
+    "name": "decide-go-line-hides-one-limit",
     "file": "src/verdict/decide.rs",
     "old": "1 => format!(\"{go}, 1 declared limit\"),",
     "new": "1 => go.into(),",
+    "caught_by": "tests::limits_tests::what_the_unsigned_record_alone_holds_is_a_limit_on_every_go"
+  },
+  {
+    "name": "decide-go-line-hides-many-limits",
+    "file": "src/verdict/decide.rs",
+    "old": "n => format!(\"{go}, {n} declared limits\"),",
+    "new": "n => go.into(),",
     "caught_by": "tests::limits_tests::a_go_over_a_declared_gap_counts_and_lists_it_under_the_verdict"
   },
   {
     "name": "text-does-not-list-limits",
     "file": "src/verdict/text.rs",
-    "old": "            s += &format!(\"  limit: {}: does not cover {}\\n\", c.id, clean(l));\n",
+    "old": "            s += &format!(\"  limit: {}: {}\\n\", c.id, clean(l));\n",
     "new": "            let _ = l;\n",
     "caught_by": "tests::limits_tests::a_go_over_a_declared_gap_counts_and_lists_it_under_the_verdict"
+  },
+  {
+    "name": "kernel-verified-bytes-not-bound",
+    "file": "src/release/kernel_bind.rs",
+    "old": "if got != want {",
+    "new": "if false {",
+    "caught_by": "tests::kernel_bind_tests::a_kernel_changed_after_the_record_was_written_fails"
+  },
+  {
+    "name": "kernel-esp-copy-not-bound",
+    "file": "src/release/kernel_bind.rs",
+    "old": "[(_, sha)] if sha == want => Ok(()),",
+    "new": "[(_, _)] => Ok(()),",
+    "caught_by": "tests::kernel_bind_tests::an_esp_kernel_other_than_the_signed_one_fails_though_the_record_agrees"
+  },
+  {
+    "name": "kernel-rollback-optional",
+    "file": "src/release/kernel_check.rs",
+    "old": "let Some(rollback) = rec.rollback_index else {",
+    "new": "let Some(rollback) = rec.rollback_index.or(Some(1)) else {",
+    "caught_by": "tests::kernel_bind_tests::a_record_without_an_esp_kernel_or_a_rollback_index_fails"
+  },
+  {
+    "name": "footer-reserved-bytes-unchecked",
+    "file": "src/release/kernel.rs",
+    "old": "if u16::from_le_bytes([f[10], f[11]]) != 1 || !zero || u32_at(48) != 1 {",
+    "new": "if false {",
+    "caught_by": "tests::kernel_footer_tests::reserved_footer_bytes_not_as_embed_trailer_writes_them_are_refused"
+  },
+  {
+    "name": "source-blob-hash-ignored",
+    "file": "src/tree/blob_same.rs",
+    "old": "Ok(hex::encode(h.finalize()) == e.id)",
+    "new": "Ok(true)",
+    "caught_by": "tests::source_tests::a_change_or_an_addition_outside_the_trust_set_fails_and_is_named"
+  },
+  {
+    "name": "source-exec-bit-ignored",
+    "file": "src/tree/blob_same.rs",
+    "old": "if (md.permissions().mode() & 0o100 != 0) != exec {",
+    "new": "if false {",
+    "caught_by": "tests::source_hide_tests::a_changed_executable_bit_or_a_link_in_place_of_a_file_is_a_change"
+  },
+  {
+    "name": "source-untracked-files-ignored",
+    "file": "src/tree/untracked.rs",
+    "old": "(false, _) if !tracked.contains(rel.as_str()) => out.push(rel),",
+    "new": "(false, _) if false => out.push(rel),",
+    "caught_by": "tests::source_hide_tests::a_file_git_ignores_is_still_a_file_the_commit_does_not_hold"
+  },
+  {
+    "name": "source-release-accepts-other-kernel-keys",
+    "file": "src/tree/source.rs",
+    "old": "(true, _) => Check::fail(ID, format!(\"the kernel's public keys differ from commit {c}'s\")),",
+    "new": "(true, _) => Check::pass(ID, staged),",
+    "caught_by": "tests::source_keys_tests::a_release_tree_with_other_kernel_keys_than_its_commit_fails"
+  },
+  {
+    "name": "choose-allows-tree-inside-release",
+    "file": "src/tree/mod.rs",
+    "old": "(Ok(t), Ok(r)) if t.starts_with(&r) => {",
+    "new": "(Ok(t), Ok(r)) if false && t.starts_with(&r) => {",
+    "caught_by": "tests::tree_choice_tests::a_tree_at_or_inside_the_release_is_refused"
+  },
+  {
+    "name": "sealed-drops-unbound-limit",
+    "file": "src/release/sealed.rs",
+    "old": "return Check::pass(ID, why).with_limits(vec![UNBOUND.into()]);",
+    "new": "return Check::pass(ID, why);",
+    "caught_by": "tests::limits_tests::what_the_unsigned_record_alone_holds_is_a_limit_on_every_go"
+  },
+  {
+    "name": "write-uses-a-predictable-partial-name",
+    "file": "src/write.rs",
+    "old": "let partial = beside(path, &format!(\".{}.{nanos}.partial\", std::process::id()));",
+    "new": "let partial = beside(path, \".partial\");",
+    "caught_by": "tests::fs_tests::a_link_planted_beside_the_verdict_is_not_written_through"
+  },
+  {
+    "name": "read-follows-a-final-link",
+    "file": "src/release/read.rs",
+    "old": "libc::O_NOFOLLOW | libc::O_NONBLOCK | libc::O_CLOEXEC",
+    "new": "libc::O_NONBLOCK | libc::O_CLOEXEC",
+    "caught_by": "tests::fs_tests::a_fifo_a_link_or_an_oversized_file_is_refused_at_once"
+  },
+  {
+    "name": "runner-kills-only-the-child",
+    "file": "src/tree/system.rs",
+    "old": "unsafe { libc::kill(-(child.id() as i32), libc::SIGKILL) };",
+    "new": "let _ = child.kill();",
+    "caught_by": "tests::runner_group_tests::a_process_the_verifier_started_is_stopped_with_it"
+  },
+  {
+    "name": "runner-builds-in-the-trees-target",
+    "file": "src/tree/system.rs",
+    "old": "        c.env(\"CARGO_TARGET_DIR\", own.join(\"cargo-target\"));\n",
+    "new": "",
+    "caught_by": "tests::runner_group_tests::cargo_and_python_write_into_the_runs_own_space"
   }
 ]

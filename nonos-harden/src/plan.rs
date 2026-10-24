@@ -18,16 +18,12 @@
 //! way to skip one, and the proofs fail if one goes missing from this list.
 //! A check whose input an earlier one did not establish says it did not run.
 
-use crate::check::Check;
-use crate::cli::CheckArgs;
-use crate::ctx::Ctx;
-use crate::deliver::deliver;
-use crate::exit;
 use crate::release::{kernel_check, kind, load, receipt_check, sealed};
 use crate::sign::{self, key};
 use crate::tree::runner::{Runner, System};
-use crate::tree::{find, inputs, ledger, matrix, source, verify};
+use crate::tree::{choose, inputs, ledger, matrix, source, verify};
 use crate::verdict::{self, text::clean};
+use crate::{check::Check, cli::CheckArgs, ctx::Ctx, deliver::deliver, exit};
 
 pub type Step = (&'static str, fn(&mut Ctx) -> Check);
 
@@ -58,15 +54,18 @@ pub fn check(args: &CheckArgs) -> u8 {
 /// The key is read and vetted before any check runs: a key that will be
 /// refused should not cost the hours the checks can take.
 pub fn check_with(args: &CheckArgs, runner: Box<dyn Runner>) -> u8 {
-    let here = || std::env::current_dir().ok().and_then(|d| find(&d));
-    let tree = args.tree.clone().or_else(here);
+    let refuse = |why: String| {
+        eprintln!("nonos-harden: {}", clean(&why));
+        exit::USAGE
+    };
+    let tree = match choose(args.tree.clone(), &args.release) {
+        Ok(t) => t,
+        Err(e) => return refuse(e),
+    };
     let key = match args.sign_key.as_deref().map(|k| key::load(k, tree.as_deref())) {
         None => None,
         Some(Ok(k)) => Some(k),
-        Some(Err(e)) => {
-            eprintln!("nonos-harden: not signing with that key: {}", clean(&e));
-            return exit::USAGE;
-        }
+        Some(Err(e)) => return refuse(format!("not signing with that key: {e}")),
     };
     let mut ctx = Ctx::with_runner(args.release.clone(), tree, runner);
     let checks = run(&mut ctx);

@@ -20,6 +20,7 @@
 mod config;
 mod entry;
 pub mod kernel;
+mod kernel_bind;
 pub mod kernel_check;
 pub mod kernel_keys;
 pub mod kind;

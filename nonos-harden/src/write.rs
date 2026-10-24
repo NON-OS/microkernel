@@ -16,8 +16,11 @@
 
 //! Writing a file whole or not at all, and where a verdict's signature goes.
 
+use std::fs::{self, OpenOptions};
+use std::io::{self, Write};
+use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
-use std::{fs, io};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// The signature of the verdict at `out`, written beside it.
 pub fn sig_path(out: &Path) -> PathBuf {
@@ -30,11 +33,16 @@ fn beside(path: &Path, suffix: &str) -> PathBuf {
     p.into()
 }
 
-/// Beside the target, then renamed over it: a reader never sees half.
+/// Into a new file beside the target, then renamed over it: a reader never
+/// sees half. The new file is created, never opened: a name planted there,
+/// a link to some other file among them, is refused, not written through.
 pub fn write_whole(path: &Path, bytes: &[u8]) -> io::Result<()> {
-    let partial = beside(path, ".partial");
-    fs::write(&partial, bytes)?;
-    fs::rename(&partial, path).inspect_err(|_| {
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_nanos());
+    let partial = beside(path, &format!(".{}.{nanos}.partial", std::process::id()));
+    let mut o = OpenOptions::new();
+    o.write(true).create_new(true).mode(0o644).custom_flags(libc::O_NOFOLLOW | libc::O_CLOEXEC);
+    let written = o.open(&partial).and_then(|mut f| f.write_all(bytes).and_then(|()| f.sync_all()));
+    written.and_then(|()| fs::rename(&partial, path)).inspect_err(|_| {
         let _ = fs::remove_file(&partial);
     })
 }

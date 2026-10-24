@@ -30,14 +30,13 @@ use crate::verdict::{decide, Overall, DEV_GO};
 
 #[test]
 fn a_passing_development_release_reads_go_not_a_release_and_a_release_go() {
+    // Each GO carries release.sealed's one limit, so each line counts it.
     let (code, v) = Sealed::dev().verdict(Fake::default());
-    assert_eq!(
-        (code, v["verdict"].as_str(), v["kind"].as_str()),
-        (exit::GO, Some(DEV_GO), Some("development")),
-        "{v:#}"
-    );
+    let dev = format!("{DEV_GO}, 1 declared limit");
+    let got = (code, v["verdict"].as_str(), v["kind"].as_str());
+    assert_eq!(got, (exit::GO, Some(&*dev), Some("development")), "{v:#}");
     let (code, v) = Sealed::release().verdict(Fake::default());
-    assert_eq!((code, v["verdict"].as_str()), (exit::GO, Some("GO")), "{v:#}");
+    assert_eq!((code, v["verdict"].as_str()), (exit::GO, Some("GO, 1 declared limit")), "{v:#}");
 }
 
 #[test]

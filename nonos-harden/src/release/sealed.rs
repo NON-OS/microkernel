@@ -28,6 +28,11 @@ use crate::hash::{sha256_file, short};
 use std::path::Path;
 
 pub const ID: &str = "release.sealed";
+/// What the record alone vouches for. It is not signed: it binds the kernel
+/// only through `release.kernel-signature`, and nothing here ties the rest
+/// to the tree, so every GO says so.
+pub const UNBOUND: &str = "only the unsigned release record vouches for the loader, \
+the ESP's other files and the USB and ISO images";
 
 pub fn check(ctx: &mut Ctx) -> Check {
     let Some(rec) = &ctx.record else {
@@ -39,10 +44,8 @@ pub fn check(ctx: &mut Ctx) -> Check {
     }
     let n = rec.sealed.len();
     if bad.is_empty() {
-        return Check::pass(
-            ID,
-            format!("all {n} sealed artifacts have the bytes the record names"),
-        );
+        let why = format!("all {n} sealed artifacts have the bytes the record names");
+        return Check::pass(ID, why).with_limits(vec![UNBOUND.into()]);
     }
     Check::fail(ID, named(bad))
 }
@@ -63,6 +66,6 @@ pub(crate) fn digest(at: &Path, want: &str, shown: &str, bad: &mut Vec<String>) 
         Ok(got) => {
             bad.push(format!("{shown}: sha256 {}… is not the sealed {}…", short(&got), short(want)))
         }
-        Err(e) => bad.push(format!("{shown}: unreadable ({e})")),
+        Err(e) => bad.push(format!("{shown}: {e}")),
     }
 }

@@ -38,7 +38,7 @@ fn every_check_passing_passes_and_the_stated_gaps_become_limits() {
     };
     let c = trust_chain(fake);
     assert_eq!(c.status, Status::Pass, "{c:?}");
-    assert_eq!(c.limits, ["field asserts (it needs: exposed fields)"]);
+    assert_eq!(c.limits, ["not covered: field asserts (it needs: exposed fields)"]);
 }
 
 #[test]
