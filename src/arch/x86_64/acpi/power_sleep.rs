@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::aml::sleep_obj::SleepPackage;
 use super::error::{AcpiError, AcpiResult};
-use super::hw::port_bus::{busy_wait_us, PortBus};
 use super::hw::fadt_decode::FadtInfo;
+use super::hw::port_bus::{busy_wait_us, PortBus};
 use super::hw::sleep::{enter_sleep, SleepError, SleepTypes};
 use super::parser;
-use super::aml::sleep_obj::SleepPackage;
 use super::power_types::SleepState;
 use crate::hardware::broker::acpi::s5_choice::choose;
 

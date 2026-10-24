@@ -16,7 +16,7 @@
 
 //! The rule's facts on this machine, as seen by the capsule asking.
 
-use super::super::rule::{Facts, Hardware, MemKind};
+use super::super::rule::{Facts, Hardware, MemKind, SPACE_IO};
 use super::{hardware, held, memmap};
 
 /// "Claimed" means held by someone else: a capsule may reach what it holds.
@@ -35,6 +35,10 @@ impl Facts for Machine {
 
     fn protected(&self, base: u64, end: u64) -> Option<Hardware> {
         hardware::protected(base, end)
+    }
+
+    fn power_port(&self, base: u64, end: u64) -> bool {
+        super::power_regs::touches(SPACE_IO, base, end)
     }
 
     fn ports_claimed(&self, base: u16, count: u32) -> bool {

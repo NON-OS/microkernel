@@ -30,6 +30,8 @@ pub enum Hardware {
     Ecam,
     /// A function's MSI-X table or pending bits: written, it aims interrupts.
     Msix,
+    /// A power control register the FADT puts in memory (`power`).
+    PowerControl,
 }
 
 /// Legacy devices whose ports the kernel owns.
@@ -55,6 +57,9 @@ pub enum Legacy {
     Console,
     /// The debug ports the kernel's log may also go to.
     Debug,
+    /// The FADT's PM1 control, sleep control or reset register: the kernel
+    /// enters soft-off and resets through them itself, after the wipe.
+    PowerControl,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

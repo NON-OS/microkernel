@@ -19,7 +19,7 @@
 use super::facts::Facts;
 use super::legacy::LEGACY_PORTS;
 use super::memory::span;
-use super::refusal::Refusal;
+use super::refusal::{Legacy, Refusal};
 
 /// A SystemIO region: any port range no capsule holds, outside the legacy
 /// devices the kernel owns.
@@ -30,6 +30,9 @@ pub fn io(base: u64, len: u64, f: &impl Facts) -> Result<(), Refusal> {
     }
     if let Some((_, _, which)) = LEGACY_PORTS.iter().find(|(lo, hi, _)| base < *hi && *lo < end) {
         return Err(Refusal::Legacy(*which));
+    }
+    if f.power_port(base, end) {
+        return Err(Refusal::Legacy(Legacy::PowerControl));
     }
     if f.ports_claimed(base as u16, (end - base) as u32) {
         return Err(Refusal::Claimed);
