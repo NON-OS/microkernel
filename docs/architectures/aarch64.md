@@ -101,18 +101,42 @@ The generic timer ticks every 10 ms and each tick calls the shared scheduler's `
 
 `aarch64-nonos.json` keeps `cpu` at `generic`, so ordinary code is ARMv8.0, and its `features` add pointer authentication, the speculation barriers, memory tagging and the RNG for the instructions the kernel writes by hand (`aarch64-nonos.json:20-21`). The note on `aarch64-nonos.json` in `mk/20-build.mk` gives the reason for `generic`: naming an architecture version instead would let LLVM put newer instructions into ordinary code, and every hand-written use sits behind an ID register check (`mk/20-build.mk:836-843`). `linker_aarch64.ld` links the image at `0x40080000` on the `virt` board and starts writable data on a 2 MB boundary, so the boot map's 2 MB blocks can keep text read only and executable (`__kernel_rw_start`, `linker_aarch64.ld:18-41`).
 
+## Where a boot stops today
+
+A boot started without a NONOS loader, as QEMU's `-kernel` starts it, comes up to the kernel's check of the bootloader and stops there. `check_bootloader` needs the loader's boot-root record and boot trailer, and either a TCG log with a TPM to read or the loader's own image (`decide`, `src/security/boot/loader_check/run.rs:30-55`). With no loader there is none of them, so the verdict is `NoEvidence`, and `refuse_unchecked_loader` starts no userspace (`src/kernel_core/init/entry/loader_refusal.rs:27-50`). The serial log then ends with:
+
+```
+[BOOT-ATTEST] bootloader not checked: no boot-root record or trailer
+[ERROR] bootloader not admitted by the kernel's check; stopping
+```
+
+The check is never skipped on aarch64. A boot reaches userspace only when a loader hands the kernel its evidence.
+
+The kernel side of that is in place, written and tested on the host:
+- The kernel takes a NONOS loader's handoff in `x1`, beside the device tree in `x0` (`src/arch/aarch64/boot/loader/`). The handoff is the same `BootHandoffV1` as x86_64's. It is copied while the MMU is off and installed through the same checks, so the bootloader check reads its modules as it does on x86_64. A non-zero `x1` that is not a whole, current handoff refuses the boot.
+- The kernel's TPM driver reads its register window from the device tree's `tcg,tpm-tis-mmio` node (`src/arch/fdt/find/tpm/`), not the PC's fixed address.
+
+None of this has been booted.
+
 ## What is missing
 
-- A loader. `nonos-bootloader` is built for one target, `x86_64-unknown-uefi` (`targets`, `nonos-bootloader/rust-toolchain.toml:4`). QEMU starts the aarch64 kernel directly, so none of the loader's checks run before it.
-- A device tree under QEMU. QEMU passes none when it boots an ELF, and a device tree boot needs an Image-format target the build does not have (`ARM_QEMU_FLAGS`, `mk/20-build.mk:897-900`). Without one, `BootInfo` assumes the `virt` board, 512 MB of RAM at `0x4000_0000` and one CPU, whatever `-m` says (`ram_size`, `src/arch/aarch64/boot/info/types.rs:67-92`).
-- Any interrupt controller but a GICv3. `init` refuses a device tree that names another (`gic_unsupported`, `src/arch/aarch64/boot/init.rs:57-59`).
-- An SMMU driver. Every [IOMMU](../overview/glossary-hardware-broker.md#iommu) mapping request on an ARM board is refused (`iommu`, `src/memory/mod.rs:43-46`).
-- PAN. The kernel prints `pan=off` from `report_el1_protection` rather than claim it (`src/kernel_core/init/entry/init_vm_and_protection.rs:78-89`).
-- Kernel stack guard pages. `arm_stack_guards` does nothing outside x86_64 (`src/kernel_core/init/entry/init_vm_and_protection.rs:75-76`).
-- Setting a thread's TLS register from a system call. `set_user_tls` reports failure, because the trap frame return would overwrite `tpidr_el0` (`src/arch/context/tls.rs:25-39`).
-- The capsules that link the std platform layer, which issues system calls with x86_64 registers and does not cross-compile to aarch64 yet (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk:1072-1080`).
-- A firmware framebuffer. `init_arch_framebuffer` maps nothing on aarch64; the display comes up later as a virtio GPU (`src/kernel_core/init/entry/init_arch_framebuffer.rs:21-30`).
-- Checks for every profile. The flake's `profileChecks` type-check each profile against `x86_64-nonos.json` only (`tools/nix/checks.nix:174-193`).
+- A loader. `nonos-bootloader` is built for one target, `x86_64-unknown-uefi` (`targets`, `nonos-bootloader/rust-toolchain.toml:4`). Without one, a boot stops at the bootloader check (above). The loader must:
+  - pass its handoff in `x1`, cleaned to the point of coherency;
+  - pass its modules as on x86_64;
+  - reserve the handoff and the modules in the device tree it hands over (a memory reservation or `/reserved-memory`), because the aarch64 kernel takes its free RAM from the tree, not from an EFI memory map.
+- A sealed image and a runner for it. The Nix image build makes the x86_64 kernel and loader only (`tools/nix/image.nix`), the profiles carry no architecture (`tools/nix/config.nix`), and `tools/nonos_qemu` starts only x86_64 machines. So `make dev-image` has no aarch64 profile.
+- Kernel stack guard pages. `arm_stack_guards` exists only on x86_64 (`src/kernel_core/init/entry/init_vm_and_protection.rs`).
+- The capsules that link the std platform layer, which issues system calls with x86_64 registers and does not cross-compile to aarch64 yet (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk`).
+- Checks for every profile. The flake's `profileChecks` type-check each profile against `x86_64-nonos.json` only (`tools/nix/checks.nix`).
+
+Since this page was first written, the kernel gained:
+- a device tree under QEMU, by booting the arm64 Image;
+- the SMMUv3 (`src/arch/aarch64/iommu/smmu`);
+- PAN on every CPU that has it (`src/arch/aarch64/security/pan.rs`);
+- TLS through `tpidr_el0`, kept per thread (`src/arch/aarch64/context/tls.rs`);
+- a GIC driver that is not limited to v3.
+
+These are written and tested on the host. Which of them a boot has exercised is the boot gate's record, not this page's.
 
 ## See also
 

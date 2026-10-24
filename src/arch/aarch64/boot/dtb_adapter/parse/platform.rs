@@ -24,5 +24,11 @@ pub(super) fn populate(fdt: &Fdt) -> Result<(), &'static [u8]> {
     crate::arch::aarch64::platform_devices::describe(fdt).map_err(describe)?;
     // The firmware mailbox, which the eMMC2's clock and the framebuffer
     // are asked through; not a device a capsule is handed.
-    crate::arch::aarch64::firmware::describe(fdt).map_err(describe)
+    crate::arch::aarch64::firmware::describe(fdt).map_err(describe)?;
+    // A TPM the tree places: the kernel's own TPM driver reads its window
+    // from here (arch::tpm_window), as it reads the PC's fixed one on x86_64.
+    if let Some((base, len)) = crate::arch::fdt::find::tpm::find(fdt).map_err(describe)? {
+        crate::arch::aarch64::tpm_tree::set(base, len);
+    }
+    Ok(())
 }
