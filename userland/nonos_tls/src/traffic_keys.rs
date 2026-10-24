@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+/// One stage of a connection's keys. Not `Copy`: every copy is a value whose
+/// drop wipes it, so no secret outlives the connection that derived it.
+#[derive(Clone, PartialEq, Eq)]
 pub struct TrafficKeys {
     pub suite: u16,
     pub handshake_secret: [u8; 32],
@@ -24,4 +26,30 @@ pub struct TrafficKeys {
     pub client_iv: [u8; 12],
     pub server_key: [u8; 32],
     pub server_iv: [u8; 12],
+}
+
+impl Drop for TrafficKeys {
+    fn drop(&mut self) {
+        for secret in [
+            &mut self.handshake_secret,
+            &mut self.client_secret,
+            &mut self.server_secret,
+            &mut self.client_key,
+            &mut self.server_key,
+        ] {
+            wipe(secret);
+        }
+        wipe(&mut self.client_iv);
+        wipe(&mut self.server_iv);
+    }
+}
+
+/// Zeros that the optimiser may not drop.
+pub fn wipe(bytes: &mut [u8]) {
+    for byte in bytes.iter_mut() {
+        // SAFETY: `byte` is a valid, exclusive reference; the volatile store
+        // is what keeps a key from outliving its use.
+        unsafe { core::ptr::write_volatile(byte, 0) };
+    }
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
 }
