@@ -35,6 +35,7 @@ fn a_failed_draw_refuses_the_key_pair() {
     let _t = turn();
     fail_draws(Some((1, false)));
     assert!(matches!(kyber_keygen(), Err(KyberError::RandomnessFailed)));
+    assert!(kyber_keygen().is_ok(), "the next draw works, and is used");
 }
 
 #[test]

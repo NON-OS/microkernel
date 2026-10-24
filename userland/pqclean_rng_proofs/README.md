@@ -28,6 +28,8 @@ kernel (`src/stand_in*.rs`):
 - A failed draw refuses an ML-DSA key pair or signature, and an ML-KEM key
   pair or encapsulation. Nothing made from the failed draw is handed back,
   and the next draw that works is used as normal.
+- A signature made with a working RNG verifies, through the kernel's own
+  `api.rs`, over the message signed, and not over another.
 - The C hook itself returns -1 and hands over zeros when a draw fails.
 - The weak fallback writes `[RNG] fallback used: weak bytes (entropy
   unavailable)` to the serial line:
@@ -50,5 +52,12 @@ time, and all were caught:
 - each of the four wrappers ignoring a failed draw;
 - the fallback said every time, or never;
 - the hardware entropy source skipped.
+
+**What is reviewed, not proved.**
+
+- The wipes of a refused signature or shared secret are checked by
+  reading the code. The `Err` the tests see is what hands nothing back.
+- The kernel's real `fill_random_bytes_secure` is stood in for here. That
+  it never falls back is checked by reading `generate.rs`.
 
 Run with `cargo test` from this directory.
