@@ -1,0 +1,219 @@
+[
+  {
+    "name": "plan-skips-kernel-signature",
+    "file": "src/plan.rs",
+    "old": "    (kernel_check::ID, kernel_check::check),\n",
+    "new": "",
+    "caught_by": "tests::plan_tests::every_check_runs_in_order_every_time"
+  },
+  {
+    "name": "plan-skips-sealed",
+    "file": "src/plan.rs",
+    "old": "    (sealed::ID, sealed::check),\n",
+    "new": "",
+    "caught_by": "tests::plan_tests::every_check_runs_in_order_every_time"
+  },
+  {
+    "name": "plan-skips-proof-crates",
+    "file": "src/plan.rs",
+    "old": "    (matrix::PROOFS, matrix::proof_crates),\n",
+    "new": "",
+    "caught_by": "tests::plan_tests::every_check_runs_in_order_every_time"
+  },
+  {
+    "name": "decide-not-run-counts-as-pass",
+    "file": "src/verdict/decide.rs",
+    "old": "filter(|c| c.status != Status::Pass)",
+    "new": "filter(|c| c.status == Status::Fail)",
+    "caught_by": "tests::verdict_tests::go_needs_every_check_run_and_passed_and_the_kind_known"
+  },
+  {
+    "name": "decide-unknown-kind-is-go",
+    "file": "src/verdict/decide.rs",
+    "old": "(None, Kind::Unknown) => {\n            (Overall::NoGo,",
+    "new": "(None, Kind::Unknown) => {\n            (Overall::Go,",
+    "caught_by": "tests::verdict_tests::go_needs_every_check_run_and_passed_and_the_kind_known"
+  },
+  {
+    "name": "decide-no-checks-is-not-refused",
+    "file": "src/verdict/decide.rs",
+    "old": "if checks.is_empty() {",
+    "new": "if checks.is_empty() && false {",
+    "caught_by": "tests::verdict_tests::go_needs_every_check_run_and_passed_and_the_kind_known"
+  },
+  {
+    "name": "decide-dev-reads-plain-go",
+    "file": "src/verdict/decide.rs",
+    "old": "(None, Kind::Development) => (Overall::Go, DEV_GO.into()),",
+    "new": "(None, Kind::Development) => (Overall::Go, \"GO\".into()),",
+    "caught_by": "tests::plan_go_tests::a_passing_development_release_reads_go_not_a_release_and_a_release_go"
+  },
+  {
+    "name": "judge-ignores-failed-checks",
+    "file": "src/tree/judge.rs",
+    "old": "if !failed.is_empty() {",
+    "new": "if false {",
+    "caught_by": "tests::judge_tests::a_failed_check_or_one_of_unknown_status_fails"
+  },
+  {
+    "name": "judge-ignores-gaps",
+    "file": "src/tree/judge.rs",
+    "old": "if !unrun.is_empty() {",
+    "new": "if false {",
+    "caught_by": "tests::judge_tests::a_check_that_could_not_run_does_not_pass_though_the_tool_exits_0"
+  },
+  {
+    "name": "judge-ignores-exit-code",
+    "file": "src/tree/judge.rs",
+    "old": "if code != Some(0) {",
+    "new": "if false {",
+    "caught_by": "tests::judge_more_tests::no_report_an_empty_one_or_a_bad_exit_does_not_pass"
+  },
+  {
+    "name": "sealed-accepts-any-digest",
+    "file": "src/release/sealed.rs",
+    "old": "Ok(got) if got == want => {}",
+    "new": "Ok(_) => {}",
+    "caught_by": "tests::sealed_tests::one_flipped_byte_anywhere_fails_and_is_named"
+  },
+  {
+    "name": "sealed-dir-allows-extra-files",
+    "file": "src/release/sealed_dir.rs",
+    "old": "filter(|f| !listed.contains(f.as_str()))",
+    "new": "filter(|_| false)",
+    "caught_by": "tests::sealed_tests::a_file_missing_from_the_esp_or_one_added_to_it_fails"
+  },
+  {
+    "name": "resolve-follows-symlinks",
+    "file": "src/release/resolve.rs",
+    "old": "if t.is_symlink() {",
+    "new": "if false {",
+    "caught_by": "tests::sealed_link_tests::a_link_in_place_of_a_sealed_file_fails_even_to_the_same_bytes"
+  },
+  {
+    "name": "kind-allows-dev-attest-release",
+    "file": "src/release/kind.rs",
+    "old": "if rec.release && dev_attest {",
+    "new": "if false {",
+    "caught_by": "tests::kind_tests::a_release_profile_carrying_the_development_attestation_is_no_go"
+  },
+  {
+    "name": "kernel-ed25519-not-checked",
+    "file": "src/release/kernel_keys.rs",
+    "old": "(Some(vk), Some(sig)) if vk.verify_strict(&msg, &sig).is_ok() => {}",
+    "new": "(Some(_), Some(_)) => {}",
+    "caught_by": "tests::kernel_tests::a_changed_byte_of_either_signature_alone_is_caught"
+  },
+  {
+    "name": "kernel-mldsa-not-checked",
+    "file": "src/release/kernel_keys.rs",
+    "old": "Ok(true) => Ok(()),",
+    "new": "Ok(_) => Ok(()),",
+    "caught_by": "tests::kernel_tests::a_changed_byte_of_either_signature_alone_is_caught"
+  },
+  {
+    "name": "kernel-rollback-not-compared",
+    "file": "src/release/kernel_check.rs",
+    "old": "if rollback.is_some_and(|r| r != a.rollback) {",
+    "new": "if false {",
+    "caught_by": "tests::kernel_key_tests::a_rollback_index_the_record_does_not_name_is_refused"
+  },
+  {
+    "name": "source-allows-changes-outside-trust-set",
+    "file": "src/tree/source.rs",
+    "old": "filter(|p| !p.starts_with(TRUST_SET))",
+    "new": "filter(|_| false)",
+    "caught_by": "tests::source_tests::a_change_or_an_addition_outside_the_trust_set_fails_and_is_named"
+  },
+  {
+    "name": "source-allows-commit-not-in-history",
+    "file": "src/tree/source.rs",
+    "old": "if git(tree, &[\"merge-base\", \"--is-ancestor\", &c, \"HEAD\"]).is_err() {",
+    "new": "if false {",
+    "caught_by": "tests::source_fail_tests::a_commit_the_tree_lacks_or_a_head_before_it_fails"
+  },
+  {
+    "name": "ledger-allows-unlisted-files",
+    "file": "src/tree/ledger.rs",
+    "old": ".filter(|f| !listed.contains(f.as_str()))",
+    "new": ".filter(|_| false)",
+    "caught_by": "tests::ledger_tests::a_changed_missing_or_added_file_fails_and_is_named"
+  },
+  {
+    "name": "receipt-allows-unsealed-artifact",
+    "file": "src/release/receipt_agree.rs",
+    "old": "Some(s) if !sealed.contains(s.as_str()) => {",
+    "new": "Some(s) if false && !sealed.contains(s.as_str()) => {",
+    "caught_by": "tests::receipt_tests::a_receipt_that_disagrees_with_the_release_fails"
+  },
+  {
+    "name": "receipt-drops-limits",
+    "file": "src/release/receipt_check.rs",
+    "old": "true => Check::pass(ID, line).with_limits(limits),",
+    "new": "true => Check::pass(ID, line),",
+    "caught_by": "tests::receipt_shape_tests::a_dirty_sealing_tree_is_stated_as_a_limit_and_not_hidden"
+  },
+  {
+    "name": "matrix-ignores-failed-steps",
+    "file": "src/tree/summary.rs",
+    "old": ".filter(|(_, rc)| *rc != 0)",
+    "new": ".filter(|_| false)",
+    "caught_by": "tests::matrix_tests::a_row_whose_steps_pass_passes_and_one_that_fails_is_named"
+  },
+  {
+    "name": "inputs-ignores-exit-code",
+    "file": "src/tree/inputs.rs",
+    "old": "Ok(d) if d.code == Some(0) => {",
+    "new": "Ok(d) if d.code.is_some() || true => {",
+    "caught_by": "tests::matrix_tests::the_build_inputs_pass_only_when_inputs_py_does"
+  },
+  {
+    "name": "sign-key-place-not-refused",
+    "file": "src/sign/refuse.rs",
+    "old": "match checkout_keys || in_data || named(\"nonos-bootloader\", \"keys\") {",
+    "new": "match false {",
+    "caught_by": "tests::sign_refuse_tests::a_key_where_nonos_keeps_its_keys_is_refused_before_any_check_runs"
+  },
+  {
+    "name": "sign-nonos-public-key-not-refused",
+    "file": "src/sign/refuse.rs",
+    "old": "if published.is_some() {",
+    "new": "if false {",
+    "caught_by": "tests::sign_refuse_more_tests::a_key_the_trust_set_publishes_is_refused"
+  },
+  {
+    "name": "verify-signature-ignores-named-signer",
+    "file": "src/sign/verify.rs",
+    "old": "match named == hex::encode(public) {",
+    "new": "match true {",
+    "caught_by": "tests::sign_tamper_tests::a_verdict_naming_another_signer_does_not_verify_though_signed"
+  },
+  {
+    "name": "deliver-leaves-unsigned-verdict",
+    "file": "src/deliver.rs",
+    "old": "                let _ = fs::remove_file(out);\n",
+    "new": "",
+    "caught_by": "tests::sign_tamper_tests::a_signature_that_cannot_be_written_leaves_no_unsigned_verdict"
+  },
+  {
+    "name": "cli-allows-repeated-flag",
+    "file": "src/cli/flags.rs",
+    "old": "if given.iter().any(|(n, _)| n == name) {",
+    "new": "if false {",
+    "caught_by": "tests::cli_tests::anything_else_is_refused"
+  },
+  {
+    "name": "clean-passes-control-characters",
+    "file": "src/verdict/text.rs",
+    "old": "        c.is_control()\n            ||",
+    "new": "        false\n            ||",
+    "caught_by": "tests::verdict_tests::the_text_verdict_cannot_be_steered_by_what_it_quotes"
+  },
+  {
+    "name": "path-allows-dot-dot",
+    "file": "src/release/path.rs",
+    "old": "&& c != \".\" && c != \"..\")",
+    "new": "&& c != \".\")",
+    "caught_by": "tests::record_tests::a_path_that_could_leave_the_release_is_refused"
+  }
+]

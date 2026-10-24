@@ -38,7 +38,7 @@ impl Sealed {
     pub fn release() -> Self {
         Self::new(release_config())
     }
-    fn new(config: Value) -> Self {
+    pub fn new(config: Value) -> Self {
         let (tree, release) = (Tree::new(), Release::with(config));
         let kernel = attested(&tree, KERNEL, ROLLBACK);
         release.put("kernel.bin", &kernel);
