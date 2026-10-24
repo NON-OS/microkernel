@@ -42,9 +42,12 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
         recipes = load(path, Path("."))
         names = [r["package"] for r in recipes]
         known = table(mirror, cache, names)
-        if not update_lock:
-            lock.held(known, lock.read(pinned), names)
+        pins = None if update_lock else lock.read(pinned)
+        if pins is not None:
+            lock.held(known, pins, names)
         found = catalogue_entries(recipes, known, lambda rec: apk_of(cache, rec), key, when_ms)
+        if pins is not None:
+            lock.bytes_held(pins, found)
     except (ValueError, TypeError, OSError, subprocess.CalledProcessError) as why:
         sys.exit(f"catalogue: {why}")
     listed_ids = {e["listing_id"] for e in found}
@@ -57,5 +60,5 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
     if len(found) != len(recipes):
         sys.exit("catalogue: a recipe was not listed; a seal lists every recipe or none")
     if update_lock:
-        lock.write(pinned, known, names)
+        lock.write(pinned, known, names, found)
     return found

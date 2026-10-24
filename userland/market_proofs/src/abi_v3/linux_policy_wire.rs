@@ -113,6 +113,12 @@ fn the_answer_is_for_the_release_found_with_its_hash_and_signatures() {
         answer(&index, true, |_, _| true, &e.listing_id, "nope@1").is_none(),
         "no such release"
     );
+    let mut second = rel.clone();
+    second.release_id = "pkg@2".into();
+    second.package_hash = [0xab; 32];
+    index.entries[0].releases.push(second);
+    let (_, hash) = answer(&index, true, |_, _| true, &e.listing_id, "pkg@2").expect("the second");
+    assert_eq!(hash, [0xab; 32], "the hash of the release asked for, not the first");
     let mut seen = None;
     let _ = answer(
         &index,
@@ -122,7 +128,7 @@ fn the_answer_is_for_the_release_found_with_its_hash_and_signatures() {
             true
         },
         &e.listing_id,
-        &rel.release_id,
+        "pkg@2",
     );
-    assert_eq!(seen, Some((0, 0)), "the publisher flag asked of the release found");
+    assert_eq!(seen, Some((0, 1)), "the publisher flag asked of the release found");
 }

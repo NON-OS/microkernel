@@ -65,6 +65,7 @@ jobs:
             target: ipc_decoders
           - crate: userland/market_proto
             target: linux_policy
+            seed: true
     env:
       SECONDS_PER_TARGET: ${{ inputs.seconds || '1800' }}
     steps:

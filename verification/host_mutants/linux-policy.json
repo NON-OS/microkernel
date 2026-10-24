@@ -30,5 +30,7 @@
  {"name": "kernel-hash-dropped", "file": "src/security/market_capsule/client/linux_policy_wire.rs", "old": "Some((reply, *hash))", "new": "Some((reply, [0; 32]))", "crate": "userland/market_proofs", "test": "abi_v3::linux_policy_kernel"},
  {"name": "kernel-pin-ignored", "file": "src/security/market_capsule/client/linux_policy_wire.rs", "old": "(hash == *pin).then_some(reply)", "new": "{ let _ = (hash, pin); Some(reply) }", "crate": "userland/market_proofs", "test": "abi_v3::linux_policy_kernel"},
  {"name": "proto-hash-dropped", "file": "userland/market_proto/src/linux_policy.rs", "old": "Some((reply, *hash))", "new": "Some((reply, [0; 32]))", "crate": "userland/market_proto", "test": "linux_policy"},
- {"name": "proto-none-with-tail", "file": "userland/market_proto/src/linux_policy.rs", "old": "(KIND_NONE, []) =>", "new": "(KIND_NONE, _) =>", "crate": "userland/market_proto", "test": "linux_policy"}
+ {"name": "proto-none-with-tail", "file": "userland/market_proto/src/linux_policy.rs", "old": "(KIND_NONE, []) =>", "new": "(KIND_NONE, _) =>", "crate": "userland/market_proto", "test": "linux_policy"},
+ {"name": "minted-error-is-gone", "file": "userland/capsule_linux/src/linux/install/minted.rs", "old": "found(p) == Ok(false)", "new": "found(p) != Ok(true)", "crate": "userland/capsule_linux_proofs", "test": "minted_tests"},
+ {"name": "answer-first-release", "file": "userland/capsule_market/src/server/handlers/get_linux_policy/encode.rs", "old": "find_release(index, listing, release)?", "new": "find_release(index, listing, \"\")?", "crate": "userland/market_proofs", "test": "abi_v3::linux_policy"}
 ]
