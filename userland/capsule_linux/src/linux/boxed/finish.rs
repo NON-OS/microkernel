@@ -27,5 +27,5 @@ pub fn finish(exit: i32) {
         true => crate::linux::console::say(text.as_bytes()),
         false => crate::linux::say::say(text.as_bytes()),
     }
-    crate::linux::say::say(super::report::box_line(&a.policy, &a.hash, &a.tally, exit).as_bytes());
+    crate::linux::say::say(super::line::box_line(&a.policy, &a.hash, &a.tally, exit).as_bytes());
 }
