@@ -19,9 +19,11 @@
 mod blit;
 mod colour;
 mod display;
+mod present_note_tests;
 pub(crate) mod requests;
 mod scene;
 mod sizes;
+mod stall_tests;
 mod trusted;
 mod turn_watch_tests;
 mod wire;
