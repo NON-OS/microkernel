@@ -60,6 +60,7 @@ mod regular;
 mod rename;
 mod resolve;
 mod root;
+mod root_write;
 mod seek;
 mod slot;
 mod hash_windows;
