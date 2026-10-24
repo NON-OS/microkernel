@@ -32,3 +32,12 @@ pub(crate) fn over(elapsed: i64, now: i64, desktop_up_at: i64, detail: bool, ite
     let handed_off = desktop_up_at >= 0 && now >= desktop_up_at && now - desktop_up_at >= SETTLE_MS;
     (!detail && (handed_off || elapsed >= MAX_DWELL_MS)) || iters >= MAX_ITERS
 }
+
+/// Why the splash stepped aside, for its log line.
+pub(crate) fn why(desktop_up_at: i64) -> &'static str {
+    if desktop_up_at >= 0 {
+        "the desktop is up"
+    } else {
+        "the dwell ran out"
+    }
+}
