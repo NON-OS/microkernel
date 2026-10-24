@@ -311,6 +311,15 @@
   "md": [],
   "signed": []
  },
+ "nonos-shield-prove": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-shield-prove"
+  ],
+  "md": [],
+  "signed": []
+ },
  "nonos-sign": {
   "exclude": [
    "userland/admission_proofs/fuzz"
