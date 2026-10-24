@@ -1004,7 +1004,6 @@ microkernel-full-gui = [
   "nonos-capsule-driver-usb-msc",
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",
-  "nonos-capsule-driver-smbus",
   "nonos-capsule-market",
   "microkernel-setup-wizard",
   "nonos-capsule-input-proof",
