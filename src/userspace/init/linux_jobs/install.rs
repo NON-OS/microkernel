@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! An install once the market vouches for it, in the box its release is
 //! sold with (I-C5, plan/30): the release's guest_policy and its listing
 //! and release keys go to the install role as argv m, which checks them
@@ -42,10 +41,14 @@ pub(super) fn install(listing: &str, release: &str) {
         return refuse(listing, b"[LINUX-INSTALL] no package name the personality takes, refused ");
     };
     /* The store showed it ready; the market is asked again, and the
-     * release's package hash goes to the installer, which takes no other. */
+     * release's package hash goes to the installer, which takes no other.
+     * The release is resolved once: readiness and the box are asked of
+     * that release by its own id, never of the word "latest" again. */
+    let found = queued_get_release(listing, release);
+    let release = found.as_ref().map_or(release, |r| r.release_id.as_str());
     let asked = queued_install_ready(listing, release);
     let ready = asked.as_ref().is_ok_and(|r| r.install_ready);
-    let pinned = queued_get_release(listing, release).map(|r| r.package_hash);
+    let pinned = found.as_ref().map(|r| r.package_hash).map_err(|e| *e);
     super::why::say(&asked, &pinned);
     let (true, Ok(hash)) = (ready, pinned) else {
         return refuse(listing, b"[LINUX-INSTALL] not ready, refused ");
@@ -56,7 +59,11 @@ pub(super) fn install(listing: &str, release: &str) {
     match spawn_install(&name, &hash, policy.as_deref(), direct) {
         Ok(pid) => {
             super::status::set(listing, Stage::Running(pid));
-            print(if policy.is_some() { b"[LINUX-INSTALL] started, in its release's box " } else { b"[LINUX-INSTALL] started " });
+            print(if policy.is_some() {
+                b"[LINUX-INSTALL] started, in its release's box "
+            } else {
+                b"[LINUX-INSTALL] started "
+            });
             println(listing.as_bytes());
         }
         Err(e) => {

@@ -17,9 +17,12 @@
 //! The gates schema 3 adds (plan/25): whether the publisher and the payee
 //! stand behind what is sold, whether the payee attested to these bytes, and
 //! whether a Linux release carries the policy it was sold under, and whether
-//! the price the store shows is the one the meter charges. They apply
-//! to schema 3 releases only: a schema 2 release keeps today's checks until
-//! the owner re-seals it (O5), and a free listing sells nothing to attest.
+//! the price the store shows is the one the meter charges. The sale gates
+//! apply to schema 3 releases only: a schema 2 release keeps today's checks
+//! until the owner re-seals it (O5), and a free listing sells nothing to
+//! attest. The policy gate holds whatever the schema: a linux.* release
+//! fetched from an index never installs without its box, and only a vendor
+//! program ("store:") is boxed by the personality's own table.
 
 use nonos_marketplace_abi::SettleMode;
 use nonos_marketplace_abi::{attest_verdict, binding_verdict, commerce_verdict, policy_verdict};
@@ -55,7 +58,7 @@ pub fn market_gates<H: Keccak + Blake3 + Recover>(
             && commerce_verdict(h, entry, rel) == CommerceVerdict::Matches
             && binding_verdict(h, h, entry) == BindingVerdict::Valid);
     let attest = !sells || attest_verdict(h, h, entry, rel) == AttestVerdict::Valid;
-    let policy = rel.ext.is_none() || policy_verdict(h, entry, rel).passes();
+    let policy = policy_verdict(h, entry, rel).passes();
     let price = price_verdict(entry) != PriceVerdict::Contradicts;
     MarketGates { commerce, attest, policy, price }
 }

@@ -21,8 +21,10 @@
 
 use nonos_libc::mk_debug;
 
+use super::apps::{wanted, Wanted};
 use super::market_arg::MARKET_LEN;
-use super::market_check::{admit, names_program};
+use super::market_check::{admit, names_program, without_box};
+use super::record::program::forget;
 use super::record::vouch::sign_beside;
 use super::{install, recorded, uninstall, Why};
 use crate::linux::attest_paths::beside;
@@ -31,19 +33,28 @@ use nonos_linux_policy::LinuxAppPolicy;
 
 const MAX_IMAGE: u32 = 64 << 20;
 
-/// `market` is None for a release with no guest_policy: the program then runs
-/// in the box the vendor table, or the owner's default, gives it.
+/// `market` is None for a release with no guest_policy: only a shipped tier,
+/// whose box is the personality's own table's, installs without one.
 pub fn install_from(
     pkg: &str,
     pin: &[u8; 32],
     market: Option<&[u8; MARKET_LEN]>,
 ) -> Result<(), Why> {
-    let Some(market) = market else { return install(pkg, pin) };
+    let Some(market) = market else {
+        without_box(matches!(wanted(pkg), Wanted::Tier(_))).map_err(refused)?;
+        return install(pkg, pin);
+    };
     let policy = admit(market).map_err(refused)?;
     install(pkg, pin)?;
     if let Err(why) = bind(pkg, &policy) {
-        let _ = uninstall(pkg);
-        return Err(refused(why));
+        let why = refused(why);
+        // What the install left must not be started in the default box.
+        if uninstall(pkg).is_err() && !forget(pkg) {
+            say(&alloc::format!(
+                "[LINUX] {pkg}: its record stays; uninstall it before running it\n"
+            ));
+        }
+        return Err(why);
     }
     Ok(())
 }
@@ -63,7 +74,10 @@ fn bind(pkg: &str, policy: &LinuxAppPolicy) -> Result<(), &'static str> {
 }
 
 fn refused(why: &str) -> Why {
-    let line = alloc::format!("[LINUX] refused the market's policy: {why}\n");
-    let _ = mk_debug(line.as_ptr(), line.len());
+    say(&alloc::format!("[LINUX] refused the market's policy: {why}\n"));
     Why::Policy
+}
+
+fn say(line: &str) {
+    let _ = mk_debug(line.as_ptr(), line.len());
 }

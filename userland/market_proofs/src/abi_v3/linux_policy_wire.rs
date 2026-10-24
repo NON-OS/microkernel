@@ -36,7 +36,9 @@ fn a_valid_signed_policy_goes_out_whole_with_its_two_keys() {
     let release = release_id(&Host, &listing, &rel.release_id);
     let p = policy(listing, release);
     let (e, rel) = linux(p.clone(), "https://pkg");
-    let LinuxPolicy::Policy(m) = read(encode(&e, &rel, true)) else { panic!("no policy sent") };
+    let LinuxPolicy::Policy(m) = read(encode(&e, &rel, true, true)) else {
+        panic!("no policy sent")
+    };
     assert_eq!((&m[..256], &m[256..288], &m[288..]), (&p[..], &listing[..], &release[..]));
 }
 
@@ -46,22 +48,40 @@ fn a_policy_nobody_signed_or_that_fails_the_gate_is_refused() {
     let listing = listing_id(&Host, &e.publisher_pubkey, &e.listing_id);
     let release = release_id(&Host, &listing, &rel.release_id);
     let (e, rel) = linux(policy(listing, release), "https://pkg");
-    assert_eq!(read(encode(&e, &rel, false)), LinuxPolicy::Refused, "unsigned");
+    assert_eq!(read(encode(&e, &rel, false, true)), LinuxPolicy::Refused, "index unsigned");
+    assert_eq!(read(encode(&e, &rel, true, false)), LinuxPolicy::Refused, "publisher unsigned");
     for p in [vec![], policy(listing, [0; 32]), policy([0; 32], [0; 32]), vec![0; 255]] {
         let (e, rel) = linux(p, "https://pkg");
-        assert_eq!(read(encode(&e, &rel, true)), LinuxPolicy::Refused);
+        assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::Refused);
     }
     let (e, rel) = linux(policy(listing, release), "store:/bin/qwenchat");
-    assert_eq!(read(encode(&e, &rel, true)), LinuxPolicy::Refused, "a vendor program naming ids");
+    assert_eq!(
+        read(encode(&e, &rel, true, true)),
+        LinuxPolicy::Refused,
+        "a vendor program naming ids"
+    );
 }
 
 #[test]
 fn a_vendor_program_or_a_listing_not_linux_sends_no_policy() {
     for p in [vec![], policy([0; 32], [0; 32])] {
         let (e, rel) = linux(p, "store:/bin/qwenchat");
-        assert_eq!(read(encode(&e, &rel, true)), LinuxPolicy::NoPolicy);
+        assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::NoPolicy);
     }
     let (mut e, rel) = linux(vec![], "https://pkg");
     e.listing_id = "nonos.app.calculator".into();
-    assert_eq!(read(encode(&e, &rel, true)), LinuxPolicy::NoPolicy);
+    assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::NoPolicy);
+}
+
+/* The box goes out only for a release init would install: a valid, signed
+ * policy for a release readiness refuses is still refused. */
+#[test]
+fn a_policy_for_a_release_that_is_not_ready_is_refused() {
+    let (e, rel) = linux(vec![], "https://pkg");
+    let listing = listing_id(&Host, &e.publisher_pubkey, &e.listing_id);
+    let release = release_id(&Host, &listing, &rel.release_id);
+    let (e, mut rel) = linux(policy(listing, release), "https://pkg");
+    assert!(matches!(read(encode(&e, &rel, true, true)), LinuxPolicy::Policy(_)));
+    rel.supported_arches = vec!["riscv64".into()];
+    assert_eq!(read(encode(&e, &rel, true, true)), LinuxPolicy::Refused, "another arch");
 }
