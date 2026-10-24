@@ -53,6 +53,7 @@ pub fn exchange_within<S: Io>(
     let answer = state.answer(host.as_bytes(), now, request).map_err(|refusal| match refusal {
         Refusal::Alert(description) => SessionError::PeerAlert(description),
         Refusal::Unverified => SessionError::Certificate,
+        Refusal::TooSlow => SessionError::TooSlow,
         Refusal::Incomplete | Refusal::Seal => SessionError::Handshake,
     })?;
     io.write_all(&answer.flight)?;

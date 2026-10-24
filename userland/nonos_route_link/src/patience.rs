@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! How long a read waits for the far end's first bytes, by the network it
-//! crosses. A Nym or Anyone answer crosses several relays each way, the
+//! crosses, for a route and for a stream's proxy alike: one number per
+//! network. A Nym or Anyone answer crosses several relays each way, the
 //! mixnet delaying every packet on purpose, so it can be many seconds out.
-//! Route::patience_ms says the same per route; route_link_proofs holds the
-//! two to one number for each network.
 
+use crate::pick::Route;
 use crate::refusal::Proxy;
 
 /// Through the Nym mixnet.
@@ -33,6 +33,18 @@ impl Proxy {
         match self {
             Proxy::Nym => NYM_PATIENCE_MS,
             Proxy::Anyone | Proxy::AnyoneService | Proxy::AnyoneName => ANYONE_PATIENCE_MS,
+        }
+    }
+}
+
+impl Route {
+    /// A socket read already waits on the wire, so Direct adds nothing and
+    /// its callers keep the windows they had.
+    pub fn patience_ms(self) -> u64 {
+        match self {
+            Route::Nym(_) => NYM_PATIENCE_MS,
+            Route::Anon(_) => ANYONE_PATIENCE_MS,
+            Route::Direct | Route::Down(_) => 0,
         }
     }
 }

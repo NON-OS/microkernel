@@ -925,6 +925,9 @@ dependencies = [
 [[package]]
 name = "tls_proofs_route_shim"
 version = "0.1.0"
+dependencies = [
+ "nonos_policy_proto",
+]
 
 [[package]]
 name = "tls_proofs_shim"
