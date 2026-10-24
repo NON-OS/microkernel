@@ -52,6 +52,7 @@ impl Family {
                 None => return,
             },
         };
+        crate::linux::boxed::call_begins();
         self.lend(i);
         self.lend_view(i, &frame);
         let got = answer(&mut self.guests[i], &frame);
