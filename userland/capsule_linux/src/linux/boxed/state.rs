@@ -21,7 +21,6 @@ use alloc::vec::Vec;
 use core::cell::RefCell;
 
 use super::hash::box_hash;
-use super::kind::Kind;
 use super::preset::BoxPolicy;
 use super::tally::Tally;
 use crate::linux::app::AppIdentity;
@@ -30,6 +29,10 @@ pub(super) struct Armed {
     pub(super) policy: BoxPolicy,
     pub(super) hash: [u8; 32],
     pub(super) tally: Tally,
+    /// The key the starting terminal named for the report (frames.rs).
+    pub(super) key: Option<[u8; super::frames::KEY_LEN]>,
+    /// The services the program was given in the box, once it started.
+    pub(super) granted: Option<u64>,
 }
 
 pub(super) struct One(pub(super) RefCell<Option<Armed>>);
@@ -42,32 +45,18 @@ unsafe impl Sync for One {}
 
 pub(super) static BOX: One = One(RefCell::new(None));
 
-pub fn arm(policy: BoxPolicy) {
+pub fn arm(policy: BoxPolicy, key: Option<[u8; super::frames::KEY_LEN]>) {
     let hash = box_hash(&policy);
-    *BOX.0.borrow_mut() = Some(Armed { policy, hash, tally: Tally::default() });
+    let tally = Tally::default();
+    *BOX.0.borrow_mut() = Some(Armed { policy, hash, tally, key, granted: None });
 }
 
 /// The program's identity inside the box: never more than both allow.
 pub fn narrow(app: AppIdentity) -> AppIdentity {
-    match BOX.0.borrow().as_ref() {
-        None => app,
-        // The list lives as long as the run: the identity holds it by 'static.
-        Some(a) => app.boxed(a.policy.mask, Vec::leak(a.policy.dests.clone())),
-    }
-}
-
-pub fn may_write(path: &[u8]) -> bool {
-    BOX.0.borrow().as_ref().is_none_or(|a| super::folders::may_write(&a.policy.folders, path))
-}
-
-pub fn call_begins() {
-    if let Some(a) = BOX.0.borrow_mut().as_mut() {
-        a.tally.call_begins();
-    }
-}
-
-pub fn note(kind: Kind, example: &[u8]) {
-    if let Some(a) = BOX.0.borrow_mut().as_mut() {
-        a.tally.note(kind, example);
-    }
+    let mut armed = BOX.0.borrow_mut();
+    let Some(a) = armed.as_mut() else { return app };
+    // The list lives as long as the run: the identity holds it by 'static.
+    let boxed = app.boxed(a.policy.mask, Vec::leak(a.policy.dests.clone()));
+    a.granted = Some(boxed.mask);
+    boxed
 }

@@ -35,11 +35,13 @@ A box named wrongly is refused before anything runs, with the reason: `linux: --
 
 ## The report
 
-When the program ends, the Terminal shows:
+When the program has ended, the Terminal shows its report. The report comes from `capsule_linux` on frames that carry a key the Terminal made for this run and the program is never told, so nothing the program prints is taken for the report, and it is drawn only after the program's output has ended and any half-written escape sequence it left has been cut off. A program can scroll the screen but cannot write, hide or change its own report.
+
+
 
 ```
 BOX REPORT v1
-  policy   strict ab9fb0d1cd685a85f0db55034e43c52ba5d0cbff31b8f2b3050bf01581bc6f67
+  policy   strict 5811b081f826f154ce1ac5a7b558bff858ae0bacc27ad2db9d2e5f84ce05323a
   allowed  write /tmp
   allowed  read the image, read-only
   allowed  network none
@@ -55,16 +57,20 @@ BOX REPORT v1
 - `refused` is how many actions the box refused, then one line for each kind refused at least once: its count and the first three it refused.
 - The kinds: `write` (a file written, made, renamed or removed outside the folders), `network` (a socket, a connection, a bind or a datagram the box does not allow), `exec`, `jit` (executable memory), `display`, `models`, `call` (a system call outside the program's declared calls), `barred` (calls no Linux program is ever given, such as `ptrace` and `mount`) and `unserved` (calls NONOS does not provide).
 - One system call counts once for each kind it was refused as. Asking whether a file could be written, as `access` does, is not a refused action.
+- `allowed` is what the program actually had: the box, narrowed by the program's own policy. A folder in `/home` or `/root` is listed only if the program's policy gives it a home, and `network` lists destinations only if its policy gives it network.
+- `started  no: <reason>` appears when the program never started (it was not found, or its proof was refused); nothing ran, so nothing was refused.
 - `exit` is the program's exit status.
+
+If no report arrives, the Terminal says `linux: the box sent no report; it may have been stopped`. If the run is stopped with `Ctrl+C` before its report arrives, it says `linux: stopped before the box's report arrived`.
 
 The counts are made by `capsule_linux` as it refuses each action. They are not the kernel's sealed histogram, which counts every call by the error it returned and is what a proof of a run reads.
 
 ## For automation
 
-The same summary goes to the serial log as one line:
+The Terminal also writes the same summary to the serial log as one line, in a build that compiles `capsule-serial-debug`:
 
 ```
-[BOX] v=1 preset=strict policy=<hash> refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 exit=0 source=capsule_linux
+[BOX] v=1 preset=strict policy=<hash> refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 started=yes exit=0 source=capsule_linux
 ```
 
 Every kind is always present. `v=1` is the format; a reader should refuse any other number.
@@ -72,8 +78,9 @@ Every kind is always present. `v=1` is the format; a reader should refuse any ot
 ## Where this comes from
 
 - The boxes, the hash and the report: `userland/capsule_linux/src/linux/boxed/`.
+- The report taken and drawn by the Terminal: `userland/capsule_terminal/src/jobs/box_hold.rs` and `box_draw.rs`.
 - How a box narrows a program's own policy: `userland/capsule_linux/src/linux/app/identity_box.rs`.
-- The tests: `userland/capsule_linux_proofs/src/tests/boxed/`, and the fuzz target `box_word` in `userland/capsule_linux_proofs/fuzz/`.
+- The tests: `userland/capsule_linux_proofs/src/tests/boxed/`, `userland/terminal_line_proofs/src/jobs/box_*`, and the fuzz target `box_word` in `userland/capsule_linux_proofs/fuzz/`.
 
 ## See also
 
