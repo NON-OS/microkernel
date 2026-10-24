@@ -24,3 +24,5 @@ pub mod join;
 pub mod reach;
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/table.rs"]
 pub mod table;
+#[path = "../../../../../capsule_terminal/src/command/builtin/audit/withheld.rs"]
+pub mod withheld;

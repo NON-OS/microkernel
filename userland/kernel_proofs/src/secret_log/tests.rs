@@ -51,6 +51,9 @@ fn debug_is_withheld_from_every_secret_holder_off_dev() {
         assert_eq!(std & !DEBUG, caps & !DEBUG, "{caps:#x}: only Debug is touched");
         assert_eq!(std & DEBUG == 0, caps & DEBUG == 0 || caps & SECRETS != 0);
         assert_eq!(unlogged(caps, true), caps, "{caps:#x}: the dev profile keeps it");
+        // The process table's flag is set exactly when Debug was offered
+        // beside a secret (`withholds_debug`).
+        assert_eq!(std != caps, caps & DEBUG != 0 && caps & SECRETS != 0);
         withheld += usize::from(std != caps);
     }
     println!("{withheld} masks had Debug withheld");

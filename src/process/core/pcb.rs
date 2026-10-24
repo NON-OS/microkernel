@@ -56,6 +56,8 @@ pub struct ProcessControlBlock {
      * flips this once to swap that token for the manifest-derived one.
      */
     pub caps_manifest_installed: core::sync::atomic::AtomicBool,
+    /// The spawn gate withheld the Debug its manifest offered (`secret_log`).
+    pub debug_withheld: core::sync::atomic::AtomicBool,
     /*
      * Per-capsule revocation epoch. Bumped by `process::caps::revoke`
      * and minted into each token; the resolver compares the token's
