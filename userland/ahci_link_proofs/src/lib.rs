@@ -59,6 +59,8 @@ mod medium_tests;
 mod names_tests;
 #[cfg(test)]
 mod ports_tests;
+#[path = "../../capsule_driver_ahci/src/server/power_off_rule.rs"]
+pub mod power_off_rule;
 #[cfg(test)]
 mod reason_tests;
 #[cfg(test)]
