@@ -4675,6 +4675,29 @@
   "md": [],
   "signed": []
  },
+ "userland/exposure_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types/defs.rs",
+   "userland/capsule_about/src/about/data/verify/held_by.rs",
+   "userland/capsule_attest/src/state/live/caps.rs",
+   "userland/capsule_attest/src/state/live/types.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/agent.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/format.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/join.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/names.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/table.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/withheld.rs",
+   "userland/capsule_terminal/src/command/builtin/cap_names.rs",
+   "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
+   "userland/capsule_terminal/src/term/util/format_u64.rs",
+   "userland/exposure_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/fdt_proofs": {
   "exclude": [],
   "include": [
@@ -4763,9 +4786,12 @@
    "src/fs/blockfs/dir_name_match.rs",
    "src/fs/blockfs/file_cache.rs",
    "src/fs/blockfs/file_consts.rs",
+   "src/fs/blockfs/header_lba.rs",
    "src/fs/blockfs/index_block.rs",
+   "src/fs/blockfs/mount.rs",
    "src/fs/blockfs/read_u32.rs",
    "src/fs/blockfs/read_u64.rs",
+   "src/fs/blockfs/ring_pick.rs",
    "src/fs/blockfs/tree_ptrs.rs",
    "src/fs/blockfs/tree_range.rs",
    "src/fs/blockfs/tree_reader.rs",

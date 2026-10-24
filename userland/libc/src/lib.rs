@@ -124,7 +124,7 @@ pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
-pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
+pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
 pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
 pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};

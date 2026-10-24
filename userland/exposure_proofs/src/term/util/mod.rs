@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::BlockFsMount;
-
-pub(super) fn select_newer(
-    current: Option<BlockFsMount>,
-    candidate: BlockFsMount,
-) -> Option<BlockFsMount> {
-    match current {
-        Some(old) if old.superblock.generation >= candidate.superblock.generation => Some(old),
-        _ => Some(candidate),
-    }
-}
+#[path = "../../../../capsule_terminal/src/term/util/format_u64.rs"]
+mod format_u64;
+pub use format_u64::format_u64;
