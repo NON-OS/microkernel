@@ -18,83 +18,29 @@ use core::sync::atomic::Ordering;
 
 use super::{AlgorithmStatus, CRYPTO_STATE};
 
+pub use super::kat_aead::kat_chacha20poly1305;
+pub use super::kat_hash::{kat_blake3, kat_sha3_256};
+pub use super::kat_sign::kat_ed25519;
+#[cfg(feature = "pqc-unvetted")]
+pub use super::unvetted::{kat_ntru, kat_sphincs};
+
 pub fn kat_rng() -> AlgorithmStatus {
     let mut buf1 = [0u8; 32];
     let mut buf2 = [0u8; 32];
 
-    crate::crypto::rng::fill_random_bytes(&mut buf1);
-    crate::crypto::rng::fill_random_bytes(&mut buf2);
+    let drawn = crate::crypto::rng::fill_random_bytes_secure(&mut buf1).is_ok()
+        && crate::crypto::rng::fill_random_bytes_secure(&mut buf2).is_ok();
 
     let buf1_zero = buf1.iter().all(|&b| b == 0);
     let buf2_zero = buf2.iter().all(|&b| b == 0);
     let same = buf1 == buf2;
 
-    if !buf1_zero && !buf2_zero && !same {
+    if drawn && !buf1_zero && !buf2_zero && !same {
         CRYPTO_STATE.rng.store(true, Ordering::SeqCst);
         CRYPTO_STATE.checks_passed.fetch_add(1, Ordering::SeqCst);
         AlgorithmStatus::Pass
     } else {
         CRYPTO_STATE.checks_failed.fetch_add(1, Ordering::SeqCst);
         AlgorithmStatus::Fail
-    }
-}
-
-pub fn kat_sphincs() -> AlgorithmStatus {
-    let message = b"NONOS SPHINCS+ KAT";
-
-    match crate::crypto::sphincs::sphincs_keygen() {
-        Ok(keypair) => match crate::crypto::sphincs::sphincs_sign(&keypair.secret_key, message) {
-            Ok(signature) => {
-                let valid = crate::crypto::sphincs::sphincs_verify(
-                    &keypair.public_key,
-                    message,
-                    &signature,
-                );
-
-                if valid {
-                    CRYPTO_STATE.sphincs.store(true, Ordering::SeqCst);
-                    CRYPTO_STATE.checks_passed.fetch_add(1, Ordering::SeqCst);
-                    AlgorithmStatus::Pass
-                } else {
-                    CRYPTO_STATE.checks_failed.fetch_add(1, Ordering::SeqCst);
-                    AlgorithmStatus::Fail
-                }
-            }
-            Err(_) => {
-                CRYPTO_STATE.checks_failed.fetch_add(1, Ordering::SeqCst);
-                AlgorithmStatus::Fail
-            }
-        },
-        Err(_) => AlgorithmStatus::Unavailable,
-    }
-}
-
-pub fn kat_ntru() -> AlgorithmStatus {
-    match crate::crypto::ntru::ntru_keygen() {
-        Ok(keypair) => match crate::crypto::ntru::ntru_encaps(&keypair.public_key) {
-            Ok((ciphertext, shared_secret1)) => {
-                match crate::crypto::ntru::ntru_decaps(&ciphertext, &keypair.secret_key) {
-                    Ok(shared_secret2) => {
-                        if shared_secret1 == shared_secret2 {
-                            CRYPTO_STATE.ntru.store(true, Ordering::SeqCst);
-                            CRYPTO_STATE.checks_passed.fetch_add(1, Ordering::SeqCst);
-                            AlgorithmStatus::Pass
-                        } else {
-                            CRYPTO_STATE.checks_failed.fetch_add(1, Ordering::SeqCst);
-                            AlgorithmStatus::Fail
-                        }
-                    }
-                    Err(_) => {
-                        CRYPTO_STATE.checks_failed.fetch_add(1, Ordering::SeqCst);
-                        AlgorithmStatus::Fail
-                    }
-                }
-            }
-            Err(_) => {
-                CRYPTO_STATE.checks_failed.fetch_add(1, Ordering::SeqCst);
-                AlgorithmStatus::Fail
-            }
-        },
-        Err(_) => AlgorithmStatus::Unavailable,
     }
 }

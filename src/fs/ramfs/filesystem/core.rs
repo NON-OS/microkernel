@@ -90,7 +90,7 @@ impl NonosFilesystem {
             return Ok(file_key.key);
         }
 
-        let file_key = FileKey::new(filename);
+        let file_key = FileKey::new(filename)?;
         let key = file_key.key;
         keys.insert(filename.to_string(), file_key);
         Ok(key)

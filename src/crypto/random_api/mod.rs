@@ -20,5 +20,5 @@ mod hardware_mix;
 mod platform;
 mod wallet;
 
-pub use basic::{fill_bytes, get_bytes, get_bytes_checked, get_bytes_secure};
+pub use basic::{fill_bytes, get_bytes, get_bytes_checked, get_bytes_secure, get_vec_secure};
 pub use wallet::generate_wallet_entropy;
