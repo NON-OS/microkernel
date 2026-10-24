@@ -30,11 +30,12 @@ use crate::linux::say::say;
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";
 
 const MAX_NAME: u32 = 1024;
+type Boot = (Vec<u8>, Vec<u8>, Vec<Vec<u8>>);
 
 /// The path the image names, the program's bytes and its arguments, or None
 /// when the image names nothing. One argument a line, so a script passed to
 /// `sh -c` needs no quoting rules.
-pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
+pub(super) fn boot_guest(max_image: u32) -> Option<Boot> {
     let named = read_when_ready()?;
     let mut lines = named.split(|b| *b == b'\n').filter(|l| !l.is_empty());
     let path = lines.next()?;
