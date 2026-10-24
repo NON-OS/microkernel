@@ -34,6 +34,9 @@ pub struct SimCodec {
     pub subsystem: u32,
     /// Unsolicited responses sent ahead of the answer to every command.
     pub unsol_before_each: u32,
+    /// A hostile codec: every read the description leaves undefined is
+    /// answered with a word hashed from this seed and the question (noise.rs).
+    pub noise: Option<u64>,
 }
 
 impl SimCodec {
