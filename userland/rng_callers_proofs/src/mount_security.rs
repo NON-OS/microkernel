@@ -51,15 +51,9 @@ pub mod security {
             pub mod stats;
             pub mod types;
             pub mod violations;
-            pub mod engine {
-                mod chamber;
-                mod constructor;
-                mod memory;
-                pub mod types;
-                pub use types::CapabilityEngine;
-                #[path = "../../../../../userland/rng_callers_proofs/src/engine_tests/mod.rs"]
-                mod tests;
-            }
+            // Declared from lib.rs (`engine_mount`), so its tests resolve from
+            // src/ for rustc and the lane check alike.
+            pub use crate::engine_mount as engine;
         }
     }
 
