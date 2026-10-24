@@ -43,7 +43,7 @@ pub use filters::{input, tree_render};
 pub use handed::{handed_cadence, handed_parse, handed_pick};
 pub use help::{help_layout, help_pages, receipt_own, tool_list};
 pub use input_line::{cooked, cooked_kill, expand, line, line_chars, line_window, select};
-pub use jobs::{install_follow, kill_target, pkg_handoff, tool_busy};
+pub use jobs::{box_hold, install_follow, kill_target, linux_frames, pkg_handoff, tool_argv, tool_busy};
 pub use neighbours::{cadence, goto_line, quick_open};
 pub use network::{direct_gate, direct_only, exchange_wait, git_ask, offline_gate};
 pub use paint::{ansi, box_arms, fetch_arch};

@@ -30,7 +30,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
 use crate::security::tpm::error::TpmError;
-use crate::security::tpm::mmio::{init_window, TPM_MMIO_BASE};
+use crate::security::tpm::mmio::{init_window, tpm_mmio_base};
 use crate::security::tpm::transport::acpi::control_area;
 
 /// The control area's offset inside the register window.
@@ -50,9 +50,10 @@ pub(super) fn control() -> Result<u64, TpmError> {
     if va != 0 {
         return Ok(va);
     }
-    let phys = control_area().unwrap_or(TPM_MMIO_BASE + WINDOW_CONTROL);
-    let (va, inside) = if in_window(phys, CONTROL_SPAN) {
-        (init_window()? + (phys - TPM_MMIO_BASE), 1)
+    let in_window = tpm_mmio_base().map(|base| base + WINDOW_CONTROL);
+    let phys = control_area().or(in_window).ok_or(TpmError::NotPresent)?;
+    let (va, inside) = if let Some(off) = window_offset(phys, CONTROL_SPAN) {
+        (init_window()? + off, 1)
     } else {
         (map(phys, CONTROL_SPAN)?, 2)
     };
@@ -72,8 +73,8 @@ pub(super) fn in_register_window() -> Result<bool, TpmError> {
 static BUFFERS: Mutex<[(u64, u64, u64); 2]> = Mutex::new([(0, 0, 0); 2]);
 
 pub(super) fn buffer(phys: u64, size: u64) -> Result<u64, TpmError> {
-    if in_window(phys, size) {
-        return Ok(init_window()? + (phys - TPM_MMIO_BASE));
+    if let Some(off) = window_offset(phys, size) {
+        return Ok(init_window()? + off);
     }
     let mut kept = BUFFERS.lock();
     if let Some(&(_, _, va)) = kept.iter().find(|&&(p, s, va)| va != 0 && p == phys && s >= size) {
@@ -85,8 +86,11 @@ pub(super) fn buffer(phys: u64, size: u64) -> Result<u64, TpmError> {
     Ok(va)
 }
 
-fn in_window(phys: u64, size: u64) -> bool {
-    phys >= TPM_MMIO_BASE && phys.saturating_add(size) <= TPM_MMIO_BASE + WINDOW_SIZE
+/// Where `[phys, phys + size)` sits inside the register window, wherever the
+/// platform put it; `None` when it is not wholly inside.
+fn window_offset(phys: u64, size: u64) -> Option<u64> {
+    let base = tpm_mmio_base()?;
+    (phys >= base && phys.saturating_add(size) <= base + WINDOW_SIZE).then(|| phys - base)
 }
 
 /// An uncached mapping of `[phys, phys + size)`, page aligned around it.

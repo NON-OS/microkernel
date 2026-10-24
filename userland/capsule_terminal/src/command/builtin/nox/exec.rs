@@ -40,7 +40,12 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     match call_installer(stem, &argv) {
         Ok(pid) => {
             crate::jobs::tty::attach(state, pid);
-            let work = JobWork::ExternalStage { pid, stdin: StdinQueue::new(false), capture: None };
+            let work = JobWork::ExternalStage {
+                pid,
+                stdin: StdinQueue::new(false),
+                capture: None,
+                boxed: None,
+            };
             let _ = submit(state, stem, false, work);
             state.fg_running = true;
             state.fg_started_ms = mk_time_millis();
