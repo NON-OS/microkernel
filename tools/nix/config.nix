@@ -73,10 +73,10 @@ let
     standard = {
       about = "the full system for real hardware: every driver, the desktop, first-boot setup and the installer";
       for = "a person's own machine, every day";
-      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; capsules may write to the serial console for diagnosis";
+      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can)";
       kernel = [ "microkernel-full-gui" ];
       loader = "standard";
-      drop = [ ];
+      drop = debugFeatures;
     };
     hardened = {
       about = "the full system with Secure Boot and a TPM required at boot and no serial console for capsules";

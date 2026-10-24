@@ -982,7 +982,6 @@ microkernel-full-gui = [
   "nonos-capsule-driver-ixgbe",
   "nonos-capsule-driver-e1000e",
   "nonos-capsule-driver-bga",
-  "nonos-capsule-driver-intel-display",
   "nonos-capsule-driver-ufs",
   "nonos-capsule-driver-uhci",
   "nonos-capsule-driver-ohci",
