@@ -91,7 +91,7 @@ A USB Audio Class device is driven by `driver.usb_audio0` over the xHCI isochron
 - A device that is gone is given back: its slot is disabled and its port is searched again (`give_back`, `userland/capsule_driver_usb_audio/src/serve/gone.rs`).
 - The driver then answers the server's next write `E_NODEV`, and the server chooses its output again at once rather than at its two-second check, so playback moves to the fixed sink (`rechoose_now`, `userland/capsule_audio/src/server/pump_rule.rs`). The period it was writing is kept and goes out first on the fixed sink.
 
-This is written and tested on the host (`usb_audio_proofs`, `audio_proto_proofs`); no boot of it is recorded yet.
+This is written and tested on the host (`usb_audio_proofs`, `audio_proto_proofs`); no boot of it is recorded yet, and `driver.usb_audio0` is not in the shipped images until its publisher key is made.
 
 ## Not supported
 
