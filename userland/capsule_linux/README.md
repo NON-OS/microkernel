@@ -76,9 +76,9 @@ narrows the program's own policy (`app/identity_box.rs`) and never widens it: a 
 policy grants no network has none in any box. Each box has one hash, BLAKE3 under
 `NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).
 
-At the end the run prints a BOX REPORT: the box and its hash, what it allowed, each kind of
+At the end the run prints a `BOX REPORT v1`: the box and its hash, what it allowed, each kind of
 refused action with its count and first three examples, and the exit status. It also writes one
-`[BOX] preset=... policy=... refused=N <kind>=N ... exit=N source=capsule_linux` line to the
+`[BOX] v=1 preset=... policy=... refused=N <kind>=N ... exit=N source=capsule_linux` line to the
 serial log. A refused action is counted once for each kind per call. The counts are this
 capsule's enforcement, not the kernel's sealed histogram, which counts by errno.
 
