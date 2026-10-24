@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod acquire;
+mod announce;
 mod discover;
+mod errors;
 mod install;
+pub mod lease_line;
 mod mask;
 mod release;
 mod request;
