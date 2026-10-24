@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::BlockFsMount;
+//! For the proof crate only, behind the `proofs` feature: a sealer or an
+//! opener whose count starts where the proof says, so the 2^32 limits can
+//! be reached. A real session always starts at zero.
 
-pub(super) fn select_newer(
-    current: Option<BlockFsMount>,
-    candidate: BlockFsMount,
-) -> Option<BlockFsMount> {
-    match current {
-        Some(old) if old.superblock.generation >= candidate.superblock.generation => Some(old),
-        _ => Some(candidate),
+use crate::count::Count;
+use crate::{Opener, Sealer, Secret};
+
+impl Sealer {
+    pub fn starting_at(key: Secret<32>, seq: u64, bytes: u64) -> Self {
+        Sealer::from_count(Count { key, seq, bytes })
+    }
+}
+
+impl Opener {
+    pub fn starting_at(key: Secret<32>, seq: u64, bytes: u64) -> Self {
+        Opener::from_count(Count { key, seq, bytes })
     }
 }

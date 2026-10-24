@@ -35,7 +35,10 @@ use super::sockaddr::AF_INET;
 
 /* Some(errno) when an internet socket may not be made now. */
 pub fn refuse_inet() -> Option<u64> {
-    held().then(|| refuse("net.sockets: a family holding a model has no network", errno::EACCES))
+    held().then(|| {
+        crate::linux::boxed::note(crate::linux::boxed::Kind::Network, b"socket beside a model");
+        refuse("net.sockets: a family holding a model has no network", errno::EACCES)
+    })
 }
 
 /* A socket() of `family` refused now, or None to go on and make it. */

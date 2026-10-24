@@ -25,7 +25,6 @@
 
 use alloc::vec::Vec;
 
-use super::cap_names::CAP_NAMES;
 use super::proc_table::table;
 use super::receipt::own::ENTRY_LEN;
 use crate::command::output::Output;
@@ -52,7 +51,7 @@ pub fn run(out: &mut Output<'_>, _argv: &[&[u8]]) {
     }
 }
 
-/// "  pid  name  Cap, Cap", the capabilities left off when they are unknown.
+/// "  pid  name  Cap, Cap", the capabilities left off when the registry is withheld.
 fn row(pid: u32, name: &[u8], caps: Option<u64>) -> Vec<u8> {
     let mut line = Vec::with_capacity(96);
     let mut num = [0u8; 12];
@@ -63,13 +62,7 @@ fn row(pid: u32, name: &[u8], caps: Option<u64>) -> Vec<u8> {
     line.extend_from_slice(name);
     let Some(caps) = caps else { return line };
     line.resize(line.len().max(34), b' ');
-    let mut first = true;
-    for (i, cap) in CAP_NAMES.iter().enumerate() {
-        if caps & (1u64 << i) != 0 {
-            line.extend_from_slice(if first { b"  " } else { b", " });
-            line.extend_from_slice(cap);
-            first = false;
-        }
-    }
+    line.extend_from_slice(b"  ");
+    super::audit::table::list(&mut line, &super::audit::names::names(caps));
     line
 }

@@ -16,17 +16,19 @@
 
 mod api;
 mod constants;
+mod drawn;
 mod ffi;
 mod types;
 mod verify_stack;
 
 pub use api::{
     ml_dsa_65_deserialize_public_key, ml_dsa_65_deserialize_secret_key,
-    ml_dsa_65_deserialize_signature, ml_dsa_65_keypair, ml_dsa_65_serialize_public_key,
-    ml_dsa_65_serialize_secret_key, ml_dsa_65_serialize_signature, ml_dsa_65_sign,
-    ml_dsa_65_verify, ml_dsa_65_verify_bytes,
+    ml_dsa_65_deserialize_signature, ml_dsa_65_serialize_public_key,
+    ml_dsa_65_serialize_secret_key, ml_dsa_65_serialize_signature, ml_dsa_65_verify,
+    ml_dsa_65_verify_bytes,
 };
 pub use constants::{PARAM_NAME, PUBLICKEY_BYTES, SECRETKEY_BYTES, SIGNATURE_BYTES};
+pub use drawn::{ml_dsa_65_keypair, ml_dsa_65_sign};
 pub use types::{
     MlDsa65Error, MlDsa65KeyPair, MlDsa65PublicKey, MlDsa65SecretKey, MlDsa65Signature,
 };

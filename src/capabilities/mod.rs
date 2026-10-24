@@ -65,8 +65,8 @@ pub(crate) use serial_debug::serial_debug_cap;
 pub use token::{
     clear_revocations, create_token, create_token_with_nonce, current_nonce_counter, default_nonce,
     from_bytes, has_signing_key, is_revoked, is_token_not_revoked, is_token_signature_valid,
-    is_token_valid, mac64, reset_nonce_counter, revoke_all_for_owner, revoke_token, revoked_count,
-    set_signing_key, sign_token, signing_key, to_bytes, token_material, validate_token_full,
-    verify_token, CapabilityToken, TOKEN_BINARY_SIZE, TOKEN_VERSION,
+    is_token_valid, mac64, revoke_all_for_owner, revoke_token, revoked_count, set_signing_key,
+    sign_token, signing_key, to_bytes, token_material, validate_token_full, verify_token,
+    CapabilityToken, TOKEN_BINARY_SIZE, TOKEN_VERSION,
 };
 pub use types::Capability;

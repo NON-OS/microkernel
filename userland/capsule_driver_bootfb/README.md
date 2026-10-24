@@ -1,16 +1,21 @@
 # capsule_driver_bootfb
 
+Status: not in the image. The capsule builds and `bootfb_proofs` passes,
+but the kernel it claims from is not on main: the boot framebuffer record
+(8b7bcb660), `MkBootFramebuffer` (d8485f3d9) and the hand-off to a GPU
+driver (5ca0d371c, L79) are on the the branch. `Capsule.mk` carries
+`CAPSULE_NOT_IN_IMAGE` until they land.
+
 ## Role
 
 The boot framebuffer as a display driver of its own (PLAN G 5): the linear
 framebuffer firmware left (UEFI GOP on x86, a device tree's
 `simple-framebuffer` on aarch64) served on the display wire at its one
-mode, so the compositor holds no device memory at all. Today this
-directory holds the display half only (`src/fb.rs`, `src/describe.rs`,
-`src/display.rs`, `src/copy_in.rs`), served through `nonos_gfx_serve`;
-there is no `Cargo.toml`, `Capsule.mk`, feature or kernel mirror yet, so no
-image carries it. `bootfb_proofs` runs it through the wire server against
-a framebuffer in host memory.
+mode, so the compositor holds no device memory at all. It is served
+through `nonos_gfx_serve`; `Capsule.mk` names it (service 4572, reply
+4573) but there is no feature or kernel mirror yet, so no image carries
+it. `bootfb_proofs` runs it through the wire server against a framebuffer
+in host memory.
 
 ## Microkernel contract
 
@@ -104,8 +109,11 @@ Every lane where no other display driver answers shows
 ## Release checklist
 
 - [x] Capsule crate (binary `driver_bootfb`).
-- [x] The kernel's boot framebuffer record and the present path handing over (L31).
-- `Capsule.mk`, feature, mirror, inventory, spawn entries (after the seal).
+- [x] `Capsule.mk`, marked not in the image.
+- The kernel's boot framebuffer record, `MkBootFramebuffer` and the L79
+  hand-off on main (the branch today).
+- Feature, mirror, scope row (a firmware-bus match), inventory and spawn
+  entries, once they are.
 
 ## Explicit non-goals today
 

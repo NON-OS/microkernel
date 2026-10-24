@@ -68,8 +68,8 @@ installer, not by this capsule.
 | 0x10 | Memory | reply buffers |
 | 0x80000000 | AttestRead | see every process's mask through `MkProcStat`, which shows other processes' masks only to a holder of AttestRead or ProcessControl |
 
-`Debug` is absent on purpose: the capsule asserts the NO LOGS invariant and has
-no log surface. It holds no Network.
+`Debug` is absent on purpose: the capsule reports the SECRETS NOT LOGGED
+invariant and has no log surface of its own. It holds no Network.
 
 ## Runtime lifecycle
 

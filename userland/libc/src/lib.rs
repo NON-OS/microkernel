@@ -124,7 +124,7 @@ pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
-pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
+pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
 pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
 pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};
@@ -144,6 +144,6 @@ pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
 pub use tool_run::mk_tool_run;
 pub use tty::{
-    mk_tty_query, mk_tty_set, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
+    mk_tty_query, mk_tty_set, TAG_BOX, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
 };
 pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

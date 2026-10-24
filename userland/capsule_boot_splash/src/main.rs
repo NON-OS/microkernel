@@ -9,12 +9,16 @@ mod display;
 mod dwell;
 mod input;
 mod interact;
+mod layout;
 mod logo;
 mod look;
 mod paint;
 mod proto;
 mod ready;
+mod say;
 mod scene;
+mod spin;
+mod status;
 mod surface;
 mod title;
 mod vignette;
@@ -50,7 +54,8 @@ fn run() -> i32 {
         let _ = mk_surface_release(handle);
         return 6;
     }
-    let _ = scene::damage(comp, 4, w, h);
+    let _ = scene::damage(comp, 4, (0, 0, w, h));
+    say::line(&alloc::format!("up {}x{} at {} ms", w, h, nonos_libc::mk_uptime_ms()));
     grabbed_interact(comp, base, w, h, stride, &look);
     let _ = scene::remove(comp, 5);
     let _ = mk_surface_release(handle);
