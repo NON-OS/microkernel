@@ -1,9 +1,11 @@
 /* aarch64 kernel entry, as an ELF and as an arm64 Image.
  *   x0  = dtb_ptr (preserved in x19 across EL2 drop)
+ *   x1  = the NONOS loader's handoff, physical, or zero for none
+ *         (preserved in x20; the arm64 boot protocol has x1 zero)
  *   sp  = bootloader-provided
  *   may be at EL1 or EL2; we always continue at EL1.
  * Symbols: __stack_top, __bss_start, __bss_end from linker.ld.
- * Tail-calls kernel_entry(dtb_ptr).
+ * Tail-calls kernel_entry(dtb_ptr, handoff_phys).
  *
  * The first 64 bytes are the Image header Linux's arm64 boot protocol
  * defines (Documentation/arch/arm64/booting.rst). A loader that sees the
@@ -36,6 +38,7 @@ _start:
 
 .L_entry:
     mov     x19, x0
+    mov     x20, x1
 
     drop_from_el2
 
@@ -117,6 +120,7 @@ _start:
     isb
 
     mov     x0, x19
+    mov     x1, x20
     bl      kernel_entry
 
 .L_hang:
