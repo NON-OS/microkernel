@@ -16,8 +16,8 @@
 
 use super::super::entropy::get_entropy64_secure;
 use super::super::error::{RngError, RngResult};
-use super::init::ensure_initialized;
 use super::fallback::{fill_with_fallback_secure, weak_u64};
+use super::init::ensure_initialized;
 use super::state::GLOBAL_RNG;
 
 pub fn get_random_bytes() -> [u8; 32] {

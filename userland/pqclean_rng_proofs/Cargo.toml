@@ -31,7 +31,7 @@ publish = false
 path = "src/lib.rs"
 
 [features]
-default = ["mlkem768"]
+default = ["mlkem768", "std"]
 # The kernel's parameter-set features, as the mounted files name them; the
 # proofs build ML-KEM-768 and the default ML-DSA-65.
 mlkem768 = []
@@ -40,6 +40,8 @@ mlkem1024 = []
 mldsa2 = []
 mldsa3 = []
 mldsa5 = []
+# The kernel's ML-DSA verify takes its plain path, not its own stack, here.
+std = []
 
 [build-dependencies]
 cc = "1.1"
