@@ -16,6 +16,8 @@
 //! link sends it through net.anon whatever the default network is.
 
 mod network;
+#[cfg(any(test, target_vendor = "nonos"))]
+mod patience;
 mod purpose;
 mod route;
 mod stream;
