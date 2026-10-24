@@ -103,11 +103,12 @@ With the Debug capability granted to the compositor and the driver, the kernel l
 
 and for bga the same `[DISPLAY]` lines naming `driver.bga0`. None of `control queue stalled`, `down;`, or `[EXIT] ... status 6` should appear. Without Debug only the kernel's own lines show (`[FB]`, and `[EXIT]` for a capsule that left).
 
+On a machine with no Intel graphics function, QEMU among them, the kernel says `[DRIVER-INTEL-DISPLAY] no controller present, not spawned`, and the same for bga where there is no Bochs adapter (`[DRIVER-BGA]`).
+
 The screen: the desktop with the menubar on top and the dock below. A Terminal opens centred with the NONOS banner, a fetch block (os, kernel, shell, signed, arch, uptime), the prompt `nonos@nonos ~ %` and the footer of key hints; About opens on its Overview with three ring tiles, the Display tile showing the mode inside its ring. Killing the compositor brings the same picture back once it is started again. `userland/demo_screen_proofs` draws both apps through their own paint code at 1024x768, 1280x720, 1280x800 and 1920x1080 under each driver.
 
 ## What is not supported
 
-- Native GPU drivers. Intel, AMD and NVIDIA display functions are enumerate-only, and `missing_path` names a `native modeset and scanout driver` for them (`src/hardware/inventory/missing.rs`); the Intel display engine driver, `capsule_driver_intel_display`, is in no image yet. There is no mode change after boot, no second display and no hardware acceleration on real machines.
 - A GOP without a linear 32-bit framebuffer.
 - 3D. The virtio-gpu probe logs whether the host could, and no op uses it.
 - Backlight control.
