@@ -22,9 +22,12 @@
 mod dma_plan;
 #[path = "../../../../src/kernel_core/surface_registry/pin/dma_rule.rs"]
 mod dma_rule;
+#[path = "../../../../src/kernel_core/surface_registry/pin/reclaim_rule.rs"]
+mod reclaim_rule;
 
 mod common;
 mod exit;
 mod owner_attach;
+mod reclaim;
 mod release;
 mod threads;
