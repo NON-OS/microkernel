@@ -4805,6 +4805,29 @@
   "md": [],
   "signed": []
  },
+ "userland/exposure_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types/defs.rs",
+   "userland/capsule_about/src/about/data/verify/held_by.rs",
+   "userland/capsule_attest/src/state/live/caps.rs",
+   "userland/capsule_attest/src/state/live/types.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/agent.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/format.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/join.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/names.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/table.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/withheld.rs",
+   "userland/capsule_terminal/src/command/builtin/cap_names.rs",
+   "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
+   "userland/capsule_terminal/src/term/util/format_u64.rs",
+   "userland/exposure_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/fdt_proofs": {
   "exclude": [],
   "include": [
@@ -4893,9 +4916,12 @@
    "src/fs/blockfs/dir_name_match.rs",
    "src/fs/blockfs/file_cache.rs",
    "src/fs/blockfs/file_consts.rs",
+   "src/fs/blockfs/header_lba.rs",
    "src/fs/blockfs/index_block.rs",
+   "src/fs/blockfs/mount.rs",
    "src/fs/blockfs/read_u32.rs",
    "src/fs/blockfs/read_u64.rs",
+   "src/fs/blockfs/ring_pick.rs",
    "src/fs/blockfs/tree_ptrs.rs",
    "src/fs/blockfs/tree_range.rs",
    "src/fs/blockfs/tree_reader.rs",
@@ -6099,6 +6125,19 @@
   "md": [],
   "signed": []
  },
+ "userland/mldsa65_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "third_party/pqclean",
+   "userland/mldsa65_proofs",
+   "userland/nonos_aes",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/model_fetch_proofs": {
   "exclude": [],
   "include": [
@@ -6819,6 +6858,31 @@
   "md": [],
   "signed": []
  },
+ "userland/nsh_crypto_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_crypto",
+   "userland/nsh_crypto_proofs",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_wire_proofs": {
+  "exclude": [
+   "userland/nsh_wire_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/nsh_wire",
+   "userland/nsh_wire_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nvme_proofs": {
   "exclude": [],
   "include": [
@@ -7135,6 +7199,17 @@
   "md": [],
   "signed": []
  },
+ "userland/pqclean_rng_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/crypto",
+   "third_party/pqclean",
+   "userland/pqclean_rng_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/proof_abi_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz"
@@ -7432,6 +7507,18 @@
    "userland/rndis_proofs",
    "userland/usbnet_proofs",
    "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rng_fail_closed_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/token/nonce.rs",
+   "src/crypto",
+   "src/elf",
+   "userland/rng_fail_closed_proofs"
   ],
   "md": [],
   "signed": []
