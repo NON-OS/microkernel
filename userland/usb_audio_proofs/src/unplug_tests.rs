@@ -46,3 +46,21 @@ fn short_data_names_no_device() {
     assert!(!connected_in(&d[..8], 3));
     assert!(!connected_in(&[], 3));
 }
+
+/// A device taken out while it plays is looked for as one taken out while
+/// idle: the port is read once a poll either way, and the playing run loop
+/// asks through the same rule.
+#[test]
+fn a_device_pulled_out_mid_playback_is_looked_for() {
+    use crate::serve::look::look_now;
+    for playing in [false, true] {
+        assert!(look_now(true, playing, true), "playing {playing}");
+        assert!(!look_now(true, playing, false), "not due");
+        assert!(!look_now(false, playing, true), "nothing bound");
+    }
+    let gone = include_str!("../../capsule_driver_usb_audio/src/serve/gone.rs");
+    assert!(gone.contains("look::look_now(bound.is_some(), play.running, next.expired())"));
+    assert!(!gone.contains("if play.running"), "no other rule skips a playing device");
+    let run = include_str!("../../capsule_driver_usb_audio/src/serve/run.rs");
+    assert!(run.contains("b\"device unplugged, given back\""));
+}
