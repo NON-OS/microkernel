@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,15 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The volume's header chosen from the ring as the kernel mounts it.
 
-use super::BlockFsMount;
+#[path = "../../../../src/fs/blockfs/ring_pick.rs"]
+pub mod ring_pick;
 
-pub(super) fn select_newer(
-    current: Option<BlockFsMount>,
-    candidate: BlockFsMount,
-) -> Option<BlockFsMount> {
-    match current {
-        Some(old) if old.superblock.generation >= candidate.superblock.generation => Some(old),
-        _ => Some(candidate),
-    }
-}
+#[cfg(test)]
+mod tests;
