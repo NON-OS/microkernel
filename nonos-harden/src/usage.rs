@@ -39,6 +39,9 @@ and prints one verdict. GO means every check ran and passed. A check that
 fails, or that could not run, makes the verdict NO-GO, and the verdict
 names it and says why. A development image that passes reads
   GO (development image, not a release)
+A GO whose checks carry limits counts them in its line (\"GO, 2 declared
+limits\") and lists each under it. A verifier's gap is a limit only if the
+tree declares it in scripts/baselines/declared-limits.txt; any other is NO-GO.
 
   --release DIR   the sealed release to check (required)
   --tree DIR      the checkout that built it (default: the one this command
