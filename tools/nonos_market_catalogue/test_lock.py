@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The lock: read whole or refused, held by name to what the fresh signed
-index resolves. Run:
+index resolves, and to the .apk bytes each listing signs. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
@@ -24,8 +24,9 @@ from pathlib import Path
 
 from . import lock
 
-PIN = {"V": "1.0-r0", "C": "Q1abc=", "S": "3"}
-KNOWN = {"x": dict(PIN, P="x", base="b"), "y": dict(PIN, P="y", base="b")}
+INDEX = {"V": "1.0-r0", "C": "Q1abc=", "S": "3"}
+PIN = dict(INDEX, B="ab" * 32)
+KNOWN = {"x": dict(INDEX, P="x", base="b"), "y": dict(INDEX, P="y", base="b")}
 
 
 def doc(packages, fmt=lock.FORMAT, **more):
@@ -39,7 +40,7 @@ class Lock(unittest.TestCase):
             at.write_text(doc({"x": PIN}))
             self.assertEqual(lock.read(at), {"x": PIN})
             for bad in (doc({"x": PIN}, fmt="v0"), doc({"x": PIN}, extra=1), doc({"X": PIN}),
-                        doc({"x": dict(PIN, V="../1")}), doc({"x": dict(PIN, S=3)}), doc({"x": {"V": "1"}}),
+                        doc({"x": dict(PIN, V="../1")}), doc({"x": dict(PIN, S=3)}), doc({"x": {"V": "1"}}), doc({"x": INDEX}),
                         "{", "\xff"):
                 at.write_bytes(bad.encode("latin-1"))
                 with self.assertRaises(ValueError, msg=bad):
@@ -60,6 +61,14 @@ class Lock(unittest.TestCase):
             with self.assertRaises(ValueError) as stop:
                 lock.held(KNOWN, pins, names)
             self.assertIn(said, str(stop.exception))
+
+    def test_every_listing_signs_the_apk_its_lock_pins(self):
+        listed = [{"listing_id": "linux.x", "releases": [{"package_hash": "ab" * 32}]}]
+        lock.bytes_held({"x": PIN}, listed)
+        listed[0]["releases"][0]["package_hash"] = "cd" * 32  # same size, another signature member
+        with self.assertRaises(ValueError) as stop:
+            lock.bytes_held({"x": PIN}, listed)
+        self.assertIn("x: the .apk is", str(stop.exception))
 
 
 if __name__ == "__main__":

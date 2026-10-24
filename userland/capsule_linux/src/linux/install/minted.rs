@@ -16,8 +16,9 @@
 
 //! What the machine writes beside a file it installs, and the order it is
 //! written and taken out in, so that a market program is never startable
-//! outside its box: not half-way through its install, not after a crash, not
-//! when an uninstall only partly succeeds. The store is reached through the
+//! outside its box at its installed path: not half-way through its install,
+//! not after a crash, not when an uninstall only partly succeeds. A copy or
+//! a loader exec is not held by path. The store is reached through the
 //! closures, so the rules are proved on the host.
 
 use alloc::vec::Vec;
@@ -51,11 +52,21 @@ pub fn place(
     write(at, body)
 }
 
-/// Take `at` out with what was written beside it, through `gone`, which
-/// removes a path and says whether it is no longer there. The policy goes
-/// only once the program cannot start, its file or its trailer gone; until
-/// then it stays and keeps the program in its box. True when the file is gone.
-pub fn take_out(at: &[u8], gone: &mut impl FnMut(&[u8]) -> bool) -> bool {
+/// Take `at` out with what was written beside it, through `unlink` and
+/// `found`, the store's look. A path is gone only when the store says it is
+/// not there: a store that fails both says nothing, and so keeps the box.
+/// The policy goes only once the program cannot start, its file or its
+/// trailer gone; until then it stays and keeps the program in its box. True
+/// when the file is gone.
+pub fn take_out<E: PartialEq>(
+    at: &[u8],
+    unlink: &mut impl FnMut(&[u8]),
+    found: &mut impl FnMut(&[u8]) -> Result<bool, E>,
+) -> bool {
+    let mut gone = |p: &[u8]| {
+        unlink(p);
+        found(p) == Ok(false)
+    };
     let file = gone(at);
     let trailer = gone(&beside(at, TRAILER));
     if file || trailer {

@@ -31,7 +31,7 @@ class Seal(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             recipes = Path(d) / "c.json"
             pinned = Path(d) / "c.lock.json"
-            listed = [{"listing_id": "linux.x"}, {"listing_id": "linux.y"}]
+            listed = [{"listing_id": f"linux.{n}", "releases": [{"package_hash": "ab" * 32}]} for n in "xy"]
             patches = (mock.patch.object(run, "load", return_value=[{"package": "x"}, {"package": "y"}]),
                        mock.patch.object(run, "table", return_value=KNOWN))
             with patches[0], patches[1], mock.patch.object(run, "catalogue_entries", return_value=listed):
@@ -41,6 +41,9 @@ class Seal(unittest.TestCase):
                 self.assertEqual(lock.read(pinned), {"x": PIN, "y": PIN})
                 self.assertEqual(run.catalogue_run(recipes, Path(d), "https://e.org", "v3.20", "x86_64",
                                                    "11" * 32, 1), listed)
+                listed[1]["releases"][0]["package_hash"] = "cd" * 32  # the .apk changed, not its record
+                with self.assertRaises(SystemExit):
+                    run.catalogue_run(recipes, Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1)
             with patches[0], patches[1], mock.patch.object(run, "catalogue_entries", return_value=listed[:1]), \
                     self.assertRaises(SystemExit):
                 run.catalogue_run(recipes, Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1, True)

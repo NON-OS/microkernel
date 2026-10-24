@@ -11,7 +11,7 @@
       "publisher_name": "Linux",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "Version control for repositories on this machine: init, commit, branch, merge, log and diff. Remotes are not served: git's HTTP and SSH helpers have no box of their own yet.",
+      "description": "Version control for repositories on this machine: init, commit, branch, merge, log and diff. Remotes are not served: git's HTTP and SSH helpers have no box of their own and are refused at their installed paths.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
