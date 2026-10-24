@@ -37,7 +37,7 @@ fn a_silent_pool_refuses_the_chain_after_one_wait() {
     let refused = state.answer(b"nonos.software", NOW, b"GET / HTTP/1.1\r\n\r\n").err();
     let why = state.verify(b"nonos.software", NOW, true).err();
     nonos_libc::silence(false);
-    assert_eq!(refused, Some(Refusal::Unverified), "fails closed");
+    assert_eq!(refused, Some(Refusal::TooSlow), "fails closed, named");
     assert_eq!(why, Some(Unverified::TooSlow), "and is told from a bad chain");
     let (after, named) = nonos_libc::waits();
     assert_eq!((after - before, named), (2, Some(CRYPTO_WAIT_MS)), "one wait per pass");
