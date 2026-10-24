@@ -184,8 +184,8 @@
   {
     "name": "sign-nonos-public-key-not-refused",
     "file": "src/sign/refuse.rs",
-    "old": "if ed.is_some_and(",
-    "new": "if false && ed.is_some_and(",
+    "old": "if headed || bytes == public[..] {",
+    "new": "if false {",
     "caught_by": "tests::sign_refuse_more_tests::a_key_the_trust_set_publishes_is_refused"
   },
   {
@@ -362,5 +362,26 @@
     "old": "        c.env(\"CARGO_TARGET_DIR\", own.join(\"cargo-target\"));\n",
     "new": "",
     "caught_by": "tests::runner_group_tests::cargo_and_python_write_into_the_runs_own_space"
+  },
+  {
+    "name": "choose-keeps-a-relative-tree",
+    "file": "src/tree/mod.rs",
+    "old": "(Ok(t), _) => Ok(Some(t)),",
+    "new": "(Ok(_), _) => Ok(Some(tree)),",
+    "caught_by": "tests::boot_gate_tests::a_relative_release_and_tree_reach_every_verifier_as_absolute_paths"
+  },
+  {
+    "name": "kernel-ed-key-any-length",
+    "file": "src/release/kernel_key_files.rs",
+    "old": "        32 => Ok(raw),\n",
+    "new": "        _ if true => Ok(raw),\n",
+    "caught_by": "tests::kernel_key_tests::a_key_file_of_the_wrong_kind_is_refused"
+  },
+  {
+    "name": "refusal-misses-the-raw-kernel-key",
+    "file": "src/sign/refuse.rs",
+    "old": "if headed || bytes == public[..] {",
+    "new": "if headed {",
+    "caught_by": "tests::boot_gate_tests::the_raw_kernel_key_cannot_sign_a_verdict"
   }
 ]

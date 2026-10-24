@@ -21,7 +21,7 @@
 use crate::release::{kernel_check, kind, load, receipt_check, sealed};
 use crate::sign::{self, key};
 use crate::tree::runner::{Runner, System};
-use crate::tree::{choose, inputs, ledger, matrix, source, verify};
+use crate::tree::{absolute, choose, inputs, ledger, matrix, source, verify};
 use crate::verdict::{self, text::clean};
 use crate::{check::Check, cli::CheckArgs, ctx::Ctx, deliver::deliver, exit};
 
@@ -67,7 +67,7 @@ pub fn check_with(args: &CheckArgs, runner: Box<dyn Runner>) -> u8 {
         Some(Ok(k)) => Some(k),
         Some(Err(e)) => return refuse(format!("not signing with that key: {e}")),
     };
-    let mut ctx = Ctx::with_runner(args.release.clone(), tree, runner);
+    let mut ctx = Ctx::with_runner(absolute(&args.release), tree, runner);
     let checks = run(&mut ctx);
     let v = verdict::build(&ctx, checks, key.as_ref().map(sign::signer));
     deliver(&v, args, key.as_ref())
