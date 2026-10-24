@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod flush;
-mod health;
-mod primary;
-mod rect;
-mod scanout;
-mod transfer;
+//! Whether the GOP copy may write the boot framebuffer: not while a claimed
+//! device drives that memory (broker/table/boot_fb_rule.rs). Such a driver
+//! may have re-moded its scanout, so the copy would land at the wrong pitch
+//! or nowhere seen; the compositor moves to the driver on EBUSY, and GOP is
+//! writable again once the claim goes. Asked on every present.
 
-pub use flush::flush;
-pub use health::health;
-pub use primary::primary;
-pub use scanout::scanout;
-pub use transfer::transfer;
+/// Whether a claimed device holds the boot framebuffer now.
+pub(super) fn held() -> bool {
+    let phys = crate::kernel_core::init::framebuffer::framebuffer_phys();
+    phys.is_some_and(|(start, len)| crate::hardware::broker::boot_fb_held(start, len))
+}
