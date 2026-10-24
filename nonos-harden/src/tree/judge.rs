@@ -47,7 +47,7 @@ pub fn judge(id: &'static str, sub: &str, r: &Report, code: Option<i32>, d: &Dec
         let why = format!("every check passed, yet nonos-verify {sub} exited {code:?}");
         return Check::fail(id, why);
     }
-    let shown = |(w, n): &(String, String)| format!("{w} (it needs: {n})");
+    let shown = |(w, n): &(String, String)| format!("not covered: {w} (it needs: {n})");
     let on_list = |(w, _): &&(String, String)| d.iter().any(|(m, dw)| m == sub && dw == w);
     let undeclared: Vec<String> = r.gaps.iter().filter(|g| !on_list(g)).map(shown).collect();
     if !undeclared.is_empty() {

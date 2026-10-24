@@ -21,8 +21,8 @@
 //! its private and published keys. Once read, it is refused again if its
 //! public key is one the tree's trust set publishes.
 
+use crate::release::read::read_regular;
 use nonos_capsule_sign::algs::AlgId;
-use nonos_capsule_sign::keys::read_pub;
 use std::fs;
 use std::path::Path;
 
@@ -51,8 +51,12 @@ pub fn by_public(tree: &Path, public: &[u8; 32]) -> Result<(), String> {
         return Ok(());
     };
     for p in entries.flatten().map(|e| e.path()) {
-        let published = read_pub(&p).ok().filter(|k| k.alg == AlgId::Ed25519 && k.bytes == public);
-        if published.is_some() {
+        // Read bounded and without following a link, as every file here is:
+        // a FIFO or a vast file among the keys is skipped, never waited on.
+        let bytes = read_regular(&p, 4096).unwrap_or_default();
+        let ed =
+            bytes.strip_prefix(b"NONOSPK1").filter(|r| r.first() == Some(&(AlgId::Ed25519 as u8)));
+        if ed.is_some_and(|r| r.get(1..3) == Some(&[0, 32]) && r.get(3..) == Some(&public[..])) {
             let name = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
             return Err(format!("that is NONOS's key {KEYS}/{name}; sign with yours"));
         }

@@ -16,21 +16,35 @@
 
 //! SHA-256 of files and bytes, as the seal writes them: lowercase hex.
 
+use crate::release::read::open_regular;
 use sha2::{Digest, Sha256};
-use std::fs::File;
-use std::io::{self, Read};
+use std::io::Read;
 use std::path::Path;
 
-pub fn sha256_file(path: &Path) -> io::Result<String> {
-    let mut f = File::open(path)?;
+/// The most any one sealed file may hold: past it a file is refused unread,
+/// so a vast sparse image cannot hold the verdict back.
+pub const MAX_FILE: u64 = 64 << 30;
+
+/// The digest of a regular file, read once through one handle.
+pub fn sha256_file(path: &Path) -> Result<String, String> {
+    let (mut f, len) = open_regular(path)?;
+    if len > MAX_FILE {
+        return Err(format!("larger than the {MAX_FILE} bytes a sealed file can be"));
+    }
     let mut h = Sha256::new();
     let mut buf = vec![0u8; 1 << 20];
+    let mut seen = 0u64;
     loop {
-        let n = f.read(&mut buf)?;
-        if n == 0 {
-            return Ok(hex::encode(h.finalize()));
+        let n = f.read(&mut buf).map_err(|e| format!("unreadable ({e})"))?;
+        seen += n as u64;
+        if n == 0 || seen > MAX_FILE {
+            break;
         }
         h.update(&buf[..n]);
+    }
+    match seen <= MAX_FILE {
+        true => Ok(hex::encode(h.finalize())),
+        false => Err(format!("it grew past {MAX_FILE} bytes while it was read")),
     }
 }
 

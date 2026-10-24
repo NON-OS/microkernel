@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A kernel whose footer's sizes do not add up to the file, or that has no
-//! footer, is refused before any part of it is used; and with no tree to
+//! A kernel whose footer's sizes do not add up to the file, whose reserved
+//! bytes are not embed-trailer's, or that has no footer, is refused before
+//! any part of it is used; and with no tree to
 //! hold the kernel's keys, the check does not run.
 
 use super::fake::Fake;
@@ -34,6 +35,16 @@ fn footer_sizes_that_do_not_add_up_are_refused() {
     let s = Sealed::dev();
     poke(&s, |len| len - 64);
     fails_with(&s, "no NONOSIMG footer");
+}
+
+#[test]
+fn reserved_footer_bytes_not_as_embed_trailer_writes_them_are_refused() {
+    // The flag word, each reserved range, and the 1 at 48 (footer/create.rs).
+    for at in [10, 11, 14, 15, 24, 27, 48, 49, 52, 55, 60, 63] {
+        let s = Sealed::dev();
+        poke(&s, |len| len - 64 + at);
+        fails_with(&s, "reserved bytes");
+    }
 }
 
 #[test]
