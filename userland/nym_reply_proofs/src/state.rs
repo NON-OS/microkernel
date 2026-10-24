@@ -39,3 +39,10 @@ pub mod table;
 
 pub use gateway::{Gateway, Transport};
 pub use session::Session;
+
+/// The client identity and the gateway key, the two secrets net.nym keeps for
+/// the life of the boot, so a proof can watch their wipes.
+#[path = "../../capsule_net_nym/src/state/identity.rs"]
+pub mod identity;
+#[path = "../../capsule_net_nym/src/state/shared_key.rs"]
+pub mod shared_key;

@@ -31,3 +31,16 @@ pub mod random {
         Ok(())
     }
 }
+
+/// net.nym's own volatile wipe, the one its secrets are cleared with.
+#[path = "../../capsule_net_nym/src/crypto/wipe.rs"]
+pub mod wipe;
+
+pub mod ed25519 {
+    /// The identity's public half. The wipe proofs never read it, so it is
+    /// the seed's first bytes rather than a curve point.
+    pub fn pubkey(seed: &[u8; 32], out: &mut [u8; 32]) -> usize {
+        out.copy_from_slice(seed);
+        32
+    }
+}
