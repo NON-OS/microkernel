@@ -49,6 +49,7 @@ EXTRA_ROOTS = [
     "nonos-bootloader",
     "nonos-bootloader/tools/embed-trailer",
     "nonos-bootloader/tools/sign-kernel",
+    "nonos-shield-prove",
     "nonos-sign",
     "nonos-stark-enroll",
     "nonos-mk",

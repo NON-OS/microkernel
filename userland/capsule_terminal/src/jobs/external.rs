@@ -16,9 +16,8 @@
 
 use nonos_libc::{mk_proc_output, mk_wait};
 
-use super::capture::Capture;
 use super::external_io::{drain_remaining, TICK_BUDGET};
-use super::stdin_queue::StdinQueue;
+use super::{box_hold::BoxHold, capture::Capture, external_route::route, stdin_queue::StdinQueue};
 use crate::command::output::Output;
 use crate::jobs::JobProgress;
 
@@ -27,9 +26,13 @@ pub fn step_external(
     pid: u32,
     stdin: &mut StdinQueue,
     mut capture: Option<&mut Capture>,
+    mut boxed: Option<&mut BoxHold>,
     out: &mut Output<'_>,
     leave_modes: bool,
 ) -> JobProgress {
+    if let Some(progress) = super::box_wait::waiting(boxed.as_deref_mut(), out, leave_modes) {
+        return progress;
+    }
     stdin.feed(pid);
     let mut buf = [0u8; 256];
     let mut taken = 0;
@@ -39,10 +42,7 @@ pub fn step_external(
             break;
         }
         let n = (n as usize).min(buf.len());
-        match capture.as_deref_mut() {
-            Some(capture) => capture.route(&buf[..n], out),
-            None => out.feed_raw(&buf[..n]),
-        }
+        route(&buf[..n], capture.as_deref_mut(), boxed.as_deref_mut(), out);
         taken += n;
     }
     /*
@@ -57,7 +57,7 @@ pub fn step_external(
     if status == ERRNO_TIMEDOUT {
         return JobProgress::Running;
     }
-    drain_remaining(pid, capture.as_deref_mut(), out, &mut buf);
+    drain_remaining(pid, capture.as_deref_mut(), boxed.as_deref_mut(), out, &mut buf);
     /* A background job ending while a foreground one holds the screen leaves
      * its modes to that one; otherwise the screen is reset as ever. */
     if !leave_modes {
@@ -71,5 +71,5 @@ pub fn step_external(
             status = 1;
         }
     }
-    JobProgress::Done(status)
+    super::box_wait::ended(boxed, status, out, leave_modes)
 }
