@@ -44,3 +44,10 @@ pub fn get_bytes_secure(buffer: &mut [u8]) -> CryptoResult<()> {
     mix_hardware_entropy(buffer);
     Ok(())
 }
+
+/// `len` bytes from the seeded RNG only, as `get_bytes_secure`.
+pub fn get_vec_secure(len: usize) -> CryptoResult<alloc::vec::Vec<u8>> {
+    let mut out = alloc::vec![0u8; len];
+    get_bytes_secure(&mut out)?;
+    Ok(out)
+}
