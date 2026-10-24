@@ -17,7 +17,9 @@
 //! The spawn order as a second guard among claimants that DMA (H-02): the
 //! SATA and NVMe controllers spawn before the bus drivers (smbus, spi,
 //! i2c), the NICs and the rest, so a disk controller claims its isolation
-//! group ahead of anything sharing it.
+//! group ahead of anything sharing it. HDA stays after the NICs: where HDA
+//! and the I219 share a group, the network wins by default (the Lead's
+//! ruling on H-02).
 
 #[cfg(test)]
 mod tests {
@@ -41,6 +43,12 @@ mod tests {
         let disks = at(ORCHESTRATOR, "super::drivers_storage::spawn_disks();");
         assert!(disks < at(ORCHESTRATOR, "super::drivers_bus::spawn();"), "after the bus");
         assert!(disks < at(ORCHESTRATOR, "super::drivers_nic::spawn();"), "after the NICs");
+    }
+
+    #[test]
+    fn hda_spawns_after_the_nics_so_the_network_wins_a_shared_group() {
+        let nics = at(ORCHESTRATOR, "super::drivers_nic::spawn();");
+        assert!(nics < at(ORCHESTRATOR, "super::drivers_storage::spawn();"), "HDA before the NICs");
     }
 
     #[test]
