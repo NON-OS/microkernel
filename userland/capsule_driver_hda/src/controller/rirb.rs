@@ -21,7 +21,7 @@ use core::ptr::read_volatile;
 
 use super::dma_sync::flush;
 use super::verb::Link;
-use crate::constants::{RIRBWP, RIRB_EX_CODEC, RIRB_EX_UNSOL};
+use crate::constants::{RIRBSTS, RIRBSTS_OIS, RIRBWP, RIRB_EX_CODEC, RIRB_EX_UNSOL};
 
 impl Link {
     /// Consume every RIRB entry the controller has written. The first
@@ -33,6 +33,14 @@ impl Link {
         if hw == 0xffff {
             // A controller that dropped off the bus reads all ones.
             return None;
+        }
+        // A response the RIRB had no room for is gone; counted, and the verb
+        // it answered times out into the recovery (ring_recover.rs).
+        // SAFETY: RIRBSTS lies in the register window.
+        if unsafe { self.regs.r8(RIRBSTS) } & RIRBSTS_OIS != 0 {
+            // SAFETY: as above; RIRBOIS is write-one-to-clear.
+            unsafe { self.regs.w8(RIRBSTS, RIRBSTS_OIS) };
+            self.health.overruns = self.health.overruns.saturating_add(1);
         }
         let hw = hw & self.mask;
         while self.rp != hw {

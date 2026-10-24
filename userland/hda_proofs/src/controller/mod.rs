@@ -45,6 +45,14 @@ pub mod position;
 pub mod quiesce;
 #[path = "../../../capsule_driver_hda/src/controller/reset.rs"]
 pub mod reset;
+#[path = "../../../capsule_driver_hda/src/controller/ring_health.rs"]
+pub mod ring_health;
+#[path = "../../../capsule_driver_hda/src/controller/ring_recover.rs"]
+pub mod ring_recover;
+#[path = "../../../capsule_driver_hda/src/controller/ring_reset.rs"]
+mod ring_reset;
+#[path = "../../../capsule_driver_hda/src/controller/ring_steps.rs"]
+mod ring_steps;
 #[path = "../../../capsule_driver_hda/src/controller/rirb.rs"]
 mod rirb;
 #[path = "../../../capsule_driver_hda/src/controller/sst.rs"]
