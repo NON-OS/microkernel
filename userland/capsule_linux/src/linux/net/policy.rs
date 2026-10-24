@@ -32,6 +32,8 @@ use super::sock::Addr;
 /// EACCES for a bind or listen outside loopback, with the address.
 pub fn not_loopback(call: &str, at: Addr) -> u64 {
     let [a, b, c, d] = at.ip;
+    let tag = format!("{call} {a}.{b}.{c}.{d}:{}", at.port);
+    crate::linux::boxed::note(crate::linux::boxed::Kind::Network, tag.as_bytes());
     let line = format!(
         "[LINUX] refused {call} {a}.{b}.{c}.{d}:{}: a guest listens only on 127.0.0.0/8\n",
         at.port
@@ -44,6 +46,8 @@ pub fn not_loopback(call: &str, at: Addr) -> u64 {
 /// carries streams, and a guest's datagrams have no other way out.
 pub fn refuse_out(call: &str, to: Addr) -> u64 {
     let [a, b, c, d] = to.ip;
+    let tag = format!("{call} {a}.{b}.{c}.{d}:{}", to.port);
+    crate::linux::boxed::note(crate::linux::boxed::Kind::Network, tag.as_bytes());
     let line = format!(
         "[LINUX] refused {call} {a}.{b}.{c}.{d}:{}: a guest's datagrams stay in the family\n",
         to.port

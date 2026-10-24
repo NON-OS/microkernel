@@ -19,15 +19,18 @@ use super::hardware_mix::mix_hardware_entropy;
 use crate::crypto::error::{CryptoError, CryptoResult};
 use crate::crypto::util::rng;
 
+#[track_caller]
 pub fn fill_bytes(buffer: &mut [u8]) -> CryptoResult<()> {
     rng::fill_random_bytes(buffer);
     Ok(())
 }
 
+#[track_caller]
 pub fn get_bytes(buffer: &mut [u8]) -> CryptoResult<()> {
     fill_bytes(buffer)
 }
 
+#[track_caller]
 pub fn get_bytes_checked(buffer: &mut [u8], min_entropy: usize) -> CryptoResult<()> {
     if buffer.len() < required_entropy_bytes(min_entropy) {
         return Err(CryptoError::BufferTooSmall);
@@ -35,8 +38,9 @@ pub fn get_bytes_checked(buffer: &mut [u8], min_entropy: usize) -> CryptoResult<
     fill_bytes(buffer)
 }
 
+/// Draws only from the seeded RNG, and fails before it is seeded.
 pub fn get_bytes_secure(buffer: &mut [u8]) -> CryptoResult<()> {
-    rng::fill_random_bytes(buffer);
+    rng::fill_random_bytes_secure(buffer).map_err(|_| CryptoError::InsufficientEntropy)?;
     mix_hardware_entropy(buffer);
     Ok(())
 }

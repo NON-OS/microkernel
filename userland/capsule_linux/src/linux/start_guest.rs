@@ -45,6 +45,8 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
             return Err(&b"[LINUX] unproven program\n"[..]);
         }
     };
+    guest.app = super::boxed::narrow(guest.app);
+    super::seal_note::seal_app(&guest.app.app_id);
     super::run_net::settle(guest.app.mask)?;
     super::app::grant(guest.app.mask);
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;

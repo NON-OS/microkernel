@@ -1,0 +1,94 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz targets for nsh_wire's parsers, every one of which reads bytes from
+# the network before anything is known about who sent them: frame lengths
+# and order, the hellos, HOST_PROOF, USER_AUTH, grants, enrolment
+# certificates, records and the session bodies. Each target checks what a
+# parse that succeeds must mean, not only that it does not panic. Seed the
+# corpus with seed.py, then run one with:
+#   cargo +nightly-2026-01-16 fuzz run <target>
+
+[package]
+name = "nsh_wire_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nsh_wire = { path = "../../nsh_wire" }
+
+[[bin]]
+name = "nsh_frame"
+path = "fuzz_targets/nsh_frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_hello"
+path = "fuzz_targets/nsh_hello.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_host_proof"
+path = "fuzz_targets/nsh_host_proof.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_user_auth"
+path = "fuzz_targets/nsh_user_auth.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_grant"
+path = "fuzz_targets/nsh_grant.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_enrol"
+path = "fuzz_targets/nsh_enrol.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_record"
+path = "fuzz_targets/nsh_record.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nsh_session"
+path = "fuzz_targets/nsh_session.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]

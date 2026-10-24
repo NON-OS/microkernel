@@ -1,5 +1,13 @@
 # capsule_driver_intel_display
 
+Status: wired, in its own `microkernel-driver-intel-display` profile; not
+yet signed. The kernel mirror (`src/hardware/intel_display_capsule`)
+embeds it under `nonos-capsule-driver-intel-display` and spawns it where
+the inventory sees an Intel graphics function. It joins
+`microkernel-full-gui` (the image `make` builds) once the owner's seal
+gives it its certificate, manifest and trailer; until then it is in
+`scripts/baselines/display_profiles.txt`.
+
 ## Role
 
 Intel display engine capsule. It takes over firmware's mode on Haswell
@@ -13,9 +21,7 @@ DisplayPort and HDMI, eDP power and backlight, watermarks), `src/dp`
 `data/`, `src/dmc.rs` (the DMC firmware seal) and `src/display` (the engine
 as a display-wire device). The binary (`src/main.rs`, `src/setup`) claims
 the function, maps BAR0, scans out of two DMA-granted surfaces and serves
-the display wire. There is no `Capsule.mk`, Cargo feature or kernel mirror
-yet, so no image carries it: the spawn waits on the owner's seal, as bga's
-does. `intel_display_proofs` runs the library against a register-level
+the display wire. `intel_display_proofs` runs the library against a register-level
 model of the Gen9 display engine.
 
 ## Microkernel contract
@@ -60,12 +66,16 @@ monitor lists it. STATE reports a
 hung flip or an underrun as LOST after putting the plane back, a
 DisplayPort link that gave way (read over AUX on every STATE, since NONOS
 takes no interrupts) as LOST after training it again at the mode shown,
-and a stopped transcoder as LOST, not scanning out. The service is not exported
-until the capsule is spawned.
+and a stopped transcoder as LOST, not scanning out. The kernel registers
+the service (port 4574, replies on 4575) when it spawns the capsule.
 
 ## Authority
 
-None granted: nothing spawns this capsule yet.
+The kernel spawns it with IPC, Memory, GraphicsSurfaceCreate, DeviceEnum,
+Driver, Mmio and Dma (0xB9018), and Debug on a `capsule-serial-debug`
+build. Its broker scope row (`src/hardware/broker/scope_rows.rs`,
+`INTEL_GFX`) lets it claim only an Intel function of display class, VGA
+or other display (pinned in `kernel_proofs::driver_scope::display_rows`).
 
 ## Privacy and persistence
 
@@ -156,8 +166,8 @@ without tearing while windows move, with a hardware cursor.
 
 ## Release checklist
 
-- `Capsule.mk`, feature, mirror, inventory and spawn entries (the crate is in).
-- `driver.intel_display0` is in the kernel's `DISPLAYS`, before bootfb; the spawn joins it.
+- [x] `Capsule.mk`, feature, mirror, scope row, inventory and spawn entries.
+- [x] `driver.intel_display0` is in the kernel's `DISPLAYS`, before bootfb.
 - Owner's keys for the slug `driver.intel_display`.
 - Device ids checked against Intel's published lists.
 - Boot on Skylake, Kaby Lake, Coffee Lake and Comet Lake machines, then on
