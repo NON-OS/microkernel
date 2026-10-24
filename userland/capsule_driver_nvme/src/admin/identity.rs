@@ -29,6 +29,9 @@ pub struct ControllerIdentity {
     pub cq_entry_size: u8,
     pub optional_nvm: u16,
     pub volatile_write_cache: u8,
+    /// RTD3E, bytes 91:88: how long, in microseconds, the controller takes to
+    /// enter its D3 state after a shutdown notification; 0 when it says not.
+    pub rtd3e_us: u32,
     /// HMPRE, HMMIN, HMMINDS and HMMAXD: the host memory buffer it asks for.
     pub hmb: super::hmb::HmbAsk,
 }
@@ -55,6 +58,7 @@ impl ControllerIdentity {
             cq_entry_size: data[0x201],
             optional_nvm: le16(data, 0x208),
             volatile_write_cache: data[0x20d],
+            rtd3e_us: le32(data, 0x58),
             hmb: super::hmb::HmbAsk {
                 preferred: le32(data, 0x110),
                 minimum: le32(data, 0x114),
