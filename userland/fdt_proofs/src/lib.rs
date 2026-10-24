@@ -104,6 +104,8 @@ mod structure_tests;
 #[cfg(test)]
 mod timer_mem_tests;
 #[cfg(test)]
+mod tpm_tests;
+#[cfg(test)]
 mod timer_rate_tests;
 #[cfg(test)]
 mod translate_tests;

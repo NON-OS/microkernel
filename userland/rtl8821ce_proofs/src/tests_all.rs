@@ -48,6 +48,8 @@ mod rx_tests;
 #[cfg(test)]
 mod sae_forged_tests;
 #[cfg(test)]
+mod sae_join;
+#[cfg(test)]
 mod scan_tests;
 #[cfg(test)]
 mod sec_tests;
