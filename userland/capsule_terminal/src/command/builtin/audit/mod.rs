@@ -22,10 +22,11 @@
 mod agent;
 mod format;
 mod join;
+pub(crate) mod names;
 mod reach;
 mod read;
 mod run;
-mod table;
+pub(crate) mod table;
 pub mod withheld;
 
 pub use run::run;

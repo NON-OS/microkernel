@@ -66,9 +66,3 @@ pub fn through(caps: u64, area: &Area) -> Vec<&'static [u8]> {
 pub fn reaches(caps: u64, area: &Area) -> bool {
     !through(caps, area).is_empty()
 }
-
-/// Every capability name in `caps`, as `receipt` lists them.
-pub fn names(caps: u64) -> Vec<&'static [u8]> {
-    let held = CAP_NAMES.iter().enumerate().filter(|(i, _)| caps & (1u64 << i) != 0);
-    held.map(|(_, n)| *n).collect()
-}

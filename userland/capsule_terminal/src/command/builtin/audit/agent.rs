@@ -22,7 +22,8 @@ use alloc::vec::Vec;
 
 use super::format::{hex, printable};
 use super::join::Row;
-use super::reach::{names, through, AREAS, DEVICES_NOTE};
+use super::names::names;
+use super::reach::{through, AREAS, DEVICES_NOTE};
 use super::table::{list, pad, pid};
 use super::withheld::holds;
 use crate::command::builtin::receipt::own::signer;

@@ -3,7 +3,8 @@
 //! and seeded masks; and the names against the kernel's bits.
 
 use super::model::{any, kernel_bits, masks};
-use crate::command::builtin::audit::reach::{bit, names, reaches, through, DEVICES, NETWORK};
+use crate::command::builtin::audit::names::names;
+use crate::command::builtin::audit::reach::{bit, reaches, through, DEVICES, NETWORK};
 use crate::command::builtin::audit::reach::{AREAS, STORAGE};
 use crate::command::builtin::cap_names::CAP_NAMES;
 
@@ -44,5 +45,5 @@ fn the_names_are_the_kernels_bits() {
         assert_eq!(k[core::str::from_utf8(n).unwrap()], 1 << i, "{n:?}");
     }
     let m = k["Network"] | k["Dma"] | k["IPC"];
-    assert_eq!(names(m), [&b"Network"[..], b"IPC", b"Dma"]);
+    assert_eq!(names(m), [b"Network".to_vec(), b"IPC".to_vec(), b"Dma".to_vec()]);
 }

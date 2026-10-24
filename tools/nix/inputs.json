@@ -4755,6 +4755,7 @@
    "userland/capsule_terminal/src/command/builtin/audit/agent.rs",
    "userland/capsule_terminal/src/command/builtin/audit/format.rs",
    "userland/capsule_terminal/src/command/builtin/audit/join.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/names.rs",
    "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
    "userland/capsule_terminal/src/command/builtin/audit/table.rs",
    "userland/capsule_terminal/src/command/builtin/audit/withheld.rs",

@@ -77,7 +77,8 @@ it and refuse any other. In v1:
   (`capabilities`); `pid` is right-aligned in five places; a name longer than 20
   characters is cut;
 - a reach cell is `YES` or `no`; capabilities are the kernel's names, joined by
-  `, `, in bit order;
+  `, `, in bit order, and a bit this build has no name for prints as `unknown
+  bit N`, never dropped (so do `receipt` and `capsules`);
 - a row the gate withheld `Debug` from ends `; debug withheld (holds <names>)`;
 - the agent block is a `<name>, pid <pid>` line, then the `authority`,
   `network`, `storage`, `devices*` and `holds` lines, and `debug` when withheld,
