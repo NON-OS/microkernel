@@ -18,11 +18,10 @@
 //! and a live device claim; the broker authority module enforces
 //! the allowlist and the actual PCI write.
 
-use super::errnos::{ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM, ERRNO_STALE};
+use super::super::errnos::ERRNO_PERM;
+use super::errno::{read_errno, write_errno};
 use crate::capabilities::Capability;
-use crate::hardware::broker::{
-    pci_config_read, pci_config_write, PciReadError, PciReadRequest, PciWriteError, PciWriteRequest,
-};
+use crate::hardware::broker::{pci_config_read, pci_config_write, PciReadRequest, PciWriteRequest};
 use crate::process::{caps, current_pid};
 
 pub fn sys_pci_config_read(device_id: u64, claim_epoch: u64, offset: u32, width: u32) -> i64 {
@@ -52,25 +51,5 @@ pub fn sys_pci_config_write(device_id: u64, claim_epoch: u64, offset: u32, value
     match pci_config_write(pid, req) {
         Ok(()) => 0,
         Err(e) => write_errno(e),
-    }
-}
-
-fn read_errno(e: PciReadError) -> i64 {
-    match e {
-        PciReadError::NotClaimed => ERRNO_PERM,
-        PciReadError::StaleEpoch => ERRNO_STALE,
-        PciReadError::NoDeviceHandle | PciReadError::PlatformError => ERRNO_NODEV,
-        PciReadError::OffsetNotAllowed | PciReadError::WidthNotAllowed => ERRNO_INVAL,
-    }
-}
-
-fn write_errno(e: PciWriteError) -> i64 {
-    match e {
-        PciWriteError::NotClaimed
-        | PciWriteError::BusMasterWithoutDma
-        | PciWriteError::MemorySpaceWithoutMmio => ERRNO_PERM,
-        PciWriteError::StaleEpoch => ERRNO_STALE,
-        PciWriteError::NoDeviceHandle | PciWriteError::PlatformError => ERRNO_NODEV,
-        PciWriteError::OffsetNotAllowed | PciWriteError::BitsNotAllowed => ERRNO_INVAL,
     }
 }
