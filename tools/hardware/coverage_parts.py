@@ -16,6 +16,7 @@
 
 """The parts file read, one row a part, with the two columns the tree gives."""
 
+import pathlib
 import sys
 
 from coverage_facts import ROOT, in_table
@@ -36,6 +37,15 @@ def rows():
     return out
 
 
+def sealed(rel):
+    """Whether a capsule driver's trust files are committed; listed is not signed."""
+    parts = pathlib.Path(rel).parts
+    if len(parts) < 2 or not parts[1].startswith("capsule_"):
+        return True
+    name = parts[1][len("capsule_"):]
+    return (ROOT / f"nonos-data/trust/capsules/{name}.manifest.bin").is_file()
+
+
 def facts(row, features):
     ids = [i for i in row["ids"].split() if i != "-"]
     row["matched"] = in_table(ids, row["table"])
@@ -44,6 +54,8 @@ def facts(row, features):
         row["image"] = "no feature"
     elif feature == "kernel":
         row["image"] = "kernel"
+    elif feature in features and not sealed(row["table"]):
+        row["image"] = "listed, unsealed"
     else:
         row["image"] = "yes" if feature in features else "no"
     return row
