@@ -38,7 +38,6 @@ pub fn run_init() -> ! {
     run_shield();
     run_shield_vectors();
     run_tokio_smoke();
-    run_flacprobe();
     boot_log::ok("INIT", "Capsules spawned");
     run_tool_selftest();
     lower_init_priority();
@@ -89,17 +88,6 @@ fn run_shield_vectors() {
 
 #[cfg(not(feature = "nonos-capsule-shield-vectors"))]
 fn run_shield_vectors() {}
-
-#[cfg(feature = "nonos-capsule-flacprobe")]
-fn run_flacprobe() {
-    match crate::userspace::capsule_flacprobe::spawn_flacprobe_capsule() {
-        Ok(()) => boot_log::ok("FLAC-PROBE", "capsule spawned"),
-        Err(_) => boot_log::error("FLAC-PROBE capsule spawn failed"),
-    }
-}
-
-#[cfg(not(feature = "nonos-capsule-flacprobe"))]
-fn run_flacprobe() {}
 
 #[cfg(feature = "nonos-capsule-ripgrep")]
 fn run_ripgrep() {
