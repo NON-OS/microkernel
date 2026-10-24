@@ -20,16 +20,16 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 
 use crate::crypto::chacha20poly1305::{aead_decrypt, aead_encrypt};
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
 
 use super::super::error::{FsError, FsResult};
 use super::super::types::{FsStatistics, FILE_AAD, KEY_SIZE, NONCE_SIZE, TAG_SIZE};
 
-pub(crate) fn generate_nonce(nonce_counter: &AtomicU64) -> [u8; NONCE_SIZE] {
+pub(crate) fn generate_nonce(nonce_counter: &AtomicU64) -> FsResult<[u8; NONCE_SIZE]> {
     nonce_counter.fetch_add(1, Ordering::SeqCst);
     let mut nonce = [0u8; NONCE_SIZE];
-    fill_random_bytes(&mut nonce);
-    nonce
+    fill_random_bytes_secure(&mut nonce).map_err(|_| FsError::IoError("no randomness"))?;
+    Ok(nonce)
 }
 
 pub(crate) fn encrypt_file_data(
@@ -38,7 +38,7 @@ pub(crate) fn encrypt_file_data(
     nonce_counter: &AtomicU64,
     stats: &spin::RwLock<FsStatistics>,
 ) -> FsResult<Vec<u8>> {
-    let nonce = generate_nonce(nonce_counter);
+    let nonce = generate_nonce(nonce_counter)?;
 
     let ct_and_tag =
         aead_encrypt(key, &nonce, FILE_AAD, data).map_err(|_| FsError::EncryptionFailed)?;
