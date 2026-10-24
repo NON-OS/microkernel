@@ -850,6 +850,10 @@
    "file": "userland/linux_userland/tour/mandelbrot.py"
   },
   {
+   "path": "/linux/usr/share/nonos/keymap.xkb",
+   "file": "userland/linux_userland/keymap-us.xkb"
+  },
+  {
    "path": "/linux/etc/nonos-links",
    "file": "userland/linux_userland/nonos-links"
   }
