@@ -3248,8 +3248,11 @@
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_net_sockets",
-   "userland/libc"
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto"
   ],
   "md": [],
   "signed": []
@@ -5064,6 +5067,7 @@
    "userland/capsule_vfs/src/server/fs_gate",
    "userland/capsule_vfs/src/server/handlers/journal.rs",
    "userland/capsule_vfs/src/server/handlers/path",
+   "userland/capsule_vfs/src/server/handlers/persist_rule.rs",
    "userland/capsule_vfs/src/server/handlers/search.rs",
    "userland/capsule_vfs/src/server/handlers/util.rs",
    "userland/capsule_vfs/src/store/fdtable",
@@ -7099,6 +7103,7 @@
   "include": [
    ".cargo",
    "userland/capsule_net_nym/src/ack/ledger.rs",
+   "userland/capsule_net_nym/src/crypto/wipe.rs",
    "userland/capsule_net_nym/src/gateway_client/ws/frame/parse.rs",
    "userland/capsule_net_nym/src/gateway_client/ws/frame/read.rs",
    "userland/capsule_net_nym/src/gateway_client/ws/frame/types.rs",
@@ -7120,9 +7125,11 @@
    "userland/capsule_net_nym/src/server/respond.rs",
    "userland/capsule_net_nym/src/sphinx/constants",
    "userland/capsule_net_nym/src/state/gateway.rs",
+   "userland/capsule_net_nym/src/state/identity.rs",
    "userland/capsule_net_nym/src/state/replay.rs",
    "userland/capsule_net_nym/src/state/rx_queue.rs",
    "userland/capsule_net_nym/src/state/session.rs",
+   "userland/capsule_net_nym/src/state/shared_key.rs",
    "userland/capsule_net_nym/src/state/table/ended.rs",
    "userland/capsule_net_nym/src/state/table/ops.rs",
    "userland/capsule_net_nym/src/state/table/owner.rs",
