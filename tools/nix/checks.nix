@@ -250,7 +250,7 @@ let
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
-      "tools/nonos-pcap-egress --self-test"
+      "tools/nonos-pcap-egress --self-test" "tools/nonos-efi-vars --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
