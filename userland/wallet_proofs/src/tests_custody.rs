@@ -17,6 +17,10 @@
 //! The custody tests: kept records, the keyring's owners, words, typed data and
 //! retired ops, the vault, the frame.
 
+#[path = "answer_wipe_tests.rs"]
+mod answer_wipe_tests;
+#[path = "copy_rule_tests.rs"]
+mod copy_rule_tests;
 #[path = "custody_gate_tests.rs"]
 mod custody_gate_tests;
 #[path = "keep_disk.rs"]
