@@ -29,6 +29,9 @@ from .names import package
 # No set measured yet: every Linux call may complete, and bucket 512, the
 # numbers past 511 that no Linux call has, stays clear so it is market ready.
 UNMEASURED = b"\xff" * 64 + b"\x00"
+# As nonos-market-catalogue's NAMESPACES: linux.kali.* is read as Debian,
+# linux.blackarch.* as pacman, qwen- and nonos- are the image's own tiers and tools.
+NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
 KEYS = frozenset(("package", "licence", "mask", "dests", "calls", "name", "text"))
 
 
@@ -47,7 +50,8 @@ def checked(item: dict, root: Path) -> dict:
     extra = set(item) - KEYS
     if extra or not {"package", "licence", "mask", "name", "text"} <= set(item):
         raise ValueError(f"{item.get('package', '?')}: keys {sorted(extra) or 'missing'}")
-    package(item["package"])
+    if package(item["package"]).startswith(NAMESPACES):
+        raise ValueError(f"{item['package']}: inside a namespace another family owns")
     if not redistributable(item["licence"]):
         raise ValueError(f"{item['package']}: {item['licence']} is not on the allowlist")
     mask = mask_of(item["mask"])
@@ -58,7 +62,7 @@ def checked(item: dict, root: Path) -> dict:
             raise ValueError(f"{item['package']}: its dests file is outside the tree")
         try:
             lines = at.read_text().splitlines()
-        except (OSError, UnicodeDecodeError) as why:
+        except OSError as why:  # UnicodeDecodeError is already a ValueError
             raise ValueError(f"{item['package']}: its dests file: {why}") from None
         dests = dests_list([x.strip() for x in lines if x.strip()])
         if not mask & 2:

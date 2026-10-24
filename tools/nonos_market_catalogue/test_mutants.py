@@ -13,11 +13,10 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Every rule here has a mutant in mutants.json: one exact substitution that
-removes the rule. Each is applied to a copy of the tree, the whole suite is
-run against it, and the suite must fail; the unmutated copy must pass. A
-substitution that no longer applies exactly once fails too, so a mutant
-cannot rot into testing nothing. Run:
+"""Every rule here has a mutant in mutants.json, one exact substitution that
+removes it. Each is applied to a copy of the tree and the suite must fail;
+the unmutated copy must pass; a mutant that no longer applies exactly once
+fails too, so none rots into testing nothing. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import json
@@ -31,18 +30,23 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
+MARKET = "userland/capsule_market/"
 COPY = ("tools/nonos_market_catalogue", "tools/nonos_linux_pack", "tools/nix/store.json",
-        "userland/capsule_market/linux-catalogue.json", "userland/capsule_market/linux-guests.json",
-        "userland/capsule_market/linux-tools.json", "nonos-data/market/catalogue")
+        *(MARKET + f for f in ("linux-catalogue.json", "linux-guests.json", "linux-tools.json")),
+        "userland/capsule_linux/keys/alpine", "nonos-data/market/catalogue")
 MUTANTS = json.loads((HERE / "mutants.json").read_text())
 
 
 def suite(tree: Path) -> int:
-    """The suite's exit status in `tree`, with this test left out."""
-    env = dict(os.environ, NONOS_IN_MUTANT="1")
-    return subprocess.run([sys.executable, "-m", "unittest", "discover", "-s",
-                           "tools/nonos_market_catalogue", "-t", "tools"], cwd=tree, env=env,
-                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode
+    """The suite's exit status in `tree`, with this test left out; a suite
+    that hangs is killed and counts as failing."""
+    try:
+        return subprocess.run([sys.executable, "-m", "unittest", "discover", "-s",
+                               "tools/nonos_market_catalogue", "-t", "tools"], cwd=tree,
+                              env=dict(os.environ, NONOS_IN_MUTANT="1"),
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=120).returncode
+    except subprocess.TimeoutExpired:
+        return 1
 
 
 @unittest.skipIf(os.environ.get("NONOS_IN_MUTANT"), "inside a mutant run")
@@ -51,10 +55,8 @@ class Mutants(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             tree = Path(d)
             for rel in COPY:
-                src, dst = ROOT / rel, tree / rel
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                copy = shutil.copytree if src.is_dir() else shutil.copyfile
-                copy(src, dst)
+                (tree / rel).parent.mkdir(parents=True, exist_ok=True)
+                (shutil.copytree if (ROOT / rel).is_dir() else shutil.copyfile)(ROOT / rel, tree / rel)
             self.assertEqual(suite(tree), 0, "the unmutated copy fails")
             stale, survivors = [], []
             for m in MUTANTS:
@@ -64,8 +66,7 @@ class Mutants(unittest.TestCase):
                     stale.append(m["name"])
                     continue
                 path.write_text(text.replace(m["old"], m["new"]))
-                if suite(tree) == 0:
-                    survivors.append(m["name"])
+                survivors += [m["name"]] if suite(tree) == 0 else []
                 path.write_text(text)
             self.assertEqual((stale, survivors), ([], []), "(no longer apply once, survive the suite)")
 
