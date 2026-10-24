@@ -19,6 +19,9 @@
 
 #[path = "acpi_span/mod.rs"]
 pub mod acpi_span;
+/// The GOP present refused while a claimed device holds the boot framebuffer.
+#[path = "boot_fb/mod.rs"]
+mod boot_fb;
 #[path = "block_wire/mod.rs"]
 mod block_wire;
 #[path = "described/mod.rs"]
@@ -30,6 +33,12 @@ mod firmware_flash;
 pub mod firmware_message;
 #[path = "inventory_ids/mod.rs"]
 mod inventory_ids;
+/// The power-off's leave phase: every disk driver asked, each bounded.
+#[path = "leave_rule/mod.rs"]
+mod leave_rule;
+/// terminate()'s once: one caller to the wipe, however many race.
+#[path = "terminate_once/mod.rs"]
+mod terminate_once;
 #[path = "unit_base/mod.rs"]
 pub mod unit_base;
 #[path = "secret_log/mod.rs"]
