@@ -35,6 +35,7 @@ pub mod slot;
 pub mod state;
 pub mod surface;
 pub mod watch;
+pub mod watch_tell;
 
 pub use copy::copy_rects;
 pub use display::{Display, Shadow};
@@ -43,3 +44,4 @@ pub use platform::{Platform, Region};
 pub use server::Server;
 pub use slot::{Slot, MAX_OUTPUTS};
 pub use watch::OWNER_SILENCE_MS;
+pub use watch_tell::{Tell, BLANK_LINE};

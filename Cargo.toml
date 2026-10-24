@@ -1280,6 +1280,11 @@ crypto-curve25519    = ["curve25519-dalek", "x25519-dalek"]
 mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
+# SPHINCS+, NTRU and Classic McEliece: built only under this feature. Each
+# of the kernel's own implementations fails its first full run, so none is
+# shipped until it passes its published vectors. No default or release
+# profile may enable it (nonos-ci/check-pqc-unvetted.sh).
+pqc-unvetted = []
 mldsa2    = []
 mldsa3    = []
 mldsa5    = []

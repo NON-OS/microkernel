@@ -18,6 +18,8 @@ checks, the command, what a pass and a failure print, and whether CI runs it.
   refused](checking-the-claims-signed-artifacts-verify.md)
 - [Signed artifacts verify and tampered ones are refused,
   continued](checking-the-claims-signed-artifacts-verify-2.md)
+- [Attestation proofs verify and altered ones are
+  refused](checking-the-claims-attestation-proofs.md)
 - [The whole-image report and the authority
   map](checking-the-claims-the-whole-image.md)
 - [The whole-image report and the authority map,
