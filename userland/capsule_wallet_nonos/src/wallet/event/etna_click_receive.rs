@@ -16,10 +16,10 @@
 
 //! The receive screen, as presses.
 
-use nonos_app_skeleton::clients::clipboard::clipboard_copy;
 use nonos_app_skeleton::EventOutcome;
 
 use super::etna_click::go;
+use crate::wallet::copy::copy_address;
 use crate::wallet::screen;
 use crate::wallet::screen::hits::Press;
 use crate::wallet::state::{State, VIEW_HOME};
@@ -29,17 +29,19 @@ pub(super) fn receive(state: &mut State, press: Press) -> EventOutcome {
         Press::Footer(0) => {
             let private = state.acct.receive_private && crate::wallet::shield::open::here();
             let copied = match (&state.shield_ui.nox1, private) {
-                (Some(nox1), true) => clipboard_copy(nox1.as_bytes()),
+                (Some(nox1), true) => copy_address(nox1),
                 /* The private address is shown as not ready: the public one
                  * is never copied in its place. */
                 (None, true) => {
                     state.status = b"the private address is not ready yet";
                     return EventOutcome::Repaint;
                 }
-                _ => clipboard_copy(screen::receive_address::address_text(state).as_bytes()),
+                _ => copy_address(&screen::receive_address::address_text(state)),
             };
-            state.status =
-                if copied.is_ok() { b"address copied" } else { b"the clipboard did not take it" };
+            state.status = match copied {
+                Ok(()) => b"address copied",
+                Err(why) => why,
+            };
             EventOutcome::Repaint
         }
         Press::Footer(1) if !crate::wallet::chain::current().shield => {
