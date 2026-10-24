@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A port-only claim (H-02): its capsule holds neither Dma nor Mmio. With
-//! Memory Space and Bus Master cleared at the claim (claim.rs) and kept off
-//! (pci/command_rule.rs) the function starts no DMA and no MSI, and no
-//! peer's memory write reaches it; PCIe peers send it no I/O requests. So a
-//! port-only claim neither joins an isolation group nor is blocked by one,
-//! but for a member across a bridge to a shared conventional bus, whose bus
-//! masters drive I/O cycles. Pure: kernel_proofs::confine_posture port_only_tests.
+//! A port-only claim (H-02): its capsule holds neither Dma nor Mmio, and its
+//! Memory Space and Bus Master are cleared at the claim and kept off, so it
+//! starts no DMA or MSI and no peer's memory write or PCIe request reaches
+//! it. It neither joins nor is blocked by an isolation group, but across a
+//! bridge to a shared conventional bus, whose masters drive I/O cycles. The
+//! relation holds both ways (H-03, `blocked_by`), each side's group read
+//! from its own ACS at every hop. Pure: kernel_proofs::confine_posture
+//! port_only_tests, acs_group symmetric_tests.
 
 use super::member::Member;
+
+/// Bus, device, function.
+type Bdf = (u8, u8, u8);
 
 /// Whether a capsule holding Dma as `dma` and Mmio as `mmio` claims port-only.
 pub(crate) const fn port_only(dma: bool, mmio: bool) -> bool {
@@ -46,4 +50,22 @@ pub(super) fn blocker(
     holder_port_only: bool,
 ) -> Option<&Member> {
     group.iter().find(|m| holds(m.id) && blocks(claim_port_only, holder_port_only, m.shared))
+}
+
+/// What, of the devices `held` by one other capsule, blocks a claim of
+/// `claimed` (its group `group`; `peer` a held device's place and group):
+/// the function a refusal names and the hop it reaches the claim past.
+pub(super) fn blocked_by<'a>(
+    claimed: u64,
+    group: &[Member],
+    held: &[u64],
+    (claim_port_only, holder_port_only): (bool, bool),
+    peer: impl Fn(u64) -> Option<(Bdf, &'a [Member])>,
+) -> Option<(Bdf, Bdf)> {
+    let holds = |id: u64| held.contains(&id);
+    if let Some(m) = blocker(group, holds, claim_port_only, holder_port_only) {
+        return Some((m.at, m.hop));
+    }
+    let me = |m: &&Member| m.id == claimed && blocks(claim_port_only, holder_port_only, m.shared);
+    held.iter().find_map(|&e| peer(e).and_then(|(at, g)| g.iter().find(me).map(|m| (at, m.hop))))
 }
