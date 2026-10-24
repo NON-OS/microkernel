@@ -41,6 +41,7 @@ pub fn may_dial(guest: &Guest, to: Target<'_>, port: u16) -> bool {
 /// `errno` for `what`, after saying that the program's policy does not
 /// grant `needs`.
 pub fn refuse(what: &str, needs: &str, code: i64) -> u64 {
+    crate::linux::boxed::note(crate::linux::boxed::of_needs(needs), what.as_bytes());
     let line = alloc::format!("[LINUX] refused {what}: its policy does not grant {needs}\n");
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     errno::fail(code)

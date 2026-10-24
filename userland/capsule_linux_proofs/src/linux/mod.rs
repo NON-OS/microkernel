@@ -19,6 +19,7 @@
 //! compiles here exactly as it ships and finds what it uses where it looks.
 
 pub mod abi;
+pub mod boxed;
 pub mod call;
 pub mod file;
 pub mod guest;
