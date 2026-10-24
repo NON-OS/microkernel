@@ -52,8 +52,8 @@ pub fn mk_pci_config_write(_device_id: u64, epoch: u64, offset: u32, value: u16)
     0
 }
 
-/// A config read. The one the driver makes is the SDHCI Slot Information
-/// byte, which reads 0: one slot, its registers in BAR0.
-pub fn mk_pci_config_read(_device_id: u64, _epoch: u64, _offset: u32, _width: u32) -> i64 {
-    0
+/// A config read, answered from the config the test set (config.rs), or 0:
+/// the SDHCI Slot Information byte's one slot, its registers in BAR0.
+pub fn mk_pci_config_read(_device_id: u64, _epoch: u64, offset: u32, width: u32) -> i64 {
+    crate::config::read(offset, width)
 }
