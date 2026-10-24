@@ -18,8 +18,6 @@
 //! pipe, and, before Gen12, the eDP transcoder, feeding the pipe that
 //! eDP Input Select picks (SKL PRM Vol 2c, TRANS_DDI_FUNC_CTL).
 
-use super::gen::Gen;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Pipe {
     A,
@@ -35,10 +33,10 @@ impl Pipe {
         self as u32
     }
 
-    /// The wire's output number: pipe A is output 0; a pipe `g` lacks
-    /// is no output.
-    pub fn from_output(g: &Gen, output: u16) -> Option<Pipe> {
-        Pipe::ALL.get(output as usize).copied().filter(|p| p.index() < g.pipes)
+    /// The wire's output number: pipe A is output 0; a pipe beyond the
+    /// generation's `pipes` is no output.
+    pub fn from_output(pipes: u32, output: u16) -> Option<Pipe> {
+        Pipe::ALL.get(output as usize).copied().filter(|p| p.index() < pipes)
     }
 }
 
