@@ -1,7 +1,7 @@
 # rng_fail_closed_proofs
 
 Host proofs that the kernel's randomness callers fail closed, and that the
-boot line naming a draw made before seeding is right. There are 21 tests.
+boot line naming a draw made before seeding is right. There are 20 tests.
 
 **What is mounted.** The kernel's own files, by `#[path]` (`src/mount.rs`):
 
@@ -36,10 +36,16 @@ test sees which one answered.
   is not seeded, whatever the hardware answers, and write nothing.
 - `[RNG] pre-seed draw by <file>:<line>` names the caller's own source
   line through every layer: the byte API, the RNG's `fill_bytes`,
-  `get_random_bytes`, `random_u64`, `random_range` and the core API. It is
+  `get_random_bytes`, `random_u64` and `random_range`. It is
   said once, never for a seeded draw, and as one write. A path too long is
   cut short and the line number kept. With no hardware the weak line
   follows it, once.
+
+- The core API's `fill_random` and `secure_random_u64/u32/u8` refuse before
+  seeding, whatever the hardware answers, write nothing and never reach the
+  fallback, so neither boot line is said; once seeded they answer from it.
+- `random_api::get_vec_secure` refuses before seeding, and draws from the
+  seeded RNG after.
 
 Each pre-seed test is its own file under `tests/`, because the line is said
 once a process.

@@ -5008,6 +5008,14 @@ else
 fi
 unset mirror_out
 
+# SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
+# feature that builds them.
+if bash nonos-ci/check-pqc-unvetted.sh >/dev/null 2>&1; then
+    note ok "no default, profile or build turns on pqc-unvetted"
+else
+    bash nonos-ci/check-pqc-unvetted.sh >&2 || true
+    fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
+fi
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
