@@ -1,6 +1,6 @@
 [
   {"package": "helix", "licence": "MPL-2.0", "mask": "TTY FILES_HOME", "name": "Helix",
-   "text": "A modal text editor with multiple selections and syntax trees built in. Edits files in its own home."},
+   "text": "A modal text editor with multiple selections and syntax trees built in."},
   {"package": "micro", "licence": "MIT", "mask": "TTY FILES_HOME", "name": "micro",
    "text": "A terminal text editor with the keys people already know: Ctrl-S saves, Ctrl-Q quits."},
   {"package": "kakoune", "licence": "Unlicense", "mask": "TTY FILES_HOME EXEC", "name": "Kakoune",
@@ -18,7 +18,7 @@
   {"package": "fzf", "licence": "MIT", "mask": "TTY FILES_HOME EXEC", "name": "fzf",
    "text": "A fuzzy finder for files, lines and anything else piped into it."},
   {"package": "git", "licence": "GPL-2.0-only", "mask": "TTY FILES_HOME EXEC NET_ANON", "name": "Git",
-   "text": "Version control. Clones and fetches over Nym or Anyone, never directly, from any remote you name."},
+   "text": "Version control. Clones and fetches over Nym or Anyone from any remote you name."},
   {"package": "tig", "licence": "GPL-2.0-or-later", "mask": "TTY FILES_HOME EXEC", "name": "tig",
    "text": "A text interface for browsing a Git repository's history. Runs git."},
   {"package": "lazygit", "licence": "MIT", "mask": "TTY FILES_HOME EXEC", "name": "lazygit",
@@ -32,5 +32,5 @@
   {"package": "lame", "licence": "LGPL-2.0-or-later", "mask": "TTY FILES_HOME", "name": "LAME",
    "text": "Encode audio files to MP3."},
   {"package": "geth", "licence": "LGPL-3.0-or-later", "mask": "TTY FILES_HOME NET_LISTEN_LO", "name": "Geth (dev chain)",
-   "text": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here, and has no network."}
+   "text": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here."}
 ]
