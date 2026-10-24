@@ -22,6 +22,9 @@ pub mod nox {
     pub use crate::nox::q32_to_u128::q32_to_u128;
     pub use crate::nox::staking::SEL_GET_STAKE_INFO;
 }
+/* The one gate the wallet copies through: addresses only. */
+#[path = "../../../capsule_wallet_nonos/src/wallet/copy/rule.rs"]
+pub mod copy_rule;
 pub mod num;
 /* The capsule's order module, which the consent's terms name absolutely. */
 pub use crate::order;
