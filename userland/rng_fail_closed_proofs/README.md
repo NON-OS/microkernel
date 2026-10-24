@@ -15,7 +15,10 @@ boot line naming a draw made before seeding is right. There are 19 tests.
 
 Only these stand in (`src/stand_in*.rs`): the seeded RNG (its state, its
 draw and whether it is seeded), the hardware entropy source, the CPU's
-random instruction, the time counter and the serial line. Each source can
+random instruction, the time counter and the serial line. "Not seeded"
+stands for what the kernel's `ensure_initialized` returns when `init_rng`
+cannot seed. The kernel's `init.rs` itself, which seeds on first use when
+the hardware answers, is not mounted. Each source can
 be turned off for a thread, and each working source tags its values, so a
 test sees which one answered.
 
@@ -23,11 +26,13 @@ test sees which one answered.
 
 - ASLR takes the CPU's instruction, then the seeded RNG. When neither
   answers, every placement is refused and `reseed` says so; nothing is made
-  from a constant. Turned-off randomisation needs no draw.
+  from a constant. A stack too low for its slide is refused, not wrapped.
+  Turned-off randomisation needs no draw.
 - A token's 128-bit nonce is refused before seeding, never zeros. The
-  64-bit nonce draws when it can and counts when it cannot, never repeating.
-- `random_api::get_bytes_secure` and the `misc` helpers refuse before
-  seeding even while the hardware answers, and write nothing.
+  64-bit nonce draws when it can and counts when it cannot. The counter has
+  no reset, so it does not repeat within a boot.
+- `random_api::get_bytes_secure` and the `misc` helpers refuse when the RNG
+  is not seeded, whatever the hardware answers, and write nothing.
 - `[RNG] pre-seed draw by <file>:<line>` names the caller's own source
   line through every layer: the byte API, the RNG's `fill_bytes`,
   `get_random_bytes`, `random_u64`, `random_range` and the core API. It is
@@ -42,9 +47,9 @@ once a process.
 two callers) and `security/policy/capability/api.rs` are not mounted: they
 reach most of the kernel. Each is a `?` on a refusal shown above.
 
-**Mutants.** 33 mutants of the kernel's sources, applied one at a time, were
+**Mutants.** 34 mutants of the kernel's sources, applied one at a time, were
 all caught. They include the ASLR constant seed restored, the source order
 swapped, each placement ignoring a failed draw, `reseed` claiming success,
-the 128-bit nonce taking zeros, the 64-bit nonce repeating, the secure byte
+the stack slide wrapping, the 128-bit nonce taking zeros, the 64-bit nonce repeating, the secure byte
 call falling back, the `misc` helpers falling back to the clock, and each
 layer's `#[track_caller]` removed.
