@@ -33,7 +33,7 @@ use alloc::vec::Vec;
 pub(crate) use leg::{Leg, Wire};
 use rule::{run, Ended, TOTAL_MS};
 
-pub fn power_off_disks() {
+pub(crate) fn power_off_disks() {
     let mut legs: Vec<Leg> = Vec::new();
     legs.extend(crate::hardware::nvme_capsule::leave_leg());
     legs.extend(crate::hardware::ahci_capsule::leave_leg());
