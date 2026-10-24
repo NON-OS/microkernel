@@ -4382,6 +4382,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_net_dhcp/src/dora",
    "userland/capsule_net_dhcp/src/protocol",
    "userland/capsule_net_dhcp/src/server/parse_req.rs",
    "userland/capsule_net_dhcp/src/server/respond.rs",

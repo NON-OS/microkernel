@@ -34,6 +34,8 @@ Fixed in code on this commit, from both sides; not yet booted:
 
 No run on this commit shows a frame received through the PCI drivers either way.
 
+What a boot must show to say a card receives: the driver's own link line (`igb: link up 1000 full`, for one), then `net.dhcp.client`'s one line for the lease it bound, `[DHCP] lease 10.0.2.15/24 gw 10.0.2.2 from 10.0.2.2` over QEMU's user net (`userland/capsule_net_dhcp/src/dora/lease_line.rs`, `lease_line`). A lease binds only once the server's offer and its ack came in through the card, so the line is the receive path seen end to end. Each card is booted alone, with no virtio-net beside it, through `nix run .#qemu -- --lane nic=igb` (or `nic=e1000`, `nic=e1000e`, `nic=rtl8139`; QEMU has no RTL8169 model), plain and with `--lane iommu=intel`.
+
 ## Behaviour every PCI driver shares
 
 - The kernel starts `driver_e1000`, `driver_rtl8139` and `driver_rtl8169` on every boot of an image that carries them (`src/userspace/init/spawn_plan/drivers_nic.rs:17-21`, `spawn`). A driver whose chip is absent exits at once with `EXIT_ABSENT` (2) and claims nothing (`userland/libc/src/bringup/policy.rs:37-41`, `EXIT_ABSENT`).
