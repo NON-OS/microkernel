@@ -58,49 +58,12 @@ pub fn check_capability(process_id: u64, capability: Capability) -> Result<bool,
         .check_capability(process_id, capability)
 }
 
-pub fn get_secure_random_bytes() -> [u8; 32] {
+/// 32 random bytes from the seeded RNG, or an error when it cannot answer.
+/// Nothing weaker is ever handed out in their place.
+pub fn get_secure_random_bytes() -> Result<[u8; 32], &'static str> {
     let mut bytes = [0u8; 32];
-
-    for i in 0..32 {
-        bytes[i] = secure_random_u8();
-    }
-
-    bytes
-}
-
-fn secure_random_u8() -> u8 {
-    if let Some(hw_rand) = try_hardware_rng() {
-        return hw_rand;
-    }
-
-    use core::sync::atomic::{AtomicU64, Ordering};
-    static SEED: AtomicU64 = AtomicU64::new(1);
-    let old = SEED
-        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |s| {
-            Some(s.wrapping_mul(1103515245).wrapping_add(12345))
-        })
-        .unwrap_or(1);
-    (old >> 24) as u8
-}
-
-fn try_hardware_rng() -> Option<u8> {
-    #[cfg(target_arch = "x86_64")]
-    {
-        use core::arch::x86_64::_rdrand32_step;
-        // A CPU without RDRAND raises #UD on it, so it is asked first.
-        if !crate::arch::x86_64::cpu_random::has_rdrand() {
-            return None;
-        }
-        let mut value = 0u32;
-        // SAFETY: RDRAND is a valid x86_64 instruction when available
-        unsafe {
-            if _rdrand32_step(&mut value) == 1 {
-                return Some(value as u8);
-            }
-        }
-    }
-
-    None
+    crate::crypto::rng::fill_random_bytes_secure(&mut bytes).map_err(|_| "no randomness")?;
+    Ok(bytes)
 }
 
 pub fn init_capabilities() -> Result<(), &'static str> {
