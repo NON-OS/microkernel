@@ -475,9 +475,6 @@ include userland/capsule_proof_io/Capsule.mk
 include userland/capsule_std_proof/Capsule.mk
 include userland/capsule_ripgrep/Capsule.mk
 include userland/capsule_sd/Capsule.mk
-ifneq ($(wildcard userland/capsule_flacprobe/Capsule.mk),)
-  include userland/capsule_flacprobe/Capsule.mk
-endif
 include userland/capsule_csview/Capsule.mk
 include userland/capsule_huniq/Capsule.mk
 include userland/capsule_tokei/Capsule.mk
@@ -1167,7 +1164,6 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(install-cli_ARTIFACTS) \
 		$(sd_ARTIFACTS) \
-		$(flacprobe_ARTIFACTS) \
 		$(csview_ARTIFACTS) \
 		$(huniq_ARTIFACTS) \
 		$(tokei_ARTIFACTS) \
