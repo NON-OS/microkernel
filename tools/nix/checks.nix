@@ -314,6 +314,19 @@ let
       done
       touch $out
     '';
+    # nonos-shield-prove, the prover nonos.shield proves with, reproduces
+    # those four vectors byte for byte and verifies them, at the STARKs
+    # commit flake.lock pins. Four proofs of minutes each, so its own check,
+    # not the proof lane.
+    shield-prove-vectors = cargoCheck {
+      name = "shield-prove-vectors";
+      dir = "nonos-shield-prove";
+      script = ''
+        export STARKS_SPEC=${starks}/spec
+        cd nonos-shield-prove
+        cargo test --frozen --release --features parallel -- --include-ignored
+      '';
+    };
     # The committed BusyBox, which make embeds, is the one the flake builds
     # from source. Linux only, as CI checks it; a Mac builds its own anyway.
     busybox-source = pkgs.runCommand "busybox-source" { } (if pkgs.stdenv.hostPlatform.isLinux then ''
