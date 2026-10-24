@@ -19,6 +19,7 @@ use nonos_libc::mk_device_release;
 use super::master::master_after_reset;
 use super::remap::say_remapped;
 use super::say_hba::say_hba;
+use super::say_port_map::say_port_map;
 use super::{claim, irq, mmio, pci};
 use crate::constants::MAX_PORTS;
 use crate::controller::ports::effective_pi;
@@ -66,6 +67,7 @@ pub(super) fn open(dev: Found) -> AhciResult<Opened> {
     let raw_pi = info.pi;
     info.pi = effective_pi(info.cap, raw_pi) & window;
     say_hba(&info, raw_pi, mmio.length);
+    say_port_map(dev.vendor, dev.device_id, epoch);
     master_after_reset(dev.device_id, epoch, regs, info.pi, info.port_count)?;
     say_remapped(regs, dev.abar_size, mmio.length);
     spin_up(regs, info.cap, info.pi, info.port_count);
