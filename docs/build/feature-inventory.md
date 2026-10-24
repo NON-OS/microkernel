@@ -21,7 +21,7 @@ print("\n".join(sorted(k for k in f if k not in on)))
 EOF
 ```
 
-Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 141 features. Of those, 91 are `microkernel-*` lane sets and 50 are the features in the tables.
+Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 144 features. Of those, 91 are `microkernel-*` lane sets and 53 are the features in the tables.
 
 ## What the default image carries
 
@@ -35,11 +35,11 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
   - NICs: virtio, e1000, e1000e, igb, ixgbe, rtl8139, rtl8169, pcnet, vmxnet3, tulip, iwlwifi and rtl8821ce, plus USB networking through CDC-ECM, CDC-NCM and RNDIS;
   - storage: virtio-blk, virtio-scsi, NVMe, AHCI, PIIX IDE, pvscsi, BusLogic, MPT, SDHCI, UFS and USB mass storage;
   - USB host controllers: xHCI, EHCI, OHCI and UHCI, and USB hubs;
-  - input: PS/2, virtio-input, USB HID, I2C HID and SPI HID;
+  - input: PS/2, virtio-input, USB HID and I2C HID;
   - display: virtio-gpu, VMware SVGA and Bochs (BGA);
   - audio: HDA, AC'97, USB audio and USB microphones;
   - USB cameras (UVC), USB serial (CDC-ACM), smart cards (CCID) and FIDO security keys;
-  - the SPI, SMBus and I2C buses;
+  - the SMBus and I2C buses;
   - VirtualBox and Hyper-V guest support.
 
 `standard` takes `capsule-serial-debug` out of that set, so no capsule writes to the serial console (`drop`, `tools/nix/config.nix`). The `hardened` and `airgapped` profiles start from the same set and take out the same feature, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`).
@@ -48,9 +48,9 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
 
 
 - On 2026-10-24, before this change, 15 capsules that the default image already carried had no trust set: pcnet, vmxnet3, tulip, virtio-input, vmware-svga, ac97, vmmdev, vmmouse, vmbus, piix-ide, virtio-scsi, pvscsi, buslogic, mpt and sdhci. Host-tested: the gate's own condition, run over `tools/nix/capsules.json`.
-- The 23 capsules this change adds have no trust set either: the 21 drivers, plus nox-settle and prove-fetch.
+- The 21 capsules this change adds have no trust set either: the 19 drivers, plus nox-settle and prove-fetch.
 
-So `nix build` of the default image waits for the next release seal, which writes all 38 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 36 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
 ## Off, and why
 
@@ -73,6 +73,7 @@ So `nix build` of the default image waits for the next release seal, which write
 | `nonos-capsule-hello` | the docs' example window | `userland/capsule_hello/README.md`. **Taken out of the default image by this change** |
 | `nonos-capsule-tokio-smoke` | an async runtime test that never finishes and held about a sixth of a core | `Cargo.toml` comment on `microkernel-desktop-gui-async-gate` |
 | `nonos-capsule-std-proof` | a `std` port proof, reached from the store disk | `userland/capsule_std_proof/README.md` |
+| `pqc-unvetted` | SPHINCS+, NTRU and Classic McEliece, whose in-kernel implementations each fail their first full run against published vectors | `Cargo.toml` comment; `nonos-ci/check-pqc-unvetted.sh` refuses it in any default or release profile |
 | `std` | host tests | never in the kernel |
 
 ### Superseded: the work is done elsewhere in the image
