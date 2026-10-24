@@ -23,7 +23,13 @@
 //!
 //! `verification/lean/Nonos/ZeroState.lean` proves the property this shape
 //! buys, that no reachable state powers the machine off with memory unwiped.
+//!
+//! Its other half is `keep`: on a disk the person never installed to, the
+//! store write lets only zeros through, so a boot leaves nothing behind.
 
+mod keep;
+mod keep_rule;
 mod terminate;
 
+pub(crate) use keep::store_write_allowed;
 pub(crate) use terminate::terminate;

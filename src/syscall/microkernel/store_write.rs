@@ -17,9 +17,10 @@
 //! Kernel broker for runtime capsule-store persistence. Fail-closed on
 //! `Capability::StoreWrite`; writes are scoped to `lba >= STORE_BASE_LBA`
 //! so blockfs's 0..256 header ring is unreachable, and must end below the
-//! disk plan, so the plan and the sealed data volume past it are too.
+//! disk plan, so the plan and the sealed data volume past it are too. On a
+//! boot whose disk keeps nothing, only zeros pass (`zerostate::keep`).
 
-use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
+use super::errnos::{ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 
 const STORE_BASE_LBA: u64 = 256;
 const SECTOR: usize = 512;
@@ -46,6 +47,10 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
     let mut buf = [0u8; MAX_LEN];
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
         return ERRNO_FAULT;
+    }
+    /* A boot that keeps nothing may only clear the store. */
+    if !crate::security::zerostate::store_write_allowed(&buf[..len]) {
+        return ERRNO_ACCES;
     }
     /* A disk whose store is not the loader's copy sets the copy aside
      * before the copy can take a write meant for another store. The disk is

@@ -18,12 +18,14 @@
 //! RAM tree and from the on-device TOC in a single step, since leaving either
 //! half behind resurrects a removed app on the next boot. Idempotent: a path
 //! that is already gone from both is a success, so a retried uninstall after a
-//! partial failure converges.
+//! partial failure converges. A boot that keeps nothing drops it from RAM
+//! only, as it installs to RAM only: the disk is left as the boot found it.
 
 use alloc::vec::Vec;
 
 use super::artifact_path::split_artifact;
 use super::installer_gate::require_installer;
+use super::persist_gate::may_persist;
 use super::util::{map_blk_err, map_store_err, split_caller};
 use crate::protocol::{encode_response, Request, EINVAL, OP_STORE_UNINSTALL};
 use crate::store::{Store, StoreError};
@@ -46,6 +48,9 @@ fn drop_artifact(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Result
     match store.unlink(&path) {
         Ok(()) | Err(StoreError::NotFound) => {}
         Err(e) => return Err(map_store_err(e)),
+    }
+    if !may_persist() {
+        return Ok(());
     }
     crate::blk::store_remove::remove(&path).map_err(map_blk_err)
 }

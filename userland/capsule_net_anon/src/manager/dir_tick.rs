@@ -37,15 +37,6 @@ use super::state::{Bootstrap, Manager};
  * fetch waits in is the turn the link, the circuits and every caller of the
  * service do not get.
  */
-/*
- * How long to wait before trying the directory again after a stage got nowhere.
- * Short enough that a lease arriving is acted on promptly, long enough that a
- * sweep of seven instant refusals does not restart at once. The manager's clock is in
- * whole seconds (server::runner::seconds), so this is one second; it was
- * written as 750 against that clock and waited twelve and a half minutes.
- */
-const RETRY_SECONDS: u64 = 1;
-
 pub fn tick(state: &mut Manager, now: u64) {
     if now < state.retry_after {
         return;
@@ -72,8 +63,11 @@ fn anchor(state: &mut Manager, now: u64) {
          * asked again. What did anchor is kept, so the next sweep asks only
          * the rest, and it waits rather than spinning.
          */
-        trace::say_two(b"authority certs held and needed", held as u64, REQUIRED_SIGNATURES as u64);
-        state.retry_after = now.saturating_add(RETRY_SECONDS);
+        if held > 0 {
+            let needed = REQUIRED_SIGNATURES as u64;
+            trace::say_two(b"authority certs held and needed", held as u64, needed);
+        }
+        state.retry_after = super::cold_wait::after_sweep(held, now);
         return;
     }
     state.bootstrap = Bootstrap::Anchored;
