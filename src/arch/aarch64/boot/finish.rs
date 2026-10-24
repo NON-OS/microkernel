@@ -49,5 +49,9 @@ pub(super) fn finish(info: &BootInfo) -> ! {
         // wrong, and a silent boot into the wrong MMIO is worse than a loud one.
         serial::println(b"[NONOS] no usable device tree, assuming QEMU virt");
     }
+    // Where the kernel now stays, so the shared readers' reference holds.
+    if let Err(e) = super::loader::install() {
+        super::refuse(b"loader handoff", e.as_str().as_bytes());
+    }
     super::core_entry::enter(info)
 }
