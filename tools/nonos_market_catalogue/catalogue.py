@@ -13,9 +13,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Listings for the catalogue's recipes: Alpine packages, each fetched and
-hashed, sold free, and carrying the guest_policy its box is (plan/30), so
-the market's policy gate passes and the install role can bind it."""
+"""Listings for the catalogue's recipes: Alpine packages fetched, hashed,
+sold free, each carrying the guest_policy its box is (plan/30)."""
 
 import sys
 
@@ -24,10 +23,10 @@ from nonos_linux_pack.policy import encode, listing_id, release_id
 
 from . import apk
 from .digest import blake3
+from .names import index_record
 from .records import entry, release
 
-# Until I-C5 init hands the installer no policy, so the program runs in the
-# owner's default box, not this one: the note says so rather than claim it.
+# Until I-C5 the program runs in the owner's default box: the note says so.
 NOTE = "fetched and hashed at {} bytes; licence {}; its box applies from I-C5"
 
 
@@ -58,9 +57,10 @@ def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
 
 
 def catalogue_entries(recipes: list, table: dict, get, key: str, when_ms: int) -> list:
-    """An entry per recipe whose package the index has; `get(rec)` returns
-    the package's bytes. A package that is missing or fails a check is left
-    out, said, never listed unready."""
+    """An entry per recipe whose package the index has; `get(rec)` returns its
+    bytes. One missing or failing a check is left out, said, never unready."""
+    if len(bytes.fromhex(key)) != 32:  # ValueError when not hex either
+        raise ValueError("the publisher key is not 32 bytes of hex")
     out = []
     for recipe in recipes:
         rec = table.get(recipe["package"])
@@ -68,7 +68,8 @@ def catalogue_entries(recipes: list, table: dict, get, key: str, when_ms: int) -
             print(f"  skip {recipe['package']}: not in the index", file=sys.stderr)
             continue
         try:
+            rec = index_record(rec)
             out.append(one(recipe, rec, get(rec), key, when_ms))
-        except (ValueError, OSError) as why:
+        except (ValueError, TypeError, OSError) as why:
             print(f"  skip {recipe['package']}: {why}", file=sys.stderr)
     return out

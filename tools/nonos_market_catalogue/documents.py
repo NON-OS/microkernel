@@ -25,26 +25,49 @@ import json
 import sys
 from pathlib import Path
 
+from .names import listing
+
 
 def split(index: dict) -> dict:
     """listing_id -> a one-entry index with the same header."""
+    if not isinstance(index, dict) or index.get("schema_version") != 3:
+        raise ValueError("not a schema-3 index")
+    if not isinstance(index.get("entries"), list):
+        raise TypeError("the index has no entries list")
     head = {k: v for k, v in index.items() if k != "entries"}
-    return {e["listing_id"]: dict(head, entries=[e]) for e in index["entries"]}
+    docs = {}
+    for e in index["entries"]:
+        lid = listing(e.get("listing_id") if isinstance(e, dict) else None)
+        if lid in docs:
+            raise ValueError(f"{lid} is listed twice")
+        docs[lid] = dict(head, entries=[e])
+    return docs
 
 
 def write(index: dict, out: Path) -> list:
     """Each document as <listing_id>.json in `out`; the paths written."""
     out.mkdir(parents=True, exist_ok=True)
     done = []
-    for listing, doc in sorted(split(index).items()):
-        path = out / f"{listing}.json"
+    for lid, doc in sorted(split(index).items()):
+        path = out / f"{lid}.json"
         path.write_text(json.dumps(doc, indent=2) + "\n")
         done.append(path)
     return done
 
 
+def main(argv) -> int:
+    if len(argv) != 2 or argv[0] in ("-h", "--help"):
+        print(__doc__, file=sys.stderr)
+        return 0 if argv[:1] in (["-h"], ["--help"]) else 2
+    try:
+        index = json.loads(Path(argv[0]).read_text())
+        for p in write(index, Path(argv[1])):
+            print(p)
+    except (OSError, ValueError, TypeError) as why:
+        print(f"documents: {why}", file=sys.stderr)
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit(__doc__)
-    for p in write(json.loads(Path(sys.argv[1]).read_text()), Path(sys.argv[2])):
-        print(p)
+    sys.exit(main(sys.argv[1:]))
