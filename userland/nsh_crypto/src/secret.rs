@@ -15,13 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A 32- or 64-byte secret that is wiped when it is dropped. It has no
-//! `Clone`, so a secret is never copied by accident.
+//! `Clone`, so a secret is never copied by accident; `take` moves bytes in
+//! and wipes where they were.
 
 pub struct Secret<const N: usize>([u8; N]);
 
 impl<const N: usize> Secret<N> {
     pub const fn new(bytes: [u8; N]) -> Self {
         Secret(bytes)
+    }
+
+    /// Take the bytes from `src` and wipe `src`, so the secret lives in one
+    /// place only.
+    pub fn take(src: &mut [u8; N]) -> Self {
+        let s = Secret(*src);
+        nonos_hash::wipe(src);
+        s
     }
 
     pub fn expose(&self) -> &[u8; N] {

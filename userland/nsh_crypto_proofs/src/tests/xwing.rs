@@ -40,9 +40,13 @@ fn every_published_vector() {
 #[test]
 fn a_changed_ciphertext_gives_another_secret() {
     let (kem, ek) = ClientKem::new(Secret::new([7; 32]));
-    let (mut ct, ss) = encapsulate(&ek, Secret::new([9; 64])).unwrap();
-    ct[1119] ^= 1;
-    assert_ne!(kem.decapsulate(&ct).expose(), ss.expose());
+    let (ct, ss) = encapsulate(&ek, Secret::new([9; 64])).unwrap();
+    let (kem2, _) = ClientKem::new(Secret::new([7; 32]));
+    for (k, i) in [(kem, 1119), (kem2, 0)] {
+        let mut bad = ct;
+        bad[i] ^= 1;
+        assert_ne!(k.decapsulate(&bad).expose(), ss.expose(), "byte {i}");
+    }
 }
 
 #[test]

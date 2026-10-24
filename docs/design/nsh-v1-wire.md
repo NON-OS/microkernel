@@ -102,8 +102,11 @@ After `SERVER_HELLO`, every frame is laid out as
 direction. `seq` starts at 0 for each key and is never sent on the wire.
 
 - A frame that fails to open ends the session. Nothing is answered.
-- At `seq = 2^32`, or after 2^32 sealed bytes in one direction, the session
-  ends with `ABORT(LIMIT)`. Version 1 has no rekeying.
+- At `seq = 2^32`, or once 2^32 bytes have been sealed in one direction,
+  that direction is spent. Not even an `ABORT` can be sealed, since no
+  nonce is left. The side whose sending direction is spent closes the
+  connection without a frame. The side whose receiving direction is spent
+  refuses the next frame and closes. Version 1 has no rekeying.
 
 ## The handshake, in order
 
