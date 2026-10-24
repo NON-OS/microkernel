@@ -34,6 +34,6 @@ pub fn run(dev: Found, epoch: u64, window: &Window) -> Result<Driver<Pool>, &'st
     let (device, notify) = ((dev.device_id, epoch), window.notify_area());
     let probed = probes::run(ready.control_queue, ready.features, notify, &fences, device)?;
     let gpu = take((probed.queue, fences), device, &scanouts, probed.panel)?;
-    let server = Server::new(gpu, Pool);
+    let server = Server::new(gpu, Pool::default());
     Ok(Driver { device_id: dev.device_id, server, notify, tally: Tally::default() })
 }
