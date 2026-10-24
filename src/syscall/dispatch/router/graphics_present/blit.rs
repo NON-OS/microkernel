@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::consts::{EBUSY, EFAULT, EINVAL, ENOTSUP};
+use super::consts::{EFAULT, EINVAL, ENOTSUP};
 use crate::syscall::dispatch::util;
 use crate::syscall::SyscallResult;
 use crate::usercopy::copy_from_user;
@@ -41,13 +41,6 @@ pub(super) fn blit(
     if fb.frame_len().is_none() {
         return util::errno(EINVAL);
     };
-    // A claimed device drives this memory now and may have re-moded it: the
-    // compositor moves to that driver on EBUSY, and GOP is writable again once
-    // the claim goes. Asked on every present (boot_fb_rule.rs).
-    let phys = crate::kernel_core::init::framebuffer::framebuffer_phys();
-    if phys.is_some_and(|(start, len)| crate::hardware::broker::boot_fb_held(start, len)) {
-        return util::errno(EBUSY);
-    }
     let fb_w = fb.width as usize;
     let fb_h = fb.height as usize;
     let fb_stride_bytes = fb.stride as usize;

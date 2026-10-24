@@ -18,7 +18,8 @@
 //! is refused before a register is written; one whose line pitch the
 //! device pads past the mapping is refused and the old mode put back.
 
-use super::util::{ask, primed, up, words};
+use super::ask::{ask, primed, words};
+use super::util::up;
 use crate::bench::Bench;
 use crate::model::with_svga;
 use nonos_gfx_wire::errno::EINVAL;
