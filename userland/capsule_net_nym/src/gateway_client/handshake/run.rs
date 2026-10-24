@@ -38,24 +38,43 @@ pub fn run_handshake<W: Wire>(
         parse_gateway_material(&payload).ok_or(HandshakeError::Malformed)?;
 
     // The salt is ours, so the gateway cannot steer the derivation.
-    let shared = derive_shared_key(&eph.secret, &gateway_ephemeral, &eph.salt)
+    let mut shared = derive_shared_key(&eph.secret, &gateway_ephemeral, &eph.salt)
         .map_err(|_| HandshakeError::Crypto)?;
+    let outcome = finish(wire, identity, version, &eph, &gateway_ephemeral, &gateway_material, &shared);
+    // The caller keeps the key only when the gateway took it; every other end
+    // leaves no copy here.
+    if let Err(e) = outcome {
+        crate::crypto::wipe::wipe(&mut shared);
+        return Err(e);
+    }
+    Ok(shared)
+}
+
+fn finish<W: Wire>(
+    wire: &mut W,
+    identity: &Identity<'_>,
+    version: u64,
+    eph: &super::ephemeral::Ephemeral,
+    gateway_ephemeral: &[u8; super::sizes::EPHEMERAL_BYTES],
+    gateway_material: &super::material::Material,
+    shared: &[u8; 32],
+) -> Result<(), HandshakeError> {
     if !verify_material(
         identity.gateway_public,
-        &gateway_ephemeral,
+        gateway_ephemeral,
         &eph.public,
-        &shared,
-        &gateway_material,
+        shared,
+        gateway_material,
     ) {
         return Err(HandshakeError::BadSignature);
     }
 
-    let ours = seal_material(identity.own_seed, &eph.public, &gateway_ephemeral, &shared)
+    let ours = seal_material(identity.own_seed, &eph.public, gateway_ephemeral, shared)
         .map_err(|_| HandshakeError::Crypto)?;
     wire.send_text(&encode(PAYLOAD_TAG, version, &ours.to_bytes()))?;
 
     match decode(&wire.recv_text()?).map_err(map_frame)?.as_slice() {
-        [1] => Ok(shared),
+        [1] => Ok(()),
         _ => Err(HandshakeError::Refused),
     }
 }
