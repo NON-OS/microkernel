@@ -38,8 +38,10 @@ def copy_crate(dst):
     toml = os.path.join(dst, "Cargo.toml")
     text = open(toml).read().replace('path = "../', 'path = "%s/' % ROOT)
     open(toml, "w").write(text)
-    # Proofs that run the tree's own tools reach them as ../tools.
-    os.symlink(os.path.join(ROOT, "tools"), os.path.join(os.path.dirname(dst), "tools"))
+    # Proofs that run the tree's own tools, or read its committed public keys,
+    # reach them as ../tools and ../nonos-data.
+    for shared in ("tools", "nonos-data"):
+        os.symlink(os.path.join(ROOT, shared), os.path.join(os.path.dirname(dst), shared))
 
 
 def failing(m, target):
