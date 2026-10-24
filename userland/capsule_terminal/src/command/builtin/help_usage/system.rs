@@ -39,6 +39,11 @@ pub(crate) const SYSTEM: &[(&[u8], &[u8], &[u8])] = &[
         b"every capsule as the kernel recorded it: measurement, signer, capabilities",
     ),
     (
+        b"audit",
+        b"audit [--agent <name>]",
+        b"who can reach the network, storage and devices now, and where that authority came from",
+    ),
+    (
         b"log",
         b"log [word ...]",
         b"the kernel's console lines, newest last; with words, only the lines naming one",
