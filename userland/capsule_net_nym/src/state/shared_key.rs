@@ -19,16 +19,34 @@ use spin::Mutex;
 /// The key the current gateway registration produced. Held apart from the
 /// Gateway record because every frame needs it while only connect sets it, and
 /// it must clear on disconnect rather than linger for the next gateway.
-static SHARED_KEY: Mutex<Option<[u8; 32]>> = Mutex::new(None);
+///
+/// A fixed slot and a flag, not an `Option`: assigning `None` stores a whole
+/// `Option`, payload bytes included, and those are whatever the compiler had
+/// at hand, so a cleared slot could hold stale stack bytes. Clearing here
+/// writes zeros over the key where it lies and nothing else.
+static SHARED_KEY: Mutex<Slot> = Mutex::new(Slot { key: [0; 32], set: false });
+
+pub(crate) struct Slot {
+    pub(crate) key: [u8; 32],
+    pub(crate) set: bool,
+}
 
 pub fn set_gateway_shared_key(key: &[u8; 32]) {
-    *SHARED_KEY.lock() = Some(*key);
+    let mut slot = SHARED_KEY.lock();
+    slot.key.copy_from_slice(key);
+    slot.set = true;
 }
 
 pub fn gateway_shared_key() -> Option<[u8; 32]> {
-    *SHARED_KEY.lock()
+    let slot = SHARED_KEY.lock();
+    slot.set.then_some(slot.key)
 }
 
 pub fn clear_gateway_shared_key() {
-    *SHARED_KEY.lock() = None;
+    wipe_slot(&mut SHARED_KEY.lock());
+}
+
+pub(crate) fn wipe_slot(slot: &mut Slot) {
+    crate::crypto::wipe::wipe(&mut slot.key);
+    slot.set = false;
 }
