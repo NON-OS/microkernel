@@ -5592,6 +5592,19 @@
   "md": [],
   "signed": []
  },
+ "userland/intel_xelp_display_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/intel_xelp_display_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_intel_display_hw",
+   "userland/nonos_intel_xelp_display",
+   "userland/nonos_modes/data"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/iort_proofs": {
   "exclude": [],
   "include": [
@@ -6933,6 +6946,25 @@
   "md": [],
   "signed": []
  },
+ "userland/nsh_client_proofs": {
+  "exclude": [
+   "userland/nsh_client_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "third_party/pqclean",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_client",
+   "userland/nsh_client_proofs",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nsh_crypto_proofs": {
   "exclude": [],
   "include": [
@@ -6972,6 +7004,7 @@
   ],
   "include": [
    ".cargo",
+   "userland/capsule_linux/src/linux/boxed",
    "userland/nsh_wire",
    "userland/nsh_wire_proofs"
   ],
@@ -7294,6 +7327,16 @@
   "md": [],
   "signed": []
  },
+ "userland/pqc_rng_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/crypto",
+   "userland/pqc_rng_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/pqclean_rng_proofs": {
   "exclude": [],
   "include": [
@@ -7602,6 +7645,40 @@
    "userland/rndis_proofs",
    "userland/usbnet_proofs",
    "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rng_callers_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules/crypto.manifest.bin",
+   "nonos-data/trust/capsules/crypto.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/crypto.zk_trailer.bin",
+   "nonos-data/trust/capsules/entropy.manifest.bin",
+   "nonos-data/trust/capsules/entropy.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/entropy.zk_trailer.bin",
+   "nonos-data/trust/capsules/keyring.manifest.bin",
+   "nonos-data/trust/capsules/keyring.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/keyring.zk_trailer.bin",
+   "nonos-data/trust/capsules/market.manifest.bin",
+   "nonos-data/trust/capsules/market.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/market.zk_trailer.bin",
+   "nonos-data/trust/capsules/ramfs.manifest.bin",
+   "nonos-data/trust/capsules/ramfs.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/ramfs.zk_trailer.bin",
+   "nonos-data/trust/capsules/vfs.manifest.bin",
+   "nonos-data/trust/capsules/vfs.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/vfs.zk_trailer.bin",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-data/trust/policy/zk_capsule_policy_root.bin",
+   "src/arch/x86_64/asm/scrub",
+   "src/crypto",
+   "src/fs",
+   "src/hardware/block_device/error.rs",
+   "src/security",
+   "userland/rng_callers_proofs"
   ],
   "md": [],
   "signed": []
