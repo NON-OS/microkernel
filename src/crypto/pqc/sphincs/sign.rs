@@ -33,9 +33,9 @@ pub fn sphincs_keygen() -> Result<SphincsKeyPair, &'static str> {
     let mut sk_prf = [0u8; SPHINCS_N];
     let mut pk_seed = [0u8; SPHINCS_N];
 
-    rng::fill_random_bytes(&mut sk_seed);
-    rng::fill_random_bytes(&mut sk_prf);
-    rng::fill_random_bytes(&mut pk_seed);
+    rng::fill_random_bytes_secure(&mut sk_seed).map_err(|_| "no randomness")?;
+    rng::fill_random_bytes_secure(&mut sk_prf).map_err(|_| "no randomness")?;
+    rng::fill_random_bytes_secure(&mut pk_seed).map_err(|_| "no randomness")?;
 
     let mut addr = Address::default();
     addr.set_layer((SPHINCS_D - 1) as u32);
@@ -51,7 +51,7 @@ pub fn sphincs_sign(sk: &SphincsSecretKey, msg: &[u8]) -> Result<SphincsSignatur
     let mut sig = Vec::with_capacity(SPHINCS_SIG_BYTES);
 
     let mut opt_rand = [0u8; SPHINCS_N];
-    rng::fill_random_bytes(&mut opt_rand);
+    rng::fill_random_bytes_secure(&mut opt_rand).map_err(|_| "no randomness")?;
     let r = prf_msg(&sk.sk_prf, &opt_rand, msg);
     sig.extend_from_slice(&r);
 
