@@ -58,7 +58,7 @@ BOX REPORT v1
 - `started  no: <reason>` appears when the program never started (it was not found, or its proof was refused); nothing ran, so nothing was refused.
 - `exit` is the program's exit status.
 
-If no report arrives, the Terminal says `linux: the box sent no report; it may have been stopped`. If only part of it arrives, the Terminal shows that part and says `linux: the box's report arrived incomplete`. If the run is stopped with `Ctrl+C`, a report that had already arrived whole is still shown; otherwise the Terminal says `linux: stopped before the box's report arrived`.
+If no report arrives (the box word was refused, or the run was stopped or failed before its end), the Terminal says `linux: the box sent no report; the run ended before it could`. If only part of it arrives, the Terminal shows that part and says `linux: the box's report arrived incomplete`. If the run is stopped with `Ctrl+C`, a report that had already arrived whole is still shown; otherwise the Terminal says `linux: stopped before the box's report arrived`.
 
 A boxed run in the background that ends, or is stopped, while another program holds the screen keeps its report until that program has ended, then shows it.
 
