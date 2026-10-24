@@ -32,7 +32,7 @@ pub(super) fn refused(
     (d, po_d): (usize, bool),
     (e, po_e): (usize, bool),
 ) -> bool {
-    let peer = |id: u64| Some((at[id as usize], &groups[id as usize][..]));
+    let peer = |id: u64| Some((at[id as usize], Some(&groups[id as usize][..])));
     blocked_by(d as u64, &groups[d], &[e as u64], (po_d, po_e), peer).is_some()
 }
 
