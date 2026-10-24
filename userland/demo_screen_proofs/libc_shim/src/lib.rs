@@ -32,6 +32,7 @@ mod proc;
 mod proc_types;
 mod quiet;
 mod seat;
+mod surface;
 mod time;
 
 #[path = "../../../libc/src/thread/handoff.rs"]
@@ -52,4 +53,5 @@ pub use machine::{show, OWN_PID};
 pub use proc::{mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_NAME_LEN};
 pub use quiet::*;
 pub use seat::WorkerSeat;
+pub use surface::*;
 pub use time::{mk_time_rtc, Deadline, RtcTime};

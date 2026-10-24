@@ -51,8 +51,12 @@ nonos_socket = { path = "../nonos_socket" }
 nonos_tls = { path = "../nonos_tls" }
 nonos_vt = { path = "../nonos_vt" }
 nonos_route_link = { path = "../nonos_route_link" }
+# The desktop shell's, as capsule_desktop_shell links them.
+nonos_audio_proto = { path = "../audio_proto" }
 nonos_policy_client = { package = "demo_screen_proofs_policy_shim", path = "policy_shim" }
 
 [features]
 # The terminal's self-test build; never on here.
 nonos-autorun-selftest = []
+# The shell's frame timing log; never on here.
+shell-frametime = []

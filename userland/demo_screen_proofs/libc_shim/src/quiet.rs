@@ -59,3 +59,12 @@ pub fn crypto_hash(
 ) -> i64 {
     ENOSYS
 }
+pub fn mk_spawn_instance(_name: &[u8]) -> i64 {
+    ENOSYS
+}
+pub fn mk_ipc_reply(_dest_pid: u32, _buf: *const u8, _len: usize) -> i64 {
+    0
+}
+pub fn mk_ipc_recv_from(_: u64, _: *mut u8, _: usize, _: u64, _: *mut u32) -> i64 {
+    -110
+}

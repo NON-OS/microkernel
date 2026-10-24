@@ -19,9 +19,21 @@
 //! pictures to look at when DEMO_SHOTS names a directory (`png`). An
 //! integration test, so the apps build as they ship, without cfg(test).
 
+extern crate alloc;
+
 mod about_shots;
+#[path = "../../../capsule_wm/src/server/handlers/window_open/cascade.rs"]
+mod cascade;
+mod compose;
+#[allow(dead_code)] // the window manager's other placement constants
+#[path = "../../../capsule_wm/src/server/handlers/window_open/constants.rs"]
+mod constants;
+mod desktop_shots;
 mod frame;
+#[path = "geometry_mount.rs"]
+mod geometry;
 mod modes;
 mod png;
 mod ring;
 mod terminal_shots;
+mod wallpaper_mount;

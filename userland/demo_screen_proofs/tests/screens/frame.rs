@@ -41,6 +41,14 @@ pub fn shoot<A: App>(app: &mut A, w: u32, h: u32) -> Shot {
     };
     draw_frame_at(&mut fb, false, at.title, false, 0, q);
     let c = content_rect_at(at.width, at.height, false, q);
+    let framed = fb.pixels.to_vec();
     app.paint(&mut fb.sub(c.x, c.y, c.w, c.h));
+    // The app owns its content rectangle and nothing else: the frame, its
+    // border and its shadow stay as the frame drew them.
+    for (i, (now, was)) in pixels.iter().zip(&framed).enumerate() {
+        let (x, y) = (i as u32 % at.width, i as u32 / at.width);
+        let inside = (c.x..c.x + c.w).contains(&x) && (c.y..c.y + c.h).contains(&y);
+        assert!(inside || now == was, "{}: painted outside its content at {x},{y}", w * 10_000 + h);
+    }
     Shot { at, pixels }
 }

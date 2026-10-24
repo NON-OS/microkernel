@@ -23,38 +23,14 @@
 
 extern crate alloc;
 
+pub mod desk;
+
 // Their crates set their own lint bar; clippy here holds the harness alone.
 #[allow(dead_code, clippy::all)] // and the event and tick paths a picture never takes
 #[path = "../../capsule_about/src/about/mod.rs"]
 pub mod about;
 
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/command/mod.rs"]
-mod command;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/event/mod.rs"]
-mod event;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/git/mod.rs"]
-mod git;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/jobs/mod.rs"]
-mod jobs;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/layout/mod.rs"]
-mod layout;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/mixnet/mod.rs"]
-mod mixnet;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/paint/mod.rs"]
-mod paint;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/palette/mod.rs"]
-mod palette;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/rail/mod.rs"]
-mod rail;
-#[allow(clippy::all)]
-#[path = "../../capsule_terminal/src/term/mod.rs"]
-pub mod term;
+// The terminal's and the desktop shell's modules, mounted at the crate root
+// where their files name each other (crate::paint, crate::state, ...).
+include!("mount_terminal.rs");
+include!("mount_shell.rs");
