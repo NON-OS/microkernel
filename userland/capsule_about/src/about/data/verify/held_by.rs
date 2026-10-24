@@ -25,7 +25,9 @@
 //! Debug writes to the serial console. A standard image lets capsules use
 //! it (`capsule-serial-debug`) and the Linux personality holds it on every
 //! image, so "nothing can write a log" is false there. What must hold is
-//! narrower: nothing that takes keys or input, or holds a secret, can log.
+//! narrower: nothing that takes keys or input, or holds a secret, can log;
+//! the kernel withholds Debug from such a capsule off the dev profile
+//! (`secret_log`), and this check reads whether it did.
 
 pub const DEBUG: u64 = 1 << 8;
 pub const ADMIN: u64 = 1 << 9;
