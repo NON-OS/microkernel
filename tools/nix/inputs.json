@@ -311,6 +311,39 @@
   "md": [],
   "signed": []
  },
+ "nonos-proof-verify": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz",
+   "nonos-proof-verify/fuzz",
+   "nonos-proof-verify/wasm"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-data/trust",
+   "nonos-proof-verify"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-proof-verify/wasm": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz",
+   "nonos-proof-verify/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-data/trust",
+   "nonos-proof-verify"
+  ],
+  "md": [],
+  "signed": []
+ },
  "nonos-shield-prove": {
   "exclude": [],
   "include": [
@@ -348,12 +381,16 @@
  "nonos-stark-enroll": {
   "exclude": [
    "nonos-attest-path/fuzz",
-   "nonos-boot-measure/fuzz"
+   "nonos-boot-measure/fuzz",
+   "nonos-proof-verify/fuzz",
+   "nonos-proof-verify/wasm"
   ],
   "include": [
    ".cargo",
    "nonos-attest-path",
    "nonos-boot-measure",
+   "nonos-data/trust",
+   "nonos-proof-verify",
    "nonos-stark-enroll"
   ],
   "md": [],
