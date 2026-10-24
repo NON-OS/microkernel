@@ -18,8 +18,9 @@
 //! lists, each with its digest. A missing file, an extra one, or one whose
 //! bytes changed is named.
 
+use super::resolve::resolve;
 use super::sealed::digest;
-use super::walk::{files, resolve};
+use super::walk::files;
 use std::collections::BTreeSet;
 use std::path::Path;
 
