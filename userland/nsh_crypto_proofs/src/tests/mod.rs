@@ -16,6 +16,9 @@
 
 //! The tests.
 
+mod edges;
+mod edges_sealer;
+mod frames;
 mod handshake;
 mod labels;
 mod schedule;

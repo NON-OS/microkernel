@@ -34,6 +34,8 @@ impl ClientKem {
     /// A key pair from `seed`, which must be 32 fresh random bytes made for
     /// this one connection. The encapsulation key goes in `CLIENT_HELLO`.
     pub fn new(seed: Secret<32>) -> (Self, [u8; EK_LEN]) {
+        // The seed is handed over by value, as the KEM takes it; the copy it
+        // keeps is wiped with the key, which is consumed by `decapsulate`.
         let dk = DecapsulationKey::from(*seed.expose());
         let mut ek = [0u8; EK_LEN];
         ek.copy_from_slice(&dk.encapsulation_key().to_bytes());
@@ -42,8 +44,8 @@ impl ClientKem {
 
     /// The shared secret from the server's ciphertext.
     pub fn decapsulate(self, ct: &[u8; CT_LEN]) -> Secret<32> {
-        let ss = self.dk.decapsulate(&(*ct).into());
-        Secret::new(ss.into())
+        let mut ss: [u8; 32] = self.dk.decapsulate(&(*ct).into()).into();
+        Secret::take(&mut ss)
     }
 }
 
@@ -54,6 +56,9 @@ pub fn encapsulate(
     rand: Secret<64>,
 ) -> Result<([u8; CT_LEN], Secret<32>), CryptoError> {
     let ek = EncapsulationKey::try_from(&ek[..]).map_err(|_| CryptoError::BadKey)?;
-    let (ct, ss) = ek.encapsulate_deterministic(&(*rand.expose()).into());
-    Ok((ct.into(), Secret::new(ss.into())))
+    let mut r = (*rand.expose()).into();
+    let (ct, ss) = ek.encapsulate_deterministic(&r);
+    nonos_hash::wipe(r.as_mut_slice());
+    let mut ss: [u8; 32] = ss.into();
+    Ok((ct.into(), Secret::take(&mut ss)))
 }

@@ -42,7 +42,8 @@ impl Sealer {
         inner: &[u8],
         out: &mut [u8],
     ) -> Result<usize, CryptoError> {
-        if u32::from_le_bytes(len) as usize != inner.len() + TAG_LEN {
+        // A frame always has its type byte; the peer refuses one without.
+        if inner.is_empty() || u32::from_le_bytes(len) as usize != inner.len() + TAG_LEN {
             return Err(CryptoError::Room);
         }
         let nonce = self.0.nonce(inner.len())?;

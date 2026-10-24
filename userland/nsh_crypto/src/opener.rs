@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Opening sealed frames. Once a frame fails to open, every later frame
-//! fails too: the session is over, and nothing after a forged, dropped or
-//! reordered frame is trusted.
+//! Opening sealed frames. Once a frame fails to open, or arrives past the
+//! limit, every later frame fails too: the session is over, and nothing
+//! after a forged, dropped or reordered frame is trusted. Only a buffer of
+//! the caller's that is too small leaves the opener as it was.
 
 use crate::count::Count;
 use crate::{CryptoError, Secret};
@@ -50,7 +51,10 @@ impl Opener {
             return Err(CryptoError::Open);
         }
         let inner = sealed.len() - TAG_LEN;
-        let nonce = self.count.nonce(inner)?;
+        if out.len() < inner {
+            return Err(CryptoError::Room);
+        }
+        let nonce = self.count.nonce(inner).inspect_err(|_| self.dead = true)?;
         match open(self.count.key.expose(), &nonce, &len, sealed, out) {
             Ok(n) => {
                 self.count.advance(inner);
