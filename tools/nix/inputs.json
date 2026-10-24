@@ -2112,6 +2112,7 @@
    "userland/nonos_gfx_serve",
    "userland/nonos_gfx_wire",
    "userland/nonos_hash",
+   "userland/nonos_intel_display_hw",
    "userland/nonos_modes"
   ],
   "md": [],
@@ -5581,6 +5582,7 @@
    "userland/nonos_gfx_serve",
    "userland/nonos_gfx_wire",
    "userland/nonos_hash",
+   "userland/nonos_intel_display_hw",
    "userland/nonos_modes"
   ],
   "md": [],
