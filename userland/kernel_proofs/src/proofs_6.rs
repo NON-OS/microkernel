@@ -32,3 +32,5 @@ pub mod firmware_message;
 mod inventory_ids;
 #[path = "unit_base/mod.rs"]
 pub mod unit_base;
+#[path = "secret_log/mod.rs"]
+pub mod secret_log;

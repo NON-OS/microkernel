@@ -20,6 +20,7 @@ pub(crate) mod preflight;
 mod preflighted;
 mod profile_gate;
 mod profile_refuse;
+mod secret_log;
 mod publisher_gate;
 mod tier;
 mod verified;
