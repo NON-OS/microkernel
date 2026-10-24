@@ -42,6 +42,7 @@ def main():
     ap.add_argument("--pubkey", type=Path, required=True, help="32-byte operator key")
     ap.add_argument("--linux-list", type=Path, required=True)
     ap.add_argument("--guest-list", type=Path)
+    ap.add_argument("--catalogue", type=Path)
     ap.add_argument("--tool-list", type=Path)
     ap.add_argument("--package-mirror", default="")
     ap.add_argument("--package-out", type=Path)
@@ -62,6 +63,7 @@ def main():
     # the baseline lists only what a user can install, and does not depend on
     # which capsules happened to be signed before this ran.
     guests = ["--guest-list", a.guest_list] if a.guest_list else []
+    guests += ["--catalogue", a.catalogue] if a.catalogue else []
     if a.tool_list and a.package_mirror:
         guests += ["--tool-list", a.tool_list, "--package-mirror", a.package_mirror]
         guests += ["--package-out", a.package_out] if a.package_out else []
