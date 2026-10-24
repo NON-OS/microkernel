@@ -2,6 +2,7 @@
  "nonos-attest-path": "",
  "nonos-boot-measure": "",
  "nonos-bootloader/boot_proofs": "",
+ "nonos-harden": "",
  "nonos-mk": "",
  "nonos-sign": "--lib --bins --test host_trust --test release",
  "userland/attest_receipt": "",
