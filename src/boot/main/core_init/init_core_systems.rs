@@ -62,6 +62,9 @@ pub fn init_core_systems() {
      * left unrestricted, on hardware as much as under QEMU. It runs from
      * `microkernel_init` now, after paging.
      */
+    // The baseline draws the boot nonce and the token signing key, which
+    // fail closed on an unseeded RNG, so the bootloader's seed goes in first.
+    crate::entry::security::apply_boot_seed();
     crate::kernel_core::init::init_platform_baseline();
     crate::sys::bench::mark(b"kernel_core_ready");
 }
