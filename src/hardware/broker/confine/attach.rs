@@ -24,15 +24,15 @@ use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 /// (port_only.rs), for the claim to close its Memory Space.
 pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<bool, Refusal> {
     let port_only = super::one::port_only_held(pid);
-    attach_as(pid, device_id).map(|()| port_only)
+    attach_as(pid, device_id, port_only).map(|()| port_only)
 }
 
-fn attach_as(pid: u32, device_id: u64) -> Result<(), Refusal> {
+fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
         // A device the firmware description names: confined through its
         // `iommus`, or refused (streams.rs).
         if let Some(iommus) = crate::hardware::broker::described::iommus(device_id) {
-            return Ok(attach_streams(pid, device_id, iommus)?);
+            return Ok(attach_streams(pid, device_id, iommus, port_only)?);
         }
         // No requester id, no bus master: map.rs refuses its DMA grants.
         return match verdict(false, false, Ok(()), OPT_IN, PRODUCTION) {
@@ -50,5 +50,5 @@ fn attach_as(pid: u32, device_id: u64) -> Result<(), Refusal> {
         return Ok(without_domain(verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?);
     }
     let (group, aliases) = super::gates::admit(device_id)?;
-    super::one::attach_one(pid, device_id, address, false, (&group, &aliases))
+    super::one::attach_one(pid, device_id, address, (false, port_only), (&group, &aliases))
 }
