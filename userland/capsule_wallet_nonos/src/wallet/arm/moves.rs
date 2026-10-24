@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which presses move value or sign (the the maintainers' ruling 1, 2026-10-17). Each
-//! is held to the arming escrow Buy has (order/terms/arming.rs): the screen
-//! drawn whole, the wallet focused, held a second, asked again at the
-//! press. Every other press, and every key but Enter, reads, reviews,
-//! chooses, copies or leaves, and acts at once.
+//! Which presses move value or sign (the the maintainers' ruling 1, 2026-10-17), each held
+//! to the arming escrow Buy has (order/terms/arming.rs): the screen drawn whole,
+//! the wallet focused, held a second, asked again at the press. Every other press,
+//! and every key but Enter, reads, reviews, chooses, copies or leaves at once.
 
 use super::rows::{ROW_ATTEST, ROW_BINDING, ROW_CLAIM, ROW_CLOSE, ROW_INTENT, ROW_TOPUP};
 use crate::wallet::screen::hits::Press;
@@ -51,6 +50,8 @@ pub enum Shown {
     Publish,
     /// A publisher transaction's review: Sign and send signs it.
     PublisherReview,
+    /// A release's attest under review: Sign the attest signs it.
+    AttestReview,
     /// The private key asked for, still hidden: Show the key.
     Export,
 }
@@ -62,7 +63,7 @@ pub fn moves(shown: Shown, press: Option<Press>) -> bool {
         (Consent | Meter, Some(Press::Footer(1)) | None) => true,
         (Budget | Escrow, Some(Press::Footer(1))) => true,
         (
-            PayReview | StakeReview | ShieldReview | PublisherReview | Export,
+            PayReview | StakeReview | ShieldReview | PublisherReview | AttestReview | Export,
             Some(Press::Footer(0)),
         ) => true,
         (TakeBack(at), Some(Press::Footer(n))) => n == at,

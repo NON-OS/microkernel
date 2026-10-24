@@ -18,9 +18,9 @@ use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
 
+use super::answer::answer;
 use super::dispatch::dispatch;
 use super::reap::Reaper;
-use super::wipe::wipe;
 use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
 use crate::store::Store;
 
@@ -39,7 +39,7 @@ pub fn run() -> ! {
         }
         reaper.reap_if_due(&mut store);
         let used = n as usize;
-        let resp = match decode_request(&buf[..used]) {
+        let mut resp = match decode_request(&buf[..used]) {
             Some(req) => dispatch(&mut store, req, sender_pid),
             /*
              * Too short to carry a sequence number: answered under zero. The
@@ -48,7 +48,8 @@ pub fn run() -> ! {
              */
             None => encode_response(0, EINVAL, &[]),
         };
-        let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len());
-        wipe(&mut buf[..used]);
+        answer(&mut buf[..used], &mut resp, |r| {
+            let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, r.as_ptr(), r.len());
+        });
     }
 }

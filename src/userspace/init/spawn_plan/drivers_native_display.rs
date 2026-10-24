@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Native display engines, each only where the inventory saw its function:
 //! the driver takes over at firmware's mode, so the screen stays lit.
 
