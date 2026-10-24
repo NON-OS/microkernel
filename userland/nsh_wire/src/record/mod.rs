@@ -18,6 +18,7 @@
 //! the `RECORD` frame that carries it in parts.
 
 mod body;
+mod boxed;
 pub(crate) mod entry;
 pub(crate) mod footer;
 pub(crate) mod header;
@@ -25,6 +26,7 @@ mod header_read;
 mod parse;
 mod part;
 
+pub use boxed::{BoxRun, Preset, BOX_BODY, BOX_KINDS};
 pub use entry::{Entry, EntryBody, MAX_COMMAND};
 pub use footer::{Footer, FOOTER_LEN};
 pub use header::{RecordHeader, MAX_RECORD, MAX_RECORD_ENTRIES};
