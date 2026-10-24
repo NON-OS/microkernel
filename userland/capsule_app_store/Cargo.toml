@@ -40,6 +40,8 @@ nonos_policy_client = { path = "../policy_client" }
 nonos_policy_proto = { path = "../policy_proto" }
 # The network a tier's download would leave by, said on its card.
 nonos_route_link = { path = "../nonos_route_link" }
+# keccak for a payee's EIP-55 line, in process: public bytes need no Crypto.
+sha3 = { version = "=0.10.9", default-features = false }
 
 [profile.release]
 panic = "abort"
