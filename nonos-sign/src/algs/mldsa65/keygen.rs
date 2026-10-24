@@ -17,7 +17,7 @@
 use crate::algs::traits::KeyPair;
 use crate::error::SignError;
 
-use super::ffi;
+use super::{ffi, guard};
 
 pub fn from_seed(_seed: &[u8]) -> Result<KeyPair, SignError> {
     Err(SignError::SeedKeygenUnsupported("mldsa65"))
@@ -26,8 +26,7 @@ pub fn from_seed(_seed: &[u8]) -> Result<KeyPair, SignError> {
 pub fn random() -> Result<KeyPair, SignError> {
     let mut pk = vec![0u8; ffi::PUBLIC_KEY_BYTES];
     let mut sk = vec![0u8; ffi::SECRET_KEY_BYTES];
-    let rc =
-        unsafe { ffi::PQCLEAN_MLDSA65_CLEAN_crypto_sign_keypair(pk.as_mut_ptr(), sk.as_mut_ptr()) };
+    let rc = guard::keypair(&mut pk, &mut sk).inspect_err(|_| sk.fill(0))?;
     if rc != 0 {
         return Err(SignError::PqcleanFailed("mldsa65 keypair"));
     }
