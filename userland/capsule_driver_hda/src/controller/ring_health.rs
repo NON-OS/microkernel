@@ -19,8 +19,9 @@
 /// How the verb transport is holding up.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Health {
-    /// Verbs gone unanswered in a row.
-    pub missed: u8,
+    /// Verbs the controller never fetched since one was last fetched or
+    /// answered, or the rings were last reset.
+    pub unfetched: u8,
     /// Ring resets since any verb was last answered.
     pub resets_unanswered: u8,
     /// Ring resets in all.

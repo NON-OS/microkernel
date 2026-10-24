@@ -68,8 +68,7 @@ pub fn start(codecs: Vec<(u8, SimCodec)>) -> Sim {
         }
         consumed.store(c, Ordering::Release);
         b.present16(CORBRP as usize, c);
-        // Give the core back each pass: a hundred spinning device threads
-        // starve one another of the milliseconds the driver's waits allow.
+        // The core given back each pass, or a hundred models starve the waits.
         std::thread::yield_now();
     });
     Sim { bar, corb, rirb, log, plugged, coefs, _dev: dev }

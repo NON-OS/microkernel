@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Both rings stopped and started again in place (HDA 1.0a 3.3.18 to 3.3.28):
-//! the run bits cleared and seen clear, the CORB read pointer and the RIRB
+//! the run bits cleared and seen clear, both CORB pointers and the RIRB
 //! write pointer reset, the error and overrun bits cleared, then both run
 //! again. The base addresses and sizes the bring-up wrote are left as they
 //! are: a controller keeps them while its engines are stopped, and only a
@@ -24,8 +24,8 @@
 use super::corb::reset_read_pointer;
 use super::wait::until;
 use crate::constants::{
-    CORBCTL, CORBCTL_RUN, CORBSTS, CORBSTS_CMEI, RIRBCTL, RIRBCTL_DMAEN, RIRBCTL_RINTCTL, RIRBSTS,
-    RIRBSTS_INTFL, RIRBSTS_OIS, RIRBWP, RIRBWP_RST,
+    CORBCTL, CORBCTL_RUN, CORBSTS, CORBSTS_CMEI, CORBWP, RIRBCTL, RIRBCTL_DMAEN, RIRBCTL_RINTCTL,
+    RIRBSTS, RIRBSTS_INTFL, RIRBSTS_OIS, RIRBWP, RIRBWP_RST,
 };
 use crate::regs::Regs;
 
@@ -36,10 +36,15 @@ const STOP_MS: u64 = 10;
 /// Stop both engines and start them again with the pointers at 0. False
 /// when an engine would not stop: the rings are then left stopped, as
 /// moving a pointer under a running engine is undefined.
-pub(super) fn restart(regs: Regs) -> bool {
+pub(crate) fn restart(regs: Regs) -> bool {
     if !stop(regs) {
         return false;
     }
+    // CORBWP back to 0 with CORBRP, as corb/rings.rs does at bring-up: an
+    // engine started with the old write pointer would fetch every command
+    // between 0 and it once more.
+    // SAFETY: CORBWP is a global register, inside the window (`crate::regs`).
+    unsafe { regs.w16(CORBWP, 0) };
     // The handshake's outcome is not a reason to give up: some controllers
     // clear the bit without showing it (corb/mod.rs).
     let _ = reset_read_pointer(regs);
