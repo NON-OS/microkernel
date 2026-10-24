@@ -67,5 +67,5 @@ pub fn take(
     settle_heads(&mut m, &lit, &heads, (gen.ggtt, p.ours, total), &until);
     let mut intel = Intel::new(m, clock, gen, heads);
     intel.watch();
-    Ok(Driver { server: Server::new(intel, Pool), handles: h })
+    Ok(Driver { server: Server::new(intel, Pool::default()), handles: h })
 }

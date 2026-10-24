@@ -22,6 +22,7 @@
 
 mod anon;
 mod pool;
+mod receiver;
 mod surface;
 
 pub use pool::Pool;
