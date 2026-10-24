@@ -17,9 +17,10 @@
 //! Signatures and verification. A signature the C failed to finish is
 //! wiped before the error is returned.
 
-use crate::api::{wipe, SecretKey, Source, PUBLIC_LEN, SIG_LEN};
+use crate::api::{SecretKey, Source, PUBLIC_LEN, SIG_LEN};
 use crate::ffi::*;
 use crate::rng::with_source;
+use crate::secret::wipe;
 use crate::Error;
 
 /// Sign `msg` with an empty context, hedged with randomness from `rand`.
@@ -29,7 +30,13 @@ pub fn sign(sk: &SecretKey, msg: &[u8], rand: Source<'_>) -> Result<[u8; SIG_LEN
     // SAFETY: eK@nonos.systems - `sig` holds SIG_LEN, the most the C writes.
     let rc = with_source(rand, || unsafe {
         let (m, n) = (msg.as_ptr(), msg.len());
-        PQCLEAN_MLDSA65_CLEAN_crypto_sign_signature(sig.as_mut_ptr(), &mut len, m, n, sk.0.as_ptr())
+        PQCLEAN_MLDSA65_CLEAN_crypto_sign_signature(
+            sig.as_mut_ptr(),
+            &mut len,
+            m,
+            n,
+            sk.as_bytes().as_ptr(),
+        )
     });
     match rc {
         Some(0) if len == SIG_LEN => Ok(sig),

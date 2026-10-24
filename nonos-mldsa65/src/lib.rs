@@ -25,6 +25,7 @@ mod api;
 mod ffi;
 mod pool;
 mod rng;
+mod secret;
 mod sign;
 
 pub use api::{keypair, Error, SecretKey, PUBLIC_LEN, SECRET_LEN, SIG_LEN};
