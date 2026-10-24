@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 //! driver.usb_msc0's search report (userland/capsule_driver_usb_msc/src/
 //! scan/report.rs) in words. Pure, so kernel_proofs holds every stage.
 
