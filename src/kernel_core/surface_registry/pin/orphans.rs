@@ -34,6 +34,14 @@ pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());
 
 /* Free every orphaned frame list that no other process maps any more. */
 pub fn reclaim() {
+    reclaim_orphans();
+    // After GATE is let go: reclaim_dma takes it itself, and a spin lock taken
+    // twice on one CPU never opens. Held here, every reclaim (a drop_attach, an
+    // munmap, a process exit) froze the surface path on every CPU.
+    super::dma_held::reclaim_dma(); // and the DMA grants held for them
+}
+
+fn reclaim_orphans() {
     let _gate = lock_responsive(&GATE);
     let mut done = Vec::new();
     {
@@ -60,7 +68,6 @@ pub fn reclaim() {
             }
         }
     }
-    super::dma_held::reclaim_dma(); // and the DMA grants held for them
 }
 
 /* `pid` exits. Its orphans stay listed: the other holders' attach records
