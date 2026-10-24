@@ -53,7 +53,7 @@ pub(super) fn install(listing: &str, release: &str) {
     let (true, Ok(hash)) = (ready, pinned) else {
         return refuse(listing, b"[LINUX-INSTALL] not ready, refused ");
     };
-    let Ok(policy) = super::box_of::box_of(listing, release) else {
+    let Ok(policy) = super::box_of::box_of(listing, release, &hash) else {
         return refuse(listing, b"[LINUX-INSTALL] the market does not vouch for its box, refused ");
     };
     match spawn_install(&name, &hash, policy.as_deref(), direct) {

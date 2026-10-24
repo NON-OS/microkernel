@@ -28,8 +28,12 @@ pub mod mirror;
 
 #[path = "../../../capsule_linux/src/linux/install/market_arg.rs"]
 pub mod market_arg;
+// market_check asks the tiers table, which the models module mounts.
+pub(crate) use crate::models::apps;
 #[path = "../../../capsule_linux/src/linux/install/market_check.rs"]
 pub mod market_check;
+#[path = "../../../capsule_linux/src/linux/install/minted.rs"]
+pub mod minted;
 #[path = "../../../capsule_linux/src/linux/install/proof_names.rs"]
 pub mod proof_names;
 #[path = "../../../capsule_linux/src/linux/install/route_read/mod.rs"]
