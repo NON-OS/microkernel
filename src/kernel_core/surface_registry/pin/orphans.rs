@@ -23,6 +23,7 @@ use crate::smp::lock_responsive;
 use super::super::attach_map::snapshot::has_foreign_holder;
 use super::super::types::SurfaceHandle;
 use super::gate::GATE;
+use super::reclaim_rule::reclaim_in;
 
 /* An orphan: its frames, by page index, for matching mappings, and the ones
  * the owner really unmapped, freed by `reclaim` (dma_rule.rs). */
@@ -32,17 +33,17 @@ pub(super) type Orphan = super::dma_rule::PageOrphan<SurfaceHandle, PhysAddr>;
  * attached, the registry's until no attach record is left. */
 pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());
 
-/* Free every orphaned frame list that no other process maps any more. */
+/* Free every orphaned frame list that no other process maps any more, under
+ * GATE; then the DMA grants held for them (K15), once GATE is let go:
+ * reclaim_dma takes it itself. Taken inside, every reclaim (a drop_attach,
+ * an munmap, a process exit) froze the surface path on every CPU
+ * (reclaim_rule.rs). */
 pub fn reclaim() {
-    reclaim_orphans();
-    // After GATE is let go: reclaim_dma takes it itself, and a spin lock taken
-    // twice on one CPU never opens. Held here, every reclaim (a drop_attach, an
-    // munmap, a process exit) froze the surface path on every CPU.
-    super::dma_held::reclaim_dma(); // and the DMA grants held for them (K15)
+    reclaim_in(|| lock_responsive(&GATE), |_| free_orphans(), super::dma_held::reclaim_dma);
 }
 
-fn reclaim_orphans() {
-    let _gate = lock_responsive(&GATE);
+/* Under GATE: the orphans no other process maps, released and freed. */
+fn free_orphans() {
     let mut done = Vec::new();
     {
         let mut list = ORPHANS.lock();
