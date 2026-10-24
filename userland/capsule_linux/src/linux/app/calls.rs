@@ -40,6 +40,11 @@ pub fn outside(guest: &Guest, number: u64) -> Option<u64> {
     if !super::rules::call_refused(&guest.app.calls, number) {
         return None;
     }
+    let tag = alloc::format!(
+        "call {number} {}",
+        alloc::string::String::from_utf8_lossy(crate::linux::abi::name::of(number),)
+    );
+    crate::linux::boxed::note(crate::linux::boxed::Kind::Call, tag.as_bytes());
     let b = bucket(number);
     let bit = 1u8 << (b % 8);
     if SAID[b / 8].fetch_or(bit, Ordering::Relaxed) & bit == 0 {
