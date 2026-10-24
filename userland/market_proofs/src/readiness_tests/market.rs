@@ -53,7 +53,24 @@ fn a_free_listing_passes_and_a_sale_waits_for_its_bond_domain() {
 fn a_schema_2_release_keeps_todays_checks() {
     let mut e = sold().entries[0].clone();
     e.commerce = None;
+    e.listing_id = "nonos.pkg".into();
     let mut rel = e.releases[0].clone();
     rel.ext = None;
+    assert!(market_gates(&Host, &e, &rel, true).all());
+}
+
+/* the plan: a linux.* release fetched from an index carries its box, whatever
+ * its schema; only a vendor program ("store:") is boxed by the personality. */
+#[test]
+fn a_schema_2_linux_release_without_its_box_is_not_ready() {
+    let mut e = sold().entries[0].clone();
+    e.commerce = None;
+    e.listing_id = "linux.curl".into();
+    let mut rel = e.releases[0].clone();
+    rel.ext = None;
+    rel.package_url = "https://dl-cdn.alpinelinux.org/curl.apk".into();
+    let g = market_gates(&Host, &e, &rel, true);
+    assert!(!g.policy && !g.all());
+    rel.package_url = "store:/bin/qwenchat".into();
     assert!(market_gates(&Host, &e, &rel, true).all());
 }

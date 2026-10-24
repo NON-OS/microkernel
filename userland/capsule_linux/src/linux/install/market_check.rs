@@ -16,6 +16,7 @@
 
 //! What the install role holds a market program's policy to before it vouches
 //! for it: exactly these four, and any failure fails the install.
+//! A release with no policy is held to `without_box`.
 
 use nonos_linux_policy::{decode, market_ready, LinuxAppPolicy};
 
@@ -41,4 +42,14 @@ pub fn admit(market: &[u8; MARKET_LEN]) -> Result<LinuxAppPolicy, &'static str> 
 /// The rest, once the program it starts as is in the store.
 pub fn names_program(p: &LinuxAppPolicy, image: &[u8]) -> bool {
     p.program_blake3 == *blake3::hash(image).as_bytes()
+}
+
+/// A release with no policy of its own ("-") installs only a program this
+/// personality ships, whose box is its own signed table's. A package fetched
+/// from a family's index never runs without its release's box.
+pub fn without_box(shipped: bool) -> Result<(), &'static str> {
+    match shipped {
+        true => Ok(()),
+        false => Err("a package from an index needs its release's box"),
+    }
 }
