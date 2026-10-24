@@ -15,14 +15,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
-# An amnesic boot writes nothing: boot a sealed image as a stick, alone, for
-# a while, and compare every byte of the stick afterwards with what went in.
+# An amnesic boot writes nothing: boot a sealed image on its data disk, the
+# disk tools/nonos-qemu lays the store on, behind the virtio-blk driver a
+# release image brings up under an IOMMU, for a while, and compare every
+# byte of that disk afterwards with what went in.
 # Any difference fails, wherever it is: a table row, a payload, a log, a
 # crash record. The firmware's variable store is compared by variable
 # (tools/nonos-efi-vars): the firmware fills in its own on a first boot and
 # counts every boot, so a variable fails only when it is not the firmware's.
 #
-#   NONOS_AMNESIC_IMAGE    the sealed nonos.img to boot (required)
+#   NONOS_AMNESIC_IMAGE    the sealed nonos.img to boot (required); it is
+#                          read, never written
 #   NONOS_AMNESIC_TIMEOUT  seconds the boot runs (default 180)
 #   NONOS_AMNESIC_NET      nat (default) or off
 #   NONOS_QEMU_LANES       tools/nonos-qemu lanes, space separated; a release
@@ -31,9 +34,11 @@
 #                          comes up and the boot cannot write the stick at all
 #
 # OVMF and OVMF_VARS name the firmware, as `nix develop` and `nix run .#qemu`
-# set them. The boot is the first boot of a fresh stick: nobody answers
-# first-boot setup, so the person has chosen to keep nothing, and the image
-# must come back byte for byte. Exit 0 pass, 1 a byte changed, 2 no boot.
+# set them. The boot is the first boot of a fresh data disk: nobody answers
+# first-boot setup, so the person has chosen to keep nothing, and the disk
+# must come back byte for byte. The serial log must show the disk driver up
+# and the store read from the disk, or the run is a gap: a disk the OS never
+# reached proves nothing. Exit 0 pass, 1 a byte changed, 2 no boot.
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
@@ -48,27 +53,41 @@ report=$out/report.json
 : "${OVMF_VARS:?OVMF_VARS names the variable store; run inside nix develop}"
 
 mkdir -p "$out"
-rm -f "$report" target/qemu/stick.img target/qemu/OVMF_VARS.fd
+rm -f "$report" target/qemu/data.img target/qemu/OVMF_VARS.fd
+rm -rf target/qemu/esp
+data=target/qemu/data.img
+
+# The data disk as nonos-qemu lays it, laid here so its bytes can be taken
+# before the boot; the boot below then finds it and keeps it.
+python3 -c 'import sys; sys.path.insert(0, "tools"); from nonos_qemu import disk
+disk.prepare(sys.argv[1], "target/qemu/esp", sys.argv[2], True, disk.resolve([], "8G"))
+disk.drop_gpt(sys.argv[2])' "$image" "$data"
 
 sum() { sha256sum "$1" | cut -d' ' -f1; }
-image_before=$(sum "$image")
+cp "$data" "$out/data.before"
+image_before=$(sum "$data")
 vars_before=$(sum "$OVMF_VARS")
 
 set --
 for l in ${NONOS_QEMU_LANES:-}; do set -- "$@" --lane "$l"; done
 set +e
-python3 tools/nonos-qemu --image "$image" --stick --net "$net" --headless \
+python3 tools/nonos-qemu --image "$image" --net "$net" --headless \
   --serial "$out/serial.log" --timeout "$timeout_secs" "$@"
 rc=$?
 set -e
 
-if [ ! -f target/qemu/stick.img ] || [ ! -s "$out/serial.log" ]; then
+if [ ! -s "$out/serial.log" ]; then
   printf '{"status":"gap","reason":"no boot","exit":%s}\n' "$rc" > "$report"
   printf '%s\n' "amnesic boot: GAP the image did not boot (exit $rc)"
   exit 2
 fi
+if grep -q 'driver.virtio_blk0 status' "$out/serial.log" || ! grep -q 'DRIVER-VIRTIO-BLK\] capsule spawned' "$out/serial.log"; then
+  printf '{"status":"gap","reason":"the disk driver did not come up"}\n' > "$report"
+  printf '%s\n' "amnesic boot: GAP the disk driver did not come up, so nothing could have been written"
+  exit 2
+fi
 
-image_after=$(sum target/qemu/stick.img)
+image_after=$(sum "$data")
 vars_after=$(sum target/qemu/OVMF_VARS.fd)
 status=pass
 [ "$image_before" = "$image_after" ] || status=fail
@@ -81,13 +100,13 @@ foreign=$(grep -c ' FOREIGN ' "$out/efi-vars.txt" || true)
 
 changed=""
 if [ "$image_before" != "$image_after" ]; then
-  changed=$(cmp -l "$image" target/qemu/stick.img | awk '{print int(($1-1)/512)}' | uniq | head -64 | tr '\n' ' ')
+  changed=$(cmp -l "$out/data.before" "$data" | awk '{print int(($1-1)/512)}' | uniq | head -64 | tr '\n' ' ')
 fi
 printf '{"status":"%s","seconds":%s,"image":{"before":"%s","after":"%s","changed_sectors":"%s"},"efi_vars":{"before":"%s","after":"%s","not_firmware":%s,"report":"%s"},"serial_bytes":%s}\n' \
   "$status" "$timeout_secs" "$image_before" "$image_after" "$changed" "$vars_before" "$vars_after" "$foreign" "$out/efi-vars.json" \
   "$(wc -c < "$out/serial.log" | tr -d ' ')" > "$report"
 if [ "$status" = pass ]; then
-  printf '%s\n' "amnesic boot: PASS the stick is byte for byte as it went in, and no EFI variable but the firmware's changed ($report)"
+  printf '%s\n' "amnesic boot: PASS the data disk is byte for byte as it went in, and no EFI variable but the firmware's changed ($report)"
   exit 0
 fi
 printf '%s\n' "amnesic boot: FAIL ${changed:+sectors $changed}${foreign:+, $foreign EFI variables not the firmware's }($report)"
