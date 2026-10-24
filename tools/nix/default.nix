@@ -31,7 +31,7 @@ let
     [ (k + "/Cargo.lock") (k + "/nonos-bootloader/Cargo.lock") cargo.rustSrcLock ./locks/ripgrep-14.1.1.Cargo.lock ./locks/ripgrep-15.2.0.Cargo.lock ./locks/fd-find-10.5.0.Cargo.lock ]
     ++ map (e: k + "/${e.dir}/Cargo.lock") (builtins.filter (e: e.prebuilt == "") capsules.catalogue)
     ++ map (t: k + "/userland/upstream-src/${t}/Cargo.lock") [ "sd-1.0.0" "tokio-smoke" "grex" "dotenv-linter" "pastel" "jsonxf" "tokei" "huniq" "csview" ]
-    ++ map (d: k + "/${d}/Cargo.lock") [ "toolchain/nonos-rt" "nonos-sign" "nonos-stark-enroll" "nonos-bootloader/tools/embed-trailer" "nonos-bootloader/tools/sign-kernel" "nonos-mk" "tools/nonos-pack" "nonos-verify" ];
+    ++ map (d: k + "/${d}/Cargo.lock") [ "toolchain/nonos-rt" "nonos-sign" "nonos-stark-enroll" "nonos-bootloader/tools/embed-trailer" "nonos-bootloader/tools/sign-kernel" "nonos-mk" "tools/nonos-pack" "nonos-verify" "nonos-proof-verify" "nonos-proof-verify/wasm" ];
 
   sbom = import ./sbom.nix { inherit pkgs lib pins userland lockFiles self; };
   artifacts = import ./artifacts.nix { inherit pkgs lib pins capsules userland image sbom; };
@@ -82,6 +82,23 @@ in
         mkdir -p $out
         cp target/wasm32-unknown-unknown/release/nox_verify_wasm.wasm $out/verifier.wasm
         cp nox_verify_wasm/js/*.mjs $out/
+      '';
+    };
+    # The proof verifier's page: nonos-proof-verify compiled to wasm, beside
+    # the page that runs it. The module runs the host tool's own command line,
+    # so the page and `nonos-proof-verify` answer alike (web/smoke.mjs).
+    proof-verify-web = rustBuild {
+      name = "nonos-proof-verify-web";
+      src = src.crate "nonos-proof-verify/wasm" [ ];
+      lockFiles = [ (src.root + "/nonos-proof-verify/wasm/Cargo.lock") ];
+      rust = pins.rustShell;
+      cc = false;
+      script = ''
+        cd nonos-proof-verify/wasm
+        cargo build --frozen --release --target wasm32-unknown-unknown
+        mkdir -p $out
+        cp target/wasm32-unknown-unknown/release/nonos_proof_verify_wasm.wasm $out/
+        cp ../web/index.html ../web/app.js ../web/npv.mjs $out/
       '';
     };
     # The periodic cache nonos.shield embeds, built and checked by nox_bench
