@@ -33,13 +33,13 @@ ROOT = HERE.parents[1]
 MARKET = "userland/capsule_market/"
 COPY = ("tools/nonos_market_catalogue", "tools/nonos_linux_pack", "tools/nix/store.json",
         *(MARKET + f for f in ("linux-catalogue.json", "linux-guests.json", "linux-tools.json")),
-        "userland/capsule_linux/keys/alpine", "nonos-data/market/catalogue")
+        "userland/capsule_linux/keys/alpine", "userland/capsule_linux/src/linux/install",
+        "nonos-data/market/catalogue")
 MUTANTS = json.loads((HERE / "mutants.json").read_text())
 
 
 def suite(tree: Path) -> int:
-    """The suite's exit status in `tree`, with this test left out; a suite
-    that hangs is killed and counts as failing."""
+    """The suite's exit status in `tree`, this test left out; a hang fails."""
     try:
         return subprocess.run([sys.executable, "-m", "unittest", "discover", "-s",
                                "tools/nonos_market_catalogue", "-t", "tools"], cwd=tree,

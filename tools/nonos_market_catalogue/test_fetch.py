@@ -39,18 +39,26 @@ class Body:
     def read(self, n):
         if self.error:
             raise self.error
-        return self.data[:n]
+        part, self.data = self.data[:n], self.data[n:]
+        return part
 
 
 class Fetch(unittest.TestCase):
     def test_a_download_is_capped_atomic_and_named_when_it_fails(self):
         with tempfile.TemporaryDirectory() as d:
             to = Path(d) / "f"
-            with mock.patch.object(fetch.urllib.request, "urlopen", return_value=Body(b"12345")):
+            with mock.patch.object(fetch.urllib.request, "urlopen", side_effect=lambda *a, **k: Body(b"12345")):
                 with self.assertRaises(ValueError):
                     fetch.fetch("https://e.org/f", to, 4)
                 self.assertFalse(to.exists() or to.with_name("f.part").exists())
                 self.assertEqual(fetch.fetch("https://e.org/f", to, 5), b"12345")
+            with mock.patch.object(fetch.urllib.request, "urlopen", return_value=Body(b"new")):
+                self.assertEqual(fetch.fetch("https://e.org/f", to, 5, fresh=True), b"new")
+            clock = iter(range(0, 10_000, 100))
+            with mock.patch.object(fetch.urllib.request, "urlopen", return_value=Body(b"x" * 9)), \
+                    mock.patch.object(fetch.time, "monotonic", lambda: next(clock)), \
+                    mock.patch.object(fetch, "CHUNK", 1), self.assertRaises(ValueError):
+                fetch.fetch("https://e.org/slow", Path(d) / "slow", 9, seconds=250)
             for error in (http.client.IncompleteRead(b"12"), OSError("reset")):
                 with mock.patch.object(fetch.urllib.request, "urlopen", return_value=Body(error=error)), \
                         self.assertRaises(ValueError):
