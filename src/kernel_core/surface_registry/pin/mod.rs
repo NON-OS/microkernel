@@ -29,6 +29,7 @@ pub mod gate;
 pub mod held;
 pub mod orphans;
 pub(super) mod process_of;
+mod reclaim_rule;
 mod unmap_receiver;
 pub mod unmap_rule;
 mod window;

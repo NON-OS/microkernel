@@ -56,15 +56,27 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64, handoff_phys: u64) -> ! {
     if let Err(reason) = super::loader::take(handoff_phys, &info) {
         super::refuse(b"loader handoff", reason);
     }
-    // Signing starts here: after the tree, whose rng-seed may key it, in a
-    // function that never returns, and before `init` starts the other CPUs.
-    if let Some(key) = crate::arch::aarch64::security::pac::prepare() {
-        crate::arch::aarch64::security::pac::install_kernel_key!(key);
-    }
+    // The key is decided here: after the tree, whose rng-seed may key it, and
+    // before `init` starts the other CPUs, which sign with the same key.
+    let key = crate::arch::aarch64::security::pac::prepare();
 
     // The console, the vectors, the MMU and caches; then the move to TTBR1
     // and, from wherever the kernel then runs, the GIC, timer and the rest.
     super::init(&info);
+
+    /*
+     * Signing starts only now, with the MMU on and TCR_EL1 as the kernel runs
+     * it, in this function that never returns. Where a pointer's PAC sits
+     * depends on TCR_EL1 (T0SZ, TBI0) and on whether stage 1 translation is
+     * on. `init` changes both: its prologue signed its return address with
+     * the MMU off and TCR at reset, and its epilogue authenticated it after
+     * `init_mmu`, so the two disagreed. Every boot that returned from `init`
+     * took a PAC failure there, EC 0x1C on a FEAT_FPAC core such as QEMU's
+     * `-cpu max`, or a corrupted return address on one without.
+     */
+    if let Some(key) = key {
+        crate::arch::aarch64::security::pac::install_kernel_key!(key);
+    }
     super::finish::set_parsed(matches!(outcome, Outcome::Parsed));
     super::high::move_high(&info)
 }

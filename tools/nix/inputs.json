@@ -995,6 +995,7 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/mmu/attributes",
+   "src/arch/aarch64/mmu/tlbi_operand.rs",
    "src/arch/paging/descriptor/aarch64/bits.rs",
    "src/arch/paging/descriptor/aarch64/build.rs",
    "src/arch/paging/descriptor/aarch64/memory_type.rs",
@@ -5179,6 +5180,7 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/gic/intid.rs",
+   "src/arch/aarch64/gic/irq_handlers",
    "src/arch/aarch64/gic/its/encode",
    "src/arch/aarch64/gic/its/ring.rs",
    "src/arch/aarch64/gic/its/ring_types.rs",
