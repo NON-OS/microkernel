@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! Kernel-side glue for the Intel display capsule: embed and spawn it. The
 //! compositor reaches it by name (`driver.intel_display0`) on the gfx wire,
 //! held to the compositor alone (`services/registry/displays.rs`).
