@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The parts of nonos_route_link a capsule's RouteIo reads: the shipped
-//! Proxy and its patience, by path, and a stand-in RouteStream.
+//! Proxy and its patience, by path, with the Route patience.rs also
+//! answers for, and a stand-in RouteStream.
 
 #[path = "../../../nonos_route_link/src/patience.rs"]
 pub mod patience;
+#[path = "../../../nonos_route_link/src/pick.rs"]
+pub mod pick;
 #[path = "../../../nonos_route_link/src/refusal.rs"]
 pub mod refusal;
 mod stream;
