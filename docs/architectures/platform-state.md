@@ -92,7 +92,7 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 - **booted.** The boot stops at the bootloader check. With `-kernel` there is no loader evidence, and `refuse_unchecked_loader` starts no userspace (`src/kernel_core/init/entry/loader_refusal.rs:37-48`). No aarch64 boot reaches `[UKERNEL] Entering userspace`, a capsule or the desktop.
 - **booted, does not work.** At `-smp 4` the boot CPU prints `[SMP] timed out waiting for a secondary to check in`, then reaches `Core ready` on one CPU. No secondary has been seen online.
 - **design.** Parking reads Aff0 only (`MPIDR & 0xFF`, `start.S:51-53`), so a core in cluster 1 with Aff0 of 0 would take the boot CPU's path.
-- **design, bug.** `tlbi vaae1is` gets `va >> 12` unmasked (`src/arch/aarch64/mmu/tlb.rs:25-29`, `src/arch/aarch64/abi/tlb.rs:22-31`). For a kernel address, bits [47:44] of the operand become `0xF`. A CPU with FEAT_TTL (Armv8.4 and later) reads those bits as a level hint: 64K granule, level 3. NONOS maps with 4K granules, and the architecture does not require a TLBI with a wrong hint to invalidate anything. The operand must be masked to bits [43:0]. QEMU TCG does not show this, and neither does the Pi 5's Cortex-A76 (Armv8.2, no FEAT_TTL).
+- **booted (QEMU `virt` `-cpu max`, `trap-sp0` and `trap-kernel-abort`), host-tested (`arch_paging_proofs`, 44 tests); FEAT_TTL silicon not run.** `tlbi vaae1is` got `va >> 12` unmasked (`src/arch/aarch64/mmu/tlb.rs:25-29`, `src/arch/aarch64/abi/tlb.rs:22-31`). For a kernel address, bits [47:44] of the operand become `0xF`. A CPU with FEAT_TTL (Armv8.4 and later) reads those bits as a level hint: 64K granule, level 3. NONOS maps with 4K granules, and the architecture does not require a TLBI with a wrong hint to invalidate anything. Both flush paths now take their operand from `tlbi_operand::vaae1is`, which masks to bits [43:0] and leaves TTL at 0, "no hint" (`src/arch/aarch64/mmu/tlbi_operand.rs`). `arch_paging_proofs` holds that encoding to the architecture's layout. QEMU TCG would not show the bug, and neither would the Pi 5's Cortex-A76 (Armv8.2, no FEAT_TTL).
 
 ### What exists for real boards
 
@@ -101,7 +101,7 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 | GICv2 and GICv3, ITS, GICv2m, SGIs for IPIs | design; the GIC init no longer requires v3, so [aarch64](aarch64.md) is stale there |
 | PSCI over HVC or SMC, spin table | design |
 | Per-CPU base in TPIDR_EL1, a single writer enforced by static check | design |
-| Broadcast TLBI (`vmalle1is`, `vaae1is`, `aside1is`) | design, with the masking bug above |
+| Broadcast TLBI (`vmalle1is`, `vaae1is`, `aside1is`) | booted on one CPU; the `vaae1is` operand is host-tested; FEAT_TTL silicon not run |
 | SMMUv3 (stage 1, two-level stream table, abort by default) | host-tested (`smmu_proofs`); no QEMU lane gives `iommu=smmuv3` |
 | SMMUv2 | absent; IORT parses its nodes, but there is no driver |
 | Device tree: memory, GIC, timer, PCIe ECAM, PL011, PL031, SMMU, `iommu-map`, `msi-map`, PSCI, CPUs, reserved memory, TPM | design |
@@ -194,7 +194,6 @@ The hard rule through all of it: the device's DMA is confined by the IOMMU to th
    - Proofs: a shootdown protocol model checked over interleavings (no target keeps a stale entry after its ack, for every number of CPUs up to N), with a mutant that drops the pending-flag fence or the late-AP targeting and must fail.
    - Soak runs at `-smp 1`, 2, 4, 16 and 64 under TCG, with every AP online, a shootdown stress, and no `[FATAL]`. The logs are kept under `ci-reports/`.
 2. **aarch64 to a booted desktop on QEMU virt.**
-   - The TLBI masking fix with its mutant.
    - The aarch64 loader.
    - `driver-virtio-input` in the arm desktop profile.
    - The `core` cell back in CI, and an `-smp 4` cell and an `iommu=smmuv3` cell.

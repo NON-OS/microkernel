@@ -995,6 +995,7 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/mmu/attributes",
+   "src/arch/aarch64/mmu/tlbi_operand.rs",
    "src/arch/paging/descriptor/aarch64/bits.rs",
    "src/arch/paging/descriptor/aarch64/build.rs",
    "src/arch/paging/descriptor/aarch64/memory_type.rs",
