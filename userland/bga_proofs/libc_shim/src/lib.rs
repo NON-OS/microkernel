@@ -51,7 +51,7 @@ pub use pci::{
 };
 pub use records::{mk_device_list, offer, Bar, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 pub use seal::untouched_since_unmap;
-pub use service::{hold, mk_service_lookup, mk_service_register, services};
+pub use service::{hold, mk_getpid, mk_service_lookup, mk_service_register, services};
 pub use surface::{
     mk_surface_register, refuse_surfaces, registered, SurfaceDescriptor, SHARED_HANDLE_BASE,
     SURFACE_FORMAT_ARGB8888,

@@ -36,9 +36,10 @@ pub fn rearm(guest: &mut Guest, number: u64, fd: u64, value: u64) {
     let again = value == errno::fail(errno::EAGAIN);
     let bits = if again && READS.contains(&number) {
         EPOLLIN
-    } else if again && WRITES.contains(&number) {
-        EPOLLOUT
-    } else if number == nr::CONNECT && value == errno::fail(errno::EINPROGRESS) {
+    } else if (again && WRITES.contains(&number))
+        || (number == nr::CONNECT && value == errno::fail(errno::EINPROGRESS))
+    {
+        // A connect still under way becomes writable when it completes.
         EPOLLOUT
     } else {
         return;

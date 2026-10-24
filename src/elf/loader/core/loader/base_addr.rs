@@ -13,15 +13,19 @@
 
 use super::state::{DEFAULT_PIE_BASE, DEFAULT_STATIC_BASE};
 use crate::elf::aslr::AslrManager;
+use crate::elf::errors::ElfError;
 use crate::elf::types::ElfHeader;
 use crate::memory::addr::VirtAddr;
 
-pub(super) fn load_base(header: &ElfHeader, aslr: &mut AslrManager) -> VirtAddr {
-    if header.is_pie() {
-        VirtAddr::new(aslr.randomize_base(DEFAULT_PIE_BASE))
-    } else {
-        VirtAddr::new(DEFAULT_STATIC_BASE)
+/// A position-independent image is placed at random, or not loaded at all
+/// when no randomness answers.
+pub(super) fn load_base(header: &ElfHeader, aslr: &mut AslrManager) -> Result<VirtAddr, ElfError> {
+    if !header.is_pie() {
+        return Ok(VirtAddr::new(DEFAULT_STATIC_BASE));
     }
+    let base =
+        aslr.randomize_base(DEFAULT_PIE_BASE).ok_or(ElfError::Other("no entropy for ASLR"))?;
+    Ok(VirtAddr::new(base))
 }
 
 pub(super) fn entry_point(header: &ElfHeader, base_addr: VirtAddr) -> VirtAddr {

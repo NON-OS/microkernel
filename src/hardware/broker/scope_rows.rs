@@ -22,6 +22,8 @@ use super::rule::Match::{self, Acpi, Class, Ids};
 pub(super) const INTEL: u16 = 0x8086;
 pub(super) const VMWARE: u16 = 0x15AD;
 pub(super) const VBOX: u16 = 0x80EE;
+pub(super) const REALTEK: u16 = 0x10EC;
+pub(super) const VIRTIO: u16 = 0x1AF4;
 pub(super) const ANY: Option<u16> = None;
 
 /// SATA from any vendor, and Intel RST RAID.
@@ -55,3 +57,11 @@ pub(super) const HDA: &[Match] = &[
 
 /// SVGA II as VMware lays it out, and VirtualBox's VBoxSVGA.
 pub(super) const SVGA: &[Match] = &[Ids(VMWARE, &[0x0405, 0x0405]), Ids(VBOX, &[0xBEEF, 0xBEEF])];
+
+/// Intel graphics, VGA-compatible when firmware made it the boot display and
+/// "other display" when it did not; the capsule's id tables pick the
+/// generations it drives.
+pub(super) const INTEL_GFX: &[Match] = &[
+    Class { vendor: Some(INTEL), class: 0x03, sub: 0x00, progif: None },
+    Class { vendor: Some(INTEL), class: 0x03, sub: 0x80, progif: None },
+];
