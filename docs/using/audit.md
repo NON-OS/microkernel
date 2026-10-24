@@ -35,6 +35,12 @@ audit v1
   on this machine.
 - A process the registry does not list reads `not in the kernel's registry: no
   signed ceiling recorded`, and its reach is not counted.
+- `; debug withheld (holds InputSource)` after the capabilities: the kernel's
+  spawn gate withheld the `Debug` its manifest offered, because it holds
+  `InputSource`, `Keyring`, `DeviceSecret` or `InputConsumer` and this is not
+  the dev image. The missing bit is the gate's, not a change to the signed
+  manifest. The process table says so (`MkProcStat`'s `flags`, bit 0), and
+  `receipt` prints the same note.
 
 Under the table, one line per column counts the capsules that reach it, of those
 with a signed ceiling, and one line counts the processes without one.
@@ -57,8 +63,9 @@ acpi, pid 7
   holds      IPC, Memory, Debug, Admin, DeviceEnum, Driver, Irq
 ```
 
-Each area names the capabilities that open it. A name running more than once
-gets one block per pid.
+Each area names the capabilities that open it. A capsule whose `Debug` the
+kernel withheld has one more line, `debug      withheld by the kernel, as it
+holds <capabilities>`. A name running more than once gets one block per pid.
 
 ## The v1 format
 
@@ -71,9 +78,10 @@ it and refuse any other. In v1:
   characters is cut;
 - a reach cell is `YES` or `no`; capabilities are the kernel's names, joined by
   `, `, in bit order;
+- a row the gate withheld `Debug` from ends `; debug withheld (holds <names>)`;
 - the agent block is a `<name>, pid <pid>` line, then the `authority`,
-  `network`, `storage`, `devices*` and `holds` lines, two spaces in, the value
-  at character 13.
+  `network`, `storage`, `devices*` and `holds` lines, and `debug` when withheld,
+  two spaces in, the value at character 13.
 
 A change to any of these is v2.
 

@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 use super::format::{printable, NAME_W};
 use super::join::Row;
 use super::reach::{names, reaches, AREAS};
+use super::withheld::note;
 use crate::command::builtin::receipt::own::signer;
 use crate::term::util::format_u64;
 
@@ -36,7 +37,6 @@ pub fn pid(line: &mut Vec<u8>, pid: u32, width: usize) {
     line.extend_from_slice(&num[..n]);
 }
 
-/// The name as the terminal may print it.
 pub fn name(row: &Row) -> Vec<u8> {
     printable(row.name.as_deref().unwrap_or(b"(exited)"))
 }
@@ -67,5 +67,9 @@ pub fn line(row: &Row) -> Vec<u8> {
     line.extend_from_slice(signer(c.authority));
     pad(&mut line, 7 + NAME_W + 39);
     list(&mut line, &names(c.caps));
+    if row.debug_withheld {
+        line.extend_from_slice(b"; ");
+        line.extend_from_slice(&note(c.caps));
+    }
     line
 }

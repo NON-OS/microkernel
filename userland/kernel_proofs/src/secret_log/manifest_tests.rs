@@ -27,6 +27,13 @@ fn no_standard_capsule_logs_and_sees_a_secret() {
     ))
     .unwrap();
     assert!(gate.contains("secret_log::unlogged(caps, cfg!(feature = \"nonos-dev-attest\"))"));
+    assert!(gate.contains("unlogged(caps, cfg!(feature = \"nonos-dev-attest\")) != caps"));
+    let install = std::fs::read_to_string(format!(
+        "{ROOT}/src/kernel_core/process_spawn/capsule_spawn/runner/install/install_caps.rs"
+    ))
+    .unwrap();
+    assert!(install.contains("if super::super::profile_gate::withholds_debug(caps_bits) {"));
+    assert!(install.contains("proc_caps::mark_debug_withheld(pid);"));
     println!("{seen} manifests, {both} asking for Debug beside a secret, all withheld");
     assert!(seen >= 130 && both >= 6, "{seen} {both}");
 }

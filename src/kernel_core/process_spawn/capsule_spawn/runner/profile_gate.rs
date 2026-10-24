@@ -45,6 +45,11 @@ pub(in super::super) fn check(name: &str) -> Result<(), SpawnError> {
     Ok(())
 }
 
+/* Whether `caps` call the gate below to withhold the Debug they offer. */
+pub(in super::super) fn withholds_debug(caps: u64) -> bool {
+    super::secret_log::unlogged(caps, cfg!(feature = "nonos-dev-attest")) != caps
+}
+
 /*
  * The caps a capsule runs with under this boot's profile, and with Debug
  * withheld from a holder of keys, input or a secret off the dev profile.

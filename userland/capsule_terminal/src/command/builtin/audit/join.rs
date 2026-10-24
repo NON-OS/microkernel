@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The join: every process the kernel's table lists (`MkProcStat`) beside
-//! its entry in the attestation registry (`MkAttestEntries`), which holds
-//! the mask and the signer the spawn gate recorded from its signed
-//! manifest. A capsule in either list is a row; none is dropped. A process
-//! the registry does not list has no signed ceiling, and says so.
+//! Every process the kernel lists (`MkProcStat`) beside its registry entry
+//! (`MkAttestEntries`): the mask and signer recorded from its signed
+//! manifest. A capsule in either is one row; one with no entry says so.
 
 use alloc::vec::Vec;
 
@@ -27,11 +25,16 @@ pub const ENTRY_LEN: usize = 45;
 
 pub struct Row {
     pub pid: u32,
-    /// None when the process table no longer lists the pid.
+    /// None once the process table no longer lists the pid.
     pub name: Option<Vec<u8>>,
     /// The registry's facts: mask, signer byte, measurement's first bytes.
     pub ceiling: Option<Ceiling>,
+    /// The process table says the spawn gate withheld Debug (`withheld`).
+    pub debug_withheld: bool,
 }
+
+/// A process as the kernel's table lists it: pid, name, Debug withheld.
+pub type Proc<'a> = (u32, &'a [u8], bool);
 
 #[derive(Clone, Copy)]
 pub struct Ceiling {
@@ -48,22 +51,23 @@ fn ceiling(e: &[u8]) -> (u32, Ceiling) {
     (pid, Ceiling { caps, authority: e[44], measurement })
 }
 
-/// `entries` as the kernel wrote them; `procs` as (pid, name). Pid 0, the
+/// `entries` as the kernel wrote them; `procs` as listed. Pid 0, the
 /// kernel's own, is not a capsule. Ordered by pid. None for a registry that
 /// is not whole entries, which this build and the kernel disagree on.
-pub fn join(entries: &[u8], procs: &[(u32, &[u8])]) -> Option<Vec<Row>> {
+pub fn join(entries: &[u8], procs: &[Proc<'_>]) -> Option<Vec<Row>> {
     if !entries.len().is_multiple_of(ENTRY_LEN) {
         return None;
     }
     let mut rows: Vec<Row> = Vec::new();
     for e in entries.chunks_exact(ENTRY_LEN) {
         let (pid, c) = ceiling(e);
-        let name = procs.iter().find(|p| p.0 == pid).map(|p| Vec::from(p.1));
-        rows.push(Row { pid, name, ceiling: Some(c) });
+        let p = procs.iter().find(|p| p.0 == pid);
+        let (name, debug_withheld) = (p.map(|p| Vec::from(p.1)), p.is_some_and(|p| p.2));
+        rows.push(Row { pid, name, ceiling: Some(c), debug_withheld });
     }
-    for &(pid, name) in procs {
+    for &(pid, name, debug_withheld) in procs {
         if pid != 0 && !rows.iter().any(|r| r.pid == pid) {
-            rows.push(Row { pid, name: Some(Vec::from(name)), ceiling: None });
+            rows.push(Row { pid, name: Some(Vec::from(name)), ceiling: None, debug_withheld });
         }
     }
     rows.sort_by_key(|r| r.pid);

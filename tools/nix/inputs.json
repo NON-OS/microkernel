@@ -4757,6 +4757,7 @@
    "userland/capsule_terminal/src/command/builtin/audit/join.rs",
    "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
    "userland/capsule_terminal/src/command/builtin/audit/table.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/withheld.rs",
    "userland/capsule_terminal/src/command/builtin/cap_names.rs",
    "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
    "userland/capsule_terminal/src/term/util/format_u64.rs",

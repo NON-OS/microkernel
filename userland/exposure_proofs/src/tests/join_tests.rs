@@ -23,7 +23,8 @@ fn every_capsule_in_either_list_is_one_row() {
                 caps_of.insert(pid, x >> 20);
             }
         }
-        let named: Vec<(u32, &[u8])> = procs.iter().map(|(p, n)| (*p, &n[..])).collect();
+        let named: Vec<(u32, &[u8], bool)> =
+            procs.iter().map(|(p, n)| (*p, &n[..], false)).collect();
         let rows = join(&regs, &named).unwrap();
         let want: BTreeSet<u32> =
             procs.iter().map(|p| p.0).filter(|p| *p != 0).chain(caps_of.keys().copied()).collect();

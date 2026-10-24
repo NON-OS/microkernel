@@ -33,8 +33,7 @@ pub(super) fn caps_of(e: &[u8]) -> u64 {
     u64::from_be_bytes(e[36..44].try_into().unwrap_or([0; 8]))
 }
 
-/// The kernel's authority byte, by the one table `whoami` reads too, padded
-/// to the column.
+/// The kernel's authority byte, by `whoami`'s table, padded to the column.
 fn signed_by(line: &mut Vec<u8>, byte: u8) {
     let name = super::own::signer(byte);
     line.extend_from_slice(name);
@@ -46,7 +45,7 @@ pub(super) fn heading(out: &mut Output<'_>) {
     out.writeln(b"  ---  ------------  -------  ---------  ------------");
 }
 
-pub(super) fn row(out: &mut Output<'_>, e: &[u8]) {
+pub(super) fn row(out: &mut Output<'_>, e: &[u8], withheld: bool) {
     let pid = u32::from_be_bytes(e[..4].try_into().unwrap_or([0; 4]));
     let caps = caps_of(e);
     let mut line: Vec<u8> = Vec::with_capacity(96);
@@ -67,6 +66,10 @@ pub(super) fn row(out: &mut Output<'_>, e: &[u8]) {
             line.extend_from_slice(name);
             first = false;
         }
+    }
+    if withheld {
+        line.extend_from_slice(b"; ");
+        line.extend_from_slice(&crate::command::builtin::audit::withheld::note(caps));
     }
     out.writeln(&line);
 }
