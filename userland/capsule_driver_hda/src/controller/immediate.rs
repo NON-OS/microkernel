@@ -33,6 +33,12 @@ const IMMEDIATE_MS: u64 = 100;
 /// Immediate Command interface. `None` when the controller stays busy or never
 /// marks the result valid inside the bounded wait.
 pub fn get_parameter(regs: Regs, address: u8, param: u16) -> Option<u32> {
+    exchange(regs, compose_verb(address, 0, VERB_GET_PARAMETER, param))
+}
+
+/// One verb out through ICOI and its answer back through ICII, each half
+/// bounded; `None` when either half runs out of time.
+pub fn exchange(regs: Regs, verb: u32) -> Option<u32> {
     // A prior command is read out before a new one is posted: ICB clears when
     // the controller is free.
     // SAFETY: ICOI, ICII and ICIS are global registers, inside the window
@@ -40,7 +46,6 @@ pub fn get_parameter(regs: Regs, address: u8, param: u16) -> Option<u32> {
     if !until(IMMEDIATE_MS, || unsafe { regs.r16(ICIS) } & ICIS_ICB == 0) {
         return None;
     }
-    let verb = compose_verb(address, 0, VERB_GET_PARAMETER, param);
     // SAFETY: as above.
     unsafe {
         regs.w32(ICOI, verb);
