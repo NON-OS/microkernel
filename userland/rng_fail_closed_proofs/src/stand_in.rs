@@ -37,11 +37,12 @@ pub fn sources(seeded: bool, entropy: bool, cpu: bool) {
     CPU.set(cpu);
 }
 
-/// The value each source gives: its tag in the top byte, and a count.
+/// The value each source gives: its tag in the top byte, and below it a
+/// count spread over every bit, so no two values share their low bits.
 pub(crate) fn next(tag: u64) -> u64 {
     let n = COUNT.get() + 1;
     COUNT.set(n);
-    (tag << 56) | n
+    (tag << 56) | (n.wrapping_mul(0x9E37_79B9_7F4A_7C15) >> 8)
 }
 
 pub const SEEDED_TAG: u64 = 0x5e;

@@ -39,11 +39,6 @@ pub(crate) fn secure_nonce_128() -> Result<[u8; 16], &'static str> {
 }
 
 #[inline]
-pub fn reset_nonce_counter() {
-    NONCE_COUNTER.store(1, Ordering::SeqCst);
-}
-
-#[inline]
 pub fn current_nonce_counter() -> u64 {
     NONCE_COUNTER.load(Ordering::SeqCst)
 }

@@ -33,8 +33,7 @@ fn the_first_draw_before_seeding_names_its_caller_once() {
     stand_in::sources(false, true, false);
     let (_, at) = (crypto::random_api::get_bytes(&mut buf), line!());
     let first = format!("[RNG] pre-seed draw by {}:{at}\n", file!());
-    let weak = "[RNG] fallback used: weak bytes (entropy unavailable)\n";
-    let want = if false { format!("{first}{weak}") } else { first };
+    let want = first;
     assert_eq!(said(), want);
     let _ = crypto::random_api::get_bytes(&mut buf);
     assert_eq!(said(), want, "each line is said once");

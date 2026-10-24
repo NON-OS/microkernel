@@ -33,7 +33,7 @@ impl AslrManager {
         if !self.stack_randomization {
             return Some(base_stack);
         }
-        Some((base_stack - self.random_offset(STACK_RANDOMIZATION_RANGE)?) & !0xFFF)
+        Some(base_stack.checked_sub(self.random_offset(STACK_RANDOMIZATION_RANGE)?)? & !0xFFF)
     }
     pub fn randomize_heap(&mut self, base_heap: u64) -> Option<u64> {
         if !self.heap_randomization {
