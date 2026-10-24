@@ -53,8 +53,8 @@ pub fn enable(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
 
 /// Tell the controller power is going (CC.SHN 01b) and wait, bounded by
 /// RTD3E as `shutdown_budget_ms` caps it, for CSTS.SHST to read complete.
-/// EN stays set: the caller resets afterwards, as a shut-down controller
-/// takes no further command (NVMe 2.0, 3.6.2).
+/// EN stays set: a shut-down controller takes no further command (NVMe 2.0,
+/// 3.6.2), and power goes before any would be sent.
 pub fn shut_down(regs: Regs, rtd3e_us: u32) -> NvmeResult<()> {
     // SAFETY: CC and CSTS lie in the register block's first 0x40 bytes,
     // inside the window bring-up mapped (ControllerInfo::read).

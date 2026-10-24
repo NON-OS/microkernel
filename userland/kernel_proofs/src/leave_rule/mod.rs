@@ -31,10 +31,25 @@ mod poll;
 mod rule;
 
 #[cfg(test)]
+mod test_clock;
+
+#[cfg(test)]
 mod tests;
 
 #[cfg(test)]
+mod together_tests;
+
+#[cfg(test)]
 mod order_tests;
+
+#[cfg(test)]
+mod gone_tests;
+
+#[cfg(test)]
+mod leg_end_tests;
+
+#[cfg(test)]
+mod leg_rig;
 
 #[cfg(test)]
 mod leg_tests;
