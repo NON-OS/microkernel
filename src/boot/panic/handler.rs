@@ -32,10 +32,11 @@ fn serial_print(args: core::fmt::Arguments<'_>) {
     let _ = SerialWriter.write_fmt(args);
 }
 
-// Panic path: serial trace, VGA banner, broadcast a panic IPI to
-// every other online CPU so they halt before they can corrupt
-// shared state, wipe what can be wiped without a lock (the heap and
-// the RAM log, `zerostate::panic_wipe`), then halt the calling CPU. The receiving side is
+// Panic path: serial trace, VGA banner, stop every other online CPU
+// and wait for each to say it halted, then wipe what can be wiped
+// without a lock and power off (`zerostate::panic_wipe_and_off`, which
+// says the order). Nothing is printed once the wipe begins, so the
+// halt line below is the last. The receiving side is
 // the IPI vector itself (`smp::ipi_dispatch::handlers::panic`),
 // which halts without returning; on a single-CPU runtime the
 // broadcast targets nobody and the local halt is the whole story.
@@ -61,6 +62,10 @@ fn panic(info: &PanicInfo) -> ! {
     }
 
     crate::smp::send_panic_ipi();
-    crate::security::zerostate::panic_wipe();
-    crate::arch::halt_loop()
+    if crate::smp::others_halted() {
+        serial_print(format_args!("[ZEROSTATE] panic: cpus halted, wiping, powering off\n"));
+    } else {
+        serial_print(format_args!("[ZEROSTATE] panic: a cpu did not halt; wiping, powering off\n"));
+    }
+    crate::security::zerostate::panic_wipe_and_off()
 }
