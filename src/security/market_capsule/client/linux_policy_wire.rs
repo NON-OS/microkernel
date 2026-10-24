@@ -19,14 +19,15 @@
 //! does not link another's crate. market_proofs includes this file and
 //! holds it to market_proto's writer (abi_v3/linux_policy_kernel.rs).
 //!
-//! Body: version 1 | kind (0 none, 1 policy, 2 refused) | for kind 1 only,
-//! policy[256] | listing_key[32] | release_key[32]. Anything else is None.
+//! Body: version 2 | kind (0 none, 1 policy, 2 refused) | package_hash[32]
+//! of the release answered for | for kind 1 only, policy[256] |
+//! listing_key[32] | release_key[32]. Anything else is None.
 
 extern crate alloc;
 
 use alloc::boxed::Box;
 
-pub(crate) const VERSION: u8 = 1;
+pub(crate) const VERSION: u8 = 2;
 pub(crate) const MARKET_ARG_LEN: usize = 320;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -39,14 +40,29 @@ pub(crate) enum LinuxPolicyReply {
     Refused,
 }
 
-pub(crate) fn parse(body: &[u8]) -> Option<LinuxPolicyReply> {
-    match body {
-        [VERSION, 0] => Some(LinuxPolicyReply::NoPolicy),
-        [VERSION, 2] => Some(LinuxPolicyReply::Refused),
-        [VERSION, 1, rest @ ..] => {
-            let m: [u8; MARKET_ARG_LEN] = rest.try_into().ok()?;
-            Some(LinuxPolicyReply::Policy(Box::new(m)))
+/// The answer, and the package hash of the release it was made from.
+pub(crate) fn parse(body: &[u8]) -> Option<(LinuxPolicyReply, [u8; 32])> {
+    let [VERSION, kind, rest @ ..] = body else { return None };
+    let (hash, rest) = rest.split_first_chunk::<32>()?;
+    let reply = match (*kind, rest) {
+        (0, []) => LinuxPolicyReply::NoPolicy,
+        (2, []) => LinuxPolicyReply::Refused,
+        (1, m) => {
+            let m: [u8; MARKET_ARG_LEN] = m.try_into().ok()?;
+            LinuxPolicyReply::Policy(Box::new(m))
         }
-        _ => None,
-    }
+        _ => return None,
+    };
+    Some((reply, *hash))
+}
+
+/// The answer, if it was made from the release init holds the pin of; None
+/// when the market answered for another, as when the index was replaced
+/// between init's asks.
+pub(crate) fn held_to(
+    answer: (LinuxPolicyReply, [u8; 32]),
+    pin: &[u8; 32],
+) -> Option<LinuxPolicyReply> {
+    let (reply, hash) = answer;
+    (hash == *pin).then_some(reply)
 }
