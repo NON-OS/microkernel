@@ -43,7 +43,10 @@ GO means all of these were true when the command ran:
    following a link.
 3. **The kernel that boots is signed.** The kernel carries the release
    signature the loader checks, and both halves of it, Ed25519 and
-   ML-DSA-65, verify under the kernel public keys in the tree. The bytes
+   ML-DSA-65, verify under the kernel public keys in the tree, read as the
+   seal writes them: `kernel_signing_ed25519.pub` is the raw 32-byte key (the
+   loader's build takes its last 32 bytes), and `kernel_mldsa65.pub` is a
+   nonos-sign NONOSPK1 file. The bytes
    verified are the bytes the record seals as `kernel`. The ESP's
    `kernel.bin` is those same bytes. The rollback index is the one the record
    names, and a record that names none fails. The NONOSIMG footer is exactly
@@ -249,9 +252,9 @@ number. It is never changed silently.
 | `verdict` | the one line: `GO` or `GO (development image, not a release)`, followed by `, N declared limit(s)` when checks carry limits; or `NO-GO: …` |
 | `kind` | `"release"`, `"development"` or `"unknown"` |
 | `limits` | how many limits the checks carry, in all |
-| `release` | the release directory as given |
+| `release` | the release directory, as an absolute path |
 | `record_sha256` | the SHA-256 of `nonos-release.json`, or `null` if it was not read |
-| `tree` | the tree checked against, or `null` |
+| `tree` | the tree checked against, as an absolute path, or `null` |
 | `tree_head` | the tree's HEAD commit, or `null` |
 | `signer` | the operator's Ed25519 public key in hex when the verdict is signed, else `null` |
 | `scope` | what the verdict covers (host checks only; nothing booted) |
@@ -280,8 +283,9 @@ nonos-harden verify-signature --verdict verdict.json --signature verdict.json.si
 - **Refused keys.** The key is refused if it lies under `nonos-data/` or
   `nonos-bootloader/keys/`, or in the `.keys/` directory of a NONOS checkout.
   Links are followed first. It is also refused if its public key is any
-  Ed25519 key published in the tree's `nonos-data/trust/keys/`. Each
-  published key file is read bounded and without following a link.
+  Ed25519 key published in the tree's `nonos-data/trust/keys/`, whether in a
+  NONOSPK1 file or raw, as the kernel key is kept. Each published key file is
+  read bounded and without following a link.
 - **The signature file.** The signature (64 bytes, hex) is written to
   `FILE.sig` and covers the exact bytes of `FILE`. The verdict names the
   signer.
@@ -360,7 +364,7 @@ They are in the tree's test lanes.
 
 ### Mutant results
 
-`python3 nonos-harden/mutants.py` was run on the crate as it lands. All 52 mutants are caught, and none escaped.
+`python3 nonos-harden/mutants.py` was run on the crate as it lands. All 55 mutants are caught, and none escaped.
 
 | mutant | file | caught by |
 |---|---|---|
@@ -416,3 +420,6 @@ They are in the tree's test lanes.
 | `read-follows-a-final-link` | `src/release/read.rs` | `fs_tests::a_fifo_a_link_or_an_oversized_file_is_refused_at_once` |
 | `runner-kills-only-the-child` | `src/tree/system.rs` | `runner_group_tests::a_process_the_verifier_started_is_stopped_with_it` |
 | `runner-builds-in-the-trees-target` | `src/tree/system.rs` | `runner_group_tests::cargo_and_python_write_into_the_runs_own_space` |
+| `choose-keeps-a-relative-tree` | `src/tree/mod.rs` | `boot_gate_tests::a_relative_release_and_tree_reach_every_verifier_as_absolute_paths` |
+| `kernel-ed-key-any-length` | `src/release/kernel_key_files.rs` | `kernel_key_tests::a_key_file_of_the_wrong_kind_is_refused` |
+| `refusal-misses-the-raw-kernel-key` | `src/sign/refuse.rs` | `boot_gate_tests::the_raw_kernel_key_cannot_sign_a_verdict` |

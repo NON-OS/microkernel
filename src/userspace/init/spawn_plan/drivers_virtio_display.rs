@@ -17,6 +17,7 @@
 pub(super) fn spawn() {
     spawn_gpu();
     spawn_bga();
+    super::drivers_native_display::spawn();
     spawn_net();
 }
 
