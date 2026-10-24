@@ -18,7 +18,7 @@
 //! script may act on it without reading the verdict. These values do not
 //! change within verdict format 1.
 
-/// Every check ran and passed.
+/// Every check ran and passed, over a release.
 pub const GO: u8 = 0;
 /// At least one check failed or could not run.
 pub const NO_GO: u8 = 1;
@@ -28,3 +28,6 @@ pub const USAGE: u8 = 2;
 pub const NOT_DELIVERED: u8 = 3;
 /// `verify-signature`: the signature does not verify, or could not be checked.
 pub const SIGNATURE_BAD: u8 = 4;
+/// Every check ran and passed, over a development image: GO, but never a
+/// release, so a script acting on the status alone cannot deploy it as one.
+pub const DEV_GO: u8 = 5;
