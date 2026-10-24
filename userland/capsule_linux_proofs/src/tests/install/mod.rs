@@ -37,6 +37,7 @@ mod index_tests;
 mod inflate_bound_tests;
 mod install_refusals_tests;
 mod kali_anchor_tests;
+mod listed_find_tests;
 mod listing_family_tests;
 mod manifest_tests;
 mod market_tests;
