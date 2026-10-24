@@ -20,7 +20,7 @@ use super::{decide, Verdict, FORMAT, SCOPE};
 use crate::check::Check;
 use crate::ctx::Ctx;
 
-pub fn build(ctx: &Ctx, checks: Vec<Check>) -> Verdict {
+pub fn build(ctx: &Ctx, checks: Vec<Check>, signer: Option<String>) -> Verdict {
     let (overall, verdict) = decide(ctx.kind, &checks);
     let tool = format!("nonos-harden {}", env!("CARGO_PKG_VERSION"));
     let release = ctx.release.display().to_string();
@@ -37,6 +37,7 @@ pub fn build(ctx: &Ctx, checks: Vec<Check>) -> Verdict {
         record_sha256,
         tree,
         tree_head,
+        signer,
         scope,
         checks,
     }
