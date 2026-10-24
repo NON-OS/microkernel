@@ -39,6 +39,7 @@ pub fn kind(kind: u64, domain: Domain) -> Result<(Proto, u64), u64> {
         (SOCK_STREAM, Domain::Inet) => Ok((Proto::Stream, IPPROTO_TCP)),
         (SOCK_DGRAM, Domain::Inet) => Ok((Proto::Dgram, IPPROTO_UDP)),
         (SOCK_RAW, Domain::Inet) => {
+            crate::linux::boxed::note(crate::linux::boxed::Kind::Network, b"SOCK_RAW");
             Err(refuse("SOCK_RAW: raw sockets reach below any confinement", errno::EPERM))
         }
         (SOCK_STREAM, Domain::Unix) => Ok((Proto::Stream, PF_UNIX)),
