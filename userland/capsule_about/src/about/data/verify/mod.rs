@@ -33,6 +33,7 @@
 
 mod attested;
 mod boot;
+pub mod held_by;
 mod loader;
 mod names;
 mod own_mask;
