@@ -61,8 +61,8 @@ impl QuantumKeyVault {
     }
 
     pub fn rotate_key(&self, key_id: &[u8; 32], reason: &str) -> Option<Arc<QuantumKey>> {
-        let keys = self.keys.lock();
-        let old_key = keys.get(key_id)?.clone();
+        // Released before `generate_key`, which takes the same lock again.
+        let old_key = self.keys.lock().get(key_id)?.clone();
         let new_key =
             self.generate_key(old_key.algo.clone(), old_key.expires_at - old_key.created_at)?;
         self.rotations.lock().push(QuantumKeyRotation {

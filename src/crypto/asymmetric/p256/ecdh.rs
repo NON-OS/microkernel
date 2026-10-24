@@ -20,26 +20,15 @@
 //! P-256 scalar multiplication from `point::ProjectivePoint::mul`.
 
 use super::{AffinePoint, PublicKey, Scalar, SecretKey};
+use crate::crypto::error::CryptoResult;
 
 /// Generate an ephemeral P-256 keypair for ECDH.
 ///
-/// Returns `(secret_key [32 bytes], public_key [65 bytes uncompressed])`.
-/// The public key format is `0x04 || x || y` as required by TLS key_share.
-pub fn p256_ecdh_keypair() -> (SecretKey, PublicKey) {
-    let mut sk = [0u8; 32];
-    crate::crypto::rng::fill_random_bytes(&mut sk);
-
-    loop {
-        if let Some(scalar) = Scalar::from_bytes(&sk) {
-            if !scalar.is_zero() {
-                let point = AffinePoint::generator().to_projective().mul(&scalar).to_affine();
-                if !point.infinity {
-                    return (sk, point.to_uncompressed());
-                }
-            }
-        }
-        crate::crypto::rng::fill_random_bytes(&mut sk);
-    }
+/// Returns `(secret_key [32 bytes], public_key [65 bytes uncompressed])`,
+/// or an error when the RNG cannot answer. The public key format is
+/// `0x04 || x || y` as required by TLS key_share.
+pub fn p256_ecdh_keypair() -> CryptoResult<(SecretKey, PublicKey)> {
+    super::keygen::generate_keypair()
 }
 
 /// Perform P-256 ECDH: compute shared secret from our secret key and peer's

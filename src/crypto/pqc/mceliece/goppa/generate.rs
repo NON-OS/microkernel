@@ -22,41 +22,43 @@ use crate::crypto::rng;
 use alloc::vec;
 use alloc::vec::Vec;
 
-pub(crate) fn generate_goppa_polynomial() -> Vec<u16> {
+// Each draws from the seeded RNG only and refuses before it is seeded: the
+// polynomial, the support and the permutation are all secret.
+pub(crate) fn generate_goppa_polynomial() -> Result<Vec<u16>, &'static str> {
     loop {
         let mut poly = vec![0u16; MCELIECE_T + 1];
 
         for coeff in &mut poly[..MCELIECE_T] {
-            let r = rng::random_u32();
+            let r = rng::random_u32_secure().map_err(|_| "no randomness")?;
             *coeff = (r as u16) & ((1 << MCELIECE_M) - 1);
         }
         poly[MCELIECE_T] = 1;
 
         if is_likely_irreducible(&poly) {
-            return poly;
+            return Ok(poly);
         }
     }
 }
 
-pub(crate) fn generate_support() -> Vec<u16> {
+pub(crate) fn generate_support() -> Result<Vec<u16>, &'static str> {
     let mut support: Vec<u16> = (0..FIELD_SIZE as u16).collect();
 
     for i in (1..FIELD_SIZE).rev() {
-        let j = rng::random_range((i + 1) as u32) as usize;
+        let j = rng::random_range_secure((i + 1) as u32).map_err(|_| "no randomness")? as usize;
         support.swap(i, j);
     }
 
     support.truncate(MCELIECE_N);
-    support
+    Ok(support)
 }
 
-pub(crate) fn generate_permutation() -> Vec<u16> {
+pub(crate) fn generate_permutation() -> Result<Vec<u16>, &'static str> {
     let mut perm: Vec<u16> = (0..MCELIECE_N as u16).collect();
 
     for i in (1..MCELIECE_N).rev() {
-        let j = rng::random_range((i + 1) as u32) as usize;
+        let j = rng::random_range_secure((i + 1) as u32).map_err(|_| "no randomness")? as usize;
         perm.swap(i, j);
     }
 
-    perm
+    Ok(perm)
 }

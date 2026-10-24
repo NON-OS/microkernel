@@ -21,13 +21,13 @@ use super::goppa::{
 use super::{McElieceKeyPair, McEliecePublicKey, McElieceSecretKey};
 
 pub fn mceliece_keygen() -> Result<McElieceKeyPair, &'static str> {
-    let goppa = generate_goppa_polynomial();
+    let goppa = generate_goppa_polynomial()?;
 
     if !is_irreducible(&goppa) {
         return Err("Generated polynomial is not irreducible");
     }
 
-    let support = generate_support();
+    let support = generate_support()?;
 
     let gcd_degree =
         polynomial_gcd(&goppa, &support.iter().map(|&x| x).collect::<alloc::vec::Vec<_>>());
@@ -35,7 +35,7 @@ pub fn mceliece_keygen() -> Result<McElieceKeyPair, &'static str> {
         return Err("Polynomial and support are not coprime");
     }
 
-    let permutation = generate_permutation();
+    let permutation = generate_permutation()?;
     let h = compute_parity_check_matrix(&goppa, &support);
     let t_matrix = to_systematic_form(&h).ok_or("Failed to compute systematic form")?;
 
