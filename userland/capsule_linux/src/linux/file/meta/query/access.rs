@@ -66,5 +66,5 @@ fn writable(guest: &Guest, dirfd: u64, path_ptr: u64) -> bool {
         /* A device ignores its mount's read-only flag; nothing else there is writable. */
         return dev::at(&full).is_some();
     }
-    cache::held(&full) || resolve::key(&full).writable().is_ok()
+    cache::held(&full) || resolve::key(&full).may_write().is_ok()
 }
