@@ -16,8 +16,10 @@ The cryptography of nsh/1, as specified in
   32 bytes `HOST_PROOF`'s document must carry, and `key_digest`.
 - **Sealed frames.** `Sealer` and `Opener` keep one count per direction,
   with the length field as associated data. They stop at 2^32 frames or
-  2^32 bytes. An `Opener` that has refused one frame refuses every frame
-  after it.
+  2^32 bytes. A spent direction cannot seal even an `ABORT`, so the session
+  then closes without a frame. An `Opener` that refuses one frame, for any
+  reason but a short buffer of the caller's, refuses every frame after
+  it.
 
 Every primitive is one the tree already carries:
 
@@ -26,7 +28,10 @@ Every primitive is one the tree already carries:
 - ChaCha20-Poly1305 comes from `nonos_seal`.
 
 The crate is `no_std` and reads no entropy of its own: every random byte
-is the caller's. It builds for `x86_64-nonos-user` and for the host.
+is the caller's. Secrets the crate makes are moved in with `Secret::take`,
+which wipes the copy they came from. Copies inside the X-Wing crate are
+that crate's to wipe, and the client seed in particular is handed over
+by value. It builds for `x86_64-nonos-user` and for the host.
 Signing is not here; the hybrid signatures come from `nonos_ed25519` and
 `nonos-mldsa65`.
 
