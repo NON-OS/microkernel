@@ -41,6 +41,8 @@ pub mod dma_memory_type;
 pub mod dma_placement;
 #[path = "dma_pool_bitmap/mod.rs"]
 pub mod dma_pool_bitmap;
+#[path = "boot_fb/mod.rs"]
+mod boot_fb;
 #[path = "dma_surface/mod.rs"]
 mod dma_surface;
 #[path = "dma_sync_lines/mod.rs"]
