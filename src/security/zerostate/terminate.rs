@@ -22,6 +22,9 @@ use crate::security::hardening::zerostate_shutdown_wipe;
 ///
 /// The order is the whole point and it is not negotiable:
 ///
+/// 0. Leave: the disks flushed and their controllers told power is going,
+///    each bounded and all within 15 s (leave.rs). The capsules that do it
+///    must still run, so this comes before anything stops.
 /// 1. Stop the other CPUs. A core still scheduling writes memory behind the
 ///    wipe, and whatever it writes survives into the next boot. Quiescing
 ///    first is what makes the wipe a snapshot rather than a race.
@@ -33,6 +36,7 @@ use crate::security::hardening::zerostate_shutdown_wipe;
 /// is to wipe what this core can reach rather than to stay up holding
 /// everything. A refusal costs coverage; refusing to shut down costs the lot.
 pub(crate) fn terminate(off: PowerOff) -> ! {
+    super::leave::run();
     let _ = broadcast_ipi(Ipi::Stop);
     zerostate_shutdown_wipe();
     enter(off)
