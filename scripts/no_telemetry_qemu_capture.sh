@@ -14,55 +14,81 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Boot an image with its network captured, then judge every frame the guest
+# sent with tools/nonos-pcap-egress: no DNS, NTP or discovery packet, no
+# IPv6, no burned-in MAC, no DHCP option that names the machine, and no TLS
+# server name or HTTP host but the anonymity networks' pinned bootstrap.
+#
+# A networked boot of this design is not silent: DHCP, and the Nym and Anyone
+# clients reaching their directories, go out on every boot. The earlier form
+# of this check passed only on an empty capture, so it could pass only on a
+# boot whose network never came up.
+#
+#   NONOS_NO_TELEMETRY_IMAGE    a sealed nonos.img to boot headless through
+#                               tools/nonos-qemu (development images included)
+#   NONOS_NO_TELEMETRY_BOOT_CMD a boot command of your own, which must write
+#                               the capture to $NONOS_NO_TELEMETRY_PCAP
+#   NONOS_NO_TELEMETRY_TIMEOUT  seconds the boot runs (default 180)
+#
+# Exit 0 pass, 1 a leak (the report names it), 2 no capture to judge.
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT"
 
 out=${NONOS_NO_TELEMETRY_OUT:-target/no-telemetry}
-timeout_secs=${NONOS_NO_TELEMETRY_TIMEOUT:-120}
+timeout_secs=${NONOS_NO_TELEMETRY_TIMEOUT:-180}
 pcap=${NONOS_NO_TELEMETRY_PCAP:-$out/qemu-net.pcap}
 report=$out/report.json
+image=${NONOS_NO_TELEMETRY_IMAGE:-}
 boot_cmd=${NONOS_NO_TELEMETRY_BOOT_CMD:-}
 
 mkdir -p "$out" "$(dirname "$pcap")"
-rm -f "$pcap"
+rm -f "$pcap" "$report"
 
+if [ -z "$boot_cmd" ] && [ -n "$image" ]; then
+  boot_cmd="python3 tools/nonos-qemu --image '$image' --fresh --headless --serial '$out/serial.log' --timeout $timeout_secs --capture '$pcap'"
+fi
 if [ -z "$boot_cmd" ]; then
   boot_cmd="make QEMU_NET_CAPTURE=$pcap nonos-mk-run-serial-net"
 fi
 
 set +e
 if command -v timeout >/dev/null 2>&1; then
-  timeout "$timeout_secs" sh -c "$boot_cmd"
+  timeout "$((timeout_secs + 60))" sh -c "$boot_cmd"
 elif command -v gtimeout >/dev/null 2>&1; then
-  gtimeout "$timeout_secs" sh -c "$boot_cmd"
+  gtimeout "$((timeout_secs + 60))" sh -c "$boot_cmd"
 else
-  perl -e 'alarm shift; exec @ARGV or die "exec failed: $!"' "$timeout_secs" sh -c "$boot_cmd"
+  perl -e 'alarm shift; exec @ARGV or die "exec failed: $!"' "$((timeout_secs + 60))" sh -c "$boot_cmd"
 fi
 rc=$?
 set -e
 
-if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ] && [ "$rc" -ne 142 ]; then
-  printf '{"status":"gap","reason":"boot command failed","exit":%s,"pcap":"%s"}\n' "$rc" "$pcap" > "$report"
-  printf '%s\n' "no-telemetry capture: GAP boot command failed"
+if [ ! -s "$pcap" ]; then
+  printf '{"status":"gap","reason":"no capture","exit":%s,"pcap":"%s"}\n' "$rc" "$pcap" > "$report"
+  printf '%s\n' "no-telemetry capture: GAP no capture written (boot exit $rc)"
   exit 2
 fi
 
-if [ ! -f "$pcap" ]; then
-  printf '{"status":"gap","reason":"pcap not produced","pcap":"%s"}\n' "$pcap" > "$report"
-  printf '%s\n' "no-telemetry capture: GAP pcap not produced"
-  exit 2
-fi
+# The names the anonymity networks may be reached by in the clear: the
+# bootstrap hosts their capsules pin by address and check by certificate.
+names=$(sed -n 's/.*("\([a-z0-9.-]*\)", \[[0-9, ]*\]).*/\1/p' userland/capsule_net_nym/src/directory_sync/pinned.rs)
+# The addresses they are pinned at: Nym's directory API and Anyone's
+# directory authorities, each asked before there is a network to ask through.
+ips=$(cat userland/capsule_net_nym/src/directory_sync/live.rs userland/capsule_net_anon/src/directory/authority/list.rs \
+  | sed -n 's/.*\[\([0-9]\{1,3\}\), \([0-9]\{1,3\}\), \([0-9]\{1,3\}\), \([0-9]\{1,3\}\)\].*/\1.\2.\3.\4/p' | sort -u)
+set --
+for n in $names; do set -- "$@" --allow-name "$n"; done
+for ip in $ips; do set -- "$@" --allow "$ip"; done
 
-bytes=$(wc -c < "$pcap" | tr -d ' ')
-
-if [ "$bytes" -le 24 ]; then
-  printf '{"status":"pass","pcap":"%s","bytes":%s}\n' "$pcap" "$bytes" > "$report"
-  printf '%s\n' "no-telemetry capture: PASS no packets captured"
-  exit 0
-fi
-
-printf '{"status":"fail","pcap":"%s","bytes":%s}\n' "$pcap" "$bytes" > "$report"
-printf 'no-telemetry capture: FAIL captured %s bytes; review %s\n' "$bytes" "$pcap"
-exit 1
+set +e
+python3 tools/nonos-pcap-egress "$pcap" --json "$report" "$@"
+verdict=$?
+set -e
+case $verdict in
+  0) printf '%s\n' "no-telemetry capture: PASS (report $report)" ;;
+  1) printf '%s\n' "no-telemetry capture: FAIL (report $report)" ;;
+  *) printf '%s\n' "no-telemetry capture: GAP the capture could not be read"; exit 2 ;;
+esac
+exit "$verdict"
