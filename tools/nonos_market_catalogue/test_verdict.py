@@ -27,7 +27,7 @@ from unittest import mock
 
 from . import verdict
 
-SET = "00" * 7 + "10" + "00" * 57  # bucket 60 only; exit_group is added
+SET = "02" + "00" * 64  # bucket 1 only; exit and exit_group are always added
 OTHER = "01" + "00" * 64
 OK = b"[LINUX-INSTALL] started, in its release's box linux.age\n[PROVE] syscall buckets ok=" + SET.encode()
 
@@ -56,7 +56,8 @@ class Verdict(unittest.TestCase):
                 self.assertEqual(verdict.main(argv), 1)
             apps = {a["package"]: a for a in json.loads(recipes.read_text())["apps"]}
             calls = bytes.fromhex(apps["age"]["calls"])
-            self.assertEqual((calls[0] & 1, calls[7] >> 4 & 1, calls[28] >> 7 & 1), (1, 1, 1))
+            one_run = (calls[0] & 1, calls[0] >> 1 & 1)  # bucket 0 from a2, bucket 1 from a1
+            self.assertEqual(one_run + (calls[7] >> 4 & 1, calls[28] >> 7 & 1), (1, 1, 1, 1))
             self.assertNotIn("calls", apps["git"])
 
     def test_no_pairs_is_usage(self):

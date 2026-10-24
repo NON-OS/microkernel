@@ -26,8 +26,8 @@ from .digest import blake3
 from .names import index_record
 from .records import entry, release
 
-# Until I-C5 the program runs in the owner's default box: the note says so.
-NOTE = "fetched and hashed at {} bytes; licence {}; its box applies from I-C5"
+# I-C5: the install role installs it only in the box this release names.
+NOTE = "fetched and hashed at {} bytes; licence {}; installs only in this release's box"
 
 
 def guest_policy(recipe: dict, program: bytes, publisher: bytes, app: str, rel: str) -> bytes:

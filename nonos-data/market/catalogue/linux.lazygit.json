@@ -49,7 +49,7 @@
           },
           "validation": {
             "status": "validated",
-            "note": "fetched and hashed at 6733105 bytes; licence MIT; its box applies from I-C5",
+            "note": "fetched and hashed at 6733105 bytes; licence MIT; installs only in this release's box",
             "validator_id": "nonos.operator.linux",
             "validated_at_ms": 1792844669000
           }
