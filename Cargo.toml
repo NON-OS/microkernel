@@ -168,6 +168,7 @@ nonos-capsule-driver-e1000      = []
 nonos-capsule-driver-igb        = []
 nonos-capsule-driver-ixgbe      = []
 nonos-capsule-driver-e1000e     = []
+nonos-capsule-driver-igc        = []
 nonos-capsule-driver-i2c-pci    = []
 nonos-capsule-driver-gpio       = []
 nonos-capsule-driver-i2c-hid    = []
@@ -477,6 +478,13 @@ microkernel-driver-e1000e = [
   "nonos-production",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-e1000e",
+]
+
+microkernel-driver-igc = [
+  "microkernel-core",
+  "nonos-production",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-driver-igc",
 ]
 
 microkernel-driver-ixgbe = [
