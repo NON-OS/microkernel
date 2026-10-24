@@ -16,6 +16,7 @@
 
 use super::error::{AcpiError, AcpiResult};
 use super::hw::port_bus::{busy_wait_us, PortBus};
+use super::hw::fadt_decode::FadtInfo;
 use super::hw::sleep::{enter_sleep, SleepError, SleepTypes};
 use super::parser;
 use super::aml::sleep_obj::SleepPackage;
@@ -50,19 +51,37 @@ fn wbinvd() {
 /// afterwards. As ACPICA does for S4/S5, the enable write is repeated once
 /// after a wait, for chipsets that miss the first.
 pub fn shutdown() -> AcpiResult<()> {
+    shutdown_prepared(&prepare_shutdown()?)
+}
+
+/// What S5 needs, read ahead: the decoded FADT and the SLP_TYP pair. The
+/// panic path reads it before it wipes the heap, so the entry after the wipe
+/// takes no lock and reads nothing the wipe may have cleared.
+#[derive(Clone, Copy)]
+pub struct PreparedOff {
+    fadt: FadtInfo,
+    types: SleepTypes,
+}
+
+/// Read what S5 needs. Takes the ACPI tables' read lock, written only at init.
+pub fn prepare_shutdown() -> AcpiResult<PreparedOff> {
     let pair = |p: Option<SleepPackage>| p.map(|p| (p.slp_typ_a, p.slp_typ_b));
     let read = |d: &super::data::AcpiData| (d.fadt, pair(d.s5), pair(d.s5_interp));
     let (fadt, scan, interp) = parser::with_data(read).ok_or(AcpiError::NotInitialized)?;
     let fadt = fadt.ok_or(AcpiError::FadtNotFound)?;
     let ((a, b), _) = choose(scan, interp).ok_or(AcpiError::PowerStateNotSupported)?;
-    let types = SleepTypes { a, b };
+    Ok(PreparedOff { fadt, types: SleepTypes { a, b } })
+}
 
+/// Enter S5 from what `prepare_shutdown` read: port writes and a wait,
+/// no lock, no allocation and no log.
+pub fn shutdown_prepared(off: &PreparedOff) -> AcpiResult<()> {
     // Nothing past this point expects to be interrupted.
     crate::arch::x86_64::interrupt::cli();
 
     let mut bus = PortBus;
     for _ in 0..2 {
-        match enter_sleep(&mut bus, &fadt, types, wbinvd) {
+        match enter_sleep(&mut bus, &off.fadt, off.types, wbinvd) {
             Ok(()) => {}
             Err(SleepError::NoControlRegister) => return Err(AcpiError::PowerStateNotSupported),
             Err(SleepError::WriteFailed) => return Err(AcpiError::HardwareAccessFailed),

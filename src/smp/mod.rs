@@ -57,7 +57,7 @@ pub use types::*;
 pub use ap::*;
 pub use init::*;
 pub use ipi_handler::*;
-pub use panic_ipi::send_panic_ipi;
+pub use panic_ipi::{others_halted, send_panic_ipi};
 pub use preempt::*;
 pub use register_secondary::register_secondary;
 pub use responsive::lock_responsive;
