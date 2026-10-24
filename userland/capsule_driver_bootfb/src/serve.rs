@@ -43,7 +43,7 @@ pub fn run(server: &mut Server<BootFb, Pool>) -> ! {
             let _ = server.owner.map(|pid| mk_ipc_send_to_pid(pid, n.as_ptr(), n.len()));
         }
         let now = mk_uptime_ms().max(0) as u64;
-        server.watch(now);
+        server.watch_said(now, |l| _ = nonos_libc::mk_debug(l.as_ptr(), l.len()));
         if !recv_ready(n) || sender == 0 {
             continue;
         }
