@@ -5,7 +5,7 @@
 # What stays in its own workflow, because it needs a network or a toolchain no
 # lock can pin yet: Kani (cargo kani setup downloads CBMC), Verus, the
 # Charon/Aeneas extraction, cargo-fuzz runs and cargo-audit's advisory feed.
-{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox }:
+{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox, periodic }:
 let
   # The static and drift checks read the tree as a reviewer does, docs and
   # all; every cargo check reads only its own crate (tools/nix/inputs.py).
@@ -28,6 +28,11 @@ let
   needsTpm = [ "userland/tpm_enroll_proofs" "userland/tpm_key_proofs" ];
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
+
+  # The proof crates handed the periodic cache nonos.shield ships, by
+  # NONOS_PERIODIC_CACHE, as capsules.nix hands it to the capsule. A test that
+  # finds it missing says so, and the check fails on that line.
+  needsPeriodic = [ "userland/shield_vectors_proofs" ];
 
   # A shell repository of the tree, so the checks that ask git which files are
   # tracked get a real answer instead of an empty list.
@@ -72,6 +77,7 @@ let
     dir:
     let
       tpm = builtins.elem dir needsTpm;
+      cache = builtins.elem dir needsPeriodic;
     in
     rustBuild {
       name = "proofs-${builtins.baseNameOf dir}";
@@ -85,11 +91,17 @@ let
       # timestamp wrapped the clock that way, with its proof green.
       script = ''
         export RUST_TEST_THREADS=1
+        ${lib.optionalString cache "export NONOS_PERIODIC_CACHE=${periodic}/periodic.top"}
         cd ${dir}
         cargo test --frozen --release --config profile.release.overflow-checks=true ${testArgs dir} 2>&1 | tee $TMPDIR/test.log
         ${lib.optionalString tpm ''
           if grep -E "live test skipped|certificate test skipped|live derivation not exercised" $TMPDIR/test.log; then
             echo "a live TPM test was skipped" >&2; exit 1
+          fi
+        ''}
+        ${lib.optionalString cache ''
+          if grep "real cache test skipped" $TMPDIR/test.log; then
+            echo "a real periodic cache test was skipped" >&2; exit 1
           fi
         ''}
         ${clippy dir}
@@ -229,6 +241,9 @@ let
       "scripts/check_blk_wire.py --self-test" "scripts/check_blk_wire.py"
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
+      "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
+      "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
+      "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
@@ -300,6 +315,34 @@ let
       done
       touch $out
     '';
+    # nonos-shield-prove, the prover nonos.shield proves with, reproduces
+    # those four vectors byte for byte and verifies them, at the STARKs
+    # commit flake.lock pins. Four proofs of minutes each, so its own check,
+    # not the proof lane.
+    shield-prove-vectors = cargoCheck {
+      name = "shield-prove-vectors";
+      dir = "nonos-shield-prove";
+      script = ''
+        export STARKS_SPEC=${starks}/spec
+        cd nonos-shield-prove
+        cargo test --frozen --release --features parallel -- --include-ignored
+      '';
+    };
+    # Test 5 on the host: shield_vectors_proofs' binary proves the four wallet
+    # vectors with capsule_shield_vectors' own modules, transfer-eth from
+    # nothing (the tree it builds held to the shipped cache) and the other
+    # three from the shipped cache, each held to the pinned bytes. About four
+    # minutes, so its own check: the proof lane's cargo test never runs the
+    # binary.
+    shield-vectors-prove = cargoCheck {
+      name = "shield-vectors-prove";
+      dir = "userland/shield_vectors_proofs";
+      script = ''
+        export NONOS_PERIODIC_CACHE=${periodic}/periodic.top
+        cd userland/shield_vectors_proofs
+        cargo run --frozen --release
+      '';
+    };
     # The committed BusyBox, which make embeds, is the one the flake builds
     # from source. Linux only, as CI checks it; a Mac builds its own anyway.
     busybox-source = pkgs.runCommand "busybox-source" { } (if pkgs.stdenv.hostPlatform.isLinux then ''

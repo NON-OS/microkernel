@@ -8,6 +8,10 @@
 //! stdin, Ctrl-C to end it, and its own exit status. Adding a tool is one line
 //! in `TOOLS`.
 
+#[path = "tool_argv.rs"]
+mod tool_argv;
+#[path = "tool_box.rs"]
+mod tool_box;
 #[path = "tool_spawn.rs"]
 mod tool_spawn;
 
