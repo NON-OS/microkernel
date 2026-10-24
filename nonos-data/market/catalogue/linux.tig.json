@@ -1,8 +1,8 @@
 {
   "schema_version": 3,
   "operator_id": "nonos.marketplace.v1",
-  "published_at_ms": 1792843547000,
-  "serial": 1792843547,
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
   "entries": [
     {
       "listing_id": "linux.tig",
@@ -49,9 +49,9 @@
           },
           "validation": {
             "status": "validated",
-            "note": "fetched and hashed at 199250 bytes; licence GPL-2.0-or-later",
+            "note": "fetched and hashed at 199250 bytes; licence GPL-2.0-or-later; its box applies from I-C5",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1792843547000
+            "validated_at_ms": 1792844669000
           }
         }
       ]
