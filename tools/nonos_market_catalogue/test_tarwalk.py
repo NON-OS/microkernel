@@ -59,6 +59,13 @@ class Walk(unittest.TestCase):
             data = rec(b"p", b"x", body) + rec(b"kept", b"0")
             self.assertEqual([e.name for e in walk(data)], [b"kept"], body)
 
+    def test_a_pax_length_reads_as_the_installer_reads_it(self):
+        record = b" path=renamed\n"
+        zeros = b"0" * 19 + str(21 + len(record)).encode() + record  # 21 digits, as Rust takes it
+        self.assertEqual([e.name for e in walk(rec(b"p", b"x", zeros) + rec(b"f", b"0"))], [b"renamed"])
+        huge = b"9" * 5000 + b" path=x\n"  # overflows a usize: the records end, nothing raises
+        self.assertEqual([e.name for e in walk(rec(b"p", b"x", huge) + rec(b"kept", b"0"))], [b"kept"])
+
     def test_only_regular_files_are_files(self):
         data = rec(b"f", b"0", b"1") + rec(b"s", b"2") + rec(b"h", b"1") + rec(b"c", b"7", b"2")
         self.assertEqual([e.name for e in files(data)], [b"f", b"c"])
