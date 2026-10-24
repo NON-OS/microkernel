@@ -45,7 +45,18 @@ pub fn connect(guest: &Guest, id: u32, to: Addr) -> u64 {
             true => "this destination",
             false => "NET_ANON",
         };
-        return crate::linux::app::refuse("an outbound stream", needs, errno::ENETUNREACH);
+        let [a, b, c, d] = to.ip;
+        let what = match host.as_deref() {
+            Some(name) => {
+                alloc::format!(
+                    "a stream to {}:{}",
+                    alloc::string::String::from_utf8_lossy(name),
+                    to.port
+                )
+            }
+            None => alloc::format!("a stream to {a}.{b}.{c}.{d}:{}", to.port),
+        };
+        return crate::linux::app::refuse(&what, needs, errno::ENETUNREACH);
     }
     if sock::with(|t| t.get(id).is_some_and(|s| s.connected || s.listening || s.svc.is_some())) {
         return errno::fail(errno::EISCONN);
