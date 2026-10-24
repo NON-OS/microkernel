@@ -23,6 +23,7 @@ pub(super) const SHELL: &[&[u8]] = &[
     b"bench",
     b"version",
     b"receipt",
+    b"audit",
     b"log",
     b"whoami",
     b"caps",

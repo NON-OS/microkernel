@@ -45,6 +45,8 @@ const REFUSED: &[(u64, i64, &str)] = &[
 /// The errno for a call refused on purpose, after saying why; None otherwise.
 pub fn refused(number: u64) -> Option<u64> {
     let (_, code, why) = REFUSED.iter().find(|(nr, _, _)| *nr == number)?;
+    let name = why.split(':').next().unwrap_or(why);
+    crate::linux::boxed::note(crate::linux::boxed::Kind::Barred, name.as_bytes());
     let line = alloc::format!("[LINUX] refused {why}\n");
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     Some(errno::fail(*code))
