@@ -36,12 +36,12 @@ pub(crate) fn submit(port: u32, rid: u32, handle: u64, w: u32, h: u32) -> Result
     call_status(port, &tx)
 }
 
-pub(crate) fn damage(port: u32, rid: u32, w: u32, h: u32) -> Result<(), i32> {
+/// Damage the rectangle `(x, y, w, h)` of the splash's layer.
+pub(crate) fn damage(port: u32, rid: u32, (x, y, w, h): (u32, u32, u32, u32)) -> Result<(), i32> {
     let mut tx = header(OP_DAMAGE_COMMIT, rid, DAMAGE_REQ_LEN);
-    tx.extend_from_slice(&0u32.to_le_bytes());
-    tx.extend_from_slice(&0u32.to_le_bytes());
-    tx.extend_from_slice(&w.to_le_bytes());
-    tx.extend_from_slice(&h.to_le_bytes());
+    for v in [x, y, w, h] {
+        tx.extend_from_slice(&v.to_le_bytes());
+    }
     call_status(port, &tx)
 }
 
