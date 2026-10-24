@@ -33,17 +33,17 @@ fn expand(prk: &Secret<64>, label: &[u8]) -> Secret<32> {
     let mut out = [0u8; 32];
     // 32 bytes is one block, far inside HKDF's limit.
     let _ = hkdf512_expand(prk.expose(), label, &mut out);
-    Secret::new(out)
+    Secret::take(&mut out)
 }
 
 /// The handshake keys, and the handshake secret the session keys come from.
 pub fn handshake_keys(ss: Secret<32>, th_server_hello: &[u8; 64]) -> (Keys, Secret<64>) {
-    let hs = Secret::new(hkdf512_extract(th_server_hello, ss.expose()));
+    let hs = Secret::take(&mut hkdf512_extract(th_server_hello, ss.expose()));
     let keys = Keys { c2s: expand(&hs, b"nsh/1 c2s hs"), s2c: expand(&hs, b"nsh/1 s2c hs") };
     (keys, hs)
 }
 
 pub fn session_keys(hs: Secret<64>, th_auth_ok: &[u8; 64]) -> Keys {
-    let ts = Secret::new(hkdf512_extract(th_auth_ok, hs.expose()));
+    let ts = Secret::take(&mut hkdf512_extract(th_auth_ok, hs.expose()));
     Keys { c2s: expand(&ts, b"nsh/1 c2s data"), s2c: expand(&ts, b"nsh/1 s2c data") }
 }

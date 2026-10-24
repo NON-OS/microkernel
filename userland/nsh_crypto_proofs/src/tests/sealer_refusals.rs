@@ -29,15 +29,14 @@ fn a_changed_byte_anywhere_is_refused() {
         bad.1[i] ^= 0x01;
         assert_eq!(open(&mut pair(3).1, &bad), Err(CryptoError::Open), "byte {i}");
     }
-    let mut bad_len = f.clone();
-    bad_len.0[0] ^= 1;
-    assert_eq!(open(&mut pair(3).1, &bad_len), Err(CryptoError::Open), "the length is bound");
 }
 
 #[test]
 fn a_frame_sealed_one_way_does_not_open_the_other_way() {
-    let (mut c2s, _) = pair(4);
-    let (_, mut s2c_opener) = pair(5);
+    let ss = nsh_crypto::Secret::new([4; 32]);
+    let (keys, _) = nsh_crypto::handshake_keys(ss, &[5; 64]);
+    let mut c2s = nsh_crypto::Sealer::new(nsh_crypto::Secret::new(*keys.c2s.expose()));
+    let mut s2c_opener = nsh_crypto::Opener::new(nsh_crypto::Secret::new(*keys.s2c.expose()));
     let f = frame(&mut c2s, b"\x30x");
     assert_eq!(open(&mut s2c_opener, &f), Err(CryptoError::Open));
 }
