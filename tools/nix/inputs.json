@@ -1398,6 +1398,7 @@
  },
  "userland/capsule_app_store": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -2960,6 +2961,7 @@
  },
  "userland/capsule_market": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3263,7 +3265,9 @@
   "signed": []
  },
  "userland/capsule_payment": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
@@ -3656,6 +3660,7 @@
  },
  "userland/capsule_terminal": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3770,6 +3775,7 @@
  },
  "userland/capsule_wallet_nonos": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -5807,7 +5813,9 @@
   "signed": []
  },
  "userland/market_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "nonos-data/market/index.bin",
@@ -5890,7 +5898,9 @@
   ]
  },
  "userland/market_proto": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "userland/market_proto"
@@ -5943,7 +5953,9 @@
   "signed": []
  },
  "userland/model_fetch_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
@@ -9358,7 +9370,9 @@
   "signed": []
  },
  "userland/wallet_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "src/userspace/capsule_wallet_nonos/spawn.rs",
