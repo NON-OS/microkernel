@@ -364,7 +364,7 @@ They are in the tree's test lanes.
 
 ### Mutant results
 
-`python3 nonos-harden/mutants.py` was run on the crate as it lands. All 52 mutants are caught, and none escaped.
+`python3 nonos-harden/mutants.py` was run on the crate as it lands. All 55 mutants are caught, and none escaped.
 
 | mutant | file | caught by |
 |---|---|---|
@@ -420,3 +420,6 @@ They are in the tree's test lanes.
 | `read-follows-a-final-link` | `src/release/read.rs` | `fs_tests::a_fifo_a_link_or_an_oversized_file_is_refused_at_once` |
 | `runner-kills-only-the-child` | `src/tree/system.rs` | `runner_group_tests::a_process_the_verifier_started_is_stopped_with_it` |
 | `runner-builds-in-the-trees-target` | `src/tree/system.rs` | `runner_group_tests::cargo_and_python_write_into_the_runs_own_space` |
+| `choose-keeps-a-relative-tree` | `src/tree/mod.rs` | `boot_gate_tests::a_relative_release_and_tree_reach_every_verifier_as_absolute_paths` |
+| `kernel-ed-key-any-length` | `src/release/kernel_key_files.rs` | `kernel_key_tests::a_key_file_of_the_wrong_kind_is_refused` |
+| `refusal-misses-the-raw-kernel-key` | `src/sign/refuse.rs` | `boot_gate_tests::the_raw_kernel_key_cannot_sign_a_verdict` |
