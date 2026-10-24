@@ -5808,6 +5808,7 @@
    "userland/capsule_market/src/install_ready/checks.rs",
    "userland/capsule_market/src/install_ready/market.rs",
    "userland/capsule_market/src/install_ready/pin.rs",
+   "userland/capsule_market/src/install_ready/ready.rs",
    "userland/capsule_market/src/protocol/decode.rs",
    "userland/capsule_market/src/protocol/header.rs",
    "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
