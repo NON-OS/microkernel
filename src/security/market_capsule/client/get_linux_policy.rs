@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `OP_GET_LINUX_POLICY` (I-C5): the box a Linux release is sold with, for
 //! init's install drain to hand the install role (plan/30, argv m).
 
@@ -28,11 +27,12 @@ use super::status_map::lift;
 use super::transport::round_trip;
 
 /// Without the caller gate, as the other queued calls: the install it serves
-/// passed `can_app_install` in the syscall that queued it.
+/// passed `can_app_install` in the syscall that queued it. The hash is the
+/// package hash of the release the market answered for.
 pub(crate) fn queued_get_linux_policy(
     listing_id: &str,
     release_id: &str,
-) -> Result<LinuxPolicyReply, MarketError> {
+) -> Result<(LinuxPolicyReply, [u8; 32]), MarketError> {
     let mut body: Vec<u8> = Vec::with_capacity(8 + listing_id.len() + release_id.len());
     body.extend_from_slice(&(listing_id.len() as u32).to_le_bytes());
     body.extend_from_slice(listing_id.as_bytes());

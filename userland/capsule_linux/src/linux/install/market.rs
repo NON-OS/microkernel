@@ -21,9 +21,8 @@
 
 use nonos_libc::mk_debug;
 
-use super::apps::{wanted, Wanted};
 use super::market_arg::MARKET_LEN;
-use super::market_check::{admit, names_program, without_box};
+use super::market_check::{gate, names_program};
 use super::record::program::forget;
 use super::record::vouch::sign_beside;
 use super::{install, recorded, uninstall, Why};
@@ -40,19 +39,17 @@ pub fn install_from(
     pin: &[u8; 32],
     market: Option<&[u8; MARKET_LEN]>,
 ) -> Result<(), Why> {
-    let Some(market) = market else {
-        without_box(matches!(wanted(pkg), Wanted::Tier(_))).map_err(refused)?;
+    let Some(policy) = gate(pkg, market).map_err(refused)? else {
         return install(pkg, pin);
     };
-    let policy = admit(market).map_err(refused)?;
+    // Its programs land held: until bind, nothing of it starts unboxed.
+    super::hold::hold();
     install(pkg, pin)?;
     if let Err(why) = bind(pkg, &policy) {
         let why = refused(why);
-        // What the install left must not be started in the default box.
+        // Whatever of it would not go stays held: its policy is not vouched.
         if uninstall(pkg).is_err() && !forget(pkg) {
-            say(&alloc::format!(
-                "[LINUX] {pkg}: its record stays; uninstall it before running it\n"
-            ));
+            say(&alloc::format!("[LINUX] {pkg}: its record stays, refused until uninstalled\n"));
         }
         return Err(why);
     }
