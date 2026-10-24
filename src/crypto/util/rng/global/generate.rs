@@ -16,10 +16,11 @@
 
 use super::super::entropy::get_entropy64_secure;
 use super::super::error::{RngError, RngResult};
-use super::fallback::{fill_with_fallback_secure, weak_u64};
+use super::fallback::{fill_with_fallback_secure, say_pre_seed, weak_u64};
 use super::init::ensure_initialized;
 use super::state::GLOBAL_RNG;
 
+#[track_caller]
 pub fn get_random_bytes() -> [u8; 32] {
     let mut out = [0u8; 32];
 
@@ -46,6 +47,7 @@ pub fn get_random_bytes_secure() -> RngResult<[u8; 32]> {
     Err(RngError::NotInitialized)
 }
 
+#[track_caller]
 pub fn fill_random_bytes(buf: &mut [u8]) {
     if ensure_initialized().is_ok() {
         if let Some(ref mut rng) = *GLOBAL_RNG.lock() {
@@ -68,6 +70,7 @@ pub fn fill_random_bytes_secure(buf: &mut [u8]) -> RngResult<()> {
     Err(RngError::NotInitialized)
 }
 
+#[track_caller]
 pub fn random_u64() -> u64 {
     if ensure_initialized().is_ok() {
         if let Some(ref mut rng) = *GLOBAL_RNG.lock() {
@@ -75,6 +78,7 @@ pub fn random_u64() -> u64 {
         }
     }
 
+    say_pre_seed(core::panic::Location::caller());
     get_entropy64_secure().unwrap_or_else(|_| weak_u64())
 }
 
@@ -88,48 +92,11 @@ pub fn random_u64_secure() -> RngResult<u64> {
     Err(RngError::NotInitialized)
 }
 
+#[track_caller]
 pub fn random_u32() -> u32 {
     (random_u64() & 0xFFFF_FFFF) as u32
 }
 
 pub fn random_u32_secure() -> RngResult<u32> {
     Ok((random_u64_secure()? & 0xFFFF_FFFF) as u32)
-}
-
-pub fn random_range(n: u32) -> u32 {
-    if n <= 1 {
-        return 0;
-    }
-
-    if n.is_power_of_two() {
-        return random_u32() & (n - 1);
-    }
-
-    let threshold = u32::MAX - (u32::MAX % n);
-
-    loop {
-        let r = random_u32();
-        if r < threshold {
-            return r % n;
-        }
-    }
-}
-
-pub fn random_range_secure(n: u32) -> RngResult<u32> {
-    if n <= 1 {
-        return Ok(0);
-    }
-
-    if n.is_power_of_two() {
-        return Ok(random_u32_secure()? & (n - 1));
-    }
-
-    let threshold = u32::MAX - (u32::MAX % n);
-
-    loop {
-        let r = random_u32_secure()?;
-        if r < threshold {
-            return Ok(r % n);
-        }
-    }
 }
