@@ -5739,6 +5739,7 @@
   "include": [
    ".cargo",
    "nonos-data/market/index.bin",
+   "src/security/market_capsule/client/linux_policy_wire.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
    "userland/capsule_app_store/src/store/channel_held.rs",
@@ -5778,6 +5779,7 @@
    "userland/capsule_market/src/protocol/decode.rs",
    "userland/capsule_market/src/protocol/header.rs",
    "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
+   "userland/capsule_market/src/server/handlers/get_linux_policy/encode.rs",
    "userland/capsule_market/src/server/handlers/get_release/encode_release.rs",
    "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
    "userland/capsule_market/src/server/lp/pair.rs",
