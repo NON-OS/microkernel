@@ -23,7 +23,7 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from nonos_qemu import lanes  # noqa: E402
+from nonos_qemu import lanes, machine  # noqa: E402
 
 
 class LaneHosts(unittest.TestCase):
@@ -54,6 +54,14 @@ class LaneHosts(unittest.TestCase):
         self.assertEqual(p.swaps, {"gpu": "vmware-svga"})
         for nic in ("pcnet", "vmxnet3", "tulip"):
             self.assertEqual(lanes.plan([f"nic={nic}"], "/d").swaps, {"nic": nic})
+
+    def test_the_usb_net_bochs_and_ccid_lanes(self):
+        p = lanes.plan(["nic=usb-net", "bochs-display", "usb-ccid"], "/d")
+        self.assertEqual(p.swaps, {"nic": "usb-net,bus=xhci.0", "gpu": "bochs-display"})
+        self.assertIn("-device usb-ccid,bus=xhci.0", " ".join(p.args))
+        args = machine.devices("nat", None, None, p.swaps)
+        self.assertIn("usb-net,bus=xhci.0,netdev=net0", args)
+        self.assertEqual(args[1], "bochs-display")
 
 if __name__ == "__main__":
     unittest.main()
