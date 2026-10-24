@@ -16,17 +16,18 @@
 
 //! The checks, in the order they run. Every one runs every time: there is no
 //! way to skip one, and the proofs fail if one goes missing from this list.
-//! A check that depends on an earlier one's finding says it did not run when
-//! that finding is absent, which keeps the verdict NO-GO.
+//! A check whose input an earlier one did not establish says it did not run.
 
 use crate::check::Check;
 use crate::cli::CheckArgs;
 use crate::ctx::Ctx;
 use crate::deliver::deliver;
+use crate::exit;
 use crate::release::{kernel_check, kind, load, receipt_check, sealed};
+use crate::sign::{self, key};
 use crate::tree::runner::{Runner, System};
 use crate::tree::{find, inputs, ledger, matrix, source, verify};
-use crate::verdict;
+use crate::verdict::{self, text::clean};
 
 pub type Step = (&'static str, fn(&mut Ctx) -> Check);
 
@@ -54,10 +55,21 @@ pub fn check(args: &CheckArgs) -> u8 {
     check_with(args, Box::new(System))
 }
 
+/// The key is read and vetted before any check runs: a key that will be
+/// refused should not cost the hours the checks can take.
 pub fn check_with(args: &CheckArgs, runner: Box<dyn Runner>) -> u8 {
     let here = || std::env::current_dir().ok().and_then(|d| find(&d));
     let tree = args.tree.clone().or_else(here);
+    let key = match args.sign_key.as_deref().map(|k| key::load(k, tree.as_deref())) {
+        None => None,
+        Some(Ok(k)) => Some(k),
+        Some(Err(e)) => {
+            eprintln!("nonos-harden: not signing with that key: {}", clean(&e));
+            return exit::USAGE;
+        }
+    };
     let mut ctx = Ctx::with_runner(args.release.clone(), tree, runner);
     let checks = run(&mut ctx);
-    deliver(&verdict::build(&ctx, checks), args)
+    let v = verdict::build(&ctx, checks, key.as_ref().map(sign::signer));
+    deliver(&v, args, key.as_ref())
 }

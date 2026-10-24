@@ -55,6 +55,8 @@ pub struct Verdict {
     pub record_sha256: Option<String>,
     pub tree: Option<String>,
     pub tree_head: Option<String>,
+    /// The operator's public key, when the verdict is signed with it.
+    pub signer: Option<String>,
     pub scope: &'static str,
     pub checks: Vec<Check>,
 }
