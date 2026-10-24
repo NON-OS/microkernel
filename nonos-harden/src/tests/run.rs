@@ -34,7 +34,7 @@ impl Sealed {
         let out = tempfile::tempdir().unwrap();
         let file = out.path().join("verdict.json");
         let (release, tree) = (release.into(), Some(self.tree.path().into()));
-        let args = CheckArgs { release, tree, out: Some(file.clone()), json: true };
+        let args = CheckArgs { release, tree, out: Some(file.clone()), sign_key: None, json: true };
         let code = check_with(&args, Box::new(fake));
         (code, serde_json::from_slice(&fs::read(file).unwrap()).unwrap())
     }
