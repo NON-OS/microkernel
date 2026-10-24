@@ -49,6 +49,13 @@
     "caught_by": "tests::plan_go_tests::a_passing_development_release_reads_go_not_a_release_and_a_release_go"
   },
   {
+    "name": "deliver-dev-go-exits-0",
+    "file": "src/deliver.rs",
+    "old": "(Overall::Go, Kind::Development) => exit::DEV_GO,",
+    "new": "(Overall::Go, Kind::Development) => exit::GO,",
+    "caught_by": "tests::plan_go_tests::a_passing_development_release_reads_go_not_a_release_and_a_release_go"
+  },
+  {
     "name": "judge-ignores-failed-checks",
     "file": "src/tree/judge.rs",
     "old": "if !failed.is_empty() {",
