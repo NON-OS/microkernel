@@ -21,7 +21,7 @@
 //! the one the server tests for.
 
 use crate::server::proto::{E_AGAIN, E_NODEV, E_OK};
-use crate::server::pump_rule::{started, still_running};
+use crate::server::pump_rule::{rechoose_now, started, still_running};
 
 #[test]
 fn a_refused_start_leaves_the_stream_stopped() {
@@ -38,4 +38,25 @@ fn a_write_answered_no_device_drops_the_stream() {
     let driver = include_str!("../../capsule_driver_usb_audio/src/serve/answer.rs");
     assert!(driver.contains("play.device.is_none() {\n        E_NODEV"), "the driver's answer");
     assert_eq!(E_NODEV, -19);
+}
+
+/// A device lost mid-playback hands the output back to the fixed sink at
+/// once, not at the next tidy tick: the pump notes the loss at both places
+/// it reads a WRITE_PCM's answer, and the run loop chooses again on it.
+#[test]
+fn a_lost_device_is_fallen_back_from_at_once() {
+    assert!(rechoose_now(false, true));
+    assert!(rechoose_now(true, false));
+    assert!(!rechoose_now(false, false));
+    let pump = include_str!("../../capsule_audio/src/server/pump.rs");
+    assert!(pump.contains("(state.running, state.lost) = (false, true);"));
+    assert!(pump.contains("state.lost |= !state.running;"));
+    let run = include_str!("../../capsule_audio/src/server/run.rs");
+    assert!(run.contains(
+        "if rechoose_now(now.wrapping_sub(last_reap) >= REAP_GAP_MS, pump.take_lost()) {"
+    ));
+    let state = include_str!("../../capsule_audio/src/server/pump_state.rs");
+    assert!(state.contains("core::mem::take(&mut self.lost)"));
+    let tidy = include_str!("../../capsule_audio/src/server/tidy.rs");
+    assert!(tidy.contains("if sink.is_some_and(Sink::rechoose) {\n        pump.moved();"));
 }

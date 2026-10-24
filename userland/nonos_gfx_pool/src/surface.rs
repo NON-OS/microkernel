@@ -18,15 +18,17 @@ use nonos_gfx_wire::errno::EINVAL;
 use nonos_gfx_wire::Errno;
 use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
 use nonos_libc::{
-    mk_service_lookup, mk_surface_register, mk_surface_release, mk_surface_share,
-    SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
+    mk_getpid, mk_surface_register, mk_surface_release, mk_surface_share, SurfaceDescriptor,
+    SURFACE_FORMAT_ARGB8888,
 };
 
-/// Registers and shares in one step: the wire hands out the share handle,
-/// never the private surface id. The share names its receiver: the
-/// compositor, the one caller the kernel lets reach a display driver, which
-/// draws the screen into it and so maps it writable.
-pub fn publish(r: Region, width: u32, height: u32, stride: u32) -> Result<u64, Errno> {
+use super::receiver::compositor_pid;
+
+/// Registers and shares in one step, answering (handle, sid): the wire hands
+/// out the handle, the pool keeps the sid to name a later receiver. The share
+/// names its receiver: the compositor, the one caller the kernel lets
+/// reach a display driver, which draws into it and so maps it writable.
+pub fn publish(r: Region, width: u32, height: u32, stride: u32) -> Result<(u64, u64), Errno> {
     let to = compositor_pid().ok_or(EINVAL)?;
     let desc = SurfaceDescriptor {
         width,
@@ -40,21 +42,28 @@ pub fn publish(r: Region, width: u32, height: u32, stride: u32) -> Result<u64, E
         writable: 0,
     };
     let sid = mk_surface_register(&desc);
-    let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64, to, SURFACE_SHARE_WRITE) };
-    if handle <= 0 {
+    if sid < 0 {
         return Err(EINVAL);
     }
-    Ok(handle as u64)
+    let handle = mk_surface_share(sid as u64, to, SURFACE_SHARE_WRITE);
+    if handle <= 0 {
+        withdraw_unshared(sid as u64);
+        return Err(EINVAL);
+    }
+    Ok((handle as u64, sid as u64))
+}
+
+/// A surface registered but never shared: the kernel names its frames until
+/// the owner lets go, and the server frees the pages on this refusal, so it
+/// lets go now. Register hands back no handle, only the sid; a share to the
+/// owner's own process answers the owner's handle and records no right.
+fn withdraw_unshared(sid: u64) {
+    let own = mk_surface_share(sid, mk_getpid(), 0);
+    if own > 0 {
+        withdraw(own as u64);
+    }
 }
 
 pub fn withdraw(handle: u64) {
     let _ = mk_surface_release(handle);
-}
-
-/// The compositor's pid, by the endpoint the kernel registers for it.
-fn compositor_pid() -> Option<u32> {
-    let name = b"compositor";
-    let (mut port, mut pid) = (0u32, 0u32);
-    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
-    (rc >= 0 && pid != 0).then_some(pid)
 }
