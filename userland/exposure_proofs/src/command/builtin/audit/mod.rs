@@ -20,6 +20,8 @@ pub mod agent;
 pub mod format;
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/join.rs"]
 pub mod join;
+#[path = "../../../../../capsule_terminal/src/command/builtin/audit/names.rs"]
+pub mod names;
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/reach.rs"]
 pub mod reach;
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/table.rs"]
