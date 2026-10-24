@@ -47,3 +47,5 @@ mod tests_random;
 mod tests_remove;
 #[cfg(test)]
 mod tests_streamed;
+#[cfg(test)]
+mod tests_withdraw;
