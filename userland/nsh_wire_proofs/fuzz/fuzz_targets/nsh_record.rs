@@ -20,7 +20,8 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use nsh_wire::Record;
+use nsh_wire::record::BOX_BODY;
+use nsh_wire::{EntryBody, Record};
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(r) = Record::parse(data) {
@@ -29,6 +30,10 @@ fuzz_target!(|data: &[u8]| {
         for e in r.entries() {
             assert_eq!(e.seq, n);
             assert!(e.at_ms >= last);
+            if let EntryBody::Box(b) = e.body {
+                assert_eq!(e.bytes.len(), 4 + 8 + 1 + 2 + BOX_BODY);
+                assert!(b.counts.iter().all(|c| *c <= b.refused()));
+            }
             (last, n) = (e.at_ms, n + 1);
         }
         assert_eq!(n, r.footer.count);

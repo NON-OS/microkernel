@@ -67,7 +67,7 @@ pub use kind::Kind;
 pub use limits::{AUTH_CAP, HELLO_CAP, LEN_BYTES, MAX_DATA, SESSION_CAP, TAG_LEN};
 pub use reader::Reader;
 pub use reason::Reason;
-pub use record::{Entry, EntryBody, Footer, Record, RecordHeader, RecordPart};
+pub use record::{BoxRun, Entry, EntryBody, Footer, Preset, Record, RecordHeader, RecordPart};
 pub use session::{data, window, Window, MAX_CELLS};
 pub use session_codes::{abort, auth_refused, empty, exit_status, plain_abort, signal, Signal};
 pub use user_auth::{UserAuth, MAX_GRANT};

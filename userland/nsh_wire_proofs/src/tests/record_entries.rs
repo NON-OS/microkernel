@@ -53,7 +53,7 @@ fn out_of_range_values_are_refused() {
     for why in [0, 4] {
         assert_eq!(body(6, &[&d64[..], &[why]].concat()), Err(WireError::Value), "{why}");
     }
-    for kind in [0, 9, 255] {
+    for kind in [0, 10, 255] {
         assert_eq!(body(kind, &[0; 4]), Err(WireError::Value), "{kind}");
     }
 }

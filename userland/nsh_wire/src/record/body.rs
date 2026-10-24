@@ -20,6 +20,7 @@
 
 use crate::cap_names::MAX_CAP_NAME;
 use crate::names;
+use crate::record::boxed::BoxRun;
 use crate::record::entry::EntryBody;
 use crate::{CapNames, Reader, Reason, WireError};
 
@@ -58,6 +59,7 @@ impl<'a> EntryBody<'a> {
             }
             7 => EntryBody::Exit(i32::from_le_bytes(*r.array()?)),
             8 => EntryBody::CommandDigest(r.array()?),
+            9 => EntryBody::Box(BoxRun::read(&mut r)?),
             _ => return Err(WireError::Value),
         };
         r.finish().map(|_| entry)
