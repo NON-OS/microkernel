@@ -14,45 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Frames: a rectangle copied into the framebuffer at the device's pitch,
-//! the host asked to redraw it, and the FIFO wrapping under a long session.
+//! Frames through the wire: a flushed rectangle copied into the framebuffer
+//! at the device's pitch, the host asked to redraw exactly it, the FIFO
+//! wrapping under a long session, and a rectangle outside the primary
+//! refused before anything is copied or sent.
 
-use super::util::up;
+use super::util::{ask, primed, up, words};
 use crate::bench::Bench;
 use crate::model::with_svga;
-use crate::server::handlers::{flush, transfer};
+use nonos_gfx_wire::errno::EINVAL;
+use nonos_gfx_wire::ops;
 
-pub fn body(words: &[u32], offset: Option<u64>) -> Vec<u8> {
-    let mut b: Vec<u8> = words.iter().flat_map(|w| w.to_le_bytes()).collect();
-    if let Some(o) = offset {
-        b.extend_from_slice(&0u32.to_le_bytes());
-        b.extend_from_slice(&o.to_le_bytes());
-    }
-    b
+#[test]
+fn a_flushed_rectangle_lands_at_the_framebuffer_pitch_and_is_redrawn() {
+    let mut bench = Bench::standard();
+    let mut d = up(&mut bench, |s| s.pad = 64);
+    let sf = primed(&mut d.server, 0xAABB_CCDD);
+    assert_eq!(ask(&mut d.server, ops::FLUSH, &words(&[sf.serial, 1, 10, 20, 5, 5])).0, 0);
+    let pitch = 1024 * 4 + 64;
+    let at = |x: usize, y: usize| y * pitch + x * 4;
+    let px = |o: usize| u32::from_le_bytes(bench.vram[o..o + 4].try_into().unwrap());
+    assert_eq!((px(at(10, 20)), px(at(14, 24))), (0xAABB_CCDD, 0xAABB_CCDD), "the corners");
+    assert_eq!((px(at(9, 20)), px(at(15, 24)), px(at(10, 25))), (0, 0, 0), "nothing outside");
+    let updates = with_svga(|s| std::mem::take(&mut s.updates));
+    assert_eq!(updates, [(10, 20, 5, 5)], "the host redraws the rectangle, once");
 }
 
 #[test]
-fn a_rectangle_lands_at_the_framebuffer_pitch() {
+fn a_rectangle_outside_the_primary_is_refused_whole() {
     let mut bench = Bench::standard();
-    let mut d = up(&mut bench, |s| s.pad = 64);
-    let px = |x: u64, y: u64| (d.surface.va + y * 4096 + x * 4) as *mut u32;
-    // SAFETY: inside the 1024x768 surface.
-    unsafe { px(10, 20).write(0xAABBCCDD) };
-    assert_eq!(transfer(&mut d, &body(&[1, 10, 20, 5, 5], Some(20 * 4096 + 40))), 0);
-    let at = 20 * (4096 + 64) + 40;
-    assert_eq!(&bench.vram[at..at + 4], &0xAABBCCDDu32.to_le_bytes());
-    assert_eq!(transfer(&mut d, &body(&[1, 10, 20, 5, 5], Some(0))), -22, "offset not the rect's");
-    assert_eq!(transfer(&mut d, &body(&[1, 1020, 0, 5, 5], Some(4080))), -22, "past the edge");
-    assert_eq!(transfer(&mut d, &body(&[2, 0, 0, 5, 5], Some(0))), -22, "no such resource");
+    let mut d = up(&mut bench, |_| {});
+    let sf = primed(&mut d.server, 0xFFFF_FFFF);
+    let flush = |r: [u32; 4]| words(&[sf.serial, 1, r[0], r[1], r[2], r[3]]);
+    assert_eq!(ask(&mut d.server, ops::FLUSH, &flush([1020, 0, 5, 5])).0, EINVAL, "past the edge");
+    assert_eq!(ask(&mut d.server, ops::FLUSH, &flush([0, 0, 0, 5])).0, EINVAL, "empty");
+    assert!(bench.vram.iter().all(|&b| b == 0), "nothing copied");
+    assert!(with_svga(|s| s.updates.is_empty()), "nothing sent");
 }
 
 #[test]
 fn a_flush_is_an_update_the_host_runs_even_across_the_wrap() {
     let mut bench = Bench::standard();
     let mut d = up(&mut bench, |_| {});
+    let sf = primed(&mut d.server, 1);
     for n in 0..3000u32 {
         let (x, y) = (n % 1000, n % 700);
-        assert_eq!(flush(&mut d, &body(&[1, x, y, 24, 68], None)), 0, "flush {n}");
+        let st = ask(&mut d.server, ops::FLUSH, &words(&[sf.serial, 1, x, y, 24, 68])).0;
+        assert_eq!(st, 0, "flush {n}");
     }
     let updates = with_svga(|s| std::mem::take(&mut s.updates));
     assert_eq!(updates.len(), 3000);

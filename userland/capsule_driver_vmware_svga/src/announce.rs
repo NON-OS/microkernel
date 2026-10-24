@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rectangle a request names, checked against the screen.
+//! The service, under the name the compositor looks up after virtio-gpu's.
 
-use crate::protocol::le_u32;
-use crate::screen::{rect_fits, Rect};
-use crate::setup::Driver;
+use nonos_libc::mk_service_register;
 
-/// Four u32s at `at`: x, y, width, height; None unless they fit the screen.
-pub fn rect_at(d: &Driver, body: &[u8], at: usize) -> Option<Rect> {
-    let r = Rect {
-        x: le_u32(body, at)?,
-        y: le_u32(body, at + 4)?,
-        w: le_u32(body, at + 8)?,
-        h: le_u32(body, at + 12)?,
-    };
-    rect_fits(r, d.fb.width, d.fb.height).then_some(r)
+pub const SERVICE_NAME: &[u8] = b"driver.vmware_svga0";
+/// Service 4280 and reply 4281, as Capsule.mk declares them.
+pub const SERVICE_PORT: u32 = 4280;
+
+/// Whether the kernel took the service. Only the compositor is meant to
+/// reach it: the kernel's holder table names who may send to it.
+pub fn announce() -> bool {
+    mk_service_register(SERVICE_NAME.as_ptr(), SERVICE_NAME.len(), SERVICE_PORT) >= 0
 }
