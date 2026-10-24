@@ -47,7 +47,7 @@ pub fn run(server: &mut Server<Engine, Pool>, device_id: u64) -> ! {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), WAIT_MS, &mut sender);
         let now = mk_uptime_ms().max(0) as u64;
-        server.watch(now);
+        server.watch_said(now, |l| _ = nonos_libc::mk_debug(l.as_ptr(), l.len()));
         if !recv_ready(n) {
             continue;
         }
