@@ -34,6 +34,7 @@ const FAILED: &str = "tls handshake failed";
 const REFUSED: &str = "the server ended the handshake with an alert";
 const RETRY: &str = "the server asked for a key exchange this client does not offer";
 const UNVERIFIED: &str = "the certificate did not verify for this host";
+const SLOW: &str = "the signature could not be checked in time; try again";
 
 /// What a refusal of the server's flight says to a person.
 fn refused(r: Refusal) -> &'static str {
@@ -41,6 +42,7 @@ fn refused(r: Refusal) -> &'static str {
         Refusal::Alert(_) => REFUSED,
         Refusal::Unverified => UNVERIFIED,
         Refusal::Incomplete | Refusal::Seal => FAILED,
+        Refusal::TooSlow => SLOW,
     }
 }
 
