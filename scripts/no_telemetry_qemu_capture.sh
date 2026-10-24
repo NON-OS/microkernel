@@ -30,6 +30,9 @@
 #   NONOS_NO_TELEMETRY_BOOT_CMD a boot command of your own, which must write
 #                               the capture to $NONOS_NO_TELEMETRY_PCAP
 #   NONOS_NO_TELEMETRY_TIMEOUT  seconds the boot runs (default 180)
+#   NONOS_QEMU_LANES            tools/nonos-qemu lanes, space separated. A
+#                               release image refuses device DMA without an
+#                               IOMMU, so under QEMU give it `iommu=intel`.
 #
 # Exit 0 pass, 1 a leak (the report names it), 2 no capture to judge.
 set -eu
@@ -47,8 +50,10 @@ boot_cmd=${NONOS_NO_TELEMETRY_BOOT_CMD:-}
 mkdir -p "$out" "$(dirname "$pcap")"
 rm -f "$pcap" "$report"
 
+lanes=""
+for l in ${NONOS_QEMU_LANES:-}; do lanes="$lanes --lane $l"; done
 if [ -z "$boot_cmd" ] && [ -n "$image" ]; then
-  boot_cmd="python3 tools/nonos-qemu --image '$image' --fresh --headless --serial '$out/serial.log' --timeout $timeout_secs --capture '$pcap'"
+  boot_cmd="python3 tools/nonos-qemu --image '$image' --fresh --headless --serial '$out/serial.log' --timeout $timeout_secs --capture '$pcap'$lanes"
 fi
 if [ -z "$boot_cmd" ]; then
   boot_cmd="make QEMU_NET_CAPTURE=$pcap nonos-mk-run-serial-net"
