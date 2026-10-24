@@ -21,6 +21,7 @@
 
 #![no_std]
 
+mod challenge;
 mod count;
 mod error;
 mod kem;
@@ -33,10 +34,11 @@ mod sealer;
 mod secret;
 mod transcript;
 
+pub use challenge::{attest_challenge, key_digest};
 pub use count::{MAX_SEALED_BYTES, MAX_SEALED_FRAMES};
 pub use error::CryptoError;
 pub use kem::{encapsulate, ClientKem, CT_LEN, EK_LEN};
-pub use labels::{attest_challenge, key_digest, labelled, Label};
+pub use labels::{labelled, Label};
 pub use opener::Opener;
 pub use schedule::{handshake_keys, session_keys, Keys};
 pub use sealer::Sealer;

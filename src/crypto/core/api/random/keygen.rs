@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A 32-byte key: the kernel generator, whose seed holds every source's
-//! entropy, hashed with CPU RNG words and timing, which only stir.
+//! entropy, hashed with CPU RNG words and timing, which only stir; refused unseeded.
 
 use super::platform::{
     get_stack_pointer, random64_or_counter, read_cycle_counter, read_pit_counter,
     read_rtc_timestamp, secure_random64, KEYGEN_COUNTER,
 };
-use crate::crypto::blake3_hash;
 use crate::crypto::util::rng;
+use crate::crypto::{blake3_hash, CryptoError::InsufficientEntropy, CryptoResult};
 use core::sync::atomic::{compiler_fence, Ordering};
 
 // The generator's 64, two words per round for 16 rounds, four more.
@@ -49,12 +49,12 @@ fn jitter(base: u32) -> u64 {
     read_cycle_counter().wrapping_sub(start)
 }
 
-pub fn generate_secure_key() -> [u8; 32] {
+pub fn generate_secure_key() -> CryptoResult<[u8; 32]> {
     if secure_random64().is_none() {
         crate::log_warn!("crypto: no CPU RNG; this key rests on the kernel generator's seed");
     }
     let mut p = Pool { bytes: [0u8; POOL], at: 64 };
-    rng::fill_random_bytes(&mut p.bytes[..64]);
+    rng::fill_random_bytes_secure(&mut p.bytes[..64]).map_err(|_| InsufficientEntropy)?;
     let start = read_cycle_counter();
     for i in 0..16u32 {
         p.put(random64_or_counter());
@@ -71,5 +71,5 @@ pub fn generate_secure_key() -> [u8; 32] {
         unsafe { core::ptr::write_volatile(byte, 0) };
     }
     compiler_fence(Ordering::SeqCst);
-    key
+    Ok(key)
 }

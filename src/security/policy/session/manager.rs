@@ -18,10 +18,7 @@ extern crate alloc;
 
 use super::account::UserAccount;
 use super::session::UserSession;
-use super::types::{
-    PrivilegeLevel, SessionState, GID_ROOT, GID_USERS, GID_WHEEL, UID_ANONYMOUS, UID_DEFAULT,
-    UID_ROOT,
-};
+use super::types::{PrivilegeLevel, SessionState, GID_USERS, UID_ANONYMOUS, UID_DEFAULT, UID_ROOT};
 use crate::time::current_ticks;
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
@@ -48,25 +45,10 @@ impl SessionManager {
         }
     }
 
-    pub fn init(&self) {
-        let mut root = UserAccount::new(UID_ROOT, GID_ROOT, "root", "");
-        root.privilege = PrivilegeLevel::Root;
-        root.home = String::from("/root");
-        root.groups.push(GID_WHEEL);
-        self.add_user_internal(root);
-
-        let mut anon = UserAccount::new(UID_ANONYMOUS, GID_USERS, "anonymous", "");
-        anon.privilege = PrivilegeLevel::Anonymous;
-        anon.home = String::from("/home/anonymous");
-        anon.fullname = Some(String::from("Anonymous User"));
-        self.add_user_internal(anon);
-
-        let mut zerouser = UserAccount::new(UID_DEFAULT, GID_USERS, "zerostate", "");
-        zerouser.privilege = PrivilegeLevel::User;
-        zerouser.home = String::from("/home/zerostate");
-        zerouser.fullname = Some(String::from("ZeroState User"));
-        zerouser.env.insert(String::from("EDITOR"), String::from("nano"));
-        self.add_user_internal(zerouser);
+    /// Starts with no accounts: every account is made with its own password
+    /// through `create_user`, so none exists without a credential.
+    pub fn init(&self) -> Result<(), &'static str> {
+        Ok(())
     }
 
     fn add_user_internal(&self, user: UserAccount) {
@@ -87,7 +69,7 @@ impl SessionManager {
         }
 
         let uid = self.next_uid.fetch_add(1, Ordering::SeqCst);
-        let mut user = UserAccount::new(uid, GID_USERS, username, password);
+        let mut user = UserAccount::new(uid, GID_USERS, username, password)?;
         user.privilege = privilege;
         self.add_user_internal(user);
         Ok(uid)
@@ -117,11 +99,12 @@ impl SessionManager {
             return Err("Invalid password");
         }
 
+        // The session first: a login refused for want of a token changes
+        // nothing on the account.
+        let session_id = self.next_session_id.fetch_add(1, Ordering::SeqCst);
+        let session = UserSession::new(session_id, user)?;
         user.failed_attempts = 0;
         user.last_login = current_ticks();
-
-        let session_id = self.next_session_id.fetch_add(1, Ordering::SeqCst);
-        let session = UserSession::new(session_id, user);
 
         self.sessions.write().insert(session_id, session);
         self.current_session.store(session_id, Ordering::SeqCst);
@@ -129,16 +112,14 @@ impl SessionManager {
         Ok(session_id)
     }
 
+    /// The anonymous session's id, or 0 with no anonymous user or no token.
     pub fn login_anonymous(&self) -> u64 {
-        if let Some(user) = self.get_user(UID_ANONYMOUS) {
-            let session_id = self.next_session_id.fetch_add(1, Ordering::SeqCst);
-            let session = UserSession::new(session_id, &user);
-            self.sessions.write().insert(session_id, session);
-            self.current_session.store(session_id, Ordering::SeqCst);
-            session_id
-        } else {
-            0
-        }
+        let Some(user) = self.get_user(UID_ANONYMOUS) else { return 0 };
+        let session_id = self.next_session_id.fetch_add(1, Ordering::SeqCst);
+        let Ok(session) = UserSession::new(session_id, &user) else { return 0 };
+        self.sessions.write().insert(session_id, session);
+        self.current_session.store(session_id, Ordering::SeqCst);
+        session_id
     }
 
     pub fn logout(&self, session_id: u64) -> Result<(), &'static str> {
