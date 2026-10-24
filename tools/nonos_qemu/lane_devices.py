@@ -24,6 +24,8 @@ PLAIN = {
     "usb-audio": "-audiodev {audio},id=lane-usb-snd -device usb-audio,audiodev=lane-usb-snd,bus=xhci.0",
     "AC97": "-audiodev {audio},id=lane-ac97-snd -device AC97,audiodev=lane-ac97-snd",
     "usb-tablet": "-device usb-tablet,bus=xhci.0",
+    # A reader with no card in it: driver.ccid0 finds the slot empty.
+    "usb-ccid": "-device usb-ccid,bus=xhci.0",
     "virtio-tablet": "-device virtio-tablet-pci",
     "virtio-balloon": "-device virtio-balloon-pci",
     "vmbus": "-device vmbus-bridge -device hv-balloon",
@@ -36,6 +38,10 @@ SWAPS = {
     **{f"nic={n}": ("nic", n) for n in NICS},
     "tpm-tis": ("tpm", "tpm-tis"),
     "vmware-svga": ("gpu", "vmware-svga"),
+    "bochs-display": ("gpu", "bochs-display"),
+    # QEMU's usb-net offers RNDIS and CDC-ECM configurations, on the xHCI the
+    # machine always has; as net0 its frames are the capture's.
+    "nic=usb-net": ("nic", "usb-net,bus=xhci.0"),
     # Not a device in place of another: iommu.py rewrites the machine for it.
     "iommu=intel": ("iommu", "intel"),
     "iommu=amd": ("iommu", "amd"),
