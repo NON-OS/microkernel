@@ -12,3 +12,6 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+nonos_policy_proto = { path = "../../policy_proto" }
