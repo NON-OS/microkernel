@@ -17,60 +17,7 @@
 use super::super::config::ConfigSpace;
 use super::super::constants::*;
 use super::super::error::{PciError, Result};
-use super::super::types::{MsiInfo, MsiMessage};
-
-pub fn configure_msi(
-    config: &ConfigSpace,
-    msi: &MsiInfo,
-    vector: u8,
-    dest_apic_id: u8,
-) -> Result<()> {
-    configure_msi_multi(config, msi, &[vector], dest_apic_id)
-}
-
-pub fn configure_msi_multi(
-    config: &ConfigSpace,
-    msi: &MsiInfo,
-    vectors: &[u8],
-    dest_apic_id: u8,
-) -> Result<()> {
-    if vectors.is_empty() {
-        return Err(PciError::MsiNotSupported);
-    }
-
-    let max_vectors = msi.max_vectors() as usize;
-    let requested = vectors.len().min(max_vectors);
-    let log2_count = (requested as u32).next_power_of_two().trailing_zeros() as u8;
-    let actual_log2 = log2_count.min(msi.multi_message_capable);
-
-    let msg = MsiMessage::for_local_apic(vectors[0], dest_apic_id);
-
-    let offset = msi.offset as u16;
-
-    config.write32(offset + 4, msg.address as u32)?;
-
-    let data_offset = if msi.is_64bit {
-        config.write32(offset + 8, (msg.address >> 32) as u32)?;
-        offset + 12
-    } else {
-        offset + 8
-    };
-
-    config.write16(data_offset, msg.data as u16)?;
-
-    if msi.per_vector_mask && msi.is_64bit {
-        let mask_offset = data_offset + 4;
-        config.write32(mask_offset, 0)?;
-    }
-
-    let mut ctrl = config.read16(offset + 2)?;
-    ctrl &= !(MSI_CTRL_MME_MASK);
-    ctrl |= (actual_log2 as u16) << 4;
-    ctrl |= MSI_CTRL_ENABLE;
-    config.write16(offset + 2, ctrl)?;
-
-    Ok(())
-}
+use super::super::types::MsiInfo;
 
 pub fn disable_msi(config: &ConfigSpace, msi: &MsiInfo) -> Result<()> {
     let offset = msi.offset as u16;
