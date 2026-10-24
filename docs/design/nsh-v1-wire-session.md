@@ -34,6 +34,18 @@ session has exactly one terminal.
   then the host's clock value at which the elevated capsule ends. Any other
   `reason` is a refusal code from refusals.md, with `expires_ms` set to 0.
 
+## Which reasons each frame may carry
+
+| Frame | Reasons |
+|---|---|
+| `ABORT` in plaintext, before the keys | `VERSION`, `BUSY` |
+| `ABORT`, sealed | 1 to 5 |
+| `AUTH_REFUSED` | 16 to 24 |
+| `ESCALATE_RESULT` refusing, and the record's `ESC_REFUSED` | 16 to 24, 32 to 35 |
+
+A code outside its frame's set is refused as `PROTOCOL`. So is a code no
+version defines, and `OK` anywhere but a granted `ESCALATE_RESULT`.
+
 ## How a session ends
 
 The session ends when the shell exits, when either side sends `CLOSE`, at
@@ -61,7 +73,7 @@ ending sequence is: `EXIT` (if the shell exited), then `RECORD`, then
 | 22 | `CAPS_CEILING` | the grant names capabilities above the role's ceiling |
 | 23 | `CAP_UNKNOWN` | the grant names a capability the host does not know |
 | 24 | `USER_SIG` | the user's signature over the transcript is bad |
-| 32 | `ESC_PARENT` | the escalation's parent grant is not this session's grant |
+| 32 | `ESC_PARENT` | the escalation's parent is not this session's grant, or it names another user, role or fleet |
 | 33 | `ESC_APPROVAL` | the approvals are missing, or not from a distinct person |
 | 34 | `ESC_TOO_LONG` | the escalation asks for more than 3600 s |
 | 35 | `ESC_ACTIVE` | an escalation is already running |

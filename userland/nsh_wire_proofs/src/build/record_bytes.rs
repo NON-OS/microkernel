@@ -16,8 +16,9 @@
 
 //! Laying a record out.
 
+use super::enrol::EnrolB;
 use super::record::RecordB;
-use super::{caps, put16, put8, put_u16, put_u32, put_u64, sig};
+use super::{caps, public, put16, put8, put_u16, put_u32, put_u64, sig};
 
 impl RecordB {
     pub fn bytes(&self) -> Vec<u8> {
@@ -26,7 +27,10 @@ impl RecordB {
         put_u16(&mut out, 0);
         out.extend_from_slice(&[0x5E; 16]);
         put_u64(&mut out, self.start);
-        [[0xD0; 64], [0x4B; 64], [0x5B; 64]].iter().for_each(|d| out.extend_from_slice(d));
+        out.extend_from_slice(&[0x7A; 64]);
+        public(&mut out, 0x4B);
+        put16(&mut out, &EnrolB::default().bytes());
+        [[0xD0; 64], [0x5B; 64]].iter().for_each(|d| out.extend_from_slice(d));
         put8(&mut out, b"ek");
         put8(&mut out, b"auditor");
         out.extend_from_slice(&[0x6A; 64]);

@@ -13,12 +13,14 @@ footer. A host tool and the client library check it offline.
 | reserved = 0 | u16 |
 | session_id | 16 |
 | start_ms, from the host's clock | u64 |
+| transcript: `TH(SERVER_HELLO)` | 64 |
+| host Ed25519 and ML-DSA-65 public keys | 32 + 1952 |
+| the enrolment certificate from `HOST_PROOF` | `bytes16` |
 | H(attestation document sent in `HOST_PROOF`) | 64 |
-| H(host keys) | 64 |
 | subject: H(user keys) | 64 |
 | user name, role | two `bytes8` |
-| H(base grant) | 64 |
-| granted capabilities | count: u8, then that many names as `bytes8` |
+| H(base grant), as nsh-v1-roles.md defines it | 64 |
+| granted capabilities | count: u8 (1 to 37), then the names as `bytes8`, ascending |
 
 ## Entries
 
@@ -56,28 +58,55 @@ body is at most 4096 bytes. A record is at most 64 MiB and holds at most
 | Ed25519 signature | 64 |
 | ML-DSA-65 signature | 3309 |
 
-The host keys sign `H("nsh/1 record-sig\0" || header || entries || the
-first four footer fields)`.
+The host keys sign `H("nsh/1 record-sig\0" || SHA-512(header || entries ||
+the first four footer fields))`.
 
 ## Checking a record offline
 
 `nsh verify-record <file> --doc <attestation document>` refuses the record
 unless all of these hold:
 
-- the attestation document's hash equals the one in the header;
-- the host keys named in that document's session verify the signatures;
-- the chain recomputes;
-- `seq` is dense;
-- the count matches.
+1. The record parses: the sequence is dense, times never go back, and the
+   footer's count and end time agree with the entries.
+2. SHA-512 of the given document equals the header's document hash. The
+   document passes the client's checks (nsh-v1-attest.md, steps 1 to 7)
+   against the verifier's policy.
+3. `SHA-256("nsh/1 attest\0" || transcript || SHA-512(host keys))` is the
+   document's challenge. The header holds both the transcript and the host
+   keys, so this ties those host keys to that attested boot and that
+   handshake.
+4. The enrolment certificate in the header verifies under the fleet
+   authority, and names the document's AK and SHA-512 of the host keys.
+5. The chain recomputes to the footer's chain value.
+6. The host keys' hybrid signature verifies over the footer.
+
+A key pair that never took part in the attested handshake cannot sign a
+record that passes step 3.
+
+## Checkpoints, `nsh-ckpt/1`
+
+Every 64 entries, and at each escalation's start and end, the host writes a
+checkpoint beside the record it is building:
+
+| Field | Size |
+|---|---|
+| magic `"NSHC"`, version u16 = 1, reserved u16 = 0 | 8 |
+| session_id | 16 |
+| seq, the last entry it covers | u32 |
+| chain value after that entry | 64 |
+| Ed25519 signature, ML-DSA-65 signature | 3373 |
+
+The host keys sign `H("nsh/1 record-ckpt\0" || SHA-512(the fields before
+the signatures))`. A record without a footer is checked as far as its last
+checkpoint, which needs steps 1 to 5 above and the checkpoint's own
+signature. It is reported as `cut short at seq N`, never as complete.
 
 ## What the record does and does not show
 
 - A refusal by the kernel reaches the record only if the kernel tells the
   session's parent about it (kernel change K4).
-- A record cut off by a crash has no footer. The host writes a signed
-  checkpoint of the chain value every 64 entries and at every escalation.
-  A record that ends at a checkpoint is shown as `cut short at seq N`, never
-  as complete.
+- A record cut off by a crash has no footer, and is checked as far as its
+  last checkpoint (above).
 - Command lines may contain secrets typed by the user. The record keeps
   what was typed. The role table can mark a role `record-commands: digest`,
   which keeps SHA-256 of each command line (`COMMAND_DIGEST`) instead of its

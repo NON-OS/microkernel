@@ -27,6 +27,10 @@ fn a_granted_escalation_names_its_end_and_a_refused_one_names_none() {
     assert_eq!(EscalateResult::parse(&b(33, 5)), Err(WireError::Value));
     assert_eq!(EscalateResult::parse(&b(33, 0)).map(|r| r.reason), Ok(Reason::EscApproval));
     assert_eq!(EscalateResult::parse(&b(999, 0)), Err(WireError::Value));
+    for code in [1, 2, 3, 4, 5] {
+        assert_eq!(EscalateResult::parse(&b(code, 0)), Err(WireError::Value), "{code}");
+    }
+    assert!(EscalateResult::parse(&b(17, 0)).is_ok());
     let mut out = [0u8; 10];
     let bad = EscalateResult { reason: Reason::EscActive, expires_ms: 1 };
     assert_eq!(bad.encode(&mut out), Err(WireError::Value));
@@ -45,30 +49,10 @@ fn a_record_part_is_flagged_and_never_empty() {
 }
 
 #[test]
-fn the_reason_codes_are_the_specified_ones() {
-    use Reason::*;
-    let table = [
-        (Ok, 0),
-        (Protocol, 1),
-        (Version, 2),
-        (Policy, 3),
-        (Limit, 4),
-        (Busy, 5),
-        (GrantSig, 16),
-        (GrantTime, 17),
-        (GrantScope, 18),
-        (GrantRevoked, 19),
-        (RevocationStale, 20),
-        (RoleUnknown, 21),
-        (CapsCeiling, 22),
-        (CapUnknown, 23),
-        (UserSig, 24),
-        (EscParent, 32),
-        (EscApproval, 33),
-        (EscTooLong, 34),
-        (EscActive, 35),
-    ];
-    for (reason, code) in table {
-        assert_eq!((reason.code(), Reason::from_code(code)), (code, Result::Ok(reason)));
+fn an_escalation_is_refused_only_for_a_grant_or_escalation_reason() {
+    for code in 1..=u16::MAX {
+        let body = [&code.to_le_bytes()[..], &0u64.to_le_bytes()].concat();
+        let want = matches!(code, 16..=24 | 32..=35);
+        assert_eq!(nsh_wire::EscalateResult::parse(&body).is_ok(), want, "{code}");
     }
 }

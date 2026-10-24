@@ -17,9 +17,11 @@
 //! A list of kernel capability names, as `AUTH_OK`, a grant and the record
 //! carry them: a u8 count, then each name as a u8 length and its bytes.
 //! Names, not bit numbers, cross the wire, so a renumbered kernel cannot
-//! quietly change what a list means. A name is `[A-Z][A-Za-z0-9]*`, and a
-//! list naming one capability twice is refused.
+//! quietly change what a list means. A name is `[A-Z][A-Za-z0-9]*`, and the
+//! names come in ascending byte order, so a list never names a capability
+//! twice and one set of capabilities has one encoding.
 
+use crate::names;
 use crate::{Reader, WireError};
 
 /// There are 37 capabilities (`src/capabilities/types`); a list of more
@@ -40,16 +42,16 @@ impl<'a> CapNames<'a> {
             return Err(WireError::Oversize);
         }
         let start = r.pos;
+        let mut before: Option<&[u8]> = None;
         for _ in 0..count {
-            check(r.bytes8(1, MAX_CAP_NAME)?)?;
-        }
-        let list = CapNames { count, bytes: &r.buf[start..r.pos] };
-        for (i, name) in list.iter().enumerate() {
-            if list.iter().skip(i + 1).any(|other| other == name) {
+            let name = r.bytes8(1, MAX_CAP_NAME)?;
+            names::cap(name)?;
+            if before.is_some_and(|b| name <= b) {
                 return Err(WireError::Value);
             }
+            before = Some(name);
         }
-        Ok(list)
+        Ok(CapNames { count, bytes: &r.buf[start..r.pos] })
     }
 
     pub const fn len(&self) -> usize {
@@ -63,13 +65,5 @@ impl<'a> CapNames<'a> {
     pub fn iter(&self) -> impl Iterator<Item = &'a [u8]> + 'a {
         let mut r = Reader::new(self.bytes);
         (0..self.count).filter_map(move |_| r.bytes8(1, MAX_CAP_NAME).ok())
-    }
-}
-
-pub(crate) fn check(name: &[u8]) -> Result<(), WireError> {
-    let first_ok = name.first().is_some_and(u8::is_ascii_uppercase);
-    match first_ok && name.iter().all(u8::is_ascii_alphanumeric) {
-        true => Ok(()),
-        false => Err(WireError::Value),
     }
 }

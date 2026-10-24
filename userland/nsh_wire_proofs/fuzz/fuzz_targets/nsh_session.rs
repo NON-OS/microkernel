@@ -20,7 +20,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use nsh_wire::{data, reason_body, signal, window, AuthOk, EscalateResult, Reason, RecordPart};
+use nsh_wire::{abort, data, signal, window, AuthOk, EscalateResult, Reason, RecordPart};
 
 fuzz_target!(|input: &[u8]| {
     let Some((pick, body)) = input.split_first() else { return };
@@ -44,8 +44,8 @@ fuzz_target!(|input: &[u8]| {
             }
         }
         3 => {
-            if let Ok(r) = reason_body(body) {
-                assert_ne!(r, Reason::Ok);
+            if let Ok(r) = abort(body) {
+                assert!(r != Reason::Ok && r.ends_session());
             }
         }
         4 => {

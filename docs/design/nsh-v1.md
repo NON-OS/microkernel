@@ -31,9 +31,12 @@ checked offline.
 
 - One suite only. Key exchange is X-Wing (X25519 with ML-KEM-768).
   Signatures are Ed25519 together with ML-DSA-65, and both must verify.
-  Records are sealed with ChaCha20-Poly1305. Hashing is SHA-512, and keys
-  come from HKDF-SHA-512. There is no negotiation, so there is nothing to
-  downgrade.
+  Records are sealed with ChaCha20-Poly1305. Keys come from HKDF-SHA-512.
+  The transcript, the digests that are signed, the subject and the
+  record's chain all use SHA-512. The exceptions use SHA-256: the
+  attestation challenge (the kernel's challenge field is 32 bytes), a key
+  id (32 bytes), and the record's output and command digests. There is no
+  negotiation, so there is nothing to downgrade.
 - The crypto code is reused, never written again:
   - X-Wing comes from the `x-wing =0.1.0` crate already pinned by
     `userland/shield_core`.

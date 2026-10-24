@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `USER_AUTH`: the user's hybrid public key, their base grant, and their
+//! `USER_AUTH`: the user's hybrid public key, a base grant (never an
+//! escalation), and their
 //! signature over the transcript, which already holds `HOST_PROOF`. It is
 //! sent only after the client has accepted the host.
 
@@ -54,19 +55,11 @@ impl<'a> UserAuth<'a> {
         let mut r = Reader::new(body);
         let user = HybridPublic::read(&mut r)?;
         let grant = Grant::parse(r.bytes16(1, MAX_GRANT)?)?;
+        if grant.kind != crate::GrantKind::Base {
+            return Err(WireError::Value);
+        }
         let sig = HybridSig::read(&mut r)?;
         r.finish()?;
         Ok(UserAuth { user, grant, sig, signed: before_sig(body)? })
-    }
-}
-
-/// An `ESCALATE` body: one grant, which must be an escalation grant.
-pub fn escalate(body: &[u8]) -> Result<Grant<'_>, WireError> {
-    let mut r = Reader::new(body);
-    let grant = Grant::parse(r.bytes16(1, MAX_GRANT)?)?;
-    r.finish()?;
-    match grant.kind {
-        crate::GrantKind::Escalation => Ok(grant),
-        crate::GrantKind::Base => Err(WireError::Value),
     }
 }

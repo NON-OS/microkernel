@@ -18,25 +18,8 @@
 //! one byte changed or cut short, it returns an answer and never panics.
 //! A seeded generator keeps every run the same; the fuzz targets go wider.
 
+use super::noise_parsers::every_parser;
 use crate::build::{grant::GrantB, proof::HostProofB, record::RecordB};
-use nsh_wire::{split, AuthOk, ClientHello, Enrol, Expect, Grant, HostProof, Record, UserAuth};
-
-fn every_parser(b: &[u8]) {
-    let _ = ClientHello::parse(b);
-    let _ = AuthOk::parse(b);
-    let _ = Enrol::parse(b);
-    let _ = Grant::parse(b);
-    let _ = HostProof::parse(b);
-    let _ = UserAuth::parse(b);
-    let _ = nsh_wire::escalate(b);
-    if let Ok(r) = Record::parse(b) {
-        assert_eq!(r.entries().count() as u32, r.footer.count);
-    }
-    for e in super::stages::ALL {
-        let _ = split(b, e);
-    }
-    let _ = split(b, Expect::ServerSession);
-}
 
 struct Lcg(u64);
 

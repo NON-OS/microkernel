@@ -13,8 +13,8 @@
 | ML-DSA-65 signature | 3309 |
 
 The two signatures are made by the host keys over
-`H("nsh/1 host-sig\0" || TH(HOST_PROOF without its signatures))`. Both
-signatures must verify.
+`H("nsh/1 host-sig\0" || TH(HOST_PROOF without its signatures))`, with
+`TH` as nsh-v1-wire.md defines it. Both signatures must verify.
 
 ## The challenge, which binds this session
 
@@ -76,7 +76,10 @@ refuses a policy whose signature is bad. It holds:
   its PCR 4, 9 and 14 values;
 - whether the device proof is required;
 - the role authority keys, which the client shows to the user but does not
-  enforce.
+  enforce;
+- the revoked enrolments, as SHA-512 digests of their certificates.
+  `not_after` alone cannot withdraw a machine that is lost or sold before
+  its certificate runs out.
 
 ## The enrolment certificate, `nsh-enrol/1`
 

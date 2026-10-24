@@ -51,18 +51,38 @@ length. After it, the hello must be exactly the random and the key or
 ciphertext: nothing short and nothing more. A server that sees a version
 or suite other than 1 sends
 `ABORT(VERSION)` in plaintext and closes. That is type 0x7F with a body of
-`reason: u16`, the only plaintext frame after the hellos. Sending an
-`ABORT` reveals nothing: it is sent before any key exists.
+`reason: u16`. A server at its session cap sends `ABORT(BUSY)` in its
+place.
+
+A plaintext `ABORT` may carry only `VERSION` or `BUSY`, because nothing is
+authenticated before the keys exist. The promise to answer `VERSION`
+holds for any hello of up to 2048 bytes. A later version must keep its
+hello within that size, or be refused as `PROTOCOL`.
 
 ## Keys
 
 Here `H` is SHA-512, `Extract` and `Expand` are HKDF-SHA-512, and labels
 are ASCII strings.
 
-- `TH(n)` is `H` over every frame so far, `len` and `type` included. A
-  sealed frame is hashed in plaintext (its type and body), never as
-  ciphertext.
-- `ss` is the X-Wing shared secret (32 bytes).
+**The transcript.** The transcript is one running SHA-512, fed one entry
+per frame in the order the frames were sent:
+
+- Each entry is `n: u32 | type | body`, where `n = 1 + body length`.
+- `n` is always the plaintext length. It is never the length on the wire,
+  which for a sealed frame also counts the tag.
+- `TH(F)` is the digest once frame F's entry has gone in.
+
+**A frame that carries its own signatures.** These are `HOST_PROOF` and
+`USER_AUTH`. They sign `TH(F without its signatures)`. That is the digest
+of every earlier entry, followed by the entry `n' | type | body[..m]`.
+Here `m` is the body's length less the 3373 bytes of the hybrid
+signature, and `n' = 1 + m`. Once the signatures verify, the frame's whole
+entry (signatures included) goes into the transcript. This is the entry
+`TH(F)` and every later digest are built on.
+- `ss` is the X-Wing shared secret (32 bytes). The X-Wing key pair in
+  `CLIENT_HELLO` is made for this one connection and discarded after
+  `SERVER_HELLO`. A reused key would let a server or an observer link one
+  client's connections before any credential is sent.
 - `hs = Extract(salt = TH(SERVER_HELLO), ikm = ss)`.
 - The handshake keys are `Expand(hs, "nsh/1 c2s hs", 32)` and
   `Expand(hs, "nsh/1 s2c hs", 32)`.
