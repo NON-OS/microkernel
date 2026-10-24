@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! When verbs stop being answered (C1). A verb the controller fetched
-//! (CORBRP on it, HDA 1.0a 3.3.19) and no codec answered is a silent codec:
-//! the rings are left alone. Two in a row never fetched, and the rings are
-//! reset in place (ring_reset.rs) and the verb sent once more; three resets
-//! with no answer between, or rings that will not stop, and the driver uses
-//! the Immediate Command interface (3.4.3) from then on. Each step is logged.
+//! (CORBRP on it, HDA 1.0a 3.3.19) and no codec answered is a silent codec,
+//! and the rings are left alone. Two never fetched with none fetched or
+//! answered between: the rings are reset in place (ring_reset.rs) and the
+//! verb sent again. Three resets with no answer between, or rings that will
+//! not stop: the Immediate Command interface (3.4.3) from then on. Logged.
 
 use super::immediate::exchange;
 use super::verb::Link;
 use crate::constants::CORBRP;
 use crate::error::{HdaError, HdaResult};
 
-/// Unanswered verbs in a row before the rings are reset.
-pub const MISSED_BEFORE_RESET: u8 = 2;
+/// Verbs never fetched, none fetched between, before the rings are reset.
+pub const UNFETCHED_BEFORE_RESET: u8 = 2;
 /// Resets with no answer in between before the rings are given up.
 pub const RESETS_BEFORE_IMMEDIATE: u8 = 3;
 
@@ -38,15 +38,16 @@ impl Link {
             return exchange(self.regs, cmd).ok_or(HdaError::VerbTimeout);
         }
         let first = self.send_ring(cmd);
-        match first {
-            Ok(_) => {
-                self.answered();
-                return first;
-            }
-            Err(_) if self.fetched() => return first,
-            Err(_) => self.health.missed = self.health.missed.saturating_add(1),
+        if first.is_ok() {
+            self.answered();
+            return first;
         }
-        if self.health.missed < MISSED_BEFORE_RESET {
+        if self.fetched() {
+            self.health.unfetched = 0;
+            return first;
+        }
+        self.health.unfetched = self.health.unfetched.saturating_add(1);
+        if self.health.unfetched < UNFETCHED_BEFORE_RESET {
             return first;
         }
         self.recover();
@@ -68,7 +69,7 @@ impl Link {
     }
 
     pub(super) fn answered(&mut self) {
-        self.health.missed = 0;
+        self.health.unfetched = 0;
         self.health.resets_unanswered = 0;
     }
 }

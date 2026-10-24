@@ -26,7 +26,7 @@ impl Link {
     /// Reset the rings, or give them up when resets have stopped helping or
     /// an engine will not stop.
     pub(super) fn recover(&mut self) {
-        self.health.missed = 0;
+        self.health.unfetched = 0;
         if self.health.resets_unanswered >= RESETS_BEFORE_IMMEDIATE || !restart(self.regs) {
             self.give_up();
             return;
@@ -41,7 +41,11 @@ impl Link {
     }
 
     fn give_up(&mut self) {
-        // The Immediate interface may not run beside the CORB (3.4.3).
+        // The Immediate interface may not run beside the CORB (3.4.3). When
+        // an engine will not stop it is taken all the same: it is the only
+        // way left to the codec, a CORB that stopped fetching (why this runs)
+        // takes no part in it, and each exchange is bounded (immediate.rs),
+        // so the worst it brings is a verb that times out.
         let stopped = stop(self.regs);
         self.health.immediate = true;
         let how = if stopped { "rings stopped" } else { "rings would not stop" };

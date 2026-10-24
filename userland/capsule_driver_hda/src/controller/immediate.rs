@@ -36,31 +36,39 @@ pub fn get_parameter(regs: Regs, address: u8, param: u16) -> Option<u32> {
     exchange(regs, compose_verb(address, 0, VERB_GET_PARAMETER, param))
 }
 
-/// One verb out through ICOI and its answer back through ICII, each half
-/// bounded; `None` when either half runs out of time.
+/// One verb out through ICOI and its answer back through ICII, each step
+/// bounded; `None` when any step runs out of time.
 pub fn exchange(regs: Regs, verb: u32) -> Option<u32> {
-    // A prior command is read out before a new one is posted: ICB clears when
-    // the controller is free.
     // SAFETY: ICOI, ICII and ICIS are global registers, inside the window
     // (`crate::regs`); so for every access here.
     if !until(IMMEDIATE_MS, || unsafe { regs.r16(ICIS) } & ICIS_ICB == 0) {
         return None;
     }
+    // A result a timed-out verb left valid would read as this one's answer.
+    // IRV is write-one-to-clear, and seen clear before the post.
     // SAFETY: as above.
+    if unsafe { regs.r16(ICIS) } & ICIS_IRV != 0 {
+        // SAFETY: as above.
+        unsafe { regs.w16(ICIS, ICIS_IRV) };
+        // SAFETY: as above.
+        if !until(IMMEDIATE_MS, || unsafe { regs.r16(ICIS) } & ICIS_IRV == 0) {
+            return None;
+        }
+    }
+    // SAFETY: as above. Posting sets ICB; the controller clears it and sets
+    // IRV once the answer is in ICII.
     unsafe {
         regs.w32(ICOI, verb);
-        // Posting sets ICB; the controller clears it and sets IRV once the
-        // answer is in ICII.
         regs.w16(ICIS, ICIS_ICB);
     }
     // SAFETY: as above.
     if !until(IMMEDIATE_MS, || unsafe { regs.r16(ICIS) } & ICIS_IRV != 0) {
         return None;
     }
-    // SAFETY: as above.
-    let result = unsafe { regs.r32(ICII) };
-    // SAFETY: as above. IRV is write-one-to-clear; leave it clear for the
-    // next command.
-    unsafe { regs.w16(ICIS, ICIS_IRV) };
-    Some(result)
+    // SAFETY: as above. IRV cleared again for the next command.
+    unsafe {
+        let result = regs.r32(ICII);
+        regs.w16(ICIS, ICIS_IRV);
+        Some(result)
+    }
 }
