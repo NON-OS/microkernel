@@ -40,10 +40,17 @@ def table(mirror: str, cache: Path, names: list) -> dict:
     return {n: dict(r, base=bases[0], bases=bases) for n, r in found.items() if r}
 
 
+def cached(cache: Path, branch: str, rec: dict) -> Path:
+    """Kept under the branch that served it, so a warm cache never says
+    another branch served it."""
+    return cache / branch / f"{rec['P']}-{rec['V']}.apk"
+
+
 def apk_of(cache: Path, rec: dict) -> bytes:
     """The package from the first branch that serves it, as get/package.rs."""
-    size, at = int(rec["S"]), cache / f"{rec['P']}-{rec['V']}.apk"
-    for base in rec["bases"]:
+    size = int(rec["S"])
+    for branch, base in zip(BRANCHES, rec["bases"]):
+        at = cached(cache, branch, rec)
         try:
             raw = fetch(f"{base}/{rec['P']}-{rec['V']}.apk", at, size)
         except ValueError:

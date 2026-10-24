@@ -25,7 +25,7 @@ from pathlib import Path
 from .catalogue import catalogue_entries
 from .names import cache_safe
 from .recipes_file import load
-from .sources import ARCH, RELEASE, apk_of, table
+from .sources import ARCH, BRANCHES, RELEASE, apk_of, cached, table
 
 
 def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str, key: str, when_ms: int) -> list:
@@ -43,6 +43,7 @@ def catalogue_run(path: Path, cache: Path, mirror: str, release: str, arch: str,
     for r in recipes:
         rec = known.get(r["package"])
         if rec and f"linux.{r['package']}" not in listed_ids and cache_safe(rec):
-            (cache / f"{rec['P']}-{rec['V']}.apk").unlink(missing_ok=True)
+            for branch in BRANCHES:
+                cached(cache, branch, rec).unlink(missing_ok=True)
     print(f"catalogue: {len(found)} of {len(recipes)} apps", file=sys.stderr)
     return found
