@@ -73,3 +73,22 @@ fn bootfb_holding_the_framebuffer_starts_the_list_again_at_once() {
     b.held(9100);
     assert_eq!((b.due(9100, 5), b.gap_ms), (Some(0), FIRST_MS));
 }
+
+#[test]
+fn a_refusal_every_frame_still_walks_the_list_to_the_driver_holding_it() {
+    /*
+     * While a driver holds the framebuffer the kernel refuses every GOP
+     * frame, and each refusal reaches held(). vmware-svga is the second
+     * name; restarted on each refusal, the first name was asked for ever.
+     */
+    let mut b = Backoff::new(0);
+    let mut asked = Vec::new();
+    for t in (100..=3000).step_by(16) {
+        b.held(t);
+        if let Some(i) = b.due(t, 4) {
+            asked.push(i);
+        }
+    }
+    assert_eq!(&asked[..4], [0, 1, 2, 3], "one round, every name, in order");
+    assert_eq!(asked[4], 0, "and the next refusal after the round starts another");
+}
