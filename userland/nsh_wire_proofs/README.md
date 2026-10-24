@@ -14,7 +14,7 @@ Host tests for `nsh_wire`, the nsh/1 wire format. There are 82 tests.
 
 Each rule was also broken on purpose, one at a time, in `nsh_wire`'s source:
 59 mutants, all caught. The list and the test that caught each one are in
-`HANDOFF/letters/server/03-wire-parsers.md`.
+`HANDOFF/letters/server/04-wire-parsers.md`.
 
 Run the tests with `cargo test` from this directory.
 
