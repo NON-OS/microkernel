@@ -50,6 +50,9 @@ pub mod discover_order;
 #[path = "../../../src/services/registry/displays.rs"]
 pub mod displays;
 
+#[path = "../../compositor/src/server/runner/turn_watch.rs"]
+pub mod turn_watch;
+
 #[cfg(test)]
 mod k20_tests;
 #[cfg(test)]
