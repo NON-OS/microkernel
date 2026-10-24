@@ -20,10 +20,9 @@ use nonos_libc::mk_ipc_recv_from;
 
 use crate::bonds::Bonds;
 use crate::clock::now_ms;
-use crate::protocol::{
-    decode_request, E_INVAL, E_MSGSIZE, HDR_LEN, OP_GET_APP, OP_GET_COMMERCE, OP_GET_RELEASE,
-    OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX, RX_BUF_LEN, TX_BUF_LEN,
-};
+use crate::protocol::{decode_request, E_INVAL, E_MSGSIZE, HDR_LEN, RX_BUF_LEN, TX_BUF_LEN};
+use crate::protocol::{OP_GET_APP, OP_GET_COMMERCE, OP_GET_LINUX_POLICY, OP_GET_RELEASE};
+use crate::protocol::{OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX};
 use crate::server::error::{reply_decode_failed, reply_status};
 use crate::server::handlers;
 use crate::store::Store;
@@ -69,6 +68,7 @@ pub fn run<V: Verifier>(store: &mut Store, verifier: &V) -> ! {
                 bonds.pump(now_ms());
             }
             OP_GET_COMMERCE => handlers::get_commerce::handle(store, body, &req, &mut tx),
+            OP_GET_LINUX_POLICY => handlers::get_linux_policy::handle(store, body, &req, &mut tx),
             _ => reply_status(&mut tx, &req, E_INVAL),
         }
     }
