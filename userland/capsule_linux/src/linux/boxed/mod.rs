@@ -24,6 +24,7 @@ mod folders;
 mod hash;
 mod items;
 mod kind;
+mod line;
 mod preset;
 mod report;
 mod state;
