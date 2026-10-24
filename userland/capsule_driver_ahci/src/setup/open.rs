@@ -52,9 +52,8 @@ pub(super) fn open(dev: Found) -> AhciResult<Opened> {
     }
     let mmio = mmio::map(dev.device_id, epoch, dev.abar_size)?;
     let irq = irq::bind(dev, epoch);
-
-    let (id, va) = (mmio.grant_id, mmio.user_va);
-    let handles = BrokerHandles::new(dev.device_id, epoch, id, va, irq.grant_id);
+    let (id, va, irq) = (mmio.grant_id, mmio.user_va, irq.grant_id);
+    let handles = BrokerHandles::new(dev.device_id, epoch, id, va, irq);
     // The broker's VA is that of ABAR's first byte, inside its page when the
     // ABAR does not start on one.
     let regs = Regs::new(handles.mmio_user_va());
@@ -63,9 +62,8 @@ pub(super) fn open(dev: Found) -> AhciResult<Opened> {
     let mut info = ControllerInfo::read(regs);
     // Every later port walk goes by this PI, so no port past the mapped
     // window is ever read or written.
-    let window = ports_in_window(mmio.length);
     let raw_pi = info.pi;
-    info.pi = effective_pi(info.cap, raw_pi) & window;
+    info.pi = effective_pi(info.cap, raw_pi) & ports_in_window(mmio.length);
     say_hba(&info, raw_pi, mmio.length);
     say_port_map(dev.vendor, dev.device_id, epoch);
     master_after_reset(dev.device_id, epoch, regs, info.pi, info.port_count)?;

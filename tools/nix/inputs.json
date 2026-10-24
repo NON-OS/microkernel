@@ -663,6 +663,7 @@
    "userland/capsule_driver_ahci/src/setup/pci.rs",
    "userland/capsule_driver_ahci/src/setup/remap.rs",
    "userland/capsule_driver_ahci/src/setup/say_hba.rs",
+   "userland/capsule_driver_ahci/src/setup/say_port_map.rs",
    "userland/capsule_driver_ahci/src/setup/serve.rs",
    "userland/capsule_driver_ahci/src/setup/walked.rs"
   ],
