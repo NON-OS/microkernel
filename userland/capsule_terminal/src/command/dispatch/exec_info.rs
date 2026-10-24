@@ -27,6 +27,7 @@ pub(super) fn run(state: &mut State, cmd: Info, args: &[&[u8]]) {
         Info::Version => builtin::version::run(&mut Output::new(&mut state.scrollback), args),
         Info::Whoami => builtin::whoami::run(&mut Output::new(&mut state.scrollback), args),
         Info::Receipt => builtin::receipt::run(&mut Output::new(&mut state.scrollback), args),
+        Info::Audit => builtin::audit::run(&mut Output::new(&mut state.scrollback), args),
         Info::Log => builtin::log::run(&mut Output::new(&mut state.scrollback), args),
         Info::Capsules => builtin::capsules::run(&mut Output::new(&mut state.scrollback), args),
         Info::Display => builtin::display::run(&mut Output::new(&mut state.scrollback), args),

@@ -12,8 +12,8 @@ flowchart TB
     ke --> ih["init_handoff(ptr)<br/>boot/handoff/api/init.rs:40"]
     ih -->|invalid| fb["vga_fallback()<br/>entry/fallback.rs:14"]
     ih -->|valid| iv["is_valid()<br/>boot/handoff/types/handoff.rs:50"]
-    iv --> sec["log_security_status<br/>entry/security.rs:17"]
-    sec --> ics["init_core_systems<br/>boot/main/core_init"]
+    iv --> ics["init_core_systems<br/>boot/main/core_init"]
+    ics --> sec["log_security_status<br/>entry/security.rs:17"]
     ics --> kh["KernelHandoff::from_x86_64<br/>boot/handoff/kernel_handoff/x86_64/from.rs:29"]
     kh --> mi["kernel_core::microkernel_init<br/>init/entry/microkernel_init.rs:33"]
     mi --> mm["kernel_core::microkernel_main<br/>init/entry/microkernel_main.rs:22"]
@@ -70,9 +70,10 @@ src/boot/
 | `handle_oom` | `src/entry/oom.rs:46` | The alloc-error handler: dumps the memory map and surface accounting, then halts. |
 | wired as `#[alloc_error_handler]` | `src/lib.rs:54-55` | The crate's global allocation-failure handler calls `entry::handle_oom`. |
 | `vga_fallback` | `src/entry/fallback.rs:14` | Writes to the VGA buffer and halts when there is no usable framebuffer. |
-| `log_security_status` | `src/entry/security.rs:17` | Logs the boot's secure-boot and signature status, and applies the loader RNG seed. |
+| `log_security_status` | `src/entry/security.rs:17` | Logs the boot's secure-boot and signature status. |
+| `apply_boot_seed` | `src/entry/security.rs:36` | Applies the loader RNG seed, from `init_core_systems`, before the baseline draws. |
 
-`handle_oom` reaches back into the core's `dump_surface_accounting` (`src/kernel_core/surface_registry/`) and into `crate::syscall::microkernel::memory` for the memory map, so the out-of-memory report names what was mapped when the allocation failed. The security log applies the loader's `rng.seed32` through `crate::crypto::rng` and then wipes the boot seed.
+`handle_oom` reaches back into the core's `dump_surface_accounting` (`src/kernel_core/surface_registry/`) and into `crate::syscall::microkernel::memory` for the memory map, so the out-of-memory report names what was mapped when the allocation failed. `apply_boot_seed` applies the loader's `rng.seed32` through `crate::crypto::rng` and then wipes the boot seed.
 
 ## Wiring
 

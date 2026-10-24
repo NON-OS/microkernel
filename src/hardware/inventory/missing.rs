@@ -27,9 +27,7 @@ pub fn missing_path(family: HardwareFamily) -> Option<&'static str> {
         AudioHda => "stream DMA ring, playback path",
         InputI2cHid => "HID-over-I2C input report path",
         SerialI2c => "I2C transfer engine",
-        DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => {
-            "native modeset and scanout driver"
-        }
+        DisplayNativeAmd | DisplayNativeNvidia => "native modeset and scanout driver",
         UsbEhci => "EHCI host controller driver",
         UsbOhci => "OHCI host controller driver",
         UsbUhci => "UHCI host controller driver",
