@@ -19,6 +19,9 @@
 
 #[path = "acpi_span/mod.rs"]
 pub mod acpi_span;
+/// The GOP present refused while a claimed device holds the boot framebuffer.
+#[path = "boot_fb/mod.rs"]
+mod boot_fb;
 #[path = "block_wire/mod.rs"]
 mod block_wire;
 #[path = "described/mod.rs"]
