@@ -33,9 +33,9 @@ pub fn box_hash(policy: &BoxPolicy) -> [u8; 32] {
         Preset::Allow => 3,
     }]);
     h.update(&policy.mask.to_be_bytes());
-    h.update(&(policy.folders.len() as u16).to_be_bytes());
+    h.update(&(policy.folders.len() as u32).to_be_bytes());
     for f in &policy.folders {
-        h.update(&(f.len() as u16).to_be_bytes());
+        h.update(&(f.len() as u32).to_be_bytes());
         h.update(f);
     }
     let dests = match policy.dests.is_empty() {

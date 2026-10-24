@@ -19,7 +19,9 @@
 
 use nonos_libc::mk_proc_output;
 
+use super::box_hold::BoxHold;
 use super::capture::Capture;
+use super::external_route::route;
 use crate::command::output::Output;
 
 /// Output taken from a program in one tick. A program printing fast used to
@@ -33,6 +35,7 @@ const DISCARD_MAX: usize = 4096;
 pub(super) fn drain_remaining(
     pid: u32,
     mut capture: Option<&mut Capture>,
+    mut boxed: Option<&mut BoxHold>,
     out: &mut Output<'_>,
     buf: &mut [u8; 256],
 ) {
@@ -47,10 +50,7 @@ pub(super) fn drain_remaining(
             break;
         }
         let m = (m as usize).min(buf.len());
-        match capture.as_deref_mut() {
-            Some(capture) => capture.route(&buf[..m], out),
-            None => out.feed_raw(&buf[..m]),
-        }
+        route(&buf[..m], capture.as_deref_mut(), boxed.as_deref_mut(), out);
         taken += m;
     }
 }

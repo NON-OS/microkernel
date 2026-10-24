@@ -38,6 +38,9 @@ fn every_malformed_box_is_refused() {
         b"allow:net:-bad-.com:443",
         b"allow:net::443",
         b"allow:net:1.2.3:443",
+        b"allow:/tmp/a b",
+        b"allow:/tmp/\x1b[2J",
+        b"allow:/tmp/caf\xc3\xa9",
     ] {
         assert!(parse(bad).is_err(), "{} was taken", String::from_utf8_lossy(bad));
     }

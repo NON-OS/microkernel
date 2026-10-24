@@ -20,21 +20,38 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use nonos_linux_policy::dests::{entries, Kind};
-use nonos_linux_policy::mask::{grants, NET_ANON};
+use nonos_linux_policy::mask::{grants, EXEC, FILES_HOME, NET_ANON};
 
+use super::folders::under;
 use super::preset::BoxPolicy;
 
-pub fn allowed(policy: &BoxPolicy) -> Vec<String> {
+const HOMES: &[&[u8]] = &[b"/home", b"/root"];
+
+/// What the program was given, a line each: the box as it narrowed the
+/// program's own grants (`granted`), or the box as named if it never started.
+pub fn allowed(policy: &BoxPolicy, granted: Option<u64>) -> Vec<String> {
+    let mask = granted.unwrap_or(policy.mask);
+    // /home and /root are the run's own only with FILES_HOME (file/private/rule.rs).
+    let folders: Vec<String> = policy
+        .folders
+        .iter()
+        .filter(|f| grants(mask, FILES_HOME) || !HOMES.iter().any(|h| under(f, h)))
+        .map(|f| String::from_utf8_lossy(f).into_owned())
+        .collect();
     let mut out = Vec::new();
-    let folders: Vec<String> =
-        policy.folders.iter().map(|f| String::from_utf8_lossy(f).into_owned()).collect();
-    out.push(alloc::format!("write {}", folders.join(" ")));
+    out.push(match folders.is_empty() {
+        true => "write nothing".to_string(),
+        false => alloc::format!("write {}", folders.join(" ")),
+    });
     out.push("read the image, read-only".to_string());
-    match grants(policy.mask, NET_ANON) {
-        true => out.push(alloc::format!("network {}", dests(&policy.dests).join(" "))),
-        false => out.push("network none".to_string()),
-    }
-    out.push("execve, each program held to this box".to_string());
+    out.push(match grants(mask, NET_ANON) && !policy.dests.is_empty() {
+        true => alloc::format!("network {}", dests(&policy.dests).join(" ")),
+        false => "network none".to_string(),
+    });
+    out.push(match grants(mask, EXEC) {
+        true => "execve, each program held to this box".to_string(),
+        false => "execve none".to_string(),
+    });
     out
 }
 
