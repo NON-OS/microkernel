@@ -29,6 +29,7 @@ pub(crate) const FAMILIES: &[&str] = &["driver", "net"];
 
 /// The core services, the desktop and the proof services.
 pub(crate) const CORE: &[(&str, &str)] = &[
+    ("acpi", "systems.nonos.acpi"),
     ("attest", "systems.nonos.attest"),
     ("audio.server", "systems.nonos.audio.server"),
     ("clipboard", "systems.nonos.clipboard"),

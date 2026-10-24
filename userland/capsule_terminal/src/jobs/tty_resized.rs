@@ -25,7 +25,7 @@ use crate::term::state::State;
 pub fn resized(state: &State) {
     let Some(id) = state.jobs.foreground() else { return };
     let (pid, streams) = match state.jobs.get(id).map(|j| &j.work) {
-        Some(JobWork::ExternalStage { pid, capture, stdin }) => {
+        Some(JobWork::ExternalStage { pid, capture, stdin, .. }) => {
             (*pid, streams(capture.is_some(), !stdin.takes_keys()))
         }
         Some(JobWork::InstallDrain(job)) if job.pid != 0 => (job.pid, ALL),
