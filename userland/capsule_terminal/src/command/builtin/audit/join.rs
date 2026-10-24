@@ -49,8 +49,12 @@ fn ceiling(e: &[u8]) -> (u32, Ceiling) {
 }
 
 /// `entries` as the kernel wrote them; `procs` as (pid, name). Pid 0, the
-/// kernel's own, is not a capsule. Ordered by pid.
-pub fn join(entries: &[u8], procs: &[(u32, &[u8])]) -> Vec<Row> {
+/// kernel's own, is not a capsule. Ordered by pid. None for a registry that
+/// is not whole entries, which this build and the kernel disagree on.
+pub fn join(entries: &[u8], procs: &[(u32, &[u8])]) -> Option<Vec<Row>> {
+    if !entries.len().is_multiple_of(ENTRY_LEN) {
+        return None;
+    }
     let mut rows: Vec<Row> = Vec::new();
     for e in entries.chunks_exact(ENTRY_LEN) {
         let (pid, c) = ceiling(e);
@@ -63,5 +67,5 @@ pub fn join(entries: &[u8], procs: &[(u32, &[u8])]) -> Vec<Row> {
         }
     }
     rows.sort_by_key(|r| r.pid);
-    rows
+    Some(rows)
 }

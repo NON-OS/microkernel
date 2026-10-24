@@ -4753,6 +4753,7 @@
    "userland/capsule_attest/src/state/live/caps.rs",
    "userland/capsule_attest/src/state/live/types.rs",
    "userland/capsule_terminal/src/command/builtin/audit/agent.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/format.rs",
    "userland/capsule_terminal/src/command/builtin/audit/join.rs",
    "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
    "userland/capsule_terminal/src/command/builtin/audit/table.rs",

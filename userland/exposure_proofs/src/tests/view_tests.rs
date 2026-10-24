@@ -5,9 +5,10 @@
 
 use super::model::{entry, kernel_bits, masks};
 use crate::command::builtin::audit::agent::agent;
+use crate::command::builtin::audit::format::HEADING;
 use crate::command::builtin::audit::join::join;
 use crate::command::builtin::audit::reach::{reaches, AREAS, DEVICES_NOTE};
-use crate::command::builtin::audit::table::{line, HEADING};
+use crate::command::builtin::audit::table::line;
 
 fn text(b: &[u8]) -> String {
     String::from_utf8(b.to_vec()).unwrap()
@@ -20,7 +21,7 @@ fn each_column_says_its_verdict() {
         .map(|h| text(HEADING[0]).find(h).unwrap())
         .collect();
     for m in masks().into_iter().take(2_000) {
-        let rows = join(&entry(9, m, 255), &[(9, b"app.x")]);
+        let rows = join(&entry(9, m, 255), &[(9, b"app.x")]).unwrap();
         let l = text(&line(&rows[0]));
         for (i, area) in AREAS.iter().enumerate() {
             let cell = &l[at[i]..at[i] + 3];
@@ -28,7 +29,7 @@ fn each_column_says_its_verdict() {
         }
         assert!(l.contains("publisher"));
     }
-    let unsigned = join(&[], &[(4, b"init")]);
+    let unsigned = join(&[], &[(4, b"init")]).unwrap();
     assert!(text(&line(&unsigned[0])).contains("no signed ceiling"));
     assert!(text(DEVICES_NOTE).contains("not devices claimed now"));
 }
@@ -38,7 +39,7 @@ fn an_agent_shows_what_opens_each_area_and_who_signed_it() {
     let k = kernel_bits();
     let m = k["Network"] | k["Dma"] | k["Driver"] | k["IPC"];
     let regs = [entry(5, m, 0), entry(6, 0, 3)].concat();
-    let rows = join(&regs, &[(5, b"net.core"), (6, b"net.core"), (7, b"app.y")]);
+    let rows = join(&regs, &[(5, b"net.core"), (6, b"net.core"), (7, b"app.y")]).unwrap();
     let out: Vec<String> = agent(&rows, b"net.core").iter().map(|l| text(l)).collect();
     assert_eq!(out.iter().filter(|l| l.starts_with("net.core, pid ")).count(), 2);
     assert!(out.iter().any(|l| l.contains("network    YES, through Network")));

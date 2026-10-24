@@ -16,6 +16,8 @@
 
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/agent.rs"]
 pub mod agent;
+#[path = "../../../../../capsule_terminal/src/command/builtin/audit/format.rs"]
+pub mod format;
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/join.rs"]
 pub mod join;
 #[path = "../../../../../capsule_terminal/src/command/builtin/audit/reach.rs"]
