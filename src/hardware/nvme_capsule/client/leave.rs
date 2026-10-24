@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! This driver's leg of the leave phase (block_device::leave): Flush, the normal shutdown (capped at 10 s) and the reset.
+//! This driver's leg of the leave phase (block_device::leave): the normal
+//! shutdown (capped at 10 s, capsule_driver_nvme admin/shutdown_step.rs)
+//! and the reset, with no flush ahead (the shutdown writes the cache back).
 
 use alloc::vec;
 

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::health::{le16, le32};
+
 #[derive(Clone, Copy)]
 pub struct ControllerIdentity {
     pub vendor_id: u16,
@@ -67,12 +69,4 @@ impl ControllerIdentity {
             },
         }
     }
-}
-
-fn le16(data: &[u8], off: usize) -> u16 {
-    u16::from_le_bytes([data[off], data[off + 1]])
-}
-
-fn le32(data: &[u8], off: usize) -> u32 {
-    u32::from_le_bytes([data[off], data[off + 1], data[off + 2], data[off + 3]])
 }

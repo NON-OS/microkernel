@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The power-off (NVMe 2.0, 3.6.2): a flush, the normal shutdown waited out
-//! within RTD3E as capped, then the reset, whichever way the wait ended; the
-//! kernel's alone. A controller that never finishes costs the budget and no
+//! The power-off (NVMe 2.0, 3.6.2): the normal shutdown, no flush ahead of
+//! it, waited out within RTD3E as capped, then the reset, whichever way the
+//! wait ended; the kernel's alone. A controller that never finishes costs the budget and no
 //! more.
 
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 
 use nonos_libc::calls;
 
@@ -32,7 +32,7 @@ use crate::error::NvmeError;
 use crate::fake::{register, up, Up};
 use crate::medium_rule::allows;
 use crate::protocol::{E_IO, E_TIMEDOUT, OP_FLUSH, OP_POWER_OFF};
-use crate::server::power_off_rule::power_off;
+use crate::server::power_off_rule::status;
 
 const OCCURRING: u32 = 1 << 2;
 const COMPLETE: u32 = 2 << 2;
@@ -135,27 +135,7 @@ fn a_controller_gone_from_the_bus_is_not_waited_on() {
 }
 
 #[test]
-fn the_flush_comes_first_and_the_shutdown_runs_whatever_it_did() {
-    for flush_result in [Ok(()), Err(E_IO)] {
-        let seen = RefCell::new(Vec::new());
-        let done = power_off(
-            || {
-                seen.borrow_mut().push("flush");
-                flush_result
-            },
-            || {
-                seen.borrow_mut().push("shut");
-                Ok(())
-            },
-        );
-        assert_eq!(*seen.borrow(), ["flush", "shut"]);
-        assert_eq!(done.status(), flush_result.err().unwrap_or(0));
-    }
-}
-
-#[test]
 fn the_reply_names_how_the_shutdown_ended() {
-    let status = |shut| power_off(|| Ok(()), || shut).status();
     assert_eq!(status(Ok(())), 0);
     assert_eq!(status(Err(NvmeError::ShutdownTimeout)), E_TIMEDOUT);
     assert_eq!(status(Err(NvmeError::ControllerFatal)), E_IO);

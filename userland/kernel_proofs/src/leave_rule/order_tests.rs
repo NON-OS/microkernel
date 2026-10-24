@@ -14,30 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where the leave phase runs: first in terminate(), before the other CPUs
-//! stop and before the wipe, since the capsules that make the disks safe
-//! must still be running; never on the panic path.
+//! Where the leave phase runs: in terminate() and terminate_critical(),
+//! after the once-guard and before the other CPUs stop and before the wipe,
+//! since the capsules that make the disks safe must still be running; never
+//! on the panic path.
 
 const TERMINATE: &str = include_str!("../../../../src/security/zerostate/terminate.rs");
 const LEAVE: &str = include_str!("../../../../src/security/zerostate/leave.rs");
 
-fn body_of_terminate() -> &'static str {
-    let at = TERMINATE.find("pub(crate) fn terminate(").expect("terminate() is gone");
-    &TERMINATE[at..]
+/// The text of `fn name(` up to the next item's start.
+fn body_of(name: &str) -> &'static str {
+    let at = TERMINATE.find(&format!("fn {name}(")).unwrap_or_else(|| panic!("{name}() is gone"));
+    let rest = &TERMINATE[at..];
+    let end =
+        rest[1..].find("\nfn ").or_else(|| rest[1..].find("\npub")).map_or(rest.len(), |e| e + 1);
+    &rest[..end]
 }
 
 #[test]
-fn the_leave_phase_comes_before_the_stop_and_the_wipe() {
-    let body = body_of_terminate();
-    let leave = body.find("super::leave::run();").expect("terminate() no longer leaves");
-    let stop = body.find("broadcast_ipi(Ipi::Stop)").expect("terminate() no longer stops the CPUs");
-    let wipe = body.find("zerostate_shutdown_wipe()").expect("terminate() no longer wipes");
-    assert!(leave < stop && stop < wipe, "leave {leave}, stop {stop}, wipe {wipe}");
+fn both_ways_out_go_through_the_one_end() {
+    assert!(body_of("terminate").contains("end(off, TOTAL_MS)"));
+    assert!(body_of("terminate_critical").contains("end(off, CRITICAL_TOTAL_MS)"));
 }
 
 #[test]
-fn the_leave_phase_asks_the_disks() {
-    assert!(LEAVE.contains("crate::hardware::block_device::leave::power_off_disks();"));
+fn the_once_guard_then_the_leave_phase_come_before_the_stop_and_the_wipe() {
+    let body = body_of("end");
+    let once = body.find("if !first(&ENDING)").expect("the once-guard is gone");
+    let leave = body.find("super::leave::run(off, leave_ms);").expect("end() no longer leaves");
+    let stop = body.find("broadcast_ipi(Ipi::Stop)").expect("end() no longer stops the CPUs");
+    let wipe = body.find("zerostate_shutdown_wipe()").expect("end() no longer wipes");
+    assert!(once < leave && leave < stop && stop < wipe, "{once} {leave} {stop} {wipe}");
+}
+
+#[test]
+fn a_later_caller_parks_without_halting_its_cpu() {
+    let park = body_of("park");
+    assert!(park.contains("lifecycle::rest(round)"), "a later caller does not give its CPU back");
+    assert!(!park.contains("halt") && !park.contains("disable_interrupts"), "{park}");
+}
+
+#[test]
+fn the_leave_phase_asks_the_disks_and_a_restart_spins_none_down() {
+    assert!(LEAVE.contains("power_off_disks(restart, total_ms)"));
+    assert!(LEAVE.contains("matches!(off, PowerOff::Reboot)"));
 }
 
 #[test]
