@@ -4236,6 +4236,55 @@
   "md": [],
   "signed": []
  },
+ "userland/demo_screen_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "LICENSE",
+   "VERSION",
+   "nonos-bench",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/services/registry/displays.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/base64",
+   "userland/capsule_about/src/about",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/tiers/memory.rs",
+   "userland/capsule_terminal/src/command",
+   "userland/capsule_terminal/src/event",
+   "userland/capsule_terminal/src/git",
+   "userland/capsule_terminal/src/jobs",
+   "userland/capsule_terminal/src/layout",
+   "userland/capsule_terminal/src/mixnet",
+   "userland/capsule_terminal/src/paint",
+   "userland/capsule_terminal/src/palette",
+   "userland/capsule_terminal/src/rail",
+   "userland/capsule_terminal/src/term",
+   "userland/demo_screen_proofs",
+   "userland/inflate",
+   "userland/libc",
+   "userland/market_proto",
+   "userland/nonos_git",
+   "userland/nonos_http",
+   "userland/nonos_nox_config",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/nonos_vt",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/route_proof",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/desktop_proofs": {
   "exclude": [
    "userland/toolkit/image_tests"
