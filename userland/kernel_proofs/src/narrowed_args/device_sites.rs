@@ -37,7 +37,11 @@ pub(super) fn device_sites() -> Vec<(&'static str, &'static str, Vec<&'static st
             include_str!("../../../../src/syscall/microkernel/dispatch/debug.rs"),
             vec![],
         ),
-        ("pci.rs", include_str!("../../../../src/syscall/microkernel/pci.rs"), vec![]),
+        (
+            "pci/config.rs",
+            include_str!("../../../../src/syscall/microkernel/pci/config.rs"),
+            vec![],
+        ),
         (
             "dispatch/device.rs",
             include_str!("../../../../src/syscall/microkernel/dispatch/device.rs"),
