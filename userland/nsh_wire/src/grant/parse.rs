@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading a grant. Everything the bytes alone can settle is settled here
-//! (`grant_rules`); signatures, the clock, the fleet and the role table are
+//! (`grant::rules`); signatures, the clock, the fleet and the role table are
 //! the server's checks.
 
 use crate::enrol::fleet;
@@ -45,6 +45,7 @@ impl<'a> Grant<'a> {
         let issuer = r.array()?;
         let signed = &body[..r.pos];
         let sig = HybridSig::read(&mut r)?;
+        let issued = &body[..r.pos];
         let approvals = approvals(&mut r, kind, issuer)?;
         r.finish()?;
         Ok(Grant {
@@ -61,6 +62,7 @@ impl<'a> Grant<'a> {
             issuer,
             sig,
             signed,
+            issued,
             approvals,
         })
     }

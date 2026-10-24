@@ -42,7 +42,8 @@ def enrol():
 
 def record():
     head = b"NSHR" + pack("<HH", 1, 0) + b"\x5e" * 16 + pack("<Q", 1000)
-    head += b"\xd0" * 64 + b"\x4b" * 64 + b"\x5b" * 64 + b8(b"ek") + b8(b"auditor")
+    head += b"\x7a" * 64 + PUB + b16(enrol()) + b"\xd0" * 64 + b"\x5b" * 64
+    head += b8(b"ek") + b8(b"auditor")
     head += b"\x6a" * 64 + caps([b"CoreExec"])
     ents = pack("<IQB", 0, 1100, 1) + b16(b"ls /var/log")
     ents += pack("<IQB", 1, 1200, 7) + b16(pack("<i", 0))
