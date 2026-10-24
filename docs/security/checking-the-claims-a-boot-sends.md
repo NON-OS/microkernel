@@ -11,9 +11,11 @@ writing to `QEMU_NET_CAPTURE` (`mk/10-qemu.mk:124-143`). The mode defaults to
 card, and an empty `QEMU_NET_CAPTURE` boots without a capture
 (`mk/10-qemu.mk:35-39`).
 
-`tools/nonos-pcap-egress` reads a capture and judges every frame the guest
-sent; the host's own frames, from QEMU's user-net MAC `52:55:0a:00:02:02`, are
-not judged (`judge`, `tools/nonos_pcap_egress.py`). The run fails on any of
+`tools/nonos-pcap-egress` reads a capture and judges every frame the guest sent (`judge`, `tools/nonos_pcap_egress.py`):
+
+- The host's own frames are not judged. They come from QEMU's user-net MACs: `52:55:0a:00:02:02`, and `52:56:00:00:00:02` for IPv6.
+- Frames from the NIC's assigned MAC (`--nic-mac`, QEMU's `52:54:00:12:34:56` by default) sent before the guest uses any other address are the UEFI firmware's, before NONOS runs. They are counted as firmware frames and not judged.
+- NONOS replaces that address with a random one, so a frame from it after that fails as `mac`. The run fails on any of
 these, each named in the output as `[egress] FAIL <kind>: <what>`:
 
 | kind | what |
