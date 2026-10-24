@@ -32,7 +32,7 @@ pub(super) fn entry_for(pid: u32, now_ms: u64) -> ProcStatEntry {
         state: 0,
         name_len: 0,
         priority: 0,
-        _pad: 0,
+        flags: 0,
         run_ticks: proc_ticks::ticks_for(pid),
         caps: 0,
         mem_kb: 0,
@@ -54,6 +54,7 @@ pub(super) fn entry_for(pid: u32, now_ms: u64) -> ProcStatEntry {
         e.state = state_code(&pcb.state.lock());
         e.priority = priority_code(&pcb.priority.lock());
         e.caps = pcb.caps_bits.load(Ordering::Relaxed);
+        e.flags = u8::from(pcb.debug_withheld.load(Ordering::Relaxed));
         let mem = pcb.memory_state();
         e.mem_kb = mem.resident_pages.load(Ordering::Relaxed) as u64 * 4;
         e.vma_count = mem.vmas.len() as u32;

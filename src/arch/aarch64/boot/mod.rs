@@ -22,6 +22,7 @@ mod finish;
 mod high;
 pub mod info;
 mod init;
+mod loader;
 mod memory;
 pub mod multicore;
 mod pci_windows;

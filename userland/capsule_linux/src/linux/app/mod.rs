@@ -20,6 +20,7 @@ mod choose;
 mod family;
 mod gate;
 mod identity;
+mod identity_box;
 mod identity_exec;
 mod reach;
 mod rules;

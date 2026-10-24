@@ -49,7 +49,7 @@ pub(super) fn stamp(
         Ok(now) => now,
         Err(e) => return errno::fail(e),
     };
-    if super::super::synth::owns(&full)
+    if super::super::synth::refused_write(&full)
         || (!super::super::cache::held(&full) && key(&full).writable().is_err())
     {
         return errno::fail(errno::EROFS);

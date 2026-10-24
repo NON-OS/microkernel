@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod about;
+pub mod audit;
 pub mod bench;
 pub mod cap_names;
 pub mod capsules;

@@ -60,6 +60,39 @@ instance endpoints above. Arguments: `install <name> <hash>` or `run <name> [cli
 
 The installer's exit code is its reason (`install/why.rs`), which the store shows in words.
 
+## Boxed runs
+
+The terminal's `linux --box <box> <program> [args]` runs the program held to a named box
+(`src/linux/boxed/`, armed in `terminal_box.rs`):
+
+- `strict`: no network; only the run's own `/tmp` is written.
+- `offline`: no network; the image is read-only, and the run's own folders (`/tmp`, `/home`,
+  `/root`, `/run`, `/var/tmp`, `/dev/shm`) are written.
+- `allow:<folder>,...`: only the folders named, each inside those, are written. A destination
+  item (`net:<IPv4 or name>:<port>`) parses, but a terminal run, the only kind that takes a box,
+  refuses it: it has no network in this release (`boxed/terminal_run.rs`).
+
+Each box grants a terminal and execve; every program the run execs is held to it too. The box
+narrows the program's own policy (`app/identity_box.rs`) and never widens it: a program whose
+policy grants no network has none in any box. Each box has one hash, BLAKE3 under
+`NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).
+
+At the end the run sends a `BOX REPORT v1` to the terminal that started it: the box and its hash,
+what the program actually had (the box narrowed by its own policy), each kind of refused action
+with its count and first three examples, whether it started, and the exit status, followed by one
+`[BOX] v=1 preset=... policy=... refused=N <kind>=N ... started=yes|no exit=N source=capsule_linux`
+line. The terminal names the run a key ahead of its words (`--box-key=<hex>`), and every report
+frame opens with `TAG_BOX` and that key (`boxed/frames.rs`), so the guest, which writes the same
+channel and never sees the key, cannot forge the report; the terminal draws it after the run's
+output ends and writes the `[BOX]` line to the serial log. A full inbox is waited on, not dropped.
+A run that stops before its guest starts still reports why (`start_stop.rs`). A refused action is
+counted once for each kind per call. The counts are this capsule's enforcement, not the kernel's
+sealed histogram, which counts by errno.
+
+The program's app_id is noted to slot 0 of the kernel's seal before its guest starts
+(`seal_note.rs`, I-C6), so a family running a proved program is kept to be proved; the
+capsule's own BusyBox, whose app_id no verifier takes, is not noted.
+
 ## Network
 
 A guest's sockets stay inside the family, except a stream to an address outside
