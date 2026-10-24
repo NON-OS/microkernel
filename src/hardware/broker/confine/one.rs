@@ -33,10 +33,18 @@ pub(super) fn attach_one(
     must: bool,
     reach: (&[Member], &[DeviceAddress]),
 ) -> Result<(), Refusal> {
+    let port_only = port_only_held(pid);
     let mut all = CAPSULES.lock();
-    let Some(pos) = capsule_for(&mut all, pid, must)? else {
+    let Some(pos) = capsule_for(&mut all, pid, (must, port_only))? else {
         return Ok(());
     };
     super::join::join(&mut all, pos, device_id, address, reach)?;
     Ok(super::join_alias::join_aliases(&mut all, pid, device_id, reach.1)?)
+}
+
+/// Whether `pid`'s capsule claims port-only (port_only.rs), by what it holds.
+pub(super) fn port_only_held(pid: u32) -> bool {
+    use crate::capabilities::Capability;
+    let has = |c: Capability| crate::process::caps::has(pid, c.bit());
+    super::port_only::port_only(has(Capability::Dma), has(Capability::Mmio))
 }

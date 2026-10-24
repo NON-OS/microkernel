@@ -42,6 +42,7 @@ mod layout_tests;
 mod machine;
 mod q35_tests;
 mod read_layer;
+mod shared_tests;
 mod tests;
 mod tree_tests;
 mod words_tests;
