@@ -49,7 +49,7 @@
           },
           "validation": {
             "status": "validated",
-            "note": "fetched and hashed at 1023474 bytes; licence Unlicense; its box applies from I-C5",
+            "note": "fetched and hashed at 1023474 bytes; licence Unlicense; installs only in this release's box",
             "validator_id": "nonos.operator.linux",
             "validated_at_ms": 1792844669000
           }

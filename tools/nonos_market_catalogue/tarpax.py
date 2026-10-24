@@ -24,11 +24,13 @@ class Overrides:
 
 
 def decimal(text: bytes):
-    """As tar_pax.rs: digits only, and None where a usize would overflow."""
-    if not text or len(text) > 20 or not all(0x30 <= b <= 0x39 for b in text):
+    """As tar_pax.rs: digits only, leading zeros and all; None where its
+    usize would overflow. Past 20 significant digits it would; a value
+    below that but past 2^64 is past any body, which ends the records alike."""
+    if not text or not all(0x30 <= b <= 0x39 for b in text):
         return None
-    value = int(text)
-    return value if value < 1 << 64 else None
+    digits = text.lstrip(b"0")
+    return None if len(digits) > 20 else int(digits or b"0")
 
 
 def read(body: bytes, into: Overrides) -> None:

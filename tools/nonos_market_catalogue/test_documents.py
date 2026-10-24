@@ -65,7 +65,7 @@ class Documents(unittest.TestCase):
             self.assertEqual(rel["package_hash"], rel["manifest_hash"])
             self.assertTrue(rel["package_url"].endswith(f"/{rel['release_id'].replace('@', '-')}.apk"))
             self.assertIn(f"licence {recipe['licence']}", rel["validation"]["note"])
-            self.assertIn("its box applies from I-C5", rel["validation"]["note"])
+            self.assertIn("installs only in this release's box", rel["validation"]["note"])
             self.assertEqual(rel["publisher_signature"], "")
 
 

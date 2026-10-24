@@ -78,7 +78,6 @@
  {"name": "auth-datahash-hex", "file": "alpine_auth.py", "old": "if len(text) != 64 or any(c not in \"0123456789abcdef\" for c in text):", "new": "if len(text) != 64:"},
  {"name": "auth-pkginfo-name", "file": "alpine_auth.py", "old": "if e.name == b\".PKGINFO\"]", "new": "]"},
  {"name": "auth-rust-trim", "file": "alpine_auth.py", "old": "(trim(x[len(\"datahash = \"):])", "new": "(x[len(\"datahash = \"):].strip()"},
- {"name": "pax-u64", "file": "tarpax.py", "old": "return value if value < 1 << 64 else None", "new": "return value"},
  {"name": "tar-octal-space", "file": "tarfield.py", "old": "elif b in (0x20, 0):", "new": "elif b == 0:"},
  {"name": "gz-max-inflated", "file": "gz.py", "old": "MAX_INFLATED = 128 << 20", "new": "MAX_INFLATED = 256 << 20"},
  {"name": "apk-max-image", "file": "apk.py", "old": "if len(body) > MAX_IMAGE:", "new": "if False:"},
@@ -89,7 +88,9 @@
  {"name": "sources-listed", "file": "sources.py", "old": "found = {n: listed(recs, n) for n in names}", "new": "found = {n: next((r for r in recs if n in (r['P'], r.get('p', ''))), None) for n in names}"},
  {"name": "sources-size", "file": "sources.py", "old": "if len(raw) != size:", "new": "if False:"},
  {"name": "sources-drop-wrong-size", "file": "sources.py", "old": "at.unlink(missing_ok=True)\n            raise", "new": "raise"},
- {"name": "sources-first-branch", "file": "sources.py", "old": "for base in rec[\"bases\"]:", "new": "for base in reversed(rec[\"bases\"]):"},
+ {"name": "sources-first-branch", "file": "sources.py", "old": "zip(BRANCHES, rec[\"bases\"])", "new": "reversed(list(zip(BRANCHES, rec[\"bases\"])))"},
+ {"name": "sources-branch-cache", "file": "sources.py", "old": "return cache / branch / f", "new": "return cache / f"},
+ {"name": "run-drop-every-branch", "file": "run.py", "old": "for branch in BRANCHES:", "new": "for branch in BRANCHES[:1]:"},
  {"name": "run-release", "file": "run.py", "old": "if (release, arch) != (RELEASE, ARCH):", "new": "if False:"},
  {"name": "run-cache-safe", "file": "run.py", "old": "not in listed_ids and cache_safe(rec):", "new": "not in listed_ids:"},
  {"name": "verdict-started", "file": "verdict.py", "old": "if STARTED + app.encode() not in log:", "new": "if False:"},
@@ -97,5 +98,7 @@
  {"name": "verdict-needs-set", "file": "verdict.py", "old": "if not sets:", "new": "if False:"},
  {"name": "verdict-unite", "file": "verdict.py", "old": "logs[app] = logs.get(app, b\"\") + Path(log).read_bytes() + b\"\\n\"", "new": "logs[app] = Path(log).read_bytes()"},
  {"name": "verdict-only-passing", "file": "verdict.py", "old": "found = {app: calls for app, (ok, calls, _) in results.items() if ok}", "new": "found = {app: calls for app, (ok, calls, _) in results.items()}"},
- {"name": "verdict-usage", "file": "verdict.py", "old": "if not pairs or any(len(p) != 2 for p in pairs):", "new": "if not pairs:"}
+ {"name": "verdict-usage", "file": "verdict.py", "old": "if not pairs or any(len(p) != 2 for p in pairs):", "new": "if not pairs:"},
+ {"name": "pax-leading-zeros", "file": "tarpax.py", "old": "digits = text.lstrip(b\"0\")", "new": "digits = text"},
+ {"name": "pax-overflow", "file": "tarpax.py", "old": "return None if len(digits) > 20 else int(digits or b\"0\")", "new": "return int(digits or b\"0\")"}
 ]

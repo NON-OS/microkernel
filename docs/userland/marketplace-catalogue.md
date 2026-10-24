@@ -13,6 +13,7 @@ The bytes hashed are the last copy of that name, which is the one that lands. A 
 
 The policy's listing and release ids are derived from the publisher key by `marketplace_abi`'s rule, so the market's policy gate answers Valid. A schema-3 Linux release without a policy answers Missing and can never be installed. Every catalogue listing is free (`settle_mode` 0): it needs no bond, binding or ReleaseAttest.
 
+init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and hands it to the installer, which installs the app only in that box. A policy the market does not vouch for refuses the install, and no package from an index installs without one (`userland/capsule_linux/src/linux/install/market.rs`, `install_from`). Each release's note says so (`tools/nonos_market_catalogue/catalogue.py:30`, `NOTE`).
 
 Nothing is listed until the generator has authenticated it as the device does, under the Alpine keys the device pins: [Catalogue authentication](marketplace-catalogue-authentication.md).
 
@@ -51,7 +52,7 @@ For each recipe, the generator:
 3. checks the licence against the recipe;
 4. writes the release.
 
-Downloads are capped before they are read and written to the cache only whole (`fetch.py`).
+Downloads are capped before they are read and written to the cache only whole (`fetch.py`). Each package is cached under the branch that served it, so a warm cache never names another branch in a release's `package_url` (`sources.py`, `cached`).
 
 A package that fails alone is left out with a line on stderr, never listed unready, and its cached copy is dropped. A missing or malformed recipes file, a bad publisher key, or an index that fails its signature stops the run with a message. A recipe inside another family's namespace (`kali.`, `blackarch.`, `qwen-`, `nonos-`) is refused. `python3 -m nonos_market_catalogue.documents OUT.json DIR`, run from `tools/`, splits the index into one unsigned document per listing, as committed under `nonos-data/market/catalogue/`. The publisher then signs each one with `marketplace-index sign-release`.
 

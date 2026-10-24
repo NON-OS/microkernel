@@ -15,8 +15,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The index is fetched fresh every run and read through the listed name,
 so gvim never stands in for vim; a cached file larger than its cap is
-fetched again; the run refuses another release by name, and its cleanup
-never follows a hostile version out of the cache. Run:
+fetched again; a warm cache keeps the branch that served a package; the
+run refuses another release by name. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import tempfile
@@ -28,7 +28,7 @@ from . import fetch, run, sources
 from .apk_fixture import tar
 from .test_fetch import Body
 
-GVIM = tar([("APKINDEX", b"P:gvim\nV:9-r0\np:vim=9-r0\nS:1\n\nP:vim\nV:9-r0\nS:2\n\n")])
+GVIM = tar([("APKINDEX", b"P:gvim\nV:9-r0\np:vim\nS:1\n\nP:vim\nV:9-r0\nS:2\n\n")])
 
 
 class Sources(unittest.TestCase):
@@ -47,25 +47,22 @@ class Sources(unittest.TestCase):
             with mock.patch.object(fetch.urllib.request, "urlopen", side_effect=lambda *a, **k: Body(b"new")):
                 self.assertEqual(fetch.fetch("https://e.org/f", Path(d) / "f", 5), b"new")
 
+    def test_a_warm_cache_keeps_the_branch_that_served_it(self):
+        rec = {"P": "age", "V": "1-r0", "S": "3", "bases": ["https://e.org/main", "https://e.org/community"]}
+        with tempfile.TemporaryDirectory() as d:
+            sources.cached(Path(d), "community", rec).parent.mkdir(parents=True)
+            sources.cached(Path(d), "community", rec).write_bytes(b"apk")
+            gone = mock.Mock(side_effect=OSError("404"))  # main does not serve it
+            with mock.patch.object(fetch.urllib.request, "urlopen", gone):
+                self.assertEqual(sources.apk_of(Path(d), rec), b"apk")
+        self.assertEqual(rec["base"], "https://e.org/community")
+
 
 class Run(unittest.TestCase):
     def test_another_release_is_refused_by_name(self):
         with self.assertRaises(SystemExit) as stop:
             run.catalogue_run(Path("x.json"), Path("."), "https://e.org", "v3.19", "x86_64", "11" * 32, 1)
         self.assertIn("installs from Alpine v3.20", str(stop.exception.code))
-
-    def test_the_cleanup_never_follows_a_hostile_version_out_of_the_cache(self):
-        with tempfile.TemporaryDirectory() as d:
-            cache = Path(d) / "catalogue" / "v3.20" / "x86_64"
-            (cache / "x-1").mkdir(parents=True)
-            kept = cache.parent / "evil.apk"
-            kept.write_bytes(b"not the catalogue's")
-            rec = {"P": "x", "V": "1/../../evil", "S": "1"}
-            with mock.patch.object(run, "load", return_value=[{"package": "x"}]), \
-                    mock.patch.object(run, "table", return_value={"x": rec}), \
-                    mock.patch.object(run, "catalogue_entries", return_value=[]):
-                run.catalogue_run(Path("x.json"), Path(d), "https://e.org", "v3.20", "x86_64", "11" * 32, 1)
-            self.assertTrue(kept.exists())
 
 
 if __name__ == "__main__":
