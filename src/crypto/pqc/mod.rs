@@ -19,10 +19,18 @@ pub mod kyber;
 
 pub mod ml_dsa_65;
 
-pub mod sphincs;
-
-pub mod ntru;
-
+// Not shipped: see `unvetted`. With the feature off, `unvetted_off` refuses
+// every call to these three by name.
+#[cfg(feature = "pqc-unvetted")]
 pub mod mceliece;
+#[cfg(feature = "pqc-unvetted")]
+pub mod ntru;
+#[cfg(feature = "pqc-unvetted")]
+pub mod sphincs;
+#[cfg(feature = "pqc-unvetted")]
+mod unvetted;
+#[cfg(not(feature = "pqc-unvetted"))]
+#[path = "unvetted_off.rs"]
+mod unvetted;
 
 pub mod quantum;

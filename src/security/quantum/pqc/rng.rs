@@ -27,26 +27,27 @@ pub struct QuantumRng {
 }
 
 impl QuantumRng {
+    /// The pool is only what `health_check` measures. With no randomness it
+    /// stays empty and the generator starts unhealthy.
     pub fn new() -> Self {
-        let mut pool = Vec::with_capacity(4096);
-        for _ in 0..4096 {
-            pool.push(crate::crypto::secure_random_u8());
+        let mut pool = alloc::vec![0u8; 4096];
+        let drawn = crate::crypto::fill_random(&mut pool).is_ok();
+        if !drawn {
+            pool.clear();
         }
         Self {
             pool: Mutex::new(pool),
             health_checks: AtomicU32::new(0),
             last_check: AtomicU64::new(crate::time::timestamp_millis()),
-            healthy: AtomicBool::new(true),
+            healthy: AtomicBool::new(drawn),
         }
     }
 
-    pub fn gen_bytes(&self, n: usize) -> Vec<u8> {
-        let pool = self.pool.lock();
-        let mut out = Vec::new();
-        for _ in 0..n {
-            out.push(pool[crate::crypto::secure_random_u32() as usize % pool.len()]);
-        }
-        out
+    /// `n` fresh bytes from the seeded RNG, or `None` when it cannot answer.
+    pub fn gen_bytes(&self, n: usize) -> Option<Vec<u8>> {
+        let mut out = alloc::vec![0u8; n];
+        crate::crypto::fill_random(&mut out).ok()?;
+        Some(out)
     }
 
     pub fn health_check(&self) -> bool {
