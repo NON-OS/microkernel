@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The PVSCSI register window and its commands (Linux's vmw_pvscsi.h, which
-//! QEMU's hw/scsi/vmw_pvscsi.c follows).
+//! The PVSCSI register window and its commands, as the emulated device
+//! defines them: QEMU's hw/scsi/vmw_pvscsi.c and VirtualBox's
+//! DevVMWARE (the register map is the device's, not any guest driver's).
 
 pub const REG_COMMAND: usize = 0x0;
 pub const REG_COMMAND_DATA: usize = 0x4;

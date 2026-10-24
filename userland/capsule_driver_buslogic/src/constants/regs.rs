@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The MultiMaster host adapter interface (the BT-958 technical reference,
-//! Linux's BusLogic.h, VirtualBox's DevBusLogic.cpp).
+//! The MultiMaster host adapter interface, from the BT-958 technical
+//! reference (the register map and command set are its facts);
+//! cross-checked against the emulated device in VirtualBox's
+//! DevBusLogic.cpp and QEMU's hw/scsi/buslogic.c.
 
 /// Control on write, status on read.
 pub const REG_CONTROL: u16 = 0;
