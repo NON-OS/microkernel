@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! K20 on the display framework's surface pool, which bga and virtio-gpu
-//! register and share each output through (nonos_gfx_pool): the share names
-//! the compositor, writable, and no one else; with no compositor running
+//! K20 on the surface pool bga and virtio-gpu share outputs through
+//! (nonos_gfx_pool): the share names the compositor, writable, alone; with no compositor running
 //! nothing is registered or shared; a withdrawn output gives its handle back;
-//! a compositor started again is named by the sid the pool kept.
+//! only the compositor started again is named, by the sid the pool kept.
 
-// The pool's surface half, with the receiver lookup beside it as in lib.rs.
 #[path = "../../../nonos_gfx_pool/src/surface.rs"]
 mod pool_surface;
 #[path = "../../../nonos_gfx_pool/src/receiver.rs"]
@@ -69,6 +67,8 @@ fn a_withdrawn_output_gives_its_share_back() {
 fn a_compositor_started_again_is_named_by_the_kept_sid_writable() {
     hold(b"compositor", Some(COMPOSITOR));
     let (_, sid) = publish(output(), 640, 480, 640 * 4).expect("shared");
+    assert_eq!(reshare(sid, COMPOSITOR + 1), Err(EINVAL), "a pid not the compositor");
+    hold(b"compositor", Some(COMPOSITOR + 1));
     assert_eq!(reshare(sid, COMPOSITOR + 1), Ok(()));
     let later = Share { sid, target_pid: COMPOSITOR + 1, flags: SURFACE_SHARE_WRITE };
     assert_eq!(shares().last(), Some(&later));

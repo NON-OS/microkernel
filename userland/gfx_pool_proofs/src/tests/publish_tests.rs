@@ -63,3 +63,13 @@ fn a_share_refused_after_the_register_gives_the_surface_back() {
     assert_eq!(pool.register(r, 32, 32, 128), Err(EINVAL));
     assert!(live().is_empty(), "the kernel still names the frames: {:?}", live());
 }
+
+#[test]
+fn a_caller_that_is_not_the_compositor_is_never_named_a_receiver() {
+    reset();
+    let mut pool = Pool::default();
+    let r = pool.alloc(4096).unwrap();
+    let handle = pool.register(r, 32, 32, 128).unwrap();
+    assert_eq!(pool.share(handle, 0x31), Err(EINVAL));
+    assert_eq!(live()[0].shares, [(0x27, SURFACE_SHARE_WRITE)], "a right for another pid");
+}

@@ -57,6 +57,7 @@ fn a_silent_owner_s_primary_reaches_the_next_one_zero() {
     // SAFETY: the primary's pages are a live mapping the pool made, this long.
     unsafe { core::ptr::write_bytes(r.base as *mut u8, 0x5A, r.len) };
     assert!(s.watch(OWNER_SILENCE_MS));
+    set_compositor(Some(AGAIN));
     surface(&mut s, AGAIN);
     assert!(s.platform.bytes(r).iter().all(|&b| b == 0), "the last owner's picture handed on");
 }
