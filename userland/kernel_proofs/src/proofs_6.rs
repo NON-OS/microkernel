@@ -21,6 +21,9 @@
 pub mod acpi_span;
 #[path = "block_wire/mod.rs"]
 mod block_wire;
+/// Disk controllers before the bus drivers.
+#[path = "disks_first/mod.rs"]
+mod disks_first;
 #[path = "described/mod.rs"]
 pub mod described;
 /// The firmware's flash never claimed or mapped.

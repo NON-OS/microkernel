@@ -20,7 +20,14 @@ use super::streams::attach_streams;
 use super::table::pci_address;
 use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 
-pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refusal> {
+/// Confine `device_id` to `pid`'s domain; whether the claim is port-only
+/// (port_only.rs), for the claim to close its Memory Space.
+pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<bool, Refusal> {
+    let port_only = super::one::port_only_held(pid);
+    attach_as(pid, device_id).map(|()| port_only)
+}
+
+fn attach_as(pid: u32, device_id: u64) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
         // A device the firmware description names: confined through its
         // `iommus`, or refused (streams.rs).
