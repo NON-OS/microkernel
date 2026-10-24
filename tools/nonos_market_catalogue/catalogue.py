@@ -26,7 +26,9 @@ from . import apk
 from .digest import blake3
 from .records import entry, release
 
-NOTE = "fetched and hashed at {} bytes; licence {}"
+# Until I-C5 init hands the installer no policy, so the program runs in the
+# owner's default box, not this one: the note says so rather than claim it.
+NOTE = "fetched and hashed at {} bytes; licence {}; its box applies from I-C5"
 
 
 def guest_policy(recipe: dict, program: bytes, publisher: bytes, app: str, rel: str) -> bytes:

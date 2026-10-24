@@ -1,8 +1,8 @@
 {
   "schema_version": 3,
   "operator_id": "nonos.marketplace.v1",
-  "published_at_ms": 1792843547000,
-  "serial": 1792843547,
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
   "entries": [
     {
       "listing_id": "linux.geth",
@@ -11,7 +11,7 @@
       "publisher_name": "Linux",
       "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
       "publisher_eth_address": "0000000000000000000000000000000000000000",
-      "description": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here, and has no network.",
+      "description": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here.",
       "price": {
         "kind": "free",
         "amount_atomic": "0",
@@ -49,9 +49,9 @@
           },
           "validation": {
             "status": "validated",
-            "note": "fetched and hashed at 16787646 bytes; licence LGPL-3.0-or-later",
+            "note": "fetched and hashed at 16787646 bytes; licence LGPL-3.0-or-later; its box applies from I-C5",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1792843547000
+            "validated_at_ms": 1792844669000
           }
         }
       ]
