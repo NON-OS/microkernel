@@ -30,6 +30,8 @@ pub mod hash;
 pub mod items;
 #[path = "../../../capsule_linux/src/linux/boxed/kind.rs"]
 pub mod kind;
+#[path = "../../../capsule_linux/src/linux/boxed/line.rs"]
+pub mod line;
 #[path = "../../../capsule_linux/src/linux/boxed/preset.rs"]
 pub mod preset;
 #[path = "../../../capsule_linux/src/linux/boxed/report.rs"]
@@ -40,3 +42,7 @@ pub mod tally;
 /* Whether a family's app is noted to the seal's slot 0 (I-C6). */
 #[path = "../../../capsule_linux/src/linux/seal_slot.rs"]
 pub mod seal_slot;
+
+/* What every word `--box` takes must leave, for the fuzz target and the sweep. */
+#[cfg(any(test, fuzzing))]
+pub mod check;

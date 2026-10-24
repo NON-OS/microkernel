@@ -27,6 +27,9 @@ use super::kind::ALL;
 use super::preset::{BoxPolicy, Preset};
 use super::tally::Tally;
 
+/// The report's and the serial line's format: a reader refuses any other.
+pub const VERSION: u32 = 1;
+
 pub const SOURCE: &str =
     "counts are capsule_linux's enforcement, not the kernel's sealed histogram";
 
@@ -43,7 +46,7 @@ pub fn hex(bytes: &[u8]) -> String {
 }
 
 pub fn report(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, exit: i32) -> String {
-    let mut s = String::from("BOX REPORT\n");
+    let mut s = alloc::format!("BOX REPORT v{VERSION}\n");
     let _ = writeln!(s, "  policy   {} {}", preset_name(policy.preset), hex(hash));
     for line in allowed(policy) {
         let _ = writeln!(s, "  allowed  {line}");
@@ -59,17 +62,5 @@ pub fn report(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, exit: i32) -> 
     }
     let _ = writeln!(s, "  exit     {exit}");
     let _ = writeln!(s, "  {SOURCE}");
-    s
-}
-
-/// The serial log's line: the policy, every kind's count, and the exit status.
-pub fn box_line(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, exit: i32) -> String {
-    let mut s = String::new();
-    let _ = write!(s, "[BOX] preset={} policy={}", preset_name(policy.preset), hex(hash));
-    let _ = write!(s, " refused={}", tally.total());
-    for kind in ALL {
-        let _ = write!(s, " {}={}", kind.tag(), tally.count(kind));
-    }
-    let _ = writeln!(s, " exit={exit} source=capsule_linux");
     s
 }
