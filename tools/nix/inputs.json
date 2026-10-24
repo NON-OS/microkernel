@@ -1065,6 +1065,7 @@
    "userland/libc/src/bringup/schedule.rs",
    "userland/nonos_devmodel",
    "userland/nonos_edid",
+   "userland/nonos_gfx_pool/src/receiver.rs",
    "userland/nonos_gfx_pool/src/surface.rs",
    "userland/nonos_gfx_serve",
    "userland/nonos_gfx_wire",
@@ -4960,6 +4961,30 @@
    "userland/nonos_hash",
    "userland/nonos_wallpapers",
    "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/gfx_pool_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/bga_proofs/src/tests/wire_sweep/kit.rs",
+   "userland/gfx_pool_proofs",
+   "userland/gfx_serve_proofs/src/sweep/asks.rs",
+   "userland/gfx_serve_proofs/src/sweep/check.rs",
+   "userland/gfx_serve_proofs/src/sweep/payload.rs",
+   "userland/gfx_serve_proofs/src/sweep/read.rs",
+   "userland/gfx_serve_proofs/src/sweep/rng.rs",
+   "userland/gfx_serve_proofs/src/sweep/server_sweep.rs",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_pool/src/anon.rs",
+   "userland/nonos_gfx_pool/src/pool.rs",
+   "userland/nonos_gfx_pool/src/receiver.rs",
+   "userland/nonos_gfx_pool/src/surface.rs",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []
