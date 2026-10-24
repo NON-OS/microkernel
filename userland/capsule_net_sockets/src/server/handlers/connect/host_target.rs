@@ -24,22 +24,31 @@
 //! mixnet to hide it. That was every connect a Linux guest made by name.
 //! A mixnet socket is refused a name instead, with E_NAME_REFUSED, and
 //! net.dns is never asked for it; an address written as one goes as it
-//! always did. Stream and datagram sockets resolve as before.
+//! always did.
+//!
+//! A stream or datagram socket resolves a name only when the person's chosen
+//! network is Direct. Under Nym or Anyone a lookup here would name the host
+//! in the clear to the resolver and the path, whatever the caller then did
+//! with the address, so it is refused the same way; every caller that keeps
+//! to the choice (nonos_std, the browser, the terminal) only asks on Direct.
 
 use super::parse_ipv4::parse_ipv4;
 use crate::protocol::{E_BAD_ADDR, E_NAME_REFUSED, E_NO_DNS};
 
-/// The address a connect by `host` goes to. `resolve` is net.dns, and it is
-/// asked only for a name on a socket that is not a mixnet socket.
+/// The address a connect by `host` goes to. `direct` says whether the chosen
+/// network is Direct; it is asked only for a name on a socket that is not a
+/// mixnet socket. `resolve` is net.dns, and it is asked only when `direct`
+/// said yes.
 pub fn host_target(
     mixnet: bool,
     host: &[u8],
+    direct: impl FnOnce() -> bool,
     resolve: impl FnOnce(&[u8]) -> Result<[u8; 4], u16>,
 ) -> Result<[u8; 4], u16> {
     if let Some(ip) = parse_ipv4(host) {
         return Ok(ip);
     }
-    if mixnet {
+    if mixnet || !direct() {
         return Err(E_NAME_REFUSED);
     }
     resolve(host).map_err(lookup_status)
