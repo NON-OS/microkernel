@@ -22,15 +22,15 @@
 
 use alloc::vec::Vec;
 
-pub use super::poll::{Ended, Poll};
+pub(crate) use super::poll::{Ended, Poll};
 
 /// The most the leave phase takes, however many disks there are.
-pub const TOTAL_MS: u64 = 15_000;
+pub(crate) const TOTAL_MS: u64 = 15_000;
 
 /// Run every leg until each has ended. `budgets[i]` bounds leg `i`, measured
 /// from the first clock read; `total_ms` bounds them all. `poll(i)` is asked
 /// once a round of each leg still running; `rest` runs between rounds.
-pub fn run<C, P, R>(
+pub(crate) fn run<C, P, R>(
     budgets: &[u64],
     total_ms: u64,
     mut now: C,

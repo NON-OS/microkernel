@@ -25,3 +25,6 @@ mod rule;
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod order_tests;
