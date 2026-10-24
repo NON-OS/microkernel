@@ -19,18 +19,23 @@
 
 mod allowed;
 mod dests;
+mod end;
 mod finish;
 mod folders;
+mod frames;
 mod hash;
 mod items;
 mod kind;
 mod line;
+mod notes;
 mod preset;
 mod report;
 mod state;
 mod tally;
 
-pub use finish::finish;
+pub use finish::{finish, not_started};
+pub use frames::key_of;
 pub use kind::{of_needs, Kind};
+pub use notes::{call_begins, may_write, note};
 pub use preset::parse;
-pub use state::{arm, call_begins, may_write, narrow, note};
+pub use state::{arm, narrow};

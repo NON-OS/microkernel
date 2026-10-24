@@ -22,8 +22,12 @@
 pub mod allowed;
 #[path = "../../../capsule_linux/src/linux/boxed/dests.rs"]
 pub mod dests;
+#[path = "../../../capsule_linux/src/linux/boxed/end.rs"]
+pub mod end;
 #[path = "../../../capsule_linux/src/linux/boxed/folders.rs"]
 pub mod folders;
+#[path = "../../../capsule_linux/src/linux/boxed/frames.rs"]
+pub mod frames;
 #[path = "../../../capsule_linux/src/linux/boxed/hash.rs"]
 pub mod hash;
 #[path = "../../../capsule_linux/src/linux/boxed/items.rs"]
