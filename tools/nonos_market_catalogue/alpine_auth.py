@@ -22,6 +22,7 @@ import base64
 import hashlib
 
 from . import gz, tarwalk
+from .rust_text import lines, trim
 
 
 def checksum(field) -> bytes:
@@ -35,9 +36,11 @@ def checksum(field) -> bytes:
 
 
 def datahash(control_tar: bytes) -> bytes:
+    """pkginfo.rs's datahash: strict UTF-8, Rust's lines, the first line with
+    the prefix, Rust's trim, 64 lowercase hex digits."""
     found = [e for e in tarwalk.files(control_tar) if e.name == b".PKGINFO"]
-    lines = found[0].body.decode("utf-8").splitlines() if found else []
-    text = next((x[len("datahash = "):].strip() for x in lines if x.startswith("datahash = ")), "")
+    body = lines(found[0].body.decode("utf-8")) if found else []
+    text = next((trim(x[len("datahash = "):]) for x in body if x.startswith("datahash = ")), "")
     if len(text) != 64 or any(c not in "0123456789abcdef" for c in text):
         raise ValueError("the package records no datahash")
     return bytes.fromhex(text)

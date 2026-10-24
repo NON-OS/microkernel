@@ -14,10 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """RSA PKCS#1 v1.5 signature verification for Alpine's keys, with no
-dependency: a public key's DER is read for n and e, the signature is raised
-to e mod n, and the result must equal the one padded DigestInfo exactly."""
+dependency: the key read as strict DER (rsa_key.py) and held to the bounds
+the device's RSA accepts, the signature raised to e mod n, and the result
+equal to the one padded DigestInfo, byte for byte."""
 
-import base64
+from .rsa_key import public_key
 
 # DigestInfo prefixes (RFC 8017, 9.2 note 1).
 PREFIX = {
@@ -26,46 +27,18 @@ PREFIX = {
 }
 
 
-def der(data: bytes, at: int, tag: int):
-    """(body start, body end) of the TLV of `tag` at `at`, or ValueError."""
-    if at + 2 > len(data) or data[at] != tag:
-        raise ValueError("not the DER expected")
-    size, at = data[at + 1], at + 2
-    if size & 0x80:
-        count = size & 0x7F
-        if count == 0 or count > 4 or at + count > len(data):
-            raise ValueError("a DER length is malformed")
-        size, at = int.from_bytes(data[at:at + count], "big"), at + count
-    if at + size > len(data):
-        raise ValueError("a DER length runs past its data")
-    return at, at + size
-
-
-def public_key(pem: bytes):
-    """(n, e) of a PEM SubjectPublicKeyInfo holding an RSA key."""
-    lines = [x for x in pem.splitlines() if x and not x.startswith(b"-----")]
-    spki = base64.b64decode(b"".join(lines), validate=True)
-    outer, _ = der(spki, 0, 0x30)
-    alg_start, alg_end = der(spki, outer, 0x30)
-    if b"\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01" not in spki[alg_start:alg_end]:
-        raise ValueError("not an RSA key")
-    bits, _ = der(spki, alg_end, 0x03)
-    if spki[bits:bits + 1] != b"\x00":
-        raise ValueError("the key's bit string has unused bits")
-    seq, _ = der(spki, bits + 1, 0x30)
-    n_start, n_end = der(spki, seq, 0x02)
-    e_start, e_end = der(spki, n_end, 0x02)
-    return int.from_bytes(spki[n_start:n_end], "big"), int.from_bytes(spki[e_start:e_end], "big")
-
-
 def verify(pem: bytes, signature: bytes, hashname: str, digest: bytes) -> bool:
     """True when `signature` is the key's PKCS#1 v1.5 signature over `digest`."""
     return verify_key(*public_key(pem), signature, hashname, digest)
 
 
 def verify_key(n: int, e: int, signature: bytes, hashname: str, digest: bytes) -> bool:
+    """False for a key outside 2048 to 4096 bits or an exponent outside
+    3 to 2^33, odd, as well as for any signature that is not exact."""
+    if not (2048 <= n.bit_length() <= 4096 and 3 <= e < 1 << 33 and e & 1):
+        return False
     k = (n.bit_length() + 7) // 8
-    if len(signature) != k or hashname not in PREFIX or k < 128:
+    if len(signature) != k or hashname not in PREFIX:
         return False
     s = int.from_bytes(signature, "big")
     if s >= n:

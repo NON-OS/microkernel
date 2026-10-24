@@ -15,8 +15,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The signed package index (install/auth/signature.rs): its first member
 signs its second under one of the three keys pinned in
-userland/capsule_linux/keys/alpine/, which the device pins too, and only
-then are its records read."""
+userland/capsule_linux/keys/alpine/, which the device pins too. Its
+records are read by apkindex.py, only once this has passed."""
 
 import hashlib
 from pathlib import Path
@@ -42,19 +42,3 @@ def signed_index(raw: bytes, verify=rsa.verify) -> bytes:
                                        hashlib.new(hashname, covered).digest()):
                 return parts[1].body
     raise ValueError("the index is not signed by a key pinned here")
-
-
-def records(index_tar: bytes) -> dict:
-    """name -> record, from the APKINDEX file of a signed index tar."""
-    found = [e for e in tarwalk.files(index_tar) if e.name == b"APKINDEX"]
-    if not found:
-        raise ValueError("the signed index holds no APKINDEX")
-    out, rec = {}, {}
-    for line in found[0].body.decode("utf-8", "replace").split("\n") + [""]:
-        if not line:
-            if rec.get("P"):
-                out[rec["P"]] = rec
-            rec = {}
-        elif len(line) > 2 and line[1] == ":":
-            rec[line[0]] = line[2:]
-    return out

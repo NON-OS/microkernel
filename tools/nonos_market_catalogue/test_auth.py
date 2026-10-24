@@ -21,7 +21,7 @@ python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 import gzip
 import unittest
 
-from . import alpine_auth, alpine_index, gz, tarwalk
+from . import alpine_auth, alpine_index, apkindex, gz, tarwalk
 from .apk_fixture import tar
 from .vector_fixture import APK, REC, flip
 
@@ -56,15 +56,15 @@ class Index(unittest.TestCase):
         seen = []
         ok = lambda key, sig, h, d: seen.append(h) or True
         name = (".SIGN.RSA256." + alpine_index.NAMES[1]).encode()
-        self.assertEqual(sorted(alpine_index.records(alpine_index.signed_index(self.index(name), ok))), ["a", "b"])
+        recs = apkindex.records(apkindex.text(alpine_index.signed_index(self.index(name), ok)))
+        self.assertEqual([r["P"] for r in recs], ["a", "b"])
         self.assertEqual(seen, ["sha256"])
         for bad in (self.index(b".SIGN.RSA.unpinned.rsa.pub"), self.index(name, members=3)):
             with self.assertRaises(ValueError):
                 alpine_index.signed_index(bad, ok)
         with self.assertRaises(ValueError):
             alpine_index.signed_index(self.index(name), lambda *a: False)
-        with self.assertRaises(ValueError):
-            alpine_index.records(tar([("DESCRIPTION", b"P:x\n")]))
+        self.assertEqual(apkindex.records(apkindex.text(tar([("DESCRIPTION", b"P:x\nV:1\n")]))), [])
 
 
 if __name__ == "__main__":

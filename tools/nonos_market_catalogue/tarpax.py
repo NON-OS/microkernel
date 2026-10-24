@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """Pax extended headers, as install/tar_pax.rs reads them: `length
-key=value\\n` records, of which only `path` and `linkpath` are taken."""
+key=value\\n` records, of which `path` is taken."""
 
 
 class Overrides:
@@ -24,9 +24,11 @@ class Overrides:
 
 
 def decimal(text: bytes):
-    if not text or not all(0x30 <= b <= 0x39 for b in text):
+    """As tar_pax.rs: digits only, and None where a usize would overflow."""
+    if not text or len(text) > 20 or not all(0x30 <= b <= 0x39 for b in text):
         return None
-    return int(text)
+    value = int(text)
+    return value if value < 1 << 64 else None
 
 
 def read(body: bytes, into: Overrides) -> None:
@@ -43,8 +45,6 @@ def read(body: bytes, into: Overrides) -> None:
             return
         record = body[space + 1:end - 1]
         key, eq, value = record.partition(b"=")
-        if eq and key == b"path":
+        if eq and key == b"path":  # linkpath too in Rust; nothing here reads a link
             into.path = value
-        elif eq and key == b"linkpath":
-            into.link = value
         at = end
