@@ -17,7 +17,8 @@
 use super::cc_value::cc_value;
 use super::disable_step::{await_ready_before_disable, disable_start, DisableStart};
 use super::ready_wait::wait_ready;
-use super::shutdown_step::{await_shutdown, shutdown_budget_ms};
+use super::shutdown_step::shutdown_budget_ms;
+use super::shutdown_wait::await_shutdown;
 use crate::clock::uptime_ms;
 use crate::constants::{CC_SHN_MASK, CC_SHN_NORMAL, REG_CC, REG_CSTS};
 use crate::controller::ControllerInfo;

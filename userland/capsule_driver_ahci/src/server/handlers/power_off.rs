@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! OP_POWER_OFF, the kernel's alone (server::medium_rule): FLUSH CACHE EXT,
-//! then STANDBY IMMEDIATE (server::power_off_rule), then the served port is
-//! retired, so a request that comes later is answered E_NODEV and nothing
-//! spins the disk up again before power goes. Each command is bounded by the
-//! engine's own command timeout, and the kernel's budget bounds the whole.
+//! then STANDBY IMMEDIATE unless the machine restarts, each with the budget
+//! server::power_off_rule gives it; then the served port is retired, so a
+//! request that comes later is answered E_NODEV and nothing spins the disk
+//! up again before power goes.
 
-use crate::engine::{flush, retire, standby};
+use crate::engine::{flush_within, retire, standby_within};
 use crate::log::Line;
-use crate::protocol::{Request, E_NODEV};
+use crate::protocol::{Request, E_NODEV, POWER_OFF_FLUSH_ONLY};
 use crate::server::error::reply_with_status;
-use crate::server::power_off_rule::power_off;
+use crate::server::power_off_rule::{power_off, Standby};
 use crate::setup::Driver;
 
 pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
@@ -32,20 +32,28 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let Some(mut port) = driver.block.take() else {
         return reply_with_status(tx, req, E_NODEV);
     };
-    let done = power_off(&mut port, |p| flush(p, regs), |p| standby(p, regs));
+    let standby_too = req.flags & POWER_OFF_FLUSH_ONLY == 0;
+    let flush = |p: &mut _, ms| flush_within(p, regs, ms);
+    let done = power_off(&mut port, standby_too, flush, |p, ms| standby_within(p, regs, ms));
     let status = match done.failure() {
         Ok(()) => 0,
         Err(e) => super::failure::status(&port, e),
     };
-    say(done.flushed.is_ok(), done.standby.is_ok());
+    say(done.flushed.is_ok(), done.standby);
     retire(port, regs);
     reply_with_status(tx, req, status);
 }
 
-fn say(flushed: bool, standby: bool) {
+fn say(flushed: bool, standby: Standby) {
+    let how: &[u8] = match standby {
+        Standby::Done => b"in standby",
+        Standby::Failed(_) => b"standby failed",
+        Standby::NotAsked => b"left spinning for the restart",
+        Standby::NoTime => b"no time left for the standby",
+    };
     Line::new()
         .text(b"power-off: ")
         .text(if flushed { b"flushed, " } else { b"flush failed, " })
-        .text(if standby { b"in standby" } else { b"standby failed" })
+        .text(how)
         .send();
 }
