@@ -74,7 +74,7 @@ impl Sig for Ed25519Sig {
     type Signature = Signature;
 
     fn keygen() -> CryptoResult<(Self::PublicKey, Self::SecretKey)> {
-        let kp = KeyPair::generate();
+        let kp = KeyPair::generate()?;
         Ok((kp.public, kp))
     }
     fn sign(sk: &Self::SecretKey, msg: &[u8]) -> CryptoResult<Self::Signature> {

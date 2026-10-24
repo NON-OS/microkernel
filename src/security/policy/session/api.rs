@@ -27,9 +27,8 @@ pub fn session_manager() -> &'static SessionManager {
 }
 
 pub fn init() -> Result<(), &'static str> {
-    SESSION_MANAGER.init();
-    SESSION_MANAGER.login_anonymous();
-    crate::log_info!("Session manager initialized (ZeroState mode)");
+    SESSION_MANAGER.init()?;
+    crate::log_info!("Session manager initialized with no accounts and no session");
     Ok(())
 }
 
