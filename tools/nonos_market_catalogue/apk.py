@@ -21,6 +21,9 @@ name, since the installer writes entries in order."""
 
 from . import tarwalk
 
+# install/market.rs reads a bound program through store_read(.., MAX_IMAGE).
+MAX_IMAGE = 64 << 20
+
 
 def program(files: bytes, name: str):
     """(path, body) of the program, None when there is none, or ValueError
@@ -38,4 +41,6 @@ def program(files: bytes, name: str):
     body = [e.body for e in entries if e.name == chosen][-1]
     if not body.startswith(b"\x7fELF"):
         raise ValueError(f"its {chosen.decode(errors='replace')} is not an ELF")
+    if len(body) > MAX_IMAGE:
+        raise ValueError(f"its program is past the {MAX_IMAGE >> 20} MiB the device binds")
     return chosen.decode(errors="replace"), body
