@@ -14,7 +14,7 @@ flowchart LR
   inst --> disk[Boot the installed disk]
 ```
 
-1. [Requirements](requirements.md). Check requirements first: an x86_64 processor with UEFI firmware, a USB stick of 2 GB or more, and an NVMe or SATA disk, or an Intel eMMC, if you want to install.
+1. [Requirements](requirements.md). Check requirements first: an x86_64 processor with UEFI firmware, a USB stick of 2 GB or more, and an NVMe or SATA disk if you want to install. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image.
 2. [Get an image](get-an-image.md). Build and [seal](../overview/glossary-rollback-index.md#seal) `nonos.img` from this source tree.
 3. [Write a USB stick](usb-stick.md). Write the image with `make usb` or `dd`, then compare the stick with the image.
 4. [Boot modes](boot-modes.md). Boot the stick and pick an entry in the NONOS boot menu: Standard, Hardened, Safe Mode, Air-Gapped, Recovery, Install or Shut down.
