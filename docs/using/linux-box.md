@@ -9,7 +9,7 @@ Type `linux --box`, the box, then the program and its arguments, in the Terminal
 ```
 linux --box strict sh -c 'echo ok > /tmp/out; echo no > /home/out; nc 10.0.0.1 80'
 linux --box offline python3 script.py
-linux --box allow:/tmp/out,net:example.com:443 python3 fetch.py
+linux --box allow:/tmp/out,/home/work python3 build.py
 ```
 
 The Terminal keeps eight words of a line, so after `linux --box <box>` a program has five words for itself and its arguments; give a script with `sh -c '...'` as one word.
@@ -20,18 +20,17 @@ The Terminal keeps eight words of a line, so after `linux --box <box>` a program
 |---|---|---|
 | `strict` | none | only `/tmp`, the run's own scratch folder |
 | `offline` | none | the run's own folders: `/tmp`, `/home`, `/root`, `/run`, `/var/tmp`, `/dev/shm` |
-| `allow:<item>,...` | only the destinations named | only the folders named |
+| `allow:<folder>,...` | none | only the folders named |
 
-An `allow:` item is a folder or a destination, with commas between and no spaces:
+An `allow:` box names its folders with commas between and no spaces. A folder is a path from `/` inside one of the run's own folders, such as `/tmp/out` or `/home/work`, in printable ASCII. A folder anywhere else, a folder ending in `/`, or one with `.` or `..` in it is refused.
 
-- A folder is a path from `/` inside one of the run's own folders, such as `/tmp/out` or `/home/work`. A folder anywhere else, a folder ending in `/`, or one with `.` or `..` in it is refused.
-- A destination is `net:`, an IPv4 address or a name, `:` and a port from 1 to 65535: `net:10.0.0.1:443`, `net:example.com:443`. At most 64.
+A run started from the Terminal has no network in this release, so every box has none. An `allow:` item naming a destination (`net:<address>:<port>`) is refused: `linux: --box refused: a terminal run has no network in this release`.
 
 Every box lets the program use the terminal and start other programs. Each program it starts is held to the same box. The image itself, the Linux tree the programs come from, is always read-only.
 
-A box only takes rights away. A program whose own policy gives it no network has none in any box; this is true of the shell and every program not listed with a policy of its own, so for them `net:` items reach nothing. The run's own folders are new at its start and wiped at its end.
+A box only takes rights away: a program gets what both the box and its own policy allow. The run's own folders are new at its start and wiped at its end.
 
-A box named wrongly is refused before anything runs, with the reason: `linux: --box refused: a port is 1 to 65535`. `linux --box` with no box or no program prints the usage line.
+A box named wrongly is refused before anything runs, with the reason, such as `linux: --box refused: a folder is inside /tmp, /home, /root, /run, /var/tmp or /dev/shm`. `linux --box` with no box or no program prints the usage line.
 
 ## The report
 
@@ -57,7 +56,7 @@ BOX REPORT v1
 - `refused` is how many actions the box refused, then one line for each kind refused at least once: its count and the first three it refused.
 - The kinds: `write` (a file written, made, renamed or removed outside the folders), `network` (a socket, a connection, a bind or a datagram the box does not allow), `exec`, `jit` (executable memory), `display`, `models`, `call` (a system call outside the program's declared calls), `barred` (calls no Linux program is ever given, such as `ptrace` and `mount`) and `unserved` (calls NONOS does not provide).
 - One system call counts once for each kind it was refused as. Asking whether a file could be written, as `access` does, is not a refused action.
-- `allowed` is what the program actually had: the box, narrowed by the program's own policy. A folder in `/home` or `/root` is listed only if the program's policy gives it a home, and `network` lists destinations only if its policy gives it network.
+- `allowed` is what the program actually had: the box, narrowed by the program's own policy. A folder in `/home` or `/root` is listed only if the program's policy gives it a home.
 - `started  no: <reason>` appears when the program never started (it was not found, or its proof was refused); nothing ran, so nothing was refused.
 - `exit` is the program's exit status.
 

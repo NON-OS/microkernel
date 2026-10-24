@@ -19,7 +19,7 @@
 use super::say::say;
 
 const USAGE: &[u8] =
-    b"usage: linux [--box strict|offline|allow:<folder|net:host:port>,...] <program> [arguments]\n";
+    b"usage: linux [--box strict|offline|allow:<folder>,...] <program> [arguments]\n";
 
 /// The program the words name, after a box if one is named first; None when
 /// there is none to run, with why said where the person who typed it reads it.
@@ -31,7 +31,7 @@ pub(super) fn program<'a>(parts: &mut impl Iterator<Item = &'a [u8]>) -> Option<
         first = parts.next().filter(|p| !p.is_empty());
     }
     if first == Some(b"--box".as_slice()) {
-        match parts.next().map(crate::linux::boxed::parse) {
+        match parts.next().map(crate::linux::boxed::for_terminal) {
             Some(Ok(policy)) => crate::linux::boxed::arm(policy, key),
             Some(Err(why)) => {
                 say(alloc::format!("linux: --box refused: {why}\n").as_bytes());

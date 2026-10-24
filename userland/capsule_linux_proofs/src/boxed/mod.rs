@@ -42,6 +42,8 @@ pub mod preset;
 pub mod report;
 #[path = "../../../capsule_linux/src/linux/boxed/tally.rs"]
 pub mod tally;
+#[path = "../../../capsule_linux/src/linux/boxed/terminal_run.rs"]
+pub mod terminal_run;
 
 /* Whether a family's app is noted to the seal's slot 0 (I-C6). */
 #[path = "../../../capsule_linux/src/linux/seal_slot.rs"]

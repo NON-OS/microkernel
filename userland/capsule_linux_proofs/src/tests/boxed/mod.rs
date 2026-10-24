@@ -29,3 +29,4 @@ mod report_tests;
 mod seal_slot_tests;
 mod sites_tests;
 mod tally_tests;
+mod terminal_run_tests;
