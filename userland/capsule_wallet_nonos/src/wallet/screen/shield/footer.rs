@@ -21,7 +21,6 @@
  * takes its notes back; the network page copies the faucet's address.
  */
 
-use nonos_app_skeleton::clients::clipboard::clipboard_copy;
 use nonos_app_skeleton::EventOutcome;
 
 use super::check::{deposit_ready, send_ready, withdraw_ready};
@@ -57,9 +56,9 @@ pub fn footer(state: &mut State, n: u8) -> EventOutcome {
             }
         }
         (SHIELD_NETWORK, 0) => {
-            state.status = match clipboard_copy(super::consts::FAUCET.as_bytes()) {
+            state.status = match crate::wallet::copy::copy_address(super::consts::FAUCET) {
                 Ok(()) => b"faucet address copied",
-                Err(_) => b"the clipboard did not take it",
+                Err(why) => why,
             };
         }
         _ => return EventOutcome::Idle,

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use super::embed::{
     DRIVER_INTEL_DISPLAY_ATTESTATION_BYTES, DRIVER_INTEL_DISPLAY_ELF,
     DRIVER_INTEL_DISPLAY_MANIFEST_BYTES, DRIVER_INTEL_DISPLAY_NONOS_ID_CERT_BYTES,
