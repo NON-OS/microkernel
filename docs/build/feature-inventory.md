@@ -21,7 +21,7 @@ print("\n".join(sorted(k for k in f if k not in on)))
 EOF
 ```
 
-Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 144 features. Of those, 91 are `microkernel-*` lane sets and 53 are the features in the tables.
+Host-tested on 2026-10-24: the closure has every production capsule below and leaves out 145 features. Of those, 91 are `microkernel-*` lane sets and 54 are the features in the tables.
 
 ## What the default image carries
 
@@ -39,7 +39,7 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
   - display: virtio-gpu, VMware SVGA and Bochs (BGA);
   - audio: HDA, AC'97, USB audio and USB microphones;
   - USB cameras (UVC), USB serial (CDC-ACM), smart cards (CCID) and FIDO security keys;
-  - the SMBus and I2C buses;
+  - the I2C bus;
   - VirtualBox and Hyper-V guest support.
 
 `standard` takes `capsule-serial-debug` out of that set, so no capsule writes to the serial console (`drop`, `tools/nix/config.nix`). The `hardened` and `airgapped` profiles start from the same set and take out the same feature, and `airgapped` also takes out every network feature (`networkFeatures`, `tools/nix/config.nix`).
@@ -49,9 +49,9 @@ Host-tested on 2026-10-24: the closure has every production capsule below and le
 The kernel embeds each capsule's certificate, manifest and STARK trailer from `nonos-data/trust/capsules/`. The release seal writes those files with the release keys, and the developers commit them. `nix build` refuses a kernel that ships a capsule with no trust set (`unsealed`, `tools/nix/image.nix`). That gate applies before and after this change:
 
 - On 2026-10-24, before this change, 15 capsules that the default image already carried had no trust set: pcnet, vmxnet3, tulip, virtio-input, vmware-svga, ac97, vmmdev, vmmouse, vmbus, piix-ide, virtio-scsi, pvscsi, buslogic, mpt and sdhci. Host-tested: the gate's own condition, run over `tools/nix/capsules.json`.
-- The 21 capsules this change adds have no trust set either: the 19 drivers, plus nox-settle and prove-fetch.
+- The 20 capsules this change adds have no trust set either: the 18 drivers, plus nox-settle and prove-fetch.
 
-So `nix build` of the default image waits for the next release seal, which writes all 36 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
+So `nix build` of the default image waits for the next release seal, which writes all 35 trust sets in one step. A development image (`make dev-image`, `tools/nonos-dev-image`) is sealed with throwaway keys and builds and boots now.
 
 ## Off, and why
 
@@ -96,6 +96,7 @@ So `nix build` of the default image waits for the next release seal, which write
 | `nonos-capsule-driver-gpio` | Not in `capsules.json` or the mk include block. Its wire was never checked against the client (`the design notes-*`). | A catalogue entry, a check of the client against the capsule, and a seal |
 | `nonos-capsule-driver-intel-display` | Held by the ruling until it boots on real Intel hardware. Shipped unproven, it takes over the panel on every Intel laptop. | A real-hardware boot from the hardware work, then add it to `microkernel-full-gui` |
 | `nonos-capsule-driver-spi`, `nonos-capsule-driver-spi-hid` | the rule for the default image is that a driver whose device is absent must stay idle. These two leave at once on a machine with no SPI function (`src/userspace/init/spawn_plan/drivers_spi.rs`), and nothing in the hardware inventory classifies a device as `SerialSpi` (`src/hardware/inventory/`), so their spawn cannot be gated on presence either. A booted standard-dev image hung after another driver that exits for want of its device left (`[EXIT] code=2`, then a lock wait in `src/kernel_core/surface_registry/pin`), the case the black-desktop fix addresses. | The inventory classifying LPSS SPI functions as `SerialSpi` and the spawn gated on it, or the drivers idling without a device |
+| `nonos-capsule-driver-smbus` | Booted (standard-dev, QEMU q35 with VT-d, 2026-10-24): `driver.smbus0` claimed the ICH9 SMBus function 00:1f.3. That shares an IOMMU group with the SATA controller 00:1f.2, with no ACS between them, so the IOMMU then refused AHCI (`[VT-D] refused: 00:1f.3 reaches it through 00:1f.2 without ACS; driver.smbus0 holds it`), and `driver.ahci0` gave up (status 6). On a chipset grouped the same way, carrying SMBus takes the SATA boot disk away. | Claim order or group handling that keeps the disk controller's claim ahead of the SMBus one, shown on such a machine |
 | `nonos-capsule-clock` | Built and sealed, but nothing in the desktop opens it (`docs/using/apps.md`: no tile anywhere). It holds TimeSet. | A launcher tile, then add it to `microkernel-desktop-offline` |
 | `nonos-capsule-image-viewer` | The desktop's open path has no `app.image_viewer` (`PendingApp::named`, `src/userspace/init/instance_spawn/named.rs`) | A `PendingApp` variant, then add it to `microkernel-desktop-offline` |
 | `nonos-capsule-ripgrep`, `nonos-capsule-sd` | With the feature on, init runs each once at boot (`src/userspace/init/entry.rs`). They are not in the terminal's tool registry. | An entry in `src/userspace/tool_capsules/registry.rs` in place of the boot spawn |
