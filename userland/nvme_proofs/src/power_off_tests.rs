@@ -121,6 +121,7 @@ fn the_notification_keeps_cc_and_sets_shn_alone() {
     let before = register(regs, REG_CC);
     let _ = crate::admin::shut_down(regs, 200_000);
     let after = register(regs, REG_CC);
+    assert_eq!(after & 0xC000, 0x4000, "CC.SHN 01b, bits 15:14");
     assert_eq!(after & CC_SHN_MASK, CC_SHN_NORMAL);
     assert_eq!(after & !CC_SHN_MASK, before & !CC_SHN_MASK, "EN and the rest kept");
     let _ = device.disable();
