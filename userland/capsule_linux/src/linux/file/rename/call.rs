@@ -43,7 +43,7 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
     if flags & RENAME_NOREPLACE != 0 && there {
         return errno::fail(errno::EEXIST);
     }
-    if [&from, &to].iter().any(|p| synth::owns(p) || key(p).writable().is_err()) {
+    if [&from, &to].iter().any(|p| synth::refused_write(p) || key(p).writable().is_err()) {
         return errno::fail(errno::EROFS);
     }
     if from == to {

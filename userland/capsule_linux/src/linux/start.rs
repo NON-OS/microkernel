@@ -41,19 +41,19 @@ pub fn run() -> ! {
         mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
     /* source() has said why when it starts nothing. */
-    let Some(launch) = source() else { mk_exit(1) };
+    let Some(launch) = source() else { super::start_stop::stop("no program to run", 1) };
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         say(b"[LINUX] no guest, errno ");
         let e = (-pid) as u32;
         let digits = [b'0' + (e / 10 % 10) as u8, b'0' + (e % 10) as u8, b'\n'];
         say(&digits);
-        mk_exit(1)
+        super::start_stop::stop("the kernel gave no guest", 1)
     }
     super::call::mark_start();
     if !super::file::prepare_private() {
         say(b"[LINUX] no private directories, not starting\n");
-        mk_exit(1)
+        super::start_stop::stop("no private folders", 1)
     }
     let mut guest = Guest::new(pid as u32);
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
@@ -65,7 +65,7 @@ pub fn run() -> ! {
         Err(step) => {
             super::file::clear_private();
             say(step);
-            mk_exit(2)
+            super::start_stop::stop(super::start_stop::why(step), 2)
         }
     };
     super::file::clear_private();
