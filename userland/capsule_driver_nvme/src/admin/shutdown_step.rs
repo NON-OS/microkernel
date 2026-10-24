@@ -68,21 +68,3 @@ pub fn shutdown_step(csts: u32, elapsed_ms: u64, budget_ms: u64) -> NvmeResult<S
     }
     Ok(ShutdownStep::Wait)
 }
-
-/// Wait, bounded by `budget_ms`, for SHST to read complete. The register read
-/// and the clock are passed in as for `await_ready_before_disable`.
-pub fn await_shutdown<R, C>(budget_ms: u64, mut read_csts: R, mut now_ms: C) -> NvmeResult<()>
-where
-    R: FnMut() -> u32,
-    C: FnMut() -> Option<u64>,
-{
-    let start = now_ms().ok_or(NvmeError::ClockFailed)?;
-    loop {
-        let csts = read_csts();
-        let now = now_ms().ok_or(NvmeError::ClockFailed)?;
-        match shutdown_step(csts, now.saturating_sub(start), budget_ms)? {
-            ShutdownStep::Wait => core::hint::spin_loop(),
-            ShutdownStep::Complete => return Ok(()),
-        }
-    }
-}
