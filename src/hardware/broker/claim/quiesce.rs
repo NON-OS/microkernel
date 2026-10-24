@@ -25,6 +25,10 @@ use crate::drivers::pci::constants::CMD_BUS_MASTER;
  * write is the only thing that stops it reaching all of memory.
  */
 pub(super) fn stop_bus_master(device_id: u64) {
+    // A described device has no config space; its interface's stop instead.
+    if crate::hardware::broker::described::stop(device_id) {
+        return;
+    }
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
         return;
     };
@@ -47,6 +51,9 @@ pub(super) fn stop_bus_master(device_id: u64) {
  * handed to someone else in between. Only the holder may ask.
  */
 pub(super) fn stop_bus_master_quietly(device_id: u64) {
+    if crate::hardware::broker::described::stop(device_id) {
+        return;
+    }
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
         return;
     };

@@ -18,7 +18,7 @@
 
 use super::kind::Kind;
 
-/// SMBus 2.0's largest block.
+/// SMBus 2.0's largest block (as recalled, unverified).
 pub const BLOCK_MAX: usize = 32;
 /// The address, flags, kind, command and length before a write's bytes.
 pub const HEAD: usize = 5;

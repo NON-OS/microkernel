@@ -18,10 +18,6 @@
 //! the register window, a part that finishes its resets, and the rings in
 //! host memory the rest are run against.
 
-mod memory;
-mod model;
-mod part_model;
-
 mod bring_up_tests;
 mod control_tests;
 mod decode_fuzz;
@@ -29,14 +25,20 @@ mod finish_tests;
 mod id_tests;
 mod link_tests;
 mod log_tests;
+mod memory;
+mod model;
+mod part_model;
 mod part_tests;
 mod pci_command_tests;
 mod reset_order_tests;
 mod reset_tests;
 mod reset_wait_tests;
+mod rx_batch_tests;
 mod rx_fuzz;
+mod rx_piece_tests;
 mod rx_queue_tests;
 mod rx_wb_tests;
+mod stage_tests;
 mod timeout_text_tests;
 mod tx_encode_tests;
 mod tx_queue_tests;

@@ -28,6 +28,7 @@ pub mod disable_slot;
 pub mod enable_slot;
 pub mod health;
 pub mod interrupt_in;
+pub mod interrupt_out;
 pub mod isoch;
 pub mod port_status;
 pub mod recover;

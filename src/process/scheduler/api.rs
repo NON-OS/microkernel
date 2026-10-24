@@ -30,5 +30,8 @@ pub fn schedule() {
 }
 
 pub fn current_cpu_id() -> u32 {
-    crate::arch::cpu::get_cpu_id()
+    // Callers index per-CPU tables with this: the dense index where the arch
+    // has one (aarch64's hardware id is an affinity, sparse across clusters).
+    let dense = crate::arch::cpu::dense_cpu_index();
+    dense.map_or_else(crate::arch::cpu::get_cpu_id, |index| index as u32)
 }

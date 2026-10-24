@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! igb_get_hw_semaphore against SWSM: taken and put back, and a stale SMBI
-//! waited out for the clock bound and then cleared once, as Linux's I210
-//! variant does.
+//! The SWSM semaphore: taken and put back, and a stale SMBI waited out for
+//! the clock bound and then cleared once.
 //!
 //! Not proven here: an agent that never lets go of the bit. The model shares
 //! memory with the driver, so the driver's own write reads back before any
@@ -25,10 +24,10 @@
 
 use std::time::Duration;
 
-use crate::constants::phy::{SWSM_SMBI, SWSM_SWESMBI};
-use crate::constants::regs::REG_SWSM;
-use crate::constants::timeouts::SEMAPHORE_MS;
-use crate::init::phy::semaphore::{get, put};
+use crate::bring::phy::lock::{get, put};
+use crate::facts::bounds::SEMAPHORE_MS;
+use crate::facts::phy::{SWSM_SMBI, SWSM_SWESMBI};
+use crate::facts::regs::REG_SWSM;
 
 use super::model::{regs, timed, window};
 
@@ -42,7 +41,7 @@ fn a_free_semaphore_is_taken_and_put_back() {
 }
 
 #[test]
-fn a_stale_smbi_is_cleared_once_as_linux_does_on_the_i210() {
+fn a_stale_smbi_is_cleared_once_on_the_i210() {
     let bar = window();
     bar.present32(REG_SWSM, SWSM_SMBI);
     let (r, took) = timed(|| get(&regs(&bar)));

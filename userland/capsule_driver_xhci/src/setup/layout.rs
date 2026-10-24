@@ -18,7 +18,8 @@ use crate::controller::{refuse_unsupported, ControllerLayout};
 use crate::error::XhciResult;
 use crate::handles::BrokerHandles;
 use crate::regs::cap::{
-    caplength, context_size, dboff, max_ports, max_scratchpad, max_slots, rtsoff, PortProtocols,
+    caplength, context_size, dboff, max_ports, max_psa, max_scratchpad, max_slots, rtsoff,
+    PortProtocols,
 };
 use crate::regs::runtime::interrupter_addr;
 
@@ -42,6 +43,7 @@ pub fn read_layout(handles: &BrokerHandles, mmio_len: u64) -> XhciResult<Control
         max_ports: ports,
         max_scratchpad: max_scratchpad(mmio_base),
         context_size: context_size(mmio_base),
+        max_psa: max_psa(mmio_base),
         ports: PortProtocols::read(mmio_base, mmio_len),
     })
 }

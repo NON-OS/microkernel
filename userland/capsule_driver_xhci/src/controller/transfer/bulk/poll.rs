@@ -44,7 +44,8 @@ pub fn poll_bulk_in(
     slot: u8,
     len: u32,
 ) -> XhciResult<BulkPoll> {
-    if len == 0 || len as usize > BULK_MAX {
+    // A streamed IN is read on its streams, never polled.
+    if len == 0 || len as usize > BULK_MAX || pipes.in_streams.is_some() {
         return Err(XhciError::ControllerUnsupported);
     }
     let (phys, asked) = match pipes.armed {
@@ -55,12 +56,13 @@ pub fn poll_bulk_in(
     let Some(event) = look(intr_base, evt_ring, issued) else {
         return Ok(BulkPoll::Pending);
     };
+    // `look` gave the event's place back. The controller ran every TRB on
+    // the ring up to this one, which is spent whatever its code.
     pipes.armed = None;
+    pipes.in_ring.retire();
     match event.completion_code() {
-        // The residual clamped to the request, as the waited transfer reads
-        // it; the controller ran every TRB on the ring up to this one.
+        // The residual clamped to the request, as the waited transfer reads it.
         CC_SUCCESS | CC_SHORT_PACKET => {
-            pipes.in_ring.retire();
             Ok(BulkPoll::Complete(asked - (event.d2 & 0xFF_FFFF).min(asked)))
         }
         cc => Err(XhciError::TransferCompletionFailed(cc)),

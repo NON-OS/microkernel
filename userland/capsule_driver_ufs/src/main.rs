@@ -32,7 +32,7 @@ const DRIVER: &[u8] = b"driver.ufs";
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
 ///
-/// Without a UFS host in ufshcd_pci_tbl the driver says so and leaves
+/// Without a listed UFS host (platform/hosts.rs) the driver says so and leaves
 /// (`EXIT_ABSENT`) before claiming anything. With one, the bring-up is retried
 /// on the shared bounded schedule, and running out is `EXIT_GAVE_UP`.
 #[no_mangle]

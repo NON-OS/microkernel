@@ -17,11 +17,14 @@
 mod claim;
 mod enter;
 mod exit;
+mod firmware;
 mod gone;
 mod hold;
+mod hold_acpi;
 mod hold_ids;
 mod hold_platform;
 mod hold_rule;
+mod hold_tree;
 mod hold_virt;
 mod leave;
 mod live;
@@ -50,7 +53,6 @@ pub use quiesce_all::quiesce_all;
 pub use exit::{exit_begin, exit_end};
 pub use release::{quiesce_held, release};
 pub use types::{Claim, ClaimError};
-// Only the x86_64 tick knows it holds no lock (L78).
-#[cfg(target_arch = "x86_64")]
+// Stepped at the tick that holds no lock, on every arch (L78, C-44).
 pub(crate) use wipe::step_all as step_wipes;
 pub(in crate::hardware::broker) use wipe::{reset_caps, say_reset_ways, ResetCaps};

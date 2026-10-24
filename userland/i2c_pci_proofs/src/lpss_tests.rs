@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rest of the LPSS wrapper bring-up Linux intel_lpss_init_dev does, and
-//! the component checks i2c-designware makes before trusting a core.
+//! The rest of the LPSS wrapper bring-up, and the component checks made
+//! before a core is trusted.
 
 use crate::constants::{
     IC_COMP_TYPE, LPSS_PRIV_CAPS, LPSS_PRIV_REMAP_HI, LPSS_PRIV_REMAP_LO, LPSS_PRIV_RESETS,

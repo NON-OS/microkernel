@@ -47,3 +47,9 @@ pub fn init_gic_cpu() -> Result<(), &'static str> {
         None => Err("GIC not brought up on the boot CPU"),
     }
 }
+
+/// The GIC `init_gic` chose, once it has. A GICv3's CPU interface is system
+/// registers in the core, which a core that powers down loses.
+pub fn chosen_version() -> Option<GicVersion> {
+    version()
+}

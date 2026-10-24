@@ -19,6 +19,7 @@
 /// # Safety
 /// As for `mmio_read32`.
 pub(crate) unsafe fn mmio_write32(addr: u64, value: u32) {
-    // SAFETY: the caller's contract.
+    // SAFETY: the caller's contract; libc's access is ordered against
+    // DMA memory, so a doorbell follows the TRBs it announces.
     unsafe { nonos_libc::mmio_write32(addr as usize, value) };
 }

@@ -20,8 +20,8 @@
 
 use crate::model::{Cfg, Rig};
 use crate::ufs::error::UfsError;
-use crate::ufs::hci::enable::HCE_STUCK_OFF;
-use crate::ufs::time::HCE_ON_MS;
+use crate::ufs::facts::bounds::HCE_ON_MS;
+use crate::ufs::host::hce::HCE_STUCK_OFF;
 
 #[test]
 fn a_host_that_never_enables_is_named_after_its_bound() {
@@ -45,7 +45,7 @@ fn lists_that_never_come_ready_are_not_run() {
     assert_eq!(rig.up(false).err(), Some(UfsError::Host));
     assert!(rig.m.said("transfer lists failed: host not ready"));
     let h = rig.m.host.borrow();
-    assert_eq!(h.regs[(crate::ufs::hci::regs::UTRLRSR / 4) as usize], 0);
+    assert_eq!(h.regs[(crate::ufs::facts::hci::UTRLRSR / 4) as usize], 0);
     assert!(h.utrds.is_empty());
 }
 

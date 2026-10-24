@@ -41,6 +41,7 @@ mod erst_fetch_tests;
 mod halt_tests;
 mod handoff_tests;
 mod hub_context_tests;
+mod interrupt_out_tests;
 mod irq_bind_tests;
 mod irq_park_tests;
 mod park_tests;

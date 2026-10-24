@@ -28,12 +28,12 @@ use nonos_libc::on_w16;
 
 use crate::constants::{DISPI_BPP_32, DISPI_ENABLED, DISPI_INDEX_BANK, DISPI_INDEX_BPP};
 use crate::constants::{DISPI_INDEX_ENABLE, DISPI_INDEX_VIRT_WIDTH, DISPI_INDEX_XRES};
-use crate::constants::{DISPI_INDEX_X_OFFSET, DISPI_INDEX_YRES, DISPI_INDEX_Y_OFFSET};
-use crate::constants::{DISPI_LFB_ENABLED, QEXT_LITTLE_ENDIAN, QEXT_SIZE, VGA_ATT_PAS};
+use crate::constants::{DISPI_INDEX_X_OFFSET, DISPI_INDEX_YRES, DISPI_INDEX_Y_OFFSET, VGA_ATT_PAS};
+use crate::constants::{DISPI_LFB_ENABLED, DISPI_NOCLEARMEM, QEXT_LITTLE_ENDIAN, QEXT_SIZE};
 use crate::dispi::{dispi_off, little_endian, set_mode};
 use crate::regs::Regs;
 
-const ON: u16 = DISPI_ENABLED | DISPI_LFB_ENABLED;
+const ON: u16 = DISPI_ENABLED | DISPI_LFB_ENABLED | DISPI_NOCLEARMEM;
 
 #[test]
 fn every_access_lands_where_qemu_decodes_it() {

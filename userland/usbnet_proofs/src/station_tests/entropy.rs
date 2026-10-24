@@ -7,7 +7,7 @@
 use nonos_libc::{calls, lines, play, serial, set_entropy};
 
 use crate::fake_xhci::answer;
-use crate::scan::Scanner;
+use crate::scan::{NetScanner, Scanner};
 use crate::station::draw;
 use crate::xhci::XhciBus;
 use crate::{Bind, Found, Station};
@@ -26,7 +26,7 @@ fn without_entropy_no_port_is_addressed_and_that_is_said_once() {
     set_entropy(false);
     assert!(draw().is_none());
     play(|req| Some(answer(req)));
-    let mut scanner = Scanner::new(b"t");
+    let mut scanner = NetScanner::new(b"t");
     for _ in 0..3 {
         assert!(scanner.pass(b"t", take).is_none());
     }
@@ -43,7 +43,7 @@ fn a_class_drivers_search_binds_without_entropy() {
     set_entropy(false);
     play(|req| Some(answer(req)));
     let before = lines().len();
-    assert!(Scanner::class().pass_class(b"t", take_class).is_some(), "bound, no address drawn");
+    assert!(Scanner::new().pass(b"t", take_class).is_some(), "bound, no address drawn");
     let said = String::from_utf8_lossy(&lines()[before..].concat()).into_owned();
     assert!(!said.contains("no entropy"), "{said}");
     set_entropy(true);

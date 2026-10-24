@@ -57,19 +57,17 @@ impl BlockDevice {
             Driver::Wire | Driver::Ufs => super::wire::geometry(port),
             Driver::Ahci | Driver::VirtioBlk | Driver::Rtsx => Ok(Geometry::SECTORS),
         };
-        let Some(geometry) = medium(geometry)? else { return Ok(None) };
+        /* A reader or slot with no card in it serves no disk, whether its
+         * GEOMETRY or its capacity is the reply that says so. */
+        let geometry = match geometry {
+            Err(BlkError::Status(E_NOMEDIUM)) => return Ok(None),
+            g => g?,
+        };
         let mut dev = BlockDevice { driver, instance, port, sectors: 0, geometry };
-        let Some(blocks) = medium(dev.capacity_blocks())? else { return Ok(None) };
-        dev.sectors = geometry.sectors(blocks);
+        dev.sectors = match dev.capacity_blocks() {
+            Err(BlkError::Status(E_NOMEDIUM)) => return Ok(None),
+            blocks => geometry.sectors(blocks?),
+        };
         Ok(Some(dev))
-    }
-}
-
-/// A card reader with no card in its slot serves no disk, whichever reply
-/// says so first.
-fn medium<T>(answer: Result<T, BlkError>) -> Result<Option<T>, BlkError> {
-    match answer {
-        Err(BlkError::Status(E_NOMEDIUM)) => Ok(None),
-        other => other.map(Some),
     }
 }

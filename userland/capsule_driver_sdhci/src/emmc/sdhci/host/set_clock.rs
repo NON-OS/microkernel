@@ -28,8 +28,9 @@ use super::limits::CLOCK_STABLE_MS;
 
 impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
     /// The SD clock at the fastest divided rate not above `hz` (0 stops
-    /// it), as sdhci_set_clock: clock off, divider and internal clock on,
-    /// wait for stable, then the SD clock on. Returns the rate set.
+    /// it). The divider may only change with the SD clock off, and the SD
+    /// clock may only go on once the internal clock reports stable (Clock
+    /// Control, as recalled, unverified). Returns the rate set.
     pub fn set_clock(&mut self, hz: u32) -> EmmcResult<u32> {
         self.io.w16(CLOCK_CONTROL, 0);
         self.sd_hz = 0;

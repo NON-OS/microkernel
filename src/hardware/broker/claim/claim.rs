@@ -21,6 +21,9 @@ use super::types::ClaimError;
 // must have already verified that `device_id` exists in the broker
 // table.
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
+    if super::firmware::is_firmware(device_id) {
+        return Err(ClaimError::Firmware);
+    }
     hold::admits(pid, device_id)?;
     let fresh = super::wipe::fresh(pid, device_id);
     let covers = crate::hardware::broker::bootfb::covers(device_id);

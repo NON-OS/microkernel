@@ -2,12 +2,12 @@
 //! Finding the playback alternate setting in a configuration.
 
 use crate::devices::*;
-use crate::uac::{playback, Playback};
+use crate::uac::{playback, Stream};
 
 #[test]
 fn qemu_usb_audio_plays_on_interface_1_alt_1() {
     let p = playback(&qemu_usb_audio()).expect("a playback alternate");
-    let want = Playback {
+    let want = Stream {
         interface: 1,
         alt: 1,
         ep_address: 0x01,
@@ -15,6 +15,9 @@ fn qemu_usb_audio_plays_on_interface_1_alt_1() {
         max_packet: 192,
         b_interval: 1,
         rate_control: false,
+        channels: 2,
+        version: 1,
+        terminal: 1,
     };
     assert_eq!(p, want);
 }
@@ -48,7 +51,8 @@ fn what_the_audio_server_does_not_send_is_refused() {
     assert!(playback(&one_alt(stereo16(&[44_100], (0, 0)), 0, ep())).is_none());
     assert!(playback(&one_alt(format_i(1, 16, &[48_000], (0, 0)), 0, ep())).is_none());
     assert!(playback(&one_alt(format_i(2, 24, &[48_000], (0, 0)), 0, ep())).is_none());
-    // USB Audio 2.0 says protocol 0x20 and lays its descriptors out anew.
+    // USB Audio 2.0 says protocol 0x20 and lays its descriptors out anew:
+    // 1.0's layout under it is not read as 2.0.
     assert!(playback(&one_alt(stereo16(&[48_000], (0, 0)), 0x20, ep())).is_none());
     // An IN endpoint is a capture path; an interrupt one is no stream.
     assert!(

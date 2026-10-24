@@ -15,50 +15,31 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::pool;
-use crate::hardware::broker::dma::flags::{DMA_MAP_DMA32, DMA_MAP_HIGH};
+use super::take::take;
 use crate::hardware::broker::dma::types::DmaMapError;
-use crate::memory::phys::{alloc_contiguous, free_contiguous, AllocFlags};
+use crate::memory::phys::free_contiguous;
 
-// Allocate `pages` physically-contiguous frames and re-scrub through
-// the direct map so the buffer is provably zero before it leaves the
-// kernel. The phys allocator's ZERO flag is best-effort across zones;
-// the volatile loop here is the load-bearing scrub.
-//
-// Where the frames come from, by request flag:
-//   HIGH   the display pool, else anywhere, highest first
-//   DMA32  the low pool, else below 4 GiB, else no memory: the device
-//          names buffers with 32-bit addresses (an AHCI HBA without
-//          CAP.S64A) and a frame above 4 GiB would be truncated
-//   none   the low pool, else below 4 GiB, else anywhere, so a device
-//          with no IOMMU in front of it still gets low memory when
-//          there is some
-pub(super) fn alloc_and_zero(pages: u64, length: u64, dma_flags: u32) -> Result<u64, DmaMapError> {
-    let phys_start = take(pages as usize, dma_flags).ok_or(DmaMapError::NoMemory)?;
+// Allocate `pages` physically-contiguous frames (take.rs says from where)
+// and re-scrub them through the direct map: the allocator's ZERO is
+// best-effort, the volatile loop here is what holds.
+pub(super) fn alloc_and_zero(
+    pages: u64,
+    length: u64,
+    dma_flags: u32,
+    uncached_frames: bool,
+) -> Result<u64, DmaMapError> {
+    let phys_start = if uncached_frames {
+        pool::uncached_alloc(pages as usize)
+    } else {
+        take(pages as usize, dma_flags)
+    };
+    let phys_start = phys_start.ok_or(DmaMapError::NoMemory)?;
     super::zero::zero_run(phys_start, length);
     Ok(phys_start)
 }
 
-fn take(pages: usize, dma_flags: u32) -> Option<u64> {
-    let base = AllocFlags::DMA | AllocFlags::ZERO;
-    if dma_flags & DMA_MAP_HIGH != 0 {
-        return pool::alloc(pages).or_else(|| alloc_contiguous(pages, base | AllocFlags::HIGH));
-    }
-    // A buffer small enough for the reserved low pool goes there first. A map
-    // that is not DMA32 stops short of the pool's floor, kept for those that are.
-    if let Some(phys_start) = pool::low32_alloc(pages, dma_flags & DMA_MAP_DMA32 != 0) {
-        return Some(phys_start);
-    }
-    if let Some(phys_start) = alloc_contiguous(pages, base | AllocFlags::DMA32) {
-        return Some(phys_start);
-    }
-    if dma_flags & DMA_MAP_DMA32 != 0 {
-        return None;
-    }
-    alloc_contiguous(pages, base)
-}
-
 /// Give back frames `alloc_and_zero` handed out, to the pool they came from:
-/// the low pool, the display pool, or the general allocator. Freeing a pool
+/// the uncached, low or display pool, or the general allocator. Freeing a pool
 /// frame into the general allocator would hand it out twice.
 pub(super) fn free(phys_start: u64, pages: u64) {
     let pages = pages as usize;

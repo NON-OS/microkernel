@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The model a driver run is held against, and the rig that wires the real
 //! driver to it: host memory standing in for DMA regions, a clock that
 //! moves one millisecond per read, and a log the tests read back.

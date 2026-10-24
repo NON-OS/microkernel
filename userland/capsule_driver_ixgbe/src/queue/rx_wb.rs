@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a written-back receive descriptor says. ixgbe_clean_rx_irq waits for
-//! a non-zero status_error and ixgbe_cleanup_headers drops a frame with any
-//! bit of IXGBE_RXDADV_ERR_FRAME_ERR_MASK set. A descriptor without EOP is a frame longer than one 2 KiB buffer,
-//! which this driver never takes, and the length must fit an Ethernet frame
-//! so the copy out of the slot can never leave it.
+//! What a written-back receive descriptor says, every bit the part's word
+//! (positions in facts::rx, as recalled, unverified). Without DD it is not
+//! yet written. Without EOP it is a piece of a frame longer than one 2 KiB
+//! buffer, which this driver never joins. Any frame error bit, a length of
+//! 0, or one past an Ethernet frame drops it; the frame bound is under the
+//! posted buffer's, so the copy out of the slot never leaves it.
 
-use crate::constants::rx_bits::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
-use crate::constants::MAX_ETHERNET_FRAME;
+use crate::facts::rx::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
+use crate::sizes::ring::RX_BUFFER_LEN;
+use crate::sizes::MAX_ETHERNET_FRAME;
+
+const _: () = assert!(MAX_ETHERNET_FRAME <= RX_BUFFER_LEN);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Rx {
@@ -29,6 +33,8 @@ pub enum Rx {
     NotDone,
     /// Written back, but nothing to hand up: the slot is recycled.
     Drop,
+    /// Written back without EOP: one piece of a longer frame.
+    Piece,
     /// A whole, error-free frame of this many bytes.
     Frame(u16),
 }
@@ -37,8 +43,10 @@ pub fn parse(staterr: u32, length: u16) -> Rx {
     if staterr & RXD_STAT_DD == 0 {
         return Rx::NotDone;
     }
-    if staterr & RXD_STAT_EOP == 0
-        || staterr & RXDEXT_ERR_FRAME_ERR_MASK != 0
+    if staterr & RXD_STAT_EOP == 0 {
+        return Rx::Piece;
+    }
+    if staterr & RXDEXT_ERR_FRAME_ERR_MASK != 0
         || length == 0
         || length as usize > MAX_ETHERNET_FRAME
     {

@@ -20,17 +20,16 @@
 
 use nonos_virtio::common::{NotifyArea, DEVICE_FEATURE};
 
-use super::frames::le32;
-use super::harness::{harness, Harness};
+use super::harness::{harness, Harness, HANDSHAKE};
 use super::model::{bring_up, NOTIFY_LEN, NOTIFY_MULT};
 use super::part::{answering_after_reset, Answer, Part};
-use super::stall::PRIMARY;
 use crate::constants::{VG_CMD_RESOURCE_ATTACH_BACKING, VG_CMD_RESOURCE_CREATE_2D};
 use crate::constants::{VG_CMD_RESOURCE_FLUSH, VG_CMD_SET_SCANOUT, VG_CMD_TRANSFER_TO_HOST_2D};
-use crate::setup::{prime, probes};
-use crate::state::FenceCounter;
+use crate::display::take::take;
+use crate::setup::probes;
+use crate::state::{FenceCounter, Scanout, ScanoutTable};
 
-/// How the primary surface is shown: the 2D path.
+/// How an output is taken: the 2D path (`display::take`).
 pub const SHOWN: [u32; 5] = [CREATE, ATTACH, VG_CMD_TRANSFER_TO_HOST_2D, VG_CMD_SET_SCANOUT, FLUSH];
 const CREATE: u32 = VG_CMD_RESOURCE_CREATE_2D;
 const ATTACH: u32 = VG_CMD_RESOURCE_ATTACH_BACKING;
@@ -48,13 +47,17 @@ pub fn transport_up(stalled: u32) -> (Harness, u64, Part) {
     (h, features, part)
 }
 
-/// The probes, then the primary shown on the queue they hand on: the type
-/// of each command the part answered, and whether 3D was reported.
-pub fn probes_stalling_on(stalled: u32) -> (Vec<u32>, bool) {
+/// The probes, then scanout 0 taken on the queue they hand on: the type of
+/// each command the part answered, each taken under the full handshake.
+pub fn probes_stalling_on(stalled: u32) -> Vec<u32> {
     let (h, features, part) = transport_up(stalled);
     let fences = FenceCounter::new();
-    let probed = probes::run(h.queue, features, NOTIFY, &fences, 1, 1).expect("the queue back");
-    let shown = prime::show(&probed.queue, &fences, &PRIMARY);
-    assert_eq!(shown, Ok(()), "no 2D surface after a stall on {stalled:#x}");
-    (part.seen().iter().map(|r| le32(r, 0)).collect(), probed.virgl_ready)
+    let probed = probes::run(h.queue, features, NOTIFY, &fences, (1, 1)).expect("the queue back");
+    let table = ScanoutTable::new();
+    table.record(0, Scanout { width: 64, height: 48, enabled: true });
+    let taken = take((probed.queue, fences), (1, 1), &table, probed.panel);
+    assert!(taken.is_ok(), "no output taken after a stall on {stalled:#x}");
+    // The restarted queue's commands too: none before DRIVER_OK again.
+    assert!(part.statuses().iter().all(|&s| s == HANDSHAKE), "{stalled:#x}");
+    part.seen().iter().map(|r| u32::from_le_bytes(r[..4].try_into().unwrap())).collect()
 }

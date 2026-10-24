@@ -16,6 +16,7 @@
 
 pub mod layout;
 pub mod rx;
+mod rx_batch;
 mod rx_consume;
 pub mod tx;
 mod tx_post;

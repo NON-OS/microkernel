@@ -19,6 +19,7 @@
 use core::ptr::{read_volatile, write_volatile};
 
 use super::super::wait::until;
+use crate::arch::aarch64::mmu::pointer::device;
 
 pub(super) const CTLR: u64 = 0x0000;
 pub(super) const TYPER: u64 = 0x0008;
@@ -31,8 +32,6 @@ pub(super) const TRANSLATER: u64 = 0x1_0040;
 
 pub(super) const CTLR_ENABLED: u32 = 1 << 0;
 pub(super) const CTLR_QUIESCENT: u32 = 1 << 31;
-pub(super) const CREADR_STALLED: u64 = 1 << 0;
-pub(super) const QUEUE_OFFSET: u64 = 0xf_ffe0;
 
 #[derive(Clone, Copy)]
 pub(super) struct Regs(pub(super) u64);
@@ -41,22 +40,22 @@ impl Regs {
     pub(super) fn read32(self, offset: u64) -> u32 {
         // SAFETY: the control frame the tree described, mapped as device
         // memory at boot; `offset` is one of its registers.
-        unsafe { read_volatile((self.0 + offset) as *const u32) }
+        unsafe { read_volatile(device::<u32>(self.0, offset)) }
     }
 
     pub(super) fn write32(self, offset: u64, value: u32) {
         // SAFETY: as `read32`.
-        unsafe { write_volatile((self.0 + offset) as *mut u32, value) }
+        unsafe { write_volatile(device::<u32>(self.0, offset), value) }
     }
 
     pub(super) fn read64(self, offset: u64) -> u64 {
         // SAFETY: as `read32`, at one of its 64-bit registers.
-        unsafe { read_volatile((self.0 + offset) as *const u64) }
+        unsafe { read_volatile(device::<u64>(self.0, offset)) }
     }
 
     pub(super) fn write64(self, offset: u64, value: u64) {
         // SAFETY: as `read64`.
-        unsafe { write_volatile((self.0 + offset) as *mut u64, value) }
+        unsafe { write_volatile(device::<u64>(self.0, offset), value) }
     }
 
     /// Firmware may leave the ITS on; its tables and queue can only be

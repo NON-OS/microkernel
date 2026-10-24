@@ -25,16 +25,18 @@ use nonos_libc::mk_pid_alive;
 use super::context::Context;
 use super::handlers::disable_slot::release_slot;
 
-/// Disable every slot of `ctx` whose owner has exited. One the controller
-/// does not disable is tried again on the next sweep.
-pub fn sweep_orphans(ctx: &mut Context) {
+/// Disable every slot of `ctx` whose owner has exited, but one `keep`
+/// names: a shared device another live driver still claims an interface
+/// of, or a child parked below a hub. One the controller does not disable
+/// is tried again on the next sweep.
+pub fn sweep_orphans(ctx: &mut Context, keep: impl Fn(u8) -> bool) {
     let max = ctx.driver.layout.max_slots;
     if ctx.driver.dead {
         return;
     }
     for slot in 1..=max {
         let Some(owner) = ctx.driver.slots.owner_of(slot, max) else { continue };
-        if !mk_pid_alive(owner) {
+        if !mk_pid_alive(owner) && !keep(slot) {
             let _ = release_slot(ctx, slot);
         }
     }

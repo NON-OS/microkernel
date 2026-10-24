@@ -34,8 +34,8 @@ pub use super::class::{classify_pci, Class};
 pub use super::confine::{set_acs_groups, Port as AcsPort};
 pub use super::device::{
     Bar, BarKind, BusKind, DeviceRecord, BAR_FLAG_FIXED, DEVICE_FLAG_CLAIMED,
-    DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED, DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW,
-    DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
+    DEVICE_FLAG_DEPS_UNMET, DEVICE_FLAG_DISABLED, DEVICE_FLAG_DMA_NONCOHERENT,
+    DEVICE_FLAG_EXTERNAL, DEVICE_FLAG_IRQ_ACTIVE_LOW, DEVICE_FLAG_IRQ_EDGE, NUMA_UNKNOWN,
 };
 pub use super::dma::{
     covers as dma_covers, free_held_run as dma_free_held_run,

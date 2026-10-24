@@ -21,9 +21,9 @@ use super::ufs::Ufs;
 use super::unit::Unit;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
+use crate::ufs::facts::bounds::SCSI_MS;
 use crate::ufs::scsi::cdb::{rw, sync_cache};
 use crate::ufs::scsi::exec::{exec, Data};
-use crate::ufs::time::SCSI_MS;
 
 pub fn read<H: Hw>(
     hw: &H,
@@ -48,6 +48,10 @@ pub fn write<H: Hw>(
     src: &[u8],
 ) -> Result<(), UfsError> {
     let bytes = n as usize * u.block_len as usize;
+    // Before the bounce buffer is touched: an old READ may still land in it.
+    if d.ctx.slot_held(hw) {
+        return Err(UfsError::Host);
+    }
     d.ctx.lists.data.put(0, &src[..bytes]);
     exec(hw, &d.ctx, u.lun, rw(true, lba, n), Data::Out(bytes), SCSI_MS)
 }

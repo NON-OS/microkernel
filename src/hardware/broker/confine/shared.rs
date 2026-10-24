@@ -14,7 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Requesters a second capsule cannot take while one already holds them.
+//! Requesters a second capsule cannot take while one already holds them,
+//! and the RMRR regions it may not share.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 
 use super::acs_groups::peers;
 use super::table::Capsule;
@@ -39,4 +44,12 @@ pub(super) fn held_elsewhere(
         return Some(b"refused: a peer below one switch reaches it past the IOMMU, held elsewhere");
     }
     None
+}
+
+/// Every RMRR region a capsule other than the one at `pos` holds: a region is
+/// never mapped into two capsules' domains (L63).
+pub(super) fn regions_elsewhere(all: &[Capsule], pos: usize) -> Vec<(u64, u64)> {
+    (all.iter().enumerate().filter(|&(i, _)| i != pos))
+        .flat_map(|(_, c)| c.rmrr.iter().map(|h| (h.base, h.end)))
+        .collect()
 }

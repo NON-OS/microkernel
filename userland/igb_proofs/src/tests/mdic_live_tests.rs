@@ -21,10 +21,10 @@
 use std::sync::atomic::Ordering;
 use std::time::Duration;
 
-use crate::constants::phy::{MDIC_ERROR, MDIC_READY, PHY_CONTROL};
-use crate::constants::regs::REG_MDIC;
-use crate::constants::timeouts::MDIC_MS;
-use crate::init::phy::mdic::{read, write, READ_FAILED, READ_SLOW, WRITE_SLOW};
+use crate::bring::phy::cycle::{read, write, READ_FAILED, READ_SLOW, WRITE_SLOW};
+use crate::facts::bounds::MDIC_MS;
+use crate::facts::phy::{MDIC_ERROR, MDIC_READY, PHY_CONTROL};
+use crate::facts::regs::REG_MDIC;
 
 use super::model::{live, regs, stable32, timed, window};
 use super::phy_model::{bmcr, phy, BMCR_POWERED_DOWN};
