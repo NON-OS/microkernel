@@ -5592,6 +5592,19 @@
   "md": [],
   "signed": []
  },
+ "userland/intel_xelp_display_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/intel_xelp_display_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_intel_display_hw",
+   "userland/nonos_intel_xelp_display",
+   "userland/nonos_modes/data"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/iort_proofs": {
   "exclude": [],
   "include": [
