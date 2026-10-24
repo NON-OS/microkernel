@@ -6,7 +6,7 @@ What NONOS does with soldered eMMC storage and with SD card readers in this rele
 
 | Hardware | Matched by | Driver | State in 0.9.2 |
 |---|---|---|---|
-| eMMC on an Intel SD host controller | PCI class 08h, subclass 05h, 13 Intel device ids | `driver.sdhci0` | Served on the block wire; not yet tested on hardware since the move, [as below](#emmc) |
+| eMMC on an Intel SD host controller | PCI class 08h, subclass 05h, 13 Intel device ids | `driver.sdhci0` | Served on the block wire; not yet tested on hardware since the move, [as below](#emmc), and not in a shipped image: its capsule has no publisher key |
 | eMMC on another SD host controller | PCI class 08h, subclass 05h, slot type embedded | `driver.sdhci0` | Served only when the capsule was started for a listed Intel host as well |
 | SD card or SDIO slot on an Intel SD host controller | 14 Intel device ids | none | Not supported: no SD card driver, and the eMMC driver passes these over by id |
 | SD card slot on another SD host controller | slot type not embedded | none | Not supported: no SD card driver |
