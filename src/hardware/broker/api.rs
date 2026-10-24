@@ -63,7 +63,7 @@ pub use super::pio::{
 pub use super::pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use super::platform::register_legacy as register_legacy_platform_devices;
 pub use super::table::{
-    contains, external_port_of, init_from_pci, list, list_by_class, list_shown,
+    boot_fb_held, contains, external_port_of, init_from_pci, list, list_by_class, list_shown,
 };
 pub use super::vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use super::windows::touches_device_window;
