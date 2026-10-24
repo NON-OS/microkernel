@@ -42,6 +42,7 @@ socket or a key.
   `nsh.session` use. That touches `capsule_terminal`, which is in the
   0.9.3 seal batch, so I ask before any edit and would start only after
   28 October.
-- **Q4. The port number.** I propose 4422.
+- **Q4. The port number.** Answered: 4422 is the default, and the server
+  profile can change it.
 - **Q5. K1 to K4 are kernel work.** Do I do them, or does the kernel track,
   with me writing the proofs?

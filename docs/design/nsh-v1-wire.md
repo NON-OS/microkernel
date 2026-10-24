@@ -2,8 +2,8 @@
 
 ## Transport and limits
 
-- nsh/1 runs over TCP. The proposed port is 4422; the lead has not yet
-  confirmed it. Integers are little-endian unless a field says otherwise.
+- nsh/1 runs over TCP, on port 4422 by default. The server profile can
+  set another port, and the client takes one as `nsh -p PORT`. Integers are little-endian unless a field says otherwise.
   A `bytes8` or `bytes16` field is a length (u8 or u16) followed by that
   many bytes.
 - Every frame is laid out as `len: u32 | type: u8 | body`. `len` counts the
