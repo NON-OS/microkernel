@@ -24,6 +24,8 @@
 //! `verification/lean/Nonos/ZeroState.lean` proves the property this shape
 //! buys, that no reachable state powers the machine off with memory unwiped.
 
+mod panic_wipe;
 mod terminate;
 
+pub(crate) use panic_wipe::panic_wipe;
 pub(crate) use terminate::terminate;
