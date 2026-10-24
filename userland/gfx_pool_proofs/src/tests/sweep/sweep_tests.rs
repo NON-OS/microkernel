@@ -21,7 +21,7 @@
 //! still holds, each registered: nothing leaked, nothing freed under it.
 
 use nonos_gfx_serve::Server;
-use nonos_libc::{live, maps, registered_dirty, reset, unmapped_wrong};
+use nonos_libc::{live, maps, registered_dirty, reset, set_compositor, unmapped_wrong};
 
 use super::server_sweep::sweep;
 use crate::tests::screen::Screen;
@@ -30,6 +30,7 @@ use crate::Pool;
 #[test]
 fn the_real_pool_holds_a_server_through_the_sweep() {
     reset();
+    set_compositor(Some(7));
     let mut s = Server::new(Screen::new(), Pool::default());
     let t = sweep(&mut s, 0x6F01_0001, 20_000, 7);
     assert!(t.taken >= 2_000 && t.refused >= 2_000 && t.shown >= 100, "{t:?}");

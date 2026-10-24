@@ -29,9 +29,14 @@ pub fn compositor_pid() -> Option<u32> {
     (rc >= 0 && pid != 0).then_some(pid)
 }
 
-/// Name `pid` a writable receiver of `sid` as well. Rights die with the pid
-/// that held them, so a restarted compositor needs its own; naming one
-/// twice is no error.
+/// Name `pid`, the compositor, a writable receiver of `sid` as well. Rights
+/// die with the pid that held them, so a restarted compositor needs its
+/// own; naming one twice is no error.
 pub fn reshare(sid: u64, pid: u32) -> Result<(), Errno> {
+    // The kernel holds a display driver to the compositor; the pool keeps
+    // the same rule itself, so no other caller is ever named a receiver.
+    if compositor_pid() != Some(pid) {
+        return Err(EINVAL);
+    }
     (mk_surface_share(sid, pid, SURFACE_SHARE_WRITE) > 0).then_some(()).ok_or(EINVAL)
 }
