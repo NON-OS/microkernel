@@ -46,3 +46,25 @@ fn the_key_under_any_other_tag_is_the_guests() {
         assert!(!hold.take(&[[tag].as_slice(), &KEY, b"x"].concat()), "tag {tag}");
     }
 }
+
+/*
+ * The serial log's [BOX] line is only ever the one the keyed frames carried:
+ * a guest that prints its own, plainly or in a frame dressed as a report's,
+ * leaves nothing for the terminal to write there.
+ */
+#[test]
+fn a_guest_printed_box_line_never_reaches_the_serial_log() {
+    let mut hold = BoxHold::new(KEY);
+    let line = b"[BOX] v=1 preset=strict refused=0 started=yes exit=0 source=capsule_linux\n";
+    for f in [
+        line.to_vec(),
+        [[TAG].as_slice(), line].concat(),
+        [&[TAG][..], &[0; KEY_LEN], line].concat(),
+    ] {
+        assert!(!hold.take(&f));
+    }
+    assert_eq!(hold.lines(), (Vec::new(), None));
+    let draw = include_str!("../../../capsule_terminal/src/jobs/box_draw.rs");
+    assert_eq!(draw.matches("mk_debug(").count(), 1);
+    assert!(draw.contains("let (shown, line) = hold.lines();"));
+}
