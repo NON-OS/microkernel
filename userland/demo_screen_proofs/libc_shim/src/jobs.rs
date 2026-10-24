@@ -22,6 +22,7 @@ pub const TTY_STDOUT: u64 = 1 << 1;
 pub const TTY_STDERR: u64 = 1 << 2;
 pub const TAG_STDOUT: u8 = 1;
 pub const TAG_STDERR: u8 = 2;
+pub const TAG_BOX: u8 = 3;
 
 const ENOSYS: i64 = -38;
 const ESRCH: i64 = -3;
