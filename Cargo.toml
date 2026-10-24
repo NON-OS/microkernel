@@ -998,7 +998,6 @@ microkernel-full-gui = [
   "nonos-capsule-driver-rndis",
   "nonos-capsule-driver-ccid",
   "nonos-capsule-driver-fido",
-  "nonos-capsule-driver-smbus",
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
