@@ -49,26 +49,27 @@ pub(super) fn admit(device_id: u64) -> Result<(Vec<Member>, Vec<DeviceAddress>),
     Ok((Vec::new(), Vec::new()))
 }
 
-/// A device another capsule holds, as a claim beside it sees it (H-03):
-/// its place, its own group and the requester ids its DMA may carry.
+/// A device another capsule holds, as a claim beside it sees it (H-03): its
+/// place, its group (None when unreadable: refuses), its DMA's requester ids.
 pub(super) struct Peer {
     pub at: (u8, u8, u8),
-    pub group: Vec<Member>,
+    pub group: Option<Vec<Member>>,
     pub aliases: Vec<DeviceAddress>,
 }
 
-/// None for a device with no group to read: not on segment 0's PCI tree.
+/// None for a device off the PCI tree, which has no group and blocks none.
+#[cfg(target_arch = "x86_64")]
 pub(super) fn peer(device_id: u64) -> Option<Peer> {
-    #[cfg(target_arch = "x86_64")]
-    {
-        let a = crate::hardware::broker::pci_index::lookup(device_id)?.address;
-        let r = super::acs::reach(device_id)?;
-        let aliases = r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect();
-        Some(Peer { at: (a.bus, a.device, a.function), group: r.group, aliases })
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        let _ = device_id;
-        None
-    }
+    let a = crate::hardware::broker::pci_index::lookup(device_id)?.address;
+    let at = (a.bus, a.device, a.function);
+    let Some(r) = super::acs::reach(device_id) else {
+        return Some(Peer { at, group: None, aliases: Vec::new() });
+    };
+    let aliases = r.aliases.iter().map(|&(b, d, f)| DeviceAddress::pci(b, d, f)).collect();
+    Some(Peer { at, group: Some(r.group), aliases })
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+pub(super) fn peer(_: u64) -> Option<Peer> {
+    None
 }
