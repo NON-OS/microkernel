@@ -13,15 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 const VENDOR_INTEL: u16 = 0x8086;
-/// Intel Thunderbolt and USB4 xHCI functions, as Linux's xhci-pci.c names
-/// them: Alpine Ridge, Titan Ridge, Maple Ridge, and the TCSS controllers of
-/// Ice Lake, Tiger Lake, Alder Lake, Raptor Lake and Meteor Lake. Their
-/// ports are the Type-C ones only.
+/// Intel Thunderbolt and USB4 xHCI functions (as observed, unverified):
+/// Alpine Ridge, Titan Ridge, Maple Ridge, and the TCSS controllers of Ice
+/// Lake, Tiger Lake, Alder Lake, Raptor Lake and Meteor Lake. Their ports
+/// are the Type-C ones only.
 const INTEL_THUNDERBOLT_XHCI: [u16; 15] = [
     0x15b5, 0x15b6, 0x15c1, 0x15d4, 0x15db, 0x15e9, 0x15ec, 0x15f0, 0x1138, 0x8a13, 0x9a13, 0x461e,
     0x464e, 0xa71e, 0x7ec0,
 ];
+
 pub fn is_thunderbolt(vendor: u16, device: u16) -> bool {
     vendor == VENDOR_INTEL && INTEL_THUNDERBOLT_XHCI.contains(&device)
 }

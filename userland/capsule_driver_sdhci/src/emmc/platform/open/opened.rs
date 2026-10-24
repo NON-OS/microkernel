@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! An opened host and the order its resources are given back in.
 
 use super::super::super::slot::Slot;

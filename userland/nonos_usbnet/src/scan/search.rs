@@ -14,39 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One pass over the root ports: each port the book plans is probed with
-//! the driver's binding until one holds its device.
+//! One pass over every known host's root ports, fastest host first, until a
+//! port holds this driver's device. Each host keeps its own port book, so
+//! port 1 of one host is not port 1 of another. Pure over the calls to the
+//! hosts, so the proofs run it with modelled hosts.
 
-use super::bound::Bound;
-use super::probe::{probe, Probe};
-use super::scanner::Scanner;
-use crate::bind::Bind;
-use crate::found::Found;
-use crate::xhci::{connected_ports, lookup, XhciBus};
+use alloc::vec::Vec;
 
-impl Scanner {
-    pub(super) fn search<N>(
-        &mut self,
-        tag: &[u8],
-        bind: impl Fn(XhciBus, &Found) -> Bind<N>,
-    ) -> Option<Bound<N>> {
-        self.xhci = self.xhci.or_else(lookup);
-        let xhci = self.xhci?;
-        if self.backoff.due() {
-            self.book.retry_all();
-        }
-        let ports = connected_ports(xhci).ok()?;
-        for port in self.book.plan(&ports) {
-            match probe(xhci, port, tag, &bind) {
-                Probe::Ours(bound) => {
-                    self.backoff.reset();
-                    return Some(bound);
-                }
-                Probe::NotOurs => self.book.not_ours(port),
-                Probe::Busy => {}
-                Probe::Failed => self.book.failed(port),
+use super::book::Book;
+use super::port::Port;
+use crate::hosts::Hosts;
+
+/// What trying one port came to.
+pub enum Tried<B> {
+    Ours(B),
+    NotOurs,
+    Busy,
+    Failed,
+}
+
+/// `ports(host)` lists a host's connected ports; `try_port(host, port)`
+/// tries one.
+pub fn search<B>(
+    hosts: &mut Hosts<Book>,
+    mut ports: impl FnMut(u32) -> Option<Vec<Port>>,
+    mut try_port: impl FnMut(u32, u8) -> Tried<B>,
+) -> Option<B> {
+    hosts.first(|host, book| {
+        let connected = ports(host)?;
+        for port in book.plan(&connected) {
+            match try_port(host, port) {
+                Tried::Ours(bound) => return Some(bound),
+                Tried::NotOurs => book.not_ours(port),
+                Tried::Busy => {}
+                Tried::Failed => book.failed(port),
             }
         }
         None
-    }
+    })
 }

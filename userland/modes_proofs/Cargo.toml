@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_modes. Builds for the host so `cargo test`
+# runs the shipping timing code (included via #[path]) against the CVT 1.2
+# worked results, the DMT table's own CVT rows, and the fit rule.
+[package]
+name = "modes_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The timing type and the EDID timings the crate resolves.
+nonos_edid = { path = "../nonos_edid" }

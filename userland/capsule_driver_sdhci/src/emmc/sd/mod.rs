@@ -19,6 +19,7 @@
 //! answers the same way.
 
 pub mod cmds;
+pub mod csd;
 pub mod init;
 pub mod regs;
 

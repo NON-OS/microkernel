@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 powerdown idle path: the suspend
+# context's layout on both sides, the save and the resume in suspend.S run
+# as a model over every combination of optional parts (each register saved
+# is put back from where it was saved, nothing else is), the keys kept out
+# of the context, and the order the resume puts things back in.
+[package]
+name = "suspend_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

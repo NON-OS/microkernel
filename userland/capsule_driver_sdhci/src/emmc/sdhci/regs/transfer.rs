@@ -17,7 +17,7 @@
 //! Block Size, Transfer Mode and Command register fields.
 
 // Block Size: transfer block size in 11:0, SDMA buffer boundary in 14:12.
-// Linux writes SDHCI_MAKE_BLKSZ(7, 512): boundary 512 KiB, unused by ADMA2.
+// Boundary 7 is 512 KiB, the largest; it applies to SDMA only, not ADMA2.
 pub const BLOCK_SIZE_512: u16 = (7 << 12) | 512;
 
 // Transfer Mode.

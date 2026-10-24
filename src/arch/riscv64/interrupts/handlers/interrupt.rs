@@ -31,7 +31,7 @@ pub fn dispatch(code: InterruptCode, frame: &mut TrapFrame) {
     }
 
     match code {
-        InterruptCode::SupervisorTimer => timer::handle_timer_interrupt(),
+        InterruptCode::SupervisorTimer => timer::handle_timer_interrupt(frame.is_from_user()),
         InterruptCode::SupervisorExternal => handle_external(),
         InterruptCode::SupervisorSoftware => handle_software(),
         InterruptCode::MachineSoftware

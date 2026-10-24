@@ -41,3 +41,10 @@ pub fn floor_canvas(width: u32, height: u32) -> Option<(u32, u32)> {
     let ch = (h * num).div_ceil(den);
     Some((u32::try_from(cw).ok()?, u32::try_from(ch).ok()?))
 }
+
+/// A `width` x `height` canvas's stride and bytes, None when the stride is
+/// past u32: a floor canvas can be wider than any screen a driver gave.
+pub fn backing(width: u32, height: u32) -> Option<(u32, u64)> {
+    let stride = width.checked_mul(4)?;
+    Some((stride, stride as u64 * height as u64))
+}

@@ -29,11 +29,11 @@ use crate::rings::event::IssuedTransfer;
 fn the_next_batch_takes_the_other_half_and_the_last_batchs_completion() {
     let mut fx = Fixture::new();
     let mut p = pipe(&fx);
-    // The bulk IN is armed, so its event is kept for it (`expect`).
-    let other = IssuedTransfer { phys: 0x9000, slot: SLOT, dci: BULK_IN_DCI };
-    assert!(fx.ring.expect(other));
     send(&mut fx, &mut p, &[192, 192], 1).unwrap();
     let last = p.ring.phys() + TRB;
+    // A bulk IN armed elsewhere, with a place for its event (`expect`).
+    let other = IssuedTransfer { phys: 0x9000, slot: SLOT, dci: BULK_IN_DCI };
+    assert!(fx.ring.expect(other));
     fx.hc.post(transfer(0, CC_UNDERRUN, 0, SLOT, DCI));
     fx.hc.post(transfer(0, CC_MISSED, 0, SLOT, DCI));
     fx.hc.post(transfer(0x9000, CC_SUCCESS, 0, SLOT, BULK_IN_DCI));

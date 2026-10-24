@@ -34,6 +34,8 @@ pub struct Keys {
     pub(super) caps: bool,
     pub(super) held: HeldKeys,
     pub(super) repeat: KeyRepeat,
+    /// The trust of the link whose input is being posted, for every event.
+    pub(super) source: u16,
     /// Events the input ring refused.
     pub failures: u64,
 }
@@ -42,10 +44,10 @@ impl Keys {
     /// `source` is the G-76 trust the posting link carries (SOURCE_BT, and
     /// BOND_AUTHENTICATED when its bond was authenticated). It rides in the
     /// free high bits of each event's flags, beside the modifiers. The
-    /// pointer events set it here; the key events go through the USB HID
-    /// driver's shared `post_key`, which gains the same bits at integration
-    /// with G-76 (a posted key only ever comes from an authenticated bond).
+    /// pointer events set it here, and the key events through the USB HID
+    /// driver's shared `post_key`, whose flags take it above the modifiers.
     pub fn on(&mut self, input: Input, source: u16) {
+        self.source = source;
         let ok = match input {
             Input::KeyDown(u) | Input::KeyUp(u) if modifier_bit(u).is_some() => {
                 let bit = modifier_bit(u).unwrap_or(0);

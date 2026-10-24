@@ -44,7 +44,9 @@ pub fn find(fdt: &Fdt) -> Result<Option<PciHost>, FdtError> {
         return Ok(None);
     };
     let (bus_start, bus_end) = bus_range(fdt, &node)?;
-    let mut host = PciHost { ecam_base, ecam_size, bus_start, bus_end, ..PciHost::default() };
+    let dma_coherent = fdt.property(&node, b"dma-coherent")?.is_some();
+    let mut host =
+        PciHost { ecam_base, ecam_size, bus_start, bus_end, dma_coherent, ..PciHost::default() };
     let Some(ranges) = fdt.property(&node, b"ranges")? else {
         return Ok(Some(host));
     };

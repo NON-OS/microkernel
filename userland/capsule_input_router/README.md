@@ -39,11 +39,14 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md), se
 |---|---|---|
 | `OP_HEALTHCHECK` | 0x0001 | liveness ping |
 | `OP_SUBSCRIBE` | 0x0002 | register the sender with a mask of the input kinds it takes |
-| `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may |
+| `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may, and only while focused (`route/grab_rule.rs`) |
 | `OP_GRAB_RELEASE` | 0x0004 | give the grab back |
+| `OP_TRUSTED_HOLD` | 0x0005 | from the compositor only, one-way and never answered: the pid holding its trusted band (0: none); a hold not heard again for 3 s lapses (`route/trusted_hold.rs`) |
 
 `GRABBERS` is the boot splash, the setup wizard, the input probe, the
-desktop shell and the installer. A grab holder that cannot receive loses
+desktop shell and the installer. Each may grab only while its window has
+focus, the shell while the desktop has it; with no window manager
+answering (setup, the installer) the name alone decides. A grab holder that cannot receive loses
 its grab. A frame whose header `parse` refuses is answered with
 `E_BAD_MAGIC`, `E_BAD_VERSION` or `E_BAD_LEN` and the op and request id it
 named.
@@ -59,6 +62,28 @@ named.
 - Keys: a key press goes to the pid `OP_QUERY_FOCUS` names; its release
   goes to the pid that got the press.
 - Every delivery needs a subscription whose kind mask allows the event.
+- Ahead of grabs and focus (`route/preempt.rs`): the press of a reserved
+  key goes to the shell (Ctrl+Alt+Esc; Ctrl+Alt+Delete, the secure
+  attention chord; the system keys), its release follows it, and while the
+  compositor's trusted band is held (a lock screen or a permission prompt
+  is up) every key, click, motion and wheel goes to its holder alone, and
+  a grab requested by anyone else is refused with E_BUSY.
+- Bluetooth pairing (G-76, `route/bond.rs`, `route/refuse.rs`): the
+  Bluetooth capsule stamps bit 15 of an event's flags (`SOURCE_BT`) on
+  every event it posts, and bit 14 (`BOND_AUTHENTICATED`) when the
+  device's bond was authenticated. An event with bit 15 and not bit 14 (a
+  device paired by Just Works, or one not stamped with its level) never
+  reaches the secure path: the secure attention chord, press and release,
+  goes nowhere, and while the trusted band is held its keys, clicks and
+  motion go nowhere either, except a release going back to the window its
+  press went to. Its other events route as any other. The shell is told at
+  most once a minute (`route/notice.rs`). Events without bit 15 come from
+  wired devices and are untouched. Bits 14 and 15 are cleared from every
+  delivery.
+- Gamepads (B-57: kinds 8 button down, 9 button up, 10 axis; the pad's
+  number in y) follow focus exactly as keys do (`route/pad.rs`): a press
+  and an axis go to the focused window, a release to where its press went,
+  and no other subscriber hears them.
 
 ## Authority
 
@@ -108,6 +133,7 @@ consumes the event ring the drivers post to.
 | Reply builder | `server/respond.rs` |
 | Kernel ring | `sources/kernel_ring.rs` |
 | Routing | `route/{dispatch,keyboard,deliver}.rs`, `route/pointer/*.rs` |
+| Bluetooth pairing on the secure path | `route/{bond,refuse,notice}.rs` |
 | State | `state/{cursor,press,hover,key_targets}.rs`, `state/grabs/*.rs`, `state/subscriptions/*.rs`, `state/context/*.rs` |
 | Clients for wm, compositor, policy | `clients/*` |
 | Wire protocol | `protocol/*.rs` |
@@ -118,7 +144,10 @@ Requests: 20-byte header, magic `0x4E49_5253` ("NIRS"), version 1, op at
 offset 6, flags at 8, request id at 12, payload length at 16. Deliveries:
 8-byte header with magic `0x4E49_4E50` ("NINP") followed by the 32-byte
 `InputEvent` (kind u16, flags u16, code u32, x, y, delta_x, delta_y as
-i32, timestamp u64), the shape app_skeleton reads.
+i32, timestamp u64), the shape app_skeleton reads. The header's flags
+are 0, except the router's notice to the shell that an unauthenticated
+Bluetooth device was refused (`NOTICE_UNPROVEN`, 1), whose event is kind
+`NOTICE_KIND` (0xFFFF) and otherwise zero.
 
 ## Release checklist
 

@@ -17,22 +17,22 @@
 //! The words the driver builds, against JESD223 and JESD220 field by field:
 //! the UTRD, the PRDT entry, the UPIUs and the CDBs.
 
+use crate::ufs::facts::upiu::*;
 use crate::ufs::scsi::cdb::{report_luns, rw, sync_cache, test_unit_ready};
-use crate::ufs::upiu::codes::*;
+use crate::ufs::slot::descriptor::{descriptor, Dir};
+use crate::ufs::slot::prdt::entry;
 use crate::ufs::upiu::request::{command, flag_query, nop_out};
-use crate::ufs::utp::prdt::entry;
-use crate::ufs::utp::utrd::{utrd, Dir};
 
 #[test]
 fn utrd_fields() {
-    let d = utrd(1, Dir::FromDevice, 0x1_2345_6780, 1);
+    let d = descriptor(1, Dir::FromDevice, 0x1_2345_6780, 1);
     let dw = |i: usize| u32::from_le_bytes(d[i * 4..i * 4 + 4].try_into().unwrap());
     assert_eq!(dw(0), 0x1000_0000 | 0x0400_0000, "CT 1, device to host, no interrupt");
     assert_eq!(dw(2), 0x0F, "OCS invalid until the host writes it");
     assert_eq!((dw(4), dw(5)), (0x2345_6780, 0x1));
     assert_eq!(dw(6), 128 << 16 | 128, "response at 512 bytes, 512 long, in dwords");
     assert_eq!(dw(7), 256 << 16 | 1, "PRDT at 1024 bytes, one entry");
-    assert_eq!(utrd(0, Dir::ToDevice, 0, 0)[3], 0x02, "host to device is DD 1");
+    assert_eq!(descriptor(0, Dir::ToDevice, 0, 0)[3], 0x02, "host to device is DD 1");
 }
 
 #[test]

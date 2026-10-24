@@ -29,20 +29,21 @@ impl ArchOps for X86_64 {
     #[inline(always)]
     fn halt() -> ! {
         loop {
+            // Not `nomem`: no store before the halt may sink past it.
             unsafe {
-                asm!("cli; hlt", options(nomem, nostack, preserves_flags));
+                asm!("cli; hlt", options(nostack, preserves_flags));
             }
         }
     }
 
     #[inline(always)]
     unsafe fn enable_interrupts() {
-        asm!("sti", options(nomem, nostack, preserves_flags));
+        super::interrupt::sti();
     }
 
     #[inline(always)]
     unsafe fn disable_interrupts() {
-        asm!("cli", options(nomem, nostack, preserves_flags));
+        super::interrupt::cli();
     }
 
     #[inline(always)]

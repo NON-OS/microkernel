@@ -19,18 +19,25 @@
  * for the capsule that serves it, virtio-balloon for no one yet, the boot
  * framebuffer for driver.bootfb0 alone; the records firmware tables publish
  * for the service that drives each kind, the SCI's for the ACPI capsule,
- * any other refused (L59); the VMBus root for the VMBus core alone. The
- * kernel's pure rules are included by path.
+ * an SD host's for the SD host capsule, any other refused (L59); the VMBus
+ * root for the VMBus core alone; a device-tree xHCI controller for the xHCI
+ * capsule. The kernel's pure rules are included by path.
  */
 
 mod firmware_tests;
+#[path = "../../../../src/hardware/broker/claim/hold_acpi.rs"]
+pub mod hold_acpi;
 #[path = "../../../../src/hardware/broker/claim/hold_platform.rs"]
 pub mod hold_platform;
 #[path = "../../../../src/hardware/broker/claim/hold_rule.rs"]
 pub mod hold_rule;
+#[path = "../../../../src/hardware/broker/claim/hold_tree.rs"]
+pub mod hold_tree;
 #[path = "../../../../src/hardware/broker/claim/hold_virt.rs"]
 pub mod hold_virt;
 mod platform_sci_tests;
+mod platform_sd_tests;
 mod platform_tests;
 mod tests;
+mod tree_tests;
 mod virt_tests;

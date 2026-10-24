@@ -50,6 +50,7 @@ fn check_config(raw: &[u8], round: u32) {
             HidKind::Keyboard => 8,
             HidKind::Mouse => 3,
             HidKind::Report => 1,
+            HidKind::Gamepad => panic!("round {round}: a configuration alone made a gamepad"),
         };
         assert!(b.endpoint_address & 0x80 != 0, "round {round}: not IN");
         assert!((1..=15).contains(&(b.endpoint_address & 0x0f)), "round {round}: endpoint 0");

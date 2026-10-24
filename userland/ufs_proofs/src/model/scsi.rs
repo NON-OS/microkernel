@@ -46,6 +46,9 @@ impl Model {
         if data.map_or(0, |d| d.1) != expected || dir != want {
             return Some(command(CHECK_CONDITION, &sense(0x5, 0x24, 0)));
         }
+        if self.mute.get() == Some(u[16]) {
+            return Some(command(GOOD, &[]));
+        }
         let r = if u[2] == WLUN_REPORT_LUNS {
             self.report_luns(data)
         } else {

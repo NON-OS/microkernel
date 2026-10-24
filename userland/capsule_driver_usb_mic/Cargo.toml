@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_usb_mic
+# eK@nonos.systems
+#
+# USB Audio capture capsule, driver.usb_mic0: a microphone on any USB
+# host's port (root or virtual), heard only by a peer holding
+# MicrophoneCapture, while the compositor shows its indicator.
+
+[package]
+name = "nonos_capsule_driver_usb_mic"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB microphone capsule"
+
+[[bin]]
+name = "driver_usb_mic"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

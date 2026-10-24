@@ -16,8 +16,8 @@
 
 //! Resetting an endpoint's data toggle or sequence number on the host side
 //! when Reset Endpoint did not: Configure Endpoint with the endpoint dropped
-//! and added again (`write_endpoint_reset_input`), as Linux's
-//! `xhci_endpoint_reset` does. The class driver clears the device's halt
+//! and added again (`write_endpoint_reset_input`; xHCI 1.2 section
+//! 4.6.6). The class driver clears the device's halt
 //! feature right after, which resets the device's side.
 
 use super::run_command::run_command;

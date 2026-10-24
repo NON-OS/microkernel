@@ -34,8 +34,16 @@ fn a_halted_bulk_pipe_is_reset_and_nothing_more() {
     let base = ring_base(&cmd);
     fx.hc.post(command(base, CC_SUCCESS, SLOT));
     fx.hc.post(command(base + TRB, CC_SUCCESS, SLOT));
-    reset_bulk_endpoint(fx.db(), fx.intr(), &mut cmd, &mut fx.ring, &res, CONTEXT_SIZE, true)
-        .expect("reset");
+    reset_bulk_endpoint(
+        fx.db(),
+        fx.intr(),
+        &mut cmd,
+        &mut fx.ring,
+        &res,
+        CONTEXT_SIZE,
+        (false, true),
+    )
+    .expect("reset");
     assert_eq!(command_at(base).get_type(), RESET_ENDPOINT);
     assert_eq!(command_at(base + TRB).get_type(), SET_TR_DEQUEUE);
     assert_eq!(command_at(base + 2 * TRB).get_type(), 0, "no Configure Endpoint");

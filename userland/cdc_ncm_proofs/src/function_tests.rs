@@ -30,7 +30,7 @@ const NCM_TYPE: usize = 9 + 9 + 5 + 5 + 13 + 1;
 const DATA_ON_CLASS: usize = 9 + 9 + 5 + 5 + 13 + 6 + 7 + 9 + 5;
 
 #[test]
-fn a_function_missing_a_part_cdc_ncm_bind_common_requires_is_not_taken() {
+fn a_function_missing_a_required_part_is_not_taken() {
     for (at, value, why) in [
         (PROTOCOL, 0x01, "a protocol cdc_devs[] does not match"),
         (UNION_TYPE, 0x25, "no Union"),

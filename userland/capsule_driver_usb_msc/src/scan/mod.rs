@@ -20,6 +20,7 @@
 mod ask;
 mod asked;
 mod asking;
+mod bot_bind;
 mod check;
 mod choose;
 mod command;
@@ -27,6 +28,7 @@ mod configure;
 mod controller;
 mod identity;
 mod keep;
+mod look;
 mod medium;
 mod pace;
 mod ports;
@@ -39,6 +41,8 @@ mod search;
 mod searching;
 mod sized;
 mod step;
+mod uas_bind;
+mod uas_setup;
 mod units;
 
 pub use medium::Medium;

@@ -29,6 +29,7 @@ pub mod irq_handlers;
 pub mod its;
 pub mod msi;
 pub mod redistributor;
+mod route;
 pub mod select;
 mod serve;
 mod sgi;
@@ -41,7 +42,7 @@ pub mod version;
 mod wait;
 
 pub use acked::Acked;
-pub use api::{init_gic, init_gic_cpu};
+pub use api::{chosen_version, init_gic, init_gic_cpu};
 pub use distributor::GicDistributor;
 pub use enable::{disable_irq, enable_irq};
 pub use icc::set_priority_mask;
@@ -54,6 +55,7 @@ pub use irq_handlers::{
     unregister_for_capsule as unregister_irq_handler_for_capsule,
 };
 pub use redistributor::GicRedistributor;
+pub use route::route_spi_here;
 pub use serve::acknowledge_interrupt;
 pub use sgi::{send_sgi, send_sgi_all_others};
 pub use trigger::configure_spi;

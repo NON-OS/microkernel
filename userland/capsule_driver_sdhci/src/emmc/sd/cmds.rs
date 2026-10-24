@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! SD memory card command indices and arguments (SD Physical Layer
-//! Simplified Specification 9.10, 4.7.4), where they differ from eMMC's.
+//! Simplified Specification 9.10, as recalled, unverified), where they differ from eMMC's.
 
 /// SEND_IF_COND, R7: the host's supply range and a check pattern.
 pub const SEND_IF_COND: u8 = 8;
@@ -35,11 +35,12 @@ pub const HCS: u32 = 1 << 30;
 /// ACMD6 argument for four data lines.
 pub const BUS_WIDTH_4: u32 = 2;
 
-/// Default Speed runs up to 25 MHz (4.3.10); after CMD2 the bus may.
+/// Default Speed runs up to 25 MHz (SD Physical Layer, as recalled); after
+/// CMD2 the bus may.
 pub const DEFAULT_SPEED_HZ: u32 = 25_000_000;
 
-/// ACMD41 finishes power up within a second (4.2.3.1), as Linux polls it:
-/// 100 tries 10 ms apart.
+/// ACMD41 finishes power up within a second (SD Physical Layer, as
+/// recalled, unverified), asked every 10 ms.
 pub const OP_COND_MS: u64 = 1_000;
 pub const OP_COND_POLL_MS: u64 = 10;
 

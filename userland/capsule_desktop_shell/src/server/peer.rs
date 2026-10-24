@@ -13,10 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The two peers whose messages steer the shell without a request: the
-//! input router (keys, pointer, the power and volume keys, the process
-//! manager chord) and the window manager (windows opened, closed, made full
-//! screen). Before this check any capsule could post either kind.
+//! A peer whose messages steer the shell without a request: the window
+//! manager (windows opened, closed, made full screen). Before this check
+//! any capsule could post a notice. The input router, the other such peer,
+//! is believed through `server::input_source`, whose token every input
+//! handler needs.
 
 use core::sync::atomic::{AtomicU32, Ordering};
 
@@ -29,7 +30,6 @@ pub struct Peer {
     pid: AtomicU32,
 }
 
-pub static INPUT_ROUTER: Peer = Peer::new(b"input_router");
 pub static WM: Peer = Peer::new(b"wm");
 
 impl Peer {

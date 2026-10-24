@@ -45,7 +45,7 @@ const ERRNOS_OF: [&str; 6] = [
     "ClaimError::AlreadyClaimed | ClaimError::Held => ERRNO_BUSY,",
     "ClaimError::UnknownDevice | ClaimError::Disabled => ERRNO_NODEV,",
     "ClaimError::NotHolder | ClaimError::NotClaimed => ERRNO_INVAL,",
-    "ClaimError::Unconfined | ClaimError::Refused => ERRNO_PERM,",
+    "ClaimError::Unconfined | ClaimError::Refused | ClaimError::Firmware => ERRNO_PERM,",
     "ClaimError::Resetting => ERRNO_AGAIN, } }",
 ];
 

@@ -35,25 +35,6 @@ impl ValBuf {
         ValBuf { bytes: [0; CAP], len: 0 }
     }
 
-    /// Append `s`, stopping before a character that no longer fits whole:
-    /// a buffer cut inside one would not read back as text at all.
-    pub fn push_str(&mut self, s: &str) {
-        for ch in s.chars() {
-            if self.len + ch.len_utf8() > CAP {
-                return;
-            }
-            for &b in ch.encode_utf8(&mut [0u8; 4]).as_bytes() {
-                self.push(b);
-            }
-        }
-    }
-
-    pub fn push_bytes(&mut self, s: &[u8]) {
-        for b in s {
-            self.push(if b.is_ascii_graphic() || *b == b' ' { *b } else { b'?' });
-        }
-    }
-
     /// Append `v` in decimal.
     pub fn push_dec(&mut self, mut v: u32) {
         let mut digits = [0u8; 10];

@@ -26,3 +26,6 @@ mod types;
 pub use decode_mouse::decode_mouse;
 pub use decode_touch::decode_touch;
 pub use types::TouchSample;
+// The multitouch path reads its fingers as the touch decode reads its one.
+pub(super) use body::holds;
+pub(super) use position::position;

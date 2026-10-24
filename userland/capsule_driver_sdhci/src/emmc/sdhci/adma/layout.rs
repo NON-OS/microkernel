@@ -20,7 +20,7 @@
 /// 32-bit addressing: attribute u16, length u16, address u32.
 pub const DESC32_LEN: usize = 8;
 /// 64-bit addressing in version 3 mode: attribute u16, length u16,
-/// address u64 (Linux's SDHCI_ADMA2_64_DESC_SZ without v4 mode).
+/// address u64; version 4 mode, which widens it, is not used.
 pub const DESC64_LEN: usize = 12;
 
 pub const ATTR_VALID: u16 = 1 << 0;

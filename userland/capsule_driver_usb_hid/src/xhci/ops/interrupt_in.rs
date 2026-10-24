@@ -19,7 +19,8 @@ use crate::xhci::wire::{E_AGAIN, HDR_LEN, OP_INTERRUPT_IN, STATUS_LEN};
 
 const HDR_AND_STATUS: usize = HDR_LEN + STATUS_LEN;
 const REPLY_PREFIX: usize = 2;
-const MAX_REPORT: usize = 8;
+/// Room for a gamepad's report; a boot report asks for 8 (read_len.rs).
+const MAX_REPORT: usize = 64;
 const RESP_BUF: usize = HDR_AND_STATUS + REPLY_PREFIX + MAX_REPORT;
 
 pub fn interrupt_in(

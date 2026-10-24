@@ -20,9 +20,9 @@
 
 use nonos_libc::{entropy, given_back, said};
 
-use crate::constants::regs::*;
-use crate::init::finish;
-use crate::init::reset::master::MASTER_STUCK;
+use crate::bring::finish;
+use crate::bring::quiet::MASTER_STUCK;
+use crate::facts::regs::*;
 
 use super::memory::Memory;
 use super::model::window;

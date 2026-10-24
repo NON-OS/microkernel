@@ -19,10 +19,10 @@
 //! 0 < length <= 1514 yields a frame, and every consumed slot goes back in
 //! read format with its own buffer address.
 
-use crate::constants::queue::RX_DESC_COUNT;
-use crate::constants::rx_bits::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
-use crate::constants::MAX_ETHERNET_FRAME;
+use crate::facts::rx::{RXDEXT_ERR_FRAME_ERR_MASK, RXD_STAT_DD, RXD_STAT_EOP};
 use crate::queue::layout::RxDesc;
+use crate::sizes::ring::RX_DESC_COUNT;
+use crate::sizes::MAX_ETHERNET_FRAME;
 
 use super::memory::Memory;
 

@@ -4,7 +4,7 @@ mod payload;
 mod reply;
 mod status;
 
-pub(crate) use payload::call_payload_boot;
+pub(crate) use payload::{call_payload_boot, call_payload_within, CONTROL_REPLY_TIMEOUT_MS};
 pub(crate) use status::{call, call_boot};
 
 pub(super) const NCMP_MAGIC: u32 = 0x4E43_4D50;

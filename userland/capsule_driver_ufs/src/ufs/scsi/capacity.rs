@@ -24,7 +24,7 @@ use super::exec::{exec, Data};
 use crate::ufs::ctx::Ctx;
 use crate::ufs::env::Hw;
 use crate::ufs::error::UfsError;
-use crate::ufs::time::SCSI_MS;
+use crate::ufs::facts::bounds::SCSI_MS;
 
 const RC16_ALLOC: usize = 32;
 
@@ -42,6 +42,8 @@ pub fn read<H: Hw>(hw: &H, c: &Ctx, lun: u8) -> Result<(u64, u32), UfsError> {
         }
     };
     match len {
+        // A unit whose bytes overflow is no disk: its last LBA was a lie.
+        512 | 4096 if blocks.checked_mul(len as u64).is_none() => Err(UfsError::Capacity(blocks)),
         512 | 4096 => Ok((blocks, len)),
         _ => Err(UfsError::BlockSize(len)),
     }

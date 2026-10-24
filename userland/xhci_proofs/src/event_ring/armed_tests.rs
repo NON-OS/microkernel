@@ -25,6 +25,7 @@ use super::fixture::{Fixture, BULK_IN_DCI, INT_DCI, SLOT};
 use super::fixture_slots::interrupt_slot;
 use crate::controller::{bulk_transfer, poll_interrupt_in, IntrPoll};
 use crate::error::XhciError;
+use crate::rings::event::ARMED;
 
 #[test]
 fn reports_that_land_during_one_bulk_wait_each_reach_their_own_poll() {
@@ -51,14 +52,16 @@ fn reports_that_land_during_one_bulk_wait_each_reach_their_own_poll() {
 fn arming_past_every_place_is_refused_before_anything_is_queued() {
     let mut fx = Fixture::new();
     let dcis = [3, 5, 7, 9];
-    let mut slots: Vec<_> = (1..=16).map(|s| interrupt_slot(&fx, s, &dcis)).collect();
+    // Every place taken: four endpoints on as many slots as places allow.
+    let full = (ARMED / dcis.len()) as u8;
+    let mut slots: Vec<_> = (1..=full).map(|s| interrupt_slot(&fx, s, &dcis)).collect();
     for res in slots.iter_mut() {
         for dci in dcis {
             let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, res, dci, 8);
             assert!(matches!(got, Ok(IntrPoll::Pending)));
         }
     }
-    let mut one_more = interrupt_slot(&fx, 17, &[INT_DCI]);
+    let mut one_more = interrupt_slot(&fx, full + 1, &[INT_DCI]);
     let before = one_more.interrupt[0].ring.enqueue_phys();
     let got = poll_interrupt_in(fx.db(), fx.intr(), &mut fx.ring, &mut one_more, INT_DCI, 8);
     assert!(matches!(got, Err(XhciError::TooManyArmed)));
