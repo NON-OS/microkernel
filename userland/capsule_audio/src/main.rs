@@ -31,6 +31,12 @@ mod volume;
 
 use nonos_libc::{heap_init, mk_exit};
 
+/// The capsule entry point.
+///
+/// # Safety
+///
+/// The kernel loader calls this once, on a fresh stack with the capsule's
+/// heap region reserved; it must never be called from Rust.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
