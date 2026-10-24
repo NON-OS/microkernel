@@ -415,3 +415,43 @@ fn an_argument_that_is_not_utf8_cannot_be_checked() {
     assert_eq!(out.status.code(), Some(2));
     assert!(String::from_utf8_lossy(&out.stderr).contains("not UTF-8"));
 }
+
+/// The last mutation run's survivors: the counts in the verdict line, the
+/// library's own `run`, the image named, and why a trailer was not read.
+#[test]
+fn the_report_counts_and_names_what_it_checked() {
+    let tr = fx("caps_root.bin.transcript");
+    let (c, text) =
+        cli(&["transcript", &tr, &fx("a.trailer"), &fx("b.trailer"), &fx("kernel.trailer")]);
+    assert_eq!(c, 1);
+    assert!(text.contains("verdict: FAILED, 1 of 3 refused"), "{text}");
+    let (c, text) = cli(&["transcript", &tr, &fx("a.trailer"), &fx("b.trailer"), "/nonexistent/t"]);
+    assert_eq!(c, 2);
+    assert!(text.contains("verdict: COULD NOT CHECK, 1 of 3 not checked"), "{text}");
+    let (_, v) = json(&["transcript", &tr, "/nonexistent/t"]);
+    assert!(
+        v["results"][0]["reason"].as_str().unwrap().contains("cannot read /nonexistent/t"),
+        "{v}"
+    );
+    let image = fx("a.elf");
+    let (_, v) = json(&[
+        "capsule",
+        "--root",
+        &fx("caps_root.bin"),
+        "--image",
+        &image,
+        "--caps",
+        "18",
+        &fx("a.trailer"),
+    ]);
+    assert_eq!(v["results"][0]["image"], image.as_str());
+    let req = nonos_proof_verify::Request {
+        mode: nonos_proof_verify::Mode::Transcript { file: tr.clone() },
+        root: None,
+        trailers: vec![fx("a.trailer")],
+        allow_dev: false,
+    };
+    let r = nonos_proof_verify::run(&req);
+    assert_eq!(r.verdict(), nonos_proof_verify::Verdict::Verified);
+    assert_eq!(r.subjects.len(), 1);
+}

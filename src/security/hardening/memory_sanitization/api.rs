@@ -125,7 +125,7 @@ pub fn init() -> Result<(), &'static str> {
 
     crate::log::info!("[SECURITY] Initializing memory sanitization...");
 
-    init_stack_canary();
+    init_stack_canary()?;
 
     SANITIZATION_LEVEL.store(SanitizationLevel::Standard as u64, Ordering::SeqCst);
 

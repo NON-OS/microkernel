@@ -1,0 +1,39 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs for nsh_client: the whole handshake against a test server
+# built here from nsh_wire and nsh_crypto; every refusal reached by a run
+# that differs from a good one in that one respect; the session frames and
+# their order; and the record checker on good, tampered, cut-short and
+# checkpointed records. The kit (keys, server, builders) is a library so
+# the fuzz targets in fuzz/ drive the same server.
+
+[package]
+name = "nsh_client_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_hash = { path = "../nonos_hash" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nsh_client = { path = "../nsh_client", features = ["cli"] }
+nsh_crypto = { path = "../nsh_crypto" }
+nsh_wire = { path = "../nsh_wire" }

@@ -36,6 +36,7 @@ mod reasons;
 mod record;
 mod record_box;
 mod record_box_limits;
+mod record_box_source;
 mod record_command;
 mod record_entries;
 mod record_footer;

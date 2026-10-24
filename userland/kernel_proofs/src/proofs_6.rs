@@ -37,3 +37,6 @@ mod leave_rule;
 pub mod unit_base;
 #[path = "secret_log/mod.rs"]
 pub mod secret_log;
+/// When a lock wait is reported, and called a re-take.
+#[path = "spin_watch/mod.rs"]
+pub mod spin_watch;
