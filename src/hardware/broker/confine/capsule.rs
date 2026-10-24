@@ -31,17 +31,17 @@ use crate::memory::iommu::IommuDomain;
 /// The index of `pid`'s entry in `all`, made with a fresh domain if it has
 /// none; `None` when the requester goes ahead unconfined, which is the
 /// development opt-in's alone (decide.rs) and never for `must`, a device the
-/// description puts behind a unit.
+/// description puts behind a unit; `port_only` as port_only.rs says.
 pub(super) fn capsule_for(
     all: &mut Vec<Capsule>,
     pid: u32,
-    must: bool,
+    (must, port_only): (bool, bool),
 ) -> Result<Option<usize>, Refused> {
     Ok(Some(match all.iter().position(|c| c.pid == pid) {
         Some(i) => i,
         None => match IommuDomain::allocate() {
             Ok(domain) => {
-                all.push(Capsule::new(pid, domain));
+                all.push(Capsule::new(pid, domain, port_only));
                 all.len() - 1
             }
             /*
