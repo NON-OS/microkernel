@@ -25,6 +25,7 @@
 //! buys, that no reachable state powers the machine off with memory unwiped.
 
 mod leave;
+mod once;
 mod terminate;
 
-pub(crate) use terminate::terminate;
+pub(crate) use terminate::{terminate, terminate_critical};

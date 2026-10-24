@@ -32,6 +32,8 @@ mod disable_step;
 // The real shutdown budget and wait the power-off makes.
 #[path = "../../../capsule_driver_nvme/src/admin/shutdown_step.rs"]
 mod shutdown_step;
+#[path = "../../../capsule_driver_nvme/src/admin/shutdown_wait.rs"]
+mod shutdown_wait;
 // The real CC written at enable, from CAP alone.
 #[path = "../../../capsule_driver_nvme/src/admin/cc_value.rs"]
 mod cc_value;
@@ -65,6 +67,6 @@ pub use queue::AdminQueue;
 pub use ready_step::{ready_step, ready_timeout_ms, ReadyStep, READY_FLOOR_MS};
 pub use ready_wait::wait_ready;
 pub use shutdown_step::{
-    await_shutdown, shutdown_budget_ms, shutdown_step, ShutdownStep, SHUTDOWN_CAP_MS,
-    SHUTDOWN_DEFAULT_MS,
+    shutdown_budget_ms, shutdown_step, ShutdownStep, SHUTDOWN_CAP_MS, SHUTDOWN_DEFAULT_MS,
 };
+pub use shutdown_wait::await_shutdown;
