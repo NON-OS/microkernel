@@ -18,6 +18,7 @@
 //! procstat.rs).
 
 pub const PROC_NAME_LEN: usize = 24;
+pub const PROC_FLAG_DEBUG_WITHHELD: u8 = 1;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -26,7 +27,7 @@ pub struct ProcStatEntry {
     pub state: u8,
     pub name_len: u8,
     pub priority: u8,
-    pub _pad: u8,
+    pub flags: u8,
     pub run_ticks: u64,
     pub caps: u64,
     pub mem_kb: u64,

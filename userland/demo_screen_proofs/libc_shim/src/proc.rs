@@ -18,7 +18,7 @@
 //! a buffer gets the header and up to `max` rows.
 
 use crate::machine::{name_of, PROCS};
-pub use crate::proc_types::{ProcStatEntry, PROC_NAME_LEN};
+pub use crate::proc_types::{ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use crate::procstat_header::ProcStatHeader;
 
 const GIB_KB: u64 = 1024 * 1024;
