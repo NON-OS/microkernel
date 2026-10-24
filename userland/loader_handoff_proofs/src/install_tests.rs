@@ -37,6 +37,15 @@ fn installed_through_the_shared_checks_where_the_kernel_stays() {
     assert!(builders.contains("secure_boot: loader.is_some_and(|h| h.secure_boot_enabled()),"));
     assert!(builders
         .contains("kernel_signature_verified: loader.is_some_and(|h| h.kernel_verified()),"));
+    let fb = code("kernel_core/init/entry/init_arch_framebuffer.rs");
+    order(
+        &fb,
+        &[
+            "ArchSpecificHandoff::Aarch64 { .. } => {",
+            "get_handoff().and_then(|h| h.framebuffer().copied());",
+            "loader.or_else(crate::arch::aarch64::firmware::framebuffer)",
+        ],
+    );
     let ld = raw("linker_aarch64.ld");
     assert!(ld.contains("__kernel_start = __kernel_image_start;"));
     assert!(ld.contains("__kernel_end = __kernel_image_end;"));
