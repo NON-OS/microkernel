@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Key pairs and secret keys. A secret key is wiped when it is dropped, so
-//! a key pair that fails partway leaves nothing behind.
+//! Key pairs and secret keys. The `SecretKey` a caller holds is wiped when
+//! it is dropped. That is all that is wiped: the C leaves the key's seed and
+//! working values on its own stack, and a value that moves may leave a copy
+//! behind. A caller that needs more keeps the key in one place for its whole
+//! life and signs there, as nsh.keys does.
 
 use crate::ffi::*;
 use crate::rng::with_source;
+pub use crate::secret::SecretKey;
 
 pub const PUBLIC_LEN: usize = 1952;
 pub const SECRET_LEN: usize = 4032;
@@ -30,20 +34,6 @@ pub enum Error {
     Randomness,
     /// The C reported a failure.
     Failed,
-}
-
-pub struct SecretKey(pub [u8; SECRET_LEN]);
-
-impl Drop for SecretKey {
-    fn drop(&mut self) {
-        wipe(&mut self.0);
-    }
-}
-
-pub(crate) fn wipe(buf: &mut [u8]) {
-    // SAFETY: eK@nonos.systems - volatile writes to a buffer we own, so the
-    // compiler cannot drop them as dead stores.
-    buf.iter_mut().for_each(|b| unsafe { core::ptr::write_volatile(b, 0) });
 }
 
 pub(crate) type Source<'a> = &'a mut dyn FnMut(&mut [u8]) -> bool;

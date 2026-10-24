@@ -6,6 +6,14 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
 # ML-DSA-65 (FIPS 204) for userland and the host: one Rust face over the
 # pinned C source in third_party/pqclean, so a capsule and the nsh client
 # sign and verify with the same code the kernel, the loader and nonos-sign

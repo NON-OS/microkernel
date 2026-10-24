@@ -33,7 +33,8 @@ static mut LENT: Option<Lent> = None;
 /// Run `f` with `source` answering the C's randomness; `None` when any
 /// draw inside `f` could not be filled. Calls from several threads take
 /// turns. A source must not call back into this crate, or it waits on
-/// itself.
+/// itself; and must not panic, since the panic cannot cross the C and ends
+/// the program.
 pub(crate) fn with_source<T>(source: Source<'_>, f: impl FnOnce() -> T) -> Option<T> {
     while BUSY.compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed).is_err() {
         core::hint::spin_loop();

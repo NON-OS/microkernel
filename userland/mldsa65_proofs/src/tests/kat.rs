@@ -44,7 +44,7 @@ pub fn first_record() -> String {
     let sm = [&sig[..], &msg].concat();
     let mut t = String::new();
     t += &format!("count = 0\nseed = {}\nmlen = 33\nmsg = {}\n", upper(&seed), upper(&msg));
-    t += &format!("pk = {}\nsk = {}\n", upper(&pk), upper(&sk.0));
+    t += &format!("pk = {}\nsk = {}\n", upper(&pk), upper(sk.as_bytes()));
     t += &format!("smlen = {}\nsm = {}\n", sm.len(), upper(&sm));
     t
 }

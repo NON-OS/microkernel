@@ -36,7 +36,7 @@ fn a_shorter_output_is_a_prefix_of_a_longer_one() {
 #[test]
 fn an_empty_salt_is_sixty_four_zero_bytes() {
     assert_eq!(hkdf512_extract(b"", b"ikm"), hkdf512_extract(&[0; 64], b"ikm"));
-    assert_ne!(hkdf512_extract(b"", b"ikm"), hkdf512_extract(&[0; 63], b"ikm2"));
+    assert_ne!(hkdf512_extract(b"", b"ikm"), hkdf512_extract(&[1], b"ikm"));
 }
 
 #[test]
