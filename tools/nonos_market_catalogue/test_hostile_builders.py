@@ -19,25 +19,26 @@ python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
 import unittest
 
-from .apk_fixture import ELF, make
+from .apk_fixture import ELF, checksum, make
 from .catalogue import catalogue_entries
 from .documents import split
 from .recipes import UNMEASURED
 
 BASE = {"package": "x", "licence": "MIT", "mask": "TTY", "name": "X", "text": "x"}
 RECIPE = dict(BASE, mask=0x100, dests=None, calls=UNMEASURED)
-REC = {"P": "x", "V": "1-r0", "L": "MIT", "base": "https://example.org"}
+RAW = make([("usr/bin/x", ELF)])
+REC = {"P": "x", "V": "1-r0", "L": "MIT", "base": "https://example.org", "C": checksum(RAW), "S": str(len(RAW))}
 
 
 class Builders(unittest.TestCase):
     def test_a_hostile_index_record_never_reaches_the_fetch(self):
         asked = []
-        for rec in (dict(REC, V="../../evil"), dict(REC, V=None), dict(REC, L=None)):
+        for rec in (dict(REC, V="../../evil"), dict(REC, V=None), dict(REC, L=None), dict(REC, S="0"),
+                    dict(REC, S="-1"), dict(REC, S=str((128 << 20) + 1)), dict(REC, S=None)):
             got = catalogue_entries([RECIPE], {"x": rec}, lambda r: asked.append(r) or b"", "11" * 32, 1)
             self.assertEqual(got, [])
         self.assertEqual(asked, [])
-        raw = make([("usr/bin/x", ELF)])
-        self.assertEqual(len(catalogue_entries([RECIPE], {"x": REC}, lambda r: raw, "11" * 32, 1)), 1)
+        self.assertEqual(len(catalogue_entries([RECIPE], {"x": REC}, lambda r: RAW, "11" * 32, 1)), 1)
 
     def test_a_publisher_key_that_is_not_32_bytes_of_hex_is_refused(self):
         for key in ("11" * 31, "zz" * 32, ""):
