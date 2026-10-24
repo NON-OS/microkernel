@@ -21,6 +21,7 @@ mod hardware;
 mod held;
 mod machine;
 mod memmap;
+pub(super) mod power_regs;
 pub(super) mod platform;
 pub(super) mod records;
 
