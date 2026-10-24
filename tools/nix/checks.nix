@@ -327,6 +327,21 @@ let
         cargo test --frozen --release --features parallel -- --include-ignored
       '';
     };
+    # Test 5 on the host: shield_vectors_proofs' binary proves the four wallet
+    # vectors with capsule_shield_vectors' own modules, transfer-eth from
+    # nothing (the tree it builds held to the shipped cache) and the other
+    # three from the shipped cache, each held to the pinned bytes. About four
+    # minutes, so its own check: the proof lane's cargo test never runs the
+    # binary.
+    shield-vectors-prove = cargoCheck {
+      name = "shield-vectors-prove";
+      dir = "userland/shield_vectors_proofs";
+      script = ''
+        export NONOS_PERIODIC_CACHE=${periodic}/periodic.top
+        cd userland/shield_vectors_proofs
+        cargo run --frozen --release
+      '';
+    };
     # The committed BusyBox, which make embeds, is the one the flake builds
     # from source. Linux only, as CI checks it; a Mac builds its own anyway.
     busybox-source = pkgs.runCommand "busybox-source" { } (if pkgs.stdenv.hostPlatform.isLinux then ''
