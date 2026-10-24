@@ -21,10 +21,17 @@
 
 use alloc::vec::Vec;
 
-use crate::linux::file::{key, store_stat, store_unlink};
+use crate::linux::file::{key, store_found, store_unlink};
 
 /// The files that would not go; gone already is as good as taken out.
 pub(super) fn take_out(files: &[Vec<u8>]) -> Vec<Vec<u8>> {
-    let mut gone = |p: &[u8]| store_unlink(&key(p)).is_ok() || store_stat(&key(p)).is_err();
-    files.iter().filter(|at| !super::super::minted::take_out(at, &mut gone)).cloned().collect()
+    let mut unlink = |p: &[u8]| {
+        let _ = store_unlink(&key(p));
+    };
+    let mut found = |p: &[u8]| store_found(&key(p));
+    files
+        .iter()
+        .filter(|at| !super::super::minted::take_out(at, &mut unlink, &mut found))
+        .cloned()
+        .collect()
 }

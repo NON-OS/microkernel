@@ -30,12 +30,15 @@ use nonos_libc::mk_debug;
 
 use super::super::minted::take_out;
 use super::super::Why;
-use crate::linux::file::{key, store_stat, store_unlink};
+use crate::linux::file::{key, store_found, store_unlink};
 
 /// `why` says what was not written: files, or the link table.
 pub(super) fn undo(landed: &[Vec<u8>], why: &str) {
-    let mut gone = |p: &[u8]| store_unlink(&key(p)).is_ok() || store_stat(&key(p)).is_err();
-    let left = landed.iter().filter(|at| !take_out(at, &mut gone)).count();
+    let mut unlink = |p: &[u8]| {
+        let _ = store_unlink(&key(p));
+    };
+    let mut found = |p: &[u8]| store_found(&key(p));
+    let left = landed.iter().filter(|at| !take_out(at, &mut unlink, &mut found)).count();
     let line = format!(
         "[LINUX] install failed, {why} not written: took out {} of {} file(s), {left} would not go\n",
         landed.len() - left,
