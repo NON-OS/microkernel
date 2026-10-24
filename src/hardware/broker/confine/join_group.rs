@@ -14,28 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A claim refused for its isolation group (K11b), both ways (H-03): another
-//! capsule holds a group member, a device whose group holds this one, or a
-//! requester-id alias either way; the line names the device, the hop it
-//! reaches the other past, and the process that holds it.
+//! A claim refused for its isolation group (K11b), both ways (H-03); the
+//! line names the device, its hop, and the process that holds it.
 
 extern crate alloc;
 
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::acs_refusal::{alias_line, peer_alias_line, refusal_line};
+use super::acs_refusal::{alias_line, peer_alias_line, refusal_line, unreadable_line};
 use super::gates::{peer, Peer};
 use super::member::Member;
-use super::port_only::blocked_by;
+use super::port_only::{blocked_by, Blocked};
 use super::say::say;
 use super::table::Capsule;
 use crate::memory::iommu::DeviceAddress;
 
 /// Whether a capsule other than `all[pos]` holds a device that blocks the
-/// claim of `claimed` both ways (port_only.rs `blocked_by`), or one whose
-/// requester id the device's DMA carries, or one whose DMA carries the
-/// device's; said when one does.
+/// claim of `claimed` (port_only.rs `blocked_by`), or a requester-id alias
+/// either way; said when one does.
 pub(super) fn group_held(
     all: &[Capsule],
     pos: usize,
@@ -47,10 +44,14 @@ pub(super) fn group_held(
         let held: Vec<u64> = c.devices.iter().map(|(d, _)| *d).collect();
         let peers: Vec<(u64, Peer)> = held.iter().filter_map(|&e| Some((e, peer(e)?))).collect();
         let place =
-            |e: u64| peers.iter().find(|(id, _)| *id == e).map(|(_, p)| (p.at, &p.group[..]));
+            |e: u64| peers.iter().find(|(id, _)| *id == e).map(|(_, p)| (p.at, p.group.as_deref()));
         let ports = (claim_port_only, c.port_only);
-        if let Some((at, hop)) = blocked_by(claimed, group, &held, ports, place) {
-            say(refusal_line(at, hop, &holder(c.pid)).as_bytes());
+        if let Some(b) = blocked_by(claimed, group, &held, ports, place) {
+            let line = match b {
+                Blocked::Reaches(at, hop) => refusal_line(at, hop, &holder(c.pid)),
+                Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid)),
+            };
+            say(line.as_bytes());
             return true;
         }
         if let Some(a) = aliases.iter().find(|a| c.devices.iter().any(|(_, d)| d == *a)) {
