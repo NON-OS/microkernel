@@ -19,7 +19,8 @@
 //! wrapping under a long session, and a rectangle outside the primary
 //! refused before anything is copied or sent.
 
-use super::util::{ask, primed, up, words};
+use super::ask::{ask, primed, words};
+use super::util::up;
 use crate::bench::Bench;
 use crate::model::with_svga;
 use nonos_gfx_wire::errno::EINVAL;

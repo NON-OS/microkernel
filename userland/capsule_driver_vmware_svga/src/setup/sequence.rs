@@ -22,10 +22,9 @@
 
 use nonos_gfx_serve::{Platform, Server};
 
-use super::{claim, map::map, restore::Saved, Driver};
+use super::{adapter, claim, map::map, restore::Saved, Driver};
 use crate::constants::regs::{CAPABILITIES, MAX_HEIGHT, MAX_WIDTH, MEM_SIZE, VRAM_SIZE};
 use crate::discover::Found;
-use crate::display::{Shown, Svga};
 use crate::fifo::{configure, Fifo};
 use crate::handles::BrokerHandles;
 use crate::init::{firmware_mode, negotiate, set_mode};
@@ -50,28 +49,7 @@ pub fn run<P: Platform>(dev: Found, platform: P) -> Result<Driver<P>, &'static s
     let fb_len = (vram as u64).min(dev.fb_bytes) & !0xFFF;
     let fb_map = map(dev.device_id, epoch, dev.layout.fb, 0, fb_len)?;
     handles.mapped(fb_map.grant_id);
-    let mode = Shown { width: w, height: h, pitch: layout.pitch, offset: layout.offset };
-    let svga = Svga {
-        regs,
-        fifo,
-        fb: fb_map.user_va,
-        fb_len: fb_len as usize,
-        max,
-        vram,
-        mode,
-        generation: 1,
-        fence,
-    };
-    if !svga.laid_inside(mode) {
-        return Err("framebuffer past VRAM");
-    }
+    let window = (fb_map.user_va, fb_len);
+    let svga = adapter::adapter((regs, fifo), window, (max, vram), (w, h), layout)?;
     Ok(Driver { handles, server: Server::new(svga, platform) })
-}
-
-fn fence() {
-    // SAFETY: sfence has no operands and orders the stores before it.
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        core::arch::x86_64::_mm_sfence()
-    };
 }
