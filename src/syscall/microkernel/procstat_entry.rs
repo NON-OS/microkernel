@@ -30,7 +30,9 @@ pub struct ProcStatEntry {
     pub name_len: u8,
     /// Scheduling class: 0 idle, 1 low, 2 normal, 3 high, 4 realtime.
     pub priority: u8,
-    pub _pad: u8,
+    /// Bit 0 (`FLAG_DEBUG_WITHHELD`): the spawn gate withheld the Debug the
+    /// manifest offered, as the process holds a secret or input.
+    pub flags: u8,
     pub run_ticks: u64,
     pub caps: u64,
     pub mem_kb: u64,
