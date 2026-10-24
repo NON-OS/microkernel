@@ -36,20 +36,57 @@ use super::wire::SECTOR_SIZE;
 /// The kernel's store write takes at most this much a call.
 pub(super) const MAX_WRITE_BYTES: usize = 8192;
 
+/*
+ * A withdrawal on a boot that keeps nothing. The zeros may only take the place
+ * of a record the disk already holds, at its own length, through the same
+ * replace a kept record goes through; a name the disk does not hold stays off
+ * it. Nothing is ever appended, so no name, length or digest reaches the disk
+ * from an amnesic boot.
+ */
+pub fn withdraw(name: &str, data: &[u8]) -> Result<(), BlkError> {
+    if data.iter().any(|b| *b != 0) {
+        return Err(BlkError::Inval);
+    }
+    let t = Table::read()?;
+    let Some(index) = t.entries.iter().position(|e| e.name == name) else {
+        return Ok(());
+    };
+    same_bytes(&t.entries[index], data).or_else(|_| {
+        super::store_replace::replace(&t.toc, index, &t.entries, t.floor, t.capacity_bytes, data)
+    })
+}
+
+/// The table as the disk holds it now, with the bounds a write is kept to.
+struct Table {
+    toc: alloc::vec::Vec<u8>,
+    count: usize,
+    base: u64,
+    floor: u64,
+    capacity_bytes: u64,
+    entries: super::store_toc::Toc,
+}
+
+impl Table {
+    fn read() -> Result<Self, BlkError> {
+        let mut head = [0u8; SECTOR_SIZE];
+        read_blocks(STORE_BASE_LBA, &mut head)?;
+        let count = entry_count(&head)?;
+        let mut toc = vec![0u8; sector_span(HEADER_LEN + ENTRY_LEN * count)];
+        read_span(STORE_BASE_LBA, &mut toc)?;
+        let capacity_bytes = capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
+        let base = STORE_BASE_LBA * SECTOR_SIZE as u64;
+        /*
+         * Payloads go past a full table, so nothing this writes is ever in the
+         * way of the table growing again.
+         */
+        let floor = base + TOC_SPAN as u64;
+        let entries = decode(&toc, count, Window { base, end: capacity_bytes })?;
+        Ok(Self { toc, count, base, floor, capacity_bytes, entries })
+    }
+}
+
 pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
-    let mut head = [0u8; SECTOR_SIZE];
-    read_blocks(STORE_BASE_LBA, &mut head)?;
-    let count = entry_count(&head)?;
-    let mut toc = vec![0u8; sector_span(HEADER_LEN + ENTRY_LEN * count)];
-    read_span(STORE_BASE_LBA, &mut toc)?;
-    let capacity_bytes = capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
-    let base = STORE_BASE_LBA * SECTOR_SIZE as u64;
-    /*
-     * Payloads go past a full table, so nothing this writes is ever in the
-     * way of the table growing again.
-     */
-    let floor = base + TOC_SPAN as u64;
-    let mut entries = decode(&toc, count, Window { base, end: capacity_bytes })?;
+    let Table { mut toc, count, base, floor, capacity_bytes, mut entries } = Table::read()?;
     if let Some(index) = entries.iter().position(|e| e.name == name) {
         return same_bytes(&entries[index], data).or_else(|_| {
             super::store_replace::replace(&toc, index, &entries, floor, capacity_bytes, data)
