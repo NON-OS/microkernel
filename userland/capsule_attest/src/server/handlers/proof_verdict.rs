@@ -38,8 +38,8 @@ pub fn evaluate(probe: Probe, snap: Option<&Snapshot>) -> (u8, u32, u32) {
     let of = snap.count as u32;
     match probe {
         Probe::NotAtRuntime => (V_UNCHECKED, 0, of),
-        Probe::NoneHold(mask) => verdict(snap.holders(mask), of),
-        Probe::OnlyInit(mask) => verdict(snap.holders_beyond_init(mask), of),
+        Probe::NotBoth(a, b) => verdict(snap.holders_both(a, b), of),
+        Probe::OnlyNamed(mask, named) => verdict(snap.holders_beyond(mask, named), of),
         Probe::AllMasked => verdict(snap.unmasked(), of),
     }
 }
