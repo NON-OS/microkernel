@@ -32,7 +32,7 @@ fn a_go_over_a_declared_gap_counts_and_lists_it_under_the_verdict() {
     let (code, v) = Sealed::dev().verdict(Fake { report: gap, ..Fake::default() });
     let want = format!("{DEV_GO}, 2 declared limits");
     let got = (code, v["verdict"].as_str(), v["limits"].as_u64());
-    assert_eq!(got, (exit::GO, Some(&*want), Some(2)), "{v:#}");
+    assert_eq!(got, (exit::DEV_GO, Some(&*want), Some(2)), "{v:#}");
     let s = Sealed::dev();
     let mut ctx = s.ctx(Fake { report: gap, ..Fake::default() });
     let checks = run(&mut ctx);
