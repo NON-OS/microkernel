@@ -21,7 +21,7 @@
 use crate::release::{kernel, receipt, record};
 use crate::sign::key::seed;
 use crate::sign::named::{line, signer_named};
-use crate::tree::{manifest, report, summary};
+use crate::tree::{declared, manifest, report, summary};
 use proptest::prelude::*;
 use std::path::Path;
 
@@ -35,6 +35,7 @@ proptest! {
         let _ = manifest::parse(&b);
         let _ = kernel::parse(&b);
         let _ = report::parse(&b);
+        let _ = declared::parse(&b);
         let _ = summary::steps(&b, "nonos-harden");
         let _ = seed(&b, Path::new("/nonexistent/nonos-harden-key"));
     }
@@ -45,6 +46,7 @@ proptest! {
         let _ = line(&s);
         let _ = record::parse(s.as_bytes());
         let _ = manifest::parse(s.as_bytes());
+        let _ = declared::parse(s.as_bytes());
     }
 
     #[test]

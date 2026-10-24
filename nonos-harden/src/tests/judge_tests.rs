@@ -62,6 +62,7 @@ fn a_check_that_could_not_run_does_not_pass_though_the_tool_exits_0() {
             "supply-chain",
             &parse(r.to_string().as_bytes()).unwrap(),
             Some(0),
+            &vec![],
         );
         assert!(c.status == Status::NotRun && c.reason.contains("cargo-audit"), "{c:?}");
     }

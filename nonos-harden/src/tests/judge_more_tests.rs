@@ -31,8 +31,8 @@ fn no_report_an_empty_one_or_a_bad_exit_does_not_pass() {
         Status::NotRun
     );
     let r = parse(report(&[("a", "pass")], &[]).to_string().as_bytes()).unwrap();
-    assert_eq!(judge("verify.hygiene", "hygiene", &r, Some(2)).status, Status::Fail);
-    assert_eq!(judge("verify.hygiene", "hygiene", &r, None).status, Status::Fail);
+    assert_eq!(judge("verify.hygiene", "hygiene", &r, Some(2), &vec![]).status, Status::Fail);
+    assert_eq!(judge("verify.hygiene", "hygiene", &r, None, &vec![]).status, Status::Fail);
 }
 
 #[test]

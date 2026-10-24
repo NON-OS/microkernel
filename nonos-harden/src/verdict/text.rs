@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The verdict as people read it: one row per check, then the one line.
+//! The verdict as people read it: one row per check, then the one line, and
+//! right under it every limit a passing check carries.
 //! Every string that came from outside this program (a reason quoting a file
 //! name, a verifier's report) is printed with control and direction-override
 //! characters replaced, so nothing in a release can steer the terminal or
@@ -41,14 +42,17 @@ pub fn render(v: &Verdict) -> String {
             Status::NotRun => "NOT RUN",
         };
         s += &format!("  {tag:<7}  {:<w$}  {}\n", c.id, clean(&c.reason));
-        for l in &c.limits {
-            s += &format!("  {:<7}  {:<w$}  does not cover: {}\n", "", "", clean(l));
-        }
     }
     if let Some(k) = &v.signer {
         s += &format!("signer: {k}\n");
     }
-    s + &format!("scope: {}\n{}\n", v.scope, v.verdict)
+    s += &format!("scope: {}\n{}\n", v.scope, v.verdict);
+    for c in &v.checks {
+        for l in &c.limits {
+            s += &format!("  limit: {}: does not cover {}\n", c.id, clean(l));
+        }
+    }
+    s
 }
 
 pub fn clean(s: &str) -> String {

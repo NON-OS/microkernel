@@ -41,6 +41,7 @@ pub fn signer_named(text: &str) -> Option<String> {
 pub fn line(text: &str) -> String {
     match serde_json::from_str::<serde_json::Value>(text) {
         Ok(v) => v["verdict"].as_str().unwrap_or_default().to_string(),
-        Err(_) => text.lines().last().unwrap_or_default().to_string(),
+        // The one line is the last not indented; the limits follow it.
+        Err(_) => text.lines().rfind(|l| !l.starts_with(' ')).unwrap_or_default().into(),
     }
 }

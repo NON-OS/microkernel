@@ -17,6 +17,7 @@
 //! The checks over the tree that built the image: that it is the release's
 //! source, that its trust ledger holds, and the tree's own verifiers run on it.
 
+pub mod declared;
 pub mod git;
 pub mod inputs;
 pub mod judge;

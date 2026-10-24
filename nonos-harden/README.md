@@ -22,6 +22,10 @@ things:
   matrix's static-checks and proof-crates rows.
 
 A development image that passes reads `GO (development image, not a release)`.
+When checks carry limits, the line counts them (`GO, 2 declared limits`), and
+each limit is listed under it. A verifier's gap is a limit only if the tree
+declares it in `scripts/baselines/declared-limits.txt`; any other gap is
+NO-GO.
 
 Any check that fails or could not run makes the verdict **NO-GO**. The
 verdict names that check and gives its reason.

@@ -44,6 +44,44 @@ reads:
 GO (development image, not a release)
 ```
 
+When passing checks carry limits (see below), the line counts them, so a
+limited GO never reads as a plain one. Each limit is listed right under the
+verdict line:
+
+```
+GO (development image, not a release), 2 declared limits
+  limit: release.receipt: does not cover the sealing tree held changes beyond 1a5ac13 (the seal stages its trust set first)
+  limit: verify.trust-chain: does not cover per-capsule field assertions (it needs: expose DecodedManifest fields …)
+```
+
+## Declared limits
+
+A `nonos-verify` module may report parts it does not cover, called *gaps*. A
+gap is allowed with GO only if the tree being checked declares it in
+`scripts/baselines/declared-limits.txt` (format
+`nonos-harden-declared-limits/1`, one `<module>: <what>` line each). A
+declared gap becomes a limit: it is counted in the verdict line and in the
+JSON `limits` field, and listed under the verdict line.
+
+These cases fail the verifier's check, and so the verdict is NO-GO:
+
+- A gap that is not on the list, or is declared only for another module.
+- A list that is missing or not in its format. The list is read before the
+  verifier runs.
+
+`scripts/check_declared_limits.py`, run by the static checks, holds the list
+to two rules:
+
+- Every line must name a gap that module's source still declares, so a line
+  goes once its gap is closed.
+- No line may be added compared with the previous commit, or with the
+  merge-base against `NONOS_BASELINE_BASE` when that is set. The list only
+  shrinks.
+
+Today it holds one line, `trust-chain: per-capsule field assertions`. The
+other gaps nonos-verify can declare always come with a check that did not
+pass, which is NO-GO on its own.
+
 ## What GO does not mean
 
 - **The image was not booted.** No QEMU run and no device are involved. The
@@ -51,10 +89,9 @@ GO (development image, not a release)
   separate step.
 - GO is only as good as the verifiers in the tree it runs. It does not add
   checks of its own beyond reading the release.
-- A verifier may state parts it does not cover (a *declared gap*). Those parts
-  are copied into the check as `limits`, and the check still passes. Read the
-  limits. A check that could not run is never a pass: it makes the verdict
-  NO-GO.
+- A declared gap is a limit, not a pass of what it names. Read the limits
+  under the verdict line. A check that could not run is never a pass: it
+  makes the verdict NO-GO, and so does a verifier that is missing.
 - The receipt check adds two limits: when the receipt measured no kernel
   attestation root, and when the sealing tree was dirty. Real seals are always
   dirty, because the seal stages its trust set before it writes the receipt.
@@ -122,8 +159,9 @@ number. It is never changed silently.
 | `format` | always `"nonos-harden-verdict/1"` |
 | `tool` | `"nonos-harden <version>"` |
 | `overall` | `"go"` or `"no-go"` |
-| `verdict` | the one line: `GO`, `GO (development image, not a release)`, or `NO-GO: …` |
+| `verdict` | the one line: `GO`, `GO (development image, not a release)`, either followed by `, N declared limit(s)` when checks carry limits, or `NO-GO: …` |
 | `kind` | `"release"`, `"development"` or `"unknown"` |
+| `limits` | how many limits the checks carry, in all |
 | `release` | the release directory as given |
 | `record_sha256` | the SHA-256 of `nonos-release.json`, or `null` if it was not read |
 | `tree` | the tree checked against, or `null` |
@@ -132,8 +170,8 @@ number. It is never changed silently.
 | `scope` | what the verdict covers (host checks only; nothing booted) |
 | `checks` | one object per check, in run order: `id`, `status` (`pass`, `fail`, `not-run`), `reason`, and `limits` (only when there are any) |
 
-The text form holds the same facts, one line per check, and ends with the
-verdict line. Control characters and bidirectional marks in any reason are
+The text form holds the same facts: one line per check, then the verdict
+line, then one `  limit: <check>: does not cover <what>` line per limit. Control characters and bidirectional marks in any reason are
 replaced with U+FFFD, so a hostile file name cannot rewrite your terminal.
 
 ## Signing

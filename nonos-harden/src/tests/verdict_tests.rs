@@ -48,7 +48,9 @@ fn the_text_verdict_cannot_be_steered_by_what_it_quotes() {
     for bad in ['\u{1b}', '\u{7}', '\r', '\u{202e}', '\u{2066}'] {
         assert!(!out.contains(bad), "{bad:?} reached the terminal");
     }
-    assert!(out.ends_with("NO-GO: 1 of 1 checks did not pass; first release.sealed\n"));
+    let tail =
+        "\nNO-GO: 1 of 1 checks did not pass; first release.sealed\n  limit: release.sealed: ";
+    assert!(out.contains(tail) && out.ends_with("hidden\n"), "{out}");
 }
 
 #[test]

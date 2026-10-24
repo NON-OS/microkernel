@@ -26,7 +26,8 @@ const MAX_BYTES: u64 = 16 << 20;
 
 pub struct Report {
     pub checks: Vec<Entry>,
-    pub gaps: Vec<String>,
+    /// Each gap's `what` and `needs`.
+    pub gaps: Vec<(String, String)>,
 }
 
 pub struct Entry {
@@ -56,7 +57,7 @@ pub fn parse(bytes: &[u8]) -> Result<Report, String> {
     let gaps = gaps
         .iter()
         .map(|g| match (text(g, "what"), text(g, "needs")) {
-            (Some(what), Some(needs)) => Ok(format!("{what} (it needs: {needs})")),
+            (Some(what), Some(needs)) => Ok((what, needs)),
             _ => Err("a gap without `what` or `needs`".to_string()),
         })
         .collect::<Result<_, _>>()?;
