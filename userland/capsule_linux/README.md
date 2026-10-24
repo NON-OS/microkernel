@@ -76,11 +76,17 @@ narrows the program's own policy (`app/identity_box.rs`) and never widens it: a 
 policy grants no network has none in any box. Each box has one hash, BLAKE3 under
 `NONOS.linux.box.v1` of its canonical form (`boxed/hash.rs`).
 
-At the end the run prints a `BOX REPORT v1`: the box and its hash, what it allowed, each kind of
-refused action with its count and first three examples, and the exit status. It also writes one
-`[BOX] v=1 preset=... policy=... refused=N <kind>=N ... exit=N source=capsule_linux` line to the
-serial log. A refused action is counted once for each kind per call. The counts are this
-capsule's enforcement, not the kernel's sealed histogram, which counts by errno.
+At the end the run sends a `BOX REPORT v1` to the terminal that started it: the box and its hash,
+what the program actually had (the box narrowed by its own policy), each kind of refused action
+with its count and first three examples, whether it started, and the exit status, followed by one
+`[BOX] v=1 preset=... policy=... refused=N <kind>=N ... started=yes|no exit=N source=capsule_linux`
+line. The terminal names the run a key ahead of its words (`--box-key=<hex>`), and every report
+frame opens with `TAG_BOX` and that key (`boxed/frames.rs`), so the guest, which writes the same
+channel and never sees the key, cannot forge the report; the terminal draws it after the run's
+output ends and writes the `[BOX]` line to the serial log. A full inbox is waited on, not dropped.
+A run that stops before its guest starts still reports why (`start_stop.rs`). A refused action is
+counted once for each kind per call. The counts are this capsule's enforcement, not the kernel's
+sealed histogram, which counts by errno.
 
 The program's app_id is noted to slot 0 of the kernel's seal before its guest starts
 (`seal_note.rs`, I-C6), so a family running a proved program is kept to be proved; the

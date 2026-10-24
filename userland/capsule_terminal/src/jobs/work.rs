@@ -22,6 +22,7 @@ use crate::command::builtin::nox::install::InstallJob;
 use crate::command::builtin::nox::pkg::PkgJob;
 use crate::command::builtin::ping::PingJob;
 
+use super::box_hold::BoxHold;
 use super::capture::Capture;
 use super::pipeline_job::PipelineJob;
 use super::stdin_queue::StdinQueue;
@@ -44,8 +45,14 @@ pub enum JobWork {
     InstallDrain(InstallJob),
     PipelineStages(PipelineJob),
     /* A program the terminal started. `capture` holds its output when it
-     * goes to a file or to /dev/null rather than the screen. */
-    ExternalStage { pid: u32, stdin: StdinQueue, capture: Option<Box<Capture>> },
+     * goes to a file or to /dev/null rather than the screen; `boxed`, a
+     * `linux --box` run's report until the run ends. */
+    ExternalStage {
+        pid: u32,
+        stdin: StdinQueue,
+        capture: Option<Box<Capture>>,
+        boxed: Option<Box<BoxHold>>,
+    },
     /* A request over the network, and a clone, carried a tick at a time;
      * dropped on Ctrl+C, which closes their connection. */
     Http(Box<HttpJob>),

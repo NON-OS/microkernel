@@ -22,11 +22,11 @@ use core::fmt::Write;
 
 use super::kind::ALL;
 use super::preset::BoxPolicy;
-use super::report::{hex, preset_name, VERSION};
+use super::report::{hex, preset_name, End, VERSION};
 use super::tally::Tally;
 
 /// The serial log's line: the policy, every kind's count, and the exit status.
-pub fn box_line(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, exit: i32) -> String {
+pub fn box_line(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, e: &End) -> String {
     let mut s = String::new();
     let _ = write!(s, "[BOX] v={VERSION} preset={}", preset_name(policy.preset));
     let _ = write!(s, " policy={}", hex(hash));
@@ -34,6 +34,7 @@ pub fn box_line(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, exit: i32) -
     for kind in ALL {
         let _ = write!(s, " {}={}", kind.tag(), tally.count(kind));
     }
-    let _ = writeln!(s, " exit={exit} source=capsule_linux");
+    let started = if e.not_started.is_some() { "no" } else { "yes" };
+    let _ = writeln!(s, " started={started} exit={} source=capsule_linux", e.exit);
     s
 }

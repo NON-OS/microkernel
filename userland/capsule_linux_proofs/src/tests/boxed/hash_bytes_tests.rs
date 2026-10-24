@@ -36,7 +36,7 @@ fn the_strict_hash_is_its_documented_bytes() {
     let mut bytes = b"NONOS.linux.box.v1".to_vec();
     bytes.push(1);
     bytes.extend_from_slice(&(0x140u64).to_be_bytes());
-    bytes.extend_from_slice(&[0, 1, 0, 4]);
+    bytes.extend_from_slice(&[0, 0, 0, 1, 0, 0, 0, 4]);
     bytes.extend_from_slice(b"/tmp");
     bytes.extend_from_slice(&[0; 32]);
     assert_eq!(hex(blake3::hash(&bytes).as_bytes()), STRICT);

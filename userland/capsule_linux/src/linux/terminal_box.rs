@@ -25,9 +25,14 @@ const USAGE: &[u8] =
 /// there is none to run, with why said where the person who typed it reads it.
 pub(super) fn program<'a>(parts: &mut impl Iterator<Item = &'a [u8]>) -> Option<&'a [u8]> {
     let mut first = parts.next().filter(|p| !p.is_empty());
+    // The terminal names the report's key ahead of every boxed run's words.
+    let key = first.and_then(crate::linux::boxed::key_of);
+    if key.is_some() {
+        first = parts.next().filter(|p| !p.is_empty());
+    }
     if first == Some(b"--box".as_slice()) {
         match parts.next().map(crate::linux::boxed::parse) {
-            Some(Ok(policy)) => crate::linux::boxed::arm(policy),
+            Some(Ok(policy)) => crate::linux::boxed::arm(policy, key),
             Some(Err(why)) => {
                 say(alloc::format!("linux: --box refused: {why}\n").as_bytes());
                 return None;

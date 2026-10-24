@@ -40,7 +40,7 @@ pub(in super::super) fn remove_dir(at: &[u8]) -> u64 {
     match look(at) {
         None => return errno::fail(errno::ENOENT),
         Some((_, false)) => return errno::fail(errno::ENOTDIR),
-        Some(_) if synth::owns(at) || key(at).writable().is_err() => {
+        Some(_) if synth::refused_write(at) || key(at).writable().is_err() => {
             return errno::fail(errno::EROFS)
         }
         Some(_) if !cache::names_in(at).is_empty() => return errno::fail(errno::ENOTEMPTY),

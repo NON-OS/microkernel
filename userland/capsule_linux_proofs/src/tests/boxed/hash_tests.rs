@@ -26,8 +26,8 @@ fn of(word: &[u8]) -> String {
 }
 
 /* Pinned: a preset's hash changes only when what it allows changes. */
-pub(super) const STRICT: &str = "ab9fb0d1cd685a85f0db55034e43c52ba5d0cbff31b8f2b3050bf01581bc6f67";
-const OFFLINE: &str = "04c60842b8bf18df033deaa5644a7b40f769f540ab6ebe34c976689b64f1a4b3";
+pub(super) const STRICT: &str = "5811b081f826f154ce1ac5a7b558bff858ae0bacc27ad2db9d2e5f84ce05323a";
+const OFFLINE: &str = "630d02b9ab8f611ff1d39ba26c29be18566995b5663fd25c0965c47cb4a66776";
 
 #[test]
 fn the_presets_hash_as_pinned() {

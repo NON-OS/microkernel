@@ -144,6 +144,6 @@ pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
 pub use tool_run::mk_tool_run;
 pub use tty::{
-    mk_tty_query, mk_tty_set, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
+    mk_tty_query, mk_tty_set, TAG_BOX, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
 };
 pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

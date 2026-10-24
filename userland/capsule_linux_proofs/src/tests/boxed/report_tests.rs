@@ -20,8 +20,13 @@ use crate::boxed::hash::box_hash;
 use crate::boxed::kind::Kind;
 use crate::boxed::line::box_line;
 use crate::boxed::preset::parse;
-use crate::boxed::report::{hex, report, SOURCE};
+use crate::boxed::report::{hex, report, End, SOURCE};
 use crate::boxed::tally::Tally;
+use nonos_linux_policy::mask::{EXEC, TTY};
+
+fn ran(exit: i32) -> End<'static> {
+    End { exit, not_started: None }
+}
 
 fn demo() -> Tally {
     // A script writes its scratch folder (allowed, nothing counted), writes
@@ -42,7 +47,7 @@ fn the_demo_reports_exactly_its_two_refusals() {
         "BOX REPORT v1\n  policy   strict {}\n  allowed  write /tmp\n  allowed  read the image, read-only\n  allowed  network none\n  allowed  execve, each program held to this box\n  refused  2\n    write         1  /home/out.txt\n    network       1  an internet socket\n  exit     0\n  {SOURCE}\n",
         hex(&h)
     );
-    assert_eq!(report(&p, &h, &demo(), 0), want);
+    assert_eq!(report(&p, &h, &demo(), Some(TTY | EXEC), &ran(0)), want);
 }
 
 #[test]
@@ -50,24 +55,17 @@ fn the_serial_line_carries_every_kind_and_the_exit() {
     let p = parse(b"strict").unwrap();
     let h = box_hash(&p);
     let want = format!(
-        "[BOX] v=1 preset=strict policy={} refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 exit=3 source=capsule_linux\n",
+        "[BOX] v=1 preset=strict policy={} refused=2 write=1 network=1 exec=0 jit=0 display=0 models=0 call=0 barred=0 unserved=0 started=yes exit=3 source=capsule_linux\n",
         hex(&h)
     );
-    assert_eq!(box_line(&p, &h, &demo(), 3), want);
+    assert_eq!(box_line(&p, &h, &demo(), &ran(3)), want);
 }
 
 #[test]
 fn a_clean_run_says_it_was_refused_nothing() {
     let p = parse(b"allow:/tmp/out,net:10.0.0.1:443").unwrap();
-    let text = report(&p, &box_hash(&p), &Tally::default(), 0);
+    let text = report(&p, &box_hash(&p), &Tally::default(), None, &ran(0));
     assert!(text.contains("  refused  0\n  exit     0\n"), "{text}");
     assert!(text.contains("  allowed  write /tmp/out\n"), "{text}");
     assert!(text.contains("  allowed  network 10.0.0.1:443\n"), "{text}");
-}
-
-#[test]
-fn the_report_says_whose_counts_these_are() {
-    assert!(
-        SOURCE.contains("capsule_linux") && SOURCE.contains("not the kernel's sealed histogram")
-    );
 }

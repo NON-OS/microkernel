@@ -26,6 +26,9 @@ use super::preset::OWN;
 /// folders, no `.`, `..` or empty part, and no separator at its end.
 pub fn folder(item: &[u8]) -> Result<Vec<u8>, &'static str> {
     let rest = item.strip_prefix(b"/").ok_or("a folder is named from /")?;
+    if !rest.iter().all(|b| b.is_ascii_graphic()) {
+        return Err("a folder is printable ASCII, with no space");
+    }
     if rest.split(|b| *b == b'/').any(|p| p.is_empty() || p == b"." || p == b"..") {
         return Err("a folder has no empty, . or .. part");
     }

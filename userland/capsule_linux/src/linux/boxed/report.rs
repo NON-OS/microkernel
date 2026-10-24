@@ -23,6 +23,7 @@ use alloc::string::String;
 use core::fmt::Write;
 
 use super::allowed::allowed;
+pub use super::end::End;
 use super::kind::ALL;
 use super::preset::{BoxPolicy, Preset};
 use super::tally::Tally;
@@ -45,22 +46,26 @@ pub fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| alloc::format!("{b:02x}")).collect()
 }
 
-pub fn report(policy: &BoxPolicy, hash: &[u8; 32], tally: &Tally, exit: i32) -> String {
+/// `granted`: the services the program got in the box, None if it never started.
+pub fn report(b: &BoxPolicy, hash: &[u8; 32], t: &Tally, granted: Option<u64>, e: &End) -> String {
     let mut s = alloc::format!("BOX REPORT v{VERSION}\n");
-    let _ = writeln!(s, "  policy   {} {}", preset_name(policy.preset), hex(hash));
-    for line in allowed(policy) {
+    let _ = writeln!(s, "  policy   {} {}", preset_name(b.preset), hex(hash));
+    for line in allowed(b, granted) {
         let _ = writeln!(s, "  allowed  {line}");
     }
-    let _ = writeln!(s, "  refused  {}", tally.total());
-    for kind in ALL.iter().filter(|k| tally.count(**k) > 0) {
-        let _ = write!(s, "    {:<9}{:>6}", kind.tag(), tally.count(*kind));
-        for (i, e) in tally.examples(*kind).iter().enumerate() {
+    let _ = writeln!(s, "  refused  {}", t.total());
+    for kind in ALL.iter().filter(|k| t.count(**k) > 0) {
+        let _ = write!(s, "    {:<9}{:>6}", kind.tag(), t.count(*kind));
+        for (i, e) in t.examples(*kind).iter().enumerate() {
             let sep = if i == 0 { "  " } else { ", " };
             let _ = write!(s, "{sep}{}", String::from_utf8_lossy(e));
         }
         s.push('\n');
     }
-    let _ = writeln!(s, "  exit     {exit}");
+    if let Some(why) = e.not_started {
+        let _ = writeln!(s, "  started  no: {why}");
+    }
+    let _ = writeln!(s, "  exit     {}", e.exit);
     let _ = writeln!(s, "  {SOURCE}");
     s
 }
