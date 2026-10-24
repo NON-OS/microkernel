@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 //! Where driver.usb_msc0's search for its device stands, read from the tail
 //! of its state reply and said in words. The driver holds no Debug
 //! capability; this is how a stick it did not take is named on the log.
