@@ -4749,8 +4749,12 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/boot/dtb_adapter/parse/entropy.rs",
+   "src/arch/aarch64/boot/dtb_adapter/parse/platform.rs",
    "src/arch/fdt",
+   "src/arch/tpm_window.rs",
    "src/memory/iommu/reserved/range.rs",
+   "src/security/tpm/crb/area.rs",
+   "src/security/tpm/mmio/map.rs",
    "userland/fdt_proofs"
   ],
   "md": [],
