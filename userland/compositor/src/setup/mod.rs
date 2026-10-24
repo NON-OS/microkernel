@@ -35,6 +35,7 @@ mod prime_gop_handle;
 mod prime_once;
 mod prime_wire;
 mod resize;
+mod unprimed;
 mod upgrade;
 
 pub use canvas::fit_canvas;
