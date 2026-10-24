@@ -112,6 +112,8 @@ So `nix build` of the default image waits for the next release seal, which write
 
 `capsule-serial-debug` lets capsules write to the serial console. `Cargo.toml` calls it "an information-leak surface". `standard` now takes it out, as `hardened` and `airgapped` already did. The `qemu` and `dev` profiles, and a profile's development twin, keep it for diagnosis. What changes for a person: the Terminal's `log` keeps nothing on a `standard` image (`keep`, `src/sys/serial/tail.rs`).
 
+`proof_io` goes with it. Its proof is a serial line, and its third step needs Debug, so in an image without `capsule-serial-debug` it exits 3, a false proof failure on every boot. It is now spawned only beside that feature (`run_user_entry_proof` and `launch_final_payload`, `src/userspace/init/entry.rs`), and `microkernel-proof-io`, the lane its line is for, turns the feature on. Host-tested: `kernel_proofs` `proof_io_spawn_tests` reads the cfg around every spawn in `src/`. A mutant that drops it from the final spawn is caught.
+
 ## The `microkernel-*` sets
 
 Ninety-one sets are named `microkernel-<x>`. Each is the core kernel plus one capsule or one lane's capsules: the per-capsule production profiles (`microkernel-keyring`, `microkernel-driver-igb`, and the rest), the smoketests, and the desktop's own building blocks. They are build compositions, not features of their own. Everything they contain is accounted for above.

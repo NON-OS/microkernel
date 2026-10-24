@@ -326,6 +326,8 @@ microkernel-proof-io = [
   "nonos-production",
   "nonos-user-entry-proof",
   "nonos-capsule-proof-io",
+  # Its proof is a serial line that needs Debug (src/userspace/init/entry.rs).
+  "capsule-serial-debug",
 ]
 
 microkernel-ramfs = [
