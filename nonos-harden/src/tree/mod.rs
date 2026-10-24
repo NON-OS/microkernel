@@ -46,9 +46,10 @@ pub fn find(start: &Path) -> Option<PathBuf> {
     start.ancestors().find(holds).map(Path::to_path_buf)
 }
 
-/// The tree to check against: the one given, or else the one the command is
-/// run inside. Never one at or inside the release: a release must not bring
-/// the verifiers that judge it.
+/// The tree to check against, as an absolute path: the one given, or else
+/// the one the command is run inside. Never one at or inside the release: a
+/// release must not bring the verifiers that judge it. Every verifier runs
+/// from a directory of its own, so a relative path would name another place.
 pub fn choose(given: Option<PathBuf>, release: &Path) -> Result<Option<PathBuf>, String> {
     let here = || std::env::current_dir().ok().and_then(|d| find(&d));
     let Some(tree) = given.or_else(here) else { return Ok(None) };
@@ -57,6 +58,13 @@ pub fn choose(given: Option<PathBuf>, release: &Path) -> Result<Option<PathBuf>,
         (Ok(t), Ok(r)) if t.starts_with(&r) => {
             Err(format!("the tree {} lies inside the release it would judge", tree.display()))
         }
-        _ => Ok(Some(tree)),
+        (Ok(t), _) => Ok(Some(t)),
+        (Err(e), _) => Err(format!("the tree {} cannot be opened ({e})", tree.display())),
     }
+}
+
+/// The release directory as an absolute path, or as given when it cannot be
+/// opened, so `release.record` says so.
+pub fn absolute(release: &Path) -> PathBuf {
+    std::fs::canonicalize(release).unwrap_or_else(|_| release.to_path_buf())
 }

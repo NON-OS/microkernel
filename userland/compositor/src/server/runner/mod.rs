@@ -17,6 +17,7 @@
 mod dispatch;
 mod drain;
 mod entry;
+pub mod turn_watch;
 mod upkeep;
 
 pub use entry::run;

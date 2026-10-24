@@ -579,6 +579,7 @@ include userland/capsule_driver_nvme/Capsule.mk
 include userland/capsule_driver_sdhci/Capsule.mk
 include userland/capsule_driver_ufs/Capsule.mk
 include userland/capsule_driver_bga/Capsule.mk
+include userland/capsule_driver_intel_display/Capsule.mk
 include userland/capsule_driver_usb_audio/Capsule.mk
 include userland/capsule_driver_usb_hub/Capsule.mk
 include userland/capsule_driver_uvc/Capsule.mk

@@ -1,0 +1,2 @@
+driver.bga0 nonos-capsule-driver-bga
+driver.intel_display0 nonos-capsule-driver-intel-display

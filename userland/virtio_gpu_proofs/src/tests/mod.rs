@@ -43,6 +43,7 @@ mod queue_limit_tests;
 mod queue_tests;
 mod recover_order_tests;
 mod reply_refusal_tests;
+mod reply_sweep;
 mod reply_tests;
 mod teardown_tests;
 mod wire_scanout_tests;

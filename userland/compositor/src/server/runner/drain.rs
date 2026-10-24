@@ -32,19 +32,16 @@ const RECV_FRAME_MS: u64 = 16;
 const RECV_POLL_MS: u64 = 1;
 const MAX_BATCH: usize = 16;
 
-pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
+/// The first request this drain served (op, sender), if any.
+pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) -> Option<(u16, u32)> {
+    let mut first = None;
     for i in 0..MAX_BATCH {
         let timeout = if i == 0 { RECV_FRAME_MS } else { RECV_POLL_MS };
         let mut sender_pid = 0u32;
-        let n = mk_ipc_recv_from(
-            SERVICE_INBOX,
-            rx.as_mut_ptr(),
-            rx.len(),
-            timeout,
-            &mut sender_pid,
-        );
+        let n =
+            mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), timeout, &mut sender_pid);
         if n <= 0 || sender_pid == 0 {
-            return;
+            return first;
         }
         let (req, body) = match parse(&rx[..n as usize]) {
             Ok(parsed) => parsed,
@@ -53,8 +50,10 @@ pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
                 continue;
             }
         };
+        first = first.or(Some((req.op, sender_pid)));
         if dispatch(ctx, sender_pid, req, body, tx).is_err() {
-            return;
+            return first;
         }
     }
+    first
 }

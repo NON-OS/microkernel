@@ -78,7 +78,7 @@ pub fn create_secure_token(
     caps: &[Capability],
     ttl_ms: Option<u64>,
 ) -> Result<CapabilityToken, &'static str> {
-    let nonce_bytes = secure_nonce_128();
+    let nonce_bytes = secure_nonce_128()?;
     let nonce = u64::from_le_bytes([
         nonce_bytes[0],
         nonce_bytes[1],

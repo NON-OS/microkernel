@@ -17,6 +17,7 @@
 use nonos_libc::mk_uptime_ms;
 
 use super::drain::drain_ipc;
+use super::turn_watch::{Turn, TurnWatch};
 use super::upkeep::Upkeep;
 use crate::frame_pacer;
 use crate::protocol::{HDR_LEN, IPC_PAYLOAD_MAX};
@@ -41,8 +42,10 @@ pub fn run(mut ctx: Context) -> ! {
     let mut upkeep = Upkeep::new(last_heal);
     ctx.first_frame_since = Some(last_heal);
     let mut notice = crate::server::trusted_notice::Notice::new(last_heal);
+    let mut watch = TurnWatch::default();
     loop {
-        drain_ipc(&mut ctx, &mut rx, &mut tx);
+        let t0 = mk_uptime_ms();
+        let request = drain_ipc(&mut ctx, &mut rx, &mut tx);
         let now = mk_uptime_ms();
         upkeep.run(&mut ctx, now);
         notice.run(&ctx, now);
@@ -50,20 +53,20 @@ pub fn run(mut ctx: Context) -> ! {
             last_heal = now;
             heal_missed(&mut ctx);
         }
-        match frame_pacer::tick(&mut ctx) {
+        let (t2, ticked) = (mk_uptime_ms(), frame_pacer::tick(&mut ctx));
+        let at = [t0, now, t2, mk_uptime_ms()];
+        let turn = Turn { at, request, released: ctx.first_frame_since.is_none() };
+        watch.observe(&turn).iter().for_each(|l| crate::say::say(l));
+        match ticked {
             Ok(()) => {}
+            // Once: a display that refuses every frame would fill the log.
             Err(e) if !ctx.scanout_error_reported => {
-                // Once: a display that refuses every frame would fill the log.
                 crate::say::say(&alloc::format!("present refused: {}", e));
                 ctx.scanout_error_reported = true;
             }
             Err(_) => {}
         }
-        // No vsync sleep here: the blocking first receive in drain_ipc paces the
-        // loop to a frame while still waking the instant a client commits damage.
-        // The present itself already happened in tick(); waiting on the periodic
-        // vsync tick only reintroduced the unreliable-timer dependency that left
-        // updates stuck until an input event.
+        // No vsync sleep: drain_ipc's first receive paces the loop (drain.rs).
     }
 }
 
