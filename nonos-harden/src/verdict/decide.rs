@@ -17,7 +17,8 @@
 //! The rule that turns checks into a verdict. GO only when checks ran, every
 //! one of them passed, and the kind of image is known; anything else is
 //! NO-GO, naming the first check that did not pass. A check that could not
-//! run counts exactly as one that failed.
+//! run counts exactly as one that failed. A GO whose checks carry limits
+//! says how many in its line.
 
 use super::Overall;
 use crate::check::{Check, Status};
@@ -35,10 +36,20 @@ pub fn decide(kind: Kind, checks: &[Check]) -> (Overall, String) {
             let (n, of) = (missed.len(), checks.len());
             (Overall::NoGo, format!("NO-GO: {n} of {of} checks did not pass; first {}", c.id))
         }
-        (None, Kind::Release) => (Overall::Go, "GO".into()),
-        (None, Kind::Development) => (Overall::Go, DEV_GO.into()),
+        (None, Kind::Release) => (Overall::Go, limited("GO", checks)),
+        (None, Kind::Development) => (Overall::Go, limited(DEV_GO, checks)),
         (None, Kind::Unknown) => {
             (Overall::NoGo, "NO-GO: the kind of image was not established".into())
         }
+    }
+}
+
+/// Every limit the passing checks carry, counted in the GO line itself so a
+/// limited GO can never be read as a plain one.
+fn limited(go: &str, checks: &[Check]) -> String {
+    match checks.iter().map(|c| c.limits.len()).sum::<usize>() {
+        0 => go.into(),
+        1 => format!("{go}, 1 declared limit"),
+        n => format!("{go}, {n} declared limits"),
     }
 }
