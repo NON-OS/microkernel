@@ -20,21 +20,14 @@
 
 use alloc::vec::Vec;
 
+use super::format::{hex, printable};
 use super::join::Row;
 use super::reach::{names, through, AREAS, DEVICES_NOTE};
 use super::table::{list, pad, pid};
 use crate::command::builtin::receipt::own::signer;
 
-fn hex(line: &mut Vec<u8>, bytes: &[u8]) {
-    for b in bytes {
-        for nib in [b >> 4, b & 0xf] {
-            line.push(if nib < 10 { b'0' + nib } else { b'a' + nib - 10 });
-        }
-    }
-}
-
 fn one(out: &mut Vec<Vec<u8>>, row: &Row, name: &[u8]) {
-    let mut head = Vec::from(name);
+    let mut head = printable(name);
     head.extend_from_slice(b", pid ");
     pid(&mut head, row.pid, 0);
     out.push(head);
