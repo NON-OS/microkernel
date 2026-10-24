@@ -4598,6 +4598,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/mmio/window.rs",
    "userland/capsule_driver_ehci/src/devices",
    "userland/capsule_driver_ehci/src/env",
    "userland/capsule_driver_ehci/src/facts",
@@ -6332,6 +6333,8 @@
    "userland/capsule_net_core/src/device/batch_frames.rs",
    "userland/capsule_net_core/src/device/batch_served.rs",
    "userland/capsule_net_core/src/device/rx_seq.rs",
+   "userland/capsule_net_core/src/iface/dhcp/create.rs",
+   "userland/capsule_net_core/src/iface/dhcp/request_list.rs",
    "userland/capsule_net_core/src/iface/lease_wait.rs",
    "userland/capsule_net_core/src/iface/link_watch.rs",
    "userland/capsule_net_core/src/protocol",
@@ -7177,6 +7180,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/broker/mmio/window.rs",
    "userland/capsule_driver_ohci/src/devices",
    "userland/capsule_driver_ohci/src/env",
    "userland/capsule_driver_ohci/src/facts",
