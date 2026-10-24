@@ -42,6 +42,11 @@ impl nonos_tls::Io for TorStream {
         let wait = self.patience;
         self.read_within(into, wait).map_err(|_| nonos_tls::SessionError::Io)
     }
+    /// The route's patience, as the stream opened with it: how long one read
+    /// may wait for a first byte, so the handshake stretches to the route.
+    fn patience_ms(&self) -> i64 {
+        super::patience::patience_as_ms(self.patience)
+    }
 }
 
 impl TlsStream {

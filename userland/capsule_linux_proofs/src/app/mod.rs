@@ -24,6 +24,9 @@ pub mod choose;
 pub mod identity;
 #[path = "../../../capsule_linux/src/linux/app/identity_exec.rs"]
 mod identity_exec;
+/* The same identity held inside a `linux --box` box. */
+#[path = "../../../capsule_linux/src/linux/app/identity_box.rs"]
+mod identity_box;
 /* Where a guest may reach out to: its lists, through an exec. */
 #[path = "../../../capsule_linux/src/linux/app/reach.rs"]
 pub mod reach;

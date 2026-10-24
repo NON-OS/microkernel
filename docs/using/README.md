@@ -26,6 +26,7 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [Privacy networks](privacy-network.md) | choose between Nym, Anyone and Direct |
 | [The Browser](browser.md) | open pages and search, switch a window's network, and see what a site learns |
 | [Linux programs](linux-programs.md) | run `sh`, `python3`, `sqlite3` and the other Linux tools |
+| [Run a program in a box](linux-box.md) | run a program you do not trust in a sealed box, and read what it tried |
 | [Local model](local-ai.md) | chat with the Qwen model on this machine, offline, and pick its tier |
 | [Marketplace](marketplace.md) | install Qwen tiers and Linux packages, or a signed `.nonos` package file |
 | [Wallet](wallet.md) | hold keys and make payments |

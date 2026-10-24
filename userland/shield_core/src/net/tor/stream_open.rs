@@ -19,8 +19,7 @@ impl TorStream {
     ) -> std::result::Result<Self, NetError> {
         let route = anonymous_route()?;
         let inner = RouteStream::connect(route, host, port).map_err(|_| NetError::Transport)?;
-        let patience =
-            Duration::from_millis(route.patience_ms()).min(limit).max(Duration::from_secs(1));
+        let patience = super::super::patience::patience_for(route.patience_ms(), limit);
         Ok(TorStream { inner, patience })
     }
 

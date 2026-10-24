@@ -32,3 +32,10 @@ pub fn started(accepted: bool) -> bool {
 pub fn still_running(status: i32) -> bool {
     status != E_NODEV
 }
+
+/// Whether the output is chosen again now: on the tidy tick, or at once when
+/// the driver said it lost its device, so the fixed sink takes over without
+/// waiting out the tick.
+pub fn rechoose_now(tick: bool, lost: bool) -> bool {
+    tick || lost
+}
