@@ -17,18 +17,39 @@
 //! What every request needs once the lists run: the regions, and the
 //! command types this host's UFSHCI version takes.
 
-use crate::ufs::hci::caps::Caps;
-use crate::ufs::utp::layout::Lists;
-use crate::ufs::utp::utrd::{TYPE_DEV_MANAGE, TYPE_SCSI, TYPE_UFS_STORAGE};
+use core::cell::Cell;
 
-#[derive(Clone, Copy, Debug)]
+use crate::ufs::env::Hw;
+use crate::ufs::facts::hci::UTRLDBR;
+use crate::ufs::facts::utp::{TYPE_DEV_MANAGE, TYPE_SCSI, TYPE_UFS_STORAGE};
+use crate::ufs::host::caps::Caps;
+use crate::ufs::slot::layout::{Lists, SLOT};
+
+#[derive(Clone, Debug)]
 pub struct Ctx {
     pub lists: Lists,
     pub caps: Caps,
+    /// The slot is still the host's: a request it never finished and a
+    /// clear it never took. Latched, so no later request writes the command
+    /// descriptor or the data region an old READ may still land in.
+    pub wedged: Cell<bool>,
 }
 
 impl Ctx {
-    /// The UTRD command type of a SCSI command (ufshcd_prepare_req_desc_hdr).
+    pub fn new(lists: Lists, caps: Caps) -> Ctx {
+        Ctx { lists, caps, wedged: Cell::new(false) }
+    }
+
+    /// Whether the slot may not be used: latched, or its doorbell bit still
+    /// set when no request of ours is in flight, which latches it.
+    pub fn slot_held<H: Hw>(&self, hw: &H) -> bool {
+        if !self.wedged.get() && hw.r32(UTRLDBR) & 1 << SLOT != 0 {
+            self.wedged.set(true);
+        }
+        self.wedged.get()
+    }
+
+    /// The UTRD command type of a SCSI command, by UFSHCI version.
     pub fn scsi_type(&self) -> u32 {
         if self.caps.v1x {
             TYPE_SCSI
@@ -37,7 +58,7 @@ impl Ctx {
         }
     }
 
-    /// The UTRD command type of a NOP OUT or a query (ufshcd_compose_dev_cmd).
+    /// The UTRD command type of a NOP OUT or a query, by UFSHCI version.
     pub fn dev_type(&self) -> u32 {
         if self.caps.v1x {
             TYPE_DEV_MANAGE

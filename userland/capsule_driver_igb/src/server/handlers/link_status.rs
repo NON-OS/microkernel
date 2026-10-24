@@ -18,7 +18,7 @@
 //! `0` link down. The stack polls this, so it is also where a change of
 //! link, speed or duplex since the last line is logged, once.
 
-use crate::constants::regs::REG_STATUS;
+use crate::facts::regs::REG_STATUS;
 use crate::link::{decode, note};
 use crate::protocol::{
     encode_response_header, write_status, Request, LINK_STATUS_PAYLOAD_LEN, RESP_HDR_LEN,
@@ -29,7 +29,7 @@ use crate::setup::Driver;
 
 pub fn handle(sender: u32, driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     // SAFETY: `driver.regs` carries the broker MmioMap base for BAR0 and
-    // REG_STATUS is a 32-bit register inside it (e1000_regs.h).
+    // REG_STATUS is a 32-bit register inside it (facts::regs).
     let state = decode(unsafe { driver.regs.r32(REG_STATUS) });
     note(&mut driver.link, state);
     let payload_len = STATUS_LEN as u32 + LINK_STATUS_PAYLOAD_LEN as u32;

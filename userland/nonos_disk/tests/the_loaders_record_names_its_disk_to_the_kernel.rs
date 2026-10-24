@@ -33,13 +33,14 @@ mod mem_disk;
 mod written;
 
 use kernel_gpt::{boot_guid, entries, header, holds, Entry};
+use kernel_gpt::Which;
 use mem_disk::MemDisk;
 use nonos_disk::{BootPartition, MIN_DISK_SECTORS};
 use nonos_disk::{SIGNATURE_GUID, TABLE_GPT};
 use written::written;
 
 fn read(disk: &MemDisk, total: u64) -> Option<Vec<Entry>> {
-    let h = header::parse(&disk.read_sectors(1, 1), total)?;
+    let h = header::parse_as(&disk.read_sectors(1, 1), total, Which::Primary)?;
     entries(&h, &disk.read_sectors(h.entries_lba, h.array_sectors() as usize))
 }
 

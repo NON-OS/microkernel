@@ -17,11 +17,13 @@
 mod backoff;
 pub mod desktop;
 mod dispatch;
+mod display_replay;
 pub mod dock_clock;
 mod dock_sync;
 pub mod grabs;
 pub mod handlers;
 mod input;
+mod input_source;
 mod installed_apps;
 mod launch_overdue;
 mod packages;
@@ -40,8 +42,10 @@ pub mod runner;
 mod store_changed;
 mod store_health;
 pub mod toast_clock;
+mod trusted_band;
 pub mod wallpaper_policy;
 mod wm_notify;
 mod wm_notify_toast;
+mod wm_notify_track;
 
 pub use runner::run;

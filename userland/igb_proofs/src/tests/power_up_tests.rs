@@ -20,12 +20,12 @@
 
 use std::sync::atomic::Ordering;
 
-use crate::constants::part::Part;
-use crate::constants::phy::{SWSM_SMBI, SWSM_SWESMBI};
-use crate::constants::regs::{REG_MDIC, REG_STATUS, REG_SWSM, REG_SW_FW_SYNC};
-use crate::init::phy::mdic::READ_SLOW;
-use crate::init::phy::power_up::run;
-use crate::init::phy::swfw::PHY_HELD;
+use crate::bring::phy::cycle::READ_SLOW;
+use crate::bring::phy::owner::PHY_HELD;
+use crate::bring::phy::wake::run;
+use crate::facts::parts::Part;
+use crate::facts::phy::{SWSM_SMBI, SWSM_SWESMBI};
+use crate::facts::regs::{REG_MDIC, REG_STATUS, REG_SWSM, REG_SW_FW_SYNC};
 
 use super::model::{live, regs, window};
 use super::phy_model::{bmcr, phy, BMCR_POWERED_DOWN};

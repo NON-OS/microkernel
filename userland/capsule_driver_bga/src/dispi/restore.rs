@@ -36,7 +36,8 @@ pub fn restore(regs: Regs, d: &Dispi) {
 /// The register writes, `w(index, value)`, that put `d` back over `now`:
 /// none when `now` is `d`. Else the mode with the adapter disabled, as
 /// `set_mode` does, then the virtual width and the offsets after ENABLE,
-/// since an adapter enabled from disabled resets them, as QEMU's does.
+/// since an adapter enabled from disabled resets them (as observed of
+/// QEMU's adapter, unverified).
 pub fn write_back(now: &Dispi, d: &Dispi, mut w: impl FnMut(u32, u16)) {
     if now == d {
         return;

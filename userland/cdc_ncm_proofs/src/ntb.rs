@@ -50,6 +50,6 @@ impl Ntb {
 /// The datagrams `datagrams` finds in `raw`, as (index, length).
 pub fn found(raw: &[u8], rx_max: usize) -> Vec<(usize, usize)> {
     let mut q = std::collections::VecDeque::new();
-    crate::ncm::ntb_in::datagrams(raw, rx_max, &mut q);
+    crate::ncm::ntb_in::datagrams(raw, rx_max, true, &mut q);
     q.into_iter().collect()
 }

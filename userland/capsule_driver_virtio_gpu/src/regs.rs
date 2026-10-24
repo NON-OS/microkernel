@@ -46,4 +46,10 @@ impl Regs {
     pub fn config_r32(self, offset: usize) -> u32 {
         self.device.r32(offset)
     }
+
+    /// Write one field of struct virtio_gpu_config: the events-clear word,
+    /// after the display event was read (`display::events`).
+    pub fn config_w32(self, offset: usize, value: u32) {
+        self.device.w32(offset, value);
+    }
 }

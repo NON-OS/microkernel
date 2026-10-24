@@ -19,7 +19,7 @@ mod asid;
 mod fault;
 mod stage;
 
-pub use address::{kernel_phys_to_virt, phys_to_virt, virt_to_phys};
+pub use address::virt_to_phys;
 pub use asid::{current_asid, set_asid};
 pub use fault::TranslationFault;
 pub use stage::{

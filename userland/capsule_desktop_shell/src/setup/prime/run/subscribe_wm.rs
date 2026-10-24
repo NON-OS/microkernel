@@ -20,6 +20,6 @@ use crate::wm_client;
 pub fn subscribe_wm(ctx: &mut Context, wm_port: u32) {
     let rid = ctx.issue_request_id();
     if wm_client::lifecycle_subscribe(wm_port, rid).is_ok() {
-        ctx.wm_notify_ready = true;
+        ctx.links.wm_notify_ready = true;
     }
 }

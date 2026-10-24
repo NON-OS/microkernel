@@ -20,7 +20,8 @@ use super::super::super::env::{Clock, Deadline, Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
 use super::super::cmd::{command_word, transfer_mode};
 use super::super::regs::{
-    ARGUMENT, COMMAND, INT_STATUS, PRESENT_STATE, PS_CMD_INHIBIT, PS_DAT_INHIBIT, TRANSFER_MODE,
+    ARGUMENT, COMMAND, ENGINE_STATUS, INT_STATUS, PRESENT_STATE, PS_CMD_INHIBIT, PS_DAT_INHIBIT,
+    TRANSFER_MODE,
 };
 use super::cmd::Cmd;
 use super::engine::Host;
@@ -43,7 +44,7 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
             }
             self.clock.relax();
         }
-        self.io.w32(INT_STATUS, u32::MAX);
+        self.io.w32(INT_STATUS, ENGINE_STATUS);
         let mut mode = 0u16;
         if let Some(data) = cmd.data.as_ref() {
             self.program_data(data)?;

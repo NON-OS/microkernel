@@ -32,7 +32,7 @@ pub(in crate::hardware::broker) use external::mark as mark_external;
 pub use init::init_from_pci;
 pub(super) use init::register_platform_device;
 pub use list::{contains, list, list_by_class};
-pub(super) use list::{flags_of, kind_of};
+pub(super) use list::{dma_coherent, flags_of, kind_of};
 #[allow(unused_imports)] // x86 alone knows domains yet
 pub(in crate::hardware::broker) use numa::set_numa_nodes;
 #[allow(unused_imports)] // the ACPI broker's alone, which only x86 builds

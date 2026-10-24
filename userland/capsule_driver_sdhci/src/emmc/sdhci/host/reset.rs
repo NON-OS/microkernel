@@ -19,8 +19,8 @@
 use super::super::super::env::{Clock, Deadline, Log, Mmio};
 use super::super::super::error::{EmmcError, EmmcResult};
 use super::super::super::text::Line;
-use super::super::regs::{INT_STATUS, PRESENT_STATE, RESET_CMD, RESET_DATA, SOFTWARE_RESET};
-use super::super::regs::{PS_CMD_INHIBIT, PS_DAT_ACTIVE, PS_DAT_INHIBIT};
+use super::super::regs::{ENGINE_STATUS, INT_STATUS, PRESENT_STATE, RESET_CMD, RESET_DATA};
+use super::super::regs::{PS_CMD_INHIBIT, PS_DAT_ACTIVE, PS_DAT_INHIBIT, SOFTWARE_RESET};
 use super::super::regs::{PS_READ_ACTIVE, PS_WRITE_ACTIVE};
 use super::engine::Host;
 use super::limits::RESET_MS;
@@ -57,11 +57,12 @@ impl<M: Mmio, C: Clock, L: Log> Host<M, C, L> {
         Ok(())
     }
 
-    /// After a failed command: reset the CMD line, then the DAT line (as
-    /// sdhci_request_done does), and clear every status.
+    /// After a failed command: the CMD line's state is what failed first,
+    /// so it is reset first, then the DAT line in case a data phase began;
+    /// then the engine's statuses are cleared.
     pub(super) fn clear_lines(&self) {
         let _ = self.reset(RESET_CMD);
         let _ = self.reset(RESET_DATA);
-        self.io.w32(INT_STATUS, u32::MAX);
+        self.io.w32(INT_STATUS, ENGINE_STATUS);
     }
 }

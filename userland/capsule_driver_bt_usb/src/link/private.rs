@@ -43,6 +43,12 @@ impl Private {
         Self { rotation: Rotation::new(irk), identity }
     }
 
+    /// The radio is coming back on: make the next `refresh` draw a fresh
+    /// address, so it never reappears under the one it went off with (E-72).
+    pub fn resume(&mut self) {
+        self.rotation.expire();
+    }
+
     /// The address to scan and connect as next, renewed first if its time
     /// is up. Call only while neither scanning nor connecting.
     pub fn refresh<T: Transport, E: Env>(

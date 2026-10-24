@@ -24,6 +24,10 @@ fn memory_reservations_and_cpus() {
     let mut ids = [0u64; 8];
     assert_eq!(cpus::find(&f, &mut ids), Ok(4));
     assert_eq!(&ids[..4], &[0, 1, 2, 3]);
+    // Firmware parks every core on its own spin-table word, not behind PSCI.
+    let mut release = [None; 8];
+    assert_eq!(cpus::release_addresses(&f, &mut release), Ok(4));
+    assert_eq!(&release[..4], &[Some(0xd8), Some(0xe0), Some(0xe8), Some(0xf0)]);
 }
 
 #[test]

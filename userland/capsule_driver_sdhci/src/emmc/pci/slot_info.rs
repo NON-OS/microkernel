@@ -16,7 +16,7 @@
 
 //! The Slot Information config byte and the BAR it names.
 
-/// PCI config offset 0x40: Slot Information (SDHCI 3.0, 2.3). Bits 2:0 name
+/// PCI config offset 0x40: Slot Information (SDHCI 3.0, as recalled). Bits 2:0 name
 /// the BAR of the first slot, bits 6:4 the slot count less one.
 pub const PCI_SLOT_INFO: u32 = 0x40;
 

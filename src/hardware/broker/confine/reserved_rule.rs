@@ -18,7 +18,12 @@
 //! one to one, and placement that steps over every one mapped. Pure, so the
 //! host proofs hold it.
 
-use super::iova_space::{place, touches_interrupt_window, IOVA_BASE};
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use super::avoid::place_avoiding;
+use super::iova_space::{touches_interrupt_window, IOVA_BASE};
 
 /// A reserved region `[base, end)` mapped for `device`'s sake.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -59,15 +64,12 @@ pub(super) fn verdict(base: u64, end: u64, next: u64, held: &[Held], barred: boo
     Verdict::Map
 }
 
-/// `place`, stepping over every held region as it steps over the interrupt
-/// window, so no grant's IOVA lands on a region mapped one to one.
-pub(super) fn place_clear(mut next: u64, length: u64, held: &[Held]) -> Option<(u64, u64)> {
-    loop {
-        let (start, end) = place(next, length)?;
-        let over = held.iter().filter(|h| h.base < end && start < h.end).map(|h| h.end).max();
-        match over {
-            Some(past) => next = past,
-            None => return Some((start, end)),
-        }
-    }
+/// The kernel's placement (`avoid::place_avoiding`) over the held regions
+/// alone: it steps over each as over the interrupt window, so no grant's IOVA
+/// lands on a region mapped one to one. The host proofs place by it; the
+/// kernel passes these and the reserved ranges together (`reserved_spans`).
+#[allow(dead_code)]
+pub(super) fn place_clear(next: u64, length: u64, held: &[Held]) -> Option<(u64, u64)> {
+    let spans: Vec<(u64, u64)> = held.iter().map(|h| (h.base, h.end)).collect();
+    place_avoiding(next, length, &spans)
 }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Claim one host, map its slot, reset it, map its DMA regions, and open it
-//! as a fixed slot with its card up, or as a removable one.
+//! Claim one host, map its slot, reset it, map its DMA regions, and open
+//! it as a fixed slot with its card up, or as a removable one.
 
 mod claim;
 mod command;

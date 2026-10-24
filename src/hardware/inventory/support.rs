@@ -32,17 +32,15 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         NetworkTulip => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         DisplayVmwareSvga => DataPath,
-        UsbXhci | InputPs2 | InputUsbHid => DataPath,
+        UsbXhci | UsbEhci | UsbOhci | UsbUhci | InputPs2 | InputUsbHid => DataPath,
         InputVirtio => DataPath,
         AudioAc97 => DataPath,
         InputVmmdev => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         SerialSmbus => DataPath,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
-        StorageVmd | StoragePlatformSd | NetworkRealtekWifi => EnumerateOnly,
+        StorageVmd | NetworkRealtekWifi => EnumerateOnly,
         NetworkIgc => EnumerateOnly,
-        UsbEhci | UsbOhci | UsbUhci | SerialSpi | BridgePci | SystemPeripheral | Unknown => {
-            EnumerateOnly
-        }
+        SerialSpi | BridgePci | SystemPeripheral | Unknown => EnumerateOnly,
     }
 }

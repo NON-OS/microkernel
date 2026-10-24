@@ -22,14 +22,15 @@ use crate::error::{XhciError, XhciResult};
 use crate::rings::transfer::TransferRing;
 use crate::server::context::Context;
 use crate::server::handlers::recover::keep_if_failed;
-use crate::slots::{InterruptEndpoint, MAX_INTERRUPT_ENDPOINTS};
+use crate::slots::InterruptEndpoint;
 
-/// Add the interrupt-IN endpoint at `dci` to `slot`, from its descriptor's
-/// `w_max_packet` and `b_interval` (converted here by the device's speed)
-/// and, on SuperSpeed, its companion's `ss_burst`. Its report buffer holds
-/// the endpoint's whole payload per interval, so a report as long as the
-/// endpoint allows never babbles. An endpoint already configured is left
-/// as it is; an OUT DCI, or a payload past the specification, is refused.
+/// Add the interrupt endpoint at `dci` to `slot`, IN or OUT by its DCI (a
+/// security key's OUT), from its descriptor's `w_max_packet` and
+/// `b_interval` (converted here by the device's speed) and, on
+/// SuperSpeed, its companion's `ss_burst`. Its buffer holds the endpoint's
+/// whole payload per interval, so a report as long as the endpoint allows
+/// never babbles. One already configured keeps its ring, its buffer wiped;
+/// a payload past the specification is refused.
 pub(super) fn do_configure(
     ctx: &mut Context,
     slot: u8,
@@ -42,12 +43,14 @@ pub(super) fn do_configure(
     let res =
         d.slots.resources_mut(slot, d.layout.max_slots).ok_or(XhciError::ControllerUnsupported)?;
     let payload = interrupt_payload(res.speed, res.usb3, w_max_packet, ss_burst)
-        .filter(|_| dci >= 3 && dci % 2 == 1)
+        .filter(|_| dci >= 2)
         .ok_or(XhciError::ControllerUnsupported)?;
-    if res.interrupt_mut(dci).is_some() {
+    // A sharer's driver restarted: no former holder's report is left.
+    if let Some(ep) = res.interrupt_mut(dci) {
+        ep.buf.zero();
         return Ok(());
     }
-    if res.interrupt.len() >= MAX_INTERRUPT_ENDPOINTS || res.bulk.is_some() {
+    if !res.takes_interrupt() {
         return Err(XhciError::ControllerUnsupported);
     }
     let ring = TransferRing::new(&d.dma_pool)?;

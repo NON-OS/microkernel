@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Entries the kernel must not use: an array whose CRC fails, and entries
-//! outside the usable range, as Linux's `is_pte_valid` drops them.
+//! Entries the kernel must not use (UEFI 2.10 5.3.3, as recalled,
+//! unverified): an array whose CRC fails names nothing; an entry outside
+//! the usable range, or ending before it starts, is skipped; partitions
+//! that overlap make the table name nothing.
 
 extern crate alloc;
 
@@ -35,11 +37,12 @@ mod written;
 
 use gpt_damage::{put, seal, table, T};
 use kernel_gpt::{entries, header, places};
+use kernel_gpt::Which;
 
 #[test]
 fn a_damaged_array_or_an_entry_out_of_range_names_nothing_wrong() {
     let (mut h, mut a) = table();
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     a[5] ^= 1;
     assert!(entries(&hd, &a).is_none(), "the array CRC");
     a[5] ^= 1;
@@ -48,8 +51,24 @@ fn a_damaged_array_or_an_entry_out_of_range_names_nothing_wrong() {
     put(&mut a, 32, 33, 8);
     put(&mut a, 128 + 32, 300_000, 8);
     seal(&mut h, &a);
-    let hd = header::parse(&h, T).unwrap();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
     let e = entries(&hd, &a).unwrap();
     assert_eq!(e.len(), 2, "data and ESP remain");
     assert_eq!(places(&e), None);
+}
+
+#[test]
+fn partitions_that_overlap_name_nothing() {
+    let (mut h, mut a) = table();
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
+    let e = entries(&hd, &a).unwrap();
+    // The plan's entry (1) moved to start on the store's (0) last sector.
+    put(&mut a, 128 + 32, e[0].last, 8);
+    seal(&mut h, &a);
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
+    assert!(entries(&hd, &a).is_none(), "one sector shared");
+    put(&mut a, 128 + 32, e[0].last + 1, 8);
+    seal(&mut h, &a);
+    let hd = header::parse_as(&h, T, Which::Primary).unwrap();
+    assert!(entries(&hd, &a).is_some(), "touching is not sharing");
 }

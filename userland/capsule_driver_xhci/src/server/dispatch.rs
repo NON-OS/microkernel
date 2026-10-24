@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::route::route;
 use crate::protocol::{Request, E_NODEV, OP_CONTROLLER_STATUS, OP_HEALTHCHECK, OP_PORT_STATUS};
-use crate::server::{context::Context, error::reply_with_status, reply::sender};
+use crate::server::{context::Context, error::reply_with_status};
 
 /// Serve one request. Whether the controller failed is looked at before and
 /// after each. A failed one is brought back before a request that needs
@@ -33,12 +33,4 @@ pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     if ctx.driver.failed() {
         ctx.driver.dead = true;
     }
-}
-
-/// Every other request names a slot in its first byte, one the sender must
-/// have enabled (F4): a revival hands the same ids out again, and a stale
-/// one reached another client's new device.
-pub(super) fn sender_holds(ctx: &Context, body: &[u8]) -> bool {
-    let (slots, max) = (&ctx.driver.slots, ctx.driver.layout.max_slots);
-    body.first().is_some_and(|&slot| slots.held_by(slot, max, sender()))
 }

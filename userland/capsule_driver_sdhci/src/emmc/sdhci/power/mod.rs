@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The bus voltage. The host says what it can supply (Capabilities 26:24),
-//! the card what it accepts (its OCR). As Linux does (mmc_power_up, then
-//! mmc_select_voltage), the bus is first powered at the highest voltage the
-//! host offers, and once the card's OCR is known, at the lowest voltage both
-//! share.
+//! the card what it accepts (its OCR). Power first goes on at the highest
+//! voltage the host has, which every card class must at least answer its
+//! OCR query at; once the OCR is known, the bus moves to the lowest voltage
+//! both share, which draws the least, and the card is told exactly the OCR
+//! bits that name that supply.
 
 mod ocr;
 mod select;

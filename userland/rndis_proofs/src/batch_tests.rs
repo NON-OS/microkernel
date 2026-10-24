@@ -1,5 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Splitting a bulk IN into frames, as rndis_rx_fixup does, over messages
+//! Splitting a bulk IN into frames (Remote NDIS 1.0, 2.2.13), over messages
 //! laid out as QEMU's usbnet_receive builds them and over hostile ones.
 
 use std::collections::VecDeque;

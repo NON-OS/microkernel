@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The drawn station address: given to a device that takes
-//! SET_NET_ADDRESS (NCM 1.0, 6.2.2; Linux cdc_ncm_set_mac_addr), sent while
+//! SET_NET_ADDRESS (NCM 1.0, 6.2.2, as recalled, unverified), sent while
 //! the data interface is in alternate setting 0 as the spec asks. Any
 //! other device has its packet filter opened to every frame instead, so
 //! one that filters on its own iMACAddress still passes frames to it.
@@ -32,9 +32,9 @@ pub(super) fn give<B: Bus>(bus: &mut B, f: &NcmFunction, drawn: Station) -> bool
     f.caps & CAP_NET_ADDRESS != 0 && bus.control_out(set, &drawn.bytes()).is_ok()
 }
 
-/// The packet filter as usbnet_cdc_update_filter sets it, opened to every
-/// frame when the device did not take the address. A device that does not
-/// filter answers with a STALL, which Linux does not look at either.
+/// The packet filter (requests.rs), opened to every frame when the device
+/// did not take the address. A device that does not filter answers with a
+/// STALL; the frames it passes are the same, so the bind goes on.
 pub(super) fn filter<B: Bus>(bus: &mut B, f: &NcmFunction, given: bool) -> Taken {
     let value = if given { FILTER } else { FILTER | PROMISCUOUS };
     let set = Setup::class(false, SET_ETHERNET_PACKET_FILTER, value, f.comm);

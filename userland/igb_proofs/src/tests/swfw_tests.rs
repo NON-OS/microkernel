@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! igb_acquire_swfw_sync_82575 / igb_release_swfw_sync_82575 for this port's
-//! PHY bit: chosen by STATUS's function number, taken and given back under
-//! the semaphore, and refused by name when firmware keeps the PHY past the
-//! clock bound.
+//! This port's PHY bit in SW_FW_SYNC: chosen by STATUS's function number,
+//! taken and given back under the semaphore, and refused by name when
+//! firmware keeps the PHY past the clock bound.
 
 use std::time::Duration;
 
-use crate::constants::phy::{SWSM_SMBI, SWSM_SWESMBI};
-use crate::constants::regs::{REG_SWSM, REG_SW_FW_SYNC};
-use crate::constants::timeouts::SWFW_SYNC_MS;
-use crate::init::phy::swfw::{acquire, phy_bit, release, PHY_HELD};
+use crate::bring::phy::owner::{acquire, phy_bit, release, PHY_HELD};
+use crate::facts::bounds::SWFW_SYNC_MS;
+use crate::facts::phy::{SWSM_SMBI, SWSM_SWESMBI};
+use crate::facts::regs::{REG_SWSM, REG_SW_FW_SYNC};
 
 use super::model::{regs, timed, window};
 

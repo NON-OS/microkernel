@@ -23,6 +23,8 @@ pub mod model;
 #[cfg(test)]
 mod answer_tests;
 #[cfg(test)]
+mod block_fault_tests;
+#[cfg(test)]
 mod block_tests;
 #[cfg(test)]
 mod error_tests;
@@ -30,5 +32,9 @@ mod error_tests;
 mod hostc_tests;
 #[cfg(test)]
 mod parse_tests;
+#[cfg(test)]
+mod plan_tests;
+#[cfg(test)]
+mod status_tests;
 #[cfg(test)]
 mod transfer_tests;

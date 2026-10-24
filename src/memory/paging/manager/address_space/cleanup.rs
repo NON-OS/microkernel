@@ -37,6 +37,8 @@ impl PagingManager {
         }
         if let Some(address_space) = self.address_spaces.remove(&asid) {
             teardown_user_half(address_space.cr3_value, keep);
+            // Its TLB tag goes first: freed, the frame can be the next root.
+            crate::arch::paging::retire_root(address_space.cr3_value.as_u64());
             let _ = frame_alloc::deallocate_frame(address_space.cr3_value);
         }
         Ok(())

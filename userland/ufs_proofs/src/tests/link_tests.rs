@@ -19,7 +19,7 @@
 
 use crate::model::{Cfg, Rig};
 use crate::ufs::error::UfsError;
-use crate::ufs::hci::uic_codes::*;
+use crate::ufs::facts::uic::*;
 
 #[test]
 fn two_failed_startups_are_retried_after_a_host_reset() {
