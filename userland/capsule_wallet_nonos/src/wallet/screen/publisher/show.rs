@@ -38,6 +38,9 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     if let Some(s) = &state.publisher.sending {
         return super::review::review(state, s, fb);
     }
+    if let Some(i) = state.publisher.attest_ask {
+        return super::attest_screen::show(state, i, fb);
+    }
     hits::clear();
     let status = crate::wallet::screen::status::parts(state);
     let footer = [("Open", Weight::Primary, true)];
