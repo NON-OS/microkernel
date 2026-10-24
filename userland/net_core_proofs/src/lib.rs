@@ -72,3 +72,4 @@ mod link_watch_tests;
 mod refusal_tests;
 #[cfg(test)]
 mod tcp;
+pub mod dhcp;
