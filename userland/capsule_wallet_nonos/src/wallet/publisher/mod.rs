@@ -15,9 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod attest;
+mod attest_press;
+mod attest_review;
 mod binding;
 mod path;
 
 pub use attest::{attest_of, attest_rows};
+pub use attest_press::{attest_act, may_sign, AttestAct};
+pub use attest_review::{attest_review, AttestReview};
 pub use binding::{binding_plan, Refused};
 pub use path::{attest_sig_path, binding_sig_path, doc_path_ok};
