@@ -31,7 +31,7 @@ fn a_verdict_signed_with_the_operators_key_verifies_and_names_it() {
         let (s, dir) = (Sealed::dev(), tempfile::tempdir().unwrap());
         let (path, key) = operator(dir.path(), 42);
         let (code, _out, file) = signed(&s, &path, json, Fake::default());
-        assert_eq!(code, exit::GO);
+        assert_eq!(code, exit::DEV_GO);
         assert!(fs::read_to_string(&file).unwrap().contains(&public(&key)));
         assert_eq!(check_signature(&file, &public(&key)), exit::GO, "json {json}");
     }
@@ -47,7 +47,7 @@ fn every_form_of_the_key_is_the_same_key() {
     write_seed(&nonos, AlgId::Ed25519, &[11; 32]).unwrap();
     for path in [raw, hexed, nonos] {
         let (code, _out, file) = signed(&s, &path, true, Fake::default());
-        assert_eq!(code, exit::GO, "{}", path.display());
+        assert_eq!(code, exit::DEV_GO, "{}", path.display());
         assert_eq!(check_signature(&file, &public(&key)), exit::GO, "{}", path.display());
     }
 }

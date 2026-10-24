@@ -47,5 +47,5 @@ fn a_key_that_is_not_an_ed25519_seed_is_refused() {
 fn a_dot_keys_outside_any_nonos_checkout_is_the_operators_and_is_used() {
     let (s, home) = (Sealed::dev(), tempfile::tempdir().unwrap());
     let (path, _) = operator(&home.path().join(".keys"), 42);
-    assert_eq!(signed(&s, &path, true, Fake::default()).0, exit::GO);
+    assert_eq!(signed(&s, &path, true, Fake::default()).0, exit::DEV_GO);
 }

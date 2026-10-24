@@ -57,9 +57,10 @@ byte, and that FILE names KEY (64 hex digits, or a public key file) as its
 signer. It does not say whether the verdict is GO; the verdict does.
 
 exit status:
-  0 GO (or: the signature verifies)    1 NO-GO    2 bad command line, or a
-  key refused    3 the verdict could not be written or signed    4 the
-  signature does not verify
+  0 GO, a release (or: the signature verifies)    1 NO-GO    2 bad command
+  line, a key refused, or a tree inside the release    3 the verdict could
+  not be written or signed    4 the signature does not verify    5 GO, but a
+  development image: never a release, whatever a script does with the status
 
 Every check, what it covers, and what GO does not mean:
   docs/release/nonos-harden.md

@@ -19,6 +19,7 @@
 //! and no unsigned file is left in its place.
 
 use crate::cli::CheckArgs;
+use crate::ctx::Kind;
 use crate::exit;
 use crate::sign::sign;
 use crate::verdict::{json, text, Overall, Verdict};
@@ -47,9 +48,10 @@ pub fn deliver(v: &Verdict, args: &CheckArgs, key: Option<&SigningKey>) -> u8 {
             }
         }
     }
-    match v.overall {
-        Overall::Go => exit::GO,
-        Overall::NoGo => exit::NO_GO,
+    match (v.overall, v.kind) {
+        (Overall::Go, Kind::Development) => exit::DEV_GO,
+        (Overall::Go, _) => exit::GO,
+        (Overall::NoGo, _) => exit::NO_GO,
     }
 }
 

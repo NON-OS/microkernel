@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! GO, NO-GO and an undelivered verdict each come out as the interface says:
-//! a passing development release reads GO and says it is not a release; with
-//! no tree every tree check does not run, which is NO-GO.
+//! a passing development release reads GO, says it is not a release and exits
+//! 5, never the 0 a release's GO exits with; with no tree every tree check
+//! does not run, which is NO-GO.
 
 use super::fake::Fake;
 use super::plan_tests::EXPECTED;
@@ -34,7 +35,7 @@ fn a_passing_development_release_reads_go_not_a_release_and_a_release_go() {
     let (code, v) = Sealed::dev().verdict(Fake::default());
     let dev = format!("{DEV_GO}, 1 declared limit");
     let got = (code, v["verdict"].as_str(), v["kind"].as_str());
-    assert_eq!(got, (exit::GO, Some(&*dev), Some("development")), "{v:#}");
+    assert_eq!(got, (exit::DEV_GO, Some(&*dev), Some("development")), "{v:#}");
     let (code, v) = Sealed::release().verdict(Fake::default());
     assert_eq!((code, v["verdict"].as_str()), (exit::GO, Some("GO, 1 declared limit")), "{v:#}");
 }

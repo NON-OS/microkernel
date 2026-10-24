@@ -26,6 +26,9 @@ target/release/nonos-harden check --release <sealed-dir> [--tree <checkout>] [--
 **NO-GO** means at least one check failed or could not run. The verdict names
 it and gives its reason.
 
+A release's GO exits 0. A development image's GO exits 5, so a script that
+deploys on status 0 can never deploy it.
+
 A GO always carries limits, and its line counts them. For example:
 
 - `GO, 1 declared limit`
