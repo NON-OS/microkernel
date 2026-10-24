@@ -41,11 +41,8 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
-        let found = match next.strip_prefix("so:") {
-            Some(lib) => index.by_lib(lib),
-            None => index.by_name(&next),
-        };
-        let Some(pkg) = found else {
+        // The listed package itself, pinned; its needs by name or provider.
+        let Some(pkg) = index.resolve(&next, done.is_empty()) else {
             say(b"[LINUX] nothing provides it\n");
             return Err(super::Why::NotProvided);
         };
