@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 hardware ASID pool: one ASID per live
+# user root, never the kernel's, the shared one only when all are taken.
+# The kernel's own source is included via #[path].
+[package]
+name = "asid_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

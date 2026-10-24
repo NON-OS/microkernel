@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The driver tree as the capsule builds it. Its `platform`, the broker glue,
-//! is the capsule's own over the stand-in nonos_libc, but for the register
-//! window, which reaches the model host.
+//! is the capsule's own over the stand-in nonos_libc, but for the device list
+//! and the register window, which reach the model host.
 
 #[path = "../../../capsule_driver_sdhci/src/emmc/disk/mod.rs"]
 pub mod disk;

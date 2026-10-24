@@ -19,6 +19,7 @@ mod apply;
 mod change;
 mod command;
 mod command_bits;
+mod ident_read;
 pub(crate) mod quirk_bits;
 pub mod ownership;
 mod read;

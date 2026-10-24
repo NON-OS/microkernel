@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// A number becomes a pointer only in `mmu::pointer`, which says what each
+// kind of address means; anywhere else it is refused at compile time, and
+// the few allowed exceptions are counted (nonos-ci/run-static-checks.sh).
+#![deny(fuzzy_provenance_casts)]
+
 pub mod abi;
 // The ACPI tables, parsed but not yet read: the UEFI boot path will hand
 // them over (`acpi/mod.rs`). The allow stays only until C wires that path;
@@ -22,20 +27,27 @@ pub mod abi;
 pub mod acpi;
 pub mod asm;
 pub mod boot;
+pub mod boot_entropy;
 mod constants;
 pub mod context;
 pub mod cpu;
 pub mod cpu_random;
+pub mod dma;
 pub mod exceptions;
+pub mod firmware;
 pub mod fpu;
 pub mod gic;
+pub mod idle_states;
 pub mod interrupt_controller;
 pub mod iommu;
+pub mod iort;
 pub mod mmu;
 pub mod pci_intx;
+pub mod platform_devices;
 pub mod psci;
 pub mod rtc;
 pub mod security;
+pub mod smccc;
 pub mod timer;
 pub mod uart;
 

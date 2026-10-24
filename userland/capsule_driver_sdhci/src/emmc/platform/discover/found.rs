@@ -28,4 +28,6 @@ pub struct Found {
     pub kind: Kind,
     pub bars: [Bar; 6],
     pub bar_count: u8,
+    /// An ACPI platform device: no PCI configuration space.
+    pub acpi: bool,
 }

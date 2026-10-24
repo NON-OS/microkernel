@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound RNDIS device as the frame service sees it.
+//! A bound RNDIS device as the frame service sees it: frames each way,
+//! and the link as the device last reported it (link_watch.rs).
 
 use nonos_usbnet::{Bus, Nic, Taken};
 
 use super::link::Rndis;
+use super::link_watch::look_at_link;
 use super::transfer::{recv, send};
 
 impl<B: Bus> Nic for Rndis<B> {
@@ -30,12 +32,9 @@ impl<B: Bus> Nic for Rndis<B> {
         self.station.1
     }
 
-    /// The link is the device being bound. Media state comes as an
-    /// indication after RESPONSE_AVAILABLE on the interrupt endpoint,
-    /// which driver.xhci0 does not configure beside bulk pipes, and
-    /// asking for it costs a control exchange on the serve path.
+    /// Up from bind until an INDICATE_STATUS says MEDIA_DISCONNECT.
     fn link_up(&self) -> bool {
-        true
+        self.link
     }
 
     fn send(&mut self, frame: &[u8]) -> Result<(), i32> {
@@ -43,6 +42,7 @@ impl<B: Bus> Nic for Rndis<B> {
     }
 
     fn recv(&mut self, out: &mut [u8]) -> Result<Option<usize>, i32> {
+        look_at_link(self);
         recv(self, out)
     }
 }

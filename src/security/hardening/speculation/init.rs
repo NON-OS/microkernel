@@ -19,15 +19,11 @@ pub fn init() -> Result<(), &'static str> {
     #[cfg(target_arch = "x86_64")]
     return super::super::spectre_mitigations::init();
 
+    // Each aarch64 CPU decides and acts for itself in
+    // `arch::aarch64::security::init_all`, before it can enter EL0. Running
+    // it again here would act for whichever CPU this happens to be on.
     #[cfg(target_arch = "aarch64")]
-    {
-        // The aarch64 boot path already ran this before kernel-core started:
-        // SSBS has to be on before the first EL0 entry, which happens well
-        // ahead of the security subsystem coming up. Calling it again is
-        // harmless and keeps the ordering honest if that ever changes.
-        crate::arch::aarch64::security::init_spectre_mitigations();
-        Ok(())
-    }
+    return Ok(());
 
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     Ok(())

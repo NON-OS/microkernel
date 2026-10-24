@@ -19,9 +19,9 @@
 //! one logical unit served under its size and names.
 
 use crate::model::{Cfg, Rig};
-use crate::ufs::hci::regs::*;
-use crate::ufs::hci::uic_codes::DME_LINKSTARTUP;
-use crate::ufs::utp::utrd::TYPE_UFS_STORAGE;
+use crate::ufs::facts::hci::*;
+use crate::ufs::facts::uic::DME_LINKSTARTUP;
+use crate::ufs::facts::utp::TYPE_UFS_STORAGE;
 
 #[test]
 fn a_qemu_like_device_comes_up_with_its_unit() {

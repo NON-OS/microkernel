@@ -32,6 +32,11 @@ pub const OP_ADDRESS_DEVICE: u16 = 0x0006;
 pub const OP_GET_CONFIG_DESCRIPTOR: u16 = 0x0008;
 pub const OP_CONTROL_TRANSFER: u16 = 0x000B;
 pub const OP_CONFIGURE_BULK: u16 = 0x0010;
+/// A second bulk pair; bulk ops name it as pair 1 (UAS's data pipes).
+pub const OP_CONFIGURE_BULK2: u16 = 0x0023;
+/// SuperSpeed streams on a pair's endpoints; bulk ops name a stream in
+/// bits 7:4 of their pair byte.
+pub const OP_CONFIGURE_STREAMS: u16 = 0x0024;
 pub const OP_BULK_OUT: u16 = 0x0011;
 pub const OP_BULK_IN: u16 = 0x0012;
 pub const OP_RESET_BULK: u16 = 0x0013;

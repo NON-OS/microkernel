@@ -1,7 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Finding the RNDIS function in QEMU usb-net's configuration, and in
 //! copies of it changed the ways real devices differ: the interface
-//! classes Linux rndis_host matches, a modem's ACM capabilities, and the
+//! classes RNDIS devices report, a modem's ACM capabilities, and the
 //! Union and call management descriptors of phones that get them wrong.
 
 use nonos_usbnet::qemu_usb_net::{CONFIG_ECM, CONFIG_RNDIS};
@@ -67,6 +67,6 @@ fn a_union_is_trusted_and_a_broken_one_falls_back_as_far_as_interface_one() {
     assert_eq!(data_of(&raw), Some((2, 3)), "call management");
     raw[CM_DATA] = 9;
     assert_eq!(data_of(&raw), None, "no guess past a control interface 0");
-    assert_eq!(data_of(&with(&[(UNION_SLAVE, 9), (CM_DATA, 9)])), Some((0, 1)), "Linux's 0 and 1");
+    assert_eq!(data_of(&with(&[(UNION_SLAVE, 9), (CM_DATA, 9)])), Some((0, 1)), "the last guess: 0 and 1");
     assert_eq!(data_of(&with(&[(DATA_CLASS, 0xFF)])), None, "a Union naming a non-data one");
 }

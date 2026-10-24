@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bands' members a virtual machine adds (`priority`): its pointers and
-//! display on the interactive path, its disk controllers on the storage path.
-//! Its network cards are on the card table (registry/nics.rs) with the rest.
+//! The bands' members a virtual machine adds (`priority`): its pointers on
+//! the interactive path, its disk controllers on the storage path. Its
+//! network cards are on the card table (registry/nics.rs) and its display on
+//! the display list (registry/displays.rs), with the rest.
 
-/// The pointer, keyboard and display paths in a virtual machine.
-pub(super) const INTERACTIVE_VM: [&str; 5] = [
-    "driver.virtio_input0",
-    "driver.vmmdev0",
-    "driver.vmmouse0",
-    "driver.vmware_svga0",
-    "driver.vmbus0",
-];
+/// The pointer and keyboard paths in a virtual machine.
+pub(super) const INTERACTIVE_VM: [&str; 4] =
+    ["driver.virtio_input0", "driver.vmmdev0", "driver.vmmouse0", "driver.vmbus0"];
 
 /// The disk controllers in a virtual machine: each polls a request out,
 /// yielding and then sleeping a millisecond between looks.

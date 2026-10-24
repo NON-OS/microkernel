@@ -1,8 +1,7 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Binding QEMU usb-net's RNDIS configuration: every request in Linux
-//! generic_rndis_bind's order and layout, the drawn address where Linux
-//! reads the permanent one, and the control channel passing over what is
-//! not its answer.
+//! Binding QEMU usb-net's RNDIS configuration: every request in the
+//! order and layout Remote NDIS 1.0 gives, the drawn station address, and
+//! the control channel passing over what is not its answer.
 
 use std::time::Instant;
 
@@ -26,7 +25,7 @@ pub fn bind_with(tamper: Tamper) -> (MockBus, Bind<crate::rndis::link::Rndis<Moc
 }
 
 #[test]
-fn qemu_usb_net_binds_in_configuration_two_in_linux_order() {
+fn qemu_usb_net_binds_in_configuration_two_in_order() {
     let (bus, r) = bind_with(honest());
     let Bind::Ours(nic) = r else { panic!("not bound") };
     assert_eq!((nic.mac(), nic.taken()), (drawn().bytes(), Taken::Promiscuous));
@@ -71,5 +70,5 @@ fn a_silent_device_times_out_on_the_clock_and_is_not_halted() {
         .iter()
         .filter(|c| matches!(c, Call::Out(s, m) if *s == SEND && m[0] == 3))
         .count();
-    assert_eq!(halts, 0, "Linux halts only a device it initialized");
+    assert_eq!(halts, 0, "only an initialized device is halted");
 }

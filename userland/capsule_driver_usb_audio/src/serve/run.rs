@@ -21,10 +21,11 @@ use alloc::vec;
 
 use nonos_libc::Deadline;
 use nonos_usbnet::scan::{Bound, Scanner};
-use nonos_usbnet::xhci::disable_slot;
 use nonos_usbnet::{run::own_pid, say::say};
 
 use super::feed::feed;
+use super::gone::{give_back, unplugged};
+use super::loss::Loss;
 use super::one::serve_one;
 use super::play::{Device, Play};
 use super::reply::REPLY_MAX;
@@ -33,8 +34,6 @@ use crate::wire::{HDR_LEN, MAX_PCM_CHUNK};
 
 const TAG: &[u8] = b"usb-audio";
 const SEARCH_POLL_MS: u64 = 1_000;
-/// Isoch requests failing in a row before the device counts as gone.
-const LOST_AFTER: u32 = 3;
 /// Requests served between two batches, so a burst cannot starve the device.
 const DRAIN_MAX: usize = 8;
 
@@ -42,9 +41,9 @@ pub fn run() -> ! {
     // A batch is at most 4032 bytes (`uac::timing`), so one PCM chunk holds it.
     let (mut rx, mut batch) = (vec![0u8; HDR_LEN + MAX_PCM_CHUNK], vec![0u8; MAX_PCM_CHUNK]);
     let mut tx = [0u8; REPLY_MAX];
-    let (mut play, mut scanner, me) = (Play::new(), Scanner::class(), own_pid("driver.usb_audio0"));
-    let (mut bound, mut failing) = (None::<Bound<Speaker>>, 0u32);
-    let mut next_pass = Deadline::after_ms(0);
+    let (mut play, mut scanner, me) = (Play::new(), Scanner::new(), own_pid("driver.usb_audio0"));
+    let (mut bound, mut loss) = (None::<Bound<Speaker>>, Loss::default());
+    let (mut next_pass, mut next_look) = (Deadline::after_ms(0), Deadline::after_ms(0));
     say(TAG, &[b"started, looking for a device"]);
     loop {
         let mut wait = if play.running { 0 } else { SEARCH_POLL_MS };
@@ -54,21 +53,20 @@ pub fn run() -> ! {
             }
             wait = 0;
         }
+        let mut lost = false;
         if let (true, Some(b)) = (play.running, bound.as_ref()) {
-            failing = if feed(&mut play, b, &mut batch).is_ok() { 0 } else { failing + 1 };
+            lost = loss.note(feed(&mut play, b, &mut batch).is_ok());
         }
-        if failing >= LOST_AFTER {
-            if let Some(b) = bound.take() {
-                say(TAG, &[b"device stopped answering, given back"]);
-                disable_slot(b.xhci, b.slot);
-                scanner.lost(b.port);
-            }
-            failing = 0;
-            play.lost();
+        if lost {
+            give_back(&mut bound, &mut scanner, &mut play, b"device stopped answering, given back");
+            loss.clear();
+        }
+        if unplugged(&bound, &play, &mut next_look, SEARCH_POLL_MS) {
+            give_back(&mut bound, &mut scanner, &mut play, b"device unplugged, given back");
         }
         if bound.is_none() && next_pass.expired() {
             next_pass = Deadline::after_ms(SEARCH_POLL_MS);
-            bound = scanner.pass_class(TAG, bind);
+            bound = scanner.pass(TAG, bind);
             play.device = bound.as_ref().map(|b| Device { ids: b.nic.ids, outputs: b.nic.outputs });
         }
     }

@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The NTB parameter structure GET_NTB_PARAMETERS returns (NCM 1.0, 6.2.1,
-//! table 6-3; Linux struct usb_cdc_ncm_ntb_parameters), with the fields a
-//! host that receives and sends 16-bit NTBs uses.
+//! table 6-3), with the fields a host that receives and sends 16-bit NTBs
+//! uses.
 
-/// wLength of the structure, USB_CDC_NCM_NTB_MAX_LENGTH.
+/// The structure's length, which its own wLength gives too.
 pub const NTB_PARAMETERS_LEN: usize = 0x1C;
 /// bmNtbFormatsSupported bit 1: the device also handles 32-bit NTBs.
 const NTB32_SUPPORTED: u16 = 1 << 1;
@@ -39,12 +39,13 @@ impl NtbParams {
     }
 }
 
-/// The structure in `raw`; `None` when the device sent less of it.
+/// The structure in `raw`, the bytes the device sent; `None` when it sent
+/// less of it, or its own wLength says it is shorter than the fields read.
 pub fn parse_params(raw: &[u8]) -> Option<NtbParams> {
-    if raw.len() < NTB_PARAMETERS_LEN {
+    let w = |at: usize| u16::from_le_bytes([raw[at], raw[at + 1]]);
+    if raw.len() < NTB_PARAMETERS_LEN || (w(0) as usize) < NTB_PARAMETERS_LEN {
         return None;
     }
-    let w = |at: usize| u16::from_le_bytes([raw[at], raw[at + 1]]);
     let d = |at: usize| u32::from_le_bytes([raw[at], raw[at + 1], raw[at + 2], raw[at + 3]]);
     Some(NtbParams {
         formats: w(2),

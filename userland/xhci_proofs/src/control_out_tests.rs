@@ -20,7 +20,7 @@
 //! set 0 Hz.
 
 use crate::dma::DmaPool;
-use crate::server::handlers::control_transfer::buffer::{data_buffer, stage_fits};
+use crate::server::handlers::control_transfer::region::{data_region, stage_fits};
 
 const MAX: u16 = 512;
 const OUT: u8 = 0x22;
@@ -46,14 +46,14 @@ fn an_in_request_carries_nothing_and_its_wlength_is_clamped_not_refused() {
 fn the_out_bytes_are_the_bytes_the_device_is_sent() {
     let pool = DmaPool::new(1, 1);
     let rate = 48_000u32.to_le_bytes();
-    let r = data_buffer(&pool, 3, &rate[..3]).unwrap().expect("a data stage");
+    let r = data_region(&pool, 3, &rate[..3]).unwrap().expect("a data stage");
     // SAFETY: the region is three bytes of host memory.
     let sent = unsafe { core::slice::from_raw_parts(r.as_mut_ptr::<u8>(), 3) };
     assert_eq!(sent, &[0x80, 0xBB, 0x00], "48000 Hz little-endian");
-    let r = data_buffer(&pool, 8, &[]).unwrap().expect("an IN stage");
+    let r = data_region(&pool, 8, &[]).unwrap().expect("an IN stage");
     // SAFETY: as above, eight bytes.
     assert!(unsafe { core::slice::from_raw_parts(r.as_mut_ptr::<u8>(), 8) }
         .iter()
         .all(|&b| b == 0));
-    assert!(data_buffer(&pool, 0, &[]).unwrap().is_none());
+    assert!(data_region(&pool, 0, &[]).unwrap().is_none());
 }

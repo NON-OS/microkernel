@@ -19,25 +19,42 @@
 //! wrote with the code that reads it at boot. `read.rs`, the only part that
 //! asks a driver, is left out.
 
+#[path = "../../../../../src/hardware/block_device/gpt/array.rs"]
+mod array;
 #[path = "../../../../../src/hardware/block_device/gpt/boot.rs"]
 mod boot;
 #[path = "../../../../../src/hardware/block_device/gpt/bytes.rs"]
 mod bytes;
+#[path = "../../../../../src/hardware/block_device/gpt/choose.rs"]
+pub mod choose;
 #[path = "../../../../../src/hardware/block_device/gpt/crc32.rs"]
 pub mod crc32;
 #[path = "../../../../../src/hardware/block_device/gpt/entry.rs"]
 mod entry;
+#[path = "../../../../../src/hardware/block_device/gpt/fields.rs"]
+mod fields;
 #[path = "../../../../../src/hardware/block_device/gpt/fixed.rs"]
 mod fixed;
 #[path = "../../../../../src/hardware/block_device/gpt/header.rs"]
 pub mod header;
+#[path = "../../../../../src/hardware/block_device/gpt/layout.rs"]
+pub mod layout;
+#[path = "../../../../../src/hardware/block_device/gpt/mbr.rs"]
+pub mod mbr;
 #[path = "../../../../../src/hardware/block_device/gpt/places.rs"]
 pub mod places;
+#[path = "../../../../../src/hardware/block_device/gpt/table.rs"]
+mod table;
+#[path = "../../../../../src/hardware/block_device/gpt/which.rs"]
+pub mod which;
 #[path = "../../../../../src/hardware/block_device/gpt/window.rs"]
 mod window;
 
 pub(crate) use boot::boot_guid;
+pub(crate) use choose::{choose, Held, Table};
 pub(crate) use entry::{entries, Entry};
 pub(crate) use fixed::FIXED;
+pub(crate) use layout::{layout, Layout, Shown};
 pub(crate) use places::{holds, places, Extent, Places};
+pub(crate) use which::Which;
 pub(crate) use window::{plan_at, store_at};

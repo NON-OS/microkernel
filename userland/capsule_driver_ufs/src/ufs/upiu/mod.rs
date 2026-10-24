@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! UFS Protocol Information Units: the requests sent and the responses read.
+//! The UPIUs this engine sends and reads (codes and offsets in facts::upiu).
 
-pub mod codes;
-pub mod header;
 pub mod request;
 pub mod response;

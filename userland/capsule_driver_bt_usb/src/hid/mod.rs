@@ -31,6 +31,8 @@ mod key_event;
 #[allow(dead_code)]
 #[path = "../../../capsule_driver_usb_hid/src/hid/keymap/mod.rs"]
 mod keymap;
+#[path = "../../../capsule_driver_usb_hid/src/hid/key_post.rs"]
+mod key_post;
 #[path = "../../../capsule_driver_usb_hid/src/hid/post_key.rs"]
 mod post_key;
 #[allow(dead_code)]

@@ -2,7 +2,7 @@
 //! The bulk pipes. Each bulk IN takes the next scripted answer, or that of
 //! a unit never ready (`unready`); a bulk OUT is taken whole, or said to
 //! have gone a byte short (`short_outs`), and a whole CBW sets the tag the
-//! device's next CSW echoes. Pipe resets are recorded and succeed.
+//! device's next CSW echoes, taken in part when the test says (`cbw_takes`). Pipe resets are recorded and succeed.
 
 use super::device::{setup, Answer};
 use super::unready::unready;
@@ -24,10 +24,12 @@ pub fn bulk_out(_xhci: u32, _slot: u8, data: &[u8]) -> Result<usize, i32> {
     }
     if data.len() == 31 && data[0..4] == CBW_SIGNATURE {
         let tag = u32::from_le_bytes([data[4], data[5], data[6], data[7]]);
-        setup(|d| {
+        let takes = setup(|d| {
             (d.tag, d.phase) = (tag, 0);
             d.commands.push(data[15]);
+            d.cbw_takes
         });
+        return Ok(takes.unwrap_or(data.len()));
     }
     Ok(data.len())
 }

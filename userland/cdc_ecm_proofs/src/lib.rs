@@ -13,8 +13,18 @@ mod bind_tests;
 #[cfg(test)]
 mod config_fuzz_tests;
 #[cfg(test)]
+mod device;
+#[cfg(test)]
 mod frame_tests;
+#[cfg(test)]
+mod function_tests;
+#[cfg(test)]
+mod hold_tests;
 #[cfg(test)]
 mod hostile_tests;
 #[cfg(test)]
+mod notice_tests;
+#[cfg(test)]
 mod qemu;
+#[cfg(test)]
+mod receive_tests;

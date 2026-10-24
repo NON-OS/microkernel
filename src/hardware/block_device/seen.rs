@@ -19,6 +19,7 @@
 //! a boot from it showed only that the store was not there, and no line
 //! said which disk was asked or why it was not taken.
 
+use super::gpt::Shown;
 use super::BlockDeviceError;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -31,15 +32,19 @@ pub(super) enum Seen {
     NotFiveTwelve(u64),
     /// LBA 1 or the entry array could not be read.
     NoTable(u64, BlockDeviceError),
+    /// Its table names another system's partition over the fixed sectors.
+    Crossed(u64),
     /// What its store sector held, and its disk plan sector when asked;
     /// `gpt` when its table placed them, `boot` when it holds the loader's
     /// partition.
     At {
-        sectors: u64,
-        lba: u64,
+        /// The disk's sectors, and the store's first LBA.
+        at: (u64, u64),
         got: Result<[u8; 8], BlockDeviceError>,
         plan: Option<Result<[u8; 8], BlockDeviceError>>,
         gpt: bool,
         boot: bool,
+        /// What its GPT showed.
+        shown: Shown,
     },
 }

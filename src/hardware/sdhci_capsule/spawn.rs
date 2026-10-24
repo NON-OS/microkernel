@@ -30,8 +30,8 @@ use crate::security::nonos_trust_anchor::{
 pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.sdhci0";
-const SERVICE_PORT: u32 = 4236;
-const REPLY_PORT: u32 = 4237;
+const SERVICE_PORT: u32 = 4260;
+const REPLY_PORT: u32 = 4261;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 pub fn spawn_driver_sdhci_capsule() -> Result<(), SpawnError> {

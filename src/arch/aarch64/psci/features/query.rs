@@ -30,6 +30,13 @@ pub fn is_function_supported(func_id: u32) -> bool {
     features(func_id).is_ok()
 }
 
+/// CPU_SUSPEND's flags from PSCI_FEATURES (PSCI 1.0 and later): bit 1 set
+/// means power_state is in the extended format, bit 0 that OS-initiated mode
+/// is offered (DEN0022, PSCI_FEATURES, recalled).
+pub fn cpu_suspend_features() -> Result<u32, PsciError> {
+    features(PSCI_CPU_SUSPEND_64)
+}
+
 pub fn has_cpu_suspend() -> bool {
     is_function_supported(PSCI_CPU_SUSPEND_64)
 }

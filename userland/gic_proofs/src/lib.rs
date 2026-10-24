@@ -13,4 +13,12 @@ mod its_cmd_tests;
 #[cfg(test)]
 mod its_table_tests;
 #[cfg(test)]
+mod its_driver;
+#[cfg(test)]
+mod its_model;
+#[cfg(test)]
+mod its_queue_close_tests;
+#[cfg(test)]
+mod its_queue_tests;
+#[cfg(test)]
 mod select_tests;

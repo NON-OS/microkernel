@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::info::BootInfo;
-use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, timer, uart};
+use crate::arch::aarch64::{cpu, exceptions, gic, mmu, security, uart};
 
 pub fn init(boot_info: &BootInfo) {
     if let Err(reason) = uart::init_uart(&boot_info.uart) {
@@ -24,21 +24,21 @@ pub fn init(boot_info: &BootInfo) {
     cpu::init_cpu();
     // Latch the CPU list before anything asks which CPU it is running on. The
     // GIC does, one call below, and its answer decides which redistributor
-    // this core talks to.
-    //
-    // SAFETY: this is the boot CPU, this runs once, and no secondary has been
-    // released yet, so nothing else can be touching the roster.
-    unsafe {
-        super::multicore::roster::populate(
-            &boot_info.cpu_affinities[..boot_info.cpu_affinity_count],
-        );
-    }
+    // this core talks to. This is the boot CPU, before any secondary starts.
+    super::multicore::roster::populate(&boot_info.cpu_affinities[..boot_info.cpu_affinity_count]);
     super::platform_windows::publish(boot_info);
+    // The keys below go into this CPU's per-CPU block, so it is named first.
+    cpu::percpu::install_here();
     exceptions::install_vbar_el1();
-    if let Err(error) = security::init_all() {
-        super::refuse(b"security", super::security_reason(error));
-    }
+    security::init_all();
+    security::pac::bind_this_cpu();
+    security::report();
     mmu::init_mmu(boot_info);
+}
+
+/// The rest of bring-up, wherever the kernel runs after the MMU is on: the
+/// GIC, the timer, the other CPUs, then interrupts.
+pub(super) fn bring_up(boot_info: &BootInfo) {
     let gic = gic::init_gic(
         boot_info.gic_version,
         boot_info.gic_dist_base,
@@ -48,11 +48,7 @@ pub fn init(boot_info: &BootInfo) {
     if let Err(reason) = gic {
         super::refuse(b"gic", reason.as_bytes());
     }
-    timer::init_timer();
-    timer::configure_preemption_intid(boot_info.timer_phys_intid);
-    if let Err(reason) = timer::install_on_cpu() {
-        super::refuse(b"timer tick", reason.as_bytes());
-    }
+    super::start_clock::start_clock(boot_info);
     if super::multicore::roster::len() > 1 {
         super::multicore::start_secondary_cpus(boot_info);
     }

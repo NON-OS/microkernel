@@ -43,6 +43,10 @@ pub mod setup;
 pub mod tx;
 
 #[cfg(test)]
+mod batch_script;
+#[cfg(test)]
+mod batch_tests;
+#[cfg(test)]
 mod bus_master_tests;
 #[cfg(test)]
 mod dma_tests;

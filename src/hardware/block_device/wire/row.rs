@@ -48,6 +48,11 @@ pub(in super::super) static WIRE: Disk = Disk {
     report: None,
 };
 
+/// The endpoint a row of the block wire asks; `None` for any other row.
+pub(in super::super) fn endpoint_of(b: &Backend) -> Option<u8> {
+    core::ptr::eq(b.disk, &WIRE).then_some(index(b.key))
+}
+
 /// Every unit of every endpoint, in table order.
 pub(in super::super) fn rows() -> impl Iterator<Item = Backend> {
     (0..table::count()).flat_map(|i| {

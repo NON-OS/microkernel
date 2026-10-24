@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Handing the device tree's memory map to the physical allocator.
-//!
-//! The x86_64 path walks EFI descriptors; here the regions came out of the FDT
-//! and are already normalised into [`MemoryRegion`]. What both paths owe the
-//! allocator is the same: one contiguous managed range, plus a below-4 GiB pool
-//! for devices whose DMA descriptors are only 32 bits wide.
+//! Handing the device tree's memory map, already in [`MemoryRegion`]s, to the
+//! physical allocator: one contiguous managed range, a below-4 GiB pool for
+//! 32-bit DMA, and the uncached block cut from that pool.
 
 mod dma_place;
+mod dma_size;
 mod dma_window;
 mod image;
 mod regions;
 mod reserve;
+mod uncached;
 
 use super::info::BootInfo;
 use crate::hardware::broker::dma;
@@ -41,6 +40,8 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
         serial::println(b"[MEM] no usable region in device tree");
         return;
     };
+    // A frame past the direct map faults when first zeroed: stop where it does.
+    let end = end.min(crate::arch::aarch64::mmu::direct_map_end() & !(PAGE_SIZE - 1));
 
     // The image sits inside the region firmware calls available, so the
     // allocator has to be told where it ends. A frame holding kernel text is
@@ -57,7 +58,6 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
     // The image is in no list the device tree gave, so it is named here: a
     // pool placed over it hands kernel text to a capsule as a DMA buffer.
     let pool = find_low_dma_region(info, (start, end), (image_start, image_end));
-
     if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_err() {
         serial::println(b"[MEM] phys init failed");
         return;
@@ -68,7 +68,7 @@ pub(crate) fn init_boot_memory(info: &BootInfo) {
         crate::memory::phys::reserve(p.base, p.base + p.pages as u64 * PAGE_SIZE);
     }
     serial::println(b"[MEM] phys init OK");
-
+    let pool = pool.map(uncached::cut);
     dma::init_display_pool();
     let (dma_base, dma_pages) = pool.map_or((0, 0), |p| (p.base, p.pages));
     dma::init_low32_pool(dma_base, dma_pages);

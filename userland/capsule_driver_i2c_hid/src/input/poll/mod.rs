@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod cycle;
+mod multitouch;
 mod pointer;
 mod read_frame;
 mod repeat;

@@ -23,17 +23,25 @@ mod core;
 mod desktop_fleet;
 #[cfg(not(feature = "microkernel-input-probe"))]
 mod desktop_services;
-// Built only beside a driver whose spawn asks it first (its own cfg).
-mod device_present;
+mod device_present; // only beside a driver whose spawn asks it first (its own cfg)
 mod drivers_bus;
+mod drivers_ccid;
+mod drivers_cdc_acm;
+mod drivers_fido;
 mod drivers_input;
 mod drivers_nic;
 mod drivers_sdhci;
 mod drivers_smbus;
+mod drivers_spi;
 mod drivers_storage;
 mod drivers_ufs;
 mod drivers_usb;
+mod drivers_usb_companions;
+mod drivers_usb_hosts;
+mod drivers_usb_hub;
+mod drivers_usb_mic;
 mod drivers_usbnet;
+mod drivers_uvc;
 mod drivers_virtio;
 mod drivers_virtio_display;
 mod drivers_virtio_io;
@@ -46,6 +54,7 @@ mod network;
 mod orchestrator;
 mod platform_acpi;
 mod services_audio;
+mod usb_host;
 mod vm;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;

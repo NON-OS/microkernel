@@ -19,8 +19,8 @@
 //! this function (VT-d 3.4, 5.1.5.2; on AMD-Vi, the device's own table);
 //! otherwise it is the compatibility format message naming a LAPIC.
 
-use super::super::grant::NO_IRTE;
 use super::super::types::IrqBindError;
+use super::sentinels::NO_IRTE;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
 
 /// A message to program and the remapping entry behind it, `NO_IRTE` for a

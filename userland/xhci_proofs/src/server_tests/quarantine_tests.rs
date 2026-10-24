@@ -24,9 +24,7 @@ use nonos_libc::{dma_host, start_log, take_log, Call};
 
 use super::bench::Bench;
 use super::hc_device::lock;
-use crate::protocol::{
-    E_INVAL, E_IO, E_PIPE, OP_ADDRESS_DEVICE, OP_CONTROL_TRANSFER, OP_DISABLE_SLOT,
-};
+use crate::protocol::{E_INVAL, E_IO, OP_ADDRESS_DEVICE, OP_CONTROL_TRANSFER, OP_DISABLE_SLOT};
 
 const HIGH_SPEED: u32 = 3;
 
@@ -60,7 +58,8 @@ fn a_request_buffer_stays_with_its_slot_when_recovery_fails() {
     (lock(&b.hc).stall_in, lock(&b.hc).refuse_recovery) = (true, true);
     start_log(|| 0);
     let get_status = [slot, 0, 0x80, 0, 0, 0, 0, 0, 2, 0];
-    assert_eq!(b.call(OP_CONTROL_TRANSFER, &get_status).status, E_PIPE);
+    // EP0 never came back, so the STALL is not answered as a clear pipe.
+    assert_eq!(b.call(OP_CONTROL_TRANSFER, &get_status).status, E_IO);
     assert_eq!(unmaps(), 0, "EP0 never came back, so its TRB still names the buffer");
     start_log(|| 0);
     assert_eq!(b.call(OP_DISABLE_SLOT, &[slot]).status, 0);

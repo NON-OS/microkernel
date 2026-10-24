@@ -22,6 +22,7 @@ use super::super::super::sdhci::{Cmd, Host, Resp};
 use super::super::super::text::Line;
 use super::super::card::Card;
 use super::super::cmds::{RCA, SET_BLOCKLEN};
+use super::super::r1::STATE_TRAN;
 use super::super::regs::ocr_sector_mode;
 use super::capacity::capacity;
 use super::check_ready::check_ready;
@@ -29,7 +30,7 @@ use super::power_on::power_on;
 use super::read_cid::read_cid;
 use super::read_ext::read_ext;
 use super::select_card::select_card;
-use super::step::{r1_ok, step};
+use super::step::{r1_in, step};
 use super::user_area::user_area;
 
 /// Bring the card up. Fails, having logged why, when any step does; the
@@ -52,7 +53,7 @@ pub fn bring_up<M: Mmio, C: Clock, L: Log>(
     }
     if !sector_mode {
         let r = step(h, &Cmd::new(SET_BLOCKLEN, 512, Resp::R1), b"CMD16 SET_BLOCKLEN")?;
-        r1_ok(h, SET_BLOCKLEN, r[0])?;
+        r1_in(h, SET_BLOCKLEN, r[0], STATE_TRAN)?;
     }
     let mut card = Card {
         rca: RCA,

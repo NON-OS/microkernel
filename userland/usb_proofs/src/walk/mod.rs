@@ -22,6 +22,7 @@
 mod binding_tests;
 mod header_tests;
 mod hid_descriptor_tests;
+mod interval_tests;
 mod kbd;
 mod length_tests;
 mod packet_tests;

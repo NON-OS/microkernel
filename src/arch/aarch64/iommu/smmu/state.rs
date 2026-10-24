@@ -57,6 +57,11 @@ pub(super) fn with<T>(f: impl FnOnce(&mut Smmu) -> Result<T, IommuError>) -> Res
     result
 }
 
+/// What `iommus` entries name the unit by, once it is in service.
+pub fn in_service_phandle() -> Option<u32> {
+    SMMU.lock().as_ref().map(|smmu| smmu.phandle).filter(|p| *p != 0)
+}
+
 impl Smmu {
     /// The stream `device` reaches this unit as, or `None` when nothing
     /// sends it here: a PCI function outside segment 0 or the tree's

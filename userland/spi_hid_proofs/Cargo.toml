@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for HID over SPI: report headers and bodies, the
+# device descriptor and the frames, against values from the specification
+# as recalled.
+[package]
+name = "spi_hid_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_spi_hid = { path = "../nonos_spi_hid" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

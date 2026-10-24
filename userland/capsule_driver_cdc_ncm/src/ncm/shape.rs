@@ -18,26 +18,30 @@
 //! fixed once at bind from the device's NTB parameters and its bulk OUT
 //! packet size.
 
+use nonos_usbnet::nic::ETH_FRAME_MAX;
+
 use super::align::{out_align, OutAlign};
-use super::limits::{min_tx_pkt, tx_max};
+use super::limits::tx_max;
+use super::ntb_out::layout;
 use super::params::NtbParams;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct TxShape {
-    /// The largest NTB sent, and the length a padded one is given.
+    /// The longest block built, before its padding byte.
     pub max: usize,
-    /// A block longer than this is padded to `max`.
-    pub min_pkt: usize,
+    /// The device's dwNtbOutMaxSize: a block of that length needs no byte
+    /// to end it.
+    pub out_max: usize,
     pub mps: usize,
-    /// The device is one Linux sends whole-size blocks to without padding
-    /// (FLAG_SEND_ZLP).
-    pub zlp: bool,
     pub align: OutAlign,
 }
 
-pub fn tx_shape(p: &NtbParams, max_packet: u16, zlp: bool) -> TxShape {
-    let mps = max_packet as usize;
-    let max = tx_max(p.out_max, mps);
+/// The shape for the device, or `None` when its largest block cannot carry
+/// one full Ethernet frame: every frame the stack sends must go out.
+pub fn tx_shape(p: &NtbParams, max_packet: u16) -> Option<TxShape> {
+    let max = tx_max(p.out_max);
     let align = out_align(p, max);
-    TxShape { max, min_pkt: min_tx_pkt(max, mps), mps, zlp, align }
+    let s = TxShape { max, out_max: p.out_max as usize, mps: max_packet as usize, align };
+    let (_, at) = layout(&s.align);
+    (at + ETH_FRAME_MAX <= max).then_some(s)
 }

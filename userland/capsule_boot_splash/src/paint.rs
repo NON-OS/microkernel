@@ -15,33 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_toolkit::font::atlas::FontAtlas;
-use nonos_toolkit::font::render::{draw_text, draw_text_scaled};
+use nonos_toolkit::font::render::draw_text;
 
 use crate::chrome::panel;
+use crate::look::Look;
 
 const DIM: u32 = 0xFF5B_6B78;
 const ACCENT: u32 = 0xFF00_D4AA;
-const ACCENT_DIM: u32 = 0xFF00_5544;
 const OK: u32 = 0xFF00_CC66;
 const WARN: u32 = 0xFFFF_AA00;
-const TITLE_SCALE: u32 = 5;
 const SPIN: &[u8] = b"|/-\\";
 
-pub(crate) fn splash(base: u64, w: u32, h: u32, stride: u32, attested: Option<bool>) {
+/// The firmware's logo, when it left one, stands where the title would.
+pub(crate) fn splash(base: u64, w: u32, h: u32, stride: u32, look: &Look) {
     let spx = stride as usize / 4;
     let buf = unsafe { core::slice::from_raw_parts_mut(base as *mut u32, spx * h as usize) };
     crate::vignette::fill(buf, spx, w, h);
-    let atlas = FontAtlas::default();
-    let title = b"N\xd8NOS";
-    let tw = atlas.text_width(title) * TITLE_SCALE;
-    let tx = w.saturating_sub(tw) / 2;
-    let ty = h / 2 - 132;
-    draw_text_scaled(buf, spx, w, h, tx.saturating_sub(1), ty, title, ACCENT_DIM, TITLE_SCALE);
-    draw_text_scaled(buf, spx, w, h, tx, ty, title, ACCENT, TITLE_SCALE);
-    let sub = b"zero-state attestation boot";
-    let sx = w.saturating_sub(atlas.text_width(sub)) / 2;
-    draw_text(buf, spx, w, h, sx, ty + TITLE_SCALE * 8 + 10, sub, DIM);
-    attest_panel(buf, spx, w, h, attested);
+    match &look.logo {
+        Some(l) => l.draw(buf, spx, w, h),
+        None => crate::title::draw(buf, spx, w, h),
+    }
+    attest_panel(buf, spx, w, h, look.badge);
     status(buf, spx, w, h, 0);
 }
 
