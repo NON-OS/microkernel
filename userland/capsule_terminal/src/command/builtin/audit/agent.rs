@@ -24,6 +24,7 @@ use super::format::{hex, printable};
 use super::join::Row;
 use super::reach::{names, through, AREAS, DEVICES_NOTE};
 use super::table::{list, pad, pid};
+use super::withheld::holds;
 use crate::command::builtin::receipt::own::signer;
 
 fn one(out: &mut Vec<Vec<u8>>, row: &Row, name: &[u8]) {
@@ -52,6 +53,11 @@ fn one(out: &mut Vec<Vec<u8>>, row: &Row, name: &[u8]) {
     let mut all = Vec::from(&b"  holds      "[..]);
     list(&mut all, &names(c.caps));
     out.push(all);
+    if row.debug_withheld {
+        let mut d = Vec::from(&b"  debug      withheld by the kernel, as it "[..]);
+        d.extend_from_slice(&holds(c.caps));
+        out.push(d);
+    }
 }
 
 /// The lines for every running capsule named `name`: one block each, as a

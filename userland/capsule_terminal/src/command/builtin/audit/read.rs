@@ -19,9 +19,9 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::PROC_NAME_LEN;
+use nonos_libc::{PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 
-use super::join::{join, Row};
+use super::join::{join, Proc, Row};
 use crate::command::builtin::proc_table::table;
 use crate::command::builtin::receipt::entries;
 
@@ -33,9 +33,12 @@ pub fn rows() -> Result<Vec<Row>, &'static [u8]> {
         return Err(b"audit: the kernel did not hand over its process table");
     }
     // The raw name bytes: a name that is not UTF-8 is still a capsule.
-    let named: Vec<(u32, &[u8])> = procs
+    let named: Vec<Proc<'_>> = procs
         .iter()
-        .map(|p| (p.pid, &p.name[..(p.name_len as usize).min(PROC_NAME_LEN)]))
+        .map(|p| {
+            let name = &p.name[..(p.name_len as usize).min(PROC_NAME_LEN)];
+            (p.pid, name, p.flags & PROC_FLAG_DEBUG_WITHHELD != 0)
+        })
         .collect();
     join(&regs, &named).ok_or(b"audit: the kernel's registry is not whole entries; refused")
 }
