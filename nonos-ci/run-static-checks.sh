@@ -5056,6 +5056,17 @@ else
     fail_with "check_driver_scope: a driver capsule and its scope row disagree"
 fi
 unset scope_out
+# G-84: every display driver the compositor tries, with a capsule, is in the
+# full desktop image or on a list that may only shrink; the self-test first,
+# so a scan that stopped seeing drivers cannot pass by finding none.
+if display_out="$(python3 scripts/check_display_profiles.py --self-test 2>&1 \
+    && python3 scripts/check_display_profiles.py 2>&1)"; then
+    note ok "every display driver ships in the full desktop image (check_display_profiles)"
+else
+    tail -n 5 <<< "${display_out}" >&2
+    fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
+fi
+unset display_out
 
 # nonos-harden reads GO over a nonos-verify gap only when the gap is on
 # scripts/baselines/declared-limits.txt; the list follows the source and may
