@@ -18,7 +18,7 @@
 
 /// One poll of a leg that has not ended.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Poll {
+pub(crate) enum Poll {
     /// Not yet able to send (another caller holds the driver), or sent and
     /// not yet answered.
     Waiting,
@@ -30,7 +30,7 @@ pub enum Poll {
 
 /// How a leg ended.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Ended {
+pub(crate) enum Ended {
     Answered(i32),
     Gone,
     /// Its own budget, or the total, ran out first.
