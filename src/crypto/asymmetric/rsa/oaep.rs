@@ -16,8 +16,8 @@
 
 use super::keys::{rsa_private_operation, rsa_public_operation, RsaPrivateKey, RsaPublicKey};
 use super::mgf1;
-use crate::crypto::entropy::get_entropy;
 use crate::crypto::hash::sha256;
+use crate::crypto::random_api::get_vec_secure;
 use crate::crypto::util::bigint::BigUint;
 use crate::crypto::{CryptoError, CryptoResult};
 use alloc::vec::Vec;
@@ -30,7 +30,7 @@ pub fn oaep_encrypt(public_key: &RsaPublicKey, plaintext: &[u8]) -> CryptoResult
         return Err(CryptoError::InvalidLength);
     }
 
-    let seed = get_entropy(hash_len);
+    let seed = get_vec_secure(hash_len)?;
 
     let mut db = Vec::with_capacity(k - hash_len - 1);
     db.extend_from_slice(&sha256(b""));
@@ -172,7 +172,7 @@ fn pkcs1_v15_encrypt_pad(data: &[u8], key_size: usize) -> Result<Vec<u8>, &'stat
     let padding_len = key_size - data.len() - 3;
     for slot in padded.iter_mut().take(2 + padding_len).skip(2) {
         loop {
-            let random = get_entropy(1);
+            let random = get_vec_secure(1).map_err(|_| "no randomness")?;
             if random[0] != 0 {
                 *slot = random[0];
                 break;
