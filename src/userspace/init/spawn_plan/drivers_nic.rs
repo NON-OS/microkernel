@@ -20,6 +20,7 @@ pub(super) fn spawn() {
     spawn_e1000();
     spawn_e1000e();
     spawn_igb();
+    spawn_igc();
     spawn_ixgbe();
     realtek::spawn();
 }
@@ -53,6 +54,14 @@ fn spawn_igb() {
 }
 #[cfg(not(feature = "nonos-capsule-driver-igb"))]
 fn spawn_igb() {}
+
+#[cfg(feature = "nonos-capsule-driver-igc")]
+fn spawn_igc() {
+    use crate::hardware::igc_capsule as c;
+    super::boot::capsule("DRIVER-IGC", "driver_igc", c::spawn_driver_igc_capsule, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-driver-igc"))]
+fn spawn_igc() {}
 
 #[cfg(feature = "nonos-capsule-driver-ixgbe")]
 fn spawn_ixgbe() {
