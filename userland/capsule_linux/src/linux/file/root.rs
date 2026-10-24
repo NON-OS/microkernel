@@ -26,7 +26,9 @@ use super::family::root as family_root;
 /// A path in the store, already confined. Built only from a normalised
 /// guest-visible path, by `resolve::key`.
 /// `shared` is false for a path in the family's private directories.
-pub struct Key(Vec<u8>, bool);
+/// The store path, whether it is in the shared tree, and where in it the path
+/// the guest sees begins.
+pub struct Key(pub(super) Vec<u8>, pub(super) bool, pub(super) usize);
 
 impl Key {
     /// `visible` must be absolute and free of `.` and `..`, which is what
@@ -35,8 +37,9 @@ impl Key {
         // An install has no family, and writes only the shared tree.
         if !super::private::shared_writes_allowed() && super::private::is_private(visible) {
             let mut out = super::private::root();
+            let at = out.len();
             out.extend_from_slice(visible);
-            return Key(out, false);
+            return Key(out, false, at);
         }
         let root = family_root();
         let mut out = Vec::with_capacity(root.len() + visible.len());
@@ -46,21 +49,14 @@ impl Key {
          * separator makes every listing prefix wrong by one byte and every
          * child look like a sibling of itself.
          */
+        let at = out.len();
         if visible != b"/" {
             out.extend_from_slice(visible);
         }
-        Key(out, true)
+        Key(out, true, at)
     }
 
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
-    }
-
-    /// The shared tree is written by installs alone; a guest is refused.
-    pub fn writable(&self) -> Result<(), &'static str> {
-        match self.1 && !super::private::shared_writes_allowed() {
-            true => Err("read-only file system"),
-            false => Ok(()),
-        }
     }
 }

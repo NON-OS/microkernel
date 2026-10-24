@@ -17,7 +17,8 @@
 //! A key repeated is not handed to the driver again either: a driver that
 //! installs the group key in its chip (`Rx::Handshake::group_key`) would
 //! reset the chip's own counter. A group message 1 with the key in use, and
-//! message 3 sent again, give none; a new group key gives it once.
+//! message 3 sent again, give none; a new group key gives it once; and an
+//! AP rotating back to a key the station still holds gives none either.
 
 use crate::ap_sim::{group1, gtk_kde, message3, ANONCE, AP_RSNE_MIXED, GTK, SPA};
 use crate::receive::frame::from_ap;
@@ -42,4 +43,7 @@ fn a_repeated_key_is_never_handed_to_the_driver_again() {
     assert_eq!(take(&mut s, group1(Akm::Psk, 4, &ptk, &gtk_kde(1, &GTK))), (true, None));
     assert_eq!(take(&mut s, group1(Akm::Psk, 5, &ptk, &gtk_kde(2, &[0x7e; 16]))), (true, Some(2)));
     assert_eq!(take(&mut s, group1(Akm::Psk, 6, &ptk, &gtk_kde(2, &[0x7e; 16]))), (true, None));
+    // Back to the key the join installed, which slot 1 still holds: not a new
+    // key, so not handed over again (802.11-2020, 12.7.7.3).
+    assert_eq!(take(&mut s, group1(Akm::Psk, 7, &ptk, &gtk_kde(1, &GTK))), (true, None));
 }

@@ -46,6 +46,9 @@ def main():
         plan = lanes.plan(a.lane, a.dir, a.audio)
     except lanes.LaneError as e:
         sys.exit(f"nonos-qemu-lanes: {e}")
+    if "iommu" in plan.swaps:
+        sys.exit("nonos-qemu-lanes: an iommu= lane changes the whole machine; boot it with "
+                 "nix run .#qemu -- --lane " + f"iommu={plan.swaps['iommu']}")
     if a.what == "images":
         lanes.make_images(plan.images)
     elif a.what == "args":

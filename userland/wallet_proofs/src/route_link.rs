@@ -19,5 +19,9 @@
 
 #[path = "../../nonos_route_link/src/describe.rs"]
 pub mod describe;
+#[path = "../../nonos_route_link/src/patience.rs"]
+pub mod patience;
 #[path = "../../nonos_route_link/src/pick.rs"]
 pub mod pick;
+#[path = "../../nonos_route_link/src/refusal.rs"]
+pub mod refusal;

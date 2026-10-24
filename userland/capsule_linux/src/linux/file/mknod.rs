@@ -39,7 +39,7 @@ pub fn mknodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     if stat::look(&at).is_some() {
         return errno::fail(errno::EEXIST);
     }
-    if super::synth::owns(&at) || key(&at).writable().is_err() {
+    if super::synth::refused_write(&at) || key(&at).writable().is_err() {
         return errno::fail(errno::EROFS);
     }
     /* A new name, which the private directories' quota counts. */
