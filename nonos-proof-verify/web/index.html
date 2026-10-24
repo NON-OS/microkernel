@@ -1,0 +1,123 @@
+<!doctype html>
+<!-- NONOS Operating System (AGPL-3.0-or-later) -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>NONOS proof verifier</title>
+<style>
+:root {
+  --bg: #fbfbfa; --panel: #ffffff; --ink: #1d1d1b; --muted: #5f5f5a; --line: #deded8;
+  --ok: #17663a; --ok-bg: #e6f4ec; --bad: #a3221b; --bad-bg: #fbe9e7; --warn: #7a5300; --warn-bg: #fdf3dc;
+  --accent: #23466e; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413; --panel: #1d1d1b; --ink: #ecebe6; --muted: #a3a29b; --line: #34342f;
+    --ok: #7dd3a0; --ok-bg: #12301f; --bad: #f1928a; --bad-bg: #3a1714; --warn: #f0c46a; --warn-bg: #352812;
+    --accent: #9cc0ea;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+p.lede { color: var(--muted); margin: 0 0 20px; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+label { display: block; font-weight: 600; margin: 12px 0 4px; }
+label small { font-weight: 400; color: var(--muted); }
+select, input[type=text] { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; }
+input[type=file] { width: 100%; font: inherit; color: var(--muted); }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+button { padding: 9px 18px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg); font: inherit; font-weight: 600; cursor: pointer; }
+button.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+.hidden { display: none; }
+#verdict { border-radius: 8px; padding: 12px 14px; font-weight: 700; margin-bottom: 12px; }
+#verdict.verified { background: var(--ok-bg); color: var(--ok); }
+#verdict.failed { background: var(--bad-bg); color: var(--bad); }
+#verdict.could-not-check { background: var(--warn-bg); color: var(--warn); }
+#verdict small { display: block; font-weight: 400; color: var(--ink); margin-top: 2px; }
+.kv { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.v-verified { color: var(--ok); font-weight: 600; }
+td.v-failed { color: var(--bad); font-weight: 600; }
+td.v-could-not-check { color: var(--warn); font-weight: 600; }
+.scroll { overflow-x: auto; }
+pre { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin: 8px 0 0; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--mono); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>NONOS proof verifier</h1>
+  <p class="lede">Check a kernel's, a loader's or a capsule's attestation trailer the way the
+  boot and spawn gates check it: the Merkle path folded to the policy root, and the STARK
+  proof of the same slot. This is <code>nonos-proof-verify</code> compiled to WebAssembly,
+  the same code as the command line. Your files never leave this tab.</p>
+
+  <section>
+    <label for="mode">What to check</label>
+    <select id="mode">
+      <option value="transcript">A policy transcript and its trailers (no image needed)</option>
+      <option value="capsule">A capsule: its ELF, the capabilities granted, its trailer</option>
+      <option value="kernel">A kernel: its image and trailer</option>
+      <option value="bootloader">A bootloader: its EFI image and trailer</option>
+    </select>
+
+    <div data-for="transcript">
+      <label for="transcript">Transcript <small>(the <code>.transcript</code> beside a root)</small></label>
+      <input id="transcript" type="file">
+    </div>
+    <div data-for="capsule kernel bootloader transcript">
+      <label for="root">Policy root <small>(32 bytes; optional for a transcript, which then must match it)</small></label>
+      <input id="root" type="file">
+    </div>
+    <div data-for="capsule kernel bootloader">
+      <label for="image">Image</label>
+      <input id="image" type="file">
+    </div>
+    <div data-for="capsule">
+      <label for="caps">Capability word granted <small>(hex)</small></label>
+      <input id="caps" type="text" placeholder="0x18" autocomplete="off" spellcheck="false">
+    </div>
+    <div data-for="capsule kernel bootloader transcript">
+      <label for="trailers">Trailers <small>(one or more)</small></label>
+      <input id="trailers" type="file" multiple>
+    </div>
+    <div class="row">
+      <label style="margin:0;font-weight:400"><input id="dev" type="checkbox"> Also accept development trailers (path only, no STARK; never a release)</label>
+    </div>
+    <div class="row">
+      <button id="go" disabled>Verify</button>
+      <span id="status" class="kv"></span>
+    </div>
+  </section>
+
+  <section id="out" class="hidden" aria-live="polite">
+    <div id="verdict"></div>
+    <div id="root-line" class="kv"></div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Trailer</th><th>Slot</th><th>Result</th><th>Detail</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="row">
+      <button class="ghost" id="show-json">The JSON report</button>
+      <button class="ghost" id="show-cmd">The same check on the command line</button>
+    </div>
+    <pre id="json" class="hidden"></pre>
+    <pre id="cmd" class="hidden"></pre>
+  </section>
+
+  <footer>Exit codes and the v1 JSON report are documented in
+  <code>docs/security/checking-the-claims-attestation-proofs.md</code>. A result that could not
+  be checked is never shown as verified.</footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
