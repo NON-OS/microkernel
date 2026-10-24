@@ -19,35 +19,61 @@
 
 extern crate alloc;
 
+mod announce;
 mod constants;
 mod discover;
+mod display;
 mod fifo;
+mod gone;
+mod handles;
 mod init;
-mod protocol;
 mod regs;
 mod say;
 mod screen;
-mod server;
+mod serve;
 mod setup;
+mod turn;
 
+use nonos_gfx_pool::Pool;
 use nonos_libc::{heap_init, mk_exit, start_driver};
+// `turn` reaches the DGON parser here, where its proofs mount the kernel's
+// own definition under the same name.
+use nonos_libc::dgon_parse;
 
 const DRIVER: &[u8] = b"driver.vmware_svga";
 const EXIT_HEAP_INIT: i32 = 1;
+/// The service was refused: the kernel would not register the name.
+const EXIT_UNANNOUNCED: i32 = 3;
 
 /// Without an SVGA II adapter the driver says so and leaves before claiming
 /// anything. With one, each attempt takes the grants, sets the mode and
-/// makes the surface, giving everything back and the firmware's mode with it
-/// when a step fails; the attempts are bounded and slept between.
+/// starts the wire server, giving everything back and the firmware's mode
+/// with it when a step fails; the attempts are bounded and slept between.
+/// Once up, it announces `driver.vmware_svga0` and serves the display wire
+/// until it is stopped.
+///
+/// # Safety
+///
+/// The capsule's entry point: the kernel calls it once, on a fresh stack,
+/// and nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(EXIT_HEAP_INIT);
     }
-    let mut driver = match start_driver(DRIVER, discover::find_svga(), |dev| setup::run(*dev)) {
+    let started =
+        start_driver(DRIVER, discover::find_svga(), |dev| setup::run(*dev, Pool::default()));
+    let mut driver = match started {
         Ok(d) => d,
         Err(code) => mk_exit(code),
     };
-    say::up(&driver);
-    server::run(&mut driver);
+    say::up(&driver.server.display);
+    if !announce::announce() {
+        // The compositor finds the display only through the service: the
+        // adapter is given back in the firmware's mode before leaving.
+        drop(driver);
+        mk_exit(EXIT_UNANNOUNCED);
+    }
+    let device_id = driver.handles.device_id();
+    serve::run(&mut driver.server, device_id)
 }

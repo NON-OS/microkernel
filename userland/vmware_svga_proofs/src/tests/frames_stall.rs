@@ -14,27 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A host that stops reading costs one dropped update, not a hang.
+//! A host that stops reading costs one refused flush, not a hang, and the
+//! next flush once it reads again is redrawn.
 
-use super::frames::body;
-use super::util::up;
+use super::util::{ask, primed, up, words};
 use crate::bench::Bench;
 use crate::model::with_svga;
-use crate::server::handlers::flush;
+use nonos_gfx_wire::errno::ETIMEDOUT;
+use nonos_gfx_wire::ops;
 
 #[test]
 fn a_host_that_stops_reading_drops_the_update_after_a_bounded_wait() {
     let mut bench = Bench::standard();
     let mut d = up(&mut bench, |_| {});
+    let sf = primed(&mut d.server, 1);
     with_svga(|s| s.stalled = true);
-    let mut refused = 0;
-    for _ in 0..4000 {
-        if flush(&mut d, &body(&[1, 0, 0, 8, 8], None)) == -110 {
-            refused += 1;
-            break;
-        }
-    }
-    assert_eq!(refused, 1, "a full ring answers E_DEVICE");
+    let flush = words(&[sf.serial, 1, 0, 0, 8, 8]);
+    let refused = (0..4000).find(|_| ask(&mut d.server, ops::FLUSH, &flush).0 == ETIMEDOUT);
+    assert!(refused.is_some(), "a full ring answers ETIMEDOUT");
     with_svga(|s| s.stalled = false);
-    assert_eq!(flush(&mut d, &body(&[1, 0, 0, 8, 8], None)), 0, "and recovers once the host reads");
+    assert_eq!(ask(&mut d.server, ops::FLUSH, &flush).0, 0, "and recovers once the host reads");
 }
