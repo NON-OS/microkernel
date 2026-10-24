@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rectangle a request names, checked against the screen.
+//! The adapter as the shared wire server drives it (nonos_gfx_serve): one
+//! output, any mode the adapter and its VRAM hold, no hardware cursor.
 
-use crate::protocol::le_u32;
-use crate::screen::{rect_fits, Rect};
-use crate::setup::Driver;
+mod copy;
+mod describe;
+mod health;
+mod modes;
+mod show;
+mod svga;
+mod wire;
 
-/// Four u32s at `at`: x, y, width, height; None unless they fit the screen.
-pub fn rect_at(d: &Driver, body: &[u8], at: usize) -> Option<Rect> {
-    let r = Rect {
-        x: le_u32(body, at)?,
-        y: le_u32(body, at + 4)?,
-        w: le_u32(body, at + 8)?,
-        h: le_u32(body, at + 12)?,
-    };
-    rect_fits(r, d.fb.width, d.fb.height).then_some(r)
-}
+pub use svga::{Shown, Svga};

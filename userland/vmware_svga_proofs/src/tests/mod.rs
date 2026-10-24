@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bring_up;
-mod dispatch;
 mod frames;
 mod frames_stall;
+mod mode_set;
 mod pure;
 mod refusals;
-mod share;
 mod util;
 mod vbox;
+mod wire;

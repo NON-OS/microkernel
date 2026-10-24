@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The handlers and the dispatcher, without the receive loop.
+//! The service, under the name the compositor looks up after virtio-gpu's.
 
-#[path = "../../capsule_driver_vmware_svga/src/server/dispatch.rs"]
-pub mod dispatch;
-#[path = "../../capsule_driver_vmware_svga/src/server/handlers/mod.rs"]
-pub mod handlers;
-#[path = "../../capsule_driver_vmware_svga/src/server/respond.rs"]
-pub mod respond;
+use nonos_libc::mk_service_register;
+
+pub const SERVICE_NAME: &[u8] = b"driver.vmware_svga0";
+/// Service 4280 and reply 4281, as Capsule.mk declares them.
+pub const SERVICE_PORT: u32 = 4280;
+
+/// Whether the kernel took the service. Only the compositor is meant to
+/// reach it: the kernel's holder table names who may send to it.
+pub fn announce() -> bool {
+    mk_service_register(SERVICE_NAME.as_ptr(), SERVICE_NAME.len(), SERVICE_PORT) >= 0
+}
