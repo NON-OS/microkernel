@@ -26,12 +26,9 @@ these, each named in the output as `[egress] FAIL <kind>: <what>`:
 | `dhcp-id` | DHCP client option 12, 60, 77 or 81: a hostname, vendor class, user class or FQDN |
 | `sni` | a TLS ClientHello whose server name is not given with `--allow-name` |
 | `http` | a plaintext HTTP request whose Host is not given with `--allow-name`, to a peer not given with `--allow` |
+| `peer` | a TCP or UDP peer the image did not choose: not given with `--allow`, and not a relay named by a consensus that a peer given with `--allow` sent in the same capture |
 
-Every other TCP and UDP peer is listed with a frame count and marked `listed`
-when it is not given with `--allow`. That is not a failure, because the Nym and
-Anyone clients reach gateways and relays they learn at run time. The DHCP
-parameter request list and every TLS server name and HTTP host are printed as
-well. `--json FILE` writes the whole report. The exit status is 0 for a pass, 1
+The relays come from the capture itself (`relays`, `tools/nonos_pcap_egress.py`). The tool joins every reply that a peer given with `--allow` sent on a TCP stream, inflates the HTTP body when it is zlib, and takes the address on each `r` line, which is how an onion network's consensus names its relays. Only an allowed authority's consensus can add relays, so a host nobody pinned cannot vouch for itself. Each peer is printed with a frame count and why it was allowed (`pinned` or `relay`), or `unchosen` when it fails. The DHCP parameter request list and every TLS server name and HTTP host are printed as well. `--json FILE` writes the whole report. The exit status is 0 for a pass, 1
 for a failure and 2 for a file that is not an Ethernet pcap.
 
 ```sh
@@ -39,8 +36,7 @@ python3 tools/nonos-pcap-egress --self-test
 python3 tools/nonos-pcap-egress CAPTURE --allow-name validator.nymtech.net --json report.json
 ```
 
-`--self-test` builds one capture per failure kind, plus a clean one with DHCP,
-a pinned TLS name and an inbound reply, and checks each verdict. It then reads
+`--self-test` builds one capture per failure kind, plus a clean one with DHCP, a pinned gateway, a pinned TLS name, a consensus from a pinned authority and a relay it names. It checks each verdict, and that a host's own consensus does not vouch for it. It then reads
 3000 randomly damaged and truncated copies and requires each to end in a
 verdict, with no exception. The flake's `static-abi` check runs it
 (`tools/nix/checks.nix`).
@@ -50,8 +46,11 @@ nonos-mk-no-telemetry-capture`, `mk/50-ci.mk`). With
 `NONOS_NO_TELEMETRY_IMAGE=<nonos.img>` it boots that image headless through
 `tools/nonos-qemu --capture` for `NONOS_NO_TELEMETRY_TIMEOUT` seconds (180 by
 default). It then judges the capture with the bootstrap names and addresses the
-capsules pin: `pinned.rs` and `live.rs` in `capsule_net_nym/src/directory_sync`,
-and `capsule_net_anon/src/directory/authority/list.rs`. Without an image it boots
+capsules pin:
+
+- Nym's directory API: `pinned.rs` and `live.rs` in `capsule_net_nym/src/directory_sync`;
+- the Nym gateways it enters through: `capsule_net_nym/src/state/bootstrap.rs` (it reaches no mix node itself);
+- Anyone's directory authorities: `capsule_net_anon/src/directory/authority/list.rs`. Without an image it boots
 `make nonos-mk-run-serial-net`, and `NONOS_NO_TELEMETRY_BOOT_CMD` replaces both.
 It prints `PASS`, `FAIL` (exit 1) or `GAP` (exit 2, no capture to judge) and
 writes `report.json` to `target/no-telemetry`. Its earlier form passed only on
