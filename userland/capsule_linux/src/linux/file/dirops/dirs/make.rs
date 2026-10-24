@@ -32,7 +32,7 @@ pub fn mkdirat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     if look(&at).is_some() || guest.links.target(&at).is_some() {
         return errno::fail(errno::EEXIST);
     }
-    if synth::owns(&at) || key(&at).writable().is_err() {
+    if synth::refused_write(&at) || key(&at).writable().is_err() {
         return errno::fail(errno::EROFS);
     }
     /* A directory is a name the private directories' quota counts. */
