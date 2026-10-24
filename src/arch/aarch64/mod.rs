@@ -49,6 +49,7 @@ pub mod rtc;
 pub mod security;
 pub mod smccc;
 pub mod timer;
+pub mod tpm_tree;
 pub mod uart;
 
 pub use abi::Aarch64;
