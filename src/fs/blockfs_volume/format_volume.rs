@@ -21,7 +21,8 @@ use crate::security::keyring_capsule::{store, KeyType};
 
 pub fn format_volume(uuid: [u8; 16]) -> Result<u32, VolumeError> {
     let mut key = [0u8; 32];
-    crate::crypto::rng::fill_random_bytes(&mut key);
+    crate::crypto::rng::fill_random_bytes_secure(&mut key)
+        .map_err(|_| VolumeError::NoRandomness)?;
     let key_id = store(KeyType::MasterKey, &key, 0).map_err(VolumeError::Keyring)?;
     let mount = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
     *VOLUME.write() = Some(VolumeState { key, mount });
