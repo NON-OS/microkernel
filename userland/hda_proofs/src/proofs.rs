@@ -27,6 +27,7 @@ mod amp_route_tests;
 mod at_start;
 mod bdl_tests;
 mod codec_refusal_tests;
+mod codec_sweep_tests;
 mod codec_tests;
 mod conn_tests;
 mod corb_start_tests;
