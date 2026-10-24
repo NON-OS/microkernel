@@ -16,9 +16,11 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 # An amnesic boot writes nothing: boot a sealed image as a stick, alone, for
-# a while, and compare every byte of the stick and of the firmware's variable
-# store afterwards with what went in. Any difference fails, wherever it is:
-# a table row, a payload, a log, a crash record, an EFI variable.
+# a while, and compare every byte of the stick afterwards with what went in.
+# Any difference fails, wherever it is: a table row, a payload, a log, a
+# crash record. The firmware's variable store is compared by variable
+# (tools/nonos-efi-vars): the firmware fills in its own on a first boot and
+# counts every boot, so a variable fails only when it is not the firmware's.
 #
 #   NONOS_AMNESIC_IMAGE    the sealed nonos.img to boot (required)
 #   NONOS_AMNESIC_TIMEOUT  seconds the boot runs (default 180)
@@ -70,18 +72,23 @@ image_after=$(sum target/qemu/stick.img)
 vars_after=$(sum target/qemu/OVMF_VARS.fd)
 status=pass
 [ "$image_before" = "$image_after" ] || status=fail
-[ "$vars_before" = "$vars_after" ] || status=fail
+set +e
+python3 tools/nonos-efi-vars "$OVMF_VARS" target/qemu/OVMF_VARS.fd --json "$out/efi-vars.json" > "$out/efi-vars.txt"
+vars_rc=$?
+set -e
+[ "$vars_rc" -eq 0 ] || status=fail
+foreign=$(grep -c ' FOREIGN ' "$out/efi-vars.txt" || true)
 
 changed=""
 if [ "$image_before" != "$image_after" ]; then
   changed=$(cmp -l "$image" target/qemu/stick.img | awk '{print int(($1-1)/512)}' | uniq | head -64 | tr '\n' ' ')
 fi
-printf '{"status":"%s","seconds":%s,"image":{"before":"%s","after":"%s","changed_sectors":"%s"},"efi_vars":{"before":"%s","after":"%s"},"serial_bytes":%s}\n' \
-  "$status" "$timeout_secs" "$image_before" "$image_after" "$changed" "$vars_before" "$vars_after" \
+printf '{"status":"%s","seconds":%s,"image":{"before":"%s","after":"%s","changed_sectors":"%s"},"efi_vars":{"before":"%s","after":"%s","not_firmware":%s,"report":"%s"},"serial_bytes":%s}\n' \
+  "$status" "$timeout_secs" "$image_before" "$image_after" "$changed" "$vars_before" "$vars_after" "$foreign" "$out/efi-vars.json" \
   "$(wc -c < "$out/serial.log" | tr -d ' ')" > "$report"
 if [ "$status" = pass ]; then
-  printf '%s\n' "amnesic boot: PASS the stick and the EFI variables are byte for byte as they went in ($report)"
+  printf '%s\n' "amnesic boot: PASS the stick is byte for byte as it went in, and no EFI variable but the firmware's changed ($report)"
   exit 0
 fi
-printf '%s\n' "amnesic boot: FAIL ${changed:+sectors $changed}($report)"
+printf '%s\n' "amnesic boot: FAIL ${changed:+sectors $changed}${foreign:+, $foreign EFI variables not the firmware's }($report)"
 exit 1

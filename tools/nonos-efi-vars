@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Which UEFI variables a boot added, changed or removed, and whether any of
+them is not the firmware's own.
+
+Reads two edk2 variable stores (OVMF_VARS.fd: a firmware volume holding a
+variable store of authenticated variable headers) and lists every variable
+whose data or attributes differ. A change fails the run unless it is one the
+firmware makes on its own, on any boot:
+
+  - a variable under a vendor GUID only edk2 writes (the boot manager's iSCSI
+    attempts, the network stack's per-NIC and DHCPv6 records, the monotonic
+    counter, memory type statistics, the variable error flag), or
+  - under the EFI global GUID, a name the boot manager writes (Boot####,
+    BootOrder, BootCurrent, Key####, ConIn, ConOut, ErrOut, Lang,
+    PlatformLang, Timeout and their Dev variants).
+
+NONOS writes no variable. Any other change, including any global variable of
+another name, is a failure. Exit 0 pass, 1 fail, 2 unreadable.
+"""
+
+import argparse
+import hashlib
+import json
+import re
+import struct
+import sys
+import uuid
+
+GLOBAL = "8be4df61-93ca-11d2-aa0d-00e098032b8c"
+FIRMWARE_GUIDS = {
+    "04b37fe8-f6ae-480b-bdd5-37d98c5e89aa": "edk2 variable error flag",
+    "4b47d616-a8d6-4552-9d44-ccad2e0f4cf9": "edk2 iSCSI initial attempt order",
+    "59324945-ec44-4c0d-b1cd-9db139df070c": "edk2 iSCSI attempts",
+    "4c19049f-4137-4dd3-9c10-8b97a83ffdfa": "edk2 memory type information",
+    "5b446ed1-e30b-4faa-871a-3654eca36080": "edk2 IPv4 per-NIC config",
+    "937fe521-95ae-4d1a-8929-48bcd90ad31a": "edk2 IPv6 per-NIC config",
+    "9fb9a8a1-2f4a-43a6-889c-d0f7b6c47ad5": "edk2 DHCPv6 client id",
+    "eb704011-1402-11d3-8e77-00a0c969723b": "edk2 monotonic counter",
+}
+GLOBAL_FIRMWARE = re.compile(
+    r"^(Boot[0-9A-F]{4}|BootOrder|BootCurrent|BootNext|Key[0-9A-F]{4}|ConIn|ConOut|ErrOut"
+    r"|ConInDev|ConOutDev|ErrOutDev|Lang|PlatformLang|Timeout|LangCodes|PlatformLangCodes)$")
+VAR_ADDED = 0x3F
+HEADER = 60
+
+
+class Unreadable(Exception):
+    pass
+
+
+def variables(blob):
+    """{(guid, name): (attributes, sha256 of data)} of the live variables."""
+    if len(blob) < 0x40 or blob[0x28:0x2C] != b"_FVH":
+        raise Unreadable("not a firmware volume")
+    off = struct.unpack_from("<H", blob, 0x30)[0] + 28
+    out = {}
+    while off + HEADER <= len(blob):
+        start, state, _, attr = struct.unpack_from("<HBBI", blob, off)
+        if start != 0x55AA:
+            break
+        nsz, dsz = struct.unpack_from("<II", blob, off + 36)
+        end = off + HEADER + nsz + dsz
+        if end > len(blob):
+            raise Unreadable(f"variable at {off:#x} runs past the store")
+        guid = str(uuid.UUID(bytes_le=bytes(blob[off + 44:off + 60])))
+        name = blob[off + HEADER:off + HEADER + nsz].decode("utf-16-le", "replace").rstrip("\0")
+        if state == VAR_ADDED:
+            out[(guid, name)] = (attr, hashlib.sha256(blob[off + HEADER + nsz:end]).hexdigest())
+        off = (end + 3) & ~3
+    return out
+
+
+def firmware_owned(guid, name):
+    return guid in FIRMWARE_GUIDS or (guid == GLOBAL and GLOBAL_FIRMWARE.match(name) is not None)
+
+
+def judge(before, after):
+    a, b = variables(before), variables(after)
+    changes = []
+    for key in sorted(set(a) | set(b)):
+        if a.get(key) == b.get(key):
+            continue
+        kind = "added" if key not in a else "removed" if key not in b else "changed"
+        changes.append({"change": kind, "guid": key[0], "name": key[1], "firmware": firmware_owned(*key)})
+    foreign = [c for c in changes if not c["firmware"]]
+    return {"status": "fail" if foreign else "pass", "changes": changes, "foreign": foreign}
+
+
+def _store(entries):
+    """An edk2-shaped volume holding `entries`, for the self-test."""
+    fv = bytearray(0x48)
+    fv[0x28:0x2C] = b"_FVH"
+    struct.pack_into("<H", fv, 0x30, 0x48)
+    body = bytearray(28)
+    for guid, name, data in entries:
+        n = (name + "\0").encode("utf-16-le")
+        h = struct.pack("<HBBIQ16sIII", 0x55AA, VAR_ADDED, 0, 7, 0, bytes(16), 0, len(n), len(data))
+        h += uuid.UUID(guid).bytes_le
+        v = h + n + data
+        v += bytes((-len(v)) % 4)
+        body += v
+    return bytes(fv + body + b"\xff" * 64)
+
+
+def self_test():
+    empty = _store([])
+    fw = _store([(GLOBAL, "BootOrder", b"\x00\x00"), (GLOBAL, "Boot0001", b"x"),
+                 ("eb704011-1402-11d3-8e77-00a0c969723b", "MTC", b"\x01\x00\x00\x00")])
+    r = judge(empty, fw)
+    assert r["status"] == "pass" and len(r["changes"]) == 3, r
+    for guid, name in [(GLOBAL, "NonosSecurityPolicy"), ("12345678-1234-1234-1234-123456789abc", "Crash"),
+                       (GLOBAL, "BootOrderX")]:
+        r = judge(empty, _store([(guid, name, b"secret")]))
+        assert r["status"] == "fail" and r["foreign"][0]["name"] == name, (name, r)
+    r = judge(fw, _store([(GLOBAL, "BootOrder", b"\x01\x00"), (GLOBAL, "Boot0001", b"x"),
+                          ("eb704011-1402-11d3-8e77-00a0c969723b", "MTC", b"\x02\x00\x00\x00")]))
+    assert r["status"] == "pass" and {c["change"] for c in r["changes"]} == {"changed"}, r
+    # Not a volume, too short, and a header whose sizes run past the store.
+    for bad in (b"", b"\x00" * 0x40, empty[:0x64] + b"\xaa\x55" + b"\xff" * 80):
+        try:
+            judge(bad, empty)
+        except Unreadable:
+            continue
+        raise AssertionError(f"{bad[:8]!r} read as a store")
+    print("nonos-efi-vars: self-test passed")
+    return 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("before", nargs="?")
+    ap.add_argument("after", nargs="?")
+    ap.add_argument("--json", help="write the report here as well")
+    ap.add_argument("--self-test", action="store_true")
+    a = ap.parse_args(argv)
+    if a.self_test:
+        return self_test()
+    if not a.before or not a.after:
+        ap.error("two variable stores are required")
+    try:
+        with open(a.before, "rb") as f1, open(a.after, "rb") as f2:
+            report = judge(f1.read(), f2.read())
+    except (OSError, Unreadable) as e:
+        print(f"[efi-vars] cannot read: {e}", file=sys.stderr)
+        return 2
+    for c in report["changes"]:
+        who = "firmware" if c["firmware"] else "FOREIGN"
+        print(f"[efi-vars] {c['change']:7} {who:8} {c['guid']} {c['name']}")
+    print(f"[efi-vars] {report['status'].upper()}: {len(report['changes'])} changed, {len(report['foreign'])} not the firmware's")
+    if a.json:
+        with open(a.json, "w") as fh:
+            json.dump(report, fh, indent=1)
+    return 1 if report["foreign"] else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
