@@ -46,7 +46,7 @@ pub(crate) mod stop;
 mod transfer;
 mod verdict;
 
-pub use flush::flush;
+pub use flush::{flush, standby};
 pub use init::init_port;
 pub use link::may_be_disk;
 pub use park::{park, retire};
