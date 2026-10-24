@@ -18,7 +18,8 @@
 
 use super::super::super::env::Mmio;
 
-/// The slot's registers, mapped by the broker (uncached) at `base`.
+/// The slot's registers, mapped by the broker (uncached) at `base`. Each
+/// access goes through libc's, which order it against DMA memory.
 #[derive(Clone, Copy)]
 pub struct MmioWindow {
     base: u64,

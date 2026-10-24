@@ -23,13 +23,14 @@ mod bulk_tests;
 mod isoch_tests;
 
 use super::fixture::{Fixture, INT_DCI};
-use crate::rings::event::IssuedTransfer;
+use crate::rings::event::{IssuedTransfer, ARMED};
 
 /// Every place for an armed TRB's event taken, by interrupt endpoints of
-/// other slots.
+/// other slots, two on each.
 fn take_every_place(fx: &mut Fixture) {
-    for slot in 100..=255u8 {
-        fx.ring.expect(IssuedTransfer { phys: 0x10_0000, slot, dci: INT_DCI });
+    for n in 0..ARMED {
+        let (slot, dci) = (100 + (n / 2) as u8, INT_DCI + 2 * (n % 2) as u8);
+        assert!(fx.ring.expect(IssuedTransfer { phys: 0x10_0000, slot, dci }));
     }
     assert!(!fx.ring.can_expect());
 }

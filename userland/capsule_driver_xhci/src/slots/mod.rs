@@ -13,12 +13,33 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod admit;
+mod answer;
+mod asker;
+pub mod asks;
+pub mod authorize;
+pub mod binds;
+mod claims;
 mod dci;
+pub mod gate;
+mod holders;
 mod interrupt;
+mod owners;
+mod pairs;
+mod release;
 mod resources;
 mod resources_allocate;
+mod sharing;
+pub mod slot_ops;
+mod standings;
 mod table;
+pub mod uses;
+pub use authorize::{Policy, Standing};
 pub use dci::dci_from_ep_address;
-pub use interrupt::{InterruptEndpoint, MAX_INTERRUPT_ENDPOINTS};
+pub use gate::{gate, gate_park};
+pub use interrupt::InterruptEndpoint;
+pub use pairs::{pair_of, pair_stream};
+pub use release::Release;
 pub use resources::SlotResources;
+pub use sharing::Sharing;
 pub use table::{SlotTable, PORT_FREE};

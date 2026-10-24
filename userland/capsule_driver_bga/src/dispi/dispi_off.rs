@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{DISPI_IOPORT_OFFSET, VGA_MMIO_BASE, VGA_PORT_BASE};
+use crate::constants::DISPI_IOPORT_OFFSET;
 
 pub fn dispi_off(index: u32) -> u32 {
     DISPI_IOPORT_OFFSET + index * 2
-}
-
-/// Where VGA port `port` (0x3C0 and up) sits in the register BAR.
-pub fn vga_off(port: u16) -> u32 {
-    VGA_MMIO_BASE + (port - VGA_PORT_BASE) as u32
 }

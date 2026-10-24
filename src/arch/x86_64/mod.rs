@@ -26,6 +26,7 @@ pub mod context;
 pub mod cpu;
 pub mod cpu_random;
 pub mod diag;
+pub(crate) mod early_screen;
 pub mod gdt;
 pub mod hypervisor;
 pub(crate) mod idle;

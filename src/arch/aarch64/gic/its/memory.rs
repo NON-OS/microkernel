@@ -17,9 +17,8 @@
 //! Physically contiguous, zeroed memory the ITS or a redistributor reads:
 //! tables, the command queue, translation tables.
 
-use crate::memory::addr::PhysAddr;
+use crate::arch::aarch64::mmu::pointer::ram_span;
 use crate::memory::phys::{alloc_contiguous, free_contiguous, AllocFlags};
-use crate::memory::unified::phys_to_virt;
 
 const FRAME: u64 = 0x1000;
 
@@ -53,16 +52,16 @@ pub(super) fn alloc(bytes: u64, align: u64) -> Option<Region> {
 }
 
 pub(super) fn view(region: &Region) -> Option<&'static mut [u8]> {
-    let virt = phys_to_virt(PhysAddr::new(region.phys))?.as_u64();
+    let at = ram_span(region.phys, region.bytes)?;
     // SAFETY: frames `alloc` took for the caller alone, reached through the
     // direct map; only the ITS driver writes them, under its lock.
-    Some(unsafe { core::slice::from_raw_parts_mut(virt as *mut u8, region.bytes as usize) })
+    Some(unsafe { core::slice::from_raw_parts_mut(at, region.bytes as usize) })
 }
 
 /// Write `[offset, offset + len)` out for a reader that does not snoop.
 pub(super) fn clean(region: &Region, offset: u64, len: u64) {
-    if let Some(virt) = phys_to_virt(PhysAddr::new(region.phys + offset)) {
-        crate::arch::cache_flush::flush_and_fence(virt.as_u64(), len);
+    if let Some(at) = ram_span(region.phys + offset, len) {
+        crate::arch::cache_flush::flush_and_fence(at as u64, len);
     }
 }
 

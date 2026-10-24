@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::avoid::place_avoiding;
 use super::iova_holes::take_hole;
-use super::reserved_rule::place_clear;
 use super::table::Capsule;
 
 pub(super) use super::iova_space::IOVA_BASE;
 
 /// Take `length` bytes of the capsule's device address space: the first hole
 /// a freed grant left that fits, else fresh space above the bump pointer.
-/// Placement steps over the interrupt window and every reserved region
-/// (`reserved_rule::place_clear`); holes touch neither, since no grant does.
+/// Placement steps over the interrupt window (`iova_space::place`) and every
+/// RMRR region and reserved range the capsule holds (`avoid`); holes touch
+/// none of them, since no grant does.
 pub(super) fn take(c: &mut Capsule, length: u64) -> Option<u64> {
     if let Some(start) = take_hole(&mut c.holes, length) {
         return Some(start);
     }
-    let (start, end) = place_clear(c.next_iova, length, &c.reserved)?;
+    let spans = c.reserved_spans();
+    let (start, end) = place_avoiding(c.next_iova, length, &spans)?;
     c.next_iova = end;
     Some(start)
 }

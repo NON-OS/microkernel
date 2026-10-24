@@ -21,13 +21,14 @@ use crate::state::indicators::clock_stamp::{stamp, STAMP_LEN};
 use crate::state::indicators::{battery, battery_text};
 use crate::state::Context;
 
-use super::search_box::{fitted, search_box};
+use super::cluster::search_box;
+use super::search_box::fitted;
 
 pub fn search_hit(ctx: &Context, px: u32, py: u32) -> bool {
     let mut bbuf = [0u8; battery_text::LABEL_MAX];
     let blen = battery_text::label(battery::percent(), &mut bbuf);
     let mut sbuf = [b'-'; STAMP_LEN];
-    let when: &[u8] = match stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours) {
+    let when: &[u8] = match stamp(&mut sbuf, ctx.readings.clock_24h, ctx.readings.tz_hours) {
         Some(n) => &sbuf[..n],
         None => b"--:--",
     };

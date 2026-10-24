@@ -26,10 +26,11 @@ const AHCI_ABAR_BAR: usize = 5;
 /// The family of one listed device. `classify_family` decides from the ids
 /// alone; an Intel RAID-mode function it takes for AHCI is kept only when
 /// BAR5, where the ABAR lives, is a memory BAR, and VirtualBox's adapter id
-/// is SVGA II only with the port window VBoxVGA lacks.
+/// is SVGA II only with the port window VBoxVGA lacks. An SD host the ACPI
+/// tables publish is served by the SD host capsule as a PCI one is.
 pub fn classify_device(rec: &DeviceRecord) -> HardwareFamily {
     if is_platform_sd_host(rec.bus_kind, rec.pci_class, rec.pci_subclass) {
-        return HardwareFamily::StoragePlatformSd;
+        return HardwareFamily::StorageSdhci;
     }
     let family =
         classify_family(rec.pci_class, rec.pci_subclass, rec.pci_progif, rec.vendor, rec.device);

@@ -21,11 +21,9 @@ use super::idle::ap_idle_loop;
 use crate::smp::state::CPU_DESCRIPTORS;
 
 pub(super) fn go_live(cpu_id: u32, user: super::user_setup::Prepared) -> ! {
-    // SAFETY: eK@nonos.systems - the IDT, GDT, TSS and per-CPU state above are
-    // all in place, so this CPU can now take an interrupt.
-    unsafe {
-        core::arch::asm!("sti", options(nostack, nomem));
-    }
+    // The IDT, GDT, TSS and per-CPU state above are all in place, so this CPU
+    // can now take an interrupt.
+    crate::arch::interrupt::sti();
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::InterruptsOn);
 
     super::online::publish(cpu_id);

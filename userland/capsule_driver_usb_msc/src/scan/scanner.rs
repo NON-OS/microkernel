@@ -25,9 +25,13 @@ use super::ports::Ports;
 use super::report::Report;
 use super::searching::XHCI_WAIT_MS;
 use crate::clock::Deadline;
+use crate::xhci::{hosts, Hosts};
 
 pub struct Scanner {
-    pub(super) xhci: Option<u32>,
+    /// Every USB host, fastest first, each with what its root ports showed;
+    /// how many have registered.
+    pub(super) hosts: Hosts<Ports>,
+    pub(super) known: usize,
     /// While the search lasts a block request is asked to come again.
     pub(super) searching: bool,
     pub(super) window: Deadline,
@@ -35,12 +39,11 @@ pub struct Scanner {
     /// When the ports are next listed; whether the last listing left any open.
     pub(super) look: Deadline,
     pub(super) open: bool,
-    pub(super) ports: Ports,
     pub(super) asking: Option<Asking>,
     /// The device served this boot, once there is one (`identity`); the
-    /// port it was let go on while it stays there (`release`).
+    /// host and port it was let go on while it stays there (`release`).
     pub(super) served: Option<Identity>,
-    pub(super) left_on: Option<u8>,
+    pub(super) left_on: Option<(u32, u8)>,
     /// Devices served after the first, and media served afresh (`asked`),
     /// which the kernel reads.
     pub rebinds: u32,
@@ -53,13 +56,13 @@ impl Scanner {
     pub fn new() -> Self {
         let wait = Deadline::after_ms(XHCI_WAIT_MS);
         Self {
-            xhci: None,
+            hosts: hosts(Ports::new),
+            known: 0,
             searching: true,
             window: wait,
             settle: wait,
             look: Deadline::after_ms(0),
             open: false,
-            ports: Ports::new(),
             asking: None,
             served: None,
             left_on: None,

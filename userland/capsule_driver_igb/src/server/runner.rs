@@ -22,7 +22,6 @@ use alloc::vec;
 
 use nonos_libc::mk_ipc_recv_from;
 
-use crate::constants::MAX_ETHERNET_FRAME;
 use crate::protocol::{
     decode_request, E_INVAL, E_MSGSIZE, HDR_LEN, OP_HEALTHCHECK, OP_LINK_STATUS, OP_MAC_ADDRESS,
     OP_RX_PACKET, OP_STATS, OP_TX_PACKET, RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATS_PAYLOAD_LEN,
@@ -31,6 +30,7 @@ use crate::protocol::{
 use crate::server::error::{reply_decode_failed, reply_with_status};
 use crate::server::handlers;
 use crate::setup::Driver;
+use crate::sizes::MAX_ETHERNET_FRAME;
 
 const SERVICE_INBOX: u64 = 0;
 

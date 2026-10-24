@@ -16,9 +16,11 @@
 
 use super::priority_vm::{INTERACTIVE_VM, STORAGE_PATH_VM};
 use crate::process::core::Priority;
+use crate::services::registry::displays::is_display;
 use crate::services::registry::nics;
 
-/// Capsules on the pointer/keyboard -> compositor -> scanout path.
+/// Capsules on the pointer/keyboard -> compositor -> scanout path; the
+/// display drivers that scan out are every name in `displays.rs`.
 ///
 /// Each one parks in the kernel when it has nothing to do (`mk_irq_wait`,
 /// `mk_input_event_wait`, `mk_ipc_recv_from` with a timeout), so the band is
@@ -26,17 +28,16 @@ use crate::services::registry::nics;
 /// running process, so a band holding a single runnable member always falls
 /// through to `Normal` on the next switch - a promoted capsule that spun
 /// would cost half the CPU, never all of it.
-const INTERACTIVE: [&str; 5] =
-    ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0", "driver.bga0"];
+const INTERACTIVE: [&str; 3] = ["driver.ps2_kbd0", "input_router", "compositor"];
 
 /*
  * Capsules that move a frame between the card and TCP: the card drivers
  * (registry/nics.rs) and the stack, which is where acknowledgements are
  * made. They park the same way (`mk_irq_wait`, `mk_ipc_recv_from` with a
- * timeout), so the band stays empty on an idle network. In the Normal band a wake queued behind every runnable
- * capsule, and a capture of a 92 KB page load showed a median of 230 ms
- * between the guest's acknowledgements, which set the pace of every
- * slow-start round.
+ * timeout), so the band stays empty on an idle network. In the Normal band a
+ * wake queued behind every runnable capsule, and a capture of a 92 KB page
+ * load showed a median of 230 ms between the guest's acknowledgements, which
+ * set the pace of every slow-start round.
  *
  * `net.sockets` and `net.tcp` stay Normal: they wait for a connection by
  * yielding in a loop, and two of those in this band could hold it for a whole
@@ -64,7 +65,8 @@ const STORAGE_PATH: [&str; 6] = [
 pub(super) fn for_capsule(name: &str) -> Priority {
     let bands: [&[&str]; 5] =
         [&INTERACTIVE, &INTERACTIVE_VM, &PACKET_PATH, &STORAGE_PATH, &STORAGE_PATH_VM];
-    if nics::NICS.iter().any(|(card, _)| *card == name) || bands.iter().any(|b| b.contains(&name)) {
+    let banded = bands.iter().any(|band| band.contains(&name));
+    if is_display(name) || banded || nics::NICS.iter().any(|(card, _)| *card == name) {
         Priority::High
     } else {
         Priority::Normal

@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! `OP_RESET_BULK` (`slot, dir_in`): recover a bulk endpoint that stalled.
+//! `OP_RESET_BULK` (`slot, which`): recover a bulk endpoint that stalled.
+//! `which` bit 0 is IN, bit 1 the second pair; older clients send 0 or 1.
 use super::reply::send_prefix;
 use crate::controller::reset_bulk_endpoint;
 use crate::error::{XhciError, XhciResult};
@@ -21,22 +22,22 @@ use crate::protocol::{Request, E_INVAL, E_IO, RESET_BULK_REQUEST_LEN};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
 pub fn reset(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
-    if body.len() != RESET_BULK_REQUEST_LEN || body[1] > 1 {
+    if body.len() != RESET_BULK_REQUEST_LEN || body[1] > 3 {
         return reply_with_status(tx, req, E_INVAL);
     }
-    match run(ctx, body[0], body[1] == 1) {
+    match run(ctx, body[0], (body[1] & 2 != 0, body[1] & 1 != 0)) {
         Ok(()) => send_prefix(tx, req, [0; 4]),
         Err(XhciError::ControllerUnsupported) => reply_with_status(tx, req, E_INVAL),
         Err(_) => reply_with_status(tx, req, E_IO),
     }
 }
-fn run(ctx: &mut Context, slot: u8, dir_in: bool) -> XhciResult<()> {
+fn run(ctx: &mut Context, slot: u8, (second, dir_in): (bool, bool)) -> XhciResult<()> {
     let d = &mut ctx.driver;
     let res =
         d.slots.resources_mut(slot, d.layout.max_slots).ok_or(XhciError::ControllerUnsupported)?;
     // The dequeue pointer moves past the polled IN's TRB too: it will never
     // complete, so the next poll arms a fresh one.
-    if let (true, Some(p)) = (dir_in, res.bulk.as_mut()) {
+    if let (true, Some(p)) = (dir_in, res.pair_mut(second)) {
         p.armed = None;
     }
     reset_bulk_endpoint(
@@ -46,6 +47,6 @@ fn run(ctx: &mut Context, slot: u8, dir_in: bool) -> XhciResult<()> {
         &mut d.event_ring,
         res,
         d.layout.context_size,
-        dir_in,
+        (second, dir_in),
     )
 }

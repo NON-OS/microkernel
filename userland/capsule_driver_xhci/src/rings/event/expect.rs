@@ -21,12 +21,21 @@ use super::state::EventRing;
 impl EventRing {
     /// Whether a place is free for one more armed TRB.
     pub fn can_expect(&self) -> bool {
-        self.armed.iter().any(|a| a.is_none())
+        self.can_expect_n(1)
+    }
+    /// Whether places are free for `n` more armed TRBs.
+    pub fn can_expect_n(&self, n: usize) -> bool {
+        self.armed.iter().filter(|a| a.is_none()).count() >= n
     }
     /// Keep a place for the event of `issued`, just armed. An endpoint has
     /// one TRB armed at a time, so a place it still held is stale and goes.
     pub fn expect(&mut self, issued: IssuedTransfer) -> bool {
         self.forget_parked(issued.slot, issued.dci);
+        self.expect_also(issued)
+    }
+    /// Keep a place for `issued` beside those its endpoint holds: an isoch
+    /// endpoint has a TD armed for each packet, two batches of them.
+    pub fn expect_also(&mut self, issued: IssuedTransfer) -> bool {
         let Some(free) = self.armed.iter_mut().find(|a| a.is_none()) else { return false };
         *free = Some(Armed { issued, event: None });
         true

@@ -19,8 +19,8 @@
 //! PA_LOCAL_TX_LCC_ENABLE. Every command completes at once.
 
 use super::sim::Model;
-use crate::ufs::hci::regs::*;
-use crate::ufs::hci::uic_codes::*;
+use crate::ufs::facts::hci::*;
+use crate::ufs::facts::uic::*;
 
 impl Model {
     pub(super) fn uic(&self, cmd: u32) {

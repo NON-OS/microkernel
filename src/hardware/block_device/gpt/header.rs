@@ -14,62 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The primary GPT header at LBA 1, held to the checks Linux's
-//! `is_gpt_valid` makes before it believes a table.
+//! A GPT header, primary or backup, believed only when its signature,
+//! size, CRC, own LBA and ranges hold (UEFI 2.10, 5.3.2, as recalled,
+//! unverified): "EFI PART"; HeaderSize at least its 92 bytes of fields and
+//! at most the block it sits in, 512 here since only 512-byte sectors are
+//! read; the CRC over HeaderSize bytes with its own field zeroed; MyLBA the
+//! LBA read; FirstUsableLBA at most LastUsableLBA, both inside the disk;
+//! the array as array.rs shapes it and which.rs places it.
 
+use super::array::{shaped, within};
 use super::bytes::{le32, le64};
 use super::crc32::crc32;
+pub(crate) use super::fields::Header;
+use super::which::Which;
 
 pub(crate) const SIGNATURE: &[u8; 8] = b"EFI PART";
-/// The CRC covers `header_size` bytes, at least these 92.
 const MIN_HEADER: usize = 92;
-/// Linux reads only 128-byte entries, and so does this.
-pub(crate) const ENTRY_SIZE: usize = 128;
-/// A larger array is not one any writer makes; reading it is refused.
-pub(crate) const MAX_ENTRIES: u32 = 1024;
+const SECTOR: usize = 512;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) struct Header {
-    pub(crate) first_usable: u64,
-    pub(crate) last_usable: u64,
-    pub(crate) entries_lba: u64,
-    pub(crate) entries: u32,
-    pub(crate) entries_crc: u32,
-}
-
-impl Header {
-    pub(crate) fn array_sectors(&self) -> u64 {
-        (self.entries as u64 * ENTRY_SIZE as u64).div_ceil(512)
-    }
-}
-
-/// `sector` is LBA 1 of a disk of `sectors`; `None` for no primary header.
-pub(crate) fn parse(sector: &[u8], sectors: u64) -> Option<Header> {
-    if sector.len() < 512 || &sector[..8] != SIGNATURE {
+/// `sector` is where `which` sits on a disk of `sectors`; `None` for no
+/// header of that kind there.
+pub(crate) fn parse_as(sector: &[u8], sectors: u64, which: Which) -> Option<Header> {
+    if sector.len() < SECTOR || &sector[..8] != SIGNATURE {
         return None;
     }
     let size = le32(sector, 12) as usize;
-    if !(MIN_HEADER..=512).contains(&size) {
+    if !(MIN_HEADER..=SECTOR).contains(&size) {
         return None;
     }
-    let mut copy = [0u8; 512];
+    let mut copy = [0u8; SECTOR];
     copy[..size].copy_from_slice(&sector[..size]);
     copy[16..20].fill(0);
     let h = Header {
+        disk_guid: sector[56..72].try_into().ok()?,
         first_usable: le64(sector, 40),
         last_usable: le64(sector, 48),
         entries_lba: le64(sector, 72),
         entries: le32(sector, 80),
+        entry_size: le32(sector, 84),
         entries_crc: le32(sector, 88),
     };
-    let fits = h.first_usable <= h.last_usable
-        && h.last_usable < sectors
-        && h.entries_lba >= 2
-        && h.entries_lba.saturating_add(h.array_sectors()) <= sectors;
-    let ok = crc32(&copy[..size]) == le32(sector, 16)
-        && le64(sector, 24) == 1
-        && le32(sector, 84) as usize == ENTRY_SIZE
-        && (1..=MAX_ENTRIES).contains(&h.entries)
-        && fits;
-    ok.then_some(h)
+    let ranges = h.first_usable <= h.last_usable && h.last_usable < sectors;
+    let (lo, hi) = which.array_room(h.first_usable, h.last_usable, sectors);
+    let n = (h.entries, h.entry_size);
+    let array = shaped(n.0, n.1) && within(h.entries_lba, n.0, n.1, lo, hi);
+    let own = le64(sector, 24) == which.my_lba(sectors) && which.names_other(le64(sector, 32));
+    let ok = crc32(&copy[..size]) == le32(sector, 16) && own;
+    (ok && ranges && array).then_some(h)
 }

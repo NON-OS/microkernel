@@ -1,0 +1,24 @@
+# NONOS userland: nonos_gfx_pool
+#
+# The kernel half of nonos_gfx_serve's Platform for a display driver whose
+# primaries are its own anonymous memory (a VRAM device's shadow, or the
+# shadow an engine copies into its scanout surfaces): map, register and
+# share a surface, and give it all back. One copy for bga, the Intel
+# engine and bootfb, so the surface rules are followed the same way.
+
+[package]
+name = "nonos_gfx_pool"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS display primaries over anonymous memory, for nonos_gfx_serve"
+
+[lib]
+name = "nonos_gfx_pool"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }

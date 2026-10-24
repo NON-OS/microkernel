@@ -73,3 +73,4 @@ parsers, the bring-up against a model, and the bounded retry.
   the zero-length reset report complete within the 60 ms after power-on and
   the 1 s reset wait.
 - Absolute touch decodes; tap, drag, two-finger scroll and palm rejection work.
+- A touchscreen (a 2-in-1's panel) taps where touched, drags, and releases.

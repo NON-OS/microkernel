@@ -13,13 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! LINKS decoded as ixgbe_check_mac_link_generic reads it, and the one line
-//! per change link_status prints.
+//! LINKS decoded to link and speed, and the one line per change
+//! link_status prints.
 
 use nonos_libc::said;
 
-use crate::constants::ctrl::*;
-use crate::constants::part::Part;
+use crate::facts::mac::*;
+use crate::facts::parts::Part;
 use crate::link::status::changed;
 use crate::link::{decode, note, LinkState};
 

@@ -27,7 +27,7 @@ pub fn init_bsp() -> Result<(), &'static str> {
         return Ok(());
     }
 
-    let bsp_apic = crate::arch::interrupt_controller::local_id();
+    let bsp_apic = crate::arch::interrupt_controller::latch_boot_cpu_id()?;
     #[cfg(target_arch = "x86_64")]
     super::super::ap::record_boot_tsc_adjust();
     BSP_APIC_ID.store(bsp_apic, Ordering::Release);

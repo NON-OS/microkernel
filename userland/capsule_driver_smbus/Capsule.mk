@@ -1,4 +1,4 @@
-# smbus: the Intel i801 SMBus host of every ICH and PCH (Linux's i2c-i801),
+# smbus: the SMBus host controller of every Intel ICH and PCH,
 # reached through its I/O BAR. It serves SMBus transfers on driver.smbus0
 # and owns no device on the bus: what sits there (SPD EEPROMs, sensors, an
 # SMBus touchpad) is for drivers above it.

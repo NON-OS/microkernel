@@ -26,9 +26,10 @@ use super::whole::{fns, whole};
 const CLAIM: &str = include_str!("../../../../../src/hardware/broker/claim/claim.rs");
 const FRESH: &str = include_str!("../../../../../src/hardware/broker/claim/wipe/holder.rs");
 
-/// claim.rs `claim` up to its entry.
-const CLAIMS: [&str; 4] = [
+/// claim.rs `claim` up to its entry, the firmware's flash refused first.
+const CLAIMS: [&str; 5] = [
     "pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {",
+    "if super::firmware::is_firmware(device_id) { return Err(ClaimError::Firmware); }",
     "hold::admits(pid, device_id)?; let fresh = super::wipe::fresh(pid, device_id);",
     "let covers = crate::hardware::broker::bootfb::covers(device_id);",
     "let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;",

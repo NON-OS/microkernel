@@ -16,7 +16,7 @@
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
-use super::constants::{ASSUMED_CPU_FREQ_MHZ, RATE_LIMIT_WINDOW_MS};
+use super::constants::RATE_LIMIT_WINDOW_MS;
 use super::error::DriverError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -112,19 +112,11 @@ impl RateLimiter {
         self.max_ops_per_sec = max_ops_per_sec;
     }
 
+    /// The kernel's monotonic clock. It was the TSC over an assumed 3 GHz on
+    /// x86_64, wrong on any other clock rate, and a count of calls elsewhere,
+    /// which made the window a number of operations rather than a second.
     fn get_current_time_ms(&self) -> u64 {
-        #[cfg(target_arch = "x86_64")]
-        {
-            // SAFETY: rdtsc is safe to call on x86_64.
-            let tsc = crate::arch::read_time_counter();
-            tsc / (ASSUMED_CPU_FREQ_MHZ * 1000)
-        }
-
-        #[cfg(not(target_arch = "x86_64"))]
-        {
-            static COUNTER: AtomicU64 = AtomicU64::new(0);
-            COUNTER.fetch_add(1, Ordering::Relaxed) / 1000
-        }
+        crate::time::timestamp_millis()
     }
 }
 

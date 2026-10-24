@@ -24,7 +24,7 @@ use super::dispatch::dispatch;
 use super::error;
 use crate::emmc::{Opened, SECTOR_SIZE};
 use crate::protocol::{
-    decode_request, E_ACCES, E_INVAL, HDR_LEN, OP_WRITE, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN,
+    body_fits, decode_request, E_ACCES, E_INVAL, HDR_LEN, RESP_HDR_LEN, RW_HEADER_LEN, STATUS_LEN,
 };
 
 pub fn run(opened: &mut Opened) -> ! {
@@ -49,11 +49,7 @@ pub fn run(opened: &mut Opened) -> ! {
             continue;
         }
         let body = &rx[HDR_LEN..n as usize];
-        // Only WRITE carries more than its header; a body the header does
-        // not account for is a request that was cut or padded on the way.
-        if body.len() != req.payload_len as usize
-            || (req.op != OP_WRITE && body.len() > RW_HEADER_LEN)
-        {
+        if !body_fits(&req, body.len()) {
             error::reply_with_status(&mut tx, &req, E_INVAL);
             continue;
         }

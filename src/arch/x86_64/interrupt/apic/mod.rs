@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod adopt;
+mod boot_id;
+pub mod boot_id_rule;
 pub mod constants;
 pub mod error;
 pub mod idle_timer;
@@ -41,6 +43,7 @@ mod timer_mode;
 mod timer_ops;
 
 pub use adopt::{adopt_bsp_state, cache_bsp_apic_id};
+pub use boot_id::latch_boot_id;
 pub use constants::{VEC_ERROR, VEC_SPURIOUS, VEC_THERMAL, VEC_TIMER};
 pub use error::{ApicError, ApicResult};
 pub use init::{init, init_apic};

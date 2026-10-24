@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The R1 card status (JEDEC eMMC 5.1, 6.13).
+//! The R1 card status (JEDEC eMMC 5.1 6.13, as recalled, unverified).
 
 mod bits;
 mod first_error;

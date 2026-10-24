@@ -53,6 +53,11 @@ pub struct Device {
     /// No controller has registered; how often one was looked up.
     pub unregistered: bool,
     pub lookups: u32,
+    /// Each bulk OUT by pair, and the pair of each bulk IN (`pairs`); the
+    /// bytes of a CBW the device says it took, when not all 31.
+    pub sent: Vec<(u8, Vec<u8>)>,
+    pub read_on: Vec<u8>,
+    pub cbw_takes: Option<usize>,
 }
 
 thread_local! {
@@ -67,6 +72,11 @@ pub fn script(answers: Vec<Answer>) {
 /// Look at the device.
 pub fn device<T>(f: impl FnOnce(&Device) -> T) -> T {
     DEVICE.with(|d| f(&d.borrow()))
+}
+
+/// The bytes of each CBW the device will say it took.
+pub fn cbw_takes(n: Option<usize>) {
+    setup(|d| d.cbw_takes = n);
 }
 
 /// Change the device, or what the controller says of it.

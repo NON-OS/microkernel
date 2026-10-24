@@ -27,7 +27,7 @@ const HEAD: &str =
     "pub(super)fnvalidate(req:&DmaMapRequest,pid:u32)->Result<claim::InUse,DmaMapError>{";
 const MAP: &str =
     "pubfnmap_for_caller(pid:u32,req:DmaMapRequest)->Result<DmaMapResult,DmaMapError>{";
-const TAKE: &str = "fntake(pages:u64,length:u64,flags:u32)->Result<u64,Refused>{";
+const TAKE: &str = "fntake(pages:u64,length:u64,flags:u32,uncached:bool)->Result<u64,Refused>{";
 
 #[test]
 fn the_boot_framebuffer_record_is_refused_dma_at_any_length() {

@@ -14,31 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which driver the server plays through: a ready USB device, else the
-//! machine's own sink, HD Audio or AC'97 (sink_machine_tests.rs).
+//! Which driver the server plays through: a ready USB device over the
+//! fixed sink, HD Audio or AC'97 (sink_machine_tests.rs), and the USB driver
+//! alone kept so a device can still come.
 
-use crate::server::choose::choose;
+use crate::sink_choose::with_usb;
 
 const HDA: u32 = 4218;
 const USB: u32 = 4246;
 
 #[test]
 fn a_ready_usb_device_plays_over_hd_audio() {
-    assert_eq!(choose(true, Some(HDA), Some(USB)), Some(USB));
-    assert_eq!(choose(true, None, Some(USB)), Some(USB));
+    assert_eq!(with_usb(true, Some(HDA), Some(USB)), Some(USB));
+    assert_eq!(with_usb(true, None, Some(USB)), Some(USB));
 }
 
 #[test]
 fn hd_audio_plays_while_the_usb_driver_has_no_device() {
-    assert_eq!(choose(false, Some(HDA), Some(USB)), Some(HDA));
-    assert_eq!(choose(false, Some(HDA), None), Some(HDA));
+    assert_eq!(with_usb(false, Some(HDA), Some(USB)), Some(HDA));
+    assert_eq!(with_usb(false, Some(HDA), None), Some(HDA));
     // Readiness from a driver that is not there changes nothing.
-    assert_eq!(choose(true, Some(HDA), None), Some(HDA));
+    assert_eq!(with_usb(true, Some(HDA), None), Some(HDA));
 }
 
 #[test]
 fn the_usb_driver_alone_is_kept_so_a_device_can_still_come() {
-    assert_eq!(choose(false, None, Some(USB)), Some(USB));
-    assert_eq!(choose(false, None, None), None);
-    assert_eq!(choose(true, None, None), None);
+    assert_eq!(with_usb(false, None, Some(USB)), Some(USB));
+    assert_eq!(with_usb(false, None, None), None);
+    assert_eq!(with_usb(true, None, None), None);
 }

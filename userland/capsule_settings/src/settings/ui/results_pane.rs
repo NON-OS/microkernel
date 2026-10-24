@@ -37,7 +37,7 @@ use super::theme::{CARD_NOTE_FG, CARD_TITLE_FG};
 pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view_h: u32) {
     let card_x = PANE_PAD_X;
     let card_w = view_w.saturating_sub(PANE_PAD_X * 2);
-    let query = as_str(state.search.as_slice());
+    let query = as_str(state.search.text.as_slice());
     let n = results::count(query);
     results_head::paint(fb, query, n, PANE_PAD_TOP as i32 - scroll as i32);
     let body_y = card_y() as i32 - scroll as i32;
@@ -55,7 +55,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             continue;
         }
         let Some((section, _, field)) = results::at(query, i) else { continue };
-        results_row::paint(fb, field, section, card_x, card_w, sy, i == state.search_cursor);
+        results_row::paint(fb, field, section, card_x, card_w, sy, i == state.search.cursor);
         if i + 1 < n {
             row::hairline(fb, card_x, card_w, sy, ROW_H);
         }

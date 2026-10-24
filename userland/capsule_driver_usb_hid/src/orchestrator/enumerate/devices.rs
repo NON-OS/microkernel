@@ -14,28 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the driver holds: the HID endpoints it reads and the hubs it
-//! configured.
+//! What the driver holds: the HID endpoints it reads.
 
 use alloc::vec::Vec;
-
-use crate::hub::Hub;
 
 use super::types::HidEndpoint;
 
 #[derive(Default)]
 pub struct Devices {
     pub eps: Vec<HidEndpoint>,
-    pub hubs: Vec<Hub>,
 }
 
 impl Devices {
     pub fn new() -> Self {
-        Self { eps: Vec::new(), hubs: Vec::new() }
+        Self { eps: Vec::new() }
     }
 
-    /// Whether `slot` is kept: an endpoint is bound on it or it is a hub.
+    /// Whether `slot` is kept: an endpoint is bound on it.
     pub fn holds(&self, slot: u8) -> bool {
-        self.eps.iter().any(|e| e.slot == slot) || self.hubs.iter().any(|h| h.slot == slot)
+        self.eps.iter().any(|e| e.slot == slot)
     }
 }

@@ -23,6 +23,8 @@ pub struct ControllerLayout {
     pub max_ports: u8,
     pub max_scratchpad: u32,
     pub context_size: u8,
+    /// HCCPARAMS1 MaxPSASize: 0 for no bulk streams (regs/cap/max_psa.rs).
+    pub max_psa: u8,
     /// USB 2 or USB 3, per root port, from the Supported Protocol capabilities.
     pub ports: PortProtocols,
 }

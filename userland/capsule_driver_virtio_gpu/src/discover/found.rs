@@ -19,7 +19,6 @@ use nonos_virtio::Bars;
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
-    pub pci_device: u16,
     /// Every BAR, for the capability checks: the register window comes
     /// from the capabilities, never from a guess at which BAR holds it.
     pub bars: Bars,

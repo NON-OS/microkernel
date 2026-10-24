@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! SD Host Controller registers (SD Host Controller Simplified Specification
-//! 3.00 and 4.20, section 2), offsets from the slot base.
+//! The fact sheet for the host: SD Host Controller registers and bits,
+//! offsets from the slot base. Source: SD Host Controller Simplified
+//! Specification 3.00 and 4.20, register chapter, as recalled, unverified.
 
 mod caps;
 mod control;

@@ -19,8 +19,9 @@ use crate::constants::PORTSC_CCS;
 use crate::error::{XhciError, XhciResult};
 use crate::regs::op::{controller_failed, portsc_read};
 
-/// Connection debounce (USB 2.0 TATTDB, Linux HUB_DEBOUNCE_*): the connect
-/// status must hold for 100 ms, sampled every 25 ms, within 1.5 s.
+/// Connection debounce (USB 2.0 TATTDB; the steps as observed, unverified):
+/// the connect status must hold for 100 ms, sampled every 25 ms, within
+/// 1.5 s.
 const DEBOUNCE_STABLE_MS: u64 = 100;
 const DEBOUNCE_STEP_MS: u64 = 25;
 const DEBOUNCE_TIMEOUT_MS: u64 = 1_500;
