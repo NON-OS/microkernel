@@ -79,14 +79,18 @@ Usercopy does not run inside a STAC and CLAC window. It walks the user page tabl
 
 ### What boots in QEMU virt
 
-- **booted in CI.** The aarch64 CI boot job runs only the two trap cells, `trap-sp0` and `trap-kernel-abort` (`.github/workflows/ci-boot-aarch64.yml:47-52`). The `core` cell named in the job's header is not in its matrix, and neither are `-smp` or `iommu=smmuv3`.
+- **booted, 24 October 2026, QEMU 11.1 `virt` with GICv3 and `-cpu max`, 1 CPU.** The aarch64 CI boot job runs only the two trap cells, `trap-sp0` and `trap-kernel-abort` (`.github/workflows/ci-boot-aarch64.yml:47-52`). The `core` cell named in the job's header is not in its matrix, and neither are `-smp` or `iommu=smmuv3`.
+  - `trap-sp0` passes.
+  - `trap-kernel-abort` fails on 1536ccef3. Every boot that returned from `boot::init` took a pointer-authentication failure (EC 0x1C), because `init` signed its return address with the MMU off and authenticated it after `init_mmu`. With the key installed after `init` returns (`src/arch/aarch64/boot/entry.rs`), the cell passes.
+  - The `core` image then reaches `[NONOS] Core ready` and stops at the bootloader check (next item).
 - **design.** The boot sequence:
   1. An arm64 Image header carries the device tree in `x0` and an optional NONOS handoff in `x1`.
   2. EL2 is dropped to EL1, and the kernel relocates itself.
   3. The MMU comes up with 4K granules and 48-bit TTBR0 and TTBR1, and the kernel moves to the high half.
   4. The GIC (v2 or v3, chosen from the tree), the generic timer at 10 ms and PSCI or spin-table secondaries come up.
   5. Then the shared `microkernel_init` and `microkernel_main` run (`src/arch/aarch64/asm/start.S`, `src/arch/aarch64/boot/{entry,init,finish,core_entry}.rs`).
-- **design.** The boot stops at the bootloader check. With `-kernel` there is no loader evidence, and `refuse_unchecked_loader` starts no userspace (`src/kernel_core/init/entry/loader_refusal.rs:37-48`). No aarch64 boot reaches `[UKERNEL] Entering userspace`, a capsule or the desktop.
+- **booted.** The boot stops at the bootloader check. With `-kernel` there is no loader evidence, and `refuse_unchecked_loader` starts no userspace (`src/kernel_core/init/entry/loader_refusal.rs:37-48`). No aarch64 boot reaches `[UKERNEL] Entering userspace`, a capsule or the desktop.
+- **booted, does not work.** At `-smp 4` the boot CPU prints `[SMP] timed out waiting for a secondary to check in`, then reaches `Core ready` on one CPU. No secondary has been seen online.
 - **design.** Parking reads Aff0 only (`MPIDR & 0xFF`, `start.S:51-53`), so a core in cluster 1 with Aff0 of 0 would take the boot CPU's path.
 - **design, bug.** `tlbi vaae1is` gets `va >> 12` unmasked (`src/arch/aarch64/mmu/tlb.rs:25-29`, `src/arch/aarch64/abi/tlb.rs:22-31`). For a kernel address, bits [47:44] of the operand become `0xF`. A CPU with FEAT_TTL (Armv8.4 and later) reads those bits as a level hint: 64K granule, level 3. NONOS maps with 4K granules, and the architecture does not require a TLBI with a wrong hint to invalidate anything. The operand must be masked to bits [43:0]. QEMU TCG does not show this, and neither does the Pi 5's Cortex-A76 (Armv8.2, no FEAT_TTL).
 
