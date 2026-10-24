@@ -41,6 +41,52 @@ body is at most 4096 bytes. A record is at most 64 MiB and holds at most
 | 6 | `ESC_ENDED` | H(grant): 64, why: u8 (1 expired, 2 user, 3 session end) |
 | 7 | `EXIT` | status: i32 |
 | 8 | `COMMAND_DIGEST` | SHA-256 of the command line, for a role set to `record-commands: digest` |
+| 9 | `BOX` | one Linux program's run in a box: the layout below |
+
+`REFUSED_CALL` is a refusal by the kernel (K4). `BOX` is the refusals of a
+Linux program that `capsule_linux` ran in a box, as `capsule_linux` itself
+enforced them. These are not the kernel's sealed errno histogram, and the
+record never sums the two.
+
+## The `BOX` entry
+
+It carries BOX REPORT v1 (`userland/capsule_linux/src/linux/boxed/`), field
+for field, without the examples:
+
+| Field | Size |
+|---|---|
+| preset: 0 `strict`, 1 `offline`, 2 `allow` | u8 |
+| policy: the BLAKE3 hash of the box's policy | 32 |
+| started: 0 no, 1 yes | u8 |
+| exit status | i32 |
+| refusal counts, in this order | 9 x u64 |
+
+The nine counts are in BOX REPORT v1's fixed order, and the position is
+the kind:
+
+0. `write`
+1. `network`
+2. `exec`
+3. `jit`
+4. `display`
+5. `models`
+6. `call`
+7. `barred`
+8. `unserved`
+
+Each count saturates, as `capsule_linux` counts it. The total is not
+stored, because it is their sum. The body is 110 bytes exactly.
+
+The verifier refuses an entry with:
+
+- a preset above 2;
+- a `started` above 1;
+- a body of any other length.
+
+The examples are left out on purpose: they are paths and addresses the
+program asked for, and the screen report keeps them. The entry is written
+from the frames `capsule_linux` keys to that run, never from text the
+program printed. A box report version other than 1 needs a new entry kind.
 
 ## The chain
 

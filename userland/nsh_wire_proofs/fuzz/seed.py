@@ -43,11 +43,11 @@ def enrol():
 def record():
     head = b"NSHR" + pack("<HH", 1, 0) + b"\x5e" * 16 + pack("<Q", 1000)
     head += b"\x7a" * 64 + PUB + b16(enrol()) + b"\xd0" * 64 + b"\x5b" * 64
-    head += b8(b"ek") + b8(b"auditor")
-    head += b"\x6a" * 64 + caps([b"CoreExec"])
+    head += b8(b"ek") + b8(b"auditor") + b"\x6a" * 64 + caps([b"CoreExec"])
     ents = pack("<IQB", 0, 1100, 1) + b16(b"ls /var/log")
-    ents += pack("<IQB", 1, 1200, 7) + b16(pack("<i", 0))
-    return head + ents + pack("<IQB", 2, 1300, 1) + b"\xc4" * 64 + SIG
+    box = b"\x00" + b"\x58" * 32 + b"\x01" + pack("<i9Q", 1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+    ents += pack("<IQB", 1, 1150, 9) + b16(box) + pack("<IQB", 2, 1200, 7) + b16(pack("<i", 0))
+    return head + ents + pack("<IQB", 3, 1300, 1) + b"\xc4" * 64 + SIG
 
 SEEDS = {
     "nsh_frame": [b"\x01" + hello(b"\xee" * 1216), b"\x30" + b"ls\n", b"\x7f\x03\x00"],
