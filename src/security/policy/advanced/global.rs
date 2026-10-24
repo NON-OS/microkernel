@@ -21,8 +21,8 @@ use super::*;
 static GLOBAL_MANAGER: spin::Once<AdvancedSecurityManager> = spin::Once::new();
 
 pub fn init_advanced_security() -> Result<(), &'static str> {
-    let manager = AdvancedSecurityManager::new(SecurityConfig::default());
-    manager.init();
+    let manager = AdvancedSecurityManager::new(SecurityConfig::default())?;
+    manager.init()?;
     GLOBAL_MANAGER.call_once(|| manager);
     Ok(())
 }
