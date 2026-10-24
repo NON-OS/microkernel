@@ -21,6 +21,8 @@
 pub mod acpi_span;
 #[path = "block_wire/mod.rs"]
 mod block_wire;
+#[path = "debug_grants/mod.rs"]
+mod debug_grants;
 #[path = "described/mod.rs"]
 pub mod described;
 /// The firmware's flash never claimed or mapped.

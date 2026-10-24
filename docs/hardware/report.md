@@ -56,7 +56,7 @@ The log is there only on images built with `capsule-serial-debug`: Standard, QEM
 
 The kernel writes the `[DRIVER-...]` lines when it starts a driver or decides not to, and the `[EXIT]` line when a driver ends with any status other than 0, in words for status 2 and 6 and as `ended with an error` for the rest. A driver ended by a signal gets no `[EXIT]` line; a fault has the trap handler's line already.
 
-A driver writes lines of its own only when the kernel grants it the Debug [capability](../overview/glossary-boot-root-record.md#capability). The sound, NVMe, RTL8821CE Wi-Fi and I2C-HID touchpad drivers get it, and so do the virtio disk, network and display drivers. The PS/2, I2C controller, xHCI, USB HID, USB storage, AHCI, Intel Wi-Fi and wired Ethernet drivers are started without it. For those drivers the kernel's `[DRIVER-...]` and `[EXIT]` lines are all the log has.
+A driver writes lines of its own only when the kernel grants it the Debug [capability](../overview/glossary-boot-root-record.md#capability). The sound, NVMe, RTL8821CE Wi-Fi and I2C-HID touchpad drivers get it, and so do the virtio disk, network and display drivers. The I2C controller, xHCI, USB HID, AHCI, Intel Wi-Fi, e1000 and RTL8169 drivers declare it optional since this release, so they get it on the same images and nowhere else (`serial_debug_cap`). The PS/2 and USB storage drivers are still started without it; for those the kernel's `[DRIVER-...]` and `[EXIT]` lines are all the log has.
 
 Three more Terminal commands help:
 

@@ -15,5 +15,10 @@ CAPSULE_SERVICE_ENDPOINT := service:4216:driver.ahci0
 CAPSULE_REPLY_ENDPOINT   := reply:4217:endpoint.4294967311
 # IPC|Memory|Driver|DeviceEnum|Mmio|Irq|Dma = 0xf8019
 CAPSULE_REQUIRED_CAPS    := 0xf8018
+# Debug, granted only by a build that compiles `capsule-serial-debug` (the
+# development images): the kernel mirror folds it in through
+# serial_debug_cap(), so the driver's own lines reach the console there and
+# nowhere else.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 
 include nonos-mk/capsule.mk
