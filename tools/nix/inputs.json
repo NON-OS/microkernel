@@ -1138,17 +1138,26 @@
   "signed": []
  },
  "userland/boot_splash_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/assets/icons",
    "userland/boot_splash_proofs",
+   "userland/capsule_boot_splash/src/layout.rs",
    "userland/capsule_boot_splash/src/logo/bmp.rs",
    "userland/capsule_boot_splash/src/logo/place.rs",
    "userland/capsule_boot_splash/src/logo/prepare.rs",
    "userland/capsule_boot_splash/src/logo/record.rs",
    "userland/capsule_boot_splash/src/logo/resample.rs",
    "userland/capsule_boot_splash/src/logo/shown.rs",
-   "userland/capsule_boot_splash/src/logo/turn.rs"
+   "userland/capsule_boot_splash/src/logo/turn.rs",
+   "userland/capsule_boot_splash/src/status.rs",
+   "userland/capsule_boot_splash/src/vignette.rs",
+   "userland/libc",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []
@@ -4167,6 +4176,7 @@
    "userland/compositor/src/frame_pacer/own_look.rs",
    "userland/compositor/src/protocol",
    "userland/compositor/src/requests",
+   "userland/compositor/src/server/runner/turn_watch.rs",
    "userland/compositor/src/setup/canvas_floor.rs",
    "userland/compositor/src/setup/canvas_scale.rs",
    "userland/compositor/src/setup/discover",
