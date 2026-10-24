@@ -17,7 +17,8 @@
 //! The approvals an escalation grant carries: each is an approver's key id
 //! and that approver's hybrid signature over the issuer's signed bytes. A
 //! base grant carries none; an approval comes from someone other than the
-//! issuer, and two approvals from two different approvers.
+//! issuer, and two approvals name two approvers in ascending order, so one
+//! set of approvals has one encoding.
 
 use crate::grant::types::GrantKind;
 use crate::keys::{HybridSig, HYBRID_SIG_LEN, KEY_ID_LEN};
@@ -61,7 +62,7 @@ pub(crate) fn approvals<'a>(
     let mut before: Option<&[u8; KEY_ID_LEN]> = None;
     for _ in 0..count {
         let a = Approval::read(r)?;
-        if a.approver == issuer || before == Some(a.approver) {
+        if a.approver == issuer || before.is_some_and(|b| a.approver <= b) {
             return Err(WireError::Value);
         }
         before = Some(a.approver);

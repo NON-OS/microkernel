@@ -39,7 +39,7 @@ fn a_certificate_places_every_field() {
 #[test]
 fn the_magic_version_and_reserved_field_are_judged() {
     assert_eq!(parse(&EnrolB { magic: *b"NSHG", ..EnrolB::default() }), Err(WireError::Magic));
-    assert_eq!(parse(&EnrolB { version: 2, ..EnrolB::default() }), Err(WireError::Version));
+    assert_eq!(parse(&EnrolB { version: 2, ..EnrolB::default() }), Err(WireError::BodyVersion));
     assert_eq!(parse(&EnrolB { reserved: 1, ..EnrolB::default() }), Err(WireError::Reserved));
 }
 

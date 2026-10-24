@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One record entry: `seq: u32 | at_ms: u64 | kind: u8 | body: bytes16`.
-//! The kinds and their bodies are in `record_body`.
+//! The kinds and their bodies are in `record::body`.
 
 use crate::keys::DIGEST_LEN;
 use crate::{CapNames, Reader, Reason, WireError};

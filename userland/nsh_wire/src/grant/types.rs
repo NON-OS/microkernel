@@ -49,6 +49,9 @@ pub struct Grant<'a> {
     pub sig: HybridSig<'a>,
     /// The bytes the issuer signed.
     pub signed: &'a [u8],
+    /// The signed bytes and the issuer's signature: what the grant's hash
+    /// covers. Approvals are left out, since the issuer did not sign them.
+    pub issued: &'a [u8],
     /// The approvals, read with `approvals()`.
     pub(crate) approvals: &'a [u8],
 }

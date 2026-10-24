@@ -49,6 +49,7 @@ fn out_of_range_values_are_refused() {
     assert_eq!(body(4, &[&d64[..], &[0; 8], &[0]].concat()), Err(WireError::Value));
     assert_eq!(body(5, &[&0u16.to_le_bytes()[..], &d64].concat()), Err(WireError::Value));
     assert_eq!(body(5, &[&999u16.to_le_bytes()[..], &d64].concat()), Err(WireError::Value));
+    assert_eq!(body(5, &[&1u16.to_le_bytes()[..], &d64].concat()), Err(WireError::Value));
     for why in [0, 4] {
         assert_eq!(body(6, &[&d64[..], &[why]].concat()), Err(WireError::Value), "{why}");
     }
