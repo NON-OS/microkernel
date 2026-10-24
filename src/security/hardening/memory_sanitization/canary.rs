@@ -17,9 +17,12 @@
 use super::state::STACK_CANARY;
 use core::sync::atomic::Ordering;
 
-pub fn init_stack_canary() {
-    let random_canary = crate::crypto::secure_random_u64();
+/// Draws the canary from the seeded RNG; refused before it is seeded, since
+/// a canary that can be guessed protects nothing.
+pub fn init_stack_canary() -> Result<(), &'static str> {
+    let random_canary = crate::crypto::secure_random_u64().map_err(|_| "no randomness")?;
     STACK_CANARY.store(random_canary, Ordering::SeqCst);
+    Ok(())
 }
 
 #[inline(always)]

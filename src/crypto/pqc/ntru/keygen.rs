@@ -19,7 +19,7 @@ use super::{NtruKeyPair, NtruPublicKey, NtruSecretKey, NTRU_WEIGHT};
 
 pub fn ntru_keygen() -> Result<NtruKeyPair, &'static str> {
     let (f, fp, fq) = loop {
-        let f = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+        let f = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2)?;
 
         let fp = match poly_inverse_mod_3(&f) {
             Some(inv) => inv,
@@ -34,7 +34,7 @@ pub fn ntru_keygen() -> Result<NtruKeyPair, &'static str> {
         break (f, fp, fq);
     };
 
-    let g = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+    let g = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2)?;
 
     let pfq = fq.scale(3);
     let mut h = pfq.multiply(&g);

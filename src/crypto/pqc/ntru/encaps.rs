@@ -20,9 +20,9 @@ use super::{NtruCiphertext, NtruPublicKey, NTRU_SHARED_SECRET_BYTES, NTRU_WEIGHT
 pub fn ntru_encaps(
     pk: &NtruPublicKey,
 ) -> Result<(NtruCiphertext, [u8; NTRU_SHARED_SECRET_BYTES]), &'static str> {
-    let m = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+    let m = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2)?;
 
-    let r = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+    let r = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2)?;
 
     let h = Polynomial::from_coeffs(pk.h.clone());
     let rh = r.multiply(&h);

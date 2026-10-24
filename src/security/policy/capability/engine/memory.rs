@@ -37,9 +37,9 @@ impl CapabilityEngine {
         let mut integrity_hash = [0u8; 32];
         let mut access_pattern_hash = [0u8; 32];
 
-        crate::crypto::fill_random(&mut encryption_key);
+        crate::crypto::fill_random(&mut encryption_key).map_err(|_| "no randomness")?;
         crate::crypto::hash_memory_region(start_addr as usize, size as usize, &mut integrity_hash)?;
-        crate::crypto::fill_random(&mut access_pattern_hash);
+        crate::crypto::fill_random(&mut access_pattern_hash).map_err(|_| "no randomness")?;
 
         let region = SealedMemoryRegion {
             start_addr,
@@ -73,7 +73,7 @@ impl CapabilityEngine {
         let timestamp = crate::time::get_kernel_time_ns();
 
         let mut nonce = [0u8; 16];
-        crate::crypto::fill_random(&mut nonce);
+        crate::crypto::fill_random(&mut nonce).map_err(|_| "no randomness")?;
 
         let _attestation_data = format!(
             "issuer:{:?},subject:{:?},caps:{},timestamp:{},nonce:{:?}",
@@ -81,12 +81,12 @@ impl CapabilityEngine {
         );
 
         let mut signature = [0u8; 64];
-        crate::crypto::fill_random(&mut signature[..32]);
+        crate::crypto::fill_random(&mut signature[..32]).map_err(|_| "no randomness")?;
         signature[32..].copy_from_slice(&self.signing_key);
 
         let quantum_proof = if matches!(chamber.level, IsolationLevel::QuantumSecure) {
             let mut proof = [0u8; 128];
-            crate::crypto::fill_random(&mut proof);
+            crate::crypto::fill_random(&mut proof).map_err(|_| "no randomness")?;
             Some(proof)
         } else {
             None
