@@ -5919,6 +5919,7 @@
    "userland/capsule_app_store/src/store/listing.rs",
    "userland/capsule_app_store/src/store/market/failure.rs",
    "userland/capsule_app_store/src/store/market/failure_text.rs",
+   "userland/capsule_app_store/src/store/market/kec.rs",
    "userland/capsule_app_store/src/store/next_remove.rs",
    "userland/capsule_app_store/src/store/next_step.rs",
    "userland/capsule_app_store/src/store/order_line.rs",
