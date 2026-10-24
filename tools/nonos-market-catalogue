@@ -52,9 +52,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from nonos_market_catalogue.catalogue import catalogue_entries  # noqa: E402
 from nonos_market_catalogue.digest import blake3  # noqa: E402
 from nonos_market_catalogue.guests import guest_entries  # noqa: E402
 from nonos_market_catalogue.packages import package_entries  # noqa: E402
+from nonos_market_catalogue.recipes import load as load_recipes  # noqa: E402
 from nonos_market_catalogue.records import entry, release  # noqa: E402
 
 MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
@@ -363,6 +365,9 @@ def main() -> int:
                     help="repeatable; a package to fetch, hash and list")
     ap.add_argument("--linux-list", type=Path,
                     help="file of package names, one per line; kali.<name> for Kali")
+    # Curated apps, each with the box it runs in (linux-catalogue.json).
+    ap.add_argument("--catalogue", type=Path,
+                    help="JSON of recipes: Alpine packages listed with a guest_policy")
     ap.add_argument("--guest-list", type=Path,
                     help="JSON of programs the image ships, listed as linux.<tail>")
     # The in-tree tools an image does not carry, listed only for an image
@@ -411,6 +416,21 @@ def main() -> int:
     if kali:
         found = kali_entries(args.cache, kali, "amd64", key, when_ms)
         print(f"linux: {len(found)} of {len(kali)} Kali packages", file=sys.stderr)
+        entries += found
+
+    if args.catalogue and args.catalogue.exists():
+        recipes = load_recipes(args.catalogue, Path("."))
+        clash = sorted({r["package"] for r in recipes} & set(alpine))
+        if clash:
+            sys.exit(f"{clash[0]}: in both the package list and the catalogue")
+        args.cache.mkdir(parents=True, exist_ok=True)
+        table = {}
+        for branch in BRANCHES:
+            table.update(apkindex(args.cache, args.alpine_release, args.alpine_arch, branch))
+        get = lambda rec: fetch(f"{rec['base']}/{rec['P']}-{rec['V']}.apk",
+                                args.cache / f"{rec['P']}-{rec['V']}.apk")
+        found = catalogue_entries(recipes, table, get, key, when_ms)
+        print(f"catalogue: {len(found)} of {len(recipes)} apps", file=sys.stderr)
         entries += found
 
     if args.guest_list and args.guest_list.exists():
