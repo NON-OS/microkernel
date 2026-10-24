@@ -42,8 +42,6 @@ use nonos_libc::dgon_parse;
 
 const DRIVER: &[u8] = b"driver.vmware_svga";
 const EXIT_HEAP_INIT: i32 = 1;
-/// The service was refused: the kernel would not register the name.
-const EXIT_UNANNOUNCED: i32 = 3;
 
 /// Without an SVGA II adapter the driver says so and leaves before claiming
 /// anything. With one, each attempt takes the grants, sets the mode and
@@ -63,17 +61,12 @@ pub unsafe extern "C" fn _start() -> ! {
     }
     let started =
         start_driver(DRIVER, discover::find_svga(), |dev| setup::run(*dev, Pool::default()));
-    let mut driver = match started {
+    let driver = match started {
         Ok(d) => d,
         Err(code) => mk_exit(code),
     };
     say::up(&driver.server.display);
-    if !announce::announce() {
-        // The compositor finds the display only through the service: the
-        // adapter is given back in the firmware's mode before leaving.
-        drop(driver);
-        mk_exit(EXIT_UNANNOUNCED);
-    }
+    let mut driver = announce::or_leave(driver);
     let device_id = driver.handles.device_id();
     serve::run(&mut driver.server, device_id)
 }
