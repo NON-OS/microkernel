@@ -15,3 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod hits;
+/* The private-address check the copy rule names by its capsule path. */
+pub mod shield {
+    pub use crate::shield_typed as typed;
+}
