@@ -18,5 +18,5 @@ path = "src/lib.rs"
 nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
 # The stack net.core runs, for the TCP liveness proofs.
 smoltcp = { version = "0.11", default-features = false, features = [
-  "std", "medium-ip", "proto-ipv4", "socket-tcp",
+  "std", "medium-ip", "medium-ethernet", "proto-ipv4", "socket-tcp", "socket-dhcpv4",
 ] }
