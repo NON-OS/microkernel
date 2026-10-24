@@ -17,9 +17,17 @@
 use super::buffer::PaintBuffer;
 
 impl<'a> PaintBuffer<'a> {
+    /* Row by row, each its width: a sub-buffer's slice runs on through the
+    stride between its rows, which is the parent's (a window's frame and
+    shadow beside its content), and a whole-slice fill painted over it. */
     pub fn clear(&mut self, argb: u32) {
-        for px in self.pixels.iter_mut() {
-            *px = argb;
+        let (w, stride) = (self.width as usize, self.stride_words as usize);
+        for row in 0..self.height as usize {
+            let at = row * stride;
+            let end = (at + w).min(self.pixels.len());
+            if at < end {
+                self.pixels[at..end].fill(argb);
+            }
         }
     }
 }
