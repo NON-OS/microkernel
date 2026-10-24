@@ -50,4 +50,8 @@ pub struct PublisherUi {
     pub sending: Option<Sending>,
     pub views: Views,
     pub asked: Option<Asked>,
+    /// The release whose attest is up for review, before it is signed.
+    pub attest_ask: Option<usize>,
+    /// The digest that review showed; Sign signs only while it is unchanged.
+    pub attest_digest: Option<[u8; 32]>,
 }
