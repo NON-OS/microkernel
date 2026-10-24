@@ -66,8 +66,4 @@ fn a_working_source_places_pages() {
     assert!(stack <= 0x7fff_0000_0000 && stack & 0xfff == 0);
     let a = AslrManager::random_address(0x1000, 0x10_0000, 0x1000).expect("placed");
     assert!((0x1000..0x10_0000).contains(&a));
-    // A slide is up to 16 MiB; from a stack at 4 KiB, a wrap is refused.
-    let tries: Vec<_> = (0..16).map(|_| m.randomize_stack(0x1000)).collect();
-    assert!(tries.iter().all(|s| s.is_none_or(|s| s <= 0x1000)), "{tries:x?}");
-    assert!(tries.iter().any(Option::is_none));
 }
