@@ -18,8 +18,8 @@
 
 use crate::boxed::hash::box_hash;
 use crate::boxed::kind::Kind;
-use crate::boxed::preset::parse;
 use crate::boxed::line::box_line;
+use crate::boxed::preset::parse;
 use crate::boxed::report::{hex, report, SOURCE};
 use crate::boxed::tally::Tally;
 
