@@ -61,7 +61,7 @@ mod read_u32;
 mod read_u64;
 mod resolve;
 mod root_node;
-mod select_newer;
+mod ring_pick;
 mod serialize;
 mod serialize_node;
 mod split_parent;
