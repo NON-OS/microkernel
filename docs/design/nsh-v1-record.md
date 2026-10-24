@@ -88,14 +88,26 @@ The verifier refuses an entry with:
 - a body of any other length.
 
 The examples are left out on purpose: they are paths and addresses the
-program asked for, and the screen report keeps them. The entry is to be
-written from the frames `capsule_linux` keys to that run, never from text
-the program printed; that interface is still to be agreed with B. A box
-report version other than 1 needs a new entry kind.
+program asked for, and the screen report keeps them. The entry is
+written from the run's `[BOX]` line, read out of the frames `capsule_linux`
+keys to that run, never from text the program printed:
 
-Still open with B: whether a run that never started (`started` 0) can
-carry counts or an exit status other than 0. Until that is settled, the
-verifier accepts both.
+- the session host starts `capsule_linux` with `--box-key=<32 hex>`, a
+  fresh key, as its first argument;
+- it reads the run's private output with `mk_proc_output(pid)`, and keeps
+  only frames that open with tag 3 and that key;
+- it parses the `[BOX]` line from those frames, refuses any `v` other than
+  1, and checks that `refused=` is the saturating sum of the nine counts;
+- a run started without a key has no `BOX` entry.
+
+Whether the session host may start `capsule_linux` and read its private
+output is a question for the kernel's spawn grants and private-run rules.
+It is open with the lead.
+
+A run that never started (`started` 0) carries counts of 0 in practice,
+but nothing in `capsule_linux` enforces it, so the verifier accepts any
+counts and any exit status with it. A box report version other than 1
+needs a new entry kind.
 
 ## The chain
 
