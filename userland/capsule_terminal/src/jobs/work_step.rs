@@ -28,24 +28,18 @@ use crate::jobs::table::{JobProgress, JobRecord};
 pub fn step(job: &mut JobRecord, out: &mut Output<'_>, held: bool) -> JobProgress {
     let leave_modes = job.background && held;
     if job.cancel {
-        /* A program stopped by Ctrl+C never gets to undo the screen modes it
-         * set, the alternate screen, a hidden cursor, a colour left on: it
-         * ends here the way a program that exits on its own ends. What it
-         * wrote after the key is dropped, as a tty drops it on an interrupt. */
-        if let JobWork::ExternalStage { pid, ref capture, ref boxed, .. } = job.work {
-            super::super::external_io::discard_output(pid);
-            if boxed.is_some() {
-                super::super::box_draw::interrupted(out);
-            }
-            if !leave_modes {
-                out.program_ended();
-            }
-            if let Some(capture) = capture {
-                capture.interrupted(out);
-            }
+        if let JobWork::ExternalStage { pid, ref capture, ref mut boxed, .. } = job.work {
+            let (capture, boxed) = (capture.as_deref(), boxed.as_deref_mut());
+            return super::super::external_stop::stop_external(
+                pid,
+                capture,
+                boxed,
+                out,
+                leave_modes,
+            );
         }
         out.writeln(b"interrupted");
-        return JobProgress::Done(130);
+        return JobProgress::Done(super::super::box_wait::STOPPED);
     }
     match &mut job.work {
         JobWork::Noop => JobProgress::Done(0),

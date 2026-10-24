@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Any frame a guest can write, held to the report's rule: taken only when
-//! it opens with the tag and the whole key, and never a panic.
+//! it opens with the tag and the whole key, and never a panic; and whole
+//! only once its closing line came.
 
 use super::box_hold::{BoxHold, HELD_MAX, KEY_LEN, TAG};
 use super::linux_frames::frames;
@@ -52,4 +53,17 @@ fn a_report_past_the_bound_is_held_to_it() {
         assert!(hold.take(&f));
     }
     assert_eq!(hold.lines().0.concat().len(), HELD_MAX);
+}
+
+#[test]
+fn a_report_without_its_closing_line_is_not_whole() {
+    const KEY: [u8; KEY_LEN] = [7; KEY_LEN];
+    let mut hold = BoxHold::new(KEY);
+    assert!(!hold.complete());
+    let frame = |body: &[u8]| [&[TAG][..], &KEY, body].concat();
+    assert!(hold.take(&frame(b"BOX REPORT v1\n  refused  0\n")));
+    assert!(!hold.complete());
+    assert!(hold.take(&frame(b"[BOX] v=1 refused=0\n")));
+    assert!(hold.complete());
+    assert_eq!(hold.ended, None);
 }

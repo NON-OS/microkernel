@@ -27,25 +27,16 @@ pub const TAG: u8 = 3;
 pub const KEY_LEN: usize = 16;
 /// The most of a report kept: a report is a few hundred bytes.
 pub const HELD_MAX: usize = 64 * 1024;
-
-/// The word that names `key` to the run, ahead of `--box`.
-pub fn key_arg(key: &[u8; KEY_LEN]) -> Vec<u8> {
-    let mut word = b"--box-key=".to_vec();
-    for b in key {
-        word.push(b"0123456789abcdef"[usize::from(b >> 4)]);
-        word.push(b"0123456789abcdef"[usize::from(b & 15)]);
-    }
-    word
-}
-
 pub struct BoxHold {
     key: [u8; KEY_LEN],
     held: Vec<u8>,
+    /// The run's exit status, once it ended with the screen another's.
+    pub ended: Option<i32>,
 }
 
 impl BoxHold {
     pub fn new(key: [u8; KEY_LEN]) -> Self {
-        Self { key, held: Vec::new() }
+        Self { key, held: Vec::new(), ended: None }
     }
 
     /// Whether `msg` is a frame of the report, kept if it is.
@@ -55,6 +46,11 @@ impl BoxHold {
         let room = HELD_MAX.saturating_sub(self.held.len());
         self.held.extend_from_slice(&body[..body.len().min(room)]);
         true
+    }
+
+    /// Whether the report came whole: its `[BOX]` line is its last.
+    pub fn complete(&self) -> bool {
+        self.lines().1.is_some()
     }
 
     /// The report's lines for the screen, and its `[BOX]` line for the log.

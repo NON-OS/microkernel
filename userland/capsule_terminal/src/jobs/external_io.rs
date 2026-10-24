@@ -39,10 +39,11 @@ pub(super) fn drain_remaining(
     out: &mut Output<'_>,
     buf: &mut [u8; 256],
 ) {
-    /* Output bound for a file is all taken now, up to four times what an
-     * inbox holds: what is left after the job ends is never read. The
-     * screen keeps its per-tick bound. */
-    let budget = if capture.is_some() { DISCARD_MAX * buf.len() } else { TICK_BUDGET };
+    /* Output bound for a file, or ahead of a boxed run's report, is all
+     * taken now, up to four times what an inbox holds: what is left after
+     * the job ends is never read. The screen keeps its per-tick bound. */
+    let all = capture.is_some() || boxed.is_some();
+    let budget = if all { DISCARD_MAX * buf.len() } else { TICK_BUDGET };
     let mut taken = 0;
     while taken < budget {
         let m = mk_proc_output(pid, buf.as_mut_ptr(), buf.len());
@@ -58,11 +59,16 @@ pub(super) fn drain_remaining(
 /// Read what a killed program had written and not yet shown, and drop it.
 /// The kernel keeps a dead program's output until its parent reads it dry;
 /// a chat's words should not wait there for a reader that is not coming.
-pub(super) fn discard_output(pid: u32) {
+/// Output dropped, but for a boxed run's report frames, which are kept.
+pub(super) fn discard_output(pid: u32, mut boxed: Option<&mut BoxHold>) {
     let mut buf = [0u8; 256];
     for _ in 0..DISCARD_MAX {
-        if mk_proc_output(pid, buf.as_mut_ptr(), buf.len()) <= 0 {
+        let n = mk_proc_output(pid, buf.as_mut_ptr(), buf.len());
+        if n <= 0 {
             break;
+        }
+        if let Some(hold) = boxed.as_deref_mut() {
+            hold.take(&buf[..(n as usize).min(buf.len())]);
         }
     }
 }

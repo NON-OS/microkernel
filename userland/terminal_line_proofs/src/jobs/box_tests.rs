@@ -19,8 +19,9 @@
 //! frames the capsule writes are all the terminal keeps, and nothing the
 //! guest writes on the same channel is taken for the report.
 
-use super::box_hold::{key_arg, BoxHold, KEY_LEN, TAG};
+use super::box_hold::{BoxHold, KEY_LEN, TAG};
 use super::linux_frames::{frames, key_of, FRAME_MAX, TAG as LINUX_TAG};
+use super::tool_argv::key_arg;
 
 const KEY: [u8; KEY_LEN] = [
     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,

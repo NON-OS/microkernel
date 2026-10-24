@@ -18,7 +18,7 @@
 
 use alloc::vec::Vec;
 
-use crate::jobs::box_hold::{key_arg, KEY_LEN};
+use crate::jobs::box_hold::KEY_LEN;
 
 /// argv as the tool sees it: argv[0] is the command name, then the key a
 /// boxed run is given, then each argument, NUL-separated, which is what the
@@ -35,4 +35,14 @@ pub fn argv(args: &[&[u8]], key: Option<&[u8; KEY_LEN]>) -> Vec<u8> {
         blob.extend_from_slice(a);
     }
     blob
+}
+
+/// The word that names `key` to the run, ahead of `--box`.
+pub fn key_arg(key: &[u8; KEY_LEN]) -> Vec<u8> {
+    let mut word = b"--box-key=".to_vec();
+    for b in key {
+        word.push(b"0123456789abcdef"[usize::from(b >> 4)]);
+        word.push(b"0123456789abcdef"[usize::from(b & 15)]);
+    }
+    word
 }

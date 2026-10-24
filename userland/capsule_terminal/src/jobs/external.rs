@@ -30,6 +30,9 @@ pub fn step_external(
     out: &mut Output<'_>,
     leave_modes: bool,
 ) -> JobProgress {
+    if let Some(progress) = super::box_wait::waiting(boxed.as_deref_mut(), out, leave_modes) {
+        return progress;
+    }
     stdin.feed(pid);
     let mut buf = [0u8; 256];
     let mut taken = 0;
@@ -60,9 +63,6 @@ pub fn step_external(
     if !leave_modes {
         out.program_ended();
     }
-    if let Some(hold) = boxed {
-        super::box_draw::draw(hold, out);
-    }
     let mut status = status as i32;
     /* The program did its part; a file that could not take its output is
      * still a failed command. */
@@ -71,5 +71,5 @@ pub fn step_external(
             status = 1;
         }
     }
-    JobProgress::Done(status)
+    super::box_wait::ended(boxed, status, out, leave_modes)
 }
