@@ -51,6 +51,8 @@ pub struct Verdict {
     pub overall: Overall,
     pub verdict: String,
     pub kind: Kind,
+    /// How many limits the checks carry, each listed under its check.
+    pub limits: usize,
     pub release: String,
     pub record_sha256: Option<String>,
     pub tree: Option<String>,

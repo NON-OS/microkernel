@@ -16,14 +16,13 @@
 
 //! `verify.hygiene`, `verify.trust-chain`, `verify.supply-chain`: the tree's
 //! verification engine, nonos-verify, built from the tree and run on it, its
-//! report written to a private directory and judged by `judge`.
+//! report written to a private directory and judged by `judge` against the
+//! tree's declared limits, which are read first: without them none can pass.
 
-use super::judge::judge;
-use super::report::read;
-use super::runner::Cmd;
-use super::scratch::Scratch;
+use super::{declared, judge::judge, report::read, runner::Cmd, scratch::Scratch};
 use crate::check::Check;
 use crate::ctx::Ctx;
+use std::path::Path;
 use std::time::Duration;
 
 pub const HYGIENE: &str = "verify.hygiene";
@@ -45,28 +44,29 @@ fn run(ctx: &mut Ctx, id: &'static str, sub: &str) -> Check {
     let Some(tree) = &ctx.tree else {
         return Check::not_run(id, "no tree to run nonos-verify in");
     };
+    let declared = match declared::load(tree) {
+        Ok(d) => d,
+        Err(e) => return Check::fail(id, e),
+    };
     let scratch = match Scratch::new(sub) {
         Ok(s) => s,
         Err(e) => return Check::not_run(id, e),
     };
-    let manifest = tree.join("nonos-verify/Cargo.toml").display().to_string();
-    let args = ["run", "--quiet", "--release", "--manifest-path", &manifest, "--", sub];
-    let env = vec![("NONOS_VERIFY_REPORTS".to_string(), scratch.0.display().to_string())];
-    let cmd = Cmd {
-        program: "cargo".into(),
-        args: args.map(String::from).to_vec(),
-        cwd: tree.clone(),
-        env,
-        limit: LIMIT,
-    };
-    let done = match ctx.runner.run(&cmd, &scratch.0.join("run.log")) {
+    let done = match ctx.runner.run(&command(tree, sub, &scratch.0), &scratch.0.join("run.log")) {
         Ok(d) => d,
         Err(e) => return Check::not_run(id, e),
     };
-    match read(&scratch.0.join(sub).join(format!("{sub}-report.json"))) {
-        Ok(r) => judge(id, sub, &r, done.code),
-        Err(e) => {
-            Check::not_run(id, format!("nonos-verify {sub} left no report ({e}): {}", done.tail))
-        }
-    }
+    let at = scratch.0.join(sub).join(format!("{sub}-report.json"));
+    read(&at).map_or_else(
+        |e| Check::not_run(id, format!("nonos-verify {sub} left no report ({e}): {}", done.tail)),
+        |r| judge(id, sub, &r, done.code, &declared),
+    )
+}
+
+fn command(tree: &Path, sub: &str, reports: &Path) -> Cmd {
+    let manifest = tree.join("nonos-verify/Cargo.toml").display().to_string();
+    let args = ["run", "--quiet", "--release", "--manifest-path", &manifest, "--", sub];
+    let env = vec![("NONOS_VERIFY_REPORTS".to_string(), reports.display().to_string())];
+    let args = args.map(String::from).to_vec();
+    Cmd { program: "cargo".into(), args, cwd: tree.into(), env, limit: LIMIT }
 }

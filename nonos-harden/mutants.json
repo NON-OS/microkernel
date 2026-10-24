@@ -44,8 +44,8 @@
   {
     "name": "decide-dev-reads-plain-go",
     "file": "src/verdict/decide.rs",
-    "old": "(None, Kind::Development) => (Overall::Go, DEV_GO.into()),",
-    "new": "(None, Kind::Development) => (Overall::Go, \"GO\".into()),",
+    "old": "(None, Kind::Development) => (Overall::Go, limited(DEV_GO, checks)),",
+    "new": "(None, Kind::Development) => (Overall::Go, limited(\"GO\", checks)),",
     "caught_by": "tests::plan_go_tests::a_passing_development_release_reads_go_not_a_release_and_a_release_go"
   },
   {
@@ -215,5 +215,40 @@
     "old": "&& c != \".\" && c != \"..\")",
     "new": "&& c != \".\")",
     "caught_by": "tests::record_tests::a_path_that_could_leave_the_release_is_refused"
+  },
+  {
+    "name": "judge-accepts-undeclared-gap",
+    "file": "src/tree/judge.rs",
+    "old": "if !undeclared.is_empty() {",
+    "new": "if false {",
+    "caught_by": "tests::declared_tests::a_gap_the_tree_does_not_declare_is_no_go"
+  },
+  {
+    "name": "judge-gap-declared-for-any-module",
+    "file": "src/tree/judge.rs",
+    "old": "m == sub && dw == w",
+    "new": "dw == w",
+    "caught_by": "tests::declared_tests::a_gap_declared_for_one_module_is_undeclared_for_another"
+  },
+  {
+    "name": "verify-missing-list-reads-as-empty",
+    "file": "src/tree/verify.rs",
+    "old": "Err(e) => return Check::fail(id, e),",
+    "new": "Err(_) => Vec::new(),",
+    "caught_by": "tests::declared_tests::without_a_declared_list_in_its_format_no_verifier_passes"
+  },
+  {
+    "name": "decide-go-line-hides-limit-count",
+    "file": "src/verdict/decide.rs",
+    "old": "1 => format!(\"{go}, 1 declared limit\"),",
+    "new": "1 => go.into(),",
+    "caught_by": "tests::limits_tests::a_go_over_a_declared_gap_counts_and_lists_it_under_the_verdict"
+  },
+  {
+    "name": "text-does-not-list-limits",
+    "file": "src/verdict/text.rs",
+    "old": "            s += &format!(\"  limit: {}: does not cover {}\\n\", c.id, clean(l));\n",
+    "new": "            let _ = l;\n",
+    "caught_by": "tests::limits_tests::a_go_over_a_declared_gap_counts_and_lists_it_under_the_verdict"
   }
 ]
