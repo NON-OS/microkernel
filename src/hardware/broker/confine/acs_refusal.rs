@@ -42,6 +42,12 @@ pub(crate) fn peer_alias_line(peer: Bdf, holder: &str) -> String {
     format!("refused: {}, which {holder} holds, carries its requester id", bdf(peer))
 }
 
+/// A device of another capsule's whose isolation group cannot be read now:
+/// the claim fails closed.
+pub(crate) fn unreadable_line(peer: Bdf, holder: &str) -> String {
+    format!("refused: the isolation group of {}, which {holder} holds, can't be read", bdf(peer))
+}
+
 fn bdf((b, d, f): Bdf) -> String {
     format!("{b:02x}:{d:02x}.{f}")
 }
