@@ -66,9 +66,3 @@ pub fn load(src: &Source, ring: &[Key]) -> Option<Vec<Record>> {
 fn say(line: &[u8]) {
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }
-
-/// A package by its own name first, then by a name it provides.
-pub fn find<'a>(index: &'a [Record], want: &str) -> Option<&'a Record> {
-    let named = index.iter().find(|r| r.name == want);
-    named.or_else(|| index.iter().find(|r| r.provides.iter().any(|p| p == want)))
-}

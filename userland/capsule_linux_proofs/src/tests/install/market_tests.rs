@@ -18,7 +18,7 @@
 //! policy passes before the install role vouches for it (plan/30).
 
 use crate::install::market_arg::{market_arg, NotMarket, MARKET_LEN};
-use crate::install::market_check::{admit, names_program};
+use crate::install::market_check::{admit, names_program, without_box};
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet};
 
 const PROGRAM: &[u8] = b"\x7fELF a market program";
@@ -71,4 +71,12 @@ fn every_other_policy_fails_the_install() {
     let mut bad = market(&p, 1, 2);
     bad[0] = b'X';
     assert_eq!(admit(&bad), Err("its policy is malformed"));
+}
+
+/* A release with no policy ("-") is a shipped tier's; any package from an
+ * index without its release's box fails before anything is fetched. */
+#[test]
+fn only_a_shipped_tier_installs_without_a_box() {
+    assert_eq!(without_box(true), Ok(()));
+    assert_eq!(without_box(false), Err("a package from an index needs its release's box"));
 }

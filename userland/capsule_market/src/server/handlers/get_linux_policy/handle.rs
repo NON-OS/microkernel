@@ -41,9 +41,9 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
     let Some(entry) = accepted.index.entries.get(entry_index) else {
         return reply_status(tx, req, E_NODATA);
     };
-    let signed = accepted.signature_verified
-        && accepted.publisher_signature_verified(entry_index, release_index);
-    let out = linux_policy_body(&encode(entry, release, signed));
+    let publisher_signed = accepted.publisher_signature_verified(entry_index, release_index);
+    let out =
+        linux_policy_body(&encode(entry, release, accepted.signature_verified, publisher_signed));
     let Some(slot) = body_slot(tx, out.len()) else {
         return reply_status(tx, req, E_MSGSIZE);
     };

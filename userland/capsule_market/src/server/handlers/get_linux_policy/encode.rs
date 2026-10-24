@@ -16,8 +16,9 @@
 
 //! What `OP_GET_LINUX_POLICY` answers for one release (I-C5, plan/30): the
 //! policy and the two keys the install role checks it against, only when
-//! the policy gate passes as Valid and both signatures verified; nothing for
-//! a vendor program or a listing that is not Linux; a refusal otherwise.
+//! the policy gate passes as Valid and the release is install ready, which
+//! holds both signatures; nothing for a vendor program or a listing that is
+//! not Linux; a refusal otherwise.
 
 extern crate alloc;
 
@@ -28,13 +29,20 @@ use nonos_marketplace_abi::{listing_id, policy_verdict, release_id, PolicyVerdic
 use nonos_marketplace_abi::{CapsuleRelease, MarketplaceEntry, POLICY_LEN};
 
 use crate::chain_hosts::Host;
+use crate::install_ready::ready;
 
-/// `signed` is whether the index and this release's publisher signature both
-/// verified: a policy nobody signed is not the publisher's box.
-pub(super) fn encode(entry: &MarketplaceEntry, rel: &CapsuleRelease, signed: bool) -> LinuxPolicy {
+/// Whether the index and this release's publisher signature verified: a
+/// policy nobody signed is not the publisher's box, and one for a release
+/// readiness refuses is no box anything installs in.
+pub(super) fn encode(
+    entry: &MarketplaceEntry,
+    rel: &CapsuleRelease,
+    index_signed: bool,
+    publisher_signed: bool,
+) -> LinuxPolicy {
     match policy_verdict(&Host, entry, rel) {
         PolicyVerdict::NotLinux | PolicyVerdict::Vendor => LinuxPolicy::NoPolicy,
-        PolicyVerdict::Valid if signed => {
+        PolicyVerdict::Valid if ready(index_signed, entry, rel, publisher_signed) => {
             arg(entry, rel).map_or(LinuxPolicy::Refused, LinuxPolicy::Policy)
         }
         _ => LinuxPolicy::Refused,

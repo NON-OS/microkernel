@@ -30,3 +30,10 @@ pub mod market;
 
 #[path = "../../../capsule_market/src/install_ready/pin.rs"]
 pub mod pin;
+
+/* It reads the chain hosts, which only the tests mount. */
+#[cfg(test)]
+#[path = "../../../capsule_market/src/install_ready/ready.rs"]
+pub mod ready;
+#[cfg(test)]
+pub use ready::ready;
