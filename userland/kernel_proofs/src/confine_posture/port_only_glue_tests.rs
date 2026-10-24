@@ -19,6 +19,7 @@
 //! capsule records it, and the claim closes Memory Space for one.
 
 const JOIN_GROUP: &str = include_str!("../../../../src/hardware/broker/confine/join_group.rs");
+const GATES: &str = include_str!("../../../../src/hardware/broker/confine/gates.rs");
 const ACS: &str = include_str!("../../../../src/hardware/broker/confine/acs.rs");
 const ONE: &str = include_str!("../../../../src/hardware/broker/confine/one.rs");
 const ATTACH: &str = include_str!("../../../../src/hardware/broker/confine/attach.rs");
@@ -30,6 +31,9 @@ fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
     assert!(JOIN_GROUP.contains("let ports = (claim_port_only, c.port_only);"));
     assert!(JOIN_GROUP.contains("blocked_by(claimed, group, &held, ports, place)"));
     assert!(JOIN_GROUP.contains("filter_map(|&e| Some((e, peer(e)?)))"), "no held device's group");
+    assert!(JOIN_GROUP.contains("(p.at, p.group.as_deref())"), "an unread group taken as empty");
+    assert!(JOIN_GROUP.contains("Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid))"));
+    assert!(GATES.contains("return Some(Peer { at, group: None, aliases: Vec::new() });"));
 }
 
 #[test]

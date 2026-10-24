@@ -58,6 +58,7 @@ mod symmetric_ports;
 mod symmetric_rng;
 mod symmetric_tests;
 mod symmetric_topologies;
+mod symmetric_unreadable_tests;
 mod tests;
 mod tree_tests;
 mod words_tests;
