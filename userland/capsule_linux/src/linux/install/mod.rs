@@ -48,6 +48,7 @@ mod tools;
 mod tools_install;
 mod http_reply;
 mod index;
+mod index_find;
 mod isa;
 mod limit;
 mod manifest;
