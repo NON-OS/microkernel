@@ -195,6 +195,8 @@ mod ffi {
 pub enum KyberError {
     FfiError,
     InvalidLength,
+    /// The call drew from a randomness source that failed (`drawn`).
+    RandomnessFailed,
 }
 
 #[inline]
@@ -206,23 +208,9 @@ fn ok(rc: i32) -> Result<(), KyberError> {
     }
 }
 
-pub fn kyber_keygen() -> Result<KyberKeyPair, KyberError> {
-    let mut pk = KyberPublicKey { bytes: [0u8; PUBLICKEY_BYTES] };
-    let mut sk = KyberSecretKey { bytes: [0u8; SECRETKEY_BYTES] };
-    let rc = unsafe { ffi::keypair(pk.bytes.as_mut_ptr(), sk.bytes.as_mut_ptr()) };
-    ok(rc)?;
-    Ok(KyberKeyPair { public_key: pk, secret_key: sk })
-}
-
-pub fn kyber_encaps(
-    pk: &KyberPublicKey,
-) -> Result<(KyberCiphertext, [u8; SHAREDSECRET_BYTES]), KyberError> {
-    let mut ct = KyberCiphertext { bytes: [0u8; CIPHERTEXT_BYTES] };
-    let mut ss = [0u8; SHAREDSECRET_BYTES];
-    let rc = unsafe { ffi::encaps(ct.bytes.as_mut_ptr(), ss.as_mut_ptr(), pk.bytes.as_ptr()) };
-    ok(rc)?;
-    Ok((ct, ss))
-}
+#[path = "kyber_drawn.rs"]
+mod drawn;
+pub use drawn::{kyber_encaps, kyber_keygen};
 
 pub fn kyber_decaps(
     ct: &KyberCiphertext,
