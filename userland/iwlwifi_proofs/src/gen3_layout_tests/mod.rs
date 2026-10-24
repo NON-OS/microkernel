@@ -21,4 +21,5 @@ mod commands;
 mod image;
 mod regions;
 mod rxq;
+mod rxq_read;
 mod scan;
