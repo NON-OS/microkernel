@@ -51,6 +51,9 @@ mod registry_set_tests;
 pub mod scan_hidden;
 #[path = "service_policy_tests.rs"]
 mod service_policy_tests;
+#[path = "proof_io_spawn_tests.rs"]
+#[cfg(test)]
+mod proof_io_spawn_tests;
 #[path = "supervisor_tests.rs"]
 mod supervisor_tests;
 #[path = "surface_unmap/mod.rs"]
