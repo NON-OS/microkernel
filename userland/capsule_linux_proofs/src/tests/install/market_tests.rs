@@ -18,7 +18,7 @@
 //! policy passes before the install role vouches for it.
 
 use crate::install::market_arg::{market_arg, NotMarket, MARKET_LEN};
-use crate::install::market_check::{admit, names_program, without_box};
+use crate::install::market_check::{admit, gate, names_program, without_box};
 use nonos_linux_policy::{unlisted, LinuxAppPolicy, SyscallSet};
 
 const PROGRAM: &[u8] = b"\x7fELF a market program";
@@ -77,6 +77,21 @@ fn every_other_policy_fails_the_install() {
  * index without its release's box fails before anything is fetched. */
 #[test]
 fn only_a_shipped_tier_installs_without_a_box() {
-    assert_eq!(without_box(true), Ok(()));
-    assert_eq!(without_box(false), Err("a package from an index needs its release's box"));
+    let tier = crate::models::apps::all().next().expect("a shipped tier").name;
+    assert_eq!(without_box(tier), Ok(()));
+    for pkg in ["git", "qwen-no-such-tier", "vim"] {
+        assert_eq!(
+            without_box(pkg),
+            Err("a package from an index needs its release's box"),
+            "{pkg}"
+        );
+        assert!(gate(pkg, None).is_err(), "{pkg}: no box, never installed");
+    }
+    assert_eq!(gate(tier, None), Ok(None), "a tier: its own table's box");
+    let p = policy(1, 2, ready());
+    assert_eq!(gate("git", Some(&market(&p, 1, 2))), Ok(Some(p)), "a market box: admitted");
+    assert!(
+        gate(tier, Some(&market(&p, 3, 2))).is_err(),
+        "a box that fails admit fails even a tier"
+    );
 }
