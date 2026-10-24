@@ -30,8 +30,7 @@ use crate::tests::harness::{harness, Harness};
 use crate::tests::host::words::at;
 use crate::tests::part::ring::{desc, put, u16_at};
 
-/// What the device writes: its bytes (cut to the buffer offered) and the
-/// length it claims, its bytes' own when None.
+/// The device's bytes (cut to the buffer offered) and claimed length.
 #[derive(Clone, Debug)]
 pub struct Reply {
     pub bytes: Vec<u8>,
