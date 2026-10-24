@@ -12,6 +12,8 @@ Part of [NONOS documentation](README.md).
   keys, what each keeps and where each stops.
 - [Terminal](using/terminal.md): tabs, line editing, pipes, jobs, every built-in
   command and git over HTTPS.
+- [The exposure map](using/audit.md): `audit`, which capsule can reach the
+  network, storage or devices, and on whose signature.
 - [Command-line tools](using/command-line-tools.md): the seven crates.io
   programs that ship as their own capsules, how to start them and give them a
   file.
