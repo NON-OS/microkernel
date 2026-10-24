@@ -25,7 +25,7 @@ import random
 import unittest
 from pathlib import Path
 
-from . import alpine_auth, alpine_index, apk, gz, rsa, tarwalk
+from . import alpine_auth, alpine_index, apk, apkindex, gz, rsa, tarwalk
 from .documents import split
 from .fuzz_inputs import anything, mangled
 from .names import index_record, listing
@@ -43,7 +43,8 @@ class Sweep(unittest.TestCase):
         calls = [lambda: gz.members(mangled(r)), lambda: tarwalk.walk(r.randbytes(r.randrange(2048))),
                  lambda: apk.program(mangled(r)[: r.randrange(4096)], "a"),
                  lambda: alpine_auth.package_files(mangled(r), r.randbytes(20)),
-                 lambda: alpine_index.records(alpine_index.signed_index(mangled(r), lambda *a: True)),
+                 lambda: apkindex.records(apkindex.text(alpine_index.signed_index(mangled(r), lambda *a: True))),
+                 lambda: apkindex.records(r.randbytes(r.randrange(400))),
                  lambda: rsa.verify(PEM, r.randbytes(r.choice([511, 512, 513])), "sha1", r.randbytes(20)),
                  lambda: rsa.public_key(PEM[: r.randrange(len(PEM))]),
                  lambda: checked(anything(r, 1), Path(".")), lambda: index_record(anything(r, 1)),

@@ -41,7 +41,7 @@ class Rsa(unittest.TestCase):
         self.assertFalse(rsa.verify(other, sig.body, "sha1", digest))
         self.assertFalse(rsa.verify(key_pem, b"\x00" + sig.body, "sha1", digest))
         der = base64.b64decode(b"".join(key_pem.splitlines()[1:-1]))
-        oid = bytes.fromhex("2a864886f70d010101")  # rsaEncryption; ...0105 is sha1WithRSA, not a key
+        oid = bytes.fromhex("2a864886f70d010101")  # rsaEncryption; ...0105 is sha1WithRSA
         renamed = b"-----BEGIN PUBLIC KEY-----\n" + base64.b64encode(der.replace(oid, oid[:-1] + b"\x05"))
         with self.assertRaises(ValueError):
             rsa.public_key(renamed + b"\n-----END PUBLIC KEY-----\n")
