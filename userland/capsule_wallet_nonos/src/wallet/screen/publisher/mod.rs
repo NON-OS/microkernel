@@ -16,16 +16,19 @@
 
 mod acts;
 mod acts_rows;
+mod attest_screen;
 pub mod click;
 mod click_acts;
+mod click_attest;
 mod click_send;
 pub mod key;
 mod review;
 mod review_echo;
-mod review_rows;
+pub(super) mod review_rows;
 mod review_say;
 mod rows;
 mod show;
+mod sign_row;
 mod why;
 
 pub use show::show;
