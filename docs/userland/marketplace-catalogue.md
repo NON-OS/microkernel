@@ -13,9 +13,16 @@ The bytes hashed are the last copy of that name, which is the one that lands. A 
 
 The policy's listing and release ids are derived from the publisher key by `marketplace_abi`'s rule, so the market's policy gate answers Valid. A schema-3 Linux release without a policy answers Missing and can never be installed. Every catalogue listing is free (`settle_mode` 0): it needs no bond, binding or ReleaseAttest.
 
-init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and hands it to the installer, which installs the app only in that box. A policy the market does not vouch for refuses the install, and no package from an index installs without one (`userland/capsule_linux/src/linux/install/market.rs`, `install_from`). Each release's note says so (`tools/nonos_market_catalogue/catalogue.py:30`, `NOTE`).
+init asks the market for the release's policy (`OP_GET_LINUX_POLICY`, I-C5) and hands it to the installer, which binds it to the app's program. A policy the market does not vouch for refuses the install, and no listed package from an index installs without one (`userland/capsule_linux/src/linux/install/market.rs`, `install_from`). Each release's note says so (`tools/nonos_market_catalogue/catalogue.py:30`, `NOTE`).
 
-A market release's policy names one program, the one its listing starts. Every other ELF of that package stays held: the installer writes an unvouched policy beside each one before its bytes land, and the program it starts gets its real policy only once that policy is bound. So nothing of a market package starts outside its box. That holds if its install is cut off, and if an uninstall leaves some of it behind (`userland/capsule_linux/src/linux/install/minted.rs`). The other programs of a package do not run until they have a policy of their own. In 0.9.3 those are git's HTTP and SSH helpers, age's `age-keygen` and flac's `metaflac`, and their listings say so.
+A market release's policy names one program, the one its listing starts. Every other ELF of that package is held: the installer writes an unvouched policy beside each one before its bytes land, and the program gets its real policy only once that policy is bound. So no ELF of the listed package starts outside its box at its installed path. That holds if its install is cut off, and if an uninstall leaves some of it behind (`userland/capsule_linux/src/linux/install/minted.rs`). The package's other programs are refused at their installed paths until they have a policy of their own. In 0.9.3 those are git's HTTP and SSH helpers, age's `age-keygen` and flac's `metaflac`, and their listings say so.
+
+
+- **Dependencies:** a listed package's dependencies install unheld (tig pulls git, bat pulls less, vim pulls xxd), and each runs in the default box.
+- **A copy:** a held ELF copied to another path along with its trailer.
+- **The loader:** `/lib/ld-musl-x86_64.so.1 <program>`, because the loader's gate checks only the trailer.
+
+The fix is to tie a policy to the program's hash, not its path, so that a copy or a loader exec keeps its box. It is filed with track A.
 
 Nothing is listed until the generator has authenticated it as the device does, under the Alpine keys the device pins: [Catalogue authentication](marketplace-catalogue-authentication.md).
 
@@ -61,7 +68,7 @@ Any fault stops the run with a message, so a seal lists every recipe or none. Th
 
 ## The lock
 
-`userland/capsule_market/linux-catalogue.lock.json` pins the version, checksum (`C:`) and size of the package each recipe resolved to. Its shape is `{"format": "nonos.linux-catalogue-lock.v1", "packages": {...}}`, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/lock.py`, `read`).
+`userland/capsule_market/linux-catalogue.lock.json` pins the version, checksum (`C:`) and size of the package each recipe resolved to, and the BLAKE3 of its whole `.apk` (`B`), which its listing signs. `C:` covers only the control and data members, so `B` is what keeps a same-size package with another signature member out. Its shape is `{"format": "nonos.linux-catalogue-lock.v2", "packages": {...}}`, and any other format, shape or encoding is refused whole (`tools/nonos_market_catalogue/lock.py`, `read`).
 
 Every run fetches the signed indexes fresh, then holds them to the lock. A run stops, naming every package, if the index:
 
@@ -69,7 +76,7 @@ Every run fetches the signed indexes fresh, then holds them to the lock. A run s
 - lacks a recipe's package;
 - has a recipe with no pin, or a pin with no recipe.
 
-So two seals of one tree sign the same bytes or the second one stops. Alpine replaces a package's version in place, so a security update stops the next seal by name. `--update-lock` writes the lock from a run instead of holding it to the lock. That is a developer's deliberate step, and its diff is reviewed and committed like any other change.
+After the fetch, every listing's `.apk` must be the one `B` pins. So two seals of one tree sign the same bytes or the second one stops. Alpine replaces a package's version in place, so a security update stops the next seal by name. `--update-lock` writes the lock from a run instead of holding it to the lock. That is a developer's deliberate step, and its diff is reviewed and committed like any other change.
 
 ## Adding an app
 
@@ -92,4 +99,4 @@ So two seals of one tree sign the same bytes or the second one stops. Alpine rep
 - **A real package:** `vectors/` holds one real Alpine package (CC0-1.0) and its signed index record. RSA verification and the package chain are tested against Alpine's own signature, and a test key covers the padding and length rules.
 - **Hostile inputs:** tests for every refusal: gzip, tar, pax, the chain, the index, names, recipes, documents, fetches and the run.
 - **A seeded fuzz sweep:** `test_fuzz.py`, over every parser of untrusted input. Use NONOS_FUZZ_ITERS and NONOS_FUZZ_SEED for a long run.
-- **Mutants:** `test_mutants.py` applies each of the 118 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.
+- **Mutants:** `test_mutants.py` applies each of the 121 mutants in `tools/nonos_market_catalogue/mutants.json` to a copy of the tree. The suite must fail on every one and pass on the unmutated copy. A mutant that hangs the suite counts as killed after 120 s.

@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The catalogue's lock: the version, checksum and size of each package the
-recipes resolved to, committed beside them, so a seal of a tree signs the
-same bytes every time or stops. A fresh signed index that has moved past
+recipes resolved to, and the BLAKE3 of its whole .apk, which its listing
+signs, committed beside them, so a seal of a tree signs the same bytes
+every time or stops. A fresh signed index that has moved past
 the lock stops the seal by name, and only `--update-lock`, a developer's
 deliberate run, moves the lock. A file of any other format, shape or
 encoding is refused whole."""
@@ -23,35 +24,9 @@ encoding is refused whole."""
 import json
 from pathlib import Path
 
-from .names import package, version
+from .lock_file import FIELDS, FORMAT, read
 
-FORMAT = "nonos.linux-catalogue-lock.v1"
-FIELDS = ("V", "C", "S")
-MAX_BYTES = 1 << 20
-
-
-def read(path: Path) -> dict:
-    """{package: {V, C, S}}, or ValueError (TypeError for a wrong type)."""
-    if not path.is_file():
-        raise ValueError(f"{path}: no lock; make one with --update-lock and commit it")
-    raw = path.read_bytes()
-    if len(raw) > MAX_BYTES:
-        raise ValueError(f"{path}: larger than {MAX_BYTES} bytes")
-    try:
-        doc = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as why:
-        raise ValueError(f"{path}: not JSON: {why}") from None
-    if not isinstance(doc, dict) or doc.get("format") != FORMAT or set(doc) != {"format", "packages"}:
-        raise ValueError(f"{path}: not a {FORMAT} file")
-    pins = doc["packages"]
-    if not isinstance(pins, dict):
-        raise TypeError(f"{path}: packages is not an object")
-    for name, pin in pins.items():
-        if package(name) != name or not isinstance(pin, dict) or set(pin) != set(FIELDS):
-            raise ValueError(f"{path}: {name!r} is not pinned by {', '.join(FIELDS)}")
-        if version(pin["V"]) != pin["V"] or not all(isinstance(pin[f], str) and pin[f] for f in FIELDS):
-            raise ValueError(f"{path}: {name}: a pin is not a version, checksum and size")
-    return pins
+__all__ = ["bytes_held", "held", "read", "write"]
 
 
 def held(known: dict, pins: dict, names: list) -> None:
@@ -66,7 +41,20 @@ def held(known: dict, pins: dict, names: list) -> None:
         raise ValueError("the lock does not hold; review, then --update-lock: " + "; ".join(said))
 
 
-def write(path: Path, known: dict, names: list) -> None:
-    pins = {n: {f: known[n][f] for f in FIELDS} for n in sorted(names)}
+def apk(entry: dict) -> tuple:
+    """(package, the BLAKE3 its listing signs) for a catalogue entry."""
+    return entry["listing_id"].removeprefix("linux."), entry["releases"][0]["package_hash"]
+
+
+def bytes_held(pins: dict, found: list) -> None:
+    """ValueError naming every listing whose .apk is not the one locked."""
+    moved = [f"{n}: the .apk is {b}, locked {pins[n]['B']}" for n, b in map(apk, found) if pins[n]["B"] != b]
+    if moved:
+        raise ValueError("the lock does not hold; review, then --update-lock: " + "; ".join(moved))
+
+
+def write(path: Path, known: dict, names: list, found: list) -> None:
+    signed = dict(map(apk, found))
+    pins = {n: {**{f: known[n][f] for f in FIELDS}, "B": signed[n]} for n in sorted(names)}
     rows = ",\n".join(f"  {json.dumps(n)}: {json.dumps(p)}" for n, p in pins.items())
     path.write_text('{"format": ' + json.dumps(FORMAT) + ', "packages": {\n' + rows + "\n}}\n")
