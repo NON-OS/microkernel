@@ -29,3 +29,6 @@ embed-trailer = { path = "../nonos-bootloader/tools/embed-trailer" }
 nonos-sign-kernel = { path = "../nonos-bootloader/tools/sign-kernel" }
 proptest = "1"
 tempfile = "3"
+
+[package.metadata.nonos]
+test-lane = true

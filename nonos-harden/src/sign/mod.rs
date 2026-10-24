@@ -20,7 +20,7 @@
 //! inside those bytes, so a signature cannot be passed off as another key's.
 
 pub mod key;
-mod named;
+pub(crate) mod named;
 pub mod refuse;
 pub mod verify;
 
