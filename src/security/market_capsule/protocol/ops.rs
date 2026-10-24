@@ -24,3 +24,5 @@ pub(in super::super) const OP_GET_APP: u16 = 3;
 pub(in super::super) const OP_GET_RELEASE: u16 = 4;
 pub(in super::super) const OP_INSTALL_READY: u16 = 5;
 pub(in super::super) const OP_HEALTHCHECK: u16 = 6;
+/// I-C5: the box a Linux release is sold with (market_proto's op 8).
+pub(in super::super) const OP_GET_LINUX_POLICY: u16 = 8;

@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod get_app;
+mod get_linux_policy;
 mod get_release;
 mod healthcheck;
 mod install_ready;
+pub(crate) mod linux_policy_wire;
 mod list_apps;
 mod load_index;
 mod seq;
@@ -28,6 +30,7 @@ pub(super) use transport::REPLY_INBOX;
 
 pub use get_app::{get_app, AppSummary};
 pub use get_release::{get_release, ReleaseSummary};
+pub(crate) use get_linux_policy::queued_get_linux_policy;
 pub(crate) use get_release::queued_get_release;
 pub use healthcheck::healthcheck;
 pub use install_ready::{install_ready, InstallReadiness};
