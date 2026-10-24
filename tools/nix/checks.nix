@@ -5,7 +5,7 @@
 # What stays in its own workflow, because it needs a network or a toolchain no
 # lock can pin yet: Kani (cargo kani setup downloads CBMC), Verus, the
 # Charon/Aeneas extraction, cargo-fuzz runs and cargo-audit's advisory feed.
-{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox }:
+{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox, periodic }:
 let
   # The static and drift checks read the tree as a reviewer does, docs and
   # all; every cargo check reads only its own crate (tools/nix/inputs.py).
@@ -28,6 +28,11 @@ let
   needsTpm = [ "userland/tpm_enroll_proofs" "userland/tpm_key_proofs" ];
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
+
+  # The proof crates handed the periodic cache nonos.shield ships, by
+  # NONOS_PERIODIC_CACHE, as capsules.nix hands it to the capsule. A test that
+  # finds it missing says so, and the check fails on that line.
+  needsPeriodic = [ "userland/shield_vectors_proofs" ];
 
   # A shell repository of the tree, so the checks that ask git which files are
   # tracked get a real answer instead of an empty list.
@@ -72,6 +77,7 @@ let
     dir:
     let
       tpm = builtins.elem dir needsTpm;
+      cache = builtins.elem dir needsPeriodic;
     in
     rustBuild {
       name = "proofs-${builtins.baseNameOf dir}";
@@ -85,11 +91,17 @@ let
       # timestamp wrapped the clock that way, with its proof green.
       script = ''
         export RUST_TEST_THREADS=1
+        ${lib.optionalString cache "export NONOS_PERIODIC_CACHE=${periodic}/periodic.top"}
         cd ${dir}
         cargo test --frozen --release --config profile.release.overflow-checks=true ${testArgs dir} 2>&1 | tee $TMPDIR/test.log
         ${lib.optionalString tpm ''
           if grep -E "live test skipped|certificate test skipped|live derivation not exercised" $TMPDIR/test.log; then
             echo "a live TPM test was skipped" >&2; exit 1
+          fi
+        ''}
+        ${lib.optionalString cache ''
+          if grep "real cache test skipped" $TMPDIR/test.log; then
+            echo "a real periodic cache test was skipped" >&2; exit 1
           fi
         ''}
         ${clippy dir}
