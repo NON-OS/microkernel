@@ -21,7 +21,7 @@ import unittest
 
 from .names import index_record, listing, package, version
 
-REC = {"P": "git", "V": "2.45.4-r0", "L": "GPL-2.0-only", "base": "https://example.org/x"}
+REC = {"P": "git", "V": "2.45.4-r0", "L": "GPL-2.0-only", "base": "https://example.org/x", "S": "3281791"}
 
 
 class Names(unittest.TestCase):
@@ -30,7 +30,8 @@ class Names(unittest.TestCase):
             self.assertEqual(package(name), name)
         for v in ("1.0-r0", "2024.05.18-r0", "6.4_p20240420-r2", "0.18.3.3-r1"):
             self.assertEqual(version(v), v)
-        self.assertEqual(listing("linux.helix"), "linux.helix")
+        for lid in ("linux.helix", "nonos.app.text_editor", "community.some-app"):
+            self.assertEqual(listing(lid), lid)
 
     def test_traversal_separators_and_odd_types_are_refused(self):
         for bad in ("../x", "a/b", ".x", "", "-x", "Git", "a b", "a\x00", "x" * 65, None, 7, ["git"]):
@@ -39,7 +40,7 @@ class Names(unittest.TestCase):
         for bad in ("../1", "1/2", ".1", "", "r0", "1\n", None, 1.0):
             with self.assertRaises(ValueError, msg=repr(bad)):
                 version(bad)
-        for bad in ("linux.../x", "linux./x", "community.x", "linux.", "linux.a/b", "linux..a", None):
+        for bad in ("linux.../x", "linux./x", "nonos.x", "linux.", "linux.a/b", "linux..a", "kali.x", None):
             with self.assertRaises(ValueError, msg=repr(bad)):
                 listing(bad)
 

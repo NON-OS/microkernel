@@ -21,17 +21,17 @@ import unittest
 
 from nonos_linux_pack.policy import listing_id, release_id
 
-from .apk_fixture import ELF, make
+from .apk_fixture import ELF, checksum, make
 from .catalogue import catalogue_entries
 from .digest import blake3
 from .recipes import UNMEASURED
 
 KEY = "11" * 32
 BASE = "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64"
-REC = {"P": "tool", "V": "1.0-r0", "L": "MIT", "base": BASE}
 RECIPE = {"package": "tool", "licence": "MIT", "mask": 0x108, "dests": None,
           "calls": UNMEASURED, "name": "Tool", "text": "A tool."}
 RAW = make([("usr/bin/other", ELF + b"o"), ("usr/bin/tool", ELF + b"t")])
+REC = {"P": "tool", "V": "1.0-r0", "L": "MIT", "base": BASE, "C": checksum(RAW), "S": str(len(RAW))}
 
 
 def listed(recipe=RECIPE, rec=REC, raw=RAW):

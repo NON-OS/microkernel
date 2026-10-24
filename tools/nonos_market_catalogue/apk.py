@@ -13,49 +13,29 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""An Alpine package's files, and the program the installer records for it.
+"""The program capsule_linux records for an installed package, and so the
+one its policy must name (install/record/program.rs): `usr/bin/<name>` if
+the package has a regular file there, ELF or not, else its first ELF under
+usr/bin, in archive order. The bytes that land are the last copy of that
+name, since the installer writes entries in order."""
 
-An .apk is three gzip members, the signature, the control file and the
-data, each a tar cut short; inflated and joined they read as one tar.
-capsule_linux records usr/bin/<name> when the package has it and is an
-ELF, else the first ELF under usr/bin in archive order
-(install/record/program.rs), and the policy has to name that one."""
-
-import io
-import tarfile
-import zlib
-
-LIMIT = 256 << 20
+from . import tarwalk
 
 
-def inflate(raw: bytes) -> bytes:
-    """Every gzip member of `raw`, joined; refused past LIMIT."""
-    out, rest = bytearray(), raw
-    while rest:
-        z = zlib.decompressobj(31)
-        try:
-            out += z.decompress(rest, LIMIT + 1 - len(out))
-        except zlib.error as why:
-            raise ValueError(f"the package is not gzip: {why}") from None
-        if len(out) > LIMIT or z.unconsumed_tail:
-            raise ValueError("the package inflates past its limit")
-        if not z.eof:
-            raise ValueError("the package ends inside a gzip member")
-        rest = z.unused_data
-    return bytes(out)
-
-
-def files(raw: bytes) -> list:
-    """(name, body) for every regular file, in archive order."""
-    try:
-        with tarfile.open(fileobj=io.BytesIO(inflate(raw)), mode="r:", ignore_zeros=True) as tar:
-            return [(m.name, tar.extractfile(m).read()) for m in tar.getmembers() if m.isfile()]
-    except tarfile.TarError as why:
-        raise ValueError(f"the package is not a tar: {why}") from None
-
-
-def program(raw: bytes, name: str):
-    """(path, body) of the program a package starts as, or None."""
-    elves = [(n, b) for n, b in files(raw) if n.startswith("usr/bin/") and b.startswith(b"\x7fELF")]
-    own = [e for e in elves if e[0] == f"usr/bin/{name}"]
-    return (own or elves or [None])[0]
+def program(files: bytes, name: str):
+    """(path, body) of the program, None when there is none, or ValueError
+    when the recorded file is not an ELF: the program could not start, and
+    a policy naming it would name nothing that runs."""
+    entries = tarwalk.files(files)
+    own = f"usr/bin/{name}".encode()
+    if any(e.name == own for e in entries):
+        chosen = own
+    else:
+        elves = [e.name for e in entries if e.name.startswith(b"usr/bin/") and e.body.startswith(b"\x7fELF")]
+        if not elves:
+            return None
+        chosen = elves[0]
+    body = [e.body for e in entries if e.name == chosen][-1]
+    if not body.startswith(b"\x7fELF"):
+        raise ValueError(f"its {chosen.decode(errors='replace')} is not an ELF")
+    return chosen.decode(errors="replace"), body
