@@ -54,10 +54,12 @@ class Run(unittest.TestCase):
             got = dict(rec)
             sources.apk_of(Path(d), got)
             self.assertEqual(got["base"], "https://e.org/main")
-            (Path(d) / "x-1-r0.apk").write_bytes(b"abc")
+            at = sources.cached(Path(d), "main", rec)
+            at.parent.mkdir(parents=True, exist_ok=True)
+            at.write_bytes(b"abc")
             with self.assertRaises(ValueError):
                 sources.apk_of(Path(d), dict(rec, S="4"))
-            self.assertFalse((Path(d) / "x-1-r0.apk").exists())
+            self.assertFalse(at.exists())
         with tempfile.TemporaryDirectory() as d, mock.patch.object(sources, "fetch", side_effect=ValueError("x")), \
                 self.assertRaises(ValueError):
             sources.apk_of(Path(d), dict(rec))
