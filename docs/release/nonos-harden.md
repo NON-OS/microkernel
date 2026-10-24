@@ -72,15 +72,15 @@ GO means all of these were true when the command ran:
    - the verify matrix's static-checks and proof-crates rows
 
 A GO always carries at least one limit, so it reads with a count. For a
-release:
+release, exiting 0:
 
 ```
 GO, 1 declared limit
   limit: release.sealed: does not cover the loader, the ESP's other files and the USB and ISO images, past being the bytes the release record names: the record is not signed
 ```
 
-A development image that passes reads `GO (development image, not a
-release)`, followed by its count of limits:
+A development image that passes exits 5, not 0, and reads `GO (development
+image, not a release)`, followed by its count of limits:
 
 ```
 GO (development image, not a release), 4 declared limits
@@ -103,6 +103,23 @@ Each limit is listed right under the verdict line.
   checked only against the record, and the record is not signed. Only the
   kernel is tied to something trusted, through its signature. Every GO says
   this in its first limit.
+
+  What someone who can write the release directory could do with this:
+  - replace the loader, the ESP's other files (its trailer, approvals and
+    `boot.cfg`), or the USB or ISO image;
+  - rewrite the record and the receipt to match;
+  - and still get GO.
+
+  The kernel cannot be replaced this way. The ESP's kernel must be the signed
+  kernel. A substituted loader, however, runs before any check the kernel
+  makes: it decides what it loads and what it measures, and on a machine
+  without Secure Boot, nothing stops it. So treat a GO as saying nothing
+  about the loader or the images, and use media whose provenance you control
+  in some other way.
+
+  The planned fix is for the seal to sign the record and for this command to
+  verify that signature. It is on the seal list for 0.9.4; until then this
+  limit stands.
 - **The source is the receipt's commit, not necessarily the newest one.**
   The verdict names the commit the receipt names and the tree's HEAD. An old
   commit from the tree's history passes if the tree holds it. The kernel's
@@ -113,10 +130,13 @@ Each limit is listed right under the verdict line.
   what it names was checked. Read the limits under the verdict line. A check
   that could not run is never a pass: it makes the verdict NO-GO, and so does
   a verifier that is missing.
-- **A development GO still exits 0.** It reads
-  `GO (development image, not a release), …` and has `"kind": "development"`.
-  Whether the record says development or release is taken from the record.
-  A script that deploys on the exit status alone must also check `kind`.
+- **A development GO exits 5, not 0.** It reads
+  `GO (development image, not a release), …` and has
+  `"kind": "development"`. Only a release's GO exits 0, so a script that
+  deploys on exit status 0 alone can never deploy a development image.
+  Whether the record says development or release is taken from the record,
+  but `release.kind` fails a record that claims a release while carrying
+  `nonos-dev-attest`.
 - **A signature says who signed which bytes.** It does not make NO-GO into
   GO, and `verify-signature` does not report the verdict.
 
@@ -279,11 +299,12 @@ nonos-harden verify-signature --verdict verdict.json --signature verdict.json.si
 
 | code | meaning |
 |---|---|
-| 0 | GO (for `verify-signature`: the signature verifies) |
+| 0 | GO over a release (for `verify-signature`: the signature verifies) |
 | 1 | NO-GO |
 | 2 | bad command line, a signing key refused, or a tree inside the release |
 | 3 | the verdict could not be written or signed |
 | 4 | the signature does not verify |
+| 5 | GO over a development image: every check passed, but it is not a release |
 
 The command line is read strictly. It refuses unknown, repeated or empty
 flags, and it refuses `--sign-key` without `--out`.
@@ -298,8 +319,8 @@ They are in the tree's test lanes.
   assembles the attested kernel, inside a real git tree that has its own
   keys.
 - **GO cases.** That development release reads
-  `GO (development image, not a release), 1 declared limit`, and the release
-  profile reads `GO, 1 declared limit`.
+  `GO (development image, not a release), 1 declared limit` and exits 5. The
+  release profile reads `GO, 1 declared limit` and exits 0.
 - **One flipped byte.** The tree's own `tools/nonos-flip-byte` flips one byte
   in a copy of the release, and the copy reads NO-GO:
   - A byte flipped in the image names `release.sealed`.
@@ -339,7 +360,7 @@ They are in the tree's test lanes.
 
 ### Mutant results
 
-`python3 nonos-harden/mutants.py` was run on the crate as it lands. All 51 mutants are caught, and none escaped.
+`python3 nonos-harden/mutants.py` was run on the crate as it lands. All 52 mutants are caught, and none escaped.
 
 | mutant | file | caught by |
 |---|---|---|
@@ -350,6 +371,7 @@ They are in the tree's test lanes.
 | `decide-unknown-kind-is-go` | `src/verdict/decide.rs` | `verdict_tests::go_needs_every_check_run_and_passed_and_the_kind_known` |
 | `decide-no-checks-is-not-refused` | `src/verdict/decide.rs` | `verdict_tests::go_needs_every_check_run_and_passed_and_the_kind_known` |
 | `decide-dev-reads-plain-go` | `src/verdict/decide.rs` | `plan_go_tests::a_passing_development_release_reads_go_not_a_release_and_a_release_go` |
+| `deliver-dev-go-exits-0` | `src/deliver.rs` | `plan_go_tests::a_passing_development_release_reads_go_not_a_release_and_a_release_go` |
 | `judge-ignores-failed-checks` | `src/tree/judge.rs` | `judge_tests::a_failed_check_or_one_of_unknown_status_fails` |
 | `judge-ignores-gaps` | `src/tree/judge.rs` | `judge_tests::a_check_that_could_not_run_does_not_pass_though_the_tool_exits_0` |
 | `judge-ignores-exit-code` | `src/tree/judge.rs` | `judge_more_tests::no_report_an_empty_one_or_a_bad_exit_does_not_pass` |
