@@ -6860,6 +6860,38 @@
   "md": [],
   "signed": []
  },
+ "userland/nsh_attest_proofs": {
+  "exclude": [
+   "userland/nsh_attest_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-boot-measure/src/tcg",
+   "nonos-mldsa65",
+   "src/capabilities/types/as_str.rs",
+   "src/capabilities/types/defs.rs",
+   "src/capabilities/types/guard.rs",
+   "src/capabilities/types/table.rs",
+   "src/crypto/asymmetric/p256/constants.rs",
+   "src/crypto/asymmetric/p256/field",
+   "src/crypto/asymmetric/p256/point",
+   "src/crypto/asymmetric/p256/scalar",
+   "src/security/attest_doc/binding.rs",
+   "src/security/attest_registry/format.rs",
+   "third_party/pqclean",
+   "userland/attest_receipt",
+   "userland/capsule_about/src/about/data/proofs/firmware.rs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_attest",
+   "userland/nsh_attest_proofs",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nsh_crypto_proofs": {
   "exclude": [],
   "include": [
@@ -6868,6 +6900,26 @@
    "userland/nonos_seal",
    "userland/nsh_crypto",
    "userland/nsh_crypto_proofs",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_roles_proofs": {
+  "exclude": [
+   "userland/nsh_roles_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "src/capabilities/types/defs.rs",
+   "third_party/pqclean",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_crypto",
+   "userland/nsh_roles",
+   "userland/nsh_roles_proofs",
    "userland/nsh_wire"
   ],
   "md": [],
@@ -7761,14 +7813,20 @@
    "userland/capsule_driver_rtl8821ce/src/rx",
    "userland/capsule_driver_rtl8821ce/src/scan.rs",
    "userland/capsule_driver_rtl8821ce/src/sec.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/consts.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/ends.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/install.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/media.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/request.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/session.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/control/status_body.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/channels.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/drain.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/state.rs",
+   "userland/capsule_driver_rtl8821ce/src/status.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
    "userland/capsule_driver_rtl8821ce/src/wait.rs",
    "userland/libc/src/broker/dma_order.rs",

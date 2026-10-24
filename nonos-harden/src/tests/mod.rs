@@ -19,6 +19,7 @@
 //! docs/release/nonos-harden.md.
 
 mod attest;
+mod boot_gate_tests;
 mod cli_tests;
 mod configs;
 mod declared_tests;
