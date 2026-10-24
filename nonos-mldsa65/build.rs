@@ -45,6 +45,10 @@ fn main() {
     }
     // The shared header already renames randombytes to this name.
     b.define("PQCLEAN_randombytes", Some("nonos_mldsa65_randombytes"));
+    let names = std::fs::read_to_string("shake_names.txt").expect("shake_names.txt");
+    for name in names.lines().filter(|l| !l.starts_with('#') && !l.is_empty()) {
+        b.define(name, Some(format!("nonos_mldsa65_{name}").as_str()));
+    }
     b.warnings(false);
     let target = env::var("TARGET").unwrap_or_default();
     if target.contains("nonos") {
@@ -63,4 +67,5 @@ fn main() {
     println!("cargo:rerun-if-changed={}", src.display());
     println!("cargo:rerun-if-changed={}", common.join("fips202.c").display());
     println!("cargo:rerun-if-changed=include");
+    println!("cargo:rerun-if-changed=shake_names.txt");
 }

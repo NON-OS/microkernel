@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The memory the C asks for. ML-DSA-65 only allocates the state of an
-//! incremental SHAKE, 208 bytes, and holds at most one at a time, and only
-//! one call is in the C at once (`rng`); this answers from four fixed
-//! slots, so the crate needs no allocator. A size
+//! The memory the C asks for. ML-DSA-65 allocates only SHAKE states: 208
+//! bytes for an incremental one, 200 for a one-shot one. It holds at most
+//! one at a time, and only one call is in the C at once (`rng`), so four
+//! fixed 256-byte slots answer every request and no allocator is needed. A size
 //! over a slot, or a fifth live request, gets nothing, and the C then
 //! calls exit, which ends the program rather than continue without state.
 
