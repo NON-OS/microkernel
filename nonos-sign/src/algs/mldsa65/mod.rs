@@ -19,6 +19,8 @@ mod guard;
 mod keygen;
 mod sign;
 #[cfg(test)]
+mod test_hooks;
+#[cfg(test)]
 mod tests;
 mod verify;
 

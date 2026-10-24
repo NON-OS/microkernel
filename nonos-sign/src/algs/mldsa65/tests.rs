@@ -18,20 +18,9 @@
 //! signature; the all-zero mode of a reproducible signature never reaches a
 //! key pair, even with both running at once.
 
+use super::test_hooks::Forced;
 use super::{ffi, guard::PQ, MlDsa65};
 use crate::algs::traits::Signer;
-
-fn forced<T>(f: impl FnOnce() -> T) -> T {
-    let set = |on: i32| {
-        let _turn = PQ.lock().unwrap_or_else(|p| p.into_inner());
-        // SAFETY: eK@nonos.systems - a plain int in the C, set under PQ.
-        unsafe { ffi::NONOS_mldsa65_force_random_failure(on) };
-    };
-    set(1);
-    let out = f();
-    set(0);
-    out
-}
 
 /// The key pair the zero mode would make, for comparison.
 fn zero_key() -> Vec<u8> {
@@ -49,10 +38,10 @@ fn zero_key() -> Vec<u8> {
 #[test]
 fn a_failed_draw_refuses_the_key_and_the_signature_but_not_the_reproducible_one() {
     let key = MlDsa65::keygen_random().unwrap();
-    let (kp, sig, rep) = forced(|| {
-        let rep = MlDsa65::sign_reproducible(&key.seed, b"m");
-        (MlDsa65::keygen_random(), MlDsa65::sign(&key.seed, b"m"), rep)
-    });
+    let forced = Forced::on();
+    let rep = MlDsa65::sign_reproducible(&key.seed, b"m");
+    let (kp, sig) = (MlDsa65::keygen_random(), MlDsa65::sign(&key.seed, b"m"));
+    drop(forced);
     assert!(kp.is_err() && sig.is_err(), "nothing is made from a failed draw");
     assert!(rep.is_ok(), "the deterministic signature draws nothing");
     assert!(MlDsa65::keygen_random().is_ok(), "a later draw that works is used");

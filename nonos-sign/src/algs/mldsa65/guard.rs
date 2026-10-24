@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every call into the C, one at a time and with its randomness checked.
-//! The C ignores whether a draw succeeded, so after each call the failure
-//! note is taken and a call that drew from a failed source is refused. One
-//! lock covers all of them, so the all-zero mode a reproducible signature
-//! switches on can never be on while another thread makes a key.
-
-use std::sync::Mutex;
+//! Every call into the C, one at a time, refused if any draw it made failed
+//! (the C ignores that). One lock covers them all, so the zero mode of a
+//! reproducible signature is never on while another thread makes a key.
 
 use super::ffi;
 use crate::error::SignError;
+use std::sync::Mutex;
 
 pub(super) static PQ: Mutex<()> = Mutex::new(());
 
@@ -67,6 +64,12 @@ pub(super) fn signature(
     // SAFETY: eK@nonos.systems - `sig` is SIGNATURE_BYTES, `sk` checked.
     guarded(reproducible, || unsafe {
         let (m, n) = (msg.as_ptr(), msg.len());
-        ffi::PQCLEAN_MLDSA65_CLEAN_crypto_sign_signature(sig.as_mut_ptr(), siglen, m, n, sk.as_ptr())
+        ffi::PQCLEAN_MLDSA65_CLEAN_crypto_sign_signature(
+            sig.as_mut_ptr(),
+            siglen,
+            m,
+            n,
+            sk.as_ptr(),
+        )
     })
 }

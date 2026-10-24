@@ -26,13 +26,14 @@
  * here; the Rust side takes the note after every call and refuses. */
 static int nonos_deterministic_random;
 static int nonos_random_failed;
-static int nonos_force_failure;
+static _Thread_local int nonos_force_failure;
 
 void NONOS_mldsa65_deterministic_random(int enabled) {
     nonos_deterministic_random = enabled;
 }
 
-/* For the tests only: make every draw from the system fail. */
+/* For the tests only: make every draw from the system fail, on this
+ * thread alone, so other tests running beside it are untouched. */
 void NONOS_mldsa65_force_random_failure(int enabled) {
     nonos_force_failure = enabled;
 }
