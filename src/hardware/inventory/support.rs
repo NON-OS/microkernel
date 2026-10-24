@@ -25,7 +25,7 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
             DataPath
         }
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
-        NetworkE1000e | NetworkIgb | NetworkIxgbe => DataPath,
+        NetworkE1000e | NetworkIgb | NetworkIgc | NetworkIxgbe => DataPath,
         NetworkRtl8821ce => DataPath,
         NetworkPcnet => DataPath,
         NetworkVmxnet3 => DataPath,
@@ -40,7 +40,6 @@ pub fn support_state(family: HardwareFamily) -> SupportState {
         SerialSmbus => DataPath,
         DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
         StorageVmd | NetworkRealtekWifi => EnumerateOnly,
-        NetworkIgc => EnumerateOnly,
         SerialSpi | BridgePci | SystemPeripheral | Unknown => EnumerateOnly,
     }
 }
