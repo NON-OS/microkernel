@@ -68,6 +68,7 @@ pub fn spawn_wallet_nonos_instance() -> Result<u32, SpawnError> {
             | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
+            | Capability::Keyring.bit()
             | crate::capabilities::serial_debug_cap(),
         instances: WALLET_NONOS_INSTANCES,
         debug_tag: b"[WALLET_NONOS-INSTANCE] elf error:",
@@ -95,6 +96,7 @@ pub fn spawn_wallet_nonos_capsule() -> Result<(), SpawnError> {
             | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
+            | Capability::Keyring.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
