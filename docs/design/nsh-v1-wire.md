@@ -64,21 +64,24 @@ hello within that size, or be refused as `PROTOCOL`.
 Here `H` is SHA-512, `Extract` and `Expand` are HKDF-SHA-512, and labels
 are ASCII strings.
 
-**The transcript.** The transcript is one running SHA-512, fed one entry
-per frame in the order the frames were sent:
+**The transcript.** The transcript is a chain of SHA-512 values, one link
+per frame, in the order the frames were sent:
 
-- Each entry is `n: u32 | type | body`, where `n = 1 + body length`.
-- `n` is always the plaintext length. It is never the length on the wire,
-  which for a sealed frame also counts the tag.
-- `TH(F)` is the digest once frame F's entry has gone in.
+- Each frame's entry is `n: u32 | type | body`, where `n = 1 + body
+  length`. `n` is always the plaintext length, never the length on the
+  wire, which for a sealed frame also counts the tag.
+- The chain starts at `TH(start) = H("nsh/1 transcript\0")`.
+- Each frame F then gives `TH(F) = H(TH(previous) || F's entry)`.
 
 **A frame that carries its own signatures.** These are `HOST_PROOF` and
-`USER_AUTH`. They sign `TH(F without its signatures)`. That is the digest
-of every earlier entry, followed by the entry `n' | type | body[..m]`.
-Here `m` is the body's length less the 3373 bytes of the hybrid
-signature, and `n' = 1 + m`. Once the signatures verify, the frame's whole
-entry (signatures included) goes into the transcript. This is the entry
-`TH(F)` and every later digest are built on.
+`USER_AUTH`. They sign `TH(F without its signatures)`, which is
+`H(TH(previous) || n' | type | body[..m])`. Here `m` is the body's length
+less the 3373 bytes of the hybrid signature, and `n' = 1 + m`. `TH(F)`
+itself is computed over the whole entry, signatures included, as for any
+other frame.
+
+Each link is a single value, so a prefix needs no saved hash state.
+
 - `ss` is the X-Wing shared secret (32 bytes). The X-Wing key pair in
   `CLIENT_HELLO` is made for this one connection and discarded after
   `SERVER_HELLO`. A reused key would let a server or an observer link one
