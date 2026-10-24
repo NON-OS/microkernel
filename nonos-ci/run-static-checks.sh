@@ -2086,7 +2086,7 @@ unset dma_limits dma_validate dma_errno_map dma_types
 # refuses, so a wide id is never truncated to the wrong CPU (a plain
 # `as u8` would send 0x104 to CPU 4). Both the MSI and MSI-X route
 # paths take the destination from `dest_apic_id()?`.
-msi_msg='src/drivers/pci/types/msi.rs'
+msi_msg='src/drivers/pci/types/msi_message.rs'
 msi_dest='src/hardware/broker/irq/bind/message.rs'
 msix_real='src/hardware/broker/irq/msix_ops/real.rs'
 msi_route='src/hardware/broker/irq/bind/msi_route.rs'
