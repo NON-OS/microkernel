@@ -24,7 +24,8 @@ from pathlib import Path
 
 from nonos_linux_pack.policy import market_ready
 
-from .recipes import UNMEASURED, checked, load
+from .recipes import UNMEASURED, checked
+from .recipes_file import FORMAT, load
 
 ROOT = Path(__file__).resolve().parents[2]
 COMMITTED = ROOT / "userland/capsule_market/linux-catalogue.json"
@@ -64,7 +65,7 @@ class Recipes(unittest.TestCase):
     def test_a_package_listed_twice_is_refused(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "c.json"
-            path.write_text(json.dumps([BASE, dict(BASE, name="Y")]))
+            path.write_text(json.dumps({"format": FORMAT, "apps": [BASE, dict(BASE, name="Y")]}))
             with self.assertRaises(ValueError):
                 load(path, ROOT)
 

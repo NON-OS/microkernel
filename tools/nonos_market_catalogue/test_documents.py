@@ -26,7 +26,7 @@ from pathlib import Path
 from nonos_linux_pack.policy import listing_id, release_id
 
 from .documents import split, write
-from .recipes import load
+from .recipes_file import load
 
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "nonos-data/market/catalogue"
@@ -39,12 +39,12 @@ def documents():
 
 class Documents(unittest.TestCase):
     def test_split_keeps_the_header_and_one_entry_each(self):
-        index = {"schema_version": 3, "serial": 7, "entries": [{"listing_id": "a"}, {"listing_id": "b"}]}
-        docs = split(index)
-        self.assertEqual(sorted(docs), ["a", "b"])
-        self.assertEqual(docs["b"], {"schema_version": 3, "serial": 7, "entries": [{"listing_id": "b"}]})
+        a, b = {"listing_id": "linux.a"}, {"listing_id": "linux.b"}
+        docs = split({"schema_version": 3, "serial": 7, "entries": [a, b]})
+        self.assertEqual(docs["linux.b"], {"schema_version": 3, "serial": 7, "entries": [b]})
         with tempfile.TemporaryDirectory() as d:
-            self.assertEqual([p.name for p in write(index, Path(d))], ["a.json", "b.json"])
+            got = write({"schema_version": 3, "entries": [a, b]}, Path(d))
+            self.assertEqual([p.name for p in got], ["linux.a.json", "linux.b.json"])
 
     def test_there_is_a_document_for_every_recipe_and_no_other(self):
         names = sorted(d["entries"][0]["listing_id"] for d in documents())
