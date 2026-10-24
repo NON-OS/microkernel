@@ -1,0 +1,26 @@
+[package]
+name = "nonos-harden"
+version = "0.9.3"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "One GO or NO-GO before an image touches a machine: runs the verifiers the tree holds over a sealed release and prints one versioned verdict, optionally signed with the operator's own key."
+
+[[bin]]
+name = "nonos-harden"
+path = "src/main.rs"
+
+[dependencies]
+# The trust-chain library the seal and the kernel's spawn gate share: key files
+# and ML-DSA-65 verification, so the kernel's signature is checked by the same
+# code that made it.
+nonos-sign = { path = "../nonos-sign" }
+blake3 = "1"
+ed25519-dalek = "2"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[dev-dependencies]
+proptest = "1"
+tempfile = "3"
