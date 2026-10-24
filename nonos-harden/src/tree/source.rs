@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `tree.source`: the tree is the source the release was built from. HEAD is
-//! the receipt's commit or a later one, and the files (tracked or not) differ
-//! from that commit only in the trust set under nonos-data/: the seal stages
-//! its trust set after the commit, so that is the one change a sealing tree
-//! carries. Anything else changed means the tree's verifiers would judge
-//! other source than the image's.
+//! the receipt's commit or a later one, and the files on disk, hashed here
+//! (`blobs`, `untracked`), differ from that commit only where the seal
+//! stages what it writes (tools/nonos_seal: nonos-data/trust, market and
+//! models). The kernel's public keys sit there but are pinned: a release's
+//! must be the commit's, and a development image's own keys are a limit.
 
-use super::git::{git, paths};
-use crate::check::Check;
-use crate::ctx::Ctx;
+use super::{blobs::differences, git::git};
+use crate::check::{named, Check};
+use crate::ctx::{Ctx, Kind};
+use crate::release::kernel_keys::{ED_PUB, PQ_PUB};
 
 pub const ID: &str = "tree.source";
-const TRUST_SET: &str = "nonos-data/";
-const NAMED: usize = 5;
+const STAGED: [&str; 3] = ["nonos-data/trust/", "nonos-data/market/", "nonos-data/models/"];
 
 pub fn check(ctx: &mut Ctx) -> Check {
     let (Some(tree), Some(r)) = (&ctx.tree, &ctx.receipt) else {
@@ -45,29 +45,31 @@ pub fn check(ctx: &mut Ctx) -> Check {
     if git(tree, &["merge-base", "--is-ancestor", &c, "HEAD"]).is_err() {
         return Check::fail(ID, format!("HEAD {head} is neither commit {c} nor a later one"));
     }
-    let changed = git(tree, &["diff", "--name-only", "-z", &c, "--"]);
-    let untracked = git(tree, &["ls-files", "-z", "--others", "--exclude-standard"]);
-    let (changed, untracked) = match (changed, untracked) {
-        (Ok(a), Ok(b)) => (a, b),
-        (Err(e), _) | (_, Err(e)) => {
-            return Check::fail(ID, format!("git could not compare ({e})"))
-        }
+    let changed = match differences(tree, &c) {
+        Ok(d) => d,
+        Err(e) => return Check::fail(ID, format!("the tree could not be compared ({e})")),
     };
-    let all: Vec<&str> = paths(&changed).chain(paths(&untracked)).collect();
-    let outside: Vec<&str> = all.iter().copied().filter(|p| !p.starts_with(TRUST_SET)).collect();
+    let outside: Vec<String> =
+        changed.iter().filter(|p| !STAGED.iter().any(|s| p.starts_with(s))).cloned().collect();
     if !outside.is_empty() {
-        let named = outside.iter().take(NAMED).copied().collect::<Vec<_>>().join(", ");
         let n = outside.len();
-        return Check::fail(
-            ID,
-            format!("{n} files differ from commit {c} outside the trust set: {named}"),
-        );
+        let why =
+            format!("{n} files differ from {c} outside the seal's staging: {}", named(outside));
+        return Check::fail(ID, why);
     }
-    match all.is_empty() && head == c {
-        true => Check::pass(ID, format!("exactly commit {c}, the release's source")),
-        false => Check::pass(
-            ID,
-            format!("commit {c}, the release's source, changed only in its trust set"),
-        ),
+    let keys = changed.iter().any(|p| p == ED_PUB || p == PQ_PUB);
+    let (exact, staged) = (
+        format!("exactly commit {c}, the release's source"),
+        format!("commit {c}, changed only where the seal stages"),
+    );
+    match (keys, ctx.kind) {
+        (true, Kind::Development) => {
+            let own = format!(
+                "the kernel's public keys are this development tree's own, not commit {c}'s"
+            );
+            Check::pass(ID, staged).with_limits(vec![own])
+        }
+        (true, _) => Check::fail(ID, format!("the kernel's public keys differ from commit {c}'s")),
+        (false, _) => Check::pass(ID, if changed.is_empty() { exact } else { staged }),
     }
 }

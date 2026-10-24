@@ -31,7 +31,7 @@ fn source_of(s: &Sealed) -> Check {
     source::check(&mut ctx)
 }
 
-fn passes(s: &Sealed, why: &str) {
+pub fn passes(s: &Sealed, why: &str) {
     let c = source_of(s);
     assert!(c.status == Status::Pass && c.reason.contains(why), "{c:?}");
 }
@@ -51,11 +51,11 @@ fn the_trust_set_staged_or_committed_after_is_the_one_change_allowed() {
     let s = Sealed::dev();
     s.tree.put(&format!("{TRUST}/capsules/added.manifest.bin"), b"staged by the seal");
     s.tree.ledger();
-    passes(&s, "changed only in its trust set");
+    passes(&s, "changed only where the seal stages");
     s.tree.git(&["add", "-A"]);
-    passes(&s, "changed only in its trust set");
+    passes(&s, "changed only where the seal stages");
     s.tree.git(&["commit", "-q", "-m", "the trust set the seal staged"]);
-    passes(&s, "changed only in its trust set");
+    passes(&s, "changed only where the seal stages");
 }
 
 #[test]

@@ -17,9 +17,14 @@ nonos-sign = { path = "../nonos-sign" }
 blake3 = "1"
 ed25519-dalek = "2"
 hex = "0.4"
+# Opening a file once, without following a link or blocking on a FIFO, and
+# killing a verifier with every process it started.
+libc = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+# Git's own blob ids, so tree.source hashes the tree itself, not git's view.
+sha1 = "0.10"
 
 [dev-dependencies]
 # The seal's own code, so the proofs build a signed, attested kernel exactly as
