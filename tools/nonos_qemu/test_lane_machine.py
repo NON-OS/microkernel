@@ -28,7 +28,8 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 from nonos_qemu import lanes, machine  # noqa: E402
 
-ALL = [n for n in lanes.NAMES if not n.startswith("nic=")] + ["nic=igb"]
+ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu="))]
+ALL += ["nic=igb"]
 
 
 class LaneMachine(unittest.TestCase):
@@ -62,6 +63,10 @@ class LaneMachine(unittest.TestCase):
         self.assertEqual(out, lanes.plan(ALL, "/d").args)
         bad = subprocess.run([sys.executable, tool, "args", "--dir", "/d", "nope"], capture_output=True)
         self.assertNotEqual(bad.returncode, 0)
+        # make cannot rewrite its machine, so it refuses an IOMMU lane rather than boot without one.
+        mmu = subprocess.run([sys.executable, tool, "args", "--dir", "/d", "iommu=intel"],
+                             capture_output=True, text=True)
+        self.assertIn("nix run .#qemu -- --lane iommu=intel", mmu.stderr)
 
 
 if __name__ == "__main__":
