@@ -36,7 +36,12 @@ pub extern "C" fn aarch64_ap_entry() -> ! {
         park_outside_roster(cpu::mpidr_affinity())
     };
     // Then, in this function that never returns: every CPU signs with the
-    // boot CPU's key or none does (security::pac).
+    // boot CPU's key or none does (security::pac). The MMU is already on, from
+    // `_aarch64_secondary_start`, and TCR_EL1 does not change after this, so a
+    // return address signed here is authenticated where it was signed. The
+    // calls above ran with EnIA clear (SCTLR_EL1 reset in start.S), so their
+    // sign and authenticate were both no-ops; the boot CPU had to wait for
+    // `init` to finish before installing for the same reason.
     match security::pac::secondary_key() {
         Ok(Some(key)) => security::pac::install_kernel_key!(key),
         Ok(None) => {}
