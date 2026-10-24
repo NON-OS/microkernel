@@ -13,36 +13,54 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""The run stops on a fault that leaves nothing true to list, drops a cached
-index that fails its signature, and refuses a package of another size than
-the signed index gives. Run:
+"""The run refuses any release or arch but the device's, stops on an index
+that fails its signature, takes a package from the first branch that
+serves it, and refuses, and drops, one of another size than the signed
+index gives. Run:
 python3 -m unittest discover -s tools/nonos_market_catalogue -t tools"""
 
+import re
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from . import run
+from . import run, sources
+
+RUN_RS = Path(__file__).resolve().parents[2] / "userland/capsule_linux/src/linux/install/run.rs"
 
 
 class Run(unittest.TestCase):
-    def test_a_missing_file_or_an_unsigned_index_stops_the_run(self):
-        with tempfile.TemporaryDirectory() as d:
-            cache = Path(d)
-            with self.assertRaises(SystemExit):
-                run.catalogue_run(cache / "none.json", cache, "https://e.org", "x86_64", "11" * 32, 1)
-            (cache / "main-APKINDEX.tar.gz").write_bytes(b"not signed")
-            with self.assertRaises(ValueError):
-                run.table(cache, "https://e.org", "x86_64")
-            self.assertFalse((cache / "main-APKINDEX.tar.gz").exists())
+    def test_release_arch_and_branches_are_the_device_s(self):
+        rs = RUN_RS.read_text()
+        self.assertIn(f'RELEASE: &str = "{sources.RELEASE}";', rs)
+        self.assertIn(f'ARCH: &str = "{sources.ARCH}";', rs)
+        self.assertEqual(re.search(r'BRANCHES: \[&str; 2\] = \["(\w+)", "(\w+)"\]', rs).groups(), sources.BRANCHES)
 
-    def test_a_package_of_another_size_than_the_index_says_is_refused(self):
-        with tempfile.TemporaryDirectory() as d, mock.patch.object(run, "fetch", return_value=b"abc"):
-            rec = {"P": "x", "V": "1-r0", "S": "4", "base": "https://e.org"}
+    def test_another_release_or_an_unsigned_index_stops_the_run(self):
+        with tempfile.TemporaryDirectory() as d:
+            for release, arch in (("v3.19", "x86_64"), ("v3.20", "aarch64")):
+                with self.assertRaises(SystemExit):
+                    run.catalogue_run(Path("none"), Path(d), "https://e.org", release, arch, "11" * 32, 1)
+            with mock.patch.object(sources, "fetch", return_value=b"not signed"), self.assertRaises(ValueError):
+                sources.table("https://e.org", Path(d), ["x"])
+
+    def test_the_first_branch_that_serves_it_and_only_its_signed_size(self):
+        rec = {"P": "x", "V": "1-r0", "S": "3", "bases": ["https://e.org/main", "https://e.org/community"]}
+        served = mock.Mock(side_effect=[ValueError("404"), b"abc"])
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(sources, "fetch", served):
+            self.assertEqual(sources.apk_of(Path(d), dict(rec)), b"abc")
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(sources, "fetch", return_value=b"abc"):
+            got = dict(rec)
+            sources.apk_of(Path(d), got)
+            self.assertEqual(got["base"], "https://e.org/main")
+            (Path(d) / "x-1-r0.apk").write_bytes(b"abc")
             with self.assertRaises(ValueError):
-                run.apk_of(Path(d), rec)
-            self.assertEqual(run.apk_of(Path(d), dict(rec, S="3")), b"abc")
+                sources.apk_of(Path(d), dict(rec, S="4"))
+            self.assertFalse((Path(d) / "x-1-r0.apk").exists())
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(sources, "fetch", side_effect=ValueError("x")), \
+                self.assertRaises(ValueError):
+            sources.apk_of(Path(d), dict(rec))
 
 
 if __name__ == "__main__":
