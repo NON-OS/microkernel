@@ -25,7 +25,7 @@ pub(crate) fn head(r: &mut Reader<'_>) -> Result<GrantKind, WireError> {
         return Err(WireError::Magic);
     }
     if r.u16()? != GRANT_VERSION {
-        return Err(WireError::Version);
+        return Err(WireError::BodyVersion);
     }
     let kind = match r.u8()? {
         1 => GrantKind::Base,
