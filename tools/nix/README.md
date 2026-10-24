@@ -46,8 +46,8 @@ unchanged.
 
 | profile | the image | loader policy |
 |---|---|---|
-| `standard` | the full system for real hardware: every driver, the desktop, first-boot setup, the installer | standard |
-| `hardened` | standard, with no serial console for capsules | production: Secure Boot and a TPM required |
+| `standard` | the full system for real hardware: every driver, the desktop, first-boot setup, the installer; no serial console for capsules | standard |
+| `hardened` | standard, with Secure Boot and a TPM required at boot | production: Secure Boot and a TPM required |
 | `airgapped` | hardened, with no network driver, network stack or online program compiled in; installs from offline media only | production |
 | `qemu` | the desktop for virtual machines, without the drivers only real hardware has | standard-qemu |
 | `dev` | qemu with the loader's development policy; never sealed for release | dev-qemu |
