@@ -12,6 +12,8 @@
 //!   tool.install; no holder of Debug also holds InputSource,
 //!   InputConsumer, Keyring or DeviceSecret.
 
+mod format_tests;
+mod fuzz_tests;
 mod holders_tests;
 mod join_tests;
 mod model;

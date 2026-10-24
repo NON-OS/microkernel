@@ -19,36 +19,30 @@
 use alloc::vec::Vec;
 
 use super::agent::agent;
-use super::join::{join, Row};
+use super::format::HEADING;
+use super::format::{parse, Mode, FORMAT};
 use super::reach::{reaches, AREAS, DEVICES_NOTE};
-use super::table::{line, HEADING};
-use crate::command::builtin::proc_table::table;
-use crate::command::builtin::receipt::{count_line, entries};
+use super::read::rows;
+use super::table::line;
+use crate::command::builtin::receipt::count_line;
 use crate::command::output::Output;
 
-fn rows() -> Option<Vec<Row>> {
-    let procs = table();
-    let named: Vec<(u32, &[u8])> = procs.iter().map(|p| (p.pid, p.name_str().as_bytes())).collect();
-    let regs = entries().ok()?;
-    Some(join(&regs, &named))
-}
-
 pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
-    let Some(rows) = rows() else {
-        out.writeln(b"the kernel did not hand over its registry");
-        return;
+    out.writeln(FORMAT);
+    let mode = match parse(argv.get(1..).unwrap_or(&[])) {
+        Ok(m) => m,
+        Err(e) => return out.writeln(&e),
     };
-    if let Some(i) = argv.iter().position(|a| *a == b"--agent") {
-        let Some(name) = argv.get(i + 1) else {
-            out.writeln(b"usage: audit --agent <name>");
-            return;
-        };
+    let rows = match rows() {
+        Ok(r) => r,
+        Err(e) => return out.writeln(e),
+    };
+    if let Mode::Agent(name) = mode {
         let lines = agent(&rows, name);
         if lines.is_empty() {
-            out.writeln(b"no running capsule has that name; `audit` lists them");
+            out.writeln(b"audit: no running capsule has that name; `audit` lists them");
         }
-        lines.iter().for_each(|l| out.writeln(l));
-        return;
+        return lines.iter().for_each(|l| out.writeln(l));
     }
     HEADING.iter().for_each(|h| out.writeln(h));
     rows.iter().for_each(|r| out.writeln(&line(r)));

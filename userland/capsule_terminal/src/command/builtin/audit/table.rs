@@ -19,22 +19,16 @@
 
 use alloc::vec::Vec;
 
+use super::format::{printable, NAME_W};
 use super::join::Row;
 use super::reach::{names, reaches, AREAS};
 use crate::command::builtin::receipt::own::signer;
 use crate::term::util::format_u64;
 
-pub const HEADING: [&[u8]; 2] = [
-    b"  pid  name                  network  storage  devices*  signed by  capabilities",
-    b"  ---  --------------------  -------  -------  --------  ---------  ------------",
-];
-const NAME_W: usize = 22;
-
 pub fn pad(line: &mut Vec<u8>, to: usize) {
     line.resize(line.len().max(to), b' ');
 }
 
-/// `pid`, right-aligned in `width` columns.
 pub fn pid(line: &mut Vec<u8>, pid: u32, width: usize) {
     let mut num = [0u8; 12];
     let n = format_u64(pid as u64, &mut num);
@@ -42,8 +36,9 @@ pub fn pid(line: &mut Vec<u8>, pid: u32, width: usize) {
     line.extend_from_slice(&num[..n]);
 }
 
-pub fn name(row: &Row) -> &[u8] {
-    row.name.as_deref().unwrap_or(b"(exited)")
+/// The name as the terminal may print it.
+pub fn name(row: &Row) -> Vec<u8> {
+    printable(row.name.as_deref().unwrap_or(b"(exited)"))
 }
 
 pub fn list(line: &mut Vec<u8>, caps: &[&[u8]]) {
@@ -57,7 +52,8 @@ pub fn line(row: &Row) -> Vec<u8> {
     let mut line = Vec::with_capacity(128);
     pid(&mut line, row.pid, 5);
     line.extend_from_slice(b"  ");
-    line.extend_from_slice(&name(row)[..name(row).len().min(NAME_W - 2)]);
+    let shown = name(row);
+    line.extend_from_slice(&shown[..shown.len().min(NAME_W - 2)]);
     let Some(c) = row.ceiling else {
         pad(&mut line, 7 + NAME_W);
         line.extend_from_slice(b"not in the kernel's registry: no signed ceiling recorded");

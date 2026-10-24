@@ -20,8 +20,10 @@
 //! a capsule's account of itself.
 
 mod agent;
+mod format;
 mod join;
 mod reach;
+mod read;
 mod run;
 mod table;
 
