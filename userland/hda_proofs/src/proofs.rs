@@ -58,6 +58,7 @@ pub mod program_sim;
 mod program_tests;
 mod reason_tests;
 mod reset_tests;
+mod ring_recover_tests;
 mod route_sel_tests;
 mod sst_tests;
 mod stream_dma_tests;

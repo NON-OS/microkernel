@@ -26,7 +26,7 @@ use std::sync::Arc;
 
 use nonos_devmodel::{run, FakeBar, LiveDevice};
 
-use crate::constants::{CORBWP, RIRBWP};
+use crate::constants::{CORBRP, CORBWP, RIRBWP};
 use crate::controller::StreamDescriptor;
 
 /// The smallest HDA BAR the capsule accepts. It covers the global registers,
@@ -52,10 +52,12 @@ pub fn rings(response: u32) -> (Arc<FakeBar>, Arc<FakeBar>) {
 }
 
 /// A controller whose CORB engine is running: it consumes every command the
-/// driver posts and advances RIRBWP to match. RIRBWP belongs to the controller
+/// driver posts, shows CORBRP on it and advances RIRBWP to match. RIRBWP belongs to the controller
 /// and the driver only reads it, so nothing here races.
 pub fn corb_engine(bar: &FakeBar) {
-    bar.present16(RIRBWP as usize, bar.wrote16(CORBWP as usize) & 0xff);
+    let wp = bar.wrote16(CORBWP as usize) & 0xff;
+    bar.present16(CORBRP as usize, wp);
+    bar.present16(RIRBWP as usize, wp);
     // The driver's waits are in milliseconds now; a model that never gives
     // its core back starves the other tests' models past them.
     std::thread::yield_now();
