@@ -20,7 +20,11 @@ impl RxQueue {
         self.read = (self.read + 1) & (RX_RING - 1);
         let vid = get16(ctrl, cd + 4)?;
         let mut flags = [0u8; 1];
-        ctrl.read(cd + 6, &mut flags);
+        // A failed read must not pass as a clear flag: a zero there would take
+        // one piece of a multi-buffer frame as a whole one (E-34).
+        if !ctrl.read(cd + 6, &mut flags) {
+            return Some(Taken::BadId);
+        }
         let slot = (vid as usize).wrapping_sub(1);
         if !self.posted.get(slot).copied().unwrap_or(false) {
             return Some(Taken::BadId);
