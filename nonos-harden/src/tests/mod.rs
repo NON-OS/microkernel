@@ -21,6 +21,7 @@
 mod attest;
 mod cli_tests;
 mod configs;
+mod declared_tests;
 mod fake;
 mod fake_report;
 mod fixture;
@@ -38,6 +39,7 @@ mod kernel_key_tests;
 mod kernel_tests;
 mod kind_tests;
 mod ledger_tests;
+mod limits_tests;
 mod matrix_tests;
 mod mutants_tests;
 mod plan_go_tests;

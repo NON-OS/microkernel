@@ -50,6 +50,7 @@ impl Tree {
         t.put("nonos-verify/Cargo.toml", b"[package]\nname = \"stand-in\"\n");
         t.put("tools/nonos-verify-matrix", b"stand-in\n");
         t.put("src/main.rs", b"fn main() {}\n");
+        t.put(crate::tree::declared::FILE, super::fake_report::DECLARED);
         t.put(&format!("{TRUST}/capsules/about.manifest.bin"), b"a capsule manifest");
         t.put(&format!("{TRUST}/policy/kernel_attest_root.bin"), b"a root");
         fs::create_dir_all(t.path().join(TRUST).join("keys")).unwrap();
