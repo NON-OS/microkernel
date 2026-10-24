@@ -32,8 +32,7 @@ fn the_first_draw_before_seeding_names_its_caller_once() {
     stand_in::sources(false, false, false);
     let (_, at) = (crypto::rng::random_u64(), line!());
     let first = format!("[RNG] pre-seed draw by {}:{at}\n", file!());
-    let weak = "[RNG] fallback used: weak bytes (entropy unavailable)\n";
-    let want = if true { format!("{first}{weak}") } else { first };
+    let want = format!("{first}[RNG] fallback used: weak bytes (entropy unavailable)\n");
     assert_eq!(said(), want);
     let _ = crypto::rng::random_u64();
     assert_eq!(said(), want, "each line is said once");
