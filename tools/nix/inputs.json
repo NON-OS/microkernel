@@ -2634,7 +2634,12 @@
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/capsule_driver_vmware_svga",
-   "userland/libc"
+   "userland/libc",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_pool",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []
@@ -9754,13 +9759,13 @@
    "userland/capsule_driver_vmware_svga/src/discover.rs",
    "userland/capsule_driver_vmware_svga/src/fifo",
    "userland/capsule_driver_vmware_svga/src/init",
-   "userland/capsule_driver_vmware_svga/src/protocol",
    "userland/capsule_driver_vmware_svga/src/regs/svga.rs",
    "userland/capsule_driver_vmware_svga/src/screen",
-   "userland/capsule_driver_vmware_svga/src/server/dispatch.rs",
-   "userland/capsule_driver_vmware_svga/src/server/handlers",
-   "userland/capsule_driver_vmware_svga/src/server/respond.rs",
    "userland/capsule_driver_vmware_svga/src/setup",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes",
    "userland/vmware_svga_proofs"
   ],
   "md": [],
