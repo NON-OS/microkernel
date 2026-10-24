@@ -15,8 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod ffi;
+mod guard;
 mod keygen;
 mod sign;
+#[cfg(test)]
+mod test_hooks;
+#[cfg(test)]
+mod tests;
 mod verify;
 
 pub use sign::MlDsa65;

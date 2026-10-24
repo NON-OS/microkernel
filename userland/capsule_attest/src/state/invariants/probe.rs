@@ -23,10 +23,10 @@
 /// that from six checks that had passed.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Probe {
-    /// No live capsule may hold this capability.
-    NoneHold(u64),
-    /// Only init may hold it.
-    OnlyInit(u64),
+    /// No live capsule may hold the first mask together with the second.
+    NotBoth(u64, u64),
+    /// Only the capsules of these names may hold it.
+    OnlyNamed(u64, &'static [&'static [u8]]),
     /// Every live capsule must carry a non-empty mask.
     AllMasked,
     /// Settled somewhere this capsule cannot reach: at build time, inside the

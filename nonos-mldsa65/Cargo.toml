@@ -1,0 +1,35 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# ML-DSA-65 (FIPS 204) for userland and the host: one Rust face over the
+# pinned C source in third_party/pqclean, so a capsule and the nsh client
+# sign and verify with the same code the kernel, the loader and nonos-sign
+# compile. Randomness is the caller's: nothing here reads an entropy source
+# of its own, so the same crate serves a capsule and a host.
+
+[package]
+name = "nonos-mldsa65"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+links = "nonos_mldsa65"
+
+[lib]
+path = "src/lib.rs"
+
+[build-dependencies]
+cc = "1.1"
