@@ -39,6 +39,9 @@ pub fn run_init() -> ! {
     run_shield_vectors();
     run_tokio_smoke();
     run_flacprobe();
+    // Last, so every service it attacks is already up and owns its name.
+    #[cfg(feature = "nonos-capsule-attack")]
+    crate::userspace::capsule_attack::run();
     boot_log::ok("INIT", "Capsules spawned");
     run_tool_selftest();
     lower_init_priority();

@@ -13,6 +13,9 @@
 #              hardware has
 #   dev        qemu with the loader's development policy; never sealed for
 #              release
+#   selftest   dev with the attack suite's capsule, which tries what an
+#              attacker would at boot (tools/nonos-selftest); never sealed
+#              for release
 #   core       the microkernel and its base capsules, no desktop
 profile = "standard"
 
