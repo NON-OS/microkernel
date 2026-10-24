@@ -4675,6 +4675,29 @@
   "md": [],
   "signed": []
  },
+ "userland/exposure_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types/defs.rs",
+   "userland/capsule_about/src/about/data/verify/held_by.rs",
+   "userland/capsule_attest/src/state/live/caps.rs",
+   "userland/capsule_attest/src/state/live/types.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/agent.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/format.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/join.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/names.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/table.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/withheld.rs",
+   "userland/capsule_terminal/src/command/builtin/cap_names.rs",
+   "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
+   "userland/capsule_terminal/src/term/util/format_u64.rs",
+   "userland/exposure_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/fdt_proofs": {
   "exclude": [],
   "include": [
@@ -5821,6 +5844,7 @@
    "userland/capsule_app_store/src/store/listing.rs",
    "userland/capsule_app_store/src/store/market/failure.rs",
    "userland/capsule_app_store/src/store/market/failure_text.rs",
+   "userland/capsule_app_store/src/store/market/kec.rs",
    "userland/capsule_app_store/src/store/next_remove.rs",
    "userland/capsule_app_store/src/store/next_step.rs",
    "userland/capsule_app_store/src/store/order_line.rs",
