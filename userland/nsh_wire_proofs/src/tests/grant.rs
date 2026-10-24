@@ -32,9 +32,10 @@ fn a_base_grant_places_every_field() {
     assert_eq!((g.kind, g.grant_id, g.parent_id), (GrantKind::Base, &[0x11; 16], &[0; 16]));
     assert_eq!((g.fleet_id, g.subject, g.issuer), (&[0xF1; 16], &[0x5B; 64], &[0x15; 32]));
     assert_eq!((g.user, g.role), (&b"ek"[..], &b"auditor"[..]));
-    assert_eq!(g.caps.iter().collect::<Vec<_>>(), [&b"CoreExec"[..], b"IPC", b"FileSystem"]);
+    assert_eq!(g.caps.iter().collect::<Vec<_>>(), [&b"CoreExec"[..], b"FileSystem", b"IPC"]);
     assert_eq!((g.not_before_ms, g.not_after_ms), (1_000, 2_000));
     assert_eq!(g.signed, &bytes[..bytes.len() - 3373 - 1]);
+    assert_eq!(g.issued, &bytes[..bytes.len() - 1]);
     assert_eq!(g.approvals().count(), 0);
 }
 
@@ -42,7 +43,7 @@ fn a_base_grant_places_every_field() {
 fn the_head_is_judged() {
     let d = GrantB::default;
     assert_eq!(parse(&GrantB { magic: *b"NSHE", ..d() }), Err(WireError::Magic));
-    assert_eq!(parse(&GrantB { version: 2, ..d() }), Err(WireError::Version));
+    assert_eq!(parse(&GrantB { version: 2, ..d() }), Err(WireError::BodyVersion));
     assert_eq!(parse(&GrantB { reserved: 1, ..d() }), Err(WireError::Reserved));
     for kind in [0, 3, 255] {
         assert_eq!(parse(&GrantB { kind, ..d() }), Err(WireError::Value), "{kind}");

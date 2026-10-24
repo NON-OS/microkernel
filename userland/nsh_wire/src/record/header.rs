@@ -16,12 +16,11 @@
 
 //! The session record, `nsh-record/1` (docs/design/nsh-v1-record.md): who
 //! logged in under which attestation and grant, what they were given, then
-//! the entries (`record_entry`), then a footer the host keys sign
-//! (`record_footer`).
+//! the entries (`record::entry`), then a footer the host keys sign
+//! (`record::footer`).
 
-use crate::keys::DIGEST_LEN;
-use crate::names::{self, MAX_ROLE, MAX_USER};
-use crate::{CapNames, Reader, WireError, SESSION_ID_LEN};
+use crate::keys::{HybridPublic, DIGEST_LEN};
+use crate::{CapNames, Enrol, SESSION_ID_LEN};
 
 pub const RECORD_MAGIC: [u8; 4] = *b"NSHR";
 pub const RECORD_VERSION: u16 = 1;
@@ -33,8 +32,12 @@ pub const MAX_RECORD_ENTRIES: u32 = 1 << 20;
 pub struct RecordHeader<'a> {
     pub session_id: &'a [u8; SESSION_ID_LEN],
     pub start_ms: u64,
+    /// `TH(SERVER_HELLO)`, from which, with the host keys, a checker
+    /// recomputes the challenge the attestation document must carry.
+    pub transcript: &'a [u8; DIGEST_LEN],
+    pub host: HybridPublic<'a>,
+    pub enrol: Enrol<'a>,
     pub doc_hash: &'a [u8; DIGEST_LEN],
-    pub host_keys: &'a [u8; DIGEST_LEN],
     pub subject: &'a [u8; DIGEST_LEN],
     pub user: &'a [u8],
     pub role: &'a [u8],
@@ -42,33 +45,4 @@ pub struct RecordHeader<'a> {
     pub caps: CapNames<'a>,
     /// The header's bytes, which start the chain.
     pub bytes: &'a [u8],
-}
-
-impl<'a> RecordHeader<'a> {
-    pub fn read(r: &mut Reader<'a>) -> Result<Self, WireError> {
-        let start = r.pos;
-        r.preamble(&RECORD_MAGIC, RECORD_VERSION)?;
-        let session_id = r.array()?;
-        let start_ms = r.u64()?;
-        let (doc_hash, host_keys, subject) = (r.array()?, r.array()?, r.array()?);
-        let user = r.bytes8(1, MAX_USER)?;
-        names::user(user)?;
-        let role = r.bytes8(1, MAX_ROLE)?;
-        names::role(role)?;
-        let grant_hash = r.array()?;
-        let caps = CapNames::read(r)?;
-        let bytes = &r.buf[start..r.pos];
-        Ok(RecordHeader {
-            session_id,
-            start_ms,
-            doc_hash,
-            host_keys,
-            subject,
-            user,
-            role,
-            grant_hash,
-            caps,
-            bytes,
-        })
-    }
 }

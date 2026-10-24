@@ -39,6 +39,12 @@ fn a_bad_grant_inside_is_refused_as_the_grant_would_be() {
 }
 
 #[test]
+fn a_user_auth_carries_a_base_grant_never_an_escalation() {
+    let up = GrantB::escalation().bytes();
+    assert_eq!(UserAuth::parse(&user_auth(&up)), Err(WireError::Value));
+}
+
+#[test]
 fn a_cut_or_padded_user_auth_is_refused() {
     let bytes = default_user_auth();
     assert_eq!(UserAuth::parse(&bytes[..bytes.len() - 1]), Err(WireError::Short));

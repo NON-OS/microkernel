@@ -49,7 +49,7 @@ impl Default for GrantB {
             subject: [0x5B; 64],
             user: b"ek".to_vec(),
             role: b"auditor".to_vec(),
-            caps: vec![b"CoreExec".to_vec(), b"IPC".to_vec(), b"FileSystem".to_vec()],
+            caps: vec![b"CoreExec".to_vec(), b"FileSystem".to_vec(), b"IPC".to_vec()],
             not_before: 1_000,
             not_after: 2_000,
             issuer: [0x15; 32],

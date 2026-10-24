@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The names a peer sends: a user name, a role name and a host name. Each
+//! The names a peer sends: a user name, a role, a host and a capability. Each
 //! is plain ASCII of a fixed shape, so a name cannot hide a control byte,
 //! a second spelling of the same name, or anything a terminal would act on.
 
@@ -31,6 +31,13 @@ fn shaped(ok: bool) -> Result<(), WireError> {
 
 fn starts_lower(name: &[u8]) -> bool {
     name.first().is_some_and(u8::is_ascii_lowercase)
+}
+
+/// A kernel capability's name: `[A-Z][A-Za-z0-9]*`, its length checked by
+/// the reader.
+pub fn cap(name: &[u8]) -> Result<(), WireError> {
+    let first_upper = name.first().is_some_and(u8::is_ascii_uppercase);
+    shaped(first_upper && name.iter().all(u8::is_ascii_alphanumeric))
 }
 
 /// `[a-z][a-z0-9._-]{0,31}`

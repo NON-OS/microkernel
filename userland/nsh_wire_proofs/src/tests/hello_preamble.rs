@@ -48,6 +48,7 @@ fn another_version_is_told_version_whatever_its_size() {
     v2.truncate(600);
     assert_eq!(ClientHello::parse(&v2), Err(WireError::Version));
     assert_eq!(WireError::Version.reason().code(), 2);
+    assert_eq!(WireError::BodyVersion.reason().code(), 1, "only a hello is told VERSION");
 }
 
 #[test]

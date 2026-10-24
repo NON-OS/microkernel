@@ -31,8 +31,12 @@ pub enum WireError {
     Reserved,
     /// The magic is not `NSH1` (or the body's own magic).
     Magic,
-    /// The version or the suite is not the one this crate speaks.
+    /// A hello's version or suite is not the one this crate speaks.
     Version,
+    /// A body inside a frame (a grant, a certificate, a record) has a
+    /// version this crate does not read. The peer is told `PROTOCOL`: only
+    /// a hello's version is answered with `VERSION`.
+    BodyVersion,
     /// A frame type no version of the protocol defines.
     UnknownType,
     /// A known frame type that may not arrive now, or not from this side.

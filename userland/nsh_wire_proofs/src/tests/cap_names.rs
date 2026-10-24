@@ -40,9 +40,20 @@ fn a_name_is_an_uppercase_letter_then_letters_and_digits() {
 #[test]
 fn a_list_names_each_capability_once_and_at_most_thirty_seven() {
     assert_eq!(read(&list(&[b"IPC", b"Dma", b"IPC"])), Err(WireError::Value));
-    let names: Vec<Vec<u8>> = (0..38).map(|i| format!("C{i}").into_bytes()).collect();
+    let names: Vec<Vec<u8>> = (0..38).map(|i| format!("C{i:02}").into_bytes()).collect();
     let refs: Vec<&[u8]> = names.iter().map(Vec::as_slice).collect();
     assert_eq!(read(&list(&refs[..MAX_CAPS])).map(|v| v.len()), Ok(37));
     assert_eq!(read(&list(&refs)), Err(WireError::Oversize));
     assert_eq!(read(&[0]), Ok(vec![]));
+}
+
+#[test]
+fn names_come_in_ascending_byte_order_and_the_encoder_sorts_them() {
+    assert_eq!(read(&list(&[b"IPC", b"Dma"])), Err(WireError::Value));
+    assert!(read(&list(&[b"Dma", b"IPC"])).is_ok());
+    assert_eq!(read(&list(&[b"Dma", b"Dmb", b"Dm"])), Err(WireError::Value));
+    let mut out = [0u8; 64];
+    let n = nsh_wire::AuthOk::encode(&[7; 16], 9, &[b"IPC", b"Dma"], &mut out).unwrap();
+    let ok = nsh_wire::AuthOk::parse(&out[..n]).unwrap();
+    assert_eq!(ok.caps.iter().collect::<Vec<_>>(), [&b"Dma"[..], b"IPC"]);
 }

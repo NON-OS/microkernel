@@ -28,6 +28,7 @@ use nsh_wire::{escalate, GrantKind, UserAuth};
 fuzz_target!(|data: &[u8]| {
     if let Ok(u) = UserAuth::parse(data) {
         assert_eq!(u.signed, &data[..data.len() - HYBRID_SIG_LEN]);
+        assert_eq!(u.grant.kind, GrantKind::Base);
         rules::hold(&u.grant);
     }
     if let Ok(g) = escalate(data) {

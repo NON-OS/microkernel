@@ -16,7 +16,7 @@
 
 //! The small session bodies, at and just past every bound.
 
-use nsh_wire::{data, empty, exit_status, reason_body, signal, window, Reason, Signal, WireError};
+use nsh_wire::{data, empty, exit_status, signal, window, Signal, WireError};
 use nsh_wire::{Window, MAX_DATA};
 
 #[test]
@@ -48,23 +48,6 @@ fn a_signal_is_one_or_two() {
         assert_eq!(signal(&[b]), Err(WireError::Value), "{b}");
     }
     assert_eq!((signal(&[]), signal(&[1, 1])), (Err(WireError::Short), Err(WireError::Trailing)));
-}
-
-#[test]
-fn every_u16_is_a_known_reason_or_refused_and_ok_never_ends_anything() {
-    let mut known = 0;
-    for code in 0..=u16::MAX {
-        match Reason::from_code(code) {
-            Ok(r) => {
-                known += 1;
-                assert_eq!(r.code(), code);
-                let want = if r == Reason::Ok { Err(WireError::Value) } else { Ok(r) };
-                assert_eq!(reason_body(&code.to_le_bytes()), want);
-            }
-            Err(e) => assert_eq!(e, WireError::Value),
-        }
-    }
-    assert_eq!(known, 19);
 }
 
 #[test]

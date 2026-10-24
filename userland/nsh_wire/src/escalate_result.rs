@@ -36,7 +36,7 @@ impl EscalateResult {
     fn check(&self) -> Result<(), WireError> {
         let ok = match self.reason {
             Reason::Ok => self.expires_ms != 0,
-            _ => self.expires_ms == 0,
+            r => r.refuses_escalation() && self.expires_ms == 0,
         };
         ok.then_some(()).ok_or(WireError::Value)
     }

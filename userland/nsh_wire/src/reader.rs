@@ -56,7 +56,7 @@ impl<'a> Reader<'a> {
             return Err(WireError::Magic);
         }
         if u16::from_le_bytes(*self.array()?) != version {
-            return Err(WireError::Version);
+            return Err(WireError::BodyVersion);
         }
         self.zero(2)
     }

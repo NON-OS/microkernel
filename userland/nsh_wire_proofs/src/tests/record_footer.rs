@@ -35,10 +35,16 @@ fn the_footer_must_agree_with_the_entries() {
 #[test]
 fn a_cut_or_padded_record_is_refused() {
     let bytes = RecordB::default().bytes();
-    assert!(Record::parse(&bytes[..bytes.len() - 1]).is_err());
-    assert!(Record::parse(&[bytes.clone(), vec![0]].concat()).is_err());
+    assert_eq!(Record::parse(&bytes[..bytes.len() - 1]), Err(WireError::Short));
+    /*
+     * One byte more makes the footer read as an entry: its count and end
+     * time as seq and time, its end reason as a command, and the first two
+     * chain bytes (0xC4C4) as a body length over the 4096 cap.
+     */
+    let padded = [bytes, vec![0]].concat();
+    assert_eq!(Record::parse(&padded), Err(WireError::Oversize));
     let extra = EntryB { seq: 2, at: 1_250, kind: 7, body: vec![0; 4] };
-    let mut b = RecordB::default();
+    let mut b = RecordB { count: Some(2), ..RecordB::default() };
     b.entries.push(extra);
-    assert_eq!(parse(&b), Ok(()), "the footer count follows the entries");
+    assert_eq!(parse(&b), Err(WireError::Value), "an entry the footer does not count");
 }

@@ -21,6 +21,7 @@ mod body;
 pub(crate) mod entry;
 pub(crate) mod footer;
 pub(crate) mod header;
+mod header_read;
 mod parse;
 mod part;
 

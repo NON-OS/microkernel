@@ -40,7 +40,7 @@ fn a_host_proof_places_its_parts() {
 #[test]
 fn a_bad_enrolment_inside_is_refused_as_the_certificate_would_be() {
     let enrol = EnrolB { version: 9, ..EnrolB::default() }.bytes();
-    assert_eq!(parse(&HostProofB { enrol, ..HostProofB::default() }), Err(WireError::Version));
+    assert_eq!(parse(&HostProofB { enrol, ..HostProofB::default() }), Err(WireError::BodyVersion));
     assert_eq!(
         parse(&HostProofB { enrol: vec![], ..HostProofB::default() }),
         Err(WireError::Value)
