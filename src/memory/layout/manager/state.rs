@@ -30,7 +30,9 @@ pub(super) static LAYOUT: RwLock<LayoutConfig> = RwLock::new(LayoutConfig {
 });
 
 extern "C" {
-    pub(super) static __kernel_start: u8;
+    // The image's bounds, as every linker script names them (linker.ld,
+    // linker_aarch64.ld, linker_riscv64.ld).
+    static __kernel_image_start: u8;
     static __kernel_text_start: u8;
     static __kernel_text_end: u8;
     static __kernel_rodata_start: u8;
@@ -39,7 +41,7 @@ extern "C" {
     static __kernel_data_end: u8;
     static __kernel_bss_start: u8;
     static __kernel_bss_end: u8;
-    pub(super) static __kernel_end: u8;
+    static __kernel_image_end: u8;
     static __boot_stacks_start: u8;
     static __boot_stacks_end: u8;
     static __percpu_start: u8;
@@ -86,10 +88,10 @@ pub fn kernel_sections() -> [Section; KERNEL_SECTION_COUNT] {
 }
 
 pub fn kernel_start() -> u64 {
-    unsafe { &__kernel_start as *const _ as u64 }
+    unsafe { &__kernel_image_start as *const _ as u64 }
 }
 pub fn kernel_end() -> u64 {
-    unsafe { &__kernel_end as *const _ as u64 }
+    unsafe { &__kernel_image_end as *const _ as u64 }
 }
 pub fn boot_stacks_region() -> (u64, u64) {
     unsafe { (&__boot_stacks_start as *const _ as u64, &__boot_stacks_end as *const _ as u64) }
