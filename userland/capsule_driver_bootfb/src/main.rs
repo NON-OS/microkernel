@@ -57,8 +57,9 @@ pub unsafe extern "C" fn _start() -> ! {
         };
         let (holds, release) = (libc_scanout::holds, libc_scanout::release);
         let device_id = r.device_id;
-        let display = BootFb { fb, fence: serve::fence, device_id, holds, release, gone: false, told: false };
-        Ok(Server::new(display, Pool))
+        let display =
+            BootFb { fb, fence: serve::fence, device_id, holds, release, gone: false, told: false };
+        Ok(Server::new(display, Pool::default()))
     });
     match up {
         Ok(mut server) => serve::run(&mut server),

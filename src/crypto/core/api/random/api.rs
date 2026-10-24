@@ -16,21 +16,25 @@
 
 use crate::crypto::util::rng;
 
+#[track_caller]
 pub fn secure_random_u32() -> u32 {
     let mut bytes = [0u8; 4];
     rng::fill_random_bytes(&mut bytes);
     u32::from_le_bytes(bytes)
 }
+#[track_caller]
 pub fn secure_random_u64() -> u64 {
     let mut bytes = [0u8; 8];
     rng::fill_random_bytes(&mut bytes);
     u64::from_le_bytes(bytes)
 }
+#[track_caller]
 pub fn secure_random_u8() -> u8 {
     let mut bytes = [0u8; 1];
     rng::fill_random_bytes(&mut bytes);
     bytes[0]
 }
+#[track_caller]
 pub fn fill_random(buf: &mut [u8]) {
     rng::fill_random_bytes(buf);
 }

@@ -16,9 +16,11 @@
 
 #include "randombytes.h"
 
-extern void nonos_randombytes(uint8_t *buf, size_t n);
+/* Fails, rather than handing over weaker bytes, when the seeded RNG
+ * cannot answer; the Rust side counts the failure, since the callers of
+ * this function never look at what it returns. */
+extern int nonos_randombytes(uint8_t *buf, size_t n);
 
 int randombytes(uint8_t *output, size_t n) {
-    nonos_randombytes(output, n);
-    return 0;
+    return nonos_randombytes(output, n);
 }
