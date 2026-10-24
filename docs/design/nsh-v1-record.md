@@ -50,12 +50,16 @@ record never sums the two.
 
 ## The `BOX` entry
 
-**Provisional.** This layout follows BOX REPORT v1 as B described it on 24
-Oct (letter `b/103`), without the examples. B's source
-(`userland/capsule_linux/src/linux/boxed/`) is not yet in this tree. Until
-the layout has been checked against that source, kind 9 is provisional:
-its kind order, preset values and field types may still change, and no
-host signs a record holding one.
+It carries BOX REPORT v1, from `userland/capsule_linux/src/linux/boxed/`,
+field for field, without the examples. The kind order, the preset names,
+the report version and the saturating counts are checked against those
+sources by `nsh_wire_proofs` (`record_box_source`), so a change on either
+side fails the build's tests.
+
+No host writes a `BOX` entry yet. The session host may not start
+`capsule_linux` or read its private frames until a kernel change grants
+it that right explicitly, audited and shown in `audit` (a K item for
+0.9.4).
 
 | Field | Size |
 |---|---|
@@ -100,9 +104,8 @@ keys to that run, never from text the program printed:
   1, and checks that `refused=` is the saturating sum of the nine counts;
 - a run started without a key has no `BOX` entry.
 
-Whether the session host may start `capsule_linux` and read its private
-output is a question for the kernel's spawn grants and private-run rules.
-It is open with the lead.
+Until that grant exists, the session host has no such right; the lead
+ruled that reusing the Terminal's path would be a new, unaudited authority.
 
 A run that never started (`started` 0) carries counts of 0 in practice,
 but nothing in `capsule_linux` enforces it, so the verifier accepts any
