@@ -27,7 +27,8 @@ sys.path.insert(0, os.path.dirname(HERE))
 from nonos_qemu import lanes  # noqa: E402
 from nonos_qemu.lane_disks import DISKS  # noqa: E402
 
-ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu="))]
+# One GPU swap at a time: vmware-svga stands for both.
+ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu=")) and n != "bochs-display"]
 ALL += ["nic=igb", "iommu=intel"]
 
 
