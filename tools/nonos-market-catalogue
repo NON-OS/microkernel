@@ -52,11 +52,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from nonos_market_catalogue.catalogue import catalogue_entries  # noqa: E402
 from nonos_market_catalogue.digest import blake3  # noqa: E402
 from nonos_market_catalogue.guests import guest_entries  # noqa: E402
 from nonos_market_catalogue.packages import package_entries  # noqa: E402
-from nonos_market_catalogue.recipes_file import load as load_recipes  # noqa: E402
 from nonos_market_catalogue.records import entry, release  # noqa: E402
 
 MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
@@ -418,26 +416,15 @@ def main() -> int:
         print(f"linux: {len(found)} of {len(kali)} Kali packages", file=sys.stderr)
         entries += found
 
-    if args.catalogue and args.catalogue.exists():
-        try:
-            recipes = load_recipes(args.catalogue, Path("."))
-        except (ValueError, OSError) as why:
-            sys.exit(f"catalogue: {args.catalogue}: {why}")
-        clash = sorted({r["package"] for r in recipes} & set(alpine))
-        if clash:
-            sys.exit(f"{clash[0]}: in both the package list and the catalogue")
-        args.cache.mkdir(parents=True, exist_ok=True)
-        table = {}
-        for branch in BRANCHES:
-            table.update(apkindex(args.cache, args.alpine_release, args.alpine_arch, branch))
-        get = lambda rec: fetch(f"{rec['base']}/{rec['P']}-{rec['V']}.apk",
-                                args.cache / f"{rec['P']}-{rec['V']}.apk")
-        try:
-            found = catalogue_entries(recipes, table, get, key, when_ms)
-        except (ValueError, TypeError) as why:
-            sys.exit(f"catalogue: {why}")
-        print(f"catalogue: {len(found)} of {len(recipes)} apps", file=sys.stderr)
-        entries += found
+    if args.catalogue:
+        # Loaded only when asked: the catalogue's own modules, beside this one.
+        from nonos_market_catalogue.run import catalogue_run
+        entries += catalogue_run(args.catalogue, args.cache, f"{MIRROR}/{args.alpine_release}",
+                                 args.alpine_arch, key, when_ms)
+        ids = [e["listing_id"] for e in entries]
+        twice = sorted({i for i in ids if ids.count(i) > 1})
+        if twice:
+            sys.exit(f"{twice[0]}: in both the package list and the catalogue")
 
     if args.guest_list and args.guest_list.exists():
         found = guest_entries(args.guest_list, key, when_ms)

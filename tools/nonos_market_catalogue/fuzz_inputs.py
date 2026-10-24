@@ -18,10 +18,12 @@ packages mangled by bit flips, cuts, splices and repeats."""
 
 import gzip
 import random
+from pathlib import Path
 
 from .apk_fixture import ELF, make
 
 VALID = make([("usr/bin/a", ELF + b"a"), ("usr/share/a/x", b"data")])
+VECTOR = (Path(__file__).resolve().parent / "vectors/nitrokey-udev-rules-1.0.0-r2.apk").read_bytes()
 WORDS = ["MIT", "TTY", "NET_ANON", "x", "../x", "", "linux.a", "\x00", "1-r0", "FILES_USER", "ff" * 65]
 
 
@@ -43,7 +45,7 @@ def anything(r: random.Random, depth=0):
 
 
 def mangled(r: random.Random) -> bytes:
-    raw = bytearray(r.choice([VALID, gzip.compress(r.randbytes(r.randrange(600)))]))
+    raw = bytearray(r.choice([VALID, VECTOR, gzip.compress(r.randbytes(r.randrange(600)))]))
     for _ in range(r.randrange(1, 6)):
         op, at = r.randrange(4), r.randrange(len(raw) or 1)
         if op == 0 and raw:

@@ -23,7 +23,10 @@ import re
 
 PACKAGE = re.compile(r"[a-z0-9][a-z0-9._+-]{0,63}")
 VERSION = re.compile(r"[0-9][0-9a-z._+-]{0,63}")
-LISTING = re.compile(r"linux\.[a-z0-9][a-z0-9._+-]{0,63}")
+LISTING = re.compile(r"(linux|community|nonos\.app)\.[a-z0-9][a-z0-9_.+-]{0,63}")
+# A package is fetched whole before it is checked, so no larger one is asked
+# for: the installer inflates at most 128 MiB from it (install/unpacked.rs).
+MAX_PACKAGE = 128 << 20
 
 
 def package(name) -> str:
@@ -41,7 +44,8 @@ def version(text) -> str:
 
 
 def listing(text) -> str:
-    """`text` if it is a catalogue listing id, safe as a file name, else ValueError."""
+    """`text` if it is a listing id of a namespace the generator writes, safe
+    as a file name, else ValueError."""
     if not isinstance(text, str) or not LISTING.fullmatch(text):
         raise ValueError(f"{text!r} is not a catalogue listing id")
     return text
@@ -56,4 +60,15 @@ def index_record(rec) -> dict:
     version(rec.get("V"))
     if not isinstance(rec.get("L", ""), str) or not isinstance(rec.get("base"), str):
         raise TypeError(f"{rec.get('P')}: the index gives no licence or source")
+    size = rec.get("S")
+    if not isinstance(size, str) or not size.isdecimal() or not 0 < int(size) <= MAX_PACKAGE:
+        raise ValueError(f"{rec.get('P')}: the index gives no size, or one past {MAX_PACKAGE}")
     return rec
+
+
+def cache_safe(rec: dict) -> bool:
+    """Whether a record's name and version may name a cache file."""
+    try:
+        return bool(package(rec.get("P")) and version(rec.get("V")))
+    except ValueError:
+        return False
