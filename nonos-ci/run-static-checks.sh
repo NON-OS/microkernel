@@ -5067,6 +5067,19 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
+# The surface registry's GATE is a spin lock: a holder that reaches a function
+# taking it again spins forever with interrupts off, and the surface path on
+# every CPU stops behind it (orphans::reclaim and reclaim_dma, the black
+# desktop). The self-test first, so a scan that stopped seeing holders cannot
+# pass by finding none.
+if gate_out="$(python3 scripts/check_gate_reentry.py --self-test 2>&1 \
+    && python3 scripts/check_gate_reentry.py 2>&1)"; then
+    note ok "no surface registry function takes GATE while holding it (check_gate_reentry)"
+else
+    tail -n 5 <<< "${gate_out}" >&2
+    fail_with "check_gate_reentry: a GATE holder reaches a function that takes GATE again"
+fi
+unset gate_out
 
 # nonos-harden reads GO over a nonos-verify gap only when the gap is on
 # scripts/baselines/declared-limits.txt; the list follows the source and may
