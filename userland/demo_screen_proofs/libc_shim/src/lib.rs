@@ -50,7 +50,9 @@ pub use calls::{
 pub use handoff::{Handoff, Look};
 pub use jobs::*;
 pub use machine::{show, OWN_PID};
-pub use proc::{mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_NAME_LEN};
+pub use proc::{
+    mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN,
+};
 pub use quiet::*;
 pub use seat::WorkerSeat;
 pub use surface::*;
