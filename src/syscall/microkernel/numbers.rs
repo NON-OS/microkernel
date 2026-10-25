@@ -58,6 +58,8 @@ pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
 /// The package store's sectors, written and read on the disk the block layer chose.
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 pub const SYS_STORE_READ: u64 = tag4(b"MSRR");
+/// Whether this boot keeps anything: 1 once the person chose it, else 0.
+pub const SYS_KEEPING: u64 = tag4(b"MKEP");
 /// The data volume: a verified import, a file's size, a range of it, a passphrase.
 pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
