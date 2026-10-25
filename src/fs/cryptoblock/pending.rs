@@ -41,7 +41,7 @@ static PENDING: Mutex<Run> = Mutex::new(Run { start: 0, bytes: Vec::new() });
 
 /// Hold one sealed sector for the device LBA `at`.
 pub(super) fn hold(at: u64, sector: &[u8; SECTOR_BYTES]) -> Result<(), CryptoBlockError> {
-    let mut run = PENDING.lock();
+    let mut run = crate::smp::lock_responsive(&PENDING);
     let held = (run.bytes.len() / SECTOR_BYTES) as u64;
     if held > 0 && (run.start.checked_add(held) != Some(at) || held as usize == RUN_SECTORS) {
         send(&mut run)?;
@@ -56,7 +56,7 @@ pub(super) fn hold(at: u64, sector: &[u8; SECTOR_BYTES]) -> Result<(), CryptoBlo
 
 /// Send whatever is held. Called before every read and every flush.
 pub(super) fn drain() -> Result<(), CryptoBlockError> {
-    send(&mut PENDING.lock())
+    send(&mut crate::smp::lock_responsive(&PENDING))
 }
 
 fn send(run: &mut Run) -> Result<(), CryptoBlockError> {
