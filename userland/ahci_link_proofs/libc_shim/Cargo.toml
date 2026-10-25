@@ -1,11 +1,12 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Stands in for nonos_libc under the AHCI capsule's open paths, SATA and
-# eMMC, on the host: every broker call is logged with the device as the
-# test's model reads it at that moment, grants are host memory, and any call
-# can be refused. Named nonos_libc on the library side so the included
-# files' `use` lines resolve unchanged.
+# Stands in for nonos_libc under the open paths of the AHCI capsule and of
+# the SD host capsule's eMMC, on the host: every broker call is logged with
+# the device as the test's model reads it at that moment, grants are host
+# memory, and any call can be refused. The register accessors and DMA
+# barriers are the real libc's own. Named nonos_libc on the library side so
+# the included files' `use` lines and `nonos_libc::` paths resolve unchanged.
 [package]
 name = "ahci_proofs_libc_shim"
 version = "0.1.0"

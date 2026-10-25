@@ -50,11 +50,7 @@ pub fn write_isoch_input(
 
 fn write_dw(region: &DmaRegion, context_size: u8, context: usize, dword: usize, value: u32) {
     let byte = context * context_size as usize + dword * core::mem::size_of::<u32>();
-    /*
-     * SAFETY: the region holds the whole input context, 33 contexts of
-     * `context_size` bytes, and `context` is at most 32.
-     */
-    unsafe {
-        core::ptr::write_volatile(region.as_mut_ptr::<u8>().add(byte) as *mut u32, value);
-    }
+    // The region holds the whole input context, 33 contexts of
+    // `context_size` bytes, and `context` is at most 32.
+    let _ = region.write_u32(byte, value);
 }

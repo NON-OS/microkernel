@@ -17,13 +17,16 @@
 //! How a capsule's interrupt line is sensed. Pure, so the rule is held on the
 //! host (kernel_proofs ioapic_line_mode).
 //!
-//! An MADT override says it outright. Without one, GSIs 0 to 15 are the ISA
-//! lines, which are edge-triggered and active-high (ACPI 6.5, 5.2.12.5). A
-//! line above them reaches a capsule only as a PCI INTx or an ACPI device
-//! interrupt, and PCI INTx# is level-sensitive and active-low (PCI Local Bus
-//! 3.0, 2.2.6), as Linux programs a PCI GSI from _PRT. Sensed as an ISA edge,
-//! such a line fires only when the device lets go of it, so a driver waiting
-//! for its first interrupt waits forever.
+//! An ACPI platform device's own `_CRS` interrupt descriptor says it first
+//! (ACPI 6.5, 6.4.3.6; F 51 carries it in the record): a GPIO controller on
+//! GSI 7 or 14 asks for level, active-low, and sensed as an ISA edge it fired
+//! once and never again (L43). Then an MADT override. Without either, GSIs 0
+//! to 15 are the ISA lines, edge-triggered and active-high (ACPI 6.5,
+//! 5.2.12.5). A line above them reaches a capsule only as a PCI INTx or an
+//! ACPI device interrupt, and PCI INTx# is level-sensitive and active-low
+//! (PCI Local Bus 3.0, 2.2.6). Sensed as an ISA edge, such a line fires only
+//! when the device lets go of it, so a driver waiting for its first interrupt
+//! waits forever.
 
 pub(crate) const ISA_LINES: u32 = 16;
 
@@ -33,8 +36,16 @@ pub(crate) struct LineMode {
     pub(crate) active_low: bool,
 }
 
-/// `iso` is the override's (level, active-low) when the MADT has one.
-pub(crate) const fn line_mode(gsi: u32, iso: Option<(bool, bool)>) -> LineMode {
+/// `described` is the device's own (level, active-low) when its record
+/// carries one; `iso` the override's when the MADT has one.
+pub(crate) const fn line_mode(
+    gsi: u32,
+    iso: Option<(bool, bool)>,
+    described: Option<(bool, bool)>,
+) -> LineMode {
+    if let Some((level, active_low)) = described {
+        return LineMode { level, active_low };
+    }
     match iso {
         Some((level, active_low)) => LineMode { level, active_low },
         None if gsi >= ISA_LINES => LineMode { level: true, active_low: true },

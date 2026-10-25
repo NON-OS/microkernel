@@ -39,9 +39,8 @@ pub(crate) const fn enabling(cap: u16, ctrl: u16, needed: u16) -> u16 {
 /*
  * Whether the capability and control words, if any, redirect `needed`. A
  * bit the capability does not offer is hard-wired: a port that forwards no
- * peer traffic need not implement its redirect (PCIe 6.0, 6.12.1.1), as in
- * Linux drivers/pci/pci.c `pci_acs_flags_enabled`. A function with
- * no ACS capability redirects nothing.
+ * peer traffic need not implement its redirect (PCIe 6.0, 6.12.1.1).
+ * A function with no ACS capability redirects nothing.
  */
 pub(crate) fn redirects(acs: Option<(u16, u16)>, needed: u16) -> bool {
     acs.is_some_and(|(cap, ctrl)| ctrl & (needed & cap) == needed & cap)

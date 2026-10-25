@@ -26,6 +26,9 @@
 
 /// The fixed PCM sink drivers, in the order they are preferred.
 pub const SINKS: [&str; 2] = ["driver.hda0", "driver.ac97_0"];
+/// The log line for each of `SINKS` when it is the one played through.
+pub const SINK_LINES: [&str; 2] =
+    ["[AUDIO] output driver.hda0\n", "[AUDIO] output driver.ac97_0\n"];
 
 /// `found[i]`: `SINKS[i]` is registered. `ready(i)` asks it whether this
 /// machine plays through it, and is asked only when more than one is found.

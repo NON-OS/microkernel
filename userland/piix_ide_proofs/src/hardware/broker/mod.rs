@@ -14,27 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The broker's record types as `legacy_ide` names them.
+//! The kernel's fixed port windows (`legacy`), the broker's own placing of
+//! an IDE function's compatibility-mode channels in its record, run on the
+//! record types it names (`device`).
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Bar {
-    pub base: u64,
-    pub size: u64,
-    pub kind: u8,
-    pub flags: u8,
-    pub aux: u32,
-    pub _pad: [u8; 2],
-}
+pub mod device;
+#[allow(dead_code)] // the proofs place IDE windows; DISPI's ids go unread
+#[path = "../../../../../src/hardware/broker/legacy/mod.rs"]
+mod legacy;
 
-#[repr(u8)]
-pub enum BarKind {
-    Pio = 2,
-}
+pub use device::{Bar, DeviceRecord};
 
-#[path = "../../../../../src/hardware/broker/table/legacy_ide.rs"]
-mod legacy_ide;
-
-/// `legacy_ide::fill`, which is the table's alone in the kernel.
+/// The kernel's `legacy::attach` on a PCI record of `class`, `subclass` and
+/// `progif` holding `bars`, its count `span`: what the broker lists.
 pub fn fill(class: u8, subclass: u8, progif: u8, bars: &mut [Bar; 6], span: &mut u8) {
-    legacy_ide::fill(class, subclass, progif, bars, span);
+    let mut rec = DeviceRecord {
+        pci_class: class,
+        pci_subclass: subclass,
+        pci_progif: progif,
+        vendor: 0,
+        device: 0,
+        bar_count: *span,
+        bars: *bars,
+    };
+    legacy::attach(&mut rec);
+    (*bars, *span) = (rec.bars, rec.bar_count);
 }

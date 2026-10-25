@@ -33,6 +33,8 @@ mod keep_status_tests;
 mod keep_tests;
 #[path = "kept_names_tests.rs"]
 mod kept_names_tests;
+#[path = "keyring_bond_tests.rs"]
+mod keyring_bond_tests;
 #[path = "keyring_ended_tests.rs"]
 mod keyring_ended_tests;
 #[path = "keyring_owner_rig.rs"]
@@ -51,22 +53,8 @@ mod replace_tests;
 mod retired_tests;
 #[path = "store_default_tests.rs"]
 mod store_default_tests;
-#[path = "typed_admit_tests.rs"]
-mod typed_admit_tests;
-#[path = "typed_check_tests.rs"]
-mod typed_check_tests;
-#[path = "typed_hash_tests.rs"]
-mod typed_hash_tests;
-#[path = "typed_live_tests.rs"]
-mod typed_live_tests;
-#[path = "typed_request_tests.rs"]
-mod typed_request_tests;
-#[path = "typed_shape_tests.rs"]
-mod typed_shape_tests;
-#[path = "typed_spec_tests.rs"]
-mod typed_spec_tests;
-#[path = "typed_word_tests.rs"]
-mod typed_word_tests;
+#[path = "tests_custody_typed.rs"]
+mod tests_custody_typed;
 #[path = "vault_gate_tests.rs"]
 mod vault_gate_tests;
 #[path = "vault_read/mod.rs"]

@@ -1,3 +1,4 @@
+// NONOS Operating System (AGPL-3.0-or-later)
 extern crate alloc;
 use crate::viewer::budget::refuse_pixels;
 use alloc::vec::Vec;
