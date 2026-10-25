@@ -35,7 +35,7 @@ impl Filter {
     pub fn label(self) -> &'static [u8] {
         match self {
             Filter::All => b"All",
-            Filter::Elevated => b"Elevated",
+            Filter::Elevated => b"Privileged",
             Filter::Protected => b"Protected",
             Filter::Flagged => b"Flagged",
         }
