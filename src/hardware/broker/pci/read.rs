@@ -23,7 +23,7 @@ const CONFIG_LIMIT: u32 = 256;
 
 pub fn read(pid: u32, req: PciReadRequest) -> Result<u32, PciReadError> {
     validate(&req)?;
-    let handle = resolve_read(pid, &req)?;
+    let (handle, _held) = resolve_read(pid, &req)?;
     let cfg = ConfigSpace::new(handle.address);
     match req.width {
         1 => cfg.read8(req.offset as u16).map(|v| v as u32),

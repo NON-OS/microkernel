@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What one bring-up attempt asks of the PCI function and of the adapter
-//! before it sets a mode, and what its handles give back.
+//! before it sets a mode, its byte order, and what its handles give back.
 //!
 //! The capsule used to write Bus Master as the whole command word at claim,
 //! though the adapter does no DMA, and to program any function behind the
@@ -25,7 +25,7 @@ use nonos_libc::{command, given_back, MK_PCI_CMD_MEMORY_SPACE, PCI_CMD_IO_SPACE}
 
 use super::adapter::{adapter, enabled, found, DEVICE, MODE_BYTES, REG_LEN};
 use super::attempt::run;
-use crate::constants::DISPI_INDEX_ID;
+use crate::constants::{DISPI_INDEX_ID, QEXT_ENDIAN, QEXT_LITTLE_ENDIAN, QEXT_SIZE};
 use crate::dispi::dispi_off;
 use crate::error::BgaError;
 
@@ -34,6 +34,16 @@ fn the_adapter_is_claimed_with_memory_decoding_on_and_bus_mastering_off() {
     let _a = adapter(REG_LEN, MODE_BYTES);
     assert!(run(found(MODE_BYTES)).is_ok(), "the attempt failed");
     assert_eq!(command(), PCI_CMD_IO_SPACE | MK_PCI_CMD_MEMORY_SPACE, "{:#06x}", command());
+}
+
+#[test]
+fn the_framebuffer_is_set_little_endian_where_the_adapter_has_the_register() {
+    for (size, want) in [(8, QEXT_LITTLE_ENDIAN), (0, 0)] {
+        let a = adapter(REG_LEN, MODE_BYTES);
+        a.regs.present32(QEXT_SIZE as usize, size);
+        assert!(run(found(MODE_BYTES)).is_ok(), "the attempt failed");
+        assert_eq!(a.regs.wrote32(QEXT_ENDIAN as usize), want, "extension block of {size}");
+    }
 }
 
 #[test]

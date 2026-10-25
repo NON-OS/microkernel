@@ -15,12 +15,7 @@ const N_MK_TIME_MONOTONIC: i64 = tag4(b"MMON");
 fn read_ms(tag: i64) -> u64 {
     let r: i64;
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") tag => r,
-            out("rcx") _,
-            out("r11") _,
-        );
+        r = crate::sys::pal::trap::trap(tag, 0, 0, 0, 0, 0, 0);
     }
     if r < 0 { 0 } else { r as u64 }
 }

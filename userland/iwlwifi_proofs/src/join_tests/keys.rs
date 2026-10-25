@@ -4,21 +4,22 @@
 
 use nonos_wifi_core::rsn::JoinPolicy;
 
+use super::drive::run_join;
+use super::rig::KEY;
 use crate::gen3::join::keys::KeyError;
 use crate::gen3::join::run::JoinEnd;
 use crate::gen3_model::{reply, Out, Seen};
 use crate::join_rig::*;
-use super::drive::run_join;
-use super::rig::KEY;
 
 #[test]
 fn a_key_the_firmware_does_not_take_ends_the_join_and_removes_nothing_it_did_not_install() {
     let r = rig(Security::Wpa2, Switches::default());
-    r.model.s.borrow_mut().responder = Some(Box::new(move |c: &Seen| match (c.group, c.cmd, c.payload.get(4)) {
-        (0x5, 0x18, _) => vec![],
-        (0x3, 0x05, Some(1)) => vec![reply(c, vec![]), session_notif(1, 1)],
-        _ => vec![reply(c, vec![])],
-    }));
+    r.model.s.borrow_mut().responder =
+        Some(Box::new(move |c: &Seen| match (c.group, c.cmd, c.payload.get(4)) {
+            (0x5, 0x18, _) => vec![],
+            (0x3, 0x05, Some(1)) => vec![reply(c, vec![]), session_notif(1, 1)],
+            _ => vec![reply(c, vec![])],
+        }));
     let mut end = None;
     run_join(&r, JoinPolicy::ANY, |_, out, _| end = out.err());
     assert!(matches!(end, Some(JoinEnd::Keys(KeyError::Pairwise(_)))), "{end:?}");

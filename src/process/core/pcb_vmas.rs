@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The VMA list of a process: the lock that guards it, and the claims
-//! `mmap` makes in it. `pcb_vma_cut` takes spans out again.
+//! The lock that guards a process's VMA list.
 
-use crate::memory::addr::VirtAddr;
-use core::sync::atomic::Ordering;
 use spin::MutexGuard;
 
 use super::pcb::ProcessControlBlock;
-use super::types::{align_up, overlaps, MemoryState, Vma};
+use super::types::MemoryState;
 
 impl ProcessControlBlock {
     /// The address-space bookkeeping, taken without going deaf to TLB
@@ -32,44 +29,8 @@ impl ProcessControlBlock {
     /// with `lock()` could not acknowledge a shootdown aimed at the address
     /// space it is running, and a holder waiting on that acknowledgement
     /// would never release. Nothing may change a page table while holding
-    /// this guard either; `mmap` and `munmap` map and unmap with it
-    /// dropped.
+    /// this guard either: map and unmap with it dropped.
     pub fn memory_state(&self) -> MutexGuard<'_, MemoryState> {
         crate::smp::lock_responsive(&self.memory)
-    }
-
-    /// Pick `length` free bytes at `hint` or above `next_va`, and record them
-    /// as a VMA of `pages` pages with `map_flags`.
-    pub(super) fn claim_span(
-        &self,
-        hint: Option<VirtAddr>,
-        length: usize,
-        pages: usize,
-        map_flags: u64,
-    ) -> Result<VirtAddr, &'static str> {
-        let mut mem = self.memory_state();
-        let va = match hint {
-            Some(h) if (h.as_u64() & 0xFFF) == 0 && !overlaps(&mem.vmas, h, length) => h,
-            _ => {
-                let mut candidate = align_up(mem.next_va, 0x1000);
-                loop {
-                    if candidate > 0x0000_FFFF_FFFF_F000 {
-                        return Err("ENOMEM");
-                    }
-                    let cand = VirtAddr::new(candidate);
-                    if !overlaps(&mem.vmas, cand, length) {
-                        break cand;
-                    }
-                    candidate = align_up(candidate + length as u64, 0x1000);
-                }
-            }
-        };
-        mem.vmas.push(Vma {
-            start: va,
-            end: VirtAddr::new(va.as_u64() + length as u64),
-            flags: map_flags,
-        });
-        mem.resident_pages.fetch_add(pages as u64, Ordering::Relaxed);
-        Ok(va)
     }
 }

@@ -17,6 +17,7 @@
 pub mod access;
 pub mod bridge;
 pub mod check;
+mod command_edit;
 pub mod config_space;
 mod counters;
 #[cfg(target_arch = "x86_64")]

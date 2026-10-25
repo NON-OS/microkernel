@@ -37,6 +37,18 @@ And the combo PHY's PLLs (gpu-2b):
   the voltage switch left between `configure` and `lock` for the caller;
 - `pll::map`: a combo port's clock select and gate, as two writes.
 
+And the combo PHY and DDI buffer (gpu-2c):
+
+- `regs::phy` and `regs::ddi`: the PHY's port, group and lane registers,
+  DDI_BUF_CTL, PHY_MISC and the driver's DDI IO power well;
+- `phy::init`: the PHY initialisation sequence, with Vol 12's procmon
+  values picked by the PHY's reported voltage and process;
+- `phy::swing`, `phy::signal` and the swing tables: the voltage swing
+  sequence for DP up to 2.7 Gbit/s, eDP up to 5.4 and HDMI. DP above 2.7 is
+  refused, because Vol 12 prints two unlabelled "DP HBR2" tables;
+- `phy::lanes` and `phy::power`: loadgen, the lanes powered, and IO power;
+- `ddi::buf`: the DDI buffer on and off.
+
 Proved by `intel_xelp_display_proofs`. Nothing here has run on a machine:
 no QEMU device models these engines, so it is tested against register
 models until the owner boots it on real hardware.

@@ -18,8 +18,9 @@ use super::context_table::{context_table_for, slot_of};
 use crate::arch::x86_64::iommu::tables::context::{
     context_high, context_index, context_low, is_present,
 };
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::pair::set_pair;
 use crate::arch::x86_64::iommu::tables::publish::publish;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::{DomainId, SourceId, VtdError};
 
 /// Point one device at a domain's second-level tables. `address_width` is the
@@ -33,12 +34,12 @@ pub fn set_context(
 ) -> Result<(), VtdError> {
     let table = context_table_for(source.bus())?;
     let slot = slot_of(context_index(source.device(), source.function()));
-    let entries = entries_mut(table)?;
-    if is_present(entries[slot]) {
+    let frame = Frame::at(table)?;
+    if is_present(frame.read(slot)?) {
         return Err(VtdError::DeviceAlreadyAttached);
     }
-    entries[slot + 1] = context_high(domain.as_u16(), address_width);
-    entries[slot] = context_low(sl_root);
+    let high = context_high(domain.as_u16(), address_width);
+    set_pair(frame, slot, context_low(sl_root), high)?;
     publish(table);
     Ok(())
 }

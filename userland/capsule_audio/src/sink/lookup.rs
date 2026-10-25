@@ -28,16 +28,17 @@ use super::choose::{choose, SINKS};
 const LOOKUP_RETRIES: u32 = 100;
 const LOOKUP_PAUSE_MS: u64 = 20;
 
-/// The fixed sink `choose` takes, its port and name, once one is registered.
-/// `ready` asks a port whether this machine plays through it.
-pub(super) fn fixed(ready: impl Fn(u32) -> bool) -> Option<(u32, &'static str)> {
+/// The fixed sink `choose` takes, its port and its place in `SINKS`, once
+/// one is registered. `ready` asks a port whether this machine plays
+/// through it.
+pub(super) fn fixed(ready: impl Fn(u32) -> bool) -> Option<(u32, usize)> {
     (0..LOOKUP_RETRIES).find_map(|tries| {
         if tries > 0 {
             let _ = mk_idle_ms(LOOKUP_PAUSE_MS);
         }
         let ports = SINKS.map(|name| once(name.as_bytes()));
         let i = choose(ports.map(|p| p.is_some()), |i| ports[i].is_some_and(&ready))?;
-        Some((ports[i]?, SINKS[i]))
+        Some((ports[i]?, i))
     })
 }
 
