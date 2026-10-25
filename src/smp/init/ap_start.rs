@@ -82,6 +82,8 @@ pub(super) fn start_aps() -> Result<usize, &'static str> {
     l.str(b"[SMP] answered=").dec(started as u64);
     l.str(b" online=").dec(online as u64);
     l.end();
+    #[cfg(feature = "nonos-smp-shootdown-proof")]
+    crate::memory::paging::manager::shootdown::run_proof();
     Ok(online.saturating_sub(1))
 }
 
