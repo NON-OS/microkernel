@@ -33,7 +33,7 @@ use super::pause::pause;
 
 /* End `pid`'s stream: put it down when `keep`, else finish it. The bytes it holds. */
 pub fn stream_finish(pid: u32, keep: bool) -> Result<u64, StreamError> {
-    let mut live = LIVE.lock();
+    let mut live = crate::smp::lock_responsive(&LIVE);
     match live.as_ref() {
         Some(l) if l.pid != pid => return Err(StreamError::NotBegun),
         Some(l) if !keep && l.stream.size() != l.bytes => return Err(StreamError::Short),
@@ -49,7 +49,7 @@ pub fn stream_finish(pid: u32, keep: bool) -> Result<u64, StreamError> {
     drop(live);
     let name = &name[..name_len];
     let got = hash.finish();
-    let mut guard = VOLUME.write();
+    let mut guard = crate::smp::write_responsive(&VOLUME);
     let s = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     if got != want {
         let (g, w) = (hex32(&got), hex32(&want));

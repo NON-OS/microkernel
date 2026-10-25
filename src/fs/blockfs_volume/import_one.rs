@@ -35,7 +35,7 @@ pub(super) fn import_from(
     if is_kept(name) {
         return Err(VolumeError::ImportOnly);
     }
-    let mut guard = VOLUME.write();
+    let mut guard = crate::smp::write_responsive(&VOLUME);
     let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     let (key, mount) = (&state.key, &mut state.mount);
     let mut stream = FileStream::new();

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::rule::*;
+use super::spin_watch::*;
 
 #[test]
 fn quiet_until_the_mark_then_once() {

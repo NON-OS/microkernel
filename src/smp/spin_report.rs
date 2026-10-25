@@ -20,7 +20,7 @@
 use core::panic::Location;
 
 use super::spin_holders::taker;
-use super::spin_watch::{judge, Holder};
+use super::spin_verdict::{judge, Holder};
 
 /// The one line for a wait on `lock` at `site` that has lasted `ms`. It takes
 /// no lock but the serial port's, which nothing takes through
@@ -28,7 +28,8 @@ use super::spin_watch::{judge, Holder};
 /// nothing.
 pub(super) fn report(lock: usize, site: &'static Location<'static>, sp: usize, ms: u64) {
     let cpu = super::cpu_id::try_cpu_id();
-    let held = taker(lock).map(|(at, held_sp)| (at, judge(held_sp, sp, stack_top(cpu))));
+    let top = stack_top(cpu);
+    let held = taker(lock).map(|(at, held_sp, shared)| (at, judge(held_sp, sp, top, shared)));
     let mut line = crate::sys::serial::Line::new();
     if matches!(held, Some((_, Holder::ReTaken))) {
         line.str(b"[FATAL] lock re-taken by its own holder, this CPU cannot go on: ");
