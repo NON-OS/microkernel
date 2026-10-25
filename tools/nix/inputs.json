@@ -8756,6 +8756,8 @@
    "src/kernel_core",
    "src/process/core/table/ambient.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
+   "src/syscall/microkernel/tool_run.rs",
+   "src/userspace/init/entry.rs",
    "src/userspace/tool_capsules/bound.rs",
    "src/userspace/tool_capsules/model_fetch/spawn.rs",
    "src/userspace/tool_capsules/registry.rs",
