@@ -119,6 +119,7 @@ pub enum SyscallNumber {
     MkHvRecv = tag4(b"MHVR"),
     MkHvEvents = tag4(b"MHVE"),
     MkHvSignal = tag4(b"MHVS"),
+    MkHvChannel = tag4(b"MHVC"),
     MkDebug = tag4(b"MDBG"),
     MkSurfaceRegister = tag4(b"MSRG"),
     MkSurfaceShare = tag4(b"MSSH"),

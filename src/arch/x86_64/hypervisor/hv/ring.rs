@@ -35,6 +35,10 @@ impl Ring {
         Self { slots: [[0; MESSAGE_BYTES]; RING_SLOTS], head: 0, len: 0 }
     }
 
+    pub(super) fn full(&self) -> bool {
+        self.len == RING_SLOTS
+    }
+
     /// False when full: the message stays in the slot, and the host waits.
     pub(super) fn push(&mut self, m: &[u8; MESSAGE_BYTES]) -> bool {
         if self.len == RING_SLOTS {

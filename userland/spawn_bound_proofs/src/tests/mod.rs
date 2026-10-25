@@ -13,19 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! load_store payloads: a head of caps and five lengths, and the blobs it names.
-
-/// caps | five u32 lengths: the load_store head alone.
-pub fn head(caps: u64, lens: [u32; 5]) -> Vec<u8> {
-    let mut h = caps.to_le_bytes().to_vec();
-    lens.iter().for_each(|l| h.extend_from_slice(&l.to_le_bytes()));
-    h
-}
-
-/// The head followed by blob i as lens[i] bytes of 0xA0 + i.
-pub fn store_payload(caps: u64, lens: [u32; 5]) -> Vec<u8> {
-    let mut p = head(caps, lens);
-    (0..5).for_each(|i| p.resize(p.len() + lens[i] as usize, 0xA0 + i as u8));
-    p
-}
+mod bound;
+mod ambient;
+mod asked;
+mod broker;
+mod check;
+mod tool;
+mod verify_agree;
+mod tool_exempt;
+mod tool_glue;
+mod wired;
