@@ -83,7 +83,7 @@ pub use dmar_flags::{dmar_address_width, dmar_intr_remap, dmar_platform_opt_in, 
 pub use dmar_ioapic_table::{ioapic_named, ioapic_source};
 pub use dmar_reserved::reserved_regions;
 pub use dmar_scope::{translated_by_some, UnitScope};
-pub use dmar_units::{remap_unit_bases, remap_unit_scopes, units_left_off};
+pub use dmar_units::{remap_unit_bases, units_left_off, with_remap_unit_scopes};
 pub use hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
 pub use hpet::parse_hpet;
 pub use ivhd_special_table::amd_ioapic_requester;

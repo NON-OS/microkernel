@@ -21,23 +21,22 @@ pub use super::dmar_cover::scope_covers;
 pub use super::dmar_parse::{parse_drhd, read_scopes};
 pub use super::dmar_translated::{translated_by_some, Cover};
 
-/// DRHD flags bit 0: the unit covers every PCI device in its segment not named
-/// by another unit's scope. The spec requires such a unit to be listed last.
+/// DRHD flags bit 0: the unit covers every device on its segment no other names.
 pub const FLAG_INCLUDE_PCI_ALL: u8 = 1 << 0;
 /// Device scope type 1: a PCI endpoint.
 pub const SCOPE_ENDPOINT: u8 = 1;
 /// Device scope type 2: a PCI bridge and every device below it.
 pub const SCOPE_BRIDGE: u8 = 2;
-/// Scopes kept per unit; a unit naming more is marked truncated.
-pub const MAX_SCOPES: usize = 16;
+/// Scopes kept per DRHD: all a u8 count holds (one root bus has 256 functions).
+pub const MAX_SCOPES: usize = 255;
+/// Scopes kept per RMRR, which names the few devices its range is for.
+pub const RMRR_SCOPES: usize = 16;
 /// Path hops kept per scope; a longer path is marked unresolvable.
 pub const MAX_PATH: usize = 4;
-
 pub(super) const DRHD_HEADER_LEN: usize = 16;
 pub(super) const SCOPE_HEADER_LEN: usize = 6;
 
-/// One PCI device scope: its type, the bus its path starts on, and the
-/// (device, function) hops of the path.
+/// One PCI device scope: its type, its path's start bus, and its (dev, fn) hops.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Scope {
     pub kind: u8,
@@ -51,24 +50,26 @@ impl Scope {
         Scope { kind: 0, start_bus: 0, path: [(0, 0); MAX_PATH], path_len: 0 };
 }
 
-/// What a DRHD says it covers.
+/// What a DRHD (or, with N = RMRR_SCOPES, an RMRR) says it covers.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct UnitScope {
+pub struct UnitScope<const N: usize = MAX_SCOPES> {
     pub include_all: bool,
     pub segment: u16,
-    pub scopes: [Scope; MAX_SCOPES],
+    pub scopes: [Scope; N],
     pub count: u8,
-    /// A PCI scope was dropped (too many, or a path too long to keep), so a
-    /// device not matched may still be this unit's.
+    /// PCI scopes the structure named, kept or not.
+    pub named: u16,
+    /// A PCI scope was dropped (too many, or a path too long): a miss is unknown.
     pub truncated: bool,
 }
 
-impl UnitScope {
-    pub const EMPTY: UnitScope = UnitScope {
+impl<const N: usize> UnitScope<N> {
+    pub const EMPTY: Self = UnitScope {
         include_all: false,
         segment: 0,
-        scopes: [Scope::EMPTY; MAX_SCOPES],
+        scopes: [Scope::EMPTY; N],
         count: 0,
+        named: 0,
         truncated: false,
     };
 }
