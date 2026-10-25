@@ -7,6 +7,7 @@
 use super::linux_terminal::spawn_errno;
 use super::registry::{embedded_tools, LINUX_TOOL};
 use crate::sys::boot_log;
+use crate::userspace::capsule_linux::{LINUX_CAPS, LINUX_MANIFEST_BYTES};
 use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_NOENT};
 
 /// The name a terminal starts a Qwen tier by. It names no embedded tool: it
@@ -31,6 +32,9 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
     if crate::userspace::init::app_tool_off(name) {
         return Err(ERRNO_ACCES);
     }
+    if name == LINUX_TOOL || name == QWEN_TOOL {
+        super::bound::check(LINUX_MANIFEST_BYTES, LINUX_CAPS, name)?;
+    }
     if name == LINUX_TOOL {
         return super::linux_terminal::run(argv);
     }
@@ -43,6 +47,7 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
     let Some(tool) = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name) else {
         return Err(ERRNO_NOENT);
     };
+    super::bound::check(tool.manifest, tool.caps, name)?;
     tool.spawn_with_args(argv).map_err(|e| {
         boot_log::error("tool capsule spawn failed");
         spawn_errno(&e)

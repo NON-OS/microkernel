@@ -55,6 +55,10 @@ mod load_by_name_tests;
 mod load_store_accept_tests;
 #[path = "handlers_host/load_store_tests.rs"]
 mod load_store_tests;
+#[path = "handlers_host/own_caps_glue_tests.rs"]
+mod own_caps_glue_tests;
+#[path = "handlers_host/own_caps_tests.rs"]
+mod own_caps_tests;
 #[path = "handlers_host/pkg_commit_tests.rs"]
 mod pkg_commit_tests;
 #[path = "handlers_host/pkg_installed_tests.rs"]
