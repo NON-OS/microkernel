@@ -18,6 +18,8 @@ use nonos_toolkit::font::ttf::line_height;
 
 #[path = "footer_draw.rs"]
 mod footer_draw;
+#[path = "hint_sets.rs"]
+pub mod hint_sets;
 pub use footer_draw::draw_footer;
 
 // The hint bar: what to press and what it does, for the state the reader is

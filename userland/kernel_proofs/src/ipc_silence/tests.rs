@@ -59,10 +59,10 @@ fn a_full_table_evicts_the_longest_silent_and_reports_it() {
 }
 
 #[test]
-fn settle_answers_on_a_reply_and_reports_after_the_late_line() {
+fn settle_answers_on_a_reply_and_a_late_call_alone_says_nothing() {
     let code: String = SETTLE.split_whitespace().collect();
     assert!(code.contains("ifrc>=0{silence_table::answered(pair);}"));
-    let late = code.find("LATE.late(&endpoint.name,waited.1,dropped());").unwrap();
-    let report = code.find("silence_table::report(&STARVED,pair,&endpoint.name,waited.1);");
-    assert!(late < report.expect("the silence is asked on every late call"));
+    let late = "NoAnswer::Late=>silence_table::report(&STARVED,pair,&endpoint.name,waited.1),";
+    assert!(code.contains(late), "the silence is asked on every late call");
+    assert!(!code.contains(".late("), "no late line of its own");
 }

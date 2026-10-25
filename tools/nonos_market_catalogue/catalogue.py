@@ -40,7 +40,7 @@ def guest_policy(recipe: dict, program: bytes, publisher: bytes, app: str, rel: 
 
 def one(recipe: dict, rec: dict, raw: bytes, key: str, when_ms: int) -> dict:
     name = rec["P"]
-    if rec.get("L", "") != recipe["licence"]:
+    if rec.get("L", "") != recipe.get("index_licence", recipe["licence"]):
         raise ValueError(f"the index now says {rec.get('L')!r}, the recipe {recipe['licence']!r}")
     files = alpine_auth.package_files(raw, alpine_auth.checksum(rec.get("C")))
     found = apk.program(files, name)

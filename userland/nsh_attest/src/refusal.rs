@@ -45,30 +45,16 @@ pub enum QuoteFault {
     NotAQuote,
 }
 
-/// How the TCG event log failed to parse.
+#[path = "refusal_log.rs"]
+mod log;
+pub use log::LogFault;
+
+/// What PCR 14's capsules fail: none is recorded, or one was admitted by
+/// something other than its STARK proof under the vendor's root.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LogFault {
-    /// The bytes end inside an event, or the document carries no log.
-    Short,
-    /// The log is over `MAX_LOG` bytes.
-    TooLarge,
-    /// More than `MAX_EVENTS` events.
-    TooManyEvents,
-    /// An event body over `MAX_EVENT_BODY`.
-    EventTooLarge,
-    /// The first event is not the crypto-agile Spec ID header, or the header
-    /// is not exactly the shape the TCG PC Client specification gives.
-    Header,
-    /// A digest under an undeclared bank, a bank twice, or too many banks.
-    Bank,
-    /// A PCR 4 event of a type other than no-action, separator, action or
-    /// boot-services application: one the client cannot account for.
-    Pcr4Event,
-    /// A PCR 4 separator or action whose digest is not its body's SHA-256,
-    /// so it could hide a measurement under a harmless label.
-    Pcr4Digest,
-    /// A PCR index past the 24 a PC TPM has.
-    PcrIndex,
-    /// A startup-locality event that is misplaced, repeated or malformed.
-    Locality,
+pub enum CapsuleFault {
+    None,
+    PathOnly,
+    Developer,
+    LocalBuild,
 }
