@@ -26,18 +26,18 @@ extern crate alloc;
 pub mod abi;
 /// The capsule's pure half, each file mounted where its imports expect.
 pub mod assemble;
-/// The kernel's `MkBootSlots` slot and record encoders, unchanged.
-pub mod kernel_slots;
-/// The market half of capsule_prove (plan/14), the files that ship.
-pub mod market;
+/// The headless job's answers, state and exit rule, the files that ship.
+pub mod job;
 /// The headless job's argv parse, the file that ships.
 #[path = "../../capsule_prove/src/job/bound.rs"]
 pub mod job_bound;
 /// The headless job's failure status from a kernel return, the file that ships.
 #[path = "../../capsule_prove/src/job/status.rs"]
 pub mod job_status;
-/// The headless job's answers, state and exit rule, the files that ship.
-pub mod job;
+/// The kernel's `MkBootSlots` slot and record encoders, unchanged.
+pub mod kernel_slots;
+/// The market half of capsule_prove (plan/14), the files that ship.
+pub mod market;
 
 #[cfg(test)]
 mod fixture;
