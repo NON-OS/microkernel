@@ -32,6 +32,7 @@ app.linux.run.net
 app.linux.term
 app.linux.term.1
 app.linux.term.2
+app.linux.term.net
 app.nonos_install
 app.nonos_wallet
 app.nonos_wallet.1
@@ -90,6 +91,7 @@ driver.intel_display0
 driver.iwlwifi0
 driver.ixgbe_0
 driver.mpt0
+driver.netvsc0
 driver.nvme0
 driver.ohci0
 driver.pcnet0
@@ -105,6 +107,7 @@ driver.sdhci0
 driver.smbus0
 driver.spi0
 driver.spi_hid0
+driver.storvsc0
 driver.tulip0
 driver.ufs0
 driver.uhci0
@@ -185,9 +188,11 @@ endpoint.4294967390
 endpoint.4294967391
 endpoint.4294967392
 endpoint.4294967393
+endpoint.4294967394
 endpoint.4294967395
 endpoint.4294967396
 endpoint.4294967397
+endpoint.4294967398
 endpoint.4294967399
 endpoint.4294967480
 endpoint.4294967481
@@ -229,6 +234,7 @@ endpoint.app.linux.run.net.reply
 endpoint.app.linux.run.reply
 endpoint.app.linux.term.1.reply
 endpoint.app.linux.term.2.reply
+endpoint.app.linux.term.net.reply
 endpoint.app.linux.term.reply
 endpoint.app.nonos_install.reply
 endpoint.app.nonos_wallet.1.reply

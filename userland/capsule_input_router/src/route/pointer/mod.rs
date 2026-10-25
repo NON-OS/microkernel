@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod event_kinds;
+mod hit_route;
 mod hover_motion;
 mod mirror_shell_pointer;
+mod press_path;
 mod refresh_display;
 mod release_under_grab;
 mod route_pointer;

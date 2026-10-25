@@ -22,6 +22,7 @@ extern crate alloc;
 mod catalog_client;
 mod compositor_client;
 mod decode_client;
+mod first_paint;
 mod paint;
 mod policy_client;
 mod protocol;

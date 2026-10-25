@@ -17,6 +17,7 @@
 //! The desktop's app table: what the dock, the Launchpad and the menus
 //! launch.
 
+pub mod focus_rule;
 mod kinds;
 mod table;
 
