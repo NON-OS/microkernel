@@ -24,6 +24,8 @@ use crate::term::prefs::types::Project;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
+#[path = "complete_panel.rs"]
+mod complete_panel;
 #[path = "compose_tab.rs"]
 mod compose_tab;
 use compose_tab::paint;
