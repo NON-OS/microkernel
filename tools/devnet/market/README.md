@@ -48,3 +48,7 @@ it refuses this catalogue even if the bytes were copied into a release
 image. `nonos-mk/tests/dev_catalogue_*.rs` proves both cases against the
 capsule's own ingest code. `scripts/check_dev_catalogue.py` fails if a
 release path names this directory.
+
+The signature is the only refusal. Every build reads schema 2 and schema 3
+alike, and the market capsule never checks the schema, so nothing refuses
+this catalogue for being schema 3: do not count on a schema gate.
