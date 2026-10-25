@@ -7,8 +7,10 @@ mod chrome;
 mod detail;
 mod display;
 mod dwell;
+mod follow;
 mod input;
 mod interact;
+mod keys;
 mod layout;
 mod layout_fit;
 mod logo;
@@ -18,13 +20,14 @@ mod proto;
 mod ready;
 mod say;
 mod scene;
+mod show;
 mod spin;
 mod status;
 mod surface;
 mod title;
 mod vignette;
 
-use nonos_libc::{heap_init, mk_attest_status, mk_exit, mk_surface_release, AttestStatus};
+use nonos_libc::{heap_init, mk_attest_status, mk_exit, mk_uptime_ms, AttestStatus};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -39,39 +42,33 @@ fn run() -> i32 {
         Some(p) => p,
         None => return 2,
     };
-    let (w, h, stride) = match display::query(comp, 2) {
-        Ok(d) => d,
-        Err(_) => return 4,
-    };
-    let (base, handle) = match surface::setup(w, h, stride) {
-        Some(s) => s,
-        None => return 5,
-    };
+    let Ok(size) = display::query(comp, 2) else { return 4 };
     let mut att = AttestStatus::default();
     let badge = if mk_attest_status(&mut att) == 0 { Some(att.zk_verified == 1) } else { None };
-    let logo = logo::fetch::fetch(w, h);
-    let fit = layout_fit::layout(logo.as_ref().map(|l| &l.spot), w, h);
-    let look = look::Look { att, badge, logo, fit };
-    paint::splash(base, w, h, stride, &look);
-    if scene::submit(comp, 3, handle, w, h).is_err() {
-        let _ = mk_surface_release(handle);
-        return 6;
-    }
-    let _ = scene::damage(comp, 4, (0, 0, w, h));
-    say::line(&alloc::format!("up {}x{} at {} ms", w, h, nonos_libc::mk_uptime_ms()));
-    grabbed_interact(comp, base, w, h, stride, &look);
-    let _ = scene::remove(comp, 5);
-    let _ = mk_surface_release(handle);
-    0
-}
-
-fn grabbed_interact(comp: u32, base: u64, w: u32, h: u32, stride: u32, look: &look::Look) {
-    let router = match proto::lookup(b"input_router") {
-        Some(rp) => rp,
-        None => return interact::interact(comp, base, w, h, stride, look),
+    let (mut up, mut look) = match show::raise(comp, size, att, badge) {
+        Ok(u) => u,
+        Err(code) => return code,
     };
-    let _ = input::subscribe(router, 10);
-    let _ = input::grab(router, 11);
-    interact::interact(comp, base, w, h, stride, look);
-    let _ = input::release(router, 12);
+    let mut f = follow::Follow::new(size, mk_uptime_ms());
+    let grab = proto::lookup(b"input_router");
+    if let Some(rp) = grab {
+        let _ = input::subscribe(rp, 10);
+        let _ = input::grab(rp, 11);
+    }
+    while let Some(next) = interact::interact(comp, up.base, &look, &mut f) {
+        match show::raise(comp, next, att, badge) {
+            Ok((u, l)) => {
+                show::give_back(&up);
+                (up, look) = (u, l);
+            }
+            // Not drawn at the new size: the old drawing stays, as it was.
+            Err(_) => f.size = up.size,
+        }
+    }
+    if let Some(rp) = grab {
+        let _ = input::release(rp, 12);
+    }
+    let _ = scene::remove(comp, 5);
+    show::give_back(&up);
+    0
 }

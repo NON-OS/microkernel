@@ -19,8 +19,9 @@ boot_splash -> compositor -> driver.virtio_gpu
 
 - `MkIpcCall` talks to compositor and input-router services.
 - `MkIpcRecvFrom` receives bounded key events.
-- `MkMmap`, `MkSurfaceRegister`, `MkSurfaceShare` and `MkSurfaceRelease`
-  own the temporary splash surface; the compositor maps and presents it.
+- `MkMmap`, `MkSurfaceRegister`, `MkSurfaceShare`, `MkSurfaceRelease` and
+  `MkMunmap` own the temporary splash surface; the compositor maps and
+  presents it.
 - `MkServiceLookup` finds the compositor, the input router and the shell.
 - `MkAttestStatus` reads the boot attestation status.
 - `MkBootLogo` (F-50) gives the firmware's logo record and its BMP file, to
@@ -33,8 +34,20 @@ boot_splash -> compositor -> driver.virtio_gpu
 
 When the firmware left its logo on screen, the splash draws it where the
 firmware had it, turned as the firmware turned it and scaled from the
-firmware mode to the canvas, in place of its own title. The compositor
+firmware mode to the canvas. The attestation panel and the status line move
+below the logo when it would sit on them and they still fit; otherwise the
+logo is left out and the title drawn (`src/layout_fit.rs`). The compositor
 holds its first frame until this surface is up, so the boot shows no flash.
+
+## A canvas that changes size
+
+The compositor can move from the firmware framebuffer to a GPU driver at
+another size while the splash is up (on QEMU, 1280x800 to 1920x1080). The
+splash asks DISPLAY_INFO again every 250 ms, and on a new size draws itself
+afresh at that size, logo and layout placed for it, and submits it at the
+same depth, so the compositor swaps it in before the old surface is given
+back (`src/follow.rs`, `src/show.rs`). It redraws at most four times, and its
+time on screen carries across a redraw.
 The record and the file must agree, or no logo is drawn (`src/logo/`).
 Proofs: [boot_splash_proofs](../boot_splash_proofs/README.md).
 

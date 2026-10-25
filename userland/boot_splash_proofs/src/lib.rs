@@ -41,6 +41,9 @@ pub mod logo {
 }
 
 #[cfg(test)]
+#[path = "../../capsule_boot_splash/src/follow.rs"]
+pub mod follow;
+#[cfg(test)]
 #[path = "../../capsule_boot_splash/src/layout.rs"]
 pub mod layout;
 #[cfg(test)]
@@ -55,26 +58,6 @@ pub mod status;
 pub mod vignette;
 
 #[cfg(test)]
-mod bmp_tests;
-#[cfg(test)]
 mod build;
 #[cfg(test)]
-mod draw_tests;
-#[cfg(test)]
-mod logo_clear_tests;
-#[cfg(test)]
-mod logo_fit_tests;
-#[cfg(test)]
-mod mode_tests;
-#[cfg(test)]
-mod place_tests;
-#[cfg(test)]
-mod prepare_tests;
-#[cfg(test)]
-mod record_tests;
-#[cfg(test)]
-mod refuse_tests;
-#[cfg(test)]
-mod splash_layout_tests;
-#[cfg(test)]
-mod turn_tests;
+mod tests;
