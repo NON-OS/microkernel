@@ -16,8 +16,8 @@
 
 use super::family::HardwareFamily;
 
-/// The i801 register set is Intel's (ICH and PCH datasheets); another
-/// vendor's SMBus host (AMD's FCH among them) has a register set of its own.
+/// The SMBus capsule drives Intel's ICH/PCH host register set alone; another
+/// vendor's (AMD's FCH among them) has its own (recalled, unverified).
 const INTEL: u16 = 0x8086;
 
 pub(super) fn classify_serial_bus(subclass: u8, progif: u8, vendor: u16) -> HardwareFamily {

@@ -27,35 +27,16 @@ use alloc::format;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use spin::{Mutex, MutexGuard};
-
 use super::state::CapsuleState;
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox;
 
 const RECV_YIELDS: u32 = 50_000;
 
-/// Acquire a per-capsule transport lock without busy-spinning. `round_trip`
-/// yields the CPU while it waits for the reply, so the holder is off-core for
-/// the whole exchange; a contending caller must yield too rather than spin, or
-/// on a single CPU with interrupts disabled it pins the core and the holder
-/// can never run to release the lock (the deadlock involuntary preemption now
-/// makes reachable). On contention, hand the CPU to the holder and retry.
-pub fn lock_yielding(lock: &'static Mutex<()>) -> MutexGuard<'static, ()> {
-    let mut round = 0u32;
-    loop {
-        if let Some(guard) = lock.try_lock() {
-            return guard;
-        }
-        super::reply_wait::rest(round);
-        round = round.saturating_add(1);
-    }
-}
+pub use super::transport_lock::lock_yielding;
 
-/// Bump a per-capsule request-id counter, skipping zero so callers can
-/// reserve `0` for "no request in flight". The atomic is owned by
-/// each capsule's `seq` module so increments do not contend across
-/// capsules.
+/// Bump a per-capsule request-id counter, skipping zero so `0` means none in
+/// flight; each capsule's `seq` module owns its own, so none contend.
 pub fn next_request_id(seq: &AtomicU32) -> u32 {
     let v = seq.fetch_add(1, Ordering::Relaxed);
     if v == 0 {
@@ -167,10 +148,9 @@ pub fn round_trip(
             // without a map entry.
             crate::sched::wake_process(state.pid());
         }
-        // Owner exited between the liveness check above and the
-        // enqueue, or the inbox was already unregistered. Either
-        // way the capsule is gone from this caller's view; surface
-        // it as `Dead` so client code maps to the same errno path.
+        // Owner exited between the liveness check above and the enqueue,
+        // or the inbox was already unregistered: the capsule is gone from
+        // this caller's view, `Dead`, so clients map one errno path.
         Err(nonos_inbox::StrictEnqueueError::MissingInbox)
         | Err(nonos_inbox::StrictEnqueueError::DeadOwner) => {
             return Err(TransportError::Dead);
@@ -182,6 +162,13 @@ pub fn round_trip(
     let started_ms = crate::time::timestamp_millis();
     let _waiting = super::waiting::Waiting::on(reply_inbox);
     for round in 0..RECV_YIELDS {
+        // A caller killed meanwhile returns now, its lock's guard dropped on
+        // the way out; it says nothing of the capsule, which may be up (L81).
+        let killed = crate::process::current_pid()
+            .is_some_and(|p| crate::process::scheduler::selection::is_dead(p));
+        if killed {
+            return Err(TransportError::TransportFailure);
+        }
         if !state.is_alive() {
             return Err(TransportError::Dead);
         }

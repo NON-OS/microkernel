@@ -28,8 +28,13 @@ pub(super) fn seed_hardware_broker() {
     // After, since the PCI table replaces whatever was there.
     let _ = crate::arch::publish_described_devices();
     #[cfg(target_arch = "x86_64")]
-    crate::bus::pci::report_aer(&devices);
+    {
+        crate::bus::pci::report_aer(&devices);
+        // Before any claim: a switch port closed now, or its devices one group.
+        crate::arch::iommu::acs::close_switches(&devices);
+    }
     let _ = crate::hardware::broker::register_legacy_platform_devices();
+    crate::hardware::broker::register_boot_framebuffer();
     // Firmware-described I2C and GPIO. ACPI names them in AML and only x86
     // firmware speaks it; an ARM board carries the same controllers in its
     // device tree, which the arch layer walks separately.

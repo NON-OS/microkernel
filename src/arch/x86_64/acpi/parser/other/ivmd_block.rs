@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One IVMD block (K4), pure. An exclusion range is kept as a read and
-//! write unity range, as Linux has since 5.5.
+//! write unity range: mapped one to one in the device's own domain, it is
+//! reached as firmware said, and no device is let past its tables.
 
 pub(super) const ALL: u8 = 0x20;
 pub(super) const ONE: u8 = 0x21;
