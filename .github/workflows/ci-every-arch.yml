@@ -1,0 +1,94 @@
+name: ci-every-arch
+
+# Every capsule and every proof crate, built for every architecture the tree
+# has, on every change, so no code rots on the architectures nobody boots
+# that day.
+#
+# What it checks:
+#   - every NONOS capsule make knows builds for aarch64-nonos-user and
+#     riscv64-nonos-user through make's own rule, and each is an ELF for that
+#     machine; a capsule that cannot is named, with why, in
+#     nonos-ci/arch-reach/capsules.txt (nonos-ci/build-every-capsule.sh)
+#   - the excused capsules still fail, so no excuse outlives its reason
+#   - every proof crate type-checks, tests included, for aarch64 and riscv64
+#     Linux, so the kernel source each mounts compiles under that cfg
+#     (nonos-ci/check-proofs-every-arch.sh), and std_pal_proofs runs there
+#     under qemu-user
+# The ledgers of x86_64-only kernel code are held by arch_reach_proofs, which
+# the flake's proof checks run. Nothing here boots; the boot lanes do that.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  capsules:
+    name: capsules (${{ matrix.target }}, ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-nonos-user, riscv64-nonos-user]
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/nix-setup
+        with:
+          cache: ${{ vars.NONOS_CACHIX }}
+      - name: Build this shard's capsules
+        run: bash nonos-ci/build-every-capsule.sh ${{ matrix.target }} ${{ matrix.shard }}/4
+      - name: The excused capsules still do not build
+        if: matrix.shard == 1
+        run: bash nonos-ci/build-every-capsule.sh ${{ matrix.target }} 1/1 --recheck
+
+  proofs:
+    name: proofs (${{ matrix.triple }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - triple: aarch64-unknown-linux-gnu
+            cc: gcc-aarch64-linux-gnu
+            linker: aarch64-linux-gnu-gcc
+            env: AARCH64_UNKNOWN_LINUX_GNU
+            qemu: qemu-aarch64 -L /usr/aarch64-linux-gnu
+          - triple: riscv64gc-unknown-linux-gnu
+            cc: gcc-riscv64-linux-gnu
+            linker: riscv64-linux-gnu-gcc
+            env: RISCV64GC_UNKNOWN_LINUX_GNU
+            qemu: qemu-riscv64 -L /usr/riscv64-linux-gnu
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Toolchain, the target's std and its C compiler
+        run: |
+          channel="$(sed -nE 's/^channel *= *"([^"]+)".*/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "${channel}" --profile minimal --target ${{ matrix.triple }}
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ${{ matrix.cc }} qemu-user
+      - name: Type-check every proof crate
+        run: bash nonos-ci/check-proofs-every-arch.sh ${{ matrix.triple }}
+      - name: Run the std layer's register proofs on that architecture
+        # The thread trampoline and the thread pointer read, executed rather
+        # than only compiled, under qemu-user.
+        working-directory: userland/std_pal_proofs
+        run: |
+          export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
+          export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"
+          cargo test --target ${{ matrix.triple }}
