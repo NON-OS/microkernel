@@ -22,24 +22,23 @@ use core::panic::Location;
 use super::spin_holders::taker;
 use super::spin_verdict::{judge, Holder};
 
-/// The one line for a wait on `lock` at `site` that has lasted `ms`. It takes
-/// no lock but the serial port's, which nothing takes through
-/// `lock_responsive` and whose holders only write bytes, and allocates
-/// nothing.
+/// The lines for a wait on `lock` at `site` that has lasted `ms`: where it
+/// waits, where the lock was taken, and, for a re-take, the verdict. Each is
+/// its own line, short of the serial line's 192 bytes, and each says its CPU,
+/// since another CPU's lines may fall between them. It is bounded and takes
+/// only the serial lock, which nothing takes through `lock_responsive` and
+/// whose holders only write bytes; it allocates nothing.
 pub(super) fn report(lock: usize, site: &'static Location<'static>, sp: usize, ms: u64) {
     let cpu = super::cpu_id::try_cpu_id();
-    let top = stack_top(cpu);
-    let held = taker(lock).map(|(at, held_sp, shared)| (at, judge(held_sp, sp, top, shared)));
+    let held =
+        taker(lock).map(|(at, held_sp, shared)| (at, judge(held_sp, sp, stack_top(cpu), shared)));
+    let n = cpu.map_or(u64::MAX, |cpu| cpu as u64);
     let mut line = crate::sys::serial::Line::new();
-    if matches!(held, Some((_, Holder::ReTaken))) {
-        line.str(b"[FATAL] lock re-taken by its own holder, this CPU cannot go on: ");
-    }
-    line.str(b"[LOCK] waiting ms=").dec(ms).str(b" at ");
-    line.str(site.file().as_bytes()).str(b":").dec(site.line() as u64);
-    if let Some(cpu) = cpu {
-        let pid = crate::process::current_pid().unwrap_or(0);
-        line.str(b" cpu=").dec(cpu as u64).str(b" pid=").hex(pid as u64);
-    }
+    line.str(b"[LOCK] cpu=").dec(n).str(b" waiting ms=").dec(ms).str(b" pid=");
+    line.hex(crate::process::current_pid().unwrap_or(0) as u64).str(b" at ");
+    line.str(site.file().as_bytes()).str(b":").dec(site.line() as u64).end();
+    let mut line = crate::sys::serial::Line::new();
+    line.str(b"[LOCK] cpu=").dec(n);
     match held {
         Some((at, verdict)) => {
             line.str(b" held from ").str(at.file().as_bytes()).str(b":").dec(at.line() as u64);
@@ -50,6 +49,13 @@ pub(super) fn report(lock: usize, site: &'static Location<'static>, sp: usize, m
         None => _ = line.str(b" holder unknown"),
     }
     line.end();
+    if matches!(held, Some((_, Holder::ReTaken))) {
+        let mut line = crate::sys::serial::Line::new();
+        line.str(b"[FATAL] cpu=")
+            .dec(n)
+            .str(b" lock re-taken by its own holder, cannot go on")
+            .end();
+    }
 }
 
 /// The top of the kernel stack this CPU runs on, 0 when unknown.
