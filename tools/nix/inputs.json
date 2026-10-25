@@ -3381,6 +3381,8 @@
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/capsule_acpi/src/power/off/wire.rs",
+   "userland/capsule_acpi/src/server/caller.rs",
    "userland/capsule_power",
    "userland/libc"
   ],
@@ -7341,6 +7343,29 @@
    ".cargo",
    "src/userspace/init/app_choice/bits.rs",
    "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/power_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/services/registry/held_table.rs",
+   "src/syscall/dispatch/router/admin/route.rs",
+   "src/syscall/dispatch/router/admin/shutdown.rs",
+   "src/userspace/capsule_power/power_off.rs",
+   "src/userspace/capsule_power/spawn.rs",
+   "src/userspace/init/spawn_plan/platform_acpi.rs",
+   "userland/capsule_acpi/src/power/off/wire.rs",
+   "userland/capsule_desktop_shell/src/power_off_client/frame.rs",
+   "userland/capsule_desktop_shell/src/power_off_client/send.rs",
+   "userland/capsule_desktop_shell/src/server/handlers/power_off.rs",
+   "userland/capsule_power/Capsule.mk",
+   "userland/capsule_power/src/off",
+   "userland/capsule_power/src/server/handlers/router.rs",
+   "userland/capsule_power/src/server/runner.rs",
+   "userland/power_proofs"
   ],
   "md": [],
   "signed": []
