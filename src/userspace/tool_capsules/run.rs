@@ -7,8 +7,8 @@
 use super::linux_terminal::spawn_errno;
 use super::registry::{embedded_tools, LINUX_NET_TOOL, LINUX_TOOL};
 use crate::sys::boot_log;
-use crate::userspace::capsule_linux::{LINUX_CAPS, LINUX_MANIFEST_BYTES};
 use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_NOENT};
+use crate::userspace::capsule_linux::{LINUX_CAPS, LINUX_MANIFEST_BYTES};
 
 /// The name a terminal starts a Qwen tier by. It names no embedded tool: it
 /// is the Linux personality, run as the caller's child on its terminal.
