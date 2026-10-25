@@ -44,7 +44,7 @@ import subprocess
 import sys
 import time
 
-from . import disk, iommu, lanes, machine, tpm
+from . import disk, iommu, lanes, machine, siblings, tpm
 
 TARGET = "target/qemu"
 
@@ -157,7 +157,7 @@ def main():
            *machine.devices(a.net, sock, os.path.join(TARGET, "qmp.sock"), lane.swaps), *lane.args,
            *(machine.usb_stick(stick) if a.usb else []),
            *serial, *machine.display(a.headless), "-no-reboot"]
-    print(" ".join(cmd := iommu.apply(cmd, lane.swaps.get("iommu"))), flush=True)
+    print(" ".join(cmd := iommu.apply(siblings.apply(cmd, lane.swaps), lane.swaps.get("iommu"))), flush=True)
     proc = None
     try:
         proc = subprocess.Popen(cmd)
