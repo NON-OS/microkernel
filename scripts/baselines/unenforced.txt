@@ -73,7 +73,6 @@ src/syscall/caps/checks/fs.rs:41 can_seek
 src/syscall/caps/checks/fs.rs:45 can_modify_dirs
 src/syscall/caps/checks/fs.rs:49 can_unlink
 src/syscall/caps/checks/hardware.rs:25 can_hardware
-src/syscall/caps/checks/ipc.rs:21 can_network
 src/capabilities/chain/verify_caps.rs:27 verify_chain_capability
 src/capabilities/chain/verify_caps.rs:48 verify_all_capabilities
 src/capabilities/delegation/verify.rs:24 verify_delegation
