@@ -140,6 +140,12 @@ fn random_store(rng: &mut Rng) -> (Vec<u8>, usize) {
     (img, count)
 }
 
+/// The slots among the first `count` that are all zeros, which the load
+/// reads as erased: neither served nor refused.
+fn erased(img: &[u8], count: usize) -> usize {
+    img[HEADER_LEN..].chunks(ENTRY_LEN).take(count).filter(|e| e.iter().all(|b| *b == 0)).count()
+}
+
 /// The descriptor in `img` that vouches for serving `data` as `name`: one
 /// with that name whose digest is the data's, or none.
 fn vouched(img: &[u8], name: &str, data: &[u8]) -> bool {
@@ -159,7 +165,7 @@ fn any_store_loads_without_panic_and_serves_only_what_a_descriptor_vouches_for()
         disk::reset();
         disk::put(STORE_BASE_LBA, &img);
         let Ok((got, refused)) = load_counting() else { continue };
-        assert_eq!(got.len() + refused, count);
+        assert_eq!(got.len() + refused + erased(&img, count), count);
         for (name, data) in &got {
             assert!(valid_name(name), "{name:?}");
             assert!(vouched(&img, name, data), "{name} served bytes no descriptor vouches for");
