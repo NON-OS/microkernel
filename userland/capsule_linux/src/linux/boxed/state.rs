@@ -33,6 +33,8 @@ pub(super) struct Armed {
     pub(super) key: Option<[u8; super::frames::KEY_LEN]>,
     /// The services the program was given in the box, once it started.
     pub(super) granted: Option<u64>,
+    pub(super) connected: super::connected::Connected,
+    pub(super) learned: super::learned::Learned,
 }
 
 pub(super) struct One(pub(super) RefCell<Option<Armed>>);
@@ -48,7 +50,9 @@ pub(super) static BOX: One = One(RefCell::new(None));
 pub fn arm(policy: BoxPolicy, key: Option<[u8; super::frames::KEY_LEN]>) {
     let hash = box_hash(&policy);
     let tally = Tally::default();
-    *BOX.0.borrow_mut() = Some(Armed { policy, hash, tally, key, granted: None });
+    let (connected, learned) = Default::default();
+    *BOX.0.borrow_mut() =
+        Some(Armed { policy, hash, tally, key, granted: None, connected, learned });
 }
 
 /// The program's identity inside the box: never more than both allow.
@@ -59,4 +63,10 @@ pub fn narrow(app: AppIdentity) -> AppIdentity {
     let boxed = app.boxed(a.policy.mask, Vec::leak(a.policy.dests.clone()));
     a.granted = Some(boxed.mask);
     boxed
+}
+
+/// A program the run execs, as the box sees it before the exec narrows it to
+/// the program that exec'd it: widened as the first one was (identity_box.rs).
+pub fn exec_program(app: AppIdentity) -> AppIdentity {
+    BOX.0.borrow().as_ref().map_or(app, |a| app.widened(&a.policy.dests))
 }

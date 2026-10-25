@@ -63,6 +63,6 @@ Direct. Explained in [Privacy networks](../using/privacy-network.md). Code:
 A TPM platform configuration register. The firmware extends PCR 4 with each UEFI
 application it starts, the loader extends PCR 9 once for the admitted kernel,
 NONOS binds its machine keys to PCRs 0, 4, 7 and 9, and a quote covers PCRs 0,
-1, 2 and 7. Explained in [Measured boot and the
+1, 2, 4, 7, 8, 9 and 14. Explained in [Measured boot and the
 TPM](../security/measured-boot-and-tpm.md#pcrs). Code:
 `src/security/tpm/machine_key/pcrs.rs`, `src/security/tpm/boot_reads/pcr4.rs`.

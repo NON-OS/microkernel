@@ -63,5 +63,7 @@ to that by `capsule_linux_proofs` (the box, its kinds and its report) and `termi
 
 - The kernel's sealed record of the run, its TPM quote, and a signature over the report: receipt
   v0, 0.9.4.
-- Network destinations an agent is allowed: no box has a network in this release.
+- A completed connection to an allowed destination: our lab has no route to the mixnet, so
+  the report's `connected` reads `none`. Which destinations were allowed, and every attempt
+  to reach another, are measured (`boxed/net_report.rs`, `net/connect/out.rs`).
 - Anything an agent does outside NONOS, such as calls to your own systems.

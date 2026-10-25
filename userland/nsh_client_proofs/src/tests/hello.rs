@@ -41,7 +41,7 @@ fn refused(edit: impl FnOnce(&mut Vec<u8>), want: WireError) {
 #[test]
 fn a_changed_preamble_is_refused_for_what_it_breaks() {
     refused(|f| f[1] ^= 1, WireError::Magic);
-    refused(|f| f[5] = 2, WireError::Version);
+    refused(|f| f[5] = 1, WireError::Version);
     refused(|f| f[7] = 2, WireError::Version);
     refused(|f| f[9] = 1, WireError::Reserved);
     refused(|f| f[10] = 1, WireError::Reserved);
