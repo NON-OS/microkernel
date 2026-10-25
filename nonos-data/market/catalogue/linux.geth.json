@@ -49,7 +49,7 @@
           },
           "validation": {
             "status": "validated",
-            "note": "fetched and hashed at 16787646 bytes; licence LGPL-3.0-or-later; installs only in this release's box",
+            "note": "fetched and hashed at 16787646 bytes; licence GPL-3.0-or-later; installs only in this release's box",
             "validator_id": "nonos.operator.linux",
             "validated_at_ms": 1792844669000
           }
