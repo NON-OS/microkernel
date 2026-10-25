@@ -46,7 +46,8 @@ mod opening;
 mod patience;
 mod pick;
 mod refusal;
-mod rpc_connect;
+#[cfg(feature = "devnet")]
+mod rpc_route;
 mod slice;
 mod socks;
 mod stream;
