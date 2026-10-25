@@ -39,10 +39,9 @@ pub const INPUT_CONSUMER: u64 = 1 << 36;
 pub const SECRETS: u64 = INPUT_SOURCE | KEYRING | DEVICE_SECRET | INPUT_CONSUMER;
 
 /// The process names the kernel gives the Admin holders.
-pub const ADMIN_HOLDERS: &[&[u8]] =
-    &[b"init", b"policy", b"acpi", b"power", b"app.install", b"tool.install"];
+pub const ADMIN_HOLDERS: &[&[u8]] = &[b"init", b"policy", b"acpi", b"power"];
 
-pub const ADMIN_CLAIM: &[u8] = b"admin: only init, policy, acpi, power, installers";
+pub const ADMIN_CLAIM: &[u8] = b"admin: only init, policy, acpi, power";
 pub const LOG_CLAIM: &[u8] = b"nothing holding keys, input or secrets can log";
 
 /// Holders of `mask` whose name is not in `named`.
