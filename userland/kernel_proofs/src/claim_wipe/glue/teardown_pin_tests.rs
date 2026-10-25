@@ -21,7 +21,9 @@
 //! teardown; a run the registry let go is freed unless its wipe still keeps
 //! it, and counted released then only if it was kept (glue_tests and
 //! kept_count_tests read the same orders and notes). Its pages come out of
-//! the holder's own tables first, from any context (K10).
+//! the holder's own tables first, from any context (K10). A VMBus channel's
+//! page the host may still hold a GPADL over is kept as a wiped function's
+//! is, until the host says it tore the last one down.
 
 use super::code::flat;
 use super::whole::whole;
@@ -29,7 +31,7 @@ use super::whole::whole;
 const TEARDOWN: &str = include_str!("../../../../../src/hardware/broker/dma/teardown.rs");
 const HELD: &str = include_str!("../../../../../src/hardware/broker/dma/held_run.rs");
 
-const TEARS: [&str; 17] = [
+const TEARS: [&str; 18] = [
     "pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {",
     "if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {",
     "super::va::release(g.pid, g.user_va, g.length); } else if unmap_pages {",
@@ -38,7 +40,8 @@ const TEARS: [&str; 17] = [
     r#"crate::sys::serial::println( b"[DMA] grant still reachable by its device; frames"#,
     r#"quarantined", ); return; }"#,
     "let pci = crate::hardware::broker::pci_index::lookup(g.device_id).is_some();",
-    "if super::kept_rule::keeps(pci, g.confined, released) {",
+    "let host = crate::hardware::broker::vmbus::host_may_reach(g.device_id);",
+    "if super::kept_rule::keeps(pci, g.confined, released) || host {",
     "super::scrub::scrub(g.physical_start, g.length);",
     "super::kept::keep(g.device_id, g.claim_epoch, g.physical_start, g.length);",
     "let run = (g.physical_start, g.length);",

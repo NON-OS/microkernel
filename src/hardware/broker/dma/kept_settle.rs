@@ -25,6 +25,17 @@ use alloc::vec::Vec;
 use super::kept::KEPT;
 use super::kept_rule::{on_settle, Act};
 
+/// Every kept run of a device settled to be freed, whatever its claim: a
+/// VMBus channel's, once the host has torn down its last GPADL or given the
+/// channel up. A run the registry still holds waits for it.
+pub(in crate::hardware::broker) fn settle_kept_all(device_id: u64) -> usize {
+    let mut epochs: Vec<u64> =
+        KEPT.lock().iter().filter(|k| k.device_id == device_id).map(|k| k.epoch).collect();
+    epochs.sort_unstable();
+    epochs.dedup();
+    epochs.into_iter().map(|e| settle_kept(device_id, e, true).0).sum()
+}
+
 /// Runs freed, and runs kept for good.
 pub(in crate::hardware::broker) fn settle_kept(
     device_id: u64,

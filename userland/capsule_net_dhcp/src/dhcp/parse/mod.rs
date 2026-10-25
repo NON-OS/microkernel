@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod error;
-mod parse;
+mod message;
 mod parse_fixed;
 mod parse_options;
 
-pub use parse::parse;
+pub use message::parse;
