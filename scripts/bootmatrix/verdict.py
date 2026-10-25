@@ -17,10 +17,8 @@
 
 The markers are the kernel's own lines, the same ones nonos-verify reads. A
 cell with more than one CPU must hear from every one of them. Every cell must
-carry the [IOMMU] posture line its QEMU device calls for; a cell with an
-intel-iommu must also not hear that DMA is unrestricted, and a cell with an
-amd-iommu must hear the AMD-Vi hardware named. A cell with its store on a USB
-stick must hear driver.usb_msc0 bind it at the block length the stick has and
+carry the [IOMMU] lines its QEMU device calls for (iommu.py). A cell with
+its store on a USB stick must hear driver.usb_msc0 bind it at the block length the stick has and
 the block layer settle on it. Every cell must see the ring-0
 restrictions read back on: SMEP, SMAP, NX and WP, from the kernel's own
 [CPU-PROT] line rather than from what the code asked the part for. A q35
@@ -29,20 +27,12 @@ cell must hear the power button armed, PWRBTN_EN set (power.py).
 
 import re
 
-from . import devices, power, virtio
+from . import devices, iommu, power, virtio
 
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
 READY = ["Handoff OK", "Capsules spawned", STORE_SERVING]
 FATAL = ("[FATAL]", "[PANIC]", "[TRAP GP]", "[TRAP UD]", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL")
-UNRESTRICTED = "DMA is unrestricted"
-REMAPPED = "[VT-D] enumerated devices blocked until claimed"
-AMD_VI_NAMED = "[AMD-VI] IVRS present"
-# Every posture line carries the unconfined count beside enforcing=. The line
-# is printed again each time the count changes, so the last one is current.
-POSTURE = re.compile(r"\[IOMMU\] (\S+) present, enforcing=(\d), unconfined grants=(\d+)")
-# The posture each IOMMU QEMU can present must produce: (vendor, enforcing).
-EXPECTED_POSTURE = {"": ("none", "0"), "intel-iommu": ("intel-vt-d", "1"), "amd-iommu": ("amd-vi", "0")}
 SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) (PASS|UP)")
 STORE_STATUS = re.compile(r"\[VFS\] serving, store status ([0-9a-f]{2})")
 CPU_PROT = re.compile(r"\[CPU-PROT\] smep=(\d) smap=(\d) umip=(\d) nx=(\d) wp=(\d)")
@@ -82,25 +72,9 @@ def judge(cell, text, reached, ending):
         bad.append("no [STACK-GUARD] line")
     if guards and guards.group(1) != guards.group(2):
         bad.append(f"only {guards.group(1)} of {guards.group(2)} stack guards armed")
-    postures = POSTURE.findall(text)
-    if reached and not postures:
-        bad.append("no [IOMMU] posture line")
-    if postures:
-        vendor, enforcing = EXPECTED_POSTURE[cell.iommu]
-        for seen_vendor, seen_enforcing, _ in postures:
-            if (seen_vendor, seen_enforcing) != (vendor, enforcing):
-                bad.append(f"posture {seen_vendor} enforcing={seen_enforcing}, "
-                           f"expected {vendor} enforcing={enforcing}")
-                break
-    if cell.iommu == "intel-iommu":
-        if UNRESTRICTED in text:
-            bad.append("kernel reports DMA is unrestricted with an IOMMU present")
-        if REMAPPED not in text:
-            bad.append("VT-d never reported devices remapped")
+    bad += iommu.judge(cell, text, reached)
     bad += virtio.verdict(cell, text) + devices.verdict(cell, text)
     bad += power.verdict(cell, text) if reached else []
-    if cell.iommu == "amd-iommu" and AMD_VI_NAMED not in text:
-        bad.append("kernel never named the AMD-Vi hardware it does not drive")
     if cell.usb_block:
         bound = USB_BOUND.search(text)
         if not bound:
