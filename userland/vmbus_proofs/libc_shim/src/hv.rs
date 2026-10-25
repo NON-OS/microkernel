@@ -16,15 +16,18 @@
 
 //! The VMBus core's SynIC calls as the kernel serves them: refused unless
 //! the caller holds the VMBus root, and a post held to the kernel's own
-//! check (included by path), with the caller's live grants on the root as
-//! the pages it holds. What passes goes to the host the test installs.
+//! check and table of channels (both included by path), with the caller's
+//! live grants on the root as the pages it holds, and anyone's on a
+//! channel's record as that channel's. What passes goes to the host the
+//! test installs; what the host sends feeds the same table.
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::broker::CLAIMED;
+use crate::channels::Channels;
 use crate::dma::LIVE;
-use crate::vmbus_out::{check, Refusal};
+use crate::vmbus_out::{check, Holder, Refusal};
 
 pub const MK_VMBUS_VENDOR: u16 = 0x1414;
 pub const MK_VMBUS_DEVICE: u16 = 0x5642;
@@ -34,6 +37,7 @@ const E_AGAIN: i64 = -11;
 const E_INVAL: i64 = -22;
 const E_PERM: i64 = -1;
 const E_NODEV: i64 = -19;
+const E_NOENT: i64 = -2;
 
 /// The host on the other side of the SynIC.
 pub trait Host {
@@ -45,6 +49,8 @@ pub trait Host {
 
 thread_local! {
     static HOST: RefCell<Option<Rc<RefCell<dyn Host>>>> = const { RefCell::new(None) };
+    /// The kernel's table of channels, as the kernel keeps it.
+    pub(crate) static CHANNELS: RefCell<Channels> = const { RefCell::new(Channels::new()) };
 }
 
 pub fn set_host(h: Rc<RefCell<dyn Host>>) {
@@ -69,19 +75,25 @@ pub fn mk_hv_post(device_id: u64, connection: u32, ty: u32, buf: *const u8, len:
     }
     // SAFETY: the caller hands `len` readable bytes, as the real call requires.
     let payload = unsafe { std::slice::from_raw_parts(buf, len) };
-    let held = |gpa: u64| {
+    let on = |dev: u64, gpa: u64| {
         LIVE.with(|l| {
-            l.borrow().iter().any(|&(_, d, at, n)| d == device_id && at <= gpa && gpa + 4096 <= at + n)
+            l.borrow().iter().any(|&(_, d, at, n)| d == dev && at <= gpa && gpa + 4096 <= at + n)
         })
     };
-    match check(connection, ty, payload, held) {
+    let held = |h: Holder, gpa: u64| match h {
+        Holder::Root => on(device_id, gpa),
+        Holder::Record(r) => on(r, gpa),
+    };
+    let checked = CHANNELS.with(|c| check(connection, ty, payload, &c.borrow(), held));
+    match checked {
         Ok(()) => {}
         Err(Refusal::Page) => return E_PERM,
+        Err(Refusal::Channel) => return E_NOENT,
         Err(_) => return E_INVAL,
     }
     let rc = h.borrow_mut().post(connection, payload);
-    if rc == E_AGAIN {
-        return E_AGAIN;
+    if rc == 0 {
+        CHANNELS.with(|c| c.borrow_mut().from_guest(payload));
     }
     rc
 }
@@ -93,6 +105,10 @@ pub fn mk_hv_recv(device_id: u64, out: *mut [u8; MK_HV_MESSAGE_BYTES]) -> i64 {
     let Some(h) = host() else { return E_NODEV };
     let Some(m) = h.borrow_mut().recv() else { return E_AGAIN };
     let n = m.len().min(MK_HV_MESSAGE_BYTES);
+    if n >= 16 && m[..4] == 1u32.to_le_bytes() {
+        let len = (m[4] as usize).min(n - 16);
+        CHANNELS.with(|c| c.borrow_mut().from_host(&m[16..16 + len]));
+    }
     // SAFETY: the caller hands a writable 256-byte buffer.
     unsafe { (&mut *out)[..n].copy_from_slice(&m[..n]) };
     n as i64

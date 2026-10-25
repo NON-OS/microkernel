@@ -42,10 +42,10 @@ mod types;
 mod va;
 mod wipe;
 
-pub use covers::covers;
+pub use covers::{covers, covers_any};
 pub use held_run::{free_held_run, grant_run_covering};
 pub(in crate::hardware::broker) use kept::kept_bytes;
-pub(in crate::hardware::broker) use kept_settle::settle_kept;
+pub(in crate::hardware::broker) use kept_settle::{settle_kept, settle_kept_all};
 pub use map::map_for_caller;
 pub use pool::init_uncached_pool;
 pub(crate) use pool::{init_display_pool, init_low32_pool};
