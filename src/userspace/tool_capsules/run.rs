@@ -39,6 +39,7 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
         return super::linux_terminal::run(argv);
     }
     if name == super::model_fetch::TOOL {
+        super::bound::check(super::model_fetch::MANIFEST, super::model_fetch::CAPS, name)?;
         return super::model_fetch::run_for_caller(argv);
     }
     if name == QWEN_TOOL {

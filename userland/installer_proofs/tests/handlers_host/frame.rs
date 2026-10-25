@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Request frames for the two handlers and the replies they are checked against.
+//! Request frames for the load handler and the replies they are checked against.
 
 use crate::fixtures::NAME;
-use crate::handlers::{load_by_name::load_by_name, load_store::load_store};
-use crate::protocol::{decode_request, EINVAL, OP_LOAD_BY_NAME, OP_LOAD_FROM_STORE};
+use crate::handlers::load_by_name::load_by_name;
+use crate::protocol::{decode_request, EINVAL, OP_LOAD_BY_NAME};
 
 pub const SEQ: u32 = 0x5EC0_0001;
 
@@ -37,12 +37,6 @@ pub fn reply(status: i32, body: &[u8]) -> Vec<u8> {
 
 pub fn einval() -> Vec<u8> {
     reply(EINVAL, &[])
-}
-
-pub fn store(f: &[u8]) -> Vec<u8> {
-    let req = decode_request(f).expect("frame decodes");
-    assert_eq!(req.op, OP_LOAD_FROM_STORE);
-    load_store(req)
 }
 
 pub fn by_name(f: &[u8], sender_pid: u32) -> Vec<u8> {
