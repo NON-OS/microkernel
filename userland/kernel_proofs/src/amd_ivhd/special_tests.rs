@@ -14,51 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! K4: IVHD special entries (48h): each IOAPIC and HPET by handle and the
-//! requester id its interrupts arrive under, as Linux's set_dev_entry_from_acpi
-//! reads them, from well formed and hostile tables.
+//! IVHD special devices (L50): the id an I/O APIC or HPET sends under is
+//! named once, so AMD-Vi never gives a PCI function with that id a table.
 
 use super::fixture::ivrs;
-use super::ivhd_special::{specials, Special, HPET, IOAPIC, MAX_SPECIALS};
+use super::ivhd_special::specials;
 
-fn special(handle: u8, id: u16, variety: u8) -> [u8; 8] {
-    let [lo, hi] = id.to_le_bytes();
-    [0x48, 0xD7, 0, 0, handle, lo, hi, variety]
-}
-
-fn read(table: &[u8]) -> Vec<Special> {
-    let mut out = [Special { variety: 0, handle: 0, id: 0 }; MAX_SPECIALS];
-    let n = specials(table, &mut out);
-    out[..n].to_vec()
+fn read(table: &[u8]) -> (Vec<u16>, bool) {
+    let mut out = [0u16; 4];
+    let (n, lost) = specials(table, &mut out);
+    (out[..n].to_vec(), lost)
 }
 
 #[test]
-fn ioapic_and_hpet_are_kept_by_handle() {
-    let mut entries = special(0x21, 0x00A0, IOAPIC).to_vec();
-    entries.extend_from_slice(&[0x02, 0, 0x08, 0]); // a select entry between
-    entries.extend_from_slice(&special(0x00, 0x00A2, HPET));
-    let got = read(&ivrs(0x40, &entries));
-    assert_eq!(got[0], Special { variety: IOAPIC, handle: 0x21, id: 0x00A0 });
-    assert_eq!(got[1], Special { variety: HPET, handle: 0, id: 0x00A2 });
-    assert_eq!(got.len(), 2);
+fn an_ioapic_and_an_hpet_are_named_once_and_nothing_else() {
+    let entries = [
+        0x48, 0x00, 0x00, 0x00, 0x21, 0xA0, 0x00, 0x01, // I/O APIC 33 as 00:14.0
+        0x48, 0x00, 0x00, 0x00, 0x00, 0xA2, 0x00, 0x02, // HPET 0 as 00:14.2
+        0x42, 0x00, 0x03, 0x00, 0x00, 0x08, 0x02, 0x00, // an alias, not special
+        0x02, 0x00, 0x06, 0x00, // a select
+    ];
+    let mut table = ivrs(0x10, &entries);
+    table.extend_from_slice(&ivrs(0x40, &entries)[48..]);
+    assert_eq!(read(&table), (vec![0xA0, 0xA2], false));
 }
 
 #[test]
-fn one_named_by_two_blocks_counts_once() {
-    let mut table = ivrs(0x10, &special(0x21, 0x00A0, IOAPIC));
-    let again = ivrs(0x11, &special(0x21, 0x00A0, IOAPIC));
-    table.extend_from_slice(&again[48..]);
-    assert_eq!(read(&table).len(), 1);
-}
-
-#[test]
-fn hostile_tables_end_the_walk() {
-    let mut cut = ivrs(0x40, &special(0x21, 0x00A0, IOAPIC));
-    cut.truncate(cut.len() - 3);
-    assert!(read(&cut).is_empty(), "an entry past its block");
-    let mut long = ivrs(0x40, &special(0x21, 0x00A0, IOAPIC));
-    long[50] = 0xFF;
-    assert!(read(&long).is_empty(), "a block length past the table");
-    let many: Vec<u8> = (0..40).flat_map(|i| special(i, i as u16, IOAPIC)).collect();
-    assert_eq!(read(&ivrs(0x40, &many)).len(), MAX_SPECIALS);
+fn too_many_say_so_and_a_cut_entry_is_not_read() {
+    let many: Vec<u8> = (0..5u8).flat_map(|b| [0x48, 0, 0, 0, b, b, 0x00, 0x01]).collect();
+    let (got, lost) = read(&ivrs(0x11, &many));
+    assert!(got == [0, 1, 2, 3] && lost);
+    let cut = [0x48, 0x00, 0x00, 0x00, 0x21, 0xA0];
+    assert_eq!(read(&ivrs(0x10, &cut)), (vec![], false));
 }

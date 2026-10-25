@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The bulk IN and OUT endpoints of one device, for a mass-storage or
 //! A bulk pair's memory, for a slot to keep whole when a failed controller
 //! may have been given it: both rings, every stream ring and its context
 //! array, and both pages.

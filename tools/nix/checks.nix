@@ -5,7 +5,7 @@
 # What stays in its own workflow, because it needs a network or a toolchain no
 # lock can pin yet: Kani (cargo kani setup downloads CBMC), Verus, the
 # Charon/Aeneas extraction, cargo-fuzz runs and cargo-audit's advisory feed.
-{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox, periodic }:
+{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, image, self, starks, busybox, periodic }:
 let
   # The static and drift checks read the tree as a reviewer does, docs and
   # all; every cargo check reads only its own crate (tools/nix/inputs.py).
@@ -184,6 +184,14 @@ let
   # with fails here and not on ek's machine. The capsule ELFs the kernel
   # embeds are empty stand-ins, and so is the trust set of a capsule the seal
   # has not written yet: this checks the code, `nix build` checks the image.
+  # The files each stand-in is made at, one a line. A file, not the script:
+  # written inline, one command per file, the script outgrew the 128 KiB a
+  # single environment string may hold, and every profile check failed to
+  # start ("Argument list too long").
+  standIns = pkgs.writeText "kernel-profile-stand-ins" (lib.concatMapStrings (f: f + "\n")
+    (lib.concatMap (e: [ "${e.dir}/target/${e.target}/release/${e.bin}" e.cert e.manifest e.trailer ]
+      ++ lib.optional (e.prebuilt != "") e.prebuilt) capsules.catalogue));
+
   profileChecks = lib.mapAttrs' (p: _:
     let
       cfg = config.resolve (config.file // { profile = p; });
@@ -197,9 +205,9 @@ let
       script = ''
         printf 'NONOS-CI-FORK-DEV-SEED-32-BYTE!!' > $TMPDIR/build-placeholder.seed
         export NONOS_SIGNING_KEY=$TMPDIR/build-placeholder.seed
-        ${lib.concatMapStrings (f: ''
-          [ -e "${f}" ] || { mkdir -p "$(dirname "${f}")"; : > "${f}"; }
-        '') (lib.concatMap (e: [ "${e.dir}/target/${e.target}/release/${e.bin}" e.cert e.manifest e.trailer ] ++ lib.optional (e.prebuilt != "") e.prebuilt) capsules.catalogue)}
+        while IFS= read -r f; do
+          [ -e "$f" ] || { mkdir -p "$(dirname "$f")"; : > "$f"; }
+        done < ${standIns}
         cargo check --frozen --target x86_64-nonos.json -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem \
           --no-default-features --features ${lib.concatStringsSep "," cfg.features}
       '';
@@ -230,6 +238,7 @@ let
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
+      "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
@@ -242,6 +251,7 @@ let
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
+      "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
@@ -250,6 +260,17 @@ let
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
     ]);
+    # Every capsule a release profile ships has its sealed trust set, but for
+    # those scripts/baselines/unsealed.txt names, which may only shrink.
+    static-release-trust =
+      let
+        resolved = map (p: config.resolve (config.file // { profile = p; })) (builtins.attrNames config.profiles);
+        slugs = lib.unique (lib.concatMap (c: map (e: e.slug) (image.shipped c.enabled)) (builtins.filter (c: c.release) resolved));
+      in
+      static "release-trust" (scripts [
+        "scripts/check_release_trust.py --self-test"
+        "scripts/check_release_trust.py --baseline scripts/baselines/unsealed.txt --doc docs/build/feature-inventory.md ${toString slugs}"
+      ]);
     # make nonos-mk-static: the grep gates over the whole tree
     static-tree = static "tree" ''
       export HOME=$TMPDIR CARGO_NET_OFFLINE=true

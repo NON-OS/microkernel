@@ -18,16 +18,23 @@
 //!
 //! A window on its own is a dead controller: it reads back what was written
 //! and advances nothing. That is a real state, the one a driver has to survive
-//! without hanging, so it is used deliberately. The two models here are the
-//! live halves, each written from what the HD Audio specification says a
-//! conforming controller does with a register the driver never writes.
+//! without hanging, so it is used deliberately. The models in `engine` and
+//! `immediate` are the live halves, each written from what the HD Audio
+//! specification says a conforming controller does with what the driver writes.
 
 use std::sync::Arc;
 
-use nonos_devmodel::{run, FakeBar, LiveDevice};
+use nonos_devmodel::FakeBar;
 
-use crate::constants::{CORBWP, RIRBWP};
 use crate::controller::StreamDescriptor;
+
+mod engine;
+mod immediate;
+mod live;
+
+pub use engine::{corb_engine, fetch};
+pub use immediate::Immediate;
+pub use live::live;
 
 /// The smallest HDA BAR the capsule accepts. It covers the global registers,
 /// both ring control blocks and the stream descriptors.
@@ -51,39 +58,8 @@ pub fn rings(response: u32) -> (Arc<FakeBar>, Arc<FakeBar>) {
     (Arc::new(FakeBar::new(CORB_BYTES)), Arc::new(rirb))
 }
 
-/// A controller whose CORB engine is running: it consumes every command the
-/// driver posts and advances RIRBWP to match. RIRBWP belongs to the controller
-/// and the driver only reads it, so nothing here races.
-pub fn corb_engine(bar: &FakeBar) {
-    bar.present16(RIRBWP as usize, bar.wrote16(CORBWP as usize) & 0xff);
-    // The driver's waits are in milliseconds now; a model that never gives
-    // its core back starves the other tests' models past them.
-    std::thread::yield_now();
-}
-
 /// The descriptor the layout gives global stream `index`.
 pub fn descriptor(index: u16) -> StreamDescriptor {
     let mmio_offset = 0x80 + index as u32 * 0x20;
     StreamDescriptor { kind: 2, local_index: 0, global_index: index, mmio_offset }
-}
-
-/// `run`, returning once the model has made its first pass. A thread can
-/// take longer than a millisecond to start, longer than some of the
-/// driver's waits, and a model that misses the edge it reacts to proves
-/// nothing.
-pub fn live<F>(bar: &Arc<FakeBar>, device: F) -> LiveDevice
-where
-    F: Fn(&FakeBar) + Send + 'static,
-{
-    use std::sync::atomic::{AtomicBool, Ordering};
-    let up = Arc::new(AtomicBool::new(false));
-    let seen = Arc::clone(&up);
-    let dev = run(bar, move |b| {
-        device(b);
-        seen.store(true, Ordering::Release);
-    });
-    while !up.load(Ordering::Acquire) {
-        std::thread::yield_now();
-    }
-    dev
 }

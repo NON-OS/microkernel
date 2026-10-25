@@ -21,6 +21,12 @@
 use super::types::MmioMapOut;
 use crate::syscall::{call_raw, N_MK_MMIO_MAP, N_MK_MMIO_UNMAP};
 
+/// `flags` for a framebuffer or VRAM: write-combined where the BAR is
+/// prefetchable, else EINVAL; uncached when no CPU's PAT can say WC. Where
+/// the kernel maps the range itself, its own memory type wins. Stores may
+/// merge and reorder until an `sfence`.
+pub const MK_MMIO_MAP_WC: u32 = 1 << 0;
+
 #[no_mangle]
 pub extern "C" fn mk_mmio_map(
     device_id: u64,
