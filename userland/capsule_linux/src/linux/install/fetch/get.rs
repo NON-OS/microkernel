@@ -26,16 +26,32 @@ use super::super::index::Pkg;
 /// of the package the user chose; what it depends on is held to the signed
 /// index alone, which names every one of them by checksum.
 pub(in crate::linux::install) fn fetch(pkg: &Pkg, pin: Option<&[u8; 32]>) -> Option<Verified> {
+    nonos_libc::heap_reset_peak();
     let apk = download(&pkg.name, &pkg.version);
+    heap("fetched", &pkg.name);
     if pin.is_some_and(|want| blake3::hash(&apk).as_bytes() != want) {
         say(b"[LINUX] package is not the one the market listed\n");
         return None;
     }
     let files = pkg.checksum.and_then(|sum| verified(&apk, &sum));
+    heap("unpacked", &pkg.name);
     if files.is_none() {
         say(b"[LINUX] package did not download, or does not match its index record\n");
     }
     files
+}
+
+/// How much of the install heap one package took: what is held now, the
+/// most held since it began, and the heap's size, in KiB.
+fn heap(stage: &str, name: &str) {
+    let h = nonos_libc::heap_stats();
+    let line = alloc::format!(
+        "[LINUX] heap {stage} {name}: used={} peak={} of {} KiB\n",
+        h.used >> 10,
+        h.peak >> 10,
+        h.size >> 10
+    );
+    say(line.as_bytes());
 }
 
 fn say(line: &[u8]) {
