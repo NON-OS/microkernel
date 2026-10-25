@@ -22,10 +22,10 @@ use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::SyscallResult;
-use crate::usercopy::{validate_user_write, MAX_COPY_SIZE};
+use crate::usercopy::validate_user_write;
 
 use super::super::surface_ops::{EFAULT, EINVAL, ENOMEM};
-use super::cap::surface_cap;
+use super::cap::{slices, surface_cap, SLICE};
 
 /// The frames behind the surface `desc` names, or the refusal.
 pub(super) fn user_frames(desc: &SurfaceDescriptor) -> Result<Vec<PhysAddr>, SyscallResult> {
@@ -45,14 +45,13 @@ pub(super) fn user_frames(desc: &SurfaceDescriptor) -> Result<Vec<PhysAddr>, Sys
     // The walk rejects any page that is not present, user-accessible, and
     // writable, and bounds base_va+byte_len to user space with checked
     // arithmetic.
-    let mut at = 0u64;
-    while at < desc.byte_len {
-        let len = (desc.byte_len - at).min(MAX_COPY_SIZE as u64);
-        let start = desc.base_va.checked_add(at).ok_or(errno(EFAULT))?;
+    if desc.base_va.checked_add(desc.byte_len).is_none() {
+        return Err(errno(EFAULT));
+    }
+    for (start, len) in slices(desc.base_va, desc.byte_len, SLICE) {
         if validate_user_write(start, len as usize).is_err() {
             return Err(errno(EFAULT));
         }
-        at += len;
     }
     let pages = ((desc.byte_len as usize) + 4095) / 4096;
     let mut frames = Vec::new();

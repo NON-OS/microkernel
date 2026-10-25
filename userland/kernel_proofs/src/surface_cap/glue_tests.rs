@@ -35,10 +35,12 @@ fn the_cap_comes_from_the_validated_framebuffer() {
 
 #[test]
 fn the_whole_range_is_validated_in_slices_before_any_translation() {
-    let slice = FRAMES.find("(desc.byte_len - at).min(MAX_COPY_SIZE as u64)").expect("no slices");
+    let end = FRAMES.find("if desc.base_va.checked_add(desc.byte_len).is_none() {").expect("end unchecked");
+    let slice = FRAMES.find("for (start, len) in slices(desc.base_va, desc.byte_len, SLICE) {").expect("no slices");
     let walk = FRAMES.find("translate_address(va)").expect("no translation");
-    assert!(slice < walk);
-    assert!(FRAMES.contains("at += len;"), "the slices never advance");
+    assert!(end < slice && slice < walk, "{end} {slice} {walk}");
+    assert!(FRAMES.find("desc.byte_len == 0 ||").expect("an empty surface admitted") < end);
+    assert!(FRAMES.contains("let Some(pa) = translate_address(va) else {\n            return Err(errno(EFAULT));"));
 }
 
 #[test]
