@@ -13,6 +13,8 @@ switch to the next process and stay readable to it. The kernel's encoders
 (`PagePermissions::to_pte_flags`, `PageTableEntry::to_raw`) drop GLOBAL from a
 user page; `userland/kernel_proofs` checks both over every input, and the
 Verus theorems in `verification/verus/src/page_global.rs` the bit operations.
+On aarch64 both encoders set nG on every EL0 page by the same rule, checked
+by `userland/arch_paging_proofs`; the model here is arch-neutral.
 -/
 
 namespace Nonos.PagingGlobal
