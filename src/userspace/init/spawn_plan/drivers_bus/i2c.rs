@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The I2C host capsule and the HID capsule that asks it for its touchpad,
 //! started only where the broker lists a host the first may drive
 //! (inventory::i2c_host). The host capsule finds the touchpad from the
@@ -32,7 +31,10 @@ pub(super) fn spawn() {
     spawn_i2c_hid();
 }
 
-#[cfg(not(any(feature = "nonos-capsule-driver-i2c-pci", feature = "nonos-capsule-driver-i2c-hid")))]
+#[cfg(not(any(
+    feature = "nonos-capsule-driver-i2c-pci",
+    feature = "nonos-capsule-driver-i2c-hid"
+)))]
 pub(super) fn spawn() {}
 
 #[cfg(feature = "nonos-capsule-driver-i2c-pci")]
@@ -46,7 +48,10 @@ fn spawn_i2c_pci() {
     );
 }
 
-#[cfg(not(feature = "nonos-capsule-driver-i2c-pci"))]
+#[cfg(all(
+    not(feature = "nonos-capsule-driver-i2c-pci"),
+    feature = "nonos-capsule-driver-i2c-hid"
+))]
 fn spawn_i2c_pci() {}
 
 #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
@@ -60,5 +65,8 @@ fn spawn_i2c_hid() {
     );
 }
 
-#[cfg(not(feature = "nonos-capsule-driver-i2c-hid"))]
+#[cfg(all(
+    not(feature = "nonos-capsule-driver-i2c-hid"),
+    feature = "nonos-capsule-driver-i2c-pci"
+))]
 fn spawn_i2c_hid() {}
