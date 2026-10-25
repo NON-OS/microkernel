@@ -145,7 +145,7 @@ The code behind each section, at the commit in the footer.
 - What the wallet does not do
   - Swap hidden: `SWAP_OFFERED` in `userland/capsule_wallet_nonos/src/wallet/screen/home_actions.rs:38`.
   - The `Wallet` switch, and no wallet on Safe Mode or Recovery boots: `BootProfile` in `src/userspace/init/app_choice/profile.rs:41-42`.
-  - Host tests that pass on this commit: `wallet_proofs` (426 tests), `nonos_secp256k1` (12), `shield_wire_proofs` (12) and `tpm_key_proofs` (42).
+  - Host tests that pass on this commit: `wallet_proofs` (428 tests), `nonos_secp256k1` (12), `shield_wire_proofs` (12) and `tpm_key_proofs` (42).
 
 ## See also
 

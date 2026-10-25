@@ -21,7 +21,13 @@ use super::regs_type::Regs;
 impl Regs {
     pub fn r8(self, offset: usize) -> u8 {
         match self.io {
-            RegIo::Mmio(m) => m.r8(offset),
+            RegIo::Mmio(m) => {
+                let value = m.r8(offset);
+                // Nothing the register vouches for in DMA memory is read
+                // before it, as libc's own accessors order a read.
+                nonos_libc::dma_rmb();
+                value
+            }
             RegIo::Pio(grant) => pio_read(grant, offset, 1) as u8,
         }
     }

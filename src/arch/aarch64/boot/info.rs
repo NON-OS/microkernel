@@ -18,11 +18,10 @@ mod defaults;
 mod limits;
 mod memory;
 mod methods;
-mod reserved;
 mod types;
 mod virt_ram;
 mod virt_uart;
 
+pub use crate::arch::fdt::reserved_set::Reserved;
 pub use memory::{MemoryRegion, MemoryType};
-pub use reserved::Reserved;
 pub use types::BootInfo;

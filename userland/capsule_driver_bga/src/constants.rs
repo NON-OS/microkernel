@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The adapter as the PCI bus and the Bochs VBE interface name it.
-//!
-//! Register facts are the Bochs VBE ("DISPI") interface's and the MMIO BAR
+//! The adapter as the PCI bus and the Bochs VBE interface name it. Its
+//! register facts are the Bochs VBE ("DISPI") interface's and the MMIO BAR
 //! layout's, as observed of QEMU's adapter, unverified; recorded here as
 //! facts about the device, with positions not seen to hold marked.
 
@@ -28,8 +27,8 @@ pub const DEVICE_BGA: u16 = 0x1111;
 pub const FB_BAR: u8 = 0;
 /// BAR2: the MMIO window: the EDID blob at 0, DISPI at 0x500.
 pub const REG_BAR: u8 = 2;
-/// `MK_MMIO_MAP_WC`, the lead's L17 flag; libc defines it after the relay.
-pub const MK_MMIO_MAP_WC: u32 = 1 << 0;
+/// The register BAR must reach QEMU's extension block (0x600..0x608).
+pub const REG_BAR_MIN: u64 = 0x608;
 
 pub const DISPI_IOPORT_OFFSET: u32 = 0x500;
 pub const DISPI_INDEX_ID: u32 = 0;

@@ -14,5 +14,6 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
-# The open paths' broker calls, logged with the model's state at each one.
+# The open paths' broker calls, logged with the model's state at each one,
+# and the real libc's register accessors the driver files take.
 nonos_libc = { package = "ahci_proofs_libc_shim", path = "libc_shim" }

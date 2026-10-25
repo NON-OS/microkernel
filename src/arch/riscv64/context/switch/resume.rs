@@ -19,7 +19,7 @@ use core::sync::atomic::Ordering;
 
 use crate::arch::riscv64::context::resume::resume_user;
 use crate::arch::riscv64::fpu;
-use crate::process::core::{ProcessControlBlock, ProcessState, CURRENT_PID};
+use crate::process::core::{ProcessControlBlock, CURRENT_PID};
 use crate::process::scheduler::preemption::{set_time_slice, DEFAULT_TIME_SLICE};
 
 use super::address_space::swap_address_space;
@@ -32,26 +32,29 @@ pub(super) fn try_resume(pcb: &Arc<ProcessControlBlock>, pid: u32) -> bool {
 
     let kstack = pcb.kernel_stack_top.load(Ordering::Acquire);
     if kstack == 0 {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
         return true;
     }
     if saved.kernel_sp == 0 {
         saved.kernel_sp = kstack;
     }
 
+    // Asked with the store, before anything is loaded (L77c).
+    if !pcb.mark_running() {
+        return true;
+    }
     if swap_address_space(pcb).is_err() {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
         return true;
     }
 
-    *pcb.state.lock() = ProcessState::Running;
     CURRENT_PID.store(pid, Ordering::SeqCst);
     set_time_slice(DEFAULT_TIME_SLICE);
 
     fpu::prepare_incoming();
 
     if unsafe { resume_user(&saved) }.is_err() {
-        *pcb.state.lock() = ProcessState::Terminated(-1);
+        pcb.mark_failed();
     }
     true
 }

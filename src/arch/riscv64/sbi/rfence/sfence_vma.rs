@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::riscv64::sbi::base::sbi_call;
 use crate::arch::riscv64::sbi::error::SbiError;
 
 use super::ext::EID_RFENCE;

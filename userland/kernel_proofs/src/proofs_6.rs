@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 6 of 6: test modules mounted by path
-//! from lib.rs, each at its own file.
+//! Host proofs, group 6 of 8: test modules mounted by path
+//! from proofs.rs, each at its own file.
 
 #[path = "acpi_span/mod.rs"]
 pub mod acpi_span;
@@ -35,7 +35,7 @@ mod firmware_flash;
 #[path = "firmware_message/mod.rs"]
 pub mod firmware_message;
 #[path = "inventory_ids/mod.rs"]
-mod inventory_ids;
+pub(crate) mod inventory_ids;
 /// The power-off's leave phase: every disk driver asked, each bounded.
 #[path = "leave_rule/mod.rs"]
 mod leave_rule;
@@ -52,6 +52,9 @@ pub mod secret_log;
 /// When a lock wait is reported, and called a re-take.
 #[path = "spin_watch/mod.rs"]
 pub mod spin_watch;
+/// H-06(b): one surface's cap, by the boot framebuffer.
+#[path = "surface_cap/mod.rs"]
+pub mod surface_cap;
 #[path = "pio_reset/mod.rs"]
 pub mod pio_reset;
 #[path = "panic_plan/mod.rs"]
@@ -64,3 +67,6 @@ mod proof_io_spawn_tests;
 #[path = "proof_io_spawn_walk.rs"]
 #[cfg(test)]
 mod proof_io_spawn_walk;
+/// A user page never GLOBAL, now that CR4.PGE is on (P-06).
+#[path = "user_not_global/mod.rs"]
+pub mod user_not_global;

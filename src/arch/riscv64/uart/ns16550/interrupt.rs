@@ -17,9 +17,18 @@
 use super::super::state;
 use super::device::Ns16550;
 
+/// Longer than the 16550's 16-byte FIFO, so a full one drains in one pass,
+/// and finite, so a receiver that keeps reporting data cannot hold the hart.
+const DRAIN_LIMIT: usize = 64;
+
+/// Drain the receive FIFO. The bytes go nowhere: nothing in the kernel takes
+/// serial input on any architecture yet, as on aarch64. Draining is still
+/// needed, since a full FIFO keeps the interrupt asserted.
 pub fn handle_uart_interrupt() {
     let uart = Ns16550::new(state::uart_base());
-    while let Some(c) = uart.getc() {
-        crate::drivers::input::handle_char(c);
+    for _ in 0..DRAIN_LIMIT {
+        if uart.getc().is_none() {
+            break;
+        }
     }
 }

@@ -21,6 +21,9 @@
 
 use crate::vault_gate::{may_use_vault, VAULT_HOLDERS};
 
+#[path = "vault_gate_ops_tests.rs"]
+mod ops;
+
 const WALLET: u32 = 40;
 const WALLET_2: u32 = 52;
 
