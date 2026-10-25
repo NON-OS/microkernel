@@ -10,6 +10,7 @@ dependencies = [
  "nonos_gfx_serve",
  "nonos_gfx_wire",
  "nonos_hash",
+ "nonos_intel_display_hw",
  "nonos_modes",
 ]
 
@@ -35,6 +36,13 @@ dependencies = [
 [[package]]
 name = "nonos_hash"
 version = "0.1.0"
+
+[[package]]
+name = "nonos_intel_display_hw"
+version = "0.1.0"
+dependencies = [
+ "nonos_edid",
+]
 
 [[package]]
 name = "nonos_modes"

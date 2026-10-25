@@ -10,7 +10,7 @@ What a machine needs to boot NONOS 0.9.2 from a USB stick, and to install it on 
 | [Secure Boot and a TPM](#secure-boot-and-the-tpm) | neither, for Standard on a `standard` image; both, for Hardened |
 | [Memory](#memory) | no set minimum; the amount decides what runs |
 | [USB stick](#usb-stick) | 2 GB or more |
-| [Install disk](#a-disk-to-install-to) | NVMe, SATA or Intel eMMC, 2177 MiB or more, with 512-byte blocks; the whole disk |
+| [Install disk](#a-disk-to-install-to) | NVMe or SATA, 2177 MiB or more, with 512-byte blocks; the whole disk |
 | [Network](#network) | optional |
 
 ## Processor and firmware
@@ -63,7 +63,7 @@ Use a stick of 2 GB or more. Writing the image erases everything on the stick.
 
 ## A disk to install to
 
-- An NVMe disk, a SATA disk on an AHCI controller, or an Intel eMMC host, which the SATA driver also serves. Under QEMU, a virtio disk. The installer lists disks from the NVMe, SATA and virtio-blk drivers only, so a USB disk is never a target.
+- An NVMe disk or a SATA disk on an AHCI controller. Under QEMU, a virtio disk. A USB disk is never a target. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. The installer would list their disks (`ALL` in `userland/nonos_blk_client/src/driver/table.rs`), but no image starts `driver.sdhci0` or `driver.ufs0`.
 - At least 2177 MiB, which a drive label calls 2.3 GB.
 - 512-byte logical blocks. A disk with 4096-byte blocks is listed and refused.
 - Preferably, the firmware's storage mode set to AHCI. With Intel RST in RAID mode the SATA driver still takes the controller, and with VMD on the kernel brings up the drives behind it, but that bring-up has not run on a machine with a VMD ([Intel VMD](../drivers/storage/vmd.md)). When an RST or VMD controller is on the bus and no disk shows, the installer says so; set the mode to AHCI then.
@@ -111,8 +111,8 @@ A network is optional: setup's default is no network at all.
   - 1 MiB kept for the backup table: `GPT_TAIL` in `tools/nonos_seal/media.py:44`.
   - The model file's size: `QWEN3` in `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs:27-31`.
 - A disk to install to
-  - The Intel eMMC host on the SATA driver: `Emmc` in `userland/nonos_blk_client/src/driver/pci.rs:35-37`.
-  - Disks from the NVMe, SATA and virtio-blk drivers only: `ALL` in `userland/nonos_blk_client/src/driver/table.rs:31`.
+  - The drivers the installer asks: `ALL` in `userland/nonos_blk_client/src/driver/table.rs`.
+  - The capsules an image carries: `DESKTOP_BASE_SLUGS` in `mk/20-build.mk`, which names no `driver-sdhci` or `driver-ufs`.
   - 2177 MiB: `MIN_DISK_SECTORS` in `userland/nonos_disk/src/layout/sizes.rs:34-38`.
   - 4096-byte blocks refused: `refusal` in `userland/nonos_blk_client/src/disks/describe.rs:48-56`.
   - RST in RAID mode taken by the SATA driver: `is_ahci_function` in `userland/capsule_driver_ahci/src/discover/rule.rs:46-55`.
