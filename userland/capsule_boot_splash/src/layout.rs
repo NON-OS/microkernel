@@ -32,6 +32,9 @@ pub const STATUS_ROWS: u32 = 16;
 pub const GAP: u32 = 24;
 pub const STATUS_GAP: u32 = 44;
 pub const FOOT: u32 = 8;
+/// The panel's bottom to the no-IOMMU warning, a row of the status line's
+/// height kept in the gap above the status line.
+pub const WARN_GAP: u32 = 14;
 
 /// (x, y, width, height) on a `w` x `h` surface.
 pub type Area = (u32, u32, u32, u32);
@@ -44,13 +47,21 @@ pub fn status(w: u32, h: u32) -> Area {
     (0, h / 2 + 132, w, STATUS_ROWS)
 }
 
+/// The warning's row for a panel at `p` on a surface `w` wide. It is kept
+/// whether or not the warning is drawn, so the layout does not depend on it.
+pub fn warning(p: Area, w: u32) -> Area {
+    (0, p.1.saturating_add(p.3).saturating_add(WARN_GAP), w, STATUS_ROWS)
+}
+
 fn overlaps(s: &Spot, (x, y, w, h): Area) -> bool {
     let (sx, sy) = (s.x, s.y);
     let (sr, sb) = (sx + i64::from(s.w), sy + i64::from(s.h));
     sx < i64::from(x + w) && sr > i64::from(x) && sy < i64::from(y + h) && sb > i64::from(y)
 }
 
-/// Whether the logo at `spot` leaves the panel and the status line clear.
+/// Whether the logo at `spot` leaves the panel, the warning's row and the
+/// status line clear.
 pub fn logo_clear(spot: &Spot, w: u32, h: u32) -> bool {
-    !overlaps(spot, panel(w, h)) && !overlaps(spot, status(w, h))
+    let p = panel(w, h);
+    !overlaps(spot, p) && !overlaps(spot, warning(p, w)) && !overlaps(spot, status(w, h))
 }

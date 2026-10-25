@@ -41,4 +41,6 @@ pub enum BlkError {
     /// The table is full, the load budget spent, or no free extent below
     /// the end of the store fits the payload.
     NoSpace,
+    /// The kernel refused the write: this boot keeps nothing.
+    Refused,
 }
