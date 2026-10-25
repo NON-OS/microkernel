@@ -14,6 +14,7 @@
   "minisign": {"V": "0.11-r1", "C": "Q1AQ0YX5JOLIiUEbnZ0dQuROT2y6U=", "S": "13389", "B": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e"},
   "ncdu": {"V": "1.20-r0", "C": "Q1Gv0LAoqj+PHs0khOyHveedYVud4=", "S": "34596", "B": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24"},
   "nnn": {"V": "4.9-r0", "C": "Q18erg5ybXnvWq6caIG05shJMgEYQ=", "S": "61507", "B": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e"},
+  "profanity": {"V": "0.14.0-r1", "C": "Q1Lpz+Dq84ad+3v4PZcoeRv+NUFvQ=", "S": "414700", "B": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1"},
   "tig": {"V": "2.5.10-r0", "C": "Q13sZq/SIGXngty0auMy+P4CCQDEg=", "S": "199250", "B": "f2543fcea8165dfde08d40fcef8440009642a6f22dcbad39a5e35933469ed3bf"},
   "vim": {"V": "9.1.0707-r0", "C": "Q1JH+XfzD5kVNgb92NMgeEQbUZE88=", "S": "1476729", "B": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a"}
 }}

@@ -16,6 +16,8 @@
 
 //! What must hold before, and after, the key is touched.
 
+use nonos_nox_config::{deployment, Chain, Deployment};
+
 use super::entry::Entry;
 use super::field::{well_formed, Kind};
 use super::refusal::Refusal;
@@ -33,10 +35,19 @@ pub fn caller_allowed(
 /// Everything that can be decided without the key: the chain, the
 /// contract, and the shape of every field. Returns the contract.
 pub fn admit(entry: &Entry, chain: u64, words: &[u8]) -> Result<[u8; 20], Refusal> {
-    if !super::chains::CHAINS.contains(&chain) {
-        return Err(Refusal::Chain);
-    }
-    let contract = entry.contract(chain).ok_or(Refusal::NotDeployed)?;
+    admit_in(entry, chain, words, deployment)
+}
+
+/// admit() against `deployment` in place of the config's own, so the
+/// proofs can show a deployed address reach the domain before one exists.
+pub fn admit_in(
+    entry: &Entry,
+    chain: u64,
+    words: &[u8],
+    deployment: fn(Chain) -> &'static Deployment,
+) -> Result<[u8; 20], Refusal> {
+    let chain = Chain::from_id(chain).ok_or(Refusal::Chain)?;
+    let contract = entry.contract(chain, deployment).ok_or(Refusal::NotDeployed)?;
     if words.len() != entry.fields.len() * 32 {
         return Err(Refusal::Malformed);
     }

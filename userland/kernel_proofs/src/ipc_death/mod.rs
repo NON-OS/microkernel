@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The EIP-712 domains the keyring signs under. Name and version are fixed
-//! here; the chain and the verifying contract are filled in per request
-//! from the table, never from the caller.
+//! A process's death and the calls around it: the queue rule and the table of
+//! abandoned calls, included by path, and the order the kernel calls them in.
 
-pub const DOMAIN_TYPE: &str =
-    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
+extern crate alloc;
 
-#[derive(Debug)]
-pub struct Domain {
-    pub name: &'static str,
-    pub version: &'static str,
-}
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/abandoned.rs"]
+mod abandoned;
+#[path = "../../../../src/syscall/microkernel/ipc/pending_reply/death.rs"]
+mod death;
+
+#[cfg(test)]
+mod order;
+#[cfg(test)]
+mod tests;

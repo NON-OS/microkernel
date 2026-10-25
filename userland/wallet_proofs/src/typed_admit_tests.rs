@@ -13,20 +13,25 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! admit() on the voucher where its contract is deployed on one chain and
+//! not the other.
 
-//! admit() on an entry that has a contract on one chain and not the other.
+use nonos_nox_config::{MAINNET, SEPOLIA};
 
-use super::typed_live_tests::LIVE;
-use crate::server::typed::check::admit;
+use super::typed_fixture::sepolia_only;
+use crate::server::typed::check::admit_in;
 use crate::server::typed::refusal::Refusal;
+use crate::server::typed::voucher::VOUCHER;
 
 #[test]
 fn admits_a_deployed_chain_and_refuses_the_other() {
-    let words = [[0u8; 32]; 2].concat();
-    assert_eq!(admit(&LIVE, 11_155_111, &words), Ok([0x55; 20]));
-    assert_eq!(admit(&LIVE, 1, &words), Err(Refusal::NotDeployed));
-    assert_eq!(admit(&LIVE, 11_155_111, &words[..32]), Err(Refusal::Malformed));
+    let words = vec![0u8; 9 * 32];
+    assert_eq!(admit_in(&VOUCHER, SEPOLIA, &words, sepolia_only), Ok([7; 20]));
+    assert_eq!(admit_in(&VOUCHER, MAINNET, &words, sepolia_only), Err(Refusal::NotDeployed));
+    let short = &words[..32];
+    assert_eq!(admit_in(&VOUCHER, SEPOLIA, short, sepolia_only), Err(Refusal::Malformed));
     let mut wide = words.clone();
-    wide[0] = 1;
-    assert_eq!(admit(&LIVE, 11_155_111, &wide), Err(Refusal::Field(0)));
+    wide[32] = 1;
+    assert_eq!(admit_in(&VOUCHER, SEPOLIA, &wide, sepolia_only), Err(Refusal::Field(1)));
+    assert_eq!(admit_in(&VOUCHER, 5, &words, sepolia_only), Err(Refusal::Chain));
 }
