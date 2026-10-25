@@ -39,11 +39,11 @@ impl Bss {
             &self.link(Some(PHY_ID), true, MODIFY_RATES_INFO, capability),
         );
         fw.command(MAC_CONF_GROUP, LINK_CONFIG_CMD, &erp)?;
-        Ok(())
+        self.power(fw, false)
     }
 
-    /// The keys are in: the station entry takes the negotiated protection and
-    /// the session is cancelled.
+    /// The keys are in: the station entry takes the negotiated protection, the
+    /// session is cancelled and power management goes on.
     pub fn authorized<M: Mmio, R: Region + ?Sized, C: Clock>(
         &mut self,
         fw: &mut Fw<'_, '_, M, R, C>,
@@ -55,6 +55,6 @@ impl Bss {
             &sta_config(LINK_ID, self.target.bssid, self.aid, pmf),
         )?;
         self.unprotect(fw);
-        Ok(())
+        self.power(fw, true)
     }
 }
