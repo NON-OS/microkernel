@@ -41,9 +41,9 @@ pub enum CertProblem {
  * issuer's window, then the anchor) and stops at the first finding. It
  * checks no signatures: a link whose signature fails is not something a
  * person can act on, so it falls through to `None`, which the caller words
- * as a certificate that could not be verified. The anchor test is the one
- * the walk makes (the top certificate pinned, or its issuer a known root),
- * without the signature over it.
+ * as a certificate that could not be verified. The anchor test is the
+ * walk's, without the signature over the top; a devnet build's throwaway
+ * root alone is held to the leaf's signature (cert_problem_why.rs).
  */
 /// What is wrong with the TLS 1.3 Certificate message `body` for `host` at
 /// `now`, or `None` if none of the reasons above applies.
@@ -62,39 +62,13 @@ pub fn cert_problem(body: &[u8], host: &[u8], now: u64) -> Option<CertProblem> {
         let Some(cert) = super::cert_at::cert_at(body, i) else {
             return Some(CertProblem::Unreadable);
         };
-        if let Some(problem) = window_problem(cert, now) {
+        if let Some(problem) = super::cert_problem_why::window_problem(cert, now) {
             return Some(problem);
         }
     }
     let Some(top) = super::cert_at::cert_at(body, n - 1) else {
         return Some(CertProblem::Unreadable);
     };
-    if anchored(top) {
-        None
-    } else {
-        Some(CertProblem::UnknownIssuer)
-    }
-}
-
-fn window_problem(cert: &[u8], now: u64) -> Option<CertProblem> {
-    let Some((from, until)) = super::cert_window::cert_window(cert) else {
-        return Some(CertProblem::Unreadable);
-    };
-    if now < from {
-        Some(CertProblem::NotYetValid)
-    } else if now > until {
-        Some(CertProblem::Expired)
-    } else {
-        None
-    }
-}
-
-fn anchored(top: &[u8]) -> bool {
-    let pinned = super::cert_spki::cert_spki(top)
-        .and_then(super::hash_sha256::hash_sha256)
-        .is_some_and(|h| super::roots::is_trusted_spki_hash(&h));
-    pinned
-        || super::cert_issuer::cert_issuer(top)
-            .and_then(super::roots::find_spki_by_subject)
-            .is_some()
+    let anchored = super::cert_problem_why::anchored(top, leaf, host, n);
+    (!anchored).then_some(CertProblem::UnknownIssuer)
 }
