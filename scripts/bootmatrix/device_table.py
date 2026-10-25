@@ -23,10 +23,10 @@ from .devices import DISK_BYTES
 USER_NET = "-netdev user,id=cellnet"
 
 
-def nic(model):
+def nic(model, forbid=()):
     """A NIC cell: the card bound, and a DHCP lease taken through it. Under
     VT-d, since a DMA claim no remapping unit confines is refused."""
-    return Cell(f"q35-iommu-nic-{model}", "eth", "q35", 1, iommu="intel-iommu",
+    return Cell(f"q35-iommu-nic-{model}", "eth", "q35", 1, iommu="intel-iommu", forbid=forbid,
                 devices=(USER_NET, f"-device {model},netdev=cellnet"),
                 expect=(f"[NET-CORE] bind: interface up on driver.{model}_0", "[NET-CORE] lease "))
 
@@ -49,13 +49,13 @@ HDA_HELD = "[VT-D] refused: 01:00.1 reaches it through 01:00.0 without ACS; driv
 # driver's own lines (Debug, optional in their manifests).
 SECTORS = DISK_BYTES // 512
 
-# Held, each until the owner's seal gives its driver what the cell needs:
-# - q35-iommu-ahci waits for hw/debug-grants; until then its driver has no
-#   line of its own.
-# - q35-smbus-novtd (no IOMMU, H-02b) waits for smbus in a shipping image
-#   (item 52), and must see "port-only with no remapping unit over it: Bus
-#   Master off, no DMA grant", "driver.smbus: i801 0x8086:0x2930 up, spd
-#   answered", and "no remapping unit confines it" for every other claim.
+# Held until the owner's seal: q35-iommu-ahci (hw/debug-grants: no line yet);
+# q35-smbus-novtd (no IOMMU, H-02b; smbus in an image, item 52), to see "port-only
+# with no remapping unit over it: Bus Master off, no DMA grant", "driver.smbus:
+# i801 0x8086:0x2930 up, spd answered", and "no remapping unit confines it".
+# igb's VFs make QEMU's DMAR name every endpoint, past 16: held for its keys.
+UNCOVERED = "no remapping unit confines it"
+HELD_CELLS = [nic("igb", forbid=(UNCOVERED,))]
 
 DEVICE_CELLS = [
     Cell("q35-iommu-nvme", "up", "q35", 1, iommu="intel-iommu",
