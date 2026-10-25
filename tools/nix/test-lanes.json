@@ -7,6 +7,7 @@
  "nonos-proof-verify": "",
  "nonos-proof-verify/wasm": "",
  "nonos-sign": "--lib --bins --test host_trust --test release",
+ "tools/nsh-enrol": "",
  "userland/attest_receipt": "",
  "userland/capsule_net_core/tests/ipc_framing": "",
  "userland/capsule_net_sockets/tests/connect_pending": "",

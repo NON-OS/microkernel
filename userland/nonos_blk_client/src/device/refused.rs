@@ -36,9 +36,10 @@ pub fn refused_blocks(op: &str, dev: &BlockDevice, lba: u64, bytes: usize, e: &B
     let per_block = u64::from(size) / 512;
     crate::refusal::note(op_of(op), lba.saturating_mul(per_block), (bytes / 512) as u32, e.code());
     let line = alloc::format!(
-        "[BLK] {op} failed {:?}{} lba={lba} sectors={} block={size} code={} {e:?}\n",
+        "[BLK] {op} failed {:?}{}.{} lba={lba} sectors={} block={size} code={} {e:?}\n",
         dev.driver,
         dev.instance,
+        dev.unit,
         bytes / size as usize,
         e.code()
     );

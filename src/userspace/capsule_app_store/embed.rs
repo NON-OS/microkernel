@@ -26,15 +26,15 @@ pub(crate) const APP_STORE_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-app-store")]
 pub(crate) const APP_STORE_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/app_store.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/app_store.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-app-store")]
 pub(crate) const APP_STORE_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/app_store.manifest.bin");
+    crate::baked_trust!("capsules/app_store.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-app-store")]
 pub(crate) const APP_STORE_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/app_store.zk_trailer.bin");
+    crate::baked_trust!("capsules/app_store.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-app-store"))]
 pub(crate) const APP_STORE_ELF: &[u8] = &[];
