@@ -1504,6 +1504,8 @@
    "src/hardware/broker/acpi/sleep_request.rs",
    "src/hardware/broker/acpi/slot_rule.rs",
    "src/hardware/broker/acpi/slot_wire.rs",
+   "src/userspace/capsule_acpi",
+   "userland/capsule_acpi/Capsule.mk",
    "userland/capsule_acpi/src/aei/rate.rs",
    "userland/capsule_acpi/src/backlight/engine_rule.rs",
    "userland/capsule_acpi/src/boot/pass.rs",
@@ -1521,19 +1523,24 @@
    "userland/capsule_acpi/src/hotplug/native/step.rs",
    "userland/capsule_acpi/src/hotplug/native/step_timed.rs",
    "userland/capsule_acpi/src/hotplug/native/times.rs",
-   "userland/capsule_acpi/src/power/off/rule.rs",
-   "userland/capsule_acpi/src/power/off/wire.rs",
+   "userland/capsule_acpi/src/power/off",
    "userland/capsule_acpi/src/props/wire.rs",
    "userland/capsule_acpi/src/props/wire_cursor.rs",
    "userland/capsule_acpi/src/props/wire_read.rs",
    "userland/capsule_acpi/src/props/wire_write.rs",
    "userland/capsule_acpi/src/serial/bus_key.rs",
    "userland/capsule_acpi/src/server/policy.rs",
+   "userland/capsule_acpi/src/server/reply.rs",
    "userland/capsule_acpi/src/sleep",
-   "userland/capsule_acpi_proofs"
+   "userland/capsule_acpi_proofs",
+   "userland/capsule_power/Capsule.mk"
   ],
   "md": [],
-  "signed": []
+  "signed": [
+   "nonos-data/trust/capsules/acpi.manifest.bin",
+   "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/acpi.zk_trailer.bin"
+  ]
  },
  "userland/capsule_app_store": {
   "exclude": [
@@ -3507,7 +3514,6 @@
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
-   "userland/capsule_acpi/src/power/off/wire.rs",
    "userland/capsule_acpi/src/server/caller.rs",
    "userland/capsule_power",
    "userland/libc"
@@ -7637,7 +7643,6 @@
    "src/userspace/capsule_power/power_off.rs",
    "src/userspace/capsule_power/spawn.rs",
    "src/userspace/init/spawn_plan/platform_acpi.rs",
-   "userland/capsule_acpi/src/power/off/wire.rs",
    "userland/capsule_desktop_shell/src/power_off_client/frame.rs",
    "userland/capsule_desktop_shell/src/power_off_client/send.rs",
    "userland/capsule_desktop_shell/src/server/handlers/power_off.rs",

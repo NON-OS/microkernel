@@ -23,10 +23,8 @@ use crate::off_rule::*;
 mod levels;
 #[path = "off_restart_tests.rs"]
 mod restart;
-#[path = "../../capsule_acpi/src/power/off/wire.rs"]
-mod off_wire;
-#[path = "off_wire_tests.rs"]
-mod wire;
+#[path = "off_owner_tests.rs"]
+mod owner;
 #[path = "../../capsule_acpi/src/backlight/engine_rule.rs"]
 mod engine_rule;
 
