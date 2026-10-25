@@ -20,6 +20,9 @@ pub mod prompt_bits;
 // Keystroke to screen, as `latency` reports it.
 #[path = "../../capsule_terminal/src/term/latency.rs"]
 pub mod latency;
+// Two tabs side by side: the panes, their sides, and the split as tabs move.
+#[path = "../../capsule_terminal/src/term/split.rs"]
+pub mod split;
 // Where Tab's candidates are shown, and how they are laid out.
 #[path = "../../capsule_terminal/src/term/complete_list.rs"]
 pub mod complete_list;
@@ -32,5 +35,7 @@ mod head_tests;
 mod latency_tests;
 #[cfg(test)]
 mod prompt_tests;
+#[cfg(test)]
+mod split_tests;
 #[cfg(test)]
 mod step_tests;

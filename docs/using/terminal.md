@@ -31,6 +31,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 - `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
 - A new tab opens on a splash: the NONOS banner, the system's facts with a `start` row naming `help`, `Tab`, `Ctrl+R` and `Ctrl+K`, and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
+- `Ctrl+Shift+D` splits the window: a new tab opens beside the one you were in, each pane with its own size, so a program in it sees its own rows and columns. The pane with the keys has a line of the accent along its top; `Ctrl+Shift+Left` and `Ctrl+Shift+Right`, or a click, give the keys to the other. `Ctrl+Shift+D` again shows one tab; closing a pane's tab leaves the other in front.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
@@ -244,6 +245,7 @@ The source behind the facts above, at the commit in the footer.
 - The prompt
   - The branch and the job count, and which fit: `branch`, `heads` and `fit` in `userland/capsule_terminal/src/term/prompt_bits.rs`; read after each line by `probe` in `userland/capsule_terminal/src/term/git_probe.rs`.
 - Tabs and windows
+  - The split: `halves`, `sides`, `retarget` and `after_close` in `userland/capsule_terminal/src/term/split.rs`.
   - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
   - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.
   - Nine tabs at most: `MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs:25`.

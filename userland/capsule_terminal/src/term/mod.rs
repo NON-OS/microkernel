@@ -36,6 +36,7 @@ pub mod scrollback;
 pub mod search;
 pub mod search_step;
 pub mod select;
+pub mod split;
 pub mod state;
 pub mod terminal;
 pub mod theme;
