@@ -51,8 +51,7 @@ def main(argv=None) -> int:
     ap.add_argument("--no-build", action="store_true", help="boot the gauntlet image already built")
     a = ap.parse_args(argv)
     a.out.mkdir(parents=True, exist_ok=True)
-    # The tree's commit as the image is copied from it, not as the run ends.
-    source = commit(ROOT)
+    source = commit(ROOT)  # as the image is copied from it, not as the run ends
     if not a.no_build:
         build = ["nix", "develop", "--command", "python3", "tools/nonos-dev-image",
                  "--profile", "gauntlet", "--agentproof-job", str(a.job.resolve())]
