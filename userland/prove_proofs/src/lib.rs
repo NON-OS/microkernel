@@ -36,6 +36,8 @@ pub mod job_bound;
 /// The headless job's failure status from a kernel return, the file that ships.
 #[path = "../../capsule_prove/src/job/status.rs"]
 pub mod job_status;
+/// The headless job's answers, state and exit rule, the files that ship.
+pub mod job;
 
 #[cfg(test)]
 mod fixture;
