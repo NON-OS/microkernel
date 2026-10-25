@@ -41,3 +41,7 @@ mod refuse_tests;
 mod splash_layout_tests;
 #[path = "turn_tests.rs"]
 mod turn_tests;
+#[path = "warning_tests.rs"]
+mod warning_tests;
+#[path = "warning_draw_tests.rs"]
+mod warning_draw_tests;

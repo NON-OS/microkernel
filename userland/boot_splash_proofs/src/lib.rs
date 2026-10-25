@@ -56,6 +56,9 @@ pub mod status;
 #[allow(dead_code)] // `fill`, the whole-surface wash the proofs do not draw
 #[path = "../../capsule_boot_splash/src/vignette.rs"]
 pub mod vignette;
+#[cfg(test)]
+#[path = "../../capsule_boot_splash/src/warning.rs"]
+pub mod warning;
 
 #[cfg(test)]
 mod build;
