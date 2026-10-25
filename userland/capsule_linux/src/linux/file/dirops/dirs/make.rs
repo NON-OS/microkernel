@@ -36,7 +36,7 @@ pub fn mkdirat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
         return errno::fail(errno::EROFS);
     }
     /* A directory is a name the private directories' quota counts. */
-    if let Err(e) = room_for(Kept { bytes: 0, names: 1 }) {
+    if let Err(e) = room_for(&at, Kept { bytes: 0, names: 1 }) {
         return errno::fail(e);
     }
     match store_name::mkdir(&key(&at)) {
