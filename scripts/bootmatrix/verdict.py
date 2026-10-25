@@ -23,12 +23,13 @@ amd-iommu must hear the AMD-Vi hardware named. A cell with its store on a USB
 stick must hear driver.usb_msc0 bind it at the block length the stick has and
 the block layer settle on it. Every cell must see the ring-0
 restrictions read back on: SMEP, SMAP, NX and WP, from the kernel's own
-[CPU-PROT] line rather than from what the code asked the part for.
+[CPU-PROT] line rather than from what the code asked the part for. A q35
+cell must hear the power button armed, PWRBTN_EN set (power.py).
 """
 
 import re
 
-from . import devices, virtio
+from . import devices, power, virtio
 
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
@@ -97,6 +98,7 @@ def judge(cell, text, reached, ending):
         if REMAPPED not in text:
             bad.append("VT-d never reported devices remapped")
     bad += virtio.verdict(cell, text) + devices.verdict(cell, text)
+    bad += power.verdict(cell, text) if reached else []
     if cell.iommu == "amd-iommu" and AMD_VI_NAMED not in text:
         bad.append("kernel never named the AMD-Vi hardware it does not drive")
     if cell.usb_block:
