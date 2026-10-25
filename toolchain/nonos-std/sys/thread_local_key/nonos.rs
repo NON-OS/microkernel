@@ -40,13 +40,14 @@ const N_MK_SET_TLS: i64 = tag4(b"MSTB");
 const N_MK_DEBUG: i64 = tag4(b"MDBG");
 
 fn set_tls_base(base: u64) -> i64 {
-    let r: i64;
+    #[cfg(target_arch = "riscv64")]
+    return crate::sys::pal::thread_regs::set_thread_pointer(base);
     // SAFETY: MSTB takes the new thread pointer and answers a status;
     // the kernel validates the address before installing it.
+    #[cfg(not(target_arch = "riscv64"))]
     unsafe {
-        r = crate::sys::pal::trap::trap(N_MK_SET_TLS, base, 0, 0, 0, 0, 0);
+        crate::sys::pal::trap::trap(N_MK_SET_TLS, base, 0, 0, 0, 0, 0)
     }
-    r
 }
 
 fn debug_line(msg: &[u8]) {
