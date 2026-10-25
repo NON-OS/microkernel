@@ -1,6 +1,6 @@
 """H-10 mutants: each rule broken once, the proof crate that must catch it run
 whole. Run from the repo root; every file is put back after each run."""
-import subprocess
+import subprocess, sys
 Q="src/hardware/broker/pci/quirk_bits/xhci_route.rs"; KP="userland/kernel_proofs"; XP="userland/xhci_proofs"
 I="src/hardware/broker/pci/ident_read.rs"; C="src/hardware/broker/pci/companion.rs"
 D="userland/capsule_driver_xhci/src/setup/"; P=D+"intel_ports_plan.rs"; IP=D+"intel_ports.rs"
@@ -26,7 +26,7 @@ M=[
  ("D9 refused switch kept", IP, "(moved || rc >= 0, problems || !ok)", "(true, problems || !ok)", XP),
  ("D10 read-back unchecked", IP, "let ok = rc >= 0 && took(read(at, 2) as u16, mask, value);", "let ok = rc >= 0;", XP),
 ]
-for name,f,old,new,crate in M:
+for name,f,old,new,crate in M[int(sys.argv[1]) if len(sys.argv) > 1 else 0:]:
     s=open(f).read(); assert s.count(old)==1,name; open(f,'w').write(s.replace(old,new))
     try: r=subprocess.run(f"cd {crate} && cargo test --release 2>&1",shell=True,capture_output=True,text=True,timeout=2400).stdout
     finally: open(f,'w').write(s)
