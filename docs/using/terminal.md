@@ -21,6 +21,10 @@ flowchart LR
 - A store tool is one of `sd`, `tokio-smoke` and `std_proof`, loaded from the package store when the store holds it.
 - Everything else is a built-in command, listed below.
 
+## The prompt
+
+The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where you are, then the git branch when the working directory or one up to four levels above it holds a `.git` (the first seven characters of the commit when no branch is checked out), then how many jobs run in the background, when any do. Each part shows only when it says something; on a narrow window the job count goes first, then the branch, and the path keeps its room. The `%` is green after a command that worked and red after one that failed. The branch is read again after every line you run.
+
 ## Tabs and windows
 
 - The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
@@ -29,7 +33,7 @@ flowchart LR
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
-- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`.
+- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
 
 ## Editing a line
 
@@ -231,6 +235,8 @@ The source behind the facts above, at the commit in the footer.
   - History keeps only `qwen` and the tier: `recorded` in `userland/capsule_terminal/src/command/builtin/qwen/ask.rs:41`.
   - The eight installed tools: `TOOLS` in `userland/capsule_terminal/src/command/builtin/tool.rs:25-34`.
   - The three store tools: `STORE_TOOLS` in `userland/capsule_terminal/src/jobs/classify.rs:173`.
+- The prompt
+  - The branch and the job count, and which fit: `branch`, `heads` and `fit` in `userland/capsule_terminal/src/term/prompt_bits.rs`; read after each line by `probe` in `userland/capsule_terminal/src/term/git_probe.rs`.
 - Tabs and windows
   - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
   - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.
@@ -260,6 +266,8 @@ The source behind the facts above, at the commit in the footer.
   - The credentials message: `say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs:40-51`.
 - The network a command uses
   - The refusal that ends `so nothing was sent`: `refusal_line` in `userland/capsule_terminal/src/command/builtin/direct_gate.rs:46-54`.
+- Colour
+  - Every theme's text at 4.5 to 1 or more: `contrast_tests.rs` in `userland/terminal_line_proofs/src/paint/`.
 - What is kept
   - The kept preferences: `load` and `save` in `userland/capsule_terminal/src/term/prefs/store.rs:32-49`.
 
