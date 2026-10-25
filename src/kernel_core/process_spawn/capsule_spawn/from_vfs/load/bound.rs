@@ -15,14 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A loaded capsule never holds more than the process it is started for.
-//! The child's installed capabilities must lie within its parent's, unless
-//! the parent is a launcher: it holds SpawnWindow, or Admin, which stands in
-//! for it as in `can_spawn_window`. The parent is the one the load is
-//! attributed to: the requester, when the installer loads on its behalf, and
-//! otherwise the caller. A broker (SpawnBroker) loads only for someone: a
-//! load from it that names no attested parent is refused, so it can never
-//! lend its own capabilities. A start outside the bound is refused, never
-//! narrowed.
+//! The child's installed capabilities must lie within its parent's and the
+//! ambient set (`AMBIENT_CAPS`, which every process has), unless the parent is
+//! a launcher: it holds SpawnWindow, or Admin standing in as in
+//! `can_spawn_window`. The parent is the one the load is attributed to: the
+//! requester, when the installer loads on its behalf, else the caller. A
+//! broker (SpawnBroker) loads only for someone else: a load from it naming no
+//! attested parent, or itself, is refused, so it never lends its own
+//! capabilities. A start outside the bound is refused, never narrowed.
+//! Known edge: the child's set is weighed before the boot profile narrows it,
+//! the parent's after, so on an air-gapped boot a parent that is no launcher
+//! is refused a child needing Network. It fails closed.
 
 use super::super::error::LoadError;
 use crate::capabilities::Capability;
@@ -31,8 +34,6 @@ use crate::process::core::AMBIENT_CAPS;
 use crate::security::capsule_manifest::CapsuleManifest;
 
 /// The bits `child` would install that `parent` lacks; zero when allowed.
-/// The ambient set counts as held: every process has it, so a child holding
-/// it gains nothing (`AMBIENT_CAPS`, which no spawn mask need repeat).
 pub(crate) fn missing(child: u64, parent: u64) -> u64 {
     let launcher = Capability::SpawnWindow.bit() | Capability::Admin.bit();
     if parent & launcher != 0 {
@@ -55,7 +56,7 @@ pub(crate) fn check(
 ) -> Result<(), LoadError> {
     let caller = crate::process::current_pid().ok_or(LoadError::BeyondParent)?;
     let broker = crate::process::caps::has(caller, Capability::SpawnBroker.bit());
-    if broker && on_behalf_of.is_none() {
+    if broker && on_behalf_of.map_or(true, |p| p.pid() == caller) {
         crate::sys::serial::println(b"[CAP-DENY] load: a broker named no attested parent");
         return Err(LoadError::BeyondParent);
     }
