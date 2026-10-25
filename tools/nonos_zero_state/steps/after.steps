@@ -1,0 +1,5 @@
+# The second boot, from the disk the first left: setup runs again from step
+# one, as a boot that kept nothing must.
+until:[SETUP-WIZARD] capsule spawned:1800
+wait:360
+shot:40-setup-again

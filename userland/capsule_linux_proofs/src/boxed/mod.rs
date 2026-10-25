@@ -45,6 +45,10 @@ pub mod tally;
 #[path = "../../../capsule_linux/src/linux/boxed/terminal_run.rs"]
 pub mod terminal_run;
 
+/* The selftest image's deliberate panic, off unless the feature is on. */
+#[path = "../../../capsule_linux/src/linux/selftest_panic.rs"]
+pub mod selftest_panic;
+
 /* Whether a family's app is noted to the seal's slot 0 (I-C6). */
 #[path = "../../../capsule_linux/src/linux/seal_slot.rs"]
 pub mod seal_slot;
