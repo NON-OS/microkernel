@@ -48,14 +48,18 @@ pub fn generate(scalar: &mut [u8; 32]) -> Option<[u8; 65]> {
  * bytes for P-256. The peer's point must decode onto the curve and not be
  * the identity; from_sec1_bytes refuses both.
  */
-pub fn shared(private: &[u8; 32], peer: &[u8; 65]) -> Option<[u8; 32]> {
+/// Written into `out`, never returned by value. `SecretKey` and the product
+/// (`SharedSecret`) zeroize themselves on drop; the `NonZeroScalar` the crate
+/// hands `diffie_hellman` is `Copy`, so a copy of the scalar can stay in a
+/// stack slot this cannot reach (docs/security/privacy-guarantees.md, Keys).
+pub fn shared(private: &[u8; 32], peer: &[u8; 65], out: &mut [u8; 32]) -> bool {
     let mut bytes = FieldBytes::from(*private);
     let secret = SecretKey::from_bytes(&bytes);
     super::traffic_keys::wipe(&mut bytes);
-    let secret = secret.ok()?;
-    let public = PublicKey::from_sec1_bytes(peer).ok()?;
+    let (Ok(secret), Ok(public)) = (secret, PublicKey::from_sec1_bytes(peer)) else {
+        return false;
+    };
     let product = p256::ecdh::diffie_hellman(secret.to_nonzero_scalar(), public.as_affine());
-    let mut out = [0u8; 32];
     out.copy_from_slice(product.raw_secret_bytes());
-    Some(out)
+    true
 }
