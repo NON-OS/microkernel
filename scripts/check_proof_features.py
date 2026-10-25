@@ -13,12 +13,14 @@
 # GNU Affero General Public License for more details.
 """Keep the SMP boot-proof features out of every profile and image.
 
-nonos-shootdown-trace, nonos-smp-park-proof and nonos-smp-stuck-proof change
-how a kernel boots on purpose: one prints every early shootdown, one holds
-CPU 1 back so the boot CPU parks it, one stalls CPU 1 so the next shootdown
-fails closed. The kernel refuses them beside nonos-production and
-nonos-release at compile time (src/smp/ap/park_proof.rs,
-src/memory/paging/manager/shootdown/trace.rs). That catches a release build,
+nonos-shootdown-trace, nonos-smp-park-proof, nonos-smp-stuck-proof and
+nonos-smp-pge-proof change how a kernel boots on purpose: one prints every
+early shootdown, one holds CPU 1 back so the boot CPU parks it, one stalls
+CPU 1 so the next shootdown fails closed, one sets CR4.PGE on the boot CPU
+alone before the kernel does. The kernel refuses them beside nonos-production
+and nonos-release at compile time (src/smp/ap/park_proof.rs,
+src/memory/paging/manager/shootdown/trace.rs,
+src/memory/mmu/mmu/protect/cr4/pge.rs). That catches a release build,
 not a development or shared image that carries one in, so:
 
   1. In Cargo.toml each is defined as `name = []` and named in no other
@@ -33,7 +35,12 @@ import re
 import sys
 from pathlib import Path
 
-PROOFS = ("nonos-shootdown-trace", "nonos-smp-park-proof", "nonos-smp-stuck-proof")
+PROOFS = (
+    "nonos-shootdown-trace",
+    "nonos-smp-park-proof",
+    "nonos-smp-stuck-proof",
+    "nonos-smp-pge-proof",
+)
 SEARCHED = ("nonos.toml", "tools/nix", "mk", "nonos-ci", ".github")
 SUFFIXES = {".toml", ".nix", ".mk", ".sh", ".yml", ".yaml", ".json", ".py"}
 
@@ -83,7 +90,7 @@ def tree_files(root):
 
 
 def self_test():
-    good = '[features]\nnonos-shootdown-trace = []\nnonos-smp-park-proof = []\nnonos-smp-stuck-proof = []\nnonos-smp = []\n# "nonos-smp-park-proof" in a comment is fine\nmicrokernel-x = ["nonos-smp"]\n\n[dependencies]\n'
+    good = '[features]\nnonos-shootdown-trace = []\nnonos-smp-park-proof = []\nnonos-smp-stuck-proof = []\nnonos-smp-pge-proof = []\nnonos-smp = []\n# "nonos-smp-park-proof" in a comment is fine\nmicrokernel-x = ["nonos-smp"]\n\n[dependencies]\n'
     cases = [
         (check_cargo(good), True),
         (check_cargo(good.replace('microkernel-x = ["nonos-smp"]', 'microkernel-x = ["nonos-smp", "nonos-smp-park-proof"]')), False),

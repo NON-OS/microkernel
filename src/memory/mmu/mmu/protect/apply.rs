@@ -24,8 +24,11 @@ use crate::memory::mmu::ProtectionFlags;
 
 #[cfg(target_arch = "x86_64")]
 pub(in crate::memory::mmu::mmu) fn apply() -> MmuResult<ProtectionFlags> {
+    use super::cr4::pge;
     use super::{cpuid, cr0, cr4, efer};
 
+    #[cfg(feature = "nonos-smp-pge-proof")]
+    pge::proof_boot_cpu_only();
     let have = cpuid::supported();
     // Execute-never is the one property with no fallback: the directmap every
     // user page is reached through is built with the NX bit set, so a part
@@ -38,6 +41,7 @@ pub(in crate::memory::mmu::mmu) fn apply() -> MmuResult<ProtectionFlags> {
         smep_enabled: live.smep,
         smap_enabled: live.smap,
         umip_enabled: live.umip,
+        pge_enabled: pge::enable(have.pge),
         nx_enabled: efer::enable_nx(),
         wp_enabled: cr0::enable(),
     })
@@ -54,6 +58,7 @@ pub(in crate::memory::mmu::mmu) fn apply() -> MmuResult<ProtectionFlags> {
         smep_enabled: false,
         smap_enabled: false,
         umip_enabled: false,
+        pge_enabled: false,
         nx_enabled: true,
         wp_enabled: true,
     })
