@@ -36,5 +36,6 @@ pub mod transport_nowait;
 mod waiting;
 
 pub use registry::{register, tick, Capsule};
+pub use reply_wait::rest;
 pub use state::CapsuleState;
 pub use supervisor::{tick as supervisor_tick, Supervised};
