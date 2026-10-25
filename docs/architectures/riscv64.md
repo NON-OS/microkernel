@@ -1,33 +1,38 @@
 # riscv64
 
-What exists of the riscv64 port of NONOS, why it does not build into a kernel, and what it would take.
+What exists of the riscv64 port of NONOS, how far it builds, and what it would take.
 
 ## Status
 
-riscv64 is not supported. The tree holds a backend under `src/arch/riscv64`, a linker script and a [capsule](../overview/glossary-boot-root-record.md#capsule) target file, but no kernel target file, no make target and no CI job, and the backend's entry calls a function that does not exist. No page here gives a date for the port.
+riscv64 is not supported. The kernel type-checks for riscv64, and that is all: nothing links it into an image, nothing boots it, and no loader starts it. It needs `nonos-arch-preview`, as aarch64 does (`src/lib.rs:28-35`). No page here gives a date for the port.
 
-The comment on `nonos-arch-preview` says the feature compiles and boots the `aarch64` and `riscv64` trees in QEMU (`Cargo.toml:53-55`). For riscv64 that is not so.
+```
+make nonos-mk-riscv-check
+```
 
-## Why it does not build
+- That target runs `cargo check` for rustc's own `riscv64gc-unknown-none-elf`, with `microkernel-core` and `nonos-arch-preview` (`nonos-mk-riscv-check`, `mk/20-build.mk`). CI runs it in `ci-build-aarch64.yml`.
+- The kernel's assembly is built for RV64GC with the `lp64d` ABI, the Rust target's own (`c_target`, `build_c_target.rs`).
+- There is no riscv64 kernel target file at the repository root and no link step.
+
+## How far a boot would get
 
 ```mermaid
 flowchart LR
     S[_start] --> E[kernel_entry]
     E --> I[init]
-    I --> K[kernel_main]
+    I --> H[KernelHandoff]
+    H --> K[microkernel_init]
+    K --> M[no boot memory: stop]
 ```
 
-- `kernel_entry` fills `BootInfo` from the device tree, runs `init`, and then calls `crate::kernel_main` (`src/arch/riscv64/boot/entry.rs:19-27`). No file under `src/` defines `kernel_main`; x86_64 and aarch64 reach the shared kernel through `microkernel_init` instead.
-- The shared kernel takes its boot facts as a `KernelHandoff`, and `ArchSpecificHandoff` has variants for x86_64 and aarch64 only; its comment says a new architecture adds one when its boot tree lands (`src/boot/handoff/kernel_handoff/arch.rs:17-34`).
-- The repository root holds `x86_64-nonos.json` and `aarch64-nonos.json` and no riscv64 kernel target file. The `build` check of `nonos-verify` records the same gap for riscv64 in its loop over each `arch`: no kernel target file and no make build target, only the capsule target file (`nonos-verify/src/build.rs:103-116`).
+- `kernel_entry` fills `BootInfo` from the device tree and runs `init`. It then arms the bootstrap heap, builds a `KernelHandoff` with the riscv64 variant of `ArchSpecificHandoff`, and calls `microkernel_init`, as aarch64 does (`src/arch/riscv64/boot/entry.rs`, `KernelHandoff::from_riscv64` in `src/boot/handoff/kernel_handoff/riscv64/from.rs`).
+- No boot memory path is written for riscv64: nothing gives the frame allocator its RAM. `microkernel_init` stops at that step and prints `[MEM] riscv64: no boot memory path yet; stopping` (`init_arch_memory_and_framebuffer`, `src/kernel_core/init/entry/init_arch_memory_and_framebuffer.rs`).
+- None of this has run: the kernel has not been linked for riscv64.
 
-To confirm the missing function on your own checkout:
-
-```
-grep -rn "fn kernel_main" src/
-```
-
-It prints nothing.
+The shared code riscv64 needed in order to compile now has a riscv64 branch:
+- the scheduler's saved kernel `Context`, which holds s0 to s11, ra and sp (`src/arch/riscv64/context/kernel.rs`);
+- MMIO ordering as RISC-V FENCEs over device input and output and memory reads and writes (`src/arch/riscv64/mmio_order/`, selected in `src/arch/mmio_order.rs`);
+- the DMA sync windows. These are a full FENCE, because the base ISA has no cache maintenance; a non-snooping part would need Zicbom, which is not in the tree (`src/arch/riscv64/dma_sync.rs`, selected in `src/arch/dma_sync.rs`).
 
 ## What exists
 
@@ -75,13 +80,13 @@ The facade modules in `src/arch` have no riscv64 branch, so riscv64 gets each on
 
 ## What it would take
 
-From the code above, a riscv64 kernel needs at least:
+From the code above, a riscv64 kernel still needs at least:
 
-- a kernel target file and a make target that builds with `nonos-arch-preview`;
-- an entry that builds a `KernelHandoff` and calls `microkernel_init`, with a riscv64 variant of `ArchSpecificHandoff`;
+- a boot memory path that hands the device tree's RAM to the frame allocator, as `src/arch/aarch64/boot/memory.rs` does;
+- a kernel target file, a link step and an image;
 - the `__kernel_text_start` and related section symbols in `linker_riscv64.ld`;
 - riscv64 branches in the facades listed above;
-- a CI job that builds it and boots it, as `ci-build-aarch64.yml` and `ci-boot-aarch64.yml` do for aarch64.
+- a CI job that boots it, as `ci-boot-aarch64.yml` does for aarch64.
 
 [aarch64](aarch64.md) shows how far the same steps took that port.
 

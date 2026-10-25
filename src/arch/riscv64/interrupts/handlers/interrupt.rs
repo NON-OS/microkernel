@@ -21,11 +21,10 @@ use crate::arch::riscv64::interrupts::frame::TrapFrame;
 use crate::arch::riscv64::plic::{claim_interrupt, complete_interrupt, dispatch_irq};
 use crate::arch::riscv64::timer;
 use crate::process::scheduler::preemption::set_reschedule;
-use core::sync::atomic::Ordering;
 
 use super::fatal::fatal;
 
-pub fn dispatch(code: InterruptCode, frame: &mut TrapFrame) {
+pub(super) fn dispatch(code: InterruptCode, frame: &mut TrapFrame) {
     if frame.is_from_user() {
         save_user_frame(frame);
     }

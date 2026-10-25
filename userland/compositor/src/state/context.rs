@@ -68,4 +68,6 @@ pub struct Context {
     pub first_frame_since: Option<i64>,
     /// The shell's lid: closed, every output is dark and nothing presented.
     pub lid: super::lid_rule::Lid,
+    /// Device DMA is not confined by hardware (no IOMMU): the band says so.
+    pub dma_unconfined: bool,
 }

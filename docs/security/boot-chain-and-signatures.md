@@ -30,7 +30,7 @@ Key files, certificates, [manifests](../overview/glossary-linux-personality.md#m
 | Ed25519 | 32 bytes | 64 bytes |
 | ML-DSA-65 | 1952 bytes | 3309 bytes |
 
-The sizes are `ED25519_PUBKEY_BYTES` and its neighbours (`src/crypto/asymmetric/alg_id/lengths.rs:19-26`). ML-DSA-65 is one of the three parameter sets of [FIPS 204](https://csrc.nist.gov/pubs/fips/204/final). The kernel builds it from PQClean's portable `clean` code under `third_party/pqclean`, and `compile_pqclean_mldsa` picks ML-DSA-65 unless the `mldsa5` or `mldsa2` feature asks for another set (`build.rs:246-260`). For ML-DSA-65 the signer's secret-key file holds the whole 4032-byte secret key, because that code has no seeded key generation, as `seed_len` notes (`nonos-sign/src/algs/alg_id.rs:56-67`).
+The sizes are `ED25519_PUBKEY_BYTES` and its neighbours (`src/crypto/asymmetric/alg_id/lengths.rs:19-26`). ML-DSA-65 is one of the three parameter sets of [FIPS 204](https://csrc.nist.gov/pubs/fips/204/final). The kernel builds it from PQClean's portable `clean` code under `third_party/pqclean`, and `compile_pqclean_mldsa` picks ML-DSA-65 unless the `mldsa5` or `mldsa2` feature asks for another set (`build.rs:247-261`). For ML-DSA-65 the signer's secret-key file holds the whole 4032-byte secret key, because that code has no seeded key generation, as `seed_len` notes (`nonos-sign/src/algs/alg_id.rs:56-67`).
 
 `capsule-sign keygen` writes key files that start with a magic: `NONOSSK1` for a secret key, `NONOSPK1` for a public key (`nonos-sign/src/keys/format.rs:17-18`). Certificates and manifests need one valid signature of each algorithm: `NONOS_PRODUCTION_POLICY` lists both as required (`src/security/nonos_id_cert/policy.rs:30-32`).
 
@@ -84,7 +84,7 @@ The flake builds the loader from public files only: `kernel_signing_ed25519.pub`
 
 The trust anchor's public keys are `nonos_trust_anchor_ed25519.pub` and `nonos_trust_anchor_mldsa65.pub` in the same directory (`NONOS_TA_ED25519_PUB`, `mk/20-build.mk:209-213`). `capsule-sign mk-trust-policy` seals them into the trust-anchor policy at `NONOS_TRUST_ANCHOR_EPOCH` 1, valid from 2026-01-01 to 2030-01-01 (`mk/20-build.mk:215-220`, `mk/20-build.mk:444-452`). The kernel compiles that policy in as `BAKED_TRUST_ANCHOR_POLICY`, and a missing file breaks the build (`src/security/nonos_trust_anchor/baked.rs:17-23`). Each capsule's publisher keys are `<capsule>_publisher_ed25519.pub` and `<capsule>_publisher_mldsa65.pub` in the same directory (`_NONOS_CAPSULE_KEY_PUB_PREFIX`, `nonos-mk/capsule.mk:85`, `nonos-mk/capsule.mk:108-110`).
 
-The kernel's build script stages the device policy key's 64-byte public half, x then y, from `device_policy_p256.pub` under `nonos-data/trust/policy/`. With no file it writes 64 zero bytes, and the kernel then treats the key as absent; a file of any other length stops the build, in `stage_device_policy_key` (`build.rs:66-80`). Its uses are on [Measured boot and the TPM](measured-boot-and-tpm.md) and [Device secrets and keys](device-secrets-and-keys.md).
+The kernel's build script stages the device policy key's 64-byte public half, x then y, from `device_policy_p256.pub` under `nonos-data/trust/policy/`. With no file it writes 64 zero bytes, and the kernel then treats the key as absent; a file of any other length stops the build, in `stage_device_policy_key` (`build.rs:67-81`). Its uses are on [Measured boot and the TPM](measured-boot-and-tpm.md) and [Device secrets and keys](device-secrets-and-keys.md).
 
 ## What the loader does with its verdict
 

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const PMP_ENTRY_COUNT: usize = 16;
-pub const PMP_R: u8 = 1 << 0;
-pub const PMP_W: u8 = 1 << 1;
-pub const PMP_X: u8 = 1 << 2;
-pub const PMP_A_OFF: u8 = 0 << 3;
-pub const PMP_A_TOR: u8 = 1 << 3;
-pub const PMP_A_NA4: u8 = 2 << 3;
-pub const PMP_A_NAPOT: u8 = 3 << 3;
-pub const PMP_L: u8 = 1 << 7;
+pub(super) const PMP_ENTRY_COUNT: usize = 16;
+pub(super) const PMP_R: u8 = 1 << 0;
+pub(super) const PMP_W: u8 = 1 << 1;
+pub(super) const PMP_X: u8 = 1 << 2;
+pub(super) const PMP_A_OFF: u8 = 0 << 3;
+pub(super) const PMP_A_TOR: u8 = 1 << 3;
+pub(super) const PMP_A_NA4: u8 = 2 << 3;
+pub(super) const PMP_A_NAPOT: u8 = 3 << 3;
+pub(super) const PMP_L: u8 = 1 << 7;

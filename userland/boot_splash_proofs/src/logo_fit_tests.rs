@@ -19,7 +19,7 @@
 //! of it on screen and nothing overlapping; where that would not fit, the
 //! logo is left out and the plain layout drawn.
 
-use crate::layout::{panel, status, Area, GAP, PANEL_H, STATUS_GAP};
+use crate::layout::{panel, status, warning, Area, GAP, PANEL_H, STATUS_GAP};
 use crate::layout_fit::{layout, Layout};
 use crate::logo::place::Spot;
 
@@ -40,7 +40,8 @@ fn centred(w: u32, h: u32, side: u32) -> Spot {
 #[test]
 fn no_logo_or_one_clear_of_the_text_keeps_the_plain_layout() {
     for (w, h) in MODES {
-        let plain = Layout { panel: panel(w, h), status: status(w, h), logo: false };
+        let p = panel(w, h);
+        let plain = Layout { panel: p, warn: warning(p, w), status: status(w, h), logo: false };
         assert_eq!(layout(None, w, h), plain);
         let corner = Spot { x: 8, y: 8, w: 64, h: 64 };
         assert_eq!(layout(Some(&corner), w, h), Layout { logo: true, ..plain });
