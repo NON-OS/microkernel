@@ -396,6 +396,20 @@ let
       assert lib.assertMsg (lib.all carries names)
         "config: a development twin left out the meter or settle";
       pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # Capsule serial output: a profile's development twin keeps it, and no
+    # profile a release loader boots may carry it. The last assertion is the
+    # rule's self-test: qemu, which keeps it, refused on a standard loader.
+    profile-serial =
+      let
+        has = r: builtins.elem "capsule-serial-debug" r.enabled;
+        res = p: dev: config.resolve (config.file // { profile = p; inherit dev; });
+        onStandard = config.resolve (config.file // { profile = "qemu"; dev = false; loader = "standard"; });
+      in
+      assert has (res "standard" true) && has (res "hardened" true);
+      assert !(has (res "standard" false)) && !(has (res "hardened" false)) && !(has (res "airgapped" false));
+      assert has (res "core" true) == has (res "core" false);
+      assert !(builtins.tryEval (has onStandard)).success;
+      pkgs.writeText "profile-serial" "a development twin keeps capsule serial output; a release loader never";
   };
 
   # The determinism property, proved on Linux alone. A capsule is built twice in

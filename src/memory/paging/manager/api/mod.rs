@@ -24,6 +24,7 @@ mod mapping;
 mod mapping_in_asid;
 mod protection;
 mod query;
+mod scrub;
 mod stats;
 mod tables_asid;
 mod tlb_ops;
@@ -50,6 +51,7 @@ pub use query::{
     active_asid, active_page_table, address_spaces_count, get_mapping_info, get_page_permissions,
     is_mapped, translate_address,
 };
+pub use scrub::scrub_every_user_space;
 pub use stats::{get_memory_usage, get_paging_stats};
 pub use tables_asid::lookup_asid_for_tables;
 pub use tlb_ops::{
