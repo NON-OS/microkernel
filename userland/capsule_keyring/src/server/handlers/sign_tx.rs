@@ -36,8 +36,6 @@ use super::super::zeroize::zeroize32;
 use crate::protocol::{encode_response, Request, EACCES, EINVAL};
 use crate::store::{Store, StoreError};
 
-/// Ethereum mainnet and Sepolia: the two networks the wallet offers.
-const CHAINS: [u64; 2] = [1, 11_155_111];
 /// pid, wallet, chain id, to, nonce, tip, fee cap, gas, value, data length.
 const HDR: usize = 4 + 4 + 8 + 20 + 32 * 5 + 4;
 /// A settlement carries about 99 KB of proof; nothing the wallet sends is larger.
@@ -55,7 +53,8 @@ pub fn sign_tx(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> 
     let mut chain = [0u8; 8];
     chain.copy_from_slice(&p[8..16]);
     let chain_id = u64::from_le_bytes(chain);
-    if !CHAINS.contains(&chain_id) {
+    // The networks the wallet offers, from the one table every capsule reads.
+    if nonos_nox_config::Chain::from_id(chain_id).is_none() {
         return encode_response(req.seq, EINVAL, &[]);
     }
     let payload_pid = u32::from_le_bytes([p[0], p[1], p[2], p[3]]);
