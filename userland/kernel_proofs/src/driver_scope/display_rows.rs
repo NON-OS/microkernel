@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! intel_display0's row: Intel graphics by class, whichever display subclass
 //! firmware left it in, and nothing else, so it can claim no Intel NIC or
 //! audio function and no other vendor's GPU.

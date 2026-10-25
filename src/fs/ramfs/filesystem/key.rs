@@ -19,7 +19,9 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use crate::crypto::hash::sha256;
-use crate::crypto::rng::fill_random_bytes;
+use crate::crypto::rng::fill_random_bytes_secure;
+
+use super::super::error::{FsError, FsResult};
 
 use super::super::types::{secure_zeroize_array, KEY_DERIVATION_CONTEXT, KEY_SIZE, SALT_SIZE};
 
@@ -30,11 +32,11 @@ pub struct FileKey {
 }
 
 impl FileKey {
-    pub fn new(filename: &str) -> Self {
+    pub fn new(filename: &str) -> FsResult<Self> {
         let mut salt = [0u8; SALT_SIZE];
-        fill_random_bytes(&mut salt);
+        fill_random_bytes_secure(&mut salt).map_err(|_| FsError::IoError("no randomness"))?;
         let key = derive_key(filename, &salt);
-        Self { key, salt }
+        Ok(Self { key, salt })
     }
 
     pub fn secure_clear(&mut self) {

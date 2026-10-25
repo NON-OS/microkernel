@@ -108,7 +108,11 @@ and on AMD, SiS, NEC and Apple chipsets' USB 1.1 ports.
 
 ## Release evidence
 
-`ohci_proofs` on the host (38 tests). No boot yet.
+`ohci_proofs` on the host (47 tests). Booted on 2026-10-24: QEMU `pci-ohci`
+under VT-d, a throwaway-key `standard-dev` image, up for 25 minutes beside
+AHCI (`docs/build/feature-inventory.md`, lane E). A `standard` image prints
+nothing from its capsules, so no transfer was seen. The first boot, before
+`register_grant`, had the 256-byte BAR's grant refused.
 
 ## Release checklist
 

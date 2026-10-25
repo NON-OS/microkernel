@@ -64,6 +64,9 @@ pub trait Facts {
     fn mmio_claimed(&self, base: u64, end: u64) -> bool;
     /// Hardware the kernel programs itself that [base, end) overlaps.
     fn protected(&self, base: u64, end: u64) -> Option<Hardware>;
+    /// Whether [base, end) of the port space touches the FADT's reset
+    /// register (`power`). PM1 control is granted, its SLP_EN never written.
+    fn reset_port(&self, base: u64, end: u64) -> bool;
     /// Whether any of `count` ports from `base` is granted to a capsule.
     fn ports_claimed(&self, base: u16, count: u32) -> bool;
     /// Whether a PCI function (segment, bus, device, function) is claimed.
