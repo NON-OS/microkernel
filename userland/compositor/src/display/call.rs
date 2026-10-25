@@ -24,8 +24,12 @@ use nonos_gfx_wire::errno::{EINVAL, ETIMEDOUT};
 use nonos_gfx_wire::{Errno, Header, Reply, HDR_LEN, MAX_REPLY_BODY, MAX_REQUEST};
 use nonos_libc::mk_ipc_call_timeout;
 
-/// A present that misses is one late frame, not a stalled desktop.
+/// A cursor move that misses is one late frame, not a stalled desktop.
 pub const PRESENT_MS: u64 = 100;
+/// A FLUSH: a whole 1920x1080 frame costs virtio-gpu 18 ms (median, TCG), but
+/// up to 327 ms while capsules spawn and the driver waits for a processor.
+/// One that misses is damaged again whole, more work at the worst moment.
+pub const FLUSH_MS: u64 = 400;
 /// Setup and polls: a driver answering from its own loop, never the device.
 pub const SETUP_MS: u64 = 250;
 /// The first CAPS at start-up, before the compositor serves anyone: a driver

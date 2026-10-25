@@ -42,10 +42,6 @@ extern "C" {
     static __kernel_bss_start: u8;
     static __kernel_bss_end: u8;
     static __kernel_image_end: u8;
-    static __boot_stacks_start: u8;
-    static __boot_stacks_end: u8;
-    static __percpu_start: u8;
-    static __percpu_end: u8;
 }
 
 pub fn kernel_sections() -> [Section; KERNEL_SECTION_COUNT] {
@@ -92,10 +88,4 @@ pub fn kernel_start() -> u64 {
 }
 pub fn kernel_end() -> u64 {
     unsafe { &__kernel_image_end as *const _ as u64 }
-}
-pub fn boot_stacks_region() -> (u64, u64) {
-    unsafe { (&__boot_stacks_start as *const _ as u64, &__boot_stacks_end as *const _ as u64) }
-}
-pub fn percpu_template_region() -> (u64, u64) {
-    unsafe { (&__percpu_start as *const _ as u64, &__percpu_end as *const _ as u64) }
 }

@@ -5,6 +5,9 @@
 pub mod help_layout;
 #[path = "../../capsule_terminal/src/command/builtin/help_pages.rs"]
 pub mod help_pages;
+// The hint bar's key sets, held to the keys page so the two never disagree.
+#[path = "../../capsule_terminal/src/paint/hint_sets.rs"]
+pub mod hint_sets;
 #[path = "../../capsule_terminal/src/command/builtin/tool_list.rs"]
 pub mod tool_list;
 
@@ -18,6 +21,8 @@ pub(super) mod help_rows;
 
 #[cfg(test)]
 mod help_tests;
+#[cfg(test)]
+mod hint_tests;
 #[cfg(test)]
 mod help_truth_tests;
 #[cfg(test)]

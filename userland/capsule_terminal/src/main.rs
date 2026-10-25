@@ -30,7 +30,10 @@ mod palette;
 mod rail;
 mod term;
 
-#[cfg(not(feature = "nonos-autorun-selftest"))]
+#[cfg(all(feature = "nonos-autorun-selftest", feature = "agentproof-headless"))]
+compile_error!("the selftest and the headless AgentProof run are two different terminals");
+
+#[cfg(not(any(feature = "nonos-autorun-selftest", feature = "agentproof-headless")))]
 use nonos_app_skeleton::run;
 
 /// # Safety
@@ -50,7 +53,11 @@ pub unsafe extern "C" fn _start() -> ! {
     {
         term::terminal::selftest::main()
     }
-    #[cfg(not(feature = "nonos-autorun-selftest"))]
+    #[cfg(feature = "agentproof-headless")]
+    {
+        term::terminal::agentproof::boot::main()
+    }
+    #[cfg(not(any(feature = "nonos-autorun-selftest", feature = "agentproof-headless")))]
     {
         run(term::Terminal::new)
     }
