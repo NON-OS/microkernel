@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod flush;
-mod health;
-mod primary;
-mod rect;
-mod scanout;
-mod transfer;
+//! The adapter as the shared wire server drives it (nonos_gfx_serve): one
+//! output, any mode the adapter and its VRAM hold, no hardware cursor.
 
-pub use flush::flush;
-pub use health::health;
-pub use primary::primary;
-pub use scanout::scanout;
-pub use transfer::transfer;
+mod copy;
+mod describe;
+mod health;
+mod modes;
+mod show;
+mod svga;
+mod wire;
+
+pub use svga::{Shown, Svga};

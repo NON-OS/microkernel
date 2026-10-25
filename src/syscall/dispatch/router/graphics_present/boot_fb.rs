@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! the share names the owner, and a share the kernel refuses names no
-//! owner at all.
+//! Whether the GOP copy may write the boot framebuffer: not while a claimed
+//! device drives that memory (broker/table/boot_fb_rule.rs). Such a driver
+//! may have re-moded its scanout, so the copy would land at the wrong pitch
+//! or nowhere seen; the compositor moves to the driver on EBUSY, and GOP is
+//! writable again once the claim goes. Asked on every present.
 
-use super::util::up;
-use crate::bench::Bench;
-use crate::protocol::Request;
-use crate::server::dispatch::dispatch;
-use nonos_libc::{fail_share, shares};
-
-#[test]
-fn a_refused_share_names_no_owner() {
-    let mut bench = Bench::standard();
-    let mut d = up(&mut bench, |_| {});
-    let mut tx = [0u8; 64];
-    fail_share();
-    let get_primary = Request { op: 0x0C, flags: 0, request_id: 9 };
-    assert_eq!(dispatch(&mut d, 40, &get_primary, &[], &mut tx), Some(-110));
-    assert_eq!((d.owner, d.handle), (0, 0), "nobody may draw");
-    assert!(shares().is_empty());
+/// Whether a claimed device holds the boot framebuffer now.
+pub(super) fn held() -> bool {
+    let phys = crate::kernel_core::init::framebuffer::framebuffer_phys();
+    phys.is_some_and(|(start, len)| crate::hardware::broker::boot_fb_held(start, len))
 }
