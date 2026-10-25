@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{AppManifest, WindowKind};
+use nonos_app_skeleton::{window_for, AppManifest, WindowKind};
 
 pub const WIDTH: u32 = 380;
 pub const HEIGHT: u32 = 220;
+/// The window: the content above, laid out at that size, plus the frame.
+const WINDOW: (u32, u32) = window_for(WIDTH, HEIGHT);
 
 const WINDOW_ID: u32 = 0x4744_454D;
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
@@ -30,8 +32,8 @@ pub fn manifest() -> AppManifest {
         kind: WindowKind::Normal,
         initial_x: 400,
         initial_y: 260,
-        width: WIDTH,
-        height: HEIGHT,
+        width: WINDOW.0,
+        height: WINDOW.1,
         input_kind_mask: INPUT_KEY_DOWN_BIT | INPUT_BUTTON_DOWN_BIT,
     }
 }
