@@ -1283,6 +1283,8 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/boot/memory/dma_place.rs",
+   "src/arch/aarch64/boot/memory/image.rs",
+   "src/arch/aarch64/mmu/image_bounds.rs",
    "userland/boot_memory_proofs"
   ],
   "md": [],
