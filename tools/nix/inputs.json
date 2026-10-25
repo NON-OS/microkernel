@@ -484,6 +484,29 @@
   "md": [],
   "signed": []
  },
+ "tools/nsh-enrol": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "src/crypto/asymmetric/p256/constants.rs",
+   "src/crypto/asymmetric/p256/field",
+   "src/crypto/asymmetric/p256/point",
+   "src/crypto/asymmetric/p256/scalar",
+   "src/security/attest_doc/binding.rs",
+   "src/security/attest_registry/format.rs",
+   "third_party/pqclean",
+   "tools/nsh-enrol",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_attest",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ac97_proofs": {
   "exclude": [],
   "include": [
@@ -7349,6 +7372,7 @@
    "src/security/attest_doc/document_encode.rs",
    "src/security/attest_registry/format.rs",
    "third_party/pqclean",
+   "tools/nsh-enrol",
    "userland/attest_receipt",
    "userland/capsule_about/src/about/data/proofs/firmware.rs",
    "userland/nonos_ed25519",
