@@ -28,7 +28,8 @@ use smoltcp::wire::DnsQueryType;
 use super::answer::{cancel, err};
 use super::lookups::{Lookup, PENDING, TIMEOUT_MS};
 use super::pending::Waiting;
-use crate::protocol::dns::{E_NAME_INVALID, E_NO_LEASE, E_SERVFAIL};
+use crate::protocol::dns::{E_NAME_INVALID, E_NOT_DIRECT, E_NO_LEASE, E_SERVFAIL};
+use nonos_policy_proto::Field;
 use crate::server::parse_req::Request;
 use crate::state::{self, DNS_SERVERS};
 
@@ -36,6 +37,11 @@ pub use super::lookups::waiting;
 pub use super::settle::{settle, settle_for};
 
 pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
+    let chosen = nonos_policy_client::lookup()
+        .and_then(|port| nonos_policy_client::get_u8(port, Field::NetworkRoute));
+    if !super::route_gate::clear_lookup_allowed(chosen) {
+        return err(sender_pid, req.request_id, E_NOT_DIRECT, tx);
+    }
     let name = match core::str::from_utf8(body) {
         Ok(s) if !s.is_empty() => s,
         _ => return err(sender_pid, req.request_id, E_NAME_INVALID, tx),

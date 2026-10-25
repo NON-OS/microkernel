@@ -17,6 +17,7 @@
 mod app_choice;
 mod capsule_boot;
 mod entry;
+mod injected;
 mod instance_spawn;
 mod linux_jobs;
 mod prove_job;

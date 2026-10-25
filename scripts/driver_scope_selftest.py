@@ -27,7 +27,7 @@ def self_test():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         (root / BROKER).mkdir(parents=True)
-        for f in ["scope_rows.rs", "scope_hosts.rs", "scope_lpss.rs"]:
+        for f in ["scope_rows.rs", "scope_hosts.rs", "scope_ids_nic.rs", "scope_lpss.rs"]:
             (root / BROKER / f).write_text("")
         (root / BROKER / "scope_ids.rs").write_text("pub(crate) const DECOY: &[u16] = &[\n    0x1000, 0x1007,\n];\n")
         (root / BROKER / "scope_table.rs").write_text('    ("driver.decoy0", &[Ids(0x8086, DECOY)]),\n')
@@ -48,4 +48,8 @@ def self_test():
             "pub(crate) const DECOY: &[u16] = &[\n    0x1000, 0x1007, 0x2000, 0x2000,\n];\n"
         )
         assert drift(root, case), "a row range the table never names was missed"
+        # A row whose ids live in scope_ids_nic.rs is read from there.
+        (root / BROKER / "scope_ids.rs").write_text("")
+        (root / BROKER / "scope_ids_nic.rs").write_text("pub(crate) const DECOY: &[u16] = &[0x1000, 0x1000];\n")
+        assert not drift(root, case), "a row in scope_ids_nic.rs was not read"
     print("driver scope: self-test passed, the decoys were reported")

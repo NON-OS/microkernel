@@ -24,6 +24,8 @@ use crate::state::PowerState;
 
 const SERVICE_PORT: u64 = 4448;
 const RECV_TIMEOUT_MS: u64 = 0;
+/// The one service whose process may power the machine off through this capsule.
+const SHELL: &[u8] = b"desktop_shell";
 
 pub fn run() -> ! {
     let mut in_buf = vec![0u8; IPC_PAYLOAD_MAX];
@@ -41,7 +43,15 @@ pub fn run() -> ! {
         if !nonos_libc::recv_ready(received) || sender_pid == 0 {
             continue;
         }
-        let n = route(&mut state, &in_buf[..received as usize], &mut out_buf);
+        let req = &in_buf[..received as usize];
+        let from_shell = super::caller::runs(sender_pid, SHELL);
+        // `power` and `power.off` share this inbox: a POFF frame is the
+        // shell's power-off, anything else is the `power` protocol.
+        let n = if crate::off::wire::is_poff(req) {
+            crate::off::requested(req, from_shell, &mut out_buf)
+        } else {
+            route(&mut state, req, from_shell, &mut out_buf)
+        };
         if n > 0 {
             let _ = mk_ipc_reply(sender_pid, out_buf.as_ptr(), n);
         }

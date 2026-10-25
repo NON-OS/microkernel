@@ -34,14 +34,29 @@ pub mod acs_rule;
 pub mod acs_tree;
 #[path = "../../../../src/hardware/broker/confine/acs_words.rs"]
 pub mod acs_words;
+#[path = "../../../../src/hardware/broker/confine/member.rs"]
+mod member;
+// The port-only rule (H-02), mounted once, here beside the group code it
+// reads; confine_posture's proofs reach `port_only` through this path.
+#[path = "../../../../src/hardware/broker/confine/port_only.rs"]
+pub(crate) mod port_only;
 mod alias_tests;
 mod hardwired_tests;
 mod laptop_tests;
 mod laptops;
 mod layout_tests;
 mod machine;
+mod port_only_tests;
 mod q35_tests;
 mod read_layer;
+mod shared_tests;
+mod symmetric_cnvi_tests;
+mod symmetric_groups;
+mod symmetric_ports;
+mod symmetric_rng;
+mod symmetric_tests;
+mod symmetric_topologies;
+mod symmetric_unreadable_tests;
 mod tests;
 mod tree_tests;
 mod words_tests;

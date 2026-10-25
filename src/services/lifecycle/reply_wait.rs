@@ -61,7 +61,7 @@ pub(super) fn wake_mark() -> u64 {
 
 /// Give the CPU away for one round, by sleeping a tick once plain yields
 /// have had their chance. A caller with no process can only yield.
-pub(super) fn rest(round: u32) {
+pub fn rest(round: u32) {
     rest_since(round, wake_mark());
 }
 
