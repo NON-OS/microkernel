@@ -19,19 +19,19 @@ lists the rules)."""
 import struct
 from collections import Counter
 
-from . import firmware
-from .payloads import dhcp, http_host, tls_sni
+from . import dhcp_rules, firmware
+from .payloads import http_host, tls_sni
 from .pcap import ip_text, mac_text
 
 QEMU_NIC_MAC = bytes.fromhex("525400123456")
 DNS, NTP = {53, 853}, {123}
 DISCOVERY = {5353, 5355, 1900, 137, 138}
-DHCP_NAMING = {12: "hostname", 60: "vendor class", 77: "user class", 81: "client FQDN"}
 
 
 class Report:
-    def __init__(self, allow, learned, nic_mac):
+    def __init__(self, allow, learned, nic_mac, dhcp_servers=frozenset()):
         self.allow, self.learned, self.nic_mac = allow, learned, nic_mac
+        self.dhcp_servers = dhcp_servers
         self.failures, self.peers = [], Counter()
         self.frames = self.guest = self.firmware = 0
         self.macs, self.dhcp_params, self.dhcp_seen = set(), [], False
@@ -47,8 +47,11 @@ class Report:
             self.fail("ethertype", f"a frame of {len(f)} bytes, short of an Ethernet header")
             return
         src, ethertype = f[6:12], struct.unpack_from(">H", f, 12)[0]
-        if src == self.nic_mac and not self.os_started and firmware.kind(f):
+        if src == self.nic_mac and not self.os_started and (kind := firmware.kind(f)):
             self.firmware += 1
+            if kind == "dhcp":
+                l4 = f[14 + (f[14] & 0x0F) * 4 :]
+                dhcp_rules.check(self.fail, l4[8:], src, ip_text(f[30:34]), self.dhcp_servers, "firmware")
             return
         self.guest += 1
         if src == self.nic_mac:
@@ -94,28 +97,17 @@ class Report:
         elif dport in DISCOVERY:
             self.fail("discovery", f"{name} to {where}")
         if proto == 17 and (sport, dport) == (68, 67):
-            self.dhcp(l4[8:], src)
+            self.dhcp(l4[8:], src, dst)
             return
         if proto == 6:
             self.tcp(l4, dst, where)
         self.peers[(name, dst, dport)] += 1
 
-    def dhcp(self, payload, src):
-        msg = dhcp(payload)
-        if msg is None:
-            self.fail("dhcp-id", f"a frame to the DHCP server from {mac_text(src)} that is not DHCP")
+    def dhcp(self, payload, src, dst):
+        params = dhcp_rules.check(self.fail, payload, src, dst, self.dhcp_servers, "the guest's")
+        if params is None:
             return
-        chaddr, opts = msg
         self.dhcp_seen = True
-        if chaddr != src:
-            self.fail("dhcp-id", f"chaddr {mac_text(chaddr)} is not the frame's source {mac_text(src)}")
-        for code, label in DHCP_NAMING.items():
-            if code in opts:
-                self.fail("dhcp-id", f"DHCP option {code} ({label}) = {opts[code][:64]!r}")
-        cid = opts.get(61)
-        if cid is not None and cid != b"\x01" + src:
-            self.fail("dhcp-id", f"client identifier {cid[:20].hex()} is not type 1 and the frame's source")
-        params = list(opts.get(55, b""))
         if params not in self.dhcp_params:
             self.dhcp_params.append(params)
 
