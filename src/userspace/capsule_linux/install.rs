@@ -22,7 +22,8 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::role_spawn::spawn_role;
-use super::roles::{Role, INSTALL, RUN, TERMINAL, TERMINAL_NET};
+use super::role_term_net::TERMINAL_NET;
+use super::roles::{Role, INSTALL, RUN, TERMINAL};
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 /// Spawn the installer for `package`, which must hash to `pinned`. `market`
