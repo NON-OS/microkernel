@@ -45,3 +45,22 @@ fn a_pipelining_server_answers_each_call_in_order() {
     assert_eq!(s.reply("e"), Some(3));
     assert_eq!(s.reply("e"), None, "a second reply finds no call owed");
 }
+
+/// Two worker threads of one process call the same server, each on its
+/// own reply inbox, proc.<tid>: each direct reply takes its own thread's
+/// entry, whichever request the server took last.
+#[test]
+fn a_thread_callers_reply_takes_its_own_entry() {
+    let mut s = Server::default();
+    s.call("proc.41", 1);
+    s.call("proc.42", 2);
+    s.serve(1);
+    s.serve(2);
+    assert_eq!(s.reply("proc.41"), Some(1), "the served one is its sibling's");
+    assert_eq!(s.reply("proc.42"), Some(2));
+    s.call("proc.42", 3);
+    s.call("proc.41", 4);
+    s.serve(4);
+    assert_eq!(s.reply("proc.41"), Some(4), "the served one is its own");
+    assert_eq!(s.reply("proc.42"), Some(3));
+}
