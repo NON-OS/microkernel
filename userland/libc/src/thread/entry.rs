@@ -27,27 +27,27 @@ pub(super) struct Start {
 }
 
 /// Bytes from the worker's first stack pointer up to `Start`. The spawner
-/// keeps both 16-aligned, so the stack is aligned at the trampoline's call
-/// as the SysV ABI wants.
+/// keeps both 16-aligned, so the stack is aligned at the trampoline's call as
+/// each architecture's calling convention wants.
 pub(super) const START_GAP: usize = 16;
 
-/// The address of `Start`, then into Rust. `start` never returns; the `ud2`
-/// is there should it ever.
-#[cfg(target_arch = "x86_64")]
+/// The address of `Start`, then into Rust. `start` never returns; the last
+/// instruction of each arm stops the thread hard should it ever.
 #[unsafe(naked)]
 pub(super) unsafe extern "C" fn trampoline() -> ! {
-    core::arch::naked_asm!(
-        "lea rdi, [rsp + {gap}]",
-        "call {start}",
-        "ud2",
-        gap = const START_GAP,
-        start = sym start,
-    );
+    #[cfg(target_arch = "x86_64")]
+    core::arch::naked_asm!("lea rdi, [rsp + {gap}]", "call {start}", "ud2",
+        gap = const START_GAP, start = sym start);
+    #[cfg(target_arch = "aarch64")]
+    core::arch::naked_asm!("add x0, sp, #{gap}", "bl {start}", "brk #0x1",
+        gap = const START_GAP, start = sym start);
+    #[cfg(target_arch = "riscv64")]
+    core::arch::naked_asm!("addi a0, sp, {gap}", "call {start}", "unimp",
+        gap = const START_GAP, start = sym start);
 }
 
 /// Run the job, then end this thread. `MkExit` from a thread ends only that
 /// thread; its process and the process's other threads go on.
-#[cfg(target_arch = "x86_64")]
 extern "C" fn start(at: usize) -> ! {
     // SAFETY: `at` is the `Start` the spawner wrote above this thread's first
     // stack pointer before spawning it. Nothing writes it after, and it is
