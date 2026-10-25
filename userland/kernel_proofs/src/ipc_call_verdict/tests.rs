@@ -22,30 +22,37 @@ const D: u64 = 5000;
 #[test]
 fn a_poll_whose_own_short_deadline_ran_out_is_late() {
     // net.core's 8 ms NIC poll under TCG.
-    assert_eq!(no_answer(8, D, 9), NoAnswer::Late);
-    assert_eq!(no_answer(24, D, 31), NoAnswer::Late);
+    assert_eq!(no_answer(true, 8, D, 9), NoAnswer::Late);
+    assert_eq!(no_answer(true, 24, D, 31), NoAnswer::Late);
 }
 
 #[test]
 fn a_call_that_waited_the_default_is_starved() {
-    assert_eq!(no_answer(0, D, D), NoAnswer::Starved);
-    assert_eq!(no_answer(0, D, D + 3), NoAnswer::Starved);
-    assert_eq!(no_answer(10_000, D, 10_000), NoAnswer::Starved);
+    assert_eq!(no_answer(true, 0, D, D), NoAnswer::Starved);
+    assert_eq!(no_answer(true, 0, D, D + 3), NoAnswer::Starved);
+    assert_eq!(no_answer(true, 10_000, D, 10_000), NoAnswer::Starved);
 }
 
 #[test]
 fn equality_with_the_default_is_starved() {
-    assert_eq!(no_answer(D, D, D), NoAnswer::Starved);
-    assert_eq!(no_answer(D - 1, D, D - 1), NoAnswer::Late);
+    assert_eq!(no_answer(true, D, D, D), NoAnswer::Starved);
+    assert_eq!(no_answer(true, D - 1, D, D - 1), NoAnswer::Late);
     // A short caller scheduled late enough to reach the default.
-    assert_eq!(no_answer(D - 1, D, D), NoAnswer::Starved);
-    assert_eq!(no_answer(D, D, D - 1), NoAnswer::Starved);
+    assert_eq!(no_answer(true, D - 1, D, D), NoAnswer::Starved);
+    assert_eq!(no_answer(true, D, D, D - 1), NoAnswer::Starved);
 }
 
 #[test]
 fn an_early_failure_without_a_short_deadline_is_not_late() {
-    assert_eq!(no_answer(0, D, 30), NoAnswer::Starved);
-    assert_eq!(no_answer(10_000, D, 30), NoAnswer::Starved);
+    assert_eq!(no_answer(true, 0, D, 30), NoAnswer::Starved);
+    assert_eq!(no_answer(true, 10_000, D, 30), NoAnswer::Starved);
+}
+
+#[test]
+fn a_failure_that_did_not_time_out_is_never_late() {
+    // No inbox, or a reply buffer the copy faulted on, under a short bound.
+    assert_eq!(no_answer(false, 8, D, 0), NoAnswer::Starved);
+    assert_eq!(no_answer(false, 24, D, 3), NoAnswer::Starved);
 }
 
 #[test]

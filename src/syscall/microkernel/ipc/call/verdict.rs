@@ -41,9 +41,16 @@ pub(super) const fn wait_ms(caller_ms: u64, default_ms: u64) -> u64 {
 }
 
 /// A call that got no answer after `elapsed_ms`, its caller having asked
-/// for `caller_ms` (0: the default). Equal to the default is starved.
-pub(super) const fn no_answer(caller_ms: u64, default_ms: u64, elapsed_ms: u64) -> NoAnswer {
-    if wait_ms(caller_ms, default_ms) < default_ms && elapsed_ms < default_ms {
+/// for `caller_ms` (0: the default). Late only when the receive timed out:
+/// one that failed at once, with no inbox or a bad buffer, ran out on no
+/// deadline. Equal to the default is starved.
+pub(super) const fn no_answer(
+    timed_out: bool,
+    caller_ms: u64,
+    default_ms: u64,
+    elapsed_ms: u64,
+) -> NoAnswer {
+    if timed_out && wait_ms(caller_ms, default_ms) < default_ms && elapsed_ms < default_ms {
         NoAnswer::Late
     } else {
         NoAnswer::Starved
