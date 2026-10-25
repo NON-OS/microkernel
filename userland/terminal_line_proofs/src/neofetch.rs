@@ -10,6 +10,8 @@ pub mod facts;
 pub mod emblem;
 #[path = "../../capsule_terminal/src/command/builtin/neofetch/emblem_cell.rs"]
 pub mod emblem_cell;
+#[path = "../../capsule_terminal/src/command/builtin/neofetch/emblem_light.rs"]
+pub mod emblem_light;
 #[path = "../../capsule_terminal/src/command/builtin/neofetch/emblem_shape.rs"]
 pub mod emblem_shape;
 #[path = "../../capsule_terminal/src/command/builtin/neofetch/palette.rs"]
