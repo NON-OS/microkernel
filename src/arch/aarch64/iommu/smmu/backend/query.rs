@@ -47,3 +47,9 @@ pub fn capabilities() -> IommuCapabilities {
 pub fn translates(device: DeviceAddress) -> bool {
     SMMU.lock().as_ref().is_some_and(|smmu| smmu.stream(device).is_some())
 }
+
+/// Every stream no capsule's domain has claimed aborts: the driver never
+/// writes a bypass STE, so no device reaches memory around a domain.
+pub fn identity_devices() -> usize {
+    0
+}

@@ -42,10 +42,11 @@ pub fn released() -> Vec<u64> {
     RELEASED.with(|r| r.borrow().clone())
 }
 
-/// MkSurfaceRelease: the handle is recorded, and the kernel's 0 answered.
+/// MkSurfaceRelease: the handle is recorded, and given back in order with the
+/// unmaps and the claim's release; the kernel's 0 answered.
 pub fn mk_surface_release(handle: u64) -> i64 {
     RELEASED.with(|r| r.borrow_mut().push(handle));
-    0
+    crate::claim::give_back("surface_release", handle)
 }
 
 /// Every share made on this thread, in order.

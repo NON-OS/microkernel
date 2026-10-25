@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::{ProcessState, PROCESS_TABLE};
+use crate::process::core::PROCESS_TABLE;
 
 use super::first_entry::try_first_entry;
 use super::kernel_resume::try_resume_kernel;
@@ -37,5 +37,5 @@ pub(crate) fn switch_to_user_pcb_aarch64(pid: u32) {
         return;
     }
 
-    *pcb.state.lock() = ProcessState::Ready;
+    pcb.mark_ready();
 }

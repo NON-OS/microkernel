@@ -14,9 +14,6 @@ CAPSULE_FEATURE          := nonos-capsule-acpi
 CAPSULE_NAMESPACE        := systems.nonos.acpi
 CAPSULE_SERVICE_ENDPOINT := service:4530:acpi
 CAPSULE_REPLY_ENDPOINT   := reply:4531:endpoint.acpi.reply
-# The wiped power-off, held to the desktop shell (HELD) and served on the
-# same inbox as acpi: registered beside it when the kernel spawns it.
-CAPSULE_INSTANCE_ENDPOINTS := service:4532:power.off
 CAPSULE_REQUIRED_CAPS    := 0x58218
 # Debug (0x100), for its serial lines in a build with capsule serial debug.
 CAPSULE_OPTIONAL_CAPS    := 0x100

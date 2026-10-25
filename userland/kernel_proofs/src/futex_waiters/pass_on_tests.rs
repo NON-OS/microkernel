@@ -37,7 +37,7 @@ fn b_stranded(at: usize, pass_on: bool) -> bool {
                 a_returned = true;
                 if !pass_on {
                     leave(&mut queue, KEY, A);
-                } else if let Some(next) = leave_early(&mut queue, KEY, A) {
+                } else if let Some(next) = leave_early(&mut queue, KEY, A, |_| false) {
                     b_asleep &= next != B;
                 }
             }
@@ -67,9 +67,9 @@ fn leave_early_takes_no_one_when_the_caller_was_still_listed() {
     let mut queue = BTreeMap::new();
     join(&mut queue, KEY, A);
     join(&mut queue, KEY, B);
-    assert_eq!(leave_early(&mut queue, KEY, A), None);
+    assert_eq!(leave_early(&mut queue, KEY, A, |_| false), None);
     assert_eq!(queue.get(&KEY).map(|l| l.as_slice()), Some(&[B][..]));
     queue.insert(KEY, Vec::new());
-    assert_eq!(leave_early(&mut queue, KEY, A), None);
+    assert_eq!(leave_early(&mut queue, KEY, A, |_| false), None);
     assert!(queue.is_empty());
 }

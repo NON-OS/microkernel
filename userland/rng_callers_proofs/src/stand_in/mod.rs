@@ -29,7 +29,7 @@ pub mod time;
 pub mod volume;
 
 pub use devices::hardware;
-pub use kernel::{arch, log, smp, sys};
+pub use kernel::{arch, boot, log, smp, sys};
 pub use keyring::{audit, keyring_capsule, machine_key, scrub_asm};
 pub use ram::memory;
 pub use volume::blockfs;

@@ -14,23 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A destroyed domain's tables back to the frame allocator, once
-//! every unit dropped its cached translations: no walk can land in them
-//! after that, so a reused frame is never read as a table.
+//! Whether a dead domain's tables can all be read before any goes back to
+//! the frame allocator: one that cannot be read keeps them all, so no
+//! frame a unit may still reach through it is ever reused. VT-d and AMD-Vi
+//! both ask, each with its own rule for which entry leads to a table.
 
-use super::frame::entries_mut;
+extern crate alloc;
+
+use alloc::vec::Vec;
+
 use super::frames_of::table_frames;
-use crate::memory::addr::PhysAddr;
-use crate::memory::frame_alloc::manager::deallocate_frame;
+use super::sl_pte::ENTRIES;
+use super::view::Frame;
 
-/// False, and nothing given back, when a table cannot be read.
-pub fn free_tables(root: u64, levels: u8, child: impl Fn(u64, u8) -> Option<u64>) -> bool {
-    let read = |table: u64| entries_mut(table).ok().map(|e| &*e);
-    let Some(frames) = table_frames(root, levels, &read, &child) else {
-        return false;
+/// True when every table under `root` (`levels` deep) reads whole.
+pub fn all_readable(root: u64, levels: u8, child: &impl Fn(u64, u8) -> Option<u64>) -> bool {
+    let read = |table: u64| -> Option<Vec<u64>> {
+        let frame = Frame::at(table).ok()?;
+        (0..ENTRIES).map(|index| frame.read(index).ok()).collect()
     };
-    for frame in frames {
-        let _ = deallocate_frame(PhysAddr::new(frame));
-    }
-    true
+    table_frames(root, levels, &read, child).is_some()
 }

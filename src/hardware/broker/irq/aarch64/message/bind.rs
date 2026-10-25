@@ -62,7 +62,12 @@ pub(in super::super) fn bind(
         crate::log::info!("[IRQ] {} message bind failed: {:?}", a, e);
         return Err(e);
     }
+    // Entered only while its claim stands, under the lock its drain takes.
+    if !crate::hardware::broker::claim::live(pid, req.device_id, epoch) {
+        super::close::close_all(&mut b, Some(&handle));
+        return Err(IrqBindError::NotClaimed);
+    }
     binds[slot] = Some(b);
     crate::log::info!("[IRQ] {} {} vectors from intid {}", a, b.count, b.vectors[0].intid);
-    Ok(IrqBindResult { grant_id: b.base, vector: 0 })
+    Ok(IrqBindResult { grant_id: b.base, vector: 0, grants: b.count as u32 })
 }
