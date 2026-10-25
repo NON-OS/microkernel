@@ -36,5 +36,6 @@ pub(super) fn errno_for(e: KeyError) -> i32 {
         KeyError::Refused(rc) if rc & RC_FORMAT1_ERROR_MASK == RC_POLICY_FAIL => 13,
         KeyError::Refused(_) => 5,
         KeyError::BadLabel => 22,
+        KeyError::NoRandomness => 5,
     }
 }
