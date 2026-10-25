@@ -60,9 +60,13 @@ QEMU_FLAGS = ["-M", "virt,gic-version=3", "-cpu", "max", "-m", "512", "-nographi
               "-serial", "mon:stdio", "-device", "virtio-rng-pci"]
 SETTLE_SECS = 3.0
 
+# A boot without a NONOS loader has no evidence for the kernel's check of the
+# bootloader, so it must stop there, never start userspace (C-50).
+STOP = "[ERROR] bootloader not admitted by the kernel's check; stopping"
 CORE_MARKERS = ["[KSEC] 4/4 sections mapped as declared", "[NONOS] Core ready",
-                "[UKERNEL] Entering userspace", "[INIT] Starting"]
-NEVER = ["[TRAP]", "KERNEL FATAL TRAP", "[BOOT] refused", "KERNEL PANIC"]
+                "[BOOT-ATTEST] bootloader not checked: no boot-root record or trailer", STOP]
+NEVER = ["[TRAP]", "KERNEL FATAL TRAP", "[BOOT] refused", "KERNEL PANIC",
+         "[UKERNEL] Entering userspace", "[INIT] Starting"]
 
 HEX = r"0x([0-9A-F]{16})"
 SP0_LINE = re.compile(rf"^\[TRAP\] SP_EL0 vector sync esr={HEX} elr={HEX} spsr={HEX} sp={HEX}$")
@@ -174,7 +178,7 @@ def ran_on(lines):
 
 
 CELLS = {
-    "core": (judge_core, lambda lines: "[INIT] Starting" in "\n".join(lines)),
+    "core": (judge_core, lambda lines: STOP in "\n".join(lines)),
     "trap-sp0": (judge_sp0, lambda lines: any(SP0_LINE.match(t) for t in trap_lines(lines))),
     "trap-kernel-abort": (judge_abort, lambda lines: ABORT_DETAIL in lines),
 }
@@ -217,14 +221,15 @@ def self_test():
                 "elr=0x0000000040110110 spsr=0x00000000600003C4 sp=0x0000535053505350"]
     good_abort = ["[TRAP] KERNEL FATAL TRAP: Page Fault esr=0x0000000096000004 "
                   "elr=0x00000000400C6D5C sp=0x000000004140FB80 origin=EL1", ABORT_DETAIL]
-    good_core = ["[KSEC] 4/4 sections mapped as declared", "[NONOS] Core ready",
-                 "[UKERNEL] Entering userspace", "[INIT] Starting"]
+    good_core = CORE_MARKERS[:]
     cases = [
         ("core", good_core, True),
         ("core", good_core[:3], False),
         ("core", [good_core[1], good_core[0]] + good_core[2:], False),
         ("core", good_core + ["[BOOT] refused: gic: x, mpidr=0x0000000000000000"], False),
         ("core", good_core + ["!!! KERNEL PANIC !!!"], False),
+        ("core", good_core + ["[UKERNEL] Entering userspace"], False),
+        ("core", good_core[:2] + ["[UKERNEL] Entering userspace", "[INIT] Starting"], False),
         ("trap-sp0", good_sp0, True),
         ("trap-sp0", [good_sp0[1].replace("F2005350", "F2005351")], False),
         ("trap-sp0", [good_sp0[1].replace("600003C4", "600003C5")], False),

@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.git",
+      "capsule_id": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205",
+      "name": "Git",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Version control for repositories on this machine: init, commit, branch, merge, log and diff. Remotes are not served: git's HTTP and SSH helpers have no box of their own and are refused at their installed paths.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "git@2.45.4-r0",
+          "manifest_hash": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205",
+          "package_hash": "b12993cafb31eaec88e41b3fdfd8f64ff7522a482668f423be0f99c10fc3b205",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/git-2.45.4-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000f30f7569659f413538828488e3923725adc8c814d1f43be15366f4168a6f6e5348010000000000003c5e2135293aeea4ae5dc817aeaea82783b2e604cdcdea61996bf211de7817ccb2cee590fa0d17b376eb3cd35f766d76787a2b83476e7d675f4a0dbd720534d20000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 3281791 bytes; licence GPL-2.0-only; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
