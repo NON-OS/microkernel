@@ -31,7 +31,7 @@ use core::sync::atomic::{compiler_fence, Ordering};
 /// Normal-non-cacheable mapping. One volatile load is performed and the bus
 /// value returned verbatim.
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) unsafe fn read_relaxed<T: Copy>(ptr: *const T) -> T {
+pub(crate) unsafe fn read_relaxed<T: Copy>(ptr: *const T) -> T {
     // SAFETY: the caller has proved the pointer per the contract above.
     unsafe { core::ptr::read_volatile(ptr) }
 }
@@ -43,7 +43,7 @@ pub(in crate::memory::mmio::ordering) unsafe fn read_relaxed<T: Copy>(ptr: *cons
 /// mapping. The store is the device-visible side effect; whether the value is
 /// well formed for the register is not this function's concern.
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) unsafe fn write_relaxed<T: Copy>(ptr: *mut T, value: T) {
+pub(crate) unsafe fn write_relaxed<T: Copy>(ptr: *mut T, value: T) {
     // SAFETY: the caller has proved the pointer per the contract above.
     unsafe { core::ptr::write_volatile(ptr, value) }
 }
@@ -55,7 +55,7 @@ pub(in crate::memory::mmio::ordering) unsafe fn write_relaxed<T: Copy>(ptr: *mut
 /// load to complete at the device, and the compiler fence stops the optimiser
 /// hoisting later code above it. No claim is made about cross-CPU pairing.
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) unsafe fn read_acquire<T: Copy>(ptr: *const T) -> T {
+pub(crate) unsafe fn read_acquire<T: Copy>(ptr: *const T) -> T {
     // SAFETY: single volatile load against the proved pointer.
     let value = unsafe { core::ptr::read_volatile(ptr) };
     // SAFETY: `dsb ld` takes no operands and touches no register or flag.
@@ -74,7 +74,7 @@ pub(in crate::memory::mmio::ordering) unsafe fn read_acquire<T: Copy>(ptr: *cons
 /// the compiler fence stops the optimiser sinking earlier statements past it.
 /// No claim is made about cross-CPU pairing.
 #[inline(always)]
-pub(in crate::memory::mmio::ordering) unsafe fn write_release<T: Copy>(ptr: *mut T, value: T) {
+pub(crate) unsafe fn write_release<T: Copy>(ptr: *mut T, value: T) {
     compiler_fence(Ordering::Release);
     // SAFETY: `dsb st` takes no operands and touches no register or flag.
     unsafe {

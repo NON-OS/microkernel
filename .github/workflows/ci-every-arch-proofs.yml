@@ -4,7 +4,8 @@ name: ci-every-arch-proofs
 # Linux, so the kernel and capsule source each mounts by #[path] compiles
 # under that architecture's cfg (nonos-ci/check-proofs-every-arch.sh); then
 # std_pal_proofs run there under qemu-user, so the std layer's and libc's
-# thread trampolines and thread pointer reads are executed, not only built.
+# thread trampolines and thread pointer reads are executed, not only built,
+# and on riscv64 riscv_kernel_proofs runs the kernel's saved Context.
 # The ledgers of x86_64-only kernel code are held by arch_reach_proofs, which
 # the flake's proof checks run.
 
@@ -51,6 +52,13 @@ jobs:
         run: bash nonos-ci/check-proofs-every-arch.sh ${{ matrix.triple }}
       - name: Run the thread register proofs on that architecture
         working-directory: userland/std_pal_proofs
+        run: |
+          export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
+          export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"
+          cargo test --locked --target ${{ matrix.triple }}
+      - name: Run the kernel's saved Context on riscv64
+        if: matrix.triple == 'riscv64gc-unknown-linux-gnu'
+        working-directory: userland/riscv_kernel_proofs
         run: |
           export CARGO_TARGET_${{ matrix.env }}_LINKER=${{ matrix.linker }}
           export CARGO_TARGET_${{ matrix.env }}_RUNNER="${{ matrix.qemu }}"

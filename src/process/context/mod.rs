@@ -31,6 +31,8 @@ pub use cpu_context::CpuContext;
 // differs and the API does not.
 #[cfg(target_arch = "aarch64")]
 pub use crate::arch::aarch64::context::Context;
+#[cfg(target_arch = "riscv64")]
+pub use crate::arch::riscv64::context::Context;
 #[cfg(target_arch = "x86_64")]
 pub use full::Context;
 #[cfg(target_arch = "x86_64")]
