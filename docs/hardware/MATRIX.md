@@ -23,6 +23,7 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 ## Parts
 
 - [Platform; Display](matrix-platform-display.md)
+- [GPUs, family by family](gpu.md)
 - [Storage; USB; Input](matrix-storage-usb-input.md)
 - [Audio; Wi-Fi](matrix-audio-wifi.md)
 - [Ethernet](matrix-ethernet.md)

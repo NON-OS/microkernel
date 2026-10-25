@@ -13,8 +13,14 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""What a guest sent on the wire, read from QEMU captures, and whether any of
+it names the machine or the person outside the anonymity networks.
 
-"""Every place the image can reach off the machine, held against the list in
-docs/security/privacy.md. A capsule that gains Network, or an address, host or
-build-time endpoint that appears in a networked capsule's source, fails the
-check until the list names it with why it exists and how to turn it off."""
+Two captures, from QEMU's filter-dump on the guest's netdev: the egress
+(queue=rx, every frame the guest sent and nothing else) is judged, frame by
+frame, with no address exempt; the ingress (queue=tx, what the network sent
+the guest) is read only for the relays a pinned authority's consensus names.
+The guest cannot write into the ingress capture, so it cannot vouch for a
+host. What is allowed comes from a committed allow-list (allowlist.json),
+which scrape.py checks against the capsules' sources.
+"""

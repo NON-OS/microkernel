@@ -43,7 +43,7 @@ Escape steps back. On Welcome and on Stopped it closes the installer, and on Don
 
 ## Which disks are offered
 
-The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve, and the SATA driver also serves Intel eMMC hosts. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read`.
+The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve. eMMC and UFS installs are not in 0.9.3: their driver capsules have no publisher key and are not in a shipped image. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read`.
 
 Some rows are not targets, and say why:
 
@@ -138,7 +138,7 @@ On its first boot, the first time a program asks for the data volume, the kernel
   - The boot stick left off, a loader copy withheld: `By::Partition` and `withheld`, `userland/nonos_blk_client/src/disks/scan.rs:100-102`, `userland/nonos_blk_client/src/disks/scan.rs:139-149`.
   - A driver that did not come up: `fault`, `userland/nonos_blk_client/src/disks/scan.rs:154-162`.
   - First sectors that did not read: `unread`, `userland/nonos_blk_client/src/disks/probe.rs:46-55`.
-  - Three drivers only, eMMC through SATA: `ALL` and `serves`, `userland/nonos_blk_client/src/driver/table.rs:31`, `userland/nonos_blk_client/src/driver/table.rs:76-79`.
+  - The drivers asked: `ALL` and `serves`, `userland/nonos_blk_client/src/driver/table.rs`; the capsules an image carries: `DESKTOP_BASE_SLUGS`, `mk/20-build.mk`.
   - Looking again: `EVERY_MS` and `due`, `userland/capsule_install/src/install/rescan.rs:27-32`.
   - The RST or VMD hint: `RAID`, `userland/capsule_install/src/install/ui/screens/disks.rs:36`, and `raid_hides_disks`, `userland/nonos_blk_client/src/disks/scan.rs:68-72`.
 - The confirmation word

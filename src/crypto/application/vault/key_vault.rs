@@ -57,7 +57,7 @@ fn store_keypair(key_id: u32, private_key: &[u8], public_key: &[u8]) -> CryptoRe
 }
 
 pub fn generate_and_store_ed25519_keypair() -> CryptoResult<u32> {
-    let keypair = crate::crypto::ed25519::KeyPair::generate();
+    let keypair = crate::crypto::ed25519::KeyPair::generate()?;
 
     static NEXT_KEY_ID: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(1);
     let key_id = NEXT_KEY_ID.fetch_add(1, core::sync::atomic::Ordering::SeqCst);

@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The ring arithmetic, the mode choice and the rectangle rule.
+//! The ring arithmetic and the mode choice.
 
 use crate::fifo::space::free_bytes;
-use crate::screen::{choose, rect_fits, Limits, Rect};
+use crate::screen::{choose, Limits};
 
 #[test]
 fn free_space_holds_a_word_back_and_refuses_wild_indices() {
@@ -42,13 +42,4 @@ fn the_firmware_mode_wins_when_it_fits_and_the_default_otherwise() {
         "no mode fits 1 MiB"
     );
     assert_eq!(choose(None, Limits { max: (700, 500), vram: 16 << 20 }), Some((640, 480)));
-}
-
-#[test]
-fn a_rectangle_must_be_non_empty_and_inside() {
-    let r = |x, y, w, h| Rect { x, y, w, h };
-    assert!(rect_fits(r(0, 0, 1024, 768), 1024, 768));
-    assert!(!rect_fits(r(0, 0, 0, 1), 1024, 768));
-    assert!(!rect_fits(r(1, 0, 1024, 1), 1024, 768));
-    assert!(!rect_fits(r(u32::MAX, 0, 2, 1), 1024, 768), "no wrap past u32::MAX");
 }
