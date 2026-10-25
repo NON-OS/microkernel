@@ -30,8 +30,8 @@ fn shared() -> [u8; 32] {
     let share = crate::server_hello::key_share(&SERVER_HELLO_RECORD[5..]).expect("share").1;
     let crate::server_share::ServerShare::X25519(peer) = share else { panic!("RFC 8448 is x25519") };
     let mut out = [0u8; 32];
-    let private = client().private;
-    nonos_libc::crypto_x25519_shared(private.as_ptr(), peer.as_ptr(), out.as_mut_ptr());
+    let flight = client();
+    nonos_libc::crypto_x25519_shared(flight.private.as_ptr(), peer.as_ptr(), out.as_mut_ptr());
     out
 }
 
