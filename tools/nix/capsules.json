@@ -4607,7 +4607,7 @@
   "namespace": "systems.nonos.power",
   "service_endpoint": "service:4448:power",
   "reply_endpoint": "reply:4449:endpoint.power.reply",
-  "instance_endpoints": "",
+  "instance_endpoints": "service:4446:power.off",
   "required_caps": "0x218",
   "optional_caps": "0x0",
   "caps_ceiling": "0x218",

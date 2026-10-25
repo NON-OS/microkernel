@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// The sender check, as capsule_acpi makes it: whether a pid's process owns
+/// a service now, from the registry and the kernel's thread groups.
+#[path = "../../../capsule_acpi/src/server/caller.rs"]
+mod caller;
 mod handlers;
 mod respond;
 mod runner;
 
+pub use handlers::prepare_soft_off;
 pub use runner::run;
