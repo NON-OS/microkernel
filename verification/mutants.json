@@ -22,16 +22,16 @@
  },
  {
   "name": "private-tmp",
-  "file": "userland/capsule_linux/src/linux/file/private/names.rs",
-  "old": ".any(|p| visible.starts_with(p) && matches!(visible.get(p.len()), None | Some(b'/')))",
-  "new": ".any(|p| p.is_empty() && visible.starts_with(p))",
+  "file": "userland/capsule_linux/src/linux/file/private/rule.rs",
+  "old": "visible.starts_with(p)\n            && matches!(visible.get(p.len()), None | Some(b'/'))",
+  "new": "p.is_empty() && visible.starts_with(p)",
   "escapes": "[GUEST] reader ESCAPED the sibling's /tmp/nonos-sibling"
  },
  {
   "name": "read-only-tree",
-  "file": "userland/capsule_linux/src/linux/file/root.rs",
-  "old": "match self.1 && !super::private::shared_writes_allowed() {",
-  "new": "match false {",
+  "file": "userland/capsule_linux/src/linux/file/root_write.rs",
+  "old": "if self.1 && !super::private::shared_writes_allowed() {",
+  "new": "if false {",
   "escapes": "[GUEST] reader ESCAPED the sibling's /nonos-sibling"
  },
  {
@@ -47,5 +47,26 @@
   "old": "lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)",
   "new": "true",
   "escapes": "[amnesic] the boot left"
+ },
+ {
+  "name": "ipc-service-gate",
+  "file": "src/syscall/microkernel/ipc/send_caps.rs",
+  "old": "    if held & required == required {\n        return true;\n    }",
+  "new": "    if true {\n        return true;\n    }",
+  "escapes": "[ATTACK] cap-escape ESCAPED: a socket through net.sockets without Network, MkIpcSend returned"
+ },
+ {
+  "name": "ipc-inbox-gate",
+  "file": "src/syscall/microkernel/ipc/send_caps.rs",
+  "old": "    if caller_may_write_inbox(dest, held) {",
+  "new": "    if true {",
+  "escapes": "[ATTACK] cap-escape ESCAPED: net.sockets' inbox by its pid without Network, MkIpcSendToPid returned"
+ },
+ {
+  "name": "register-right",
+  "file": "src/syscall/microkernel/ipc/register_allowed.rs",
+  "old": "match own && caller_has_register_right() && is_runtime_registrable(name) {",
+  "new": "match own && is_runtime_registrable(name) {",
+  "escapes": "[ATTACK] cap-escape ESCAPED: register net.dns without RegisterService, MkServiceRegister returned"
  }
 ]

@@ -24,6 +24,8 @@
 
 mod broker;
 mod debug;
+#[cfg(not(target_arch = "x86_64"))]
+mod dma_sync;
 mod grants;
 mod pci;
 mod pci_update;
@@ -35,6 +37,8 @@ pub use broker::{
     calls, mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_mmio_unmap, watch, Call,
 };
 pub use debug::{logged, mk_debug};
+#[cfg(not(target_arch = "x86_64"))]
+pub use dma_sync::mk_dma_sync_for_cpu;
 pub use grants::{mk_device_claim, mk_dma_map, mk_irq_bind, mk_mmio_map, offer_dma, offer_window};
 pub use pci::{
     command, mk_pci_config_read, mk_pci_config_write, refuse_command, MK_PCI_CFG_COMMAND,

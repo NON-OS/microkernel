@@ -24,6 +24,7 @@ use super::hold_virt as v;
 use crate::hardware::broker::class::ids;
 use crate::hardware::broker::described::Interface;
 use crate::hardware::broker::platform as ps2;
+use crate::hardware::broker::vmbus as vb;
 use crate::hardware::broker::{BusKind, VMBUS_DEVICE, VMBUS_VENDOR};
 
 const _: () = assert!(p::BUS_ACPI == BusKind::Acpi as u8);
@@ -35,5 +36,8 @@ const _: () = assert!(p::PS2_KBD == ps2::PNP_DEVICE_PS2_KBD);
 const _: () = assert!(p::PS2_AUX == ps2::PNP_DEVICE_PS2_AUX);
 const _: () = assert!(v::BUS_VIRT == BusKind::Virt as u8);
 const _: () = assert!(v::VMBUS_VENDOR == VMBUS_VENDOR && v::VMBUS_DEVICE == VMBUS_DEVICE);
+const _: () =
+    assert!(v::CHANNEL_NETWORK == vb::CHANNEL_NETWORK && v::CHANNEL_SCSI == vb::CHANNEL_SCSI);
+const _: () = assert!(v::CHANNEL_IDE == vb::CHANNEL_IDE);
 const _: () = assert!(t::BUS_DEVICE_TREE == BusKind::Fdt as u8);
 const _: () = assert!(t::TREE_XHCI == Interface::Xhci as u16);

@@ -1,0 +1,21 @@
+# NØNOS userland: agentproof_proofs
+#
+# Host proofs for agentproof_policy: the format's every refusal, the hashes
+# pinned beside capsule_linux's, every policy enforced by capsule_linux's own
+# folder rule exactly as its file is written, the CLI's answers, and a seeded
+# sweep the fuzz target shares.
+
+[package]
+name = "agentproof_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+agentproof_policy = { path = "../agentproof_policy" }
+# The services mask the box enforces, to read what a compiled box grants.
+nonos_linux_policy = { path = "../nonos_linux_policy" }
