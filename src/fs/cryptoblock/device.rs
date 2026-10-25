@@ -54,5 +54,8 @@ pub(super) fn flush() -> Result<(), BlockDeviceError> {
     if super::ram::on() {
         return Ok(());
     }
+    if !may_write(false, crate::security::zerostate::keeping()) {
+        return Err(BlockDeviceError::AccessDenied);
+    }
     block_device::flush()
 }

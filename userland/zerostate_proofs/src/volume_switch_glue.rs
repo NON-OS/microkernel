@@ -32,3 +32,14 @@ fn keeping_on_drops_the_held_volume_and_copies_nothing() {
         assert!(!body.contains(write), "the dropped volume is not copied (`{write}`)");
     }
 }
+
+#[test]
+fn a_disk_flush_waits_for_keeping_too() {
+    let device = include_str!("../../../src/fs/cryptoblock/device.rs");
+    let body = &flat(device)[flat(device).find("fnflush()").expect("flush")..];
+    before(
+        body,
+        "if!may_write(false,crate::security::zerostate::keeping()){",
+        "block_device::flush()",
+    );
+}
