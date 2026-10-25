@@ -42,6 +42,13 @@ CAPSULE_ROOT = f"{keys.TRUST}/policy/zk_capsule_policy_root.bin"
 DEVELOPMENT = False
 
 
+def attr():
+    """The flake output the capsules are built from: an image that is not a
+    release takes the development set, which adds each capsule's
+    CAPSULE_DEV_CARGO_FEATURES (capsules.nix, bySlugDev)."""
+    return "capsules-dev" if DEVELOPMENT else "capsules"
+
+
 def catalogue():
     with open("tools/nix/capsules.json") as f:
         return [e for e in json.load(f) if DEVELOPMENT or not e["dev_only"]]
