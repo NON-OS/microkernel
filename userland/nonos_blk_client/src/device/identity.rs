@@ -53,9 +53,9 @@ impl BlockDevice {
                 Ok(Some(Identity { model, serial, emmc: false }))
             }
             Driver::Ahci => Ok(laid_out(Driver::Ahci, OP_AHCI_IDENTIFY, self.port)),
-            Driver::Wire | Driver::Ufs => Ok(super::wire::identity(self.port)),
             Driver::Rtsx => Ok(laid_out(Driver::Rtsx, OP_SD_IDENTIFY, self.port)),
             Driver::VirtioBlk => Ok(None),
+            _ => Ok(super::wire::identity(self.port, self.unit)),
         }
     }
 }
@@ -64,7 +64,7 @@ impl BlockDevice {
 pub(super) fn controller_page(port: u32) -> Result<[u8; IDENTIFY_LEN], BlkError> {
     let magic = Driver::Nvme.magic();
     let mut rx = [0u8; HDR_LEN + STATUS_LEN + IDENTIFY_LEN];
-    let (n, id) = call(port, magic, OP_IDENTIFY_CONTROLLER, &[], &mut rx)?;
+    let (n, id) = call(port, magic, OP_IDENTIFY_CONTROLLER, 0, &[], &mut rx)?;
     let body = decode_reply(&rx, n, magic, OP_IDENTIFY_CONTROLLER, id)?;
     if body.len() < IDENTIFY_LEN {
         return Err(BlkError::BadLength);
