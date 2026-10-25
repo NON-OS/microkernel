@@ -41,7 +41,7 @@ adds two fields after `identity_devices`.
 | `"NONOSATT"`, version u32 = 5 | 12 |
 | challenge, registry_root, capsule_count, registry_complete, iommu_vendor, iommu_enforcing, unconfined_grants, identity_devices | as in version 4 |
 | **pcr_count** (u8), then each **index** (u8) and its **SHA-256 value** (32) | 1 + 33 × n |
-| **TCG event log**, as the firmware handed it over (`MODULE_KIND_TCG_LOG`) | u32 length, then the bytes; at most 131072 |
+| **TCG event log**, as the firmware handed it over (`MODULE_KIND_TCG_LOG`) | u32 length, then the bytes; at most 1048576, the loader's own cap |
 | attest, signature, ak_public | as in version 4 |
 
 - `QUOTED_PCRS_V4 = [0, 1, 2, 4, 7, 8, 9, 14]`. The quote's selection must
