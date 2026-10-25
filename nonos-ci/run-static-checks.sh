@@ -5124,6 +5124,17 @@ else
     fail_with "check_ap_checkpoints: an AP could park holding a lock, or a step has no checkpoint"
 fi
 unset park_out
+# The SMP boot proofs (shootdown trace, forced park, forced stall) are defined
+# alone and named by no profile, image list, make lane or workflow; the kernel
+# refuses them only beside production and release. Self-test first.
+if proofs_out="$(python3 scripts/check_proof_features.py --self-test 2>&1 \
+    && python3 scripts/check_proof_features.py 2>&1)"; then
+    note ok "no profile or image enables an SMP boot proof (check_proof_features)"
+else
+    tail -n 5 <<< "${proofs_out}" >&2
+    fail_with "check_proof_features: a profile, image or lane enables an SMP boot proof"
+fi
+unset proofs_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

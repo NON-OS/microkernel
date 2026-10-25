@@ -41,6 +41,8 @@ mod request;
 mod select;
 mod send;
 mod slow;
+#[cfg(feature = "nonos-shootdown-trace")]
+mod trace;
 mod wait;
 
 pub use flush::{flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp};
