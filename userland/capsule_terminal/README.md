@@ -24,11 +24,11 @@ terminal -- MkProcInput / MkProcOutput / MkTtySet --> its child jobs
 - Service `service:4722:app.terminal`, reply
   `reply:4723:endpoint.app.terminal.reply`. Three more windows can open on the
   instance endpoints `app.terminal.1` to `app.terminal.3` (ports 4740 to 4745).
-- `CAPSULE_REQUIRED_CAPS = 0xc000187d`: CoreExec, Network, IPC, Memory, Crypto,
-  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate, AppInstall and
-  AttestRead. AppInstall is what `market install`, `market uninstall`,
-  `market list` and `market info` take to ask the system for an install or a
-  removal and to read where it stands.
+- `CAPSULE_REQUIRED_CAPS = 0xc100187d`: CoreExec, Network, IPC, Memory, Crypto,
+  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate, SpawnWindow,
+  AppInstall and AttestRead. AppInstall lets `market` ask for an install or a
+  removal and read where it stands. SpawnWindow makes the Terminal a launcher:
+  what it loads or runs gets its own manifest's capabilities, not the Terminal's.
   Network is what the network services and `MkToolRun` check for the network
   commands and the model fetcher; FileSystem is what vfs serves; Crypto backs
   the TLS handshake; AttestRead lets `receipt` read the attestation registry

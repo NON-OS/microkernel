@@ -15,11 +15,13 @@ CAPSULE_INSTANCE_ENDPOINTS := \
 	service:4742:app.terminal.2 reply:4743:endpoint.app.terminal.2.reply \
 	service:4744:app.terminal.3 reply:4745:endpoint.app.terminal.3.reply
 # CoreExec|Network|IPC|Memory|Crypto|FileSystem|GraphicsDisplayQuery|GraphicsSurfaceCreate|
-# AppInstall|AttestRead. AppInstall is the right to ask the system to install
-# or uninstall a marketplace listing and to read where that stands, which
-# `market install`, `market uninstall`, `market list` and `market info` do:
-# the person at the prompt asks, as at the Marketplace window's button.
-CAPSULE_REQUIRED_CAPS    := 0xc000187d
+# SpawnWindow|AppInstall|AttestRead. AppInstall is the right to ask the system
+# to install or uninstall a marketplace listing and to read where that stands,
+# which `market install`, `market uninstall`, `market list` and `market info`
+# do: the person at the prompt asks, as at the Marketplace window's button.
+# SpawnWindow makes the Terminal a launcher: what `nox install` loads and the
+# tools it runs get their own manifest's capabilities, not the Terminal's.
+CAPSULE_REQUIRED_CAPS    := 0xc100187d
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap(), for its [APP] log lines.
 CAPSULE_OPTIONAL_CAPS    := 0x100
