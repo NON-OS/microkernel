@@ -30,7 +30,7 @@ fn page_ok(m: &Machine, page: u64) -> bool {
 
 fn port_ok(m: &Machine, port: u64) -> bool {
     let legacy = LEGACY_PORTS.iter().any(|(lo, hi, _)| *lo <= port && port < *hi);
-    !legacy && !m.ports_claimed(port as u16, 1)
+    !legacy && !m.reset_port(port, port + 1) && !m.ports_claimed(port as u16, 1)
 }
 
 /// A fixed-seed generator, so a failure names the same range every run.

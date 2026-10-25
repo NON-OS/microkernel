@@ -30,7 +30,7 @@ log > boot-log.txt
 
 Not tested in this release.
 
-The log is there only on images built with capsule serial output, such as `standard` and `qemu`. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`.
+The log is there only on images built with capsule serial output, such as `qemu` and a development image. A `standard`, `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`.
 
 Look through your files in Files and the Editor. On an installed system a file reaches the disk in one of two ways: a program keeps it in the store, for example with `keep` and the file's path in the Terminal, or it is imported into the data volume, as Qwen models are. Files does not show the data volume: its `/data` folder belongs to the file store. Files that were never kept lived in memory and are gone.
 

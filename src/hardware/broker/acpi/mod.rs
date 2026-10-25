@@ -45,7 +45,7 @@ mod granting;
 pub mod hw_errors;
 pub mod idle_levels;
 mod io_grant;
-mod kernel;
+pub(crate) mod kernel;
 pub mod late_bars;
 pub mod leave;
 pub mod leave_rule;

@@ -37,9 +37,10 @@ pub fn establish(tcp_port: u32, gateway: &mut Gateway) -> Result<(), u16> {
     if gateway.identity == [0u8; 32] {
         return Ok(());
     }
-    gateway.shared_key = super::register::register(tcp_port, gateway)
+    let mut key = super::register::register(tcp_port, gateway)
         .inspect_err(|e| super::trace::fail(b"register", *e))?;
-    crate::state::set_gateway_shared_key(&gateway.shared_key);
+    crate::state::set_gateway_shared_key(gateway.link(), &key);
+    crate::crypto::wipe::wipe(&mut key);
     // Without allowance the gateway prices a correct packet and refuses it,
     // which reads as a protocol fault rather than a billing one.
     let _ = super::bandwidth::claim_free_bandwidth(tcp_port, gateway.stream);

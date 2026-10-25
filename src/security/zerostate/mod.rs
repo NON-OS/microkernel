@@ -26,6 +26,10 @@
 
 mod leave;
 mod once;
+mod panic_plan;
+mod panic_stack;
+mod panic_wipe;
 mod terminate;
 
+pub(crate) use panic_wipe::panic_wipe_and_off;
 pub(crate) use terminate::{terminate, terminate_critical};
