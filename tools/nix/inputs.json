@@ -10798,6 +10798,7 @@
    "userland/capsule_wm/src/server/handlers/window_open/decode.rs",
    "userland/capsule_wm/src/server/runner/run.rs",
    "userland/capsule_wm/src/state/restack.rs",
+   "userland/capsule_wm/src/tile",
    "userland/capsule_wm/src/window/full_screen.rs",
    "userland/capsule_wm/src/window/kind.rs",
    "userland/capsule_wm/src/window/reopen.rs",
