@@ -40,6 +40,8 @@ mod strtab;
 mod strtab_write;
 mod wait;
 mod walk;
+mod window;
 
 pub use init::{bring_up, describe};
 pub use state::in_service_phandle;
+pub use window::described_window;

@@ -53,7 +53,12 @@ pub(crate) fn spawn_verified_as(
         },
     )?;
     crate::sys::bench::mark_named(b"capsule_preflight_ok", spec.name.as_bytes());
-    let pid = install(&InstallParams {
+    /*
+     * The gate's record, the capsule's namespace and its spawn tier are
+     * written inside install, before the pid can run, so its first call
+     * already finds them (L61).
+     */
+    install(&InstallParams {
         name: spec.name,
         service_port: spec.service_port,
         reply_inbox: spec.reply_inbox,
@@ -62,7 +67,6 @@ pub(crate) fn spawn_verified_as(
         caps_bits: preflighted.install_caps,
         debug_tag: spec.debug_tag,
         on_behalf_of,
-    })?;
-    preflighted.record(pid);
-    Ok(pid)
+        gate: &preflighted,
+    })
 }

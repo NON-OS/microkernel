@@ -24,7 +24,12 @@ impl Transport {
     pub fn notify(self, queue: u16) {
         match self {
             Self::Legacy(regs) => regs.w16(LEG_QUEUE_NOTIFY, queue),
-            Self::Modern(m) => m.notify.w16(m.doorbell, queue),
+            Self::Modern(m) => {
+                // The ring's index reaches the device before the doorbell
+                // that sends it to look, as a legacy window write orders.
+                nonos_libc::dma_wmb();
+                m.notify.w16(m.doorbell, queue)
+            }
         }
     }
 }

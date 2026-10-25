@@ -42,7 +42,7 @@ fn allow_word(r: &mut Regs) -> Vec<u8> {
         };
         items.push(item.into_bytes());
     }
-    if r.any() % 4 == 0 {
+    if r.any().is_multiple_of(4) {
         let i = (r.any() as usize) % items.len();
         let at = (r.any() as usize) % (items[i].len() + 1);
         items[i].insert(at, r.any() as u8);

@@ -16,8 +16,8 @@
 
 //! Intel eMMC hosts: the SD Host Controller on Atom, Celeron and Pentium
 //! Silver platforms that the board's soldered eMMC hangs off, class 08h
-//! subclass 05h. These are the ids Linux's sdhci-pci driver names eMMC
-//! (drivers/mmc/host/sdhci-pci-core.c). The same platforms carry SD card
+//! subclass 05h. The ids are unverified until re-sourced from Intel's
+//! datasheets (L56). The same platforms carry SD card
 //! and SDIO hosts with the same class; they are not a disk and are not
 //! listed. A host here starts the SD host controller capsule,
 //! driver.sdhci0.

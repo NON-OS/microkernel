@@ -27,3 +27,6 @@ pub mod packages;
 
 #[path = "../../../capsule_linux/src/linux/install/deb/release.rs"]
 pub mod release;
+
+#[path = "../../../capsule_linux/src/linux/install/deb/find.rs"]
+pub mod find;

@@ -13,13 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 extern crate alloc;
 
 use alloc::vec::Vec;
 
 use super::say::say;
 use super::table::{Capsule, CAPSULES};
+use super::unreserve::unmap_reserved;
+use crate::memory::iommu::DeviceAddress;
 
 /// Back to denied, not to the identity domain: nothing drives the device now,
 /// and the next claim attaches it afresh. The domain goes with the capsule's
@@ -29,44 +30,46 @@ pub(in crate::hardware::broker) fn detach(pid: u32, device_id: u64) {
     detach_held(&mut CAPSULES.lock(), pid, device_id);
 }
 
-/// `detach` with CAPSULES already held: every requester the device was
-/// joined under, its own id, each alias (K11) and each stream of a device
-/// the description names. A detach that fails keeps the domain.
+/// `detach` with CAPSULES held. Each requester the device was joined under
+/// once: its own id, each alias (K11), each stream of a described device; a
+/// claim of the same device that raced this release keeps the entries it
+/// made. A detach that fails keeps the domain.
 pub(super) fn detach_held(all: &mut Vec<Capsule>, pid: u32, device_id: u64) {
     let Some(pos) = all.iter().position(|c| c.pid == pid) else {
         return;
     };
-    let mut kept = false;
-    while let Some(i) = all[pos].devices.iter().position(|(d, _)| *d == device_id) {
-        let (_, address) = all[pos].devices.remove(i);
-        // Another device behind the same VMD or bridge still needs the id.
-        if all[pos].devices.iter().any(|(_, a)| *a == address) {
-            say(b"released; requester id still shared");
-            continue;
-        }
-        if all[pos].domain.detach_device(address).is_err() {
-            say(b"detach failed; the domain is kept");
-            kept = true;
-            continue;
-        }
-        // Out of the domain, so its last-named reserved ranges come out too.
-        super::unreserve::release(&mut all[pos], address);
-        say(b"released and denied");
+    let (mut done, mut kept) = (Vec::new(), false);
+    while let Some(denied) = detach_one(&mut all[pos], device_id, &mut done) {
+        kept |= !denied;
     }
     if !kept && all[pos].devices.is_empty() {
         all.remove(pos);
     }
 }
 
-pub(in crate::hardware::broker) fn detach_all(pid: u32) {
-    let held: alloc::vec::Vec<u64> = {
-        let all = CAPSULES.lock();
-        all.iter()
-            .filter(|c| c.pid == pid)
-            .flat_map(|c| c.devices.iter().map(|(d, _)| *d))
-            .collect()
-    };
-    for device_id in held {
-        detach(pid, device_id);
+/// One of `device_id`'s requesters not yet in `done` out of `c`: false when
+/// its detach failed, None when none is left.
+fn detach_one(c: &mut Capsule, device_id: u64, done: &mut Vec<DeviceAddress>) -> Option<bool> {
+    let i = c.devices.iter().position(|(d, a)| *d == device_id && !done.contains(a))?;
+    let (_, address) = c.devices.remove(i);
+    done.push(address);
+    // Another device behind the same VMD or bridge still needs the id.
+    if c.devices.iter().any(|(_, a)| *a == address) {
+        // A claim of this same device that raced its release keeps its regions.
+        if !c.devices.iter().any(|(d, _)| *d == device_id) {
+            unmap_reserved(c, device_id);
+        }
+        say(b"released; requester id still shared");
+        return Some(true);
     }
+    if c.domain.detach_device(address).is_err() {
+        say(b"detach failed; the domain is kept");
+        return Some(false);
+    }
+    // Denied first, so its RMRR regions (L60) and its last-named reserved
+    // ranges leave the domain unused.
+    unmap_reserved(c, device_id);
+    super::unreserve::release(c, address);
+    say(b"released and denied");
+    Some(true)
 }

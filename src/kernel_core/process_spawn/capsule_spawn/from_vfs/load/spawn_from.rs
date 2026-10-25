@@ -61,7 +61,7 @@ pub(super) fn spawn_from(
         manifest_bytes: &artifacts.manifest,
         attestation_trailer: &artifacts.trailer,
         target_triple: manifest.target_triple_str(),
-        requested_caps: requested_caps & (manifest.required_caps | manifest.optional_caps),
+        requested_caps,
         debug_tag: b"[RUNTIME-LOAD] elf error:",
     };
     let (trust, now_ms) = super::trust::trust_and_now()?;

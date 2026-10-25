@@ -290,9 +290,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 - After a command fails (a forced error, or a disk pulled and reseated), the
   next command on the port succeeds: recovery turns FIS receive back on.
 - The real HBA writes the full byte count to PRDBC after every healthy read
-  and write, so neither is refused as short. Some HBAs may not count at all
-  (FreeBSD's AHCI_Q_NOCOUNT quirk); on such a part every transfer would fail,
-  so check this on each one.
+  and write, so neither is refused as short. Some HBAs may not count at all;
+  on such a part every transfer would fail, so check this on each one.
 - A command the drive holds past 30 s (a disk deep in its own error recovery)
   answers `E_TIMEDOUT` inside the kernel's 35 s, the drive is reset with a
   COMRESET, and the next read returns its own sectors.

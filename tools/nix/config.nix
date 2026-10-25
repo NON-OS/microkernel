@@ -64,6 +64,17 @@ let
   # must not (Cargo.toml says why).
   debugFeatures = [ "capsule-serial-debug" ];
 
+  # Lets a machine with no IOMMU in service boot with its devices unconfined,
+  # said everywhere; a hardened image must refuse those claims instead.
+  postureFeatures = [ "nonos-dma-unconfined-posture" ];
+
+  # The marketplace's payment path, for development images only (the maintainers'
+  # P3): the meter, which no release seal has re-signed since its caps were
+  # narrowed, and settle beside it. A release image gets the meter only when
+  # the owner names its profile and seals it; settle is already in
+  # microkernel-full-gui by the owner's choice.
+  marketDevFeatures = [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
+
   # The bootloader's policies, weakest first. Development compiles in the F12
   # override and is never sealed for release.
   loaders = [ "dev-qemu" "standard-qemu" "standard" "production" ];
@@ -84,7 +95,7 @@ let
       privacy = "standard, and the loader refuses to start without Secure Boot and a TPM to measure into; no capsule can write to a console anyone could read";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures;
+      drop = debugFeatures ++ postureFeatures;
     };
     airgapped = {
       about = "hardened, with no network driver, stack or online program compiled in; installs only from offline media";
@@ -92,7 +103,7 @@ let
       privacy = "hardened, and no code that could reach a network exists in the image: no driver, no stack, no program that goes online";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures ++ networkFeatures;
+      drop = debugFeatures ++ postureFeatures ++ networkFeatures;
     };
     qemu = {
       about = "the desktop for virtual machines, without the drivers only real hardware has";
@@ -107,6 +118,14 @@ let
       for = "working on NONOS itself";
       privacy = "none promised: the loader's development override is compiled in, and the gates admit capsules on their path alone, without the STARK proof";
       kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" ];
+      loader = "dev-qemu";
+      drop = [ ];
+    };
+    selftest = {
+      about = "the dev image with the attack suite's capsule, which tries what an attacker would at boot";
+      for = "the self-test: tools/nonos-selftest boots it and judges every refusal";
+      privacy = "none promised, as dev; the kernel's warnings also go to the serial line";
+      kernel = [ "microkernel-desktop-gui" "microkernel-setup-wizard" "nonos-dev-attest" "nonos-capsule-attack" ];
       loader = "dev-qemu";
       drop = [ ];
     };
@@ -143,9 +162,14 @@ let
       unknown = lib.subtractLists (builtins.attrNames defaults ++ [ "loader" ]) (builtins.attrNames raw);
       p = profiles.${c.profile} or (throw "nonos.toml: profile \"${c.profile}\" is not one of ${toString (builtins.attrNames profiles)}");
       loader = if c.dev then "dev-qemu" else raw.loader or p.loader;
-      drop = p.drop ++ lib.optionals (!c.install) installFeatures;
+      # A development twin keeps the capsule serial output its profile's kernel
+      # has, whatever the profile takes out (docs/build/profiles.md): bring-up
+      # reads the drivers' lines. It adds none a kernel never had (core).
+      drop = (if c.dev then lib.subtractLists debugFeatures p.drop else p.drop)
+        ++ lib.optionals (!c.install) installFeatures;
       features = without drop (p.kernel ++ lib.optional c.smp "nonos-smp" ++ c.features
         ++ lib.optional (c.dev && !(builtins.elem "nonos-dev-attest" p.kernel)) "nonos-dev-attest"
+        ++ lib.optionals (loader == "dev-qemu") marketDevFeatures
         ++ lib.optional (loader != "dev-qemu") "nonos-release");
       enabled = closure features;
       missing = builtins.filter (f: !(kernelFeatures ? ${f})) features;
@@ -161,6 +185,10 @@ let
     assert lib.assertMsg (missing == [ ]) "nonos.toml: Cargo.toml has no feature ${toString missing}";
     assert lib.assertMsg (leaked == [ ]) "nonos.toml: profile ${c.profile} cannot carry ${toString leaked}";
     assert lib.assertMsg (c.dev || level loader >= level p.loader) "nonos.toml: profile ${c.profile} needs at least loader ${p.loader}, not ${loader}";
+    # Capsule lines on the serial console leak what a shipped image does: no
+    # image a release loader (standard, production) boots may carry them.
+    assert lib.assertMsg (!(lib.any (f: builtins.elem f enabled) debugFeatures) || level loader < level "standard")
+      "nonos.toml: profile ${c.profile} with loader ${loader} cannot carry ${toString debugFeatures}";
     assert lib.assertMsg (builtins.isBool c.dev) "nonos.toml: dev is true or false";
     assert lib.assertMsg (builtins.isInt c.rollback_index && c.rollback_index >= 1) "nonos.toml: rollback_index is an integer from 1";
     assert lib.assertMsg (builtins.isString c.linux_packages && builtins.match "[A-Za-z0-9.-]*(:[0-9]+)?" c.linux_packages != null)
@@ -173,6 +201,14 @@ let
     # never in an image any other loader boots.
     assert lib.assertMsg (!(builtins.elem "nonos-capsule-shield-vectors" enabled) || loader == "dev-qemu")
       "nonos.toml: nonos-capsule-shield-vectors is Test 5, for development images only (dev = true)";
+    # The attack suite's capsule tries what an attacker would: a development
+    # test, never in an image any other loader boots.
+    assert lib.assertMsg (!(builtins.elem "nonos-capsule-attack" enabled) || loader == "dev-qemu")
+      "nonos.toml: nonos-capsule-attack is the attack suite, for development images only (profile selftest)";
+    # The meter's sealed manifest is stale and no release profile names it:
+    # until the owner does, only the development loader carries it.
+    assert lib.assertMsg (!(builtins.elem "nonos-capsule-payment" enabled) || loader == "dev-qemu")
+      "nonos.toml: nonos-capsule-payment, the meter, is for development images only until the owner seals it into a release profile";
     c // {
       inherit features enabled loader;
       # What the profile takes out, closed over Cargo.toml: none of it may be

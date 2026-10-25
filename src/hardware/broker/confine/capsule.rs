@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The capsule's domain a requester goes into, made on its first device.
 
 extern crate alloc;
@@ -22,19 +21,24 @@ use alloc::vec::Vec;
 
 use super::decide::verdict;
 use super::posture::unconfined_allowed;
-use super::refuse::{without_domain, Refused};
+use super::refuse::Refused;
 use super::say::say;
 use super::table::Capsule;
+use super::unconfined::unconfined;
 use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
+use crate::memory::iommu::no_iommu::holds as posture;
 use crate::memory::iommu::IommuDomain;
 
 /// The index of `pid`'s entry in `all`, made with a fresh domain if it has
 /// none; `None` when the requester goes ahead with no domain: port-only, or
-/// under the development opt-in (decide.rs), and never for `must`, a device
-/// the description puts behind a unit; `port_only` as port_only.rs says.
+/// under the development opt-in or the no-IOMMU posture (decide.rs,
+/// unconfined.rs), and never for `must`, a device the description puts behind
+/// a unit; `port_only` as
+/// port_only.rs says.
 pub(super) fn capsule_for(
     all: &mut Vec<Capsule>,
     pid: u32,
+    device_id: u64,
     (must, port_only): (bool, bool),
 ) -> Result<Option<usize>, Refused> {
     Ok(Some(match all.iter().position(|c| c.pid == pid) {
@@ -49,7 +53,8 @@ pub(super) fn capsule_for(
              * up yet, or the one found (AMD-Vi) has no backend here.
              */
             Err(e) if unconfined_allowed(e) && !must => {
-                without_domain(verdict(true, true, Err(true), port_only, (OPT_IN, PRODUCTION)))?;
+                let v = verdict(true, true, Err(true), port_only, (OPT_IN, PRODUCTION), posture());
+                unconfined(device_id, v)?;
                 return Ok(None);
             }
             Err(e) if unconfined_allowed(e) => {

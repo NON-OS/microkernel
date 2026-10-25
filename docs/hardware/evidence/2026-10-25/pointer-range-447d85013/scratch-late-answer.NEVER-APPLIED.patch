@@ -1,0 +1,20 @@
+diff --git a/userland/compositor/src/server/handlers/display_info.rs b/userland/compositor/src/server/handlers/display_info.rs
+index caeee2b0c..be1abe065 100644
+--- a/userland/compositor/src/server/handlers/display_info.rs
++++ b/userland/compositor/src/server/handlers/display_info.rs
+@@ -26,6 +26,15 @@ pub fn handle(
+     req: &Request,
+     tx: &mut [u8],
+ ) -> Result<(), &'static str> {
++    // SCRATCH (H-09 evidence only): leave the input router's asks unanswered
++    // for the first 150 s, as a compositor too busy to answer within the
++    // router's 150 ms would. Every other client is answered.
++    let (mut port, mut router) = (0u32, 0u32);
++    let name = b"input_router";
++    let _ = nonos_libc::mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut router);
++    if sender_pid == router && nonos_libc::mk_uptime_ms() < 150_000 {
++        return Ok(());
++    }
+     let mut body = [0u8; DISPLAY_INFO_RESP_LEN - 4];
+     body[0..4].copy_from_slice(&ctx.width.to_le_bytes());
+     body[4..8].copy_from_slice(&ctx.height.to_le_bytes());

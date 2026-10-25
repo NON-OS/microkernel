@@ -46,7 +46,7 @@ The v3 path is `NZKPATH1`, one depth byte, one 32-byte sibling per level as four
 
 All three root files sit under `nonos-data/trust/policy/` (`ZK_CAPSULE_ROOT`, `mk/00-config.mk:82-106`). Each tree has depth 8, so 256 leaves (`DEPTH`, `nonos-stark-enroll/src/context.rs:19-22`).
 
-The kernel compiles the capsule [policy root](../overview/glossary-peer-list.md#policy-root) in as a static read through `black_box`, so it stays 32 contiguous bytes, and a file of another length fails the build (`ROOT`, `src/security/capsule_attest/policy_root.rs:17-28`). The loader compiles the kernel root in as `KERNEL_ATTEST_ROOT`. A loader built without `dev-mode` or `dev-qemu` fails to build when that root is not given or is all zero, and any loader build fails on a root file that is not 32 bytes (`generate_kernel_attest_root`, `nonos-bootloader/build.rs:245-276`). The comment above that function says a development build boots on signature trust alone; that is out of date, since `attest_kernel` refuses an unattested kernel in every mode. The kernel is enrolled from a frozen copy, `kernel.enrolled.elf`, so a relink in the middle of a build cannot change the bytes under the proof (`KERNEL_ATTEST_STAMP`, `mk/20-build.mk:637-648`).
+The kernel compiles the capsule [policy root](../overview/glossary-peer-list.md#policy-root) in as a static read through `black_box`, so it stays 32 contiguous bytes, and a file of another length fails the build (`ROOT`, `src/security/capsule_attest/policy_root.rs:17-28`). The loader compiles the kernel root in as `KERNEL_ATTEST_ROOT`. A loader built without `dev-mode` or `dev-qemu` fails to build when that root is not given or is all zero, and any loader build fails on a root file that is not 32 bytes (`generate_kernel_attest_root`, `nonos-bootloader/build.rs:227-258`). The comment above that function says a development build boots on signature trust alone; that is out of date, since `attest_kernel` refuses an unattested kernel in every mode. The kernel is enrolled from a frozen copy, `kernel.enrolled.elf`, so a relink in the middle of a build cannot change the bytes under the proof (`KERNEL_ATTEST_STAMP`, `mk/20-build.mk:637-648`).
 
 The loader's tree cannot live in the loader, whose measurement would then depend on a root that depends on it. Its root is embedded in nothing; the release signs it into the [boot-root record](../overview/glossary-boot-root-record.md#boot-root-record), as `bootloader` in the enroll tool explains (`nonos-stark-enroll/src/commands.rs:40-48`).
 
@@ -124,7 +124,7 @@ The loader's check of the kernel trailer is in its verification module, which th
 
 ### From userspace
 
-`MkAttestPolicy` returns the kernel tree's root, epoch and depth when the handoff marks them as checked, and the capsule tree's (`sys_attest_policy`, `src/syscall/microkernel/attest_policy.rs:27-46`). Any caller with a valid token may ask (`MkAttestPolicy`, `src/syscall/contract/cap_table/mk.rs:35-38`).
+`MkAttestPolicy` returns the kernel tree's root, epoch and depth when the handoff marks them as checked, and the capsule tree's (`sys_attest_policy`, `src/syscall/microkernel/attest_policy.rs:27-46`). Any caller with a valid token may ask (`MkAttestPolicy`, `src/syscall/contract/cap_table/mk.rs:35-39`).
 
 ## The anonymous device proof
 
