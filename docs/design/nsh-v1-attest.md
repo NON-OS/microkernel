@@ -74,6 +74,9 @@ to the user's judgement and nothing is skipped.
 7. The registry is checked:
    - the entries fold to `registry_root` (`attest_receipt::verify_root`);
    - `registry_complete = 1`;
+   - every entry's authority is the vendor's, whether or not it holds
+     Network (`not-vendor`): a release host runs vendor-root capsules
+     only, for the whole boot, as step 5 holds PCR 14 to;
    - the entry for `nsh.front` holds the release's measurement.
 8. Optional, if the policy asks for it: the anonymous device proof from
    `nonos-device-attest`. It is off by default in v1, because it is not yet
