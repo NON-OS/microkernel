@@ -13,7 +13,7 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MDLS` | `0x534C444D` | `MkDeviceList` | Admin or DeviceEnum | `can_device_enum` `src/syscall/contract/cap_table/mk_device.rs:24` | List broker devices, all or one class. |
 | `MDCL` | `0x4C43444D` | `MkDeviceClaim` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_device.rs:25` | Claim a device; returns the claim epoch. |
 | `MDRL` | `0x4C52444D` | `MkDeviceRelease` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_device.rs:25` | Release a claimed device and every grant on it. |
-| `MBFB` | `0x4246424D` | `MkBootFramebuffer` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_platform.rs:68` | The boot framebuffer's geometry, for the holder of its claim. |
+| `MBFB` | `0x4246424D` | `MkBootFramebuffer` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_platform.rs:70` | The boot framebuffer's geometry, for the holder of its claim. |
 | `MMMP` | `0x504D4D4D` | `MkMmioMap` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_device.rs:26` | Map part of a claimed device's MMIO BAR; `flags` bit 0 (`MK_MMIO_MAP_WC`) asks write-combining, given only on a prefetchable BAR (`src/hardware/broker/mmio/cache.rs`), and the kernel's own type where it maps the range (`src/hardware/broker/mmio/memory_type.rs`). |
 | `MMUM` | `0x4D554D4D` | `MkMmioUnmap` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_device.rs:26` | Unmap an MMIO grant. |
 | `MIRB` | `0x4252494D` | `MkIrqBind` | Irq | `can_irq` `src/syscall/contract/cap_table/mk_device.rs:30` | Bind a claimed device's interrupt: INTx, MSI or MSI-X. |
@@ -30,10 +30,11 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MPWR` | `0x5257504D` | `MkPioWrite` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Write 1, 2 or 4 bytes to a granted port. |
 | `MPRL` | `0x4C52504D` | `MkPioRelease` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | Drop a port grant. |
 | `MHVB` | `0x4256484D` | `MkHvBackdoor` | Pio | `can_pio` `src/syscall/contract/cap_table/mk_device.rs:38` | One VMware backdoor call from the absolute pointer's set, where the host answers it; -19 elsewhere. |
-| `MHVP` | `0x5056484D` | `MkHvPost` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Post a VMBus channel message to the host; the VMBus root's holder only. |
-| `MHVR` | `0x5256484D` | `MkHvRecv` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Take the oldest SynIC message for VMBus. |
-| `MHVE` | `0x4556484D` | `MkHvEvents` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Take and clear VMBus's channel event flags. |
-| `MHVS` | `0x5356484D` | `MkHvSignal` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:65` | Signal the host on a channel's connection. |
+| `MHVP` | `0x5056484D` | `MkHvPost` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Post a VMBus message: the bus's on the root, a channel's own on its record. |
+| `MHVR` | `0x5256484D` | `MkHvRecv` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Take the oldest VMBus message: the core's on the root, a channel's answers on its record. |
+| `MHVE` | `0x4556484D` | `MkHvEvents` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Take and clear VMBus's channel event flags: the core's on the root, a channel's on its record. |
+| `MHVS` | `0x5356484D` | `MkHvSignal` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Signal the host on a channel's connection: any on the root, the channel's own on its record. |
+| `MHVC` | `0x4356484D` | `MkHvChannel` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_platform.rs:68` | Give a channel the host offered a record of its own, for its driver; the VMBus root's holder only, never a host service. |
 
 ### Graphics and input
 

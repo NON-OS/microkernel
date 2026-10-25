@@ -65,6 +65,5 @@ pub fn spawn_acpi_capsule() -> Result<(), SpawnError> {
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
     state::set_alive(pid);
-    super::power_off::register(pid);
     Ok(())
 }
