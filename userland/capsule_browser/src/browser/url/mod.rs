@@ -32,7 +32,7 @@ mod types;
 
 pub use authority::authority;
 pub use join::join;
-pub use parse::parse;
+pub use parse::{parse, refusal};
 pub use request_target::request_target;
 pub use to_string::to_string;
 pub use types::{Scheme, Url};
