@@ -46,7 +46,7 @@ Read them in order for the whole story, from the bootloader's jump to a fatal st
 
 ### Running processes
 
-- [Scheduler and SMP](scheduler-and-smp.md): the one shared run queue, priorities and starting every other CPU.
+- [Scheduler and SMP](scheduler-and-smp.md): the one shared run queue, priorities and starting every other CPU; [lock waits](smp-lock-waits.md) that never end.
 - [Timers](timers.md): clocks, the scheduler tick and the time calls.
 - [Futex](futex.md): sleeping until a word in user memory changes.
 - [System calls](syscalls.md): the entry path, the dispatch and how many calls there are.

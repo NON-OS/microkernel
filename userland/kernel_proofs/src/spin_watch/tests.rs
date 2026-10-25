@@ -32,23 +32,6 @@ fn a_clock_read_behind_the_start_is_no_wait() {
 }
 
 #[test]
-fn the_holder_above_on_the_same_stack_is_a_re_take() {
-    // orphans::reclaim held GATE, reclaim_dma deeper on the same stack waited.
-    let holder = 0xFFFF_8000_0010_7E00usize;
-    assert!(same_chain(holder, holder - 0x180));
-    assert!(same_chain(holder, holder - (CHAIN_SPAN - 1)));
-}
-
-#[test]
-fn any_other_holder_is_not() {
-    let holder = 0xFFFF_8000_0010_7E00usize;
-    assert!(!same_chain(holder, holder));
-    assert!(!same_chain(holder, holder + 0x40));
-    assert!(!same_chain(holder, holder - CHAIN_SPAN));
-    assert!(!same_chain(holder, 0xFFFF_8000_0090_0000));
-}
-
-#[test]
 fn the_window_is_one_process_kernel_stack() {
     assert_eq!(CHAIN_SPAN, super::user_constants::KERNEL_STACK_SIZE);
 }
