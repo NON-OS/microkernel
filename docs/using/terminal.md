@@ -180,6 +180,10 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 
 The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`), `caps` (`capsules`), `svc` (`service`), `host` (`nslookup`), `ip` (`ifconfig`), `bat` (`battery`), `profile` (`theme`), `commands` (`help`), and the nox names `where`, `in`, `read`, `copy`, `mk` and `move`. It also has `write <file> <text>`, `keep <path>` (see [Files](files.md)), `basename`, `dirname`, `apps`, `display`, `motd`, `neofetch`, and `pull` and `push`, which copy a file from or to a host over plain TCP.
 
+## neofetch
+
+`neofetch` prints the NONOS emblem, a Ø in three dimensions drawn in 24-bit colour two pixels to a cell, its face lit from the upper left and its side falling to the lower right, beside what the system reports: who and where, the release, the architecture, who signed this terminal, uptime, memory in use against the machine's, the number of processes and the load from the kernel's process table, the shell, this terminal's size in cells and its theme, then the sixteen colours. A figure the kernel did not give says `unknown`. Sent to a file, it writes the emblem as plain blocks and no colour codes.
+
 ## Linux programs
 
 `linux` followed by a program name runs that program through the [Linux personality](../overview/glossary-linux-personality.md#linux-personality). The program reads the keyboard as a terminal. One that draws a full screen reads keys raw, as an xterm would send them.
@@ -261,6 +265,8 @@ The source behind the facts above, at the commit in the footer.
 - Built-in commands
   - The 69 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
   - The other names, `write`, `keep`, `pull` and `push`: `dispatch` in `userland/capsule_terminal/src/command/builtin/nox/dispatch.rs:27-59`.
+- neofetch
+  - The emblem: `emblem_shape.rs`, `emblem.rs` and `emblem_cell.rs` in `userland/capsule_terminal/src/command/builtin/neofetch/`; the figures: `facts.rs` and `gather.rs` there.
 - Git
   - A client written for NONOS: `nonos_git` in `userland/nonos_git/README.md:3-5`.
   - The subcommands: `usage` in `userland/capsule_terminal/src/command/builtin/git/dispatch.rs:54-56`.

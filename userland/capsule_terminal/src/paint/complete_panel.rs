@@ -20,10 +20,10 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::constants::TEXT_LEFT;
-use super::line_text::text;
-use super::metrics::Metrics;
-use super::shade::elevate;
+use crate::paint::constants::TEXT_LEFT;
+use crate::paint::line_text::text;
+use crate::paint::metrics::Metrics;
+use crate::paint::shade::elevate;
 use crate::layout::Layout;
 use crate::term::complete_list::{cell, grid, label, top};
 use crate::term::state::State;
