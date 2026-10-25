@@ -29,8 +29,9 @@ pub(super) fn self_attach(
     out_desc: &mut SurfaceDescriptor,
 ) -> Result<Option<u64>, RegistryError> {
     let (idx, epoch) = decode_handle(handle);
-    let slots = SLOTS.lock();
-    let slot = slots.get(idx as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::BadHandle)?;
+    let mut slots = SLOTS.lock();
+    let slot =
+        slots.get_mut(idx as usize).and_then(|s| s.as_mut()).ok_or(RegistryError::BadHandle)?;
     if slot.epoch != epoch {
         #[cfg(feature = "dbg-ring")]
         crate::log::dbg_ring::dbg_emit_2u64(0x5546_0001, handle, slot.epoch as u64);
@@ -44,8 +45,18 @@ pub(super) fn self_attach(
         return Ok(None);
     }
     let (base_va, byte_len) = (slot.owner_base_va, slot.byte_len);
+    // Its record is released as any other is (`drop_attach`), so it takes the
+    // reference that release gives back; without, a few re-attaches freed the
+    // slot under other holders' views (L50).
+    slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
     drop(slots);
-    *out_desc = super::descriptor::descriptor(handle)?;
+    match super::descriptor::descriptor(handle) {
+        Ok(desc) => *out_desc = desc,
+        Err(e) => {
+            let _ = crate::kernel_core::surface_registry::release_surface(handle);
+            return Err(e);
+        }
+    }
     out_desc.base_va = base_va;
     out_desc.byte_len = byte_len;
     super::super::attach_map::record(receiver_pid, handle, base_va, byte_len);

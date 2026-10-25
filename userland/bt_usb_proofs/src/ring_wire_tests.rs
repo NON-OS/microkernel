@@ -36,7 +36,7 @@ fn each_request_is_laid_out_as_the_keyring_reads_it() {
     let mut store = [&pid[..], &4242u64.to_le_bytes(), &[0; 8], &[10, 48, 0]].concat();
     store.extend_from_slice(&bond);
     let by_id = [&pid[..], &id.to_le_bytes()].concat();
-    let expected = [(1, store), (30, [&pid[..], &[11]].concat()), (2, by_id.clone()), (3, by_id)];
+    let expected = [(1, store), (31, [&pid[..], &[11]].concat()), (2, by_id.clone()), (3, by_id)];
     assert_eq!(r.requests, expected);
 }
 
