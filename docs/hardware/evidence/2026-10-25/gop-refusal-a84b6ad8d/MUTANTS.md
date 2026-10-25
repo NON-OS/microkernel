@@ -19,7 +19,7 @@ glue pin for the loader's `refusal()` added (K15, K16).
 | K8 the both-flags check removed | `src/boot/handoff/api/security/framebuffer.rs` | kernel_proofs | KILLED | a_handoff_claiming_both_is_refused_before_anything_reads_the_framebuffer |
 | K9 ENOTSUP with no word written | `src/syscall/dispatch/router/graphics_backend.rs` | kernel_proofs | KILLED | gdim_tells_why_with_enotsup_and_zero_with_a_framebuffer |
 | K10 the loader never sets the flag | `nonos-bootloader/src/handoff/prepare/flags.rs` | kernel_proofs | KILLED | the_loader_sets_the_flag_with_no_framebuffer_and_hands_over_its_word |
-| K11 flag_names stops at 16 | `src/boot/handoff/types/constants.rs` | kernel_proofs | KILLED | the_flag_is_bit_16_on_both_sides_and_every_other_flag_still_agrees |
+| K11 flag_names stops at 16 | `src/boot/handoff/types/flag_names.rs` | kernel_proofs | KILLED | the_flag_is_bit_16_on_both_sides_and_every_other_flag_still_agrees |
 | C1 said twice | `userland/compositor/src/refusal_note.rs` | compositor_proofs | KILLED | nothing_is_logged_before_the_bound_and_nothing_twice, said_at_once_then_once_more_at_the_bound_and_never_again |
 | C2 the bound dropped | `userland/compositor/src/refusal_note.rs` | compositor_proofs | KILLED | nothing_is_logged_before_the_bound_and_nothing_twice, said_at_once_then_once_more_at_the_bound_and_never_again |
 | C3 logged before the bound | `userland/compositor/src/refusal_note.rs` | compositor_proofs | KILLED | nothing_is_logged_before_the_bound_and_nothing_twice, said_at_once_then_once_more_at_the_bound_and_never_again |
