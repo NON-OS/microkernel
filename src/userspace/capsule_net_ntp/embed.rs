@@ -29,15 +29,15 @@ pub(super) const NET_NTP_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-ntp")]
 pub(super) const NET_NTP_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_ntp.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_ntp.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-ntp")]
 pub(super) const NET_NTP_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_ntp.manifest.bin");
+    crate::baked_trust!("capsules/net_ntp.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-ntp")]
 pub(super) const NET_NTP_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_ntp.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_ntp.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-ntp"))]
 pub(super) const NET_NTP_ELF: &[u8] = &[];
