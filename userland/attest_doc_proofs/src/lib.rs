@@ -12,6 +12,12 @@ extern crate alloc;
 /// The real parser, unchanged.
 pub mod doc_parse;
 
+#[cfg(test)]
+#[path = "../../capsule_about/src/about/data/dma_words.rs"]
+mod dma_words;
+#[cfg(test)]
+mod dma_words_tests;
+
 /// About's live proof board: who was admitted, the headline, its words.
 #[cfg(test)]
 mod proof_board;
