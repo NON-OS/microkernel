@@ -19,6 +19,7 @@ mod argv;
 mod bound;
 mod deliver;
 mod device;
+mod drain;
 mod isolation;
 mod run;
 mod serve;

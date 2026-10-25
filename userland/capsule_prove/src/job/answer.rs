@@ -19,7 +19,6 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 use nonos_proof_abi::wire::{
     job_of, reply, status_body, Header, Stage, DELIVER, GET, GET_MAX, HEALTH, PROVE, PROVE_MAGIC,
     STATUS,
@@ -57,19 +56,4 @@ fn slice(j: &mut Job, at: usize) -> (i32, Vec<u8>) {
     let end = rest.len().min(GET_MAX);
     j.fetched |= at + end == j.out.len();
     (0, rest[..end].to_vec())
-}
-
-/// While a job runs: answer what has queued up, without waiting.
-pub fn drain(job: &mut Job, buf: &mut [u8]) {
-    loop {
-        let mut sender = 0u32;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), buf.len(), 0, &mut sender);
-        let Some(n) = usize::try_from(n).ok().filter(|&n| n > 0 && sender != 0) else {
-            return;
-        };
-        if let Some((h, body)) = Header::parse(&buf[..n], PROVE_MAGIC) {
-            let tx = answer(Some(job), sender, &h, body);
-            let _ = mk_ipc_reply(sender, tx.as_ptr(), tx.len());
-        }
-    }
 }
