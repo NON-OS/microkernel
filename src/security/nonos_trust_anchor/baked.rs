@@ -20,4 +20,4 @@
 // papered over with an Option/None or an empty slice — both would
 // let an unverified capsule path quietly take over at runtime.
 pub const BAKED_TRUST_ANCHOR_POLICY: &[u8] =
-    include_bytes!("../../../nonos-data/trust/policy/nonos_trust_anchor.policy.bin");
+    crate::baked_trust!("policy/nonos_trust_anchor.policy.bin");
