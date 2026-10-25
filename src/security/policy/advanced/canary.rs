@@ -29,21 +29,18 @@ pub struct StackCanary {
 }
 
 impl StackCanary {
-    pub fn new() -> Self {
-        Self {
-            global: AtomicU64::new(Self::gen_canary()),
+    pub fn new() -> Result<Self, &'static str> {
+        Ok(Self {
+            global: AtomicU64::new(Self::gen_canary().ok_or("no randomness for a canary")?),
             per_cpu: RwLock::new(BTreeMap::new()),
             rotations: AtomicU64::new(0),
-        }
+        })
     }
-    fn gen_canary() -> u64 {
-        if let Some(v) = crate::arch::cpu_random::random_u64() {
-            return v;
-        }
-        // No hardware generator on this CPU. A canary derived from the cycle
-        // counter is weaker than a drawn one, but it still differs per boot and
-        // per rotation, which is what a canary needs.
-        crate::arch::read_time_counter() ^ 0xDEAD_BEEF_CAFE_BABE
+    /// The CPU's random instruction, else the seeded RNG. With neither there
+    /// is no canary: one made from the cycle counter could be guessed.
+    fn gen_canary() -> Option<u64> {
+        crate::arch::cpu_random::random_u64()
+            .or_else(|| crate::crypto::rng::random_u64_secure().ok())
     }
     pub fn get(&self, cpu: u32) -> u64 {
         let lock = self.per_cpu.read();
@@ -53,14 +50,22 @@ impl StackCanary {
             self.global.load(Ordering::Relaxed)
         }
     }
-    pub fn rotate(&self) {
-        let new = Self::gen_canary();
-        self.global.store(new, Ordering::Release);
+    /// Draws every new value first; with no randomness nothing changes and
+    /// the rotation is refused.
+    pub fn rotate(&self) -> Result<(), &'static str> {
+        let none = "no randomness for a canary";
+        let new = Self::gen_canary().ok_or(none)?;
         let mut lock = self.per_cpu.write();
-        for (_, c) in lock.iter_mut() {
-            *c = Self::gen_canary() ^ new;
+        let mut fresh = alloc::vec::Vec::with_capacity(lock.len());
+        for _ in 0..lock.len() {
+            fresh.push(Self::gen_canary().ok_or(none)? ^ new);
+        }
+        self.global.store(new, Ordering::Release);
+        for ((_, c), v) in lock.iter_mut().zip(fresh) {
+            *c = v;
         }
         self.rotations.fetch_add(1, Ordering::Release);
+        Ok(())
     }
     pub fn verify(&self, cpu: u32, value: u64) -> bool {
         value == self.get(cpu)

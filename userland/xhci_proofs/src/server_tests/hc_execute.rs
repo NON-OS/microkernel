@@ -67,7 +67,7 @@ impl Hc {
                 let ep0 = self.input_dw(trb, 2, 2) as u64 | (self.input_dw(trb, 2, 3) as u64) << 32;
                 self.ep0[slot as usize] = (ep0 & !0xF, ep0 & 1 != 0);
             }
-            _ => {}
+            ty => self.took(trb, ty),
         }
         Some((SUCCESS, slot))
     }

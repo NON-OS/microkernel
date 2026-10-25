@@ -42,11 +42,19 @@ impl From<Refused> for Refusal {
     }
 }
 
-/// A PCI device with no domain of its own: refused, but under the opt-in.
+/// A PCI device with no domain of its own: refused, but claimed port-only
+/// (decide.rs, H-02b) or under the opt-in.
 pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
-    if v == Verdict::Unconfined {
-        say(b"unconfined under the development opt-in, reaches all memory");
-        return Ok(());
+    match v {
+        Verdict::NoDma => {
+            say(b"port-only with no remapping unit over it: Bus Master off, no DMA grant");
+            return Ok(());
+        }
+        Verdict::Unconfined => {
+            say(b"unconfined under the development opt-in, reaches all memory");
+            return Ok(());
+        }
+        Verdict::Confine | Verdict::Refuse => {}
     }
     say(b"refused: no remapping unit confines it");
     Err(Refused)

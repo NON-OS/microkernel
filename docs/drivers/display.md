@@ -106,6 +106,8 @@ With the Debug capability granted to the compositor and the driver, the kernel l
 
 and for bga the same `[DISPLAY]` lines naming `driver.bga0`. None of `control queue stalled`, `down;`, or `[EXIT] ... status 6` should appear. Without Debug only the kernel's own lines show (`[FB]`, and `[EXIT]` for a capsule that left).
 
+A driver whose compositor has been silent for 3 s clears its screen (cursor off, every primary scrubbed and shown blank, `nonos_gfx_serve/src/watch.rs`) and says `[DISPLAY] compositor silent 3 s: screen cleared` once for that silence. A black screen with that line is a hung or dead compositor, not a bad frame; the compositor's own watchdog line (`[DISPLAY] turn N stuck T ms in ...`) names where it stopped.
+
 On a machine with no Intel graphics function, QEMU among them, the kernel says `[DRIVER-INTEL-DISPLAY] no controller present, not spawned`, and the same for bga where there is no Bochs adapter (`[DRIVER-BGA]`).
 
 The screen: the desktop with the menubar on top and the dock below. A Terminal opens centred with the NONOS banner, a fetch block (os, kernel, shell, signed, arch, uptime), the prompt `nonos@nonos ~ %` and the footer of key hints; About opens on its Overview with three ring tiles, the Display tile showing the mode inside its ring. Killing the compositor brings the same picture back once it is started again. `userland/demo_screen_proofs` draws both apps through their own paint code at 1024x768, 1280x720, 1280x800 and 1920x1080 under each driver.

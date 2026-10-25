@@ -18,17 +18,37 @@ use super::cmd_header::CmdHeader;
 use super::cmd_table::CmdTable;
 use super::fis::FisH2D;
 use super::port::Port;
-use crate::constants::ata::{ATA_DEV_LBA, ATA_FLUSH_EXT, FIS_H2D_LEN_DWORDS};
+use crate::constants::ata::{
+    ATA_DEV_LBA, ATA_FLUSH_EXT, ATA_STANDBY_IMMEDIATE, FIS_H2D_LEN_DWORDS,
+};
 use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
 pub fn flush(port: &mut Port, regs: Regs) -> AhciResult<()> {
+    non_data(port, regs, ATA_FLUSH_EXT, ATA_DEV_LBA)
+}
+
+/// FLUSH CACHE EXT in the power-off, with its budget `ms` in place of the
+/// served port's (server::power_off_rule): the port is retired after.
+pub fn flush_within(port: &mut Port, regs: Regs, ms: u64) -> AhciResult<()> {
+    port.command_ms = ms;
+    flush(port, regs)
+}
+
+/// STANDBY IMMEDIATE, the power-off's last command to the disk, with `ms`.
+pub fn standby_within(port: &mut Port, regs: Regs, ms: u64) -> AhciResult<()> {
+    port.command_ms = ms;
+    non_data(port, regs, ATA_STANDBY_IMMEDIATE, 0)
+}
+
+/// One command with no data phase in slot 0, run to its end or its timeout.
+fn non_data(port: &mut Port, regs: Regs, command: u8, device: u8) -> AhciResult<()> {
     // The HBA of a wedged port may still own the command table.
     if port.wedged {
         return Err(AhciError::Wedged);
     }
     let table_va = port.ctba.user_va();
-    let fis = FisH2D::command(ATA_FLUSH_EXT, 0, 0, ATA_DEV_LBA);
+    let fis = FisH2D::command(command, 0, 0, device);
     let header = CmdHeader {
         flags: FIS_H2D_LEN_DWORDS,
         pm: 0,
