@@ -17,10 +17,16 @@
 #[cfg(any(feature = "nonos-capsule-driver-ahci", feature = "nonos-capsule-driver-nvme"))]
 use crate::hardware::inventory::HardwareFamily;
 
-pub(super) fn spawn() {
+/// The SATA and NVMe controllers, before the bus drivers (orchestrator.rs):
+/// a disk controller that DMAs claims its isolation group ahead of anything
+/// sharing it.
+pub(super) fn spawn_disks() {
     spawn_ahci();
-    spawn_hda();
     spawn_nvme();
+}
+
+pub(super) fn spawn() {
+    spawn_hda();
     super::drivers_sdhci::spawn();
     super::drivers_ufs::spawn();
 }
