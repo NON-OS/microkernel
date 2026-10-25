@@ -29,8 +29,6 @@ const OP_OUTPUT_STATUS: u16 = 10;
 /// vendor u16, codec device u16, outputs u8, plugged u8, reserved u16.
 pub const OUTPUT_REPLY_LEN: usize = HDR_LEN + STATUS_LEN + 12;
 const E_OK: i32 = 0;
-/// The verdict of a driver this machine plays through.
-pub const OUTPUT_READY: u32 = 0;
 
 pub fn request(request_id: u32, pcm: &[u8], out: &mut [u8]) -> usize {
     let payload_len = pcm.len();

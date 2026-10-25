@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The BGA display capsule, proved against a register window and video
-//! memory in memory. Each `#[path]` pulls in the shipping driver source: the
-//! DISPI ID check, mode set and read-back, the firmware's state kept or
-//! written back, the EDID read at BAR2, the start-up mode, one bring-up
-//! attempt end to end against `libc_shim`'s broker and kernel, and the
-//! adapter's half of the display wire. Bochs, QEMU and their clones share
-//! the register set, so a driver wrong against one is wrong against all.
+//! The BGA display capsule, proved against a register window and video memory in memory. Each
+//! `#[path]` pulls in the shipping driver source: the DISPI ID check, mode set and its order,
+//! read-back, the firmware's state kept or written back, the EDID read at BAR2, the start-up mode,
+//! one bring-up attempt end to end against `libc_shim`'s broker and kernel, and the adapter's half
+//! of the display wire. Bochs, QEMU and their clones share the register set, so a driver wrong
+//! against one is wrong against all.
 
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
@@ -63,9 +62,13 @@ mod handles;
 mod setup;
 
 #[cfg(test)]
+mod kernel_ids;
+#[cfg(test)]
 mod model;
 #[cfg(test)]
 mod services;
+#[cfg(test)]
+use kernel_ids::{hardware, process};
 #[cfg(test)]
 mod syscall;
 #[cfg(test)]

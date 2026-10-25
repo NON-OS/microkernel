@@ -1,14 +1,11 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The kernel's IA32_PAT value: entry 1 write-combining, the rest as the
-//! SDM's reset table, and the low half equal to Linux's pat_bp_init table.
+//! SDM's reset table, so a page's PAT, PCD and PWT bits pick WB, WC, UC- or UC.
 
 #[path = "../../../src/arch/x86_64/pat/value.rs"]
 mod value;
 
 use value::*;
-
-/// Linux's PAT: WB, WC, UC-, UC, WB, WP, UC-, WT (arch/x86/mm/pat/memtype.c).
-const LINUX_PAT: u64 = 0x0407_0506_0007_0106;
 
 #[test]
 fn reset_value_gains_wc_in_entry_one_only() {
@@ -19,8 +16,14 @@ fn reset_value_gains_wc_in_entry_one_only() {
 }
 
 #[test]
-fn low_half_matches_linux() {
-    assert_eq!(with_wc(PAT_RESET) as u32, LINUX_PAT as u32);
+fn on_any_table_firmware_left_only_entry_one_changes() {
+    // The kernel writes with_wc of whatever the MSR holds, not the reset table.
+    for p in [0u64, u64::MAX, 0x0407_0506_0007_0106, 0x0102_0304_0506_0704, PAT_RESET] {
+        let w = with_wc(p);
+        assert_eq!((w >> 8) & 0xFF, MT_WC as u64, "{p:#x}");
+        assert_eq!(w & !0xFF00, p & !0xFF00, "{p:#x}");
+        assert_eq!(with_wc(w), w, "{p:#x}");
+    }
 }
 
 #[test]
@@ -44,5 +47,4 @@ fn reset_table_reads_as_the_sdm_lists_it() {
 #[test]
 fn writing_twice_changes_nothing() {
     assert_eq!(with_wc(with_wc(PAT_RESET)), with_wc(PAT_RESET));
-    assert_eq!(with_wc(LINUX_PAT), LINUX_PAT);
 }

@@ -27,7 +27,10 @@ pub fn field(r: &mut Rng, lie: Lie, d: &mut [Vec<u8>]) -> Option<()> {
                 4 => size | 3 << 11,
                 1 => 0,
                 2 => r.range(1025, 2047) as u16,
-                _ => return Some(d[i][6] = 0),
+                _ => {
+                    d[i][6] = 0;
+                    return Some(());
+                }
             };
             d[i][4..6].copy_from_slice(&told.to_le_bytes());
         }

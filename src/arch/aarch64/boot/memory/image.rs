@@ -24,7 +24,8 @@ extern "C" {
 /// The kernel image as whole pages, `[start, end)`: text, data, BSS and the
 /// boot page tables in it, none of which any allocator may hand out.
 pub(super) fn bounds() -> (u64, u64) {
-    let start = (&raw const __kernel_image_start) as u64 & !(PAGE_SIZE - 1);
-    let end = (&raw const __kernel_image_end) as u64;
+    let pa = crate::arch::aarch64::mmu::image_pa;
+    let start = pa((&raw const __kernel_image_start) as u64) & !(PAGE_SIZE - 1);
+    let end = pa((&raw const __kernel_image_end) as u64);
     (start, (end + PAGE_SIZE - 1) & !(PAGE_SIZE - 1))
 }

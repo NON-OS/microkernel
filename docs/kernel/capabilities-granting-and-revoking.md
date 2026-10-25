@@ -25,8 +25,9 @@ Part of [Capabilities](capabilities.md).
   which is `CoreExec`, `IPC` and `Memory`
   (`src/process/core/table/ambient.rs:28-29`); a verified capsule then gets its
   manifest's mask, and a Linux guest an empty one. A compile time assertion
-  keeps hardware, `Admin`, `Debug`, graphics, `SpawnBroker` and `DeviceSecret`
-  out of that set (`src/process/core/table/ambient.rs:34-52`).
+  keeps hardware, `Admin`, `Debug`, graphics, `SpawnBroker`, `DeviceSecret`,
+  `InputConsumer`, `CameraCapture`, `MicrophoneCapture` and `ScreenCapture`
+  out of that set (`src/process/core/table/ambient.rs:34-57`).
 - `MkCapGrant(pid, mask)` needs `Admin`, and the caller must hold every bit it
   grants (`src/syscall/microkernel/capability/handlers.rs:33-52`); `grant` then
   mints a new token with the bits added (`src/process/caps.rs:89-97`).

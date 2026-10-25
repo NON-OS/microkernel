@@ -2334,6 +2334,14 @@ elif ! grep -q 'NONOS_KERNEL_ATTEST_ROOT is all zeroes' "${boot_build}"; then
 else
     note ok "bootloader fails closed on its signing key and the enrolled kernel root"
 fi
+# The loader's build script writes only under OUT_DIR, so no build puts a key
+# in nonos-bootloader/keys/ or .keys/; --selftest shows each mutant fails it.
+if python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >/dev/null; then
+    note ok "bootloader build.rs writes nothing outside OUT_DIR, so never a key in the tree"
+else
+    python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >&2 || true
+    fail_with "bootloader build.rs writes outside OUT_DIR"
+fi
 unset boot_build
 
 boot_features='nonos-bootloader/Cargo.toml'
@@ -3165,13 +3173,17 @@ unset cleanup_src
 # returns to a global bump.
 mmap_src='src/syscall/microkernel/memory/mmap.rs'
 munmap_src='src/syscall/microkernel/memory/munmap.rs'
+# The per-page loop lives in unmap_range.rs; sys_munmap frees through it.
+unmap_range_src='src/syscall/microkernel/memory/va/unmap_range.rs'
 if [ ! -f "${mmap_src}" ] || [ ! -f "${munmap_src}" ]; then
     fail_with "missing ${mmap_src} or ${munmap_src}"
 elif grep -qE '\bNEXT_USER_VA\b' "${mmap_src}" "${munmap_src}"; then
     fail_with "memory split reintroduced a global NEXT_USER_VA; reserve via pcb.mmap_va"
 elif ! awk '/pub fn sys_mmap/,/^\}/' "${mmap_src}" | grep -qE 'reserve_va\(' ; then
     fail_with "${mmap_src} sys_mmap must reserve via the per-pid allocator"
-elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' ; then
+elif ! { awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'deallocate_frame\(' \
+        || { awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'unmap_range\(' \
+             && awk '/fn unmap_range/,/^\}/' "${unmap_range_src}" | grep -qE 'deallocate_frame\(' ; } ; } ; then
     fail_with "${munmap_src} sys_munmap must deallocate the unmapped frames"
 elif ! awk '/pub fn sys_munmap/,/^\}/' "${munmap_src}" | grep -qE 'release_va\(' ; then
     fail_with "${munmap_src} sys_munmap must update per-pid mmap-VA state"
@@ -4337,6 +4349,15 @@ else
     bash nonos-ci/check-capsule-ports.sh src/hardware src/fs src/security src/userspace >&2 || true
 fi
 
+# The same numbers as each Capsule.mk records them, reply inboxes included,
+# and each spawn file held to its Capsule.mk.
+if python3 -I nonos-ci/check-capsule-endpoints.py . >/dev/null 2>&1; then
+    note ok "capsule endpoints unique and spawn files match their Capsule.mk"
+else
+    fail_with "capsule endpoint collision or Capsule.mk drift"
+    python3 -I nonos-ci/check-capsule-endpoints.py . >&2 || true
+fi
+
 # init_handoff must run validate_security on every BootHandoffV1
 # before the kernel consumes any bootloader-provided field.
 handoff_init=src/boot/handoff/api/init.rs
@@ -5008,6 +5029,26 @@ else
 fi
 unset mirror_out
 
+# Draining the raw input ring reads every key typed. Its bit belongs to the
+# input router and to no driver; the seal refuses it elsewhere too.
+if drain_out="$(python3 scripts/check_input_drain_cap.py 2>&1)"; then
+    note ok "InputDrain is held by the input router alone (check_input_drain_cap)"
+else
+    tail -n 5 <<< "${drain_out}" >&2
+    fail_with "check_input_drain_cap: a capsule other than the input router asks for InputDrain"
+fi
+unset drain_out
+
+# A camera's frames and a microphone's samples never pass the kernel, so the
+# bits that gate them are kept scarce by signing alone: no capsule until
+# Decision 9 names one.
+if capture_out="$(python3 scripts/check_capture_caps.py 2>&1)"; then
+    note ok "CameraCapture, MicrophoneCapture and ScreenCapture are held by no capsule (check_capture_caps)"
+else
+    tail -n 5 <<< "${capture_out}" >&2
+    fail_with "check_capture_caps: a capsule asks for a capture bit (camera, microphone, screen)"
+fi
+unset capture_out
 # A capsule the catalogue says the kernel spawns must have its spawn mirror,
 # and its feature named in kernel source: capsule_power had neither, and the
 # shell's power-off found no service on any image.

@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::globals::is_present;
 use super::super::globals::state::STATE;
+use super::super::globals::{domain_id_limit, is_present};
 use super::super::tables::frame::allocate_table;
-use super::super::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
+use super::super::types::{DomainId, VtdError};
 
 pub fn create_domain(id: DomainId) -> Result<(), VtdError> {
     if !is_present() {
         return Err(VtdError::NotPresent);
     }
+    // Past the units' ND count the id is reserved in hardware, not just
+    // short of a slot here.
     let index = id.as_u16() as usize;
-    if index >= MAX_VTD_DOMAINS {
+    if index >= domain_id_limit() {
         return Err(VtdError::DomainTableFull);
     }
     let mut state = STATE.lock();

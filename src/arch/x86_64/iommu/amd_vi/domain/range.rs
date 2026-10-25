@@ -19,7 +19,7 @@
 
 use super::super::error::AmdViError;
 use super::super::pte::{reach, LEVELS};
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 
 pub(super) const PAGE: u64 = 4096;
 
@@ -36,8 +36,7 @@ pub(super) fn pages(iova: u64, phys: u64, size: usize) -> Result<u64, AmdViError
     }
 }
 
-/// The leaf entry at `slot` of the level 1 table at `table`.
-pub(super) fn leaf_at(table: u64, slot: usize) -> Result<&'static mut u64, AmdViError> {
-    let entries = entries_mut(table).map_err(|_| AmdViError::TableUnreachable)?;
-    entries.get_mut(slot).ok_or(AmdViError::OutOfRange)
+/// The level 1 table at `table`, whose `slot` a map or unmap edits.
+pub(super) fn leaves(table: u64) -> Result<Frame, AmdViError> {
+    Frame::at(table).map_err(|_| AmdViError::TableUnreachable)
 }
