@@ -65,6 +65,16 @@ nonos-bench-micro = []
 nonos-trap-proof-sp0 = []
 nonos-trap-proof-kernel-abort = []
 
+# x86_64 SMP boot proofs. No profile enables them. `nonos-shootdown-trace`
+# prints one line per TLB shootdown round (targets, starting targets,
+# acknowledgements paid for abandoned ones). `nonos-smp-park-proof` makes CPU 1
+# slow in bring-up, checkpointing as it goes, so the boot CPU parks and resets
+# it; `nonos-smp-stuck-proof` stalls it with no checkpoint, so it stays a
+# shootdown target and the next kernel shootdown fails closed.
+nonos-shootdown-trace = []
+nonos-smp-park-proof = []
+nonos-smp-stuck-proof = []
+
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.
 kernel     = []
