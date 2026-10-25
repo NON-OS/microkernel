@@ -33,6 +33,8 @@ mod register;
 mod register_allowed;
 mod reply;
 mod reply_deliver;
+mod reply_dest;
+mod reply_dest_facts;
 mod reply_inbox;
 mod send;
 mod send_address;
