@@ -14,7 +14,8 @@
 """Hold an AP's bring-up to the parking rule.
 
 An AP that misses its online deadline is asked to park and parks at the next
-`checkpoint` in `bring_up` (src/smp/ap/bring_up.rs, src/smp/ap/park.rs);
+`checkpoint` in its bring-up (`bring_up` in src/smp/ap/bring_up.rs and
+`finish` in src/smp/ap/bring_up_late.rs, src/smp/ap/park.rs);
 only then does the boot CPU send INIT. A checkpoint inside a lock would park
 the AP with the lock held, and every later taker would spin, so:
 
@@ -32,7 +33,8 @@ import re
 import sys
 from pathlib import Path
 
-BRING_UP = Path("src/smp/ap/bring_up.rs")
+# Each function of the bring-up, by file.
+BRING_UP = ((Path("src/smp/ap/bring_up.rs"), "bring_up"), (Path("src/smp/ap/bring_up_late.rs"), "finish"))
 CHECKPOINT = re.compile(r"^checkpoint\(cpu_id\)$")
 # Anything that takes or holds a lock in this body.
 LOCKS = re.compile(r"\.lock\(|try_lock\(|lock_responsive\(|\bMutex\b|\bRwLock\b|\bSpin\w*\b|guard\b")
@@ -40,9 +42,9 @@ LOCKS = re.compile(r"\.lock\(|try_lock\(|lock_responsive\(|\bMutex\b|\bRwLock\b|
 EXEMPT = (re.compile(r"\.set_stage\("), re.compile(r"^let apic_id = crate::arch::interrupt_controller::local_id\(\)$"))
 
 
-def body(text):
-    """The statements of `fn bring_up`, comments dropped, at the body's depth."""
-    start = text.index("fn bring_up(")
+def body(text, name="bring_up"):
+    """The statements of `fn name`, comments dropped, at the body's depth."""
+    start = text.index(f"fn {name}(")
     open_at = text.index("{", start)
     depth, i, out, cur = 0, open_at, [], ""
     text = re.sub(r"/\*.*?\*/", "", text[open_at:], flags=re.S)
@@ -74,12 +76,12 @@ def body(text):
     return stmts
 
 
-def check(text):
-    stmts = body(text)
+def check(text, name="bring_up"):
+    stmts = body(text, name)
     failed = []
     for s in stmts:
         if LOCKS.search(s):
-            failed.append(f"bring_up holds a lock across its statements: `{s}`")
+            failed.append(f"{name} holds a lock across its statements: `{s}`")
     # The last statement is the returned value.
     steps = stmts[:-1]
     for i, s in enumerate(steps):
@@ -89,7 +91,7 @@ def check(text):
         if nxt is None or not CHECKPOINT.match(nxt):
             failed.append(f"no checkpoint after the step `{s}`")
     if not any(CHECKPOINT.match(s) for s in steps):
-        failed.append("bring_up has no checkpoint at all")
+        failed.append(f"{name} has no checkpoint at all")
     return failed
 
 
@@ -138,12 +140,13 @@ def self_test():
 def main():
     if "--self-test" in sys.argv[1:]:
         return self_test()
-    failed = check(BRING_UP.read_text())
+    failed = [f"{path}: {line}" for path, name in BRING_UP for line in check(path.read_text(), name)]
     for line in failed:
-        print(f"ap-checkpoints: {BRING_UP}: {line}")
+        print(f"ap-checkpoints: {line}")
     if failed:
         return 1
-    print(f"ap-checkpoints: {BRING_UP}: every step is followed by a checkpoint and none sits inside a lock")
+    names = ", ".join(f"{name} ({path})" for path, name in BRING_UP)
+    print(f"ap-checkpoints: {names}: every step is followed by a checkpoint and none sits inside a lock")
     return 0
 
 
