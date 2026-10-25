@@ -9022,6 +9022,18 @@
   "md": [],
   "signed": []
  },
+ "userland/spawn_report_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/kernel_core/process_spawn/capsule_spawn/spawn_error.rs",
+   "src/userspace/init/capsule_boot/failures.rs",
+   "src/userspace/init/spawn_report.rs",
+   "userland/spawn_report_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/spectre_proofs": {
   "exclude": [],
   "include": [
@@ -9846,6 +9858,13 @@
    "nonos-bootloader/src/security/tpm_nv/consts.rs",
    "nonos-bootloader/src/security/tpm_nv/floor_cmd.rs",
    "nonos-bootloader/src/security/tpm_nv/floor_seq.rs",
+   "src/security/attest_doc/document.rs",
+   "src/security/attest_doc/document_consts.rs",
+   "src/security/attest_doc/document_encode.rs",
+   "src/security/attest_doc/error.rs",
+   "src/security/attest_doc/produce_judge.rs",
+   "src/security/attest_doc/produce_quote.rs",
+   "src/security/attest_doc/quote_shape.rs",
    "src/security/tpm/ak/attributes.rs",
    "src/security/tpm/ak/create.rs",
    "src/security/tpm/ak/cursor.rs",
