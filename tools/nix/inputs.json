@@ -8263,6 +8263,15 @@
   "md": [],
   "signed": []
  },
+ "userland/shootdown_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/shootdown_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/smbus_proofs": {
   "exclude": [],
   "include": [
