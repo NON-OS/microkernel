@@ -21,12 +21,11 @@ use nonos_wifi_core::station::LinkStation;
 
 use super::buffers::RxBuffers;
 use super::counts::LinkStats;
+use super::rings::program_rings;
 use super::state::RtlLink;
 use crate::fw::dma::DmaMem;
 use crate::regs::Mmio;
-use crate::rx::program as rx_program;
 use crate::rx::ring::{RxState, RX_DESC_COUNT};
-use crate::tx::program as tx_program;
 use crate::tx::ring::{TxState, TX_DESC_COUNT};
 use crate::tx::stall::TxWatch;
 
@@ -42,13 +41,12 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         rx_buffers: RB,
         our_mac: [u8; 6],
     ) -> Self {
-        // rtw88 sets the DMA burst sizes before the ring addresses (pci.c:403).
+        // Bring-up pointed the card at these rings before its engines ran
+        // (`engines_on`); program them again and reset the DMA interface, so
+        // the card and `rx_state` both start from slot zero. Without the reset
+        // the card never advances its receive write index.
         crate::mac::set_dma_burst(&mmio);
-        tx_program(&mmio, tx_ring.device_addr());
-        rx_program(&mmio, &rx_ring, rx_buffers.device_addr());
-        // With the ring addresses set, reset the DMA interface so the card starts
-        // advancing its receive write index; otherwise it never delivers a frame.
-        crate::mac::reset_trx_dma(&mmio);
+        program_rings(&mmio, &tx_ring, &rx_ring, rx_buffers.device_addr());
         Self {
             mmio,
             tx_ring,
