@@ -39,6 +39,23 @@ below the logo when it would sit on them and they still fit; otherwise the
 logo is left out and the title drawn (`src/layout_fit.rs`). The compositor
 holds its first frame until this surface is up, so the boot shows no flash.
 
+## The attestation panel
+
+Each line says what this boot recorded, from MkAttestStatus, and nothing
+else (`src/attest_lines.rs`):
+
+| line | from | says |
+|---|---|---|
+| bootloader | `secure_boot` | `secure boot verified`, or `secure boot off` |
+| kernel | `kernel_sig_ok`, the loader's ed25519 check | `ed25519 verified`, or `signature not verified` |
+| capsules | `zk_verified` | `zk attested` (STARK), `path only (development)` (Merkle path alone), or `not attested` |
+
+The verdict under them is `ATTESTED` only when the kernel's signature and
+the STARK both held, and `UNVERIFIED` otherwise; secure boot has its own
+line, since a test machine may run without it. With no record every line
+reads `not reported` and the verdict `NO RECORD`. A development image shows
+`path only (development)` and `UNVERIFIED`.
+
 ## Without an IOMMU
 
 When the kernel marks `BOOT_DMA_UNCONFINED` in MkProcStat's header (the

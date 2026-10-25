@@ -15,6 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The proofs, each in its own file beside this one.
 
+#[path = "attest_lines_tests.rs"]
+mod attest_lines_tests;
+#[path = "attest_record_tests.rs"]
+mod attest_record_tests;
 #[path = "bmp_tests.rs"]
 mod bmp_tests;
 #[path = "draw_tests.rs"]
@@ -41,7 +45,7 @@ mod refuse_tests;
 mod splash_layout_tests;
 #[path = "turn_tests.rs"]
 mod turn_tests;
-#[path = "warning_tests.rs"]
-mod warning_tests;
 #[path = "warning_draw_tests.rs"]
 mod warning_draw_tests;
+#[path = "warning_tests.rs"]
+mod warning_tests;
