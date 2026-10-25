@@ -23,4 +23,6 @@ pub mod cap;
 #[cfg(test)]
 mod glue_tests;
 #[cfg(test)]
+mod slices_tests;
+#[cfg(test)]
 mod tests;
