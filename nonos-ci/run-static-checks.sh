@@ -5217,6 +5217,18 @@ else
     fail_with "check_dark_features: a feature gates code that no lane builds"
 fi
 unset dark_out
+# The development market catalogue (P4) is for a development
+# seal in nonos-dev-image's copy alone, signed by that copy's throwaway key:
+# no release path names it, and the seal's choice of it still holds when run.
+# The self-test first, so a scan that stopped seeing it cannot pass quietly.
+if devcat_out="$(python3 scripts/check_dev_catalogue.py --self-test 2>&1 \
+    && python3 scripts/check_dev_catalogue.py 2>&1)"; then
+    note ok "only a development seal takes the test catalogue (check_dev_catalogue)"
+else
+    tail -n 8 <<< "${devcat_out}" >&2
+    fail_with "check_dev_catalogue: a release path can take the development catalogue"
+fi
+unset devcat_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
