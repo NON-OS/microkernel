@@ -18,7 +18,6 @@
 //! the `RtlLink` and its CAM key store.
 
 mod phy;
-mod rings;
 mod up;
 
 pub(super) use up::{build_radio, Radio, RadioUp};

@@ -16,8 +16,10 @@
 
 mod mapped;
 mod master;
+mod rings;
 mod run;
 
 pub use mapped::Mapped;
 pub use master::{command, release, stopped};
+pub use rings::*;
 pub use run::run;
