@@ -75,6 +75,9 @@ import Nonos
 #print axioms Nonos.Loader.accepted_entry_inside_file
 #print axioms Nonos.NetParse.a_pointer_ends_the_walk
 #print axioms Nonos.Paging.confined_preserves_no_wx
+#print axioms Nonos.PagingGlobal.user_never_global
+#print axioms Nonos.PagingGlobal.kernel_keeps_global
+#print axioms Nonos.PagingGlobal.user_entry_never_survives_switch
 #print axioms Nonos.Path.leading_dotdot_neutralized
 #print axioms Nonos.Secure.every_trace_is_secure
 #print axioms Nonos.Secure.dma_owned_by_caller
