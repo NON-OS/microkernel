@@ -16,6 +16,7 @@
 
 pub(crate) mod get_app;
 pub(crate) mod get_commerce;
+pub(crate) mod get_linux_policy;
 pub(crate) mod get_release;
 pub(crate) mod health;
 pub(crate) mod install_ready;
