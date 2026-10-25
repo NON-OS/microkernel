@@ -20,4 +20,5 @@ mod reboot;
 mod router;
 mod shutdown;
 
+pub use acpi_prepare::prepare_soft_off;
 pub use router::route;
