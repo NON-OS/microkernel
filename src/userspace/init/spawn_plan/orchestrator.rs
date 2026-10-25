@@ -35,6 +35,7 @@ pub(in crate::userspace::init) fn spawn_drivers() {
     super::platform_acpi::spawn();
     super::vm::spawn_bus();
     super::vm::spawn_display();
+    super::drivers_storage::spawn_disks();
     super::drivers_bus::spawn();
     super::drivers_input::spawn();
     super::vm::spawn_input();
