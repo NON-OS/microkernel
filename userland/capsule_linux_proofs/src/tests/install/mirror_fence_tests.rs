@@ -48,7 +48,8 @@ fn another_mirror_on_the_local_network_needs_dev_mirror() {
             assert_eq!(refused(only(var, at), true), None, "{var}={at}");
         }
         for at in ["deb.example.org:80", "8.8.8.8:80", "mirror.nonos.systems"] {
-            assert_eq!(refused(only(var, at), false), None, "{var}={at}: a named mirror goes over the route layer");
+            let why = "a named mirror goes over the route layer";
+            assert_eq!(refused(only(var, at), false), None, "{var}={at}: {why}");
         }
     }
 }

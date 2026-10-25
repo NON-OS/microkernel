@@ -23,9 +23,9 @@ use super::super::Why;
 use super::anyone::down;
 
 /// Whether an install from `at` can start now: in a development build
-/// (`dev-mirror`) a mirror on the local network at once; any other once Anyone, which installs download over,
-/// is up, waited for up to three minutes (`anyone::down`). When
-/// it does not come up, that is said before anything is fetched, as
+/// (`dev-mirror`) a mirror on the local network at once; any other once
+/// Anyone, which installs download over, is up, waited for up to three
+/// minutes (`anyone::down`). When it does not come up, that is said before anything is fetched, as
 /// NoNetwork: an outage, which a retry once it runs gets past, not a mirror
 /// that refused.
 pub fn reachable(at: &str) -> Result<(), Why> {
