@@ -150,7 +150,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
 | `date` | The real-time clock, as year-month-day hour:minute:second UTC. |
 | `uptime` | How long the system has run, from the monotonic clock. |
-| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. |
+| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. A key that changes only the line repaints the input row alone. |
 
 | Network | What it does |
 |---|---|

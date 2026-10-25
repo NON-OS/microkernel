@@ -27,11 +27,11 @@ pub struct Terminal {
     pub(crate) active: usize,
     pub(crate) split: Option<usize>, // the tab shown beside the active one
     pub(crate) dropped: bool, // F12: the window stands under the menubar, full width
-    // Window width from the last paint, so the titlebar accessory can ask for a
-    // width that stays clear of the traffic lights.
+    pub(crate) line_only: bool, // the last key changed the input line and nothing else
+    pub(crate) partial: bool, // this frame repaints the input row alone (damage.rs)
+    // Window width from the last paint, so the accessory clears the lights.
     pub(crate) width: u32,
-    // Accessory width the frame actually granted, recorded when it hands over
-    // the sub-buffer so the painter and the hit-test share one geometry.
+    // Accessory width the frame granted, shared by the painter and hit-test.
     pub(crate) acc_w: u32,
     // Window level, so a new tab inherits the look instead of resetting it.
     pub(crate) theme: u16,

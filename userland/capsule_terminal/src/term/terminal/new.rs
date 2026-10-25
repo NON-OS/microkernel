@@ -48,6 +48,8 @@ impl Terminal {
             key_at: 0,
             split: None,
             dropped: false,
+            line_only: false,
+            partial: false,
             started_ms: mk_time_millis(),
             handed_due_ms: 0,
         }
