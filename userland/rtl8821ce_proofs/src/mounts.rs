@@ -21,8 +21,8 @@ pub mod link;
 pub mod pwr;
 #[path = "../../capsule_driver_rtl8821ce/src/regs/mod.rs"]
 pub mod regs;
-// The connect request and result codes of the serve stage; the rest of the
-// stage needs the kernel.
+// The connect request, probe and result codes, mounted once here; the serve
+// stage's mirror (serve/connect/mod.rs) reaches them under its own names.
 #[path = "../../capsule_driver_rtl8821ce/src/serve/connect/probe.rs"]
 pub mod connect_probe;
 #[path = "../../capsule_driver_rtl8821ce/src/serve/connect/request.rs"]
@@ -43,17 +43,22 @@ pub mod rx;
 pub mod scan;
 #[path = "../../capsule_driver_rtl8821ce/src/sec.rs"]
 pub mod sec;
-// The answer the serve loop sends a frame neither request family takes.
-#[path = "../../capsule_driver_rtl8821ce/src/serve/refuse.rs"]
-pub mod serve_refuse;
-#[cfg(test)]
-#[path = "serve_scanner.rs"]
-pub mod serve_scanner;
-#[path = "../../capsule_driver_rtl8821ce/src/serve/control/status_body.rs"]
-pub mod serve_status;
 #[path = "../../capsule_driver_rtl8821ce/src/status.rs"]
 pub mod status;
 #[path = "../../capsule_driver_rtl8821ce/src/tx/mod.rs"]
 pub mod tx;
 #[path = "../../capsule_driver_rtl8821ce/src/wait.rs"]
 pub mod wait;
+// The bring-up files the serve stage reaches; their broker calls are refused
+// by the shim, so the proofs build the radio over host memory instead.
+#[path = "../../capsule_driver_rtl8821ce/src/discover.rs"]
+pub mod discover;
+#[path = "../../capsule_driver_rtl8821ce/src/fwload/mod.rs"]
+pub mod fwload;
+#[path = "../../capsule_driver_rtl8821ce/src/setup/mod.rs"]
+pub mod setup;
+#[path = "../../capsule_driver_rtl8821ce/src/station.rs"]
+pub mod station;
+// Two of the serve stage's files, under the names their proofs use.
+pub use crate::serve::control::status_body as serve_status;
+pub use crate::serve::refuse as serve_refuse;
