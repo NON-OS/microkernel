@@ -25,6 +25,7 @@ use super::super::reply_inbox;
 use super::super::send::send_with_correlation;
 use super::settle::settle;
 use super::token::next_call_token;
+use super::verdict::{wait_ms, DEFAULT_MS};
 
 pub fn sys_ipc_call(
     ep: u64,
@@ -63,8 +64,10 @@ pub fn sys_ipc_call(
     }
     accounting::bump(pid, accounting::Kind::IpcTx);
     accounting::bump_total(accounting::Total::IpcMessages);
-    let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
+    let timeout = wait_ms(timeout_ms, DEFAULT_MS);
+    let start = crate::time::timestamp_millis();
     let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
-    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result);
+    let waited = (timeout_ms, crate::time::timestamp_millis().saturating_sub(start));
+    settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result, waited);
     recv_result
 }
