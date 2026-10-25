@@ -60,7 +60,7 @@ pub(super) fn settle(
     if rc < 0 {
         match no_answer(waited.0, DEFAULT_MS, waited.1) {
             NoAnswer::Late => LATE.late(&endpoint.name, waited.1, dropped()),
-            NoAnswer::Starved => STARVED.starved(&endpoint.name, pid, rc, endpoint.pid),
+            NoAnswer::Starved => STARVED.starved(&endpoint.name, rc),
         }
     }
     display_marks(&endpoint.name, call.0, call.1, call.2, rc);
