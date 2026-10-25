@@ -513,14 +513,17 @@ other op: no one.
   and one `[ACPI] pci label` line each. The UUID, revisions (3, then 2),
   function numbers and shapes are recalled, unverified. Layout in
   `src/pci_firmware/wire.rs`.
-- The shell's power-off, on `power.off` (port 4532), the capsule's
-  second name, which the kernel's HELD line admits from `desktop_shell`
-  alone. It is not an op: one 20-byte little-endian header, magic
+- The shell's power-off frame, on `acpi`. The name `power.off` is
+  `capsule_power`'s alone (port 4446, `docs/abi/ipc-ports-desktop.md`).
+  The kernel spawns that capsule first and registers the name for it, and
+  the shell's Power Off goes there. This capsule no longer claims the name.
+  It still answers the same frame on its own inbox, which the kernel's
+  HELD line opens to `desktop_shell` among others, so the sender is checked
+  here. It is not an op: one 20-byte little-endian header, magic
   "POFF" (0x4646_4F50), version 1, op 1, flags 0, reserved 0, a request
-  id, payload length 0. The kernel registers the name beside `acpi` at
-  spawn, on the same inbox, so the sender is checked here too. A request
-  that passes runs the wiped power-off at once, with no boot guard,
-  debounce or ACPI work first, and is never answered. A refusal echoes
+  id, payload length 0. A request that passes runs the wiped power-off at
+  once, with no boot guard, debounce or ACPI work first, and is never
+  answered. A refusal echoes
   the header with an i32 status at offset 20:
   - EINVAL for anything not exactly that header;
   - EPERM for a sender not the shell's process;

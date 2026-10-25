@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The load handlers' parts on their own: Layout::parse and the Artifacts reader.
+//! The load handler's part on its own: the Artifacts reader.
 //
-// layout.rs and artifacts.rs are mounted from the installer as they ship.
+// artifacts.rs is mounted from the installer as it ships.
 // artifacts.rs names `nonos_libc` and `nonos_app_skeleton`, which this crate
 // answers as itself, with the real CapsuleLoadRequest and mk_capsule_load
 // from libc and host stand-ins for the syscall and the vfs read (support/).
@@ -27,8 +27,6 @@ extern crate self as nonos_libc;
 
 #[path = "../../capsule_installer/src/server/handlers/load_by_name/artifacts.rs"]
 mod artifacts;
-#[path = "../../capsule_installer/src/server/handlers/load_store/layout.rs"]
-mod layout;
 
 #[path = "../../libc/src/capsule_load.rs"]
 mod capsule_load;
@@ -36,14 +34,10 @@ mod capsule_load;
 pub mod clients;
 #[path = "support/fixtures.rs"]
 mod fixtures;
-#[path = "support/payloads.rs"]
-mod payloads;
 #[path = "support/syscall.rs"]
 mod syscall;
 
 #[path = "parts_host/artifacts_tests.rs"]
 mod artifacts_tests;
-#[path = "parts_host/layout_tests.rs"]
-mod layout_tests;
 
 pub use capsule_load::{mk_capsule_load, CapsuleLoadRequest};
