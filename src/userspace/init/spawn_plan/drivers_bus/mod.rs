@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod i2c;
+
 pub(super) fn spawn() {
     super::drivers_wifi::spawn();
     spawn_gpio();
-    spawn_i2c_pci();
-    spawn_i2c_hid();
+    i2c::spawn();
     super::drivers_smbus::spawn();
     super::drivers_spi::spawn();
 }
@@ -38,31 +39,3 @@ fn spawn_gpio() {
 
 #[cfg(not(feature = "nonos-capsule-driver-gpio"))]
 fn spawn_gpio() {}
-
-#[cfg(feature = "nonos-capsule-driver-i2c-pci")]
-fn spawn_i2c_pci() {
-    use crate::hardware::i2c_pci_capsule as c;
-    super::boot::capsule(
-        "DRIVER-I2C-PCI",
-        "driver_i2c_pci",
-        c::spawn_driver_i2c_pci_capsule,
-        c::shared_state,
-    );
-}
-
-#[cfg(not(feature = "nonos-capsule-driver-i2c-pci"))]
-fn spawn_i2c_pci() {}
-
-#[cfg(feature = "nonos-capsule-driver-i2c-hid")]
-fn spawn_i2c_hid() {
-    use crate::userspace::capsule_driver_i2c_hid as c;
-    super::boot::capsule(
-        "DRIVER-I2C-HID",
-        "driver_i2c_hid",
-        c::spawn_driver_i2c_hid_capsule,
-        c::shared_state,
-    );
-}
-
-#[cfg(not(feature = "nonos-capsule-driver-i2c-hid"))]
-fn spawn_i2c_hid() {}
