@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Step 3 for a version 4 document: the quote over `QUOTED_PCRS_V4`, its
+//! Step 3 for a version 5 document: the quote over `QUOTED_PCRS_V4`, its
 //! `extraData` recomputed by the client from the document's challenge,
 //! registry root and DMA posture, its digest over the document's values.
 
@@ -28,6 +28,7 @@ pub fn quote(doc: &Doc<'_>) -> Result<(), Refusal> {
         vendor: doc.iommu_vendor,
         enforcing: doc.iommu_enforcing,
         unconfined_grants: doc.unconfined_grants,
+        identity_devices: doc.identity_devices,
     };
     let extra = qualifying_data(doc.challenge, doc.registry_root, &dma);
     check_quote(doc.attest, doc.signature, doc.ak_public, &extra, &QUOTED_PCRS_V4, &doc.pcrs)?;

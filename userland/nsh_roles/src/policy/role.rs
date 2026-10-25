@@ -17,7 +17,7 @@
 //! One role in a table: its name, its flags, how many approvals an
 //! escalation needs, its longest session, its ceiling and its escalation
 //! ceiling. A ceiling names only capabilities the kernel has, and never one
-//! of the forbidden six. Roles come in strictly ascending name order.
+//! of the forbidden nine. Roles come in strictly ascending name order.
 
 use crate::policy::{within, MAX_ROLES, MAX_SPAN_MS};
 use crate::{CapSet, PolicyError};
