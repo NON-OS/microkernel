@@ -38,7 +38,7 @@ fn a_sender_asking_for_one_bit_more_is_refused_and_it_is_said() {
     assert_eq!(said(), "[CAP-DENY] load: caller pid=5 child=web asked beyond its manifest 0x200\n");
     world(Some(5), &[(5, REQUIRED)]);
     assert_eq!(within_manifest(&app(), u64::MAX, "web"), Err(LoadError::BeyondParent));
-    assert!(said().contains(&format!("{:#x}", u64::MAX & !(REQUIRED | OPTIONAL))));
+    assert!(said().contains(&format!("{:#x}", !(REQUIRED | OPTIONAL))));
 }
 
 #[test]

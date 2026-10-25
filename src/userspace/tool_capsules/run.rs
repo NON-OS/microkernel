@@ -45,10 +45,24 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
     if name == QWEN_TOOL {
         return crate::userspace::capsule_linux::run_qwen_for_caller(argv);
     }
-    let Some(tool) = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name) else {
-        return Err(ERRNO_NOENT);
-    };
+    let tool = embedded(name)?;
     super::bound::check(tool.manifest, tool.caps, name)?;
+    spawn(&tool, argv)
+}
+
+/// The kernel's own run of an embedded tool, for init's boot self-test: the
+/// kernel is the spawner, as for every boot spawn, so no caller's mask
+/// bounds it. Never reached from `MkToolRun`, which takes `run_named`.
+#[cfg(feature = "nonos-tool-selftest")]
+pub fn run_embedded_for_kernel(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
+    spawn(&embedded(name)?, argv)
+}
+
+fn embedded(name: &[u8]) -> Result<super::spec::ToolCapsule, i64> {
+    embedded_tools().into_iter().find(|t| t.name.as_bytes() == name).ok_or(ERRNO_NOENT)
+}
+
+fn spawn(tool: &super::spec::ToolCapsule, argv: &[u8]) -> Result<u32, i64> {
     tool.spawn_with_args(argv).map_err(|e| {
         boot_log::error("tool capsule spawn failed");
         spawn_errno(&e)

@@ -19,6 +19,7 @@ mod asked;
 mod broker;
 mod check;
 mod tool;
+mod verify_agree;
 mod tool_exempt;
 mod tool_glue;
 mod wired;

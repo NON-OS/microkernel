@@ -56,10 +56,13 @@ pub mod security {
             pub required_caps: u64,
             pub optional_caps: u64,
         }
+        /// A manifest too short to hold the two capability words.
+        #[derive(Debug)]
+        pub struct Short;
         /// Stands in for the decoder: required then optional, big-endian.
-        pub fn decode(m: &[u8]) -> Result<CapsuleManifest, ()> {
+        pub fn decode(m: &[u8]) -> Result<CapsuleManifest, Short> {
             let word = |at: usize| m.get(at..at + 8).map(|b| u64::from_be_bytes(b.try_into().unwrap()));
-            Ok(CapsuleManifest { required_caps: word(0).ok_or(())?, optional_caps: word(8).ok_or(())? })
+            Ok(CapsuleManifest { required_caps: word(0).ok_or(Short)?, optional_caps: word(8).ok_or(Short)? })
         }
     }
 }

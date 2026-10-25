@@ -20,7 +20,6 @@
 //! stands in (`stand_in`).
 
 #![cfg(test)]
-#![allow(dead_code)]
 
 extern crate alloc;
 

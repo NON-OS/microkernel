@@ -19,3 +19,5 @@ mod run;
 mod spec;
 
 pub use run::run_named;
+#[cfg(feature = "nonos-tool-selftest")]
+pub use run::run_embedded_for_kernel;
