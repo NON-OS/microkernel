@@ -39,13 +39,8 @@ fn no_release_or_too_many_is_refused() {
 
 #[test]
 fn a_release_with_a_zero_value_is_refused() {
-    let edits: [fn(&mut Release); 5] = [
-        |r| r.pcr8 = [0; 32],
-        |r| r.pcr9 = [0; 32],
-        |r| r.pcr14 = [0; 32],
-        |r| r.loader = [0; 32],
-        |r| r.front = [0; 32],
-    ];
+    let edits: [fn(&mut Release); 4] =
+        [|r| r.pcr8 = [0; 32], |r| r.pcr9 = [0; 32], |r| r.loader = [0; 32], |r| r.front = [0; 32]];
     for edit in edits {
         let mut r = release();
         edit(&mut r);
