@@ -23,7 +23,7 @@ it ships only through the on-disk package store and is never embedded in the ker
 - `0x0040` FileSystem: the `vfs::stat` and `vfs::read_file` calls in `src/mdview/load.rs`.
 - `0x0800` GraphicsDisplayQuery and `0x1000` GraphicsSurfaceCreate: its window surface.
 
-Endpoints: service `service:4922:app.mdview`, reply `reply:4923:endpoint.app.mdview.reply`. The
+Endpoints: service `service:4922:com.example.mdview`, reply `reply:4923:endpoint.com.example.mdview.reply`. The
 domain is `com.example`.
 
 ## Interface
