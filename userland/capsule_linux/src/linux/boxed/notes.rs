@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the serve loop tells the armed box as the run goes: whether a write
-//! is let through, a new call, and each refusal.
+//! is let through, a new call, each refusal, and each destination reached.
 
 use super::kind::Kind;
 use super::state::BOX;
@@ -33,5 +33,11 @@ pub fn call_begins() {
 pub fn note(kind: Kind, example: &[u8]) {
     if let Some(a) = BOX.0.borrow_mut().as_mut() {
         a.tally.note(kind, example);
+    }
+}
+
+pub fn connected(dest: &[u8]) {
+    if let Some(a) = BOX.0.borrow_mut().as_mut() {
+        a.connected.note(dest);
     }
 }

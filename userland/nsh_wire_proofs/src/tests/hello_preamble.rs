@@ -43,10 +43,14 @@ fn each_preamble_byte_is_judged() {
 
 #[test]
 fn another_version_is_told_version_whatever_its_size() {
-    let mut v2 = client();
-    v2[4] = 2;
-    v2.truncate(600);
-    assert_eq!(ClientHello::parse(&v2), Err(WireError::Version));
+    // Version 1, whose cap could not take a document with a full event log,
+    // is told VERSION at the hello, before any proof is sent.
+    for (v, size) in [(1, 2000), (3, 600)] {
+        let mut other = client();
+        other[4] = v;
+        other.truncate(size);
+        assert_eq!(ClientHello::parse(&other), Err(WireError::Version), "version {v}");
+    }
     assert_eq!(WireError::Version.reason().code(), 2);
     assert_eq!(WireError::BodyVersion.reason().code(), 1, "only a hello is told VERSION");
 }
