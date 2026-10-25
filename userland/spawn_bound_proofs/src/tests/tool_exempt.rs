@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one tool outside the subset bound: `tool.model-fetch`, matched whole.
-//! Every other name, each tool the registry bakes in among them, is bounded;
-//! and the fetcher's own caller gate (Network and FileSystem) stays.
+//! No tool is outside the subset bound: `tool.model-fetch` is bounded like
+//! every tool the registry bakes in, and the fetcher keeps no caller gate of
+//! its own beside it, so the bound is the one rule.
 
 use crate::stand_in::world;
 use crate::tool_bound::{check, EXEMPT};
@@ -34,17 +34,17 @@ fn bounded(name: &[u8]) -> bool {
 }
 
 #[test]
-fn exactly_one_name_is_exempt_and_only_whole() {
-    assert_eq!(EXEMPT, [&b"tool.model-fetch"[..]]);
-    assert!(!bounded(b"tool.model-fetch"));
-    for near in ["tool.model-fetchX", "tool.model-", "tool.model-fetc", "Tool.model-fetch", ""] {
-        assert!(bounded(near.as_bytes()), "{near:?} is bounded");
+fn no_name_is_exempt() {
+    assert!(EXEMPT.is_empty());
+    for name in ["tool.model-fetch", "tool.model-fetchX", "Tool.model-fetch", ""] {
+        assert!(bounded(name.as_bytes()), "{name:?} is bounded");
     }
 }
 
 #[test]
-fn every_other_tool_name_is_bounded() {
-    let mut names = vec!["tool.linux", "tool.qwen", "tool.install"];
+fn every_tool_name_is_bounded() {
+    let mut names =
+        vec!["tool.linux", "tool.linux.net", "tool.qwen", "tool.install", "tool.model-fetch"];
     for chunk in REGISTRY.split("tool_capsule!(").skip(1) {
         names.push(chunk.split('"').nth(1).expect("a tool's name"));
     }
@@ -55,12 +55,14 @@ fn every_other_tool_name_is_bounded() {
 }
 
 #[test]
-fn the_fetcher_keeps_its_caller_gate_and_is_checked_by_name() {
+fn the_fetcher_has_no_gate_of_its_own_and_is_checked_by_name() {
     let code: String = FETCH.split_whitespace().collect();
-    let gate = code.find("if!(caller.can_network()&&caller.can_open_files()){returnErr(ERRNO_PERM);}");
-    let spawn = code.find("capsule_spawn::spawn_verified(");
-    assert!(gate.expect("the Network and FileSystem gate") < spawn.expect("the spawn"));
+    assert!(!code.contains("can_network()"), "the bound alone decides");
+    assert!(!code.contains("current_caps"), "no caller read beside the bound");
     let run: String = RUN.split_whitespace().collect();
-    let check = run.find("super::bound::check(super::model_fetch::MANIFEST,super::model_fetch::CAPS,name)?;");
-    assert!(check.expect("checked by name") < run.find("model_fetch::run_for_caller(argv)").unwrap());
+    let check = run
+        .find("super::bound::check(super::model_fetch::MANIFEST,super::model_fetch::CAPS,name)?;");
+    assert!(
+        check.expect("checked by name") < run.find("model_fetch::run_for_caller(argv)").unwrap()
+    );
 }

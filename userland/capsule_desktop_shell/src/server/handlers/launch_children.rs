@@ -32,7 +32,7 @@ const MAX_ENTRIES: usize = 512;
 /// Slack on the age test for the time between the load and the first look.
 const AGE_SLACK_MS: u64 = 1_000;
 
-fn table() -> Vec<ProcStatEntry> {
+pub(super) fn table() -> Vec<ProcStatEntry> {
     let count = mk_proc_stat(core::ptr::null_mut(), 0);
     if count <= 0 {
         return Vec::new();

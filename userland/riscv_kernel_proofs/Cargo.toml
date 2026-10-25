@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the riscv64 kernel pieces arch-3 added: the saved kernel
+# Context run on riscv64 under qemu-user (the shipped kernel.rs), and the
+# FENCE choices, the entry and the boot-memory refusal read from the source.
+[package]
+name = "riscv_kernel_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

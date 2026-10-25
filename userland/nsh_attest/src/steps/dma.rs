@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Step 6: device DMA is confined. An IOMMU is present and enforcing, and
-//! no mapping goes around it. All three values are bound into the quote.
+//! Step 6: device DMA is confined. An IOMMU is present and enforcing, no
+//! mapping goes around it, and no device is left in a domain that reaches
+//! all of memory. All four values are bound into the quote.
 
 use crate::consts::IOMMU_NONE;
 use crate::{Doc, Refusal};
 
 pub fn dma(doc: &Doc<'_>) -> Result<(), Refusal> {
-    match (doc.iommu_vendor != IOMMU_NONE, doc.iommu_enforcing, doc.unconfined_grants) {
-        (true, true, 0) => Ok(()),
-        _ => Err(Refusal::Dma),
+    let present = doc.iommu_vendor != IOMMU_NONE && doc.iommu_enforcing;
+    match present && doc.unconfined_grants == 0 && doc.identity_devices == 0 {
+        true => Ok(()),
+        false => Err(Refusal::Dma),
     }
 }
