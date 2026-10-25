@@ -757,7 +757,6 @@ src/fs/vfs/vfs_global.rs:51 vfs_write_file
 src/fs/vfs/vfs_global.rs:59 vfs_read_file
 src/fs/vfs/vfs_global.rs:75 unregister_mount
 src/hardware/broker/census/render.rs:33 render_and_hold
-src/hardware/broker/pio/types.rs:46 from_byte
 src/hardware/broker/platform.rs:40 register_legacy
 src/interrupts/handlers/exceptions/context.rs:44 is_kernel_mode
 src/interrupts/handlers/exceptions/context.rs:70 is_protection_violation
