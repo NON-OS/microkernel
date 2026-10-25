@@ -13,27 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! A whole receipt verifies, and says what it carries.
 
-//! How many config accesses went through the validated and scan paths.
+use agentproof_receipt::verify;
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use crate::fixture::Fixture;
 
-static READS: AtomicU64 = AtomicU64::new(0);
-static WRITES: AtomicU64 = AtomicU64::new(0);
-
-pub(super) fn read() {
-    READS.fetch_add(1, Ordering::Relaxed);
-}
-
-pub(super) fn wrote() {
-    WRITES.fetch_add(1, Ordering::Relaxed);
-}
-
-pub fn get_config_stats() -> (u64, u64) {
-    (READS.load(Ordering::Relaxed), WRITES.load(Ordering::Relaxed))
-}
-
-pub fn reset_config_stats() {
-    READS.store(0, Ordering::Relaxed);
-    WRITES.store(0, Ordering::Relaxed);
+#[test]
+fn a_whole_receipt_verifies() {
+    let mut f = Fixture::new(b"strict");
+    let (bytes, trust) = (f.bytes(), f.trust());
+    let v = verify(&bytes, &trust).unwrap();
+    assert_eq!((v.release.as_str(), v.box_word.as_str()), ("0.9.3-test", "strict"));
+    assert!(v.enforced && !v.built_in);
+    assert_eq!((v.program, v.supervisor, v.seal_no), (Some([7; 32]), [5; 32], 9));
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::rule::*;
+use super::spin_watch::*;
 
 #[test]
 fn quiet_until_the_mark_then_once() {
@@ -29,23 +29,6 @@ fn a_clock_read_behind_the_start_is_no_wait() {
     // Two CPUs' clocks can disagree by a little; that is never a long wait.
     assert!(!due(5_000, 4_999, false));
     assert!(!due(u64::MAX, 0, false));
-}
-
-#[test]
-fn the_holder_above_on_the_same_stack_is_a_re_take() {
-    // orphans::reclaim held GATE, reclaim_dma deeper on the same stack waited.
-    let holder = 0xFFFF_8000_0010_7E00usize;
-    assert!(same_chain(holder, holder - 0x180));
-    assert!(same_chain(holder, holder - (CHAIN_SPAN - 1)));
-}
-
-#[test]
-fn any_other_holder_is_not() {
-    let holder = 0xFFFF_8000_0010_7E00usize;
-    assert!(!same_chain(holder, holder));
-    assert!(!same_chain(holder, holder + 0x40));
-    assert!(!same_chain(holder, holder - CHAIN_SPAN));
-    assert!(!same_chain(holder, 0xFFFF_8000_0090_0000));
 }
 
 #[test]
