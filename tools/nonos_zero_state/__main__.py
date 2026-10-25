@@ -46,8 +46,8 @@ def main():
 
     print(f"[ZS-TEST] this run's secret: {secret}", flush=True)
     first_boot(a, secret, say)
-    added = leftovers.store_rows_added(a.image, a.out / "boot1.img")
-    say("store rows the boot added", added, False)
+    changed = leftovers.changed_sectors(a.image, a.out / "boot1.img")
+    say("disk sectors the boot changed", changed, False)
     say("on the disk", leftovers.disk_holds(a.out / "boot1.img", secret), False)
     say("known to the next boot", second_boot(a, secret), False)
     print(f"[ZS-TEST] {'PASS' if not bad else 'FAIL: ' + ', '.join(bad)}", flush=True)
