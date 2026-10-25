@@ -10,4 +10,6 @@ mod dma_place;
 #[cfg(test)]
 mod brute_tests;
 #[cfg(test)]
+mod high_half_tests;
+#[cfg(test)]
 mod layout_tests;
