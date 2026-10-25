@@ -21,9 +21,8 @@
 //! one that was never run, and from one that queued behind another request.
 
 use super::endpoint::Endpoint;
-use super::slow_rule::said;
+use super::slow_rule::{lost_said, said};
 use crate::sys::serial::Line;
-
 
 /// `[BLOCK] slow <disk>: op <op> status <s> after <a> ms, <w> ms of it for the wire`
 pub(super) fn say(e: &Endpoint, op: u16, status: i32, waited_ms: u64, answered_ms: u64) {
@@ -40,8 +39,11 @@ pub(super) fn say(e: &Endpoint, op: u16, status: i32, waited_ms: u64, answered_m
     line.str(b" ms, ").dec(waited_ms).str(b" ms of it for the wire").end();
 }
 
-/// The kernel's own wait ran out or the transport failed: no answer at all.
-pub(super) fn lost(e: &Endpoint, op: u16, waited_ms: u64, answered_ms: u64) {
+/// No answer at all: the kernel's own wait ran out, or it failed slowly.
+pub(super) fn lost(e: &Endpoint, op: u16, timed_out: bool, waited_ms: u64, answered_ms: u64) {
+    if !lost_said(timed_out, answered_ms) {
+        return;
+    }
     let mut line = Line::new();
     line.str(b"[BLOCK] slow ").str(e.shown.as_bytes()).str(b": op ").dec(u64::from(op));
     line.str(b" no answer after ").dec(answered_ms);
