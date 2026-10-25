@@ -2,6 +2,7 @@
 #include "qwenchat.h"
 #include "qwenchat_metrics.h"
 #include "qwenchat_smaller.h"
+#include "qwenvision.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -36,10 +37,16 @@ static bool read_line(std::string &line) {
 /* The terminal echoes what is typed, so the line is never printed back. */
 int chat_terminal(const ChatArgs &a) {
     const char *slash = strrchr(a.model.c_str(), '/'), *name = slash ? slash + 1 : a.model.c_str();
+    /* A vision tier's image comes first, held to its rules before anything loads. */
+    std::vector<unsigned char> img;
+    if (!a.mmproj.empty()) {
+        const ImgWhy why = vision_frame(img);
+        if (why != ImgWhy::Ok) return say((img_refusal(why) + "\n").c_str()), 3;
+    }
     printf("Loading %s from the local volume...\n", name), fflush(stdout);
     Chat c;
     const double began = metrics_now();
-    const bool opened = chat_open(a, c);
+    const bool opened = chat_open(a, c) && (a.mmproj.empty() || vision_open(a, c));
     metrics_load(c, opened, metrics_now() - began);
     if (!opened)
         return say((chat_failure(a, c) + offer_smaller(a, c, false) + "\n").c_str()), c.err == ENOMEM ? 4 : 1;
@@ -61,7 +68,8 @@ int chat_terminal(const ChatArgs &a) {
         say("qwen> ");
         int made = 0;
         Timed t = {to_tty, &dim, metrics_now()};
-        const bool ok = chat_turn(a, c, line, timed_put, &t, made);
+        const bool ok = img.empty() ? chat_turn(a, c, line, timed_put, &t, made)
+                                    : vision_turn(a, c, img, line, timed_put, &t, made);
         const double s = metrics_now() - t.t0;
         printf("%s\n%s(%d tokens, %.1f s, %.1f tok/s)%s\n", dim ? PLAIN : "", DIM, made, s, made / s, PLAIN);
         dim = false, fflush(stdout), metrics_turn(c, t, made);
