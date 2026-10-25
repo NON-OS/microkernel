@@ -38,7 +38,6 @@ pub fn directory_gateway(index: usize) -> Option<Gateway> {
                 stream: 0,
                 transport: Transport::WebSocket,
                 identity: node.identity,
-                shared_key: [0u8; 32],
             });
         }
         seen += 1;

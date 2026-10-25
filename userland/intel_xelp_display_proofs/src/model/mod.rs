@@ -16,8 +16,8 @@
 //! A model of the registers the crate touches, and a clock it controls.
 
 pub mod clock;
-mod conf;
 pub mod edge;
+mod follow;
 pub mod mode;
 pub mod regs;
 pub mod rng;

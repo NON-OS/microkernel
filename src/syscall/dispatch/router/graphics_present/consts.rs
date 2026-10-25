@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// A claimed device holds the boot framebuffer (broker::boot_fb_held).
+pub(super) const EBUSY: i32 = 16;
 pub(super) const EFAULT: i32 = 14;
 pub(super) const EINVAL: i32 = 22;
 pub(super) const ENOTSUP: i32 = 95;
