@@ -20,7 +20,7 @@ footer. A host tool and the client library check it offline.
 | subject: H(user keys) | 64 |
 | user name, role | two `bytes8` |
 | H(base grant), as nsh-v1-roles.md defines it | 64 |
-| granted capabilities | count: u8 (1 to 37), then the names as `bytes8`, ascending |
+| granted capabilities | count: u8 (1 to 40), then the names as `bytes8`, ascending |
 
 ## Entries
 
