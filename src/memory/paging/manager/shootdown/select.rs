@@ -19,12 +19,14 @@ use core::sync::atomic::Ordering;
 use super::request::ASID_KERNEL;
 use crate::smp::percpu::ASID_NONE;
 
-const WORDS: usize = crate::smp::MAX_CPUS.div_ceil(64);
+pub(super) const WORDS: usize = crate::smp::MAX_CPUS.div_ceil(64);
 
-/// The cpus a round for `asid` must reach, and how many.
-pub(super) fn select(asid: u32) -> ([u64; WORDS], u32) {
+/// The cpus a round for `asid` must reach, how many, and how many of those
+/// were still starting when read.
+pub(super) fn select(asid: u32) -> ([u64; WORDS], u32, u32) {
     let self_cpu = crate::smp::cpu_id();
     let mut targets: u32 = 0;
+    let mut starting: u32 = 0;
     let mut selected = [0u64; WORDS];
     /*
      * Every cpu slot, filtered by whether it is running. Not `0..cpus_online()`:
@@ -47,8 +49,9 @@ pub(super) fn select(asid: u32) -> ([u64; WORDS], u32) {
         }
         selected[cpu / 64] |= 1u64 << (cpu % 64);
         targets += 1;
+        starting += u32::from(!crate::smp::cpu_is_online(cpu));
     }
-    (selected, targets)
+    (selected, targets, starting)
 }
 
 /// Online, or, for a kernel round, still being brought up.
