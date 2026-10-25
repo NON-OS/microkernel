@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When a lock wait is worth a word, pure: kernel_proofs::spin_watch.
+//! When a lock wait is worth a word, pure: kernel_proofs::spin_waits.
 //!
 //! A spin with interrupts masked that never ends stops its CPU without a
 //! sound, and on one CPU the whole machine. The wait says so once it has
@@ -27,8 +27,7 @@ pub(crate) const REPORT_MS: u64 = 1000;
 /// Slots in the table of who took each lock last.
 pub(crate) const SLOTS: usize = 64;
 
-/// The deepest a call chain reaches below its first frame on one kernel
-/// stack: a process's kernel stack is 32 KiB.
+/// A process's kernel stack, 32 KiB: the span a call chain can cover.
 pub(crate) const CHAIN_SPAN: usize = 32 * 1024;
 
 /// The table slot for the lock at `addr`. Locks are at least 8-byte aligned,
@@ -40,12 +39,4 @@ pub(crate) const fn slot_of(addr: usize) -> usize {
 /// Whether a wait that began at `start` ms is due its one report at `now`.
 pub(crate) const fn due(start: u64, now: u64, reported: bool) -> bool {
     !reported && now.saturating_sub(start) >= REPORT_MS
-}
-
-/// Whether the holder's frame at `holder_sp` sits above the waiter's frame at
-/// `waiter_sp` on the same stack: the waiter's own caller holds the lock, and
-/// the wait can never end. Two stacks laid side by side can look the same, so
-/// the report says "likely".
-pub(crate) const fn same_chain(holder_sp: usize, waiter_sp: usize) -> bool {
-    holder_sp > waiter_sp && holder_sp - waiter_sp < CHAIN_SPAN
 }

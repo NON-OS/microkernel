@@ -27,9 +27,9 @@ impl Terminal {
             return EventOutcome::Close;
         }
         self.tabs.remove(self.active);
-        if self.active >= self.tabs.len() {
-            self.active = self.tabs.len() - 1;
-        }
+        // Closing one pane of a split leaves the other in front, alone.
+        self.active = crate::term::split::after_close(self.split, self.active, self.tabs.len());
+        self.split = None;
         EventOutcome::Repaint
     }
 

@@ -16,7 +16,7 @@
 
 //! The deeper help pages: keys and shell syntax.
 
-pub const KEYS: [(&[u8], &[u8]); 14] = [
+pub const KEYS: [(&[u8], &[u8]); 15] = [
     (b"move", b"Ctrl+A start   Ctrl+E end   Ctrl+F a char   Alt+B/F a word"),
     (b"cut", b"Ctrl+W word back   Alt+D word on   Ctrl+Shift+K to end   Ctrl+U line"),
     (b"put", b"Ctrl+Y puts back the last cut   Ctrl+D or Ctrl+H delete a character"),
@@ -28,6 +28,7 @@ pub const KEYS: [(&[u8], &[u8]); 14] = [
     (b"clipboard", b"Ctrl+Shift+C copy the selection   Ctrl+Shift+V paste"),
     (b"search", b"Ctrl+Shift+F find in scrollback   Enter older   Shift+Enter newer"),
     (b"tabs", b"Ctrl+Shift+T new   Ctrl+Shift+W close   Ctrl+PgUp/PgDn switch"),
+    (b"split", b"Ctrl+Shift+D two tabs side by side   Ctrl+Shift+Left/Right the other"),
     (b"commands", b"Ctrl+K commands, recent lines, tabs and actions; type to filter"),
     (b"view", b"Ctrl+B side rail   Ctrl+= / Ctrl+- font size   Ctrl+L clear"),
     (b"theme", b"theme or profile to change colours"),
