@@ -8695,6 +8695,7 @@
    "userland/capsule_driver_rtl8821ce/src/mac",
    "userland/capsule_driver_rtl8821ce/src/pcie",
    "userland/capsule_driver_rtl8821ce/src/phy",
+   "userland/capsule_driver_rtl8821ce/src/ps",
    "userland/capsule_driver_rtl8821ce/src/pwr",
    "userland/capsule_driver_rtl8821ce/src/regs",
    "userland/capsule_driver_rtl8821ce/src/ring",

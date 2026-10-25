@@ -17,6 +17,8 @@ pub mod fw;
 pub mod h2c;
 #[path = "../../capsule_driver_rtl8821ce/src/link.rs"]
 pub mod link;
+#[path = "../../capsule_driver_rtl8821ce/src/ps/mod.rs"]
+pub mod ps;
 #[path = "../../capsule_driver_rtl8821ce/src/pwr/mod.rs"]
 pub mod pwr;
 #[path = "../../capsule_driver_rtl8821ce/src/regs/mod.rs"]

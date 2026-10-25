@@ -52,6 +52,8 @@ mod rings;
 mod send;
 #[path = "link/session.rs"]
 mod session;
+#[path = "link/sleep.rs"]
+mod sleep;
 #[path = "link/stall.rs"]
 mod stall;
 #[path = "link/state.rs"]

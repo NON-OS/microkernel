@@ -45,3 +45,6 @@ pub fn mk_dma_map(_d: u64, _e: u64, _l: u64, _f: u32, _out: &mut DmaMapOut) -> i
 pub fn mk_dma_unmap(_grant_id: u64) -> i64 {
     -1
 }
+pub fn mk_pci_config_read(_d: u64, _e: u64, _offset: u32, _width: u32) -> i64 {
+    -1
+}

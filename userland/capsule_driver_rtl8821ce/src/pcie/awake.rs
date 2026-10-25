@@ -27,12 +27,12 @@ use super::dbi;
 use crate::regs::Mmio;
 
 /// The chip's PCIe link configuration byte, in its own register file.
-const RTK_PCIE_LINK_CFG: u16 = 0x0719;
+pub(super) const RTK_PCIE_LINK_CFG: u16 = 0x0719;
 /// The chip's own L1 (ASPM) software enable.
-const BIT_L1_SW_EN: u8 = 1 << 3;
+pub(super) const BIT_L1_SW_EN: u8 = 1 << 3;
 /// The chip's own CLKREQ software enable. CLKREQ lets the platform stop the
 /// reference clock, which gates the same internal blocks L1 does.
-const BIT_CLKREQ_SW_EN: u8 = 1 << 4;
+pub(super) const BIT_CLKREQ_SW_EN: u8 = 1 << 4;
 
 /// Which DBI transaction never cleared its flag.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
