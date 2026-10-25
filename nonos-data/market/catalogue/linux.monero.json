@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.monero",
+      "capsule_id": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4",
+      "name": "Monero wallet (CLI)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Monero's command-line wallet. It talks to a remote node you name, over Nym or Anyone, never direct, so the node never learns your address; it still sees which outputs your wallet asks about. Its box allows any node: a market release cannot carry a list yet. The daemon and tools in its package have no box of their own and are refused.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "monero@0.18.3.3-r1",
+          "manifest_hash": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4",
+          "package_hash": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/monero-0.18.3.3-r1.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000002073f1b621b3f10ba45b29a27de4e783b6d8d249bd5700887062c387cc669c830a0100000000000090d6997200753ea7f814a49f792a4d34f3d0f190355704c0f325882276005d4e8d81401c6fc94d171a0668784188540729667bee3a67fd50c1cbd6828e379bb80000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 24698520 bytes; licence BSD-3-Clause; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
