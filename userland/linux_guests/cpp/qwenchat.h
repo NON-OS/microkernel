@@ -21,6 +21,8 @@ struct ChatArgs {
     float repeat = 1.1f; /* penalty on the last 64 tokens it said; 1: none */
     unsigned seed = LLAMA_DEFAULT_SEED;
     bool window = false;
+    /* A vision tier's projector; its runs start with an image frame. */
+    std::string mmproj;
 };
 
 struct Chat {
@@ -57,6 +59,7 @@ struct Chat {
     void *step_to = nullptr;
     float loaded = 0;     /* how much of the model is in, 0 to 1 */
     unsigned asks = 0;    /* stop is asked once in this many chances */
+    struct mtmd_context *vision = nullptr; /* a vision tier's projector, once open */
 };
 
 /* Whether the person has stopped it; stop is asked at most every few calls. */
@@ -108,6 +111,11 @@ typedef void (*Put)(void *to, const char *piece, size_t n, bool thought);
  * the cache, as if it had never been said.
  */
 bool chat_turn(const ChatArgs &a, Chat &c, std::string &said, Put put, void *to, int &made);
+/*
+ * The reply to a turn already in the cache from position `start` on, `ok`
+ * when it went in: chat_turn's, and a vision turn's after its image.
+ */
+bool chat_reply(const ChatArgs &a, Chat &c, bool ok, int start, Put put, void *to, int &made);
 /* The terminal: a prompt, the reply as it comes, a line of numbers. */
 int chat_terminal(const ChatArgs &a);
 /* The window: the same conversation, drawn and typed into. */
