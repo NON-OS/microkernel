@@ -23,7 +23,7 @@ None of these checks passes for a holder of `Admin` alone: `can_driver` and its
 siblings ask for their own bit
 (`src/capabilities/token/types/authority_broker.rs:29-51`). The two PCI
 configuration handlers ask for `Driver` once more themselves
-(`sys_pci_config_read` in `src/syscall/microkernel/pci.rs:28-35`). A driver also
+(`sys_pci_config_read` in `src/syscall/microkernel/pci/config.rs:27-34`). A driver also
 holds `IPC` (bit 3) to serve and `Memory` (bit 4) to allocate
 (`src/capabilities/types/defs.rs:24-25`). Holding `Irq` does not let a capsule
 post input events: `can_input_source` takes `InputSource` alone

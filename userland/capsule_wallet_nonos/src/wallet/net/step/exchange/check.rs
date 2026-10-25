@@ -59,6 +59,7 @@ impl Exchange {
             Err(Refusal::Alert(_)) => return Err(ALERTED),
             Err(Refusal::Incomplete) => return Err(NO_CHAIN),
             Err(Refusal::Seal) => return Err(NO_ANSWER),
+            Err(Refusal::TooSlow) => return Err(SLOW),
         };
         self.tls.mark_trusted();
         self.sealed(answer.app, answer.flight, end);

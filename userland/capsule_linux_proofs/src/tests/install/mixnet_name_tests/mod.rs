@@ -24,5 +24,7 @@
 //! guest is told the network is unreachable. Held end to end here: the
 //! capsule's own encoder, net.sockets' own reader, and its decision.
 
+mod direct;
+mod helpers;
 mod refused;
 mod status;

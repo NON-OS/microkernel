@@ -19,7 +19,6 @@
 //! id of its own, so the IOMMU sees that id; each one on the way up adds
 //! one. Every alias joins the device's domain, or its DMA is denied, or
 //! worse, lands in whatever domain holds the alias. kernel_proofs::acs_group.
-#![cfg(target_arch = "x86_64")]
 
 extern crate alloc;
 

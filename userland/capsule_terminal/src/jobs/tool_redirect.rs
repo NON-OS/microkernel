@@ -54,14 +54,15 @@ pub(super) fn redirected(state: &mut State, args: &[&[u8]]) -> Option<Verdict> {
         Err(line) => return Some(refuse(state, &line)),
     };
     let streams = tty::streams(capture.is_some(), input.is_some());
-    let Some(pid) = tool::prepare(state, &plan.words, streams) else {
+    let Some((pid, boxed)) = tool::prepare(state, &plan.words, streams) else {
         return Some(Verdict::Handled);
     };
     if let Some(bytes) = input {
         /* Within `FILE_MAX`, checked as the file was read, so this holds. */
         let _ = stdin.whole(&bytes);
     }
-    Some(Verdict::Job(JobWork::ExternalStage { pid, stdin, capture }))
+    let boxed = boxed.map(alloc::boxed::Box::new);
+    Some(Verdict::Job(JobWork::ExternalStage { pid, stdin, capture, boxed }))
 }
 
 fn refuse(state: &mut State, line: &[u8]) -> Verdict {

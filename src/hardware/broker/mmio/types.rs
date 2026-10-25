@@ -50,8 +50,6 @@ pub enum MmioMapError {
     NoVaSpace,
     MapFailed,
     WouldExposeMsixTable,
-    /// Write-combining asked of a BAR that is not prefetchable.
-    NotPrefetchable,
     /// The kernel maps the range itself with two memory types.
     MixedMemoryType,
     WouldExposePba,
@@ -59,4 +57,9 @@ pub enum MmioMapError {
     Forbidden,
     /// The BAR runs into a range firmware keeps for itself.
     FirmwareReserved,
+    /// Write-combining asked on a BAR that is not prefetchable (cache.rs,
+    /// memory_type.rs).
+    WcNotPrefetchable,
+    /// Write-combining asked for pages reaching past the BAR (cache.rs).
+    WcPastBar,
 }

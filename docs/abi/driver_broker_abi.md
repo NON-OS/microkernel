@@ -37,7 +37,7 @@ Each gate also admits `Admin`
 (`src/capabilities/token/types/authority_broker.rs`, `authority_admin.rs`).
 The two PCI configuration handlers ask for `Driver` itself as well, so an
 `Admin` token without `Driver` is refused there with `EPERM`
-(`src/syscall/microkernel/pci.rs`).
+(`src/syscall/microkernel/pci/config.rs`).
 
 ## Device records
 
@@ -308,6 +308,7 @@ irq/errno_map.rs, dma.rs, pci.rs, pio/errno.rs}`.
 
 - No broker call grants access without both the capability and current device
   ownership.
+- Grants are scoped to one owner process and one claim epoch, and are dropped
   when the claim is released or the process exits.
 - MMIO grants stay inside the claimed device's BARs and never map an MSI-X
   table or PBA.
@@ -358,7 +359,7 @@ src/syscall/microkernel/device.rs  MkDeviceList, MkDeviceClaim, MkDeviceRelease
 src/syscall/microkernel/mmio/      MkMmioMap, MkMmioUnmap, MmioMapOut
 src/syscall/microkernel/irq/       MkIrqBind/Poll/Ack/Wait/Unbind, IrqBindOut, IrqPollOut
 src/syscall/microkernel/dma.rs     MkDmaMap, MkDmaUnmap, DmaMapOut
-src/syscall/microkernel/pci.rs     MkPciConfigRead, MkPciConfigWrite
+src/syscall/microkernel/pci/       MkPciConfigRead, MkPciConfigWrite
 src/syscall/microkernel/pio/       MkPioGrant/Read/Write/Release (x86_64), PioGrantOut
 src/hardware/broker/claim/         the claim table, the epoch, release and exit cleanup
 src/hardware/broker/confine/       the per-capsule IOMMU domain

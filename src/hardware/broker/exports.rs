@@ -15,12 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the broker gives the rest of the kernel: the calls the syscall layer,
-//! the exit path and the boot make, under the names they know them by.
+//! the exit path and the boot make, under the names they know them by
+//! (x86_64's own, in one use, are in api.rs).
 
-#[cfg(target_arch = "x86_64")]
-pub use super::acpi_gpio::register_acpi_gpio;
-#[cfg(target_arch = "x86_64")]
-pub use super::acpi_i2c::register_acpi_i2c;
 pub use super::bootfb::{
     info_for as boot_framebuffer_info, register_boot_framebuffer, BootFbInfoError,
 };
@@ -62,11 +59,4 @@ pub use super::mmio::{
 pub use super::pci::{
     read as pci_config_read, write as pci_config_write, PciReadError, PciReadRequest,
     PciWriteError, PciWriteRequest,
-};
-#[cfg(target_arch = "x86_64")]
-pub use super::pio::{
-    grant_for_caller as pio_grant_for_caller, read as pio_read,
-    release_all_for_pid as pio_release_all_for_pid, release_for_device as pio_release_for_device,
-    release_grant as pio_release_grant, write as pio_write, PioError, PioGrantRequest,
-    PioGrantResult, PioWidth,
 };

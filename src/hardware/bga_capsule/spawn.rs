@@ -49,7 +49,8 @@ pub fn spawn_driver_bga_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         // The adapter has no DMA engine and no interrupt; its registers are
         // MMIO. Memory and GraphicsSurfaceCreate make the surface the
-        // compositor draws in.
+        // compositor draws in. Debug only on a `capsule-serial-debug` build,
+        // for its bring-up and screen-cleared lines.
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | crate::capabilities::serial_debug_cap()

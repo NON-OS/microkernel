@@ -31,10 +31,11 @@ pub const KEYS: [(&[u8], &[u8]); 12] = [
     (b"theme", b"theme or profile to change colours"),
 ];
 
-pub const SHELL: [(&[u8], &[u8]); 7] = [
+pub const SHELL: [(&[u8], &[u8]); 8] = [
     (b"pipe", b"a | b          feed a's output to b"),
     (b"redirect", b"a > f   a >> f   a < f   to, onto, or from a file"),
     (b"programs", b"linux cat < f   linux ls > f   tools too; /dev/null is nothing"),
+    (b"box", b"linux --box strict|offline|allow:<folders> <prog>, then a report"),
     (b"chain", b"a && b   a || b   a ; b   on success, on failure, always"),
     (b"jobs", b"a &   jobs   fg   bg      run in the background and bring it back"),
     (b"alias", b"alias ll ls -l   unalias ll   set   unset   env"),

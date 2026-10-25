@@ -18,12 +18,37 @@
 //! drains the table, so a grant entered after the drain would outlive the
 //! claim; one refused has its pages taken back and its VA returned instead.
 
-use super::types::MmioMapError;
+use super::types::{MmioMapError, MmioMapRequest};
+use super::window::Window;
 use crate::hardware::broker::grant::{self, MmioGrant};
 use crate::hardware::broker::quota_log;
 use crate::memory::addr::VirtAddr;
 
-pub(super) fn record(g: MmioGrant) -> Result<(), MmioMapError> {
+/// The grant for the pages of `w` mapped at `user_va`; its id once entered.
+pub(super) fn record(
+    pid: u32,
+    req: &MmioMapRequest,
+    epoch: u64,
+    w: &Window,
+    user_va: VirtAddr,
+) -> Result<u64, MmioMapError> {
+    let grant_id = grant::allocate_id();
+    enter(MmioGrant {
+        grant_id,
+        pid,
+        device_id: req.device_id,
+        claim_epoch: epoch,
+        bar_index: req.bar_index,
+        // The record holds the whole pages, which is what unmap gives back.
+        physical_start: w.page_start,
+        user_va: user_va.as_u64(),
+        length: w.page_bytes,
+        flags: req.flags,
+    })
+    .map(|()| grant_id)
+}
+
+fn enter(g: MmioGrant) -> Result<(), MmioMapError> {
     let entered = grant::insert_live(g);
     if entered == Some(Ok(())) {
         return Ok(());

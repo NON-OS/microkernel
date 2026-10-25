@@ -31,6 +31,7 @@
 mod calls;
 mod checks;
 mod clock;
+mod config;
 mod console;
 mod device;
 mod dma;
@@ -39,6 +40,7 @@ mod dma_back;
 mod dma_order;
 mod grants;
 mod log;
+mod pci_bits;
 #[path = "../../../libc/src/broker/mmio_access.rs"]
 mod mmio_access;
 mod refuse;
@@ -48,6 +50,7 @@ mod types;
 pub use calls::{Call, Engines, Seen};
 pub use checks::{bus_master_after_reset, first_bus_master, refused_without_bus_master};
 pub use clock::{mk_uptime_ms, uptime};
+pub use config::{config_reads, set_config};
 pub use console::{mk_debug, said};
 pub use device::{mk_device_claim, mk_device_release, mk_pci_config_read, mk_pci_config_write};
 pub use dma::mk_dma_map;
@@ -55,6 +58,7 @@ pub use dma_back::{live_dma, mk_dma_unmap};
 pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
 pub use grants::{mk_irq_bind, mk_irq_unbind, mk_mmio_map, mk_mmio_unmap};
 pub use log::{seen, watch};
+pub use pci_bits::*;
 pub use mmio_access::{
     mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
     mmio_write8,
@@ -63,9 +67,7 @@ pub use refuse::{refuse, refuse_after};
 pub use released::{bus_master_off, bus_master_off_after_stop, released_last};
 pub use types::{Bar, DmaMapOut, IrqBindOut, MmioMapOut, BAR_KIND_MMIO, BAR_KIND_PIO};
 
-/// The PCI Command bits and the DMA flag, as nonos_libc defines them.
-pub const MK_PCI_CFG_COMMAND: u32 = 0x04;
-pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
-pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
-pub const MK_PCI_CMD_INTX_DISABLE: u16 = 1 << 10;
-pub const MK_DMA_MAP_DMA32: u32 = 1 << 1;
+/// The bring-up exit codes and give-up decision: the real nonos_libc
+/// policy, at the path nonos_libc re-exports it under.
+#[path = "../../../libc/src/bringup/policy.rs"]
+pub mod bringup;

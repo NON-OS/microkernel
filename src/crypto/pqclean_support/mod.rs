@@ -19,7 +19,7 @@
 //! `libc_glue.c` provides the `malloc`/`free`/`exit` symbols PQClean
 //! expects from a hosted libc; each one tail-calls into a Rust function
 //! exported from this module. `randombytes.c` does the same for the
-//! `randombytes` entropy hook. Both C archives are compiled
+//! `randombytes` entropy hook (`random`). Both C archives are compiled
 //! unconditionally by `build.rs`, so these definitions must live outside
 //! every PQClean-algorithm feature gate — otherwise a kernel built
 //! without (for example) any `mlkem*` feature still pulls libc_glue.o
@@ -33,16 +33,8 @@
 
 extern crate alloc;
 
-#[no_mangle]
-pub extern "C" fn nonos_randombytes(buf: *mut u8, n: usize) {
-    if buf.is_null() || n == 0 {
-        return;
-    }
-    unsafe {
-        let slice = core::slice::from_raw_parts_mut(buf, n);
-        crate::crypto::rng::fill_random_bytes(slice);
-    }
-}
+mod random;
+pub(crate) use random::drew_cleanly;
 
 #[no_mangle]
 pub extern "C" fn nonos_malloc(size: usize) -> *mut u8 {
@@ -94,5 +86,5 @@ pub extern "C" fn nonos_free(ptr: *mut u8) {
 #[no_mangle]
 pub extern "C" fn nonos_panic() -> ! {
     crate::sys::serial::println(b"[FATAL] PQClean fatal error");
-    crate::arch::halt_loop()
+    crate::boot::panic::fatal()
 }

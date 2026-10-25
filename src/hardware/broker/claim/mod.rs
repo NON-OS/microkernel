@@ -32,6 +32,7 @@ mod lookup;
 mod master_off;
 mod no_snoop;
 mod pending;
+mod port_only;
 mod quiesce;
 mod quiesce_all;
 mod refusal;

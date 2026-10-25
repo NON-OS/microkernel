@@ -55,7 +55,7 @@ The Gate column is the predicate and the line in the cap table. Some handlers
 ask again. `sys_cap_grant` also needs every bit it grants
 (`src/syscall/microkernel/capability/handlers.rs:42-47`), and
 `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` themselves, so
-`Admin` alone is refused there (`src/syscall/microkernel/pci.rs:28-35`,
-`src/syscall/microkernel/pci.rs:43-50`).
+`Admin` alone is refused there (`src/syscall/microkernel/pci/config.rs:27-34`,
+`src/syscall/microkernel/pci/config.rs:42-49`).
 
 ## The calls

@@ -34,4 +34,5 @@ pub mod smmu;
 pub mod timebase;
 pub mod timer;
 pub mod timer_mem;
+pub mod tpm;
 pub mod uart;

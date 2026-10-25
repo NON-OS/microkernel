@@ -155,7 +155,7 @@ The other hardware code the [support matrix](../hardware/MATRIX.md) marks as ker
 
 ## What is not supported
 
-- No native Intel, AMD or NVIDIA display driver. `classify_display` sorts display functions by vendor (`src/hardware/inventory/classify_display.rs:19-28`), and those three families are enumerate-only. For them `missing_path` says `native modeset and scanout driver` (`src/hardware/inventory/missing.rs:19-27`). The desktop draws through the firmware framebuffer instead.
+- No native AMD or NVIDIA display driver. `classify_display` sorts display functions by vendor (`src/hardware/inventory/classify_display.rs`); those two families are enumerate-only, and for them `missing_path` says `native modeset and scanout driver` (`src/hardware/inventory/missing.rs`). The desktop draws through the firmware framebuffer instead. Intel graphics is dispatched to `driver_intel_display` (`src/hardware/inventory/driver.rs`), written and tested on the host and not yet signed.
 - No EHCI, OHCI or UHCI USB host driver and no SPI controller driver: for `UsbEhci` the inventory lists an `EHCI host controller driver` as missing, and the same for the other three (`src/hardware/inventory/missing.rs:28-31`).
 - An Intel VMD function, `StorageVmd`, is listed and never spawned for (`src/hardware/inventory/family.rs:23-25`). The kernel's PCI layer brings up the drives behind it instead, untested on a machine with a VMD; [Intel VMD](storage/vmd.md) has the details.
 - The nine capsules marked "no" above run on no machine in this release.

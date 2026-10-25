@@ -16,7 +16,6 @@
 
 //! The ACS words of a function, read and turned on by layout, pure over
 //! its register reads and writes. kernel_proofs::acs_group.
-#![cfg(target_arch = "x86_64")]
 
 use super::acs_layout::Layout;
 use super::acs_rule::enabling;

@@ -17,7 +17,6 @@
 //! A device's isolation group and requester-id aliases, read from the hardware: the
 //! functions the broker table enumerated, each bridge's buses and kind, and each hop's ACS,
 //! turned on where it is offered and read back (acs_read.rs). x86's alone.
-#![cfg(target_arch = "x86_64")]
 
 extern crate alloc;
 
@@ -26,14 +25,14 @@ use alloc::vec::Vec;
 use super::acs_alias::aliases;
 use super::acs_kind::{secondary, Secondary};
 use super::acs_path::path;
-use super::acs_reach::group_by_hop;
+use super::acs_reach::{group_by_hop, shared};
 use super::acs_read::{buses, redirect};
 use super::acs_tree::{Bdf, Func};
 use super::member::Member;
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 /// What a device reaches past the IOMMU, and the ids it reaches it under.
-pub(super) struct Reach {
+pub(in super::super) struct Reach {
     /// The other broker devices in its isolation group.
     pub group: Vec<Member>,
     /// The requester ids its DMA may carry besides its own.
@@ -42,19 +41,19 @@ pub(super) struct Reach {
 
 /// None for a device behind a VMD, which never confines, or whose path to
 /// the root does not end.
-pub(super) fn reach(device_id: u64) -> Option<Reach> {
+pub(in super::super) fn reach(device_id: u64) -> Option<Reach> {
     let me = pci_index::lookup(device_id).filter(|h| h.address.segment == 0)?;
     let handles: Vec<PciHandle> =
         pci_index::all().into_iter().filter(|h| h.address.segment == 0).collect();
     let all: Vec<Func> = handles.iter().map(|h| func(bdf(h))).collect();
     let hops = path(bdf(&me), &all)?;
+    let across = shared(&hops);
     let reached = group_by_hop(hops, redirect);
-    let others = handles.iter().filter(|h| h.device_id != device_id);
     let member = |h: &PciHandle| {
         let &(at, hop) = reached.iter().find(|(m, _)| *m == bdf(h))?;
-        Some(Member { id: h.device_id, at, hop })
+        Some(Member { id: h.device_id, at, hop, shared: across.contains(&at) })
     };
-    let group = others.filter_map(member).collect();
+    let group = handles.iter().filter(|h| h.device_id != device_id).filter_map(member).collect();
     Some(Reach { group, aliases: aliases(bdf(&me), &all) })
 }
 

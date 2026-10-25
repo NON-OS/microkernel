@@ -57,6 +57,7 @@ pub(super) fn build_pcb(
         capability_token: spin::RwLock::new(token),
         caps_bits: AtomicU64::new(caps),
         caps_manifest_installed: core::sync::atomic::AtomicBool::new(false),
+        debug_withheld: core::sync::atomic::AtomicBool::new(false),
         revocation_epoch: AtomicU64::new(0),
         mmap_va: spin::Mutex::new(crate::process::mmap_va::MmapVa::new()),
         exit_code: AtomicI32::new(0),

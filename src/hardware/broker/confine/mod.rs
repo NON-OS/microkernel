@@ -13,19 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod acs;
-mod acs_alias;
+
+// The groups below open switches found at boot (L72): pure, every arch.
 mod acs_groups;
-mod acs_kind;
-mod acs_layout;
-mod acs_path;
-mod acs_reach;
-mod acs_read;
 mod acs_refusal;
-mod acs_rule;
 mod acs_span;
-mod acs_tree;
-mod acs_words;
+/// The PCIe ACS walk that finds a device's isolation group: x86_64 only.
+#[cfg(target_arch = "x86_64")]
+mod acs_walk;
 mod attach;
 mod avoid;
 mod capsule;
@@ -46,6 +41,7 @@ mod map;
 mod map_fail;
 mod member;
 mod one;
+mod port_only;
 mod posture;
 mod refuse;
 mod reserve;

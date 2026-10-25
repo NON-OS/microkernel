@@ -17,6 +17,3 @@
 pub const EXEC_RANDOMIZATION_RANGE: u64 = 0x4000_0000;
 pub const STACK_RANDOMIZATION_RANGE: u64 = 0x0100_0000;
 pub const HEAP_RANDOMIZATION_RANGE: u64 = 0x0200_0000;
-pub(in crate::elf::aslr::manager) const LCG_MULTIPLIER: u64 = 6364136223846793005;
-pub(in crate::elf::aslr::manager) const LCG_INCREMENT: u64 = 1;
-pub(in crate::elf::aslr::manager) const FALLBACK_SEED: u64 = 0xDEAD_BEEF_CAFE_BABE;

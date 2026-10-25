@@ -50,6 +50,21 @@ pub mod discover_order;
 #[path = "../../../src/services/registry/displays.rs"]
 pub mod displays;
 
+#[path = "../../compositor/src/server/runner/turn_watch.rs"]
+pub mod turn_watch;
+
+/// The stall watchdog's rule and its lines; the thread and the atomics it
+/// reads are the capsule's.
+#[path = "."]
+pub mod runner {
+    #[path = "../../compositor/src/server/runner/stall_line.rs"]
+    pub mod stall_line;
+    #[path = "../../compositor/src/server/runner/stall_rule.rs"]
+    pub mod stall_rule;
+    #[path = "../../compositor/src/server/runner/stall_step.rs"]
+    pub mod stall_step;
+}
+
 #[cfg(test)]
 mod k20_tests;
 #[cfg(test)]

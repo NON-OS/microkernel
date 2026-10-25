@@ -28,6 +28,7 @@ mod gpt;
 mod identify;
 mod kept;
 mod kind;
+pub(crate) mod leave;
 mod map_ahci;
 mod map_nvme;
 mod map_usb_msc;

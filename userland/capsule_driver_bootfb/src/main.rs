@@ -35,11 +35,13 @@ mod start;
 
 use nonos_gfx_pool::Pool;
 use nonos_gfx_serve::Server;
-use nonos_libc::{mk_exit, start_driver};
+use nonos_libc::{heap_init, mk_exit, start_driver};
 
 use crate::display::BootFb;
 
 const DRIVER: &[u8] = b"driver.bootfb";
+/// No heap: the display server allocates from the first request on.
+const EXIT_HEAP_INIT: i32 = 1;
 
 /// With no boot framebuffer listed (another driver's machine, or firmware
 /// left none) the driver says so and leaves (`EXIT_ABSENT`). One that is
@@ -50,6 +52,9 @@ const DRIVER: &[u8] = b"driver.bootfb";
 /// The kernel enters here once, on the capsule's own stack.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
+    if heap_init().is_err() {
+        mk_exit(EXIT_HEAP_INIT);
+    }
     let up = start_driver(DRIVER, discover::find(), |r| {
         let fb = match bring_up::bring_up(&mut libc_firmware::Libc, r) {
             Err(firmware::Why::Refused) => start::refused(),
@@ -57,8 +62,9 @@ pub unsafe extern "C" fn _start() -> ! {
         };
         let (holds, release) = (libc_scanout::holds, libc_scanout::release);
         let device_id = r.device_id;
-        let display = BootFb { fb, fence: serve::fence, device_id, holds, release, gone: false, told: false };
-        Ok(Server::new(display, Pool))
+        let display =
+            BootFb { fb, fence: serve::fence, device_id, holds, release, gone: false, told: false };
+        Ok(Server::new(display, Pool::default()))
     });
     match up {
         Ok(mut server) => serve::run(&mut server),

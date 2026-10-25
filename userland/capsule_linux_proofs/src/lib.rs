@@ -74,6 +74,8 @@ pub mod family;
 pub mod hash_windows;
 #[path = "../../capsule_linux/src/linux/file/root.rs"]
 pub mod root;
+#[path = "../../capsule_linux/src/linux/file/root_write.rs"]
+pub mod root_write;
 #[path = "../../capsule_linux/src/linux/file/resolve.rs"]
 pub mod resolve;
 #[path = "../../capsule_linux/src/linux/file/models/name.rs"]
@@ -135,6 +137,9 @@ pub mod private_rule;
 
 /* The box a guest runs in: its policy, its identity, what it allows. */
 pub mod app;
+
+/* `linux --box`: its presets, what it refused, and its report. */
+pub mod boxed;
 
 pub mod calls;
 pub mod console;

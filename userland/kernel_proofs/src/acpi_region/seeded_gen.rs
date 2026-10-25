@@ -44,7 +44,7 @@ pub const TOP: u64 = 0x40_0000;
 
 pub fn machine(r: &mut Rng) -> Machine {
     let mut m =
-        Machine { map: vec![], windows: vec![], ports: vec![], hardware: vec![], pci: vec![] };
+        Machine { map: vec![], windows: vec![], ports: vec![], hardware: vec![], pci: vec![], reset: vec![] };
     for _ in 0..1 + r.below(8) {
         let (lo, hi) = r.span(TOP, 0x1000);
         m.map.push((lo, hi, KINDS[r.below(7) as usize]));

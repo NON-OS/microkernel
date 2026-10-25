@@ -24,8 +24,8 @@ fn a_described_device_is_confined_or_refused() {
         &[
             "let Some(address) = pci_address(device_id) else {",
             "if let Some(iommus) = crate::hardware::broker::described::iommus(device_id) {",
-            "return Ok(attach_streams(pid, device_id, iommus)?);",
-            "attach_one(pid, device_id, address, false,",
+            "return Ok(attach_streams(pid, device_id, iommus, port_only)?);",
+            "attach_one(pid, device_id, address, (false, port_only),",
         ],
     );
     order(
@@ -36,7 +36,7 @@ fn a_described_device_is_confined_or_refused() {
             "Err(Refused)",
             "for sid in iommus.sids() {",
             "let stream = DeviceAddress::stream(*sid);",
-            "if attach_one(pid, device_id, stream, true, (&[], &[])).is_err() {",
+            "if attach_one(pid, device_id, stream, (true, port_only), (&[], &[])).is_err() {",
             "detach(pid, device_id);",
             "return Err(Refused);",
         ],

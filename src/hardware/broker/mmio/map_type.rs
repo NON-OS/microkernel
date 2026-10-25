@@ -27,7 +27,7 @@ pub(super) fn memory_type(flags: u32, bar: &Bar, w: &Window) -> Result<MemType, 
     let prefetchable = bar.flags & BAR_FLAG_PREFETCH != 0;
     choose(flags, prefetchable, kernel_view(w.page_start, w.page_bytes)).map_err(|r| match r {
         TypeRefusal::UnknownFlags => MmioMapError::UnsupportedFlags,
-        TypeRefusal::NotPrefetchable => MmioMapError::NotPrefetchable,
+        TypeRefusal::NotPrefetchable => MmioMapError::WcNotPrefetchable,
         TypeRefusal::Mixed => MmioMapError::MixedMemoryType,
     })
 }

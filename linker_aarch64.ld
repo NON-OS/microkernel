@@ -97,6 +97,10 @@ SECTIONS {
     _end = .;
     /* The Image header's image_size: everything a loader must leave free. */
     __kernel_image_size = __kernel_image_end - __kernel_image_start;
+    /* The names the shared memory layout reads the image's bounds by
+       (memory/layout): the broker keeps every device grant off these frames. */
+    __kernel_start = __kernel_image_start;
+    __kernel_end = __kernel_image_end;
 
     /DISCARD/ : {
         *(.eh_frame*)

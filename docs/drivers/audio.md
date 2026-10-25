@@ -83,6 +83,16 @@ What the driver does on such a machine:
 
 A DSP-capable Intel controller that does have an analog codec plays through it as plain HD Audio.
 
+## USB speakers and headsets
+
+A USB Audio Class device is driven by `driver.usb_audio0` over the xHCI isochronous OUT endpoint. While it says a device is ready, the audio server plays through it instead of the fixed sink (`with_usb`, `userland/capsule_audio/src/sink/choose.rs`).
+
+- The device counts as gone when three isochronous batches fail (`LOST_AFTER`, `userland/capsule_driver_usb_audio/src/serve/loss.rs`), or when its port's connect status reads empty. The port is read about once a second, while the device plays as much as while it is idle (`look_now`, `userland/capsule_driver_usb_audio/src/serve/look.rs`).
+- A device that is gone is given back: its slot is disabled and its port is searched again (`give_back`, `userland/capsule_driver_usb_audio/src/serve/gone.rs`).
+- The driver then answers the server's next write `E_NODEV`, and the server chooses its output again at once rather than at its two-second check, so playback moves to the fixed sink (`rechoose_now`, `userland/capsule_audio/src/server/pump_rule.rs`). The period it was writing is kept and goes out first on the fixed sink.
+
+This is written and tested on the host (`usb_audio_proofs`, `audio_proto_proofs`); no boot of it is recorded yet, and `driver.usb_audio0` is not in the shipped images until its publisher key is made.
+
 ## Not supported
 
 - Recording. The driver opens no input stream, so no microphone is read (`output_descriptor`, `userland/capsule_driver_hda/src/setup/sequence.rs:214-225`).

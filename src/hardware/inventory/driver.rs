@@ -33,6 +33,7 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         NetworkE1000 => "driver_e1000",
         NetworkE1000e => "driver_e1000e",
         NetworkIgb => "driver_igb",
+        NetworkIgc => "driver_igc",
         NetworkIxgbe => "driver_ixgbe",
         NetworkRtl8139 => "driver_rtl8139",
         NetworkRtl8169 => "driver_rtl8169",
@@ -47,6 +48,9 @@ pub fn family_driver(family: HardwareFamily) -> Option<&'static str> {
         // blit to it without losing the screen.
         DisplayBga => "driver_bga",
         DisplayVmwareSvga => "driver_vmware_svga",
+        // Haswell on; it leaves at once, claiming nothing, on a generation
+        // its id tables do not cover.
+        DisplayNativeIntel => "driver_intel_display",
         AudioAc97 => "driver_ac97",
         InputVmmdev => "driver_vmmdev",
         UsbXhci => "driver_xhci",

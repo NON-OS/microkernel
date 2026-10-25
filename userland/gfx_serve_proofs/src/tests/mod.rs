@@ -27,3 +27,4 @@ mod silence_tests;
 mod size_tests;
 mod surface_tests;
 mod sweep_tests;
+mod tell_tests;

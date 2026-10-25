@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod add;
+mod boot_fb;
+mod boot_fb_rule;
 mod external;
 mod init;
 mod list;
@@ -26,6 +28,7 @@ mod state;
 // For the ACPI broker, which only x86 builds.
 #[allow(unused_imports)]
 pub(in crate::hardware::broker) use add::add_pci_function;
+pub use boot_fb::boot_fb_held;
 pub use external::external_port_of;
 #[allow(unused_imports)] // x86 alone declares ports yet
 pub(in crate::hardware::broker) use external::mark as mark_external;

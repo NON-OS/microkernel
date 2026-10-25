@@ -21,9 +21,12 @@
 mod scope;
 
 mod claims_nothing;
+mod display_rows;
 mod edges;
 mod host_rows;
 mod hostile;
+#[cfg(test)]
+mod nic_rows;
 mod ranges;
 mod spawned;
 mod virt_rows;

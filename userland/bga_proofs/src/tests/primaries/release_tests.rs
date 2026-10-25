@@ -30,7 +30,7 @@ fn a_primarys_share_is_released_before_its_memory_is_unmapped() {
     lend(memory.base(), 16384);
     // The share names the compositor, so one must be running.
     hold(b"compositor", Some(42));
-    let mut p = Pool;
+    let mut p = Pool::default();
     let r = p.alloc(64 * 48 * 4).expect("the primary's memory");
     let handle = p.register(r, 64, 48, 64 * 4).expect("registered and shared");
     assert_eq!(registered().last().map(|d| d.base_va), Some(memory.base()));

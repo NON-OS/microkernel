@@ -21,7 +21,7 @@
 //! that is not a P2SB. The hide control (P2SBC at 0xE0, HIDE bit 8) is
 //! recalled from the PCH datasheets (volume 2, P2SB): unverified.
 
-use crate::arch::x86_64::acpi::aml::sbreg_from_bar0;
+use crate::arch::firmware_table::devices::sbreg_from_bar0;
 use crate::bus::pci::{pci_read16, pci_read32, pci_write32};
 use crate::sys::serial;
 

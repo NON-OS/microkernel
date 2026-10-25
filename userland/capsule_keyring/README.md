@@ -22,9 +22,9 @@ client capsule (wallet, login, ...)
 
 ## Microkernel contract
 
-- `CAPSULE_REQUIRED_CAPS = 0x38`: IPC (`0x8`), Memory (`0x10`) and Crypto
-  (`0x20`). The kernel mirror (`src/security/keyring_capsule`) requests the same
-  three bits. There is no optional mask. The capsule is the authority for the
+- `CAPSULE_REQUIRED_CAPS = 0x10000038`: IPC (`0x8`), Memory (`0x10`), Crypto
+  (`0x20`) and Keyring (`0x10000000`), which every keyring endpoint requires of
+  requests the same four bits. There is no optional mask. The capsule is the authority for the
   Keyring bit, so it does not hold `Capability::Keyring`; callers do.
 - Service `service:4098:keyring`, reply `reply:4099:endpoint.4294967298`.
 - The feature `nonos-capsule-keyring` is in `microkernel-keyring`,
@@ -117,9 +117,9 @@ ported and tested.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS = 0x38` is the whole authority the capsule asks for: IPC
-for `mk_ipc_recv_from`/`mk_ipc_send`, Memory for the heap, and Crypto for
-`CryptoRandom` and `CryptoMachineKey`. It holds no device, MMIO, IRQ, DMA, PIO,
+`CAPSULE_REQUIRED_CAPS = 0x10000038` is the whole authority the capsule asks
+for: IPC for `mk_ipc_recv_from`/`mk_ipc_send`, Memory for the heap, Crypto for
+`CryptoRandom` and `CryptoMachineKey`, and Keyring to own its endpoints. It holds no device, MMIO, IRQ, DMA, PIO,
 filesystem, network, admin or debug capability, and no Keyring bit. The kernel
 installs the mask from the verified manifest at spawn; the capsule cannot widen
 it.

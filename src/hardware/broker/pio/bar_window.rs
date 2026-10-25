@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The port window a BAR names: an I/O BAR with a size, wholly inside the
 //! 16-bit port space, its count converted and never masked, and clear of the
-//! machine's own ports (`window`, K6). A window past 0xFFFF would wrap onto
-//! port 0 on the wire, so it is refused rather than truncated.
+//! machine's own ports (`window`, K6) and of the FADT's power registers
+//! (`power_ports`). A window past 0xFFFF would wrap onto port 0 on the wire,
+//! so it is refused rather than truncated.
 
+use super::power_ports::clear;
 use super::types::PioError;
 use super::window::{window, Refused};
 use crate::hardware::broker::device::BAR_KIND_PIO;
@@ -30,7 +32,7 @@ pub(super) fn port_window(bar: Bar) -> Result<(u16, u16), PioError> {
     if bar.size == 0 {
         return Err(PioError::ZeroSize);
     }
-    window(bar.base, bar.size).map_err(|r| match r {
+    clear(window(bar.base, bar.size)).map_err(|r| match r {
         Refused::Overflow => PioError::PortOverflow,
         Refused::Reserved => PioError::ReservedPort,
     })

@@ -20,6 +20,7 @@
 
 use super::super::types::{PioError, PioWidth};
 use super::raw::{out16, out32, out8};
+use super::reset_rule::resets_machine;
 use super::resolve::resolve;
 use crate::hardware::broker::claim;
 
@@ -32,6 +33,9 @@ pub fn write(
 ) -> Result<(), PioError> {
     let (g, _held) = resolve(pid, grant_id, port_offset, width)?;
     let port = g.port_base + port_offset;
+    if resets_machine(port, width as u8, value) {
+        return Err(PioError::ReservedPort);
+    }
     // SAFETY: the port lies in the grant's window, bounds checked by resolve.
     let write = || unsafe {
         match width {
