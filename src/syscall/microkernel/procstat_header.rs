@@ -41,7 +41,8 @@ pub struct ProcStatHeader {
     pub interrupts: u64,
     pub faults: u64,
     pub cpus_online: u32,
-    /* How this boot was started: BOOT_INSTALL_REQUESTED and a BOOT_PROFILE_* bit. */
+    /* How this boot was started: BOOT_INSTALL_REQUESTED, a BOOT_PROFILE_* bit,
+     * and BOOT_DMA_UNCONFINED. */
     pub boot_flags: u32,
     /// Busy ticks split by where they landed; idle ticks are neither.
     pub user_ticks: u64,
@@ -67,3 +68,6 @@ pub const BOOT_PROFILE_HARDENED: u32 = 1 << 1;
 pub const BOOT_PROFILE_SAFE: u32 = 1 << 2;
 pub const BOOT_PROFILE_AIR_GAPPED: u32 = 1 << 3;
 pub const BOOT_PROFILE_RECOVERY: u32 = 1 << 4;
+/* The no-IOMMU posture holds: devices are claimed unconfined and reach all
+ * of memory. An older kernel never takes it, so its zero reads true. */
+pub const BOOT_DMA_UNCONFINED: u32 = 1 << 5;
