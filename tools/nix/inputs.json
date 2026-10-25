@@ -5932,6 +5932,7 @@
   ],
   "include": [
    ".cargo",
+   "abi/syscalls.toml",
    "nonos-bootloader/src/paging/constants.rs",
    "nonos-bootloader/src/paging/fb_window.rs",
    "nonos-data/trust/capsules",
