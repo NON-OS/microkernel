@@ -19,15 +19,17 @@
 use super::command_rule::{command_value, Refused};
 use super::types::{PciWriteError, WriteAction};
 
-/// The Command register write, by the rule in command_rule.rs.
+/// The Command register write, by the rule in command_rule.rs; `may` is
+/// whether the caller holds Dma, and Mmio.
 pub(super) fn validate_command(
     new: u16,
     current: u16,
-    may_master: bool,
+    may: (bool, bool),
 ) -> Result<WriteAction, PciWriteError> {
-    match command_value(new, current, may_master) {
+    match command_value(new, current, may.0, may.1) {
         Ok(value) => Ok(WriteAction::Command(value)),
         Err(Refused::Bits) => Err(PciWriteError::BitsNotAllowed),
         Err(Refused::BusMaster) => Err(PciWriteError::BusMasterWithoutDma),
+        Err(Refused::MemorySpace) => Err(PciWriteError::MemorySpaceWithoutMmio),
     }
 }
