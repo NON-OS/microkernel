@@ -45,7 +45,7 @@ fn only_a_whole_report_is_drawn_after_a_stop() {
     let wait = include_str!("../../../capsule_terminal/src/jobs/box_wait.rs");
     let stopped = &wait[at(wait, "pub(super) fn stopped(")..];
     let cut = at(stopped, "Some(hold) if !hold.complete() => {");
-    assert!(cut < at(stopped, "stopped before the box's report arrived"));
+    assert!(cut < at(stopped, "box_draw::missing(super::box_missing::Missing::Stopped, STOPPED"));
     assert!(stopped.contains("hold => ended(hold, STOPPED, out, held),"));
     /* A shell's status for a program ended by SIGINT (2): 128 and the signal. */
     assert!(wait.contains(&format!("pub(super) const STOPPED: i32 = {};", 128 + 2)));
