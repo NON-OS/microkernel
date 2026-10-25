@@ -17,6 +17,7 @@
 use nonos_libc::mk_display_vsync_wait;
 
 use crate::compositor_client::push_damage_commit;
+use crate::first_paint;
 use crate::paint::fill_argb;
 use crate::protocol::{read_u32, Request, E_INVAL, FADE_REQ_LEN};
 use crate::server::respond;
@@ -44,6 +45,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     let duration_ns = (duration_ms as u64).saturating_mul(1_000_000);
     ctx.fade.start(ctx.alpha, target_alpha as u8, now_ns, duration_ns);
     if duration_ns == 0 {
+        first_paint::wait(ctx);
         ctx.alpha = target_alpha as u8;
         let argb = ctx.current_argb();
         fill_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, argb);
