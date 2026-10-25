@@ -67,6 +67,10 @@ SOURCES = [
     "tools/nonos-market-index", "tools/nonos-market-catalogue", "tools/nonos_market_catalogue",
     "tools/nonos-market-sign-releases", "tools/nonos-qwen-tier.py", "tools/nonos_qwen_tier",
     "tools/nix/userland.nix", "tools/nix/sources.txt", "nonos-mk",
+    # The catalogue's recipes, its policy encoder, the Alpine keys it checks
+    # under and the release the device installs from.
+    "tools/nonos_linux_pack", "userland/capsule_linux/keys/alpine",
+    "userland/capsule_linux/src/linux/install/run.rs",
 ]
 
 
@@ -106,6 +110,9 @@ def seal(step, tools, linux_out, serial, mirror, package_mirror="", packages="",
              "--seed", keys.OPERATOR_SEED, "--pubkey", keys.OPERATOR_PUB,
              "--linux-list", "userland/capsule_market/linux-packages.txt",
              "--guest-list", "userland/capsule_market/linux-guests.json", "--serial", serial,
+             # The catalogue's apps: fetched from Alpine, checked under the
+             # keys the device pins, each listed with its box.
+             "--catalogue", "userland/capsule_market/linux-catalogue.json",
              # The in-tree tools the image does not carry, listed only when it
              # is built with a NONOS package mirror, their content written to
              # `packages` for ek to put on it.
