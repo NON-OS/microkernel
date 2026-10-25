@@ -19,6 +19,7 @@ use super::streams::attach_streams;
 use super::table::pci_address;
 use super::unconfined::unconfined;
 use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
+use crate::memory::iommu::no_iommu::holds as posture;
 
 /// Confine `device_id` to `pid`'s domain; whether the claim is port-only
 /// (port_only.rs), for the claim to close its Memory Space.
@@ -35,7 +36,7 @@ fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
             return Ok(attach_streams(pid, device_id, iommus, port_only)?);
         }
         // No requester id, no bus master: map.rs refuses its DMA grants.
-        return match verdict(false, false, Ok(()), port_only, (OPT_IN, PRODUCTION)) {
+        return match verdict(false, false, Ok(()), port_only, (OPT_IN, PRODUCTION), posture()) {
             Verdict::Refuse => Err(Refused.into()),
             _ => Ok(()),
         };
@@ -45,10 +46,11 @@ fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
      * handed to it would be used as a physical address: with only the first
      * unit programmed, the RTL8821CE behind a laptop's second unit staged its
      * firmware from whatever lived at 0x100000. Such a device is refused,
-     * but under the development opt-in (unconfined.rs).
+     * unless no unit is in service at all and the no-IOMMU posture holds
+     * (unconfined.rs).
      */
     if !crate::memory::iommu::translates(address) {
-        let v = verdict(true, false, Ok(()), port_only, (OPT_IN, PRODUCTION));
+        let v = verdict(true, false, no_unit(), port_only, (OPT_IN, PRODUCTION), posture());
         return Ok(unconfined(device_id, v)?);
     }
     let (group, aliases) = super::gates::admit(device_id)?;
@@ -60,5 +62,16 @@ fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
 /// ahead only where an unconfined device may.
 pub(in crate::hardware::broker) fn untranslated(device_id: u64) -> Result<(), Refusal> {
     // Its port reads memory whatever its Command register says: never port-only.
-    Ok(unconfined(device_id, verdict(true, false, Ok(()), false, (OPT_IN, PRODUCTION)))?)
+    let v = verdict(true, false, no_unit(), false, (OPT_IN, PRODUCTION), posture());
+    Ok(unconfined(device_id, v)?)
+}
+
+/// What a device no unit translates has for a domain: none for want of a
+/// unit when no unit is in service at all, the one case the posture opens.
+fn no_unit() -> Result<(), bool> {
+    if crate::memory::iommu::capabilities().enforcing {
+        Ok(())
+    } else {
+        Err(true)
+    }
 }
