@@ -39,6 +39,8 @@ pub mod capabilities {
 
 #[path = "../../../src/process/core/table/ambient.rs"]
 mod ambient;
+#[path = "../../../src/process/core/argv_bound.rs"]
+mod argv_bound;
 #[path = "../../../src/security/capsule_manifest/verify/caps_bits.rs"]
 mod spawn_caps;
 

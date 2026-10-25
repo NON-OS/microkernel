@@ -41,6 +41,8 @@ pub mod userspace;
 pub use context as nonos_context;
 pub use context::CpuContext;
 pub use core as nonos_core;
+pub use core::argv_bound::ARGV_BYTES_MAX;
+pub use core::set_argv;
 pub use core::{
     allocate_tid, clear_fpu_state, clear_interrupt_context, context_switch, create_process,
     current_pid, current_process, get_process_stats, get_process_table, has_saved_fpu_state,
