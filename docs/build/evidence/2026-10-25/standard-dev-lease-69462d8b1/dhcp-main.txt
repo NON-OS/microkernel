@@ -1,0 +1,6 @@
+main.pcap: 1165 frames
+main-in.pcap: 351 frames
+  +  33.491s  DISCOVER  yiaddr=0.0.0.0  (main.pcap)
+  +  33.491s  OFFER     yiaddr=10.0.2.15  (main-in.pcap)
+  +  33.502s  REQUEST   yiaddr=0.0.0.0  (main.pcap)
+  +  33.502s  ACK       yiaddr=10.0.2.15  (main-in.pcap)
