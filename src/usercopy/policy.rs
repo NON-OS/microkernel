@@ -24,7 +24,7 @@ use super::error::UsercopyError;
 
 pub(super) const USER_SPACE_END: u64 = 0x0000_7FFF_FFFF_FFFF;
 pub(super) const PAGE_SIZE: u64 = 4096;
-pub(crate) const MAX_COPY_SIZE: usize = 64 * 1024 * 1024;
+pub(super) const MAX_COPY_SIZE: usize = 64 * 1024 * 1024;
 
 #[derive(Clone, Copy)]
 pub(super) struct UserRange {
