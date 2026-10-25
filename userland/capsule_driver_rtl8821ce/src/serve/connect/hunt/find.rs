@@ -7,6 +7,7 @@ use nonos_wifi_core::dot11::parse::parse_beacon;
 use nonos_wifi_core::regdom::join_channel;
 
 use super::super::super::{SCAN_CHANNELS, SCAN_FRAME_MAX};
+use super::super::pace::nap;
 use super::super::probe::hunt_probe;
 use super::dwell::{BEACON_HUNT_DWELL_MS, HUNT_SWEEPS};
 use crate::fw::dma::Grant;
@@ -48,6 +49,7 @@ pub(in super::super) fn find_candidates(
         let leave_at = nonos_libc::mk_uptime_ms() + BEACON_HUNT_DWELL_MS;
         while nonos_libc::mk_uptime_ms() < leave_at {
             let Some(n) = link.poll_raw(&mut frame) else {
+                nap();
                 continue;
             };
             let Some(info) = parse_beacon(&frame[..n]) else {
