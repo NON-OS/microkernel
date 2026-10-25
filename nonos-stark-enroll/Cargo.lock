@@ -167,6 +167,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos-proof-verify"
+version = "1.0.0"
+dependencies = [
+ "blake3",
+ "nonos-attest-path",
+ "nonos-boot-measure",
+ "nox_verify",
+]
+
+[[package]]
 name = "nonos-stark"
 version = "0.1.0"
 source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
@@ -182,6 +192,7 @@ dependencies = [
  "blake3",
  "nonos-attest-path",
  "nonos-boot-measure",
+ "nonos-proof-verify",
  "nox_verify",
  "stark_proofs",
 ]

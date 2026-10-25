@@ -22,21 +22,25 @@ use super::super::records;
 use super::super::types::IrqError;
 use crate::arch::interrupt::ioapic;
 
+/// The unmask runs under the records' lock while the grant stands, so an
+/// unbind or drain that removed it masks after, never before (L77).
 pub fn ack_grant(pid: u32, grant_id: u64) -> Result<(), IrqError> {
-    let g = records::lookup(grant_id).ok_or(IrqError::UnknownGrant)?;
-    if g.pid != pid {
-        return Err(IrqError::NotHolder);
-    }
-    match g.kind {
-        IrqGrantKind::Intx => {
-            let _ = ioapic::mask(g.irq_source, false);
+    let acked = records::with_grant(grant_id, |g| {
+        if g.pid != pid {
+            return Err(IrqError::NotHolder);
         }
-        IrqGrantKind::Msix | IrqGrantKind::Msi => {
-            // MSI and MSI-X have no per-line IO-APIC mask. The dispatcher
-            // leaves the per-vector mask alone, so an ack is a
-            // no-op on the hardware side; capsules still call it
-            // for symmetry with the INTx path.
+        match g.kind {
+            IrqGrantKind::Intx => {
+                let _ = ioapic::mask(g.irq_source, false);
+            }
+            IrqGrantKind::Msix | IrqGrantKind::Msi => {
+                // MSI and MSI-X have no per-line IO-APIC mask. The dispatcher
+                // leaves the per-vector mask alone, so an ack is a
+                // no-op on the hardware side; capsules still call it
+                // for symmetry with the INTx path.
+            }
         }
-    }
-    Ok(())
+        Ok(())
+    });
+    acked.unwrap_or(Err(IrqError::UnknownGrant))
 }

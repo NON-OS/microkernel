@@ -25,7 +25,7 @@ use crate::arch::x86_64::iommu::unit::invalidate::invalidate_all;
 
 /// Queue, install, invalidate, enable. The queue comes first so the
 /// invalidation after the root pointer already takes the path every later
-/// one will (Linux intel/iommu.c, init_dmars). Refuses a unit firmware left
+/// one will. Refuses a unit firmware left
 /// enabled: its tables describe transfers already in flight, and swapping the
 /// root would fault DMA the kernel did not issue and cannot retry.
 ///

@@ -18,6 +18,9 @@
 
 use std::vec::Vec;
 
+use super::dmar_rmrr::Rmrr;
+use crate::dmar_scope::scope::Cover;
+
 /// An RMRR: type 1, length, reserved, segment, base, limit, then scopes.
 pub(super) fn rmrr(base: u64, limit: u64, scopes: &[Vec<u8>]) -> Vec<u8> {
     let mut b = vec![1u8, 0, 0, 0, 0, 0, 0, 0];
@@ -41,3 +44,11 @@ pub(super) fn bridges(bus: u8, dev: u8, func: u8) -> Option<(u8, u8)> {
 }
 
 pub(super) const GFX: (u8, u8, u8) = (0, 2, 0);
+
+/// Whether `r` is for the device at `seg`/`bdf`: only a resolved yes is.
+pub(super) fn names<F>(r: &Rmrr, seg: u16, bdf: (u8, u8, u8), bb: &F) -> bool
+where
+    F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
+{
+    super::dmar_rmrr_names::rmrr_names(r, seg, bdf, bb) == Cover::Yes
+}

@@ -49,6 +49,12 @@ jobs:
           # flake.lock pins, built by the flake.
           mkdir -p release
           cp "$(nix build .#verifier-wasm --no-link --print-out-paths)/verifier.wasm" release/verifier.wasm
+          # The proof verifier's page: nonos-proof-verify itself in wasm, which
+          # checks the release's committed attestation proofs the same way the
+          # boot gates do. One tarball, its order and times fixed.
+          web="$(nix build .#proof-verify-web --no-link --print-out-paths)"
+          tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner \
+            -C "$web" -czf release/proof-verify-web.tar.gz .
       - name: nonos-verify release
         run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- release
       - name: The release assets, and sums over exactly them
@@ -59,7 +65,7 @@ jobs:
           mv release/BLAKE3SUMS release/BUNDLE-BLAKE3SUMS
           cp result/nonos.cdx.json result/nonos-build.json release/
           cd release
-          assets="nonos-release-bundle.tar.gz BUNDLE-SHA256SUMS BUNDLE-BLAKE3SUMS provenance.json nonos.cdx.json nonos-build.json verifier.wasm"
+          assets="nonos-release-bundle.tar.gz BUNDLE-SHA256SUMS BUNDLE-BLAKE3SUMS provenance.json nonos.cdx.json nonos-build.json verifier.wasm proof-verify-web.tar.gz"
           sha256sum $assets > SHA256SUMS
           b3sum $assets > BLAKE3SUMS
       - name: Upload the release bundle
@@ -76,6 +82,7 @@ jobs:
             release/nonos.cdx.json
             release/nonos-build.json
             release/verifier.wasm
+            release/proof-verify-web.tar.gz
           retention-days: 30
           if-no-files-found: error
       - name: Upload release reports

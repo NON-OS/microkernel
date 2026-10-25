@@ -14,39 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An IO-APIC redirection entry in remappable format (VT-d 3.4, 5.1.5.1):
-//! it names a remapping entry instead of a CPU, laid out as Linux's
-//! IR_IO_APIC_route_entry. Pure; kernel_proofs::iommu_remap::rte_tests.
+//! An I/O APIC redirection entry in remappable format (VT-d 3.4, 5.1.5.1):
+//! the entry names a remapping table index instead of a CPU, so the unit
+//! checks the I/O APIC's source id and delivers what the table says. With
+//! CFI clear a compatibility format entry is blocked, so a line under
+//! remapping is written in this form (L44, K3). Pure; the proofs hold it.
 
-/// Interrupt Format, bit 48 of the entry (bit 16 of the high dword).
-const FORMAT_REMAPPABLE: u32 = 1 << 16;
-/// Handle bit 15, in bit 11 of the low dword.
-const HANDLE_HIGH_BIT: u32 = 1 << 11;
-const ACTIVE_LOW: u32 = 1 << 13;
-const LEVEL: u32 = 1 << 15;
-const MASKED: u32 = 1 << 16;
+/// Interrupt Format, bit 48: the entry is remappable.
+const REMAPPABLE: u64 = 1 << 48;
+const POLARITY_LOW: u64 = 1 << 13;
+const TRIGGER_LEVEL: u64 = 1 << 15;
+const MASKED: u64 = 1 << 16;
 
-/// The low and high dwords naming entry `handle`. The vector is the entry's
-/// own: the IO-APIC matches a level line's EOI by it.
-pub const fn remappable(handle: u16, vector: u8, level: bool, active_low: bool) -> (u32, u32) {
-    let mut low = vector as u32 | MASKED;
-    if handle & 0x8000 != 0 {
-        low |= HANDLE_HIGH_BIT;
-    }
-    if active_low {
-        low |= ACTIVE_LOW;
-    }
-    if level {
-        low |= LEVEL;
-    }
-    (low, FORMAT_REMAPPABLE | ((handle as u32 & 0x7FFF) << 17))
+/// How the line is driven, as the redirection entry carries it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Line {
+    pub level: bool,
+    pub active_low: bool,
+    pub masked: bool,
 }
 
-/// The entry an IO-APIC entry names, or None in compatibility format.
-pub const fn handle_of(low: u32, high: u32) -> Option<u16> {
-    if high & FORMAT_REMAPPABLE == 0 {
+/// The entry raising table entry `index`. Index bits 14:0 sit in bits 63:49
+/// and bit 15 in bit 11; the vector field carries the entry's vector, which
+/// a level line's EOI is matched by.
+pub const fn remappable_rte(index: u16, vector: u8, line: Line) -> u64 {
+    let low_index = ((index as u64) & 0x7FFF) << 49;
+    let high_index = (((index as u64) >> 15) & 1) << 11;
+    let polarity = if line.active_low { POLARITY_LOW } else { 0 };
+    let trigger = if line.level { TRIGGER_LEVEL } else { 0 };
+    let mask = if line.masked { MASKED } else { 0 };
+    REMAPPABLE | low_index | high_index | polarity | trigger | mask | vector as u64
+}
+
+/// The table index a remappable entry names, `None` for a compatibility
+/// format one.
+pub const fn rte_index(entry: u64) -> Option<u16> {
+    if entry & REMAPPABLE == 0 {
         return None;
     }
-    let top = if low & HANDLE_HIGH_BIT != 0 { 0x8000 } else { 0 };
-    Some(top | (high >> 17) as u16)
+    Some((((entry >> 49) & 0x7FFF) | (((entry >> 11) & 1) << 15)) as u16)
+}
+
+/// The same entry as the low and high dwords the I/O APIC is written in,
+/// masked: the line is unmasked only once both halves are in place.
+pub const fn remappable(handle: u16, vector: u8, level: bool, active_low: bool) -> (u32, u32) {
+    let entry = remappable_rte(handle, vector, Line { level, active_low, masked: true });
+    (entry as u32, (entry >> 32) as u32)
+}
+
+/// The entry an I/O APIC entry read back as two dwords names, or `None` in
+/// compatibility format.
+pub const fn handle_of(low: u32, high: u32) -> Option<u16> {
+    rte_index((high as u64) << 32 | low as u64)
 }

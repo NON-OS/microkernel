@@ -43,8 +43,8 @@ impl PcmRing {
         let free = FEED_SAMPLES - self.len;
         let n = core::cmp::min(free, s.len());
         let mut write = (self.head + self.len) % FEED_SAMPLES;
-        for i in 0..n {
-            self.buf[write] = s[i];
+        for &sample in &s[..n] {
+            self.buf[write] = sample;
             write = (write + 1) % FEED_SAMPLES;
         }
         self.len += n;
@@ -53,14 +53,12 @@ impl PcmRing {
 
     pub fn pop_period(&mut self, out: &mut [i16]) -> usize {
         let n = core::cmp::min(self.len, out.len());
-        for i in 0..n {
-            out[i] = self.buf[self.head];
+        for slot in &mut out[..n] {
+            *slot = self.buf[self.head];
             self.head = (self.head + 1) % FEED_SAMPLES;
         }
         self.len -= n;
-        for i in n..out.len() {
-            out[i] = 0;
-        }
+        out[n..].fill(0);
         n
     }
 }

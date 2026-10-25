@@ -16,16 +16,17 @@
 
 /// Domain separator. Without one, a digest computed here could be replayed as
 /// a digest computed for some other purpose over the same bytes.
-const BIND_CONTEXT: &[u8] = b"nonos.attest.bind.v2";
+const BIND_CONTEXT: &[u8] = b"nonos.attest.bind.v3";
 
 /// What the machine says about device DMA, bound into the quote beside the
-/// registry root: which IOMMU, whether it enforces, and how many mappings go
-/// around it.
+/// registry root: which IOMMU, whether it enforces, how many mappings go
+/// around it, and how many devices it still lets reach all of memory.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DmaPosture {
     pub vendor: u8,
     pub enforcing: bool,
     pub unconfined_grants: u32,
+    pub identity_devices: u32,
 }
 
 /// Fold the challenge, the registry root and the DMA posture into the value
@@ -58,5 +59,6 @@ pub fn qualifying_data(
     hasher.update(registry_root);
     hasher.update(&[dma.vendor, u8::from(dma.enforcing)]);
     hasher.update(&dma.unconfined_grants.to_be_bytes());
+    hasher.update(&dma.identity_devices.to_be_bytes());
     *hasher.finalize().as_bytes()
 }

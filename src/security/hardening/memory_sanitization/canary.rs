@@ -17,9 +17,12 @@
 use super::state::STACK_CANARY;
 use core::sync::atomic::Ordering;
 
-pub fn init_stack_canary() {
-    let random_canary = crate::crypto::secure_random_u64();
+/// Draws the canary from the seeded RNG; refused before it is seeded, since
+/// a canary that can be guessed protects nothing.
+pub fn init_stack_canary() -> Result<(), &'static str> {
+    let random_canary = crate::crypto::secure_random_u64().map_err(|_| "no randomness")?;
     STACK_CANARY.store(random_canary, Ordering::SeqCst);
+    Ok(())
 }
 
 #[inline(always)]
@@ -45,7 +48,7 @@ pub fn stack_canary_failed() -> ! {
     );
 
     // The stack this frame stands on is already corrupt, so there is no safe
-    // way back. Mask interrupts and stop the CPU here.
+    // way back. Mask interrupts and leave as a panic does: wiped, then off.
     crate::arch::disable_interrupts();
-    crate::arch::halt_loop()
+    crate::boot::panic::fatal()
 }
