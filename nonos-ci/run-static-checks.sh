@@ -5145,6 +5145,16 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
+# capsule_linux's deliberate panic is for the selftest image's copy alone: no
+# committed build may carry it; the self-test first, so the scan is seen to bite.
+if selftest_panic_out="$(python3 scripts/check_selftest_panic.py --self-test 2>&1 \
+    && python3 scripts/check_selftest_panic.py 2>&1)"; then
+    note ok "no committed build carries capsule_linux's selftest-panic (check_selftest_panic)"
+else
+    tail -n 5 <<< "${selftest_panic_out}" >&2
+    fail_with "check_selftest_panic: a committed build carries selftest-panic"
+fi
+unset selftest_panic_out
 # The surface registry's GATE is a spin lock: a holder that reaches a function
 # taking it again spins forever with interrupts off, and the surface path on
 # every CPU stops behind it (orphans::reclaim and reclaim_dma, the black

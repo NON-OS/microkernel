@@ -250,6 +250,7 @@ let
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
+      "scripts/check_selftest_panic.py --self-test" "scripts/check_selftest_panic.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
