@@ -61,7 +61,7 @@ fn the_virtio_row_is_the_virtio_blk_drivers_own() {
 /// The block wire's drivers share one dialect, its magic and ops alike.
 #[test]
 fn no_two_drivers_share_a_service_name_or_a_magic_off_the_block_wire() {
-    let wire = [Driver::Wire, Driver::Ufs];
+    let wire = [Driver::Wire, Driver::Ufs, Driver::Ide, Driver::Scsi];
     let ops = |d: Driver| (d.ops().capacity, d.ops().read, d.ops().write, d.ops().flush);
     for (i, &a) in ALL.iter().enumerate() {
         for &b in &ALL[i + 1..] {

@@ -18,6 +18,13 @@
 //! transport swapped for swtpm's TCP command port.
 
 pub mod ak;
+/// The PCR read the attestation document quotes beside.
+#[path = "../../../../../src/security/tpm/boot_reads"]
+pub mod boot_reads {
+    pub mod pcrs;
+    pub mod pcrs_round;
+    pub use pcrs::read_pcrs;
+}
 #[path = "../../../../../src/security/tpm/device_secret/mod.rs"]
 pub mod device_secret;
 #[path = "../../../../../src/security/tpm/enroll/mod.rs"]
@@ -25,6 +32,8 @@ pub mod enroll;
 #[path = "../../../../../src/security/tpm/error.rs"]
 pub mod error;
 pub mod machine_key;
+#[path = "../../../../../src/security/tpm/pcr_extend.rs"]
+pub mod pcr_extend;
 #[path = "../../../../../src/security/tpm/quote/mod.rs"]
 pub mod quote;
 #[path = "../../../../../src/security/tpm/resend.rs"]
@@ -39,9 +48,15 @@ pub(crate) mod live;
 #[cfg(test)]
 mod nonce_refusal_tests;
 #[cfg(test)]
+mod parse_cover_tests;
+#[cfg(test)]
 mod parse_hash_tests;
 #[cfg(test)]
 mod parse_nv_tests;
+#[cfg(test)]
+mod parse_pcrs_refusal_tests;
+#[cfg(test)]
+mod parse_pcrs_tests;
 #[cfg(test)]
 mod parse_sign_tests;
 #[cfg(test)]

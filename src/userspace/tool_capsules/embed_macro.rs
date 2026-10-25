@@ -15,15 +15,9 @@ macro_rules! tool_capsule {
     ($name:literal, $port:expr, $reply:literal, $reply_port:expr, $elf:expr, $bin:literal, $caps:expr) => {
         {
             const ELF: &[u8] = include_bytes!($elf);
-            const CERT: &[u8] = include_bytes!(concat!(
-                "../../../nonos-data/trust/capsules/",
-                $bin,
-                ".nonos_id_cert.bin"
-            ));
-            const MANIFEST: &[u8] =
-                include_bytes!(concat!("../../../nonos-data/trust/capsules/", $bin, ".manifest.bin"));
-            const ATTESTATION: &[u8] =
-                include_bytes!(concat!("../../../nonos-data/trust/capsules/", $bin, ".zk_trailer.bin"));
+            const CERT: &[u8] = $crate::baked_trust!(concat!("capsules/", $bin, ".nonos_id_cert.bin"));
+            const MANIFEST: &[u8] = $crate::baked_trust!(concat!("capsules/", $bin, ".manifest.bin"));
+            const ATTESTATION: &[u8] = $crate::baked_trust!(concat!("capsules/", $bin, ".zk_trailer.bin"));
             // A tool built in with an empty file never compiles (B-02).
             const _: () = assert!(
                 !ELF.is_empty() && !CERT.is_empty() && !MANIFEST.is_empty() && !ATTESTATION.is_empty(),

@@ -29,15 +29,15 @@ pub(super) const DRIVER_PS2_INPUT_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-ps2-input")]
 pub(super) const DRIVER_PS2_INPUT_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ps2_input.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_ps2_input.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-ps2-input")]
 pub(super) const DRIVER_PS2_INPUT_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ps2_input.manifest.bin");
+    crate::baked_trust!("capsules/driver_ps2_input.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-ps2-input")]
 pub(super) const DRIVER_PS2_INPUT_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_ps2_input.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_ps2_input.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-driver-ps2-input")]

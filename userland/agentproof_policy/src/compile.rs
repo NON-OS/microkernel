@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A policy file compiled: the one `--box` word it means, the box
-//! capsule_linux makes of that word for a terminal run, and the box's hash.
+//! capsule_linux makes of that word for a terminal run (in the network role
+//! when the file names destinations), and the box's hash.
 //! The box and hash come from capsule_linux's own parse, so the hash printed
 //! here is the hash on the run's report.
 
@@ -36,7 +37,8 @@ pub struct Compiled {
 }
 
 /// The canonical word: `strict`, `offline`, or `allow:` and the folders
-/// sorted, once each, with commas between.
+/// sorted, once each, then each destination as `net:<it>`, with commas
+/// between. capsule_linux sorts the destinations itself.
 pub fn word(policy: &Policy) -> Vec<u8> {
     match policy.base {
         Base::Strict => b"strict".to_vec(),
@@ -45,8 +47,10 @@ pub fn word(policy: &Policy) -> Vec<u8> {
             let mut folders = policy.writes.clone();
             folders.sort();
             folders.dedup();
+            let nets = policy.connects.iter().map(|c| [&b"net:"[..], c].concat());
+            let items: Vec<Vec<u8>> = folders.into_iter().chain(nets).collect();
             let mut out = b"allow:".to_vec();
-            out.extend_from_slice(&folders.join(&b','));
+            out.extend_from_slice(&items.join(&b','));
             out
         }
     }
@@ -57,7 +61,7 @@ pub fn compile(policy: &Policy) -> Result<Compiled, &'static str> {
     if word.len() > MAX_WORD {
         return Err("the box word would be over 255 bytes; name fewer or shorter folders");
     }
-    let policy = for_terminal(&word)?;
+    let policy = for_terminal(&word, !policy.connects.is_empty())?;
     let hash = box_hash(&policy);
     Ok(Compiled { word, policy, hash })
 }

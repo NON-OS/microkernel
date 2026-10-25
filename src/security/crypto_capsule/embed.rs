@@ -24,15 +24,14 @@ pub(super) const CRYPTO_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-crypto")]
 pub(super) const CRYPTO_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/crypto.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/crypto.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-crypto")]
-pub(super) const CRYPTO_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/crypto.manifest.bin");
+pub(super) const CRYPTO_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/crypto.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-crypto")]
 pub(super) const CRYPTO_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/crypto.zk_trailer.bin");
+    crate::baked_trust!("capsules/crypto.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-crypto")]

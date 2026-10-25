@@ -24,6 +24,14 @@ pub enum AttestDocError {
     RegistryIncomplete,
     Tpm(TpmError),
     Quote(QuoteError),
+    /// The quoted PCRs could not be read.
+    PcrRead,
+    /// Twice, a PCR moved between its read and the quote.
+    PcrsMoved,
+    /// The loader's event log is longer than a document carries.
+    LogTooLarge,
+    /// A PCR 14 extend failed, so the log no longer describes the PCR.
+    MeasureFailed,
 }
 
 impl AttestDocError {
@@ -32,6 +40,10 @@ impl AttestDocError {
             Self::RegistryIncomplete => "attestation registry incomplete",
             Self::Tpm(e) => e.as_str(),
             Self::Quote(e) => e.as_str(),
+            Self::PcrRead => "the quoted pcrs could not be read",
+            Self::PcrsMoved => "a pcr moved between its read and the quote, twice",
+            Self::LogTooLarge => "the tcg event log is too large for the document",
+            Self::MeasureFailed => "a pcr 14 extend failed; the log no longer matches",
         }
     }
 }
