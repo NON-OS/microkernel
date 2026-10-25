@@ -60,6 +60,7 @@ impl Refusal {
             Refusal::Registry => "registry",
             Refusal::RegistryIncomplete => "registry-complete",
             Refusal::CapsuleCount => "capsule-count",
+            Refusal::NotVendor => "not-vendor",
             Refusal::Front => "front",
         }
     }
