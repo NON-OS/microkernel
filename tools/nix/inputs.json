@@ -5481,8 +5481,13 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/hardware/inventory/i2c_host.rs",
+   "src/hardware/inventory/i2c_present.rs",
+   "src/userspace/init/spawn_plan/drivers_bus/i2c.rs",
    "userland/capsule_driver_i2c_pci/src/constants",
    "userland/capsule_driver_i2c_pci/src/discover/acpi_touchpad.rs",
+   "userland/capsule_driver_i2c_pci/src/discover/classify.rs",
+   "userland/capsule_driver_i2c_pci/src/discover/defs.rs",
    "userland/capsule_driver_i2c_pci/src/discover/found.rs",
    "userland/capsule_driver_i2c_pci/src/driver.rs",
    "userland/capsule_driver_i2c_pci/src/gpio0/wire.rs",
