@@ -22,6 +22,7 @@ mod thread_group;
 mod pending_reply;
 mod recv;
 mod enqueued_at;
+pub(crate) use enqueued_at::enqueued_uptime;
 mod recv_from;
 mod recv_from_deliver;
 mod recv_from_drain;
