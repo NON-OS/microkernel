@@ -19,7 +19,7 @@
 //! files. Asked for the installer, it answers ENOENT with its own
 //! `[CAP-DENY] pid=<this pid> open-with:` line, and nothing is started.
 
-use nonos_libc::{mk_ipc_call, mk_service_lookup};
+use nonos_libc::{mk_ipc_call, mk_service_lookup, mk_time_millis, mk_yield};
 
 use crate::line::{escaped, note, verdict};
 
@@ -31,13 +31,25 @@ const WHAT: &[u8] = b"app.install through the shell's OP_OPEN_WITH";
 /// The shell's header: magic, version, op, flags, reserved, id, length.
 const HDR: usize = 20;
 
-pub fn deputy_escape() {
-    let name = b"desktop_shell";
+/// The shell's port, waited for: init starts it before this capsule, but it
+/// names itself on its own first turn.
+fn shell_port() -> Option<u32> {
+    let (name, until) = (b"desktop_shell", mk_time_millis() + 20_000);
     let mut port = 0u32;
-    if mk_service_lookup(name.as_ptr(), name.len(), &mut port, core::ptr::null_mut()) < 0 {
+    while mk_service_lookup(name.as_ptr(), name.len(), &mut port, core::ptr::null_mut()) < 0 {
+        if mk_time_millis() > until {
+            return None;
+        }
+        mk_yield();
+    }
+    Some(port)
+}
+
+pub fn deputy_escape() {
+    let Some(port) = shell_port() else {
         note(b"[ATTACK-NOTE] deputy-escape: no desktop shell in this image\n");
         return;
-    }
+    };
     const BODY: usize = HDR + 2 + APP.len() + PATH.len();
     let (mut tx, body) = ([0u8; BODY], BODY);
     tx[..4].copy_from_slice(&NDSH.to_le_bytes());
