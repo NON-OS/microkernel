@@ -19,7 +19,7 @@
 //! the refusal the capsule writes is one the shell reads as a refusal.
 
 use crate::frame;
-use crate::rule::{op_allowed, verdict, Verdict, EINVAL, EPERM};
+use crate::rule::{op_allowed, verdict, Caller, Verdict, EINVAL, EPERM, INSTALLERS};
 use crate::wire;
 
 #[test]
@@ -31,12 +31,14 @@ fn only_a_well_formed_request_from_the_shell_powers_off() {
 }
 
 #[test]
-fn reboot_and_shutdown_on_power_are_the_shells_alone() {
+fn reboot_is_the_shells_and_the_installers_and_shutdown_the_shells() {
     for op in 0..=u16::MAX {
-        let shell_only = op == 2 || op == 3;
-        assert!(op_allowed(op, true), "op {op} from the shell");
-        assert_eq!(op_allowed(op, false), !shell_only, "op {op} from anyone else");
+        assert!(op_allowed(op, Caller::Shell), "op {op} from the shell");
+        assert_eq!(op_allowed(op, Caller::Installer), op != 3, "op {op} from an installer");
+        assert_eq!(op_allowed(op, Caller::Other), op != 2 && op != 3, "op {op} from anyone else");
     }
+    let only_two: [&[u8]; 2] = [b"app.install", b"tool.install"];
+    assert_eq!(INSTALLERS, only_two, "S-14: exactly the two installers");
 }
 
 #[test]
