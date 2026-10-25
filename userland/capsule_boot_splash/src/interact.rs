@@ -64,7 +64,7 @@ pub(crate) fn interact(comp: u32, base: u64, w: u32, h: u32, stride: u32, look: 
             let f = (el / 150) as u32;
             if f != frame {
                 frame = f;
-                crate::spin::spin(comp, base, (w, h, spx), frame);
+                crate::spin::spin(comp, base, (w, h, spx), look.fit.status, frame);
             }
         }
         mk_yield();
