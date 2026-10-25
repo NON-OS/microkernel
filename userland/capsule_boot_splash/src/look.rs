@@ -15,21 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What every repaint of the splash shows besides its status line: the
-//! attestation status and its verdict, the firmware's logo when it left
-//! one, and the layout around it.
+//! attestation status and its verdict, and the layout for the canvas.
 
 use nonos_libc::AttestStatus;
 
 use crate::attest_lines::Chain;
 use crate::layout_fit::Layout;
-use crate::logo::Shown;
 
 pub(crate) struct Look {
     pub att: AttestStatus,
     /// What the boot recorded, for the panel; None when the kernel gave none.
     pub chain: Option<Chain>,
-    pub logo: Option<Shown>,
-    /// Where the panel and status line sit around that logo.
+    /// Where the panel, the warning's row and the status line sit.
     pub fit: Layout,
     /// The kernel says device DMA is not confined by hardware (no IOMMU):
     /// the warning is drawn in its row.
