@@ -33,6 +33,27 @@ pub(super) fn run(_argv: &[u8]) -> Result<u32, i64> {
     Err(crate::syscall::microkernel::errnos::ERRNO_NOENT)
 }
 
+/// The personality in its terminal role with Network, for a `--box` that
+/// names destinations, and only for one: any other argv is EINVAL before
+/// anything is spawned. The personality holds the run to the box's list.
+#[cfg(feature = "nonos-capsule-linux")]
+pub(super) fn run_net(argv: &[u8]) -> Result<u32, i64> {
+    if !super::net_box::names_destinations(argv) {
+        crate::sys::serial::print(b"[LINUX-TERM-NET] refused: no box names a destination\n");
+        return Err(crate::syscall::microkernel::errnos::ERRNO_INVAL);
+    }
+    let argv = argv
+        .split(|&b| b == 0)
+        .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
+        .collect();
+    crate::userspace::capsule_linux::spawn_terminal_net(argv).map_err(|e| spawn_errno(&e))
+}
+
+#[cfg(not(feature = "nonos-capsule-linux"))]
+pub(super) fn run_net(_argv: &[u8]) -> Result<u32, i64> {
+    Err(crate::syscall::microkernel::errnos::ERRNO_NOENT)
+}
+
 /// The errno a tool's refused spawn is reported by, as a capsule load reports
 /// it: a live instance holding the role's endpoints is EEXIST, which the
 /// terminal says is one already running, and any other refusal is EACCES.
