@@ -25,6 +25,9 @@ prove layout and rendering only, never the values shown.
   content rectangle;
 - it paints every About section, and the terminal as it opens and after
   `help`;
+- it holds the terminal centred and roomy at 1920x1080, centred where the
+  fit rule shrinks it, and its prompt under the last output
+  (`terminal_geometry.rs`);
 - it composes whole screens as the compositor stacks them (wallpaper, desk,
   window, chrome), checking the menubar and dock are drawn and that no
   chrome pixel lands on the window;

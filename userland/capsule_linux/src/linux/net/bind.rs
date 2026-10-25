@@ -39,6 +39,11 @@ pub fn bind(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     if family != AF_INET {
         return errno::fail(errno::EAFNOSUPPORT);
     }
+    let reaches_out = crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_ANON)
+        || crate::linux::boxed::learning();
+    if super::bind_any::unnamed(want.ip, want.port, reaches_out) {
+        return errno::ok(0);
+    }
     if !crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_LISTEN_LO) {
         return crate::linux::app::refuse("bind", "NET_LISTEN_LO", errno::EACCES);
     }
