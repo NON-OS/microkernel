@@ -52,6 +52,8 @@ mod load_by_name_read_tests;
 mod load_by_name_tests;
 #[path = "handlers_host/retired_tests.rs"]
 mod retired_tests;
+#[path = "handlers_host/gate_tests.rs"]
+mod gate_tests;
 #[path = "handlers_host/own_caps_glue_tests.rs"]
 mod own_caps_glue_tests;
 #[path = "handlers_host/own_caps_tests.rs"]
@@ -67,5 +69,6 @@ mod protocol_tests;
 
 use mounts::{alloc_watch, clients, fixtures, frame, packages, pkg_frame};
 pub use mounts::{mk_capsule_load, mk_capsule_verify, mk_getpid, mk_service_lookup};
+pub use mounts::{mk_caps_of, CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
 use mounts::{process, services, syscall, verify};
 pub use mounts::{CapsuleLoadRequest, CapsuleVerifyRequest, CapsuleVerifySummary};
