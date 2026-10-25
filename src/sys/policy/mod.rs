@@ -21,6 +21,7 @@ pub mod push;
 pub mod timezone;
 
 pub use field_id::PolicyField;
+pub use hostname::wipe as hostname_wipe;
 pub use hostname::{get as hostname_get, get_domain as hostname_domain_get, init as hostname_init};
 pub use kernel_preempt::kernel_preempt;
 pub use push::{push_bool, push_i8, push_string, PolicyPushError};
