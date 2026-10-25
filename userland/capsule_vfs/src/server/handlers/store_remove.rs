@@ -17,19 +17,20 @@
 use alloc::vec::Vec;
 use core::str;
 
-use nonos_libc::mk_debug;
-
 use super::installer_gate::require_installer;
 use super::path::normalize;
 use super::persist_gate::may_persist;
 use super::util::{map_blk_err, split_caller};
 use crate::protocol::{encode_response, Request, EACCES, EINVAL, MAX_PATH_BYTES, OP_STORE_REMOVE};
 
-const REFUSED: &[u8] = b"[VFS] refused store remove: amnesic boot\n";
-
 pub fn store_remove(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     if let Err(s) = require_installer(sender_pid) {
         return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, s, &[]);
+    }
+    // Removal rewrites the table, so on a boot that keeps nothing the disk is
+    // left exactly as it was found, as the install path leaves it.
+    if !may_persist() {
+        return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EACCES, &[]);
     }
     let (_pid, rest) = match split_caller(req.payload, sender_pid) {
         Ok(v) => v,
@@ -49,12 +50,9 @@ pub fn store_remove(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     let Some(path) = normalize(path) else {
         return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]);
     };
-    /* A boot that keeps nothing leaves the disk as it found it. */
-    let status = if !may_persist() {
-        let _ = mk_debug(REFUSED.as_ptr(), REFUSED.len());
-        EACCES
-    } else {
-        crate::blk::store_remove::remove(&path).map_or_else(map_blk_err, |()| 0)
+    let status = match crate::blk::store_remove::remove(&path) {
+        Ok(()) => 0,
+        Err(e) => map_blk_err(e),
     };
     encode_response(OP_STORE_REMOVE, req.flags, req.request_id, status, &[])
 }

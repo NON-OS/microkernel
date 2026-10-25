@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_recv_from;
+use nonos_libc::{mk_ipc_recv_from, mk_uptime_ms};
 
+use super::breadcrumb::{request, step};
 use super::dispatch::dispatch;
+use super::stall_rule::Step;
 use crate::protocol::parse;
 use crate::server::respond;
 use crate::state::Context;
@@ -37,6 +39,7 @@ pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) -> Option<(u16
     let mut first = None;
     for i in 0..MAX_BATCH {
         let timeout = if i == 0 { RECV_FRAME_MS } else { RECV_POLL_MS };
+        step(Step::Wait, mk_uptime_ms());
         let mut sender_pid = 0u32;
         let n =
             mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), timeout, &mut sender_pid);
@@ -51,6 +54,7 @@ pub fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) -> Option<(u16
             }
         };
         first = first.or(Some((req.op, sender_pid)));
+        request(req.op, sender_pid, mk_uptime_ms());
         if dispatch(ctx, sender_pid, req, body, tx).is_err() {
             return first;
         }
