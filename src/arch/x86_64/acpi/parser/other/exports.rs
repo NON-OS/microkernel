@@ -33,7 +33,7 @@ pub use super::dmar_tables::dmar_scope::{translated_by_some, Cover, UnitScope};
 pub use super::dmar_tables::dmar_source_store::{
     hpet_source, ioapic_unit_source, source_scopes_dropped,
 };
-pub use super::dmar_tables::dmar_units::{remap_unit_bases, remap_unit_scopes, units_left_off};
+pub use super::dmar_tables::dmar_units::{remap_unit_bases, units_left_off, with_remap_unit_scopes};
 pub use super::hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
 pub use super::hpet::parse_hpet;
 pub use super::ivhd_alias_store::{amd_iommu_aliased, amd_iommu_special};
