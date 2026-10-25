@@ -33,6 +33,7 @@ pub(super) fn map_blk_err(e: BlkError) -> i32 {
         BlkError::Transport(_) | BlkError::Status(_) => EIO,
         BlkError::ShortReply(_) | BlkError::BadContainer => EUCLEAN,
         BlkError::Inval | BlkError::NoMemory => EINVAL,
+        BlkError::Refused => EACCES,
     }
 }
 

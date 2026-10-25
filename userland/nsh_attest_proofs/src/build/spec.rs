@@ -37,10 +37,11 @@ pub struct Spec {
     /// Values the quote's digest covers in place of the document's.
     pub quoted: Vec<(u8, [u8; 32])>,
     pub challenge: Option<[u8; 32]>,
-    /// `iommu_vendor`, `iommu_enforcing`, `unconfined_grants`.
-    pub dma: (u8, bool, u32),
+    /// `iommu_vendor`, `iommu_enforcing`, `unconfined_grants`,
+    /// `identity_devices`.
+    pub dma: (u8, bool, u32, u32),
     /// A posture to bind into `extraData` in place of the document's.
-    pub bound_dma: Option<(u8, bool, u32)>,
+    pub bound_dma: Option<(u8, bool, u32, u32)>,
     pub quote: fn(&mut Quote),
     pub after_sign: fn(&mut Vec<u8>),
     pub sig: fn([u8; 32], [u8; 32]) -> Vec<u8>,

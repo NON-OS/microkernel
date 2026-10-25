@@ -20,7 +20,7 @@ use super::latch::latch_current_mode;
 use super::mode::linear_bgr;
 use super::offered::offered_modes;
 use super::pick::{self, Choice};
-use super::state::{FB_FAILURE, FB_PHYS_MM, FB_SOURCE};
+use super::state::{FB_BITMASK_BPP, FB_FAILURE, FB_PHYS_MM, FB_SOURCE};
 use core::sync::atomic::Ordering;
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
@@ -66,5 +66,6 @@ pub(super) fn try_init(bs: &BootServices, h: Handle) -> bool {
         return true;
     }
     FB_FAILURE.store(modes.failure(), Ordering::SeqCst);
+    FB_BITMASK_BPP.store(modes.bitmask_bpp, Ordering::SeqCst);
     false
 }
