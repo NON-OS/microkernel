@@ -41,14 +41,14 @@ pub(super) fn program_routed(
         match route(&handle.address, base_vector + i as u8, dest) {
             Ok(r) => routed.push(r),
             Err(e) => {
-                routed.iter().for_each(|r| release(&handle.address, r.irte));
+                routed.iter().for_each(|r| release(r.irte));
                 return Err(e);
             }
         }
     }
     let messages: Vec<MsiMessage> = routed.iter().map(|r| r.msg).collect();
     if let Err(e) = current_ops().program_run(&handle.address, msix, &handle.bars, &messages) {
-        routed.iter().for_each(|r| release(&handle.address, r.irte));
+        routed.iter().for_each(|r| release(r.irte));
         return Err(e);
     }
     Ok(routed.iter().map(|r| r.irte).collect())
