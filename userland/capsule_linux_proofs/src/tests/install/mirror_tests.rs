@@ -22,12 +22,20 @@
 
 use crate::install::mirror::{mirror, parse, HOST_LINE};
 
+#[cfg(not(feature = "dev-mirror"))]
 #[test]
-fn the_default_mirror_is_named_not_an_address() {
-    /* This crate is built without NONOS_ALPINE_MIRROR, as an image is. */
+fn a_release_build_s_mirror_is_named_not_an_address() {
     let (at, port, host) = mirror();
     assert_eq!((at, port, host), ("dl-cdn.alpinelinux.org", 80, "dl-cdn.alpinelinux.org"));
     assert!(!at.split('.').all(|o| o.parse::<u8>().is_ok()), "a name, not a dotted quad");
+}
+
+/* `cargo test --features dev-mirror`: the host's relay, as QEMU's user
+network shows it to the guest, asked as Alpine's CDN. */
+#[cfg(feature = "dev-mirror")]
+#[test]
+fn a_development_build_s_mirror_is_the_host_s_relay() {
+    assert_eq!(mirror(), ("10.0.2.2", 8080, HOST_LINE));
 }
 
 #[test]

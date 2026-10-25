@@ -1,11 +1,11 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Host-runnable proofs for the boot splash's firmware-logo path. Builds for
-# the host so `cargo test` exercises the splash's own logo source (included
-# via #[path]): the record and file are read only within their bounds, the
-# logo is turned and placed as the firmware showed it, and drawing never
-# writes outside the surface.
+# Host-runnable proofs for the boot splash: its canvas painted whole over
+# whatever was there, the attestation panel's lines from the boot's record,
+# the layout, the no-IOMMU warning, the status line and the canvas follow.
+# Builds for the host so `cargo test` runs the splash's own source (included
+# via #[path]).
 [package]
 name = "boot_splash_proofs"
 version = "0.3.0"
