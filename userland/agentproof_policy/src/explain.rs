@@ -66,7 +66,8 @@ fn network(c: &Compiled) -> String {
         false => format!(
             "It may open TCP connections to the destinations listed, and to no other, each over \
              the anonymity network the system uses (the Nym mixnet, or Anyone when chosen), never \
-             directly. A name is answered inside NONOS, never looked up outside. It sends no \
+             directly. A name is answered inside NONOS, never looked up outside, but a lookup \
+             from a box does not yet return in this release: name an IPv4 address. It sends no \
              UDP. {refused}"
         ),
     }
