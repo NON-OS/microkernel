@@ -25,7 +25,7 @@ use crate::boxed::tally::Tally;
 use nonos_linux_policy::mask::{EXEC, TTY};
 
 fn ran(exit: i32) -> End<'static> {
-    End { exit, not_started: None }
+    End { exit, not_started: None, reached: &[] }
 }
 
 fn demo() -> Tally {

@@ -23,7 +23,7 @@ pub enum UartConfigError {
     InvalidClock,
 }
 
-pub type UartConfigResult<T> = Result<T, UartConfigError>;
+pub(crate) type UartConfigResult<T> = Result<T, UartConfigError>;
 
 impl Ns16550 {
     pub fn init(&self, baud: u32, clock: u32) -> UartConfigResult<()> {

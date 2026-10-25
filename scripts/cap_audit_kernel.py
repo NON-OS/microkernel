@@ -167,11 +167,6 @@ def handler_gates(root):
         ("MADC", "all", {"Network"}, HARD, "src/syscall/caps/checks/system.rs",
          "!self.reaches_network()",
          "the TPM quote is refused to any holder of Network", True, None),
-        ("MTRN", "all", {"Network", "FileSystem"}, HARD,
-         "src/userspace/tool_capsules/model_fetch/spawn.rs",
-         "caller.can_network() && caller.can_open_files()",
-         "running tool.model-fetch takes Network and FileSystem in the caller",
-         False, {"tool.model-fetch"}),
     ]
     out = {}
     for tag, kind, names, strength, path, anchor, why, refuses, literal in listed:

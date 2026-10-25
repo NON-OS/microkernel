@@ -19,6 +19,7 @@ use std::fs;
 use std::path::PathBuf;
 
 mod build_branch_protection;
+mod build_c_target;
 mod build_info;
 
 fn main() {
@@ -89,7 +90,7 @@ fn compile_arch_asm() {
     }
 
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
-    let Some((clang_target, arch_flags)) = c_target(&arch) else {
+    let Some((clang_target, arch_flags)) = build_c_target::c_target(&arch) else {
         return;
     };
     let subdir = arch.as_str();
@@ -215,7 +216,7 @@ fn compile_pqclean_mlkem() {
     }
 
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
-    let Some((c_triple, c_flags)) = c_target(&arch) else {
+    let Some((c_triple, c_flags)) = build_c_target::c_target(&arch) else {
         return;
     };
 
@@ -296,7 +297,7 @@ fn compile_pqclean_mldsa() {
     }
 
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
-    let Some((c_triple, c_flags)) = c_target(&arch) else {
+    let Some((c_triple, c_flags)) = build_c_target::c_target(&arch) else {
         return;
     };
 
@@ -568,28 +569,6 @@ fn rerun_on_capsule_binaries() {
     }
 }
 
-/// The clang target triple and any extra flags the freestanding C in this tree
-/// needs for `arch`. Every C source here is compiled for the kernel rather than
-/// for the machine doing the build, so the triple follows the cargo target.
-/// `None` where there is no kernel C for that architecture.
-///
-/// The two x86_64 flags have no counterpart elsewhere. Kernel code cannot use the
-/// red zone below the stack pointer, because an interrupt frame would land in it,
-/// and the kernel code model places the image in the top 2GB. aarch64 addresses
-/// the whole space uniformly and needs neither.
-fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
-    match arch {
-        // No vector registers: kernel code runs before a thread's are saved.
-        "x86_64" => Some((
-            "x86_64-unknown-none-elf",
-            &["-mno-red-zone", "-mcmodel=kernel", "-mno-mmx", "-mno-sse", "-mno-sse2", "-mno-avx"]
-                [..],
-        )),
-        "aarch64" => Some(("aarch64-unknown-none-elf", &["-mgeneral-regs-only"][..])),
-        "riscv64" => Some(("riscv64-unknown-none-elf", &[][..])),
-        _ => None,
-    }
-}
 
 /// The user target whose capsule binaries this kernel embeds.
 ///

@@ -162,10 +162,6 @@ src/log/types/severity.rs 2
 src/memory/addr/mod.rs 1
     conversions to x86_64-crate address types. Elsewhere: nothing: not needed off x86
 
-src/memory/dma/coherency/backend.rs 2
-    GAP: DMA sync (x86 coherent). Elsewhere: riscv64 has no backend (no fence-based sync); aarch64
-    own
-
 src/memory/frame_alloc/types/mod.rs 1
     x86_64-crate FrameAllocator shim. Elsewhere: nothing: not needed off x86
 
@@ -187,9 +183,6 @@ src/memory/iommu/mod.rs 2
 
 src/memory/mmio/manager/core/map_page.rs 1
     GAP: PAT WC for MMIO. Elsewhere: write-combine falls back to uncached
-
-src/memory/mmio/ordering/backend.rs 2
-    GAP: MMIO fences/accessors. Elsewhere: riscv64 has no backend; aarch64 has own
 
 src/memory/mmu/mmu/protect/apply.rs 2
     NX/SMEP/SMAP/UMIP/WP enable. Elsewhere: fallback reports flags; dead code: mmu module x86-only
@@ -237,10 +230,6 @@ src/process/userspace/mod.rs 5
 
 src/process/userspace/types.rs 4
     XSAVE/FXSAVE FPU area. Elsewhere: no-op here; aarch64/riscv64 save FP in arch fpu
-
-src/sched/mod.rs 1
-    GAP: Context re-export (x86/aarch64). Elsewhere: riscv64 has no Context for scheduler
-    save/restore
 
 src/security/hardening/memory_sanitization/erase.rs 2
     asm scrub routine. Elsewhere: fallback volatile byte loop (slower)

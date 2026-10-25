@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const EID_HSM: usize = 0x48534D;
-pub const FID_HART_START: usize = 0;
-pub const FID_HART_STOP: usize = 1;
-pub const FID_HART_GET_STATUS: usize = 2;
-pub const FID_HART_SUSPEND: usize = 3;
+pub(super) const EID_HSM: usize = 0x48534D;
+pub(super) const FID_HART_START: usize = 0;
+pub(super) const FID_HART_STOP: usize = 1;
+pub(super) const FID_HART_GET_STATUS: usize = 2;
+pub(super) const FID_HART_SUSPEND: usize = 3;

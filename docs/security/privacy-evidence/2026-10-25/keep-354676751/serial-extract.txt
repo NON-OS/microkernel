@@ -1,0 +1,71 @@
+== pre-install: 802 serial lines, 60 policy lines
+612:[DIAG] ipc.call unanswered policy caller=0x0000000000000007 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+667:[ZS] keeping turned on: the person chose it, the policy service says
+715:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+716:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+717:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+722:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+723:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+724:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+725:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+726:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+731:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+732:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+733:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+734:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+735:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+740:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+741:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+742:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+743:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+748:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+749:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+751:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+752:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+753:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+758:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+759:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+760:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+761:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+766:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+767:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+768:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+769:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+770:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+774:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+775:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+776:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+777:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+778:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+779:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+780:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+781:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+782:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+783:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+784:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+785:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+786:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+787:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+788:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+789:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+790:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+791:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+792:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+793:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+794:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+796:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+797:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+798:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+799:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+800:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+801:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+802:[DIAG] ipc.call unanswered policy caller=0x0000000000000023 server=0x0000000000000006 err=0xFFFFFFFFFFFFFF92
+== install: 1298 serial lines, 0 policy lines
+1005:[ZS] keeping turned on: the person chose it, the policy service says
+== amnesic: 2051 serial lines, 0 policy lines
+== keepA: 2088 serial lines, 0 policy lines
+1194:[ZS] keeping turned on: the person chose it, the policy service says
+2087:[POWER] leave: driver.ahci0 done
+2088:[POWER] leave: driver.usb_msc0 answered -19
+== keepA2: 1590 serial lines, 0 policy lines
+875:[ZS] keeping turned on: the person chose it, the policy service says

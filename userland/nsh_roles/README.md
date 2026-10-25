@@ -7,7 +7,7 @@ The crate covers:
 
 - the role table, `nsh-policy/1`, and the revocation list, `nsh-revoke/1`:
   each is read exactly, and trusted only once its hybrid signature verifies;
-- the kernel's capability names, and the six no role may ever hold;
+- the kernel's capability names, and the nine no role may ever hold;
 - the three roles shipped: `auditor`, `deploy` and `operator`;
 - the checks on a login and on an escalation, in the order roles.md gives,
   each refusal its own typed `Refusal` with the one reason code it is told.
@@ -47,14 +47,15 @@ Each role:
 | flags: bit 0 `record-commands: digest`, the others zero | u8 |
 | approvals an escalation needs, 0 to 2 | u8 |
 | longest session, ms, 1 to 604 800 000 (7 days) | u64 |
-| ceiling: a capability list as a grant carries it, 1 to 37 names | |
-| escalation ceiling: the same, 0 to 37 names | |
+| ceiling: a capability list as a grant carries it, 1 to 40 names | |
+| escalation ceiling: the same, 0 to 40 names | |
 
 - A key id is SHA-256 of the hybrid public key. Each key list is strictly
   ascending by key id, and no key is both an authority and an approver.
 - Roles are strictly ascending by name.
 - A ceiling names only kernel capabilities, never `Admin`, `Debug`,
-  `DeviceSecret`, `EnrolDevRoot`, `Keyring` or `LocalSign`.
+  `DeviceSecret`, `EnrolDevRoot`, `Keyring`, `LocalSign`, `CameraCapture`,
+  `MicrophoneCapture` or `ScreenCapture`.
 - The signatures are over `H("nsh/1 policy\0" || every field before them)`.
 - The host passes in the highest serial it has installed. A table with a
   lower serial is refused, so an older table, signed before a key was

@@ -18,3 +18,6 @@
 
 #[path = "../../../capsule_linux/src/linux/install/pacman/desc.rs"]
 pub mod desc;
+
+#[path = "../../../capsule_linux/src/linux/install/pacman/find.rs"]
+pub mod find;

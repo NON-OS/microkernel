@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.eza",
+      "capsule_id": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9",
+      "name": "eza",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A modern ls: colours, file types, trees and long listings.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "eza@0.18.16-r0",
+          "manifest_hash": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9",
+          "package_hash": "c80eee2ebda363c195f3a3e538f9a663c36a4f87997d67f96d83750cede8f7d9",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/eza-0.18.16-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000093606e27a900a5721f10c5ab376a26b646e7eb45d4540d8f043e5df62a699bbd0801000000000000e28ec3014ec5e147dcf11db0a71dac36d3b1ed8cfb052e48a161fad6cde1d536eb416f78b1e13c6e44bef4343114163c761ffe9bf3ad25faab6d821c123dda3f0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 442099 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

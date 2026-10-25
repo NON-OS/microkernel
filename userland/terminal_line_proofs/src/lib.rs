@@ -37,13 +37,15 @@ mod jobs;
 mod neighbours;
 mod network;
 mod paint;
+pub mod search;
 mod shell;
 
 pub use filters::{input, tree_render};
 pub use handed::{handed_cadence, handed_parse, handed_pick};
-pub use help::{help_layout, help_pages, receipt_own, tool_list};
+pub use help::{help_layout, help_pages, hint_sets, receipt_own, tool_list};
 pub use input_line::{cooked, cooked_kill, expand, line, line_chars, line_window, select};
-pub use jobs::{box_hold, install_follow, kill_target, linux_frames, pkg_handoff, tool_argv, tool_busy};
+pub use jobs::{agentproof_job, box_hold, box_log, box_missing, box_screen, install_follow, kill_target};
+pub use jobs::{linux_frames, pkg_handoff, tool_argv, tool_busy};
 pub use neighbours::{cadence, goto_line, quick_open};
 pub use network::{direct_gate, direct_only, exchange_wait, git_ask, offline_gate};
 pub use paint::{ansi, box_arms, fetch_arch};

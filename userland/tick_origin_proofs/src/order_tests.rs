@@ -54,7 +54,7 @@ fn riscv64_takes_it_from_the_frame_before_the_tick() {
         &[
             "pub fn handle_timer_interrupt(from_user: bool) {",
             "crate::process::accounting::set_tick_origin(from_user);",
-            "preemption::tick::tick();",
+            "crate::process::scheduler::preemption::tick();",
         ],
     );
 }

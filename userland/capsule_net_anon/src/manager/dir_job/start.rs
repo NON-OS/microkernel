@@ -22,7 +22,7 @@ use nonos_libc::mk_uptime_ms;
 
 use crate::directory::fetch::get;
 use crate::tcp_client::connect;
-use crate::tcp_client::errno::{E_ERRNO, LOCAL_PORT_IN_USE, UNADDRESSABLE};
+use crate::tcp_client::errno::{E_ERRNO, NOT_UP, NO_ROUTE};
 use crate::trace;
 
 use super::job::{Job, Stage, ESTABLISH_MS};
@@ -44,21 +44,16 @@ pub(super) fn start(tcp_port: u32, address: [u8; 4], dir_port: u16, path: &[u8])
             raw: alloc::vec::Vec::new(),
         }),
         /*
-         * Not "refused": nothing at the far end ever saw these. Which of
-         * net.tcp's refusals it is decides where to look next.
+         * Not "refused": nothing at the far end ever saw these. A network
+         * that is not up yet is said once per sweep by the sweep, not here
+         * once per authority.
          */
         Err(errno) => {
-            match errno {
-                e if e == E_ERRNO + UNADDRESSABLE => {
-                    trace::say_addr(b"dir connect has no route yet", address, dir_port)
-                }
-                e if e == E_ERRNO + LOCAL_PORT_IN_USE => {
-                    trace::say_addr(b"dir connect local port in use", address, dir_port)
-                }
-                _ => {
-                    trace::say_addr(b"dir connect failed", address, dir_port);
-                    trace::say_num(b"dir connect errno", errno as u64);
-                }
+            if errno == E_ERRNO + NOT_UP || errno == E_ERRNO + NO_ROUTE {
+                super::super::cold_wait::not_up();
+            } else {
+                trace::say_addr(b"dir connect failed", address, dir_port);
+                trace::say_num(b"dir connect errno", errno as u64);
             }
             None
         }

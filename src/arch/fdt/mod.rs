@@ -27,6 +27,7 @@ pub mod parser;
 pub mod property;
 mod raw;
 mod reserved;
+pub mod reserved_set;
 mod rsvmap;
 pub mod strings;
 pub mod tokens;

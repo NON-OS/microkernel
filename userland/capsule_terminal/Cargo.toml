@@ -23,6 +23,11 @@ path = "src/main.rs"
 # (echo, vfs round trip, pipe, statement gating) and emit graded
 # [TERMINAL-TEST] serial markers for the boot harness.
 nonos-autorun-selftest = []
+# A headless AgentProof run (src/term/terminal/agentproof): reads the job the
+# image holds, runs it, copies the screen to serial and exits. Only a Gauntlet
+# image turns it on, in its own copy of the tree; scripts/check_copy_only_features.py
+# fails any committed build that names it.
+agentproof-headless = []
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }

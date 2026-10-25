@@ -25,6 +25,7 @@ mod blitter_place_tests;
 mod blitter_tests;
 mod downscale_tests;
 mod fit_tests;
+mod band_dma_tests;
 mod indicator_band_tests;
 mod lens_tests;
 mod magnify_damage_tests;

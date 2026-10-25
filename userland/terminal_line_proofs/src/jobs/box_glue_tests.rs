@@ -64,10 +64,5 @@ fn a_guest_printed_box_line_never_reaches_the_serial_log() {
         assert!(!hold.take(&f));
     }
     assert_eq!(hold.lines(), (Vec::new(), None));
-    let draw = include_str!("../../../capsule_terminal/src/jobs/box_draw.rs");
-    assert!(draw.contains("let (shown, line) = hold.lines();"));
-    assert!(draw.contains(
-        "Some(l) => {\n            if !super::box_log::log(l, |p| nonos_libc::mk_debug("
-    ));
-    assert_eq!(draw.matches("mk_debug(").count(), 1);
+    super::box_net_tests::the_log_writer_is_fed_the_keyed_lines_only();
 }

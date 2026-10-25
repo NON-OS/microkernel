@@ -14,7 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_MK_ARGS, N_MK_GETPID, N_MK_KILL, N_MK_PID_ALIVE, N_MK_WAIT};
+use crate::syscall::{
+    call_raw, N_MK_ARGS, N_MK_CAPS_OF, N_MK_GETPID, N_MK_KILL, N_MK_PID_ALIVE, N_MK_WAIT,
+};
+
+/// The rights a SpawnBroker holder may ask `mk_caps_of` about.
+pub const CAPS_OF_SPAWN_WINDOW: u64 = 1 << 24;
+pub const CAPS_OF_APP_INSTALL: u64 = 1 << 30;
+
+/// For a SpawnBroker holder: whether `pid`, the sender of a message queued at
+/// `sent_ms` (`mk_ipc_recv_from_at`), holds `bit`. 1, 0 or a negative errno:
+/// EPERM to a non-broker, EINVAL for another bit, ESRCH for no such sender.
+pub extern "C" fn mk_caps_of(pid: u32, bit: u64, sent_ms: u64) -> i64 {
+    call_raw(N_MK_CAPS_OF, [pid as u64, bit, sent_ms, 0, 0, 0])
+}
 
 pub extern "C" fn mk_pid_alive(pid: u32) -> bool {
     call_raw(N_MK_PID_ALIVE, [pid as u64, 0, 0, 0, 0, 0]) == 1

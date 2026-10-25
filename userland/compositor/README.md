@@ -33,7 +33,10 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   requests from windowing capsules.
 - `MkSurfaceAttach` maps each window's surface into this capsule's
   address space; the attach cache keeps one mapping per handle.
-- A driver found is asked CAPS first (`setup/prime_wire.rs`). On the
+- A driver found is asked CAPS first (`setup/prime_wire.rs`). At start-up
+  that first CAPS waits up to 3 s (`display/call.rs`'s START_MS): a driver is
+  announced as it is spawned, before its device is up, and the 250 ms every
+  later CAPS gets left the call unanswered. On the
   restarted compositor gets its surface back), attaches the primary,
   sends each frame's damaged rectangles in one FLUSH (up to 15), polls STATE every 500 ms with
   the driver's pid looked up again, and on a new primary attaches it,
