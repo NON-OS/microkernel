@@ -25,8 +25,8 @@ Nothing on this page is booted yet. The SMP soak runs in [the plan](#plan) are w
 - **design.** One trampoline context slot at `0x8000` is rewritten for each AP (`src/smp/trampoline/install.rs:66-92`). An AP that is late and was not parked (the parking INIT's result is dropped, `src/smp/init/ap_unit.rs:97`) can read the next AP's stack and CPU number before its `boot_claim` CAS (`src/smp/ap/entry.rs:34`).
 - **design.** A failed stack allocation or trampoline write for one AP is swallowed by `unwrap_or(false)` and not logged (`src/smp/init/ap_start.rs:59`).
 - **design.** AP kernel stacks are 64 KiB, back to back, with no guard page between them (`src/smp/init/stack.rs:22-32`).
-- **design.** An AP that misses its online deadline stays `Starting` while it runs kernel code with the kernel's CR3. Shootdown target selection skips it until it publishes `Online` (`src/memory/paging/manager/shootdown/select.rs:39`). [Shootdown](#tlb-shootdown) is where that bites.
-- **booted, not recorded here.** The boot matrix has `q35-smp2`, `q35-smp4`, `q35-smp8`, `i440fx-smp4` and `q35-iommu-smp4` cells (`scripts/bootmatrix/cells.py:50-63`), held to `[SMP-PROOF] cpu_count=N PASS` (`scripts/bootmatrix/verdict.py:45`). The workflow runs daily and is not a merge gate. No log at this commit is in the tree. No cell goes past 8 CPUs.
+- **booted (QEMU q35 TCG `-cpu max`, forced with `nonos-smp-park-proof` and `nonos-smp-stuck-proof`).** An AP that misses its online deadline is asked to park, parks at the next checkpoint of `bring_up`, where it holds no lock, and only then is reset by INIT and set `Offline` (`src/smp/init/ap_unit.rs`, `src/smp/ap/park.rs`). At `-smp 4` and `-smp 64` CPU 1 printed `[SMP] cpu 1 abandoned at bring-up: missed its online deadline; parked and reset by INIT`, the rest came online, and no later round targeted it. An AP that does not park within 100 ms stays `Starting` and a shootdown target: at `-smp 4` CPU 1 printed `stuck at bring-up` and the next kernel shootdown waited for it and stopped the machine at its 2 s deadline, as designed. Before this, such an AP ran kernel code unflushed. [Shootdown](#tlb-shootdown) has the targeting.
+- **booted, QEMU q35 TCG `-cpu max`, 24 October 2026.** `microkernel-capsules` with `nonos-smp`, at 1536ccef3 and again with the shootdown and park changes: `-smp 1` reports `UP`; `-smp 2`, 4, 16 and 64 report `[SMP-PROOF] cpu_count=N PASS` with every AP online (`answered=63 online=64`). No run has a FATAL, PANIC, #GP or #PF line, and the first userland spawn comes at the same uptime with and without the changes (5004 to 5012 at up to 4 CPUs, 6007 to 6010 at 16, 14031 to 14032 at 64). The boot matrix also has `q35-smp2`, `q35-smp4`, `q35-smp8`, `i440fx-smp4` and `q35-iommu-smp4` cells (`scripts/bootmatrix/cells.py:50-63`), held to the same line; that workflow runs daily and is not a merge gate.
 
 ### Per-CPU data
 
@@ -42,12 +42,12 @@ Nothing on this page is booted yet. The SMP soak runs in [the plan](#plan) are w
 
 ### TLB shootdown
 
-- **design.** One round runs at a time under `SHOOTDOWN_LOCK`, with interrupts masked. The request is a single global VA, page count and ack counter. Targets are every online CPU for a kernel mapping, or the CPUs whose `active_asid` matches for a user mapping. Each target gets a pending flag and vector `0x40` (`src/memory/paging/manager/shootdown/broadcast.rs:26-70`, `select.rs:25-65`, `send.rs:32-50`).
+- **design.** One round runs at a time under `SHOOTDOWN_LOCK`, with interrupts masked. The request is a single global VA, page count and ack counter. Targets are every online or starting CPU for a kernel mapping, or the online CPUs whose `active_asid` matches for a user mapping; a starting target gets no vector and serves its own mark. Each target gets a pending flag and vector `0x40` (`src/memory/paging/manager/shootdown/broadcast.rs:26-70`, `select.rs:25-65`, `send.rs:32-50`).
 - **design.** The handler runs `invlpg` per page, or reloads CR3 when the page count is 0, then acks (`handle.rs:60-75`). Pending rounds are also served from the NMI path, from `lock_responsive` and from usercopy every 64 KiB.
 - **design.** At 50 ms the CPUs still pending get an NMI. At 2000 ms the machine stops (`wait.rs:34-64`). A failed `send_ipi` is dropped and recovered only by that 50 ms NMI (`send.rs:48`).
 - **design.** PCID and INVPCID are detected but never enabled. `enable_pcid` is reached only from `process::address_space::init`, which nothing calls (`src/process/address_space/api.rs:42-47`). Every CR3 write therefore flushes, and that is the only reason the `active_asid` filter is sound. A CPU that switched away from an address space holds no tagged entries for it. Turning PCID on without changing target selection would make shootdown unsound.
-- **design, open question.** Kernel PTEs carry GLOBAL (`src/memory/paging/manager/api/mapping/map_kernel_page.rs:23`). No code sets or clears CR4.PGE: `start.S` keeps the firmware's CR4 and only adds OSFXSR and OSXMMEXCPT (`src/arch/x86_64/asm/start.S:36-39`). If PGE is on, the CR3-reload "flush all" on the boot CPU leaves global kernel entries in place. APs build CR4 from scratch without PGE (`src/smp/trampoline/asm/source/protected_mode.S:10-13`), so the two kinds of CPU differ. The first SMP task reads CR4 on a boot to settle this.
-- **design.** The proof side is thin. `verification/lean/Nonos/Tlb.lean` models one TLB with no CPUs, IPIs or acks. No mutant in `verification/mutants.json` touches SMP, and no test exists in `src/smp`, the shootdown module or the scheduler.
+- **booted, open on other firmware.** Kernel PTEs carry GLOBAL (`src/memory/paging/manager/api/mapping/map_kernel_page.rs:23`), and no code sets or clears CR4.PGE: `start.S` keeps the firmware's CR4 (`src/arch/x86_64/asm/start.S:36-39`), and APs build CR4 from scratch without PGE (`src/smp/trampoline/asm/source/protected_mode.S:10-13`). Every `[CPU-PROT]` line now reports `pge=`. Under QEMU's OVMF every CPU reads `pge=0`, all 64 at `-smp 64`, so there a CR3-reload full flush removes everything. Firmware that leaves PGE set would make the boot CPU differ and leave GLOBAL entries live after a full flush; `shootdown_proofs` holds that as a mutant. Setting PGE on every CPU and making the full flush toggle it is the next item (P-02).
+- **host-tested and booted.** `userland/shootdown_proofs` searches every interleaving of one round with the CPUs it must reach and the APs that come up, park or are abandoned during it: every configuration up to 4 CPUs, 5 CPUs for the kernel's rules, the park path up to 3. Seven mutants are each caught. With `nonos-shootdown-trace`, each AP's bring-up at `-smp 64` sent 8 kernel rounds, each reaching every other online CPU but the abandoned CPU 1 (target set `…FD`), and each returned with every acknowledgement. No boot in this set made a user-address-space round, so the asid filter is not booted, and no host test covers it.
 
 ### Scheduler
 
@@ -188,13 +188,12 @@ The hard rule through all of it: the device's DMA is confined by the IOMMU to th
 In the order the owner set. Each step names its proof.
 
 1. **x86_64 SMP at high core counts.**
-   - Settle CR4.PGE on a boot, and make the boot CPU's and the APs' CR4 the same.
+   - Done: shootdown targets `Starting` CPUs; an AP past its online deadline is parked cooperatively and only then reset; `shootdown_proofs` with its mutants; boots at `-smp 1`, 2, 4, 16 and 64 with every AP online and no FATAL (above).
+   - P-02: set CR4.PGE on every CPU and make the full flush toggle it, or use INVPCID type 2.
    - Give each AP its own trampoline slot. Log every AP setup failure, and put a guard page between AP stacks.
-   - Make shootdown target selection count a CPU from the moment it enters, not from `Online`.
    - Make `cpu_id()` O(1).
    - State the fairness property of the scheduler, then test it.
-   - Proofs: a shootdown protocol model checked over interleavings (no target keeps a stale entry after its ack, for every number of CPUs up to N), with a mutant that drops the pending-flag fence or the late-AP targeting and must fail.
-   - Soak runs at `-smp 1`, 2, 4, 16 and 64 under TCG, with every AP online, a shootdown stress, and no `[FATAL]`. The logs are kept under `ci-reports/`.
+   - A user-address-space shootdown in a boot and in a host test, for the asid filter.
 2. **aarch64 to a booted desktop on QEMU virt.**
    - The aarch64 loader.
    - `driver-virtio-input` in the arm desktop profile.
