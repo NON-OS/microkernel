@@ -88,6 +88,25 @@ def usb_stick(path, block_size=512):
     return ["-drive", f"file={path},if=none,id=usbstick,format=raw", "-device", stick]
 
 
+def ingress_path(path):
+    """Where `capture` writes what the network sent the guest, beside `path`."""
+    root, ext = os.path.splitext(path)
+    return root + "-in" + (ext or ".pcap")
+
+
+def capture(path):
+    """Two filter-dumps on net0. queue=rx is the netdev's receive queue, so
+    every frame the guest sent and nothing else, to `path` (the egress the
+    judge reads); queue=tx is what the network sent the guest, to
+    ingress_path(path), read only for relays. A comma in an option value is
+    written twice, or QEMU takes it as the next option."""
+    def esc(p):
+        return p.replace(",", ",,")
+
+    return ["-object", f"filter-dump,id=egress0,netdev=net0,queue=rx,file={esc(path)}",
+            "-object", f"filter-dump,id=ingress0,netdev=net0,queue=tx,file={esc(ingress_path(path))}"]
+
+
 def audio():
     return "coreaudio" if platform.system() == "Darwin" else "none"
 
