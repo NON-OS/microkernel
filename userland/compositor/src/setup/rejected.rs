@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The line for a GOP backing the kernel would not register (H-06): the
-//! bytes it asked for and the most the kernel maps, said once though the
-//! setup asks again every 20 ms, so a panel past the kernel's ceiling says
-//! why the screen stays black. Pure: compositor_proofs::tests::rejected.
+//! bytes it asked for, and the ceiling when it is past it or the errno when
+//! not, said once though the setup asks again every 20 ms, so a panel past
+//! the kernel's ceiling says why the screen stays black. Pure:
+//! compositor_proofs::tests::rejected.
 
 extern crate alloc;
 
@@ -31,18 +32,20 @@ pub const SURFACE_CEILING: u64 = 128 * 1024 * 1024;
 /// Whether the line was said this run.
 pub static SAID: AtomicBool = AtomicBool::new(false);
 
-/// The line for a backing of `byte_len` bytes the kernel refused.
-pub fn line(byte_len: u64) -> String {
-    format!(
-        "gop: surface register rejected: {} bytes asked; the kernel maps at most {} \
-         (128 MiB), and less unless the boot framebuffer is that large",
-        byte_len, SURFACE_CEILING
-    )
+/// The line for a backing of `byte_len` bytes the kernel refused with `rc`,
+/// the negative errno the register call returned.
+pub fn line(byte_len: u64, rc: i64) -> String {
+    let asked = format!("gop: surface register rejected: {byte_len} bytes asked");
+    if byte_len > SURFACE_CEILING {
+        format!("{asked}; past the kernel's ceiling of 128 MiB")
+    } else {
+        format!("{asked}; refused, errno {}", -rc)
+    }
 }
 
 /// Say the line through `say` the first time only.
-pub fn say_once(byte_len: u64, said: &AtomicBool, say: impl FnOnce(&str)) {
+pub fn say_once(byte_len: u64, rc: i64, said: &AtomicBool, say: impl FnOnce(&str)) {
     if !said.swap(true, Ordering::Relaxed) {
-        say(&line(byte_len));
+        say(&line(byte_len, rc));
     }
 }
