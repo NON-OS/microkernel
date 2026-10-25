@@ -26,6 +26,8 @@ use crate::syscall::microkernel::errnos::{ERRNO_ACCES, ERRNO_EXIST, ERRNO_INVAL,
 pub(super) fn load_errno(e: LoadError) -> i64 {
     match e {
         LoadError::Manifest => ERRNO_INVAL,
+        // An empty image read from the store (B-02).
+        LoadError::EmptyImage => ERRNO_INVAL,
         LoadError::Spawn(SpawnError::EndpointCollision) => ERRNO_EXIST,
         // A name the image reserves, or outside the publisher's (K18).
         LoadError::ReservedName => ERRNO_PERM,

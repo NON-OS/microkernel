@@ -19,6 +19,7 @@ use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 use super::super::attested_parent::AttestedParent;
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
 use super::install::{install, InstallParams};
+use super::built_gate::checked;
 use super::preflight;
 
 // Caps installed on the PCB come from the verified manifest, never from spec.requested_caps,
@@ -41,14 +42,16 @@ pub(crate) fn spawn_verified_as(
     on_behalf_of: Option<AttestedParent>,
 ) -> Result<u32, SpawnError> {
     crate::sys::bench::mark_named(b"capsule_spawn_start", spec.name.as_bytes());
-    super::profile_gate::check(spec.name)?;
-    let preflighted = match preflight::run(spec, trust_anchor, now_ms) {
-        Ok(preflighted) => preflighted,
-        Err(err) => {
-            crate::sys::bench::mark_named(b"capsule_verify_fail", spec.name.as_bytes());
-            return Err(err);
-        }
-    };
+    let preflighted = checked(
+        spec.elf,
+        SpawnError::FeatureDisabled,
+        || super::profile_gate::check(spec.name),
+        || {
+            preflight::run(spec, trust_anchor, now_ms).inspect_err(|_| {
+                crate::sys::bench::mark_named(b"capsule_verify_fail", spec.name.as_bytes());
+            })
+        },
+    )?;
     crate::sys::bench::mark_named(b"capsule_preflight_ok", spec.name.as_bytes());
     let pid = install(&InstallParams {
         name: spec.name,
