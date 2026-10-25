@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a persist may do to the disk, pure so the host proofs can walk every
-//! case. `persist_gate` asks the policy service and hands the answer here.
+//! case. `persist_gate` asks the kernel and hands the answer here.
 
 /// How a persist may reach the disk this boot.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -28,8 +28,8 @@ pub enum Keep {
     Withdraw,
 }
 
-/// `persistent` is the person's choice at setup, as the policy service
-/// answers it; no answer is `false`. On a boot that keeps nothing only zeros
+/// `persistent` is the person's choice at setup, as the kernel holds it;
+/// before the policy service has told it, `false`. On a boot that keeps nothing only zeros
 /// pass, an empty payload among them, and only as a withdrawal; anything
 /// else is refused.
 pub fn keep(persistent: bool, data: &[u8]) -> Option<Keep> {

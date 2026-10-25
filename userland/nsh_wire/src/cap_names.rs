@@ -24,9 +24,9 @@
 use crate::names;
 use crate::{Reader, WireError};
 
-/// There are 37 capabilities (`src/capabilities/types`); a list of more
+/// There are 40 capabilities (`src/capabilities/types`); a list of more
 /// must repeat one.
-pub const MAX_CAPS: usize = 37;
+pub const MAX_CAPS: usize = 40;
 pub const MAX_CAP_NAME: usize = 32;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

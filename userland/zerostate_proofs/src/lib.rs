@@ -21,6 +21,10 @@
 #[cfg(test)]
 #[path = "../../../src/security/zerostate/keep_rule.rs"]
 pub mod keep_rule;
+// Persistent in the policy service: on, and then held for the boot.
+#[cfg(test)]
+#[path = "../../capsule_policy/src/store/keep_once.rs"]
+pub mod keep_once;
 
 // A dying address space's leaf frames, and the names the wipe clears.
 #[cfg(test)]
@@ -35,11 +39,15 @@ pub mod sweep;
 #[cfg(test)]
 mod arm_tests;
 #[cfg(test)]
+mod cycle_tests;
+#[cfg(test)]
 mod keep_tests;
 #[cfg(test)]
 mod leaf_tests;
 #[cfg(test)]
 mod names_tests;
+#[cfg(test)]
+mod once_tests;
 #[cfg(test)]
 mod rule_tests;
 #[cfg(test)]

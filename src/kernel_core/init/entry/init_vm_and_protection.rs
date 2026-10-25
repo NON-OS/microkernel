@@ -22,9 +22,9 @@ use super::fatal::fatal;
 use crate::memory::mmu;
 
 pub(super) fn init_vm_and_protection() {
-    // VM/paging must be ready before any process creator runs. The process
-    // subsystem only initializes its tables after this; the userspace init
-    // process itself is created exactly once in `microkernel_main`.
+    // VM/paging must be ready before any process creator runs: the process
+    // tables come after this, and init is created once in `microkernel_main`.
+    crate::arch::paging::require_vm_port();
     if let Err(e) = crate::memory::unified::init_unified_vm() {
         fatal("memory: init_unified_vm failed", e);
     }
