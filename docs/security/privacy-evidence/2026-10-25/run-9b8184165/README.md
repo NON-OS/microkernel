@@ -38,6 +38,12 @@ It expects EPERM each time, and exits 42 only if every step got it.
 - The Terminal's `install std_proof` gave `caps=0x159`.
 - QEMU was stopped through QMP `quit` at 11:14:49 UTC.
 
+## The heads
+
+- **Run 2 booted 9b81841652:** S-13 with main da35d0e0e2 merged in.
+- **The branch then took main again at ae764ce947,** as 0eb3b2be7a. Of main's changes since 9b81841652, the only file S-13 also touches is the generated `tools/nix/inputs.json`, and `inputs.py --check` passes after the merge.
+- **The pushed head** carries this README.
+
 ## Not shown here
 
 A Linux guest naming a native number gets EPERM. That is host-tested and source-pinned, not booted: `HANDOFF/letters/privacy/02-s13-load-bound.md` §2 says why.
