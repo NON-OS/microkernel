@@ -38,7 +38,7 @@ pub fn install_from(
         return install(pkg, pin);
     };
     // Its programs land held: until bind, nothing of it starts unboxed.
-    super::hold::hold();
+    super::hold::hold(&policy.program_blake3);
     install(pkg, pin)?;
     if let Err(why) = bind(pkg, &policy) {
         let why = refused(why);

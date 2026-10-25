@@ -36,5 +36,7 @@
    "mask": "TTY FILES_HOME NET_LISTEN_LO", "name": "Geth (dev chain)",
    "text": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here."},
   {"package": "profanity", "licence": "GPL-3.0-or-later", "mask": "TTY FILES_HOME NET_ANON", "name": "Profanity (XMPP, OMEMO)",
-   "text": "A terminal XMPP chat client with OMEMO end-to-end encryption. Every connection leaves over Nym or Anyone, never direct, so your server never learns your address, but it still sees your account, your contacts and when you talk. Its box allows any server: a market release cannot carry a list of servers yet (plan/33, L5)."}
+   "text": "A terminal XMPP chat client with OMEMO end-to-end encryption. Every connection leaves over Nym or Anyone, never direct, so your server never learns your address, but it still sees your account, your contacts and when you talk. Its box allows any server: a market release cannot carry a list of servers yet (plan/33, L5)."},
+  {"package": "monero", "licence": "BSD-3-Clause", "mask": "TTY FILES_HOME NET_ANON", "name": "Monero wallet (CLI)", "program": "usr/bin/monero-wallet-cli",
+   "text": "Monero's command-line wallet. It talks to a remote node you name, over Nym or Anyone, never direct, so the node never learns your address; it still sees which outputs your wallet asks about. Its box allows any node: a market release cannot carry a list yet (plan/33, L5). The daemon and tools in its package have no box of their own and are refused."}
 ]}
