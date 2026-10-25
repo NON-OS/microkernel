@@ -7850,6 +7850,7 @@
    "userland/capsule_driver_pvscsi/src/constants",
    "userland/capsule_driver_pvscsi/src/discover.rs",
    "userland/capsule_driver_pvscsi/src/hba.rs",
+   "userland/capsule_driver_pvscsi/src/moved.rs",
    "userland/capsule_driver_pvscsi/src/regs.rs",
    "userland/capsule_driver_pvscsi/src/wait.rs",
    "userland/nonos_scsi",
