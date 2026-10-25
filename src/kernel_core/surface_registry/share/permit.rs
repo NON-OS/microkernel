@@ -33,7 +33,7 @@ pub(super) fn permit(receiver_pid: u32, handle: SurfaceHandle) -> Result<(), Reg
     let slots = SLOTS.lock();
     let slot = slots.get(idx as usize).and_then(|s| s.as_ref());
     match slot {
-        Some(s) if s.epoch == epoch && s.shares.may_attach(receiver, None) => Ok(()),
+        Some(s) if s.epoch == epoch && s.shares.may_attach(receiver) => Ok(()),
         _ => Err(RegistryError::NotOwner),
     }
 }

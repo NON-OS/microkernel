@@ -36,6 +36,14 @@ pub mod hash;
 pub mod items;
 #[path = "../../../capsule_linux/src/linux/boxed/kind.rs"]
 pub mod kind;
+#[path = "../../../capsule_linux/src/linux/boxed/learn_folders.rs"]
+pub mod learn_folders;
+#[path = "../../../capsule_linux/src/linux/boxed/learn_report.rs"]
+pub mod learn_report;
+#[path = "../../../capsule_linux/src/linux/boxed/learned.rs"]
+pub mod learned;
+#[path = "../../../capsule_linux/src/linux/boxed/learned_text.rs"]
+pub mod learned_text;
 #[path = "../../../capsule_linux/src/linux/boxed/line.rs"]
 pub mod line;
 #[path = "../../../capsule_linux/src/linux/boxed/net_report.rs"]

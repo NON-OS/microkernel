@@ -36,3 +36,16 @@ class Edges(unittest.TestCase):
         r = read(log(IOMMU, BOX.format(r=3, w=1, n=2), DONE))
         self.assertEqual(judge(r, max_refused=3), [])
         self.assertEqual(len(judge(r, max_refused=2)), 1)
+
+    def test_a_learn_run_never_passes(self):
+        learn = BOX.format(r=0, w=0, n=0).replace("preset=strict", "preset=learn enforced=no")
+        self.assertIn("preset=learn", learn)
+        self.assertEqual(len(judge(read(log(IOMMU, learn, DONE)))), 1)
+        alone = BOX.format(r=0, w=0, n=0).replace("preset=strict", "preset=strict enforced=no")
+        self.assertEqual(len(judge(read(log(IOMMU, alone, DONE)))), 1)
+
+    def test_the_net_line_is_kept_for_the_result(self):
+        net = "[BOX-NET] v=1 allowed=10.0.2.2:80 connected=none"
+        r = read(log(IOMMU, net, BOX.format(r=0, w=0, n=0), DONE))
+        self.assertEqual(r["net"], {"v": "1", "allowed": "10.0.2.2:80", "connected": "none"})
+        self.assertEqual(judge(r), [])

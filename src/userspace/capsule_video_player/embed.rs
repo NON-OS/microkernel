@@ -23,15 +23,15 @@ pub(crate) const VIDEO_PLAYER_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-video-player")]
 pub(crate) const VIDEO_PLAYER_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/video_player.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/video_player.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-video-player")]
 pub(crate) const VIDEO_PLAYER_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/video_player.manifest.bin");
+    crate::baked_trust!("capsules/video_player.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-video-player")]
 pub(crate) const VIDEO_PLAYER_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/video_player.zk_trailer.bin");
+    crate::baked_trust!("capsules/video_player.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-video-player"))]
 pub(crate) const VIDEO_PLAYER_ELF: &[u8] = &[];
