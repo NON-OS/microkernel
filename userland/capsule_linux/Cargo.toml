@@ -20,6 +20,13 @@ description = "NONOS Linux personality: hosts Linux binaries outside the trusted
 name = "linux"
 path = "src/main.rs"
 
+[features]
+# The self-test's deliberate panic (src/linux/selftest_panic.rs). Never on by
+# default: only the selftest development image turns it on, in its own copy
+# of the tree (tools/nonos-dev-image), and scripts/check_selftest_panic.py
+# fails any committed build that names it.
+selftest-panic = []
+
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
