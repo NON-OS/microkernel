@@ -16,11 +16,10 @@
 
 //! The ACPI tables an Arm machine describes itself with, parsed from the
 //! bytes alone: MADT's GIC structures, GTDT, SPCR, PPTT, IORT, SRAT,
-//! SLIT, HMAT, BGRT, DBG2, PCCT and SDEV. Pure, and proved in
+//! SLIT, HMAT, DBG2, PCCT and SDEV. Pure, and proved in
 //! `kernel_proofs`; nothing calls them until the UEFI boot path hands the
 //! kernel these tables.
 
-pub mod bgrt;
 pub mod dbg2;
 mod dbg2_device;
 pub mod gtdt;

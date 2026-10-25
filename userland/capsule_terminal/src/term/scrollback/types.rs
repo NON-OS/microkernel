@@ -27,5 +27,5 @@ pub struct Scrollback {
     /// alone. A program that turns output processing off gets bare feeds.
     pub onlcr: bool,
     /// The theme the palette was last taken from.
-    pub(super) theme_of: Option<u16>,
+    pub theme_of: Option<u16>,
 }
