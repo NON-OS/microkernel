@@ -43,6 +43,6 @@ mod terminal_run;
 pub use finish::{finish, not_started};
 pub use frames::key_of;
 pub use kind::{of_needs, Kind};
-pub use notes::{call_begins, connected, learning, may_write, note, tried, wrote};
+pub use notes::{armed_hash, call_begins, connected, learning, may_write, note, tried, wrote};
 pub use state::{arm, exec_program, narrow};
 pub use terminal_run::{for_terminal, NO_LIST};

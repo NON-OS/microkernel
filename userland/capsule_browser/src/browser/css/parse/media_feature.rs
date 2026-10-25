@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::manifest::HEIGHT;
+use crate::browser::css::calc::viewport;
 
-/* Verdict for one parenthesized media feature against the fixed desktop
- * viewport: mouse pointer, hover, landscape, light scheme, 1x resolution.
+/* Verdict for one parenthesized media feature against the cascade's
+ * viewport (calc/viewport.rs), its height too, and a desktop: mouse pointer,
+ * hover, landscape, light scheme, 1x resolution.
  * Unknown features fail closed so a block written for capabilities we lack
  * cannot restyle the page. */
 pub(super) fn feature_matches(body: &str, viewport_w: u32) -> bool {
@@ -32,8 +33,8 @@ pub(super) fn feature_matches(body: &str, viewport_w: u32) -> bool {
         ("max-width", Some(v)) => len_px(v).is_some_and(|px| viewport_w <= px),
         ("min-width", Some(v)) => len_px(v).is_some_and(|px| viewport_w >= px),
         ("width", Some(v)) => len_px(v) == Some(viewport_w),
-        ("max-height", Some(v)) => len_px(v).is_some_and(|px| HEIGHT <= px),
-        ("min-height", Some(v)) => len_px(v).is_some_and(|px| HEIGHT >= px),
+        ("max-height", Some(v)) => len_px(v).is_some_and(|px| viewport::height() <= px),
+        ("min-height", Some(v)) => len_px(v).is_some_and(|px| viewport::height() >= px),
         ("orientation", Some(v)) => v == "landscape",
         ("prefers-color-scheme", Some(v)) => v == "light",
         ("prefers-reduced-motion" | "prefers-contrast", Some(v)) => v == "no-preference",

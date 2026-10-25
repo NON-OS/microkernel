@@ -50,6 +50,7 @@ impl State {
             completions: alloc::vec::Vec::new(),
             splash_art: Default::default(),
             theme_pick: None,
+            key_lat: crate::term::latency::Latency::new(),
         }
     }
 }

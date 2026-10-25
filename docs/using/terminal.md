@@ -31,6 +31,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 - `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
 - A new tab opens on a splash: the NONOS banner, the system's facts with a `start` row naming `help`, `Tab`, `Ctrl+R` and `Ctrl+K`, and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
+- `Ctrl+Shift+D` splits the window: a new tab opens beside the one you were in, each pane with its own size, so a program in it sees its own rows and columns. The pane with the keys has a line of the accent along its top; `Ctrl+Shift+Left` and `Ctrl+Shift+Right`, or a click, give the keys to the other. `Ctrl+Shift+D` again shows one tab; closing a pane's tab leaves the other in front.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
@@ -97,7 +98,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 
 ## Built-in commands
 
-`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 69 commands it documents, grouped here much as `help` groups them.
+`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 70 commands it documents, grouped here much as `help` groups them.
 
 | Files | What it does |
 |---|---|
@@ -146,6 +147,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
 | `date` | The real-time clock, as year-month-day hour:minute:second UTC. |
 | `uptime` | How long the system has run, from the monotonic clock. |
+| `latency` | How long the last keys typed in this tab took to reach the screen, from the key's arrival to the frame it changed being painted: the middle, the 95th percentile and the worst, in milliseconds, over up to 64 keys. |
 
 | Network | What it does |
 |---|---|
@@ -243,6 +245,7 @@ The source behind the facts above, at the commit in the footer.
 - The prompt
   - The branch and the job count, and which fit: `branch`, `heads` and `fit` in `userland/capsule_terminal/src/term/prompt_bits.rs`; read after each line by `probe` in `userland/capsule_terminal/src/term/git_probe.rs`.
 - Tabs and windows
+  - The split: `halves`, `sides`, `retarget` and `after_close` in `userland/capsule_terminal/src/term/split.rs`.
   - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
   - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.
   - Nine tabs at most: `MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs:25`.
@@ -264,7 +267,7 @@ The source behind the facts above, at the commit in the footer.
 - What Ctrl+C does
   - Each case in the table: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs:25-35`.
 - Built-in commands
-  - The 69 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
+  - The 70 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
   - The other names, `write`, `keep`, `pull` and `push`: `dispatch` in `userland/capsule_terminal/src/command/builtin/nox/dispatch.rs:27-59`.
 - neofetch
   - The splash's emblem: `beside` in `userland/capsule_terminal/src/paint/fetch_emblem.rs`.

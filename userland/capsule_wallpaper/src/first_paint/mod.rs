@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The built-in picture, painted while the service already answers.
 
+mod embedded;
 pub mod job;
 mod step;
 mod worker;
