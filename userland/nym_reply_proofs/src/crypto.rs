@@ -37,7 +37,6 @@ pub mod random {
 pub mod wipe;
 
 /// net.nym's `CryptoError` and key types, as the capsule defines them.
-#[allow(dead_code)]
 #[path = "../../capsule_net_nym/src/crypto/types.rs"]
 pub mod types;
 
