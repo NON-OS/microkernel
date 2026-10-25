@@ -31,7 +31,7 @@ pub fn mceliece_encaps(
     let mut positions: Vec<usize> = (0..MCELIECE_N).collect();
 
     for i in (MCELIECE_N - MCELIECE_T..MCELIECE_N).rev() {
-        let j = rng::random_range((i + 1) as u32) as usize;
+        let j = rng::random_range_secure((i + 1) as u32).map_err(|_| "no randomness")? as usize;
         positions.swap(i, j);
     }
 

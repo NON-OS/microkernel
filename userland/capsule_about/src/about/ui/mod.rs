@@ -19,6 +19,7 @@ pub mod chip;
 pub mod chip_wrap;
 pub mod chrome;
 pub mod gauge;
+pub mod gauge_value;
 pub mod hit;
 pub mod kv;
 pub mod metrics;

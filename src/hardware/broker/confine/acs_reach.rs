@@ -16,7 +16,6 @@
 
 //! What a device reaches past the IOMMU, hop by hop, pure (K11).
 //! kernel_proofs::acs_rule.
-#![cfg(target_arch = "x86_64")]
 
 extern crate alloc;
 
@@ -43,4 +42,10 @@ pub(crate) fn group_by_hop(
         }
     }
     reached
+}
+
+/// The members `hops` reach across a shared conventional bus, which no ACS
+/// keeps apart and whose bus masters drive I/O cycles (port_only.rs).
+pub(crate) fn shared(hops: &[Hop]) -> Vec<Bdf> {
+    hops.iter().flat_map(|h| h.always.iter().copied()).collect()
 }

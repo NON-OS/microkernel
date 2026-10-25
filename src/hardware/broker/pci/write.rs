@@ -16,6 +16,7 @@
 
 //! `MkPciConfigWrite` orchestration.
 
+use crate::capabilities::Capability;
 use crate::drivers::pci::config::ConfigSpace;
 use crate::hardware::broker::claim;
 
@@ -32,9 +33,11 @@ pub fn write(pid: u32, req: PciWriteRequest) -> Result<(), PciWriteError> {
     let current = cfg.read16(register).map_err(|_| PciWriteError::PlatformError)?;
     // The register, not the call's argument: a masked write's mask is above it.
     let ident = ident(&cfg, register as u32)?;
-    // Bus Master is for DMA: only a caller holding Dma may set it (K6).
-    let may_master = crate::process::caps::has(pid, crate::capabilities::Capability::Dma.bit());
-    let judge = |now| validate(&req, handle.msix.as_ref(), &ident, now, may_master);
+    // Bus Master is for DMA, Memory Space for MMIO: only a caller holding
+    // Dma, or Mmio, may set each (K6, H-02).
+    let has = |c: Capability| crate::process::caps::has(pid, c.bit());
+    let may = (has(Capability::Dma), has(Capability::Mmio));
+    let judge = |now| validate(&req, handle.msix.as_ref(), &ident, now, may);
     let action = judge(current)?;
     // Never after an exit moved the claim on and stopped the device (L69).
     let make = || super::apply::apply(&cfg, action, judge);

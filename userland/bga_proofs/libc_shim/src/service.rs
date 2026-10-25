@@ -68,3 +68,8 @@ pub fn mk_service_register(name: *const u8, name_len: usize, port: u32) -> i64 {
 pub fn services() -> Vec<(Vec<u8>, u32)> {
     SERVICES.with(|s| s.borrow().clone())
 }
+
+/// The driver's own pid, the pool's: a share naming it answers the owner's handle.
+pub fn mk_getpid() -> u32 {
+    3
+}

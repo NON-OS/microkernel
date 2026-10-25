@@ -22,6 +22,7 @@
 mod grant_for_caller;
 mod raw;
 mod read;
+mod reset_rule;
 mod resolve;
 mod write;
 

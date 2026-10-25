@@ -19,7 +19,6 @@
 //! forwards between them, unless that port redirects upstream with ACS.
 //! What it reaches is its isolation group, and one capsule holds a group at
 //! a time (join.rs); acs_reach.rs walks it. kernel_proofs::acs_rule.
-#![cfg(target_arch = "x86_64")]
 
 /// ACS capability and control bits (PCIe 6.0, 7.7.11): Source Validation,
 /// P2P Request Redirect, P2P Completion Redirect, Upstream Forwarding.

@@ -21,12 +21,17 @@ use super::types::Polynomial;
 use crate::crypto::rng;
 use alloc::vec::Vec;
 
-pub(crate) fn sample_ternary(num_ones: usize, num_neg_ones: usize) -> Polynomial {
+/// Draws its positions from the seeded RNG only, and refuses before it is
+/// seeded: a secret polynomial is never made from weaker bytes.
+pub(crate) fn sample_ternary(
+    num_ones: usize,
+    num_neg_ones: usize,
+) -> Result<Polynomial, &'static str> {
     let mut p = Polynomial::new();
     let mut positions: Vec<usize> = (0..NTRU_N).collect();
 
     for i in (1..NTRU_N).rev() {
-        let j = rng::random_range((i + 1) as u32) as usize;
+        let j = rng::random_range_secure((i + 1) as u32).map_err(|_| "no randomness")? as usize;
         positions.swap(i, j);
     }
 
@@ -38,5 +43,5 @@ pub(crate) fn sample_ternary(num_ones: usize, num_neg_ones: usize) -> Polynomial
         p.coeffs[positions[i]] = -1;
     }
 
-    p
+    Ok(p)
 }

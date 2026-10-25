@@ -47,7 +47,7 @@ impl Held {
         claim_owned(pid, addr, end, &mut windows);
         foreign_windows(pid, addr, end, &mut windows);
         let kept = super::super::space::tables_of(pid).map(kept_of).unwrap_or_default();
-        Self { windows, kept, own: OwnOrphans::collect(pid) }
+        Self { windows, kept, own: OwnOrphans::gather(pid) }
     }
 
     /* True when the frame `pa` just unmapped at `va` must stay allocated. */
