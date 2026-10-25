@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The handlers and the dispatcher, without the receive loop.
+//! The adapter as the shared wire server drives it (nonos_gfx_serve): one
+//! output, any mode the adapter and its VRAM hold, no hardware cursor.
 
-#[path = "../../capsule_driver_vmware_svga/src/server/dispatch.rs"]
-pub mod dispatch;
-#[path = "../../capsule_driver_vmware_svga/src/server/handlers/mod.rs"]
-pub mod handlers;
-#[path = "../../capsule_driver_vmware_svga/src/server/respond.rs"]
-pub mod respond;
+mod copy;
+mod describe;
+mod health;
+mod modes;
+mod show;
+mod svga;
+mod wire;
+
+pub use svga::{Shown, Svga};
