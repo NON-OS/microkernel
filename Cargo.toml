@@ -308,7 +308,9 @@ nonos-dev-unremapped-interrupts = []
 # bus-master claims go ahead unconfined instead of the boot stopping at the
 # splash. Taken only then, never in a Hardened or Air-Gapped boot, and always
 # said: its own [IOMMU] posture line, the attestation, the splash and About.
-# The hardened and airgapped build profiles take it out (tools/nix/config.nix).
+# It rides microkernel-desktop-gui, not microkernel-core, so the hardened and
+# airgapped profiles can take it out (tools/nix/config.nix) without opening
+# microkernel-core into members that are not kernel features.
 nonos-dma-unconfined-posture = []
 # Every image the seal may seal for release: tools/nix/config.nix turns it on
 # for each profile whose loader is not the development one. A kernel built
@@ -332,7 +334,6 @@ microkernel-core = [
   "nonos-iommu-enforce",
   "nonos-iommu-intremap",
   "nonos-iommu-amdvi",
-  "nonos-dma-unconfined-posture",
 ]
 
 # Runtime baseline: core + the three live capsule embeds.
@@ -991,6 +992,7 @@ microkernel-desktop-base = [
 # first-party app capsules in one kernel image.
 microkernel-desktop-gui = [
   "microkernel-desktop-base",
+  "nonos-dma-unconfined-posture",
   "nonos-tool-capsules",
 ]
 
