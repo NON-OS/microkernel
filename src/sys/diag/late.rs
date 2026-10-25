@@ -14,24 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The late call: the caller's own deadline ran out before the kernel's
-//! default (ipc/call/verdict.rs). Its own site, so late lines never spend
-//! the starvation counter. Endpoint name and timing only, no pids.
+//! A caller's short calls that a server let pass for the kernel's default
+//! wait (ipc/call/silence.rs), said as unanswered. Names and counts only,
+//! no pids.
 
 use super::{serial, trail, Site};
 
 impl Site {
-    /// `what` gave no answer within the caller's `elapsed_ms`; `dropped`
-    /// late replies have been discarded by the correlation check so far.
-    pub fn late(&self, what: &str, elapsed_ms: u64, dropped: u64) {
+    /// `what` answered none of a caller's calls in time for the kernel's
+    /// default wait; `dropped` late replies discarded since boot.
+    pub fn silent_for(&self, what: &str, dropped: u64) {
         let Some(n) = self.admit() else { return };
         serial::print(b"[DIAG] ");
         serial::print(self.label);
-        serial::print(b" late ");
+        serial::print(b" unanswered ");
         serial::print_str(what);
-        serial::print(b" after ");
-        serial::print_dec(elapsed_ms);
-        serial::print(b" ms dropped=");
+        serial::print(b" silent 5 s, late replies dropped=");
         serial::print_dec(dropped);
         trail(n);
     }
