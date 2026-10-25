@@ -16,5 +16,7 @@
 //! Register offsets in BAR0, each cited to the Vol 2c page that lists it.
 
 pub mod clka;
+pub mod ddi;
+pub mod phy;
 pub mod pll;
 pub mod trans;
