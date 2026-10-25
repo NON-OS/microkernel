@@ -31,7 +31,7 @@ fn budget(ms: u64, fallback: u64) -> u64 {
     }
 }
 
-pub(super) fn wait_for_acks() {
+pub(super) fn wait_for_acks(selected: &[u64]) {
     let start = read_tsc();
     let warn_at = start.wrapping_add(budget(SHOOTDOWN_WARN_MS, SHOOTDOWN_WARN_FALLBACK_TICKS));
     let deadline =
@@ -47,6 +47,7 @@ pub(super) fn wait_for_acks() {
          * relies on that. The pending flag makes a spurious call a no-op.
          */
         serve_for(me);
+        answer_for_abandoned(selected);
         let now = read_tsc();
         if !warned && now > warn_at {
             warned = true;
@@ -60,6 +61,26 @@ pub(super) fn wait_for_acks() {
             fail_timed_out(outstanding);
         }
         core::hint::spin_loop();
+    }
+}
+
+/// Acknowledge for each target the boot CPU gave up on after `select` read it
+/// as `Starting`: one that never claimed its start, or one that claimed,
+/// parked at a checkpoint and was reset (`ap_unit::park`). Either way INIT
+/// emptied its TLB, and it will never answer; without this the round waits to
+/// its deadline and stops the machine. Taking the mark is what makes exactly one side acknowledge:
+/// the cpu itself, had it got there, would have taken it first.
+fn answer_for_abandoned(selected: &[u64]) {
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if selected[cpu / 64] & (1u64 << (cpu % 64)) == 0 || !crate::smp::cpu_is_offline(cpu) {
+            continue;
+        }
+        let Some(d) = crate::smp::percpu::get(cpu) else {
+            continue;
+        };
+        if d.tlb_flush_pending.swap(0, Ordering::AcqRel) != 0 {
+            REQ_PENDING_ACKS.fetch_sub(1, Ordering::Release);
+        }
     }
 }
 

@@ -20,6 +20,7 @@ mod go_live;
 mod idle;
 mod idle_steps;
 mod online;
+mod park;
 mod tsc_adjust;
 mod tsc_adjust_report;
 mod user_setup;
