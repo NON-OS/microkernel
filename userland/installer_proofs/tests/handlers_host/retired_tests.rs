@@ -19,7 +19,9 @@
 //! it reads any op, with no arm left for 3 and no handler behind it.
 
 use crate::frame::{einval, frame};
-use crate::protocol::{decode_request, retired, OP_LOAD_FROM_STORE, RETIRED};
+use crate::protocol::retired::RETIRED;
+use crate::protocol::types::OP_LOAD_FROM_STORE;
+use crate::protocol::{decode_request, retired};
 use crate::syscall;
 
 const DISPATCH: &str = include_str!("../../../capsule_installer/src/server/dispatch.rs");
