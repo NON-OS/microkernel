@@ -29,6 +29,8 @@ pub(super) fn load_errno(e: LoadError) -> i64 {
         LoadError::Spawn(SpawnError::EndpointCollision) => ERRNO_EXIST,
         // A name the image reserves, or outside the publisher's.
         LoadError::ReservedName => ERRNO_PERM,
+        // More than its parent holds, from a parent that is no launcher.
+        LoadError::BeyondParent => ERRNO_PERM,
         LoadError::TrustAnchor | LoadError::Spawn(_) => ERRNO_ACCES,
     }
 }
