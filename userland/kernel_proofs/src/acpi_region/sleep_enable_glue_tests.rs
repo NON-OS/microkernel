@@ -23,7 +23,7 @@ const ACCESS: &str = include_str!("../../../../src/hardware/broker/acpi/port_acc
 const REGS: &str = include_str!("../../../../src/hardware/broker/acpi/kernel/power_regs.rs");
 const MACHINE: &str = include_str!("../../../../src/hardware/broker/acpi/kernel/machine.rs");
 const PIO: &str = include_str!("../../../../src/hardware/broker/pio/map.rs");
-const BROKER: &str = include_str!("../../../../src/hardware/broker/acpi/mod.rs");
+const POWER_PORTS: &str = include_str!("../../../../src/hardware/broker/pio/power_ports.rs");
 
 fn at(text: &str, needle: &str) -> usize {
     text.find(needle).unwrap_or_else(|| panic!("missing: {needle}"))
@@ -43,8 +43,6 @@ fn the_capsule_keeps_off_the_reset_register_and_drivers_keep_off_all_four() {
     assert!(MACHINE.contains("super::power_regs::reset_touched(SPACE_IO, base, end)"));
     assert!(REGS.contains("power_touches(power_regs()[3].iter(), space, base, end)"));
     assert!(REGS.contains("if f.has_reset_reg() { reg(f.reset_reg) } else { None },"));
-    assert!(BROKER.contains("kernel::power_regs::touches(rule::SPACE_IO, base, end)"));
-    assert!(
-        PIO.contains("crate::hardware::broker::acpi::power_io_touched(u64::from(port_base), end)")
-    );
+    assert!(POWER_PORTS.contains("if power_regs::touches(SPACE_IO, lo, hi) {"));
+    assert!(PIO.contains("clear(window(bar.base, bar.size))"));
 }
