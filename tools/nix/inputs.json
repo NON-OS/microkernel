@@ -4315,6 +4315,7 @@
    "userland/compositor/src/state/cursor.rs",
    "userland/compositor/src/state/damage",
    "userland/compositor/src/state/damage_bound.rs",
+   "userland/compositor/src/state/display_rule.rs",
    "userland/compositor/src/state/indicator.rs",
    "userland/compositor/src/state/lid_rule.rs",
    "userland/compositor/src/state/raise_rule.rs",
@@ -5707,6 +5708,7 @@
    "userland/capsule_input_router/src/protocol/read_u32.rs",
    "userland/capsule_input_router/src/route",
    "userland/capsule_input_router/src/state",
+   "userland/compositor/src/server/display_notice.rs",
    "userland/compositor/src/state/damage",
    "userland/input_proofs",
    "userland/nonos_keymap"
@@ -10206,6 +10208,9 @@
    "userland/capsule_driver_xhci/src/contexts/interval.rs",
    "userland/capsule_driver_xhci/src/protocol/limits.rs",
    "userland/capsule_input_router/src/state/cursor.rs",
+   "userland/capsule_input_router/src/state/cursor_apply.rs",
+   "userland/capsule_input_router/src/state/cursor_edges.rs",
+   "userland/capsule_input_router/src/state/cursor_resize.rs",
    "userland/libc/src/surface_registry/abs.rs",
    "userland/nonos_keymap",
    "userland/usb_proofs"
