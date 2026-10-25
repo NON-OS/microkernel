@@ -39,6 +39,11 @@ pub(super) fn paint_app(state: &mut State, fb: &mut PaintBuffer) {
         crate::browser::event::relayout(state);
         state.track.painting = Damage::FULL;
     }
+    // A text or error page wraps at the window's width, not the one it guessed.
+    if let Some(doc) = state.document.as_mut().filter(|d| fb.width != 0 && d.width != fb.width) {
+        doc.reflow(fb.width, nonos_app_skeleton::font_advance());
+        state.track.painting = Damage::FULL;
+    }
     let parts = core::mem::replace(&mut state.track.painting, Damage::FULL);
     /* A whole-window paint covers every change recorded so far. */
     if parts.has(Damage::FULL) {

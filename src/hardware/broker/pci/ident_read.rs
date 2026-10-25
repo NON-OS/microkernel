@@ -19,13 +19,14 @@
 
 use crate::drivers::pci::config::ConfigSpace;
 
-use super::quirk_bits::{legsup_before, Ident};
+use super::quirk_bits::{legsup_before, Ident, Route};
 use super::types::PciWriteError;
 
 /// The function's vendor, class and PCI Express capability, read from its
 /// own config space at the time of the write.
 pub(super) fn ident(cfg: &ConfigSpace, offset: u32) -> Result<Ident, PciWriteError> {
     let vendor = cfg.read16(0x00).map_err(|_| PciWriteError::PlatformError)?;
+    let device = cfg.read16(0x02).map_err(|_| PciWriteError::PlatformError)?;
     let class = cfg.read32(0x08).map_err(|_| PciWriteError::PlatformError)?;
     /*
      * The capability walk reads segment 0. A function behind a VMD lives in
@@ -48,5 +49,14 @@ pub(super) fn ident(cfg: &ConfigSpace, offset: u32) -> Result<Ident, PciWriteErr
     let ehci = class >> 8 == 0x0C_0320;
     let read = |o: u16| cfg.read8(o).unwrap_or(0xFF);
     let before = if ehci { legsup_before(&read, offset) } else { [0xFF; 3] };
-    Ok(Ident { vendor, class: (class >> 24) as u8, subclass, prog_if, pcie_cap, before })
+    let route = if vendor == 0x8086 && class >> 8 == 0x0C_0330 {
+        // The masks as firmware has them now, and whether EHCI is held now.
+        let mask = |o: u16| cfg.read16(o).unwrap_or(0);
+        let ehci_claimed = super::companion::ehci_claimed(at);
+        Route { usb2prm: mask(0xD4), usb3prm: mask(0xDC), ehci_claimed }
+    } else {
+        Route::NONE
+    };
+    let class_byte = (class >> 24) as u8;
+    Ok(Ident { vendor, device, class: class_byte, subclass, prog_if, pcie_cap, before, route })
 }
