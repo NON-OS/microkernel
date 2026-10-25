@@ -32,6 +32,10 @@ pub const EXIT_ABSENT: i32 = 2;
 /// The device is present and every attempt to bring it up failed. Whatever an
 /// attempt claimed was released before the exit.
 pub const EXIT_GAVE_UP: i32 = 6;
+/// A controller that came up with nothing behind it on every attempt (a
+/// disk controller with no disk): a driver that can tell its give-up apart
+/// leaves with this, not EXIT_GAVE_UP. Nothing it claimed is still held.
+pub const EXIT_EMPTY: i32 = 3;
 
 /// Where a driver's start leads: `Ok` to serve what `up` brought up, or `Err`
 /// with the code to exit with.
