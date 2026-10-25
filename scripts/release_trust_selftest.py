@@ -44,6 +44,8 @@ def self_test(unsealed, verdict):
             (root / f"sealed.{k}").write_bytes(b"x")
         got = verdict(unsealed(entries, shipped, exists), {"waiting"})
         assert len(got) == 1 and "sealed now" in got[0], got
+        got = verdict([], {"waiting"}, {"sealed"})
+        assert len(got) == 1 and "no longer shipped" in got[0], got
     from release_trust_lists import BEGIN, END, doc_slugs, drift, unnamed
     entries = [{"slug": "sealed"}, {"slug": "waiting"}]
     assert unnamed(entries, ["sealed", "waiting"]) == [], "a named slug was refused"
