@@ -39,8 +39,8 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
         return super::linux_terminal::run(argv);
     }
     if name == LINUX_NET_TOOL {
-        /* Network beyond LINUX_CAPS, which the caller must hold itself. */
-        let net = crate::capabilities::Capability::Network.bit();
+        /* The role's own caps beyond LINUX_CAPS, which the caller must hold. */
+        let net = crate::userspace::capsule_linux::TERMINAL_NET_EXTRA;
         super::bound::check(LINUX_MANIFEST_BYTES, LINUX_CAPS | net, name)?;
         return super::linux_terminal::run_net(argv);
     }

@@ -21,6 +21,7 @@ mod embed;
 mod family;
 mod install;
 mod role_spawn;
+mod role_term_net;
 mod roles;
 mod run_net;
 mod run_owner;
@@ -31,6 +32,9 @@ mod terminal;
 pub use family::package_arg;
 pub use install::{spawn_install, spawn_run, spawn_terminal, spawn_terminal_net, spawn_uninstall};
 pub use run_net::spawn_run_net;
+/// What the terminal's network role asks beyond LINUX_CAPS: the tool bound
+/// checks the caller against exactly what that role's spawn installs.
+pub const TERMINAL_NET_EXTRA: u64 = role_term_net::TERMINAL_NET.extra_caps;
 pub use run_owner::{run_busy, run_net_busy, run_package_of};
 pub(crate) use embed::LINUX_MANIFEST_BYTES;
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
