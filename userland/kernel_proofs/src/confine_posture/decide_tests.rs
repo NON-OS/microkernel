@@ -43,15 +43,15 @@ const CASES: [(Device, Verdict, Verdict); 6] = [
 #[test]
 fn a_device_no_unit_confines_is_refused_without_the_opt_in() {
     for ((rid, covered, domain), closed, _) in CASES {
-        assert_eq!(verdict(rid, covered, domain, false, false), closed, "{rid} {covered}");
+        assert_eq!(verdict(rid, covered, domain, false, (false, false)), closed, "{rid} {covered}");
     }
 }
 
 #[test]
 fn the_opt_in_opens_only_a_development_build() {
     for ((rid, covered, domain), closed, open) in CASES {
-        assert_eq!(verdict(rid, covered, domain, true, false), open, "{rid} {covered}");
-        assert_eq!(verdict(rid, covered, domain, true, true), closed, "production");
+        assert_eq!(verdict(rid, covered, domain, false, (true, false)), open, "{rid} {covered}");
+        assert_eq!(verdict(rid, covered, domain, false, (true, true)), closed, "production");
     }
     assert!(opted_in(true, false));
     assert!(!opted_in(true, true) && !opted_in(false, false) && !opted_in(false, true));
