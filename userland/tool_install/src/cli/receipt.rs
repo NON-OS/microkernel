@@ -43,3 +43,12 @@ pub fn print_receipt(r: &Receipt<'_>, verified: u64) {
 fn text(guid: &[u8; 36]) -> &str {
     core::str::from_utf8(guid).unwrap_or("")
 }
+
+/// `--reboot`: the wiped restart, asked of capsule_power (S-14). Only a
+/// refusal comes back.
+pub(super) fn restart() -> i32 {
+    println!("restarting");
+    let rc = nonos_libc::power_restart();
+    eprintln!("install: the restart was refused ({rc}); restart from the desktop");
+    4
+}

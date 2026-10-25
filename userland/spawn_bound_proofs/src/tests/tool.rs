@@ -26,8 +26,8 @@ const NET: u64 = 1 << 2;
 const ADMIN: u64 = 1 << 9;
 const BROKER: u64 = 1 << 23;
 const WINDOW: u64 = 1 << 24;
-/* tool.install's set: CoreExec IPC Memory Crypto FileSystem Admin DeviceEnum StoreWrite. */
-const INSTALL: u64 = 0x0400_8279;
+/* tool.install's set, no Admin (S-14): CoreExec IPC Memory Crypto FS DeviceEnum StoreWrite. */
+const INSTALL: u64 = 0x0400_8079;
 
 fn manifest(required: u64, optional: u64) -> Vec<u8> {
     [required.to_be_bytes(), optional.to_be_bytes()].concat()
@@ -47,9 +47,9 @@ fn a_caller_without_the_bits_is_refused_and_it_is_said() {
 fn an_ipc_only_capsule_that_starts_tool_install_is_refused() {
     world(Some(9), &[(9, IPC_ONLY)]);
     assert_eq!(check(&manifest(INSTALL, 0x100), INSTALL, b"tool.install"), Err(-1));
-    assert!(said().contains("tool=tool.install missing caps 0x4008260"));
+    assert!(said().contains("tool=tool.install missing caps 0x4008060"));
     world(Some(9), &[(9, IPC_ONLY | BROKER)]);
-    assert_eq!(check(&manifest(INSTALL, 0), INSTALL, b"tool.install"), Err(-1), "a broker is no launcher");
+    assert_eq!(check(&manifest(INSTALL, 0), INSTALL, b"tool.install"), Err(-1), "no launcher");
 }
 
 #[test]

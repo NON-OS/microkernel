@@ -19,6 +19,7 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply};
 
 use super::handlers::route;
+use crate::off::rule::{Caller, INSTALLERS};
 use crate::protocol::IPC_PAYLOAD_MAX;
 use crate::state::PowerState;
 
@@ -44,13 +45,20 @@ pub fn run() -> ! {
             continue;
         }
         let req = &in_buf[..received as usize];
-        let from_shell = super::caller::runs(sender_pid, SHELL);
+        let from = if super::caller::runs(sender_pid, SHELL) {
+            Caller::Shell
+        } else if INSTALLERS.iter().any(|s| super::caller::runs(sender_pid, s)) {
+            Caller::Installer
+        } else {
+            Caller::Other
+        };
+        let from_shell = from == Caller::Shell;
         // `power` and `power.off` share this inbox: a POFF frame is the
         // shell's power-off, anything else is the `power` protocol.
         let n = if crate::off::wire::is_poff(req) {
             crate::off::requested(req, from_shell, &mut out_buf)
         } else {
-            route(&mut state, req, from_shell, &mut out_buf)
+            route(&mut state, req, from, &mut out_buf)
         };
         if n > 0 {
             let _ = mk_ipc_reply(sender_pid, out_buf.as_ptr(), n);

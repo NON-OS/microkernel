@@ -44,16 +44,16 @@ served), 3 the image, the entropy, the plan or the write failed, 4 the read-back
    (`src/cli/run.rs`). A read-back mismatch names the region it fell in.
 7. Prints the receipt: bytes written and verified, the disk and partition GUIDs, where each
    partition lies, the store's file count and the FAT32 geometry (`src/cli/receipt.rs`).
-   `--reboot` then calls `mk_admin_reboot`.
+   `--reboot` then asks capsule_power's `power` service for the wiped restart
+   (`power_restart`, `src/cli/receipt.rs`); only a refusal comes back.
 
 ## Capabilities and endpoints
 
-`CAPSULE_REQUIRED_CAPS := 0x04008279`:
+`CAPSULE_REQUIRED_CAPS := 0x04008079`:
 
 - `0x1` CoreExec, `0x8` IPC, `0x10` Memory.
 - `0x20` Crypto: `crypto_random` for the disk identifiers.
 - `0x40` FileSystem: what it carries comes through vfs.
-- `0x200` Admin: the reboot.
 - `0x8000` DeviceEnum: `MkInstallSource`, the read of the running image, is gated on it.
 - `0x4000000` StoreWrite: raw sectors answer only the kernel and a StoreWrite holder.
 
