@@ -34,6 +34,7 @@ mod regs;
 mod ring;
 mod tests;
 mod tests_channels;
+mod tests_record;
 mod tests_vmbus;
 #[path = "../../../../src/arch/x86_64/hypervisor/hv/vmbus_out.rs"]
 mod vmbus_out;
