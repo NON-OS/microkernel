@@ -56,6 +56,8 @@ pub mod spin_watch;
 pub mod pio_reset;
 #[path = "panic_plan/mod.rs"]
 pub mod panic_plan;
+#[path = "panic_stage/mod.rs"]
+pub mod panic_stage;
 #[path = "proof_io_spawn_tests.rs"]
 #[cfg(test)]
 mod proof_io_spawn_tests;
