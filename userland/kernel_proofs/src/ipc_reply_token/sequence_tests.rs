@@ -60,6 +60,7 @@ fn a_thread_callers_reply_takes_its_own_entry() {
     assert_eq!(s.reply("proc.42"), Some(2));
     s.call("proc.42", 3);
     s.call("proc.41", 4);
+    s.serve(3);
     s.serve(4);
     assert_eq!(s.reply("proc.41"), Some(4), "the served one is its own");
     assert_eq!(s.reply("proc.42"), Some(3));
