@@ -49,7 +49,7 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MIEP` | `0x5045494D` | `MkInputEventPost` | InputSource | `can_input_source` `src/syscall/contract/cap_table/mk_surface.rs:36` | Post one input event to the kernel's input ring. |
 | `MIED` | `0x4445494D` | `MkInputEventDrain` | InputConsumer | `can_input_consumer` `src/syscall/contract/cap_table/mk_surface.rs:37` | Drain input events from the ring. |
 | `MIEW` | `0x5745494D` | `MkInputEventWait` | InputConsumer | `can_input_consumer` `src/syscall/contract/cap_table/mk_surface.rs:38` | Wait for new input events. |
-| `GDIM` | `0x4D494447` | `GraphicsDisplayDimensions` | GraphicsDisplayQuery | `Capability::GraphicsDisplayQuery` `src/syscall/contract/cap_table/graphics.rs:29` | The display's width and height, and its physical size when the firmware gives it. |
+| `GDIM` | `0x4D494447` | `GraphicsDisplayDimensions` | GraphicsDisplayQuery | `Capability::GraphicsDisplayQuery` `src/syscall/contract/cap_table/graphics.rs:29` | The display's width and height, and its physical size when the firmware gives it; with no framebuffer, ENOTSUP and, in the optional fifth argument, why (`nonos_display_refusal`). |
 
 Both display calls know display 0 only. `wait_for_vsync` sleeps to the next
 multiple of a period taken from `TARGET_HZ`, 60 by default, and reads no

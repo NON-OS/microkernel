@@ -36,6 +36,7 @@ fn bind_asks_it_first_and_records_nothing() {
                  return errno::ok(0);\n    }";
     let at = src.find(asked).expect("bind asks the unnamed rule");
     assert!(at < src.find("mask::NET_LISTEN_LO)").unwrap());
-    let reaches = "crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_ANON);";
+    let reaches = "crate::linux::app::granted(guest, nonos_linux_policy::mask::NET_ANON)\n        \
+                   || crate::linux::boxed::learning();";
     assert!(src.contains(&format!("let reaches_out = {reaches}")));
 }
