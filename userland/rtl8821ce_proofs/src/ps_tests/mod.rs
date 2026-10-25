@@ -3,6 +3,9 @@
 //! own enables following sleep, and the watch that decides when to sleep.
 
 mod dbi_card;
+mod firmware;
+mod fw_card;
 mod host;
+mod order;
 mod sleep;
 mod watch;
