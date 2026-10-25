@@ -6383,6 +6383,8 @@
    "userland/capsule_net_core/src/iface/link_watch.rs",
    "userland/capsule_net_core/src/protocol",
    "userland/capsule_net_core/src/server/handlers/dns/pending.rs",
+   "userland/capsule_net_core/src/server/handlers/dns/resolve_a.rs",
+   "userland/capsule_net_core/src/server/handlers/dns/route_gate.rs",
    "userland/capsule_net_core/src/server/handlers/dns/verdict.rs",
    "userland/capsule_net_core/src/server/handlers/dns/waiting.rs",
    "userland/capsule_net_core/src/server/handlers/tcp/connect/liveness.rs",

@@ -27,7 +27,7 @@ The manifest grants `IPC`, `Memory`, `GraphicsSurfaceCreate`, `Driver`,
 `DeviceEnum`, `Mmio`, `Dma`, and `Pio`:
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x1B9018
+CAPSULE_REQUIRED_CAPS = 0xB9018
 CAPSULE_OPTIONAL_CAPS = 0x100
 ```
 

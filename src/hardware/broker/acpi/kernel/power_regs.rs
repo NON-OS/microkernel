@@ -40,7 +40,7 @@ pub(in super::super) fn power_regs() -> [Option<PowerReg>; 4] {
 }
 
 /// Whether [base, end) in `space` touches one of them.
-pub(in super::super) fn touches(space: u8, base: u64, end: u64) -> bool {
+pub(crate) fn touches(space: u8, base: u64, end: u64) -> bool {
     super::super::rule::power_touches(power_regs().iter().flatten(), space, base, end)
 }
 
