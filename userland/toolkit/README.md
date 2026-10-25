@@ -17,7 +17,6 @@ app's buffer, and `app_skeleton` re-exports its `paint` module as
 | `font` | the bitmap atlas and TrueType rendering through `ab_glyph` (`font/ttf`) |
 | `decorations` | the window frame: titlebar, the close, minimize and maximize buttons, `hit_test`, the titlebar accessory rect |
 | `components` | 21 widgets, from `badge` and `button` to `tabbar`, `toggle` and `tooltip` |
-| `design` | colour, border, shadow, spacing and typography tokens |
 | `theme` | colour schemes, contrast checks, derived palettes, the theme store |
 | `image` | decoders for BMP, GIF, JPEG and PNG, raw LZ4 pixels, scaling |
 | `icons` | the icon table and its painter |
