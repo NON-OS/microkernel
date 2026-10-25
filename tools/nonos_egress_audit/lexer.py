@@ -18,18 +18,26 @@
 
 import re
 
+BLOCK = re.compile(r"/\*.*?\*/", re.S)
 
-def code(line):
-    """A line with its // comment cut, the slashes of a URL in a string kept."""
-    out, quoted, i = [], False, 0
+
+def uncomment(text):
+    """Block comments blanked, their line breaks kept, so line numbers hold."""
+    return BLOCK.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+
+
+def code(line, quotes='"'):
+    """A line with its // comment cut, the slashes of a URL in a string kept.
+    Python quotes with either mark; in Rust a ' is a char or a lifetime."""
+    out, quoted, i = [], None, 0
     while i < len(line):
         c = line[i]
         if c == "\\" and quoted:
             out.append(line[i:i + 2])
             i += 2
             continue
-        if c == '"':
-            quoted = not quoted
+        if c in quotes and quoted in (None, c):
+            quoted = None if quoted else c
         if not quoted and line.startswith("//", i):
             break
         out.append(c)

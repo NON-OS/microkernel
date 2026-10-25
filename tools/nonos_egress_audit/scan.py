@@ -20,11 +20,14 @@ setting that names a mirror, host or endpoint."""
 
 import re
 
-from .lexer import code, host_of
+from .lexer import code, host_of, uncomment
 
-TLDS = "net|org|com|io|co|systems|xyz|dev|app|eth|onion|anyone|ai|cloud"
-HOST = re.compile(r'"((?:https?|wss?)://[^"\s]+|[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:%s))[:/"]' % TLDS)
-QUAD = re.compile(r"\[\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\]")
+TLDS = ("net|org|com|io|co|systems|xyz|dev|app|eth|onion|anyone|ai|cloud|info|me|tv|cc"
+        "|de|uk|fr|nl|ch|eu|us|ca|jp|ru|cn|se|no|fi|at|be|pl|cz|sh|to|gg|ly|is|im")
+HOST = re.compile(r'["\']((?:https?|wss?)://[^"\'\s]+|[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:%s))'
+                  r'[:/"\']' % TLDS, re.I)
+QUAD = re.compile(r"(?:\[|Ipv4Addr::new\()\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,"
+                  r"\s*(\d{1,3})\s*[\])]")
 PORT_AFTER = re.compile(r"\s*,\s*\d{2,5}\s*\)")
 # Words that mark a file as one about addresses; four bytes elsewhere are
 # tables, colours and test data.
@@ -39,10 +42,11 @@ NAMED = re.compile(r"^[A-Za-z0-9.\[\]:-]+$")
 
 def in_file(name, text):
     """Each (literal, line number) in one source file."""
-    lines = [code(line) for line in text.splitlines()]
+    quotes = "\"'" if name.endswith(".py") else '"'
+    lines = [code(line, quotes) for line in uncomment(text).splitlines()]
     addressy = bool(ADDRESSY.search((name + " " + " ".join(lines)).lower()))
     for n, line in enumerate(lines, 1):
-        for host in (host_of(m.group(1)) for m in HOST.finditer(line)):
+        for host in (host_of(m.group(1)).lower() for m in HOST.finditer(line)):
             if NAMED.match(host):
                 yield host, n
         for m in SETTING.finditer(line):

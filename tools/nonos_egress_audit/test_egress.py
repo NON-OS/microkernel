@@ -54,6 +54,16 @@ class Egress(Case):
         for lit in ("docs.example.org", "test.example.io", "10.20.30.40", "quiet.example.com"):
             self.assertNotIn(lit, found)
 
+    def test_other_spellings_of_a_place_are_caught(self):
+        main = self.root / "userland/capsule_dial/src/main.rs"
+        main.write_text(main.read_text() + 'const A: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 9);\n'
+                        "/* const C: &str = \"https://hidden.example.org\";\n*/\n")
+        (main.parent / "fetch.py").write_text("URL = 'https://Upper.Example.NET/x'\n")
+        found = audit(self.root, "")[1]
+        self.assertIn("198.51.100.9", found)
+        self.assertIn("upper.example.net", found)
+        self.assertNotIn("hidden.example.org", found)
+
     def test_this_repository_agrees_with_its_list(self):
         self.assertEqual(run(REPO), [])
 

@@ -25,14 +25,22 @@ SLICE = 64 << 20
 
 
 def marker():
-    """A secret no image holds: two fixed letters, then sixteen random ones.
-    Letters only, so every keyboard layout setup offers types it alike."""
+    """A secret no image holds: two fixed letters, then sixteen random ones,
+    lower case only. Typed on a layout that moves letters (AZERTY, QWERTZ),
+    it lands as other text, and the before-check fails rather than passes."""
     return "zq" + "".join(secrets.choice(string.ascii_lowercase) for _ in range(16))
 
 
+def forms(secret):
+    """Each way a program may hold typed text: bytes, UTF-16 and UTF-32."""
+    return [secret.encode(e) for e in ("ascii", "utf-16-le", "utf-32-le")]
+
+
 def count(path, needle):
-    """How many times `needle` is in the file, across slice edges too."""
-    needle = needle.encode()
+    """How many times `needle`, in any of its forms, is in the file, across
+    slice edges too."""
+    needles = forms(needle)
+    keep = max(len(n) for n in needles) - 1
     found, tail = 0, b""
     with open(path, "rb") as f:
         while True:
@@ -40,9 +48,9 @@ def count(path, needle):
             if not chunk:
                 return found
             data = tail + chunk
-            found += data.count(needle)
-            # Keep one byte short of a match, so none is counted twice.
-            tail = data[-(len(needle) - 1):]
+            # Only matches that end in this chunk: one before it was counted.
+            found += sum(data.count(n) - tail.count(n) for n in needles)
+            tail = data[-keep:]
 
 
 def count_and_drop(path, needle):

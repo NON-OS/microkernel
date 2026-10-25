@@ -14,29 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The keep rule alone: only an installed disk's store takes a write.
+//! What the store write needs, and how keeping moves within a boot: off at
+//! the start, on once granted, and never off again.
 
-use crate::keep_rule::{disk_of, may_write, Disk};
+use crate::keep_rule::{after, may_write};
+use crate::sweep::Rng;
 
 #[test]
-fn only_an_installed_disk_takes_a_write() {
-    assert!(may_write(Disk::Installed));
-    assert!(!may_write(Disk::Live));
-    assert!(!may_write(Disk::Unread));
+fn the_store_is_shut_until_keeping_is_on() {
+    assert!(!may_write(false));
+    assert!(may_write(true));
 }
 
 #[test]
-fn each_plan_reading_names_its_disk() {
-    assert_eq!(disk_of(Some(true)), Disk::Installed);
-    assert_eq!(disk_of(Some(false)), Disk::Live);
-    assert_eq!(disk_of(None), Disk::Unread);
+fn keeping_turns_on_only_when_granted() {
+    assert!(!after(false, false));
+    assert!(after(false, true));
 }
 
-/* A fault reading the plan must never be the way the store opens. */
 #[test]
-fn every_reading_but_a_volume_plan_keeps_the_store_shut() {
-    for reading in [Some(false), None] {
-        assert!(!may_write(disk_of(reading)), "{reading:?}");
+fn once_on_no_ask_turns_it_off() {
+    assert!(after(true, false));
+    assert!(after(true, true));
+}
+
+/* A boot is a run of asks from the start, off: the store opens at the first
+ * granted ask and stays open, and is shut before it. */
+#[test]
+fn random_runs_of_asks_open_the_store_at_the_first_grant_and_keep_it_open() {
+    let mut r = Rng::new(0x5eed_0005);
+    for _ in 0..20_000 {
+        let mut armed = false;
+        let mut seen_grant = false;
+        for _ in 0..r.below(40) {
+            let granted = r.below(5) == 0;
+            seen_grant |= granted;
+            armed = after(armed, granted);
+            assert_eq!(may_write(armed), seen_grant);
+        }
     }
-    assert!(may_write(disk_of(Some(true))));
 }

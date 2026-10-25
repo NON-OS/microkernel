@@ -19,26 +19,40 @@
 //! The file service already refuses to keep a file on a boot that keeps
 //! nothing, but any holder of StoreWrite can call the store write directly.
 //! This check sits in that call, so the promise no longer rests on one
-//! capsule behaving. The disk plan is read afresh on every write: there is
-//! no flag to set, and nothing a capsule can say turns keeping on.
+//! capsule behaving. Keeping starts off at every boot and is turned on only
+//! by the policy capsule, the moment `Persistent` becomes true.
 
-use super::keep_rule::{disk_of, may_write, Disk};
+use core::sync::atomic::{AtomicBool, Ordering};
 
-/// What the selected disk's plan says, read now.
-pub(crate) fn disk() -> Disk {
-    disk_of(crate::fs::blockfs_volume::plan_keeps_volume())
+use super::keep_rule::{after, may_arm, may_write, Policy};
+
+static ARMED: AtomicBool = AtomicBool::new(false);
+
+/// The policy service's ask to turn keeping on (`on`) or leave it. False,
+/// said on serial, when the caller is not the policy capsule the kernel
+/// spawned, or the ask is to turn it off.
+pub(crate) fn arm(on: bool) -> bool {
+    let state = crate::userspace::capsule_policy::shared_state();
+    let policy = Policy { pid: state.pid(), alive: state.is_alive() };
+    let caller = crate::process::current_pid().unwrap_or(0);
+    let granted = may_arm(caller, policy, on);
+    let was = ARMED.load(Ordering::Acquire);
+    ARMED.store(after(was, granted), Ordering::Release);
+    crate::sys::serial::print(match (granted, was) {
+        (true, false) => b"[ZS] keeping turned on: the person chose it, the policy service says\n",
+        (true, true) => b"[ZS] keeping already on\n",
+        (false, _) if on => b"[ZS] keep refused: only the policy service turns keeping on\n",
+        (false, _) => b"[ZS] keep refused: keeping is not turned off within a boot\n",
+    });
+    granted
 }
 
-/// True when a write may reach the store. A refusal is said on serial with
-/// the disk's reading, so a boot test can find it.
+/// True when a write may reach the store. A refusal is said on serial, so a
+/// boot test can find it.
 pub(crate) fn store_write_allowed() -> bool {
-    let disk = disk();
-    if may_write(disk) {
+    if may_write(ARMED.load(Ordering::Acquire)) {
         return true;
     }
-    crate::sys::serial::print(match disk {
-        Disk::Unread => b"[ZS] store write refused: the disk plan could not be read\n",
-        _ => b"[ZS] store write refused: this boot keeps nothing\n",
-    });
+    crate::sys::serial::print(b"[ZS] store write refused: this boot keeps nothing\n");
     false
 }

@@ -54,6 +54,14 @@ class Count(unittest.TestCase):
         self.assertEqual(memscan.count_and_drop(path, secret), 1)
         self.assertFalse(os.path.exists(path))
 
+    def test_wide_forms_are_counted(self):
+        secret = memscan.marker()
+        for enc in ("utf-16-le", "utf-32-le"):
+            with mock.patch.object(memscan, "SLICE", 13):
+                for at in range(0, 40):
+                    path = self.file(b"\x01" * at + secret.encode(enc) + b"\x01" * 9)
+                    self.assertEqual(memscan.count(path, secret), 1, (enc, at))
+
     def test_markers_differ_and_are_letters(self):
         a, b = memscan.marker(), memscan.marker()
         self.assertNotEqual(a, b)

@@ -14,40 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a write may change the disk's store, as a pure rule.
+//! Who may turn keeping on, and what a store write needs, as pure rules.
 //!
-//! Only the installer writes a disk plan that keeps a volume, and it does so
-//! only after the person chose to install. So a disk carrying such a plan is
-//! one the person asked to keep things on, and every other disk is a boot
-//! that keeps nothing: no write reaches its store at all. Not even zeros, as
-//! which sectors were cleared is itself something written. A disk whose plan
-//! could not be read is treated as keeping nothing, so a fault never opens
-//! the store.
+//! Keeping is the person's choice, which the policy service holds as
+//! `Persistent`: setup sets it when the person picks a mode that keeps, and
+//! the restore sets it again on a boot whose disk kept that choice. Only the
+//! policy capsule the kernel spawned may tell the kernel so, by the pid it
+//! was spawned as, and only to turn keeping on: nothing turns it off within a
+//! boot, so a later push cannot make a kept boot's writes vanish half way.
+//! Until then no write reaches the store, not even zeros, as which sectors
+//! were cleared is itself something written.
 //!
 //! No crate paths here, so the host proofs mount this file as it is.
 
-/// What the disk the store lives on says about this boot.
+/// The policy capsule as the kernel knows it: the pid it was spawned as,
+/// and whether it is still running.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Disk {
-    /// A plan with a data volume: an installed disk.
-    Installed,
-    /// No plan, or a live stick's plan with no volume.
-    Live,
-    /// The plan could not be read or was refused.
-    Unread,
+pub(crate) struct Policy {
+    pub(crate) pid: u32,
+    pub(crate) alive: bool,
 }
 
-/// True when the store may be written on a boot whose disk is `disk`.
-pub(crate) fn may_write(disk: Disk) -> bool {
-    disk == Disk::Installed
+/// True when `caller` asking to set keeping to `on` turns it on.
+pub(crate) fn may_arm(caller: u32, policy: Policy, on: bool) -> bool {
+    on && policy.alive && policy.pid != 0 && caller == policy.pid
 }
 
-/// How a plan read maps to a `Disk`: `Some(true)` a plan with a volume,
-/// `Some(false)` none or a live one, `None` a read or check that failed.
-pub(crate) fn disk_of(plan_keeps_volume: Option<bool>) -> Disk {
-    match plan_keeps_volume {
-        Some(true) => Disk::Installed,
-        Some(false) => Disk::Live,
-        None => Disk::Unread,
-    }
+/// Keeping after an ask: once on, it stays on for the boot.
+pub(crate) fn after(armed: bool, granted: bool) -> bool {
+    armed || granted
+}
+
+/// True when the store may be written.
+pub(crate) fn may_write(armed: bool) -> bool {
+    armed
 }
