@@ -78,6 +78,22 @@ DFSC_TRANSLATION_L0 = 0x04
 WNR = 1 << 6
 
 
+# The kernel's TTBR1 alias of its image: KERNEL_SPACE_START plus the link
+# address (src/arch/aarch64/mmu/geometry.rs), where it runs once `move_high`
+# has moved it and said so on the console (src/arch/aarch64/boot/high.rs).
+KERNEL_HIGH = 0xFFFF_8000_0000_0000
+RUNS_HIGH = "[MMU] the kernel runs from TTBR1"
+
+
+def image_address(lines, addr):
+    """The link address an ELR names: itself, or its TTBR1 alias's, once the
+    log says the kernel moved there. Before that line a high ELR is no
+    address of the image."""
+    if addr >= KERNEL_HIGH and RUNS_HIGH in lines:
+        return addr - KERNEL_HIGH
+    return addr
+
+
 def trap_lines(lines):
     return [line for line in lines if line.startswith("[TRAP]")]
 
@@ -120,9 +136,9 @@ def judge_sp0(lines, elf):
         failed.append(f"saved SPSR.M {spsr & 0xF:#06b}, want {SPSR_M_EL1T:#06b} (EL1 on SP_EL0)")
     if sp != SP0_MARK:
         failed.append(f"sp {sp:#x}, want the SP_EL0 the proof loaded, {SP0_MARK:#x}")
-    if not in_text(elf, elr):
+    if not in_text(elf, image_address(lines, elr)):
         failed.append(f"elr {elr:#x} lies in no executable segment of the image")
-    elif elf is not None and elf.read(elr, 4) != BRK_5350:
+    elif elf is not None and elf.read(image_address(lines, elr), 4) != BRK_5350:
         failed.append(f"the instruction at elr {elr:#x} is not `brk #0x5350`")
     return failed + ran_on(lines)
 
@@ -142,7 +158,7 @@ def judge_abort(lines, elf):
         failed.append(f"esr {esr:#x} has DFSC {esr & 0x3F:#x}, want {DFSC_TRANSLATION_L0:#x} (level 0 translation)")
     if esr & WNR:
         failed.append(f"esr {esr:#x} says write, the proof reads")
-    if not in_text(elf, elr):
+    if not in_text(elf, image_address(lines, elr)):
         failed.append(f"elr {elr:#x} lies in no executable segment of the image")
     if traps.count(ABORT_DETAIL) != 1 or traps.index(ABORT_DETAIL) != traps.index(match.group(0)) + 1:
         failed.append(f"the report is not followed by `{ABORT_DETAIL}`")
@@ -228,11 +244,21 @@ def self_test():
     ]
     wrong = [(cell, i) for i, (cell, log, ok) in enumerate(cases)
              if (not CELLS[cell][0](log, None)) != ok]
+    # The TTBR1 alias is the image only once the log says the kernel runs
+    # there; before it, or below the alias, the address is taken as it is.
+    aliases = [
+        ([RUNS_HIGH], 0xFFFF_8000_400D_134C, 0x400D_134C),
+        ([], 0xFFFF_8000_400D_134C, 0xFFFF_8000_400D_134C),
+        ([RUNS_HIGH], 0x400D_134C, 0x400D_134C),
+        (["[MMU] the kernel stays one-to-one"], 0xFFFF_8000_400D_134C, 0xFFFF_8000_400D_134C),
+    ]
+    wrong += [("alias", i) for i, (log, addr, want) in enumerate(aliases)
+              if image_address(log, addr) != want]
     if wrong:
         print(f"aarch64-boot: self-test failed on cases {wrong}")
         return 1
     print(f"aarch64-boot: self-test passed, {sum(not ok for *_, ok in cases)} bad logs rejected "
-          f"and {sum(ok for *_, ok in cases)} good ones accepted")
+          f"and {sum(ok for *_, ok in cases)} good ones accepted, {len(aliases)} alias cases")
     return 0
 
 

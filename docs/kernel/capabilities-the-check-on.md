@@ -58,4 +58,4 @@ witness on to the handler at this commit
 Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for
 every bit it hands on (`src/syscall/microkernel/capability/handlers.rs:42-47`).
 `sys_pci_config_read` and `sys_pci_config_write` ask for `Driver` itself, so
-`Admin` alone is refused there (`src/syscall/microkernel/pci.rs:28-35`).
+`Admin` alone is refused there (`src/syscall/microkernel/pci/config.rs:27-34`).

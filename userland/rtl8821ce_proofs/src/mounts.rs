@@ -51,6 +51,8 @@ pub mod serve_refuse;
 pub mod serve_scanner;
 #[path = "../../capsule_driver_rtl8821ce/src/serve/control/status_body.rs"]
 pub mod serve_status;
+#[path = "../../capsule_driver_rtl8821ce/src/status.rs"]
+pub mod status;
 #[path = "../../capsule_driver_rtl8821ce/src/tx/mod.rs"]
 pub mod tx;
 #[path = "../../capsule_driver_rtl8821ce/src/wait.rs"]

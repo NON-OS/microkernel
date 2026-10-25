@@ -63,6 +63,7 @@ fn purchase(state: &State) -> Option<Shown> {
 fn publisher(state: &State) -> Option<Shown> {
     match &state.publisher.sending {
         Some(s) => matches!(s.step, IntentStep::Review { .. }).then_some(Shown::PublisherReview),
+        None if state.publisher.attest_ask.is_some() => Some(Shown::AttestReview),
         None => state.publisher.entry.is_some().then_some(Shown::Publish),
     }
 }

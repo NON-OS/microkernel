@@ -8,6 +8,10 @@ extern crate alloc;
 mod mounts;
 pub use mounts::*;
 
+// The connect stage's answer to a finished join, at the module path its
+// `pub(in crate::serve)` items name (src/serve/connect/mod.rs).
+pub mod serve;
+
 #[cfg(test)]
 #[path = "tests_all.rs"]
 mod tests_all;

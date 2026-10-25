@@ -1,0 +1,43 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs for nsh_roles: every check in docs/design/nsh-v1-roles.md is a
+# test, and every refusal is reached by a table, a list or a grant that
+# differs from a good one in exactly that respect. Grants, tables, lists and
+# approvals carry real hybrid signatures, made with keys the tests derive
+# from fixed seeds.
+
+[package]
+name = "nsh_roles_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_hash = { path = "../nonos_hash" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nsh_crypto = { path = "../nsh_crypto" }
+nsh_roles = { path = "../nsh_roles" }
+nsh_wire = { path = "../nsh_wire" }
+
+# The signatures are made in the C and in Rust; unoptimised, the tests take
+# minutes rather than seconds.
+[profile.dev]
+opt-level = 2

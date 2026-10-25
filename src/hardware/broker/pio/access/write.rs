@@ -21,6 +21,7 @@
 use super::super::types::{PioError, PioWidth};
 use super::gate::during;
 use super::raw::{out16, out32, out8};
+use super::reset_rule::resets_machine;
 use super::resolve::resolve;
 
 pub fn write(
@@ -33,6 +34,9 @@ pub fn write(
     during(|| {
         let g = resolve(pid, grant_id, port_offset, width)?;
         let port = g.port_base + port_offset;
+        if resets_machine(port, width as u8, value) {
+            return Err(PioError::ReservedPort);
+        }
         // SAFETY: resolve found the port inside the caller's grant, under a
         // claim still held; the gate keeps a retire from quieting ports meanwhile.
         unsafe {

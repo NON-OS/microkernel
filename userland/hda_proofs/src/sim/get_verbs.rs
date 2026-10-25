@@ -34,6 +34,9 @@ pub(super) fn answer_get(
     let node = codec.nodes.get(&nid);
     let verb = (cmd >> 8) & 0xfff;
     let payload = (cmd & 0xff) as u16;
+    if let Some(word) = super::noise::undefined(codec, nid, verb, payload) {
+        return word;
+    }
     match verb {
         0xf00 => match node {
             Some(n) => {

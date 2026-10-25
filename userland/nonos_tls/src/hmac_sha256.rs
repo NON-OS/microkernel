@@ -28,10 +28,19 @@ type HmacSha256 = Hmac<Sha256>;
  */
 /// The tag over the concatenation of `parts`, keyed with `key`.
 pub fn tag(key: &[u8], parts: &[&[u8]]) -> Option<[u8; 32]> {
-    let mac = keyed(key, parts)?;
     let mut out = [0u8; 32];
-    out.copy_from_slice(&mac.finalize().into_bytes());
-    Some(out)
+    tag_into(key, parts, &mut out).then_some(out)
+}
+
+/// The tag written into `out`, where the caller keeps it; the finalised copy
+/// the MAC hands back is wiped. The MAC's own keyed state is the `hmac`
+/// crate's, which this version cannot zero.
+pub fn tag_into(key: &[u8], parts: &[&[u8]], out: &mut [u8; 32]) -> bool {
+    let Some(mac) = keyed(key, parts) else { return false };
+    let mut bytes = mac.finalize().into_bytes();
+    out.copy_from_slice(&bytes);
+    super::traffic_keys::wipe(&mut bytes);
+    true
 }
 
 /// Whether `expected` is the tag over `parts`, compared in constant time.

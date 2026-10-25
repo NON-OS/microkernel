@@ -40,16 +40,16 @@ impl TlsCtx {
     }
 
     /*
-     * The handshake is over: the flight, the decrypted messages and the
-     * X25519 private key are not needed again, and holding a private key
-     * longer than its use is how it ends up somewhere it should not.
+     * The handshake is over: the flight, the decrypted messages and both
+     * private keys are not needed again, and holding a private key longer
+     * than its use is how it ends up somewhere it should not.
      */
     /// Keep only what reading and sending application records needs.
     pub fn settle(&mut self, app: TrafficKeys) {
         self.server_app = Some(app);
         self.hs = None;
         self.flight = Vec::new();
-        self.cf.private = [0; 32];
+        self.cf.wipe_private();
         self.cf.handshake = Vec::new();
     }
 }

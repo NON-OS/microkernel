@@ -17,7 +17,7 @@
 use alloc::format;
 use alloc::string::String;
 
-use crate::arch::x86_64::acpi::devices::i2c::{HidInterrupt, I2cHidDevice, I2cHostName};
+use crate::arch::firmware_table::devices::{HidInterrupt, I2cHidDevice, I2cHostName};
 use crate::sys::boot_log;
 
 use super::slots::controller_slot;

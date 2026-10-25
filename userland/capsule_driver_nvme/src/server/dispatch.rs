@@ -19,7 +19,7 @@
 
 use crate::protocol::{
     Request, E_INVAL, OP_CAPACITY, OP_CONTROLLER_INFO, OP_FLUSH, OP_HEALTHCHECK,
-    OP_IDENTIFY_CONTROLLER, OP_IDENTIFY_NAMESPACE, OP_READ_BLOCKS, OP_SMART_HEALTH,
+    OP_IDENTIFY_CONTROLLER, OP_IDENTIFY_NAMESPACE, OP_POWER_OFF, OP_READ_BLOCKS, OP_SMART_HEALTH,
     OP_WRITE_BLOCKS,
 };
 use crate::server::{error, handlers};
@@ -38,6 +38,7 @@ pub(super) fn dispatch(
         | OP_IDENTIFY_CONTROLLER
         | OP_IDENTIFY_NAMESPACE
         | OP_SMART_HEALTH
+        | OP_POWER_OFF
             if req.payload_len != 0 =>
         {
             error::reply_with_status(tx, req, E_INVAL)
@@ -51,6 +52,7 @@ pub(super) fn dispatch(
         OP_READ_BLOCKS => handlers::read::handle(driver, req, sender, body, tx),
         OP_WRITE_BLOCKS => handlers::write::handle(driver, req, sender, body, tx),
         OP_FLUSH => handlers::flush::handle(driver, req, sender, tx),
+        OP_POWER_OFF => handlers::power_off::handle(driver, req, tx),
         _ => error::reply_with_status(tx, req, E_INVAL),
     }
 }

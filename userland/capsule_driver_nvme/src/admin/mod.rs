@@ -30,10 +30,12 @@ mod namespace;
 mod queue;
 mod ready_step;
 mod ready_wait;
+mod shutdown_step;
+mod shutdown_wait;
 
 pub use active_ns::{first_active_nsid, lists_active_namespaces, FALLBACK_NSID};
 pub use command::set_features;
-pub use controller::{enable, reset_to_disabled};
+pub use controller::{enable, reset_to_disabled, shut_down};
 pub use health::SmartHealth;
 pub use identity::ControllerIdentity;
 pub use namespace::NamespaceIdentity;
