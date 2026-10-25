@@ -25,7 +25,7 @@
 pub(crate) fn report_dma_posture() {
     #[cfg(target_arch = "aarch64")]
     {
-        use crate::memory::iommu::{report_posture, select_vendor};
+        use crate::memory::iommu::{decide_no_iommu_posture, report_posture, select_vendor};
         use crate::sys::serial::Line;
         match crate::arch::aarch64::iommu::smmu::bring_up() {
             Ok(()) => crate::sys::serial::println(
@@ -37,7 +37,7 @@ pub(crate) fn report_dma_posture() {
                 .str(b"; IOMMU domains refused; DMA is unrestricted")
                 .end(),
         }
-        let _ = select_vendor();
+        decide_no_iommu_posture(select_vendor());
         report_posture();
     }
 }
