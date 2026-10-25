@@ -27,6 +27,16 @@ request, as on the RTL8821CE, in this order:
    key (its own index), authorize the station entry, cancel the session, and
    open the port.
 
+Power save follows Linux v6.12's balanced scheme (`mvm/power.c`). At boot
+the device power command lets the card sleep (`POWER_SAVE_ENA`); the shadow
+registers keep the driver's register writes safe while it does. On
+association the station's power command (MAC_PM_POWER_TABLE) goes out with
+its keep-alive (three DTIM periods, at least 25 s); once the keys are in, it
+goes again with power management on and 100 ms receive and transmit
+timeouts, and a teardown sends it with power management off. Beacon
+filtering stays off, since the link watch hears the access point by its
+beacons. Each RLC chain set has one receive chain, as Linux has outside CAM.
+
 Any end takes down what was put up, keys first, flushing the queues before
 removing them. Management and handshake frames go at the lowest basic rate
 and data at the highest basic rate, each with its rate in the command
@@ -42,8 +52,8 @@ key installed (the old index removed), and a deauthentication or
 disassociation from the access point (unprotected only without management
 frame protection) closes the port and takes the contexts down. A disconnect
 sends a deauthentication (protected under MFP) before the same teardown.
-Beacon loss is not acted on: a link whose access point went away silently
-stays up until the next disconnect.
+An access point unheard for 2 s is probed, and after three unanswered probes
+500 ms apart the link is lost (`nonos_wifi_core::station::alive`).
 
 Interrupts: the gen3 path polls. It unmasks the ALIVE cause for the boot (as
 Linux does) and, once ALIVE is in, masks every device interrupt (CSR_INT_MASK

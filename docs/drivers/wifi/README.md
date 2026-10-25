@@ -23,7 +23,7 @@ That is the only hardware report for Wi-Fi in this release. Every other statemen
 - No 6 GHz. The RTL8821CE scans 2.4 GHz channels 1 to 13 only; the iwlwifi path keeps the 2.4 and 5 GHz channels the world-safe domain allows (`userland/capsule_driver_iwlwifi/src/firmware/gen3/nvm/layout.rs`, `NVM_CHANNELS`; `userland/nonos_wifi_core/src/regdom/world.rs`, `world`).
 - No country setting. Both drivers keep to one world-safe domain: 2.4 GHz channels 1 to 11 may be probed; 12 and 13, and 5 GHz channels 36 to 64, 100 to 144 and 149 to 165, are listened on and joined only after the network's beacon is heard there; 14 is never used.
 - No open, TKIP or Enterprise networks. The [security a join accepts](overview/security.md#security-a-join-accepts) is WPA2-Personal or WPA3-Personal with CCMP.
-- No access point, mesh or monitor mode, no roaming and no power save.
+- No access point, mesh or monitor mode, no roaming. Only the iwlwifi path saves power (Linux's balanced scheme); the RTL8821CE stays awake.
 - No USB Wi-Fi adapters.
 
 ## Parts
