@@ -139,14 +139,6 @@ impl WorkerSeat {
     }
 }
 
-#[cfg(target_arch = "x86_64")]
 fn start_thread(stack: usize) -> i64 {
     mk_thread_spawn(super::entry::trampoline as *const () as usize as u64, stack as u64)
-}
-
-#[cfg(not(target_arch = "x86_64"))]
-fn start_thread(_stack: usize) -> i64 {
-    // No trampoline for this architecture yet: ENOSYS, and no thread.
-    let _ = mk_thread_spawn;
-    -38
 }

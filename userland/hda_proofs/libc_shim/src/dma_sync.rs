@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Draw from the kernel's generator.
+
+//! The cache maintenance the driver asks of libc where the CPU does not snoop
+//! for it (every architecture but x86_64). The proofs run on a host whose
+//! memory is one coherent buffer, so there is nothing to clean or invalidate;
+//! the call only has to exist for the included driver file to build there.
+
+/// Make a DMA range visible to the CPU: nothing to do over host memory.
 ///
-/// There is no unprivileged equivalent of RDRAND to reach for here. FEAT_RNG
-/// adds RNDR, but it is optional and absent on the Apple M-series among
-/// others, and whether it exists is only readable from EL1, so a capsule
-/// cannot check before issuing the instruction and would take an undefined
-/// instruction trap where it is missing. The kernel can check, and already
-/// backs this call with RNDR or the virtio entropy device as the board
-/// allows, so the source decision belongs there.
-pub(in crate::pool) unsafe fn fill(out: &mut [u8]) -> bool {
-    nonos_libc::crypto_random(out.as_mut_ptr(), out.len()) == out.len() as i64
-}
+/// # Safety
+/// The same contract as libc's: `ptr .. ptr + len` lies in one DMA grant.
+pub unsafe fn mk_dma_sync_for_cpu(_ptr: *const u8, _len: u64) {}

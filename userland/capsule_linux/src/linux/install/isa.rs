@@ -16,10 +16,12 @@
 
 //! Whether this CPU can run the x86-64-v3 build of the chat program.
 
+#[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::{__cpuid, __cpuid_count, _xgetbv};
 
 /// Whether every x86-64-v3 feature is present and the OS saves the YMM
 /// registers, without which AVX faults even on a CPU that has it.
+#[cfg(target_arch = "x86_64")]
 pub fn runs_v3() -> bool {
     /*
      * SAFETY: CPUID exists on every x86-64 CPU; XGETBV runs only once
@@ -44,4 +46,10 @@ pub fn runs_v3() -> bool {
         let cpu = fma && movbe && avx && f16c && bmi1 && avx2 && bmi2 && lzcnt;
         cpu && osxsave && _xgetbv(0) & 0b110 == 0b110
     }
+}
+
+/// Elsewhere no x86-64-v3 build can run at all, so the answer is no.
+#[cfg(not(target_arch = "x86_64"))]
+pub fn runs_v3() -> bool {
+    false
 }
