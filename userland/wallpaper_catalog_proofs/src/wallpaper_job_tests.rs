@@ -37,7 +37,7 @@ use crate::wallpaper_job::plan::{Outcome, Plan};
 
 const WALLPAPER_PID: u32 = 31;
 const CATALOG_PORT: u32 = 4110;
-const PEPE: u8 = 62;
+const LAST: u8 = 3; // the last wallpaper, packed after every other
 /// libc's `WORKER_STACK`: the stack every worker of `WorkerSeat` runs on.
 const WORKER_STACK: usize = 64 * 1024;
 
@@ -140,11 +140,11 @@ fn a_picture_that_could_not_be_painted_is_tried_again_after_the_poll() {
 fn a_failed_job_keeps_its_bytes_and_the_next_one_resumes_then_paints() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
     reset();
-    let file = &files()[PEPE as usize].1;
+    let file = &files()[LAST as usize].1;
     // Call 0 is the size; call 4 is the chunk at 3 * CHUNK_MAX, lost.
     let log = link(&[4]);
     let mut plan: Plan<Download> = Plan::new();
-    plan.want(PEPE);
+    plan.want(LAST);
     let (index, kept) = plan.begin().expect("a job for the wallpaper wanted");
     assert!(kept.is_none());
     let first = fetch(CATALOG_PORT, index, kept);
@@ -154,7 +154,7 @@ fn a_failed_job_keeps_its_bytes_and_the_next_one_resumes_then_paints() {
     assert!(plan.begin().is_none(), "not again until the next poll");
     let calls_before = log.borrow().len();
 
-    plan.want(PEPE);
+    plan.want(LAST);
     let (index, kept) = plan.begin().expect("the next try");
     let kept = kept.expect("what came over is handed to it");
     let Outcome::Decoded(image) = fetch(CATALOG_PORT, index, Some(kept)) else {
@@ -166,7 +166,7 @@ fn a_failed_job_keeps_its_bytes_and_the_next_one_resumes_then_paints() {
     let image = plan.finish(index, Outcome::Decoded(image)).expect("still wanted: paint it");
     assert_eq!((image.width, image.height), (1920, 1080));
     plan.shown(index);
-    plan.want(PEPE);
+    plan.want(LAST);
     assert!(plan.begin().is_none(), "shown: nothing more to fetch");
 }
 
@@ -179,7 +179,7 @@ fn kept_bytes_of_another_wallpaper_are_not_resumed() {
         panic!("the job for 0 stops at its lost reply");
     };
     let _log = link(&[]);
-    let Outcome::Decoded(image) = fetch(CATALOG_PORT, PEPE, Some(other)) else {
+    let Outcome::Decoded(image) = fetch(CATALOG_PORT, LAST, Some(other)) else {
         panic!("a fresh fetch of the one asked for");
     };
     assert_eq!(image.pixels.len(), 1920 * 1080);
