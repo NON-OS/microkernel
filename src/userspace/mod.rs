@@ -60,6 +60,7 @@ pub mod capsule_payment;
 #[cfg(feature = "nonos-capsule-nonos-install")]
 pub mod capsule_nonos_install;
 pub mod capsule_policy;
+pub mod capsule_power;
 pub mod capsule_process_manager;
 pub mod capsule_proof_io;
 pub mod capsule_sd;
