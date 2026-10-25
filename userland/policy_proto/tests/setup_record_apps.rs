@@ -11,6 +11,7 @@
 use nonos_policy_proto::apps::{BROWSER, LINUX, MEDIA};
 use nonos_policy_proto::setup_record::{check, check_record, Answers, Name, Record, Refused, Tier};
 use nonos_policy_proto::setup_record::{Host, ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN};
+use nonos_policy_proto::wallpaper_labels::WALLPAPER_DEFAULT;
 use nonos_policy_proto::wallpapers_kept::ALL;
 
 fn kept() -> Answers {
@@ -23,11 +24,16 @@ fn kept() -> Answers {
     }
 }
 
+/* An older version's wallpaper named the first catalog era's: the default. */
+fn era_1(a: Answers) -> Answers {
+    Answers { wallpaper: WALLPAPER_DEFAULT, ..a }
+}
+
 #[test]
 fn apps_turned_off_round_trip() {
     let r = Record { answers: kept(), apps_off: BROWSER | MEDIA | LINUX, hostname: Host::EMPTY, route: 0, wallpapers_kept: ALL };
     let raw = r.encode();
-    assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA6"[..]));
+    assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA7"[..]));
     assert_eq!(Record::decode(&raw), Some(r));
     assert_eq!(check(&raw), Ok(kept()), "the answers read alone as before");
 }
@@ -38,7 +44,7 @@ fn a_version_2_record_reads_with_every_app_on() {
     assert_eq!((raw.len(), &raw[..4]), (ANSWERS_V2_LEN, &b"NSA2"[..]));
     assert_eq!(
         check_record(&raw),
-        Ok(Record { answers: kept(), apps_off: 0, hostname: Host::EMPTY, route: 0, wallpapers_kept: ALL })
+        Ok(Record { answers: era_1(kept()), apps_off: 0, hostname: Host::EMPTY, route: 0, wallpapers_kept: ALL })
     );
 }
 
