@@ -22,13 +22,17 @@ $(LINUX_GUESTS_OUT)/%: $(LINUX_GUESTS_SRCS)
 	@cd $(LINUX_GUESTS_DIR) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		RUSTFLAGS="-C target-feature=+crt-static -C relocation-model=static" \
 		cargo build --release --target $(LINUX_GUESTS_TRIPLE) --bin $*
-$(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_ed25519.pub \
-$(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BIN)
-	@mkdir -p .keys $(NONOS_BAKED_TRUST_DIR)/keys
+# The scratch pairs live under target/, seed and public half together: never
+# in .keys/, which holds the operator's own keys, nor beside the committed
+# public keys, where an untracked .pub could be committed (B-03). Cleaning
+# target/ drops both halves, so the next build mints a fresh pair.
+LINUX_GUESTS_KEYS := $(TARGET_DIR)/linux-guest-keys
+$(LINUX_GUESTS_KEYS)/guest_%_publisher_ed25519.pub \
+$(LINUX_GUESTS_KEYS)/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BIN)
+	@mkdir -p $(LINUX_GUESTS_KEYS)
 	@for alg in ed25519 mldsa65; do \
-		$(CAPSULE_SIGN_BIN) keygen --alg $$alg --out .keys/guest_$*_publisher_$$alg && \
-		chmod 600 .keys/guest_$*_publisher_$$alg.seed && \
-		mv .keys/guest_$*_publisher_$$alg.pub $(NONOS_BAKED_TRUST_DIR)/keys/; \
+		$(CAPSULE_SIGN_BIN) keygen --alg $$alg --out $(LINUX_GUESTS_KEYS)/guest_$*_publisher_$$alg && \
+		chmod 600 $(LINUX_GUESTS_KEYS)/guest_$*_publisher_$$alg.seed; \
 	done
 
 # name, service port, reply port[, prebuilt ELF[, guest path]]. The enrolled
@@ -56,11 +60,13 @@ CAPSULE_REQUIRED_CAPS    := 0x0
 CAPSULE_PREBUILT_BIN     := $(or $(4),$(LINUX_GUESTS_OUT)/$(1))
 CAPSULE_MK_FILE          := $(LINUX_GUESTS_DIR)/Guests.mk
 CAPSULE_METADATA         := NØNOS Linux guest $(1)
+CAPSULE_KEY_SEED_PREFIX  := $(LINUX_GUESTS_KEYS)/guest_$(1)_publisher
+CAPSULE_KEY_PUB_PREFIX   := $(LINUX_GUESTS_KEYS)/guest_$(1)_publisher
 include nonos-mk/capsule.mk
 # The template checks the keys exist; this makes it wait for the mint.
 nonos-mk-check-linux-guest-$(1)-keys: \
-	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
-	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
+	$(LINUX_GUESTS_KEYS)/guest_$(1)_publisher_ed25519.pub \
+	$(LINUX_GUESTS_KEYS)/guest_$(1)_publisher_mldsa65.pub
 LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
 # A program in /bin gets a box; a library (a store path given) is bound to none.
 LINUX_GUEST_POLICY_LINES += $(if $(5),,/bin/$(1)=$$(linux-guest-$(1)_BIN))
