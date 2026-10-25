@@ -37,7 +37,7 @@ pub struct Quoted {
 pub enum AttestRefusal {
     /// Step 1: the document does not parse as `NONOSATT`.
     Parse,
-    /// Step 1: the document is version 3 or older.
+    /// Step 1: the document is version 4 or older.
     Version,
     /// Step 2: the document's challenge is not the one given.
     Challenge,
@@ -46,7 +46,8 @@ pub enum AttestRefusal {
     Quote,
     /// Step 5: PCRs 4, 9 and 14 match no accepted release.
     ReleasePcrs,
-    /// Step 6: the IOMMU is not enforcing, or a grant is unconfined.
+    /// Step 6: the IOMMU is not enforcing, a grant is unconfined, or a
+    /// device can still reach all of memory.
     Dma,
     /// Step 7: the registry does not fold to its root, is not complete, or
     /// its `nsh.front` entry is not the release's.

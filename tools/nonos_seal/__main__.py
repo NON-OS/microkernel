@@ -23,7 +23,7 @@ import os
 import subprocess
 import sys
 
-from . import capsules, chain, keys, market, media, verify
+from . import capsules, chain, keys, market, media, release_set, verify
 from .run import Step, nix_build, nix_json, say
 
 
@@ -87,7 +87,7 @@ def current_capsules(step, tools):
     recorded = open(commit).read().strip() if os.path.isfile(commit) else ""
     if recorded and unchanged_since(recorded):
         say(f"  no capsule source changed since {recorded[:12]}, their enrolled commit")
-        built = nix_build(step, "capsules")
+        built = nix_build(step, capsules.attr())
         if capsules.enrolled(step, tools, capsules.specs(built)):
             say("  kept: the enrollment in the tree proves these capsules")
             return built, True
@@ -96,7 +96,7 @@ def current_capsules(step, tools):
         f.write(head)
     keys.stage(commit)
     say(f"  the capsules changed: enrolling them at {head.strip()[:12]}")
-    return nix_build(step, "capsules"), False
+    return nix_build(step, capsules.attr()), False
 
 
 def main():
@@ -138,6 +138,7 @@ def main():
 
     say("[2/6] capsules")
     capsules_out, kept = current_capsules(step, tools)
+    release_set.refuse(capsules_out, cfg["release"])
     capsules.seal(step, tools, capsules_out, args.release, kept)
 
     say("[3/6] kernel")
@@ -162,7 +163,7 @@ def main():
     step.run("python3", "scripts/build_receipt.py", "--policy-root", capsules.CAPSULE_ROOT,
              "--kernel-attest-root", chain.KERNEL_ROOT, "--bootloader", efi, "--enrolled-elf", elf,
              "--kernel", kernel_bin, "--artifact", iso, "--artifact", img, "--out", os.path.join(out, "build-receipt.json"))
-    verify.reproduced(step, attr, elf, efi, capsules_out)
+    verify.reproduced(step, attr, elf, efi, capsules_out, cfg["release"])
     with open(os.path.join(nix_build(step, attr), "nonos-build.json")) as f:
         build_manifest = json.load(f)
     verify.record(out, cfg, build_manifest, {"esp": esp, "usb": img, "iso": iso, "kernel": kernel_bin,
