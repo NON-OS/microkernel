@@ -20,7 +20,6 @@
 //! policy once its signature has been checked, and `Policy::new` refuses
 //! one that could never admit a host or could admit an unmeasured one.
 
-mod boot;
 mod build;
 mod lookup;
 mod types;
@@ -31,7 +30,5 @@ pub use types::{Authority, Policy, PolicyError, Release};
 pub const MAX_RELEASES: usize = 64;
 /// Most enrolment authorities one fleet has.
 pub const MAX_AUTHORITIES: usize = 16;
-/// Most boot applications one policy lists besides the loaders.
-pub const MAX_BOOT_APPS: usize = 64;
 /// Most revoked enrolments one policy lists.
 pub const MAX_REVOKED: usize = 65_536;

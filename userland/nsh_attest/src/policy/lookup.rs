@@ -38,11 +38,6 @@ impl Policy {
         &self.releases
     }
 
-    /// Whether PCR 4 may hold this application besides the loader.
-    pub fn boot_application(&self, digest: &[u8; 32]) -> bool {
-        self.boot_apps.iter().any(|a| a == digest)
-    }
-
     /// Whether an enrolment, by the SHA-512 of its certificate, is revoked.
     pub fn revoked(&self, cert_digest: &[u8; 64]) -> bool {
         self.revoked.iter().any(|r| r == cert_digest)

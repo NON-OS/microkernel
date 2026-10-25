@@ -16,7 +16,7 @@
 
 use crate::arch::riscv64::cpu;
 
-pub fn fatal() -> ! {
+pub(super) fn fatal() -> ! {
     unsafe {
         core::arch::asm!("csrci sstatus, 2", options(nostack));
     }

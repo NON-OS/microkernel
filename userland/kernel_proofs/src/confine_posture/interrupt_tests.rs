@@ -17,7 +17,7 @@
 //! a device a unit confines can still write 0xFEEx_xxxx, so its claim
 //! needs interrupt remapping, or the opt-in outside a production build.
 
-use super::decide::interrupts_confined;
+use super::open::interrupts_confined;
 
 #[test]
 fn a_claim_needs_remapping_or_the_development_opt_in() {
@@ -32,7 +32,7 @@ fn a_claim_needs_remapping_or_the_development_opt_in() {
         ((false, true, true), false),
     ];
     for ((remapping, opt_in, production), want) in cases {
-        let got = interrupts_confined(remapping, opt_in, production);
+        let got = interrupts_confined(remapping, opt_in, production, false);
         assert_eq!(got, want, "remapping={remapping} opt_in={opt_in} production={production}");
     }
 }

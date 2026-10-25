@@ -32,6 +32,7 @@ impl Spec {
             ak: Key::new(1).public(),
             host_keys: key_digest(&host.ed.public, &host.ml_public[..]),
             pcrs: [l[0], l[1], l[2], l[7]],
+            boot_apps: self.boot_apps.clone(),
             not_after_ms: 10_000,
             authority_id: *hybrid(AUTHORITY).authority().id(),
         };
@@ -52,7 +53,6 @@ impl Spec {
             fleet: [0xF1; 16],
             releases: self.releases.clone(),
             revoked: Vec::new(),
-            boot_apps: self.boot_apps.clone(),
             host_key: self.host_key,
         };
         if self.revoke {

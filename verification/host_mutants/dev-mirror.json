@@ -1,0 +1,9 @@
+[
+ {"name": "fence-alpine-any", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "        if var == \"NONOS_ALPINE_MIRROR\" {", "new": "        if false {", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-local-allowed", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "        if is_local(host) {", "new": "        if false && is_local(host) {", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-dev-takes-no-local", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "        if dev {\n            continue;\n        }\n", "new": "", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-port-kept", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "at.rsplit_once(':').map_or(at.as_str(), |(h, _)| h)", "new": "at.as_str()", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "fence-alpine-dev-allowed", "file": "userland/capsule_linux/build/mirror_fence.rs", "old": "        if var == \"NONOS_ALPINE_MIRROR\" {", "new": "        if var == \"NONOS_ALPINE_MIRROR\" && !dev {", "crate": "userland/capsule_linux_proofs", "test": "mirror_fence_tests"},
+ {"name": "mirror-dev-elsewhere", "file": "userland/capsule_linux/src/linux/install/mirror.rs", "old": "const AT: &str = \"10.0.2.2:8080\";", "new": "const AT: &str = \"10.0.2.3:8080\";", "crate": "userland/capsule_linux_proofs", "args": ["--features", "dev-mirror"], "test": "mirror_tests"},
+ {"name": "mirror-release-dev", "file": "userland/capsule_linux/src/linux/install/mirror.rs", "old": "const AT: &str = \"dl-cdn.alpinelinux.org:80\";", "new": "const AT: &str = \"10.0.2.2:8080\";", "crate": "userland/capsule_linux_proofs", "test": "mirror_tests"}
+]

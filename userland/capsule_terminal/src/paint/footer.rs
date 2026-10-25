@@ -20,19 +20,9 @@ use nonos_toolkit::font::ttf::line_height;
 mod footer_draw;
 pub use footer_draw::draw_footer;
 
-/// The hint bar: what to press, and what it does.
-///
-/// Two colours rather than one. A single shade for both makes the bar read as
-/// one long sentence, which is why a reader stops seeing it at all; the key
-/// carries the accent so the eye can find it and skip the rest.
-const HINTS: &[(&str, &str)] = &[
-    ("Tab", "complete"),
-    ("|", "pipe"),
-    (">", "redirect"),
-    ("^W", "word"),
-    ("^K", "kill"),
-    ("^L", "clear"),
-];
+// The hint bar: what to press and what it does, for the state the reader is
+// in (`hint_sets`). Two colours, because one shade reads as a single long
+// sentence that a reader stops seeing; the key carries the accent.
 
 /// Space between a key and its label, and between one pair and the next. The
 /// pair gap is wider so the pairs group before they read left to right.
