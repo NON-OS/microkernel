@@ -1,0 +1,51 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs for nsh_attest, the nsh/1 client's check of a host's
+# attestation: every check and every refusal is a test. The builders in
+# src/build make a whole, valid version 4 document field by field, signed
+# by a P-256 attestation key the proofs hold, with a TCG log that replays
+# to its PCRs and an enrolment certificate signed by a hybrid authority, so
+# each test changes one thing and shows the check refuses exactly that.
+# The fuzz targets are in fuzz/.
+
+[package]
+name = "nsh_attest_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nsh_attest = { path = "../nsh_attest", features = ["proofs"] }
+nsh_crypto = { path = "../nsh_crypto" }
+nsh_wire = { path = "../nsh_wire" }
+nonos_hash = { path = "../nonos_hash" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+# The checker's registry fold, against the receipt reader's own.
+attest_receipt = { path = "../attest_receipt" }
+# The kernel's TCG log replay is compiled from its source, so PCR 4 is
+# shown to replay the same in both; it hashes with sha2.
+sha2 = { version = "0.10", default-features = false }
+
+# The proofs sign and check thousands of quotes and certificates; the
+# arithmetic is checked optimised, as it ships.
+[profile.dev]
+opt-level = 2

@@ -65,4 +65,8 @@ mod setup;
 #[cfg(test)]
 mod model;
 #[cfg(test)]
+mod services;
+#[cfg(test)]
+mod syscall;
+#[cfg(test)]
 mod tests;
