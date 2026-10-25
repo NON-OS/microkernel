@@ -5332,6 +5332,16 @@ else
     fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
 fi
 unset ipcpid_out
+# Guests.mk's scratch publisher pairs are minted under target/, never .keys/,
+# which holds the operator's own keys (B-03).
+if gkeys_out="$(python3 scripts/check_guest_keys.py --self-test 2>&1 \
+    && python3 scripts/check_guest_keys.py 2>&1)"; then
+    note ok "Linux guests' scratch keys are minted under target/ (check_guest_keys)"
+else
+    tail -n 6 <<< "${gkeys_out}" >&2
+    fail_with "check_guest_keys: Guests.mk mints or signs from outside target/"
+fi
+unset gkeys_out
 # A release takes the capsules as make declares them, never the development
 # set (capsules-dev): the lines that choose it are pinned, and a release seal
 # handed it refuses by what was built, not by the flag. The self-tests first,
