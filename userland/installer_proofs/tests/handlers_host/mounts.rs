@@ -32,8 +32,6 @@ pub mod frame;
 mod lookup;
 #[path = "../support/packages.rs"]
 pub mod packages;
-#[path = "../support/payloads.rs"]
-pub mod payloads;
 #[path = "pkg_frame.rs"]
 pub mod pkg_frame;
 #[path = "../support/process.rs"]
