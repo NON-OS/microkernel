@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::traffic_keys::TrafficKeys;
+use super::traffic_keys::{wipe, Secrets, TrafficKeys};
 
 pub(super) const EMPTY_HASH: [u8; 32] = [
     0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24,
@@ -22,53 +22,44 @@ pub(super) const EMPTY_HASH: [u8; 32] = [
 ];
 
 /// The handshake traffic keys, given the hash of ClientHello..ServerHello.
+/// Every secret is written where it will live; the early and derived
+/// secrets on the way are wiped.
 pub fn handshake_keys(shared: &[u8; 32], th: &[u8; 32], suite: u16) -> Option<TrafficKeys> {
-    let zero = [0u8; 32];
-    let early = super::hkdf::extract(&zero, &zero)?;
-    let derived = secret(&early, b"derived", &EMPTY_HASH)?;
-    let handshake = super::hkdf::extract(&derived, shared)?;
-    let client_secret = secret(&handshake, b"c hs traffic", th)?;
-    let server_secret = secret(&handshake, b"s hs traffic", th)?;
-    Some(TrafficKeys {
-        suite,
-        handshake_secret: handshake,
-        client_secret,
-        server_secret,
-        client_key: key(&client_secret, suite)?,
-        client_iv: iv(&client_secret)?,
-        server_key: key(&server_secret, suite)?,
-        server_iv: iv(&server_secret)?,
+    TrafficKeys::build(suite, |s| {
+        let (zero, mut early, mut derived) = ([0u8; 32], [0u8; 32], [0u8; 32]);
+        let ok = super::hkdf::extract(&zero, &zero, &mut early)
+            && secret(&early, b"derived", &EMPTY_HASH, &mut derived)
+            && super::hkdf::extract(&derived, shared, &mut s.handshake_secret);
+        wipe(&mut early);
+        wipe(&mut derived);
+        ok && stage(s, th, b"c hs traffic", b"s hs traffic", suite)
     })
 }
 
-pub(super) fn secret(base: &[u8; 32], label: &[u8], context: &[u8; 32]) -> Option<[u8; 32]> {
-    let mut out = [0u8; 32];
-    if super::expand_label::expand_label(base, label, context, &mut out) {
-        Some(out)
-    } else {
-        None
-    }
+/// A stage's two traffic secrets from its base, and the keys and IVs from
+/// them, each written into `s` in place.
+pub(super) fn stage(s: &mut Secrets, th: &[u8; 32], c: &[u8], sv: &[u8], suite: u16) -> bool {
+    secret(&s.handshake_secret, c, th, &mut s.client_secret)
+        && secret(&s.handshake_secret, sv, th, &mut s.server_secret)
+        && key(&s.client_secret, suite, &mut s.client_key)
+        && iv(&s.client_secret, &mut s.client_iv)
+        && key(&s.server_secret, suite, &mut s.server_key)
+        && iv(&s.server_secret, &mut s.server_iv)
+}
+
+pub(super) fn secret(base: &[u8; 32], label: &[u8], context: &[u8; 32], out: &mut [u8; 32]) -> bool {
+    super::expand_label::expand_label(base, label, context, out)
 }
 
 /* Derive the record key. AES-128-GCM uses a 16-byte key, ChaCha20-Poly1305 a
  * 32-byte key; the HKDF-Expand-Label length must match, so the shorter key is
  * derived into the low bytes and the record layer reads only what its cipher
  * needs. */
-pub(super) fn key(secret: &[u8; 32], suite: u16) -> Option<[u8; 32]> {
-    let mut out = [0u8; 32];
+pub(super) fn key(secret: &[u8; 32], suite: u16, out: &mut [u8; 32]) -> bool {
     let len = if suite == super::constants::SUITE_AES128_GCM_SHA256 { 16 } else { 32 };
-    if super::expand_label::expand_label(secret, b"key", &[], &mut out[..len]) {
-        Some(out)
-    } else {
-        None
-    }
+    super::expand_label::expand_label(secret, b"key", &[], &mut out[..len])
 }
 
-pub(super) fn iv(secret: &[u8; 32]) -> Option<[u8; 12]> {
-    let mut out = [0u8; 12];
-    if super::expand_label::expand_label(secret, b"iv", &[], &mut out) {
-        Some(out)
-    } else {
-        None
-    }
+pub(super) fn iv(secret: &[u8; 32], out: &mut [u8; 12]) -> bool {
+    super::expand_label::expand_label(secret, b"iv", &[], out)
 }

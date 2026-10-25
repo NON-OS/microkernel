@@ -20,3 +20,7 @@ pub mod attributes {
 }
 
 pub use attributes::MemoryType;
+
+// The TLBI-by-address operand, included unmodified; it has no dependencies.
+#[path = "../../../../../../src/arch/aarch64/mmu/tlbi_operand.rs"]
+pub mod tlbi_operand;

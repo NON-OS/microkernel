@@ -1,0 +1,4 @@
+scratch merge fd40dd41faf5e34a81a59f1b5dd833f5b17c4fdc
+privacy/k-series 6c18480527acb884e1112f24449c55bd12ec5610
+privacy/power-off 1b9afc7ea6d5b35637a663524839e97d6f0d1d88
+b1a79ab1d4ea940f1203f9ed4bded6c9bc1cae6aef1a4741c2f73cf1d0e3cd4e  /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img

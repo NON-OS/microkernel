@@ -35,4 +35,6 @@ pub enum RegionError {
     Unsupported,
     /// The configuration access itself failed.
     Platform,
+    /// A port write that would set SLP_EN, the kernel's alone (`sleep_enable`).
+    SleepEnable,
 }
