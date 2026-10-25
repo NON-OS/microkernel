@@ -36,4 +36,5 @@ pub mod terminal;
 pub mod theme;
 pub mod util;
 
+#[cfg(not(feature = "agentproof-headless"))]
 pub use terminal::Terminal;
