@@ -10190,6 +10190,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/arch/x86_64/hypervisor/hv/channels.rs",
    "src/arch/x86_64/hypervisor/hv/regs.rs",
    "src/arch/x86_64/hypervisor/hv/vmbus_out.rs",
    "userland/capsule_driver_vmbus/src/connect.rs",
