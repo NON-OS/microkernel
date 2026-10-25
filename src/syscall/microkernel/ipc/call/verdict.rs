@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Which deadline a call with no answer ran out on.
 //!
 //! A caller may bound its own wait below the kernel's default (net.core
@@ -37,7 +36,11 @@ pub(super) enum NoAnswer {
 
 /// The receive's bound: the caller's own, or `default_ms` for 0.
 pub(super) const fn wait_ms(caller_ms: u64, default_ms: u64) -> u64 {
-    if caller_ms == 0 { default_ms } else { caller_ms }
+    if caller_ms == 0 {
+        default_ms
+    } else {
+        caller_ms
+    }
 }
 
 /// A call that got no answer after `elapsed_ms`, its caller having asked

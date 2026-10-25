@@ -30,6 +30,12 @@ impl InstallJob {
         if self.load.is_some() {
             return self.follow(out);
         }
+        // Once, after the load: a program that draws opens its window and runs on.
+        if !core::mem::replace(&mut self.asked_window, true) && super::super::window::open(self.pid)
+        {
+            out.writeln(b"it runs in its own window");
+            return JobProgress::Done(0);
+        }
         let mut buf = [0u8; 256];
         let n = mk_proc_output(self.pid, buf.as_mut_ptr(), buf.len());
         if n > 0 {
