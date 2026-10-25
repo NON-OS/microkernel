@@ -6683,6 +6683,7 @@
    "userland/capsule_net_core/src/iface/dhcp/request_list.rs",
    "userland/capsule_net_core/src/iface/lease_wait.rs",
    "userland/capsule_net_core/src/iface/link_watch.rs",
+   "userland/capsule_net_core/src/iface/poll.rs",
    "userland/capsule_net_core/src/protocol",
    "userland/capsule_net_core/src/server/handlers/dns/pending.rs",
    "userland/capsule_net_core/src/server/handlers/dns/resolve_a.rs",
@@ -6693,6 +6694,8 @@
    "userland/capsule_net_core/src/server/parse_req.rs",
    "userland/capsule_net_core/src/server/respond.rs",
    "userland/capsule_net_core/src/server/runner/refuse.rs",
+   "userland/capsule_net_core/src/server/runner/run.rs",
+   "userland/capsule_net_core/src/server/runner/turn.rs",
    "userland/net_core_proofs",
    "userland/net_proofs/shim",
    "userland/policy_proto"
