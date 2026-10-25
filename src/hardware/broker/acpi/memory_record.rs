@@ -35,7 +35,8 @@ pub struct MemoryGrant {
 /// grant quota is spent and nothing was recorded.
 pub(super) fn record(pid: u32, start: u64, end: u64, user_va: u64) -> Option<u64> {
     let grant_id = grant::allocate_id();
-    let entered = grant::insert(MmioGrant {
+    // No claim stands behind it, but it counts against the quota.
+    let entered = grant::insert_unclaimed(MmioGrant {
         grant_id,
         pid,
         device_id: ACPI_DEVICE,

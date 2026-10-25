@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::crypto::entropy::get_entropy;
+use crate::crypto::random_api::get_vec_secure;
 use crate::crypto::util::bigint::BigUint;
 use crate::crypto::CryptoError;
 
@@ -100,7 +100,7 @@ fn generate_prime(bits: usize) -> Result<BigUint, CryptoError> {
     let bytes = bits.div_ceil(8);
 
     for _ in 0..1000 {
-        let mut candidate_bytes = get_entropy(bytes);
+        let mut candidate_bytes = get_vec_secure(bytes)?;
 
         // Set MSB to ensure correct bit length
         candidate_bytes[0] |= 0x80;

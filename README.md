@@ -219,8 +219,8 @@ A build is one of seven profiles, set in `nonos.toml` or as `PROFILE=airgapped m
 
 | profile | for | what it adds or takes away |
 |---|---|---|
-| standard | a person's own machine | every driver, the desktop, first-boot setup and the installer |
-| hardened | a machine that may be seized | Secure Boot and a TPM required at boot; no capsule writes to a serial console |
+| standard | a person's own machine | every driver, the desktop, first-boot setup and the installer; no capsule writes to a serial console |
+| hardened | a machine that may be seized | standard, with Secure Boot and a TPM required at boot |
 | airgapped | keys that must never touch a network | hardened, with no network driver, stack or online program compiled in |
 | qemu | trying NONOS in a virtual machine | the desktop, without the drivers only real hardware has |
 | dev | working on NONOS | the loader's development policy; never sealed for release |

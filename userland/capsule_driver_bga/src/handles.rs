@@ -37,7 +37,9 @@ impl BrokerHandles {
     /// The state firmware left in `regs`, read before the driver writes
     /// any of it, written back when the handles drop. A capsule killed
     /// outright drops nothing: where the driver kept OVMF's mode it wrote no
-    /// DISPI register, so GOP's mode stays, and a mode it set stays set.
+    /// DISPI register, so that mode stays, and a mode it set stays set.
+    /// Neither brings the kernel's GOP blit back: the claim of an adapter
+    /// whose BAR0 holds the boot framebuffer stopped it for the boot.
     pub fn restore_at_drop(&mut self, regs: Regs, firmware: Dispi) {
         self.firmware = Some((regs, firmware));
     }

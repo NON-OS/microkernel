@@ -34,6 +34,8 @@ pub fn init() {
                         DEVICES[count as usize] = dev;
                     }
                     count += 1;
+                } else {
+                    super::listed::left_out_on(bus);
                 }
                 if dev.header_type & 0x80 != 0 {
                     for function in 1..8u8 {
@@ -44,6 +46,8 @@ pub fn init() {
                                     DEVICES[count as usize] = dev;
                                 }
                                 count += 1;
+                            } else {
+                                super::listed::left_out_on(bus);
                             }
                         }
                     }

@@ -24,6 +24,7 @@ use spin::Once;
 use super::announce::announce;
 use super::backend::Backend;
 use super::gpt::Places;
+use super::wait::{caller_gone, waited_for_boot_disk};
 use super::BlockDeviceError;
 
 static SELECTED: Once<(Backend, Places)> = Once::new();
@@ -60,8 +61,14 @@ pub(super) fn settle(
 ) -> Result<Backend, BlockDeviceError> {
     match (other, refused) {
         (Some((b, p)), None) => Ok(keep(b, p)),
-        (Some((b, p)), Some(_)) if super::wait::waited_for_boot_disk() => Ok(keep(b, p)),
-        (Some(_), Some(e)) => Err(e),
+        // Never for a caller killed meanwhile: its asks failed for it (L81).
+        (Some((b, p)), Some(e)) => {
+            if waited_for_boot_disk() && !caller_gone() {
+                Ok(keep(b, p))
+            } else {
+                Err(e)
+            }
+        }
         (None, _) => Err(none()),
     }
 }

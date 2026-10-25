@@ -65,3 +65,6 @@ pub mod relay_cert;
 mod fixtures;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+#[path = "tests/wipes.rs"]
+mod wipes;

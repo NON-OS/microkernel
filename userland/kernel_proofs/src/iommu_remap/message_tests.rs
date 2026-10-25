@@ -16,9 +16,8 @@
 
 use super::msi::{handle, remapped};
 
-/* Linux fill_msi_msg: MSI_ADDR_BASE_LO | MSI_ADDR_IR_EXT_INT (bit 4) |
-MSI_ADDR_IR_SHV (bit 3) | INDEX1 (bits 19:5 = index 14:0) | INDEX2 (bit 2 =
-index bit 15), data = sub_handle = 0. */
+/* VT-d 5.1.5.2: 0xFEE base, interrupt format bit 4, SHV bit 3, handle
+14:0 in bits 19:5 and handle bit 15 in bit 2, data the subhandle 0. */
 #[test]
 fn the_message_names_the_entry() {
     assert_eq!(remapped(0).address, 0xFEE0_0018);

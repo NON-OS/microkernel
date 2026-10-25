@@ -22,14 +22,18 @@ use spin::Mutex;
 
 use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
-use super::super::pte::{address, is_present, next_level, LEVELS};
+use super::super::pte::LEVELS;
+use super::super::pte_child::child_table;
 use crate::arch::x86_64::iommu::tables::frame::allocate_table;
-use crate::arch::x86_64::iommu::tables::free::free_tables;
+use crate::arch::x86_64::iommu::tables::free::all_readable;
 
 pub const MAX_DOMAINS: usize = 256;
 
 /// Root of each domain's page table, zero while the id is free.
 pub(super) static ROOTS: Mutex<[u64; MAX_DOMAINS]> = Mutex::new([0; MAX_DOMAINS]);
+/// An id whose tables could not all go back: taken, never walked, never
+/// reused. Not page aligned, so it can never be a real root.
+const QUARANTINED: u64 = 1;
 
 /// The lowest free id, with a fresh zeroed root table.
 pub fn create_domain() -> Result<u16, AmdViError> {
@@ -39,33 +43,32 @@ pub fn create_domain() -> Result<u16, AmdViError> {
     Ok(id as u16)
 }
 
-/// Free the id. Devices must already be detached; the cached translations
-/// are dropped first so the next owner of the id inherits none of them, and
-/// only then do the tables go back to the frame allocator: no walk
-/// lands in a reused frame.
+/// Free the id. Devices must be detached already (a domain a failed attach
+/// may still name is pinned, quarantined). The cached translations go first,
+/// so no walk is in the tables when they go back, as on VT-d. A table
+/// that cannot be read keeps them all; any failure quarantines the id.
 pub fn destroy_domain(id: u16) -> Result<(), AmdViError> {
     let mut roots = ROOTS.lock();
     let slot = roots.get_mut(id as usize).ok_or(AmdViError::DomainNotFound)?;
-    if *slot == 0 || id == 0 {
+    if *slot == 0 || *slot == QUARANTINED || id == 0 {
         return Err(AmdViError::DomainNotFound);
     }
     flush_domain(id)?;
-    if !free_tables(core::mem::take(slot), LEVELS, table_below) {
-        crate::sys::serial::println(b"[AMD-Vi] a destroyed domain's tables kept: unreadable");
+    // Never walked again, whatever happens next: a release that fails part
+    // way has already freed some of these frames.
+    let root = core::mem::replace(slot, QUARANTINED);
+    if super::pinned::pinned(id) || !all_readable(root, LEVELS, &child_table) {
+        return Err(AmdViError::TableNotFreed);
     }
+    super::teardown::release_tables(root)?;
+    *slot = 0;
     Ok(())
-}
-
-/// The table a directory entry at `level` points to, one level down.
-fn table_below(entry: u64, level: u8) -> Option<u64> {
-    let directory = level > 1 && is_present(entry) && next_level(entry) == level - 1;
-    directory.then_some(address(entry))
 }
 
 /// The root of a live domain, read under the caller's lock.
 pub(super) fn root_of(roots: &[u64; MAX_DOMAINS], id: u16) -> Result<u64, AmdViError> {
     match roots.get(id as usize) {
-        Some(&root) if root != 0 && id != 0 => Ok(root),
+        Some(&root) if root != 0 && root != QUARANTINED && id != 0 => Ok(root),
         _ => Err(AmdViError::DomainNotFound),
     }
 }

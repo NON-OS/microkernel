@@ -32,8 +32,9 @@ use crate::constants::{CORBWP, RIRBSTS, RIRBSTS_INTFL};
 use crate::error::{HdaError, HdaResult};
 
 impl Link {
-    /// Post `cmd` and wait for the answer from the codec it addresses.
-    pub fn send(&mut self, cmd: u32) -> HdaResult<u32> {
+    /// Post `cmd` on the CORB and wait for the answer from the codec it
+    /// addresses (`send` in ring_recover.rs recovers a ring that stops).
+    pub(super) fn send_ring(&mut self, cmd: u32) -> HdaResult<u32> {
         let cad = (cmd >> 28) as u8;
         // Anything already in the RIRB answers a command given up on.
         let _ = self.drain(None);

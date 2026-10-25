@@ -9,7 +9,9 @@ command -v ruby >/dev/null 2>&1 || { echo "mruby.sh: ruby not on PATH (the flake
 . "$root/tools/linux-userland/lib/git.sh"
 src=$(fetch_git mruby)
 m="$work/mruby"
-cp -R "$src" "$m"
+# -p: the timestamps the source has, so minirake does not take its committed
+# lex.def for older than keywords and ask for a gperf the build has none of.
+cp -Rp "$src" "$m"
 rm -rf "$m/.git" "$m/.rev"
 # minirake runs each tool as one program, so zig gets a wrapper per role.
 mkdir -p "$work/zig"

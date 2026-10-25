@@ -18,8 +18,8 @@
 //! Specification 48882, rev 3.x, section 3.4) and the values the kernel
 //! writes into them. Pure.
 
-/// The registers the kernel uses end at 0x2028; Linux maps the same 16 KiB
-/// (amd_iommu_types.h, MMIO_REGION_LENGTH).
+/// The registers the kernel uses end at 0x2028, inside the unit's 16 KiB
+/// register window (48882, 3.4; size recalled, unverified).
 pub const WINDOW: usize = 0x4000;
 
 pub const DEV_TABLE_BASE: usize = 0x0000;
@@ -41,7 +41,7 @@ pub const fn invalidate_all_supported(efr: u64) -> bool {
 }
 
 /// One device table covering every requester id: 65536 entries of 32 bytes,
-/// 512 pages, so no device id can index past it (Linux allocates the same).
+/// 512 pages, so no device id can index past it.
 pub const DEV_TABLE_PAGES: usize = 512;
 
 /// Device Table Base: the base, and in bits 8:0 the size in pages less one.

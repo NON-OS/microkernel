@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IVHD special entries (48h, spec 48882 5.2.2.2): each IOAPIC and HPET by
-//! its handle, the IOAPIC id the MADT gives, and the requester id its
-//! interrupts arrive under, which AMD interrupt remapping keys its table
-//! by. Pure; a 10h and an 11h block naming the same one count once.
+//! IVHD special entries (48h, 48882 5.2.2.2): each I/O APIC and HPET by its
+//! handle (an I/O APIC's is the id the MADT gives) and the requester id its
+//! interrupts arrive under. An I/O APIC's remapping table is keyed by that
+//! id, and a PCI function given the same id would share its entry, and
+//! so its remapping table, with that source (L50). Pure, over the bytes.
 
-use super::ivhd_entry::size;
+use super::ivhd_entry::{size_at, word};
+use super::ivhd_scope::{block_at, FIRST_BLOCK};
 
 pub const IOAPIC: u8 = 1;
 pub const HPET: u8 = 2;
 pub const MAX_SPECIALS: usize = 16;
-const FIRST_BLOCK: usize = 48;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Special {
@@ -33,42 +34,42 @@ pub struct Special {
     pub id: u16,
 }
 
-/// Special entries in table order, written to `out`; returns how many.
-pub fn specials(table: &[u8], out: &mut [Special]) -> usize {
-    let (mut n, mut at) = (0, FIRST_BLOCK);
-    while at + 4 <= table.len() {
-        let length = u16::from_le_bytes([table[at + 2], table[at + 3]]) as usize;
-        if length < 4 || at + length > table.len() {
-            break;
+/// Every whole special entry, in table order.
+fn each(table: &[u8], mut found: impl FnMut(Special)) {
+    let mut at = FIRST_BLOCK;
+    while let Some((bytes, next)) = block_at(table, at) {
+        let mut e = 0;
+        while let Some(len) = size_at(bytes, e) {
+            if bytes[e] == 0x48 && len >= 8 {
+                let (variety, handle) = (bytes[e + 7], bytes[e + 4]);
+                found(Special { variety, handle, id: word(bytes, e + 5) });
+            }
+            e += len;
         }
-        let header = match table[at] {
-            0x10 => 24,
-            0x11 | 0x40 => 40,
-            _ => length,
-        };
-        if header < length {
-            n = block(&table[at + header..at + length], out, n);
-        }
-        at += length;
+        at = next;
     }
-    n
 }
 
-fn block(bytes: &[u8], out: &mut [Special], mut n: usize) -> usize {
-    let mut at = 0;
-    while at + 4 <= bytes.len() {
-        let Some(len) = size(bytes, at).filter(|len| at + len <= bytes.len()) else {
-            break;
-        };
-        if bytes[at] == 0x48 && len == 8 {
-            let id = u16::from_le_bytes([bytes[at + 5], bytes[at + 6]]);
-            let s = Special { variety: bytes[at + 7], handle: bytes[at + 4], id };
-            if !out[..n].contains(&s) && n < out.len() {
-                out[n] = s;
-                n += 1;
-            }
+/// The special devices' ids into `out`, once each: how many, and whether any did not fit.
+pub fn specials(table: &[u8], out: &mut [u16]) -> (usize, bool) {
+    let (mut n, mut lost) = (0, false);
+    each(table, |s| match Some(s.id).filter(|id| !out[..n].contains(id)) {
+        Some(id) if n < out.len() => (out[n], n) = (id, n + 1),
+        Some(_) => lost = true,
+        None => {}
+    });
+    (n, lost)
+}
+
+/// The special entries into `out` in table order: how many. A 10h and an 11h
+/// block naming the same one count once; past `out`'s room the rest are not kept.
+pub fn special_entries(table: &[u8], out: &mut [Special]) -> usize {
+    let mut n = 0;
+    each(table, |s| {
+        if !out[..n].contains(&s) && n < out.len() {
+            out[n] = s;
+            n += 1;
         }
-        at += len;
-    }
+    });
     n
 }

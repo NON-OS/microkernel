@@ -19,10 +19,11 @@
 //! device in a live capsule domain; one firmware's reserved memory keeps is
 //! left as it is.
 
-use super::super::devtab_entry::{read_dte, write_dte};
+use super::super::devtab::{read_dte, update_dte};
 use super::super::dte::{blocked, domain_of, keep_interrupts};
 use super::super::error::AmdViError;
 use super::super::flush::flush_device;
+use super::identity::note;
 use super::lifetime::{root_of, ROOTS};
 
 /// True when a device in a capsule domain was blocked. Its release then
@@ -33,7 +34,8 @@ pub fn block(id: u16) -> Result<bool, AmdViError> {
     if root_of(&roots, domain_of(current)).is_err() {
         return Ok(false);
     }
-    write_dte(id, keep_interrupts(blocked(), current))?;
+    let (before, after) = update_dte(id, |now| keep_interrupts(blocked(), now))?;
+    note(before, after);
     flush_device(id)?;
     Ok(true)
 }
