@@ -10787,6 +10787,7 @@
    "userland/capsule_keyring/src/server/answer.rs",
    "userland/capsule_keyring/src/server/bond_gate",
    "userland/capsule_keyring/src/server/dispatch.rs",
+   "userland/capsule_keyring/src/server/eip1559/tx_fields.rs",
    "userland/capsule_keyring/src/server/rlp",
    "userland/capsule_keyring/src/server/secp.rs",
    "userland/capsule_keyring/src/server/typed",
