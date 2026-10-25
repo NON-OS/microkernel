@@ -18,7 +18,7 @@
 
 /// What a guest leaves: each one is a way the review found to hide or bend
 /// the report, one a fake report drawn where the real one would go.
-pub const LEFT: [&str; 18] = [
+pub const LEFT: [&str; 19] = [
     "\x1b[23;24r\x1b[24;1H",
     "\x1b)0\x0e",
     "\x1b(0",
@@ -37,4 +37,6 @@ pub const LEFT: [&str; 18] = [
     "\x1b)0\x0e\x1b[?6h\x1b[2;3r\x1b7",
     "\x1b[2J\x1b[1;1HBOX REPORT v1\r\n  refused  0\r\n\x1b[H",
     "\x1b[24;1Hthe guest's own last line, longer than any line of the report",
+    "\x1b[2;1Hlong rows left below the cursor, to run on into the report's lines\r\n\
+     long rows left below the cursor, to run on into the report's lines\x1b[H",
 ];

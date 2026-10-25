@@ -37,9 +37,20 @@ mod index_tests;
 mod inflate_bound_tests;
 mod install_refusals_tests;
 mod kali_anchor_tests;
+mod listed_find_tests;
 mod listing_family_tests;
 mod manifest_tests;
+mod market_gate_tests;
 mod market_tests;
+mod minted_tests;
+mod mirror_fence_tests;
+/* capsule_linux's build script's mirror fence, beside the route it reads. */
+#[path = "."]
+mod fence {
+    pub use crate::route;
+    #[path = "../../../../capsule_linux/build/mirror_fence.rs"]
+    pub mod mirror_fence;
+}
 mod member_refusal_tests;
 mod merged_name_tests;
 mod mirror_tests;
@@ -53,6 +64,7 @@ mod proof_names_tests;
 mod route_read_tests;
 mod service;
 mod store_why_tests;
+mod take_tests;
 mod tar_build;
 mod tar_link_tests;
 mod tar_pax_tests;
