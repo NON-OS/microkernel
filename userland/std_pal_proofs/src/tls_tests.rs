@@ -48,3 +48,20 @@ fn the_read_gives_back_a_planted_tables_self_pointer() {
     }
     assert_eq!(got, table.as_ptr() as usize);
 }
+
+#[cfg(target_arch = "riscv64")]
+#[test]
+fn set_thread_pointer_installs_a_table_the_read_then_finds() {
+    let mut table = [0usize, 0x7a11_7a11];
+    table[0] = table.as_ptr() as usize;
+    let (saved, got, answer): (usize, usize, i64);
+    // SAFETY: as above: tp names the planted table only between the save
+    // and the restore, where nothing reads a thread-local.
+    unsafe {
+        core::arch::asm!("mv {}, tp", out(reg) saved);
+        answer = crate::thread_regs::set_thread_pointer(table.as_ptr() as u64);
+        got = crate::thread_regs::tls_table() as usize;
+        core::arch::asm!("mv tp, {}", in(reg) saved);
+    }
+    assert_eq!((answer, got), (0, table.as_ptr() as usize));
+}
