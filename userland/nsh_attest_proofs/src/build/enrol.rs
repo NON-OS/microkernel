@@ -28,6 +28,7 @@ pub struct Cert {
     pub ak: [u8; 64],
     pub host_keys: [u8; 64],
     pub pcrs: [[u8; 32]; 4],
+    pub boot_apps: Vec<[u8; 32]>,
     pub not_after_ms: u64,
     pub authority_id: [u8; 32],
 }
@@ -43,6 +44,8 @@ impl Cert {
         b.extend(self.ak);
         b.extend(self.host_keys);
         self.pcrs.iter().for_each(|p| b.extend(p));
+        b.extend([1, self.boot_apps.len() as u8]);
+        self.boot_apps.iter().for_each(|a| b.extend(a));
         b.extend(self.not_after_ms.to_le_bytes());
         b.extend(self.authority_id);
         b
