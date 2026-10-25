@@ -42,7 +42,7 @@ flowchart LR
 | `Ctrl+D`, `Ctrl+H` | Delete the character under the cursor, or the one before it. |
 | `Tab` | Complete a command or a path. |
 | `Up`, `Down`, `Ctrl+P`, `Ctrl+N` | Walk the history. |
-| `Ctrl+R` | Search the history. Press it again for the next match. |
+| `Ctrl+R` | Search the history. Press it again for the next match. The prompt says `history` and what you typed, or `no match` when nothing holds it; then `Enter` runs nothing. `Esc` or `Ctrl+C` leaves the search and puts back the line you had. |
 | `Ctrl+L` | Empty the scrollback. |
 | `Ctrl+V`, `Ctrl+Shift+V`, `Shift+Insert` | Paste. |
 | `Ctrl+Shift+C` | Copy the selection, or the line when nothing is selected. |
@@ -79,7 +79,7 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 | While | `Ctrl+C` |
 |---|---|
 | typing a line | Drops the line and prints `^C`. |
-| searching the history | Leaves the search and puts the line back as it was. |
+| searching the history | Leaves the search and puts the line back as it was. `Esc` does the same. |
 | a Linux program runs in the foreground | Sends the byte 0x03 to the program's terminal, which turns it into SIGINT for the foreground group. The shell stays. |
 | an installed tool runs in the foreground | Sends SIGINT (2) to it and ends the job. |
 | a built-in job runs | Cancels the job. A `git clone` closes its connection and writes nothing. |
@@ -235,6 +235,8 @@ The source behind the facts above, at the commit in the footer.
   - What the palette lists: `build` in `userland/capsule_terminal/src/palette/index.rs:33-39`.
   - Font scale 1 to 6: `MAX_FONT_SCALE` in `userland/capsule_terminal/src/term/dimensions.rs:26`.
 - Editing a line
+  - `Esc` leaving a search, and `Enter` running nothing on `no match`: `escape` and `runs` in `userland/capsule_terminal/src/term/search_step.rs`.
+  - What the prompt shows while searching: `head` in `userland/capsule_terminal/src/paint/search_head.rs`.
   - The keys list that still names `Ctrl-K`: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs:19-21`.
   - `Ctrl+K` opens the palette, `Ctrl+Shift+K` cuts: `opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs:67-70`.
 - Pipes, redirects and chains
