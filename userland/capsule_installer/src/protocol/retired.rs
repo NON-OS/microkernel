@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! load_store payloads: a head of caps and five lengths, and the blobs it names.
+//! The ops the installer retired. 3, OP_LOAD_FROM_STORE, loaded a capsule from
+//! bytes in the request as the installer's own child, with no sender to bound
+//! it by; nothing sent it, and S-13 removed it. It answers EINVAL, and its
+//! number stays taken so no new op reuses it.
 
-/// caps | five u32 lengths: the load_store head alone.
-pub fn head(caps: u64, lens: [u32; 5]) -> Vec<u8> {
-    let mut h = caps.to_le_bytes().to_vec();
-    lens.iter().for_each(|l| h.extend_from_slice(&l.to_le_bytes()));
-    h
-}
+use alloc::vec::Vec;
 
-/// The head followed by blob i as lens[i] bytes of 0xA0 + i.
-pub fn store_payload(caps: u64, lens: [u32; 5]) -> Vec<u8> {
-    let mut p = head(caps, lens);
-    (0..5).for_each(|i| p.resize(p.len() + lens[i] as usize, 0xA0 + i as u8));
-    p
+use super::encode::encode_response;
+use super::types::{Request, EINVAL, OP_LOAD_FROM_STORE};
+
+pub const RETIRED: [u16; 1] = [OP_LOAD_FROM_STORE];
+
+/// The answer to a retired op, or None for any other.
+pub fn retired(req: &Request<'_>) -> Option<Vec<u8>> {
+    RETIRED.contains(&req.op).then(|| encode_response(req.seq, EINVAL, &[]))
 }
