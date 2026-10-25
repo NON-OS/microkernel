@@ -55,7 +55,7 @@ Not tested in this release.
 
 `log` alone shows the newest `NEWEST`, 200, lines. With words, `run` shows every line that contains any of them, ignoring case (`userland/capsule_terminal/src/command/builtin/log.rs:18-55`). `log > boot.txt` writes the output to a file, as with any command. On an image without the tail it prints `log: no line matches`.
 
-The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:78`). It needs the `AttestRead` [capability](capabilities.md), checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:57`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
+The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:78`). It needs the `AttestRead` [capability](capabilities.md), checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:58`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
 
 ## Reading the log with a serial port or in QEMU
 

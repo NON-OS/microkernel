@@ -70,6 +70,7 @@ pub enum SyscallNumber {
     MkPrivateWrite = tag4(b"MPVW"),
     MkStoreWrite = tag4(b"MSWR"),
     MkStoreRead = tag4(b"MSRR"),
+    MkKeeping = tag4(b"MKEP"),
     MkDataImport = tag4(b"MDIM"),
     MkDataStat = tag4(b"MDST"),
     MkDataRead = tag4(b"MDRD"),

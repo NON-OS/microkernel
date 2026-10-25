@@ -16,19 +16,21 @@
 
 //! Whether anything may reach the disk this boot.
 //!
-//! Nothing persists unless the person asked for it at setup. The choice lives
-//! in the policy service, which only setup and settings may write, and is
-//! asked afresh on every request, so a machine that cannot answer is amnesic.
+//! Nothing persists unless the person asked for it at setup. The kernel
+//! holds that choice once the policy service has told it, and its store write
+//! refuses everything else, so vfs asks the kernel, afresh on every request.
+//!
+//! Not the policy service: its keeper writes the settings record through vfs
+//! and waits for the reply, so a call back from here would wait on a server
+//! that is waiting on this one, and each write would fail at the deadline.
 
-use nonos_libc::mk_debug;
-use nonos_policy_client::{get_bool, lookup};
-use nonos_policy_proto::Field;
+use nonos_libc::{mk_debug, mk_keeping};
 
 use super::persist_rule::{keep, Keep};
 use crate::protocol::EACCES;
 
 pub(super) fn may_persist() -> bool {
-    lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)
+    mk_keeping()
 }
 
 /// Refuse a persist on an amnesic boot. Zeros are let through as a

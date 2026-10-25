@@ -36,6 +36,6 @@ mod panic_stack;
 mod panic_wipe;
 mod terminate;
 
-pub(crate) use keep::{arm as arm_keep, store_write_allowed};
+pub(crate) use keep::{arm as arm_keep, keeping, store_write_allowed};
 pub(crate) use panic_wipe::panic_wipe_and_off;
 pub(crate) use terminate::{terminate, terminate_critical};
