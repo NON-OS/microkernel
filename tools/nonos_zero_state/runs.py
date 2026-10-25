@@ -33,7 +33,7 @@ def first_boot(a, secret, say):
         drive(b.q, a.steps, secret, a.out, a.out / "serial1.log") or stop_for("a setup step")
         b.dump(a.out / "before.dump")
         say("in RAM before the power button", count_and_drop(a.out / "before.dump", secret), True)
-        b.q.cmd("system_powerdown")
+        drive(b.q, a.off, secret, a.out, a.out / "serial1.log") or stop_for("a power-off step")
         b.held(a.off_secs) or stop_for("the machine to power off")
         say("wipe line on serial", leftovers.said(a.out / "serial1.log", WIPED), True)
         b.dump(a.out / "after.dump")
