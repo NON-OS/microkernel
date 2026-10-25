@@ -31,7 +31,10 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     // The reserved chord and the system keys (volume, power) go to the shell
     // whatever has focus; a release follows its press there through the press
     // table, like any other key.
-    let chord = super::chord::is_reserved_chord(event.kind, event.code, event.flags);
+    let (kind, code, flags) = (event.kind, event.code, event.flags);
+    // Ctrl+Alt+T goes to the shell over focus alone, never over a grab or a hold.
+    let chord = super::chord::is_reserved_chord(kind, code, flags)
+        || super::chord::is_terminal_chord(kind, code, flags);
     let system = super::shell_keys::is_shell_key(event.code);
     // A system key's release with no press on record (the press went before
     // the shell was up) still goes to the shell, never to a window that did
