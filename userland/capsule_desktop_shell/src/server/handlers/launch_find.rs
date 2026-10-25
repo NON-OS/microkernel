@@ -18,8 +18,10 @@
 //! than the shell's memory, which a restart or another client may have
 //! made stale.
 
+use super::launch_children::new_child;
 use super::launch_wake::focus;
-use crate::state::Context;
+use crate::state::launch::Launch;
+use crate::state::{Context, Uptime};
 use alloc::vec::Vec;
 use nonos_libc::mk_service_lookup;
 
@@ -52,4 +54,16 @@ pub(super) fn already_running(name: &[u8]) -> Option<u32> {
         return None;
     }
     Some(pid)
+}
+
+/// The app, by the service name packaged apps register, or, once the
+/// installer has finished, as the child it made for the shell.
+pub(super) fn find(launch: &Launch, now: Uptime) -> Option<u32> {
+    if let Some(pid) = already_running(&launch.name) {
+        return Some(pid);
+    }
+    if launch.served() {
+        return new_child(&launch.children, launch.elapsed_ms(now));
+    }
+    None
 }
