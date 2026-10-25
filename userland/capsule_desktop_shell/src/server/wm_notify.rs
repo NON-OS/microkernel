@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::state::wm_notice::{decode_wm_notice, WmEvent};
-use crate::state::{set_full_screen, Context, TASKBAR_WINDOW_ID, TOAST_WINDOW_ID};
+use crate::state::{focus_moved, set_full_screen, Context, TASKBAR_WINDOW_ID, TOAST_WINDOW_ID};
 
 pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     let Some(notice) = decode_wm_notice(buf) else {
@@ -38,6 +38,13 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         }
         WmEvent::Closed => {
             set_full_screen(&mut ctx.taskbar, owner_pid, window_id, false);
+        }
+        WmEvent::Focused => {
+            let app = super::handlers::instances::app_of_pid(owner_pid);
+            if focus_moved(&mut ctx.taskbar, app) {
+                super::repaint::repaint(ctx);
+            }
+            return true;
         }
         WmEvent::Opened => {}
     }
