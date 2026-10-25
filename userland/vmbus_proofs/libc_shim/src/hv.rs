@@ -26,8 +26,8 @@ use std::rc::Rc;
 
 use crate::broker::CLAIMED;
 use crate::channels::Channels;
-use crate::dma::LIVE;
 use crate::channels::{Interface, Route};
+use crate::dma::LIVE;
 use crate::vmbus_out::{check, Refusal};
 
 pub const MK_VMBUS_VENDOR: u16 = 0x1414;
@@ -92,7 +92,9 @@ pub fn mk_hv_post(device_id: u64, connection: u32, ty: u32, buf: *const u8, len:
     let payload = unsafe { std::slice::from_raw_parts(buf, len) };
     let held = |gpa: u64| {
         LIVE.with(|l| {
-            l.borrow().iter().any(|&(_, d, at, n)| d == device_id && at <= gpa && gpa + 4096 <= at + n)
+            l.borrow()
+                .iter()
+                .any(|&(_, d, at, n)| d == device_id && at <= gpa && gpa + 4096 <= at + n)
         })
     };
     match check(connection, ty, payload, held) {
@@ -102,7 +104,7 @@ pub fn mk_hv_post(device_id: u64, connection: u32, ty: u32, buf: *const u8, len:
     }
     let rc = h.borrow_mut().post(connection, payload);
     if rc == 0 {
-        CHANNELS.with(|c| c.borrow_mut().from_core(connection, payload));
+        CHANNELS.with(|c| c.borrow_mut().take_core_message(connection, payload));
     }
     rc
 }
@@ -142,7 +144,7 @@ pub fn mk_hv_recv(device_id: u64, out: *mut [u8; MK_HV_MESSAGE_BYTES]) -> i64 {
             break m;
         }
         let len = (m[4] as usize).min(n - 16);
-        let (route, _) = CHANNELS.with(|c| c.borrow_mut().from_host(&m[16..16 + len]));
+        let (route, _) = CHANNELS.with(|c| c.borrow_mut().take_host_message(&m[16..16 + len]));
         if route == Route::Core {
             break m;
         }
