@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::kernel_core::init::framebuffer::framebuffer_state;
+use crate::kernel_core::init::framebuffer::boot_frame_len;
 use crate::kernel_core::surface_registry::SurfaceDescriptor;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
@@ -33,8 +33,9 @@ pub(super) fn user_frames(desc: &SurfaceDescriptor) -> Result<Vec<PhysAddr>, Sys
     // unbounded byte_len would force a huge Vec allocation and a near-infinite
     // translate loop in the kernel. The cap follows the boot framebuffer
     // (cap.rs), never past 32,768 pages.
-    let fb = framebuffer_state().and_then(|f| f.frame_len()).map(|n| n as u64);
-    if desc.byte_len == 0 || desc.byte_len > surface_cap(fb) || (desc.base_va & 0xFFF) != 0 {
+    let fb = boot_frame_len().map(|n| n as u64);
+    let base = desc.base_va;
+    if desc.byte_len == 0 || desc.byte_len > surface_cap(fb) || (base & 0xFFF) != 0 {
         return Err(errno(EINVAL));
     }
     // The surface must be the caller's own user-writable memory. Validate the
@@ -45,10 +46,10 @@ pub(super) fn user_frames(desc: &SurfaceDescriptor) -> Result<Vec<PhysAddr>, Sys
     // The walk rejects any page that is not present, user-accessible, and
     // writable, and bounds base_va+byte_len to user space with checked
     // arithmetic.
-    if desc.base_va.checked_add(desc.byte_len).is_none() {
+    if base.checked_add(desc.byte_len).is_none() {
         return Err(errno(EFAULT));
     }
-    for (start, len) in slices(desc.base_va, desc.byte_len, SLICE) {
+    for (start, len) in slices(base, desc.byte_len, SLICE) {
         if validate_user_write(start, len as usize).is_err() {
             return Err(errno(EFAULT));
         }
@@ -60,7 +61,7 @@ pub(super) fn user_frames(desc: &SurfaceDescriptor) -> Result<Vec<PhysAddr>, Sys
         return Err(errno(ENOMEM));
     }
     for i in 0..pages {
-        let va = VirtAddr::new(desc.base_va + (i as u64) * 4096);
+        let va = VirtAddr::new(base + (i as u64) * 4096);
         let Some(pa) = translate_address(va) else {
             return Err(errno(EFAULT));
         };
