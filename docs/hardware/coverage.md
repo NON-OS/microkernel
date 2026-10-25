@@ -2,7 +2,7 @@
 
 Which parts that PCs, laptops and servers shipped from 2017 to 2026 NONOS can drive, which it
 cannot, and who closes each gap. It is the list of what to write and what to boot next; the
-[support matrix](MATRIX.md) is the list of what has been shown to work.
+[support matrix](MATRIX.md) is the list of what has been shown to work. The engineering
 
 ## How to read it
 
@@ -40,13 +40,13 @@ both; `python3 tools/hardware/coverage.py --check` fails while a page is out of 
 - [Platform and IOMMU](coverage-platform.md)
 - [Graphics](coverage-gpu.md)
 
-## The P0 gaps, 24 October 2026
+## The P0 gaps, 25 October 2026
 
 1. **No IOMMU in service.** Firmware with VT-d or AMD-Vi off refuses every claim and the boot
    stops at the splash. The no-IOMMU posture (hw-1) boots it unconfined and marked.
-2. **Drivers built and left out.** e1000e (Intel I219, the onboard port of most Intel
-   machines) and the USB hub driver are in the tree with proofs, and stay out of the
-   hub driver, nothing behind a hub enumerates: front panels, docks, internal laptop hubs.
+2. **Drivers listed and not sealed.** e1000e (Intel I219, the onboard port of most Intel
+   machines), igb, sdhci and ufs are in full-gui with no trust files committed, so a sealed
+   feature at all. The USB hub driver joined Standard on 25 October.
 3. **Intel Wi-Fi.** AX200, AX201 and 9560, in most Intel laptops from 2018 to 2022, are
    recognised and never claimed.
 4. **Intel VMD.** The default storage mode on 11th-gen and later laptops; enumerated by the
