@@ -53,7 +53,8 @@ fn every_wait_ends_once_the_deadline_passes() {
             let w = wait_on(&mut c, 0, 1, &ring, allowed);
             assert!(matches!(w.result, Err(NvmeError::ControllerTimeout)));
             assert_eq!(w.checks, allowed + 1);
-            assert_eq!(w.reads, (allowed + 1) * DEADLINE_CHECK_SPINS as u64);
+            // One more read after the deadline: the last look (late_tests).
+            assert_eq!(w.reads, (allowed + 1) * DEADLINE_CHECK_SPINS as u64 + 1);
         }
     }
 }

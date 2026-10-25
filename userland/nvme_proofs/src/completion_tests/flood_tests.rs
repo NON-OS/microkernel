@@ -56,7 +56,11 @@ fn a_controller_flooding_stray_entries_still_ends_the_wait() {
             );
             assert!(matches!(result, Err(NvmeError::ControllerTimeout)));
             assert_eq!(checks.get(), allowed + 1);
-            assert_eq!(reads.get(), (allowed + 1) * DEADLINE_CHECK_SPINS as u64);
+            assert_eq!(
+                reads.get(),
+                (allowed + 1) * DEADLINE_CHECK_SPINS as u64 + 1,
+                "and a last look"
+            );
             assert_eq!(rung.get(), reads.get(), "every stray entry is consumed");
         }
     }
