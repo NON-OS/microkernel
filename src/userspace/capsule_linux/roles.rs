@@ -70,3 +70,16 @@ pub(super) const TERMINAL: Role = Role {
     tag: b"[LINUX-TERM] elf error:",
     extra_caps: 0,
 };
+
+/// The terminal's run of a `--box` naming destinations: the one terminal
+/// role with Network, spawned only for such a box (tool_capsules/net_box.rs).
+/// The personality refuses to run in it without a destination list, and a
+/// guest's streams go only to that list, over the route the person chose.
+pub(super) const TERMINAL_NET: Role = Role {
+    name: "app.linux.term.net",
+    port: 5188,
+    inbox: "endpoint.app.linux.term.net.reply",
+    reply_port: 5189,
+    tag: b"[LINUX-TERM-NET] elf error:",
+    extra_caps: Capability::Network.bit(),
+};
