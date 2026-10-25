@@ -51,6 +51,18 @@ pub(super) const CHANNEL_VIDEO: u16 = 0x5644;
 const CHANNELS: [u16; 6] =
     [CHANNEL_NETWORK, CHANNEL_SCSI, CHANNEL_IDE, CHANNEL_KEYBOARD, CHANNEL_MOUSE, CHANNEL_VIDEO];
 
+/// A channel record's class, by its interface: the class sets the largest
+/// DMA grant its driver may take (dma/limits.rs), so a disk controller's
+/// channel is a block device's and a network adapter's a NIC's, as their PCI
+/// kin are. The others carry no buffer beyond their rings.
+pub(super) const fn channel_class(device: u16) -> u32 {
+    match device {
+        CHANNEL_SCSI | CHANNEL_IDE => ids::BLOCK,
+        CHANNEL_NETWORK => ids::NETWORK,
+        _ => ids::OTHER,
+    }
+}
+
 const NONE: u64 = u64::MAX;
 static VMBUS_ID: AtomicU64 = AtomicU64::new(NONE);
 
@@ -88,7 +100,7 @@ pub fn register_channel(device: u16, relid: u32) -> Option<u64> {
     }
     let record = DeviceRecord {
         bus_kind: BusKind::Virt as u8,
-        class: ids::OTHER,
+        class: channel_class(device),
         vendor: VMBUS_VENDOR,
         device,
         irq_source: relid,
