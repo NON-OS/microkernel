@@ -30,6 +30,7 @@ pub mod prompt;
 pub mod rtc;
 pub mod scrollback;
 pub mod search;
+pub mod search_step;
 pub mod select;
 pub mod state;
 pub mod terminal;
