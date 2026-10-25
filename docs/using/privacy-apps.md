@@ -41,7 +41,6 @@ Listing `linux.profanity`, package `profanity 0.14.0-r1`, licence GPL-3.0-or-lat
 
 ### Using it
 
-1. Install `linux.profanity` from the App Store's Linux tab, then run `linux profanity` in the Terminal (`linux` starts a Linux program; see [Linux programs](linux-programs.md)).
 2. `/connect you@example.org`. Give the password at the prompt.
 3. `/omemo gen`, then `/omemo policy always`. Until homes are kept between runs, do this at every start.
 4. Before you trust a contact: compare fingerprints over another channel, then `/omemo trust <contact> <fingerprint>`.
