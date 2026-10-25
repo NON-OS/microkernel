@@ -23,14 +23,8 @@
 pub mod posture;
 #[path = "../../../../src/hardware/broker/confine/decide.rs"]
 pub mod decide;
-// `hop` is read by the refusal line (join_group.rs), not mounted here.
-#[allow(dead_code)]
-#[path = "../../../../src/hardware/broker/confine/member.rs"]
-mod member;
-// `blocked_by` is proven in acs_group symmetric_tests.
-#[allow(dead_code)]
-#[path = "../../../../src/hardware/broker/confine/port_only.rs"]
-mod port_only;
+// The port-only rule is mounted once, in acs_group, and proven there.
+use crate::proofs_2::acs_group::port_only;
 
 mod tests;
 #[cfg(test)]
@@ -41,5 +35,3 @@ mod interrupt_tests;
 mod port_only_glue_tests;
 #[cfg(test)]
 mod port_only_nodma_tests;
-#[cfg(test)]
-mod port_only_tests;
