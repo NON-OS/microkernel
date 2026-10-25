@@ -31,7 +31,8 @@ use crate::smp::lock_responsive;
 /// the kernel image included. Use this for any question about a mapping the
 /// manager did not make.
 pub fn live_page_permissions(virtual_addr: VirtAddr) -> Option<PagePermissions> {
-    let entry = without_interrupts(|| lock_responsive(&PAGING_MANAGER).leaf_entry(virtual_addr)).ok()?;
+    let entry =
+        without_interrupts(|| lock_responsive(&PAGING_MANAGER).leaf_entry(virtual_addr)).ok()?;
     let mut perms = PagePermissions::READ;
     if pte_is_writable(entry) {
         perms = perms.insert(PagePermissions::WRITE);

@@ -18,7 +18,11 @@
 
 mod ack;
 mod unbind;
+mod refused;
+mod revoke;
 mod unwind;
 
 pub use ack::ack_grant;
-pub use unbind::{release_all_for_pid, release_for_device, revoke_for_device, unmap_grant};
+pub use revoke::revoke_for_device;
+pub use unbind::{release_all_for_pid, release_for_device, unmap_grant};
+pub(super) use refused::undo_refused;

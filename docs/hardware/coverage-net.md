@@ -6,7 +6,7 @@ not this page. [How to read it](coverage.md#how-to-read-it).
 | Priority | Part | Years | How common | Ids | Named by the driver | In Standard | Owner | Gap |
 |---|---|---|---|---|---|---|---|---|
 | P0 | Intel I219-LM/V (e1000e), onboard on most Intel desktops and laptops | 2017-2026 | most machines | `8086:15b7` `8086:15b8` `8086:15bb` `8086:15bc` `8086:15bd` `8086:15be` `8086:0d4e` `8086:0d4f` `8086:15fb` `8086:15fc` `8086:1a1e` `8086:1a1f` `8086:0dc7` `8086:550a` `8086:57a0` | 15 of 15 | listed, unsealed | B | listed in full-gui with no trust files: the owner seals it; boot a real I219 |
-| P0 | Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards | 2020-2026 | most machines | `8086:15f2` `8086:15f3` `8086:125b` `8086:125c` `8086:125d` | 5 of 5 | no | H-01 | wired in the kernel (b316a838f); trust files and the full-gui listing are the owner's |
+| P0 | Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards | 2020-2026 | most machines | `8086:15f2` `8086:15f3` `8086:125b` `8086:125c` `8086:125d` | 5 of 5 | no | H-01 | host-proved, not booted: no QEMU model, so only a real I225/I226 run can show it; the owner seals and lists it |
 | P1 | Realtek RTL8111/8168 GbE | 2017-2026 | most machines | `10ec:8168` `10ec:8161` `10ec:8136` | 3 of 3 | yes | B | in the image; never booted on a real card on main |
 | P1 | Realtek RTL8125 2.5 GbE, Killer E3000 | 2019-2026 | most machines | `10ec:8125` `10ec:3000` | 2 of 2 | yes | B | in the image; never booted on a real card on main |
 | P1 | Intel I210/I211 (igb) | 2017-2021 | common | `8086:1533` `8086:1539` `8086:157b` | 3 of 3 | listed, unsealed | B | listed in full-gui with no trust files: the owner seals it |

@@ -60,7 +60,8 @@ impl Queue {
         self.posted = self.posted.wrapping_add(1);
         // The device may read the entry, its chain and the header the moment
         // the index covers them: on a weakly ordered machine (the capsule
-        // ships for aarch64) they must be visible first.
+        // ships for aarch64) they must be visible to it first, which libc's
+        // barrier promises and a fence does not.
         nonos_libc::dma_wmb();
         self.ring.w16(avail + AVAIL_IDX, self.posted);
         Ok(())

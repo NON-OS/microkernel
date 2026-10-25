@@ -21,7 +21,7 @@ kernel block layer / installer --NBW1 (unit = slot)--> driver.piix_ide0
   channel its command block (BAR `2c`, 8 ports) and control register (BAR
   `2c + 1`). A channel in compatibility mode decodes the ISA addresses
   (0x1F0/0x3F6, 0x170/0x376); the kernel lists them in those BARs
-  (`src/hardware/broker/table/legacy_ide.rs`), never the floppy
+  (`src/hardware/broker/legacy/attach.rs`), never the floppy
   controller's ports beside 0x3F6.
 - `MkDeviceClaim`; `MkPciConfigWrite` sets Bus Master and Interrupt Disable.
 - `MkPioGrant` on BAR4 and on each listed channel's two windows: every

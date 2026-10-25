@@ -61,6 +61,9 @@ pub fn setup(
     if msix {
         let _ = set_config_vector(c, NO_VECTOR);
     }
+    // The emptied ring reaches the device before the writes that hand it
+    // over, as a legacy window write orders itself (`regs::write`).
+    nonos_libc::dma_wmb();
     let ready = setup_queue(c, &spec, notify).map_err(VirtioError::message)?;
     if msix && !ready.vector_taken {
         let line = b"[BLK] device refused MSI-X entry 0; completions are found by timeout\n";
