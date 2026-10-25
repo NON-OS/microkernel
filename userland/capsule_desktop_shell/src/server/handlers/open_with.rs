@@ -65,6 +65,6 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
 /* One serial line for a start refused, as the kernel's bounds say theirs. */
 fn refused(sender_pid: u32, svc: &[u8]) {
     let svc = core::str::from_utf8(svc).unwrap_or("?");
-    let line = alloc::format!("[CAP-DENY] open-with: pid={sender_pid} app={svc} opens no file\n");
+    let line = alloc::format!("[CAP-DENY] pid={sender_pid} open-with: app={svc} opens no file\n");
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

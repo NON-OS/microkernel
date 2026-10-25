@@ -16,3 +16,7 @@
 
 pub mod hardening;
 pub mod tpm;
+
+/// The attestation document's read-back check, against the live TPM.
+#[cfg(test)]
+pub mod attest_doc;
