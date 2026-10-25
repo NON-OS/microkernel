@@ -1232,6 +1232,7 @@
    "userland/assets/icons",
    "userland/boot_splash_proofs",
    "userland/capsule_boot_splash/src/layout.rs",
+   "userland/capsule_boot_splash/src/layout_fit.rs",
    "userland/capsule_boot_splash/src/logo/bmp.rs",
    "userland/capsule_boot_splash/src/logo/place.rs",
    "userland/capsule_boot_splash/src/logo/prepare.rs",
