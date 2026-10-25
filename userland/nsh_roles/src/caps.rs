@@ -15,25 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's capability names, each at the index of its bit in a
-//! `caps_bits` mask (`src/capabilities/types/defs.rs`), and the six that no
+//! `caps_bits` mask (`src/capabilities/types/defs.rs`), and the nine that no
 //! role may ever hold. Names, not bits, cross the wire, so this list is how
 //! a host knows a name: a name not on it is unknown.
 
 /// Every kernel capability, at the index of its bit.
 #[rustfmt::skip]
-pub const KERNEL_CAPS: [&str; 37] = [
+pub const KERNEL_CAPS: [&str; 40] = [
     "CoreExec", "IO", "Network", "IPC", "Memory", "Crypto", "FileSystem", "Hardware",
     "Debug", "Admin", "RegisterService", "GraphicsDisplayQuery", "GraphicsSurfaceCreate",
     "GraphicsSurfaceMap", "GraphicsPresent", "DeviceEnum", "Driver", "Mmio", "Irq", "Dma",
     "Pio", "InputSource", "TimeSet", "SpawnBroker", "SpawnWindow", "ProcessControl",
     "StoreWrite", "EnrolDevRoot", "Keyring", "Entropy", "AppInstall", "AttestRead",
     "ForeignExec", "LocalSign", "StreamImport", "DeviceSecret", "InputConsumer",
+    "CameraCapture", "MicrophoneCapture", "ScreenCapture",
 ];
 
-/// Never in any ceiling: a login must never be able to mint authority or
-/// reach the machine's own secrets (nsh-v1-refusals.md).
-pub const FORBIDDEN: [&str; 6] =
-    ["Admin", "Debug", "DeviceSecret", "EnrolDevRoot", "Keyring", "LocalSign"];
+/// Never in any ceiling: a login must never be able to mint authority,
+/// reach the machine's own secrets, or see or hear what is in front of the
+/// machine: its camera, microphone or screen (nsh-v1-refusals.md).
+#[rustfmt::skip]
+pub const FORBIDDEN: [&str; 9] = [
+    "Admin", "CameraCapture", "Debug", "DeviceSecret", "EnrolDevRoot", "Keyring", "LocalSign",
+    "MicrophoneCapture", "ScreenCapture",
+];
 
 /// The bit a capability name stands for, or `None` for a name the kernel
 /// does not have.
