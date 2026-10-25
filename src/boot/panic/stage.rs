@@ -50,3 +50,9 @@ pub(super) fn next(found: u64, me: u64) -> Next {
         _ => Next::Park,
     }
 }
+
+/// Whether the panic path has been taken: `terminate` parks if so, rather
+/// than start its leave while the owner stops the CPUs.
+pub(crate) fn taken(word: u64) -> bool {
+    word & 0xFF != IDLE
+}

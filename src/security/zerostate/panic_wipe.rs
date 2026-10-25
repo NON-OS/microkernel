@@ -38,6 +38,7 @@
 //! the wipe does not reach the tables the CPU is walking.
 
 use super::panic_plan::{plan, Span, MAX_SPANS};
+use super::panic_stack::stack_keep;
 use crate::memory::layout::KSTACK_SIZE;
 use crate::security::hardening::memory_sanitization::erase::secure_zero;
 
@@ -51,10 +52,7 @@ pub(crate) fn panic_wipe_and_off() -> ! {
     if let Some((start, size)) = crate::memory::heap::get_allocator().extent() {
         let heap = Span { start: start as u64, end: (start as u64).saturating_add(size as u64) };
         let sp = crate::arch::stack_pointer();
-        let stack = Span {
-            start: sp.saturating_sub(KSTACK_SIZE as u64),
-            end: sp.saturating_add(KSTACK_SIZE as u64),
-        };
+        let stack = stack_keep(sp, KSTACK_SIZE as u64);
         let mut keep = [Span { start: 0, end: 0 }; 5];
         keep[0] = stack;
         for (slot, s) in keep[1..].iter_mut().zip(crate::memory::layout::kernel_sections().iter()) {

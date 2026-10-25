@@ -43,6 +43,12 @@ pub(crate) fn end(paint: impl FnOnce()) -> ! {
     }
 }
 
+/// Whether a panic or fatal fault has taken the path (zerostate's
+/// `terminate` reads this before its own once-guard).
+pub(crate) fn panic_stage_taken() -> bool {
+    super::stage::taken(STAGE.load(Ordering::Acquire))
+}
+
 /// A fatal kernel fault, from an exception handler's kernel branch.
 pub(crate) fn fatal() -> ! {
     end(|| say(b"[ZEROSTATE] fatal kernel fault\r\n"))

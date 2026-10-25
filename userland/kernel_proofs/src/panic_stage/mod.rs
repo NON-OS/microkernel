@@ -21,6 +21,8 @@
  */
 
 #[cfg(test)]
+mod branch_glue_tests;
+#[cfg(test)]
 mod glue_tests;
 #[cfg(test)]
 mod handlers_glue_tests;
@@ -34,3 +36,5 @@ mod stage;
 mod tests;
 #[cfg(test)]
 mod tests_orders;
+#[cfg(test)]
+mod tests_terminate;

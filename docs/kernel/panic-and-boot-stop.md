@@ -82,6 +82,8 @@ A Rust panic in the kernel runs `panic` (`src/boot/panic/handler.rs:45-59`), whi
 
 A fault or a second panic raised by the CPU that took the path, before its wipe began, goes straight to step 4. Any other CPU that enters parks for the NMI, and so does any entry after the wipe began.
 
+A power-off or reboot asked for after the panic path was taken parks too: `terminate` reads the panic stage before its own once-guard, so it never starts flushing disks and calling capsules while the panic path stops the CPUs (`src/security/zerostate/terminate.rs`). The other way round, a fault during a normal power-off's leave or wipe escalates to the panic path, which wipes the heap and powers off: the power-off ends, wiped, without finishing its own wipe of process memory. A double fault runs on a CPU's 16 KiB IST stack, in the kernel image's `.bss`; the wipe keeps `sp` ± 64 KiB and the whole image, so it never reaches the stack it runs on (`src/security/zerostate/panic_stack.rs`).
+
 ## CPU exceptions
 
 A page fault, a general protection fault and an invalid opcode first print a `[TRAP xx]` line through `dump_trap`, with the privilege level, the instruction and stack pointers, the code and stack segments, flags, CR3, the address-space id, the pid, the error code and, for a page fault, CR2 (`src/arch/x86_64/diag/dump_trap.rs:23-67`). `xx` is the exception's short name: `PF`, `GP` or `UD`. Other exceptions print no `[TRAP xx]` line. A page fault prints its line before the kernel tries to resolve it, so a fault the kernel then resolves leaves a line too, and a fault from user mode adds the page-table walk to the address through `print_walk` (`src/arch/x86_64/diag/dump_trap.rs:64-66`).
