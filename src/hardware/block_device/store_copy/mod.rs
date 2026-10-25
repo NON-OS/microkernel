@@ -57,12 +57,9 @@ static STATE: AtomicU8 = AtomicU8::new(UNCHECKED);
 static CHECKING: AtomicBool = AtomicBool::new(false);
 /* Comparisons a disk that would not be read has failed. */
 static FAILED_CHECKS: AtomicU8 = AtomicU8::new(0);
-/*
- * A kept disk that cannot be read this many times is no longer asked: each
- * failed read of a USB stick can take its twelve seconds, and asking on every
- * store read would stall the whole store behind it. The copy goes on
- * answering; writes still go to the disk.
- */
+/* A kept disk that cannot be read this many times is no longer asked: each failed read of a
+ * USB stick can take its twelve seconds, and asking on every store read would stall the whole
+ * store behind it. The copy goes on answering; writes still go to the disk. */
 const MAX_FAILED_CHECKS: u8 = 3;
 const GAVE_UP: u8 = 3;
 
@@ -152,7 +149,9 @@ fn compare() {
     for (i, chunk) in disk.chunks_mut(64 * SECTOR).enumerate() {
         let lba = STORE_BASE_LBA + (i * 64) as u64;
         if crate::hardware::block_device::read_store(lba, chunk).is_err() {
-            if FAILED_CHECKS.fetch_add(1, Ordering::AcqRel) + 1 >= MAX_FAILED_CHECKS {
+            // A killed caller's read failed for its own end, never the disk's (L81c).
+            let n = u8::from(!super::wait::caller_gone());
+            if FAILED_CHECKS.fetch_add(n, Ordering::AcqRel) + n >= MAX_FAILED_CHECKS {
                 STATE.store(GAVE_UP, Ordering::Release);
                 crate::sys::serial::println(
                     b"[STORE] the kept disk would not be read; the loader's copy answers",
