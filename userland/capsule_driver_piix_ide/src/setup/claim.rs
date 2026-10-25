@@ -18,8 +18,7 @@
 //! step gives back what the earlier ones took.
 
 use nonos_libc::{
-    mk_device_claim, mk_device_release, mk_pci_config_write, mk_pio_grant, mk_pio_release,
-    PioGrantOut, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
+    mk_device_claim, mk_device_release, mk_pio_grant, mk_pio_release, PioGrantOut,
 };
 
 use super::grants::{ChannelGrants, Grants};
@@ -29,12 +28,6 @@ use crate::constants::pci::{
 };
 use crate::discover::Found;
 
-/// Bus Master for the engines' reads and writes of memory; the broker
-/// clears it on every release, so each attempt sets it. The PCI pin is
-/// silenced as well: the driver polls, and a native-mode channel would
-/// otherwise share INTx with whatever else is on the line. I/O decode is the
-/// firmware's: with it off the status floats high and no channel is used.
-pub const COMMAND_BITS: u16 = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
 
 pub fn claim(dev: &Found) -> Result<Grants, &'static str> {
     let epoch = mk_device_claim(dev.device_id);
@@ -54,7 +47,7 @@ pub fn claim(dev: &Found) -> Result<Grants, &'static str> {
         let _ = mk_device_release(g.device_id);
         e
     };
-    if mk_pci_config_write(g.device_id, g.epoch, MK_PCI_CFG_COMMAND, COMMAND_BITS) < 0 {
+    if super::command::set(g.device_id, g.epoch) < 0 {
         return Err(back(&g, "pci command setup failed"));
     }
     g.bm = match grant(&g, BUS_MASTER_BAR, BUS_MASTER_MIN_PORTS) {
