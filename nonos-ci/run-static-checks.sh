@@ -5262,6 +5262,19 @@ else
     fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
 fi
 unset ipcpid_out
+# A release takes the capsules as make declares them, never the development
+# set (capsules-dev): the lines that choose it are pinned, and a release seal
+# handed it refuses by what was built, not by the flag. The self-tests first,
+# so a check that stopped seeing a mutant cannot pass quietly.
+if devset_out="$(python3 scripts/check_dev_capsule_set.py --self-test 2>&1 \
+    && python3 scripts/check_dev_capsule_set.py 2>&1 \
+    && python3 scripts/check_seal_dev_refusal.py 2>&1)"; then
+    note ok "no release takes the development capsule set (check_dev_capsule_set, check_seal_dev_refusal)"
+else
+    tail -n 8 <<< "${devset_out}" >&2
+    fail_with "check_dev_capsule_set: a release path can take the development capsule set"
+fi
+unset devset_out
 
 # Every way off the machine is listed: a capsule that gains Network, or an
 # address, host or build-time endpoint new to a networked capsule's source,
