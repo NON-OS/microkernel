@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a call leaves once its receive returns: the reply counted, or the
-//! starvation logged, and the display bench marks.
+//! late call or the starvation logged, and the display bench marks.
 //!
-//! On no answer, the pending entry is NOT removed on a timeout. The server received this
-//! request and will still reply to it; the redirect pairs replies to
+//! On a timeout the pending entry is NOT removed: the server got the request
+//! and will still reply to it; the redirect pairs replies to
 //! callers strictly by FIFO position, so consuming an entry out of order
 //! shifts every later reply onto the wrong caller, stamped with that
 //! caller's own token. One timeout then desyncs the server's whole reply
@@ -28,24 +28,48 @@
 //! removed when the send itself failed, where the server never saw a
 //! request, and by clear_pid when either side dies.
 //!
-//! A negative receive after a successful send is a served call that got no
-//! answer: the server is wedged or the reply path lost the message.
-//! Refusals log at the gates, so this line is specifically starvation.
+//! A negative receive after a successful send got no answer. If the caller's
+//! own deadline, shorter than the kernel's default, ran out first, the call
+//! was late (verdict.rs). A call that waited the full default is starvation,
+//! and so is a pair whose late calls span the default with no answer in time
+//! (silence.rs): the server is wedged or the reply path lost it.
 
+use super::late_drops::dropped;
 use super::marks::display_marks;
+use super::silence::Pair;
+use super::silence_table;
+use super::verdict::{no_answer, NoAnswer, DEFAULT_MS};
 use crate::process::accounting;
 use crate::services::registry::ServiceEndpoint;
+use crate::syscall::microkernel::errnos::ERRNO_TIMEDOUT;
 
 static STARVED: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
+static LATE: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
 
-/// `call` is the request's address and length and the reply's address.
-pub(super) fn settle(to: Option<&ServiceEndpoint>, pid: u32, call: (u64, usize, u64), rc: i64) {
+/// `call` is the request's address and length and the reply's address;
+/// `waited` the caller's timeout (0: the default) and the time it waited.
+pub(super) fn settle(
+    to: Option<&ServiceEndpoint>,
+    pid: u32,
+    call: (u64, usize, u64),
+    rc: i64,
+    waited: (u64, u64),
+) {
     if rc >= 0 {
         accounting::bump(pid, accounting::Kind::IpcRx);
     }
     let Some(endpoint) = to else { return };
-    if rc < 0 {
-        STARVED.starved(&endpoint.name, pid, rc, endpoint.pid);
+    let pair = Pair { caller: pid, port: endpoint.port };
+    if rc >= 0 {
+        silence_table::answered(pair);
+    } else {
+        match no_answer(rc == ERRNO_TIMEDOUT, waited.0, DEFAULT_MS, waited.1) {
+            NoAnswer::Late => {
+                LATE.late(&endpoint.name, waited.1, dropped());
+                silence_table::report(&STARVED, pair, &endpoint.name, waited.1);
+            }
+            NoAnswer::Starved => STARVED.starved(&endpoint.name, rc),
+        }
     }
     display_marks(&endpoint.name, call.0, call.1, call.2, rc);
 }

@@ -1,49 +1,12 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! What the attestation document parser must refuse.
 
+use crate::doc_build::{encoded, ATTEST_LEN_AT, CHALLENGE, COMPLETE_AT, ENFORCING_AT};
+use crate::doc_build::{IDENTITY, IDENTITY_AT, VENDOR_AT};
 use crate::doc_parse::parse;
 use crate::kernel_document::{
-    AttestationDoc, DOC_VERSION, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
+    DOC_VERSION, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
 };
-
-const CHALLENGE: [u8; 32] = [7u8; 32];
-
-/// Where the completeness byte sits, for the tests that write a byte the kernel
-/// never would.
-const COMPLETE_AT: usize = 8 + 4 + 32 + 32 + 4;
-const VENDOR_AT: usize = COMPLETE_AT + 1;
-const ENFORCING_AT: usize = VENDOR_AT + 1;
-const IDENTITY_AT: usize = ENFORCING_AT + 1 + 4;
-const ATTEST_LEN_AT: usize = IDENTITY_AT + 4;
-
-/// Devices left reaching all of memory in every document built here.
-const IDENTITY: u32 = 5;
-
-/// A document exactly as the kernel encodes one, from the kernel's own encoder.
-fn encoded(
-    challenge: &[u8; 32],
-    attest: &[u8],
-    sig: &[u8],
-    count: u32,
-    vendor: u8,
-    enforcing: bool,
-    grants: u32,
-) -> Vec<u8> {
-    AttestationDoc {
-        challenge: *challenge,
-        registry_root: [0xAB; 32],
-        capsule_count: count,
-        registry_complete: true,
-        iommu_vendor: vendor,
-        iommu_enforcing: enforcing,
-        unconfined_grants: grants,
-        identity_devices: IDENTITY,
-        attest: attest.to_vec(),
-        signature: sig.to_vec(),
-        ak_public: [0xCD; 64],
-    }
-    .encode()
-}
 
 /// The same, with the completeness byte set to `complete` rather than a bool,
 /// so the tests can write the bytes the kernel never does.

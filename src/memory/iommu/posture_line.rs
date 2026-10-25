@@ -54,6 +54,7 @@ pub(super) fn posture_line() {
         .dec(identity as u64)
         .str(super::dev_unconfined::posture_tail())
         .str(super::dev_unremapped::posture_tail())
+        .str(super::no_iommu::posture_tail())
         .end();
 }
 

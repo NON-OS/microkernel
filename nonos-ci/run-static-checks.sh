@@ -2299,6 +2299,7 @@ else
 fi
 unset mk_tool_drift
 
+# >>> operator-key block
 # Operator pubkey trust list must compile in. keys.rs pulls the
 # marketplace operator pubkey in from the committed .pub with
 # include_bytes!, and TRUSTED_OPERATORS wires it in. The key is
@@ -2309,16 +2310,32 @@ trust_keys='userland/capsule_market/src/bootstrap_trust/keys.rs'
 operator_pubkey_hex='bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2'
 trust_key_rel="$( { grep -A1 'const NOX_OPERATOR_V1: \[u8; 32\] =' "${trust_keys}" 2>/dev/null || true; } | { grep -oE 'include_bytes!\("[^"]+marketplace_operator_ed25519\.pub"\)' || true; } | head -n 1 | sed -E 's/^include_bytes!\("//; s/"\)$//')"
 trust_key_file="$(dirname "${trust_keys}")/${trust_key_rel}"
+# NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread, as a session's run must:
+# the trust list's shape is still checked, the key bytes are not.
 if [ ! -f "${trust_keys}" ]; then
     fail_with "missing ${trust_keys} (operator trust list)"
-elif [ -z "${trust_key_rel}" ] || [ ! -f "${trust_key_file}" ] ||
-     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ] ||
+elif [ -z "${trust_key_rel}" ] ||
      ! grep -qE 'TRUSTED_OPERATORS: &\[\[u8; 32\]\] = &\[NOX_OPERATOR_V1\]' "${trust_keys}"; then
+    fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
+elif [ "${NONOS_STATIC_SKIP_KEYS:-0}" = 1 ]; then
+    note skip "operator pubkey bytes not compared: NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread"
+elif [ ! -f "${trust_key_file}" ] ||
+     [ "$(od -An -tx1 -v "${trust_key_file}" | tr -d ' \n')" != "${operator_pubkey_hex}" ]; then
     fail_with "marketplace operator pubkey missing from bootstrap_trust or not the committed key"
 else
     note ok "marketplace operator pubkey baked into capsule_market trust list"
 fi
 unset trust_keys operator_pubkey_hex trust_key_rel trust_key_file
+# <<< operator-key block
+# The block above, run traced on a fake tree: skipped, it opens nothing under
+# .keys/ and still checks the trust list's shape; --selftest shows each
+# mutant of it fails.
+if python3 -I nonos-ci/check-skip-keys.py --selftest >/dev/null; then
+    note ok "NONOS_STATIC_SKIP_KEYS=1 leaves .keys/ unread and the trust list checked"
+else
+    python3 -I nonos-ci/check-skip-keys.py --selftest >&2 || true
+    fail_with "the operator-key block reads .keys/ when skipped, or checks too little"
+fi
 
 boot_build='nonos-bootloader/build.rs'
 if [ ! -f "${boot_build}" ]; then
@@ -2333,6 +2350,14 @@ elif ! grep -q 'NONOS_KERNEL_ATTEST_ROOT is all zeroes' "${boot_build}"; then
     fail_with "bootloader build must reject an all-zero kernel attestation root"
 else
     note ok "bootloader fails closed on its signing key and the enrolled kernel root"
+fi
+# The loader's build script writes only under OUT_DIR, so no build puts a key
+# in nonos-bootloader/keys/ or .keys/; --selftest shows each mutant fails it.
+if python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >/dev/null; then
+    note ok "bootloader build.rs writes nothing outside OUT_DIR, so never a key in the tree"
+else
+    python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >&2 || true
+    fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
 
@@ -5021,8 +5046,31 @@ else
 fi
 unset mirror_out
 
+# A publisher's capsule declaring a name outside its namespace is refused at
+# load (name_rule.rs), so it would install and never start.
+if pub_out="$(python3 scripts/check_publisher_names.py --self-test 2>&1 &&
+              python3 scripts/check_publisher_names.py 2>&1)"; then
+    note ok "every publisher capsule's names are under its namespace (check_publisher_names)"
+else
+    tail -n 5 <<< "${pub_out}" >&2
+    fail_with "check_publisher_names: a publisher capsule declares a name outside its namespace"
+fi
+unset pub_out
+
 # Draining the raw input ring reads every key typed. Its bit belongs to the
 # input router and to no driver; the seal refuses it elsewhere too.
+# capsule_linux dials a local-network mirror directly, past nonos_route_link,
+# only in a development build: the dev-mirror feature gates every piece of
+# that path, and no release set builds with it (docs/build/dev-mirror.md).
+if dev_mirror_out="$(python3 scripts/check_dev_mirror.py 2>&1)" \
+    && python3 scripts/check_dev_mirror.py --self-test >/dev/null 2>&1; then
+    note ok "capsule_linux's direct dial is development only (check_dev_mirror)"
+else
+    printf '%s\n' "${dev_mirror_out}" >&2
+    fail_with "check_dev_mirror: capsule_linux's direct dial reaches a release build"
+fi
+unset dev_mirror_out
+
 if drain_out="$(python3 scripts/check_input_drain_cap.py 2>&1)"; then
     note ok "InputDrain is held by the input router alone (check_input_drain_cap)"
 else
@@ -5052,6 +5100,21 @@ else
     fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
 fi
 unset mirrors_out
+# The flake builds capsules from tools/nix's catalogues, so one left behind by
+# a new role makes the spawn refuse it on the next image. Only `nix flake
+# check` compared them; here the same comparison runs from make's own output.
+cat_dir="$(mktemp -d)"
+if (for which in capsule capsule-dev store; do
+        make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 \
+            "nonos-mk-${which}-catalogue" > "${cat_dir}/${which}.json" || exit 1
+    done) && cat_out="$(TMPDIR="${cat_dir}" python3 -I tools/nix/catalogues.py --check 2>&1)"; then
+    note ok "tools/nix catalogues match what make says the capsules are (catalogues.py)"
+else
+    tail -n 5 <<< "${cat_out:-make failed}" >&2
+    fail_with "catalogues: tools/nix is stale; regenerate with python3 tools/nix/catalogues.py"
+fi
+rm -rf "${cat_dir}"
+unset cat_dir cat_out
 
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.
@@ -5120,6 +5183,16 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
+# The copy-only features (selftest-panic, agentproof-headless) are for a dev
+# image's copy alone: no committed build may carry them; the self-test first.
+if copy_only_out="$(python3 scripts/check_copy_only_features.py --self-test 2>&1 \
+    && python3 scripts/check_copy_only_features.py 2>&1)"; then
+    note ok "no committed build carries a copy-only feature (check_copy_only_features)"
+else
+    tail -n 5 <<< "${copy_only_out}" >&2
+    fail_with "check_copy_only_features: a committed build carries a copy-only feature"
+fi
+unset copy_only_out
 # The surface registry's GATE is a spin lock: a holder that reaches a function
 # taking it again spins forever with interrupts off, and the surface path on
 # every CPU stops behind it (orphans::reclaim and reclaim_dma, the black
@@ -5217,6 +5290,52 @@ else
     fail_with "check_dark_features: a feature gates code that no lane builds"
 fi
 unset dark_out
+# The ipc.call diag lines name the endpoint and timing, never a pid: kernel
+# lines leave the machine in photos and bug reports (K10, K19, B-04).
+if ipcpid_out="$(python3 scripts/check_ipc_diag_no_pid.py --self-test 2>&1 \
+    && python3 scripts/check_ipc_diag_no_pid.py 2>&1)"; then
+    note ok "no ipc.call diag line can format a pid (check_ipc_diag_no_pid)"
+else
+    tail -n 5 <<< "${ipcpid_out}" >&2
+    fail_with "check_ipc_diag_no_pid: an ipc.call diag line can format a pid"
+fi
+unset ipcpid_out
+# A release takes the capsules as make declares them, never the development
+# set (capsules-dev): the lines that choose it are pinned, and a release seal
+# handed it refuses by what was built, not by the flag. The self-tests first,
+# so a check that stopped seeing a mutant cannot pass quietly.
+if devset_out="$(python3 scripts/check_dev_capsule_set.py --self-test 2>&1 \
+    && python3 scripts/check_dev_capsule_set.py 2>&1 \
+    && python3 scripts/check_seal_dev_refusal.py 2>&1)"; then
+    note ok "no release takes the development capsule set (check_dev_capsule_set, check_seal_dev_refusal)"
+else
+    tail -n 8 <<< "${devset_out}" >&2
+    fail_with "check_dev_capsule_set: a release path can take the development capsule set"
+fi
+unset devset_out
+
+# The host relay a development image installs through serves a package the
+# market catalogue lists only as the bytes its lock pins (nonos-mirror-relay).
+if relay_out="$( (cd tools && python3 -m unittest -q nonos_mirror_relay.test_pins) 2>&1)"; then
+    note ok "the mirror relay serves a locked package only as its pinned bytes (nonos_mirror_relay)"
+else
+    tail -n 8 <<< "${relay_out}" >&2
+    fail_with "nonos_mirror_relay: the relay can serve a locked package as other bytes"
+fi
+unset relay_out
+
+# Every way off the machine is listed: a capsule that gains Network, or an
+# address, host or build-time endpoint new to a networked capsule's source,
+# fails until docs/security/privacy.md names it with why and how to turn it
+# off; a row the code no longer has fails too. The audit's own tests run first.
+if egress_out="$( (cd tools && python3 -m unittest -q nonos_egress_audit.test_egress) 2>&1 \
+    && python3 tools/nonos-egress-audit 2>&1)"; then
+    note ok "every outbound path is listed in docs/security/privacy.md (nonos-egress-audit)"
+else
+    tail -n 8 <<< "${egress_out}" >&2
+    fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
+fi
+unset egress_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
