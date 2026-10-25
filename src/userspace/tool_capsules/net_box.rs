@@ -22,7 +22,7 @@
 /// the report's `--box-key=` word if named, then `--box` and a box word
 /// naming at least one `net:` item. A `--box` anywhere later is the
 /// program's own argument and names nothing here.
-pub fn names_destinations(argv: &[u8]) -> bool {
+pub(crate) fn names_destinations(argv: &[u8]) -> bool {
     let mut words = argv.split(|b| *b == 0).skip(1);
     let mut first = words.next();
     if first.is_some_and(|w| w.starts_with(b"--box-key=")) {
