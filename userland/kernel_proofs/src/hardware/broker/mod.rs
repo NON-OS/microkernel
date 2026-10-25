@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The broker's device record, its class ids, the platform device record,
- * the BAR a mapping may name, the buses behind an external-facing port
- * the ranges firmware reserves, and the device-tree DesignWare I2C
- * interface's stop routine, by path as the kernel builds them.
- */
+// The broker's records, class table (its code map checked whole, L79), BAR choice, external-facing
+// ports, firmware's reserved ranges and the device tree's DesignWare I2C stop routine, by path.
 
 pub mod acpi;
 #[path = "../../../../../src/hardware/broker/class.rs"]
@@ -36,17 +32,17 @@ pub mod mmio;
 pub mod reserved;
 pub mod table;
 
-#[allow(unused_imports)] // the table's files name it at this path
-pub use device::DeviceRecord;
+#[allow(unused_imports)] // the table's and the inventory's files name them at this path
+pub use device::{Bar, BarKind, DeviceRecord, BAR_FLAG_FIXED};
 
 #[cfg(test)]
 mod bars_tests;
 #[cfg(test)]
-mod deps_flag_tests;
-#[cfg(test)]
 mod button_tests;
 #[cfg(test)]
-mod restart_tests;
+mod class_tests;
+#[cfg(test)]
+mod deps_flag_tests;
 #[cfg(test)]
 mod dgon_tests;
 #[cfg(test)]
@@ -54,24 +50,26 @@ mod external_tests;
 #[cfg(test)]
 mod first_pass_tests;
 #[cfg(test)]
-mod loaded_tests;
-#[cfg(test)]
-mod slot_port_tests;
-#[cfg(test)]
-mod table_measure_tests;
-#[cfg(test)]
-mod slot_tests;
-#[cfg(test)]
 mod irq_flag_tests;
+#[cfg(test)]
+mod loaded_tests;
 #[cfg(test)]
 mod numa_tests;
 #[cfg(test)]
 mod osc_grant_tests;
 #[cfg(test)]
+mod restart_tests;
+#[cfg(test)]
 mod round_trip_tests;
 #[cfg(test)]
 mod same_group_tests;
 #[cfg(test)]
-mod usb_port_tests;
+mod slot_port_tests;
+#[cfg(test)]
+mod slot_tests;
+#[cfg(test)]
+mod table_measure_tests;
 #[cfg(test)]
 mod thermal_limit_tests;
+#[cfg(test)]
+mod usb_port_tests;

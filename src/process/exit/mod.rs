@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod devices;
 mod end_note;
 pub mod end_rule;
 mod exit_and_yield;
 mod finalize;
+mod forget;
+mod off_cpu;
 mod park;
 mod pending;
 pub mod postmortem;
@@ -25,6 +28,7 @@ mod purge;
 mod reap_log;
 mod reclaim;
 mod stop_elsewhere;
+mod surfaces;
 mod teardown;
 
 pub use exit_and_yield::exit_and_yield;

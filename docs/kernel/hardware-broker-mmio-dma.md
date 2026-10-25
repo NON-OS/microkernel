@@ -24,8 +24,10 @@ Part of [The hardware broker](hardware-broker.md).
 | `DMA_MAP_DMA32` | 2 | Frames below 4 GiB, for a device with 32 bit addresses. |
 | `DMA_MAP_COHERENT` | 4 | Mapped uncached, for rings both sides write. |
 | `DMA_MAP_WC` | 8 | Mapped write combining where the PAT allows, else uncached. |
+| `DMA_MAP_TO_DEVICE` | 16 | The device only reads it: read-only in its IOMMU domain. |
+| `DMA_MAP_FROM_DEVICE` | 32 | The device only writes it: write-only in its IOMMU domain, read kept on a VT-d unit without CAP.ZLR. |
 
-The flags are in `flags.rs`, starting at `DMA_MAP_HIGH` (`src/hardware/broker/dma/flags.rs:19-30`). `validate` refuses `HIGH` with `DMA32`, `COHERENT` with `WC`, a length that is not a whole number of 4 KiB pages, and a length above the device class's ceiling (`src/hardware/broker/dma/map/validate.rs:31-58`).
+The flags are in `flags.rs`, starting at `DMA_MAP_HIGH` (`src/hardware/broker/dma/flags.rs:19-38`). `validate` refuses `HIGH` with `DMA32`, `COHERENT` with `WC`, `TO_DEVICE` with `FROM_DEVICE`, a length that is not a whole number of 4 KiB pages, and a length above the device class's ceiling (`src/hardware/broker/dma/map/validate.rs:39-67`). The direction reaches the device's mapping through `direction.rs` and `confine::map`; for a device no IOMMU confines it changes nothing.
 
 The ceilings, in pages, are set by `dma_page_limit_for_class`: `RNG`, `INPUT` and `SERIAL` 1, `AUDIO` 16, `NETWORK` 64, the USB hosts 256, `BLOCK` 1024, `DISPLAY` 8192 and every other class 16 (`src/hardware/broker/dma/limits.rs:27-47`).
 

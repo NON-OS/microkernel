@@ -23,7 +23,7 @@ use super::super::flush::flush_domain;
 use super::super::pte::is_present;
 use super::super::visible::store;
 use super::lifetime::{root_of, ROOTS};
-use super::range::{leaf_at, pages, PAGE};
+use super::range::{leaves, pages, PAGE};
 use super::walk::walk_lookup;
 
 pub fn unmap_range(domain: u16, iova: u64, size: usize) -> Result<(), AmdViError> {
@@ -33,13 +33,13 @@ pub fn unmap_range(domain: u16, iova: u64, size: usize) -> Result<(), AmdViError
     // A caller naming a range it does not hold does not lose the part it does.
     for page in 0..count {
         match walk_lookup(root, iova + page * PAGE)? {
-            Some((table, slot)) if is_present(*leaf_at(table, slot)?) => {}
+            Some((table, slot)) if is_present(leaves(table)?.read(slot)?) => {}
             _ => return Err(AmdViError::RangeNotMapped),
         }
     }
     for page in 0..count {
         if let Some((table, slot)) = walk_lookup(root, iova + page * PAGE)? {
-            store(leaf_at(table, slot)?, 0);
+            store(table, slot, 0)?;
         }
     }
     flush_domain(domain)

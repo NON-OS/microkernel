@@ -14,53 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The server's choice of sink: one fixed sink registered is taken without a
-//! question, two are asked in order, and a machine where neither plays keeps
-//! the first, whose status says why; a ready USB device is played through
-//! over it, and the USB driver alone is kept so a device can still come.
+//! Which driver the server plays through: a ready USB device over the
+//! fixed sink, HD Audio or AC'97 (sink_machine_tests.rs), and the USB driver
+//! alone kept so a device can still come.
 
-use crate::sink_choose::{choose, with_usb, SINKS};
+use crate::sink_choose::with_usb;
 
 const HDA: u32 = 4218;
 const USB: u32 = 4246;
-
-#[test]
-fn the_sinks_are_hda_then_ac97() {
-    assert_eq!(SINKS, ["driver.hda0", "driver.ac97_0"]);
-}
-
-#[test]
-fn a_lone_sink_is_taken_without_asking() {
-    let never = |_: usize| -> bool { panic!("a lone sink is not asked") };
-    assert_eq!(choose([true, false], never), Some(0));
-    assert_eq!(choose([false, true], never), Some(1));
-}
-
-#[test]
-fn no_sink_is_none() {
-    assert_eq!(choose([false, false], |_| true), None);
-}
-
-// An HD Audio controller that cannot play (HDMI only, a laptop for SOF)
-// must not hide a working AC'97 beside it.
-#[test]
-fn with_both_the_first_that_plays_is_taken() {
-    assert_eq!(choose([true, true], |i| i == 1), Some(1));
-    let mut asked = Vec::new();
-    assert_eq!(
-        choose([true, true], |i| {
-            asked.push(i);
-            true
-        }),
-        Some(0)
-    );
-    assert_eq!(asked, vec![0], "the second is not asked once the first plays");
-}
-
-#[test]
-fn with_both_and_neither_playing_the_first_keeps_its_say() {
-    assert_eq!(choose([true, true], |_| false), Some(0));
-}
 
 #[test]
 fn a_ready_usb_device_plays_over_hd_audio() {

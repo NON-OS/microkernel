@@ -15,19 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The few vendor bits a driver of a claimed device may flip beyond Command
-//! and MSI-X, each the exact bits Linux's driver for that class writes and
-//! nothing beside them. Pure, so kernel_proofs holds every rule.
+//! and MSI-X, each named for its register in the vendor's datasheet, and
+//! nothing beside them. Pure, so kernel_proofs holds every rule. The names
+//! and bit positions are recalled from Intel's PCH datasheets, AMD's and the
+//! PCI Express Base Specification, unverified until the owner's row (L37).
 //!
-//! - Intel HD Audio (class 04, subclass 03 or 01 for a DSP-mode part):
-//!   TCSEL at 0x44 bits 0-2, CGCTL MISCBDCGE at 0x48 bit 6 (cleared around
-//!   the controller reset on Skylake and later, Gemini Lake included) and
-//!   DEVC NOSNOOP at 0x78 bit 11 (snd_hda_intel's azx_init_pci).
-//! - AMD/ATI HD Audio: the snoop bits at 0x42 bits 0-2.
-//! - A network controller (class 02): PCIe Device Control 2's completion
-//!   timeout value and disable, bits 0-4 at the PCIe capability + 0x28, which
-//!   rtw88 and iwlwifi set on real silicon.
-//! - The Intel SMBus host (class 0C, subclass 05): HOSTC at 0x40, its host
-//!   enable (bit 0) and I2C mode (bit 2), as i2c-i801's probe writes them.
+//! - Intel HD Audio (class 04, subclass 03, or 01 for a DSP-mode part):
+//!   TCSEL at 0x44 bits 0-2, the traffic class the controller's requests
+//!   carry; CGCTL at 0x48 bit 6 (MISCBDCGE), a clock gate held off around
+//!   the controller reset on the newer PCHs; DEVC at 0x78 bit 11, no-snoop.
+//! - AMD/ATI HD Audio: the snoop control bits at 0x42 bits 0-2.
+//! - A network controller (class 02): PCI Express Device Control 2's
+//!   completion timeout value (bits 0-3) and disable (bit 4), at the PCIe
+//!   capability + 0x28, for parts whose reads outlast the default range.
+//! - The Intel SMBus host (class 0C, subclass 05): HOSTC at 0x40, host
+//!   enable (bit 0) and I2C mode (bit 2).
 //! - A UHCI controller (class 0C, subclass 03, interface 00), any vendor:
 //!   LEGSUP at 0xC0, its firmware trap and SMI enables (7:0), their status
 //!   (11:8, 15, each cleared by a one) and PIRQD routing (13), so a polled

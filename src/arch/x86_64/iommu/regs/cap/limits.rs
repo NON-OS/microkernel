@@ -28,3 +28,15 @@ pub const fn domain_count(cap: u64) -> u32 {
 pub const fn max_address_width(cap: u64) -> u8 {
     (((cap >> 16) & 0x3F) as u8) + 1
 }
+
+/// Domain ids the kernel may use: the fewest any unit supports, and no more
+/// than the slots it keeps. An id at or past a unit's ND count is reserved on
+/// that unit, so a context entry naming one faults the first transfer.
+pub const fn usable_domain_ids(shared: u32, slots: usize) -> usize {
+    let shared = shared as usize;
+    if shared < slots {
+        shared
+    } else {
+        slots
+    }
+}

@@ -29,6 +29,7 @@ fn the_index_is_published_after_a_dma_write_barrier_and_the_doorbell_after_anoth
     assert!(at(&post, "write_chain(") < at(&post, "nonos_libc::dma_wmb()"));
     let access = source("transport/access.rs");
     assert!(at(&access, "nonos_libc::dma_wmb()") < at(&access, "regs.w16(LEG_QUEUE_NOTIFY"));
+    assert!(at(&access, "nonos_libc::dma_wmb()") < at(&access, "m.notify.w16(m.doorbell"));
     let used = source("queue/used.rs");
     assert!(at(&used, "nonos_libc::dma_rmb()") < at(&used, "used + USED_RING"));
     for file in ["queue/post.rs", "queue/used.rs", "transport/access.rs"] {

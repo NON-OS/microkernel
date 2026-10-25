@@ -21,13 +21,7 @@ pub fn is_terminal(fd: &impl AsFd) -> bool {
     }
     let r: i64;
     unsafe {
-        core::arch::asm!(
-            "syscall",
-            inout("rax") N_MK_TTY_QUERY => r,
-            in("rdi") fd as u64,
-            out("rcx") _,
-            out("r11") _,
-        );
+        r = crate::sys::pal::trap::trap(N_MK_TTY_QUERY, fd as u64, 0, 0, 0, 0, 0);
     }
     r >= 0
 }

@@ -21,7 +21,7 @@ use super::dmar_scope::MAX_PATH;
 
 /// The requester id: the last hop's device and function on the bus the path
 /// reaches, each bridge before it read for its secondary bus by `secondary`
-/// (as Linux's ir_parse_one_ioapic_scope).
+/// (VT-d 8.3.1).
 pub fn source_id(s: &IoapicScope, secondary: impl Fn(u8, u8, u8) -> Option<u8>) -> Option<u16> {
     let n = s.path_len as usize;
     if n == 0 || n > MAX_PATH || s.path[..n].iter().any(|&(d, f)| d > 31 || f > 7) {

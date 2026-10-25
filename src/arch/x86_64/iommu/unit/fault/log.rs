@@ -19,7 +19,7 @@ use super::record::FaultRecord;
 use crate::sys::serial::Line;
 
 /// One line per record, built whole so another CPU's output cannot splice
-/// into it. The device reads as lspci prints it; the raw source id follows
+/// into it. The device reads as bus:device.function; the raw source id follows
 /// because the DMAR device scopes key on that form. An interrupt request
 /// carries its remapping table index where a DMA fault carries the page.
 pub(super) fn log_record(record: &FaultRecord) {
