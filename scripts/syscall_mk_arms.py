@@ -20,13 +20,24 @@
 number none of them took, the ACPI capsule's `acpi::handle` last. That
 capsule's arms count only while the fallback is still in `route`: take the
 fallback out and its arms stop counting with it.
+
+Before any family, `route` asks `retired::handle`, which answers EINVAL for a
+number retired under the stable-ABI rule. A retired number is published and
+reaches that gate rather than an arm, and counts as reaching it only while the
+gate is still in `route`.
 """
 
+import re
 from pathlib import Path
 
 MK_ACPI_DISPATCH = Path("src/syscall/microkernel/acpi/dispatch.rs")
 # How `route` hands a number no family took to the ACPI capsule's arms.
 MK_ACPI_FALLBACK = "microkernel::acpi::handle("
+MK_RETIRED = Path("src/syscall/microkernel/retired.rs")
+# How `route` answers a retired number before any family sees it.
+MK_RETIRED_GATE = "microkernel::retired::handle("
+RETIRED_RE = re.compile(r"\bRETIRED\s*:[^=]*=\s*\[(.*?)\];", re.S)
+TAG_RE = re.compile(r'\*b"(\w{4})"')
 
 
 def mk_arms(root, dispatch, arm_re):
@@ -36,4 +47,15 @@ def mk_arms(root, dispatch, arm_re):
     acpi = root / MK_ACPI_DISPATCH
     if MK_ACPI_FALLBACK in text and acpi.is_file():
         text += "\n" + acpi.read_text()
-    return {arm for group in arm_re.findall(text) for arm in group.split("|")}
+    return {arm.strip() for group in arm_re.findall(text) for arm in group.split("|")}
+
+
+def mk_retired(root, dispatch):
+    """Every tag `retired.rs` lists in RETIRED, while `route` under `dispatch`
+    still asks `retired::handle` first; none once the gate is gone."""
+    text = "\n".join(p.read_text() for p in sorted((root / dispatch).rglob("*.rs")))
+    retired = root / MK_RETIRED
+    if MK_RETIRED_GATE not in text or not retired.is_file():
+        return set()
+    table = RETIRED_RE.search(retired.read_text())
+    return set(TAG_RE.findall(table.group(1))) if table else set()

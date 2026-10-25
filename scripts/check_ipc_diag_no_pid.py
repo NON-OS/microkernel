@@ -27,20 +27,20 @@ PIDLIKE = re.compile(r"pid|caller|server", re.I)
 SITE = re.compile(r"static (\w+): [\w:]+ = [\w:]*" + re.escape(LABEL))
 
 
-def methods(diag: str) -> dict:
-    found = re.finditer(r"pub fn (\w+)\(([^)]*)\)[^{]*\{(.*?)\n    \}\n", diag, re.S)
-    return {m.group(1): (m.group(2), m.group(3)) for m in found}
-
-
 def problems(diag: str, sources: dict) -> list:
-    known, out, sites = methods(diag), [], 0
+    found = re.finditer(r"pub fn (\w+)\(([^)]*)\)[^{]*\{(.*?)\n    \}\n", diag, re.S)
+    known, out, sites = {m.group(1): (m.group(2), m.group(3)) for m in found}, [], 0
     for path, text in sources.items():
         for name in SITE.findall(text):
             sites += 1
-            for call in re.findall(rf"\b{name}\.(\w+)\(", text):
+            calls = [(path, name, c) for c in re.findall(rf"\b{name}\.(\w+)\(", text)]
+            for mod in re.findall(rf"(\w+)::\w+\(&{name}\b", text):  # handed on as `site`
+                there = sources.get(str(Path(path).with_name(f"{mod}.rs")), "")
+                calls += [(f"{mod}.rs", "site", c) for c in re.findall(r"\bsite\.(\w+)\(", there)]
+            for where, who, call in calls:
                 params, body = known.get(call, ("?pid", ""))
                 if PIDLIKE.search(params) or PIDLIKE.search(body):
-                    out.append(f"{path}: {name}.{call} can format a pid")
+                    out.append(f"{where}: {who}.{call} can format a pid")
     if sites == 0:
         out.append(f"no {LABEL} site found: the scan no longer sees the ipc.call lines")
     return out
@@ -48,8 +48,8 @@ def problems(diag: str, sources: dict) -> list:
 
 SETTLE = "src/syscall/microkernel/ipc/call/settle.rs"
 CASES = [("as built", lambda d, s: (d, s), 0),
-         ("unanswered prints caller", lambda d, s: (d.replace('b" unanswered ");', 'b" unanswered ");\n        serial::print(b" caller=");'), s), 1),
-         ("late takes a pid", lambda d, s: (d.replace("pub fn late(&self, what: &str,", "pub fn late(&self, what: &str, pid: u32,"), s), 1),
+         ("unanswered prints caller", lambda d, s: (d.replace('b" unanswered ");', 'b" unanswered ");\n        serial::print(b" caller=");'), s), 2),
+         ("silent_for takes a pid", lambda d, s: (d.replace("pub fn silent_for(&self, what: &str,", "pub fn silent_for(&self, what: &str, pid: u32,"), s), 1),
          ("site calls refused", lambda d, s: (d, {**s, SETTLE: s[SETTLE].replace("STARVED.starved(&endpoint.name, rc)", "STARVED.refused(&endpoint.name, pid, 0, 0)")}), 1),
          ("label renamed", lambda d, s: (d, {p: t.replace(LABEL, 'Site::new(b"ipc.cal")') for p, t in s.items()}), 1)]
 
@@ -58,7 +58,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args()
-    diag = Path("src/sys/diag/mod.rs").read_text() + Path("src/sys/diag/late.rs").read_text()
+    diag = "".join(p.read_text() for p in sorted(Path("src/sys/diag").glob("*.rs")))
     sources = {str(p): p.read_text() for p in sorted(Path("src").rglob("*.rs"))}
     if a.self_test:
         bad = [w for w, f, n in CASES if len(problems(*f(diag, sources))) != n]

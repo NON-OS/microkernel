@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Who may attach a surface (L18c): the owner's thread group, a group the
- * owner named, or, for the older share that names no one, whichever group
- * serves the compositor. The kernel's pure rule is included by path.
+ * Who may attach a surface (L18c): the owner's thread group or a group the
+ * owner named; the compositor is named as any receiver is (K20). The
+ * kernel's pure rule is included by path.
  */
 
 #[path = "../../../../src/kernel_core/surface_registry/share/rule.rs"]

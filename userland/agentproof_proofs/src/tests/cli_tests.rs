@@ -60,7 +60,7 @@ fn a_refusal_names_the_file_and_line() {
     let a = answer("check", "bad.box", &bad);
     assert_eq!(a.code, 1);
     assert!(a.out.is_empty());
-    let why = "a terminal run has no network in this release";
+    let why = "network is `none`; name each destination on a connect line";
     assert_eq!(a.err, [format!("agentproof: refused: bad.box:3: {why}")]);
     let whole = answer("word", "w.box", &file(&["nonos-box 1", "base strict"]));
     let missing = "network is missing; write `network none`";
