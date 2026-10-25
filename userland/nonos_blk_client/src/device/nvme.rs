@@ -34,7 +34,7 @@ const LBA_SIZE_AT: usize = 28;
 pub fn geometry(port: u32) -> Result<Geometry, BlkError> {
     let magic = Driver::Nvme.magic();
     let mut rx = [0u8; HDR_LEN + STATUS_LEN + NAMESPACE_LEN];
-    let (n, id) = call(port, magic, OP_IDENTIFY_NAMESPACE, &[], &mut rx)?;
+    let (n, id) = call(port, magic, OP_IDENTIFY_NAMESPACE, 0, &[], &mut rx)?;
     let body = decode_reply(&rx, n, magic, OP_IDENTIFY_NAMESPACE, id)?;
     if body.len() < NAMESPACE_LEN {
         return Err(BlkError::BadLength);
