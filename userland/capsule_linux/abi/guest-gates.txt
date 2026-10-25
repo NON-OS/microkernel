@@ -9,7 +9,7 @@ first serve/family_answer.rs | app::undeclared( | frame_in(&self.ns, frame) | th
 gate app/calls.rs | Some(errno::fail(errno::EPERM)) | a call outside the set is EPERM (side 1)
 gate serve/unserved.rs | errno::fail(errno::ENOSYS) | a call not served is ENOSYS (side 1)
 # The box (nonos_linux_policy::mask), each where its service is reached.
-gate net/socket.rs | !crate::linux::app::inet(guest) | AF_INET without NET_ANON or NET_LISTEN_LO
+gate net/socket.rs | !crate::linux::app::inet(guest) && !learning() | AF_INET without NET_ANON or NET_LISTEN_LO, but in a learn run, whose every connect out.rs refuses
 gate net/connect/out.rs | crate::linux::app::may_dial(guest, target, to.port) | a stream out, NET_ANON and its dests
 gate net/bind.rs | mask::NET_LISTEN_LO | bind without NET_LISTEN_LO
 gate net/listen.rs | mask::NET_LISTEN_LO | listen without NET_LISTEN_LO
