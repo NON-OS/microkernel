@@ -38,16 +38,14 @@ use fetch_row::{row, BANNER_PAD, INFO_PX, ROW, RULE_W};
 
 pub fn draw_fetch(fb: &mut PaintBuffer, at: (u32, u32, u32), t: &Theme, art: &RefCell<Art>) {
     let (x, body_y, right) = at;
-    let ix = x as i32;
-    let edge = right as i32;
+    let (ix, edge) = (x as i32, right as i32);
     let after = draw_banner(fb, ix, body_y as i32 + BANNER_PAD, edge, t);
     let _ = fb.text_ttf(ix, after + 4, "ZeroState Cryptographic OS", t.dim, 14.0);
 
     let mut y = after + 34;
     draw_fetch_id(fb, ix, y, INFO_PX, t);
-    y += 8;
-    fb.fill_rect(ix as u32, (y + 8) as u32, (edge - ix).clamp(0, RULE_W) as u32, 1, t.dim);
-    y += 24;
+    fb.fill_rect(ix as u32, (y + 16) as u32, (edge - ix).clamp(0, RULE_W) as u32, 1, t.dim);
+    y += 32;
 
     row(fb, ix, y, "os", super::fetch_boot::os_line(), t);
     y += ROW;
@@ -55,7 +53,7 @@ pub fn draw_fetch(fb: &mut PaintBuffer, at: (u32, u32, u32), t: &Theme, art: &Re
     let kn = super::fetch_version::kernel_line(&mut kb);
     row(fb, ix, y, "kernel", core::str::from_utf8(&kb[..kn]).unwrap_or(""), t);
     y += ROW;
-    row(fb, ix, y, "shell", "nox   (type 'help')", t);
+    row(fb, ix, y, "shell", "nox", t);
     y += ROW;
     // The kernel's record of who signed this terminal, not a fixed claim.
     let signed = crate::command::builtin::receipt::own_line();
@@ -67,9 +65,10 @@ pub fn draw_fetch(fb: &mut PaintBuffer, at: (u32, u32, u32), t: &Theme, art: &Re
     // The system's uptime, as `uptime` reports it; it was the tab's age.
     let mut buf = [0u8; 24];
     let n = uptime_str(mk_uptime_ms().max(0) as u64, &mut buf);
-    let up = core::str::from_utf8(&buf[..n]).unwrap_or("");
-    row(fb, ix, y, "uptime", up, t);
-    y += ROW + 6;
+    row(fb, ix, y, "uptime", core::str::from_utf8(&buf[..n]).unwrap_or(""), t);
+    // Where to begin: the four keys a first session needs, named on screen.
+    row(fb, ix, y + ROW, "start", crate::command::builtin::help_pages::START, t);
+    y += 2 * ROW + 6;
 
     draw_palette(fb, ix as u32, y as u32);
     beside(fb, (ix as u32 + 470, after as u32 + 22, right), t.bg & 0x00FF_FFFF, art);
