@@ -24,23 +24,21 @@ use crate::sweep::Rng;
 
 const DISK: u64 = 4 * 1024 * 1024;
 const VOL: u64 = 1 << 20;
-const RECORD: [u8; 512] = [0xA5; 512];
 
 fn disk(sector: Option<&[u8; 512]>) -> Disk {
     disk_of(keeps_volume(sector, DISK))
 }
 
 #[test]
-fn only_a_plan_with_a_volume_lets_a_record_through() {
+fn only_a_plan_with_a_volume_opens_the_store() {
     let installed = plan(DATA_FLOOR, VOL, &[]);
     assert_eq!(disk(Some(&installed)), Disk::Installed);
-    assert!(may_write(disk(Some(&installed)), &RECORD));
+    assert!(may_write(disk(Some(&installed))));
     let live = plan(0, 0, &[(DATA_FLOOR, 4096)]);
     let blank = [0u8; 512];
     for s in [&live, &blank] {
         assert_eq!(disk(Some(s)), Disk::Live);
-        assert!(!may_write(disk(Some(s)), &RECORD));
-        assert!(may_write(disk(Some(s)), &[0u8; 512]));
+        assert!(!may_write(disk(Some(s))));
     }
 }
 
@@ -56,12 +54,12 @@ fn a_refused_or_unread_plan_keeps_nothing() {
     ];
     for s in &refused {
         assert_eq!(disk(Some(s)), Disk::Unread);
-        assert!(!may_write(disk(Some(s)), &RECORD));
+        assert!(!may_write(disk(Some(s))));
     }
     assert_eq!(disk(None), Disk::Unread);
 }
 
-/* Random sectors, half with the magic: a record passes exactly when the
+/* Random sectors, half with the magic: the store opens exactly when the
  * parser accepted a plan that keeps a volume. */
 #[test]
 fn random_sectors_open_the_store_only_through_a_good_volume_plan() {
@@ -79,7 +77,7 @@ fn random_sectors_open_the_store_only_through_a_good_volume_plan() {
         }
         let parsed = crate::plan::parse_plan(&s, DISK);
         let good = parsed.is_ok_and(|p| !p.is_live());
-        assert_eq!(may_write(disk(Some(&s)), &RECORD), good, "sector {i}");
+        assert_eq!(may_write(disk(Some(&s))), good, "sector {i}");
         opened += good as u32;
     }
     assert!(opened > 1_000, "the sweep reached too few good plans: {opened}");

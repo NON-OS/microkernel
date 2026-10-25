@@ -12,6 +12,11 @@ off the machine cannot land without a row here.
 - [What leaves without your asking](privacy-unprompted.md)
 - [What leaves only when you ask](privacy-on-request.md)
 - [Names in the code that dial nothing](privacy-inert.md)
+- [The threat model](privacy-threat-model.md)
+
+What each promise has been shown to hold, booted or on the host, is in
+[Privacy guarantees](privacy-guarantees.md); the packets a booted image sends
+are judged by `tools/nonos-pcap-egress`.
 
 ## In short
 

@@ -18,7 +18,7 @@
 //! `Capability::StoreWrite`; writes are scoped to `lba >= STORE_BASE_LBA`
 //! so blockfs's 0..256 header ring is unreachable, and must end below the
 //! disk plan, so the plan and the sealed data volume past it are too. On a
-//! boot whose disk keeps nothing, only zeros pass (`zerostate::keep`).
+//! boot whose disk keeps nothing, nothing passes (`zerostate::keep`).
 
 use super::errnos::{ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 
@@ -48,8 +48,8 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
         return ERRNO_FAULT;
     }
-    /* A boot that keeps nothing may only clear the store. */
-    if !crate::security::zerostate::store_write_allowed(&buf[..len]) {
+    /* A boot that keeps nothing writes nothing to the store. */
+    if !crate::security::zerostate::store_write_allowed() {
         return ERRNO_ACCES;
     }
     /* A disk whose store is not the loader's copy sets the copy aside

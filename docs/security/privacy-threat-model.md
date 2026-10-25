@@ -31,8 +31,9 @@ its test shows.
 
 ## What we do not claim
 
-- A power cut, or a kernel panic, skips the RAM wipe. Cold-boot reading after
-  either is not defended against.
+- A power cut, or holding the power button, skips the RAM wipe. A panic wipes
+  the kernel heap but not process memory (`src/security/zerostate/panic_wipe.rs`).
+  Cold-boot reading after any of these is not fully defended against.
 - A verifier who holds this TPM's endorsement certificate can link reports the
   attestation key signs, since that key is the same every boot.
 - Someone watching both this machine and the far end at once can match the
@@ -46,5 +47,7 @@ its test shows.
 
 ## See also
 
+- [Privacy guarantees](privacy-guarantees.md): each promise at the level its
+  proof reaches, with the booted evidence
 - [What NONOS protects against](protections-and-limits.md)
 - [Device secrets and keys](device-secrets-and-keys.md)
