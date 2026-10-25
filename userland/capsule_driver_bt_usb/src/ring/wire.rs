@@ -25,7 +25,7 @@ use alloc::vec::Vec;
 pub const OP_STORE: u16 = 1;
 pub const OP_RETRIEVE: u16 = 2;
 pub const OP_DELETE: u16 = 3;
-pub const OP_LIST: u16 = 30;
+pub const OP_LIST: u16 = 31;
 
 /// No end time: a bond goes when it is deleted, or with the boot.
 const NEVER: u64 = 0;

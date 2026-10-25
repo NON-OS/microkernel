@@ -8,9 +8,12 @@ Every process gets its own page tables. `create_address_space` allocates a fresh
 top-level table under a new address space ID and copies in only the kernel half;
 the user half starts empty
 (`src/memory/paging/manager/address_space/create.rs:37-48`). A
-[capsule](../overview/glossary-boot-root-record.md#capsule) therefore has no mapping of another
-capsule's memory. Pages are shared where the kernel maps them on purpose, for
-example a display surface (`MkSurfaceShare`) or a DMA buffer (`MkDmaMap`).
+[capsule](../overview/glossary-boot-root-record.md#capsule) therefore has no
+mapping of another capsule's memory. Pages are shared where the kernel maps them
+on purpose, for example a display surface (`MkSurfaceShare`) or a DMA buffer
+(`MkDmaMap`). A surface is mapped only into its owner's process or a process its
+owner named, read-only unless named to write; a guessed handle maps nothing
+(`src/kernel_core/surface_registry/share/permit.rs`).
 
 When a capsule hands the kernel a pointer, the kernel checks it before copying.
 `check_range` refuses a null pointer, a length over `MAX_COPY_SIZE` (64 MiB) and

@@ -1,0 +1,35 @@
+551520c30 tools/nix/inputs.json: the power button arming rule and its tests in acpi_aml_proofs [skip ci]
+c5c2d3f7702834922990b1b0077deb30845a88696058dddcc0548a87db3aff66  /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img
+boot at 07:19:50
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/00-setup.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/01-layout.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/02-name.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/03-timezone.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/04-mode.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/05-network.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/06-route.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/07-privacy.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/08-look.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/09-qwen.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/10-apps.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/11-software.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/12-hostname.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/13-review.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/20-desktop.png {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/21-dialog-gone.png {'return': {}}
+press 1 at 07:26:06
+powerdown {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/22-press1.png {'return': {}}
+press 2 at 07:26:17
+powerdown {'return': {}}
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/23-press2.png {'return': {}}
+OFF WITHOUT CONFIRMATION
+shot:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/24-focus.png {'return': {}}
+enter at 07:26:31
+QEMU exited by itself 07:26:31
+nonos-qemu: a new data disk from /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img
+qemu-system-x86_64 -machine q35,kernel-irqchip=split -device intel-iommu,intremap=on,caching-mode=on -m 6G -smp 4 -accel tcg,thread=multi,tb-size=1024 -cpu max -drive if=pflash,format=raw,unit=0,readonly=on,file=/nix/store/7yilgp2sawl51a36g2si9nnwfrliplxz-qemu-11.1.1/share/qemu/edk2-x86_64-code.fd -drive if=pflash,format=raw,unit=1,file=target/qemu/OVMF_VARS.fd -drive format=raw,file=fat:rw:target/qemu/esp -drive file=target/qemu/data.img,if=none,id=vd0,format=raw -device virtio-blk-pci,disable-legacy=on,iommu_platform=on,drive=vd0 -device virtio-vga,disable-legacy=on,iommu_platform=on,vectors=0,edid=on,xres=1920,yres=1080 -device qemu-xhci,id=xhci -device virtio-rng-pci,disable-legacy=on,iommu_platform=on -device virtio-net-pci,disable-legacy=on,iommu_platform=on,netdev=net0 -netdev user,id=net0 -chardev socket,id=chrtpm,path=/home/user/privatekernel/target/qemu/swtpm/swtpm-sock -tpmdev emulator,id=tpm0,chardev=chrtpm -device tpm-crb,tpmdev=tpm0 -audiodev none,id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0 -qmp unix:target/qemu/qmp.sock,server,nowait -device usb-kbd,bus=xhci.0,id=lane-usb-kbd -device usb-tablet,bus=xhci.0,id=lane-usb-tablet -serial file:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/pwr/serial.log -display none -no-reboot
+-- serial from the first press on
+71:[ACPI] power button: fixed feature, polled; a press goes to the desktop as the Power key
+101:[ACPI] power button: the SCI line could not be masked, so PWRBTN_EN stays clear
+DONE

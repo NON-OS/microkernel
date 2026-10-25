@@ -19,8 +19,8 @@ use super::leaves::leaves;
 use super::validate_range::validate_range;
 use crate::arch::x86_64::iommu::globals::state::STATE;
 use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels};
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
 use crate::arch::x86_64::iommu::tables::sl_pte::is_present;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::tables::walk::walk_create;
 use crate::arch::x86_64::iommu::types::{DomainId, IommuPageFlags, VtdError, PAGE_SIZE_4K};
 
@@ -50,10 +50,10 @@ pub fn map_range(
     // Checked whole first, so a rejected request leaves no partial mapping.
     for page in 0..pages {
         let slot = walk_create(root, iova + (page * PAGE_SIZE_4K) as u64, levels)?;
-        if is_present(entries_mut(slot.table_phys)?[slot.index]) {
+        if is_present(Frame::at(slot.table_phys)?.read(slot.index)?) {
             return Err(VtdError::RangeAlreadyMapped);
         }
     }
     // From the first leaf on, a failure is taken back first (leaves.rs).
-    leaves((root, levels), iova, phys, pages, flags)
+    leaves((root, levels), domain, iova, phys, pages, flags)
 }
