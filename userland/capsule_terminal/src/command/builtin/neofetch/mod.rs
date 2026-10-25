@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod compose;
-mod logo;
+mod emblem;
+mod emblem_cell;
+mod emblem_shape;
 mod palette;
 mod run;
 

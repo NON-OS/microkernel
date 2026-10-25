@@ -36,6 +36,7 @@ mod input_line;
 mod jobs;
 mod neighbours;
 mod network;
+pub mod neofetch;
 mod paint;
 pub mod search;
 mod shell;
