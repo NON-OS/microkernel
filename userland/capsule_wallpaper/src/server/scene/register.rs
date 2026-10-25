@@ -20,7 +20,7 @@
 //! The compositor reads its requests between frames, and a frame it composes
 //! whole (at boot, and every few seconds to heal) can outlast a call's
 //! budget; the scene submit used to get 16 ms, and one that timed out sent
-//! setup back to the start ("unanswered compositor caller=wallpaper", err
+//! setup back to the start ("ipc.call late compositor after 16 ms", err
 //! ETIMEDOUT). Now setup asks once with a frame's worth of time, and the
 //! service loop asks again, at a growing interval, until an answer comes,
 //! while it serves. Asking again is safe: the compositor keeps one layer per
