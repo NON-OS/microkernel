@@ -32,6 +32,8 @@ pub mod enroll;
 #[path = "../../../../../src/security/tpm/error.rs"]
 pub mod error;
 pub mod machine_key;
+#[path = "../../../../../src/security/tpm/pcr_extend.rs"]
+pub mod pcr_extend;
 #[path = "../../../../../src/security/tpm/quote/mod.rs"]
 pub mod quote;
 #[path = "../../../../../src/security/tpm/resend.rs"]

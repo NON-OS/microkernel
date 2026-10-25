@@ -45,6 +45,8 @@ impl Terminal {
             palette: Palette::new(),
             cells: None,
             ptr: Default::default(),
+            key_at: 0,
+            split: None,
             started_ms: mk_time_millis(),
             handed_due_ms: 0,
         }

@@ -28,7 +28,7 @@ impl Follow {
             next_probe_ms: now_ms.saturating_add(FIRST_PROBE_MS),
             probe_gap_ms: FIRST_PROBE_MS,
             next_look_ms: now_ms,
-            served: false,
+            served: None,
         }
     }
 

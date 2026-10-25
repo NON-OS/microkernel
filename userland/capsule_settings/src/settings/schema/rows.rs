@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Field;
-
 use super::access_knob::Knob;
 pub use super::bt_live::BtLive;
+use nonos_policy_proto::Field;
 
-/// A value the panel reads from the running system rather than from policy.
+/// A value the panel reads from the running system, not from policy.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Live {
     LinkState,
@@ -61,9 +60,10 @@ pub enum Row {
     Live(&'static str, Live),
     Networks,
     Saved,
-    Wallpapers, // Every wallpaper, a row each.
+    Wallpapers,   // Every wallpaper, a row each.
     Access(Knob), // A row the compositor holds (`access_knob`).
     BtDevices,
+    Station, // Where the wired address came from, when its driver says.
 }
 
 #[derive(Clone, Copy)]

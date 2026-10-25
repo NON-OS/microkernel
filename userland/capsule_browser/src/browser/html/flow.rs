@@ -25,6 +25,7 @@ pub struct Style {
     pub bg: u32,
 }
 
+#[derive(Clone)]
 pub enum Flow {
     Text(String, Style),
     Break,

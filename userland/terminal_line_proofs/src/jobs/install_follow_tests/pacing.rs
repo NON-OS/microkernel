@@ -38,7 +38,7 @@ fn probes_back_off_within_the_reply_places() {
             probes += 1;
             gaps.push(now - last);
             last = now;
-            f.probed(now, false);
+            f.probed(now, None);
         }
         now += 10;
     }
