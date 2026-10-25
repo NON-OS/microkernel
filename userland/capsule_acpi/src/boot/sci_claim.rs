@@ -20,7 +20,7 @@ use super::state::Sci;
 use crate::events_io::PortIo;
 use crate::sys::acpi::ports;
 use crate::sys::log::Line;
-use nonos_aml::events::{enter_acpi_mode, Events, Fadt};
+use nonos_aml::events::{Events, Fadt};
 use nonos_libc::{
     mk_device_claim, mk_device_list, mk_irq_ack, mk_irq_bind, DeviceRecord, IrqBindOut,
 };
@@ -60,18 +60,5 @@ pub(super) fn grant_ports(f: &Fadt) -> bool {
 pub(super) fn arm_ec(ev: &mut Events, gpe: u16, wake: bool) {
     if ev.arm_native(&mut PortIo, gpe, wake).is_err() {
         Line::new(b"EC GPE ").hex(gpe as u64).str(b" not armed").end();
-    }
-}
-
-/// How long firmware gets to answer ACPI_ENABLE.
-const MODE_WAIT_MS: u64 = 3000;
-
-pub(super) fn enter_mode(f: &Fadt) {
-    match enter_acpi_mode(f, &mut PortIo, MODE_WAIT_MS) {
-        Ok(true) => Line::new(b"entered ACPI mode").end(),
-        Ok(false) => Line::new(b"already in ACPI mode").end(),
-        Err(e) => {
-            Line::new(b"ACPI mode not entered: ").str(alloc::format!("{e:?}").as_bytes()).end()
-        }
     }
 }
