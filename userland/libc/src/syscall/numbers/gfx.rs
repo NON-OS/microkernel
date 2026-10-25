@@ -16,4 +16,3 @@
 use super::tag::tag4;
 
 pub(crate) const N_GFX_DISPLAY_DIMENSIONS: i64 = tag4(b"GDIM");
-pub(crate) const N_MK_BOOT_LOGO: i64 = tag4(b"MBGL");
