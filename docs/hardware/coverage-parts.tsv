@@ -1,6 +1,6 @@
 # area	part	years	common	ids	table	feature	owner	priority	gap
 net	Intel I219-LM/V (e1000e), onboard on most Intel desktops and laptops	2017-2026	1	8086:15b7 8086:15b8 8086:15bb 8086:15bc 8086:15bd 8086:15be 8086:0d4e 8086:0d4f 8086:15fb 8086:15fc 8086:1a1e 8086:1a1f 8086:0dc7 8086:550a 8086:57a0	userland/capsule_driver_e1000e/src/constants/ids.rs	nonos-capsule-driver-e1000e	B	P0	listed in full-gui with no trust files: the owner seals it; boot a real I219
-net	Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards	2020-2026	1	8086:15f2 8086:15f3 8086:125b 8086:125c 8086:125d	userland/capsule_driver_igc/src/constants/pci.rs	nonos-capsule-driver-igc	H-01	P0	wired in the kernel (b316a838f); trust files and the full-gui listing are the owner's
+net	Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards	2020-2026	1	8086:15f2 8086:15f3 8086:125b 8086:125c 8086:125d	userland/capsule_driver_igc/src/constants/pci.rs	nonos-capsule-driver-igc	H-01	P0	host-proved, not booted: no QEMU model, so only a real I225/I226 run can show it; the owner seals and lists it
 net	Realtek RTL8111/8168 GbE	2017-2026	1	10ec:8168 10ec:8161 10ec:8136	userland/capsule_driver_rtl8169/src/constants/pci.rs	nonos-capsule-driver-rtl8169	B	P1	in the image; never booted on a real card on main
 net	Realtek RTL8125 2.5 GbE, Killer E3000	2019-2026	1	10ec:8125 10ec:3000	userland/capsule_driver_rtl8169/src/constants/pci.rs	nonos-capsule-driver-rtl8169	B	P1	in the image; never booted on a real card on main
 net	Realtek RTL8126 5 GbE	2024-2026	2	10ec:8126	-	-	B, hw	P2	named by rtl8169 only to exclude it: register map not written
@@ -31,6 +31,7 @@ usb	xHCI, any vendor (Intel PCH, AMD, ASMedia, Renesas, Fresco)	2017-2026	1	clas
 usb	USB hubs (internal laptop hubs, front-panel hubs, docks, keyboards)	2017-2026	1	usb:09	-	nonos-capsule-driver-usb-hub	B	P1	in Standard since 25 October; never booted behind a real hub
 usb	USB Attached SCSI sticks and SSDs	2017-2026	2	usb:08/06/62	-	-	B	P2	UAS crate exists; usb_msc is BOT only, which most UAS devices also offer
 usb	USB Ethernet (CDC ECM/NCM, RNDIS) and USB audio class	2017-2026	2	usb:02/06 usb:02/0d usb:01/01	-	nonos-capsule-driver-cdc-ncm	B	P2	drivers exist, in no image; held endpoint takes only HID and storage
+usb	USB microphones and headsets (audio class capture)	2017-2026	1	usb:01/02	-	nonos-capsule-driver-usb-mic	B	P2	driver exists, in no image: nothing is claimed for it in 0.9.3
 audio	Intel HD Audio controller (PCH)	2017-2026	1	class:04/03	-	nonos-capsule-driver-hda	B	-	works on the bench laptop (6 Oct report)
 audio	Intel SST/SOF DSP laptops with digital microphones	2019-2026	1	8086:02c8 8086:a0c8 8086:51c8 8086:7e28	userland/capsule_driver_hda/src/controller/intel/identity.rs	nonos-capsule-driver-hda	B	P2	codec output through HDA; the DSP's DMIC capture has no driver
 audio	Realtek ALC codecs (ALC2xx, ALC897, ALC1220)	2017-2026	1	10ec:0256 10ec:0257 10ec:0269 10ec:0295 10ec:0897 10ec:1220	userland/capsule_driver_hda/src/controller/codec/realtek_eapd.rs	nonos-capsule-driver-hda	B	P1	EAPD table covers them; per-board pin fixups not checked on real boards
