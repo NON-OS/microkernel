@@ -9,8 +9,9 @@ use super::unsaved::{
 use super::{appearance, keyboard, mode};
 
 /*
- * Persistent is written before anything is kept: vfs asks the policy store
- * for it on every persist and refuses one on an amnesic boot. An answer
+ * Persistent is written before anything is kept: the policy store then
+ * tells the kernel, which vfs asks on every persist, refusing one on an
+ * amnesic boot. An answer
  * the store refuses, or every one with no store to ask, is recorded in
  * `ctx.unsaved` for the review screen to name.
  */
