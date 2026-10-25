@@ -23,11 +23,14 @@ static mut TABLE_POOL: [PageTable; TABLE_POOL_COUNT] =
     [const { PageTable::new() }; TABLE_POOL_COUNT];
 static mut NEXT_TABLE: usize = 0;
 
-pub unsafe fn root_table() -> &'static mut PageTable {
-    &mut ROOT_TABLE
+pub(super) unsafe fn root_table() -> &'static mut PageTable {
+    // SAFETY: the caller is the boot hart building the tables, the only one
+    // touching ROOT_TABLE; a raw pointer, so no reference to the static mut
+    // exists before this one.
+    unsafe { &mut *(&raw mut ROOT_TABLE) }
 }
 
-pub unsafe fn alloc_table() -> Option<&'static mut PageTable> {
+pub(super) unsafe fn alloc_table() -> Option<&'static mut PageTable> {
     let index = NEXT_TABLE;
     if index == TABLE_POOL_COUNT {
         return None;
@@ -37,6 +40,6 @@ pub unsafe fn alloc_table() -> Option<&'static mut PageTable> {
     Some(&mut TABLE_POOL[index])
 }
 
-pub unsafe fn table_from_ppn(ppn: u64) -> &'static mut PageTable {
+pub(super) unsafe fn table_from_ppn(ppn: u64) -> &'static mut PageTable {
     &mut *((ppn << 12) as *mut PageTable)
 }
