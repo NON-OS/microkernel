@@ -23,15 +23,15 @@ pub(crate) const CALCULATOR_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-calculator")]
 pub(crate) const CALCULATOR_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/calculator.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/calculator.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-calculator")]
 pub(crate) const CALCULATOR_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/calculator.manifest.bin");
+    crate::baked_trust!("capsules/calculator.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-calculator")]
 pub(crate) const CALCULATOR_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/calculator.zk_trailer.bin");
+    crate::baked_trust!("capsules/calculator.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-calculator"))]
 pub(crate) const CALCULATOR_ELF: &[u8] = &[];

@@ -32,9 +32,12 @@ const BOOT_WAIT_MS: u64 = 15_000;
 static SINCE: AtomicU64 = AtomicU64::new(0);
 
 /// Start the wait at the first refusal, not after a whole pass: a pass that
-/// meets a silent driver is itself long, and that time counts.
+/// meets a silent driver is itself long, and that time counts. A killed
+/// caller's refusals are its own end, never the disk's, so they start nothing.
 pub(super) fn refused_now() {
-    stamp(&SINCE, uptime_ms());
+    if !caller_gone() {
+        stamp(&SINCE, uptime_ms());
+    }
 }
 
 pub(super) fn waited_for_boot_disk() -> bool {

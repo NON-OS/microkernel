@@ -39,11 +39,10 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     };
     let caller_pid = current_pid().unwrap_or(0);
     let dest = reply_inbox::for_pid(dest_pid as u32);
-    // The token comes from the same pending-reply entry that authorizes this
-    // reply, matched by the caller's inbox. Using that entry's token (rather
-    // than a separate per-client FIFO) keeps the stamp correct when several
-    // callers have replies outstanding on this server at once.
-    let Some(token) = pending_reply::remove(caller_pid, &dest) else {
+    // The token comes from the pending entry that authorizes this reply: the
+    // request this server dequeued last when it is this caller's, else the
+    // caller's oldest (pending_reply/reply_rule.rs).
+    let Some(token) = pending_reply::take_for_reply(caller_pid, &dest) else {
         return 0;
     };
     let from = alloc::format!("proc.{}", caller_pid);

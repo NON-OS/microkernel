@@ -17,7 +17,7 @@
 //! The whole check, in the order nsh-v1-attest.md gives. The first refusal
 //! ends it; nothing is skipped and nothing is left to the user.
 
-use crate::steps::{challenge, dma, enrol, firmware, log, quote, registry, release};
+use crate::steps::{capsules, challenge, dma, enrol, firmware, log, quote, registry, release};
 use crate::{Doc, Evidence, Policy, Refusal, Release, Session};
 
 /// What a host that passed has proved, for the client's log line
@@ -40,7 +40,7 @@ pub fn check<'p>(
     quote(&doc)?;
     let cert = enrol(ev, &doc, s, policy)?;
     let rel = release(&doc, policy)?;
-    log(&doc, rel, &cert)?;
+    capsules(&log(&doc, rel, &cert)?)?;
     firmware(&doc, &cert)?;
     dma(&doc)?;
     registry(&doc, ev.entries, rel)?;

@@ -73,9 +73,7 @@ network (`app.linux.term.net`); every other box runs in a role that has none. In
   connection to anything else, and any UDP datagram, is refused and counted as `network`.
 - Each connection goes over the anonymity network the system uses (the Nym mixnet, or
   Anyone when it is chosen), never directly, whatever the default network is.
-- A name is answered by NONOS itself; the lookup never leaves the machine. On the image
-  booted for this release a lookup from inside a box does not yet return (Python's
-  `gethostbyname` says `Try again`), so name each destination by its IPv4 address for now.
+- A name is answered by NONOS itself; the lookup never leaves the machine.
 - A program with no policy of its own gets the network the box names. A program with a
   published policy gets it only if its own policy grants the network, and is then held to
   its own destinations and the box's both; a box never widens a published policy. A program
@@ -86,6 +84,12 @@ network (`app.linux.term.net`); every other box runs in a role that has none. In
 The report lists the destinations the box allowed and each one the run connected to, and
 a `[BOX-NET]` line before the `[BOX]` line logs both (see
 [Run a program in a box](../using/linux-box.md)).
+
+## Learning a file
+
+`linux --box learn <program>` ends its report with the tightest file that would let a run do
+what that one did ([Learn a box](../using/linux-box.md)). Copy it into a file and check it
+here before you run anything in it.
 
 ## What every box allows
 

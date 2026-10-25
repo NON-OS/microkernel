@@ -32,7 +32,8 @@ UNMEASURED = b"\xff" * 64 + b"\x00"
 # As nonos-market-catalogue's NAMESPACES: linux.kali.* is read as Debian,
 # linux.blackarch.* as pacman, qwen- and nonos- are the image's own tiers and tools.
 NAMESPACES = ("kali.", "blackarch.", "qwen-", "nonos-")
-KEYS = frozenset(("package", "licence", "mask", "dests", "calls", "name", "text"))
+KEYS = frozenset(("package", "licence", "mask", "dests", "calls", "name", "text",
+                  "index_licence", "licence_source"))
 
 
 def calls_of(item: dict) -> bytes:
@@ -54,6 +55,11 @@ def checked(item: dict, root: Path) -> dict:
         raise ValueError(f"{item['package']}: inside a namespace another family owns")
     if not redistributable(item["licence"]):
         raise ValueError(f"{item['package']}: {item['licence']} is not on the allowlist")
+    # The listing names the licence of what it ships. Where the index's field
+    # says otherwise, the recipe says what the index says and cites upstream.
+    said, source = item.get("index_licence"), item.get("licence_source")
+    if (said or source) and not (said and source and source.startswith("https://") and said != item["licence"]):
+        raise ValueError(f"{item['package']}: index_licence and licence_source go together, cite https, and differ")
     mask = mask_of(item["mask"])
     dests = None
     if item.get("dests"):
