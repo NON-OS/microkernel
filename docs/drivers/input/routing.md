@@ -31,10 +31,10 @@ Two groups of keys never reach the focused window:
   `userland/capsule_input_router/src/route/shell_keys.rs:32-34`).
   [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do.
   The Power key, from a keyboard or from the [ACPI power
-  button](../platform-acpi-power-button.md#the-power-button), only shows the notice `Power off is
-  not available from the desktop`: the desktop has no way to power off in 0.9.2
-  (`POWER_OFF_UNAVAILABLE`,
-  `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+  button](../platform-acpi-power-button.md#the-power-button), asks `Power off and
+  wipe memory?`, and Power Off sends `power.off` to capsule_power, which runs the
+  wiped shutdown (`userland/capsule_desktop_shell/src/server/handlers/power_off.rs:36`,
+  `userland/capsule_power/src/off/mod.rs:38`).
 
 ## Privacy
 
