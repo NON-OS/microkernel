@@ -26,10 +26,10 @@
 //!
 //! The pages around a sub-page request may hold registers that are not the
 //! claimed device's: the rest of the page is either decode nobody claims
-//! (reads all ones, writes dropped) or another function's small BAR. Linux
-//! maps the same page for the same BAR (ioremap rounds to pages), and the
-//! PCI spec asks for 4 KiB BARs for this reason, so the exposure is no wider
-//! than on any other OS. What must never share a mapped page is an MSI-X
+//! (reads all ones, writes dropped) or another function's small BAR. Any
+//! page-based mapping of the BAR exposes the same page, and the PCI spec asks
+//! for 4 KiB BARs for this reason, so the exposure is no wider than paging
+//! forces. What must never share a mapped page is an MSI-X
 //! table or pending-bit array, of any device: those are the kernel's, and a
 //! capsule writing an MSI-X entry could aim an interrupt message anywhere.
 //! `protected` names them in physical addresses, and the mapping is cut
