@@ -18,6 +18,8 @@ pub const KERNEL_PREEMPT: u32 = 0x0001;
 pub const TIMEZONE_OFFSET: u32 = 0x0002;
 pub const HOSTNAME: u32 = 0x0003;
 pub const DOMAIN_NAME: u32 = 0x0004;
+/// Keeping across boots, on only: the kernel's store write waits for it.
+pub const KEEP_ACROSS_BOOTS: u32 = 0x0005;
 
 pub const KIND_BOOL: u32 = 1;
 pub const KIND_I8: u32 = 2;
