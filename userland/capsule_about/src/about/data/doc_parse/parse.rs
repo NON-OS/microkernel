@@ -17,8 +17,8 @@
 //! Reading one, strictly.
 
 use super::layout::{
-    ATTEST_LEN_AT, COMPLETE_AT, COUNT_AT, ENFORCING_AT, KEY_LEN, MAGIC, ROOT_AT, UNCONFINED_AT,
-    VENDOR_AT, VENDOR_MAX, VERSION,
+    ATTEST_LEN_AT, COMPLETE_AT, COUNT_AT, ENFORCING_AT, IDENTITY_AT, KEY_LEN, MAGIC, ROOT_AT,
+    UNCONFINED_AT, VENDOR_AT, VENDOR_MAX, VERSION,
 };
 use super::types::Doc;
 
@@ -62,6 +62,7 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
         iommu_vendor,
         iommu_enforcing: *b.get(ENFORCING_AT)? == 1,
         unconfined_grants: be32(b, UNCONFINED_AT)?,
+        identity_devices: be32(b, IDENTITY_AT)?,
         challenge_echoed,
         attest_len,
         signature_len,
