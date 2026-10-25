@@ -3064,6 +3064,7 @@
    "userland/libc",
    "userland/nonos_hash",
    "userland/nonos_hd",
+   "userland/nonos_nox_config",
    "userland/nonos_seal",
    "userland/nonos_secp256k1",
    "userland/nonos_vault"

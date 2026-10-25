@@ -18,8 +18,6 @@
 //! stand behind a release (plan/21). The person reviews both in the wallet
 //! before it asks, as for a transaction.
 
-use super::chains::CHAINS;
-use super::domains::BOND;
 use super::entry::Entry;
 use super::field::{Field, Kind};
 
@@ -30,22 +28,16 @@ const WALLET: &[&[u8]] = &[b"app.nonos_wallet", b"app.nonos_wallet.1", b"app.non
 
 pub static PUBLISHER_BINDING: Entry = Entry {
     id: 2,
-    type_string: "PublisherBinding(bytes32 publisherKey,bytes32 listingId,bytes32 bondId)",
-    domain: &BOND,
+    typed: &nonos_nox_config::PUBLISHER_BINDING,
     fields: &[B32; 3],
     callers: WALLET,
-    // NoxPublisherBond is not deployed on either chain yet.
-    contracts: [None; CHAINS.len()],
 };
 
 /// Escrow releases set packageHash to zero; others set chunkRoot to zero and
 /// contentLen to 0 (plan/23).
 pub static RELEASE_ATTEST: Entry = Entry {
     id: 3,
-    type_string: "ReleaseAttest(bytes32 listingId,bytes32 releaseId,bytes32 bondId,\
-                  bytes32 chunkRoot,uint64 contentLen,bytes32 packageHash)",
-    domain: &BOND,
+    typed: &nonos_nox_config::RELEASE_ATTEST,
     fields: &[B32, B32, B32, B32, Field { kind: Kind::Uint(64), is_signer: false }, B32],
     callers: WALLET,
-    contracts: [None; CHAINS.len()],
 };
