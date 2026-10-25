@@ -16,7 +16,7 @@
 
 use super::error::{PmpError, PmpResult};
 
-pub fn napot_addr(base: u64, size: u64) -> PmpResult<u64> {
+pub(super) fn napot_addr(base: u64, size: u64) -> PmpResult<u64> {
     if size < 8 || !size.is_power_of_two() || base & (size - 1) != 0 {
         return Err(PmpError::InvalidRange);
     }
