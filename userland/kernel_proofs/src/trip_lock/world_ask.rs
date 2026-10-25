@@ -30,7 +30,7 @@ impl World {
     /// The kernel's own takeover rule, or the knob's broken one.
     pub(super) fn gone(&self, q: u32, k: Knob) -> bool {
         let Some(i) = (0..4).find(|&i| pid(i) == q) else { return false };
-        let ended = !self.alive[i] && !(i == 0 && self.reused);
+        let ended = !self.alive[i] && (i != 0 || !self.reused);
         let on_cpu = self.on_cpu(i);
         match k {
             Knob::NoSweep => false,
