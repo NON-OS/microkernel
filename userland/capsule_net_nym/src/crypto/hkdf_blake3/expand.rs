@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::types::CryptoError;
+use super::super::wipe::wipe;
 use super::hmac::hmac_blake3;
 use alloc::vec::Vec;
 
@@ -24,21 +25,30 @@ pub fn expand(prk: &[u8; 32], info: &[u8], out: &mut [u8]) -> Result<(), CryptoE
     if out.len() > 255 * 32 {
         return Err(CryptoError::Kdf);
     }
-    let mut previous: Vec<u8> = Vec::new();
+    // Each block is key material: the one kept for the next round and every
+    // message built from it are wiped, on either outcome.
+    let mut previous = [0u8; 32];
+    let mut have_previous = false;
     let mut done = 0usize;
     let mut counter: u8 = 1;
+    let mut result = Ok(());
     while done < out.len() {
-        let mut message = Vec::with_capacity(previous.len() + info.len() + 1);
-        message.extend_from_slice(&previous);
+        let kept = if have_previous { &previous[..] } else { &[][..] };
+        let mut message = Vec::with_capacity(kept.len() + info.len() + 1);
+        message.extend_from_slice(kept);
         message.extend_from_slice(info);
         message.push(counter);
-        let mut block = [0u8; 32];
-        hmac_blake3(prk, &message, &mut block)?;
+        result = hmac_blake3(prk, &message, &mut previous);
+        wipe(&mut message);
+        if result.is_err() {
+            break;
+        }
+        have_previous = true;
         let take = core::cmp::min(32, out.len() - done);
-        out[done..done + take].copy_from_slice(&block[..take]);
+        out[done..done + take].copy_from_slice(&previous[..take]);
         done += take;
-        previous = block.to_vec();
         counter += 1;
     }
-    Ok(())
+    wipe(&mut previous);
+    result
 }
