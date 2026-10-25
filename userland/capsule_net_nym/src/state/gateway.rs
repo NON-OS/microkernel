@@ -34,7 +34,7 @@ pub struct Gateway {
 
 impl Gateway {
     /// The connection this record names, which the shared key belongs to.
-    pub fn link(&self) -> super::shared_key::Link {
-        super::shared_key::Link { ip: self.ip, port: self.port, stream: self.stream }
+    pub fn link(&self) -> super::key_slot::Link {
+        super::key_slot::Link { ip: self.ip, port: self.port, stream: self.stream }
     }
 }

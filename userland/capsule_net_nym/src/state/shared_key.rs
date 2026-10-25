@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use spin::Mutex;
 
+use super::key_slot::{wipe_slot, Link, Slot};
+
 /// The key the current gateway registration produced, in one place and only
 /// there. It is never copied out: every frame borrows it under the lock
 /// (`with_gateway_key`), and the Gateway record, which is copied into the
@@ -25,19 +27,6 @@ use spin::Mutex;
 /// A fixed slot, not an `Option`: assigning `None` stores a whole `Option`,
 /// payload bytes included, so a cleared slot could hold stale bytes.
 static SHARED_KEY: Mutex<Slot> = Mutex::new(Slot { key: [0; 32], owner: None });
-
-/// The connection a key was registered on.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Link {
-    pub ip: [u8; 4],
-    pub port: u16,
-    pub stream: u32,
-}
-
-pub(crate) struct Slot {
-    pub(crate) key: [u8; 32],
-    pub(crate) owner: Option<Link>,
-}
 
 /// Hold `key` for the connection `owner`, wiping whatever was held.
 pub fn set_gateway_shared_key(owner: Link, key: &[u8; 32]) {
@@ -69,9 +58,4 @@ pub fn keep_gateway_key_for(link: Link) {
 
 pub fn clear_gateway_shared_key() {
     wipe_slot(&mut SHARED_KEY.lock());
-}
-
-pub(crate) fn wipe_slot(slot: &mut Slot) {
-    crate::crypto::wipe::wipe(&mut slot.key);
-    slot.owner = None;
 }
