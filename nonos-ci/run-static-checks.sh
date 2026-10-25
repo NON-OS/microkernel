@@ -5380,6 +5380,19 @@ else
     fail_with "check_dev_catalogue: a release path can take the development catalogue"
 fi
 unset devcat_out
+# The local test chain (P5) is a development capsule feature alone: no
+# release profile, capsule declaration, dependency, lane or workflow turns it
+# on (that a release never takes the development set is check_dev_capsule_set's,
+# above). The self-test first, so a scan that stopped seeing it cannot pass
+# quietly.
+if devnet_out="$(python3 scripts/check_devnet_feature.py --self-test 2>&1 \
+    && python3 scripts/check_devnet_feature.py 2>&1)"; then
+    note ok "no release can turn the local test chain on (check_devnet_feature)"
+else
+    tail -n 8 <<< "${devnet_out}" >&2
+    fail_with "check_devnet_feature: a release profile or capsule can turn the local test chain on"
+fi
+unset devnet_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
