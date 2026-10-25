@@ -28,7 +28,7 @@ restrictions read back on: SMEP, SMAP, NX and WP, from the kernel's own
 
 import re
 
-from . import virtio
+from . import devices, virtio
 
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
@@ -96,7 +96,7 @@ def judge(cell, text, reached, ending):
             bad.append("kernel reports DMA is unrestricted with an IOMMU present")
         if REMAPPED not in text:
             bad.append("VT-d never reported devices remapped")
-    bad += virtio.verdict(cell, text)
+    bad += virtio.verdict(cell, text) + devices.verdict(cell, text)
     if cell.iommu == "amd-iommu" and AMD_VI_NAMED not in text:
         bad.append("kernel never named the AMD-Vi hardware it does not drive")
     if cell.usb_block:
