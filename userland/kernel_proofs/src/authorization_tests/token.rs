@@ -24,7 +24,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 // A token with a given set of capabilities and no expiry.
-pub(super) fn token(permissions: Vec<Capability>) -> CapabilityToken {
+pub(crate) fn token(permissions: Vec<Capability>) -> CapabilityToken {
     CapabilityToken {
         owner_module: 0,
         permissions,

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod drawing;
 mod frame;
+mod held;
 mod hex;
 pub(crate) mod hidpi;
 pub(crate) mod init;
@@ -22,6 +24,10 @@ mod log;
 mod marker;
 mod report;
 mod state;
+mod window;
 
+pub(crate) use drawing::{drawable, wait_quiet};
+pub(crate) use held::{end_takeover, set_gone, set_held, stop_drawing, surrendered, taken};
 pub(crate) use init::init_framebuffer;
 pub(crate) use state::{framebuffer_phys, framebuffer_state, KernelFramebuffer};
+pub(crate) use window::phys_window;

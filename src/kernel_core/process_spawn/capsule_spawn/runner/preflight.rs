@@ -21,7 +21,7 @@ use crate::security::nonos_id_cert::{
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
-use super::preflighted::Preflighted;
+use super::{attest_gate::attest_gate, preflighted::Preflighted};
 
 pub(crate) fn run(
     spec: &CapsuleSpecVerified,
@@ -65,11 +65,11 @@ pub(crate) fn run(
     let required_caps = verification.0.manifest.required_caps;
     let namespace = verification.0.manifest.namespace_str();
     let namespace_hash = *blake3::hash(namespace.as_bytes()).as_bytes();
-    let proved = match super::tier::classify(namespace) {
-        super::tier::Tier::Enrolled => super::attest_gate::attest_gate(spec, required_caps)?,
+    let (proved, system) = match super::tier::classify(namespace) {
+        super::tier::Tier::Enrolled => (attest_gate(spec, required_caps)?, true),
         super::tier::Tier::Publisher => {
-            super::publisher_gate::publisher_gate(spec, namespace, required_caps)?
+            (super::publisher_gate::publisher_gate(spec, namespace, required_caps)?, false)
         }
     };
-    Ok(Preflighted { install_caps, proved, capsule_id, namespace_hash })
+    Ok(Preflighted { install_caps, proved, capsule_id, namespace_hash, system })
 }

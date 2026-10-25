@@ -15,15 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A PIO grant on a device's PIO BAR, as mmio::map_for_caller: the claim, the device, a BAR
-//! in the port space clear of firmware's ports and the FADT's power registers (`power_ports`),
-//! then the record while the claim holds. Only the kernel runs `in`/`out` (`access`).
+//! in the port space clear of firmware's ports and the FADT's power registers (`bar_window`,
+//! `power_ports`), then the record, overlapping no other device's grant, while the claim holds
+//!. Only the kernel runs `in`/`out` (`access`).
 
+use super::bar_window::port_window;
 use super::grant::{self, PioGrant};
-use super::power_ports::clear;
+use super::grant_insert::insert_exclusive;
 use super::types::{PioError, PioGrantRequest, PioGrantResult};
-use super::window::{window, Refused};
-use crate::hardware::broker::device::BarKind;
-use crate::hardware::broker::{claim, reserved, table};
+use crate::hardware::broker::claim;
+use crate::hardware::broker::reserved;
+use crate::hardware::broker::table;
 
 const FLAGS_KNOWN: u32 = 0;
 
@@ -46,30 +48,20 @@ pub(super) fn grant_for_caller(pid: u32, req: PioGrantRequest) -> Result<PioGran
     if bar_idx >= device.bars.len() || bar_idx >= device.bar_count as usize {
         return Err(PioError::BadBarIndex);
     }
+    let (port_base, port_count) = port_window(device.bars[bar_idx])?;
     let bar = device.bars[bar_idx];
-    if bar.kind != BarKind::Pio as u8 {
-        return Err(PioError::NotPioBar);
-    }
-    if bar.size == 0 {
-        return Err(PioError::ZeroSize);
-    }
-    let (port_base, port_count) = clear(window(bar.base, bar.size)).map_err(|r| match r {
-        Refused::Overflow => PioError::PortOverflow,
-        Refused::Reserved => PioError::ReservedPort,
-    })?;
     if reserved::refuses(b"PIO", reserved::IO, bar.base, bar.size, true) {
         return Err(PioError::FirmwareReserved);
     }
+
     let grant_id = grant::allocate_id();
-    let record = PioGrant {
+    insert_exclusive(PioGrant {
         grant_id,
         pid,
         device_id: req.device_id,
         claim_epoch: claim.epoch,
         port_base,
         port_count,
-    };
-    claim::record_while_held(pid, req.device_id, claim.epoch, || grant::insert(record))
-        .ok_or(PioError::StaleEpoch)?;
+    })?;
     Ok(PioGrantResult { port_base, port_count, grant_id })
 }

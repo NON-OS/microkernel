@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 6 of 6: test modules mounted by path
-//! from lib.rs, each at its own file.
+//! Host proofs, group 6 of 8: test modules mounted by path
+//! from proofs.rs, each at its own file.
 
 #[path = "acpi_span/mod.rs"]
 pub mod acpi_span;
@@ -35,7 +35,7 @@ mod firmware_flash;
 #[path = "firmware_message/mod.rs"]
 pub mod firmware_message;
 #[path = "inventory_ids/mod.rs"]
-mod inventory_ids;
+pub(crate) mod inventory_ids;
 /// The power-off's leave phase: every disk driver asked, each bounded.
 #[path = "leave_rule/mod.rs"]
 mod leave_rule;

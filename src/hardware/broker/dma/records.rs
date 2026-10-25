@@ -23,27 +23,18 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
-use super::super::quota;
 use super::types::{DmaError, DmaGrant};
+
+// Entered under the claim and the quota, beside the table it fills.
+#[path = "records_insert.rs"]
+mod insert;
+pub(super) use insert::insert_if;
 
 pub(super) static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
-}
-
-/// Within its holder's quota; refused, the caller undoes the map.
-pub(super) fn insert(record: DmaGrant) -> Result<(), quota::Spent> {
-    let mut all = RECORDS.lock();
-    let mine = all.iter().filter(|g| g.pid == record.pid);
-    let (held, bytes) = mine.fold((0, 0u64), |(n, b), g| (n + 1, b.saturating_add(g.length)));
-    let (max, max_bytes) = (quota::MAX_DMA_GRANTS, quota::MAX_DMA_BYTES);
-    if let Some(spent) = quota::spent(held, bytes, record.length, max, max_bytes) {
-        return Err(spent);
-    }
-    all.push(record);
-    Ok(())
 }
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
@@ -55,11 +46,18 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
     Ok(all.remove(idx))
 }
 
-/// Visit every live grant without waiting for the table: false, and nothing
-/// visited, when another CPU holds it. For the shutdown wipe only.
-pub(super) fn try_each(mut f: impl FnMut(&DmaGrant)) -> bool {
-    let Some(all) = RECORDS.try_lock() else {
-        return false;
+/// Visit every live grant, trying for the table while `again` says to: false,
+/// and nothing visited, when another CPU still holds it. For the shutdown
+/// wipe only.
+pub(super) fn try_each(mut f: impl FnMut(&DmaGrant), mut again: impl FnMut() -> bool) -> bool {
+    let all = loop {
+        if let Some(all) = RECORDS.try_lock() {
+            break all;
+        }
+        if !again() {
+            return false;
+        }
+        core::hint::spin_loop();
     };
     for g in all.iter() {
         f(g);

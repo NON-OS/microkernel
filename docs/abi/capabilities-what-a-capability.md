@@ -50,14 +50,14 @@ checks it instead.
 | 14 | `0x4000` | `GraphicsPresent` | `GRAPHICS_PRESENT` | Present a surface to the display. | `MSPR` |
 | 15 | `0x8000` | `DeviceEnum` | `DEVICE_ENUM` | List broker devices, and read the booted image for an install. Claiming a device is `Driver`. | `MISR`, `MDLS` |
 | 16 | `0x10000` | `Driver` | `DRIVER` | Claim and release a device through the broker, and use its PCI configuration space. | `MDCL`, `MDRL`, `MPCR`, `MPCW` |
-| 17 | `0x20000` | `Mmio` | `MMIO` | Map a slice of a claimed device's BAR into the holder's own address space. | `MMMP`, `MMUM` |
+| 17 | `0x20000` | `Mmio` | `MMIO` | Map a slice of a claimed device's BAR into the holder's own address space. | `MMMP`, `MMUM`, `MBFB` |
 | 18 | `0x40000` | `Irq` | `IRQ` | Bind a claimed device's interrupt and wait on it. | `MIRB`, `MIRU`, `MIRA`, `MIRP`, `MIRW` |
 | 19 | `0x80000` | `Dma` | `DMA` | Receive a DMA buffer a claimed device may read or write through. | `MDMM`, `MDMU` |
 | 20 | `0x100000` | `Pio` | `PIO` | Get a port grant on a port BAR and have the kernel run `in` and `out` on its ports. | `MPGT`, `MPRD`, `MPWR`, `MPRL` |
 | 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events. | `MIEP` |
 | 22 | `0x400000` | `TimeSet` | `TIME_SET` | Correct the wall clock. | `MTAD` |
 | 23 | `0x800000` | `SpawnBroker` | `SPAWN_BROKER` | Attribute a capsule load's parent to a live pid other than the caller. | none |
-| 24 | `0x1000000` | `SpawnWindow` | `SPAWN_WINDOW` | Open another window of an embedded, attested app capsule. | `MSPI` |
+| 24 | `0x1000000` | `SpawnWindow` | `SPAWN_WINDOW` | Launch a capsule for the user beyond the launcher's own capabilities, or spawn another instance of an embedded app. | `MSPI`, `MCLD`, `MTRN` |
 | 25 | `0x2000000` | `ProcessControl` | `PROCESS_CONTROL` | Terminate a process the caller does not parent, and read the full process table. | none |
 | 26 | `0x4000000` | `StoreWrite` | `STORE_WRITE` | Read and write the package store; with FileSystem, import into and key the data volume. | `MSWR`, `MSRR`, `MDIM`, `MDPW` |
 | 27 | `0x8000000` | `EnrolDevRoot` | `ENROL_DEV_ROOT` | Enrol a signing root, so capsules built on this machine run on it. `Admin` does not imply it. | `MDRQ`, `MDRC`, `MDRO`, `MLCG`, `MLCR` |
@@ -70,3 +70,6 @@ checks it instead.
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR`, `MSLR` |
 | 36 | `0x1000000000` | `InputConsumer` | `INPUT_CONSUMER` | Drain and wait on the input ring, which carries every keystroke. Held by input_router alone. | `MIED`, `MIEW` |
+| 37 | `0x2000000000` | `CameraCapture` | `CAMERA_CAPTURE` | Take frames from a camera. The kernel gates no call with it; the USB stack and the compositor's indicator check a peer with `MkCapCheck`. Held by no capsule until Decision 9 (`scripts/check_capture_caps.py`). | none |
+| 38 | `0x4000000000` | `MicrophoneCapture` | `MICROPHONE_CAPTURE` | Take samples from a microphone, checked as `CameraCapture` is by the audio service and the indicator. Held by no capsule until Decision 9. | none |
+| 39 | `0x8000000000` | `ScreenCapture` | `SCREEN_CAPTURE` | Copy the whole screen through the compositor, which shows a notice while it does. Held by no capsule until Decision 9. | none |

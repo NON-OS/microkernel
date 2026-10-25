@@ -20,8 +20,7 @@
 //! alone. All or nothing: a unit that cannot be reached leaves
 //! enforcement unclaimed.
 
-use super::devtab::device_table;
-use super::devtab_entry::read_dte;
+use super::devtab::{device_table, read_dte};
 use super::domain::device_id;
 use super::efr::walks;
 use super::enable::enable_unit;
