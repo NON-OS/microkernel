@@ -26,7 +26,7 @@ use crate::term::state::State;
 // Tab completion. The first token completes against command names; any
 // later token completes against VFS paths. The completion extends the
 // word by the candidates' common prefix; if nothing can be extended and
-// several candidates exist, they are listed.
+// several candidates exist, they are listed beside the prompt.
 pub fn on_tab(state: &mut State) -> EventOutcome {
     let line = state.line.as_bytes().to_vec();
     let start = line.iter().rposition(|&b| b == b' ').map(|i| i + 1).unwrap_or(0);
@@ -59,14 +59,9 @@ pub fn on_tab(state: &mut State) -> EventOutcome {
         nl.extend_from_slice(extension);
         state.line.replace(&nl);
     } else if cands.len() > 1 {
-        let mut row = Vec::new();
-        for c in &cands {
-            if !row.is_empty() {
-                row.push(b' ');
-            }
-            row.extend_from_slice(c);
-        }
-        state.scrollback.push_line(&row);
+        // Shown beside the prompt until the next key, never written into the
+        // scrollback, where they used to land in the last command's output.
+        state.completions = cands;
     }
     EventOutcome::Repaint
 }

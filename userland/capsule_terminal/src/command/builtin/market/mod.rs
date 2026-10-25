@@ -25,6 +25,7 @@ mod info;
 mod install;
 mod install_said;
 mod list;
+pub mod list_row;
 mod ready;
 mod run;
 mod stage_text;

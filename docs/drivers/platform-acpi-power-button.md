@@ -62,8 +62,11 @@ The shell answers the Power key, and that menu item, with "Power off and wipe
 memory?" (`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:40`).
 Power Off goes to `power.off`, which the kernel registers for `capsule_power`
 at spawn (`src/userspace/capsule_power/power_off.rs:30`); it checks the sender
-is the shell, then calls `AdminShutdown`, zerostate's `terminate`. Booted:
-[the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md).
+is the shell, then calls `AdminShutdown`, zerostate's `terminate`
+(`userland/capsule_power/src/off/mod.rs:43`). Booted:
+[the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md),
+and with capsule_acpi present, both the Power key and its own button path
+([P-08b](../security/privacy-evidence/2026-10-25/p08b-a9f192a78/README.md)).
 
 ### The volume keys
 

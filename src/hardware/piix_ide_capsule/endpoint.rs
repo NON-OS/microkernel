@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,26 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How many config accesses went through the validated and scan paths.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use super::state::STATE;
+use crate::hardware::block_device::wire::{Endpoint, Slot};
 
-static READS: AtomicU64 = AtomicU64::new(0);
-static WRITES: AtomicU64 = AtomicU64::new(0);
+/// The kernel inbox the capsule replies to; its manifest's reply endpoint.
+pub(super) const REPLY_INBOX: &str = "endpoint.4294967355";
 
-pub(super) fn read() {
-    READS.fetch_add(1, Ordering::Relaxed);
-}
+static SLOT: Slot = Slot::new();
 
-pub(super) fn wrote() {
-    WRITES.fetch_add(1, Ordering::Relaxed);
-}
-
-pub fn get_config_stats() -> (u64, u64) {
-    (READS.load(Ordering::Relaxed), WRITES.load(Ordering::Relaxed))
-}
-
-pub fn reset_config_stats() {
-    READS.store(0, Ordering::Relaxed);
-    WRITES.store(0, Ordering::Relaxed);
-}
+/// driver.piix_ide0 on the block wire.
+pub static ENDPOINT: Endpoint = Endpoint {
+    shown: "IDE (driver.piix_ide0)",
+    sender: "kernel.driver_piix_ide",
+    reply_inbox: REPLY_INBOX,
+    state: &STATE,
+    // Two channels, a master and a slave on each.
+    units: 4,
+    slot: &SLOT,
+};
