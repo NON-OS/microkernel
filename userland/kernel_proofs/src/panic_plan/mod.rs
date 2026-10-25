@@ -19,6 +19,13 @@
  * the panic path's stack and the kernel image.
  */
 
+#[cfg(test)]
+mod glue_tests;
+#[cfg(test)]
+mod helpers;
 #[path = "../../../../src/security/zerostate/panic_plan.rs"]
-pub mod panic_plan;
+pub mod plan;
+#[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_layouts;
