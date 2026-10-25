@@ -17,6 +17,7 @@
 pub mod hand_off;
 pub mod hit_test;
 pub mod model;
+pub mod notice;
 pub mod press;
 
 pub use hand_off::hand_off;

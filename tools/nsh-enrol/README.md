@@ -43,7 +43,9 @@ nsh-enrol inspect --doc FILE | --serial FILE [--challenge HEX]
 - **`show`** checks a certificate against an authority's public key and
   prints its fields.
 - **`inspect`** checks a document as far as it can be without an
-  enrolment, and describes it. `--serial` reads the one a development
+  enrolment, and describes it: each capsule PCR 14 records, what admitted
+  it (`vendor`, `path-only`, `developer` or `local-build`), and whether a
+  release would take them all. `--serial` reads the one a development
   image prints after its boot.
 
 A public key, an authority's or a host's, is the Ed25519 key then the
