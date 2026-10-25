@@ -23,7 +23,7 @@ only as a new, versioned interface.
 | Refused | Why |
 |---|---|
 | A root shell, or a login with no role | Every login is a capsule holding only what its role names |
-| `Admin`, `Debug`, `DeviceSecret`, `EnrolDevRoot`, `LocalSign` or `Keyring` in any role | A login must never be able to mint authority or reach the machine's own secrets |
+| `Admin`, `Debug`, `DeviceSecret`, `EnrolDevRoot`, `LocalSign`, `Keyring`, `CameraCapture`, `MicrophoneCapture` or `ScreenCapture` in any role | A login must never be able to mint authority, reach the machine's own secrets, or see or hear what is in front of the machine |
 | Widening a running capsule | An escalation is a new capsule with an expiry, so the base capsule stays as it was |
 | Escalating an escalation | `parent_id` must be the base grant |
 | An escalation longer than an hour | Elevated power must end by itself |
