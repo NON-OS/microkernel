@@ -37,9 +37,16 @@ class Rules(unittest.TestCase):
         for item in (dict(BASE, colour="red"), dict(BASE, package="../x"), dict(BASE, package="kali.x"),
                      dict(BASE, package="nonos-rg"), dict(BASE, package="qwen-max"),
                      dict(BASE, package="blackarch.x"), dict(BASE, calls="ff" * 64),
-                     dict(BASE, calls="ff" * 64 + "0000")):
+                     dict(BASE, calls="ff" * 64 + "0000"), dict(BASE, index_licence="GPL-2.0-only"),
+                     dict(BASE, licence_source="https://example.org/LICENSE"),
+                     dict(BASE, index_licence="GPL-2.0-only", licence_source="http://example.org/x"),
+                     dict(BASE, index_licence="MIT", licence_source="https://example.org/x")):
             with self.assertRaises(ValueError, msg=item):
                 checked(item, ROOT)
+
+    def test_a_cited_upstream_licence_is_kept(self):
+        cited = dict(BASE, index_licence="GPL-2.0-only", licence_source="https://example.org/LICENSE")
+        self.assertEqual(checked(cited, ROOT)["index_licence"], "GPL-2.0-only")
 
     def test_a_dests_file_that_is_not_text_is_refused(self):
         with tempfile.TemporaryDirectory() as d:
