@@ -15,19 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The wiped power-off (F-88). AdminShutdown wipes on the way down; it is
-//! asked for by a power-button press, a thermal zone at _CRT, a critical
-//! battery, or the shell's POFF frame on `acpi` (the shell confirms first;
-//! nothing here asks; `power.off` is capsule_power's). Each is asked for, then run from the capsule's
-//! loop with \_TTS(5) and \_PTS(5) first (`serve`, F-111). Firmware's own
-//! critical shutdown would cut power without the wipe.
+//! asked for by a power-button press, a thermal zone at _CRT or a critical
+//! battery, then run from the capsule's loop with \_TTS(5) and \_PTS(5)
+//! first (`serve`, F-111). Firmware's own critical shutdown would cut power
+//! without the wipe. The shell's Power Off is not served here: `power.off`
+//! has one owner, capsule_power, which asks this capsule to prepare
+//! soft-off (OP_PREPARE_SLEEP) before its own AdminShutdown (P-08).
 
 mod button;
-mod request;
 mod serve;
 pub mod rule;
-pub mod wire;
 
 pub use button::{policy, press, take_button, Presses};
-pub use request::requested;
 
 pub use serve::{power_off, serve, Why};
