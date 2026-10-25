@@ -29,6 +29,8 @@ mod match_tests;
 mod phase_tests;
 mod ring;
 mod status_tests;
+mod torn_tests;
+mod torn_wait_tests;
 mod wait;
 
 pub(crate) use ring::{entry, ok_status, RINGS};
