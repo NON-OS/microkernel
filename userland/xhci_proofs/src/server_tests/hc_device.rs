@@ -26,24 +26,22 @@ use nonos_devmodel::FakeBar;
 use super::hc::{Hc, SLOTS};
 use crate::conformance::devices::present;
 use crate::conformance::model::{CAP_LEN, DOORBELL};
-use crate::constants::{USBCMD, USBSTS, USBSTS_HCE, USBSTS_HSE};
+use crate::constants::{USBCMD, USBSTS, USBSTS_HSE};
 
 pub const IDLE: u32 = u32::MAX;
 const CMD: usize = CAP_LEN + USBCMD as usize;
-const STS: usize = CAP_LEN + USBSTS as usize;
+pub(super) const STS: usize = CAP_LEN + USBSTS as usize;
 
 pub fn lock(hc: &Mutex<Hc>) -> MutexGuard<'_, Hc> {
     hc.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
-/// Whether doorbell `target` was rung since the last look.
-fn rung(bar: &FakeBar, target: u8) -> bool {
+/// What doorbell `target` was rung with since the last look: the DCI.
+fn rung(bar: &FakeBar, target: u8) -> Option<u32> {
     let at = DOORBELL + 4 * target as usize;
-    if bar.wrote32(at) == IDLE {
-        return false;
-    }
+    let value = Some(bar.wrote32(at)).filter(|&v| v != IDLE)?;
     bar.present32(at, IDLE);
-    true
+    Some(value)
 }
 
 /// The controller, as a device model on the whole register window.
@@ -59,15 +57,12 @@ pub fn controller(hc: Arc<Mutex<Hc>>) -> impl Fn(&FakeBar) {
             bar.present32(STS, bar.wrote32(STS) | USBSTS_HSE);
         }
         hc.abort(bar);
-        if rung(bar, 0) {
+        if rung(bar, 0).is_some() {
             hc.run_commands(bar);
         }
         for slot in 1..=SLOTS {
-            if rung(bar, slot) {
-                if hc.race.fail_at_ep0 {
-                    bar.present32(STS, bar.wrote32(STS) | USBSTS_HCE);
-                }
-                hc.run_ep0(slot);
+            if let Some(dci) = rung(bar, slot) {
+                hc.doorbell(bar, slot, dci);
             }
         }
     }
