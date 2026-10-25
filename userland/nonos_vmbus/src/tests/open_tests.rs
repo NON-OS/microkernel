@@ -21,7 +21,7 @@
 use std::vec;
 use std::vec::Vec;
 
-use crate::channel::{open, Layout, OpenError, ANSWER_MS};
+use crate::channel::{gpadl, open, teardown, Layout, OpenError, ANSWER_MS};
 use crate::mem::Buffer;
 use crate::model::{answer, HostRing, Model, Script};
 use crate::msg::{BODY_PFNS, HEADER_PFNS};
@@ -333,4 +333,28 @@ fn another_gpadls_teardown_does_not_free_this_ones() {
     let c = r.unwrap();
     h.answers.push_back(answer(12, &[GPADL + 1]));
     assert_eq!(c.close(&mut h), Err(OpenError::Silent));
+}
+
+#[test]
+fn a_buffer_beside_the_rings_gets_a_gpadl_of_its_own() {
+    let (mut h, _, r) = go(Script::default(), SMALL);
+    let c = r.unwrap();
+    let buf: Vec<u64> = (0..600).map(|i| 0x9_0000 + i).collect();
+    gpadl(&mut h, RELID, 0xCAFE, &buf).unwrap();
+    assert_eq!(h.gpadls.len(), 2);
+    assert_eq!(h.gpadls[1], (0xCAFE, buf), "600 pages: a header and 21 bodies");
+    assert_eq!(h.kinds().iter().filter(|k| **k == 9).count(), (600 - HEADER_PFNS).div_ceil(BODY_PFNS));
+    teardown(&mut h, RELID, 0xCAFE).unwrap();
+    assert_eq!(h.gpadls.len(), 1, "the rings' stays");
+    assert!(h.open.is_some());
+    c.close(&mut h).unwrap();
+}
+
+#[test]
+fn a_buffer_the_host_refuses_or_never_answers_is_left_with_nothing() {
+    let mut h = Model::new(Script { gpadl_status: Some(5), ..Script::default() });
+    assert_eq!(gpadl(&mut h, RELID, 7, &[1, 2, 3]), Err(OpenError::GpadlRefused(5)));
+    let mut h = Model::new(Script { gpadl_status: None, ..Script::default() });
+    assert_eq!(gpadl(&mut h, RELID, 7, &[1, 2, 3]), Err(OpenError::Silent));
+    assert_eq!(h.kinds(), [8, 11], "torn down");
 }

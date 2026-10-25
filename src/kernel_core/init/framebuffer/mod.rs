@@ -29,5 +29,5 @@ mod window;
 pub(crate) use drawing::{drawable, wait_quiet};
 pub(crate) use held::{end_takeover, set_gone, set_held, stop_drawing, surrendered, taken};
 pub(crate) use init::init_framebuffer;
-pub(crate) use state::{framebuffer_phys, framebuffer_state, KernelFramebuffer};
+pub(crate) use state::{boot_frame_len, framebuffer_phys, framebuffer_state, KernelFramebuffer};
 pub(crate) use window::phys_window;
