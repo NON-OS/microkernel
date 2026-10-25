@@ -28,3 +28,13 @@ sha256. The machine and the D-13 setup keys are the same as that run's.
 
 QEMU powered itself off; nothing stopped it. The script judged liveness by
 whether QEMU's QMP socket answered, not by process name.
+
+## A correction to the earlier walk
+
+`../merge-fd40dd41f/walk/README.md` says a monitor write setting PWRBTN_EN
+"did not stay set". That is true, but the method caused it, not the machine.
+In HMP, `o /w` and `i /w` are 32-bit accesses. QEMU's PM1 regions take only
+1 or 2 bytes, so a 32-bit write is dropped and a 32-bit read returns 0
+(Platform, from `hw/acpi/core.c`). A byte write to 0x603 did not take either.
+A 16-bit `o /h 0x602 0x0100` does stick. The walk's PM1a_CNT = 0x01 came from
+a byte read. On this head the kernel itself sets PM1_EN to 0x0100.
