@@ -5046,6 +5046,17 @@ else
 fi
 unset mirror_out
 
+# A publisher's capsule declaring a name outside its namespace is refused at
+# load (name_rule.rs), so it would install and never start.
+if pub_out="$(python3 scripts/check_publisher_names.py --self-test 2>&1 &&
+              python3 scripts/check_publisher_names.py 2>&1)"; then
+    note ok "every publisher capsule's names are under its namespace (check_publisher_names)"
+else
+    tail -n 5 <<< "${pub_out}" >&2
+    fail_with "check_publisher_names: a publisher capsule declares a name outside its namespace"
+fi
+unset pub_out
+
 # Draining the raw input ring reads every key typed. Its bit belongs to the
 # input router and to no driver; the seal refuses it elsewhere too.
 # capsule_linux dials a local-network mirror directly, past nonos_route_link,
@@ -5089,6 +5100,21 @@ else
     fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
 fi
 unset mirrors_out
+# The flake builds capsules from tools/nix's catalogues, so one left behind by
+# a new role makes the spawn refuse it on the next image. Only `nix flake
+# check` compared them; here the same comparison runs from make's own output.
+cat_dir="$(mktemp -d)"
+if (for which in capsule capsule-dev store; do
+        make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 \
+            "nonos-mk-${which}-catalogue" > "${cat_dir}/${which}.json" || exit 1
+    done) && cat_out="$(TMPDIR="${cat_dir}" python3 -I tools/nix/catalogues.py --check 2>&1)"; then
+    note ok "tools/nix catalogues match what make says the capsules are (catalogues.py)"
+else
+    tail -n 5 <<< "${cat_out:-make failed}" >&2
+    fail_with "catalogues: tools/nix is stale; regenerate with python3 tools/nix/catalogues.py"
+fi
+rm -rf "${cat_dir}"
+unset cat_dir cat_out
 
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.
@@ -5157,16 +5183,16 @@ else
     fail_with "check_display_profiles: a display driver is left out of microkernel-full-gui"
 fi
 unset display_out
-# capsule_linux's deliberate panic is for the selftest image's copy alone: no
-# committed build may carry it; the self-test first, so the scan is seen to bite.
-if selftest_panic_out="$(python3 scripts/check_selftest_panic.py --self-test 2>&1 \
-    && python3 scripts/check_selftest_panic.py 2>&1)"; then
-    note ok "no committed build carries capsule_linux's selftest-panic (check_selftest_panic)"
+# The copy-only features (selftest-panic, agentproof-headless) are for a dev
+# image's copy alone: no committed build may carry them; the self-test first.
+if copy_only_out="$(python3 scripts/check_copy_only_features.py --self-test 2>&1 \
+    && python3 scripts/check_copy_only_features.py 2>&1)"; then
+    note ok "no committed build carries a copy-only feature (check_copy_only_features)"
 else
-    tail -n 5 <<< "${selftest_panic_out}" >&2
-    fail_with "check_selftest_panic: a committed build carries selftest-panic"
+    tail -n 5 <<< "${copy_only_out}" >&2
+    fail_with "check_copy_only_features: a committed build carries a copy-only feature"
 fi
-unset selftest_panic_out
+unset copy_only_out
 # The surface registry's GATE is a spin lock: a holder that reaches a function
 # taking it again spins forever with interrupts off, and the surface path on
 # every CPU stops behind it (orphans::reclaim and reclaim_dma, the black

@@ -88,8 +88,9 @@ The same agent, run in the three kinds of box:
 - `allow:/tmp/out`: it could write `/tmp/out` only. Refused 6: write 4 (`/tmp/a`, `/home/c`,
   `/etc/d`, `/home/e`), network 2.
 
-A report lists the first three examples of each kind; the count is every refusal. No box has
-a network in this release. The run's folders are new when it starts and wiped when it ends.
+A report lists the first three examples of each kind; the count is every refusal. Only an
+`allow:` box that names destinations has a network (section 6). The run's folders are new
+when it starts and wiped when it ends.
 [Run a program in a box](../using/linux-box.md) has every rule.
 
 ## 4. Keep the box as a file
@@ -128,6 +129,47 @@ models=0 call=0 barred=0 unserved=0 started=yes exit=0 source=capsule_linux
 `[BOX-MISSING] v=1 report=… capsule_failed=… exit=… source=terminal` instead. Treat that,
 or no `[BOX]` line at all, as a failed run.
 
+## 6. Give it a destination
+
+An `allow:` box may name destinations, `net:<IPv4 address>:<port>`. The program may open TCP
+connections to those and to nothing else, over the anonymity network, never directly. The
+Gauntlet booted this box, with an agent that tries listed and unlisted destinations:
+
+```
+linux --box allow:/tmp/out,net:10.0.2.2:80,net:api.example.com:443 python3 agent.py
+```
+
+```
+BOX REPORT v1
+  policy   allow 1d981eec16e4575528609cf73be6016e92ffa1e5a1ca1bf72712f27423d2cc47
+  allowed  write /tmp/out
+  allowed  read the image, read-only
+  allowed  network 10.0.2.2:80 api.example.com:443
+  allowed  execve, each program held to this box
+  connected  none
+  refused  4
+    write         1  /tmp/b
+    network       3  a stream to 10.0.2.2:81, sendto 10.0.2.2:9999, a stream to 10.0.2.2:82
+  exit     0
+  counts are capsule_linux's enforcement, not the kernel's sealed histogram
+```
+
+- `10.0.2.2:80` is listed, so the box let it through, uncounted. The booted machine had no
+  route to the mixnet, so the network answered `Network unreachable`, and `connected` reads
+  `none`: nothing connected.
+- `10.0.2.2:81` is not listed: refused and counted. So is `10.0.2.2:82`, which a shell the
+  agent started tried with `nc`; its `nc` to `10.0.2.2:80` went through the box like the
+  agent's own.
+- A UDP datagram is refused.
+- A name lookup from inside a box does not yet return in this release (`Try again`), so name
+  destinations by address for now.
+
+The serial log adds one line before `[BOX]`:
+
+```
+[BOX-NET] v=1 allowed=10.0.2.2:80,api.example.com:443 connected=none
+```
+
 ## What this does and does not prove
 
 - The report is what `capsule_linux` refused, sent on frames keyed by the Terminal; a program
@@ -140,5 +182,6 @@ or no `[BOX]` line at all, as a failed run.
 
 - [Run a program in a box](../using/linux-box.md)
 - [The policy file format](policy-format.md)
+- [The Gauntlet: run an agent in a box on every change](gauntlet.md)
 - [Linux programs](../using/linux-programs.md)
 - [The AgentProof assessment](assessment/README.md)

@@ -29,6 +29,8 @@
 //! It is not a failure of the system and it is not a pass either; a verification
 //! surface that quietly showed nothing here would be the worst of the three.
 
+use alloc::vec;
+
 use nonos_libc::mk_attest_doc;
 
 use super::attest_challenge::challenge;
@@ -52,7 +54,7 @@ pub enum Attestation {
 /// Ask the machine to attest itself. Called once per screen open.
 pub fn request() -> Attestation {
     let challenge = challenge();
-    let mut buf = [0u8; DOC_CAP];
+    let mut buf = vec![0u8; DOC_CAP];
     let rc = mk_attest_doc(&challenge, &mut buf);
     if rc < 0 {
         return Attestation::Refused;

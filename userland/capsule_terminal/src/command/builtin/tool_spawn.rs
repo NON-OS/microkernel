@@ -4,7 +4,6 @@
 
 //! A tool spawned on this screen: its service, its argv, and a retry while it is ending.
 
-use alloc::vec::Vec;
 use nonos_libc::{mk_idle_ms, mk_tool_run, Deadline};
 
 use super::super::tool_busy::{may_be_ending, GAP_MS, RETRY_MS};
@@ -23,9 +22,7 @@ pub fn prepare(state: &mut State, args: &[&[u8]], streams: u64) -> Option<(u32, 
     // typed name rather than unwrapping keeps a future caller that skips the
     // gate on the ordinary "no such service" path instead of a panic.
     let handle = service_for(name).unwrap_or(name);
-    let mut service = Vec::with_capacity(5 + handle.len());
-    service.extend_from_slice(b"tool.");
-    service.extend_from_slice(handle);
+    let service = super::tool_service::service(handle, args);
 
     let key = match super::tool_box::boxed(args) {
         Ok(key) => key,

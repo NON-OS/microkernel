@@ -1,0 +1,81 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+//! SCRATCH ONLY, for the worker-reply boot: capsule_proof_io calls the
+//! installer and crypto_pool, both of which answer through the kernel's reply
+//! redirect, first from its main thread, then from a worker thread. Each call
+//! must be answered (any status) within 10 s. Exit 42: all four were;
+//! 2x: the main thread's call x, 3x: the worker's; 50: no worker.
+
+#![no_std]
+#![no_main]
+
+use core::sync::atomic::{AtomicI64, Ordering};
+use nonos_libc::{mk_exit, mk_idle_ms, mk_ipc_call_timeout, mk_service_lookup, mk_time_millis, WorkerSeat};
+
+const WAIT_MS: u64 = 10_000;
+static SEAT: WorkerSeat = WorkerSeat::new();
+static DONE: AtomicI64 = AtomicI64::new(0);
+
+fn port(name: &[u8]) -> u64 {
+    for _ in 0..1200 {
+        let (mut port, mut pid) = (0u32, 0u32);
+        if mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid) >= 0 && port != 0 {
+            return port as u64;
+        }
+        mk_idle_ms(500);
+    }
+    0
+}
+
+/// One call; the bytes answered, or the call's errno, and how long it took.
+fn call(port: u64, tx: &[u8]) -> (i64, u64) {
+    let mut rx = [0u8; 64];
+    let t = mk_time_millis() as u64;
+    let rc = mk_ipc_call_timeout(port, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), 64, 2 * WAIT_MS);
+    (rc, (mk_time_millis() as u64).saturating_sub(t))
+}
+
+/// Both calls; 0 when both were answered in time, else which was not (1, 2).
+fn both() -> i64 {
+    // The installer: remove "zz", seq 9 (refused or not found, either answers).
+    let mut rm = [0u8; 12];
+    rm[0..4].copy_from_slice(&9u32.to_le_bytes());
+    rm[4..6].copy_from_slice(&8u16.to_le_bytes());
+    rm[8..10].copy_from_slice(&2u16.to_le_bytes());
+    rm[10..12].copy_from_slice(b"zz");
+    let (rc, ms) = call(port(b"installer"), &rm);
+    if rc < 8 || ms > WAIT_MS {
+        return 1;
+    }
+    // crypto_pool: a request it cannot decode, answered EINVAL.
+    let (rc, ms) = call(port(b"crypto_pool"), &[0u8; 8]);
+    if rc < 1 || ms > WAIT_MS {
+        return 2;
+    }
+    0
+}
+
+fn work(_: usize) {
+    DONE.store(100 + both(), Ordering::Release);
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    mk_idle_ms(20_000);
+    let mine = both();
+    if mine != 0 {
+        mk_exit(20 + mine as i32);
+    }
+    if SEAT.spawn(work, 0).is_err() {
+        mk_exit(50);
+    }
+    while DONE.load(Ordering::Acquire) == 0 {
+        mk_idle_ms(100);
+    }
+    match DONE.load(Ordering::Acquire) - 100 {
+        0 => mk_exit(42),
+        w => mk_exit(30 + w as i32),
+    }
+}

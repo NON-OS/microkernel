@@ -37,6 +37,7 @@ pub(super) fn finalize_teardown(pid: Pid) {
     }
 
     crate::syscall::microkernel::tty_table::forget(pid);
+    crate::syscall::microkernel::ipc::forget_dead_server(pid);
     crate::process::clear_interrupt_context(pid);
     crate::process::clear_fpu_state(pid);
     crate::process::core::init::reparent_orphans(pid);

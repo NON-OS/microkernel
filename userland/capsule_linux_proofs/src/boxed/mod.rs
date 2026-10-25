@@ -20,6 +20,8 @@
 
 #[path = "../../../capsule_linux/src/linux/boxed/allowed.rs"]
 pub mod allowed;
+#[path = "../../../capsule_linux/src/linux/boxed/connected.rs"]
+pub mod connected;
 #[path = "../../../capsule_linux/src/linux/boxed/dests.rs"]
 pub mod dests;
 #[path = "../../../capsule_linux/src/linux/boxed/end.rs"]
@@ -36,6 +38,8 @@ pub mod items;
 pub mod kind;
 #[path = "../../../capsule_linux/src/linux/boxed/line.rs"]
 pub mod line;
+#[path = "../../../capsule_linux/src/linux/boxed/net_report.rs"]
+pub mod net_report;
 #[path = "../../../capsule_linux/src/linux/boxed/preset.rs"]
 pub mod preset;
 #[path = "../../../capsule_linux/src/linux/boxed/report.rs"]

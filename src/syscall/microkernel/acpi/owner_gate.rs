@@ -30,11 +30,10 @@ pub(crate) const OWNER_ONLY: [[u8; 4]; 25] = [
 
 /// Read by others, each under its own gate: device names by enumerators
 /// (a holder question only for the owner, see `asker`), USB port and NUMA
-/// facts by drivers, the boot logo by the splash, the measured tables by
-/// attestation readers.
+/// facts by drivers, the measured tables by attestation readers.
 #[allow(dead_code)] // the proofs hold every routed number to one list
-pub(crate) const SHARED: [[u8; 4]; 8] =
-    [*b"MADN", *b"MUPF", *b"MNNO", *b"MNDS", *b"MDNN", *b"MNHM", *b"MBGL", *b"MAMT"];
+pub(crate) const SHARED: [[u8; 4]; 7] =
+    [*b"MADN", *b"MUPF", *b"MNNO", *b"MNDS", *b"MDNN", *b"MNHM", *b"MAMT"];
 
 pub(crate) fn owner_only(nr: u64) -> bool {
     OWNER_ONLY.iter().any(|t| u64::from(u32::from_le_bytes(*t)) == nr)

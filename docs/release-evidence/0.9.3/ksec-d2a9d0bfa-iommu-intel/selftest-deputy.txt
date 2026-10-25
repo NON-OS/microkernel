@@ -1,0 +1,3 @@
+attempt deputy-escape refused: app.install through the shell's OP_OPEN_WITH ENOENT (2)
+row deputy: the shell's open-with: proven
+attack suite: PASS
