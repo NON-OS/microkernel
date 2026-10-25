@@ -17,12 +17,10 @@
 //! Clearing a record on a boot that keeps nothing.
 //!
 //! vfs lets zeros through its amnesic gate so that a record kept on an
-//! earlier boot can still be withdrawn. Through the appender, zeros under a
-//! name the disk did not hold added a table row on the amnesic boot: the
-//! name, the length and a digest, on a machine the person told to keep
-//! nothing, and an empty file did it too. `withdraw` is the only path an
-//! amnesic boot has to the disk: it overwrites a record that is already
-//! there, at its own length, and touches nothing else.
+//! earlier boot can still be withdrawn. Through the appender, zeros (or an
+//! empty file) under a name the disk did not hold added a table row on an
+//! amnesic boot. `withdraw` is the only path such a boot has to the disk: it
+//! replaces a record already there, at its own length, and nothing else.
 
 use nonos_disk_map::STORE_BASE_LBA;
 use nonos_libc::disk;
