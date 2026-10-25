@@ -21,6 +21,7 @@ mod fixture;
 mod live_tests;
 mod meas_tests;
 mod orphan_tests;
+mod other_arch_tests;
 mod overflow_tests;
 mod record_tests;
 mod rows_tests;
