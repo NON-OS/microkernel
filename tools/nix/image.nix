@@ -14,6 +14,8 @@ let
   # and the script that lists its unenforced controls into the output.
   kernelSource = src.crate "." [
     "x86_64-nonos.json"
+    "scripts/check_sealed_caps.py"
+    "tools/nix/capsules.json"
     "scripts/check_unenforced.py"
     "scripts/gate.py"
     "scripts/unenforced_scan.py"
@@ -114,6 +116,9 @@ let
           echo "the kernel embeds the trust set of every capsule it ships, and the tree has none for: ${toString (unsealed cfg.enabled)}; the seal writes it (tools/nix/README.md, Seal)" >&2
           exit 1
         ''}
+        # A sealed manifest granting other caps than its Capsule.mk now says
+        # would ship the old grant under the new code: the seal runs first.
+        python3 scripts/check_sealed_caps.py ${toString (map (e: e.slug) (shipped cfg.enabled))}
         ${placeCapsules cfg.enabled}
         ${placeholder}
         python3 -c 'import struct; open("nonos-data/trust/policy/image_capability_ceiling.bin", "wb").write(struct.pack("<Q", ${toString (ceilingOf cfg.enabled)}))'
@@ -200,6 +205,7 @@ let
     marketplace-index = hostTool { name = "marketplace-index"; dir = "nonos-mk"; bins = [ "marketplace-index" ]; args = "--bin marketplace-index"; };
     nonos-pack = hostTool { name = "nonos-pack"; dir = "tools/nonos-pack"; bins = [ "nonos-pack" ]; args = "--bin nonos-pack"; };
     nonos-verify = hostTool { name = "nonos-verify"; dir = "nonos-verify"; bins = [ "nonos-verify" ]; };
+    proof-verify = hostTool { name = "proof-verify"; dir = "nonos-proof-verify"; bins = [ "nonos-proof-verify" ]; };
   };
   # The loader compiles in the kernel's public keys and root, which the seal
   # writes and ek commits. Until the first seal is committed the tree has none,

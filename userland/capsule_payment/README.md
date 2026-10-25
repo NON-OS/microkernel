@@ -22,10 +22,10 @@ nox_settle --> OP_DRAIN: LIST the newest signed vouchers, SIGN a settle() of the
 ## Microkernel contract
 
 ```text
-CAPSULE_REQUIRED_CAPS = 0x79
+CAPSULE_REQUIRED_CAPS = 0x10000079
 ```
 
-CoreExec, IPC, Memory, Crypto and FileSystem. There is no Network: settle
+CoreExec, IPC, Memory, Crypto, FileSystem and Keyring. There is no Network: settle
 talks to the chain. Service `service:4114:payment`; replies go to the kernel
 reply endpoint. Requests arrive through `MkIpcRecvFrom`, so each op's caller
 is checked by which registry names the kernel-stamped pid owns

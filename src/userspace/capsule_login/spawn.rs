@@ -32,12 +32,14 @@ const SERVICE_PORT: u32 = 4416;
 const REPLY_INBOX: &str = "endpoint.login.reply";
 const REPLY_PORT: u32 = 4417;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
-// IPC and Memory, and the display query and surface bits its lock screen
-// needs; userland/capsule_login/Capsule.mk carries the same set.
+// IPC and Memory, the surface bit its lock screen needs, and Keyring for the
+// keyring it asks; it asks the compositor its size, not the kernel, so no
+// display query.
+// userland/capsule_login/Capsule.mk carries the same set.
 const REQUIRED_CAPS: u64 = Capability::IPC.bit()
     | Capability::Memory.bit()
-    | Capability::GraphicsDisplayQuery.bit()
-    | Capability::GraphicsSurfaceCreate.bit();
+    | Capability::GraphicsSurfaceCreate.bit()
+    | Capability::Keyring.bit();
 
 pub fn spawn_login_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
