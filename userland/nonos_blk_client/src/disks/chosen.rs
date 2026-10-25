@@ -38,7 +38,7 @@ pub(super) fn running_from(chosen: Option<(u8, u8)>, driver: Driver, instance: u
         Driver::Nvme => NVME,
         // The kernel's block layer reads no SD card, and its record has no
         // code for a disk on the block wire: no record names either.
-        Driver::Rtsx | Driver::Wire | Driver::Ufs => return false,
+        Driver::Rtsx | Driver::Wire | Driver::Ufs | Driver::Ide | Driver::Scsi => return false,
     };
     in_use(chosen, code, instance)
 }
