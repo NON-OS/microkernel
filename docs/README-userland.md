@@ -14,6 +14,8 @@ Part of [NONOS documentation](README.md).
   reaches the kernel through.
 - [IPC services](userland/ipc-services.md): finding a service by name, who may
   send there, and the message layouts.
+- [The prover job](userland/prove-job.md): one PROVE or DELIVER, its stages,
+  and when the job exits.
 - [The Linux personality](userland/linux-personality.md): how unmodified x86_64
   Linux programs run, and which Linux calls are served.
 - [Writing an app](userland/writing-an-app.md): a windowed app on
