@@ -23,7 +23,7 @@ use std::path::PathBuf;
 // names: a test set signed with keys made outside the tree, so a test build
 // never writes the tree's. The kernel reads it as NONOS_BAKED_TRUST through
 // baked_trust! (src/security/nonos_trust_anchor/baked_trust.rs).
-pub fn declare_baked_trust() -> PathBuf {
+pub(crate) fn declare_baked_trust() -> PathBuf {
     println!("cargo:rerun-if-env-changed=NONOS_BAKED_TRUST_DIR");
     let release = env::var_os("CARGO_FEATURE_NONOS_RELEASE").is_some();
     let named = TEST_TRUST.map(|v| (v, env::var_os(v).is_some()));
@@ -47,12 +47,12 @@ pub fn declare_baked_trust() -> PathBuf {
 }
 
 /// What may stand in for the release's trust: a test set and a test policy key.
-pub const TEST_TRUST: [&str; 2] = ["NONOS_BAKED_TRUST_DIR", "NONOS_DEVICE_POLICY_PUBKEY"];
+const TEST_TRUST: [&str; 2] = ["NONOS_BAKED_TRUST_DIR", "NONOS_DEVICE_POLICY_PUBKEY"];
 
 /// Why a build may not go on: a kernel the seal may seal for release
 /// (nonos-release) embeds only the tree's trust, never a set or key named at
 /// build time.
-pub fn refusal(release: bool, named: &[(&str, bool)]) -> Option<String> {
+fn refusal(release: bool, named: &[(&str, bool)]) -> Option<String> {
     let set: Vec<&str> = named.iter().filter(|(_, on)| *on).map(|(v, _)| *v).collect();
     (release && !set.is_empty()).then(|| {
         format!("a nonos-release kernel embeds only the tree's trust; unset {}", set.join(", "))
