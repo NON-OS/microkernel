@@ -33,6 +33,7 @@ mod firmware;
 mod front;
 mod happy;
 mod host_proof;
+mod kernel_encoder;
 mod log_caps;
 mod log_diff;
 mod log_doc;
