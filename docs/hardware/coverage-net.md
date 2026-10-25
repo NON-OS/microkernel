@@ -5,13 +5,13 @@ not this page. [How to read it](coverage.md#how-to-read-it).
 
 | Priority | Part | Years | How common | Ids | Named by the driver | In Standard | Owner | Gap |
 |---|---|---|---|---|---|---|---|---|
-| P0 | Intel I219-LM/V (e1000e), onboard on most Intel desktops and laptops | 2017-2026 | most machines | `8086:15b7` `8086:15b8` `8086:15bb` `8086:15bc` `8086:15bd` `8086:15be` `8086:0d4e` `8086:0d4f` `8086:15fb` `8086:15fc` `8086:1a1e` `8086:1a1f` `8086:0dc7` `8086:550a` `8086:57a0` | 15 of 15 | no | B | driver and proofs exist; out of Standard until the owner seals it; boot a real I219 |
-| P0 | Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards | 2020-2026 | most machines | `8086:15f2` `8086:15f3` `8086:125b` `8086:125c` `8086:125d` | 5 of 5 | no feature | B, hw | driver exists with no Cargo feature, no broker scope row, no inventory driver entry |
+| P0 | Intel I219-LM/V (e1000e), onboard on most Intel desktops and laptops | 2017-2026 | most machines | `8086:15b7` `8086:15b8` `8086:15bb` `8086:15bc` `8086:15bd` `8086:15be` `8086:0d4e` `8086:0d4f` `8086:15fb` `8086:15fc` `8086:1a1e` `8086:1a1f` `8086:0dc7` `8086:550a` `8086:57a0` | 15 of 15 | listed, unsealed | B | listed in full-gui with no trust files: the owner seals it; boot a real I219 |
+| P0 | Intel I225-V/LM, I226-V/LM (igc), 2.5 GbE on 2020+ desktop boards | 2020-2026 | most machines | `8086:15f2` `8086:15f3` `8086:125b` `8086:125c` `8086:125d` | 5 of 5 | no | H-01 | wired in the kernel (b316a838f); trust files and the full-gui listing are the owner's |
 | P1 | Realtek RTL8111/8168 GbE | 2017-2026 | most machines | `10ec:8168` `10ec:8161` `10ec:8136` | 3 of 3 | yes | B | in the image; never booted on a real card on main |
 | P1 | Realtek RTL8125 2.5 GbE, Killer E3000 | 2019-2026 | most machines | `10ec:8125` `10ec:3000` | 2 of 2 | yes | B | in the image; never booted on a real card on main |
-| P1 | Intel I210/I211 (igb) | 2017-2021 | common | `8086:1533` `8086:1539` `8086:157b` | 3 of 3 | no | B | driver exists; out of Standard until the owner seals it |
+| P1 | Intel I210/I211 (igb) | 2017-2021 | common | `8086:1533` `8086:1539` `8086:157b` | 3 of 3 | listed, unsealed | B | listed in full-gui with no trust files: the owner seals it |
 | P2 | Realtek RTL8126 5 GbE | 2024-2026 | common | `10ec:8126` | no driver | no feature | B, hw | named by rtl8169 only to exclude it: register map not written |
-| P2 | Intel I350 server GbE (igb) | 2017-2026 | common | `8086:1521` `8086:1523` | 2 of 2 | no | B | out of Standard until sealed; copper only |
+| P2 | Intel I350 server GbE (igb) | 2017-2026 | common | `8086:1521` `8086:1523` | 2 of 2 | listed, unsealed | B | listed, the owner seals it; copper only |
 | P2 | Intel X710/XL710 (i40e) | 2017-2026 | common | `8086:1572` `8086:1583` `8086:1584` `8086:1589` `8086:15ff` | no driver | no feature | hw | no driver |
 | P2 | Broadcom BCM5720/5719 server GbE (tg3) | 2017-2026 | common | `14e4:165f` `14e4:1657` | no driver | no feature | B | tg3 work covered the 57765 class only; the 5717 class is excluded |
 | P2 | Intel X540/X550 10GBASE-T (ixgbe) | 2017-2024 | servers or niche | `8086:1528` `8086:1563` `8086:15d1` | 3 of 3 | no | B | out of Standard until sealed; X550EM refused |
