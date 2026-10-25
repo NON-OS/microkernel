@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! What every opened host takes first: the claim, memory decoding with bus
 //! mastering still off, and slot 0's register window.
 

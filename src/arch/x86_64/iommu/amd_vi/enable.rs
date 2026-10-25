@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting one stopped unit in service with the kernel's device table, in
-//! the order of Linux amd/init.c, early_enable_iommu: device table, command
-//! buffer, event log, then IOMMU_EN, then every cache flushed.
+//! Putting one stopped unit in service with the kernel's device table:
+//! device table, command buffer, event log, then IOMMU_EN, then every cache
+//! flushed. Every base is written while the unit is stopped, as 48882's
+//! register descriptions require, so it never walks a half-set table.
 
 use super::control::{idle, CMD_BUF_EN, CONTROL, EVENT_LOG_EN, IOMMU_EN};
 use super::error::AmdViError;
@@ -26,8 +27,8 @@ use super::mmio::Unit;
 use super::regs;
 use super::ring::attach_ring;
 
-/// Control.Coherent, bit 10: device table fetches snoop the CPU's caches,
-/// as Linux sets it.
+/// Control.Coherent, bit 10: device table fetches snoop the CPU's caches
+///.
 const COHERENT: u64 = 1 << 10;
 
 /// Exclusion Base: a range firmware may have set that every device reaches

@@ -36,7 +36,7 @@ pub(super) struct Holder {
 }
 
 pub(super) fn holding() -> Holder {
-    let claims = vec![Claim { pid: PID, device_id: 1, epoch: 3 }];
+    let claims = vec![Claim::making(PID, 1, 3)];
     let (mapped, ports_running, in_iommu) = (true, true, true);
     Holder { claims, granted: (2, 4), mapped, ports_running, in_iommu, ..Holder::default() }
 }
