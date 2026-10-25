@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.helix",
+      "capsule_id": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7",
+      "name": "Helix",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A modal text editor with multiple selections and syntax trees built in.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "helix@24.03-r0",
+          "manifest_hash": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7",
+          "package_hash": "0b8eba63b212940eccd0b07925b56c6d5194e218e3d13d6724d31698c07ae8d7",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/helix-24.03-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000b2e6601baee0e9ae3382e28616a82654fa7de0c123966bf2bc72d1870697471408010000000000009a3fa5000911c002c82be2d12094b92e87e8b1c3b1c9ebc3e60e158d111e6b42d26e3439402cc95c6205f923d64f7b7d742c02c3603e9d12a584fccb46145c6e0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 4154112 bytes; licence MPL-2.0; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
