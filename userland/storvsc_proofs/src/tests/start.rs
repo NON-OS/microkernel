@@ -37,22 +37,25 @@ fn the_channel_opens_on_the_rings_alone() {
 }
 
 #[test]
-fn the_start_speaks_win10_first() {
+fn the_start_asks_win10_first_and_takes_win8_1_from_storvsp() {
+    // OpenVMM's storvsp takes WIN6 to WIN8.1 (storvsp:235-251), so WIN10 is
+    // refused with REVISION_MISMATCH and WIN8.1 agreed.
     let mut h = opened(Server::new(vec![]));
-    assert_eq!(start::run(&mut h), Ok(0x0602));
-    assert_eq!(ops(&h), [7, 9, 10, 8]);
+    assert_eq!(start::run(&mut h), Ok(0x0600));
+    assert_eq!(ops(&h), [7, 9, 9, 10, 8]);
     assert!(seen(&h).iter().all(|s| s.ty == 6 && s.txid == INIT_ID && s.range.is_none()));
     assert_eq!(&seen(&h)[1].packet[12..16], &[0x02, 0x06, 0, 0]);
-    assert_eq!(h.limit, DATA_BYTES, "the host takes 512 KiB; the buffer is 64");
+    assert_eq!(&seen(&h)[2].packet[12..16], &[0x00, 0x06, 0, 0]);
+    assert_eq!(h.limit, DATA_BYTES, "storvsp takes 256 KiB; the buffer is 64");
 }
 
 #[test]
-fn an_older_host_is_spoken_to_in_win8_1() {
+fn a_host_that_takes_win10_is_spoken_to_in_it() {
     let mut s = Server::new(vec![]);
-    s.versions = vec![0x0600];
+    s.versions.push(0x0602);
     let mut h = opened(s);
-    assert_eq!(start::run(&mut h), Ok(0x0600));
-    assert_eq!(ops(&h), [7, 9, 9, 10, 8]);
+    assert_eq!(start::run(&mut h), Ok(0x0602));
+    assert_eq!(ops(&h), [7, 9, 10, 8]);
 }
 
 #[test]
@@ -69,8 +72,8 @@ fn each_refusal_fails_the_start_where_it_comes() {
     for (op, why, sent) in [
         (7, "begin refused", vec![7]),
         (9, "no protocol version in common", vec![7, 9, 9]),
-        (10, "properties refused", vec![7, 9, 10]),
-        (8, "end refused", vec![7, 9, 10, 8]),
+        (10, "properties refused", vec![7, 9, 9, 10]),
+        (8, "end refused", vec![7, 9, 9, 10, 8]),
     ] {
         let mut s = Server::new(vec![]);
         s.refuse = vec![op];

@@ -56,7 +56,7 @@ checks it instead.
 | 20 | `0x100000` | `Pio` | `PIO` | Get a port grant on a port BAR and have the kernel run `in` and `out` on its ports. | `MPGT`, `MPRD`, `MPWR`, `MPRL` |
 | 21 | `0x200000` | `InputSource` | `INPUT_SOURCE` | Post input events. | `MIEP` |
 | 22 | `0x400000` | `TimeSet` | `TIME_SET` | Correct the wall clock. | `MTAD` |
-| 23 | `0x800000` | `SpawnBroker` | `SPAWN_BROKER` | Attribute a capsule load's parent to a live pid other than the caller. | none |
+| 23 | `0x800000` | `SpawnBroker` | `SPAWN_BROKER` | Attribute a capsule load's parent to a live pid other than the caller, and ask whether a message's sender holds SpawnWindow or AppInstall. | `MCOF` |
 | 24 | `0x1000000` | `SpawnWindow` | `SPAWN_WINDOW` | Launch a capsule for the user beyond the launcher's own capabilities, or spawn another instance of an embedded app. | `MSPI`, `MCLD`, `MTRN` |
 | 25 | `0x2000000` | `ProcessControl` | `PROCESS_CONTROL` | Terminate a process the caller does not parent, and read the full process table. | none |
 | 26 | `0x4000000` | `StoreWrite` | `STORE_WRITE` | Read and write the package store; with FileSystem, import into and key the data volume. | `MSWR`, `MSRR`, `MDIM`, `MDPW` |

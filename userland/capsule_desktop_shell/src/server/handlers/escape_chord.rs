@@ -26,18 +26,29 @@ use crate::state::{Context, LAUNCHER_APPS};
 #[path = "../../../../capsule_input_router/src/route/chord.rs"]
 mod chord;
 
-pub use chord::{is_reserved_chord, is_secure_attention};
+pub use crate::state::trusted_rule::opens_terminal;
+pub use chord::{is_reserved_chord, is_secure_attention, is_terminal_chord};
 
 const PROCESS_MANAGER: &[u8] = b"app.process_manager";
+const TERMINAL: &[u8] = b"app.terminal";
 
 pub fn bring_process_manager(ctx: &mut Context) {
+    bring(ctx, PROCESS_MANAGER);
+}
+
+/// Ctrl+Alt+T: the Terminal forward, or opened when it is not running.
+pub fn bring_terminal(ctx: &mut Context) {
+    bring(ctx, TERMINAL);
+}
+
+fn bring(ctx: &mut Context, service: &[u8]) {
     clear_chrome(ctx);
     let running = LAUNCHER_APPS
         .iter()
-        .position(|a| a.service == PROCESS_MANAGER)
+        .position(|a| a.service == service)
         .map(|index| launcher_request::focus_app(ctx, index));
     if running != Some(LaunchOutcome::Focused) {
-        crate::apps_off::open(ctx, PROCESS_MANAGER);
+        crate::apps_off::open(ctx, service);
     }
 }
 

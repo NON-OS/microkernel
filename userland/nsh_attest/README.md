@@ -33,14 +33,14 @@ release instead. The header must be PCR 0, `EV_NO_ACTION`, a zero digest,
 `Spec ID Event03`, version 2.0, a 32-byte SHA-256 bank and no trailing
 bytes. Every event carries exactly the declared banks, each once. A
 startup-locality event is honoured once, in PCR 0, before any extend, for
-locality 0, 3 or 4. Caps: 131072 bytes, 1024 events, 65536 bytes per body.
+locality 0, 3 or 4. Caps, the loader's: 1048576 bytes, 4096 events, 65536 bytes per body.
 
 **Layout.** Big-endian, every length capped, nothing trailing:
 - flags are 0 or 1, and `iommu_vendor` is at most 3;
 - `pcr_count` is exactly 8, with indices 0, 1, 2, 4, 7, 8, 9, 14 in order;
-- log 0 to 131072 bytes (an empty log is then refused as `log`);
+- log 0 to 1048576 bytes (an empty log is then refused as `log`);
 - attest 1 to 1024, signature 1 to 72, `ak_public` length exactly 64;
-- the whole document is at most 196608 bytes.
+- the whole document is at most 1114112 bytes.
 
 **Quote.** The signature is `TPMT_SIGNATURE` ECDSA over SHA-256, with r and
 s of 1 to 32 bytes each, left-padded. The selection is one SHA-256 bank,

@@ -29,10 +29,12 @@ use crate::build::Spec;
 
 #[test]
 fn the_written_numbers_are_the_ones_used() {
-    assert_eq!((MAX_DOC, MAX_LOG), (196_608, 131_072));
+    assert_eq!((MAX_DOC, MAX_LOG), (1_114_112, 1_048_576));
     assert_eq!(QUOTED_PCRS_V4, [0, 1, 2, 4, 7, 8, 9, 14]);
     assert_eq!(REPLAYED_PCRS, [0, 1, 2, 4, 7]);
-    let big = |p: &mut crate::build::doc::Parts| p.log.resize(131_073, 0);
+    // The loader's caps, nonos-boot-measure's MAX_EVENTS and MAX_EVENT_BYTES.
+    assert_eq!((nsh_attest::log::MAX_EVENTS, nsh_attest::log::MAX_EVENT_BODY), (4096, 65_536));
+    let big = |p: &mut crate::build::doc::Parts| p.log.resize(1_048_577, 0);
     assert_eq!(
         refused(Spec { doc: big, ..Spec::default() }),
         Refusal::Format(FormatFault::Oversize)

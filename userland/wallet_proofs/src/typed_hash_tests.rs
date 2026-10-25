@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The hashes the keyring takes of its table's strings, pinned: a change to
-//! a type string or a domain is a change to every signature it makes, and
-//! has to be made here as well as there.
+//! The hashes the keyring signs with, pinned and checked against the strings
+//! they are of: a change to a type string or a domain is a change to every
+//! signature it makes, and has to be made here as well as in the config.
 
-use crate::server::typed::domain::DOMAIN_TYPE;
 use crate::server::typed::table::ENTRIES;
+use nonos_nox_config::EIP712_DOMAIN_TYPE;
 use sha3::{Digest, Keccak256};
 
 pub fn keccak(b: &[u8]) -> Option<[u8; 32]> {
@@ -42,17 +42,19 @@ fn the_type_hashes() {
         "2c3027b70e6539f80e45782d694163977de6df1bafcba6fa319d7a6c6283faf0",
     ];
     for (e, want) in ENTRIES.iter().zip(want) {
-        assert_eq!(hash_hex(e.type_string), want, "entry {}", e.id);
+        assert_eq!(hash_hex(e.typed.type_string), want, "entry {}", e.id);
+        assert_eq!(hex(&e.typed.typehash), want, "entry {}", e.id);
     }
 }
 
 #[test]
 fn the_domain_hashes() {
     assert_eq!(
-        hash_hex(DOMAIN_TYPE),
+        hash_hex(EIP712_DOMAIN_TYPE),
         "8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f"
     );
-    let names: Vec<_> = ENTRIES.iter().map(|e| (e.domain.name, e.domain.version)).collect();
+    let names: Vec<_> =
+        ENTRIES.iter().map(|e| (e.typed.domain.name, e.typed.domain.version)).collect();
     assert_eq!(names, [("NONOS Settlement", "1"), ("NONOS Bond", "1"), ("NONOS Bond", "1")]);
     assert_eq!(
         hash_hex("NONOS Settlement"),

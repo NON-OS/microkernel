@@ -5,6 +5,7 @@
 pub mod dimensions {
     pub const COLS: usize = 96;
     pub const LINE_MAX: usize = 1024;
+    pub const HISTORY_DEPTH: usize = 32;
 }
 
 pub mod util {

@@ -20,6 +20,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::line_text::text;
 use super::metrics::Metrics;
+use super::search_head::{head, width};
 use super::user_host::draw_id;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
@@ -49,10 +50,11 @@ pub fn draw_prompt(
     let take = cwd.len().min(room.max(1));
 
     if let Some(search) = &state.search {
-        let shown = take.min(search.needle.len());
-        text(fb, ox, y, b"?", t.accent, adv, px);
-        text(fb, ox + adv, y, &search.needle[..shown], t.fg, adv, px);
-        return 1 + shown + 1;
+        let (label, shown) = head(&search.needle, search.found, room.max(1));
+        let tone = if search.found { t.dim } else { t.err };
+        text(fb, ox, y, label, tone, adv, px);
+        text(fb, ox + label.len() as u32 * adv, y, shown, t.accent, adv, px);
+        return width(label, shown);
     }
 
     // The mark takes the colour of what the last command did, so a reader who
