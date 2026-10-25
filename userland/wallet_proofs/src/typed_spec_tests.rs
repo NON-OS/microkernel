@@ -13,21 +13,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The domain separator the keyring signs under, against the EIP-712
+//! specification's own example.
 
-//! The domain separator against the EIP-712 specification's own example.
+use nonos_nox_config::{Contract, Domain, TypedData, VOUCHER};
 
 use super::typed_hash_tests::{hex, keccak};
-use crate::server::typed::domain::Domain;
-use crate::server::typed::preimage::domain_preimage;
+use crate::server::typed::entry::Entry;
+use crate::server::typed::hashes::hashes;
 
 /// EIP-712's "Ether Mail" domain: name "Ether Mail", version "1", chain 1,
-/// contract 0xCcCC..cccC, whose separator the specification gives.
+/// contract 0xCcCC..cccC, whose separator the specification gives. Built at
+/// run time, since its name hash is taken here.
 #[test]
 fn the_domain_separator_matches_the_specification() {
-    let mail = Domain { name: "Ether Mail", version: "1" };
-    let pre = domain_preimage(&mail, 1, &[0xCC; 20], keccak).unwrap();
+    let mail: &'static Domain = Box::leak(Box::new(Domain {
+        name: "Ether Mail",
+        name_hash: keccak(b"Ether Mail").unwrap(),
+        version: "1",
+        contract: Contract::Settlement,
+    }));
+    let typed: &'static TypedData = Box::leak(Box::new(TypedData { domain: mail, ..VOUCHER }));
+    let e = Entry { id: 0, typed, fields: &[], callers: &[] };
+    let h = hashes(&e, 1, &[0xCC; 20], &[], keccak).unwrap();
     assert_eq!(
-        hex(&keccak(&pre).unwrap()),
+        hex(&h.domain_separator),
         "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f"
     );
 }

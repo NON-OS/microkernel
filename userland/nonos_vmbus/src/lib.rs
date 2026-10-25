@@ -43,7 +43,7 @@ pub mod model;
 #[cfg(test)]
 mod tests;
 
-pub use channel::{open, Channel, Host, Layout, OpenError, PostError};
+pub use channel::{gpadl, open, teardown, Channel, Host, Layout, OpenError, PostError};
 pub use mem::{Buffer, Pages, Shared};
 pub use packet::Header;
 pub use ring::{Ring, RingError};

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The late call: the caller's own deadline ran out before the kernel's
 //! default (ipc/call/verdict.rs). Its own site, so late lines never spend
 //! the starvation counter. Endpoint name and timing only, no pids.
@@ -34,6 +33,17 @@ impl Site {
         serial::print_dec(elapsed_ms);
         serial::print(b" ms dropped=");
         serial::print_dec(dropped);
+        trail(n);
+    }
+
+    /// A pair evicted from the full silence table, reported at once, by port.
+    pub fn silent(&self, port: u32) {
+        let Some(n) = self.admit() else { return };
+        serial::print(b"[DIAG] ");
+        serial::print(self.label);
+        serial::print(b" unanswered port=");
+        serial::print_dec(u64::from(port));
+        serial::print(b" (silent, table full)");
         trail(n);
     }
 }
