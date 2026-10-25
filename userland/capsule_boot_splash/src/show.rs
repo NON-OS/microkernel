@@ -44,7 +44,7 @@ pub(crate) fn raise(
     let up = Up { base, handle, size };
     let logo = logo::fetch::fetch(w, h);
     let fit = layout_fit::layout(logo.as_ref().map(|l| &l.spot), w, h);
-    let look = Look { att, badge, logo, fit };
+    let look = Look { att, badge, logo, fit, dma_unconfined: crate::dma::unconfined() };
     paint::splash(base, w, h, stride, &look);
     if scene::submit(comp, 3, handle, w, h).is_err() {
         give_back(&up);

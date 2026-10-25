@@ -6,6 +6,7 @@ extern crate alloc;
 mod chrome;
 mod detail;
 mod display;
+mod dma;
 mod dwell;
 mod follow;
 mod input;
@@ -26,6 +27,7 @@ mod status;
 mod surface;
 mod title;
 mod vignette;
+mod warning;
 
 use nonos_libc::{heap_init, mk_attest_status, mk_exit, mk_uptime_ms, AttestStatus};
 
@@ -38,10 +40,7 @@ pub unsafe extern "C" fn _start() -> ! {
 }
 
 fn run() -> i32 {
-    let comp = match ready::wait_compositor() {
-        Some(p) => p,
-        None => return 2,
-    };
+    let Some(comp) = ready::wait_compositor() else { return 2 };
     let Ok(size) = display::query(comp, 2) else { return 4 };
     let mut att = AttestStatus::default();
     let badge = if mk_attest_status(&mut att) == 0 { Some(att.zk_verified == 1) } else { None };
