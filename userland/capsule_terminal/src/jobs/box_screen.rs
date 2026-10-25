@@ -21,6 +21,8 @@
 /// the main screen, first, since leaving the alternate one restores the
 /// cursor saved on entering it; a soft reset (DECSTR: region, origin,
 /// insert, autowrap, charsets and pen); newline mode and reverse video off,
-/// which DECSTR keeps; and a fresh line at the screen's foot, so the report
-/// is the last thing drawn and scrolls into history whole.
-pub const SCREEN_RESET: &[u8] = b"\x1b[?1049l\x1b[!p\x1b[20l\x1b[?5l\x1b[999;1H\r\n";
+/// which DECSTR keeps; then a fresh line below the cursor and everything
+/// below it cleared. So the report is the last thing on the screen, nothing
+/// the guest left lower down can run into it, and the program's own output
+/// stays in view just above it rather than pushed off by blank rows.
+pub const SCREEN_RESET: &[u8] = b"\x1b[?1049l\x1b[!p\x1b[20l\x1b[?5l\r\n\x1b[J";

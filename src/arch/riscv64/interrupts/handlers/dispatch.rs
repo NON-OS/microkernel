@@ -20,7 +20,7 @@ use crate::arch::riscv64::interrupts::frame::TrapFrame;
 use super::{exception, interrupt, syscall};
 
 #[no_mangle]
-pub extern "C" fn riscv64_trap_dispatch(frame: *mut TrapFrame) {
+pub(super) extern "C" fn riscv64_trap_dispatch(frame: *mut TrapFrame) {
     let frame = unsafe { &mut *frame };
     match TrapCause::from_scause(frame.scause) {
         TrapCause::Interrupt(code) => interrupt::dispatch(code, frame),

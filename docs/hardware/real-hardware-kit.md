@@ -20,8 +20,8 @@ one kind.
 
 Every machine is booted twice: once with VT-d or AMD-Vi on in the firmware setup, and once
 with it off. That second boot is the no-IOMMU posture: the boot log must carry
-`[IOMMU] posture=dma-unconfined`, About's DMA row must read red, and, once track G's change
-lands, the splash says in red that devices are unconfined.
+`[IOMMU] posture=dma-unconfined`, About's DMA row must read red, the splash must say
+`device DMA not confined by hardware` in red, and the compositor's band must have a red edge.
 
 ## The stick
 
