@@ -37,6 +37,7 @@ mod jobs;
 mod neighbours;
 mod network;
 mod paint;
+pub mod search;
 mod shell;
 
 pub use filters::{input, tree_render};

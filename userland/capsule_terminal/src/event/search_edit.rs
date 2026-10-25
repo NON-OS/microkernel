@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::input::text::last_char_len;
 
-use super::search_place::apply;
+use crate::term::search_step::retype;
 use crate::term::state::State;
 
 /// Take a typed character into the search.
@@ -45,7 +45,6 @@ fn edit(state: &mut State, change: impl FnOnce(&mut alloc::vec::Vec<u8>)) {
         return;
     };
     change(&mut search.needle);
-    search.at = state.history.count();
-    apply(state, &mut search);
+    retype(&mut search, &state.history, &mut state.line);
     state.search = Some(search);
 }
