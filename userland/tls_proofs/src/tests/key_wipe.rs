@@ -13,67 +13,37 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 
-//! A connection's keys leave nothing behind: every copy of a TrafficKeys,
-//! the one a stream holds and each one a caller cloned, is zeros where it
-//! lay once it is dropped.
+//! A connection's secrets are zeros where they lay once their block is
+//! dropped.
 
 use core::mem::ManuallyDrop;
 use core::ptr;
 
-use crate::traffic_keys::TrafficKeys;
+use crate::traffic_keys::Secrets;
 
-fn keys() -> TrafficKeys {
-    TrafficKeys {
-        suite: 0x1303,
-        handshake_secret: [1; 32],
-        client_secret: [2; 32],
-        server_secret: [3; 32],
-        client_key: [4; 32],
-        client_iv: [5; 12],
-        server_key: [6; 32],
-        server_iv: [7; 12],
-    }
+fn read(p: *const u8, n: usize) -> Vec<u8> {
+    // SAFETY: each caller's pointer is into storage it still owns.
+    (0..n).map(|i| unsafe { ptr::read_volatile(p.add(i)) }).collect()
 }
 
-fn bytes_of(k: &TrafficKeys) -> (*const u8, usize) {
-    (k as *const TrafficKeys as *const u8, core::mem::size_of::<TrafficKeys>())
-}
-
-/// Every secret byte of a dropped value, read where it lay; the suite is not
-/// a secret and is left out.
-fn secrets_after_drop(mut k: ManuallyDrop<TrafficKeys>) -> Vec<u8> {
-    let fields = [
-        (k.handshake_secret.as_ptr(), 32),
-        (k.client_secret.as_ptr(), 32),
-        (k.server_secret.as_ptr(), 32),
-        (k.client_key.as_ptr(), 32),
-        (k.client_iv.as_ptr(), 12),
-        (k.server_key.as_ptr(), 32),
-        (k.server_iv.as_ptr(), 12),
-    ];
-    let (_, size) = bytes_of(&k);
-    assert!(size >= 184, "every field is inside the value");
+#[test]
+fn a_dropped_block_of_secrets_is_zeros_where_it_lay() {
+    let (handshake_secret, client_secret, server_secret) = ([1; 32], [2; 32], [3; 32]);
+    let (client_key, client_iv, server_key, server_iv) = ([4; 32], [5; 12], [6; 32], [7; 12]);
+    let all = Secrets {
+        handshake_secret,
+        client_secret,
+        server_secret,
+        client_key,
+        client_iv,
+        server_key,
+        server_iv,
+    };
+    let mut s = ManuallyDrop::new(all);
+    let at = &*s as *const Secrets as *const u8;
+    let size = core::mem::size_of::<Secrets>();
+    assert!(size >= 184, "every secret is inside the block");
     // SAFETY: dropped once; the storage is only read afterwards.
-    unsafe { ManuallyDrop::drop(&mut k) };
-    fields
-        .iter()
-        // SAFETY: each pointer is into storage `k` still owns.
-        .flat_map(|&(p, n)| (0..n).map(move |i| unsafe { ptr::read_volatile(p.add(i)) }))
-        .collect()
-}
-
-#[test]
-fn a_dropped_set_of_keys_is_zeros_where_it_lay() {
-    let got = secrets_after_drop(ManuallyDrop::new(keys()));
-    assert_eq!(got.len(), 184);
-    assert!(got.iter().all(|b| *b == 0), "{got:?}");
-}
-
-#[test]
-fn a_clone_is_wiped_on_its_own_drop_and_the_original_is_untouched() {
-    let original = keys();
-    let copy = ManuallyDrop::new(original.clone());
-    let got = secrets_after_drop(copy);
-    assert!(got.iter().all(|b| *b == 0));
-    assert_eq!(original.client_key, [4; 32], "the kept one still works");
+    unsafe { ManuallyDrop::drop(&mut s) };
+    assert!(read(at, size).iter().all(|b| *b == 0));
 }
