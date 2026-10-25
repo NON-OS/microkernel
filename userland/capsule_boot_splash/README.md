@@ -39,6 +39,14 @@ below the logo when it would sit on them and they still fit; otherwise the
 logo is left out and the title drawn (`src/layout_fit.rs`). The compositor
 holds its first frame until this surface is up, so the boot shows no flash.
 
+## Without an IOMMU
+
+When the kernel marks `BOOT_DMA_UNCONFINED` in MkProcStat's header (the
+no-IOMMU posture), the splash draws `device DMA not confined by hardware`
+in red, in a row the layout keeps between the panel and the status line
+whether or not it is drawn (`src/dma.rs`, `src/warning.rs`, `src/layout.rs`).
+MkProcStat needs no capability.
+
 ## A canvas that changes size
 
 The compositor can move from the firmware framebuffer to a GPU driver at

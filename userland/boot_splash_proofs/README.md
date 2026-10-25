@@ -16,6 +16,7 @@ the kernel, is left out; everything it hands on is proven here.
 | `refuse_tests` | not on screen, a record and a file that disagree, or a logo too large to hold: nothing is drawn |
 | `draw_tests` | the prepared logo is copied to its spot, clipped at every edge, with nothing written outside |
 | `follow_tests`, `follow_limit_tests` | the splash asks the canvas size every 250 ms, at once if the clock went back; a new size (or stride) is a move, the same size or a failed answer is not; four redraws at most; its time on screen kept across a redraw |
+| `warning_tests`, `warning_draw_tests` | the no-IOMMU warning's row is 14 px under the panel and at least 14 above the status line at every mode, never under a kept logo; drawn as the toolkit draws the owner's words in red, centred, inside its row only |
 
 `build.rs` writes the BMP files and records the tests hand the splash.
 
