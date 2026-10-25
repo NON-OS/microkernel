@@ -41,15 +41,15 @@ fn each_cited_id_may_move_exactly_the_bits_firmware_masks() {
 }
 
 #[test]
-fn an_id_not_cited_and_every_other_function_stay_refused() {
+fn an_id_not_cited_another_vendors_and_every_other_function_stay_refused() {
     for d in [0x8CB1, 0xA12F, 0x1E26, 0x0000] {
         // 0x8CB1, recalled for the 9 series desktop, is in neither source.
         assert_eq!(writable(&xhci(0x8086, d, 0x30, false), XUSB2PR), None, "{d:#x}");
     }
-    let qemu = xhci(0x1B36, 0x000D, 0x30, false);
-    let ehci = xhci(0x8086, 0x8C31, 0x20, false);
-    for (id, at) in [(qemu, XUSB2PR), (ehci, XUSB2PR), (ehci, USB3_PSSEN)] {
-        assert_eq!(writable(&id, at), None, "{:#x} at {at:#x}", id.vendor);
+    for id in [xhci(0x1B36, 0x8C31, 0x30, false), xhci(0x8086, 0x8C31, 0x20, false)] {
+        for at in [XUSB2PR, USB3_PSSEN] {
+            assert_eq!(writable(&id, at), None, "{:#x} at {at:#x}", id.vendor);
+        }
     }
     let listed = xhci(0x8086, 0x8C31, 0x30, false);
     for at in [0xD4, 0xDC, 0xD2, 0xDA, 0x04] {
