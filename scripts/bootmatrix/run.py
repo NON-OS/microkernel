@@ -63,7 +63,7 @@ def one(cell, paths, accel, out, attempt, timeout):
             return Run(cell.name, attempt, accel, time.monotonic() - started, ending,
                        [f"first boot: {ending}"], str(first))
     argv = command(cell, paths, accel, log, blk, variables)
-    text, reached, ending = boot(argv, log, timeout)
+    text, reached, ending = boot(argv, log, timeout, also=cell.expect)
     failures = judge(cell, text, reached, ending)
     blk.unlink()
     variables.unlink()

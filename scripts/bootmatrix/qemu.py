@@ -23,7 +23,7 @@ import os
 import platform
 import shlex
 
-from . import usb, virtio
+from . import devices, usb, virtio
 
 # The -device argument for each kind of IOMMU a cell can ask for.
 IOMMU_DEVICES = {
@@ -70,5 +70,6 @@ def command(cell, paths, accel, serial_log, blk_copy, vars_copy):
         argv = virtio.confine(argv) + (virtio.LEGACY_RNG if cell.legacy_virtio else [])
     if cell.usb_block:
         argv += usb.usb_stick(argv, blk_copy, cell.usb_block)
+    argv += devices.arguments(cell)
     argv += ["-serial", f"file:{serial_log}", "-display", "none", "-no-reboot"]
     return argv
