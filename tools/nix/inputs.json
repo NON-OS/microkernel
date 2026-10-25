@@ -9157,6 +9157,7 @@
    "nonos-data/trust/capsules/linux.zk_trailer.bin",
    "src/capabilities/types",
    "src/kernel_core",
+   "src/process/core/argv_bound.rs",
    "src/process/core/table/ambient.rs",
    "src/security/capsule_manifest/verify/caps_bits.rs",
    "src/syscall/microkernel/spawn_instance.rs",
