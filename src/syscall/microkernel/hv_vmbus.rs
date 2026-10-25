@@ -16,26 +16,29 @@
 
 //! VMBus through the SynIC. Each call needs Driver.
 //!
-//! - The VMBus core, holding the VMBus root: `MkHvPost`, `MkHvRecv`,
-//!   `MkHvEvents` and `MkHvSignal` on the root, and `MkHvChannel` to give a
-//!   channel the host offered to a record of its own.
-//! - A channel's driver, holding that record: `MkHvEvents` and `MkHvSignal`
-//!   on the record, for its channel alone.
+//! - The VMBus core, holding the VMBus root, keeps the bus. It posts the
+//!   bus's messages (`MkHvPost`) and takes the host's (`MkHvRecv`), and takes
+//!   the event flags of channels no driver has (`MkHvEvents`). With
+//!   `MkHvChannel` it gives a channel the host offered a record of its own.
+//! - A channel's driver, holding that record, drives its channel alone. It
+//!   posts the channel's open, close and GPADLs (`MkHvPost`), its frames held
+//!   on its record, and takes the host's answers for it (`MkHvRecv`). It also
+//!   takes its event flag (`MkHvEvents`) and signals the host on the
+//!   channel's own connection (`MkHvSignal`).
 //!
-//! A post is held to the messages the core may send, and to pages held as
-//! DMA: on the root, by the core, for the contact; on a channel's record,
-//! by its driver, for that channel's GPADLs. Messages from the host keep
-//! the kernel's table of channels, and a withdrawn channel's record leaves.
+//! What the host sends keeps the kernel's table of channels. A withdrawn
+//! channel's record leaves, and pages kept for a released channel go once
+//! the host has torn its GPADLs down.
 
 use crate::arch::{
     hv_vmbus_bind, hv_vmbus_channel_device, hv_vmbus_channel_event, hv_vmbus_channel_of,
-    hv_vmbus_events, hv_vmbus_post, hv_vmbus_recv, hv_vmbus_signal, HvHolder, HvRetire,
-    HvVmbusError, HV_EVENT_WORDS, HV_MESSAGE_BYTES,
+    hv_vmbus_events, hv_vmbus_post, hv_vmbus_post_channel, hv_vmbus_recv, hv_vmbus_recv_channel,
+    hv_vmbus_retires, hv_vmbus_signal, HvRetire, HvVmbusError, HV_EVENT_WORDS, HV_MESSAGE_BYTES,
 };
 use crate::capabilities::Capability;
 use crate::hardware::broker::{
-    dma_covers, dma_covers_any, register_vmbus_channel, retire_all_vmbus_channels,
-    retire_vmbus_channel, settle_vmbus_channel, vmbus_channel_held_by, vmbus_held_by,
+    dma_covers, register_vmbus_channel, retire_all_vmbus_channels, retire_vmbus_channel,
+    settle_vmbus_channel, vmbus_channel_held_by, vmbus_held_by,
 };
 use crate::process::{caps, current_pid};
 use crate::syscall::microkernel::errnos::{
@@ -50,9 +53,9 @@ const PAYLOAD_MAX: usize = HV_MESSAGE_BYTES - 16;
 /// Who called, on what.
 enum Caller {
     /// The VMBus core, on the root.
-    Core,
+    Core(u32),
     /// A channel's driver, on its record.
-    Channel,
+    Channel(u32),
 }
 
 fn driver() -> Result<u32, i64> {
@@ -74,9 +77,9 @@ fn core(device_id: u64) -> Result<u32, i64> {
 fn caller(device_id: u64) -> Result<Caller, i64> {
     let pid = driver()?;
     if vmbus_held_by(pid, device_id) {
-        Ok(Caller::Core)
+        Ok(Caller::Core(pid))
     } else if vmbus_channel_held_by(pid, device_id) {
-        Ok(Caller::Channel)
+        Ok(Caller::Channel(pid))
     } else {
         Err(ERRNO_PERM)
     }
@@ -95,9 +98,25 @@ fn errno(e: HvVmbusError) -> i64 {
     }
 }
 
+/// The broker work what the host sent left: withdrawn channels' records
+/// retired, released channels' kept pages settled.
+fn settle_retires() {
+    for r in hv_vmbus_retires() {
+        match r {
+            HvRetire::None => {}
+            HvRetire::Record(r) => retire_vmbus_channel(r),
+            HvRetire::All => retire_all_vmbus_channels(),
+            HvRetire::Settle(r) => settle_vmbus_channel(r),
+        }
+    }
+}
+
+/// On the root, one of the bus's messages on `connection`. On a channel's
+/// record, one of its own channel's messages, `connection` 0: the kernel
+/// posts it on the bus's connection.
 pub fn sys_hv_post(device_id: u64, connection: u64, ty: u64, buf: u64, len: u64) -> i64 {
-    let pid = match core(device_id) {
-        Ok(p) => p,
+    let who = match caller(device_id) {
+        Ok(c) => c,
         Err(e) => return e,
     };
     let (Ok(connection), Ok(ty)) = (u32::try_from(connection), u32::try_from(ty)) else {
@@ -111,31 +130,37 @@ pub fn sys_hv_post(device_id: u64, connection: u64, ty: u64, buf: u64, len: u64)
     if copy_from_user(buf, &mut payload[..len]).is_err() {
         return ERRNO_FAULT;
     }
-    let held = |h: HvHolder, gpa: u64| match h {
-        HvHolder::Root => dma_covers(pid, device_id, gpa),
-        HvHolder::Record(record) => dma_covers_any(record, gpa),
+    let payload = &payload[..len];
+    let posted = match who {
+        Caller::Core(pid) => {
+            hv_vmbus_post(connection, ty, payload, |gpa| dma_covers(pid, device_id, gpa))
+        }
+        Caller::Channel(_) if connection != 0 => return ERRNO_INVAL,
+        Caller::Channel(pid) => {
+            hv_vmbus_post_channel(device_id, ty, payload, |gpa| dma_covers(pid, device_id, gpa))
+        }
     };
-    match hv_vmbus_post(connection, ty, &payload[..len], held) {
+    match posted {
         Ok(()) => 0,
         Err(e) => errno(e),
     }
 }
 
-/// The oldest message from the host, header and payload, into `out`
-/// (256 bytes): its length, or -EAGAIN when none waits. A channel the
-/// message withdrew leaves the broker's table on the way.
+/// The oldest message for the caller, header and payload, into `out` (256
+/// bytes): its length, or -EAGAIN when none waits. On the root, the core's;
+/// on a channel's record, the host's answers for that channel.
 pub fn sys_hv_recv(device_id: u64, out: u64) -> i64 {
-    if let Err(e) = core(device_id) {
-        return e;
-    }
+    let who = match caller(device_id) {
+        Ok(c) => c,
+        Err(e) => return e,
+    };
     let mut m = [0u8; HV_MESSAGE_BYTES];
-    let Some((n, retire)) = hv_vmbus_recv(&mut m) else { return ERRNO_AGAIN };
-    match retire {
-        HvRetire::None => {}
-        HvRetire::Record(r) => retire_vmbus_channel(r),
-        HvRetire::All => retire_all_vmbus_channels(),
-        HvRetire::Settle(r) => settle_vmbus_channel(r),
-    }
+    let got = match who {
+        Caller::Core(_) => hv_vmbus_recv(&mut m),
+        Caller::Channel(_) => hv_vmbus_recv_channel(device_id, &mut m),
+    };
+    settle_retires();
+    let Some(n) = got else { return ERRNO_AGAIN };
     if copy_to_user(out, &m[..n]).is_err() {
         return ERRNO_FAULT;
     }
@@ -151,11 +176,11 @@ pub fn sys_hv_events(device_id: u64, out: u64, words: u64) -> i64 {
     let got = match caller(device_id) {
         Err(e) => return e,
         Ok(_) if words == 0 => 0,
-        Ok(Caller::Core) => {
+        Ok(Caller::Core(_)) => {
             let n = (words.min(HV_EVENT_WORDS as u64)) as usize;
             hv_vmbus_events(&mut flags[..n])
         }
-        Ok(Caller::Channel) => {
+        Ok(Caller::Channel(_)) => {
             let Some(c) = hv_vmbus_channel_of(device_id) else { return ERRNO_NODEV };
             flags[0] = u64::from(hv_vmbus_channel_event(c.relid));
             1
@@ -175,12 +200,12 @@ pub fn sys_hv_events(device_id: u64, out: u64, words: u64) -> i64 {
 pub fn sys_hv_signal(device_id: u64, connection: u64) -> i64 {
     let connection = match caller(device_id) {
         Err(e) => return e,
-        Ok(Caller::Core) => match u32::try_from(connection) {
+        Ok(Caller::Core(_)) => match u32::try_from(connection) {
             Ok(c) => c,
             Err(_) => return ERRNO_INVAL,
         },
-        Ok(Caller::Channel) if connection != 0 => return ERRNO_INVAL,
-        Ok(Caller::Channel) => match hv_vmbus_channel_of(device_id) {
+        Ok(Caller::Channel(_)) if connection != 0 => return ERRNO_INVAL,
+        Ok(Caller::Channel(_)) => match hv_vmbus_channel_of(device_id) {
             Some(c) => c.connection,
             None => return ERRNO_NODEV,
         },
