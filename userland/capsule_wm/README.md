@@ -82,7 +82,14 @@ Lifecycle subscribers receive an `NWMV` envelope (8-byte header +
 20-byte payload: `event_kind u32, owner_pid u32, window_id u32, x u32, y u32`)
 on `OP_WINDOW_OPEN` and `OP_WINDOW_CLOSE`. Event kinds: 0 = opened, 1 = closed,
 2 = full screen, with `x` 1 when the window now covers the dock's band and
-0 when it no longer does.
+0 when it no longer does, 3 = focused.
+
+Kind 3 is sent whenever the focused window after a request, or after the
+sweep of dead processes, is not the one before it, whatever moved it: a
+click, the dock, a chord, a new window, a close. `owner_pid` and
+`window_id` name the window focused now, both 0 when nothing has focus
+(`focus/notice.rs`, `server/focus_notify.rs`). The desktop shell names the
+focused app in its menu bar from it.
 
 `OP_WINDOW_MAXIMIZE`'s `flags` word was padding. Bit 0
 (`MAXIMIZE_FLAG_FULL_SCREEN`) makes the window full screen: the client's

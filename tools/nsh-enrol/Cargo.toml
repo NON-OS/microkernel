@@ -1,0 +1,49 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# nsh-enrol: the fleet operator's tool for nsh/1 enrolment certificates
+# (nsh-enrol/1). It runs on the operator's own machine and nowhere else:
+# no image and no capsule builds it.
+
+[package]
+name = "nsh-enrol"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+# The command line, run whole. The library is checked against the client
+# in userland/nsh_attest_proofs, which builds the documents it reads.
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+name = "nsh_enrol"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nsh-enrol"
+path = "src/main.rs"
+
+[dependencies]
+nsh_attest = { path = "../../userland/nsh_attest" }
+nsh_crypto = { path = "../../userland/nsh_crypto" }
+nsh_wire = { path = "../../userland/nsh_wire" }
+nonos_ed25519 = { path = "../../userland/nonos_ed25519" }
+nonos_hash = { path = "../../userland/nonos_hash" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+
+[workspace]
