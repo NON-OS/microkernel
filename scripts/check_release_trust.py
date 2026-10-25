@@ -29,7 +29,7 @@ import json
 import sys
 from pathlib import Path
 
-from release_trust_lists import drift, read_baseline, read_doc
+from release_trust_lists import drift, read_baseline, read_doc, unnamed
 
 CAPSULES = Path("tools/nix/capsules.json")
 
@@ -63,7 +63,8 @@ def main(argv=None):
     entries = json.loads(CAPSULES.read_text())
     missing = unsealed(entries, a.slugs, lambda p: Path(p).is_file())
     baseline = read_baseline(a.baseline) if a.baseline else set()
-    found = verdict(missing, baseline) + (drift(baseline, read_doc(a.doc)) if a.doc else [])
+    found = (unnamed(entries, a.slugs) + verdict(missing, baseline)
+             + (drift(baseline, read_doc(a.doc)) if a.doc else []))
     for line in found:
         print(line, file=sys.stderr)
     return 1 if found else 0
