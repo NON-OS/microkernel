@@ -17,10 +17,8 @@
 //! The I/O queue's completion wait: the loop both queues share, run over
 //! this queue's ring until `expired` (park::parked) says the time is up.
 
-use core::ptr::read_volatile;
-
 use super::constants::{CQ_BYTES, IO_ENTRIES, IO_QID};
-use crate::admin::{wait_for_completion, Completion, CqCursor};
+use crate::admin::{read_slot, wait_for_completion, Completion, CqCursor};
 use crate::error::NvmeResult;
 use crate::regs::Regs;
 
@@ -46,7 +44,7 @@ pub(super) fn ring_wait<X: FnMut() -> bool>(
             let slot = ring + (head as u64) * (core::mem::size_of::<Completion>() as u64);
             // SAFETY: head is below IO_ENTRIES (the assert above), so the
             // slot lies in the completion queue's mapped DMA region.
-            unsafe { read_volatile(slot as *const Completion) }
+            unsafe { read_slot(slot) }
         },
         // SAFETY: the queue's head doorbell lies in the register block,
         // which bring-up checked holds the doorbells of queue 1.

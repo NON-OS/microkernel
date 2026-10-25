@@ -49,17 +49,17 @@ def attest(extra=b"\x42" * 32):
     out += pack(">QIIB", 0x0102030405060708, 7, 2, 1) + pack(">Q", 0x20240101)
     return out + pack(">IHB", 1, 11, 3) + bytes([0x97, 0x43, 0]) + tpm2b(sha(b"pcrs"))
 
-def doc(version=4):
+def doc(version=5):
     out = b"NONOSATT" + pack(">I", version) + b"\x11" * 32 + b"\x22" * 32 + pack(">I", 3)
-    out += bytes([1, 1, 1]) + pack(">I", 0)
-    if version == 4:
+    out += bytes([1, 1, 1]) + pack(">I", 0) + (pack(">I", 0) if version >= 4 else b"")
+    if version == 5:
         out += bytes([8]) + b"".join(bytes([i]) + bytes([i]) * 32 for i in V4_PCRS)
         out += b32(log())
     sig = pack(">HH", 0x18, 0x0B) + tpm2b(b"\x33" * 32) + tpm2b(b"\x44" * 32)
     return out + b32(attest()) + b32(sig) + b32(b"\x55" * 64)
 
 SEEDS = {
-    "attest_doc": [doc(), doc(3)],
+    "attest_doc": [doc(), doc(4), doc(3)],
     "attest_tcg_log": [log(), spec_id(), spec_id(((11, 32),)) + event(4, 1, sha(b"x"))[:-1]],
     "attest_quote": [attest(), attest(b"")],
 }

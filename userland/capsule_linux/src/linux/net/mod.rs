@@ -52,11 +52,15 @@ mod pair;
 mod peer_addr;
 mod policy;
 mod poll;
+/* A development build's local mirror, dialled directly (dev-mirror). */
+#[cfg(feature = "dev-mirror")]
 pub mod raw;
+#[cfg(feature = "dev-mirror")]
 pub mod raw_io;
 mod ready_sets;
 mod recvfrom;
 mod resolver;
+#[cfg(feature = "dev-mirror")]
 pub mod route;
 mod select;
 mod shutdown;

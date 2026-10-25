@@ -16,7 +16,7 @@
 
 //! A set of kernel capabilities, as a mask over their bits. A set is only
 //! made from a parsed name list, so each member is a name the kernel has;
-//! a ceiling is a set that also holds none of the forbidden six.
+//! a ceiling is a set that also holds none of the forbidden nine.
 
 use crate::caps::{bit, forbidden_mask, KERNEL_CAPS};
 use alloc::vec::Vec;

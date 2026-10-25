@@ -16,7 +16,7 @@
 
 //! The nsh/1 client's check of a host, before any credential is sent
 //! (docs/design/nsh-v1-attest.md, "What the client checks, in order"). The
-//! document is `NONOSATT` version 4 (docs/design/k1-attest-doc-v4.md); an
+//! document is `NONOSATT` version 5 (docs/design/k1-attest-doc-v4.md); an
 //! older one quotes too little and is refused. Every step is its own
 //! function and refuses with its own name, and the first refusal ends the
 //! check: `ABORT(POLICY)`, shown to the user as `POLICY (<name>)`.

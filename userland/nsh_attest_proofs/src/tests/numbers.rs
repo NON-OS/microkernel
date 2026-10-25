@@ -48,10 +48,11 @@ fn pcr_7_is_replayed_even_when_enrolled_alike() {
 
 #[test]
 fn a_pcr_count_below_the_entries_that_follow_is_refused() {
-    // Byte 87 is pcr_count: magic 8, version 4, 32 + 32, count 4, 3 flags, grants 4.
-    let s = Spec { bytes: |d| d[87] = 7, ..Spec::default() };
+    // Byte 91 is pcr_count: magic 8, version 4, 32 + 32, count 4, 3 flags,
+    // grants 4, identity 4.
+    let s = Spec { bytes: |d| d[91] = 7, ..Spec::default() };
     assert_eq!(refused(s), Refusal::Format(FormatFault::Value));
-    passes(Spec { bytes: |d| assert_eq!(d[87], 8), ..Spec::default() });
+    passes(Spec { bytes: |d| assert_eq!(d[91], 8), ..Spec::default() });
 }
 
 #[test]
