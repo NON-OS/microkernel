@@ -3,10 +3,10 @@
 
 use nonos_wifi_core::wpa::akm::Akm;
 
-use crate::ap_sim::GTK;
-use crate::join_rig::*;
 use super::drive::{joined, only_handshake_frames_left};
 use super::rig::JOIN_COMMANDS;
+use crate::ap_sim::GTK;
+use crate::join_rig::*;
 
 #[test]
 fn a_wpa2_join_runs_linuxs_command_order_to_an_open_port() {
