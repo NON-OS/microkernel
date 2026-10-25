@@ -41,7 +41,7 @@ impl BlockDevice {
         let blocks = chunk.len() / self.geometry.lba_size() as usize;
         let body = rw_header(at, blocks as u32);
         let mut rx = alloc::vec![0u8; HDR_LEN + STATUS_LEN + chunk.len()];
-        let (n, id) = call(self.port, self.driver.magic(), op, &body, &mut rx)?;
+        let (n, id) = call(self.port, self.driver.magic(), op, self.unit, &body, &mut rx)?;
         let payload = decode_reply(&rx, n, self.driver.magic(), op, id)?;
         if payload.len() != chunk.len() {
             return Err(BlkError::BadLength);

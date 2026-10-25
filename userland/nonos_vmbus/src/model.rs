@@ -65,7 +65,24 @@ impl HostRing {
     /// `ty` with `data`, or false for no room (pending_send_sz then set).
     /// Whether it signalled the guest.
     pub fn send(&self, m: &mut impl Shared, ty: u16, txid: u64, data: &[u8]) -> Option<bool> {
-        let len_qwords = 2 + data.len().div_ceil(8);
+        self.send_packet(m, ty, 0, txid, &[], data)
+    }
+
+    /// The same, with `flags` and a descriptor `desc` (whole qwords) between
+    /// the header and the data: a transfer-pages packet's ranges, as
+    /// OpenVMM's vmbus_ring writes them (TransferPageHeader, then ranges).
+    pub fn send_packet(
+        &self,
+        m: &mut impl Shared,
+        ty: u16,
+        flags: u16,
+        txid: u64,
+        desc: &[u8],
+        data: &[u8],
+    ) -> Option<bool> {
+        assert!(desc.len().is_multiple_of(8), "a descriptor of whole qwords");
+        let offset_qwords = 2 + desc.len() / 8;
+        let len_qwords = offset_qwords + data.len().div_ceil(8);
         let total = (len_qwords * 8 + 8) as u32;
         let wr = self.idx(m, 0);
         let rd = self.idx(m, 4);
@@ -75,10 +92,13 @@ impl HostRing {
         }
         let mut pkt = vec![0u8; len_qwords * 8 + 8];
         pkt[0..2].copy_from_slice(&ty.to_le_bytes());
-        pkt[2..4].copy_from_slice(&2u16.to_le_bytes());
+        pkt[2..4].copy_from_slice(&(offset_qwords as u16).to_le_bytes());
         pkt[4..6].copy_from_slice(&(len_qwords as u16).to_le_bytes());
+        pkt[6..8].copy_from_slice(&flags.to_le_bytes());
         pkt[8..16].copy_from_slice(&txid.to_le_bytes());
-        pkt[16..16 + data.len()].copy_from_slice(data);
+        pkt[16..16 + desc.len()].copy_from_slice(desc);
+        let at = offset_qwords * 8;
+        pkt[at..at + data.len()].copy_from_slice(data);
         let tail = len_qwords * 8;
         pkt[tail..tail + 8].copy_from_slice(&(u64::from(wr) << 32).to_le_bytes());
         self.io(m, wr, &mut pkt, true);

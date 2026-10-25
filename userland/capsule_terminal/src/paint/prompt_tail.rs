@@ -19,8 +19,8 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::line_text::text;
-use super::metrics::Metrics;
+use crate::paint::line_text::text;
+use crate::paint::metrics::Metrics;
 use crate::jobs::JobState;
 use crate::term::prompt_bits::{fit, jobs_label};
 use crate::term::state::State;
