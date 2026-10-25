@@ -17,6 +17,7 @@
 mod access;
 mod boot_command;
 mod carve;
+pub(crate) mod command_rule;
 mod device;
 mod run;
 mod size;

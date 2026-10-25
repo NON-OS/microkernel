@@ -14,13 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::surface_registry::table::SLOTS;
-use crate::kernel_core::surface_registry::types::{decode_handle, RegistryError, SurfaceHandle};
+use crate::kernel_core::surface_registry::types::{RegistryError, SurfaceHandle};
+
+use super::owned::with_owned;
+use super::rule::Named;
 
 /*
  * Name `receiver` the one process besides the owner that attaches `handle`
- *; `write` maps its view writable. The right is no reference: the
- * receiver's attach takes one, and the owner's release revokes the right.
+ * (L18c, K20); `write` maps its view writable. It must be a live process of
+ * this machine: a name kept for a pid not yet made would let whoever got that
+ * pid next attach. The receiver is named twice, as its thread group: in the
+ * slot, checked before any record is read (`permit`), and as a right with its
+ * write bit (`rights`), which the owner's release, the slot's end and the
+ * receiver's exit take back. An attach needs both. Neither is a reference:
+ * the receiver's attach takes one, so a share no longer keeps a surface
+ * alive until its owner exits.
  */
 pub fn share_surface(
     owner_pid: u32,
@@ -28,15 +36,18 @@ pub fn share_surface(
     receiver: u32,
     write: bool,
 ) -> Result<SurfaceHandle, RegistryError> {
-    let (idx, epoch) = decode_handle(handle);
-    let slots = SLOTS.lock();
-    let slot = slots.get(idx as usize).and_then(|s| s.as_ref()).ok_or(RegistryError::BadHandle)?;
-    if slot.epoch != epoch {
-        return Err(RegistryError::BadHandle);
+    let live = crate::process::with_process(receiver, |_| ()).is_some();
+    if receiver == 0 || !live || crate::process::foreign::is_foreign(receiver) {
+        return Err(RegistryError::InvalidArg);
     }
-    if slot.owner_pid != owner_pid {
-        return Err(RegistryError::NotOwner);
-    }
-    super::rights::record(handle, receiver, write)?;
-    Ok(handle)
+    // Resolved before the table lock: it takes other locks.
+    let group = crate::hardware::broker::holder_of(receiver);
+    with_owned(owner_pid, handle, |slot| {
+        super::rights::record(handle, group, write)?;
+        match slot.shares.name(group) {
+            Named::Added | Named::Already => Ok(handle),
+            Named::Full => Err(RegistryError::OutOfSlots),
+            Named::Refused => Err(RegistryError::InvalidArg),
+        }
+    })
 }

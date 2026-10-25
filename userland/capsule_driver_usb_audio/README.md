@@ -5,6 +5,8 @@ Status: wired, not yet signed. The kernel mirror
 `nonos-capsule-driver-usb-audio` (the `microkernel-driver-usb-audio` build)
 wherever the inventory sees an xHCI controller, before audio.server, which
 plays through it while it reports a device ready and through `driver.hda0`
+otherwise. It has no owner certificate yet, so no image carries it until the
+owner signs it.
 
 ## Role
 
@@ -94,7 +96,7 @@ its DMA and the stream's buffers are driver.xhci0's.
 
 - One device, one playback stream, 48 kHz stereo 16-bit only, USB Audio
   1.0 or 2.0.
-- Each batch is up to 8 ms of sound (at most 32 packets and 4032 bytes),
+- Each batch is up to 8 ms of sound (at most 31 packets and 4032 bytes),
   sent with OP_ISOCH_OUT; the call returns when the batch before has played,
   which paces the loop. A stream that runs short plays silence.
 - Three failed batches in a row give the device back and the search resumes.
@@ -144,6 +146,7 @@ No boot yet.
 
 ## Release checklist
 
+- Signed by the owner and added to the desktop image's features.
 - A QEMU `-device usb-audio` boot playing through `driver.usb_audio0`.
 
 ## Real hardware bring-up checklist

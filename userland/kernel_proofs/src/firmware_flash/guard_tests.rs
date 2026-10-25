@@ -30,14 +30,15 @@ fn every_window_touching_the_flash_is_refused() {
 fn the_claim_and_map_paths_consult_the_guard() {
     let claim = include_str!("../../../../src/hardware/broker/claim/claim.rs");
     let first = claim.find("is_firmware(device_id)").expect("claim asks");
-    assert!(first < claim.find("CLAIMS.lock()").unwrap(), "before anything is held");
+    // The claims' lock is first taken in the entry (enter.rs).
+    assert!(first < claim.find("super::enter::enter(").unwrap(), "before anything is held");
     let firmware = include_str!("../../../../src/hardware/broker/claim/firmware.rs");
     assert!(firmware.contains("is_flash_function(") && firmware.contains("overlaps_flash("));
     let map = include_str!("../../../../src/hardware/broker/mmio/msix_exclusion.rs");
     assert!(map.contains("firmware_flash::FLASH_WINDOW"), "every map keeps out of it");
-    let sys = include_str!("../../../../src/syscall/microkernel/device.rs");
-    // A firmware refusal is EPERM, as an unconfined or out-of-scope claim is.
-    let flat = sys.split_whitespace().collect::<Vec<_>>().join(" ");
-    assert!(flat.contains("Err(ClaimError::Unconfined) | Err(ClaimError::OutOfScope) |"));
-    assert!(flat.contains("| Err(ClaimError::Firmware) => { ERRNO_PERM }"));
+    // The claim's errnos are mapped in device_errno.rs, beside the syscall: a
+    // firmware refusal is EPERM, as an unconfined or out-of-scope claim is.
+    let sys = include_str!("../../../../src/syscall/microkernel/device_errno.rs");
+    let perm = "ClaimError::Unconfined | ClaimError::Refused | ClaimError::Firmware => ERRNO_PERM";
+    assert!(sys.contains(perm) && sys.contains("ClaimError::OutOfScope => ERRNO_PERM"));
 }

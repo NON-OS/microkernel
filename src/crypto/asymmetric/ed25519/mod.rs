@@ -18,6 +18,7 @@
 #![allow(clippy::many_single_char_names)]
 
 mod field;
+mod generate;
 mod point;
 mod scalar;
 mod signature;

@@ -23,7 +23,7 @@
 //! kernel_proofs::function_reset.
 
 /// Transactions Pending may stay set this long; then the reset goes ahead
-/// anyway, as Linux's pci_wait_for_pending_transaction does after 700 ms.
+/// anyway (our bound).
 pub(crate) const PENDING_MS: u64 = 700;
 /// No config request this soon after the FLR (PCIe 5.0, 6.6.2).
 pub(crate) const SETTLE_MS: u64 = 100;
@@ -44,7 +44,8 @@ pub(crate) const fn pcie_flr(devcap: u32) -> bool {
     devcap & (1 << 28) != 0
 }
 
-/// AF Capabilities: TP (bit 0) and FLR (bit 1), both, as Linux asks.
+/// AF Capabilities: TP (bit 0) and FLR (bit 1), both: an FLR whose pending
+/// transactions cannot be read is not trusted.
 pub(crate) const fn af_flr(afcap: u8) -> bool {
     afcap & 0b11 == 0b11
 }

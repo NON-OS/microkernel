@@ -17,3 +17,6 @@
 pub(super) const SERVICE_INBOX: u64 = 0;
 pub(super) const RECV_BLOCK: u64 = 1000;
 pub(super) const RECV_RETRY_MS: u64 = 16;
+
+/// "NINP", the input router's event header, as it arrives.
+pub(super) const INPUT_MAGIC: [u8; 4] = 0x4E49_4E50u32.to_le_bytes();

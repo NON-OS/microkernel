@@ -26,6 +26,9 @@ pub enum KeyError {
     Refused(u32),
     /// Longer than [`super::consts::LABEL_MAX`], or empty.
     BadLabel,
+    /// The seeded RNG could not give the session's caller nonce, so no
+    /// session was started.
+    NoRandomness,
 }
 
 impl From<TpmError> for KeyError {
@@ -40,6 +43,7 @@ impl KeyError {
             KeyError::Tpm(e) => e.as_str(),
             KeyError::Refused(_) => "tpm refused the command",
             KeyError::BadLabel => "label empty or too long",
+            KeyError::NoRandomness => "no randomness for the session nonce",
         }
     }
 }

@@ -21,12 +21,13 @@
 //! that is not a P2SB. The hide control (P2SBC at 0xE0, HIDE bit 8) is
 //! recalled from the PCH datasheets (volume 2, P2SB): unverified.
 
-use crate::arch::x86_64::acpi::aml::sbreg_from_bar0;
+use crate::arch::firmware_table::devices::sbreg_from_bar0;
 use crate::bus::pci::{pci_read16, pci_read32, pci_write32};
 use crate::sys::serial;
 
 const DEV: u8 = 31;
 const FUNC: u8 = 1;
+// The P2SB control register and its hide bit (PCH datasheet; recalled, unverified).
 const P2SBC: u8 = 0xE0;
 const P2SBC_HIDE: u32 = 1 << 8;
 // A P2SB is class 05h subclass 80h (PCI_CLASS_MEMORY_OTHER).

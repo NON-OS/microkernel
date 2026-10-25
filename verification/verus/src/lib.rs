@@ -20,5 +20,6 @@
 
 pub mod capabilities;
 pub mod ipc_lengths;
+pub mod page_global;
 pub mod page_permissions;
 pub mod stark_attestation;

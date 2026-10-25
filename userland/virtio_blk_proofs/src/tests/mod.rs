@@ -31,6 +31,7 @@ mod served;
 mod source;
 
 mod abi_tests;
+mod barrier_tests;
 mod bringup_tests;
 mod chain_tests;
 mod clock_tests;

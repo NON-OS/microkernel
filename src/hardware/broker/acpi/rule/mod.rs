@@ -22,8 +22,10 @@ mod facts;
 mod legacy;
 mod memory;
 mod ports;
+mod power;
 mod reason;
 mod refusal;
+mod sleep_enable;
 mod table;
 
 pub use allowed::AML_PORTS;
@@ -32,5 +34,9 @@ pub use facts::{Facts, MemKind};
 pub use legacy::LEGACY_PORTS;
 pub use memory::memory;
 pub use ports::{io, pci_config};
+pub use power::{power_reg, touches as power_touches, PowerReg, SPACE_IO, SPACE_MEMORY};
 pub use refusal::{Hardware, Legacy, Refusal};
+pub use sleep_enable::{
+    sets_sleep_enable, sleep_enable, SleepEnable, PM1_SLP_EN, SLEEP_CONTROL_SLP_EN,
+};
 pub use table::{table_read, LEGACY_BIOS};

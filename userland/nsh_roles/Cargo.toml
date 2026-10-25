@@ -1,0 +1,36 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# The nsh/1 role table and grant checks (docs/design/nsh-v1-roles.md): the
+# signed role table and revocation list a host installs, the three roles
+# shipped, and every check a host runs on a login and on an escalation.
+# Times come from the caller; nothing here reads a clock.
+
+[package]
+name = "nsh_roles"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_hash = { path = "../nonos_hash" }
+nonos-mldsa65 = { path = "../../nonos-mldsa65" }
+nsh_crypto = { path = "../nsh_crypto" }
+nsh_wire = { path = "../nsh_wire" }

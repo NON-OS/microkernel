@@ -17,46 +17,42 @@
 use core::mem;
 use core::ptr;
 
-use super::super::state::TableRegistry;
 use super::dmar_entry::entry;
+use super::dmar_rmrr_store::rmrr_cut_short;
+use super::dmar_walk::walk_structures;
+use crate::arch::x86_64::acpi::parser::phys::mapped_table;
+use crate::arch::x86_64::acpi::parser::state::TableRegistry;
 use crate::arch::x86_64::acpi::tables::{Dmar, SIG_DMAR};
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
-    let addr = match registry.tables.get(&SIG_DMAR) {
-        Some(&a) => a,
-        None => return,
-    };
-    let Some((addr, header)) = super::super::phys::mapped_table(addr) else {
-        return;
-    };
-    let mut found_drhd = false;
+    let Some(&addr) = registry.tables.get(&SIG_DMAR) else { return };
+    let Some((addr, header)) = mapped_table(addr) else { return };
     // SAFETY: eK@nonos.systems - `addr` is the directmapped table ACPI
-    // published, mapped for its whole length (mapped_table) and read whole by
-    // its checksum; every structure read below lies within `[addr, end)`,
-    // which the length check at each step keeps.
-    unsafe {
+    // published, mapped for its whole length (mapped_table); the checksum
+    // refuses a length under the header or past MAX_TABLE_BYTES before the
+    // slice is made over it.
+    let table = unsafe {
         if !header.validate_checksum(addr as *const u8) {
             return;
         }
-        if header.length as usize >= mem::size_of::<Dmar>() {
-            let dmar = ptr::read_volatile(addr as *const Dmar);
-            super::dmar_flags::record(dmar.flags);
-            super::dmar_flags::record_width(dmar.host_address_width);
-        }
-        let mut cursor = addr + mem::size_of::<Dmar>() as u64;
-        let end = addr + header.length as u64;
-
-        while cursor + 4 <= end {
-            let kind = ptr::read_volatile(cursor as *const u16);
-            let length = ptr::read_volatile((cursor + 2) as *const u16);
-            if length < 4 || cursor + length as u64 > end {
-                // What follows is unread: a unit there would be left off.
-                super::dmar_units::left_off();
-                break;
-            }
-            let bytes = core::slice::from_raw_parts(cursor as *const u8, length as usize);
-            found_drhd |= entry(kind, cursor, bytes);
-            cursor += length as u64;
+        core::slice::from_raw_parts(addr as *const u8, header.length as usize)
+    };
+    if table.len() >= mem::size_of::<Dmar>() {
+        // SAFETY: eK@nonos.systems - `table` holds a whole Dmar, packed.
+        let dmar = unsafe { ptr::read_unaligned(table.as_ptr() as *const Dmar) };
+        super::dmar_flags::record(dmar.flags);
+        super::dmar_flags::record_width(dmar.host_address_width);
+    }
+    let mut found_drhd = false;
+    let walked = walk_structures(table, |kind, bytes| found_drhd |= entry(kind, bytes));
+    if walked.cut_short {
+        // What follows is unread: a unit there would be left off. A cut
+        // after the RMRRs hid none of them; before, any could be missing (L67).
+        super::dmar_units::left_off();
+        let rmrrs = if walked.past_rmrr { "kept" } else { "withheld" };
+        crate::log::info!("[VT-D] DMAR cut short at a bad structure; RMRR mappings {}", rmrrs);
+        if !walked.past_rmrr {
+            rmrr_cut_short();
         }
     }
     if !found_drhd {

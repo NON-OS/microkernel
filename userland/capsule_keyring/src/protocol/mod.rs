@@ -18,6 +18,7 @@ mod decode;
 mod distinct;
 mod encode;
 mod errno;
+mod gated;
 mod ops;
 mod retired;
 mod types;
@@ -27,9 +28,10 @@ pub use decode::decode_request;
 
 pub use encode::encode_response;
 pub use errno::{EACCES, EBUSY, EINVAL, ENOENT, ENOSPC};
+pub use gated::wallet_only;
 pub use retired::retired;
 pub use types::{
-    Request, KERNEL_REPLY_ENDPOINT, OP_COUNT, OP_DELETE, OP_LIST_WALLET_RAILS, OP_LOCK,
+    Request, KERNEL_REPLY_ENDPOINT, OP_COUNT, OP_DELETE, OP_LIST, OP_LIST_WALLET_RAILS, OP_LOCK,
     OP_METADATA, OP_RETRIEVE, OP_SHIELD_MATERIAL, OP_SHIELD_OPEN, OP_SHIELD_SEAL,
     OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_STAKE, OP_SIGN_NOX_STAKE_APPROVE, OP_SIGN_NOX_STAKE_LOCKED,
     OP_SIGN_NOX_TRANSFER, OP_SIGN_NOX_UNSTAKE, OP_SIGN_TX, OP_SIGN_TYPED_DATA, OP_STORE, OP_UNLOCK,
