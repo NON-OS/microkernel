@@ -59,6 +59,7 @@ mod start_say;
 mod start_stop;
 mod store_why;
 mod terminal;
+mod selftest_panic;
 mod terminal_box;
 mod terminal_launch;
 mod terminal_path;

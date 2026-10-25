@@ -1,0 +1,9 @@
+953:[ZK-ATTEST] ok payment vendor
+955:[SPAWN] name=payment pid=0x000000000000002E caps=0x0000000010000079 entry=0x000000001A16C940
+957:[PAYMENT] capsule spawned
+961:[ZK-ATTEST] ok nox_settle vendor
+963:[SPAWN] name=nox_settle pid=0x000000000000002F caps=0x000000000000003C entry=0x0000000014912B40
+965:[NOX-SETTLE] capsule spawned
+1057:[ZK-ATTEST] ok app.terminal vendor
+1059:[SPAWN] name=app.terminal pid=0x000000000000003A caps=0x00000000C100197D entry=0x000000002A312C90
+1061:[APP-TERMINAL] capsule spawned
