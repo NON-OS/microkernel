@@ -35,3 +35,15 @@ pub(crate) fn leave() -> ! {
         core::arch::asm!("ecall", in("a7") 93u64, in("a0") 0u64, options(noreturn));
     }
 }
+
+/// Wait, up to 30 s, for `done`: a thread that ends with a bare exit cannot
+/// be joined, so the tests watch for what it leaves behind.
+pub(crate) fn wait_for(done: impl Fn() -> bool) {
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    while !done() && std::time::Instant::now() < deadline {
+        std::thread::yield_now();
+    }
+}
+
+/// The probes keep what they saw in statics, so one spawn at a time.
+pub(crate) static ONE_AT_A_TIME: std::sync::Mutex<()> = std::sync::Mutex::new(());
