@@ -40,7 +40,6 @@ pub fn release() -> Release {
         version: "0.9.4".into(),
         pcr8: [0x08; 32],
         pcr9: [0x09; 32],
-        pcr14: [0x14; 32],
         loader: loader(),
         front: [0xF0; 32],
     }

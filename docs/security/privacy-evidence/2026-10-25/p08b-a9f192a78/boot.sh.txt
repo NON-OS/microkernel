@@ -1,0 +1,68 @@
+#!/bin/bash
+# with capsule_acpi built in (profile p08acpi: the standard kernel features,
+# serial debug kept, nonos-capsule-acpi; its Capsule.mk included for the
+# build). Boot B: the shell's Power key -> confirm -> power.off, which only
+# capsule_power holds -> capsule_acpi prepares soft-off -> AdminShutdown.
+# Boot A: QMP system_powerdown -> capsule_acpi's own button path.
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+PK=/home/user/privatekernel
+HEAD_SHA=${1:?the P-08 head}
+P=$SP/p08; rm -rf $P; mkdir -p $P
+cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
+for i in 1 2 3 4; do git fetch -q origin privacy/p08b-acpi-poff-gone && break; sleep $((2**i)); done
+git checkout -q --detach "$HEAD_SHA" || { echo "NO SUCH HEAD"; exit 1; }
+git log --oneline -1 | tee $P/head.txt
+python3 - <<'PY'
+p="mk/20-build.mk"; s=open(p).read()
+a="include userland/capsule_proof_io/Capsule.mk\n"
+assert s.count(a)==1; open(p,"w").write(s.replace(a, a+"include userland/capsule_acpi/Capsule.mk\n"))
+p="tools/nix/config.nix"; s=open(p).read()
+a="    standard = {\n"
+add='''    p08acpi = {
+      about = "P-08's scratch proof: the full desktop with capsule_acpi";
+      for = "P-08's boots";
+      privacy = "none: a test image";
+      kernel = [ "microkernel-full-gui" "nonos-capsule-acpi" ];
+      loader = "standard";
+      drop = [ ];
+    };
+'''
+assert s.count(a)==1; open(p,"w").write(s.replace(a, add+a))
+PY
+git diff --stat | tee -a $P/head.txt
+git add -A -f tools/nix mk >/dev/null
+nix develop --command python3 tools/nix/catalogues.py > $SP/p08-cat.log 2>&1 || { echo CATALOGUE-FAILED; tail -20 $SP/p08-cat.log; exit 1; }
+git add -A -f tools/nix mk >/dev/null
+nix develop --command python3 tools/nix/inputs.py >> $SP/p08-cat.log 2>&1 || { echo INPUTS-FAILED; tail -20 $SP/p08-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+NIX_CONFIG=$'max-jobs = 4\ncores = 4' python3 tools/nonos-dev-image --profile p08acpi > $SP/devimg-p08.log 2>&1 || { echo IMAGE-FAILED; tail -40 $SP/devimg-p08.log; exit 1; }
+IMG=/home/user/pk-build/target/dev/tree/target/release/p08acpi-dev/nonos.img
+sha256sum $IMG | tee -a $P/head.txt
+cd $PK
+q() { python3 $SP/walk-a/qmp.py "$@"; }
+alive() { python3 -c 'import socket,sys; s=socket.socket(socket.AF_UNIX); s.settimeout(2); s.connect("target/qemu/qmp.sock"); sys.exit(0 if s.recv(64) else 1)' 2>/dev/null; }
+boot() {  # $1 = tag
+  rm -f target/qemu/qmp.sock
+  echo "boot $1 at $(date -u +%T)"
+  nix develop --command python3 tools/nonos-qemu --image "$IMG" --tpm --fresh --headless --smp 4 --mem 6G --timeout 5000 \
+    --serial $P/$1-serial.log --lane iommu=intel --lane usb-kbd --lane usb-tablet > $P/$1-qemu.log 2>&1 &
+  for i in $(seq 1 720); do grep -qa 'name=app.setup_wizard' $P/$1-serial.log 2>/dev/null && break; sleep 5; done
+  sleep 180
+  for k in ret "n o n o s ret" ret ret ret ret ret ret ret ret ret ret ret; do q $k sleep:6 >/dev/null; done
+  sleep 60; q esc sleep:4 shot:$P/$1-desktop.png >/dev/null
+}
+ending() {  # $1 = tag
+  for i in $(seq 1 120); do alive || break; sleep 1; done
+  alive && { echo "$1: QEMU STILL RUNNING 120 s on $(date -u +%T)"; q shot:$P/$1-after.png; python3 -c 'import json,socket; s=socket.socket(socket.AF_UNIX); s.connect("target/qemu/qmp.sock"); f=s.makefile("rw"); f.readline(); f.write(json.dumps({"execute":"qmp_capabilities"})+"\n"); f.flush(); f.readline(); f.write(json.dumps({"execute":"quit"})+"\n"); f.flush()'; echo "$1: QMP quit $(date -u +%T)"; } || echo "$1: QEMU exited by itself $(date -u +%T)"
+  tail -1 $P/$1-qemu.log
+}
+boot B
+L0=$(wc -l < $P/B-serial.log)
+echo "B: power key at $(date -u +%T)"; q power sleep:10 shot:$P/B-dialog.png >/dev/null
+q tab sleep:3 shot:$P/B-focus.png >/dev/null
+echo "B: enter at $(date -u +%T)"; q ret
+ending B
+boot A
+echo "A: system_powerdown at $(date -u +%T)"; q powerdown sleep:5 >/dev/null
+ending A
+echo P08-DONE

@@ -19,7 +19,7 @@ use super::state::VOLUME;
 use crate::fs::blockfs;
 
 pub fn remove(path: &[u8]) -> Result<(), VolumeError> {
-    let guard = VOLUME.write();
+    let guard = crate::smp::write_responsive(&VOLUME);
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     super::import_guard::guard(&state.key, &state.mount, path, "unlink")?;
     blockfs::unlink_path(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)

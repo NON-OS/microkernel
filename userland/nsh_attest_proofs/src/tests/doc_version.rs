@@ -32,7 +32,7 @@ fn version_5_parses_and_places_every_field() {
     assert_eq!((d.iommu_vendor, d.iommu_enforcing, d.unconfined_grants), (1, true, 0));
     assert_eq!(d.identity_devices, 0);
     assert_eq!(d.pcr(9), Some(&[0x09; 32]));
-    assert_eq!(d.pcr(14), Some(&[0x14; 32]));
+    assert_eq!(d.pcr(14), Some(&Spec::default().log.pcrs[14]), "the log's replay");
     assert_eq!(d.pcr(3), None);
     assert_eq!(d.ak_public, &crate::build::ak::Key::new(1).public());
     assert!(!d.log.is_empty() && !d.attest.is_empty() && !d.signature.is_empty());
