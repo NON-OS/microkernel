@@ -14,41 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bytes keccak256 is taken over. `keccak` is the device's syscall in
-//! the keyring and a library on the host, so this file is the same in both.
+//! The bytes keccak256 is taken over, besides the domain's 160, which are
+//! nonos_nox_config's domain_words_at. Both typehashes are the config's
+//! pinned ones, so this file holds no hash of its own.
 
 use alloc::vec::Vec;
 
-use super::domain::{Domain, DOMAIN_TYPE};
 use super::entry::Entry;
-
-/// typehash | keccak(name) | keccak(version) | chainId | verifyingContract.
-pub fn domain_preimage(
-    d: &Domain,
-    chain: u64,
-    contract: &[u8; 20],
-    keccak: impl Fn(&[u8]) -> Option<[u8; 32]>,
-) -> Option<[u8; 160]> {
-    let mut out = [0u8; 160];
-    out[0..32].copy_from_slice(&keccak(DOMAIN_TYPE.as_bytes())?);
-    out[32..64].copy_from_slice(&keccak(d.name.as_bytes())?);
-    out[64..96].copy_from_slice(&keccak(d.version.as_bytes())?);
-    out[120..128].copy_from_slice(&chain.to_be_bytes());
-    out[140..160].copy_from_slice(contract);
-    Some(out)
-}
 
 /// typehash | the field words, which admit() has already checked. Every
 /// field is a static type, so encodeData is the words as they came.
-pub fn struct_preimage(
-    e: &Entry,
-    words: &[u8],
-    keccak: impl Fn(&[u8]) -> Option<[u8; 32]>,
-) -> Option<Vec<u8>> {
+pub fn struct_preimage(e: &Entry, words: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(32 + words.len());
-    out.extend_from_slice(&keccak(e.type_string.as_bytes())?);
+    out.extend_from_slice(&e.typed.typehash);
     out.extend_from_slice(words);
-    Some(out)
+    out
 }
 
 /// 0x19 0x01 | domainSeparator | structHash.
