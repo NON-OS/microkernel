@@ -16,6 +16,7 @@
 
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_INSTALL: u16 = 2;
+/// Retired (`retired.rs`): refused, never reused.
 pub const OP_LOAD_FROM_STORE: u16 = 3;
 pub const OP_LOAD_BY_NAME: u16 = 4;
 pub const OP_LIST_INSTALLED: u16 = 5;
