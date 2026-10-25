@@ -46,6 +46,8 @@ volume](../overview/glossary-claim-epoch.md#data-volume) the plan names.
 | `MLVF` | `0x46564C4D` | `MkLocalVerify` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_trust.rs:31` | Ask whether an image is proved under a root this machine trusts. |
 | `MSNT` | `0x544E534D` | `MkSealNote` | ForeignExec | `can_foreign_exec` `src/syscall/contract/cap_table/mk_trust.rs:38` | A supervisor's note in its family's record: the app, or a diagnostic. |
 | `MSLR` | `0x524C534D` | `MkSealRead` | DeviceSecret | `can_device_secret` `src/syscall/contract/cap_table/mk_trust.rs:39` | Take the newest final record sealed for an app, with its witness and measurements; it is dropped as it is read. |
+| `MSLP` | `0x504C534D` | `MkSealPeek` | DeviceSecret | `can_device_secret` `src/syscall/contract/cap_table/mk_trust.rs:41` | Copy the newest final record sealed for an app, as MkSealRead hands it, and leave it sealed, for a receipt. |
+| `MSLD` | `0x444C534D` | `MkSealDrop` | DeviceSecret | `can_device_secret` `src/syscall/contract/cap_table/mk_trust.rs:41` | Drop the one record sealed for an app under a seal number, once its receipt is delivered; ENOENT when none. |
 | `MAIN` | `0x4E49414D` | `MkAppInstall` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk_trust.rs:45` | Ask for a marketplace listing to be installed. |
 | `MAPL` | `0x4C50414D` | `MkAppLaunch` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk_trust.rs:45` | Start the program an installed package provides. |
 | `MAIS` | `0x5349414D` | `MkAppInstallStatus` | AppInstall | `can_app_install` `src/syscall/contract/cap_table/mk_trust.rs:45` | Where an asked-for install stands. |

@@ -16,7 +16,7 @@
 
 //! The family seal where no guest can exist (see foreign_absent.rs): no
 //! family is ever opened here, so none is sealed, measured or read, and
-//! the two calls answer ERRNO_NOSYS as every foreign call does.
+//! the four calls answer ERRNO_NOSYS as every foreign call does.
 
 use crate::syscall::microkernel::errnos::ERRNO_NOSYS;
 
@@ -25,6 +25,14 @@ pub(crate) fn sys_seal_note(_slot: u64, _ptr: u64) -> i64 {
 }
 
 pub(crate) fn sys_seal_read(_app_id_ptr: u64, _out_ptr: u64, _out_len: u64, _pid: u64) -> i64 {
+    ERRNO_NOSYS
+}
+
+pub(crate) fn sys_seal_peek(_app_id_ptr: u64, _out_ptr: u64, _out_len: u64) -> i64 {
+    ERRNO_NOSYS
+}
+
+pub(crate) fn sys_seal_drop(_app_id_ptr: u64, _seal_no: u64) -> i64 {
     ERRNO_NOSYS
 }
 

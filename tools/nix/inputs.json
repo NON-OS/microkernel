@@ -8648,6 +8648,8 @@
    "src/process/foreign/seal/record.rs",
    "src/process/foreign/seal/sealed.rs",
    "src/process/foreign/seal/snapshot.rs",
+   "src/process/foreign/seal/sys_keep.rs",
+   "src/process/foreign/seal/sys_read.rs",
    "src/process/foreign/seal/table.rs",
    "src/process/foreign/seal/trace.rs",
    "src/process/foreign/seal/wipe.rs",
