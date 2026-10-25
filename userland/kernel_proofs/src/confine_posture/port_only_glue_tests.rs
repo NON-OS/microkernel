@@ -20,6 +20,7 @@
 //! unit to confine it, every verdict is asked with it (H-02b).
 
 const JOIN_GROUP: &str = include_str!("../../../../src/hardware/broker/confine/join_group.rs");
+const GATES: &str = include_str!("../../../../src/hardware/broker/confine/gates.rs");
 const ACS: &str = include_str!("../../../../src/hardware/broker/confine/acs.rs");
 const ONE: &str = include_str!("../../../../src/hardware/broker/confine/one.rs");
 const ATTACH: &str = include_str!("../../../../src/hardware/broker/confine/attach.rs");
@@ -28,9 +29,21 @@ const CAPSULE: &str = include_str!("../../../../src/hardware/broker/confine/caps
 const REFUSE: &str = include_str!("../../../../src/hardware/broker/confine/refuse.rs");
 
 #[test]
-fn the_group_check_asks_the_rule_for_the_claim_and_each_holder() {
+fn the_group_check_asks_the_rule_both_ways_for_the_claim_and_each_holder() {
     assert!(JOIN_GROUP.contains("let claim_port_only = all[pos].port_only;"));
-    assert!(JOIN_GROUP.contains("blocker(group, holds_id, claim_port_only, c.port_only)"));
+    assert!(JOIN_GROUP.contains("let ports = (claim_port_only, c.port_only);"));
+    assert!(JOIN_GROUP.contains("blocked_by(claimed, group, &held, ports, place)"));
+    assert!(JOIN_GROUP.contains("filter_map(|&e| Some((e, peer(e)?)))"), "no held device's group");
+    assert!(JOIN_GROUP.contains("(p.at, p.group.as_deref())"), "an unread group taken as empty");
+    assert!(JOIN_GROUP.contains("Blocked::Unreadable(at) => unreadable_line(at, &holder(c.pid))"));
+    assert!(GATES.contains("None => Peer { at, group: None, aliases: Vec::new() },"));
+}
+
+#[test]
+fn a_held_device_carrying_the_claimed_requester_id_refuses_it() {
+    let check = "if let Some((_, p)) = peers.iter().find(|(_, p)| p.aliases.contains(&address)) {";
+    assert!(JOIN_GROUP.contains(check), "the reverse alias check is not as written");
+    assert!(JOIN_GROUP.contains("peer_alias_line(p.at, &holder(c.pid))"));
 }
 
 #[test]
