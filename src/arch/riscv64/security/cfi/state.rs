@@ -20,22 +20,22 @@ use spin::Mutex;
 
 static SHADOW_STACK: Mutex<ShadowStack> = Mutex::new(ShadowStack::new());
 
-pub fn enable_shadow_stack() {
+pub(super) fn enable_shadow_stack() {
     SHADOW_STACK.lock().enable();
 }
 
-pub fn shadow_stack_enabled() -> bool {
+pub(super) fn shadow_stack_enabled() -> bool {
     SHADOW_STACK.lock().is_enabled()
 }
 
-pub const fn shadow_stack_capacity() -> usize {
+pub(super) const fn shadow_stack_capacity() -> usize {
     SHADOW_STACK_CAPACITY
 }
 
-pub fn push_shadow_return(ra: usize) -> Result<(), CfiError> {
+pub(super) fn push_shadow_return(ra: usize) -> Result<(), CfiError> {
     SHADOW_STACK.lock().push(ra)
 }
 
-pub fn pop_shadow_return() -> Result<usize, CfiError> {
+pub(super) fn pop_shadow_return() -> Result<usize, CfiError> {
     SHADOW_STACK.lock().pop()
 }

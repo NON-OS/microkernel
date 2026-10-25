@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const EID_BASE: usize = 0x10;
-pub const FID_GET_SPEC_VERSION: usize = 0;
-pub const FID_GET_IMPL_ID: usize = 1;
-pub const FID_GET_IMPL_VERSION: usize = 2;
-pub const FID_PROBE_EXTENSION: usize = 3;
-pub const FID_GET_MVENDORID: usize = 4;
-pub const FID_GET_MARCHID: usize = 5;
-pub const FID_GET_MIMPID: usize = 6;
+pub(super) const EID_BASE: usize = 0x10;
+pub(super) const FID_GET_SPEC_VERSION: usize = 0;
+pub(super) const FID_GET_IMPL_ID: usize = 1;
+pub(super) const FID_GET_IMPL_VERSION: usize = 2;
+pub(super) const FID_PROBE_EXTENSION: usize = 3;
+pub(super) const FID_GET_MVENDORID: usize = 4;
+pub(super) const FID_GET_MARCHID: usize = 5;
+pub(super) const FID_GET_MIMPID: usize = 6;
