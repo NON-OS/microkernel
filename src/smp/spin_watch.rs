@@ -27,8 +27,7 @@ pub(crate) const REPORT_MS: u64 = 1000;
 /// Slots in the table of who took each lock last.
 pub(crate) const SLOTS: usize = 64;
 
-/// The deepest a call chain reaches below its first frame on one kernel
-/// stack: a process's kernel stack is 32 KiB.
+/// A process's kernel stack, 32 KiB: the span a call chain can cover.
 pub(crate) const CHAIN_SPAN: usize = 32 * 1024;
 
 /// The table slot for the lock at `addr`. Locks are at least 8-byte aligned,
@@ -42,10 +41,32 @@ pub(crate) const fn due(start: u64, now: u64, reported: bool) -> bool {
     !reported && now.saturating_sub(start) >= REPORT_MS
 }
 
-/// Whether the holder's frame at `holder_sp` sits above the waiter's frame at
-/// `waiter_sp` on the same stack: the waiter's own caller holds the lock, and
-/// the wait can never end. Two stacks laid side by side can look the same, so
-/// the report says "likely".
-pub(crate) const fn same_chain(holder_sp: usize, waiter_sp: usize) -> bool {
-    holder_sp > waiter_sp && holder_sp - waiter_sp < CHAIN_SPAN
+/// Who holds a lock a wait has gone on too long for.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum Holder {
+    /// Somebody else, on another stack: the wait may yet end.
+    Other,
+    /// The holder's frame is just above the waiter's, but the waiter's own
+    /// stack bounds are not known, so two stacks side by side could look so.
+    Likely,
+    /// The holder's frame is on the waiter's own kernel stack, above it: the
+    /// waiter's own caller holds the lock, and the wait can never end. Live
+    /// stacks never overlap, so a hold on any other CPU is never this.
+    ReTaken,
+}
+
+/// Judge the holder's frame at `holder_sp` against the waiter's at
+/// `waiter_sp`, whose kernel stack ends at `stack_top` (0 when unknown).
+pub(crate) const fn judge(holder_sp: usize, waiter_sp: usize, stack_top: usize) -> Holder {
+    let above = holder_sp > waiter_sp;
+    // A top of 0 is no stack: no frame lies below it.
+    let on_known_stack = waiter_sp < stack_top && waiter_sp >= stack_top.saturating_sub(CHAIN_SPAN);
+    if on_known_stack {
+        return if above && holder_sp < stack_top { Holder::ReTaken } else { Holder::Other };
+    }
+    if above && holder_sp - waiter_sp < CHAIN_SPAN {
+        Holder::Likely
+    } else {
+        Holder::Other
+    }
 }
