@@ -22,8 +22,9 @@
 //! policy capsule the kernel spawned may tell the kernel so, by the pid it
 //! was spawned as, and only to turn keeping on: nothing turns it off within a
 //! boot, so a later push cannot make a kept boot's writes vanish half way.
-//! Until then no write reaches the store, not even zeros, as which sectors
-//! were cleared is itself something written.
+//! Until then a write may only erase: every byte it changes must become
+//! zero. A record an earlier boot kept can then still be wiped away, and
+//! nothing new can be written down.
 //!
 //! No crate paths here, so the host proofs mount this file as it is.
 
@@ -45,7 +46,14 @@ pub(crate) fn after(armed: bool, granted: bool) -> bool {
     armed || granted
 }
 
-/// True when the store may be written.
-pub(crate) fn may_write(armed: bool) -> bool {
-    armed
+/// True when `new` may replace `old`, the store's bytes at the same place:
+/// anything once keeping is on, and before that only a write that erases.
+pub(crate) fn may_write(armed: bool, old: &[u8], new: &[u8]) -> bool {
+    armed || erases_only(old, new)
+}
+
+/// Every byte `new` changes from `old` becomes zero, and they are the same
+/// length, so nothing is written beyond what was read.
+pub(crate) fn erases_only(old: &[u8], new: &[u8]) -> bool {
+    old.len() == new.len() && old.iter().zip(new).all(|(o, n)| n == o || *n == 0)
 }
