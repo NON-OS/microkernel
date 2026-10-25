@@ -30,6 +30,7 @@
 mod after;
 mod kinds;
 mod link;
+mod power;
 mod protect;
 pub mod queues;
 mod setup;
