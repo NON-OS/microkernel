@@ -40,7 +40,7 @@ the ports.
 | `MFTW` | `0x5754464D` | `MkFutexWait` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Sleep while a 32-bit word holds an expected value. |
 | `MFTK` | `0x4B54464D` | `MkFutexWake` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Wake waiters on a word. |
 | `MSPI` | `0x4950534D` | `MkSpawnInstance` | Admin or SpawnWindow | `can_spawn_window` `src/syscall/contract/cap_table/mk_surface.rs:37` | Ask for another window of an embedded, attested app. |
-| `MTRN` | `0x4E52544D` | `MkToolRun` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_surface.rs:44` | Run a baked, attested tool by name as the caller's child. |
+| `MTRN` | `0x4E52544D` | `MkToolRun` | IPC | `can_ipc` `src/syscall/contract/cap_table/mk_surface.rs:51` | Run a baked, attested tool by name as the caller's child, holding no more than the caller unless the caller holds `SpawnWindow` or `Admin` (`src/userspace/tool_capsules/bound.rs`). |
 | `MTMS` | `0x534D544D` | `MkTimeMillis` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Wall-clock milliseconds; a time correction can move it. |
 | `MMON` | `0x4E4F4D4D` | `MkTimeMonotonic` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Milliseconds since boot; never moves backwards. |
 | `MTRT` | `0x5452544D` | `MkTimeRtc` | valid token | `is_valid` `src/syscall/contract/cap_table/mk.rs:38` | Read the real-time clock as a date and time record. |
