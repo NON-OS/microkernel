@@ -45,7 +45,7 @@ class Lanes(unittest.TestCase):
         self.assertTrue(set(used) <= set(made), "a drive= with no -drive")
         self.assertTrue(all(i.startswith("lane-") for i in made))
         self.assertEqual(p.swaps, {"nic": "igb", "tpm": "tpm-tis", "gpu": "vmware-svga",
-                                   "iommu": "intel"})
+                                   "iommu": "intel", "audio": "beside-nic"})
 
     def test_a_lanes_disk_is_its_own_and_a_power_of_two(self):
         p = lanes.plan([*DISKS, "emmc"], "/a dir")
