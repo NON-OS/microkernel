@@ -33,7 +33,7 @@ use crate::fs::cryptoblock::{ram, set_window};
 const LEAST: u64 = 256 << 20;
 
 pub(super) fn open_session_volume() -> Result<(), VolumeError> {
-    let mut volume = VOLUME.write();
+    let mut volume = crate::smp::write_responsive(&VOLUME);
     if volume.is_some() {
         return Ok(());
     }
