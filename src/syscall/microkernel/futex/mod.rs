@@ -18,15 +18,17 @@
 //! Condvar, Once and thread parking sleep under contention instead of
 //! spinning a yield loop. The wait queue is keyed on (thread group,
 //! address): the threads of one capsule share a futex, other capsules stay
-//! isolated. A waiter's sleep is capped at `SAFETY_MS`, so a wake that races
-//! the enqueue costs a little latency, never a lost wakeup: the std side
-//! rechecks the atomic after every return, so the cap is a safety net, not a
-//! correctness dependency.
+//! isolated. An untimed waiter's sleep is capped at `SAFETY_MS` and a timed
+//! one's at its own timeout, at most `MAX_TIMED_MS`; a waiter is queued
+//! before the word is read, so a wake never finds the queue empty while the
+//! waiter goes to sleep. The std side rechecks the atomic after every return,
+//! so the caps are a safety net, not a correctness dependency.
 
 mod queue;
 mod wait;
 mod waiters;
 mod wake;
 
+pub use queue::forget;
 pub use wait::sys_futex_wait;
 pub use wake::sys_futex_wake;

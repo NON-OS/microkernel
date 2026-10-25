@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a fault reason code means, in the words of VT-d 3.4 Appendix A and
-//! of Linux intel/dmar.c (dma_remap_fault_reasons, irq_remap_fault_reasons),
-//! so a log photo names the cause without the spec at hand.
+//! What a fault reason code means, after VT-d 3.4 Appendix A's table, in
+//! our own short words, so a log photo names the cause without the spec at
+//! hand.
 
 /// Codes 0x20 to 0x2F come from interrupt requests; the record's address
 /// field then holds the interrupt index in bits 63:48, not a page.
@@ -50,8 +50,8 @@ pub const fn reason_text(reason: u8) -> &'static [u8] {
     }
 }
 
-/// `bb:dd.f` for a requester id, as lspci prints it, so the faulting device
-/// can be looked up on the same machine under Linux.
+/// `bb:dd.f` for a requester id, the usual bus, device and function form,
+/// so the faulting device can be found on the machine.
 pub fn bdf_text(source: u16) -> [u8; 7] {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     let bus = (source >> 8) as u8;

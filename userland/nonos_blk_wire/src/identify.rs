@@ -31,6 +31,11 @@ pub const IDENTIFY_LEN: usize = 64;
 pub const MEDIUM_EMMC: u8 = 1;
 pub const MEDIUM_SD: u8 = 2;
 pub const MEDIUM_UFS: u8 = 3;
+/// 4 is a card reader. An ATA disk behind an IDE controller (PIIX4, the
+/// VirtualBox and Hyper-V Gen1 default) and a SCSI disk behind any SCSI host
+/// (virtio-scsi, Fusion-MPT, PVSCSI, BusLogic, storvsc).
+pub const MEDIUM_ATA: u8 = 5;
+pub const MEDIUM_SCSI: u8 = 6;
 const MODEL_MAX: usize = 40;
 const SERIAL_MAX: usize = 20;
 const MODEL_AT: usize = 4;

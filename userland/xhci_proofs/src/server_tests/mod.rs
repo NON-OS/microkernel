@@ -25,6 +25,7 @@ mod bench_driver;
 mod bench_second;
 mod bulk_reply_tests;
 mod config_page_tests;
+mod control_out_tests;
 mod dead_buffer_tests;
 mod dead_configure;
 mod dead_configure_tests;

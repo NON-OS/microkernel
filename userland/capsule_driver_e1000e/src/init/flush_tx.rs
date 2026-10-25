@@ -22,6 +22,7 @@
 //! (empty, head and tail zero), so the descriptor goes in its slot 0.
 
 use core::ptr::write_volatile;
+
 use crate::constants::queue::TX_CMD_IFCS;
 use crate::constants::regs::{REG_TCTL, REG_TDT};
 use crate::constants::rxtx::TCTL_EN;

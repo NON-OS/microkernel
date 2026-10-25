@@ -18,15 +18,13 @@
 use super::table::capability_table;
 capability_table! {
     CoreExec = 1 << 0,
-    /// Enforces nothing.
-    IO = 1 << 1,
+    #[doc = "Enforces nothing."] IO = 1 << 1,
     Network = 1 << 2,
     IPC = 1 << 3,
     Memory = 1 << 4,
     Crypto = 1 << 5,
     FileSystem = 1 << 6,
-    /// Enforces nothing.
-    Hardware = 1 << 7,
+    #[doc = "Enforces nothing."] Hardware = 1 << 7,
     Debug = 1 << 8,
     Admin = 1 << 9,
     RegisterService = 1 << 10,
@@ -34,8 +32,7 @@ capability_table! {
     GraphicsSurfaceCreate = 1 << 12,
     GraphicsSurfaceMap = 1 << 13,
     GraphicsPresent = 1 << 14,
-    /// Enumerate-only. Claiming a device is `Driver`.
-    DeviceEnum = 1 << 15,
+    #[doc = "Enumerate-only. Claiming a device is `Driver`."] DeviceEnum = 1 << 15,
     Driver = 1 << 16,
     /// Map a slice of a claimed device's BAR into the holder's own address space.
     Mmio = 1 << 17,
@@ -72,4 +69,7 @@ capability_table! {
     DeviceSecret = 1 << 35,
     /// Drain and wait on the raw input ring, every keystroke: input_router's alone (K8).
     InputConsumer = 1 << 36,
+    #[doc = "Camera frames; held by no capsule until Decision 9."] CameraCapture = 1 << 37,
+    #[doc = "Microphone samples, held as camera frames are."] MicrophoneCapture = 1 << 38,
+    #[doc = "Copy the whole screen; held by no capsule until Decision 9."] ScreenCapture = 1 << 39,
 }

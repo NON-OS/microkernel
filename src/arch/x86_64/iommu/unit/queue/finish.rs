@@ -19,7 +19,7 @@
 
 use super::error::take_error;
 use crate::arch::x86_64::iommu::regs::offsets;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 use crate::arch::x86_64::iommu::unit::clock::wait_ms;
@@ -32,15 +32,14 @@ pub(super) fn finish(
     status_phys: u64,
     sequence: u32,
 ) -> Result<(), VtdError> {
-    let status = entries_mut(status_phys)?.as_ptr() as *const u32;
+    let status = Frame::at(status_phys)?;
     let mut refused = None;
     let finished = wait_ms(offsets::COMMAND_MS, || {
         if refused.is_none() {
             refused = take_error(unit, ring_phys, status_phys, sequence);
         }
-        // SAFETY: eK@nonos.systems - the first dword of the status page this
-        // module owns; the unit writes it, so it is read volatile.
-        unsafe { core::ptr::read_volatile(status) == sequence }
+        // The unit stores the sequence into the low dword of the page.
+        status.read(0).is_ok_and(|word| word as u32 == sequence)
     });
     match (refused, finished) {
         (Some(e), _) => Err(e),

@@ -19,6 +19,10 @@ pub const CC_USB_TRANSACTION: u8 = 4;
 /// A command named a slot the controller does not have enabled.
 pub const CC_SLOT_NOT_ENABLED: u8 = 11;
 pub const CC_SHORT_PACKET: u8 = 13;
+/// An isoch endpoint found its ring empty (OUT) or its buffer full (IN):
+/// no TD names it, so no waiter ever asks for the event.
+pub const CC_RING_UNDERRUN: u8 = 14;
+pub const CC_RING_OVERRUN: u8 = 15;
 /// An isoch TD whose service interval had passed when it was reached.
 pub const CC_MISSED_SERVICE: u8 = 23;
 /// The Command Completion Event the controller posts once an abort stopped
