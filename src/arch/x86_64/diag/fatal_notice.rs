@@ -21,7 +21,7 @@ pub fn emit_fatal_notice(name: &[u8], rip: u64) {
     crate::sys::serial::print(name);
     crate::sys::serial::print(b"] fatal kernel fault, no recovery path rip=");
     print_hex_u64(rip);
-    crate::sys::serial::println(b" -- CPU halting, boot terminated");
+    crate::sys::serial::println(b" -- to the panic path: wipe, power off");
 }
 
 /// Same notice without the COM1 spinlock, for a fault taken when the
@@ -39,7 +39,7 @@ pub fn emit_fatal_notice_nolock(name: &[u8], rip: u64) {
         buf[2 + i] = hex[((rip >> ((15 - i) * 4)) & 0xF) as usize];
     }
     emit_raw(&buf);
-    emit_raw(b" -- CPU halting, boot terminated\r\n");
+    emit_raw(b" -- to the panic path: wipe, power off\r\n");
 }
 
 fn emit_raw(s: &[u8]) {

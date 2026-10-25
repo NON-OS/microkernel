@@ -17,7 +17,8 @@
 //! every command: the primaries are zeroed and flushed twice, so the host's
 //! copy and the screen hold none of the owner's frame once a transfer has
 //! landed, and a host back again has the next wake finish the blank (each
-//! wake a turn of the serve loop, which settles the queue first).
+//! wake a turn of the serve loop, which settles the queue first), the
+//! clearing said once however many wakes it takes.
 
 use nonos_gfx_serve::OWNER_SILENCE_MS;
 
@@ -54,14 +55,16 @@ fn a_silent_owner_s_blank_wrong_at_any_command_leaves_none_of_its_frame() {
         assert!(!sent || !secret, "{w:?} of {n}: none of it once a transfer landed");
         let Wrong::Dead(k, d) = w else { continue };
         assert_eq!(done, Some(true), "{w:?}");
+        let mut told = r.d.server.take_tell() as u32;
         if d > 0 || k > n {
             let mut t = OWNER_SILENCE_MS;
             while shown(&r, 0).unwrap().contains(&SECRET) && t < OWNER_SILENCE_MS + 2_500 {
                 t += 500;
                 settle(&mut r.d);
-                r.d.server.watch(t);
+                r.d.server.watch_said(t, |_| told += 1);
             }
             assert!(shown(&r, 0).unwrap().iter().all(|&p| p == 0), "{w:?}: blank at last");
         }
+        assert_eq!(told, 1, "{w:?}: the clearing said once, retries or not");
     }
 }
