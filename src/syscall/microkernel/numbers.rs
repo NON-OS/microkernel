@@ -123,6 +123,10 @@ pub const SYS_LINUX_RUN_NET: u64 = tag4(b"MLRN");
 /// Take the newest final record sealed for an app, with its witness and
 /// measurements; it is dropped as it is read.
 pub const SYS_SEAL_READ: u64 = tag4(b"MSLR");
+/// Copy the newest final record sealed for an app and leave it sealed.
+pub const SYS_SEAL_PEEK: u64 = tag4(b"MSLP");
+/// Drop one record sealed for an app, by its seal number.
+pub const SYS_SEAL_DROP: u64 = tag4(b"MSLD");
 /// A supervisor's note in its family's record: the app, or a diagnostic.
 pub const SYS_SEAL_NOTE: u64 = tag4(b"MSNT");
 /// Ask for the headless prover, app.prove.job: PROVE for the store, DELIVER
