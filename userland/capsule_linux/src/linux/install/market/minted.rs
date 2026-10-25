@@ -51,27 +51,3 @@ pub fn place(
     }
     write(at, body)
 }
-
-/// Take `at` out with what was written beside it, through `unlink` and
-/// `found`, the store's look. A path is gone only when the store says it is
-/// not there: a store that fails both says nothing, and so keeps the box.
-/// The policy goes only once the program cannot start, its file or its
-/// trailer gone; until then it stays and keeps the program in its box. True
-/// when the file is gone.
-pub fn take_out<E: PartialEq>(
-    at: &[u8],
-    unlink: &mut impl FnMut(&[u8]),
-    found: &mut impl FnMut(&[u8]) -> Result<bool, E>,
-) -> bool {
-    let mut gone = |p: &[u8]| {
-        unlink(p);
-        found(p) == Ok(false)
-    };
-    let file = gone(at);
-    let trailer = gone(&beside(at, TRAILER));
-    if file || trailer {
-        gone(&beside(at, POLICY_TRAILER));
-        gone(&beside(at, POLICY));
-    }
-    file
-}

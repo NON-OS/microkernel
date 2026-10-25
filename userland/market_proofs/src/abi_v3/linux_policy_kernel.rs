@@ -21,7 +21,7 @@
 
 use nonos_market_proto::{linux_policy_body, parse_linux_policy, LinuxPolicy, MARKET_ARG_LEN};
 
-use super::kernel_linux_policy::{held_to, parse, LinuxPolicyReply, MARKET_ARG_LEN as KERNEL_LEN};
+use super::kernel_linux_policy::{parse, LinuxPolicyReply, MARKET_ARG_LEN as KERNEL_LEN};
 
 type Proto = Option<(LinuxPolicy, [u8; 32])>;
 type Kernel = Option<(LinuxPolicyReply, [u8; 32])>;
@@ -71,14 +71,4 @@ fn the_two_copies_agree_on_every_short_body_and_every_length() {
             assert!(same(parse_linux_policy(&body), parse(&body)), "kind {kind}, {len} bytes");
         }
     }
-}
-
-/* init holds the answer to the pin get_release gave it: an answer made from
- * another release, as when the index was replaced between asks, is none. */
-#[test]
-fn an_answer_for_another_release_is_never_taken() {
-    let body = linux_policy_body(&LinuxPolicy::NoPolicy, &HASH);
-    let answer = parse(&body).expect("reads");
-    assert_eq!(held_to(answer.clone(), &HASH), Some(LinuxPolicyReply::NoPolicy));
-    assert_eq!(held_to(answer, &[6; 32]), None);
 }

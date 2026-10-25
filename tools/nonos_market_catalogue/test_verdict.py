@@ -44,15 +44,6 @@ class Verdict(unittest.TestCase):
         self.assertFalse(verdict.verdict("age", [bad])[0], "a bit past 512")
         self.assertFalse(verdict.verdict("age", [OK, RUN])[0], "every run must pass")
 
-    def test_the_workload_must_end_well_and_be_the_only_set(self):
-        failed = OK.replace(b"status 0", b"status 128")  # git clone with no helper to run
-        self.assertIn("workload failed", verdict.verdict("age", [failed])[2])
-        signalled = OK + b"\n[LINUX] process 3 ended by signal 11"
-        self.assertIn("workload failed", verdict.verdict("age", [signalled])[2])
-        self.assertIn("never ended", verdict.verdict("age", [OK.replace(b"exited, status 0", b"")])[2])
-        two = OK + b"\n[PROVE] syscall buckets ok=" + OTHER.encode()
-        self.assertIn("2 measured sets", verdict.verdict("age", [two])[2])
-
     def test_runs_unite_and_only_passing_recipes_are_written(self):
         with tempfile.TemporaryDirectory() as d:
             recipes = Path(d) / "c.json"

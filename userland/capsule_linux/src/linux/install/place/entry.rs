@@ -43,7 +43,7 @@ pub(super) fn one(entry: &Entry, held: bool) -> Placed {
     }
     let at = visible(b"/", &entry.name);
     let mut write = |path: &[u8], body: &[u8]| store_write(&key(path), body).is_ok();
-    if !super::super::minted::place(&at, &entry.body, held, &mut write) {
+    if !super::super::market::minted::place(&at, &entry.body, held, &mut write) {
         say(b"[LINUX] a file of the package could not be written\n");
         return Placed::Failed;
     }

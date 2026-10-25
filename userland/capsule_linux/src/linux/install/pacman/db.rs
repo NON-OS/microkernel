@@ -24,10 +24,10 @@ use alloc::vec::Vec;
 use nonos_openpgp::Key;
 
 use super::desc::{records, Record};
-use crate::linux::install::pgp::signed;
 use super::source::{repos, Source};
-use crate::linux::install::unpacked::unpacked;
+use crate::linux::install::pgp::signed;
 use crate::linux::install::tar::entries;
+use crate::linux::install::unpacked::unpacked;
 
 pub struct Db {
     /// Each record, with the repository it came from.

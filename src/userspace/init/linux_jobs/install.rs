@@ -22,7 +22,6 @@
 //! does not vouch for, or a market that cannot say, is refused, never
 //! installed without its box.
 
-use crate::security::market_capsule::client::{queued_get_release, queued_install_ready};
 use crate::sys::serial::{print, println};
 use crate::userspace::capsule_linux::{package_arg, spawn_install};
 
@@ -40,21 +39,9 @@ pub(super) fn install(listing: &str, release: &str) {
     let Some(name) = listing.strip_prefix("linux.").and_then(package_arg) else {
         return refuse(listing, b"[LINUX-INSTALL] no package name the personality takes, refused ");
     };
-    /* The store showed it ready; the market is asked again, and the
-     * release's package hash goes to the installer, which takes no other.
-     * The release is resolved once: readiness and the box are asked of
-     * that release by its own id, never of the word "latest" again. */
-    let found = queued_get_release(listing, release);
-    let release = found.as_ref().map_or(release, |r| r.release_id.as_str());
-    let asked = queued_install_ready(listing, release);
-    let ready = asked.as_ref().is_ok_and(|r| r.install_ready);
-    let pinned = found.as_ref().map(|r| r.package_hash).map_err(|e| *e);
-    super::why::say(&asked, &pinned);
-    let (true, Ok(hash)) = (ready, pinned) else {
-        return refuse(listing, b"[LINUX-INSTALL] not ready, refused ");
-    };
-    let Ok(policy) = super::box_of::box_of(listing, release, &hash) else {
-        return refuse(listing, b"[LINUX-INSTALL] the market does not vouch for its box, refused ");
+    let (hash, policy) = match super::vouched::vouched(listing, release) {
+        Ok(v) => v,
+        Err(said) => return refuse(listing, said),
     };
     match spawn_install(&name, &hash, policy.as_deref(), direct) {
         Ok(pid) => {

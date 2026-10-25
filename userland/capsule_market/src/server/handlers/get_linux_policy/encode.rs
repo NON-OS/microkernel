@@ -26,29 +26,10 @@ use alloc::boxed::Box;
 
 use nonos_market_proto::{LinuxPolicy, MARKET_ARG_LEN};
 use nonos_marketplace_abi::{listing_id, policy_verdict, release_id, PolicyVerdict};
-use nonos_marketplace_abi::{CapsuleRelease, MarketplaceEntry, MarketplaceIndex, POLICY_LEN};
+use nonos_marketplace_abi::{CapsuleRelease, MarketplaceEntry, POLICY_LEN};
 
 use crate::chain_hosts::Host;
 use crate::install_ready::ready;
-use crate::server::handlers::install_ready::find_release::find_release;
-
-/// The answer for `listing` and `release` in the accepted index, with the
-/// package hash of the release it is for; None when there is no such
-/// release. `publisher` says whether a release's publisher signature
-/// verified, by entry and release.
-pub(super) fn answer(
-    index: &MarketplaceIndex,
-    index_signed: bool,
-    mut publisher: impl FnMut(usize, usize) -> bool,
-    listing: &str,
-    release: &str,
-) -> Option<(LinuxPolicy, [u8; 32])> {
-    // The resolution readiness and the release lookup use, so all agree on
-    // which release an empty id means.
-    let (at, release_at, rel) = find_release(index, listing, release)?;
-    let entry = index.entries.get(at)?;
-    Some((encode(entry, rel, index_signed, publisher(at, release_at)), rel.package_hash))
-}
 
 /// Whether the index and this release's publisher signature verified: a
 /// policy nobody signed is not the publisher's box, and one for a release

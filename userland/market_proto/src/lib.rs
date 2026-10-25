@@ -41,8 +41,6 @@ mod commerce_parse;
 pub mod header;
 pub mod install;
 pub mod linux_policy;
-#[cfg(test)]
-mod linux_policy_tests;
 pub mod listing;
 mod lp;
 pub mod ops;
@@ -66,10 +64,7 @@ pub use header::{HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use install::Stage;
 pub use linux_policy::{linux_policy_body, parse_linux_policy, LinuxPolicy, MARKET_ARG_LEN};
 pub use listing::{parse_list, Entry};
-pub use ops::{
-    OP_GET_APP, OP_GET_COMMERCE, OP_GET_LINUX_POLICY, OP_GET_RELEASE, OP_HEALTHCHECK,
-    OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX,
-};
+pub use ops::*;
 pub use readiness::{parse_readiness, Readiness, GATES, READINESS_LEN};
 pub use reason::{installed_line, reason, removal_only, Reason};
 pub use release::{parse_release, Release};

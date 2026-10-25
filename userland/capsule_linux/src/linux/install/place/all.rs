@@ -40,10 +40,9 @@ pub fn unpack(files: &Verified, name: &str, chosen: bool, merged: bool) -> Resul
     let mut landed: Vec<Vec<u8>> = Vec::new();
     let mut failed = 0usize;
     let mut links: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
-    let held = chosen && super::super::hold::held();
     for entry in &archive.entries {
         match &entry.kind {
-            Kind::File => match one(entry, held) {
+            Kind::File => match one(entry, chosen && super::super::market::hold::held()) {
                 Placed::Landed(at) => landed.push(at),
                 Placed::Failed => failed += 1,
                 Placed::Refused => {}

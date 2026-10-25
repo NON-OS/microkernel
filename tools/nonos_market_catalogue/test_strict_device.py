@@ -52,7 +52,7 @@ class Device(unittest.TestCase):
 
     def test_limits_are_the_rust_ones_and_a_program_past_max_image_is_refused(self):
         self.assertIn(f"MAX_INFLATED: usize = {gz.MAX_INFLATED >> 20} << 20;", (RS / "unpacked.rs").read_text())
-        self.assertIn(f"MAX_IMAGE: u32 = {apk.MAX_IMAGE >> 20} << 20;", (RS / "market.rs").read_text())
+        self.assertIn(f"MAX_IMAGE: u32 = {apk.MAX_IMAGE >> 20} << 20;", (RS / "market" / "bind.rs").read_text())
         big = ELF + bytes(apk.MAX_IMAGE)
         with self.assertRaises(ValueError):
             apk.program(tar([("usr/bin/x", big)]), "x")

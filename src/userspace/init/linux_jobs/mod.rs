@@ -27,6 +27,7 @@ mod queue;
 mod run;
 mod service;
 mod status;
+mod vouched;
 mod why;
 
 pub(crate) use queue::{has_pending, request_install, request_quiet_run, request_run, request_uninstall};
