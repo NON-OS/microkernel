@@ -1,3 +1,19 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! A spec, built: the bytes a host sends and the policy a client holds.
 //! `HOST_PROOF` is signed afresh by `host_key` on every check, so a test
 //! may change any part after building.
@@ -20,7 +36,6 @@ pub struct Built {
     pub fleet: [u8; 16],
     pub releases: Vec<Release>,
     pub revoked: Vec<[u8; 64]>,
-    pub boot_apps: Vec<[u8; 32]>,
     pub host_key: u8,
 }
 
@@ -36,8 +51,7 @@ impl Built {
 
     pub fn policy(&self) -> Policy {
         let auth = vec![hybrid(AUTHORITY).authority()];
-        let p = Policy::new(self.fleet, auth, self.releases.clone(), self.revoked.clone());
-        p.and_then(|p| p.with_boot_applications(self.boot_apps.clone())).expect("policy")
+        Policy::new(self.fleet, auth, self.releases.clone(), self.revoked.clone()).expect("policy")
     }
 
     /// The whole check: the release's version and PCR 9, or the refusal.
