@@ -32,6 +32,9 @@ pub mod identity_change;
 mod identity_tests;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/intr_format.rs"]
 pub mod intr_format;
+#[path = "../../../../src/arch/x86_64/iommu/amd_vi/intr_rule.rs"]
+pub mod intr_rule;
+mod intr_rule_tests;
 mod intr_slot_tests;
 mod intr_tests;
 #[path = "../../../../src/arch/x86_64/iommu/amd_vi/pte.rs"]

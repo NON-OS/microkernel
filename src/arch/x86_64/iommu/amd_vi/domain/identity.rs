@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! How many device table entries still let a device reach all of memory.
-//! Bring-up gives every enumerated function and every id firmware names a
-//! passthrough entry; a capsule's claim moves one into its domain, and a
-//! release leaves it denied. The posture line reads the count, so a machine
-//! with every unit enforcing still says how much it has not confined.
+//! Bring-up writes none: every id starts blocked, or in a domain of its
+//! reserved memory (K4), and a release leaves it denied. Every write is
+//! counted anyway, so the posture line says what the table holds, never
+//! what bring-up meant it to.
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 

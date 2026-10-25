@@ -16,30 +16,12 @@
 
 #[derive(Clone, Copy)]
 pub struct NetStatus {
-    pub dns_ok: bool,
-    pub sockets_ok: bool,
-    pub nym_ok: bool,
-    pub route_ready: bool,
-    pub rpc_resolve_ok: bool,
-    pub rpc_socket_ok: bool,
     pub rpc_connect_ok: bool,
-    pub rpc_tcp_ok: bool,
-    pub rpc_codec_ok: bool,
-    pub tls13_ok: bool,
-    pub tls_server_ok: bool,
-    pub tls_record_ok: bool,
-    pub tls_certificate_ok: bool,
     pub tls_chain_ok: bool,
-    pub tls_anchor_ok: bool,
-    pub tls_signature_ok: bool,
-    pub tls_hostname_ok: bool,
-    pub tls_validity_ok: bool,
-    pub tls_finished_ok: bool,
-    pub tls_client_finished_ok: bool,
     pub rpc_chain_ok: bool,
     /// The RPC host whose chain id `rpc_chain_ok` holds for.
     pub rpc_host: &'static str,
     /// The network the last check went over, None before the first.
-    pub route: Option<nonos_route_link::Route>,
+    pub route: Option<super::WalletRoute>,
     pub status: &'static [u8],
 }

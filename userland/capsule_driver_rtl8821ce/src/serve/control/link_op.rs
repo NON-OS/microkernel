@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The link op: whether the radio is associated and with which network, as
-//! `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]` after the header. The
+//! `[associated u8][6 zero bytes][ssid_len u8][ssid][akm u8]` after the header
+//! (the zeros once carried the BSSID, which no reader needs and none is told),
+//! the AKM 0 when not associated, then the link's history (`LinkHistory`) and
+//! message 3's Transition Disable bitmap (0 when not associated). The
 //! panels read it to show the connection whoever made it (a panel, or net_core
 //! joining a saved network at boot), and the client reads the AKM (8 for
 //! WPA3-SAE) to remember a network as WPA3 so it is never joined with WPA2.
 
+use nonos_wifi_core::link_history::LinkHistory;
 use nonos_wifi_core::netif::LinkPort;
 
 use super::super::connect::Session;
@@ -32,16 +36,23 @@ pub(super) fn link_reply(
     out: &mut [u8],
 ) -> Option<usize> {
     let up = matches!(radio, Radio::Up(up) if up.link.link_up());
-    let fixed = WIFI_HDR + 8;
-    out[WIFI_HDR..fixed].fill(0);
-    let Some(s) = session.filter(|_| up) else {
-        return Some(fixed);
+    let (history, td) = match radio {
+        Radio::Up(up) => (up.link.history(), up.link.transition_disable()),
+        Radio::Down => (LinkHistory::NEW, 0),
     };
-    let len = (s.ssid_len as usize).min(s.ssid.len());
-    out[WIFI_HDR] = 1;
-    out[WIFI_HDR + 1..WIFI_HDR + 7].copy_from_slice(&s.bssid);
-    out[fixed - 1] = len as u8;
-    out[fixed..fixed + len].copy_from_slice(&s.ssid[..len]);
-    out[fixed + len] = s.akm;
-    Some(fixed + len + 1)
+    let fixed = WIFI_HDR + 8;
+    out.get_mut(WIFI_HDR..=fixed)?.fill(0);
+    let mut end = fixed + 1;
+    let joined = session.filter(|_| up);
+    if let Some(s) = joined {
+        let len = (s.ssid_len as usize).min(s.ssid.len());
+        out[WIFI_HDR] = 1;
+        out[fixed - 1] = len as u8;
+        out.get_mut(fixed..fixed + len)?.copy_from_slice(&s.ssid[..len]);
+        *out.get_mut(fixed + len)? = s.akm;
+        end = fixed + len + 1;
+    }
+    let end = end + history.encode(out.get_mut(end..)?)?;
+    *out.get_mut(end)? = if joined.is_some() { td } else { 0 };
+    Some(end + 1)
 }

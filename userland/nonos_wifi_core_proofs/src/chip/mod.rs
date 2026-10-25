@@ -16,6 +16,7 @@
 //! E-51: the core against a chip that lies at its receive boundary; E-53:
 //! one that restarts, or loses the keys it was given.
 
+mod held_key_tests;
 mod junk;
 mod keys_tests;
 mod liar;

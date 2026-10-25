@@ -14,6 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Deferred spawn of extra app-window instances.
+//!
+//! Spawning a capsule is heavy: it creates an address space, loads and
+//! relocates an ELF, mints a capability token, and allocates kernel and
+//! user stacks. Boot does all of this from init's context, where there is
+//! no live user task waiting to be resumed. Running the same work inline
+//! in a live GUI capsule's syscall (the desktop shell asking for a second
+//! terminal window) corrupts the caller: the shell resumes under the wrong
+//! address space and faults on its own code (cr2 == rip, not present).
+//!
+//! So `MkSpawnInstance` does not spawn inline. It records a request here
+//! and returns, and `init_loop` drains the queue and performs the spawn in
+//! init's context, exactly the environment the boot spawns already run in.
+//! The window appears a tick later, which is imperceptible and keeps the
+//! shell stable.
+
 use super::queue::{self, PendingApp};
 
 /// Queue one window-instance spawn for init to perform. Runs in the

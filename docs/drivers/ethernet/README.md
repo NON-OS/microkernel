@@ -1,6 +1,6 @@
 # Ethernet drivers
 
-NONOS carries wired traffic through one driver [capsule](../../overview/glossary.md#capsule) per card family; this page lists every Ethernet driver in the tree, says which ones are in the image, and describes the receive fault that stopped the three PCI drivers in the image and what `net.core` now does in its place. [How a frame travels](frame-path.md) and [which image carries which driver, with the tests](images-and-tests.md) have their own pages.
+NONOS carries wired traffic through one driver [capsule](../../overview/glossary-boot-root-record.md#capsule) per card family; this page lists every Ethernet driver in the tree, says which ones are in the image, and describes the receive fault that stopped the three PCI drivers in the image and what `net.core` now does in its place. [How a frame travels](frame-path.md) and [which image carries which driver, with the tests](images-and-tests.md) have their own pages.
 
 ## Drivers at a glance
 

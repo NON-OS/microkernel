@@ -20,12 +20,11 @@ use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
 use crate::syscall::microkernel::narrow::u32_arg;
 
 use super::super::pending_reply;
-use super::super::recv::recv_reply_correlated;
+use super::super::recv_reply::recv_reply_correlated;
 use super::super::reply_inbox;
 use super::super::send::send_with_correlation;
 use super::settle::settle;
 use super::token::next_call_token;
-use super::trace::trace;
 
 pub fn sys_ipc_call(
     ep: u64,
@@ -53,7 +52,6 @@ pub fn sys_ipc_call(
         }
     }
     let send_result = send_with_correlation(ep, req, req_len, token);
-    trace(pid, b"send", send_result);
     if send_result < 0 {
         if let Some(server_pid) = endpoint_pid {
             // Strip exactly the entry this call pushed: the newest match. An
@@ -68,6 +66,5 @@ pub fn sys_ipc_call(
     let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
     let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
     settle(endpoint.as_ref(), pid, (req, req_len, resp), recv_result);
-    trace(pid, b"recv", recv_result);
     recv_result
 }

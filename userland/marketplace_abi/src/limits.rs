@@ -36,6 +36,11 @@ pub const MAX_SUPPORTED_ARCH_LEN: u32 = 32;
 pub const MAX_TOKEN_SYMBOL: u32 = 16;
 pub const MAX_SIGNATURE: u32 = 256; // canonical Ed25519 is 64; cushion for future schemes
 
+/// Schema 3. A guest policy is a LinuxAppPolicy or nothing.
+pub const GUEST_POLICY_LEN: u32 = 256;
+pub const MAX_PROOF_REQS: u32 = 8;
+pub const MAX_PROOF_ANCHORS: u32 = 8;
+
 /// Hard cap on a single index blob. Two MiB covers ~1k entries with
 /// generous metadata and is well within the userland heap budget.
 pub const MAX_INDEX_BLOB: usize = 2 * 1024 * 1024;

@@ -40,12 +40,14 @@ const CLAIM: [&str; 5] = [
     "call_raw(N_MK_DEVICE_CLAIM, [device_id, 0, 0, 0, 0, 0]) }",
 ];
 
-const ERRNOS_OF: [&str; 6] = [
+const ERRNOS_OF: [&str; 8] = [
     "pub(super) fn claim_errno(e: ClaimError) -> i64 { match e {",
     "ClaimError::AlreadyClaimed | ClaimError::Held => ERRNO_BUSY,",
+    "ClaimError::Busy | ClaimError::GroupHeld => ERRNO_BUSY,",
     "ClaimError::UnknownDevice | ClaimError::Disabled => ERRNO_NODEV,",
     "ClaimError::NotHolder | ClaimError::NotClaimed => ERRNO_INVAL,",
     "ClaimError::Unconfined | ClaimError::Refused | ClaimError::Firmware => ERRNO_PERM,",
+    "ClaimError::OutOfScope => ERRNO_PERM,",
     "ClaimError::Resetting => ERRNO_AGAIN, } }",
 ];
 

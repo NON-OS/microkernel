@@ -32,6 +32,7 @@ pub mod field_max;
 pub mod field_str_max;
 pub mod font_size_labels;
 pub mod hdr;
+pub mod kept_values;
 pub mod keyboard_layout_labels;
 pub mod kind;
 pub mod language_labels;

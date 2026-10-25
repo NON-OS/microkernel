@@ -16,32 +16,13 @@
 
 //! Walking the server's handshake messages through to Finished.
 
-use alloc::vec::Vec;
-
-use super::scan_messages::{certificate, certificate_request, certificate_verify, finished};
+use super::crypto_port::Checked;
+use super::scan_messages::{certificate, certificate_verify, finished};
 use super::scan_messages::{CERTIFICATE, CERTIFICATE_REQUEST, CERTIFICATE_VERIFY, FINISHED};
-use super::transcript::Transcript;
+use super::scan_request::certificate_request;
+use super::scan_state::ScanState;
 
-pub struct ScanState<'a> {
-    pub secret: &'a [u8; 32],
-    pub transcript: &'a mut Transcript,
-    pub host: &'a [u8],
-    pub now: u64,
-    pub cert11: &'a mut Vec<u8>,
-    pub validated: &'a mut bool,
-    /// Whether the certificate has to chain to a trusted root for this host.
-    ///
-    /// True for every ordinary connection. False only where the caller
-    /// authenticates the peer itself, which it must then actually do: the
-    /// session is otherwise bound to nothing but whoever answered.
-    pub require_chain: bool,
-    /// The certificate_request_context of a CertificateRequest, when the
-    /// server sent one. The client must then answer with a Certificate of its
-    /// own, empty here, before its Finished (RFC 8446 section 4.4.2).
-    pub request_context: &'a mut Option<Vec<u8>>,
-}
-
-pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
+pub fn scan(msgs: &[u8], state: &mut ScanState) -> Checked {
     let mut pos = 0usize;
     while pos + 4 <= msgs.len() {
         let len = ((msgs[pos + 1] as usize) << 16)
@@ -49,7 +30,7 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
             | msgs[pos + 3] as usize;
         let end = pos + 4 + len;
         if end > msgs.len() {
-            return false;
+            return Ok(false);
         }
         let kind = msgs[pos];
         let body = &msgs[pos + 4..end];
@@ -63,19 +44,19 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
             if ok {
                 state.transcript.push(&msgs[pos..end]);
             }
-            return ok;
+            return Ok(ok);
         }
         if kind == CERTIFICATE_REQUEST && !certificate_request(body, state) {
-            return false;
+            return Ok(false);
         }
-        if kind == CERTIFICATE && !certificate(body, state) {
-            return false;
+        if kind == CERTIFICATE && !certificate(body, state)? {
+            return Ok(false);
         }
-        if kind == CERTIFICATE_VERIFY && !certificate_verify(body, state) {
-            return false;
+        if kind == CERTIFICATE_VERIFY && !certificate_verify(body, state)? {
+            return Ok(false);
         }
         state.transcript.push(&msgs[pos..end]);
         pos = end;
     }
-    false
+    Ok(false)
 }

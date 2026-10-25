@@ -17,9 +17,8 @@
 //! The devices firmware declares only in the ACPI namespace (DMAR ANDD with
 //! a namespace device scope): an SD or eMMC host, LPSS I2C or UART, in ACPI
 //! mode. PCI enumeration never sees them, so without this they would have no
-//! context entry and every DMA they make would be denied the moment
-//! translation starts. They join the identity domain like any device the
-//! kernel found, which is what AMD-Vi already does for the ids IVRS names.
+//! context entry for a capsule's claim to move. Like every device the kernel
+//! found, they start in the blocked domain (K2) and reach nothing until then.
 
 use super::assign::bind;
 use crate::arch::x86_64::acpi::parser::other::{namespace_devices, namespace_requester};

@@ -39,10 +39,9 @@ mod metadata;
 mod named;
 #[path = "../../../capsule_keyring/src/store/retrieve.rs"]
 mod retrieve;
-// The real code's own style, allowed on the include rather than restyled here.
-#[allow(clippy::new_without_default)]
 #[path = "../../../capsule_keyring/src/store/state.rs"]
 mod state;
+mod store_default;
 #[path = "../../../capsule_keyring/src/store/store_key.rs"]
 mod store_key;
 #[path = "../../../capsule_keyring/src/store/types/mod.rs"]

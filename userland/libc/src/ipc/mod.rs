@@ -26,7 +26,7 @@ mod send_to_pid;
 pub use call::{mk_ipc_call, mk_ipc_call_timeout};
 pub use lookup::mk_service_lookup;
 pub use recv::mk_ipc_recv;
-pub use recv_from::mk_ipc_recv_from;
+pub use recv_from::{mk_ipc_recv_from, mk_ipc_recv_from_at, MK_IPC_NO_WAIT};
 pub use register::mk_service_register;
 pub use reply::mk_ipc_reply;
 pub use send::mk_ipc_send;

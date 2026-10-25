@@ -17,6 +17,7 @@
 mod alloc;
 mod bus_window;
 mod fail;
+mod given;
 mod install;
 mod placed;
 mod record;

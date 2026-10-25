@@ -18,8 +18,10 @@ use nonos_toolkit::font::ttf::line_height;
 
 use super::fit_text::{fit_text, width_of};
 use super::rail_band::clip;
-use super::shade::elevate;
-use crate::term::theme::types::Theme;
+
+#[path = "rail_text_marks.rs"]
+mod rail_text_marks;
+pub use rail_text_marks::{bar, head};
 
 pub const RAIL_PX: f32 = 17.0;
 pub const RAIL_PAD: u32 = 12;
@@ -53,28 +55,5 @@ pub fn clipped(fb: &mut PaintBuffer, x: u32, y: i32, max_w: u32, s: &str, argb: 
 pub fn band_rect(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32, argb: u32) {
     if let Some((top, cut)) = clip(y, h) {
         fb.blend_rect(x, top, w, cut, argb);
-    }
-}
-
-/// A section caption with the hairline that separates it from the block above,
-/// returning the first content row so no caller re-derives the stack.
-pub fn head(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &str, t: &Theme) -> i32 {
-    band_rect(fb, x, y, w, 1, t.chrome_edge);
-    let top = y + RAIL_GAP as i32;
-    left(fb, x, top, label, t.dim);
-    top + (lh() + RAIL_GAP / 2) as i32
-}
-
-/// A track with the filled share drawn over it. Both are blends: the rail sits
-/// on pixels the frame already painted, so a raw write would punch through.
-///
-/// The track barely lifts off the background and the fill is carried at less
-/// than full opacity, so the bar reads as a level rather than a hard rule cut
-/// across the rail.
-pub fn bar(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, pct: u32, t: &Theme) {
-    band_rect(fb, x, y, w, BAR_H, elevate(t.bg, 6));
-    let fill = w * pct.min(100) / 100;
-    if fill > 0 {
-        band_rect(fb, x, y, fill, BAR_H, (t.accent & 0x00FF_FFFF) | BAR_ALPHA);
     }
 }

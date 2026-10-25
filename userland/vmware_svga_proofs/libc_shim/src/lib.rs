@@ -21,15 +21,17 @@ mod broker;
 mod ipc;
 mod mmio;
 mod surface;
+pub mod surface_registry;
 
 pub use broker::PioGrantOut;
 pub use broker::{calls, mk_device_claim, mk_device_release, mk_pio_grant, mk_pio_release};
 pub use ipc::{mk_debug, mk_ipc_reply, replies, Deadline};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap, set_bar, MmioMapOut};
 pub use surface::{
-    fail_surface, mk_mmap, mk_munmap, mk_surface_register, mk_surface_share, surfaces,
-    SurfaceDescriptor, SURFACE_FORMAT_ARGB8888,
+    fail_surface, mk_mmap, mk_munmap, mk_surface_register, surfaces, SurfaceDescriptor,
+    SURFACE_FORMAT_ARGB8888,
 };
+pub use surface_registry::{fail_share, mk_surface_share, shares};
 mod devices;
 pub use devices::{
     mk_device_list, set_devices, Bar, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO, BUS_KIND_PCI,

@@ -39,7 +39,8 @@ pub fn target(driver: Driver, instance: u8, device: BlockDevice, contents: Conte
     }
 }
 
-pub fn withheld(device: BlockDevice) -> Disk {
+/// A disk that may not be installed to, and `why`.
+pub fn withheld(device: BlockDevice, why: &str) -> Disk {
     Disk {
         driver: device.driver,
         instance: device.instance,
@@ -48,9 +49,7 @@ pub fn withheld(device: BlockDevice) -> Disk {
         block: device.geometry.lba_size(),
         contents: Contents::probe(&device),
         identity: device.identity().ok().flatten(),
-        fault: Some(String::from(
-            "holds the loader this boot ran, so it may be the boot disk: not offered",
-        )),
+        fault: Some(String::from(why)),
     }
 }
 

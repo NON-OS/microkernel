@@ -19,25 +19,25 @@ make -n build
 |---|---|
 | `build`, the default | `nix build .#default`, or `.#<profile>` when `PROFILE` is set, then `nix run .#receipt`, which prints the build receipt and compares it with the receipt committed for that profile (`build`, `Makefile:53-56`) |
 | `check` | `nix run .#check-report`: builds every flake check for this host and prints what each proved (`check`, `Makefile:60-61`) |
-| `profiles` | prints each [build profile](../overview/glossary.md#build-profile), what it is for, its privacy posture and its [loader policy](../overview/glossary.md#loader-policy) (`profiles`, `Makefile:101-102`) |
+| `profiles` | prints each [build profile](../overview/glossary-boot-root-record.md#build-profile), what it is for, its privacy posture and its [loader policy](../overview/glossary-linux-personality.md#loader-policy) (`profiles`, `Makefile:101-102`) |
 | `shell` | `nix develop`, the pinned toolchain for work by hand (`shell`, `Makefile:104-105`) |
 | `doctor` | checks that Nix is installed and can read the flake, with flakes turned on for that check alone, and whether QEMU has hardware virtualization (`doctor`, `Makefile:124-136`) |
 | `clean` | removes `result`, every `result-*` link and the whole `target` directory (`clean`, `Makefile:138-139`) |
 | `help` | prints the Makefile's own summary (`help`, `Makefile:141-142`) |
 
-`make clean` also removes what lives under `target`: sealed images, the development checkout and its throwaway keys, the QEMU data disk, the software [TPM](../overview/glossary.md#tpm) state and the Qwen files fetched into `target/models/files`.
+`make clean` also removes what lives under `target`: sealed images, the development checkout and its throwaway keys, the QEMU data disk, the software [TPM](../overview/glossary-stark-proof.md#tpm) state and the Qwen files fetched into `target/models/files`.
 
-The receipt step writes too. It replaces the committed receipt for that profile in your checkout, except when the build failed to reproduce, and it exits with an error when the same commit and inputs gave other bytes (`main`, `tools/nonos-receipt:243-263`), or when the kernel holds a [capsule](../overview/glossary.md#capsule) its profile takes out or lacks an installer capsule the profile asks for (`enforcement`, `tools/nonos-receipt:103-126`). [reproducible-builds.md](reproducible-builds.md) explains the verdicts.
+The receipt step writes too. It replaces the committed receipt for that profile in your checkout, except when the build failed to reproduce, and it exits with an error when the same commit and inputs gave other bytes (`main`, `tools/nonos-receipt:243-263`), or when the kernel holds a [capsule](../overview/glossary-boot-root-record.md#capsule) its profile takes out or lacks an installer capsule the profile asks for (`enforcement`, `tools/nonos-receipt:103-126`). [reproducible-builds.md](reproducible-builds.md) explains the verdicts.
 
 ## Seal and boot
 
 | target | what it does |
 |---|---|
-| `seal` | `nix run .#seal`, with `--profile` when `PROFILE` is set and `SEAL_ARGS` appended; the [seal](../overview/glossary.md#seal) needs signing keys (`SEAL_ARGS`, `Makefile:63-64`) |
+| `seal` | `nix run .#seal`, with `--profile` when `PROFILE` is set and `SEAL_ARGS` appended; the [seal](../overview/glossary-rollback-index.md#seal) needs signing keys (`SEAL_ARGS`, `Makefile:63-64`) |
 | `boot` | `nix run .#qemu` with `--tpm`: the sealed image under QEMU with a software TPM (`BOOT_DISK`, `Makefile:67-68`) |
 | `boot-install` | `boot` with a blank NVMe disk beside the image, to try the installer (`QEMU_ARGS`, `Makefile:82-83`) |
 | `boot-installed` | `boot` of the NVMe disk the installer wrote, alone (`QEMU_ARGS`, `Makefile:85-86`) |
-| `dev-image` | runs `tools/nonos-dev-image` in the development shell: the [development image](../overview/glossary.md#development-image) of `PROFILE`, qemu when unset, sealed with throwaway keys (`DEV_ATTR`, `Makefile:73-75`) |
+| `dev-image` | runs `tools/nonos-dev-image` in the development shell: the [development image](../overview/glossary-claim-epoch.md#development-image) of `PROFILE`, qemu when unset, sealed with throwaway keys (`DEV_ATTR`, `Makefile:73-75`) |
 | `dev-boot` | boots the image `dev-image` wrote, with `--tpm` (`DEV_ATTR`, `Makefile:77-78`) |
 | `qemu`, `qemu-tpm`, `qemu-install`, `qemu-installed` | the names these had before `boot`: `qemu` boots without a TPM, the other three add `--tpm` (`QEMU_ARGS`, `Makefile:88-99`) |
 | `usb` | writes the sealed image to `DISK` (`USB_IMG`, `Makefile:107-122`) |
@@ -84,7 +84,7 @@ Without `DISK`, `make usb` prints the path of the sealed image, or says there is
 | `--image PATH` | boots this disk image instead of a sealed one |
 | `--tpm` | attaches a software TPM 2.0 |
 | `--fresh` | starts the data disk again from the image, and the TPM with it |
-| `--stick` | boots the sealed stick alone, with no [data volume](../overview/glossary.md#data-volume) |
+| `--stick` | boots the sealed stick alone, with no [data volume](../overview/glossary-claim-epoch.md#data-volume) |
 | `--usb` | with `--stick`, plugs the stick into the USB controller as mass storage |
 | `--model TIER` | lays a Qwen tier on a new data disk; `auto` picks the tier setup would pick for `--mem` |
 | `--smp N` | CPUs; the default is 8, or every core of the host when it has fewer |
@@ -92,13 +92,13 @@ Without `DISK`, `make usb` prints the path of the sealed image, or says there is
 | `--net nat` or `--net off` | user mode networking, or none; `nat` is the default |
 | `--install-target` | attaches a blank 8 GiB NVMe disk with the serial `NONOS-TARGET` |
 | `--installed` | boots that NVMe disk alone |
-| `--headless` | no window; the [serial console](../overview/glossary.md#serial-console) goes to `--serial`, by default `target/qemu/serial.log` |
+| `--headless` | no window; the [serial console](../overview/glossary-rollback-index.md#serial-console) goes to `--serial`, by default `target/qemu/serial.log` |
 | `--timeout N` | stops a headless boot after `N` seconds |
 | `--expect PATTERN` | a pattern the serial console must show; repeat it for more |
 
 The machine is a q35 with UEFI firmware, a virtio VGA at 1920 by 1080, a USB controller, a virtio RNG, a virtio network card when `--net nat`, the TPM on a CRB interface when `--tpm`, and Intel HD Audio (`devices`, `tools/nonos_qemu/machine.py:91-103`). The blank install disk is `INSTALL_TARGET_GB` gibibytes (`tools/nonos_qemu/machine.py:23`).
 
-A boot runs from the [ESP](../overview/glossary.md#esp), copied out of the image into a folder QEMU serves as a FAT drive, and from a virtio data disk that carries the [package store](../overview/glossary.md#package-store). The data disk, and the encrypted volume on it, is kept from one boot to the next; an image with another path or another modification time, or `--fresh`, starts it again (`needs_copy`, `tools/nonos_qemu/disk.py:53-62`). The software TPM's state is kept as well, and a new TPM cannot open a volume an earlier TPM made, so the runner warns when that happens (`made`, `tools/nonos_qemu/__main__.py:133-139`).
+A boot runs from the [ESP](../overview/glossary-dma-pool.md#esp), copied out of the image into a folder QEMU serves as a FAT drive, and from a virtio data disk that carries the [package store](../overview/glossary-linux-personality.md#package-store). The data disk, and the encrypted volume on it, is kept from one boot to the next; an image with another path or another modification time, or `--fresh`, starts it again (`needs_copy`, `tools/nonos_qemu/disk.py:53-62`). The software TPM's state is kept as well, and a new TPM cannot open a volume an earlier TPM made, so the runner warns when that happens (`made`, `tools/nonos_qemu/__main__.py:133-139`).
 
 `--model auto` takes the largest Qwen3 tier whose file, plus a fifth, plus 512 MiB for the runtime, fits in the memory less 1 GiB (`fits`, `tools/nonos_qemu/disk.py:128-142`). The runner fetches the tier's pinned files once into `target/models/files`, checks them against their pins, and lays them only on a new data disk (`lay_models`, `tools/nonos_qemu/disk.py:154-163`). Fetching needs the network.
 
@@ -117,11 +117,11 @@ These targets sign with a local development key. The first target that needs one
 | `nonos-mk-run-serial-log` | a headless boot that writes the serial console to `QEMU_SERIAL_LOG` (`QEMU_SERIAL_LOG`, `mk/40-run.mk:205-215`) |
 | `nonos-mk-run-smp-serial-log` | the same with `QEMU_SMP` CPUs and a kernel built with `nonos-smp` (`QEMU_SMP`, `mk/40-run.mk:419-429`) |
 | `nonos-mk-debug` | waits for GDB on port 1234 before the first instruction (`nonos_kernel_and_esp`, `mk/40-run.mk:228-235`) |
-| `nonos-mk-run-iommu-serial-log` | boots under TCG with an emulated Intel [IOMMU](../overview/glossary.md#iommu), so the DMA remapping code runs (`QEMU_IOMMU_OPTS`, `mk/40-run.mk:489-501`) |
+| `nonos-mk-run-iommu-serial-log` | boots under TCG with an emulated Intel [IOMMU](../overview/glossary-hardware-broker.md#iommu), so the DMA remapping code runs (`QEMU_IOMMU_OPTS`, `mk/40-run.mk:489-501`) |
 | `nonos-mk-boot-matrix` | boots every cell of the machine matrix `BOOT_MATRIX_REPEAT` times, 5 by default, each within `BOOT_MATRIX_TIMEOUT` seconds, 300 by default (`BOOT_MATRIX_REPEAT`, `mk/40-run.mk:514-536`) |
 | `nonos-mk-iso` | a UEFI ISO from the ESP, with every timestamp pinned (`NONOS_ISO`, `mk/30-image.mk:19-37`) |
 | `nonos-mk-usb-img`, `nonos-mk-usb-run` | a GPT disk image (`USB_IMG`, `mk/20-build.mk:1351-1354`), and a boot of it as a real disk rather than a FAT folder (`USB_IMG`, `mk/30-image.mk:41-51`) |
-| `nonos-mk-static`, `nonos-mk-verify-fast` | the [capability](../overview/glossary.md#capability) parity check `check_cap_parity`, the assumption register and the tree checks of `run-static-checks.sh`, with no kernel build (`mk/40-run.mk:345-356`); at this commit `run-static-checks.sh` fails on one file, as the `static-tree` check does ([CI](ci.md#state-of-the-checks-at-this-commit)) |
+| `nonos-mk-static`, `nonos-mk-verify-fast` | the [capability](../overview/glossary-boot-root-record.md#capability) parity check `check_cap_parity`, the assumption register and the tree checks of `run-static-checks.sh`, with no kernel build (`mk/40-run.mk:345-356`); at this commit `run-static-checks.sh` fails on one file, as the `static-tree` check does ([CI](ci.md#state-of-the-checks-at-this-commit)) |
 | `nonos-mk-verify`, `nonos-mk-test` | the static checks, the trust checks and a scan of `MICROKERNEL_BIN` for symbols the microkernel must not carry (`mk/40-run.mk:378-414`); `nonos-mk-test` adds three QEMU boot tests whose scripts under `tests/boot` this tree does not carry, so it cannot pass at this commit ([Host tools](host-tools.md#boot-tests-with-no-scripts)) |
 | `nonos-mk-arm`, `nonos-mk-arm-run` | the aarch64 kernel, and a boot of it under `qemu-system-aarch64` (`ARM_QEMU_FLAGS`, `mk/20-build.mk:921-924`) |
 | `ci-fast`, `ci-security`, `ci-release`, `ci-soak` | `ci-fast` runs the tests of `nonos-verify` with the pinned `TOOLCHAIN` and the claims check, `ci-security` adds two audit scripts, `ci-release` adds a byte for byte double build of the loader, and `ci-soak` runs the QEMU evidence scripts (`mk/50-ci.mk:16-24`) |

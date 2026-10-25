@@ -14,36 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The per-claim line the broker's confinement says.
+//! The per-claim line the broker's confinement says: what a step did, with
+//! no pid, requester id or stream id (K10), since the log leaves the machine
+//! in photos and bug reports.
 
-use crate::memory::iommu::DeviceAddress;
-
-pub(super) fn say(what: &[u8], pid: u32, device: DeviceAddress) {
-    let serial = crate::sys::serial::print;
-    serial(b"[VT-D] pid=");
-    crate::sys::serial::print_dec(pid as u64);
-    // Segment above the requester id, so segment 0 prints as it always has.
-    match device {
-        DeviceAddress::Pci { segment, rid } => {
-            serial(b" device=");
-            crate::sys::serial::print_hex((segment as u64) << 16 | rid as u64);
-        }
-        DeviceAddress::Stream(sid) => {
-            serial(b" stream=");
-            crate::sys::serial::print_hex(sid as u64);
-        }
-    }
-    serial(b" ");
-    crate::sys::serial::println(what);
-}
-
-/// `say` for a device with no DMA requester to name it by.
-pub(super) fn say_device(what: &[u8], pid: u32, device_id: u64) {
-    let serial = crate::sys::serial::print;
-    serial(b"[VT-D] pid=");
-    crate::sys::serial::print_dec(pid as u64);
-    serial(b" described device=");
-    crate::sys::serial::print_dec(device_id);
-    serial(b" ");
+pub(super) fn say(what: &[u8]) {
+    crate::sys::serial::print(b"[VT-D] ");
     crate::sys::serial::println(what);
 }

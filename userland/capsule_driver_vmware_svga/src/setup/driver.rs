@@ -25,8 +25,10 @@ pub struct Driver {
     pub fifo: Fifo,
     /// The visible framebuffer in BAR1, at the device's line pitch.
     pub fb: Plane,
-    /// The compositor's surface, and the handle it attaches with.
+    /// The compositor's surface, the id it is registered under, and the
+    /// handle its share names the owner with, 0 until the owner asks.
     pub surface: Plane,
+    pub sid: u64,
     pub handle: u64,
     /// The first pid to ask for the primary surface; only it may draw.
     pub owner: u32,

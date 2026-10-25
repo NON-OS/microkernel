@@ -3,20 +3,22 @@
 //! the RPC endpoint sees a scan of the whole pool and no address of the wallet.
 mod fetch;
 mod http;
+#[cfg(test)]
+#[path = "http_test.rs"]
+mod http_test;
 mod paging;
+#[cfg(test)]
+#[path = "paging_halves_test.rs"]
+mod paging_halves_test;
 #[cfg(test)]
 #[path = "paging_test.rs"]
 mod paging_test;
 pub mod progress;
-#[cfg(test)]
-#[path = "http_test.rs"]
-mod http_test;
 mod request;
 mod response;
 
 pub use fetch::{
-    call_over_tor, calls_at_over_tor, calls_over_tor, head_over_tor, page_over_tor,
-    pages_over_tor,
+    call_over_tor, calls_at_over_tor, calls_over_tor, head_over_tor, page_over_tor, pages_over_tor,
 };
 pub(crate) use http::{exchange, post};
 pub use request::{block_number, eth_call, eth_call_batch, eth_call_batch_at, get_logs};

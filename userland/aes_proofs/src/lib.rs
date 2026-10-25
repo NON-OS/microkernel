@@ -24,5 +24,17 @@ mod ack;
 #[cfg(test)]
 mod crypto;
 
+/// nonos_aes's S-box and its inverse, compiled in from its own source at the
+/// paths that source names them by, so the inverse is checked as it ships.
+#[cfg(test)]
+#[path = "../../nonos_aes/src/inv_sub_byte.rs"]
+mod inv_sub_byte;
+#[cfg(test)]
+#[path = "../../nonos_aes/src/sub_byte.rs"]
+mod sub_byte;
+#[cfg(test)]
+#[path = "../../nonos_aes/src/xtime.rs"]
+mod xtime;
+
 #[cfg(test)]
 mod tests;

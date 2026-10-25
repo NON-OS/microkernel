@@ -31,6 +31,11 @@ use nonos_libc::{heap_init_sized, mk_exit};
 // heap against MAX_ARTIFACT (16 MiB) instead.
 const INSTALLER_HEAP: usize = 64 * 1024 * 1024;
 
+/// The capsule's entry point.
+///
+/// # Safety
+///
+/// Only the kernel calls it, once, on a fresh stack; nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init_sized(INSTALLER_HEAP).is_err() {

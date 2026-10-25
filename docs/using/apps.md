@@ -4,7 +4,7 @@ How to use Editor, Calculator, Processes and Snake: what each does, its keys, wh
 
 ## The four apps
 
-Each is a [capsule](../overview/glossary.md#capsule) with a tile on the dock and on the Launchpad. All four are in `microkernel-desktop-offline`, the set every desktop [build profile](../overview/glossary.md#build-profile) includes, so the standard, hardened, air-gapped, qemu and dev images all carry them.
+Each is a [capsule](../overview/glossary-boot-root-record.md#capsule) with a tile on the dock and on the Launchpad. All four are in `microkernel-desktop-offline`, the set every desktop [build profile](../overview/glossary-boot-root-record.md#build-profile) includes, so the standard, hardened, air-gapped, qemu and dev images all carry them.
 
 | App | Service | Required capabilities | What it keeps |
 |---|---|---|---|
@@ -13,7 +13,7 @@ Each is a [capsule](../overview/glossary.md#capsule) with a tile on the dock and
 | Processes | `app.process_manager` | `0x2001819` | Nothing |
 | Snake | `app.snake` | `0x1859` | Its ranks and awards, on disk only on a machine that keeps data |
 
-The required capabilities make up each app's [capability word](../overview/glossary.md#capability-word). All four hold CoreExec, IPC, Memory, GraphicsDisplayQuery and GraphicsSurfaceCreate. Editor and Snake add FileSystem, which the [file store](../overview/glossary.md#file-store) requires of every caller. Processes adds ProcessControl, which lets it read every field of every row of the process table and end other processes. None of them holds Network. An image built with `capsule-serial-debug` (standard, qemu and dev, not hardened or air-gapped) also grants each app Debug, its optional capability `0x100`, so it can write log lines to the serial console.
+The required capabilities make up each app's [capability word](../overview/glossary-boot-root-record.md#capability-word). All four hold CoreExec, IPC, Memory, GraphicsDisplayQuery and GraphicsSurfaceCreate. Editor and Snake add FileSystem, which the [file store](../overview/glossary-dma-pool.md#file-store) requires of every caller. Processes adds ProcessControl, which lets it read every field of every row of the process table and end other processes. None of them holds Network. An image built with `capsule-serial-debug` (standard, qemu and dev, not hardened or air-gapped) also grants each app Debug, its optional capability `0x100`, so it can write log lines to the serial console.
 
 First-boot setup can turn Editor and Calculator off. Processes and Snake have no switch. A click on an app that setup turned off shows a notice ending `turned off at setup`. The other dock apps are on [The desktop](desktop.md).
 
@@ -32,7 +32,7 @@ The status bar names the language from the file's extension: Rust, C, C++, Pytho
 
 ### Editor keys
 
-Help, then Keyboard Shortcuts, opens this list as a document. The `editor_proofs` [proof crate](../overview/glossary.md#proof-crate) checks it against the key handlers.
+Help, then Keyboard Shortcuts, opens this list as a document. The `editor_proofs` [proof crate](../overview/glossary-peer-list.md#proof-crate) checks it against the key handlers.
 
 | Keys | Action |
 |---|---|
@@ -225,11 +225,11 @@ On the home screen, the `Daily challenge` card names the day's mode and difficul
 | Game over | `Enter` or `Space` plays again, `Esc` goes home. |
 | Ranks | `Enter` or `Esc` goes home. |
 
-The buttons under the board are `Pause`, `Restart` and `Home`. The pause panel offers `Resume`, `Restart`, `Settings` and `Home`. In the Safe Mode [boot profile](../overview/glossary.md#boot-profile) the kernel does not start Snake at all.
+The buttons under the board are `Pause`, `Restart` and `Home`. The pause panel offers `Resume`, `Restart`, `Settings` and `Home`. In the Safe Mode [boot profile](../overview/glossary-amnesic-boot.md#boot-profile) the kernel does not start Snake at all.
 
 ### Where Snake keeps its ranks
 
-Snake keeps its ten best runs by score, and up to 64 awards, in `/games/snake/ranks.dat` and `/games/snake/awards.dat`. A game over writes both files into the file store, once, never during play. Snake then asks the store to keep them on disk only when the [policy store](../overview/glossary.md#policy-store) field `Keep data across reboots` is on. On an [amnesic boot](../overview/glossary.md#amnesic-boot) it does not ask.
+Snake keeps its ten best runs by score, and up to 64 awards, in `/games/snake/ranks.dat` and `/games/snake/awards.dat`. A game over writes both files into the file store, once, never during play. Snake then asks the store to keep them on disk only when the [policy store](../overview/glossary-peer-list.md#policy-store) field `Keep data across reboots` is on. On an [amnesic boot](../overview/glossary-amnesic-boot.md#amnesic-boot) it does not ask.
 
 ```mermaid
 flowchart TD

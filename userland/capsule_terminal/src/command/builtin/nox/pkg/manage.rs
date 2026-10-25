@@ -32,9 +32,7 @@ pub(super) fn status(state: &mut State) -> bool {
             true
         }
         Ok(9) => {
-            state.scrollback.push_line(
-                b"store loaded; a damaged entry was left out",
-            );
+            state.scrollback.push_line(b"store loaded; a damaged entry was left out");
             true
         }
         Ok(code) if !store_was_read(code) => {

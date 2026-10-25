@@ -56,6 +56,8 @@ fn combined_seq(idxs: &[usize]) -> u64 {
 }
 
 pub fn wait_arm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
+    // Where the IOMMU's locks may be taken: faulting devices are blocked (K12).
+    crate::memory::iommu::block_faulted();
     let idxs = owned_slots(holder, grant_id)?;
     for &i in &idxs {
         slots::arm_waiter(i, waiter);

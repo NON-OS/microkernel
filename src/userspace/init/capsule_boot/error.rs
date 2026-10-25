@@ -40,5 +40,8 @@ pub(super) fn message(prefix: &str, err: SpawnError) -> alloc::string::String {
         SpawnError::ProfileRefused => {
             alloc::format!("{}: not started under this boot profile", prefix)
         }
+        SpawnError::ImageCeiling => {
+            alloc::format!("{}: refused, its caps exceed the image ceiling", prefix)
+        }
     }
 }

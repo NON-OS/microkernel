@@ -16,12 +16,15 @@
 
 use alloc::vec::Vec;
 
-use alloc::vec;
-
-use super::exec::exec;
-use super::filter::apply;
-use super::filter::input::{not_a_filter, FILTERS};
 use crate::term::state::State;
+
+#[path = "pipeline_seeded.rs"]
+mod pipeline_seeded;
+#[path = "pipeline_stage.rs"]
+mod pipeline_stage;
+
+pub(super) use pipeline_seeded::run_filters;
+pub(crate) use pipeline_stage::{is_filter, run_stage};
 
 // Run a `a | b | c` pipeline: split the args on `|`, then fold each stage
 // in order over an accumulating buffer. A stage whose command name is a
@@ -46,31 +49,6 @@ pub(super) fn run_pipeline(state: &mut State, args: &[&[u8]]) -> Vec<Vec<u8>> {
     lines
 }
 
-/// Whether a stage reads the lines piped into it.
-pub(crate) fn is_filter(seg: &[&[u8]]) -> bool {
-    FILTERS.contains(&seg.first().copied().unwrap_or(b""))
-}
-
-/// One stage over the lines before it. `first` is the stage nothing is piped
-/// into, the only place a command that is not a filter can stand.
-pub(crate) fn run_stage(
-    state: &mut State,
-    seg: &[&[u8]],
-    buffer: Vec<Vec<u8>>,
-    first: bool,
-) -> Vec<Vec<u8>> {
-    if is_filter(seg) {
-        return apply(seg, buffer);
-    }
-    if !first {
-        state.last_status = 1;
-        return vec![not_a_filter(seg.first().copied().unwrap_or(b""))];
-    }
-    state.scrollback.begin_capture();
-    let _ = exec(state, seg);
-    state.scrollback.end_capture()
-}
-
 pub(crate) fn split_stages<'a>(args: &'a [&'a [u8]]) -> Vec<&'a [&'a [u8]]> {
     let mut segments = Vec::new();
     let mut start = 0;
@@ -83,15 +61,4 @@ pub(crate) fn split_stages<'a>(args: &'a [&'a [u8]]) -> Vec<&'a [&'a [u8]]> {
         }
     }
     segments
-}
-
-// Apply a `a | b | c` filter chain to pre-seeded input lines with no
-// producer command: used when `< file` supplies the input instead of a
-// leading command's captured output.
-pub(super) fn run_filters(seed: Vec<Vec<u8>>, args: &[&[u8]]) -> Vec<Vec<u8>> {
-    let mut lines = seed;
-    for seg in &split_stages(args) {
-        lines = apply(seg, lines);
-    }
-    lines
 }

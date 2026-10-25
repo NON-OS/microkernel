@@ -15,20 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Every capability the kernel knows, with the bit it occupies.
-
 use super::table::capability_table;
-
 capability_table! {
     CoreExec = 1 << 0,
-    /// Enforces nothing.
-    IO = 1 << 1,
+    #[doc = "Enforces nothing."] IO = 1 << 1,
     Network = 1 << 2,
     IPC = 1 << 3,
     Memory = 1 << 4,
     Crypto = 1 << 5,
     FileSystem = 1 << 6,
-    /// Enforces nothing.
-    Hardware = 1 << 7,
+    #[doc = "Enforces nothing."] Hardware = 1 << 7,
     Debug = 1 << 8,
     Admin = 1 << 9,
     RegisterService = 1 << 10,
@@ -36,9 +32,7 @@ capability_table! {
     GraphicsSurfaceCreate = 1 << 12,
     GraphicsSurfaceMap = 1 << 13,
     GraphicsPresent = 1 << 14,
-    /// Enumerate-only. Claiming a device is `Driver`.
-    DeviceEnum = 1 << 15,
-    /// Claim and release a device through the broker.
+    #[doc = "Enumerate-only. Claiming a device is `Driver`."] DeviceEnum = 1 << 15,
     Driver = 1 << 16,
     /// Map a slice of a claimed device's BAR into the holder's own address space.
     Mmio = 1 << 17,
@@ -46,7 +40,7 @@ capability_table! {
     Irq = 1 << 18,
     /// Receive a DMA-coherent buffer a claimed device may read or write through.
     Dma = 1 << 19,
-    /// Mint a PIO grant against a port BAR and run kernel-mediated `in` and `out` on its ports.
+    /// Mint a PIO grant on a port BAR; the kernel runs `in` and `out` on its ports.
     Pio = 1 << 20,
     InputSource = 1 << 21,
     TimeSet = 1 << 22,
@@ -59,40 +53,23 @@ capability_table! {
     StoreWrite = 1 << 26,
     /// Enrol a signing root, so capsules built on this machine run on it.
     EnrolDevRoot = 1 << 27,
-    /// Reach the keyring capsule, which stores and derives key material.
     Keyring = 1 << 28,
-    /// Draw from the entropy capsule.
     Entropy = 1 << 29,
-    /// Reach the marketplace and install a capsule. Held by the
-    /// installer, not by every capsule that draws a window.
+    /// Reach the marketplace and install a capsule: the installer's, not every window's.
     AppInstall = 1 << 30,
-    /// Read the attestation registry: which capsules are running,
-    /// their measurements and their capability masks.
+    /// Read the attestation registry: running capsules, their measurements and masks.
     AttestRead = 1 << 31,
-    /// Host code this kernel has not verified: create a process with no capabilities,
-    /// build its address space, and answer the syscalls it makes that the kernel refuses.
+    /// Host unverified code: a process with no capabilities whose refused syscalls it answers.
     ForeignExec = 1 << 32,
     /// Mint a proof that this machine agreed to run bytes it installed itself.
     LocalSign = 1 << 33,
-    /// Stream a file into the data volume, kept only if it hashes to the digest
-    /// named when the stream began. Nothing on the volume is read back through it.
+    /// Stream a file into the data volume, kept only if it hashes to the digest named first.
     StreamImport = 1 << 34,
-    /// Receive this machine's TPM-derived device secret, the witness of the anonymous
-    /// device proof. Held by nonos.prove alone.
+    /// Receive the TPM-derived device secret, the anonymous proof's witness: nonos.prove's.
     DeviceSecret = 1 << 35,
-    /// Drain and wait on the raw input ring, which carries every keystroke.
-    /// Held by the input router alone; a driver posts with `InputSource`.
-    InputDrain = 1 << 36,
-    /// Take frames from a camera. The kernel never sees a camera: the USB
-    /// stack hands a video interface, and the compositor lights its
-    /// indicator, only for a holder (`MkCapCheck`). Held by no capsule until
-    /// Decision 9; refused elsewhere by `check_capture_caps.py`.
-    CameraCapture = 1 << 37,
-    /// Take samples from a microphone, held and checked as `CameraCapture`
-    /// is: by the audio service and the compositor's indicator.
-    MicrophoneCapture = 1 << 38,
-    /// Copy the whole screen. The compositor checks a sender with `MkCapCheck`
-    /// before a screenshot, and shows a notice while it takes one. Held by no
-    /// capsule until Decision 9 names one.
-    ScreenCapture = 1 << 39,
+    /// Drain and wait on the raw input ring, every keystroke: input_router's alone (K8).
+    InputConsumer = 1 << 36,
+    #[doc = "Camera frames; held by no capsule until Decision 9."] CameraCapture = 1 << 37,
+    #[doc = "Microphone samples, held as camera frames are."] MicrophoneCapture = 1 << 38,
+    #[doc = "Copy the whole screen; held by no capsule until Decision 9."] ScreenCapture = 1 << 39,
 }

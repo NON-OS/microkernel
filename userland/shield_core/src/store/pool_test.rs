@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use super::on_pool;
 use crate::net::pool::ACTIVE;
 use crate::notes::{NotePlaintext, NoteRecord, NoteStatus};

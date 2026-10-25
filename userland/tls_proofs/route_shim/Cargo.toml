@@ -1,0 +1,14 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# nonos_route_link as two capsules' RouteIo see it, on the host: the real
+# Proxy and its patience, and a RouteStream over a far end a test plays.
+[package]
+name = "tls_proofs_route_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

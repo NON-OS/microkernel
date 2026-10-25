@@ -1,51 +1,8 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::indexing_slicing, clippy::unwrap_used, clippy::arithmetic_side_effects)]
+use super::{address_limbs, pool_words};
 
-use super::{address_limbs, pool_words, LIMBS};
-
-/// withdraw-eth from the pinned 37-limb wallet vectors: 0.01 ETH out to 0x8ba1f109...dba72,
-/// fee 0.00255 ETH to `address(1)`, not before 1,790,000,400.
-const WITHDRAW_A: [u64; LIMBS] = [
-    11465839100609169239,
-    8902674681016596701,
-    14023130704075225168,
-    9782059357716360831,
-    11465839100609169239,
-    8902674681016596701,
-    14023130704075225168,
-    9782059357716360831,
-    889919277466145136,
-    8336274146572230245,
-    5336986709291164636,
-    1534744628385256744,
-    18334764714270447212,
-    1548061196981560856,
-    8853329630701882500,
-    5235092394456204384,
-    5344353063958072554,
-    15770223284851138842,
-    8768739946316290274,
-    2276447860313697381,
-    11952601469125124443,
-    5815868844311164110,
-    7553101690732633827,
-    9734593768947697372,
-    10000000000000000,
-    2550000000000000,
-    0,
-    1000000,
-    60326411090546,
-    140943955352257,
-    265022384886834,
-    35745,
-    1,
-    0,
-    0,
-    0,
-    1790000400,
-];
+#[path = "publics_vectors.rs"]
+mod publics_vectors;
+use publics_vectors::WITHDRAW_A;
 
 /// The pool's own expansion, `PublicWords.publicsOf` on a thirteen word intent.
 fn expand(words: &[[u8; 32]; 13]) -> Vec<u64> {
@@ -77,7 +34,7 @@ fn expand(words: &[[u8; 32]; 13]) -> Vec<u64> {
 
 #[test]
 fn the_words_expand_back_to_the_pinned_proofs_statement() {
-    assert_eq!(expand(&pool_words(&WITHDRAW_A)), WITHDRAW_A.to_vec());
+    assert_eq!(expand(&pool_words(&WITHDRAW_A).unwrap()), WITHDRAW_A.to_vec());
 }
 
 #[test]
@@ -98,3 +55,6 @@ fn address_limbs_match_the_pinned_withdrawal() {
     );
     assert_eq!(address_limbs(&[0xff; 20]), [(1 << 48) - 1, (1 << 48) - 1, (1 << 48) - 1, 0xffff]);
 }
+
+#[path = "publics_bound_test.rs"]
+mod publics_bound_test;

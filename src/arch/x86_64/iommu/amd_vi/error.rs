@@ -52,6 +52,12 @@ pub enum AmdViError {
     InterruptTableFull,
     /// The device's requests reach the unit under an IVHD alias id.
     Aliased,
+    /// A failed map's leaves could not be made unreachable: the unit may
+    /// still hold them, so the frames must never be reused.
+    Stranded,
+    /// A unit's EFR.HATS does not cover the four-level tables the kernel
+    /// builds (Mode 4), or the register cannot be read (K12).
+    DepthUnsupported,
 }
 
 impl From<OutOfFrame> for AmdViError {

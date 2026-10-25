@@ -42,7 +42,7 @@ impl Shares {
         Self { owner: owner_group, to_compositor: false, named: [0; NAMED_MAX] }
     }
 
-    /// The older share names no one; it meant the compositor, so it is that.
+    #[allow(dead_code)] // the old compositor default; every share names its receiver (K20)
     pub(crate) fn allow_compositor(&mut self) {
         self.to_compositor = true;
     }
