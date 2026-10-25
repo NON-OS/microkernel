@@ -42,7 +42,7 @@ where
     D: FnMut(u16),
     X: FnMut() -> bool,
 {
-    let mut spins = 0u32;
+    let (mut spins, mut last) = (0u32, false);
     loop {
         let entry = read_slot(cursor.head);
         match classify(entry, cursor.phase, sq_id, cid) {
@@ -61,10 +61,14 @@ where
             }
             CqStep::Empty => {}
         }
-        spins = spins.wrapping_add(1);
-        if spins.is_multiple_of(DEADLINE_CHECK_SPINS) && expired() {
+        // The deadline can pass while the wait is parked or not running, with
+        // the completion written meanwhile: the slot is read once more after
+        // it, and only then is the wait given up.
+        if last {
             return Err(NvmeError::ControllerTimeout);
         }
+        spins = spins.wrapping_add(1);
+        last = last || (spins.is_multiple_of(DEADLINE_CHECK_SPINS) && expired());
         core::hint::spin_loop();
     }
 }
