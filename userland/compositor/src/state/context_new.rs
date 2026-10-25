@@ -57,6 +57,7 @@ impl Context {
             looks: super::looks::Looks::default(),
             first_frame_since: None,
             lid: super::lid_rule::Lid::Open,
+            dma_unconfined: crate::setup::dma::unconfined(),
         }
     }
 }

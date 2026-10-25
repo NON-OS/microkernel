@@ -16,7 +16,9 @@
 
 /*
  * The device table's storage and its removal, by path as the kernel builds
- * them, for the proof that an id is never handed to a second device.
+ * them, for the proof that an id is never handed to a second device; and the
+ * fixed windows a PCI record gets as it is built, for the proof that the
+ * inventory reads such a record as the kernel lists it.
  */
 
 #[path = "../../../../../../src/hardware/broker/table/remove.rs"]
@@ -27,4 +29,14 @@ mod remove;
 mod state;
 
 #[cfg(test)]
+mod fixed_window_tests;
+#[cfg(test)]
 mod id_tests;
+// The kernel's `legacy::attach` by path; the window rules it reads are the
+// ones `legacy_ports` mounts. Only the test module places windows, so only a
+// test build has them.
+#[cfg(test)]
+#[path = "../../../../../../src/hardware/broker/legacy/attach.rs"]
+mod attach;
+#[cfg(test)]
+use crate::legacy_ports::{compat, dispi};

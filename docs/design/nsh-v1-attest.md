@@ -22,8 +22,10 @@ The two signatures are made by the host keys over
 
 The challenge is 32 bytes. Here `H(host keys)` is SHA-512 over the
 Ed25519 key followed by the ML-DSA-65 key. The kernel folds the challenge
-into the quote's `qualifyingData` through `nonos.attest.bind.v2`
-(`src/security/attest_doc/binding.rs`). The quote is therefore fresh,
+into the quote's `qualifyingData` through `nonos.attest.bind.v3`
+(`src/security/attest_doc/binding.rs`), with the registry root and the DMA
+posture: the IOMMU vendor, whether it enforces, `unconfined_grants` and
+`identity_devices`. The quote is therefore fresh,
 because it depends on `client_random`, and it names the host keys. A key
 lifted from this host and used on another machine has no quote naming it
 for that session.
@@ -33,8 +35,10 @@ for that session.
 The first failure ends the session with `ABORT(POLICY)`. Nothing is left
 to the user's judgement and nothing is skipped.
 
-1. The document parses as `NONOSATT` version 4 or later. Version 3 is
-   refused: it does not quote the NONOS chain (kernel change K1).
+1. The document parses as `NONOSATT` version 5 (kernel change K1).
+   Versions 3 and 4 are refused: they do not quote the NONOS chain. Version
+   4 is the kernel's document today, which added the count of devices the
+   IOMMU still lets reach all of memory.
 2. The document's challenge equals the challenge computed above.
 3. `TPMS_ATTEST` is checked:
    - it is a quote (`TPM_GENERATED`, `ST_ATTEST_QUOTE`);
@@ -49,14 +53,19 @@ to the user's judgement and nothing is skipped.
      and the fleet id;
    - it has not expired.
 5. The quoted PCRs are checked:
-   - PCRs 4, 9 and 14 must equal one accepted release's values from the
-     policy;
+   - PCRs 8, 9 and 14 must equal one accepted release's values from the
+     policy; PCR 9 picks the release;
+   - replaying the firmware's event log must give the quoted PCRs 0, 1, 2,
+     4 and 7. In PCR 4 every application must be the release's loader or a
+     boot application this machine's enrolment lists, and the loader must
+     be among them;
    - PCRs 0, 1, 2 and 7 must equal the values in the enrolment certificate,
      which were taken when the machine was enrolled.
 
    A firmware update changes PCRs 0 to 7, so it means the machine is
    enrolled again.
-6. The DMA posture: `iommu_enforcing = 1` and `unconfined_grants = 0`.
+6. The DMA posture: `iommu_enforcing = 1`, `unconfined_grants = 0` and
+   `identity_devices = 0`.
 7. The registry is checked:
    - the entries fold to `registry_root` (`attest_receipt::verify_root`);
    - `registry_complete = 1`;
@@ -93,12 +102,19 @@ refuses a policy whose signature is bad. It holds:
 | `ak_public` | 64 |
 | H(host keys) | 64 |
 | PCR 0, 1, 2 and 7 | 4 × 32 |
+| boot applications: section version = 1 (u8), count (u8, 0 to 8), then each SHA-256 Authenticode digest, none zero and none repeated | 2 + 32 × n |
 | not_after_ms | u64 |
 | authority key id | 32 |
 | Ed25519 signature | 64 |
 | ML-DSA-65 signature | 3309 |
 
 The signatures are over `H("nsh/1 enrol\0" || every field before them)`.
+The boot applications are this machine's: its boot manager and anything
+else its firmware starts besides the release's loader, read from the log
+when it was enrolled. In PCR 4 every application must be the release's
+loader or one of these. A section version this client does not know is
+refused, never read as version 1.
+
 Enrolment uses the TPM's existing EK and AK flow (`src/security/tpm/enroll`,
 `SYS_ENROLL`) to show the authority that this AK is resident in this TPM.
 

@@ -26,7 +26,9 @@ mod attest;
 mod binding;
 mod document;
 mod error;
+mod posture;
 mod produce;
+mod quote_shape;
 
 pub use attest::attest;
 pub use binding::{qualifying_data, DmaPosture};

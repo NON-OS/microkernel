@@ -25,15 +25,17 @@
 //! after its frames are freed. The broker clears it on every release, so
 //! each attempt sets it.
 //!
-//! Today the broker ORs the written bits into the register, so the "off"
-//! writes take effect once it stores them as written
-//! (src/hardware/broker/pci/command.rs); until then they change nothing.
+//! The bit goes in by the masked form of the write (`mk_pci_config_update`),
+//! which names it so it takes the value given: "off" turns Bus Master off,
+//! and every other bit stays as it is. The plain form ORs its bits into the
+//! register and could only turn them on (src/hardware/broker/pci/change.rs).
 
-use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER};
+use nonos_libc::{mk_pci_config_update, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER};
 
 pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
     let value = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };
-    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+    let mask = MK_PCI_CMD_BUS_MASTER;
+    if mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, mask, value) < 0 {
         return Err(if bus_master {
             "pci command write refused (bus master)"
         } else {

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Step 1, the layout: every flag is 0 or 1, the vendor is known, the PCR
-//! list is exactly the version 4 one, every length is within its cap, and
+//! list is exactly K1's, every length is within its cap, and
 //! nothing is left over or cut short.
 
 use nsh_attest::{FormatFault, Refusal};

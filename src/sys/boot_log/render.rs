@@ -16,7 +16,7 @@
 
 use super::draw::{draw_char, fill_rect, scale};
 use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y};
-use crate::kernel_core::init::framebuffer::framebuffer_state;
+use crate::kernel_core::init::framebuffer::{drawable, KernelFramebuffer};
 use core::sync::atomic::Ordering;
 
 const LINE_H: u32 = 18;
@@ -26,9 +26,10 @@ pub(super) fn write_line(tag: &str, msg: &str, color: u32) {
     if !DISPLAY_ENABLED.load(Ordering::Acquire) {
         return;
     }
-    let Some(fb) = framebuffer_state() else {
+    let Some(draw) = drawable() else {
         return;
     };
+    let fb: &KernelFramebuffer = &draw;
     let s = scale(fb);
     let line_h = LINE_H * s;
     let mut y = LOG_Y.load(Ordering::Relaxed);

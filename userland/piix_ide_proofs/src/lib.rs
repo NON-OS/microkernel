@@ -21,6 +21,10 @@
 
 extern crate alloc;
 
+// `Probe::Ata` carries a disk's 512-byte IDENTIFY block from the port reads
+// to `parse` once per disk at bring-up, by value on the stack. Boxing it would
+// change the sealed driver image for nothing, so the lint is answered here.
+#[allow(clippy::large_enum_variant)]
 #[path = "../../capsule_driver_piix_ide/src/channel/mod.rs"]
 pub mod channel;
 #[path = "../../capsule_driver_piix_ide/src/constants/mod.rs"]

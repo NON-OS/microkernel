@@ -20,8 +20,9 @@ names:
 
 The three roles shipped are `operator`, `auditor` and `deploy`. Their
 capability sets are a separate, reviewed table (plan P6). `Admin`,
-`Debug`, `DeviceSecret`, `EnrolDevRoot`, `LocalSign` and `Keyring` are
-never in any ceiling: the role table parser refuses them.
+`Debug`, `DeviceSecret`, `EnrolDevRoot`, `LocalSign`, `Keyring`,
+`CameraCapture`, `MicrophoneCapture` and `ScreenCapture` are never in any
+ceiling: the role table parser refuses them.
 
 ## A grant, `nsh-grant/1`
 
@@ -37,7 +38,7 @@ never in any ceiling: the role table parser refuses them.
 | subject: H(user Ed25519 key, user ML-DSA-65 key) | 64 |
 | user name | `bytes8`, matching `[a-z][a-z0-9._-]{0,31}` |
 | role | `bytes8`, matching `[a-z][a-z0-9-]{0,15}` |
-| capabilities | count: u8 (1 to 37), then that many names as `bytes8`, none repeated |
+| capabilities | count: u8 (1 to 40), then that many names as `bytes8`, none repeated |
 | not_before_ms | u64 |
 | not_after_ms | u64 |
 | issuer key id | 32 |

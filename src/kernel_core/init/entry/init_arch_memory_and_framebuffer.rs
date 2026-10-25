@@ -30,5 +30,10 @@ pub(super) fn init_arch_memory_and_framebuffer(handoff: &KernelHandoff) {
         ArchSpecificHandoff::Aarch64 { info } => {
             crate::arch::aarch64::boot::init_boot_memory(info);
         }
+        // The device tree's regions and reservations, as on aarch64.
+        #[cfg(target_arch = "riscv64")]
+        ArchSpecificHandoff::Riscv64 { info } => {
+            crate::arch::riscv64::boot::init_boot_memory(info);
+        }
     }
 }

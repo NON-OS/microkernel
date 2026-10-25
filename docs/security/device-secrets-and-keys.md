@@ -104,7 +104,7 @@ Reading the volume takes `FileSystem`; importing into it takes `StoreWrite` and 
 
 ## The capsule store is not encrypted
 
-`sys_store_write` writes the bytes it is given to the disk, at LBA 256 or above and below the plan, and needs `StoreWrite` (`src/syscall/microkernel/store_write.rs:24-42`). The file service persists a file only when the policy field `Persistent` is set, which first-boot setup records when the person chooses to keep state. `require_persistent` refuses every other persist (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`). An allowed file is written with `append` as it is (`userland/capsule_vfs/src/server/handlers/store_persist.rs:57-63`). On an [amnesic boot](../overview/glossary-amnesic-boot.md#amnesic-boot) nothing is persisted.
+`sys_store_write` writes the bytes it is given to the disk, at LBA 256 or above and below the plan, and needs `StoreWrite` (`src/syscall/microkernel/store_write.rs:24-42`). The file service persists a file only when the kernel says the boot keeps (`MkKeeping`), which it does once the policy service tells it the field `Persistent` is set; first-boot setup sets it when the person chooses to keep state. `require_persistent` refuses every other persist (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:32-47`). An allowed file is written with `append` as it is (`userland/capsule_vfs/src/server/handlers/store_persist.rs:57-63`). On an [amnesic boot](../overview/glossary-amnesic-boot.md#amnesic-boot) nothing is persisted.
 
 On an installed system, a file persisted to the store is in the clear on the disk unless its capsule sealed it. The saved Wi-Fi list is sealed with the machine key, and the wallet's account key and recovery words are sealed by the keyring.
 
@@ -117,11 +117,11 @@ On an installed system, a file persisted to the store is in the clear on the dis
 | Keyring records, apart from the two wallet records it seals | the keyring's `Store` (`userland/capsule_keyring/src/store/types/store.rs:20-23`) |
 | The Shield store and its file key | `session` (`userland/capsule_shield/src/guard.rs:39-47`) |
 | The live boot volume and its key | `open_session_volume` (`src/fs/blockfs_volume/session.rs:36-64`) |
-| Every file on an amnesic boot | refused by `require_persistent` (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`) |
+| Every file on an amnesic boot | refused by `require_persistent` (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:32-47`) |
 
 ## Wiped at shutdown and reboot
 
-`AdminShutdown` and `AdminReboot` need `Admin` (`can_admin` in `src/syscall/contract/cap_table/admin.rs:20-28`), and both end in `terminate` (`shutdown` in `src/syscall/dispatch/router/admin/shutdown.rs:25-27`). The power capsule makes the call with `mk_admin_shutdown` (`userland/capsule_power/src/server/handlers/shutdown.rs:23-31`), but it is built and not started, and the desktop offers no way to power off (`POWER_OFF_UNAVAILABLE` in `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`). In 0.9.2 the call that reaches the wipe from the desktop is the installer's restart, `mk_admin_reboot` on its Done screen (`userland/capsule_install/src/install/event/after.rs:38`). `terminate` stops the other CPUs, runs the wipe, then hands the machine to the firmware (`src/security/zerostate/terminate.rs:35-39`).
+`AdminShutdown` and `AdminReboot` need `Admin` (`can_admin` in `src/syscall/contract/cap_table/admin.rs:20-28`), and both end in `terminate` (`shutdown` in `src/syscall/dispatch/router/admin/shutdown.rs:25-27`). The power capsule makes the call with `mk_admin_shutdown` when the desktop shell confirms a power-off on `power.off` (`userland/capsule_power/src/off/mod.rs:38`), and the shell's confirmation is the only way the desktop reaches it. The installer's restart reaches the wipe too, with `mk_admin_reboot` on its Done screen (`userland/capsule_install/src/install/event/after.rs:38`). `terminate` stops the other CPUs, runs the wipe, then hands the machine to the firmware (`src/security/zerostate/terminate.rs:35-39`).
 
 `zerostate_shutdown_wipe` runs in this order (`src/security/hardening/memory_sanitization/api.rs:59-110`):
 

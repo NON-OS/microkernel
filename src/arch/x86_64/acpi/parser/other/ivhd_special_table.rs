@@ -18,13 +18,13 @@
 
 use spin::Mutex;
 
-use super::ivhd_special::{specials, Special, IOAPIC, MAX_SPECIALS};
+use super::ivhd_special::{special_entries, Special, IOAPIC, MAX_SPECIALS};
 
 static SPECIALS: Mutex<heapless::Vec<Special, MAX_SPECIALS>> = Mutex::new(heapless::Vec::new());
 
 pub(super) fn record(ivrs: &[u8]) {
     let mut found = [Special { variety: 0, handle: 0, id: 0 }; MAX_SPECIALS];
-    let n = specials(ivrs, &mut found);
+    let n = special_entries(ivrs, &mut found);
     *SPECIALS.lock() = found[..n].iter().copied().collect();
 }
 
