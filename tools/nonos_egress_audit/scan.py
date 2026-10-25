@@ -15,8 +15,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """The literals in source that name a place off the machine: a URL or a host
-name in a string, an IPv4 address written as four bytes, and a build-time
-setting that names a mirror, host or endpoint."""
+name in a string, an IPv4 address written as four bytes or as a dotted
+string, and a build-time setting that names a mirror, host or endpoint."""
 
 import re
 
@@ -28,6 +28,7 @@ HOST = re.compile(r'["\']((?:https?|wss?)://[^"\'\s]+|[a-z0-9-]+(?:\.[a-z0-9-]+)
                   r'[:/"\']' % TLDS, re.I)
 QUAD = re.compile(r"(?:\[|Ipv4Addr::new\()\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,"
                   r"\s*(\d{1,3})\s*[\])]")
+DOTTED = re.compile(r'"(\d{1,3}(?:\.\d{1,3}){3})(?::\d{1,5})?"')
 PORT_AFTER = re.compile(r"\s*,\s*\d{2,5}\s*\)")
 # Words that mark a file as one about addresses; four bytes elsewhere are
 # tables, colours and test data.
@@ -51,6 +52,9 @@ def in_file(name, text):
                 yield host, n
         for m in SETTING.finditer(line):
             yield "build:" + m.group(1), n
+        for m in DOTTED.finditer(line):
+            if all(int(b) < 256 for b in m.group(1).split(".")):
+                yield m.group(1), n
         for m in QUAD.finditer(line):
             quad = m.groups()
             port = PORT_AFTER.match(line[m.end():])
