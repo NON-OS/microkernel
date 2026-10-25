@@ -14,26 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for zero-state. The kernel's keep rule and the disk plan
-//! parser it reads are mounted from their source, so what is proved here is
-//! what the kernel runs.
+//! Host proofs for zero-state. The kernel's keep rule is mounted from its
+//! source, so what is proved here is what the kernel runs.
 
-// The rule the store write asks: what a write may change on this boot.
-// The kernel keeps its items crate-wide; only the tests call them here.
+// The rules the store write and the policy push ask.
 #[allow(dead_code)]
 #[path = "../../../src/security/zerostate/keep_rule.rs"]
 pub mod keep_rule;
 
-// The disk plan: how an installed disk is told from a live one.
-#[path = "../../../src/fs/blockfs_volume/plan.rs"]
-pub mod plan;
-#[path = "../../../src/fs/blockfs_volume/plan_types.rs"]
-pub mod plan_types;
-
-pub mod model;
 pub mod sweep;
 
 #[cfg(test)]
-mod chain_tests;
+mod arm_tests;
 #[cfg(test)]
 mod rule_tests;

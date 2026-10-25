@@ -32,7 +32,8 @@ PLAIN = {
     "virtio-balloon": "-device virtio-balloon-pci",
     "vmbus": "-device vmbus-bridge -device hv-balloon",
     # Not a device: the machine stops at power-off instead of exiting, so a
-    # test can read its memory after the wipe. A restart stops there too.
+    # test can read its memory after the wipe. The launcher's -no-reboot
+    # makes a restart a power-off, so a restart stops there too.
     "hold-at-off": "-action shutdown=pause",
 }
 
