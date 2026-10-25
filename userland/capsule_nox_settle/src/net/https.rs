@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One HTTPS exchange over Route::for_wallet(): the Nym mixnet or the Anyone
-//! network, never Direct, and a route that is down is ENETDOWN. nonos_tls
+//! One HTTPS exchange over Route::for_rpc(): the wallet's, the Nym mixnet or
+//! the Anyone network, never Direct but for the local test chain's one name in
+//! a `devnet` build, and a route that is down is ENETDOWN. nonos_tls
 //! checks the host's chain before the request is sealed. Only a 200 is an
 //! answer: a redirect is refused, never followed to another host.
 
@@ -36,11 +37,11 @@ pub(super) const FETCH_TOTAL_MS: u64 = 300_000;
 const HEAD_MAX: usize = 16 * 1024;
 
 pub(super) fn https(host: &str, req: &[u8], limit: usize, ms: u64) -> Result<Vec<u8>, i32> {
-    let route = Route::for_wallet();
+    let route = Route::for_rpc(host);
     if matches!(route, Route::Down(_)) {
         return Err(ENETDOWN);
     }
-    let stream = RouteStream::connect(route, host, 443).map_err(|_| EIO)?;
+    let stream = RouteStream::connect_rpc(route, host, 443).map_err(|_| EIO)?;
     let mut io = RouteIo::new(stream, route.patience_ms(), ms);
     let max = limit.saturating_add(HEAD_MAX);
     let plain = exchange(&mut io, host, req, rtc_now(), max).map_err(|e| match e {

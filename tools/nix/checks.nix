@@ -480,5 +480,8 @@ let
         '';
       };
     };
+
+  # No release capsule carries the local test chain's names (P5).
+  releaseChecks.release-names = import ./release_names.nix { inherit pkgs lib capsules; };
 in
-proofChecks // cargoChecks // profileChecks // staticChecks // driftChecks // reproChecks
+proofChecks // cargoChecks // profileChecks // staticChecks // driftChecks // reproChecks // releaseChecks

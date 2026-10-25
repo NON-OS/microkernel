@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod by_chain;
 mod deployment;
+#[cfg(feature = "devnet")]
+mod devnet;
 mod mainnet;
 mod sepolia;
 
-pub use deployment::{deployment, Deployed, Deployment};
+pub use by_chain::deployment;
+pub use deployment::{Deployed, Deployment};

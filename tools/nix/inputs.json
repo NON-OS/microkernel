@@ -8354,6 +8354,7 @@
    "userland/nonos_route_link/src/bounds.rs",
    "userland/nonos_route_link/src/carrier.rs",
    "userland/nonos_route_link/src/describe.rs",
+   "userland/nonos_route_link/src/devnet.rs",
    "userland/nonos_route_link/src/direct_only.rs",
    "userland/nonos_route_link/src/frame.rs",
    "userland/nonos_route_link/src/opening.rs",
