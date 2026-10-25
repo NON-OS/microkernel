@@ -53,12 +53,17 @@ to the user's judgement and nothing is skipped.
      and the fleet id;
    - it has not expired.
 5. The quoted PCRs are checked:
-   - PCRs 8, 9 and 14 must equal one accepted release's values from the
+   - PCRs 8 and 9 must equal one accepted release's values from the
      policy; PCR 9 picks the release;
-   - replaying the firmware's event log must give the quoted PCRs 0, 1, 2,
-     4 and 7. In PCR 4 every application must be the release's loader or a
+   - replaying the event log must give the quoted PCRs 0, 1, 2, 4, 7 and
+     14. In PCR 4 every application must be the release's loader or a
      boot application this machine's enrolment lists, and the loader must
      be among them;
+   - PCR 14 holds one event for each capsule the kernel admitted, after
+     the firmware's events (docs/design/k1-attest-doc-v4.md, "PCR 14"). At
+     least one must be there, and every one admitted on its STARK proof
+     under the vendor's root. A development image's path alone, a root a
+     person enrolled, and a local build are each refused by name;
    - PCRs 0, 1, 2 and 7 must equal the values in the enrolment certificate,
      which were taken when the machine was enrolled.
 
@@ -81,8 +86,9 @@ refuses a policy whose signature is bad. It holds:
 
 - the fleet id;
 - the enrolment authority's keys;
-- the accepted releases, each given as its version, its rollback index and
-  its PCR 4, 9 and 14 values;
+- the accepted releases, each given as its version, its PCR 8 and 9
+  values, its loader's Authenticode digest and its `nsh.front`
+  measurement;
 - whether the device proof is required;
 - the role authority keys, which the client shows to the user but does not
   enforce;

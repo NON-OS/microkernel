@@ -32,7 +32,7 @@ impl Default for Spec {
             th: [0x77; 64],
             host: b"db-1.eu.example".to_vec(),
             now_ms: 5_000,
-            log: Log::standard(),
+            log: Log::standard().with_capsules(),
             pcr: Vec::new(),
             quoted: Vec::new(),
             challenge: None,

@@ -48,3 +48,9 @@ pub unsafe fn transact(cmd: &[u8], out: &mut [u8]) -> Result<usize, TpmError> {
     }
 }
 
+/// True once detection has found a part. False before the first command and
+/// when there is none, so a caller can tell a machine without a TPM from a
+/// command that failed on one.
+pub fn found() -> bool {
+    matches!(*PART.lock(), Some(Ok(_)))
+}
