@@ -18,6 +18,7 @@ mod cpuinfo;
 mod filesystems;
 mod inode;
 mod loadavg;
+mod loadavg_math;
 mod meminfo;
 mod mount;
 mod mounts;

@@ -46,12 +46,15 @@ private theorem shl32_3 : (1#u32 <<< 3#i32 : Result Std.U32) = ok 8#u32 := rfl
 private theorem shl32_4 : (1#u32 <<< 4#i32 : Result Std.U32) = ok 16#u32 := rfl
 private theorem shl32_5 : (1#u32 <<< 5#i32 : Result Std.U32) = ok 32#u32 := rfl
 private theorem shl32_6 : (1#u32 <<< 6#i32 : Result Std.U32) = ok 64#u32 := rfl
+private theorem shl32_12 : (1#u32 <<< 12#i32 : Result Std.U32) = ok 4096#u32 := rfl
 private theorem shl64_0 : (1#u64 <<< 0#i32 : Result Std.U64) = ok 1#u64 := rfl
 private theorem shl64_1 : (1#u64 <<< 1#i32 : Result Std.U64) = ok 2#u64 := rfl
 private theorem shl64_2 : (1#u64 <<< 2#i32 : Result Std.U64) = ok 4#u64 := rfl
 private theorem shl64_3 : (1#u64 <<< 3#i32 : Result Std.U64) = ok 8#u64 := rfl
 private theorem shl64_4 : (1#u64 <<< 4#i32 : Result Std.U64) = ok 16#u64 := rfl
 private theorem shl64_8 : (1#u64 <<< 8#i32 : Result Std.U64) = ok 256#u64 := rfl
+private theorem shl64_52 :
+    (1#u64 <<< 52#i32 : Result Std.U64) = ok 4503599627370496#u64 := rfl
 private theorem shl64_63 :
     (1#u64 <<< 63#i32 : Result Std.U64) = ok 9223372036854775808#u64 := rfl
 
@@ -90,13 +93,16 @@ theorem is_wx_violation_iff (p : memory.paging.types.permissions.flags.PagePermi
 set_option maxHeartbeats 64000000 in
 /-- The extracted to_pte_flags never fails, and its output carries exactly
     the security bits the model demands: present set, writable iff WRITE,
-    user iff USER, NX iff not EXECUTE. -/
+    user iff USER, NX iff not EXECUTE, and GLOBAL iff GLOBAL was asked on a
+    page that is not USER (P-06: a global user entry would outlive the CR3
+    write to the next address space while CR4.PGE is on). -/
 theorem to_pte_flags_spec (p : memory.paging.types.permissions.flags.PagePermissions) :
     ∃ v, to_pte_flags p = ok v ∧
       v.val.testBit 0 = true ∧
       v.val.testBit 1 = p.bits.val.testBit 1 ∧
       v.val.testBit 2 = p.bits.val.testBit 3 ∧
-      v.val.testBit 63 = !p.bits.val.testBit 2 := by
+      v.val.testBit 63 = !p.bits.val.testBit 2 ∧
+      v.val.testBit 8 = (p.bits.val.testBit 4 && !p.bits.val.testBit 3) := by
   simp only [to_pte_flags,
     memory.paging.types.permissions.convert.PagePermissions.to_pte_flags,
     memory.paging.types.permissions.flags.PagePermissions.contains,
@@ -104,8 +110,10 @@ theorem to_pte_flags_spec (p : memory.paging.types.permissions.flags.PagePermiss
     memory.paging.types.permissions.flags.PagePermissions.USER,
     memory.paging.types.permissions.flags.PagePermissions.WRITE_THROUGH,
     memory.paging.types.permissions.flags.PagePermissions.NO_CACHE,
+    memory.paging.types.permissions.flags.PagePermissions.DEVICE,
     memory.paging.types.permissions.flags.PagePermissions.GLOBAL,
     memory.paging.types.permissions.flags.PagePermissions.EXECUTE,
+    memory.paging.constants.permissions.PERM_DEVICE,
     memory.paging.constants.permissions.PERM_WRITE,
     memory.paging.constants.permissions.PERM_USER,
     memory.paging.constants.permissions.PERM_WRITE_THROUGH,
@@ -117,6 +125,7 @@ theorem to_pte_flags_spec (p : memory.paging.types.permissions.flags.PagePermiss
     memory.paging.constants.pte_flags.PTE_USER,
     memory.paging.constants.pte_flags.PTE_WRITE_THROUGH,
     memory.paging.constants.pte_flags.PTE_CACHE_DISABLE,
+    memory.paging.constants.pte_flags.PTE_DEVICE,
     memory.paging.constants.pte_flags.PTE_GLOBAL,
     memory.paging.constants.pte_flags.PTE_NO_EXECUTE,
     -- The PTE constants name the shared flag vocabulary at the paging
@@ -127,18 +136,21 @@ theorem to_pte_flags_spec (p : memory.paging.types.permissions.flags.PagePermiss
     arch.paging.descriptor.flags.USER,
     arch.paging.descriptor.flags.WRITE_THROUGH,
     arch.paging.descriptor.flags.NO_CACHE,
+    arch.paging.descriptor.flags.DEVICE,
     arch.paging.descriptor.flags.GLOBAL,
     arch.paging.descriptor.flags.NO_EXECUTE,
-    lift, bind_tc_ok, shl32_1, shl32_2, shl32_3, shl32_4, shl32_5, shl32_6,
-    shl64_0, shl64_1, shl64_2, shl64_3, shl64_4, shl64_8, shl64_63]
+    lift, bind_tc_ok, shl32_1, shl32_2, shl32_3, shl32_4, shl32_5, shl32_6, shl32_12,
+    shl64_0, shl64_1, shl64_2, shl64_3, shl64_4, shl64_8, shl64_52, shl64_63]
   simp only [uscalar_eq_val, UScalar.val_and]
   rw [nat_bridge_eq _ _ 1 (by decide), nat_bridge_eq _ _ 3 (by decide),
     nat_bridge_eq _ _ 6 (by decide), nat_bridge_eq _ _ 5 (by decide),
-    nat_bridge_eq _ _ 4 (by decide), nat_bridge_eq _ _ 2 (by decide)]
+    nat_bridge_eq _ _ 12 (by decide), nat_bridge_eq _ _ 4 (by decide),
+    nat_bridge_eq _ _ 2 (by decide)]
   cases h1 : p.bits.val.testBit 1 <;> cases h2 : p.bits.val.testBit 3 <;>
     cases h3 : p.bits.val.testBit 6 <;> cases h4 : p.bits.val.testBit 5 <;>
     cases h5 : p.bits.val.testBit 4 <;> cases h6 : p.bits.val.testBit 2 <;>
-    exact ⟨_, rfl, by decide, by decide, by decide, by decide⟩
+    cases h7 : p.bits.val.testBit 12 <;>
+    exact ⟨_, rfl, by decide, by decide, by decide, by decide, by decide⟩
 
 /-- The W^X page theorem on the extracted encoder: a permission set that is
     not a violation never encodes a page both writable and executable. -/
@@ -146,7 +158,7 @@ theorem extracted_no_wx_page (p : memory.paging.types.permissions.flags.PagePerm
     (v : Std.U64) (hv : to_pte_flags p = ok v)
     (hok : ¬(p.bits.val.testBit 1 = true ∧ p.bits.val.testBit 2 = true)) :
     ¬(v.val.testBit 1 = true ∧ v.val.testBit 63 = false) := by
-  obtain ⟨v', hv', _, hw, _, hx⟩ := to_pte_flags_spec p
+  obtain ⟨v', hv', _, hw, _, hx, _⟩ := to_pte_flags_spec p
   rw [hv] at hv'
   have heq : v = v' := (ok.injEq _ _).mp hv'
   subst heq
@@ -160,6 +172,17 @@ theorem extracted_no_wx_page (p : memory.paging.types.permissions.flags.PagePerm
     · rw [h] at h63
       simp at h63
     · rfl
+
+/-- No user page is encoded GLOBAL by the extracted encoder (P-06). -/
+theorem extracted_user_page_never_global (p : memory.paging.types.permissions.flags.PagePermissions)
+    (v : Std.U64) (hv : to_pte_flags p = ok v) (huser : p.bits.val.testBit 3 = true) :
+    v.val.testBit 8 = false := by
+  obtain ⟨v', hv', _, _, _, _, hg⟩ := to_pte_flags_spec p
+  rw [hv] at hv'
+  have heq : v = v' := (ok.injEq _ _).mp hv'
+  subst heq
+  rw [hg, huser]
+  simp
 
 /-! ## The extracted user-copy range policy -/
 

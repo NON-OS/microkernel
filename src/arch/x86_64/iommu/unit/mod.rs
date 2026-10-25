@@ -24,3 +24,4 @@ pub mod invalidate;
 pub mod probe;
 pub mod queue;
 pub mod report;
+pub mod rmrr_of;

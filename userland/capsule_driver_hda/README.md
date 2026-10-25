@@ -98,9 +98,9 @@ controller in turn until one plays:
    map the CORB and RIRB. An owner that died without its teardown (a panic,
    a kill) left its engines armed at frames freed since, and the kernel's
    release cleared only Bus Master, so it stays off until step 2 stops them.
-   Today's broker ORs the bits it is given into the Command register, so this
-   write cannot yet clear a Bus Master left set; the kernel clears it at claim
-   once K6 lands, and the driver writes it off regardless.
+   The write is the broker's masked form, which names the bits it changes,
+   so it clears a Bus Master left set; the plain form only ORs bits on. The
+   kernel's claim turns Bus Master off as well.
 2. Stop every engine a previous owner left running and see each stopped (one
    that will not fails the attempt by name; its teardown resets the
    controller for the next, `src/controller/stop.rs`), then a full reset: CRST
@@ -162,9 +162,9 @@ will not stop is logged by name and the teardown goes on.
 The release is the real guard: the broker clears bus mastering itself and
 reads it back before it drains the DMA grants (rings, BDL, PCM ring), so no
 frame is freed under an engine still writing it. The driver's own Bus Master
-write is defence in depth: the broker ORs a command write that names only
-writable bits into the register today, so it takes effect once the kernel's
-K6 change stores it as written.
+write is defence in depth, by the masked form of the command write so that
+it clears the bit: the plain form ORs a write that names only writable bits
+into the register.
 
 ## Failure model
 
