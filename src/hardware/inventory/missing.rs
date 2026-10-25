@@ -19,10 +19,6 @@ use super::family::HardwareFamily::{self, *};
 pub fn missing_path(family: HardwareFamily) -> Option<&'static str> {
     Some(match family {
         NetworkIwlwifi => "firmware start, scan, association, RX/TX data path",
-        // Built and proven on the host, not yet in the image (each capsule's
-        // CAPSULE_NOT_IN_IMAGE); a row naming them would claim a data path
-        // the machine does not have.
-        NetworkIgc => "igc driver, built but not in the image",
         NetworkRealtekWifi => "802.11 driver for this Realtek part",
         AudioHda => "stream DMA ring, playback path",
         InputI2cHid => "HID-over-I2C input report path",

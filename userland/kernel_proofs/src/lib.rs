@@ -44,6 +44,7 @@ pub mod security;
 /// Which registered services take Network to reach.
 #[path = "../../../src/services/registry/policy.rs"]
 pub mod service_policy;
+pub mod services;
 pub mod store_copy_span;
 pub mod store_errno;
 #[cfg(test)]

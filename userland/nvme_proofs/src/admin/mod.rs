@@ -29,6 +29,11 @@ mod cq_cursor;
 mod active_ns;
 #[path = "../../../capsule_driver_nvme/src/admin/disable_step.rs"]
 mod disable_step;
+// The real shutdown budget and wait the power-off makes.
+#[path = "../../../capsule_driver_nvme/src/admin/shutdown_step.rs"]
+mod shutdown_step;
+#[path = "../../../capsule_driver_nvme/src/admin/shutdown_wait.rs"]
+mod shutdown_wait;
 // The real CC written at enable, from CAP alone.
 #[path = "../../../capsule_driver_nvme/src/admin/cc_value.rs"]
 mod cc_value;
@@ -49,7 +54,7 @@ pub use command::{set_features, Submission};
 pub use completion::Completion;
 pub use completion_step::{classify, CqStep};
 pub use completion_wait::{wait_for_completion, DEADLINE_CHECK_SPINS};
-pub use controller::{enable, reset_to_disabled};
+pub use controller::{enable, reset_to_disabled, shut_down};
 pub use cq_cursor::CqCursor;
 pub use disable_step::{
     await_ready_before_disable, disable_start, pre_disable_step, DisableStart, PreDisableStep,
@@ -61,3 +66,7 @@ pub use namespace::NamespaceIdentity;
 pub use queue::AdminQueue;
 pub use ready_step::{ready_step, ready_timeout_ms, ReadyStep, READY_FLOOR_MS};
 pub use ready_wait::wait_ready;
+pub use shutdown_step::{
+    shutdown_budget_ms, shutdown_step, ShutdownStep, SHUTDOWN_CAP_MS, SHUTDOWN_DEFAULT_MS,
+};
+pub use shutdown_wait::await_shutdown;
