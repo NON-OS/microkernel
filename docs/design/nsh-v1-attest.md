@@ -7,7 +7,7 @@
 | host Ed25519 public key | 32 |
 | host ML-DSA-65 public key | 1952 |
 | enrolment certificate | `bytes16` (below) |
-| attestation document, `NONOSATT` from `MkAttestDoc` | u32 length, then the bytes; at most 196608 |
+| attestation document, `NONOSATT` from `MkAttestDoc` | u32 length, then the bytes; at most 1114112 |
 | registry entries from `MkAttestEntries` | u32 length, then 45 × n bytes, with n from 1 to 1024 |
 | Ed25519 signature | 64 |
 | ML-DSA-65 signature | 3309 |
