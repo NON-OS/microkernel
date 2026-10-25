@@ -20,16 +20,18 @@ pub mod pkg_handoff;
 pub mod agentproof_job;
 #[path = "../../capsule_terminal/src/jobs/box_hold.rs"]
 pub mod box_hold;
-#[path = "../../capsule_terminal/src/jobs/box_screen.rs"]
-pub mod box_screen;
 #[path = "../../capsule_terminal/src/jobs/box_log.rs"]
 pub mod box_log;
 #[path = "../../capsule_terminal/src/jobs/box_missing.rs"]
 pub mod box_missing;
-#[path = "../../capsule_terminal/src/command/builtin/tool_argv.rs"]
-pub mod tool_argv;
+#[path = "../../capsule_terminal/src/jobs/box_screen.rs"]
+pub mod box_screen;
 #[path = "../../capsule_linux/src/linux/boxed/frames.rs"]
 pub mod linux_frames;
+#[path = "../../capsule_terminal/src/command/builtin/tool_argv.rs"]
+pub mod tool_argv;
+#[path = "../../capsule_terminal/src/command/builtin/tool_service.rs"]
+pub mod tool_service;
 
 #[cfg(test)]
 mod agentproof_job_sweep_tests;
@@ -43,6 +45,10 @@ mod box_glue_tests;
 mod box_log_tests;
 #[cfg(test)]
 mod box_missing_tests;
+#[cfg(test)]
+mod box_net_tests;
+#[cfg(test)]
+mod box_service_tests;
 #[cfg(test)]
 mod box_screen_left;
 #[cfg(test)]

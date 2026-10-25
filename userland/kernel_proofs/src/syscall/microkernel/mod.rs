@@ -31,4 +31,5 @@ mod owner_gate_tests;
 
 pub mod caps_of;
 pub mod enqueued_at;
+pub mod reply_dest;
 pub mod wait;
