@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! How long net.core waits for a receive answer: twice what the driver has
 //! lately taken, never below the op's floor nor above its ceiling. Pure:
 //! net_core_proofs mounts it.
