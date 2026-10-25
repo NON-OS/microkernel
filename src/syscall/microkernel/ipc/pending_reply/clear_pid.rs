@@ -16,12 +16,17 @@
 
 use super::state::PENDING;
 
+/// `pid` died: every caller waiting on it is told at once (ESRCH, through
+/// `abandoned`) and woken, and its own calls leave every queue. Teardown
+/// calls this after the names go, so no call can find it once this has run.
 pub(crate) fn clear_pid(pid: u32) {
     let caller_inbox = super::super::reply_inbox::for_pid(pid);
-    let mut map = PENDING.lock();
-    map.remove(&pid);
-    map.retain(|_, queue| {
-        queue.retain(|(_, inbox, _)| inbox != &caller_inbox);
-        !queue.is_empty()
-    });
+    // Gone recorded under PENDING, so no push can slip in after the clear.
+    let mut queues = PENDING.lock();
+    let owed = super::death::on_death(&mut queues, pid, &caller_inbox);
+    super::abandoned::record(pid, &owed);
+    drop(queues);
+    for (caller, _) in owed {
+        crate::sched::wake_process(caller);
+    }
 }
