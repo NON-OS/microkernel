@@ -28,15 +28,15 @@ pub(super) const DRIVER_XHCI_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-xhci")]
 pub(super) const DRIVER_XHCI_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_xhci.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_xhci.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-xhci")]
 pub(super) const DRIVER_XHCI_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_xhci.manifest.bin");
+    crate::baked_trust!("capsules/driver_xhci.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-xhci")]
 pub(super) const DRIVER_XHCI_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_xhci.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_xhci.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-xhci"))]
 pub(super) const DRIVER_XHCI_ELF: &[u8] = &[];

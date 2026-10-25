@@ -25,9 +25,9 @@
 //! still finishes its call and its answer is discarded. One worker at a time:
 //! a request while the last one is still out is refused and said so.
 //!
-//! The installer answers whoever calls through the kernel's reply path and
-//! does not check which process asks (`capsule_installer/src/server`), so the
-//! worker's own thread id is no obstacle.
+//! The answer comes back to the worker's own inbox, `proc.<tid>`: the kernel
+//! hands a reply to the inbox the call recorded once it is still the caller's
+//! (src/syscall/microkernel/ipc/reply_dest.rs), thread or process alike.
 
 use nonos_libc::{Handoff, WorkerSeat};
 
