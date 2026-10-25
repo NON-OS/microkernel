@@ -19,7 +19,9 @@
 mod blit;
 mod colour;
 mod display;
+mod display_notice_tests;
 mod present_note_tests;
+mod rejected_tests;
 pub(crate) mod requests;
 mod scene;
 mod sizes;

@@ -23,7 +23,7 @@ says it ships only through the on-disk package store.
 - `0x0010` Memory: heap for the module matrix.
 - `0x0800` GraphicsDisplayQuery and `0x1000` GraphicsSurfaceCreate: its window surface.
 
-Endpoints: service `service:4924:app.qrgen`, reply `reply:4925:endpoint.app.qrgen.reply`. The
+Endpoints: service `service:4924:com.example.qrgen`, reply `reply:4925:endpoint.com.example.qrgen.reply`. The
 domain is `com.example`.
 
 ## Interface

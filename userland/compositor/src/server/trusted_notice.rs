@@ -20,16 +20,9 @@
 //! The router takes it from the compositor's pid only, and a lost notice is
 //! made good by the next one, at most a second later.
 
-use alloc::vec::Vec;
-
-use nonos_libc::{mk_ipc_send, mk_service_lookup};
-
 use crate::state::trusted_rule::{due, holder};
 use crate::state::Context;
 
-const ROUTER: &[u8] = b"input_router";
-const NIRS_MAGIC: u32 = 0x4E49_5253;
-const NIRS_VERSION: u16 = 1;
 const OP_TRUSTED_HOLD: u16 = 0x0005;
 
 pub struct Notice {
@@ -55,17 +48,5 @@ impl Notice {
 }
 
 fn send(pid: u32) -> bool {
-    let (mut port, mut owner) = (0u32, 0u32);
-    if mk_service_lookup(ROUTER.as_ptr(), ROUTER.len(), &mut port, &mut owner) < 0 || port == 0 {
-        return false;
-    }
-    let mut f = Vec::with_capacity(24);
-    f.extend_from_slice(&NIRS_MAGIC.to_le_bytes());
-    f.extend_from_slice(&NIRS_VERSION.to_le_bytes());
-    f.extend_from_slice(&OP_TRUSTED_HOLD.to_le_bytes());
-    f.extend_from_slice(&[0u8; 4]);
-    f.extend_from_slice(&0u32.to_le_bytes());
-    f.extend_from_slice(&4u32.to_le_bytes());
-    f.extend_from_slice(&pid.to_le_bytes());
-    mk_ipc_send(port as u64, f.as_ptr(), f.len()) >= 0
+    super::router_send::send(OP_TRUSTED_HOLD, &pid.to_le_bytes())
 }

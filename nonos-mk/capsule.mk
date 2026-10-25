@@ -140,6 +140,11 @@ $(CAPSULE_SLUG)_CARGO_FEATURES   := $(_NONOS_CAPSULE_CARGO_FEATURES)
 $(CAPSULE_SLUG)_PREBUILT_BIN     := $(if $(NONOS_CAPSULE_BINS),$(NONOS_CAPSULE_BINS)/$(CAPSULE_SLUG)/$(CAPSULE_BIN_NAME),$(_NONOS_CAPSULE_PREBUILT_BIN))
 $(CAPSULE_SLUG)_KERNEL_MIRROR    := $(CAPSULE_KERNEL_MIRROR)
 $(CAPSULE_SLUG)_DEV_ONLY         := $(strip $(CAPSULE_DEV_ONLY))
+# Cargo features for the development capsule set alone (the flake's
+# capsules-dev, which only an image that is not a release takes). No make
+# lane builds with them; scripts/check_dev_capsule_set.py holds every release
+# path to the set make declares.
+$(CAPSULE_SLUG)_DEV_CARGO_FEATURES := $(strip $(CAPSULE_DEV_CARGO_FEATURES))
 # The file that declared this capsule, so editing it re-signs. A directory
 # declaring several (userland/linux_guests) names its own file.
 $(CAPSULE_SLUG)_CAPSULE_MK       := $(or $(CAPSULE_MK_FILE),$(CAPSULE_DIR)/Capsule.mk)
@@ -355,6 +360,7 @@ undefine CAPSULE_CARGO_FEATURES
 undefine CAPSULE_PREBUILT_BIN
 undefine CAPSULE_KERNEL_MIRROR
 undefine CAPSULE_DEV_ONLY
+undefine CAPSULE_DEV_CARGO_FEATURES
 undefine CAPSULE_NOT_IN_IMAGE
 undefine CAPSULE_EXTRA_DEPS
 undefine CAPSULE_EXTRA_ORDER_DEPS

@@ -16,9 +16,10 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
+use nonos_libc::{mk_ipc_recv_from_at, mk_ipc_send};
 
 use super::dispatch::dispatch;
+use super::gate::Sender;
 use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
 
 const MAX_MSG: usize = 8 * 1024 * 1024;
@@ -26,13 +27,13 @@ const MAX_MSG: usize = 8 * 1024 * 1024;
 pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
     loop {
-        let mut sender_pid: u32 = 0;
-        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut sender_pid);
+        let (mut pid, mut sent_ms) = (0u32, 0u64);
+        let n = mk_ipc_recv_from_at(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut pid, &mut sent_ms);
         if n <= 0 {
             continue;
         }
         let resp = match decode_request(buf.get(..n as usize).unwrap_or(&[])) {
-            Some(req) => dispatch(req, sender_pid),
+            Some(req) => dispatch(req, Sender { pid, sent_ms }),
             /*
              * Refused by the decode: answered under a zero sequence number.
              * The caller is blocked in its call until a reply comes, and the

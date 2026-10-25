@@ -12,7 +12,8 @@
 - Each stage caps the type byte and the body together:
   - Hellos: 2048.
   - From `SERVER_HELLO` until login is settled (`HOST_PROOF`, `USER_AUTH`,
-    `AUTH_OK` or `AUTH_REFUSED`, or an `ABORT`): 262144.
+    `AUTH_OK` or `AUTH_REFUSED`, or an `ABORT`): 1179648 (1152 KiB), so
+    `HOST_PROOF` carries a document with a full 1 MiB event log.
   - After login: 16385, which is one type byte and 16384 bytes of body.
 
   A sealed frame's `len` is that plus the 16-byte tag.
@@ -29,7 +30,7 @@
 | Offset | Field | Size |
 |---|---|---|
 | 0 | magic `"NSH1"` | 4 |
-| 4 | version = 1 | u16 |
+| 4 | version = 2 | u16 |
 | 6 | suite = 1 | u16 |
 | 8 | flags = 0 | u16 |
 | 10 | client_random | 32 |
@@ -40,16 +41,22 @@
 | Offset | Field | Size |
 |---|---|---|
 | 0 | magic `"NSH1"` | 4 |
-| 4 | version = 1 | u16 |
+| 4 | version = 2 | u16 |
 | 6 | suite = 1 | u16 |
 | 8 | flags = 0 | u16 |
 | 10 | server_random | 32 |
 | 42 | X-Wing ciphertext | 1120 |
 
+Version 2 raised the login cap from 262144 so that `HOST_PROOF` can carry
+an attestation document with the firmware's whole event log, which the
+loader takes up to 1 MiB. A peer that speaks version 1 is refused at its
+hello with `ABORT(VERSION)`, before any proof is sent, so a document is
+never cut short to fit an older cap.
+
 The preamble (magic, version, suite and flags) is judged before the
 length. After it, the hello must be exactly the random and the key or
 ciphertext: nothing short and nothing more. A server that sees a version
-or suite other than 1 sends
+other than 2 or a suite other than 1 sends
 `ABORT(VERSION)` in plaintext and closes. That is type 0x7F with a body of
 `reason: u16`. A server at its session cap sends `ABORT(BUSY)` in its
 place.
