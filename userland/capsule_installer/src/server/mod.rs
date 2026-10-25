@@ -18,6 +18,7 @@ mod discover;
 mod dispatch;
 mod gate;
 mod handlers;
+pub mod outcomes;
 mod pay_call;
 mod settle_call;
 mod runner;

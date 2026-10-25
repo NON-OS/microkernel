@@ -19,12 +19,21 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use super::super::eip1559::tx_fields;
+use super::super::eip1559::{tx_fields, TxFields};
 use super::super::rlp::{rlp_list, rlp_uint_be};
 use super::sign_tx_parse::Tx;
 
 fn fields(t: &Tx<'_>) -> Vec<Vec<u8>> {
-    tx_fields(&t.chain_be, &t.nonce, &t.max_priority, &t.max_fee, &t.gas, &t.to, &t.value, t.data)
+    tx_fields(&TxFields {
+        chain_id: &t.chain_be,
+        nonce: &t.nonce,
+        max_priority: &t.max_priority,
+        max_fee: &t.max_fee,
+        gas: &t.gas,
+        to: &t.to,
+        value: &t.value,
+        data: t.data,
+    })
 }
 
 /// keccak256(0x02 || rlp(fields)), or None if the keccak call fails.
