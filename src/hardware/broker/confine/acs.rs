@@ -33,7 +33,7 @@ use super::member::Member;
 use crate::hardware::broker::pci_index::{self, PciHandle};
 
 /// What a device reaches past the IOMMU, and the ids it reaches it under.
-pub(super) struct Reach {
+pub(in super::super) struct Reach {
     /// The other broker devices in its isolation group.
     pub group: Vec<Member>,
     /// The requester ids its DMA may carry besides its own.
@@ -42,7 +42,7 @@ pub(super) struct Reach {
 
 /// None for a device behind a VMD, which never confines, or whose path to
 /// the root does not end.
-pub(super) fn reach(device_id: u64) -> Option<Reach> {
+pub(in super::super) fn reach(device_id: u64) -> Option<Reach> {
     let me = pci_index::lookup(device_id).filter(|h| h.address.segment == 0)?;
     let handles: Vec<PciHandle> =
         pci_index::all().into_iter().filter(|h| h.address.segment == 0).collect();
