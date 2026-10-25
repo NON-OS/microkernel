@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `recvmsg` on a family socket: bytes into an iovec, and the sender's
-//! address.
+//! address. The resolver's answers are recv_resolver.rs's.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
@@ -25,6 +25,9 @@ use super::super::flags::MSG_TRUNC;
 use super::hdr::{hdr, CONTROLLEN_AT, FLAGS_AT, NAMELEN_AT};
 
 pub fn recvmsg(guest: &mut Guest, fd: u64, msg: u64, flags: u64, skip: usize) -> u64 {
+    if super::super::dgram::is_resolver(guest, fd) {
+        return super::recv_resolver::recvmsg(guest, fd, msg);
+    }
     let id = match sock_of(guest, fd) {
         Ok(id) => id,
         Err(e) => return e,
