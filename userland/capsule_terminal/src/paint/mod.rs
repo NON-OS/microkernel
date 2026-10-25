@@ -30,6 +30,7 @@ mod fit_text;
 mod footer;
 mod geometry;
 mod header;
+pub mod hint_sets;
 mod line_chars;
 mod line_text;
 mod line_window;

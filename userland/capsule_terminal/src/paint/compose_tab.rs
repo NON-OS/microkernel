@@ -25,6 +25,7 @@ use crate::paint::fetch::draw_fetch;
 use crate::paint::footer::draw_footer;
 use crate::paint::geometry::geometry;
 use crate::paint::header::draw_header;
+use crate::paint::hint_sets;
 use crate::paint::vt::{draw_find_bar, draw_vt, Area, Frame, Rows};
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
@@ -64,6 +65,8 @@ pub fn paint(
     } else if !owned {
         draw_input_line(state, fb, l.input, m, t);
     }
-    draw_footer(fb, t);
+    let running = state.fg_running || vt.alt_active();
+    let mode = hint_sets::mode(running, state.find.is_some(), state.search.is_some());
+    draw_footer(fb, mode, t);
     l
 }
