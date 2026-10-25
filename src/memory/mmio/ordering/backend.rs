@@ -15,6 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // The per-architecture accesses and barriers (arch::mmio_order).
-pub(super) use crate::arch::mmio_order::{
+pub(super) use crate::arch::common::mmio_order::{
     fence_full, fence_reads, fence_writes, read_acquire, read_relaxed, write_relaxed, write_release,
 };

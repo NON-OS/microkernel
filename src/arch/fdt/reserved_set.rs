@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::limits::MAX_RESERVED;
+/// Reserved ranges kept: the blob, the initrd, and firmware's own.
+const MAX_RESERVED: usize = 16;
 
 /// Physical ranges the allocator must never hand out: the device tree blob,
 /// the initrd, and what firmware keeps through the reservation block and
