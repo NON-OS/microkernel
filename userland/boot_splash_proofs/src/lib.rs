@@ -14,32 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs for the boot splash's logo, text layout and status line, on
-//! its own source through `#[path]`; `fetch.rs`, which asks the kernel, aside.
+//! Host proofs for the boot splash's canvas, attestation panel, layout and
+//! status line, on its own source through `#[path]`; what asks the kernel
+//! or the compositor aside.
 
 extern crate alloc;
 
-#[path = "."]
-pub mod logo {
-    #[path = "../../capsule_boot_splash/src/logo/bmp.rs"]
-    pub mod bmp;
-    #[path = "../../capsule_boot_splash/src/logo/place.rs"]
-    pub mod place;
-    #[path = "../../capsule_boot_splash/src/logo/prepare.rs"]
-    pub mod prepare;
-    #[path = "../../capsule_boot_splash/src/logo/record.rs"]
-    pub mod record;
-    #[path = "../../capsule_boot_splash/src/logo/resample.rs"]
-    pub mod resample;
-    #[path = "../../capsule_boot_splash/src/logo/shown.rs"]
-    pub mod shown;
-    #[path = "../../capsule_boot_splash/src/logo/turn.rs"]
-    pub mod turn;
-
-    pub use prepare::prepare;
-    pub use shown::Shown;
-}
-
+#[cfg(test)]
+#[path = "../../capsule_boot_splash/src/attest_lines.rs"]
+pub mod attest_lines;
+#[cfg(test)]
+#[path = "../../capsule_boot_splash/src/canvas.rs"]
+pub mod canvas;
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)] // `panel`, as the splash calls it
+#[path = "../../capsule_boot_splash/src/chrome.rs"]
+pub mod chrome;
 #[cfg(test)]
 #[path = "../../capsule_boot_splash/src/follow.rs"]
 pub mod follow;
@@ -53,14 +43,14 @@ pub mod layout_fit;
 #[path = "../../capsule_boot_splash/src/status.rs"]
 pub mod status;
 #[cfg(test)]
-#[allow(dead_code)] // `fill`, the whole-surface wash the proofs do not draw
+#[path = "../../capsule_boot_splash/src/title.rs"]
+pub mod title;
+#[cfg(test)]
 #[path = "../../capsule_boot_splash/src/vignette.rs"]
 pub mod vignette;
 #[cfg(test)]
 #[path = "../../capsule_boot_splash/src/warning.rs"]
 pub mod warning;
 
-#[cfg(test)]
-mod build;
 #[cfg(test)]
 mod tests;
