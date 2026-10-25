@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The panic path's place in the kernel, read from the source: the soft-off
-//! read never waits on the ACPI tables' lock, the halt line comes before the
-//! wipe, and the panic proof cannot be built into a release.
+//! read never waits on the ACPI tables' lock, and the panic proof cannot be
+//! built into a release. The halt line and the wipe: `panic_stage`.
 
 const PREPARED: &str = include_str!("../../../../src/arch/power/prepared.rs");
 const TABLES: &str = include_str!("../../../../src/arch/x86_64/acpi/parser/getters_table.rs");
-const HANDLER: &str = include_str!("../../../../src/boot/panic/handler.rs");
 const INJECTED: &str = include_str!("../../../../src/userspace/init/injected.rs");
 
 fn at(text: &str, needle: &str) -> usize {
@@ -33,14 +32,6 @@ fn the_soft_off_read_tries_the_tables_lock_and_never_takes_it() {
     assert!(!PREPARED.contains("prepare_shutdown(with_data)"));
     let tried = at(TABLES, "pub fn try_with_data<F, R>(f: F) -> Option<R>");
     assert!(TABLES[tried..].contains("TABLES.try_read()?.as_ref().map(|t| f(&t.data))"));
-}
-
-#[test]
-fn the_handler_says_the_cpus_halted_then_wipes() {
-    let halted = at(HANDLER, "if crate::smp::others_halted() {");
-    let said = at(HANDLER, "[ZEROSTATE] panic: cpus halted, wiping, powering off");
-    let wiped = at(HANDLER, "crate::security::zerostate::panic_wipe_and_off()");
-    assert!(halted < said && said < wiped);
 }
 
 #[test]

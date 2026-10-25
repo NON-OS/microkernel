@@ -10,13 +10,13 @@ What the NONOS kernel does when it cannot go on, what the panel and the [serial 
 | Install asked, no installer | notice band | `[ERROR]` line | keep idling |
 | Bootloader not admitted | notice band | `[ERROR]` line | keep idling |
 | Handoff refused | breadcrumb strip, VGA text | `[NONOS] Handoff FAIL` | not started yet |
-| Kernel panic | red band `KERNEL PANIC` | panic message | stopped by NMI |
-| Kernel CPU exception | nothing new | `[PANIC xx]`, after `[TRAP xx]` for some | not signalled |
+| Kernel panic | red band `KERNEL PANIC` | panic message, then a `[ZEROSTATE]` line | stopped by NMI; wiped, off |
+| Kernel CPU exception | nothing new | `[PANIC xx]`, after `[TRAP xx]` for some, then `[ZEROSTATE]` lines | stopped by NMI; wiped, off |
 | Fault in a [capsule](../overview/glossary-boot-root-record.md#capsule) | nothing | `[TRAP xx]` for `PF`, `GP`, `UD` | unaffected; the capsule ends |
-| Kernel heap exhausted | VGA text | `[OOM]` lines | not signalled |
-| [TLB shootdown](../overview/glossary-stark-proof.md#tlb-shootdown) timeout | nothing new | `[FATAL]` line | stopped by NMI |
+| Kernel heap exhausted | nothing new | `[OOM]` lines, then `[ZEROSTATE]` lines | stopped by NMI; wiped, off |
+| [TLB shootdown](../overview/glossary-stark-proof.md#tlb-shootdown) timeout | nothing new | `[FATAL]` line, then `[ZEROSTATE]` lines | stopped by NMI; wiped, off |
 
-Every stop ends in a loop that masks interrupts and halts the CPU, as `halt` does (`src/arch/x86_64/abi.rs:30-36`). NONOS does not restart the machine on its own. Nothing in the kernel arms, feeds or stops the chipset watchdog that `detect_tco_watchdog` can find (`src/arch/x86_64/watchdog/mod.rs:24-25`). Whether firmware ever leaves one running was not tested in this release.
+A boot stop, an install or loader refusal and a refused handoff end in a loop that masks interrupts and halts the CPU, as `halt` does (`src/arch/x86_64/abi.rs:30-36`): no session has started, so nothing is held to wipe. A panic, a kernel CPU exception, an exhausted heap and a shootdown timeout come mid-session, and each leaves through the panic path, which wipes the heap and powers off (below). NONOS does not restart the machine on its own. Nothing in the kernel arms, feeds or stops the chipset watchdog that `detect_tco_watchdog` can find (`src/arch/x86_64/watchdog/mod.rs:24-25`). Whether firmware ever leaves one running was not tested in this release.
 
 ## What to do after a stop
 
@@ -72,14 +72,15 @@ A refused handoff stops even earlier, before the kernel trusts any framebuffer. 
 
 ## Kernel panic
 
-A Rust panic in the kernel runs `panic` (`src/boot/panic/handler.rs:41-64`):
+A Rust panic in the kernel runs `panic` (`src/boot/panic/handler.rs:45-59`), which hands everything to `end` (`src/boot/panic/end.rs:30-44`):
 
-1. It prints `!!! KERNEL PANIC !!!` and the panic message, with its source location, on the serial console.
-2. It drains the debug ring to the console, on kernels built with that feature.
-3. It writes `KERNEL PANIC - See serial for details` to VGA text memory, which, as the handler's comment notes, a display in UEFI graphics mode does not show.
-4. `show` paints a red band across the top of the framebuffer with `KERNEL PANIC`, the source file and line, and `details on the serial console` (`src/sys/boot_log/panic_screen.rs:26-48`).
-5. `send_panic_ipi` stops every other CPU with an NMI, which arrives even at a CPU that spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). In `on_nmi` each one marks itself halted and stops (`src/smp/nmi/handle.rs:32-48`).
-6. It halts.
+1. `end` takes the panic path with one compare-and-swap on a word that holds the stage and the CPU that took it (`src/boot/panic/stage.rs:46-52`). Only that CPU prints and paints.
+2. It prints `!!! KERNEL PANIC !!!` and the panic message, with its source location, on the serial console, and drains the debug ring there on kernels built with that feature.
+3. `show` paints a red band across the top of the framebuffer with `KERNEL PANIC`, the source file and line, and `details on the serial console` (`src/sys/boot_log/panic_screen.rs:26-48`). Nothing is written to VGA text memory: 0xB8000 is in no process's address space, and the write once faulted a panic raised in one.
+4. `send_panic_ipi` stops every other CPU with an NMI, which arrives even at a CPU that spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). In `on_nmi` each one marks itself halted and stops (`src/smp/nmi/handle.rs:32-48`).
+5. It prints `[ZEROSTATE] panic: cpus halted, wiping, powering off`, or `a cpu did not halt` in place of `cpus halted`, without the console lock, marks the wipe begun, then wipes the heap and powers off (`zerostate::panic_wipe_and_off`, `src/boot/panic/end.rs:51-60`).
+
+A fault or a second panic raised by the CPU that took the path, before its wipe began, goes straight to step 4. Any other CPU that enters parks for the NMI, and so does any entry after the wipe began.
 
 ## CPU exceptions
 
@@ -88,19 +89,19 @@ A page fault, a general protection fault and an invalid opcode first print a `[T
 The page-fault `handle` first tries to resolve the fault, such as a page mapped on demand or a copy-on-write page (`src/interrupts/handlers/exceptions/page_fault.rs:31-53`). If it cannot:
 
 - In user mode, `terminate_user_process` ends the capsule with exit status -11 (`src/interrupts/handlers/exceptions/page_fault.rs:71-77`). The rest of the system keeps running. Other exceptions in user mode end the capsule the same way with their own status, such as -4 for an invalid opcode, passed to `exit_and_yield` (`src/interrupts/handlers/exceptions/opcode.rs:79`).
-- In kernel mode, `kernel_panic` prints `[PANIC PF] fatal kernel fault, no recovery path rip=` with the instruction address and `-- CPU halting, boot terminated`, through `emit_fatal_notice` (`src/arch/x86_64/diag/fatal_notice.rs:19-25`), and halts that CPU (`src/interrupts/handlers/exceptions/page_fault.rs:79-95`).
+- In kernel mode, `kernel_panic` prints `[PANIC PF] fatal kernel fault, no recovery path rip=` with the instruction address and `-- to the panic path: wipe, power off`, through `emit_fatal_notice` (`src/arch/x86_64/diag/fatal_notice.rs:19-25`), and leaves through `fatal` (`src/interrupts/handlers/exceptions/page_fault.rs:78-94`, `src/boot/panic/end.rs:47-49`): it prints `[ZEROSTATE] fatal kernel fault`, then steps 4 and 5 of a panic. Every exception's kernel branch ends the same way, the double fault and the machine check included.
 
 A kernel general protection fault prints its own `[PANIC GP]` line with the selector from the error code, through a local `emit_fatal_notice` (`src/interrupts/handlers/exceptions/gpf.rs:75-86`). A double fault uses `emit_fatal_notice_nolock`, which writes without taking the console lock, since the interrupted code may hold it (`src/interrupts/handlers/exceptions/double_fault.rs:27`).
 
-This path writes to the serial console only. It does not paint the panel and does not signal the other CPUs, so on a machine without a serial port nothing new appears on the panel and the CPU that faulted stops.
+This path paints nothing on the panel, so on a machine without a serial port the machine simply powers off.
 
 ## Kernel heap exhausted
 
-When the kernel heap cannot satisfy an allocation, `alloc_error_handler` calls `handle_oom` (`src/lib.rs:52-56`). `handle_oom` prints `[OOM] ALLOCATION FAILED` with the requested size and alignment, dumps the memory-map and surface accounting, prints `[OOM] System halted`, writes `OOM: Memory allocation failed - system halted` to VGA text memory, and halts that CPU (`src/entry/oom.rs:46-63`). The module forbids allocation on this path, which is why `handle_oom` prints the size through the console's own `print_dec` and not the formatter (`src/entry/oom.rs:46-53`). The heap is the 64 MiB described on [memory and paging](memory-and-paging.md).
+When the kernel heap cannot satisfy an allocation, `alloc_error_handler` calls `handle_oom` (`src/lib.rs:52-56`). `handle_oom` prints `[OOM] ALLOCATION FAILED` with the requested size and alignment, dumps the memory-map and surface accounting, prints `[OOM] to the panic path: wipe, power off` and leaves through `fatal`, as a kernel fault does (`src/entry/oom.rs:28-44`). The module forbids allocation on this path, which is why `handle_oom` prints the size through the console's own `print_dec` and not the formatter. The heap is the 64 MiB described on [memory and paging](memory-and-paging.md).
 
 ## TLB shootdown timeout
 
-When a CPU changes a page table and another CPU has not acknowledged the flush after `SHOOTDOWN_TIMEOUT_MS`, `fail_timed_out` prints `[FATAL] TLB shootdown timeout outstanding=n ms=2000`, reports where each CPU last was, stops the other CPUs and halts (`src/memory/paging/manager/shootdown/slow.rs:45-53`). A stale translation could reach memory that was freed, so the kernel does not continue. See [scheduler and SMP](scheduler-and-smp.md).
+When a CPU changes a page table and another CPU has not acknowledged the flush after `SHOOTDOWN_TIMEOUT_MS`, `fail_timed_out` prints `[FATAL] TLB shootdown timeout outstanding=n ms=2000`, reports where each CPU last was, and leaves through `fatal`, which stops the other CPUs, wipes and powers off (`src/memory/paging/manager/shootdown/slow.rs:45-53`). A stale translation could reach memory that was freed, so the kernel does not continue. See [scheduler and SMP](scheduler-and-smp.md).
 
 ## See also
 
