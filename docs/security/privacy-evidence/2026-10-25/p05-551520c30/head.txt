@@ -1,0 +1,2 @@
+551520c30 tools/nix/inputs.json: the power button arming rule and its tests in acpi_aml_proofs [skip ci]
+c5c2d3f7702834922990b1b0077deb30845a88696058dddcc0548a87db3aff66  /home/user/pk-build/target/dev/tree/target/release/standard-dev/nonos.img
