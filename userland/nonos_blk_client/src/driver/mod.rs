@@ -18,6 +18,7 @@
 
 mod bus;
 mod dialect;
+mod names;
 mod pci;
 mod table;
 

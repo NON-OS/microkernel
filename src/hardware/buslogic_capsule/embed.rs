@@ -23,15 +23,15 @@ pub(super) const DRIVER_BUSLOGIC_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-buslogic")]
 pub(super) const DRIVER_BUSLOGIC_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_buslogic.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_buslogic.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-buslogic")]
 pub(super) const DRIVER_BUSLOGIC_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_buslogic.manifest.bin");
+    crate::baked_trust!("capsules/driver_buslogic.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-buslogic")]
 pub(super) const DRIVER_BUSLOGIC_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_buslogic.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_buslogic.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-buslogic"))]
 pub(super) const DRIVER_BUSLOGIC_ELF: &[u8] = &[];
