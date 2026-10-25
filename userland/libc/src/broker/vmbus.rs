@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! VMBus's calls on the Hyper-V SynIC. The VMBus core's take the VMBus
-//! root's device id, which it must hold claimed. A channel's driver uses
-//! `mk_hv_events` and `mk_hv_signal` on its channel's record instead.
+//! VMBus's calls on the Hyper-V SynIC, on a record the caller holds
+//! claimed. On the VMBus root, the core keeps the bus. On a channel's record
+//! (`mk_hv_channel`), its driver drives that channel alone: it posts the
+//! channel's open, close and GPADLs (connection 0), takes the host's answers
+//! for it, takes its event flag and signals the host on it.
 
 use crate::syscall::{
     call_raw, N_MK_HV_CHANNEL, N_MK_HV_EVENTS, N_MK_HV_POST, N_MK_HV_RECV, N_MK_HV_SIGNAL,
@@ -38,8 +40,9 @@ pub const MK_HV_MESSAGE_BYTES: usize = 256;
 pub const MK_HV_EVENT_WORDS: usize = 32;
 
 /// Post a channel message to the host: 0, -EAGAIN when the host has no room
-/// now, -EPERM for a page the caller does not hold, -EINVAL for a message
-/// the core may not send.
+/// now (or a channel still being torn down), -EPERM for a page not held on
+/// the record, -ENOENT for another channel's message or a live GPADL id,
+/// -EINVAL for a message this caller may not send.
 #[no_mangle]
 pub extern "C" fn mk_hv_post(
     device_id: u64,
@@ -51,7 +54,9 @@ pub extern "C" fn mk_hv_post(
     call_raw(N_MK_HV_POST, [device_id, connection as u64, ty as u64, buf as u64, len as u64, 0])
 }
 
-/// The oldest message from the host into `out`: its length, or -EAGAIN.
+/// The oldest message from the host for the caller into `out`, header and
+/// payload: its length, or -EAGAIN. On a channel's record, the host's
+/// answers for that channel alone.
 #[no_mangle]
 pub extern "C" fn mk_hv_recv(device_id: u64, out: *mut [u8; MK_HV_MESSAGE_BYTES]) -> i64 {
     call_raw(N_MK_HV_RECV, [device_id, out as u64, 0, 0, 0, 0])
