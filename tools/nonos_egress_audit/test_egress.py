@@ -16,7 +16,7 @@
 
 """The audit's own proofs: it passes a tree its list matches, and each way a
 new path can land, or the list go stale, is caught. Run with
-`python3 -m unittest nonos_egress.test_egress` from tools/."""
+`python3 -m unittest nonos_egress_audit.test_egress` from tools/."""
 
 import unittest
 
