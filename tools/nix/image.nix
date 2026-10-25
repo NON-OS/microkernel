@@ -69,17 +69,20 @@ let
   ceilingOf =
     enabled: lib.foldl' (acc: e: lib.bitOr acc (lib.fromHexString e.caps_ceiling)) 0 (shipped enabled);
 
+  # A release takes the capsules as make declares them; an image that is not
+  # a release takes the development set, which adds CAPSULE_DEV_CARGO_FEATURES.
+  capsuleSet = cfg: if cfg.release then capsules.bySlug else capsules.bySlugDev;
+
   placeCapsules =
-    enabled:
+    cfg:
     lib.concatMapStrings (e: ''
       mkdir -p ${e.dir}/target/${e.target}/release
-      cp ${capsules.bySlug.${e.slug}}/${e.bin} ${e.dir}/target/${e.target}/release/${e.bin}
+      cp ${(capsuleSet cfg).${e.slug}}/${e.bin} ${e.dir}/target/${e.target}/release/${e.bin}
       ${lib.optionalString (e.prebuilt != "") ''
         mkdir -p $(dirname ${e.prebuilt})
-        cp ${capsules.bySlug.${e.slug}}/${e.bin} ${e.prebuilt}
+        cp ${(capsuleSet cfg).${e.slug}}/${e.bin} ${e.prebuilt}
       ''}
-    '') (builtins.filter (e: builtins.elem e.feature enabled
-      || (registryTool e && builtins.elem "nonos-tool-capsules" enabled)) capsules.catalogue);
+    '') (shipped cfg.enabled);
 
   # A configuration nonos.toml cannot have yet fails when it is built, saying
   # why, rather than when the flake is evaluated, so every other output and
@@ -119,7 +122,7 @@ let
         # A sealed manifest granting other caps than its Capsule.mk now says
         # would ship the old grant under the new code: the seal runs first.
         python3 scripts/check_sealed_caps.py ${toString (map (e: e.slug) (shipped cfg.enabled))}
-        ${placeCapsules cfg.enabled}
+        ${placeCapsules cfg}
         ${placeholder}
         python3 -c 'import struct; open("nonos-data/trust/policy/image_capability_ceiling.bin", "wb").write(struct.pack("<Q", ${toString (ceilingOf cfg.enabled)}))'
         # build.rs compiles the arch C with "clang" by name; on macOS the first
@@ -213,5 +216,5 @@ let
   loaderReady = lib.all (f: builtins.pathExists (src.root + "/${f}")) (builtins.attrValues kernelKeys);
 in
 {
-  inherit kernel bootloader hostTools kernelKeys epoch rev loaderReady kernelReady unsealed shipped;
+  inherit kernel bootloader hostTools kernelKeys epoch rev loaderReady kernelReady unsealed shipped capsuleSet placeCapsules;
 }
