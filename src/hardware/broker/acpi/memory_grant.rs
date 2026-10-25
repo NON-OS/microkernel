@@ -57,7 +57,8 @@ pub fn grant_memory(pid: u32, base: u64, len: u64) -> Result<MemoryGrant, Region
         let _ = crate::memory::paging::unmap_user_mmio(va, bytes as usize);
         grant::release_user_va(pid, va.as_u64(), bytes);
     };
-    if crate::memory::paging::map_user_mmio(va, PhysAddr::new(start), bytes as usize).is_err() {
+    let phys = PhysAddr::new(start);
+    if crate::memory::paging::map_user_mmio(va, phys, bytes as usize, false).is_err() {
         undo();
         return Err(RegionError::MapFailed);
     }
