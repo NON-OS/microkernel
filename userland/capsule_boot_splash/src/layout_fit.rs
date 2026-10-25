@@ -18,21 +18,24 @@
 //! logo is known (`layout.rs` says why it moves).
 
 use crate::layout::{
-    logo_clear, panel, status, Area, FOOT, GAP, PANEL_H, PANEL_W, STATUS_GAP, STATUS_ROWS,
+    logo_clear, panel, status, warning, Area, FOOT, GAP, PANEL_H, PANEL_W, STATUS_GAP, STATUS_ROWS,
 };
 use crate::logo::place::Spot;
 
-/// The panel, the status line, and whether the logo is drawn.
+/// The panel, the warning's row, the status line, and whether the logo is
+/// drawn.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Layout {
     pub panel: Area,
+    pub warn: Area,
     pub status: Area,
     pub logo: bool,
 }
 
 /// The layout for a logo at `spot` (None: no logo) on a `w` x `h` surface.
 pub fn layout(spot: Option<&Spot>, w: u32, h: u32) -> Layout {
-    let plain = Layout { panel: panel(w, h), status: status(w, h), logo: false };
+    let p = panel(w, h);
+    let plain = Layout { panel: p, warn: warning(p, w), status: status(w, h), logo: false };
     let Some(s) = spot else { return plain };
     if logo_clear(s, w, h) {
         return Layout { logo: true, ..plain };
@@ -44,5 +47,6 @@ pub fn layout(spot: Option<&Spot>, w: u32, h: u32) -> Layout {
         return plain;
     }
     let panel = (plain.panel.0, py, PANEL_W, PANEL_H);
-    Layout { panel, status: (0, sy, w, STATUS_ROWS), logo: true }
+    let warn = warning(panel, w);
+    Layout { panel, warn, status: (0, sy, w, STATUS_ROWS), logo: true }
 }
