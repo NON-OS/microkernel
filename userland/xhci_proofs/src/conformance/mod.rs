@@ -55,6 +55,7 @@ mod revive_bus_master_tests;
 mod revive_cnr_tests;
 mod revive_tests;
 mod route_tests;
+mod setup_stage_tests;
 mod silicon;
 mod teardown_attempt;
 mod teardown_tests;
