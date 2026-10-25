@@ -5322,6 +5322,16 @@ else
     fail_with "ap start: a failed AP start is discarded without its reason"
 fi
 unset aps_out
+# The judge of the shootdown boot proof's log: a full flush reaching every
+# AP and a user-asid round reaching only the AP that holds the asid. The boot
+# is local (no lane may build the proof); its judge is held here.
+if spl_out="$(python3 scripts/check_shootdown_proof_log.py --self-test 2>&1)"; then
+    note ok "the shootdown proof's log judge rejects its bad logs"
+else
+    tail -n 5 <<< "${spl_out}" >&2
+    fail_with "check_shootdown_proof_log: the judge accepts a bad log"
+fi
+unset spl_out
 # A kernel feature that gates code and that no lane turns on is dark; the dark
 # set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
 # proofs and pqc-unvetted are lit by the compile-only check-dark-features.
