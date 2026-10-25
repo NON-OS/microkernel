@@ -64,9 +64,9 @@ fn refuses_a_set_reserved_byte_and_too_many_fields() {
 
 #[test]
 fn only_the_three_entries_exist() {
-    assert_eq!(entry(1).unwrap().type_string.split('(').next(), Some("Voucher"));
-    assert_eq!(entry(2).unwrap().type_string.split('(').next(), Some("PublisherBinding"));
-    assert_eq!(entry(3).unwrap().type_string.split('(').next(), Some("ReleaseAttest"));
+    assert_eq!(entry(1).unwrap().typed.type_string.split('(').next(), Some("Voucher"));
+    assert_eq!(entry(2).unwrap().typed.type_string.split('(').next(), Some("PublisherBinding"));
+    assert_eq!(entry(3).unwrap().typed.type_string.split('(').next(), Some("ReleaseAttest"));
     for id in [0, 4, 11, 25, u16::MAX] {
         assert!(entry(id).is_none(), "{id}");
     }
