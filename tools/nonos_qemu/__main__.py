@@ -56,6 +56,8 @@ def args():
     ap.add_argument("--image", help="a USB image to boot instead of a sealed one")
     ap.add_argument("--tpm", action="store_true", help="attach a software TPM")
     ap.add_argument("--fresh", action="store_true", help="start the data disk again from the sealed image")
+    ap.add_argument("--keep-machine", action="store_true",
+                    help="boot on the last boot's EFI variable store and system partition as it left them")
     ap.add_argument("--stick", action="store_true", help="boot the sealed stick alone, with no data volume")
     ap.add_argument("--usb", action="store_true",
                     help="with --stick, plug the stick into the xHCI controller as a USB mass-storage device")
@@ -124,7 +126,7 @@ def main():
             shutil.copyfile(source, stick)
         else:
             boot = (os.path.join(TARGET, "esp"), os.path.join(TARGET, "data.img"))
-            disk.prepare(source, *boot, a.fresh, disk.resolve(a.model, a.mem))
+            disk.prepare(source, *boot, a.fresh, disk.resolve(a.model, a.mem), a.keep_machine)
     target = os.path.join(TARGET, "install-target.img")
     if a.install_target and not os.path.exists(target):
         with open(target, "wb") as f:
@@ -137,15 +139,15 @@ def main():
         lane = lanes.plan(a.lane, TARGET, machine.audio())
     except lanes.LaneError as e:
         sys.exit(str(e))
+    if a.keep_machine and (a.fresh or a.stick or a.installed):
+        sys.exit("--keep-machine boots on the last boot's data disk, partition and variables: not with --fresh, --stick or --installed")
     if a.capture and a.net == "off":
         sys.exit("--capture records the network, and --net off has none")
     capture = machine.capture(a.capture) if a.capture else []
     if ("nic" in lane.swaps and a.net == "off") or ("tpm" in lane.swaps and not a.tpm):
         sys.exit("a nic= lane needs the network on, and tpm-tis needs --tpm: each swaps a device in")
     lanes.make_images(lane.images)
-    vars_copy = os.path.join(TARGET, "OVMF_VARS.fd")
-    shutil.copyfile(os.environ["OVMF_VARS"], vars_copy)
-    os.chmod(vars_copy, 0o644)
+    vars_copy = disk.vars_store(TARGET, os.environ["OVMF_VARS"], a.keep_machine)
     # One TPM for this machine, kept across boots; a new one with a new data disk.
     swtpm, sock, made = tpm.start(os.path.abspath(os.path.join(TARGET, "swtpm")), a.fresh) \
         if a.tpm else (None, None, False)

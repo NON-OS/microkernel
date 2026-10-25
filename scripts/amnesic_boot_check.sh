@@ -24,15 +24,18 @@
 # crash record. The firmware's variable store is compared by variable
 # (tools/nonos-efi-vars): the firmware fills in its own on a first boot and
 # counts every boot, so a variable fails only when it is not the firmware's.
-# A second, shorter boot on the same disk, partition and variable store
-# follows and must change nothing either, so a write left for shutdown, or
-# for the next boot to find, is caught too.
+# Each is judged right after the main boot, against what went in. A second,
+# shorter boot follows on the same disk, partition and variable store, as the
+# main boot left them (nonos-qemu --keep-machine), and is judged again, so a
+# write left for shutdown, or for the next boot to find, is caught too.
 #
 #   NONOS_AMNESIC_IMAGE    the sealed nonos.img to boot (required); it is
 #                          read, never written
 #   NONOS_AMNESIC_TIMEOUT  seconds the boot runs (default 180)
 #   NONOS_AMNESIC_SETTLE   seconds the second boot runs (default 120)
 #   NONOS_AMNESIC_NET      nat (default) or off
+#   NONOS_AMNESIC_QEMU     the runner (default tools/nonos-qemu); the self-test
+#                          gives a stand-in (scripts/amnesic_boot_check_selftest.sh)
 #   NONOS_QEMU_LANES       tools/nonos-qemu lanes, space separated; a release
 #                          image refuses device DMA without an IOMMU, so under
 #                          QEMU give it `iommu=intel`, or its disk driver never
@@ -57,6 +60,7 @@ image=${NONOS_AMNESIC_IMAGE:?set NONOS_AMNESIC_IMAGE to a sealed nonos.img}
 timeout_secs=${NONOS_AMNESIC_TIMEOUT:-180}
 settle_secs=${NONOS_AMNESIC_SETTLE:-120}
 net=${NONOS_AMNESIC_NET:-nat}
+runner=${NONOS_AMNESIC_QEMU:-tools/nonos-qemu}
 out=target/amnesic
 report=$out/report.json
 : "${OVMF:?OVMF names the firmware; run inside nix develop}"
@@ -84,12 +88,12 @@ vars_before=$(sum "$OVMF_VARS")
 
 set --
 for l in ${NONOS_QEMU_LANES:-}; do set -- "$@" --lane "$l"; done
-boot() { # serial log, seconds, then the lanes
+boot() { # serial log, seconds, then nonos-qemu's flags
   blog=$1
   bsecs=$2
   shift 2
   set +e
-  python3 tools/nonos-qemu --image "$image" --net "$net" --headless \
+  python3 "$runner" --image "$image" --net "$net" --headless \
     --serial "$blog" --timeout "$bsecs" "$@"
   rc=$?
   set -e
@@ -109,34 +113,43 @@ boot() { # serial log, seconds, then the lanes
     exit 2
   fi
 }
-boot "$out/serial.log" "$timeout_secs" "$@"
-boot "$out/serial-settle.log" "$settle_secs" "$@"
-
-image_after=$(sum "$data")
-esp_after=$(tree_sum target/qemu/esp)
-(cd target/qemu/esp && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum) > "$out/esp.after"
-vars_after=$(sum target/qemu/OVMF_VARS.fd)
 status=pass
-[ "$image_before" = "$image_after" ] || status=fail
-[ "$esp_before" = "$esp_after" ] || status=fail
-set +e
-python3 tools/nonos-efi-vars "$OVMF_VARS" target/qemu/OVMF_VARS.fd --json "$out/efi-vars.json" > "$out/efi-vars.txt"
-vars_rc=$?
-set -e
-[ "$vars_rc" -eq 0 ] || status=fail
-foreign=$(grep -c ' FOREIGN ' "$out/efi-vars.txt" || true)
+failed=""
+judged=""
+# The disk, the partition and the variable store after the boot `$1`, each
+# against what went in; a difference fails the run and is named.
+judge() {
+  tag=$1
+  image_now=$(sum "$data")
+  esp_now=$(tree_sum target/qemu/esp)
+  (cd target/qemu/esp && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum) > "$out/esp.$tag"
+  set +e
+  python3 tools/nonos-efi-vars "$OVMF_VARS" target/qemu/OVMF_VARS.fd --json "$out/efi-vars-$tag.json" > "$out/efi-vars-$tag.txt"
+  vars_rc=$?
+  set -e
+  sectors=""
+  if [ "$image_now" != "$image_before" ]; then
+    status=fail
+    sectors=$(cmp -l "$out/data.before" "$data" | awk '{print int(($1-1)/512)}' | uniq | head -64 | tr '\n' ' ')
+    failed="$failed $tag: sectors $sectors;"
+  fi
+  files=$(diff "$out/esp.before" "$out/esp.$tag" | grep '^[<>]' | awk '{print $3}' | sort -u | head -16 | tr '\n' ' ' || true)
+  if [ "$esp_now" != "$esp_before" ]; then status=fail; failed="$failed $tag: partition files $files;"; fi
+  foreign=$(grep -c ' FOREIGN ' "$out/efi-vars-$tag.txt" || true)
+  if [ "$vars_rc" -ne 0 ]; then status=fail; failed="$failed $tag: EFI variables (exit $vars_rc, $foreign not the firmware's);"; fi
+  judged="$judged${judged:+,}\"$tag\":{\"image\":\"$image_now\",\"changed_sectors\":\"$sectors\",\"esp\":\"$esp_now\",\"changed_files\":\"$files\",\"efi_vars_exit\":$vars_rc,\"not_firmware\":$foreign,\"vars\":\"$(sum target/qemu/OVMF_VARS.fd)\"}"
+}
+boot "$out/serial.log" "$timeout_secs" "$@"
+judge main
+boot "$out/serial-settle.log" "$settle_secs" --keep-machine "$@"
+judge settle
 
-changed=""
-if [ "$image_before" != "$image_after" ]; then
-  changed=$(cmp -l "$out/data.before" "$data" | awk '{print int(($1-1)/512)}' | uniq | head -64 | tr '\n' ' ')
-fi
-esp_changed=$(diff "$out/esp.before" "$out/esp.after" | grep '^[<>]' | awk '{print $3}' | sort -u | head -16 | tr '\n' ' ' || true)
-printf '{"status":"%s","seconds":%s,"settle_seconds":%s,"image":{"before":"%s","after":"%s","changed_sectors":"%s"},"esp":{"before":"%s","after":"%s","changed_files":"%s"},"efi_vars":{"before":"%s","after":"%s","not_firmware":%s,"report":"%s"},"serial_bytes":%s}\n' \
-  "$status" "$timeout_secs" "$settle_secs" "$image_before" "$image_after" "$changed" "$esp_before" "$esp_after" "$esp_changed" \
-  "$vars_before" "$vars_after" "$foreign" "$out/efi-vars.json" "$(wc -c < "$out/serial.log" | tr -d ' ')" > "$report"
+printf '{"status":"%s","seconds":%s,"settle_seconds":%s,"before":{"image":"%s","esp":"%s","vars":"%s"},"after":{%s},"serial_bytes":%s}\n' \
+  "$status" "$timeout_secs" "$settle_secs" "$image_before" "$esp_before" "$vars_before" "$judged" \
+  "$(wc -c < "$out/serial.log" | tr -d ' ')" > "$report"
 if [ "$status" = pass ]; then
-  printf '%s\n' "amnesic boot: PASS after two boots the data disk is byte for byte as it went in, the system partition file for file, and no EFI variable but the firmware's changed ($report)"
+  printf '%s\n' "amnesic boot: PASS after each of two boots on one machine the data disk is byte for byte as it went in, the system partition file for file, and no EFI variable but the firmware's changed ($report)"
   exit 0
 fi
-printf '%s\n' "amnesic boot: FAIL ${changed:+sectors $changed}${esp_changed:+, partition files $esp_changed}${foreign:+, $foreign EFI variables not the firmware's }($report)"
+printf '%s\n' "amnesic boot: FAIL$failed ($report)"
 exit 1
