@@ -5189,7 +5189,7 @@ unset dark_out
 # address, host or build-time endpoint new to a networked capsule's source,
 # fails until docs/security/privacy.md names it with why and how to turn it
 # off; a row the code no longer has fails too. The audit's own tests run first.
-if egress_out="$( (cd tools && python3 -m unittest -q nonos_egress.test_egress) 2>&1 \
+if egress_out="$( (cd tools && python3 -m unittest -q nonos_egress_audit.test_egress) 2>&1 \
     && python3 tools/nonos-egress-audit 2>&1)"; then
     note ok "every outbound path is listed in docs/security/privacy.md (nonos-egress-audit)"
 else
