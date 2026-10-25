@@ -238,6 +238,7 @@ let
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
+      "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
@@ -249,6 +250,7 @@ let
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
+      "scripts/check_selftest_panic.py --self-test" "scripts/check_selftest_panic.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
       "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
@@ -294,7 +296,7 @@ let
       nativeBuildInputs = [ pkgs.gnumake python pkgs.findutils pkgs.coreutils pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
-      for c in capsule store; do
+      for c in capsule capsule-dev store; do
         make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 nonos-mk-$c-catalogue 2>/dev/null > $TMPDIR/$c.json
       done
       python3 tools/nix/catalogues.py --check
@@ -374,8 +376,41 @@ let
       cmp ${cargo.rustSrcLock} $(readlink -f ${pins.rust}/lib/rustlib/src)/rust/library/Cargo.lock
       touch $out
     '';
-    # nonos.toml resolves, for every profile, against Cargo.toml's features.
-    config = pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # nonos.toml resolves, for every profile, against Cargo.toml's features;
+    # a release image that asks for the meter fails to evaluate, while its
+    # development twin, the same request with dev = true, resolves; and every
+    # development twin carries the meter, and settle unless the profile takes
+    # the network out.
+    config =
+      let
+        names = builtins.attrNames config.profiles;
+        meter = p: dev: { profile = p; inherit dev; features = [ "nonos-capsule-payment" ]; };
+        resolves = raw: (builtins.tryEval (builtins.deepSeq (config.resolve raw).features true)).success;
+        release = builtins.filter (p: config.profiles.${p}.loader != "dev-qemu") names;
+        carries = p: lib.all (f: builtins.elem f (config.resolve { profile = p; dev = true; }).enabled
+          || builtins.elem f config.profiles.${p}.drop) [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
+      in
+      assert lib.assertMsg (release != [ ] && !(lib.any (p: resolves (meter p false)) release))
+        "config: a release profile resolved with nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all (p: resolves (meter p true)) names)
+        "config: a development twin refused nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all carries names)
+        "config: a development twin left out the meter or settle";
+      pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # Capsule serial output: a profile's development twin keeps it, and no
+    # profile a release loader boots may carry it. The last assertion is the
+    # rule's self-test: qemu, which keeps it, refused on a standard loader.
+    profile-serial =
+      let
+        has = r: builtins.elem "capsule-serial-debug" r.enabled;
+        res = p: dev: config.resolve (config.file // { profile = p; inherit dev; });
+        onStandard = config.resolve (config.file // { profile = "qemu"; dev = false; loader = "standard"; });
+      in
+      assert has (res "standard" true) && has (res "hardened" true);
+      assert !(has (res "standard" false)) && !(has (res "hardened" false)) && !(has (res "airgapped" false));
+      assert has (res "core" true) == has (res "core" false);
+      assert !(builtins.tryEval (has onStandard)).success;
+      pkgs.writeText "profile-serial" "a development twin keeps capsule serial output; a release loader never";
   };
 
   # The determinism property, proved on Linux alone. A capsule is built twice in

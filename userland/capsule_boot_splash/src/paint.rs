@@ -36,6 +36,9 @@ pub(crate) fn splash(base: u64, w: u32, h: u32, stride: u32, look: &Look) {
         None => crate::title::draw(buf, spx, w, h),
     }
     attest_panel(buf, spx, (w, h), look.fit.panel, look.badge);
+    if look.dma_unconfined {
+        crate::warning::draw(buf, spx, w, h, look.fit.warn);
+    }
     crate::status::status(buf, spx, w, h, look.fit.status, 0);
 }
 

@@ -175,6 +175,7 @@ pub const SYS_HV_POST: u64 = tag4(b"MHVP");
 pub const SYS_HV_RECV: u64 = tag4(b"MHVR");
 pub const SYS_HV_EVENTS: u64 = tag4(b"MHVE");
 pub const SYS_HV_SIGNAL: u64 = tag4(b"MHVS");
+pub const SYS_HV_CHANNEL: u64 = tag4(b"MHVC");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");

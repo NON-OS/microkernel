@@ -40,6 +40,7 @@ pub(super) fn program<'a>(parts: &mut impl Iterator<Item = &'a [u8]>) -> Option<
             None => {}
         }
         first = parts.next().filter(|p| !p.is_empty());
+        super::selftest_panic::maybe(first);
     }
     if first.is_none() {
         say(USAGE);

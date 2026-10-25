@@ -31,6 +31,7 @@ pub fn up(bus: Bus, offers: &Offers) {
     let mut b = [0u8; 10];
     let mut c = [0u8; 10];
     let mut d = [0u8; 10];
+    let mut e = [0u8; 10];
     line(&[
         b"VMBus ",
         dec(bus.version >> 16, &mut a),
@@ -40,7 +41,9 @@ pub fn up(bus: Bus, offers: &Offers) {
         dec(bus.connection, &mut c),
         b", ",
         dec(offers.count() as u32, &mut d),
-        b" channels offered, none opened",
+        b" channels offered, ",
+        dec(offers.iter().filter(|o| o.record.is_some()).count() as u32, &mut e),
+        b" given to drivers",
     ]);
     for o in offers.iter() {
         offered(o);
@@ -50,8 +53,9 @@ pub fn up(bus: Bus, offers: &Offers) {
 pub fn offered(o: &Offer) {
     let mut a = [0u8; 10];
     let mut b = [0u8; 10];
+    let given: &[u8] = if o.record.is_some() { b", given to its driver" } else { b"" };
     if o.sub_channel == 0 {
-        line(&[b"channel ", dec(o.relid, &mut a), b": ", name(o.interface).as_bytes()]);
+        line(&[b"channel ", dec(o.relid, &mut a), b": ", name(o.interface).as_bytes(), given]);
     } else {
         line(&[
             b"channel ",
@@ -60,8 +64,32 @@ pub fn offered(o: &Offer) {
             name(o.interface).as_bytes(),
             b", sub-channel ",
             dec(o.sub_channel as u32, &mut b),
+            given,
         ]);
     }
+}
+
+/// The kernel would not give a channel a record, and why: one given
+/// before, one the kernel does not know, or a refusal.
+pub fn not_given(o: &Offer, rc: i64) {
+    let mut a = [0u8; 10];
+    let mut b = [0u8; 10];
+    let code = u32::try_from(rc.unsigned_abs()).unwrap_or(u32::MAX);
+    let (why, n): (&[u8], &[u8]) = match rc {
+        -16 => (b"already given", b""),
+        -2 => (b"not known to the kernel", b""),
+        -1 => (b"refused", b""),
+        _ => (b"error ", dec(code, &mut b)),
+    };
+    line(&[
+        b"channel ",
+        dec(o.relid, &mut a),
+        b" (",
+        name(o.interface).as_bytes(),
+        b") not given to a driver: ",
+        why,
+        n,
+    ]);
 }
 
 pub fn withdrawn(o: &Offer) {

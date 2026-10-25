@@ -17,6 +17,9 @@
 //! Host proofs, group 8 of 8: test modules mounted by path
 //! from proofs.rs, each at its own file.
 
+/// Late versus starved for an ipc.call with no answer (B-04).
+#[path = "ipc_call_verdict/mod.rs"]
+pub mod ipc_call_verdict;
 #[path = "legacy_ports/mod.rs"]
 pub mod legacy_ports;
 #[path = "load_average/mod.rs"]
@@ -29,6 +32,10 @@ pub mod pci_bar_slots;
 pub mod pci_config_change;
 #[path = "registry_names/mod.rs"]
 pub mod registry_names;
+// CPUID is x86_64's alone, so its proofs are too.
+#[path = "block_slow/mod.rs"]
+pub mod block_slow;
+#[cfg(target_arch = "x86_64")]
 #[path = "spectre_cpuid/mod.rs"]
 pub mod spectre_cpuid;
 #[path = "speculation_policy/mod.rs"]

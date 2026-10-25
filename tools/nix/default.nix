@@ -66,6 +66,9 @@ in
     kernel = image.kernel configured;
     bootloader = image.bootloader configured;
     capsules = pkgs.linkFarm "nonos-capsules" (lib.mapAttrsToList (n: v: { name = n; path = v; }) capsules.bySlug);
+    # The development images' set (capsules.nix, bySlugDev): what the seal
+    # builds for an image that is not a release, and refuses for one.
+    capsules-dev = pkgs.linkFarm "nonos-capsules-dev" (lib.mapAttrsToList (n: v: { name = n; path = v; }) capsules.bySlugDev);
     linux-userland = userland.all;
     busybox = userland.busybox;
     # The STARK verifier for a web page, nox_verify_wasm from NON-OS/STARKs at

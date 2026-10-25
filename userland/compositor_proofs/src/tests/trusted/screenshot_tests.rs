@@ -48,6 +48,6 @@ fn only_a_screen_capture_holder_may_capture() {
 fn the_band_shows_the_capture() {
     let mut px = vec![0u32; 120 * 40];
     let s = surface(&mut px, 120, 40, 120);
-    draw(s, Rect { x: 0, y: 0, width: 120, height: 40 }, &Indicators::default(), true, false);
+    draw(s, Rect { x: 0, y: 0, width: 120, height: 40 }, &Indicators::default(), true, false, false);
     assert_eq!(px[(5 * 120 + band(120, 40).x + 48) as usize], SCREEN_ON);
 }

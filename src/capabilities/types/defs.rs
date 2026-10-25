@@ -46,7 +46,7 @@ capability_table! {
     TimeSet = 1 << 22,
     /// Attribute a capsule load's parent to a kernel-attested pid other than the caller.
     SpawnBroker = 1 << 23,
-    /// Spawn another instance of an already embedded, attested app capsule.
+    /// Launch for the user beyond the launcher's own caps, or spawn another embedded app.
     SpawnWindow = 1 << 24,
     /// Terminate a process the caller does not parent.
     ProcessControl = 1 << 25,

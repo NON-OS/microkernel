@@ -20,14 +20,14 @@ use super::addr::write_addr;
 use super::cfg::write_cfg;
 use super::validate::check_index;
 
-pub fn write_entry(index: usize, entry: &PmpEntry) -> PmpResult<()> {
+pub(crate) fn write_entry(index: usize, entry: &PmpEntry) -> PmpResult<()> {
     check_index(index)?;
     write_addr(index, entry.addr)?;
     write_cfg(index, entry.config.to_cfg_byte())?;
     Ok(())
 }
 
-pub fn clear_entry(index: usize) -> PmpResult<()> {
+pub(crate) fn clear_entry(index: usize) -> PmpResult<()> {
     check_index(index)?;
     write_cfg(index, 0)?;
     write_addr(index, 0)?;

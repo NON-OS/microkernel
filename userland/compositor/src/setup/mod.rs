@@ -21,6 +21,7 @@ mod canvas_floor;
 mod canvas_release;
 mod canvas_scale;
 mod discover;
+pub mod dma;
 mod gop_backing;
 mod heads;
 mod layout;

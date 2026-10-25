@@ -89,6 +89,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MHVR", SyscallNumber::MkHvRecv, "MkHvRecv"),
     e(b"MHVE", SyscallNumber::MkHvEvents, "MkHvEvents"),
     e(b"MHVS", SyscallNumber::MkHvSignal, "MkHvSignal"),
+    e(b"MHVC", SyscallNumber::MkHvChannel, "MkHvChannel"),
     e(b"MDBG", SyscallNumber::MkDebug, "MkDebug"),
     e(b"MSRG", SyscallNumber::MkSurfaceRegister, "MkSurfaceRegister"),
     e(b"MSSH", SyscallNumber::MkSurfaceShare, "MkSurfaceShare"),

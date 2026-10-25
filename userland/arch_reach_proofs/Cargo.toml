@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs that every architecture is accounted for: kernel code
+# outside src/arch that only x86_64 gets must say why in nonos-ci/arch-reach,
+# line for line, and a capsule that does not build for an architecture must
+# say why there too. The tests read the tree itself, and hold synthetic trees
+# with each defect planted to the same rule.
+[package]
+name = "arch_reach_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

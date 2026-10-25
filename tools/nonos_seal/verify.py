@@ -25,7 +25,7 @@ import json
 import os
 import subprocess
 
-from . import capsules, chain, keys
+from . import capsules, chain, keys, release_set
 from .run import nix_build, say
 
 
@@ -67,12 +67,13 @@ def checks(step, tools, capsules_out, elf, kernel_trailer, efi, loader_trailer):
     step.run(tools.enroll, "verify-bootloader", chain.LOADER_ROOT, efi, loader_trailer)
 
 
-def reproduced(step, attr, elf, efi, capsules_out):
+def reproduced(step, attr, elf, efi, capsules_out, release):
     """The tree now holds everything the seal wrote. A fresh build from it must
     give the kernel and loader that were sealed, or the release would not be
     what its source says."""
     say("  [E] the capsules the kernel embeds against the ones signed")
-    rebuilt = nix_build(step, "capsules")
+    rebuilt = nix_build(step, capsules.attr())
+    release_set.refuse(rebuilt, release)
     if os.path.realpath(rebuilt) != os.path.realpath(capsules_out):
         moved = [e["slug"] for e in capsules.catalogue()
                  if sha256(capsules.elf(rebuilt, e)) != sha256(capsules.elf(capsules_out, e))]

@@ -33,6 +33,8 @@ mod native;
 mod ops;
 mod read;
 mod row;
+mod slow;
+mod slow_rule;
 mod span;
 mod status;
 mod table;

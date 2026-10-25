@@ -18,7 +18,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
-pub fn set_initialized() {
+pub(super) fn set_initialized() {
     INITIALIZED.store(true, Ordering::Release);
 }
 

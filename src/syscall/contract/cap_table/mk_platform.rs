@@ -59,8 +59,10 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiLpit
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
-        /* The VMBus core's SynIC calls; each also checks the VMBus root's claim. */
+        /* VMBus through the SynIC; each also checks the VMBus root's claim, or for
+         * events and signals a channel record's. */
         SyscallNumber::MkHvPost
+        | SyscallNumber::MkHvChannel
         | SyscallNumber::MkHvRecv
         | SyscallNumber::MkHvEvents
         | SyscallNumber::MkHvSignal => caps.can_driver(),

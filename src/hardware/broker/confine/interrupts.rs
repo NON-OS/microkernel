@@ -22,7 +22,7 @@ use super::refuse::Refused;
 use super::say::say;
 
 pub(super) fn admit() -> Result<(), Refused> {
-    use super::decide::interrupts_confined;
+    use super::open::interrupts_confined;
     use crate::memory::iommu::dev_unconfined::PRODUCTION;
     use crate::memory::iommu::dev_unremapped::OPT_IN;
     if !cfg!(target_arch = "x86_64") {
@@ -32,8 +32,13 @@ pub(super) fn admit() -> Result<(), Refused> {
     if remapping {
         return Ok(());
     }
-    if interrupts_confined(remapping, OPT_IN, PRODUCTION) {
+    let posture = crate::memory::iommu::no_iommu::holds();
+    if interrupts_confined(remapping, OPT_IN, PRODUCTION, false) {
         say(b"interrupts not remapped, under nonos-dev-unremapped-interrupts");
+        return Ok(());
+    }
+    if interrupts_confined(remapping, false, PRODUCTION, posture) {
+        say(b"interrupts not remapped, under the no-IOMMU posture");
         return Ok(());
     }
     say(b"refused: interrupts not remapped");

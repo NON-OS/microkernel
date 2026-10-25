@@ -523,6 +523,7 @@ include userland/capsule_snake/Capsule.mk
 include userland/capsule_wallet_nonos/Capsule.mk
 include userland/capsule_shield/Capsule.mk
 include userland/capsule_shield_vectors/Capsule.mk
+include userland/capsule_attack/Capsule.mk
 include userland/capsule_terminal/Capsule.mk
 include userland/capsule_file_manager/Capsule.mk
 include userland/capsule_text_editor/Capsule.mk
@@ -942,6 +943,19 @@ nonos-mk-arm: | $(SIGNING_KEY)
 		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
 
+# The riscv64 kernel, type-checked only: no riscv64 boot memory path or
+# image exists yet, so nothing links or boots it. This keeps main building
+# every target it carries. The target is rustc's own RV64GC bare-metal one.
+.PHONY: nonos-mk-riscv-check
+nonos-mk-riscv-check: | $(SIGNING_KEY)
+	@echo "Type-checking kernel (riscv64, microkernel-core + nonos-arch-preview)..."
+	@NONOS_USER_TARGET=riscv64-nonos-user \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		$(CARGO) check --release --target riscv64gc-unknown-none-elf \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem \
+		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
+
 # The same kernel as an arm64 Image, for loaders that hand over a device tree.
 # QEMU's -kernel passes one in x0 for an Image and none for an ELF, and the
 # header start.S puts first is what tells the two apart. objcopy keeps it: the
@@ -1164,9 +1178,10 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 # absent. The runtime, debug, and benchmark boot targets use this so a QEMU boot
 # reaches the ready marker. The full hardware image is nonos-mk-zerostate, which
 # is what ships and what the ISO carries; do not fold this into it.
-# The capsules that link against the std platform layer. That layer issues
-# syscalls with raw x86_64 registers, so these do not cross-compile to aarch64
-# yet and are kept separate from the base set.
+# The capsules that link against the std platform layer, kept separate from
+# the base set. The layer reaches the kernel through its pal trap, with each
+# architecture's registers (toolchain/nonos-std/sys/pal/nonos/trap.rs), so they
+# build for every user target; the arm desktop does not carry them yet.
 # tokio-smoke is deliberately absent. It is the async runtime gate: a timer
 # raced against an idle accept, forever, to prove the mio waker self-wakes.
 # That is a test, and in the desktop image it held a steady share of a core for

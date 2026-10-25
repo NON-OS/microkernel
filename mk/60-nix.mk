@@ -9,7 +9,7 @@
 # and `nix flake check` regenerates both and fails on any difference, so the
 # declarations and the build cannot drift apart.
 
-.PHONY: nonos-mk-capsule-catalogue nonos-mk-store-catalogue
+.PHONY: nonos-mk-capsule-catalogue nonos-mk-capsule-dev-catalogue nonos-mk-store-catalogue
 
 # A make value as a JSON string: backslashes and quotes escaped.
 nonos_json = "$(subst ",\",$(subst \,\\,$(strip $(1))))"
@@ -44,7 +44,7 @@ NONOS_CATALOGUE_CAPSULES = $(strip $(NONOS_VERIFIED_CAPSULES) $(NONOS_DEV_CAPSUL
 # Each entry is a recipe line of its own: one command for every capsule would
 # pass the 128 KiB a single argument may take.
 define nonos_catalogue_print
-@printf '%s%s\n' '$(call nonos_catalogue_entry,$(1))' \
+@printf '%s%s\n' '$(call $(or $(2),nonos_catalogue_entry),$(1))' \
 	'$(if $(filter $(1),$(lastword $(NONOS_CATALOGUE_CAPSULES))),,$(_boot_comma))'
 
 endef
@@ -52,6 +52,17 @@ endef
 nonos-mk-capsule-catalogue:
 	@printf '[\n'
 	$(foreach s,$(NONOS_CATALOGUE_CAPSULES),$(call nonos_catalogue_print,$(s)))
+	@printf ']\n'
+
+# The development set's cargo features (CAPSULE_DEV_CARGO_FEATURES), kept out
+# of capsules.json: the kernel's source and every image copy that file, so a
+# field there would change every release build. tools/nix/capsules-dev.json
+# keeps the rows that name some, and only capsules.nix's bySlugDev reads it.
+nonos_dev_entry = {"slug":$(call nonos_json,$(1)),"dev_cargo_features":$(call nonos_json,$($(1)_DEV_CARGO_FEATURES))}
+
+nonos-mk-capsule-dev-catalogue:
+	@printf '[\n'
+	$(foreach s,$(NONOS_CATALOGUE_CAPSULES),$(call nonos_catalogue_print,$(s),nonos_dev_entry))
 	@printf ']\n'
 
 # The package store, by group, each entry a path in the store and the file

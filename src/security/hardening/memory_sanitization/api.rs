@@ -72,6 +72,13 @@ pub fn zerostate_shutdown_wipe() {
         sanitize_process_memory(process.pid as u64);
     }
 
+    // A process's VMAs need not name every page it maps: its image's data,
+    // an arena or a stack can lie outside them. Its page tables name them
+    // all, so every live address space is walked and scrubbed as well.
+    if crate::memory::paging::manager::scrub_every_user_space().is_none() {
+        crate::sys::serial::print(b"[ZS] user frames not scrubbed: the paging lock is held\n");
+    }
+
     // Kernel stacks hold what the kernel did for each process: bytes copied
     // in from user space, key material a syscall touched. They come from the
     // page allocator, so neither the heap erase nor the process wipe reaches
@@ -82,6 +89,10 @@ pub fn zerostate_shutdown_wipe() {
     // and would go with the erase below, but clearing it structurally also
     // drops what the caches hold outside the heap.
     crate::fs::clear_caches();
+
+    // The host and domain names the person typed live in statics, which the
+    // heap erase below never reaches.
+    crate::sys::policy::hostname_wipe();
 
     // The key vault walks a map that lives in the heap, so it has to run while
     // the heap is still readable.
