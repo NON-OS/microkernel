@@ -36,6 +36,7 @@ pub fn sys_irq_bind(
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if out_ptr == 0 {
         return ERRNO_FAULT;
     }
@@ -49,11 +50,19 @@ pub fn sys_irq_bind(
     };
     let out = IrqBindOut { grant_id: r.grant_id, vector: r.vector as u64 };
     if write_user_value(out_ptr, &out).is_err() {
-        // MSI-X bind allocated a run of N grants starting at r.grant_id.
-        // Roll back the whole run for this pid+device. INTx collapses
-        // to a single-grant release.
-        let _ = crate::hardware::broker::irq_release_for_device(pid, device_id);
+        roll_back(pid, r.grant_id, r.grants);
         return ERRNO_FAULT;
     }
     0
+}
+
+/// Undo the grants this call made, and only those. Releasing by device
+/// would also tear down vectors the capsule bound in an earlier call and is
+/// still using, leaving it waiting on interrupts that can no longer come.
+fn roll_back(pid: u32, first: u64, grants: u32) {
+    for id in first..first.saturating_add(u64::from(grants)) {
+        if crate::hardware::broker::irq_unmap_grant(pid, id).is_err() {
+            crate::log::warn!("[IRQ] bind rollback: grant {:#x} was already gone", id);
+        }
+    }
 }
