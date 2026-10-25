@@ -27,6 +27,9 @@ pub(crate) const FLOOR: u64 = 64 * 1024 * 1024;
 /// No surface spans more, whatever the framebuffer: 32,768 pages.
 pub(crate) const CEILING: u64 = 128 * 1024 * 1024;
 const PAGE: u64 = 4096;
+/// The longest range one usercopy validation takes (usercopy/policy.rs
+/// MAX_COPY_SIZE), mirrored; kernel_proofs::surface_cap holds the two equal.
+pub(crate) const SLICE: u64 = 64 * 1024 * 1024;
 
 /// The cap for a boot framebuffer of `frame_len` bytes (stride x height), or
 /// none when the machine is headless.
@@ -45,4 +48,14 @@ pub(crate) const fn surface_cap(frame_len: Option<u64>) -> u64 {
     } else {
         rounded
     }
+}
+
+/// The `(addr, len)` slices, each at most `max` bytes, that cover
+/// `[base, base + len)` exactly and in order. The caller has checked that
+/// `base + len` does not overflow; `max` is not 0.
+pub(crate) fn slices(base: u64, len: u64, max: u64) -> impl Iterator<Item = (u64, u64)> {
+    (0..len.div_ceil(max)).map(move |i| {
+        let at = i * max;
+        (base + at, (len - at).min(max))
+    })
 }
