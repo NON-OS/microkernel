@@ -37,8 +37,8 @@ impl Facts for Machine {
         hardware::protected(base, end)
     }
 
-    fn power_port(&self, base: u64, end: u64) -> bool {
-        super::power_regs::touches(SPACE_IO, base, end)
+    fn reset_port(&self, base: u64, end: u64) -> bool {
+        super::power_regs::reset_touched(SPACE_IO, base, end)
     }
 
     fn ports_claimed(&self, base: u16, count: u32) -> bool {

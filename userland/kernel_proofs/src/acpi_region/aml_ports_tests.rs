@@ -25,7 +25,7 @@ use super::machine::Machine;
 use super::rule::{io, Legacy, Refusal, AML_PORTS, LEGACY_PORTS};
 
 fn bare() -> Machine {
-    Machine { map: vec![], windows: vec![], ports: vec![], hardware: vec![], pci: vec![], power: vec![] }
+    Machine { map: vec![], windows: vec![], ports: vec![], hardware: vec![], pci: vec![], reset: vec![] }
 }
 
 #[test]
