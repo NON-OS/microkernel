@@ -5100,6 +5100,21 @@ else
     fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
 fi
 unset mirrors_out
+# The flake builds capsules from tools/nix's catalogues, so one left behind by
+# a new role makes the spawn refuse it on the next image. Only `nix flake
+# check` compared them; here the same comparison runs from make's own output.
+cat_dir="$(mktemp -d)"
+if (for which in capsule capsule-dev store; do
+        make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 \
+            "nonos-mk-${which}-catalogue" > "${cat_dir}/${which}.json" || exit 1
+    done) && cat_out="$(TMPDIR="${cat_dir}" python3 -I tools/nix/catalogues.py --check 2>&1)"; then
+    note ok "tools/nix catalogues match what make says the capsules are (catalogues.py)"
+else
+    tail -n 5 <<< "${cat_out:-make failed}" >&2
+    fail_with "catalogues: tools/nix is stale; regenerate with python3 tools/nix/catalogues.py"
+fi
+rm -rf "${cat_dir}"
+unset cat_dir cat_out
 
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.
