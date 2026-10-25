@@ -15,9 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{AppManifest, WindowKind};
+use nonos_toolkit::decorations::{BORDER_PX, SHADOW_MARGIN, TITLEBAR_H};
 
+/// The content area the game is laid out for (paint.rs).
 pub const WIDTH: u32 = 360;
 pub const HEIGHT: u32 = 480;
+
+/* A manifest names the whole window at one to one, frame and shadow too, so
+ * the window asked for is the content plus the frame around it. */
+const WINDOW_W: u32 = WIDTH + 2 * (SHADOW_MARGIN + BORDER_PX);
+const WINDOW_H: u32 = HEIGHT + 2 * SHADOW_MARGIN + TITLEBAR_H + BORDER_PX;
 
 const WINDOW_ID: u32 = 0x3230_3438;
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
@@ -29,8 +36,8 @@ pub fn manifest() -> AppManifest {
         kind: WindowKind::Normal,
         initial_x: 380,
         initial_y: 120,
-        width: WIDTH,
-        height: HEIGHT,
+        width: WINDOW_W,
+        height: WINDOW_H,
         input_kind_mask: INPUT_KEY_DOWN_BIT,
     }
 }
