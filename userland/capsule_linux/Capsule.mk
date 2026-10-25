@@ -45,7 +45,7 @@ CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
 # started again with Network for a program whose policy has NET_ANON
 # (src/userspace/capsule_linux/run_net.rs). app.linux.term.net is the terminal's
 # run of a --box naming destinations, the one terminal role with Network
-# (src/userspace/capsule_linux/roles.rs, tool_capsules/net_box.rs).
+# (src/userspace/capsule_linux/role_term_net.rs, tool_capsules/net_box.rs).
 CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5204:app.linux.run.net reply:5205:endpoint.app.linux.run.net.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply service:4946:app.linux.term.1 reply:4947:endpoint.app.linux.term.1.reply service:4948:app.linux.term.2 reply:4949:endpoint.app.linux.term.2.reply service:5188:app.linux.term.net reply:5189:endpoint.app.linux.term.net.reply
 CAPSULE_REQUIRED_CAPS    := 0x104001979
 # Network (bit 2), LocalSign (bit 33) and StreamImport (bit 34) are optional:
