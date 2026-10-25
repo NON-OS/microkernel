@@ -58,12 +58,9 @@ pub(super) fn report(lock: usize, site: &'static Location<'static>, sp: usize, m
     }
 }
 
-/// The top of the kernel stack this CPU runs on, 0 when unknown.
+/// The top of the kernel stack this CPU runs on, 0 when unknown. Only the
+/// x86_64 switch path writes it; elsewhere it stays 0, which `judge` reads
+/// as not known.
 fn stack_top(cpu: Option<usize>) -> usize {
-    #[cfg(target_arch = "x86_64")]
-    if let Some(data) = cpu.and_then(super::percpu::get) {
-        return data.kernel_stack_top as usize;
-    }
-    let _ = cpu;
-    0
+    cpu.and_then(super::percpu::get).map_or(0, |data| data.kernel_stack_top as usize)
 }
