@@ -62,6 +62,7 @@ class LaneHosts(unittest.TestCase):
         args = machine.devices("nat", None, None, p.swaps)
         self.assertIn("usb-net,bus=xhci.0,netdev=net0", args)
         self.assertEqual(args[1], "bochs-display")
+        self.assertEqual(lanes.plan(["vga"], "/d").swaps, {"gpu": "VGA"})
 
 if __name__ == "__main__":
     unittest.main()
