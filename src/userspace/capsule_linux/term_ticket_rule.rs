@@ -25,21 +25,21 @@ use alloc::vec::Vec;
 /// Terminal that child is parented to, and the argv the kernel set at its
 /// spawn, which the child cannot change and never names here.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Ticket {
-    pub terminal: u32,
-    pub argv: Vec<String>,
+pub(crate) struct Ticket {
+    pub(crate) terminal: u32,
+    pub(crate) argv: Vec<String>,
 }
 
 /// Whether `caller` may start `argv` in the terminal's network role on the
 /// ticket in `slot`: only the ticket's own Terminal, only for the argv
 /// byte for byte. The ticket is used up on its first check, whatever the
 /// check finds, so a wrong ask cannot be followed by a right one.
-pub fn admit(slot: &mut Option<Ticket>, caller: u32, argv: &[String]) -> bool {
+pub(crate) fn admit(slot: &mut Option<Ticket>, caller: u32, argv: &[String]) -> bool {
     slot.take().is_some_and(|t| t.terminal == caller && t.argv == argv)
 }
 
 /// `terminal` is exiting: its ticket, if it holds one, goes with it.
-pub fn end_of(slot: &mut Option<Ticket>, terminal: u32) {
+pub(crate) fn end_of(slot: &mut Option<Ticket>, terminal: u32) {
     if slot.as_ref().is_some_and(|t| t.terminal == terminal) {
         *slot = None;
     }
