@@ -17,7 +17,7 @@
 use crate::settings::schema::blocks_for;
 use crate::settings::state::State;
 
-use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP, ROW_H};
+use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP};
 use super::walk_list::list_of;
 use super::walk_metrics::{block_h, head_h, row_h};
 
@@ -31,6 +31,7 @@ pub enum Item {
     Saved(usize),
     Wallpaper(u8),
     BtDevice(usize),
+    Station,
 }
 
 /// The one place section geometry is defined. The painter and the hit test both
@@ -45,14 +46,14 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
         f(y, head_h(b), Item::CardHead(bi));
         let mut ry = y + head_h(b);
         for (ri, r) in b.rows.iter().enumerate() {
-            let Some((n, item)) = list_of(state, r) else {
+            let Some((n, item, h)) = list_of(state, r) else {
                 f(ry, row_h(r), Item::Row(bi, ri));
                 ry += row_h(r);
                 continue;
             };
             for i in 0..n {
-                f(ry, ROW_H, item(i));
-                ry += ROW_H;
+                f(ry, h, item(i));
+                ry += h;
             }
         }
         y += bh + CARD_GAP;

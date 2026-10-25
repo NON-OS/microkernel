@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::caps_to_bits;
-use crate::services::registry::{caller_may_write_inbox, lookup_port, lookup_service};
+use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::caps::current_caps_or_default;
 use crate::syscall::microkernel::narrow::u32_arg;
 
@@ -59,19 +59,5 @@ pub(super) fn caller_satisfies_endpoint(endpoint: u64, target: &str) -> bool {
         required,
         held
     );
-    false
-}
-
-/// Whether this caller may write straight into `dest`'s own inbox with
-/// MkIpcSendToPid. That inbox is where every endpoint `dest` serves is read,
-/// so the send passes each one's gate, as a send by name would; checking
-/// none of them let a capsule without Network reach net.sockets by its pid.
-pub(super) fn caller_satisfies_inbox(dest: u32) -> bool {
-    let held = caps_to_bits(&current_caps_or_default().permissions);
-    if caller_may_write_inbox(dest, held) {
-        return true;
-    }
-    let pid = crate::process::current_pid().unwrap_or(0);
-    crate::log::warn!("[CAP-DENY] pid={} ipc to pid {} fails a gate it serves, holds {:#x}", pid, dest, held);
     false
 }
