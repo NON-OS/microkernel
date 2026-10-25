@@ -19,3 +19,18 @@ pub fn pwr_mode(lps: bool) -> (u32, u32) {
     let w0 = SET_PWR_MODE | mode << 8 | rlbm << 16 | smart_ps << 20 | awake_interval << 24;
     (w0, state << 8)
 }
+
+const RSVD_PAGE: u32 = 0x00;
+const MEDIA_STATUS_RPT: u32 = 0x01;
+
+/// The station on `mac_id` connected or not: the firmware's power save acts
+/// only for a connected one.
+pub fn media_status(connected: bool, mac_id: u8) -> (u32, u32) {
+    (MEDIA_STATUS_RPT | u32::from(connected) << 8 | u32::from(mac_id) << 16, 0)
+}
+
+/// Where the reserved pages hold the frames the firmware sends on its own,
+/// counted from the driver's first page; no probe response.
+pub fn rsvd_page(ps_poll: u8, null: u8, qos_null: u8) -> (u32, u32) {
+    (RSVD_PAGE | u32::from(ps_poll) << 16 | u32::from(null) << 24, u32::from(qos_null))
+}

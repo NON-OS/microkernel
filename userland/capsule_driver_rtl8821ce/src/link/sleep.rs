@@ -6,13 +6,22 @@
 use super::buffers::RxBuffers;
 use super::state::RtlLink;
 use crate::fw::dma::DmaMem;
-use crate::ps::{Ps, Seen};
+use crate::ps::{Bss, Ps, Seen};
 use crate::regs::Mmio;
 
 impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
-    /// Power save as bring-up found the PCIe link.
-    pub fn set_ps(&mut self, ps: Ps) {
+    /// Power save as bring-up found the PCIe link, and the regions its pages
+    /// go down through.
+    pub fn set_ps(&mut self, ps: Ps, beacon: Option<(D, D)>) {
         self.ps = ps;
+        self.beacon = beacon;
+    }
+
+    /// The access point granted `aid`; its beacons name `dtim`.
+    pub fn joined_ps(&mut self, aid: u16, dtim: u8) {
+        let (bssid, sta) = (self.station.bssid(), self.station.mac());
+        let beacon = self.beacon.as_ref().map(|(s, r)| (s, r));
+        self.ps.joined(&self.mmio, beacon, Bss { aid, dtim, bssid, sta });
     }
 
     /// For the proofs: the link's power save.
@@ -21,9 +30,9 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         &self.ps
     }
 
-    /// Awake before a teardown, a join or a scan.
-    pub fn wake_ps(&mut self) {
-        self.ps.wake(&self.mmio);
+    /// Awake and reported gone, before a teardown.
+    pub fn left_ps(&mut self) {
+        self.ps.left(&self.mmio);
     }
 
     pub(super) fn ps_tick(&mut self, now_ms: u64) {

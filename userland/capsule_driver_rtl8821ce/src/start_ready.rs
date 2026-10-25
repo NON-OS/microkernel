@@ -28,10 +28,13 @@ pub fn up_to_ready(mut mapped: Mapped) -> (Option<Mapped>, Stage) {
     // With the MAC powered, load the 8051 firmware. On real silicon this runs the
     // reserved-page staging and DDMA; off-silicon the whole path bar the DMA
     // mapping and the card's own execution is proven in rtl8821ce_proofs.
-    if fwload::load(&mapped.regs, mapped.device_id, mapped.claim_epoch).is_err() {
-        status::line(b"[rtl8821ce] firmware download failed\n");
-        setup::stopped(&mapped);
-        return (Some(mapped), Stage::FirmwareFailed);
+    match fwload::load(&mapped.regs, mapped.device_id, mapped.claim_epoch) {
+        Ok(beacon) => mapped.beacon = Some(beacon),
+        Err(_) => {
+            status::line(b"[rtl8821ce] firmware download failed\n");
+            setup::stopped(&mapped);
+            return (Some(mapped), Stage::FirmwareFailed);
+        }
     }
     status::line(b"[rtl8821ce] firmware loaded and ready\n");
     let Some(rings) = setup::map_rings(mapped.device_id, mapped.claim_epoch) else {

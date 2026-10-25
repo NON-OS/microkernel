@@ -14,6 +14,8 @@ use crate::regs::Mmio;
 pub struct Ps {
     pub(super) aspm: Aspm,
     pub(super) asleep: bool,
+    /// The firmware has the pages and knows the station connected.
+    pub(super) ready: bool,
     pub(super) h2c: H2c,
     watch: Watch,
 }
@@ -21,6 +23,12 @@ pub struct Ps {
 impl Ps {
     pub fn new(aspm: Aspm) -> Self {
         Self { aspm, h2c: H2c::new(), ..Self::default() }
+    }
+
+    /// For the proofs: as if the firmware had been told of the association.
+    #[cfg(test)]
+    pub fn assume_ready(&mut self) {
+        self.ready = true;
     }
 
     /// For the proofs: whether the firmware was put to sleep.
@@ -40,7 +48,7 @@ impl Ps {
     /// `tick` regardless of the switch, for the proofs.
     pub fn step<M: Mmio>(&mut self, mmio: &M, now_ms: u64, seen: Seen, may_sleep: bool) {
         match self.watch.due(now_ms, seen, may_sleep) {
-            Some(true) if !self.asleep => self.enter(mmio),
+            Some(true) if self.ready && !self.asleep => self.enter(mmio),
             Some(false) => self.wake(mmio),
             _ => {}
         }

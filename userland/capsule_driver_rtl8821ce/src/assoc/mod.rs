@@ -31,6 +31,7 @@ pub mod classify;
 mod clock;
 mod drive;
 pub mod eapol;
+pub mod facts;
 mod frame;
 mod outcome;
 mod radio;

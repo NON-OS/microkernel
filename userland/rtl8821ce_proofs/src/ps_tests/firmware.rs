@@ -15,6 +15,7 @@ const QUIET: Seen = Seen { tx: 0, rx: 0, sends: 0 };
 
 fn asleep(card: &FwCard) -> Ps {
     let mut ps = Ps::new(Aspm::default());
+    ps.assume_ready();
     ps.step(card, 0, QUIET, true);
     ps.step(card, PERIOD_MS, QUIET, true);
     ps

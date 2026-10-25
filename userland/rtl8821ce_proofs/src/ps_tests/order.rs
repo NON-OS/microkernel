@@ -14,6 +14,7 @@ fn l1_comes_after_the_firmware_sleeps_and_goes_before_it_wakes() {
     const DBI_GO: (usize, u32) = (0x03F2, 1);
     let card = FwCard::new(false, Some(0));
     let mut ps = Ps::new(Aspm { l1: true, clkreq: false });
+    ps.assume_ready();
     ps.step(&card, 0, QUIET, true);
     ps.step(&card, PERIOD_MS, QUIET, true);
     let sleep_cmd = card.at(BOX0, pwr_mode(true).0).expect("slept");

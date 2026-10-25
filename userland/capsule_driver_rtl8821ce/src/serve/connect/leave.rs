@@ -34,7 +34,7 @@ pub(in crate::serve) fn disconnect(
     regs: &Regs,
     session: &mut Option<Session>,
 ) -> i32 {
-    link.wake_ps();
+    link.left_ps();
     link.send_deauth();
     link.deassociate();
     set_media_no_link(regs);

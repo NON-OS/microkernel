@@ -16,4 +16,4 @@
 mod stage;
 mod valid;
 
-pub use stage::stage_chunk;
+pub use stage::{stage_at, stage_chunk};

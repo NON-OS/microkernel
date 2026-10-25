@@ -4,6 +4,7 @@
 
 use super::classify::{classify, fc_type, RxKind};
 use super::eapol::{eapol_from_bss, wrap_eapol};
+use super::facts::granted_aid;
 use super::radio::Counters;
 use alloc::vec::Vec;
 use nonos_wifi_core::dot11::header::TYPE_DATA;
@@ -28,6 +29,9 @@ pub(super) fn handle_frame(
                 if subtype == 0xC0 || subtype == 0xA0 {
                     c.deauth += 1;
                 }
+            }
+            if let Some(aid) = granted_aid(rx, mlme.bssid()) {
+                c.aid = aid;
             }
             mlme.on_mgmt(rx).tx
         }
