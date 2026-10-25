@@ -122,12 +122,12 @@ pub fn is_hard_limit_exceeded() -> bool {
 }
 
 pub fn update_exceeded_timestamp(timestamp: u64) {
+    // Decided under the one write guard: is_soft_limit_exceeded's read of the
+    // same lock, taken while this holds it for writing, never returned.
+    let usage = stats::get_total_storage_used();
     let mut quota = GLOBAL_QUOTA.write();
-    if quota.exceeded_at.is_none() && is_soft_limit_exceeded() {
-        quota.exceeded_at = Some(timestamp);
-    } else if !is_soft_limit_exceeded() {
-        quota.exceeded_at = None;
-    }
+    let over = usage >= quota.soft_limit;
+    quota.exceeded_at = if over { quota.exceeded_at.or(Some(timestamp)) } else { None };
 }
 
 pub fn is_grace_period_expired(current_time: u64) -> bool {
