@@ -162,7 +162,11 @@ let
       unknown = lib.subtractLists (builtins.attrNames defaults ++ [ "loader" ]) (builtins.attrNames raw);
       p = profiles.${c.profile} or (throw "nonos.toml: profile \"${c.profile}\" is not one of ${toString (builtins.attrNames profiles)}");
       loader = if c.dev then "dev-qemu" else raw.loader or p.loader;
-      drop = p.drop ++ lib.optionals (!c.install) installFeatures;
+      # A development twin keeps the capsule serial output its profile's kernel
+      # has, whatever the profile takes out (docs/build/profiles.md): bring-up
+      # reads the drivers' lines. It adds none a kernel never had (core).
+      drop = (if c.dev then lib.subtractLists debugFeatures p.drop else p.drop)
+        ++ lib.optionals (!c.install) installFeatures;
       features = without drop (p.kernel ++ lib.optional c.smp "nonos-smp" ++ c.features
         ++ lib.optional (c.dev && !(builtins.elem "nonos-dev-attest" p.kernel)) "nonos-dev-attest"
         ++ lib.optionals (loader == "dev-qemu") marketDevFeatures
@@ -181,6 +185,10 @@ let
     assert lib.assertMsg (missing == [ ]) "nonos.toml: Cargo.toml has no feature ${toString missing}";
     assert lib.assertMsg (leaked == [ ]) "nonos.toml: profile ${c.profile} cannot carry ${toString leaked}";
     assert lib.assertMsg (c.dev || level loader >= level p.loader) "nonos.toml: profile ${c.profile} needs at least loader ${p.loader}, not ${loader}";
+    # Capsule lines on the serial console leak what a shipped image does: no
+    # image a release loader (standard, production) boots may carry them.
+    assert lib.assertMsg (!(lib.any (f: builtins.elem f enabled) debugFeatures) || level loader < level "standard")
+      "nonos.toml: profile ${c.profile} with loader ${loader} cannot carry ${toString debugFeatures}";
     assert lib.assertMsg (builtins.isBool c.dev) "nonos.toml: dev is true or false";
     assert lib.assertMsg (builtins.isInt c.rollback_index && c.rollback_index >= 1) "nonos.toml: rollback_index is an integer from 1";
     assert lib.assertMsg (builtins.isString c.linux_packages && builtins.match "[A-Za-z0-9.-]*(:[0-9]+)?" c.linux_packages != null)
