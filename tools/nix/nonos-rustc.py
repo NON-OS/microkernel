@@ -165,7 +165,9 @@ def split_opt(args, i):
     handling both `--opt val` and `--opt=val` / `-Oval` glued forms. The caller
     passes the option name it already matched as a prefix."""
     tok = args[i]
-    if "=" in tok and not tok.endswith("="):
+    # rustc reads a glued `--opt=` as an empty value; it never takes the next
+    # argument, so neither may we, or that argument is lost.
+    if "=" in tok:
         return tok.split("=", 1)[1], i + 1
     # glued short form like -Lfoo handled by caller; here the long/space form.
     if i + 1 < len(args):
@@ -220,6 +222,12 @@ def parse_unit(args, remaps):
             val, i = split_opt(args, i)
             u.cfgs.append(val)
             continue
+        # --env-set feeds env!(), so its value is code: part of the identity,
+        # the same in either form, and never a source.
+        if a == "--env-set" or a.startswith("--env-set="):
+            val, i = split_opt(args, i)
+            u.cfgs.append("--env-set=" + remap_token(val, remaps))
+            continue
         if a == "--extern" or a.startswith("--extern="):
             val, i = split_opt(args, i)
             name, _, path = val.partition("=")
@@ -247,11 +255,14 @@ def parse_unit(args, remaps):
             continue
         # Options that take a value we do not fold into identity, but must step
         # over so their argument is not mistaken for a positional source.
+        # --check-cfg only names the cfgs that may be set, and cargo lists every
+        # declared feature in it, so declaring a feature must not move identity.
         if a in ("-L", "-o", "--out-dir", "--emit", "--error-format", "--json",
                  "--color", "--cap-lints", "--sysroot", "--extern-location",
                  "--diagnostic-width", "--remap-path-prefix", "-A", "-W", "-D",
                  "-F", "--allow", "--warn", "--deny", "--forbid", "--print",
-                 "--explain", "--pretty", "--out-file"):
+                 "--explain", "--pretty", "--out-file", "--check-cfg", "-l",
+                 "--force-warn"):
             _, i = split_opt(args, i)
             continue
         if a.startswith(("-L", "--emit=", "--error-format=", "--json=",
@@ -605,6 +616,28 @@ def _self_test():
     # raw (host-tainted) hash.
     did2 = dep_id("nonos_libc", ra + "/deps/libnonos_userland_libc-deadbeef.rlib", d + "/none")
     check("missing sidecar strips the hash", "deadbeef" not in did2)
+
+    # A flag's value is never a source, and one that cannot change the code
+    # (check-cfg, a link library, a lint level) never moves the identity, split
+    # or glued. The base declares no check-cfg; these declare one or two values.
+    base = inv(ra, "aaaaaaaa11111111")
+    for extra in (["--check-cfg", 'cfg(feature, values("x"))'],
+                  ["--check-cfg", 'cfg(feature, values("x", "y"))'],
+                  ['--check-cfg=cfg(feature, values("x", "y"))'],
+                  ["-l", "static=nonos_rt"], ["--force-warn", "unused"]):
+        ue = parse_unit(extra + base, parse_remaps(env_a))
+        check(" ".join(extra) + " is stepped over",
+              ue.src == ua.src and identity(ue, "") == ida)
+
+    # --env-set is code: hashed in, alike in both forms, and no source.
+    env_units = [parse_unit(e + base, parse_remaps(env_a))
+                 for e in (["--env-set", "K=1"], ["--env-set=K=1"], ["--env-set", "K=2"])]
+    env_ids = [identity(x, "") for x in env_units]
+    check("--env-set is identity, not a source",
+          all(x.src == ua.src for x in env_units)
+          and env_ids[0] == env_ids[1] and len({ida, env_ids[0], env_ids[2]}) == 3)
+    check("an empty glued value eats nothing",
+          split_opt(["--env-set=K=", "x"], 0) == ("K=", 1))
 
     # Argfile expansion round-trips.
     import os as _os
