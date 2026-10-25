@@ -23,6 +23,7 @@ mod rect;
 mod scale;
 mod titlebar;
 mod traffic_lights;
+mod window_for;
 
 pub use accessory::{accessory_rect, accessory_rect_at};
 pub use frame_rect::{
@@ -43,3 +44,4 @@ pub use rect::Rect;
 pub use scale::{at as scaled, px_at as scaled_px, ONE as SCALE_ONE};
 pub use titlebar::{draw_frame, draw_frame_at};
 pub use traffic_lights::{draw_traffic_lights, draw_traffic_lights_at};
+pub use window_for::window_for;

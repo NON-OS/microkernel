@@ -34,7 +34,6 @@ impl Spec {
         let base = |i: u8| match i {
             8 => r.pcr8,
             9 => r.pcr9,
-            14 => r.pcr14,
             _ => self.log.pcrs[i as usize],
         };
         QUOTED_PCRS_V4.iter().map(|&i| pick(i, &self.pcr, base(i))).collect()

@@ -18,9 +18,9 @@
 
 use alloc::vec::Vec;
 
-use super::PCRS;
+use super::{Admitted, PCRS};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Replayed {
     pub pcrs: [[u8; 32]; PCRS],
     /// The last application the firmware measured into PCR 4.
@@ -29,4 +29,15 @@ pub struct Replayed {
     pub applications: Vec<[u8; 32]>,
     /// Events after the header.
     pub events: usize,
+    /// The capsules PCR 14 records, in the order they were admitted.
+    pub capsules: Vec<Capsule>,
+}
+
+/// One admitted capsule: its certificate's digest, the digest of what
+/// verified it, and what admitted it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Capsule {
+    pub cert: [u8; 32],
+    pub verifier: [u8; 32],
+    pub admitted: Admitted,
 }
