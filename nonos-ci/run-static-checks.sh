@@ -5008,6 +5008,18 @@ else
 fi
 unset mirror_out
 
+# A capsule the catalogue says the kernel spawns must have its spawn mirror,
+# and its feature named in kernel source: capsule_power had neither, and the
+# shell's power-off found no service on any image.
+if mirrors_out="$(python3 scripts/check_kernel_mirrors.py 2>&1)" &&
+   python3 scripts/check_kernel_mirrors.py --self-test >/dev/null 2>&1; then
+    note ok "every catalogued kernel spawn has its mirror and its feature (check_kernel_mirrors)"
+else
+    tail -n 5 <<< "${mirrors_out}" >&2
+    fail_with "check_kernel_mirrors: a capsule the kernel should spawn has no mirror"
+fi
+unset mirrors_out
+
 # SPHINCS+, NTRU and Classic McEliece do not ship: nothing turns on the
 # feature that builds them.
 if bash nonos-ci/check-pqc-unvetted.sh >/dev/null 2>&1; then
