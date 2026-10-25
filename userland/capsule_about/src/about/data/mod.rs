@@ -21,6 +21,7 @@ pub mod attest_doc;
 pub mod build;
 pub mod caps;
 pub mod display;
+pub mod dma_words;
 pub mod doc_parse;
 pub mod layout;
 pub mod license;

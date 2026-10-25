@@ -6,21 +6,21 @@ use crate::kernel_document::{
     AttestationDoc, DOC_VERSION, IOMMU_AMD_VI, IOMMU_ARM_SMMU_V3, IOMMU_INTEL_VTD, IOMMU_NONE,
 };
 
-const CHALLENGE: [u8; 32] = [7u8; 32];
+pub(crate) const CHALLENGE: [u8; 32] = [7u8; 32];
 
 /// Where the completeness byte sits, for the tests that write a byte the kernel
 /// never would.
 const COMPLETE_AT: usize = 8 + 4 + 32 + 32 + 4;
 const VENDOR_AT: usize = COMPLETE_AT + 1;
 const ENFORCING_AT: usize = VENDOR_AT + 1;
-const IDENTITY_AT: usize = ENFORCING_AT + 1 + 4;
+pub(crate) const IDENTITY_AT: usize = ENFORCING_AT + 1 + 4;
 const ATTEST_LEN_AT: usize = IDENTITY_AT + 4;
 
 /// Devices left reaching all of memory in every document built here.
 const IDENTITY: u32 = 5;
 
 /// A document exactly as the kernel encodes one, from the kernel's own encoder.
-fn encoded(
+pub(crate) fn encoded(
     challenge: &[u8; 32],
     attest: &[u8],
     sig: &[u8],

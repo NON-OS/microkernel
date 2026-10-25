@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.lame",
+      "capsule_id": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb",
+      "name": "LAME",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "Encode audio files to MP3.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "lame@3.100-r5",
+          "manifest_hash": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb",
+          "package_hash": "d9b28774e3c7b9bdb15e893b755ad0a6710179cc018bd43a8344832bed4691bb",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/lame-3.100-r5.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000021a7847ecd339556ddc2c9dd1286ad9135bc48ff58fcc68e8147316215a97ca208010000000000003cbb39a0929bb710eadee853ab5b5dc7d9b344a5fbaaee9e7b768d998043da2642189179ea2a392b5c1078b11cd65f983794dc822fa034412407da759d884b110000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 148756 bytes; licence LGPL-2.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

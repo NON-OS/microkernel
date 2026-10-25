@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.geth",
+      "capsule_id": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1",
+      "name": "Geth (dev chain)",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "geth@1.14.3-r3",
+          "manifest_hash": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1",
+          "package_hash": "c54908b260b831edd2cc5f6adf8d06e934f63496a64b61cb52535096146f94e1",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/geth-1.14.3-r3.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000b3e1cd01dbe11bd2ec692ec5185a1068262622fa209e946cb7ab929159bbb1020c01000000000000477e47b830f6fc2088ca7711c500045373c4efe2ed08552224d351627d0f9b6bbb5cb4f081d939559ec39ec8754a25ddc4e999631835d434bfb7a738e6d2df710000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 16787646 bytes; licence LGPL-3.0-or-later; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
