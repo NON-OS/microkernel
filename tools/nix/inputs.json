@@ -6106,6 +6106,7 @@
    "src",
    "userland/capsule_about/Capsule.mk",
    "userland/capsule_acpi/Capsule.mk",
+   "userland/capsule_acpi/src/boot/first.rs",
    "userland/capsule_app_store/Capsule.mk",
    "userland/capsule_attack/Capsule.mk",
    "userland/capsule_attack/src/attempts.rs",
