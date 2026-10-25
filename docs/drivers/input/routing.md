@@ -31,7 +31,7 @@ Two groups of keys never reach the focused window:
   `userland/capsule_input_router/src/route/shell_keys.rs:32-34`).
   [Audio](../audio.md#volume-and-the-volume-keys) says what the volume keys do.
   The Power key, from a keyboard or from the [ACPI power
-  button](../platform.md#the-power-button), only shows the notice `Power off is
+  button](../platform-acpi-power-button.md#the-power-button), only shows the notice `Power off is
   not available from the desktop`: the desktop has no way to power off in 0.9.2
   (`POWER_OFF_UNAVAILABLE`,
   `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
@@ -43,24 +43,25 @@ data is the touchpad driver: when it holds the Debug capability it writes the
 first 16 bytes of each of its first six raw reports to the console, so a decode
 can be checked against the wire (`frame_dumps`,
 `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`).
-`input_router` is granted IPC, Memory and InputDrain and nothing else, so it
+`input_router` is granted IPC, Memory and InputConsumer and nothing else, so it
 cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`,
-`userland/capsule_input_router/Capsule.mk:17`).
+`userland/capsule_input_router/Capsule.mk:14-17`).
 
 The kernel makes `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0`
-[held endpoints](../../overview/glossary.md#held-endpoint) with an empty sender
+[held endpoints](../../overview/glossary-hardware-broker.md#held-endpoint) with an empty sender
 list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`,
-`src/services/registry/held_table.rs:33-35`).
+`src/services/registry/held_table.rs:32-34`).
 
-Two limits follow from the capability rules above. A capsule holding `Irq` may
-post input events whatever its device, and the manifests of the AHCI, HD Audio,
-Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it; the I2C
-controller driver no longer does, as its engine polls (`CAPSULE_REQUIRED_CAPS`,
-`userland/capsule_driver_i2c_pci/Capsule.mk:18`). The three input drivers hold
-`InputSource`, which posts and nothing more: draining is `InputDrain`, which
-only `input_router` holds, and the static checks and the seal refuse it in any
-other capsule (`can_input_consumer`,
-`src/capabilities/token/types/authority_broker.rs:64-72`;
+The capability rules above close two gaps an earlier rule left (K8). `Irq` no
+longer admits a post, so the AHCI, HD Audio, Intel Wi-Fi, NVMe, virtio-blk and
+xHCI drivers, whose manifests ask for it, cannot forge input; the I2C
+controller driver no longer asks for it, as its engine polls
+(`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_i2c_pci/Capsule.mk:18`).
+And the three input drivers, which hold `InputSource`, cannot drain the ring:
+that takes `InputConsumer`, which `input_router` alone holds, with no
+`InputSource`, and the static checks and the seal refuse it in any other
+capsule (`userland/capsule_input_router/Capsule.mk:14-17`; `can_input_consumer`,
+`src/capabilities/token/types/authority_broker.rs:63-66`;
 `scripts/check_input_drain_cap.py`).
 
 ## See also
@@ -68,4 +69,4 @@ other capsule (`can_input_consumer`,
 - [Input drivers](README.md)
 - [Input: layouts and limits](layouts.md)
 - [Audio](../audio.md)
-- [Platform: the power button](../platform.md#the-power-button)
+- [Platform: the power button](../platform-acpi-power-button.md#the-power-button)

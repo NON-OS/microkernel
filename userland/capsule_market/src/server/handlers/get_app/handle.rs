@@ -18,10 +18,11 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::read_lp_string::read_lp_string;
-use super::write_lp_string::write_lp_string;
+use nonos_marketplace_abi::MarketplaceEntry;
+
 use crate::protocol::{Request, E_INVAL, E_MSGSIZE, E_NODATA};
 use crate::server::error::reply_status;
+use crate::server::lp::{read_lp_str, write_count, write_lp};
 use crate::server::payload::{body_slot, reply_with_body};
 use crate::store::Store;
 
@@ -30,7 +31,7 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
         Some(a) => a,
         None => return reply_status(tx, req, E_NODATA),
     };
-    let listing_id = match read_lp_string(body) {
+    let listing_id = match read_lp_str(body) {
         Some(s) => s,
         None => return reply_status(tx, req, E_INVAL),
     };
@@ -38,14 +39,9 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
         Some(e) => e,
         None => return reply_status(tx, req, E_NODATA),
     };
-    let mut out: Vec<u8> = Vec::new();
-    write_lp_string(&mut out, &entry.listing_id);
-    out.extend_from_slice(&entry.capsule_id);
-    write_lp_string(&mut out, &entry.name);
-    write_lp_string(&mut out, &entry.publisher_name);
-    out.extend_from_slice(&entry.publisher_pubkey);
-    write_lp_string(&mut out, &entry.description);
-    out.extend_from_slice(&(entry.releases.len() as u32).to_le_bytes());
+    let Some(out) = encode(entry) else {
+        return reply_status(tx, req, E_MSGSIZE);
+    };
     let body_len = out.len();
     let slot = match body_slot(tx, body_len) {
         Some(s) => s,
@@ -53,4 +49,17 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
     };
     slot.copy_from_slice(&out);
     reply_with_body(tx, req, body_len);
+}
+
+/// None when a field is too long for the u32 length the wire gives it.
+fn encode(entry: &MarketplaceEntry) -> Option<Vec<u8>> {
+    let mut out: Vec<u8> = Vec::new();
+    write_lp(&mut out, entry.listing_id.as_bytes())?;
+    out.extend_from_slice(&entry.capsule_id);
+    write_lp(&mut out, entry.name.as_bytes())?;
+    write_lp(&mut out, entry.publisher_name.as_bytes())?;
+    out.extend_from_slice(&entry.publisher_pubkey);
+    write_lp(&mut out, entry.description.as_bytes())?;
+    write_count(&mut out, entry.releases.len())?;
+    Some(out)
 }

@@ -47,14 +47,20 @@ impl Session {
                 self.queue.push_back(eth);
                 LinkStats::bump(&mut st.rx_eth);
             }
-            Rx::Handshake { frame, group_key } => {
+            Rx::Handshake { frame, group_key, pairwise_key } => {
                 if let Some(reply) = frame {
                     r.send(&reply);
                 }
-                if group_key.is_some() {
+                if group_key.is_some() || pairwise_key.is_some() {
                     LinkStats::bump(&mut st.rekeys);
                 }
             }
+            // Only a management frame sends or ends from here, and those
+            // come in through `on_mgmt`.
+            Rx::Send(frame) => {
+                r.send(&frame);
+            }
+            Rx::Lost(_) => return Some(Ended::Lost),
             Rx::Dropped(_) => LinkStats::bump(&mut st.rx_refused),
         }
         None

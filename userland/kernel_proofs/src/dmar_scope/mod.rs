@@ -51,7 +51,20 @@ mod rmrr_tests;
 mod source_tests;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope.rs"]
 pub mod scope;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_parse.rs"]
+pub mod dmar_parse;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_cover.rs"]
+pub mod dmar_cover;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_translated.rs"]
+pub mod dmar_translated;
+// The siblings import the scope types by the kernel's file name.
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_ioapic.rs"]
+pub mod dmar_ioapic;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_ioapic_source.rs"]
+pub mod dmar_ioapic_source;
+pub use scope as dmar_scope;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_keep.rs"]
+pub mod dmar_keep;
+mod ioapic_tests;
+mod keep_tests;
 mod tests;
-
-/// The name the parsers reach the scope types by in the kernel.
-use scope as dmar_scope;

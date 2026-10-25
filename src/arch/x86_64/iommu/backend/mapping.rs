@@ -50,6 +50,7 @@ pub(crate) fn map(
     map_range(VtdDomainId::new(domain.as_u16()), iova, phys.as_u64(), size, flags).map_err(|e| {
         match e {
             VtdError::Uncommitted => IommuError::Uncommitted,
+            VtdError::Stranded => IommuError::Stranded,
             _ => IommuError::BackendFault,
         }
     })

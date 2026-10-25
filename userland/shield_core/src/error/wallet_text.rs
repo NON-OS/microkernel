@@ -22,6 +22,9 @@ impl core::fmt::Display for WalletError {
             WalletError::FeeChanged => {
                 f.write_str("the fee moved since it was shown, so quote it again")
             }
+            WalletError::WithdrawalsPaused => {
+                f.write_str("the pool's policy has paused withdrawals; nothing was proved")
+            }
         }
     }
 }

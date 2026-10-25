@@ -26,9 +26,9 @@ use super::tabs::MAX_TABS;
 use super::types::Terminal;
 use crate::event::on_enter;
 use crate::term::handed::{self, cadence, Active, Handed, Pick};
-use crate::term::util::copy_into;
 
-const BUSY: &[u8] = b": every tab is busy, close one and click the tile again";
+#[path = "take_handed_busy.rs"]
+mod take_handed_busy;
 
 impl Terminal {
     /// True when a tab changed.
@@ -70,15 +70,5 @@ impl Terminal {
             }
         }
         true
-    }
-
-    fn say_busy(&mut self, line: &[u8]) {
-        let mut msg = [0u8; 128];
-        let head = line.len().min(msg.len() - BUSY.len());
-        let mut n = copy_into(&mut msg, &line[..head]);
-        n += copy_into(&mut msg[n..], BUSY);
-        let state = self.cur();
-        state.scrollback.push_line(&msg[..n]);
-        state.scrollback.jump_bottom();
     }
 }

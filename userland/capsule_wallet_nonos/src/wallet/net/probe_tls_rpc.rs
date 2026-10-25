@@ -63,20 +63,4 @@ impl TlsProbe {
         self.validity = validity;
         self.anchor = anchor;
     }
-
-    pub fn blocked() -> Self {
-        Self {
-            server_hello: false,
-            encrypted_record: false,
-            certificate: false,
-            chain: false,
-            anchor: false,
-            signature: false,
-            hostname: false,
-            validity: false,
-            finished: false,
-            client_finished: false,
-            chain_id: false,
-        }
-    }
 }

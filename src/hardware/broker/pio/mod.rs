@@ -26,6 +26,7 @@ mod overlap;
 mod release;
 mod types;
 mod width;
+mod window;
 
 pub use access::{grant_for_caller, read, write};
 pub(in crate::hardware::broker) use fixed_view::intx_view;

@@ -21,9 +21,8 @@
 
 use crate::wallet::etna::frame_spec::FrameLayout;
 use crate::wallet::screen::hits::{self, Press};
-use crate::wallet::state::State;
 
-pub fn put(state: &State, l: &FrameLayout) {
+pub fn put(l: &FrameLayout) {
     if let Some(back) = l.back {
         hits::put(Press::Back, back);
     }

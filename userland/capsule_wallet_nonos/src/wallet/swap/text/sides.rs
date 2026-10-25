@@ -24,9 +24,9 @@ pub fn amount_text(state: &State, pay: bool, out: &mut [u8]) -> usize {
     let (v, idx) = if pay {
         // The typed figure scaled to the token's decimals, so what is shown
         // is the amount a contract would be given rather than the digits.
-        (crate::wallet::swap::scaled(state), state.swap_from)
+        (crate::wallet::swap::scaled(state), state.swap.from)
     } else {
-        (state.swap_quote.out_amount, state.swap_to)
+        (state.swap.quote.out_amount, state.swap.to)
     };
     if v == 0 {
         out[0] = b'0';

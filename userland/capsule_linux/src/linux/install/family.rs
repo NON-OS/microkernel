@@ -31,7 +31,7 @@ pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
      * package, where the index could only answer that nothing provides it.
      */
     match wanted(pkg) {
-        Wanted::Tier(app) => return super::apps_install::install(app, pin),
+        Wanted::Tier(app) => return super::tier::install::install(app, pin),
         Wanted::UnknownTier => {
             let line = alloc::format!("[LINUX] {pkg}: no shipped Qwen tier has this name\n");
             let _ = mk_debug(line.as_ptr(), line.len());

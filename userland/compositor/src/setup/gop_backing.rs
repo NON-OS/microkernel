@@ -38,9 +38,8 @@ pub fn display_dimensions() -> Result<(u32, u32), &'static str> {
     Ok((width, height))
 }
 
-// Its own anonymous mapping, not the heap: mmap gives a page-aligned VMA
-// starting exactly at base_va, which the kernel's present path resolves to
-// a real region. A heap allocation sits inside the heap VMA and never would.
+// Its own anonymous mapping, not the heap: mmap gives a page-aligned VMA at
+// base_va, which the present path resolves; a heap allocation never would.
 fn alloc_backing(byte_len: u64) -> Result<u64, &'static str> {
     let size = usize::try_from(byte_len).map_err(|_| "gop: backing too large")?;
     let ptr = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
@@ -50,20 +49,23 @@ fn alloc_backing(byte_len: u64) -> Result<u64, &'static str> {
     Ok(ptr as u64)
 }
 
-/// Register a `width` x `height` backing and attach it back: the kernel
-/// returns this same VA, with a real VMA behind it, and the compositor
-/// composites into it directly.
-pub fn register_backing(width: u32, height: u32) -> Result<Primary, &'static str> {
+/// Register a `width` x `height` backing and attach it back by the handle
+/// `handle_of` gets for its sid (K20): the kernel returns this same VA.
+pub fn register_backing(
+    width: u32,
+    height: u32,
+    handle_of: impl FnOnce(i64) -> Result<u64, &'static str>,
+) -> Result<Primary, &'static str> {
     let stride = width.checked_mul(4).ok_or("gop: stride overflow")?;
     let byte_len = (stride as u64).checked_mul(height as u64).ok_or("gop: byte_len overflow")?;
     let base_va = alloc_backing(byte_len)?;
-    let format = SURFACE_FORMAT_ARGB8888;
-    let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, flags: 0 };
+    let (format, blank) = (SURFACE_FORMAT_ARGB8888, SurfaceDescriptor::default());
+    let desc = SurfaceDescriptor { width, height, stride, format, byte_len, base_va, ..blank };
     let sid = mk_surface_register(&desc);
-    if sid <= 0 {
+    if sid < 0 {
         return Err("gop: surface register rejected");
     }
-    let handle = sid as u64;
+    let handle = handle_of(sid)?;
     let mut attached = SurfaceDescriptor::default();
     let va = mk_surface_attach(handle, &mut attached);
     if va <= 0 || attached.format != SURFACE_FORMAT_ARGB8888 {

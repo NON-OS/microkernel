@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The kernel virtio-rng's legacy ring layout (L8), from the size the device
- * reports instead of one the driver chose. The kernel's pure rule is
- * included by path.
+ * The legacy virtio-rng ring layout (L8), from the size the device reports
+ * instead of one the driver chose. The kernel driver it was written for is
+ * deleted (K9); the pure rule lives beside its tests now.
  */
 
-#[path = "../../../../src/drivers/virtio_rng/queue/layout.rs"]
 pub mod layout;
 mod tests;

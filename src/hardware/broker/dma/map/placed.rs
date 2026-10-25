@@ -17,11 +17,12 @@
 //! What a map has put in place before the device is given it, and how each
 //! later failure takes it back.
 
+use super::super::types::DmaMapError;
 use super::{alloc, install};
-use crate::hardware::broker::confine::{self, MapFail};
-use crate::memory::iommu::IommuProtection;
+use crate::hardware::broker::confine::NoAddress;
 
 pub(super) struct Placed {
+    pub(super) pid: u32,
     pub(super) phys_start: u64,
     pub(super) pages: u64,
     pub(super) length: u64,
@@ -31,33 +32,31 @@ pub(super) struct Placed {
 impl Placed {
     /// Unmap the user pages and give the frames back.
     pub(super) fn undo(&self) {
-        install::uninstall(self.user_va, self.length);
+        install::uninstall(self.pid, self.user_va, self.length);
         alloc::free(self.phys_start, self.pages);
     }
 
-    /// Give the claimed device the frames: its address and whether its domain
-    /// maps them. On refusal everything placed is taken back, except frames a
-    /// device may still reach through a map no unmap took away: those stay out
-    /// of the allocator for good, as release leaves them.
-    pub(super) fn confine(
-        &self,
-        pid: u32,
-        device: u64,
-        access: IommuProtection,
-    ) -> Option<(u64, bool)> {
-        match confine::map(pid, device, self.phys_start, self.length, access) {
-            Ok(placed_at) => return Some(placed_at),
-            Err(MapFail::Freeable) => self.undo(),
-            Err(MapFail::Pinned) => install::uninstall(self.user_va, self.length),
+    /// Taken back after the domain gave no address. A stranded map may
+    /// still be reachable (plan/50 P5): its user pages go, its frames are
+    /// leaked, never reused.
+    pub(super) fn refused(&self, no: NoAddress) -> DmaMapError {
+        if matches!(no, NoAddress::Stranded) {
+            install::uninstall(self.pid, self.user_va, self.length);
+            crate::sys::serial::println(b"[DMA] failed map still reachable; frames quarantined");
+            return DmaMapError::MapFailed;
         }
-        None
+        self.undo();
+        match no {
+            NoAddress::Unconfined => DmaMapError::Unconfined,
+            _ => DmaMapError::MapFailed,
+        }
     }
 
     /// As `undo`, once the device's domain maps the frames: they go back only
     /// if the domain gives them up. Frames it will not give up stay leaked, as
     /// release does.
     pub(super) fn undo_mapped(&self, pid: u32, device_addr: u64, confined: bool) {
-        install::uninstall(self.user_va, self.length);
+        install::uninstall(self.pid, self.user_va, self.length);
         if crate::hardware::broker::confine::unmap(pid, device_addr, self.length, confined) {
             alloc::free(self.phys_start, self.pages);
         }

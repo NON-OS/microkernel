@@ -37,7 +37,7 @@ each packet, in [PS/2 keys](ps2-input.md) and [PS/2 pointer](ps2-pointer.md).
 ## How the driver finds the controller
 
 The i8042 cannot be enumerated, so the [hardware
-broker](../../overview/glossary.md#hardware-broker) publishes two records for it
+broker](../../overview/glossary-hardware-broker.md#hardware-broker) publishes two records for it
 on every machine: the keyboard record with PNP vendor 0x0001, device 0x0303,
 ports 0x60 to 0x64 and IRQ 1, and the aux record with device 0x0304 and IRQ 12
 (`register_legacy`, `src/hardware/broker/platform.rs:40-74`). The driver looks

@@ -15,19 +15,22 @@
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
-use alloc::vec::Vec;
-
 use nonos_policy_client::{get_bool, lookup};
 use nonos_policy_proto::Field;
 
-use super::default_tier::{resolve, Source, WEIGHTS};
+use super::default_tier::{resolve, WEIGHTS};
 use super::need::Room;
-use super::tiers::{default_line, pick_said, UNANSWERED, UNKNOWN};
+use super::tiers::{pick_said, UNANSWERED};
 use crate::term::identity::policy_string;
 
 /* The memory the kernel counts, read as `qwen tiers` reads it. */
 #[path = "../../../../../capsule_model_fetch/src/tiers/memory.rs"]
 mod memory;
+
+#[path = "chosen_note.rs"]
+mod chosen_note;
+
+pub use chosen_note::take_note;
 
 /* What the last `chosen` has to say: 0 nothing, 1 UNANSWERED, 2 UNKNOWN. */
 static NOTE: AtomicU8 = AtomicU8::new(0);
@@ -58,29 +61,4 @@ pub fn chosen() -> &'static [u8] {
     DEFAULT.store(at as u8, Ordering::Relaxed);
     SOURCE.store(source as u8, Ordering::Relaxed);
     tier.as_bytes()
-}
-
-/*
- * The lines the last `chosen` left, once: why the choice could not be read,
- * if it could not, and which default runs and why.
- */
-pub fn take_note() -> Option<Vec<u8>> {
-    let mut out = match NOTE.swap(0, Ordering::Relaxed) {
-        1 => UNANSWERED.to_vec(),
-        2 => UNKNOWN.to_vec(),
-        _ => Vec::new(),
-    };
-    let at = usize::from(DEFAULT.swap(0, Ordering::Relaxed));
-    let source = match SOURCE.load(Ordering::Relaxed) {
-        1 => Source::Stick,
-        2 => Source::Largest,
-        _ => Source::Smallest,
-    };
-    if let Some(line) = at.checked_sub(1).and_then(|i| default_line(WEIGHTS[i].0, source)) {
-        if !out.is_empty() {
-            out.push(b'\n');
-        }
-        out.extend_from_slice(line.as_bytes());
-    }
-    (!out.is_empty()).then_some(out)
 }

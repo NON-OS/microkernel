@@ -36,12 +36,15 @@ pub fn register_overlay(
         byte_len: overlay.byte_len,
         base_va: overlay.backing_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         return Err("overlay surface register rejected");
     }
-    let handle = mk_surface_share(sid as u64);
+    // Only the compositor maps it, read-only (K20).
+    let handle = mk_surface_share(sid as u64, super::super::discover::compositor_pid()?, 0);
     if handle <= 0 {
         return Err("overlay surface share rejected");
     }

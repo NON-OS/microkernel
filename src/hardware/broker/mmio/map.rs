@@ -13,34 +13,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! The single in-kernel path that turns a PCI BAR slice into a
-//! mapping in a capsule address space. Five steps in order:
+//! The single in-kernel path that turns a PCI BAR slice into a mapping in a
+//! capsule address space, in order:
 //!
-//!   1. resolve the caller's claim, its epoch fresh, held until step 5
-//!   2. resolve the device record and the requested BAR
-//!   3. validate BAR containment of the request and find the pages it
-//!      touches, kept off every MSI-X table and PBA (`window`)
-//!   4. reserve a user VA window in the per-capsule MMIO region
-//!      and install pages user / read+write / NX, uncached, or write-combining
-//!      on a prefetchable BAR when asked (`memory_type`)
-//!   5. record the grant so revocation can find and undo it
+//!   1. the caller's claim, its epoch fresh, held until step 5 (map_bar.rs)
+//!   2. the device record and the BAR it names
+//!   3. the pages the request touches, kept off every MSI-X table and PBA
+//!      (`window`) and refused whole over RAM, the kernel image or an
+//!      IOMMU's registers (`forbidden`, K6)
+//!   4. a user VA from the holder's own MMIO window, the pages installed
+//!      user, read+write, NX, uncached or, on a prefetchable BAR when asked,
+//!      write-combining (`memory_type`)
+//!   5. the grant recorded while its claim stands, within the quota (K10)
 //!
-//! On any rejection no mapping is installed and no record is made.
-//!
-//! The result's `user_va` is the VA of the requested first byte and `length`
-//! the bytes usable from there; neither need be page aligned (a 2 KiB AHCI
-//! ABAR at a base ending in 0x800 gets a VA ending in 0x800). An MSI-X table
-//! can cut a page-aligned request short.
+//! A rejection maps nothing and records nothing. `user_va` is the VA of the
+//! first byte asked for and `length` the bytes usable from there; neither
+//! need be page aligned (a 2 KiB ABAR at a base ending in 0x800 gets a VA
+//! ending in 0x800). An MSI-X table can cut a page-aligned request short.
 
 use super::map_bar::{claimed_bar, Claimed};
 use super::map_install::install;
 use super::map_notes::{note_shared_page, window_error};
 use super::map_type::memory_type;
 use super::memory_type::MMIO_MAP_WC;
-use super::msix_exclusion;
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
-use super::window;
+use super::{forbidden_ranges, msix_exclusion, window};
 use crate::hardware::broker::grant::{self, MmioGrant};
 
 pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, MmioMapError> {
@@ -54,9 +51,10 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     let protected = msix_exclusion::protected_regions();
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
         .map_err(window_error)?;
+    forbidden_ranges::admit(w.page_start, w.page_bytes)?;
     note_shared_page(&device, &w);
     let kind = memory_type(req.flags, &bar, &w)?;
-    let user_va = install(&w, kind)?;
+    let user_va = install(pid, &w, kind)?;
     let grant_id = grant::allocate_id();
     super::map_record::record(MmioGrant {
         grant_id,

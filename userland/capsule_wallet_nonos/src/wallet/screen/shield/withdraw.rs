@@ -34,7 +34,8 @@ use crate::wallet::screen::hits;
 use crate::wallet::state::State;
 
 const LEAD: &str = "A withdrawal is public: a standard amount leaves the pool for a \
-     fresh address of this wallet, never one it has used before.";
+     fresh address of this wallet, never one it has used before, or for this machine's \
+     meter, which pays for apps by voucher.";
 
 pub fn withdraw(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
@@ -60,12 +61,12 @@ pub fn withdraw(state: &State, fb: &mut PaintBuffer) {
     y += super::pick::asset(fb, c, y, ui);
     y += super::pick::size(fb, c, y, ui);
     y += fact(fb, c.x, y, c.w, "fee", "read from the pool at review");
-    y += fact(fb, c.x, y, c.w, "to", "a fresh address of this wallet");
+    y += super::dest::dest(fb, c, y, ui);
     y += GAP / 2 + super::meter::meter(fb, c, y + GAP / 2, ui);
     y += super::send_fields::early(fb, c, y, ui);
     y += super::held::held(fb, c, y, ui, crate::wallet::state::shield_ui::SHIELD_WITHDRAW);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     super::edges::footer(&l, &[ready]);
 }

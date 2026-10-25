@@ -8,6 +8,7 @@ use super::{build, parse, reads, route};
 use crate::error::NetError;
 use crate::evm::network::Network;
 use crate::evm::rpc::ask_each;
+use crate::evm::sender::Sender;
 use crate::net::asset::Coin;
 use crate::net::tor::Tor;
 
@@ -49,10 +50,9 @@ pub fn review_swap(
         Ok(plan) => plan,
         Err(why) => return Ok(SwapChecked::Refused(why)),
     };
-    build::finish(tor, &chain, &venue, from, swap, &hops, &first, plan, sends).map(|ready| {
-        match ready {
+    build::finish(Sender { tor, chain: &chain, from }, &venue, swap, &hops, &first, plan, sends)
+        .map(|ready| match ready {
             Ok(review) => SwapChecked::Ready(Box::new(review)),
             Err(why) => SwapChecked::Refused(why),
-        }
-    })
+        })
 }

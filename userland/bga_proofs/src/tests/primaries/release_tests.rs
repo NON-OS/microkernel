@@ -20,7 +20,7 @@
 
 use nonos_devmodel::FakeBar;
 use nonos_gfx_serve::Platform;
-use nonos_libc::{given_back, lend, registered, SHARED_HANDLE_BASE};
+use nonos_libc::{given_back, hold, lend, registered, SHARED_HANDLE_BASE};
 
 use super::pool::Pool;
 
@@ -28,6 +28,8 @@ use super::pool::Pool;
 fn a_primarys_share_is_released_before_its_memory_is_unmapped() {
     let memory = FakeBar::new(16384);
     lend(memory.base(), 16384);
+    // The share names the compositor, so one must be running (K20).
+    hold(b"compositor", Some(42));
     let mut p = Pool;
     let r = p.alloc(64 * 48 * 4).expect("the primary's memory");
     let handle = p.register(r, 64, 48, 64 * 4).expect("registered and shared");

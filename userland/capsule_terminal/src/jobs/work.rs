@@ -20,13 +20,15 @@ use crate::command::builtin::git::clone::CloneJob;
 use crate::command::builtin::nox::http::HttpJob;
 use crate::command::builtin::nox::install::InstallJob;
 use crate::command::builtin::nox::pkg::PkgJob;
-use crate::command::builtin::ping::{emit_probe, PingJob};
-use crate::command::output::Output;
+use crate::command::builtin::ping::PingJob;
 
 use super::capture::Capture;
 use super::pipeline_job::PipelineJob;
 use super::stdin_queue::StdinQueue;
-use super::table::{JobProgress, JobRecord};
+
+#[path = "work_step.rs"]
+mod work_step;
+pub use work_step::step;
 
 // The step machine for long-running command kinds, one variant per kind,
 // each holding the progress cursor its poll body tracks. `Noop` is the
@@ -51,46 +53,4 @@ pub enum JobWork {
     /* An installer call waiting on a worker thread; on Ctrl+C the worker
      * finishes and its answer is dropped. */
     Pkg(Box<PkgJob>),
-}
-
-// Step a job's work by one bounded slice. A cancelled job is finished
-// unconditionally, regardless of variant: the terminal reports it as
-// interrupted rather than letting the underlying poll run to completion.
-pub fn step(job: &mut JobRecord, out: &mut Output<'_>, held: bool) -> JobProgress {
-    let leave_modes = job.background && held;
-    if job.cancel {
-        /* A program stopped by Ctrl+C never gets to undo the screen modes it
-         * set, the alternate screen, a hidden cursor, a colour left on: it
-         * ends here the way a program that exits on its own ends. What it
-         * wrote after the key is dropped, as a tty drops it on an interrupt. */
-        if let JobWork::ExternalStage { pid, ref capture, .. } = job.work {
-            super::external_io::discard_output(pid);
-            if !leave_modes {
-                out.program_ended();
-            }
-            if let Some(capture) = capture {
-                capture.interrupted(out);
-            }
-        }
-        out.writeln(b"interrupted");
-        return JobProgress::Done(130);
-    }
-    match &mut job.work {
-        JobWork::Noop => JobProgress::Done(0),
-        JobWork::Ping(job) => match job.step_once() {
-            None => JobProgress::Running,
-            Some(probe) => {
-                let dst = job.dst();
-                JobProgress::Done(emit_probe(out, dst, probe))
-            }
-        },
-        JobWork::InstallDrain(job) => job.step_once(out),
-        JobWork::ExternalStage { pid, stdin, capture } => {
-            super::external::step_external(*pid, stdin, capture.as_deref_mut(), out, leave_modes)
-        }
-        JobWork::Http(job) => job.step_once(out),
-        JobWork::GitClone(job) => job.step_once(out),
-        JobWork::Pkg(job) => job.step_once(out),
-        JobWork::PipelineStages(_) => JobProgress::Running,
-    }
 }

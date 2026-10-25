@@ -19,32 +19,15 @@
 use alloc::vec::Vec;
 
 use super::model_weights::MODEL_WEIGHTS;
-use super::state::{State, Tab};
+use super::state::State;
 use super::tier_fit::{order, shown};
 
-impl State {
-    pub fn new() -> State {
-        State {
-            listings: Vec::new(),
-            tab: Tab::All,
-            cursor: 0,
-            scroll: 0,
-            rows: 1,
-            fb_w: 0,
-            fb_h: 0,
-            trouble: None,
-            asked: None,
-            search: super::search::Search::default(),
-            port: 0,
-            loaded: false,
-            memory: None,
-            room: crate::need::Room::Memory,
-            route: crate::net::Route::Down(""),
-            fetch: None,
-            fetch_at_ms: 0,
-        }
-    }
+#[path = "state_moving.rs"]
+mod state_moving;
+#[path = "state_new.rs"]
+mod state_new;
 
+impl State {
     /// Indices into `listings` that the current tab and the search show,
     /// less the Qwen tiers that do not fit this machine, the tiers last and
     /// smallest first (`tier_fit`). A description counts once the market
@@ -68,27 +51,6 @@ impl State {
             let kept = self.tab.accepts(l.source) && self.search.matches(&l.name, description);
             kept.then_some(i)
         })
-    }
-
-    /// What the fetcher said of `l`'s download, when `l` is the tier
-    /// installing and the answer is its: the tier whose files sum to it.
-    /// Another listing whose install or uninstall is moving, which a queued
-    /// one waits behind: the personality runs one installer at a time.
-    pub fn ahead_of(&self, l: &super::listing::Listing) -> Option<&super::listing::Listing> {
-        use super::progress::Progress;
-        self.listings
-            .iter()
-            .find(|o| o.id != l.id && matches!(o.progress, Progress::Installing | Progress::Removing))
-    }
-
-    pub fn fetch_of(&self, l: &super::listing::Listing) -> Option<crate::status_wire::Status> {
-        let s = self.fetch?;
-        let tier = super::tier_fit::tier_of(&l.id)?;
-        // Starting has no total yet; one install runs at a time, so it is
-        // the tier installing.
-        let mine = s.stage == crate::status_wire::STARTING
-            || super::tier_fit::weight(tier, MODEL_WEIGHTS) == Some(s.total);
-        (l.progress == super::progress::Progress::Installing && mine).then_some(s)
     }
 
     fn fits(&self, i: usize) -> bool {

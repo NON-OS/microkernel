@@ -39,7 +39,7 @@ const WETH_ADDR: [u8; 20] = [
 ];
 
 pub const TOKENS: [Token; 3] = [
-    Token { symbol: "NOX", address: NOX_ADDR, decimals: 18, tint: 0xFF5E_E7D0, mark: "0" },
-    Token { symbol: "ETH", address: WETH_ADDR, decimals: 18, tint: 0xFF8C_8CF0, mark: "E" },
-    Token { symbol: "USDC", address: USDC_ADDR, decimals: 6, tint: 0xFF3E_86E8, mark: "$" },
+    Token { symbol: "NOX", address: NOX_ADDR, decimals: 18 },
+    Token { symbol: "ETH", address: WETH_ADDR, decimals: 18 },
+    Token { symbol: "USDC", address: USDC_ADDR, decimals: 6 },
 ];

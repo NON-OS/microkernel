@@ -31,7 +31,6 @@ use crate::memory::iommu::{DeviceAddress, IommuProtection};
 /// `others`: every region another capsule's domain holds, never shared (L63).
 pub(super) fn map_reserved(
     c: &mut Capsule,
-    pid: u32,
     device_id: u64,
     address: DeviceAddress,
     others: &[(u64, u64)],
@@ -39,16 +38,16 @@ pub(super) fn map_reserved(
     let (Some(segment), Some(bdf)) = (address.segment(), address.bdf()) else { return };
     let found = crate::arch::device_rmrr_regions(segment, bdf);
     if found.unresolved {
-        say(b"an RMRR that may name it could not be resolved; not mapped", pid, address);
+        say(b"an RMRR that may name it could not be resolved; not mapped");
     }
     if found.shared {
-        say(b"an RMRR it shares with other devices; not mapped", pid, address);
+        say(b"an RMRR it shares with other devices; not mapped");
     }
     for &(base, end) in found.ranges.iter() {
         let ram = crate::memory::phys::touches_usable(base, end);
         let foreign = others.iter().any(|&(b, e)| b < end && base < e);
         match verdict(base, end, c.next_iova, &c.rmrr, ram || foreign) {
-            Verdict::Refuse(why) => say(why, pid, address),
+            Verdict::Refuse(why) => say(why),
             Verdict::Held => c.rmrr.push(Held { base, end, device: device_id }),
             Verdict::Map => {
                 let len = (end - base) as usize;
@@ -61,10 +60,10 @@ pub(super) fn map_reserved(
                 };
                 if map(c).is_ok() {
                     c.rmrr.push(Held { base, end, device: device_id });
-                    say(b"its RMRR mapped one to one", pid, address);
+                    say(b"its RMRR mapped one to one");
                 } else {
                     let _ = c.domain.unmap(base, len);
-                    say(b"its RMRR would not map; left out", pid, address);
+                    say(b"its RMRR would not map; left out");
                 }
             }
         }

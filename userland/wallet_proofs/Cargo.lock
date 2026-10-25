@@ -66,6 +66,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 
 [[package]]
+name = "nonos_equix"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_hash"
 version = "0.1.0"
 
@@ -77,7 +85,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_market_proto"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_marketplace_abi"
+version = "0.3.0"
+dependencies = [
+ "nonos_nox_config",
+]
+
+[[package]]
+name = "nonos_nox_chunks"
+version = "0.1.0"
+dependencies = [
+ "nonos_equix",
+ "nonos_marketplace_abi",
+ "nonos_nox_config",
+ "nonos_seal",
+]
+
+[[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_payment_proto"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_policy_proto"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_seal"
 version = "0.3.0"
 
 [[package]]
@@ -85,6 +126,14 @@ name = "nonos_secp256k1"
 version = "0.1.0"
 dependencies = [
  "nonos_hash",
+]
+
+[[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_eth_rpc",
+ "nonos_nox_config",
 ]
 
 [[package]]
@@ -96,6 +145,10 @@ dependencies = [
  "digest",
  "keccak",
 ]
+
+[[package]]
+name = "shield_wire"
+version = "0.1.0"
 
 [[package]]
 name = "typenum"
@@ -113,8 +166,16 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "wallet_proofs"
 version = "0.3.0"
 dependencies = [
+ "nonos_eth_rpc",
  "nonos_hd",
+ "nonos_market_proto",
+ "nonos_marketplace_abi",
+ "nonos_nox_chunks",
+ "nonos_nox_config",
+ "nonos_payment_proto",
  "nonos_policy_proto",
  "nonos_secp256k1",
+ "nonos_settle_proto",
  "sha3",
+ "shield_wire",
 ]

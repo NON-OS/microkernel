@@ -13,61 +13,44 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! One DMA requester into its capsule's domain. What it reaches past the
+//! IOMMU is held to that capsule first: its isolation group and requester-id
+//! aliases (K11), and any peer below one switch (L72). Then its reserved
+//! regions go in (join.rs), so its first request after the move lands.
 
-//! One DMA requester into its capsule's domain, its reserved regions mapped
-//! first (L60's RMRRs, C-41's ranges from the tree) so its first request
-//! after the move already lands.
-
-use super::attach::Refused;
 use super::capsule::capsule_for;
-use super::refuse::refuse;
-use super::reserve::reserve;
-use super::reserve_rmrr::map_reserved;
-use super::say::say;
-use super::shared::{held_elsewhere, regions_elsewhere};
+use super::join_group::group_held;
+use super::member::Member;
+use super::refuse::{refuse, Refusal};
+use super::shared::held_elsewhere;
 use super::table::CAPSULES;
-use super::unreserve::{release, unmap_reserved};
 use crate::memory::iommu::DeviceAddress;
 
-/// Attach `address`, for broker device `device_id`, to `pid`'s domain. With
-/// no unit in service a PCI function goes ahead unconfined, said; with
-/// `must` (a device the description puts behind a unit) it is refused.
+/// Attach `address`, for broker device `device_id`, to `pid`'s domain, with
+/// `reach`, its isolation group and requester-id aliases (gates.rs). With no
+/// unit in service a PCI function is refused but under the development
+/// opt-in; with `must`, a device the description puts behind a unit, always.
 pub(super) fn attach_one(
     pid: u32,
     device_id: u64,
     address: DeviceAddress,
     must: bool,
-) -> Result<(), Refused> {
+    reach: (&[Member], &[DeviceAddress]),
+) -> Result<(), Refusal> {
     let mut all = CAPSULES.lock();
-    let pos = match capsule_for(&mut all, pid, device_id, address, must)? {
-        Some(pos) => pos,
-        None => return Ok(()),
-    };
-    if let Some(why) = held_elsewhere(&all, pos, address) {
-        return refuse(&mut all, pos, why, pid, address);
-    }
-    let others = regions_elsewhere(&all, pos);
-    map_reserved(&mut all[pos], pid, device_id, address, &others);
-    if all[pos].devices.iter().any(|(_, a)| *a == address) {
-        all[pos].devices.push((device_id, address));
-        say(b"confined to its capsule's domain (shared requester id)", pid, address);
+    let Some(pos) = capsule_for(&mut all, pid, device_id, must)? else {
         return Ok(());
+    };
+    // Said by group_held, naming the member and the holder (K11b).
+    if group_held(&all, pos, reach) {
+        if all[pos].devices.is_empty() {
+            all.remove(pos);
+        }
+        return Err(Refusal::GroupHeld);
     }
-    // Its reserved ranges in the new domain before it is attached there, so
-    // it never runs without them; all of them, or the claim is refused.
-    if let Err(why) = reserve(&mut all[pos], address) {
-        unmap_reserved(&mut all[pos], device_id);
-        return refuse(&mut all, pos, why, pid, address);
+    if let Some(why) = held_elsewhere(&all, pos, address) {
+        return refuse(&mut all, pos, why, Refusal::GroupHeld);
     }
-    // Out of the identity domain first. Between the two writes the device has
-    // no context entry, which denies it: the safe side to be on.
-    let _ = all[pos].domain.detach_device(address);
-    if all[pos].domain.attach_device(address).is_err() {
-        release(&mut all[pos], address);
-        unmap_reserved(&mut all[pos], device_id);
-        return refuse(&mut all, pos, b"refused: attach failed", pid, address);
-    }
-    all[pos].devices.push((device_id, address));
-    say(b"confined to its capsule's domain", pid, address);
-    Ok(())
+    super::join::join(&mut all, pos, device_id, address)?;
+    Ok(super::join_alias::join_aliases(&mut all, pid, device_id, reach.1)?)
 }

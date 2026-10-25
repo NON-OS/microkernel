@@ -19,7 +19,6 @@
 //! large pack arrives at the speed of the network and a frame still comes
 //! round every tick.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_libc::mk_time_millis;
@@ -27,6 +26,9 @@ use nonos_libc::mk_time_millis;
 use super::open::SLICE_MS;
 use super::types::{After, Exchange, Phase};
 use super::wait::{Heard, TOTAL_ANON, TOTAL_DIRECT};
+
+#[path = "carry_take.rs"]
+mod carry_take;
 
 /// Time one step may spend carrying or reading.
 const STEP_MS: i64 = 12;
@@ -67,36 +69,5 @@ impl Exchange {
             After::Response => Phase::Response,
         };
         Ok(None)
-    }
-
-    /// Read what has arrived onto `raw`; how many bytes came this step.
-    pub(super) fn take(&mut self) -> Result<usize, &'static str> {
-        let Some(stream) = self.stream.as_mut() else {
-            return Err(BROKE);
-        };
-        // The handshake flight has its own bound, as the blocking session
-        // had: a certificate chain is not held to a small response's limit.
-        let limit = match self.phase {
-            Phase::Flight => self.limit.max(MAX_FLIGHT),
-            _ => self.limit,
-        };
-        let until = mk_time_millis().saturating_add(STEP_MS);
-        let mut chunk = vec![0u8; CHUNK];
-        let mut got = 0;
-        loop {
-            let n = stream.read_slice(&mut chunk, SLICE_MS)?;
-            if n == 0 {
-                break;
-            }
-            if self.raw.len().saturating_add(n) > limit {
-                return Err(TOO_LARGE);
-            }
-            self.raw.extend_from_slice(&chunk[..n]);
-            got += n;
-            if mk_time_millis() >= until {
-                break;
-            }
-        }
-        Ok(got)
     }
 }

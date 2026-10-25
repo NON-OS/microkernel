@@ -21,7 +21,7 @@ use super::super::state::WIFI_NET_MAX;
 use super::secret::Secret;
 use crate::wifi::{ConnectResult, ScanNetwork, ScanOutcome, ScanStats};
 use alloc::boxed::Box;
-use nonos_wifi_client::Driver;
+use nonos_wifi_client::{Driver, Dropped};
 
 /// What the worker asks the driver.
 pub(super) enum Ask {
@@ -44,9 +44,12 @@ pub(super) enum Answer {
         stats: ScanStats,
     },
     /// The join's outcome and, when remembering was asked for and the join
-    /// went through, what remembering said.
-    Joined { result: ConnectResult, kept: Option<&'static str> },
+    /// went through, what remembering said and the network it dropped.
+    Joined { result: ConnectResult, kept: Option<&'static str>, dropped: Option<Dropped> },
 }
+
+/// What a remember that went through says.
+pub(crate) const REMEMBERED: &str = "Remembered, sealed with this machine's TPM key";
 
 /// What became of a request handed to `send`.
 pub(super) enum Sent {

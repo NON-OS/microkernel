@@ -18,6 +18,7 @@
 
 use super::pmf_state::PmfState;
 use super::replay::Replay;
+use super::watch::Watch;
 use super::{Ccmp, LinkStation};
 use crate::dot11::header::MacAddr;
 use crate::wpa::supplicant::State;
@@ -37,6 +38,7 @@ impl LinkStation {
         self.group_keys = [const { None }; 4];
         self.supplicant = None;
         self.pmf = PmfState::OFF;
+        self.watch = Watch::new();
     }
 
     /// Drop the association; the station stops framing until it associates

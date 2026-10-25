@@ -34,6 +34,10 @@ pub fn stat(path: &[u8]) -> Option<Result<(u32, u64), i64>> {
     if !owns(path) {
         return None;
     }
+    /* A family whose program may not read the models does not see them. */
+    if !crate::linux::app::models() {
+        return Some(Err(crate::linux::abi::errno::ENOENT));
+    }
     if path == ROOT {
         return Some(Ok((S_IFDIR | 0o555, 0)));
     }

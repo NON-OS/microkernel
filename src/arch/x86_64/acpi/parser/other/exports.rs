@@ -18,17 +18,29 @@
 
 pub use super::bgrt_load::{boot_logo, boot_logo_file, parse_bgrt};
 pub use super::bgrt_mode::firmware_mode;
-pub use super::dmar::parse_dmar;
-pub use super::dmar_namespace_lookup::{namespace_devices, namespace_dropped, namespace_requester};
-pub use super::dmar_rmrr_names::{rmrr_barred_by, rmrr_names, rmrr_own};
-pub use super::dmar_rmrr_store::{rmrr_barred, rmrr_dropped, rmrr_regions};
-pub use super::dmar_scope::{translated_by_some, Cover, UnitScope};
-pub use super::dmar_source_store::{hpet_source, ioapic_source, source_scopes_dropped};
-pub use super::dmar_units::{foreign_segment_units, remap_unit_bases, remap_unit_scopes};
+pub use super::dmar_tables::dmar::parse_dmar;
+pub use super::dmar_tables::dmar_ats::ats_structures;
+pub use super::dmar_tables::dmar_flags::{
+    dmar_address_width, dmar_intr_remap, dmar_platform_opt_in, dmar_x2apic_opt_out,
+};
+pub use super::dmar_tables::dmar_ioapic_table::{ioapic_named, ioapic_source};
+pub use super::dmar_tables::dmar_namespace_lookup::{
+    namespace_devices, namespace_dropped, namespace_requester,
+};
+pub use super::dmar_tables::dmar_rmrr_names::{rmrr_barred_by, rmrr_names, rmrr_own};
+pub use super::dmar_tables::dmar_rmrr_store::{rmrr_barred, rmrr_dropped, rmrr_regions};
+pub use super::dmar_tables::dmar_scope::{translated_by_some, Cover, UnitScope};
+pub use super::dmar_tables::dmar_source_store::{
+    hpet_source, ioapic_unit_source, source_scopes_dropped,
+};
+pub use super::dmar_tables::dmar_units::{remap_unit_bases, remap_unit_scopes, units_left_off};
 pub use super::hmat_load::{hmat_attached_initiator, hmat_value, parse_hmat};
 pub use super::hpet::parse_hpet;
 pub use super::ivhd_alias_store::{amd_iommu_aliased, amd_iommu_special};
+pub use super::ivhd_special_table::amd_ioapic_requester;
+pub use super::ivmd_table::amd_reserved_for;
 pub use super::ivrs::{amd_iommu_bases, amd_iommu_spans, parse_ivrs};
+pub use super::ivrs_left::amd_units_left_off;
 pub use super::lpit_counter::{lpit_residency, CounterError};
 pub use super::lpit_load::{lpit_state, parse_lpit};
 pub use super::mcfg::parse_mcfg;

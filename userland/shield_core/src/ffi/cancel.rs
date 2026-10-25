@@ -7,7 +7,6 @@
 use crate::prover::Cancel;
 
 /// A cancellation handle the shells hold while a proof runs.
-
 pub struct CancelToken {
     inner: Cancel,
 }

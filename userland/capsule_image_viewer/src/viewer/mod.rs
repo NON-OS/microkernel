@@ -4,6 +4,8 @@ pub(crate) mod arg_cadence;
 pub(crate) mod budget;
 pub(crate) mod caption;
 mod decode;
+mod decode_op;
+mod decode_surface;
 mod ext;
 pub(crate) mod flip;
 pub(crate) mod gallery;

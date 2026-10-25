@@ -32,7 +32,7 @@ mod walk_root;
 mod write_protect;
 
 pub use enable_tagged::enable_tagged_invalidation;
-pub use kernel_address::{kernel_dma, kernel_io};
+pub use kernel_address::kernel_io;
 pub use root::{read_root, write_root};
 pub use tagged_invalidate::invalidate_tagged;
 pub use tagged_tlb::supports_tagged_invalidation;

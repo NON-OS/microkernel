@@ -2,9 +2,11 @@
 
 `nonos_nox_receipt` decides whether an Ethereum transaction receipt proves a
 NOX payment. `verify_payment` accepts a receipt only when the transaction
-succeeded and its logs carry an ERC-20 `Transfer` emitted by the NOX token
-(`NOX_TOKEN`, `0x0a26c80b...9eca`) from the buyer to the treasury for at least
-the price. The scan reads only the fields that decision needs and never
+succeeded and its logs carry an ERC-20 `Transfer` emitted by the given token
+from the buyer to the given payee for at least the price. Neither address is
+in this crate: the payee comes from the signed listing and the token from
+`nonos_nox_config`. NOX takes a fee on transfer, so the amount checked is the
+one logged as arriving. The scan reads only the fields that decision needs and never
 allocates, so a truncated or hostile receipt fails closed.
 
 It is a `no_std` library with no capsule, service or capability word. Its one
@@ -14,7 +16,7 @@ yet. The wallet and NOX are described in
 
 ## Tests
 
-10 host tests in `src/tests.rs` and three Kani harnesses in
+11 host tests in `src/tests/` and three Kani harnesses in
 `src/kani_proofs.rs`.
 
 ```sh

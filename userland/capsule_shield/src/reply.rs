@@ -21,6 +21,11 @@
 
 use shield_wire::Values;
 
+#[path = "reply_done.rs"]
+mod reply_done;
+
+pub use reply_done::done;
+
 /// One look at a spend, as the follow answers it.
 pub struct Followed<'a> {
     pub state: &'a str,
@@ -66,12 +71,4 @@ pub fn earlier(v: &mut Values, id: &str, f: &Followed<'_>) {
 /// One history entry, as one `entry` value of a state reply.
 pub fn entry(kind: &str, coin: &str, amount: &str, stage: &str, tx: &str, at: u64) -> String {
     format!("{kind}|{coin}|{amount}|{stage}|{tx}|{at}")
-}
-
-/// A finished job's reply to RESULT: the envelope, then the job's own values,
-/// any named as the envelope's going as `job_<name>`.
-pub fn done(name: &str, job: &str) -> Values {
-    let mut v = Values::new();
-    v.put("job", name).put("state", "done").put_job(job);
-    v
 }

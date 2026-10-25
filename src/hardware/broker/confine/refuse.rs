@@ -14,26 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! A claim refused, said once per claim.
+
 extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::attach::Refused;
+use super::decide::Verdict;
 use super::say::say;
 use super::table::Capsule;
-use crate::memory::iommu::DeviceAddress;
+
+/// No unit confines the device, or the one in service would not take it, so
+/// the claim is refused rather than granted with a device that reaches all
+/// of memory (decide.rs).
+pub(in crate::hardware::broker) struct Refused;
+
+/// Why a claim's confinement was refused, for its errno (K11b).
+pub(in crate::hardware::broker) enum Refusal {
+    Refused,
+    /// Another capsule holds what the device reaches past the IOMMU.
+    GroupHeld,
+}
+
+impl From<Refused> for Refusal {
+    fn from(_: Refused) -> Self {
+        Refusal::Refused
+    }
+}
+
+/// A PCI device with no domain of its own: refused, but under the opt-in.
+pub(super) fn without_domain(v: Verdict) -> Result<(), Refused> {
+    if v == Verdict::Unconfined {
+        say(b"unconfined under the development opt-in, reaches all memory");
+        return Ok(());
+    }
+    say(b"refused: no remapping unit confines it");
+    Err(Refused)
+}
 
 /// Say why, and drop the capsule's entry if this was to be its first device.
 pub(super) fn refuse(
     all: &mut Vec<Capsule>,
     pos: usize,
     why: &[u8],
-    pid: u32,
-    address: DeviceAddress,
-) -> Result<(), Refused> {
-    say(why, pid, address);
+    refusal: Refusal,
+) -> Result<(), Refusal> {
+    say(why);
     if all[pos].devices.is_empty() {
         all.remove(pos);
     }
-    Err(Refused)
+    Err(refusal)
 }

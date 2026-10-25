@@ -21,12 +21,17 @@
  * own builders make.
  */
 
-use alloc::string::String;
-use alloc::vec::Vec;
+use shield_wire::field;
 
-use shield_wire::{field, fields};
-
-use crate::wallet::state::shield_log::{Entry, Kind, Stage};
+#[path = "reply_entries.rs"]
+mod reply_entries;
+#[path = "reply_kept.rs"]
+mod reply_kept;
+#[path = "reply_said.rs"]
+mod reply_said;
+pub use reply_entries::entries;
+pub use reply_kept::kept_all;
+pub use reply_said::{landed, landed_news, said};
 
 /* A spend its owner settled from their own account, followed until it lands. */
 pub const SETTLING: &str = "settling from your account";
@@ -59,95 +64,4 @@ pub fn last(body: &str) -> Option<Last<'_>> {
  * publication record kept while the lander refused is not one. */
 pub fn taken(body: &str) -> bool {
     field(body, "published") == Some("1") && field(body, "lander_refusal").is_none()
-}
-
-/* What a landing says, with its transaction when the service named one. */
-pub fn landed_news(what: &str, tx: &str) -> String {
-    if tx.is_empty() {
-        alloc::format!("{what} landed.")
-    } else {
-        alloc::format!("{what} landed ({tx}).")
-    }
-}
-
-/* Whether a follow's state is the spend's end: in a block, its own or
- * another's. */
-pub fn landed(said: &str) -> bool {
-    matches!(said, "landed" | "spent elsewhere")
-}
-
-/* What a follow's state says, for a spend its owner was or was not settling. */
-pub fn said(said: &str, settling: bool) -> &'static str {
-    match said {
-        "landed" => "landed",
-        "spent elsewhere" if settling => "landed from your account",
-        "spent elsewhere" => "landed by another route",
-        _ if settling => SETTLING,
-        "republished" => "handed to a lander again",
-        "unpublished" => "kept, no lander took it",
-        _ => "waiting for a lander",
-    }
-}
-
-/* One kept spend, as one `earlier` value. */
-pub struct Kept<'a> {
-    pub id: &'a str,
-    pub state: &'a str,
-    pub minutes: u32,
-    pub self_settle: bool,
-    pub tx: &'a str,
-}
-
-fn kept(line: &str) -> Option<Kept<'_>> {
-    let mut p = line.split('|');
-    let id = p.next()?;
-    let state = p.next()?;
-    let minutes = p.next()?.parse().ok()?;
-    let self_settle = p.next()? == "1";
-    let tx = p.next()?;
-    Some(Kept { id, state, minutes, self_settle, tx })
-}
-
-/* Every kept spend the follow saw, oldest first; None when the service
- * could not read them this time, so nothing is let go on a failed read. */
-pub fn kept_all(body: &str) -> Option<Vec<Kept<'_>>> {
-    if field(body, "earlier_why").is_some() {
-        return None;
-    }
-    Some(fields(body, "earlier").filter_map(kept).collect())
-}
-
-/* The history a state reply carries, oldest first; None when it carries
- * none, as when the store would not give it (`history_why`): the list
- * shown before stays. */
-pub fn entries(body: &str) -> Option<Vec<Entry>> {
-    /* An entry the wallet cannot read is skipped, never shown as another. */
-    (field(body, "history") == Some("1")).then(|| fields(body, "entry").filter_map(entry).collect())
-}
-
-fn entry(line: &str) -> Option<Entry> {
-    let mut p = line.split('|');
-    let kind = match p.next()? {
-        "deposit" => Kind::Deposit,
-        "sent" => Kind::Send,
-        "withdrawn" => Kind::Withdraw,
-        "received" => Kind::Received,
-        _ => return None,
-    };
-    /* A coin this wallet does not know is not listed as another. */
-    let asset = match p.next()? {
-        "ETH" => 0,
-        "NOX" => 1,
-        _ => return None,
-    };
-    let amount = String::from(p.next()?);
-    let stage = match p.next()? {
-        "on its way" => Stage::Sent,
-        "settling" => Stage::Settling,
-        "done" => Stage::Settled,
-        "taken back" => Stage::Failed,
-        _ => return None,
-    };
-    let tx = p.next().filter(|t| !t.is_empty()).map(String::from);
-    Some(Entry { kind, asset, amount, stage, tx })
 }

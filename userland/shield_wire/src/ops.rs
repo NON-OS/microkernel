@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The operations and the statuses.
+//! The operations.
 
 /// The service name the shield registers and the wallet looks up.
 pub const SERVICE: &[u8] = b"nonos.shield";
@@ -67,16 +67,3 @@ pub const OP_RESULT: u16 = 15;
 /// Forget the open session and stop a proof in flight; the sealed store
 /// stays. Answered at once, whatever the store is doing.
 pub const OP_LOCK: u16 = 16;
-
-/// Done, and the values are the answer.
-pub const STATUS_OK: i32 = 0;
-/// A job started; ask for RESULT.
-pub const STATUS_STARTED: i32 = 1;
-/// The worker is busy with another job.
-pub const STATUS_BUSY: i32 = 2;
-/// Refused, with `why` naming the reason in one sentence.
-pub const STATUS_REFUSED: i32 = 3;
-/// Not a request this service reads.
-pub const STATUS_MALFORMED: i32 = -22;
-/// Not from the wallet.
-pub const STATUS_DENIED: i32 = -13;

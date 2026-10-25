@@ -47,12 +47,9 @@ pub const fn remaps(entry: Dte) -> bool {
     entry[2] & IV != 0
 }
 
-/// `dma` (validity, mode, root, permissions, domain) with `current`'s
-/// interrupt quadword kept, so a move between domains never turns a
-/// device's remapping off.
-pub const fn keep_interrupts(dma: Dte, current: Dte) -> Dte {
-    [dma[0], dma[1], current[2], dma[3]]
-}
+/// The DMA half of one entry with another's interrupt quadword, so a move
+/// between domains never turns a device's remapping off (dte.rs).
+pub use super::dte::keep_interrupts;
 
 /// Whether two entries give a device the same DMA, whatever its interrupts.
 pub const fn same_dma(a: Dte, b: Dte) -> bool {

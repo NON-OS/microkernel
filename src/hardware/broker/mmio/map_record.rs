@@ -13,20 +13,29 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! A map's last step (L69): its grant entered only while its claim stands.
-//! An exit drops the claim and then drains the table, so a grant entered
-//! after the drain would outlive the claim; one refused has its pages
-//! taken back instead.
+//! A map's last step (L69, K10): its grant entered only while its claim
+//! stands and within its holder's quota. An exit drops the claim and then
+//! drains the table, so a grant entered after the drain would outlive the
+//! claim; one refused has its pages taken back and its VA returned instead.
 
 use super::types::MmioMapError;
 use crate::hardware::broker::grant::{self, MmioGrant};
+use crate::hardware::broker::quota_log;
 use crate::memory::addr::VirtAddr;
 
 pub(super) fn record(g: MmioGrant) -> Result<(), MmioMapError> {
-    if grant::insert_live(g) {
+    let entered = grant::insert_live(g);
+    if entered == Some(Ok(())) {
         return Ok(());
     }
     let _ = crate::memory::paging::unmap_user_mmio(VirtAddr::new(g.user_va), g.length as usize);
-    Err(MmioMapError::NotClaimed)
+    grant::release_user_va(g.pid, g.user_va, g.length);
+    // No claim, or the holder's quota spent, as a spent window answers.
+    Err(match entered {
+        Some(Err(spent)) => {
+            quota_log::refused(g.pid, "MMIO", spent);
+            MmioMapError::NoVaSpace
+        }
+        _ => MmioMapError::NotClaimed,
+    })
 }

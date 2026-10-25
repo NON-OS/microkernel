@@ -16,18 +16,27 @@
 
 //! OP_GET_PRIMARY_SURFACE: the surface handle, its geometry and format.
 //! The first caller becomes the only one that may draw; another is told
-//! the surface is busy.
+//! the surface is busy. The kernel lets only a process a share names attach
+//! the surface (K20): the first caller is named, writable, and is answered
+//! the handle that share returns.
+
+use nonos_libc::mk_surface_share;
+use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
 
 use super::super::respond;
 use crate::constants::mode::{FORMAT_B8G8R8A8, PRIMARY_RESOURCE};
-use crate::protocol::{Request, E_BUSY, HDR_LEN, STATUS_LEN};
+use crate::protocol::{Request, E_BUSY, E_DEVICE, HDR_LEN, STATUS_LEN};
 use crate::setup::Driver;
 
 const RESP_LEN: usize = 32;
 
 pub fn primary(d: &mut Driver, sender: u32, req: &Request, tx: &mut [u8]) -> Option<i32> {
     if d.owner == 0 {
-        d.owner = sender;
+        let handle = mk_surface_share(d.sid, sender, SURFACE_SHARE_WRITE);
+        if handle <= 0 {
+            return Some(E_DEVICE);
+        }
+        (d.owner, d.handle) = (sender, handle as u64);
     } else if d.owner != sender {
         return Some(E_BUSY);
     }

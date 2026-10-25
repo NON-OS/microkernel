@@ -21,6 +21,8 @@
 //! found and no capsule has claimed, which the unit still lets reach all of
 //! memory (VT-d's boot identity domain, AMD-Vi's passthrough entries). Grants
 //! can all be confined while these are not, so the line never leaves it out.
+//! A development opt-in that lets DMA or interrupts past the unit is said at
+//! its end (dev_unconfined, dev_unremapped).
 
 use core::sync::atomic::{AtomicUsize, Ordering};
 
@@ -50,6 +52,8 @@ pub(super) fn posture_line() {
         .dec(u64::from(unconfined_grants()))
         .str(b", identity devices=")
         .dec(identity as u64)
+        .str(super::dev_unconfined::posture_tail())
+        .str(super::dev_unremapped::posture_tail())
         .end();
 }
 
