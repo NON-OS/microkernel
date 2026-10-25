@@ -39,7 +39,7 @@ def anything(r: random.Random, depth=0):
         return bytes(r.randrange(256) for _ in range(r.randrange(8))).hex()
     if pick == 4:
         return [anything(r, depth + 1) for _ in range(r.randrange(3))]
-    keys = ["package", "licence", "mask", "name", "text", "calls", "dests", "P", "V", "L", "base",
+    keys = ["package", "licence", "mask", "name", "text", "calls", "dests", "program", "P", "V", "L", "base",
             "listing_id", "schema_version", "entries"]
     return {r.choice(keys): anything(r, depth + 1) for _ in range(r.randrange(7))}
 
