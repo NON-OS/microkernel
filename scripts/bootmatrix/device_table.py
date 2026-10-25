@@ -21,6 +21,15 @@ from .cell import Cell
 
 USER_NET = "-netdev user,id=cellnet"
 
+
+def nic(model):
+    """A NIC cell: the card bound, and a DHCP lease taken through it. Under
+    VT-d, since a DMA claim no remapping unit confines is refused."""
+    return Cell(f"q35-iommu-nic-{model}", "eth", "q35", 1, iommu="intel-iommu",
+                devices=(USER_NET, f"-device {model},netdev=cellnet"),
+                expect=(f"[NET-CORE] bind: interface up on driver.{model}_0", "[NET-CORE] lease "))
+
+
 # HDA and the NIC as functions 0 and 1 of one device behind a root port, no
 # ACS between them, as an Intel PCH puts HDA (1f.3) beside its I219 (1f.6): one
 # isolation group, which the broker gives to one capsule. The NICs claim
@@ -34,6 +43,8 @@ SIBLINGS = ("-device pcie-root-port,id=cellsib,chassis=1,slot=1",
 HDA_HELD = "[VT-D] refused: 01:00.1 reaches it through 01:00.0 without ACS; driver.e1000_0 holds it"
 
 DEVICE_CELLS = [
+    nic("e1000"),
+    nic("rtl8139"),
     Cell("q35-iommu-hda-beside-e1000", "eth", "q35", 1, iommu="intel-iommu",
          devices=(USER_NET, *SIBLINGS),
          expect=("[NET-CORE] bind: interface up on driver.e1000_0", "[NET-CORE] lease ", HDA_HELD)),
