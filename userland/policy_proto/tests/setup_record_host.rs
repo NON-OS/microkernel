@@ -20,7 +20,13 @@ fn record(host: &[u8]) -> Record {
         username: Name::new(b"ada").unwrap(),
         qwen_tier: Tier::new(b"small").unwrap(),
     };
-    Record { answers, apps_off: 4, hostname: Host::new(host).unwrap(), route: 0, wallpapers_kept: ALL }
+    Record {
+        answers,
+        apps_off: 4,
+        hostname: Host::new(host).unwrap(),
+        route: 0,
+        wallpapers_kept: ALL,
+    }
 }
 
 #[test]

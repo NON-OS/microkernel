@@ -19,8 +19,8 @@
 
 use nonos_toolkit::image::scale::scale_cover;
 
-use crate::wallpaper_decode::decode_jpeg;
 use super::wallpaper_embedded::EMBEDDED;
+use crate::wallpaper_decode::decode_jpeg;
 use crate::wallpaper_first_paint::{paint, Backing};
 
 const INK: u32 = 0xFF0A_0B0D;
