@@ -66,6 +66,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -311,6 +314,39 @@
   "md": [],
   "signed": []
  },
+ "nonos-proof-verify": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz",
+   "nonos-proof-verify/fuzz",
+   "nonos-proof-verify/wasm"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-data/trust",
+   "nonos-proof-verify"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-proof-verify/wasm": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz",
+   "nonos-proof-verify/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-data/trust",
+   "nonos-proof-verify"
+  ],
+  "md": [],
+  "signed": []
+ },
  "nonos-shield-prove": {
   "exclude": [],
   "include": [
@@ -348,12 +384,16 @@
  "nonos-stark-enroll": {
   "exclude": [
    "nonos-attest-path/fuzz",
-   "nonos-boot-measure/fuzz"
+   "nonos-boot-measure/fuzz",
+   "nonos-proof-verify/fuzz",
+   "nonos-proof-verify/wasm"
   ],
   "include": [
    ".cargo",
    "nonos-attest-path",
    "nonos-boot-measure",
+   "nonos-data/trust",
+   "nonos-proof-verify",
    "nonos-stark-enroll"
   ],
   "md": [],
@@ -1073,6 +1113,9 @@
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/services/registry/displays.rs",
+   "src/services/registry/reserved.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "src/syscall/microkernel/ipc/register_allowed.rs",
    "userland/bga_proofs",
    "userland/capsule_driver_bga/Capsule.mk",
    "userland/capsule_driver_bga/src/announce.rs",
@@ -1110,6 +1153,7 @@
    "userland/libc/src/bringup/schedule.rs",
    "userland/nonos_devmodel",
    "userland/nonos_edid",
+   "userland/nonos_gfx_pool/src/receiver.rs",
    "userland/nonos_gfx_pool/src/surface.rs",
    "userland/nonos_gfx_serve",
    "userland/nonos_gfx_wire",
@@ -1179,17 +1223,26 @@
   "signed": []
  },
  "userland/boot_splash_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/assets/icons",
    "userland/boot_splash_proofs",
+   "userland/capsule_boot_splash/src/layout.rs",
    "userland/capsule_boot_splash/src/logo/bmp.rs",
    "userland/capsule_boot_splash/src/logo/place.rs",
    "userland/capsule_boot_splash/src/logo/prepare.rs",
    "userland/capsule_boot_splash/src/logo/record.rs",
    "userland/capsule_boot_splash/src/logo/resample.rs",
    "userland/capsule_boot_splash/src/logo/shown.rs",
-   "userland/capsule_boot_splash/src/logo/turn.rs"
+   "userland/capsule_boot_splash/src/logo/turn.rs",
+   "userland/capsule_boot_splash/src/status.rs",
+   "userland/capsule_boot_splash/src/vignette.rs",
+   "userland/libc",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []
@@ -2044,6 +2097,24 @@
    "userland/capsule_driver_igb",
    "userland/libc",
    "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_intel_display": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/capsule_driver_intel_display",
+   "userland/libc",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_pool",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_hash",
+   "userland/nonos_intel_display_hw",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []
@@ -4098,8 +4169,13 @@
    "userland/compositor/src/frame_pacer/look_matrix.rs",
    "userland/compositor/src/frame_pacer/night_tint.rs",
    "userland/compositor/src/frame_pacer/own_look.rs",
+   "userland/compositor/src/frame_pacer/present_note.rs",
    "userland/compositor/src/protocol",
    "userland/compositor/src/requests",
+   "userland/compositor/src/server/runner/stall_line.rs",
+   "userland/compositor/src/server/runner/stall_rule.rs",
+   "userland/compositor/src/server/runner/stall_step.rs",
+   "userland/compositor/src/server/runner/turn_watch.rs",
    "userland/compositor/src/setup/canvas_floor.rs",
    "userland/compositor/src/setup/canvas_scale.rs",
    "userland/compositor/src/setup/discover",
@@ -4168,6 +4244,99 @@
    ".cargo",
    "userland/deadline_proofs",
    "userland/libc/src/time/deadline.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/demo_screen_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "LICENSE",
+   "VERSION",
+   "nonos-bench",
+   "nonos-data/wallpapers/field-focus-1.jpg",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/services/registry/displays.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/audio_proto",
+   "userland/base64",
+   "userland/capsule_about/src/about",
+   "userland/capsule_desktop_shell/src/apps_off",
+   "userland/capsule_desktop_shell/src/compositor_client",
+   "userland/capsule_desktop_shell/src/frametime.rs",
+   "userland/capsule_desktop_shell/src/input_router_client",
+   "userland/capsule_desktop_shell/src/installer_client",
+   "userland/capsule_desktop_shell/src/market_client",
+   "userland/capsule_desktop_shell/src/power_off_client",
+   "userland/capsule_desktop_shell/src/protocol",
+   "userland/capsule_desktop_shell/src/render",
+   "userland/capsule_desktop_shell/src/server",
+   "userland/capsule_desktop_shell/src/setup/discover",
+   "userland/capsule_desktop_shell/src/setup/prime/bands.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/open_chrome_windows.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/overlay.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/patient.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/peers.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/register.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/build_context.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/commit_overlay.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/finish.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/healthcheck_peers.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/input_mask.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/register_overlay.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/require_status.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/run.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/subscribe_input.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/subscribe_input_router.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/run/subscribe_wm.rs",
+   "userland/capsule_desktop_shell/src/setup/prime/wallpaper_policy.rs",
+   "userland/capsule_desktop_shell/src/sound",
+   "userland/capsule_desktop_shell/src/state",
+   "userland/capsule_desktop_shell/src/vfs_client",
+   "userland/capsule_desktop_shell/src/wait_for_setup.rs",
+   "userland/capsule_desktop_shell/src/wallpaper_client",
+   "userland/capsule_desktop_shell/src/wm_client",
+   "userland/capsule_input_router/src/route/chord.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/tiers/memory.rs",
+   "userland/capsule_terminal/src/command",
+   "userland/capsule_terminal/src/event",
+   "userland/capsule_terminal/src/git",
+   "userland/capsule_terminal/src/jobs",
+   "userland/capsule_terminal/src/layout",
+   "userland/capsule_terminal/src/mixnet",
+   "userland/capsule_terminal/src/paint",
+   "userland/capsule_terminal/src/palette",
+   "userland/capsule_terminal/src/rail",
+   "userland/capsule_terminal/src/term",
+   "userland/capsule_wallpaper/src/paint/blit_argb.rs",
+   "userland/capsule_wallpaper/src/paint/decode_jpeg.rs",
+   "userland/capsule_wm/src/geometry/constrain.rs",
+   "userland/capsule_wm/src/geometry/rect.rs",
+   "userland/capsule_wm/src/server/handlers/window_open/cascade.rs",
+   "userland/capsule_wm/src/server/handlers/window_open/constants.rs",
+   "userland/demo_screen_proofs",
+   "userland/inflate",
+   "userland/libc",
+   "userland/market_proto",
+   "userland/nonos_git",
+   "userland/nonos_http",
+   "userland/nonos_nox_config",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/nonos_vt",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/route_proof",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []
@@ -4510,6 +4679,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -4681,6 +4853,29 @@
   "md": [],
   "signed": []
  },
+ "userland/exposure_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types/defs.rs",
+   "userland/capsule_about/src/about/data/verify/held_by.rs",
+   "userland/capsule_attest/src/state/live/caps.rs",
+   "userland/capsule_attest/src/state/live/types.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/agent.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/format.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/join.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/names.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/reach.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/table.rs",
+   "userland/capsule_terminal/src/command/builtin/audit/withheld.rs",
+   "userland/capsule_terminal/src/command/builtin/cap_names.rs",
+   "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
+   "userland/capsule_terminal/src/term/util/format_u64.rs",
+   "userland/exposure_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/fdt_proofs": {
   "exclude": [],
   "include": [
@@ -4769,9 +4964,12 @@
    "src/fs/blockfs/dir_name_match.rs",
    "src/fs/blockfs/file_cache.rs",
    "src/fs/blockfs/file_consts.rs",
+   "src/fs/blockfs/header_lba.rs",
    "src/fs/blockfs/index_block.rs",
+   "src/fs/blockfs/mount.rs",
    "src/fs/blockfs/read_u32.rs",
    "src/fs/blockfs/read_u64.rs",
+   "src/fs/blockfs/ring_pick.rs",
    "src/fs/blockfs/tree_ptrs.rs",
    "src/fs/blockfs/tree_range.rs",
    "src/fs/blockfs/tree_reader.rs",
@@ -4901,6 +5099,30 @@
    "userland/nonos_hash",
    "userland/nonos_wallpapers",
    "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/gfx_pool_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/bga_proofs/src/tests/wire_sweep/kit.rs",
+   "userland/gfx_pool_proofs",
+   "userland/gfx_serve_proofs/src/sweep/asks.rs",
+   "userland/gfx_serve_proofs/src/sweep/check.rs",
+   "userland/gfx_serve_proofs/src/sweep/payload.rs",
+   "userland/gfx_serve_proofs/src/sweep/read.rs",
+   "userland/gfx_serve_proofs/src/sweep/rng.rs",
+   "userland/gfx_serve_proofs/src/sweep/server_sweep.rs",
+   "userland/nonos_edid",
+   "userland/nonos_gfx_pool/src/anon.rs",
+   "userland/nonos_gfx_pool/src/pool.rs",
+   "userland/nonos_gfx_pool/src/receiver.rs",
+   "userland/nonos_gfx_pool/src/surface.rs",
+   "userland/nonos_gfx_serve",
+   "userland/nonos_gfx_wire",
+   "userland/nonos_modes"
   ],
   "md": [],
   "signed": []
@@ -5370,7 +5592,21 @@
    "userland/nonos_gfx_serve",
    "userland/nonos_gfx_wire",
    "userland/nonos_hash",
+   "userland/nonos_intel_display_hw",
    "userland/nonos_modes"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/intel_xelp_display_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/intel_xelp_display_proofs",
+   "userland/nonos_edid",
+   "userland/nonos_intel_display_hw",
+   "userland/nonos_intel_xelp_display",
+   "userland/nonos_modes/data"
   ],
   "md": [],
   "signed": []
@@ -5566,6 +5802,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -5715,6 +5954,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -5948,6 +6190,19 @@
    "userland/compositor/src/sw_blitter/row.rs",
    "userland/libc/src/heap/zero_on_free.rs",
    "userland/mechanism_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/mldsa65_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "third_party/pqclean",
+   "userland/mldsa65_proofs",
+   "userland/nonos_aes",
+   "userland/nonos_hash"
   ],
   "md": [],
   "signed": []
@@ -6674,6 +6929,103 @@
   "md": [],
   "signed": []
  },
+ "userland/nsh_attest_proofs": {
+  "exclude": [
+   "userland/nsh_attest_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-boot-measure/src/tcg",
+   "nonos-mldsa65",
+   "src/capabilities/types/as_str.rs",
+   "src/capabilities/types/defs.rs",
+   "src/capabilities/types/guard.rs",
+   "src/capabilities/types/table.rs",
+   "src/crypto/asymmetric/p256/constants.rs",
+   "src/crypto/asymmetric/p256/field",
+   "src/crypto/asymmetric/p256/point",
+   "src/crypto/asymmetric/p256/scalar",
+   "src/security/attest_doc/binding.rs",
+   "src/security/attest_registry/format.rs",
+   "third_party/pqclean",
+   "userland/attest_receipt",
+   "userland/capsule_about/src/about/data/proofs/firmware.rs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_attest",
+   "userland/nsh_attest_proofs",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_client_proofs": {
+  "exclude": [
+   "userland/nsh_client_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "third_party/pqclean",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_client",
+   "userland/nsh_client_proofs",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_crypto_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_crypto",
+   "userland/nsh_crypto_proofs",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_roles_proofs": {
+  "exclude": [
+   "userland/nsh_roles_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-mldsa65",
+   "src/capabilities/types/defs.rs",
+   "third_party/pqclean",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_seal",
+   "userland/nsh_crypto",
+   "userland/nsh_roles",
+   "userland/nsh_roles_proofs",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nsh_wire_proofs": {
+  "exclude": [
+   "userland/nsh_wire_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/capsule_linux/src/linux/boxed",
+   "userland/nsh_wire",
+   "userland/nsh_wire_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nvme_proofs": {
   "exclude": [],
   "include": [
@@ -6990,6 +7342,27 @@
   "md": [],
   "signed": []
  },
+ "userland/pqc_rng_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/crypto",
+   "userland/pqc_rng_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/pqclean_rng_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/crypto",
+   "third_party/pqclean",
+   "userland/pqclean_rng_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/proof_abi_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz"
@@ -7165,6 +7538,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -7288,6 +7664,52 @@
   "md": [],
   "signed": []
  },
+ "userland/rng_callers_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules/crypto.manifest.bin",
+   "nonos-data/trust/capsules/crypto.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/crypto.zk_trailer.bin",
+   "nonos-data/trust/capsules/entropy.manifest.bin",
+   "nonos-data/trust/capsules/entropy.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/entropy.zk_trailer.bin",
+   "nonos-data/trust/capsules/keyring.manifest.bin",
+   "nonos-data/trust/capsules/keyring.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/keyring.zk_trailer.bin",
+   "nonos-data/trust/capsules/market.manifest.bin",
+   "nonos-data/trust/capsules/market.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/market.zk_trailer.bin",
+   "nonos-data/trust/capsules/ramfs.manifest.bin",
+   "nonos-data/trust/capsules/ramfs.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/ramfs.zk_trailer.bin",
+   "nonos-data/trust/capsules/vfs.manifest.bin",
+   "nonos-data/trust/capsules/vfs.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/vfs.zk_trailer.bin",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-data/trust/policy/zk_capsule_policy_root.bin",
+   "src/arch/x86_64/asm/scrub",
+   "src/crypto",
+   "src/fs",
+   "src/hardware/block_device/error.rs",
+   "src/security",
+   "userland/rng_callers_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rng_fail_closed_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/token/nonce.rs",
+   "src/crypto",
+   "src/elf",
+   "userland/rng_fail_closed_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/roster_proofs": {
   "exclude": [],
   "include": [
@@ -7339,6 +7761,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -7521,14 +7946,20 @@
    "userland/capsule_driver_rtl8821ce/src/rx",
    "userland/capsule_driver_rtl8821ce/src/scan.rs",
    "userland/capsule_driver_rtl8821ce/src/sec.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/consts.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/ends.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/install.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/media.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/request.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/result",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/session.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/control/status_body.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/channels.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/drain.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/scanner/state.rs",
+   "userland/capsule_driver_rtl8821ce/src/status.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
    "userland/capsule_driver_rtl8821ce/src/wait.rs",
    "userland/libc/src/broker/dma_order.rs",
@@ -7958,6 +8389,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -8333,6 +8767,9 @@
    "nonos-data/trust/capsules/driver_igb.manifest.bin",
    "nonos-data/trust/capsules/driver_igb.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_igb.zk_trailer.bin",
+   "nonos-data/trust/capsules/driver_intel_display.manifest.bin",
+   "nonos-data/trust/capsules/driver_intel_display.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/driver_intel_display.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ixgbe.manifest.bin",
    "nonos-data/trust/capsules/driver_ixgbe.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ixgbe.zk_trailer.bin",
@@ -9393,10 +9830,12 @@
    "userland/capsule_keyring/src/protocol/errno.rs",
    "userland/capsule_keyring/src/protocol/retired.rs",
    "userland/capsule_keyring/src/protocol/types.rs",
+   "userland/capsule_keyring/src/server/answer.rs",
    "userland/capsule_keyring/src/server/dispatch.rs",
    "userland/capsule_keyring/src/server/secp.rs",
    "userland/capsule_keyring/src/server/typed",
    "userland/capsule_keyring/src/server/vault_gate/rule.rs",
+   "userland/capsule_keyring/src/server/wipe.rs",
    "userland/capsule_keyring/src/server/words_own.rs",
    "userland/capsule_keyring/src/store/count.rs",
    "userland/capsule_keyring/src/store/delete.rs",

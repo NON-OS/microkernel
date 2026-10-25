@@ -23,11 +23,10 @@
 
 use super::hosts::{SDHCI, SPI, XHCI};
 use super::ids::{E1000, E1000E, IGB, IWLWIFI, IXGBE, RTL8169};
-use super::rows::{AHCI, ANY, HDA, I2C_PCI, INTEL, PS2, SVGA, VBOX, VMWARE};
+use super::rows::{
+    AHCI, ANY, HDA, I2C_PCI, INTEL, INTEL_GFX, PS2, REALTEK, SVGA, VBOX, VIRTIO, VMWARE,
+};
 use super::rule::Match::{self, Acpi, Class, Ids, Virt};
-
-const REALTEK: u16 = 0x10EC;
-const VIRTIO: u16 = 0x1AF4;
 
 pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.e1000_0", &[Ids(INTEL, E1000)]),
@@ -56,6 +55,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.virtio_rng", &[Ids(VIRTIO, &[0x1005, 0x1005, 0x1044, 0x1044])]),
     ("driver.virtio_gpu0", &[Ids(VIRTIO, &[0x1050, 0x1050])]),
     ("driver.bga0", &[Ids(0x1234, &[0x1111, 0x1111])]),
+    ("driver.intel_display0", INTEL_GFX),
     ("driver.hda0", HDA),
     ("driver.ac97_0", &[Ids(INTEL, &[0x2415, 0x2415])]),
     ("driver.buslogic0", &[Ids(0x104B, &[0x1040, 0x1040])]),
