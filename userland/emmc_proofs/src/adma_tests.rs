@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! ADMA2 descriptor tables: both widths, lengths, End on the last only, no
-//! Nop, and splitting. Sizes, alignment and reach are `adma_bounds_tests`.
+//! Nop, and splitting. Sizes, alignment and reach are `bounds`.
 
 use crate::emmc::sdhci::adma::*;
+#[path = "adma_bounds_tests.rs"]
+mod bounds;
 
 fn descs(t: &[u8], w: Width, n: usize) -> Vec<(u16, u16, u64)> {
     let dl = w.desc_len();

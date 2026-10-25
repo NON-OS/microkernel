@@ -29,7 +29,7 @@ const PID: u32 = 9;
 
 fn claimed(device_id: u64) -> u64 {
     let epoch = next_epoch();
-    CLAIMS.lock().push(Claim { pid: PID, device_id, epoch });
+    CLAIMS.lock().push(Claim::making(PID, device_id, epoch));
     epoch
 }
 

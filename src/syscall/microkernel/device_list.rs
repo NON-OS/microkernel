@@ -29,6 +29,8 @@ pub fn sys_device_list(class: u32, buf_ptr: u64, count: u64) -> i64 {
     let Some(pid) = current_pid() else {
         return ERRNO_PERM;
     };
+    // A thread sees what its process holds (L32).
+    let pid = crate::hardware::broker::holder_of(pid);
     let snapshot = broker::list_shown(class, pid);
     let total = snapshot.len();
     if count == 0 {

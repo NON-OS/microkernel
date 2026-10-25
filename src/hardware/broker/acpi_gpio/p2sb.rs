@@ -27,6 +27,7 @@ use crate::sys::serial;
 
 const DEV: u8 = 31;
 const FUNC: u8 = 1;
+// The P2SB control register and its hide bit (PCH datasheet; recalled, unverified).
 const P2SBC: u8 = 0xE0;
 const P2SBC_HIDE: u32 = 1 << 8;
 // A P2SB is class 05h subclass 80h (PCI_CLASS_MEMORY_OTHER).

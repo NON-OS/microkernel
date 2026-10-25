@@ -15,7 +15,7 @@ use super::consts::{PALETTE, SIZE, Y0};
 
 pub(super) fn paint_blip(x0: u32, phase: u32) {
     let color = PALETTE[(phase as usize) % PALETTE.len()];
-    let Some(fb) = crate::kernel_core::init::framebuffer::framebuffer_state() else {
+    let Some(fb) = crate::kernel_core::init::framebuffer::drawable() else {
         return;
     };
     if x0 + SIZE > fb.width || Y0 + SIZE > fb.height {
