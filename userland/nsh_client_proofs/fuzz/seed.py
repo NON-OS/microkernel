@@ -38,7 +38,7 @@ def host_proof():
     return b"\x10" + PUB + b16(enrol()) + b32(doc) + b32(b"\x07" * 90) + SIG
 
 def server_hello():
-    body = b"NSH1" + pack("<HHH", 1, 1, 0) + b"\x53" * 32 + b"\xcc" * 1120
+    body = b"NSH1" + pack("<HHH", 2, 1, 0) + b"\x53" * 32 + b"\xcc" * 1120
     return pack("<I", 1 + len(body)) + b"\x02" + body
 
 AUTH_OK = b"\x21" + b"\x5e" * 16 + pack("<I", 600) + caps([b"CoreExec", b"IPC"])
