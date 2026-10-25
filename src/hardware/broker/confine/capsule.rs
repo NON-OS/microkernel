@@ -29,9 +29,9 @@ use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 use crate::memory::iommu::IommuDomain;
 
 /// The index of `pid`'s entry in `all`, made with a fresh domain if it has
-/// none; `None` when the requester goes ahead unconfined, which is the
-/// development opt-in's alone (decide.rs) and never for `must`, a device the
-/// description puts behind a unit; `port_only` as port_only.rs says.
+/// none; `None` when the requester goes ahead with no domain: port-only, or
+/// under the development opt-in (decide.rs), and never for `must`, a device
+/// the description puts behind a unit; `port_only` as port_only.rs says.
 pub(super) fn capsule_for(
     all: &mut Vec<Capsule>,
     pid: u32,
@@ -49,7 +49,7 @@ pub(super) fn capsule_for(
              * up yet, or the one found (AMD-Vi) has no backend here.
              */
             Err(e) if unconfined_allowed(e) && !must => {
-                without_domain(verdict(true, true, Err(true), OPT_IN, PRODUCTION))?;
+                without_domain(verdict(true, true, Err(true), port_only, (OPT_IN, PRODUCTION)))?;
                 return Ok(None);
             }
             Err(e) if unconfined_allowed(e) => {

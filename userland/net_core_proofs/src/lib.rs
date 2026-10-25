@@ -49,6 +49,12 @@ pub mod lease_wait;
 #[path = "../../capsule_net_core/src/iface/link_watch.rs"]
 pub mod link_watch;
 
+// What net.core says when DHCP reports no lease, and the handler that says it.
+#[path = "../../capsule_net_core/src/iface/dhcp/deconfigured_line.rs"]
+pub mod deconfigured_line;
+#[cfg(test)]
+mod deconfigured_line_tests;
+
 // How long a TCP connection may go unanswered before it is given up.
 #[path = "../../capsule_net_core/src/server/handlers/tcp/connect/liveness.rs"]
 pub mod tcp_liveness;
