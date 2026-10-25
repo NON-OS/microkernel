@@ -1,0 +1,2 @@
+b/keyring-addresses acd9a99c0 (c56071bbc merged with main 0e98f0cda)
+adb6ea4b2fcd7e4ec325eada658c3f35826f339a5b3c8d6bba604ec594700375  qemu-dev/nonos.img
