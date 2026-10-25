@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A receipt read, each field held to its length and nothing left over.
 
+use super::cursor::Cursor;
 use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,25 +26,6 @@ pub enum Fault {
     Field(&'static str),
     /// Bytes after the doc.
     Trailing,
-}
-
-struct Cursor<'a> {
-    b: &'a [u8],
-    at: usize,
-}
-
-impl<'a> Cursor<'a> {
-    fn field(&mut self, name: &'static str, min: usize, max: usize) -> Result<&'a [u8], Fault> {
-        let len = self.b.get(self.at..self.at + 4).ok_or(Fault::Field(name))?;
-        let len = u32::from_be_bytes([len[0], len[1], len[2], len[3]]) as usize;
-        if len < min || len > max {
-            return Err(Fault::Field(name));
-        }
-        let start = self.at + 4;
-        let v = self.b.get(start..start + len).ok_or(Fault::Field(name))?;
-        self.at = start + len;
-        Ok(v)
-    }
 }
 
 pub fn parse<'a>(b: &'a [u8]) -> Result<Receipt<'a>, Fault> {
