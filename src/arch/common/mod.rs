@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::address::napot_addr;
-use super::config::PmpConfig;
-use super::error::PmpResult;
+//! Facades and pieces more than one architecture backend shares: MMIO and
+//! DMA ordering for all three, and the device-tree boot seed and console
+//! UART for aarch64 and riscv64.
 
-#[derive(Debug, Clone, Copy)]
-pub struct PmpEntry {
-    pub addr: u64,
-    pub config: PmpConfig,
-}
-
-impl PmpEntry {
-    pub const fn new(addr: u64, config: PmpConfig) -> Self {
-        Self { addr, config }
-    }
-
-    pub fn napot(base: u64, size: u64, config: PmpConfig) -> PmpResult<Self> {
-        Ok(Self { addr: napot_addr(base, size)?, config })
-    }
-}
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+pub(crate) mod boot_entropy;
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+pub(crate) mod boot_seed;
+#[cfg(any(target_arch = "aarch64", target_arch = "riscv64"))]
+pub(in crate::arch) mod console_uart;
+pub(crate) mod dma_sync;
+pub(crate) mod mmio_order;
+pub(in crate::arch) mod own_core_kind;
