@@ -18,7 +18,6 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::hex::short;
 use super::metrics::{BODY_PX, DETAIL_PAD, SMALL_PX, TITLE_PX};
 use super::text;
 use super::wrap::wrap;
@@ -60,12 +59,5 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
     }
 
     top = super::standing::paint(fb, state, left, room, top);
-    if let Some(r) = listing.known.release.as_ref().filter(|r| !r.note.is_empty()) {
-        text::line(fb, left, top, &r.note, MUTED, SMALL_PX);
-        top += 24;
-    }
-    // One line, so it stays inside the pane under a failure sentence and a note.
-    let mut line = b"measurement  ".to_vec();
-    line.extend_from_slice(&short(&listing.measurement));
-    text::line(fb, left, top, &line, MUTED, SMALL_PX);
+    super::detail_foot::paint(fb, listing, left, room, top, (y + h) as i32);
 }

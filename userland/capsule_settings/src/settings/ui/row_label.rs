@@ -21,17 +21,26 @@ use super::metrics::{BODY_PX, CARD_PAD_X, NOTE_PX};
 use super::text;
 use super::theme::{LABEL_FG, SUBLABEL_FG};
 
-/// Lays out a row's title and optional sub-label. A row with a note puts its
-/// title above the vertical centre so the pair reads as one block.
-pub fn paint(
+/// Lays out a row's title and optional sub-label, kept inside the card.
+pub fn paint(fb: &mut PaintBuffer, x: u32, screen_y: i32, row_h: u32, title: &str, note: Option<&str>) {
+    paint_within(fb, x, screen_y, row_h, title, note, u32::MAX);
+}
+
+/// The same, each line fitted to end before `limit`, where the row's value
+/// starts. A row with a note puts its title above the vertical centre so the
+/// pair reads as one block.
+pub fn paint_within(
     fb: &mut PaintBuffer,
     x: u32,
     screen_y: i32,
     row_h: u32,
     title: &str,
     note: Option<&str>,
+    limit: u32,
 ) {
     let lx = x + CARD_PAD_X;
+    let room = limit.min(fb.width.saturating_sub(CARD_PAD_X)).saturating_sub(lx);
+    let title = &text::fit(fb, title, BODY_PX, room);
     match note {
         None => {
             let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
@@ -40,7 +49,8 @@ pub fn paint(
         Some(n) => {
             let top = screen_y + 11;
             text::left(fb, lx, top, title, LABEL_FG, BODY_PX);
-            text::left(fb, lx, top + line_height(BODY_PX) + 1, n, SUBLABEL_FG, NOTE_PX);
+            let n = text::fit(fb, n, NOTE_PX, room);
+            text::left(fb, lx, top + line_height(BODY_PX) + 1, &n, SUBLABEL_FG, NOTE_PX);
         }
     }
 }

@@ -30,6 +30,9 @@ use super::pill::tone_argb;
 use super::theme::ROW_LINE;
 use super::{row_focus, row_label, text};
 
+/// Room kept between a row's label and its value.
+const GAP: u32 = 16;
+
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
@@ -45,21 +48,17 @@ pub fn paint(
     }
     match row {
         Row::Field(f) => {
-            row_label::paint(fb, card_x, screen_y, row_h, as_str(label_of(*f)), note_of(*f));
-            control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);
+            let at = control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);
+            let (title, note) = (as_str(label_of(*f)), note_of(*f));
+            row_label::paint_within(fb, card_x, screen_y, row_h, title, note, at.saturating_sub(GAP));
         }
         Row::Live(label, live) => {
-            row_label::paint(fb, card_x, screen_y, row_h, label, note(state, *live));
             let (value, tone) = resolve(state, *live);
             let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-            text::right(
-                fb,
-                right_edge(card_x, card_w),
-                top,
-                value.as_str(),
-                tone_argb(tone),
-                BODY_PX,
-            );
+            let right = right_edge(card_x, card_w);
+            let at = text::right(fb, right, top, value.as_str(), tone_argb(tone), BODY_PX);
+            let note = note(state, *live);
+            row_label::paint_within(fb, card_x, screen_y, row_h, label, note, at.saturating_sub(GAP));
         }
         Row::Access(k) => super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h),
         Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices => {}

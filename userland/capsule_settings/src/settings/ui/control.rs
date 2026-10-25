@@ -36,7 +36,7 @@ pub fn paint(
     card_w: u32,
     screen_y: i32,
     row_h: u32,
-) {
+) -> u32 {
     let value = cached_value(state, field);
     let cy = screen_y + (row_h / 2) as i32;
     let right = right_edge(card_x, card_w);
@@ -47,6 +47,7 @@ pub fn paint(
             if y >= 0 {
                 switch::draw(fb, x, y as u32, matches!(value, FieldValue::Bool(true)));
             }
+            x
         }
         KIND_U8 if enum_table(field).is_some() => {
             paint_choice(fb, field, value, right, screen_y, row_h)
@@ -56,7 +57,7 @@ pub fn paint(
             if cy >= SLIDER_KNOB_R as i32 {
                 slider::draw(fb, sx, cy as u32, percent(field, value));
             }
-            paint_number(fb, value, sx.saturating_sub(12), screen_y, row_h);
+            paint_number(fb, value, sx.saturating_sub(12), screen_y, row_h)
         }
         KIND_I8 => paint_number(fb, value, right, screen_y, row_h),
         KIND_STR => paint_string(fb, state, field, &value, right, screen_y, row_h),
@@ -67,8 +68,8 @@ pub fn paint(
                 }
                 _ => alloc::string::String::from("--"),
             };
-            paint_plain(fb, &said, right, screen_y, row_h);
+            paint_plain(fb, &said, right, screen_y, row_h)
         }
-        _ => {}
+        _ => right,
     }
 }

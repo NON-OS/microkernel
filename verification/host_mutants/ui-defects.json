@@ -1,0 +1,3 @@
+[
+ {"name": "settings-label-not-cut", "file": "userland/capsule_settings/src/settings/ui/text/fit.rs", "old": "    if measure(s) <= max_w {", "new": "    if true {", "crate": "userland/capsule_settings_proofs", "test": "fit_tests", "args": ["--release"]}
+]

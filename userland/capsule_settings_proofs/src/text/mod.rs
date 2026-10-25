@@ -29,3 +29,5 @@ pub mod edit_paste;
 pub mod valbuf;
 #[path = "../../../capsule_settings/src/settings/ui/valbuf_text.rs"]
 pub mod valbuf_text;
+#[path = "../../../capsule_settings/src/settings/ui/text/fit.rs"]
+pub mod fit;

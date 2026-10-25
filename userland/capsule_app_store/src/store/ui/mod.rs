@@ -20,6 +20,7 @@ mod card;
 pub mod chrome;
 mod counter;
 mod detail;
+mod detail_foot;
 mod frame;
 mod gates;
 pub mod geometry;

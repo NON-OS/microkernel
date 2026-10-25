@@ -3839,6 +3839,7 @@
    "userland/capsule_settings/src/settings/state/wifi/pending_tick.rs",
    "userland/capsule_settings/src/settings/state/wifi/refusal.rs",
    "userland/capsule_settings/src/settings/ui/field_note_user.rs",
+   "userland/capsule_settings/src/settings/ui/text",
    "userland/capsule_settings/src/settings/ui/valbuf.rs",
    "userland/capsule_settings/src/settings/ui/valbuf_text.rs",
    "userland/capsule_settings/src/wifi/adapter_name.rs",
