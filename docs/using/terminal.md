@@ -75,6 +75,8 @@ History expansion works as in other shells: `!!` is the last command, `!n` the n
 | `a &` | Run `a` in the background. |
 | `$name`, `$?` | A shell variable set with `set`, or the last exit status. |
 
+A line holds up to 64 words; a longer one runs nothing and says so, rather than running with its last words dropped.
+
 After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac` and `rev`. Any other command after a `|` stops the pipeline and says so. Redirects also work for Linux programs and the installed tools.
 
 ## Background jobs
