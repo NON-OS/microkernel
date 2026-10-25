@@ -62,6 +62,12 @@ class Listing(unittest.TestCase):
     def test_a_licence_the_index_changed_leaves_the_app_out(self):
         self.assertEqual(listed(rec=dict(REC, L="MIT AND custom")), [])
 
+    def test_a_cited_upstream_licence_names_what_it_ships(self):
+        gpl = dict(RECIPE, licence="GPL-3.0-or-later", index_licence="MIT")
+        (e,) = listed(recipe=gpl)
+        self.assertIn("licence GPL-3.0-or-later", e["releases"][0]["validation"]["note"])
+        self.assertEqual(listed(recipe=gpl, rec=dict(REC, L="LGPL-3.0-or-later")), [], "the index moved")
+
     def test_a_package_with_no_program_or_missing_from_the_index_is_left_out(self):
         self.assertEqual(listed(raw=make([("usr/share/tool/x", b"x")])), [])
         self.assertEqual(catalogue_entries([RECIPE], {}, lambda r: RAW, KEY, 1000), [])
