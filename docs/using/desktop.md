@@ -113,6 +113,7 @@ These keys go to the desktop shell whatever window has focus:
 | Key | What it does |
 |---|---|
 | `Ctrl+Alt+Esc` | Closes the Launchpad and menus, and brings Processes forward, opening it if needed. No window ever sees this chord. |
+| `Ctrl+Alt+T` | Brings the Terminal forward, opening it if it is not running. The focused window never sees it; a window that grabs the keyboard keeps it, and while a prompt is up the shell ignores it. |
 | Volume Up, Volume Down | Steps the master volume by 5 out of 100 and shows a notice such as `Volume 45%`. See [Sound and media](audio.md). |
 | Mute | Mutes or unmutes, and shows `Muted` or the level. |
 | Power | Asks `Power off and wipe memory?`; Power Off wipes memory and turns the machine off. |
@@ -225,6 +226,7 @@ The code behind each section, at the commit in the footer.
   - No Settings field for apps turned off: `ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs:24-41`.
   - The seven tools, `grex` first: `userland/apps.list:4-10`.
 - Keys the desktop answers
+  - `Ctrl+Alt+T` to the shell over focus: `is_terminal_chord` in `userland/capsule_input_router/src/route/chord.rs`; never over a prompt: `opens_terminal` in `userland/capsule_desktop_shell/src/state/trusted_rule.rs`.
   - `Ctrl+Alt+Esc` held back from every window: `is_reserved_chord` in `userland/capsule_input_router/src/route/chord.rs:34-36`.
   - Mute, volume and power keys sent to the shell: `is_shell_key` in `userland/capsule_input_router/src/route/shell_keys.rs:26-34`.
   - The ACPI power button posted as the Power key: `KEYCODE_POWER` in `src/arch/x86_64/acpi/power_button/deliver.rs`.

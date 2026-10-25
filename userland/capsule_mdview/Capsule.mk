@@ -5,8 +5,8 @@ CAPSULE_DOMAIN           := com.example
 CAPSULE_DIR              := userland/capsule_mdview
 CAPSULE_BIN_NAME         := mdview
 CAPSULE_NAMESPACE        := com.example.mdview
-CAPSULE_SERVICE_ENDPOINT := service:4922:app.mdview
-CAPSULE_REPLY_ENDPOINT   := reply:4923:endpoint.app.mdview.reply
+CAPSULE_SERVICE_ENDPOINT := service:4922:com.example.mdview
+CAPSULE_REPLY_ENDPOINT   := reply:4923:endpoint.com.example.mdview.reply
 # CoreExec|IPC|Memory|FileSystem|GraphicsDisplayQuery|GraphicsSurfaceCreate
 CAPSULE_REQUIRED_CAPS    := 0x1859
 
