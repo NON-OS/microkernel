@@ -56,8 +56,9 @@ s of 1 to 32 bytes each, left-padded. The selection is one SHA-256 bank,
 **Other checks.**
 - PCR 9 picks the release; PCR 8 and 14 must then be that release's.
 - A certificate is refused from `now_ms >= not_after_ms`.
-- Exactly one registry entry holds Network: the release's `nsh.front`,
-  under the vendor authority (byte 0).
+- Every registry entry is under the vendor authority (byte 0), Network or
+  not (`not-vendor`), as PCR 14's capsules must all be kind 1.
+- Exactly one registry entry holds Network: the release's `nsh.front`.
 - `capsule_count` must equal the number of entries sent. It is not bound
   into the quote.
 - Host names are compared byte for byte; the client lowercases first.
