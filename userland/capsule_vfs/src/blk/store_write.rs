@@ -74,10 +74,10 @@ pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
 /*
  * Re-persisting the exact bytes already committed is the idempotent retry the
  * store_persist path relies on, so it succeeds without touching the disk.
- * Anything else goes to `store_replace`, which overwrites in place when the
- * length is unchanged and refuses when it is not: this appender cannot move an
- * extent, and reporting success there would leave the caller believing the old
- * bytes had been replaced.
+ * Anything else goes to `store_replace`, which writes the new bytes to a free
+ * extent, repoints the entry and then zeroes the old one: reporting success
+ * here instead would leave the caller believing the old bytes had been
+ * replaced, and leave them on the disk.
  */
 pub(super) fn same_bytes(entry: &TocEntry, data: &[u8]) -> Result<(), BlkError> {
     if entry.len == data.len() as u64 && entry.digest == digest16(data) {
