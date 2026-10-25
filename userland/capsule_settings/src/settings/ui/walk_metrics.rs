@@ -54,6 +54,6 @@ pub fn bt_rows(state: &State) -> usize {
 }
 
 pub fn block_h(state: &State, b: &Block) -> u32 {
-    let rows = b.rows.iter().map(|r| list_of(state, r).map_or(row_h(r), |l| ROW_H * l.0 as u32));
+    let rows = b.rows.iter().map(|r| list_of(state, r).map_or(row_h(r), |l| l.2 * l.0 as u32));
     head_h(b) + rows.sum::<u32>()
 }
