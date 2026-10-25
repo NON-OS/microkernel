@@ -28,8 +28,8 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 from nonos_qemu import lanes, machine  # noqa: E402
 
-# One GPU swap at a time: vmware-svga stands for both.
-ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu=")) and n != "bochs-display"]
+# One GPU swap at a time: vmware-svga stands for them all.
+ALL = [n for n in lanes.NAMES if not n.startswith(("nic=", "iommu=")) and n not in ("bochs-display", "vga")]
 ALL += ["nic=igb"]
 
 
