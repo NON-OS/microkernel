@@ -29,6 +29,12 @@ mod foreign;
 mod syscall {
     pub(crate) mod microkernel {
         pub(crate) use crate::errnos;
+        pub(crate) use crate::stand_in::device_secret_caller;
     }
 }
+/// The gate and the user copies the seal's reads take, standing in.
+#[cfg(test)]
+mod stand_in;
+#[cfg(test)]
+pub(crate) use stand_in::usercopy;
 
