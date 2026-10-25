@@ -25,6 +25,7 @@ mod probe;
 mod remap;
 mod say_hba;
 mod say_port;
+mod say_port_map;
 mod say_skipped;
 mod sequence;
 mod serve;

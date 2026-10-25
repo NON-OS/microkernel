@@ -17,8 +17,10 @@
 use super::cc_value::cc_value;
 use super::disable_step::{await_ready_before_disable, disable_start, DisableStart};
 use super::ready_wait::wait_ready;
+use super::shutdown_step::shutdown_budget_ms;
+use super::shutdown_wait::await_shutdown;
 use crate::clock::uptime_ms;
-use crate::constants::{REG_CC, REG_CSTS};
+use crate::constants::{CC_SHN_MASK, CC_SHN_NORMAL, REG_CC, REG_CSTS};
 use crate::controller::ControllerInfo;
 use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
@@ -47,4 +49,22 @@ pub fn enable(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
     unsafe { regs.w32(REG_CC, cc) };
     // SAFETY: as above.
     wait_ready(info.cap, true, || unsafe { regs.r32(REG_CSTS) }, uptime_ms)
+}
+
+/// Tell the controller power is going (CC.SHN 01b) and wait, bounded by
+/// RTD3E as `shutdown_budget_ms` caps it, for CSTS.SHST to read complete.
+/// EN stays set: a shut-down controller takes no further command (NVMe 2.0,
+/// 3.6.2), and power goes before any would be sent.
+pub fn shut_down(regs: Regs, rtd3e_us: u32) -> NvmeResult<()> {
+    // SAFETY: CC and CSTS lie in the register block's first 0x40 bytes,
+    // inside the window bring-up mapped (ControllerInfo::read).
+    let cc = unsafe { regs.r32(REG_CC) };
+    if cc == u32::MAX {
+        return Err(NvmeError::UnsupportedController);
+    }
+    // SAFETY: as above.
+    unsafe { regs.w32(REG_CC, (cc & !CC_SHN_MASK) | CC_SHN_NORMAL) };
+    let budget = shutdown_budget_ms(rtd3e_us);
+    // SAFETY: as above.
+    await_shutdown(budget, || unsafe { regs.r32(REG_CSTS) }, uptime_ms)
 }
