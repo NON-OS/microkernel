@@ -30,6 +30,7 @@ mod report;
 mod resend_tick;
 mod respond;
 mod runner;
+mod serve_one;
 
 pub use connect_tick::gateway_lost;
 pub use resend_tick::{acknowledge, record, recipient_of, waiting};

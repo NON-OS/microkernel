@@ -18,6 +18,10 @@
 //! an aarch64 or riscv64 board describes itself in its device tree, so no ACPI
 //! table is found there.
 
+/// The devices those tables describe that PCI does not enumerate.
+#[path = "acpi_devices.rs"]
+pub(crate) mod devices;
+
 #[inline]
 pub fn acpi_table_address(signature: &[u8; 4]) -> Option<u64> {
     #[cfg(target_arch = "x86_64")]
