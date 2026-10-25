@@ -16,7 +16,7 @@
 
 //! The package store's sectors, on the disk the kernel keeps NONOS on.
 
-use crate::syscall::{call_raw, N_MK_STORE_READ, N_MK_STORE_WRITE};
+use crate::syscall::{call_raw, N_MK_KEEPING, N_MK_STORE_READ, N_MK_STORE_WRITE};
 
 /// Read `len` bytes (whole sectors, at most 32 KiB) from `lba` into `buf`.
 /// Returns the bytes read, or a negative errno.
@@ -34,4 +34,10 @@ pub fn mk_store_write(lba: u64, buf: *const u8, len: usize) -> i64 {
         return -22;
     }
     call_raw(N_MK_STORE_WRITE, [lba, buf as u64, len as u64, 0, 0, 0])
+}
+
+/// Whether this boot keeps what is written: false until the person chose a
+/// mode that keeps, and false on a kernel that does not know the call.
+pub fn mk_keeping() -> bool {
+    call_raw(N_MK_KEEPING, [0; 6]) == 1
 }
