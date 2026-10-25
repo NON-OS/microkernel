@@ -260,8 +260,9 @@ let
       "tools/ratchets/linux_calls.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
       "tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt"
-      "tools/ratchets/disclosure.py" "tools/nonos-mutant --check" "nonos-ci/check-ui-copy.py --self-test" "nonos-ci/check-ui-copy.py"
+      "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
+      "nonos-ci/check-ui-copy.py --self-test" "nonos-ci/check-ui-copy.py"
     ]);
     # Every capsule a release profile ships has its sealed trust set, but for
     # those scripts/baselines/unsealed.txt names, which may only shrink.
