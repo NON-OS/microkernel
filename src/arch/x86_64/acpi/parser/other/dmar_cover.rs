@@ -21,10 +21,14 @@ use super::dmar_scope::{Scope, UnitScope, SCOPE_BRIDGE};
 use super::dmar_translated::Cover;
 
 /// Does `unit`'s explicit scope list name the device at `segment`/`bdf`?
-/// `bridge_buses(bus, dev, func)` returns a bridge's (secondary, subordinate)
-/// bus numbers, or `None` if that function is not an answering bridge.
-/// INCLUDE_PCI_ALL is not consulted here; see `translated_by_first`.
-pub fn scope_covers<F>(unit: &UnitScope, segment: u16, bdf: (u8, u8, u8), bridge_buses: &F) -> Cover
+/// `bridge_buses(bus, dev, func)` is a bridge's (secondary, subordinate) bus
+/// numbers, or `None`. INCLUDE_PCI_ALL is not consulted (dmar_translated.rs).
+pub fn scope_covers<F, const N: usize>(
+    unit: &UnitScope<N>,
+    segment: u16,
+    bdf: (u8, u8, u8),
+    bridge_buses: &F,
+) -> Cover
 where
     F: Fn(u8, u8, u8) -> Option<(u8, u8)>,
 {
