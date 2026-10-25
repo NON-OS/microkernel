@@ -27,6 +27,7 @@ mod report_end_tests;
 mod report_path_tests;
 mod report_tests;
 mod seal_slot_tests;
+mod selftest_panic_tests;
 mod sites_tests;
 mod tally_tests;
 mod terminal_run_tests;
