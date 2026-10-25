@@ -44,12 +44,13 @@ From `Capsule.mk`:
 #   | Debug 0x100 | GfxQuery 0x800 | GfxCreate 0x1000 | StoreWrite 0x4000000
 #   | ForeignExec 0x100000000 = 0x104001979
 CAPSULE_REQUIRED_CAPS    := 0x104001979
-CAPSULE_OPTIONAL_CAPS    := 0x200000004
+CAPSULE_OPTIONAL_CAPS    := 0x600000004
 ```
 
-The comment says no other capsule holds ForeignExec, and that Network (0x4) and LocalSign
-(0x200000000) are optional: the install role asks for both and the run.net role for Network
-alone, so no run of a guest holds the right to vouch. Extra instance endpoints for the install,
+The comment says no other capsule holds ForeignExec, and that Network (0x4), LocalSign
+(0x200000000) and StreamImport (0x400000000) are optional: the install role asks for all three,
+StreamImport so it may start the model fetcher within its own capabilities, and the run.net role
+for Network alone, so no run of a guest holds the right to vouch or to feed the data volume. Extra instance endpoints for the install,
 run, run.net and terminal roles are listed in `CAPSULE_INSTANCE_ENDPOINTS`.
 
 ## Interface
