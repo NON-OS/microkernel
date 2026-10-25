@@ -46,7 +46,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 | `Ctrl+W`, `Alt+D`, `Ctrl+Shift+K`, `Ctrl+U` | Cut a word back, a word forward, to the end of the line, or the whole line. |
 | `Ctrl+Y` | Put back what the last cut took. |
 | `Ctrl+D`, `Ctrl+H` | Delete the character under the cursor, or the one before it. |
-| `Tab` | Complete a command or a path. |
+| `Tab` | Complete a command or a path. When several fit and none can be filled in further, they are listed in columns beside the prompt, a path by its last part, up to eight rows with a count of the rest; the next key clears the list, and nothing is written into the scrollback. |
 | `Up`, `Down`, `Ctrl+P`, `Ctrl+N` | Walk the history. |
 | `Ctrl+R` | Search the history. Press it again for the next match. The prompt says `history` and what you typed, or `no match` when nothing holds it; then `Enter` runs nothing. `Esc` or `Ctrl+C` leaves the search and puts back the line you had. |
 | `Ctrl+L` | Empty the scrollback. |
@@ -250,6 +250,8 @@ The source behind the facts above, at the commit in the footer.
   - The keys list: `KEYS` in `userland/capsule_terminal/src/command/builtin/help_pages.rs`.
   - The keys the bar names in each state: `hints` in `userland/capsule_terminal/src/paint/hint_sets.rs`.
   - `Ctrl+K` opens the palette, `Ctrl+Shift+K` cuts: `opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs:67-70`.
+- Tab's list
+  - Its columns, rows and place: `grid`, `cell`, `label` and `top` in `userland/capsule_terminal/src/term/complete_list.rs`.
 - Pipes, redirects and chains
   - The ten built-ins that read a pipe, `grep` and the rest: `userland/capsule_terminal/README.md:52-57`.
 - Background jobs
