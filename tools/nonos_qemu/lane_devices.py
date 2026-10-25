@@ -39,6 +39,8 @@ SWAPS = {
     "tpm-tis": ("tpm", "tpm-tis"),
     "vmware-svga": ("gpu", "vmware-svga"),
     "bochs-display": ("gpu", "bochs-display"),
+    # QEMU's standard VGA, what -vga std gives: the same 1234:1111 DISPI.
+    "vga": ("gpu", "VGA"),
     # QEMU's usb-net offers RNDIS and CDC-ECM configurations, on the xHCI the
     # machine always has; as net0 its frames are the capture's.
     "nic=usb-net": ("nic", "usb-net,bus=xhci.0"),
