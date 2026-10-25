@@ -31,7 +31,7 @@ The [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) is one `#[
 | `firmware` | device firmware blobs read from the boot medium |
 | `cmdline_ptr` | an optional kernel command line |
 
-The `flags` word uses these bits, as listed in the `flags` module (`src/boot/handoff/types/constants.rs:33-54`):
+The `flags` word uses these bits, as listed in the `flags` module (`src/boot/handoff/types/constants.rs:33-57`):
 
 | Bit | Name | Meaning |
 |---|---|---|
@@ -45,8 +45,11 @@ The `flags` word uses these bits, as listed in the `flags` module (`src/boot/han
 | 10 | `ZK_ATTESTED` | the loader reports the [attestation](../overview/glossary-amnesic-boot.md#attestation) proof as verified |
 | 11 | `INSTALL_REQUESTED` | the person chose the boot menu's install entry |
 | 12 to 15 | `PROFILE_HARDENED`, `PROFILE_SAFE`, `PROFILE_AIR_GAPPED`, `PROFILE_RECOVERY` | the [boot profile](../overview/glossary-amnesic-boot.md#boot-profile); Standard sets none |
+| 16 | `FB_REFUSED` | no framebuffer, and `fb.pixel_format` says why (below); never with `FB_AVAILABLE` |
 
 The loader's `build_handoff_flags` sets the framebuffer, ACPI, Secure Boot, attestation, TPM, SMEP, SMAP and UMIP bits from what it found, and sets `WX`, `NXE` and `IDMAP_PRESERVED` on every boot (`nonos-bootloader/src/handoff/prepare/flags.rs:20-57`). The install bit and the profile bits come from the boot menu: `handoff_flag` adds `INSTALL_REQUESTED` (`nonos-bootloader/src/handoff/types/install.rs:45-46`), and the chosen mode adds its `PROFILE_*` bit (`nonos-bootloader/src/menu/types/mode.rs:61-64`).
+
+`FB_REFUSED` is additive in handoff version 2: the layout and `HANDOFF_VERSION` are unchanged, and a loader that predates it leaves it clear. The loader sets it whenever it hands over no framebuffer, and puts its reason in the otherwise empty `fb.pixel_format`: bits 0 to 7 a code (0 no Graphics Output Protocol, 1 PixelBltOnly only, 2 only PixelBitMask modes that are not 32-bit RGB or BGR, 3 a framebuffer that does not cover its mode), bits 8 to 15 the bits per pixel of the deepest refused PixelBitMask mode with code 2 and 0 otherwise, and the rest 0 (`nonos-bootloader/src/display/gop/refusal_word.rs`). The kernel decodes it in `src/boot/handoff/types/refusal.rs`: a handoff with `FB_AVAILABLE` and `FB_REFUSED` both is refused like any other contradiction in the framebuffer check; a code or a bit it does not know is `Unknown`, said and never trusted; with neither bit set the loader gave no reason. It says the reason once at boot (`[GOP] no framebuffer handed over: ...`) and hands it to userland through `nonos_display_refusal` (GDIM's fifth argument). Other loaders that build this handoff, the aarch64 ones among them, must leave bit 16 clear.
 
 A few sizes are fixed by the code:
 

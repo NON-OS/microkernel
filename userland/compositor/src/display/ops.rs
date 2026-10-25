@@ -21,7 +21,7 @@ use nonos_gfx_wire::body::flush::MAX_RECTS;
 use nonos_gfx_wire::errno::EINVAL;
 use nonos_gfx_wire::{ops, Caps, Cursor, Errno, Flush, Rect, State, Surface};
 
-use super::call::{call, PRESENT_MS, SETUP_MS};
+use super::call::{call, FLUSH_MS, PRESENT_MS, SETUP_MS};
 
 pub fn caps(port: u32) -> Result<Caps, Errno> {
     caps_within(port, SETUP_MS)
@@ -56,7 +56,7 @@ pub fn flush(port: u32, output: u16, serial: u32, rects: &[Rect]) -> Result<(), 
     f.rects[..rects.len()].copy_from_slice(rects);
     let mut p = [0u8; 8 + 16 * MAX_RECTS];
     let n = f.encode(&mut p)?;
-    call((port, output), ops::FLUSH, &p[..n], &mut [], PRESENT_MS).map(|_| ())
+    call((port, output), ops::FLUSH, &p[..n], &mut [], FLUSH_MS).map(|_| ())
 }
 
 /// Let the driver free a primary the compositor no longer shows; a serial

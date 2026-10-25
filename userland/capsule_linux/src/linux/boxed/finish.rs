@@ -30,17 +30,21 @@ const WAIT_MS: u64 = 2_000;
 const GAP_MS: u64 = 5;
 
 pub fn finish(exit: i32) {
-    end(End { exit, not_started: None });
+    end(End { exit, not_started: None, reached: &[] });
 }
 
 /// The run stopped before its guest started, and why.
 pub fn not_started(why: &str, exit: i32) {
-    end(End { exit, not_started: Some(why) });
+    end(End { exit, not_started: Some(why), reached: &[] });
 }
 
 fn end(e: End<'_>) {
     let Some(a) = BOX.0.borrow_mut().take() else { return };
+    let e = End { reached: a.connected.all(), ..e };
     let mut text = super::report::report(&a.policy, &a.hash, &a.tally, a.granted, &e);
+    let learned = super::learn_report::learned(&a.policy, &a.learned, &a.tally);
+    text.push_str(&learned.unwrap_or_default());
+    text.push_str(&super::net_report::net_line(&a.policy, e.reached).unwrap_or_default());
     text.push_str(&super::line::box_line(&a.policy, &a.hash, &a.tally, &e));
     match a.key {
         Some(key) => send(&super::frames::frames(&key, text.as_bytes())),
