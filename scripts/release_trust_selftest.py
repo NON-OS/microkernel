@@ -44,7 +44,11 @@ def self_test(unsealed, verdict):
             (root / f"sealed.{k}").write_bytes(b"x")
         got = verdict(unsealed(entries, shipped, exists), {"waiting"})
         assert len(got) == 1 and "sealed now" in got[0], got
-    from release_trust_lists import BEGIN, END, doc_slugs, drift
+    from release_trust_lists import BEGIN, END, doc_slugs, drift, unnamed
+    entries = [{"slug": "sealed"}, {"slug": "waiting"}]
+    assert unnamed(entries, ["sealed", "waiting"]) == [], "a named slug was refused"
+    got = unnamed(entries, ["sealed", "made-up"])
+    assert len(got) == 1 and "made-up ships" in got[0], got
     listed = doc_slugs(f"x\n{BEGIN}\n`waiting`, `b-2`.\n{END}\n`outside`")
     assert listed == {"waiting", "b-2"}, listed
     assert drift({"waiting", "b-2"}, listed) == [], "equal lists drifted"
