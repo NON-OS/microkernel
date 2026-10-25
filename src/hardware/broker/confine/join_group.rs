@@ -24,20 +24,22 @@ use alloc::string::String;
 
 use super::acs_refusal::{alias_line, refusal_line};
 use super::member::Member;
+use super::port_only::blocker;
 use super::say::say;
 use super::table::Capsule;
 use crate::memory::iommu::DeviceAddress;
 
-/// Whether a capsule other than `all[pos]` holds a member or an alias of
-/// the device; said when one does.
+/// Whether a capsule other than `all[pos]` holds a member that blocks the
+/// claim (port_only.rs) or an alias of the device; said when one does.
 pub(super) fn group_held(
     all: &[Capsule],
     pos: usize,
     (group, aliases): (&[Member], &[DeviceAddress]),
 ) -> bool {
+    let claim_port_only = all[pos].port_only;
     for (_, c) in all.iter().enumerate().filter(|&(i, _)| i != pos) {
         let holds_id = |id: u64| c.devices.iter().any(|(d, _)| *d == id);
-        if let Some(m) = group.iter().find(|m| holds_id(m.id)) {
+        if let Some(m) = blocker(group, holds_id, claim_port_only, c.port_only) {
             say(refusal_line(m.at, m.hop, &holder(c.pid)).as_bytes());
             return true;
         }
