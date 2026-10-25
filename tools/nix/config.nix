@@ -64,6 +64,10 @@ let
   # must not (Cargo.toml says why).
   debugFeatures = [ "capsule-serial-debug" ];
 
+  # Lets a machine with no IOMMU in service boot with its devices unconfined,
+  # said everywhere; a hardened image must refuse those claims instead.
+  postureFeatures = [ "nonos-dma-unconfined-posture" ];
+
   # The bootloader's policies, weakest first. Development compiles in the F12
   # override and is never sealed for release.
   loaders = [ "dev-qemu" "standard-qemu" "standard" "production" ];
@@ -84,7 +88,7 @@ let
       privacy = "standard, and the loader refuses to start without Secure Boot and a TPM to measure into; no capsule can write to a console anyone could read";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures;
+      drop = debugFeatures ++ postureFeatures;
     };
     airgapped = {
       about = "hardened, with no network driver, stack or online program compiled in; installs only from offline media";
@@ -92,7 +96,7 @@ let
       privacy = "hardened, and no code that could reach a network exists in the image: no driver, no stack, no program that goes online";
       kernel = [ "microkernel-full-gui" ];
       loader = "production";
-      drop = debugFeatures ++ networkFeatures;
+      drop = debugFeatures ++ postureFeatures ++ networkFeatures;
     };
     qemu = {
       about = "the desktop for virtual machines, without the drivers only real hardware has";
