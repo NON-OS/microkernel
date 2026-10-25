@@ -22,6 +22,9 @@ pub mod acpi_span;
 /// The GOP present refused while a claimed device holds the boot framebuffer.
 #[path = "boot_fb/mod.rs"]
 mod boot_fb;
+/// An empty embedded image is "not built", asked before its cert (B-02).
+#[path = "built_gate/mod.rs"]
+mod built_gate;
 #[path = "block_wire/mod.rs"]
 mod block_wire;
 /// Disk controllers before the bus drivers (H-02).

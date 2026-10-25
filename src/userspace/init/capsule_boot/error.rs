@@ -20,9 +20,7 @@ use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 pub(super) fn message(prefix: &str, err: SpawnError) -> alloc::string::String {
     match err {
-        SpawnError::FeatureDisabled => {
-            alloc::format!("{}: capsule binary not embedded (feature off)", prefix)
-        }
+        SpawnError::FeatureDisabled => alloc::format!("{}: not built into this kernel", prefix),
         SpawnError::ElfLoad => alloc::format!("{}: capsule ELF load failed", prefix),
         SpawnError::ProcessCreation => alloc::format!("{}: process creation failed", prefix),
         SpawnError::AddressSpace => {
