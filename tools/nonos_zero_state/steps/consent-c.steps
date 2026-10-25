@@ -1,0 +1,26 @@
+# Consent erase, boot C: setup again, at the installed-software step, which
+# shows what it found: no token, so Only NONOS software.
+until:[SETUP-WIZARD] capsule spawned:1800
+wait:360
+key:ret
+wait:20
+type:zqconsentname
+key:ret
+wait:20
+key:ret
+wait:20
+key:ret
+wait:20
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+shot:c11-software-found
