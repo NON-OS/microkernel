@@ -20,13 +20,27 @@ Each cell names the lines that prove it, and the boot fails when any is
 missing (HANDOFF/hardware/README.md: "booted" means this, no less). A cell with
 a NIC boots the ethernet image (`eth`, nonos-mk-ethernet-prod) with no virtio
 NIC beside its card, so net.core has only the card under test to bind and
-its lease comes through that card's receive path.
+its lease comes through that card's receive path. "{disk}" in a cell's
+arguments is a scratch disk the runner makes for each boot and deletes after.
 """
 
+DISK_BYTES = 64 * 1024 * 1024
 
-def arguments(cell):
-    """The QEMU arguments for the cell's devices."""
-    return [word for group in cell.devices for word in group.split()]
+
+def scratch_disks(cell, stem):
+    """The scratch disks a cell's arguments name, made empty and sparse."""
+    if not any("{disk}" in a for a in cell.devices):
+        return []
+    disk = stem.with_suffix(".device.img")
+    with open(disk, "wb") as f:
+        f.truncate(DISK_BYTES)
+    return [disk]
+
+
+def arguments(cell, disks=()):
+    """The QEMU arguments for the cell's devices, with its scratch disk filled in."""
+    words = [word for group in cell.devices for word in group.split()]
+    return [w.replace("{disk}", str(disks[0])) for w in words] if disks else words
 
 
 def verdict(cell, text):
