@@ -8,10 +8,11 @@ Every boot is amnesic until first-boot setup records the choice to keep data. On
 such a boot the file store refuses to keep a file with `EACCES` and writes
 `[VFS] refused persist: amnesic boot` through `mk_debug`. A write of all zeros,
 an empty one included, is taken only as a withdrawal (`keep`,
-`userland/capsule_vfs/src/server/handlers/persist_rule.rs`): it overwrites a
+`userland/capsule_vfs/src/server/handlers/persist_rule.rs`): it replaces a
 record the disk already holds, at that record's length, and a name the disk
 does not hold is never added (`withdraw`,
-`userland/capsule_vfs/src/blk/store_write.rs`). Removing a store entry is refused
+`userland/capsule_vfs/src/blk/store_withdraw.rs`). The replacement zeroes the
+extent the old record leaves (`userland/capsule_vfs/src/blk/store_replace.rs`). Removing a store entry is refused
 and an uninstall drops only the RAM copy on such a boot (`store_remove.rs`,
 `store_uninstall.rs` in the same directory). Host-tested:
 `userland/fs_proofs/src/vfs_disk/tests_withdraw.rs` holds the disk sector for
@@ -59,3 +60,56 @@ line and the no-store error both showed on scratch images here. The tool reads
 the table, not the data behind it: a write that leaves every row as it was is
 not seen, and a row the boot removed is not reported. No make target, workflow
 or flake check runs it.
+
+### The boot check
+
+`scripts/amnesic_boot_check.sh` boots a sealed image (`NONOS_AMNESIC_IMAGE`)
+on the data disk `tools/nonos-qemu` lays the store on, for
+`NONOS_AMNESIC_TIMEOUT` seconds, then boots it a second time on the same disk,
+system partition and variable store for `NONOS_AMNESIC_SETTLE` seconds (120 by
+default). That catches a write left for shutdown, or for the next boot to find.
+After both boots it compares:
+
+- the data disk, byte for byte, naming every changed sector;
+- the EFI system partition, which QEMU serves read-write from a directory,
+  path for path and file for file;
+- the firmware's variable store, variable by variable, with
+  `tools/nonos-efi-vars`.
+
+`tools/nonos-efi-vars` refuses a store that is not an edk2 NV-data volume
+holding an authenticated, formatted, healthy variable store, and refuses a
+store after the boot that holds no variable at all, since a booted firmware
+always writes some. A changed variable passes only when it is one of the exact
+(vendor GUID, name) pairs the firmware writes on its own:
+
+- the variable error flag, the iSCSI attempt order and `Attempt N`, memory type
+  statistics, the DHCPv6 client id and the monotonic counter;
+- the per-NIC IPv4 and IPv6 records, named for the NIC's own address
+  (`--nic-mac`);
+- the boot manager's `Boot####`, `BootOrder`, `Key####`, `ConIn`, `ConOut`,
+  `ErrOut`, `Lang`, `PlatformLang` and `Timeout`.
+
+`BootNext` is not allowed: it picks the next boot, and the firmware only ever
+deletes it.
+
+The serial log of each boot must show the disk driver up and the store answered
+from the loader's copy of this disk (`[STORE] the loader's copy of the
+store`), or the run is a gap. An idle amnesic boot reads nothing from the disk
+itself, because the copy answers every read, and keeps no disk until a write
+asks for one. So the check shows that the disk is reachable, not that it was
+read: a write would select it through the driver the log shows, and the byte
+comparison catches it. Exit 0 pass, 1 a byte, file or foreign variable
+changed, 2 a gap.
+
+`tools/nonos-efi-vars --self-test` builds stores for each rule:
+
+- a firmware first boot and a later one, both passing;
+- a NONOS-named and an unknown variable, both failing;
+- a near name, another NIC's record, `Attempt 0` and `BootNext`, all failing;
+- another volume type, another store format, an unhealthy store and an empty
+  after-store, all unreadable.
+
+Five mutants are each caught: the volume type unchecked, `BootNext` allowed,
+any NIC's record allowed, an empty after-store judged, and the store's health
+unchecked. The flake's `static-abi` check runs the self-test.
+
