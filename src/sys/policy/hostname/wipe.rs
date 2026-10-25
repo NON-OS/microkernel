@@ -19,7 +19,8 @@
 //! The other CPUs are parked by then, possibly holding the lock, so it is
 //! tried once and never waited on; a held lock is said, and the names stay.
 
-use super::state::{NAME_MAX, STATE};
+use super::names_clear::clear;
+use super::state::STATE;
 
 /// Zero the host and domain names. Takes no lock it cannot get at once and
 /// allocates nothing, so it may run inside the shutdown wipe.
@@ -28,8 +29,7 @@ pub fn wipe() {
         crate::sys::serial::print(b"[ZS] host name not wiped: its lock is held\n");
         return;
     };
-    crate::security::secure_zero(s.hostname.as_mut_ptr(), NAME_MAX);
-    crate::security::secure_zero(s.domainname.as_mut_ptr(), NAME_MAX);
-    s.hostname_len = 0;
-    s.domainname_len = 0;
+    let s = &mut *s;
+    clear(&mut s.hostname, &mut s.hostname_len);
+    clear(&mut s.domainname, &mut s.domainname_len);
 }
