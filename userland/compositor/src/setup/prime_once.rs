@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The first announced driver, driven on the display wire.
+//! The first announced driver, driven on the display wire. At start-up a
+//! driver is announced as it is spawned, before its device is up, so its
+//! first answer is waited for up to START_MS rather than SETUP_MS.
 
 use super::discover;
+use crate::display::call::START_MS;
 use crate::state::Context;
 
 pub fn run_display_once() -> Result<Context, &'static str> {
-    super::prime_wire::prime(discover::lookup_gfx_endpoint()?)
+    let ep = discover::lookup_gfx_endpoint()?;
+    super::prime_wire::prime_within(ep, START_MS).map_err(|u| u.what)
 }
