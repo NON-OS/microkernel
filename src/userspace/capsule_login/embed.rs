@@ -24,15 +24,14 @@ pub(crate) const LOGIN_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-login")]
 pub(crate) const LOGIN_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/login.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/login.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-login")]
-pub(crate) const LOGIN_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/login.manifest.bin");
+pub(crate) const LOGIN_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/login.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-login")]
 pub(crate) const LOGIN_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/login.zk_trailer.bin");
+    crate::baked_trust!("capsules/login.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-login"))]
 pub(crate) const LOGIN_ELF: &[u8] = &[];

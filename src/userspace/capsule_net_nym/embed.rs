@@ -24,15 +24,15 @@ pub(super) const NET_NYM_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-nym")]
 pub(super) const NET_NYM_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_nym.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_nym.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-nym")]
 pub(super) const NET_NYM_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_nym.manifest.bin");
+    crate::baked_trust!("capsules/net_nym.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-nym")]
 pub(super) const NET_NYM_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_nym.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_nym.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-net-nym"))]
 pub(super) const NET_NYM_ELF: &[u8] = &[];

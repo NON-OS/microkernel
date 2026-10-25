@@ -38,6 +38,7 @@ pub(crate) mod metrics;
 mod palette;
 mod palette_row;
 mod prompt;
+mod prompt_tail;
 mod search_head;
 mod rail_addr;
 pub mod rail_band;

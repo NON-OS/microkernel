@@ -44,6 +44,8 @@ pub(super) static FRAMEBUFFER: Once<KernelFramebuffer> = Once::new();
 /// The frame's physical range, `(start, pitch * height)`: what a device
 /// window must contain to hold the boot framebuffer (broker::boot_fb_held).
 pub(super) static FRAME_PHYS: Once<(u64, u64)> = Once::new();
+/// Why the loader handed over none, as FbRefusal::why_word says it.
+pub(super) static REFUSAL: Once<u32> = Once::new();
 
 pub(crate) fn framebuffer_phys() -> Option<(u64, u64)> {
     FRAME_PHYS.get().copied()
@@ -51,6 +53,13 @@ pub(crate) fn framebuffer_phys() -> Option<(u64, u64)> {
 
 pub(crate) fn framebuffer_state() -> Option<&'static KernelFramebuffer> {
     FRAMEBUFFER.get()
+}
+
+/// Why there is no boot framebuffer, for nonos_display_refusal: the loader's
+/// reason, or WHY_NOT_MAPPED when it handed one over the kernel refused.
+pub(crate) fn boot_refusal() -> u32 {
+    let not_mapped = crate::boot::handoff::types::refusal::WHY_NOT_MAPPED as u32;
+    REFUSAL.get().copied().unwrap_or(not_mapped)
 }
 
 /// The boot framebuffer's length in bytes (stride x height), its geometry

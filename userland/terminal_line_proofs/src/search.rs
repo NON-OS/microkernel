@@ -13,7 +13,13 @@ pub mod search_head;
 #[path = "../../capsule_terminal/src/term/search_step.rs"]
 pub mod search_step;
 
+// What the prompt says after the path: the branch and the background jobs.
+#[path = "../../capsule_terminal/src/term/prompt_bits.rs"]
+pub mod prompt_bits;
+
 #[cfg(test)]
 mod head_tests;
+#[cfg(test)]
+mod prompt_tests;
 #[cfg(test)]
 mod step_tests;

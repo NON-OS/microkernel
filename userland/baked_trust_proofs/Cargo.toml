@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs that a kernel the seal may seal for release embeds only
+# the tree's trust: the build script refuses a test trust set or a test policy
+# key named at build time when nonos-release is on. The build script's own
+# file is included via #[path].
+[package]
+name = "baked_trust_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

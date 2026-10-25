@@ -15,15 +15,15 @@ pub(super) const DRIVER_I2C_HID_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
 pub(super) const DRIVER_I2C_HID_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_i2c_hid.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_i2c_hid.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
 pub(super) const DRIVER_I2C_HID_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_i2c_hid.manifest.bin");
+    crate::baked_trust!("capsules/driver_i2c_hid.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-i2c-hid")]
 pub(super) const DRIVER_I2C_HID_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_i2c_hid.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_i2c_hid.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-i2c-hid"))]
 pub(super) const DRIVER_I2C_HID_ELF: &[u8] = &[];

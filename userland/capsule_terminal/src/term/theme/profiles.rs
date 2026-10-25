@@ -29,10 +29,10 @@ pub const DARK: Theme = Theme {
     fg: 0xFFD6_DCE3,
     accent: 0xFF5A_E6D0,
     path: 0xFF7C_F0A8,
-    dim: 0xFF56_5E69,
+    dim: 0xFF7A_828D,
     ok: 0xFF35_D07A,
-    err: 0xFFE5_484D,
-    run: 0xFF56_5E69,
+    err: 0xFFE6_494E,
+    run: 0xFF5F_6772,
     chrome_edge: 0xFF1A_1F24,
 };
 
@@ -41,10 +41,10 @@ pub const DIM: Theme = Theme {
     fg: 0xFFE2_E8EF,
     accent: 0xFF5A_E6D0,
     path: 0xFF7C_F0A8,
-    dim: 0xFF6B_747E,
+    dim: 0xFF7D_8690,
     ok: 0xFF35_D07A,
-    err: 0xFFE5_484D,
-    run: 0xFF6B_747E,
+    err: 0xFFEA_4D52,
+    run: 0xFF7D_8690,
     chrome_edge: 0xFF23_2A31,
 };
 
@@ -53,10 +53,10 @@ pub const LIGHT: Theme = Theme {
     fg: 0xFF1D_1D1F,
     accent: 0xFF0E_7A70,
     path: 0xFF15_694A,
-    dim: 0xFF6A_727C,
+    dim: 0xFF65_6D77,
     ok: 0xFF12_784A,
     err: 0xFFB0_1218,
-    run: 0xFF8A_9099,
+    run: 0xFF83_8992,
     chrome_edge: 0xFFD9_D9D9,
 };
 
@@ -65,10 +65,10 @@ pub const ABYSS: Theme = Theme {
     fg: 0xFFC8_D2DC,
     accent: 0xFF5A_E6D0,
     path: 0xFF7C_F0A8,
-    dim: 0xFF4A_525B,
+    dim: 0xFF77_7F88,
     ok: 0xFF35_D07A,
     err: 0xFFE5_484D,
-    run: 0xFF4A_525B,
+    run: 0xFF5B_636C,
     chrome_edge: 0xFF0A_0E13,
 };
 

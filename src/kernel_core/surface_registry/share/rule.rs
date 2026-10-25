@@ -32,19 +32,13 @@ pub(crate) enum Named {
 #[derive(Clone, Copy)]
 pub(crate) struct Shares {
     owner: u32,
-    to_compositor: bool,
     named: [u32; NAMED_MAX],
 }
 
 impl Shares {
     /// Shared with no one: only the owner's own group may attach.
     pub(crate) const fn new(owner_group: u32) -> Self {
-        Self { owner: owner_group, to_compositor: false, named: [0; NAMED_MAX] }
-    }
-
-    #[allow(dead_code)] // the old compositor default; every share names its receiver
-    pub(crate) fn allow_compositor(&mut self) {
-        self.to_compositor = true;
+        Self { owner: owner_group, named: [0; NAMED_MAX] }
     }
 
     /// Name `group` as a receiver. Group 0 is no process.
@@ -64,12 +58,9 @@ impl Shares {
         }
     }
 
-    /// May `receiver` attach? `compositor` is the group serving the
-    /// compositor now, if any; a share outlives a compositor restart.
-    pub(crate) fn may_attach(&self, receiver: u32, compositor: Option<u32>) -> bool {
-        receiver != 0
-            && (receiver == self.owner
-                || self.named.contains(&receiver)
-                || (self.to_compositor && compositor == Some(receiver)))
+    /// May `receiver` attach? Only the owner's group or a group it named:
+    /// the compositor too is a receiver only when named.
+    pub(crate) fn may_attach(&self, receiver: u32) -> bool {
+        receiver != 0 && (receiver == self.owner || self.named.contains(&receiver))
     }
 }
