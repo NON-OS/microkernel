@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::colors;
-use super::output::{clear_screen, visual_delay, write_at, VGA_WIDTH};
+use super::output::{clear_screen, visual_delay, write_at};
 
 pub fn show_boot_splash() {
     // SAFETY: Writing to VGA memory for boot splash display
@@ -106,28 +106,6 @@ unsafe fn show_boot_status(row: usize, name: &str, success: bool) {
         }
 
         visual_delay(3);
-    }
-}
-
-/// # Safety
-///
-/// Writes directly to VGA memory.
-pub unsafe fn show_panic(message: &str) {
-    unsafe {
-        use super::output::VGA_BUFFER;
-
-        let vga = VGA_BUFFER as *mut u16;
-
-        let header = b"KERNEL PANIC";
-        for (i, &byte) in header.iter().enumerate() {
-            *vga.add(i) = 0x4F00 | (byte as u16);
-        }
-
-        let msg_bytes = message.as_bytes();
-        let max_len = msg_bytes.len().min(VGA_WIDTH);
-        for (i, &byte) in msg_bytes[..max_len].iter().enumerate() {
-            *vga.add(VGA_WIDTH + i) = 0x0F00 | (byte as u16);
-        }
     }
 }
 
