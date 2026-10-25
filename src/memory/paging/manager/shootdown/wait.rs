@@ -16,6 +16,8 @@
 
 use core::sync::atomic::Ordering;
 
+use super::abandoned::answer_for_abandoned;
+use super::clock::{budget, read_tsc};
 use super::handle::serve_for;
 use super::request::{
     REQ_PENDING_ACKS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS, SHOOTDOWN_TIMEOUT_MS,
@@ -23,21 +25,15 @@ use super::request::{
 };
 use super::slow::{fail_timed_out, warn_slow};
 
-/// `ms` as counter ticks, or `fallback` when the counter is not calibrated.
-fn budget(ms: u64, fallback: u64) -> u64 {
-    match crate::sys::timer::tsc::tsc_frequency() / 1000 * ms {
-        0 => fallback,
-        ticks => ticks,
-    }
-}
-
-pub(super) fn wait_for_acks() {
+/// Returns how many acknowledgements the waiter paid for abandoned targets.
+pub(super) fn wait_for_acks(selected: &[u64]) -> u32 {
     let start = read_tsc();
     let warn_at = start.wrapping_add(budget(SHOOTDOWN_WARN_MS, SHOOTDOWN_WARN_FALLBACK_TICKS));
     let deadline =
         start.wrapping_add(budget(SHOOTDOWN_TIMEOUT_MS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS));
     let mut warned = false;
     let me = crate::smp::percpu::current();
+    let mut answered_for = 0u32;
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
         /*
          * Keep answering while waiting. `SHOOTDOWN_LOCK` admits one round at
@@ -47,6 +43,7 @@ pub(super) fn wait_for_acks() {
          * relies on that. The pending flag makes a spurious call a no-op.
          */
         serve_for(me);
+        answered_for += answer_for_abandoned(selected);
         let now = read_tsc();
         if !warned && now > warn_at {
             warned = true;
@@ -55,17 +52,11 @@ pub(super) fn wait_for_acks() {
         if now > deadline {
             let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
             if outstanding == 0 {
-                return;
+                return answered_for;
             }
             fail_timed_out(outstanding);
         }
         core::hint::spin_loop();
     }
-}
-
-#[inline]
-fn read_tsc() -> u64 {
-    // SAFETY: eK@nonos.systems — rdtsc has no side effects and is
-    // unconditionally available on every x86_64 CPU NØNOS supports.
-    crate::arch::read_time_counter()
+    answered_for
 }

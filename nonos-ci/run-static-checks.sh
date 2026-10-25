@@ -5113,6 +5113,28 @@ else
     fail_with "check_declared_limits: the declared-limits list names a gap it may not"
 fi
 unset limits_out
+# An AP asked to park parks only at a checkpoint of bring_up, where it holds
+# no lock, before the boot CPU sends INIT; the self-test first, so a parser
+# that stopped seeing statements cannot pass by finding none.
+if park_out="$(python3 scripts/check_ap_checkpoints.py --self-test 2>&1 \
+    && python3 scripts/check_ap_checkpoints.py 2>&1)"; then
+    note ok "every AP bring-up step is followed by a checkpoint outside any lock (check_ap_checkpoints)"
+else
+    tail -n 5 <<< "${park_out}" >&2
+    fail_with "check_ap_checkpoints: an AP could park holding a lock, or a step has no checkpoint"
+fi
+unset park_out
+# The SMP boot proofs (shootdown trace, forced park, forced stall) are defined
+# alone and named by no profile, image list, make lane or workflow; the kernel
+# refuses them only beside production and release. Self-test first.
+if proofs_out="$(python3 scripts/check_proof_features.py --self-test 2>&1 \
+    && python3 scripts/check_proof_features.py 2>&1)"; then
+    note ok "no profile or image enables an SMP boot proof (check_proof_features)"
+else
+    tail -n 5 <<< "${proofs_out}" >&2
+    fail_with "check_proof_features: a profile, image or lane enables an SMP boot proof"
+fi
+unset proofs_out
 
 if [ "${fail}" -ne 0 ]; then
     echo
