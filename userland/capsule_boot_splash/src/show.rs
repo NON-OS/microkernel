@@ -21,6 +21,7 @@
 
 use nonos_libc::{mk_munmap, mk_surface_release, mk_uptime_ms, AttestStatus};
 
+use crate::attest_lines::Chain;
 use crate::follow::Size;
 use crate::look::Look;
 use crate::{layout_fit, logo, paint, say, scene, surface};
@@ -37,14 +38,14 @@ pub(crate) fn raise(
     comp: u32,
     size: Size,
     att: AttestStatus,
-    badge: Option<bool>,
+    chain: Option<Chain>,
 ) -> Result<(Up, Look), i32> {
     let (w, h, stride) = size;
     let (base, handle) = surface::setup(w, h, stride).ok_or(5)?;
     let up = Up { base, handle, size };
     let logo = logo::fetch::fetch(w, h);
     let fit = layout_fit::layout(logo.as_ref().map(|l| &l.spot), w, h);
-    let look = Look { att, badge, logo, fit, dma_unconfined: crate::dma::unconfined() };
+    let look = Look { att, chain, logo, fit, dma_unconfined: crate::dma::unconfined() };
     paint::splash(base, w, h, stride, &look);
     if scene::submit(comp, 3, handle, w, h).is_err() {
         give_back(&up);
