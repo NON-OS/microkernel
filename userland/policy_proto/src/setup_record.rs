@@ -23,6 +23,7 @@
 
 mod answers;
 mod check;
+mod era;
 mod kept;
 mod layout;
 mod names;
@@ -34,8 +35,8 @@ mod rules;
 pub use answers::Answers;
 pub use check::{check, check_record};
 pub use kept::{Host, Kept, Name, Tier};
-pub use layout::{ANSWERS_V3_LEN, ANSWERS_V4_LEN, ANSWERS_V5_LEN};
 pub use layout::{is_done, ANSWERS_LEN, ANSWERS_PATH, ANSWERS_V1_LEN, ANSWERS_V2_LEN};
+pub use layout::{ANSWERS_V3_LEN, ANSWERS_V4_LEN, ANSWERS_V5_LEN};
 pub use layout::{DONE, DONE_PATH, SETUP_DIR};
 pub use record::Record;
 pub use refused::Refused;
