@@ -12,7 +12,7 @@ M=[
  ("K8 the both-flags check removed", "src/boot/handoff/api/security/framebuffer.rs", "    if super::super::super::types::refusal(handoff.flags, handoff.fb.pixel_format).is_err() {\n        return Err(reject(FbGeometryReason::RefusedAndAvailable));\n    }\n", "", KP),
  ("K9 ENOTSUP with no word written", "src/syscall/dispatch/router/graphics_backend.rs", "let told = out_why == 0 || write_user_value(out_why, &why).is_ok();", "let told = true;", KP),
  ("K10 the loader never sets the flag", "nonos-bootloader/src/handoff/prepare/flags.rs", "    } else {\n        f |= flags::FB_REFUSED;\n    }", "    }", KP),
- ("K11 flag_names stops at 16", "src/boot/handoff/types/constants.rs", "&NAMES[..(64 - flags.leading_zeros() as usize).min(17)]", "&NAMES[..(64 - flags.leading_zeros() as usize).min(16)]", KP),
+ ("K11 flag_names stops at 16", "src/boot/handoff/types/flag_names.rs", "&NAMES[..(64 - flags.leading_zeros() as usize).min(17)]", "&NAMES[..(64 - flags.leading_zeros() as usize).min(16)]", KP),
  ("C1 said twice", N, "    if !said {", "    if !said || waited_ms < LOG_AFTER_MS {", CP),
  ("C2 the bound dropped", N, "!logged && waited_ms >= LOG_AFTER_MS", "!logged", CP),
  ("C3 logged before the bound", N, "!logged && waited_ms >= LOG_AFTER_MS", "!logged && waited_ms >= LOG_AFTER_MS / 2", CP),

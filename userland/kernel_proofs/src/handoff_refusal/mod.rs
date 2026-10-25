@@ -19,6 +19,8 @@
 
 #[path = "../../../../src/boot/handoff/types/constants.rs"]
 pub mod constants;
+#[path = "../../../../src/boot/handoff/types/flag_names.rs"]
+pub mod flag_names;
 #[path = "../../../../nonos-bootloader/src/handoff/types/constants.rs"]
 pub mod loader_constants;
 /// The loader's half: the word it makes and its own flag constants.
