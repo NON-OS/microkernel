@@ -679,7 +679,7 @@ done
 note ok "capsule_driver_virtio_gpu setup phases roll back prior broker grants"
 
 # Polled driver: the legacy pin is disabled in setup/pci.rs, no IRQ bind.
-if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0x1B9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
+if ! grep -q 'CAPSULE_REQUIRED_CAPS    := 0xB9018' userland/capsule_driver_virtio_gpu/Capsule.mk ||
    ! grep -q 'mk_device_claim' userland/capsule_driver_virtio_gpu/src/setup/claim.rs ||
    ! grep -rq 'mk_mmio_map' userland/capsule_driver_virtio_gpu/src/setup/mmio ||
    ! grep -qE '\| *MK_PCI_CMD_INTX_DISABLE' userland/capsule_driver_virtio_gpu/src/setup/pci.rs ||
