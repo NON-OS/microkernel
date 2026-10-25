@@ -1,0 +1,64 @@
+#!/bin/bash
+# S-13b booted proof, scratch only (pk-build): privacy/s13b-installer-gate at $1,
+# a profile s13bproof = the standard kernel features with capsule serial debug
+# kept (init spawns proof_io only then) and nonos-capsule-proof-io, whose
+# main.rs is replaced by s13b_proof_main.rs (IPC and Memory, no launcher).
+# Setup is walked with the D-13 keys and the boot is left at the desktop.
+SP=/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad
+PK=/home/user/privatekernel
+HEAD_SHA=${1:?the S-13 head}
+P=$SP/s13b; rm -rf $P; mkdir -p $P
+cd /home/user/pk-build && git reset -q --hard && git clean -qfd tools/nix mk userland/capsule_proof_io >/dev/null
+git checkout -q --detach "$HEAD_SHA" || { echo "NO SUCH HEAD"; exit 1; }
+git log --oneline -1 | tee $P/head.txt
+cp $SP/s13b_proof_main.rs userland/capsule_proof_io/src/main.rs
+python3 - <<'PY'
+p="tools/nix/config.nix"; s=open(p).read()
+a="    standard = {\n"
+add='''    s13bproof = {
+      about = "S-13's scratch proof: the full desktop with proof_io as an IPC-only non-launcher";
+      for = "S-13's boot";
+      privacy = "none: a test image";
+      kernel = [ "microkernel-full-gui" "nonos-capsule-proof-io" ];
+      loader = "standard";
+      drop = [ ];
+    };
+'''
+assert s.count(a)==1; open(p,"w").write(s.replace(a, add+a))
+PY
+git diff --stat | tee -a $P/head.txt
+git add -A -f tools/nix userland/capsule_proof_io >/dev/null
+nix develop --command python3 tools/nix/catalogues.py > $SP/s13b-cat.log 2>&1 || { echo CATALOGUE-FAILED; tail -20 $SP/s13b-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+nix develop --command python3 tools/nix/inputs.py >> $SP/s13b-cat.log 2>&1 || { echo INPUTS-FAILED; tail -20 $SP/s13b-cat.log; exit 1; }
+git add -A -f tools/nix >/dev/null
+NIX_CONFIG=$'max-jobs = 4\ncores = 4' python3 tools/nonos-dev-image --profile s13bproof > $SP/devimg-s13b.log 2>&1 || { echo IMAGE-FAILED; tail -40 $SP/devimg-s13b.log; exit 1; }
+IMG=/home/user/pk-build/target/dev/tree/target/release/s13bproof-dev/nonos.img
+sha256sum $IMG | tee -a $P/head.txt
+cd $PK
+rm -f target/qemu/qmp.sock
+q() { python3 $SP/walk-a/qmp.py "$@"; }
+echo "boot at $(date -u +%T)"
+nix develop --command python3 tools/nonos-qemu --image "$IMG" --tpm --fresh --headless --smp 4 --mem 6G --timeout 7000 \
+  --serial $P/serial.log --lane iommu=intel --lane usb-kbd --lane usb-tablet > $P/qemu.log 2>&1 &
+for i in $(seq 1 720); do grep -qa 'name=app.setup_wizard' $P/serial.log 2>/dev/null && break; sleep 5; done
+sleep 180
+q shot:$P/00-setup.png
+n=1
+step() { q "$@"; q shot:$P/$(printf %02d $n)-$LABEL.png; n=$((n+1)); }
+LABEL=layout   step ret sleep:4
+LABEL=name     step n o n o s ret sleep:4
+LABEL=timezone step ret sleep:5
+LABEL=mode     step ret sleep:5
+LABEL=network  step ret sleep:5
+LABEL=route    step ret sleep:5
+LABEL=privacy  step ret sleep:5
+LABEL=look     step ret sleep:6
+LABEL=qwen     step ret sleep:6
+LABEL=apps     step ret sleep:6
+LABEL=software step ret sleep:6
+LABEL=hostname step ret sleep:6
+LABEL=review   step ret sleep:6
+sleep 60
+q shot:$P/20-desktop.png
+echo "AT-DESKTOP $(date -u +%T)"
