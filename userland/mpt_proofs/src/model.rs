@@ -125,7 +125,7 @@ pub fn ioc(units: Vec<((u16, u16), Unit)>) -> Mpt {
         init: None,
         ios: Vec::new(),
         max_devices: 16,
-        frame_dwords: 32,
+        frame_dwords: 128,
         short_facts: false,
         refuse_init: false,
         stuck: false,
