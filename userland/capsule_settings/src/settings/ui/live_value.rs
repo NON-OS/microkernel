@@ -22,7 +22,7 @@ use crate::settings::state::State;
 use super::build_info::{ARCHITECTURE, GIT_SHA, TOOLCHAIN, VERSION};
 use super::live_bt::bt;
 use super::live_link::link;
-use super::live_net::{adapter, addr, link_state, station};
+use super::live_net::{adapter, addr, link_state, station, station_note};
 use super::live_wifi::{join, remember};
 use super::valbuf::ValBuf;
 
@@ -58,13 +58,12 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
     (b, tone)
 }
 
-/// The line under a live row's label, for the rows that carry one. The
-/// output device row always does, so its height does not change with what
-/// the hardware said: the reason sound cannot play is too long for the
-/// value column.
+/// The line under a live row's label, for what is too long for the value
+/// column. The output device row always has one, so its height holds.
 pub fn note(state: &State, live: Live) -> Option<&'static str> {
     match live {
         Live::AudioOutput => Some(audio_output::said(state.audio_output).2),
+        Live::Station => station_note(state),
         _ => None,
     }
 }
