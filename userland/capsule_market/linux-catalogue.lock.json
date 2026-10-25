@@ -12,6 +12,7 @@
   "lazygit": {"V": "0.41.0-r4", "C": "Q1jjvW9KQk45fZua7/zcqWGVF7lyE=", "S": "6733105", "B": "e8d4332e4a41f0bd69d47a13165888e12dd72309c619dfb830b407dd8a68c412"},
   "micro": {"V": "2.0.13-r6", "C": "Q1UsMUYZZpcJDY2QFUlpzHUohdAyM=", "S": "5016347", "B": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123"},
   "minisign": {"V": "0.11-r1", "C": "Q1AQ0YX5JOLIiUEbnZ0dQuROT2y6U=", "S": "13389", "B": "0f6ff7c67abd8c49a812cc39549fecb8f81540d2d4df100a961842692fd32c7e"},
+  "monero": {"V": "0.18.3.3-r1", "C": "Q1v/CGFq2eWNeXGhxrXPB7wOjLxv0=", "S": "24698520", "B": "74b6ff56897abccfa48ac0221f2c1a92dd6bb5ba23b4ff35f82f01bf7db78ff4"},
   "ncdu": {"V": "1.20-r0", "C": "Q1Gv0LAoqj+PHs0khOyHveedYVud4=", "S": "34596", "B": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24"},
   "nnn": {"V": "4.9-r0", "C": "Q18erg5ybXnvWq6caIG05shJMgEYQ=", "S": "61507", "B": "099d13c03f5e3ad2a2a604dd4f0354acd931f6673b182c03de816ace2d7fe19e"},
   "profanity": {"V": "0.14.0-r1", "C": "Q1Lpz+Dq84ad+3v4PZcoeRv+NUFvQ=", "S": "414700", "B": "aad57d028f143425a29598383104ae1a9ed624f0396774cfbe36dd7bdb1e0cf1"},
