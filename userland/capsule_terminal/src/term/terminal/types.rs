@@ -58,6 +58,7 @@ pub struct Terminal {
     /// Where the body's cells were drawn, and what the pointer is doing.
     pub(crate) cells: Option<super::pointer::CellGeom>,
     pub(crate) ptr: super::pointer::Pointer,
+    pub(crate) key_at: i64, // when the last key came, until its frame is painted
     /// When the window started, and when it next asks the shell for a
     /// handed command (take_handed.rs, handed::cadence).
     pub(crate) started_ms: i64,
