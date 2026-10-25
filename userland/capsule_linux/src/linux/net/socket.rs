@@ -34,7 +34,7 @@ pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
     }
     let domain = match family {
         /* A learn run opens one, so its connect is refused naming where it went. */
-        f if f == u64::from(AF_INET) && !inet_or_learning(guest) => {
+        f if f == u64::from(AF_INET) && !crate::linux::app::inet(guest) && !learning() => {
             return crate::linux::app::refuse(
                 "an internet socket",
                 "NET_ANON or NET_LISTEN_LO",
@@ -60,6 +60,6 @@ pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
     install(guest, id, flags)
 }
 
-fn inet_or_learning(guest: &Guest) -> bool {
-    crate::linux::app::inet(guest) || crate::linux::boxed::learning()
+fn learning() -> bool {
+    crate::linux::boxed::learning()
 }
