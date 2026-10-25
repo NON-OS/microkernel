@@ -22,6 +22,12 @@ type Responder = Box<dyn FnMut(u64, &[u8]) -> Vec<u8> + Send>;
 
 static RESPONDER: Mutex<Option<Responder>> = Mutex::new(None);
 static REPLIES: Mutex<Vec<Reply>> = Mutex::new(Vec::new());
+static LAST_TIMEOUT_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// The timeout the capsule's last `mk_ipc_call_timeout` asked for.
+pub fn last_timeout_ms() -> u64 {
+    LAST_TIMEOUT_MS.load(std::sync::atomic::Ordering::Relaxed)
+}
 
 const ENOENT: i64 = -2;
 
@@ -73,8 +79,9 @@ pub fn mk_ipc_call_timeout(
     req_len: usize,
     resp: *mut u8,
     cap: usize,
-    _timeout_ms: u64,
+    timeout_ms: u64,
 ) -> i64 {
+    LAST_TIMEOUT_MS.store(timeout_ms, std::sync::atomic::Ordering::Relaxed);
     mk_ipc_call(endpoint, req, req_len, resp, cap)
 }
 

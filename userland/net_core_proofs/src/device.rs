@@ -25,8 +25,16 @@ pub mod batch_call;
 pub mod batch_frames;
 #[path = "../../capsule_net_core/src/device/batch_served.rs"]
 pub mod batch_served;
+#[path = "../../capsule_net_core/src/device/learned_bound.rs"]
+pub mod learned_bound;
+#[path = "../../capsule_net_core/src/device/rx_learned.rs"]
+pub mod rx_learned;
 #[path = "../../capsule_net_core/src/device/rx_seq.rs"]
 mod rx_seq;
+#[path = "../../capsule_net_core/src/device/rx_summary.rs"]
+pub mod rx_summary;
 
+#[cfg(test)]
+mod learned_tests;
 #[cfg(test)]
 mod probe_tests;
