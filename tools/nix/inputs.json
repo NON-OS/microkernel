@@ -9431,6 +9431,7 @@
    "userland/capsule_terminal/src/term/history/expand_designator.rs",
    "userland/capsule_terminal/src/term/line",
    "userland/capsule_terminal/src/term/select.rs",
+   "userland/capsule_terminal/src/term/terminal/agentproof/job.rs",
    "userland/capsule_terminal/src/term/theme/ansi.rs",
    "userland/capsule_terminal/src/term/util/format_u64.rs",
    "userland/capsule_terminal/src/term/util/is_space.rs",
