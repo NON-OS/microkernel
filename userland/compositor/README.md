@@ -37,6 +37,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   that first CAPS waits up to 3 s (`display/call.rs`'s START_MS): a driver is
   announced as it is spawned, before its device is up, and the 250 ms every
   later CAPS gets left the call unanswered. On the
+  wire path it then asks SURFACE, which makes it the primary's owner (a
   restarted compositor gets its surface back), attaches the primary,
   sends each frame's damaged rectangles in one FLUSH (up to 15), polls STATE every 500 ms with
   the driver's pid looked up again, and on a new primary attaches it,
@@ -59,6 +60,7 @@ The handbook page is [Compositor](../../docs/handbook/desktop/compositor.md).
   screen pixel the canvas pixel its centre falls in), and the pointer and
   damage are mapped through the same arithmetic (`display/scale_rule.rs`).
   The host is followed (G 6, `display/follow.rs`'s FOLLOW_HOST, Decision 15
+  as the lead recommends it): on a steady driver with MODE_SET the poll asks
   the preferred mode at start, then any size the host has wanted for 250 ms
   (STATE's hint or a DISPLAY_HINT), put through `fit`; one MODE_SET, the new
   primary adopted at once and the canvas refitted; a size asked once is not
@@ -170,8 +172,11 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
   not registered until one answers.
 - `mk_surface_attach` on a layer's handle fails for 60 frames in a row:
   the layer is dropped and its rectangle repainted.
-- Wire calls and FLUSH use a 100 ms reply timeout, so a lost
-  reply costs a late frame; `scanout_error_reported` notes a failed
+- A FLUSH waits up to 400 ms (`display/call.rs`'s FLUSH_MS): a whole
+  1920x1080 frame costs virtio-gpu 18 ms (median, TCG), but up to 327 ms
+  while capsules spawn and the driver waits for a processor. CURSOR keeps
+  100 ms, setup and polls 250 ms, and the first CAPS 3 s. A lost reply costs
+  a late frame; `scanout_error_reported` notes a failed
   present once and the loop continues. A refused FLUSH leaves its
   rectangle damaged for the next frame; ESTALE also has the next pass ask
   SURFACE again.
@@ -260,6 +265,7 @@ must produce a signed ELF whose SHA matches the embedded manifest
 - One display, number 0.
 - A client can still submit another process's surface handle as its own
   layer; the compositor does not check who shared it, and the kernel's
+  attach names no receiver (reported to the lead; the fix is kernel-side,
   `mk_surface_share_to`).
 - No op reads back pixels, a surface or a handle to a client; the screen's
   pixels reach only a screen capture holder's own surface, with the band's

@@ -54,7 +54,7 @@ pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> A
     clear(guest);
     match load_over(guest, pid, &program, &env) {
         Some(()) => {
-            guest.app = guest.app.exec(&program.app);
+            guest.app = guest.app.exec(&crate::linux::boxed::exec_program(program.app));
             released(guest, pid);
             Answer::Park
         }

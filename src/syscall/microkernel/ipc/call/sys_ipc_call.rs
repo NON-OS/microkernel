@@ -16,7 +16,7 @@
 
 use crate::process::{accounting, current_pid};
 use crate::services::registry::lookup_port;
-use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
+use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_SRCH};
 use crate::syscall::microkernel::narrow::u32_arg;
 
 use super::super::pending_reply;
@@ -48,8 +48,10 @@ pub fn sys_ipc_call(
     let endpoint = u32_arg(ep).and_then(lookup_port);
     let endpoint_pid = endpoint.as_ref().map(|endpoint| endpoint.pid);
     if let Some(server_pid) = endpoint_pid {
-        if !pending_reply::push(server_pid, pid, inbox.clone(), token) {
-            return ERRNO_BUSY;
+        match pending_reply::push(server_pid, pid, inbox.clone(), token) {
+            Ok(()) => {}
+            Err(pending_reply::Refused::Busy) => return ERRNO_BUSY,
+            Err(pending_reply::Refused::Gone) => return ERRNO_SRCH,
         }
     }
     let send_result = send_with_correlation(ep, req, req_len, token);
