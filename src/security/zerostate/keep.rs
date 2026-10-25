@@ -22,6 +22,7 @@
 //! capsule behaving. Keeping starts off at every boot and is turned on only
 //! by the policy capsule, the moment `Persistent` becomes true.
 
+use alloc::vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use super::keep_rule::{after, may_arm, may_write, Policy};
@@ -47,12 +48,22 @@ pub(crate) fn arm(on: bool) -> bool {
     granted
 }
 
-/// True when a write may reach the store. A refusal is said on serial, so a
-/// boot test can find it.
-pub(crate) fn store_write_allowed() -> bool {
-    if may_write(ARMED.load(Ordering::Acquire)) {
+/// True when `new` may be written at store sector `lba`. Before keeping is
+/// on, the sectors are read first, from the disk the write will land on, and
+/// only an erase passes; a read that fails refuses. Each answer that is not
+/// a plain kept write is said on serial, so a boot test can find it.
+pub(crate) fn store_write_allowed(lba: u64, new: &[u8]) -> bool {
+    let armed = ARMED.load(Ordering::Acquire);
+    if armed {
         return true;
     }
-    crate::sys::serial::print(b"[ZS] store write refused: this boot keeps nothing\n");
-    false
+    let mut old = vec![0u8; new.len()];
+    let read = crate::hardware::block_device::read_store(lba, &mut old).is_ok();
+    let ok = read && may_write(armed, &old, new);
+    crate::sys::serial::print(match (read, ok) {
+        (_, true) => b"[ZS] store erase on a boot that keeps nothing\n",
+        (false, _) => b"[ZS] store write refused: the sectors could not be read\n",
+        (true, false) => b"[ZS] store write refused: this boot keeps nothing\n",
+    });
+    ok
 }

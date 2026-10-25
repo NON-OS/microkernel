@@ -27,4 +27,6 @@ pub mod sweep;
 #[cfg(test)]
 mod arm_tests;
 #[cfg(test)]
+mod keep_tests;
+#[cfg(test)]
 mod rule_tests;

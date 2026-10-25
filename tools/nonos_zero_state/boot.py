@@ -27,6 +27,9 @@ sys.path.insert(0, str(ROOT / "userland/capsule_install/e2e"))
 from qmp import Qmp  # noqa: E402
 
 QMP = ROOT / "target/qemu/qmp.sock"
+# Held at power-off for the dump, on the IOMMU lane the boot gate uses, with
+# a keyboard and a pointer setup and the desktop answer.
+LANES = ("hold-at-off", "iommu=intel", "usb-kbd", "usb-tablet")
 
 
 class Boot:
@@ -34,7 +37,9 @@ class Boot:
         serial.write_text("")
         QMP.unlink(missing_ok=True)
         args = ["--image", str(image), "--stick", "--tpm", "--headless", "--mem", mem,
-                "--serial", str(serial), "--lane", "hold-at-off"]
+                "--serial", str(serial)]
+        for lane in LANES:
+            args += ["--lane", lane]
         self.proc = subprocess.Popen(["nix", "run", ".#qemu", "--", *args], cwd=ROOT,
                                      stdout=open(log, "w"), stderr=subprocess.STDOUT)
         self.q = Qmp(str(QMP), wait=900)
