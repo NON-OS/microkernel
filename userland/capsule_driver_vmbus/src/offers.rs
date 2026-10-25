@@ -55,6 +55,10 @@ impl Offers {
         self.slots[i].take()
     }
 
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut Offer> {
+        self.slots.iter_mut().flatten()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = &Offer> {
         self.slots.iter().flatten()
     }

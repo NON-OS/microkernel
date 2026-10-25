@@ -1,8 +1,9 @@
 # vmbus — the VMBus core for Hyper-V guests (and QEMU's vmbus-bridge): the
 # VMBus root claimed, one DMA grant for the contact's pages, the SynIC
 # reached through the kernel's MkHv* calls, polled. Contacts the host,
-# takes its channel offers and keeps the bus; opens no channel. Serves
-# nothing yet; the kernel holds the endpoint to no capsule.
+# takes its channel offers and keeps the bus; gives storage and network
+# channels records for their drivers (MkHvChannel) and opens none itself.
+# Serves nothing; the kernel holds the endpoint to no capsule.
 
 CAPSULE_SLUG             := driver-vmbus
 CAPSULE_HANDLE           := driver.vmbus0

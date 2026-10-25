@@ -24,6 +24,8 @@ mod vmbus;
 
 pub use backdoor::mk_hv_backdoor;
 pub use vmbus::{
-    mk_hv_events, mk_hv_post, mk_hv_recv, mk_hv_signal, MK_HV_EVENT_WORDS, MK_HV_MESSAGE_BYTES,
-    MK_VMBUS_DEVICE, MK_VMBUS_VENDOR,
+    mk_hv_channel, mk_hv_events, mk_hv_post, mk_hv_recv, mk_hv_signal, MK_HV_EVENT_WORDS,
+    MK_HV_MESSAGE_BYTES, MK_VMBUS_CHANNEL_IDE, MK_VMBUS_CHANNEL_KEYBOARD, MK_VMBUS_CHANNEL_MOUSE,
+    MK_VMBUS_CHANNEL_NETWORK, MK_VMBUS_CHANNEL_SCSI, MK_VMBUS_CHANNEL_VIDEO, MK_VMBUS_DEVICE,
+    MK_VMBUS_VENDOR,
 };

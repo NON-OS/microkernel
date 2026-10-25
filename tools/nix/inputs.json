@@ -30,6 +30,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -976,6 +979,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -1123,6 +1129,7 @@
    "src/security/attest_policy/record.rs",
    "src/security/boot/loader_check/record.rs",
    "userland/attest_doc_proofs",
+   "userland/capsule_about/src/about/data/dma_words.rs",
    "userland/capsule_about/src/about/data/doc_parse/layout.rs",
    "userland/capsule_about/src/about/data/doc_parse/parse.rs",
    "userland/capsule_about/src/about/data/doc_parse/types.rs",
@@ -1283,6 +1290,9 @@
   "include": [
    ".cargo",
    "src/arch/aarch64/boot/memory/dma_place.rs",
+   "src/arch/aarch64/boot/memory/image.rs",
+   "src/arch/aarch64/boot/memory/span.rs",
+   "src/arch/aarch64/mmu/image_bounds.rs",
    "userland/boot_memory_proofs"
   ],
   "md": [],
@@ -1528,6 +1538,7 @@
  },
  "userland/capsule_app_store": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -1561,6 +1572,19 @@
   "signed": [
    "nonos-data/trust/COMMIT"
   ]
+ },
+ "userland/capsule_attack": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/services/registry/displays.rs",
+   "src/services/registry/nics.rs",
+   "userland/capsule_attack",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
  },
  "userland/capsule_attest": {
   "exclude": [],
@@ -3129,6 +3153,7 @@
  },
  "userland/capsule_market": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3435,7 +3460,9 @@
   "signed": []
  },
  "userland/capsule_payment": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
@@ -3830,6 +3857,7 @@
  },
  "userland/capsule_terminal": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -3944,6 +3972,7 @@
  },
  "userland/capsule_wallet_nonos": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -4347,6 +4376,7 @@
  },
  "userland/demo_screen_proofs": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
@@ -4520,6 +4550,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/nox_settle.manifest.bin",
    "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
    "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
@@ -4535,6 +4568,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_net_dhcp/src/dora",
    "userland/capsule_net_dhcp/src/protocol",
    "userland/capsule_net_dhcp/src/server/parse_req.rs",
    "userland/capsule_net_dhcp/src/server/respond.rs",
@@ -4742,6 +4776,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -5674,9 +5711,11 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/security/capsule_manifest/schema/constants.rs",
    "tools/nonos-pack/core",
    "userland/capsule_installer/src/protocol",
    "userland/capsule_installer/src/server/discover.rs",
+   "userland/capsule_installer/src/server/dispatch.rs",
    "userland/capsule_installer/src/server/handlers",
    "userland/installer_proofs",
    "userland/libc/src/capsule_load.rs",
@@ -6038,6 +6077,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -6193,6 +6235,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -6333,10 +6378,13 @@
   "signed": []
  },
  "userland/market_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "nonos-data/market/index.bin",
+   "src/security/market_capsule/client/linux_policy_wire.rs",
    "userland/capsule_app_store/src/store/asked.rs",
    "userland/capsule_app_store/src/store/asked_label.rs",
    "userland/capsule_app_store/src/store/channel_held.rs",
@@ -6374,9 +6422,12 @@
    "userland/capsule_market/src/install_ready/checks.rs",
    "userland/capsule_market/src/install_ready/market.rs",
    "userland/capsule_market/src/install_ready/pin.rs",
+   "userland/capsule_market/src/install_ready/ready.rs",
    "userland/capsule_market/src/protocol/decode.rs",
    "userland/capsule_market/src/protocol/header.rs",
    "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
+   "userland/capsule_market/src/server/handlers/get_linux_policy/answer.rs",
+   "userland/capsule_market/src/server/handlers/get_linux_policy/encode.rs",
    "userland/capsule_market/src/server/handlers/get_release/encode_release.rs",
    "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
    "userland/capsule_market/src/server/lp/pair.rs",
@@ -6413,7 +6464,9 @@
   ]
  },
  "userland/market_proto": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "userland/market_proto"
@@ -6480,7 +6533,9 @@
   "signed": []
  },
  "userland/model_fetch_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
@@ -7775,6 +7830,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -8001,6 +8059,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -8548,6 +8609,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -8702,6 +8766,25 @@
   "md": [],
   "signed": []
  },
+ "userland/spawn_bound_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types",
+   "src/kernel_core",
+   "src/process/core/table/ambient.rs",
+   "src/security/capsule_manifest/verify/caps_bits.rs",
+   "src/syscall/microkernel/tool_run.rs",
+   "src/userspace/init/entry.rs",
+   "src/userspace/tool_capsules/bound.rs",
+   "src/userspace/tool_capsules/model_fetch/spawn.rs",
+   "src/userspace/tool_capsules/registry.rs",
+   "src/userspace/tool_capsules/run.rs",
+   "userland/spawn_bound_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/spectre_proofs": {
   "exclude": [],
   "include": [
@@ -8785,6 +8868,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -9167,6 +9253,9 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/attack.manifest.bin",
+   "nonos-data/trust/capsules/attack.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/attack.zk_trailer.bin",
    "nonos-data/trust/capsules/driver_ac97.manifest.bin",
    "nonos-data/trust/capsules/driver_ac97.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_ac97.zk_trailer.bin",
@@ -10142,11 +10231,13 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "src/arch/x86_64/hypervisor/hv/channels.rs",
    "src/arch/x86_64/hypervisor/hv/regs.rs",
    "src/arch/x86_64/hypervisor/hv/vmbus_out.rs",
    "userland/capsule_driver_vmbus/src/connect.rs",
    "userland/capsule_driver_vmbus/src/constants.rs",
    "userland/capsule_driver_vmbus/src/discover.rs",
+   "userland/capsule_driver_vmbus/src/give.rs",
    "userland/capsule_driver_vmbus/src/guid.rs",
    "userland/capsule_driver_vmbus/src/hv.rs",
    "userland/capsule_driver_vmbus/src/msg.rs",
@@ -10252,7 +10343,9 @@
   "signed": []
  },
  "userland/wallet_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/market_proto/fuzz"
+  ],
   "include": [
    ".cargo",
    "src/userspace/capsule_wallet_nonos/spawn.rs",

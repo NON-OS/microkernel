@@ -25,11 +25,11 @@ const UNCONFINED: &str = include_str!("../../../../src/hardware/broker/confine/u
 
 #[test]
 fn every_claim_no_unit_confines_asks_the_verdict_with_port_only() {
-    let asked = "Ok(()), port_only, (OPT_IN, PRODUCTION))";
-    assert!(ATTACH.contains(&format!("verdict(false, false, {asked}")));
-    assert!(ATTACH.contains(&format!("let v = verdict(true, false, {asked};")));
+    let asked = "port_only, (OPT_IN, PRODUCTION), posture())";
+    assert!(ATTACH.contains(&format!("verdict(false, false, Ok(()), {asked}")));
+    assert!(ATTACH.contains(&format!("let v = verdict(true, false, no_unit(), {asked};")));
     assert!(ATTACH.contains("return Ok(unconfined(device_id, v)?);"));
-    let held = "let v = verdict(true, true, Err(true), port_only, (OPT_IN, PRODUCTION));";
+    let held = "let v = verdict(true, true, Err(true), port_only, (OPT_IN, PRODUCTION), posture());";
     assert!(CAPSULE.contains(held));
     assert!(CAPSULE.contains("unconfined(device_id, v)?;"));
     // The verdict applied past the external-port refusal (unconfined.rs).

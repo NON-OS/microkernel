@@ -54,7 +54,7 @@ fn one_call_refused_twice_as_one_kind_is_one_refusal() {
 #[test]
 fn refusals_before_the_first_call_each_count() {
     let mut t = Tally::default();
-    [b"a", b"b"].iter().for_each(|e| t.note(Kind::Exec, *e));
+    [&b"a"[..], b"b"].iter().for_each(|p| t.note(Kind::Exec, p));
     assert_eq!(t.count(Kind::Exec), 2);
 }
 

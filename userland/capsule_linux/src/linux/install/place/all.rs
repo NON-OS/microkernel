@@ -42,7 +42,7 @@ pub fn unpack(files: &Verified, name: &str, chosen: bool, merged: bool) -> Resul
     let mut links: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
     for entry in &archive.entries {
         match &entry.kind {
-            Kind::File => match one(entry) {
+            Kind::File => match one(entry, chosen && super::super::market::hold::held()) {
                 Placed::Landed(at) => landed.push(at),
                 Placed::Failed => failed += 1,
                 Placed::Refused => {}

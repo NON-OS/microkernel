@@ -103,11 +103,14 @@ fn the_ring_keeps_order_and_refuses_when_full() {
     let mut r = Ring::new();
     assert!(r.pop().is_none());
     for i in 0..RING_SLOTS {
+        assert!(!r.full());
         assert!(r.push(&slot(i as u32 + 1, 0, 0)));
     }
+    assert!(r.full(), "the slot is left for the host to wait on");
     assert!(!r.push(&slot(99, 0, 0)), "full: the message stays in the slot");
     for i in 0..RING_SLOTS / 2 {
         assert_eq!(r.pop().unwrap()[0], i as u8 + 1);
+        assert!(!r.full());
     }
     for i in 0..RING_SLOTS / 2 {
         assert!(r.push(&slot(100 + i as u32, 0, 0)), "room again, wrapping");

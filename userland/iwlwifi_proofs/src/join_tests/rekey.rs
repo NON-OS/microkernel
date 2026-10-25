@@ -4,13 +4,13 @@
 use nonos_wifi_core::rsn::JoinPolicy;
 use nonos_wifi_core::wpa::akm::Akm;
 
-use crate::ap_sim::{gtk_kde, group1};
+use super::drive::run_join;
+use crate::ap_sim::{group1, gtk_kde};
 use crate::gen3::join::exchange::Progress;
 use crate::gen3::join::link::Port;
 use crate::gen3::join::run::join;
 use crate::gen3_model::{reply, Seen};
 use crate::join_rig::*;
-use super::drive::run_join;
 
 #[test]
 fn a_group_rekey_is_answered_protected_and_moves_the_key_in_the_firmware() {
@@ -38,7 +38,11 @@ fn a_group_rekey_is_answered_protected_and_moves_the_key_in_the_firmware() {
         assert_eq!(j.keys.group, Some(2));
     });
     let keys = r.command_payloads(0x5, 0x18);
-    assert_eq!((keys[2][0], keys[2][8], &keys[2][16..32]), (1, 2, &[0x77u8; 16][..]), "the new key at index 2");
+    assert_eq!(
+        (keys[2][0], keys[2][8], &keys[2][16..32]),
+        (1, 2, &[0x77u8; 16][..]),
+        "the new key at index 2"
+    );
     assert_eq!((keys[3][0], keys[3][8]), (3, 1), "then the old one at index 1 removed");
 }
 
@@ -51,13 +55,14 @@ fn a_session_that_ends_before_the_port_opens_is_asked_for_again() {
         // The session ends as soon as it started.
         let mut p = Progress::default();
         let first = std::cell::Cell::new(true);
-        r.model.s.borrow_mut().responder = Some(Box::new(move |c: &Seen| match (c.group, c.cmd, c.payload.get(4)) {
-            (0x3, 0x05, Some(1)) if first.replace(false) => {
-                vec![reply(c, vec![]), session_notif(1, 1), session_notif(1, 0)]
-            }
-            (0x3, 0x05, Some(1)) => vec![reply(c, vec![]), session_notif(1, 1)],
-            _ => vec![reply(c, vec![])],
-        }));
+        r.model.s.borrow_mut().responder =
+            Some(Box::new(move |c: &Seen| match (c.group, c.cmd, c.payload.get(4)) {
+                (0x3, 0x05, Some(1)) if first.replace(false) => {
+                    vec![reply(c, vec![]), session_notif(1, 1), session_notif(1, 0)]
+                }
+                (0x3, 0x05, Some(1)) => vec![reply(c, vec![]), session_notif(1, 1)],
+                _ => vec![reply(c, vec![])],
+            }));
         let j = join(fw, &request(JoinPolicy::ANY), &beacon, 6, 3, 3, &mut p).expect("joined");
         assert!(j.link.station.is_associated());
     });

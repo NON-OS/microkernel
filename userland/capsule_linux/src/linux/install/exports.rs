@@ -18,8 +18,8 @@
 
 pub use super::apps_run::launch;
 pub use super::family::install;
+pub use super::market::arg::{market_arg, NotMarket, MARKET_LEN};
 pub use super::market::install_from;
-pub use super::market_arg::{market_arg, NotMarket, MARKET_LEN};
 pub use super::record::program::recorded;
 pub use super::remove::package::uninstall;
 pub use super::why::Why;
