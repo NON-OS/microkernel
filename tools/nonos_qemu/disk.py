@@ -163,8 +163,24 @@ def lay_models(data, tiers):
             sys.exit(f"nonos-qemu: nonos-qwen-tier.py {verb} {' '.join(tiers)} failed ({rc})")
 
 
-def prepare(source, esp_dir, data, fresh, tiers):
-    esp(source, esp_dir)
+def vars_store(target, pristine, keep=False):
+    """The firmware's variable store for this boot: the last boot's as it left
+    it, with keep, else a new copy of the pristine one."""
+    store_ = os.path.join(target, "OVMF_VARS.fd")
+    if keep and os.path.exists(store_):
+        return store_
+    if keep:
+        sys.exit("nonos-qemu: --keep-machine and no variable store from a last boot")
+    shutil.copyfile(pristine, store_)
+    os.chmod(store_, 0o644)
+    return store_
+
+
+def prepare(source, esp_dir, data, fresh, tiers, keep=False):
+    if not keep:
+        esp(source, esp_dir)
+    elif not os.path.isdir(esp_dir):
+        sys.exit("nonos-qemu: --keep-machine and no system partition from a last boot")
     if needs_copy(source, data, fresh):
         print(f"nonos-qemu: a new data disk from {source}", flush=True)
         store(source, data)
