@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The fresh-terminal splash: the NONOS block banner over a crisp neofetch-style
-//! panel of system facts. All text is anti-aliased TrueType.
+//! The fresh-terminal splash: the NONOS banner over the system's facts, the 3D
+//! emblem beside them. All text is anti-aliased TrueType.
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_uptime_ms;
@@ -25,14 +25,19 @@ use super::fetch_uptime::uptime_str;
 use super::user_host::draw_fetch_id;
 use crate::term::theme::types::Theme;
 
+#[path = "fetch_emblem.rs"]
+pub mod fetch_emblem;
 #[path = "fetch_palette.rs"]
 mod fetch_palette;
 #[path = "fetch_row.rs"]
 mod fetch_row;
+use core::cell::RefCell;
+use fetch_emblem::{beside, Art};
 use fetch_palette::draw_palette;
 use fetch_row::{row, BANNER_PAD, INFO_PX, ROW, RULE_W};
 
-pub fn draw_fetch(fb: &mut PaintBuffer, x: u32, body_y: u32, right: u32, t: &Theme) {
+pub fn draw_fetch(fb: &mut PaintBuffer, at: (u32, u32, u32), t: &Theme, art: &RefCell<Art>) {
+    let (x, body_y, right) = at;
     let ix = x as i32;
     let edge = right as i32;
     let after = draw_banner(fb, ix, body_y as i32 + BANNER_PAD, edge, t);
@@ -67,4 +72,5 @@ pub fn draw_fetch(fb: &mut PaintBuffer, x: u32, body_y: u32, right: u32, t: &The
     y += ROW + 6;
 
     draw_palette(fb, ix as u32, y as u32);
+    beside(fb, (ix as u32 + 470, after as u32 + 22, right), t.bg & 0x00FF_FFFF, art);
 }

@@ -14,61 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The NONOS emblem `neofetch` draws: a Ø in three dimensions, an image of
-//! 40 by 30 pixels drawn two to a cell with half blocks in 24-bit colour. The
-//! face is lit from the upper left, its edges caught by the light, and the
-//! side falls back to the lower right; every edge is sampled four by four
-//! and blended into the theme's background, so it has no stair steps.
+//! The NONOS emblem: the logo's slashed zero in three dimensions, 34 by 30
+//! pixels drawn two to a cell in half blocks. The zero is tall with flattened
+//! sides, the slash slim and just past it; edges are sampled four by four.
 
-/// Width in pixels, and so in cells; height in pixels, two to a row.
-pub const EMBLEM_W: usize = 40;
+pub const EMBLEM_W: usize = 34;
 pub const EMBLEM_H: usize = 30;
 
-const CX: f32 = 18.5;
+/// A half block is about 7 by 10 screen pixels; the shape is in screen pixels.
+const PW: f32 = 7.0;
+const PH: f32 = 10.0;
+const CX: f32 = 15.5;
 const CY: f32 = 14.0;
-/// The ring's radii and thickness, across and down. A half block is about
-/// seven pixels wide and ten high, so the figures across are larger.
-const RX: f32 = 15.5;
-const RY: f32 = 11.5;
-const RING_X: f32 = 4.6;
-const RING_Y: f32 = 3.4;
-/// The slash: its direction (50 degrees above the horizontal), half width,
-/// and half length, past the ring at both ends.
-const UX: f32 = 0.642_8;
-const UY: f32 = -0.766_0;
-const SLASH_W: f32 = 1.94;
-const SLASH_L: f32 = 15.8;
+/// The zero's half width and half height, and its stroke.
+const ZW: f32 = 84.0;
+const ZH: f32 = 124.0;
+const STROKE: f32 = 22.0;
+/// The slash: its direction (52 degrees up), half width and half length.
+const UX: f32 = 0.615_7;
+const UY: f32 = -0.788_0;
+const SLASH_W: f32 = 10.0;
+const SLASH_L: f32 = 150.0;
 /// How far the side reaches in pixels down; 1.4 times that across, 45 degrees.
 pub const DEPTH: f32 = 3.0;
 const ACROSS: f32 = 1.4;
 
-/// Whether a point is on the Ø's face.
-pub fn inside(px: f32, py: f32) -> bool {
-    let (dx, dy) = (px - CX, py - CY);
-    let outer = (dx / RX) * (dx / RX) + (dy / RY) * (dy / RY);
-    let (ix, iy) = (RX - RING_X, RY - RING_Y);
-    let inner = (dx / ix) * (dx / ix) + (dy / iy) * (dy / iy);
-    let along = dx * UX + dy * UY;
-    let across = -dx * UY + dy * UX;
-    (outer <= 1.0 && inner >= 1.0) || (abs(across) <= SLASH_W && abs(along) <= SLASH_L)
+/// Within the outline halfway between an ellipse and a squircle:
+/// 0.45 (u + v) + 0.55 sqrt(u² + v²) <= 1, with no square root taken.
+fn within(x: f32, y: f32, a: f32, b: f32) -> bool {
+    let (u, v) = ((x / a) * (x / a), (y / b) * (y / b));
+    let room = (1.0 - 0.45 * (u + v)) / 0.55;
+    room >= 0.0 && u * u + v * v <= room * room
 }
 
-fn abs(v: f32) -> f32 {
-    if v < 0.0 {
-        -v
-    } else {
-        v
-    }
+/// Whether a point, in the emblem's pixels, is on the face.
+pub fn inside(px: f32, py: f32) -> bool {
+    let (x, y) = ((px - CX) * PW, (py - CY) * PH);
+    let zero = within(x, y, ZW, ZH) && !within(x, y, ZW - STROKE, ZH - STROKE);
+    let (along, across) = (x * UX + y * UY, -x * UY + y * UX);
+    zero || (across.abs() <= SLASH_W && along.abs() <= SLASH_L)
 }
 
 /// How much of pixel `(x, y)` the face covers when moved by `shift` down and
 /// to the right, in sixteenths.
 pub fn cover(x: i32, y: i32, shift: f32) -> u32 {
+    cover_at(x as f32, y as f32, (1.0, 1.0), shift)
+}
+
+/// The same for any area: the `size` across and down from `(fx, fy)`, in the
+/// emblem's pixels, so the splash can draw it at the screen's own resolution.
+pub fn cover_at(fx: f32, fy: f32, size: (f32, f32), shift: f32) -> u32 {
     let mut n = 0;
     for i in 0..4 {
         for j in 0..4 {
-            let px = x as f32 - shift * ACROSS + (i as f32 + 0.5) / 4.0;
-            n += u32::from(inside(px, y as f32 - shift + (j as f32 + 0.5) / 4.0));
+            let px = fx - shift * ACROSS + size.0 * (i as f32 + 0.5) / 4.0;
+            n += u32::from(inside(px, fy - shift + size.1 * (j as f32 + 0.5) / 4.0));
         }
     }
     n
