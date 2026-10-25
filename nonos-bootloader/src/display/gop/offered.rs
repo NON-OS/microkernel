@@ -16,6 +16,7 @@
 
 use super::mode::linear_bgr;
 use super::pick::Offered;
+use super::refusal_word::mask_bits;
 use super::state::{NO_FB_BAD_GEOMETRY, NO_FB_BITMASK, NO_FB_BLT_ONLY};
 use alloc::vec::Vec;
 use uefi::proto::console::gop::{GraphicsOutput, PixelFormat};
@@ -25,18 +26,26 @@ pub(super) struct Modes {
     pub offered: Vec<Offered>,
     pub saw_blt_only: bool,
     pub saw_bitmask: bool,
+    /// The bits per pixel of the deepest PixelBitMask mode refused, or 0.
+    pub bitmask_bpp: u8,
 }
 
 pub(super) fn offered_modes(gop: &GraphicsOutput) -> Modes {
     let mut offered = Vec::new();
     let mut saw_blt_only = false;
     let mut saw_bitmask = false;
+    let mut bitmask_bpp = 0u8;
     for idx in 0..gop.modes().len() as u32 {
         let Ok(mode) = gop.query_mode(idx) else { continue };
         let info = mode.info();
         match info.pixel_format() {
             PixelFormat::BltOnly => saw_blt_only = true,
-            PixelFormat::Bitmask if linear_bgr(info).is_none() => saw_bitmask = true,
+            PixelFormat::Bitmask if linear_bgr(info).is_none() => {
+                saw_bitmask = true;
+                if let Some(m) = info.pixel_bitmask() {
+                    bitmask_bpp = bitmask_bpp.max(mask_bits(m.red, m.green, m.blue, m.reserved));
+                }
+            }
             _ => {}
         }
         if linear_bgr(info).is_none() {
@@ -45,7 +54,7 @@ pub(super) fn offered_modes(gop: &GraphicsOutput) -> Modes {
         let (w, ht) = info.resolution();
         offered.push(Offered { index: idx, width: w as u32, height: ht as u32 });
     }
-    Modes { offered, saw_blt_only, saw_bitmask }
+    Modes { offered, saw_blt_only, saw_bitmask, bitmask_bpp }
 }
 
 impl Modes {

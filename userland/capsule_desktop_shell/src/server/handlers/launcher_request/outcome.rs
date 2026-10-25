@@ -21,10 +21,12 @@ use core::sync::atomic::Ordering;
 
 use nonos_libc::mk_spawn_instance;
 
-use super::focus::focus_service;
+use super::focus::{focus_pid, focus_service};
+use super::frame::lookup_pid;
 use super::refusal::{is_single_instance, REFUSED};
 use crate::state::apps::LauncherApp;
 use crate::state::says::{NOTHING_REFUSED, NOT_ASKED};
+use crate::state::taskbar::{first_open, FirstOpen};
 
 /// What a dock-launch click actually did, so the caller can surface it on
 /// screen. `Queued` means the kernel accepted a new-window spawn; `Focused`
@@ -50,6 +52,10 @@ pub fn request(app: &LauncherApp) -> LaunchOutcome {
 /// Launch, or focus if already running, whatever capsule owns `service`. Used
 /// by both the dock (a desktop app) and the Launchpad (an installed tool).
 pub fn request_service(service: &[u8]) -> LaunchOutcome {
+    // The app's boot process takes its first window (state/taskbar/first_open.rs).
+    if first_open(lookup_pid(service), focus_pid) == FirstOpen::Woken {
+        return LaunchOutcome::Queued;
+    }
     let rc = if is_single_instance(service) { NOT_ASKED } else { mk_spawn_instance(service) };
     if rc >= 0 {
         return LaunchOutcome::Queued;

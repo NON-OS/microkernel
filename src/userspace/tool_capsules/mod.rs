@@ -14,11 +14,12 @@ mod embed_macro;
 mod bound;
 mod linux_terminal;
 mod model_fetch;
+#[cfg(feature = "nonos-capsule-linux")]
 mod net_box;
 mod registry;
 mod run;
 mod spec;
 
-pub use run::run_named;
 #[cfg(feature = "nonos-tool-selftest")]
 pub use run::run_embedded_for_kernel;
+pub use run::run_named;

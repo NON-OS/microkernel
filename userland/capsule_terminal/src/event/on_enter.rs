@@ -60,6 +60,7 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
         state.close_block(state.last_status == 0, dur);
     }
     state.evict_blocks();
+    crate::term::git_probe::probe(state);
     state.line.clear();
     state.scrollback.jump_bottom();
     match outcome {
