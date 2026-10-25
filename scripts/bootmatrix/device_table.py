@@ -18,6 +18,7 @@ model of a part real machines carry, or names one the machine has built in,
 and the lines its driver and the stack must write once they serve it."""
 
 from .cell import Cell
+from .devices import DISK_BYTES
 
 USER_NET = "-netdev user,id=cellnet"
 
@@ -42,7 +43,23 @@ SIBLINGS = ("-device pcie-root-port,id=cellsib,chassis=1,slot=1",
             "-device e1000,netdev=cellnet,bus=cellsib,addr=0.1")
 HDA_HELD = "[VT-D] refused: 01:00.1 reaches it through 01:00.0 without ACS; driver.e1000_0 holds it"
 
+# The scratch disk is 64 MiB: 131072 sectors, which the driver names once it
+# read the namespace's size. Every image boots on the loader's copy of the
+# store, so the block layer asks no disk, and each cell is held to its
+# driver's own lines (Debug, optional in their manifests). AHCI's cell waits
+# for hw/debug-grants: until then its driver has no line of its own.
+SECTORS = DISK_BYTES // 512
+
 DEVICE_CELLS = [
+    Cell("q35-iommu-nvme", "up", "q35", 1, iommu="intel-iommu",
+         devices=("-drive file={disk},if=none,id=celldisk,format=raw",
+                  "-device nvme,serial=nonos-cell,drive=celldisk"),
+         expect=(f"nvme: nsid 1: {SECTORS} LBAs of 512 bytes",
+                 "nvme: serving controller", ", block I/O up")),
+    Cell("q35-iommu-hda", "up", "q35", 1, iommu="intel-iommu",
+         devices=("-audiodev none,id=cellsnd", "-device intel-hda",
+                  "-device hda-duplex,audiodev=cellsnd"),
+         expect=("[HDA] ready: ", "[AUDIO] output driver.hda0")),
     nic("e1000"),
     nic("rtl8139"),
     Cell("q35-iommu-hda-beside-e1000", "eth", "q35", 1, iommu="intel-iommu",
