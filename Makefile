@@ -142,6 +142,8 @@ help:
 	@sed -n '3,32p' $(firstword $(MAKEFILE_LIST)) | sed 's/^# \{0,1\}//'
 
 # The lanes in mk/ need the flake's tools; outside its shell they enter it.
+# The compile-only check-dark-features needs only cargo, so it is read either way.
+include mk/55-dark-features.mk
 ifeq ($(NONOS_IN_FLAKE),)
 nonos-mk-% ci-%:
 	@$(NIX) develop --command $(MAKE) --no-print-directory $@
