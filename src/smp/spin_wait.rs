@@ -14,28 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The contended half of `lock_responsive`: spin, answer shootdowns, and say
-//! so once if the wait runs long.
+//! Taking a lock the responsive way, whatever kind it is: try once, and when
+//! that fails spin, answer shootdowns, and say so once if the wait runs long.
+//! Every take is noted, so a later waiter can name its holder.
 
 use core::panic::Location;
-use spin::{Mutex, MutexGuard};
 
+use super::spin_holders::note;
 use super::spin_report::report;
 use super::spin_watch::due;
 
-#[cold]
-pub(super) fn wait<'a, T>(
-    lock: &'a Mutex<T>,
+/// Take the lock at `addr` through `try_take`, for the caller at `site`
+/// whose frame is at `sp`; `shared` when it is a reader's take.
+#[inline]
+pub(super) fn take<G>(
     addr: usize,
     site: &'static Location<'static>,
     sp: usize,
-) -> MutexGuard<'a, T> {
+    shared: bool,
+    mut try_take: impl FnMut() -> Option<G>,
+) -> G {
+    let guard = match try_take() {
+        Some(guard) => guard,
+        None => wait(addr, site, sp, try_take),
+    };
+    note(addr, site, sp, shared);
+    guard
+}
+
+#[cold]
+fn wait<G>(
+    addr: usize,
+    site: &'static Location<'static>,
+    sp: usize,
+    mut try_take: impl FnMut() -> Option<G>,
+) -> G {
     let start = crate::time::timestamp_millis();
     let mut reported = false;
     loop {
         super::serve::serve_shootdowns();
         core::hint::spin_loop();
-        if let Some(guard) = lock.try_lock() {
+        if let Some(guard) = try_take() {
             return guard;
         }
         let now = crate::time::timestamp_millis();
