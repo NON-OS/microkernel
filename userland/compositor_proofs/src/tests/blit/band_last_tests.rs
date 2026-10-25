@@ -37,3 +37,25 @@ fn the_glyphs_face_the_right_way() {
     assert!(set(&CAMERA, 9, 2) && !set(&CAMERA, 6, 2) && !set(&CAMERA, 0, 0));
     assert!(set(&LOCK, 2, 1) && !set(&LOCK, 4, 6) && !set(&LOCK, 10, 0) && !set(&LOCK, 0, 10));
 }
+
+const PALETTE: &str = include_str!("../../../../capsule_desktop_shell/src/render/palette.rs");
+const SPLASH: &str = include_str!("../../../../capsule_boot_splash/src/warning.rs");
+
+fn token(src: &str, name: &str) -> u32 {
+    let line = src.lines().find(|l| l.starts_with(&format!("pub const {name}: u32"))).expect(name);
+    let hex = line.split("0x").nth(1).expect("a hex value").trim_end_matches(';').replace('_', "");
+    u32::from_str_radix(&hex, 16).expect("hex")
+}
+
+#[test]
+fn the_band_takes_the_shells_tokens() {
+    use crate::frame_pacer::indicator_band::*;
+    assert_eq!(BAND_ARGB, token(PALETTE, "BAR") | 0xFF00_0000, "the bar's colour, opaque");
+    assert_eq!(CAMERA_ON, token(PALETTE, "POSITIVE"));
+    assert_eq!(MICROPHONE_ON, token(PALETTE, "WARN"));
+    assert_eq!(SCREEN_ON, token(PALETTE, "ACCENT"));
+    assert_eq!(TRUSTED_ON, token(PALETTE, "TEXT"));
+    assert_eq!(MARK_OFF, token(PALETTE, "TEXT_MUTED"));
+    assert_eq!(DMA_UNCONFINED, token(PALETTE, "NEGATIVE"));
+    assert_eq!(token(SPLASH, "RED"), DMA_UNCONFINED, "the splash's line is the band's red");
+}
