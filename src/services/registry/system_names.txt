@@ -105,6 +105,7 @@ driver.sdhci0
 driver.smbus0
 driver.spi0
 driver.spi_hid0
+driver.storvsc0
 driver.tulip0
 driver.ufs0
 driver.uhci0
@@ -185,6 +186,7 @@ endpoint.4294967390
 endpoint.4294967391
 endpoint.4294967392
 endpoint.4294967393
+endpoint.4294967394
 endpoint.4294967395
 endpoint.4294967396
 endpoint.4294967397
