@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The words of a `base` line and a `write` line.
+//! The words of a `base`, a `write` and a `connect` line.
 
 use super::line::Seen;
 use super::Base;
+use crate::boxed::dests::list;
 use crate::boxed::folders::folder;
 
 /// The most `write` lines a file may have.
 pub const MAX_WRITES: usize = 16;
+/// The most `connect` lines a file may have: the box's own limit.
+pub const MAX_CONNECTS: usize = 64;
 
 pub fn base(word: &[u8]) -> Result<Base, &'static str> {
     match word {
@@ -41,5 +44,21 @@ pub fn write(seen: &mut Seen, arg: &[u8]) -> Result<(), &'static str> {
         return Err("a file has at most 16 write lines");
     }
     seen.writes.push((seen.line, f));
+    Ok(())
+}
+
+pub fn connect(seen: &mut Seen, arg: &[u8]) -> Result<(), &'static str> {
+    // One destination is one item of the box word: a comma would make it two.
+    if arg.contains(&b',') {
+        return Err("a connect line names one destination, with no comma");
+    }
+    let canonical = list(&[arg])?;
+    if seen.connects.iter().any(|(_, c)| list(&[c]).ok().as_ref() == Some(&canonical)) {
+        return Err("a destination is named once");
+    }
+    if seen.connects.len() == MAX_CONNECTS {
+        return Err("a file has at most 64 connect lines");
+    }
+    seen.connects.push((seen.line, arg.to_vec()));
     Ok(())
 }
