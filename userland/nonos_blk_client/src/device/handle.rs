@@ -54,7 +54,7 @@ impl BlockDevice {
         }
         let geometry = match driver {
             Driver::Nvme => nvme::geometry(port),
-            Driver::Wire | Driver::Ufs => super::wire::geometry(port),
+            Driver::Wire | Driver::Ufs | Driver::Ide | Driver::Scsi => super::wire::geometry(port),
             Driver::Ahci | Driver::VirtioBlk | Driver::Rtsx => Ok(Geometry::SECTORS),
         };
         /* A reader or slot with no card in it serves no disk, whether its
