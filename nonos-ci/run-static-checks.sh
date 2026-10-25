@@ -5026,6 +5026,17 @@ else
     fail_with "check-smp-default: a build or QEMU lane runs on one CPU"
 fi
 unset smp_out
+
+# No kernel lock is taken again by a path that already holds it, by name across
+# src/ (lock_retake/graph.py says what is read); its fixtures run first.
+retake_check='nonos-ci/check-lock-retake.py'
+if retake_out="$(python3 "${retake_check}" --self 2>&1 && python3 "${retake_check}" 2>&1)"; then
+    note ok "no kernel lock taken again on a path that holds it (check-lock-retake)"
+else
+    printf '%s\n' "${retake_out}" >&2
+    fail_with "check-lock-retake: a lock is taken again on a path that holds it"
+fi
+unset retake_out retake_check
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
