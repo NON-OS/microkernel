@@ -33,7 +33,7 @@ pub fn start_secondary_harts(boot_info: &BootInfo) {
             Some(top) => top,
             None => crate::arch::riscv64::cpu::halt(),
         };
-        let entry = _riscv64_secondary_start as u64;
+        let entry = _riscv64_secondary_start as *const () as u64;
 
         if sbi::hart_start(hart as u64, entry, stack_top).is_err() {
             crate::arch::riscv64::cpu::halt();
