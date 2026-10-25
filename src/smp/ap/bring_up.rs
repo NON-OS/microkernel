@@ -17,8 +17,12 @@
 //! An AP's own CPU state, set up with interrupts masked, from its LAPIC to
 //! its timer.
 
+use super::park::checkpoint;
 use crate::smp::state::CPU_DESCRIPTORS;
 
+/// Every step is followed by a `checkpoint`, where an AP the boot CPU has
+/// given up on parks. No statement here holds a lock past its own call.
+///
 /// # Safety
 /// Once per AP from `ap_entry`, its claim passed, interrupts masked.
 pub(super) unsafe fn bring_up(cpu_id: u32) -> super::user_setup::Prepared {
@@ -28,7 +32,9 @@ pub(super) unsafe fn bring_up(cpu_id: u32) -> super::user_setup::Prepared {
     // SAFETY: eK@nonos.systems - runs once on this AP before any interrupt is
     // enabled, and touches only this CPU's own LAPIC registers.
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::ApEntered);
+    checkpoint(cpu_id);
     unsafe { crate::arch::x86_64::interrupt::apic::init_ap_lapic() };
+    checkpoint(cpu_id);
     let apic_id = crate::arch::interrupt_controller::local_id();
 
     // Before anything else that could ask which CPU it is running on. The
@@ -38,6 +44,7 @@ pub(super) unsafe fn bring_up(cpu_id: u32) -> super::user_setup::Prepared {
     // `cpu_id` is the index the BSP wrote into this AP's boot context, so it
     // is known without having to look it up.
     crate::smp::percpu::init_ap(cpu_id as usize);
+    checkpoint(cpu_id);
 
     // SAFETY: eK@nonos.systems - GDT and TSS must be loaded before anything
     // that can fault. `cpu_id` indexes this AP's own per-CPU structures, which
@@ -45,30 +52,37 @@ pub(super) unsafe fn bring_up(cpu_id: u32) -> super::user_setup::Prepared {
     unsafe {
         let _ = crate::arch::x86_64::cpu::init_ap(cpu_id as u16, apic_id);
     }
+    checkpoint(cpu_id);
     crate::arch::set_percpu_base(crate::smp::percpu::current().self_ptr);
+    checkpoint(cpu_id);
 
     // The trampoline leaves CR4.OSXSAVE clear and XCR0 unset, so AVX code
     // faulted here and an area saved on the boot CPU could not be restored.
     // SAFETY: eK@nonos.systems - once, during this AP's bring-up, interrupts off.
     unsafe { crate::arch::x86_64::cpu::xstate::mirror_on_ap() };
+    checkpoint(cpu_id);
 
     // Its own block: the slot was handed to this CPU and is never reused.
     let _ = crate::arch::x86_64::gdt::arm_ap_guards(cpu_id);
+    checkpoint(cpu_id);
 
     // The IDT the BSP runs on, built by `interrupts::init_idt`. This pointed
     // at the second IDT under `arch::x86_64::idt`, whose `init` has no caller,
     // so an AP loaded a table nothing filled in and triple-faulted on its
     // first timer tick. `load` only writes IDTR against the BSP.s table.
     crate::interrupts::idt::load_idt();
+    checkpoint(cpu_id);
 
     /*
      * The syscall registers and CR4/CR0/EFER are per CPU. Set here, with
      * interrupts still masked; the result is reported once they are open.
      */
     let user = super::user_setup::prepare();
+    checkpoint(cpu_id);
 
     // The BSP registered the IRQ-0 handler; each AP arms its own LAPIC timer.
     crate::arch::x86_64::interrupt::apic::preemption::install_on_ap();
+    checkpoint(cpu_id);
 
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::LapicArmed);
     user

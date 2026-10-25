@@ -30,7 +30,10 @@ pub(super) fn report_stuck() {
     head.str(b" pages=").dec(REQ_PAGES.load(Ordering::Acquire) as u64);
     head.end();
     for cpu in 0..crate::smp::MAX_CPUS {
-        if !crate::smp::cpu_is_online(cpu) {
+        // A cpu still starting is a target of every kernel round (`select`),
+        // and the one most likely to owe the ack, so it is listed too.
+        let starting = crate::smp::cpu_is_starting(cpu);
+        if !crate::smp::cpu_is_online(cpu) && !starting {
             continue;
         }
         let (Some(d), Some(desc)) = (crate::smp::percpu::get(cpu), crate::smp::get_cpu(cpu)) else {
@@ -60,6 +63,9 @@ pub(super) fn report_stuck() {
         // spinning on a lock with interrupts masked are the same silence from
         // here, and they are not the same defect.
         l.str(b" at=").str(desc.stage().as_str().as_bytes());
+        if starting {
+            l.str(b" starting");
+        }
         // What that CPU's own APIC had in service when it last looked. A vector
         // stuck here blocks its whole priority class and everything below it,
         // while leaving higher classes working, which is what a CPU taking

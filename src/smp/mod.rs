@@ -51,7 +51,7 @@ pub use constants::*;
 pub use cpu::*;
 pub use cpu_id::{cpu_id, current_cpu_id};
 pub use sole_cpu::sole_cpu_apic_id;
-pub(crate) use state::{cpu_count, cpu_is_online, cpus_online};
+pub(crate) use state::{cpu_count, cpu_is_offline, cpu_is_online, cpu_is_starting, cpus_online};
 /// Called by the IDT builder, which is the only point early enough that every
 /// CPU is guaranteed to load a table carrying these vectors.
 #[cfg(target_arch = "x86_64")]
