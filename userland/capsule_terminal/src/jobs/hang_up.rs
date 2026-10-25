@@ -36,7 +36,7 @@ pub fn hang_up(state: &State) {
         }
         if let JobWork::ExternalStage { pid, .. } = job.work {
             let _ = mk_kill(pid as u64, SIGTERM);
-            super::external_io::discard_output(pid);
+            super::external_io::discard_output(pid, None);
         }
     }
 }

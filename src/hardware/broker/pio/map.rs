@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Issue a PIO grant against a device's PIO BAR. Mirrors
-//! `mmio::map_for_caller`: resolve claim, resolve device, validate
-//! BAR is PIO and fits in 16-bit port space, allocate grant id,
-//! record the grant. Reads and writes off the new id go through
-//! `access`; the kernel is the only side that ever executes the
-//! `in`/`out` instructions.
+//! A PIO grant on a device's PIO BAR, as mmio::map_for_caller: the claim, the device, a BAR
+//! in the port space clear of firmware's ports and the FADT's power registers (`bar_window`,
+//! `power_ports`), then the record, overlapping no other device's grant, while the claim holds
+//!. Only the kernel runs `in`/`out` (`access`).
 
 use super::bar_window::port_window;
 use super::grant::{self, PioGrant};

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! The rest of the broker's names, as the rest of the kernel uses them:
-//! the tables, the boot's registrations and the arch-specific stand-ins
-//! (exports.rs holds the claim and grant calls).
+//! the tables, the boot's registrations, the arch-specific stand-ins and
+//! x86_64's own names in one use (exports.rs holds the claim and grant calls).
 
 #[cfg(not(target_arch = "x86_64"))]
 pub use super::pio_absent::{
@@ -25,7 +25,18 @@ pub use super::pio_absent::{
 pub use super::pio_absent_claim::pio_release_for_device;
 pub use super::platform::register_legacy as register_legacy_platform_devices;
 pub use super::table::{
-    contains, external_port_of, init_from_pci, list, list_by_class, list_shown,
+    boot_fb_held, contains, external_port_of, init_from_pci, list, list_by_class, list_shown,
 };
 pub use super::vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
 pub use super::windows::touches_device_window;
+#[cfg(target_arch = "x86_64")]
+pub use super::{
+    acpi_gpio::register_acpi_gpio,
+    acpi_i2c::register_acpi_i2c,
+    pio::{
+        grant_for_caller as pio_grant_for_caller, read as pio_read,
+        release_all_for_pid as pio_release_all_for_pid,
+        release_for_device as pio_release_for_device, release_grant as pio_release_grant,
+        write as pio_write, PioError, PioGrantRequest, PioGrantResult, PioWidth,
+    },
+};

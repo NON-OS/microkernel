@@ -14,7 +14,7 @@ pass back. See [Broker](broker.md) for the arguments and the records.
 | `MDCL` | `0x4C43444D` | `MkDeviceClaim` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_device.rs:25` | Claim a device; returns the claim epoch. |
 | `MDRL` | `0x4C52444D` | `MkDeviceRelease` | Driver | `can_driver` `src/syscall/contract/cap_table/mk_device.rs:25` | Release a claimed device and every grant on it. |
 | `MBFB` | `0x4246424D` | `MkBootFramebuffer` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_platform.rs:68` | The boot framebuffer's geometry, for the holder of its claim. |
-| `MMMP` | `0x504D4D4D` | `MkMmioMap` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_device.rs:26` | Map part of a claimed device's MMIO BAR. |
+| `MMMP` | `0x504D4D4D` | `MkMmioMap` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_device.rs:26` | Map part of a claimed device's MMIO BAR; `flags` bit 0 (`MK_MMIO_MAP_WC`) asks write-combining, given only on a prefetchable BAR (`src/hardware/broker/mmio/cache.rs`), and the kernel's own type where it maps the range (`src/hardware/broker/mmio/memory_type.rs`). |
 | `MMUM` | `0x4D554D4D` | `MkMmioUnmap` | Mmio | `can_mmio` `src/syscall/contract/cap_table/mk_device.rs:26` | Unmap an MMIO grant. |
 | `MIRB` | `0x4252494D` | `MkIrqBind` | Irq | `can_irq` `src/syscall/contract/cap_table/mk_device.rs:30` | Bind a claimed device's interrupt: INTx, MSI or MSI-X. |
 | `MIRU` | `0x5552494D` | `MkIrqUnbind` | Irq | `can_irq` `src/syscall/contract/cap_table/mk_device.rs:30` | Unbind an interrupt grant. |

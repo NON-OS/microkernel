@@ -16,12 +16,12 @@
 
 //! What each enrollment failure tells the caller.
 
-use crate::syscall::microkernel::errnos::{
-    ERRNO_ACCES, ERRNO_INVAL, ERRNO_IO, ERRNO_NODEV, ERRNO_NOENT, ERRNO_TIMEDOUT,
-};
 use crate::security::tpm::enroll::EnrollError;
 use crate::security::tpm::error::TpmError;
 use crate::security::tpm::machine_key::KeyError;
+use crate::syscall::microkernel::errnos::{
+    ERRNO_ACCES, ERRNO_INVAL, ERRNO_IO, ERRNO_NODEV, ERRNO_NOENT, ERRNO_TIMEDOUT,
+};
 
 /// `TPM_RC_HANDLE` on the first handle: no certificate at this EK's index.
 const RC_NO_SUCH_HANDLE: u32 = 0x18B;
@@ -38,6 +38,7 @@ pub(super) fn errno(e: EnrollError) -> i64 {
         EnrollError::Key(KeyError::Refused(RC_NO_SUCH_HANDLE)) => ERRNO_NOENT,
         EnrollError::Key(KeyError::Refused(_)) => ERRNO_ACCES,
         EnrollError::Key(KeyError::BadLabel) => ERRNO_INVAL,
+        EnrollError::Key(KeyError::NoRandomness) => ERRNO_IO,
         EnrollError::OutOfBounds | EnrollError::Unsignable => ERRNO_INVAL,
     }
 }

@@ -16,7 +16,6 @@
 
 //! What acs.rs reads of a function: a bridge's secondary bus, and its ACS
 //! words, with what a hop must redirect turned on first.
-#![cfg(target_arch = "x86_64")]
 
 use super::acs_kind::pcie_type;
 use super::acs_layout::layout;

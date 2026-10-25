@@ -69,6 +69,7 @@ desktop_shell
 driver.ac97_0
 driver.ahci0
 driver.bga0
+driver.bootfb0
 driver.bt_usb0
 driver.buslogic0
 driver.ccid0
@@ -85,6 +86,7 @@ driver.i2c_hid0
 driver.i2c_pci0
 driver.igb_0
 driver.igc_0
+driver.intel_display0
 driver.iwlwifi0
 driver.ixgbe_0
 driver.mpt0
@@ -157,6 +159,8 @@ endpoint.4294967326
 endpoint.4294967327
 endpoint.4294967328
 endpoint.4294967329
+endpoint.4294967330
+endpoint.4294967331
 endpoint.4294967348
 endpoint.4294967349
 endpoint.4294967350

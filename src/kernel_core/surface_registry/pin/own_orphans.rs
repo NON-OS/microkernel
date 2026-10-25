@@ -43,7 +43,7 @@ pub(super) struct OwnOrphans {
 impl OwnOrphans {
     /// Under the gate. An exit's orphans are held through its kept tables,
     /// and the frames of a DMA run are the broker's to free.
-    pub(super) fn collect(owner: u32) -> Self {
+    pub(super) fn gather(owner: u32) -> Self {
         let (mut lists, mut index) = (Vec::new(), Vec::new());
         for o in ORPHANS.lock().iter() {
             if o.owner == owner && o.tables == 0 && o.grant.is_none() {

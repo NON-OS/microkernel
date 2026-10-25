@@ -48,6 +48,7 @@ mod reserved_regions;
 mod run_without_interrupts;
 mod stack_pointer;
 mod time_counter;
+mod tpm_window;
 pub mod trap;
 pub mod user_access;
 pub mod image_holes;
@@ -94,6 +95,7 @@ pub(crate) use reserved_regions::{device_reserved_regions, reserved_memory_regio
 pub(crate) use run_without_interrupts::run_without_interrupts;
 pub(crate) use stack_pointer::stack_pointer;
 pub(crate) use time_counter::{read_time_counter, time_counter_hz};
+pub(crate) use tpm_window::tpm_window;
 #[cfg(target_arch = "x86_64")]
 pub type Arch = x86_64::abi::X86_64;
 #[cfg(target_arch = "aarch64")]

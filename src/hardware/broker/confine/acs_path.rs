@@ -16,7 +16,6 @@
 
 //! The hops from a device to the root complex, pure. kernel_proofs::
 //! acs_rule.
-#![cfg(target_arch = "x86_64")]
 
 extern crate alloc;
 

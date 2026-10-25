@@ -27,20 +27,23 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let fresh = super::wipe::fresh(pid, device_id);
     let covers = crate::hardware::broker::bootfb::covers(device_id);
     let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;
-    // Confined before it is powered, so it never runs unconfined. VMMDev reads
-    // guest memory past any IOMMU: only where an unconfined device may (decide.rs).
+    // Confined before it is powered, so it never runs unconfined (port_only.rs).
     let untranslated = hold::untranslated(device_id);
-    let confined = match untranslated {
-        true => crate::hardware::broker::confine::untranslated(device_id),
-        false => crate::hardware::broker::confine::attach(pid, device_id),
+    let port_only = match super::port_only::confine(pid, device_id, untranslated) {
+        Ok(port_only) => port_only,
+        Err(refusal) => {
+            super::pending::withdraw(pid, device_id, epoch);
+            return Err(refusal.into());
+        }
     };
-    if let Err(refusal) = confined {
-        super::pending::withdraw(pid, device_id, epoch);
-        return Err(refusal.into());
-    }
     // Not mastering while the reset below waits out what is in flight.
     if !untranslated {
         super::master_off::bus_master_off(device_id);
+    }
+    // A port-only claim has Memory Space off too, and kept off, before
+    // the reset saves the header it puts back.
+    if port_only {
+        super::port_only::port_only_quietly(device_id);
     }
     // In D0 before its driver maps MMIO; outside the claims lock, as it settles.
     crate::hardware::broker::power::power_on_device(device_id);

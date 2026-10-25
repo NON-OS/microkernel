@@ -18,7 +18,6 @@
 //! behind a PCIe-to-PCI/PCI-X bridge (device/port type 7) or a bridge with
 //! no PCI Express capability. Devices on a conventional bus reach each
 //! other without any port, and reach the IOMMU under the bridge's alias.
-#![cfg(target_arch = "x86_64")]
 
 use super::acs_tree::Bdf;
 use crate::drivers::pci::config::read32_unchecked;

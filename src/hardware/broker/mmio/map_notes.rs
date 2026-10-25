@@ -18,9 +18,10 @@
 //! error, and a page it shares with another device's BAR, which the map
 //! allows and names.
 
+use super::cache::{Refused, PREFETCH};
 use super::types::MmioMapError;
 use super::window::{Window, WindowError};
-use crate::hardware::broker::device::BAR_KIND_MMIO;
+use crate::hardware::broker::device::{BAR_FLAG_PREFETCH, BAR_KIND_MMIO};
 use crate::hardware::broker::table;
 use crate::hardware::broker::DeviceRecord;
 
@@ -30,6 +31,17 @@ pub(super) fn window_error(e: WindowError) -> MmioMapError {
         WindowError::Overflow => MmioMapError::Overflow,
         WindowError::BadRange => MmioMapError::BadRange,
         WindowError::Protected => MmioMapError::WouldExposeMsixTable,
+    }
+}
+
+// cache.rs reads the BAR record's prefetchable bit by its own name.
+const _: () = assert!(PREFETCH == BAR_FLAG_PREFETCH);
+
+pub(super) fn cache_error(e: Refused) -> MmioMapError {
+    match e {
+        Refused::Unknown => MmioMapError::UnsupportedFlags,
+        Refused::NotPrefetchable => MmioMapError::WcNotPrefetchable,
+        Refused::PastBar => MmioMapError::WcPastBar,
     }
 }
 

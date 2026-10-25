@@ -19,7 +19,7 @@ mod apply;
 mod change;
 mod command;
 mod command_bits;
-mod command_rule;
+pub(crate) mod command_rule;
 mod ident_read;
 pub mod ownership;
 pub(crate) mod quirk_bits;

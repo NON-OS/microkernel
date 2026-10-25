@@ -475,9 +475,6 @@ include userland/capsule_proof_io/Capsule.mk
 include userland/capsule_std_proof/Capsule.mk
 include userland/capsule_ripgrep/Capsule.mk
 include userland/capsule_sd/Capsule.mk
-ifneq ($(wildcard userland/capsule_flacprobe/Capsule.mk),)
-  include userland/capsule_flacprobe/Capsule.mk
-endif
 include userland/capsule_csview/Capsule.mk
 include userland/capsule_huniq/Capsule.mk
 include userland/capsule_tokei/Capsule.mk
@@ -552,6 +549,7 @@ include userland/capsule_driver_usb_hid/Capsule.mk
 include userland/capsule_driver_usb_msc/Capsule.mk
 include userland/capsule_driver_e1000/Capsule.mk
 include userland/capsule_driver_e1000e/Capsule.mk
+include userland/capsule_driver_igc/Capsule.mk
 include userland/capsule_driver_igb/Capsule.mk
 include userland/capsule_driver_ixgbe/Capsule.mk
 include userland/capsule_driver_rtl8139/Capsule.mk
@@ -578,6 +576,7 @@ include userland/capsule_driver_nvme/Capsule.mk
 include userland/capsule_driver_sdhci/Capsule.mk
 include userland/capsule_driver_ufs/Capsule.mk
 include userland/capsule_driver_bga/Capsule.mk
+include userland/capsule_driver_intel_display/Capsule.mk
 include userland/capsule_driver_usb_audio/Capsule.mk
 include userland/capsule_driver_usb_hub/Capsule.mk
 include userland/capsule_driver_uvc/Capsule.mk
@@ -732,12 +731,22 @@ nonos-mk-kernel-attest: $(KERNEL_ATTEST_STAMP)
 
 # Enroll the bootloader as built, then check it with the bootloader leaf kind.
 # Run after the loader's last rebuild, since the root is over its exact bytes.
+# Kept when the root and trailer on disk already prove these exact bytes: a
+# proof is not deterministic, so re-proving an unchanged loader gave a new
+# root on every nonos-mk-esp and the trust tree never settled.
 .PHONY: nonos-mk-bootloader-attest
 nonos-mk-bootloader-attest: $(NONOS_STARK_ENROLL)
-	@echo "Enrolling the bootloader..."
 	@mkdir -p $(dir $(BOOTLOADER_ATTEST_ROOT_BIN)) $(dir $(BOOTLOADER_ATTEST_TRAILER))
-	@$(NONOS_STARK_ENROLL) bootloader $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
-		$(BOOTLOADER_ATTEST_ROOT_BIN) $(BOOTLOADER_ATTEST_TRAILER)
+	@if [ -f $(BOOTLOADER_ATTEST_ROOT_BIN) ] && [ -f $(BOOTLOADER_ATTEST_TRAILER) ] && \
+		$(NONOS_STARK_ENROLL) verify-bootloader $(BOOTLOADER_ATTEST_ROOT_BIN) \
+		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(BOOTLOADER_ATTEST_TRAILER) \
+		>/dev/null 2>&1; then \
+		echo "Kept the bootloader's enrollment: its trailer proves these bytes"; \
+	else \
+		echo "Enrolling the bootloader..."; \
+		$(NONOS_STARK_ENROLL) bootloader $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
+			$(BOOTLOADER_ATTEST_ROOT_BIN) $(BOOTLOADER_ATTEST_TRAILER); \
+	fi
 	@$(NONOS_STARK_ENROLL) verify-bootloader $(BOOTLOADER_ATTEST_ROOT_BIN) \
 		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(BOOTLOADER_ATTEST_TRAILER)
 
@@ -1166,7 +1175,6 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(install-cli_ARTIFACTS) \
 		$(sd_ARTIFACTS) \
-		$(flacprobe_ARTIFACTS) \
 		$(csview_ARTIFACTS) \
 		$(huniq_ARTIFACTS) \
 		$(tokei_ARTIFACTS) \
