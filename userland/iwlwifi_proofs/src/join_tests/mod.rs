@@ -27,3 +27,4 @@ mod refusals;
 mod rekey;
 mod rig;
 mod setup;
+mod silences;
