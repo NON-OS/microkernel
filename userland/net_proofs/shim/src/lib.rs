@@ -33,7 +33,7 @@ mod serial;
 mod time;
 
 pub use ipc::{mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv_from, mk_ipc_reply};
-pub use ipc::{mk_service_lookup, set_responder, take_replies, Reply};
+pub use ipc::{last_timeout_ms, mk_service_lookup, set_responder, take_replies, Reply};
 pub use process::{end_pid, heap_init, mk_debug, mk_exit, mk_pid_alive, revive_all};
 pub use random::crypto_random;
 pub use serial::serial;
