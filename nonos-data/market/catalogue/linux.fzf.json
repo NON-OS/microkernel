@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.fzf",
+      "capsule_id": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9",
+      "name": "fzf",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A fuzzy finder for files, lines and anything else piped into it.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "fzf@0.52.0-r3",
+          "manifest_hash": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9",
+          "package_hash": "1b10b2dea73c3e10c0b0592ba46f13718a282ad181eba8c43041887303e1abb9",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/fzf-0.52.0-r3.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000beed090bbd76686fe49a93ccfe87ee526d2d135b32c53dc6f823e5c53b427d294801000000000000cb00dedf1740f1af14c6d8c840a1a950dd9f1d97aea94efa3f49633d512dff7d98c94ac91e9fa4c0a9354e0a9ccd308fffc4f86de8151b19cb20f4c71871c9da0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1618062 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

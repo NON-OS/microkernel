@@ -121,6 +121,8 @@ pub(super) fn commit(region: &[u8]) -> Result<(), BlkError> {
 /// No disk the kernel drives carries NONOS. The store may still have been
 /// read, from the loader's copy, so a keep is the first to hear of it.
 const ENODEV: i64 = -19;
+/// The kernel refuses a store write on a boot that keeps nothing.
+const EACCES_RC: i64 = -13;
 
 /// A write the device took only part of is a failed write: the caller
 /// must not go on to commit a table naming sectors that never landed.
@@ -128,6 +130,7 @@ pub(super) fn write_sectors(lba: u64, buf: &[u8]) -> Result<(), BlkError> {
     match mk_store_write(lba, buf.as_ptr(), buf.len()) {
         rc if rc == buf.len() as i64 => Ok(()),
         ENODEV => Err(BlkError::NoService),
+        EACCES_RC => Err(BlkError::Refused),
         rc => Err(BlkError::Transport(rc)),
     }
 }
