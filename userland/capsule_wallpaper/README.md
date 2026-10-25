@@ -77,9 +77,15 @@ holds only the current surface and the decoded image in its heap.
    the compositor answers and the surface is registered and submitted
    (`src/setup/prime/run.rs`).
 2. `prime` discovers the compositor port, healthchecks it, allocates the
-   backing, fills it with ink (`0xFF0A_0B0D`), registers and shares the
-   surface, paints the linked-in picture
-   (`nonos-data/wallpapers/special-variant-9.jpg`) and submits the scene once.
+   backing, registers and shares the surface, and hands the backing to a
+   worker thread (`src/first_paint`), which fills it with ink (`0xFF0A_0B0D`)
+   and paints the linked-in picture
+   (`nonos-data/wallpapers/special-variant-9.jpg`) over it. the service
+   answers from then on: painting a whole screen took over a second under
+   emulation, and the desktop shell's first call went unanswered while setup
+   did it. until the worker is done the service thread writes nothing to the
+   backing and submits nothing; a request that paints waits for the worker.
+   then the loop submits the scene. no worker, and setup paints it itself.
    it does not fetch the chosen wallpaper here; that would block setup for
    seconds, so the built-in picture goes up first.
 3. the server loop serves requests, keeps the surface registered and committed,
@@ -155,8 +161,10 @@ backing's lifetime is the capsule's.
 ## Release evidence
 
 `userland/wallpaper_catalog_proofs` covers the catalog's request path on the
-host; this capsule's own paint and subscriber paths are exercised at boot under
-the desktop image rather than by a host proof. build and sign with
+host, the subscriber's job and plan, the backoff, and the built-in picture's
+paint (`first_paint_tests.rs`: ink, then the picture over the whole surface,
+ink alone when it does not decode, nothing past a row). the worker thread and
+the service loop are exercised at boot under the desktop image. build and sign with
 `make nonos-mk-wallpaper` and `make nonos-mk-wallpaper-sign`.
 
 ## Release checklist
@@ -182,7 +190,7 @@ buffer, and does no scaling beyond the stretch to the surface.
 `src/protocol/header.rs`, `src/protocol/ops.rs` and `src/protocol/limits.rs`
 fix the magic, ops and body lengths; `src/server/handlers/set_policy.rs` fixes
 the 28-byte `OP_SET_POLICY` decode and the `Policy` values; `src/setup/prime/run.rs`
-fixes the setup send path and the `z` 0 first submit; `src/subscriber/tick.rs`
+fixes the setup path and `src/first_paint/step.rs` the `z` 0 first submit; `src/subscriber/tick.rs`
 fixes the 300-tick poll. every magic, op, length, errno and endpoint above is
 set in those files, and `userland/wallpaper_catalog_proofs` exercises the
 catalog side on the host.
