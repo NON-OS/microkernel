@@ -51,6 +51,8 @@ pub mod restack;
 mod restack_tests;
 
 #[cfg(test)]
+mod focus_notice_tests;
+#[cfg(test)]
 mod full_screen_tests;
 #[cfg(test)]
 mod geometry_tests;
