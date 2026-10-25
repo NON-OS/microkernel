@@ -60,6 +60,8 @@ def plan(names, root, audio="none"):
             args += lines(template, drive=f"file={path},if=none,id={ident},format=raw", id=ident)
         else:
             raise LaneError(f"no lane {name!r}: the lanes are {', '.join(NAMES)}")
+    if "audio" in swaps and "nic" not in swaps:
+        raise LaneError("hda-beside-nic needs a nic= lane: the NIC is the function beside the HDA")
     return Plan(args, images, swaps)
 
 

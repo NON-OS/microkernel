@@ -51,6 +51,8 @@ let
     "nonos-capsule-driver-virtio-net" "nonos-capsule-driver-e1000" "nonos-capsule-driver-rtl8139"
     "nonos-capsule-driver-rtl8169" "nonos-capsule-driver-iwlwifi" "nonos-capsule-driver-rtl8821ce"
     "nonos-capsule-driver-pcnet" "nonos-capsule-driver-vmxnet3" "nonos-capsule-driver-tulip"
+    "nonos-capsule-driver-igb" "nonos-capsule-driver-ixgbe" "nonos-capsule-driver-e1000e"
+    "nonos-capsule-driver-cdc-ecm" "nonos-capsule-driver-cdc-ncm" "nonos-capsule-driver-rndis"
     "nonos-capsule-net-l2" "nonos-capsule-net-ip" "nonos-capsule-net-udp" "nonos-capsule-net-dhcp"
     "nonos-capsule-net-tcp" "nonos-capsule-net-dns" "nonos-capsule-net-ntp" "nonos-capsule-net-core"
     "nonos-capsule-net-sockets" "nonos-capsule-net-nym" "nonos-capsule-net-anon" "nonos-capsule-socks5"
@@ -71,10 +73,10 @@ let
     standard = {
       about = "the full system for real hardware: every driver, the desktop, first-boot setup and the installer";
       for = "a person's own machine, every day";
-      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; capsules may write to the serial console for diagnosis";
+      privacy = "amnesic until the person chooses to install; only a program granted the network capability can open a socket, and the Nym mixnet client is there for those that use it; no capsule can write to the serial console (a development image can)";
       kernel = [ "microkernel-full-gui" ];
       loader = "standard";
-      drop = [ ];
+      drop = debugFeatures;
     };
     hardened = {
       about = "the full system with Secure Boot and a TPM required at boot and no serial console for capsules";

@@ -53,6 +53,20 @@ const WALLET_NONOS_INSTANCES: &[InstanceEndpoint] = &[
 
 // Spawn the next free wallet window on demand. Same signed artifacts as boot, a
 // fresh pid, and thus its own compositor window.
+/// The one grant, for the capsule and each instance.
+fn caps() -> u64 {
+    Capability::CoreExec.bit()
+        | Capability::IPC.bit()
+        | Capability::Network.bit()
+        | Capability::Memory.bit()
+        | Capability::Crypto.bit()
+        | Capability::FileSystem.bit()
+        | Capability::GraphicsDisplayQuery.bit()
+        | Capability::GraphicsSurfaceCreate.bit()
+        | Capability::Keyring.bit()
+        | crate::capabilities::serial_debug_cap()
+}
+
 pub fn spawn_wallet_nonos_instance() -> Result<u32, SpawnError> {
     spawn_next_instance(&InstanceSpawn {
         elf: WALLET_NONOS_ELF,
@@ -60,15 +74,7 @@ pub fn spawn_wallet_nonos_instance() -> Result<u32, SpawnError> {
         manifest: WALLET_NONOS_MANIFEST_BYTES,
         attestation: WALLET_NONOS_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
-            | Capability::Network.bit()
-            | Capability::Memory.bit()
-            | Capability::Crypto.bit()
-            | Capability::FileSystem.bit()
-            | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit()
-            | crate::capabilities::serial_debug_cap(),
+        requested_caps: caps(),
         instances: WALLET_NONOS_INSTANCES,
         debug_tag: b"[WALLET_NONOS-INSTANCE] elf error:",
     })
@@ -87,15 +93,7 @@ pub fn spawn_wallet_nonos_capsule() -> Result<(), SpawnError> {
         manifest_bytes: WALLET_NONOS_MANIFEST_BYTES,
         attestation_trailer: WALLET_NONOS_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
-            | Capability::Network.bit()
-            | Capability::Memory.bit()
-            | Capability::Crypto.bit()
-            | Capability::FileSystem.bit()
-            | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit()
-            | crate::capabilities::serial_debug_cap(),
+        requested_caps: caps(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

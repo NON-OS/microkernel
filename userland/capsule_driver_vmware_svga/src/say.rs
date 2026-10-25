@@ -19,9 +19,9 @@
 
 use nonos_libc::mk_debug;
 
-use crate::setup::Driver;
+use crate::display::Svga;
 
-pub fn up(d: &Driver) {
+pub fn up(d: &Svga) {
     let mut line = [0u8; 64];
     let mut n = 0;
     let mut push = |bytes: &[u8]| {
@@ -31,9 +31,9 @@ pub fn up(d: &Driver) {
         }
     };
     push(b"driver.vmware_svga: up, ");
-    push(dec(d.fb.width).as_slice());
+    push(dec(d.mode.width).as_slice());
     push(b"x");
-    push(dec(d.fb.height).as_slice());
+    push(dec(d.mode.height).as_slice());
     push(b"x32");
     line[n] = b'\n';
     let _ = mk_debug(line.as_ptr(), n + 1);
