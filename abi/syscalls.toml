@@ -250,7 +250,7 @@ ret  = {type="!"}
 [desc.GDIM]
 nr   = 0x4D494447
 caps = ["GraphicsDisplayQuery"]
-args = [{name="display_id",type="u32",dir="in"},{name="dims_out",type="u8*",dir="out"}]
+args = [{name="display_id",type="u32",dir="in"},{name="width_out",type="u32*",dir="out"},{name="height_out",type="u32*",dir="out"},{name="mm_out",type="u32*",dir="out"},{name="why_out",type="u32*",dir="out"}]
 ret  = {type="i64"}
 
 [desc.MISD]

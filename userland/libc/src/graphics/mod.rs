@@ -22,4 +22,6 @@ mod boot_logo;
 mod display_dimensions;
 
 pub use boot_logo::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
-pub use display_dimensions::{nonos_display_dimensions, nonos_display_physical_mm};
+pub use display_dimensions::{
+    nonos_display_dimensions, nonos_display_physical_mm, nonos_display_refusal,
+};
