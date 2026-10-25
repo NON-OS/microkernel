@@ -80,6 +80,7 @@ MBSL = 0x4C53424D
 MBTA = 0x4154424D
 MCLD = 0x444C434D
 MCVF = 0x4656434D
+MCOF = 0x464F434D
 MDFB = 0x4246444D
 MDFD = 0x4446444D
 MDIM = 0x4D49444D
@@ -600,6 +601,11 @@ nr   = 0x444C434D
 caps = ["CoreExec", "IPC", "Memory"]
 args = [{name="req_ptr",type="u64",dir="in"}]
 ret  = {type="i64"}
+[desc.MCOF]
+nr   = 0x464F434D
+caps_any = ["SpawnBroker"]
+args = [{name="pid",type="u64",dir="in"},{name="bit",type="u64",dir="in"},{name="sent_ms",type="u64",dir="in"}]
+ret  = {type="i64"}
 [desc.MCVF]
 nr   = 0x4656434D
 caps = ["CoreExec", "IPC", "Memory"]
@@ -1042,7 +1048,9 @@ args = [{name="which",type="u64",dir="in"},{name="initiator",type="u32",dir="in"
 ret  = {type="i64"}
 
 [desc.MBGL]
+# Retired (src/syscall/microkernel/retired.rs): the number is kept and answers
+# EINVAL to every caller; it was MkBootLogo, the firmware's logo for the splash.
 nr   = 0x4C47424D
-caps = ["GraphicsSurfaceCreate"]
+caps = ["valid_token"]
 args = [{name="which",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="len",type="usize",dir="in"}]
 ret  = {type="i64"}

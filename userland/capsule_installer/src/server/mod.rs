@@ -16,6 +16,7 @@
 
 mod discover;
 mod dispatch;
+mod gate;
 mod handlers;
 mod pay_call;
 mod settle_call;

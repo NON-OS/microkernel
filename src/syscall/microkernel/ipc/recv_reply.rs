@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ipc::nonos_inbox;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_NOENT, ERRNO_TIMEDOUT};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_NOENT, ERRNO_SRCH, ERRNO_TIMEDOUT};
 
 /// Receive the reply to an outstanding `mk_ipc_call`, accepting ONLY a message
 /// whose correlation equals the token the call sent. Every real reply carries
@@ -53,6 +53,10 @@ pub(super) fn recv_reply_correlated(
                 return copy_len as i64;
             }
             super::call::note_drop(msg.correlation, want);
+        }
+        // The server died owing this reply (pending_reply::abandoned).
+        if super::pending_reply::abandoned(pid, want) {
+            return ERRNO_SRCH;
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
         if timeout_ms > 0 && elapsed >= timeout_ms {

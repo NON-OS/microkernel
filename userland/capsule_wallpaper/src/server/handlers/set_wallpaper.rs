@@ -18,6 +18,7 @@ use nonos_libc::mk_service_lookup;
 
 use crate::compositor_client::push_damage_commit;
 use crate::decode_client::decode_and_paint;
+use crate::first_paint;
 use crate::paint::fill_argb;
 use crate::protocol::{read_u32, Request, E_ACCES, E_INVAL, SET_WALLPAPER_REQ_LEN};
 use crate::server::respond;
@@ -45,6 +46,7 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_ACCES, tx);
         return;
     }
+    first_paint::wait(ctx);
     if body.len() == SET_WALLPAPER_REQ_LEN {
         let Some(argb) = read_u32(body, 0) else {
             let _ = respond::status(sender_pid, req, E_INVAL, tx);

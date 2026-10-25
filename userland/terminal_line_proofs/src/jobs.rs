@@ -16,6 +16,8 @@ pub mod pkg_handoff;
 
 /* A `linux --box` run: its report taken only under the key the terminal
  * names, the argv that names it, and the capsule's own frames of it. */
+#[path = "../../capsule_terminal/src/term/terminal/agentproof/job.rs"]
+pub mod agentproof_job;
 #[path = "../../capsule_terminal/src/jobs/box_hold.rs"]
 pub mod box_hold;
 #[path = "../../capsule_terminal/src/jobs/box_screen.rs"]
@@ -29,6 +31,10 @@ pub mod tool_argv;
 #[path = "../../capsule_linux/src/linux/boxed/frames.rs"]
 pub mod linux_frames;
 
+#[cfg(test)]
+mod agentproof_job_sweep_tests;
+#[cfg(test)]
+mod agentproof_job_tests;
 #[cfg(test)]
 mod box_argv_tests;
 #[cfg(test)]

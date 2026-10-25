@@ -17,8 +17,9 @@
 //! Which mirror settings a build may compile in (docs/build/dev-mirror.md).
 //! A mirror on the local network is dialled directly, past nonos_route_link,
 //! and only a development build (`dev-mirror`) carries that path. So no
-//! other build may name one, and NONOS_ALPINE_MIRROR, which only development
-//! images set, needs the feature whatever it names.
+//! other build may name one. NONOS_ALPINE_MIRROR is refused in every build:
+//! Alpine's mirror is compiled in (install/mirror.rs), the development one
+//! too, and a setting the build ignored would look as if it had been taken.
 
 use super::route::is_local;
 
@@ -29,15 +30,15 @@ pub const MIRRORS: [&str; 4] =
 /// Why a build with these settings is refused, or None. `get` reads a
 /// setting; `dev` is whether the build has the dev-mirror feature.
 pub fn refused(get: impl Fn(&str) -> Option<String>, dev: bool) -> Option<String> {
-    if dev {
-        return None;
-    }
     for var in MIRRORS {
         let Some(at) = get(var).filter(|v| !v.is_empty()) else { continue };
         if var == "NONOS_ALPINE_MIRROR" {
             return Some(format!(
-                "{var}={at}: only a development image sets it; build with dev-mirror"
+                "{var}={at}: Alpine's mirror is compiled in (install/mirror.rs); nothing sets it"
             ));
+        }
+        if dev {
+            continue;
         }
         let host = at.rsplit_once(':').map_or(at.as_str(), |(h, _)| h);
         if is_local(host) {
