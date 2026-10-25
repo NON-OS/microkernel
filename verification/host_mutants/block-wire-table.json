@@ -1,0 +1,34 @@
+[
+ {
+  "name": "storvsc-row-dropped",
+  "file": "src/hardware/block_device/wire/table.rs",
+  "old": "    #[cfg(feature = \"nonos-capsule-driver-storvsc\")]\n    &crate::hardware::storvsc_capsule::ENDPOINT,\n",
+  "new": "",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "storvsc-row-wrong-feature",
+  "file": "src/hardware/block_device/wire/table.rs",
+  "old": "#[cfg(feature = \"nonos-capsule-driver-storvsc\")]",
+  "new": "#[cfg(feature = \"nonos-capsule-driver-ufs\")]",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "storvsc-inbox-wrong",
+  "file": "src/hardware/storvsc_capsule/endpoint.rs",
+  "old": "\"endpoint.4294967394\"",
+  "new": "\"endpoint.4294967393\"",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ },
+ {
+  "name": "storvsc-shown-wrong",
+  "file": "src/hardware/storvsc_capsule/endpoint.rs",
+  "old": "\"Hyper-V SCSI (driver.storvsc0)\"",
+  "new": "\"Hyper-V SCSI (driver.storvsc)\"",
+  "crate": "userland/kernel_proofs",
+  "test": "block_wire::table"
+ }
+]
