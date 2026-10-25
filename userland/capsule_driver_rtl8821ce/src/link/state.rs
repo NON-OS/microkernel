@@ -66,4 +66,5 @@ pub struct RtlLink<M: Mmio, D: DmaMem, RB: RxBuffers> {
     pub(super) history: LinkHistory,
     /// This boot's address key, drawn at the first join.
     pub(super) address: Option<Addresses>,
+    pub(super) ps: crate::ps::Ps,
 }

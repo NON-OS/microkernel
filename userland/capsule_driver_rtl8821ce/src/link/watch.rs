@@ -32,11 +32,13 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> RtlLink<M, D, RB> {
         self.watch_tx(now_ms);
         match self.station.tick(now_ms) {
             Tick::Send(frame) => {
+                self.stats.watch_sends = self.stats.watch_sends.wrapping_add(1);
                 self.send_raw(&frame);
             }
             Tick::Lost(why) => self.lost(why),
             Tick::Quiet => {}
         }
+        self.ps_tick(now_ms);
     }
 
     /// The network's SSID, for the station's probes.
