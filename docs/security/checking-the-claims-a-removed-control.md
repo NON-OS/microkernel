@@ -4,7 +4,7 @@ Part of [Checking the security claims yourself](checking-the-claims.md).
 
 ## A removed control is noticed
 
-A test that cannot fail proves nothing. Seven controls each have a mutant, a
+A test that cannot fail proves nothing. Ten controls each have a mutant, a
 build with that one control taken out:
 [`verification/mutants.json`](../../verification/mutants.json) names each by one
 exact substitution and the line that must then appear. `tools/nonos-mutant` has
@@ -21,6 +21,9 @@ for the line (`stale` and `seen`, `tools/nonos-mutant:50-68`).
 | `read-only-tree` | `userland/capsule_linux/src/linux/file/root.rs` | a guest may write the shared Linux tree | `[GUEST] reader ESCAPED the sibling's /nonos-sibling` |
 | `trap-frame` | `src/process/foreign/trap.rs` | a parked guest's registers also go into the scheduler's resume slot | `[GUEST] exec ESCAPED` |
 | `amnesic-gate` | `userland/capsule_vfs/src/server/handlers/persist_gate.rs` | the file store keeps files on an amnesic boot | `[amnesic] the boot left` |
+| `ipc-service-gate` | `src/syscall/microkernel/ipc/send_caps.rs` | a send by name reaches a service without the capabilities it requires | `[ATTACK] cap-escape ESCAPED: a socket through net.sockets without Network, MkIpcSend returned` |
+| `ipc-inbox-gate` | `src/syscall/microkernel/ipc/send_caps.rs` | a send by pid reaches a process's inbox past the gates of what it serves | `[ATTACK] cap-escape ESCAPED: net.sockets' inbox by its pid without Network, MkIpcSendToPid returned` |
+| `register-right` | `src/syscall/microkernel/ipc/register_allowed.rs` | a runtime name is claimed without RegisterService | `[ATTACK] cap-escape ESCAPED: register net.dns without RegisterService, MkServiceRegister returned` |
 
 The kernel's `keep` puts a parked guest's frame aside, out of the resume slot,
 because a guest switched back from that slot would return to user mode with its
@@ -34,6 +37,9 @@ errno=<n>` or `[GUEST] <guest> ESCAPED <what>: <how>`, and the guest ends with
 `held` or `BROKEN` and a nonzero exit status on any escape (`check` and
 `finish`, `userland/linux_guests/src/report.rs:44-74`). With every control in
 place no `ESCAPED` line appears. With one removed, its line must.
+
+The `[ATTACK]` lines come from the attack capsule in the [self-test](self-test.md)'s
+capsule boot, which holds none of the capabilities those three rules check.
 
 ```sh
 python3 tools/nonos-mutant --check

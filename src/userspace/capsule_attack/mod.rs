@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! load_store payloads: a head of caps and five lengths, and the blobs it names.
+//! The attack suite's capsule: it tries what an attacker would, each attempt
+//! one it holds no right to, and prints the kernel's answer to each on the
+//! serial line for nonos-ci/attack_suite_check.py to judge. Development
+//! images only (the selftest profile).
 
-/// caps | five u32 lengths: the load_store head alone.
-pub fn head(caps: u64, lens: [u32; 5]) -> Vec<u8> {
-    let mut h = caps.to_le_bytes().to_vec();
-    lens.iter().for_each(|l| h.extend_from_slice(&l.to_le_bytes()));
-    h
-}
+#[cfg(feature = "nonos-release")]
+compile_error!("the attack suite's capsule is a development test and never ships in a release");
 
-/// The head followed by blob i as lens[i] bytes of 0xA0 + i.
-pub fn store_payload(caps: u64, lens: [u32; 5]) -> Vec<u8> {
-    let mut p = head(caps, lens);
-    (0..5).for_each(|i| p.resize(p.len() + lens[i] as usize, 0xA0 + i as u8));
-    p
-}
+mod embed;
+mod spawn;
+
+pub use spawn::run;

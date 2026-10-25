@@ -1,8 +1,10 @@
-# attack capsule. Test only, for the attack suite,
-# and not yet wired: no Cargo feature, kernel mirror or make include names it:
-# a capsule that tries what an attacker would, and prints one [ATTACK] line
-# per attempt with the kernel's answer. It holds the least a capsule runs on,
-# so every attempt below is one it has no right to:
+# attack capsule. Test only, for the attack suite: a capsule that tries what
+# an attacker would, and prints one [ATTACK] line per attempt with the
+# kernel's answer. Development images only: the selftest profile turns its
+# kernel feature on, tools/nix/config.nix refuses it beside a release loader,
+# and src/userspace/capsule_attack refuses it beside nonos-release. It holds
+# the least a capsule runs on, so every attempt below is one it has no right
+# to:
 #
 #   0x001  CoreExec  run at all
 #   0x008  IPC       reach a service, which is where it tries to reach one
@@ -25,5 +27,8 @@ CAPSULE_REPLY_ENDPOINT     := reply:4955:endpoint.test.attack.reply
 CAPSULE_REQUIRED_CAPS      := 0x119
 CAPSULE_KERNEL_MIRROR      := src/userspace/capsule_attack
 CAPSULE_BUILD_STD          := core
+# A development test: never signed or enrolled by a make lane, enrolled by
+# the seal for development images only.
+CAPSULE_DEV_ONLY           := 1
 
 include nonos-mk/capsule.mk
