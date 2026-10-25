@@ -34,7 +34,7 @@ fn no_guest_frame_without_the_key_is_taken() {
         let len = (s % 40) as usize;
         let mut f: Vec<u8> = (0..len).map(|i| (s >> (i % 8 * 8)) as u8).collect();
         // Most frames start like a report's, some with part or all of the key.
-        if s % 3 == 0 && !f.is_empty() {
+        if s.is_multiple_of(3) && !f.is_empty() {
             f[0] = TAG;
             let n = ((s >> 20) as usize % (KEY_LEN + 1)).min(f.len() - 1);
             f[1..1 + n].copy_from_slice(&key[..n]);
