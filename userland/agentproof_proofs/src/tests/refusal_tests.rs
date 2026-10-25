@@ -21,7 +21,8 @@ use agentproof_policy::{compile, parse};
 
 use super::file;
 
-pub const NET: &str = "a terminal run has no network in this release";
+pub const LINES: &str = "a line is base, write, network, connect or a # comment";
+pub const NET: &str = "network is `none`; name each destination on a connect line";
 
 pub fn refused(lines: &[&str]) -> (usize, &'static str) {
     let Error { line, why } = parse(&file(lines)).unwrap_err();
@@ -47,16 +48,15 @@ fn each_line_is_known_and_once() {
     assert_eq!(refused(&[h, "base all"]), (2, "base is strict, offline or folders"));
     assert_eq!(refused(&[h, "base strict", "base strict"]), (3, "base is named once"));
     assert_eq!(refused(&[h, "network none", "network none"]), (3, "network is named once"));
-    assert_eq!(refused(&[h, "read /etc"]), (2, "a line is base, write, network or a # comment"));
-    assert_eq!(refused(&[h, "Base strict"]), (2, "a line is base, write, network or a # comment"));
+    assert_eq!(refused(&[h, "read /etc"]), (2, LINES));
+    assert_eq!(refused(&[h, "Base strict"]), (2, LINES));
 }
 
 #[test]
-fn no_network_is_ever_granted() {
+fn network_is_none_or_absent() {
     let h = "nonos-box 1";
     assert_eq!(refused(&[h, "network any"]), (2, NET));
     assert_eq!(refused(&[h, "network 10.0.0.1:80"]), (2, NET));
-    assert_eq!(refused(&[h, "connect example.com:443"]), (2, NET));
 }
 
 #[test]
