@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.micro",
+      "capsule_id": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123",
+      "name": "micro",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A terminal text editor with the keys people already know: Ctrl-S saves, Ctrl-Q quits.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "micro@2.0.13-r6",
+          "manifest_hash": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123",
+          "package_hash": "a3ab8ed97ce6adf486bea876d1c26a5f1bf34999592e7f9feeca88663de05123",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/micro-2.0.13-r6.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000edf7b5d356f6c5102dc8eea81a07d6877b081b39a2ed3865c1b8212cf9726df408010000000000004891e549a2f6254ebf65f1b03f9ba68ddaca05b6989d2b996e0808a679a45e03781cc8db8b33a313f99354c2e74b5b5683754d5bac3a26d448719799aa4b329d0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 5016347 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -20,6 +20,7 @@
 mod ar;
 mod fetch;
 mod fields;
+mod find;
 mod index;
 mod keyring;
 pub(in crate::linux::install) mod merged_usr;
