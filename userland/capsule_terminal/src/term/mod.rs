@@ -17,9 +17,11 @@
 pub mod banner;
 pub mod block;
 pub mod context;
+pub mod complete_list;
 pub mod cwd;
 pub mod dimensions;
 pub mod dur;
+pub mod git_probe;
 pub mod handed;
 pub mod history;
 pub mod identity;
@@ -27,6 +29,7 @@ pub mod line;
 pub mod manifest;
 pub mod prefs;
 pub mod prompt;
+pub mod prompt_bits;
 pub mod rtc;
 pub mod scrollback;
 pub mod search;
@@ -35,6 +38,7 @@ pub mod select;
 pub mod state;
 pub mod terminal;
 pub mod theme;
+pub mod theme_pick;
 pub mod util;
 
 #[cfg(not(feature = "agentproof-headless"))]

@@ -17,15 +17,16 @@
 use super::say::say;
 
 /*
- * Slot 0 of the kernel's seal: the app the family runs, noted once, after
- * MkForeignSpawn and before the first MkForeignStart (plan/10-seal.md), or
- * the family is dropped at its end and no Linux run is kept (I-C6).
+ * Slot 0 of the kernel's seal: the app the family runs, and in a box the
+ * box with it (seal_slot.rs), noted once, after MkForeignSpawn and before
+ * the first MkForeignStart (plan/10-seal.md), or the family is dropped at
+ * its end and no Linux run is kept (I-C6).
  */
 pub(super) fn seal_app(app_id: &[u8; 32]) {
-    if !super::seal_slot::noted(app_id) {
+    let Some(note) = super::seal_slot::slot0(app_id, super::boxed::armed_hash().as_ref()) else {
         return;
-    }
-    if nonos_libc::mk_seal_note(nonos_libc::SEAL_APP_ID, app_id) < 0 {
+    };
+    if nonos_libc::mk_seal_note(nonos_libc::SEAL_APP_ID, &note) < 0 {
         say(b"[LINUX] the seal refused the app's note; this run is not kept\n");
     }
 }

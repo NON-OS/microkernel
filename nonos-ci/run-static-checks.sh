@@ -2360,6 +2360,17 @@ else
     fail_with "bootloader build.rs writes outside OUT_DIR"
 fi
 unset boot_build
+# The kernel embeds its trust set only through baked_trust!, so a build pointed
+# at a test set (NONOS_BAKED_TRUST_DIR) replaces every file of it; a trust file
+# included by its literal path would keep the tree's copy in that build.
+literal_trust="$( { grep -rnE '"(\.\./)+nonos-data/trust/' src --include='*.rs' || true; } )"
+if [ -n "${literal_trust}" ]; then
+    fail_with "a kernel file includes the trust set by a literal path, not through baked_trust!"
+    printf '%s\n' "${literal_trust}" >&2
+else
+    note ok "the kernel embeds its trust set only through baked_trust!"
+fi
+unset literal_trust
 
 boot_features='nonos-bootloader/Cargo.toml'
 if ! grep -q '^hardened-production = \["production"\]' "${boot_features}"; then
@@ -5124,6 +5135,27 @@ else
     bash nonos-ci/check-pqc-unvetted.sh >&2 || true
     fail_with "pqc-unvetted is turned on by a build: those schemes do not ship"
 fi
+
+# Every image starts every CPU: no profile, mk lane or QEMU lane drops back to
+# the boot CPU alone, as 0.9.2's did (cpu-2).
+if smp_out="$(python3 nonos-ci/check-smp-default.py 2>&1)"; then
+    note ok "every build and QEMU lane starts every CPU (check-smp-default)"
+else
+    printf '%s\n' "${smp_out}" >&2
+    fail_with "check-smp-default: a build or QEMU lane runs on one CPU"
+fi
+unset smp_out
+
+# No kernel lock is taken again by a path that already holds it, by name across
+# src/ (lock_retake/graph.py says what is read); its fixtures run first.
+retake_check='nonos-ci/check-lock-retake.py'
+if retake_out="$(python3 "${retake_check}" --self 2>&1 && python3 "${retake_check}" 2>&1)"; then
+    note ok "no kernel lock taken again on a path that holds it (check-lock-retake)"
+else
+    printf '%s\n' "${retake_out}" >&2
+    fail_with "check-lock-retake: a lock is taken again on a path that holds it"
+fi
+unset retake_out retake_check
 # Every crate's tests run in a lane or are listed with an owner, and
 # tools/nix/test-lanes.json is what the manifests' markers say.
 if lanes_out="$(python3 scripts/check_test_lanes.py 2>&1)"; then
