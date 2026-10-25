@@ -1,0 +1,44 @@
+# First boot of a live stick: setup walked by keys to the desktop, with this
+# run's secret as the name and as the computer name. Every other step keeps
+# its default: US layout, UTC, Amnesic, no network, Nym, the defaults after.
+until:[SETUP-WIZARD] capsule spawned:1800
+wait:360
+shot:01-keyboard
+key:ret
+wait:20
+type:{secret}
+key:ret
+wait:20
+shot:03-timezone
+key:ret
+wait:20
+shot:04-mode-amnesic
+key:ret
+wait:20
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+key:ret
+wait:15
+shot:11-software
+key:ret
+wait:20
+type:{secret}
+key:ret
+wait:20
+shot:13-review
+key:ret
+until:name=desktop_shell:1800
+wait:150
+shot:20-desktop
+# The live-session notice, answered Not now, which holds the focus.
+key:ret
+wait:20
+shot:21-desktop-clear
