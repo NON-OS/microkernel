@@ -20,11 +20,12 @@ pub(super) const SERVICE: &[u8] = b"installer";
 pub(super) const HDR_LEN: usize = 8;
 pub(super) const SEQ: u32 = 1;
 
-pub(super) const OP_HEALTHCHECK: u16 = 1;
 pub(super) const OP_LIST_INSTALLED: u16 = 5;
 pub(super) const OP_LOAD_BY_NAME: u16 = 4;
 pub(super) const OP_PKG_QUERY: u16 = 6;
 pub(super) const OP_PKG_COMMIT: u16 = 7;
+/// How this shell's last load of a name ended.
+pub(super) const OP_LOAD_OUTCOME: u16 = 9;
 
 pub(super) const TIMEOUT_MS: u64 = 300;
 

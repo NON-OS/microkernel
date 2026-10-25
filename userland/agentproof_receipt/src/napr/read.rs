@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! A receipt read, each field held to its length and nothing left over.
 
+use super::cursor::Cursor;
 use super::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,27 +24,8 @@ pub enum Fault {
     Head,
     /// A field's length is not its own, or runs past the end.
     Field(&'static str),
-    /// Bytes after the doc.
+    /// Bytes after the entries.
     Trailing,
-}
-
-struct Cursor<'a> {
-    b: &'a [u8],
-    at: usize,
-}
-
-impl<'a> Cursor<'a> {
-    fn field(&mut self, name: &'static str, min: usize, max: usize) -> Result<&'a [u8], Fault> {
-        let len = self.b.get(self.at..self.at + 4).ok_or(Fault::Field(name))?;
-        let len = u32::from_be_bytes([len[0], len[1], len[2], len[3]]) as usize;
-        if len < min || len > max {
-            return Err(Fault::Field(name));
-        }
-        let start = self.at + 4;
-        let v = self.b.get(start..start + len).ok_or(Fault::Field(name))?;
-        self.at = start + len;
-        Ok(v)
-    }
 }
 
 pub fn parse<'a>(b: &'a [u8]) -> Result<Receipt<'a>, Fault> {
@@ -57,6 +39,10 @@ pub fn parse<'a>(b: &'a [u8]) -> Result<Receipt<'a>, Fault> {
     let launcher = c.field("launcher", LAUNCHER, LAUNCHER)?;
     let bound = &b[..c.at];
     let doc = c.field("doc", 1, DOC_MAX)?;
+    let entries = c.field("entries", ENTRY, ENTRIES_MAX)?;
+    if entries.len() % ENTRY != 0 {
+        return Err(Fault::Field("entries"));
+    }
     if c.at != b.len() {
         return Err(Fault::Trailing);
     }
@@ -66,6 +52,7 @@ pub fn parse<'a>(b: &'a [u8]) -> Result<Receipt<'a>, Fault> {
         policy: fixed(policy)?,
         launcher: fixed(launcher)?,
         doc,
+        entries,
         bound,
     })
 }
