@@ -53,8 +53,9 @@ fn a_point_off_the_curve_is_refused() {
 
 #[test]
 fn a_fresh_share_is_an_uncompressed_point_that_agrees_with_itself() {
-    let (a_private, a_public) = generate().expect("a share");
-    let (b_private, b_public) = generate().expect("a second share");
+    let (mut a_private, mut b_private) = ([0u8; 32], [0u8; 32]);
+    let a_public = generate(&mut a_private).expect("a share");
+    let b_public = generate(&mut b_private).expect("a second share");
     assert_eq!(a_public[0], 4);
     assert_ne!(a_public, b_public, "two draws gave one key");
     let ab = shared(&a_private, &b_public).expect("a with b");
