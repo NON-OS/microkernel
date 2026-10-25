@@ -1,0 +1,6 @@
+184:[BENCH] 5066 capsule_spawn_start:keyring
+187:[BENCH] 5136 capsule_attest_ok:keyring
+188:[ZK-ATTEST] ok keyring vendor
+189:[BENCH] 5137 capsule_preflight_ok:keyring
+190:[SPAWN] name=keyring pid=0x0000000000000003 caps=0x0000000010000038 entry=0x0000000033FB21B0
+191:[BENCH] 5155 capsule_runqueue_ok:keyring

@@ -43,6 +43,8 @@ fn a_verified_receipt_is_said_line_by_line_and_exits_0() {
     assert!(a.out[0].starts_with("receipt  verified: NAPR v0; the AK is the one pinned"));
     assert!(a.out.iter().any(|l| l.starts_with("box      learn ")));
     assert!(a.out.iter().any(|l| l.starts_with("mode     LEARN, not enforced")));
+    assert!(a.out.iter().any(|l| l.starts_with("ran      3 capsules, every one the signed")));
+    assert!(a.out.iter().any(|l| l.starts_with("network  pid 5 ")), "{:?}", a.out);
     assert_eq!(a.out.last().unwrap(), "counts   not carried in v0");
 }
 
