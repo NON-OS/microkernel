@@ -17,6 +17,8 @@
 mod embed;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod outcome;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod outcome_rule;
 mod spawn;
 mod state;
 
