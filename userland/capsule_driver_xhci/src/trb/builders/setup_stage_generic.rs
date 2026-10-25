@@ -33,8 +33,12 @@ pub fn setup_stage(
     let mut trb = Trb::zero();
     trb.d0 = (bm_request_type as u32) | ((b_request as u32) << 8) | ((w_value as u32) << 16);
     trb.d1 = (w_index as u32) | ((w_length as u32) << 16);
-    trb.d2 = 8 | trt_bits(dir);
-    trb.d3 = TRB_IDT;
+    // TRB Transfer Length, always 8, is dword 2; the Transfer Type is
+    // dword 3's bits 17:16 (xHCI 1.2 section 6.4.1.2.1). In dword 2 the TRT
+    // made the length 0x10008 or 0x18008: qemu-xhci drops such a Setup TRB
+    // without an event, and every control transfer here ran to its timeout.
+    trb.d2 = 8;
+    trb.d3 = TRB_IDT | trt_bits(dir);
     trb.set_type(TRB_TYPE_SETUP_STAGE);
     trb.set_cycle(cycle);
     trb
