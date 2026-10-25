@@ -23,15 +23,15 @@ pub(crate) const IMAGE_VIEWER_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-image-viewer")]
 pub(crate) const IMAGE_VIEWER_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/image_viewer.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/image_viewer.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-image-viewer")]
 pub(crate) const IMAGE_VIEWER_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/image_viewer.manifest.bin");
+    crate::baked_trust!("capsules/image_viewer.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-image-viewer")]
 pub(crate) const IMAGE_VIEWER_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/image_viewer.zk_trailer.bin");
+    crate::baked_trust!("capsules/image_viewer.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-image-viewer")]

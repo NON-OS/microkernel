@@ -21,13 +21,12 @@ pub(crate) const ATTACK_ELF: &[u8] = include_bytes!(concat!(
 ));
 
 pub(crate) const ATTACK_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/attack.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/attack.nonos_id_cert.bin");
 
-pub(crate) const ATTACK_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/attack.manifest.bin");
+pub(crate) const ATTACK_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/attack.manifest.bin");
 
 pub(crate) const ATTACK_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/attack.zk_trailer.bin");
+    crate::baked_trust!("capsules/attack.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 const _: () = assert!(

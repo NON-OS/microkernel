@@ -24,15 +24,15 @@ pub(super) const NET_DNS_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-net-dns")]
 pub(super) const NET_DNS_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_dns.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/net_dns.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-net-dns")]
 pub(super) const NET_DNS_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_dns.manifest.bin");
+    crate::baked_trust!("capsules/net_dns.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-net-dns")]
 pub(super) const NET_DNS_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/net_dns.zk_trailer.bin");
+    crate::baked_trust!("capsules/net_dns.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-net-dns")]

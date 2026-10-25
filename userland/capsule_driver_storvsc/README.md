@@ -88,7 +88,7 @@ up to 254 probed through `nonos_scsi`. A controller with nothing on it is
 closed and given back, and the driver leaves.
 
 One request at a time: EXECUTE_SRB as Linux's `storvsc_queuecommand` fills
-it (the 48-byte request, sense of 20 bytes, untagged simple queueing,
+it (the 52-byte request, sense of 20 bytes, untagged simple queueing,
 synchronous transfer off, 60 s for the host), sent in band when no data
 moves and as a GPA-direct packet naming the buffer's pages when it does;
 then the host's ring polled for the completion with the request's id: 64
@@ -153,9 +153,10 @@ Azure's), read and written through the block layer.
 `storvsc_proofs` runs the shipping source and `nonos_scsi_serve` against a
 Hyper-V storage host model: `nonos_vmbus`'s host model (written from QEMU's
 vmbus.c) for the GPADL, the open and the close, and a storage server on the
-channel's rings, written from Linux's storvsc_drv.c, that checks every
-request field and answers from `nonos_scsi`'s simulated units through the
-buffer's pages. It covers the GPADL over the rings alone; the start, the
+channel's rings, written from the host side Microsoft publishes (OpenVMM's
+storvsp, storvsp_protocol and scsidisk, cited line by line). It answers
+from `nonos_scsi`'s simulated units through the buffer's pages, and checks
+apart what Linux's storvsc_drv.c sends. It covers the GPADL over the rings alone; the start, the
 version fallback and every refusal; the host's transfer limit; the scan over
 both targets; reads and writes page by page; commands with no data in band;
 request ids; every SRB status, sense and a short transfer; Hyper-V's

@@ -23,15 +23,15 @@ pub(crate) const WALLPAPER_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-wallpaper")]
 pub(crate) const WALLPAPER_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/wallpaper.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/wallpaper.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-wallpaper")]
 pub(crate) const WALLPAPER_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/wallpaper.manifest.bin");
+    crate::baked_trust!("capsules/wallpaper.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-wallpaper")]
 pub(crate) const WALLPAPER_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/wallpaper.zk_trailer.bin");
+    crate::baked_trust!("capsules/wallpaper.zk_trailer.bin");
 
 // A capsule built in with an empty file never compiles (B-02).
 #[cfg(feature = "nonos-capsule-wallpaper")]

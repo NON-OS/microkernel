@@ -30,3 +30,13 @@ pub fn tile_color(v: u64) -> u32 {
         _ => 0xFFEDC22E,
     }
 }
+
+/// A tile's digits: the game's dark ground on every tile, all of which are
+/// light, so each value reads at WCAG AA, 4.5:1 or more (demo_screen_proofs
+/// game_2048_palette.rs). White on the 2 tile was 1.2:1.
+pub fn text_color(_v: u64) -> u32 {
+    INK
+}
+
+/// The ground the board sits on, and the ink of every tile's digits.
+pub const INK: u32 = 0xFF1A1A2E;
