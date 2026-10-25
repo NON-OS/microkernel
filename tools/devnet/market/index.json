@@ -13,7 +13,7 @@
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "A free listing in the development catalogue. Nothing is sold.",
       "price": {"kind": "free", "amount_atomic": "0", "period_seconds": 0},
-      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 11155111, "contract_address": ""},
+      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 31337, "contract_address": ""},
       "commerce": {"payee": "0xdddddddddddddddddddddddddddddddddddd0001", "bond_id": "", "unit": "install", "unit_price": "0", "min_charge": "0", "settle_mode": "free", "proof_reqs": [], "binding_sig": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
       "releases": [{"release_id": "free@1", "manifest_hash": "0101010101010101010101010101010101010101010101010101010101010101", "package_hash": "0101010101010101010101010101010101010101010101010101010101010101", "package_url": "https://market.devnet.invalid/free.pkg", "publisher_signature": "", "supported_arches": ["x86_64-nonos"], "kernel_abi_min": 1, "required_capabilities": [], "zk_trailer_hash": "", "ext": {"guest_policy": "", "content_len": 0, "proof_anchors": []}, "validation": {"status": "pending", "note": "development catalogue: not for sale", "validator_id": "devnet", "validated_at_ms": 0}}]
     },
@@ -26,7 +26,7 @@
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Sold once per install, by meter voucher. A development placeholder: no contract takes the payment.",
       "price": {"kind": "one_time", "amount_atomic": "1000000000000000000", "period_seconds": 0},
-      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 11155111, "contract_address": ""},
+      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 31337, "contract_address": ""},
       "commerce": {"payee": "0xdddddddddddddddddddddddddddddddddddd0002", "bond_id": "", "unit": "install", "unit_price": "1000000000000000000", "min_charge": "0", "settle_mode": "voucher", "proof_reqs": [], "binding_sig": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
       "releases": [{"release_id": "install@1", "manifest_hash": "0202020202020202020202020202020202020202020202020202020202020202", "package_hash": "0202020202020202020202020202020202020202020202020202020202020202", "package_url": "https://market.devnet.invalid/install.pkg", "publisher_signature": "", "supported_arches": ["x86_64-nonos"], "kernel_abi_min": 1, "required_capabilities": [], "zk_trailer_hash": "", "ext": {"guest_policy": "", "content_len": 0, "proof_anchors": []}, "validation": {"status": "pending", "note": "development catalogue: not for sale", "validator_id": "devnet", "validated_at_ms": 0}}]
     },
@@ -39,7 +39,7 @@
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "Charged per call, by meter voucher, with a minimum charge. A development placeholder.",
       "price": {"kind": "usage_metered", "amount_atomic": "1000000000000000", "period_seconds": 0},
-      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 11155111, "contract_address": ""},
+      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 31337, "contract_address": ""},
       "commerce": {"payee": "0xdddddddddddddddddddddddddddddddddddd0003", "bond_id": "", "unit": "call", "unit_price": "1000000000000000", "min_charge": "5000000000000000", "settle_mode": "voucher", "proof_reqs": [{"kind": 1, "statement": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"}], "binding_sig": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
       "releases": [{"release_id": "metered@1", "manifest_hash": "0303030303030303030303030303030303030303030303030303030303030303", "package_hash": "0303030303030303030303030303030303030303030303030303030303030303", "package_url": "https://market.devnet.invalid/metered.pkg", "publisher_signature": "", "supported_arches": ["x86_64-nonos"], "kernel_abi_min": 1, "required_capabilities": [], "zk_trailer_hash": "", "ext": {"guest_policy": "", "content_len": 0, "proof_anchors": []}, "validation": {"status": "pending", "note": "development catalogue: not for sale", "validator_id": "devnet", "validated_at_ms": 0}}]
     },
@@ -52,7 +52,7 @@
       "publisher_eth_address": "0000000000000000000000000000000000000000",
       "description": "An encrypted package bought through an escrow order. A development placeholder.",
       "price": {"kind": "one_time", "amount_atomic": "2000000000000000000", "period_seconds": 0},
-      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 11155111, "contract_address": ""},
+      "token": {"symbol": "NOX", "decimals": 18, "chain_id": 31337, "contract_address": ""},
       "commerce": {"payee": "0xdddddddddddddddddddddddddddddddddddd0004", "bond_id": "", "unit": "install", "unit_price": "2000000000000000000", "min_charge": "0", "settle_mode": "escrow", "proof_reqs": [{"kind": 2, "statement": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"}], "binding_sig": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
       "releases": [{"release_id": "escrow@1", "manifest_hash": "0404040404040404040404040404040404040404040404040404040404040404", "package_hash": "0404040404040404040404040404040404040404040404040404040404040404", "package_url": "https://market.devnet.invalid/escrow.pkg", "publisher_signature": "", "supported_arches": ["x86_64-nonos"], "kernel_abi_min": 1, "required_capabilities": [], "zk_trailer_hash": "", "ext": {"guest_policy": "", "content_len": 1048576, "proof_anchors": [], "chunk_root": "c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4"}, "validation": {"status": "pending", "note": "development catalogue: not for sale", "validator_id": "devnet", "validated_at_ms": 0}}]
     }
