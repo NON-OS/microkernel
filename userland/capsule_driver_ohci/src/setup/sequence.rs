@@ -23,14 +23,12 @@ use nonos_libc::{MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32};
 use super::claim::Claim;
 use super::discover::Found;
 use super::pci;
-use crate::facts::pci::MMIO_BAR;
+use crate::facts::pci::{register_grant, MMIO_BAR};
 use crate::hc::power::power;
 use crate::hc::start::start;
 use crate::platform::{Region, Registers, Uptime};
 use crate::sched::layout::REGION;
 use crate::server::context::Ctx;
-
-const PAGE: u64 = 0xFFF;
 
 /// Field order is drop order: nothing here outlives the claim, and the
 /// broker takes back every grant with it.
@@ -44,7 +42,7 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
     let claim = Claim::take(dev.device_id)?;
     pci::enable(&claim)?;
     let mut regs = MmioMapOut { user_va: 0, length: 0, grant_id: 0 };
-    let len = (dev.size + PAGE) & !PAGE;
+    let len = register_grant(dev.size);
     if mk_mmio_map(claim.device_id, claim.epoch, MMIO_BAR, 0, 0, len, &mut regs) < 0 {
         return Err("ohci: the broker refused the register grant");
     }

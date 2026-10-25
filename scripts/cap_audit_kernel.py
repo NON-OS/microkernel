@@ -203,6 +203,17 @@ def network_services(root):
     return names, f"{POLICY}:{line}"
 
 
+def key_services(root):
+    """(names, cite) of the services whose endpoints take Keyring to reach."""
+    text = (root / POLICY).read_text()
+    m = re.search(r"const KEY_SERVICES\s*:\s*\[&str;\s*\d+\]\s*=\s*\[(.*?)\];", text, re.S)
+    if not m:
+        raise SourceMoved(f"{POLICY} no longer defines KEY_SERVICES")
+    names = re.findall(r'"([^"]+)"', m.group(1))
+    line = text[:m.start()].count("\n") + 1
+    return names, f"{POLICY}:{line}"
+
+
 def endpoint_owner_cite(root):
     """Where registering an endpoint refuses an owner lacking its requirement."""
     return (_anchor(root, REGISTRY, "owner_has_required(pid, caps)") + ", " +
