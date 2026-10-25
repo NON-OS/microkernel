@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! DMAR device scopes (VT-d 3.x, 8.3.1): the types DRHD and RMRR share,
-//! parsed in dmar_parse.rs and resolved in dmar_cover.rs.
+//! walked in dmar_scope_walk.rs, parsed in dmar_parse.rs and resolved in
+//! dmar_cover.rs. Pure, so the host proofs include it unchanged.
 
 pub use super::dmar_cover::scope_covers;
-pub use super::dmar_parse::{parse_drhd, read_scopes};
+pub use super::dmar_parse::parse_drhd;
 pub use super::dmar_translated::{translated_by_some, Cover};
 
 /// DRHD flags bit 0: the unit covers every PCI device in its segment not named
@@ -34,7 +35,6 @@ pub const MAX_SCOPES: usize = 16;
 pub const MAX_PATH: usize = 4;
 
 pub(super) const DRHD_HEADER_LEN: usize = 16;
-pub(super) const SCOPE_HEADER_LEN: usize = 6;
 
 /// One PCI device scope: its type, the bus its path starts on, and the
 /// (device, function) hops of the path.
@@ -47,8 +47,7 @@ pub struct Scope {
 }
 
 impl Scope {
-    pub(super) const EMPTY: Scope =
-        Scope { kind: 0, start_bus: 0, path: [(0, 0); MAX_PATH], path_len: 0 };
+    pub const EMPTY: Scope = Scope { kind: 0, start_bus: 0, path: [(0, 0); MAX_PATH], path_len: 0 };
 }
 
 /// What a DRHD says it covers.

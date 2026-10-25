@@ -65,7 +65,8 @@ pub fn receive(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
 /// The copy row: the whole private address to the clipboard.
 pub fn copy(state: &mut State) {
     let Some(addr) = &state.shield_ui.nox1 else { return };
-    let copied = nonos_app_skeleton::clients::clipboard::clipboard_copy(addr.as_bytes());
-    state.status =
-        if copied.is_ok() { b"private address copied" } else { b"the clipboard did not take it" };
+    state.status = match crate::wallet::copy::copy_address(addr) {
+        Ok(()) => b"private address copied",
+        Err(why) => why,
+    };
 }

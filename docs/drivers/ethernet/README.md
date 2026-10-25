@@ -14,7 +14,7 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 |---|---|---|---|---|---|
 | Intel 8254x (e1000) | 28 ids, vendor 8086 | `driver.e1000_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, no QEMU run target | [intel.md](intel.md) |
 | Intel 82574, 82583, I217, I218, I219 (e1000e) | 64 ids, vendor 8086 | `driver.e1000e_0` | no | Not supported: capsule not built into any image | [intel-e1000e.md](intel-e1000e.md) |
-| Intel I225, I226 (igc) | 16 ids, vendor 8086 | `driver.igc_0` | no | Not supported: capsule not built into any image | [intel-igc.md](intel-igc.md) |
+| Intel I225, I226 (igc) | 16 ids, vendor 8086 | `driver.igc_0` | no | Not supported: wired in the kernel, not yet signed, so in no image | [intel-igc.md](intel-igc.md) |
 | Realtek RTL8139 | 10ec:8139 | `driver.rtl8139_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, no QEMU run target | [realtek.md](realtek.md) |
 | Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, flake check fails on a lint | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek-rtl8169.md](realtek-rtl8169.md) |

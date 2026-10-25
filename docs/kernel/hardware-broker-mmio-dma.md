@@ -4,9 +4,10 @@ Part of [The hardware broker](hardware-broker.md).
 
 ## MMIO windows
 
-`MkMmioMap` needs `Mmio`. `map_for_caller` resolves the claim and its epoch, finds the BAR, checks that the request lies inside it, maps the pages and records the grant (`src/hardware/broker/mmio/map.rs:34-63`). The grant is entered only while the claim it was made under still holds, and within the holder's quota, or the map is undone (`record_while_held`, `src/hardware/broker/claim/still_held.rs:25-37`; `src/hardware/broker/mmio/map_record.rs`).
+`MkMmioMap` needs `Mmio`. `map_for_caller` resolves the claim and its epoch, finds the BAR, checks that the request lies inside it, maps the pages and records the grant (`src/hardware/broker/mmio/map.rs:34-68`). The grant is entered only while the claim it was made under still holds, and within the holder's quota, or the map is undone (`record_while_held`, `src/hardware/broker/claim/still_held.rs:25-37`; `src/hardware/broker/mmio/map_record.rs`).
 
-- The pages are user, read and write, strong uncacheable and never executable, as `map_user_mmio` sets them (`src/memory/paging/manager/api/mapping/map_user_mmio.rs:23-44`).
+- The pages are user, read and write, strong uncacheable and never executable, as `map_user_mmio` sets them (`src/memory/paging/manager/api/mapping/map_user_mmio.rs`).
+- One flag is known, `MK_MMIO_MAP_WC` (bit 0), for a framebuffer or VRAM. `cache_for` gives write-combining only on a prefetchable BAR, whose reads have no side effects, and only for pages wholly inside that BAR. On any other BAR it answers `EINVAL`, and for pages that reach past the BAR `EINVAL` too. Without a WC entry in every CPU's PAT the pages stay strong uncacheable. A write-combined page is PWT alone, PAT entry 1, and is not marked a device register. Any other flag bit is `ENOTSUP` (`src/hardware/broker/mmio/cache.rs`, `fn cache_for`; kernel_proofs::mmio_cache).
 - Every device's MSI-X table and pending bit array are kept out of capsule memory: `protected_regions` lists them and a mapping stops short of the first one or is refused (`src/hardware/broker/mmio/msix_exclusion.rs:39-50`). The kernel programs those tables itself.
 - Grants live in the window from `USER_MMIO_BASE` to `USER_MMIO_END`, `0x80_0000_0000` to `0x90_0000_0000`, with an unmapped page after each grant (`src/hardware/broker/windows.rs:31-32`). Each address space has its own window, found by the tables its holder runs in, and a range goes back to it once the grant's pages are unmapped (`src/hardware/broker/va_space.rs`, `src/hardware/broker/va_window.rs`).
 - A process holds at most 64 MMIO grants, 1024 DMA grants and 128 MiB of DMA at once; one more answers `ENOMEM` (`src/hardware/broker/quota.rs`, `fn spent`). `DMA32` grants count against the same quotas as any other. A refusal for a quota prints one rate-limited `[DIAG] broker.quota` line naming MMIO or DMA, count or bytes, and the pid, so a spent quota can be told from a spent window (`src/hardware/broker/quota_log.rs`, `fn refused`).
@@ -23,8 +24,10 @@ Part of [The hardware broker](hardware-broker.md).
 | `DMA_MAP_DMA32` | 2 | Frames below 4 GiB, for a device with 32 bit addresses. |
 | `DMA_MAP_COHERENT` | 4 | Mapped uncached, for rings both sides write. |
 | `DMA_MAP_WC` | 8 | Mapped write combining where the PAT allows, else uncached. |
+| `DMA_MAP_TO_DEVICE` | 16 | The device only reads it: read-only in its IOMMU domain. |
+| `DMA_MAP_FROM_DEVICE` | 32 | The device only writes it: write-only in its IOMMU domain, read kept on a VT-d unit without CAP.ZLR. |
 
-The flags are in `flags.rs`, starting at `DMA_MAP_HIGH` (`src/hardware/broker/dma/flags.rs:19-30`). `validate` refuses `HIGH` with `DMA32`, `COHERENT` with `WC`, a length that is not a whole number of 4 KiB pages, and a length above the device class's ceiling (`src/hardware/broker/dma/map/validate.rs:31-58`).
+The flags are in `flags.rs`, starting at `DMA_MAP_HIGH` (`src/hardware/broker/dma/flags.rs:19-38`). `validate` refuses `HIGH` with `DMA32`, `COHERENT` with `WC`, `TO_DEVICE` with `FROM_DEVICE`, a length that is not a whole number of 4 KiB pages, and a length above the device class's ceiling (`src/hardware/broker/dma/map/validate.rs:39-67`). The direction reaches the device's mapping through `direction.rs` and `confine::map`; for a device no IOMMU confines it changes nothing.
 
 The ceilings, in pages, are set by `dma_page_limit_for_class`: `RNG`, `INPUT` and `SERIAL` 1, `AUDIO` 16, `NETWORK` 64, the USB hosts 256, `BLOCK` 1024, `DISPLAY` 8192 and every other class 16 (`src/hardware/broker/dma/limits.rs:27-47`).
 

@@ -55,7 +55,6 @@ pub struct MemoryState {
     pub code_end: VirtAddr,
     pub vmas: Vec<Vma>,
     pub resident_pages: AtomicU64,
-    pub(crate) next_va: u64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -178,23 +177,4 @@ pub struct ProcessIoStats {
     pub read_bytes: u64,
     pub write_bytes: u64,
     pub cancelled_write_bytes: u64,
-}
-
-#[inline]
-pub fn align_up(v: u64, a: u64) -> u64 {
-    (v + (a - 1)) & !(a - 1)
-}
-
-#[inline]
-pub fn overlaps(vmas: &[Vma], start: VirtAddr, len: usize) -> bool {
-    let s = start.as_u64();
-    let e = s + len as u64;
-    for v in vmas {
-        let vs = v.start.as_u64();
-        let ve = v.end.as_u64();
-        if !(e <= vs || s >= ve) {
-            return true;
-        }
-    }
-    false
 }
