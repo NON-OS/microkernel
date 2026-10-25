@@ -90,6 +90,7 @@ pub enum SyscallNumber {
     MkDevRootRequest = tag4(b"MDRQ"),
     MkDevRootConfirm = tag4(b"MDRC"),
     MkToolRun = tag4(b"MTRN"),
+    MkCapsOf = tag4(b"MCOF"),
     MkTtySet = tag4(b"MTTY"),
     MkTtyQuery = tag4(b"MTTQ"),
     MkCapGrant = tag4(b"MCGT"),
