@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rectangle a request names, checked against the screen.
+//! What one frame from the inbox is to the serve loop. Only the kernel
+//! sends as sender 0, and only to say a device left (DGON): one naming this
+//! driver's device ends it, and any other frame from sender 0 is dropped,
+//! never answered. Every other sender is served, a DGON's bytes included,
+//! so no process can end the driver by sending them.
 
-use crate::protocol::le_u32;
-use crate::screen::{rect_fits, Rect};
-use crate::setup::Driver;
+use super::dgon_parse;
 
-/// Four u32s at `at`: x, y, width, height; None unless they fit the screen.
-pub fn rect_at(d: &Driver, body: &[u8], at: usize) -> Option<Rect> {
-    let r = Rect {
-        x: le_u32(body, at)?,
-        y: le_u32(body, at + 4)?,
-        w: le_u32(body, at + 8)?,
-        h: le_u32(body, at + 12)?,
-    };
-    rect_fits(r, d.fb.width, d.fb.height).then_some(r)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Turn {
+    Serve,
+    Drop,
+    End,
+}
+
+pub fn turn(sender: u32, msg: &[u8], device_id: u64) -> Turn {
+    match (sender, dgon_parse(msg, sender)) {
+        (0, Some(g)) if g.device_id == device_id => Turn::End,
+        (0, _) => Turn::Drop,
+        _ => Turn::Serve,
+    }
 }
