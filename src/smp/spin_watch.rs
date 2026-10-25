@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! When a lock wait is worth a word, pure: kernel_proofs::spin_watch.
+//! When a lock wait is worth a word, pure: kernel_proofs::spin_waits.
 //!
 //! A spin with interrupts masked that never ends stops its CPU without a
 //! sound, and on one CPU the whole machine. The wait says so once it has
@@ -39,34 +39,4 @@ pub(crate) const fn slot_of(addr: usize) -> usize {
 /// Whether a wait that began at `start` ms is due its one report at `now`.
 pub(crate) const fn due(start: u64, now: u64, reported: bool) -> bool {
     !reported && now.saturating_sub(start) >= REPORT_MS
-}
-
-/// Who holds a lock a wait has gone on too long for.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub(crate) enum Holder {
-    /// Somebody else, on another stack: the wait may yet end.
-    Other,
-    /// The holder's frame is just above the waiter's, but the waiter's own
-    /// stack bounds are not known, so two stacks side by side could look so.
-    Likely,
-    /// The holder's frame is on the waiter's own kernel stack, above it: the
-    /// waiter's own caller holds the lock, and the wait can never end. Live
-    /// stacks never overlap, so a hold on any other CPU is never this.
-    ReTaken,
-}
-
-/// Judge the holder's frame at `holder_sp` against the waiter's at
-/// `waiter_sp`, whose kernel stack ends at `stack_top` (0 when unknown).
-pub(crate) const fn judge(holder_sp: usize, waiter_sp: usize, stack_top: usize) -> Holder {
-    let above = holder_sp > waiter_sp;
-    // A top of 0 is no stack: no frame lies below it.
-    let on_known_stack = waiter_sp < stack_top && waiter_sp >= stack_top.saturating_sub(CHAIN_SPAN);
-    if on_known_stack {
-        return if above && holder_sp < stack_top { Holder::ReTaken } else { Holder::Other };
-    }
-    if above && holder_sp - waiter_sp < CHAIN_SPAN {
-        Holder::Likely
-    } else {
-        Holder::Other
-    }
 }

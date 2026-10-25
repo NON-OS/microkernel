@@ -22,7 +22,7 @@ use crate::fs::blockfs::{self, BlockFsError, MODE_FILE};
 
 pub fn write_or_create(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
     let exists = {
-        let guard = VOLUME.read();
+        let guard = crate::smp::read_responsive(&VOLUME);
         let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
         match blockfs::resolve(&state.key, &state.mount, path) {
             Ok(_) => true,

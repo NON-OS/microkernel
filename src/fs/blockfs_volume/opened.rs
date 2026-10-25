@@ -26,5 +26,5 @@ use alloc::format;
 pub(super) fn install(plan: &Plan, key: [u8; 32], mount: BlockFsMount) {
     let (n, at) = (plan.volume_sectors, plan.volume_base);
     say(&format!("[DATA] volume open: {n} sectors at LBA {at}"));
-    *VOLUME.write() = Some(VolumeState { key, mount });
+    *crate::smp::write_responsive(&VOLUME) = Some(VolumeState { key, mount });
 }
