@@ -15,15 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What every repaint of the splash shows besides its status line: the
-//! attestation status and its verdict, and the firmware's logo when it left
-//! one.
+//! attestation status and its verdict, the firmware's logo when it left
+//! one, and the layout around it.
 
 use nonos_libc::AttestStatus;
 
+use crate::layout_fit::Layout;
 use crate::logo::Shown;
 
 pub(crate) struct Look {
     pub att: AttestStatus,
     pub badge: Option<bool>,
     pub logo: Option<Shown>,
+    /// Where the panel and status line sit around that logo.
+    pub fit: Layout,
 }

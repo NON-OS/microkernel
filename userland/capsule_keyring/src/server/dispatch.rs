@@ -33,6 +33,9 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
     if let Some(refused) = crate::protocol::retired(&req) {
         return refused;
     }
+    if crate::protocol::wallet_only(req.op) && !super::vault_gate::allowed(sender_pid) {
+        return encode_response(req.seq, EACCES, &[]);
+    }
     match req.op {
         OP_STORE => handlers::store(store, req, sender_pid),
         OP_RETRIEVE => handlers::retrieve(store, req, sender_pid),
@@ -57,14 +60,8 @@ pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
         OP_SIGN_ETH_TRANSFER => handlers::sign_eth_transfer(store, req, sender_pid),
         OP_SIGN_TX => handlers::sign_tx(store, req, sender_pid),
         OP_SIGN_TYPED_DATA => handlers::sign_typed(store, req, sender_pid),
-        OP_VAULT_SEAL | OP_VAULT_OPEN if !super::vault_gate::allowed(sender_pid) => {
-            encode_response(req.seq, EACCES, &[])
-        }
         OP_VAULT_SEAL => handlers::vault_seal(store, req, sender_pid),
         OP_SHIELD_MATERIAL => handlers::shield_material(store, req, sender_pid),
-        OP_SHIELD_SEAL | OP_SHIELD_OPEN if !super::vault_gate::allowed(sender_pid) => {
-            encode_response(req.seq, EACCES, &[])
-        }
         OP_SHIELD_SEAL => handlers::shield_seal(store, req, sender_pid),
         OP_SHIELD_OPEN => handlers::shield_open(store, req, sender_pid),
         OP_VAULT_OPEN => handlers::vault_open(store, req, sender_pid),

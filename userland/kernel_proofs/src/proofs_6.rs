@@ -64,3 +64,6 @@ mod proof_io_spawn_tests;
 #[path = "proof_io_spawn_walk.rs"]
 #[cfg(test)]
 mod proof_io_spawn_walk;
+/// A user page never GLOBAL, now that CR4.PGE is on (P-06).
+#[path = "user_not_global/mod.rs"]
+pub mod user_not_global;

@@ -10,6 +10,7 @@ mod dwell;
 mod input;
 mod interact;
 mod layout;
+mod layout_fit;
 mod logo;
 mod look;
 mod paint;
@@ -48,7 +49,9 @@ fn run() -> i32 {
     };
     let mut att = AttestStatus::default();
     let badge = if mk_attest_status(&mut att) == 0 { Some(att.zk_verified == 1) } else { None };
-    let look = look::Look { att, badge, logo: logo::fetch::fetch(w, h) };
+    let logo = logo::fetch::fetch(w, h);
+    let fit = layout_fit::layout(logo.as_ref().map(|l| &l.spot), w, h);
+    let look = look::Look { att, badge, logo, fit };
     paint::splash(base, w, h, stride, &look);
     if scene::submit(comp, 3, handle, w, h).is_err() {
         let _ = mk_surface_release(handle);
