@@ -47,3 +47,7 @@ fn an_unreadable_list_says_so() {
 mod dev_root;
 #[path = "dev_root_trust.rs"]
 mod dev_root_trust;
+#[path = "dev_root_refusals.rs"]
+mod dev_root_refusals;
+#[path = "dev_root_path.rs"]
+mod dev_root_path;
