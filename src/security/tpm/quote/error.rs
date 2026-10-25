@@ -29,6 +29,9 @@ pub enum QuoteError {
     /// The nonce in the signed structure did not match the one requested, so
     /// the quote answers a different question than the one asked.
     NonceMismatch,
+    /// The quote covers another selection than the one asked for, or its
+    /// digest is not that of the values read beside it.
+    Selection,
 }
 
 impl QuoteError {
@@ -39,6 +42,7 @@ impl QuoteError {
             Self::NotTpmGenerated => "attest structure not tpm generated",
             Self::NotAQuote => "attest structure is not a quote",
             Self::NonceMismatch => "quote nonce does not match the challenge",
+            Self::Selection => "quote covers other pcrs than were read",
         }
     }
 }
