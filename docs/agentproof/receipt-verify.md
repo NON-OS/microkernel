@@ -19,7 +19,7 @@ refused: <name>`), and 2 when a file cannot be used. It checks, in order:
 5. `doc`: its TPM quote verifies under the AK it carries (nsh_attest's own check).
 6. `ak`: the AK is the one the trust file pinned.
 7. `release`: PCR 9 names a trusted release, and PCR 8 and 14 are that release's.
-8. `dma`: the IOMMU was enforcing, with 0 unconfined grants. Then `registry`: the capsule
+8. `dma`: an IOMMU was present and enforcing, with no grant around it and no device left in a domain that reaches all of memory (nsh_attest's `steps::dma`). Then `registry`: the capsule
    registry was complete.
 9. `record`, `unfinished`, `supervisor`: the record is one NFSR v1 record, finished, with no
    count saturated and no overflow, sealed under the vendor authority by a trusted
