@@ -72,6 +72,10 @@ the address once, when it binds), the driver settles it, as the developers ruled
 3. Nothing within that bounded wait, and the host-assigned address is used,
    and the console says:
    `[NET] netvsc: Hyper-V drops a chosen MAC (MAC spoofing off); using the host-assigned MAC`
+4. Which of these it was is in the NNET STATS reply, word 9, for Settings'
+   network page: 1 the drawn address, 2 the host-assigned one for want of
+   an answer, 3 the host-assigned one the host's refusal left
+   (`nonos_usbnet::nnet::STATION_*`; 0 is every other driver's).
 
 The fallback hides nothing from the host, which assigned that address. It
 does show the address to the network the VM is on. **To keep the drawn
