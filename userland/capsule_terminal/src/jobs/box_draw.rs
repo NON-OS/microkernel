@@ -19,6 +19,7 @@
 //! can hide or bend it; and its `[BOX]` line sent to the serial log.
 
 use super::box_hold::BoxHold;
+use super::box_missing::{line as missing_line, said, Missing};
 use super::box_screen::SCREEN_RESET;
 use crate::command::output::Output;
 
@@ -27,21 +28,35 @@ const _: () = assert!(super::box_hold::TAG == nonos_libc::TAG_BOX);
 pub(super) fn draw(hold: &BoxHold, out: &mut Output<'_>) {
     out.feed_raw(SCREEN_RESET);
     let (shown, line) = hold.lines();
+    let exit = hold.ended.unwrap_or(0);
     if shown.is_empty() {
-        out.writeln_error(b"linux: the box sent no report; the run ended before it could");
+        missing(Missing::None, exit, out);
     }
     for l in shown {
         out.writeln(l);
     }
     match line {
         Some(l) => {
-            if !super::box_log::log(l, |p| nonos_libc::mk_debug(p.as_ptr(), p.len())) {
+            if !to_log(l) {
                 out.writeln_error(b"linux: the [BOX] line could not be written to the log");
             }
         }
-        None if !hold.lines().0.is_empty() => {
-            out.writeln_error(b"linux: the box's report arrived incomplete");
-        }
+        None if !hold.lines().0.is_empty() => missing(Missing::Incomplete, exit, out),
         None => {}
     }
+}
+
+/// A report that never came whole, said on the screen and to the serial log.
+pub(super) fn missing(m: Missing, exit: i32, out: &mut Output<'_>) {
+    out.writeln_error(said(m, exit));
+    let l = missing_line(m, exit);
+    if !to_log(l.as_bytes()) {
+        out.writeln_error(b"linux: the [BOX-MISSING] line could not be written to the log");
+    }
+}
+
+/// The one way a line reaches the serial log from here: the report's own
+/// `[BOX]` line, from its keyed frames, or this module's `[BOX-MISSING]`.
+fn to_log(line: &[u8]) -> bool {
+    super::box_log::log(line, |p| nonos_libc::mk_debug(p.as_ptr(), p.len()))
 }

@@ -20,7 +20,7 @@ Not tested in this release.
 All but `linux sqlite3` come from the tour the image carries at `/usr/share/nonos/tour/README` in the Linux tree, which lists a few more, such as `linux zstd -b1`.
 
 - A bare name is looked for along the guest's PATH; a name with a slash is a path in the Linux tree. `linux` alone prints `usage: linux [--box strict|offline|allow:<folder|net:host:port>,...] <program> [arguments]`. To run a program in a sealed box and get a report of what it tried, see [Run a program in a box](linux-box.md).
-- The program's output appears in the Terminal and the keyboard is its input. `Ctrl+C` interrupts it.
+- The program's output appears in the Terminal and the keyboard is its input. `Ctrl+C` sends it SIGINT, which a program may catch or ignore, as on Linux. Pressed three times within 2 seconds, it ends the program with SIGKILL, which no program can catch; after the second press the Terminal says `linux: press Ctrl+C once more within 2 seconds to end the program`. A program ended this way exits with status 137.
 - One Linux program runs at a time. A second one is refused with `linux: a Linux program is already running in a terminal; one runs at a time, so end it (Ctrl-C) first`.
 - A name nothing holds is answered with `command not found`, and the line says where it looked.
 
@@ -131,6 +131,7 @@ The source behind the facts above, at the commit in the footer.
 - Run a program
   - The tour's commands, `zstd` among them: `userland/linux_userland/tour/README:5-16`.
   - PATH lookup and the usage line: `requested` in `userland/capsule_linux/src/linux/terminal.rs:52-65`.
+  - Ctrl+C three times: `Presses` in `userland/capsule_linux/src/linux/console/intr_press.rs`, sent by `settle_tty_interrupt` in `userland/capsule_linux/src/linux/serve/family_tty.rs`.
   - Store programs signed under the Linux userland publisher: `LINUX_USERLAND_CAPSULE` in `userland/linux_userland/Userland.mk:104-107`.
 - What is installed
   - The store's Linux programs: `linux` in `tools/nix/store.json:100`.
