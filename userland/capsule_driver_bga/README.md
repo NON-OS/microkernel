@@ -2,7 +2,8 @@
 
 Status: wired, in its own `microkernel-driver-bga` profile; not yet signed.
 The kernel mirror (`src/hardware/bga_capsule`) embeds and spawns it under
-`nonos-capsule-driver-bga` when the inventory sees `DisplayBga`. It joins
+`nonos-capsule-driver-bga` when the inventory sees `DisplayBga`, and the
+compositor finds it after `driver.virtio_gpu0`. It joins
 `microkernel-full-gui` (the image `make` builds) with its owner certificate
 in the 0.9.3 seal (see the release checklist); until then it is in
 `scripts/baselines/display_profiles.txt`.
@@ -16,7 +17,10 @@ driver, serving the display wire (NVGP v1, PLAN-coverage section 12) on
 the compositor asks for another, so it no longer destroys the firmware
 scanout that kept `DisplayBga` undispatched
 (`src/hardware/inventory/driver.rs`). Its trust artifacts (`Capsule.mk`)
-are sealed with the 0.9.3 batch (HANDOFF letters G-12, G-84).
+are sealed with the 0.9.3 batch (HANDOFF letters G-12, G-84). The adapter
+scans out its video memory and has no DMA, so the compositor draws in
+primaries of ordinary memory the driver shares, and each flush copies the
+damaged rectangles into video memory.
 
 ## Microkernel contract
 
@@ -30,11 +34,15 @@ are sealed with the 0.9.3 batch (HANDOFF letters G-12, G-84).
   MkServiceRegister, MkIpcRecvFrom/Reply   the display wire, below
 ```
 
+Discovery takes only an adapter whose register BAR (BAR2) is MMIO and at
+least 0x608 bytes, so it reaches QEMU's extension block; one reached only
+through the 0x1CE/0x1CF ports is not served.
+
 Service 4240, reply 4241 (`endpoint.4294967326`), as Capsule.mk declares
-them (4236 is driver.gpio0's). Only the compositor may send to it once the
-kernel's holder table names it (C6, track A's). No Dma (the adapter masters
-nothing), no Irq (it polls nothing either: every wire request is answered at
-once), no Pio (the DISPI block is read at BAR2+0x500).
+them and the kernel spawns it (4236 is driver.gpio0's). Only the compositor
+may send to it: the kernel's holder table names it (C6). No Dma (the adapter
+masters nothing), no Irq (it polls nothing either: every wire request is
+answered at once), no Pio (the DISPI block is read at BAR2+0x500).
 
 ## Interface contract
 
@@ -58,27 +66,35 @@ uncached).
 ## Privacy and persistence
 
 It keeps nothing but the compositor's frame in its primaries and video
-memory. Nothing is
-logged per request, and nothing is stored.
+memory. Nothing is logged per request, and nothing is stored.
 
 ## Runtime lifecycle
 
-Spawned, it serves until stopped; it sleeps in `mk_ipc_recv_from` between
-requests and holds no core. A refused service registration gives the
-adapter back, firmware's DISPI state written back, and exits 1.
+Spawned once, on `DisplayBga`; it serves until stopped. It sleeps in
+`mk_ipc_recv_from` between requests and holds no core. A refused service
+registration gives the adapter back, firmware's DISPI state written back,
+and exits 1.
 
 ## Failure model
 
 Each attempt fails by name: a broker claim or map refused, a register
 mapping that ends inside the DISPI block, a DISPI ID outside 0xB0C0 to
-0xB0C5, a start-up mode past VIDEO_MEMORY_64K or past the BAR0 mapping, a
-mode that does not read back as set (its line layout included). The DISPI
-state firmware left is read before any write and, where it changed, written
-back at every drop before the mappings and the claim are given up. A
-capsule killed outright runs no drop: a kept OVMF mode stays GOP's, as no
-DISPI register was written; a mode set stays set. A MODE_SET the adapter
-does not take is read back, refused with EINVAL and the previous mode put
-back.
+0xB0C5, a start-up mode past VIDEO_MEMORY_64K (a report of 0 is no video
+memory) or past the BAR0 mapping, a mode that does not read back as set (its
+line layout included). The DISPI state firmware left is read before any
+write and, where it changed, written back at every drop before the mappings
+and the claim are given up; each primary's share is released before its
+memory is unmapped (`nonos_gfx_pool`). A capsule killed outright runs no
+drop: a kept OVMF mode stays on the adapter, as no DISPI register was
+written; a mode set stays set. A MODE_SET the adapter does not take is read
+back, refused with EINVAL and the previous mode put back.
+
+None of this gives the kernel's GOP blit back. Where BAR0 holds the boot
+framebuffer, as under OVMF on stdvga, the claim, each attempt's first step,
+stops the kernel's console for the rest of the boot (L79), and
+MkSurfacePresent answers EBUSY from then on. A driver that fails a later
+step, gives up or is killed leaves what video memory last held on screen
+and the compositor nothing else to draw it with.
 
 With no BGA adapter in the device list the capsule logs one line and exits
 `EXIT_ABSENT` (2) before claiming anything. An adapter that is present but
@@ -90,14 +106,17 @@ having released its claim); running out exits `EXIT_GAVE_UP` (6).
 
 Discovery, claim and maps; the EDID read at BAR2+0 (`edid/`); the DISPI ID
 check, video memory, mode set, read-back and firmware write-back (`dispi/`);
-the start-up mode (firmware's when it is 32 bits, linear, unpanned and fits
-both video memory and the mapping, else the EDID's preferred, else
-1024x768: `setup/mode.rs`); the wire's device half (`display/`) and kernel
-half (`nonos_gfx_pool`), served by `serve.rs`. Video memory is zeroed whole
-before any mode is touched (G-78). A mode set first sets the VGA attribute
-controller's palette address source, so the adapter shows a picture
-(`dispi/unblank.rs`); where BAR2 holds the byte-order register it is set
-little endian at bring-up and not written back at drop (`dispi/endian.rs`).
+the start-up mode (firmware's when it is 32 bits, linear, unpanned, its
+lines no narrower than it, and fits both video memory and the mapping,
+else the EDID's preferred, else 1024x768: `setup/mode.rs`); the wire's
+device half (`display/`) and kernel half (`nonos_gfx_pool`), served by
+`serve.rs`. Video memory is zeroed whole before any mode is touched
+(G-78). A mode set first sets the VGA attribute controller's palette
+address source, so the adapter shows a picture (`dispi/unblank.rs`), then
+writes the mode with the adapter disabled and the bank back at 0, and the
+line layout after ENABLE; where BAR2 holds the byte-order register it is
+set little endian at bring-up and not written back at drop
+(`dispi/endian.rs`).
 
 ## Wire format
 
@@ -113,7 +132,8 @@ names its receiver (K20, `nonos_gfx_pool`). FLUSH copies its rectangles
 into video memory and fences the copy before the answer. Video memory itself is never shared: as a
 surface, the kernel's registry would free its pages to the allocator when
 this capsule dies, and map them cacheable in the compositor beside this
-capsule's write-combining mapping.
+capsule's write-combining mapping. The capsule owns the claim and both MMIO
+grants.
 
 ## Operating rules
 
@@ -123,7 +143,7 @@ against the mode before a pixel moves.
 ## Release target
 
 Brokered BGA display driver on the display wire, spawned after virtio-gpu
-wherever the adapter is present.
+wherever the adapter is present, in place of the kernel's GOP blit.
 
 ## Release evidence
 
@@ -132,27 +152,47 @@ desktop through `driver.bga0`.
 
 ## Release checklist
 
-- The owner's keys and certificate (owner only).
+- The owner's keys and certificate (owner only), and the driver added to
+  the desktop image's features.
 - Track A's held-table entry, kernel mirror, spawn and `DisplayBga`
   dispatch (`src/hardware/inventory`): in place. A capsule loaded at runtime
   may claim only names it already holds (`src/services/registry/reserved.rs`),
   so none can take `compositor`, and with it the primaries: proved on the
   kernel's own files in `bga_proofs` (`syscall/microkernel/ipc/claim_tests`).
+- A QEMU stdvga boot showing the desktop through `driver.bga0`.
 
 ## Real hardware bring-up checklist
 
-What only a boot on real silicon can confirm. The host proofs cover the parsers, the bring-up sequence against a model, and the bounded retry; these do not.
+Bochs and QEMU only; there is no such silicon. What only a boot can
+confirm; the host proofs cover the parsers, the bring-up sequence against a
+model, and the bounded retry. Under QEMU `-vga std`:
 
-- On a machine without the device: the broker log shows no claim for it and the capsule exits at once with `EXIT_ABSENT` (2); the capsule's own `no controller present, not started` line needs the Debug capability, so without it the kernel prints `[EXIT] <service> status 2: no device present, not started` for it (`src/process/exit/end_note.rs`).
-- With the device present but failing (disabled in firmware, or a forced setup error): at most seven claim and release rounds in the broker log over about six seconds, then one `device present, bring-up failed` line naming the last cause (with the Debug capability), and exit `EXIT_GAVE_UP` (6), which the kernel names as `[EXIT] <service> status 6: device present, bring-up failed and was given up`. The capsule holds no core while it waits.
-- (Bochs or QEMU stdvga only.) With DISPI left off, the EDID's preferred mode (QEMU's default 1280x800; unverified) is set.
-- A MODE_SET to each EDID mode changes the picture in one step, with no black frame.
+- On a machine without the device: the broker log shows no claim for it and
+  the capsule exits at once with `EXIT_ABSENT` (2); the capsule's own
+  `no controller present, not started` line needs the Debug capability, so
+  without it the kernel prints `[EXIT] <service> status 2: no device
+  present, not started` for it (`src/process/exit/end_note.rs`).
+- With the device present but failing (disabled in firmware, or a forced
+  setup error): at most seven claim and release rounds in the broker log
+  over about six seconds, then one `device present, bring-up failed` line
+  naming the last cause (with the Debug capability), and exit
+  `EXIT_GAVE_UP` (6), which the kernel names as `[EXIT] <service> status 6:
+  device present, bring-up failed and was given up`. The capsule holds no
+  core while it waits.
+- The firmware's mode (OVMF's) is kept, with no flicker at the switch, and
+  the compositor moves from GOP to `driver.bga0` and the desktop keeps
+  drawing.
+- With DISPI left off, the EDID's preferred mode (QEMU's default 1280x800;
+  unverified) is set.
+- A MODE_SET to each EDID mode changes the picture in one step, with no
+  black frame.
 - Between requests the capsule is asleep: no CPU time accrues to it.
 
 ## Explicit non-goals today
 
-No hardware cursor, no display hints (Decision 15), no second output, and no
-use of the adapter outside QEMU and Bochs.
+No hardware cursor, no display hints (Decision 15), no second output, no
+VirtualBox (80ee:beef) or Bochs I/O-port-only adapter, and no use of the
+adapter outside QEMU and Bochs.
 
 ## Verification
 

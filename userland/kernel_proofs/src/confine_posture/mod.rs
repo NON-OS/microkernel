@@ -34,4 +34,6 @@ mod interrupt_tests;
 #[cfg(test)]
 mod port_only_glue_tests;
 #[cfg(test)]
+mod port_only_verdict_glue_tests;
+#[cfg(test)]
 mod port_only_nodma_tests;

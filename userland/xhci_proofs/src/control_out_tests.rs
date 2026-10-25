@@ -19,8 +19,8 @@
 //! none. The stage once went out as zeros, so a SET_CUR of a sampling rate
 //! set 0 Hz.
 
-use crate::server::handlers::control_transfer::region::{data_region, stage_fits};
 use crate::dma::DmaPool;
+use crate::server::handlers::control_transfer::region::{data_region, stage_fits};
 
 const MAX: u16 = 512;
 const OUT: u8 = 0x22;

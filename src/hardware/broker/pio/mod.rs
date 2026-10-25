@@ -15,14 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod access;
+mod bar_window;
+mod fixed_line;
+mod fixed_view;
 mod grant;
+mod grant_drain;
+mod grant_insert;
 mod map;
+mod overlap;
 mod power_ports;
 mod release;
 mod types;
-pub(crate) mod window;
+mod width;
+mod window;
 
-pub(crate) use access::quiesce_ports;
 pub use access::{grant_for_caller, read, write};
+pub(in crate::hardware::broker) use fixed_view::intx_view;
 pub use release::{release_all_for_pid, release_for_device, release_grant};
 pub use types::{PioError, PioGrantRequest, PioGrantResult, PioWidth};
