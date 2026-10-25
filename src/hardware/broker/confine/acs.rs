@@ -26,7 +26,7 @@ use alloc::vec::Vec;
 use super::acs_alias::aliases;
 use super::acs_kind::{secondary, Secondary};
 use super::acs_path::path;
-use super::acs_reach::group_by_hop;
+use super::acs_reach::{group_by_hop, shared};
 use super::acs_read::{buses, redirect};
 use super::acs_tree::{Bdf, Func};
 use super::member::Member;
@@ -48,13 +48,13 @@ pub(super) fn reach(device_id: u64) -> Option<Reach> {
         pci_index::all().into_iter().filter(|h| h.address.segment == 0).collect();
     let all: Vec<Func> = handles.iter().map(|h| func(bdf(h))).collect();
     let hops = path(bdf(&me), &all)?;
+    let across = shared(&hops);
     let reached = group_by_hop(hops, redirect);
-    let others = handles.iter().filter(|h| h.device_id != device_id);
     let member = |h: &PciHandle| {
         let &(at, hop) = reached.iter().find(|(m, _)| *m == bdf(h))?;
-        Some(Member { id: h.device_id, at, hop })
+        Some(Member { id: h.device_id, at, hop, shared: across.contains(&at) })
     };
-    let group = others.filter_map(member).collect();
+    let group = handles.iter().filter(|h| h.device_id != device_id).filter_map(member).collect();
     Some(Reach { group, aliases: aliases(bdf(&me), &all) })
 }
 
