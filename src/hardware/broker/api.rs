@@ -27,7 +27,12 @@ pub use super::platform::register_legacy as register_legacy_platform_devices;
 pub use super::table::{
     boot_fb_held, contains, external_port_of, init_from_pci, list, list_by_class, list_shown,
 };
-pub use super::vmbus::{register_vmbus, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR};
+pub use super::vmbus::{
+    channel_held_by as vmbus_channel_held_by, is_channel as vmbus_is_channel,
+    register_channel as register_vmbus_channel, register_vmbus,
+    retire_all_channels as retire_all_vmbus_channels, retire_channel as retire_vmbus_channel,
+    settle_channel as settle_vmbus_channel, vmbus_held_by, VMBUS_DEVICE, VMBUS_VENDOR,
+};
 pub use super::windows::touches_device_window;
 #[cfg(target_arch = "x86_64")]
 pub use super::{
