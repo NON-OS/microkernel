@@ -1,6 +1,6 @@
 [
  {"name": "version", "file": "userland/agentproof_receipt/src/napr/read.rs", "old": "|| b.get(4..HEAD) != Some(&VERSION.to_be_bytes())", "new": "", "crate": "userland/agentproof_receipt_proofs", "test": "tests", "args": ["--release"]},
- {"name": "field-max", "file": "userland/agentproof_receipt/src/napr/read.rs", "old": "if len < min || len > max {", "new": "if len < min {", "crate": "userland/agentproof_receipt_proofs", "test": "tests", "args": ["--release"]},
+ {"name": "field-max", "file": "userland/agentproof_receipt/src/napr/cursor.rs", "old": "if len < min || len > max {", "new": "if len < min {", "crate": "userland/agentproof_receipt_proofs", "test": "tests", "args": ["--release"]},
  {"name": "trailing", "file": "userland/agentproof_receipt/src/napr/read.rs", "old": "    if c.at != b.len() {\n        return Err(Fault::Trailing);\n    }\n", "new": "", "crate": "userland/agentproof_receipt_proofs", "test": "tests", "args": ["--release"]},
  {"name": "bound-short", "file": "userland/agentproof_receipt/src/napr/read.rs", "old": "let bound = &b[..c.at];", "new": "let bound = &b[..c.at - 32];", "crate": "userland/agentproof_receipt_proofs", "test": "tests", "args": ["--release"]},
  {"name": "challenge-domain", "file": "userland/agentproof_receipt/src/napr/mod.rs", "old": "h.update(CHALLENGE_DOMAIN).update(bound);", "new": "h.update(bound);", "crate": "userland/agentproof_receipt_proofs", "test": "tests", "args": ["--release"]},

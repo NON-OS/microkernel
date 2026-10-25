@@ -27,6 +27,7 @@
 //! One receipt has one encoding: a reader refuses another version, a short or
 //! long field, and any byte past the doc.
 
+mod cursor;
 pub mod doc_form;
 pub mod read;
 pub mod write;
