@@ -18,13 +18,16 @@
 the second boot printed."""
 
 import importlib.machinery
+import importlib.util
 from pathlib import Path
 
 from .memscan import count
 
 ROOT = Path(__file__).resolve().parents[2]
-_amnesic = importlib.machinery.SourceFileLoader(
-    "nonos_amnesic_check", str(ROOT / "tools/nonos-amnesic-check")).load_module()
+_loader = importlib.machinery.SourceFileLoader(
+    "nonos_amnesic_check", str(ROOT / "tools/nonos-amnesic-check"))
+_amnesic = importlib.util.module_from_spec(importlib.util.spec_from_loader(_loader.name, _loader))
+_loader.exec_module(_amnesic)
 
 
 def store_rows_added(before_image, after_image):

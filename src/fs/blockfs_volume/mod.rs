@@ -67,7 +67,7 @@ pub use open_machine::open_machine_volume;
 pub use passphrase::passphrase_volume;
 pub use plan::parse_plan;
 pub use plan_types::{Plan, PlanError, DATA_FLOOR, MAX_IMPORTS, PLAN_LBA};
-pub use {plan_read::plan_keeps_volume, read::read};
+pub use read::read;
 pub use read_all::{read_all, WHOLE_READ_MAX};
 pub use read_at::read_at;
 pub use read_to::read_to;

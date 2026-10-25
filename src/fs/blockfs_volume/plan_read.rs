@@ -36,17 +36,6 @@ pub(super) fn read_plan() -> Result<Plan, VolumeError> {
     }
 }
 
-/// Whether the selected disk's plan keeps a data volume, which only an
-/// installed disk's does: `None` when the plan could not be read or was
-/// refused, so a caller can tell a fault from a disk that keeps nothing.
-pub fn plan_keeps_volume() -> Option<bool> {
-    match read_plan() {
-        Ok(plan) => Some(!plan.is_live()),
-        Err(VolumeError::Plan(PlanError::NoPlan)) => Some(false),
-        Err(_) => None,
-    }
-}
-
 /// A table that names a data partition holds the volume to it: a plan
 /// pointing past it would have the volume written over another partition.
 /// A live stick's plan keeps no volume, and a table naming no data

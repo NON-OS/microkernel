@@ -1,9 +1,8 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Host proofs for zero-state: the kernel's rule for what a store write may
-# change on a boot that keeps nothing, mounted from its source with the disk
-# plan parser it reads. No dependencies.
+# Host proofs for zero-state: the kernel's rules for who turns keeping on
+# and what a store write needs, mounted from their source.
 [package]
 name = "zerostate_proofs"
 version = "0.1.0"

@@ -16,12 +16,27 @@
 
 use nonos_policy_proto::Field;
 
-use super::kernel_field::{KERNEL_PREEMPT, KIND_BOOL};
+use super::kernel_field::{KEEP_ACROSS_BOOTS, KERNEL_PREEMPT, KIND_BOOL};
 use super::raw;
 
 pub fn on_bool_set(field: Field, value: bool) {
-    if let Field::KernelPreempt = field {
-        let v = [if value { 1u8 } else { 0u8 }];
-        let _ = raw::submit(KERNEL_PREEMPT, KIND_BOOL, &v);
+    match field {
+        Field::KernelPreempt => {
+            let _ = raw::submit(KERNEL_PREEMPT, KIND_BOOL, &[value as u8]);
+        }
+        /* Only the turn on is told: the kernel never turns keeping off. */
+        Field::Persistent if value => keep_on(),
+        _ => {}
+    }
+}
+
+/*
+ * Said on serial when the kernel refuses, as the store then stays shut while
+ * vfs believes it open, and every keep fails until the reason is read.
+ */
+fn keep_on() {
+    if raw::submit(KEEP_ACROSS_BOOTS, KIND_BOOL, &[1]) != 0 {
+        let line = b"[POLICY] the kernel refused to turn keeping on\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     }
 }
