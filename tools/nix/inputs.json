@@ -8758,6 +8758,7 @@
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim",
    "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
+   "userland/nonos_wifi_core_proofs/src/sweep/fuzz.rs",
    "userland/rtl8821ce_proofs"
   ],
   "md": [],
