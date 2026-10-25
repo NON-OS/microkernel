@@ -14,13 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::PMP_ENTRY_COUNT;
-use super::super::error::{PmpError, PmpResult};
+//! MMIO register accesses and barriers with their ordering, one backend per
+//! architecture: x86_64's fences, aarch64's DSBs, riscv64's FENCEs over
+//! device and memory accesses. `memory::mmio::ordering` is their only user.
 
-pub(super) fn check_index(index: usize) -> PmpResult<()> {
-    if index < PMP_ENTRY_COUNT {
-        Ok(())
-    } else {
-        Err(PmpError::InvalidIndex)
-    }
-}
+#[cfg(target_arch = "aarch64")]
+#[path = "../aarch64/mmio_order/mod.rs"]
+mod imp;
+#[cfg(target_arch = "riscv64")]
+#[path = "../riscv64/mmio_order/mod.rs"]
+mod imp;
+#[cfg(target_arch = "x86_64")]
+#[path = "../x86_64/mmio_order/mod.rs"]
+mod imp;
+
+pub(crate) use imp::{
+    fence_full, fence_reads, fence_writes, read_acquire, read_relaxed, write_relaxed, write_release,
+};
