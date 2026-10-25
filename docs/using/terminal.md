@@ -23,6 +23,7 @@ flowchart LR
 
 ## Tabs and windows
 
+- The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
@@ -230,6 +231,8 @@ The source behind the facts above, at the commit in the footer.
   - The eight installed tools: `TOOLS` in `userland/capsule_terminal/src/command/builtin/tool.rs:25-34`.
   - The three store tools: `STORE_TOOLS` in `userland/capsule_terminal/src/jobs/classify.rs:173`.
 - Tabs and windows
+  - The size and place it opens at: `manifest` in `userland/capsule_terminal/src/term/manifest.rs`.
+  - The prompt under the last output: `follow` in `userland/capsule_terminal/src/layout/follow.rs`.
   - Nine tabs at most: `MAX_TABS` in `userland/capsule_terminal/src/term/terminal/tabs.rs:25`.
   - SIGTERM to the programs of a closed tab: `hang_up` in `userland/capsule_terminal/src/jobs/hang_up.rs:27-38`.
   - What the palette lists: `build` in `userland/capsule_terminal/src/palette/index.rs:33-39`.
