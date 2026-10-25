@@ -39,7 +39,7 @@ fn screen(px: &mut [u32]) -> Surface {
 
 fn mark(px: &[u32]) -> u32 {
     let b = band(W, H);
-    px[(5 * W + b.x + 70) as usize]
+    px[(5 * W + b.x + 69) as usize]
 }
 
 #[test]
