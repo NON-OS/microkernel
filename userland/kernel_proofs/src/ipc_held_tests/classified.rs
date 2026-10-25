@@ -29,7 +29,8 @@ fn every_driver_the_kernel_spawns_is_classified() {
     // The USB camera and microphone, gated the same way.
     const GATED_IN_USB: [&str; 2] = ["driver.uvc0", "driver.usb_mic0"];
     // A virtual machine's disk controllers, gated the same way ("driver." each).
-    const GATED_IN_VM: [&str; 5] = ["piix_ide0", "virtio_scsi0", "pvscsi0", "buslogic0", "mpt0"];
+    const GATED_IN_VM: [&str; 6] =
+        ["piix_ide0", "virtio_scsi0", "pvscsi0", "buslogic0", "mpt0", "storvsc0"];
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../src");
     let mut registered = Vec::new();
     let mut stack = vec![root.join("hardware"), root.join("userspace")];
