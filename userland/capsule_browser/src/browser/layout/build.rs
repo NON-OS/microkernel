@@ -61,5 +61,5 @@ pub fn build(flows: &[Flow], width: u32, advance: u32) -> RenderDocument {
     }
     let content_h = cur.y + line.height;
     lines.push(line);
-    RenderDocument { lines, content_h }
+    RenderDocument { lines, content_h, width, source: flows.to_vec() }
 }
