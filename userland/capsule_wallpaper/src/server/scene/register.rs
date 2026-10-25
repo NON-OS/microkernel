@@ -21,7 +21,7 @@
 //! whole (at boot, and every few seconds to heal) can outlast a call's
 //! budget; the scene submit used to get 16 ms, and one that timed out sent
 //! setup back to the start ("ipc.call late compositor after 16 ms", err
-//! ETIMEDOUT). Now setup asks once with a frame's worth of time, and the
+//! ETIMEDOUT). Now the first try gets a frame's worth of time, and the
 //! service loop asks again, at a growing interval, until an answer comes,
 //! while it serves. Asking again is safe: the compositor keeps one layer per
 //! owner and band, so the same surface submitted twice is the same layer.
@@ -33,8 +33,7 @@ use crate::state::Context;
 
 /// The band under every window.
 const BOTTOM_Z: u32 = 0;
-/// The try setup makes, before the service answers anyone: time for the
-/// compositor to finish a whole frame first.
+/// The first try, once the built-in picture is up: a whole frame's time.
 pub const SETUP_MS: u64 = 250;
 /// A later try, from the service loop, whose own callers wait meanwhile.
 const RETRY_MS: u64 = 100;
@@ -47,7 +46,7 @@ pub fn submit(ctx: &mut Context, timeout_ms: u64) -> bool {
     push_scene_submit(port, rid, handle, width, height, BOTTOM_Z, timeout_ms).is_ok()
 }
 
-/// Setup's try. Unanswered, the service loop takes over.
+/// The first try. Unanswered, the service loop takes over.
 pub fn first_submit(ctx: &mut Context) {
     ctx.registered = submit(ctx, SETUP_MS);
     if !ctx.registered {

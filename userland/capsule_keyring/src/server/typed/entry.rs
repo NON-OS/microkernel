@@ -15,33 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! One kind of message the keyring will sign, everything about it fixed.
+//! The type string, the domain and the verifying contract are
+//! nonos_nox_config's, so a redeploy changes that crate and not this one.
 
-use super::chains::CHAINS;
-use super::domain::Domain;
+use nonos_nox_config::{Chain, Deployment, TypedData};
+
 use super::field::Field;
 
 #[derive(Debug)]
 pub struct Entry {
     /// The number a request names it by.
     pub id: u16,
-    /// Hashed on every signature, so the hash cannot drift from the text a
-    /// reviewer reads; wallet_proofs pins the result.
-    pub type_string: &'static str,
-    pub domain: &'static Domain,
+    /// The struct, its typehash and its domain, as the config pins them;
+    /// wallet_proofs checks `fields` says what its type string says.
+    pub typed: &'static TypedData,
     pub fields: &'static [Field],
     /// The service names whose owner may ask, looked up in the registry
     /// on every request.
     pub callers: &'static [&'static [u8]],
-    /// The verifying contract on each of CHAINS, in that order. None is a
-    /// contract not deployed there, and refuses.
-    pub contracts: [Option<[u8; 20]>; CHAINS.len()],
 }
 
 impl Entry {
-    /// The contract this entry verifies against on `chain`, if the chain is
-    /// one of ours and the contract is deployed on it.
-    pub fn contract(&self, chain: u64) -> Option<[u8; 20]> {
-        let at = CHAINS.iter().position(|&c| c == chain)?;
-        self.contracts[at]
+    /// The contract this entry's domain verifies against on `chain`, as
+    /// `deployment` places it. None is a contract not deployed there, and
+    /// refuses.
+    pub fn contract(
+        &self,
+        chain: Chain,
+        deployment: fn(Chain) -> &'static Deployment,
+    ) -> Option<[u8; 20]> {
+        deployment(chain).get(self.typed.domain.contract)
     }
 }
