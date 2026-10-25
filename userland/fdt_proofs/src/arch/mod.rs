@@ -9,7 +9,7 @@ pub mod fdt;
 // with a recording stand-in for the kernel's seed store, which needs the
 // kernel's hashing.
 #[cfg(test)]
-pub mod aarch64 {
+pub mod common {
     pub mod boot_entropy {
         use std::sync::Mutex;
 
@@ -22,5 +22,5 @@ pub mod aarch64 {
 }
 
 #[cfg(test)]
-#[path = "../../../../src/arch/aarch64/boot/dtb_adapter/parse/entropy.rs"]
+#[path = "../../../../src/arch/common/boot_seed.rs"]
 pub mod seed_step;

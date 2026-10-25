@@ -104,7 +104,7 @@ The riscv64 kernel needed an arm in each multi-arch dispatch it reached:
 
 The two backend selectors were six `cfg(target_arch)` lines each, in
 `memory/mmio/ordering/backend.rs` and `memory/dma/coherency/backend.rs`. They
-moved into `src/arch/mmio_order.rs` and `src/arch/dma_sync.rs`, with each
+moved into `src/arch/common/mmio_order.rs` and `src/arch/common/dma_sync.rs`, with each
 architecture's body under `src/arch/<arch>/`. The two files outside `src/arch`
 now re-export with no cfg. The count is 215: the subsystem selectors moved
 under `src/arch`, as the paragraph above says they must to leave the count.

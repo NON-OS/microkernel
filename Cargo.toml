@@ -50,8 +50,8 @@ harness = false
 [features]
 default = ["microkernel-core"]
 
-# Bring up a non-x86_64 arch tree: aarch64 compiles and boots under QEMU,
-# riscv64 only type-checks. Neither is a release target; see lib.rs's guard.
+# Bring up a non-x86_64 arch tree: aarch64 boots under QEMU, riscv64 up to its
+# unported VM layer. Neither is a release target; see lib.rs's guard.
 nonos-arch-preview = []
 
 # Run the in-kernel microbenchmarks at boot and print them on the serial
