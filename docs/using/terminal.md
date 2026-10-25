@@ -29,6 +29,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 
 - The window opens at 1240 by 720 pixels, centred between the menu bar and the dock on a 1920 by 1080 screen: about 130 columns and 30 rows. On a smaller screen it opens as large as fits, centred. The prompt sits on the line under the last output and moves down with it until the window is full.
 - `Ctrl+Alt+T` brings the Terminal forward from anywhere on the desktop, or opens it.
+- A new tab opens on a splash: the NONOS banner, the system's facts and, when the window is wide enough, the same slashed zero drawn at the screen's own resolution.
 - A window holds up to nine tabs. `Ctrl+Shift+T` opens one, `Ctrl+Shift+W` closes one, `Ctrl+PgUp` and `Ctrl+PgDn` switch, and `Ctrl+1` to `Ctrl+9` jump to a tab.
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
@@ -182,7 +183,7 @@ The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`)
 
 ## neofetch
 
-`neofetch` prints the NONOS emblem, a Ø in three dimensions drawn in 24-bit colour two pixels to a cell, its face lit from the upper left and its side falling to the lower right, beside what the system reports: who and where, the release, the architecture, who signed this terminal, uptime, memory in use against the machine's, the number of processes and the load from the kernel's process table, the shell, this terminal's size in cells and its theme, then the sixteen colours. A figure the kernel did not give says `unknown`. Sent to a file, it writes the emblem as plain blocks and no colour codes.
+`neofetch` prints the NONOS emblem, the logo's slashed zero in three dimensions, drawn in 24-bit colour two pixels to a cell, its face lit from the upper left and its side falling to the lower right, beside what the system reports: who and where, the release, the architecture, who signed this terminal, uptime, memory in use against the machine's, the number of processes and the load from the kernel's process table, the shell, this terminal's size in cells and its theme, then the sixteen colours. A figure the kernel did not give says `unknown`. Sent to a file, it writes the emblem as plain blocks and no colour codes.
 
 ## Linux programs
 
@@ -266,7 +267,8 @@ The source behind the facts above, at the commit in the footer.
   - The 69 documented commands: `USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs:35`.
   - The other names, `write`, `keep`, `pull` and `push`: `dispatch` in `userland/capsule_terminal/src/command/builtin/nox/dispatch.rs:27-59`.
 - neofetch
-  - The emblem: `emblem_shape.rs`, `emblem.rs` and `emblem_cell.rs` in `userland/capsule_terminal/src/command/builtin/neofetch/`; the figures: `facts.rs` and `gather.rs` there.
+  - The splash's emblem: `beside` in `userland/capsule_terminal/src/paint/fetch_emblem.rs`.
+  - The emblem: `emblem_shape.rs`, `emblem_light.rs`, `emblem.rs` and `emblem_cell.rs` in `userland/capsule_terminal/src/command/builtin/neofetch/`; the figures: `facts.rs` and `gather.rs` there.
 - Git
   - A client written for NONOS: `nonos_git` in `userland/nonos_git/README.md:3-5`.
   - The subcommands: `usage` in `userland/capsule_terminal/src/command/builtin/git/dispatch.rs:54-56`.

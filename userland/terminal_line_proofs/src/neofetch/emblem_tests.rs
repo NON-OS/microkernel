@@ -1,9 +1,10 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! The 3D emblem: a ring with its slash, a lit face, a side that falls only to
+//! The 3D emblem: the logo's slashed zero, a lit face, a side that falls only to
 //! the lower right, edges blended into the theme, and plain blocks for a file.
 
-use super::emblem::{emblem, pixel};
+use super::emblem::emblem;
 use super::emblem_cell::cell;
+use super::emblem_light::pixel;
 use super::emblem_shape::{cover, inside, DEPTH, EMBLEM_H, EMBLEM_W};
 
 const DARK: [u32; 3] = [7, 9, 11];
@@ -14,13 +15,33 @@ fn luma(c: [u32; 3]) -> u32 {
 }
 
 #[test]
-fn it_is_a_ring_with_a_slash_through_it() {
-    assert!(inside(18.5, 14.0), "the slash crosses the centre");
-    assert!(inside(18.5 + 13.5, 14.0), "the ring at the right");
-    assert!(inside(18.5, 14.0 - 10.0), "the ring at the top");
-    assert!(!inside(18.5 + 6.0, 14.0 + 3.0), "the hole beside the slash is open");
-    assert!(!inside(0.5, 0.5) && !inside(39.5, 29.5), "the corners are empty");
-    assert!(inside(18.5 + 0.6428 * 15.0, 14.0 - 0.766 * 15.0), "the slash runs past the ring");
+fn it_is_a_zero_with_a_slash_through_it() {
+    assert!(inside(15.5, 14.0), "the slash crosses the centre");
+    assert!(inside(15.5 + 73.0 / 7.0, 14.0), "the zero's right side");
+    assert!(inside(15.5, 14.0 - 113.0 / 10.0), "the zero's top");
+    assert!(!inside(15.5 + 6.0, 14.0 + 3.0), "the counter beside the slash is open");
+    assert!(!inside(0.5, 0.5) && !inside(33.5, 29.5), "the corners are empty");
+    let (x, y) = (15.5 + 140.0 * 0.6157 / 7.0, 14.0 - 140.0 * 0.788 / 10.0);
+    assert!(inside(x, y), "the slash runs just past the zero");
+    let (ex, ey) = (15.5 + 160.0 * 0.6157 / 7.0, 14.0 - 160.0 * 0.788 / 10.0);
+    assert!(!inside(ex, ey), "and ends a little past it");
+}
+
+#[test]
+fn it_is_a_zero_not_a_circle() {
+    // On screen a pixel is 7 wide and 10 high: the face is far taller than
+    // wide, as the logo's zero is.
+    let on = |x: i32, y: i32| cover(x, y, 0.0) >= 8;
+    let rows: Vec<i32> =
+        (0..EMBLEM_H as i32).filter(|&y| (0..EMBLEM_W as i32).any(|x| on(x, y))).collect();
+    let cols: Vec<i32> =
+        (0..EMBLEM_W as i32).filter(|&x| (0..EMBLEM_H as i32).any(|y| on(x, y))).collect();
+    let tall = (rows[rows.len() - 1] - rows[0] + 1) * 10;
+    let zero_cols = cols.iter().filter(|&&x| on(x, 14)).count() as i32;
+    assert!(tall >= 250, "{tall} px tall");
+    let wide = (cols[cols.len() - 1] - cols[0] + 1) * 7;
+    assert!(tall * 10 > wide * 12, "taller than wide: {tall} by {wide}");
+    assert!(zero_cols >= 3, "both sides and the slash on the middle row");
 }
 
 #[test]
@@ -76,7 +97,15 @@ fn edges_blend_into_the_theme_and_the_face_does_not() {
         .find(|&(x, y)| (1..12).contains(&cover(x, y, 0.0)) && bare(x, y))
         .unwrap();
     assert_ne!(pixel(x, y, DARK), pixel(x, y, LIGHT), "an edge takes the background");
-    assert_eq!(pixel(8, 8, DARK), pixel(8, 8, LIGHT), "a solid face pixel does not");
+    let solid = (0..EMBLEM_H as i32)
+        .flat_map(|y| (0..EMBLEM_W as i32).map(move |x| (x, y)))
+        .find(|&(x, y)| cover(x, y, 0.0) == 16)
+        .unwrap();
+    assert_eq!(
+        pixel(solid.0, solid.1, DARK),
+        pixel(solid.0, solid.1, LIGHT),
+        "a solid face does not"
+    );
 }
 
 #[test]

@@ -68,4 +68,6 @@ pub struct State {
     pub git_branch: alloc::vec::Vec<u8>,
     /// Tab's candidates on show beside the prompt; the next key clears them.
     pub completions: alloc::vec::Vec<alloc::vec::Vec<u8>>,
+    /// The splash's emblem as last drawn, kept so a frame does not redo it.
+    pub splash_art: core::cell::RefCell<crate::paint::fetch::fetch_emblem::Art>,
 }

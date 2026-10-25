@@ -57,7 +57,7 @@ pub fn paint(
     if owned {
         draw_vt(&f, fb, Rows::Screen, state.shade());
     } else if state.fresh {
-        draw_fetch(fb, text_x, l.body.y, text_r, t);
+        draw_fetch(fb, (text_x, l.body.y, text_r), t, &state.splash_art);
     } else {
         draw_block_chrome(state, fb, &f.area, rows.first(vt), &m, t);
         draw_vt(&f, fb, rows, state.shade());
