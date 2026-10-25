@@ -17,9 +17,38 @@
 /*
  * Which devices a DMAR remapping unit covers, from its flags and device
  * scopes, and the rule the broker confines by: a device gets an IOVA only when
- * a unit in service translates it. The parser and the rule are included by path.
+ * a unit in service translates it. Also the reserved memory regions (RMRR)
+ * firmware keeps doing DMA to, and the ACPI namespace devices (ANDD) with the
+ * requester ids their scopes give. The parsers and the rule are included by path.
  */
 
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/acpi_path.rs"]
+pub mod acpi_path;
+mod andd_tests;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_andd.rs"]
+pub mod dmar_andd;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_namespace_scope.rs"]
+pub mod dmar_namespace_scope;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_namespace_walk.rs"]
+pub mod dmar_namespace_walk;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_rmrr.rs"]
+pub mod dmar_rmrr;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_rmrr_names.rs"]
+pub mod dmar_rmrr_names;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope_walk.rs"]
+pub mod dmar_scope_walk;
+#[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_walk.rs"]
+pub mod dmar_walk;
+mod dmar_cut_tests;
+mod dmar_hostile;
+mod dmar_walk_tests;
+mod namespace_tests;
+mod rmrr_barred_tests;
+mod rmrr_names_tests;
+mod rmrr_own_tests;
+mod rmrr_scope_tests;
+mod rmrr_tests;
+mod source_tests;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_scope.rs"]
 pub mod scope;
 #[path = "../../../../src/arch/x86_64/acpi/parser/other/dmar_parse.rs"]

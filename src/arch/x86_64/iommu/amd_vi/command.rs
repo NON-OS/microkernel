@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The 128-bit commands the kernel puts in a command buffer (AMD IOMMU spec
-//! 48882, section 2.4), as four dwords, laid out as Linux builds them in
-//! amd/iommu.c (build_completion_wait, build_inv_dte, build_inv_iommu_pages,
-//! build_inv_irt, build_inv_all). The opcode sits in bits 31:28 of the second dword.
+//! 48882, section 2.4: COMPLETION_WAIT, INVALIDATE_DEVTAB_ENTRY,
+//! INVALIDATE_IOMMU_PAGES, INVALIDATE_INTERRUPT_TABLE, INVALIDATE_IOMMU_ALL),
+//! as the four dwords the spec draws. The opcode sits in bits 31:28 of the second dword.
 
 pub type Command = [u32; 4];
 
@@ -48,15 +48,16 @@ pub const fn invalidate_devtab_entry(device_id: u16) -> Command {
     [device_id as u32, opcode(INVALIDATE_DEVTAB_ENTRY), 0, 0]
 }
 
-/// Drop the unit's cached remapping entries of `device_id` (build_inv_irt).
-pub const fn invalidate_interrupt_table(device_id: u16) -> Command {
-    [device_id as u32, opcode(INVALIDATE_INTERRUPT_TABLE), 0, 0]
-}
-
 /// Every cached translation and page directory entry of `domain`: the
 /// all-pages address 0x7FFF_FFFF_FFFF_F000 with S (bit 0) and PDE (bit 1).
 pub const fn invalidate_domain_pages(domain: u16) -> Command {
     [0, domain as u32 | opcode(INVALIDATE_IOMMU_PAGES), 0xFFFF_F000 | 0b11, 0x7FFF_FFFF]
+}
+
+/// Drop the unit's cached remapping entries for `device_id` (opcode 05h,
+/// recalled, unverified).
+pub const fn invalidate_interrupt_table(device_id: u16) -> Command {
+    [device_id as u32, opcode(INVALIDATE_INTERRUPT_TABLE), 0, 0]
 }
 
 /// Everything the unit caches, on units that report EFR.IASup.

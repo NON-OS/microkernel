@@ -28,12 +28,12 @@ use super::super::super::sdhci::{Cmd, Host, Resp};
 use super::super::super::text::Line;
 use super::super::cmds::{if_cond_echoed, IF_COND_ARG, SEND_IF_COND};
 
-/// Some(true) for a card that echoed CMD8 (version 2.00 or later), Some(false)
-/// for one that did not answer it (version 1.x, or no SD card at all), None
-/// when the host has no 3.3 V to power an SD card with. A card that answers
-/// with another range or pattern cannot run on this supply.
+/// On a host `EmmcDisk::reset` readied: Some(true) for a card that echoed
+/// CMD8 (version 2.00 or later), Some(false) for one that did not answer it
+/// (version 1.x, or no SD card at all), None when the host has no 3.3 V to
+/// power an SD card with. A card that answers with another range or pattern
+/// cannot run on this supply.
 pub(super) fn start<M: Mmio, C: Clock, L: Log>(h: &mut Host<M, C, L>) -> EmmcResult<Option<bool>> {
-    h.init()?;
     if !h.caps.v330() {
         h.say(Line::new().s(b"slot has no 3.3 V supply: not trying an SD card"));
         return Ok(None);

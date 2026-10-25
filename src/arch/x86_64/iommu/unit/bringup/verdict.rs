@@ -33,11 +33,9 @@ pub(super) fn not_built_in() {
     serial::println(b"[VT-D] enforcement not built in; DMA is unrestricted");
 }
 
-/// Identity mapping does not confine a device that was enumerated; what it
-/// buys is that anything absent from the enumeration is denied. Every segment
-/// 0 unit the kernel holds is programmed; units left off (other segments,
-/// past eight, past an unreadable structure) are not, and an operator has
-/// to know that before trusting the machine.
+/// Every enumerated device starts blocked or in its reserved memory alone;
+/// anything else is denied. Units left off are not programmed, and an
+/// operator has to know that before trusting the machine.
 pub(super) fn enabled(assigned: usize, reserved: usize) {
     let mut line = Line::new();
     line.str(b"[VT-D] translation enabled, levels=").hex(page_levels().unwrap_or(0) as u64);
@@ -46,6 +44,8 @@ pub(super) fn enabled(assigned: usize, reserved: usize) {
     line.str(b"[VT-D] enumerated devices blocked until claimed; with reserved memory=");
     line.dec(reserved as u64).str(b"; others denied").end();
     Line::new().str(b"[VT-D] units programmed=").hex(unit_count() as u64).end();
+    super::rmrr_say::say();
+    super::namespace_say::say();
     let left_off = units_left_off();
     if left_off > 0 {
         let mut line = Line::new();

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod answer;
+mod bond_gate;
 mod caller;
 mod dispatch;
 mod eip1559;

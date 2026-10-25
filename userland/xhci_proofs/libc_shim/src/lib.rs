@@ -22,7 +22,8 @@
 //! broker serves one device per test thread: a register window the test
 //! offers, the interrupt kinds it says the device has, and an ordered log
 //! of everything given back (`log`). The server's replies are kept for the
-//! test (`ipc`).
+//! test (`ipc`). Registers are reached through the real libc's ordered
+//! accessors (`ordered`), as on the target.
 
 mod broker;
 mod clock;
@@ -35,6 +36,7 @@ mod irq;
 mod irq_wait;
 mod log;
 mod mmio;
+mod ordered;
 mod pci_command;
 mod process;
 mod unmap;
@@ -56,18 +58,7 @@ pub use irq::{irq_tried, mk_irq_bind, offer_irq, IrqBindOut, MK_IRQ_BIND_MSI, MK
 pub use irq_wait::{irq_waited_on, mk_irq_ack, mk_irq_unbind, mk_irq_wait};
 pub use log::{start_log, take_log, Call, Logged};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap, offer_mmio, MmioMapOut, MMIO_GRANT};
+pub use ordered::*;
 pub use pci_command::{pci_command_reg, PciCommandReg};
 pub use process::{mk_pid_alive, pid_exits};
 pub use unmap::mk_dma_unmap;
-
-// The real libc's register accessors and DMA barriers, mounted so the driver
-// files under test reach a device through the code they ship with.
-#[path = "../../../libc/src/broker/dma_order.rs"]
-mod dma_order;
-#[path = "../../../libc/src/broker/mmio_access.rs"]
-mod mmio_access;
-pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
-pub use mmio_access::{
-    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
-    mmio_write8,
-};

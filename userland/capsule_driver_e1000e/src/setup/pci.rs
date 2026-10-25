@@ -23,20 +23,24 @@
 //! it; a part whose BIOS did not boot from it has it clear, and then every
 //! descriptor fetch and frame write is dropped at the root port.
 //!
-//! Only allowlisted bits go in: the broker takes a value carrying any other
-//! bit (I/O Space, which the 82574's port BAR asks for) verbatim and refuses
-//! it unless every such bit already matches. It ORs allowlisted bits into
-//! the register today, so "off" takes effect once it stores them as written
-//! (src/hardware/broker/pci/command.rs); until then it changes nothing.
+//! Only allowlisted bits go in: the broker refuses a value carrying any
+//! other bit (I/O Space, which the 82574's port BAR asks for) unless every
+//! such bit already matches. They go in by the masked form of the write
+//! (`mk_pci_config_update`), which names both bits so each takes the value
+//! given: "off" turns Bus Master off. The plain form ORs its bits into the
+//! register and could only turn them on (src/hardware/broker/pci/change.rs).
 
 use nonos_libc::{
-    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
+    mk_pci_config_update, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
 };
+
+/// The Command bits this driver sets and clears.
+const MASK: u16 = MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_BUS_MASTER;
 
 pub fn command(device_id: u64, epoch: u64, bus_master: bool) -> Result<(), &'static str> {
     let master = if bus_master { MK_PCI_CMD_BUS_MASTER } else { 0 };
     let value = MK_PCI_CMD_MEMORY_SPACE | master;
-    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, value) < 0 {
+    if mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, MASK, value) < 0 {
         return Err(if bus_master {
             "pci command write refused (bus master)"
         } else {

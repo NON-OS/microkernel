@@ -59,7 +59,7 @@ pub(crate) const fn disable(ctrl: u16) -> u16 {
 }
 
 /// Mask bits that leave only vector 0 open, over the vectors the function
-/// can raise (Multiple Message Capable, log2 of the count). Linux msi_mask.
+/// can raise (Multiple Message Capable, log2 of the count; PCI 3.0, 6.8.1.3).
 pub(crate) const fn open_first(multi_message_capable: u8) -> u32 {
     let count = 1u32 << (multi_message_capable & 0x7);
     let all = if count >= 32 { u32::MAX } else { (1u32 << count) - 1 };

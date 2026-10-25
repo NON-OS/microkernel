@@ -30,4 +30,5 @@ pub mod agaw;
 pub mod limits;
 #[path = "../../../../src/arch/x86_64/iommu/regs/cap/shared.rs"]
 pub mod shared;
+mod ids_tests;
 mod tests;

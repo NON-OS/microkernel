@@ -23,12 +23,17 @@ sequenceDiagram
 
 A driver lists the broker's devices with `MkDeviceList` and reads one
 `DeviceRecord` per device. It claims one with `MkDeviceClaim`, which returns the
-[claim epoch](../overview/glossary-claim-epoch.md#claim-epoch). The map, bind, grant and PCI
-calls pass the epoch back, and an old epoch is refused with `ESTALE`. With the
-claim it maps MMIO windows, binds interrupts, takes DMA buffers and port grants;
-each comes back as a [grant](../overview/glossary-dma-pool.md#grant) id. It waits with
-`MkIrqWait`, acknowledges with `MkIrqAck`, and gives everything back with
-`MkDeviceRelease`. The libc wrappers in `userland/libc/src/broker/` carry the
+[claim epoch](../overview/glossary-claim-epoch.md#claim-epoch). The map, bind,
+grant and PCI calls pass the epoch back, and an old epoch is refused with
+`ESTALE`. With the claim it maps MMIO windows, binds interrupts, takes DMA
+buffers and port grants; each comes back as a
+[grant](../overview/glossary-dma-pool.md#grant) id. It waits with `MkIrqWait`,
+acknowledges with `MkIrqAck`, and gives everything back with `MkDeviceRelease`.
+A claim and its grants belong to the caller's process, its thread group, not the
+thread that made the call (`src/hardware/broker/holder/`): any thread of the
+process may map, bind, wait or release, `MkIrqWait` wakes the thread that waits,
+and a worker thread's exit leaves them with the process; they go back when its
+last thread ends. The libc wrappers in `userland/libc/src/broker/` carry the
 same names in snake case, such as `mk_device_list`
 (`userland/libc/src/broker/device.rs:24`).
 
@@ -43,6 +48,7 @@ the [capability](../overview/glossary-boot-root-record.md#capability) gate in th
 | `MDLS` | `MkDeviceList` | `class`, `buf_ptr`, `count` | Records written; with `count` 0, how many devices match | Admin or DeviceEnum | `mk_device_list` |
 | `MDCL` | `MkDeviceClaim` | `device_id` | The claim epoch | Driver | `mk_device_claim` |
 | `MDRL` | `MkDeviceRelease` | `device_id` | 0 | Driver | `mk_device_release` |
+| `MBFB` | `MkBootFramebuffer` | `device_id`, `out_ptr`, `out_len` | 24, with a `BootFramebufferInfo` written; `EPERM` unless the caller holds the claim, `ENODEV` for any other device, and for every caller once a GPU driver's claim took the scanout (L79) | Mmio | `mk_boot_framebuffer` |
 | `MMMP` | `MkMmioMap` | `device_id`, `claim_epoch`, `bar_and_flags`, `offset`, `length`, `out_ptr` | 0, with a `MmioMapOut` written | Mmio | `mk_mmio_map` |
 | `MMUM` | `MkMmioUnmap` | `grant_id` | 0 | Mmio | `mk_mmio_unmap` |
 | `MIRB` | `MkIrqBind` | `device_id`, `claim_epoch`, `irq_source`, `flags`, `vector_count`, `out_ptr` | 0, with an `IrqBindOut` written | Irq | `mk_irq_bind` |

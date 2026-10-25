@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The 128-bit invalidation descriptors the queue carries (VT-d 3.4, section
-//! 6.5.2), low quadword first. Encodings match Linux include/linux/intel-iommu.h
-//! (QI_CC_*, QI_IOTLB_*, QI_IEC_*, QI_IWD_*).
+//! 6.5.2), low quadword first: context-cache, IOTLB, interrupt entry cache
+//! and invalidation wait, each encoded as its subsection draws it.
 
 pub type Descriptor = [u64; 2];
 
@@ -27,6 +27,8 @@ const TYPE_WAIT: u64 = 0x5;
 
 /// Granularity field, bits 5:4, value 01: every entry the unit caches.
 const GRANULARITY_GLOBAL: u64 = 1 << 4;
+/// Value 10: the entries one domain id tagged.
+const GRANULARITY_DOMAIN: u64 = 2 << 4;
 
 /// Context-cache invalidation, 6.5.2.1: drop every cached context entry.
 pub const fn context_global() -> Descriptor {
@@ -40,6 +42,13 @@ pub const fn iotlb_global(drain_reads: bool, drain_writes: bool) -> Descriptor {
     let dr = if drain_reads { 1 << 7 } else { 0 };
     let dw = if drain_writes { 1 << 6 } else { 0 };
     [TYPE_IOTLB | GRANULARITY_GLOBAL | dr | dw, 0]
+}
+
+/// IOTLB invalidation of one domain's translations and paging structure
+/// entries, DID in bits 31:16, granularity domain-selective (VT-d 6.5.2.3).
+pub const fn iotlb_domain(did: u16, drain_reads: bool, drain_writes: bool) -> Descriptor {
+    let [global, _] = iotlb_global(drain_reads, drain_writes);
+    [(global & !GRANULARITY_GLOBAL) | GRANULARITY_DOMAIN | ((did as u64) << 16), 0]
 }
 
 /// Interrupt entry cache invalidation, 6.5.2.7, global: G (bit 4) clear.

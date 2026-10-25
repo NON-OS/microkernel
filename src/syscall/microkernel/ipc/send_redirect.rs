@@ -19,7 +19,7 @@
 
 extern crate alloc;
 
-use crate::services::registry::{lookup_port, lookup_service};
+use crate::services::registry::lookup_port;
 use crate::syscall::microkernel::narrow::u32_arg;
 
 pub(super) enum Redirect {
@@ -44,10 +44,13 @@ pub(super) fn redirect_reply(sender_pid: u32, target: &str) -> Redirect {
     Redirect::AsAddressed
 }
 
+// A port number is its owner's; `endpoint.<n>` names only the ids above the
+// port range, the image's numeric reply inboxes, so no name a capsule
+// registers can shadow a port another serves (L57).
 pub(super) fn resolve_send_target(endpoint: u64) -> alloc::string::String {
     let numeric = alloc::format!("endpoint.{}", endpoint);
-    if lookup_service(&numeric).is_some() {
-        return numeric;
+    match u32_arg(endpoint) {
+        Some(port) => lookup_port(port).map(|ep| ep.name).unwrap_or(numeric),
+        None => numeric,
     }
-    u32_arg(endpoint).and_then(lookup_port).map(|ep| ep.name).unwrap_or(numeric)
 }

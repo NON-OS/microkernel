@@ -28,6 +28,12 @@
  * ending a thread it published and could not start.
  */
 
+mod end_tests;
+mod entry_fail_tests;
+mod entry_load_tests;
+mod entry_sleep_tests;
+mod entry_tests;
+mod release_tests;
+mod tests;
 #[path = "../../../../src/process/core/table/thread_start.rs"]
 pub mod thread_start;
-mod tests;

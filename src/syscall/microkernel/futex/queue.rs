@@ -33,3 +33,22 @@ pub(super) fn tgid_of(pid: u32) -> u32 {
         .map(|pcb| pcb.tgid.load(Ordering::Acquire))
         .unwrap_or(pid)
 }
+
+/// A torn-down thread taken off every futex it waits on: it never runs its
+/// own leave, and a wake spent on it was lost to a live waiter behind it
+/// (L77e). Called once it is a zombie.
+pub fn forget(pid: u32) {
+    FUTEX_QUEUE.lock().retain(|_, waiting| {
+        waiting.retain(|&p| p != pid);
+        !waiting.is_empty()
+    });
+}
+
+/// Killed or gone: asked of a waiter directly, since a sleeper killed while
+/// it slept is never woken to leave by itself.
+pub(super) fn ended(pid: u32) -> bool {
+    use crate::process::core::ProcessState;
+    crate::process::nonos_core::PROCESS_TABLE.find_by_pid(pid).is_none_or(|pcb| {
+        matches!(*pcb.state.lock(), ProcessState::Zombie(_) | ProcessState::Terminated(_))
+    })
+}

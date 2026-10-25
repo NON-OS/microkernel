@@ -17,10 +17,9 @@
 //! Turning off MSI or MSI-X a function has on with no grant behind it: left
 //! on by firmware's own drivers, or by a bind that failed part way. A bind
 //! clears the other kinds before programming its own, since a function with
-//! MSI and MSI-X both on is undefined (PCI Local Bus 3.0, 6.8) and one
-//! sending messages does not assert INTx; Linux does the same in
-//! pci_msi_init and pci_msix_init. The caller has checked that no grant of
-//! either kind exists for the device.
+//! MSI and MSI-X both on is undefined and one sending messages does not
+//! assert INTx (PCI Local Bus 3.0, 6.8). The caller has checked that no
+//! grant of either kind exists for the device.
 
 use super::msi_program::clear as clear_msi;
 use crate::drivers::pci::config::ConfigSpace;

@@ -37,7 +37,7 @@ use crate::proofs::lifecycle::teardown_log::{CORB, DPL, RIRB};
 
 /// The command writes in `log` that name Bus Master.
 pub fn bus_master_on(log: &[Call]) -> Vec<&Call> {
-    let on = |c: &&Call| c.name == "pci_config_write" && c.arg as u16 & MK_PCI_CMD_BUS_MASTER != 0;
+    let on = |c: &&Call| c.name == "pci_config_update" && c.arg as u16 & MK_PCI_CMD_BUS_MASTER != 0;
     log.iter().filter(on).collect()
 }
 
