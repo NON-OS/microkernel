@@ -47,9 +47,7 @@ fn plain(c: &Compiled) -> Vec<String> {
         "Any other write, make, rename or removal is refused, and counted as write.".to_string(),
         "Its folders are new when it starts and wiped when it ends.".to_string(),
         "It reads the image, read-only.".to_string(),
-        "It has no network. A socket, connection, bind or datagram the box does not allow is \
-         refused, and counted as network."
-            .to_string(),
+        network(c),
         "It may start other programs, and each is held to this same box.".to_string(),
         "A program gets what both this box and its own policy allow; a folder in /home or \
          /root is writable only when the program's own policy gives it a home."
@@ -58,4 +56,18 @@ fn plain(c: &Compiled) -> Vec<String> {
             .to_string(),
     ]
     .to_vec()
+}
+
+fn network(c: &Compiled) -> String {
+    let refused = "A socket, connection, bind or datagram the box does not allow is refused, \
+                   and counted as network.";
+    match c.policy.dests.is_empty() {
+        true => format!("It has no network. {refused}"),
+        false => format!(
+            "It may open TCP connections to the destinations listed, and to no other, each over \
+             the anonymity network the system uses (the Nym mixnet, or Anyone when chosen), never \
+             directly. A name is answered inside NONOS, never looked up outside. It sends no \
+             UDP. {refused}"
+        ),
+    }
 }

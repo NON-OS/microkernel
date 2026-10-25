@@ -1,0 +1,34 @@
+[
+ {
+  "name": "scsi-name-dropped",
+  "file": "userland/nonos_blk_client/src/driver/names.rs",
+  "old": "                b\"driver.mpt0\",\n",
+  "new": "",
+  "test": "wire_names",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "ide-name-wrong",
+  "file": "userland/nonos_blk_client/src/driver/names.rs",
+  "old": "b\"driver.piix_ide0\"",
+  "new": "b\"driver.ide0\"",
+  "test": "wire_names",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "scsi-not-listed",
+  "file": "userland/nonos_blk_client/src/driver/table.rs",
+  "old": "    Driver::Scsi,\n    Driver::VirtioBlk,",
+  "new": "    Driver::VirtioBlk,",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ },
+ {
+  "name": "scsi-other-dialect",
+  "file": "userland/nonos_blk_client/src/driver/dialect.rs",
+  "old": "            Driver::Scsi => 0x4E42_5731,",
+  "new": "            Driver::Scsi => 0x4E42_5732,",
+  "test": "tests::",
+  "crate": "userland/blk_client_proofs"
+ }
+]

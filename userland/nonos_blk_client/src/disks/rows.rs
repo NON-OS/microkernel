@@ -26,10 +26,11 @@ use crate::device::BlockDevice;
 use crate::driver::Driver;
 use crate::error::BlkError;
 
-pub fn target(driver: Driver, instance: u8, device: BlockDevice, contents: Contents) -> Disk {
+pub fn target(device: BlockDevice, contents: Contents) -> Disk {
     Disk {
-        driver,
-        instance,
+        driver: device.driver,
+        instance: device.instance,
+        unit: device.unit,
         device: Some(device),
         size: device.bytes(),
         block: device.geometry.lba_size(),
@@ -44,6 +45,7 @@ pub fn withheld(device: BlockDevice, why: &str) -> Disk {
     Disk {
         driver: device.driver,
         instance: device.instance,
+        unit: device.unit,
         device: None,
         size: device.bytes(),
         block: device.geometry.lba_size(),
@@ -53,10 +55,11 @@ pub fn withheld(device: BlockDevice, why: &str) -> Disk {
     }
 }
 
-pub fn failed(driver: Driver, instance: u8, e: &BlkError) -> Disk {
+pub fn failed(driver: Driver, instance: u8, unit: u16, e: &BlkError) -> Disk {
     Disk {
         driver,
         instance,
+        unit,
         device: None,
         size: 0,
         block: 0,

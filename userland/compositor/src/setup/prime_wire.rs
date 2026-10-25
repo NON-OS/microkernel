@@ -25,6 +25,7 @@ use nonos_gfx_wire::body::caps::{HW_CURSOR, MODE_SET};
 use super::attach_primary::attach_primary;
 use super::discover::GfxEndpoint;
 use super::unprimed::Unprimed;
+use crate::display::call::SETUP_MS;
 use crate::display::{ops, WireLink};
 use crate::state::Context;
 
@@ -34,8 +35,14 @@ pub fn prime(ep: GfxEndpoint) -> Result<Context, &'static str> {
 
 /// `prime`, with the step that failed and its errno (unprimed.rs).
 pub fn prime_with(ep: GfxEndpoint) -> Result<Context, Unprimed> {
+    prime_within(ep, SETUP_MS)
+}
+
+/// `prime_with`, waiting up to `caps_ms` for the driver's first answer.
+pub fn prime_within(ep: GfxEndpoint, caps_ms: u64) -> Result<Context, Unprimed> {
     let fail = |step, code, what| Unprimed { step, code, what };
-    let caps = ops::caps(ep.port).map_err(|c| fail("CAPS", c, "display: CAPS not answered"))?;
+    let caps = ops::caps_within(ep.port, caps_ms)
+        .map_err(|c| fail("CAPS", c, "display: CAPS not answered"))?;
     let s = ops::surface(ep.port, 0).map_err(|c| fail("SURFACE", c, "display: SURFACE refused"))?;
     let p = attach_primary(s.handle).map_err(|w| fail("ATTACH", 0, w))?;
     if (p.width, p.height) != (s.width, s.height) {

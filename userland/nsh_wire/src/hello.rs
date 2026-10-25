@@ -24,7 +24,10 @@ use crate::hello_preamble::{open, write};
 use crate::WireError;
 
 pub const MAGIC: [u8; 4] = *b"NSH1";
-pub const VERSION: u16 = 1;
+/// 2: `HOST_PROOF` carries a document with up to 1 MiB of event log, so
+/// `AUTH_CAP` is 1152 KiB. A version 1 peer, whose cap is 256 KiB, is told
+/// `VERSION` at the hello, before any proof is sent, never cut short.
+pub const VERSION: u16 = 2;
 pub const SUITE: u16 = 1;
 pub const RANDOM_LEN: usize = 32;
 pub const XWING_EK_LEN: usize = 1216;

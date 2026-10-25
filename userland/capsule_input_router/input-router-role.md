@@ -45,6 +45,7 @@ section "Input routing".
 | `OP_GRAB_REQUEST` | 0x0003 | take every event of some kinds; only the five services in `GRABBERS` may, and only while focused (`route/grab_rule.rs`) |
 | `OP_GRAB_RELEASE` | 0x0004 | give the grab back |
 | `OP_TRUSTED_HOLD` | 0x0005 | from the compositor only, one-way and never answered: the pid holding its trusted band (0: none); a hold not heard again for 3 s lapses (`route/trusted_hold.rs`) |
+| `OP_DISPLAY_SIZE` | 0x0006 | from the compositor only, one-way and never answered: its display's width and height (u32 each), on every change and every 5 s; the pointer's edges move at once. Until the size is known, by this or by the compositor's DISPLAY_INFO, no pointer event is routed (`state/cursor_edges.rs`) |
 
 `GRABBERS` is the boot splash, the setup wizard, the input probe, the desktop
 shell and the installer. Each may grab only while its window has focus, the

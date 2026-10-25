@@ -23,15 +23,15 @@ pub(super) const DRIVER_VMMOUSE_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-vmmouse")]
 pub(super) const DRIVER_VMMOUSE_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_vmmouse.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_vmmouse.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-vmmouse")]
 pub(super) const DRIVER_VMMOUSE_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_vmmouse.manifest.bin");
+    crate::baked_trust!("capsules/driver_vmmouse.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-vmmouse")]
 pub(super) const DRIVER_VMMOUSE_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_vmmouse.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_vmmouse.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-vmmouse"))]
 pub(super) const DRIVER_VMMOUSE_ELF: &[u8] = &[];
