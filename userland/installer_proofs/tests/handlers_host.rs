@@ -31,7 +31,6 @@ extern crate self as nonos_libc;
 #[path = "../../capsule_installer/src/server/handlers"]
 mod handlers {
     pub mod load_by_name;
-    pub mod load_store;
     pub mod pkg_body;
     pub mod pkg_commit;
     pub mod pkg_paths;
@@ -51,10 +50,12 @@ mod mounts;
 mod load_by_name_read_tests;
 #[path = "handlers_host/load_by_name_tests.rs"]
 mod load_by_name_tests;
-#[path = "handlers_host/load_store_accept_tests.rs"]
-mod load_store_accept_tests;
-#[path = "handlers_host/load_store_tests.rs"]
-mod load_store_tests;
+#[path = "handlers_host/retired_tests.rs"]
+mod retired_tests;
+#[path = "handlers_host/own_caps_glue_tests.rs"]
+mod own_caps_glue_tests;
+#[path = "handlers_host/own_caps_tests.rs"]
+mod own_caps_tests;
 #[path = "handlers_host/pkg_commit_tests.rs"]
 mod pkg_commit_tests;
 #[path = "handlers_host/pkg_installed_tests.rs"]
@@ -64,7 +65,7 @@ mod pkg_query_tests;
 #[path = "handlers_host/protocol_tests.rs"]
 mod protocol_tests;
 
-use mounts::{alloc_watch, clients, fixtures, frame, packages, payloads, pkg_frame};
+use mounts::{alloc_watch, clients, fixtures, frame, packages, pkg_frame};
 pub use mounts::{mk_capsule_load, mk_capsule_verify, mk_getpid, mk_service_lookup};
 use mounts::{process, services, syscall, verify};
 pub use mounts::{CapsuleLoadRequest, CapsuleVerifyRequest, CapsuleVerifySummary};
