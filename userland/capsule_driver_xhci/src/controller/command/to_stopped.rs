@@ -19,8 +19,8 @@
 //! there; one still Running answers Context State Error and is stopped
 //! instead. One that halts in between, a STALL racing the Stop, answers
 //! Stop with Context State Error too: its context, read again, then says
-//! Halted, and it is reset after all, as Linux's `xhci_handle_cmd_stop_ep`
-//! does. Left halted, Set TR Dequeue failed and the request's buffer stayed
+//! Halted, and it is reset after all (as observed, unverified). Left
+//! halted, Set TR Dequeue failed and the request's buffer stayed
 //! kept until Disable Slot.
 
 use super::endpoint_at::EndpointAt;

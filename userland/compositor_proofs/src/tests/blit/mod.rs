@@ -1,0 +1,36 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Pixels moved: the blitter, scaling, mirroring, batches, the band and the magnifier.
+
+mod band_rig;
+mod band_tests;
+mod batch_rig;
+mod batch_tests;
+mod blitter_canvas;
+mod blitter_place_tests;
+mod blitter_tests;
+mod downscale_tests;
+mod fit_tests;
+mod band_dma_tests;
+mod indicator_band_tests;
+mod lens_tests;
+mod magnify_damage_tests;
+pub(crate) mod magnify_tests;
+mod mirror_tests;
+mod upscale_buf;
+mod upscale_edge_tests;
+mod upscale_tests;

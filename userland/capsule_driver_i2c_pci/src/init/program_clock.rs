@@ -25,8 +25,8 @@ const SDA_HOLD_MIN_VERSION: u32 = 0x3131_312A;
 // Writes the standard and fast SCL count pairs plus the SDA hold time. Only
 // valid while IC_ENABLE is 0; these registers are read-only once enabled.
 // IC_SDA_HOLD exists from core version 1.11a; on an older core the write
-// would land on an offset the core does not decode, so it is skipped as
-// Linux skips it.
+// would land on an offset the core does not decode, so it is skipped
+// (DW_apb_i2c databook's version history, as recalled, unverified).
 pub(super) fn program_clock(regs: Regs, clock_hz: u32) {
     let ss = scl::standard(clock_hz);
     let fs = scl::fast(clock_hz);

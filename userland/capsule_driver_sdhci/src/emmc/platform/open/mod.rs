@@ -1,0 +1,32 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Claim one host, map its slot, reset it, map its DMA regions, and open
+//! it as a fixed slot with its card up, or as a removable one.
+
+mod claim;
+mod command;
+mod embedded;
+mod map_slot;
+mod open_host;
+mod opened;
+mod reset;
+mod say;
+mod sizes;
+mod take;
+
+pub use open_host::{open, open_removable};
+pub use opened::Opened;

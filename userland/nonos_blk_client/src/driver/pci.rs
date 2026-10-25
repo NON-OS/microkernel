@@ -32,15 +32,18 @@ pub enum Controller {
     VirtioBlk,
     /// Intel RST in RAID mode, or a VMD domain the disks sit behind.
     IntelRaid,
-    /// An Intel eMMC host: the soldered disk of an Atom-class laptop. The
-    /// SATA driver serves it until the eMMC driver has keys of its own.
+    /// An Intel eMMC host: the soldered disk of an Atom-class laptop,
+    /// served by driver.sdhci0 on the block wire.
     Emmc,
+    /// A UFS host (class 01h/09h), served by driver.ufs0 on the block wire.
+    Ufs,
 }
 
 const CLASS_STORAGE: u8 = 0x01;
 const SUBCLASS_RAID: u8 = 0x04;
 const SUBCLASS_SATA: u8 = 0x06;
 const SUBCLASS_NVM: u8 = 0x08;
+const SUBCLASS_UFS: u8 = 0x09;
 const PROGIF_NVME: u8 = 0x02;
 
 const VENDOR_INTEL: u16 = 0x8086;
@@ -55,8 +58,9 @@ pub const INTEL_VMD: [u16; 10] =
 
 /// Intel eMMC hosts, as the kernel's inventory lists them
 /// (src/hardware/inventory/emmc.rs); a proof holds the two lists together.
-pub const INTEL_EMMC: [u16; 12] = [
-    0x0F14, 0x0F50, 0x2294, 0x0ACC, 0x1AA8, 0x5ACC, 0x31CC, 0x9DC4, 0x34C4, 0x18DB, 0x4B47, 0x4DC4,
+pub const INTEL_EMMC: [u16; 13] = [
+    0x0F14, 0x0F50, 0x2294, 0x0ACC, 0x1AA8, 0x5ACC, 0x31CC, 0x9D2B, 0x9DC4, 0x34C4, 0x18DB, 0x4B47,
+    0x4DC4,
 ];
 const CLASS_SYSTEM: u8 = 0x08;
 const SUBCLASS_SDHCI: u8 = 0x05;
@@ -90,6 +94,7 @@ pub fn classify(
         /* The SATA driver takes every interface value: some vendors report
          * 00h for an AHCI HBA. */
         (SUBCLASS_SATA, _) => Some(Controller::Ahci),
+        (SUBCLASS_UFS, _) => Some(Controller::Ufs),
         (SUBCLASS_RAID, _) if intel => Some(Controller::IntelRaid),
         _ if vendor == VENDOR_VIRTIO && VIRTIO_BLK.contains(&device) => Some(Controller::VirtioBlk),
         _ => None,

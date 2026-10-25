@@ -18,23 +18,51 @@
 //! /sbin are links into /usr, and a program's interpreter is named through
 //! one (jq asks for /lib64/ld-linux-x86-64.so.2, which libc6 ships under
 //! /usr). base-files lays these links down on a real system, and it is in no
-//! program's dependency closure, so an install lays them down itself.
+//! program's dependency closure, so an install lays them down itself: whole
+//! where the image and the built-in BusyBox have nothing beneath, else by
+//! name for each program a package places (member/merged.rs).
 
 use alloc::vec::Vec;
 
-use crate::linux::install::place_links::record;
+use crate::linux::built_in::serves;
+use crate::linux::install::member::conflict::held_by_another;
+use crate::linux::install::member::merged::{by_name, whole, Link, MERGED};
+use crate::linux::install::package_record::others;
+use crate::linux::install::place::image::IMAGE_FILES;
+use crate::linux::install::place_links::{record, unrecord};
+use crate::linux::install::Why;
 
-const MERGED: [(&[u8], &[u8]); 4] = [
-    (b"/bin", b"usr/bin"),
-    (b"/sbin", b"usr/sbin"),
-    (b"/lib", b"usr/lib"),
-    (b"/lib64", b"usr/lib64"),
-];
+/// Whether the built-in answers at `path`, or for programs beneath it.
+fn built_in(path: &[u8]) -> bool {
+    serves(path).is_some() || serves(&[path, b"/busybox"].concat()).is_some()
+}
 
-/// Add the links the tree does not have yet; one it already has is kept.
-pub fn lay_out() -> Option<usize> {
-    let links: Vec<(Vec<u8>, Vec<u8>)> =
-        MERGED.iter().map(|(from, to)| (from.to_vec(), to.to_vec())).collect();
+/// Add the whole links the tree may have and does not yet; one it already
+/// has is kept. A whole link an earlier install laid where none may be now
+/// is taken out first. A table that will not take that fails the install.
+pub fn lay_out() -> Result<usize, Why> {
+    let laid = whole(IMAGE_FILES, &built_in);
+    let refused: Vec<Vec<u8>> =
+        MERGED.iter().filter(|m| !laid.contains(m)).map(|(from, _)| from.to_vec()).collect();
+    let links: Vec<Link> = laid.iter().map(|(from, to)| (from.to_vec(), to.to_vec())).collect();
     // Part of the tree, not of any package: no manifest takes them out.
-    record(&links).map(|added| added.len())
+    let added = unrecord(&refused).then(|| record(&links)).flatten();
+    added.map(|a| a.len()).ok_or_else(|| {
+        let line = b"[LINUX] the link table would not take merged /usr; nothing installed\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+        Why::Partial
+    })
+}
+
+/// The links by name package `pkg` gets for what it places, `files` and
+/// `links`: none at a path it places itself or another package holds.
+pub fn by_name_for(files: &[Vec<u8>], links: &[Link], pkg: &str) -> Vec<Link> {
+    let mut placed: Vec<Vec<u8>> = files.to_vec();
+    placed.extend(links.iter().map(|(at, _)| at.clone()));
+    // Another record unreadable: no link is made where its files might be.
+    let Some(held_elsewhere) = others(pkg) else { return Vec::new() };
+    let held = |p: &[u8]| {
+        placed.iter().any(|q| q == p) || held_by_another(&[p.to_vec()], &held_elsewhere).is_some()
+    };
+    by_name(&placed, IMAGE_FILES, &built_in, &held)
 }

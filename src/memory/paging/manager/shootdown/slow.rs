@@ -48,6 +48,6 @@ pub(super) fn fail_timed_out(outstanding: u32) -> ! {
     line.str(b" ms=").dec(SHOOTDOWN_TIMEOUT_MS);
     line.end();
     report_stuck();
-    crate::smp::send_panic_ipi();
-    crate::arch::halt_loop();
+    // The panic path stops the other CPUs, then wipes and powers off.
+    crate::boot::panic::fatal()
 }

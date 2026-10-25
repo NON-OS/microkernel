@@ -16,17 +16,18 @@
 
 //! Giving a receiver its own view of a surface's frames.
 
+use crate::kernel_core::surface_registry::attach_map::lookup;
+use crate::kernel_core::surface_registry::release_surface;
 use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{
     decode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
-use crate::memory::paging::manager::api::lookup_asid_for_process;
-use crate::process::current_process;
 
 pub(super) fn attach_frames(
     receiver_pid: u32,
     handle: SurfaceHandle,
     out_desc: &mut SurfaceDescriptor,
+    write: bool,
 ) -> Result<u64, RegistryError> {
     let (idx, epoch) = decode_handle(handle);
     let frames = {
@@ -38,18 +39,18 @@ pub(super) fn attach_frames(
             crate::log::dbg_ring::dbg_emit_2u64(0x5546_0001, handle, slot.epoch as u64);
             return Err(RegistryError::BadHandle);
         }
+        // Emptied at its owner's exit (`pin::exit`): nothing left to map.
+        if slot.frames.is_empty() {
+            return Err(RegistryError::BadHandle);
+        }
         slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
         slot.frames.clone()
     };
-    let mut desc = super::descriptor::descriptor(handle)?;
-    let asid = lookup_asid_for_process(receiver_pid).ok_or(RegistryError::MapFailed)?;
-    let proc = current_process().ok_or(RegistryError::NoProc)?;
-    let base = proc
-        .reserve_vma(frames.len().saturating_mul(4096), asid)
-        .map_err(|_| RegistryError::MapFailed)?;
-    super::map_frames::map_frames(asid, base, &frames)?;
-    desc.base_va = base.as_u64();
-    *out_desc = desc;
-    super::super::attach_map::record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);
-    Ok(base.as_u64())
+    let mapped = super::map_frames::map_view(receiver_pid, handle, &frames, out_desc, write);
+    // A view left mapped is recorded as an attach and keeps its reference.
+    // At none left, the slot goes as `release_surface` frees it (L49).
+    if mapped.is_err() && lookup(receiver_pid, handle).is_none() {
+        let _ = release_surface(handle);
+    }
+    mapped
 }

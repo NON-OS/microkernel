@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod display_notice;
 pub mod handlers;
 pub mod respond;
+pub mod router_send;
 pub mod runner;
+pub mod trusted_notice;
+pub mod trusted_pids;
 
 pub use runner::run;

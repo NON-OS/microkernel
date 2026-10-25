@@ -4,7 +4,7 @@ How the NONOS kernel starts every CPU in the machine, what it keeps per CPU, and
 
 ## How many CPUs run
 
-NONOS runs [SMP](../overview/glossary.md#smp): it starts every CPU the firmware enables in the ACPI MADT, up to `MAX_CPUS`, 256 (`src/smp/constants.rs:17`). `secondaries` keeps every enabled processor entry and drops duplicates, placeholders, entries past the limit, and APIC ids above `0xFE` while the APIC is in xAPIC mode (`src/smp/topology/detection/probe_x86_64/mod.rs:74-114`). CPUID's count is used only on a machine with no MADT. It prints one line, for example `[SMP] madt aps=3 disabled=0 duplicate=0 invalid=0 unaddressable=0 over_limit=0`.
+NONOS runs [SMP](../overview/glossary-rollback-index.md#smp): it starts every CPU the firmware enables in the ACPI MADT, up to `MAX_CPUS`, 256 (`src/smp/constants.rs:17`). `secondaries` keeps every enabled processor entry and drops duplicates, placeholders, entries past the limit, and APIC ids above `0xFE` while the APIC is in xAPIC mode (`src/smp/topology/detection/probe_x86_64/mod.rs:74-114`). CPUID's count is used only on a machine with no MADT. It prints one line, for example `[SMP] madt aps=3 disabled=0 duplicate=0 invalid=0 unaddressable=0 over_limit=0`.
 
 This needs the `nonos-smp` kernel feature. The build configuration sets `smp` to true in `nonos.toml:20`, which is also the default in `tools/nix/config.nix:127`, and that adds `nonos-smp` to the image's `features` (`tools/nix/config.nix:144`). None of the six `profiles` drops it, so every image built from the shipped `nonos.toml` starts every core (`tools/nix/config.nix:69-118`). On x86_64 a kernel built without the feature runs everything on the boot CPU, because `start_secondary_cpus` then does nothing (`src/kernel_core/init/start_secondary.rs:17-27`). A `nonos.toml` with `smp = false` builds one, and so do most of the older `mk/` targets, whose `nonos_kernel_build` calls leave the feature out, `nonos-mk-desktop-gui-prod` among them (`mk/20-build.mk:1126-1130`).
 
@@ -12,7 +12,7 @@ The boot CPU registers itself first. `init_bsp` records its APIC id, marks descr
 
 ## Starting the other CPUs
 
-Each [application processor](../overview/glossary.md#application-processor) (AP) is started by the boot CPU (BSP) in `start_aps`, the last stage of kernel init (`src/smp/init/ap_start.rs:22-84`).
+Each [application processor](../overview/glossary-amnesic-boot.md#application-processor) (AP) is started by the boot CPU (BSP) in `start_aps`, the last stage of kernel init (`src/smp/init/ap_start.rs:22-84`).
 
 ```mermaid
 sequenceDiagram
@@ -29,12 +29,22 @@ sequenceDiagram
 
 1. The real-mode trampoline sits at physical `AP_TRAMPOLINE_ADDR`, `0x8000` (`src/smp/constants.rs:21`). The low half of the kernel's tables is empty by now, so `install` maps 16 pages there read and execute for the duration (`src/smp/init/ap_identity.rs:40-61`).
 2. For each AP, `allocate` maps a 64 KiB stack at `PERCPU_STACKS_BASE` plus the CPU number times 64 KiB (`src/smp/init/stack.rs:22-32`), and `configure_descriptor` marks the CPU's descriptor `Starting` (`src/smp/init/ap_unit.rs:110-117`). `write_per_ap_context` patches the page-table root, stack, entry point and CPU number into the trampoline, and refuses a page-table root above 4 GiB (`src/smp/trampoline/install.rs:66-69`).
-3. `start_ap` sends INIT and two STARTUP interrupts. The boot CPU waits `AP_ENTRY_TIMEOUT_MS`, 1000 ms, for the AP to enter, then `AP_ONLINE_TIMEOUT_MS`, 1000 ms, for it to come online (`src/smp/init/ap_unit.rs:38-39`). An AP that never entered is parked with INIT by `abandon` (`src/smp/init/ap_unit.rs:91-99`). One that entered and is slow is left running and counts itself when it gets there.
+3. `start_ap` sends INIT and two STARTUP interrupts. The boot CPU waits `AP_ENTRY_TIMEOUT_MS`, 1000 ms, for the AP to enter, then `AP_ONLINE_TIMEOUT_MS`, 1000 ms, for it to come online (`src/smp/init/ap_unit.rs:38-39`). An AP that never entered is parked with INIT by `abandon` (`src/smp/init/ap_unit.rs`). One that entered and missed the online deadline is asked to park, below.
 4. CPU numbers come from `next_cpu_id` and are never reused, even for an AP that failed, so the numbers of live CPUs can have gaps (`src/smp/init/ap_start.rs:39-57`).
 
-On the AP, `ap_entry` first claims its start, so an AP the boot CPU gave up on never runs as that CPU number (`src/smp/ap/entry.rs:25-46`). `bring_up` then sets up its local APIC, its per-CPU block, its GDT and TSS, its extended state, its stack guards, the shared IDT, its syscall registers and CPU protections, and its own 100 Hz timer, all with interrupts masked (`src/smp/ap/bring_up.rs:24-75`). `go_live` enables interrupts and only then calls `publish`, because being online makes the CPU a target that must answer [TLB shootdowns](../overview/glossary.md#tlb-shootdown) (`src/smp/ap/go_live.rs:23-55`, `src/smp/ap/online.rs:37-42`).
+On the AP, `ap_entry` first claims its start, so an AP the boot CPU gave up on never runs as that CPU number (`src/smp/ap/entry.rs:25-46`). `bring_up` then sets up its local APIC, its per-CPU block, its GDT and TSS, its extended state, its stack guards, the shared IDT, its syscall registers and CPU protections, and its own 100 Hz timer, all with interrupts masked (`src/smp/ap/bring_up.rs:24-75`). `go_live` enables interrupts and only then calls `publish`, because an online CPU takes [TLB shootdowns](../overview/glossary-stark-proof.md#tlb-shootdown) by interrupt. It then serves any shootdown that marked it while it was still starting (`src/smp/ap/go_live.rs`, `src/smp/ap/online.rs`).
 
-For each AP the boot CPU prints `[SMP] ap=N apic=M` followed by `online`, `no response, parked`, `timeout after entry`, or `startup failed:` with the reason the IPIs could not be sent (`src/smp/init/ap_unit.rs:54-86`). After the last one, `start_aps` reads `cpus_online` and prints `[SMP] answered=N online=M` (`src/smp/init/ap_start.rs:78-83`), and `start_secondary_cpus` prints one summary, such as `[SMP-PROOF] cpu_count=4 PASS` when any AP came up, `UP` when none did, or `FAIL` with a reason (`src/kernel_core/init/start_secondary.rs:17-47`). The count is the number of CPUs online, the boot CPU included.
+For each AP the boot CPU prints `[SMP] ap=N apic=M` followed by `online`, `no response, parked`, `timeout after entry`, or `startup failed:` with the reason the IPIs could not be sent (`src/smp/init/ap_unit.rs`).
+
+### An AP that misses its online deadline
+
+An AP that entered runs kernel code on the kernel's tables, so it cannot simply be reset: INIT landing inside a step of `bring_up` that holds the paging manager or the allocator would leave that lock held for good. It is parked in three steps (`src/smp/init/ap_unit.rs`, `src/smp/ap/park.rs`, `src/smp/boot_claim.rs`):
+
+1. The boot CPU moves the AP's claim word from `ENTERED` to `PARK_ASKED`.
+2. The AP, at the `checkpoint` that follows every step of `bring_up`, where it holds no lock, moves it to `PARKED` and halts with interrupts masked. `scripts/check_ap_checkpoints.py` holds `bring_up` to that shape.
+3. Only after seeing `PARKED`, within `AP_PARK_TIMEOUT_MS`, 100 ms, does the boot CPU send INIT. Then the descriptor goes back to `Offline` and the line is `[SMP] cpu N abandoned at bring-up: missed its online deadline; parked and reset by INIT`.
+
+An AP that does not park in time, or whose INIT fails, prints `[SMP] cpu N stuck at bring-up: ...` and stays `Starting`, a shootdown target, so the next kernel shootdown's deadline stops the machine instead of leaving it unflushed. One that passed its last checkpoint before the request goes online and prints `online, late`. After the last one, `start_aps` reads `cpus_online` and prints `[SMP] answered=N online=M` (`src/smp/init/ap_start.rs:78-83`), and `start_secondary_cpus` prints one summary, such as `[SMP-PROOF] cpu_count=4 PASS` when any AP came up, `UP` when none did, or `FAIL` with a reason (`src/kernel_core/init/start_secondary.rs:17-47`). The count is the number of CPUs online, the boot CPU included.
 
 An AP runs user processes only if its syscall registers were set and its CPU protections match the boot CPU's. Otherwise `finish` prints `[SMP] cpu=N runs no user code` and the CPU only takes interrupts and shootdowns (`src/smp/ap/user_setup.rs:46-59`).
 
@@ -51,7 +61,7 @@ Each CPU has one 4096-byte `PerCpuData` block in a static array of `MAX_CPUS` bl
 
 The other fields are read from Rust only: the current process, the time slice and reschedule flag, whether the current tick came from user mode, the active address-space id for shootdown targeting, and the time of the last tick. In kernel mode the GS base points at the block, and in user mode it is zero, as `init_bsp` and the entry paths arrange (`src/smp/percpu/operations.rs:27-52`).
 
-Not every entry path swaps the base yet. The NMI, `#NM`, `#MF` and `#VE` vectors, the keyboard and mouse vectors and `int 0x80` can arrive from user mode without a `swapgs`, so kernel code there runs on the user's GS base. That is why `cpu_id` finds the current CPU from its local APIC id, not from GS, and halts a CPU whose id is in no descriptor rather than guess (`src/smp/cpu_id.rs:24-43`). Guessing 0 would let it act as the boot CPU with that CPU's current process and [capabilities](../overview/glossary.md#capability).
+Not every entry path swaps the base yet. The NMI, `#NM`, `#MF` and `#VE` vectors, the keyboard and mouse vectors and `int 0x80` can arrive from user mode without a `swapgs`, so kernel code there runs on the user's GS base. That is why `cpu_id` finds the current CPU from its local APIC id, not from GS, and halts a CPU whose id is in no descriptor rather than guess (`src/smp/cpu_id.rs:24-43`). Guessing 0 would let it act as the boot CPU with that CPU's current process and [capabilities](../overview/glossary-boot-root-record.md#capability).
 
 ## Choosing what runs
 
@@ -63,21 +73,21 @@ The candidates are the queued processes in `Ready`, less the one this CPU is swi
 
 To pick, `choose` takes the highest band that has a candidate and, within it, the lowest pid above that band's last pick, or the lowest pid once every pid had a turn: round robin by pid (`src/process/scheduler/selection/band_choice.rs:23-41`). `select_next_process` then claims the pick, trying at most `CLAIM_ATTEMPTS`, 8 times (`src/process/scheduler/selection/select.rs:30-45`). `claim` moves the process from `Ready` to `Running` under its state lock, and only if no other CPU still runs it or is still leaving it (`src/process/scheduler/selection/claim.rs:23-35`). Each CPU names the pid it runs in `OWNED` and the pid it is switching away from in `LEAVING`, so two CPUs never resume one process on the same kernel stack (`src/process/scheduler/selection/on_cpu.rs:41-64`).
 
-The band a [capsule](../overview/glossary.md#capsule) starts in comes from `for_capsule` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/priority.rs:27-70`). These start in `High`, and everything else in `Normal`:
+The band a [capsule](../overview/glossary-boot-root-record.md#capsule) starts in comes from `for_capsule` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/priority.rs:27-70`). These start in `High`, and everything else in `Normal`:
 
 - the input and display path: `driver.ps2_kbd0`, `input_router`, `compositor` and `driver.virtio_gpu0`;
-- the packet path: the virtio-net, e1000, RTL8169, RTL8139, iwlwifi and RTL8821CE [driver capsules](../overview/glossary.md#driver-capsule) and `net.core`;
+- the packet path: the virtio-net, e1000, RTL8169, RTL8139, iwlwifi and RTL8821CE [driver capsules](../overview/glossary-dma-pool.md#driver-capsule) and `net.core`;
 - the storage drivers: virtio-blk, AHCI, NVMe and USB mass storage.
 
 `net.sockets` and `net.tcp` stay in `Normal` on purpose: they wait for a connection by yielding in a loop, and two of them in `High` could hold the band for a whole connect timeout (`src/kernel_core/process_spawn/capsule_spawn/runner/install/priority.rs:39-41`).
 
 The `init` process starts in `High` and drops to `Low` with `lower_init_priority` once it has spawned the system (`src/userspace/init/entry.rs:170-179`).
 
-`band_choice` is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate), which holds it to the band-by-band scan it replaced (`userland/kernel_proofs/src/sched_pick/mod.rs:22-23`). That crate passes on this commit.
+`band_choice` is compiled into the `kernel_proofs` [proof crate](../overview/glossary-peer-list.md#proof-crate), which holds it to the band-by-band scan it replaced (`userland/kernel_proofs/src/sched_pick/mod.rs:22-23`). That crate passes on this commit.
 
 ## How work spreads across CPUs
 
-There are no per-CPU run queues and there is no separate balancer. Every CPU takes work from the same queue, so an idle CPU picks up whatever is runnable. The threads of a Linux program are kernel processes too and spread the same way, although the [Linux personality](../overview/glossary.md#linux-personality) tells most programs they have one CPU.
+There are no per-CPU run queues and there is no separate balancer. Every CPU takes work from the same queue, so an idle CPU picks up whatever is runnable. The threads of a Linux program are kernel processes too and spread the same way, although the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) tells most programs they have one CPU.
 
 When a pid is queued, `wake_for` tells the CPU that still holds it with a reschedule interrupt, or, if no CPU holds it, wakes one idle CPU (`src/process/scheduler/selection/on_cpu_wake.rs:38-65`). `wake_idle_cpu` wakes at most one, not all (`src/smp/ipi_handler.rs:39-58`). On a hybrid Intel part, `wake_pass` offers the work to an idle performance core before an efficiency core (`src/smp/topology/core_kind.rs:61-70`).
 
@@ -102,7 +112,9 @@ A process sleeps until a deadline in milliseconds of elapsed time. `enter_sleep`
 
 ## Shootdowns and stopping the other CPUs
 
-A TLB shootdown is how a CPU that changed a page table makes the others drop the old translation. `select` sends a round to every other online CPU for a kernel mapping, and for a process's mapping only to the CPUs running that address space (`src/memory/paging/manager/shootdown/select.rs:25-65`). A CPU spinning for a scheduler lock with interrupts masked still answers, because `lock_responsive` serves pending shootdowns while it waits (`src/smp/responsive.rs:45-53`). A round that is still unanswered after `SHOOTDOWN_WARN_MS`, 50 ms, is sent again as an NMI; after `SHOOTDOWN_TIMEOUT_MS`, 2000 ms, the machine stops (`src/memory/paging/manager/shootdown/request.rs:32-35`). A stale translation could reach freed memory, so the kernel does not carry on past that point.
+A TLB shootdown is how a CPU that changed a page table makes the others drop the old translation. `select` sends a round to every other online CPU for a kernel mapping, and for a process's mapping only to the CPUs running that address space (`src/memory/paging/manager/shootdown/select.rs`).
+
+A kernel round also marks every CPU whose descriptor reads `Starting`. An AP runs kernel code on the kernel's tables from its trampoline on, long before it is `Online`, and can cache an entry the round is about to free; targeting `Online` alone let a round return past it. The boot CPU stores `Starting` before it sends INIT, with a fence between (`src/smp/init/ap_unit.rs`), and INIT empties the AP's TLB, so a CPU read as `Offline` holds nothing from before the round's write. A `Starting` target gets no vector, since its interrupts are masked and its per-CPU block's APIC id is not yet its own; it serves its mark at its spin points and right after it publishes `Online`. The waiter answers for a target the boot CPU abandoned and reset (`src/memory/paging/manager/shootdown/wait.rs`). `userland/shootdown_proofs` searches every interleaving of a round with APs that come up, park or are abandoned during it, with a mutant for each rule. A CPU spinning for a scheduler lock with interrupts masked still answers, because `lock_responsive` serves pending shootdowns while it waits (`src/smp/responsive.rs:45-53`). A round that is still unanswered after `SHOOTDOWN_WARN_MS`, 50 ms, is sent again as an NMI; after `SHOOTDOWN_TIMEOUT_MS`, 2000 ms, the machine stops (`src/memory/paging/manager/shootdown/request.rs:32-35`). A stale translation could reach freed memory, so the kernel does not carry on past that point.
 
 To stop the machine for a panic, `send_panic_ipi` sends every other CPU an NMI, which reaches a CPU even while it spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). See [panic and boot stop](panic-and-boot-stop.md).
 

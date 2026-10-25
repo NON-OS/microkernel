@@ -13,17 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::rail_band::{hits, Band};
-use super::rail_row::{row_at, row_h};
+use super::rail_band::Band;
+use super::rail_row::row_h;
 use super::rail_text::{lh, RAIL_GAP, RAIL_PAD};
 use crate::layout::Rect;
 
-pub enum LeftHit {
-    NewSession,
-    AddProject,
-    Session(u32),
-    Project(u32),
-}
+#[path = "rail_left_hit.rs"]
+mod rail_left_hit;
+pub use rail_left_hit::{hit, LeftHit};
 
 pub struct Sections {
     pub s_head: Band,
@@ -66,19 +63,4 @@ pub fn nav_sections(r: Rect, offset: u32, sessions: u32, projects: u32) -> Secti
 pub fn plus_band(head: Band) -> Band {
     let s = lh();
     Band { x: head.x + head.w.saturating_sub(s), y: head.y + RAIL_GAP as i32, w: s, h: s }
-}
-
-pub fn hit(r: Rect, sessions: u32, projects: u32, off: u32, x: u32, y: u32) -> Option<LeftHit> {
-    let s = nav_sections(r, off, sessions, projects);
-    let (x, y) = (x.saturating_sub(r.x), y as i32 - r.y as i32);
-    if hits(&s.s_plus, x, y) {
-        return Some(LeftHit::NewSession);
-    }
-    if hits(&s.p_plus, x, y) {
-        return Some(LeftHit::AddProject);
-    }
-    if let Some(i) = row_at(&s.s_list, sessions, x, y) {
-        return Some(LeftHit::Session(i));
-    }
-    row_at(&s.p_list, projects, x, y).map(LeftHit::Project)
 }

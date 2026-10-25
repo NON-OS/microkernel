@@ -12,7 +12,9 @@ CAPSULE_FEATURE          := nonos-capsule-driver-cdc-ecm
 CAPSULE_NAMESPACE        := systems.nonos.driver.cdc_ecm0
 CAPSULE_SERVICE_ENDPOINT := service:4250:driver.cdc_ecm0
 CAPSULE_REPLY_ENDPOINT   := reply:4251:endpoint.4294967360
-# IPC | Memory | Crypto = 0x08 | 0x10 | 0x20 = 0x38
+# IPC | Memory | Crypto = 0x08 | 0x10 | 0x20 = 0x38. The loop drops what
+# it sent itself by its own pid, read back through MkServiceLookup (IPC)
+# rather than MkGetPid, so no CoreExec.
 # No Driver/DeviceEnum/Mmio/Irq/Dma/Pio: this is a class capsule above
 # xHCI. No InputSource (0x200000, bit 21), which posts to and drains the
 # keystroke ring: a NIC has no use for it. Crypto (0x20) is what the
@@ -21,12 +23,9 @@ CAPSULE_REPLY_ENDPOINT   := reply:4251:endpoint.4294967360
 # bind; without entropy no device is bound.
 CAPSULE_REQUIRED_CAPS    := 0x38
 # Debug (0x100, bit 8), granted only by a build that compiles
-# `capsule-serial-debug`: it carries the [usbnet cdc-ecm] lines, none of
-# which holds a station address.
+# `capsule-serial-debug`: it carries the [usbnet cdc-ecm] lines, which no
+# frame and no station address reaches.
 CAPSULE_OPTIONAL_CAPS    := 0x100
+CAPSULE_KERNEL_MIRROR    := src/hardware/cdc_ecm_capsule
 
 include nonos-mk/capsule.mk
-# Builds and is proven on the host, but has no owner certificate, no kernel
-# embed and no spawn yet: scripts/hardware_support_evidence.py reports it as
-# not in the image instead of as supported hardware. Remove when it ships.
-CAPSULE_NOT_IN_IMAGE     := 1

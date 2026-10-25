@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `log`: the last of what the kernel wrote to its serial console, read back
 //! with `mk_log_tail`, for a machine with no serial port. `log` alone shows
 //! the newest lines; `log rtl tpm` only the lines naming any word given.
@@ -35,7 +34,9 @@ pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
     let mut buf = vec![0u8; KEPT];
     let rc = mk_log_tail(&mut buf);
     if rc < 0 {
-        out.writeln_error(b"log: the kernel would not hand over its log (this terminal needs AttestRead)");
+        out.writeln_error(
+            b"log: the kernel would not hand over its log (this terminal needs AttestRead)",
+        );
         return;
     }
     let text = &buf[..rc as usize];

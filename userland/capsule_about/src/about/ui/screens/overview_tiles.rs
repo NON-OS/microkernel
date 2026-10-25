@@ -18,11 +18,10 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::super::gauge;
 use super::super::metrics::TILE_GAP;
-use super::tile_text::{dims, ratio, uptime};
+use super::tile_text::{dims, millis, ratio, uptime};
 use crate::about::data::caps::{granted, ALL_CAPS};
 use crate::about::data::display::primary_dimensions;
 use crate::about::data::uptime::read_millis;
-use crate::about::format::u64_decimal;
 
 const DAY_S: u64 = 86_400;
 
@@ -44,11 +43,11 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, held: Option<u64>) {
 // clock can honestly offer: there is no total to divide an uptime by.
 fn uptime_tile(fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
     let mut value = [0u8; 24];
-    let mut raw = [0u8; 20];
+    let mut raw = [0u8; 24];
     match read_millis() {
         Some(ms) => {
             let v = uptime(ms, &mut value);
-            let sub = u64_decimal(ms, &mut raw);
+            let sub = millis(ms, &mut raw);
             gauge::tile(fb, x, y, w, b"Uptime", v, sub, (ms / 1000) % DAY_S, DAY_S);
         }
         None => gauge::tile(fb, x, y, w, b"Uptime", b"unavailable", b"monotonic clock", 0, 1),

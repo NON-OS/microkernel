@@ -14,23 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acked;
+mod announce;
 mod api;
-pub mod cpu;
+mod cpu;
 mod device;
 pub mod distributor;
+mod enable;
+mod frames;
 pub mod icc;
+mod in_service;
+pub mod intid;
 pub mod irq_handlers;
+pub mod its;
+pub mod msi;
 pub mod redistributor;
+mod route;
+pub mod select;
+mod serve;
+mod sgi;
 mod state;
+mod sysregs;
+mod trigger;
+pub mod v2;
+pub mod v2m;
+pub mod version;
+mod wait;
 
-pub use api::{disable_irq, enable_irq, init_gic, send_sgi, send_sgi_all_others};
-pub use cpu::init_gic_cpu;
-pub use device::Gic;
+pub use acked::Acked;
+pub use api::{chosen_version, init_gic, init_gic_cpu};
 pub use distributor::GicDistributor;
-pub use icc::{acknowledge_interrupt, end_interrupt, set_priority_mask};
+pub use enable::{disable_irq, enable_irq};
+pub use icc::set_priority_mask;
+pub use in_service::{
+    complete as complete_interrupt, enter as enter_service, leave as leave_service,
+};
 pub use irq_handlers::{
-    dispatch as dispatch_irq, register as register_irq_handler,
-    register_for_capsule as register_irq_handler_for_capsule,
+    dispatch as dispatch_irq, holds_kernel_handler as irq_held_by,
+    register as register_irq_handler, register_for_capsule as register_irq_handler_for_capsule,
     unregister_for_capsule as unregister_irq_handler_for_capsule,
 };
 pub use redistributor::GicRedistributor;
+pub use route::route_spi_here;
+pub use serve::acknowledge_interrupt;
+pub use sgi::{send_sgi, send_sgi_all_others};
+pub use trigger::configure_spi;
+pub use version::GicVersion;

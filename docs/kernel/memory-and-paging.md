@@ -9,7 +9,7 @@ NONOS on x86_64 uses four-level paging with 48-bit canonical addresses. The user
 | Region | Constant | Start | Size |
 |---|---|---|---|
 | User space | `USER_TOP` (`src/memory/layout/constants/canonical.rs:21`) | `0x0` | 128 TiB |
-| [Directmap](../overview/glossary.md#directmap) of physical memory | `DIRECTMAP_BASE` (`src/memory/layout/constants/regions.rs:30-31`) | `0xFFFF_8000_0000_0000` | 256 GiB |
+| [Directmap](../overview/glossary-claim-epoch.md#directmap) of physical memory | `DIRECTMAP_BASE` (`src/memory/layout/constants/regions.rs:30-31`) | `0xFFFF_8000_0000_0000` | 256 GiB |
 | Kernel heap window, unused | `KHEAP_BASE` (`src/memory/layout/constants/regions.rs:33-34`) | `0xFFFF_FF00_0000_0000` | 256 MiB |
 | Device registers | `MMIO_BASE` (`src/memory/layout/constants/mmio.rs:17-18`) | `0xFFFF_FF30_0000_0000` | 512 MiB |
 | Kernel virtual ranges (vmap) | `VMAP_BASE` (`src/memory/layout/constants/mmio.rs:19-20`) | `0xFFFF_FF50_0000_0000` | 256 MiB |
@@ -19,7 +19,7 @@ NONOS on x86_64 uses four-level paging with 48-bit canonical addresses. The user
 
 The device register window is where `map_device_memory` hands out uncached mappings, starting from `MMIO_BASE` (`src/memory/mmio/manager/core/types.rs:32`). The text and data window sizes are `KTEXT_SIZE` and `KDATA_SIZE` (`src/memory/layout/constants/sections.rs:19-22`).
 
-A process sees a user half of its own and the shared kernel half. The ELF loader places a position-independent [capsule](../overview/glossary.md#capsule) image at `DEFAULT_PIE_BASE`, `0x40_0000`, plus a random page-aligned offset below `EXEC_RANDOMIZATION_RANGE`, 1 GiB, drawn by `randomize_base` for each load; an image that is not position independent gets the base `0x40_0000` with no offset (`src/elf/loader/core/loader/base_addr.rs:19-25`, `src/elf/aslr/manager/constants.rs:17`, `src/elf/aslr/manager/randomize.rs:24-30`). The 2 MiB user stack ends at `USER_STACK_BASE`, `0x0000_7FFF_FFFF_0000` (`src/process/userspace/constants.rs:30-32`), and `allocate_user_stack` leaves the page below it unmapped as a guard (`src/kernel_core/process_spawn/user_stack.rs:54-88`). Anonymous `MkMmap` ranges come from `USER_MMAP_BASE`, `0x8000_0000`, up to `0x7000_0000_0000` (`src/process/mmap_va.rs:36-37`). Process creation is on [processes and spawn](processes-and-spawn.md).
+A process sees a user half of its own and the shared kernel half. The ELF loader places a position-independent [capsule](../overview/glossary-boot-root-record.md#capsule) image at `DEFAULT_PIE_BASE`, `0x40_0000`, plus a random page-aligned offset below `EXEC_RANDOMIZATION_RANGE`, 1 GiB, drawn by `randomize_base` for each load; an image that is not position independent gets the base `0x40_0000` with no offset (`src/elf/loader/core/loader/base_addr.rs:19-25`, `src/elf/aslr/manager/constants.rs:17`, `src/elf/aslr/manager/randomize.rs:24-30`). The 2 MiB user stack ends at `USER_STACK_BASE`, `0x0000_7FFF_FFFF_0000` (`src/process/userspace/constants.rs:30-32`), and `allocate_user_stack` leaves the page below it unmapped as a guard (`src/kernel_core/process_spawn/user_stack.rs:54-88`). Anonymous `MkMmap` ranges come from `USER_MMAP_BASE`, `0x8000_0000`, up to `0x7000_0000_0000` (`src/process/mmap_va.rs:36-37`). Process creation is on [processes and spawn](processes-and-spawn.md).
 
 ## How the page tables come to be
 
@@ -34,11 +34,11 @@ The bootloader builds the first tables. The directmap maps the first 256 GiB of 
 5. maps the local APIC registers uncached in the kernel half, so they stay reachable;
 6. once the kernel half holds at least the directmap and the kernel image, calls `clear_low_half`, which zeroes PML4 entries 0 to 255 and reloads CR3 (`src/arch/x86_64/paging/clear_low_half.rs:42-58`).
 
-From then on the kernel runs only from the upper half. Every new address space copies entries 256 to 511 from the kernel's table with `clone_kernel_half_into` (`src/memory/paging/manager/address_space/clone.rs:35-50`), so no process inherits a low mapping by accident. A failure in any step is a [boot stop](../overview/glossary.md#boot-stop) with `memory: init_unified_vm failed`.
+From then on the kernel runs only from the upper half. Every new address space copies entries 256 to 511 from the kernel's table with `clone_kernel_half_into` (`src/memory/paging/manager/address_space/clone.rs:35-50`), so no process inherits a low mapping by accident. A failure in any step is a [boot stop](../overview/glossary-amnesic-boot.md#boot-stop) with `memory: init_unified_vm failed`.
 
-Pages are 4 KiB, with `HUGE_PAGE_2M` and `HUGE_PAGE_1G` leaves possible (`src/memory/layout/constants/page.rs:17-21`). One low mapping comes back for a while: the trampoline that starts each [application processor](../overview/glossary.md#application-processor) (AP). `install` maps the 16 pages at physical `0x8000` read and execute while the other CPUs start, and `remove` unmaps them and clears the low half again (`src/smp/init/ap_identity.rs:40-71`).
+Pages are 4 KiB, with `HUGE_PAGE_2M` and `HUGE_PAGE_1G` leaves possible (`src/memory/layout/constants/page.rs:17-21`). One low mapping comes back for a while: the trampoline that starts each [application processor](../overview/glossary-amnesic-boot.md#application-processor) (AP). `install` maps the 16 pages at physical `0x8000` read and execute while the other CPUs start, and `remove` unmaps them and clears the low half again (`src/smp/init/ap_identity.rs:40-71`).
 
-When a mapping changes, every CPU that may still cache the old translation has to drop it. That is the [TLB shootdown](../overview/glossary.md#tlb-shootdown), described with the rest of the multi-CPU machinery on [scheduler and SMP](scheduler-and-smp.md).
+When a mapping changes, every CPU that may still cache the old translation has to drop it. That is the [TLB shootdown](../overview/glossary-stark-proof.md#tlb-shootdown), described with the rest of the multi-CPU machinery on [scheduler and SMP](scheduler-and-smp.md).
 
 ## W^X
 
@@ -52,7 +52,7 @@ The kernel image has three load segments in the linker script's `PHDRS`: text re
 
 `init_vm_and_protection` turns the ring 0 restrictions on once the final tables exist. `apply` refuses a CPU without execute-never, then enables SMEP, SMAP and UMIP where CPUID reports them, sets EFER.NXE and CR0.WP, and reads every one back (`src/memory/mmu/mmu/protect/apply.rs:26-44`). On a CPU without NX, `init_mmu` fails and the boot stops with `memory: init_mmu failed` (`src/kernel_core/init/entry/init_vm_and_protection.rs:41-43`). With SMAP live, `clear_alignment_check` clears EFLAGS.AC, since SMAP is not enforced while AC is set (`src/memory/mmu/mmu/protect/cr4.rs:46-49`).
 
-`report` prints the result as one line on the [serial console](../overview/glossary.md#serial-console) (`src/memory/mmu/mmu/protect/report.rs:25-43`):
+`report` prints the result as one line on the [serial console](../overview/glossary-rollback-index.md#serial-console) (`src/memory/mmu/mmu/protect/report.rs:25-43`):
 
 ```text
 [CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1
@@ -91,9 +91,9 @@ Every allocation carries a header with the magic `ALLOCATION_MAGIC`, `0xDEADBEEF
 - `check_range` refuses a null address, a length over `MAX_COPY_SIZE` (64 MiB), an overflowing range and anything past `0x7FFF_FFFF_FFFF` (`src/usercopy/policy.rs:25-50`).
 - Every page is walked in the live tables. `translate_read` needs a present user page, and `translate_write` also needs it writable (`src/usercopy/walk/access.rs:29-46`).
 - `copy_from_user_directmap` copies from the physical frame through the directmap, page by page, 4 KiB, 2 MiB or 1 GiB leaves alike (`src/usercopy/direct.rs:25-44`).
-- A long copy answers [TLB shootdowns](../overview/glossary.md#tlb-shootdown) every `SERVE_UNIT`, 64 KiB (`src/smp/serve.rs:48`).
+- A long copy answers [TLB shootdowns](../overview/glossary-stark-proof.md#tlb-shootdown) every `SERVE_UNIT`, 64 KiB (`src/smp/serve.rs:48`).
 
-This is also why SMAP is safe to turn on: the kernel reaches user memory only through the directmap, which has no user bit, so a supervisor access to a user page never happens, as the note before the `init_mmu` call records (`src/kernel_core/init/entry/init_vm_and_protection.rs:33-41`). The range check, the `policy` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate) (`userland/kernel_proofs/src/usercopy/mod.rs:17-22`), which passes its 388 tests on this commit.
+This is also why SMAP is safe to turn on: the kernel reaches user memory only through the directmap, which has no user bit, so a supervisor access to a user page never happens, as the note before the `init_mmu` call records (`src/kernel_core/init/entry/init_vm_and_protection.rs:33-41`). The range check, the `policy` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary-peer-list.md#proof-crate) (`userland/kernel_proofs/src/usercopy/mod.rs:17-22`), which passes its 388 tests on this commit.
 
 ## Limits
 

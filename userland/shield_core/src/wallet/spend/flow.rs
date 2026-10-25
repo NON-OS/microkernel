@@ -4,6 +4,9 @@
 //! pending before the call returns, so they cannot be spent twice while the
 //! relayer is at work.
 
+#[path = "flow_history.rs"]
+mod history;
+
 use super::{build::request, Destination, Order};
 use crate::discovery::note_commitments;
 use crate::error::{ProveError, WalletError};
@@ -17,6 +20,7 @@ use crate::wallet::handoff::{seal_outputs, write_handoff};
 use crate::wallet::scan_history::view;
 use crate::wallet::sync_chain::History;
 use crate::wallet::Session;
+use history::record_sent;
 use std::path::{Path, PathBuf};
 
 /// What a spend left behind: the file for the relayer, and what it cost.
@@ -64,21 +68,6 @@ pub fn spend(
         let cm = commitment(&pool_hasher(), &note.note()).map(|f| f.value());
         session.record(Row::Status { cm, status: NoteStatus::Pending })?;
     }
-    // Into the history, named by its first nullifier, with its change, which a sync then
-    // knows for this wallet's own and not a payment received.
-    use crate::store::activity::{Activity, SENT, WITHDRAWN};
-    let kind = match order.to {
-        Destination::Wallet { .. } => SENT,
-        Destination::Withdraw { .. } => WITHDRAWN,
-    };
-    let [tag, _] = crate::wallet::publish::nullifiers(&proof.publics);
-    let [_, change] = &proof.outputs;
-    let mut done = Activity::new(kind, crate::wallet::history::clock());
-    done.asset_id = order.asset.id;
-    done.value = order.amount;
-    done.tag = tag;
-    done.cm = crate::wallet::history::cm_of(change);
-    // The spend is proved and its notes held either way: a failed write loses the entry only.
-    let _ = crate::wallet::history::note(session, done);
+    record_sent(session, order, &proof);
     Ok(SpendOutcome { handoff, weakened: proof.weakened })
 }

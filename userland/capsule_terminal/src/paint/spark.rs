@@ -16,9 +16,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::spark_smooth::smooth;
 use crate::layout::Rect;
 use crate::rail::ring::SPARK_SAMPLES;
+
+#[path = "spark_smooth.rs"]
+mod spark_smooth;
+use spark_smooth::smooth;
 
 const DOT_R: u32 = 2;
 const AREA_ALPHA: u32 = 0x20_00_00_00;

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod advance;
+pub mod batch;
 mod copy_ring;
 mod read_frame;
 mod recv_one;

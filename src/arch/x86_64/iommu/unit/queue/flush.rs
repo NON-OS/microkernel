@@ -16,7 +16,7 @@
 
 //! The invalidations the kernel queues, each as one batch with its wait.
 
-use super::descriptor::{context_global, iec_global, iotlb_global};
+use super::descriptor::{context_global, iec_global, iotlb_domain, iotlb_global};
 use super::submit::submit;
 use crate::arch::x86_64::iommu::regs::{cap, offsets};
 use crate::arch::x86_64::iommu::types::VtdError;
@@ -31,6 +31,12 @@ pub fn flush_caches(unit: &RemapUnit) -> Result<(), VtdError> {
 /// Every cached translation, after leaf entries changed.
 pub fn flush_iotlb(unit: &RemapUnit) -> Result<(), VtdError> {
     submit(unit, &[iotlb(unit)])
+}
+
+/// One domain's cached translations, after its leaf entries changed.
+pub fn flush_iotlb_domain(unit: &RemapUnit, did: u16) -> Result<(), VtdError> {
+    let word = unit.read64(offsets::CAP);
+    submit(unit, &[iotlb_domain(did, cap::read_drain(word), cap::write_drain(word))])
 }
 
 /// Every cached interrupt remapping entry, after the table changed.

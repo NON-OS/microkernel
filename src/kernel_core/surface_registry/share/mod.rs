@@ -19,8 +19,17 @@ mod attach_surface;
 mod descriptor;
 mod existing;
 mod map_frames;
+mod map_pages;
+mod owned;
+mod permit;
+mod rights;
+mod rights_attach;
+mod rights_rule;
+pub(super) mod rule;
 mod self_attach;
 mod share_surface;
 
 pub use attach_surface::attach_surface;
+pub use rights::{owner_releases, revoke, revoke_pid};
+pub(crate) use rights_rule::share_write;
 pub use share_surface::share_surface;

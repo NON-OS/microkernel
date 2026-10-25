@@ -31,6 +31,7 @@
 //! - `link`: the open port and the `LinkPort` net_core drives;
 //! - `run`: the whole join from a beacon, and leaving.
 
+pub mod address;
 pub mod bss;
 pub mod exchange;
 pub mod fw;
@@ -38,5 +39,6 @@ pub mod hunt;
 pub mod inbox;
 pub mod keys;
 pub mod link;
+mod pairwise;
 pub mod run;
 pub mod target;

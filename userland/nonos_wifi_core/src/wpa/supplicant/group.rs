@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The group key handshake (IEEE Std 802.11-2020, 12.7.7). An access point
-//! replaces its group key on a timer (hostapd's default is a day; many
-//! consumer routers do it hourly) and sends every associated station group
+//! replaces its group key on a timer (commonly a day, on many consumer
+//! routers an hour) and sends every associated station group
 //! message 1 with the new GTK wrapped under the KEK. A station that never
 //! answers is deauthenticated after the retries, which on a link that ran fine
 //! for an hour reads as Wi-Fi dropping by itself. Here the message is verified
@@ -44,16 +44,17 @@ impl Supplicant {
         let mut plain = [0u8; UNWRAPPED_MAX];
         let keys = self
             .unwrap_key_data(key.key_data, &mut plain)
-            .and_then(|n| parse_group_keys(&plain[..n]).map(|(_, k)| k));
+            .and_then(|n| parse_group_keys(&plain[..n], self.group.tk_len()).map(|(_, k)| k));
         wipe(&mut plain);
         // An authentic message whose key data does not hold a usable group key
-        // is not answered; the AP retries and in the end deauthenticates, which
-        // is the right outcome for a key the station cannot use.
-        let Some(mut keys) = keys else {
+        // (and, with management frame protection, an IGTK) is not answered;
+        // the AP retries and in the end deauthenticates, which is the right
+        // outcome for a key the station cannot use.
+        let Some(mut keys) = keys.filter(|k| !self.pmf || k.igtk.is_some()) else {
             return StepOutput::none();
         };
         keys.rsc = rsc_pn(&key.key_rsc);
         let changed = self.store_group_keys(&keys);
-        StepOutput { reply: self.group2(&key.replay_counter), new_group_key: changed }
+        StepOutput { new_group_key: changed, ..StepOutput::reply(self.group2(&key.replay_counter)) }
     }
 }

@@ -16,7 +16,21 @@
 
 use crate::syscall::{call_raw, N_MK_SURFACE_SHARE};
 
+/// The receiver may write its view (MkSurfaceShare flags).
+pub const SURFACE_SHARE_WRITE: u64 = 1;
+
+// Share `sid` with `target_pid`, a live process other than the caller's: it
+// and the caller are the only ones that may attach it. Without
+// SURFACE_SHARE_WRITE the receiver maps it read-only. A fifth receiver of
+// one surface is -ENOMEM; the owner's release takes every right back.
 #[no_mangle]
-pub extern "C" fn mk_surface_share(sid: u64) -> i64 {
-    call_raw(N_MK_SURFACE_SHARE, [sid, 0, 0, 0, 0, 0])
+pub extern "C" fn mk_surface_share(sid: u64, target_pid: u32, flags: u64) -> i64 {
+    call_raw(N_MK_SURFACE_SHARE, [sid, target_pid as u64, flags, 0, 0, 0])
+}
+
+// Shares with `receiver_pid`'s process alone, read-only; call once per
+// receiver. Nobody else can attach the handle, however they come by it.
+#[no_mangle]
+pub extern "C" fn mk_surface_share_to(sid: u64, receiver_pid: u32) -> i64 {
+    call_raw(N_MK_SURFACE_SHARE, [sid, receiver_pid as u64, 0, 0, 0, 0])
 }

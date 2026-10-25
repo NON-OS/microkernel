@@ -24,7 +24,7 @@ Before you change anything, keep what the machine told you:
 
 - The screen. A refusal from the loader stays up for 30 seconds or until you press a key, then the machine restarts. Write down its title and the text under `THE LOADER'S REASON`.
 - The kernel log, from the Terminal, once the desktop is up. `log` shows the newest 200 lines, `log` with words shows only the lines that name one of them, and `log >` with a file name keeps them. The kernel keeps the first 64 KiB of the boot and the last 64 KiB after it.
-- The [serial console](../overview/glossary.md#serial-console), if the machine has a serial port. Under QEMU it is the terminal `make boot` runs in, and with `--headless` the boot tool writes it to `target/qemu/serial.log`.
+- The [serial console](../overview/glossary-rollback-index.md#serial-console), if the machine has a serial port. Under QEMU it is the terminal `make boot` runs in, and with `--headless` the boot tool writes it to `target/qemu/serial.log`.
 
 ```
 log
@@ -34,7 +34,7 @@ log > boot-log.txt
 
 Not tested in this release.
 
-The kernel keeps that log only on images built with capsule serial output, such as `standard` and `qemu`. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
+The kernel keeps that log only on images built with capsule serial output, such as `qemu` and a development image. A `standard`, `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
 
 To report a machine, follow [Reporting a machine](../hardware/report.md).
 
@@ -43,7 +43,7 @@ To report a machine, follow [Reporting a machine](../hardware/report.md).
 If no NONOS screen appears at all, either the firmware did not start the loader, or it gave the loader no graphics display, which the boot menu and the refusal screens need.
 
 - Set the firmware to boot in UEFI mode. The stick has no legacy BIOS path ([Requirements](requirements.md#processor-and-firmware)).
-- With [Secure Boot](../overview/glossary.md#secure-boot) on, the firmware starts the loader only if it trusts the NONOS db certificate, because the seal signs the loader with that key alone. Turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release.
+- With [Secure Boot](../overview/glossary-rollback-index.md#secure-boot) on, the firmware starts the loader only if it trusts the NONOS db certificate, because the seal signs the loader with that key alone. Turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release.
 - Write the stick again and compare it with the image ([Check the write](usb-stick.md#check-the-write)).
 
 ## The boot menu says REFUSED HERE
@@ -72,7 +72,7 @@ A loader refusal shows `BOOT REFUSED`, a title, then three numbered parts: `WHAT
 | The kernel's STARK attestation failed | the proof did not verify against the root this loader enrolled | use the loader and kernel of one release together |
 | The kernel has no STARK attestation | this loader boots only an enrolled kernel | the same |
 | The kernel could not be read | its program headers did not load | the media may be damaged; write it again |
-| This kernel is older than allowed | its [rollback index](../overview/glossary.md#rollback-index) is below this machine's [TPM floor](../overview/glossary.md#rollback-floor); the reason reads `Rollback: tpm floor` and the two numbers | boot a release at least as new as the last one used here ([Update](update.md)) |
+| This kernel is older than allowed | its [rollback index](../overview/glossary-rollback-index.md#rollback-index) is below this machine's [TPM floor](../overview/glossary-peer-list.md#rollback-floor); the reason reads `Rollback: tpm floor` and the two numbers | boot a release at least as new as the last one used here ([Update](update.md)) |
 | This machine lacks what the entry requires | the entry's policy check failed; the reason reads `Security policy enforcement failed`, and the menu's `REFUSED HERE` line names what is missing | pick an entry the menu shows as ready, or turn on Secure Boot, the TPM and RDRAND |
 | Not enough randomness | the hardware gave too little randomness for the boot's keys | turn on RDRAND or the TPM |
 | Boot stopped | any other reason; the reason itself says what stopped | keep the reason and report it |
@@ -92,7 +92,7 @@ The kernel draws a notice band when it cannot go on, and halts:
 | On screen | Meaning | What to do |
 |---|---|---|
 | `NONOS BOOT STOPPED`, with a step and a detail | an early kernel step failed | keep the step and detail and report them |
-| `The bootloader failed the kernel's check` | the loader's measurement, [boot-root record](../overview/glossary.md#boot-root-record) or [STARK proof](../overview/glossary.md#stark-proof) did not verify | boot an image whose loader is enrolled, written from one release |
+| `The bootloader failed the kernel's check` | the loader's measurement, [boot-root record](../overview/glossary-boot-root-record.md#boot-root-record) or [STARK proof](../overview/glossary-stark-proof.md#stark-proof) did not verify | boot an image whose loader is enrolled, written from one release |
 | `The bootloader could not be checked` | the boot carried no boot-root record or no loader trailer | boot a sealed image |
 | `Install NONOS: this image has no installer` | the image was built without setup or the installer | restart and pick another entry; nothing was written |
 
@@ -151,7 +151,7 @@ When a write stops, the Stopped screen says whether the disk has a complete tabl
 
 | Log line or message | Meaning |
 |---|---|
-| `[DATA] refused with EIO: MachineKey(...)` | no TPM key, so the [data volume](../overview/glossary.md#data-volume) stays closed |
+| `[DATA] refused with EIO: MachineKey(...)` | no TPM key, so the [data volume](../overview/glossary-claim-epoch.md#data-volume) stays closed |
 | `[DATA] refused with EIO: Unopenable` | the boot state changed since the volume was made, and the kernel will not format over it ([Update](update.md)) |
 | `[DATA] live boot:` and `no volume in memory` | a boot from the stick with too little free memory for the data volume in RAM |
 | `[VFS] refused persist: amnesic boot` | the Mode step chose Amnesic, so nothing is kept |
@@ -206,7 +206,7 @@ The two `refused with EIO` lines print when a program, such as the model fetcher
   - `Unopenable`, and `[DATA] formatted a volume of` on the console: `mount_or_format` in `src/fs/blockfs_volume/mount_or_format.rs:64-76`.
   - The live boot line: `LEAST` in `src/fs/blockfs_volume/session.rs:34-44`.
   - The `refused with EIO` lines on the console: `ERRNO_IO` in `src/syscall/microkernel/data/errno.rs:47-53`.
-  - The amnesic refusal: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:35-39`.
+  - The amnesic refusal: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:40-47`.
 
 ## See also
 

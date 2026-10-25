@@ -3,10 +3,12 @@
 ## Role
 
 `capsule_driver_usb_hid` is the USB HID class capsule. It asks `driver.xhci0`
-for the devices on the root ports and behind hubs, binds boot keyboard and
-boot mouse interfaces, and binds any other HID interface only when its report
-descriptor names keys, media keys or a pointer it reads. It polls their
-interrupt-IN endpoints through the controller and posts each decoded key,
+for the devices on the root ports and on the virtual ports driver.usb_hub0
+gives for devices behind hubs, binds boot keyboard and boot mouse interfaces,
+and binds any other HID interface only when its report descriptor names keys,
+media keys or a pointer it reads, or lays out a joystick or game pad, read as
+a gamepad. It polls their interrupt-IN endpoints through the controller and
+posts each decoded key,
 motion and button event to the kernel input ring with `MkInputEventPost`.
 
 ```text
@@ -98,14 +100,13 @@ transfer ring for its interrupt endpoint. A
 device it binds nothing on has its slot given back. It then loops
 (`src/orchestrator/poll/run.rs`): read each endpoint that is due, at most 16
 reports, into the state of its own interface; tick key repeat; look at
-every root and hub port again after 64 ms with no report, and at hub ports
-mid bring-up every 10 ms; then sleep on its inbox until the next endpoint is
-due, at most 16 ms, answering a request if one comes. An endpoint is asked
-as often as the controller serves it, and once quiet for a second every
-8 ms. A new hub's ports are looked at once their power is good, and a
-device below a hub is debounced, reset and addressed one step per look, each
-wait a deadline the loop checks, never a sleep. Each root or hub port is
-tried at most three times a minute, however often its device reconnects.
+every port of every host again after 64 ms with no report; then sleep on
+its inbox until the next endpoint is due, at most 16 ms, answering a request
+if one comes. An endpoint is asked as often as the controller serves it, and
+once quiet for a second every 8 ms. Each port is tried at most three times
+a minute, however often its device reconnects. Hubs are driver.usb_hub0's,
+which brings up their ports and gives each device below one as a virtual
+port.
 
 ## Failure model
 
@@ -139,7 +140,7 @@ yields and no bound, a spin for the life of a machine without xHCI.
   IDs.
 - Keyboard, mouse and pointer state per bound interface, released whole
   when the device leaves.
-- Hubs, with port bring-up stepped from the poll loop.
+- Gamepads, read through their report descriptors.
 - State counters for descriptor probes and report ingestion.
 - Key, motion and button events posted to the kernel input ring.
 
@@ -220,16 +221,18 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 
 ## Explicit non-goals today
 
-Vendor HID layouts, bitmap (n-key rollover) keyboards, multitouch past the
-first contact, touchpads, reports over 8 bytes (the most one
-`driver.xhci0` read returns), report descriptors over 512 bytes, endpoint
-scheduling, USB suspend and compositor focus policy do not live in this
-slice. Boot interfaces stay in boot protocol. Caps, Num and Scroll Lock
-LEDs wait on D10: they need a SET_REPORT whose one-byte data stage
-`driver.xhci0`'s control transfer cannot carry yet (it takes the setup
-packet alone and sends a zeroed data stage), and D10's EP0 contract work
-adds OUT data stages. The loop still asks each endpoint over IPC; completions sent by
-`driver.xhci0` would let it sleep until one comes.
+Vendor HID layouts (no vendor gamepad protocols), force feedback and output
+reports to pads, bitmap (n-key rollover) keyboards, multitouch past the first
+contact, touchpads, reports over 8 bytes (the most one `driver.xhci0` read
+returns) but a gamepad's, report descriptors over 512 bytes, endpoint
+scheduling, USB hub traversal (driver.usb_hub0's), USB suspend and
+compositor focus policy do not live in this slice. Boot interfaces stay in
+boot protocol. Caps, Num and Scroll Lock LEDs wait on D10: they need a
+SET_REPORT whose one-byte data stage `driver.xhci0`'s control transfer cannot
+carry yet (it takes the setup packet alone and sends a zeroed data stage),
+and D10's EP0 contract work adds OUT data stages. The loop still asks each
+endpoint over IPC; completions sent by `driver.xhci0` would let it sleep
+until one comes.
 
 ## Verification
 
@@ -242,7 +245,7 @@ adds OUT data stages. The loop still asks each endpoint over IPC; completions se
 - Host proofs: `cd userland/usb_proofs && cargo test --release` runs the
   shipping descriptor walks, binding rules, interrupt read length and pace,
   the keyboard, mouse, report-descriptor and button decodes, per-interface
-  state, unplug release and hub port bring-up against malformed and hostile
+  state, unplug release and the gamepad layouts against malformed and hostile
   input: exhaustive edges, seeded fuzz of each surface, and a named boundary
   set. Breaking any of those rules in this source fails a proof.
   `userland/usb_proofs/README.md` says what each proves.
@@ -262,10 +265,23 @@ adds OUT data stages. The loop still asks each endpoint over IPC; completions se
   is never taken for modifier keys; it binds only if that is understood.
 - A device's interfaces in report protocol (media keys, system control, a
   report-protocol mouse or touchscreen) bind only through their report
-  descriptors; a vendor or gamepad interface binds nothing.
+  descriptors. One whose descriptor names none of those but lays out a
+  Joystick or Game Pad binds as a gamepad; a security key (usage page F1D0h)
+  or a vendor channel binds nothing, and its slot is given back.
+- Each interface bound is claimed with the host (OP_CLAIM_INTERFACE), so a
+  composite device's other interfaces may be driven by another class
+  driver on the same slot (a key's FIDO interface by driver.fido0).
+- A gamepad's report descriptor gives its fields (Button page 1 to 32,
+  Generic Desktop X to Wheel, the hat), with report IDs, Push and Pop,
+  usage ranges and padding; hostile counts and nesting end bounded. Each
+  change posts INPUT_KIND_PAD_BUTTON_DOWN/UP (code the button) or
+  INPUT_KIND_PAD_AXIS (code the usage, x scaled to -32767..32767, the hat
+  0 to 7 or -1), y the pad's number; an unplugged pad lets its buttons up.
+  A pad's read is its whole packet, up to 64 bytes; others read at most 8.
 - Every interrupt-IN endpoint of a composite device is polled on its own
   DCI, so a wireless keyboard and mouse receiver gives both.
-- Devices behind hubs, docks and monitors bind through the hub's ports;
+- Devices behind hubs, docks and monitors bind through the virtual ports
+  driver.usb_hub0 gives them;
   what each port came to is logged, which reaches the console only with the
   Debug capability.
 

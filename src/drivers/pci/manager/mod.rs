@@ -15,10 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod device;
+mod enumerate;
 mod global;
 mod probe;
+mod probe_header;
 
 pub use device::PciManager;
+// Only the ACPI broker probes a function after the boot scan, and only
+// x86 builds it.
+#[allow(unused_imports)]
+pub(crate) use probe::probe_device as probe_function;
 pub use global::{
     count_devices, find_device_by_class, find_device_by_id, get_device_by_address,
     get_device_by_class, get_pci_manager, get_pci_stats, init_pci, is_initialized,

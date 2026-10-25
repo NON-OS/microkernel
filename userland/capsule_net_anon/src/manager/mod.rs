@@ -20,6 +20,8 @@ mod batch;
 mod body_closed;
 mod body_step;
 mod cert_rule;
+mod cold_wait;
+pub mod cold_wait_rule;
 mod circuit_answer;
 mod circuit_tick;
 mod dir_certs;

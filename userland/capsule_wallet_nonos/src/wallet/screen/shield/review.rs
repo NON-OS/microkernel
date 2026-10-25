@@ -23,6 +23,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::review_rows::{lead, rows};
+use crate::wallet::arm::gate::greyed;
 use crate::wallet::etna::backdrop::Backdrop;
 use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
@@ -32,13 +33,14 @@ use crate::wallet::etna::rect::Rect;
 use crate::wallet::etna::tokens::{GAP, TEXT_3};
 use crate::wallet::etna::wrap::wrapped;
 use crate::wallet::etna::Role;
-use crate::wallet::screen::hits;
+use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::state::State;
 
 pub fn review(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let status = super::status::parts(state);
     let ready = super::absent::ready(state) && state.shield_ui.waiting.is_none();
+    let ready = ready && !greyed(state, Press::Footer(0));
     let footer = [("Confirm", Weight::Primary, ready), ("Edit", Weight::Secondary, true)];
     let spec = FrameSpec {
         number: "08",
@@ -65,6 +67,6 @@ pub fn review(state: &State, fb: &mut PaintBuffer) {
     y += at.h;
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
-    super::edges::put(state, &l);
+    super::edges::put(&l);
     super::edges::footer(&l, &[ready, true]);
 }

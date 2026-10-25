@@ -12,3 +12,6 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_hash = { path = "../nonos_hash" }
+
+[package.metadata.nonos]
+test-lane = true

@@ -16,11 +16,12 @@
 
 use nonos_libc::mk_service_lookup;
 
-// Names the L2 capsule probes for, in order. First one the
-// kernel registry knows wins. Adding a NIC class is one line —
-// the data plane upstream of L2 sees no difference.
-const NIC_CANDIDATES: &[&str] =
-    &["driver.virtio_net0", "driver.e1000_0", "driver.rtl8169_0", "driver.rtl8139_0"];
+// The kernel's table of the cards it starts; net.l2 is held to the wired
+// ones only.
+#[path = "../../../../src/services/registry/nics.rs"]
+mod nics;
+
+use nics::{Link, NICS};
 
 #[derive(Clone, Copy)]
 pub struct Nic {
@@ -34,7 +35,10 @@ pub enum DiscoverError {
 }
 
 pub fn first_available() -> Result<Nic, DiscoverError> {
-    for name in NIC_CANDIDATES {
+    // The wired cards in the table's order: the first one the kernel
+    // registry knows wins, and the data plane upstream of L2 sees no
+    // difference between them.
+    for (name, _) in NICS.iter().filter(|(_, link)| *link == Link::Wired) {
         let mut port: u32 = 0;
         let mut pid: u32 = 0;
         let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);

@@ -23,8 +23,6 @@
 //! write that hands the memory to the device, or the read that follows the
 //! device's index.
 
-use core::sync::atomic::{fence, Ordering};
-
 use nonos_libc::{mk_dma_map, mk_dma_unmap, DmaMapOut};
 
 use crate::firmware::gen3::plan::{GRANT_MAX, PAGE};
@@ -50,7 +48,8 @@ impl Grant {
             return None;
         }
         let mapped = usize::try_from(out.length).unwrap_or(0).min(bytes);
-        let grant = Grant { va: out.user_va as usize, dev: out.device_addr, len: mapped, id: out.grant_id };
+        let grant =
+            Grant { va: out.user_va as usize, dev: out.device_addr, len: mapped, id: out.grant_id };
         if grant.va == 0 || grant.len < len {
             grant.unmap();
             return None;
@@ -75,21 +74,29 @@ impl Region for Grant {
 
     fn write(&self, off: usize, src: &[u8]) -> bool {
         let Some(r) = span(self.len, off, src.len()) else { return false };
-        fence(Ordering::SeqCst);
+        nonos_libc::dma_mb();
         // SAFETY: the broker mapped `len` bytes at `va` for this process, and
         // `span` put `off..off + src.len()` inside them.
-        unsafe { core::ptr::copy_nonoverlapping(src.as_ptr(), (self.va + r.start) as *mut u8, src.len()) };
-        fence(Ordering::SeqCst);
+        unsafe {
+            core::ptr::copy_nonoverlapping(src.as_ptr(), (self.va + r.start) as *mut u8, src.len())
+        };
+        nonos_libc::dma_mb();
         true
     }
 
     fn read(&self, off: usize, dst: &mut [u8]) -> bool {
         let Some(r) = span(self.len, off, dst.len()) else { return false };
-        fence(Ordering::SeqCst);
+        nonos_libc::dma_mb();
         // SAFETY: as for `write`; the device may be writing elsewhere in the
         // grant, but this range is one the caller's index says is complete.
-        unsafe { core::ptr::copy_nonoverlapping((self.va + r.start) as *const u8, dst.as_mut_ptr(), dst.len()) };
-        fence(Ordering::SeqCst);
+        unsafe {
+            core::ptr::copy_nonoverlapping(
+                (self.va + r.start) as *const u8,
+                dst.as_mut_ptr(),
+                dst.len(),
+            )
+        };
+        nonos_libc::dma_mb();
         true
     }
 }

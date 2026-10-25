@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 
 use crate::descriptors::{HidBinding, HidKind};
 use crate::hid::Device;
-use crate::hub::Place;
+use crate::orchestrator::place::Place;
 use crate::xhci::{alloc_transfer_ring, control_transfer, Setup};
 
 use super::enumerate::HidEndpoint;
@@ -38,7 +38,7 @@ pub fn configure_binding(
     let mut dummy = [0u8; 0];
     // A boot interface is in boot protocol already (`device_for`).
     if binding.kind == HidKind::Keyboard {
-        // SET_IDLE(0): report on change only, as Linux asks of keyboards.
+        // SET_IDLE(0): report on change only (HID 1.11, 7.2.4, as recalled).
         // Held keys repeat from here, so the default 500 ms resend is noise;
         // many devices STALL the request, which is fine.
         let setup = Setup::new(0x21, SET_IDLE, 0, iface, 0);

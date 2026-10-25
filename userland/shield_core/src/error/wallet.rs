@@ -34,6 +34,8 @@ pub enum WalletError {
     TooSoon,
     /// The fee moved after it was quoted. Nothing was proved, and a new quote shows the fee now.
     FeeChanged,
+    /// The pool's AmountPolicy is paused, so no withdrawal settles until it resumes.
+    WithdrawalsPaused,
 }
 
 impl core::error::Error for WalletError {}

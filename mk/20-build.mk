@@ -188,7 +188,9 @@ USERLAND_LIBC := $(USERLAND_DIR)/libc/target/$(NONOS_USER_TARGET)/release/libnon
 # absolute path because capsules build from their own subdirectories and pass
 # it to the linker as -Clink-arg. cargo clean removes it; the rule below
 # rebuilds it. Override NONOS_RT_OBJ only if you have a reason to.
-NONOS_RT_OBJ  ?= $(abspath $(TARGET_DIR))/nonos_rt.o
+# One per user target: an x86_64 object linked into an aarch64 capsule would
+# fail at link at best. x86_64 keeps the path it always had.
+NONOS_RT_OBJ  ?= $(abspath $(TARGET_DIR))/$(if $(filter x86_64-nonos-user,$(NONOS_USER_TARGET)),,$(NONOS_USER_TARGET)/)nonos_rt.o
 USERLAND_LIBC_SRCS := $(shell find $(USERLAND_DIR)/libc/src -name '*.rs') \
                       $(USERLAND_DIR)/libc/Cargo.toml \
                       $(USERLAND_DIR)/$(NONOS_USER_TARGET).json
@@ -235,6 +237,7 @@ nonos-mk-libc: $(USERLAND_LIBC)
 
 $(NONOS_RT_OBJ): $(NONOS_RT_SRCS) | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building NONOS std startup object..."
+	@mkdir -p $(dir $(NONOS_RT_OBJ))
 	@cd toolchain/nonos-rt && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) rustc --release --target ../../userland/$(NONOS_USER_TARGET).json \
@@ -472,9 +475,6 @@ include userland/capsule_proof_io/Capsule.mk
 include userland/capsule_std_proof/Capsule.mk
 include userland/capsule_ripgrep/Capsule.mk
 include userland/capsule_sd/Capsule.mk
-ifneq ($(wildcard userland/capsule_flacprobe/Capsule.mk),)
-  include userland/capsule_flacprobe/Capsule.mk
-endif
 include userland/capsule_csview/Capsule.mk
 include userland/capsule_huniq/Capsule.mk
 include userland/capsule_tokei/Capsule.mk
@@ -506,6 +506,7 @@ include userland/capsule_install/Capsule.mk
 include userland/capsule_prove/Capsule.mk
 include userland/tool_install/Capsule.mk
 include userland/capsule_model_fetch/Capsule.mk
+include userland/capsule_prove_fetch/Capsule.mk
 include userland/capsule_app_store/Capsule.mk
 include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
@@ -522,6 +523,7 @@ include userland/capsule_snake/Capsule.mk
 include userland/capsule_wallet_nonos/Capsule.mk
 include userland/capsule_shield/Capsule.mk
 include userland/capsule_shield_vectors/Capsule.mk
+include userland/capsule_attack/Capsule.mk
 include userland/capsule_terminal/Capsule.mk
 include userland/capsule_file_manager/Capsule.mk
 include userland/capsule_text_editor/Capsule.mk
@@ -532,6 +534,7 @@ include userland/capsule_process_manager/Capsule.mk
 include userland/capsule_vfs/Capsule.mk
 include userland/capsule_market/Capsule.mk
 include userland/capsule_payment/Capsule.mk
+include userland/capsule_nox_settle/Capsule.mk
 include userland/capsule_installer/Capsule.mk
 include userland/capsule_driver_virtio_rng/Capsule.mk
 include userland/capsule_driver_ps2_input/Capsule.mk
@@ -546,13 +549,52 @@ include userland/capsule_driver_xhci/Capsule.mk
 include userland/capsule_driver_usb_hid/Capsule.mk
 include userland/capsule_driver_usb_msc/Capsule.mk
 include userland/capsule_driver_e1000/Capsule.mk
+include userland/capsule_driver_e1000e/Capsule.mk
+include userland/capsule_driver_igc/Capsule.mk
+include userland/capsule_driver_igb/Capsule.mk
+include userland/capsule_driver_ixgbe/Capsule.mk
 include userland/capsule_driver_rtl8139/Capsule.mk
 include userland/capsule_driver_rtl8169/Capsule.mk
+include userland/capsule_driver_pcnet/Capsule.mk
+include userland/capsule_driver_vmxnet3/Capsule.mk
+include userland/capsule_driver_tulip/Capsule.mk
+include userland/capsule_driver_virtio_input/Capsule.mk
+include userland/capsule_driver_vmware_svga/Capsule.mk
 include userland/capsule_driver_ahci/Capsule.mk
 include userland/capsule_driver_hda/Capsule.mk
+include userland/capsule_driver_ac97/Capsule.mk
+include userland/capsule_driver_vmmdev/Capsule.mk
+include userland/capsule_driver_vmmouse/Capsule.mk
+include userland/capsule_driver_vmbus/Capsule.mk
+include userland/capsule_driver_storvsc/Capsule.mk
+include userland/capsule_driver_piix_ide/Capsule.mk
+include userland/capsule_driver_virtio_scsi/Capsule.mk
+include userland/capsule_driver_pvscsi/Capsule.mk
+include userland/capsule_driver_buslogic/Capsule.mk
+include userland/capsule_driver_mpt/Capsule.mk
 include userland/capsule_audio/Capsule.mk
 include userland/capsule_audio_player/Capsule.mk
 include userland/capsule_driver_nvme/Capsule.mk
+include userland/capsule_driver_sdhci/Capsule.mk
+include userland/capsule_driver_ufs/Capsule.mk
+include userland/capsule_driver_bga/Capsule.mk
+include userland/capsule_driver_intel_display/Capsule.mk
+include userland/capsule_driver_usb_audio/Capsule.mk
+include userland/capsule_driver_usb_hub/Capsule.mk
+include userland/capsule_driver_uvc/Capsule.mk
+include userland/capsule_driver_cdc_acm/Capsule.mk
+include userland/capsule_driver_ccid/Capsule.mk
+include userland/capsule_driver_fido/Capsule.mk
+include userland/capsule_driver_spi/Capsule.mk
+include userland/capsule_driver_spi_hid/Capsule.mk
+include userland/capsule_driver_usb_mic/Capsule.mk
+include userland/capsule_driver_cdc_ecm/Capsule.mk
+include userland/capsule_driver_cdc_ncm/Capsule.mk
+include userland/capsule_driver_rndis/Capsule.mk
+include userland/capsule_driver_smbus/Capsule.mk
+include userland/capsule_driver_uhci/Capsule.mk
+include userland/capsule_driver_ohci/Capsule.mk
+include userland/capsule_driver_ehci/Capsule.mk
 include userland/capsule_net_l2/Capsule.mk
 include userland/capsule_net_core/Capsule.mk
 include userland/capsule_net_ip/Capsule.mk
@@ -691,12 +733,22 @@ nonos-mk-kernel-attest: $(KERNEL_ATTEST_STAMP)
 
 # Enroll the bootloader as built, then check it with the bootloader leaf kind.
 # Run after the loader's last rebuild, since the root is over its exact bytes.
+# Kept when the root and trailer on disk already prove these exact bytes: a
+# proof is not deterministic, so re-proving an unchanged loader gave a new
+# root on every nonos-mk-esp and the trust tree never settled.
 .PHONY: nonos-mk-bootloader-attest
 nonos-mk-bootloader-attest: $(NONOS_STARK_ENROLL)
-	@echo "Enrolling the bootloader..."
 	@mkdir -p $(dir $(BOOTLOADER_ATTEST_ROOT_BIN)) $(dir $(BOOTLOADER_ATTEST_TRAILER))
-	@$(NONOS_STARK_ENROLL) bootloader $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
-		$(BOOTLOADER_ATTEST_ROOT_BIN) $(BOOTLOADER_ATTEST_TRAILER)
+	@if [ -f $(BOOTLOADER_ATTEST_ROOT_BIN) ] && [ -f $(BOOTLOADER_ATTEST_TRAILER) ] && \
+		$(NONOS_STARK_ENROLL) verify-bootloader $(BOOTLOADER_ATTEST_ROOT_BIN) \
+		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(BOOTLOADER_ATTEST_TRAILER) \
+		>/dev/null 2>&1; then \
+		echo "Kept the bootloader's enrollment: its trailer proves these bytes"; \
+	else \
+		echo "Enrolling the bootloader..."; \
+		$(NONOS_STARK_ENROLL) bootloader $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
+			$(BOOTLOADER_ATTEST_ROOT_BIN) $(BOOTLOADER_ATTEST_TRAILER); \
+	fi
 	@$(NONOS_STARK_ENROLL) verify-bootloader $(BOOTLOADER_ATTEST_ROOT_BIN) \
 		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(BOOTLOADER_ATTEST_TRAILER)
 
@@ -855,12 +907,23 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 
 # A note on aarch64-nonos.json, which cannot carry comments of its own: the cpu
 # stays "generic" so codegen targets ARMv8.0, and the feature bits only let the
-# assembler accept the mnemonics the kernel writes by hand: pointer authentication,
-# the speculation barriers, memory tagging (gcr_el1) and the v8.5 RNG (rndr). Named
-# one by one rather than as an architecture version, because +v8.5a would also let
-# LLVM emit v8.5 instructions into ordinary code and those fault on a Cortex-A72.
-# Every one of these is reached through a runtime ID register check, so a single
-# binary runs on a Pi and still uses tagging and PAC on an Apple M-series.
+# assembler accept the mnemonics the kernel writes by hand: the speculation
+# barriers, memory tagging (gcr_el1) and the v8.5 RNG (rndr). Named one by one
+# rather than as an architecture version, because +v8.5a would also let LLVM
+# emit v8.5 instructions into ordinary code and those fault on a Cortex-A72.
+# +pauth is left out for that reason: with it, pac-ret returns through RETAA,
+# which a Cortex-A72 does not have, instead of AUTIASP and RET, which it runs
+# as hints. The key registers are written by encoding, and the one function
+# that signs by hand turns the extension on for its own block. Branch
+# protection itself is a rustflag (.cargo/config.toml), and the ELF check
+# fails an image without it or with a combined PAuth instruction. Every
+# feature is reached through a runtime ID register check, so one binary runs
+# on a Pi and still signs return addresses on an Apple M-series.
+# The relocation model is "pie" and the link a static PIE: the image carries
+# .rela.dyn and _start applies it (src/arch/aarch64/boot/relocate), so it runs
+# at any 2 MiB aligned base a loader picks, not only at the 0x4008_0000 it is
+# linked at. The ELF is therefore ET_DYN; the Image made from it is unchanged
+# in form.
 #
 # Build the aarch64 kernel.
 #
@@ -872,7 +935,7 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # Each aarch64 recipe names the aarch64 user target. This makefile exports
 # x86_64-nonos-user for the whole userland pipeline, and build.rs refuses to
 # embed capsules built for another architecture than the kernel's.
-.PHONY: nonos-mk-arm nonos-mk-arm-trap-sp0 nonos-mk-arm-trap-kernel-abort nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
+.PHONY: nonos-mk-arm nonos-mk-arm-image nonos-mk-arm-run-image nonos-mk-arm-trap-sp0 nonos-mk-arm-trap-kernel-abort nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
 nonos-mk-arm: | $(SIGNING_KEY)
 	@echo "Building kernel (aarch64, microkernel-core + nonos-arch-preview)..."
 	@NONOS_USER_TARGET=aarch64-nonos-user \
@@ -880,6 +943,17 @@ nonos-mk-arm: | $(SIGNING_KEY)
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
+
+# The same kernel as an arm64 Image, for loaders that hand over a device tree.
+# QEMU's -kernel passes one in x0 for an Image and none for an ELF, and the
+# header start.S puts first is what tells the two apart. objcopy keeps it: the
+# Image is the load segments from the link address on, BSS left to the kernel.
+LLVM_OBJCOPY ?= llvm-objcopy
+ARM_IMAGE := $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel.img
+
+nonos-mk-arm-image: nonos-mk-arm
+	@$(LLVM_OBJCOPY) -O binary $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel $(ARM_IMAGE)
+	@echo "Image: $(ARM_IMAGE)"
 
 # The same image with one deliberate exception compiled in, for the aarch64 boot
 # lane. Each stops at its exception by design, and scripts/check_aarch64_boot.py
@@ -904,9 +978,9 @@ nonos-mk-arm-trap-kernel-abort: | $(SIGNING_KEY)
 
 # Boot the aarch64 kernel under QEMU. Every flag here is load bearing.
 #
-#   gic-version=3   virt defaults to a GICv2, and the kernel drives a v3. Without
-#                   this the redistributor is not there and the first access to it
-#                   aborts.
+#   gic-version=3   virt defaults to a GICv2. The kernel drives either, chosen
+#                   from the device tree or, booted as an ELF without one, from
+#                   the CPU's ID registers; v3 is what this lane checks.
 #   -cpu max        advertises the optional features, so the paths guarded by an
 #                   ID register check are the ones that actually run. It is the
 #                   closer proxy for a Neoverse or an M series part than a72 is,
@@ -914,9 +988,10 @@ nonos-mk-arm-trap-kernel-abort: | $(SIGNING_KEY)
 #   virtio-rng-pci  the RNG refuses to seed from nothing, so without an entropy
 #                   source the boot stops at init_rng and says so.
 #
-# QEMU passes no device tree when it boots an ELF, so x0 arrives as zero and the
-# board facts come from the defaults in BootInfo. That path is what this target
-# exercises; a device tree boot needs an Image-format target instead.
+# Every run boots the arm64 Image, as real loaders do, with QEMU's device tree
+# in x0. The kernel is a static PIE that relocates itself, so its ELF is ET_DYN,
+# which not every QEMU's ELF loader takes; the Image is the boot protocol's own
+# form and the one a Pi's firmware and U-Boot load.
 ARM_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 512 -nographic \
 		-serial mon:stdio -device virtio-rng-pci
 
@@ -938,10 +1013,12 @@ nonos-mk-arm-bench: nonos-mk-ensure-signing-key
 nonos-mk-bench-micro: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-core + nonos-bench-micro,microkernel-core$(_boot_comma)nonos-bench-micro)
 
-nonos-mk-arm-run: nonos-mk-arm
-	@echo "Booting aarch64 kernel under QEMU (ctrl-a x to quit)..."
-	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) \
-		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
+nonos-mk-arm-run: nonos-mk-arm-image
+	@echo "Booting aarch64 Image under QEMU with its device tree (ctrl-a x to quit)..."
+	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) -kernel $(ARM_IMAGE)
+
+# The name earlier lanes used for the Image boot, which is now every boot.
+nonos-mk-arm-run-image: nonos-mk-arm-run
 
 # The desktop needs a framebuffer, so this swaps -nographic for a virtio-gpu and
 # keeps the serial log on the terminal. virt has no VGA to fall back on: without
@@ -952,9 +1029,9 @@ ARM_GUI_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 2048 \
 		-serial mon:stdio
 
 nonos-mk-arm-gui-run: nonos-mk-arm-gui
+	@$(LLVM_OBJCOPY) -O binary $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel $(ARM_IMAGE)
 	@echo "Booting aarch64 desktop under QEMU..."
-	@qemu-system-aarch64 $(ARM_GUI_QEMU_FLAGS) \
-		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
+	@qemu-system-aarch64 $(ARM_GUI_QEMU_FLAGS) -kernel $(ARM_IMAGE)
 
 nonos-mk-core: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-core,microkernel-core)
@@ -1089,9 +1166,10 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 # absent. The runtime, debug, and benchmark boot targets use this so a QEMU boot
 # reaches the ready marker. The full hardware image is nonos-mk-zerostate, which
 # is what ships and what the ISO carries; do not fold this into it.
-# The capsules that link against the std platform layer. That layer issues
-# syscalls with raw x86_64 registers, so these do not cross-compile to aarch64
-# yet and are kept separate from the base set.
+# The capsules that link against the std platform layer, kept separate from
+# the base set. The layer reaches the kernel through its pal trap, with each
+# architecture's registers (toolchain/nonos-std/sys/pal/nonos/trap.rs), so they
+# build for every user target; the arm desktop does not carry them yet.
 # tokio-smoke is deliberately absent. It is the async runtime gate: a timer
 # raced against an idle accept, forever, to prove the mio waker self-wakes.
 # That is a test, and in the desktop image it held a steady share of a core for
@@ -1100,7 +1178,6 @@ nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
 DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(install-cli_ARTIFACTS) \
 		$(sd_ARTIFACTS) \
-		$(flacprobe_ARTIFACTS) \
 		$(csview_ARTIFACTS) \
 		$(huniq_ARTIFACTS) \
 		$(tokei_ARTIFACTS) \

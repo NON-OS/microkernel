@@ -1,0 +1,22 @@
+# NONOS userland: nonos_uas
+# eK@nonos.systems
+#
+# USB Attached SCSI, pure: a UAS interface's four pipes read from its
+# configuration, the information units on them, the tags that tell
+# commands apart, and one command's exchange step by step. The SCSI
+# command itself comes through a small trait, so the SCSI crate it runs on
+# is the caller's.
+
+[package]
+name = "nonos_uas"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB Attached SCSI core"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

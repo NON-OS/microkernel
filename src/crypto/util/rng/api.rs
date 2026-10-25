@@ -17,6 +17,7 @@
 use super::global::{fill_random_bytes, random_u64_secure};
 
 #[inline]
+#[track_caller]
 pub fn fill_bytes(buffer: &mut [u8]) {
     fill_random_bytes(buffer);
 }

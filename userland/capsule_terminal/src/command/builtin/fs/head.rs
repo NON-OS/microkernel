@@ -21,33 +21,14 @@
 use alloc::vec::Vec;
 
 use super::read_file::slurp;
-use crate::command::dispatch::{lines_of, spec_for};
-use crate::command::flags::{parse, parse_usize};
+use crate::command::dispatch::lines_of;
 use crate::command::output::Output;
 use crate::term::state::State;
 
-/// The count and the files of a `head` or `tail`, or the line saying why not.
-pub(super) fn ends_args<'a>(
-    name: &[u8],
-    argv: &[&'a [u8]],
-) -> Result<(usize, Vec<&'a [u8]>), Vec<u8>> {
-    let Some(spec) = spec_for(name) else { return Err(Vec::new()) };
-    let parsed = parse(&spec, &argv[1..])?;
-    let n = match parsed.value(b'n') {
-        None => 10,
-        Some(v) => parse_usize(v).ok_or_else(|| {
-            let mut msg = Vec::from(name);
-            msg.extend_from_slice(b": -n takes a count");
-            msg
-        })?,
-    };
-    if parsed.operands.is_empty() {
-        let mut msg = Vec::from(name);
-        msg.extend_from_slice(b": missing file");
-        return Err(msg);
-    }
-    Ok((n, parsed.operands))
-}
+#[path = "head_args.rs"]
+mod head_args;
+
+pub(super) use head_args::ends_args;
 
 /// "==> name <==" over each file's lines when there is more than one.
 pub(super) fn header(out: &mut Output<'_>, file: &[u8], first: bool) {

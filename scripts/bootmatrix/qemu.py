@@ -23,6 +23,8 @@ import os
 import platform
 import shlex
 
+from . import devices, usb, virtio
+
 # The -device argument for each kind of IOMMU a cell can ask for.
 IOMMU_DEVICES = {
     "intel-iommu": "intel-iommu,intremap=on,caching-mode=on",
@@ -47,17 +49,7 @@ def cpu_model(accel):
     return "host,+rdrand,+rdseed" if accel in ("kvm", "hvf") else "max"
 
 
-def usb_stick(argv, path, block):
-    """The stick on the xHCI controller the extra devices carry, or on one of
-    its own when they carry none."""
-    stick = "usb-storage,bus=xhci.0,drive=usbstick,removable=on"
-    if block != 512:
-        stick += f",logical_block_size={block},physical_block_size={block}"
-    controller = [] if any(a.startswith("qemu-xhci,id=xhci") for a in argv) else ["-device", "qemu-xhci,id=xhci"]
-    return controller + ["-drive", f"file={path},if=none,id=usbstick,format=raw", "-device", stick]
-
-
-def command(cell, paths, accel, serial_log, blk_copy, vars_copy):
+def command(cell, paths, accel, serial_log, blk_copy, vars_copy, disks=()):
     """The argv. `paths` carries qemu, esp per profile, ovmf and extra devices."""
     machine = cell.machine + (",kernel-irqchip=split" if cell.iommu else "")
     argv = [
@@ -67,13 +59,17 @@ def command(cell, paths, accel, serial_log, blk_copy, vars_copy):
         "-drive", f"if=pflash,format=raw,readonly=on,file={paths.ovmf}",
         "-drive", f"if=pflash,format=raw,unit=1,file={vars_copy}",
     ]
+    # The IOMMU first: QEMU places a device behind it only if it exists.
+    if cell.iommu:
+        argv += ["-device", IOMMU_DEVICES[cell.iommu]]
     if not cell.usb_block:
         argv += ["-drive", f"file={blk_copy},if=none,id=vd0,format=raw",
                  "-device", "virtio-blk-pci,drive=vd0"]
-    if cell.iommu:
-        argv += ["-device", IOMMU_DEVICES[cell.iommu]]
     argv += shlex.split(paths.extra)
+    if cell.iommu:
+        argv = virtio.confine(argv) + (virtio.LEGACY_RNG if cell.legacy_virtio else [])
     if cell.usb_block:
-        argv += usb_stick(argv, blk_copy, cell.usb_block)
+        argv += usb.usb_stick(argv, blk_copy, cell.usb_block)
+    argv += devices.arguments(cell, disks)
     argv += ["-serial", f"file:{serial_log}", "-display", "none", "-no-reboot"]
     return argv

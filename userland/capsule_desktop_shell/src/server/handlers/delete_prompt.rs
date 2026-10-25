@@ -18,7 +18,7 @@ pub(crate) use super::live_prompt::{
 };
 
 pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
-    if !ctx.pending_delete.showing() {
+    if !ctx.pending.pending_delete.showing() {
         return false;
     }
     let confirm = hit(delete_rect(ctx.width, ctx.height), px, py);
@@ -29,7 +29,7 @@ pub fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
 /// Delete removes the item; Cancel, Esc or a press outside keeps it.
 pub fn answer(ctx: &mut Context, choice: Choice) {
     ctx.dialog_focus.reset();
-    if let Some(target) = ctx.pending_delete.answer(choice == Choice::Act) {
+    if let Some(target) = ctx.pending.pending_delete.answer(choice == Choice::Act) {
         desktop::delete_entry(ctx, &target.name, target.is_dir);
     }
     repaint(ctx);

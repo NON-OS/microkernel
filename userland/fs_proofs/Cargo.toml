@@ -17,6 +17,10 @@ path = "src/lib.rs"
 # takes from this crate.
 nonos_disk_map = { path = "../nonos_disk_map" }
 
+# The capsule side of the block wire, which the mounted sdhci protocol module
+# re-exports.
+nonos_blk_wire = { path = "../nonos_blk_wire" }
+
 # The kernel's constant-time helpers, as crypto_proofs mounts them: one place
 # carries the reason their manual shapes are allowed.
 crypto_proofs = { path = "../crypto_proofs" }

@@ -41,7 +41,20 @@ impl KernelFramebuffer {
 }
 
 pub(super) static FRAMEBUFFER: Once<KernelFramebuffer> = Once::new();
+/// The frame's physical range, `(start, pitch * height)`: what a device
+/// window must contain to hold the boot framebuffer (broker::boot_fb_held).
+pub(super) static FRAME_PHYS: Once<(u64, u64)> = Once::new();
+
+pub(crate) fn framebuffer_phys() -> Option<(u64, u64)> {
+    FRAME_PHYS.get().copied()
+}
 
 pub(crate) fn framebuffer_state() -> Option<&'static KernelFramebuffer> {
     FRAMEBUFFER.get()
+}
+
+/// The boot framebuffer's length in bytes (stride x height), its geometry
+/// alone: what the surface cap is sized by (surface_handlers/cap.rs).
+pub(crate) fn boot_frame_len() -> Option<usize> {
+    framebuffer_state().and_then(|f| f.frame_len())
 }

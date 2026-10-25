@@ -1,0 +1,21 @@
+# NONOS userland: nonos_usb_hub
+# eK@nonos.systems
+#
+# The USB hub class, shared: a hub's descriptor and ports, a port reset,
+# where a device below a hub sits, and the walk over a hub's ports. It
+# reaches the controller and the clock only through the Host trait, so a
+# capsule brings its own host client and the proofs a fake hub.
+
+[package]
+name = "nonos_usb_hub"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB hub class"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

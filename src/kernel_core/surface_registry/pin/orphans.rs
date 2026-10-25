@@ -20,9 +20,10 @@ use spin::Mutex;
 use crate::memory::addr::PhysAddr;
 use crate::smp::lock_responsive;
 
-use super::super::attach_map::snapshot::has_foreign_holder;
 use super::super::types::SurfaceHandle;
 use super::gate::GATE;
+use super::orphans_free::free_orphans;
+use super::reclaim_rule::reclaim_in;
 
 pub(super) struct Orphan {
     pub owner: u32,
@@ -31,6 +32,10 @@ pub(super) struct Orphan {
     pub frames: Vec<PhysAddr>,
     /* The frames the owner really unmapped, freed by `reclaim`. */
     pub free: Vec<PhysAddr>,
+    /* The DMA run the frames belong to, freed through the broker (L35). */
+    pub grant: Option<(u64, u64)>,
+    /* The exited group's tables, which map the frames until they are freed. */
+    pub tables: u64,
 }
 
 /*
@@ -39,38 +44,17 @@ pub(super) struct Orphan {
  */
 pub(super) static ORPHANS: Mutex<Vec<Orphan>> = Mutex::new(Vec::new());
 
-/* Free every orphaned frame list that no other process maps any more. */
+/* Free every orphaned frame list that no other process maps any more, under
+ * GATE; then the DMA runs held for them (L35), once GATE is let go:
+ * grant_run's free_unheld takes it itself. Taken inside, every reclaim (a
+ * drop_attach, an munmap, a process exit) froze the surface path on every
+ * CPU (reclaim_rule.rs). */
 pub fn reclaim() {
-    let _gate = lock_responsive(&GATE);
-    let mut done = Vec::new();
-    {
-        let mut list = ORPHANS.lock();
-        let mut i = 0;
-        while i < list.len() {
-            if has_foreign_holder(list[i].handle, list[i].owner) {
-                i += 1;
-            } else {
-                done.push(list.swap_remove(i));
-            }
-        }
-    }
-    for orphan in done {
-        // The owner gave the surface up when it unmapped all of it; now that
-        // nobody maps it, its slot goes too.
-        crate::kernel_core::surface_registry::release::release_unmapped(orphan.owner, orphan.handle);
-        for frame in orphan.free {
-            if crate::memory::frame_alloc::deallocate_frame(frame).is_err() {
-                crate::sys::serial::println(b"[SURFACE] orphan_frame_release_failed");
-            }
-        }
-    }
+    reclaim_in(|| lock_responsive(&GATE), |_| free_orphans(), super::grant_run::free_unheld);
 }
 
-/*
- * `pid` exits. Its orphans stay listed: the other holders' attach records
- * outlive the owner (`release_owned_by_pid` forgets only the owner's), so
- * `reclaim` frees each one when its last holder releases it.
- */
+/* `pid` exits. Its orphans stay listed: the other holders' attach records
+ * outlive the owner, so `reclaim` frees each when its last holder lets go. */
 pub fn abandon_owner(_pid: u32) {
     reclaim();
 }

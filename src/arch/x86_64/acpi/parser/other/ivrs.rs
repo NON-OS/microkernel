@@ -22,8 +22,7 @@ use spin::Mutex;
 
 use super::super::state::TableRegistry;
 use super::ivhd_scope::{spans, Span, MAX_SPANS};
-use super::ivrs_walk::{iommu_bases, MAX_AMD_IOMMUS};
-use crate::arch::x86_64::acpi::tables::SdtHeader;
+use super::ivrs_walk::{walk, MAX_AMD_IOMMUS};
 
 const SIG_IVRS: u32 = u32::from_le_bytes(*b"IVRS");
 /// Generous for any real IVRS; a longer one is read up to here.
@@ -46,24 +45,28 @@ pub fn parse_ivrs(registry: &mut TableRegistry) {
     let Some(&phys) = registry.tables.get(&SIG_IVRS) else {
         return;
     };
-    let Some(addr) = super::super::phys::directmap(phys) else {
+    let Some((addr, header)) = super::super::phys::mapped_table(phys) else {
         return;
     };
-    // SAFETY: eK@nonos.systems - the registry holds tables firmware published
-    // and the directmap covers them; the header is read before the length it
-    // carries is trusted, and the checksum is checked over that length.
+    // SAFETY: eK@nonos.systems - the registry holds tables firmware published;
+    // mapped_table found its whole declared length in the direct map, and the
+    // checksum is checked over that length.
     let bytes = unsafe {
-        let header = core::ptr::read_volatile(addr as *const SdtHeader);
         if !header.validate_checksum(addr as *const u8) {
             return;
         }
         let len = (header.length as usize).min(MAX_IVRS_BYTES);
+        super::ivrs_left::note(len < header.length as usize);
         core::slice::from_raw_parts(addr as *const u8, len)
     };
     let mut found = [0u64; MAX_AMD_IOMMUS];
-    let n = iommu_bases(bytes, &mut found);
-    *BASES.lock() = found[..n].iter().copied().collect();
+    let read = walk(bytes, &mut found);
+    super::ivrs_left::note(!read.complete);
+    *BASES.lock() = super::ivrs_left::admitted(&found[..read.found]);
     let mut covered = [Span { first: 0, last: 0, named: false }; MAX_SPANS];
     let n = spans(bytes, &mut covered);
     *SPANS.lock() = covered[..n].iter().copied().collect();
+    super::ivhd_alias_store::record_aliases(bytes);
+    super::ivmd_table::record(bytes);
+    super::ivhd_special_table::record(bytes);
 }

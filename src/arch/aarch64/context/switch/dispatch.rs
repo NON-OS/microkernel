@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::core::{ProcessState, PROCESS_TABLE};
+use crate::process::core::PROCESS_TABLE;
 
 use super::first_entry::try_first_entry;
+use super::kernel_resume::try_resume_kernel;
 use super::resume::try_resume;
 
 pub(crate) fn switch_to_user_pcb_aarch64(pid: u32) {
@@ -28,9 +29,13 @@ pub(crate) fn switch_to_user_pcb_aarch64(pid: u32) {
     if try_first_entry(&pcb, pid) {
         return;
     }
+    // A kernel context wins over a user snapshot, which can only be older.
+    if try_resume_kernel(&pcb, pid) {
+        return;
+    }
     if try_resume(&pcb, pid) {
         return;
     }
 
-    *pcb.state.lock() = ProcessState::Ready;
+    pcb.mark_ready();
 }

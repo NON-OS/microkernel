@@ -14,8 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod breadcrumb;
 mod dispatch;
 mod drain;
 mod entry;
+mod heal;
+mod stall_line;
+pub mod stall_rule;
+pub mod stall_step;
+mod stall_watch;
+pub mod turn_watch;
+mod upkeep;
 
 pub use entry::run;

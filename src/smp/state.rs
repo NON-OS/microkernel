@@ -33,8 +33,6 @@ pub(super) static SMP_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub(super) static BSP_INITIALIZING: AtomicBool = AtomicBool::new(false);
 
-pub(super) static AP_STARTUP_BARRIER: AtomicU32 = AtomicU32::new(0);
-
 pub(crate) fn cpu_count() -> usize {
     CPU_COUNT.load(Ordering::Acquire)
 }
@@ -57,4 +55,17 @@ pub(crate) fn cpus_online() -> usize {
 /// answer an IPI.
 pub(crate) fn cpu_is_online(cpu: usize) -> bool {
     cpu < MAX_CPUS && CPU_DESCRIPTORS[cpu].state() == super::types::CpuState::Online
+}
+
+/// Being brought up: woken or about to be, and not yet `Online`. Such a cpu
+/// may be running kernel code with interrupts masked.
+pub(crate) fn cpu_is_starting(cpu: usize) -> bool {
+    cpu < MAX_CPUS && CPU_DESCRIPTORS[cpu].state() == super::types::CpuState::Starting
+}
+
+/// Never started, given up on before it claimed its start (`ap_unit::abandon`),
+/// or parked at a checkpoint and then reset (`ap_unit::park`): held by INIT,
+/// which emptied its TLB, and never running kernel code again.
+pub(crate) fn cpu_is_offline(cpu: usize) -> bool {
+    cpu < MAX_CPUS && CPU_DESCRIPTORS[cpu].state() == super::types::CpuState::Offline
 }

@@ -1,0 +1,23 @@
+# NONOS userland: seal_proofs
+#
+# Host proofs for the kernel's family seal (src/process/foreign/seal). The
+# seal's pure files, its live and sealed tables and the parked table's answer
+# are mounted by #[path], unchanged; the record they write is read back by
+# nonos_proof_abi, and Hc and M are held to that crate's own, so the kernel
+# and every verifier agree on each byte.
+
+[package]
+name = "seal_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock"] }
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+nonos_proof_abi = { path = "../nonos_proof_abi" }

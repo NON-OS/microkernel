@@ -14,37 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, KEY_LEFT, KEY_RIGHT, MOD_SHIFT};
+use nonos_app_skeleton::{EventOutcome, MOD_SHIFT};
 
-use super::accept_suggestion::accept_suggestion;
-use super::bool_to_outcome::bool_to_outcome;
 use super::copy_line::copy_line;
 use super::paste_clipboard::paste_clipboard;
 use super::search::{search_cancel, search_step};
 use crate::term::state::State;
 
-const CTRL_A: u32 = 0x41;
-const CTRL_C: u32 = 0x43;
-const CTRL_E: u32 = 0x45;
-const CTRL_K: u32 = 0x4B;
-const CTRL_L: u32 = 0x4C;
-const CTRL_R: u32 = 0x52;
-const CTRL_R_LO: u32 = 0x72;
-const CTRL_U: u32 = 0x55;
-const CTRL_V: u32 = 0x56;
-const CTRL_W: u32 = 0x57;
-const CTRL_A_LO: u32 = 0x61;
-const CTRL_C_LO: u32 = 0x63;
-const CTRL_E_LO: u32 = 0x65;
-const CTRL_K_LO: u32 = 0x6B;
-const CTRL_L_LO: u32 = 0x6C;
-const CTRL_U_LO: u32 = 0x75;
-const CTRL_V_LO: u32 = 0x76;
-const CTRL_W_LO: u32 = 0x77;
-const CTRL_D: u32 = 0x44;
-const CTRL_D_LO: u32 = 0x64;
-const CTRL_Y: u32 = 0x59;
-const CTRL_Y_LO: u32 = 0x79;
+#[path = "ctrl_edit.rs"]
+mod ctrl_edit;
+#[path = "ctrl_keys.rs"]
+mod ctrl_keys;
+#[path = "ctrl_move.rs"]
+mod ctrl_move;
+use ctrl_edit::ctrl_edit;
+use ctrl_keys::*;
 
 pub fn on_ctrl(state: &mut State, code: u32, flags: u16) -> Option<EventOutcome> {
     let shift = flags & MOD_SHIFT != 0;
@@ -70,60 +54,6 @@ pub fn on_ctrl(state: &mut State, code: u32, flags: u16) -> Option<EventOutcome>
             Some(EventOutcome::Repaint)
         }
         CTRL_C | CTRL_C_LO => Some(super::interrupt::interrupt(state)),
-        CTRL_U | CTRL_U_LO => {
-            state.line.kill_line();
-            Some(EventOutcome::Repaint)
-        }
-        CTRL_W | CTRL_W_LO => {
-            state.line.delete_word();
-            Some(EventOutcome::Repaint)
-        }
-        CTRL_K | CTRL_K_LO => {
-            state.line.kill_to_end();
-            Some(EventOutcome::Repaint)
-        }
-        // Ctrl-D deletes the character under the cursor, the forward twin of
-        // backspace. It does not close the terminal on an empty line: that is
-        // what `exit` is for, and a window that vanishes on a mistyped key is
-        // a window nobody trusts to hold work.
-        CTRL_D | CTRL_D_LO => Some(bool_to_outcome(state.line.delete())),
-        // Ctrl-Y puts back what the last kill key cut. Without it Ctrl-U,
-        // Ctrl-W and Ctrl-K are destructive with no way back, which is the
-        // one thing a line editor must never be.
-        CTRL_Y | CTRL_Y_LO => {
-            state.line.yank();
-            Some(EventOutcome::Repaint)
-        }
-        // Ctrl with the arrows moves by word, the motion that sits between
-        // stepping one byte and jumping to the end of the line. These arrive
-        // here rather than with the other arrows because any Ctrl key is
-        // routed to this function first.
-        KEY_LEFT => Some(bool_to_outcome(state.line.move_word_left())),
-        KEY_RIGHT => Some(bool_to_outcome(state.line.move_word_right())),
-        CTRL_A | CTRL_A_LO => {
-            state.line.move_home();
-            Some(EventOutcome::Repaint)
-        }
-        CTRL_E | CTRL_E_LO => {
-            if !accept_suggestion(state) {
-                state.line.move_end();
-            }
-            Some(EventOutcome::Repaint)
-        }
-        // Ctrl+= / Ctrl++ zoom the body font in, Ctrl+- / Ctrl+_ out (1..=4).
-        ZOOM_IN_EQ | ZOOM_IN_PLUS => {
-            state.zoom_req += 1;
-            Some(EventOutcome::Repaint)
-        }
-        ZOOM_OUT_MINUS | ZOOM_OUT_USCORE => {
-            state.zoom_req -= 1;
-            Some(EventOutcome::Repaint)
-        }
-        _ => None,
+        _ => ctrl_edit(state, code),
     }
 }
-
-const ZOOM_IN_EQ: u32 = 0x3D; // '='
-const ZOOM_IN_PLUS: u32 = 0x2B; // '+'
-const ZOOM_OUT_MINUS: u32 = 0x2D; // '-'
-const ZOOM_OUT_USCORE: u32 = 0x5F; // '_'

@@ -5,14 +5,14 @@
 # What stays in its own workflow, because it needs a network or a toolchain no
 # lock can pin yet: Kani (cargo kani setup downloads CBMC), Verus, the
 # Charon/Aeneas extraction, cargo-fuzz runs and cargo-audit's advisory feed.
-{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, self, starks, busybox }:
+{ pkgs, lib, pins, cargo, rustBuild, src, capsules, config, image, self, starks, busybox, periodic }:
 let
   # The static and drift checks read the tree as a reviewer does, docs and
   # all; every cargo check reads only its own crate (tools/nix/inputs.py).
   root = src.everything;
   kernelSource = src.crate "." [ "x86_64-nonos.json" ];
   userlandDirs = builtins.attrNames (lib.filterAttrs (_: t: t == "directory") (builtins.readDir (src.root + "/userland")));
-  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-iommu-amdvi" "nonos-iommu-intremap" ];
+  kernelFeatureSets = [ "mldsa3,mlkem768" "mldsa2,mlkem512" "mldsa5,mlkem1024" "dbg-ring,heap-track" "crypto-curve25519" "crypto-ed25519-dalek" "nonos-dev-unconfined-dma,nonos-dev-unremapped-interrupts" ];
   hasLock = d: builtins.pathExists (src.root + "/${d}/Cargo.lock");
 
   # Every *_proofs crate, and every crate whose manifest asks for the lane
@@ -28,6 +28,11 @@ let
   needsTpm = [ "userland/tpm_enroll_proofs" "userland/tpm_key_proofs" ];
   # certtool is what swtpm_localca signs the EK certificate with.
   tpmTools = [ pins.swtpm pkgs.tpm2-tools pkgs.openssl pkgs.gnutls ];
+
+  # The proof crates handed the periodic cache nonos.shield ships, by
+  # NONOS_PERIODIC_CACHE, as capsules.nix hands it to the capsule. A test that
+  # finds it missing says so, and the check fails on that line.
+  needsPeriodic = [ "userland/shield_vectors_proofs" ];
 
   # A shell repository of the tree, so the checks that ask git which files are
   # tracked get a real answer instead of an empty list.
@@ -53,7 +58,7 @@ let
   #   lintNone  never linted before the flake, and not clean
   lintLib = [
     "attest_doc_proofs" "capsule_browser_proofs" "crypto_proofs" "fs_proofs" "http_proofs"
-    "nym_reply_proofs" "route_proof_proofs" "terminal_line_proofs"
+    "nym_reply_proofs" "route_proof_proofs"
   ];
   lintNone = [ "boot_slots_proofs" "editor_proofs" "input_proofs" ];
   clippy =
@@ -72,6 +77,7 @@ let
     dir:
     let
       tpm = builtins.elem dir needsTpm;
+      cache = builtins.elem dir needsPeriodic;
     in
     rustBuild {
       name = "proofs-${builtins.baseNameOf dir}";
@@ -85,11 +91,17 @@ let
       # timestamp wrapped the clock that way, with its proof green.
       script = ''
         export RUST_TEST_THREADS=1
+        ${lib.optionalString cache "export NONOS_PERIODIC_CACHE=${periodic}/periodic.top"}
         cd ${dir}
         cargo test --frozen --release --config profile.release.overflow-checks=true ${testArgs dir} 2>&1 | tee $TMPDIR/test.log
         ${lib.optionalString tpm ''
           if grep -E "live test skipped|certificate test skipped|live derivation not exercised" $TMPDIR/test.log; then
             echo "a live TPM test was skipped" >&2; exit 1
+          fi
+        ''}
+        ${lib.optionalString cache ''
+          if grep "real cache test skipped" $TMPDIR/test.log; then
+            echo "a real periodic cache test was skipped" >&2; exit 1
           fi
         ''}
         ${clippy dir}
@@ -172,6 +184,14 @@ let
   # with fails here and not on ek's machine. The capsule ELFs the kernel
   # embeds are empty stand-ins, and so is the trust set of a capsule the seal
   # has not written yet: this checks the code, `nix build` checks the image.
+  # The files each stand-in is made at, one a line. A file, not the script:
+  # written inline, one command per file, the script outgrew the 128 KiB a
+  # single environment string may hold, and every profile check failed to
+  # start ("Argument list too long").
+  standIns = pkgs.writeText "kernel-profile-stand-ins" (lib.concatMapStrings (f: f + "\n")
+    (lib.concatMap (e: [ "${e.dir}/target/${e.target}/release/${e.bin}" e.cert e.manifest e.trailer ]
+      ++ lib.optional (e.prebuilt != "") e.prebuilt) capsules.catalogue));
+
   profileChecks = lib.mapAttrs' (p: _:
     let
       cfg = config.resolve (config.file // { profile = p; });
@@ -185,9 +205,9 @@ let
       script = ''
         printf 'NONOS-CI-FORK-DEV-SEED-32-BYTE!!' > $TMPDIR/build-placeholder.seed
         export NONOS_SIGNING_KEY=$TMPDIR/build-placeholder.seed
-        ${lib.concatMapStrings (f: ''
-          [ -e "${f}" ] || { mkdir -p "$(dirname "${f}")"; : > "${f}"; }
-        '') (lib.concatMap (e: [ "${e.dir}/target/${e.target}/release/${e.bin}" e.cert e.manifest e.trailer ] ++ lib.optional (e.prebuilt != "") e.prebuilt) capsules.catalogue)}
+        while IFS= read -r f; do
+          [ -e "$f" ] || { mkdir -p "$(dirname "$f")"; : > "$f"; }
+        done < ${standIns}
         cargo check --frozen --target x86_64-nonos.json -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem \
           --no-default-features --features ${lib.concatStringsSep "," cfg.features}
       '';
@@ -218,6 +238,7 @@ let
       "scripts/check_driver_proofs.py"
       "scripts/check_dark_features.py --self-test" "scripts/check_dark_features.py"
       "scripts/check_test_lanes.py --self-test" "scripts/check_test_lanes.py"
+      "-m unittest discover -s tools/nonos_selftest -p 'test_*.py'"
     ]);
     # verify.yml, abi-contracts and syscall-reach
     static-abi = static "abi" (scripts [
@@ -228,6 +249,11 @@ let
       "scripts/check_blk_wire.py --self-test" "scripts/check_blk_wire.py"
       "scripts/check_prebuilt.py" "scripts/check_syscall_args.py" "scripts/check_caps_abi.py"
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
+      "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
+      "scripts/check_selftest_panic.py --self-test" "scripts/check_selftest_panic.py"
+      "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
+      "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
+      "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
       "tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt"
@@ -235,6 +261,17 @@ let
       "tools/ratchets/disclosure.py" "tools/nonos-mutant --check"
       "scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt"
     ]);
+    # Every capsule a release profile ships has its sealed trust set, but for
+    # those scripts/baselines/unsealed.txt names, which may only shrink.
+    static-release-trust =
+      let
+        resolved = map (p: config.resolve (config.file // { profile = p; })) (builtins.attrNames config.profiles);
+        slugs = lib.unique (lib.concatMap (c: map (e: e.slug) (image.shipped c.enabled)) (builtins.filter (c: c.release) resolved));
+      in
+      static "release-trust" (scripts [
+        "scripts/check_release_trust.py --self-test"
+        "scripts/check_release_trust.py --baseline scripts/baselines/unsealed.txt --doc docs/build/feature-inventory.md ${toString slugs}"
+      ]);
     # make nonos-mk-static: the grep gates over the whole tree
     static-tree = static "tree" ''
       export HOME=$TMPDIR CARGO_NET_OFFLINE=true
@@ -259,10 +296,22 @@ let
       nativeBuildInputs = [ pkgs.gnumake python pkgs.findutils pkgs.coreutils pins.rust ];
     } ''
       cp -r $src tree && chmod -R u+w tree && cd tree
-      for c in capsule store; do
+      for c in capsule capsule-dev store; do
         make -s --no-print-directory NONOS_IN_FLAKE=1 NONOS_QUIET=1 nonos-mk-$c-catalogue 2>/dev/null > $TMPDIR/$c.json
       done
       python3 tools/nix/catalogues.py --check
+      touch $out
+    '';
+    # Every capsule make builds is built for the user target asked of it
+    # (nonos-ci/check-capsule-targets.py): until C-23 the rule built x86_64
+    # whatever the aarch64 lanes asked. make -n only, so nothing is built.
+    capsule-targets = pkgs.runCommand "capsule-targets" {
+      src = root;
+      nativeBuildInputs = [ pkgs.gnumake python pkgs.findutils pkgs.coreutils pins.rust ];
+    } ''
+      cp -r $src tree && chmod -R u+w tree && cd tree
+      export HOME=$TMPDIR
+      python3 nonos-ci/check-capsule-targets.py
       touch $out
     '';
     # inputs.json is what each cargo build reads; a path dependency, #[path]
@@ -287,6 +336,34 @@ let
       done
       touch $out
     '';
+    # nonos-shield-prove, the prover nonos.shield proves with, reproduces
+    # those four vectors byte for byte and verifies them, at the STARKs
+    # commit flake.lock pins. Four proofs of minutes each, so its own check,
+    # not the proof lane.
+    shield-prove-vectors = cargoCheck {
+      name = "shield-prove-vectors";
+      dir = "nonos-shield-prove";
+      script = ''
+        export STARKS_SPEC=${starks}/spec
+        cd nonos-shield-prove
+        cargo test --frozen --release --features parallel -- --include-ignored
+      '';
+    };
+    # Test 5 on the host: shield_vectors_proofs' binary proves the four wallet
+    # vectors with capsule_shield_vectors' own modules, transfer-eth from
+    # nothing (the tree it builds held to the shipped cache) and the other
+    # three from the shipped cache, each held to the pinned bytes. About four
+    # minutes, so its own check: the proof lane's cargo test never runs the
+    # binary.
+    shield-vectors-prove = cargoCheck {
+      name = "shield-vectors-prove";
+      dir = "userland/shield_vectors_proofs";
+      script = ''
+        export NONOS_PERIODIC_CACHE=${periodic}/periodic.top
+        cd userland/shield_vectors_proofs
+        cargo run --frozen --release
+      '';
+    };
     # The committed BusyBox, which make embeds, is the one the flake builds
     # from source. Linux only, as CI checks it; a Mac builds its own anyway.
     busybox-source = pkgs.runCommand "busybox-source" { } (if pkgs.stdenv.hostPlatform.isLinux then ''
@@ -299,8 +376,41 @@ let
       cmp ${cargo.rustSrcLock} $(readlink -f ${pins.rust}/lib/rustlib/src)/rust/library/Cargo.lock
       touch $out
     '';
-    # nonos.toml resolves, for every profile, against Cargo.toml's features.
-    config = pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # nonos.toml resolves, for every profile, against Cargo.toml's features;
+    # a release image that asks for the meter fails to evaluate, while its
+    # development twin, the same request with dev = true, resolves; and every
+    # development twin carries the meter, and settle unless the profile takes
+    # the network out.
+    config =
+      let
+        names = builtins.attrNames config.profiles;
+        meter = p: dev: { profile = p; inherit dev; features = [ "nonos-capsule-payment" ]; };
+        resolves = raw: (builtins.tryEval (builtins.deepSeq (config.resolve raw).features true)).success;
+        release = builtins.filter (p: config.profiles.${p}.loader != "dev-qemu") names;
+        carries = p: lib.all (f: builtins.elem f (config.resolve { profile = p; dev = true; }).enabled
+          || builtins.elem f config.profiles.${p}.drop) [ "nonos-capsule-payment" "nonos-capsule-nox-settle" ];
+      in
+      assert lib.assertMsg (release != [ ] && !(lib.any (p: resolves (meter p false)) release))
+        "config: a release profile resolved with nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all (p: resolves (meter p true)) names)
+        "config: a development twin refused nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all carries names)
+        "config: a development twin left out the meter or settle";
+      pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # Capsule serial output: a profile's development twin keeps it, and no
+    # profile a release loader boots may carry it. The last assertion is the
+    # rule's self-test: qemu, which keeps it, refused on a standard loader.
+    profile-serial =
+      let
+        has = r: builtins.elem "capsule-serial-debug" r.enabled;
+        res = p: dev: config.resolve (config.file // { profile = p; inherit dev; });
+        onStandard = config.resolve (config.file // { profile = "qemu"; dev = false; loader = "standard"; });
+      in
+      assert has (res "standard" true) && has (res "hardened" true);
+      assert !(has (res "standard" false)) && !(has (res "hardened" false)) && !(has (res "airgapped" false));
+      assert has (res "core" true) == has (res "core" false);
+      assert !(builtins.tryEval (has onStandard)).success;
+      pkgs.writeText "profile-serial" "a development twin keeps capsule serial output; a release loader never";
   };
 
   # The determinism property, proved on Linux alone. A capsule is built twice in

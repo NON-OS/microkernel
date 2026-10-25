@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::settings::schema::blocks_for;
-use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::control_geom::in_control;
@@ -30,6 +29,7 @@ pub enum Hit {
         control: bool,
     },
     Network(usize),
+    BtDevice(usize),
     /// The "No networks found" row, whose "Scan" asks for one.
     Scan,
     None,
@@ -47,7 +47,7 @@ pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
         let inside = target >= ry as i32 && target < (ry + h) as i32;
         match item {
             Item::Row(bi, ri) => {
-                if !matches!(blocks[bi].rows[ri], Row::Field(_)) {
+                if !blocks[bi].rows[ri].is_stop() {
                     return;
                 }
                 if inside {
@@ -63,6 +63,7 @@ pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
             }
             Item::Network(_) if inside && state.wifi_network_count == 0 => hit = Hit::Scan,
             Item::Network(i) if inside => hit = Hit::Network(i),
+            Item::BtDevice(i) if inside && i < state.bt.bond_count => hit = Hit::BtDevice(i),
             Item::Saved(i) if inside && i < state.wifi.saved_count => {
                 hit = Hit::Network(state.wifi_network_count + i)
             }

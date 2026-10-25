@@ -22,9 +22,9 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
-use super::fetch::fetch;
-use super::index_load::load_index;
-use super::place::unpack;
+use super::fetch::get::fetch;
+use super::get::index::load_index;
+use super::place::all::unpack;
 
 pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
@@ -32,7 +32,7 @@ pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
 /// Alpine's install; `family::install` sends the other families elsewhere.
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
-    super::http::reachable(super::mirror::mirror().0)?;
+    super::http::reach::reachable(super::mirror::mirror().0)?;
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
         return Err(super::Why::Index);
@@ -41,11 +41,8 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
-        let found = match next.strip_prefix("so:") {
-            Some(lib) => index.by_lib(lib),
-            None => index.by_name(&next),
-        };
-        let Some(pkg) = found else {
+        // The listed package itself, pinned; its needs by name or provider.
+        let Some(pkg) = index.resolve(&next, done.is_empty()) else {
             say(b"[LINUX] nothing provides it\n");
             return Err(super::Why::NotProvided);
         };
@@ -61,7 +58,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
             return Err(super::Why::Package);
         };
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
-        unpack(&files, &pkg.name, pkg.name == name)?;
+        unpack(&files, &pkg.name, pkg.name == name, false)?;
         done.push(pkg.name.clone());
         wanted.extend(pkg.depends.iter().cloned());
     }

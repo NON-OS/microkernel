@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod devices;
 mod end_note;
 pub mod end_rule;
 mod exit_and_yield;
 mod finalize;
+mod forget;
+mod off_cpu;
 mod park;
 mod pending;
 pub mod postmortem;
 mod purge;
 mod reap_log;
+mod reclaim;
 mod stop_elsewhere;
+mod surfaces;
 mod teardown;
 
 pub use exit_and_yield::exit_and_yield;
@@ -31,4 +36,5 @@ pub(crate) use park::park as park_dead;
 pub(crate) use pending::drain as drain_pending_teardowns;
 pub(crate) use purge::purge_for_new_pid;
 pub(crate) use reap_log::{peek_exit_status, reap_exit_status, reap_exit_status_for};
+pub(crate) use reclaim::reclaim_at_tick;
 pub use teardown::teardown;

@@ -9,7 +9,11 @@ The summary is in [README.md](README.md).
   ACPI-only controllers from the broker's ACPI records.
 - The touchpads in reach named to the HID driver in turn, the bound one first
   (`OP_ACPI_HID`).
-- Brokered device claim and BAR0 MMIO map.
+- Brokered device claim and BAR0 MMIO map, the LPSS remap taken from the
+  controller's own record read back once claimed.
+- Touchpads paired with their host controller by the device_id the kernel
+  resolved the declaration's ResourceSource to, or, left unresolved, with a
+  PCI function by the "I2Cn" name it declares.
 - DesignWare component-type read, enable/status/timing/FIFO register telemetry.
 - Interrupt mask and clear during setup.
 - Bounded master write/read transaction engine with timeout and TX-abort

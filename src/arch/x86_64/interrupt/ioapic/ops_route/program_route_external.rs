@@ -27,11 +27,17 @@ use super::program_route::program_route;
 // broker manages its own pool over the reserved 0x60..=0x6F range);
 // this helper does the GSI ownership CAS (Free -> Capsule), the
 // RTE construction, and the MMIO write. Trigger and polarity come
-// from `line_mode`: the MADT override when there is one, else ISA
-// edge/high below GSI 16 and PCI level/low above. The CAS rolls back
+// from `line_mode`: the device's own description when the caller has one,
+// then the MADT override, else ISA edge/high below GSI 16 and PCI level/low
+// above. The CAS rolls back
 // if `program_route` fails so a partial MMIO failure cannot strand an
 // owner bit.
-pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApicResult<Rte> {
+pub fn program_route_external(
+    gsi: u32,
+    vector: u8,
+    dest_apic_id: u32,
+    described: Option<(bool, bool)>,
+) -> IoApicResult<(Rte, Option<u16>)> {
     if is_gsi_claimed(gsi) {
         return Err(IoApicError::GsiClaimedForMsi);
     }
@@ -39,12 +45,28 @@ pub fn program_route_external(gsi: u32, vector: u8, dest_apic_id: u32) -> IoApic
     let mut rte = Rte::fixed(vector, dest_apic_id);
     let iso = iso_flags_for(gsi)
         .map(|f| (f.contains(IsoFlags::TRIGGER_LEVEL), f.contains(IsoFlags::POLARITY_ACTIVE_LOW)));
-    let mode = line_mode(gsi, iso);
+    let mode = line_mode(gsi, iso, described);
     rte.level_trigger = mode.level;
     rte.active_low = mode.active_low;
-    if let Err(e) = program_route(gsi, rte) {
-        let _ = gsi_owners::release_capsule(gsi);
-        return Err(e);
+    match program(gsi, rte) {
+        Ok(irte) => Ok((rte, irte)),
+        Err(e) => {
+            let _ = gsi_owners::release_capsule(gsi);
+            Err(e)
+        }
     }
-    Ok(rte)
+}
+
+/// Under remapping the entry names a remapping entry, returned to be given
+/// back; otherwise it is compatibility format.
+fn program(gsi: u32, rte: Rte) -> IoApicResult<Option<u16>> {
+    #[cfg(feature = "nonos-iommu-intremap")]
+    if crate::arch::x86_64::iommu::remap::is_remapping() {
+        return super::program_remapped::program_remapped(gsi, rte).map(Some);
+    }
+    #[cfg(feature = "nonos-iommu-amdvi")]
+    if crate::arch::x86_64::iommu::amd_vi::intr::is_remapping() {
+        return super::program_amd::program_amd(gsi, rte);
+    }
+    program_route(gsi, rte).map(|()| None)
 }

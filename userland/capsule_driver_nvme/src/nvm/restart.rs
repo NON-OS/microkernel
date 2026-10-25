@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::constants::{CQ_BYTES, IO_ENTRIES};
 use super::queue::IoQueue;
 use crate::admin::CqCursor;
@@ -30,7 +28,7 @@ impl IoQueue {
         // CQ_BYTES, and the disabled controller does not write it.
         unsafe { core::ptr::write_bytes(self.cq.user_va() as *mut u8, 0, CQ_BYTES as usize) };
         // The zeroed ring is in memory before the queue is created again.
-        fence(Ordering::SeqCst);
+        nonos_libc::dma_wmb();
         self.sq_tail = 0;
         self.cursor = CqCursor::new(IO_ENTRIES);
         self.out = None;

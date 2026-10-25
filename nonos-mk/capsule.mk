@@ -72,7 +72,9 @@ _NONOS_CAPSULE_OPTIONAL_CAPS := $(or $(CAPSULE_OPTIONAL_CAPS),0x0)
 # gate installs an optional bit only when the build grants it, so this widens
 # what may be granted, never what is.
 _NONOS_CAPSULE_CAPS_CEILING  := $(or $(CAPSULE_CAPS_CEILING),$(shell printf '0x%X' $$(( $(CAPSULE_REQUIRED_CAPS) | $(_NONOS_CAPSULE_OPTIONAL_CAPS) ))))
-_NONOS_CAPSULE_TARGET        := $(or $(CAPSULE_TARGET),x86_64-nonos-user)
+# The user target the build was asked for (NONOS_USER_TARGET, which
+# nonos-mk-arm-gui sets to aarch64-nonos-user), unless a capsule names its own.
+_NONOS_CAPSULE_TARGET        := $(or $(CAPSULE_TARGET),$(NONOS_USER_TARGET),x86_64-nonos-user)
 _NONOS_CAPSULE_VERSION       := $(or $(CAPSULE_VERSION),0.1.0)
 _NONOS_CAPSULE_SERIAL        := $(or $(CAPSULE_ID_CERT_SERIAL),1)
 # `$(or X,core,alloc)` parses as three args (X / core / alloc),
@@ -138,6 +140,11 @@ $(CAPSULE_SLUG)_CARGO_FEATURES   := $(_NONOS_CAPSULE_CARGO_FEATURES)
 $(CAPSULE_SLUG)_PREBUILT_BIN     := $(if $(NONOS_CAPSULE_BINS),$(NONOS_CAPSULE_BINS)/$(CAPSULE_SLUG)/$(CAPSULE_BIN_NAME),$(_NONOS_CAPSULE_PREBUILT_BIN))
 $(CAPSULE_SLUG)_KERNEL_MIRROR    := $(CAPSULE_KERNEL_MIRROR)
 $(CAPSULE_SLUG)_DEV_ONLY         := $(strip $(CAPSULE_DEV_ONLY))
+# Cargo features for the development capsule set alone (the flake's
+# capsules-dev, which only an image that is not a release takes). No make
+# lane builds with them; scripts/check_dev_capsule_set.py holds every release
+# path to the set make declares.
+$(CAPSULE_SLUG)_DEV_CARGO_FEATURES := $(strip $(CAPSULE_DEV_CARGO_FEATURES))
 # The file that declared this capsule, so editing it re-signs. A directory
 # declaring several (userland/linux_guests) names its own file.
 $(CAPSULE_SLUG)_CAPSULE_MK       := $(or $(CAPSULE_MK_FILE),$(CAPSULE_DIR)/Capsule.mk)
@@ -197,7 +204,7 @@ $$($(1)_BIN): $$(USERLAND_LIBC) $$($(1)_CAPSULE_MK) \
 	@cd $$($(1)_DIR) && \
 		RUSTUP_TOOLCHAIN=$$(TOOLCHAIN) \
 		$$(if $$($(1)_RUSTFLAGS),RUSTFLAGS="$$($(1)_RUSTFLAGS)",) \
-		$$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		$$(CARGO) build --release --target ../$$($(1)_TARGET).json \
 		$$(if $$($(1)_CARGO_FEATURES),--features $$($(1)_CARGO_FEATURES),) \
 		-Zbuild-std=$$($(1)_BUILD_STD) \
 		$$(if $$($(1)_BUILD_STD_FEAT),-Zbuild-std-features=$$($(1)_BUILD_STD_FEAT),)
@@ -353,6 +360,7 @@ undefine CAPSULE_CARGO_FEATURES
 undefine CAPSULE_PREBUILT_BIN
 undefine CAPSULE_KERNEL_MIRROR
 undefine CAPSULE_DEV_ONLY
+undefine CAPSULE_DEV_CARGO_FEATURES
 undefine CAPSULE_NOT_IN_IMAGE
 undefine CAPSULE_EXTRA_DEPS
 undefine CAPSULE_EXTRA_ORDER_DEPS

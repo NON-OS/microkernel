@@ -17,7 +17,8 @@
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{
-    parse, E_BAD_OP, E_INVAL, OP_GRAB_RELEASE, OP_GRAB_REQUEST, OP_HEALTHCHECK, OP_SUBSCRIBE,
+    parse, E_BAD_OP, E_INVAL, OP_DISPLAY_SIZE, OP_GRAB_RELEASE, OP_GRAB_REQUEST, OP_HEALTHCHECK,
+    OP_SUBSCRIBE, OP_TRUSTED_HOLD,
 };
 use crate::server::{handlers, respond};
 use crate::state::Context;
@@ -46,6 +47,9 @@ pub(super) fn drain_ipc(ctx: &mut Context, rx: &mut [u8], tx: &mut [u8]) {
             }
         };
         match req.op {
+            // One-way: never answered, accepted or not (handlers/trusted_hold.rs).
+            OP_TRUSTED_HOLD => handlers::trusted_hold::handle(ctx, sender_pid, body),
+            OP_DISPLAY_SIZE => handlers::display_size::handle(ctx, sender_pid, body),
             OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
             OP_SUBSCRIBE => handlers::subscribe::handle(ctx, sender_pid, &req, body, tx),
             OP_GRAB_REQUEST => handlers::grab_request::handle(ctx, sender_pid, &req, body, tx),

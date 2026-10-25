@@ -16,14 +16,49 @@
 
 use super::quirk_bits::{only, writable, Ident};
 
-const HDA: Ident = Ident { vendor: 0x8086, class: 0x04, subclass: 0x03, pcie_cap: None };
-const DSP: Ident = Ident { vendor: 0x8086, class: 0x04, subclass: 0x01, pcie_cap: None };
-const AMD_HDA: Ident = Ident { vendor: 0x1022, class: 0x04, subclass: 0x03, pcie_cap: None };
-const WIFI: Ident = Ident { vendor: 0x10EC, class: 0x02, subclass: 0x80, pcie_cap: Some(0x70) };
-const NVME: Ident = Ident { vendor: 0x8086, class: 0x01, subclass: 0x08, pcie_cap: Some(0x70) };
+const HDA: Ident = Ident {
+    vendor: 0x8086,
+    class: 0x04,
+    subclass: 0x03,
+    prog_if: 0,
+    pcie_cap: None,
+    before: [0xFF; 3],
+};
+const DSP: Ident = Ident {
+    vendor: 0x8086,
+    class: 0x04,
+    subclass: 0x01,
+    prog_if: 0,
+    pcie_cap: None,
+    before: [0xFF; 3],
+};
+const AMD_HDA: Ident = Ident {
+    vendor: 0x1022,
+    class: 0x04,
+    subclass: 0x03,
+    prog_if: 0,
+    pcie_cap: None,
+    before: [0xFF; 3],
+};
+const WIFI: Ident = Ident {
+    vendor: 0x10EC,
+    class: 0x02,
+    subclass: 0x80,
+    prog_if: 0,
+    pcie_cap: Some(0x70),
+    before: [0xFF; 3],
+};
+const NVME: Ident = Ident {
+    vendor: 0x8086,
+    class: 0x01,
+    subclass: 0x08,
+    prog_if: 0,
+    pcie_cap: Some(0x70),
+    before: [0xFF; 3],
+};
 
 #[test]
-fn intel_audio_gets_exactly_the_bits_snd_hda_intel_writes() {
+fn intel_audio_gets_exactly_tcsel_cgctl_and_devc_bits() {
     for ident in [HDA, DSP] {
         assert_eq!(writable(&ident, 0x44), Some(0x0007), "TCSEL");
         assert_eq!(writable(&ident, 0x48), Some(0x0040), "CGCTL MISCBDCGE");
@@ -55,7 +90,14 @@ fn every_other_class_and_register_stays_refused() {
     for offset in [0x00, 0x04, 0x10, 0x3C, 0x42, 0x44, 0x48, 0x78, 0x98] {
         assert_eq!(writable(&NVME, offset), None, "storage {offset:#x}");
     }
-    let gpu = Ident { vendor: 0x8086, class: 0x03, subclass: 0x00, pcie_cap: None };
+    let gpu = Ident {
+        vendor: 0x8086,
+        class: 0x03,
+        subclass: 0x00,
+        prog_if: 0,
+        pcie_cap: None,
+        before: [0xFF; 3],
+    };
     assert_eq!(writable(&gpu, 0x48), None);
 }
 

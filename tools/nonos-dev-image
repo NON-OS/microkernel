@@ -18,6 +18,7 @@
 """A development image to boot and test, in minutes, with no real key.
 
     tools/nonos-dev-image [--profile qemu]
+    tools/nonos-dev-image --keys-only        the copy and its keys, no image
 
 It builds the profile's development twin (<profile>-dev: the same kernel
 features, path-only attestation, the loader's development policy) and seals
@@ -33,6 +34,7 @@ override, and the seal refuses to seal it for release.
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -143,9 +145,33 @@ def keys(host_tools):
     commit()
 
 
+def selftest_panic():
+    """The selftest image's capsule_linux is built with selftest-panic, so its
+    boot shows the Terminal's answer to a panic inside a box. Only here, in
+    the copy's capsules.json, for this profile: the next build of any other
+    profile copies the checkout's file back, and scripts/check_selftest_panic.py
+    fails any committed build that names the feature."""
+    path = TREE / "tools/nix/capsules.json"
+    path.write_text(json.dumps(panicking(json.loads(path.read_text())), indent=1) + "\n")
+    commit()
+
+
+def panicking(entries):
+    """capsules.json's entries with selftest-panic added to capsule_linux's
+    cargo_features, keeping any it already has (scripts/selftest_panic_fixture.py)."""
+    for e in entries:
+        if e["slug"] == "linux":
+            have = [f for f in e["cargo_features"].split(",") if f]
+            e["cargo_features"] = ",".join(have + ["selftest-panic"] * ("selftest-panic" not in have))
+    return entries
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--profile", default="qemu", help="the profile whose development twin to build")
+    ap.add_argument("--keys-only", action="store_true",
+                    help="bring the copy and its throwaway keys up to date, and seal nothing: for a make "
+                         "lane run inside target/dev/tree, as tools/nonos-selftest does")
     a = ap.parse_args()
     attr = "dev" if a.profile == "dev" else f"{a.profile}-dev"
     TREE.mkdir(parents=True, exist_ok=True)
@@ -154,6 +180,11 @@ def main():
     commit()
     host_tools = sh("nix", "build", ".#host-tools", "--no-link", "--print-out-paths", capture=True)
     keys(host_tools)
+    if a.profile == "selftest":
+        selftest_panic()
+    if a.keys_only:
+        print(f"nonos-dev-image: {TREE.relative_to(ROOT)} and its throwaway keys are ready")
+        return
     sh("nix", "run", ".#seal", "--", "--profile", attr,
        env={"SIGNING_KEY": str(TREE / ".keys/signing_key_v1.bin")})
     img = TREE / "target/release" / attr / "nonos.img"

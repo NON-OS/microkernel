@@ -26,12 +26,18 @@ mod dispatch;
 mod dispatch_device;
 mod domain;
 mod enforced;
+mod fault_block;
+mod identity;
 mod mapping;
+mod noted;
 mod refuse;
+mod requester;
 mod route;
 mod select;
 
 pub(crate) use capabilities::capabilities;
 pub(crate) use dispatch::{allocate_domain, free_domain, map, unmap};
 pub(crate) use dispatch_device::{attach_device, detach_device, translates};
+pub(crate) use fault_block::{block_faulted, note_fault};
+pub(crate) use identity::identity_devices;
 pub(crate) use select::select_vendor;

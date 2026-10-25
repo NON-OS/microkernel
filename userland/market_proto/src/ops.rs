@@ -22,3 +22,6 @@ pub const OP_GET_APP: u16 = 3;
 pub const OP_GET_RELEASE: u16 = 4;
 pub const OP_INSTALL_READY: u16 = 5;
 pub const OP_HEALTHCHECK: u16 = 6;
+pub const OP_GET_COMMERCE: u16 = 7;
+/// The box a Linux release is sold with, for init's install (I-C5).
+pub const OP_GET_LINUX_POLICY: u16 = 8;

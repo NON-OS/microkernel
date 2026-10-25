@@ -17,8 +17,8 @@
 //! The size of a device and keeping its writes: READ CAPACITY(10) or (16)
 //! and SYNCHRONIZE CACHE(10).
 
-use super::bot::command;
 use super::sense::{sense, whole};
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::E_IO;
 use crate::scsi::{

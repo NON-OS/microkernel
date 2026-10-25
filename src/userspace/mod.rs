@@ -24,53 +24,51 @@
  * real userspace. The CI grep gate in `nonos-ci/run-static-checks.sh` rejects
  * any new directory here whose name ends in `_service`.
  *
- * The network stack and the applications are declared in their own files,
- * by path, so their modules keep their places under `crate::userspace`.
+ * The network stack, the applications, the desktop, input and the platform's
+ * services are declared in their own files, by path, so their modules keep
+ * their places under `crate::userspace`.
  */
 mod apps;
+mod desktop;
+mod input;
 mod network;
+mod platform;
 pub use apps::*;
+pub use desktop::*;
+pub use input::*;
 pub use network::*;
+pub use platform::*;
 
 #[cfg(feature = "nonos-attest-refusal-smoketest")]
 pub mod attest_refusal;
-pub mod capsule_attest;
-pub mod capsule_boot_splash;
 pub mod capsule_clipboard;
-pub mod capsule_compositor;
 pub mod capsule_desktop_shell;
 pub mod capsule_driver_i2c_hid;
 pub mod capsule_driver_usb_hid;
 pub mod capsule_driver_usb_msc;
-#[cfg(feature = "nonos-capsule-flacprobe")]
-pub mod capsule_flacprobe;
 pub mod capsule_image_codec;
-#[cfg(feature = "nonos-capsule-input-probe")]
-pub mod capsule_input_probe;
-pub mod capsule_input_proof;
-pub mod capsule_input_router;
 pub mod capsule_install;
 pub mod capsule_installer;
 pub mod capsule_linux;
 pub mod capsule_login;
+pub mod capsule_nox_settle;
+pub mod capsule_payment;
 #[cfg(feature = "nonos-capsule-nonos-install")]
 pub mod capsule_nonos_install;
-pub mod capsule_policy;
 pub mod capsule_process_manager;
 pub mod capsule_proof_io;
 pub mod capsule_sd;
 pub mod capsule_shield;
 #[cfg(feature = "nonos-capsule-shield-vectors")]
 pub mod capsule_shield_vectors;
+#[cfg(feature = "nonos-capsule-attack")]
+pub mod capsule_attack;
 pub mod capsule_settings;
 #[cfg(feature = "nonos-capsule-setup-wizard")]
 pub mod capsule_setup_wizard;
 pub mod capsule_std_proof;
 pub mod capsule_tokio_smoke;
 pub mod capsule_toolkit;
-pub mod capsule_wallpaper;
-pub mod capsule_wallpaper_catalog;
-pub mod capsule_wm;
 pub mod init;
 pub mod tool_capsules;
 

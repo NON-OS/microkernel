@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod defaults;
+mod limits;
 mod memory;
 mod methods;
 mod types;
+mod virt_ram;
+mod virt_uart;
 
+pub use crate::arch::fdt::reserved_set::Reserved;
 pub use memory::{MemoryRegion, MemoryType};
 pub use types::BootInfo;

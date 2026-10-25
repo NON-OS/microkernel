@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::mmio_write32::mmio_write32;
 /// Write the 64-bit register at `addr` as two dword stores, low then high
-/// (xHCI 1.2 section 5.1, Linux `xhci_write_64`): some controllers
-/// mishandle a qword access, and one without 64-bit addressing must be
-/// able to take the high dword on its own.
+/// (xHCI 1.2 section 5.1, as recalled, unverified): some controllers
+/// mishandle a qword access (as observed, unverified), and one without
+/// 64-bit addressing must be able to take the high dword on its own. Each
+/// store goes through libc's ordered accessor (`mmio_write32`).
 ///
 /// # Safety
 /// `addr` is an 8-byte aligned register inside a register window this

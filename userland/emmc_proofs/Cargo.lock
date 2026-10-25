@@ -11,4 +11,9 @@ name = "emmc_proofs"
 version = "0.1.0"
 dependencies = [
  "ahci_proofs_libc_shim",
+ "nonos_blk_wire",
 ]
+
+[[package]]
+name = "nonos_blk_wire"
+version = "0.1.0"

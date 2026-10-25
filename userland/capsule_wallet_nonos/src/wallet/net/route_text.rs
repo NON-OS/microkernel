@@ -20,20 +20,19 @@
 //! check, while every request went straight to the RPC host. It now says
 //! the route the last check actually took, and nothing before the first.
 
-use super::Route;
+use super::wallet_route::WalletRoute;
 
 /// The word on the status line, or None before anything was checked.
-pub fn route_part(route: Option<Route>) -> Option<&'static str> {
-    route.map(Route::label)
+pub fn route_part(route: Option<WalletRoute>) -> Option<&'static str> {
+    route.map(WalletRoute::label)
 }
 
 /// The Route row on the network card: the RPC host and how it is reached.
-pub fn route_value(route: Option<Route>) -> &'static str {
+pub fn route_value(route: Option<WalletRoute>) -> &'static str {
     match route {
-        Some(Route::Nym(_)) => "public RPC via Nym",
-        Some(Route::Anon(_)) => "public RPC via Anyone",
-        Some(Route::Direct) => "public RPC, direct",
-        Some(Route::Down(_)) => "no route",
+        Some(WalletRoute::Nym(_)) => "public RPC via Nym",
+        Some(WalletRoute::Anon(_)) => "public RPC via Anyone",
+        Some(WalletRoute::Down(_)) => "no route",
         None => "public RPC",
     }
 }

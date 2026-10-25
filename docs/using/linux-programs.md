@@ -19,12 +19,12 @@ Not tested in this release.
 
 All but `linux sqlite3` come from the tour the image carries at `/usr/share/nonos/tour/README` in the Linux tree, which lists a few more, such as `linux zstd -b1`.
 
-- A bare name is looked for along the guest's PATH; a name with a slash is a path in the Linux tree. `linux` alone prints `usage: linux <program> [arguments]`.
-- The program's output appears in the Terminal and the keyboard is its input. `Ctrl+C` interrupts it.
+- A bare name is looked for along the guest's PATH; a name with a slash is a path in the Linux tree. `linux` alone prints `usage: linux [--box strict|offline|allow:<folder|net:host:port>,...] <program> [arguments]`. To run a program in a sealed box and get a report of what it tried, see [Run a program in a box](linux-box.md).
+- The program's output appears in the Terminal and the keyboard is its input. `Ctrl+C` sends it SIGINT, which a program may catch or ignore, as on Linux. Pressed three times within 2 seconds, it ends the program with SIGKILL, which no program can catch; after the second press the Terminal says `linux: press Ctrl+C once more within 2 seconds to end the program`. A program ended this way exits with status 137.
 - One Linux program runs at a time. A second one is refused with `linux: a Linux program is already running in a terminal; one runs at a time, so end it (Ctrl-C) first`.
 - A name nothing holds is answered with `command not found`, and the line says where it looked.
 
-The program runs under the [Linux personality](../overview/glossary.md#linux-personality), the [capsule](../overview/glossary.md#capsule) `capsule_linux`, which answers every Linux system call the program makes. The kernel itself knows nothing of Linux.
+The program runs under the [Linux personality](../overview/glossary-linux-personality.md#linux-personality), the [capsule](../overview/glossary-boot-root-record.md#capsule) `capsule_linux`, which answers every Linux system call the program makes. The kernel itself knows nothing of Linux.
 
 ```mermaid
 sequenceDiagram
@@ -100,7 +100,7 @@ See [Files](files.md) for the NONOS side.
 
 ## Network
 
-A program started with `linux` has no internet. The kernel starts the personality for the Terminal in the role `app.linux.term`, which asks for no optional [capability](../overview/glossary.md#capability), so the network services refuse it. `wget`, or an HTTP request from `python3`, to an internet host fails.
+A program started with `linux` has no internet. The kernel starts the personality for the Terminal in the role `app.linux.term`, which asks for no optional [capability](../overview/glossary-boot-root-record.md#capability), so the network services refuse it. `wget`, or an HTTP request from `python3`, to an internet host fails.
 
 Inside the program's own family, sockets work: it may bind and listen on 127.0.0.0/8 and use Unix sockets. A bind or listen anywhere else is EACCES, a datagram leaving the family is ENETUNREACH, and a raw socket is EPERM.
 
@@ -121,7 +121,7 @@ Once a program has opened a Qwen model, its family gets no internet socket in an
 
 ## Hardware report
 
-`sh`, `python3`, `sqlite3` and `john`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+`sh`, `python3`, `sqlite3` and `john`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
 
 The host tests of the personality pass on this commit: `capsule_linux_proofs` (369 tests) and `terminal_line_proofs` (247).
 
@@ -132,6 +132,7 @@ The source behind the facts above, at the commit in the footer.
 - Run a program
   - The tour's commands, `zstd` among them: `userland/linux_userland/tour/README:5-16`.
   - PATH lookup and the usage line: `requested` in `userland/capsule_linux/src/linux/terminal.rs:52-65`.
+  - Ctrl+C three times: `Presses` in `userland/capsule_linux/src/linux/console/intr_press.rs`, sent by `settle_tty_interrupt` in `userland/capsule_linux/src/linux/serve/family_tty.rs`.
   - Store programs signed under the Linux userland publisher: `LINUX_USERLAND_CAPSULE` in `userland/linux_userland/Userland.mk:104-107`.
 - What is installed
   - The store's Linux programs: `linux` in `tools/nix/store.json:100`.

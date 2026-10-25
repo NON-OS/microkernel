@@ -30,5 +30,6 @@ mod read_pointer;
 mod rings;
 mod size;
 
+pub(crate) use read_pointer::reset_read_pointer;
 pub use rings::*;
 pub use size::*;

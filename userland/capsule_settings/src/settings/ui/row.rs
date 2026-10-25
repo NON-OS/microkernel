@@ -27,10 +27,8 @@ use super::field_note::note_of;
 use super::live_value::{note, resolve};
 use super::metrics::BODY_PX;
 use super::pill::tone_argb;
-use super::row_focus;
-use super::row_label;
-use super::text;
 use super::theme::ROW_LINE;
+use super::{row_focus, row_label, text};
 
 pub fn paint(
     fb: &mut PaintBuffer,
@@ -63,7 +61,8 @@ pub fn paint(
                 BODY_PX,
             );
         }
-        Row::Networks | Row::Saved | Row::Wallpapers => {}
+        Row::Access(k) => super::access_row::paint(fb, state, *k, card_x, card_w, screen_y, row_h),
+        Row::Networks | Row::Saved | Row::Wallpapers | Row::BtDevices => {}
     }
 }
 

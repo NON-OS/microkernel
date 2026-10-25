@@ -21,15 +21,16 @@ pub use super::pkg::Pkg;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+/// Each soname, and each name or provided name, to the package that has it.
+/// The lookups are in index_find.rs.
 pub struct Index {
-    pkgs: Vec<Pkg>,
-    /// soname, and name or provided name, to the package that has it.
-    libs: Vec<(String, usize)>,
-    names: Vec<(String, usize)>,
+    pub(super) pkgs: Vec<Pkg>,
+    pub(super) libs: Vec<(String, usize)>,
+    pub(super) names: Vec<(String, usize)>,
 }
 
 impl Index {
-    /// Records are stored at their blank line; `D:` and `p:` follow `V:`.
+    /// Records end at a blank line; `D:` and `p:` follow `V:`.
     pub fn parse(raw: &[u8]) -> Index {
         let text = String::from_utf8_lossy(raw);
         let mut index = Index { pkgs: Vec::new(), libs: Vec::new(), names: Vec::new() };
@@ -63,13 +64,5 @@ impl Index {
             }
         }
         self.pkgs.push(pkg);
-    }
-
-    pub fn by_lib(&self, soname: &str) -> Option<&Pkg> {
-        self.libs.iter().find(|(k, _)| k == soname).and_then(|(_, i)| self.pkgs.get(*i))
-    }
-
-    pub fn by_name(&self, name: &str) -> Option<&Pkg> {
-        self.names.iter().find(|(k, _)| k == name).and_then(|(_, i)| self.pkgs.get(*i))
     }
 }

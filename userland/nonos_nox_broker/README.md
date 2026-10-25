@@ -2,10 +2,14 @@
 
 The license broker's decision, without the capsule around it. `issue` prices
 the tool through `nonos_nox_license`, checks with `nonos_nox_receipt` that the
-receipt pays the treasury at least that price in NOX, refuses a funding
-transaction already redeemed, and returns the grant the buyer earned, one use
+receipt pays the listing's payee at least that price in the token, refuses a
+funding transaction already redeemed, and returns the grant the buyer earned, one use
 per price paid. It never signs: the capsule that would hold the Ed25519 key
 signs the result.
+
+The broker names no address. The caller passes a `PaidTo`: the payee from the
+signed listing and the token from `nonos_nox_config`. A zero payee or token is
+refused as `NoPayee`, since a transfer there is a burn.
 
 Replay is blocked by a `SpentSet`, a ring of `SPENT_CAPACITY` (4096) funding
 hashes the caller is expected to persist. When it fills, the oldest hash is
@@ -20,7 +24,7 @@ NOX are described in
 
 ## Tests
 
-9 host tests in `src/tests.rs` and three Kani harnesses in
+11 host tests in `src/tests/` and three Kani harnesses in
 `src/kani_proofs.rs`.
 
 ```sh

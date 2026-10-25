@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod access_row;
+pub mod bt_rows;
 pub mod build_info;
 pub mod bytes;
 pub mod card;
@@ -30,15 +32,22 @@ pub mod field_note_system;
 pub mod field_note_user;
 pub mod hit;
 pub mod icon_table;
+pub mod list_rows;
+pub mod live_bt;
+mod live_bt_pair;
+pub mod live_link;
 pub mod live_net;
+pub mod live_no_driver;
 pub mod live_value;
 pub mod live_wifi;
 pub mod metrics;
 pub mod nav_geom;
+pub mod net_empty;
 pub mod net_rows;
 pub mod net_signal;
 pub mod page_head;
 pub mod pane;
+pub mod pane_items;
 pub mod pill;
 pub mod results;
 pub mod results_geom;
@@ -59,6 +68,9 @@ pub mod text;
 pub mod theme;
 pub mod valbuf;
 pub mod valbuf_num;
+pub mod valbuf_text;
 pub mod walk;
+mod walk_height;
+pub mod walk_list;
 pub mod walk_metrics;
 pub mod wallpaper_row;

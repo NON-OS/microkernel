@@ -27,11 +27,13 @@ pub const fn reason(e: NvmeError) -> &'static str {
         NvmeError::ClaimFailed => "nvme: claim refused",
         NvmeError::BrokerCallFailed => "nvme: broker refused a grant",
         NvmeError::UnsupportedController => "nvme: unsupported or fatal controller",
-        NvmeError::UnsupportedPageSize => "nvme: controller lacks 4 KiB pages",
+        NvmeError::UnsupportedPageSize => "nvme: smallest controller page is over 4 KiB",
+        NvmeError::NoNvmCommandSet => "nvme: controller lacks the NVM command set",
         NvmeError::ControllerTimeout => "nvme: controller did not answer in time",
         NvmeError::ControllerFatal => "nvme: controller stayed fatal through a reset",
         NvmeError::ClockFailed => "nvme: monotonic clock unreadable, no wait can be bounded",
         NvmeError::AdminCommandFailed => "nvme: admin command failed",
         NvmeError::InvalidTransfer => "nvme: invalid transfer",
+        NvmeError::ShutdownTimeout => "nvme: shutdown did not complete in its budget",
     }
 }

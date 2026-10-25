@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod announce;
 mod dispatch;
 mod ops;
 pub mod proto;
 pub mod pump;
+mod pump_gate;
+mod pump_mix;
+pub mod pump_rule;
+mod pump_state;
 mod ring;
 mod run;
 mod serve;
 pub mod streams;
+mod tidy;
 pub mod tone;
 
 pub use dispatch::{handle, no_sink};

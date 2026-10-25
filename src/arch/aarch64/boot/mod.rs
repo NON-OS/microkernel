@@ -14,23 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod acpi;
+mod core_entry;
 pub mod dtb_adapter;
 pub mod entry;
+mod finish;
+mod high;
 pub mod info;
 mod init;
+mod loader;
 mod memory;
 pub mod multicore;
 mod pci_windows;
+mod platform_windows;
 mod refuse;
+mod relocate;
 pub mod stack;
+mod start_clock;
 #[cfg(any(feature = "nonos-trap-proof-sp0", feature = "nonos-trap-proof-kernel-abort"))]
 mod trap_proof;
 
+pub use acpi::acpi_rsdp;
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};
 pub use init::init;
 pub(crate) use memory::init_boot_memory;
 pub use multicore::start_secondary_cpus;
 pub(crate) use pci_windows::remap as remap_pci_windows;
-pub(crate) use refuse::{refuse, security_reason};
+pub(crate) use refuse::refuse;
 pub use stack::setup_stack;

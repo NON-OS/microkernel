@@ -21,7 +21,7 @@
 
 use crate::hardware::broker::PioError;
 use crate::syscall::microkernel::errnos::{
-    ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_STALE,
+    ERRNO_ACCES, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_STALE,
 };
 
 pub(super) fn errno_for(e: PioError) -> i64 {
@@ -36,6 +36,8 @@ pub(super) fn errno_for(e: PioError) -> i64 {
         | PioError::ZeroSize
         | PioError::PortOverflow
         | PioError::UnknownGrant => ERRNO_INVAL,
-        PioError::NotHolder => ERRNO_PERM,
+        PioError::NotHolder | PioError::ReservedPort => ERRNO_PERM,
+        PioError::WindowHeld => ERRNO_BUSY,
+        PioError::FirmwareReserved => ERRNO_ACCES,
     }
 }

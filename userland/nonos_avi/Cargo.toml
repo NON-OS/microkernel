@@ -15,3 +15,6 @@ authors = ["eK@nonos.systems"]
 description = "NONOS no_std AVI/RIFF demuxer"
 
 [dependencies]
+
+[package.metadata.nonos]
+test-lane = true

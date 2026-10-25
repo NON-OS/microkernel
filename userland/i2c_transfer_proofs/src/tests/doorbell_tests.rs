@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_GPIO_DOORBELL senses the bound declaration's interrupt line. Once the
-//! client has found another pad and the reach has narrowed to it, that line
-//! belongs to a pad the client does not read, so the doorbell answers that
-//! there is none, and the HID driver polls instead of waiting on it. The
-//! pad setup's probe bound, which is most machines, keeps its line.
+//! OP_GPIO_DOORBELL asks driver.gpio0 about the bound declaration's
+//! interrupt line. Once the client has found another pad and the reach has
+//! narrowed to it, that line belongs to a pad the client does not read, so
+//! the doorbell answers that there is none, and the HID driver polls instead
+//! of waiting on it. The pad setup's probe bound, which is most machines,
+//! keeps its line.
 
 use nonos_libc::take_reply;
 
 use super::client::transfer_errno;
 use super::kept::{reply_buffer, wiped};
 use super::multi_sku::{bound, FITTED, FITTED_REG};
-use crate::driver::{Doorbell, Driver};
+use crate::driver::Driver;
+use crate::gpio0::{answer, Doorbell};
 use crate::protocol::{parse, Request, E_OK, OP_GPIO_DOORBELL};
-use crate::regs::{Attached, Regs};
+use crate::regs::Attached;
 use crate::server::handlers::doorbell;
 use crate::transaction::Presence;
 
@@ -44,12 +46,11 @@ fn rung(d: &Driver) -> (u32, u32) {
 }
 
 /// Bound as setup binds once its probe `found` what it says, with the bound
-/// declaration's line an active-low one, read from a register that holds
-/// zero: asserted.
+/// declaration's line one gpio0 says rang.
 fn with_line(found: Presence) -> (Driver, Attached) {
     let (mut d, a) = bound(found);
-    let regs = Regs::new(0, 0x1000);
-    d.doorbell = Some(Doorbell { regs, cfg_offset: 0x0F00, level_bit: 1 << 1, active_high: false });
+    d.doorbell = Some(Doorbell { key: 1 << 63 | d.device_id, uid: 0, pin: 9 });
+    answer(Some(true));
     (d, a)
 }
 

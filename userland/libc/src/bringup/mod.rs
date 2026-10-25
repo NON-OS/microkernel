@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Driver bring-up: a bounded number of attempts with backoff, then a clean
+//! Driver bring-up: attempts with backoff for a bounded time, then a clean
 //! give-up, so no driver can spin a core on a device that will not come up.
 
+pub mod deadline;
 pub mod policy;
+pub mod recv_turn;
 mod run;
+mod say;
+pub mod schedule;
+mod start;
 
-pub use policy::{
-    decide, delay_after, next, recv_turn, total_sleep_ms, Next, RecvTurn, BRINGUP_ATTEMPTS,
-    BRINGUP_FIRST_DELAY_MS, BRINGUP_MAX_DELAY_MS, EXIT_ABSENT, EXIT_GAVE_UP, RECV_PARK_MS,
+pub use deadline::{retry_after, BRINGUP_BUDGET_MS};
+pub use policy::{decide, EXIT_ABSENT, EXIT_EMPTY, EXIT_GAVE_UP};
+pub use recv_turn::{recv_turn, RecvTurn, RECV_PARK_MS};
+pub use run::{bring_up, recv_ready};
+pub use say::say_absent;
+pub use schedule::{
+    delay_after, next, total_sleep_ms, Next, BRINGUP_ATTEMPTS, BRINGUP_FIRST_DELAY_MS,
+    BRINGUP_MAX_DELAY_MS,
 };
-pub use run::{bring_up, recv_ready, say_absent, start_driver};
+pub use start::start_driver;

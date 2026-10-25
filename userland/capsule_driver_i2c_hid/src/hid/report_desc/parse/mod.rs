@@ -32,6 +32,7 @@ mod item;
 mod assign;
 mod feature;
 mod field_at;
+mod fingers;
 mod hand;
 mod limits;
 mod locals;
@@ -42,5 +43,6 @@ mod take;
 mod touch;
 mod walk;
 
+pub use fingers::{parse_fingers, Surface};
 pub use mouse::parse_mouse;
 pub use touch::parse;

@@ -21,5 +21,27 @@
 
 #[path = "../../../../src/hardware/broker/confine/posture.rs"]
 pub mod posture;
+#[path = "../../../../src/hardware/broker/confine/decide.rs"]
+pub mod decide;
+#[path = "../../../../src/hardware/broker/confine/open.rs"]
+pub mod open;
+#[path = "../../../../src/memory/iommu/no_iommu_rule.rs"]
+pub mod no_iommu_rule;
+// The port-only rule is mounted once, in acs_group, and proven there.
+use crate::proofs_2::acs_group::port_only;
 
 mod tests;
+#[cfg(test)]
+mod decide_tests;
+#[cfg(test)]
+mod interrupt_tests;
+#[cfg(test)]
+mod port_only_glue_tests;
+#[cfg(test)]
+mod port_only_verdict_glue_tests;
+#[cfg(test)]
+mod port_only_nodma_tests;
+#[cfg(test)]
+mod no_iommu_tests;
+#[cfg(test)]
+mod no_iommu_grant_tests;

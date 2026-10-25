@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Interrupt remapping (VT-d 3.4, chapter 5), with the
+//! `nonos-iommu-intremap` feature. Every unit blocks compatibility format
+//! interrupts (CFI clear): a device interrupts only through an entry the
+//! kernel wrote for its own requester id, naming its own vector.
+
 //! The one interrupt remapping table every unit is pointed at, as one root
 //! table serves every unit's DMA: a handle names the same entry whichever
 //! unit the device sits behind, and the entry's source id check keeps other
@@ -36,9 +41,9 @@ pub(super) static TABLE: Mutex<Table> = Mutex::new(Table { phys: 0, slots: [0; S
 /// Set once every unit acknowledged IRE with this table installed.
 pub(super) static ACTIVE: AtomicBool = AtomicBool::new(false);
 
-/// Whether interrupts can be routed through remapped entries. Until this
-/// holds a driver programs compatibility format MSI as before, which the
-/// units pass through while CFI is set.
+/// Whether interrupts are routed through remapped entries. Until this holds
+/// the broker binds a compatibility format interrupt only under the
+/// development opt-in.
 pub fn is_remapping() -> bool {
     ACTIVE.load(Ordering::Acquire)
 }

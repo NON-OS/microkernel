@@ -16,6 +16,7 @@
 
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_INSTALL: u16 = 2;
+/// Retired (`retired.rs`): refused, never reused.
 pub const OP_LOAD_FROM_STORE: u16 = 3;
 pub const OP_LOAD_BY_NAME: u16 = 4;
 pub const OP_LIST_INSTALLED: u16 = 5;
@@ -32,7 +33,8 @@ pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_001A;
 pub(super) const HDR_LEN: usize = 8;
 
 pub const EINVAL: i32 = -22;
-pub const EAGAIN: i32 = -11;
+/// A sender without the right an op needs (`server/gate.rs`).
+pub const EPERM: i32 = -1;
 
 pub struct Request<'a> {
     pub seq: u32,

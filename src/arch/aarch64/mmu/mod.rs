@@ -14,25 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod asid;
 pub mod attributes;
+mod boot_devices;
 mod boot_map;
 mod control;
+mod direct_map;
+mod geometry;
 pub mod granule;
+mod image_bounds;
 mod image_map;
+mod kernel_va;
+mod l2_pool;
+mod l3_tables;
 mod map;
+pub mod one_to_one;
+pub mod pointer;
+mod ram_map;
+mod secondary;
 mod state;
 pub mod table;
+mod tables_build;
+mod text_guard;
 mod tlb;
+pub mod tlbi_operand;
+pub(in crate::arch::aarch64) mod trampoline;
 pub mod translation;
 mod ttbr;
+mod uncached_block;
 mod unmap;
 
 pub use attributes::{MemoryType, PageAttributes};
-pub use boot_map::{init_mmu, KERNEL_SPACE_START};
+pub use boot_map::init_mmu;
+pub use direct_map::direct_map_end;
+pub use geometry::KERNEL_SPACE_START;
 pub use granule::{Granule, GRANULE_16K, GRANULE_4K, GRANULE_64K};
+pub(in crate::arch::aarch64) use kernel_va::{devices_high, high_mapped};
+pub use kernel_va::{image_pa, io, runs_high};
 pub use map::map_page;
+pub use secondary::{publish_for_secondaries, published_root};
 pub use table::PageTable;
 pub use tlb::{flush_tlb_all, flush_tlb_asid, flush_tlb_page};
-pub use translation::{phys_to_virt, virt_to_phys};
+pub use translation::virt_to_phys;
 pub use ttbr::{read_ttbr0, read_ttbr1, set_ttbr0, set_ttbr1};
+pub use uncached_block::make_block_uncached;
 pub use unmap::unmap_page;

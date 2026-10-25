@@ -20,10 +20,14 @@
 
 mod cell_rect;
 mod hit;
+mod meta;
 mod metrics;
 mod paint;
+mod pill;
+mod rename;
 mod rows;
 mod slot;
+mod tile;
 mod top;
 
 pub use hit::hit;

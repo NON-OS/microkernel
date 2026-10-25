@@ -20,15 +20,21 @@
 
 use super::source::{at, source};
 
+// The outer shareable barriers of nonos_libc, not `fence`: on aarch64 a
+// fence is DMB ISH, which a device is not promised to observe.
 #[test]
-fn the_index_is_published_after_a_release_fence_and_the_doorbell_after_another() {
+fn the_index_is_published_after_a_dma_write_barrier_and_the_doorbell_after_another() {
     let post = source("queue/post.rs");
-    assert!(at(&post, "fence(Ordering::Release)") < at(&post, "avail + AVAIL_IDX"));
-    assert!(at(&post, "write_chain(") < at(&post, "fence(Ordering::Release)"));
+    assert!(at(&post, "nonos_libc::dma_wmb()") < at(&post, "avail + AVAIL_IDX"));
+    assert!(at(&post, "write_chain(") < at(&post, "nonos_libc::dma_wmb()"));
     let access = source("transport/access.rs");
-    assert!(at(&access, "fence(Ordering::SeqCst)") < at(&access, "regs.w16(LEG_QUEUE_NOTIFY"));
+    assert!(at(&access, "nonos_libc::dma_wmb()") < at(&access, "regs.w16(LEG_QUEUE_NOTIFY"));
+    assert!(at(&access, "nonos_libc::dma_wmb()") < at(&access, "m.notify.w16(m.doorbell"));
     let used = source("queue/used.rs");
-    assert!(at(&used, "fence(Ordering::Acquire)") < at(&used, "used + USED_RING"));
+    assert!(at(&used, "nonos_libc::dma_rmb()") < at(&used, "used + USED_RING"));
+    for file in ["queue/post.rs", "queue/used.rs", "transport/access.rs"] {
+        assert!(!source(file).contains("fence(Ordering"), "{file} orders DMA with a fence");
+    }
 }
 
 #[test]

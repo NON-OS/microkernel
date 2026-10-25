@@ -27,55 +27,15 @@
 //!
 //! Pure on purpose, so the schedule is proven on the host.
 
-/// Attempts at bring-up before the driver gives up on the device.
-pub const BRINGUP_ATTEMPTS: u32 = 7;
-/// Sleep after the first failed attempt.
-pub const BRINGUP_FIRST_DELAY_MS: u64 = 100;
-/// No single sleep is longer than this.
-pub const BRINGUP_MAX_DELAY_MS: u64 = 3_200;
-
 /// The device this driver serves is not on the machine. Nothing was claimed.
 pub const EXIT_ABSENT: i32 = 2;
 /// The device is present and every attempt to bring it up failed. Whatever an
 /// attempt claimed was released before the exit.
 pub const EXIT_GAVE_UP: i32 = 6;
-
-/// What to do after attempt number `attempts_done` (counting from 1) failed.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Next {
-    /// Sleep this many milliseconds, then try again.
-    Retry(u64),
-    /// Stop trying.
-    GiveUp,
-}
-
-/// The sleep after the `attempts_done`th failure, doubling from the first
-/// delay and held at the cap. Zero attempts is not a failure and waits for
-/// nothing.
-pub const fn delay_after(attempts_done: u32) -> u64 {
-    if attempts_done == 0 {
-        return 0;
-    }
-    let shift = attempts_done - 1;
-    if shift >= 32 {
-        return BRINGUP_MAX_DELAY_MS;
-    }
-    let delay = BRINGUP_FIRST_DELAY_MS.saturating_mul(1u64 << shift);
-    if delay > BRINGUP_MAX_DELAY_MS {
-        BRINGUP_MAX_DELAY_MS
-    } else {
-        delay
-    }
-}
-
-/// The decision after a failed attempt.
-pub const fn next(attempts_done: u32) -> Next {
-    if attempts_done >= BRINGUP_ATTEMPTS {
-        Next::GiveUp
-    } else {
-        Next::Retry(delay_after(attempts_done))
-    }
-}
+/// A controller that came up with nothing behind it on every attempt (a
+/// disk controller with no disk): a driver that can tell its give-up apart
+/// leaves with this, not EXIT_GAVE_UP. Nothing it claimed is still held.
+pub const EXIT_EMPTY: i32 = 3;
 
 /// Where a driver's start leads: `Ok` to serve what `up` brought up, or `Err`
 /// with the code to exit with.
@@ -96,46 +56,5 @@ pub fn decide<F, T>(
             Err(EXIT_ABSENT)
         }
         Some(device) => up(device).map_err(|_| EXIT_GAVE_UP),
-    }
-}
-
-/// The longest a driver spends asleep before it gives up: the sum of every
-/// sleep the schedule allows.
-pub const fn total_sleep_ms() -> u64 {
-    let mut total = 0u64;
-    let mut done = 1u32;
-    while done < BRINGUP_ATTEMPTS {
-        total += delay_after(done);
-        done += 1;
-    }
-    total
-}
-
-/// What a serve loop does with its receive's answer.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RecvTurn {
-    /// A message arrived: serve it.
-    Serve,
-    /// The receive waited and came back with nothing: go round again.
-    Again,
-    /// The receive failed without waiting, and will fail the same way at
-    /// once next time (an inbox that is gone, a bad buffer): sleep before
-    /// going round, so the loop holds no core.
-    Park,
-}
-
-/// The kernel's answer to a receive whose timeout ran out with nothing.
-pub const ERRNO_TIMEDOUT: i64 = -110;
-/// How long a serve loop sleeps after a receive that failed at once.
-pub const RECV_PARK_MS: u64 = 100;
-
-/// The turn after a receive that returned `rc`.
-pub const fn recv_turn(rc: i64) -> RecvTurn {
-    if rc > 0 {
-        RecvTurn::Serve
-    } else if rc == 0 || rc == ERRNO_TIMEDOUT {
-        RecvTurn::Again
-    } else {
-        RecvTurn::Park
     }
 }

@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::panic, clippy::indexing_slicing)]
-
 //! The settlement call, byte for byte what Foundry encodes.
 
 use nox_shield_core::net::pool_errors::explain;

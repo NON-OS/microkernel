@@ -19,10 +19,10 @@ use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 use crate::settings::state::State;
 
 pub fn on_accessory(state: &mut State, event: InputEvent) -> EventOutcome {
-    if event.kind != InputKind::ButtonDown || state.search_focused {
+    if event.kind != InputKind::ButtonDown || state.search.focused {
         return EventOutcome::Idle;
     }
-    state.search_focused = true;
+    state.search.focused = true;
     state.editing = false;
     EventOutcome::Repaint
 }

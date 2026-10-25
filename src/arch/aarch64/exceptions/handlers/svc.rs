@@ -21,6 +21,11 @@ use crate::syscall::types::errnos;
 
 pub(super) fn dispatch(frame: &mut ExceptionFrame) {
     let result_word = match SyscallNumber::from_u64(frame.x8) {
+        // A guest naming a native number is refused before the cap table,
+        // as on x86_64 (process::foreign::seal::native).
+        Some(_) if crate::process::foreign::seal::native(frame.x8) => {
+            (-(errnos::EPERM as i64)) as u64
+        }
         Some(sc) => {
             let args =
                 SyscallArgs::new([frame.x0, frame.x1, frame.x2, frame.x3, frame.x4, frame.x5]);

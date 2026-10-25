@@ -75,6 +75,9 @@ import Nonos
 #print axioms Nonos.Loader.accepted_entry_inside_file
 #print axioms Nonos.NetParse.a_pointer_ends_the_walk
 #print axioms Nonos.Paging.confined_preserves_no_wx
+#print axioms Nonos.PagingGlobal.user_never_global
+#print axioms Nonos.PagingGlobal.kernel_keeps_global
+#print axioms Nonos.PagingGlobal.user_entry_never_survives_switch
 #print axioms Nonos.Path.leading_dotdot_neutralized
 #print axioms Nonos.Secure.every_trace_is_secure
 #print axioms Nonos.Secure.dma_owned_by_caller
@@ -379,8 +382,10 @@ import Nonos
 #print axioms Nonos.FrameNoAlias.alloc_no_alias
 #print axioms Nonos.FrameNoAlias.bump_aliases
 #print axioms Nonos.FrameNoAlias.fixed_none_on_empty
-#print axioms Nonos.InputConsumer.drain_implies_post
+#print axioms Nonos.InputConsumer.post_iff_source
+#print axioms Nonos.InputConsumer.drain_iff_consumer
 #print axioms Nonos.InputConsumer.irq_only_cannot_drain
+#print axioms Nonos.InputConsumer.the_router_drains_without_posting
 -- And who can hold a token to stamp with in the first place: only the process
 -- the call was addressed to, spent once.
 #print axioms Nonos.ReplyAuthorization.a_reply_token_comes_from_a_call_to_the_replier

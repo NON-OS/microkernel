@@ -17,9 +17,11 @@
 use crate::sys::serial;
 
 pub(super) fn init_entropy() {
-    if crate::drivers::init_virtio_rng().is_ok() {
-        serial::println(b"[NONOS] VirtIO-RNG ready");
+    // The kernel drives no RNG device: the CPU's, when it has one, and the
+    // entropy capsule's bytes once it runs, each mixed into every seed.
+    if crate::crypto::util::rng::has_cpu_entropy() || crate::crypto::util::rng::has_cpu_random() {
+        serial::println(b"[NONOS] Entropy: CPU RNG");
     } else {
-        serial::println(b"[NONOS] Software RNG");
+        serial::println(b"[NONOS] Entropy: no CPU RNG");
     }
 }

@@ -20,18 +20,17 @@ mod drain;
 mod extended;
 mod fault;
 mod limits;
-mod pages;
 mod shared;
 
 pub use agaw::{preferred_levels, AgawLevels};
 pub use behaviour::{
     caching_mode, has_protected_regions, page_walk_coherent, requires_write_buffer_flush,
+    zero_length_read,
 };
 pub use drain::{read_drain, write_drain};
 pub use extended::{
     extended_interrupt_mode, interrupt_remapping, queued_invalidation, snoop_control,
 };
 pub use fault::{fault_recording_count, fault_recording_offset};
-pub use limits::{domain_count, max_address_width};
-pub use pages::best_leaf_level;
+pub use limits::{domain_count, max_address_width, usable_domain_ids};
 pub use shared::{all_support, shared_address_width, shared_domain_count, shared_levels};

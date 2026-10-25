@@ -19,6 +19,7 @@
 use alloc::vec::Vec;
 
 use super::types::HandshakeState;
+use super::unverified::Unverified;
 use crate::traffic_keys::TrafficKeys;
 
 /// A verified handshake and the client's reply to it.
@@ -42,6 +43,8 @@ pub enum Refusal {
     Incomplete,
     /// The cipher would not seal the reply.
     Seal,
+    /// A signature check the crypto pool took and did not answer in time.
+    TooSlow,
 }
 
 impl HandshakeState {
@@ -58,7 +61,10 @@ impl HandshakeState {
         if self.end.is_none() {
             return Err(Refusal::Incomplete);
         }
-        let done = self.verify(host, now, true).ok_or(Refusal::Unverified)?;
+        let done = self.verify(host, now, true).map_err(|why| match why {
+            Unverified::Failed => Refusal::Unverified,
+            Unverified::TooSlow => Refusal::TooSlow,
+        })?;
         super::reply(done, request)
     }
 }

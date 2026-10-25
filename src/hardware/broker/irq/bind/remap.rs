@@ -17,30 +17,30 @@
 //! Taking and giving back a VT-d interrupt remapping entry for a broker
 //! vector, when the kernel is built with nonos-iommu-intremap.
 
-use super::super::grant::NO_IRTE;
 use super::message::Routed;
-use crate::arch::x86_64::iommu::remap::{release_msi, route_msi};
+use super::remap_rule::Attempt;
+use super::sentinels::NO_IRTE;
+use crate::arch::x86_64::iommu::remap::{is_remapping, release_msi, route_msi};
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
 
-/// `None` sends the compatibility format message, which every unit still
-/// passes while CFI is set. A function behind a VMD (segment above 0) raises
-/// its interrupts with the VMD's requester id, so an entry checked against
-/// its own bus:dev.fn would block it.
-pub(super) fn remapped(address: &PciAddress, vector: u8, dest: u8) -> Option<Routed> {
+/// An entry for `address`'s own requester id naming `vector`, or why not.
+pub(super) fn attempt(address: &PciAddress, vector: u8, dest: u8) -> (Attempt, Option<Routed>) {
     if address.segment != 0 {
-        return None;
+        // Behind VMD the requester id is VMD's own: not this device's.
+        return (if is_remapping() { Attempt::Failed } else { Attempt::Off }, None);
     }
     let bdf = (address.bus, address.device, address.function);
     match route_msi(bdf, vector, dest as u32) {
         Ok((irte, m)) => {
             let msg = MsiMessage { address: m.address as u64, data: m.data };
-            Some(Routed { msg, irte })
+            (Attempt::Routed, Some(Routed { msg, irte }))
         }
-        Err(VtdError::InterruptRemappingOff) => None,
+        Err(VtdError::InterruptRemappingOff) => (Attempt::Off, None),
+        Err(VtdError::RemapTableFull) => (Attempt::Full, None),
         Err(e) => {
-            crate::log::info!("[IRQ] {} vector {:#x} not remapped: {:?}", address, vector, e);
-            None
+            crate::log::info!("[IRQ] vector {:#x} not remapped: {:?}", vector, e);
+            (Attempt::Failed, None)
         }
     }
 }

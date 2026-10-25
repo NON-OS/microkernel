@@ -13,49 +13,27 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Everything after the register window: the transport, the scanouts, the
-//! best-effort probes and the primary surface.
+//! best-effort probes, and every enabled scanout taken into the
+//! wire server.
 
+use nonos_gfx_pool::Pool;
+use nonos_gfx_serve::Server;
 use nonos_virtio::Window;
 
-use super::{create_primary, probes, scanouts, transport};
+use super::{probes, scanouts, transport};
 use crate::discover::Found;
+use crate::display::take::take;
 use crate::driver::Driver;
-use crate::state::{FenceCounter, Health, ResourceTable, ScanoutTable};
+use crate::state::{FenceCounter, ScanoutTable, Tally};
 
-pub fn run(dev: Found, claim_epoch: u64, window: &Window) -> Result<Driver, &'static str> {
-    let ready = transport::start(dev.device_id, claim_epoch, window)?;
-    let (scanouts, fences, resources) =
-        (ScanoutTable::new(), FenceCounter::new(), ResourceTable::new());
+pub fn run(dev: Found, epoch: u64, window: &Window) -> Result<Driver<Pool>, &'static str> {
+    let ready = transport::start(dev.device_id, epoch, window)?;
+    let (scanouts, fences) = (ScanoutTable::new(), FenceCounter::new());
     scanouts::seed(&ready.control_queue, &scanouts, &fences)?;
-    let (id, notify) = (dev.device_id, window.notify_area());
-    let probed =
-        probes::run(ready.control_queue, ready.features, notify, &fences, id, claim_epoch)?;
-    let q = &probed.queue;
-    let primary = create_primary::create(id, claim_epoch, q, &fences, &resources, &scanouts)?;
-    Ok(Driver {
-        device_id: dev.device_id,
-        pci_device: dev.pci_device,
-        claim_epoch,
-        mmio_grant: window.common.grant_id,
-        queue_grant: ready.queue.grant_id,
-        queue_user_va: ready.queue.user_va,
-        queue_device_addr: ready.queue.device_addr,
-        queue_size: q.layout.queue_size,
-        // The low feature word, as OP_CONTROLLER_INFO reports it.
-        host_features: probed.features as u32,
-        virgl_ready: probed.virgl_ready,
-        control_queue: probed.queue,
-        resources,
-        scanouts,
-        fences,
-        primary,
-        notify,
-        health: Health::Live,
-        recoveries: 0,
-        in_a_row: 0,
-        recovered_at: 0,
-        recovered_ms: 0,
-    })
+    let (device, notify) = ((dev.device_id, epoch), window.notify_area());
+    let probed = probes::run(ready.control_queue, ready.features, notify, &fences, device)?;
+    let gpu = take((probed.queue, fences), device, &scanouts, probed.panel)?;
+    let server = Server::new(gpu, Pool::default());
+    Ok(Driver { device_id: dev.device_id, server, notify, tally: Tally::default() })
 }

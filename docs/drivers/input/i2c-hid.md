@@ -9,7 +9,7 @@ pad](i2c-hid-pad.md).
 ## Two capsules
 
 A touchpad takes two [driver
-capsules](../../overview/glossary.md#driver-capsule): one owns the I2C bus, the
+capsules](../../overview/glossary-dma-pool.md#driver-capsule): one owns the I2C bus, the
 other reads the touchpad on it.
 
 ```mermaid
@@ -23,7 +23,7 @@ flowchart LR
 
 - `capsule_driver_i2c_pci` serves `driver.i2c_pci0`. It owns the I2C host
   controller: it claims it through the [hardware
-  broker](../../overview/glossary.md#hardware-broker), maps its registers and
+  broker](../../overview/glossary-hardware-broker.md#hardware-broker), maps its registers and
   runs bounded bus transfers. It parses no HID report.
 - `capsule_driver_i2c_hid` serves `driver.i2c_hid0`. It holds no hardware grant
   at all. It asks `driver.i2c_pci0` for transfers with `OP_TRANSFER`, decodes

@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use super::bitbuf::BitBuf;
+use super::pad::padded_data;
 use crate::reed_solomon::ec_codewords;
 use crate::version::{blocks, Ecc};
 
@@ -26,26 +26,7 @@ pub(crate) fn message_codewords(data: &[u8], version: u8, ecc: Ecc) -> Vec<u8> {
     let bl = blocks(version, ecc);
     let cap = bl.total_data_codewords();
 
-    let mut bits = BitBuf::new();
-    bits.push(0b0100, 4);
-    let count_bits = if version <= 9 { 8 } else { 16 };
-    bits.push(data.len() as u32, count_bits);
-    for &b in data {
-        bits.push(b as u32, 8);
-    }
-    let cap_bits = cap * 8;
-    let term = core::cmp::min(4, cap_bits.saturating_sub(bits.len()));
-    bits.push(0, term as u32);
-    while bits.len() % 8 != 0 {
-        bits.push(0, 1);
-    }
-    let mut bytes = bits.into_bytes();
-    let pads = [0xECu8, 0x11u8];
-    let mut i = 0;
-    while bytes.len() < cap {
-        bytes.push(pads[i % 2]);
-        i += 1;
-    }
+    let bytes = padded_data(data, version, cap);
 
     let mut data_blocks: Vec<&[u8]> = Vec::with_capacity(bl.total_blocks());
     let mut ec_blocks: Vec<Vec<u8>> = Vec::with_capacity(bl.total_blocks());

@@ -18,13 +18,12 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
-use crate::crypto::rng::get_random_bytes;
 use crate::crypto::sha512::sha512;
 
 use crate::crypto::asymmetric::ed25519::field::ct_eq_32;
 use crate::crypto::asymmetric::ed25519::point::{
-    ge_add, ge_has_large_order, ge_p1p1_to_p3, ge_pack, ge_scalarmult_base_ct,
-    ge_to_cached, ge_unpack, scalarmult_vartime,
+    ge_add, ge_has_large_order, ge_p1p1_to_p3, ge_pack, ge_scalarmult_base_ct, ge_to_cached,
+    ge_unpack, scalarmult_vartime,
 };
 use crate::crypto::asymmetric::ed25519::scalar::{
     clamp_scalar, sc_addmul_mod_l, sc_ge, sc_reduce_mod_l, L,
@@ -71,10 +70,6 @@ impl Signature {
 }
 
 impl KeyPair {
-    pub fn generate() -> Self {
-        Self::from_seed(get_random_bytes())
-    }
-
     pub fn from_seed(seed: [u8; 32]) -> Self {
         let h = sha512(&seed);
         let mut a = [0u8; 32];

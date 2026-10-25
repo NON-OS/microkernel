@@ -35,10 +35,10 @@ pub fn bps_text(bps: u32, out: &mut [u8]) -> usize {
 
 /// The least the chain will let this trade return.
 pub fn min_out_text(state: &State, out: &mut [u8]) -> usize {
-    let to = crate::wallet::swap::token(state.swap_to);
+    let to = crate::wallet::swap::token(state.swap.to);
     // Derived from the tolerance rather than stored, so the figure shown
     // and the figure enforced cannot drift apart.
-    let least = apply_slippage(state.swap_quote.out_amount, state.swap_slippage_bps);
+    let least = apply_slippage(state.swap.quote.out_amount, state.swap.slippage_bps);
     let mut n = amount(least, to.decimals, out);
     n += copy(b" ", &mut out[n..]);
     n + copy(to.symbol.as_bytes(), &mut out[n..])
@@ -46,7 +46,7 @@ pub fn min_out_text(state: &State, out: &mut [u8]) -> usize {
 
 /// The tolerance the reader has set.
 pub fn slippage_text(state: &State, out: &mut [u8]) -> usize {
-    bps_text(state.swap_slippage_bps, out)
+    bps_text(state.swap.slippage_bps, out)
 }
 
 /// The gas the router is expected to want.

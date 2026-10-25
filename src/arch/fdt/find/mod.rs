@@ -15,12 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod cpus;
+pub mod framebuffer;
 pub mod gic;
+pub mod i2c;
+pub mod idle;
+pub mod iommus;
 pub mod isa;
+pub mod mailbox;
 pub mod memory;
+pub mod msi;
 pub mod pci;
+pub mod platform;
 pub mod plic;
+pub mod psci;
+pub mod reserved_dma;
 pub mod rtc;
+pub mod smmu;
 pub mod timebase;
 pub mod timer;
+pub mod timer_mem;
+pub mod tpm;
 pub mod uart;

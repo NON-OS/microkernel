@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! INQUIRY, the first command a unit is sent. Linux's SCSI scan always opens
-//! with one, and some USB storage firmware does not answer anything else
-//! correctly until it has seen it. What it says names the unit for as long
+//! INQUIRY, the first command a unit is sent. SPC makes it the one command
+//! every logical unit answers whatever its state, and some USB storage
+//! firmware does not answer anything else correctly until it has seen it
+//! (as observed, unverified). What it says names the unit for as long
 //! as it is served (scan/identity.rs).
 
-use super::bot::command;
 use super::digest::digest;
 use super::sense::sense;
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::scsi::{inquiry as inquiry_cdb, INQUIRY_DATA_LEN};
 use crate::state::State;
 
 /// An INQUIRY, sent once more after the sense of a CHECK CONDITION is taken
-/// (a power-on said first, say), as Linux's scsi_probe_lun sends it again;
+/// (a power-on said first, say);
 /// taking the sense clears the condition, which was left pending for the
 /// commands after it. Returns the digest of what a good INQUIRY says the
 /// unit is (its type, vendor, product and revision), or None when both

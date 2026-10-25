@@ -18,6 +18,7 @@
 
 use nonos_libc::mk_foreign_start;
 
+use super::app::{bind, bind_built_in, AppIdentity};
 use super::guest::Guest;
 use super::guest::{STACK_SIZE, STACK_TOP};
 use super::image;
@@ -32,15 +33,22 @@ use super::say::say;
  */
 pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u8]> {
     let (path, bytes) = (&launch.path[..], &launch.bytes[..]);
-    if let Err(why) = prove(path, bytes, &launch.origin) {
-        /* Named, and why, where the person who typed it reads it. */
-        let line = alloc::format!(
-            "linux: {} does not run: its proof was refused ({why})\n",
-            alloc::string::String::from_utf8_lossy(path)
-        );
-        say(line.as_bytes());
-        return Err(&b"[LINUX] unproven program\n"[..]);
-    }
+    guest.app = match prove(path, bytes, &launch.origin) {
+        Ok(app) => app,
+        Err(why) => {
+            /* Named, and why, where the person who typed it reads it. */
+            let line = alloc::format!(
+                "linux: {} does not run: its proof was refused ({why})\n",
+                alloc::string::String::from_utf8_lossy(path)
+            );
+            say(line.as_bytes());
+            return Err(&b"[LINUX] unproven program\n"[..]);
+        }
+    };
+    guest.app = super::boxed::narrow(guest.app);
+    super::seal_note::seal_app(&guest.app.app_id);
+    super::run_net::settle(guest.app.mask)?;
+    super::app::grant(guest.app.mask);
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
     let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
@@ -53,10 +61,11 @@ pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u
     }
 }
 
-/// A program out of the store proves itself against the enrolled set.
-fn prove(path: &[u8], bytes: &[u8], origin: &Origin) -> Result<(), &'static str> {
+/// A program out of the store proves itself against the enrolled set, and
+/// either kind is bound to the policy it runs under.
+fn prove(path: &[u8], bytes: &[u8], origin: &Origin) -> Result<AppIdentity, &'static str> {
     match origin {
-        Origin::BuiltIn => Ok(()),
-        Origin::Store => super::attest::verify(path, bytes).map(|_| ()),
+        Origin::BuiltIn => Ok(bind_built_in(bytes)),
+        Origin::Store => super::attest::verify(path, bytes).and_then(|_| bind(path, bytes)),
     }
 }

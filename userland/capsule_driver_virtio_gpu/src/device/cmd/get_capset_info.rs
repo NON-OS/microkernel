@@ -19,9 +19,9 @@
 //! every later GET_CAPSET and command-stream decision.
 
 use super::hdr::{Hdr, HDR_LEN, RESP_HDR_LEN};
+use super::le::le_u32;
 use crate::constants::{VG_CMD_GET_CAPSET_INFO, VG_RESP_OK_CAPSET_INFO};
 use crate::device::virtqueue::ControlQueue;
-use crate::protocol::le_u32;
 
 const REQ_LEN: usize = HDR_LEN + 8; // __le32 capset_index, __le32 padding
 const RESP_LEN: usize = RESP_HDR_LEN + 16; // id, max_version, max_size, padding

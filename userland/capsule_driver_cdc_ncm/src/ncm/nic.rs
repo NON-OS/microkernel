@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A bound NCM device as the frame service sees it.
+//! A bound NCM device as the frame service calls it (link.rs holds it).
 
 use nonos_usbnet::{Bus, Nic, Taken};
 
@@ -30,10 +30,10 @@ impl<B: Bus> Nic for Ncm<B> {
         self.station.1
     }
 
-    /// The link is the device being bound: NETWORK_CONNECTION arrives on an
-    /// interrupt endpoint driver.xhci0 does not configure beside bulk pipes.
+    /// Up from bind until NETWORK_CONNECTION says down (transfer.rs reads
+    /// it), so a device that never notifies still carries traffic.
     fn link_up(&self) -> bool {
-        true
+        self.link
     }
 
     fn send(&mut self, frame: &[u8]) -> Result<(), i32> {

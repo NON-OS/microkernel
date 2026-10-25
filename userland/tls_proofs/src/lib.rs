@@ -31,6 +31,7 @@ extern crate alloc;
 include!("modules_cert.rs");
 include!("modules_handshake.rs");
 include!("modules_record.rs");
+include!("modules_verify.rs");
 
 /*
  * The names nonos_tls exports at its root, exported here the same way, so a
@@ -47,6 +48,7 @@ pub use client_flight::client_flight;
 pub use handshake_alert::handshake_alert;
 pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};
 pub use traffic_keys::TrafficKeys;
+pub use session::{Io, SessionError};
 
 /* The stand-in C library, so a caller's proof can read the call counts. */
 pub use nonos_libc as shim;
@@ -63,3 +65,6 @@ pub mod relay_cert;
 mod fixtures;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+#[path = "tests/wipes.rs"]
+mod wipes;

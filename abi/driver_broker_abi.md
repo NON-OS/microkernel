@@ -70,31 +70,52 @@ and in its libc mirror (`userland/libc/src/broker/types/`).
 ```
 DeviceRecord {
     device_id:    u64       // broker-assigned
-    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3
+    bus_kind:     u8        // BUS_PCI=1, BUS_ACPI=2, BUS_VIRT=3, BUS_FDT=4, BUS_FIRMWARE=5
     pci_class:    u8        // PCI class code, as read
     pci_subclass: u8
     pci_progif:   u8
     class:        u32       // class id, see section 4
     vendor:       u16       // vendor id (PCI)
     device:       u16       // device id (PCI)
-    flags:        u32       // CLAIMED=1, DISABLED=2 (defined; never set)
+    flags:        u32       // CLAIMED=1, DISABLED=2 (fenced: never claimed),
+                            // EXTERNAL=4 (behind an external-facing port),
+                            // DEPS_UNMET=8, IRQ_EDGE=16, IRQ_ACTIVE_LOW=32,
+                            // DMA_NONCOHERENT=64: its DMA does not snoop
     bar_count:    u8        // valid BAR slot span, not compacted count
     irq_line:     u8        // PCI interrupt line (0xFF none)
     irq_pin:      u8        // PCI interrupt pin (0 none)
     _pad1:        u8
     irq_source:   u32       // PCI: the interrupt line
-    bars:         [Bar; 6]  // hardware BAR indices preserved; holes are zeroed
+    bars:         [Bar; 6]  // hardware BAR indices preserved; holes are zeroed,
+                            // but for the aux words noted under Bar
 }
 
 Bar {
     base:   u64
     size:   u64
-    aux:    u32      // LPSS I2C controller: source clock in Hz; else 0
+    aux:    u32      // I2C controller: input clock in Hz (bar 0); I2C-HID:
+                     // connection speed; device-tree I2C bar 1 (kind
+                     // NONE): bus rate in Hz; BUS_FDT SDHCI: its base
+                     // clock in Hz as firmware states it; else 0
     kind:   u8       // BAR_NONE=0, BAR_MMIO=1, BAR_PIO=2
-    flags:  u8       // PREFETCH=1, MEM64=2
+    flags:  u8       // PREFETCH=1, MEM64=2, FIXED=4 (a fixed legacy window)
     _pad:   [u8; 2]
 }
 ```
+
+A `BUS_FDT` record is a device the device tree names: an aarch64 board's
+eMMC, xHCI or AHCI controller. It has no config space. `vendor` is zero and
+`device` names the interface: `FDT_SDHCI=1`, `FDT_XHCI=2`, `FDT_AHCI=3`.
+`pci_class`, `pci_subclass` and `pci_progif` carry the class code the same
+registers have on PCI (08/05/01, 0c/03/30, 01/06/01), so a driver written for
+the PCI function matches. Its `reg` windows are memory BARs in tree order, and
+`irq_source` is its GIC SPI, zero when it has none the broker can route.
+`MkDmaMap` returns the address the device's bus sees, which the tree's
+`dma-ranges` may move from the physical one (the Pi 4's eMMC2 sees RAM's first
+GiB at 0xc000_0000). Frames are drawn from that window, or the map fails with
+`-ERANGE`; a device no bus maps DMA for gets `-ENOMEM`. On release the broker
+stops the device through its interface (SDHCI Software Reset For All, xHCI
+Run/Stop, AHCI GHC.HR), as it clears Bus Master Enable on a PCI function.
 
 An ACPI-bus I2C-HID record gives `vendor`, `device`, `pci_progif`, `irq_pin`,
 `irq_source` and bar 0 meanings of its own; they are listed in

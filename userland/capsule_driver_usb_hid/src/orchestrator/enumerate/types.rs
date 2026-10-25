@@ -31,13 +31,13 @@ pub enum Outcome {
 
 pub struct HidEndpoint {
     pub port: u32,
-    /// The root port the device is on, so its endpoints go when it leaves.
+    /// The port the device is on, so its endpoints go when it leaves.
     pub root_port: u8,
     pub slot: u8,
     pub dci: u8,
     pub kind: HidKind,
     pub max_packet: u16,
-    /// The interface's own keys, buttons and repeat.
+    /// The interface's own keys, buttons, pad state and repeat.
     pub dev: Device,
     /// When the poll loop next asks for its report.
     pub pace: Pace,

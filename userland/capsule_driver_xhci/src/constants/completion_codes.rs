@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const CC_SUCCESS: u8 = 1;
+/// A bus error on one transaction; for an isoch packet, that packet is lost.
+pub const CC_USB_TRANSACTION: u8 = 4;
 /// A command named a slot the controller does not have enabled.
 pub const CC_SLOT_NOT_ENABLED: u8 = 11;
 pub const CC_SHORT_PACKET: u8 = 13;
+/// An isoch endpoint found its ring empty (OUT) or its buffer full (IN):
+/// no TD names it, so no waiter ever asks for the event.
+pub const CC_RING_UNDERRUN: u8 = 14;
+pub const CC_RING_OVERRUN: u8 = 15;
+/// An isoch TD whose service interval had passed when it was reached.
+pub const CC_MISSED_SERVICE: u8 = 23;
 /// The Command Completion Event the controller posts once an abort stopped
 /// the command ring; its pointer is the dequeue position, not a command.
 pub const CC_COMMAND_RING_STOPPED: u8 = 24;

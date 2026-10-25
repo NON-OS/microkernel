@@ -26,9 +26,10 @@
 //! Naming the numbers once and refusing to compile a repeat is cheaper than
 //! reading warnings. A new op goes in [`ALL`] as well as beside its name.
 
+use super::distinct::all_distinct;
 use super::types::*;
 
-pub const ALL: [u16; 29] = [
+pub const ALL: [u16; 31] = [
     OP_STORE,
     OP_RETRIEVE,
     OP_DELETE,
@@ -58,23 +59,8 @@ pub const ALL: [u16; 29] = [
     OP_SHIELD_SEAL,
     OP_SHIELD_OPEN,
     OP_WALLET_DERIVE,
+    OP_SIGN_TYPED_DATA,
+    OP_LIST,
 ];
-
-/// O(n^2) over 24 entries, in a const context, so it costs nothing at runtime
-/// and the build fails on a repeat.
-pub const fn all_distinct(ops: &[u16]) -> bool {
-    let mut i = 0;
-    while i < ops.len() {
-        let mut j = i + 1;
-        while j < ops.len() {
-            if ops[i] == ops[j] {
-                return false;
-            }
-            j += 1;
-        }
-        i += 1;
-    }
-    true
-}
 
 const _: () = assert!(all_distinct(&ALL), "two operations share a code");

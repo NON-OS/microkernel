@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod commerce;
 mod entry;
 mod index;
 mod price;
 mod readiness;
 mod release;
+mod release_ext;
 mod token;
 mod validation;
 
+pub use commerce::{Commerce, ProofReq, SettleMode};
 pub use entry::MarketplaceEntry;
 pub use index::MarketplaceIndex;
 pub use price::{PriceKind, PriceModel};
 pub use readiness::InstallReadiness;
 pub use release::CapsuleRelease;
+pub use release_ext::ReleaseExt;
 pub use token::TokenInfo;
 pub use validation::{ValidationReport, ValidationStatus};

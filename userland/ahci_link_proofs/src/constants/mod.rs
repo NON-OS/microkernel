@@ -9,6 +9,8 @@ pub mod identify;
 pub mod pci;
 #[path = "../../../capsule_driver_ahci/src/constants/port.rs"]
 pub mod port;
+#[path = "../../../capsule_driver_ahci/src/constants/power_off.rs"]
+pub mod power_off;
 #[path = "../../../capsule_driver_ahci/src/constants/regs/mod.rs"]
 pub mod regs;
 #[path = "../../../capsule_driver_ahci/src/constants/timing.rs"]

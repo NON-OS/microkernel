@@ -14,15 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod control;
-mod error;
-mod init;
-mod key;
-mod keygen;
-mod registers;
-mod return_address;
+//! Return addresses signed with the IA key (FEAT_PAuth, `pac-ret`): one
+//! kernel key per boot shared by every CPU, and one per process for EL0.
 
-pub use control::{disable_pac, enable_pac, pac_enabled};
-pub use error::{PacError, PacResult};
-pub use init::init_pac;
+mod cpus;
+mod install;
+mod prepare;
+mod report;
+mod return_address;
+mod rndr;
+mod secret;
+mod slot;
+mod state;
+mod user;
+
+pub use cpus::{bind_this_cpu, secondary_key};
+pub(crate) use install::install_kernel_key;
+pub use prepare::prepare;
+pub use report::describe;
 pub use return_address::{authenticate_return_address, sign_return_address};
+pub use secret::Source;
+pub use state::active;
+pub use user::enter_process;

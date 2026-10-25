@@ -27,8 +27,6 @@ use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
 
-const DEFAULT_WAIT_MS: u64 = 100;
-
 pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
@@ -44,20 +42,26 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     // completion already posted — the lost-wakeup shape again, costing a full
     // timeout per interrupt that races the arm.
     let token = crate::sched::wake_token(pid);
-    let armed = match crate::hardware::broker::irq_wait_arm(pid, grant_id) {
+    // The grants are the process's; the sleeper, and the one woken, is this thread.
+    let holder = crate::hardware::broker::holder_of(pid);
+    let armed = match crate::hardware::broker::irq_wait_arm(holder, pid, grant_id) {
         Ok(s) => s,
-        Err(e) => return super::errno_map::grant_errno(e),
+        Err(e) => return super::errno_map::grant_errno_for(pid, grant_id, e),
     };
     let mut deadline = None;
     if armed == last_seq {
-        let wait = if timeout_ms == 0 { DEFAULT_WAIT_MS } else { timeout_ms };
+        let wait = super::bound::wait_ms(timeout_ms);
         let at = crate::time::timestamp_millis().saturating_add(wait);
         crate::sched::sleep_until_unless_woken(pid, at, token);
         crate::sched::yield_now();
         deadline = Some(at);
     }
-    let current = match crate::hardware::broker::irq_wait_disarm(pid, grant_id) {
+    let current = match crate::hardware::broker::irq_wait_disarm(holder, pid, grant_id) {
         Ok(s) => s,
+        // Revoked while it slept: its device left.
+        Err(e) if crate::hardware::broker::irq::gone::departed(pid, grant_id) => {
+            return super::errno_map::grant_errno_for(pid, grant_id, e);
+        }
         Err(_) => armed,
     };
     if write_user_value(out_ptr, &current).is_err() {

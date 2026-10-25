@@ -17,17 +17,20 @@
 /*
  * Queued invalidation: the descriptor encodings, the queue register values
  * and the ring arithmetic the kernel submits with, included by path and
- * checked against the bit positions of VT-d 3.4, section 6.5.2, and the
- * QI_* encodings in Linux include/linux/intel-iommu.h.
+ * checked against the bit positions of VT-d 3.4, section 6.5.2.
  */
 
 #[path = "../../../../src/arch/x86_64/iommu/unit/queue/descriptor.rs"]
 pub mod descriptor;
+mod domain_tests;
 #[path = "../../../../src/arch/x86_64/iommu/regs/cap/drain.rs"]
 pub mod drain;
 #[path = "../../../../src/arch/x86_64/iommu/regs/cap/extended.rs"]
 pub mod extended;
+#[path = "../../../../src/arch/x86_64/iommu/mapping/flush_rule.rs"]
+pub mod flush_rule;
 #[path = "../../../../src/arch/x86_64/iommu/regs/offsets/queue.rs"]
 pub mod queue;
 mod ring_tests;
+mod slot_tests;
 mod tests;

@@ -32,8 +32,14 @@ mod reply_wait;
 mod state;
 pub mod supervisor;
 pub mod transport;
+mod transport_holder;
+mod transport_lock;
+pub mod transport_nowait;
+mod transport_rule;
 mod waiting;
 
 pub use registry::{register, tick, Capsule};
+pub use reply_wait::rest;
 pub use state::CapsuleState;
 pub use supervisor::{tick as supervisor_tick, Supervised};
+pub(crate) use transport_holder::forget as forget_transport_holder;

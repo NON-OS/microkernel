@@ -16,14 +16,12 @@
 
 use core::sync::atomic::Ordering;
 
-use crate::arch::aarch64::asm::_aarch64_secondary_start;
 use crate::arch::aarch64::boot::info::BootInfo;
 use crate::arch::aarch64::boot::stack::get_kernel_stack;
-use crate::arch::aarch64::psci;
 use crate::sys::serial;
 
-use super::roster;
 use super::state::CPUS_ONLINE;
+use super::{roster, start_one};
 
 /// How long to wait for a released CPU to check in before giving up on it.
 const CHECKIN_SPINS: u64 = 200_000_000;
@@ -34,8 +32,8 @@ const CHECKIN_SPINS: u64 = 200_000_000;
 /// machine: the boot CPU is enough to run the system, and taking the whole
 /// kernel down because one core of many refused to come up turns a degraded
 /// boot into no boot at all.
-pub fn start_secondary_cpus(_boot_info: &BootInfo) {
-    let entry = _aarch64_secondary_start as unsafe extern "C" fn() as u64;
+pub fn start_secondary_cpus(boot_info: &BootInfo) {
+    crate::arch::aarch64::mmu::publish_for_secondaries();
     let mut released = 0u32;
 
     for index in 1..roster::len() {
@@ -46,14 +44,13 @@ pub fn start_secondary_cpus(_boot_info: &BootInfo) {
             serial::println(b"[SMP] no stack for secondary, skipping");
             continue;
         };
-        // PSCI names a core by its MPIDR affinity. Passing the loop counter
-        // instead only lands on the right core when a board has a single
-        // cluster and numbers it from zero.
-        if psci::cpu_on(affinity, entry, stack_top).is_err() {
-            serial::println(b"[SMP] PSCI CPU_ON refused a secondary");
-            continue;
+        match start_one::start(boot_info, index, affinity, stack_top) {
+            Ok(()) => released += 1,
+            Err(reason) => {
+                serial::print(b"[SMP] a secondary did not start: ");
+                serial::println(reason);
+            }
         }
-        released += 1;
     }
 
     wait_for_checkin(released + 1);
@@ -64,9 +61,15 @@ fn wait_for_checkin(expected: u32) {
     while CPUS_ONLINE.load(Ordering::Acquire) < expected {
         if spins >= CHECKIN_SPINS {
             serial::println(b"[SMP] timed out waiting for a secondary to check in");
-            return;
+            break;
         }
         spins += 1;
         core::hint::spin_loop();
     }
+    // Said either way, so a boot where every core came up says so rather than
+    // saying nothing, and a boot check can read the count.
+    let mut l = serial::Line::new();
+    l.str(b"[SMP] online=").dec(u64::from(CPUS_ONLINE.load(Ordering::Acquire)));
+    l.str(b" of ").dec(u64::from(expected));
+    l.end();
 }

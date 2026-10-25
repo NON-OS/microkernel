@@ -14,11 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! The gate's two files, mounted where the capsule keeps them.
+//! The gate's files, mounted where the capsule keeps them.
 
 #[path = "../../../capsule_market/src/install_ready/arch.rs"]
 pub mod arch;
 
+#[path = "../../../capsule_market/src/install_ready/bond.rs"]
+pub mod bond;
+
 #[path = "../../../capsule_market/src/install_ready/checks.rs"]
 pub mod checks;
+
+#[path = "../../../capsule_market/src/install_ready/market.rs"]
+pub mod market;
+
+#[path = "../../../capsule_market/src/install_ready/pin.rs"]
+pub mod pin;
+
+/* It reads the chain hosts, which only the tests mount. */
+#[cfg(test)]
+#[path = "../../../capsule_market/src/install_ready/ready.rs"]
+pub mod ready;
+#[cfg(test)]
+pub use ready::ready;

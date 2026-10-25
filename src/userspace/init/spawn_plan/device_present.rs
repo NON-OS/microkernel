@@ -23,6 +23,21 @@
 //! device without end, and each spawn costs an attestation the boot waits
 //! for.
 
+// Each driver whose spawn asks it first; one missing breaks its lone profile.
+#![cfg(any(
+    feature = "nonos-capsule-driver-ahci",
+    feature = "nonos-capsule-driver-nvme",
+    feature = "nonos-capsule-driver-sdhci",
+    feature = "nonos-capsule-driver-ufs",
+    feature = "nonos-capsule-driver-virtio-blk",
+    feature = "nonos-capsule-driver-virtio-net",
+    feature = "nonos-capsule-driver-e1000e",
+    feature = "nonos-capsule-driver-igb",
+    feature = "nonos-capsule-driver-ixgbe",
+    feature = "nonos-capsule-driver-iwlwifi",
+    feature = "nonos-capsule-driver-rtl8821ce"
+))]
+
 use crate::hardware::inventory::{present as has, HardwareFamily};
 use crate::sys::boot_log;
 

@@ -16,3 +16,6 @@ license = "AGPL-3.0-or-later"
 path = "src/lib.rs"
 
 [dependencies]
+
+[package.metadata.nonos]
+test-lane = true

@@ -29,7 +29,6 @@ pub const OUTLINE: u32 = 0xFF27_282A;
 pub const FIELD: u32 = 0xFF16_1719;
 pub const BANNER: u32 = 0xFF1E_1F21;
 pub const CYAN: u32 = 0xFF66_FFFF;
-pub const DEEP_TEAL: u32 = 0xFF2E_5C5C;
 pub const BAD: u32 = 0xFFFF_8A8A;
 
 // Room: the only spacing numbers there are.
@@ -42,7 +41,6 @@ pub const TIGHT: u32 = 12;
 // Edge: nearly square controls, rounder tiles, one-pixel lines.
 pub const CORNER: u32 = 2;
 pub const RADIUS: u32 = 14;
-pub const HAIR: u32 = 1;
 pub const TALL: u32 = 58;
 pub const ROUND: u32 = 56;
 

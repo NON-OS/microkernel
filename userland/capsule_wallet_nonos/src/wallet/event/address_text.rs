@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A 0x address as text: what a paste must be to be taken, and the EIP-55
-//! checksum its capital letters carry. A paste is taken whole or not at
-//! all, so a hash, a sentence or a cut address never becomes a different
-//! address by losing what is not hex. Pure: the keccak of the address is
+//! A 0x address as text: what a paste must be to be taken, and whether the
+//! capital letters it carries are its EIP-55 checksum. A paste is taken
+//! whole or not at all, so a hash, a sentence or a cut address never
+//! becomes a different address by losing what is not hex. The keccak is
 //! passed in, so wallet_proofs checks the EIP's own examples on the host.
+
+use nonos_marketplace_abi::{address_text, Keccak};
+
+use crate::wallet::event::hex_digit::hex_digit;
 
 /// Said when a paste is not one address.
 pub const NOT_AN_ADDRESS: &str = "That is not an address. An address is 0x and 40 hex digits; \
@@ -38,28 +42,6 @@ pub fn pasted(text: &str) -> Result<[u8; 40], &'static str> {
     Ok(out)
 }
 
-/// The digits in lower case: what the checksum is computed over.
-pub fn lower(hex: &[u8; 40]) -> [u8; 40] {
-    let mut out = *hex;
-    out.iter_mut().for_each(|c| *c = c.to_ascii_lowercase());
-    out
-}
-
-/// The EIP-55 spelling of `hex`, given `hash`, the keccak-256 of its
-/// lower-case digits: a letter is a capital where its nibble of the hash
-/// is 8 or more.
-pub fn checksummed(hex: &[u8; 40], hash: &[u8; 32]) -> [u8; 40] {
-    let mut out = lower(hex);
-    for (i, c) in out.iter_mut().enumerate() {
-        let byte = hash[i / 2];
-        let nibble = if i % 2 == 0 { byte >> 4 } else { byte & 0x0f };
-        if c.is_ascii_alphabetic() && nibble >= 8 {
-            *c = c.to_ascii_uppercase();
-        }
-    }
-    out
-}
-
 /// Whether the case of `hex` says anything: one written all in lower or
 /// all in upper case carries no checksum, any other must be the checksum.
 pub fn mixed_case(hex: &[u8; 40]) -> bool {
@@ -68,7 +50,11 @@ pub fn mixed_case(hex: &[u8; 40]) -> bool {
     upper && lower
 }
 
-/// Whether the case of `hex` is right, given the keccak of its lower case.
-pub fn case_ok(hex: &[u8; 40], hash: &[u8; 32]) -> bool {
-    !mixed_case(hex) || checksummed(hex, hash) == *hex
+/// Whether the case of `hex` is right: none to check, or the EIP-55
+/// spelling of the address it reads as, marketplace_abi's address_text.
+/// Only a paste already read as 40 hex digits is asked about.
+pub fn case_ok(k: &impl Keccak, hex: &[u8; 40]) -> bool {
+    let digit = |c: u8| hex_digit(u32::from(c)).unwrap_or(0);
+    let a: [u8; 20] = core::array::from_fn(|i| (digit(hex[2 * i]) << 4) | digit(hex[2 * i + 1]));
+    !mixed_case(hex) || address_text(k, &a)[2..] == *hex
 }

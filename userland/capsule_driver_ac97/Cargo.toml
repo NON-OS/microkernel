@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_ac97
+#
+# Userland Intel ICH AC'97 (8086:2415) audio driver capsule: QEMU's `AC97`
+# and VirtualBox's AC'97. Port I/O for the mixer and the bus master, one
+# coherent DMA grant for the descriptor list and the sample ring, polled.
+# It serves audio.server the PCM sink wire driver.hda0 serves, so the
+# server plays through whichever of the two the machine has.
+
+[package]
+name = "nonos_capsule_driver_ac97"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel ICH AC'97 audio driver capsule"
+
+[[bin]]
+name = "driver_ac97"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

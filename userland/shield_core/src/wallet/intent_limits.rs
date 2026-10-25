@@ -11,6 +11,10 @@ pub struct PoolRules {
     pub words_per_intent: u8,
     /// The largest private transfer fee, in units, read from chain. Zero means no fee.
     pub max_relay_fee: u64,
+    /// On a pool with an AmountPolicy, the policy's quote for this withdraw (its settlementFee
+    /// check at confirm), which the fee must equal; the pool has no bps cap. None keeps
+    /// `MAX_FEE_BPS` for a pool without a policy.
+    pub policy_fee: Option<u64>,
 }
 
 impl PoolRules {
@@ -24,8 +28,13 @@ pub(super) fn in_range(values: &[u64], price: u64) -> bool {
     values.iter().all(|v| *v <= MAX_VALUE) && price < nonos_stark::field::P
 }
 
-/// `fee * 10^4 <= public_amount * MAX_FEE_BPS`, as the pool computes it.
-pub(super) fn fee_within_cap(fee: u64, public_amount: u64) -> bool {
+/// A withdraw's fee: the policy's quote exactly, or within the cap on a pool without a policy.
+pub(super) fn withdraw_fee_ok(fee: u64, public_amount: u64, pool: &PoolRules) -> bool {
+    pool.policy_fee.map_or_else(|| fee_within_cap(fee, public_amount), |quote| fee == quote)
+}
+
+/// `fee * 10^4 <= public_amount * MAX_FEE_BPS`, as a pool without a policy computes it.
+fn fee_within_cap(fee: u64, public_amount: u64) -> bool {
     let fee_side = u128::from(fee).checked_mul(BPS);
     let cap_side = u128::from(public_amount).checked_mul(MAX_FEE_BPS);
     matches!((fee_side, cap_side), (Some(f), Some(c)) if f <= c)

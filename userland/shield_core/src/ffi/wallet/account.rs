@@ -61,8 +61,3 @@ pub(super) fn parse_recipient(text: &str) -> Result<[u8; 20], WalletError> {
     }
     Ok(address)
 }
-
-/// Whether the shielded pool exists on `network`: Sepolia, while it is the only one deployed.
-pub fn network_has_shield(network: Network) -> bool {
-    network.chain().shield
-}

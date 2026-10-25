@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod intel_pcie;
+mod realtek;
+
 pub(super) fn spawn() {
     spawn_e1000();
-    spawn_rtl8139();
-    spawn_rtl8169();
+    intel_pcie::spawn();
+    spawn_igc();
+    realtek::spawn();
 }
 
 #[cfg(feature = "nonos-capsule-driver-e1000")]
@@ -33,28 +37,10 @@ fn spawn_e1000() {
 #[cfg(not(feature = "nonos-capsule-driver-e1000"))]
 fn spawn_e1000() {}
 
-#[cfg(feature = "nonos-capsule-driver-rtl8139")]
-fn spawn_rtl8139() {
-    use crate::hardware::rtl8139_capsule as c;
-    super::boot::capsule(
-        "DRIVER-RTL8139",
-        "driver_rtl8139",
-        c::spawn_driver_rtl8139_capsule,
-        c::shared_state,
-    );
+#[cfg(feature = "nonos-capsule-driver-igc")]
+fn spawn_igc() {
+    use crate::hardware::igc_capsule as c;
+    super::boot::capsule("DRIVER-IGC", "driver_igc", c::spawn_driver_igc_capsule, c::shared_state);
 }
-#[cfg(not(feature = "nonos-capsule-driver-rtl8139"))]
-fn spawn_rtl8139() {}
-
-#[cfg(feature = "nonos-capsule-driver-rtl8169")]
-fn spawn_rtl8169() {
-    use crate::hardware::rtl8169_capsule as c;
-    super::boot::capsule(
-        "DRIVER-RTL8169",
-        "driver_rtl8169",
-        c::spawn_driver_rtl8169_capsule,
-        c::shared_state,
-    );
-}
-#[cfg(not(feature = "nonos-capsule-driver-rtl8169"))]
-fn spawn_rtl8169() {}
+#[cfg(not(feature = "nonos-capsule-driver-igc"))]
+fn spawn_igc() {}

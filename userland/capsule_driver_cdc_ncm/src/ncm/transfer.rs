@@ -23,6 +23,7 @@ use nonos_usbnet::xhci::{E_INVAL, E_IO, E_PIPE};
 use nonos_usbnet::Bus;
 
 use super::link::Ncm;
+use super::link_watch::look_at_link;
 use super::ntb_in::datagrams;
 use super::ntb_out::build;
 
@@ -39,9 +40,10 @@ pub(super) fn send<B: Bus>(ncm: &mut Ncm<B>, frame: &[u8]) -> Result<(), i32> {
 /// The next datagram that fits `out`; the IN pipe is polled only once the
 /// last block's datagrams are all handed up.
 pub(super) fn recv<B: Bus>(ncm: &mut Ncm<B>, out: &mut [u8]) -> Result<Option<usize>, i32> {
+    look_at_link(ncm);
     if ncm.pending.is_empty() {
         match ncm.bus.bulk_in_poll(&mut ncm.rx) {
-            Ok(Some(n)) => datagrams(&ncm.rx[..n], ncm.rx_max, &mut ncm.pending),
+            Ok(Some(n)) => datagrams(&ncm.rx[..n], ncm.rx_max, ncm.ntb32, &mut ncm.pending),
             Ok(None) => return Ok(None),
             Err(e) => return Err(recover(&mut ncm.bus, e, ncm.pipes.bulk_in)),
         }

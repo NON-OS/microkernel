@@ -16,6 +16,7 @@
 
 use super::display_free;
 use super::low32_free::{low32_free, low32_owns};
+use super::uncached::{uncached_free, uncached_owns};
 
 /// Return a run to the pool that handed it out. `false` when no pool owns it,
 /// so the caller frees it to the general allocator; a pool run must never go
@@ -23,7 +24,9 @@ use super::low32_free::{low32_free, low32_owns};
 /// run the pool refuses stays marked handed out: a leak, said on the log,
 /// rather than one frame handed to two devices.
 pub(in crate::hardware::broker::dma) fn give_back(addr: u64, pages: usize) -> bool {
-    let freed = if low32_owns(addr) {
+    let freed = if uncached_owns(addr) {
+        uncached_free(addr, pages)
+    } else if low32_owns(addr) {
         low32_free(addr, pages)
     } else {
         match display_free::free(addr, pages) {
@@ -32,9 +35,9 @@ pub(in crate::hardware::broker::dma) fn give_back(addr: u64, pages: usize) -> bo
         }
     };
     if !freed {
-        crate::sys::serial::print(b"[DMA] pool refused a free of a run it did not hand out: addr=");
-        crate::sys::serial::print_hex(addr);
-        crate::sys::serial::print(b" pages=");
+        crate::sys::serial::print(
+            b"[DMA] pool refused a free of a run it did not hand out: pages=",
+        );
         crate::sys::serial::print_dec(pages as u64);
         crate::sys::serial::println(b"; frames kept");
     }

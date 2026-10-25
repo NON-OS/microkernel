@@ -21,8 +21,6 @@
 //! device writes ever leaves this function; the buffer is wiped first, so
 //! nothing of the frame stays behind once it is delivered.
 
-use core::sync::atomic::{fence, Ordering};
-
 use crate::constants::MAX_ETHERNET_FRAME;
 use crate::queue::{used, zero, RxQueue};
 
@@ -39,7 +37,7 @@ pub fn take_one(rx: &mut RxQueue, out: &mut [u8]) -> Option<usize> {
         return None;
     }
     // The entry and the frame are only valid once the index is seen.
-    fence(Ordering::Acquire);
+    nonos_libc::dma_rmb();
     let (id, used_len) = used::elem(rx.ring, rx.last_used);
     rx.last_used = rx.last_used.wrapping_add(1);
     let Some(slot) = u16::try_from(id).ok().filter(|&s| s < rx.buf_count) else {

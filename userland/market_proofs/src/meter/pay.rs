@@ -1,0 +1,31 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! FUNDED's predicate and the PAY checks it is made of, as the meter has
+//! them: `priced` on the commerce record, then `landing` on the state.
+
+#[path = "../../../nonos_nox_meter/src/pay/funded.rs"]
+mod funded;
+#[path = "../../../nonos_nox_meter/src/pay/landing.rs"]
+mod landing;
+#[path = "../../../nonos_nox_meter/src/pay/offer.rs"]
+mod offer;
+#[path = "../../../nonos_nox_meter/src/pay/record.rs"]
+mod record;
+
+pub use funded::{funded, install};
+pub use landing::landing;
+pub use offer::priced;
+pub use record::Offer;

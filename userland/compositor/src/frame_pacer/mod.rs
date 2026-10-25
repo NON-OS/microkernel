@@ -14,12 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod band_rule;
+pub mod band_meet;
+pub mod band_watch;
+pub mod canvas_copy;
 pub mod clip;
 pub mod compose;
 pub mod composite;
 pub mod cursor;
+pub mod cursor_shape;
+pub mod cursor_slot;
+pub mod drain_batch;
 pub mod drain_damage;
-pub mod present_virtio;
+pub mod extend;
+pub mod first_frame;
+pub mod hw_cursor;
+pub mod hw_cursor_back;
+pub mod indicator_band;
+pub mod lens;
+pub mod look;
+pub mod look_matrix;
+pub mod look_paint;
+pub mod mirror;
+pub mod night_tint;
+pub mod own_look;
+pub mod present_note;
+pub mod present_wire;
+pub mod show;
+pub mod show_band;
+pub mod slice_view;
 pub mod tick;
+pub mod to_screen;
 
+pub use show_band::show_band;
 pub use tick::tick;

@@ -6,7 +6,7 @@ use super::calls::{balance, call, estimate, latest_block, nonce, priority_fee};
 use super::network::Network;
 use super::nox::{with_address, BALANCE_OF};
 use super::rpc::ask;
-pub use super::shield_batch_txs::{Batch, BatchChecked, Deposit};
+pub use super::shield_batch_txs::{Batch, BatchChecked, Deposit, BATCH_ETH_SHORT};
 use crate::error::NetError;
 use crate::net::tor::Tor;
 

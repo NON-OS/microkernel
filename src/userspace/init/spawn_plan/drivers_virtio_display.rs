@@ -16,8 +16,25 @@
 
 pub(super) fn spawn() {
     spawn_gpu();
+    spawn_bga();
+    super::drivers_native_display::spawn();
     spawn_net();
 }
+
+/// The Bochs adapter, only where the inventory saw one: it is a display
+/// driver, beside virtio-gpu, though not a virtio one.
+#[cfg(feature = "nonos-capsule-driver-bga")]
+fn spawn_bga() {
+    use crate::hardware::bga_capsule as c;
+    use crate::hardware::inventory::{present, HardwareFamily};
+    if !present(HardwareFamily::DisplayBga) {
+        crate::sys::boot_log::ok("DRIVER-BGA", "no controller present, not spawned");
+        return;
+    }
+    super::boot::capsule("DRIVER-BGA", "driver_bga", c::spawn_driver_bga_capsule, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-driver-bga"))]
+fn spawn_bga() {}
 
 #[cfg(feature = "nonos-capsule-driver-virtio-gpu")]
 fn spawn_gpu() {

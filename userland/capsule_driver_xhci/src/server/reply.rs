@@ -28,10 +28,13 @@ use nonos_libc::{mk_ipc_reply, mk_ipc_send};
 
 use crate::protocol::KERNEL_REPLY_ENDPOINT;
 
+pub use super::vouch::{vouch, vouched};
+
 static SENDER: AtomicU32 = AtomicU32::new(0);
 
 pub fn set_sender(pid: u32) {
     SENDER.store(pid, Ordering::Relaxed);
+    super::vouch::unvouch();
 }
 
 /// The pid of the client whose request is being served, 0 for the kernel.

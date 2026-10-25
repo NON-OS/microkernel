@@ -14,14 +14,21 @@ edition = "2021"
 path = "src/lib.rs"
 
 # The SHA-256 AKMs (SAE, PSK-SHA256) key their PTK expansion with HMAC-SHA256,
-# and WPA3-SAE runs over the NIST P-256 group (IEEE 802.11 group 19). These are
 # the same RustCrypto crates, versions and features the TLS client and
-# capsule_crypto already build for the capsule target; `expose-field` adds the
-# field arithmetic the hash-to-element map and hunting-and-pecking need.
+# capsule_crypto already build for the capsule target. AES, AES-CMAC and the
+# NIST P-256 group SAE runs over (IEEE 802.11 group 19) are the system's one
+# each, in nonos_aes and nonos_p256, which the Bluetooth Security Manager
+# uses too.
 [dependencies]
-p256 = { version = "0.13", default-features = false, features = ["arithmetic", "expose-field"] }
+nonos_aes = { path = "../nonos_aes" }
+nonos_p256 = { path = "../nonos_p256" }
 sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
 hmac = { version = "0.12", default-features = false }
+# The local, unicast address bits, shared with every network driver.
+nonos_mac = { path = "../nonos_mac" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[package.metadata.nonos]
+test-lane = true

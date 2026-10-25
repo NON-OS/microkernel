@@ -23,17 +23,25 @@
 
 extern crate alloc;
 
+// The span code and the files it is cut into: the requests a range becomes,
+// a disk's blocks and its per-request ceiling.
+#[path = "../../nonos_blk_client/src/device/chunks.rs"]
+pub mod chunks;
 #[path = "../../nonos_blk_client/src/driver/mod.rs"]
 pub mod driver;
 pub mod drivers;
 #[path = "../../nonos_blk_client/src/error.rs"]
 pub mod error;
+#[path = "../../nonos_blk_client/src/device/geometry.rs"]
+pub mod geometry;
 #[path = "../../nonos_blk_client/src/device/identity_parse.rs"]
 pub mod identity_parse;
 #[path = "../../nonos_blk_client/src/device/span.rs"]
 pub mod span;
 #[path = "../../nonos_blk_client/src/status_text.rs"]
 pub mod status_text;
+#[path = "../../nonos_blk_client/src/device/transfer.rs"]
+pub mod transfer;
 pub mod wire;
 
 #[cfg(test)]

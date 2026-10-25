@@ -14,56 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The market capsule's readiness gate, included and exercised.
 
 extern crate alloc;
 
+pub mod bonds;
 pub mod install_ready;
 
 #[path = "../../capsule_market/src/server/handlers/install_ready/find_release.rs"]
 pub mod find_release;
 
-// The request header decode every frame passes before dispatch; the rest of
-// the module is the capsule's reply side, which nothing here sends.
-#[allow(dead_code, unused_imports)]
-#[path = "../../capsule_market/src/protocol/mod.rs"]
+#[cfg(test)]
+mod abi_v3;
+// The request header decode every frame passes before dispatch (protocol/).
+#[cfg(test)]
 mod protocol;
+mod server;
+#[cfg(test)]
+use abi_v3::chain_hosts;
 
 #[cfg(test)]
 mod index_decode_tests;
 
 pub mod release_wire;
 
+pub mod meter;
+// The meter's files name each other from its crate root.
+use meter::{budget, channel, error, state};
 pub mod store;
 
 pub mod linux_why;
-
+#[cfg(test)]
+mod proto_hostile;
 #[cfg(test)]
 mod reason_tests;
 
+#[cfg(test)]
+mod readiness_tests;
 pub mod terminal;
 
 #[cfg(test)]
-mod readiness_tests;
-
-#[cfg(test)]
 mod release_tests;
-
 #[cfg(test)]
 mod request_tests;
 
 #[cfg(test)]
-mod store_tests;
+mod store_checks;
 
 #[cfg(test)]
-mod store_step_tests;
-
+mod readiness_wire_tests;
 #[cfg(test)]
-mod store_words_tests;
-
-#[cfg(test)]
-mod store_tab_tests;
-
+mod release_escrow_tests;
 #[cfg(test)]
 mod wire_tests;

@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// How far reaching the RPC host got. Through an anonymity network the
-/// exit resolves the name and connects, so all three stand or fall
-/// together.
+/// Whether the RPC host was reached. Through Nym or Anyone the exit
+/// resolves the name and connects, so one flag says it.
 #[derive(Clone, Copy)]
 pub struct TcpProbe {
-    pub resolve: bool,
-    pub socket: bool,
     pub connect: bool,
 }

@@ -16,6 +16,11 @@
 
 use alloc::vec::Vec;
 
+#[path = "statements_split.rs"]
+mod statements_split;
+
+pub use statements_split::split_program;
+
 // How a statement is gated on the previous statement's exit status:
 // `;` runs always, `&&` runs only after success, `||` only after failure.
 // A single `|` is left untouched here so the pipeline stage can split it.
@@ -30,44 +35,6 @@ pub struct Stmt<'a> {
     pub conn: Conn,
     pub body: &'a [u8],
     pub background: bool,
-}
-
-pub fn split_program(line: &[u8]) -> Vec<Stmt<'_>> {
-    let mut out: Vec<Stmt<'_>> = Vec::new();
-    let (mut start, mut conn) = (0usize, Conn::Always);
-    let (mut sq, mut dq) = (false, false);
-    let mut i = 0;
-    while i < line.len() {
-        let c = line[i];
-        if c == b'\'' && !dq {
-            sq = !sq;
-        } else if c == b'"' && !sq {
-            dq = !dq;
-        } else if !sq && !dq && c == b';' {
-            push(&mut out, conn, &line[start..i], false);
-            conn = Conn::Always;
-            start = i + 1;
-        } else if !sq && !dq && c == b'&' && line.get(i + 1) == Some(&b'&') {
-            push(&mut out, conn, &line[start..i], false);
-            conn = Conn::And;
-            start = i + 2;
-            i += 2;
-            continue;
-        } else if !sq && !dq && c == b'|' && line.get(i + 1) == Some(&b'|') {
-            push(&mut out, conn, &line[start..i], false);
-            conn = Conn::Or;
-            start = i + 2;
-            i += 2;
-            continue;
-        } else if !sq && !dq && c == b'&' && !joins_streams(line, i) {
-            push(&mut out, conn, &line[start..i], true);
-            conn = Conn::Always;
-            start = i + 1;
-        }
-        i += 1;
-    }
-    push(&mut out, conn, &line[start..], false);
-    out
 }
 
 /// An `&` right after `<` or `>` (`2>&1`) is part of that redirect, not a

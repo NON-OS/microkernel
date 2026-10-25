@@ -15,60 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::distributor::GicDistributor;
-use super::redistributor::GicRedistributor;
+use super::frames;
 
-pub struct Gic {
+/// The GICv3 distributor, and through `frames` the calling CPU's own
+/// redistributor for the SGIs and PPIs that live there.
+pub(super) struct Gic {
     distributor: GicDistributor,
-    redistributor: GicRedistributor,
 }
 
 impl Gic {
-    pub fn new(dist_base: u64, redist_base: u64) -> Self {
-        Self {
-            distributor: GicDistributor::new(dist_base),
-            redistributor: GicRedistributor::new(redist_base),
-        }
+    pub(super) fn new(dist_base: u64) -> Self {
+        Self { distributor: GicDistributor::new(dist_base) }
     }
 
-    pub fn init(&mut self) {
-        self.distributor.init();
-        self.redistributor.init();
-        super::icc::init();
+    pub(super) fn init(&mut self) -> Result<(), &'static str> {
+        self.distributor.init()?;
+        super::cpu::init_gic_cpu()
     }
 
-    pub fn enable_irq(&self, irq: u32) {
-        if irq < 32 {
-            self.redistributor.enable_irq(irq);
-        } else {
+    pub(super) fn enable_irq(&self, irq: u32) {
+        if irq >= 32 {
             self.distributor.enable_irq(irq);
+        } else if let Some(frame) = frames::this_cpu() {
+            frame.enable_irq(irq);
         }
     }
 
-    pub fn disable_irq(&self, irq: u32) {
-        if irq < 32 {
-            self.redistributor.disable_irq(irq);
-        } else {
+    pub(super) fn disable_irq(&self, irq: u32) {
+        if irq >= 32 {
             self.distributor.disable_irq(irq);
-        }
-    }
-
-    pub fn set_priority(&self, irq: u32, priority: u8) {
-        if irq < 32 {
-            self.redistributor.set_priority(irq, priority);
-        } else {
-            self.distributor.set_priority(irq, priority);
-        }
-    }
-
-    pub fn set_target(&self, irq: u32, target: u8) {
-        self.distributor.set_target(irq, target);
-    }
-
-    pub fn set_config(&self, irq: u32, edge: bool) {
-        if irq < 32 {
-            self.redistributor.set_config(irq, edge);
-        } else {
-            self.distributor.set_config(irq, edge);
+        } else if let Some(frame) = frames::this_cpu() {
+            frame.disable_irq(irq);
         }
     }
 }

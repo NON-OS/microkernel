@@ -16,31 +16,49 @@
 
 //! Set the transmit power. Until this ran, frames left the antenna at the
 //! power-on default of essentially zero, so no access point could hear them.
-//! rtw8821c programs a per-rate power index into the TXAGC registers: path A
-//! starts at 0x1D00, and each 32-bit register packs four consecutive rates, one
-//! power index per byte (`rtw8821c_set_tx_power_index_by_rate`). The full driver
-//! derives each index from the board's efuse power-by-rate tables and the
-//! regulatory limits; until that calibration is ported, a single conservative
-//! index is written for every rate the association and data path use, which is
-//! enough to reach an access point in range. The register program is checked
-//! against a modeled device in `rtl8821ce_proofs`.
+//! rtw8821c programs a per-rate power index, in 0.5 dB steps, into the TXAGC
+//! registers: path A starts at 0x1D00, and each 32-bit register packs four
+//! consecutive rates, one index per byte
+//! (`rtw8821c_set_tx_power_index_by_rate`). The full driver derives each index
+//! from the board's efuse power-by-rate tables and caps it at the regulatory
+//! limit in the same units; until that calibration is ported, one index is
+//! written for every rate the association and data path use: the lowest
+//! world-domain EIRP limit (`nonos_wifi_core::regdom`) of any 2.4 GHz channel
+//! the domain allows, less an assumed antenna gain. It is written once, at
+//! bring-up, and holds across every retune, so it fits each channel. The
+//! register program is checked against a modeled device in
+//! `rtl8821ce_proofs`.
+
+use nonos_wifi_core::regdom::max_eirp_dbm;
 
 use crate::regs::Mmio;
 
 /// TXAGC path-A base. Each register packs four rates, one power index per byte.
 const REG_TXAGC_A: usize = 0x1D00;
-/// A fixed transmit-power index in half-dB steps: about 20 dBm, ample to reach an
-/// access point in range and within the 2.4GHz envelope.
-const POWER_INDEX: u8 = 0x28;
+/// The antenna gain assumed between the conducted power and the EIRP the
+/// domain limits: 2 dBi, typical of a laptop's internal antennas. A board with
+/// more gain needs its own figure.
+const ANTENNA_GAIN_DBI: u8 = 2;
 /// Rate groups to program: CCK (1 to 11M), the two OFDM groups (6 to 54M), and
 /// the two single-stream MCS groups (MCS0 to MCS7). These are the rates the
 /// authentication, handshake and data frames are sent at.
 const RATE_GROUPS: u32 = 5;
 
-/// Write the fixed transmit-power index across the CCK, OFDM and single-stream
-/// MCS rate registers for path A, so transmitted frames carry real power.
+/// The power index for `channel`: the domain's EIRP limit less the antenna
+/// gain, in 0.5 dB steps; `None` where the domain does not allow the channel.
+pub fn power_index(channel: u8) -> Option<u8> {
+    max_eirp_dbm(channel)?.checked_sub(ANTENNA_GAIN_DBI)?.checked_mul(2)
+}
+
+/// The index written: the lowest of any 2.4 GHz channel's, so it fits each.
+pub fn band_index() -> u8 {
+    (1..=14).filter_map(power_index).min().unwrap_or(0)
+}
+
+/// Write the band's power index across the CCK, OFDM and single-stream MCS
+/// rate registers for path A, so transmitted frames carry real power.
 pub fn set_tx_power<M: Mmio>(mmio: &M) {
-    let word = u32::from_le_bytes([POWER_INDEX; 4]);
+    let word = u32::from_le_bytes([band_index(); 4]);
     for group in 0..RATE_GROUPS {
         mmio.write32(REG_TXAGC_A + (group * 4) as usize, word);
     }

@@ -16,8 +16,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::term::block::{Block, Status};
+use crate::term::block::Block;
 use crate::term::theme::types::Theme;
+
+#[path = "block_mark.rs"]
+mod block_mark;
+use block_mark::status_mark;
 
 /// Size the meta is drawn at. Below the body, because it annotates a command
 /// rather than being part of what the command said.
@@ -57,34 +61,4 @@ pub(super) fn draw_meta(
         let x = right - fb.measure_ttf(dur, META_PX);
         let _ = fb.text_ttf(x, baseline, dur, stripe, META_PX);
     }
-}
-
-/// The outcome, as strokes rather than a character, and the left edge it
-/// leaves behind.
-///
-/// The UI face carries no tick and no cross, so asking it for one drew a
-/// missing-glyph box. Two lines say the same thing and are legible at a size
-/// no font in the tree renders well at. A running command has no outcome yet
-/// and gets nothing, which is why the column is empty while it works.
-fn status_mark(fb: &mut PaintBuffer, s: Status, right: i32, top: i32, t: &Theme) -> i32 {
-    let x = right - MARK;
-    let mid = top + MARK / 2;
-    match s {
-        Status::Running => return right,
-        Status::Ok => {
-            for d in 0..2 {
-                let pts = [
-                    (x, mid + d),
-                    (x + MARK / 3, mid + MARK / 3 + d),
-                    (x + MARK, mid - MARK / 2 + d),
-                ];
-                fb.polyline_aa(&pts, t.ok);
-            }
-        }
-        Status::Err => {
-            fb.line_aa(x, mid - MARK / 2, x + MARK, mid + MARK / 2, t.err);
-            fb.line_aa(x, mid + MARK / 2, x + MARK, mid - MARK / 2, t.err);
-        }
-    }
-    x - GAP
 }

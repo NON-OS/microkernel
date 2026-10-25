@@ -1,0 +1,66 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! A device taken out while nothing plays is noticed (the the review,
+//! R19): the bound port's Current Connect Status read from driver.xhci0's
+//! OP_PORT_STATUS data. Connect Status Change alone does not count, and a
+//! port the data does not name has nothing on it.
+
+use crate::portsc::{connected_in, speed_in};
+
+fn data(entries: &[(u8, u32)]) -> Vec<u8> {
+    let mut d = vec![entries.len() as u8, 0, 0, 0];
+    for &(port, sc) in entries {
+        d.extend_from_slice(&[port, 0, 0, 0]);
+        d.extend_from_slice(&sc.to_le_bytes());
+    }
+    d
+}
+
+#[test]
+fn the_bound_port_is_read_by_its_connect_status() {
+    let d = data(&[(1, 0x0000_0000), (3, 0x0000_0C01), (5, 1 << 17)]);
+    assert!(connected_in(&d, 3));
+    assert_eq!(speed_in(&d, 3), Some(3), "the speed read is unchanged");
+    assert!(!connected_in(&d, 1), "nothing on it");
+    assert!(!connected_in(&d, 5), "a change without a device is not a device");
+    assert!(!connected_in(&d, 7), "a port not listed");
+}
+
+#[test]
+fn short_data_names_no_device() {
+    let d = data(&[(3, 1)]);
+    assert!(!connected_in(&d[..8], 3));
+    assert!(!connected_in(&[], 3));
+}
+
+/// A device taken out while it plays is looked for as one taken out while
+/// idle: the port is read once a poll either way, and the playing run loop
+/// asks through the same rule.
+#[test]
+fn a_device_pulled_out_mid_playback_is_looked_for() {
+    use crate::serve::look::look_now;
+    for playing in [false, true] {
+        assert!(look_now(true, playing, true), "playing {playing}");
+        assert!(!look_now(true, playing, false), "not due");
+        assert!(!look_now(false, playing, true), "nothing bound");
+    }
+    let gone = include_str!("../../capsule_driver_usb_audio/src/serve/gone.rs");
+    assert!(gone.contains("look::look_now(bound.is_some(), play.running, next.expired())"));
+    assert!(!gone.contains("if play.running"), "no other rule skips a playing device");
+    let run = include_str!("../../capsule_driver_usb_audio/src/serve/run.rs");
+    assert!(run.contains("b\"device unplugged, given back\""));
+}

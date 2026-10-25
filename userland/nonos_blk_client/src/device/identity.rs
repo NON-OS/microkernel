@@ -15,12 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What the part calls itself. NVMe controllers carry a model and a serial
-//! in their identify page, and the driver hands both through; a person
-//! erasing a disk should see the name on its sticker, and the last four
-//! characters of the serial are the word they type to confirm. The SATA
-//! driver and the SD reader answer an identify op of one layout with a
-//! model and serial (`laid_out.rs`), and say whether the part is a SATA
-//! disk, an eMMC part or an SD card. virtio parts give no name and say so.
+//! in their identify page; a person erasing a disk should see the name on
+//! its sticker, and the serial's last four characters are the word they type
+//! to confirm. The SATA driver and the SD reader answer one identify layout
+//! (`laid_out.rs`), the block wire's drivers its IDENTIFY (`wire.rs`), each
+//! with a model, a serial and the kind of part. virtio parts give no name.
 
 use super::handle::BlockDevice;
 pub use super::identity_parse::Identity;
@@ -54,6 +53,7 @@ impl BlockDevice {
                 Ok(Some(Identity { model, serial, emmc: false }))
             }
             Driver::Ahci => Ok(laid_out(Driver::Ahci, OP_AHCI_IDENTIFY, self.port)),
+            Driver::Wire | Driver::Ufs => Ok(super::wire::identity(self.port)),
             Driver::Rtsx => Ok(laid_out(Driver::Rtsx, OP_SD_IDENTIFY, self.port)),
             Driver::VirtioBlk => Ok(None),
         }

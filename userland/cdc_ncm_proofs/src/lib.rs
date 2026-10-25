@@ -27,10 +27,22 @@ mod input_size_tests;
 #[cfg(test)]
 mod limits_tests;
 #[cfg(test)]
+mod link_tests;
+#[cfg(test)]
 mod ntb;
+#[cfg(test)]
+mod ntb32_tests;
+#[cfg(test)]
+mod ntb_audit_tests;
+#[cfg(test)]
+mod ntb_sweep;
+#[cfg(test)]
+mod ntb_sweep_tests;
 #[cfg(test)]
 mod rx_tests;
 #[cfg(test)]
 mod spec;
+#[cfg(test)]
+mod tx_size_tests;
 #[cfg(test)]
 mod tx_tests;

@@ -46,42 +46,6 @@ impl Values {
     pub fn text(&self) -> &str {
         &self.text
     }
-
-    /// The newest of `items` (the last ones) that fit in `room` more bytes,
-    /// each as a `name` value, in their own order. Returns how many of the
-    /// oldest were left out, so a reply never runs past the wallet's buffer.
-    pub fn put_newest<S: AsRef<str>>(&mut self, name: &str, items: &[S], room: usize) -> usize {
-        let mut used = 0usize;
-        let mut first = items.len();
-        for item in items.iter().rev() {
-            let line = name.len() + item.as_ref().len() + 2;
-            if used + line > room {
-                break;
-            }
-            used += line;
-            first -= 1;
-        }
-        for item in items.get(first..).unwrap_or(&[]) {
-            self.put(name, item.as_ref());
-        }
-        first
-    }
-
-    /// A finished job's own values after the envelope's. One named as an
-    /// envelope value (`job`, `state`) goes as `job_<name>`: a value is
-    /// read by its first line, so the envelope's would hide it.
-    pub fn put_job(&mut self, text: &str) -> &mut Values {
-        for line in text.lines() {
-            if let Some((k, v)) = line.split_once('=') {
-                match k {
-                    "state" => self.put("job_state", v),
-                    "job" => self.put("job_job", v),
-                    _ => self.put(k, v),
-                };
-            }
-        }
-        self
-    }
 }
 
 /// The value named `name` in a reply's body, the first if it repeats.

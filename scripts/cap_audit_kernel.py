@@ -156,22 +156,17 @@ def handler_gates(root):
          "token.can_register_service() || token.is_admin()",
          "only to claim a runtime-registrable name the spawn did not give the caller",
          False, runtime_registrable(root)),
-        ("MPCR", "all", {"Driver"}, HARD, "src/syscall/microkernel/pci.rs",
+        ("MPCR", "all", {"Driver"}, HARD, "src/syscall/microkernel/pci/config.rs",
          "caps::has(pid, Capability::Driver.bit())",
          "the handler asks for Driver itself; Admin passes the table but not this",
          False, None),
-        ("MPCW", "all", {"Driver"}, HARD, "src/syscall/microkernel/pci.rs",
+        ("MPCW", "all", {"Driver"}, HARD, "src/syscall/microkernel/pci/config.rs",
          "caps::has(pid, Capability::Driver.bit())",
          "the handler asks for Driver itself; Admin passes the table but not this",
          False, None),
         ("MADC", "all", {"Network"}, HARD, "src/syscall/caps/checks/system.rs",
          "!self.reaches_network()",
          "the TPM quote is refused to any holder of Network", True, None),
-        ("MTRN", "all", {"Network", "FileSystem"}, HARD,
-         "src/userspace/tool_capsules/model_fetch/spawn.rs",
-         "caller.can_network() && caller.can_open_files()",
-         "running tool.model-fetch takes Network and FileSystem in the caller",
-         False, {"tool.model-fetch"}),
     ]
     out = {}
     for tag, kind, names, strength, path, anchor, why, refuses, literal in listed:
@@ -198,6 +193,17 @@ def network_services(root):
     m = re.search(r"const NETWORK_SERVICES\s*:\s*\[&str;\s*\d+\]\s*=\s*\[(.*?)\];", text, re.S)
     if not m:
         raise SourceMoved(f"{POLICY} no longer defines NETWORK_SERVICES")
+    names = re.findall(r'"([^"]+)"', m.group(1))
+    line = text[:m.start()].count("\n") + 1
+    return names, f"{POLICY}:{line}"
+
+
+def key_services(root):
+    """(names, cite) of the services whose endpoints take Keyring to reach."""
+    text = (root / POLICY).read_text()
+    m = re.search(r"const KEY_SERVICES\s*:\s*\[&str;\s*\d+\]\s*=\s*\[(.*?)\];", text, re.S)
+    if not m:
+        raise SourceMoved(f"{POLICY} no longer defines KEY_SERVICES")
     names = re.findall(r'"([^"]+)"', m.group(1))
     line = text[:m.start()].count("\n") + 1
     return names, f"{POLICY}:{line}"

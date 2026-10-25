@@ -26,6 +26,9 @@ pub const INPUT_KIND_POINTER_ABS: u16 = 3;
 pub const INPUT_KIND_WHEEL: u16 = 4;
 pub const INPUT_KIND_BUTTON_DOWN: u16 = 5;
 pub const INPUT_KIND_BUTTON_UP: u16 = 6;
+pub const INPUT_KIND_PAD_BUTTON_DOWN: u16 = 8;
+pub const INPUT_KIND_PAD_BUTTON_UP: u16 = 9;
+pub const INPUT_KIND_PAD_AXIS: u16 = 10;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]

@@ -31,8 +31,10 @@
 //! blocks. Every place here starts and ends on a block of
 //! [`MAX_BLOCK_BYTES`] but the key header, which shares the plan's.
 //!
-//! The kernel settles on the disk that carries the store's magic at 256 or
-//! the plan's at 245760 (`src/hardware/block_device/identify.rs`), serves
+//! The kernel settles on the disk that carries the store's magic or the
+//! plan's where its GPT's NONOS partitions start, or at 256 and 245760 on a
+//! disk whose table names none (`src/hardware/block_device/identify.rs`,
+//! `gpt/fixed.rs`), preferring the disk the loader came from. It serves
 //! store reads and writes only inside 256..245760
 //! (`src/syscall/microkernel/store_read.rs`, `store_write.rs`), and reads the
 //! plan and the key header itself (`src/fs/blockfs_volume/`). It keeps its

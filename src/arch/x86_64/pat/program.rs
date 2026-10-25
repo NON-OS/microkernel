@@ -64,7 +64,7 @@ pub fn wc_ready() -> bool {
 /// The CPU must have the PAT.
 unsafe fn write() {
     // Lines cached under the old table are written back before and after
-    // the change, as Linux does around its PAT write in cache_cpu_init.
+    // the change, two of the steps 12.12.4 points to (recalled, unverified).
     // SAFETY: WBINVD and WRMSR at ring 0 touch only this CPU's caches and
     // its PAT; the value keeps entries 0, 2 and 3 as reset left them.
     unsafe { core::arch::asm!("wbinvd", options(nostack, preserves_flags)) };

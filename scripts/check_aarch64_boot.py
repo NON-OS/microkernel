@@ -29,6 +29,13 @@ trap-kernel-abort  built with nonos-trap-proof-kernel-abort: exactly two [TRAP]
                    with a level 0 translation fault on a read, and the faulting
                    address with its access, both as the trap contract prints them
 
+QEMU boots the arm64 Image made from the ELF (arm64_image.py), as real
+loaders do, with its device tree in x0. The kernel is a static PIE that
+relocates itself, and an ELF of type ET_DYN is not a form every QEMU's ELF
+loader takes. virt places the Image at RAM base 0x4000_0000 plus text_offset
+0x8_0000, which is the link address, so the ELR a trap reports is read
+against the ELF unchanged.
+
 A trap cell also fails if any kernel line follows the last [TRAP] line, or if
 the boot reaches Core ready. QEMU is stopped as soon
 as the cell has what it needs plus a short settle, or at the deadline. The log
@@ -46,15 +53,20 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from arm64_image import image, text_offset  # noqa: E402
 from check_kernel_elf import Elf, PF_X, PT_LOAD  # noqa: E402
 
 QEMU_FLAGS = ["-M", "virt,gic-version=3", "-cpu", "max", "-m", "512", "-nographic",
               "-serial", "mon:stdio", "-device", "virtio-rng-pci"]
 SETTLE_SECS = 3.0
 
+# A boot without a NONOS loader has no evidence for the kernel's check of the
+# bootloader, so it must stop there, never start userspace (C-50).
+STOP = "[ERROR] bootloader not admitted by the kernel's check; stopping"
 CORE_MARKERS = ["[KSEC] 4/4 sections mapped as declared", "[NONOS] Core ready",
-                "[UKERNEL] Entering userspace", "[INIT] Starting"]
-NEVER = ["[TRAP]", "KERNEL FATAL TRAP", "[BOOT] refused", "KERNEL PANIC"]
+                "[BOOT-ATTEST] bootloader not checked: no boot-root record or trailer", STOP]
+NEVER = ["[TRAP]", "KERNEL FATAL TRAP", "[BOOT] refused", "KERNEL PANIC",
+         "[UKERNEL] Entering userspace", "[INIT] Starting"]
 
 HEX = r"0x([0-9A-F]{16})"
 SP0_LINE = re.compile(rf"^\[TRAP\] SP_EL0 vector sync esr={HEX} elr={HEX} spsr={HEX} sp={HEX}$")
@@ -68,6 +80,22 @@ ABORT_DETAIL = "[TRAP] far=0x0000400000000000 read not-present EL1"
 EC_DATA_ABORT_SAME = 0x25
 DFSC_TRANSLATION_L0 = 0x04
 WNR = 1 << 6
+
+
+# The kernel's TTBR1 alias of its image: KERNEL_SPACE_START plus the link
+# address (src/arch/aarch64/mmu/geometry.rs), where it runs once `move_high`
+# has moved it and said so on the console (src/arch/aarch64/boot/high.rs).
+KERNEL_HIGH = 0xFFFF_8000_0000_0000
+RUNS_HIGH = "[MMU] the kernel runs from TTBR1"
+
+
+def image_address(lines, addr):
+    """The link address an ELR names: itself, or its TTBR1 alias's, once the
+    log says the kernel moved there. Before that line a high ELR is no
+    address of the image."""
+    if addr >= KERNEL_HIGH and RUNS_HIGH in lines:
+        return addr - KERNEL_HIGH
+    return addr
 
 
 def trap_lines(lines):
@@ -112,9 +140,9 @@ def judge_sp0(lines, elf):
         failed.append(f"saved SPSR.M {spsr & 0xF:#06b}, want {SPSR_M_EL1T:#06b} (EL1 on SP_EL0)")
     if sp != SP0_MARK:
         failed.append(f"sp {sp:#x}, want the SP_EL0 the proof loaded, {SP0_MARK:#x}")
-    if not in_text(elf, elr):
+    if not in_text(elf, image_address(lines, elr)):
         failed.append(f"elr {elr:#x} lies in no executable segment of the image")
-    elif elf is not None and elf.read(elr, 4) != BRK_5350:
+    elif elf is not None and elf.read(image_address(lines, elr), 4) != BRK_5350:
         failed.append(f"the instruction at elr {elr:#x} is not `brk #0x5350`")
     return failed + ran_on(lines)
 
@@ -134,7 +162,7 @@ def judge_abort(lines, elf):
         failed.append(f"esr {esr:#x} has DFSC {esr & 0x3F:#x}, want {DFSC_TRANSLATION_L0:#x} (level 0 translation)")
     if esr & WNR:
         failed.append(f"esr {esr:#x} says write, the proof reads")
-    if not in_text(elf, elr):
+    if not in_text(elf, image_address(lines, elr)):
         failed.append(f"elr {elr:#x} lies in no executable segment of the image")
     if traps.count(ABORT_DETAIL) != 1 or traps.index(ABORT_DETAIL) != traps.index(match.group(0)) + 1:
         failed.append(f"the report is not followed by `{ABORT_DETAIL}`")
@@ -150,15 +178,20 @@ def ran_on(lines):
 
 
 CELLS = {
-    "core": (judge_core, lambda lines: "[INIT] Starting" in "\n".join(lines)),
+    "core": (judge_core, lambda lines: STOP in "\n".join(lines)),
     "trap-sp0": (judge_sp0, lambda lines: any(SP0_LINE.match(t) for t in trap_lines(lines))),
     "trap-kernel-abort": (judge_abort, lambda lines: ABORT_DETAIL in lines),
 }
 
 
-def boot(qemu, elf_path, cell, deadline, log_path):
-    """Run QEMU until the cell is satisfied plus a settle, or the deadline."""
-    proc = subprocess.Popen([qemu, *QEMU_FLAGS, "-kernel", str(elf_path)],
+def boot(qemu, elf, cell, deadline, log_path):
+    """Run QEMU on the ELF's Image until the cell is satisfied plus a settle, or the deadline."""
+    img = image(elf)
+    if text_offset(img) != 0x8_0000:
+        raise ValueError(f"text_offset {text_offset(img):#x}: ELR would not match the ELF")
+    img_path = Path(tempfile.mkdtemp()) / "kernel.img"
+    img_path.write_bytes(img)
+    proc = subprocess.Popen([qemu, *QEMU_FLAGS, "-kernel", str(img_path)],
                             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     lines = []
@@ -188,14 +221,15 @@ def self_test():
                 "elr=0x0000000040110110 spsr=0x00000000600003C4 sp=0x0000535053505350"]
     good_abort = ["[TRAP] KERNEL FATAL TRAP: Page Fault esr=0x0000000096000004 "
                   "elr=0x00000000400C6D5C sp=0x000000004140FB80 origin=EL1", ABORT_DETAIL]
-    good_core = ["[KSEC] 4/4 sections mapped as declared", "[NONOS] Core ready",
-                 "[UKERNEL] Entering userspace", "[INIT] Starting"]
+    good_core = CORE_MARKERS[:]
     cases = [
         ("core", good_core, True),
         ("core", good_core[:3], False),
         ("core", [good_core[1], good_core[0]] + good_core[2:], False),
         ("core", good_core + ["[BOOT] refused: gic: x, mpidr=0x0000000000000000"], False),
         ("core", good_core + ["!!! KERNEL PANIC !!!"], False),
+        ("core", good_core + ["[UKERNEL] Entering userspace"], False),
+        ("core", good_core[:2] + ["[UKERNEL] Entering userspace", "[INIT] Starting"], False),
         ("trap-sp0", good_sp0, True),
         ("trap-sp0", [good_sp0[1].replace("F2005350", "F2005351")], False),
         ("trap-sp0", [good_sp0[1].replace("600003C4", "600003C5")], False),
@@ -215,18 +249,28 @@ def self_test():
     ]
     wrong = [(cell, i) for i, (cell, log, ok) in enumerate(cases)
              if (not CELLS[cell][0](log, None)) != ok]
+    # The TTBR1 alias is the image only once the log says the kernel runs
+    # there; before it, or below the alias, the address is taken as it is.
+    aliases = [
+        ([RUNS_HIGH], 0xFFFF_8000_400D_134C, 0x400D_134C),
+        ([], 0xFFFF_8000_400D_134C, 0xFFFF_8000_400D_134C),
+        ([RUNS_HIGH], 0x400D_134C, 0x400D_134C),
+        (["[MMU] the kernel stays one-to-one"], 0xFFFF_8000_400D_134C, 0xFFFF_8000_400D_134C),
+    ]
+    wrong += [("alias", i) for i, (log, addr, want) in enumerate(aliases)
+              if image_address(log, addr) != want]
     if wrong:
         print(f"aarch64-boot: self-test failed on cases {wrong}")
         return 1
     print(f"aarch64-boot: self-test passed, {sum(not ok for *_, ok in cases)} bad logs rejected "
-          f"and {sum(ok for *_, ok in cases)} good ones accepted")
+          f"and {sum(ok for *_, ok in cases)} good ones accepted, {len(aliases)} alias cases")
     return 0
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--cell", choices=sorted(CELLS))
-    ap.add_argument("--elf", type=Path, help="the kernel ELF to boot and to read ELR against")
+    ap.add_argument("--elf", type=Path, help="the kernel ELF whose Image is booted and ELR read against")
     ap.add_argument("--log", type=Path, help="where the serial log is written")
     ap.add_argument("--deadline", type=float, default=300.0, help="seconds before QEMU is stopped")
     ap.add_argument("--qemu", default="qemu-system-aarch64")
@@ -243,7 +287,7 @@ def main():
         note = f"replayed {a.replay}"
     else:
         log = a.log or Path(tempfile.mkdtemp()) / f"{a.cell}.log"
-        lines, elapsed, satisfied = boot(a.qemu, a.elf, a.cell, a.deadline, log)
+        lines, elapsed, satisfied = boot(a.qemu, elf, a.cell, a.deadline, log)
         note = f"{len(lines)} lines in {elapsed:.0f}s, log {log}" + ("" if satisfied else ", deadline hit")
     failed = CELLS[a.cell][0](lines, elf)
     if failed:

@@ -25,8 +25,7 @@ impl Matrix {
         for &cy in pos {
             for &cx in pos {
                 let (cx, cy) = (cx as usize, cy as usize);
-                let near_finder =
-                    (cx < 8 && cy < 8) || (cx > n - 9 && cy < 8) || (cx < 8 && cy > n - 9);
+                let near_finder = (cy < 8 && (cx < 8 || cx > n - 9)) || (cx < 8 && cy > n - 9);
                 if near_finder {
                     continue;
                 }

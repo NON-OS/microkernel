@@ -1,0 +1,21 @@
+# NONOS userland: nonos_uvc
+# eK@nonos.systems
+#
+# The USB Video Class, pure: a camera's video streaming formats and frames
+# read from its configuration, the probe and commit controls, the
+# alternate setting a stream needs, and frames put together from payloads.
+# The capsule brings the host wire and the capture gate.
+
+[package]
+name = "nonos_uvc"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB Video Class core"
+
+[dependencies]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

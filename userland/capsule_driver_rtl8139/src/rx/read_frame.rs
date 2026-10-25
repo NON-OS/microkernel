@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
-
 use super::advance::advance;
 use super::copy_ring::copy_ring;
 use super::ring_u16::ring_u16;
@@ -36,7 +34,7 @@ pub(super) fn read_frame(
     driver: &mut Driver,
     out: &mut [u8],
 ) -> Result<Option<usize>, &'static str> {
-    compiler_fence(Ordering::Acquire);
+    nonos_libc::dma_rmb();
     let base = driver.rx_user_va;
     let off = driver.rx_offset;
     let status = ring_u16(base, off);

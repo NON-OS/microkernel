@@ -14,21 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::iova_space::{after_give_back, place};
+use super::avoid::place_avoiding;
+use super::iova_holes::take_hole;
 use super::table::Capsule;
 
 pub(super) use super::iova_space::IOVA_BASE;
 
-/// Take `length` bytes of the capsule's device address space. A bump pointer:
-/// grants are rings and staging buffers mapped once, and the top one is given
-/// back on unmap, so churn only strands space below a live grant. Placement,
-/// including the step over the interrupt window, is `iova_space::place`.
+/// Take `length` bytes of the capsule's device address space: the first hole
+/// a freed grant left that fits, else fresh space above the bump pointer.
+/// Placement steps over the interrupt window (`iova_space::place`) and every
+/// RMRR region and reserved range the capsule holds (`avoid`); holes touch
+/// none of them, since no grant does.
 pub(super) fn take(c: &mut Capsule, length: u64) -> Option<u64> {
-    let (start, end) = place(c.next_iova, length)?;
+    if let Some(start) = take_hole(&mut c.holes, length) {
+        return Some(start);
+    }
+    let spans = c.reserved_spans();
+    let (start, end) = place_avoiding(c.next_iova, length, &spans)?;
     c.next_iova = end;
     Some(start)
 }
 
 pub(super) fn give_back(c: &mut Capsule, iova: u64, length: u64) {
-    c.next_iova = after_give_back(c.next_iova, iova, length);
+    super::iova_holes::give_back(&mut c.next_iova, &mut c.holes, iova, length);
 }

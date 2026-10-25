@@ -22,19 +22,17 @@ mod family;
 mod install;
 mod role_spawn;
 mod roles;
+mod run_net;
+mod run_owner;
 mod spawn;
 mod state;
 mod terminal;
 
 pub use family::package_arg;
-
-/// Whether a store-started or windowed Linux program still holds the one run
-/// role: its endpoint is released when the process ends, so a second open
-/// before then is told it is busy instead of being queued and refused unseen.
-pub fn run_busy() -> bool {
-    crate::services::registry::lookup_service(roles::RUN.name).is_some()
-}
 pub use install::{spawn_install, spawn_run, spawn_terminal, spawn_uninstall};
+pub use run_net::spawn_run_net;
+pub use run_owner::{run_busy, run_net_busy, run_package_of};
+pub(crate) use embed::LINUX_MANIFEST_BYTES;
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
 pub use terminal::{

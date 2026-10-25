@@ -25,6 +25,8 @@ pub fn push_bool(field: PolicyField, value: bool) -> Result<(), PolicyPushError>
             set_kernel_preempt(value);
             Ok(())
         }
+        PolicyField::KeepAcrossBoots if crate::security::zerostate::arm_keep(value) => Ok(()),
+        PolicyField::KeepAcrossBoots => Err(PolicyPushError::InvalidValue),
         _ => Err(PolicyPushError::WrongType),
     }
 }

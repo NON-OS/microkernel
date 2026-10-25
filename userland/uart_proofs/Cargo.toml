@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 console UART's pure part: the divisor
+# each UART needs for a clock and baud rate. The kernel's own source is
+# included via #[path].
+[package]
+name = "uart_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

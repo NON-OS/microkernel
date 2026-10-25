@@ -1,0 +1,34 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The PCI command decode bits the record's BARs already rely on, as
+//! rtl8169 discover/bar_command.rs works them out. The command write after
+//! the claim keeps them, so turning on bus mastering never turns off a
+//! decode another BAR of the function needs.
+
+use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+
+pub fn command_bits(r: &DeviceRecord) -> u16 {
+    let mut bits = 0u16;
+    for i in 0..core::cmp::min(r.bar_count as usize, r.bars.len()) {
+        if r.bars[i].kind == BAR_KIND_PIO {
+            bits |= 1;
+        } else if r.bars[i].kind == BAR_KIND_MMIO {
+            bits |= 2;
+        }
+    }
+    bits
+}

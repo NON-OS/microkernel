@@ -13,15 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The one place a broker MSI or MSI-X message is composed. With interrupt
-//! remapping on, the message names an IRTE the IOMMU's route_msi wrote
-//! for this function (VT-d 3.4, 5.1.5.2); otherwise it is the compatibility
-//! format message naming a LAPIC directly.
+//! remapping on, the message names an entry the IOMMU wrote for this
+//! function (VT-d 3.4, 5.1.5.2; on AMD-Vi, the device's own table), or the
+//! bind is refused. A compatibility format message naming a LAPIC directly
+//! is made only with remapping off, under the development opt-in or the
+//! no-IOMMU posture (K3, remap_rule.rs).
 
-use super::super::grant::NO_IRTE;
 use super::super::types::IrqBindError;
+use super::remap_rule::{outcome, Outcome};
+use super::sentinels::NO_IRTE;
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
+use crate::memory::iommu::dev_unremapped::holds;
 
 /// A message to program and the remapping entry behind it, `NO_IRTE` for a
 /// compatibility format message.
@@ -40,17 +43,28 @@ pub(super) fn dest_apic_id() -> Result<u8, IrqBindError> {
         .ok_or(IrqBindError::PlatformError)
 }
 
-pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Routed {
-    #[cfg(feature = "nonos-iommu-intremap")]
-    if let Some(r) = super::remap::remapped(address, vector, dest) {
-        return r;
+pub(super) fn route(address: &PciAddress, vector: u8, dest: u8) -> Result<Routed, IrqBindError> {
+    let (attempt, routed) = super::remap_vendor::attempt(address, vector, dest);
+    match outcome(attempt, holds() || crate::memory::iommu::no_iommu::holds()) {
+        Outcome::Remapped => routed.ok_or(IrqBindError::PlatformError),
+        Outcome::Compat => {
+            Ok(Routed { msg: MsiMessage::for_local_apic(vector, dest), irte: NO_IRTE })
+        }
+        Outcome::Full => Err(IrqBindError::NoVector),
+        Outcome::Refused => {
+            crate::log::info!("[IRQ] vector {:#x} refused: interrupt not remapped", vector);
+            Err(IrqBindError::NotRemapped)
+        }
     }
-    let _ = address;
-    Routed { msg: MsiMessage::for_local_apic(vector, dest), irte: NO_IRTE }
 }
 
-/// Gives a remapping entry back once the device can no longer raise it.
+/// Gives a remapping entry back once the device can no longer raise it: an
+/// AMD-Vi handle (bit 15) or a VT-d entry, by the handle alone.
 pub(in super::super) fn release(irte: u16) {
+    #[cfg(feature = "nonos-iommu-amdvi")]
+    if super::amd_remap::is_amd(irte) {
+        return super::amd_remap::release(irte);
+    }
     #[cfg(feature = "nonos-iommu-intremap")]
     super::remap::release(irte);
     let _ = irte;

@@ -18,8 +18,10 @@
 //! requests, and give the device back when it stops answering.
 
 mod bind_fn;
+mod me;
 mod one;
 mod serve;
 
 pub use bind_fn::BindFn;
+pub use me::own_pid;
 pub use serve::{run, LOST_AFTER};

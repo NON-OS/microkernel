@@ -18,7 +18,12 @@ pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;
-pub const MAX_REQUEST_PAYLOAD_LEN: usize = BULK_HEADER_LEN + BULK_MAX;
+/// The longest request: an isoch OUT batch, which neither a bulk OUT nor a
+/// control OUT with its data stage passes.
+pub const MAX_REQUEST_PAYLOAD_LEN: usize = ISOCH_REQUEST_MAX;
+const _: () = assert!(MAX_REQUEST_PAYLOAD_LEN >= BULK_HEADER_LEN + BULK_MAX);
+const _: () =
+    assert!(MAX_REQUEST_PAYLOAD_LEN >= CONTROL_TRANSFER_REQUEST_LEN + CONTROL_DATA_MAX as usize);
 pub const SLOT_ENABLE_PAYLOAD_LEN: usize = 4;
 pub const SLOT_DISABLE_PAYLOAD_LEN: usize = 1;
 pub const ADDRESS_DEVICE_REQUEST_LEN: usize = 2;
@@ -48,3 +53,15 @@ pub const BULK_MAX: usize = 4096;
 pub const BULK_HEADER_LEN: usize = 4;
 pub const CONFIGURE_BULK_REQUEST_LEN: usize = 8;
 pub const RESET_BULK_REQUEST_LEN: usize = 2;
+pub const CONFIGURE_ISOCH_REQUEST_LEN: usize = 8;
+/// An isoch OUT batch: `slot, dci, packets, 0`, a u16 length per packet,
+/// then the packets' bytes, at most ISOCH_MAX of them.
+pub const ISOCH_HEADER_LEN: usize = 4;
+/// Two batches share the endpoint's ring, one in flight while the next is
+/// queued, and both must fit its 63 usable TRBs (the 64th is the link).
+pub const ISOCH_PACKETS_MAX: usize = 31;
+pub const ISOCH_MAX: usize = 4096;
+pub const ISOCH_REQUEST_MAX: usize = ISOCH_HEADER_LEN + 2 * ISOCH_PACKETS_MAX + ISOCH_MAX;
+/// An isoch IN reply's bytes: a u16 length slot per packet comes first, so
+/// the two together fit what a bulk IN reply carries.
+pub const ISOCH_IN_MAX: usize = ISOCH_MAX - 2 * ISOCH_PACKETS_MAX;

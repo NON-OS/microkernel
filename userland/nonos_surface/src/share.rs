@@ -16,6 +16,11 @@
 
 use nonos_abi::{syscall, N_SURFACE_SHARE};
 
-pub fn share(sid: u64) -> i64 {
-    syscall(N_SURFACE_SHARE, [sid, 0, 0, 0, 0, 0])
+/// The receiver may write its view.
+pub const SHARE_WRITE: u64 = 1;
+
+/// Share `sid` with `target_pid`, the one process besides the caller's that
+/// may attach it; read-only unless `flags` holds SHARE_WRITE.
+pub fn share(sid: u64, target_pid: u32, flags: u64) -> i64 {
+    syscall(N_SURFACE_SHARE, [sid, target_pid as u64, flags, 0, 0, 0])
 }

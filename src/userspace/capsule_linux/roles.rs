@@ -39,8 +39,13 @@ pub(super) const INSTALL: Role = Role {
     reply_port: 4939,
     tag: b"[LINUX-INSTALL] elf error:",
     // A package mirror is reached through net.sockets, which serves only
-    // holders of Network.
-    extra_caps: Capability::Network.bit(),
+    // holders of Network. LocalSign vouches for what it installed, and for a
+    // market program's policy; no other role holds it. StreamImport lets it
+    // start the model fetcher, which holds it, within its own capabilities
+    // (MkToolRun's bound); no other role holds that either.
+    extra_caps: Capability::Network.bit()
+        | Capability::LocalSign.bit()
+        | Capability::StreamImport.bit(),
 };
 
 pub(super) const RUN: Role = Role {

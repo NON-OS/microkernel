@@ -2,8 +2,8 @@
 //! The station address: drawn for the run, never the device's permanent
 //! one, which is not asked for. It is set as OID_802_3_CURRENT_ADDRESS, and
 //! the packet filter is opened to every frame whether the device takes it
-//! or, as QEMU does, refuses it: Linux's RNDIS_DEFAULT_FILTER, since a
-//! device that took the set may still filter on its own address.
+//! or, as QEMU does, refuses it, since a device that took the set may still
+//! filter on its own address.
 
 use nonos_usbnet::mock::{Call, MockBus};
 use nonos_usbnet::{Bind, Nic, Setup, Taken};
@@ -44,11 +44,11 @@ fn filter(id: u32, value: u32) -> Vec<u8> {
 fn qemu_refuses_the_drawn_address_and_its_filter_is_opened() {
     let (bus, r) = bind_with(honest());
     assert!(matches!(r, Bind::Ours(ref n) if n.taken() == Taken::Promiscuous));
-    assert_eq!(sent(&bus).last(), Some(&filter(3, 0x2D)), "RNDIS_DEFAULT_FILTER");
+    assert_eq!(sent(&bus).last(), Some(&filter(3, 0x2D)), "opened to every frame");
 }
 
 #[test]
-fn a_device_that_takes_the_drawn_address_has_its_filter_opened_as_linux_does() {
+fn a_device_that_takes_the_drawn_address_has_its_filter_opened_all_the_same() {
     let takes: Tamper = Box::new(|k, mut r| {
         if k == 5 {
             r[12..16].fill(0);
@@ -56,5 +56,5 @@ fn a_device_that_takes_the_drawn_address_has_its_filter_opened_as_linux_does() {
         vec![r]
     });
     let (_, msgs) = bound(takes);
-    assert_eq!(msgs.last(), Some(&filter(3, 0x2D)), "promiscuous, as RNDIS_DEFAULT_FILTER");
+    assert_eq!(msgs.last(), Some(&filter(3, 0x2D)), "promiscuous all the same");
 }

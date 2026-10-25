@@ -1,5 +1,4 @@
 //! Claim, refund and root publication, pinned against Foundry's encoder.
-#![allow(clippy::expect_used, clippy::panic, clippy::unwrap_used)]
 
 use nox_shield_core::wallet::{beta_refund_calldata, claim_calldata, commit_root_calldata};
 

@@ -24,7 +24,8 @@ pub(super) fn request(
     // What leaves this wallet is held to the standard sizes here, before the
     // prover sees it. Change to this wallet's own key is exempt in the prover,
     // since the key derives from the seed's own secrets.
-    if !order.asset.allows(order.amount) {
+    // On a policy pool the caller asked the pool itself (spend_gate); its ranges are not this build's.
+    if pool.policy.is_none() && !order.asset.allows(order.amount) {
         return Err(WalletError::NotStandard);
     }
     let (first, first_pk, public_amount, recipient) = match &order.to {
@@ -62,9 +63,12 @@ pub(super) fn request(
     let rules = PoolRules {
         words_per_intent: pool.words_per_intent,
         max_relay_fee: order.asset.max_relay_fee,
+        // The fee was read from the policy's quote (fee_schedule::spend_fee) and kept to it.
+        policy_fee: pool.policy.map(|_| order.fee),
     };
     check_intent(&intent, &rules).map_err(|refusal| match refusal {
         IntentRefusal::FeeExceedsCap => WalletError::FeeTooHigh,
+        IntentRefusal::FeeOffQuote => WalletError::FeeChanged,
         _ => WalletError::Amount,
     })?;
     Ok(request)

@@ -27,16 +27,21 @@ mod delete;
 mod ended;
 #[path = "../../../capsule_keyring/src/store/eth_valid.rs"]
 mod eth_valid;
+#[path = "../../../capsule_keyring/src/store/insert.rs"]
+mod insert;
+#[path = "../../../capsule_keyring/src/store/list.rs"]
+mod list;
 #[path = "../../../capsule_keyring/src/store/lock.rs"]
 mod lock;
 #[path = "../../../capsule_keyring/src/store/metadata.rs"]
 mod metadata;
+#[path = "../../../capsule_keyring/src/store/named.rs"]
+mod named;
 #[path = "../../../capsule_keyring/src/store/retrieve.rs"]
 mod retrieve;
-// The real code's own style, allowed on the include rather than restyled here.
-#[allow(clippy::new_without_default)]
 #[path = "../../../capsule_keyring/src/store/state.rs"]
 mod state;
+mod store_default;
 #[path = "../../../capsule_keyring/src/store/store_key.rs"]
 mod store_key;
 #[path = "../../../capsule_keyring/src/store/types/mod.rs"]

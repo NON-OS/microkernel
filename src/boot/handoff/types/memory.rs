@@ -58,37 +58,18 @@ pub struct MemoryMap {
 }
 
 impl MemoryMap {
-    // SAFETY: Caller must ensure ptr points to valid MemoryMapEntry array
-    pub unsafe fn entries(&self) -> &[MemoryMapEntry] {
-        unsafe {
-            if self.ptr == 0 || self.entry_count == 0 {
-                return &[];
-            }
-            core::slice::from_raw_parts(
-                self.ptr as *const MemoryMapEntry,
-                self.entry_count as usize,
-            )
-        }
-    }
-
-    // SAFETY: Caller must ensure ptr points to valid MemoryMapEntry array
-    pub unsafe fn usable_regions(&self) -> impl Iterator<Item = (u64, u64)> + '_ {
+    // Every region that may hold RAM: anything not reserved, unusable, NVS,
+    // MMIO or PAL code, the loader's and firmware's own included (L63).
+    // SAFETY: as `entries` (memory_read.rs).
+    pub unsafe fn ram_regions(&self) -> impl Iterator<Item = (u64, u64)> + '_ {
+        use memory_type::{ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE, RESERVED, UNUSABLE};
+        let not_ram = [RESERVED, UNUSABLE, ACPI_NVS, MMIO, MMIO_PORT_SPACE, PAL_CODE];
+        let bytes = |e: &MemoryMapEntry| e.page_count.saturating_mul(4096);
         unsafe {
             self.entries()
                 .iter()
-                .filter(|e| e.memory_type == memory_type::CONVENTIONAL)
-                .map(|e| (e.physical_start, e.physical_start + e.page_count * 4096))
-        }
-    }
-
-    // SAFETY: Caller must ensure ptr points to valid MemoryMapEntry array
-    pub unsafe fn total_usable_memory(&self) -> u64 {
-        unsafe {
-            self.entries()
-                .iter()
-                .filter(|e| e.memory_type == memory_type::CONVENTIONAL)
-                .map(|e| e.page_count * 4096)
-                .sum()
+                .filter(move |e| !not_ram.contains(&e.memory_type))
+                .map(move |e| (e.physical_start, e.physical_start.saturating_add(bytes(e))))
         }
     }
 }

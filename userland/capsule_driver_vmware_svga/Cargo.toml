@@ -1,0 +1,35 @@
+# NONOS userland: capsule_driver_vmware_svga
+#
+# Userland SVGA II (15ad:0405) display driver capsule: VMware's adapter,
+# VirtualBox's VMSVGA and QEMU's vmware-svga. It sets the mode, keeps the
+# compositor's surface in its own memory, copies damaged rectangles into the
+# framebuffer and asks the host to redraw them through the FIFO. It serves
+# the compositor the display wire (nonos_gfx_serve), as bga and virtio-gpu do.
+
+[package]
+name = "nonos_capsule_driver_vmware_svga"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland VMware SVGA II display driver capsule"
+
+[[bin]]
+name = "driver_vmware_svga"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The display wire: its bodies and errors, the server core, and the
+# primaries' memory.
+nonos_gfx_pool = { path = "../nonos_gfx_pool" }
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

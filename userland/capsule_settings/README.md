@@ -4,8 +4,9 @@
 
 `capsule_settings` is the desktop's Settings window (`app.settings`), the
 editor for the `policy` store. It is an app on `nonos_app_skeleton`, 760 by
-520, with nine sections: General, Network, Wifi, Security, Appearance,
-Privacy, Sound, Updates and Developer (`src/settings/section.rs`).
+520, with eleven sections: General, Network, Wifi, Bluetooth, Security,
+Appearance, Accessibility, Privacy, Sound, Updates and Developer
+(`src/settings/section.rs`).
 The handbook page is
 [System apps and services](../../docs/handbook/apps/system-apps.md).
 
@@ -27,9 +28,20 @@ policy (service:4108)  -- kernel-mirrored fields --> MkAdminPolicyPush
   Qwen model row is a choice among the pinned tiers (setup's `qwen/labels.rs`,
   held to the pins by setup's build): Left, Right and Enter step through them
   (`src/settings/qwen_tier/`, held by `capsule_settings_proofs`).
+- Accessibility (`src/settings/access/`): each display's colour filter, high
+  contrast and magnifier, read and set through the shell's ops 0x000A and
+  0x0009, which take them from Settings alone and pass them to the
+  compositor (NCMP 0x0010 and 0x000F). They last the session; the
+  compositor holds them, not the policy store.
 - `MkDeviceList` finds the Wi-Fi adapters the device broker knows.
 - `MkIpcCall` to `net.dhcp.client` reads the lease; the Wi-Fi client
   (`nonos_wifi_client`) scans, joins and remembers networks.
+- `MkIpcCall` to `driver.bt_usb0` asks NBTC v1 (`nonos_bt_proto`, the
+  wire format shared with the capsule) for the Bluetooth page: LINK and
+  PASSKEY each poll, HEALTH, BONDS and BATTERY when the page opens, after
+  a change, when the link moves and every 5 s; PAIR, SCAN, FORGET and
+  ANSWER from its keys (`src/bluetooth/`). The kernel holds that endpoint
+  to the three Settings windows and the shell.
 - `CryptoMachineKey` derives the TPM key that seals the remembered networks,
   kept through vfs at `/nonos/wifi/saved`.
 
@@ -48,7 +60,7 @@ three names and the setup wizard.
 |---|---|---|
 | 0x0001 | CoreExec | run user code |
 | 0x0004 | Network | ask `net.dhcp.client` for the Wi-Fi lease |
-| 0x0008 | IPC | policy, desktop shell, Wi-Fi client, window services |
+| 0x0008 | IPC | policy, desktop shell, Wi-Fi client, Bluetooth driver, window services |
 | 0x0010 | Memory | heap |
 | 0x0020 | Crypto | the TPM machine key that seals saved Wi-Fi networks |
 | 0x0040 | FileSystem | read and keep saved networks through vfs, which serves only a holder of it |
@@ -82,7 +94,11 @@ the matching set and, on success, the shell notice.
 - No adapter, no lease or no TPM: the Wi-Fi section says which.
 - A scan or join that will not run says why on the Wi-Fi page: the switch
   is off, no driver is running, or the highlighted row is not one the scan
-  found (`src/settings/state/wifi_refusal.rs`).
+  found (`src/settings/state/wifi/refusal.rs`).
+- Bluetooth not running, or not answering within 500 ms: the Bluetooth
+  page says which, shows nothing it said before, and its keys ask
+  nothing. A refusal is said in the service's words
+  (`src/bluetooth/panel/notice.rs`).
 - Kept wallpapers that were not read show `--`, and a change to them is
   refused rather than written over the stored set.
 
@@ -101,6 +117,12 @@ the matching set and, on success, the shell notice.
 - Wi-Fi keys (`src/settings/event/wifi_key.rs`): Enter or Space scans, C
   joins, D leaves, R remembers joins, F forgets, W turns the switch on or
   off. Off also leaves the joined network.
+- Bluetooth keys (`src/bluetooth/panel/key.rs`): S scans or stops, P lets
+  one new device pair, Up and Down choose a device, F forgets it. Digits
+  and Enter answer a passkey the device shows; all six must be typed,
+  leading zeros too. Y and N answer a number both sides show; N also
+  declines. Typed digits are wiped when they are sent, refused, or the
+  question changes. The page never sees a key: NBTC carries none.
 
 ## Verification
 
@@ -110,5 +132,9 @@ the matching set and, on success, the shell notice.
 - `userland/wifi_panel_proofs` runs the Wi-Fi panel and the saved-network
   list on the host.
 - `userland/capsule_settings_proofs` runs the section tables, the machine
-  key row (`security_tests`), the Qwen tier choice (`qwen_tier_tests`) and
-  the Wi-Fi keys and refusals (`wifi_key_tests`).
+  key row (`security_tests`), the Qwen tier choice (`qwen_tier_tests`),
+  the Wi-Fi keys and refusals (`wifi_key_tests`), and the Bluetooth page
+  (`bt_tests`): NBTC's client half, each reply taken, each key's request,
+  and the rows' words.
+- `userland/bt_usb_proofs` reads what the capsule answers with the same
+  client half (`nbtc_proofs/client_*`).

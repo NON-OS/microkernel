@@ -43,11 +43,11 @@ fn s(f: impl Fn(&mut [u8]) -> usize) -> String {
 }
 
 pub fn terms(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
-    let q = state.swap_quote;
+    let q = state.swap.quote;
     if !q.ready {
         return 0;
     }
-    let (from, to) = (token(state.swap_from), token(state.swap_to));
+    let (from, to) = (token(state.swap.from), token(state.swap.to));
     let rows: Vec<(&str, String)> = Vec::from([
         ("Rate", s(|b| swap::rate_text(state, b))),
         ("Price impact", s(|b| swap::bps_text(q.impact_bps, b))),

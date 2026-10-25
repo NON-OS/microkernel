@@ -14,16 +14,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 """The block wire as the source states it, for check_blk_wire.py: the client's
-per-driver table, the constants a driver's protocol files define, and which
-capsule registers which service name."""
+per-driver table, the constants a driver's protocol files define or take from
+the shared block wire, and which capsule registers which service name."""
 
 import re
 from pathlib import Path
 
 CLIENT = "userland/nonos_blk_client/src"
-# Each field of a row, and the names a driver's protocol may give it.
-WANT = {"magic": "MAGIC", "VERSION": "VERSION", "HDR_LEN": "HDR_LEN", "capacity": "OP_CAPACITY",
-        "read": "OP_READ_BLOCKS OP_READ", "write": "OP_WRITE_BLOCKS OP_WRITE", "flush": "OP_FLUSH"}
+WIRE = "userland/nonos_blk_wire/src"
+# Each field of a row, and the names a driver's protocol may give it. GEOMETRY
+# stands for capacity on the shared wire: its reply opens with the block count.
+WANT = {"magic": "MAGIC", "VERSION": "VERSION", "HDR_LEN": "HDR_LEN",
+        "capacity": "OP_CAPACITY OP_GEOMETRY", "read": "OP_READ_BLOCKS OP_READ",
+        "write": "OP_WRITE_BLOCKS OP_WRITE", "flush": "OP_FLUSH"}
 NUM = r"(0x[0-9a-fA-F_]+|\d[\d_]*)"
 
 
@@ -35,6 +38,15 @@ def consts(files):
     """Every `pub const NAME: type = number;` in `files`, by name."""
     pattern = rf"pub const (\w+):\s*\w+\s*=\s*{NUM}\s*;"
     return {n: num(v) for f in files for n, v in re.findall(pattern, f.read_text())}
+
+
+def protocol(root, crate):
+    """The constants `crate`'s protocol files state. A capsule on the shared block
+    wire takes them from nonos_blk_wire by path, so that crate's count as its own,
+    and a constant the capsule defines itself wins over the shared one."""
+    own = sorted((crate / "src/protocol").glob("*.rs"))
+    shared = any(re.search(r"\bnonos_blk_wire::", f.read_text()) for f in own)
+    return consts((sorted((root / WIRE).glob("*.rs")) if shared else []) + own)
 
 
 def table(root):

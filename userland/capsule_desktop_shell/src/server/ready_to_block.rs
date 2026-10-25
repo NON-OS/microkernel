@@ -21,5 +21,5 @@ use crate::state::Context;
 /// the shell's focus frame before it draws, so the serve loop does not park a
 /// whole second at a time while one is followed.
 pub fn ready_to_block(ctx: &Context) -> bool {
-    ctx.input_ready && ctx.wm_notify_ready && ctx.launch.is_none()
+    ctx.links.input_ready && ctx.links.wm_notify_ready && ctx.store_apps.launch.is_none()
 }

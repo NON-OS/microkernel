@@ -16,15 +16,16 @@
 
 //! One grant's revocation, in the order `release.rs` describes.
 
-use super::pool;
 use super::types::DmaGrant;
 use crate::memory::addr::VirtAddr;
-use crate::memory::phys::free_contiguous;
 
-const PAGE_SIZE: u64 = 4096;
-
-pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
-    if unmap_pages {
+/// `released`: drained by a release or an exit, not unmapped by its holder.
+pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {
+    // From the holder's tables, from any context: tables that outlive
+    // it, a thread's or an heir's, keep no page onto the frames given back.
+    if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {
+        super::va::release(g.pid, g.user_va, g.length);
+    } else if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
     // The device loses the grant before anyone else can gain the frames. If
@@ -35,12 +36,29 @@ pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool) {
         );
         return;
     }
-    super::scrub::scrub(g.physical_start, g.length);
-    let pages = (g.length / PAGE_SIZE) as usize;
-    if !pool::give_back(g.physical_start, pages) {
-        let _ = free_contiguous(g.physical_start, pages);
+    // Its device may still reach it past Bus Master: kept for its wipe (L78).
+    let pci = crate::hardware::broker::pci_index::lookup(g.device_id).is_some();
+    // A VMBus channel's page the host may still hold a GPADL over: kept until
+    // the host says it tore the last one down (`vmbus::settle_channel`).
+    let host = crate::hardware::broker::vmbus::host_may_reach(g.device_id);
+    // Its entry is made before the registry is asked, so a let-go landing on
+    // another CPU in between finds it and waits instead of freeing the run.
+    if super::kept_rule::keeps(pci, g.confined, released) || host {
+        super::scrub::scrub(g.physical_start, g.length);
+        super::kept::keep(g.device_id, g.claim_epoch, g.physical_start, g.length);
+        let run = (g.physical_start, g.length);
+        if !crate::kernel_core::surface_registry::pin::grant_run::hold(run.0, run.1) {
+            let _ = super::kept::defer(run.0, run.1);
+        }
+        return;
     }
     if !g.confined {
         crate::memory::iommu::note_unconfined_released(1);
     }
+    // A surface another process still maps keeps the frames; the registry
+    // frees them through `free_held_run` once it is let go (L35).
+    if crate::kernel_core::surface_registry::pin::grant_run::hold(g.physical_start, g.length) {
+        return;
+    }
+    super::held_run::free_held_run(g.physical_start, g.length);
 }

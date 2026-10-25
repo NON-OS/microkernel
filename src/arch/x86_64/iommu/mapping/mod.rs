@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod commit;
+mod flush_rule;
 mod domain_root;
 mod map_identity;
+mod leaves;
 mod map_range;
 mod unmap_range;
 mod validate_range;

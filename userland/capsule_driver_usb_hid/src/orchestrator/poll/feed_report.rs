@@ -18,13 +18,13 @@ use crate::descriptors::HidKind;
 use crate::orchestrator::enumerate::HidEndpoint;
 use crate::state::State;
 
-use super::constants::HID_REPORT_MAX;
+use super::constants::PAD_REPORT_MAX;
 
 /// One report into the state of the interface it came from, and no other.
 pub(super) fn feed_report(
     state: &mut State,
     ep: &mut HidEndpoint,
-    buf: &[u8; HID_REPORT_MAX],
+    buf: &[u8; PAD_REPORT_MAX],
     n: usize,
 ) {
     // The read is bounded by the buffer; a count past it is no report.
@@ -33,6 +33,6 @@ pub(super) fn feed_report(
     match ep.kind {
         HidKind::Keyboard => state.key_reports = state.key_reports.wrapping_add(1),
         HidKind::Mouse => state.mouse_reports = state.mouse_reports.wrapping_add(1),
-        HidKind::Report => {}
+        HidKind::Report | HidKind::Gamepad => {}
     }
 }

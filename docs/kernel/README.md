@@ -1,25 +1,25 @@
 # The kernel
 
-Start here to see what the NONOS kernel does in ring 0, what it leaves to [capsules](../overview/glossary.md#capsule) in ring 3, where each part lives in `src/`, and which page explains it.
+Start here to see what the NONOS kernel does in ring 0, what it leaves to [capsules](../overview/glossary-boot-root-record.md#capsule) in ring 3, where each part lives in `src/`, and which page explains it.
 
 ## What ring 0 does
 
-NONOS is a [capability](../overview/glossary.md#capability) microkernel written in Rust. The kernel is the one program that runs in ring 0, and it keeps to these jobs:
+NONOS is a [capability](../overview/glossary-boot-root-record.md#capability) microkernel written in Rust. The kernel is the one program that runs in ring 0, and it keeps to these jobs:
 
-- It takes over from the bootloader at `_start`, a few lines of assembly that call `kernel_entry` with a pointer to the [boot handoff](../overview/glossary.md#boot-handoff) structure (`src/arch/x86_64/asm/start.S:10-45`, `src/nonos_main.rs:50-95`).
+- It takes over from the bootloader at `_start`, a few lines of assembly that call `kernel_entry` with a pointer to the [boot handoff](../overview/glossary-amnesic-boot.md#boot-handoff) structure (`src/arch/x86_64/asm/start.S:10-45`, `src/nonos_main.rs:50-95`).
 - It owns physical memory, page tables and every process's address space.
 - It schedules processes and threads on every CPU.
-- It verifies a capsule before it runs, then creates the process with the [capability word](../overview/glossary.md#capability-word) its signed [manifest](../overview/glossary.md#manifest) and its spawn site allow. The spawn site is the code that asks for the capsule: its [kernel mirror](../overview/glossary.md#kernel-mirror) for a capsule built into the image, or the caller of `MkCapsuleLoad` for one installed later ([Processes and capsule spawn](processes-and-spawn.md#where-capsules-come-from)).
-- It routes IPC messages between [inboxes](../overview/glossary.md#inbox) and checks who may send to whom.
-- It checks the caller's [capability token](../overview/glossary.md#capability-token) on every system call it knows.
-- It hands devices to [driver capsules](../overview/glossary.md#driver-capsule) through the [hardware broker](../overview/glossary.md#hardware-broker): claims, register windows, DMA buffers, port I/O and interrupts, each revocable.
-- It reads the ACPI tables, scans PCI, and brings up the [IOMMU](../overview/glossary.md#iommu) where there is one it drives.
+- It verifies a capsule before it runs, then creates the process with the [capability word](../overview/glossary-boot-root-record.md#capability-word) its signed [manifest](../overview/glossary-linux-personality.md#manifest) and its spawn site allow. The spawn site is the code that asks for the capsule: its [kernel mirror](../overview/glossary-hardware-broker.md#kernel-mirror) for a capsule built into the image, or the caller of `MkCapsuleLoad` for one installed later ([Processes and capsule spawn](processes-and-spawn.md#where-capsules-come-from)).
+- It routes IPC messages between [inboxes](../overview/glossary-hardware-broker.md#inbox) and checks who may send to whom.
+- It checks the caller's [capability token](../overview/glossary-boot-root-record.md#capability-token) on every system call it knows.
+- It hands devices to [driver capsules](../overview/glossary-dma-pool.md#driver-capsule) through the [hardware broker](../overview/glossary-hardware-broker.md#hardware-broker): claims, register windows, DMA buffers, port I/O and interrupts, each revocable.
+- It reads the ACPI tables, scans PCI, and brings up the [IOMMU](../overview/glossary-hardware-broker.md#iommu) where there is one it drives.
 - It keeps time, writes the kernel log, and stops the machine cleanly on a fatal error.
 
 ## What ring 0 does not do
 
-- Device drivers run as ring 3 capsules: disks, network cards, Wi-Fi, USB, input, audio and the GPU. The kernel side of each, under `src/hardware`, is its spawn site and an IPC client. What stays in ring 0 is platform code: the PCI scan and the virtio-rng entropy probe, `virtio_rng`, in `src/drivers` (`src/drivers/mod.rs:17-27`), the [TPM](../overview/glossary.md#tpm) transport under `src/security/tpm`, the [serial console](../overview/glossary.md#serial-console) under `src/sys/serial`, and the interrupt controllers, clocks and ACPI power button under `src/arch`.
-- Services run as capsules too: the network stack, the file system service, crypto, the keyring. `src/services` keeps only capability bits in `caps`, liveness state in `lifecycle` and the [endpoint](../overview/glossary.md#endpoint) registry (`src/services/mod.rs:17-26`). The kernel is often a client of those services: the hash, cipher, HMAC, HKDF and X25519 system calls are sent on to the `crypto` capsule over IPC by `round_trip` (`src/security/crypto_capsule/client/transport.rs:38-54`). One store stays in ring 0: the encrypted [data volume](../overview/glossary.md#data-volume), in `src/fs`, as [Architecture](../overview/architecture.md#kernel-in-ring-0) says.
+- Device drivers run as ring 3 capsules: disks, network cards, Wi-Fi, USB, input, audio and the GPU. The kernel side of each, under `src/hardware`, is its spawn site and an IPC client. What stays in ring 0 is platform code: the PCI scan and the virtio-rng entropy probe, `virtio_rng`, in `src/drivers` (`src/drivers/mod.rs:17-27`), the [TPM](../overview/glossary-stark-proof.md#tpm) transport under `src/security/tpm`, the [serial console](../overview/glossary-rollback-index.md#serial-console) under `src/sys/serial`, and the interrupt controllers, clocks and ACPI power button under `src/arch`.
+- Services run as capsules too: the network stack, the file system service, crypto, the keyring. `src/services` keeps only capability bits in `caps`, liveness state in `lifecycle` and the [endpoint](../overview/glossary-dma-pool.md#endpoint) registry (`src/services/mod.rs:17-26`). The kernel is often a client of those services: the hash, cipher, HMAC, HKDF and X25519 system calls are sent on to the `crypto` capsule over IPC by `round_trip` (`src/security/crypto_capsule/client/transport.rs:38-54`). One store stays in ring 0: the encrypted [data volume](../overview/glossary-claim-epoch.md#data-volume), in `src/fs`, as [Architecture](../overview/architecture-kernel-in-ring.md#kernel-in-ring-0) says.
 - The kernel does not speak the Linux system call ABI. A Linux program's calls reach a supervising capsule, which answers them; unknown numbers from any other process get `ENOSYS` from `syscall_handler` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`).
 - Only x86_64 is a release target. A build for any other architecture, aarch64 and riscv64 included, stops at `compile_error` unless it turns on the `nonos-arch-preview` feature (`src/lib.rs:28-35`).
 
@@ -52,7 +52,7 @@ Read them in order for the whole story, from the bootloader's jump to a fatal st
 - [System calls](syscalls.md): the entry path, the dispatch and how many calls there are.
 - [Capabilities](capabilities.md): the bits, the token and the check on every NONOS system call.
 - [IPC](ipc.md): inboxes, endpoints, limits and who may send to whom.
-- [Processes and capsule spawn](processes-and-spawn.md): the [spawn gate](../overview/glossary.md#spawn-gate), the ELF loader, exit and reaping.
+- [Processes and capsule spawn](processes-and-spawn.md): the [spawn gate](../overview/glossary-rollback-index.md#spawn-gate), the ELF loader, exit and reaping.
 
 ### Devices
 
@@ -71,7 +71,7 @@ Read them in order for the whole story, from the bootloader's jump to a fatal st
 
 | Folder | Files | Lines | What it holds |
 |---|---:|---:|---|
-| `src/arch` | 1567 | 77576 | Architecture code: x86_64, the aarch64 preview and a riscv64 backend that does not build into a kernel. Syscall entry, ACPI, VT-d and AMD-Vi units, interrupt controllers, paging. |
+| `src/arch` | 1567 | 77576 | Architecture code: x86_64, the aarch64 preview and a riscv64 backend that boots under QEMU as far as its unported VM layer. Syscall entry, ACPI, VT-d and AMD-Vi units, interrupt controllers, paging. |
 | `src/boot` | 61 | 3235 | The handoff from the bootloader, early init order, boot stop and panic screens. |
 | `src/bus` | 19 | 1153 | The first PCI scan, BAR assignment for unassigned endpoints, AER reports. |
 | `src/capabilities` | 72 | 3754 | The capability list, the bit helpers and the capability token. |
@@ -86,12 +86,12 @@ Read them in order for the whole story, from the bootloader's jump to a fatal st
 | `src/ipc` | 26 | 2132 | Inboxes, the message envelope and the router, plus a pipe module that nothing calls to create a pipe. |
 | `src/kernel_core` | 125 | 5972 | The boot sequence, capsule spawn and the graphics surface registry. |
 | `src/log` | 19 | 985 | The kernel log and its backends. |
-| `src/memory` | 642 | 29095 | Physical and virtual memory, paging, the heap, DMA allocators, [IOMMU domains](../overview/glossary.md#iommu-domain), the boot nonce, the KASLR slide code that nothing calls, memory encryption. |
+| `src/memory` | 642 | 29095 | Physical and virtual memory, paging, the heap, DMA allocators, [IOMMU domains](../overview/glossary-hardware-broker.md#iommu-domain), the boot nonce, the KASLR slide code that nothing calls, memory encryption. |
 | `src/nonos_time` | 7 | 420 | Not compiled. |
 | `src/process` | 259 | 16535 | The process table, address spaces, the scheduler, exit, signals, Linux guests. |
 | `src/sched` | 2 | 93 | A re-export layer over `src/process/scheduler`. |
 | `src/security` | 419 | 23531 | Capsule attestation, manifest checks, the trust anchor, the boot session, the TPM transport. |
-| `src/services` | 28 | 1438 | The service endpoint registry, [peer lists](../overview/glossary.md#peer-list) and capsule liveness. |
+| `src/services` | 28 | 1438 | The service endpoint registry, [peer lists](../overview/glossary-peer-list.md#peer-list) and capsule liveness. |
 | `src/smp` | 65 | 4176 | Starting the other CPUs, IPIs and per CPU data. |
 | `src/sys` | 156 | 6843 | The serial console, GDT and IDT setup, APIC helpers, clock, diagnostics, boot benchmarks. |
 | `src/syscall` | 286 | 14644 | The syscall ABI registry, the capability contract, the dispatch and the handlers. |

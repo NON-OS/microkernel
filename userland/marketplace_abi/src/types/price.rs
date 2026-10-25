@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Price model. The capsule never moves money; it only carries the
-//! shape so the future capsule_payment knows what to charge for.
+//! shape. Schema 3's commerce block says what the meter charges.
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -27,12 +27,15 @@ pub enum PriceKind {
 }
 
 impl PriceKind {
-    pub fn from_u8(b: u8) -> Self {
+    /// `None` for a kind this build does not know. It used to read as
+    /// `Free`, so a price kind added later would have sold for nothing.
+    pub fn from_u8(b: u8) -> Option<Self> {
         match b {
-            1 => Self::OneTime,
-            2 => Self::Subscription,
-            3 => Self::UsageMetered,
-            _ => Self::Free,
+            0 => Some(Self::Free),
+            1 => Some(Self::OneTime),
+            2 => Some(Self::Subscription),
+            3 => Some(Self::UsageMetered),
+            _ => None,
         }
     }
 }

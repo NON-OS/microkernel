@@ -18,6 +18,6 @@
 //! provides them.
 
 pub mod hash;
-mod rng;
+pub mod rng;
 
 pub use rng::fill_random_bytes;

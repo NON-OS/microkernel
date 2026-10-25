@@ -9,6 +9,7 @@ count exceeds the file.
 | `cfg-target-arch-count.txt` | `cfg(target_arch` outside `src/arch/` | `grep -rn 'cfg(target_arch' src --include='*.rs' \| grep -v '^src/arch/' \| wc -l` |
 | `crate-mem-uses.txt` | `crate::mem::` use sites in `src/` | `grep -rn 'crate::mem::' src --include='*.rs' \| wc -l` |
 | `crate-sched-uses.txt` | `crate::sched::` use sites in `src/` | `grep -rn 'crate::sched::' src --include='*.rs' \| wc -l` |
+| `aarch64-pointer-casts.txt` | `allow(fuzzy_provenance_casts)` under `src/arch/aarch64` outside `mmu/pointer.rs`: integer-to-pointer casts the compiler is told to let through | `grep -rn 'allow(fuzzy_provenance_casts)' src/arch/aarch64 --include='*.rs' \| grep -v '^src/arch/aarch64/mmu/pointer.rs:' \| wc -l` |
 | `tcb-x86_64-capsules.txt` | lines of ring 0 code in the `microkernel-capsules` kernel, gated by `nonos-verify build` | `tools/nonos-tcb` after `make nonos-mk-capsules` |
 | `tcb-x86_64-desktop-prod.txt` | the same for `nonos-mk-desktop-gui-prod`, the image that ships; reported, not gated in CI | `tools/nonos-tcb` after that build |
 

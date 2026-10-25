@@ -27,7 +27,9 @@ pub mod progress;
 pub mod progress_text;
 #[path = "../../../capsule_app_store/src/store/route_offer.rs"]
 pub mod route_offer;
-#[path = "../../../capsule_app_store/src/store/tier_fit.rs"]
-pub mod tier_fit;
+#[cfg(test)]
+mod stall_tests;
 #[path = "../../../capsule_app_store/src/store/theme.rs"]
 pub mod theme;
+#[path = "../../../capsule_app_store/src/store/tier_fit.rs"]
+pub mod tier_fit;

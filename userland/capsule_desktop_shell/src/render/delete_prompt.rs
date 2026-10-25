@@ -7,9 +7,8 @@
 
 use alloc::format;
 
-use super::consent::{
-    border, button, fill, line, margin, wrap_at, BORDER, CANCEL_BG, DIM, FG, PANEL,
-};
+use super::dialog_kit::{border, button, fill, margin, BORDER, CANCEL_BG, DIM, FG, PANEL};
+use super::dialog_text::{line, wrap_at};
 use crate::render::ui_font::{line_h, TITLE_PX, UI_PX};
 use crate::server::handlers::delete_prompt::{cancel_rect, delete_rect, panel_rect};
 use crate::state::dialog_keys::Choice;
@@ -23,7 +22,7 @@ const FOLDER_NOTE: &str =
     "The folder and everything in it are removed. There is no Trash to get them back from.";
 
 pub fn paint_delete_prompt(ctx: &Context) {
-    let Some(target) = ctx.pending_delete.target() else {
+    let Some(target) = ctx.pending.pending_delete.target() else {
         return;
     };
     let p = panel_rect(ctx.width, ctx.height);

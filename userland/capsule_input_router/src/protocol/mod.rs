@@ -24,10 +24,12 @@ mod ops;
 mod read_u32;
 
 pub use decode::parse;
-pub use delivery::{encode_delivery, DELIVERY_LEN};
+pub use delivery::{encode_delivery, DELIVERY_LEN, NOTICE_KIND, NOTICE_UNPROVEN};
 pub use encode::{response_header, write_status};
 pub use errno::{E_ACCES, E_BAD_LEN, E_BAD_MAGIC, E_BAD_OP, E_BAD_VERSION, E_INVAL};
 pub use header::{Request, HDR_LEN, MAGIC, VERSION};
 pub use limits::{IPC_PAYLOAD_MAX, STATUS_LEN, SUBSCRIBE_REQ_LEN};
-pub use ops::{OP_GRAB_RELEASE, OP_GRAB_REQUEST, OP_HEALTHCHECK, OP_SUBSCRIBE};
+pub use ops::{
+    OP_DISPLAY_SIZE, OP_GRAB_RELEASE, OP_GRAB_REQUEST, OP_HEALTHCHECK, OP_SUBSCRIBE, OP_TRUSTED_HOLD,
+};
 pub use read_u32::read_u32;

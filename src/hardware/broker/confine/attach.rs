@@ -13,89 +13,65 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::decide::{verdict, Verdict};
+use super::refuse::{Refusal, Refused};
+use super::streams::attach_streams;
+use super::table::pci_address;
+use super::unconfined::unconfined;
+use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
+use crate::memory::iommu::no_iommu::holds as posture;
 
-extern crate alloc;
+/// Confine `device_id` to `pid`'s domain; whether the claim is port-only
+/// (port_only.rs), for the claim to close its Memory Space.
+pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<bool, Refusal> {
+    let port_only = super::one::port_only_held(pid);
+    attach_as(pid, device_id, port_only).map(|()| port_only)
+}
 
-use alloc::vec::Vec;
-
-use super::iova::IOVA_BASE;
-use super::posture::unconfined_allowed;
-use super::table::{pci_address, say, Capsule, CAPSULES};
-use crate::memory::iommu::IommuDomain;
-
-/// The unit is in service and would not take the device, so the claim is
-/// refused rather than granted with a device that reaches all of memory.
-pub(in crate::hardware::broker) struct Refused;
-
-pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refused> {
+fn attach_as(pid: u32, device_id: u64, port_only: bool) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
-        return Ok(());
+        // A device the firmware description names: confined through its
+        // `iommus`, or refused (streams.rs).
+        if let Some(iommus) = crate::hardware::broker::described::iommus(device_id) {
+            return Ok(attach_streams(pid, device_id, iommus, port_only)?);
+        }
+        // No requester id, no bus master: map.rs refuses its DMA grants.
+        return match verdict(false, false, Ok(()), port_only, (OPT_IN, PRODUCTION), posture()) {
+            Verdict::Refuse => Err(Refused.into()),
+            _ => Ok(()),
+        };
     };
     /*
      * A device no unit in service covers is not translated, and an IOVA
      * handed to it would be used as a physical address: with only the first
      * unit programmed, the RTL8821CE behind a laptop's second unit staged its
-     * firmware from whatever lived at 0x100000. Such a device stays on
-     * physical addresses, said and counted.
+     * firmware from whatever lived at 0x100000. Such a device is refused,
+     * unless no unit is in service at all and the no-IOMMU posture holds
+     * (unconfined.rs).
      */
     if !crate::memory::iommu::translates(address) {
-        say(
-            b"unconfined: no remapping unit in service covers it, reaches all memory",
-            pid,
-            address,
-        );
-        return Ok(());
+        let v = verdict(true, false, no_unit(), port_only, (OPT_IN, PRODUCTION), posture());
+        return Ok(unconfined(device_id, v)?);
     }
-    let mut all = CAPSULES.lock();
-    let pos = match all.iter().position(|c| c.pid == pid) {
-        Some(i) => i,
-        None => match IommuDomain::allocate() {
-            Ok(domain) => {
-                all.push(Capsule { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE });
-                all.len() - 1
-            }
-            /*
-             * The posture on most hardware: said per claim, not only at boot.
-             * No unit in service is the same whether none was found, none is
-             * up yet, or the one found (AMD-Vi) has no backend here.
-             */
-            Err(e) if unconfined_allowed(e) => {
-                say(b"unconfined: no remapping unit in service, reaches all memory", pid, address);
-                return Ok(());
-            }
-            Err(_) => {
-                say(b"refused: no domain left", pid, address);
-                return Err(Refused);
-            }
-        },
-    };
-    // Drives behind one VMD share its requester id. One capsule may hold
-    // several of them in its domain; a second capsule cannot take the id
-    // without pulling it out from under the first.
-    if all.iter().enumerate().any(|(i, c)| i != pos && c.devices.iter().any(|(_, a)| *a == address))
-    {
-        say(b"refused: requester id held by another capsule", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
+    let (group, aliases) = super::gates::admit(device_id)?;
+    super::one::attach_one(pid, device_id, address, (false, port_only), (&group, &aliases))
+}
+
+/// A device that reaches memory past any IOMMU whatever its domain says
+/// (VMMDev reads guest-physical addresses): it gets no domain, and goes
+/// ahead only where an unconfined device may.
+pub(in crate::hardware::broker) fn untranslated(device_id: u64) -> Result<(), Refusal> {
+    // Its port reads memory whatever its Command register says: never port-only.
+    let v = verdict(true, false, no_unit(), false, (OPT_IN, PRODUCTION), posture());
+    Ok(unconfined(device_id, v)?)
+}
+
+/// What a device no unit translates has for a domain: none for want of a
+/// unit when no unit is in service at all, the one case the posture opens.
+fn no_unit() -> Result<(), bool> {
+    if crate::memory::iommu::capabilities().enforcing {
+        Ok(())
+    } else {
+        Err(true)
     }
-    if all[pos].devices.iter().any(|(_, a)| *a == address) {
-        all[pos].devices.push((device_id, address));
-        say(b"confined to its capsule's domain (shared requester id)", pid, address);
-        return Ok(());
-    }
-    // Out of the identity domain first. Between the two writes the device has
-    // no context entry, which denies it: the safe side to be on.
-    let _ = all[pos].domain.detach_device(address);
-    if all[pos].domain.attach_device(address).is_err() {
-        say(b"refused: attach failed", pid, address);
-        if all[pos].devices.is_empty() {
-            all.remove(pos);
-        }
-        return Err(Refused);
-    }
-    all[pos].devices.push((device_id, address));
-    say(b"confined to its capsule's domain", pid, address);
-    Ok(())
 }

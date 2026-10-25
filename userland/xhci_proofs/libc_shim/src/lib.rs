@@ -22,7 +22,8 @@
 //! broker serves one device per test thread: a register window the test
 //! offers, the interrupt kinds it says the device has, and an ordered log
 //! of everything given back (`log`). The server's replies are kept for the
-//! test (`ipc`).
+//! test (`ipc`). Registers are reached through the real libc's ordered
+//! accessors (`ordered`), as on the target.
 
 mod broker;
 mod clock;
@@ -35,9 +36,13 @@ mod irq;
 mod irq_wait;
 mod log;
 mod mmio;
+mod ordered;
 mod pci_command;
 mod process;
 mod unmap;
+/// libc's own park policy, run against the stand-ins here.
+#[path = "../../../libc/src/wait/mod.rs"]
+pub mod wait;
 
 pub use broker::{
     mk_debug, mk_device_claim, mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND,
@@ -53,6 +58,7 @@ pub use irq::{irq_tried, mk_irq_bind, offer_irq, IrqBindOut, MK_IRQ_BIND_MSI, MK
 pub use irq_wait::{irq_waited_on, mk_irq_ack, mk_irq_unbind, mk_irq_wait};
 pub use log::{start_log, take_log, Call, Logged};
 pub use mmio::{mk_mmio_map, mk_mmio_unmap, offer_mmio, MmioMapOut, MMIO_GRANT};
+pub use ordered::*;
 pub use pci_command::{pci_command_reg, PciCommandReg};
 pub use process::{mk_pid_alive, pid_exits};
 pub use unmap::mk_dma_unmap;

@@ -21,34 +21,32 @@ use crate::arch::x86_64::iommu::domain::DomainId as VtdDomainId;
 use crate::memory::iommu::{DeviceAddress, DomainId, IommuError};
 
 use super::enforced;
+use super::requester::segment0;
 
 /// Gated: a context entry written while translation is off changes nothing
 /// about where the device's transactions land, so reporting success would be
 /// reporting a confinement that does not exist.
 pub(crate) fn attach_device(domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
     enforced::require()?;
-    map_device(
-        VtdDomainId::new(domain.as_u16()),
-        device.pci_bus(),
-        device.pci_device(),
-        device.pci_function(),
-    )
-    .map_err(|_| IommuError::DeviceAttachFailed)
+    let (bus, dev, function) = segment0(device)?;
+    map_device(VtdDomainId::new(domain.as_u16()), bus, dev, function)
+        .map_err(|_| IommuError::DeviceAttachFailed)
 }
 
 pub(crate) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<(), IommuError> {
-    unmap_device(device.pci_bus(), device.pci_device(), device.pci_function())
-        .map_err(|_| IommuError::DeviceDetachFailed)
+    let (bus, dev, function) = segment0(device)?;
+    unmap_device(bus, dev, function).map_err(|_| IommuError::DeviceDetachFailed)
 }
 
 /// Whether a unit this kernel has in service translates `device`: VT-d is
-/// enforcing and a programmed unit's scope covers the device. A device no unit
-/// covers would take an IOVA for a physical address.
+/// enforcing, a programmed unit's scope covers the device, and its DMA
+/// arrives under its own id (L51). A device no unit covers would take an IOVA
+/// for a physical address.
 pub(crate) fn translates(device: DeviceAddress) -> bool {
+    let Ok((bus, dev, function)) = segment0(device) else {
+        return false;
+    };
     enforced::require().is_ok()
-        && crate::arch::x86_64::iommu::unit::coverage::unit_covers(
-            device.pci_bus(),
-            device.pci_device(),
-            device.pci_function(),
-        )
+        && crate::arch::x86_64::iommu::unit::coverage::unit_covers(bus, dev, function)
+        && crate::arch::x86_64::iommu::own_id_read::own_id(bus, dev, function)
 }

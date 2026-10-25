@@ -19,12 +19,11 @@ use super::family::HardwareFamily::{self, *};
 pub fn missing_path(family: HardwareFamily) -> Option<&'static str> {
     Some(match family {
         NetworkIwlwifi => "firmware start, scan, association, RX/TX data path",
+        NetworkRealtekWifi => "802.11 driver for this Realtek part",
         AudioHda => "stream DMA ring, playback path",
         InputI2cHid => "HID-over-I2C input report path",
         SerialI2c => "I2C transfer engine",
-        DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => {
-            "native modeset and scanout driver"
-        }
+        DisplayNativeAmd | DisplayNativeNvidia => "native modeset and scanout driver",
         UsbEhci => "EHCI host controller driver",
         UsbOhci => "OHCI host controller driver",
         UsbUhci => "UHCI host controller driver",

@@ -21,9 +21,11 @@
 use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
 use super::super::pte::{is_present, leaf};
+use super::super::visible::store;
 use super::lifetime::{root_of, ROOTS};
-use super::range::{leaf_at, pages, PAGE};
-use super::walk::walk_create;
+use super::range::{leaves, pages, PAGE};
+use super::walk::{walk_create, walk_lookup};
+use crate::arch::x86_64::iommu::place::{place, Unplaced};
 
 pub fn map_range(
     domain: u16,
@@ -40,13 +42,23 @@ pub fn map_range(
     let root = root_of(&roots, domain)?;
     for page in 0..count {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
-        if is_present(*leaf_at(table, slot)?) {
+        if is_present(leaves(table)?.read(slot)?) {
             return Err(AmdViError::RangeAlreadyMapped);
         }
     }
-    for page in 0..count {
+    // From the first leaf on, a failure is taken back first (iommu::place).
+    let put = |page: u64| -> Result<(), AmdViError> {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
-        *leaf_at(table, slot)? = leaf(phys + page * PAGE, read, write);
-    }
-    flush_domain(domain)
+        store(table, slot, leaf(phys + page * PAGE, read, write))
+    };
+    let clear = |page: u64| match walk_lookup(root, iova + page * PAGE) {
+        Ok(Some((table, slot))) => store(table, slot, 0).is_ok(),
+        _ => false,
+    };
+    // A failed flush takes the leaves back and flushes again, so the frames
+    // may be freed; unconfirmed even then, the map is Stranded, never reused.
+    place(count, put, clear, || flush_domain(domain)).map_err(|u| match u {
+        Unplaced::Failed(e) => e,
+        Unplaced::Stranded => AmdViError::Stranded,
+    })
 }

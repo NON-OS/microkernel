@@ -20,7 +20,7 @@ use crate::trb::{read_volatile_at, write_volatile_at};
 impl CommandRing {
     /// Turn the command at `issued` into a No Op, keeping its cycle bit, so
     /// a ring the controller starts later runs nothing it was meant to do
-    /// (Linux `trb_to_noop`). For a command given up whose completion never
+    /// (xHCI 1.2 section 4.6.2, as recalled, unverified). For a command given up whose completion never
     /// came: the controller may not have taken it up, and the ring's
     /// dequeue may still name it. One it did take up is past the dequeue,
     /// and rewriting it changes nothing.

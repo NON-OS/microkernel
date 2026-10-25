@@ -36,10 +36,10 @@ fn low_u128(v: &[u8; 32]) -> u128 {
 }
 
 pub fn eth(state: &State) -> String {
-    if !state.balance_ready {
+    if !state.reads.balance_ready {
         return String::from(UNREAD);
     }
-    let wei = low_u128(&state.balance_wei);
+    let wei = low_u128(&state.reads.balance_wei);
     format!("{}.{:04}", wei / WEI, (wei % WEI) / (WEI / 10_000))
 }
 
@@ -56,9 +56,9 @@ pub fn nox(state: &State) -> String {
 
 /// Two places, as a dollar amount is read.
 pub fn usdc(state: &State) -> String {
-    if !state.usdc_ready {
+    if !state.reads.usdc_ready {
         return String::from(UNREAD);
     }
-    let units = low_u128(&state.usdc_units);
+    let units = low_u128(&state.reads.usdc_units);
     format!("{}.{:02}", units / 1_000_000, (units % 1_000_000) / 10_000)
 }

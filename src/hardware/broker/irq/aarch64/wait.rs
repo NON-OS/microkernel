@@ -14,15 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Blocking IRQ wait is not implemented on the GIC backend yet;
-//! capsules fall back to `MkIrqPoll`.
+//! Syscall-context half of `MkIrqWait` on the GIC. Arming stores the pid
+//! in each grant's waiter word, which the trampoline swaps out and wakes;
+//! the returned sequence is the sum of the grants' delivery counters, so a
+//! delivery that beat the arm shows as a moved sequence and no sleep.
+//! `grant_id == 0` covers every grant the pid holds.
+
+use core::sync::atomic::Ordering;
 
 use crate::hardware::broker::irq::types::IrqError;
 
-pub fn wait_arm(_pid: u32, _grant_id: u64) -> Result<u64, IrqError> {
-    Err(IrqError::PlatformError)
+use super::pending::{Entry, SLOTS};
+
+fn owned(pid: u32, grant_id: u64) -> Result<impl Iterator<Item = &'static Entry>, IrqError> {
+    if grant_id != 0 {
+        let e = super::pending_find::find_by_grant(grant_id).ok_or(IrqError::UnknownGrant)?;
+        if e.pid.load(Ordering::Acquire) != pid {
+            return Err(IrqError::NotHolder);
+        }
+    } else if !SLOTS.iter().any(|e| held(e, pid)) {
+        return Err(IrqError::UnknownGrant);
+    }
+    Ok(SLOTS.iter().filter(move |e| {
+        held(e, pid) && (grant_id == 0 || e.grant_id.load(Ordering::Acquire) == grant_id)
+    }))
 }
 
-pub fn wait_disarm(_pid: u32, _grant_id: u64) -> Result<u64, IrqError> {
-    Err(IrqError::PlatformError)
+fn held(e: &Entry, pid: u32) -> bool {
+    e.intid.load(Ordering::Acquire) != 0 && e.pid.load(Ordering::Acquire) == pid
+}
+
+pub fn wait_arm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
+    let mut seq = 0u64;
+    for e in owned(holder, grant_id)? {
+        e.waiter.store(waiter, Ordering::Release);
+        seq = seq.wrapping_add(e.pending.load(Ordering::Acquire));
+    }
+    Ok(seq)
+}
+
+pub fn wait_disarm(holder: u32, waiter: u32, grant_id: u64) -> Result<u64, IrqError> {
+    let mut seq = 0u64;
+    for e in owned(holder, grant_id)? {
+        let _ = e.waiter.compare_exchange(waiter, 0, Ordering::AcqRel, Ordering::Relaxed);
+        seq = seq.wrapping_add(e.pending.load(Ordering::Acquire));
+    }
+    Ok(seq)
 }

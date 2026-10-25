@@ -14,16 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod chosen;
 pub mod endian;
 pub mod error;
 pub mod find;
 pub mod header;
+pub mod irq;
+pub mod layout;
+pub mod limits;
+pub mod node;
 pub mod parser;
 pub mod property;
+mod raw;
+mod reserved;
+pub mod reserved_set;
+mod rsvmap;
 pub mod strings;
 pub mod tokens;
+mod validate;
 pub mod walker;
 
 pub use error::FdtError;
+pub use node::{Cells, DmaWindow, NodeRef};
 pub use parser::Fdt;
 pub use property::Property;

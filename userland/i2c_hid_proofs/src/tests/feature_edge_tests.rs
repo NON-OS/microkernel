@@ -22,7 +22,7 @@ use nonos_i2cmodel::touchpad::report_descriptor;
 use nonos_i2cmodel::Command;
 
 use super::fixture::rig;
-use crate::hid::{configure_reporting, parse_report_descriptor, Field, TouchLayout};
+use crate::hid::{configure_reporting, parse_report_descriptor, Field, I2cFeatures, TouchLayout};
 use crate::setup;
 
 #[test]
@@ -42,7 +42,8 @@ fn a_feature_field_ending_past_32_bits_is_never_written() {
     // Feature report 9 is one the pad does not answer GET_REPORT for.
     let huge = Field { bit_offset: u32::MAX - 3, bit_size: 8, logical_min: 0, logical_max: 3 };
     let l = TouchLayout { input_mode: huge, input_mode_report_id: 9, ..TouchLayout::default() };
-    let c = configure_reporting(state.i2c_port, state.addr, &state.descriptor, &l);
+    let port = I2cFeatures { port: state.i2c_port, addr: state.addr, desc: &state.descriptor };
+    let c = configure_reporting(&port, &l);
     assert!(c.mode_unwritable, "a field that cannot be placed was taken as writable");
     let cmds = r.pad.lock().take_commands();
     assert!(!cmds.iter().any(|c| matches!(c, Command::SetReport { .. })), "{cmds:?}");

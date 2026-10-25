@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod attach_steps;
 mod bdf_to_source_id;
+mod block_device;
 mod map_device;
 mod unmap_device;
 
 pub use bdf_to_source_id::bdf_to_source_id;
+pub use block_device::block_device;
 pub use map_device::map_device;
 pub use unmap_device::unmap_device;

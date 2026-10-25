@@ -16,8 +16,9 @@
 
 //! The PCI Command register half of the `MkPciConfigWrite` allowlist.
 
+use super::command_bits::{exact, plain};
+use super::command_rule::{command_value, Refused};
 use super::types::{PciWriteError, WriteAction};
-use crate::drivers::pci::constants::{CMD_BUS_MASTER, CMD_INTERRUPT_DISABLE, CMD_MEMORY_SPACE};
 
 /*
  * The only PCI Command bits a driver capsule may flip. Bus Master is for
@@ -29,13 +30,25 @@ use crate::drivers::pci::constants::{CMD_BUS_MASTER, CMD_INTERRUPT_DISABLE, CMD_
  * every other device on the line sees deliveries it never raised. The bit
  * quiets only the claimed device; MSI and MSI-X are unaffected. No other
  * command bit (I/O space, SERR, parity, etc.) is writable through this path.
+ * The bits themselves are in `command_bits.rs`, pure for the proofs.
  */
-const COMMAND_WRITABLE: u16 = CMD_BUS_MASTER | CMD_MEMORY_SPACE | CMD_INTERRUPT_DISABLE;
-
-pub(super) fn validate_command(new: u16, current: u16) -> Result<WriteAction, PciWriteError> {
-    let desired = if new & !COMMAND_WRITABLE == 0 { current | new } else { new };
-    if (desired ^ current) & !COMMAND_WRITABLE != 0 {
-        return Err(PciWriteError::BitsNotAllowed);
+/// `masked` is the form of `change.rs`: `new` is then the whole register.
+/// The register the form leaves is then held to `command_rule.rs`: no
+/// bit outside the writable three moves, Bus Master is set or kept on only
+/// for a caller holding Dma, and Memory Space only for one holding Mmio
+///; `may` is whether the caller holds Dma, and Mmio.
+pub(super) fn validate_command(
+    new: u16,
+    current: u16,
+    masked: bool,
+    may: (bool, bool),
+) -> Result<WriteAction, PciWriteError> {
+    let desired = if masked { exact(new, current) } else { plain(new, current) };
+    let desired = desired.ok_or(PciWriteError::BitsNotAllowed)?;
+    match command_value(desired, current, may.0, may.1) {
+        Ok(value) => Ok(WriteAction::Command(value)),
+        Err(Refused::Bits) => Err(PciWriteError::BitsNotAllowed),
+        Err(Refused::BusMaster) => Err(PciWriteError::BusMasterWithoutDma),
+        Err(Refused::MemorySpace) => Err(PciWriteError::MemorySpaceWithoutMmio),
     }
-    Ok(WriteAction::Command(desired))
 }

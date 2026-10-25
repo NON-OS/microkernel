@@ -1,0 +1,67 @@
+# PCI device ids of Intel's Gen12 graphics, and of Alder Lake P and Raptor
+# Lake P whose display is version 13 (vendor 8086, class 03), whose display
+# engine this driver takes over at firmware's mode: one id (hex) and its
+# family per line. tgl Tiger Lake, rkl Rocket Lake, ads Alder Lake S, adp
+# Alder Lake P, rps Raptor Lake S, rpp Raptor Lake P.
+#
+# Source: the Configurations volume (Volume 4) of each family's graphics
+# PRM and Intel's processor graphics device id support page. Written down
+# without a copy of either at hand and unverified line by line: the owner
+# should check it against them.
+9A40 tgl
+9A49 tgl
+9A59 tgl
+9A60 tgl
+9A68 tgl
+9A70 tgl
+9A78 tgl
+9AC0 tgl
+9AC9 tgl
+9AD9 tgl
+9AF8 tgl
+4C80 rkl
+4C8A rkl
+4C8B rkl
+4C8C rkl
+4C90 rkl
+4C9A rkl
+4680 ads
+4682 ads
+4688 ads
+468A ads
+468B ads
+4690 ads
+4692 ads
+4693 ads
+4626 adp
+4628 adp
+462A adp
+46A0 adp
+46A1 adp
+46A2 adp
+46A3 adp
+46A6 adp
+46A8 adp
+46AA adp
+46B0 adp
+46B1 adp
+46B2 adp
+46B3 adp
+46C0 adp
+46C1 adp
+46C2 adp
+46C3 adp
+A780 rps
+A781 rps
+A782 rps
+A783 rps
+A788 rps
+A789 rps
+A78A rps
+A78B rps
+A720 rpp
+A721 rpp
+A7A0 rpp
+A7A1 rpp
+A7A8 rpp
+A7A9 rpp

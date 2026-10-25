@@ -14,30 +14,69 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for the shared WiFi core: the net_core link protocol (netif) and the
-//! station data path, checked against the crate's public API.
+//! Proofs for the shared WiFi core against its public API; all test-only.
 
-#[cfg(test)]
+#![cfg(test)]
+mod address;
 mod ap_sim;
-#[cfg(test)]
+mod beacons;
+mod bip_gmac_frames;
+mod bip_gmac_reading_tests;
+mod bip_gmac_refusal_tests;
+mod bip_gmac_tests;
+mod bip_tests;
+mod chip;
+mod cipher_select_tests;
+mod cipher_sim;
+mod control;
+mod country_tests;
+mod crypto_kdf_tests;
 mod crypto_tests;
-#[cfg(test)]
-mod handshake_tests;
-#[cfg(test)]
-mod mlme_tests;
-#[cfg(test)]
-mod netif_tests;
-#[cfg(test)]
+mod ext_caps;
+mod gcm_key_tests;
+mod gcm_tests;
+mod gcmp_frame_tests;
+mod gcmp_handshake_tests;
+mod gcmp_malformed_tests;
+mod handshake;
+mod hex;
+mod join;
+mod mlme;
+mod netif;
+mod plane;
+mod pmf_frames;
+mod pmf_link_tests;
+mod pmf_plain_tests;
+mod pmf_query_tests;
+mod pmf_sim;
+mod pmksa;
+mod prf_tests;
+pub mod privacy;
+mod protect_mgmt_tests;
 mod protect_tests;
-#[cfg(test)]
-mod receive_tests;
-#[cfg(test)]
+mod ptk_len_tests;
+mod radio_off_tests;
+mod receive;
+mod regdom_mlme_tests;
+mod regdom_tests;
+mod regdom_world_tests;
+mod roam;
+mod rsn_key_data_tests;
+mod rsn_select_tests;
 mod rsn_tests;
-#[cfg(test)]
-mod sae_tests;
-#[cfg(test)]
+mod sa_query_tests;
+mod sae;
+mod scan_list_bounds_tests;
 mod scan_list_tests;
-#[cfg(test)]
+mod soft;
+mod softmac;
+mod station_counter_tests;
+mod station_gcmp_tests;
 mod station_tests;
-#[cfg(test)]
+mod supplicant_sim;
 mod supplicant_tests;
+mod sweep;
+mod transition;
+mod twin;
+mod vector_tests;
+mod watch_tests;

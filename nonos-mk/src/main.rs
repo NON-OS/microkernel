@@ -31,6 +31,8 @@ mod args;
 mod commands;
 mod encoder;
 mod error;
+mod escrow;
+mod hosts;
 mod json;
 mod keys;
 

@@ -26,8 +26,6 @@ pub enum XhciClientError {
     BufferTooSmall,
     /// Another class driver holds the port.
     Busy,
-    /// The controller driver answered with this errno.
-    Status(i32),
 }
 
 pub fn call(

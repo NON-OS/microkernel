@@ -6,7 +6,7 @@ Where a NONOS image comes from, and how to build, seal and check one.
 
 This repository holds no image, names no download location and publishes no checksum file for images. NONOS 0.9.2 is installed from an image built from this source tree, as below.
 
-If someone hands you an image, ask for the `nonos-release.json` the [seal](../overview/glossary.md#seal) wrote beside it, which records the sha256 of every file it sealed, and compare (see [Check the image](#check-the-image)). That shows the copy matches its record, not who made it. The boot checks do not show that either: the loader checks the kernel against keys compiled into that same loader, so an image someone sealed with their own keys passes them. Only firmware [Secure Boot](../overview/glossary.md#secure-boot), with the NONOS db certificate enrolled, checks who signed the loader, and that is not tested in this release ([Boot chain and signatures](../security/boot-chain-and-signatures.md#secure-boot)).
+If someone hands you an image, ask for the `nonos-release.json` the [seal](../overview/glossary-rollback-index.md#seal) wrote beside it, which records the sha256 of every file it sealed, and compare (see [Check the image](#check-the-image)). That shows the copy matches its record, not who made it. The boot checks do not show that either: the loader checks the kernel against keys compiled into that same loader, so an image someone sealed with their own keys passes them. Only firmware [Secure Boot](../overview/glossary-rollback-index.md#secure-boot), with the NONOS db certificate enrolled, checks who signed the loader, and that is not tested in this release ([Boot chain and signatures](../security/boot-chain-and-signatures.md#secure-boot)).
 
 ## Build and seal
 
@@ -20,7 +20,7 @@ make seal
 
 Not tested in this release.
 
-- `make` builds the kernel, every [capsule](../overview/glossary.md#capsule), the Linux userland and the loader, unsigned and built to be reproducible. The build ends with a receipt that names every artifact by sha256.
+- `make` builds the kernel, every [capsule](../overview/glossary-boot-root-record.md#capsule), the Linux userland and the loader, unsigned and built to be reproducible. The build ends with a receipt that names every artifact by sha256.
 - `make seal` enrolls, signs and packs those bytes into a bootable image. It needs signing keys, which a build never holds. Without them the seal stops and names each missing key file. `make dev-image` below makes a bootable test image without them. [Seal](../build/seal.md) explains each step.
 
 ```mermaid
@@ -46,7 +46,7 @@ Write `nonos.img` to a stick with `make usb` or `dd` ([Write a USB stick](usb-st
 
 ## Choose a profile
 
-`nonos.toml` picks the [build profile](../overview/glossary.md#build-profile), `standard` by default. `PROFILE=` picks another for one command:
+`nonos.toml` picks the [build profile](../overview/glossary-boot-root-record.md#build-profile), `standard` by default. `PROFILE=` picks another for one command:
 
 ```
 PROFILE=hardened make build seal
@@ -56,8 +56,8 @@ Not tested in this release.
 
 | Profile | For | What the image carries |
 |---|---|---|
-| `standard` | a person's own machine | every driver, the desktop, first-boot setup and the installer; capsules may write to the serial console, so the Terminal's `log` works |
-| `hardened` | a machine that may be seized | Secure Boot and a TPM required at boot; no capsule writes to a serial console |
+| `standard` | a person's own machine | every driver, the desktop, first-boot setup and the installer; no capsule writes to the serial console, so the Terminal's `log` keeps nothing (a development image keeps it) |
+| `hardened` | a machine that may be seized | standard, with Secure Boot and a TPM required at boot |
 | `airgapped` | keys and documents that must never touch a network | `hardened`, with no network driver, stack or online program compiled in |
 | `qemu` | trying NONOS in a virtual machine | the desktop, without the drivers only real hardware has |
 | `dev` | working on NONOS | the `qemu` image with the loader's development policy and path-only attestation; a `--release` seal refuses it |
@@ -67,7 +67,7 @@ Not tested in this release.
 
 ## A development image, without the signing keys
 
-`make dev-image` seals a profile's [development twin](../overview/glossary.md#development-image), the `qemu` profile's unless `PROFILE=` names another, in a copy of the tree under `target/dev`, with throwaway keys and path-only attestation: its capsules are admitted on their path, without a [STARK proof](../overview/glossary.md#stark-proof). Its loader has the development override compiled in, and it is never a release. `make dev-boot` boots it under QEMU with a software TPM.
+`make dev-image` seals a profile's [development twin](../overview/glossary-claim-epoch.md#development-image), the `qemu` profile's unless `PROFILE=` names another, in a copy of the tree under `target/dev`, with throwaway keys and path-only attestation: its capsules are admitted on their path, without a [STARK proof](../overview/glossary-stark-proof.md#stark-proof). Its loader has the development override compiled in, and it is never a release. `make dev-boot` boots it under QEMU with a software TPM.
 
 ```
 make dev-image

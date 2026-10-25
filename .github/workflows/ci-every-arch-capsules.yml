@@ -1,0 +1,43 @@
+name: ci-every-arch-capsules
+
+# Every NONOS capsule make knows, built for aarch64-nonos-user and
+# riscv64-nonos-user through make's own rule, each ELF's machine checked
+# (nonos-ci/build-every-capsule.sh). A capsule that cannot build for a target
+# is named, with why, in nonos-ci/arch-reach/capsules.txt; the recheck fails
+# on any such capsule that builds after all, so no excuse outlives its reason.
+# Nothing here boots; the boot lanes do that.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  capsules:
+    name: capsules (${{ matrix.target }}, ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-nonos-user, riscv64-nonos-user]
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/nix-setup
+        with:
+          cache: ${{ vars.NONOS_CACHIX }}
+      - name: Build this shard's capsules
+        run: bash nonos-ci/build-every-capsule.sh ${{ matrix.target }} ${{ matrix.shard }}/4
+      - name: The excused capsules still do not build
+        # Runs even when the shard's build failed: a stale excuse is its own
+        # finding.
+        if: ${{ !cancelled() && matrix.shard == 1 }}
+        run: bash nonos-ci/build-every-capsule.sh ${{ matrix.target }} 1/1 --recheck

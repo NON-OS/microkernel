@@ -24,8 +24,8 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
+use super::posture_line::{flag, identity_moved, posture_line};
 use super::query::capabilities;
-use super::unconfined::unconfined_grants;
 use crate::sys::serial::Line;
 
 static REPORTED: AtomicBool = AtomicBool::new(false);
@@ -62,26 +62,10 @@ pub(super) fn report_again() {
     }
 }
 
-/*
- * The vendor is "none" on a machine with neither DMAR remapping units nor an
- * IVRS table, so every line has the same shape for the boot matrix to read.
- */
-fn posture_line() {
-    let caps = capabilities();
-    Line::new()
-        .str(b"[IOMMU] ")
-        .str(caps.vendor.name())
-        .str(b" present, enforcing=")
-        .str(flag(caps.enforcing))
-        .str(b", unconfined grants=")
-        .dec(u64::from(unconfined_grants()))
-        .end();
-}
-
-const fn flag(on: bool) -> &'static [u8] {
-    if on {
-        b"1"
-    } else {
-        b"0"
+/// After a device moved between domains: print the line again if that
+/// changed how many devices still reach all of memory.
+pub(super) fn report_if_identity_moved() {
+    if REPORTED.load(Ordering::Acquire) && identity_moved() {
+        posture_line();
     }
 }

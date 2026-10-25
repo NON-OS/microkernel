@@ -21,7 +21,8 @@ const NOP: u32 = 0xD503201F;
 const BARE_BTI: u32 = 0xD503241F;
 
 fn check(word: u32) -> bool {
-    check_bti_landing_pad(&word as *const u32 as u64)
+    // SAFETY: a live local.
+    unsafe { check_bti_landing_pad(&word) }
 }
 
 #[test]

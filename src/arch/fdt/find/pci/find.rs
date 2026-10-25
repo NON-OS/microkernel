@@ -14,81 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Locating the PCI host bridge and its windows.
+//! Locating the generic ECAM host bridge and its windows.
 //!
-//! The bridge is identified by `device_type = "pci"` rather than by matching a
-//! compatible string, because the set of host-bridge compatibles is open ended
-//! while that property is required of every one of them.
+//! Only `pci-host-ecam-generic` is taken. Other host bridges carry
+//! `device_type = "pci"` too, but their `reg` is a controller's registers,
+//! not configuration space: the Pi 4's Broadcom bridge is one, and reading its
+//! registers as ECAM would walk garbage as if it were a bus.
 
 use crate::arch::fdt::error::FdtError;
+use crate::arch::fdt::node::NodeRef;
 use crate::arch::fdt::parser::Fdt;
-use crate::arch::fdt::walker::Event;
 
+use super::bus_range::bus_range;
 use super::info::PciHost;
-use super::ranges::{iter as range_iter, SPACE_IO};
+use super::ranges::{iter as range_iter, SPACE_IO, SPACE_MEM32};
 
-pub fn find(fdt: &Fdt) -> Result<Option<PciHost>, FdtError> {
-    let mut walker = fdt.walker();
-    let mut depth: i32 = -1;
-    let mut root_address_cells: u32 = 2;
-    let mut root_size_cells: u32 = 1;
-    let mut is_pci = false;
-    let mut host = PciHost::default();
+const ECAM: &[&[u8]] = &[b"pci-host-ecam-generic"];
 
-    while let Some(event) = walker.next()? {
-        match event {
-            Event::BeginNode { .. } => {
-                depth += 1;
-                if depth == 1 {
-                    is_pci = false;
-                    host = PciHost::default();
-                }
-            }
-            Event::EndNode => {
-                if depth == 1 {
-                    if is_pci {
-                        return Ok(Some(host));
-                    }
-                    is_pci = false;
-                }
-                depth -= 1;
-            }
-            Event::Property(prop) => {
-                if depth == 0 {
-                    if prop.name == b"#address-cells" {
-                        root_address_cells = prop.u32()?;
-                    } else if prop.name == b"#size-cells" {
-                        root_size_cells = prop.u32()?;
-                    }
-                } else if depth == 1 {
-                    if prop.name == b"device_type" {
-                        is_pci = prop.data.starts_with(b"pci\0");
-                    } else if prop.name == b"reg" {
-                        if let Some((base, size)) =
-                            prop.reg_iter(root_address_cells, root_size_cells).next()
-                        {
-                            host.ecam_base = base;
-                            host.ecam_size = size;
-                        }
-                    } else if prop.name == b"ranges" {
-                        take_io_window(&mut host, prop.data, root_address_cells);
-                    }
-                }
-            }
-        }
-    }
-    Ok(None)
+/// The first enabled generic ECAM host bridge, the one `find` describes.
+pub fn host<'a>(fdt: &Fdt<'a>) -> Result<Option<NodeRef<'a>>, FdtError> {
+    fdt.devices(ECAM).next().transpose().map(|found| found.map(|(node, _)| node))
 }
 
-/// Record the first I/O range the bridge advertises. A bridge may list several
-/// memory windows but conventionally has at most one I/O window.
-fn take_io_window(host: &mut PciHost, data: &[u8], root_address_cells: u32) {
-    for range in range_iter(data, root_address_cells) {
-        if range.space == SPACE_IO && range.size != 0 {
-            host.io_cpu_base = range.parent;
+pub fn find(fdt: &Fdt) -> Result<Option<PciHost>, FdtError> {
+    let Some(node) = host(fdt)? else {
+        return Ok(None);
+    };
+    let Some((ecam_base, ecam_size)) = fdt.mmio(&node, 0)? else {
+        return Ok(None);
+    };
+    let (bus_start, bus_end) = bus_range(fdt, &node)?;
+    let dma_coherent = fdt.property(&node, b"dma-coherent")?.is_some();
+    let mut host =
+        PciHost { ecam_base, ecam_size, bus_start, bus_end, dma_coherent, ..PciHost::default() };
+    let Some(ranges) = fdt.property(&node, b"ranges")? else {
+        return Ok(Some(host));
+    };
+    // The first I/O window and the first 32-bit memory window. Their CPU
+    // side is in the bridge's parent's space, so it goes through the same
+    // translation as `reg`.
+    for range in range_iter(ranges.data, node.cells.address) {
+        if range.size == 0 {
+            continue;
+        }
+        if range.space == SPACE_IO && host.io_size == 0 {
+            host.io_cpu_base = fdt.translate(&node, range.parent, range.size)?;
             host.io_port_base = range.child;
             host.io_size = range.size;
-            return;
+        } else if range.space == SPACE_MEM32 && host.mem_size == 0 {
+            host.mem_cpu_base = fdt.translate(&node, range.parent, range.size)?;
+            host.mem_bus_base = range.child;
+            host.mem_size = range.size;
         }
     }
+    Ok(Some(host))
 }

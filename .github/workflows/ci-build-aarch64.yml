@@ -9,6 +9,10 @@ name: ci-build-aarch64
 #   - the ELF is an AArch64 static executable whose entry is `_start`
 #   - the entry lies in an executable PT_LOAD and no PT_LOAD is W+X
 #   - the signed manifest and signature sections are present
+#   - every driver capsule builds for aarch64-nonos-user through make's own
+#     capsule rule, and each is an AArch64 ELF (nonos-ci/build-driver-capsules.sh)
+#   - the riscv64 kernel builds and boots under QEMU virt as far as its port
+#     goes, stopping by name at the unported VM layer (nonos-mk-riscv-boot-check)
 # It does not boot the image. That is ci-boot-aarch64.yml's job.
 
 on:
@@ -34,7 +38,7 @@ jobs:
         # every step after the setup runs in `nix develop`, the shell a
         # developer gets, so CI and a contributor run the same tools
         shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
-    timeout-minutes: 45
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
@@ -52,3 +56,10 @@ jobs:
         run: make nonos-mk-arm SIGNING_KEY=.keys/signing_key_v1.bin
       - name: Check the image is a loadable AArch64 kernel
         run: python3 scripts/check_kernel_elf.py --arch aarch64 --elf target/aarch64-nonos/release/nonos-kernel
+      - name: Build every driver capsule for aarch64-nonos-user
+        # Each driver through the same make rule the arm lanes use, then its
+        # ELF's machine checked: the rule once built x86_64 here with every
+        # step green.
+        run: bash nonos-ci/build-driver-capsules.sh aarch64-nonos-user
+      - name: Build the riscv64 kernel and boot it as far as its port goes
+        run: make nonos-mk-riscv-boot-check SIGNING_KEY=.keys/signing_key_v1.bin

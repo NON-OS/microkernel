@@ -25,7 +25,8 @@
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-pub const PRIVATE: &[&[u8]] = &[b"/tmp", b"/dev/shm", b"/home", b"/root", b"/run", b"/var/tmp"];
+pub use super::rule::PRIVATE;
+
 const BASE: &[u8] = b"/linux-private/";
 
 static ID: AtomicU64 = AtomicU64::new(0);
@@ -48,11 +49,10 @@ pub fn root() -> Vec<u8> {
     out
 }
 
-/// True when `visible` is one of the private prefixes or below one.
+/// True when `visible` is one of the private prefixes or below one
+/// (rule.rs), a home only when the program's policy grants one.
 pub fn is_private(visible: &[u8]) -> bool {
-    PRIVATE
-        .iter()
-        .any(|p| visible.starts_with(p) && matches!(visible.get(p.len()), None | Some(b'/')))
+    super::rule::private_for(visible, crate::linux::app::home())
 }
 
 /// Only the install path writes the shared tree; a running guest never does.

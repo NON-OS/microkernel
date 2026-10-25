@@ -32,18 +32,18 @@ When the tier is a default rather than your choice, the Terminal says so in a li
 
 ## How it runs, and why it is offline
 
-`qwen` asks the kernel to run the tier through the [Linux personality](../overview/glossary.md#linux-personality) as a child of the Terminal. The program is `qwenchat`, built from llama.cpp at a pinned commit for three instruction sets: x86-64-v3, x86-64-v2 and plain x86-64, which QEMU's software CPU needs. The personality chooses among them.
+`qwen` asks the kernel to run the tier through the [Linux personality](../overview/glossary-linux-personality.md#linux-personality) as a child of the Terminal. The program is `qwenchat`, built from llama.cpp at a pinned commit for three instruction sets: x86-64-v3, x86-64-v2 and plain x86-64, which QEMU's software CPU needs. The personality chooses among them.
 
 A chat makes no network connection:
 
-- A Terminal chat runs in one of two slots, `app.linux.term.1` and `app.linux.term.2`, which ask for no capability beyond the personality's own, and the personality's own set has no Network [capability](../overview/glossary.md#capability). Two Terminal chats can run at once; a third is refused with EBUSY.
+- A Terminal chat runs in one of two slots, `app.linux.term.1` and `app.linux.term.2`, which ask for no capability beyond the personality's own, and the personality's own set has no Network [capability](../overview/glossary-boot-root-record.md#capability). Two Terminal chats can run at once; a third is refused with EBUSY.
 - A window chat runs in the role `app.linux.run`, which also asks for nothing more. One window runs at a time; a second is refused with EBUSY. The window stays open when the Terminal that asked for it closes.
 - Once a program family opens a model, the personality also refuses it every internet socket, and refuses to open a model while an internet socket is open.
 - From the moment a model is opened, the family's console output goes only to the Terminal or window that started it, never to the serial log.
 
 Only the download of a model needs a network, once per tier.
 
-The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), developer hardware report, 6 October 2026; the image commit was not recorded.
 
 ## The tiers
 
@@ -94,7 +94,7 @@ Not tested in this release.
 What a download needs:
 
 - A system built with the signed model catalogue. It is built from the same pins and signed with the marketplace operator key. Without it, `qwen get` ends with exit status 3 and says the system `was built without a signed model catalogue (no marketplace operator key), so it has nothing to fetch from; put a tier on its disk with tools/nonos-qwen-tier.py instead`.
-- A [data volume](../overview/glossary.md#data-volume): NONOS installed on a disk, or a live boot, whose volume is held in memory. A machine with no disk that carries NONOS at all has nowhere to keep a model.
+- A [data volume](../overview/glossary-claim-epoch.md#data-volume): NONOS installed on a disk, or a live boot, whose volume is held in memory. A machine with no disk that carries NONOS at all has nowhere to keep a model.
 - A network. Downloads go over the Anyone network whatever the default network is, and wait up to three minutes for Anyone to build its first circuit. `qwen get --direct` takes one download directly instead, faster, and the mirror then sees this machine's address. See [Privacy networks](privacy-network.md).
 - A boot that runs a network. Air-Gapped, Safe Mode and Recovery boots run none.
 

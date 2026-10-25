@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
-
 use crate::settings::schema::blocks_for;
-use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP, ROW_H};
-use super::walk_metrics::{block_h, head_h, network_rows, row_h, saved_rows};
+use super::walk_list::list_of;
+use super::walk_metrics::{block_h, head_h, row_h};
 
 #[derive(Clone, Copy)]
 pub enum Item {
@@ -32,6 +30,7 @@ pub enum Item {
     Network(usize),
     Saved(usize),
     Wallpaper(u8),
+    BtDevice(usize),
 }
 
 /// The one place section geometry is defined. The painter and the hit test both
@@ -46,39 +45,16 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
         f(y, head_h(b), Item::CardHead(bi));
         let mut ry = y + head_h(b);
         for (ri, r) in b.rows.iter().enumerate() {
-            match r {
-                Row::Networks => {
-                    for i in 0..network_rows(state) {
-                        f(ry, ROW_H, Item::Network(i));
-                        ry += ROW_H;
-                    }
-                }
-                Row::Saved => {
-                    for i in 0..saved_rows(state) {
-                        f(ry, ROW_H, Item::Saved(i));
-                        ry += ROW_H;
-                    }
-                }
-                Row::Wallpapers => {
-                    for i in 0..WALLPAPER_LABELS.len() {
-                        f(ry, ROW_H, Item::Wallpaper(i as u8));
-                        ry += ROW_H;
-                    }
-                }
-                other => {
-                    f(ry, row_h(other), Item::Row(bi, ri));
-                    ry += row_h(other);
-                }
+            let Some((n, item)) = list_of(state, r) else {
+                f(ry, row_h(r), Item::Row(bi, ri));
+                ry += row_h(r);
+                continue;
+            };
+            for i in 0..n {
+                f(ry, ROW_H, item(i));
+                ry += ROW_H;
             }
         }
         y += bh + CARD_GAP;
     }
-}
-
-pub fn content_h(state: &State) -> u32 {
-    let mut h = PANE_PAD_TOP + HEAD_H;
-    for b in blocks_for(state.section) {
-        h += block_h(state, b) + CARD_GAP;
-    }
-    h + PANE_PAD_TOP
 }

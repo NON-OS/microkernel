@@ -12,12 +12,22 @@ extern crate alloc;
 /// The real parser, unchanged.
 pub mod doc_parse;
 
+#[cfg(test)]
+#[path = "../../capsule_about/src/about/data/dma_words.rs"]
+mod dma_words;
+#[cfg(test)]
+mod dma_words_tests;
+
 /// About's live proof board: who was admitted, the headline, its words.
 #[cfg(test)]
 mod proof_board;
 
 #[cfg(test)]
 mod proof_board_tests;
+
+/// The registry's pid-0 firmware entry: listed apart, never as a program.
+#[cfg(test)]
+mod firmware_tests;
 
 /// The kernel's encoder, unchanged. The tests build every document with it, so
 /// a layout the kernel writes and the parser does not read fails here instead

@@ -22,6 +22,9 @@ use crate::server::{handlers, respond};
 use crate::state::Context;
 
 pub fn dispatch(ctx: &mut Context, sender_pid: u32, req: Request, body: &[u8], tx: &mut [u8]) {
+    if handlers::settings_relay::relay(ctx, sender_pid, &req, body, tx) {
+        return;
+    }
     match req.op {
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender_pid, &req, tx),
         OP_TRAY_REGISTER => handlers::tray_register::handle(ctx, sender_pid, &req, body, tx),

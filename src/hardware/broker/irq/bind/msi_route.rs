@@ -31,7 +31,7 @@ pub(super) fn program_slot(
     msi: &MsiInfo,
 ) -> Result<(u8, u16), IrqBindError> {
     let vector = vector_of(slot).ok_or(IrqBindError::NoVector)?;
-    let Routed { msg, irte } = route(address, vector, dest_apic_id()?);
+    let Routed { msg, irte } = route(address, vector, dest_apic_id()?)?;
     if program(address, msi, msg).is_err() {
         release(irte);
         return Err(IrqBindError::MsiProgramFailed);

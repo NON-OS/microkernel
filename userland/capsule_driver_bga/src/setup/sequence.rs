@@ -14,45 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_device_release;
+//! One bring-up attempt on the adapter discovery found. Memory decoding
+//! goes on and bus mastering stays off: the adapter reads nothing of the
+//! host's (section 12). Each failing step releases the claim, which takes
+//! any mapping already made with it, so the next attempt can claim the
+//! adapter again. Both mappings are as long as the broker made them. The
+//! adapter must name a DISPI version before anything else is read; the
+//! state firmware left is read whole before any write and written back
+//! when the handles drop, on a failed step as when the driver goes; then
+//! its framebuffer is set little endian where it has the register.
 
-use super::{claim, mmio, mode, pci, surface, Driver};
-use crate::constants::{BYTES_PER_PIXEL, CLEAR_COLOR, FB_BAR, REG_BAR};
+use nonos_gfx_serve::{Platform, Server};
+use nonos_libc::{mk_device_release, MK_MMIO_MAP_WC};
+
+use super::fresh::fresh;
+use super::{claim, mmio, pci, Driver};
+use crate::constants::{EDID_WINDOW, FB_BAR, REG_BAR};
 use crate::discover::Found;
-use crate::dispi;
 use crate::error::{BgaError, BgaResult};
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
+use crate::{dispi, edid};
 
-/// One bring-up attempt on the adapter discovery found. Each failing step
-/// releases the claim, which takes any mapping already made with it, so the
-/// next attempt can claim the adapter again. Both mappings are as long as
-/// the broker made them, not as the mode needs. The adapter must name a
-/// DISPI version before anything else is read. The state firmware left is
-/// read whole before any write and is written back when the handles drop,
-/// on a failed step as when the driver goes. The mode must fit before it is
-/// programmed and read back as set, and the surface must be made, before
-/// anything is drawn: one refused on the firmware's mode leaves its picture.
-pub fn run(dev: Found) -> BgaResult<Driver> {
-    let claim_epoch = claim::claim(dev.device_id)?;
-    if let Err(e) = pci::enable_memory(dev.device_id, claim_epoch) {
+/// The primaries go on `platform`.
+pub fn run<P: Platform>(dev: Found, platform: P) -> BgaResult<Driver<P>> {
+    let epoch = claim::claim(dev.device_id)?;
+    if let Err(e) = pci::enable_memory(dev.device_id, epoch) {
         let _ = mk_device_release(dev.device_id);
         return Err(e);
     }
-    let reg_map = mmio::map(dev.device_id, claim_epoch, REG_BAR, dev.reg_size)?;
-    let fb_map = mmio::map(dev.device_id, claim_epoch, FB_BAR, dev.fb_size)?;
+    let reg_map = mmio::map(dev.device_id, epoch, REG_BAR, 0, dev.reg_size)?;
+    let fb_map = mmio::map(dev.device_id, epoch, FB_BAR, MK_MMIO_MAP_WC, dev.fb_size)?;
     let mut handles = BrokerHandles::new(dev.device_id, reg_map.grant_id, fb_map.grant_id);
     if reg_map.length < dispi::regs_len() {
         return Err(BgaError::RegisterWindowTooSmall);
     }
     let regs = Regs::new(reg_map.user_va);
     dispi::identify(regs)?;
-    let firmware = dispi::read(regs);
-    handles.restore_at_drop(regs, firmware);
-    let m = mode::take(regs, &firmware, fb_map.user_va, fb_map.length)?;
-    let surface = surface::make(m.width, m.height)?;
-    dispi::clear(&m.fb, CLEAR_COLOR);
-    let stride = m.width as u32 * BYTES_PER_PIXEL;
-    let (width, height, fb) = (m.width, m.height, m.fb);
-    Ok(Driver { surface, _handles: handles, regs, fb, width, height, stride, owner_pid: 0 })
+    handles.restore_at_drop(regs, dispi::read(regs));
+    // Not written back at drop: little endian is the only order drawn in.
+    dispi::little_endian(regs, reg_map.length);
+    let mut blob = [0u8; EDID_WINDOW];
+    let edid_len = if reg_map.length as usize >= EDID_WINDOW {
+        // SAFETY: the register window maps at least the EDID window.
+        unsafe { edid::read(reg_map.user_va, &mut blob) }
+    } else {
+        0
+    };
+    let bga = fresh(regs, (fb_map.user_va, fb_map.length), &blob[..edid_len], fence)?;
+    Ok(Driver { handles, server: Server::new(bga, platform) })
+}
+
+fn fence() {
+    // SAFETY: sfence has no operands and orders the WC stores before it.
+    #[cfg(target_arch = "x86_64")]
+    unsafe {
+        core::arch::x86_64::_mm_sfence()
+    };
 }

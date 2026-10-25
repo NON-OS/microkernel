@@ -24,7 +24,10 @@
 pub mod auth;
 pub mod ccmp;
 pub mod data;
+pub mod gcmp;
+pub mod gcmp_hdr;
 pub mod header;
 pub mod ies;
 pub mod mgmt;
 pub mod parse;
+pub mod probe;

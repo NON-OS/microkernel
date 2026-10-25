@@ -23,6 +23,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::about::data::proofs::firmware::{firmware, programs};
 use crate::about::data::verify::Attested;
 use crate::about::theme::MUTED;
 
@@ -32,8 +33,14 @@ use super::super::metrics::{BODY_PX, CARD_PAD};
 use super::super::text::{line, top_of};
 use super::verify_spawn_row::row;
 
+const PID: fn(&Attested) -> u32 = |a| a.pid;
+
+/* The program rows, at least one for the empty or refused message, and the
+ * firmware entry's row under them when the registry lists it. */
 pub fn height(list: Option<&[Attested]>) -> u32 {
-    let rows = list.map_or(1, |l| l.len().max(1)) as u32;
+    let rows = list
+        .map_or(1, |l| programs(l, PID).count().max(1) + usize::from(firmware(l, PID).is_some()))
+        as u32;
     card::OVERHEAD + ROW_H + ROW_H * rows + 4
 }
 
@@ -43,16 +50,24 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, list: Option<&[Attested]>) {
     let note = b"Running now. Each row says whether a STARK proof or a signature admitted it.";
     line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, MUTED, BODY_PX);
     let first = top + ROW_H as i32;
-    let msg: &[u8] = match list {
-        Some(l) if !l.is_empty() => {
-            for (i, a) in l.iter().enumerate() {
-                row(fb, CARD_PAD, first + (i as u32 * ROW_H) as i32, inner, a);
-            }
-            return;
-        }
-        Some(_) => b"the registry lists no running capsule",
+    let at = |i: usize| first + (i as u32 * ROW_H) as i32;
+    let Some(l) = list else {
         /* A refusal is not an empty registry, and must not read as one. */
-        None => b"the kernel did not list them: reading the registry needs AttestRead",
+        let msg = b"the kernel did not list them: reading the registry needs AttestRead";
+        line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+        return;
     };
-    line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+    let mut n = 0;
+    for a in programs(l, PID) {
+        row(fb, CARD_PAD, at(n), inner, a);
+        n += 1;
+    }
+    if n == 0 {
+        let msg = b"the registry lists no running capsule";
+        line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+        n = 1;
+    }
+    if let Some(f) = firmware(l, PID) {
+        super::verify_spawn_firmware::row(fb, CARD_PAD, at(n), inner, f);
+    }
 }

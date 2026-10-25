@@ -43,8 +43,10 @@
 pub(super) fn init_dma_protection() {
     #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
     {
-        use crate::memory::iommu::{report_posture, select_vendor, IommuVendor};
-        match select_vendor() {
+        use crate::memory::iommu::{decide_no_iommu_posture, report_posture};
+        use crate::memory::iommu::{select_vendor, IommuVendor};
+        let vendor = select_vendor();
+        match vendor {
             IommuVendor::IntelVtd => {
                 crate::arch::x86_64::iommu::unit::report::init();
                 crate::arch::x86_64::iommu::unit::bringup::init();
@@ -56,6 +58,8 @@ pub(super) fn init_dma_protection() {
             }
             _ => {}
         }
+        decide_no_iommu_posture(vendor);
         report_posture();
     }
+    crate::arch::report_dma_posture();
 }

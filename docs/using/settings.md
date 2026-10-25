@@ -4,7 +4,7 @@ Every panel of the Settings window, what each row changes, and how long a change
 
 ## How Settings works
 
-Settings (`app.settings`) is an editor for the [policy store](../overview/glossary.md#policy-store), the service that holds the system's choices. When the window opens it reads every value it shows. Each change you make is sent to the policy store at once, and on success the desktop shows the notice `settings applied`. If the policy store does not answer, the values shown are defaults, the status strip says `Policy service unavailable - values shown are not stored`, and Settings asks again on its own.
+Settings (`app.settings`) is an editor for the [policy store](../overview/glossary-peer-list.md#policy-store), the service that holds the system's choices. When the window opens it reads every value it shows. Each change you make is sent to the policy store at once, and on success the desktop shows the notice `settings applied`. If the policy store does not answer, the values shown are defaults, the status strip says `Policy service unavailable - values shown are not stored`, and Settings asks again on its own.
 
 A row only exists when some code acts on its value. Settings keeps a list of the fields it shows, each with the code that reads it, and the build fails if a row names a field outside that list, or if a listed field has no row.
 
@@ -20,9 +20,9 @@ A row only exists when some code acts on its value. Settings keeps a list of the
 | `Ctrl+V`, `Shift+Insert` | Paste into the field being edited. |
 | `Esc` | Close the window. |
 
-Click the search field to find a row by name. The Wi-Fi panel has keys of its own, listed below.
+Click the search field to find a row by name. The Wi-Fi and Bluetooth panels have keys of their own, listed below.
 
-## The nine panels
+## The ten panels
 
 The panels, in sidebar order:
 
@@ -31,6 +31,7 @@ The panels, in sidebar order:
 | General | This machine's name, the clock and notifications. |
 | Network | How NONOS connects to networks and the internet. |
 | Wi-Fi | Find and join a wireless network. |
+| Bluetooth | Pair a keyboard or mouse, and see its battery. |
 | Security | This machine's keys and the protections the kernel keeps on. |
 | Appearance | The wallpaper and how the pointer moves. |
 | Privacy | What this machine keeps once it is switched off. |
@@ -70,6 +71,21 @@ The note under `Default network` says Qwen downloads take it. They do not in thi
 | Saved networks | The saved networks, sealed with the TPM machine key. |
 
 WPA2-Personal and WPA3-Personal (SAE) networks can be joined. Open networks cannot: the join engine refuses a network with no RSN element. The panel's note `WPA2-Personal or open. WPA3 (SAE) cannot be joined.` is older than this code and says the reverse. The panel's keys: `Enter` or `Space` scans, `C` or a click joins the highlighted network, `D` leaves, `R` switches remembering, `F` forgets the highlighted saved network, and `W` switches the radio. While you type a passphrase, `Tab` shows or hides it, so a symbol the keyboard layout moved can be checked before joining. See [Wi-Fi and networking](wifi-and-networking.md).
+
+### Bluetooth
+
+| Row | What it shows |
+|---|---|
+| `Adapter` | Whether the Bluetooth driver found a USB Bluetooth adapter and started it. |
+| `Status` | The link: not looking, looking for devices, connecting, securing the link, or which device is connected. |
+| `Scanning` | Whether the driver is looking for keyboards and mice. |
+| `Pairing` | Whether a new device may pair now, and for how many seconds more. Otherwise only paired devices connect. |
+| `Asks` | What pairing needs from you: digits to type on the device, the digits the device shows, or a number to check. |
+| Paired devices | Each paired device by its address, whether it was paired with a check, whether it is connected, and its battery. |
+
+The panel's keys: `S` starts or stops scanning, `P` lets one new device pair within the next minute, `Up` and `Down` choose a device, and `F` forgets it. When a device shows six digits, type them and press `Enter`. When both sides show a number, `Y` says they match and `N` says they do not. `N` also declines a passkey. A device you pair is kept only until the machine switches off.
+
+The Bluetooth driver is not part of the image in this release, so the panel says `Bluetooth is not running` and its keys ask nothing. See [the Bluetooth driver](../../userland/capsule_driver_bt_usb/README.md).
 
 ### Security
 
@@ -144,8 +160,8 @@ The source behind the facts above, at the commit in the footer.
   - The build checks rows against the list of fields: `all_placed` in `userland/capsule_settings/src/settings/schema/coverage.rs:50-61`, and `all_listed` in `userland/capsule_settings/src/settings/schema/coverage_listed.rs:38-60`.
 - Moving around
   - The keys: `on_event_browsing` in `userland/capsule_settings/src/settings/event/on_event_browsing.rs:30`.
-- The nine panels
-  - Sidebar order: `SECTIONS` in `userland/capsule_settings/src/settings/section.rs:30`.
+- The ten panels
+  - Sidebar order: `SECTIONS` in `userland/capsule_settings/src/settings/section.rs:31`.
   - The rows of each panel are in `userland/capsule_settings/src/settings/schema/blocks/`, and the labels come from `label_of` in `userland/policy_proto/src/field_label.rs:19`.
 - Network
   - The three route names: `ROUTE_LABELS` in `userland/policy_proto/src/route.rs:35`.
@@ -155,6 +171,11 @@ The source behind the facts above, at the commit in the footer.
   - Saved only when data is kept: `put` in `userland/nonos_wifi_client/src/saved/write.rs:17-22`.
   - Open networks refused: `OpenNetwork` in `userland/nonos_wifi_core/src/mlme/beacon.rs:50-51`.
   - The panel's keys: `wifi_key` in `userland/capsule_settings/src/settings/event/wifi_key.rs:42-55`.
+- Bluetooth
+  - The panel's keys: `bt_key` in `userland/capsule_settings/src/bluetooth/panel/key.rs:46-67`.
+  - What each key asks of the driver: `act` in `userland/capsule_settings/src/bluetooth/panel/act.rs:31-50`.
+  - Six digits must be typed: `value` in `userland/capsule_settings/src/bluetooth/panel/digits.rs`.
+  - Bonds last for the boot only: `Not yet` in `userland/capsule_driver_bt_usb/README.md`.
 - Privacy
   - `Keep data across reboots` is read only: `read_only` in `userland/capsule_settings/src/settings/schema/read_only.rs:27-29`.
 - Sound

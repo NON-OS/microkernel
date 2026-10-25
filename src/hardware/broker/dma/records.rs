@@ -25,15 +25,16 @@ use spin::Mutex;
 
 use super::types::{DmaError, DmaGrant};
 
+// Entered under the claim and the quota, beside the table it fills.
+#[path = "records_insert.rs"]
+mod insert;
+pub(super) use insert::insert_if;
+
 pub(super) static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
-}
-
-pub(super) fn insert(record: DmaGrant) {
-    RECORDS.lock().push(record);
 }
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
@@ -45,14 +46,27 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
     Ok(all.remove(idx))
 }
 
-/// Visit every live grant without waiting for the table: false, and nothing
-/// visited, when another CPU holds it. For the shutdown wipe only.
-pub(super) fn try_each(mut f: impl FnMut(&DmaGrant)) -> bool {
-    let Some(all) = RECORDS.try_lock() else {
-        return false;
+/// Visit every live grant, trying for the table while `again` says to: false,
+/// and nothing visited, when another CPU still holds it. For the shutdown
+/// wipe only.
+pub(super) fn try_each(mut f: impl FnMut(&DmaGrant), mut again: impl FnMut() -> bool) -> bool {
+    let all = loop {
+        if let Some(all) = RECORDS.try_lock() {
+            break all;
+        }
+        if !again() {
+            return false;
+        }
+        core::hint::spin_loop();
     };
     for g in all.iter() {
         f(g);
     }
     true
+}
+
+/// Every live grant as `(pid, start, len)`: frames the surface registry
+/// must never free page by page (surface_registry pin, K15).
+pub(crate) fn grant_ranges() -> Vec<(u32, u64, u64)> {
+    RECORDS.lock().iter().map(|g| (g.pid, g.physical_start, g.length)).collect()
 }

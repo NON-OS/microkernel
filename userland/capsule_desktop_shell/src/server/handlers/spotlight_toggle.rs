@@ -27,7 +27,7 @@
 use crate::state::Context;
 
 pub fn toggle(ctx: &mut Context) {
-    if ctx.launchpad {
+    if ctx.launchpad_ui.launchpad {
         super::launchpad::close(ctx);
     } else {
         super::launchpad::open(ctx);

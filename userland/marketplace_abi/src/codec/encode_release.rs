@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::encode_validation;
+use super::write_release_ext;
 use super::writer::Writer;
 use crate::types::CapsuleRelease;
 
@@ -38,5 +39,8 @@ pub(super) fn write(w: &mut Writer<'_>, release: &CapsuleRelease) {
     }
 
     w.fixed(&release.zk_trailer_hash);
+    if let Some(ext) = &release.ext {
+        write_release_ext::write(w, ext);
+    }
     encode_validation::write(w, &release.validation);
 }

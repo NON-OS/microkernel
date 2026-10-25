@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use nonos_libc::mk_time_millis;
+use zeroize::Zeroize;
 
 use super::call::keyring_call;
 use super::constants::{HDR_LEN, OP_WALLET_RECOVER};
@@ -37,11 +38,7 @@ pub fn recover_wallet(port: u32, owner_pid: u32, indices: &[u16]) -> Result<u32,
         payload.extend_from_slice(&w.to_le_bytes());
     }
     let result = keyring_call(port, OP_WALLET_RECOVER, &payload, 4);
-    for b in payload.iter_mut() {
-        // SAFETY: volatile write so the wipe of the mnemonic payload holds.
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    payload.zeroize();
     let rx = result?;
     if rx.len() < HDR_LEN + 4 {
         return Err(-11);

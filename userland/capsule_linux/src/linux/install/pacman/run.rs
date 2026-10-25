@@ -22,10 +22,12 @@ use alloc::vec::Vec;
 
 use super::db::load;
 use super::fetch::fetch;
+use super::find::find;
 use super::keyring::pinned;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
-use crate::linux::install::place::unpack;
+use crate::linux::install::place::all::unpack;
+use crate::linux::install::refuse::refuse as say;
 use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
@@ -43,7 +45,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
-        let Some((rec, repo)) = db.find(&next) else {
+        let Some((rec, repo)) = find(&db.records, &next, done.is_empty()) else {
             return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
         };
         if done.contains(&rec.name) {
@@ -57,15 +59,9 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         let Some(files) = fetch(&src, &ring, repo, rec, chosen.then_some(pin)) else {
             return Err(Why::Package);
         };
-        unpack(&files, &rec.name, chosen)?;
+        unpack(&files, &rec.name, chosen, false)?;
         done.push(rec.name.clone());
         wanted.extend(rec.depends.iter().cloned());
     }
     Ok(())
-}
-
-/// Log a refusal and name it.
-fn say(line: &[u8], why: Why) -> Result<(), Why> {
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    Err(why)
 }

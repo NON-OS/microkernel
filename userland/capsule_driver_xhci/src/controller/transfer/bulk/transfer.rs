@@ -22,6 +22,7 @@ use crate::controller::ring_doorbell::ring_doorbell;
 use crate::error::{XhciError, XhciResult};
 use crate::protocol::BULK_MAX;
 use crate::rings::event::{EventRing, IssuedTransfer};
+use crate::rings::transfer::TransferRing;
 use crate::trb::builders::normal::normal;
 /// Move `len` bytes, 1 to `BULK_MAX`, IN to or OUT of `pipes.buf`. Returns
 /// the bytes moved; a STALL or any other failure comes back as its
@@ -39,6 +40,10 @@ pub fn bulk_transfer(
         return Err(XhciError::ControllerUnsupported);
     }
     let buf_phys = pipes.buf.phys();
+    // A streamed endpoint moves only on its streams (stream_transfer.rs).
+    if (dir_in && pipes.in_streams.is_some()) || (!dir_in && pipes.out_streams.is_some()) {
+        return Err(XhciError::ControllerUnsupported);
+    }
     let (ring, dci) = if dir_in {
         (&mut pipes.in_ring, pipes.dci_in)
     } else {
@@ -47,6 +52,12 @@ pub fn bulk_transfer(
     let issued = ring.enqueue(normal(buf_phys, len, ring.cycle() != 0, true, false))?;
     ring_doorbell(doorbell_base, slot, dci);
     let event = wait_bulk(intr_base, IssuedTransfer { phys: issued, slot, dci }, evt_ring)?;
+    moved(ring, event, len)
+}
+
+/// The bytes a completed transfer of `len` on `ring` moved, or its
+/// failure's code. Completed, it shows the controller ran all before it.
+pub(super) fn moved(ring: &TransferRing, event: crate::trb::Trb, len: u32) -> XhciResult<u32> {
     match event.completion_code() {
         CC_SUCCESS | CC_SHORT_PACKET => {
             ring.retire();

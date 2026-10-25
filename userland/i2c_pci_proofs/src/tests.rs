@@ -21,8 +21,8 @@
 mod clock_tests;
 #[path = "dma_tests.rs"]
 mod dma_tests;
-#[path = "doorbell_tests.rs"]
-mod doorbell_tests;
+#[path = "gpio0_tests.rs"]
+mod gpio0_tests;
 #[path = "enable_state_tests.rs"]
 mod enable_state_tests;
 #[path = "lpss_tests.rs"]

@@ -18,8 +18,8 @@
 //! (scan/ask.rs) keeps how long it may go on and pauses between them, so
 //! the server answers requests while a unit spins up.
 
-use super::bot::command;
 use super::sense::{sense, MEDIUM_NOT_PRESENT, UNIT_ATTENTION};
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::scsi::{start_unit, test_unit_ready};
 use crate::state::State;
@@ -30,13 +30,13 @@ const NOT_READY: u8 = 0x02;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Unit {
     Ready,
-    /// No medium: said at once, as Linux's sd_spinup_disk says it, under
-    /// NOT READY or UNIT ATTENTION. It was waited out for thirty seconds on
+    /// No medium (ASC 3Ah, SPC, as recalled): said at once, under NOT
+    /// READY or UNIT ATTENTION. It was waited out for thirty seconds on
     /// a reader's last slot, and an empty single-slot reader held the
     /// server that long every few seconds.
     NoMedium,
     /// Any other UNIT ATTENTION: a power-on, a reset, or a medium change,
-    /// which a device says once and Linux's sd_spinup_disk asks past;
+    /// which a device says once (SAM, as recalled) and is asked past;
     /// `State` keeps it (`Said`).
     Attention,
     /// Spinning up, or a sense that did not read.
@@ -44,8 +44,8 @@ pub enum Unit {
 }
 
 /// One TEST UNIT READY, and the sense of a failed one. A unit that waits to
-/// be told to spin up is sent one START UNIT, as Linux sd_spinup_disk sends,
-/// the first time it says NOT READY; `started` remembers. A transport that
+/// be told to spin up is sent one START UNIT (SBC START STOP UNIT, as
+/// recalled), the first time it says NOT READY; `started` remembers. A transport that
 /// fails under the TEST UNIT READY or its sense is an error. A START UNIT
 /// that fails has its sense taken too, as any command's: a 28h the unit
 /// failed it for is said only then, and unread it was lost, so a held

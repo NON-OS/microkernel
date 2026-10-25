@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::pci::config::ConfigSpace;
+use crate::drivers::pci::constants::CMD_BUS_MASTER;
 
 /*
  * Stop a released device from mastering the bus. A driver turns Bus Master
@@ -24,12 +25,19 @@ use crate::drivers::pci::config::ConfigSpace;
  * write is the only thing that stops it reaching all of memory.
  */
 pub(super) fn stop_bus_master(device_id: u64) {
+    // A described device has no config space; its interface's stop instead.
+    if crate::hardware::broker::described::stop(device_id) {
+        return;
+    }
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
         return;
     };
     let cfg = ConfigSpace::new(handle.address);
-    // Read back, so the log says what the device holds, not what was asked.
-    let off = cfg.disable_bus_master().is_ok() && matches!(cfg.is_bus_master_enabled(), Ok(false));
+    // Every caller stops while its own entry still names the device, so no
+    // newer claim's can be stopped (L75). Read back, so the log says what the
+    // device holds.
+    let done = cfg.update_command(|c| c & !CMD_BUS_MASTER).is_ok();
+    let off = done && matches!(cfg.is_bus_master_enabled(), Ok(false));
     crate::sys::serial::print(b"[BROKER] released device ");
     crate::sys::serial::print_hex(device_id);
     crate::sys::serial::println(if off { b" bus master off" } else { b" bus master STILL ON" });
@@ -42,12 +50,15 @@ pub(super) fn stop_bus_master(device_id: u64) {
  * stop: without an IOMMU the device could still write into frames already
  * handed to someone else in between. Only the holder may ask.
  */
-pub(super) fn stop_bus_master_quietly(device_id: u64) {
+pub(in crate::hardware::broker) fn stop_bus_master_quietly(device_id: u64) {
+    if crate::hardware::broker::described::stop(device_id) {
+        return;
+    }
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
         return;
     };
     let cfg = ConfigSpace::new(handle.address);
-    let _ = cfg.disable_bus_master();
+    let _ = cfg.update_command(|c| c & !CMD_BUS_MASTER);
     /*
      * Read it back before the caller frees a frame. A configuration write
      * through ECAM or a VMD window is posted, so it may not have reached the

@@ -23,13 +23,14 @@
 //! onto it as before, and each damaged rectangle is doubled onto the screen
 //! when it is presented. A screen under 1024x720 gets a canvas that covers
 //! it, shrunk when presented (canvas_floor). Otherwise the canvas is the
-//! screen.
+//! screen, unless output 0 is magnified.
 
 use nonos_libc::mk_mmap;
 
-use super::canvas_floor::floor_canvas;
+use super::canvas_floor::{backing, floor_canvas};
 use super::canvas_scale::scale_for_panel;
 use super::panel_mm::panel_mm;
+use crate::display::scale_rule::{canvas_for, chosen};
 use crate::state::Context;
 use crate::sw_blitter::Surface;
 
@@ -37,8 +38,7 @@ const PROT_READ_WRITE: i32 = 0x3;
 const MAP_PRIVATE_ANON: i32 = 0x22;
 
 /// Make the buffer `ctx` presents from its screen, and give clients a canvas
-/// for it. A canvas that cannot be mapped leaves the screen as the canvas:
-/// small text, never no display.
+/// for it; one that cannot be mapped leaves the screen as the canvas.
 pub fn fit_canvas(ctx: &mut Context) {
     ctx.screen = Surface {
         base_va: ctx.backing_va,
@@ -47,21 +47,23 @@ pub fn fit_canvas(ctx: &mut Context) {
         height: ctx.height,
         byte_len: ctx.backing_len,
     };
-    ctx.scale = 1;
-    let scale = scale_for_panel(ctx.width, ctx.height, panel_mm(ctx));
-    let (width, height) = match (scale, floor_canvas(ctx.width, ctx.height)) {
-        (1, None) => return,
-        (1, Some(floor)) => floor,
-        (s, _) => (ctx.width / s, ctx.height / s),
+    ctx.scale_q = 4;
+    let panel = scale_for_panel(ctx.width, ctx.height, panel_mm(ctx));
+    let q = chosen(ctx.output_scale[0], panel);
+    let (width, height) = match (q, floor_canvas(ctx.width, ctx.height)) {
+        (4, None) if !ctx.looks.access[0].magnified() && !ctx.own_colours() => return,
+        // The lens, or mirrors in their own colours, read a canvas of their own.
+        (4, None) => (ctx.width, ctx.height),
+        (4, Some(floor)) => floor,
+        (q, _) => canvas_for(ctx.width, ctx.height, q),
     };
-    let stride = width * 4;
-    let byte_len = stride as u64 * height as u64;
+    let Some((stride, byte_len)) = backing(width, height) else { return };
     let Ok(size) = usize::try_from(byte_len) else { return };
     let va = mk_mmap(core::ptr::null_mut(), size, PROT_READ_WRITE, MAP_PRIVATE_ANON, -1, 0);
     if va.is_null() {
         return;
     }
-    ctx.scale = scale;
+    ctx.scale_q = q;
     ctx.width = width;
     ctx.height = height;
     ctx.stride = stride;

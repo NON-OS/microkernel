@@ -9,8 +9,14 @@ use crate::ffi::evm::parse_evm_address;
 
 impl Wallet {
     /// A fresh address of this wallet for a withdrawal, or none for a wallet from a private key.
+    /// It is the account at index `count`, kept as handed out so SIGN_FROM_FRESH may sign
+    /// a refund or a dispute from it (v1.4.51).
     pub fn fresh_withdrawal_address(&self) -> Result<Option<String>, WalletError> {
-        self.with(|s| s.next_public.map(|a| checksummed(&a)))
+        let Some((index, a)) = self.with(|s| s.next_public.map(|a| (s.count(), a)))? else {
+            return Ok(None);
+        };
+        crate::wallet::fresh::keep_handed(&self.paths().account, index, &a)?;
+        Ok(Some(checksummed(&a)))
     }
 
     /// Whether `address` has sent a transaction or holds anything on Sepolia, read over Tor.

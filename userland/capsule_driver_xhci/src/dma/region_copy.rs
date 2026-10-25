@@ -30,11 +30,21 @@ impl DmaRegion {
     /// Put `src` at the start of the region; false, writing nothing, when
     /// it does not fit.
     pub fn copy_from(&self, src: &[u8]) -> bool {
-        if src.len() as u64 > self.length {
+        self.copy_from_at(0, src)
+    }
+
+    /// Put `src` at byte `at` of the region; false, writing nothing, when
+    /// it does not fit there.
+    pub fn copy_from_at(&self, at: usize, src: &[u8]) -> bool {
+        if (at as u64).saturating_add(src.len() as u64) > self.length {
             return false;
         }
-        // SAFETY: `src` fits the live grant, which no slice of ours aliases.
-        unsafe { core::ptr::copy_nonoverlapping(src.as_ptr(), self.as_mut_ptr(), src.len()) };
+        // SAFETY: `at..at + src.len()` lies inside the live grant, which no
+        // slice of ours aliases.
+        unsafe {
+            let dst = self.as_mut_ptr::<u8>().add(at);
+            core::ptr::copy_nonoverlapping(src.as_ptr(), dst, src.len());
+        }
         true
     }
 }

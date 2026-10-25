@@ -1,12 +1,11 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 //! A view key given to the wallet becomes a view-only account: kept sealed across a lock, one
 //! account however often it is pasted, and gone with the wipe.
 
-mod keystore;
+/// The stand in this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    pub use guard::TestGuard;
+}
 mod restored;
 
 use nox_shield_core::error::WalletError;

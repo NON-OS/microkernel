@@ -14,41 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One connection to the RPC host, over the network the person chose.
+//! One connection to the RPC host, over Nym or Anyone through route link.
 //!
 //! Every balance, nonce, fee, broadcast and receipt goes over one of these.
-//! Each used to resolve the host through net.dns in the clear and dial it
-//! from this machine's address, so the RPC provider could tie this machine
-//! to every address it asked about, whatever network had been chosen. Now
-//! Direct alone does that, as it always did: net.dns, then a stream socket
-//! through net.sockets. Under the Nym mixnet or the Anyone network the host
-//! name goes unresolved to the exit through net.socks5 or net.anon, and a
-//! route that is down refuses with its reason. Nothing falls back. A link
-//! is opened and carried a step at a time (`step::open`, `step::io`), so the
+//! The host name goes unresolved to the exit through net.socks5 or net.anon,
+//! so the RPC provider never sees this machine's address beside the accounts
+//! it is asked about. A route that is down refuses with its reason, and
+//! nothing falls back: there is no Direct path in the wallet. A link is
+//! opened and carried a step at a time (`step::open`, `step::io`), so the
 //! window never waits on one.
 
 use nonos_route_link::RouteStream;
 
-pub enum Link {
-    /// Through net.sockets, to the address net.dns gave: Direct only.
-    Direct { sockets: u32, handle: u32 },
-    /// Through net.socks5 or net.anon, waiting up to `patience_ms` for the
-    /// far end's first byte.
-    Routed { stream: RouteStream, patience_ms: u64 },
-}
-
-/// How far an open got when it failed, for the probe, and why.
-pub struct Reach {
-    pub resolve: bool,
-    pub socket: bool,
-    pub why: &'static str,
-}
-
-impl Drop for Link {
-    /* A routed stream resets its tunnel as it goes. */
-    fn drop(&mut self) {
-        if let Link::Direct { sockets, handle } = self {
-            let _ = super::socket_close::socket_close(*sockets, *handle);
-        }
-    }
+/// A stream through net.socks5 or net.anon, waiting up to `patience_ms` for
+/// the far end's first byte. Dropping it resets its tunnel.
+pub struct Link {
+    pub stream: RouteStream,
+    pub patience_ms: u64,
 }

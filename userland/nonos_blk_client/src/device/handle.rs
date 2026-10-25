@@ -19,8 +19,8 @@
 
 use nonos_libc::mk_service_lookup;
 
+use super::geometry::Geometry;
 use super::nvme;
-use super::span::Geometry;
 use crate::driver::Driver;
 use crate::error::BlkError;
 
@@ -53,12 +53,18 @@ impl BlockDevice {
             return Ok(None);
         }
         let geometry = match driver {
-            Driver::Nvme => nvme::geometry(port)?,
-            Driver::Ahci | Driver::VirtioBlk | Driver::Rtsx => Geometry::SECTORS,
+            Driver::Nvme => nvme::geometry(port),
+            Driver::Wire | Driver::Ufs => super::wire::geometry(port),
+            Driver::Ahci | Driver::VirtioBlk | Driver::Rtsx => Ok(Geometry::SECTORS),
+        };
+        /* A reader or slot with no card in it serves no disk, whether its
+         * GEOMETRY or its capacity is the reply that says so. */
+        let geometry = match geometry {
+            Err(BlkError::Status(E_NOMEDIUM)) => return Ok(None),
+            g => g?,
         };
         let mut dev = BlockDevice { driver, instance, port, sectors: 0, geometry };
         dev.sectors = match dev.capacity_blocks() {
-            /* A card reader with no card in its slot serves no disk. */
             Err(BlkError::Status(E_NOMEDIUM)) => return Ok(None),
             blocks => geometry.sectors(blocks?),
         };

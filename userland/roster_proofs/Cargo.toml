@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 dense CPU index: the device tree's
+# CPU list laid out with the boot CPU first (generated trees with gaps in
+# MPIDR, duplicates, a missing boot CPU and more CPUs than the roster
+# holds), and a sweep of the kernel's source for every per-CPU index on
+# aarch64. The kernel's own source is included via #[path].
+[package]
+name = "roster_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

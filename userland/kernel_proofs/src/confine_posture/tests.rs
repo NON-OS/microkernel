@@ -17,7 +17,7 @@
 use super::posture::unconfined_allowed;
 use crate::memory::iommu::IommuError;
 
-const ALL: [IommuError; 15] = [
+const ALL: [IommuError; 17] = [
     IommuError::NotInitialized,
     IommuError::NotSupported,
     IommuError::DomainExhausted,
@@ -31,8 +31,10 @@ const ALL: [IommuError; 15] = [
     IommuError::DeviceDetachFailed,
     IommuError::PageTableExhausted,
     IommuError::BackendFault,
+    IommuError::Uncommitted,
     IommuError::AmdViNotDriven,
     IommuError::NoIommu,
+    IommuError::Stranded,
 ];
 
 #[test]
@@ -57,6 +59,8 @@ fn every_failure_with_a_unit_in_service_refuses_the_claim() {
         IommuError::DeviceAttachFailed,
         IommuError::PageTableExhausted,
         IommuError::BackendFault,
+        IommuError::Uncommitted,
+        IommuError::Stranded,
         IommuError::AlreadyMapped,
         IommuError::InvalidDevice,
     ] {

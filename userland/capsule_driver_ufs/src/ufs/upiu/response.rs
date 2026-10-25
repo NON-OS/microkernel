@@ -1,0 +1,61 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Reading a response UPIU at the offsets in facts::upiu.
+
+use crate::ufs::facts::upiu::*;
+use crate::ufs::slot::layout::{RSP_READ, SLOT};
+
+pub struct Rsp<'a>(pub &'a [u8; RSP_READ]);
+
+impl Rsp<'_> {
+    pub fn tt(&self) -> u8 {
+        self.0[AT_TYPE]
+    }
+
+    /// Whether this is the answer to the request of type `tt` (its response
+    /// code) for `lun` in this engine's slot: a response another request's,
+    /// or another unit's, is not this one's however it reads.
+    pub fn answers(&self, tt: u8, lun: u8) -> bool {
+        self.tt() == tt && self.0[AT_LUN] == lun && self.0[AT_TAG] == SLOT as u8
+    }
+
+    /// A query response that names the opcode and IDN it was asked.
+    pub fn echoes(&self, op: u8, idn: u8) -> bool {
+        self.0[AT_OPCODE] == op && self.0[AT_IDN] == idn
+    }
+
+    /// The header's response field; for a query, its response code.
+    pub fn response(&self) -> u8 {
+        self.0[AT_RESPONSE]
+    }
+
+    /// The SCSI status of a command response.
+    pub fn status(&self) -> u8 {
+        self.0[AT_STATUS]
+    }
+
+    /// A read flag's value: bit 0 of the value field's last byte.
+    pub fn flag(&self) -> bool {
+        self.0[AT_FLAG] & 1 != 0
+    }
+
+    /// The sense data a CHECK CONDITION carries, cut to what was read back.
+    pub fn sense(&self) -> &[u8] {
+        let n = u16::from_be_bytes([self.0[AT_SENSE_LEN], self.0[AT_SENSE_LEN + 1]]);
+        &self.0[AT_SENSE..(AT_SENSE + n as usize).min(RSP_READ)]
+    }
+}

@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! REMOTE_NDIS_SET_MSG (Remote NDIS 1.0, 2.2.6), laid out as Linux
-//! generic_rndis_bind sets the packet filter and rndis_set_oid sets any
-//! other: 28 bytes of header, the value right after, its offset counted
-//! from RequestID.
+//! REMOTE_NDIS_SET_MSG (Remote NDIS 1.0, 2.2.6), as the station address
+//! and the packet filter are set: 28 bytes of header, the value right
+//! after, its offset counted from RequestID.
 
 use alloc::vec;
 use alloc::vec::Vec;

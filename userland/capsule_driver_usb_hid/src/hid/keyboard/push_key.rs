@@ -46,6 +46,7 @@ impl Keyboard {
             if pressed { keymap::ascii(scancode, self.modifiers, self.caps_lock) } else { 0 };
         let event =
             KeyEvent { scancode, ascii, modifiers: self.modifiers, pressed, caps: self.caps_lock };
-        post_failures::count_key(post_key::publish(event, &mut self.held));
+        // Wired: nothing added to the flags.
+        post_failures::count_key(post_key::publish(event, &mut self.held, 0));
     }
 }
