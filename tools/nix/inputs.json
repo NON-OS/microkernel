@@ -4250,6 +4250,7 @@
  },
  "userland/demo_screen_proofs": {
   "exclude": [
+   "userland/market_proto/fuzz",
    "userland/toolkit/image_tests"
   ],
   "include": [
