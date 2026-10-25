@@ -50,6 +50,8 @@ DISKS = {
                         + "".join(f" -device ich9-usb-uhci{n + 1},id=lane-ehci-uhci{n + 1},addr=1d.{n},"
                                   f"multifunction=on,masterbus=lane-ehci.0,firstport={2 * n}" for n in range(3)),
                         "lane-ehci.0")),
+    # A stick on the machine's own xHCI controller, beside the boot disk.
+    "xhci-stick": (STICK, "-drive {drive} -device usb-storage,bus=xhci.0,drive={id},removable=on"),
     "uhci": (STICK, usb("-device piix3-usb-uhci,id=lane-uhci", "lane-uhci.0")),
     "ohci": (STICK, usb("-device pci-ohci,id=lane-ohci", "lane-ohci.0")),
     "pvscsi": (CARD, scsi("pvscsi", "lane-pvscsi")),
