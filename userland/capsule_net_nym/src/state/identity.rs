@@ -25,10 +25,18 @@ use spin::Mutex;
 /// identity when it needs a stable one.
 static IDENTITY: Mutex<Option<Identity>> = Mutex::new(None);
 
-#[derive(Clone, Copy)]
+/// Not `Copy`: every copy of the seed is a value whose drop wipes it, so none
+/// outlives the call that asked for it.
+#[derive(Clone)]
 pub struct Identity {
     pub seed: [u8; 32],
     pub public: [u8; 32],
+}
+
+impl Drop for Identity {
+    fn drop(&mut self) {
+        crate::crypto::wipe::wipe(&mut self.seed);
+    }
 }
 
 pub fn set_client_identity(seed: &[u8; 32], public: &[u8; 32]) {
@@ -38,20 +46,19 @@ pub fn set_client_identity(seed: &[u8; 32], public: &[u8; 32]) {
 /// The current identity, generating one if none has been installed.
 pub fn client_identity() -> Option<Identity> {
     let mut slot = IDENTITY.lock();
-    if let Some(id) = *slot {
-        return Some(id);
+    if let Some(id) = slot.as_ref() {
+        return Some(id.clone());
     }
     let generated = generate()?;
-    *slot = Some(generated);
+    *slot = Some(generated.clone());
     Some(generated)
 }
 
 fn generate() -> Option<Identity> {
-    let mut seed = [0u8; 32];
-    crate::crypto::random::fill_random(&mut seed).ok()?;
-    let mut public = [0u8; 32];
-    if crate::crypto::ed25519::pubkey(&seed, &mut public) != 32 {
+    let mut id = Identity { seed: [0u8; 32], public: [0u8; 32] };
+    crate::crypto::random::fill_random(&mut id.seed).ok()?;
+    if crate::crypto::ed25519::pubkey(&id.seed, &mut id.public) != 32 {
         return None;
     }
-    Some(Identity { seed, public })
+    Some(id)
 }

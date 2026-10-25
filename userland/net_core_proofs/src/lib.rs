@@ -64,12 +64,7 @@ pub mod batch;
 
 #[cfg(test)]
 mod autojoin_tests;
-#[cfg(test)]
-mod dns_errno_tests;
-#[cfg(test)]
-mod dns_pending_tests;
-#[cfg(test)]
-mod dns_verdict_tests;
+pub mod dns;
 #[cfg(test)]
 mod lease_wait_tests;
 #[cfg(test)]
@@ -78,3 +73,4 @@ mod link_watch_tests;
 mod refusal_tests;
 #[cfg(test)]
 mod tcp;
+pub mod dhcp;
