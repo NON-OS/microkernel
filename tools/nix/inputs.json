@@ -4475,6 +4475,7 @@
    "userland/capsule_desktop_shell/src/wait_for_setup.rs",
    "userland/capsule_desktop_shell/src/wallpaper_client",
    "userland/capsule_desktop_shell/src/wm_client",
+   "userland/capsule_game_2048/src/game/manifest.rs",
    "userland/capsule_input_router/src/route/chord.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_model_fetch/src/default_tier.rs",
