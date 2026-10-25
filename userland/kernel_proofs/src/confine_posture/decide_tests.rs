@@ -18,7 +18,8 @@
 //! machine can present, without the opt-in, with it, and with it beside a
 //! production build, which never honours it.
 
-use super::decide::{opted_in, physical_dma, verdict, Verdict};
+use super::decide::{opted_in, verdict, Verdict};
+use super::open::physical_dma;
 use crate::memory::iommu::dev_unconfined::posture_tail;
 use Verdict::{Confine, NoDma, Refuse, Unconfined};
 
@@ -43,15 +44,15 @@ const CASES: [(Device, Verdict, Verdict); 6] = [
 #[test]
 fn a_device_no_unit_confines_is_refused_without_the_opt_in() {
     for ((rid, covered, domain), closed, _) in CASES {
-        assert_eq!(verdict(rid, covered, domain, false, (false, false)), closed, "{rid} {covered}");
+        assert_eq!(verdict(rid, covered, domain, false, (false, false), false), closed, "{rid} {covered}");
     }
 }
 
 #[test]
 fn the_opt_in_opens_only_a_development_build() {
     for ((rid, covered, domain), closed, open) in CASES {
-        assert_eq!(verdict(rid, covered, domain, false, (true, false)), open, "{rid} {covered}");
-        assert_eq!(verdict(rid, covered, domain, false, (true, true)), closed, "production");
+        assert_eq!(verdict(rid, covered, domain, false, (true, false), false), open, "{rid} {covered}");
+        assert_eq!(verdict(rid, covered, domain, false, (true, true), false), closed, "production");
     }
     assert!(opted_in(true, false));
     assert!(!opted_in(true, true) && !opted_in(false, false) && !opted_in(false, true));

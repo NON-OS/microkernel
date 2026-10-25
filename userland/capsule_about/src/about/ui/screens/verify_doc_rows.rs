@@ -25,6 +25,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::about::data::dma_words::words;
 use crate::about::data::doc_parse::Doc;
 use crate::about::data::verify::Verdict;
 
@@ -60,7 +61,7 @@ pub(super) fn rows(fb: &mut PaintBuffer, rows_y: i32, inner: u32, doc: &Doc) {
         rows_y + (ROW_H * 2) as i32,
         inner,
         Verdict::from_bool(doc.dma_held()),
-        b"device DMA held by the IOMMU",
+        words(doc.dma_held()),
         &ev[..n],
     );
 }
