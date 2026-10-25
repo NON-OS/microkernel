@@ -14,18 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OP_HEALTHCHECK: still in SVGA mode with the FIFO configured. A host that
-//! dropped either (a VGA mode set by someone else) is reported, not drawn
-//! into blind.
+//! The memory type a MkMmioMap mapping gets (L17): write-combined only on a
+//! prefetchable BAR, wholly inside it, and only once every CPU's PAT has the
+//! entry; strong UC otherwise. The real source is included by path.
 
-use crate::constants::regs::{CONFIG_DONE, ENABLE};
-use crate::protocol::E_DEVICE;
-use crate::setup::Driver;
-
-pub fn health(d: &Driver) -> i32 {
-    if d.regs.read(ENABLE) != 0 && d.regs.read(CONFIG_DONE) != 0 {
-        0
-    } else {
-        E_DEVICE
-    }
-}
+#[path = "../../../../src/hardware/broker/mmio/cache.rs"]
+pub mod cache;
+mod glue_tests;
+mod tests;
