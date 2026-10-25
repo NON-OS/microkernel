@@ -8,8 +8,8 @@ extern crate alloc;
 mod mounts;
 pub use mounts::*;
 
-// The connect stage's answer to a finished join, at the module path its
-// `pub(in crate::serve)` items name (src/serve/connect/mod.rs).
+// The serve stage, mirrored file by file at the module path its
+// `pub(in crate::serve)` items name, with the libc shim for its kernel calls.
 pub mod serve;
 
 #[cfg(test)]
