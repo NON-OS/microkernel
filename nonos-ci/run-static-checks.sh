@@ -5115,6 +5115,30 @@ else
 fi
 unset enrol_out
 
+# A capsule built into the kernel with an empty ELF, cert, manifest or trailer
+# must not compile: each embedding module asserts its consts are not empty, and
+# a spawn reads an empty embedded image as "not built" (B-02). The self-test
+# first, so a scan that stopped seeing embeds cannot pass by finding none.
+if embed_out="$(python3 scripts/check_embed_asserts.py --self-test 2>&1 \
+    && python3 scripts/check_embed_asserts.py 2>&1)"; then
+    note ok "every embedded capsule refuses to compile with an empty file (check_embed_asserts)"
+else
+    tail -n 5 <<< "${embed_out}" >&2
+    fail_with "check_embed_asserts: an embedded capsule lacks its empty-image assert"
+fi
+unset embed_out
+
+# nonos-mk-esp names the kernel it packs and warns when it is the bare
+# microkernel-core, which starts no capsules (B-02).
+if esp_out="$(python3 scripts/check_esp_profile.py --self-test 2>&1 \
+    && python3 scripts/check_esp_profile.py 2>&1)"; then
+    note ok "nonos-mk-esp names the kernel it packs and warns on a core kernel (check_esp_profile)"
+else
+    tail -n 5 <<< "${esp_out}" >&2
+    fail_with "check_esp_profile: nonos-mk-esp lost its kernel record or its warning"
+fi
+unset esp_out
+
 # The GPU pages in docs/hardware say what each GPU gets today; the check holds
 # them to the code they describe. The self-test first, so a check that stopped
 # reading the pages cannot pass by finding nothing.
