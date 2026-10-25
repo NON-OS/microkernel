@@ -25,8 +25,6 @@ src/drivers/security/dma.rs:85 validate_sg_list
 src/elf/loader/image/image.rs:55 requires_interpreter
 src/fs/path/validate.rs:64 require_absolute
 src/fs/path/validate.rs:72 require_relative
-src/fs/storage/quota.rs:101 check_can_create_file
-src/fs/storage/quota.rs:90 check_can_allocate
 src/memory/dma/allocator/api.rs:109 validate_dma_address
 src/memory/hardening/manager/api.rs:20 validate_memory_permissions
 src/memory/hardening/manager/api.rs:43 check_stack_canary
