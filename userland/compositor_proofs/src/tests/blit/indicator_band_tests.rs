@@ -36,7 +36,7 @@ fn draw_on(px: &mut [u32], clip: Rect, ind: &Indicators) {
     let byte_len = px.len() as u64 * 4;
     let s =
         Surface { base_va: px.as_mut_ptr() as u64, stride: W * 4, width: W, height: H, byte_len };
-    draw(s, clip, ind, false, false);
+    draw(s, clip, ind, false, false, false);
 }
 
 #[test]

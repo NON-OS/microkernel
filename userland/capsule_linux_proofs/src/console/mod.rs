@@ -18,6 +18,10 @@
 //! finds the others where it does in the capsule, and the run request's
 //! parser, which decides whether a run starts on a terminal.
 
+#[path = "../../../capsule_linux/src/linux/console/intr_press.rs"]
+pub mod intr_press;
+#[cfg(test)]
+mod intr_press_tests;
 #[path = "../../../capsule_linux/src/linux/console/queue.rs"]
 pub mod queue;
 #[path = "../../../capsule_linux/src/linux/console/queue_piece.rs"]

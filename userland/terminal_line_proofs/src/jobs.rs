@@ -22,6 +22,8 @@ pub mod box_hold;
 pub mod box_screen;
 #[path = "../../capsule_terminal/src/jobs/box_log.rs"]
 pub mod box_log;
+#[path = "../../capsule_terminal/src/jobs/box_missing.rs"]
+pub mod box_missing;
 #[path = "../../capsule_terminal/src/command/builtin/tool_argv.rs"]
 pub mod tool_argv;
 #[path = "../../capsule_linux/src/linux/boxed/frames.rs"]
@@ -33,6 +35,8 @@ mod box_argv_tests;
 mod box_glue_tests;
 #[cfg(test)]
 mod box_log_tests;
+#[cfg(test)]
+mod box_missing_tests;
 #[cfg(test)]
 mod box_screen_left;
 #[cfg(test)]

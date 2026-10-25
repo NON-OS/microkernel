@@ -17,7 +17,7 @@
 use super::constants::*;
 use super::{PlicError, PlicResult};
 
-pub fn valid_irq(irq: u32) -> PlicResult<()> {
+pub(super) fn valid_irq(irq: u32) -> PlicResult<()> {
     if irq == 0 || irq >= MAX_INTERRUPTS {
         Err(PlicError::InvalidInterrupt)
     } else {
@@ -25,26 +25,26 @@ pub fn valid_irq(irq: u32) -> PlicResult<()> {
     }
 }
 
-pub fn context(hart: usize) -> u64 {
+pub(super) fn context(hart: usize) -> u64 {
     (hart * 2 + 1) as u64
 }
 
-pub fn priority(base: u64, irq: u32) -> u64 {
+pub(super) fn priority(base: u64, irq: u32) -> u64 {
     base + PRIORITY_BASE + (irq as u64 * 4)
 }
 
-pub fn pending(base: u64, irq: u32) -> u64 {
+pub(super) fn pending(base: u64, irq: u32) -> u64 {
     base + PENDING_BASE + ((irq / 32) as u64 * 4)
 }
 
-pub fn enable(base: u64, hart: usize, irq: u32) -> u64 {
+pub(super) fn enable(base: u64, hart: usize, irq: u32) -> u64 {
     base + ENABLE_BASE + (context(hart) * ENABLE_STRIDE) + ((irq / 32) as u64 * 4)
 }
 
-pub fn threshold(base: u64, hart: usize) -> u64 {
+pub(super) fn threshold(base: u64, hart: usize) -> u64 {
     base + THRESHOLD_BASE + (context(hart) * CONTEXT_STRIDE)
 }
 
-pub fn claim(base: u64, hart: usize) -> u64 {
+pub(super) fn claim(base: u64, hart: usize) -> u64 {
     base + CLAIM_BASE + (context(hart) * CONTEXT_STRIDE)
 }
