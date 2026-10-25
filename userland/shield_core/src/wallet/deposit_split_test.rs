@@ -1,8 +1,6 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::arithmetic_side_effects, clippy::integer_division)]
-
-use super::{pieces, MAX_PIECES};
+use super::{pieces, pieces_by, MAX_PIECES};
 use crate::net::asset_v2::{PROD_ETH, PROD_NOX};
+use crate::net::policy_rules::Rule;
 
 const CENT: u64 = 10_000_000_000_000_000;
 const THOUSAND_NOX: u64 = 1_000_000_000_000;
@@ -48,4 +46,16 @@ fn every_amount_in_cents_to_one_hundred_eth_splits_into_allowed_sizes() {
         assert!(made.len() as u64 <= 3 * digits.min(4) + tens, "{cents} cents in {made:?}");
         assert!(made.len() <= MAX_PIECES);
     }
+}
+
+/// With rules() read, the split follows the policy's range, not the asset's own.
+#[test]
+fn a_rule_read_from_the_policy_sets_the_sizes() {
+    let rule = Rule { fee: 0, min_exp: 2, max_exp: 3, ranged: true };
+    let by = |u: u128| pieces_by(u, |s| rule.standard(s));
+    assert_eq!(by(3_700), Some(vec![2_000, 1_000, 500, 200]));
+    assert_eq!(by(12_000), Some(vec![5_000, 5_000, 2_000]), "5 x 10^maxExp is the largest");
+    assert_eq!(by(150), None, "50 is under 10^minExp");
+    let off = Rule { ranged: false, ..rule };
+    assert_eq!(pieces_by(3_700, |s| off.standard(s)), None, "not ranged: nothing is standard");
 }

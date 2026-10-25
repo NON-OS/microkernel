@@ -28,6 +28,8 @@ pub(super) const PRED_CMD_IBPB: u64 = 1 << 0;
 pub(super) const FLUSH_CMD_L1D: u64 = 1 << 0;
 
 pub(super) const ARCH_CAP_RDCL_NO: u64 = 1 << 0;
+/// Enhanced IBRS: IBRS set once covers every later entry to the kernel.
+pub(super) const ARCH_CAP_IBRS_ALL: u64 = 1 << 1;
 pub(super) const ARCH_CAP_SSB_NO: u64 = 1 << 4;
 pub(super) const ARCH_CAP_MDS_NO: u64 = 1 << 5;
 pub(super) const ARCH_CAP_TAA_NO: u64 = 1 << 8;

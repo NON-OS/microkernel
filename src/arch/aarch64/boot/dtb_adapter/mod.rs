@@ -16,4 +16,4 @@
 
 mod parse;
 
-pub use parse::populate;
+pub use parse::{populate, Outcome};

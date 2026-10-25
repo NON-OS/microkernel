@@ -16,15 +16,20 @@
 
 //! DMA grants in host memory, zeroed as the kernel's are. A grant's device
 //! address is its host address, as the harness makes them for the ring
-//! region, and it lives until the thread that asked for it ends: nothing
-//! here unmaps.
+//! region, and every grant is kept per thread until unmapped or the test
+//! resets, so a test sees which are still held.
 
 use std::cell::RefCell;
 use std::sync::atomic::AtomicU64;
 
+pub(crate) const EINVAL: i64 = -22;
+/// The largest grant the driver asks for: one 3840x2160 surface.
+const MAX_GRANT: u64 = 32 << 20;
+pub const MK_DMA_MAP_HIGH: u32 = 1 << 0;
+
 /// What the broker writes back for a mapping, field for field.
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct DmaMapOut {
     pub user_va: u64,
     pub device_addr: u64,
@@ -32,32 +37,25 @@ pub struct DmaMapOut {
     pub grant_id: u64,
 }
 
-const EINVAL: i64 = -22;
-/// The largest grant the driver asks for: a 3840x2160 primary surface.
-const MAX_GRANT: u64 = 32 << 20;
+pub(crate) type Grant = (u64, Box<[AtomicU64]>);
 
 thread_local! {
-    static GRANTS: RefCell<Vec<Box<[AtomicU64]>>> = const { RefCell::new(Vec::new()) };
+    pub(crate) static GRANTS: RefCell<Vec<Grant>> = const { RefCell::new(Vec::new()) };
 }
 
-pub fn mk_dma_map(
-    _device_id: u64,
-    _claim_epoch: u64,
-    length: u64,
-    _flags: u32,
-    out: *mut DmaMapOut,
-) -> i64 {
+pub fn mk_dma_map(_device: u64, _epoch: u64, length: u64, _flags: u32, out: *mut DmaMapOut) -> i64 {
     if length == 0 || length > MAX_GRANT {
         return EINVAL;
     }
-    let grant: Box<[AtomicU64]> = (0..length.div_ceil(8)).map(|_| AtomicU64::new(0)).collect();
-    let at = grant.as_ptr() as u64;
+    let words: Box<[AtomicU64]> = (0..length.div_ceil(8)).map(|_| AtomicU64::new(0)).collect();
+    let at = words.as_ptr() as u64;
     let grant_id = GRANTS.with(|g| {
-        g.borrow_mut().push(grant);
-        g.borrow().len() as u64
+        let mut g = g.borrow_mut();
+        let id = g.iter().map(|e| e.0).max().unwrap_or(0) + 1;
+        g.push((id, words));
+        id
     });
-    // SAFETY: the driver passes its own DmaMapOut to fill, as it does to the
-    // kernel.
+    // SAFETY: the driver passes its own DmaMapOut to fill, as to the kernel.
     unsafe { *out = DmaMapOut { user_va: at, device_addr: at, length, grant_id } };
     0
 }

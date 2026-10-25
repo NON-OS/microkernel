@@ -20,7 +20,7 @@
 //! This is descriptor-accurate, not a blind guess, and it is the only way
 //! to reconfigure a pad whose firmware does not answer GET_REPORT.
 
-use super::command::REPORT_MAX;
+use super::port::REPORT_MAX;
 use crate::hid::Field;
 
 /// The length of the zeroed report `id` needs to hold every target field

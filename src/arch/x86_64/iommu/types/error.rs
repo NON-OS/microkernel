@@ -17,6 +17,8 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VtdError {
     NotPresent,
+    /// The device's requests may carry another id (L51, L54).
+    SharedRequesterId,
     /// Hardware exists but is not translating, so nothing here confines a
     /// device. Returned instead of success.
     NotEnforcing,
@@ -41,12 +43,23 @@ pub enum VtdError {
     /// Firmware left translation enabled with its own tables. Taking them over
     /// would strand in-flight DMA.
     FirmwareOwnsUnit,
+    /// The frame allocator would not take a dead domain's table back; it and
+    /// the tables not yet returned stay allocated, never reused.
+    TableNotFreed,
     Timeout,
+    /// A map's entries were written and its invalidation or write-buffer
+    /// flush failed: the range may be live.
+    Uncommitted,
     /// The unit refused a queued invalidation descriptor (Fault Status IQE).
     InvalidationRejected,
+    /// The unit reported a queue head past its ring: it has failed.
+    QueueHeadOutOfRange,
     /// Interrupt remapping is not on, so there is no entry to route through.
     InterruptRemappingOff,
     /// An xAPIC-format entry names eight bits of APIC id; this CPU's is wider.
     DestinationTooWide,
     RemapTableFull,
+    /// A failed map's leaves could not be made unreachable: the unit may
+    /// still hold them, so the frames must never be reused.
+    Stranded,
 }

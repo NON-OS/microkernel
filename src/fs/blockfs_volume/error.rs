@@ -66,4 +66,7 @@ pub enum VolumeError {
     NoMemory,
     /// A stream is still coming to the name; it is not taken away under it.
     Importing,
+    /// The seeded RNG could not give a key, a salt or a nonce. Nothing was
+    /// written.
+    NoRandomness,
 }

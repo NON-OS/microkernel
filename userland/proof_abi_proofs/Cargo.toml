@@ -1,0 +1,29 @@
+# NONOS userland: proof_abi_proofs
+#
+# Host proofs for nonos_proof_abi: every layout read back after it is
+# written, every hostile byte refused, the Poseidon chains held to the bare
+# permutation, and the verify order run over a real device proof bound to a
+# real record. Minutes, for the one proof.
+
+[package]
+name = "proof_abi_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_proof_abi = { path = "../nonos_proof_abi" }
+isolation_stark = { path = "../isolation_stark", features = ["parallel"] }
+# With its default features, so the one real proof runs on every core.
+nonos-device-attest = { path = "../../nonos-device-attest" }
+nonos-attest-path = { path = "../../nonos-attest-path", features = ["alloc"] }
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+
+[profile.dev.package."*"]
+opt-level = 3

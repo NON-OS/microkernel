@@ -24,19 +24,9 @@
 //! which is the transaction's own whatever the node says. Pure, so
 //! wallet_proofs holds the rule.
 
-/// What the broadcast's exchange carried back.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Carried {
-    /// The node answered: the hash it named when it took the transaction,
-    /// None when it refused it without a reason.
-    Answer(Option<[u8; 32]>),
-    /// The node refused it, and why.
-    Refused(&'static str),
-    /// Nothing of the request went, and why.
-    NotSent(&'static str),
-    /// The exchange broke once the request had begun to go.
-    Unknown,
-}
+#[path = "outcome_carried.rs"]
+mod outcome_carried;
+pub use outcome_carried::Carried;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Broadcast {

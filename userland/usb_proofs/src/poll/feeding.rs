@@ -22,7 +22,7 @@ use crate::poll::feed_report::feed_report;
 use crate::state::State;
 
 pub fn feed(state: &mut State, ep: &mut HidEndpoint, report: &[u8]) {
-    let mut buf = [0u8; 8];
+    let mut buf = [0u8; 64];
     buf[..report.len()].copy_from_slice(report);
     feed_report(state, ep, &buf, report.len());
 }

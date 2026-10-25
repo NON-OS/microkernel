@@ -37,7 +37,7 @@
 //! spawn gate like everything else, which is what makes the answer worth
 //! anything; this module does not re-derive that, it relies on it.
 
-use nonos_libc::mk_service_lookup;
+pub use super::probe_lookup::probe;
 
 /// The service a shield capsule registers.
 ///
@@ -59,29 +59,5 @@ pub enum Shield {
 impl Shield {
     pub fn available(self) -> bool {
         matches!(self, Shield::Present)
-    }
-}
-
-/// Look for the shield capsule.
-///
-/// Cheap enough to call on a screen change and not on every paint: a service
-/// lookup is an IPC round trip, and a wallet that probes sixty times a second
-/// is a wallet that spends its time asking questions it already answered.
-pub fn probe() -> Shield {
-    let mut port: u32 = 0;
-    let mut pid: u32 = 0;
-    let rc = mk_service_lookup(
-        SHIELD_SERVICE.as_ptr(),
-        SHIELD_SERVICE.len(),
-        &mut port as *mut u32,
-        &mut pid as *mut u32,
-    );
-    // Anything other than a successful lookup naming a live pid is absence.
-    // Failing closed here is the whole point: an unexpected return must never
-    // read as availability.
-    if rc >= 0 && pid != 0 {
-        Shield::Present
-    } else {
-        Shield::Absent
     }
 }

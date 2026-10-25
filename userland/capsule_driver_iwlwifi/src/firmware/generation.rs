@@ -9,10 +9,12 @@
 //! Which Intel Wi-Fi generation a PCI device id is, grouped as Linux's
 //! pcie/drv.c `iwl_hw_card_ids` groups it, and whether this driver boots it.
 //! Only the AX210 family's gen3 context-info boot is written (SO, TY and MA
-//! MACs, `gen3::select::transport`). Every other generation is named so the
-//! boot log says which card the machine has and that its boot path is
+//! MACs, `gen3::select::transport`), and of those only the platforms whose
+//! firmware the tree carries run (`carried`). Every other generation is named
+//! so the boot log says which card the machine has and that its boot path is
 //! missing, rather than leaving the card unmentioned.
 
+use super::carried::runs;
 use super::family::{family_for_device, Family};
 use super::gen3::select::transport;
 
@@ -30,9 +32,13 @@ const fn n(what: &'static str, linux_fw: &'static str) -> Option<Named> {
 }
 
 pub fn name(device: u16) -> Option<Named> {
+    if runs(device) {
+        let what = "AX210 family (AX211 or AX201 on an SO platform), gen3 context info";
+        return Some(Named { what, linux_fw: "iwlwifi-so-a0-*.ucode", boots: true });
+    }
     if transport(device).is_some() {
-        let what = "AX210 family (AX210, AX211, AX411), gen3 context info";
-        return Some(Named { what, linux_fw: "iwlwifi-so/ty/ma-*.ucode", boots: true });
+        let what = "AX210 family (discrete AX210 or Meteor Lake), its firmware not carried";
+        return n(what, "iwlwifi-ty-a0-gf-a0 or ma-b0-gf-a0-*.ucode");
     }
     match device {
         0x08B1 | 0x08B2 => n("7260 (7000 family)", "iwlwifi-7260-17.ucode"),

@@ -18,51 +18,26 @@
 //! holds its own: one process-wide grant, overwritten by every controller
 //! brought up, left the primary's waits blocked on a secondary's vector
 //! and woken only by the park ceiling, or polling when that bind failed.
+//! The park itself is libc's (`IrqPark`), so the policy is the one every
+//! driver shares.
 
-use nonos_libc::{mk_idle_ms, mk_irq_wait, mk_yield};
+use nonos_libc::wait::IrqPark;
 
-use super::step::{step, Step};
-
-// Ceiling on a single park. The controller interrupt wakes the capsule the
-// moment the event lands, so this only bounds the path where no interrupt
-// arrives at all; a device that never answers then costs one wakeup per
-// scheduler tick instead of a whole core.
-const PARK_MS: u64 = 2;
-
-pub struct IrqWait {
-    /// 0 when no interrupt is bound, or the kernel refused the grant.
-    grant: u64,
-    seq: u64,
-}
+pub struct IrqWait(IrqPark);
 
 impl IrqWait {
+    /// 0 when no interrupt is bound; a grant the kernel refuses is dropped
+    /// at its first wait.
     pub fn new(grant: u64) -> Self {
-        Self { grant, seq: 0 }
+        let park = IrqPark::new();
+        park.set_grant(grant);
+        Self(park)
     }
 
     /// One step of a completion poll: spin while the budget lasts, then
     /// block off the run queue until the interrupt or the park ceiling.
     /// Without an interrupt, yield for a while and then sleep.
     pub fn park(&mut self, spins: u32) {
-        match step(spins, self.grant != 0) {
-            Step::Spin => core::hint::spin_loop(),
-            Step::Yield => {
-                mk_yield();
-            }
-            Step::Sleep => {
-                let _ = mk_idle_ms(PARK_MS);
-            }
-            Step::Wait => {
-                let mut seq = self.seq;
-                if mk_irq_wait(self.grant, seq, PARK_MS, &mut seq) < 0 {
-                    // The kernel refused the grant: poll without it from now
-                    // on, and sleep this step rather than spin straight back.
-                    self.grant = 0;
-                    let _ = mk_idle_ms(PARK_MS);
-                    return;
-                }
-                self.seq = seq;
-            }
-        }
+        self.0.park_step(spins);
     }
 }

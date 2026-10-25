@@ -4,15 +4,18 @@
 
 # The kind of image. A profile sets floors: asking it for less fails.
 #   standard   the full system for real hardware: every driver, the desktop,
-#              first-boot setup and the installer
-#   hardened   standard, with Secure Boot and a TPM required at boot and no
-#              serial console for capsules
+#              first-boot setup and the installer; no serial console for
+#              capsules (a development image keeps one)
+#   hardened   standard, with Secure Boot and a TPM required at boot
 #   airgapped  hardened, with no network driver, stack or online program
 #              compiled in; it installs only from offline media
 #   qemu       the desktop for virtual machines, without the drivers only real
 #              hardware has
 #   dev        qemu with the loader's development policy; never sealed for
 #              release
+#   selftest   dev with the attack suite's capsule, which tries what an
+#              attacker would at boot (tools/nonos-selftest); never sealed
+#              for release
 #   core       the microkernel and its base capsules, no desktop
 profile = "standard"
 

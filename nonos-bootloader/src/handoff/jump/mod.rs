@@ -16,12 +16,14 @@
 
 mod entry;
 mod mmap;
+mod mmap_copy;
 mod settle;
 mod types;
 mod validate;
 
 pub use entry::jump_to_kernel;
 pub use mmap::{copy_memory_map, finalize_mmap};
+pub use mmap_copy::{mmap_capacity, mmap_pages};
 pub use settle::settle_delay;
 pub use types::MemoryMapEntry;
 pub use validate::{validate_entry_address, validate_handoff_address, validate_stack_address};

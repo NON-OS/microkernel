@@ -20,7 +20,14 @@ use super::super::ops_helpers::locate;
 use super::super::types::Rte;
 use crate::memory::proof::{self, CapTag};
 
-pub fn program_route(gsi: u32, mut rte: Rte) -> IoApicResult<()> {
+pub fn program_route(gsi: u32, rte: Rte) -> IoApicResult<()> {
+    super::compat::compat_allowed()?;
+    write_route(gsi, rte)
+}
+
+/// The entry as `rte` has it, unchecked: for a caller that has made it a
+/// remapping entry first (program_amd).
+pub(super) fn write_route(gsi: u32, mut rte: Rte) -> IoApicResult<()> {
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
     // The entry's destination is 8 bits; an id past it goes to a CPU that fits.
     rte.dest_apic_id = crate::arch::x86_64::interrupt::apic::device_irq_dest(rte.dest_apic_id)

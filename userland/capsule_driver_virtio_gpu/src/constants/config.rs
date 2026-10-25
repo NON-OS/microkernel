@@ -18,7 +18,8 @@
 // offsets, which on a modern device read past the 16-byte structure (QEMU
 // answers all ones there) and reported 0xFFFFFFFF scanouts.
 pub const GPU_CFG_EVENTS_READ: usize = 0x00;
-pub const GPU_CFG_NUM_SCANOUTS: usize = 0x08;
-pub const GPU_CFG_NUM_CAPSETS: usize = 0x0C;
+pub const GPU_CFG_EVENTS_CLEAR: usize = 0x04;
+/// The events word's display bit: the host's displays changed.
+pub const GPU_EVENT_DISPLAY: u32 = 1 << 0;
 pub const VG_MAX_SCANOUTS: usize = 16;
 pub const VG_FORMAT_B8G8R8A8_UNORM: u32 = 1;

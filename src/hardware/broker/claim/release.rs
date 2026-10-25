@@ -14,65 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
+//! A release's last steps (L66, L75). A claim being released stays in the
+//! table, so no newer claim of the device can be made, until every release of
+//! it and every path still inside it is done; the last of them removes it.
 
-use super::state::CLAIMS;
-use super::types::ClaimError;
+use super::stage_rule::gone;
+use super::state::claims;
+use super::types::{ClaimError, Stage};
 
-// Release a claim held by `pid`. Returns the released epoch on
-// success.
-pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
-    let mut claims = CLAIMS.lock();
-    let idx = claims.iter().position(|c| c.device_id == device_id).ok_or(ClaimError::NotClaimed)?;
-    if claims[idx].pid != pid {
-        return Err(ClaimError::NotHolder);
+type Key = (u32, u64, u64);
+
+fn named(key: Key) -> impl Fn(&super::Claim) -> bool {
+    move |c| {
+        (c.pid, c.device_id, c.epoch) == key && matches!(c.stage, Stage::Leaving | Stage::Exiting)
     }
-    let epoch = claims[idx].epoch;
-    claims.remove(idx);
-    drop(claims);
+}
+
+/// One release of the claim at `key` done: true when it was the last, and
+/// the entry has gone. None when no claim being released is at `key`.
+pub(super) fn settle(key: Key) -> Option<bool> {
+    let mut claims = claims();
+    let at = claims.iter().position(named(key))?;
+    let c = &mut claims[at];
+    c.leavers = c.leavers.saturating_sub(1);
+    let last = gone(c.stage, c.leavers, c.inflight);
+    if last {
+        super::gone::remove(claims, at);
+    }
+    Some(last)
+}
+
+/// Release the claim `pid` retired at `epoch`, and that one only (L69). Its
+/// device stops while the entry, which this release keeps, still names it,
+/// so a newer claim's device is never the one stopped (L75).
+pub fn release(pid: u32, device_id: u64, epoch: u64) -> Result<u64, ClaimError> {
+    let key = (pid, device_id, epoch);
+    if !claims().iter().any(named(key)) {
+        return Err(ClaimError::NotClaimed);
+    }
     super::quiesce::stop_bus_master(device_id);
-    crate::hardware::broker::confine::detach(pid, device_id);
+    if settle(key) == Some(true) {
+        crate::hardware::broker::confine::detach(pid, device_id);
+        super::wipe::step_all(true);
+    }
     Ok(epoch)
 }
 
-/// Stop a device the caller holds from mastering the bus, before its grants
-/// are torn down. False, and nothing written, when `pid` does not hold it.
-pub fn quiesce_held(pid: u32, device_id: u64) -> bool {
-    let held = CLAIMS.lock().iter().any(|c| c.device_id == device_id && c.pid == pid);
+/// Stop a device a release holds from mastering the bus, before its grants
+/// are torn down. The entry stays while this release is under way (L75), so
+/// the device stopped is this claim's; false, and nothing written, when no
+/// claim being released is at `epoch`.
+pub fn quiesce_held(pid: u32, device_id: u64, epoch: u64) -> bool {
+    let held = claims().iter().any(named((pid, device_id, epoch)));
     if held {
         super::quiesce::stop_bus_master_quietly(device_id);
     }
     held
-}
-
-// Release every claim held by `pid`. Called from the kernel's
-// `MkExit` path so a dying capsule cannot leak grants. Returns the
-// number of claims revoked.
-pub fn release_all_for_pid(pid: u32) -> usize {
-    let mut claims = CLAIMS.lock();
-    let held: alloc::vec::Vec<u64> =
-        claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
-    claims.retain(|c| c.pid != pid);
-    drop(claims);
-    for device_id in &held {
-        super::quiesce::stop_bus_master(*device_id);
-    }
-    crate::hardware::broker::confine::detach_all(pid);
-    held.len()
-}
-
-/// Stop every claimed device from mastering the bus, for the shutdown wipe:
-/// a device still writing would put bytes back behind it. The claim table is
-/// only tried, since a CPU stopped by IPI may hold it; the claims themselves
-/// are left in place. The number of devices stopped, or `None` if the table
-/// was held.
-pub fn quiesce_all() -> Option<usize> {
-    let held: alloc::vec::Vec<u64> = {
-        let claims = CLAIMS.try_lock()?;
-        claims.iter().map(|c| c.device_id).collect()
-    };
-    for device_id in &held {
-        super::quiesce::stop_bus_master_quietly(*device_id);
-    }
-    Some(held.len())
 }

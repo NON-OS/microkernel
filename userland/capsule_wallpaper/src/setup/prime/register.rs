@@ -24,8 +24,9 @@ use super::backing::Backing;
 /// shared under. The compositor is told about it later (server/scene), and
 /// asked again until it answers, so a compositor busy with a frame no longer
 /// sends setup back to the start. That used to map a new backing each round,
-/// a whole screen's worth, and leave the old one behind.
-pub fn share_surface(backing: &Backing) -> Result<u64, &'static str> {
+/// a whole screen's worth, and leave the old one behind. Only `compositor`
+/// maps it, read-only.
+pub fn share_surface(backing: &Backing, compositor: u32) -> Result<u64, &'static str> {
     let desc = SurfaceDescriptor {
         width: backing.width,
         height: backing.height,
@@ -34,13 +35,15 @@ pub fn share_surface(backing: &Backing) -> Result<u64, &'static str> {
         byte_len: backing.byte_len,
         base_va: backing.backing_va,
         flags: 0,
+        owner_pid: 0,
+        writable: 0,
     };
     let sid = mk_surface_register(&desc);
     if sid < 0 {
         give_back(backing);
         return Err("surface register rejected");
     }
-    let handle = mk_surface_share(sid as u64);
+    let handle = mk_surface_share(sid as u64, compositor, 0);
     if handle <= 0 {
         // The registered surface still names the backing, so it stays.
         return Err("surface share rejected");

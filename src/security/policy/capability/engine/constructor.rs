@@ -23,13 +23,14 @@ use super::types::CapabilityEngine;
 
 impl CapabilityEngine {
     pub fn new() -> Result<Self, &'static str> {
-        let signing_key = crate::crypto::generate_secure_key();
+        let none = |_| "no randomness for the capability engine";
+        let signing_key = crate::crypto::generate_secure_key().map_err(none)?;
 
         let mut quantum_rng = [0u8; 32];
-        crate::crypto::fill_random(&mut quantum_rng);
+        crate::crypto::random_api::get_bytes_secure(&mut quantum_rng).map_err(none)?;
 
         let mut attestation_root = [0u8; 32];
-        crate::crypto::fill_random(&mut attestation_root);
+        crate::crypto::random_api::get_bytes_secure(&mut attestation_root).map_err(none)?;
 
         Ok(Self {
             chambers: RwLock::new(BTreeMap::new()),

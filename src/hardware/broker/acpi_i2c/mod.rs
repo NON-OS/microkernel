@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clock;
+pub(in crate::hardware::broker) mod clock;
+mod hid_info;
 mod hid_record;
+mod host_id;
+mod host_resolve;
 mod record;
 mod register;
 mod report;
+mod slots;
 
 pub use register::register_acpi_i2c;

@@ -43,6 +43,7 @@ pub(crate) fn perform_yield_inline() {
     save_syscall_user_rsp(pid);
     crate::process::nonos_core::save_interrupt_context(pid, ctx);
     crate::process::nonos_core::save_fpu_state(pid);
+    crate::arch::keep_outgoing_user_state();
 
     requeue(pid);
     set_time_slice(0);

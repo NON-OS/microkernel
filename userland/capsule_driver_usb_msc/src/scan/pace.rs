@@ -27,8 +27,7 @@ use crate::clock::Deadline;
 /// Commands in a row the transport may fail, a REQUEST SENSE among them
 /// (disk/sense.rs), on any of the device's units, before the device is
 /// given up: its units share the bulk pipes, and each unit was given its own
-/// tries, minutes in all on a silent card reader. Linux's SCSI scan sends
-/// INQUIRY three times.
+/// tries, minutes in all on a silent card reader.
 const LOST_TRIES: u8 = 3;
 const PAUSE_MS: u64 = 50;
 

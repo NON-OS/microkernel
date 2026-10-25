@@ -1,0 +1,30 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Reverse-order teardown when a setup phase fails partway. Best effort: a
+//! grant released twice is refused harmlessly by the broker.
+
+use nonos_libc::{mk_device_release, mk_dma_unmap, mk_mmio_unmap};
+
+pub fn after(device_id: u64, mmio_grants: &[u64], dma_grants: &[u64]) {
+    for &g in dma_grants.iter().rev() {
+        let _ = mk_dma_unmap(g);
+    }
+    for &g in mmio_grants.iter().rev() {
+        let _ = mk_mmio_unmap(g);
+    }
+    let _ = mk_device_release(device_id);
+}

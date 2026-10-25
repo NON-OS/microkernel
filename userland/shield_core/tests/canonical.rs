@@ -3,7 +3,6 @@
 //! The pool reverts `NonCanonicalFieldElement` on a `spendPk` or `blinding` at or above the
 //! modulus, and masking would skew the distribution. The sampler rejects a word at or above
 //! `P` and redraws. These pin both values below `P` over enough draws to expose masking.
-#![allow(clippy::expect_used, clippy::unwrap_used)]
 
 use nonos_stark::field::P;
 use nox_shield_core::custody::{generate_phrase, phrase_to_seed};

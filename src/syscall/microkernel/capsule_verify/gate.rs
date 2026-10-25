@@ -23,10 +23,13 @@ pub(super) fn check(manifest: &CapsuleManifest, elf: &[u8], trailer: &[u8]) -> R
     if trailer.is_empty() {
         return Err(ERRNO_ACCES);
     }
-    // This path answers "would this verify", so the measurement is discarded.
-    // The registry is populated from the spawn path, which has a pid.
+    // This path answers "would this verify". The registry is filled from the
+    // spawn path, which has a pid; a supervisor's family keeps the measurement.
     match verify_capsule_attestation(trailer, elf, manifest.required_caps) {
-        Ok(_) => Ok(()),
+        Ok(p) => {
+            crate::process::foreign::seal::measured(&p.measurement);
+            Ok(())
+        }
         Err(_) => Err(ERRNO_ACCES),
     }
 }

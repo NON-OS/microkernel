@@ -17,10 +17,10 @@
 use alloc::format;
 use alloc::string::String;
 
-use crate::arch::x86_64::acpi::devices::i2c::{HidInterrupt, I2cHidDevice, I2cHostName};
+use crate::arch::firmware_table::devices::{HidInterrupt, I2cHidDevice, I2cHostName};
 use crate::sys::boot_log;
 
-use super::hid_record::controller_slot;
+use super::slots::controller_slot;
 
 fn text(bytes: &[u8]) -> String {
     bytes.iter().take_while(|&&b| b != 0).map(|&b| if b.is_ascii_graphic() { b as char } else { '?' }).collect()

@@ -16,30 +16,48 @@
 
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv, mk_ipc_send};
+use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
+use nonos_payment_proto::{parse_header, status_reply, EINVAL};
 
+use super::call::Call;
 use super::dispatch::dispatch;
-use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
-use crate::store::State;
+use crate::jobs::{on_frame, solve_step, Work};
+use crate::meter::{uptime_ms, Meter};
 
+/// Its own reply inbox: 0x1_0000_0010 was driver_hda's too, and of two
+/// holders of one reply inbox, the second registered could never answer.
+const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_001B;
 const MAX_MSG: usize = 4096;
 
 pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
-    let mut state = State::new();
+    let mut meter = Meter::start();
+    let mut work = Work::default();
     loop {
-        let n = mk_ipc_recv(0, buf.as_mut_ptr(), MAX_MSG, 0);
-        if n <= 0 {
+        let mut sender = 0u32;
+        let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, work.wait_ms(), &mut sender);
+        work.tick(uptime_ms());
+        // A slice of an offer's proof of work between requests (v1.4.34).
+        solve_step(&mut work, &mut meter);
+        // A job step's answer from settle is taken here and needs no reply.
+        // A length past the buffer is not a frame this loop received whole.
+        let Some(rx) = usize::try_from(n).ok().and_then(|n| buf.get(..n)).filter(|_| n > 0) else {
+            continue;
+        };
+        if on_frame(&mut work, &meter, sender, rx) {
             continue;
         }
-        let resp = match decode_request(&buf[..n as usize]) {
-            Some(req) => dispatch(&mut state, req),
+        let resp = match parse_header(rx) {
+            Some((h, body)) => {
+                let call = Call { op: h.op, flags: h.flags, id: h.request_id, body, sender };
+                dispatch(&mut meter, &mut work, &call)
+            }
             /*
-             * Refused by the decode: answered under a zero sequence number.
-             * The caller is blocked in its call until a reply comes, and the
-             * kernel keeps its place in this service's reply queue until then.
+             * Not this wire's frame: answered under op and id zero. The caller
+             * is blocked in its call until a reply comes, and the kernel keeps
+             * its place in this service's reply queue until then.
              */
-            None => encode_response(0, EINVAL, &[]),
+            None => status_reply(0, 0, 0, EINVAL),
         };
         let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len());
     }

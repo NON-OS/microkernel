@@ -1,0 +1,31 @@
+# NØNOS userland: nonos_linux_policy
+#
+# What a Linux program may do on NONOS, in 256 bytes: the mask of services
+# capsule_linux grants it and the system calls it may complete. The bytes
+# are what a publisher signs and what the isolation proof is checked
+# against, so the codec is canonical and refuses anything else.
+
+[package]
+name = "nonos_linux_policy"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "LinuxAppPolicy: the signed least-privilege box of one Linux program, no_std"
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+# keccak-256 for the market ids the tests pin (src/tests/ids_tests.rs).
+[dev-dependencies]
+sha3 = { version = "=0.10.9", default-features = false }
+
+# The vendor table (build.rs): each program's BLAKE3, from the Linux userland build.
+[build-dependencies]
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+
+[package.metadata.nonos]
+test-lane = true

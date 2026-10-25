@@ -9,9 +9,16 @@ pub mod asset_v2;
 pub mod explorer;
 pub mod fee_quote;
 pub mod fee_schedule;
+pub mod policy_paused;
+pub mod policy_rules;
+pub mod policy_standard;
 pub mod pool;
 pub mod pool_errors;
 mod pools;
 pub mod relay;
 pub mod rpc;
 pub mod tor;
+
+#[cfg(test)]
+#[path = "net_hostile_test.rs"]
+mod net_hostile_test;

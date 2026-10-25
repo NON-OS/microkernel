@@ -36,7 +36,7 @@ fn tensor_data_must_be_aligned_inside_the_file_and_unshared() {
     /*
      * An offset whose sum with the data start overflows u64 is past the end.
      */
-    assert_eq!(two(0, u64::MAX & !31, 512), Err(E::Tensor { tensor: 1, why: T::PastEnd }));
+    assert_eq!(two(0, !31, 512), Err(E::Tensor { tensor: 1, why: T::PastEnd }));
 }
 
 #[test]

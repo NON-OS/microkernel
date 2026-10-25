@@ -19,7 +19,7 @@
 use crate::constants::regs::{
     NETTYPE_MASK, NETTYPE_SHIFT, NET_TYPE_LINKED, NET_TYPE_NO_LINK, REG_BSSID, REG_CR,
 };
-use crate::regs::{Mmio, Regs};
+use crate::regs::Mmio;
 
 /*
  * Put the MAC into infrastructure "linked" mode for one BSS so the receiver
@@ -28,7 +28,7 @@ use crate::regs::{Mmio, Regs};
  * managed/linked, preserving the TX/RX engine enables in that register's low
  * bytes. Mirrors rtw88's PORT_SET_BSSID + PORT_SET_NET_TYPE(RTW_NET_MGD_LINKED).
  */
-pub(super) fn set_media_connected(regs: &Regs, bssid: &[u8; 6]) {
+pub(super) fn set_media_connected<M: Mmio>(regs: &M, bssid: &[u8; 6]) {
     let lo = u32::from_le_bytes([bssid[0], bssid[1], bssid[2], bssid[3]]);
     let hi = u16::from_le_bytes([bssid[4], bssid[5]]);
     regs.write32(REG_BSSID, lo);
@@ -45,13 +45,25 @@ pub(super) fn set_media_connected(regs: &Regs, bssid: &[u8; 6]) {
     regs.write32(REG_CR, (cr & !NETTYPE_MASK) | (NET_TYPE_LINKED << NETTYPE_SHIFT));
 }
 
+/// Link the MAC to this BSS before the handshake. The beacon's third address
+/// is the BSSID. Until the hardware is told the BSSID and put into managed
+/// mode it stays no-link: it hears beacons and the association response
+/// (management), but drops the access point's unicast EAPOL data frames, so
+/// the four-way handshake never starts. This is why association reached st=3
+/// yet no EAPOL was ever counted.
+pub(super) fn link_to_bss<M: Mmio>(regs: &M, beacon: &[u8]) {
+    let mut bssid = [0u8; 6];
+    bssid.copy_from_slice(&beacon[16..22]);
+    set_media_connected(regs, &bssid);
+}
+
 /*
  * Undo `set_media_connected`: clear the BSSID and put the MAC back to no-link,
  * as rtw88 does on every disconnect. A join that failed, or a link that ended,
  * otherwise left the MAC bound to that one access point for the rest of the
  * boot, and the background scan behind it heard next to nothing.
  */
-pub(in crate::serve) fn set_media_no_link(regs: &Regs) {
+pub(in crate::serve) fn set_media_no_link<M: Mmio>(regs: &M) {
     regs.write32(REG_BSSID, 0);
     regs.write16(REG_BSSID + 4, 0);
     let cr = regs.read32(REG_CR);

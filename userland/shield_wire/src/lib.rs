@@ -28,19 +28,42 @@
 //! network or the prover.
 
 #![no_std]
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 
 extern crate alloc;
 
+mod callers;
 mod frame;
+mod frame_reply;
+mod fresh;
+mod fresh_modes;
+mod hexes;
 mod ops;
+mod shield_fresh;
+mod status;
 mod values;
+mod values_more;
 
+pub use callers::{from_wallet, WALLETS};
 pub use frame::{
     decode_reply, decode_request, encode_reply, encode_request, Reply, Request, BODY_MAX,
     MESSAGE_MAX,
 };
+pub use fresh::{FreshAsk, OP_SIGN_FROM_FRESH};
+pub use fresh_modes::{FRESH_BATCH, FRESH_HANDED, FRESH_ONCE};
+pub use hexes::{hex, unhex};
 pub use ops::*;
+pub use shield_fresh::{OP_SHIELD_FROM_FRESH, SHIELD_FRESH_CONFIRM, SHIELD_FRESH_REVIEW};
+pub use status::*;
 pub use values::{field, fields, Values};
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tests_fresh;
+#[cfg(test)]
+mod tests_hostile;

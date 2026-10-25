@@ -31,3 +31,34 @@ pub mod random {
         Ok(())
     }
 }
+
+/// net.nym's own volatile wipe, the one its secrets are cleared with.
+#[path = "../../capsule_net_nym/src/crypto/wipe.rs"]
+pub mod wipe;
+
+/// net.nym's `CryptoError` and key types, as the capsule defines them.
+#[path = "../../capsule_net_nym/src/crypto/types.rs"]
+pub mod types;
+
+/// BLAKE3, which the capsule asks the kernel for, from the reference crate.
+pub mod hash {
+    use super::types::CryptoError;
+
+    pub fn blake3(input: &[u8], out: &mut [u8; 32]) -> Result<(), CryptoError> {
+        out.copy_from_slice(blake3::hash(input).as_bytes());
+        Ok(())
+    }
+}
+
+/// HKDF over BLAKE3, the capsule's own, which the gateway key is derived with.
+#[path = "../../capsule_net_nym/src/crypto/hkdf_blake3/mod.rs"]
+pub mod hkdf_blake3;
+
+pub mod ed25519 {
+    /// The identity's public half. The wipe proofs never read it, so it is
+    /// the seed's first bytes rather than a curve point.
+    pub fn pubkey(seed: &[u8; 32], out: &mut [u8; 32]) -> usize {
+        out.copy_from_slice(seed);
+        32
+    }
+}

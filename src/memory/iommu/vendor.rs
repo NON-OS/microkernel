@@ -28,6 +28,8 @@ pub enum IommuVendor {
     IntelVtd,
     /// IVRS is present and DMAR described no unit. This kernel does not drive AMD-Vi.
     AmdVi,
+    /// The device tree's SMMUv3 is in service.
+    ArmSmmuV3,
 }
 
 impl IommuVendor {
@@ -37,6 +39,7 @@ impl IommuVendor {
             Self::Absent => b"none",
             Self::IntelVtd => b"intel-vt-d",
             Self::AmdVi => b"amd-vi",
+            Self::ArmSmmuV3 => b"arm-smmu-v3",
         }
     }
 }

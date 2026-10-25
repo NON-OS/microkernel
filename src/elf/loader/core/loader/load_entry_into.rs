@@ -26,7 +26,7 @@ impl ElfLoader {
         super::super::parse_header::validate_elf(&header)?;
         let (_, _, ph_count) =
             super::super::parse_header::program_header_bounds(elf_data, &header)?;
-        let base_addr = base_addr::load_base(&header, &mut self.aslr_manager);
+        let base_addr = base_addr::load_base(&header, &mut self.aslr_manager)?;
         for index in 0..ph_count {
             let header_at =
                 super::super::parse_header::parse_program_header_at(elf_data, &header, index)?;

@@ -28,6 +28,7 @@ mod protocol;
 mod spawn;
 mod state;
 
+pub(crate) use client::leave_leg;
 pub use client::{capacity, flush, healthcheck, read_blocks, write_blocks};
 pub use error::DriverBlkError;
 pub use spawn::{spawn_driver_virtio_blk_capsule, SpawnError};

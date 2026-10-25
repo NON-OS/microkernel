@@ -18,12 +18,15 @@
 mod aes256_tests;
 mod aes_ctr_tests;
 mod aes_tests;
+mod cmac_tests;
 mod ctr64_tests;
 mod ctr_vectors;
+mod decrypt_tests;
 mod hardware_tests;
 mod nonos_sbox;
 mod nym_ack_tests;
 mod nym_aes;
 mod nym_aes_tests;
+mod sbox_inverse_tests;
 mod sbox_table;
 mod sbox_tests;

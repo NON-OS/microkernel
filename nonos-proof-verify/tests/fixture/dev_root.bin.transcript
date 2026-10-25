@@ -1,0 +1,10 @@
+nonos-policy-transcript v2
+tool nonos-stark-enroll 0.2.0
+source unrecorded
+depth 8
+policy_epoch 1
+boot_epoch 1
+pad_seed 384ea07ebda6b34878c709f4816abc4f519484063e55c2b555cc9637a424ef0f
+slot 0 capsule 8fec15f547c4498ba82bd3347738b6fec118449632873a8ae85d8fe1bd03ffa6 caps 0x0000000000000018
+slot 1 capsule 26ee9762ff79759670399b5bfaefb2bdf307e5b27cc2aa24bb76415c422a9de0 caps 0x0000000000000059
+root 6d817dad8853fac4439f74b2af43950ce334cc0763dec0326a11b156cd06a17b

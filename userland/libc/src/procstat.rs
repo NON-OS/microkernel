@@ -26,6 +26,8 @@ pub const PROC_NAME_LEN: usize = 24;
 
 /// The header layout this crate was built for.
 pub const PROC_STAT_VERSION: u32 = 4;
+/// `ProcStatEntry::flags` bit: Debug withheld by the spawn gate.
+pub const PROC_FLAG_DEBUG_WITHHELD: u8 = 1;
 
 /// state: 0 new, 1 ready, 2 running, 3 sleeping, 4 stopped, 5 zombie,
 /// 6 terminated. priority: 0 idle, 1 low, 2 normal, 3 high, 4 realtime.
@@ -36,7 +38,9 @@ pub struct ProcStatEntry {
     pub state: u8,
     pub name_len: u8,
     pub priority: u8,
-    pub _pad: u8,
+    /// Bit 0, `PROC_FLAG_DEBUG_WITHHELD`: the spawn gate withheld the
+    /// Debug its manifest offered, as it holds a secret or input.
+    pub flags: u8,
     pub run_ticks: u64,
     pub caps: u64,
     pub mem_kb: u64,

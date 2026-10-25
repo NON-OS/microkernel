@@ -26,9 +26,6 @@ pub mod keyring;
 #[path = "../../capsule_installer/src/protocol/mod.rs"]
 pub mod installer;
 
-#[path = "../../capsule_payment/src/protocol/mod.rs"]
-pub mod payment;
-
 #[path = "../../capsule_ramfs/src/protocol/mod.rs"]
 pub mod ramfs;
 
@@ -36,7 +33,5 @@ pub mod ramfs;
 mod keyring_tests;
 #[cfg(test)]
 mod installer_tests;
-#[cfg(test)]
-mod payment_tests;
 #[cfg(test)]
 mod ramfs_tests;

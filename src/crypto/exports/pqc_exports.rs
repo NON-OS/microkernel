@@ -16,11 +16,14 @@
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 pub use super::super::pqc::kyber;
+#[cfg(feature = "pqc-unvetted")]
 pub use super::super::pqc::mceliece;
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 pub use super::super::pqc::ml_dsa_65;
+#[cfg(feature = "pqc-unvetted")]
 pub use super::super::pqc::ntru;
 pub use super::super::pqc::quantum;
+#[cfg(feature = "pqc-unvetted")]
 pub use super::super::pqc::sphincs;
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]

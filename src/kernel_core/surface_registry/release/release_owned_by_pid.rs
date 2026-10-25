@@ -39,7 +39,13 @@ pub fn release_owned_by_pid(pid: u32) -> u32 {
     // releases the surface, so its release is still allowed and still
     // unmaps its view before the orphaned frames are freed.
     for handle in handles.iter().take(count) {
-        super::super::attach_map::forget(pid, *handle);
+        let _ = super::super::attach_map::forget(pid, *handle);
+        // No receiver attaches it again.
+        super::super::share::revoke(*handle);
     }
+    // As a receiver, it named nobody's surface to a later holder of its pid.
+    super::super::share::revoke_pid(pid);
+    // The slots are gone: the exit's closing marks have nothing left to hold.
+    super::super::pin::closing::forget_exited(pid);
     count as u32
 }

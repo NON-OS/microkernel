@@ -18,24 +18,27 @@ use super::error::FdtError;
 
 #[inline]
 pub fn be_u32(bytes: &[u8], offset: usize) -> Result<u32, FdtError> {
-    let slice = bytes.get(offset..offset + 4).ok_or(FdtError::OutOfBounds)?;
+    let end = offset.checked_add(4).ok_or(FdtError::OutOfBounds)?;
+    let slice = bytes.get(offset..end).ok_or(FdtError::OutOfBounds)?;
     Ok(u32::from_be_bytes([slice[0], slice[1], slice[2], slice[3]]))
 }
 
 #[inline]
 pub fn be_u64(bytes: &[u8], offset: usize) -> Result<u64, FdtError> {
     let hi = be_u32(bytes, offset)? as u64;
-    let lo = be_u32(bytes, offset + 4)? as u64;
+    let lo = be_u32(bytes, offset.checked_add(4).ok_or(FdtError::OutOfBounds)?)? as u64;
     Ok((hi << 32) | lo)
 }
 
-// FDT specs 32/64-bit cells inside `reg` and similar property arrays.
-// `cells` is 1 or 2 (FDT v17 caps it at 2; higher is rare and rejected).
+// A value spread over `cells` big-endian u32 cells. Zero cells reads as zero,
+// which is what a `#size-cells = <0>` bus means; past two cells the value
+// does not fit a u64 and is refused rather than truncated.
 #[inline]
 pub fn be_cells(bytes: &[u8], offset: usize, cells: u32) -> Result<u64, FdtError> {
     match cells {
+        0 => Ok(0),
         1 => be_u32(bytes, offset).map(|v| v as u64),
         2 => be_u64(bytes, offset),
-        _ => Err(FdtError::OutOfBounds),
+        _ => Err(FdtError::BadCells),
     }
 }

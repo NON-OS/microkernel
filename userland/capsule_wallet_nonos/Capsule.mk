@@ -11,7 +11,10 @@ CAPSULE_INSTANCE_ENDPOINTS := service:4854:app.nonos_wallet.1 reply:4855:endpoin
 # CoreExec|Network|IPC|Memory|Crypto|FileSystem|GraphicsDisplayQuery|GraphicsSurfaceCreate
 # FileSystem: the vault is saved and read through vfs (src/wallet/vault/vfs.rs),
 # which serves only a holder of it.
-CAPSULE_REQUIRED_CAPS    := 0x187d
+# Network: only for net.socks5 and net.anon; the wallet opens no Direct socket.
+# Keyring: its keys are generated, sealed and used in the keyring, which the
+# kernel admits a sender to only with the bit (src/services/registry/policy.rs).
+CAPSULE_REQUIRED_CAPS    := 0x1000187d
 # Debug, granted only by a build that compiles `capsule-serial-debug`: the
 # kernel mirror folds it in through serial_debug_cap(), for its [APP] log lines.
 CAPSULE_OPTIONAL_CAPS    := 0x100

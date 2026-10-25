@@ -54,8 +54,12 @@ pub fn mk_ipc_call_timeout(
     n as i64
 }
 
-pub fn mk_service_lookup(_name: *const u8, _len: usize, port: *mut u32, _pid: *mut u32) -> i64 {
-    if RESPONDER.with(|r| r.borrow().is_none()) || port.is_null() {
+/// Only driver.xhci0 registers: the played host is the one host there is,
+/// so a search over every host name reaches it once.
+pub fn mk_service_lookup(name: *const u8, len: usize, port: *mut u32, _pid: *mut u32) -> i64 {
+    // SAFETY: the core passes its own name bytes with their length.
+    let name = unsafe { core::slice::from_raw_parts(name, len) };
+    if RESPONDER.with(|r| r.borrow().is_none()) || port.is_null() || name != b"driver.xhci0" {
         return E_NOENT;
     }
     // SAFETY: the core passes a pointer to its own u32.

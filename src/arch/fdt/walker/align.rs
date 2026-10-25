@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Every caller passes an offset inside a block no larger than `MAX_BLOB`, so
+// the add cannot wrap.
 #[inline]
-pub fn align4(n: usize) -> usize {
+pub(crate) fn align4(n: usize) -> usize {
     (n + 3) & !3
 }

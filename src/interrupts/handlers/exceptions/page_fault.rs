@@ -19,7 +19,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_page_fault, ExceptionContext, PageFaultContext, PageFaultErrorCode};
 use crate::arch::x86_64::diag::emit_fatal_notice;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::safety::set_interrupt_context;
 use crate::interrupts::stats;
 use crate::memory::hardening;
@@ -91,5 +90,5 @@ fn kernel_panic(ctx: &PageFaultContext) {
         crate::log::logger::log_critical("Attempted to read from non-present page");
     }
 
-    halt_loop();
+    crate::boot::panic::fatal();
 }

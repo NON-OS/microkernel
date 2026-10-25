@@ -57,7 +57,7 @@ pub use read_file::{read_file, read_file_within};
 pub use rename::rename;
 pub use rmdir::rmdir;
 pub use search::{search, SEARCH_CASE, SEARCH_CONTENT, SEARCH_NAMES};
-pub use stat::stat;
+pub use stat::{lookup, stat};
 pub use stat_full::stat_full;
 pub use store_install::store_install;
 pub use store_remove::store_remove;

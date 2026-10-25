@@ -18,7 +18,8 @@ use nonos_libc::{mk_service_lookup, mk_yield};
 
 const COMPOSITOR_SERVICE: &[u8] = b"compositor";
 
-fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
+/// The service's port and the pid that announced it.
+fn lookup(name: &[u8]) -> Result<(u32, u32), &'static str> {
     let mut pid: u32 = 0;
     let mut port: u32 = 0;
     let rc =
@@ -26,15 +27,24 @@ fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
     if rc < 0 || pid == 0 || port == 0 {
         return Err("service not announced");
     }
-    Ok(port)
+    Ok((port, pid))
 }
 
-pub fn lookup_compositor_port() -> Result<u32, &'static str> {
+fn lookup_compositor() -> Result<(u32, u32), &'static str> {
     for _ in 0..256 {
-        if let Ok(port) = lookup_port(COMPOSITOR_SERVICE) {
-            return Ok(port);
+        if let Ok(found) = lookup(COMPOSITOR_SERVICE) {
+            return Ok(found);
         }
         mk_yield();
     }
     Err("compositor service not announced")
+}
+
+pub fn lookup_compositor_port() -> Result<u32, &'static str> {
+    lookup_compositor().map(|(port, _)| port)
+}
+
+/// The compositor's pid, the one process a surface is shared with.
+pub fn lookup_compositor_pid() -> Result<u32, &'static str> {
+    lookup_compositor().map(|(_, pid)| pid)
 }

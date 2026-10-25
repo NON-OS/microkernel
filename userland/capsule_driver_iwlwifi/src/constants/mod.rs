@@ -17,18 +17,8 @@
 //! The legacy register offsets, bits and staging layout, one file per
 //! concern.
 
-mod cmd_queue;
 mod csr;
-mod fh_load;
-mod fw_api;
 mod pci;
-mod prph;
-mod rx_ring;
 
-pub use cmd_queue::*;
 pub use csr::*;
-pub use fh_load::*;
-pub use fw_api::*;
 pub use pci::*;
-pub use prph::*;
-pub use rx_ring::*;

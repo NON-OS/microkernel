@@ -20,10 +20,12 @@
 //! path. The JSON form is what publishers and operators edit by
 //! hand; the binary form is what the OS verifies.
 
+mod decode_commerce;
 mod decode_entry;
 mod decode_enums;
 mod decode_index;
 mod decode_release;
+mod encode_commerce;
 mod encode_entry;
 mod encode_index;
 mod encode_price;
@@ -31,10 +33,14 @@ mod encode_release;
 mod encode_token;
 mod encode_validation;
 mod hex_helpers;
+mod hex_more;
 mod read;
 mod schema;
+mod stamp;
+mod units;
 
 pub use decode_index::from_index;
 pub use encode_index::to_index;
 pub(crate) use encode_release::to_release;
 pub use read::read_index_json;
+pub(crate) use stamp::commerce_hash_hex;

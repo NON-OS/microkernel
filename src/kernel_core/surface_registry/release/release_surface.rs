@@ -32,6 +32,8 @@ pub fn release_surface(handle: SurfaceHandle) -> Result<u32, RegistryError> {
     if new_count == 0 {
         *entry = None;
         bump_generation(idx as usize);
+        drop(slots);
+        super::super::share::revoke(handle);
     }
     Ok(new_count)
 }

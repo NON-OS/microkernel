@@ -16,5 +16,6 @@
 
 pub use super::power_query::{current_profile, is_mobile, is_server, is_sleep_state_supported};
 pub use super::power_reboot::reboot;
+pub use super::power_prepared::{prepare_shutdown, shutdown_prepared, PreparedOff};
 pub use super::power_sleep::{enter_sleep_state, shutdown};
 pub use super::power_types::{pm1_bits, SleepState};

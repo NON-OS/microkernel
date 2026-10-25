@@ -22,3 +22,14 @@ pub const OP_NOTIFY: u16 = 0x0005;
 pub const OP_SPOTLIGHT_OPEN: u16 = 0x0006;
 pub const OP_OPEN_WITH: u16 = 0x0007;
 pub const OP_TAKE_OPEN_ARG: u16 = 0x0008;
+/// From Settings only: one output's accessibility, passed to the compositor.
+pub const OP_ACCESSIBILITY: u16 = 0x0009;
+/// From Settings only: one output's accessibility as the compositor has it.
+pub const OP_ACCESSIBILITY_GET: u16 = 0x000A;
+/// From Settings only: mirror or extend, passed to the compositor.
+pub const OP_DISPLAY_LAYOUT: u16 = 0x000B;
+/// From Settings only: one output's scale, passed to the compositor.
+pub const OP_DISPLAY_SCALE: u16 = 0x000C;
+/// From Settings only: the displays as the compositor lays them out now.
+pub const OP_DISPLAY_ARRANGEMENT: u16 = 0x000D;
+pub const OP_DISPLAY_BRIGHTNESS: u16 = 0x000E;

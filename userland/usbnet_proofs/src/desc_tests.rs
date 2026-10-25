@@ -30,10 +30,10 @@ fn ecm_data_interface_has_its_pipes_only_on_alternate_one() {
 #[test]
 fn functional_descriptors_follow_their_interface() {
     assert_eq!(union_data(&CONFIG_ECM, 0), Some(1));
-    let eth = find_functional(&CONFIG_ECM, 0, 0x0F).unwrap();
+    let eth = find_functional(&CONFIG_ECM, 0, 0x0F, 13).unwrap();
     assert_eq!((eth[3], u16::from_le_bytes([eth[8], eth[9]])), (3, 1514));
     assert_eq!(union_data(&CONFIG_RNDIS, 0), Some(1));
-    assert!(find_functional(&CONFIG_ECM, 1, 0x06).is_none());
+    assert!(find_functional(&CONFIG_ECM, 1, 0x06, 5).is_none());
 }
 
 #[test]

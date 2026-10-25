@@ -18,7 +18,6 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception_with_code, ExceptionContext};
 use crate::arch::x86_64::diag::emit_fatal_notice;
-use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
 #[derive(Debug, Clone, Copy)]
@@ -83,5 +82,5 @@ fn terminate_user_process(_ctx: &ExceptionContext) -> ! {
 
 fn kernel_panic(_ctx: &ExceptionContext) {
     crate::log::logger::log_critical("KERNEL PANIC: Segment not present in kernel mode");
-    halt_loop();
+    crate::boot::panic::fatal();
 }

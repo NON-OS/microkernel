@@ -16,9 +16,9 @@
 
 use super::super::install_ready::find_release::find_release;
 use super::encode_release::encode_release;
-use super::parse_pair::parse_pair;
 use crate::protocol::{Request, E_INVAL, E_MSGSIZE, E_NODATA};
 use crate::server::error::reply_status;
+use crate::server::lp::parse_pair;
 use crate::server::payload::{body_slot, reply_with_body};
 use crate::store::Store;
 
@@ -37,7 +37,9 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
         Some((_, _, r)) => r,
         None => return reply_status(tx, req, E_NODATA),
     };
-    let out = encode_release(release);
+    let Some(out) = encode_release(release) else {
+        return reply_status(tx, req, E_MSGSIZE);
+    };
     let body_len = out.len();
     let slot = match body_slot(tx, body_len) {
         Some(s) => s,

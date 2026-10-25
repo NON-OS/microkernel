@@ -20,8 +20,9 @@ use crate::constants::CC_COMMAND_RING_STOPPED;
 use crate::error::XhciResult;
 use crate::rings::event::EventRing;
 
-// Linux XHCI_CMD_DEFAULT_TIMEOUT: an Address Device carries a SET_ADDRESS to
-// the device, which a slow device can take well past a second to answer.
+// Five seconds (as observed, unverified): an Address Device carries a
+// SET_ADDRESS to the device, which a slow device can take well past a
+// second to answer.
 pub(super) const COMPLETION_TIMEOUT_MS: u64 = 5_000;
 
 /// Wait for the completion of the command TRB at `issued_phys`: the event

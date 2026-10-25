@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the per-CPU block on aarch64: the offsets the
+# vectors read the PAC words at are the block's own, a block is found again
+# by its address exactly, and no key register is touched before the block
+# says keys are switched. The kernel's own source is included via #[path]
+# and include_str!.
+[package]
+name = "percpu_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

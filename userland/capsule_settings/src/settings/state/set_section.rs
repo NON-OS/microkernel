@@ -20,7 +20,7 @@ use super::audio_output_probe::probe_audio_output;
 use super::machine_key_probe::probe_machine_key;
 use super::state::State;
 use super::track_scroll::track_scroll;
-use super::wifi_enter::enter_wifi;
+use super::wifi::enter::enter_wifi;
 
 /// Select a section. Entering Wi-Fi or Network enumerates adapters and re-reads
 /// net_core, so both pages show the link as it is; neither scans, because a scan
@@ -39,6 +39,17 @@ pub fn set_section(state: &mut State, section: Section) {
     // can play sound, and why not, as things are now.
     if section == Section::Sound {
         state.audio_output = probe_audio_output();
+    }
+    // Asked each time the page opens, so its rows say what the display does.
+    if section == Section::Accessibility {
+        crate::settings::access::page::read(state);
+    }
+    if section == Section::Appearance {
+        crate::settings::screens::read::read(state);
+    }
+    // Asked in full each time the page opens; the tick keeps it current.
+    if section == Section::Bluetooth {
+        crate::bluetooth::poll(&mut state.bt, true);
     }
     track_scroll(state);
 }

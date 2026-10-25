@@ -30,6 +30,7 @@ pub mod constant_time;
 // Ed25519 (the trust-root signature primitive) and its dependencies. The
 // subtree is self-contained apart from SHA-512 and the RNG, mirrored here.
 pub mod asymmetric;
+pub mod random_api;
 pub mod rng;
 pub mod sha512;
 

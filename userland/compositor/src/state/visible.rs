@@ -26,10 +26,9 @@ use crate::sw_blitter::Surface;
 pub const REAP_THRESHOLD: u16 = 60;
 
 /// Fill `out` with the layers to draw, bottom to top, each with the surface
-/// it is drawn from, and return how many. A layer whose surface is gone (its
-/// owner exited holding it) is dropped from the scene at once and one that
-/// has not attached for `REAP_THRESHOLD` paints is reaped; either way its
-/// rectangle is damaged, since its last pixels are still on screen there.
+/// it is drawn from, and return how many. Layers whose surface is gone or
+/// never attached are let go (`visible_drop`); one that attaches after
+/// missing is damaged whole.
 pub fn visible_layers(
     scene: &mut SceneTable,
     attach: &mut AttachCache,
@@ -38,10 +37,8 @@ pub fn visible_layers(
     out: &mut [(Layer, Surface); MAX_ATTACH],
 ) -> usize {
     let (layers, count) = scene.z_sorted_snapshot();
-    let mut in_scene = [0u64; MAX_ATTACH];
-    for (h, l) in in_scene.iter_mut().zip(layers.iter().take(count)) {
-        *h = l.surface_handle;
-    }
+    let in_scene: [u64; MAX_ATTACH] =
+        core::array::from_fn(|i| layers.get(i).map_or(0, |l| l.surface_handle));
     let in_scene = &in_scene[..count.min(MAX_ATTACH)];
     // Handles that are not misses for the reaper: drawn, or left unmapped
     // only because every slot serves a layer (which a scene of at most
@@ -52,10 +49,13 @@ pub fn visible_layers(
     for layer in layers.iter().take(count) {
         match attach.lookup(layer.surface_handle, in_scene, kernel) {
             Attached::Live(src) if n < out.len() => {
-                out[n] = (*layer, src);
-                n += 1;
-                attached[n_attached] = layer.surface_handle;
-                n_attached += 1;
+                // Drawn for the first time after a miss: all of it, not only
+                // where this frame's damage happens to fall.
+                if layer.miss_count > 0 {
+                    damage.accumulate(rect_of(layer));
+                }
+                (out[n], attached[n_attached]) = ((*layer, src), layer.surface_handle);
+                (n, n_attached) = (n + 1, n_attached + 1);
             }
             Attached::NoRoom if n_attached < attached.len() => {
                 attached[n_attached] = layer.surface_handle;
@@ -68,18 +68,7 @@ pub fn visible_layers(
             _ => {}
         }
     }
-    let mut dropped = [Layer::default(); MAX_ATTACH];
-    let mut n_dropped = 0;
-    for handle in gone.iter().take(n_gone) {
-        n_dropped += scene.drop_surface(*handle, &mut dropped[n_dropped..]);
-    }
-    n_dropped +=
-        scene.reap_unattachable(&attached[..n_attached], REAP_THRESHOLD, &mut dropped[n_dropped..]);
-    for layer in dropped.iter().take(n_dropped) {
-        let _ = attach.forget(layer.surface_handle, kernel);
-        // The tick's loop drains this rectangle in the same pass, so the
-        // pixels go this tick, not at the next periodic full frame.
-        damage.accumulate(rect_of(layer));
-    }
+    let (gone, attached) = (&gone[..n_gone], &attached[..n_attached]);
+    super::visible_drop::drop_lost(scene, attach, kernel, damage, gone, attached);
     n
 }

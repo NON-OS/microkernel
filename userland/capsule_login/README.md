@@ -32,9 +32,9 @@ Ops:
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `GraphicsDisplayQuery` and
-`GraphicsSurfaceCreate` through `CAPSULE_REQUIRED_CAPS = 0x1818`: the lock
-screen asks the display its size and registers its own surface. No device,
+The manifest grants `IPC`, `Memory`, `GraphicsSurfaceCreate` and `Keyring`
+through `CAPSULE_REQUIRED_CAPS = 0x10001018`: the lock screen registers its own
+surface (the compositor tells it the size) and asks the keyring to unlock. No device,
 MMIO, IRQ, DMA, PIO, network, filesystem, admin, or debug authority is
 requested.
 

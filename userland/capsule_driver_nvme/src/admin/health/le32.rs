@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) fn le32(data: &[u8], off: usize) -> u32 {
+pub(in crate::admin) fn le32(data: &[u8], off: usize) -> u32 {
     u32::from_le_bytes([data[off], data[off + 1], data[off + 2], data[off + 3]])
 }

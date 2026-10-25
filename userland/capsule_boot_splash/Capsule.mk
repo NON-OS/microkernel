@@ -18,6 +18,8 @@ CAPSULE_NAMESPACE        := systems.nonos.app.boot_splash
 CAPSULE_SERVICE_ENDPOINT := service:4796:app.boot_splash
 CAPSULE_REPLY_ENDPOINT   := reply:4797:endpoint.app.boot_splash.reply
 CAPSULE_REQUIRED_CAPS    := 0x1018
+# Debug (0x100), optional: its up and stepped-aside lines on the kernel log.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_boot_splash
 
 include nonos-mk/capsule.mk

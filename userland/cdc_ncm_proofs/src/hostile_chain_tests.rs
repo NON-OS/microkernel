@@ -18,13 +18,14 @@ fn a_looping_ndp_chain_gives_each_datagram_once() {
 }
 
 #[test]
-fn a_long_ndp_chain_stops_at_linux_loopcount() {
+fn a_long_ndp_chain_stops_at_the_datagram_cap() {
     let mut b = Ntb::new(4096, 12);
     for i in 0..60 {
         let at = 12 + 16 * i;
         b.ndp(at, NCM0, (at + 16) as u16, &[(2000 + i as u16, 14)]);
     }
-    assert_eq!(found(&b.0, 4096).len(), 50);
+    // One datagram an NDP: the 40-datagram cap ends it before the chain.
+    assert_eq!(found(&b.0, 4096).len(), 40);
 }
 
 #[test]

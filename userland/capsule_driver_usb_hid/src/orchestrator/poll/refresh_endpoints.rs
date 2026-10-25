@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::orchestrator::enumerate::{enumerate, scan_hubs, Devices, RootPorts};
+use crate::orchestrator::enumerate::enumerate;
+use crate::xhci::{host, Hosts};
 
-/// Look at every root port and every hub port again: a device plugged in
-/// since is bound, one pulled out has its endpoints dropped. Whether a hub
-/// port is still mid way through bringing up its device is returned.
-pub(super) fn refresh_endpoints(xhci_port: u32, devs: &mut Devices, roots: &mut RootPorts) -> bool {
-    enumerate(xhci_port, roots, devs);
-    scan_hubs(xhci_port, devs, false)
+use super::held::Held;
+
+/// Look at every port of every host again, root and virtual: a host
+/// registered since is searched, a device plugged in since is bound, one
+/// pulled out has its endpoints dropped.
+pub(super) fn refresh_endpoints(hosts: &mut Hosts<Held>) {
+    hosts.find(host);
+    hosts.each(|xhci_port, held| enumerate(xhci_port, &mut held.roots, &mut held.devs));
 }

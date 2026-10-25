@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::constants::{ADMIN_ENTRIES, CQ_BYTES};
 use super::types::AdminQueue;
 use crate::admin::CqCursor;
@@ -32,7 +30,7 @@ impl AdminQueue {
         // CQ_BYTES, and the disabled controller does not write it.
         unsafe { core::ptr::write_bytes(self.cq.user_va() as *mut u8, 0, CQ_BYTES as usize) };
         // The zeroed ring is in memory before the controller is told of it.
-        fence(Ordering::SeqCst);
+        nonos_libc::dma_wmb();
         self.tail = 0;
         self.cursor = CqCursor::new(ADMIN_ENTRIES);
         self.program_registers(regs);

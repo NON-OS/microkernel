@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_gfx_wire. Builds for the host so `cargo
+# test` runs the shipping wire code (included via #[path]): every body
+# round trip, every refusal, every hostile length, and the fit adapter.
+[package]
+name = "gfx_wire_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The fit rule the wire's adapter calls.
+nonos_modes = { path = "../nonos_modes" }

@@ -16,7 +16,12 @@
 
 use super::pad::is_bti_landing_pad;
 
-pub fn check_bti_landing_pad(addr: u64) -> bool {
-    let instruction = unsafe { *(addr as *const u32) };
-    is_bti_landing_pad(instruction)
+/// Whether the instruction at `at` is one a guarded branch may land on.
+///
+/// # Safety
+///
+/// `at` is a readable, aligned instruction word, such as kernel text.
+pub unsafe fn check_bti_landing_pad(at: *const u32) -> bool {
+    // SAFETY: the caller's.
+    is_bti_landing_pad(unsafe { at.read() })
 }

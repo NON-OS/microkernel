@@ -17,6 +17,7 @@
 mod timer_trampoline;
 mod trampolines;
 mod wrappers;
+mod wrappers_fatal;
 
 pub use trampolines::{
     ac_trampoline, bp_trampoline, br_trampoline, db_trampoline, de_trampoline, gpf_trampoline,
@@ -26,6 +27,6 @@ pub use trampolines::{
 };
 pub use wrappers::{
     irq_timer, isr_alignment_check, isr_bound_range, isr_breakpoint, isr_debug, isr_divide_error,
-    isr_double_fault, isr_invalid_opcode, isr_machine_check, isr_nmi, isr_overflow, isr_page_fault,
-    isr_simd_fp,
+    isr_invalid_opcode, isr_nmi, isr_overflow, isr_page_fault, isr_simd_fp,
 };
+pub use wrappers_fatal::{isr_double_fault, isr_machine_check};

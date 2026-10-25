@@ -38,10 +38,11 @@ pub fn parse_list(body: &[u8]) -> Option<Vec<Entry>> {
     let mut out = Vec::with_capacity(count.min(1024));
     for _ in 0..count {
         let (id, next) = lp(body, at)?;
-        let measurement: [u8; 32] = body.get(next..skip(body, next, 32)?)?.try_into().ok()?;
-        let (name, next) = lp(body, next + 32)?;
+        let after = skip(body, next, 32)?;
+        let measurement: [u8; 32] = body.get(next..after)?.try_into().ok()?;
+        let (name, next) = lp(body, after)?;
         let ready = *body.get(next)? != 0;
-        at = next + 1;
+        at = next.checked_add(1)?;
         out.push(Entry { id: id.to_vec(), measurement, name: name.to_vec(), ready });
     }
     Some(out)

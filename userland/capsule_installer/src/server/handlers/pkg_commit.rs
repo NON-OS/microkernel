@@ -41,9 +41,13 @@ pub fn pkg_commit(req: Request<'_>) -> Vec<u8> {
         return encode_response(req.seq, EINVAL, &[]);
     };
     let pid = mk_getpid();
-    let Ok(bytes) = read_file(pid, path, MAX_PACKAGE) else {
+    // One byte past the cap, so a longer package is refused here, never cut.
+    let Ok(bytes) = read_file(pid, path, MAX_PACKAGE + 1) else {
         return encode_response(req.seq, EINVAL, &[]);
     };
+    if bytes.len() > MAX_PACKAGE as usize {
+        return encode_response(req.seq, EINVAL, &[]);
+    }
     let v = match verify_package(&bytes) {
         Ok(v) => v,
         Err(status) => return encode_response(req.seq, status, &[]),

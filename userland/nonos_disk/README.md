@@ -9,8 +9,8 @@ not a capsule, and holds no capability.
 
 ```text
   0 .. 34             protective MBR, primary GPT
-  256 .. 131072       NONOS-STORE  the package store
-  131072 .. 262144    NONOS-PLAN   the disk plan, then the key header
+  256 .. 245760       NONOS-STORE  the package store
+  245760 .. 262144    NONOS-PLAN   the disk plan, then the key header
   262144 .. E         NONOS-DATA   the data volume the plan names
   E .. end - 33       NONOS-ESP    bootloader, kernel image, boot.cfg
 ```

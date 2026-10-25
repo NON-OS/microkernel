@@ -29,7 +29,7 @@
 //! evaluates _CRS (K13 in the plan), the record carries
 //! the address itself and the sweep goes.
 
-use crate::constants::{controller_index, HID_INFO_TEN_BIT};
+use crate::constants::HID_INFO_TEN_BIT;
 use crate::discover::{AcpiTouchpad, Found};
 use crate::driver::Driver;
 use crate::transaction::probe;
@@ -43,7 +43,7 @@ const SHIPPED_AT: [u8; 3] = [0x15, 0x2C, 0x10];
 /// such declaration does.
 pub fn sweep(driver: &Driver, dev: &Found, targets: &[AcpiTouchpad]) -> Option<(u8, u16)> {
     let unaddressed = |t: &&AcpiTouchpad| t.addr == 0 && t.info & HID_INFO_TEN_BIT == 0;
-    let reg = targets.iter().filter(unaddressed).find(|t| t.names(dev, controller_index))?.desc_reg;
+    let reg = targets.iter().filter(unaddressed).find(|t| t.names(dev))?.desc_reg;
     // A bus that faults answers nothing after: the sweep ends there too.
     let mut answers =
         SHIPPED_AT.into_iter().map_while(|a| probe(driver, a).ok().map(|ack| (a, ack)));

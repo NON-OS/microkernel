@@ -24,20 +24,32 @@
 //! broker asks here before it moves a device into a capsule's domain, and leaves
 //! an uncovered device on its physical address, counted as unconfined.
 
-use crate::arch::x86_64::acpi::parser::other::{remap_unit_scopes, translated_by_some};
+use crate::arch::x86_64::acpi::parser::other::{translated_by_some, with_remap_unit_scopes};
+use crate::arch::x86_64::acpi::parser::other::{rmrr_names, rmrr_regions, Cover};
 
 /// PCI segment the config-space transport reaches. Only segment 0 is driven.
 const SEGMENT: u16 = 0;
 
 /// Whether a programmed unit translates `bus:dev.func`.
 pub fn unit_covers(bus: u8, device: u8, function: u8) -> bool {
-    let units = remap_unit_scopes();
-    translated_by_some(&units, SEGMENT, (bus, device, function), &bridge_buses)
+    with_remap_unit_scopes(|units| {
+        translated_by_some(units, SEGMENT, (bus, device, function), &bridge_buses)
+    })
+}
+
+/// The reserved memory regions firmware listed for `bus:dev.func`, as
+/// `[base, end)` pairs: what bring-up maps it, and nothing more. A scope
+/// that cannot be resolved is not a yes: the device then stays blocked.
+pub fn reserved_for(bus: u8, device: u8, function: u8) -> heapless::Vec<(u64, u64), 16> {
+    let bdf = (bus, device, function);
+    let names = |r: &_| rmrr_names(r, SEGMENT, bdf, &bridge_buses) == Cover::Yes;
+    let named = rmrr_regions().into_iter().filter(names);
+    named.filter_map(|r| Some((r.base, r.limit.checked_add(1)?))).collect()
 }
 
 // A type-1 (bridge) function's secondary and subordinate bus numbers, or `None`
 // for anything that is not an answering bridge.
-fn bridge_buses(bus: u8, device: u8, function: u8) -> Option<(u8, u8)> {
+pub(super) fn bridge_buses(bus: u8, device: u8, function: u8) -> Option<(u8, u8)> {
     use crate::drivers::pci::config::access::read8;
     let header = read8(bus, device, function, 0x0E).ok()?;
     if header & 0x7F != 0x01 {

@@ -17,7 +17,7 @@
 //! Addressing one device on a root port, on a slot the caller gives back
 //! if nothing binds.
 
-use crate::hub::Place;
+use crate::orchestrator::place::Place;
 use crate::xhci::{address_device, PortSnapshot, XhciClientError};
 
 use super::classify::classify;

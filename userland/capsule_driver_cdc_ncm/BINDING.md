@@ -10,7 +10,7 @@ link, and what it says on the log. The contract is in
    interface of subclass 0x0D and protocol 0, a Union naming its data
    interface, an Ethernet Networking and an NCM functional descriptor. A
    device with only ECM (subclass 0x06) is left to driver_cdc_ecm.
-2. The bulk pipes go to driver.xhci0, then SET_CONFIGURATION, then
+2. The bulk pipes go to the host, then SET_CONFIGURATION, then
    SET_INTERFACE to the data interface's alternate 0.
 3. GET_NTB_PARAMETERS (28 bytes, required); SET_CRC_MODE off when the device
    could add a CRC; SET_NTB_FORMAT 16-bit only when it also offers 32-bit.
@@ -28,27 +28,41 @@ link, and what it says on the log. The contract is in
 The iMACAddress string is never read. A device that took SET_NET_ADDRESS
 filters on the drawn address; any other has its filter opened so that one
 filtering on its own address still passes frames to the drawn one. A
-device that does not filter answers with a STALL, which Linux does not look
-at either; the bind goes on and, without the address set, its line says the
-address is not confirmed.
+device that does not filter answers with a STALL; the bind goes on and,
+without the address set, its line says the address is not confirmed.
 
 ## Framing
 
 Out: one frame per NTB16, an NTH16, an NDP16 with one entry and its zero
 entry, and the datagram placed on the device's wNdpOutAlignment,
-wNdpOutDivisor and wNdpOutPayloadRemainder. A block that ends on a packet
-boundary gets one more byte; one past min_tx_pkt is padded to the full NTB
-size (not for DisplayLink docks), as `cdc_ncm_fill_tx_frame` does.
+wNdpOutDivisor and wNdpOutPayloadRemainder. A block is at most the
+device's dwNtbOutMaxSize, or one byte under a 4096-byte transfer when that
+is larger. One that ends on a packet boundary below dwNtbOutMaxSize gets
+one zero byte more, counted in wBlockLength, so a short packet ends it
+(NCM 1.0, as recalled, unverified). A device whose largest block cannot
+carry one full frame is not bound.
 
-In: one bulk IN of the negotiated NTB input size; every NDP16 in the chain
-and every datagram in it is checked against the transfer, queued, and
-handed up one per call. A malformed block, NDP or entry is dropped, as is
-an NDP with CRCs and a datagram longer than a frame.
+In: one bulk IN of the negotiated NTB input size. Its header must be its
+format's own length, and the block, no longer than the input size, must
+all have arrived; nothing past its block length is read. Every NDP in the
+chain lies inside the block and is read once, and every datagram in it is
+checked against the block, queued, and handed up one per call. A device
+that offered 32-bit NTBs may send one (an NTH32 "ncmh", NDP32s "ncm0" with
+32-bit indices, as recalled, unverified); it is read the same way, by the
+same walk. At most 40 datagrams are taken from one block. A malformed
+block, NDP or entry is dropped, as is an NDP with CRCs and a datagram
+longer than a frame.
+
+Out stays NTB16: every device takes it, the format is set to 16-bit where
+32-bit is offered too, and a block is at most one 4096-byte transfer, far
+inside 16-bit offsets.
 
 ## Link
 
-The link reads up once bound: NETWORK_CONNECTION arrives on an interrupt
-endpoint, and driver.xhci0 does not configure one beside bulk pipes.
+The link reads up once bound, and from then on follows NETWORK_CONNECTION
+on the communications interface's interrupt IN endpoint, which the host
+configures beside the bulk pipes; it is looked at once every 64 receives.
+A device without one, or whose host refuses it, reads up while bound.
 
 ## Log
 

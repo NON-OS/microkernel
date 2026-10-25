@@ -17,9 +17,14 @@ declared, or the one its read-only sweep answered; no other address is asked
 for, a peer's address past 7 bits is refused, register 0 is never written,
 and a bus with no pad is given up 30 s after the first probe, however often
 it asks, saying why (`no_scan_tests`, `acpi_tests`, `window_tests`). A
-keyboard or a touch screen is put back to sleep; a mouse, or the mouse of a
-keyboard that has one, is driven, its key reports dropped unread
-(`keyboard_tests`, `bind_tests`, `mouse_app_tests`, `composite_tests`).
+keyboard is put back to sleep; a touch screen is driven as a screen, never
+through the touchpad's layout; a mouse, or the mouse of a keyboard that has
+one, is driven, its key reports dropped unread (`keyboard_tests`,
+`bind_tests`, `mouse_app_tests`, `composite_tests`). Every finger of a screen
+or a parallel-mode pad is found, hybrid frames are put together, and a
+screen's first finger presses, drags and releases (`multitouch_tests`,
+`screen_tests`, `hostile_tests`); the feature report logic runs over any
+transport's port (`feature_tests`).
 
 The descriptor walk lays out what HID 1.11 says: reports continued after
 another's items, Push and Pop, usage ranges, four-byte usages, the logical

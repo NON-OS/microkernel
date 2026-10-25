@@ -18,9 +18,10 @@
 //! drop-down over everything the desktop already painted.
 
 use super::items::{rows, title, TITLE_COUNT};
-use super::metrics::{inset, pad_x, pad_y, panel_h, panel_w, row_h, row_pad_x, title_w, title_x};
+use super::metrics::{inset, pad_x, pad_y, panel_h, panel_w, row_h, row_pad_x};
 use super::off_rows::row_fg;
 use super::origin::origin;
+use super::title_geom::{title_w, title_x};
 use crate::render::layout::{menubar_height, Rect};
 use crate::render::palette;
 use crate::render::panel::{round_fill, shadow_panel};

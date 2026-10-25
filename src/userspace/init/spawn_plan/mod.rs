@@ -23,23 +23,26 @@ mod core;
 mod desktop_fleet;
 #[cfg(not(feature = "microkernel-input-probe"))]
 mod desktop_services;
-// Every driver whose spawn asks it first: one left out here fails the build
-// of any profile that carries that driver alone.
-#[cfg(any(
-    feature = "nonos-capsule-driver-ahci",
-    feature = "nonos-capsule-driver-nvme",
-    feature = "nonos-capsule-driver-virtio-blk",
-    feature = "nonos-capsule-driver-virtio-net",
-    feature = "nonos-capsule-driver-usb-msc",
-    feature = "nonos-capsule-driver-iwlwifi",
-    feature = "nonos-capsule-driver-rtl8821ce"
-))]
-mod device_present;
+mod device_present; // only beside a driver whose spawn asks it first (its own cfg)
 mod drivers_bus;
+mod drivers_ccid;
+mod drivers_cdc_acm;
+mod drivers_fido;
 mod drivers_input;
+mod drivers_native_display;
 mod drivers_nic;
+mod drivers_sdhci;
+mod drivers_smbus;
+mod drivers_spi;
 mod drivers_storage;
+mod drivers_ufs;
 mod drivers_usb;
+mod drivers_usb_companions;
+mod drivers_usb_hosts;
+mod drivers_usb_hub;
+mod drivers_usb_mic;
+mod drivers_usbnet;
+mod drivers_uvc;
 mod drivers_virtio;
 mod drivers_virtio_display;
 mod drivers_virtio_io;
@@ -49,11 +52,19 @@ mod input_probe_fleet;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod install_first;
 mod network;
+#[cfg(not(feature = "microkernel-input-probe"))]
+mod nox_settle;
 mod orchestrator;
+mod payment;
+mod platform_acpi;
 mod services_audio;
+mod usb_host;
+mod vm;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) use install_first::spawn_installer_first;
 #[cfg(any(feature = "microkernel-input-probe", not(feature = "microkernel-setup-wizard")))]
 pub(super) use orchestrator::spawn_desktop;
 #[cfg(not(feature = "microkernel-setup-wizard"))]
@@ -62,9 +73,6 @@ pub(super) use orchestrator::{
     spawn_core_after_ramfs, spawn_display_core, spawn_drivers, spawn_network, spawn_ramfs,
     spawn_vfs,
 };
-
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(super) use install_first::spawn_installer_first;
 #[cfg(all(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
 pub(super) use wizard_plan::spawn_desktop;
 #[cfg(feature = "microkernel-setup-wizard")]

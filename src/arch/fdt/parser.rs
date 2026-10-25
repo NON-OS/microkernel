@@ -14,56 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::slice;
-
 use super::error::FdtError;
 use super::header::{self, FdtHeader};
+use super::layout;
+use super::validate;
 use super::walker::Walker;
 
-// Root view over a flat device-tree blob. Holds borrowed slices into
-// the structure and strings blocks; the caller owns the backing bytes.
+/// A blob that has passed every structural check. Construction walks the
+/// whole structure block once, so a tree that is truncated, unbalanced,
+/// nested past `MAX_DEPTH` or has more than one root never becomes an `Fdt`,
+/// and nothing downstream has to tell a short walk from a finished one.
 pub struct Fdt<'a> {
     pub header: FdtHeader,
     pub blob: &'a [u8],
+    pub rsvmap: &'a [u8],
     pub structure: &'a [u8],
     pub strings: &'a [u8],
 }
 
 impl<'a> Fdt<'a> {
-    pub fn from_ptr(ptr: *const u8) -> Result<Self, FdtError> {
-        if ptr.is_null() {
-            return Err(FdtError::NullPointer);
-        }
-        // SAFETY: the bootloader/firmware delivers a contiguous FDT
-        // blob; we read 40 bytes to parse the header, then narrow to
-        // totalsize. Out-of-range header reads are still caught by
-        // header::parse's length check.
-        let header_bytes = unsafe { slice::from_raw_parts(ptr, header::HEADER_SIZE) };
-        let header = header::parse(header_bytes)?;
-        let total = header.totalsize as usize;
-        // SAFETY: caller-supplied DTB blob; size taken from header
-        // after magic + version validation.
-        let blob = unsafe { slice::from_raw_parts(ptr, total) };
-        let struct_start = header.off_dt_struct as usize;
-        let struct_end = struct_start
-            .checked_add(header.size_dt_struct as usize)
-            .ok_or(FdtError::OutOfBounds)?;
-        let strings_start = header.off_dt_strings as usize;
-        let strings_end = strings_start
-            .checked_add(header.size_dt_strings as usize)
-            .ok_or(FdtError::OutOfBounds)?;
-        if struct_end > total || strings_end > total {
-            return Err(FdtError::OutOfBounds);
-        }
-        Ok(Self {
+    /// The tree in `bytes`, which may run past `totalsize`; the excess is
+    /// ignored.
+    pub fn from_bytes(bytes: &'a [u8]) -> Result<Self, FdtError> {
+        let header = header::parse(bytes)?;
+        let l = layout::check(&header, bytes.len())?;
+        let blob = &bytes[..l.total];
+        let fdt = Self {
             header,
             blob,
-            structure: &blob[struct_start..struct_end],
-            strings: &blob[strings_start..strings_end],
-        })
+            rsvmap: &blob[l.rsvmap],
+            structure: &blob[l.structure],
+            strings: &blob[l.strings],
+        };
+        validate::structure(fdt.structure, fdt.strings)?;
+        Ok(fdt)
     }
 
     pub fn walker(&self) -> Walker<'a> {
         Walker::new(self.structure, self.strings)
+    }
+
+    /// A walk that resumes at a node's body with `depth` nodes open.
+    pub fn walker_at(&self, body: usize, depth: usize) -> Walker<'a> {
+        Walker::at(self.structure, self.strings, body, depth)
     }
 }

@@ -13,44 +13,61 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Revocation paths for MMIO grants: `unmap_grant` (one grant, by its
+//! holder), `release_for_device` (every grant of one claim, L71) and
+//! `release_all_for_pid` (what a pid still owns). Each grant's pages come
+//! out of the tables its holder runs in, from any context, shot down on
+//! every CPU running them; found none, the active tables are unmapped
+//! when they are the holder's, and an address-space teardown drops the rest.
 
-//! Revocation paths for MMIO grants. Three entry points:
-//!
-//!   * `unmap_grant` — single grant, holder-pid request
-//!   * `release_for_device` — every grant tied to one device
-//!   * `release_all_for_pid` — every grant a pid still owns
-//!
-//! Each variant unmaps the user pages when the holder's CR3 is the
-//! active CR3 (self-context), and skips the unmap otherwise so the
-//! address-space teardown can drop the PTEs wholesale.
-
-use crate::hardware::broker::claim::release_all_for_pid as drop_claims_for_pid;
+use super::fence::{fence, Fenced};
+use crate::hardware::broker::claim;
 use crate::hardware::broker::grant::{self, GrantError, MmioGrant};
+use crate::hardware::broker::holder_space::unmap_from_holder;
 use crate::memory::addr::VirtAddr;
 
 pub fn unmap_grant(pid: u32, grant_id: u64) -> Result<(), GrantError> {
+    // Inside its claim until the pages are gone, so a release or a takeover
+    // of the scanout waits out an unmap already under way (L79).
+    let _inside = grant::find(pid, grant_id).and_then(|(d, e)| claim::inside(pid, d, e));
     let g = grant::remove(pid, grant_id)?;
     unmap_one(&g);
+    grant::release_user_va(pid, g.user_va, g.length);
     Ok(())
 }
 
-pub fn release_for_device(pid: u32, device_id: u64) -> usize {
-    let drained = grant::drain_for_device(pid, device_id);
+pub fn release_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    let drained = grant::drain_for_device(pid, device_id, epoch);
+    drained.iter().for_each(|g| take_away(g, true));
+    drained.len()
+}
+
+/// An exit's MMIO drain. Its claims already left (L75), so a grant a dying
+/// sibling enters after this is refused (L69) and the drain finds every one.
+pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
+    let drained = grant::drain_for_pid(pid);
+    drained.iter().for_each(|g| take_away(g, unmap_pages));
+    drained.len()
+}
+
+/// A device that left while `pid` held it: its grants are dropped without an
+/// unmap, each window fenced until the holder's space goes.
+#[allow(dead_code)] // the ACPI broker's alone, which only x86 builds
+pub fn revoke_for_device(pid: u32, device_id: u64, epoch: u64) -> usize {
+    let drained = grant::drain_for_device(pid, device_id, epoch);
     for g in &drained {
-        unmap_one(g);
+        fence(Fenced { pid, start: g.physical_start, len: g.length });
     }
     drained.len()
 }
 
-pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
-    let drained = grant::drain_for_pid(pid);
-    if unmap_pages {
-        for g in &drained {
-            unmap_one(g);
-        }
+/// Out of its holder's tables and its VA back; else out of the active ones.
+fn take_away(g: &MmioGrant, active: bool) {
+    if unmap_from_holder(g.pid, g.user_va, g.length) {
+        grant::release_user_va(g.pid, g.user_va, g.length);
+    } else if active {
+        unmap_one(g);
     }
-    let _ = drop_claims_for_pid(pid);
-    drained.len()
 }
 
 fn unmap_one(g: &MmioGrant) {

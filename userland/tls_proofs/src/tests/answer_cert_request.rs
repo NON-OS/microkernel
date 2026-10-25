@@ -37,7 +37,7 @@ fn a_one_shot_reply_to_a_certificate_request_sends_the_empty_certificate_first()
     finished_hash[0] ^= 0x5a;
     done.client_certificate = Some(certificate.clone());
     done.finished_hash = finished_hash;
-    let keys = done.handshake;
+    let keys = done.handshake.clone();
     let answer = crate::handshake_state::reply(done, &request()).expect("reply");
 
     let len = usize::from(u16::from_be_bytes([answer.flight[3], answer.flight[4]]));

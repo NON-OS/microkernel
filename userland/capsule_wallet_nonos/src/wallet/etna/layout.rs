@@ -65,23 +65,6 @@ pub fn layout(width: u32) -> Layout {
     Layout { x: (width - column) / 2, column, scale_pct, two_up: column >= TWO_UP_FROM }
 }
 
-/// Two columns `gap` apart in the span from `x`, `w` wide: the left and the
-/// right, each as its left edge and width.
-pub fn halves(x: u32, w: u32, gap: u32) -> ((u32, u32), (u32, u32)) {
-    let left = w.saturating_sub(gap) / 2;
-    let right = w.saturating_sub(gap + left);
-    ((x, left), (x + left + gap, right))
-}
-
-/// Where a screen's content goes across the column: its left edge and width,
-/// `side` in from each edge of the column.
-pub fn content(l: &Layout, side: u32) -> (u32, u32) {
-    (l.x + side, l.column.saturating_sub(2 * side))
-}
-
-/// The lowest row content may reach in a window `height` tall whose foot is
-/// `foot` tall, `room` clear of it, so the last line never meets the foot or
-/// the window's edge.
-pub fn content_bottom(height: u32, foot: u32, room: u32) -> u32 {
-    height.saturating_sub(foot + room)
-}
+#[path = "layout_span.rs"]
+mod span;
+pub use span::{content, content_bottom, halves};

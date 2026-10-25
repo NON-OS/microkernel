@@ -34,7 +34,9 @@ pub const MAX_PUSH: usize = 4;
 pub const MAX_USAGES: usize = 32;
 /// Input reports, by report ID, one interface may declare.
 pub const MAX_REPORTS: usize = 8;
-/// The widest field a Report Size may give, as Linux allows.
+/// The widest field a Report Size may give: HID 1.11 bounds it only by the
+/// item's data (as recalled, unverified), and no report this driver reads
+/// has a field near it.
 pub const MAX_FIELD_BITS: u32 = 256;
 /// One main item's report size times count, and one input report's bits.
 pub const MAX_REPORT_BITS: u32 = 2048;

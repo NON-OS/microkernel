@@ -22,9 +22,13 @@
 
 use nonos_marketplace_abi::{encode_and_sign, MarketplaceIndex};
 
+use crate::error::CliError;
 use crate::keys::OperatorKey;
 
-pub fn sign_index(index: MarketplaceIndex, key: &OperatorKey) -> Vec<u8> {
-    let (blob, _signature) = encode_and_sign(index, |signed_bytes| key.sign(signed_bytes));
-    blob
+/// The encoder refuses what the OS would refuse to decode; that refusal is
+/// malformed input, so it surfaces as a JSON error.
+pub fn sign_index(index: MarketplaceIndex, key: &OperatorKey) -> Result<Vec<u8>, CliError> {
+    let (blob, _signature) = encode_and_sign(index, |signed_bytes| key.sign(signed_bytes))
+        .map_err(|e| CliError::Json(format!("encode: {e:?}")))?;
+    Ok(blob)
 }

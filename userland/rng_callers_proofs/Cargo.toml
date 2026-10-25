@@ -1,0 +1,46 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Host proofs that the kernel's secret-making callers draw only from the
+# seeded RNG and refuse when it cannot answer: the sealed sector's nonce,
+# ramfs and cryptofs keys, salts and nonces, the data volume's keys, the
+# session accounts and tokens, the key store, the stack canary, the ASLR
+# slide, the capability engine and the quantum pool. The kernel's own files
+# are mounted by #[path]; the RNG, locks' neighbours, the clock, the log and
+# the devices stand in.
+
+[package]
+name = "rng_callers_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "build.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The kernel's lock primitive, as the mounted files name it.
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock", "once"] }
+
+# Named by the self-test file; never on here, as the unvetted checks are
+# not mounted.
+[features]
+pqc-unvetted = []
+
+# PBKDF2, the password hash and Argon2id do real work; run them optimised.
+[profile.test]
+opt-level = 2

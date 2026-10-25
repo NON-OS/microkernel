@@ -24,6 +24,9 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+# The person's chosen network, read before a name is looked up in the clear.
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
 
 [profile.release]
 panic = "abort"

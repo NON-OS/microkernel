@@ -16,10 +16,10 @@
 
 //! The license broker's decision, without the capsule around it.
 //!
-//! `issue` prices the tool, verifies the receipt pays the treasury at least
-//! that price in NOX, refuses a transaction already redeemed, and returns the
-//! grant the buyer earned, one use per price paid. It never signs: the capsule
-//! holds the ed25519 key. Replay is blocked by a spent-set the caller persists;
+//! `issue` prices the tool, verifies the receipt pays the listing's payee at
+//! least that price in the configured token, refuses a transaction already
+//! redeemed, and returns the grant the buyer earned, one use per price paid. It
+//! never signs: the capsule holds the ed25519 key. Replay is blocked by a spent-set the caller persists;
 //! `issue` records the funding hash only on success, so a failed attempt never
 //! burns a payment and a repeat never mints a second grant.
 
@@ -28,7 +28,7 @@
 mod issue;
 mod spent;
 
-pub use issue::{issue, IssueError, Issued};
+pub use issue::{issue, IssueError, Issued, PaidTo, Terms};
 pub use spent::{SpentSet, SPENT_CAPACITY};
 
 #[cfg(test)]

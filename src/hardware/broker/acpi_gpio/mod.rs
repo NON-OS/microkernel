@@ -17,5 +17,6 @@
 mod p2sb;
 mod record;
 mod register;
+mod say;
 
 pub use register::register_acpi_gpio;

@@ -20,3 +20,6 @@ nonos_devmodel = { path = "../nonos_devmodel" }
 nonos_libc = { package = "virtio_gpu_proofs_libc_shim", path = "libc_shim" }
 # The register type bounds the doorbell with the shared notify arithmetic.
 nonos_virtio = { path = "../nonos_virtio" }
+# The display wire the driver serves, as a driver links it.
+nonos_gfx_serve = { path = "../nonos_gfx_serve" }
+nonos_gfx_wire = { path = "../nonos_gfx_wire" }

@@ -19,14 +19,13 @@
 use alloc::vec::Vec;
 
 use super::procs::{each, name_of};
-use super::table::{Tally, INIT_NAME};
+use super::table::Tally;
 
 pub fn read(me: u32) -> Option<Tally> {
-    let mut t =
-        Tally { masks: Vec::new(), is_init: Vec::new(), total: 0, unmasked: 0, own_mask: 0 };
+    let mut t = Tally { masks: Vec::new(), names: Vec::new(), total: 0, unmasked: 0, own_mask: 0 };
     let answered = each(|e| {
         t.masks.push(e.caps);
-        t.is_init.push(name_of(e) == INIT_NAME);
+        t.names.push(name_of(e).to_vec());
         t.total += 1;
         if e.caps == 0 {
             t.unmasked += 1;

@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the adapter says back: the DISPI interface version before a mode
-//! is set, and the mode it holds after. The adapter takes any write to its
-//! mode registers without failing; one that cannot show a mode clamps or
-//! drops it, so only reading it back tells.
+//! What the adapter says it is: the DISPI interface version, read before
+//! anything else of it is believed. The mode it holds is read back by
+//! `current`.
 
 use super::dispi_off::dispi_off;
-use super::state::{read, Dispi};
-use crate::constants::{
-    DISPI_BPP_32, DISPI_ENABLED, DISPI_ID_FIRST, DISPI_ID_LAST, DISPI_INDEX_ID, DISPI_LFB_ENABLED,
-};
+use crate::constants::{DISPI_ID_FIRST, DISPI_ID_LAST, DISPI_INDEX_ID};
 use crate::error::{BgaError, BgaResult};
 use crate::regs::Regs;
 
@@ -39,30 +35,4 @@ pub fn identify(regs: Regs) -> BgaResult<()> {
     } else {
         Err(BgaError::NotDispi)
     }
-}
-
-/// Whether the adapter holds the `width` x `height` mode at 32 bits per
-/// pixel, enabled with its linear framebuffer, scanned out from the start of
-/// video memory one mode-wide line after another: the layout every copy into
-/// the framebuffer writes.
-pub fn confirm(regs: Regs, width: u16, height: u16) -> BgaResult<()> {
-    if holds(&read(regs), width, height) {
-        Ok(())
-    } else {
-        Err(BgaError::ModeNotTaken)
-    }
-}
-
-/// The mode firmware left showing, when it is one this driver can draw:
-/// OVMF programs DISPI for its GOP framebuffer, which a kept mode leaves
-/// where the compositor's GOP fallback finds it.
-pub fn kept(d: &Dispi) -> Option<(u16, u16)> {
-    (d.xres != 0 && d.yres != 0 && holds(d, d.xres, d.yres)).then_some((d.xres, d.yres))
-}
-
-fn holds(d: &Dispi, width: u16, height: u16) -> bool {
-    let on = DISPI_ENABLED | DISPI_LFB_ENABLED;
-    let mode = (d.xres, d.yres, d.bpp, d.enable & on);
-    mode == (width, height, DISPI_BPP_32, on)
-        && (d.virt_width, d.x_offset, d.y_offset) == (width, 0, 0)
 }

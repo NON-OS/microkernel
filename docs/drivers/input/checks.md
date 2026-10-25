@@ -6,7 +6,7 @@ device is in [Input drivers](README.md).
 
 ## How this is checked
 
-The [proof crates](../../overview/glossary.md#proof-crate) compile the shipping
+The [proof crates](../../overview/glossary-peer-list.md#proof-crate) compile the shipping
 driver source on the host and run it against models of the hardware. Their flake
 checks pass at commit bff12b97:
 
@@ -17,7 +17,7 @@ checks pass at commit bff12b97:
 | `i2c_hid_proofs` | touchpad bind, wake, report descriptor, input mode | 51 |
 | `i2c_pci_proofs` | LPSS reset, clocks, id tables, doorbell | 35 |
 | `i2c_transfer_proofs` | the DesignWare transfer engine against a modelled bus | 26 |
-| `pinctrl_proofs` | GPIO pad register layouts | 13 |
+| `pinctrl_proofs` | GPIO controller ids, pin resolution, pad register arithmetic | 8 |
 | `setup_layout_proofs` | the screen layouts of setup and the installer, and, in 4 of its tests, that setup writes the chosen keyboard layout when the step is confirmed | 56 |
 
 Since then `ps2_input_proofs` has grown to 59 tests (the key framing, the lock

@@ -32,7 +32,9 @@ pub mod streams;
 // The request header decode and the replies the server answers with.
 #[path = "../../../capsule_audio/src/server/proto.rs"]
 pub mod proto;
-// How the server reads driver.hda0's replies, its output status among them.
+#[path = "../../../capsule_audio/src/server/pump_rule.rs"]
+pub mod pump_rule;
+// How the server reads a sink driver's replies, its output status among them.
 #[allow(dead_code)]
 #[path = "../../../capsule_audio/src/sink/wire.rs"]
 pub mod wire;

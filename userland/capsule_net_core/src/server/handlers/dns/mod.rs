@@ -20,6 +20,7 @@ pub mod dispatch;
 mod lookups;
 pub mod pending;
 pub mod resolve_a;
+pub mod route_gate;
 mod settle;
 mod unanswered;
 mod verdict;

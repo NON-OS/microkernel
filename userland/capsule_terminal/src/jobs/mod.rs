@@ -14,11 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod box_draw;
+pub mod box_hold;
+pub mod box_log;
+pub mod box_missing;
+pub mod box_screen;
+mod box_wait;
 mod capture;
 mod classify;
 mod env;
 mod external;
 mod external_io;
+mod external_route;
+mod external_stop;
 mod hang_up;
 mod pipeline_job;
 mod pipeline_stages;

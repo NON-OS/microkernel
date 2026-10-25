@@ -14,22 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-use super::entropy::get_entropy;
+use super::rng::{random_u64_secure, RngResult};
 
-pub fn secure_random_u64() -> u64 {
-    let entropy = get_entropy(8);
-    if entropy.len() >= 8 {
-        let mut bytes = [0u8; 8];
-        bytes.copy_from_slice(&entropy[..8]);
-        u64::from_le_bytes(bytes)
-    } else {
-        crate::arch::read_time_counter()
-    }
+/// Draws only from the seeded RNG, and fails before it is seeded.
+pub fn secure_random_u64() -> RngResult<u64> {
+    random_u64_secure()
 }
 
-pub fn secure_random_u32() -> u32 {
-    (secure_random_u64() >> 32) as u32
+pub fn secure_random_u32() -> RngResult<u32> {
+    Ok((secure_random_u64()? >> 32) as u32)
 }
 
 pub fn secure_zero(buffer: &mut [u8]) {

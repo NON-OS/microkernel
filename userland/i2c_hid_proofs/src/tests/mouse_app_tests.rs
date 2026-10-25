@@ -16,14 +16,15 @@
 
 //! What the mouse layout takes: relative X and Y of a Mouse or Pointer
 //! application, and nothing else. A touch screen's absolute "mouse"
-//! collection is no mouse, nor are relative axes in a vendor application.
+//! collection is no mouse (the screen is driven by its own digitizer), nor
+//! are relative axes in a vendor application.
 
 use nonos_i2cmodel::touchpad::report_descriptor;
 use nonos_i2cmodel::{Command, HidOverI2c};
 
 use super::descs::MOUSE;
 use super::fixture::{rig_with, HID_DESC_REG, PAD};
-use crate::hid::parse_mouse_layout;
+use crate::hid::{parse_mouse_layout, Surface};
 use crate::setup;
 
 /// The mouse collection touch screens carry for legacy hosts: Generic
@@ -36,15 +37,16 @@ const ABS_MOUSE: &[u8] = &[
 ];
 
 #[test]
-fn a_touch_screen_with_an_absolute_mouse_collection_is_released() {
+fn a_touch_screen_with_an_absolute_mouse_collection_is_driven_as_a_screen_alone() {
     let mut ts = report_descriptor();
     ts[3] = 0x04; // Usage (Touch Screen)
     let desc = [ts, ABS_MOUSE.to_vec()].concat();
     assert!(!parse_mouse_layout(&desc).is_relative_mouse(), "absolute axes taken as a mouse");
     let r = rig_with(HidOverI2c::new(PAD, desc, 2 + 8, 0x04F3, 0x0003), Some((PAD, HID_DESC_REG)));
     let state = setup::run().expect("setup");
-    assert!(!state.found() && state.done, "an absolute-only touch screen was driven");
-    assert_eq!(r.pad.lock().take_commands().last(), Some(&Command::SetPower { sleep: true }));
+    assert!(!state.mouse_layout.is_relative_mouse(), "absolute axes driven as a mouse");
+    assert!(state.found() && state.mt.surface == Surface::Screen, "driven, as a screen");
+    assert_ne!(r.pad.lock().take_commands().last(), Some(&Command::SetPower { sleep: true }));
 }
 
 #[test]

@@ -18,8 +18,6 @@
 //! and one request in flight at most: the device fills the buffer
 //! descriptor 0 points at and posts a used element with the byte count.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::fault::Fault;
 use super::layout::Queue;
 use super::wipe::wipe;
@@ -49,7 +47,7 @@ impl Queue {
         self.ring.w16(slot, 0);
         // The device may read the entry and its descriptor the moment the
         // index covers them.
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         self.posted = self.posted.wrapping_add(1);
         self.ring.w16(self.avail_offset + 2, self.posted);
         Ok(())

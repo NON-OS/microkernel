@@ -14,54 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The datagrams of one received NTB16, found as Linux cdc_ncm_rx_fixup
-//! finds them: each NDP16 along the wNextNdpIndex chain, each entry up to
-//! the first zero one, each datagram inside the transfer. What is malformed
-//! ends what is taken from that NDP or from the block; nothing panics.
+//! The datagrams of one received NTB (USB NCM 1.0, section 3): its header
+//! (nth.rs), then each NDP along the next-index chain (ndp.rs). Every read
+//! is inside the block. An NDP is read at most once: a chain that comes
+//! back to one already read ends there, so the walk ends within the
+//! block's own length and no datagram is taken twice.
 
 use alloc::collections::VecDeque;
 
-use nonos_usbnet::nic::ETH_HEADER;
+use nonos_usbnet::xhci::BULK_MAX;
 
-use super::ntb_out::NDP16_NOCRC_SIGN;
-use super::verify::{le16, le32, verify_ndp16, verify_nth16, NDP16_HEADER};
+use super::ndp::ndp;
+use super::nth::block;
 
-/// cdc_ncm_rx_fixup's loopcount: the most NDPs read from one block.
-const MAX_NDPS: usize = 50;
+/// The most datagrams queued from one block: this capsule's bound on what
+/// waits in `pending`, not a number the specification gives.
+pub const MAX_DATAGRAMS: usize = 40;
 
-/// Queue each datagram of the NTB16 in `raw` as its (index, length).
-pub fn datagrams(raw: &[u8], rx_max: usize, out: &mut VecDeque<(usize, usize)>) {
-    let Some(mut at) = verify_nth16(raw, rx_max) else { return };
-    let mut seen = [0usize; MAX_NDPS];
-    for i in 0..MAX_NDPS {
-        // An NDP read already means wNextNdpIndex loops back; its datagrams
-        // are not taken twice.
-        if seen[..i].contains(&at) {
+/// Queue each datagram of the NTB16, or the NTB32 when `ntb32`, in `raw`
+/// as (index, length).
+pub fn datagrams(raw: &[u8], rx_max: usize, ntb32: bool, out: &mut VecDeque<(usize, usize)>) {
+    let Some((f, b, mut at)) = block(raw, rx_max, ntb32) else { return };
+    // One bit per byte a block of one bulk transfer can hold.
+    let mut read = [0u64; BULK_MAX / 64];
+    // An NDP never lies in the header. Nor could one read there take a
+    // datagram: its signature would sit on the header's own fixed fields.
+    while at != 0 && at >= f.nth_len {
+        let Some(word) = read.get_mut(at / 64) else { return };
+        if *word & (1 << (at % 64)) != 0 {
             return;
         }
-        seen[i] = at;
-        let Some(n) = verify_ndp16(raw, at) else { return };
-        // Only "NCM0": CRC mode is off, and Linux drops any other NDP.
-        if le32(raw, at) == NDP16_NOCRC_SIGN {
-            entries(raw, at, n, rx_max, out);
+        *word |= 1 << (at % 64);
+        match ndp(f, b, at, MAX_DATAGRAMS, out) {
+            Some(next) => at = next,
+            None => return,
         }
-        at = le16(raw, at + 6);
-        if at == 0 {
-            return;
-        }
-    }
-}
-
-fn entries(raw: &[u8], at: usize, n: usize, rx_max: usize, out: &mut VecDeque<(usize, usize)>) {
-    for x in 0..n {
-        let e = at + NDP16_HEADER + 4 * x;
-        let (index, len) = (le16(raw, e), le16(raw, e + 2));
-        // NCM 1.0, 3.7: entries after the first null one are ignored; Linux
-        // ignores the rest after a bad one too.
-        let inside = index <= raw.len() && len <= raw.len() - index;
-        if index == 0 || len == 0 || !inside || len > rx_max || len < ETH_HEADER {
-            return;
-        }
-        out.push_back((index, len));
     }
 }

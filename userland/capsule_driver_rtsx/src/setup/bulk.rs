@@ -20,8 +20,6 @@
 //! their side of the register writes that start a transfer and the reads
 //! that see it end.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::region::Region;
 
 impl Region {
@@ -37,7 +35,7 @@ impl Region {
         unsafe {
             core::ptr::copy_nonoverlapping(data.as_ptr(), self.user_va as *mut u8, data.len())
         };
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         true
     }
 
@@ -47,7 +45,7 @@ impl Region {
         if out.len() as u64 > self.len {
             return false;
         }
-        fence(Ordering::Acquire);
+        nonos_libc::dma_rmb();
         // SAFETY: as copy_in, with the mapping the source.
         unsafe {
             core::ptr::copy_nonoverlapping(self.user_va as *const u8, out.as_mut_ptr(), out.len())

@@ -53,7 +53,7 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
             out.push(Found { driver, instance, device });
         }
         let on_bus = present.iter().filter(|&&c| driver.serves(c)).count();
-        for k in 0..unserved(driver, on_bus, served) {
+        for k in 0..unserved(one_disk_each(driver), on_bus, served) {
             out.push(Found {
                 driver,
                 instance: served.saturating_add(k),
@@ -62,4 +62,14 @@ pub fn discover(present: &[Controller]) -> Vec<Found> {
         }
     }
     out
+}
+
+/// An NVMe controller is one disk, a UFS host one device. SATA and eMMC serve
+/// their disk from whichever controller holds one, a virtio-blk device can be
+/// the medium this boot came from, and a card reader is never counted missing.
+fn one_disk_each(driver: Driver) -> bool {
+    match driver {
+        Driver::Nvme | Driver::Ufs => true,
+        Driver::Ahci | Driver::VirtioBlk | Driver::Wire | Driver::Rtsx => false,
+    }
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::commerce_bytes::commerce_bytes;
 use super::writer::Writer;
 use super::{encode_price, encode_release, encode_token};
 use crate::types::MarketplaceEntry;
@@ -29,6 +30,10 @@ pub(super) fn write(w: &mut Writer<'_>, entry: &MarketplaceEntry) {
 
     encode_price::write(w, &entry.price);
     encode_token::write(w, &entry.token);
+    // encode_check refused an entry without one before anything was written.
+    if let Some(c) = &entry.commerce {
+        w.fixed(&commerce_bytes(c));
+    }
 
     w.u32(entry.releases.len() as u32);
     for release in &entry.releases {

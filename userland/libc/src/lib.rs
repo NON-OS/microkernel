@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![no_std]
+pub mod acpi_measured;
 pub mod admin;
 pub mod attest;
 pub mod attest_policy;
@@ -51,6 +52,8 @@ pub mod proc_output;
 pub mod process;
 pub mod procstat;
 pub mod procstat_header;
+mod prove;
+mod seal;
 pub mod spawn_instance;
 pub mod store;
 pub mod surface_registry;
@@ -61,10 +64,12 @@ pub mod tool_run;
 pub mod transport;
 pub mod tty;
 mod unistd;
+pub mod wait;
+pub use acpi_measured::{mk_acpi_measured, ACPI_MEASURED_LEN};
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
 pub use attest::{
-    mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail, AttestStatus,
-    ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
+    mk_attest_doc, mk_attest_entries, mk_attest_policy, mk_attest_status, mk_log_tail,
+    AttestStatus, ATTEST_DOC_REFUSED, ATTEST_ENTRY_LEN, ZK_PATH_ONLY, ZK_STARK,
 };
 pub use attest_policy::{parse_attest_policy, AttestPolicy, PolicyTree, ATTEST_POLICY_LEN};
 pub use battery::mk_battery_status;
@@ -90,7 +95,7 @@ pub use data::{
 pub use debug::mk_debug;
 pub use foreign::{
     mk_foreign_exec, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn, mk_foreign_start,
-    mk_foreign_thread, mk_foreign_wait,
+    mk_foreign_thread, mk_foreign_wait, mk_linux_run_net,
 };
 pub use foreign_fork::{mk_foreign_fork, mk_foreign_fork_at};
 pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED};
@@ -98,6 +103,7 @@ pub use foreign_signal::{
     mk_foreign_context, mk_foreign_interrupt, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER,
     SIGNAL_RETURN,
 };
+pub use graphics::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
@@ -107,8 +113,8 @@ pub use install_source::{
     INSTALL_SOURCE_LOADER_IMAGE,
 };
 pub use ipc::{
-    mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send,
-    mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
+    mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_recv_from_at,
+    mk_ipc_reply, mk_ipc_send, mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
 };
 pub use local_sign::{
     mk_app_install, mk_app_install_status, mk_app_launch, mk_app_uninstall, mk_local_sign,
@@ -117,21 +123,28 @@ pub use local_sign::{
 pub use mem::{mk_mmap, mk_munmap};
 pub use private_write::mk_private_write;
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
-pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
-pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
+pub use process::{mk_args, mk_caps_of, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
+pub use process::{CAPS_OF_APP_INSTALL, CAPS_OF_SPAWN_WINDOW};
+pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_FLAG_DEBUG_WITHHELD, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
+pub use prove::{mk_prove_job, PROVE_JOB_DELIVER, PROVE_JOB_PROVE};
+pub use seal::{mk_seal_note, mk_seal_read, mk_seal_read_live, SEAL_APP_ID, SEAL_DIAG};
 pub use spawn_instance::mk_spawn_instance;
-pub use store::{mk_store_read, mk_store_write};
+pub use store::{mk_keeping, mk_store_read, mk_store_write};
 pub use surface_registry::{
-    mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post, mk_input_event_wait,
-    mk_surface_attach, mk_surface_present, mk_surface_present_rect, mk_surface_register,
-    mk_surface_release, mk_surface_share, InputEvent, SurfaceDescriptor, INPUT_KIND_BUTTON_DOWN,
-    INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_POINTER_ABS,
-    INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH, INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
+    input_abs_scale, mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post,
+    mk_input_event_wait, mk_surface_attach, mk_surface_present, mk_surface_present_rect,
+    mk_surface_register, mk_surface_release, mk_surface_share, mk_surface_share_to, InputEvent,
+    SurfaceDescriptor, INPUT_ABS_MAX, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
+    INPUT_KIND_KEY_DOWN, INPUT_KIND_KEY_UP, INPUT_KIND_PAD_AXIS, INPUT_KIND_PAD_BUTTON_DOWN,
+    INPUT_KIND_PAD_BUTTON_UP, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH,
+    INPUT_KIND_WHEEL, SURFACE_FORMAT_ARGB8888,
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use thread::{mk_thread_spawn, Handoff, Look, WorkerSeat, WORKER_STACK};
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
 pub use tool_run::mk_tool_run;
-pub use tty::{mk_tty_query, mk_tty_set, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT};
+pub use tty::{
+    mk_tty_query, mk_tty_set, TAG_BOX, TAG_STDERR, TAG_STDOUT, TTY_STDERR, TTY_STDIN, TTY_STDOUT,
+};
 pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

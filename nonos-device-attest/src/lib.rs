@@ -41,6 +41,7 @@ mod native;
 mod params;
 mod prove;
 mod registry;
+mod share;
 mod statement;
 mod witness;
 
@@ -52,5 +53,6 @@ pub use native::{commit, leaf, scope, tag, words_of};
 pub use params::{BOOT_DEPTH, KERNEL_DEPTH, SHIPPED_DEVICE_DEPTH};
 pub use prove::{prove, verify, Error, Proof};
 pub use registry::{ek_id, Enrolled, Registry, RegistryError, MAX_DEVICE_DEPTH};
+pub use share::{share, verify_shared};
 pub use statement::Statement;
 pub use witness::{Path, Slot, Witness};

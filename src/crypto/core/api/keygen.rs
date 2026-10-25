@@ -23,11 +23,13 @@ use crate::crypto::asymmetric::ed25519;
 pub fn generate_keypair(algorithm: SignatureAlgorithm) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     match algorithm {
         SignatureAlgorithm::Ed25519 => {
-            let keypair = ed25519::KeyPair::generate();
+            let keypair = ed25519::KeyPair::generate()
+                .map_err(|_| "Insufficient entropy for key generation")?;
             Ok((keypair.public.to_vec(), keypair.private.to_vec()))
         }
         SignatureAlgorithm::EcdsaP256 => {
-            let (sk, pk) = crate::crypto::asymmetric::p256::generate_keypair();
+            let (sk, pk) = crate::crypto::asymmetric::p256::generate_keypair()
+                .map_err(|_| "Insufficient entropy for key generation")?;
             Ok((pk.to_vec(), sk.to_vec()))
         }
         SignatureAlgorithm::Rsa2048 => {

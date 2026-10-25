@@ -33,6 +33,8 @@ mod regs;
 #[cfg(test)]
 #[path = "../../capsule_driver_ahci/src/server/handlers/rw_parse.rs"]
 mod rw_parse;
+pub mod server;
+pub use server::{medium_rule, power_off_rule};
 /// The driver's open path and what it takes, over the stand-in nonos_libc.
 #[cfg(test)]
 mod setup;
@@ -51,8 +53,6 @@ mod identify_reply_tests;
 mod identity_fuzz_tests;
 #[cfg(test)]
 mod identity_tests;
-#[path = "../../capsule_driver_ahci/src/server/medium_rule.rs"]
-pub mod medium_rule;
 #[cfg(test)]
 mod medium_tests;
 #[cfg(test)]

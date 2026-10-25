@@ -44,7 +44,8 @@ impl PageTableEntry {
         if self.huge_page {
             raw |= PTE_HUGE_PAGE;
         }
-        if self.global {
+        // Never on a user page: with CR4.PGE on it would outlive a CR3 write.
+        if self.global && !self.user_accessible {
             raw |= PTE_GLOBAL;
         }
         if self.no_execute {

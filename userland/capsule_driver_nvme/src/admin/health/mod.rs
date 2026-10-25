@@ -23,3 +23,6 @@ mod temperature_celsius;
 mod unread;
 
 pub use health_type::SmartHealth;
+// The little-endian readers, for the controller identity too.
+pub(super) use le16::le16;
+pub(super) use le32::le32;

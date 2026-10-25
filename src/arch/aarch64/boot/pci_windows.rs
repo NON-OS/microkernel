@@ -19,6 +19,7 @@
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
+use crate::drivers::pci::{ecam, EcamWindow};
 use crate::memory::addr::PhysAddr;
 
 static ECAM_BASE: AtomicU64 = AtomicU64::new(0);
@@ -56,14 +57,11 @@ const ECAM_BUS_STRIDE: u64 = 0x10_0000;
 
 pub(crate) fn remap() {
     let ecam_size = ECAM_SIZE.load(Ordering::Acquire).min(ECAM_BUSES * ECAM_BUS_STRIDE);
-    if ecam_size > 0 {
-        match map(ECAM_BASE.load(Ordering::Relaxed), ecam_size) {
-            Some(va) => crate::drivers::pci::set_ecam_window(va, ecam_size),
-            // Left disabled rather than pointing at an address that does not
-            // answer. A config read then returns all ones, which is what the
-            // bus gives for a slot nothing implements, so enumeration comes up
-            // empty instead of taking a fault it cannot recover from.
-            None => crate::drivers::pci::set_ecam_window(0, 0),
+    if ecam_size >= ECAM_BUS_STRIDE {
+        // Unmapped, nothing is published: the bus then reads as unreachable,
+        // all ones to the scan, rather than as a fault it cannot recover from.
+        if let Some(va) = map(ECAM_BASE.load(Ordering::Relaxed), ecam_size) {
+            publish_ecam(va, ecam_size);
         }
     }
 
@@ -90,4 +88,12 @@ fn map(phys: u64, size: u64) -> Option<u64> {
     let va = va.as_u64();
     crate::arch::aarch64::mmu::translation::translate_stage1_read(va).ok()?;
     Some(va)
+}
+
+/// The board's window starts at bus 0, so its base maps the first bus.
+fn publish_ecam(va: u64, size: u64) {
+    let end_bus = (size / ECAM_BUS_STRIDE - 1) as u8;
+    if let Err(e) = ecam::publish(EcamWindow { segment: 0, start_bus: 0, end_bus, va }) {
+        crate::log::warn!("[PCI] ECAM window {:#x} not published: {:?}", va, e);
+    }
 }

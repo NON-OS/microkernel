@@ -1,0 +1,56 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! The display wire as the compositor drives it (section 12).
+
+pub mod access_rule;
+pub mod access_wire;
+pub mod arrange_wire;
+pub mod backoff;
+pub mod brightness_get;
+pub mod brightness_list;
+pub mod brightness_rule;
+pub mod call;
+pub mod colour_rule;
+pub mod cursor_rule;
+pub mod cvd_filter;
+pub mod cvd_rule;
+pub mod first_frame_rule;
+pub mod follow;
+pub mod head;
+pub mod head_rule;
+pub mod hint_rule;
+pub mod indicator_rule;
+pub mod input_list;
+pub mod layout_rule;
+pub mod link;
+pub mod m3;
+pub mod magnifier_rule;
+pub mod mirror_rule;
+pub mod night_rule;
+pub mod notice_rule;
+pub mod ops;
+pub mod ops_mode;
+pub mod poll_rule;
+pub mod resize_rule;
+pub mod return_rule;
+pub mod scale_rule;
+pub mod screenshot_rule;
+pub mod srgb_rule;
+
+pub use backoff::Backoff;
+pub use head::Head;
+pub use link::WireLink;

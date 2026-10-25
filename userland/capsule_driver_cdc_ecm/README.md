@@ -1,9 +1,13 @@
 # capsule_driver_cdc_ecm
 
+Status: wired, not yet signed. The kernel mirror (`src/hardware/cdc_ecm_capsule`) embeds it under
+`nonos-capsule-driver-cdc-ecm` and spawns it where an xHCI controller is; net.core and net.l2 reach
+it through `src/services/registry/nics.rs`, and it reaches driver.xhci0, which serves its polled
+bulk IN and control OUT data stage. It has no owner certificate yet, so no image carries it.
 
 ## Role
 
-`capsule_driver_cdc_ecm` is the USB CDC Ethernet Control Model class capsule. It finds one ECM function on driver.xhci0's ports, binds it as Linux `cdc_ether` does, and serves Ethernet frames to net.core over NNET, the protocol every NONOS network driver speaks. The search, the xHCI client and the NNET service are `nonos_usbnet`'s; this capsule holds only the ECM binding and framing (`src/ecm`). How it binds, frames and follows the link, and what it logs: [BINDING.md](BINDING.md).
+`capsule_driver_cdc_ecm` is the USB CDC Ethernet Control Model class capsule. It finds one ECM function on driver.xhci0's ports, binds it as CDC ECM 1.2 describes the function (as recalled, unverified), and serves Ethernet frames to net.core over NNET, the protocol every NONOS network driver speaks. The search, the xHCI client and the NNET service are `nonos_usbnet`'s; this capsule holds only the ECM binding and framing (`src/ecm`). How it binds, frames and follows the link, and what it logs: [BINDING.md](BINDING.md).
 
 ```text
 USB Ethernet adapter or phone (ECM)
@@ -13,23 +17,36 @@ USB Ethernet adapter or phone (ECM)
 
 ## Microkernel contract
 
-The manifest's `CAPSULE_REQUIRED_CAPS = 0x38` grants IPC (0x08), Memory (0x10) and Crypto (0x20), and no InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: it is a class capsule above xHCI. Debug (0x100) is its `CAPSULE_OPTIONAL_CAPS`, granted only to a build that compiles `capsule-serial-debug`. The capsule receives requests with `MkIpcRecvFrom` and answers with `MkIpcReply`, finds driver.xhci0 with `MkServiceLookup` and calls it with `MkIpcCall` (each call bounded at 12 s), draws its station address with `CryptoRandom`, which needs Crypto, writes its `[usbnet cdc-ecm]` lines with `MkDebug`, which needs Debug. It makes no enumeration, MMIO, IRQ, DMA or PIO broker syscall: driver.xhci0 owns the controller.
+The manifest's `CAPSULE_REQUIRED_CAPS = 0x38` grants IPC (0x08), Memory (0x10) and Crypto (0x20),
+and no CoreExec, InputSource, Driver, DeviceEnum, Mmio, Irq, Dma or Pio: it is a class capsule above
+xHCI. Debug (0x100) is its `CAPSULE_OPTIONAL_CAPS`, granted only to a build that compiles
+`capsule-serial-debug`. The capsule receives requests with `MkIpcRecvFrom` and answers with
+`MkIpcReply`, finds every USB host and its own pid with `MkServiceLookup` and calls it with
+`MkIpcCall` (each call bounded at 12 s), draws its station address with `CryptoRandom`, which needs
+Crypto, writes its `[usbnet cdc-ecm]` lines with `MkDebug`, which needs Debug. It makes no
+enumeration, MMIO, IRQ, DMA or PIO broker syscall: driver.xhci0 owns the controller. Its own pid, by
+which the loop drops what it sent itself, is read back by its service name rather than through
+`MkGetPid`, so it needs no CoreExec.
 
 ## Interface contract
 
-NNET, the protocol net.core speaks with every NIC driver, on `driver.cdc_ecm0` (port 4250, reply port 4251): health (1), link (2), the station address (3), a frame out (4), a frame in (5), and the counters at `OP_STATS`, 0x0100, clear of net.core's receive batch at 6, which is answered `E_INVAL` as any operation it does not know. What each takes and answers: [PROTOCOL.md](PROTOCOL.md).
+NNET, the protocol net.core speaks with every NIC driver, on `driver.cdc_ecm0` (port 4250, reply port 4251): health (1), link (2), the station address (3), a frame out (4), a frame in (5), and the counters at `OP_STATS`, 7, clear of net.core's receive batch at 6, which is answered `E_INVAL` as any operation it does not know. What each takes and answers: [PROTOCOL.md](PROTOCOL.md).
 
 ## Authority
 
-Allowed: descriptor classification, CDC-ECM binding and framing, frame counters. Forbidden: xHCI ownership, USB scheduling, DMA buffers, routing, sockets, IP policy. The kernel's held-endpoint table (`src/services/registry/held_table.rs`) has no entry for `driver.cdc_ecm0` yet, as nothing spawns it; the PCI NICs' entries hold them to net.core and net.l2, and this one needs the same before it ships.
+Allowed: descriptor classification, CDC-ECM binding and framing, frame counters. Forbidden: xHCI
+ownership, USB scheduling, DMA buffers, routing, sockets, IP policy. The kernel holds
+`driver.cdc_ecm0` to the wired stack (net.core, net.l2) in `src/services/registry/held_table.rs`,
+through the NIC table (`src/services/registry/nics.rs`) as it holds the PCI NICs, so no app reaches
+it; it holds driver.xhci0 to its USB class drivers, this one among them.
 
 ## Privacy and persistence
 
-The station address is drawn from `CryptoRandom` once a run, before the first bind, and handed to every device bound in that run: locally administered unicast, never the device's iMACAddress string, which is never read. Without entropy no device is bound. No log line carries a station address, and the device's vendor:product appears only on a failed bind. Frames pass through and are not kept past the request that carries them; the capsule stores no product strings, serial numbers or frame contents. It holds the bound device's bulk pipes, the run's drawn station address, and one receive and one send buffer in process memory, dropped when the process ends.
+The station address is drawn from `CryptoRandom` once a run, before the first bind, and handed to every device bound in that run: locally administered unicast, never the device's iMACAddress string, which is never read. Without entropy no device is bound. No log line carries a station address, and the device's vendor:product appears only on a failed bind. Frames pass through and are not kept past the request that carries them; the capsule stores no product strings, serial numbers or frame contents. It holds the bound device's bulk pipes and notification endpoint, the run's drawn station address, and one receive and one send buffer in process memory, dropped when the process ends.
 
 ## Runtime lifecycle
 
-Once started it draws the run's station address, then looks for driver.xhci0. Until a device is bound the link reads down and frames answer `E_AGAIN`; every second the free root ports are looked at and each new device is offered to this driver, inside a bind budget of 15 s. A device whose transfers fail eight times in a row with no frame moved is given back and looked for again, and a rebind hands it the same address, the one net.core already uses. A port that fails three binds is left until it reconnects; every port decided against is tried again after a minute, then twice as long after each round that binds nothing, up to half an hour.
+Started wherever an xHCI controller is, it draws the run's station address, then looks for the USB hosts, fastest first. Until a device is bound the link reads down and frames answer `E_AGAIN`; every second the free root ports of every registered host are looked at and each new device is offered to this driver, inside a bind budget of 15 s. A device whose transfers fail eight times in a row with no frame moved is given back and looked for again, and a rebind hands it the same address, the one net.core already uses. A port that fails three binds is left until it reconnects; every port decided against is tried again after a minute, then twice as long after each round that binds nothing, up to half an hour.
 
 ## Failure model
 
@@ -37,7 +54,7 @@ Every bind step that fails is a named failure with its errno on the log, and the
 
 ## Current implemented surface
 
-CDC-ECM binding as the Linux driver binds it ([BINDING.md](BINDING.md)), and the framing: one Ethernet frame per bulk transfer, a padding byte when a frame's length is a multiple of 64 or of the packet size.
+CDC-ECM binding as CDC ECM 1.2 describes it ([BINDING.md](BINDING.md)), the link from NETWORK_CONNECTION, and the framing: one Ethernet frame per bulk transfer, a padding byte when a frame's length is a multiple of 64 or of the packet size.
 
 ## Wire format
 
@@ -45,7 +62,7 @@ NNET requests carry the 20-byte header `magic_le32, version_le16, op_le16, flags
 
 ## State ownership
 
-`driver.cdc_ecm0` owns the bound device's bulk pipes, the run's drawn station address, and one receive and one send buffer. driver.xhci0 owns slots, endpoint contexts, rings and DMA; net.core owns addresses, routes and sockets.
+`driver.cdc_ecm0` owns the bound device's bulk pipes and notification endpoint, the run's drawn station address, and one receive and one send buffer. driver.xhci0 owns slots, endpoint contexts, rings and DMA; net.core owns addresses, routes and sockets.
 
 ## Operating rules
 
@@ -57,16 +74,22 @@ Keep USB transfer mechanics in driver.xhci0 and IP policy in net.core. Do not ad
 
 ## Release evidence
 
-Build and host-proof evidence only so far (cdc_ecm_proofs, 13 tests; usbnet_proofs, 38 tests, for the shared core). Runtime evidence needs driver.xhci0's polled bulk IN and control OUT data stage (`docs/drivers/ethernet/usb-net.md`), the kernel spawn, and a real device: none is on main yet.
+Build and host-proof evidence only so far (cdc_ecm_proofs, 24 tests; usbnet_proofs, 53 tests, for
+the shared core). driver.xhci0 serves the polled bulk IN and control OUT data stage and the kernel
+spawns the capsule (`docs/drivers/ethernet/usb-net.md`); runtime evidence still needs an owner
+certificate and a real device.
 
 ## Release checklist
 
-The capsule builds with zero warnings and is clippy clean; cdc_ecm_proofs passes; driver.xhci0 serves OP_BULK_IN_POLL and control OUT data stages; the kernel spawns the capsule and holds its endpoint; on hardware, `[usbnet cdc-ecm] port N up, drawn station address, device filter opened` and `[NET-CORE] bind: interface up on driver.cdc_ecm0`, then DHCP and a page.
+The capsule builds with zero warnings and is clippy clean; cdc_ecm_proofs passes; the owner signs
+it, with net.core, net.l2, the setup wizard and capsule_attack re-signed for the NIC table; on
+hardware, `[usbnet cdc-ecm] port N up, drawn station address, device filter opened` and `[NET-CORE]
+bind: interface up on driver.cdc_ecm0`, then DHCP and a page.
 
 ## Explicit non-goals today
 
-NETWORK_CONNECTION and speed notifications (no interrupt endpoint beside the bulk pipes), multicast filter lists, more than one device per capsule, jumbo frames.
+Speed notifications acted on (they are read and dropped), multicast filter lists, more than one device per capsule, jumbo frames.
 
 ## Verification
 
-`cd userland/cdc_ecm_proofs && cargo test` (13 pass at the time of writing); the capsule's `cargo build --release` and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on hardware.
+`cd userland/cdc_ecm_proofs && cargo test` (24 pass at the time of writing); the capsule's `cargo build --release` and `cargo clippy` for x86_64-nonos-user. Not verified under QEMU or on hardware.

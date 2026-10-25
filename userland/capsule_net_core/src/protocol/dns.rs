@@ -27,3 +27,5 @@ pub const E_TIMEOUT: u16 = 6;
 pub const E_NAME_INVALID: u16 = 9;
 pub const E_SERVFAIL: u16 = 10;
 pub const E_NO_LEASE: u16 = 11;
+/// The chosen network is not Direct: the name would go out in the clear.
+pub const E_NOT_DIRECT: u16 = 12;

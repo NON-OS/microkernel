@@ -78,9 +78,8 @@ impl BigUint {
     }
 
     fn miller_rabin_witness(&self, a: &Self, d: &Self, r: usize) -> bool {
-        let n_minus_1 = match self.sub_u64(1) {
-            Some(v) => v,
-            None => return false,
+        let Some(n_minus_1) = self.sub_u64(1) else {
+            return false;
         };
 
         let mut x = match a.mod_pow(d, self) {
@@ -106,14 +105,15 @@ impl BigUint {
     }
 
     fn miller_rabin_random(&self, d: &Self, r: usize, k: usize) -> bool {
-        let n_minus_1 = match self.sub_u64(1) {
-            Some(v) => v,
-            None => return false,
+        let Some(n_minus_1) = self.sub_u64(1) else {
+            return false;
         };
         let two = Self::from_u64(2);
 
         for _ in 0..k {
-            let a = Self::random_range(&two, &n_minus_1);
+            let Some(a) = Self::random_range(&two, &n_minus_1) else {
+                return false;
+            };
             if !self.miller_rabin_witness(&a, d, r) {
                 return false;
             }
@@ -122,9 +122,9 @@ impl BigUint {
         true
     }
 
-    pub fn random_range(min: &Self, max: &Self) -> Self {
+    pub fn random_range(min: &Self, max: &Self) -> Option<Self> {
         if min >= max {
-            return min.clone();
+            return Some(min.clone());
         }
 
         let range = max - min;
@@ -136,7 +136,7 @@ impl BigUint {
             let mut remaining = range_bytes;
 
             while remaining > 0 {
-                let rng_bytes = crate::crypto::rng::get_random_bytes();
+                let rng_bytes = crate::crypto::rng::get_random_bytes_secure().ok()?;
                 let take = core::cmp::min(remaining, rng_bytes.len());
                 bytes.extend_from_slice(&rng_bytes[..take]);
                 remaining = remaining.saturating_sub(take);
@@ -150,7 +150,7 @@ impl BigUint {
             let random_val = Self::from_bytes_be(&bytes);
 
             if random_val < range {
-                return min + &random_val;
+                return Some(min + &random_val);
             }
         }
     }

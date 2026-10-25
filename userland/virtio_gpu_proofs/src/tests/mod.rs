@@ -15,26 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The driver against modelled capability regions, a part that consumes the
-//! control queue, and a client; and the orders in its source that only a
-//! boot runs.
+//! control queue, and a host model on the display wire; and the orders in
+//! its source that only a boot runs.
 
-mod client;
-mod clock_tests;
-mod driver;
-mod frames;
+mod gpu;
 mod harness;
+mod host;
 mod model;
 mod part;
 mod predecessor;
 mod probe_stall;
-mod refusal;
-mod stall;
 mod wire;
 
-mod boundary_frame_tests;
+mod clock_tests;
 mod config_tests;
 mod discovery_tests;
-mod dispatch_tests;
 mod late_tests;
 mod master_tests;
 mod mode_tests;
@@ -46,16 +41,11 @@ mod order_tests;
 mod probe_stall_tests;
 mod queue_limit_tests;
 mod queue_tests;
-mod recover_limit_tests;
 mod recover_order_tests;
-mod recover_reset_tests;
-mod recover_span_bound_tests;
-mod recover_span_tests;
-mod recover_tests;
-mod recover_try_tests;
 mod reply_refusal_tests;
+mod reply_sweep;
 mod reply_tests;
-mod request_refusal_tests;
 mod teardown_tests;
 mod wire_scanout_tests;
+mod wire_sweep;
 mod wire_tests;

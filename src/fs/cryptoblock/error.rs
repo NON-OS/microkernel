@@ -25,4 +25,6 @@ pub enum CryptoBlockError {
     Unsupported,
     /// No volume window is set, so no sector may be touched.
     NoWindow,
+    /// The seeded RNG could not give the sector's nonce; nothing was sealed.
+    NoRandomness,
 }

@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
-
 use crate::settings::schema::rows::{Block, Live, Row};
 use crate::settings::state::State;
 
 use super::field_note::note_of;
 use super::metrics::{CARD_HEAD_H, CARD_HEAD_NOTE_H, ROW_H, ROW_NOTE_H};
+use super::walk_list::list_of;
 
 pub fn head_h(b: &Block) -> u32 {
     if b.note.is_some() {
@@ -48,15 +47,13 @@ pub fn saved_rows(state: &State) -> usize {
     state.wifi.saved_count.max(1)
 }
 
+/// The bonded devices, or one row saying there are none or why the list
+/// could not be read.
+pub fn bt_rows(state: &State) -> usize {
+    state.bt.bond_count.max(1)
+}
+
 pub fn block_h(state: &State, b: &Block) -> u32 {
-    let mut h = head_h(b);
-    for r in b.rows {
-        h += match r {
-            Row::Networks => ROW_H * network_rows(state) as u32,
-            Row::Saved => ROW_H * saved_rows(state) as u32,
-            Row::Wallpapers => ROW_H * WALLPAPER_LABELS.len() as u32,
-            other => row_h(other),
-        };
-    }
-    h
+    let rows = b.rows.iter().map(|r| list_of(state, r).map_or(row_h(r), |l| ROW_H * l.0 as u32));
+    head_h(b) + rows.sum::<u32>()
 }

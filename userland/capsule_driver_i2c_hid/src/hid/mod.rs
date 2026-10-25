@@ -24,7 +24,7 @@ mod report_desc;
 
 pub use descriptor::{valid_descriptor, HID_DESC_LEN};
 pub use input_len::input_len;
-pub use input_mode::{configure_reporting, Configured};
+pub use input_mode::{configure_reporting, Configured, I2cFeatures};
 pub use input_register::input_register;
 pub use power::{sleep, wake};
 pub use probe::probe_addr;
@@ -32,3 +32,4 @@ pub use report_desc::{
     decode_mouse, decode_touch, parse as parse_report_descriptor,
     parse_mouse as parse_mouse_layout, Field, MouseLayout, TouchLayout, TouchSample,
 };
+pub use report_desc::{primary, Multitouch, ScreenEvent, Surface};

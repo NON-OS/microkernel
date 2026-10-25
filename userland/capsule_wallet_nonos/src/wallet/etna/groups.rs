@@ -19,28 +19,24 @@
 //! as Groups.swift.
 
 use alloc::string::String;
-use alloc::vec::Vec;
+
+use zeroize::Zeroizing;
 
 pub const RUN: usize = 8;
 const ENDS: usize = 6;
 const MARK: &str = "\u{2026}";
 
-pub fn grouped(value: &str) -> String {
-    let chars: Vec<char> = value.chars().collect();
-    let runs: Vec<String> = chars.chunks(RUN).map(|c| c.iter().collect()).collect();
-    runs.join(" ")
-}
-
-/// A hash cut to its ends, as in 0x6def9b\u{2026}f3a4, so a forged prefix must
-/// also match the suffix.
-pub fn hash(value: &str) -> String {
-    let n = value.chars().count();
-    if !value.starts_with("0x") || n <= 12 {
-        return String::from(value);
+/// Built in place at its full size, never reallocated, and zeroed when
+/// dropped: the value can be a private key shown on purpose.
+pub fn grouped(value: &str) -> Zeroizing<String> {
+    let mut out = Zeroizing::new(String::with_capacity(value.len().saturating_mul(2)));
+    for (i, c) in value.chars().enumerate() {
+        if i > 0 && i % RUN == 0 {
+            out.push(' ');
+        }
+        out.push(c);
     }
-    let head: String = value.chars().take(8).collect();
-    let tail: String = value.chars().skip(n - 4).collect();
-    alloc::format!("{head}{MARK}{tail}")
+    out
 }
 
 pub fn shortened(value: &str) -> String {

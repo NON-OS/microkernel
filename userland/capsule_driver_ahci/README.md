@@ -6,26 +6,9 @@
 the AHCI PCI function in userland, expose the controller's identity and port
 state over IPC, and keep SATA command policy out of the kernel.
 
-driver.ahci0 also serves eMMC hosts until it gets its own publisher keys.
-On Atom, Celeron and Pentium Silver laptops the only disk is often soldered
-eMMC behind an SD Host Controller (Intel eMMC hosts from Bay Trail to Jasper
-Lake and Elkhart Lake, and any SDHCI slot its capabilities call embedded).
-When no SATA disk comes up, the capsule brings that eMMC up instead and
-serves it over the same wire: the same ops, 512-byte sectors and 64-sector
-requests, with IDENTIFY's medium byte set to 1 so the installer names it
-eMMC. The eMMC code is the self-contained `src/emmc/` tree (SDHCI host with
-ADMA2, High Speed at up to 52 MHz on the widest bus that reads back intact,
-CMD23 multi-block transfers, cache flush), proved by `userland/emmc_proofs`
-against a register-level model of a host with an eMMC behind it. A host is
-reset (Software Reset For All read back clear, Present State then idle, ADMA2
-offered) before any DMA region is mapped or Bus Master goes on, so ADMA a
-dead driver left running reaches nothing; a host refused before then never
-gets Bus Master. On a host without 64-bit addressing the regions are asked
-for below 4 GiB (`MK_DMA_MAP_DMA32`), which 32-bit ADMA2 reaches. A host goes
-back stopped, with Bus Master written off (a no-op until the broker stores
-hand: `MkDeviceRelease` frees them once it reads Bus Master back off. It
-moves to a capsule of its own with that directory. It asks for no capability
-the SATA path did not already hold.
+Soldered eMMC behind an SD Host Controller is not served here: this
+capsule carried it until the eMMC code had a capsule of its own, and it is
+now `driver.sdhci0` (`userland/capsule_driver_sdhci`), on the block wire.
 
 This slice is a block-controller milestone. It proves discovery, claim, MMIO
 mapping, IRQ ownership, AHCI-mode enable, ATA identify, command-list/FIS/PRDT
@@ -116,6 +99,7 @@ running out logs the last cause and exits `EXIT_GAVE_UP` (6). A port whose
 link, DMA, signature, or ATA identify fails is stopped. Unserved ports on the
 controller kept are parked: stopped, then their regions unmapped, since the
 port served keeps Bus Master on. Every other controller goes back whole: its
+ports stopped, Bus Master written off (a no-op until K6), then the release,
 which frees their regions once it reads Bus Master back off. Requests never
 touch a port that is not the one served.
 
@@ -306,9 +290,8 @@ What only a boot on real silicon can confirm. The host proofs cover the parsers,
 - After a command fails (a forced error, or a disk pulled and reseated), the
   next command on the port succeeds: recovery turns FIS receive back on.
 - The real HBA writes the full byte count to PRDBC after every healthy read
-  and write, so neither is refused as short. Some HBAs may not count at all
-  (FreeBSD's AHCI_Q_NOCOUNT quirk); on such a part every transfer would fail,
-  so check this on each one.
+  and write, so neither is refused as short. Some HBAs may not count at all;
+  on such a part every transfer would fail, so check this on each one.
 - A command the drive holds past 30 s (a disk deep in its own error recovery)
   answers `E_TIMEDOUT` inside the kernel's 35 s, the drive is reset with a
   COMRESET, and the next read returns its own sectors.

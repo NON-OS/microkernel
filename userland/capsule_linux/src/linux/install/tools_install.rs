@@ -26,9 +26,10 @@
 use nonos_libc::mk_debug;
 
 use super::auth::Verified;
-use super::http::{get_as, reachable};
+use super::http::get::get_as;
+use super::http::reach::reachable;
 use super::mirror::parse;
-use super::place::unpack;
+use super::place::all::unpack;
 use super::tools::{content_path, PREFIX};
 use super::Why;
 
@@ -51,7 +52,7 @@ pub fn install(tool: &str, pin: &[u8; 32]) -> Result<(), Why> {
     // Held to the signed index's pin above, so these are authenticated bytes.
     let files = Verified::checked(content);
     let listing = alloc::format!("{PREFIX}{tool}");
-    unpack(&files, &listing, true).map(|_| ())
+    unpack(&files, &listing, true, false).map(|_| ())
 }
 
 fn say(line: &[u8]) {

@@ -17,3 +17,14 @@
 #[allow(dead_code)]
 #[path = "../../../../../src/syscall/microkernel/errnos.rs"]
 pub mod errnos;
+#[allow(dead_code)]
+#[path = "../../../../../src/syscall/microkernel/acpi/owner_gate.rs"]
+pub mod owner_gate;
+#[cfg(test)]
+mod owner_gate_names_tests;
+#[cfg(test)]
+mod owner_gate_tests;
+
+pub mod caps_of;
+pub mod enqueued_at;
+pub mod wait;

@@ -17,11 +17,9 @@
 use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
-use crate::protocol::{E_BAD_OP, IPC_PAYLOAD_MAX};
+use crate::protocol::IPC_PAYLOAD_MAX;
 
-use super::handlers;
-use super::parse_req::{parse, refused, HDR_LEN};
-use super::respond::respond;
+use super::parse_req::HDR_LEN;
 
 const SERVICE_INBOX: u64 = 0;
 /// How long to wait for a request before spending the gap on the mixnet.
@@ -61,17 +59,7 @@ pub fn run() -> ! {
             super::report::report_due(&mut reporter);
             continue;
         }
-        let (req, body) = match parse(&rx[..n as usize]) {
-            Ok(parsed) => parsed,
-            Err(errno) => {
-                let req = refused(&rx[..n as usize]);
-                respond(sender, req.op, errno, req.request_id, 0, &mut tx);
-                continue;
-            }
-        };
-        if !handlers::dispatch(sender, &req, body, &mut tx) {
-            respond(sender, req.op, E_BAD_OP, req.request_id, 0, &mut tx);
-        }
+        super::serve_one::serve_one(sender, &mut rx[..n as usize], &mut tx);
         // A reader polling for a slow reply keeps this loop from ever going
         // idle, and the ping above only ran when it did: the link went
         // unpinged for exactly as long as someone was waiting on it. The

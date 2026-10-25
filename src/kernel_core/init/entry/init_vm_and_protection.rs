@@ -22,9 +22,9 @@ use super::fatal::fatal;
 use crate::memory::mmu;
 
 pub(super) fn init_vm_and_protection() {
-    // VM/paging must be ready before any process creator runs. The process
-    // subsystem only initializes its tables after this; the userspace init
-    // process itself is created exactly once in `microkernel_main`.
+    // VM/paging must be ready before any process creator runs: the process
+    // tables come after this, and init is created once in `microkernel_main`.
+    crate::arch::paging::require_vm_port();
     if let Err(e) = crate::memory::unified::init_unified_vm() {
         fatal("memory: init_unified_vm failed", e);
     }
@@ -78,12 +78,16 @@ fn arm_stack_guards() {}
 /*
  * aarch64 has no control-register switch for what init_mmu turns on for x86_64:
  * execute-never and read-only are PXN, UXN and AP[2] in every descriptor the
- * encoder writes. PAN, the SMAP counterpart, is not set at boot, so the line says
- * so rather than claiming a protection this kernel does not enable.
+ * encoder writes. PAN, the SMAP counterpart, is set on every CPU that has it
+ * (arch::aarch64::security::pan), so the line says on, or absent where the CPU
+ * has none, as the [HARDEN] line does.
  */
 #[cfg(target_arch = "aarch64")]
 fn report_el1_protection() {
-    crate::sys::serial::println(
-        b"[CPU-PROT] aarch64 pxn=descriptor uxn=descriptor ro=descriptor pan=off",
+    use crate::arch::aarch64::cpu::{has_feature, CpuFeature};
+    let pan: &[u8] = if has_feature(CpuFeature::Pan) { b"on" } else { b"absent" };
+    crate::sys::serial::print(
+        b"[CPU-PROT] aarch64 pxn=descriptor uxn=descriptor ro=descriptor pan=",
     );
+    crate::sys::serial::println(pan);
 }

@@ -36,6 +36,7 @@ fn an_interrupt_endpoint_configured_as_the_controller_fails_is_kept_until_its_re
 fn a_bulk_pair_configured_as_the_controller_fails_is_kept_until_its_reset() {
     let pair = |s| vec![s, 0x81, 0x02, 0, 0, 2, 0, 2];
     let (b, kept, freed) = configured_as_it_fails(OP_CONFIGURE_BULK, pair);
-    assert_eq!((freed, kept.len()), (0, 3), "both rings and the page kept");
+    // The polled IN has its own page beside the waited transfers' (pipes.rs).
+    assert_eq!((freed, kept.len()), (0, 4), "both rings and both pages kept");
     freed_by_the_revival(b, &kept);
 }

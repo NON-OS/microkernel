@@ -16,20 +16,16 @@
 
 use core::sync::atomic::Ordering;
 
-use super::super::types::{InputEvent, INPUT_RING_CAP};
+use super::super::types::InputEvent;
 use super::ring::{DRAINED, RING};
 
 pub fn drain_input(out: &mut [InputEvent]) -> usize {
     if out.is_empty() {
         return 0;
     }
-    let mut ring = RING.lock();
-    let mut n = 0usize;
-    while n < out.len() && ring.tail != ring.head {
-        out[n] = ring.buf[ring.tail];
-        ring.tail = super::super::ring_math::wrap(ring.tail, INPUT_RING_CAP);
-        n += 1;
-    }
+    let mut guard = RING.lock();
+    let ring = &mut *guard;
+    let n = super::take::take(&mut ring.buf, ring.head, &mut ring.tail, out);
     DRAINED.fetch_add(n as u64, Ordering::Relaxed);
     n
 }

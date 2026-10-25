@@ -13,12 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+mod arm;
 mod input;
+mod look;
 mod pipes;
+mod poll;
 mod recover;
+mod regions;
+mod stream_input;
+mod stream_transfer;
+mod streams;
 mod transfer;
-mod wait;
+pub(crate) mod wait;
 pub use input::{write_bulk_input, BulkEndpoint};
 pub use pipes::BulkPipes;
+pub use poll::{poll_bulk_in, BulkPoll};
 pub use recover::reset_bulk_endpoint;
+pub use stream_input::write_stream_input;
+pub use stream_transfer::stream_transfer;
+pub use streams::{StreamPipe, MAX_LOG2};
 pub use transfer::bulk_transfer;

@@ -43,7 +43,8 @@ pub fn rotate_key(old_key_id: u64, caller: u64) -> KeyResult<u64> {
 
     let key_len = key_type.key_length();
     let mut material = alloc::vec![0u8; key_len];
-    crate::crypto::rng::fill_bytes(&mut material);
+    crate::crypto::rng::fill_random_bytes_secure(&mut material)
+        .map_err(|_| KeyError::CryptoError)?;
 
     let new_id = store.next_id;
     store.next_id += 1;

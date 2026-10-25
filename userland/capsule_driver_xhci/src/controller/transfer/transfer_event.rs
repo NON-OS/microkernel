@@ -23,7 +23,7 @@ use crate::rings::event::IssuedTransfer;
 use crate::trb::Trb;
 
 /// The transfer's answer from its last TRB's completion code.
-pub(super) fn complete(code: u8) -> XhciResult<()> {
+pub fn complete(code: u8) -> XhciResult<()> {
     match code {
         CC_SUCCESS | CC_SHORT_PACKET => Ok(()),
         other => Err(XhciError::TransferCompletionFailed(other)),
@@ -47,7 +47,7 @@ pub fn stopped_early(event: &Trb, issued: IssuedTransfer, earlier: &[u64]) -> bo
 
 /// The bytes one of `earlier` left untransferred, when `event` is its
 /// Short Packet: the TRB Transfer Length field, 24 bits.
-pub(super) fn short_on(event: &Trb, issued: IssuedTransfer, earlier: &[u64]) -> Option<u32> {
+pub fn short_on(event: &Trb, issued: IssuedTransfer, earlier: &[u64]) -> Option<u32> {
     let short = event.completion_code() == CC_SHORT_PACKET && on_earlier(event, issued, earlier);
     short.then_some(event.d2 & 0x00FF_FFFF)
 }

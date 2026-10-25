@@ -15,7 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The kernel's hardware types the proofs need, by path.
+ * The kernel's hardware types the proofs need, by path, and the broker's
+ * class table (L79).
  */
 
+pub mod ahci_capsule;
 pub mod block_device;
+pub mod broker;
+#[path = "../../../../src/hardware/inventory/platform_sd.rs"]
+#[allow(dead_code)] // only the proofs read it
+pub mod platform_sd;
+pub mod usb_msc_capsule;

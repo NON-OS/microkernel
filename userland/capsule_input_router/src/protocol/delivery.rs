@@ -25,17 +25,30 @@ pub const DELIVERY_VERSION: u16 = 1;
 const HDR_LEN: usize = 8;
 const EVENT_LEN: usize = core::mem::size_of::<InputEvent>();
 pub const DELIVERY_LEN: usize = HDR_LEN + EVENT_LEN;
+/// Envelope flags: the frame is the router's notice that an unauthenticated
+/// Bluetooth device was refused on the secure path (route/notice.rs).
+pub const NOTICE_UNPROVEN: u16 = 1;
+/// The event kind a notice carries: none an input device posts.
+pub const NOTICE_KIND: u16 = 0xFFFF;
 
 pub fn encode_delivery(out: &mut [u8; DELIVERY_LEN], event: &InputEvent) {
     out[0..4].copy_from_slice(&DELIVERY_MAGIC.to_le_bytes());
     out[4..6].copy_from_slice(&DELIVERY_VERSION.to_le_bytes());
     out[6..8].fill(0);
     out[8..10].copy_from_slice(&event.kind.to_le_bytes());
-    out[10..12].copy_from_slice(&event.flags.to_le_bytes());
+    // The kernel's source index stays here: no app learns which device
+    // typed, only the modifiers in the low byte.
+    out[10..12].copy_from_slice(&app_flags(event.flags).to_le_bytes());
     out[12..16].copy_from_slice(&event.code.to_le_bytes());
     out[16..20].copy_from_slice(&event.x.to_le_bytes());
     out[20..24].copy_from_slice(&event.y.to_le_bytes());
     out[24..28].copy_from_slice(&event.delta_x.to_le_bytes());
     out[28..32].copy_from_slice(&event.delta_y.to_le_bytes());
     out[32..40].copy_from_slice(&event.timestamp_ns.to_le_bytes());
+}
+
+/// An event's flags as an app may see them: the modifier byte, without the
+/// kernel's source index in the high byte.
+pub const fn app_flags(flags: u16) -> u16 {
+    flags & 0x00FF
 }

@@ -30,14 +30,15 @@ pub fn keys(base: &[u8; 32], stage: &[u8], th: &[u8; 32], suite: u16) -> Traffic
     let key_len = if suite == 0x1301 { 16 } else { 32 };
     let c: [u8; 32] = arr(&label(base, &[b"c ", stage, b" traffic"].concat(), th, 32));
     let s: [u8; 32] = arr(&label(base, &[b"s ", stage, b" traffic"].concat(), th, 32));
-    TrafficKeys {
-        suite,
-        handshake_secret: *base,
-        client_secret: c,
-        server_secret: s,
-        client_key: arr(&label(&c, b"key", &[], key_len)),
-        client_iv: arr(&label(&c, b"iv", &[], 12)),
-        server_key: arr(&label(&s, b"key", &[], key_len)),
-        server_iv: arr(&label(&s, b"iv", &[], 12)),
-    }
+    TrafficKeys::build(suite, |k| {
+        k.handshake_secret = *base;
+        k.client_secret = c;
+        k.server_secret = s;
+        k.client_key = arr(&label(&c, b"key", &[], key_len));
+        k.client_iv = arr(&label(&c, b"iv", &[], 12));
+        k.server_key = arr(&label(&s, b"key", &[], key_len));
+        k.server_iv = arr(&label(&s, b"iv", &[], 12));
+        true
+    })
+    .expect("filled")
 }

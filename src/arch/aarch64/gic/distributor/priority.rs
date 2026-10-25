@@ -18,17 +18,18 @@ use core::ptr::write_volatile;
 
 use super::constants::{GICD_IPRIORITYR, GICD_ITARGETSR};
 use super::device::GicDistributor;
+use crate::arch::aarch64::mmu::pointer::device;
 
 impl GicDistributor {
     pub fn set_priority(&self, irq: u32, priority: u8) {
-        let addr = (self.base + GICD_IPRIORITYR + irq as u64) as *mut u8;
+        let addr = device::<u8>(self.base, GICD_IPRIORITYR + irq as u64);
         unsafe {
             write_volatile(addr, priority);
         }
     }
 
     pub fn set_target(&self, irq: u32, target: u8) {
-        let addr = (self.base + GICD_ITARGETSR + irq as u64) as *mut u8;
+        let addr = device::<u8>(self.base, GICD_ITARGETSR + irq as u64);
         unsafe {
             write_volatile(addr, target);
         }

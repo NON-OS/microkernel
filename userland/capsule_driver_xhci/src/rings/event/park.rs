@@ -18,9 +18,10 @@
 //! another's wait: an interrupt-IN report finishing during a bulk transfer
 //! is kept until its own poll asks for it.
 //!
-//! Only an armed interrupt TRB's event is kept, in the place its poll
-//! armed (`expect`). Control and bulk transfers are waited for by the
-//! request that issued them, so no other wait reads their events, save a
+//! Only an armed TRB's event is kept (an interrupt report, the polled bulk
+//! IN, an isoch batch's last TD), in the place its poll armed (`expect`).
+//! Control and waited bulk transfers are waited for by the request that
+//! issued them, so no other wait reads their events, save a
 //! late one for a transfer given up, which no waiter asks for and which,
 //! kept, would answer the TRB written at its address one lap later. The
 //! list was eight events kept whatever they named, the oldest given up
@@ -29,6 +30,7 @@
 //! taken, before anything is armed, and nothing kept is ever given up.
 use super::issued_transfer::IssuedTransfer;
 use super::state::EventRing;
+use crate::constants::{CC_RING_OVERRUN, CC_RING_UNDERRUN};
 use crate::trb::Trb;
 
 /// The completion codes of a TRB the endpoint was on when Stop Endpoint
@@ -47,9 +49,13 @@ pub struct Armed {
 
 impl EventRing {
     /// Keep `event` for the poll of the armed TRB it completes; any other,
-    /// and a Stopped event, is nobody's and is dropped.
+    /// a Stopped event, and an isoch ring that ran dry or overfilled, which
+    /// names no TD, is nobody's and is dropped.
     pub fn park(&mut self, event: Trb) {
-        if (CC_STOPPED..=CC_STOPPED_SHORT_PACKET).contains(&event.completion_code()) {
+        let cc = event.completion_code();
+        if (CC_STOPPED..=CC_STOPPED_SHORT_PACKET).contains(&cc)
+            || matches!(cc, CC_RING_UNDERRUN | CC_RING_OVERRUN)
+        {
             return;
         }
         let mine = |a: &&mut Armed| a.event.is_none() && a.issued.completed_by(&event);

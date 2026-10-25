@@ -19,5 +19,5 @@
 //! client; nothing else routes by op.
 
 pub(in super::super) const OP_HEALTHCHECK: u16 = 1;
-pub(in super::super) const OP_POLL_EVENTS: u16 = 2;
+// 2 was poll_events: keys reach input_router as InputEvents.
 pub(in super::super) const OP_GET_STATE: u16 = 3;

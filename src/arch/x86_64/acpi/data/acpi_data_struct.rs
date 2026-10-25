@@ -48,6 +48,9 @@ pub struct AcpiData {
     /// SLP_TYPa/SLP_TYPb for S5, read from the `\_S5` package in the DSDT or
     /// an SSDT at init. None when no constant `\_S5` package exists.
     pub s5: Option<SleepPackage>,
+    /// The same pair as the ACPI capsule's interpreter evaluated it; soft-off
+    /// takes it only when `s5` is None (`broker::acpi::s5_choice`).
+    pub s5_interp: Option<SleepPackage>,
     /// Power devices the namespace declares (battery, AC, lid, EC, button).
     pub power_devices: PowerDevices,
     pub pm_profile: PmProfile,

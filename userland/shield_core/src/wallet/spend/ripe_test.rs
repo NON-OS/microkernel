@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::arithmetic_side_effects)]
-
 //! A note waits for 20 more leaves and six hours of blocks, and both must hold.
 
 use super::ripe::{ripe, WAIT_BLOCKS, WAIT_LEAVES};

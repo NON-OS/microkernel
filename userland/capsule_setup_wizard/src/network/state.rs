@@ -1,6 +1,6 @@
 //! What the network step holds between keys.
 
-use nonos_wifi_client::{wipe, Driver, DriverStage, SavedError, ScanNetwork, PASS_MAX};
+use nonos_wifi_client::{wipe, Driver, DriverStage, Dropped, SavedError, ScanNetwork, PASS_MAX};
 
 /// The most scanned networks listed under "No network".
 pub const NETS_MAX: usize = 6;
@@ -30,6 +30,8 @@ pub struct NetState {
     pub remember: bool,
     /// Why remembering cannot be turned on, when it was tried and cannot.
     pub cannot_keep: Option<SavedError>,
+    /// The saved network remembering this one dropped, for review to name.
+    pub dropped: Option<Dropped>,
     /// When the list was last refreshed, in milliseconds since boot.
     pub polled_ms: i64,
 }
@@ -52,6 +54,7 @@ impl NetState {
             result: None,
             remember: false,
             cannot_keep: None,
+            dropped: None,
             polled_ms: 0,
         }
     }

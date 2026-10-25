@@ -30,11 +30,11 @@ pub const IC_INTR_MST_ON_HOLD: u32 = 1 << 13;
 pub const ABRT_NOACK_MASK: u32 = 0x1F;
 pub const ABRT_GCALL_NOACK: u32 = 1 << 5;
 pub const ABRT_LOST: u32 = 1 << 12;
-// IC_COMP_TYPE of every DesignWare I2C core ("DW" 0x0140), as Linux
-// i2c_dw_check_component_type requires it.
+// IC_COMP_TYPE of every DesignWare I2C core ("DW" 0x0140; Synopsys
+// DesignWare DW_apb_i2c databook, as recalled, unverified).
 pub const IC_COMP_TYPE_VALUE: u32 = 0x4457_0140;
-// IC_SDA_HOLD bits 23:16 hold SDA after SCL falls while receiving; Linux sets
-// one cycle when firmware leaves it zero.
+// IC_SDA_HOLD bits 23:16 hold SDA after SCL falls while receiving (DW_apb_i2c
+// databook, as recalled, unverified); one cycle is set where firmware left 0.
 pub const IC_SDA_HOLD_RX_SHIFT: u32 = 16;
 pub const IC_CLR_TX_ABRT: u64 = 0x54;
 // IC_COMP_PARAM_1 carries each FIFO's depth minus one in an eight-bit field.
@@ -48,7 +48,7 @@ pub const IC_CON_SLAVE_DISABLE: u32 = 1 << 6;
 // Time bounds, in milliseconds of uptime, not in loop iterations: an MMIO
 // read costs a few microseconds on QEMU and a few hundred nanoseconds on an
 // LPSS function, so an iteration count that is ample on one is short on the
-// other. Linux allows the disable 100 retries of 25 to 250 us.
+// other. The disable gets 25 ms, about what 100 polls 250 us apart allow.
 pub const ENABLE_TIMEOUT_MS: u64 = 25;
 pub const IDLE_TIMEOUT_MS: u64 = 50;
 // A transfer gets a base plus a per-byte allowance at the slowest bus speed

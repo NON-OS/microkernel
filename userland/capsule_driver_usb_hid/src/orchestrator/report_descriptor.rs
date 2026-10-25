@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! An interface's report descriptor (HID 1.11, 7.1.1: GET_DESCRIPTOR of
-//! type Report to the interface), read whole in one control transfer and
-//! walked into the layout of the reports this driver reads.
+//! type Report to the interface), read whole in one control transfer.
 
-use crate::descriptors::report::{parse, Layout};
 use crate::descriptors::HidBinding;
 use crate::protocol::REPORT_DESCRIPTOR_MAX;
 use crate::xhci::{control_transfer, Setup};
@@ -28,22 +26,23 @@ const GET_DESCRIPTOR: u8 = 0x06;
 const RT_INTERFACE_IN: u8 = 0x81;
 const DT_REPORT: u16 = 0x22;
 
-/// None when the interface gives no descriptor length, the read fails or
-/// comes back short, or the walk refuses what came back. A descriptor longer
-/// than one read is refused, not walked cut: a cut that falls between two
-/// collections parses, and the reports of every collection past it would go
-/// unread, or babble when longer than the layout says.
-pub fn read_layout(xhci_port: u32, slot: u8, binding: HidBinding) -> Option<Layout> {
+/// The descriptor's length in `buf`; None when the interface gives no
+/// descriptor length, or the read fails or comes back short. A descriptor
+/// longer than one read is refused, not walked cut: a cut that falls
+/// between two collections parses, and the reports of every collection past
+/// it would go unread, or babble when longer than the layout says.
+pub fn read_report(
+    xhci_port: u32,
+    slot: u8,
+    binding: HidBinding,
+    buf: &mut [u8; REPORT_DESCRIPTOR_MAX],
+) -> Option<usize> {
     let len = binding.report_len;
     if len == 0 || usize::from(len) > REPORT_DESCRIPTOR_MAX {
         return None;
     }
-    let mut buf = [0u8; REPORT_DESCRIPTOR_MAX];
     let iface = u16::from(binding.interface_number);
     let setup = Setup::new(RT_INTERFACE_IN, GET_DESCRIPTOR, DT_REPORT << 8, iface, len);
-    let n = control_transfer(xhci_port, slot, setup, &mut buf).ok()?;
-    if n != usize::from(len) {
-        return None;
-    }
-    parse(buf.get(..n)?).ok()
+    let n = control_transfer(xhci_port, slot, setup, buf).ok()?;
+    (n == usize::from(len)).then_some(n)
 }

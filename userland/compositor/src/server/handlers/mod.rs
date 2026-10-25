@@ -14,21 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod accessibility;
+pub mod accessibility_get;
+pub mod attach_argb;
+pub mod brightness_get;
+pub mod brightness_step;
 pub mod cursor_update;
 pub mod damage_commit;
+pub mod display_hint;
 pub mod display_info;
+pub mod driver_call;
 pub mod focus_set;
 pub mod health;
+pub mod indicator;
+pub mod input_sources;
 pub mod input_subscribe;
+pub mod lid;
+pub mod night_light;
+pub mod output_arrangement;
+pub mod output_layout;
+pub mod output_notice;
+pub mod output_scale;
 pub mod scene_remove;
+pub mod scene_remove_band;
 pub mod scene_submit;
-
-pub(super) fn u32_at(buf: &[u8], off: usize) -> Option<u32> {
-    let bytes = buf.get(off..off + 4)?;
-    Some(u32::from_le_bytes(bytes.try_into().ok()?))
-}
-
-pub(super) fn u64_at(buf: &[u8], off: usize) -> Option<u64> {
-    let bytes = buf.get(off..off + 8)?;
-    Some(u64::from_le_bytes(bytes.try_into().ok()?))
-}
+pub mod screenshot;
+pub mod set_vcp;
+pub mod shell_only;

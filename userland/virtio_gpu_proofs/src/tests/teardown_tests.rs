@@ -25,17 +25,16 @@ use std::sync::Arc;
 use nonos_libc::{on_release, releases};
 use nonos_virtio::common::DEVICE_STATUS;
 
-use super::driver::driver;
-use super::harness::harness;
+use super::gpu::rig::rig;
 
 #[test]
 fn quiesce_resets_the_device_before_it_is_given_back() {
-    let (d, _region, regs) = driver(harness(), None);
-    regs.present8(DEVICE_STATUS, 0x0F);
-    let (window, at_release) = (Arc::clone(&regs), Rc::new(Cell::new(None)));
-    let seen = Rc::clone(&at_release);
+    let r = rig();
+    r.regs.present8(DEVICE_STATUS, 0x0F);
+    let (window, at_release) = (Arc::clone(&r.regs), Rc::new(Cell::new(None)));
+    let (seen, before) = (Rc::clone(&at_release), releases());
     on_release(move || seen.set(Some(window.wrote8(DEVICE_STATUS))));
-    assert!(d.quiesce(), "the reset read back zero");
-    assert_eq!(releases(), 1, "given back once");
+    assert!(r.d.quiesce(), "the reset read back zero");
+    assert_eq!(releases() - before, 1, "given back once");
     assert_eq!(at_release.get(), Some(0), "the device was live when it was given back");
 }

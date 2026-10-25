@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting one stopped unit in service with the kernel's device table, in
-//! the order of Linux amd/init.c, early_enable_iommu: device table, command
-//! buffer, event log, then IOMMU_EN, then every cache flushed.
+//! Putting one stopped unit in service with the kernel's device table:
+//! device table, command buffer, event log, then IOMMU_EN, then every cache
+//! flushed. Every base is written while the unit is stopped, as 48882's
+//! register descriptions require, so it never walks a half-set table.
 
 use super::control::{idle, CMD_BUF_EN, CONTROL, EVENT_LOG_EN, IOMMU_EN};
 use super::error::AmdViError;
@@ -25,6 +26,10 @@ use super::log_ring::attach_log;
 use super::mmio::Unit;
 use super::regs;
 use super::ring::attach_ring;
+
+/// Control.Coherent, bit 10: device table fetches snoop the CPU's caches
+///.
+const COHERENT: u64 = 1 << 10;
 
 /// Exclusion Base: a range firmware may have set that every device reaches
 /// untranslated. Cleared, so the kernel's tables are the whole story.
@@ -38,7 +43,7 @@ pub(super) unsafe fn enable_unit(index: usize, unit: &Unit, table: u64) -> Resul
     // Fail closed: never bring a unit up over a table that would let a device
     // write untranslated memory.
     super::devtab::deny_stray_writers(table)?;
-    let idle = idle(control);
+    let idle = idle(control) | COHERENT;
     // SAFETY: eK@nonos.systems - the unit is stopped before any base moves,
     // the pages it is pointed at are the kernel's for good, and the device
     // table denies every device not enumerated.

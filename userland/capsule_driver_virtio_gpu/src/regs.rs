@@ -35,13 +35,21 @@ pub struct Regs {
 }
 
 impl Regs {
-    /// Tell the device queue `queue` has a command.
+    /// Tell the device queue `queue` has a command, once every store to the
+    /// queue's memory is ordered before the doorbell as the device sees it.
     pub fn notify(self, queue: u16) {
+        nonos_libc::dma_wmb();
         self.notify.w16(self.doorbell, queue);
     }
 
     /// One field of struct virtio_gpu_config.
     pub fn config_r32(self, offset: usize) -> u32 {
         self.device.r32(offset)
+    }
+
+    /// Write one field of struct virtio_gpu_config: the events-clear word,
+    /// after the display event was read (`display::events`).
+    pub fn config_w32(self, offset: usize, value: u32) {
+        self.device.w32(offset, value);
     }
 }
