@@ -30,6 +30,11 @@ pub struct Gateway {
     /// supplied and registration is skipped: there would be nothing to
     /// authenticate against.
     pub identity: [u8; 32],
-    /// Derived by the handshake; zero until it completes.
-    pub shared_key: [u8; 32],
+}
+
+impl Gateway {
+    /// The connection this record names, which the shared key belongs to.
+    pub fn link(&self) -> super::key_slot::Link {
+        super::key_slot::Link { ip: self.ip, port: self.port, stream: self.stream }
+    }
 }

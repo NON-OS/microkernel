@@ -17,6 +17,7 @@
 mod capacity;
 mod flush;
 mod healthcheck;
+mod leave;
 mod read_blocks;
 mod seq;
 mod status_map;
@@ -28,5 +29,6 @@ pub(super) use transport::REPLY_INBOX;
 pub use capacity::capacity;
 pub use flush::flush;
 pub use healthcheck::healthcheck;
+pub(crate) use leave::leave_leg;
 pub use read_blocks::read_blocks;
 pub use write_blocks::write_blocks;
