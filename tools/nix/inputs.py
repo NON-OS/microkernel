@@ -393,9 +393,10 @@ def roots():
                 and f"{d}/Cargo.lock" in FILES:
             found.add(d)
     found.update(r for r in EXTRA_ROOTS if r == "." or r in CRATES)
-    # A crate that asks for a test lane (scripts/check_test_lanes.py).
+    # A crate that asks for a test lane (scripts/check_test_lanes.py); a
+    # feature lane, <dir>+<feature>, reads what its crate's lane reads.
     with open(os.path.join(HERE, "test-lanes.json")) as f:
-        found.update(json.load(f))
+        found.update(k.partition("+")[0] for k in json.load(f))
     return sorted(found)
 
 

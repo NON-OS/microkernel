@@ -18,9 +18,11 @@ mod chunk0;
 mod chunk1;
 mod chunk2;
 mod chunk3;
+#[cfg(feature = "devnet")]
+pub(crate) mod dev;
 mod extra;
 mod lookup;
 mod store;
 
 pub use lookup::is_trusted_spki_hash;
-pub use store::find_spki_by_subject;
+pub use lookup::find_spki_by_subject;

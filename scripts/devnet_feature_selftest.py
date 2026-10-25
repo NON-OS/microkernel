@@ -17,6 +17,7 @@ import json
 
 import devnet_feature_scan as scan
 import devnet_feature_tree as tree
+from devnet_feature_lanecases import lane_cases
 
 TOML = ('[package]\nname = "c"\n\n[features]\n# turns devnet on for capsules-dev\n'
         'devnet = [\n  "nonos_nox_config/devnet",\n  "nonos_route_link/devnet",\n]\nwide = ["x"]\n\n'
@@ -25,8 +26,13 @@ MK = "# the dev set knows the local chain\nCAPSULE_DEV_CARGO_FEATURES := devnet\
 ENTRY = {"slug": "nox-settle", "cargo_features": "", "dev_only": False}
 DEV = {"slug": "nox-settle", "dev_cargo_features": "devnet"}  # its capsules-dev.json row
 CAT, DEVCAT = "tools/nix/capsules.json", "tools/nix/capsules-dev.json"
-NAMES = '{ }:\nlet\n  names = [\n    "rpc.devnet.nonos.test"\n    "10.0.2.2"\n  ];\nin names\n'
+NAMES = '{ }:\nlet\n  names = [\n    "rpc.devnet.nonos.test"\n    "NONOS-devnet-throwaway-root"\n  ];\nin names\n'
 PROFILE = 'standard = { kernel = [ "microkernel-full-gui" ]; loader = "standard"; };'
+PINS = dict(tree.PINS)
+
+
+def bad_pins(path, old, new):
+    return tree.pinned(dict(PINS, **{path: PINS[path].replace(old, new)}))
 
 
 def cat(path, row, **kw):
@@ -38,6 +44,7 @@ def self_test():
         (scan.cargo("c/Cargo.toml", TOML), True),
         (scan.cargo("c/Cargo.toml", TOML.replace('"../nonos_nox_config" }', '"../n", features = ["devnet"] }')), False),
         (scan.cargo("c/Cargo.toml", TOML + '\n[dependencies.nonos_route_link]\nfeatures = ["devnet"]\n'), False),
+        (scan.cargo("c/Cargo.toml", TOML + 'nonos_tls = { path = "../nonos_tls", features = ["devnet"] }\n'), False),
         (scan.cargo("c/Cargo.toml", TOML.replace('wide = ["x"]', 'wide = ["x", "devnet"]')), False),
         (scan.cargo("c/Cargo.toml", TOML.replace('wide = ["x"]', 'default = ["nonos_nox_config/devnet"]')), False),
         (scan.capsule_mk("u/Capsule.mk", MK), True),
@@ -56,7 +63,9 @@ def self_test():
         (scan.anywhere("tools/nix/config.nix", PROFILE.replace('gui" ]', 'gui" "devnet" ]')), False),
         (scan.anywhere("nonos.toml", 'profile = "standard"\nfeatures = ["devnet"]\n'), False),
         (scan.anywhere(".github/workflows/r.yml", "run: cargo build --release --features devnet\n"), False),
-    ]
+        (tree.pinned(PINS), True),
+        (bad_pins(scan.NAMES, '"NONOS-devnet-throwaway-root"', '"NONOS-devnet-root"'), False),
+    ] + lane_cases()
     wrong = [i for i, (failed, ok) in enumerate(cases) if (not failed) != ok]
     if wrong:
         print(f"devnet-feature: self-test failed on cases {wrong}")

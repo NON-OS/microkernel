@@ -21,9 +21,10 @@ name = "nox_settle"
 path = "src/main.rs"
 
 [features]
-# The local test chain (P5): its id, and its RPC dialled directly. Only the
-# development capsule set turns it on (CAPSULE_DEV_CARGO_FEATURES).
-devnet = ["nonos_nox_config/devnet", "nonos_route_link/devnet"]
+# The local test chain (P5): its id, its RPC dialled directly, and the
+# throwaway root its TLS proxy's certificate chains to. Only the development
+# capsule set turns it on (CAPSULE_DEV_CARGO_FEATURES).
+devnet = ["nonos_nox_config/devnet", "nonos_route_link/devnet", "nonos_tls/devnet"]
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
