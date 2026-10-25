@@ -16,7 +16,7 @@
 pub mod context;
 mod dispatch;
 mod error;
-mod handlers;
+pub(crate) mod handlers;
 pub mod mux;
 mod mux_address;
 mod mux_admit;
