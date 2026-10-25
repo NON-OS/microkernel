@@ -17,5 +17,6 @@ check-dark-features:
 	$(DARK_CHECK) --features nonos-smp,nonos-shootdown-trace
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-park-proof
 	$(DARK_CHECK) --features nonos-smp,nonos-smp-stuck-proof
+	$(DARK_CHECK) --features nonos-smp,nonos-smp-pge-proof
 	$(DARK_CHECK) --features pqc-unvetted
 endif
