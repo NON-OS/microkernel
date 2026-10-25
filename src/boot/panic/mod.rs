@@ -19,7 +19,7 @@ mod handler;
 mod interrupts;
 mod stage;
 
-pub(crate) use end::fatal;
+pub(crate) use end::{fatal, panic_stage_taken};
 
 pub use interrupts::{
     disable_interrupts, enable_interrupts, halt, halt_loop, interrupts_enabled, without_interrupts,
