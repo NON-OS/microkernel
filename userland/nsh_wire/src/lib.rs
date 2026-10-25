@@ -53,7 +53,7 @@ mod writer_fields;
 
 pub use auth_ok::{AuthOk, MAX_IDLE_S, SESSION_ID_LEN};
 pub use cap_names::{CapNames, MAX_CAPS, MAX_CAP_NAME};
-pub use enrol::{Enrol, AK_PUBLIC_LEN, FIRMWARE_PCRS, FLEET_ID_LEN, PCR_LEN};
+pub use enrol::{boot::*, Enrol, AK_PUBLIC_LEN, FIRMWARE_PCRS, FLEET_ID_LEN, PCR_LEN};
 pub use error::WireError;
 pub use escalate::escalate;
 pub use escalate_result::EscalateResult;
