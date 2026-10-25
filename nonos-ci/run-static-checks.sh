@@ -5147,6 +5147,18 @@ else
     fail_with "check_proof_features: a profile, image or lane enables an SMP boot proof"
 fi
 unset proofs_out
+# The power button is armed only once device interrupt routing is up: armed
+# at the broker's seeding the SCI's mask is refused and the button stays dead
+# (P-05). The order in the source, and the line a q35 boot cell must carry.
+if pbo_out="$(python3 scripts/check_power_button_order.py --self-test 2>&1 \
+    && python3 scripts/check_power_button_order.py 2>&1 \
+    && (cd scripts && python3 -m unittest -q bootmatrix.test_power 2>&1))"; then
+    note ok "the power button is armed after routing, and q35 cells must see it armed"
+else
+    tail -n 5 <<< "${pbo_out}" >&2
+    fail_with "power button: armed before device interrupt routing, or the q35 verdict does not hold it"
+fi
+unset pbo_out
 # A kernel feature that gates code and that no lane turns on is dark; the dark
 # set may only shrink (scripts/baselines/dark-features.txt). The SMP boot
 # proofs and pqc-unvetted are lit by the compile-only check-dark-features.

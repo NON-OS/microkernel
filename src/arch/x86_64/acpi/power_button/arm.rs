@@ -47,6 +47,10 @@ pub fn arm(sci_irq: u8, held: bool) {
     for step in steps {
         match step {
             ArmStep::MaskSci => {
+                if !ioapic::is_initialized() {
+                    say(b"[ACPI] power button: device interrupt routing is not up, so PWRBTN_EN stays clear");
+                    return;
+                }
                 if ioapic::mask(ioapic::gsi_for_irq(u32::from(sci_irq)), true).is_err() {
                     say(b"[ACPI] power button: the SCI line could not be masked, so PWRBTN_EN stays clear");
                     return;
