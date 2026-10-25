@@ -31,5 +31,5 @@ pub(crate) use clear_pid::clear_pid;
 pub(super) use pop::pop;
 pub(super) use push::{push, Refused};
 pub(super) use remove::remove_latest;
-pub(super) use take_reply::take_for_reply;
 pub(in crate::syscall::microkernel::ipc) use state::record_served;
+pub(super) use take_reply::take_for_reply;
