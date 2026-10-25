@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::History;
-use crate::term::dimensions::{LINE_MAX, HISTORY_DEPTH};
+use crate::term::dimensions::{HISTORY_DEPTH, LINE_MAX};
 
 impl History {
     pub fn push(&mut self, line: &[u8]) {

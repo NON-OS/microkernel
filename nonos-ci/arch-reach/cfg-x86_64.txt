@@ -1,0 +1,290 @@
+# Every kernel file outside src/arch that gates code on target_arch = "x86_64",
+# with the number of lines that name it and why. arch_reach_proofs holds the
+# tree to this file: a file missing here, or naming x86_64 more or fewer times
+# than its row says, fails. A row starting "GAP:" is a feature aarch64 and
+# riscv64 do not have yet; any other row is a different backend or a fallback.
+
+src/boot/main/mod.rs 4
+    core init + memory encryption boot steps. Elsewhere: nothing: aarch64/riscv64 boot in
+    arch/*/boot
+
+src/boot/mod.rs 1
+    UEFI-handoff boot::main module. Elsewhere: nothing: aarch64/riscv64 boot in arch/*/boot
+
+src/bus/pci/mod.rs 2
+    GAP: PCIe AER error report at boot. Elsewhere: no AER report; reads use x86 MCFG, could use
+    generic ECAM
+
+src/context/current.rs 2
+    CPU index read from GS per-CPU block. Elsewhere: fallback uses arch::cpu::dense_cpu_index()
+
+src/crypto/core/api/random/platform_clock.rs 4
+    GAP: RSP read + 8254 PIT latch for entropy. Elsewhere: both read 0;
+    arch::stack_pointer/time_counter could feed it
+
+src/crypto/hardware_accel.rs 1
+    AES-NI/SHA-NI CPUID detection. Elsewhere: nothing: flags stay false; nothing reads them yet
+
+src/crypto/pqc/ml_dsa_65/verify_stack.rs 2
+    GAP: ML-DSA verify on 256K static stack (rsp swap). Elsewhere: verify runs on caller's kernel
+    stack; needs a stack-switch shim
+
+src/crypto/random_api/platform.rs 2
+    8254 PIT counter low bits. Elsewhere: fallback uses low 16 bits of arch::read_time_counter()
+
+src/crypto/util/constant_time/barriers.rs 1
+    GAP: LFENCE serialize barrier. Elsewhere: riscv64 emits no barrier; aarch64 has own branch (ISB)
+
+src/drivers/pci/config/mod.rs 4
+    extended config via ACPI MCFG (extended*.rs). Elsewhere: nothing: absent; callers (AER, ACS)
+    also x86-gated
+
+src/drivers/pci/config/transport/access.rs 1
+    CF8/CFC port config route. Elsewhere: ECAM-only routing; no window means unreachable
+
+src/drivers/pci/mod.rs 1
+    GAP: PCI MSI/MSI-X helper API (APIC-format). Elsewhere: riscv64 has no MSI; aarch64 broker
+    programs MSI itself
+
+src/drivers/pci/types/device_msi.rs 1
+    per-device MSI/MSI-X config with APIC dest. Elsewhere: nothing: methods absent; aarch64 broker
+    has own MSI path
+
+src/elf/loader/core/relocate.rs 1
+    R_X86_64_RELATIVE reloc number. Elsewhere: aarch64 and riscv64 each have their own constant
+
+src/elf/types/constants/machine.rs 1
+    EM_X86_64 as native ELF machine. Elsewhere: aarch64 and riscv64 each have their own constant
+
+src/entry/fallback.rs 1
+    VGA text "no framebuffer" message. Elsewhere: nothing: just halts (no text-mode screen)
+
+src/fs/procfs/cpuinfo/mod.rs 3
+    GAP: /proc/cpuinfo from CPUID. Elsewhere: riscv64 gets empty string; aarch64 has own branch
+
+src/hardware/broker/api.rs 3
+    GAP: ACPI GPIO/I2C register, port-I/O grants. Elsewhere: no GPIO broker; I2C via fdt_i2c, PIO
+    stubs in pio_absent.rs
+
+src/hardware/broker/confine/gates.rs 2
+    GAP: ACS isolation group + DMA aliases. Elsewhere: empty group, no aliases; needs ACS walk over
+    ECAM
+
+src/hardware/broker/confine/interrupts.rs 1
+    refuse device lacking interrupt remap. Elsewhere: check skipped: x86 remap hole only; others
+    pass
+
+src/hardware/broker/confine/mod.rs 1
+    GAP: ACS walk modules (acs_*). Elsewhere: absent; see gates.rs (no isolation-group check)
+
+src/hardware/broker/irq/bind/mod.rs 1
+    IO-APIC INTx + MSI/MSI-X bind. Elsewhere: aarch64/riscv64 have own irq/<arch> bind
+
+src/hardware/broker/irq/mod.rs 14
+    GAP: x86 IRQ broker (IO-APIC, MSI-X). Elsewhere: riscv64 PLIC wired lines only, no MSI; aarch64
+    own branch
+
+src/hardware/broker/irq/msix_ops/mmio_zero.rs 1
+    MSI-X table entry zeroing. Elsewhere: nothing: module x86-only; aarch64 has message/ files
+
+src/hardware/broker/irq/msix_ops/program.rs 1
+    MSI-X table programming. Elsewhere: nothing: module x86-only; aarch64 has message/program.rs
+
+src/hardware/broker/irq/msix_ops/real.rs 1
+    MSI-X ops (mask, teardown). Elsewhere: nothing: module x86-only; aarch64 has message/ files
+
+src/hardware/broker/irq/wait.rs 1
+    IRQ wait syscall half + IOMMU fault block. Elsewhere: aarch64/riscv64 have own wait.rs
+
+src/hardware/broker/mmio/forbidden_iommu.rs 2
+    GAP: VT-d/AMD-Vi register windows forbidden. Elsewhere: pushes nothing; SMMU window not
+    forbidden (none found)
+
+src/hardware/broker/mmio/mod.rs 1
+    boot RAM ranges handed to the x86 ACPI parser that checks IOMMU unit bases. Elsewhere: nothing:
+    its one caller is under src/arch/x86_64
+
+src/hardware/broker/mod.rs 6
+    GAP: ACPI, ACPI GPIO/I2C, port-I/O broker. Elsewhere: no GPIO broker off ACPI; I2C via fdt_i2c,
+    PIO via pio_absent.rs
+
+src/interrupts/mod.rs 11
+    IDT, APIC, PIC, ISRs, timer exports. Elsewhere: aarch64/riscv64 interrupt code lives in arch
+    (GIC/PLIC)
+
+src/interrupts/safety/context.rs 2
+    CPU index read from GS. Elsewhere: fallback uses arch::cpu::dense_cpu_index()
+
+src/interrupts/timer/clock.rs 2
+    GAP: ACPI power button poll, VT-d fault poll. Elsewhere: no power-button poll; SMMU faults via
+    its event queue
+
+src/kernel_core/init/entry/init_dma_protection.rs 1
+    GAP: VT-d / AMD-Vi bring-up. Elsewhere: riscv64 no IOMMU; aarch64 SMMUv3 via
+    arch::report_dma_posture
+
+src/kernel_core/init/entry/init_extended_state.rs 2
+    SSE/AVX/XSAVE enable. Elsewhere: fallback empty; aarch64/riscv64 enable FP in arch fpu code
+
+src/kernel_core/init/entry/init_vm_and_protection.rs 5
+    GAP: NX/SMEP/SMAP init, stack guard pages. Elsewhere: no fault-stack guard pages; aarch64 has
+    own protection report
+
+src/kernel_core/init/framebuffer/init.rs 2
+    GAP: PAT write-combining for framebuffer. Elsewhere: no write-combining (uncached); needs
+    Normal-NC attr
+
+src/kernel_core/init/mod.rs 1
+    memory init from UEFI handoff. Elsewhere: nothing: aarch64/riscv64 init memory in arch boot
+
+src/kernel_core/init/platform/hardware_broker.rs 2
+    GAP: AER report, ACPI I2C/GPIO/SCI/NUMA. Elsewhere: no AER, GPIO, SCI or NUMA refresh; DT
+    devices walked by arch
+
+src/lib.rs 1
+    build guard: non-x86 needs preview feature. Elsewhere: compile_error unless nonos-arch-preview
+
+src/log/backend/mod.rs 2
+    VGA text log backend. Elsewhere: nothing: absent; RAM buffer + serial only
+
+src/log/compat.rs 1
+    VgaBackend re-export. Elsewhere: nothing: absent
+
+src/log/manager/lifecycle.rs 1
+    adds VGA backend to logger. Elsewhere: nothing: logger has no VGA backend
+
+src/log/mod.rs 1
+    VgaBackend re-export. Elsewhere: nothing: absent
+
+src/log/types/severity.rs 2
+    VGA colour per severity. Elsewhere: nothing: method absent, callers also x86-gated
+
+src/memory/addr/mod.rs 1
+    conversions to x86_64-crate address types. Elsewhere: nothing: not needed off x86
+
+src/memory/frame_alloc/types/mod.rs 1
+    x86_64-crate FrameAllocator shim. Elsewhere: nothing: not needed off x86
+
+src/memory/hardening/constants.rs 1
+    CR4 required-bits constant. Elsewhere: nothing: absent, callers also x86-gated
+
+src/memory/hardening/manager/verify/integrity.rs 1
+    CR4 SMEP/SMAP check. Elsewhere: skipped; page-table permission checks still run
+
+src/memory/hardening/manager/verify/protection.rs 3
+    re-run init_mmu (CR0/CR4/EFER). Elsewhere: fallback logs refusal; aarch64 PAN/PXN set in arch
+
+src/memory/iommu/backend.rs 5
+    GAP: VT-d/AMD-Vi backend + fault hooks. Elsewhere: riscv64 unsupported.rs refuses all; aarch64
+    uses SMMUv3
+
+src/memory/iommu/mod.rs 2
+    block_faulted/note_fault re-exports. Elsewhere: nothing: absent; callers also x86-gated
+
+src/memory/mmio/manager/core/map_page.rs 1
+    GAP: PAT WC for MMIO. Elsewhere: write-combine falls back to uncached
+
+src/memory/mmu/mmu/protect/apply.rs 2
+    NX/SMEP/SMAP/UMIP/WP enable. Elsewhere: fallback reports flags; dead code: mmu module x86-only
+
+src/memory/mmu/mmu/protect/mod.rs 4
+    CPUID/CR0/CR4/EFER helpers. Elsewhere: nothing: absent, callers also x86-gated
+
+src/memory/mod.rs 3
+    memory encryption, mmu, nonos_paging alias. Elsewhere: aarch64/riscv64 mmu in arch; no SME/TME
+    counterpart
+
+src/memory/paging/manager/api/mapping_in_asid.rs 2
+    IDT without_interrupts helper. Elsewhere: fallback uses arch::run_without_interrupts
+
+src/memory/unified/init/clear_low_half.rs 2
+    GAP: drop low identity map. Elsewhere: low identity map kept; kernel still runs from it
+
+src/memory/unified/init/run.rs 2
+    LAPIC MMIO remap to UC. Elsewhere: nothing: no LAPIC; GIC mapped in arch
+
+src/nonos_main.rs 8
+    UEFI kernel_entry with x86 handoff. Elsewhere: aarch64/riscv64 kernel_entry in arch/*/boot
+
+src/process/address_space/types.rs 2
+    CR3 read for kernel root. Elsewhere: fallback uses arch::paging::read_root()
+
+src/process/context/mod.rs 4
+    GAP: x86 saved Context + install. Elsewhere: riscv64 has no Context type; aarch64 has own
+
+src/process/core/entered.rs 1
+    an entry that loaded nothing marks its process ready again; x86_64's entry parks or retries
+    instead. Elsewhere: this is the path they take
+
+src/process/mod.rs 2
+    GAP: foreign (guest) hosting. Elsewhere: no guest hosting; foreign_absent.rs answers ENOSYS
+
+src/process/scheduler/preemption/syscall_rsp.rs 4
+    save user RSP from GS at switch. Elsewhere: no-op; user SP kept in arch trap frame
+
+src/process/signal/mod.rs 2
+    GAP: signal frame build + delivery. Elsewhere: no user signal handlers; default actions only
+
+src/process/userspace/mod.rs 5
+    iretq/sysret entry, FS/GS base. Elsewhere: aarch64/riscv64 user entry in arch context
+
+src/process/userspace/types.rs 4
+    XSAVE/FXSAVE FPU area. Elsewhere: no-op here; aarch64/riscv64 save FP in arch fpu
+
+src/security/hardening/memory_sanitization/erase.rs 2
+    asm scrub routine. Elsewhere: fallback volatile byte loop (slower)
+
+src/security/hardening/memory_sanitization/mod.rs 1
+    asm scrub module. Elsewhere: nothing: absent; erase.rs falls back
+
+src/security/hardening/memory_sanitization/primitives.rs 1
+    GAP: MFENCE after scrub. Elsewhere: compiler fence only; needs dmb/fence
+
+src/security/hardening/mod.rs 2
+    Spectre/MDS/IBRS mitigations. Elsewhere: aarch64 in arch security/spectre; riscv64 none
+
+src/security/hardening/speculation/boundary.rs 2
+    entry/exit mitigations (RSB, MDS). Elsewhere: no-op; aarch64 sets mitigations per CPU at boot
+
+src/security/hardening/speculation/init.rs 2
+    mitigation init. Elsewhere: aarch64 own (arch security); riscv64 Ok(()) with none
+
+src/security/mod.rs 2
+    mitigation re-exports. Elsewhere: nothing: absent, callers also x86-gated
+
+src/smp/init/bsp.rs 1
+    record boot TSC_ADJUST. Elsewhere: aarch64 registers IPI handlers; others skip
+
+src/smp/init/mod.rs 6
+    GAP: AP start via INIT/SIPI, AP stacks. Elsewhere: riscv64 starts no APs; aarch64 in arch boot
+
+src/smp/init/start.rs 2
+    GAP: start APs. Elsewhere: riscv64 returns Ok(0); aarch64 counts arch-started CPUs
+
+src/smp/ipi_dispatch/mod.rs 3
+    GAP: IPI IDT gates. Elsewhere: riscv64 no IPIs; aarch64 has own branch
+
+src/smp/mod.rs 4
+    GAP: AP bring-up, real-mode trampoline. Elsewhere: riscv64 none; aarch64 in arch boot
+
+src/smp/topology/detection/mod.rs 3
+    GAP: CPU topology from CPUID/ACPI. Elsewhere: riscv64 reports 1 CPU; aarch64 has own probe
+
+src/sys/mod.rs 8
+    APIC, GDT, IDT setup. Elsewhere: aarch64/riscv64 equivalents in arch
+
+src/sys/timer/tsc/init.rs 2
+    "TSC" log label. Elsewhere: different label (generic timer)
+
+src/syscall/microkernel/battery.rs 1
+    GAP: ACPI battery percent. Elsewhere: always ENOTSUP; needs DT/firmware battery source
+
+src/syscall/microkernel/mod.rs 2
+    GAP: ACPI capsule syscalls. Elsewhere: ~30 ACPI/NUMA/SMBIOS calls ENOSYS (acpi_absent.rs)
+
+src/syscall/microkernel/pio/mod.rs 12
+    port-I/O syscalls. Elsewhere: fallback refuses with ENOSYS (unsupported.rs)
+
+src/userspace/init/injected.rs 1
+    the nonos-fault-proof image's ud2 in the kernel, an x86 instruction. Elsewhere: the proof is
+    x86_64's; aarch64 has its own trap proofs (boot/trap_proof.rs)

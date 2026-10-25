@@ -13,9 +13,9 @@ and how it is checked in [Input: how it is checked](checks.md).
 | HID-over-I2C touchpad on an Intel LPSS or AMD I2C controller | `capsule_driver_i2c_hid` over `capsule_driver_i2c_pci` | `driver.i2c_hid0`, `driver.i2c_pci0` | [I2C-HID touchpads](i2c-hid.md) |
 | USB keyboard, mouse or tablet behind an xHCI controller | `capsule_driver_usb_hid` | `driver.usb_hid0` | [USB keyboards and mice](../usb/hid.md) |
 
-Each driver is its own [capsule](../../overview/glossary.md#capsule) in ring 3,
+Each driver is its own [capsule](../../overview/glossary-boot-root-record.md#capsule) in ring 3,
 and none of them decides which window gets the input. Only the PS/2 driver holds
-grants from the [hardware broker](../../overview/glossary.md#hardware-broker)
+grants from the [hardware broker](../../overview/glossary-hardware-broker.md#hardware-broker)
 itself. The USB HID driver holds IPC, Memory and InputSource alone and asks
 `driver.xhci0` for its transfers (`CAPSULE_REQUIRED_CAPS`,
 `userland/capsule_driver_usb_hid/Capsule.mk:15`); the touchpad driver does the
@@ -37,13 +37,13 @@ flowchart LR
 
 A driver decodes what its device sends and posts each key, motion, wheel or
 button event to the kernel input ring with `MkInputEventPost`
-(`src/syscall/contract/cap_table/mk.rs:190`). The kernel admits that call from a
-capsule holding the `InputSource`, `Irq` or `Admin`
-[capability](../../overview/glossary.md#capability) (`can_input_source`,
-`src/capabilities/token/types/authority_broker.rs:59-63`). Draining the ring, or
-sleeping until it has events, needs `InputSource` or `Admin`; `Irq` alone is not
-enough (`can_input_consumer`,
-`src/capabilities/token/types/authority_broker.rs:71-73`).
+(`src/syscall/contract/cap_table/mk_surface.rs:36`). The kernel admits that call
+only from a capsule holding the `InputSource`
+[capability](../../overview/glossary-boot-root-record.md#capability) (`can_input_source`,
+`src/capabilities/token/types/authority_broker.rs:59-62`). Draining the ring, or
+sleeping until it has events, needs `InputConsumer`, which only `input_router`
+holds; neither `Irq` nor `Admin` stands in for either (`can_input_consumer`,
+`src/capabilities/token/types/authority_broker.rs:63-66`).
 
 The ring holds 1024 events (`INPUT_RING_CAP`,
 `src/kernel_core/surface_registry/types.rs:18`). When it is full, `push` drops

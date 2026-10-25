@@ -15,14 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod alloc_route;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod program_amd;
+mod compat;
 mod free_vector;
 mod line_mode;
 mod mask;
+#[cfg(feature = "nonos-iommu-intremap")]
+mod program_remapped;
 mod program_route;
 mod program_route_external;
 mod retarget;
 
 pub use alloc_route::alloc_route;
+pub use compat::compat_allowed;
 pub use free_vector::free_vector;
 pub use mask::mask;
 pub use program_route::program_route;

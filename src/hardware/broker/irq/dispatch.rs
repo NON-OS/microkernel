@@ -22,7 +22,7 @@
 
 use core::sync::atomic::Ordering;
 
-use super::grant::NO_LINE;
+use super::bind::NO_LINE;
 use super::slots::SLOTS;
 use crate::arch::interrupt::broker::slot_of;
 

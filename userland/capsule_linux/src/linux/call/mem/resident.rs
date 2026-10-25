@@ -26,7 +26,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{page_up, Guest, MAX_SPAN, PAGE, USER_MAX};
 
 pub fn mincore(guest: &Guest, addr: u64, len: u64, vec: u64) -> u64 {
-    if addr % PAGE != 0 {
+    if !addr.is_multiple_of(PAGE) {
         return errno::fail(errno::EINVAL);
     }
     let Some(end) = addr.checked_add(len).filter(|e| *e <= USER_MAX) else {

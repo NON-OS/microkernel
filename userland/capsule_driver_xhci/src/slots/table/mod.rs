@@ -17,6 +17,7 @@ mod attach_addressed;
 mod below_root;
 mod count;
 mod held;
+mod hubs;
 mod is_addressed;
 mod is_allocated;
 mod mark_allocated;

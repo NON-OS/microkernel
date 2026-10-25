@@ -23,7 +23,19 @@
 //!
 //! `verification/lean/Nonos/ZeroState.lean` proves the property this shape
 //! buys, that no reachable state powers the machine off with memory unwiped.
+//!
+//! Its other half is `keep`: until the person chooses to keep things, the
+//! store write refuses every write, so a boot leaves nothing behind.
 
+mod keep;
+mod keep_rule;
+mod leave;
+mod once;
+mod panic_plan;
+mod panic_stack;
+mod panic_wipe;
 mod terminate;
 
-pub(crate) use terminate::terminate;
+pub(crate) use keep::{arm as arm_keep, keeping, store_write_allowed};
+pub(crate) use panic_wipe::panic_wipe_and_off;
+pub(crate) use terminate::{terminate, terminate_critical};

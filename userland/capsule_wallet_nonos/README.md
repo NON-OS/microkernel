@@ -16,8 +16,8 @@ and what 0.9.2 does flow by flow is in
   `reply:4735:endpoint.app.nonos_wallet.reply`. Two more windows can open on
   the instance endpoints `app.nonos_wallet.1` and `app.nonos_wallet.2`
   (ports 4854 to 4857).
-- `CAPSULE_REQUIRED_CAPS = 0x187d`: CoreExec, Network, IPC, Memory, Crypto,
-  FileSystem, GraphicsDisplayQuery and GraphicsSurfaceCreate. Network is what
+- `CAPSULE_REQUIRED_CAPS = 0x1000187d`: CoreExec, Network, IPC, Memory, Crypto,
+  FileSystem, GraphicsDisplayQuery, GraphicsSurfaceCreate and Keyring. Network is what
   the network services check; FileSystem is what vfs requires before it saves
   or reads the vault blob (`src/wallet/vault/vfs.rs`). It has no raw device
   authority.
@@ -54,19 +54,18 @@ and what 0.9.2 does flow by flow is in
   `src/wallet/screen/shield`. On mainnet the screens say the pool is not
   deployed there and offer Sepolia.
 - **Network route.** Every request opens a `Link` on
-  `nonos_route_link::Route::chosen`: under Direct, `net.dns` and a socket
-  through `net.sockets`; under Nym or Anyone, `net.socks5` or `net.anon` with
-  the host name unresolved. A chosen network that is not running refuses with
-  its reason, and nothing falls back. The TLS 1.3 client pins the Google Trust
+  `nonos_route_link::Route::for_wallet`, over Nym (`net.socks5`) or Anyone
+  (`net.anon`) with the host name unresolved, never Direct: a Direct choice
+  goes over Nym, else Anyone. When neither is up the wallet says it is waiting
+  for Nym or Anyone, and opens no socket of its own. The TLS 1.3 client pins the Google Trust
   Services R4 root and matches the host through `nonos_tls::cert_names_host`.
 
 ## Pool seam
 
-Swap quotes, association sets, simulation and NOX revenue sit behind traits
-in `src/wallet/pool/`, and `active.rs` returns `Stub` for each, which answers
-`NotWired`. Swap is therefore hidden from the home screen in 0.9.2
-(`SWAP_OFFERED` in `src/wallet/screen/home_actions.rs`); it returns once a
-pool is wired there.
+Swap quotes come through one trait, `QuoteProvider` in `src/wallet/pool/`,
+and `active.rs` returns `Unwired`, which answers None. Swap is therefore
+hidden from the home screen in 0.9.2 (`SWAP_OFFERED` in
+`src/wallet/screen/home_actions.rs`); it returns once a pool is wired there.
 
 ## Privacy and persistence
 
@@ -76,6 +75,41 @@ Shielded notes are the shield service's; the account view and the shield
 history live in capsule memory. Under Direct the RPC provider sees
 the machine's address and the accounts queried; under Nym or Anyone it sees
 the accounts.
+
+Secrets in memory are wiped through zeroize: a key or words typed, a key
+shown, the keyring's replies, and every string the screens draw from them.
+One thing is kept across a lock on purpose: the recovery words of a wallet
+just made, until the person confirms they wrote them down. They are the
+only copy, and the phrase cannot be shown again, so losing them would lose
+the wallet. While locked they stay in memory but are never drawn; unlocking
+returns straight to the backup screen. They are wiped on that confirmation,
+when a generate fails, and when the next generate writes over them.
+
+## The purchase consent and what it cannot stop
+
+A purchase the store names shows nothing until the market's four answers
+are in, are for the names asked and pass `read_named`
+(`src/wallet/order/terms`); an id the wallet hashes as all zeros, a hash
+the crypto service did not give, is refused before any compare. The consent
+then says, by the wallet's own name, whom it pays in full, and the wallet
+asks to raise and focus its window; a refusal is no failure and nothing is
+said of it. Buy is armed only once the consent is drawn and the window
+manager says the wallet holds focus (`OP_QUERY_FOCUS`), and only after a
+further second; the second starts again whenever focus is lost and won
+back, and focus lost over the consent sends the purchase back to reading
+its terms (`src/wallet/order/guard`). Every other press that moves value or
+signs is armed the same way (`src/wallet/arm`); off the purchase, focus lost
+disarms it until a fresh second has passed.
+
+These blunt focus stealing and a fake window drawn to look like the
+wallet. A click falling through an overlay that another capsule draws above
+the wallet is closed by the maintainers' unit T1b: the input router checks the
+compositor's layer under the pointer (`OP_LAYER_AT`) against the window
+manager's hit before it delivers the click. T1b also takes a client's own
+raise or focus only within a second of input the router gave it, so the
+wallet's own raise after the store's POST is refused (`E_PERM`) and the
+dock marks the wallet for attention: bringing the wallet forward is the
+person's act, and the second starts from that.
 
 ## Tests
 

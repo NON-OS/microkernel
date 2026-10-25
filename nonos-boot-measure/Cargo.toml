@@ -37,3 +37,6 @@ nox_verify = { version = "0.1", git = "https://github.com/NON-OS/STARKs.git", br
 # Tree, to enroll a real path in the dev-attest tests.
 nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }
 p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+
+[package.metadata.nonos]
+test-lane = true

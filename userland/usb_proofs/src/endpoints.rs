@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Bound endpoints as the driver makes them, each with the state of its own
-//! interface: a boot keyboard, a boot mouse, or QEMU's tablet read through
-//! its report descriptor; each asked every millisecond.
+//! interface: a boot keyboard, a boot mouse, QEMU's tablet read through
+//! its report descriptor, or a gamepad; each asked every millisecond.
 
+use crate::descriptors::pad_layout;
 use crate::descriptors::report::parse;
 use crate::descriptors::HidKind;
 use crate::enumerate::HidEndpoint;
-use crate::hid::{Device, Keyboard, Mouse, ReportDevice};
+use crate::hid::{Device, Keyboard, Mouse, Pad, ReportDevice};
+use crate::pad_layout_tests::PAD;
 use crate::poll::Pace;
 use crate::report::vectors::QEMU_TABLET;
 
@@ -33,6 +35,7 @@ pub fn ep(root_port: u8, slot: u8, dci: u8, kind: HidKind) -> HidEndpoint {
             let layout = parse(QEMU_TABLET).expect("QEMU's tablet");
             Device::Report(Box::new(ReportDevice::new(layout)))
         }
+        HidKind::Gamepad => Device::Pad(Box::new(Pad::new(pad_layout(&PAD).expect("a pad")))),
     };
     HidEndpoint { port: 7, root_port, slot, dci, kind, max_packet: 8, dev, pace: Pace::new(1) }
 }

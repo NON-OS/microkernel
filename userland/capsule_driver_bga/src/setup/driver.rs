@@ -14,24 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::surface::Surface;
-use crate::dispi::Span;
-use crate::handles::BrokerHandles;
-use crate::regs::Regs;
+use nonos_gfx_serve::{Platform, Server};
 
-/// The adapter, driven. Fields drop in order: the surface is unmapped, then
-/// the handles write the firmware's DISPI state back, give up both mappings
-/// and release the claim last.
-pub struct Driver {
-    pub surface: Surface,
-    pub _handles: BrokerHandles,
-    pub regs: Regs,
-    /// The mode's pixels in the framebuffer the adapter scans out.
-    pub fb: Span,
-    pub width: u16,
-    pub height: u16,
-    pub stride: u32,
-    /// The compositor the primary surface was last handed to; 0 until it
-    /// asks.
-    pub owner_pid: u32,
+use crate::display::Bga;
+use crate::handles::BrokerHandles;
+
+/// A driver that came up: its broker handles, read for the adapter's id (a
+/// DGON names it) and held so their drop writes the firmware's DISPI state
+/// back, gives up both mappings and releases the claim, only when the driver
+/// ends; and the wire server over the adapter, its primaries on `P` (the
+/// shipping driver's `nonos_gfx_pool::Pool`, which asks the kernel).
+pub struct Driver<P: Platform> {
+    pub handles: BrokerHandles,
+    pub server: Server<Bga, P>,
 }

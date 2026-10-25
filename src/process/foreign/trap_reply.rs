@@ -51,6 +51,7 @@ pub(super) fn answer_raw(pid: u32, answer: Answer) -> i64 {
         return ERRNO_NOENT;
     };
     entry.answer = Some(answer);
+    super::seal::answered(pid, entry.frame.nr, answer);
     /*
      * A handler answer spends the thread's stop mark as it is posted: a mark
      * set after this, while the thread has yet to take the answer, is for

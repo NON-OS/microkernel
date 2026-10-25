@@ -24,8 +24,8 @@ use crate::rings::event::EventRing;
 /// Consume what giving up the command at `issued` left on the event ring,
 /// matched by pointer and code: its Command Aborted, its own completion if
 /// it finished before the abort took, and, when `stopped`, the Command Ring
-/// Stopped that ends them (xHCI 1.2 section 4.6.1.2), waited for as Linux
-/// waits, at most `COMPLETION_TIMEOUT_MS`. A ring that was not running
+/// Stopped that ends them (xHCI 1.2 section 4.6.1.2), waited for at most
+/// `COMPLETION_TIMEOUT_MS`. A ring that was not running
 /// posts no Ring Stopped, so only what is already there is read. None of
 /// these is left to answer a later command or to block the ring's head.
 ///

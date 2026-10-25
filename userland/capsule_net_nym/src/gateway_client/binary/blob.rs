@@ -26,10 +26,10 @@ use alloc::vec::Vec;
 /// gateway reads them before deciding to decrypt. Nothing secret goes there,
 /// and a peer on the path can change them freely.
 pub fn make_encrypted_blob(kind: u8, plaintext: &[u8]) -> Result<Vec<u8>, CryptoError> {
-    let key = crate::state::gateway_shared_key().ok_or(CryptoError::Kdf)?;
     let mut nonce = [0u8; NONCE_BYTES];
     fill_random(&mut nonce)?;
-    let ciphertext = seal(&key, &nonce, &[], plaintext);
+    let ciphertext = crate::state::with_gateway_key(|key| seal(key, &nonce, &[], plaintext))
+        .ok_or(CryptoError::Kdf)?;
     let mut out = Vec::with_capacity(HEADER_BYTES + NONCE_BYTES + ciphertext.len());
     out.push(kind);
     out.push(1);

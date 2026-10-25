@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_sdhci
+# eK@nonos.systems
+#
+# SD Host Controller capsule. Serves the soldered eMMC behind an SDHCI host
+# as a disk on the block wire, through the Mk syscall ABI only: broker
+# device discovery and claim, MMIO map, PCI config bus mastering, DMA and
+# IPC replies.
+
+[package]
+name = "nonos_capsule_driver_sdhci"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland SD host controller (eMMC) driver capsule"
+
+[[bin]]
+name = "driver_sdhci"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_blk_wire = { path = "../nonos_blk_wire" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

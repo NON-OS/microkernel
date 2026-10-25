@@ -1,6 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! Host-runnable proofs for the xHCI driver's TRB layer.
-//!
 //! Every command and transfer the driver issues, and every event the
 //! controller returns, crosses the ring as a 16-byte TRB. The accessors that
 //! read device-written events (completion code, slot id, cycle, type) and
@@ -54,9 +53,25 @@ pub mod slots;
 #[cfg(test)]
 mod conformance;
 #[cfg(test)]
+mod control_out_tests;
+#[cfg(test)]
+mod control_short_tests;
+#[cfg(test)]
 mod event_ring;
 #[cfg(test)]
+mod hub;
+#[cfg(test)]
+mod isoch_context_tests;
+#[cfg(test)]
+mod isoch_in_tests;
+#[cfg(test)]
+mod isoch_tests;
+#[cfg(test)]
+mod op_number_tests;
+#[cfg(test)]
 mod server_tests;
+#[cfg(test)]
+mod sharing;
 #[cfg(test)]
 mod xhci_tests;
 

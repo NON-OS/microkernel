@@ -21,6 +21,7 @@
 //! and left unbound when that names nothing this driver reads.
 
 use super::vectors::GAMEPAD;
+use super::vectors_more::UPS;
 use crate::config_blob::keyboard;
 use crate::descriptors::{hid_bindings, HidBinding, HidKind};
 use crate::hid::Device;
@@ -58,7 +59,16 @@ fn a_keyboard_refusing_boot_protocol_is_read_by_its_report_descriptor() {
 
 #[test]
 fn a_keyboard_refusing_boot_protocol_with_no_layout_is_left_unbound() {
+    serve(UPS);
+    stall_boot_protocol();
+    assert!(device_for(7, 1, boot_keyboard(UPS.len())).is_none());
+}
+
+#[test]
+fn a_boot_interface_refusing_boot_protocol_that_lays_out_a_gamepad_is_a_pad() {
     serve(GAMEPAD);
     stall_boot_protocol();
-    assert!(device_for(7, 1, boot_keyboard(GAMEPAD.len())).is_none());
+    let (bound, dev) = device_for(7, 1, boot_keyboard(GAMEPAD.len())).expect("a pad");
+    assert_eq!(bound.kind, HidKind::Gamepad);
+    assert!(matches!(dev, Device::Pad(_)));
 }

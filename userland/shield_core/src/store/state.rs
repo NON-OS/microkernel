@@ -1,5 +1,8 @@
 //! What the rows fold up to, keyed by commitment. The balance comes only from notes held here.
 
+#[path = "state_reads.rs"]
+mod reads;
+
 use super::row::Row;
 use crate::notes::NoteRecord;
 use std::collections::BTreeMap;
@@ -53,25 +56,5 @@ impl StoreState {
                 }
             }
         }
-    }
-
-    /// What the wallet did with the pool, oldest first.
-    pub fn activity(&self) -> &[crate::store::activity::Activity] {
-        &self.activity
-    }
-
-    /// Deposits sent and not yet seen stored in the pool.
-    pub fn pending_deposits(&self) -> Vec<crate::notes::NotePlaintext> {
-        self.pending.values().cloned().collect()
-    }
-
-    /// Every note held, spent or not, for matching published nullifiers.
-    pub fn held(&self) -> Vec<&NoteRecord> {
-        self.notes.values().collect()
-    }
-
-    /// Where the next scan should start.
-    pub fn cursor(&self) -> u64 {
-        self.cursor
     }
 }

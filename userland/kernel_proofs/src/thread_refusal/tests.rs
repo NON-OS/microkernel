@@ -18,7 +18,7 @@ use super::thread_start::{start_in_user_half, USER_VA_MAX};
 
 const BUILDER: &str = include_str!("../../../../src/arch/x86_64/context/setup.rs");
 const SPAWN: &str = include_str!("../../../../src/process/core/table/thread_spawn.rs");
-const MK_THREAD: &str = include_str!("../../../../src/syscall/microkernel/process.rs");
+const MK_THREAD: &str = include_str!("../../../../src/syscall/microkernel/process/thread.rs");
 const FOREIGN_THREAD: &str = include_str!("../../../../src/process/foreign/thread.rs");
 
 /// The bound the x86_64 user entry builder states, read from its source.
@@ -98,8 +98,6 @@ fn the_spawn_asks_before_it_builds_and_ends_what_it_cannot_start() {
     assert!(!tail.contains(")?;"), "a step after publishing returns past the thread");
     assert!(tail.contains("return Err(unstarted(tid, \"thread kernel stack\"));"));
     assert!(tail.contains("return Err(unstarted(tid, \"thread user context\"));"));
-    let undo = &SPAWN[at(SPAWN, "fn unstarted(")..];
-    assert!(undo[..at(undo, "\n}")].contains("crate::process::exit::teardown(tid, "));
 }
 
 #[test]

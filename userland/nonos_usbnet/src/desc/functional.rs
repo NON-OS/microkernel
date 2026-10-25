@@ -23,13 +23,14 @@ use super::kinds::{CS_INTERFACE, INTERFACE};
 use super::walk::walk;
 
 /// The CS_INTERFACE descriptors after interface `number`, alternate 0,
-/// up to the next interface descriptor.
+/// up to the next interface descriptor. Only a whole one (9 bytes) opens
+/// the interface, as in `interfaces`; any other ends it.
 pub fn functional(raw: &[u8], number: u8) -> Vec<&[u8]> {
     let mut inside = false;
     let mut out = Vec::new();
     for d in walk(raw) {
-        if d[1] == INTERFACE && d.len() >= 4 {
-            inside = d[2] == number && d[3] == 0;
+        if d[1] == INTERFACE {
+            inside = d.len() >= 9 && d[2] == number && d[3] == 0;
         } else if inside && d[1] == CS_INTERFACE && d.len() >= 3 {
             out.push(d);
         }
@@ -37,13 +38,15 @@ pub fn functional(raw: &[u8], number: u8) -> Vec<&[u8]> {
     out
 }
 
-/// The functional descriptor of `subtype` after interface `number`.
-pub fn find_functional(raw: &[u8], number: u8, subtype: u8) -> Option<&[u8]> {
-    functional(raw, number).into_iter().find(|d| d[2] == subtype)
+/// The first functional descriptor of `subtype` after interface `number`
+/// that holds at least `least` bytes. One cut shorter is passed over, so a
+/// short twin ahead of it never hides the whole one.
+pub fn find_functional(raw: &[u8], number: u8, subtype: u8, least: usize) -> Option<&[u8]> {
+    functional(raw, number).into_iter().find(|d| d[2] == subtype && d.len() >= least)
 }
 
 /// The data interface a Union functional descriptor (subtype 0x06) names
 /// for the communications interface `number`: its first subordinate.
 pub fn union_data(raw: &[u8], number: u8) -> Option<u8> {
-    find_functional(raw, number, 0x06).filter(|d| d.len() >= 5).map(|d| d[4])
+    find_functional(raw, number, 0x06, 5).map(|d| d[4])
 }

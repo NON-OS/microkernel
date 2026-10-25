@@ -18,24 +18,27 @@
 
 use super::call::call;
 use super::reply::{data_in, moved};
-use super::wire::{BULK_MAX, DATA_AT, OP_BULK_IN, OP_BULK_OUT, OP_CONFIGURE_BULK, OP_RESET_BULK};
+use super::wire::{BULK_MAX, DATA_AT, OP_BULK_IN, OP_BULK_OUT, OP_RESET_BULK};
 use crate::descriptors::MscBinding;
 
-/// Add the bulk pipes to the slot. Byte 3 carries each pipe's SuperSpeed
-/// bMaxBurst, IN in bits 3:0 and OUT in bits 7:4.
-pub fn configure_bulk(xhci: u32, slot: u8, b: &MscBinding) -> Result<(), i32> {
+/// Add the bulk pipes to the slot: `op` OP_CONFIGURE_BULK for the first
+/// pair, OP_CONFIGURE_BULK2 for the second (UAS's data pipes). Byte 3
+/// carries each pipe's SuperSpeed bMaxBurst, IN in bits 3:0 and OUT in
+/// bits 7:4.
+pub fn configure_on(xhci: u32, slot: u8, op: u16, b: &MscBinding) -> Result<(), i32> {
     let bursts = (b.max_burst_in & 0x0F) | (b.max_burst_out & 0x0F) << 4;
     let mut body = [slot, b.bulk_in, b.bulk_out, bursts, 0, 0, 0, 0];
     body[4..6].copy_from_slice(&b.max_packet_in.to_le_bytes());
     body[6..8].copy_from_slice(&b.max_packet_out.to_le_bytes());
     let mut resp = [0u8; DATA_AT + 4];
-    call(xhci, OP_CONFIGURE_BULK, &body, &mut resp).map(|_| ())
+    call(xhci, op, &body, &mut resp).map(|_| ())
 }
 
-/// Send `data`, 1 to BULK_MAX bytes. Returns the bytes the device took.
-pub fn bulk_out(xhci: u32, slot: u8, data: &[u8]) -> Result<usize, i32> {
+/// Send `data`, 1 to BULK_MAX bytes, on bulk pair `pair` (0 the first, 1
+/// the second). Returns the bytes the device took.
+pub fn bulk_out_on(xhci: u32, slot: u8, pair: u8, data: &[u8]) -> Result<usize, i32> {
     let mut body = [0u8; 4 + BULK_MAX];
-    body[0] = slot;
+    (body[0], body[1]) = (slot, pair);
     body[2..4].copy_from_slice(&(data.len() as u16).to_le_bytes());
     body[4..4 + data.len()].copy_from_slice(data);
     let mut resp = [0u8; DATA_AT + 4];
@@ -43,16 +46,17 @@ pub fn bulk_out(xhci: u32, slot: u8, data: &[u8]) -> Result<usize, i32> {
     moved(&resp, len)
 }
 
-/// Receive up to `out.len()`, at most BULK_MAX, bytes. Returns how many came.
-pub fn bulk_in(xhci: u32, slot: u8, out: &mut [u8]) -> Result<usize, i32> {
+/// Receive up to `out.len()`, at most BULK_MAX, bytes on pair `pair`.
+/// Returns how many came.
+pub fn bulk_in_on(xhci: u32, slot: u8, pair: u8, out: &mut [u8]) -> Result<usize, i32> {
     let want = (out.len() as u16).to_le_bytes();
     let mut resp = [0u8; DATA_AT + 4 + BULK_MAX];
-    let len = call(xhci, OP_BULK_IN, &[slot, 0, want[0], want[1]], &mut resp)?;
+    let len = call(xhci, OP_BULK_IN, &[slot, pair, want[0], want[1]], &mut resp)?;
     data_in(&resp, len, 4, out)
 }
 
-/// Bring a stalled pipe back on the controller side.
-pub fn reset_bulk(xhci: u32, slot: u8, dir_in: bool) -> Result<(), i32> {
+/// Bring a stalled pipe of pair `pair` back on the controller side.
+pub fn reset_bulk_on(xhci: u32, slot: u8, pair: u8, dir_in: bool) -> Result<(), i32> {
     let mut resp = [0u8; DATA_AT + 4];
-    call(xhci, OP_RESET_BULK, &[slot, dir_in as u8], &mut resp).map(|_| ())
+    call(xhci, OP_RESET_BULK, &[slot, pair << 1 | dir_in as u8], &mut resp).map(|_| ())
 }

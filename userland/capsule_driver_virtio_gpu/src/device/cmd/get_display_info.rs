@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::hdr::{Hdr, HDR_LEN, RESP_HDR_LEN};
+use super::le::le_u32;
 use crate::constants::{VG_CMD_GET_DISPLAY_INFO, VG_MAX_SCANOUTS, VG_RESP_OK_DISPLAY_INFO};
 use crate::device::virtqueue::ControlQueue;
-use crate::protocol::le_u32;
 const DISPLAY_ONE_LEN: usize = 24;
 const RESP_LEN: usize = RESP_HDR_LEN + DISPLAY_ONE_LEN * VG_MAX_SCANOUTS;
 #[derive(Clone, Copy, Default)]
@@ -25,9 +25,8 @@ pub struct DisplayInfo {
     pub count: u8,
 }
 #[derive(Clone, Copy, Default)]
+/// One scanout's entry; its position (the first two words) is not read.
 pub struct Scanout {
-    pub x: u32,
-    pub y: u32,
     pub width: u32,
     pub height: u32,
     pub enabled: u32,
@@ -49,8 +48,6 @@ pub fn get_display_info(q: &ControlQueue, fence_id: u64) -> Result<DisplayInfo, 
     for i in 0..VG_MAX_SCANOUTS {
         let base = RESP_HDR_LEN + i * DISPLAY_ONE_LEN;
         let s = Scanout {
-            x: le_u32(&buf, base).ok_or("virtio-gpu: bad display info entry")?,
-            y: le_u32(&buf, base + 4).ok_or("virtio-gpu: bad display info entry")?,
             width: le_u32(&buf, base + 8).ok_or("virtio-gpu: bad display info entry")?,
             height: le_u32(&buf, base + 12).ok_or("virtio-gpu: bad display info entry")?,
             enabled: le_u32(&buf, base + 16).ok_or("virtio-gpu: bad display info entry")?,

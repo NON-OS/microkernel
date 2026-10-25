@@ -36,8 +36,8 @@ pub fn generate_key(
     }
 
     let key_len = key_type.key_length();
-    let mut material = alloc::vec![0u8; key_len];
-    crate::crypto::rng::fill_bytes(&mut material);
+    let material =
+        crate::crypto::random_api::get_vec_secure(key_len).map_err(|_| KeyError::CryptoError)?;
 
     if material.iter().all(|&b| b == 0) {
         return Err(KeyError::CryptoError);

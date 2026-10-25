@@ -22,4 +22,12 @@ pub enum DecodeError {
     BadUtf8,
     UnsupportedSchema,
     BlobTooLarge,
+    /// A price kind, settle mode or proof kind this build does not know.
+    UnknownKind,
+    /// A guest policy that is neither empty nor exactly 256 bytes.
+    BadLength,
+    /// Bytes after the index signature, which nothing signed.
+    Trailing,
+    /// An escrow listing whose release has no chunk root or length.
+    Inconsistent,
 }

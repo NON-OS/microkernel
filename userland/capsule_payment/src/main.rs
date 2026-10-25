@@ -19,12 +19,25 @@
 
 extern crate alloc;
 
-mod protocol;
+mod clients;
+mod disk;
+mod handlers;
+mod jobs;
+mod keccak;
+mod keyring;
+mod keys;
+mod meter;
+mod orders;
 mod server;
-mod store;
+mod wipe;
 
 use nonos_libc::{heap_init, mk_exit};
 
+/// The capsule's entry point.
+///
+/// # Safety
+///
+/// Only the kernel calls it, once, on a fresh stack; nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

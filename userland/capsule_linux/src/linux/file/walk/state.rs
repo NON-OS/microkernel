@@ -44,7 +44,7 @@ impl Walk {
      * Into the link just walked: its target's names come next, from the
      * root for an absolute one.
      */
-    pub(super) fn into_link(&mut self, to: &[u8]) {
+    pub(super) fn enter_link(&mut self, to: &[u8]) {
         self.hops += 1;
         self.done.pop();
         if to.first() == Some(&b'/') {

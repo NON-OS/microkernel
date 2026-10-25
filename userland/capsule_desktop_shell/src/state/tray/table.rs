@@ -65,12 +65,4 @@ impl TrayTable {
         }
         false
     }
-
-    /// Every live item's label, in table order: what the menu bar shows.
-    pub fn labels(&self) -> impl Iterator<Item = &[u8]> {
-        self.entries
-            .iter()
-            .filter(|e| e.in_use)
-            .map(|e| &e.label[..(e.label_len as usize).min(TRAY_LABEL_MAX)])
-    }
 }

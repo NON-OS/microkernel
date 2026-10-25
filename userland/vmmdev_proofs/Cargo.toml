@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the VirtualBox guest device driver. Builds for
+# the host so `cargo test` runs the real driver source (included via #[path])
+# against a model of VMMDev: the request port carrying requests out of the
+# request page, the event page, the host's pointer and its integration
+# switch, with the broker's grants on host memory.
+[package]
+name = "vmmdev_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "vmmdev_proofs_libc_shim", path = "libc_shim" }

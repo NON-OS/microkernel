@@ -35,7 +35,10 @@ pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
     let node = match synth::node(path)? {
         Ok(node) => node,
         /* Those trees are mounted read-only: nothing is made in them. */
-        Err(_) if flags & O_CREAT != 0 => return Some(errno::fail(errno::EROFS)),
+        Err(_) if flags & O_CREAT != 0 => {
+            crate::linux::boxed::note(crate::linux::boxed::Kind::Write, path);
+            return Some(errno::fail(errno::EROFS));
+        }
         Err(e) => return Some(errno::fail(e)),
     };
     /* O_WRONLY or O_RDWR. */
@@ -53,7 +56,10 @@ pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
         _ if flags & O_DIRECTORY != 0 => return Some(errno::fail(errno::ENOTDIR)),
         Node::Dev(dev::Dev::Tty) => return Some(errno::fail(errno::ENXIO)),
         Node::Dev(_) => made_file(path, writing, flags),
-        Node::Text(_) if writing => return Some(errno::fail(errno::EACCES)),
+        Node::Text(_) if writing => {
+            crate::linux::boxed::note(crate::linux::boxed::Kind::Write, path);
+            return Some(errno::fail(errno::EACCES));
+        }
         Node::Text(_) => made_file(path, false, flags),
         Node::Refused(why) => return Some(refuse(why)),
         Node::Link(to) => return Some(super::super::fdopen::reopen(guest, path, &to, flags)),

@@ -36,7 +36,7 @@ pub fn port_action(portsc: u32, usb3: bool) -> PortAction {
     // A USB 3 port whose link trained is enabled already, but the device on it
     // may have been addressed by another class driver that probed it and let
     // it go. Real devices refuse a second Address Device without a reset in
-    // between (QEMU's do not), so every port is reset before it is addressed,
-    // as Linux hub_port_init does.
+    // between (as observed, unverified; QEMU's do not), so every port is
+    // reset before it is addressed.
     PortAction::Reset
 }

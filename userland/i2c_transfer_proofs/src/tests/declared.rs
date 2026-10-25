@@ -21,7 +21,6 @@ use nonos_i2cmodel::{touchpad, HidOverI2c};
 
 use super::fixture::{MAX_INPUT, PRODUCT, VENDOR};
 use crate::bench::controller;
-use crate::constants::controller_index;
 use crate::discover::{AcpiTouchpad, Found};
 use crate::transaction::Reach;
 
@@ -30,14 +29,15 @@ pub fn this() -> Found {
     controller()
 }
 
-/// A touchpad declared at `addr` (zero: filled in at run time) on I2C`n`.
-pub fn on(n: u8, addr: u8) -> AcpiTouchpad {
-    AcpiTouchpad { addr, desc_reg: 0x0001, controller_idx: Some(n), ..AcpiTouchpad::default() }
+/// A touchpad declared at `addr` (zero: filled in at run time) on the
+/// controller whose record's device_id is `id`.
+pub fn on(id: u64, addr: u8) -> AcpiTouchpad {
+    AcpiTouchpad { addr, desc_reg: 0x0001, host: Some(id), ..AcpiTouchpad::default() }
 }
 
 /// A touchpad declared at `addr` on the bench's controller.
 pub fn here(addr: u8) -> AcpiTouchpad {
-    on(controller_index(this().pci_device).expect("I2C0"), addr)
+    on(this().device_id, addr)
 }
 
 /// A touchpad whose ResourceSource names no controller this driver knows.

@@ -13,15 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Bulk endpoints for a mass-storage class driver: configure them, move
-//! data through them, and recover one that stalled.
+//! Bulk endpoints for mass-storage, network and Bluetooth class drivers:
+//! configure them, move data through them, poll the IN, and recover one
+//! that stalled.
 mod configure;
 mod configure_pipes;
 mod max_packet;
-mod reply;
+mod poll;
+pub(crate) mod reply;
 mod reset;
 mod run;
+mod streams;
+mod streams_give;
+mod timeout;
 mod transfer;
-pub use configure::configure;
+pub use configure::{configure, configure_second};
+pub use poll::poll_in;
 pub use reset::reset;
+pub use streams::configure_streams;
 pub use transfer::{transfer_in, transfer_out};

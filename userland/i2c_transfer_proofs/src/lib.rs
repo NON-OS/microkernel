@@ -22,16 +22,25 @@
 //! register is what clears the abort. Memory cannot see a read.
 //!
 //! So this crate swaps one file. Every `#[path]` below is the shipping driver;
-//! `regs` alone is not, and it forwards each access to a DesignWare core
-//! modelled from the databook (`nonos_i2cmodel`), with a HID touchpad on the
-//! bus behind it. The engine, the probe and the IPC handler are then run
-//! exactly as they ship, and what the proofs read is the wire.
+//! `regs` alone is not (nor `gpio0`'s look, which no gpio0 answers here),
+//! and it forwards each access to a DesignWare core modelled from the
+//! databook (`nonos_i2cmodel`), with a HID touchpad on the
+//! bus behind it. Discovery, the engine, the probe and the IPC handler are
+//! then run exactly as they ship, discovery over a device list the shim
+//! answers from records the tests build, and what the proofs read is the
+//! wire.
+
+// The shipping unlisted gate formats its console line with alloc, as the
+// capsule's no_std build does.
+extern crate alloc;
 
 #[path = "../../capsule_driver_i2c_pci/src/constants/mod.rs"]
 pub mod constants;
+#[path = "../../capsule_driver_i2c_pci/src/discover/mod.rs"]
 pub mod discover;
 #[path = "../../capsule_driver_i2c_pci/src/driver.rs"]
 pub mod driver;
+pub mod gpio0;
 #[path = "../../capsule_driver_i2c_pci/src/init/mod.rs"]
 pub mod init;
 #[path = "../../capsule_driver_i2c_pci/src/protocol/mod.rs"]

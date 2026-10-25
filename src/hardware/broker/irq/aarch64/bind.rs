@@ -19,8 +19,7 @@ use crate::hardware::broker::claim;
 use crate::hardware::broker::irq::types::{IrqBindError, IrqBindRequest, IrqBindResult};
 use crate::hardware::broker::table;
 
-use super::pending;
-use super::trampoline;
+use super::{pending_alloc, pending_find, trampoline};
 
 // SPI range: 32..1019 inclusive. PPIs (16..31) and SGIs (0..15) are
 // kernel-owned. 1020..1023 are special IAR values, never bound.
@@ -28,8 +27,16 @@ const SPI_MIN: u32 = 32;
 const SPI_MAX: u32 = 1019;
 
 pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError> {
+    let claim = claim::lookup(req.device_id).ok_or(IrqBindError::NotClaimed)?;
+    if claim.pid != pid {
+        return Err(IrqBindError::NotClaimed);
+    }
+    if claim.epoch != req.claim_epoch {
+        return Err(IrqBindError::StaleEpoch);
+    }
+    // Any flag asks for messages; their checks refuse an unknown one.
     if req.flags != 0 {
-        return Err(IrqBindError::UnsupportedFlags);
+        return super::message::bind(pid, req, claim.epoch);
     }
     if req.vector_count != 0 {
         return Err(IrqBindError::BadVectorCount);
@@ -38,17 +45,8 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
         return Err(IrqBindError::NotDeviceIrq);
     }
 
-    let claim = claim::lookup(req.device_id).ok_or(IrqBindError::NotClaimed)?;
-    if claim.pid != pid {
-        return Err(IrqBindError::NotClaimed);
-    }
-    if claim.epoch != req.claim_epoch {
-        return Err(IrqBindError::StaleEpoch);
-    }
-
-    // Match the request against the broker-published device IRQ. The
-    // capsule does not get to invent intids; if the broker has not
-    // surfaced an irq_source for this device, no bind is possible.
+    // Match the request against the broker-published device IRQ: the
+    // capsule never invents intids, and no published source means no bind.
     let dev = table::list()
         .into_iter()
         .find(|r| r.device_id == req.device_id)
@@ -59,20 +57,18 @@ pub fn bind(pid: u32, req: IrqBindRequest) -> Result<IrqBindResult, IrqBindError
     if dev.irq_source != req.irq_source {
         return Err(IrqBindError::NotDeviceIrq);
     }
+    super::trigger::configure(req.irq_source)?;
 
-    let (_idx, grant_id) = pending::alloc(req.irq_source, pid, req.device_id, claim.epoch)
+    let (e, grant_id) = pending_alloc::alloc(req.irq_source, pid, req.device_id, claim.epoch)
         .ok_or(IrqBindError::AlreadyBound)?;
-    let Some(e) = pending::find_by_grant(grant_id) else {
-        return Err(IrqBindError::PlatformError);
-    };
 
     // Capsule-scoped claim on the GIC slot. Fails closed if a kernel
     // driver already owns the line; rolls back the pending slot.
     if gic::register_irq_handler_for_capsule(req.irq_source, trampoline::handle).is_err() {
-        pending::free(e);
+        pending_find::free(e);
         return Err(IrqBindError::PlatformError);
     }
     gic::enable_irq(req.irq_source);
-
-    Ok(IrqBindResult { grant_id, vector: 0 })
+    super::line_live::keep(pid, req.device_id, claim.epoch, req.irq_source, grant_id)?;
+    Ok(IrqBindResult { grant_id, vector: 0, grants: 1 })
 }

@@ -18,30 +18,12 @@
 //!
 //! Nothing here may allocate. The console sink and its decimal printer both
 //! work without the allocator, which is why the report goes through them
-//! rather than the formatter.
+//! rather than the formatter. The heap holds the session's secrets, so an
+//! exhausted one ends as a panic does: wiped, then off.
 
 use core::alloc::Layout;
 
 use crate::sys::serial;
-
-/// Paint the message into VGA text memory too, so a machine with no serial
-/// cable still shows why it stopped. No counterpart elsewhere: text mode is a
-/// PC device, and the boards this kernel otherwise targets have no display at
-/// all this early.
-#[cfg(target_arch = "x86_64")]
-fn show_vga_error() {
-    const VGA_BASE: *mut u16 = 0xb8000 as *mut u16;
-    const WHITE_ON_RED: u16 = 0x4F00;
-    let msg = b"OOM: Memory allocation failed - system halted";
-    // SAFETY: the VGA text buffer is a fixed 80x25 window and the message is
-    // far shorter than one line. Nothing else is writing it by the time the
-    // machine reaches here.
-    unsafe {
-        for (i, &ch) in msg.iter().enumerate() {
-            core::ptr::write_volatile(VGA_BASE.add(i), (ch as u16) | WHITE_ON_RED);
-        }
-    }
-}
 
 pub fn handle_oom(layout: Layout) -> ! {
     serial::println(b"");
@@ -54,10 +36,9 @@ pub fn handle_oom(layout: Layout) -> ! {
 
     crate::syscall::microkernel::memory::dump_mmap_accounting();
     crate::kernel_core::surface_registry::dump_surface_accounting();
-    serial::println(b"[OOM] System halted");
+    serial::println(b"[OOM] to the panic path: wipe, power off");
 
-    #[cfg(target_arch = "x86_64")]
-    show_vga_error();
-
-    crate::arch::halt_loop()
+    // No VGA text: 0xB8000 is in no process's address space, so the write
+    // faulted when the heap ran out in one, and no UEFI machine shows it.
+    crate::boot::panic::fatal()
 }

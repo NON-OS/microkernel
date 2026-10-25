@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the aarch64 broadcast deadline: the book of
+# sleeping CPUs' deadlines run against a model of a level-triggered timer
+# frame over generated sleep, wake and fire orders (no CPU woken late), the
+# 64-bit count read by halves, and the order the kernel keeps around them.
+# The kernel's own source is included via #[path].
+[package]
+name = "broadcast_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

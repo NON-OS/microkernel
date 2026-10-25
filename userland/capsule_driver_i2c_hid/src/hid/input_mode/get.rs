@@ -17,7 +17,8 @@
 //! GET_REPORT for one feature report: the answer is a 2-byte length prefix,
 //! then the report, id byte first.
 
-use super::command::{Command, REPORT_MAX};
+use super::command::Command;
+use super::port::REPORT_MAX;
 use crate::i2c_client::write_read;
 
 /// The report read into `report`, id byte first; 0 when the device refused

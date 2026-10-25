@@ -14,17 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Finding the USB hosts: the names in usb_hosts.rs, fastest first, kept
+//! in a `Hosts` (nonos_usbnet's hosts.rs) with the devices each serves.
+
 use nonos_libc::mk_service_lookup;
 
-const SERVICE_NAME: &str = "driver.xhci0";
+use super::hosts::Hosts;
+use super::usb_hosts::USB_HOSTS;
 
-pub fn lookup() -> Option<u32> {
-    let mut port: u32 = 0;
-    let mut pid: u32 = 0;
-    let rc = mk_service_lookup(SERVICE_NAME.as_ptr(), SERVICE_NAME.len(), &mut port, &mut pid);
-    if rc == 0 {
-        Some(port)
-    } else {
-        None
-    }
+/// Every host, none looked up yet, each with a fresh `keep()`.
+pub fn hosts<T>(keep: impl FnMut() -> T) -> Hosts<T> {
+    Hosts::new(USB_HOSTS, keep)
+}
+
+/// The port of the host registered as `name`, once it has registered.
+pub fn host(name: &str) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc == 0).then_some(port)
 }

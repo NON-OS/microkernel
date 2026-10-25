@@ -48,7 +48,9 @@ wm / wallpaper / market (peer IPC)
 | `OP_NOTIFY` | 0x0005 | post a transient notification |
 | `OP_SPOTLIGHT_OPEN` | 0x0006 | open the Launchpad and its search, or close it |
 | `OP_OPEN_WITH` | 0x0007 | open a file in another app (the file manager uses it for images); only a path starting with `/` is taken |
-| `OP_TAKE_OPEN_ARG` | 0x0008 | the opened app takes the file it was opened with; a Terminal window takes a tool tile's `run:` or `type:` command line instead (`state/open_arg.rs`) |
+| `OP_TAKE_OPEN_ARG` | 0x0008 | the opened app takes the file it was opened with; a Terminal window takes a tool tile's `run:` or `type:` command line instead (`state/open_arg/`) |
+| `OP_ACCESSIBILITY` | 0x0009 | from a window of Settings only (E_PERM otherwise): one display's colour filter, contrast and magnifier, passed to the compositor as NCMP 0x000F, its status answered (`server/handlers/accessibility.rs`) |
+| `OP_ACCESSIBILITY_GET` | 0x000A | from a window of Settings only: one display's settings as the compositor holds them (NCMP 0x0010), 16 bytes |
 
 ## Authority
 
@@ -114,7 +116,7 @@ crypto cap.
 | Per-op handlers | `server/handlers/*.rs` |
 | Tray table | `state/tray/{mod,entry,table}.rs` |
 | Input grabs | `state/grab_rule.rs`, `server/grabs.rs` |
-| Context | `state/context.rs` |
+| Context | `state/context.rs`, its groups in `state/ctx/` |
 | Setup peers resolution | `setup/prime/peers.rs` |
 | Overlay mmap | `setup/prime/overlay.rs` |
 | Surface register + scene_submit | `setup/prime/register.rs` |
@@ -148,7 +150,7 @@ next request id.
 - A launch that opens nothing says so, from the dock, a menu, the Launchpad,
   a dialog or Ctrl+Alt+Esc: "<App> turned off at setup", Qwen's own reason,
   or "<App> did not open" (`apps_off/open.rs`). A tool tile hands the
-  Terminal its command line (`state/open_arg.rs`). `pastel` runs at once,
+  Terminal its command line (`state/open_arg/`). `pastel` runs at once,
   since it prints its help with no arguments. Every other tool is typed
   with the cursor after it, ready for its arguments. Open With answers the
   file manager with an error when the app could not be started, and drops
@@ -156,7 +158,7 @@ next request id.
 - A refused package says why in words ("Package: signature or digest failed
   verification"), and a desktop New, Rename, Move or Delete the file service
   refused gives its reason ("Could not delete: the folder is not empty"),
-  `state/says.rs`. Deleting a folder removes it with everything in it, as
+  `state/says/`. Deleting a folder removes it with everything in it, as
   the prompt says.
 
 ## Operating rules
@@ -190,8 +192,20 @@ must compile clean.
   files or the content of other capsules.
 - No tray icons beyond text label (deferred until toolkit images).
 - No notification persistence across restart.
-- One global chord only: Ctrl+Alt+Esc, reserved by the input router,
-  brings Process Manager forward.
+- Two global chords, reserved by the input router: Ctrl+Alt+Esc brings
+  Process Manager forward, and Ctrl+Alt+Delete, the secure attention chord,
+  opens the system's prompt (Hide screen, or go back) and shows a hidden
+  screen again (`state/attention.rs`, `server/handlers/attention.rs`).
+  Hiding is not a lock: there are no accounts yet, so anyone at the
+  keyboard can show the screen with the chord.
+- The trusted path (`server/trusted_band.rs`): while a permission prompt,
+  the system's prompt or the hidden screen is up, the chrome is placed in
+  the compositor's trusted band (z 0x4000_0000) and taken from its own; no
+  window can cover it, no screenshot holds it, and the router gives the
+  shell every key and click. Input frames are believed from the input
+  router the registry names, by its pid; only the image's own router can
+  hold that name (the publisher gate, L52), so a restarted router is
+  believed at once (`state/input_source_rule.rs`, `server/input_source.rs`).
 
 ## Verification
 

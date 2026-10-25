@@ -40,12 +40,12 @@ pub(super) fn init_acpi_tables() {
  * FADT is known, measure against it and replace the guess.
  */
 fn calibrate_against_pm_timer() {
-    if crate::time::counter_hz_known() {
+    if crate::time::late_rate::counter_hz_known() {
         return;
     }
     match crate::arch::x86_64::time::tsc::calibration::pmtimer::calibrate_with_pm_timer() {
         Ok(hz) => {
-            crate::time::set_counter_hz_if_unknown(hz);
+            crate::time::late_rate::set_counter_hz_if_unknown(hz);
             crate::sys::timer::tsc::TSC_FREQ_HZ.store(hz, core::sync::atomic::Ordering::SeqCst);
             serial::print(b"[TIMER] TSC measured against the ACPI PM timer: ");
             serial::print_dec(hz / 1_000_000);

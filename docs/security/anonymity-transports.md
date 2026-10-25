@@ -4,14 +4,14 @@ A security reviewer's account of the two anonymity transports in NONOS, `net.nym
 
 ## Two reimplementations, not the upstream clients
 
-NONOS links neither the Nym client nor a Tor or Anyone client. Both transports are `no_std` [capsules](../overview/glossary.md#capsule) written for NONOS, and both are new code:
+NONOS links neither the Nym client nor a Tor or Anyone client. Both transports are `no_std` [capsules](../overview/glossary-boot-root-record.md#capsule) written for NONOS, and both are new code:
 
-- `net.nym` (`userland/capsule_net_nym`) is the client for the [Nym mixnet](../overview/glossary.md#nym-mixnet). Its `README.md` gives the reason: Sphinx "is reimplemented here in `no_std` against the published format, because the reference stack cannot be linked into a kernel userland" (`userland/capsule_net_nym/README.md:9-11`).
-- `net.anon` (`userland/capsule_net_anon`) is the client for the [Anyone network](../overview/glossary.md#anyone-network), a fork of Tor. It speaks the Tor-derived link, circuit and directory protocols as the fork has them, and records what it took from the fork in `userland/capsule_net_anon/PROTOCOL.md`.
+- `net.nym` (`userland/capsule_net_nym`) is the client for the [Nym mixnet](../overview/glossary-linux-personality.md#nym-mixnet). Its `README.md` gives the reason: Sphinx "is reimplemented here in `no_std` against the published format, because the reference stack cannot be linked into a kernel userland" (`userland/capsule_net_nym/README.md:9-11`).
+- `net.anon` (`userland/capsule_net_anon`) is the client for the [Anyone network](../overview/glossary-amnesic-boot.md#anyone-network), a fork of Tor. It speaks the Tor-derived link, circuit and directory protocols as the fork has them, and records what it took from the fork in `userland/capsule_net_anon/PROTOCOL.md`.
 
 In an image built with them, the kernel starts both at boot from its network spawn plan, `spawn_nym` then `spawn_anon`, and only then `spawn_socks5`, because the SOCKS front resolves the transport by name at startup (`src/userspace/init/spawn_plan/network/spawn.rs:20-28`).
 
-Both [manifests](../overview/glossary.md#manifest) set `CAPSULE_REQUIRED_CAPS` to `0x0003c`, the Network, IPC, Memory and Crypto [capabilities](../overview/glossary.md#capability), with Debug (`0x100`) optional (`userland/capsule_net_nym/Capsule.mk:13-16`, `userland/capsule_net_anon/Capsule.mk:26-29`). Neither asks for FileSystem and neither calls the [file store](../overview/glossary.md#file-store), so what each learns lives in its own memory and ends with the boot. Their service [endpoints](../overview/glossary.md#endpoint) are `service:4470:net.nym` and `service:4484:net.anon`. Both reach the network only through `net.tcp`.
+Both [manifests](../overview/glossary-linux-personality.md#manifest) set `CAPSULE_REQUIRED_CAPS` to `0x0003c`, the Network, IPC, Memory and Crypto [capabilities](../overview/glossary-boot-root-record.md#capability), with Debug (`0x100`) optional (`userland/capsule_net_nym/Capsule.mk:13-16`, `userland/capsule_net_anon/Capsule.mk:26-29`). Neither asks for FileSystem and neither calls the [file store](../overview/glossary-dma-pool.md#file-store), so what each learns lives in its own memory and ends with the boot. Their service [endpoints](../overview/glossary-dma-pool.md#endpoint) are `service:4470:net.nym` and `service:4484:net.anon`. Both reach the network only through `net.tcp`.
 
 ```mermaid
 flowchart LR
@@ -217,7 +217,7 @@ Each transport posts a `RouteReport` to the attest service every `EVERY_MS`, fiv
 
 ## What is tested
 
-These [proof crates](../overview/glossary.md#proof-crate) build the code the transports run, mostly by `#[path]`, and pass under `nix flake check` on this commit:
+These [proof crates](../overview/glossary-peer-list.md#proof-crate) build the code the transports run, mostly by `#[path]`, and pass under `nix flake check` on this commit:
 
 | Proof crate | Tests | What it holds |
 |---|---|---|
@@ -229,7 +229,7 @@ These [proof crates](../overview/glossary.md#proof-crate) build the code the tra
 | `equix_proofs` | 28 | `nonos_equix`, the Equi-X solver behind the onion proof of work |
 | `nym_topology_proofs` | 25 | The route draw, the refresh rule and the exit address readers, on answers recorded from the Nym API |
 | `nym_reply_proofs` | 64 | WebSocket frames, fragments and reply reassembly, the SURB budget, each client's share of the table of open mixnet sessions |
-| `aes_proofs` | 19 | `net.nym`'s AES and `nonos_aes` against FIPS 197 and SP 800-38A |
+| `aes_proofs` | 23 | `net.nym`'s AES and `nonos_aes` against FIPS 197 and SP 800-38A; `nonos_aes`'s CMAC against RFC 4493 |
 | `tls_proofs` | 129 | `nonos_tls` |
 | `capsule_socks5_proofs` | 136 | `net.socks5` |
 | `route_proof_proofs` | 36 | `RouteReport`, `may_report` and the attest board |

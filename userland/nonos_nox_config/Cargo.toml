@@ -1,0 +1,19 @@
+[package]
+name = "nonos_nox_config"
+version = "0.1.0"
+edition = "2021"
+description = "Every NOX chain constant the OS builds against, in one place, no_std"
+license = "AGPL-3.0"
+
+[package.metadata.nonos]
+test-lane = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+
+# keccak-256 on the host only, so the tests derive every pinned hash
+# independently of the constants they check.
+[dev-dependencies]
+sha3 = { version = "=0.10.9", default-features = false }

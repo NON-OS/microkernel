@@ -33,6 +33,7 @@ pub use client::{
     capacity, controller_info, flush, healthcheck, port_list, read_blocks, write_blocks,
     AhciControllerInfo, AhciPortInfo,
 };
+pub(crate) use client::leave_leg;
 pub use error::DriverAhciError;
 pub use spawn::{spawn_driver_ahci_capsule, SpawnError};
 pub use state::shared_state;

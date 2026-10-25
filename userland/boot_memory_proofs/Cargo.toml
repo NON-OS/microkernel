@@ -1,0 +1,14 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for where aarch64 boot puts the below-4 GiB DMA pool.
+# The kernel's own source is included via #[path].
+[package]
+name = "boot_memory_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

@@ -24,8 +24,7 @@ use super::parser;
 /// delays (see `hw::reset`). Never returns.
 pub fn reboot() -> AcpiResult<()> {
     let fadt = parser::with_data(|d| d.fadt).flatten();
-    // SAFETY: CLI only masks maskable interrupts on this CPU.
-    unsafe { core::arch::asm!("cli", options(nomem, nostack)) };
+    crate::arch::x86_64::interrupt::cli();
     reset_sequence(&mut PortBus, fadt.as_ref());
     // SAFETY: loading a zero-limit IDT and raising #BP makes the CPU fail to
     // deliver the exception, then the double fault, and shut down, which

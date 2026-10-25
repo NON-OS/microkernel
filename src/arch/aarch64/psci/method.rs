@@ -21,21 +21,34 @@ pub enum PsciMethod {
 }
 
 impl PsciMethod {
+    /// Zero is left for "no conduit named", the state before the tree is read.
     pub(super) const fn as_u8(self) -> u8 {
         match self {
-            Self::Hvc => 1,
-            Self::Smc => 0,
+            Self::Smc => 1,
+            Self::Hvc => 2,
         }
     }
 
-    pub(super) const fn from_u8(value: u8) -> Self {
+    pub(super) const fn from_u8(value: u8) -> Option<Self> {
         match value {
-            1 => Self::Hvc,
-            _ => Self::Smc,
+            1 => Some(Self::Smc),
+            2 => Some(Self::Hvc),
+            _ => None,
         }
     }
 }
 
 pub fn set_method(method: PsciMethod) {
     super::state::set_method(method);
+}
+
+/// Whether the device tree named a PSCI conduit.
+pub fn is_present() -> bool {
+    super::state::method().is_some()
+}
+
+/// The conduit the device tree named, which every firmware call takes: SMCCC
+/// services are reached the same way PSCI is (DEN0028, conduits).
+pub fn conduit() -> Option<PsciMethod> {
+    super::state::method()
 }

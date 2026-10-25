@@ -14,35 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The mode the driver shows. Firmware that drew a GOP framebuffer on this
-//! adapter (OVMF's QemuVideoDxe) left DISPI programmed for it; that mode is
-//! kept, so nothing is re-moded under the firmware's scanout. Otherwise the
-//! fixed default is set.
+//! The mode bga starts on: firmware's when DISPI already shows a linear
+//! 32-bit mode from the start of video memory, its lines no narrower than
+//! it, that fits (section 12: a driver keeps the mode firmware left until a
+//! MODE_SET, so OVMF's GOP mode stays set with no re-mode; the kernel's GOP
+//! blit is gone by then, stopped by the claim of an adapter holding the
+//! boot framebuffer); else the monitor's preferred mode when it fits, else
+//! 1024x768, refused by name before a register is written when it does not
+//! fit either limit, and held to reading back as set.
 
-use crate::constants::{MODE_HEIGHT, MODE_WIDTH};
-use crate::dispi::{self, Dispi, Span};
-use crate::error::BgaResult;
+use crate::constants::FALLBACK_MODE;
+use crate::dispi::{current, set_mode, DispiMode};
+use crate::display::fits;
+use crate::edid::Panel;
+use crate::error::{BgaError, BgaResult};
 use crate::regs::Regs;
 
-pub struct Mode {
-    pub width: u16,
-    pub height: u16,
-    pub fb: Span,
-}
-
-/// The firmware's mode when DISPI holds one this driver draws that fits
-/// both the adapter's video memory and the `fb_len` bytes mapped at `fb_va`.
-/// Else the default, refused by name before a register is written when it
-/// does not fit, and held to reading back as set.
-pub fn take(regs: Regs, firmware: &Dispi, fb_va: u64, fb_len: u64) -> BgaResult<Mode> {
-    let video = dispi::video_memory(regs);
-    if let Some((width, height)) = dispi::kept(firmware) {
-        if let Ok(fb) = dispi::fit(video, fb_va, fb_len, width, height) {
-            return Ok(Mode { width, height, fb });
-        }
+/// `video` bytes of video memory, `mapped` bytes of BAR0 mapped.
+pub fn starting(regs: Regs, panel: &Panel, (video, mapped): (u64, u64)) -> BgaResult<DispiMode> {
+    let room = video.min(mapped) as usize;
+    if let Some(m) = current(regs).filter(|m| m.stride as usize * m.height as usize <= room) {
+        return Ok(m);
     }
-    let fb = dispi::fit(video, fb_va, fb_len, MODE_WIDTH, MODE_HEIGHT)?;
-    dispi::set_mode(regs, MODE_WIDTH, MODE_HEIGHT);
-    dispi::confirm(regs, MODE_WIDTH, MODE_HEIGHT)?;
-    Ok(Mode { width: MODE_WIDTH, height: MODE_HEIGHT, fb })
+    let (w, h) = panel.preferred.filter(|&(w, h)| fits(room, w, h)).unwrap_or(FALLBACK_MODE);
+    let bytes = w as u64 * h as u64 * 4;
+    if bytes > video {
+        return Err(BgaError::VideoMemoryTooSmall);
+    }
+    if bytes > mapped {
+        return Err(BgaError::ModeTooLarge);
+    }
+    set_mode(regs, w as u16, h as u16);
+    current(regs).filter(|m| (m.width, m.height) == (w, h)).ok_or(BgaError::ModeNotTaken)
 }

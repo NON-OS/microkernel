@@ -31,19 +31,17 @@ impl Terminal {
         if resized {
             crate::jobs::tty::resized(self.cur_ref());
         }
-        let l = crate::paint::paint_tabs(
-            &self.tabs,
-            self.active,
-            fb,
-            theme,
-            self.font_scale,
-            &self.rail,
-            self.prefs.project_slice(),
-            self.prefs.rails & 1 == 0,
-            self.rail_scroll,
-            &self.palette,
-            self.prefs.rails & RAIL_VISIBLE != 0,
-        );
+        let scene = crate::paint::Scene {
+            tabs: &self.tabs,
+            active: self.active,
+            rail: &self.rail,
+            projects: self.prefs.project_slice(),
+            monitor: self.prefs.rails & 1 == 0,
+            scroll: self.rail_scroll,
+            pal: &self.palette,
+            rail_open: self.prefs.rails & RAIL_VISIBLE != 0,
+        };
+        let l = crate::paint::paint_tabs(&scene, fb, theme, self.font_scale);
         let s = self.cur_ref();
         let owned = s.scrollback.vt.alt_active() || s.fg_running;
         self.cells = Some(super::pointer::CellGeom {

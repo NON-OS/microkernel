@@ -22,7 +22,7 @@ use crate::restack::{Outcome, Restack, FIRST_WAIT_MS, MAX_WAIT_MS};
 use crate::window::{Kind, Visibility, Window, WindowTable};
 use crate::z_order::{bottom_up, raise, ZStack};
 
-/// "ipc.call unanswered compositor caller=wm": the compositor took the
+/// "ipc.call late compositor after 16 ms": the compositor took the
 /// focus_set and answered after the 16 ms. It acts on it in order, so it is
 /// not sent again.
 #[test]

@@ -59,7 +59,7 @@ pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u6
     let Some(slot) = errno::slot(n) else {
         return n;
     };
-    let wrote = super::sockaddr_out::write(guest, at, lenp, &from);
+    let wrote = super::sockaddr::out::write(guest, at, lenp, &from);
     if errno::slot(wrote).is_none() {
         discard(guest, slot as u64);
         return wrote;

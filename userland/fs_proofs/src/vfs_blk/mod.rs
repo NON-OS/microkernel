@@ -54,22 +54,22 @@ pub mod store_room;
 pub mod store_rules;
 #[path = "../../../capsule_vfs/src/blk/store_toc.rs"]
 pub mod store_toc;
+#[path = "../../../capsule_vfs/src/blk/store_table.rs"]
+pub mod store_table;
+#[path = "../../../capsule_vfs/src/blk/store_erase.rs"]
+pub mod store_erase;
+#[path = "../../../capsule_vfs/src/blk/store_withdraw.rs"]
+pub mod store_withdraw;
 #[path = "../../../capsule_vfs/src/blk/store_write.rs"]
 pub mod store_write;
 #[path = "../../../capsule_vfs/src/blk/wire.rs"]
 pub mod wire;
 
-/*
- * The capsule's store_patch.rs. The name `store_patch` belongs to the facade
- * below, which carries it and the modules it reads under one path for the
- * table proofs; store_entry's `super::store_patch` finds its items there.
- */
+// The capsule's store_patch.rs, under another name: `store_patch` is the facade
+// below, where store_entry's `super::store_patch` finds its items.
 #[path = "../../../capsule_vfs/src/blk/store_patch.rs"]
 pub mod patch;
 
-/*
- * The table-of-contents patch that a same-length replacement writes, with the
- * header and toc modules it reads, so the offsets under test are the shipping
- * ones rather than numbers repeated here.
- */
+// The toc patch a same-length replacement writes, with the header and toc
+// modules it reads, so the offsets under test are the shipping ones.
 pub mod store_patch;

@@ -29,7 +29,7 @@ pub(super) struct Bursts {
 
 pub(super) fn run(
     ctx: &mut Context,
-    slot: u8,
+    (slot, second): (u8, bool),
     bulk_in: (u8, u16),
     bulk_out: (u8, u16),
     bursts: Bursts,
@@ -39,7 +39,11 @@ pub(super) fn run(
     let max_slots = ctx.driver.layout.max_slots;
     let res =
         ctx.driver.slots.resources_mut(slot, max_slots).ok_or(XhciError::ControllerUnsupported)?;
-    if res.bulk.is_some() || !res.interrupt.is_empty() {
+    // A Bluetooth controller's interrupt IN sits beside its bulk pair
+    // (slots/admit.rs); a second pair takes endpoints the first has not.
+    let fits =
+        if second { res.takes_second_bulk((bulk_in.0, bulk_out.0)) } else { res.takes_bulk() };
+    if !fits {
         return Err(XhciError::ControllerUnsupported);
     }
     let (speed, usb3) = (res.speed, res.usb3);
@@ -64,7 +68,7 @@ pub(super) fn run(
         return Err(keep_if_failed(ctx, slot, e, pipes.into_regions()));
     }
     if let Some(res) = ctx.driver.slots.resources_mut(slot, max_slots) {
-        res.bulk = Some(pipes);
+        *(if second { &mut res.bulk2 } else { &mut res.bulk }) = Some(pipes);
     }
     Ok(())
 }

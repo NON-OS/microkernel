@@ -53,7 +53,7 @@ pub fn sendto(
             Some(To::Inet(a)) if inet_dgram && !is_loopback(a.ip) => {
                 return super::policy::refuse_out("sendto", a)
             }
-            to => return super::xfer_out::send(guest, id, &vec![(buf, len)], 0, flags, to),
+            to => return super::xfer::outbound::send(guest, id, &vec![(buf, len)], 0, flags, to),
         }
     }
     let to = match to {

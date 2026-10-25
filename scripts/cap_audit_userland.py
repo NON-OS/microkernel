@@ -41,6 +41,9 @@ CONST_REF = re.compile(r"\bN_[A-Z0-9_]+\b")
 # Service and endpoint names are dotted (net.tcp, driver.virtio_blk0) or
 # joined with underscores (vfs_pool, crypto_pool).
 NAME_LIT = re.compile(r"[a-z][\w\-]*(?:\.[\w\-]+)+|[a-z][a-z0-9]*(?:_[a-z0-9]+)+")
+# Service names of one plain word, which NAME_LIT cannot tell from any other
+# word. cap_audit checks every name a kernel gate keys on is one or the other.
+WORD_SERVICES = frozenset({"keyring"})
 # A service reached by its fixed port rather than its name.
 PORT_CONST = re.compile(r"\b(\w*PORT\w*)\s*:\s*u32\s*=\s*(\d+)\s*;")
 # Client modules that write a service's name once, inside themselves, so a
@@ -307,7 +310,7 @@ def crate_uses(root, label, files, wrappers, wrapper_aliases):
         defines = {name for name, (_, home) in SERVICE_CLIENTS.items()
                    if str(rel).startswith(home)}
         for off, text in src.literals:
-            if NAME_LIT.fullmatch(text) and text not in defines:
+            if (NAME_LIT.fullmatch(text) or text in WORD_SERVICES) and text not in defines:
                 uses.append(Use(label, f"{rel}:{src.line(off)}", literal=text,
                                 listed=_listed(src.code, off)))
         if not defines:

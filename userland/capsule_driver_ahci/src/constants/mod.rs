@@ -19,6 +19,7 @@ pub mod budget;
 pub mod identify;
 pub mod pci;
 pub mod port;
+pub mod power_off;
 pub mod regs;
 pub mod timing;
 

@@ -19,8 +19,11 @@
 //! compiles here exactly as it ships and finds what it uses where it looks.
 
 pub mod abi;
+pub mod boxed;
 pub mod call;
 pub mod file;
 pub mod guest;
 pub mod net;
 pub mod unix;
+#[path = "../../../capsule_linux/src/linux/whole.rs"]
+pub mod whole;

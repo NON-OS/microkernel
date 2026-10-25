@@ -58,5 +58,6 @@ pub(super) fn verify_and_send<W: Wire>(w: &mut W, f: &mut Fetch, end: usize) {
             f.stop("tls handshake refused");
         }
         Err(Refusal::Incomplete | Refusal::Seal) => f.stop("tls handshake failed"),
+        Err(Refusal::TooSlow) => f.stop("tls too slow"),
     }
 }

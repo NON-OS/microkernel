@@ -69,6 +69,7 @@ impl IconId {
             IconId::CalcHistory => "calc_history",
             IconId::Install => "install",
             IconId::Qwen => "qwen",
+            IconId::SettingsBluetooth => "settings_bluetooth",
         }
     }
 }

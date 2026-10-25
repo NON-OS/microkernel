@@ -21,7 +21,6 @@ use crate::kernel_core::process_spawn::capsule_spawn::{
     spawn_verified_as, AttestedParent, CapsuleSpecVerified,
 };
 use crate::security::capsule_manifest::{decode as decode_manifest, EndpointKind};
-use crate::security::nonos_trust_anchor::{decode as decode_trust, BAKED_TRUST_ANCHOR_POLICY};
 
 // Spawn a capsule whose four artifacts were read from the store by the
 // installer. The service name, endpoints, and target triple are taken from the
@@ -29,8 +28,8 @@ use crate::security::nonos_trust_anchor::{decode as decode_trust, BAKED_TRUST_AN
 // declares and the caller cannot misname or misroute it. The artifacts then go
 // through the same verified spawn path baked capsules use, with every identity,
 // manifest, publisher signature, capability, and attestation check intact.
-// requested_caps is the upper bound for optional caps, identical to a baked
-// spawn site; the verified manifest still decides what is actually granted.
+// requested_caps may name only what the manifest offers (asked.rs); the
+// verified manifest still decides what is actually granted.
 pub(crate) fn load_capsule_from_vfs(
     artifacts: CapsuleArtifacts,
     requested_caps: u64,
@@ -40,6 +39,9 @@ pub(crate) fn load_capsule_from_vfs(
     let manifest = decode_manifest(&artifacts.manifest).map_err(|_| LoadError::Manifest)?;
     let (service_name, service_port) = endpoint(&manifest, EndpointKind::Service)?;
     let (reply_name, reply_port) = endpoint(&manifest, EndpointKind::Reply)?;
+    super::names::check(service_name, reply_name, manifest.namespace_str())?;
+    let requested = super::asked::within_manifest(&manifest, requested_caps, service_name)?;
+    super::bound::check(&manifest, requested, on_behalf_of, service_name)?;
 
     /*
      * Borrowed from artifacts, which this function owns and drops on the way
@@ -63,26 +65,11 @@ pub(crate) fn load_capsule_from_vfs(
         manifest_bytes: &artifacts.manifest,
         attestation_trailer: &artifacts.trailer,
         target_triple: manifest.target_triple_str(),
-        requested_caps: requested_caps & (manifest.required_caps | manifest.optional_caps),
+        requested_caps: requested,
         debug_tag: b"[RUNTIME-LOAD] elf error:",
     };
-    let trust = decode_trust(BAKED_TRUST_ANCHOR_POLICY).map_err(|_| LoadError::TrustAnchor)?;
-    /*
-     * Enforce the certificate validity window against the wall clock, not
-     * uptime-since-boot: a real `valid_from_ms` is a wall-clock epoch, so
-     * comparing it to uptime rejected every runtime-loaded capsule as
-     * NotYetValid. Before the clock is set the gate returns None and the
-     * signature and trust anchor still gate the load.
-     */
-    let now_ms = super::super::validity_clock::validity_now_ms(crate::sys::unix_ms());
+    let (trust, now_ms) = super::trust::trust_and_now()?;
     let pid = spawn_verified_as(&spec, &trust, now_ms, on_behalf_of).map_err(LoadError::Spawn)?;
-    if !args.is_empty() {
-        let argv: alloc::vec::Vec<alloc::string::String> = args
-            .split(|&b| b == 0)
-            .filter(|s| !s.is_empty())
-            .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
-            .collect();
-        crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
-    }
+    super::args::set_argv(pid, args);
     Ok(pid)
 }

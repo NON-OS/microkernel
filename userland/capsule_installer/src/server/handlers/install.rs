@@ -14,40 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! OP_INSTALL: pay the meter for one install of a listing, as PAY v2
+//!. The body is a payment_proto PayRequest for exactly one unit
+//! of "install"; the installer checks that much and relays it, and the meter
+//! checks the rest against the release's signed commerce block. The reply is
+//! the meter's signed voucher. A free listing needs no call at all.
+//!
+//! The voucher reaches the chain before the install goes on (v1.4.7): the
+//! installer asks settle for a drain round now, and answers the voucher
+//! only when the settle() it broadcast carries it. Nothing broadcast, or a
+//! settle() without it, fails the install.
+
 use alloc::vec::Vec;
 
-use super::super::addr20::addr20;
-use super::super::consts::PRICE_KIND_FREE;
-use super::super::discover::payment_port;
-use super::super::fields::InstallReq;
+use nonos_nox_config::UNIT_INSTALL;
+use nonos_payment_proto::{PayRequest, VoucherRecord, EIO};
+
 use super::super::pay_call::request_payment;
-use super::super::word32::word32;
-use crate::protocol::{encode_response, Request, EAGAIN, EINVAL};
+use super::super::settle_call::settle_now;
+use crate::protocol::{encode_response, Request, EINVAL};
 
 pub fn install(req: Request<'_>) -> Vec<u8> {
-    const HDR: usize = 4 + 4 + 1 + 32 + 20 + 32 + 32;
-    if req.payload.len() != HDR {
+    let Some(pay) = PayRequest::parse(req.payload) else {
+        return encode_response(req.seq, EINVAL, &[]);
+    };
+    if pay.unit != UNIT_INSTALL || pay.qty != 1 {
         return encode_response(req.seq, EINVAL, &[]);
     }
-    let p = req.payload;
-    let r = InstallReq {
-        owner_pid: u32::from_le_bytes([p[0], p[1], p[2], p[3]]),
-        wallet_id: u32::from_le_bytes([p[4], p[5], p[6], p[7]]),
-        price_kind: p[8],
-        capsule_id: word32(p, 9),
-        publisher: addr20(p, 41),
-        amount: word32(p, 61),
-        receipt_type: word32(p, 93),
-    };
-    if r.price_kind == PRICE_KIND_FREE {
-        return encode_response(req.seq, 0, &[0u8; 32]);
-    }
-    let port = match payment_port() {
-        Some(x) => x,
-        None => return encode_response(req.seq, EAGAIN, &[]),
-    };
-    match request_payment(port, &r) {
-        Ok(struct_hash) => encode_response(req.seq, 0, &struct_hash),
+    match request_payment(req.payload).and_then(|v| settled(pay.chain_id, v)) {
+        Ok(voucher) => encode_response(req.seq, 0, &voucher),
         Err(e) => encode_response(req.seq, e, &[]),
     }
+}
+
+/// `voucher`, once a settle() carrying it has been broadcast.
+fn settled(chain_id: u64, voucher: Vec<u8>) -> Result<Vec<u8>, i32> {
+    let v = VoucherRecord::parse(&voucher).ok_or(EIO)?;
+    let round = settle_now(chain_id)?;
+    round.carries(&v.channel_id, v.cumulative).then_some(voucher).ok_or(EIO)
 }

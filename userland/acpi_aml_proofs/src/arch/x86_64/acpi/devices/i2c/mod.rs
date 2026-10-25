@@ -11,6 +11,8 @@ pub mod hids;
 mod names;
 #[path = "../../../../../../../../src/arch/x86_64/acpi/devices/i2c/parse.rs"]
 mod parse;
+#[path = "../../../../../../../../src/arch/x86_64/acpi/devices/i2c/pci_hosts.rs"]
+mod pci_hosts;
 #[path = "../../../../../../../../src/arch/x86_64/acpi/devices/i2c/resources.rs"]
 mod resources;
 #[path = "../../../../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs"]
@@ -19,4 +21,5 @@ mod types;
 mod walk;
 
 pub use parse::{parse_hid_devices, parse_platform_controllers, I2cHostName};
+pub use pci_hosts::{parse_pci_controllers, I2cPciHost};
 pub use types::{HidInterrupt, I2cHidDevice, I2cHidDeviceType};

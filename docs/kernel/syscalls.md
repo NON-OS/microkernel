@@ -1,10 +1,10 @@
 # System calls
 
-How a system call travels from a [capsule](../overview/glossary.md#capsule) into the NONOS kernel and back: the numbers, the registers, how many calls there are, the entry code, and the dispatch with its [capability](../overview/glossary.md#capability) check.
+How a system call travels from a [capsule](../overview/glossary-boot-root-record.md#capsule) into the NONOS kernel and back: the numbers, the registers, how many calls there are, the entry code, and the dispatch with its [capability](../overview/glossary-boot-root-record.md#capability) check.
 
 ## Numbers are tags
 
-A system call number is four ASCII letters packed into a `u64` by `tag4`, first letter in the lowest byte (`src/syscall/abi/tag.rs:17-22`). These are the [syscall tags](../overview/glossary.md#syscall-tag). `MkIpcSend` is `MISD`, which is `0x4453494D` (`abi/syscalls.toml:150`), and a memory dump of the number reads `MISD`.
+A system call number is four ASCII letters packed into a `u64` by `tag4`, first letter in the lowest byte (`src/syscall/abi/tag.rs:17-22`). These are the [syscall tags](../overview/glossary-stark-proof.md#syscall-tag). `MkIpcSend` is `MISD`, which is `0x4453494D` (`abi/syscalls.toml:150`), and a memory dump of the number reads `MISD`.
 
 `SyscallNumber::from_u64` calls `lookup_id`, which searches the registry (`src/syscall/abi/mod.rs:31-40`). A number that is not there gets `ENOSYS`, -38, unless the caller is a Linux guest, described below.
 
@@ -53,11 +53,11 @@ flowchart TD
     S --> X[crypto, admin, graphics, surface and input routers]
 ```
 
-1. At boot each CPU runs `program_this_cpu`, which writes `STAR`, points `LSTAR` at `syscall_entry_asm`, sets the flag mask, enables `EFER.SCE`, and reads `STAR` back to confirm the selectors (`src/arch/x86_64/syscall/manager/program.rs:23-47`). `init_ap` refuses to program an [application processor](../overview/glossary.md#application-processor) before the boot CPU has passed those checks (`src/arch/x86_64/syscall/manager/init.rs:40-49`).
+1. At boot each CPU runs `program_this_cpu`, which writes `STAR`, points `LSTAR` at `syscall_entry_asm`, sets the flag mask, enables `EFER.SCE`, and reads `STAR` back to confirm the selectors (`src/arch/x86_64/syscall/manager/program.rs:23-47`). `init_ap` refuses to program an [application processor](../overview/glossary-amnesic-boot.md#application-processor) before the boot CPU has passed those checks (`src/arch/x86_64/syscall/manager/init.rs:40-49`).
 2. `setup_fmask` makes the CPU clear `IF`, `TF`, `DF` and `AC` on every entry, so the kernel starts with interrupts off (`src/arch/x86_64/syscall/msr.rs:108-111`).
 3. `syscall_entry_asm` swaps to the kernel `GS` base, clears the direction flag, moves to the kernel stack the per CPU block records for the running process and saves the caller's registers; it refuses to assemble if the count differs from `SYSCALL_FRAME_WORDS` (`src/arch/x86_64/asm/syscall.S:29-69`). That count is 17 words, set in `SYSCALL_FRAME_WORDS` (`src/arch/x86_64/asm/syscall_frame.inc:4`).
 4. `syscall_handler` first runs `kernel_entry`, which fills the return stack buffer and sets IBRS where the CPU has it (`kernel_entry_mitigations`, `src/security/hardening/spectre_mitigations/hooks.rs:22-26`), then decodes the number with `SyscallNumber::from_u64`, counts the call and hands it to the contract dispatch (`src/arch/x86_64/syscall/manager/entry.rs:23-61`).
-5. An unknown number goes to `redirect` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`). For a process hosted under the [Linux personality](../overview/glossary.md#linux-personality), `redirect` parks the call and wakes the supervising capsule, which answers it; for any other process it returns nothing and the call gets `ENOSYS` (`src/process/foreign/trap.rs:28-41`).
+5. An unknown number goes to `redirect` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`). For a process hosted under the [Linux personality](../overview/glossary-linux-personality.md#linux-personality), `redirect` parks the call and wakes the supervising capsule, which answers it; for any other process it returns nothing and the call gets `ENOSYS` (`src/process/foreign/trap.rs:28-41`).
 6. On the way out the entry code runs the signal hook `syscall_return_signal_hook`, restores the registers and sets `IF` in the returned flags (`src/arch/x86_64/asm/syscall.S:100-139`). It returns with `sysretq` only when bits 63 to 47 of the return address are clear, and with `iretq` otherwise, because `sysretq` faults in ring 0 on a non-canonical address (`src/arch/x86_64/asm/syscall.S:141-164`).
 
 ## Dispatch and the capability check
@@ -70,7 +70,7 @@ A microkernel call goes to `dispatch_microkernel_syscall`, whose `route` offers 
 
 ## Results
 
-A handler returns a non-negative value on success and a negative errno on failure. The values are on [Errors](../abi/errors.md). A few calls return a positive status that is not an error; `MkIrqWait` returns 1 when it slept out its whole timeout ([Hardware broker](hardware-broker.md#interrupts)), and `MkCapCheck` answers 1 or 0 ([Capabilities](capabilities.md#granting-and-revoking)).
+A handler returns a non-negative value on success and a negative errno on failure. The values are on [Errors](../abi/errors.md). A few calls return a positive status that is not an error; `MkIrqWait` returns 1 when it slept out its whole timeout ([Hardware broker](hardware-broker.md#interrupts)), and `MkCapCheck` answers 1 or 0 ([Capabilities](capabilities-granting-and-revoking.md#granting-and-revoking)).
 
 Every entry in the registry is marked `Routed`. The status `Unavailable` exists in `AbiStatus` but no entry uses it (`src/syscall/abi/status.rs:17-21`).
 
@@ -88,7 +88,7 @@ Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Co
 
 ## Other architectures
 
-The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Both architectures need the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). Even with it, only aarch64 builds into a kernel: the riscv64 entry calls a `kernel_main` that does not exist (`src/arch/riscv64/boot/entry.rs:26`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
+The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Each first refuses a guest's native number with EPERM, as x86_64 does (`process::foreign::seal::native`). Both architectures need the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). Even with it, only aarch64 boots to Core ready: riscv64 builds, and boots under QEMU only as far as its unported VM layer (`make nonos-mk-riscv-boot-check`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
 
 ## See also
 

@@ -29,6 +29,7 @@ pub(super) fn emit(rec: &DeviceRecord) {
         k if k == BusKind::Pci as u8 => "PCI  ",
         k if k == BusKind::Acpi as u8 => "ACPI ",
         k if k == BusKind::Virt as u8 => "VIRT ",
+        k if k == BusKind::Fdt as u8 => "FDT  ",
         _ => "???  ",
     });
     line.put(class_label(rec));

@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for DMA with devices that do not snoop the CPU's
+# caches: the cache lines a span touches (the kernel's flush and libc's
+# streaming syncs), the cut of the uncached block from the low pool, and a
+# model of a write-back cache beside a device that reads and writes memory.
+# The kernel's and libc's own source is included via #[path].
+[package]
+name = "dma_coherence_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

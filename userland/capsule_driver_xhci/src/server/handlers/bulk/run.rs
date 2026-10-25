@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Moving one bulk transfer's bytes through the slot's DMA page.
-use crate::controller::bulk_transfer;
+use crate::controller::{bulk_transfer, stream_transfer};
 use crate::error::{XhciError, XhciResult};
 use crate::server::context::Context;
 /// OUT when `into` is `None`, else IN with the bytes copied into `into`.
 pub(super) fn run(
     ctx: &mut Context,
-    slot: u8,
+    (slot, second, stream): (u8, bool, u16),
     data: &[u8],
     len: u32,
     into: Option<&mut [u8]>,
@@ -31,7 +31,7 @@ pub(super) fn run(
         .driver
         .slots
         .resources_mut(slot, max_slots)
-        .and_then(|r| r.bulk.as_mut())
+        .and_then(|r| r.pair_mut(second))
         .ok_or(XhciError::ControllerUnsupported)?;
     // No transfer is outstanding on the slot's page while this one is set
     // up or read back.
@@ -39,8 +39,11 @@ pub(super) fn run(
         return Err(XhciError::ControllerUnsupported);
     }
     let dir_in = into.is_some();
-    let moved =
-        bulk_transfer(doorbell, intr, &mut ctx.driver.event_ring, pipes, slot, dir_in, len)?;
+    let evt = &mut ctx.driver.event_ring;
+    let moved = match stream {
+        0 => bulk_transfer(doorbell, intr, evt, pipes, slot, dir_in, len)?,
+        s => stream_transfer((doorbell, intr), evt, pipes, (slot, dir_in, s), len)?,
+    };
     if let Some(out) = into {
         let n = (moved as usize).min(out.len());
         pipes.buf.copy_to(&mut out[..n]);

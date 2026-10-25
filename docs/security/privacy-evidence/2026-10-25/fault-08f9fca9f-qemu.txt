@@ -1,0 +1,7 @@
+image sha256 90c23a9f025935037bf744bb1b83c4188cf3aead809c2f1119f79e78b93af376 (faultproof-dev at 08f9fca9f)
+boot at 03:35:20 UTC, QEMU exited 03:36:19 UTC
+warning: Git tree '/home/user/privatekernel' is dirty
+NONOS: nix build to build, nix flake check to check (tools/nix/README.md).
+nonos-qemu: a new data disk from /home/user/pk-build/target/dev/tree/target/release/faultproof-dev/nonos.img
+qemu-system-x86_64 -machine q35,kernel-irqchip=split -device intel-iommu,intremap=on,caching-mode=on -m 8G -smp 4 -accel tcg,thread=multi,tb-size=1024 -cpu max -drive if=pflash,format=raw,unit=0,readonly=on,file=/nix/store/7yilgp2sawl51a36g2si9nnwfrliplxz-qemu-11.1.1/share/qemu/edk2-x86_64-code.fd -drive if=pflash,format=raw,unit=1,file=target/qemu/OVMF_VARS.fd -drive format=raw,file=fat:rw:target/qemu/esp -drive file=target/qemu/data.img,if=none,id=vd0,format=raw -device virtio-blk-pci,disable-legacy=on,iommu_platform=on,drive=vd0 -device virtio-vga,disable-legacy=on,iommu_platform=on,vectors=0,edid=on,xres=1920,yres=1080 -device qemu-xhci,id=xhci -device virtio-rng-pci,disable-legacy=on,iommu_platform=on -audiodev none,id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0 -qmp unix:target/qemu/qmp.sock,server,nowait -serial file:/tmp/claude-0/-home-user-privatekernel/3f4ce2ef-fc78-5b78-856b-3c678d451917/scratchpad/fault-serial.log -display none -no-reboot
+QEMU stopped (exit 0) before the boot finished

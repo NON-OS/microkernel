@@ -38,7 +38,7 @@ fn pool_calls() -> u32 {
 fn a_chain_longer_than_ten_is_refused_before_any_signature() {
     let body = message(&[EXAMPLE_LEAF; 11]);
     nonos_libc::reset();
-    assert!(!verify_chain(&body, b"example.com", INSIDE));
+    assert_eq!(verify_chain(&body, b"example.com", INSIDE), Ok(false));
     assert_eq!(pool_calls(), 0, "refused by its length, not by a signature");
 }
 
@@ -46,7 +46,11 @@ fn a_chain_longer_than_ten_is_refused_before_any_signature() {
 fn a_chain_of_ten_is_still_walked() {
     let body = message(&[EXAMPLE_LEAF; 10]);
     nonos_libc::reset();
-    assert!(!verify_chain(&body, b"example.com", INSIDE), "the leaf did not sign itself");
+    assert_eq!(
+        verify_chain(&body, b"example.com", INSIDE),
+        Ok(false),
+        "the leaf did not sign itself"
+    );
     assert!(pool_calls() >= 1, "a chain inside the bound reaches the signature check");
 }
 

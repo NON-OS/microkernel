@@ -562,6 +562,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_policy_client"
 version = "0.1.0"
 dependencies = [
@@ -598,6 +602,7 @@ dependencies = [
  "nox_prover",
  "rayon",
  "shield_wire",
+ "zeroize",
 ]
 
 [[package]]
@@ -610,6 +615,7 @@ dependencies = [
  "k256",
  "nonos-stark",
  "nonos_hd",
+ "nonos_nox_config",
  "nonos_route_link",
  "nonos_seal",
  "nonos_tls",

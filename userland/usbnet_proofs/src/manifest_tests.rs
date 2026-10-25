@@ -9,12 +9,10 @@ const REQUIRED: u64 = 0x08 | 0x10 | 0x20;
 /// Debug, 1 << 8.
 const OPTIONAL: u64 = 1 << 8;
 
-const MANIFESTS: [(&str, &str); 5] = [
-    ("ax88179", include_str!("../../capsule_driver_ax88179/Capsule.mk")),
+const MANIFESTS: [(&str, &str); 3] = [
     ("cdc_ecm", include_str!("../../capsule_driver_cdc_ecm/Capsule.mk")),
     ("cdc_ncm", include_str!("../../capsule_driver_cdc_ncm/Capsule.mk")),
     ("rndis", include_str!("../../capsule_driver_rndis/Capsule.mk")),
-    ("rtl8153", include_str!("../../capsule_driver_rtl8153/Capsule.mk")),
 ];
 
 /// The value of the one `name := 0x...` line in `mk`.

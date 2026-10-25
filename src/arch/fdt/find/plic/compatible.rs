@@ -16,7 +16,7 @@
 
 use crate::arch::fdt::property::Property;
 
-pub fn matches(compat: &Property) -> bool {
+pub(crate) fn matches(compat: &Property) -> bool {
     for s in compat.stringlist() {
         if s == b"sifive,plic-1.0.0" || s == b"riscv,plic0" {
             return true;

@@ -18,9 +18,11 @@ use crate::constants::{EVENT_RING_SEGMENT_TRBS, TRB_BYTES};
 use crate::controller::park::IrqWait;
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
-/// Interrupt-IN TRBs that may be armed at once, across every device: four
-/// endpoints on each of sixteen.
-pub(super) const ARMED: usize = 64;
+/// TRBs whose events are kept for their own poll, across every device:
+/// four interrupt endpoints on each of sixteen, and the isoch TDs and
+/// polled bulk INs left on their rings between requests: an isoch IN
+/// batch keeps a place for each of its TDs, an OUT batch for its last.
+pub const ARMED: usize = 160;
 const ERST_ENTRY_BYTES: u64 = 16;
 pub struct EventRing {
     pub(super) segment: DmaRegion,

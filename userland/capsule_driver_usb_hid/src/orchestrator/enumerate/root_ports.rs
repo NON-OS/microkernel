@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the root port scan keeps per port: the tries that came to nothing
+//! What the port scan keeps per port: the tries that came to nothing
 //! since the port was last empty, and its `Budget`, the tries of the last
 //! minute counted across disconnects. A device that reconnected as fast as
-//! it was looked at was addressed again at every rescan, the loop held for
-//! each, and a hub posing as one was powered up each time as well.
+//! it was looked at was addressed again at every rescan, and the loop held
+//! for each.
 
-use crate::hub::Budget;
+// Shared with the hub walk, which also asks `left` (budget_left.rs) before a
+// hub port's turn.
+#[path = "../../../../nonos_usb_hub/src/budget.rs"]
+mod budget;
+
+use budget::Budget;
 
 pub struct RootPorts {
     pub tries: [u8; 256],

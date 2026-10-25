@@ -26,8 +26,18 @@ pub fn log_security_status(handoff: &BootHandoffV1) {
     } else {
         serial::println(b"[NONOS] Secure Boot: DISABLED");
     }
-    log_entropy(handoff);
     serial::println(b"[NONOS] ========================");
+}
+
+/// Applies the bootloader's seed to the kernel CSPRNG. It runs from
+/// `init_core_systems`, before the boot nonce and the token signing key are
+/// drawn, so that on a CPU with no random instruction they are drawn from
+/// this seed rather than refused.
+pub fn apply_boot_seed() {
+    match crate::boot::handoff::get_handoff() {
+        Some(handoff) => log_entropy(handoff),
+        None => serial::println(b"[NONOS] RNG seed: no handoff"),
+    }
 }
 
 fn log_entropy(handoff: &BootHandoffV1) {

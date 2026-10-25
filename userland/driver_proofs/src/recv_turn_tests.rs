@@ -18,7 +18,7 @@
 //! wait that saw nothing, and sleep before going round after a receive that
 //! failed at once, so a loop whose inbox is gone never holds a core.
 
-use crate::bringup_policy::{recv_turn, RecvTurn, ERRNO_TIMEDOUT, RECV_PARK_MS};
+use crate::bringup_recv::{recv_turn, RecvTurn, ERRNO_TIMEDOUT, RECV_PARK_MS};
 
 #[test]
 fn a_message_is_served() {

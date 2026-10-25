@@ -1,0 +1,31 @@
+# NONOS userland: capsule_driver_tulip
+#
+# Userland DEC 21140 / 21143 ("tulip") driver capsule: Hyper-V's legacy
+# network adapter (a 21140A) and QEMU's `tulip` (a 21143). Drives the part
+# through the kernel hardware broker (MkDeviceList / MkDeviceClaim /
+# MkMmioMap / MkDmaMap) over its memory-mapped CSR window. Frames only; the
+# wire protocol is the one net.core speaks to every wired card.
+
+[package]
+name = "nonos_capsule_driver_tulip"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland DEC 21140/21143 (tulip) driver capsule"
+
+[[bin]]
+name = "driver_tulip"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true

@@ -74,7 +74,7 @@ impl Wire {
 
     /// Seal `body` as one application record of inner type `kind` and send it.
     pub(crate) fn send_record(&mut self, kind: u8, body: &[u8]) {
-        let app = self.app.expect("the handshake is done");
+        let app = self.app.clone().expect("the handshake is done");
         let record = crate::record_seal::seal(app.suite, &app.server_key, &app.server_iv, self.seq, kind, body)
             .expect("seal");
         self.seq += 1;

@@ -24,6 +24,9 @@ pub fn handle(
     req: &Request,
     tx: &mut [u8],
 ) -> Result<(), &'static str> {
-    ctx.focus.set(sender_pid);
+    // Input is the input router's to deliver, to the window the window
+    // manager focused; a client subscribing here must not make itself the
+    // focused one. Answered 0 for the clients that still send it.
+    let _ = ctx;
     respond::status(sender_pid, req, 0, tx)
 }

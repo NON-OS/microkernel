@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! A live boot's volume. The disk this boot came from carries the NONOS
 //! store but no data plan, so no volume of this machine's is on it: the
 //! volume is made in RAM instead, under a key drawn for this boot and kept
@@ -47,13 +46,16 @@ pub(super) fn open_session_volume() -> Result<(), VolumeError> {
         ));
         return Err(VolumeError::NoMemory);
     }
+    // The key first: with no randomness, no volume is started at all.
+    let mut key = [0u8; 32];
+    crate::crypto::rng::fill_random_bytes_secure(&mut key)
+        .map_err(|_| VolumeError::NoRandomness)?;
+    let mut uuid = [0u8; 16];
+    crate::crypto::rng::fill_random_bytes_secure(&mut uuid)
+        .map_err(|_| VolumeError::NoRandomness)?;
     let sectors = room / crate::fs::cryptoblock::SECTOR_BYTES as u64;
     ram::start(sectors).map_err(VolumeError::Device)?;
     set_window(0, sectors).map_err(VolumeError::Window)?;
-    let mut key = [0u8; 32];
-    crate::crypto::rng::fill_random_bytes(&mut key);
-    let mut uuid = [0u8; 16];
-    crate::crypto::rng::fill_random_bytes(&mut uuid);
     let mount = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
     say(&format!(
         "[DATA] live boot: this session's volume is in memory, up to {} MiB, gone at power off",

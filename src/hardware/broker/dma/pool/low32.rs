@@ -39,13 +39,6 @@ pub(super) struct Low32Pool {
 pub(super) static LOW32_POOL: Mutex<Low32Pool> =
     Mutex::new(Low32Pool { base: 0, pages: 0, used: [0; LOW32_WORDS] });
 
-/// The pool asked for by a boot path that does not size it from the memory
-/// map (the device tree path on aarch64): the 8 MiB every machine had before.
-#[cfg(not(target_arch = "x86_64"))]
-pub(crate) const fn low32_default_pages() -> usize {
-    super::sizing::LOW32_MIN_PAGES
-}
-
 /// Record the below-4GB physical range `[base, base + pages*PAGE)` as the DMA
 /// pool. The caller carves this from a low usable memory region the main
 /// allocator does not manage, so the two never hand out the same frame. `base`
@@ -62,9 +55,7 @@ pub(crate) fn init_low32_pool(base: u64, pages: usize) {
     }
     pool.base = base;
     pool.pages = pages;
-    crate::sys::serial::print(b"[DMA] low32 pool base=");
-    crate::sys::serial::print_hex(base);
-    crate::sys::serial::print(b" pages=");
+    crate::sys::serial::print(b"[DMA] low32 pool pages=");
     crate::sys::serial::print_dec(pages as u64);
     crate::sys::serial::print(b" floor=");
     crate::sys::serial::print_dec(low32_floor(pages) as u64);

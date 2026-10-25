@@ -18,6 +18,8 @@ mod bitmap;
 pub mod constants;
 pub mod error;
 mod types;
+mod usable_kept;
+mod usable_runs;
 mod usable_span;
 mod usage;
 
@@ -36,4 +38,5 @@ pub use allocator::{
 pub use constants::*;
 pub use error::{PhysAllocError, PhysAllocResult};
 pub use types::{AllocFlags, AllocatorState, Frame, PhysFrame, ZoneStats};
+pub use usable_kept::{keep as keep_ram, touches_usable};
 pub use usage::free_memory;

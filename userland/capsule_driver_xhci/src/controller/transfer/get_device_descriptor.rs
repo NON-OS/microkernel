@@ -46,7 +46,8 @@ pub fn get_device_descriptor(
         DEVICE_DESCRIPTOR_LEN,
     )
 }
-/// GET_DESCRIPTOR(Device) for the first `length` bytes into `out`.
+/// GET_DESCRIPTOR(Device) for the first `length` bytes into `out`; the
+/// bytes the device sent.
 pub fn read_device_descriptor(
     doorbell_base: u64,
     intr_base: u64,

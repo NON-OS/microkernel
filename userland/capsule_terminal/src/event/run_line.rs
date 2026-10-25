@@ -20,7 +20,7 @@ use crate::command;
 use crate::jobs;
 use crate::term::state::State;
 
-use super::on_enter::print_started;
+use super::print_started::print_started;
 
 /// Run each statement of `line` in turn, gated by `&&` and `||`, until one
 /// starts a foreground job or asks the terminal to exit.

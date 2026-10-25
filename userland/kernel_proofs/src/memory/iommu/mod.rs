@@ -18,3 +18,14 @@
 #[path = "../../../../../src/memory/iommu/error.rs"]
 mod error;
 pub use error::IommuError;
+#[cfg(test)]
+#[path = "../../../../../src/memory/iommu/dev_unconfined.rs"]
+pub mod dev_unconfined;
+
+/// The kernel's no-IOMMU posture is decided at boot; the host never takes it,
+/// so the pure rules are proven by their inputs (confine_posture::open).
+pub mod no_iommu {
+    pub fn holds() -> bool {
+        false
+    }
+}

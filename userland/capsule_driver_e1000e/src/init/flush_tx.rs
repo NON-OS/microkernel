@@ -22,7 +22,6 @@
 //! (empty, head and tail zero), so the descriptor goes in its slot 0.
 
 use core::ptr::write_volatile;
-use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::TX_CMD_IFCS;
 use crate::constants::regs::{REG_TCTL, REG_TDT};
@@ -44,7 +43,7 @@ pub fn run(d: &Driver) {
     // registers are 4-byte offsets in the broker-mapped BAR0 window.
     unsafe {
         write_volatile(d.tx.ring_user_va as *mut TxDesc, desc);
-        fence(Ordering::Release);
+        nonos_libc::dma_wmb();
         d.regs.modify(REG_TCTL, 0, TCTL_EN);
         d.regs.w32(REG_TDT, 1);
     }

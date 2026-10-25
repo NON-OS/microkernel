@@ -49,7 +49,7 @@ pub fn slot_dwords(place: &Place) -> [u32; 3] {
 }
 
 /// What Configure Hub tells the controller of a hub (xHCI 1.2 section
-/// 6.2.2, Linux `xhci_update_hub_device`).
+/// 6.2.2, as recalled, unverified).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct HubInfo {
     /// Downstream ports, 1 to `MAX_HUB_PORTS`.

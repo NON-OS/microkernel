@@ -21,8 +21,7 @@ pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
     super::app_choice::apply_profile();
     run_user_entry_proof();
-    #[cfg(feature = "nonos-attest-refusal-smoketest")]
-    crate::userspace::attest_refusal::run();
+    super::injected::attest_refusal();
     run_std_proof();
     run_ripgrep();
     run_sd();
@@ -38,8 +37,12 @@ pub fn run_init() -> ! {
     run_shield();
     run_shield_vectors();
     run_tokio_smoke();
-    run_flacprobe();
+    // Last, so every service it attacks is already up and owns its name.
+    #[cfg(feature = "nonos-capsule-attack")]
+    crate::userspace::capsule_attack::run();
     boot_log::ok("INIT", "Capsules spawned");
+    super::injected::panic();
+    super::injected::fault();
     run_tool_selftest();
     lower_init_priority();
     yield_after_spawns();
@@ -47,12 +50,17 @@ pub fn run_init() -> ! {
     init_loop()
 }
 
-#[cfg(feature = "nonos-user-entry-proof")]
+// proof_io's proof is a serial line, and its third step needs Debug, which
+// only a kernel built with capsule-serial-debug grants: without it the step
+// is refused for the capability and the capsule exits 3, a false failure. So
+// it runs only in an image that can print its line (kernel_proofs
+// proof_io_spawn).
+#[cfg(all(feature = "nonos-user-entry-proof", feature = "capsule-serial-debug"))]
 fn run_user_entry_proof() {
     let _ = crate::userspace::capsule_proof_io::spawn_proof_io_capsule();
 }
 
-#[cfg(not(feature = "nonos-user-entry-proof"))]
+#[cfg(not(all(feature = "nonos-user-entry-proof", feature = "capsule-serial-debug")))]
 fn run_user_entry_proof() {}
 
 #[cfg(feature = "nonos-capsule-std-proof")]
@@ -89,17 +97,6 @@ fn run_shield_vectors() {
 
 #[cfg(not(feature = "nonos-capsule-shield-vectors"))]
 fn run_shield_vectors() {}
-
-#[cfg(feature = "nonos-capsule-flacprobe")]
-fn run_flacprobe() {
-    match crate::userspace::capsule_flacprobe::spawn_flacprobe_capsule() {
-        Ok(()) => boot_log::ok("FLAC-PROBE", "capsule spawned"),
-        Err(_) => boot_log::error("FLAC-PROBE capsule spawn failed"),
-    }
-}
-
-#[cfg(not(feature = "nonos-capsule-flacprobe"))]
-fn run_flacprobe() {}
 
 #[cfg(feature = "nonos-capsule-ripgrep")]
 fn run_ripgrep() {
@@ -141,7 +138,7 @@ fn run_tool_selftest() {
     ];
     for (service, argv, label) in TESTS {
         boot_log::ok("TOOL-SELFTEST run", label);
-        if crate::userspace::tool_capsules::run_named(service, argv).is_err() {
+        if crate::userspace::tool_capsules::run_embedded_for_kernel(service, argv).is_err() {
             boot_log::error("tool self-test spawn failed");
         }
         // Let the scheduler run the tool to completion before the next one, so
@@ -184,6 +181,10 @@ fn yield_after_spawns() {
     }
 }
 
+#[cfg(feature = "capsule-serial-debug")]
 fn launch_final_payload() {
     let _ = crate::userspace::capsule_proof_io::spawn_proof_io_capsule();
 }
+
+#[cfg(not(feature = "capsule-serial-debug"))]
+fn launch_final_payload() {}

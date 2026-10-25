@@ -48,7 +48,7 @@ pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
     match look(&at) {
         None => return errno::fail(errno::ENOENT),
         Some((_, true)) => return errno::fail(errno::EISDIR),
-        Some(_) if synth::owns(&at) || key(&at).writable().is_err() => {
+        Some(_) if synth::refused_write(&at) || key(&at).writable().is_err() => {
             return errno::fail(errno::EROFS)
         }
         Some(_) => {}

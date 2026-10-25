@@ -14,10 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Backend {
-    VirtioBlk,
-    Ahci,
-    Nvme,
-    UsbMsc,
+use core::fmt;
+
+use super::disk::Disk;
+
+/// One disk the block layer may ask: its row, and which of the row's disks.
+#[derive(Clone, Copy)]
+pub struct Backend {
+    pub(super) disk: &'static Disk,
+    pub(super) key: u32,
+}
+
+impl Backend {
+    pub(super) const fn of(disk: &'static Disk, key: u32) -> Self {
+        Self { disk, key }
+    }
+
+    /// What the probe log calls this disk.
+    pub fn shown(&self) -> &'static str {
+        (self.disk.shown)(self.key)
+    }
+}
+
+impl PartialEq for Backend {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self.disk, other.disk) && self.key == other.key
+    }
+}
+
+impl Eq for Backend {}
+
+impl fmt::Debug for Backend {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.shown())
+    }
 }

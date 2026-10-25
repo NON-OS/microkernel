@@ -45,7 +45,7 @@ The flake derives four toolchains from the one pin:
 
 | toolchain | targets added | used for |
 |---|---|---|
-| `rust`, `tools/nix/pins.nix:10` | none | the kernel, the [capsules](../overview/glossary.md#capsule) and the host tools |
+| `rust`, `tools/nix/pins.nix:10` | none | the kernel, the [capsules](../overview/glossary-boot-root-record.md#capsule) and the host tools |
 | `rustUefi`, `tools/nix/pins.nix:13` | `x86_64-unknown-uefi` | the bootloader |
 | `rustShell`, `tools/nix/pins.nix:16` | `x86_64-unknown-uefi`, `wasm32-unknown-unknown` | the development shell and the STARK verifier for the web |
 | `rustMusl`, `tools/nix/pins.nix:19` | `x86_64-unknown-linux-musl` | the Rust programs of the Linux userland, such as ripgrep and fd |
@@ -81,7 +81,7 @@ CMake, Go and clang come from nixpkgs, and each version below is asserted when t
 | Go | 1.26.8 | the Go programs of the Linux userland, such as gojq |
 | clang | major version 21 | every C file built into a NONOS binary, such as the kernel's PQClean code |
 
-Python is 3.12, with the `cryptography` package for the scripts that need it (`pythonTools`, `tools/nix/pins.nix:77-81`). On Linux the software [TPM](../overview/glossary.md#tpm) is swtpm 0.9.0 on libtpms 0.9.6, the released pair the live TPM proofs run against; on macOS it is the swtpm nixpkgs builds (`swtpm`, `tools/nix/pins.nix:47-51`). QEMU and its UEFI firmware come from nixpkgs, and the firmware is QEMU's own build of edk2 (`firmware`, `tools/nix/shell.nix:9-10`).
+Python is 3.12, with the `cryptography` package for the scripts that need it (`pythonTools`, `tools/nix/pins.nix:77-81`). On Linux the software [TPM](../overview/glossary-stark-proof.md#tpm) is swtpm 0.9.0 on libtpms 0.9.6, the released pair the live TPM proofs run against; on macOS it is the swtpm nixpkgs builds (`swtpm`, `tools/nix/pins.nix:47-51`). QEMU and its UEFI firmware come from nixpkgs, and the firmware is QEMU's own build of edk2 (`firmware`, `tools/nix/shell.nix:9-10`).
 
 ## The development shell
 

@@ -42,8 +42,8 @@ descriptor delivered to the input runtime without kernel-resident input policy.
 
 ## Explicit non-goals today
 
-This slice does not drive an I2C keyboard or touch screen (both are released),
-keyboard layout mapping, touch filtering beyond the gesture decoder, or focus
+This slice does not drive an I2C keyboard (it is released), post more than a
+touchscreen's first finger, keyboard layout mapping, touch filtering beyond the gesture decoder, or focus
 routing. Suspend and resume (SET_POWER) are not here: they need a
 system-sleep path, in the kernel or a power capsule, to call this driver.
 

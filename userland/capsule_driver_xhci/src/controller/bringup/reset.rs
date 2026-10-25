@@ -20,9 +20,10 @@ use crate::error::{XhciError, XhciResult};
 use crate::regs::op::{usbcmd_read, usbcmd_write};
 
 const RESET_TIMEOUT_MS: u64 = 1_000;
-/// Linux's XHCI_INTEL_HOST quirk: an Intel controller touched within about
+/// An Intel controller touched within about
 /// a millisecond of HCRST can hang the system, so nothing reads it until
-/// this has passed. Every other controller only loses the millisecond.
+/// this has passed (as observed, unverified). Every other controller only
+/// loses the millisecond.
 const POST_HCRST_MS: u64 = 1;
 
 pub fn reset(op_base: u64) -> XhciResult<()> {

@@ -13,11 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-/// Write the 32-bit register at `addr`.
+/// Write the 32-bit register at `addr`, through libc's accessor so every
+/// earlier store to DMA memory is seen first.
 ///
 /// # Safety
 /// As for `mmio_read32`.
 pub(crate) unsafe fn mmio_write32(addr: u64, value: u32) {
-    // SAFETY: the caller's contract.
-    unsafe { core::ptr::write_volatile(addr as *mut u32, value) };
+    // SAFETY: the caller's contract; libc's access is ordered against
+    // DMA memory, so a doorbell follows the TRBs it announces.
+    unsafe { nonos_libc::mmio_write32(addr as usize, value) };
 }

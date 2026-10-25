@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What a route is called where a person reads it, and how long a reader on
- * it waits for the far end before it is told nothing has come yet.
+ * What a route is called where a person reads it. How long a reader on it
+ * waits for the far end is in patience.rs.
  */
 
 use crate::pick::Route;
@@ -40,22 +40,6 @@ impl Route {
             Route::Anon(_) => "Anyone",
             Route::Direct => "Direct",
             Route::Down(_) => "no route",
-        }
-    }
-
-    /*
-     * How long a read waits for the far end's next bytes. A socket read
-     * already waits on the wire, so Direct adds nothing and its callers keep
-     * the windows they had. Through an anonymity network an answer crosses
-     * several relays each way, the mixnet delaying every packet on purpose,
-     * so the first byte of a reply can be many seconds out and a reader that
-     * gave up after a direct socket's few would fail every request.
-     */
-    pub fn patience_ms(self) -> u64 {
-        match self {
-            Route::Nym(_) => 60_000,
-            Route::Anon(_) => 30_000,
-            Route::Direct | Route::Down(_) => 0,
         }
     }
 

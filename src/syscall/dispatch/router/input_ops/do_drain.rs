@@ -42,8 +42,19 @@ pub(super) fn do_drain(out_ptr: u64, max_events: u64) -> SyscallResult {
         crate::interrupts::timer::heartbeat::input_drain_blip();
     }
     let bytes = n * core::mem::size_of::<InputEvent>();
+    // SAFETY: eK@nonos.systems - `scratch` holds MAX_DRAIN events and
+    // n <= cap <= MAX_DRAIN, so the n events' bytes lie inside it;
+    // InputEvent is repr(C) with no padding (32 bytes).
     let src = unsafe { core::slice::from_raw_parts(scratch.as_ptr() as *const u8, bytes) };
-    if copy_to_user(out_ptr, src).is_err() {
+    let copied = copy_to_user(out_ptr, src);
+    // The keystrokes leave no copy on this kernel stack (K8).
+    for e in scratch[..n].iter_mut() {
+        // SAFETY: eK@nonos.systems - `e` is a valid, aligned, exclusive
+        // reference; volatile so the wipe of a dead buffer is kept.
+        unsafe { core::ptr::write_volatile(e, InputEvent::default()) };
+    }
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    if copied.is_err() {
         return errno(EFAULT);
     }
     crate::sys::bench::mark_once(&FIRST_INPUT_DRAIN, b"input_drain_first");

@@ -75,16 +75,10 @@ fn lookup(name: &[u8]) -> Option<(u32, u32)> {
     (found == 0 && port != 0 && pid != 0).then_some((port, pid))
 }
 
-/// The registered names of the network cards' drivers
-/// (`src/services/registry/held.rs`).
-const CARDS: [&[u8]; 6] = [
-    b"driver.virtio_net0",
-    b"driver.e1000_0",
-    b"driver.rtl8169_0",
-    b"driver.rtl8139_0",
-    b"driver.iwlwifi0",
-    b"driver.rtl8821ce0",
-];
+// The registered names of the network cards' drivers, from the kernel's own
+// table, so every card it holds (`src/services/registry/held.rs`) is tried.
+#[path = "../../../src/services/registry/nics.rs"]
+mod nics;
 
 /// Go round the gates by pid and straight to the card. Every endpoint a
 /// process serves is read from its one inbox, so a send by pid into
@@ -101,8 +95,8 @@ pub fn inbox_escape() {
         None => note(b"[ATTACK-NOTE] cap-escape: net.sockets is not running, its inbox was not tried\n"),
     }
     let mut tried = false;
-    for card in CARDS {
-        let Some((port, pid)) = lookup(card) else { continue };
+    for (card, _) in nics::NICS {
+        let Some((port, pid)) = lookup(card.as_bytes()) else { continue };
         tried = true;
         let rc = raw(MISD, [u64::from(port), junk.as_ptr() as u64, junk.len() as u64, 0, 0, 0]);
         verdict(b"cap-escape", b"a network card's driver by name, held to the stack, MkIpcSend", rc);
@@ -113,7 +107,8 @@ pub fn inbox_escape() {
         note(b"[ATTACK-NOTE] cap-escape: no network card's driver is running, its sends were not tried\n");
     }
     let mut tried = false;
-    for device in DEVICES {
+    let shown = displays::DISPLAYS.iter().map(|d| d.as_bytes());
+    for device in DEVICES.iter().copied().chain(shown) {
         let Some((port, pid)) = lookup(device) else { continue };
         tried = true;
         let rc = raw(MISD, [u64::from(port), junk.as_ptr() as u64, junk.len() as u64, 0, 0, 0]);
@@ -128,9 +123,9 @@ pub fn inbox_escape() {
 
 /// The other drivers held to their services: keyboards and pointers (read
 /// or typed into), the random source, USB storage, the USB and I2C
-/// controllers (raw transfers), the GPU (the whole screen) and the sound
-/// card.
-const DEVICES: [&[u8]; 9] = [
+/// controllers (raw transfers) and the sound card; the display drivers (the
+/// whole screen) come from the kernel's own list.
+const DEVICES: [&[u8]; 8] = [
     b"driver.ps2_kbd0",
     b"driver.usb_hid0",
     b"driver.i2c_hid0",
@@ -138,9 +133,13 @@ const DEVICES: [&[u8]; 9] = [
     b"driver.virtio_rng",
     b"driver.xhci0",
     b"driver.i2c_pci0",
-    b"driver.virtio_gpu0",
     b"driver.hda0",
 ];
+
+// Every display driver is held to the compositor alone (held.rs).
+#[allow(dead_code)] // the kernel's helpers this capsule does not call
+#[path = "../../../src/services/registry/displays.rs"]
+mod displays;
 
 /// Hand the kernel addresses this capsule does not own.
 pub fn foreign_memory() {

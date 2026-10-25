@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::indexing_slicing)]
-
 use crate::evm::EvmAccount;
 
 /// The first two accounts of the public test phrase, "abandon" eleven times then "about".

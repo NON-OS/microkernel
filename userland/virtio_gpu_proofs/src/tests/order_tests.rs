@@ -29,14 +29,20 @@ fn at(text: &str, needle: &str) -> usize {
 }
 
 // A bring-up that fails once the window is mapped resets the device, and
-// only then is the claim released. No grant is unmapped by the
-// driver anywhere: the release takes them once bus mastering is off.
+// only then is the claim released: the release takes every
+// grant once bus mastering is off. The driver unmaps a surface's pages
+// itself only where the host can no longer read them: one the host let go
+// of (`limbo`), one it never had (`surface`), and limbo after a reset
+// (`reshow`). Nowhere else.
 #[test]
-fn a_failed_bring_up_resets_the_device_and_never_unmaps_dma_itself() {
+fn a_failed_bring_up_resets_the_device_and_unmaps_only_what_the_host_let_go() {
     assert!(at(SEQUENCE, "live::run(") < at(SEQUENCE, "reset_until(&window.common"));
     assert!(at(SEQUENCE, "claimed(dev, claim_epoch)") < at(SEQUENCE, "mk_device_release("));
+    let allowed = ["limbo.rs", "surface.rs", "reshow.rs"];
     for (path, text) in sources("") {
-        assert!(!text.contains("mk_dma_unmap"), "{} unmaps DMA", path.display());
+        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        let unmaps = text.contains("mk_dma_unmap(");
+        assert!(!unmaps || allowed.contains(&name), "{} unmaps DMA", path.display());
     }
 }
 

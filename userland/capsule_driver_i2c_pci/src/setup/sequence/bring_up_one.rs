@@ -15,16 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use nonos_libc::mk_device_release;
 
+use super::brought_up::brought_up;
 use super::unbound::unbound;
-use super::unlisted_gate::unlisted_gate;
-use crate::discover::Found;
+use crate::discover::{claimed_base, Found};
 use crate::driver::Driver;
-use crate::init::{bring_up, BusSetup};
 use crate::regs::Regs;
 use crate::setup::{claim, mmio, pci};
 
-/// Claim, map and bring up one controller. No interrupt is bound: the
-/// engine polls, and a bound line would be authority the capsule never uses.
+/// Claim, map and bring up one controller, its window's base read back from
+/// its record now that it is held (brought_up.rs). No interrupt is bound:
+/// the engine polls, and a bound line would be authority the capsule never
+/// uses.
 pub(super) fn bring_up_one(dev: Found, standard_mode: bool) -> Result<Driver, &'static str> {
     let claim_epoch = claim::claim(dev.device_id)?;
     if !dev.is_acpi {
@@ -36,10 +37,8 @@ pub(super) fn bring_up_one(dev: Found, standard_mode: bool) -> Result<Driver, &'
      * aligned, until the claim is released, which ends every use of `regs`.
      */
     let regs = unsafe { Regs::new(mmio.user_va, mmio.length) };
-    unlisted_gate(&dev, regs).map_err(|e| release(dev.device_id, e))?;
-    let lpss_base = dev.is_lpss().then_some(dev.bar0_base);
-    let setup = BusSetup { clock_hz: dev.clock_hz, lpss_base, standard_mode };
-    let init = bring_up(regs, setup).map_err(|e| release(dev.device_id, e))?;
+    let (setup, init) = brought_up(&dev, claimed_base, regs, standard_mode)
+        .map_err(|e| release(dev.device_id, e))?;
     Ok(unbound(&dev, claim_epoch, mmio.grant_id, setup, init, regs))
 }
 

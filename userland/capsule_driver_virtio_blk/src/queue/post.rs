@@ -17,8 +17,6 @@
 //! Handing the device one request: the header, the chain, the available
 //! entry, then the index that makes them the device's.
 
-use core::sync::atomic::{fence, Ordering};
-
 use super::chain::HEAD;
 use super::data::wipe;
 use super::direction::Direction;
@@ -62,8 +60,9 @@ impl Queue {
         self.posted = self.posted.wrapping_add(1);
         // The device may read the entry, its chain and the header the moment
         // the index covers them: on a weakly ordered machine (the capsule
-        // ships for aarch64) they must be visible first.
-        fence(Ordering::Release);
+        // ships for aarch64) they must be visible to it first, which libc's
+        // barrier promises and a fence does not.
+        nonos_libc::dma_wmb();
         self.ring.w16(avail + AVAIL_IDX, self.posted);
         Ok(())
     }

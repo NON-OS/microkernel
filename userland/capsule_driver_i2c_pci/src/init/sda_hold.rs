@@ -17,8 +17,8 @@
 //! The SDA hold time, which the core needs as well as the SCL counts.
 
 /// IC_SDA_HOLD: SDA held 300 ns after SCL falls when transmitting (bits
-/// 15:0), and one input clock when receiving (bits 23:16), the receive hold
-/// Linux i2c_dw_set_sda_hold adds when firmware leaves it zero.
+/// 15:0), and one input clock when receiving (bits 23:16), so the receive
+/// hold is never zero (UM10204's hold minimum, as recalled, unverified).
 pub fn sda_hold(clk_hz: u32) -> u32 {
     const HOLD_NS: u64 = 300;
     let ticks = (clk_hz as u64).saturating_mul(HOLD_NS) / 1_000_000_000;

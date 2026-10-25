@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Which UEFI variables a boot added, changed or removed, and whether any of
+them is not the firmware's own.
+
+Reads two edk2 variable stores (OVMF_VARS.fd: a firmware volume of the NV
+data type holding an authenticated, formatted, healthy variable store) and
+lists every variable whose data or attributes differ. A change fails the run
+unless it is one of the exact (vendor GUID, name) pairs the firmware writes
+on its own, on any boot (FIRMWARE): the variable error flag, the iSCSI
+attempt order and attempts, memory type statistics, the per-NIC IPv4 and IPv6
+records named for the NIC's own address (--nic-mac), the DHCPv6 client id,
+the monotonic counter, and under the EFI global GUID the boot manager's
+Boot####, BootOrder, Key####, ConIn, ConOut, ErrOut, Lang, PlatformLang and
+Timeout. BootNext is not among them: it picks the next boot, and the
+firmware only ever deletes it.
+
+NONOS writes no variable. Any other change is a failure. A store that is not
+that format, or one after the boot that holds no variable at all (a booted
+firmware always writes some), is unreadable. Exit 0 pass, 1 fail, 2
+unreadable.
+"""
+
+import argparse
+import hashlib
+import json
+import re
+import struct
+import sys
+import uuid
+
+GLOBAL = "8be4df61-93ca-11d2-aa0d-00e098032b8c"
+NV_DATA_FV = "fff12b8d-7696-4c8b-a985-2747075b4f50"
+AUTH_STORE = "aaf32c78-947b-439a-a180-2e144ec37792"
+NIC = "{nic}"
+# Each vendor GUID with the names under it the firmware writes, exactly.
+FIRMWARE = {
+    "04b37fe8-f6ae-480b-bdd5-37d98c5e89aa": r"VarErrorFlag",
+    "4b47d616-a8d6-4552-9d44-ccad2e0f4cf9": r"InitialAttemptOrder",
+    "59324945-ec44-4c0d-b1cd-9db139df070c": r"Attempt [1-9][0-9]{0,2}",
+    "4c19049f-4137-4dd3-9c10-8b97a83ffdfa": r"MemoryTypeInformation",
+    "5b446ed1-e30b-4faa-871a-3654eca36080": NIC,
+    "937fe521-95ae-4d1a-8929-48bcd90ad31a": NIC,
+    "9fb9a8a1-2f4a-43a6-889c-d0f7b6c47ad5": r"ClientId",
+    "eb704011-1402-11d3-8e77-00a0c969723b": r"MTC",
+    GLOBAL: r"Boot[0-9A-F]{4}|BootOrder|Key[0-9A-F]{4}|ConIn|ConOut|ErrOut|Lang|PlatformLang|Timeout",
+}
+QEMU_NIC = "525400123456"
+VAR_ADDED = 0x3F
+HEADER = 60
+
+
+class Unreadable(Exception):
+    pass
+
+
+def variables(blob):
+    """{(guid, name): (attributes, sha256 of data)} of the live variables."""
+    if len(blob) < 0x40 or blob[0x28:0x2C] != b"_FVH":
+        raise Unreadable("not a firmware volume")
+    if str(uuid.UUID(bytes_le=bytes(blob[0x10:0x20]))) != NV_DATA_FV:
+        raise Unreadable("not a volume of NV variable data")
+    hl = struct.unpack_from("<H", blob, 0x30)[0]
+    if len(blob) < hl + 28 or str(uuid.UUID(bytes_le=bytes(blob[hl:hl + 16]))) != AUTH_STORE:
+        raise Unreadable("not an authenticated variable store")
+    if blob[hl + 20] != 0x5A or blob[hl + 21] != 0xFE:
+        raise Unreadable("the variable store is not formatted and healthy")
+    off = hl + 28
+    out = {}
+    while off + HEADER <= len(blob):
+        start, state, _, attr = struct.unpack_from("<HBBI", blob, off)
+        if start != 0x55AA:
+            break
+        nsz, dsz = struct.unpack_from("<II", blob, off + 36)
+        end = off + HEADER + nsz + dsz
+        if end > len(blob):
+            raise Unreadable(f"variable at {off:#x} runs past the store")
+        guid = str(uuid.UUID(bytes_le=bytes(blob[off + 44:off + 60])))
+        name = blob[off + HEADER:off + HEADER + nsz].decode("utf-16-le", "replace").rstrip("\0")
+        if state == VAR_ADDED:
+            out[(guid, name)] = (attr, hashlib.sha256(blob[off + HEADER + nsz:end]).hexdigest())
+        off = (end + 3) & ~3
+    return out
+
+
+def firmware_owned(guid, name, nic=QEMU_NIC):
+    rule = FIRMWARE.get(guid)
+    return rule is not None and re.fullmatch(rule.replace(NIC, re.escape(nic)), name) is not None
+
+
+def judge(before, after, nic=QEMU_NIC):
+    a, b = variables(before), variables(after)
+    if not b:
+        raise Unreadable("the store after the boot holds no variable")
+    changes = []
+    for key in sorted(set(a) | set(b)):
+        if a.get(key) == b.get(key):
+            continue
+        kind = "added" if key not in a else "removed" if key not in b else "changed"
+        changes.append({"change": kind, "guid": key[0], "name": key[1], "firmware": firmware_owned(*key, nic)})
+    foreign = [c for c in changes if not c["firmware"]]
+    return {"status": "fail" if foreign else "pass", "changes": changes, "foreign": foreign}
+
+
+def _store(entries, store=AUTH_STORE, fv_guid=NV_DATA_FV, health=0xFE):
+    """An edk2-shaped volume holding `entries`, for the self-test."""
+    fv = bytearray(0x48)
+    fv[0x10:0x20] = uuid.UUID(fv_guid).bytes_le
+    fv[0x28:0x2C] = b"_FVH"
+    struct.pack_into("<H", fv, 0x30, 0x48)
+    body = bytearray(28)
+    body[0:16] = uuid.UUID(store).bytes_le
+    body[20], body[21] = 0x5A, health
+    for guid, name, data in entries:
+        n = (name + "\0").encode("utf-16-le")
+        h = struct.pack("<HBBIQ16sIII", 0x55AA, VAR_ADDED, 0, 7, 0, bytes(16), 0, len(n), len(data))
+        h += uuid.UUID(guid).bytes_le
+        v = h + n + data
+        v += bytes((-len(v)) % 4)
+        body += v
+    return bytes(fv + body + b"\xff" * 64)
+
+
+def self_test():
+    empty = _store([])
+    fw_entries = [(GLOBAL, "BootOrder", b"\x00\x00"), (GLOBAL, "Boot0001", b"x"),
+                  ("eb704011-1402-11d3-8e77-00a0c969723b", "MTC", b"\x01\x00\x00\x00")]
+    fw = _store(fw_entries)
+    r = judge(empty, fw)
+    assert r["status"] == "pass" and len(r["changes"]) == 3, r
+    for guid, name in [(GLOBAL, "NonosSecurityPolicy"), ("12345678-1234-1234-1234-123456789abc", "Crash"),
+                       (GLOBAL, "BootOrderX")]:
+        r = judge(empty, _store([(guid, name, b"secret")]))
+        assert r["status"] == "fail" and r["foreign"][0]["name"] == name, (name, r)
+    r = judge(fw, _store([(GLOBAL, "BootOrder", b"\x01\x00"), (GLOBAL, "Boot0001", b"x"),
+                          ("eb704011-1402-11d3-8e77-00a0c969723b", "MTC", b"\x02\x00\x00\x00")]))
+    assert r["status"] == "pass" and {c["change"] for c in r["changes"]} == {"changed"}, r
+    # Each firmware rule is exact: a near name, another NIC's record, BootNext.
+    for guid, name in [("eb704011-1402-11d3-8e77-00a0c969723b", "MTCX"),
+                       ("5b446ed1-e30b-4faa-871a-3654eca36080", "001122334455"),
+                       ("59324945-ec44-4c0d-b1cd-9db139df070c", "Attempt 0"), (GLOBAL, "BootNext")]:
+        r = judge(empty, _store([(guid, name, b"x")]))
+        assert r["status"] == "fail", (name, r)
+    nics = _store([("5b446ed1-e30b-4faa-871a-3654eca36080", QEMU_NIC, b"x"),
+                   ("59324945-ec44-4c0d-b1cd-9db139df070c", "Attempt 8", b"x")])
+    assert judge(empty, nics)["status"] == "pass"
+    # Not a volume, too short, a header whose sizes run past the store, another
+    # volume type, another store format, a store not healthy, and an after-store
+    # holding no variable at all.
+    bad_fv = _store(fw_entries, fv_guid="12345678-1234-1234-1234-123456789abc")
+    for bad in (b"", b"\x00" * 0x40, empty[:0x64] + b"\xaa\x55" + b"\xff" * 80, bad_fv,
+                _store(fw_entries, store="ddcf3616-3275-4164-98b6-fe85707ffe7d"),
+                _store(fw_entries, health=0xFF)):
+        try:
+            judge(bad, fw)
+        except Unreadable:
+            continue
+        raise AssertionError(f"{bad[:8]!r} read as a store")
+    try:
+        judge(fw, empty)
+        raise AssertionError("an after-store with no variable was judged")
+    except Unreadable:
+        pass
+    print("nonos-efi-vars: self-test passed")
+    return 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("before", nargs="?")
+    ap.add_argument("after", nargs="?")
+    ap.add_argument("--nic-mac", default=QEMU_NIC, help="the NIC's address, which edk2 names its per-NIC records by")
+    ap.add_argument("--json", help="write the report here as well")
+    ap.add_argument("--self-test", action="store_true")
+    a = ap.parse_args(argv)
+    if a.self_test:
+        return self_test()
+    if not a.before or not a.after:
+        ap.error("two variable stores are required")
+    try:
+        with open(a.before, "rb") as f1, open(a.after, "rb") as f2:
+            report = judge(f1.read(), f2.read(), a.nic_mac.replace(":", "").upper())
+    except (OSError, Unreadable) as e:
+        print(f"[efi-vars] cannot read: {e}", file=sys.stderr)
+        return 2
+    for c in report["changes"]:
+        who = "firmware" if c["firmware"] else "FOREIGN"
+        print(f"[efi-vars] {c['change']:7} {who:8} {c['guid']} {c['name']}")
+    print(f"[efi-vars] {report['status'].upper()}: {len(report['changes'])} changed, {len(report['foreign'])} not the firmware's")
+    if a.json:
+        with open(a.json, "w") as fh:
+            json.dump(report, fh, indent=1)
+    return 1 if report["foreign"] else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

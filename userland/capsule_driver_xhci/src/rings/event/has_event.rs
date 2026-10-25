@@ -13,6 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Whether the controller has written the TRB at the dequeue pointer. The
+//! TRB is the controller's word in our memory, and its cycle bit is the
+//! last of it the controller writes (xHCI 1.2 section 4.9.4, as recalled,
+//! unverified): the control dword alone is read first, then a barrier, so
+//! no other field is read before the whole TRB is seen written.
+
 use super::state::EventRing;
 use crate::constants::{TRB_BYTES, TRB_CYCLE};
 use crate::dma::read_barrier;

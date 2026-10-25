@@ -15,6 +15,11 @@ pub mod desc;
 pub mod found;
 #[path = "../../nonos_usbnet/src/halt.rs"]
 pub mod halt;
+/// Every USB host and what a class driver keeps for each.
+#[path = "../../nonos_usbnet/src/hosts.rs"]
+pub mod hosts;
+#[path = "../../nonos_usbnet/src/hosts_first.rs"]
+mod hosts_first;
 #[path = "../../nonos_usbnet/src/nic.rs"]
 pub mod nic;
 #[path = "../../nonos_usbnet/src/nnet/mod.rs"]
@@ -32,19 +37,31 @@ pub mod station;
 #[path = "../../nonos_usbnet/src/xhci/mod.rs"]
 pub mod xhci;
 
+/// The hub's status endpoint reader, swept with the same configurations.
+#[cfg(test)]
+#[path = "../../nonos_usb_hub/src/status_endpoint.rs"]
+mod hub_status;
+/// Seeded configurations, the lies told in them, and the model.
+#[cfg(test)]
+mod sweep;
+
 /// A scripted device behind `Bus`, and the descriptors QEMU's usb-net shows.
 pub mod mock;
 pub mod qemu_usb_net;
 
 pub use bind::Bind;
-pub use bus::{Bus, Pipes};
+pub use bus::{Bus, Notify, Pipes};
 pub use found::Found;
 pub use nic::Nic;
 pub use setup::Setup;
 pub use station::{Station, Taken};
 
 #[cfg(test)]
+mod batch_tests;
+#[cfg(test)]
 mod book_tests;
+#[cfg(test)]
+mod changing_tests;
 #[cfg(test)]
 mod contract_tests;
 #[cfg(test)]
@@ -58,9 +75,17 @@ mod fake_xhci;
 #[cfg(test)]
 mod found_tests;
 #[cfg(test)]
+mod hosts_book_tests;
+#[cfg(test)]
+mod hosts_model;
+#[cfg(test)]
+mod hosts_tests;
+#[cfg(test)]
 mod manifest_tests;
 #[cfg(test)]
 mod nnet_tests;
+#[cfg(test)]
+mod reader_sweep_tests;
 #[cfg(test)]
 mod say_tests;
 #[cfg(test)]
@@ -69,6 +94,10 @@ mod scan_tests;
 mod station_tests;
 #[cfg(test)]
 mod stats_tests;
+#[cfg(test)]
+mod total_sweep_tests;
+#[cfg(test)]
+mod walk_sweep_tests;
 #[cfg(test)]
 mod xhci_client_tests;
 #[cfg(test)]

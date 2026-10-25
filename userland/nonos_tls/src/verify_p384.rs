@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn verify_p384(pk: &[u8; 97], sig: &[u8; 96], digest: &[u8; 48]) -> bool {
+pub fn verify_p384(
+    pk: &[u8; 97],
+    sig: &[u8; 96],
+    digest: &[u8; 48],
+) -> super::crypto_port::Checked {
     let mut body = [0u8; 241];
     body[..97].copy_from_slice(pk);
     body[97..193].copy_from_slice(sig);

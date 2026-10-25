@@ -1,9 +1,26 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The module path the aarch64 encoder reaches for its memory-type table,
 //! reconstructed so the encoder is included unmodified and stays bound to the
-//! same table MAIR_EL1 is built from.
+//! same table MAIR_EL1 is built from. The boot tables' own encoder,
+//! `PageAttributes`, comes with it, so both are held to one boundary.
 
-#[path = "../../../../../../src/arch/aarch64/mmu/attributes/kind.rs"]
-mod kind;
+// Restates the kernel's `attributes.rs`: a `#[path]` directory module needs
+// its children named here.
+#[path = "../../../../../../src/arch/aarch64/mmu/attributes"]
+pub mod attributes {
+    mod constructors;
+    mod descriptor;
+    mod kind;
+    mod page;
+    mod pte;
 
-pub use kind::MemoryType;
+    pub use kind::MemoryType;
+    pub use page::PageAttributes;
+    pub use pte::{PTE_AP_RW_ALL, PTE_GP, PTE_NG, PTE_PXN, PTE_UXN};
+}
+
+pub use attributes::MemoryType;
+
+// The TLBI-by-address operand, included unmodified; it has no dependencies.
+#[path = "../../../../../../src/arch/aarch64/mmu/tlbi_operand.rs"]
+pub mod tlbi_operand;

@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::store::market::{Readiness, GATES};
+use crate::store::reasons::mark;
 use crate::store::theme::{DANGER, MUTED, OK};
 use crate::store::verdict::Verdict;
 
@@ -37,8 +38,8 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness) -> i32 {
         text::line(fb, x, top, b"in this image; nothing to fetch", MUTED, SMALL_PX);
         top += 24;
     }
-    for (label, pass) in GATES.iter().zip(r.gates.iter()) {
-        let (mark, hue): (&[u8], u32) = if *pass { (b"pass", OK) } else { (b"fail", DANGER) };
+    for (i, (label, pass)) in GATES.iter().zip(r.gates.iter()).enumerate() {
+        let (mark, hue): (&[u8], u32) = (mark(i, *pass, r.bond), if *pass { OK } else { DANGER });
         text::line(fb, x, top, label, MUTED, SMALL_PX);
         text::line(fb, x + MARK_X, top, mark, hue, SMALL_PX);
         top += GATE_ROW_H as i32;

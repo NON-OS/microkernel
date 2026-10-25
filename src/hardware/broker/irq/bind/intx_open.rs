@@ -16,8 +16,8 @@
 
 //! Making sure the PCI function behind a bound line will assert it. Firmware
 //! can leave a function with INTx Disable set, or with MSI or MSI-X on, and
-//! either keeps the line silent; Linux clears the first in
-//! do_pci_enable_device, and quiet.rs the others.
+//! either keeps the line silent (PCI 3.0, 6.2.2 and 6.8): this clears the
+//! first, and quiet.rs the others.
 
 use super::quiet::{msi_off, msix_off};
 use crate::drivers::pci::config::ConfigSpace;
@@ -32,11 +32,8 @@ pub(super) fn open_intx(device_id: u64) {
     let cfg = ConfigSpace::new(handle.address);
     msix_off(&handle);
     msi_off(&handle);
-    if let Ok(cmd) = cfg.read16(PCI_COMMAND) {
-        if cmd & CMD_INTERRUPT_DISABLE != 0
-            && cfg.write16(PCI_COMMAND, cmd & !CMD_INTERRUPT_DISABLE).is_ok()
-        {
-            crate::log::info!("[IRQ] {} INTx was disabled, enabled", handle.address);
-        }
+    let was = cfg.read16(PCI_COMMAND).is_ok_and(|c| c & CMD_INTERRUPT_DISABLE != 0);
+    if was && cfg.update_command(|c| c & !CMD_INTERRUPT_DISABLE).is_ok() {
+        crate::log::info!("[IRQ] {} INTx was disabled, enabled", handle.address);
     }
 }

@@ -56,7 +56,17 @@ pub(super) fn build(
         leaves_seen: 0,
         imported: key.is_some(),
         next_public: key.is_none().then(|| next_public(seed, book.count)).flatten(),
+        ahead: key.map_or_else(|| ahead(paths, seed, book.count), |_| Vec::new()),
     })
+}
+
+/// The addresses mode 1 of OP_FRESH_ADDRESS may hand out (v1.4.52).
+fn ahead(paths: &Paths, seed: &Seed, count: u32) -> Vec<(u32, [u8; 20])> {
+    let highest = crate::wallet::fresh::highest_handed(&paths.account);
+    crate::wallet::fresh::derive_ahead(
+        seed.bytes(),
+        crate::wallet::fresh::first_once(count, highest),
+    )
 }
 
 /// The public address of account `index`, next after the last shown.

@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for reserved DMA ranges (the maintainers' ruling):
+# admission against reserved memory, other reserved ranges and granted
+# IOVAs; IOVA placement that steps over every reserved range; a device's
+# ranges out of the tree's entries; and the order a claim keeps. The
+# kernel's own source is included via #[path].
+[package]
+name = "reserved_dma_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

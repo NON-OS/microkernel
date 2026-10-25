@@ -18,28 +18,24 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 static NONCE_COUNTER: AtomicU64 = AtomicU64::new(1);
 
+/// A nonce that only has to be unique: random when the RNG answers, and
+/// otherwise the next value of a counter, which is unique by itself.
 #[inline]
 pub fn default_nonce() -> u64 {
     let mut buf = [0u8; 8];
-    if crate::crypto::random_api::get_bytes_secure(&mut buf).is_ok() {
-        u64::from_le_bytes(buf)
-    } else {
-        let timestamp = crate::time::timestamp_millis();
-        let counter = NONCE_COUNTER.fetch_add(1, Ordering::SeqCst);
-        timestamp.wrapping_mul(0x9E3779B97F4A7C15) ^ counter
+    match crate::crypto::random_api::get_bytes_secure(&mut buf) {
+        Ok(()) => u64::from_le_bytes(buf),
+        Err(_) => NONCE_COUNTER.fetch_add(1, Ordering::SeqCst),
     }
 }
 
+/// A nonce that must not be guessed: from the RNG, or an error. A failed
+/// draw is never handed out as sixteen zero bytes.
 #[inline]
-pub(crate) fn secure_nonce_128() -> [u8; 16] {
+pub(crate) fn secure_nonce_128() -> Result<[u8; 16], &'static str> {
     let mut buf = [0u8; 16];
-    let _ = crate::crypto::random_api::get_bytes_secure(&mut buf);
-    buf
-}
-
-#[inline]
-pub fn reset_nonce_counter() {
-    NONCE_COUNTER.store(1, Ordering::SeqCst);
+    crate::crypto::random_api::get_bytes_secure(&mut buf).map_err(|_| "no randomness")?;
+    Ok(buf)
 }
 
 #[inline]

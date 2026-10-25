@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod assign;
+mod assign_named;
 mod domain;
+mod firmware;
 mod init;
-mod limit;
 mod message;
+mod namespace_say;
+mod rmrr_say;
 mod run;
+pub mod start;
 mod verdict;
 
 pub use init::init;

@@ -9,7 +9,12 @@
  *   264    spsr_el1
  *   272    kernel_sp
  *
- * IRQs masked on entry. eret restores SPSR.DAIF for EL0. */
+ * IRQs masked on entry, and masked again here: an exception between the
+ * ELR_EL1 write and the eret would overwrite it. eret restores SPSR.DAIF
+ * for EL0. */
+
+#include "epd1.h"
+#include "percpu.h"
 
 .section .text.resume_user, "ax", %progbits
 
@@ -17,6 +22,8 @@
 .globl aarch64_resume_user
 .type  aarch64_resume_user, %function
 aarch64_resume_user:
+    hint    #34                         /* BTI c: a landing pad (FEAT_BTI) */
+    msr     daifset, #0xf
     /* sysregs first; x9 is our scratch until we load gprs[9] near the end. */
     ldr     x9,  [x0, #248]
     msr     sp_el0, x9
@@ -27,6 +34,17 @@ aarch64_resume_user:
     ldr     x9,  [x0, #272]
     mov     sp,  x9
 
+    /* The process's IA key, which the switch put in this CPU's per-CPU
+     * block (security::pac), before x10 and x11 are loaded; none where the
+     * block says keys are not switched (asm/percpu.h). */
+    mrs     x9, tpidr_el1
+    cbz     x9, 1f
+    ldr     x10, [x9, #PERCPU_PAC_ON]
+    cbz     x10, 1f
+    ldp     x10, x11, [x9, #PERCPU_PAC_USER]
+    msr     S3_0_C2_C1_0, x10           /* APIAKeyLo_EL1 */
+    msr     S3_0_C2_C1_1, x11           /* APIAKeyHi_EL1 */
+1:
     /* x2..x7 from gprs[2..7]. */
     ldp     x2,  x3,  [x0, #16]
     ldp     x4,  x5,  [x0, #32]
@@ -57,6 +75,6 @@ aarch64_resume_user:
     ldp     x0,  x1,  [x0, #0]
 
     isb
-    eret
+    EXIT_TO_EL0
 
 .size aarch64_resume_user, . - aarch64_resume_user

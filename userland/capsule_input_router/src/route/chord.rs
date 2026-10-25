@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one key chord no window may take: Ctrl+Alt+Esc. However a window
+//! The key chords no window may take. Ctrl+Alt+Esc: However a window
 //! behaves (a full screen game, a hung app that never draws again, one that
 //! swallows every key), the chord goes to the desktop shell, which brings
 //! Process Manager forward to end it. It is held before focus is asked for,
 //! so a window that has focus never sees it.
+//!
+//! Ctrl+Alt+Delete is the secure attention chord: it goes to the shell alone,
+//! ahead of any grab or hold, so whatever is on screen a user can bring up
+//! the lock screen or a prompt's real owner knowing no window answered it.
 
 /// nonos_libc INPUT_KIND_KEY_DOWN.
 const KEY_DOWN: u16 = 0;
 /// The escape key's code.
 const KEY_ESC: u32 = 0x1B;
+/// The delete key's code (capsule_driver_ps2_input keymap/set1/keycodes.rs
+/// KEYCODE_DEL; app_skeleton input/keys.rs KEY_DELETE).
+pub const KEY_DELETE: u32 = 0x120A;
 /// The modifier bits a key event carries in its flags (app_skeleton
 /// input/modifiers.rs MOD_CTRL and MOD_ALT).
 const MOD_CTRL: u16 = 1 << 1;
@@ -33,4 +40,9 @@ const MOD_ALT: u16 = 1 << 2;
 /// modifier held with it does not stop it being the chord.
 pub fn is_reserved_chord(kind: u16, code: u32, flags: u16) -> bool {
     kind == KEY_DOWN && code == KEY_ESC && flags & MOD_CTRL != 0 && flags & MOD_ALT != 0
+}
+
+/// Whether a key event is the press of the secure attention chord.
+pub fn is_secure_attention(kind: u16, code: u32, flags: u16) -> bool {
+    kind == KEY_DOWN && code == KEY_DELETE && flags & MOD_CTRL != 0 && flags & MOD_ALT != 0
 }

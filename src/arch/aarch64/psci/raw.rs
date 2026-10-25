@@ -14,32 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::arch::asm;
-
-use super::method::PsciMethod;
+use super::error::PsciError;
 use super::state::method;
+use crate::arch::aarch64::smccc::call;
 
+/// A PSCI call through `smccc::call`, which declares every register a
+/// firmware may change. PSCI 0.2 firmware speaks SMCCC 1.0, so X1-X17 may
+/// come back changed, not only X0.
 pub fn psci_call(func: u32, arg0: u64, arg1: u64, arg2: u64) -> i64 {
     match method() {
-        PsciMethod::Smc => call_smc(func, arg0, arg1, arg2),
-        PsciMethod::Hvc => call_hvc(func, arg0, arg1, arg2),
+        Some(via) => call(via, func, [arg0, arg1, arg2]),
+        // No firmware to ask: answered as PSCI answers a call it lacks.
+        None => i64::from(PsciError::NotSupported.code()),
     }
-}
-
-fn call_smc(func: u32, arg0: u64, arg1: u64, arg2: u64) -> i64 {
-    let ret: i64;
-    unsafe {
-        asm!("smc #0", inout("x0") func as u64 => ret, in("x1") arg0, in("x2") arg1, in("x3") arg2, options(nomem, nostack));
-    }
-    ret
-}
-
-fn call_hvc(func: u32, arg0: u64, arg1: u64, arg2: u64) -> i64 {
-    let ret: i64;
-    unsafe {
-        asm!("hvc #0", inout("x0") func as u64 => ret, in("x1") arg0, in("x2") arg1, in("x3") arg2, options(nomem, nostack));
-    }
-    ret
 }
 
 pub fn psci_call0(func: u32) -> i64 {

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What a CHECK CONDITION left: the sense, asked at once, which also clears
-//! it.
+//! it, read from the bytes the device sent and no further.
 
-use super::bot::command;
+use super::transport::command;
 use super::types::{Data, Disk};
 use crate::protocol::E_IO;
 use crate::scsi::{parse_sense, request_sense, Sense};
@@ -31,16 +31,18 @@ const MEDIUM_CHANGED: u8 = 0x28;
 pub(super) const MEDIUM_NOT_PRESENT: u8 = 0x3A;
 
 /// The sense of the last CHECK CONDITION, or None when the device answered
-/// with none that reads; asking also clears it. An error is the transport's,
-/// and counts as one (scan/pace.rs): a sense lost on the bus was taken for
-/// a unit not yet ready, and never ended the asking. What it says of the
-/// medium is kept in `state` until the scanner asks (`Said`): a UNIT
-/// ATTENTION but no medium, or a sense that does not read, may be a change,
-/// as may one lost on the bus (recover.rs `lost`).
+/// with none that reads; asking also clears it. Only the bytes the device
+/// sent are sense: the rest of the buffer is not its answer, and a short one
+/// must not read as a sense key of 0. An error is the transport's, and
+/// counts as one (scan/pace.rs). What it says of the medium is kept in
+/// `state` until the scanner asks (`Said`): a UNIT ATTENTION but no medium,
+/// or a sense that does not read, may be a change, as may one lost on the
+/// bus (recover.rs `lost`).
 pub(super) fn sense(disk: &Disk, state: &mut State) -> Result<Option<Sense>, i32> {
     let mut raw = [0u8; SENSE_LEN as usize];
-    let (status, _) = command(disk, state, request_sense(SENSE_LEN), Data::In(&mut raw))?;
-    let said = if status == 0 { parse_sense(&raw) } else { None };
+    let (status, residue) = command(disk, state, request_sense(SENSE_LEN), Data::In(&mut raw))?;
+    let sent = (SENSE_LEN as usize).saturating_sub(residue as usize);
+    let said = if status == 0 { parse_sense(&raw[..sent]) } else { None };
     state.heard(match said.map(|s| (s.sense_key, s.asc)) {
         Some((UNIT_ATTENTION, MEDIUM_CHANGED)) => Said::Changed,
         Some((UNIT_ATTENTION, MEDIUM_NOT_PRESENT)) => Said::Nothing,

@@ -4,7 +4,7 @@ How to move an installed NONOS to a newer release, what carries over, and what t
 
 ## There is no in-place update in 0.9.2
 
-NONOS 0.9.2 has no update service and no A/B system slots. The installer writes a whole disk from the image that is running, and the Marketplace installs programs into the [store](../overview/glossary.md#store), never the system itself. The kernel's boot slots feed the anonymous device proof, and are not an update mechanism.
+NONOS 0.9.2 has no update service and no A/B system slots. The installer writes a whole disk from the image that is running, and the Marketplace installs programs into the [store](../overview/glossary-linux-personality.md#store), never the system itself. The kernel's boot slots feed the anonymous device proof, and are not an update mechanism.
 
 To update, you install the newer release over the old one.
 
@@ -20,13 +20,13 @@ An update from one release to another is not tested in this release.
 
 ## What carries over
 
-Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store, because the kernel takes a USB stick that carries NONOS before any internal disk. It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries. The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary.md#data-volume) are erased with the disk.
+Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store, because the kernel takes a USB stick that carries NONOS before any internal disk. It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries. The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary-claim-epoch.md#data-volume) are erased with the disk.
 
 NONOS 0.9.2 has no way to copy files off the old disk first: the file service keeps files in memory and in the NONOS store, and mounts no other file system, and the USB storage driver serves sectors, not files.
 
 ## The rollback floor
 
-Every signed kernel carries a [rollback index](../overview/glossary.md#rollback-index): the [seal](../overview/glossary.md#seal) signs it in from `rollback_index` in `nonos.toml`, 1 by default, which that file says to raise only for a security release. Each verified boot raises the machine's [TPM](../overview/glossary.md#tpm) [rollback floor](../overview/glossary.md#rollback-floor) to the index of the kernel it just booted, and a kernel whose index is below the floor is refused on every entry, under the title `This kernel is older than allowed`.
+Every signed kernel carries a [rollback index](../overview/glossary-rollback-index.md#rollback-index): the [seal](../overview/glossary-rollback-index.md#seal) signs it in from `rollback_index` in `nonos.toml`, 1 by default, which that file says to raise only for a security release. Each verified boot raises the machine's [TPM](../overview/glossary-stark-proof.md#tpm) [rollback floor](../overview/glossary-peer-list.md#rollback-floor) to the index of the kernel it just booted, and a kernel whose index is below the floor is refused on every entry, under the title `This kernel is older than allowed`.
 
 So on a machine with a TPM:
 
@@ -37,7 +37,7 @@ Without a TPM the loader keeps no floor. Hardened and Air-Gapped then refuse to 
 
 ## Firmware changes and the data volume
 
-The data volume's key and the key that seals remembered Wi-Fi networks are derived by the TPM under the boot [PCRs](../overview/glossary.md#pcr) 0, 4, 7 and 9: the firmware code, the boot manager the firmware measured, the Secure Boot policy, and the kernel the loader measured. Nothing of the key is stored, so a change to any of these gives another key:
+The data volume's key and the key that seals remembered Wi-Fi networks are derived by the TPM under the boot [PCRs](../overview/glossary-linux-personality.md#pcr) 0, 4, 7 and 9: the firmware code, the boot manager the firmware measured, the Secure Boot policy, and the kernel the loader measured. Nothing of the key is stored, so a change to any of these gives another key:
 
 - after a firmware update, or after turning Secure Boot on or off, the installed data volume stays closed and remembered networks read `Sealed under a different boot state`;
 - a newer kernel opens no volume an older one made, by design.

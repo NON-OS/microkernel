@@ -23,6 +23,8 @@ mod host;
 pub use host::{clock, dma, handles, log, regs};
 
 #[cfg(test)]
+mod cc_tests;
+#[cfg(test)]
 mod completion_tests;
 #[cfg(test)]
 mod doorbell_tests;
@@ -44,6 +46,8 @@ pub mod medium_rule;
 mod medium_tests;
 #[cfg(test)]
 mod nvme_tests;
+#[cfg(test)]
+mod power_off_tests;
 #[cfg(test)]
 mod ready_tests;
 #[cfg(test)]

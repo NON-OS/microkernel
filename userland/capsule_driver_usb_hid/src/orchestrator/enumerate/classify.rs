@@ -15,44 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading an addressed device's configuration and binding its HID
-//! interfaces, or bringing it up as a hub. An interface is bound only with
-//! state that reads its reports; a device with none is no HID device here.
+//! interfaces. An interface is bound only with state that reads its
+//! reports; a device with none is no HID device here. A hub is
+//! driver.usb_hub0's: its slot is given back, and the devices below it come
+//! back as virtual ports this driver claims as it claims root ports.
 
 use alloc::vec::Vec;
 
 use crate::descriptors::{configuration_value, hid_bindings, is_hub};
-use crate::hub::Place;
-use crate::xhci::{control_transfer, Setup, MAX_DESCRIPTOR_LEN};
+use crate::orchestrator::place::Place;
+use crate::xhci::{claim_interface, control_transfer, Setup, MAX_DESCRIPTOR_LEN};
 
 use super::super::binding::configure_binding;
 use super::super::device_for::device_for;
-use super::attach_hub::attach_hub;
 use super::devices::Devices;
 use super::read_configuration::read_configuration;
 use super::types::Outcome;
 
 const SET_CONFIGURATION: u8 = 0x09;
 
+/// Bind `slot`'s HID interfaces, at `place`, onto `devs`.
 pub(super) fn classify(xhci_port: u32, slot: u8, place: Place, devs: &mut Devices) -> Outcome {
     let mut desc = [0u8; MAX_DESCRIPTOR_LEN];
     let Some(len) = read_configuration(xhci_port, slot, &mut desc) else {
         return Outcome::Failed;
     };
     let raw = &desc[..len];
-    let hub = is_hub(raw);
     let bindings = match hid_bindings(raw) {
-        _ if hub => Vec::new(),
+        _ if is_hub(raw) => return Outcome::NotHid,
         Ok(b) if !b.is_empty() => b,
         _ => return Outcome::NotHid,
     };
     let value = configuration_value(raw).unwrap_or(1) as u16;
-    let mut dummy = [0u8; 0];
     let setup = Setup::new(0x00, SET_CONFIGURATION, value, 0, 0);
-    if control_transfer(xhci_port, slot, setup, &mut dummy).is_err() {
+    if control_transfer(xhci_port, slot, setup, &mut []).is_err() {
         return Outcome::Failed;
-    }
-    if hub {
-        return attach_hub(xhci_port, slot, place, raw, devs);
     }
     // The report descriptors are read once the configuration is set.
     let found: Vec<_> =
@@ -61,7 +58,11 @@ pub(super) fn classify(xhci_port: u32, slot: u8, place: Place, devs: &mut Device
         return Outcome::NotHid;
     }
     for (binding, dev) in found {
+        let before = devs.eps.len();
         configure_binding(xhci_port, slot, place, binding, dev, &mut devs.eps);
+        if devs.eps.len() > before {
+            claim_interface(xhci_port, slot, place.root_port, binding.interface_number);
+        }
     }
     Outcome::Bound
 }
