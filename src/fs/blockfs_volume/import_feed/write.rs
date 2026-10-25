@@ -30,7 +30,7 @@ use crate::fs::cryptoblock::flush_held;
 
 /* Seal `chunk` after what `pid`'s stream holds. How far it has come. */
 pub fn stream_write(pid: u32, chunk: &[u8]) -> Result<u64, StreamError> {
-    let mut live = LIVE.lock();
+    let mut live = crate::smp::lock_responsive(&LIVE);
     let l = match live.as_mut() {
         Some(l) if l.pid == pid => l,
         _ => return Err(StreamError::NotBegun),
@@ -53,7 +53,7 @@ pub fn stream_write(pid: u32, chunk: &[u8]) -> Result<u64, StreamError> {
 fn feed(l: &mut Live, chunk: &[u8]) -> Result<u64, StreamError> {
     let before = l.stream.size();
     {
-        let mut guard = VOLUME.write();
+        let mut guard = crate::smp::write_responsive(&VOLUME);
         let s = guard.as_mut().ok_or(VolumeError::NotMounted)?;
         l.stream.append(&s.key, &mut s.mount, chunk).map_err(VolumeError::BlockFs)?;
         /*

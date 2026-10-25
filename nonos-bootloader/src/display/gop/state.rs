@@ -30,18 +30,10 @@ pub static FB_PHYS_MM: AtomicU32 = AtomicU32::new(0);
 pub static FB_SOURCE: AtomicU8 = AtomicU8::new(0);
 // Why no framebuffer was latched, one of the NO_FB_* values.
 pub static FB_FAILURE: AtomicU8 = AtomicU8::new(NO_FB_NO_GOP);
+// The bits per pixel of the deepest PixelBitMask mode refused, or 0.
+pub static FB_BITMASK_BPP: AtomicU8 = AtomicU8::new(0);
 
-/// No handle carries the Graphics Output Protocol at all.
-pub const NO_FB_NO_GOP: u8 = 0;
-/// Every GOP mode is PixelBltOnly: the device has no linear framebuffer
-/// the CPU can address, only the firmware's Blt() call, which is gone
-/// after ExitBootServices.
-pub const NO_FB_BLT_ONLY: u8 = 1;
-/// Linear modes exist but only in a PixelBitMask layout other than 32 bit
-/// RGB or BGR (16 bpp, 10 bit channels), which nothing here writes.
-pub const NO_FB_BITMASK: u8 = 2;
-/// The firmware reported a framebuffer smaller than the mode, or at 0.
-pub const NO_FB_BAD_GEOMETRY: u8 = 3;
+pub use super::refusal_word::{NO_FB_BAD_GEOMETRY, NO_FB_BITMASK, NO_FB_BLT_ONLY, NO_FB_NO_GOP};
 
 #[inline]
 pub fn is_initialized() -> bool {
@@ -105,6 +97,13 @@ pub fn latched_linear_fb() -> Option<LatchedFb> {
         bgr: FB_FORMAT_BGR.load(Ordering::Acquire),
         phys_mm: FB_PHYS_MM.load(Ordering::Acquire),
     })
+}
+
+/// Why no framebuffer was latched, as the word the handoff carries it in
+/// (refusal_word.rs).
+pub fn refusal() -> u32 {
+    let code = FB_FAILURE.load(Ordering::Acquire);
+    super::refusal_word::refusal_word(code, FB_BITMASK_BPP.load(Ordering::Acquire))
 }
 
 pub fn shutdown_for_exit() {

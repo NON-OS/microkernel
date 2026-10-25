@@ -18,37 +18,35 @@
 
 use alloc::vec::Vec;
 
-use super::logo::LOGO_W;
+use super::emblem_shape::EMBLEM_W;
 
-/// Lay `left` beside `right`, padding the left column to `LOGO_W + gap`
-/// columns and running to whichever side is longer.
+/// A row twice: as written to a file, and as the screen shows it.
+pub type Row = (Vec<u8>, Vec<u8>);
+
+/// Lay the emblem's rows `left` beside `right`, the left column padded to
+/// `EMBLEM_W + gap` cells, running to whichever side is longer.
 ///
-/// The padding counts characters, not bytes: the emblem rows are box-drawing
-/// glyphs, so a byte-based pad would indent the info column by three times
-/// the intended amount. Trailing blanks are dropped so a row with nothing on
-/// its right never carries invisible width into the scrollback.
-pub fn two_column(left: &[&str], right: &[Vec<u8>], gap: usize) -> Vec<Vec<u8>> {
-    let width = LOGO_W + gap;
+/// The padding counts characters, not bytes: the emblem's blocks are three
+/// bytes each, so a byte-based pad would push the info column off to the
+/// right. Trailing blanks are dropped from the plain row.
+pub fn two_column(left: &[Row], right: &[Row], gap: usize) -> Vec<Row> {
+    let width = EMBLEM_W + gap;
     let rows = core::cmp::max(left.len(), right.len());
     let mut out = Vec::with_capacity(rows);
     for index in 0..rows {
-        let mut line = Vec::with_capacity(width + 48);
-        let mut cols = 0;
-        if let Some(art) = left.get(index) {
-            line.extend_from_slice(art.as_bytes());
-            cols = art.chars().count();
+        let (mut plain, mut styled) = left.get(index).cloned().unwrap_or_default();
+        let cells = core::str::from_utf8(&plain).map_or(plain.len(), |p| p.chars().count());
+        let pad = width.saturating_sub(cells);
+        plain.resize(plain.len() + pad, b' ');
+        styled.resize(styled.len() + pad, b' ');
+        if let Some((p, s)) = right.get(index) {
+            plain.extend_from_slice(p);
+            styled.extend_from_slice(s);
         }
-        while cols < width {
-            line.push(b' ');
-            cols += 1;
+        while plain.last() == Some(&b' ') {
+            plain.pop();
         }
-        if let Some(info) = right.get(index) {
-            line.extend_from_slice(info);
-        }
-        while line.last() == Some(&b' ') {
-            line.pop();
-        }
-        out.push(line);
+        out.push((plain, styled));
     }
     out
 }
