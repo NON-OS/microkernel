@@ -25,3 +25,11 @@ pub(crate) const SLOW_MS: u64 = 5_000;
 pub(crate) const fn said(status: i32, answered_ms: u64) -> bool {
     status != 0 || answered_ms >= SLOW_MS
 }
+
+/// Whether a request with no answer is said: the kernel's wait for it ran out
+/// (`timed_out`), or it took SLOW_MS or longer to fail. A driver that is not
+/// running, or a request from before its restart, is turned away at once, as
+/// designed, and says nothing about the machine.
+pub(crate) const fn lost_said(timed_out: bool, answered_ms: u64) -> bool {
+    timed_out || answered_ms >= SLOW_MS
+}
