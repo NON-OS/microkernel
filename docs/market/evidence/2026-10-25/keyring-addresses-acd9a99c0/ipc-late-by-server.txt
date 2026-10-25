@@ -1,0 +1,3 @@
+     59 ipc.call late driver.virtio_net0
+      6 ipc.call late driver.virtio_gpu0
+      1 ipc.call late wallpaper
