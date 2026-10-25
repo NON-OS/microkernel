@@ -56,3 +56,27 @@ fn host_recognition() {
     assert_eq!(host_kind("example.com:0"), None);
     assert_eq!(encode_query("a b&c"), "a+b%26c");
 }
+
+#[test]
+fn a_typed_address_with_a_scheme_or_a_port_is_gone_to_never_searched() {
+    for typed in ["file:///notes.txt", "ftp://files.example.org/a", "http://10.0.2.2:9/notes.txt"] {
+        assert_eq!(classify(typed, S), Nav::Url(typed.into()), "{typed}");
+    }
+    assert_eq!(classify("nas:5000", S), Nav::Url("http://nas:5000".into()));
+    assert_eq!(classify("nas:5000/admin", S), Nav::Url("http://nas:5000/admin".into()));
+    // No authority, no navigation; with one, the load refuses any scheme
+    // but http(s) as a bad url (fetch/nav/load.rs) and runs nothing.
+    assert_eq!(classify("data:text/html,hi", S), search("data%3Atext%2Fhtml%2Chi"));
+    assert_eq!(classify("javascript://x", S), Nav::Url("javascript://x".into()));
+    assert_eq!(classify("nas:0", S), search("nas%3A0"));
+    assert_eq!(classify("nas:", S), search("nas%3A"));
+}
+
+#[test]
+fn an_address_of_another_scheme_is_refused_as_not_a_web_address() {
+    use crate::browser::url::refusal;
+    assert_eq!(refusal("file:///notes.txt"), "not a web address");
+    assert_eq!(refusal("ftp://files.example.org/a"), "not a web address");
+    assert_eq!(refusal("http://"), "bad url", "a web scheme it could not read");
+    assert_eq!(refusal("://x"), "bad url");
+}
