@@ -32,7 +32,7 @@ use super::mark_codec::encode;
  */
 pub(super) fn mark(l: &mut Live) -> Result<(), VolumeError> {
     let body = encode(&l.want, l.bytes, &l.hash, &l.stream);
-    let mut guard = VOLUME.write();
+    let mut guard = crate::smp::write_responsive(&VOLUME);
     let s = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     save(&s.key, &mut s.mount, l.name(), &body)?;
     l.marked = l.stream.size();
