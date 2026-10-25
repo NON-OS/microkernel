@@ -34,7 +34,7 @@ The prompt reads `nonos@nonos ~/workspace/project main 1 job %`: who and where y
 - Closing a tab, or the window, sends SIGTERM to every program that tab started. Closing the last tab closes the window.
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it.
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6.
-- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
+- `theme` switches the colours: `dark`, `dim`, `light` or `abyss`. `theme` alone opens a picker beside the prompt, each theme with swatches of its colours: `Up` and `Down` put each one on the window as you reach it, `Enter` keeps it, and `Esc` goes back to the one you had. On every theme all text, the dimmed hints and times included, is at least 4.5 to 1 against what it is drawn on, the WCAG AA level.
 
 ## Editing a line
 
@@ -277,6 +277,7 @@ The source behind the facts above, at the commit in the footer.
 - The network a command uses
   - The refusal that ends `so nothing was sent`: `refusal_line` in `userland/capsule_terminal/src/command/builtin/direct_gate.rs:46-54`.
 - Colour
+  - The picker's keys: `Pick::key` in `userland/capsule_terminal/src/term/theme_pick.rs`.
   - Every theme's text at 4.5 to 1 or more: `contrast_tests.rs` in `userland/terminal_line_proofs/src/paint/`.
 - What is kept
   - The kept preferences: `load` and `save` in `userland/capsule_terminal/src/term/prefs/store.rs:32-49`.
