@@ -45,6 +45,7 @@ mod menu_key;
 pub mod menubar_action;
 pub mod menubar_click;
 pub mod notify;
+pub mod focus_child;
 pub mod open_with;
 pub mod pkg_consent;
 pub mod pkg_install;
