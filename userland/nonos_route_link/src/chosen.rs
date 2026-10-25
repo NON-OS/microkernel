@@ -47,19 +47,6 @@ impl Route {
         private_only(Route::chosen(), lookup(b"net.socks5"), lookup(b"net.anon"))
     }
 
-    /*
-     * The route a chain RPC to `host` takes: the wallet's, except that a
-     * `devnet` build dials the local test chain's one name directly (P5).
-     */
-    pub fn for_rpc(host: &str) -> Route {
-        #[cfg(feature = "devnet")]
-        if crate::devnet::is_devnet_rpc(host) {
-            return Route::Direct;
-        }
-        let _ = host;
-        Route::for_wallet()
-    }
-
     /* The route an install's download takes (`install_route`): Anyone. */
     pub fn for_installs() -> Route {
         install_route(lookup(b"net.anon"))
