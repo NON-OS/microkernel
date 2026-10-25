@@ -103,7 +103,6 @@ pub use foreign_signal::{
     mk_foreign_context, mk_foreign_interrupt, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER,
     SIGNAL_RETURN,
 };
-pub use graphics::{mk_boot_logo, BOOT_LOGO_FILE, BOOT_LOGO_RECORD, BOOT_LOGO_RECORD_LEN};
 pub use graphics::{nonos_display_dimensions, nonos_display_physical_mm};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
