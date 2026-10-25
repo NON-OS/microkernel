@@ -26,6 +26,8 @@ static DRIVERS: &[&Endpoint] = &[
     &crate::hardware::sdhci_capsule::ENDPOINT,
     #[cfg(feature = "nonos-capsule-driver-ufs")]
     &crate::hardware::ufs_capsule::ENDPOINT,
+    #[cfg(feature = "nonos-capsule-driver-storvsc")]
+    &crate::hardware::storvsc_capsule::ENDPOINT,
 ];
 
 /// How many endpoints this kernel carries.
