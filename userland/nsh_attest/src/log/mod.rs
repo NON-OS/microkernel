@@ -48,7 +48,7 @@ pub const PCRS: usize = 24;
 /// The boot manager's PCR.
 pub const PCR_BOOT_MANAGER: usize = 4;
 /// Events after the header. A boot logs about a hundred.
-pub const MAX_EVENTS: usize = 1024;
+pub const MAX_EVENTS: usize = 4096;
 /// One event's body. A Secure Boot variable event may carry tens of KB.
 pub const MAX_EVENT_BODY: usize = 65_536;
 /// Banks a header may declare.

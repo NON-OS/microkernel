@@ -25,8 +25,8 @@ use crate::store::{set_bool, set_i8, set_str, set_u64, set_u8};
 
 /*
  * Persistent goes back on first: the answers were only kept because setup
- * chose a mode that keeps state, and vfs asks this field before every write.
- * The kernel is told too, as its store write refuses everything until then.
+ * chose a mode that keeps state. The kernel is told, as vfs asks it before
+ * every write and its store write refuses everything until then.
  */
 pub(super) fn apply(record: Record) {
     let answers = record.answers;

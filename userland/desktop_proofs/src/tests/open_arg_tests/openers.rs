@@ -64,5 +64,5 @@ fn the_handler_asks_before_it_finds_the_app() {
     assert_eq!(code.matches("LAUNCHER_APPS.iter()").count(), 1, "one lookup, gated");
     let refuse = "letSome(index)=foundelse{refused(sender_pid,svc);";
     assert!(code.contains(refuse), "a refusal is said");
-    assert!(code.contains("[CAP-DENY]open-with:pid={sender_pid}app={svc}"));
+    assert!(code.contains("[CAP-DENY]pid={sender_pid}open-with:app={svc}"));
 }

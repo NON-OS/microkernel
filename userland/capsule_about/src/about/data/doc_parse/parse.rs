@@ -16,8 +16,9 @@
 
 //! Reading one, strictly.
 
+use super::k1::{be32, pcrs_and_log};
 use super::layout::{
-    ATTEST_LEN_AT, COMPLETE_AT, COUNT_AT, ENFORCING_AT, IDENTITY_AT, KEY_LEN, MAGIC, ROOT_AT,
+    COMPLETE_AT, COUNT_AT, ENFORCING_AT, IDENTITY_AT, KEY_LEN, MAGIC, PCRS_AT, ROOT_AT,
     UNCONFINED_AT, VENDOR_AT, VENDOR_MAX, VERSION,
 };
 use super::types::Doc;
@@ -26,7 +27,7 @@ use super::types::Doc;
 // used. A verifier that parses a document it half understands is worse than one
 // that rejects it, and that rule applies to the machine reading its own.
 pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
-    if b.len() < ATTEST_LEN_AT + 4 {
+    if b.len() < PCRS_AT + 1 {
         return None;
     }
     if &b[0..8] != MAGIC || be32(b, 8)? != VERSION {
@@ -43,8 +44,9 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
         return None;
     }
 
-    let attest_len = be32(b, ATTEST_LEN_AT)?;
-    let sig_len_at = ATTEST_LEN_AT.checked_add(4)?.checked_add(attest_len as usize)?;
+    let (attest_len_at, log_len) = pcrs_and_log(b, PCRS_AT)?;
+    let attest_len = be32(b, attest_len_at)?;
+    let sig_len_at = attest_len_at.checked_add(4)?.checked_add(attest_len as usize)?;
     let signature_len = be32(b, sig_len_at)?;
     let key_len_at = sig_len_at.checked_add(4)?.checked_add(signature_len as usize)?;
     if be32(b, key_len_at)? != KEY_LEN {
@@ -63,13 +65,9 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
         iommu_enforcing: *b.get(ENFORCING_AT)? == 1,
         unconfined_grants: be32(b, UNCONFINED_AT)?,
         identity_devices: be32(b, IDENTITY_AT)?,
+        log_len,
         challenge_echoed,
         attest_len,
         signature_len,
     })
-}
-
-fn be32(b: &[u8], at: usize) -> Option<u32> {
-    let s = b.get(at..at + 4)?;
-    Some(u32::from_be_bytes([s[0], s[1], s[2], s[3]]))
 }
