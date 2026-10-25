@@ -19,4 +19,4 @@
 /// `IWL_FIRST_TB_SIZE`.
 pub const FIRST_TB: usize = 20;
 pub(super) const WIDE_HDR: usize = 8;
-pub(super) const QUEUE: u16 = 0;
+pub const QUEUE: u16 = 0;

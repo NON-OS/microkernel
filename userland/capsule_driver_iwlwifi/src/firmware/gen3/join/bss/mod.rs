@@ -31,7 +31,7 @@ mod after;
 mod kinds;
 mod link;
 mod protect;
-mod queues;
+pub mod queues;
 mod setup;
 mod teardown;
 

@@ -28,6 +28,9 @@ pub enum SetupError {
     Command(CommandFailed),
     /// A queue reply that was not the 8-byte structure.
     BadQueueReply,
+    /// The firmware gave this queue number, which is past the queues it has,
+    /// the command queue, or the queue it gave the other TID.
+    BadQueue(u16),
     /// The firmware refused the session, or never put the radio on channel.
     NoSession(Option<Session>),
     /// The transmit region could not be cleared.
