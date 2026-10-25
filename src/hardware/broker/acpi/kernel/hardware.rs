@@ -17,7 +17,7 @@
 //! The register windows the kernel programs itself, which no OperationRegion
 //! may reach whatever the memory map calls them.
 
-use super::super::rule::Hardware;
+use super::super::rule::{Hardware, SPACE_MEMORY};
 use super::platform::fw as acpi;
 use acpi::parser::other::{amd_iommu_bases, remap_unit_bases};
 
@@ -57,6 +57,9 @@ pub(in super::super) fn protected(base: u64, end: u64) -> Option<Hardware> {
     });
     if ecam {
         return Some(Hardware::Ecam);
+    }
+    if super::power_regs::touches(SPACE_MEMORY, base, end) {
+        return Some(Hardware::PowerControl);
     }
     let msix = crate::hardware::broker::mmio::msix_exclusion::protected_regions();
     msix.iter().any(|&(lo, hi)| lo < end && base < hi).then_some(Hardware::Msix)

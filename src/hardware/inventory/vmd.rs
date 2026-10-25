@@ -19,8 +19,8 @@
 //! this one function, which exposes a PCI domain of its own through its BARs.
 //! It usually reports mass-storage class 01h subclass 04h (RAID), the same
 //! as an Intel RST SATA controller in RAID mode, but it is no AHCI HBA: its
-//! BAR5 is no ABAR, and a SATA driver poking it would fault or worse. These
-//! are the device ids Linux's vmd driver binds (drivers/pci/controller/vmd.c).
+//! BAR5 is no ABAR, and a SATA driver poking it would fault or worse. The
+//! ids are unverified until re-sourced from Intel's datasheets (L56).
 //!
 //! Pure, with no imports, so host proofs can include it by path; the AHCI
 //! capsule restates the list and its proof crate checks the two agree.

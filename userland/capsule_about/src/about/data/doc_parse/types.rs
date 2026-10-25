@@ -22,7 +22,7 @@ pub struct Doc {
     /// Clear once any running capsule could not be recorded, which is the
     /// machine saying it no longer knows everything it is running.
     pub registry_complete: bool,
-    /// 0 no IOMMU, 1 Intel VT-d, 2 AMD-Vi.
+    /// 0 no IOMMU, 1 Intel VT-d, 2 AMD-Vi, 3 Arm SMMUv3.
     pub iommu_vendor: u8,
     /// Whether the IOMMU translates with the kernel's tables.
     pub iommu_enforcing: bool,
@@ -30,6 +30,9 @@ pub struct Doc {
     /// enforcing set and this above zero, the unit is in service and DMA still
     /// goes around it.
     pub unconfined_grants: u32,
+    /// Devices found and not claimed that the IOMMU still lets reach all of
+    /// memory. DMA is held only when this and `unconfined_grants` are zero.
+    pub identity_devices: u32,
     /// Whether the challenge came back unchanged. This is the anti-replay check
     /// and the one part of the document this capsule can verify on its own.
     pub challenge_echoed: bool,
@@ -39,12 +42,19 @@ pub struct Doc {
 
 impl Doc {
     /// The IOMMU the kernel named, or None when the machine has none. The
-    /// parser refuses a vendor past AMD-Vi, so nothing else reaches here.
+    /// parser refuses a vendor past SMMUv3, so nothing else reaches here.
     pub fn iommu_unit(&self) -> Option<&'static [u8]> {
         match self.iommu_vendor {
             1 => Some(b"VT-d"),
             2 => Some(b"AMD-Vi"),
+            3 => Some(b"SMMUv3"),
             _ => None,
         }
+    }
+
+    /// Whether device DMA on the machine is confined: a unit enforcing, no
+    /// grant around it, and no device it still lets reach all of memory.
+    pub fn dma_held(&self) -> bool {
+        self.iommu_enforcing && self.unconfined_grants == 0 && self.identity_devices == 0
     }
 }

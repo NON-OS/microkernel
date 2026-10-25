@@ -13,37 +13,50 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Device enumerate / claim / release. Cap-gated at the contract
 //! layer: `MkDeviceList` requires `DeviceEnum`, claim and release
 //! require `Driver`. Handlers do not re-check the capability;
-//! reaching here proves it. List and release: device_list.rs and
-//! device_release.rs.
+//! reaching here proves it. The list is device_list.rs.
 
-use super::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
-use crate::hardware::broker::{self, ClaimError};
+#[path = "device_errno.rs"]
+mod device_errno;
+
+use super::errnos::{ERRNO_NODEV, ERRNO_PERM};
+use crate::hardware::broker;
 use crate::process::current_pid;
 
 pub use super::device_list::sys_device_list;
-pub use super::device_release::sys_device_release;
 
 pub fn sys_device_claim(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
+    let pid = crate::hardware::broker::holder_of(pid);
     if !broker::contains(device_id) {
         return ERRNO_NODEV;
     }
     match broker::claim_device(pid, device_id) {
         Ok(epoch) => epoch as i64,
-        Err(ClaimError::AlreadyClaimed) | Err(ClaimError::Busy) | Err(ClaimError::GroupHeld) => {
-            ERRNO_BUSY
-        }
-        Err(ClaimError::UnknownDevice) | Err(ClaimError::Disabled) => ERRNO_NODEV,
-        Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
-        Err(ClaimError::Unconfined) | Err(ClaimError::OutOfScope) | Err(ClaimError::Firmware) => {
-            ERRNO_PERM
-        }
+        Err(e) => device_errno::claim_errno(e),
+    }
+}
+
+// Releases the claim on `device_id` held by the calling pid, with every
+// grant made against it (`give_back`, L66): retired first, so nothing more
+// is granted; Bus Master off; its MMIO, IRQ, DMA and port grants taken
+// down, each page out of the holder's tables and each grant out of the
+// device's domain before a frame is freed; the claim last, and the
+// function's wipe owed then (L78). The exit path does the same for every
+// claim a dying capsule held.
+pub fn sys_device_release(device_id: u64) -> i64 {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return ERRNO_PERM,
+    };
+    let pid = crate::hardware::broker::holder_of(pid);
+    match broker::give_back(pid, device_id) {
+        Ok(_epoch) => 0,
+        Err(e) => device_errno::release_errno(e),
     }
 }

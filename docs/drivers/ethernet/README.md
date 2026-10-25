@@ -14,7 +14,7 @@ The states are the [support matrix](../../hardware/MATRIX.md#how-to-read-it)'s:
 |---|---|---|---|---|---|
 | Intel 8254x (e1000) | 28 ids, vendor 8086 | `driver.e1000_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, no QEMU run target | [intel.md](intel.md) |
 | Intel 82574, 82583, I217, I218, I219 (e1000e) | 64 ids, vendor 8086 | `driver.e1000e_0` | no | Not supported: capsule not built into any image | [intel-e1000e.md](intel-e1000e.md) |
-| Intel I225, I226 (igc) | 16 ids, vendor 8086 | `driver.igc_0` | no | Not supported: capsule not built into any image | [intel-igc.md](intel-igc.md) |
+| Intel I225, I226 (igc) | 16 ids, vendor 8086 | `driver.igc_0` | no | Not supported: wired in the kernel, not yet signed, so in no image | [intel-igc.md](intel-igc.md) |
 | Realtek RTL8139 | 10ec:8139 | `driver.rtl8139_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, no QEMU run target | [realtek.md](realtek.md) |
 | Realtek RTL8169, RTL8168, RTL8111, RTL810x, RTL8125 | 10 ids, vendor 10ec | `driver.rtl8169_0` | yes | Partial: no run shows a frame received, receive batches not yet booted, flake check fails on a lint | [realtek-rtl8169.md](realtek-rtl8169.md) |
 | Realtek RTL8126A, RTL8127A | 10ec:8126, 10ec:8127 | none | no | Not supported: left out of the id table | [realtek-rtl8169.md](realtek-rtl8169.md) |
@@ -33,6 +33,8 @@ Fixed in code on this commit, from both sides; not yet booted:
 - e1000, RTL8139 and RTL8169 serve operation 6 as virtio-net does: an empty request answers an empty batch, and a numbered batch is kept until the caller asks for the next number, so a reply that comes late is not lost (`userland/capsule_driver_e1000/src/server/handlers/rx_batch.rs:41`, `handle`). e1000 takes every completed descriptor in one pass of the ring (`userland/capsule_driver_e1000/src/queue/rx_batch.rs:38`, `take_batch`); the Realtek drivers call their receive routine up to the batch limit (`userland/capsule_driver_rtl8139/src/rx/batch.rs:40`, `gather`). A receive error after some frames ends the batch and is answered with `E_IO` on the next number.
 
 No run on this commit shows a frame received through the PCI drivers either way.
+
+What a boot must show to say a card receives: the driver's own link line (`igb: link up 1000 full`, for one), then `net.dhcp.client`'s one line for the lease it bound, `[DHCP] lease 10.0.2.15/24 gw 10.0.2.2 from 10.0.2.2` over QEMU's user net (`userland/capsule_net_dhcp/src/dora/lease_line.rs`, `lease_line`). A lease binds only once the server's offer and its ack came in through the card, so the line is the receive path seen end to end. Each card is booted alone, with no virtio-net beside it, through `nix run .#qemu -- --lane nic=igb` (or `nic=e1000`, `nic=e1000e`, `nic=rtl8139`; QEMU has no RTL8169 model), plain and with `--lane iommu=intel`.
 
 ## Behaviour every PCI driver shares
 

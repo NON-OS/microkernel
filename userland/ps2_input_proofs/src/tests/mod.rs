@@ -39,5 +39,6 @@ mod presence_tests;
 mod reinit_tests;
 mod sequence_fallback_tests;
 mod sequence_tests;
+mod stream_sweep_tests;
 mod sync_tests;
 mod system_key_tests;

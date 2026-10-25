@@ -19,12 +19,15 @@ extern crate alloc;
 use super::types::Claim;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::Mutex;
+use spin::{Mutex, MutexGuard};
 
 pub(super) static CLAIMS: Mutex<Vec<Claim>> = Mutex::new(Vec::new());
-/// Devices a claim or a retire is working on: reserved before either
-/// touches the device, given back when it is done. Locked after CLAIMS.
-pub(super) static BUSY: Mutex<Vec<u64>> = Mutex::new(Vec::new());
+
+/// The table, waited for answering TLB shootdowns: a holder may be in a round
+/// that waits on this CPU's answer (L75).
+pub(super) fn claims() -> MutexGuard<'static, Vec<Claim>> {
+    crate::smp::lock_responsive(&CLAIMS)
+}
 pub(super) static EPOCH: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn next_epoch() -> u64 {

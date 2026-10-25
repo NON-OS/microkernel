@@ -33,6 +33,7 @@ models only, level 3 in `REFINEMENT.md`, which lists which is which.
 | `Path.leading_dotdot_neutralized` / `up_moves_toward_root` | `userland/fs_proofs` path normalization (Kani + runnable) |
 | `Capability.attenuate_is_glb` / `grant_is_lub` | Verus `capabilities.rs` confinement legs; the bound-optimality legs are model-side algebra |
 | `Paging.meet_is_glb` / `subset_antisymm` | Verus `page_permissions.rs` (`permission_subset_is_monotonic`) |
+| `PagingGlobal.user_never_global` / `user_entry_never_survives_switch` | Verus `page_global.rs` (bit ops); `userland/kernel_proofs` `user_not_global` over both encoders; extracted `PolicyRefinement.extracted_user_page_never_global` |
 | `Authorization.denied_below` / `subsumes_trans` | `userland/kernel_proofs` cap-table (contrapositive of `allow_monotone`) |
 | `Spawn.only_attested_capsules_run` | `src/security/capsule_attest` `#[must_use]` gate + `src/kernel_core/.../attest_gate.rs` (admit only on Ok) |
 | `BootImage.accepted_region_stays_in_bounds` / `an_escaping_region_is_rejected` | `nonos-bootloader/boot_proofs` footer parser (Kani total + ~125k crafted footers) |

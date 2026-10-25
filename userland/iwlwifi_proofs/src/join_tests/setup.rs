@@ -4,13 +4,13 @@
 
 use nonos_wifi_core::rsn::JoinPolicy;
 
+use super::drive::run_join;
+use super::refusals::after_setup;
+use super::rig::{LINK, PHY, QUEUE, RLC, STA_CFG, STA_RM, TEARDOWN_FROM_SESSION};
 use crate::gen3::join::bss::SetupError;
 use crate::gen3::join::run::JoinEnd;
 use crate::gen3::station::session::Session;
 use crate::join_rig::*;
-use super::drive::run_join;
-use super::refusals::after_setup;
-use super::rig::{LINK, PHY, QUEUE, RLC, STA_CFG, STA_RM, TEARDOWN_FROM_SESSION};
 
 #[test]
 fn a_firmware_that_will_not_put_the_radio_on_channel_ends_the_join_before_any_frame() {

@@ -45,7 +45,8 @@ impl PageAttributes {
         if self.accessed {
             bits |= PTE_AF;
         }
-        if !self.global {
+        // EL0 never global whatever was asked: it would outlive the ASID switch.
+        if self.user || !self.global {
             bits |= PTE_NG;
         }
         if self.contiguous {

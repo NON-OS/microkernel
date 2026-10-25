@@ -23,9 +23,9 @@ use crate::syscall::SyscallResult;
 use super::super::surface_ops::{map_err, EPERM, ESRCH};
 
 pub(in super::super) fn do_release(handle: u64) -> SyscallResult {
-    let pid = match current_pid() {
-        Some(p) => p,
-        None => return errno(ESRCH),
+    // Surfaces are held by the process, not the thread that asked (L36).
+    let Some(pid) = current_pid().map(crate::hardware::broker::holder_of) else {
+        return errno(ESRCH);
     };
     // Only a holder (the owner or an attacher, both of which have an attach
     // record for this handle) may drop a reference. Without this, any capsule

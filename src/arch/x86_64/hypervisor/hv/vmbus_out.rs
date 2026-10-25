@@ -34,8 +34,8 @@ const OPENCHANNEL: u32 = 5;
 const CLOSECHANNEL: u32 = 7;
 const GPADL_HEADER: u32 = 8;
 const GPADL_BODY: u32 = 9;
-const GPADL_TEARDOWN: u32 = 10;
-const RELID_RELEASED: u32 = 12;
+const GPADL_TEARDOWN: u32 = 11;
+const RELID_RELEASED: u32 = 13;
 const INITIATE_CONTACT: u32 = 14;
 const UNLOAD: u32 = 16;
 
