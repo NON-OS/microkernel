@@ -16,7 +16,6 @@
 
 use crate::arch::x86_64::diag::emit_fatal_notice;
 use crate::interrupts::handlers::exceptions::context::ExceptionContext;
-use crate::interrupts::idt::halt_loop;
 
 pub(crate) fn handle_missing_fpu(ctx: &ExceptionContext) -> ! {
     if !ctx.is_user_mode() {
@@ -26,5 +25,5 @@ pub(crate) fn handle_missing_fpu(ctx: &ExceptionContext) -> ! {
     if ctx.is_user_mode() {
         crate::process::exit::exit_and_yield(-4, true)
     }
-    halt_loop();
+    crate::boot::panic::fatal();
 }
