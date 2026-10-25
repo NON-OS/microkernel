@@ -14,9 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod addr;
-mod cfg;
-mod validate;
-mod write;
+//! The DMA sync windows, one backend per architecture: a fence on x86_64,
+//! whose bus snoops the caches; cache maintenance by address on aarch64; a
+//! full FENCE on riscv64. `memory::dma::coherency` is their only user.
 
-pub(super) use write::{clear_entry, write_entry};
+#[cfg(target_arch = "aarch64")]
+#[path = "../aarch64/dma_sync/mod.rs"]
+mod imp;
+#[cfg(target_arch = "riscv64")]
+#[path = "../riscv64/dma_sync.rs"]
+mod imp;
+#[cfg(target_arch = "x86_64")]
+#[path = "../x86_64/dma_sync.rs"]
+mod imp;
+
+pub(crate) use imp::{sync_for_cpu, sync_for_device};
