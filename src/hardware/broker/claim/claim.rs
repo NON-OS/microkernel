@@ -54,9 +54,13 @@ fn claim_reserved(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
         return Err(ClaimError::OutOfScope);
     }
     // Confined before it is powered, so the device never runs unconfined.
-    crate::hardware::broker::confine::attach(pid, device_id)?;
+    let port_only = crate::hardware::broker::confine::attach(pid, device_id)?;
     // Bus Master off: the driver turns it on itself, once it holds Dma (K6).
     super::quiesce::stop_bus_master_quietly(device_id);
+    // A port-only claim has Memory Space off too, and kept off (H-02).
+    if port_only {
+        super::port_only::port_only_quietly(device_id);
+    }
     // Bring the device to power state D0 before its driver maps MMIO. Done
     // outside the claims lock: it touches config space and settles for a moment.
     crate::hardware::broker::power::power_on_device(device_id);
