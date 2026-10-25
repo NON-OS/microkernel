@@ -639,6 +639,43 @@
   "md": [],
   "signed": []
  },
+ "userland/agentproof_receipt_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "userland/agentproof_receipt/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "nonos-mldsa65",
+   "src/crypto/asymmetric/p256/constants.rs",
+   "src/crypto/asymmetric/p256/field",
+   "src/crypto/asymmetric/p256/point",
+   "src/crypto/asymmetric/p256/scalar",
+   "src/security/attest_doc/binding.rs",
+   "src/security/attest_registry/format.rs",
+   "third_party/pqclean",
+   "userland/agentproof_policy",
+   "userland/agentproof_receipt",
+   "userland/agentproof_receipt_proofs",
+   "userland/capsule_linux/policies.txt",
+   "userland/capsule_linux/src/linux/boxed",
+   "userland/capsule_linux/src/linux/install/chat_pick.rs",
+   "userland/capsule_linux/src/linux/seal_slot.rs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_linux_policy",
+   "userland/nonos_proof_abi",
+   "userland/nonos_seal",
+   "userland/nsh_attest",
+   "userland/nsh_attest_proofs/src/build",
+   "userland/nsh_crypto",
+   "userland/nsh_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/ahci_link_proofs": {
   "exclude": [],
   "include": [
