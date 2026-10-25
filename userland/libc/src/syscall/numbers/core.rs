@@ -49,6 +49,7 @@ pub(crate) const N_MK_CAP_GRANT: i64 = tag4(b"MCGT");
 pub(crate) const N_MK_CAP_REVOKE: i64 = tag4(b"MCRV");
 pub(crate) const N_MK_SPAWN_INSTANCE: i64 = tag4(b"MSPI");
 pub(crate) const N_MK_TOOL_RUN: i64 = tag4(b"MTRN");
+pub(crate) const N_MK_CAPS_OF: i64 = tag4(b"MCOF");
 pub(crate) const N_MK_TTY_SET: i64 = tag4(b"MTTY");
 pub(crate) const N_MK_TTY_QUERY: i64 = tag4(b"MTTQ");
 pub(crate) const N_MK_WAIT: i64 = tag4(b"MWAT");
