@@ -999,25 +999,25 @@ ret  = {type="i64"}
 
 [desc.MNNO]
 nr   = 0x4F4E4E4D
-caps = ["DeviceEnum"]
+caps_any = ["Admin", "DeviceEnum"]
 args = [{name="base",type="u64",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MNDS]
 nr   = 0x53444E4D
-caps = ["DeviceEnum"]
+caps_any = ["Admin", "DeviceEnum"]
 args = [{name="from",type="u32",dir="in"},{name="to",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDNN]
 nr   = 0x4E4E444D
-caps = ["DeviceEnum"]
+caps_any = ["Admin", "DeviceEnum"]
 args = [{name="device_id",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MNHM]
 nr   = 0x4D484E4D
-caps = ["DeviceEnum"]
+caps_any = ["Admin", "DeviceEnum"]
 args = [{name="which",type="u64",dir="in"},{name="initiator",type="u32",dir="in"},{name="target",type="u32",dir="in"}]
 ret  = {type="i64"}
 

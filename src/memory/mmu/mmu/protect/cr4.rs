@@ -50,7 +50,7 @@ pub(super) fn enable(have: Supported) -> Cr4Live {
     Cr4Live { smep: live & CR4_SMEP != 0, smap, umip: live & CR4_UMIP != 0 }
 }
 
-fn read() -> u64 {
+pub(super) fn read() -> u64 {
     let cr4: u64;
     // SAFETY: ek@nonos.systems - reading CR4 has no side effect.
     unsafe { asm!("mov {}, cr4", out(reg) cr4, options(nomem, nostack, preserves_flags)) };

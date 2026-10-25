@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The live state the server loop holds.
+//! A driver that came up: its broker handles, held so their drop puts the
+//! firmware's mode back and gives everything up only when the driver ends;
+//! and the wire server over the adapter, its primaries on `P` (the shipping
+//! driver's `nonos_gfx_pool::Pool`, which asks the kernel).
 
-use crate::fifo::Fifo;
-use crate::regs::Regs;
-use crate::screen::Plane;
+use nonos_gfx_serve::{Platform, Server};
 
-pub struct Driver {
-    pub regs: Regs,
-    pub fifo: Fifo,
-    /// The visible framebuffer in BAR1, at the device's line pitch.
-    pub fb: Plane,
-    /// The compositor's surface, the id it is registered under, and the
-    /// handle its share names the owner with, 0 until the owner asks.
-    pub surface: Plane,
-    pub sid: u64,
-    pub handle: u64,
-    /// The first pid to ask for the primary surface; only it may draw.
-    pub owner: u32,
+use crate::display::Svga;
+use crate::handles::BrokerHandles;
+
+pub struct Driver<P: Platform> {
+    pub handles: BrokerHandles,
+    pub server: Server<Svga, P>,
 }

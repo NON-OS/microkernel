@@ -27,6 +27,7 @@ mod gate;
 mod header;
 mod identity;
 mod layout;
+mod leave;
 mod map;
 mod native;
 mod ops;
@@ -46,6 +47,7 @@ mod write;
 mod lba_map;
 
 pub use endpoint::{Endpoint, Slot, MAX_UNITS};
+pub(in crate::hardware::block_device) use leave::leave_legs;
 pub use error::WireError;
 pub use identity::Identity;
 pub use ops::{healthcheck, identify};

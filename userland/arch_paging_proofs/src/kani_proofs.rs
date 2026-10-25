@@ -115,3 +115,17 @@ fn civil_time_round_trips_within_the_first_year() {
     let t = crate::civil::time::from_unix(seconds as u64);
     assert_eq!(crate::civil::time::to_unix(&t), seconds as u64);
 }
+
+/// The `TLBI VAAE1IS` operand carries no TTL hint and no RES0 bit, and its
+/// VA field is VA[55:12], for every 64-bit address.
+mod tlbi_operand {
+    use crate::arch::aarch64::mmu::tlbi_operand::{vaae1is, VA_FIELD};
+
+    #[kani::proof]
+    fn names_the_page_and_nothing_else() {
+        let va: u64 = kani::any();
+        let op = vaae1is(va);
+        assert_eq!(op & !VA_FIELD, 0);
+        assert_eq!(op << 12, va & 0x00FF_FFFF_FFFF_F000);
+    }
+}

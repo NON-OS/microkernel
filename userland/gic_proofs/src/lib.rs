@@ -9,6 +9,8 @@ mod encode_tests;
 #[cfg(test)]
 mod intid_tests;
 #[cfg(test)]
+mod irq_handlers_tests;
+#[cfg(test)]
 mod its_cmd_tests;
 #[cfg(test)]
 mod its_table_tests;

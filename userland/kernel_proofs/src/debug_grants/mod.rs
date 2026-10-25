@@ -20,4 +20,6 @@
 //! capsule-serial-debug, and each manifest declares it optional (0x100).
 
 #[cfg(test)]
+mod drivers;
+#[cfg(test)]
 mod tests;

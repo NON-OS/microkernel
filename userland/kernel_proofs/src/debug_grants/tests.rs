@@ -14,44 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Each driver: its kernel spawn, and its manifest.
-const DRIVERS: &[(&str, &str, &str)] = &[
-    (
-        "rtl8169",
-        include_str!("../../../../src/hardware/rtl8169_capsule/spawn.rs"),
-        include_str!("../../../capsule_driver_rtl8169/Capsule.mk"),
-    ),
-    (
-        "xhci",
-        include_str!("../../../../src/hardware/xhci_capsule/spawn.rs"),
-        include_str!("../../../capsule_driver_xhci/Capsule.mk"),
-    ),
-    (
-        "usb_hid",
-        include_str!("../../../../src/userspace/capsule_driver_usb_hid/spawn.rs"),
-        include_str!("../../../capsule_driver_usb_hid/Capsule.mk"),
-    ),
-    (
-        "ahci",
-        include_str!("../../../../src/hardware/ahci_capsule/spawn.rs"),
-        include_str!("../../../capsule_driver_ahci/Capsule.mk"),
-    ),
-    (
-        "e1000",
-        include_str!("../../../../src/hardware/e1000_capsule/spawn.rs"),
-        include_str!("../../../capsule_driver_e1000/Capsule.mk"),
-    ),
-    (
-        "iwlwifi",
-        include_str!("../../../../src/hardware/iwlwifi_capsule/spawn.rs"),
-        include_str!("../../../capsule_driver_iwlwifi/Capsule.mk"),
-    ),
-    (
-        "i2c_pci",
-        include_str!("../../../../src/hardware/i2c_pci_capsule/spawn.rs"),
-        include_str!("../../../capsule_driver_i2c_pci/Capsule.mk"),
-    ),
-];
+use super::drivers::DRIVERS;
 
 /// The spawn's requested_caps expression, up to the field after it.
 fn requested(spawn: &str) -> &str {
