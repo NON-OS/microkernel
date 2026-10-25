@@ -10,7 +10,21 @@ use crate::gen3::join::run::{join, JoinEnd, Joined};
 use crate::gen3::tx_cmd::{IWL_TX_FLAGS_CMD_RATE, IWL_TX_FLAGS_ENCRYPT_DIS};
 use crate::join_rig::*;
 
-pub(super) fn run_join(r: &Rig, policy: JoinPolicy, then: impl FnOnce(&mut crate::gen3::join::fw::Fw<'_, '_, crate::gen3_model::Model, crate::gen3_model::Mem, crate::gen3_model::Polls>, Result<Joined, JoinEnd>, Progress)) {
+pub(super) fn run_join(
+    r: &Rig,
+    policy: JoinPolicy,
+    then: impl FnOnce(
+        &mut crate::gen3::join::fw::Fw<
+            '_,
+            '_,
+            crate::gen3_model::Model,
+            crate::gen3_model::Mem,
+            crate::gen3_model::Polls,
+        >,
+        Result<Joined, JoinEnd>,
+        Progress,
+    ),
+) {
     let beacon = r.ap.borrow().beacon();
     let mut st = Station::new();
     with_fw(r, &mut st, |fw| {
@@ -36,12 +50,16 @@ pub(super) fn joined(r: &Rig) -> (Akm, Progress) {
 pub(super) fn only_handshake_frames_left(r: &Rig) {
     let sent = r.sent();
     assert!(!sent.is_empty());
-    let (mgmt_q, data_q) = (sent[0].queue, sent.iter().find(|s| s.frame[0] == 0x08).map(|s| s.queue));
+    let (mgmt_q, data_q) =
+        (sent[0].queue, sent.iter().find(|s| s.frame[0] == 0x08).map(|s| s.queue));
     for s in &sent {
         match s.frame[0] {
             0xB0 | 0x00 => assert_eq!(s.queue, mgmt_q, "management frames on the management queue"),
             0x08 => {
-                assert!(is_clear_eapol(&s.frame), "a data frame before the port opened that is not EAPOL");
+                assert!(
+                    is_clear_eapol(&s.frame),
+                    "a data frame before the port opened that is not EAPOL"
+                );
                 assert_eq!(Some(s.queue), data_q);
             }
             other => panic!("frame {other:#x} left before the port opened"),
