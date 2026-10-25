@@ -16,8 +16,8 @@
 
 /// CAP.DRD, bit 55: the unit can drain DMA reads before an IOTLB invalidation
 /// completes, so a read already in flight cannot finish through a translation
-/// just withdrawn. Linux sets the matching descriptor bit whenever this is set
-/// (intel/dmar.c, qi_flush_iotlb).
+/// just withdrawn. The IOTLB descriptor's DR bit asks for it, and is set
+/// whenever the unit offers it (VT-d 6.5.2.3).
 pub const fn read_drain(cap: u64) -> bool {
     cap & (1 << 55) != 0
 }

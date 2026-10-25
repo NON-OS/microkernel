@@ -18,6 +18,9 @@
 
 #[path = "../../capsule_keyring/src/server/vault_gate/rule.rs"]
 pub mod vault_gate;
+/// The keyring's rule for who may keep records by name: Bluetooth bonds (L33).
+#[path = "../../capsule_keyring/src/server/bond_gate/rule.rs"]
+pub mod bond_gate;
 // Keep the doc string referenced so the path note is not dead.
 #[path = "../../capsule_wallet_nonos/src/wallet/accounts/file.rs"]
 pub mod accounts_file;

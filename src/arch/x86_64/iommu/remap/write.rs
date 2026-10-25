@@ -17,8 +17,9 @@
 //! Writing one interrupt remapping entry where every unit will see it.
 
 use super::irte::Irte;
-use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::pair::{clear_pair, set_pair};
 use crate::arch::x86_64::iommu::tables::publish::publish;
+use crate::arch::x86_64::iommu::tables::view::Frame;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::queue::{iec_index, submit};
 use crate::arch::x86_64::iommu::unit::report::units;
@@ -27,14 +28,12 @@ use crate::arch::x86_64::iommu::unit::report::units;
 /// a present entry with half its fields; then the cached copy is dropped on
 /// every unit, since the table is shared.
 pub(super) fn write(table_phys: u64, index: u16, entry: Irte) -> Result<(), VtdError> {
-    let entries = entries_mut(table_phys)?;
+    let frame = Frame::at(table_phys)?;
     let at = index as usize * 2;
     if entry[0] == 0 {
-        entries[at] = 0;
-        entries[at + 1] = 0;
+        clear_pair(frame, at)?;
     } else {
-        entries[at + 1] = entry[1];
-        entries[at] = entry[0];
+        set_pair(frame, at, entry[0], entry[1])?;
     }
     publish(table_phys);
     let mut outcome = Ok(());

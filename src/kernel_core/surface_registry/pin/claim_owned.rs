@@ -16,11 +16,10 @@
 
 use alloc::vec::Vec;
 
-use crate::kernel_core::surface_registry::attach_map::snapshot::{has_foreign_holder, records_of};
+use crate::kernel_core::surface_registry::attach_map::snapshot::has_foreign_holder;
 use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{encode_handle, SurfaceHandle};
 
-use super::frames_of::frames_of;
 use super::unmap_rule::{on_unmap, OnUnmap};
 use super::window::Window;
 
@@ -59,22 +58,15 @@ pub(super) fn claim_owned(pid: u32, addr: u64, end: u64, out: &mut Vec<Window>) 
             }
             OnUnmap::Detach => slot.frames = Vec::new(),
             OnUnmap::Orphan => {
-                let mut w = Window::held(base, core::mem::take(&mut slot.frames));
+                let frames = core::mem::take(&mut slot.frames);
+                drop(slots);
+                // Seen by every holder's release and exit from now (L54).
+                super::orphan_settle::publish(pid, handle, frames.clone());
+                let mut w = Window::held(base, frames);
                 w.orphan = Some((pid, handle));
                 out.push(w);
             }
             OnUnmap::Keep => out.push(Window::held(base, slot.frames.clone())),
-        }
-    }
-}
-
-/* Windows `pid` attached from other owners that overlap [addr, end). */
-pub(super) fn foreign_windows(pid: u32, addr: u64, end: u64, out: &mut Vec<Window>) {
-    for (handle, base) in records_of(pid) {
-        let Some((owner, frames)) = frames_of(handle) else { continue };
-        let win_end = base.saturating_add(frames.len() as u64 * 4096);
-        if owner != pid && base < end && addr < win_end {
-            out.push(Window::held(base, frames));
         }
     }
 }

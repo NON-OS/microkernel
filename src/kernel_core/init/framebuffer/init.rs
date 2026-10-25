@@ -19,6 +19,7 @@ use super::log::log_handoff_fb;
 use super::marker::paint_mapped_marker;
 use super::report::{log_mapped, log_refused};
 use super::state::{KernelFramebuffer, FRAMEBUFFER, FRAME_PHYS};
+use super::window::{keep, PhysWindow};
 use crate::boot::handoff::{BootHandoffV1, FramebufferInfo};
 use crate::memory::addr::PhysAddr;
 
@@ -48,6 +49,12 @@ pub(crate) fn init_framebuffer_from(fb: &FramebufferInfo) {
     let Ok(base_va) = crate::memory::mmio::map_framebuffer(PhysAddr::new(f.base), f.map_len) else {
         return log_refused(b"the MMIO window would not take it");
     };
+    keep(PhysWindow {
+        page: f.base,
+        len: f.map_len as u64,
+        offset: f.offset as u32,
+        format: fb.pixel_format,
+    });
     let bgr = matches!(fb.pixel_format, 1 | 3);
     let kfb = *FRAMEBUFFER.call_once(|| KernelFramebuffer {
         width: fb.width,
