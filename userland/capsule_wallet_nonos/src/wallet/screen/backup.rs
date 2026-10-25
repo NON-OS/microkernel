@@ -57,7 +57,7 @@ pub fn backup(state: &State, fb: &mut PaintBuffer) {
     y += wrapped(fb, x, y as i32, w, Role::Fact, WARN, TEXT_3) as u32 + GAP;
     /* Where this wallet is kept, or that it is not: here, where the words
      * are the only way back. */
-    if let Some(note) = state.kept_note {
+    if let Some(note) = state.vault.kept_note {
         y += wrapped(fb, x, y as i32, w, Role::Lead, &super::status_words::capital(note), TEXT_2)
             as u32
             + GAP;

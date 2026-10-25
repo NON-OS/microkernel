@@ -19,6 +19,8 @@ use super::super::mmio::redtbl_update;
 use super::super::ops_helpers::locate;
 
 pub fn retarget(gsi: u32, dest_apic_id: u32) -> IoApicResult<()> {
+    // Under remapping the destination lives in the remapping entry.
+    super::compat::compat_allowed()?;
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
     // The RTE destination field is 8 bits wide. An APIC id that does not fit
     // is not truncated onto some other CPU; the line goes to one that fits.

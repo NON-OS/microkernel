@@ -16,11 +16,22 @@
 
 #![no_std]
 #![no_main]
+/* No outside input may index, overflow or truncate (plan/41): the market
+ * is held to the lints its proto crate is. */
+#![deny(
+    clippy::indexing_slicing,
+    clippy::arithmetic_side_effects,
+    clippy::cast_possible_truncation
+)]
 
 extern crate alloc;
 
+mod baseline;
+mod bonds;
 mod boot_index;
 mod bootstrap_trust;
+mod chain_hosts;
+mod clock;
 mod ingest;
 mod install_ready;
 mod protocol;
@@ -38,6 +49,11 @@ use crate::verify::CryptoVerifier as DefaultVerifier;
 #[cfg(feature = "offline-verify")]
 use crate::verify::RejectAll as DefaultVerifier;
 
+/// The capsule's entry point.
+///
+/// # Safety
+///
+/// Only the kernel calls it, once, on a fresh stack; nothing else may.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {

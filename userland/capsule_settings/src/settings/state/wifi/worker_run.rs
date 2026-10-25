@@ -20,7 +20,7 @@
 
 use super::super::state::WIFI_NET_MAX;
 use super::worker::ANSWER;
-use super::worker_msg::{Answer, Ask};
+use super::worker_msg::{Answer, Ask, REMEMBERED};
 use crate::wifi::ScanNetwork;
 use alloc::boxed::Box;
 use nonos_wifi_client::remember;
@@ -45,12 +45,16 @@ pub(super) fn perform(ask: &Ask) -> Answer {
         }
         Ask::Join { driver, net, pass, remember: keep } => {
             let result = driver.connect(net.ssid(), pass.as_slice());
+            let mut dropped = None;
             let kept =
                 (result.code == 0 && *keep).then(|| match remember(net.ssid(), pass.as_slice()) {
-                    Ok(()) => "Remembered, sealed with this machine's TPM key",
+                    Ok(gone) => {
+                        dropped = gone;
+                        REMEMBERED
+                    }
                     Err(e) => e.text(),
                 });
-            Answer::Joined { result, kept }
+            Answer::Joined { result, kept, dropped }
         }
     }
 }

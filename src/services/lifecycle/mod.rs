@@ -34,6 +34,7 @@ pub mod supervisor;
 pub mod transport;
 mod transport_holder;
 mod transport_lock;
+pub mod transport_nowait;
 mod transport_rule;
 mod waiting;
 

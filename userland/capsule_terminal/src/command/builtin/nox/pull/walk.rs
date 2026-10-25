@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::ctx::Ctx;
 use super::run::one_file;
 use super::{fetch, progress, recurse, store};
 use crate::term::state::State;
+
+#[path = "walk_join.rs"]
+mod walk_join;
+
+use walk_join::join;
 
 const MAX_DEPTH: u32 = 8;
 const MAX_FILES: u32 = 512;
@@ -64,13 +67,4 @@ pub(super) fn walk(
     if let Some(c) = conn {
         c.close();
     }
-}
-
-fn join(base: &[u8], name: &[u8]) -> Vec<u8> {
-    let mut p = base.to_vec();
-    if p.last() != Some(&b'/') {
-        p.push(b'/');
-    }
-    p.extend_from_slice(name);
-    p
 }

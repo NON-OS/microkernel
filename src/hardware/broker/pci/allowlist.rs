@@ -40,6 +40,7 @@ pub fn validate(
     msix: Option<&MsixInfo>,
     ident: &Ident,
     current_register: u16,
+    may_master: bool,
 ) -> Result<WriteAction, PciWriteError> {
     let (register, change) = split(req.offset).ok_or(PciWriteError::OffsetNotAllowed)?;
     let value = match change {
@@ -47,7 +48,7 @@ pub fn validate(
         m => merge(req.value, m, current_register).ok_or(PciWriteError::BitsNotAllowed)?,
     };
     if register == CFG_COMMAND {
-        return validate_command(value, current_register, change != 0);
+        return validate_command(value, current_register, change != 0, may_master);
     }
     if let Some(m) = msix.filter(|m| register == m.offset as u16 + 2) {
         return validate_msix_control(value, current_register, m.offset as u16 + 2);

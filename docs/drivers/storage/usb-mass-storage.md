@@ -8,7 +8,7 @@ How NONOS reads and writes USB sticks and USB disks through `driver.usb_msc0`, a
 
 ## Where it sits
 
-The driver is a class [capsule](../../overview/glossary.md#capsule) with no hardware [capability](../../overview/glossary.md#capability): it holds CoreExec, IPC and Memory, the word 0x19 (`userland/capsule_driver_usb_msc/Capsule.mk:15-18`, `CAPSULE_REQUIRED_CAPS`). Every transfer goes through the xHCI driver `driver.xhci0`, which the kernel lets only this driver and `driver.usb_hid0` reach (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`).
+The driver is a class [capsule](../../overview/glossary-boot-root-record.md#capsule) with no hardware [capability](../../overview/glossary-boot-root-record.md#capability): it holds CoreExec, IPC and Memory, the word 0x19 (`userland/capsule_driver_usb_msc/Capsule.mk:15-18`, `CAPSULE_REQUIRED_CAPS`). Every transfer goes through the xHCI driver `driver.xhci0`, which the kernel lets only this driver and `driver.usb_hid0` reach (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`).
 
 ```mermaid
 sequenceDiagram
@@ -59,15 +59,15 @@ Two habits of real devices that the Bulk-Only specification does not allow are a
 
 ## Access
 
-The driver serves service [endpoint](../../overview/glossary.md#endpoint) 4224 (`userland/capsule_driver_usb_msc/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`), a [held endpoint](../../overview/glossary.md#held-endpoint) that no capsule may send to (`src/services/registry/held_table.rs:30`, `driver.usb_msc0`). The driver makes the same check itself: its block surface answers the kernel's client alone, which arrives as sender pid 0. Every other sender gets `E_ACCES`, so the medium is written only through the kernel block layer (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:17-43`, `E_ACCES`). The installer therefore cannot install to a USB disk: its block client knows only the NVMe, SATA and virtio-blk drivers; see [Storage drivers](README.md#the-installers-disk-list).
+The driver serves service [endpoint](../../overview/glossary-dma-pool.md#endpoint) 4224 (`userland/capsule_driver_usb_msc/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`), a [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint) that no capsule may send to (`src/services/registry/held_table.rs:30`, `driver.usb_msc0`). The driver makes the same check itself: its block surface answers the kernel's client alone, which arrives as sender pid 0. Every other sender gets `E_ACCES`, so the medium is written only through the kernel block layer (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:17-43`, `E_ACCES`). The installer therefore cannot install to a USB disk: its block client knows only the NVMe, SATA and virtio-blk drivers; see [Storage drivers](README.md#the-installers-disk-list).
 
 When a stick carries NONOS, the block layer asks it before any internal disk, so a live boot keeps its state on the stick; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
 
-The driver holds no Debug capability and writes nothing to the [serial console](../../overview/glossary.md#serial-console) (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands instead, in one `[USB-MSC]` line read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
+The driver holds no Debug capability and writes nothing to the [serial console](../../overview/glossary-rollback-index.md#serial-console) (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands instead, in one `[USB-MSC]` line read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
 
 ## How it was verified
 
-- `userland/usb_msc_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the descriptor walk, the BOT and SCSI codecs, the sector spans and the transport against a scripted device behind `driver.xhci0`. Its flake check fails on this commit: clippy, run with warnings as errors, rejects `State::new` without a `Default` (`userland/capsule_driver_usb_msc/src/state/types.rs:38`, `State::new`). The check recorded no test count.
+- `userland/usb_msc_proofs` is the [proof crate](../../overview/glossary-peer-list.md#proof-crate). It runs the descriptor walk, the BOT and SCSI codecs, the sector spans and the transport against a scripted device behind `driver.xhci0`. Its flake check fails on this commit: clippy, run with warnings as errors, rejects `State::new` without a `Default` (`userland/capsule_driver_usb_msc/src/state/types.rs:38`, `State::new`). The check recorded no test count.
 - The boot matrix, `make nonos-mk-boot-matrix`, has two cells with the NONOS store on a USB stick on a `qemu-xhci` controller, one of 512-byte and one of 4096-byte blocks (`scripts/bootmatrix/cells.py:59-60`, `usb_block`; `scripts/bootmatrix/qemu.py:50-57`, `usb_stick`). No run of the matrix is reported for this commit.
 - `tools/nonos_qemu` plugs the sealed stick into the xHCI controller as a `usb-storage` device (`tools/nonos_qemu/machine.py:80-88`, `usb_stick`). From a checkout with a sealed image:
 

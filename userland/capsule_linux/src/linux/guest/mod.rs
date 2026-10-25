@@ -19,6 +19,7 @@
 
 mod blocked;
 mod event;
+mod exports;
 mod fd;
 mod fd_dup;
 mod fd_empty;
@@ -54,6 +55,7 @@ mod links_list;
 mod links_load;
 mod links_room;
 mod mem;
+mod mem_commit;
 mod mem_copy;
 mod mem_like;
 mod mem_map;
@@ -70,17 +72,4 @@ mod threads;
 mod timer;
 mod watch;
 
-pub use blocked::Blocked;
-pub use event::Event;
-pub use fd::Fd;
-pub use fd_kind::Kind;
-pub use handle::Guest;
-pub use layout::{
-    BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE, STACK_TOP,
-    USER_MAX,
-};
-pub use links::Links;
-pub use mem::{maps_full, page_down, page_len, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::{peer_prot, Region};
-pub use timer::Timer;
-pub use watch::{Watch, EPOLLET, EPOLLONESHOT};
+pub use exports::*;

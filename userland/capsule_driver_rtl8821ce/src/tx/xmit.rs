@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Queue one frame on the BE ring. Before queuing, the hardware read index is
-//! refreshed from the index register so a full ring is not overrun; then the
-//! frame's TX descriptor and body are laid into its packet-buffer slot, the
-//! buffer descriptor for that slot is published into the ring, the host write
-//! index advances, and a 16-bit write to the low half of the index register
-//! kicks the queue. This mirrors rtw88 `rtw_pci_tx_write_data` plus
-//! `rtw_pci_tx_kick_off_queue` in `pci.c`; the bytes written and the kick value
-//! are checked against a modeled device and DMA memory in `rtl8821ce_proofs`.
+//! Queue one frame on the BE ring. The hardware read index is refreshed first
+//! so a full ring is not overrun; the frame's TX descriptor and body go into its
+//! packet-buffer slot, the rest of the slot is cleared, the slot's buffer
+//! descriptor goes into the ring, and a 16-bit write of the host write index
+//! kicks the queue: rtw88 `rtw_pci_tx_write_data` and
+//! `rtw_pci_tx_kick_off_queue` (pci.c), checked in `rtl8821ce_proofs`.
 
 use super::desc::{self, FrameMeta, TXDESC_LEN};
 use super::regs::{REG_TXBD_IDX_BEQ, TRX_BD_HW_IDX_MASK, TRX_BD_HW_IDX_SHIFT, TRX_BD_IDX_MASK};
@@ -57,6 +55,9 @@ where
     let d = desc::frame(frame.len(), meta);
     buffers.write_bytes(buf_off, &d);
     buffers.write_bytes(buf_off + TXDESC_LEN, frame);
+    // No byte of an earlier, longer frame stays in the slot.
+    let tail = TX_BUF_STRIDE - TXDESC_LEN - frame.len();
+    buffers.write_bytes(buf_off + TXDESC_LEN + frame.len(), &[0u8; TX_BUF_STRIDE][..tail]);
 
     let bd = crate::ring::bufdesc::pair(
         buffers.device_addr() + buf_off as u64,

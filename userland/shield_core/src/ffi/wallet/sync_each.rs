@@ -1,12 +1,19 @@
 //! Recording what one fetched history holds for each account, own or view-only. Every account
 //! reads the same history, so the network learns nothing of how many there are.
 
+#[path = "sync_each_arrivals.rs"]
+mod arrivals;
+#[path = "sync_each_watched.rs"]
+mod watched;
+
+use arrivals::arrivals;
+pub(super) use watched::sync_watched;
+
 use crate::discovery::{note_commitments, Log};
 use crate::error::WalletError;
 use crate::notes::NoteStatus;
 use crate::store::Row;
-use crate::wallet::watch::Watched;
-use crate::wallet::{scan_history, scan_history_as, History, Session};
+use crate::wallet::{scan_history, History, Session};
 
 /// Record what the history holds for account `index`: received, deposited, spent.
 pub(super) fn sync_account(
@@ -43,65 +50,11 @@ pub(super) fn sync_account(
     s.mark_pool_at(index, &leaves(history));
     Ok(found)
 }
-
-/// Record what the history holds for one view-only account. It has no deposits of its own.
-pub(super) fn sync_watched(w: &mut Watched, history: &History) -> Result<(), WalletError> {
-    let held = w.state.held();
-    let scan = scan_history_as(history, &w.viewer(), &[], &held);
-    let known: Vec<[u64; 4]> = held.iter().map(|n| n.cm).collect();
-    let rows: Vec<Row> = scan
-        .received
-        .into_iter()
-        .filter(|n| !known.contains(&n.cm))
-        .map(Row::Found)
-        .chain(scan.spent.into_iter().map(|cm| Row::Status { cm, status: NoteStatus::Spent }))
-        .collect();
-    for row in rows {
-        w.log.append(&row)?;
-        w.state.apply(row);
-    }
-    w.state.mark_pool(&leaves(history));
-    Ok(())
-}
-
 /// The active pool's leaves by position, which a held note must match to count.
 fn leaves(history: &History) -> std::collections::BTreeMap<u64, [u8; 32]> {
     let logs: Vec<Log> =
         history.committed.iter().map(|r| Log { topics: &r.topics, data: &r.data }).collect();
     note_commitments(&logs)
-}
-
-/// What a sync found, into the history: each deposit stored, and each note received that is
-/// not the change of one of this wallet's own spends. An account's first scan, as after a
-/// restore from the words, finds every past note with no rows to tell change from a payment,
-/// so it records nothing but the deposits this store already says it sent: the history starts
-/// from what it knows rather than invented.
-fn arrivals(
-    done: &[crate::store::activity::Activity],
-    received: &[crate::notes::NoteRecord],
-    deposited: &[crate::notes::NoteRecord],
-    first_scan: bool,
-) -> Vec<crate::store::activity::Activity> {
-    use crate::store::activity::{is_change, Activity, DEPOSIT_IN, DEPOSIT_SENT, RECEIVED};
-    let at = crate::wallet::history::clock();
-    let sent_here = |cm: &[u64; 4]| done.iter().any(|a| a.kind == DEPOSIT_SENT && a.cm == *cm);
-    let stored = deposited
-        .iter()
-        .filter(|n| !first_scan || sent_here(&n.cm))
-        .map(|n| Activity { cm: n.cm, ..Activity::new(DEPOSIT_IN, at) });
-    if first_scan {
-        return stored.collect();
-    }
-    // A note of no value is a spend's filler, never a payment.
-    let paid = received.iter().filter(|n| n.plain.value > 0 && !is_change(done, &n.cm)).map(|n| {
-        Activity {
-            asset_id: n.plain.asset_id,
-            value: n.plain.value,
-            cm: n.cm,
-            ..Activity::new(RECEIVED, at)
-        }
-    });
-    stored.chain(paid).collect()
 }
 
 fn count(n: usize) -> u32 {

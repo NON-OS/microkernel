@@ -18,13 +18,14 @@
 //! that BSS to this station counts (another station's refusal on the same
 //! channel used to fail the join). Open System needs transaction 2 with
 //! status 0; SAE frames go to the SAE exchange, which answers, accepts with a
-//! PMK, or fails with its reason.
+//! PMK, or discards the frame (only the driver's deadline ends it).
 
 use super::failure::MlmeFailure;
 use super::state::{Mlme, MlmeOutput};
 use crate::dot11::auth::{auth_frame, parse_auth};
 use crate::sae::frame::AUTH_ALG_SAE;
 use crate::sae::SaeStep;
+use crate::vault::wipe;
 use crate::wpa::akm::Akm;
 
 /// Open System: algorithm 0, the response is transaction 2.
@@ -57,18 +58,12 @@ impl Mlme {
                 let sc = self.next_seq();
                 MlmeOutput::send(auth_frame(us, bssid, sc, AUTH_ALG_SAE, seq, status, &body))
             }
-            SaeStep::Accepted => match sae.pmk() {
-                Some((pmk, pmkid)) => {
-                    (self.pmk, self.pmkid) = (pmk, Some(pmkid));
-                    self.assoc_request()
-                }
-                None => self.fail(MlmeFailure::NoEntropy),
-            },
-            SaeStep::Ignore => MlmeOutput::none(),
-            SaeStep::Failed => {
-                let why = sae.failure().map_or(MlmeFailure::NoEntropy, MlmeFailure::Sae);
-                self.fail(why)
+            SaeStep::Accepted { mut pmk } => {
+                (self.pmk, self.pmkid) = (pmk, sae.pmkid());
+                wipe(&mut pmk);
+                self.assoc_request()
             }
+            SaeStep::Ignore => MlmeOutput::none(),
         }
     }
 }

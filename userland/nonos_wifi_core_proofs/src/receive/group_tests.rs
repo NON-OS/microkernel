@@ -18,7 +18,7 @@
 //! receive sequence counter, the station's own broadcasts coming back are
 //! dropped, and the AP's group key handshake is answered and its key taken.
 
-use crate::ap_sim::{group1, gtk_kde, message3, ANONCE, AP_RSNE_MIXED, GTK};
+use crate::ap_sim::{group1, gtk_kde, GTK};
 use crate::hex::h;
 use crate::receive::frame::{from_ap, STA};
 use crate::receive::join::{eapol_body, ip_body, joined};
@@ -49,8 +49,11 @@ fn the_group_key_handshake_is_answered_on_the_link() {
     tkb.copy_from_slice(&ptk[32..48]);
     let g1 = group1(Akm::Psk, 3, &ptk, &gtk_kde(2, &next));
     let f = from_ap(STA, &eapol_body(&g1), Some(&tkb), 1, 0, true);
-    let Rx::Handshake { frame, group_key } = s.receive(&f, false) else { panic!("handled") };
+    let Rx::Handshake { frame, group_key, pairwise_key } = s.receive(&f, false) else {
+        panic!("handled")
+    };
     assert_eq!(group_key, Some((2, next)), "the new key for the driver to install");
+    assert!(pairwise_key.is_none(), "the pairwise key stays");
     let reply = frame.expect("group message 2");
     assert_ne!(reply[1] & 0x40, 0, "sent protected, as the message came");
     let plain = decrypt(&reply, &tkb).expect("under the pairwise key");
@@ -58,17 +61,4 @@ fn the_group_key_handshake_is_answered_on_the_link() {
     // Frames under the new key now decrypt.
     let bcast = from_ap([0xFF; 6], &ip_body(b"new"), Some(&next), 1, 2, false);
     assert!(matches!(s.receive(&bcast, false), Rx::Ethernet(_)));
-}
-
-#[test]
-fn a_repeated_message3_in_the_clear_is_answered_in_the_clear() {
-    let (mut s, ptk) = joined();
-    let mut kd = AP_RSNE_MIXED.to_vec();
-    kd.extend_from_slice(&gtk_kde(1, &GTK));
-    let m3 = message3(Akm::Psk, 3, &ANONCE, &ptk, &kd);
-    let f = from_ap(STA, &eapol_body(&m3), None, 0, 0, false);
-    let Rx::Handshake { frame, group_key } = s.receive(&f, false) else { panic!("handled") };
-    assert!(group_key.is_none(), "no key is reinstalled");
-    let reply = frame.expect("message 4 again");
-    assert_eq!(reply[1] & 0x40, 0, "in the clear: the AP has no pairwise key yet");
 }

@@ -162,6 +162,10 @@ name = "nonos_aes"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_mac"
+version = "0.3.0"
+
+[[package]]
 name = "nonos_p256"
 version = "0.1.0"
 dependencies = [
@@ -174,6 +178,7 @@ version = "0.3.0"
 dependencies = [
  "hmac",
  "nonos_aes",
+ "nonos_mac",
  "nonos_p256",
  "sha2",
 ]

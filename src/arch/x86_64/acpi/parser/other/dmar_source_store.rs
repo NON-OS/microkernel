@@ -58,8 +58,9 @@ fn find(store: &Mutex<Scoped>, number: u8) -> Option<(u8, (u8, u8, u8))> {
 }
 
 /// The unit and requester id of the I/O APIC with APIC id `id`, when DMAR
-/// scopes it with a path the kernel can resolve.
-pub fn ioapic_source(id: u8) -> Option<(u8, (u8, u8, u8))> {
+/// scopes it with a one-hop path. The lines' own entries take the id from
+/// dmar_ioapic_table, which also reads a path through bridges.
+pub fn ioapic_unit_source(id: u8) -> Option<(u8, (u8, u8, u8))> {
     find(&IOAPICS, id)
 }
 

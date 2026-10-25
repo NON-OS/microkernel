@@ -17,53 +17,47 @@
 use core::mem;
 use core::ptr;
 
-use super::super::state::TableRegistry;
-use super::dmar_namespace_store::{record_andd, ANDD_TYPE};
-use super::dmar_rmrr::RMRR_TYPE;
-use super::dmar_rmrr_store::{record_rmrr, rmrr_cut_short};
-use super::dmar_units::record_drhd;
+use super::dmar_entry::entry;
+use super::dmar_rmrr_store::rmrr_cut_short;
 use super::dmar_walk::walk_structures;
-use crate::arch::x86_64::acpi::tables::{Drhd, SdtHeader, SIG_DMAR};
-
-const DRHD_TYPE: u16 = 0;
+use crate::arch::x86_64::acpi::parser::phys::mapped_table;
+use crate::arch::x86_64::acpi::parser::state::TableRegistry;
+use crate::arch::x86_64::acpi::tables::{Dmar, SIG_DMAR};
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
     let Some(&addr) = registry.tables.get(&SIG_DMAR) else { return };
-    let Some(addr) = super::super::phys::directmap(addr) else { return };
-    // SAFETY: eK@nonos.systems - the registry holds tables firmware published
-    // and the directmap covers them; the header is read before the length it
-    // names is trusted, and the checksum refuses one past MAX_TABLE_BYTES.
+    let Some((addr, header)) = mapped_table(addr) else { return };
+    // SAFETY: eK@nonos.systems - `addr` is the directmapped table ACPI
+    // published, mapped for its whole length (mapped_table); the checksum
+    // refuses a length under the header or past MAX_TABLE_BYTES before the
+    // slice is made over it.
     let table = unsafe {
-        let header = ptr::read_volatile(addr as *const SdtHeader);
         if !header.validate_checksum(addr as *const u8) {
             return;
         }
         core::slice::from_raw_parts(addr as *const u8, header.length as usize)
     };
+    if table.len() >= mem::size_of::<Dmar>() {
+        // SAFETY: eK@nonos.systems - `table` holds a whole Dmar, packed.
+        let dmar = unsafe { ptr::read_unaligned(table.as_ptr() as *const Dmar) };
+        super::dmar_flags::record(dmar.flags);
+        super::dmar_flags::record_width(dmar.host_address_width);
+    }
     let mut found_drhd = false;
-    let walked = walk_structures(table, |kind, bytes| match kind {
-        DRHD_TYPE if bytes.len() >= mem::size_of::<Drhd>() => {
-            // SAFETY: eK@nonos.systems - `bytes` holds a whole Drhd, packed.
-            let drhd = unsafe { ptr::read_unaligned(bytes.as_ptr() as *const Drhd) };
-            found_drhd |= record_drhd(drhd, bytes);
-        }
-        RMRR_TYPE => record_rmrr(bytes),
-        ANDD_TYPE => record_andd(bytes),
-        _ => {}
-    });
-    // A cut after the RMRRs hid none of them; before, any could be missing (L67).
+    let walked = walk_structures(table, |kind, bytes| found_drhd |= entry(kind, bytes));
     if walked.cut_short {
+        // What follows is unread: a unit there would be left off (K11). A cut
+        // after the RMRRs hid none of them; before, any could be missing (L67).
+        super::dmar_units::left_off();
         let rmrrs = if walked.past_rmrr { "kept" } else { "withheld" };
         crate::log::info!("[VT-D] DMAR cut short at a bad structure; RMRR mappings {}", rmrrs);
         if !walked.past_rmrr {
             rmrr_cut_short();
         }
     }
-
     if !found_drhd {
         return;
     }
-
     #[cfg(feature = "nonos-arch-iommu")]
     crate::arch::x86_64::iommu::globals::set_present();
 }

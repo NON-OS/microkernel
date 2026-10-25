@@ -32,7 +32,9 @@ pub(super) fn errno_for(e: MmioMapError) -> i64 {
         | MmioMapError::Overflow
         | MmioMapError::NotPrefetchable
         | MmioMapError::MixedMemoryType => ERRNO_INVAL,
-        MmioMapError::WouldExposeMsixTable | MmioMapError::WouldExposePba => ERRNO_PERM,
+        MmioMapError::WouldExposeMsixTable
+        | MmioMapError::WouldExposePba
+        | MmioMapError::Forbidden => ERRNO_PERM,
         MmioMapError::FirmwareReserved => ERRNO_ACCES,
         MmioMapError::UnsupportedFlags => ERRNO_NOTSUP,
         MmioMapError::NoVaSpace | MmioMapError::MapFailed => ERRNO_NOMEM,

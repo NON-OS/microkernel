@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::mem::size_of;
-
 use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
+use core::mem::size_of;
 
 use super::out::IrqPollOut;
 

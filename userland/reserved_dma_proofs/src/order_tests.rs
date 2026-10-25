@@ -20,10 +20,10 @@ fn order(src: &str, marks: &[&str]) {
 #[test]
 fn ranges_go_in_before_the_device_and_come_out_after_it() {
     order(
-        &code("hardware/broker/confine/one.rs"),
+        &code("hardware/broker/confine/join.rs"),
         &[
             "if let Err(why) = reserve(&mut all[pos], address) {",
-            "return refuse(&mut all, pos, why, pid, address);",
+            "return refuse(all, pos, why, Refusal::Refused);",
             "let _ = all[pos].domain.detach_device(address);",
             "if all[pos].domain.attach_device(address).is_err() {",
             "release(&mut all[pos], address);",
@@ -40,15 +40,17 @@ fn ranges_go_in_before_the_device_and_come_out_after_it() {
     ]);
     // Out of the domain first, then its last-named ranges; not while another
     // device behind the same requester id is still attached.
+    // A failed detach keeps the domain.
+    let detach = code("hardware/broker/confine/detach.rs");
+    order(&detach, &["kept |= !denied;", "if !kept && all[pos].devices.is_empty() {"]);
     order(
-        &code("hardware/broker/confine/detach.rs"),
+        &detach,
         &[
-            "if all[pos].devices.iter().any(|(_, a)| *a == address) {",
-            "return true;",
-            "if all[pos].domain.detach_device(address).is_err() {",
-            "return true;",
-            "super::unreserve::release(&mut all[pos], address);",
-            "if all[pos].devices.is_empty() {",
+            "if c.devices.iter().any(|(_, a)| *a == address) {",
+            "return Some(true);",
+            "if c.domain.detach_device(address).is_err() {",
+            "return Some(false);",
+            "super::unreserve::release(c, address);",
         ],
     );
     let un = code("hardware/broker/confine/unreserve.rs");
@@ -61,7 +63,7 @@ fn every_grant_is_placed_past_them() {
     let iova = code("hardware/broker/confine/iova.rs");
     assert!(iova.contains("place_avoiding(c.next_iova, length, &spans)?"));
     assert!(!iova.contains("= place("), "a grant placed without the reserved ranges");
-    // A grant placed by `take` or refused as one whose frames may be freed (map_fail.rs).
+    // A grant placed by `take`, or refused with nothing mapped (map_fail.rs).
     let map = code("hardware/broker/confine/map.rs");
-    assert!(map.contains("let iova = iova::take(c, length).ok_or(MapFail::Freeable)?;"));
+    assert!(map.contains("let iova = iova::take(c, length).ok_or(NoAddress::Failed)?;"));
 }

@@ -35,7 +35,8 @@ pub fn get_xdg_surface(guest: &mut Guest, args: &mut Args<'_>) {
     if !guest.objects.put(id, Object::XdgSurface) {
         return;
     }
-    if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == surface) {
+    let not_placed = guest.scene.subs.of(surface).is_none();
+    if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == surface && not_placed) {
         s.xdg = Some(id);
     }
 }

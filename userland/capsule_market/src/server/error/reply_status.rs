@@ -21,7 +21,14 @@ use crate::protocol::{
 };
 
 pub(crate) fn reply_status(tx: &mut [u8], req: &Request, status: i32) {
-    encode_response_header(tx, req, STATUS_LEN as u32);
-    write_status(&mut tx[RESP_HDR_LEN..], status);
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + STATUS_LEN);
+    if let Some(frame) = framed(tx, req, status) {
+        let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, frame.as_ptr(), frame.len());
+    }
+}
+
+/// The header and status word, written into `tx`; None when it is too short.
+fn framed<'a>(tx: &'a mut [u8], req: &Request, status: i32) -> Option<&'a [u8]> {
+    encode_response_header(tx, req, u32::try_from(STATUS_LEN).ok()?)?;
+    write_status(tx.get_mut(RESP_HDR_LEN..)?, status)?;
+    tx.get(..RESP_HDR_LEN.checked_add(STATUS_LEN)?)
 }

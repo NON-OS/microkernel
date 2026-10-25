@@ -48,7 +48,8 @@ pub fn route_pad(ctx: &mut Context, event: &InputEvent) -> u32 {
         ctx.record(delivered);
         return delivered;
     }
-    let pressed_in = (event.kind == PAD_BUTTON_UP).then(|| ctx.key_targets.held_by(slot(event)));
+    let pressed_in = (event.kind == PAD_BUTTON_UP)
+        .then(|| ctx.key_targets.held_by(super::press_kinds::slot(event)));
     let pid = match pressed_in.flatten().filter(|&p| p != 0) {
         Some(p) => p,
         None => super::focus_now::focus_now(ctx),

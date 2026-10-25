@@ -32,7 +32,7 @@ const SMALL: [&str; 6] = ["tiny", "text64k", "none", "concat", "lc4pb4", "dict4k
 
 #[test]
 fn hostile_bytes_never_panic() {
-    let mut r = Rng::new(0x5EED_0F_A2);
+    let mut r = Rng::new(0x5EED_0FA2);
     let mut accepted = 0;
     for name in SMALL {
         let path = format!("{}/tests/vectors/{name}.xz", env!("CARGO_MANIFEST_DIR"));

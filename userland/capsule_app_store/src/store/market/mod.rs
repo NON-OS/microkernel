@@ -18,7 +18,9 @@
 
 mod detail;
 mod failure;
+mod kec;
 mod list;
+mod price;
 mod ready;
 mod release;
 mod service;
@@ -26,7 +28,9 @@ mod wire;
 
 pub use detail::{fetch as get_app, Detail};
 pub use failure::Failure;
+pub use kec::Kec;
 pub use list::fetch as list_apps;
+pub use price::fetch as get_price;
 pub use ready::{fetch as install_ready, Readiness, GATES};
 pub use release::{fetch as get_release, Release};
 pub use service::{next_id, port};

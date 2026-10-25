@@ -26,7 +26,7 @@ pub const IRTE_ENTRIES: u16 = 256;
 const IRTA_SIZE_256: u64 = 7;
 
 /// GCMD bits: IRE (25) and CFI (23) persist; SIRTP (24) is a one-shot that
-/// `gcmd_with` already drops from a GSTS copy.
+/// `gcmd_with` already drops from a GSTS copy. The kernel never sets CFI.
 pub const GCMD_IRE: u32 = 1 << 25;
 pub const GCMD_SIRTP: u32 = 1 << 24;
 pub const GCMD_CFI: u32 = 1 << 23;
@@ -45,4 +45,16 @@ pub const fn irta_value(table_phys: u64, x2apic: bool) -> u64 {
 /// Entries a table named by an IRTA value holds.
 pub const fn irta_entries(irta: u64) -> u32 {
     1 << ((irta & 0xF) + 1)
+}
+
+/// GCMD setting `bit` over `persistent` (a GSTS copy, one-shots dropped)
+/// with CFI clear: under IRE a compatibility format interrupt is blocked
+/// (fault 0x25), whatever firmware had set.
+pub const fn gcmd_strict(persistent: u32, bit: u32) -> u32 {
+    (persistent & !GCMD_CFI) | bit
+}
+
+/// A unit remapping as the kernel wants it: IRE on and CFI off.
+pub const fn is_strict(status: u32) -> bool {
+    status & (GSTS_IRES | GSTS_CFIS) == GSTS_IRES
 }

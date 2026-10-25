@@ -34,7 +34,7 @@ pub fn run() -> Result<Context, &'static str> {
     healthcheck(compositor_port, 1)?;
     let backing = backing::allocate(compositor_port, 2)?;
     fill_argb(backing.backing_va, backing.stride, backing.width, backing.height, DEFAULT_ARGB);
-    let surface_handle = register::share_surface(&backing)?;
+    let surface_handle = register::share_surface(&backing, discover::lookup_compositor_pid()?)?;
     let mut ctx = Context {
         compositor_port,
         width: backing.width,

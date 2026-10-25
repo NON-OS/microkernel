@@ -41,7 +41,8 @@ fn the_firmware_mode_is_kept_and_the_fifo_laid_out() {
     assert!(config(0) < config(1), "dropped while the FIFO words change");
     let (surfaces, _) = nonos_libc::surfaces();
     assert_eq!((surfaces[0].width, surfaces[0].stride, surfaces[0].format), (1280, 5120, 1));
-    assert_eq!(d.handle, 0x5003);
+    assert_eq!((d.sid, d.handle), (3, 0), "registered, and shared with no one yet");
+    assert!(nonos_libc::shares().is_empty(), "no handle of its own (K20)");
 }
 
 #[test]

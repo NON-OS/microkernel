@@ -22,6 +22,7 @@
 //! source; `nonos_mac` makes the bytes a locally administered unicast address.
 
 use nonos_mac::{apply, MAC_LEN};
+use nonos_wifi_core::address::KEY_LEN;
 
 /// Draw a station address, or `None` when the kernel gave no randomness.
 pub fn draw() -> Option<[u8; MAC_LEN]> {
@@ -32,4 +33,15 @@ pub fn draw() -> Option<[u8; MAC_LEN]> {
     }
     apply(&mut mac);
     Some(mac)
+}
+
+/// Draw this boot's address key, from which each network gets its own
+/// address, or `None` when the kernel gave no randomness.
+pub fn draw_key() -> Option<[u8; KEY_LEN]> {
+    let mut key = [0u8; KEY_LEN];
+    let rc = nonos_libc::crypto_random(key.as_mut_ptr(), KEY_LEN);
+    if rc < 0 || (rc as usize) != KEY_LEN {
+        return None;
+    }
+    Some(key)
 }

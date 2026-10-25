@@ -22,6 +22,8 @@
 
 #[path = "../../../../src/services/registry/held.rs"]
 mod held;
+#[path = "../../../../src/services/registry/addressed.rs"]
+mod registry_addressed;
 // held_table.rs reaches the cards as its grandparent's `nics`, as in the kernel.
 #[path = "../../../../src/services/registry/nics.rs"]
 mod nics;
@@ -29,6 +31,7 @@ mod nics;
 #[path = "../../../../src/services/registry/usb_hosts.rs"]
 mod usb_hosts;
 
+mod addressed;
 mod bluetooth;
 mod card_names;
 mod card_readers;
@@ -36,6 +39,7 @@ mod cards;
 mod ccid_tests;
 mod cdc_acm_tests;
 mod classified;
+mod clients;
 mod common;
 mod devices;
 mod display_names;

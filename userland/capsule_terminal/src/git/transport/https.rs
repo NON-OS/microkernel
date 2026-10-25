@@ -17,14 +17,8 @@
 
 extern crate alloc;
 
-use alloc::format;
-use alloc::vec::Vec;
-
-use nonos_git::{Transport, TransportError};
-use nonos_http::RequestBuilder;
 use nonos_route_link::Route;
 
-use super::round_trip::round_trip;
 use nonos_http::Url;
 
 pub struct Https {
@@ -53,24 +47,5 @@ impl Https {
     /// Why a connection was refused, in words the person can act on.
     pub fn refusal(&self) -> Option<&'static str> {
         self.refused
-    }
-}
-
-impl Transport for Https {
-    fn get(&mut self, path: &str) -> Result<Vec<u8>, TransportError> {
-        let target = format!("{}{}", self.remote.path, path);
-        let request = RequestBuilder::get(&self.remote.host, &target).build();
-        round_trip(self, request.bytes)
-    }
-
-    fn post(
-        &mut self,
-        path: &str,
-        content_type: &str,
-        body: &[u8],
-    ) -> Result<Vec<u8>, TransportError> {
-        let target = format!("{}{}", self.remote.path, path);
-        let request = RequestBuilder::post(&self.remote.host, &target, content_type, body).build();
-        round_trip(self, request.bytes)
     }
 }

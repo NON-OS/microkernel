@@ -16,6 +16,8 @@
 
 mod backend;
 mod capabilities;
+pub(crate) mod dev_unconfined;
+pub(crate) mod dev_unremapped;
 mod device;
 mod domain;
 mod domain_id;
@@ -29,6 +31,10 @@ pub mod reserved;
 mod unconfined;
 mod vendor;
 
+#[cfg(target_arch = "x86_64")]
+pub(crate) use backend::block_faulted;
+#[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
+pub(crate) use backend::note_fault;
 pub use capabilities::IommuCapabilities;
 pub use device::DeviceAddress;
 pub use domain::IommuDomain;

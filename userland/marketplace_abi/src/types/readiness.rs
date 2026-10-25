@@ -17,6 +17,9 @@
 //! Verdict the capsule emits when a caller asks "is this release ready to
 //! install?".
 
+#[path = "readiness_from.rs"]
+mod from;
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct InstallReadiness {
     /// Final answer: install allowed iff all six flags are true.
@@ -34,45 +37,4 @@ pub struct InstallReadiness {
     /// The release names a zk trailer, or it is a `linux.` listing whose
     /// proof the machine mints after install.
     pub attestation_present: bool,
-}
-
-impl InstallReadiness {
-    pub fn refused() -> Self {
-        Self {
-            install_ready: false,
-            index_signature_valid: false,
-            package_url_present: false,
-            publisher_signature_present: false,
-            validation_passed: false,
-            arch_match: false,
-            attestation_present: false,
-        }
-    }
-
-    /// Compose a verdict from the six checks. `install_ready` is
-    /// the AND of the inputs; anything `false` blocks install.
-    pub fn from_checks(
-        index_signature_valid: bool,
-        package_url_present: bool,
-        publisher_signature_verified: bool,
-        validation_passed: bool,
-        arch_match: bool,
-        attestation_present: bool,
-    ) -> Self {
-        let install_ready = index_signature_valid
-            && package_url_present
-            && publisher_signature_verified
-            && validation_passed
-            && arch_match
-            && attestation_present;
-        Self {
-            install_ready,
-            index_signature_valid,
-            package_url_present,
-            publisher_signature_present: publisher_signature_verified,
-            validation_passed,
-            arch_match,
-            attestation_present,
-        }
-    }
 }
