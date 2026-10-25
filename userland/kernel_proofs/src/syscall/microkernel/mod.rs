@@ -26,4 +26,5 @@ mod owner_gate_names_tests;
 mod owner_gate_tests;
 
 pub mod enqueued_at;
+pub mod reply_dest;
 pub mod wait;
