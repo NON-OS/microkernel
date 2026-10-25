@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.bat",
+      "capsule_id": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905",
+      "name": "bat",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "cat with syntax highlighting and line numbers. Runs a pager for long files.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "bat@0.24.0-r1",
+          "manifest_hash": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905",
+          "package_hash": "e3982995bb864b7db472aac2ea7c57feb6d8da5b824e58b309ff51cb60c81905",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/bat-0.24.0-r1.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000b5741886761437bb33ac2ca87a3c3db337757621496fa8c273da9617a107ce5b4801000000000000ee43632f28cc7334454448d5004515e78d4d5a21a99cbdfd3b95c45c49ec449ec5c0d4f29cdf5e60b68d1d740d0bfc2a2c8aed6ea52cedfd82b01e8e9bb448430000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1948145 bytes; licence Apache-2.0; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

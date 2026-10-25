@@ -19,9 +19,13 @@ mod attach_surface;
 mod descriptor;
 mod existing;
 mod map_frames;
+mod map_pages;
+mod owned;
+mod permit;
 mod rights;
 mod rights_attach;
 mod rights_rule;
+pub(super) mod rule;
 mod self_attach;
 mod share_surface;
 

@@ -32,7 +32,8 @@ impl Function {
             let _ = self.cfg.write16(p + 8, self.control.0 & !INITIATE_FLR);
             let _ = self.cfg.write16(p + 0x28, self.control.1);
         }
-        let _ = self.cfg.set_command(self.header[1] as u16 & !BUS_MASTER);
+        // Through the one lock every Command edit takes (L73).
+        let _ = self.cfg.update_command(|_| self.header[1] as u16 & !BUS_MASTER);
     }
 }
 
@@ -42,6 +43,8 @@ pub(super) fn pause_ms(ms: u64, sleeper: Option<u32>) {
     let Some(pid) = super::reset_wait::sleeper(sleeper, crate::process::current_pid()) else {
         let end = crate::time::monotonic_ns().saturating_add(ms.saturating_mul(1_000_000));
         while crate::time::monotonic_ns() < end {
+            // A holder elsewhere may be in a shootdown round waiting on us (L75).
+            crate::smp::serve_shootdowns();
             core::hint::spin_loop();
         }
         return;

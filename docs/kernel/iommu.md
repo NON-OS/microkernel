@@ -11,5 +11,5 @@ not.
 - [When VT-d comes into service](iommu-when-vt-d.md)
 - [Per capsule domains; When remapping is not in
   service](iommu-per-capsule-domains.md)
-- [The posture line; AMD-Vi; Trying it in QEMU; Tests; See
-  also](iommu-the-posture-line.md)
+- [The posture line; AMD-Vi; Trying it in QEMU](iommu-the-posture-line.md)
+- [Tests; See also](iommu-tests.md)

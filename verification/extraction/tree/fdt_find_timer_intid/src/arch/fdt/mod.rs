@@ -6,6 +6,6 @@ pub mod endian;
 #[path = "../../../../../../../src/arch/fdt/error.rs"]
 pub mod error;
 
-pub mod find;
+pub mod irq;
 
 pub use error::FdtError;

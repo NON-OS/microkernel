@@ -17,7 +17,8 @@
 use crate::dhcp::{Message, State as ClientState};
 use crate::state::{Lease, STATE};
 
-use super::{discover, install, request, DiscoverError, RequestError};
+use super::errors::{map_discover, map_request};
+use super::{discover, install, request};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AcquireError {
@@ -52,25 +53,12 @@ pub fn acquire() -> Result<(), AcquireError> {
         lease_seconds: ack.lease_seconds,
     };
     *STATE.client_state.lock() = ClientState::Bound;
+    // One line a lease, once it is bound: what a boot reads receive by.
+    super::announce::lease(&ack, prefix);
     Ok(())
 }
 
 fn reset(err: AcquireError) -> AcquireError {
     *STATE.client_state.lock() = ClientState::Init;
     err
-}
-
-fn map_discover(err: DiscoverError) -> AcquireError {
-    match err {
-        DiscoverError::Wait(_) => AcquireError::Timeout,
-        DiscoverError::Send(_) => AcquireError::NoLink,
-    }
-}
-
-fn map_request(err: RequestError) -> AcquireError {
-    match err {
-        RequestError::Nak => AcquireError::Nak,
-        RequestError::Wait(_) => AcquireError::Timeout,
-        RequestError::Send(_) => AcquireError::NoLink,
-    }
 }

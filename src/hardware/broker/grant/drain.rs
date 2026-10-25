@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Grants out of the table: a holder's, a device's, or one by id.
+//! Grants out of the table: a holder's, or a claim's (one.rs: one by id).
 
 extern crate alloc;
 
 use alloc::vec::Vec;
 
 use super::table::GRANTS;
-use super::types::{GrantError, MmioGrant};
+use super::types::MmioGrant;
 
 // Revoke every grant held by `pid`. Returns the list of revoked
 // records so the caller can decide whether to unmap user pages
@@ -41,15 +41,14 @@ pub(in super::super) fn drain_for_pid(pid: u32) -> Vec<MmioGrant> {
     taken
 }
 
-// Revoke every grant tied to `device_id`. Used by `MkDeviceRelease`
-// when the holder voluntarily gives the device back. Caller passes
-// the holder pid for the cross-check; mismatch indicates a bug, not
-// a userland error.
-pub(in super::super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<MmioGrant> {
+// Revoke every grant made under `pid`'s claim of `device_id` at `epoch`,
+// when the holder gives it back: a newer claim's are not this release's
+// to take (L71).
+pub(in super::super) fn drain_for_device(pid: u32, device_id: u64, epoch: u64) -> Vec<MmioGrant> {
     let mut grants = GRANTS.lock();
     let mut taken = Vec::new();
     grants.retain(|g| {
-        if g.pid == pid && g.device_id == device_id {
+        if (g.pid, g.device_id, g.claim_epoch) == (pid, device_id, epoch) {
             taken.push(*g);
             false
         } else {
@@ -57,17 +56,4 @@ pub(in super::super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<MmioGr
         }
     });
     taken
-}
-
-// Lookup a single grant by id. Used by an explicit `MkMmioUnmap`
-// from the holder.
-// Remove a single grant if `pid` is the holder. Returns the removed
-// record on success.
-pub(in super::super) fn remove(pid: u32, grant_id: u64) -> Result<MmioGrant, GrantError> {
-    let mut grants = GRANTS.lock();
-    let idx = grants.iter().position(|g| g.grant_id == grant_id).ok_or(GrantError::UnknownGrant)?;
-    if grants[idx].pid != pid {
-        return Err(GrantError::NotHolder);
-    }
-    Ok(grants.remove(idx))
 }
