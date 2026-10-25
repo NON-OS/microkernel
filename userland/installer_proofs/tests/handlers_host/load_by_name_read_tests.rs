@@ -25,7 +25,7 @@ use crate::{clients::vfs, syscall};
 
 fn load(sender: u32) -> Vec<u8> {
     syscall::reset(3);
-    by_name(&frame(OP_LOAD_BY_NAME, &by_name_payload(0, &[])), sender)
+    by_name(&frame(OP_LOAD_BY_NAME, &by_name_payload(0x18, &[])), sender)
 }
 
 #[test]
