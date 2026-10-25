@@ -44,6 +44,8 @@ pub use session::Session;
 /// the life of the boot, so a proof can watch their wipes.
 #[path = "../../capsule_net_nym/src/state/identity.rs"]
 pub mod identity;
+#[path = "../../capsule_net_nym/src/state/key_slot.rs"]
+pub mod key_slot;
 #[path = "../../capsule_net_nym/src/state/shared_key.rs"]
 pub mod shared_key;
 pub use shared_key::keep_gateway_key_for;
