@@ -15,6 +15,7 @@ and it should be read before you install it on a machine you care about.
 | `nonos.img`, `nonos.iso` | the release seal, on the signing machine | The bootable image, its kernel and loader signed (Ed25519 and ML-DSA-65). |
 | `nonos-release-bundle.tar.gz` | CI, from a reproducible build | The kernel ELF, the UEFI loader, the capsule catalogue, the SBOM, every trust root and the STARK trailer of every enrolled capsule. |
 | `verifier.wasm` | CI | The STARK verifier the kernel's gate links (`nox_verify`), for checking proofs in a browser. |
+| `proof-verify-web.tar.gz` | CI | The proof verifier's page (`nonos-proof-verify` in wasm): checks the release's committed attestation proofs the same way the boot gates do, in a browser tab. |
 | `nonos.cdx.json`, `nonos-build.json`, `provenance.json` | CI | Bill of materials, build record with every input hash, and the bundle's provenance. |
 | `SHA256SUMS`, `BLAKE3SUMS` | CI | Sums over exactly the CI files above. |
 | `IMAGE-SHA256SUMS`, `IMAGE-BLAKE3SUMS` | the release seal | Sums over `nonos.img` and `nonos.iso`. |

@@ -18,8 +18,9 @@
 //! RAM tree and from the on-device TOC in a single step, since leaving either
 //! half behind resurrects a removed app on the next boot. Idempotent: a path
 //! that is already gone from both is a success, so a retried uninstall after a
-//! partial failure converges. A boot that keeps nothing drops it from RAM
-//! only, as it installs to RAM only: the disk is left as the boot found it.
+//! partial failure converges. On a boot that keeps nothing only the RAM half
+//! is dropped, as an install on such a boot reaches only RAM: the disk is left
+//! exactly as it was found.
 
 use alloc::vec::Vec;
 

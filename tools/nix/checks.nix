@@ -184,6 +184,14 @@ let
   # with fails here and not on ek's machine. The capsule ELFs the kernel
   # embeds are empty stand-ins, and so is the trust set of a capsule the seal
   # has not written yet: this checks the code, `nix build` checks the image.
+  # The files each stand-in is made at, one a line. A file, not the script:
+  # written inline, one command per file, the script outgrew the 128 KiB a
+  # single environment string may hold, and every profile check failed to
+  # start ("Argument list too long").
+  standIns = pkgs.writeText "kernel-profile-stand-ins" (lib.concatMapStrings (f: f + "\n")
+    (lib.concatMap (e: [ "${e.dir}/target/${e.target}/release/${e.bin}" e.cert e.manifest e.trailer ]
+      ++ lib.optional (e.prebuilt != "") e.prebuilt) capsules.catalogue));
+
   profileChecks = lib.mapAttrs' (p: _:
     let
       cfg = config.resolve (config.file // { profile = p; });
@@ -197,9 +205,9 @@ let
       script = ''
         printf 'NONOS-CI-FORK-DEV-SEED-32-BYTE!!' > $TMPDIR/build-placeholder.seed
         export NONOS_SIGNING_KEY=$TMPDIR/build-placeholder.seed
-        ${lib.concatMapStrings (f: ''
-          [ -e "${f}" ] || { mkdir -p "$(dirname "${f}")"; : > "${f}"; }
-        '') (lib.concatMap (e: [ "${e.dir}/target/${e.target}/release/${e.bin}" e.cert e.manifest e.trailer ] ++ lib.optional (e.prebuilt != "") e.prebuilt) capsules.catalogue)}
+        while IFS= read -r f; do
+          [ -e "$f" ] || { mkdir -p "$(dirname "$f")"; : > "$f"; }
+        done < ${standIns}
         cargo check --frozen --target x86_64-nonos.json -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem \
           --no-default-features --features ${lib.concatStringsSep "," cfg.features}
       '';
@@ -242,6 +250,7 @@ let
       "scripts/check_userland_caps.py" "scripts/check_cap_parity.py" "scripts/check_service_caps.py"
       "scripts/check_baked_names.py --self-test" "scripts/check_baked_names.py"
       "tools/nonos-cap-audit --self-test" "tools/nonos-cap-audit"
+      "tools/nonos-pcap-egress --self-test" "tools/nonos_egress/mutants.py" "tools/nonos-efi-vars --self-test" "scripts/check_sealed_caps.py --self-test"
       "scripts/check_kernel_wait.py --self-test" "scripts/check_kernel_wait.py"
       "scripts/check_attest_params.py" "tools/nonos-assumptions"
       "scripts/check_unenforced.py" "scripts/check_unenforced.py --self-test"
