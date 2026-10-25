@@ -56,5 +56,8 @@ pub fn register_sci() -> Option<u64> {
         ..DeviceRecord::empty()
     });
     Line::new().str(b"[ACPI] sci irq=").dec(u64::from(line)).str(b" device=").hex(id).end();
+    // The polled button needs PWRBTN_EN on QEMU, and that lets a press raise
+    // this SCI, so its line is masked unless a capsule has claimed it.
+    fw::power_button::arm(line, crate::hardware::broker::claim::lookup(id).is_some());
     Some(id)
 }
