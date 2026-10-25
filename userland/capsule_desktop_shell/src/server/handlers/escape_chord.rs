@@ -36,9 +36,13 @@ pub fn bring_process_manager(ctx: &mut Context) {
     bring(ctx, PROCESS_MANAGER);
 }
 
-/// Ctrl+Alt+T: the Terminal forward, or opened when it is not running.
+/// Ctrl+Alt+T: what a click on the Terminal's dock tile does, its window
+/// raised or a new one opened, with the dock's notice and tracking.
 pub fn bring_terminal(ctx: &mut Context) {
-    bring(ctx, TERMINAL);
+    clear_chrome(ctx);
+    if let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == TERMINAL) {
+        super::launcher_launch::launch_at(ctx, index, &LAUNCHER_APPS[index]);
+    }
 }
 
 fn bring(ctx: &mut Context, service: &[u8]) {

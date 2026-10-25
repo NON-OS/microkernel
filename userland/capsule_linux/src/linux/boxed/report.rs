@@ -24,6 +24,7 @@ use core::fmt::Write;
 
 use super::allowed::allowed;
 pub use super::end::End;
+pub use super::hash::hex;
 use super::kind::ALL;
 use super::preset::{BoxPolicy, Preset};
 use super::tally::Tally;
@@ -39,17 +40,17 @@ pub fn preset_name(p: Preset) -> &'static str {
         Preset::Strict => "strict",
         Preset::Offline => "offline",
         Preset::Allow => "allow",
+        Preset::Learn => "learn",
     }
-}
-
-pub fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| alloc::format!("{b:02x}")).collect()
 }
 
 /// `granted`: the services the program got in the box, None if it never started.
 pub fn report(b: &BoxPolicy, hash: &[u8; 32], t: &Tally, granted: Option<u64>, e: &End) -> String {
     let mut s = alloc::format!("BOX REPORT v{VERSION}\n");
     let _ = writeln!(s, "  policy   {} {}", preset_name(b.preset), hex(hash));
+    if let Some(line) = super::learn_report::mode(b) {
+        let _ = writeln!(s, "  {line}");
+    }
     for line in allowed(b, granted) {
         let _ = writeln!(s, "  allowed  {line}");
     }

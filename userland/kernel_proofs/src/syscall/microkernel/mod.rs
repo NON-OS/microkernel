@@ -28,6 +28,8 @@ mod owner_gate_tests;
 pub mod retired;
 #[cfg(test)]
 mod retired_tests;
+#[cfg(test)]
+mod no_bgrt_tests;
 
 pub mod caps_of;
 pub mod enqueued_at;

@@ -18,7 +18,7 @@
 
 use core::fmt;
 
-use crate::Refusal;
+use crate::{CapsuleFault, Refusal};
 
 impl Refusal {
     pub const fn name(&self) -> &'static str {
@@ -43,7 +43,10 @@ impl Refusal {
             Refusal::EnrolRevoked => "enrol-revoked",
             Refusal::Pcr9 => "pcr9",
             Refusal::Pcr8 => "pcr8",
-            Refusal::Pcr14 => "pcr14",
+            Refusal::Pcr14(CapsuleFault::None) => "pcr14",
+            Refusal::Pcr14(CapsuleFault::PathOnly) => "path-only",
+            Refusal::Pcr14(CapsuleFault::Developer) => "developer",
+            Refusal::Pcr14(CapsuleFault::LocalBuild) => "local-build",
             Refusal::Log(_) => "log",
             Refusal::Replay(_) => "replay",
             Refusal::Loader => "loader",

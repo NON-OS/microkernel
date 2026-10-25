@@ -47,6 +47,7 @@ pub(super) fn unread(device: BlockDevice, status: i32) -> Disk {
     Disk {
         driver: device.driver,
         instance: device.instance,
+        unit: device.unit,
         device: None,
         size: device.bytes(),
         block: device.geometry.lba_size(),

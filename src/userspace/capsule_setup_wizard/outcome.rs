@@ -22,20 +22,8 @@
 
 use crate::process::{get_process, ProcessState};
 
-/// The status setup exits with when the person chose to install NONOS.
-const EXIT_INSTALLER: i32 = 3;
-/* The status of a setup the person finished with another mode. */
-const EXIT_DESKTOP: i32 = 0;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Ended {
-    /// Start the desktop.
-    Desktop,
-    /// Start the installer full screen; the desktop only if it ends without a restart.
-    Installer,
-    /* Setup never started, failed, or its status is gone: nobody chose. */
-    Unfinished,
-}
+use super::outcome_rule::read;
+pub use super::outcome_rule::Ended;
 
 /*
  * `None` while setup runs. The status's low byte says what setup asked for,
@@ -47,27 +35,10 @@ pub fn ended() -> Option<(Ended, u8)> {
         return None;
     }
     let pid = super::state::spawned_pid();
-    let code = match get_process(pid) {
-        Some(pcb) => match *pcb.state.lock() {
-            ProcessState::Zombie(code) | ProcessState::Terminated(code) => Some(code),
-            _ => None,
-        },
-        None => crate::process::exit::peek_exit_status(pid),
-    };
-    Some(match code.filter(|_| pid != 0).and_then(parts) {
-        Some((EXIT_INSTALLER, off)) => (Ended::Installer, off),
-        Some((EXIT_DESKTOP, off)) => (Ended::Desktop, off),
-        _ => (Ended::Unfinished, 0),
-    })
-}
-
-/*
- * The kernel's reading of nonos_policy_proto::apps::exit_parts: a status
- * with bits above the apps byte, or a negative one, is not one setup wrote.
- */
-fn parts(status: i32) -> Option<(i32, u8)> {
-    if !(0..1 << 16).contains(&status) {
-        return None;
-    }
-    Some((status & 0xFF, (status >> 8) as u8))
+    let pcb = get_process(pid).and_then(|pcb| match *pcb.state.lock() {
+        ProcessState::Zombie(code) | ProcessState::Terminated(code) => Some(code),
+        _ => None,
+    });
+    let logged = crate::process::exit::peek_exit_status(pid);
+    Some(read(pid, crate::process::exit::kept_status(pid), pcb, logged))
 }

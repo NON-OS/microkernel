@@ -23,15 +23,15 @@ pub(super) const DRIVER_USB_HUB_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-usb-hub")]
 pub(super) const DRIVER_USB_HUB_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_hub.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_usb_hub.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-hub")]
 pub(super) const DRIVER_USB_HUB_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_hub.manifest.bin");
+    crate::baked_trust!("capsules/driver_usb_hub.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-usb-hub")]
 pub(super) const DRIVER_USB_HUB_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_usb_hub.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_usb_hub.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-usb-hub"))]
 pub(super) const DRIVER_USB_HUB_ELF: &[u8] = &[];

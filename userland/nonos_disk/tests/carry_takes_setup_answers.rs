@@ -32,6 +32,7 @@ extern crate alloc;
 use fake_vfs::FakeVfs;
 use nonos_disk::gather;
 use nonos_policy_proto::setup_record::{Answers, Name, Tier, DONE};
+use nonos_policy_proto::wallpaper_labels::WALLPAPER_DEFAULT;
 
 fn kept() -> Answers {
     let (username, qwen_tier) = (Name::new(b"ada").unwrap(), Tier::new(b"small").unwrap());
@@ -43,7 +44,10 @@ fn setup_answers_travel_with_their_marker() {
     let mut v = FakeVfs::default();
     v.put("/nonos/setup/answers", &kept().encode());
     let c = gather(&mut v);
-    assert_eq!(c.answers, Some(kept()), "name and Qwen tier included");
+    // A version 2 record's wallpaper named the first catalog era's picture,
+    // so it reads as the default; the record itself travels as it was kept.
+    let read = Answers { wallpaper: WALLPAPER_DEFAULT, ..kept() };
+    assert_eq!(c.answers, Some(read), "name and Qwen tier included");
     let files = vfs::load(c.store.bytes());
     let want =
         [("/nonos/setup/answers", kept().encode().to_vec()), ("/nonos/setup/done", DONE.to_vec())];

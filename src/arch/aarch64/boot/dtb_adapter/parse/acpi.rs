@@ -21,7 +21,7 @@ use crate::arch::fdt::Fdt;
 use crate::sys::serial::Line;
 
 /// The RSDP the loader named, kept whichever description the kernel boots
-/// from: the arch-neutral table readers (BGRT and the like) want it on a
+/// from: the arch-neutral table readers want it on a
 /// tree boot too. Runs first, because a stub tree has no memory nodes and
 /// would otherwise be refused for those, which says nothing useful.
 ///

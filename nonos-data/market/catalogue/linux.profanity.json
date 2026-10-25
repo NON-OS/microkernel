@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
   "operator_id": "nonos.marketplace.v1",
-  "published_at_ms": 1792947028341,
+  "published_at_ms": 1792844669000,
   "serial": 1792844669,
   "entries": [
     {
@@ -51,7 +51,7 @@
             "status": "validated",
             "note": "fetched and hashed at 414700 bytes; licence GPL-3.0-or-later; installs only in this release's box",
             "validator_id": "nonos.operator.linux",
-            "validated_at_ms": 1792947028341
+            "validated_at_ms": 1792844669000
           }
         }
       ]

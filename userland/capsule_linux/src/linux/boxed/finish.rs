@@ -42,6 +42,8 @@ fn end(e: End<'_>) {
     let Some(a) = BOX.0.borrow_mut().take() else { return };
     let e = End { reached: a.connected.all(), ..e };
     let mut text = super::report::report(&a.policy, &a.hash, &a.tally, a.granted, &e);
+    let learned = super::learn_report::learned(&a.policy, &a.learned, &a.tally);
+    text.push_str(&learned.unwrap_or_default());
     text.push_str(&super::net_report::net_line(&a.policy, e.reached).unwrap_or_default());
     text.push_str(&super::line::box_line(&a.policy, &a.hash, &a.tally, &e));
     match a.key {
