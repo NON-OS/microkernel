@@ -19,6 +19,10 @@
 //! tools/devnet/tls, so only a `devnet` build, which only development images
 //! take, may compile this in; tools/nix/release_names.nix fails a release
 //! capsule that holds its name or its key's hash.
+//!
+//! Because the key is public, anyone can sign a leaf for any name under this
+//! root. So the general lookups (lookup.rs) never know it, and dev_anchor.rs
+//! is the only place it anchors anything: one name, one use, one link.
 
 /// The root's SubjectDN, CN NONOS-devnet-throwaway-root: what the served
 /// leaf names as its issuer.
@@ -34,12 +38,6 @@ pub static DEV_ROOT_SPKI_SHA256: [u8; 32] = [
     87, 252, 253, 177, 5, 68, 183, 247, 164, 161, 45,
 ];
 
-/// Whether `h` is the throwaway root's SPKI hash.
-pub fn is_dev_root(h: &[u8; 32]) -> bool {
-    h == &DEV_ROOT_SPKI_SHA256
-}
-
-/// The throwaway root's key, when `subject` is its name.
-pub fn dev_spki_by_subject(subject: &[u8]) -> Option<&'static [u8]> {
-    (subject == DEV_ROOT_SUBJECT).then_some(DEV_ROOT_SPKI)
-}
+/// The one name the root may vouch for: the local chain's RPC, as
+/// nonos_route_link's DEVNET_RPC_HOST dials it (tls_proofs pins the two equal).
+pub static DEV_RPC_HOST: &[u8] = b"rpc.devnet.nonos.test";

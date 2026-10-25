@@ -10,6 +10,7 @@ files let a TLS proxy on the host answer it in front of a local node.
 | `root_subject.der`, `root_spki.der` | its SubjectDN and public key, as nonos_tls compiles them in |
 | `leaf.der` | the one leaf it signs, for `rpc.devnet.nonos.test` |
 | `root-key.throwaway.der`, `leaf-key.throwaway.der` | both private keys, PKCS#8 DER |
+| `other-leaf.der`, `client-leaf.der`, `noeku-leaf.der`, `ca-leaf.der`, `inter.der`, `inter-leaf.der` | certificates the root's key signs that nonos_tls must refuse (`refusals.py`); never served |
 
 ## Public on purpose
 
@@ -20,6 +21,13 @@ nonos_tls compiles it in only with its `devnet` feature, which only the
 development capsule set turns on (`scripts/check_devnet_feature.py`), and
 the release-names check (`tools/nix/release_names.nix`) fails if a release
 capsule holds the root's name or its key's hash.
+
+Since anyone can sign under the root, even a development build takes it for
+one chain only (`userland/nonos_tls/src/roots/dev_anchor.rs`): a leaf for
+`rpc.devnet.nonos.test` exactly, stating serverAuth, not a CA, signed by
+the root itself and served alone or with the root. A leaf for any other
+name, such as `other-leaf.der` for `rpc.mainnet.example`, is refused; the
+tests in `userland/tls_proofs/src/tests/dev_root_*.rs` prove each case.
 
 Never reuse these keys for anything else, and never add this root to a
 trust store outside a development image.
