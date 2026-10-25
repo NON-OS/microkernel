@@ -16,8 +16,8 @@
 
 //! The TPM register window, shared by both interfaces.
 //!
-//! CRB and FIFO parts decode the same 0xFED40000 range, one locality per
-//! 4 KiB page, so there is one uncached mapping of it and each driver reads
+//! CRB and FIFO parts decode the same range (0xFED40000 on a PC, where the
+//! device tree says on an Arm board), one locality per 4 KiB page, so there is one uncached mapping of it and each driver reads
 //! its own register file through it. Mapping the range twice would create
 //! two aliases of the same device memory for no gain.
 
@@ -25,4 +25,4 @@ mod access;
 mod map;
 
 pub(in crate::security::tpm) use access::{read32, read8, write32, write8};
-pub(in crate::security::tpm) use map::{init_window, map_region, TPM_MMIO_BASE};
+pub(in crate::security::tpm) use map::{init_window, map_region, tpm_mmio_base};

@@ -35,11 +35,8 @@ pub(super) fn install(pid: u32, w: &Window, kind: MemType) -> Result<VirtAddr, M
     }
     let phys = PhysAddr::new(w.page_start);
     let size = w.page_bytes as usize;
-    let mapped = match kind {
-        MemType::Uncached => crate::memory::paging::map_user_mmio(user_va, phys, size),
-        MemType::WriteCombining => crate::memory::paging::map_user_mmio_wc(user_va, phys, size),
-    };
-    if mapped.is_err() {
+    let wc = kind == MemType::WriteCombining;
+    if crate::memory::paging::map_user_mmio(user_va, phys, size, wc).is_err() {
         let _ = crate::memory::paging::unmap_user_mmio(user_va, size);
         grant::release_user_va(pid, va, bytes);
         return Err(MmioMapError::MapFailed);

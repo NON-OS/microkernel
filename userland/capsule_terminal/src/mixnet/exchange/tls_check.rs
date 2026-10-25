@@ -57,8 +57,7 @@ impl Exchange {
          * the same read is response.
          */
         tls.handshake = None;
-        tls.client.private = [0; 32];
-        tls.client.p256_private = [0; 32];
+        tls.client.wipe_private();
         tls.app = Some(answer.app);
         self.raw = self.raw.get(end..).map(<[u8]>::to_vec).unwrap_or_default();
         self.request = Vec::new();

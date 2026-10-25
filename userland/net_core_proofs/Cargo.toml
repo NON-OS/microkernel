@@ -16,7 +16,9 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+# The route values the DNS gate reads (route_gate_tests).
+nonos_policy_proto = { path = "../policy_proto" }
 # The stack net.core runs, for the TCP liveness proofs.
 smoltcp = { version = "0.11", default-features = false, features = [
-  "std", "medium-ip", "proto-ipv4", "socket-tcp",
+  "std", "medium-ip", "medium-ethernet", "proto-ipv4", "socket-tcp", "socket-dhcpv4",
 ] }

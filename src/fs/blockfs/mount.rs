@@ -13,18 +13,28 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use super::constants::HEADER_RING_SECTORS;
 use super::read_header::read_header;
-use super::select_newer::select_newer;
+use super::ring_pick::{pick, SlotRead};
 use super::{BlockFsError, BlockFsMount};
+use crate::fs::cryptoblock::CryptoBlockError;
 
 pub fn mount(key: &[u8; 32]) -> Result<BlockFsMount, BlockFsError> {
-    let mut best = None;
-    for lba in 0..HEADER_RING_SECTORS {
-        if let Ok(candidate) = read_header(key, lba) {
-            best = select_newer(best, candidate);
-        }
-    }
-    best.ok_or(BlockFsError::NotFormatted)
+    let slots = (0..HEADER_RING_SECTORS).map(|lba| match read_header(key, lba) {
+        Ok(m) => SlotRead::Header { at: lba, generation: m.superblock.generation, header: m },
+        Err(e) if not_ours(&e) => SlotRead::NotOurs,
+        Err(e) => SlotRead::Failed(e),
+    });
+    pick(slots, HEADER_RING_SECTORS)?.ok_or(BlockFsError::NotFormatted)
+}
+
+/// A slot that does not open under the key, or opens to something that is
+/// not a header, holds no header of this volume; every other error is the
+/// device's.
+fn not_ours(e: &BlockFsError) -> bool {
+    matches!(
+        e,
+        BlockFsError::CryptoBlock(CryptoBlockError::AuthenticationFailed)
+            | BlockFsError::InvalidSuperblock
+    )
 }

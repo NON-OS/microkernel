@@ -27,6 +27,9 @@ The running system:
 - [Randomness and cryptography](randomness-and-cryptography.md): where random
   bytes come from, the two generators, the crypto system calls and which code
   runs which algorithm.
+- [Privacy guarantees](privacy-guarantees.md): what NONOS promises about
+  leaving no trace and leaking nothing on the network, each promise with its
+  proof and whether it was booted, host-tested or is design only.
 
 The network:
 

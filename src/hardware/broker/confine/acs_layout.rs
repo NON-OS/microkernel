@@ -16,7 +16,6 @@
 
 //! Which ACS a function has, by who made it, pure (K11b).
 //! kernel_proofs::acs_group::layout_tests.
-#![cfg(target_arch = "x86_64")]
 
 /// How a function's ACS is read and turned on.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]

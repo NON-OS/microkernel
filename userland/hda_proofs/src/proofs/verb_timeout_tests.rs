@@ -49,7 +49,10 @@ fn after_an_unanswered_verb_the_shadow_pointer_agrees_with_the_controller() {
     let _ = link.send(CMD);
     assert_eq!(bar.wrote16(CORBWP as usize), 1);
     let _ = link.send(CMD + 1);
-    assert_eq!(bar.wrote16(CORBWP as usize), 2, "the second command was not posted past the first");
+    // The second went in slot 2, past the first; a second unanswered verb
+    // then resets the rings (ring_recover_tests), so CORBWP is read here no
+    // more.
+    assert_eq!(corb.wrote32(2 * 4), CMD + 1, "the second command was not posted past the first");
 }
 
 #[test]
