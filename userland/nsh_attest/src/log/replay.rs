@@ -22,9 +22,8 @@
 
 use nonos_hash::Sha256;
 
-use alloc::vec::Vec;
-
 use super::locality::startup_locality;
+use super::pcr14::capsule;
 use super::pcr4::pcr4_event;
 use super::replayed::Replayed;
 use super::{event, header, EV_EFI_BOOT_SERVICES_APPLICATION, EV_NO_ACTION, MAX_EVENTS};
@@ -37,12 +36,7 @@ pub fn replay(log: &[u8]) -> Result<Replayed, LogFault> {
         return Err(LogFault::TooLarge);
     }
     let (banks, mut at) = header(log)?;
-    let mut out = Replayed {
-        pcrs: [[0; 32]; PCRS],
-        last_application: None,
-        events: 0,
-        applications: Vec::new(),
-    };
+    let mut out = Replayed::default();
     let mut touched = [false; PCRS];
     while let Some(rest) = log.get(at..).filter(|r| !r.is_empty()) {
         if out.events == MAX_EVENTS {
@@ -53,6 +47,7 @@ pub fn replay(log: &[u8]) -> Result<Replayed, LogFault> {
         if e.pcr == PCR_BOOT_MANAGER {
             pcr4_event(&e)?;
         }
+        out.capsules.extend(capsule(&e)?);
         if e.kind == EV_NO_ACTION {
             if let Some(l) = startup_locality(&e, touched[0])? {
                 out.pcrs[0][31] = l;
