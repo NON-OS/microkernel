@@ -35,6 +35,7 @@ mod prime_gop;
 mod prime_gop_handle;
 mod prime_once;
 mod prime_wire;
+mod rejected;
 mod resize;
 mod unprimed;
 mod upgrade;

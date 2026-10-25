@@ -23,15 +23,15 @@ pub(super) const DRIVER_TULIP_ELF: &[u8] = include_bytes!(concat!(
 
 #[cfg(feature = "nonos-capsule-driver-tulip")]
 pub(super) const DRIVER_TULIP_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_tulip.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/driver_tulip.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-driver-tulip")]
 pub(super) const DRIVER_TULIP_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_tulip.manifest.bin");
+    crate::baked_trust!("capsules/driver_tulip.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-driver-tulip")]
 pub(super) const DRIVER_TULIP_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/driver_tulip.zk_trailer.bin");
+    crate::baked_trust!("capsules/driver_tulip.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-driver-tulip"))]
 pub(super) const DRIVER_TULIP_ELF: &[u8] = &[];

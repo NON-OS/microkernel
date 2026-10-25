@@ -55,7 +55,7 @@ pub fn allowed(policy: &BoxPolicy, granted: Option<u64>) -> Vec<String> {
     out
 }
 
-fn dests(list: &[u8]) -> Vec<String> {
+pub fn dests(list: &[u8]) -> Vec<String> {
     entries(list)
         .map(|d| {
             let host = match d.kind {

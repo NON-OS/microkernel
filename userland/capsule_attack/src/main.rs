@@ -29,6 +29,7 @@ mod attempts;
 mod authority;
 mod codes;
 mod containment;
+mod deputy;
 mod disks;
 mod errno;
 mod line;
@@ -49,6 +50,7 @@ pub unsafe extern "C" fn _start() -> ! {
     attempts::foreign_memory();
     attempts::register_service();
     medium::raw_disk();
+    deputy::deputy_escape();
     attempts::service_squat();
     line::note(b"[ATTACK-DONE] capsule\n");
     // Last, because the second half ends the capsule.

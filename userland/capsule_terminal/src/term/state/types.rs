@@ -64,4 +64,12 @@ pub struct State {
     pub find: Option<crate::term::select::Find>,
     /// The line editing a foreground program gets while it reads lines.
     pub cooked: crate::event::cooked::Cooked,
+    /// The branch the prompt shows, read after each line; empty outside git.
+    pub git_branch: alloc::vec::Vec<u8>,
+    /// Tab's candidates on show beside the prompt; the next key clears them.
+    pub completions: alloc::vec::Vec<alloc::vec::Vec<u8>>,
+    /// The splash's emblem as last drawn, kept so a frame does not redo it.
+    pub splash_art: core::cell::RefCell<crate::paint::fetch::fetch_emblem::Art>,
+    /// The theme picker, while `theme` with no name has it open.
+    pub theme_pick: Option<crate::term::theme_pick::Pick>,
 }

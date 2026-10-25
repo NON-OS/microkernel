@@ -273,6 +273,18 @@ name = "nonos_seal"
 version = "0.3.0"
 
 [[package]]
+name = "nsh-enrol"
+version = "0.1.0"
+dependencies = [
+ "nonos-mldsa65",
+ "nonos_ed25519",
+ "nonos_hash",
+ "nsh_attest",
+ "nsh_crypto",
+ "nsh_wire",
+]
+
+[[package]]
 name = "nsh_attest"
 version = "0.1.0"
 dependencies = [
@@ -293,6 +305,7 @@ dependencies = [
  "nonos-mldsa65",
  "nonos_ed25519",
  "nonos_hash",
+ "nsh-enrol",
  "nsh_attest",
  "nsh_crypto",
  "nsh_wire",

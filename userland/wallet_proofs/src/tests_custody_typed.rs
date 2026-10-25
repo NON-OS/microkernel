@@ -21,6 +21,10 @@
 mod typed_admit_tests;
 #[path = "typed_check_tests.rs"]
 mod typed_check_tests;
+#[path = "typed_config_tests.rs"]
+mod typed_config_tests;
+#[path = "typed_fixture.rs"]
+mod typed_fixture;
 #[path = "typed_hash_tests.rs"]
 mod typed_hash_tests;
 #[path = "typed_live_tests.rs"]

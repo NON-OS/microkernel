@@ -44,9 +44,9 @@ fn the_words_are_the_owners_exactly() {
 /// Whether About holds DMA for a document the kernel encoded, read through
 /// the real parser.
 fn held_doc(enforcing: bool, grants: u32, identity: u32) -> bool {
+    use crate::doc_build::{encoded, CHALLENGE, IDENTITY_AT};
     use crate::doc_parse::parse;
     use crate::kernel_document::{IOMMU_INTEL_VTD, IOMMU_NONE};
-    use crate::parse_tests::{encoded, CHALLENGE, IDENTITY_AT};
     let vendor = if enforcing { IOMMU_INTEL_VTD } else { IOMMU_NONE };
     let mut v = encoded(&CHALLENGE, &[1], &[9; 8], 3, vendor, enforcing, grants);
     v[IDENTITY_AT..IDENTITY_AT + 4].copy_from_slice(&identity.to_be_bytes());

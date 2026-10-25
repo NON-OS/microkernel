@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod abandoned;
 mod clear_pid;
+mod death;
 mod pop;
 mod push;
 mod remove;
+mod reply_rule;
 mod share;
 mod state;
+mod take_reply;
 
+pub(crate) use abandoned::forget as forget_dead;
+pub(in crate::syscall::microkernel::ipc) use abandoned::take as abandoned;
 pub(crate) use clear_pid::clear_pid;
 pub(super) use pop::pop;
-pub(super) use push::push;
-pub(super) use remove::{remove, remove_latest};
+pub(super) use push::{push, Refused};
+pub(super) use remove::remove_latest;
 pub(in crate::syscall::microkernel::ipc) use state::record_served;
+pub(super) use take_reply::take_for_reply;

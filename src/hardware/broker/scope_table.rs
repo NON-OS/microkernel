@@ -61,6 +61,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.buslogic0", &[Ids(0x104B, &[0x1040, 0x1040])]),
     ("driver.gpio0", &[Acpi { class: 0x0080, vendor: ANY, device: ANY }]),
     ("driver.mpt0", &[Ids(0x1000, &[0x0030, 0x0030, 0x0054, 0x0054])]),
+    ("driver.netvsc0", &[Virt { vendor: 0x1414, device: 0x4E45 }]),
     ("driver.pcnet0", &[Ids(0x1022, &[0x2000, 0x2000])]),
     ("driver.piix_ide0", &[Ids(INTEL, &[0x7010, 0x7010, 0x7111, 0x7111])]),
     ("driver.pvscsi0", &[Ids(VMWARE, &[0x07C0, 0x07C0])]),

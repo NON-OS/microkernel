@@ -25,9 +25,10 @@ the caller's capability for that call and refuses with EPERM when it does not
 resolve (`src/syscall/contract/dispatch.rs:25-40`). A number it does not know is
 parked for the caller's supervisor, as for a Linux program, or else answered
 with ENOSYS (`syscall_handler` in
-`src/arch/x86_64/syscall/manager/entry.rs:24-53`). The kernel defines 130
-syscalls (`SyscallNumber` in `src/syscall/numbers/defs.rs:19-150`) and 36
-capability bits (`capability_table` in `src/capabilities/types/defs.rs:21-83`).
+`src/arch/x86_64/syscall/manager/entry.rs:24-53`). The kernel defines 176
+syscalls, 147 of them published (`SyscallNumber` in
+`src/syscall/numbers/defs.rs:19-196`) and 40
+capability bits (`capability_table` in `src/capabilities/types/defs.rs:19-75`).
 Messages between capsules wait in kernel [inboxes](glossary-hardware-broker.md#inbox): all of
 them together hold at most 96 MiB, one inbox at most 16 MiB, and one sender at
 most half of any one inbox (`TOTAL_BYTES_MAX`, `INBOX_BYTES_MAX` and

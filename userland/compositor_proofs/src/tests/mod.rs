@@ -20,7 +20,12 @@ mod blit;
 mod colour;
 mod display;
 mod display_notice_tests;
+mod flush_budget_tests;
 mod present_note_tests;
+#[path = "../../../compositor/src/refusal_note.rs"]
+pub(crate) mod refusal_note;
+mod refusal_note_tests;
+mod rejected_tests;
 pub(crate) mod requests;
 mod scene;
 mod sizes;

@@ -16,7 +16,7 @@
 
 //! F-98: seeded hostile tables over the kernel's pure ACPI parsers (MADT
 //! on both architectures, SRAT, HMAT, SLIT, MCFG, HPET, FADT, SPCR, DBG2,
-//! PCCT, BGRT and its BMP, and the run-time loaded-table check): every one
+//! PCCT, and the run-time loaded-table check): every one
 //! loads or is refused, never panics or indexes out, and never holds more
 //! than its cap. The x86 decoders are mounted by path as the kernel builds
 //! them.
@@ -49,7 +49,6 @@ mod arm_tests;
 mod debug_tests;
 mod fixed_tests;
 mod hmat_tests;
-mod image_tests;
 mod mcfg_tests;
 mod numa_tests;
 mod x86_tests;

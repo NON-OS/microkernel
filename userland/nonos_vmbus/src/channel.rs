@@ -124,8 +124,11 @@ fn wait<T>(h: &mut impl Host, mut want: impl FnMut(Answer) -> Option<T>) -> Opti
     }
 }
 
-/// Hand the host the GPADL over `pages` page numbers and wait for it.
-fn make_gpadl(h: &mut impl Host, relid: u32, id: u32, pfns: &[u64]) -> Result<(), OpenError> {
+/// Hand the host GPADL `id` over the page numbers `pfns`, for channel
+/// `relid`, and wait for it: the rings' at the open, and any buffer a driver
+/// shares beside them (netvsc's receive and send buffers). One the host
+/// never answers is torn down again, so the host keeps no page of it.
+pub fn gpadl(h: &mut impl Host, relid: u32, id: u32, pfns: &[u64]) -> Result<(), OpenError> {
     post(
         h,
         msg::gpadl_header(relid, id, pfns)
@@ -148,14 +151,15 @@ fn make_gpadl(h: &mut impl Host, relid: u32, id: u32, pfns: &[u64]) -> Result<()
         Some(status) => Err(OpenError::GpadlRefused(status)),
         // The host may make it yet: tear it down, so it holds no page.
         None => {
-            let _ = drop_gpadl(h, relid, id);
+            let _ = teardown(h, relid, id);
             Err(OpenError::Silent)
         }
     }
 }
 
-/// Tear a GPADL down and wait for the host to say it is gone.
-fn drop_gpadl(h: &mut impl Host, relid: u32, id: u32) -> Result<(), OpenError> {
+/// Tear GPADL `id` down and wait for the host to say it is gone; until
+/// then the host may still reach its pages.
+pub fn teardown(h: &mut impl Host, relid: u32, id: u32) -> Result<(), OpenError> {
     post(h, msg::gpadl_teardown(relid, id).bytes())?;
     let gone = wait(h, |a| match a {
         Answer::GpadlTorndown { id: i } if i == id => Some(()),
@@ -187,7 +191,7 @@ pub fn open(
     for (i, p) in pfns.iter_mut().enumerate() {
         *p = first_pfn.checked_add(i as u64).ok_or(OpenError::Layout)?;
     }
-    make_gpadl(h, relid, gpadl, pfns)?;
+    self::gpadl(h, relid, gpadl, pfns)?;
     let opened = msg::open(relid, relid, gpadl, layout.out_pages, user)
         .ok_or(OpenError::Layout)
         .and_then(|o| post(h, o.bytes()))
@@ -213,11 +217,11 @@ pub fn open(
             if answer.is_none() {
                 let _ = post(h, msg::close(relid).bytes());
             }
-            let _ = drop_gpadl(h, relid, gpadl);
+            let _ = teardown(h, relid, gpadl);
             Err(answer.map_or(OpenError::Silent, OpenError::OpenRefused))
         }
         Err(e) => {
-            let _ = drop_gpadl(h, relid, gpadl);
+            let _ = teardown(h, relid, gpadl);
             Err(e)
         }
     }
@@ -228,7 +232,7 @@ impl Channel {
     /// GPADL is gone; until then it may still write the pages.
     pub fn close(&self, h: &mut impl Host) -> Result<(), OpenError> {
         post(h, msg::close(self.relid).bytes())?;
-        drop_gpadl(h, self.relid, self.gpadl)
+        teardown(h, self.relid, self.gpadl)
     }
 
     /// Send one packet, signalling the host when it may be waiting.
