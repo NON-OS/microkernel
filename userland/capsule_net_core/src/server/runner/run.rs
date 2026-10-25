@@ -16,55 +16,42 @@
 
 use alloc::vec;
 
-use nonos_libc::mk_time_millis;
+use nonos_libc::mk_uptime_ms;
 
 use crate::server::handlers::dns::resolve_a;
 use crate::server::parse_req::{parse, HDR_LEN, IPC_BUF_MAX};
+use crate::server::runner::turn::{turn, Turn};
 use crate::server::runner::{dispatch, receive, refuse};
-
-// How often to re-check whether a better network interface has come up. The WiFi
-// link is down at boot and only associates once the user connects, so the stack
-// starts on whatever is up then (often nothing, or a cabled NIC) and must switch
-// when the WiFi link appears.
-const REEVAL_INTERVAL_MS: i64 = 1000;
 
 pub fn run() -> ! {
     let mut rx = vec![0u8; HDR_LEN + IPC_BUF_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_BUF_MAX];
-    let mut last_reeval: i64 = 0;
-    // Least time between device polls while the stack is quiet.
-    //
-    // `pump` runs a full smoltcp poll: every socket, every queue, the device.
-    // It used to run on every turn of this loop, so the poll rate was whatever
-    // the receive wait happened to be, and a single message a second held the
-    // loop attentive long enough to poll about ninety times a second forever.
-    // The wait tier was never the cost; this was. Under traffic the loop is
-    // attentive anyway and polls at its own rate, so this floor only applies
-    // to a stack with nothing to do.
-    const IDLE_POLL_MS: i64 = 20;
-    let mut last_poll: i64 = 0;
+    let (mut probed, mut polled) = (i64::MIN, i64::MIN);
 
     loop {
-        let now = mk_time_millis();
-        // Poll when something is happening, a DNS lookup waits for its answer,
-        // or the idle floor has passed.
+        let now = mk_uptime_ms();
         let waiting = resolve_a::waiting();
-        if receive::attentive() || waiting || now.wrapping_sub(last_poll) >= IDLE_POLL_MS {
-            crate::iface::poll::pump();
-            last_poll = now;
+        match turn(now, probed, polled, receive::attentive() || waiting) {
+            // Every call these make waits at most a few tens of milliseconds;
+            // a join autojoin starts runs on in the driver and is watched, not
+            // waited for. Re-checking for a better interface is how the stack
+            // moves to the Wi-Fi link once the user connects.
+            Turn::Probe => {
+                crate::iface::relink::check();
+                crate::setup::reevaluate();
+                crate::autojoin::tick(now);
+                probed = now;
+            }
+            Turn::Poll => {
+                crate::iface::poll::pump();
+                polled = now;
+            }
+            Turn::Neither => {}
         }
         // Lookups are answered here, after a poll, never pumped to their end
         // inside dispatch, where they held every other client for up to 3 s.
         if waiting {
             resolve_a::settle(&mut tx);
-        }
-        // Every call these make waits at most a few tens of milliseconds; a
-        // join autojoin starts runs on in the driver and is watched, not waited
-        // for.
-        if now.wrapping_sub(last_reeval) >= REEVAL_INTERVAL_MS {
-            crate::setup::reevaluate();
-            crate::autojoin::tick(now);
-            last_reeval = now;
         }
         let mut sender_pid = 0u32;
         let n = receive::receive(&mut rx, &mut sender_pid);

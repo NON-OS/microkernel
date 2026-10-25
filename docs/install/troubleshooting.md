@@ -206,7 +206,7 @@ The two `refused with EIO` lines print when a program, such as the model fetcher
   - `Unopenable`, and `[DATA] formatted a volume of` on the console: `mount_or_format` in `src/fs/blockfs_volume/mount_or_format.rs:64-76`.
   - The live boot line: `LEAST` in `src/fs/blockfs_volume/session.rs:34-44`.
   - The `refused with EIO` lines on the console: `ERRNO_IO` in `src/syscall/microkernel/data/errno.rs:47-53`.
-  - The amnesic refusal: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:35-39`.
+  - The amnesic refusal: `require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs:40-47`.
 
 ## See also
 

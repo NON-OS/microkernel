@@ -31,7 +31,7 @@ mod mirror_fence;
 mod route;
 
 const SETTINGS: [&str; 11] = [
-    // Alpine's mirror, which only a development image names (install/mirror.rs).
+    // Refused in every build: Alpine's mirror is compiled in (install/mirror.rs).
     "NONOS_ALPINE_MIRROR",
     "NONOS_PACMAN_MIRROR",
     "NONOS_PACMAN_HOST",
