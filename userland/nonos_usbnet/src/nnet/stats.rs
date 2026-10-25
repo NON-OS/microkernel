@@ -30,7 +30,20 @@ pub struct Stats {
     /// Failures since a frame last moved, transfers and the driver's own
     /// looks alike: an empty IN pipe cannot hide a device whose sends fail.
     pub failing: u32,
+    /// Where the station address came from (STATION_*), for Settings'
+    /// network page: a driver that never has to fall back leaves it 0.
+    pub station: u32,
 }
+
+/// The station address's source, word 9 of OP_STATS: not reported (every
+/// driver that always serves its drawn address); the drawn address, the
+/// network having answered it; the host-assigned address, nothing having
+/// answered the drawn one in the bounded wait (Hyper-V with MAC spoofing
+/// off); the host-assigned address, the host having refused the drawn one.
+pub const STATION_UNREPORTED: u32 = 0;
+pub const STATION_DRAWN: u32 = 1;
+pub const STATION_HOST_UNANSWERED: u32 = 2;
+pub const STATION_HOST_REFUSED: u32 = 3;
 
 impl Stats {
     pub fn tx(&mut self, sent: Result<usize, i32>) {
