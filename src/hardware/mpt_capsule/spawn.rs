@@ -18,6 +18,7 @@ use super::embed::{
     DRIVER_MPT_ATTESTATION_BYTES, DRIVER_MPT_ELF, DRIVER_MPT_MANIFEST_BYTES,
     DRIVER_MPT_NONOS_ID_CERT_BYTES,
 };
+use super::endpoint::REPLY_INBOX;
 use super::state;
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
@@ -30,7 +31,6 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.mpt0";
 const SERVICE_PORT: u32 = 4298;
-const REPLY_INBOX: &str = "endpoint.4294967359";
 const REPLY_PORT: u32 = 4299;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 

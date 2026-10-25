@@ -51,6 +51,7 @@ pub(crate) const NICS: &[(&str, Link)] = &[
     ("driver.pcnet0", Link::Wired),
     ("driver.vmxnet3_0", Link::Wired),
     ("driver.tulip0", Link::Wired),
+    ("driver.netvsc0", Link::Wired),
     ("driver.cdc_ecm0", Link::Wired),
     ("driver.cdc_ncm0", Link::Wired),
     ("driver.rndis0", Link::Wired),

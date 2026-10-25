@@ -50,8 +50,8 @@ fn the_client_parses_this_drivers_identify_reply() {
     assert_eq!((id.model_str(), id.serial_str(), id.emmc), ("SC32G", "1234ABCD", false));
     let client = include_str!("../../../nonos_blk_client/src/device/identity.rs");
     assert!(client.contains(&format!("const OP_SD_IDENTIFY: u16 = {OP_IDENTIFY};")));
-    let client = include_str!("../../../nonos_blk_client/src/device/handle.rs");
-    assert!(client.contains(&format!("const E_NOMEDIUM: i32 = {E_NOMEDIUM};")));
+    let client = include_str!("../../../nonos_blk_client/src/device/medium.rs");
+    assert!(client.contains(&format!("pub const E_NOMEDIUM: i32 = {E_NOMEDIUM};")));
 }
 
 #[test]
