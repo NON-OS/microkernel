@@ -45,9 +45,9 @@ fn an_unreadable_list_says_so() {
 /* The local test chain's throwaway root, which only a devnet build knows. */
 #[path = "dev_root.rs"]
 mod dev_root;
-#[path = "dev_root_trust.rs"]
-mod dev_root_trust;
-#[path = "dev_root_refusals.rs"]
-mod dev_root_refusals;
 #[path = "dev_root_path.rs"]
 mod dev_root_path;
+#[path = "dev_root_refusals.rs"]
+mod dev_root_refusals;
+#[path = "dev_root_trust.rs"]
+mod dev_root_trust;
