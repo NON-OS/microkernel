@@ -20,4 +20,6 @@ mod hostile_tests;
 mod span_tests;
 mod status_tests;
 mod table_tests;
+mod units_tests;
+mod units_walk_tests;
 mod wire_names_tests;
