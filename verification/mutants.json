@@ -47,5 +47,26 @@
   "old": "lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)",
   "new": "true",
   "escapes": "[amnesic] the boot left"
+ },
+ {
+  "name": "ipc-service-gate",
+  "file": "src/syscall/microkernel/ipc/send_caps.rs",
+  "old": "    if held & required == required {\n        return true;\n    }",
+  "new": "    if true {\n        return true;\n    }",
+  "escapes": "[ATTACK] cap-escape ESCAPED: a socket through net.sockets without Network, MkIpcSend returned"
+ },
+ {
+  "name": "ipc-inbox-gate",
+  "file": "src/syscall/microkernel/ipc/send_caps.rs",
+  "old": "    if caller_may_write_inbox(dest, held) {",
+  "new": "    if true {",
+  "escapes": "[ATTACK] cap-escape ESCAPED: net.sockets' inbox by its pid without Network, MkIpcSendToPid returned"
+ },
+ {
+  "name": "register-right",
+  "file": "src/syscall/microkernel/ipc/register_allowed.rs",
+  "old": "match own && caller_has_register_right() && is_runtime_registrable(name) {",
+  "new": "match own && is_runtime_registrable(name) {",
+  "escapes": "[ATTACK] cap-escape ESCAPED: register net.dns without RegisterService, MkServiceRegister returned"
  }
 ]
