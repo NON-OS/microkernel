@@ -23,8 +23,9 @@ USER_NET = "-netdev user,id=cellnet"
 
 
 def nic(model):
-    """A NIC cell: the card bound, and a DHCP lease taken through it."""
-    return Cell(f"q35-nic-{model}", "eth", "q35", 1,
+    """A NIC cell: the card bound, and a DHCP lease taken through it. Under
+    VT-d, since a DMA claim no remapping unit confines is refused."""
+    return Cell(f"q35-iommu-nic-{model}", "eth", "q35", 1, iommu="intel-iommu",
                 devices=(USER_NET, f"-device {model},netdev=cellnet"),
                 expect=(f"[NET-CORE] bind: interface up on driver.{model}_0", "[NET-CORE] lease "))
 
