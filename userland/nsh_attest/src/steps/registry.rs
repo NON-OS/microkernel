@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Step 7: the registry. The entries fold to the root the quote bound,
-//! the machine says it recorded everything it runs, the count it states is
-//! the count it sent, and exactly one capsule holds Network: the release's
-//! `nsh.front`, admitted by the vendor's root.
+//! the machine says it recorded everything it runs, and the count it states
+//! is the count it sent. A release host runs vendor-root capsules only, for
+//! the whole boot, as step 5 holds PCR 14 to: every entry's authority is the
+//! vendor's, Network or not. Exactly one capsule holds Network: the
+//! release's `nsh.front`.
 
 use super::format::{DOMAIN, ENTRY_LEN};
 use crate::{Doc, Refusal, Release};
@@ -54,10 +56,11 @@ pub fn registry(doc: &Doc<'_>, entries: &[u8], release: &Release) -> Result<(), 
     if doc.capsule_count as usize != n {
         return Err(Refusal::CapsuleCount);
     }
+    if entries.chunks_exact(ENTRY_LEN).any(|e| e[44] != VENDOR) {
+        return Err(Refusal::NotVendor);
+    }
     let net = entries.chunks_exact(ENTRY_LEN).filter(|e| network(e));
-    let fronts = net
-        .map(|e| e[4..36] == release.front && e[44] == VENDOR)
-        .try_fold(0, |n, ok| ok.then_some(n + 1));
+    let fronts = net.map(|e| e[4..36] == release.front).try_fold(0, |n, ok| ok.then_some(n + 1));
     match fronts {
         Some(1) => Ok(()),
         _ => Err(Refusal::Front),

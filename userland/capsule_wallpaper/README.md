@@ -80,7 +80,8 @@ holds only the current surface and the decoded image in its heap.
    backing, registers and shares the surface, and hands the backing to a
    worker thread (`src/first_paint`), which fills it with ink (`0xFF0A_0B0D`)
    and paints the linked-in picture
-   (`nonos-data/wallpapers/special-variant-9.jpg`) over it. the service
+   (`nonos-data/wallpapers/nonos-canyon-neon.jpg`, the catalog default, in
+   `src/first_paint/embedded.rs`) over it. the service
    answers from then on: painting a whole screen took over a second under
    emulation, and the desktop shell's first call went unanswered while setup
    did it. until the worker is done the service thread writes nothing to the
