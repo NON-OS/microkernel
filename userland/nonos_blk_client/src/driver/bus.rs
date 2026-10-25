@@ -22,7 +22,8 @@ use super::table::Driver;
 
 impl Driver {
     /// The kind of controller on the bus this driver serves. A card reader
-    /// has none: an empty reader is no missing disk.
+    /// has none, an empty reader being no missing disk; nor has a virtual
+    /// adapter, whose bus the listing does not name.
     pub fn controller(self) -> Option<Controller> {
         match self {
             Driver::VirtioBlk => Some(Controller::VirtioBlk),
@@ -30,7 +31,7 @@ impl Driver {
             Driver::Ahci => Some(Controller::Ahci),
             Driver::Wire => Some(Controller::Emmc),
             Driver::Ufs => Some(Controller::Ufs),
-            Driver::Rtsx => None,
+            Driver::Rtsx | Driver::Ide | Driver::Scsi => None,
         }
     }
 
@@ -48,6 +49,8 @@ impl Driver {
             Driver::Wire => b"eMMC",
             Driver::Ufs => b"UFS",
             Driver::Rtsx => b"SD",
+            Driver::Ide => b"IDE",
+            Driver::Scsi => b"SCSI",
         }
     }
 }

@@ -16,7 +16,7 @@
 
 use crate::services::lifecycle::CapsuleState;
 
-static STATE: CapsuleState = CapsuleState::new();
+pub(super) static STATE: CapsuleState = CapsuleState::new();
 
 pub(super) fn set_alive(pid: u32) {
     STATE.set_alive(pid);

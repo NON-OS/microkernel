@@ -51,3 +51,14 @@ fn a_running_program_outranks_the_line_states() {
     assert_eq!(hints(Mode::Find), FIND);
     assert_eq!(hints(Mode::Running), RUNNING);
 }
+
+#[test]
+fn the_splash_starts_with_help_and_keys_the_keys_page_names() {
+    use super::help_pages::START;
+    assert!(START.starts_with("help"), "{START}");
+    let page = keys_page();
+    for key in ["Tab", "Ctrl+R", "Ctrl+K"] {
+        assert!(START.contains(key) && page.contains(key), "{key}");
+    }
+    assert!(!START.contains("nox help"), "the command is help");
+}

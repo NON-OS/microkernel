@@ -27,7 +27,7 @@ use crate::fs::blockfs;
 pub const WHOLE_READ_MAX: u64 = 64 * 1024 * 1024;
 
 pub fn read_all(path: &[u8]) -> Result<Vec<u8>, VolumeError> {
-    let guard = VOLUME.read();
+    let guard = crate::smp::read_responsive(&VOLUME);
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     let lba = blockfs::resolve(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)?;
     let node = blockfs::read_node(&state.key, lba).map_err(VolumeError::BlockFs)?;

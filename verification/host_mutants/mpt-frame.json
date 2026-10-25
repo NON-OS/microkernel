@@ -1,0 +1,42 @@
+[
+ {
+  "name": "mpt-frame-old-ceiling",
+  "file": "userland/capsule_driver_mpt/src/frame.rs",
+  "old": "pub const MOST: usize = REPLY_OFF - REQUEST_OFF;",
+  "new": "pub const MOST: usize = 256;",
+  "test": "tests::",
+  "crate": "userland/mpt_proofs"
+ },
+ {
+  "name": "mpt-frame-no-sge",
+  "file": "userland/capsule_driver_mpt/src/frame.rs",
+  "old": "pub const LEAST: usize = IO_SGL + 8;",
+  "new": "pub const LEAST: usize = IO_SGL;",
+  "test": "tests::",
+  "crate": "userland/mpt_proofs"
+ },
+ {
+  "name": "mpt-frame-bytes-as-words",
+  "file": "userland/capsule_driver_mpt/src/frame.rs",
+  "old": "(dwords as usize * 4)",
+  "new": "(dwords as usize)",
+  "test": "tests::",
+  "crate": "userland/mpt_proofs"
+ },
+ {
+  "name": "mpt-frame-open-ceiling",
+  "file": "userland/capsule_driver_mpt/src/frame.rs",
+  "old": "(LEAST..=MOST).contains(&(dwords as usize * 4))",
+  "new": "dwords as usize * 4 >= LEAST",
+  "test": "tests::",
+  "crate": "userland/mpt_proofs"
+ },
+ {
+  "name": "mpt-frame-ceiling-exclusive",
+  "file": "userland/capsule_driver_mpt/src/frame.rs",
+  "old": "(LEAST..=MOST)",
+  "new": "(LEAST..MOST)",
+  "test": "tests::",
+  "crate": "userland/mpt_proofs"
+ }
+]

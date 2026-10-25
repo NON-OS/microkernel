@@ -24,15 +24,15 @@ pub(crate) const COMPOSITOR_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-compositor")]
 pub(crate) const COMPOSITOR_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/compositor.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/compositor.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-compositor")]
 pub(crate) const COMPOSITOR_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/compositor.manifest.bin");
+    crate::baked_trust!("capsules/compositor.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-compositor")]
 pub(crate) const COMPOSITOR_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/compositor.zk_trailer.bin");
+    crate::baked_trust!("capsules/compositor.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-compositor"))]
 pub(crate) const COMPOSITOR_ELF: &[u8] = &[];

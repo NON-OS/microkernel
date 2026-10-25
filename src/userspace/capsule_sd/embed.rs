@@ -24,15 +24,13 @@ pub(crate) const SD_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-sd")]
 pub(crate) const SD_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/sd.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/sd.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-sd")]
-pub(crate) const SD_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/sd.manifest.bin");
+pub(crate) const SD_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/sd.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-sd")]
-pub(crate) const SD_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/sd.zk_trailer.bin");
+pub(crate) const SD_ATTESTATION_BYTES: &[u8] = crate::baked_trust!("capsules/sd.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-sd"))]
 pub(crate) const SD_ELF: &[u8] = &[];

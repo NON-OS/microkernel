@@ -24,15 +24,14 @@ pub(crate) const CLOCK_ELF: &[u8] =
 
 #[cfg(feature = "nonos-capsule-clock")]
 pub(crate) const CLOCK_NONOS_ID_CERT_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/clock.nonos_id_cert.bin");
+    crate::baked_trust!("capsules/clock.nonos_id_cert.bin");
 
 #[cfg(feature = "nonos-capsule-clock")]
-pub(crate) const CLOCK_MANIFEST_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/clock.manifest.bin");
+pub(crate) const CLOCK_MANIFEST_BYTES: &[u8] = crate::baked_trust!("capsules/clock.manifest.bin");
 
 #[cfg(feature = "nonos-capsule-clock")]
 pub(crate) const CLOCK_ATTESTATION_BYTES: &[u8] =
-    include_bytes!("../../../nonos-data/trust/capsules/clock.zk_trailer.bin");
+    crate::baked_trust!("capsules/clock.zk_trailer.bin");
 
 #[cfg(not(feature = "nonos-capsule-clock"))]
 pub(crate) const CLOCK_ELF: &[u8] = &[];
