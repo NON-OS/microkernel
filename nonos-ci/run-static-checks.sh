@@ -2334,6 +2334,14 @@ elif ! grep -q 'NONOS_KERNEL_ATTEST_ROOT is all zeroes' "${boot_build}"; then
 else
     note ok "bootloader fails closed on its signing key and the enrolled kernel root"
 fi
+# The loader's build script writes only under OUT_DIR, so no build puts a key
+# in nonos-bootloader/keys/ or .keys/; --selftest shows each mutant fails it.
+if python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >/dev/null; then
+    note ok "bootloader build.rs writes nothing outside OUT_DIR, so never a key in the tree"
+else
+    python3 -I nonos-ci/check-build-writes.py --selftest "${boot_build}" >&2 || true
+    fail_with "bootloader build.rs writes outside OUT_DIR"
+fi
 unset boot_build
 
 boot_features='nonos-bootloader/Cargo.toml'
@@ -5217,6 +5225,19 @@ else
     fail_with "check_dark_features: a feature gates code that no lane builds"
 fi
 unset dark_out
+
+# Every way off the machine is listed: a capsule that gains Network, or an
+# address, host or build-time endpoint new to a networked capsule's source,
+# fails until docs/security/privacy.md names it with why and how to turn it
+# off; a row the code no longer has fails too. The audit's own tests run first.
+if egress_out="$( (cd tools && python3 -m unittest -q nonos_egress_audit.test_egress) 2>&1 \
+    && python3 tools/nonos-egress-audit 2>&1)"; then
+    note ok "every outbound path is listed in docs/security/privacy.md (nonos-egress-audit)"
+else
+    tail -n 8 <<< "${egress_out}" >&2
+    fail_with "nonos-egress-audit: a way off the machine is not listed, or a row is stale"
+fi
+unset egress_out
 
 if [ "${fail}" -ne 0 ]; then
     echo

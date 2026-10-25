@@ -66,8 +66,10 @@ fn a_guest_printed_box_line_never_reaches_the_serial_log() {
     assert_eq!(hold.lines(), (Vec::new(), None));
     let draw = include_str!("../../../capsule_terminal/src/jobs/box_draw.rs");
     assert!(draw.contains("let (shown, line) = hold.lines();"));
-    assert!(draw.contains(
-        "Some(l) => {\n            if !super::box_log::log(l, |p| nonos_libc::mk_debug("
-    ));
+    assert!(draw.contains("Some(l) => {\n            if !to_log(l) {"));
+    /* The log's one writer, fed the keyed line or the terminal's own missing line. */
     assert_eq!(draw.matches("mk_debug(").count(), 1);
+    assert!(draw.contains("bool {\n    super::box_log::log(line, |p| nonos_libc::mk_debug("));
+    assert_eq!(draw.matches("to_log(").count(), 3);
+    assert!(draw.contains("let l = missing_line(m, exit);\n    if !to_log(l.as_bytes()) {"));
 }

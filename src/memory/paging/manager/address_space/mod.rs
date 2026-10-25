@@ -18,5 +18,7 @@ mod cleanup;
 mod clone;
 mod create;
 mod kernel_half;
+mod leaf_release;
+mod scrub;
 mod switch;
 mod teardown;

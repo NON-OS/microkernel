@@ -20,6 +20,7 @@
 mod db;
 mod desc;
 mod fetch;
+mod find;
 mod keyring;
 mod run;
 mod source;

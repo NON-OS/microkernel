@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.ncdu",
+      "capsule_id": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24",
+      "name": "ncdu",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "See what takes the space in a directory tree, and clean it up.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "ncdu@1.20-r0",
+          "manifest_hash": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24",
+          "package_hash": "6b2acdef7f057b723ca613ec31aac0b11a1bbf20a17e2085c89988580c555f24",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/ncdu-1.20-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c303101000000000000007202b4b9637bc13314cbe37a8e25255f346ae1c7e9c6ce21abb15f858ca983b70801000000000000b3cc63e6329058e867ab4276374f6bdc6854ac21f8685ed328876b0bc824f6477da6d94e8524e524b85ab0552c5e3cdbdd4d95d8a59ace9d6e7d15bf3bf1eebf0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 34596 bytes; licence MIT; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}
