@@ -1327,6 +1327,7 @@
    "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/boot_splash_proofs",
+   "userland/capsule_boot_splash/src/attest_lines.rs",
    "userland/capsule_boot_splash/src/follow.rs",
    "userland/capsule_boot_splash/src/layout.rs",
    "userland/capsule_boot_splash/src/layout_fit.rs",
