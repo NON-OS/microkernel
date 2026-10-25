@@ -21,7 +21,8 @@
 //! other bind is bind.rs's, held to NET_LISTEN_LO and to 127.0.0.0/8.
 
 /// Whether a bind to `ip`:`port` is that unnamed bind, by a program that
-/// `reaches_out` (holds NET_ANON).
+/// `reaches_out`: holds NET_ANON, or is a learn run, whose connects are
+/// refused naming where they would go.
 pub fn unnamed(ip: [u8; 4], port: u16, reaches_out: bool) -> bool {
     ip == [0; 4] && port == 0 && reaches_out
 }

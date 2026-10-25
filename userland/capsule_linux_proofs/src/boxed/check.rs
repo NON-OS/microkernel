@@ -27,6 +27,7 @@ use nonos_linux_policy::mask::{EXEC, FILES_HOME, NET_ANON, TTY};
 
 pub fn check_word(word: &[u8]) -> Option<BoxPolicy> {
     let p = parse(word).ok()?;
+    assert_eq!(p.preset == Preset::Learn, word == b"learn", "a learn run from another word");
     assert_eq!(p.mask & !(TTY | EXEC | FILES_HOME | NET_ANON), 0, "a box grants past its kinds");
     assert_eq!(p.mask & (TTY | EXEC), TTY | EXEC);
     assert!(p.folders.windows(2).all(|w| w[0] < w[1]), "folders unsorted or twice");
