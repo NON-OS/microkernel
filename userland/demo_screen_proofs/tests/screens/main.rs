@@ -32,6 +32,7 @@ mod compose;
 mod constants;
 mod desktop_shots;
 mod frame;
+mod game_2048_palette;
 #[path = "geometry_mount.rs"]
 mod geometry;
 mod modes;
