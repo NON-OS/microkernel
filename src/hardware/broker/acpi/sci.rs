@@ -23,11 +23,25 @@ use crate::hardware::broker::class::ids;
 use crate::hardware::broker::device::{BusKind, DeviceRecord};
 use crate::hardware::broker::table;
 use crate::sys::serial::Line;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 /// "PNP0C08", the ACPI driver's own PnP id, in the encoding the PS/2 records
 /// use: vendor 0x0001 for the PNP prefix, the four hex digits as the device.
 pub const PNP_VENDOR: u16 = 0x0001;
 pub const PNP_DEVICE_ACPI: u16 = 0x0C08;
+
+/// The SCI's line in the top byte and its record's id below; 0 until one is.
+static SCI: AtomicU64 = AtomicU64::new(0);
+
+/// Arm the polled power button once the IO-APIC's entries exist: the SCI's
+/// line masked, then PWRBTN_EN set, unless a capsule has claimed the SCI.
+pub fn arm_power_button() {
+    let sci = SCI.load(Ordering::Acquire);
+    let (line, id) = ((sci >> 56) as u8, sci & ((1 << 56) - 1));
+    if sci != 0 {
+        fw::power_button::arm(line, crate::hardware::broker::claim::lookup(id).is_some());
+    }
+}
 
 /// Register the SCI the FADT names (ACPI 6.5, 5.2.9, SCI_INT). A
 /// hardware-reduced platform has no SCI (4.1) and gets no record; nor does a
@@ -56,8 +70,6 @@ pub fn register_sci() -> Option<u64> {
         ..DeviceRecord::empty()
     });
     Line::new().str(b"[ACPI] sci irq=").dec(u64::from(line)).str(b" device=").hex(id).end();
-    // The polled button needs PWRBTN_EN on QEMU, and that lets a press raise
-    // this SCI, so its line is masked unless a capsule has claimed it.
-    fw::power_button::arm(line, crate::hardware::broker::claim::lookup(id).is_some());
+    SCI.store(u64::from(line) << 56 | id, Ordering::Release);
     Some(id)
 }

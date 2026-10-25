@@ -28,8 +28,8 @@
 //!
 //! Everything the tick touches is an atomic or an I/O port: the ports are
 //! read from the FADT once at init, because the parser's data sits behind a
-//! lock an interrupt must not wait on. `arm` runs once, from the broker's
-//! seeding, and is the one step that takes a lock: it sets PWRBTN_EN, which
+//! lock an interrupt must not wait on. `arm` runs once, when device interrupt
+//! routing is up, and is the one step that takes a lock: it sets PWRBTN_EN, which
 //! QEMU needs before it latches a press (`hw::power_button_arm`).
 
 mod arm;

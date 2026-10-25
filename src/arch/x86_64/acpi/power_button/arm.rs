@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Arming the poll, once, from the broker's seeding: the SCI's IO-APIC line
+//! Arming the poll, once device interrupt routing is up: the SCI's IO-APIC line
 //! masked, then PWRBTN_EN set (`hw::power_button_arm` has the rule and why).
 //! Task context, never the tick: the IO-APIC calls take locks an interrupt
 //! must not wait on.
