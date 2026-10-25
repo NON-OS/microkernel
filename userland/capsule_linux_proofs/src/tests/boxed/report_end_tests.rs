@@ -27,7 +27,7 @@ use nonos_linux_policy::mask::{EXEC, FILES_HOME, NET_ANON, TTY};
 #[test]
 fn a_run_that_never_started_says_why_and_is_never_a_clean_run() {
     let p = parse(b"strict").unwrap();
-    let e = End { exit: 2, not_started: Some("unproven program") };
+    let e = End { exit: 2, not_started: Some("unproven program"), reached: &[] };
     let t = Tally::default();
     let text = report(&p, &box_hash(&p), &t, None, &e);
     assert!(text.contains("  started  no: unproven program\n  exit     2\n"), "{text}");
@@ -38,7 +38,7 @@ fn a_run_that_never_started_says_why_and_is_never_a_clean_run() {
 fn allowed_is_what_the_program_got() {
     let p = parse(b"allow:/tmp/a,/home/b,net:10.0.0.1:443").unwrap();
     let h = box_hash(&p);
-    let ran = End { exit: 0, not_started: None };
+    let ran = End { exit: 0, not_started: None, reached: &[] };
     let t = Tally::default();
     // A program with no home and no network of its own gets neither here.
     let got = report(&p, &h, &t, Some(TTY | EXEC), &ran);

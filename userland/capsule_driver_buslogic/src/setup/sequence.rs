@@ -20,9 +20,8 @@
 //! the incoming mailbox.
 
 use nonos_libc::{
-    mk_device_claim, mk_device_release, mk_dma_map, mk_dma_unmap, mk_pci_config_write,
+    mk_device_claim, mk_device_release, mk_dma_map, mk_dma_unmap,
     mk_pio_grant, mk_pio_release, DmaMapOut, PioGrantOut, MK_DMA_MAP_COHERENT, MK_DMA_MAP_DMA32,
-    MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
 };
 
 use super::driver::{abandon, Driver};
@@ -48,10 +47,7 @@ pub fn run(dev: Found) -> Result<Driver, &'static str> {
         let _ = mk_device_release(dev.device_id);
         e
     };
-    // Bus Master for the mailboxes and the data; the pin silenced, as the
-    // driver polls. I/O decode is the firmware's.
-    let bits = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
-    if mk_pci_config_write(dev.device_id, epoch, MK_PCI_CFG_COMMAND, bits) < 0 {
+    if super::command::set(dev.device_id, epoch) < 0 {
         return Err(release("pci command setup failed"));
     }
     let mut ports = PioGrantOut { port_base: 0, port_count: 0, _pad: 0, grant_id: 0 };

@@ -18,7 +18,8 @@
 //! scratch folder, the run's own /tmp; `offline`, no network and the image
 //! read-only, the run's own folders writable; `allow:<item>,...`, only the
 //! folders (`/tmp/out`) and destinations (`net:<address or name>:<port>`)
-//! named. Each grants a terminal and execve, so a script runs its tools,
+//! named; `learn`, held as `offline` but recording what the run did, for a
+//! policy file (learned.rs). Only the word `learn` is a learn run. Each grants a terminal and execve, so a script runs its tools,
 //! which are never let do more than the box (identity_exec.rs).
 
 use alloc::vec::Vec;
@@ -32,6 +33,8 @@ pub enum Preset {
     Strict,
     Offline,
     Allow,
+    /// Held as offline; its report says LEARN and is no enforced policy.
+    Learn,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -52,8 +55,9 @@ pub fn parse(word: &[u8]) -> Result<BoxPolicy, &'static str> {
     let (preset, mask, folders, dests) = match word {
         b"strict" => (Preset::Strict, TTY | EXEC, alloc::vec![b"/tmp".to_vec()], Vec::new()),
         b"offline" => (Preset::Offline, TTY | EXEC | FILES_HOME, own(), Vec::new()),
+        b"learn" => (Preset::Learn, TTY | EXEC | FILES_HOME, own(), Vec::new()),
         _ => {
-            let items = word.strip_prefix(b"allow:").ok_or("not strict, offline or allow:")?;
+            let items = word.strip_prefix(b"allow:").ok_or("not strict, offline, learn or allow:")?;
             let (folders, dests) = allowed(items)?;
             let net = if dests.is_empty() { 0 } else { NET_ANON };
             (Preset::Allow, TTY | EXEC | FILES_HOME | net, folders, dests)

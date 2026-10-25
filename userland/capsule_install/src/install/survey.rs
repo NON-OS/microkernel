@@ -28,7 +28,7 @@ use super::rescan::due;
 use super::state::{Looked, Screen, State};
 
 pub fn look(state: &mut State) {
-    let keep = state.selected_disk().map(|d| (d.driver, d.instance));
+    let keep = state.selected_disk().map(|d| (d.driver, d.instance, d.unit));
     let started = mk_time_millis();
     let found = survey();
     state.raid = found.raid_hides_disks();
@@ -37,9 +37,7 @@ pub fn look(state: &mut State) {
     let ended = mk_time_millis();
     state.looked = Some(Looked { ended, took: ended.saturating_sub(started) });
     state.selected = keep
-        .and_then(|(driver, instance)| {
-            state.disks.iter().position(|d| d.driver == driver && d.instance == instance)
-        })
+        .and_then(|k| state.disks.iter().position(|d| (d.driver, d.instance, d.unit) == k))
         .unwrap_or(0);
 }
 

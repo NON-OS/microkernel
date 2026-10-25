@@ -18,8 +18,9 @@
 //! step gives back what the earlier ones took.
 
 use nonos_libc::{
-    mk_device_claim, mk_device_release, mk_pci_config_write, mk_pio_grant, mk_pio_release,
+    mk_device_claim, mk_device_release, mk_pci_config_update, mk_pio_grant, mk_pio_release,
     PioGrantOut, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
+    MK_PCI_CMD_MEMORY_SPACE,
 };
 
 use super::grants::Grants;
@@ -30,6 +31,10 @@ use crate::constants::pci::{NABM_BAR, NABM_MIN_PORTS, NAM_BAR, NAM_MIN_PORTS};
 /// silenced: the driver polls. I/O decode is the firmware's, and a window
 /// it left off reads all ones, which the codec reset refuses.
 pub const COMMAND_BITS: u16 = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_INTX_DISABLE;
+/// The bits the write sets: those, and Memory Space cleared. The function
+/// decodes nothing in memory, the capsule holds no Mmio, and firmware often
+/// leaves the bit on, which a write that only ORed the others in would keep.
+pub const COMMAND_MASK: u16 = COMMAND_BITS | MK_PCI_CMD_MEMORY_SPACE;
 
 pub fn claim(device_id: u64) -> Result<Grants, &'static str> {
     let epoch = mk_device_claim(device_id);
@@ -44,7 +49,7 @@ pub fn claim(device_id: u64) -> Result<Grants, &'static str> {
         let _ = mk_device_release(device_id);
         e
     };
-    if mk_pci_config_write(device_id, epoch, MK_PCI_CFG_COMMAND, COMMAND_BITS) < 0 {
+    if mk_pci_config_update(device_id, epoch, MK_PCI_CFG_COMMAND, COMMAND_MASK, COMMAND_BITS) < 0 {
         return Err(back(&[], "pci command setup failed"));
     }
     let nam = grant(device_id, epoch, NAM_BAR, NAM_MIN_PORTS)

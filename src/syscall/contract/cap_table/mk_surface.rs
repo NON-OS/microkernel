@@ -23,8 +23,10 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
     Some(match number {
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
-        | SyscallNumber::MkSurfaceRelease
-        | SyscallNumber::MkBootLogo => caps.can_surface_create(),
+        | SyscallNumber::MkSurfaceRelease => caps.can_surface_create(),
+        // Retired (microkernel/retired.rs): EINVAL to every caller, so no
+        // gate answers first.
+        SyscallNumber::MkBootLogo => caps.is_valid(),
         SyscallNumber::MkSurfaceAttach => caps.can_surface_map(),
         SyscallNumber::MkSurfacePresent => caps.can_present(),
         SyscallNumber::MkDisplayVsyncWait => caps.can_display_query(),

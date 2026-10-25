@@ -41,3 +41,38 @@ fn a_channel_record_carries_its_relid_as_its_irq_source() {
         "MkHvChannel registers the record with the relid it binds"
     );
 }
+
+/// The source of a userland file without whitespace.
+fn user_code(rel: &str) -> String {
+    let path = format!("{}/../{rel}", env!("CARGO_MANIFEST_DIR"));
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("{path}: {e}"))
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect()
+}
+
+/// A class's page ceiling, read from dma/limits.rs.
+fn ceiling(limits: &str, class: &str) -> u64 {
+    let at = limits.find(&format!("ids::{class}=>")).unwrap_or_else(|| panic!("no {class} row"));
+    let rest = &limits[at + class.len() + 7..];
+    rest[..rest.find(',').unwrap()].parse().unwrap()
+}
+
+#[test]
+fn a_channel_record_is_classed_by_its_interface_so_its_driver_can_map_its_buffers() {
+    let broker = code("hardware/broker/vmbus.rs");
+    assert!(broker.contains("CHANNEL_SCSI|CHANNEL_IDE=>ids::BLOCK,"));
+    assert!(broker.contains("CHANNEL_NETWORK=>ids::NETWORK,"));
+    assert!(broker.contains("_=>ids::OTHER,"));
+    assert!(broker.contains("class:channel_class(device),"), "the record takes its interface's class");
+    let limits = code("hardware/broker/dma/limits.rs");
+    // storvsc maps one grant: two 32-page rings and a 64 KiB buffer.
+    let layout = user_code("capsule_driver_storvsc/src/constants/layout.rs");
+    assert!(layout.contains("pubconstRING_BYTES:usize=64*PAGE;"));
+    assert!(layout.contains("pubconstDATA_BYTES:usize=0x1_0000;"));
+    let storvsc_pages = 64 + 0x1_0000 / 4096;
+    assert!(storvsc_pages <= ceiling(&limits, "BLOCK"), "storvsc's grant within a block device's");
+    assert!(limits.contains("FALLBACK_PAGES:u64=16;"));
+    assert!(storvsc_pages > 16, "the fallback ceiling, OTHER's, would refuse it");
+}

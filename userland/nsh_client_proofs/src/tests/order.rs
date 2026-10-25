@@ -64,7 +64,7 @@ fn an_unknown_type_is_refused_as_unknown() {
 
 #[test]
 fn an_oversize_length_is_refused_before_its_body_and_an_empty_frame_too() {
-    let over = (262_144u32 + 16 + 1).to_le_bytes();
+    let over = (nsh_wire::AUTH_CAP as u32 + 16 + 1).to_le_bytes();
     let (r, mut p) = at_proof(|_| over.to_vec());
     assert_eq!(r, Err(Refusal::Wire(WireError::Oversize)));
     aborted_with(&mut p, Reason::Protocol);
