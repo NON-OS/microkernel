@@ -18,7 +18,7 @@ socket or a key.
 
 | Id | Change | Where | Why |
 |---|---|---|---|
-| K1 | `NONOSATT` version 4, which also quotes PCRs 4, 9 and 14 and carries each quoted PCR value | `src/security/attest_doc/produce.rs`, `document.rs` | Version 3 quotes only PCRs 0, 1, 2 and 7, so it does not bind the loader, the kernel or the proof |
+| K1 | `NONOSATT` version 5, which also quotes PCRs 4, 9 and 14 and carries each quoted PCR value | `src/security/attest_doc/produce.rs`, `document.rs` | Version 3 quotes only PCRs 0, 1, 2 and 7, so it does not bind the loader, the kernel or the proof |
 | K2 | Spawn a verified capsule with a mask that is a subset of its manifest's capabilities, gated by a new capability rather than Admin | `src/kernel_core/process_spawn`, `src/syscall/microkernel` | Today a child's capabilities are fixed by its manifest or the tool spec, and `MkCapGrant` needs Admin |
 | K3 | A capsule with a hard end time: the kernel ends it when the time comes | the process table and the timer | The escalation expiry must not depend on `nsh.front` staying correct |
 | K4 | The parent can read the refused-call events of its child | `src/capabilities/audit`, `src/syscall` | So refusals reach the record |
