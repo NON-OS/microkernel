@@ -57,6 +57,13 @@ class Guests(unittest.TestCase):
             self.assertNotIn("GB", item["text"], item["tail"])
             self.assertNotIn("memory", item["text"], item["tail"])
 
+    def test_only_a_qwen_tier_on_qwenchat_is_listed(self):
+        for tail, name in (("jq", "qwenchat"), ("qwen-small", "sh")):
+            listing = [{"tail": tail, "name": "N", "program": f"/bin/{name}", "text": "t"}]
+            with mock.patch.object(Path, "read_text", lambda _: json.dumps(listing)):
+                with self.assertRaises(SystemExit):
+                    guests.guest_entries(Path("g.json"), "k", 1)
+
     def test_the_note_fits_the_detail_pane(self):
         self.assertLessEqual(len(guests.MODEL), len(guests.SHIPPED))
 
