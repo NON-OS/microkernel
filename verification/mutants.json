@@ -44,8 +44,8 @@
  {
   "name": "amnesic-gate",
   "file": "userland/capsule_vfs/src/server/handlers/persist_gate.rs",
-  "old": "lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)",
-  "new": "true",
+  "old": "pub(super) fn may_persist() -> bool {\n    mk_keeping()\n}",
+  "new": "pub(super) fn may_persist() -> bool {\n    true\n}",
   "escapes": "[amnesic] the boot left"
  },
  {

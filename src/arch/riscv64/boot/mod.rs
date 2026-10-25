@@ -19,11 +19,14 @@ pub mod entry;
 pub mod hart_id;
 pub mod info;
 mod init;
+mod memory;
+mod memory_span;
 pub mod multicore;
 pub mod stack;
 
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};
 pub use init::init;
+pub(crate) use memory::init_boot_memory;
 pub use multicore::start_secondary_harts;
 pub use stack::setup_stack;

@@ -18,9 +18,15 @@
 //!
 //! Every architecture brings up one UART before anything else exists, because
 //! a boot with no console cannot be diagnosed. x86_64 drives the PC 16550 at
-//! I/O port 0x3F8; aarch64 drives the UART the device tree names for the board.
+//! I/O port 0x3F8; aarch64 and riscv64 drive the UART the device tree names.
 //! Only the byte-level access differs, so that is all this boundary carries:
-//! the framing, locking and formatting stay in `sys::serial` above it.
+//! the framing, locking and formatting stay in `sys::serial` above it. The
+//! device-tree UARTs of aarch64 and riscv64 are in `common/console_uart.rs`.
+
+#[cfg(target_arch = "riscv64")]
+use super::common::console_uart::rv_uart;
+#[cfg(target_arch = "aarch64")]
+use super::common::console_uart::uart;
 
 /// Configure the console UART. Safe to call more than once.
 pub fn init() {
@@ -28,6 +34,8 @@ pub fn init() {
     crate::arch::x86_64::console::init();
     #[cfg(target_arch = "aarch64")]
     uart::init();
+    #[cfg(target_arch = "riscv64")]
+    rv_uart::init();
 }
 
 /// True once the console can accept bytes.
@@ -36,7 +44,9 @@ pub fn is_available() -> bool {
     return crate::arch::x86_64::console::is_available();
     #[cfg(target_arch = "aarch64")]
     return uart::is_available();
-    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+    #[cfg(target_arch = "riscv64")]
+    return rv_uart::is_available();
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "riscv64")))]
     return false;
 }
 
@@ -46,26 +56,8 @@ pub fn write_byte(ch: u8) {
     crate::arch::x86_64::console::write_byte(ch);
     #[cfg(target_arch = "aarch64")]
     uart::write_byte(ch);
-    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
+    #[cfg(target_arch = "riscv64")]
+    rv_uart::write_byte(ch);
+    #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64", target_arch = "riscv64")))]
     let _ = ch;
-}
-
-/// The aarch64 console is whichever UART the device tree named, PL011,
-/// 16550 or mini-UART; the arch UART module records which and drives it.
-#[cfg(target_arch = "aarch64")]
-mod uart {
-    use crate::arch::aarch64::uart;
-
-    pub(super) fn init() {
-        // Boot has already opened the console on the UART the device tree
-        // names, at the speed it names, so there is nothing left to set.
-    }
-
-    pub(super) fn is_available() -> bool {
-        uart::uart_base() != 0
-    }
-
-    pub(super) fn write_byte(ch: u8) {
-        uart::write_byte(ch);
-    }
 }
