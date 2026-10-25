@@ -23,8 +23,17 @@ from . import leftovers
 from .boot import ROOT, Boot
 from .memscan import count_and_drop
 from .script import drive, stop_for
+from .where import hits
 
-WIPED = "[SANITIZE] ZeroState shutdown wipe complete"
+
+def record(dump, secret, into):
+    """Each copy left, by physical address, kept beside the run's logs."""
+    lines = [f"{p:#x} {ctx!r}" if p is not None else f"? {ctx!r}" for p, ctx in hits(dump, secret)]
+    into.write_text("".join(line + "\n" for line in lines))
+
+# The wipe's own lines go to the kernel log, which the wipe clears; the
+# power capsule's leave line is what reaches serial on the way to terminate.
+LEFT = "[POWER] leave:"
 
 
 def first_boot(a, secret, say):
@@ -35,8 +44,9 @@ def first_boot(a, secret, say):
         say("in RAM before the power button", count_and_drop(a.out / "before.dump", secret), True)
         drive(b.q, a.off, secret, a.out, a.out / "serial1.log") or stop_for("a power-off step")
         b.held(a.off_secs) or stop_for("the machine to power off")
-        say("wipe line on serial", leftovers.said(a.out / "serial1.log", WIPED), True)
+        say("power-off went through terminate", leftovers.said(a.out / "serial1.log", LEFT), True)
         b.dump(a.out / "after.dump")
+        record(a.out / "after.dump", secret, a.out / "after-hits.txt")
         say("in RAM after the wipe", count_and_drop(a.out / "after.dump", secret), False)
     finally:
         b.stop()
