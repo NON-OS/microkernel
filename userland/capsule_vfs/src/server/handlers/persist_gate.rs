@@ -24,17 +24,20 @@ use nonos_libc::mk_debug;
 use nonos_policy_client::{get_bool, lookup};
 use nonos_policy_proto::Field;
 
+use super::persist_rule::{keep, Keep};
 use crate::protocol::EACCES;
 
 pub(super) fn may_persist() -> bool {
     lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)
 }
 
-/// Refuse a persist on an amnesic boot. Zeros are let through: they are
-/// how a record is withdrawn, and removal must stay possible in either mode.
-pub(super) fn require_persistent(data: &[u8]) -> Result<(), i32> {
-    if may_persist() || data.iter().all(|b| *b == 0) {
-        return Ok(());
+/// Refuse a persist on an amnesic boot. Zeros are let through as a
+/// withdrawal, which the disk side holds to an existing record of the same
+/// length: removal stays possible in either mode, and an amnesic boot never
+/// adds a name, length or digest to the disk.
+pub(super) fn require_persistent(data: &[u8]) -> Result<Keep, i32> {
+    if let Some(k) = keep(may_persist(), data) {
+        return Ok(k);
     }
     let line = b"[VFS] refused persist: amnesic boot\n";
     let _ = mk_debug(line.as_ptr(), line.len());

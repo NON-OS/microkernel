@@ -34,6 +34,8 @@ mod aesgcm_tests;
 #[cfg(test)]
 mod blake3_tests;
 #[cfg(test)]
+mod boot_root_tests;
+#[cfg(test)]
 mod chacha_tests;
 #[cfg(test)]
 mod constant_time_tests;
@@ -46,15 +48,19 @@ mod hex;
 #[cfg(test)]
 mod hkdf_tests;
 #[cfg(test)]
-mod boot_root_tests;
-#[cfg(test)]
 mod hmac_tests;
+#[cfg(test)]
+mod keygen_tests;
 #[cfg(test)]
 mod p256_tests;
 #[cfg(test)]
 mod p384_tests;
 #[cfg(test)]
 mod rsa_pkcs1_encoding_tests;
+#[cfg(test)]
+mod rsa_rng_ok_tests;
+#[cfg(test)]
+mod rsa_rng_tests;
 #[cfg(test)]
 mod rsa_tests;
 #[cfg(test)]

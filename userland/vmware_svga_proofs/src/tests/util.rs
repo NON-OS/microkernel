@@ -17,22 +17,29 @@
 //! A driver brought up on a bench, and the broker calls it left behind.
 
 use crate::bench::Bench;
-use crate::model::Svga;
+use crate::model::Svga as Model;
+use crate::pool::Pool;
 use crate::setup::{run, Driver};
 
-pub fn up(bench: &mut Bench, tune: impl FnOnce(&mut Svga)) -> Driver {
-    run(bench.with(tune)).expect("bring-up on a well-behaved adapter")
+pub fn up(bench: &mut Bench, tune: impl FnOnce(&mut Model)) -> Driver<Pool> {
+    run(bench.with(tune), Pool::default()).expect("bring-up on a well-behaved adapter")
 }
 
 /// The releases a failed attempt made, in order.
 pub fn released() -> Vec<(&'static str, u64)> {
+    released_since(0)
+}
+
+/// The releases made after the first `n` broker calls on this thread.
+pub fn released_since(n: usize) -> Vec<(&'static str, u64)> {
     nonos_libc::calls()
         .into_iter()
+        .skip(n)
         .filter(|(c, _)| c.ends_with("unmap") || c.ends_with("release"))
         .collect()
 }
 
 /// The firmware mode the tests start from: what UEFI's GOP leaves set.
-pub fn firmware(s: &mut Svga) {
+pub fn firmware(s: &mut Model) {
     (s.enable, s.width, s.height, s.bpp, s.config_done) = (1, 1280, 800, 32, 1);
 }
