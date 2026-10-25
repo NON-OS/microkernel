@@ -21,14 +21,12 @@ applies it, and dropped.py holds the rows dropped."""
 # The report format, raised when a record changes shape.
 REPORT_VERSION = 1
 
-# Every attack a self-test run must show attempted and refused, by the boot
-# that prints it: the attestation-refusal kernel (src/userspace/attest_refusal),
-# the attack capsule in the selftest image (userland/capsule_attack), and the
-# Linux guest suite (userland/linux_guests, attack_line.rs). A run judged for
-# some boots only is judged for their attacks only, and its report says so.
+# Every attack a run must show refused, by the boot that prints it (attest_refusal,
+# capsule_attack, linux_guests). A run judged for some boots is judged for theirs.
 BOOTS = {
     "attest": ("trailer-flip", "trailer-extra-cap", "trailer-kernel-kind", "trailer-stale-epoch"),
-    "capsule": ("cap-escape", "foreign-memory", "service-squat", "held-escape", "fault-containment"),
+    "capsule": ("cap-escape", "foreign-memory", "service-squat", "held-escape", "deputy-escape",
+                "fault-containment"),
     "linux": ("linux-fs-escape", "linux-foreign-memory", "linux-raw-syscall"),
 }
 ATTACKS = tuple(a for attacks in BOOTS.values() for a in attacks)
@@ -61,6 +59,8 @@ ROWS = (
     ("held-escape: a reply port", "held-escape",
      (r"held driver by its reply port, .* EPERM", r"net service by its reply port without Network, .* EPERM",
       r"xhci's bulk-IN by its reply port, .* EPERM")),
+    ("deputy: the shell's open-with", "deputy-escape",
+     (r"app\.install through the shell's OP_OPEN_WITH ENOENT",)),
     ("foreign-memory: kernel via Debug", "foreign-memory", (r"a kernel address to MkDebug EFAULT",)),
     ("foreign-memory: other aspace via Debug", "foreign-memory",
      (r"another address space's address to MkDebug EFAULT",)),

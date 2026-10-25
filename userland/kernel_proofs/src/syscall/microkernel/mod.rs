@@ -22,6 +22,10 @@ pub mod errnos;
 pub mod owner_gate;
 #[cfg(test)]
 mod owner_gate_names_tests;
+#[path = "../../../../../src/syscall/microkernel/retired.rs"]
+pub mod retired;
+#[cfg(test)]
+mod retired_tests;
 #[cfg(test)]
 mod owner_gate_tests;
 
