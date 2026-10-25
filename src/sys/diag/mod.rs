@@ -27,6 +27,7 @@
 //! refused call cannot flood the console it is being diagnosed from.
 
 use core::sync::atomic::{AtomicU32, Ordering};
+
 use super::serial;
 
 mod late;
