@@ -4,25 +4,29 @@ Part of [scheduler and SMP](scheduler-and-smp.md).
 
 Kernel code takes its scheduler, paging and registry locks with interrupts masked, through `lock_responsive` (`src/smp/responsive.rs`). A wait for one of them that never ends stops its CPU without a sound: no tick arrives to say so, and on a machine with one CPU nothing at all runs again. The surface registry's `GATE` was taken twice on one exit path, and the first process to exit stopped the boot in exactly this way.
 
-So every wait through `lock_responsive`, or through `read_responsive` and `write_responsive` for a reader-writer lock (`src/smp/responsive_rw.rs`), that lasts `REPORT_MS`, 1000 ms, prints one line on serial and keeps waiting (`src/smp/spin_watch.rs`, `src/smp/spin_wait.rs`). It is printed once per wait, never once per spin:
+So every wait through `lock_responsive`, or through `read_responsive` and `write_responsive` for a reader-writer lock (`src/smp/responsive_rw.rs`), that lasts `REPORT_MS`, 1000 ms, prints two short lines on serial, and a third for a re-take, and keeps waiting (`src/smp/spin_watch.rs`, `src/smp/spin_wait.rs`). It is printed once per wait, never once per spin:
 
 ```text
-[LOCK] waiting ms=1000 at src/kernel_core/surface_registry/pin/dma_held.rs:34 cpu=0 pid=0x1E held from src/kernel_core/surface_registry/pin/orphans.rs:37
+[LOCK] cpu=0 waiting ms=1000 pid=0x0000000000000008 at src/kernel_core/surface_registry/pin/dma_held.rs:34
+[LOCK] cpu=0 held from src/kernel_core/surface_registry/pin/orphans.rs:37
+[FATAL] cpu=0 lock re-taken by its own holder, cannot go on
 ```
 
-- `at` is where this wait called `lock_responsive`.
-- `cpu` and `pid` are the waiting CPU and the process it runs for.
+Those are the lines the GATE double take printed on a boot with one CPU before F1.
+
+- `at` is where this wait called `lock_responsive`; each line names its CPU, since another CPU's lines may fall between them.
+- `pid` is the process the waiting CPU runs for.
 - `held from` is where the lock was last taken. A lock somebody waits on is held, so its last taker is its holder. When another lock has used the same slot in the meantime, the line says `holder unknown`.
 
 ## A lock taken again by its own holder
 
-When the holder's frame lies on the waiting CPU's own kernel stack, the waiter's own thread holds the lock, and the wait can never end. Only that thread runs on that stack. Which of the two frames is higher is not asked: inlining can fold the holder and the waiter into one frame, as it folded `reclaim_dma` into `orphans::reclaim`. The line then starts:
+When the holder's frame lies on the waiting CPU's own kernel stack, the waiter's own thread holds the lock, and the wait can never end. Only that thread runs on that stack. Which of the two frames is higher is not asked: inlining can fold the holder and the waiter into one frame, as it folded `reclaim_dma` into `orphans::reclaim`. The third line then says so:
 
 ```text
-[FATAL] lock re-taken by its own holder, this CPU cannot go on: [LOCK] waiting ...
+[FATAL] cpu=0 lock re-taken by its own holder, cannot go on
 ```
 
-The waiter knows its own stack exactly on x86_64: the per-CPU block holds the top of the running process's 32 KiB kernel stack (`kernel_stack_top`), and stacks that are in use never overlap, so a lock held on any other CPU is never judged this way (`src/smp/spin_verdict.rs`). Two cases say only `, likely re-taken by its own holder`, when the holder's frame is within 32 KiB of the waiter's:
+The waiter knows its own stack exactly on x86_64: the per-CPU block holds the top of the running process's 32 KiB kernel stack (`kernel_stack_top`), and stacks that are in use never overlap, so a lock held on any other CPU is never judged this way (`src/smp/spin_verdict.rs`). Two cases add only `, likely re-taken by its own holder` to the `held from` line, when the holder's frame is within 32 KiB of the waiter's:
 
 - the waiter's stack bounds are not known: a boot stack, or any waiter on aarch64;
 - the last take was a reader's. Another reader may still hold the lock after that one let go, so a reader's take is never judged a re-take.
