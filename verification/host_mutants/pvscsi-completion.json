@@ -1,0 +1,34 @@
+[
+ {
+  "name": "pvscsi-success-counts-length",
+  "file": "userland/capsule_driver_pvscsi/src/moved.rs",
+  "old": "BT_LINKED_COMMAND_COMPLETED_WITH_FLAG => Ok(0),",
+  "new": "BT_LINKED_COMMAND_COMPLETED_WITH_FLAG => Ok((len as u64).saturating_sub(moved) as u32),",
+  "test": "tests::",
+  "crate": "userland/pvscsi_proofs"
+ },
+ {
+  "name": "pvscsi-datarun-fails",
+  "file": "userland/capsule_driver_pvscsi/src/moved.rs",
+  "old": "BT_DATA_UNDERRUN | BT_DATARUN => Ok(",
+  "new": "BT_DATA_UNDERRUN => Ok(",
+  "test": "tests::",
+  "crate": "userland/pvscsi_proofs"
+ },
+ {
+  "name": "pvscsi-datarun-read-whole",
+  "file": "userland/capsule_driver_pvscsi/src/moved.rs",
+  "old": "BT_DATARUN if moved == 0 && !rw => Ok(0),",
+  "new": "BT_DATARUN if moved == 0 => Ok(0),",
+  "test": "tests::",
+  "crate": "userland/pvscsi_proofs"
+ },
+ {
+  "name": "pvscsi-datarun-answer-short",
+  "file": "userland/capsule_driver_pvscsi/src/moved.rs",
+  "old": "        BT_DATARUN if moved == 0 && !rw => Ok(0),\n",
+  "new": "",
+  "test": "tests::",
+  "crate": "userland/pvscsi_proofs"
+ }
+]
