@@ -17,11 +17,13 @@
 //! Claim, the PCI command write and the port grants, answered as the test
 //! scripts them and recorded with every other broker call, in order.
 
+use crate::command_judge;
 use crate::script::{answer, note};
 
 pub const MK_PCI_CFG_COMMAND: u32 = 0x04;
 pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
 pub const MK_PCI_CMD_INTX_DISABLE: u16 = 1 << 10;
+pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
 
 #[repr(C)]
 pub struct PioGrantOut {
@@ -42,7 +44,14 @@ pub fn mk_device_release(device_id: u64) -> i64 {
 pub fn mk_pci_config_write(_d: u64, epoch: u64, offset: u32, value: u16) -> i64 {
     assert_eq!((epoch, offset), (7, MK_PCI_CFG_COMMAND), "the command register, under the claim");
     note("pci_command", value as u64);
-    answer().command
+    let scripted = answer().command;
+    if scripted < 0 { scripted } else { command_judge::plain(value) }
+}
+pub fn mk_pci_config_update(_d: u64, epoch: u64, offset: u32, mask: u16, value: u16) -> i64 {
+    assert_eq!((epoch, offset), (7, MK_PCI_CFG_COMMAND), "the command register, under the claim");
+    note("pci_command", value as u64);
+    let scripted = answer().command;
+    if scripted < 0 { scripted } else { command_judge::masked(mask, value) }
 }
 pub fn mk_pio_grant(_d: u64, epoch: u64, bar: u8, _f: u32, out: *mut PioGrantOut) -> i64 {
     assert_eq!(epoch, 7, "a grant under the claim's epoch");
