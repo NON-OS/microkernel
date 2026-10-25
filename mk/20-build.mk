@@ -1241,12 +1241,12 @@ nonos-mk-install-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) $(driver-nvme_ARTIFACTS)
 # and has to take a lease through it; the RTL8169 has no QEMU model and is here
 # to show a driver whose chip is absent exits and lets the boot go on.
 ETHERNET_DRIVER_ARTIFACTS := $(driver-e1000_ARTIFACTS) $(driver-rtl8139_ARTIFACTS) \
-		$(driver-rtl8169_ARTIFACTS) $(driver-igb_ARTIFACTS)
+		$(driver-rtl8169_ARTIFACTS)
 
 nonos-mk-ethernet-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) $(ETHERNET_DRIVER_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
-	$(call nonos_kernel_build,microkernel-desktop-gui + wired NICs,microkernel-desktop-gui$(_boot_comma)nonos-capsule-driver-e1000$(_boot_comma)nonos-capsule-driver-rtl8139$(_boot_comma)nonos-capsule-driver-rtl8169$(_boot_comma)nonos-capsule-driver-igb)
+	$(call nonos_kernel_build,microkernel-desktop-gui + wired NICs,microkernel-desktop-gui$(_boot_comma)nonos-capsule-driver-e1000$(_boot_comma)nonos-capsule-driver-rtl8139$(_boot_comma)nonos-capsule-driver-rtl8169)
 
 # nonos-mk-smp-prod: the desktop profile with the secondary CPUs turned on.
 # Same capsule set and the same attestation, so a difference between this boot
