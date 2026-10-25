@@ -82,6 +82,12 @@ The report lists the destinations the box allowed and each one the run connected
 a `[BOX-NET]` line before the `[BOX]` line logs both (see
 [Run a program in a box](../using/linux-box.md)).
 
+## Learning a file
+
+`linux --box learn <program>` ends its report with the tightest file that would let a run do
+what that one did ([Learn a box](../using/linux-box.md)). Copy it into a file and check it
+here before you run anything in it.
+
 ## What every box allows
 
 Every box gives a terminal and execve, and each program the run starts is held to the same

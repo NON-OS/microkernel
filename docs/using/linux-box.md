@@ -23,6 +23,7 @@ The Terminal keeps eight words of a line, so after `linux --box <box>` a program
 | `offline` | none | the run's own folders: `/tmp`, `/home`, `/root`, `/run`, `/var/tmp`, `/dev/shm` |
 | `allow:<folder>,...` | none | only the folders named |
 | `allow:<folder>,...,net:<host>:<port>,...` | TCP to the destinations named, and no other | only the folders named |
+| `learn` | none; each destination tried is recorded | the run's own folders, each path recorded; not enforced as a policy (see [Learn a box](#learn-a-box)) |
 
 An `allow:` box names its folders with commas between and no spaces. A folder is a path from `/` inside one of the run's own folders, such as `/tmp/out` or `/home/work`, in printable ASCII. A folder anywhere else, a folder ending in `/`, or one with `.` or `..` in it is refused.
 
@@ -43,6 +44,33 @@ Every box lets the program use the terminal and start other programs. Each progr
 A box only takes rights away from a published policy: a program gets what both the box and its own policy allow. The one thing a box gives is the network it names, to a program with no policy of its own. The run's own folders are new at its start and wiped at its end.
 
 A box named wrongly is refused before anything runs, with the reason, such as `linux: --box refused: a folder is inside /tmp, /home, /root, /run, /var/tmp or /dev/shm`. `linux --box` with no box or no program prints the usage line.
+
+## Learn a box
+
+`linux --box learn <program>` runs the program once to learn the box it needs, not to hold it to one. A learn run is never an enforced run, and says so:
+
+- It is held as `offline` with no network: it may write only the run's own folders, which are new at its start and wiped at its end, and every connection is refused. Nothing is let through that `offline` would refuse.
+- It records each path it wrote and each destination it tried to connect to. So that a connection names where it was going, it may open an internet socket, but every connection is still refused and counted as `network`. A name it looks up is answered by NONOS itself, as in any box.
+- Its report has `mode     LEARN, not enforced: ...` under its policy line, its `[BOX]` line has `preset=learn enforced=no`, and its policy hash is its own, never `offline`'s.
+- Only the word `learn` makes a learn run. `strict`, `offline` and every `allow:` box are enforced, and a learn run never runs in the network role.
+
+Its report ends with the tightest `nonos-box 1` file that would let a run do what this one did:
+
+```
+  learned  the tightest nonos-box 1 file for what it did:
+    nonos-box 1
+    # learned from one run; check it before you use it
+    base folders
+    write /tmp/out
+    connect api.example.com:443
+```
+
+- A `write` line for each path's own folder, or the path itself when its folder is one of the run's own: `mkdir /tmp/out` then writing `/tmp/out/b` learns `write /tmp/out`, not all of `/tmp`. Past 16 folders, or more than the box word holds, they widen to the folder just under the run's own, then to the run's own folders.
+- A `connect` line for each destination it tried, or `network none`.
+- `base strict` and `network none` for a run that wrote nothing and connected nowhere.
+- Comments for what no file can name or allow: a path with a byte no folder may have, and what it was refused that no line allows (such as `exec 1`). If the destinations are too many for one box word, the file says so.
+
+Read the file before you use it: it is what one run did, not what the program may need on another. Save it, check it with `agentproof policy check`, and run with the word it gives.
 
 ## The report
 
