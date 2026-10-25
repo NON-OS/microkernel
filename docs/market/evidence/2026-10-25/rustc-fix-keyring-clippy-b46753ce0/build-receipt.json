@@ -1,0 +1,47 @@
+{
+  "artifacts": {
+    "/home/user/pk-land/target/dev/tree/target/release/qemu-dev/nonos.img": {
+      "bytes": 1043148800,
+      "sha256": "dc98379457c6450fe82d0d39f3a53854349b6c80860663a2524f81f54d17476b"
+    },
+    "/home/user/pk-land/target/dev/tree/target/release/qemu-dev/nonos.iso": {
+      "bytes": 210552832,
+      "sha256": "56e7beb191c06f1924136669546527057d6ae5a2061a3e9a4b56bc910fdf1e40"
+    },
+    "/home/user/pk-land/target/dev/tree/target/release/qemu-dev/work/kernel.bin": {
+      "bytes": 81961823,
+      "sha256": "720303bbe00ff8160fdacb00be774058d9972940b5d5dc16d5698cc6d989c9aa"
+    }
+  },
+  "roots": {
+    "capsule_policy": {
+      "embedded_in_kernel": true,
+      "root": "f20987cf5f8cfc20710bb37a6b16191f6ad763b10fa75ddab7a3d1ebd60e9851"
+    },
+    "kernel_attest": {
+      "embedded_in": "bootloader",
+      "ok": true,
+      "root": "dbfd05f4d5540d9134b2c1178a9e6494b5870f38dc10263275912ff15394f8bd"
+    }
+  },
+  "schema": "nonos.build.receipt.v1",
+  "source": {
+    "branch": "master",
+    "commit": "b2081635e57933cdea572490bd667c1a5a9730a0",
+    "dirty": true,
+    "source_date_epoch": "315532800"
+  },
+  "toolchain": {
+    "host": "Linux-x86_64",
+    "rustc": null
+  },
+  "verification": {
+    "gates_before_receipt": [
+      "ledger",
+      "manifest_signatures",
+      "declared_caps",
+      "stark_membership"
+    ],
+    "root_embedding": "pass"
+  }
+}

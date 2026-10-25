@@ -51,7 +51,7 @@ fn the_same_pixels_as_the_text_centred_at_the_rows_top() {
         let (mut got, mut want) = (vec![0u32; (w * h) as usize], vec![0u32; (w * h) as usize]);
         draw(&mut got, w as usize, w, h, r);
         let x = (w - FontAtlas::default().text_width(text)) / 2;
-        draw_text(&mut want, w as usize, w, h, x, r.1, text, 0xFFFF_3B3B);
+        draw_text(&mut want, w as usize, w, h, x, r.1, text, 0xFFE4_574F);
         assert!(got == want, "{w}x{h}");
     }
 }

@@ -19,7 +19,7 @@
 //! state, the data path's counts and net_core's lease.
 
 use super::super::state::State;
-use crate::wifi::{driver_datapath, net_poll_due, net_status};
+use crate::wifi::{driver_datapath, net_poll_due, net_status, station_source};
 use nonos_libc::mk_uptime_ms;
 use nonos_wifi_client::{find, keeps_state};
 
@@ -58,4 +58,7 @@ fn poll_net(state: &mut State) {
     }
     state.wifi_diag.net_polled_ms = Some(now);
     state.wifi_diag.net = net_status();
+    if state.wifi_diag.station.is_none() {
+        state.wifi_diag.station = station_source(now as u32);
+    }
 }

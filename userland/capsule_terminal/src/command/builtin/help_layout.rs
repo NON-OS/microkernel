@@ -35,7 +35,7 @@ pub const GROUPS: &[(&[u8], &[u8])] = &[
     (b"disk", b"stat  find  du"),
     (b"text", b"head  tail  grep  wc  echo  sort  uniq  cut  nl  tac  rev"),
     (b"system", b"capsules  service  ps  kill  sys  battery  about"),
-    (b"session", b"id  whoami  date  uptime"),
+    (b"session", b"id  whoami  date  uptime  latency"),
     (b"net", b"ping  ifconfig  nslookup  curl  nym"),
     (b"apps", b"market  install  pkg  git  nox  qwen"),
 ];
