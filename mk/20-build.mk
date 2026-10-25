@@ -897,12 +897,29 @@ endef
 # The signer then dual-signed and attested a microkernel-core image while the
 # log still said microkernel-full-gui. The key has to exist; its age says
 # nothing about whether this ELF is current.
-$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: | $(SIGNING_KEY)
-	@echo "Building kernel (default = microkernel-core)..."
-	@NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
-		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build $(KERNEL_BUILD_FLAGS)
-	@printf '%s\n' 'microkernel-core (default)' 'microkernel-core' > $(KERNEL_PROFILE_RECORD)
+#
+# make runs with -j (mk/00-config.mk), so a pack named beside a profile build
+# (make nonos-mk-desktop-gui-prod nonos-mk-esp, the documented desktop path)
+# reached this rule through kernel_signed.bin while the profile build wrote
+# the same ELF: in a fresh tree both built at once and the bare core kernel
+# could land last and be packed (B-02). A kernel-building goal on the command
+# line now runs first, and this rule keeps the ELF it finds.
+KERNEL_BUILD_GOALS := nonos-mk-attest-refusal-test nonos-mk-audio-player-smoketest-test \
+	nonos-mk-bench-micro nonos-mk-capsules nonos-mk-core-attested nonos-mk-core \
+	nonos-mk-desktop-gui-prod nonos-mk-driver-hda-smoketest-test nonos-mk-ethernet-prod \
+	nonos-mk-from-config nonos-mk-image-viewer-test nonos-mk-input-probe-inject-prod \
+	nonos-mk-install-prod nonos-mk-smp-prod nonos-mk-terminal-test \
+	nonos-mk-video-player-test nonos-mk-zerostate
+$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: | $(SIGNING_KEY) $(filter $(KERNEL_BUILD_GOALS),$(MAKECMDGOALS))
+	@# One shell: an exit in a line of its own would end only that line.
+	@if [ -e $@ ]; then \
+		echo "Kernel already built as: $$(head -n1 $(KERNEL_PROFILE_RECORD) 2>/dev/null); kept"; \
+	else \
+		echo "Building kernel (default = microkernel-core)..." && \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+			$(CARGO) build $(KERNEL_BUILD_FLAGS) && \
+		printf '%s\n' 'microkernel-core (default)' 'microkernel-core' > $(KERNEL_PROFILE_RECORD); \
+	fi
 
 nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	@echo "cargo check (microkernel-core)..."
