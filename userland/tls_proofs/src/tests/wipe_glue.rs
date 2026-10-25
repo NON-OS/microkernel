@@ -19,6 +19,7 @@
 //! Finished key, a flight's private keys on drop and at each settle.
 
 const SERVER_KEYS: &str = include_str!("../../../nonos_tls/src/server_keys.rs");
+const P256: &str = include_str!("../../../nonos_tls/src/p256_share.rs");
 const HKDF: &str = include_str!("../../../nonos_tls/src/hkdf.rs");
 const HMAC: &str = include_str!("../../../nonos_tls/src/hmac_sha256.rs");
 const FINISHED: &str = include_str!("../../../nonos_tls/src/finished_value.rs");
@@ -37,8 +38,15 @@ fn before(text: &str, a: &str, b: &str) -> bool {
 #[test]
 fn the_ecdhe_secret_goes_once_the_schedule_has_it() {
     let keys = "let keys = super::schedule::handshake_keys(&shared, &transcript.digest(), suite);";
-    assert!(before(SERVER_KEYS, keys, "super::traffic_keys::wipe(&mut shared);"));
-    assert!(before(SERVER_KEYS, "super::traffic_keys::wipe(&mut shared);", "keys: keys?"));
+    let after = &SERVER_KEYS[SERVER_KEYS.find(keys).expect("the schedule")..];
+    assert!(before(after, keys, "super::traffic_keys::wipe(&mut shared);"));
+    assert!(before(after, "super::traffic_keys::wipe(&mut shared);", "keys: keys?"));
+    // A refused agreement wipes what it wrote; the agreement returns no copy.
+    assert!(SERVER_KEYS.contains(
+        "if !agree(client, &peer, &mut shared) {\n        super::traffic_keys::wipe(&mut shared);"
+    ));
+    assert!(SERVER_KEYS.contains("shared: &mut [u8; 32]) -> bool {"));
+    assert!(P256.contains("out: &mut [u8; 32]) -> bool {"));
 }
 
 #[test]

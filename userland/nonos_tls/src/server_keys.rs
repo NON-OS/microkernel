@@ -28,7 +28,11 @@ use super::transcript::Transcript;
 pub fn server_keys(client: &ClientFlight, record: &[u8]) -> Option<ServerContext> {
     let (server_hello, used) = first_handshake(record)?;
     let (suite, peer) = super::server_hello::key_share(server_hello)?;
-    let mut shared = agree(client, &peer)?;
+    let mut shared = [0u8; 32];
+    if !agree(client, &peer, &mut shared) {
+        super::traffic_keys::wipe(&mut shared);
+        return None;
+    }
     let mut transcript = Transcript::new();
     transcript.push(&client.handshake);
     transcript.push(server_hello);
@@ -39,18 +43,17 @@ pub fn server_keys(client: &ClientFlight, record: &[u8]) -> Option<ServerContext
     Some(ServerContext { used, keys: keys?, transcript })
 }
 
-fn agree(client: &ClientFlight, peer: &ServerShare) -> Option<[u8; 32]> {
+/// The ECDHE secret, written into the caller's `shared` and never returned
+/// by value, so no copy of it is left behind in a frame.
+fn agree(client: &ClientFlight, peer: &ServerShare, shared: &mut [u8; 32]) -> bool {
     match peer {
         ServerShare::X25519(key) => {
-            let mut shared = [0u8; 32];
             let (private, out) = (client.private.as_ptr(), shared.as_mut_ptr());
-            if nonos_libc::crypto_x25519_shared(private, key.as_ptr(), out) != 32 {
-                super::traffic_keys::wipe(&mut shared);
-                return None;
-            }
-            Some(shared)
+            nonos_libc::crypto_x25519_shared(private, key.as_ptr(), out) == 32
         }
-        ServerShare::Secp256r1(point) => super::p256_share::shared(&client.p256_private, point),
+        ServerShare::Secp256r1(point) => {
+            super::p256_share::shared(&client.p256_private, point, shared)
+        }
     }
 }
 
