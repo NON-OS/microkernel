@@ -48,3 +48,13 @@ pub const POLL_WINDOW_MS: i64 = 8;
 /// most `DEVICE_CALL_MS` long, and this many of them keep a poll inside the
 /// client's 64 ms even when every one runs to its timeout.
 pub const TX_FLOOR: u32 = 4;
+
+/// What a client allows net.core for a reply.
+pub const CLIENT_MS: u64 = 64;
+
+// A poll at its worst: the one batch call at its ceiling, then every floor
+// send at its timeout; or a single-frame call begun as the window closes, at
+// its ceiling, then the sends. Each fits a client's wait.
+const SENDS_MS: u64 = TX_FLOOR as u64 * DEVICE_CALL_MS;
+const _: () = assert!(super::learned_bound::BATCH.ceiling + SENDS_MS <= CLIENT_MS);
+const _: () = assert!(POLL_WINDOW_MS as u64 + super::learned_bound::SINGLE.ceiling + SENDS_MS <= CLIENT_MS);
