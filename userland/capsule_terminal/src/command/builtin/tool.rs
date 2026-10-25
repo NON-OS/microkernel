@@ -12,6 +12,8 @@
 mod tool_argv;
 #[path = "tool_box.rs"]
 mod tool_box;
+#[path = "tool_service.rs"]
+mod tool_service;
 #[path = "tool_spawn.rs"]
 mod tool_spawn;
 

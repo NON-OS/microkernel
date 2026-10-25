@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The firmware's boot logo (BGRT), as the x86 parser copied it at boot,
-//! through the broker's one platform shim so the syscall layer names no
-//! arch path.
+//! The challenge an enrolment's document must answer: fresh, from a nonce
+//! the operator draws, and naming the host keys being enrolled. A document
+//! made for it shows the machine holding that AK was asked, now, to vouch
+//! for these keys; an old document, or one asked for other keys, is not it.
 
-use super::kernel::platform::fw;
+use nsh_crypto::key_digest;
 
-pub use fw::parser::other::bgrt_entry::Bgrt;
-pub use fw::parser::other::bmp_check::Bmp;
-pub use fw::parser::other::{boot_logo, boot_logo_file, firmware_mode};
+use crate::keys::PUBLIC_FILE_LEN;
+
+const LABEL: &[u8] = b"nsh-enrol challenge\0";
+
+pub fn challenge(nonce: &[u8; 32], host_keys: &[u8; PUBLIC_FILE_LEN]) -> [u8; 32] {
+    let keys = key_digest(&host_keys[..32], &host_keys[32..]);
+    nonos_hash::sha256(&[LABEL, &nonce[..], &keys[..]].concat())
+}

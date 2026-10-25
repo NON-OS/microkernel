@@ -30,8 +30,11 @@ use enter_expand::expand_line;
 
 pub fn on_enter(state: &mut State) -> EventOutcome {
     // Running a line ends any search that found it. The match is already on
-    // the line, so accepting it is simply leaving the mode.
-    super::search::search_accept(state);
+    // the line, so accepting it is simply leaving the mode. A search whose
+    // needle matches nothing runs nothing: the line shows an older match.
+    if !super::search::search_enter(state) {
+        return EventOutcome::Repaint;
+    }
     state.fresh = false;
     let started = mk_time_millis();
     state.open_block(crate::term::rtc::rtc_hms());

@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A box only ever takes away: from the program's own grants, and from
-//! every program it execs.
+//! A box only ever takes away from a program with a published policy: from
+//! its own grants, and from every program it execs. The one widening, for a
+//! program with none, is identity_widen_tests.rs.
 
 use crate::app::identity::AppIdentity;
 use crate::boxed::preset::parse;
@@ -23,15 +24,16 @@ use nonos_linux_policy::dests::Target;
 use nonos_linux_policy::mask::{EXEC, FILES_HOME, KNOWN, NET_ANON, TTY, WAYLAND};
 use nonos_linux_policy::{unlisted, LinuxAppPolicy};
 
-fn granting(mask: u64) -> AppIdentity {
-    AppIdentity::of(LinuxAppPolicy { mask, ..unlisted([7; 32]) })
+/// A published policy granting `mask`: it names its listing.
+pub fn granting(mask: u64) -> AppIdentity {
+    AppIdentity::of(LinuxAppPolicy { mask, listing_id: [1; 32], ..unlisted([7; 32]) })
 }
 
-fn dial(id: &AppIdentity, ip: [u8; 4], port: u16) -> bool {
+pub fn dial(id: &AppIdentity, ip: [u8; 4], port: u16) -> bool {
     crate::app::reach::may_dial(id.mask, &id.reach, Target::V4(ip), port)
 }
 
-fn leak(v: Vec<u8>) -> &'static [u8] {
+pub fn leak(v: Vec<u8>) -> &'static [u8] {
     Vec::leak(v)
 }
 

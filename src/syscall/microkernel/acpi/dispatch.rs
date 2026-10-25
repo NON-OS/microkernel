@@ -23,8 +23,8 @@ use super::{
     sys_acpi_hw_error, sys_acpi_loaded, sys_acpi_lpit, sys_acpi_measured, sys_acpi_osc_grant,
     sys_acpi_pci, sys_acpi_platform_device, sys_acpi_port, sys_acpi_power, sys_acpi_proximity,
     sys_acpi_region, sys_acpi_reserved, sys_acpi_sleep, sys_acpi_table, sys_acpi_thermal_limit,
-    sys_acpi_usb_ports, sys_boot_logo, sys_device_node, sys_numa_distance, sys_numa_hmat,
-    sys_numa_node_of, sys_pci_depart, sys_pci_probe_function, sys_smbios_table, sys_usb_port_facts,
+    sys_acpi_usb_ports, sys_device_node, sys_numa_distance, sys_numa_hmat, sys_numa_node_of,
+    sys_pci_depart, sys_pci_probe_function, sys_smbios_table, sys_usb_port_facts,
 };
 use crate::syscall::microkernel::errnos::ERRNO_PERM;
 use crate::syscall::microkernel::numbers::*;
@@ -62,7 +62,6 @@ pub fn handle(nr: u64, a0: u64, a1: u64, a2: u64, a3: u64) -> Option<i64> {
         SYS_ACPI_OSC_GRANT => sys_acpi_osc_grant(a0, a1, a2, a3),
         SYS_NUMA_HMAT => sys_numa_hmat(a0, a1, a2),
         SYS_ACPI_LPIT => sys_acpi_lpit(a0, a1),
-        SYS_BOOT_LOGO => sys_boot_logo(a0, a1, a2),
         SYS_ACPI_FIRST_PASS => sys_acpi_first_pass(),
         SYS_ACPI_SLOT => sys_acpi_slot(a0, a1, a2, a3),
         SYS_ACPI_MEASURED => sys_acpi_measured(a0, a1),

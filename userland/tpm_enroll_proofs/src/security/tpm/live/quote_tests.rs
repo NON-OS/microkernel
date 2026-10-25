@@ -26,7 +26,7 @@ use super::verify::verifies;
 use crate::security::tpm::quote::{build_quote, check_attest, parse_quote};
 use crate::security::tpm::transact_resending;
 
-/// The PCRs `attest_doc::produce` quotes.
+/// A four-PCR selection, the first quote of a startup's subject.
 const QUOTED_PCRS: [u8; 4] = [0, 1, 2, 7];
 
 #[test]

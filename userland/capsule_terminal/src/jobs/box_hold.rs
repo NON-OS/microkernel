@@ -27,6 +27,7 @@ pub const TAG: u8 = 3;
 pub const KEY_LEN: usize = 16;
 /// The most of a report kept: a report is a few hundred bytes.
 pub const HELD_MAX: usize = 64 * 1024;
+const NET_LINE: &[u8] = b"[BOX-NET] ";
 pub struct BoxHold {
     key: [u8; KEY_LEN],
     held: Vec<u8>,
@@ -58,11 +59,17 @@ impl BoxHold {
         let mut shown = Vec::new();
         let mut line = None;
         for l in self.held.split(|b| *b == b'\n').filter(|l| !l.is_empty()) {
-            match l.starts_with(b"[BOX] ") {
-                true => line = Some(l),
-                false => shown.push(l),
+            match l {
+                l if l.starts_with(b"[BOX] ") => line = Some(l),
+                l if l.starts_with(NET_LINE) => {}
+                l => shown.push(l),
             }
         }
         (shown, line)
+    }
+
+    /// Its `[BOX-NET]` line, for the log: a box naming destinations sends one.
+    pub fn net_lines(&self) -> Vec<&[u8]> {
+        self.held.split(|b| *b == b'\n').filter(|l| l.starts_with(NET_LINE)).collect()
     }
 }

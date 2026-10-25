@@ -61,3 +61,5 @@ pub mod kernel_core {
 
 #[path = "../../../src/userspace/tool_capsules/bound.rs"]
 mod tool_bound;
+#[path = "../../../src/userspace/tool_capsules/net_box.rs"]
+mod net_box;
