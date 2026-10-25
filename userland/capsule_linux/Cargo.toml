@@ -26,6 +26,10 @@ path = "src/main.rs"
 # of the tree (tools/nonos-dev-image), and scripts/check_selftest_panic.py
 # fails any committed build that names it.
 selftest-panic = []
+# A development image's Linux personality (docs/build/dev-mirror.md): a mirror
+# on the local network, dialled directly by address, which no release build
+# carries. Every other build sends every download over nonos_route_link.
+dev-mirror = []
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
