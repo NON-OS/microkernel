@@ -20,5 +20,11 @@
 
 #![cfg(test)]
 
+extern crate alloc;
+
 mod build;
+/// The kernel's own document and encoder, unchanged.
+#[allow(dead_code)]
+#[path = "../../../src/security/attest_doc/document.rs"]
+mod kernel_document;
 mod tests;

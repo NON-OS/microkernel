@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// How the run ended: its exit status, and why it never started, if it did not.
+/// How the run ended: its exit status, why it never started, if it did not,
+/// and the destinations it connected to (connected.rs).
 pub struct End<'a> {
     pub exit: i32,
     pub not_started: Option<&'a str>,
+    pub reached: &'a [alloc::vec::Vec<u8>],
 }
