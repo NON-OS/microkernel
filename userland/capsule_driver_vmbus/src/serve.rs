@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bus kept after bring-up: offers the host adds are kept and named,
-//! and an offer it withdraws is forgotten and released. No channel is
-//! opened here; each waits for a driver.
+//! The bus kept after bring-up: offers the host adds are kept, named and,
+//! for storage and network, given to their drivers; an offer it withdraws
+//! is forgotten and released (the kernel retires its record). No channel is
+//! opened here.
 
 use nonos_libc::mk_idle_ms;
 
 use crate::connect::Bus;
 use crate::constants::{MESSAGES_PER_LOOK, OFFERCHANNEL, POLL_MS, RESCIND_CHANNELOFFER};
+use crate::give::give;
 use crate::hv::Hv;
 use crate::msg::{self, kind, relid_released};
 use crate::offers::Offers;
@@ -44,7 +46,8 @@ pub fn step(d: &mut Driver) -> usize {
         n += 1;
         match kind(m.bytes()) {
             Some(OFFERCHANNEL) => {
-                if let Some(o) = msg::offer(m.bytes()) {
+                if let Some(mut o) = msg::offer(m.bytes()) {
+                    give(&d.hv, &mut o);
                     if d.offers.insert(o) {
                         say::offered(&o);
                     } else {

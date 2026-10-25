@@ -56,7 +56,9 @@ pub fn spawn_net_dhcp_capsule() -> Result<(), SpawnError> {
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::Crypto.bit()
-            | Capability::Network.bit(),
+            | Capability::Network.bit()
+            // The bound lease's one line (Capsule.mk); 0 without serial debug.
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"[NET-DHCP] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

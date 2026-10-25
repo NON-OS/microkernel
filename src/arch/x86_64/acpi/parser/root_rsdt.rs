@@ -16,7 +16,9 @@
 
 use super::state::TableRegistry;
 use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
-use crate::arch::x86_64::acpi::tables::{sdt_entry_count, SdtHeader, SIG_RSDT, SIG_SSDT};
+use crate::arch::x86_64::acpi::tables::{
+    sdt_entry_count, SdtHeader, MAX_TABLE_BYTES, SIG_RSDT, SIG_SSDT,
+};
 use core::{mem, ptr};
 
 pub fn parse_rsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
@@ -31,7 +33,10 @@ pub fn parse_rsdt(registry: &mut TableRegistry, addr: u64) -> AcpiResult<()> {
             // refusing the root table would lose every other table with it.
             crate::log_warn!("[ACPI] RSDT checksum mismatch, using it anyway");
         }
-        let entry_count = sdt_entry_count(header.length as usize, mem::size_of::<SdtHeader>(), 4);
+        // A length past the ceiling every walk keeps to is a lie, and is
+        // walked only that far (L73).
+        let length = (header.length as u64).min(MAX_TABLE_BYTES) as usize;
+        let entry_count = sdt_entry_count(length, mem::size_of::<SdtHeader>(), 4);
         let entries_ptr = (addr as usize + mem::size_of::<SdtHeader>()) as *const u32;
         for i in 0..entry_count {
             let entry_addr = ptr::read_volatile(entries_ptr.add(i)) as u64;

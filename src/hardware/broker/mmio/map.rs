@@ -13,23 +13,33 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! The one path from a PCI BAR slice to a mapping in a capsule: the claim
-//! and its epoch, the BAR (map_resolve.rs); the pages the request touches,
-//! kept off every MSI-X table and PBA (window.rs) and off RAM, the kernel
-//! image and the IOMMUs' registers (forbidden.rs); a user VA in the MMIO
-//! region, mapped user, read+write, NX, uncached or, asked and allowed,
-//! write-combined (cache.rs); then the grant's record,
-//! while the claim still holds (map_record.rs). A rejection maps nothing. `user_va` is the VA of the first byte asked for
-//! (a 2 KiB ABAR at ...800 gets a VA ending 0x800), `length` the bytes usable.
+//! The single in-kernel path that turns a PCI BAR slice into a mapping in a
+//! capsule address space, in order:
+//!
+//!   1. the caller's claim, its epoch fresh, held until step 5 (map_bar.rs)
+//!   2. the device record and the BAR it names
+//!   3. the pages the request touches, kept off every MSI-X table and PBA
+//!      (`window`) and refused whole over RAM, the kernel image or an
+//!      IOMMU's registers (`forbidden`, K6)
+//!   4. a user VA from the holder's own MMIO window, the pages installed
+//!      user, read+write, NX, uncached or, asked on a prefetchable BAR for
+//!      pages inside it, write-combining once every PAT has it (`cache`);
+//!      the kernel's own type where it maps them (`memory_type`)
+//!   5. the grant recorded while its claim stands, within the quota
+//!
+//! A rejection maps nothing and records nothing. `user_va` is the VA of the
+//! first byte asked for and `length` the bytes usable from there; neither
+//! need be page aligned (a 2 KiB ABAR at a base ending in 0x800 gets a VA
+//! ending in 0x800). An MSI-X table can cut a page-aligned request short.
 
 use super::cache::{self, Cache};
-use super::map_shared::{cache_error, note_shared_page, window_error};
+use super::map_bar::{claimed_bar, Claimed};
+use super::map_install::install;
+use super::map_notes::{cache_error, note_shared_page, window_error};
+use super::map_type::memory_type;
+use super::memory_type::MMIO_MAP_WC;
 use super::types::{MmioMapError, MmioMapRequest, MmioMapResult};
-use super::window::{self, PAGE_SIZE};
-use super::{forbidden_ranges, msix_exclusion};
-use crate::hardware::broker::grant::{self, USER_MMIO_BASE, USER_MMIO_END};
-use crate::memory::addr::PhysAddr;
+use super::{forbidden_ranges, msix_exclusion, window};
 
 pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, MmioMapError> {
     if !cache::known(req.flags) {
@@ -38,7 +48,7 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     if req.length == 0 {
         return Err(MmioMapError::ZeroLength);
     }
-    let (claim, device, bar) = super::map_resolve::resolve(pid, &req)?;
+    let Claimed { epoch, device, bar, held: _held } = claimed_bar(pid, &req)?;
     let protected = msix_exclusion::protected_regions();
     let w = window::window(bar.base, bar.size, req.offset, req.length, &protected)
         .map_err(window_error)?;
@@ -48,21 +58,11 @@ pub fn map_for_caller(pid: u32, req: MmioMapRequest) -> Result<MmioMapResult, Mm
     let cache = cache::cache_for(req.flags, bar_held, (w.page_start, w.page_bytes), wc_ready)
         .map_err(cache_error)?;
     note_shared_page(&device, &w);
-    let pages = w.page_bytes / PAGE_SIZE;
-    let user_va = grant::reserve_user_va(pid, pages).ok_or(MmioMapError::NoVaSpace)?;
-    let (va, bytes) = (user_va.as_u64(), w.page_bytes);
-    if va < USER_MMIO_BASE || va.checked_add(bytes).is_none_or(|end| end > USER_MMIO_END) {
-        grant::release_user_va(pid, va, bytes);
-        return Err(MmioMapError::NoVaSpace);
-    }
-    let phys = PhysAddr::new(w.page_start);
+    // What cache.rs allows, then the kernel's own type where it maps the pages.
     let wc = cache == Cache::WriteCombined;
-    if crate::memory::paging::map_user_mmio(user_va, phys, bytes as usize, wc).is_err() {
-        let _ = crate::memory::paging::unmap_user_mmio(user_va, bytes as usize);
-        grant::release_user_va(pid, va, bytes);
-        return Err(MmioMapError::MapFailed);
-    }
-    let grant_id = super::map_record::record(pid, &req, claim.epoch, &w, user_va)?;
+    let kind = memory_type(if wc { MMIO_MAP_WC } else { 0 }, &bar, &w)?;
+    let user_va = install(pid, &w, kind)?;
+    let grant_id = super::map_record::record(pid, &req, epoch, &w, user_va)?;
     let first = user_va.as_u64() + w.in_page;
     Ok(MmioMapResult { user_va: first, length: w.usable, grant_id })
 }

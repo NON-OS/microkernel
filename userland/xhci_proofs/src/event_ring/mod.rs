@@ -20,9 +20,8 @@
 //! the completion code, the slot and endpoint ids, the residual length and
 //! the 64-bit pointer. These proofs run the driver's own `EventRing` and
 //! every function that consumes it (the interrupt drain, both completion
-//! waits, the interrupt-IN poll, the bulk wait and the bulk poll) over host
-//! DMA memory, with a producer written from the specification on the other
-//! side.
+//! waits, the interrupt-IN poll, the bulk wait and poll, the isoch wait)
+//! over host DMA memory, against a producer written from the specification.
 
 pub(crate) mod events;
 mod fixture;
@@ -36,6 +35,7 @@ mod abort_failed_tests;
 mod abort_ring_tests;
 mod abort_unfetched_tests;
 mod address_tests;
+mod armed_place;
 mod armed_tests;
 mod bluetooth_limit_tests;
 mod bluetooth_poll_tests;

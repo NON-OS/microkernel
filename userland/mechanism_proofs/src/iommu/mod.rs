@@ -26,3 +26,10 @@ pub mod sl_pte;
 #[allow(dead_code)]
 #[path = "../../../../src/arch/x86_64/iommu/tables/context.rs"]
 pub mod context;
+
+// The ordered writer for 128-bit entries, over a frame that records stores.
+#[path = "../../../../src/arch/x86_64/iommu/tables/pair.rs"]
+pub mod pair;
+
+pub mod out_of_frame;
+pub mod view;

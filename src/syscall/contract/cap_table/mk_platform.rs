@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! What firmware describes and what the hypervisor offers: the device facts
-//! the ACPI tables give, the ACPI owner's calls, and the VMBus core's.
+//! the ACPI tables give, the ACPI owner's calls, the VMBus core's, and the
+//! boot framebuffer's.
 
 use crate::capabilities::CapabilityToken;
 use crate::syscall::numbers::SyscallNumber;
@@ -58,11 +59,15 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAcpiLpit
         | SyscallNumber::MkAcpiPower => caps.is_valid() && caps.is_admin(),
 
-        /* The VMBus core's SynIC calls; each also checks the VMBus root's claim. */
+        /* VMBus through the SynIC; each also checks the VMBus root's claim, or for
+         * events and signals a channel record's. */
         SyscallNumber::MkHvPost
+        | SyscallNumber::MkHvChannel
         | SyscallNumber::MkHvRecv
         | SyscallNumber::MkHvEvents
         | SyscallNumber::MkHvSignal => caps.can_driver(),
+        /* The boot framebuffer's geometry, to the holder of its claim (L31). */
+        SyscallNumber::MkBootFramebuffer => caps.can_mmio(),
 
         _ => return None,
     })

@@ -35,12 +35,15 @@ pub(super) enum Placed {
     Failed,
 }
 
-pub(super) fn one(entry: &Entry) -> Placed {
+/// `held`: a program of the package a market release names, which stays
+/// unstartable until its policy is bound (minted.rs).
+pub(super) fn one(entry: &Entry, held: bool) -> Placed {
     if !allowed(&entry.name) {
         return Placed::Refused;
     }
     let at = visible(b"/", &entry.name);
-    if store_write(&key(&at), &entry.body).is_err() {
+    let mut write = |path: &[u8], body: &[u8]| store_write(&key(path), body).is_ok();
+    if !super::super::market::minted::place(&at, &entry.body, held, &mut write) {
         say(b"[LINUX] a file of the package could not be written\n");
         return Placed::Failed;
     }

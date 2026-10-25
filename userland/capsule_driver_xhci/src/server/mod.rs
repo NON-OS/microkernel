@@ -16,6 +16,7 @@
 pub mod context;
 mod dispatch;
 mod error;
+// The proofs reach the control data stage's region through it.
 pub(crate) mod handlers;
 pub mod mux;
 mod mux_address;
@@ -42,6 +43,7 @@ mod mux_status;
 mod mux_sweep;
 mod mux_virt;
 pub(crate) mod reply;
+mod route;
 pub(crate) mod runner;
 mod sender_holds;
 mod service_interrupts;

@@ -37,6 +37,9 @@ pub fn run_init() -> ! {
     run_shield();
     run_shield_vectors();
     run_tokio_smoke();
+    // Last, so every service it attacks is already up and owns its name.
+    #[cfg(feature = "nonos-capsule-attack")]
+    crate::userspace::capsule_attack::run();
     boot_log::ok("INIT", "Capsules spawned");
     super::injected::panic();
     super::injected::fault();
@@ -135,7 +138,7 @@ fn run_tool_selftest() {
     ];
     for (service, argv, label) in TESTS {
         boot_log::ok("TOOL-SELFTEST run", label);
-        if crate::userspace::tool_capsules::run_named(service, argv).is_err() {
+        if crate::userspace::tool_capsules::run_embedded_for_kernel(service, argv).is_err() {
             boot_log::error("tool self-test spawn failed");
         }
         // Let the scheduler run the tool to completion before the next one, so

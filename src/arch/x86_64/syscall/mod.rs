@@ -16,5 +16,7 @@
 
 pub mod manager;
 pub mod msr;
+mod msr_regs;
+mod msr_star;
 
 pub use manager::init;

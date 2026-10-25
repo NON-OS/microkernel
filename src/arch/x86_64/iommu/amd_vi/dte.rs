@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Device table entries (AMD IOMMU spec 48882, section 2.2.2.1), 256 bits as
-//! four quadwords, with the bits Linux sets in amd/iommu.c (set_dte_entry)
-//! and amd/init.c (init_device_table_dma). Pure.
+//! four quadwords: V, TV, the paging mode and root, IR and IW, and the
+//! domain id, each where the spec's entry format puts it. Pure.
 
 pub type Dte = [u64; 4];
 
@@ -26,11 +26,16 @@ const READ: u64 = 1 << 61;
 const WRITE: u64 = 1 << 62;
 const ROOT_MASK: u64 = 0x000F_FFFF_FFFF_F000;
 
-/// No DMA at all. V and TV set with Mode 0 and neither IR nor IW: the unit
-/// translates nothing and permits nothing. Its interrupts are refused too
-/// (IV set, no table, K4) until a bind gives it a table.
+/// No DMA at all: V and TV with Mode 0, neither IR nor IW. Its interrupts
+/// are refused too (IV set, no table, K4) until a bind gives it a table.
 pub const fn blocked() -> Dte {
     [VALID | TRANSLATION_VALID, 0, super::intr_rule::ABORT_ALL, 0]
+}
+
+/// DMA reaches physical addresses untranslated (Mode 0 with IR and IW). The
+/// kernel writes it for no device; the identity count judges by it.
+pub const fn passthrough() -> Dte {
+    [VALID | TRANSLATION_VALID | READ | WRITE, 0, 0, 0]
 }
 
 /// `entry`'s DMA half with `from`'s interrupt quadword: moving a device
@@ -63,10 +68,8 @@ pub const fn allows_write(entry: Dte) -> bool {
     entry[0] & (VALID | WRITE) == VALID | WRITE
 }
 
-/// A writer entry with no valid translation: the device could write untranslated
-/// physical memory, which is exactly what the unit must never let through. The
-/// kernel's own entries are either blocked (no write) or translated (a page
-/// table), so any such entry is a stray one the pre-enable scan refuses.
+/// A writer entry with no valid translation, so the device could write
+/// physical memory untranslated: never the kernel's own, refused before enable.
 pub const fn stray_writer(entry: Dte) -> bool {
     allows_write(entry) && entry[0] & TRANSLATION_VALID == 0
 }

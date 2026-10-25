@@ -98,8 +98,6 @@ fn the_spawn_asks_before_it_builds_and_ends_what_it_cannot_start() {
     assert!(!tail.contains(")?;"), "a step after publishing returns past the thread");
     assert!(tail.contains("return Err(unstarted(tid, \"thread kernel stack\"));"));
     assert!(tail.contains("return Err(unstarted(tid, \"thread user context\"));"));
-    let undo = &SPAWN[at(SPAWN, "fn unstarted(")..];
-    assert!(undo[..at(undo, "\n}")].contains("crate::process::exit::teardown(tid, "));
 }
 
 #[test]

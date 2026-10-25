@@ -25,11 +25,11 @@ On its first poll of a newly bound card, `net.core` sends operation 6 with no bo
 
 ## Who may reach a driver
 
-The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint). The USB network drivers are held the same way, through the card table (`src/services/registry/nics.rs`, `NICS`); see [USB networking](usb-net.md).
+The kernel holds every wired card on its card table, the USB network drivers among them, to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/nics.rs`, `NICS`; `src/services/registry/held_cards.rs`, `card_callers` and `WIRED_STACK`). See [held endpoint](../../overview/glossary-hardware-broker.md#held-endpoint). The USB network drivers may also send to the USB host drivers, whose names the kernel keeps in one list (`src/services/registry/usb_hosts.rs`, `USB_HOSTS`); see [USB networking](usb-net.md).
 
 ## Which card is bound
 
-`net.core` binds the first candidate whose link answers up. Wi-Fi comes first, then `driver.virtio_net0`, `driver.e1000_0`, `driver.rtl8169_0` and `driver.rtl8139_0`, then the USB drivers (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`). The e1000e and igc capsules are not on that list. It asks the bound driver for its MAC address only when the port it is bound to changes (`userland/capsule_net_core/src/setup/reevaluate.rs:33-54`, `reevaluate`).
+`net.core` binds the first candidate whose link answers up. Wi-Fi comes first, then the wired cards in the order of the kernel's card table: `driver.virtio_net0`, the PCI cards, then the USB drivers (`src/services/registry/nics.rs:41-58`, `NICS`; `userland/capsule_net_core/src/setup/candidates.rs:42-46`, `candidate`). The igc capsule is not on that table. It asks the bound driver for its MAC address only when the port it is bound to changes (`userland/capsule_net_core/src/setup/reevaluate.rs:33-54`, `reevaluate`).
 
 ## See also
 

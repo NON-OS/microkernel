@@ -18,14 +18,18 @@
 
 mod attach;
 mod block;
+mod identity;
 mod lifetime;
 mod map;
+mod pinned;
 mod range;
+mod teardown;
 mod unmap;
 mod walk;
 
 pub use attach::{attach, detach, device_id};
 pub use block::block;
+pub use identity::identity_devices;
 pub use lifetime::{create_domain, destroy_domain, MAX_DOMAINS};
 pub use map::map_range;
 pub use unmap::unmap_range;

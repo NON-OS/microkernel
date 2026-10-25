@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.vim",
+      "capsule_id": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a",
+      "name": "Vim",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "The classic modal editor, with its full runtime of syntax files and plugins.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "vim@9.1.0707-r0",
+          "manifest_hash": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a",
+          "package_hash": "64641cc28aa7ef9fb3211727152842e4f619bff4b346dba77a308dfc3d194a1a",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/vim-9.1.0707-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c3031010000000000000017153abdf1d516c02c5df5aca38de8136bb15a0ec42cc6c68a4b6b13a1c5b679080100000000000064284f069212bae1afaf869c1a39710ab4543b4a305f9fab7f3300a283f8117749ac568cb368e64f71d315329282fbcbdbb6ae7ae0462cf75977b8c0ac9ea10c0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1476729 bytes; licence Vim; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

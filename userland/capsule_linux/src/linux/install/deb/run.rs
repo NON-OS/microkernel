@@ -22,12 +22,14 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::fetch::fetch;
-use super::index::{find, load};
+use super::find::find;
+use super::index::load;
 use super::keyring::pinned;
 use super::packages::Record;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
 use crate::linux::install::place::all::unpack;
+use crate::linux::install::refuse::refuse as say;
 use crate::linux::install::Why;
 
 pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
@@ -45,7 +47,9 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let (max, mut done): (usize, Vec<String>) = (max_packages(), Vec::new());
     let mut wanted: Vec<Vec<String>> = vec![vec![String::from(name)]];
     while let Some(group) = wanted.pop() {
-        let Some(rec): Option<&Record> = group.iter().find_map(|n| find(&index, n)) else {
+        let Some(rec): Option<&Record> =
+            group.iter().find_map(|n| find(&index, n, done.is_empty()))
+        else {
             return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
         };
         if done.contains(&rec.name) {
@@ -66,10 +70,4 @@ pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
         wanted.extend(rec.depends.iter().cloned());
     }
     Ok(())
-}
-
-/// Log a refusal and name it.
-fn say(line: &[u8], why: Why) -> Result<(), Why> {
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    Err(why)
 }

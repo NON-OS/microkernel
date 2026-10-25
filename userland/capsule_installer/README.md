@@ -45,7 +45,7 @@ same sequence word and a status.
 |---|---|---|
 | 1 | `OP_HEALTHCHECK` | liveness |
 | 2 | `OP_INSTALL` | the body is a payment_proto PAY v2 request for exactly one unit of "install"; the installer refuses anything else with `EINVAL`, relays it to the meter and answers with the meter's signed voucher (265 bytes), or the meter's status. A free listing needs no call |
-| 3 | `OP_LOAD_FROM_STORE` | load a capsule from the ELF, certificate, manifest and trailer bytes in the request, as the installer's own child |
+| 3 | `OP_LOAD_FROM_STORE` | retired (S-13): answers EINVAL and loads nothing; the number stays taken (`protocol/retired.rs`) |
 | 4 | `OP_LOAD_BY_NAME` | read `/capsules/<name>` (four files, up to 16 MiB each) and load it as the caller's child |
 | 5 | `OP_LIST_INSTALLED` | names under `/capsules/` that have all four files, at most 64 |
 | 6 | `OP_PKG_QUERY` | verify a `.nonos` package with the kernel and return its BLAKE3 digest, capability word, tier, name and namespace |

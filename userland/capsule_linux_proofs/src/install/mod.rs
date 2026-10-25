@@ -26,10 +26,9 @@ pub mod http_reply;
 #[path = "../../../capsule_linux/src/linux/install/mirror.rs"]
 pub mod mirror;
 
-#[path = "../../../capsule_linux/src/linux/install/market_arg.rs"]
-pub mod market_arg;
-#[path = "../../../capsule_linux/src/linux/install/market_check.rs"]
-pub mod market_check;
+// The market's check asks the tiers table, which the models module mounts.
+pub(crate) use crate::models::apps;
+pub mod market;
 #[path = "../../../capsule_linux/src/linux/install/proof_names.rs"]
 pub mod proof_names;
 #[path = "../../../capsule_linux/src/linux/install/route_read/mod.rs"]
@@ -43,6 +42,8 @@ pub mod pkg;
 
 #[path = "../../../capsule_linux/src/linux/install/index.rs"]
 pub mod index;
+#[path = "../../../capsule_linux/src/linux/install/index_find.rs"]
+pub mod index_find;
 
 #[path = "../../../capsule_linux/src/linux/install/hex.rs"]
 pub mod hex;

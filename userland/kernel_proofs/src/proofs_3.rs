@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Host proofs, group 3 of 6: test modules mounted by path
-//! from lib.rs, each at its own file.
+//! Host proofs, group 3 of 8: test modules mounted by path
+//! from proofs.rs, each at its own file.
 
 #[path = "align_tests.rs"]
 mod align_tests;
 #[path = "authorization_tests/mod.rs"]
-mod authorization_tests;
+pub(crate) mod authorization_tests;
 #[path = "elf_section_tests.rs"]
 mod elf_section_tests;
 #[path = "elf_tests.rs"]

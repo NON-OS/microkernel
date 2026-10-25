@@ -21,5 +21,5 @@ mod validity_clock;
 
 pub use artifacts::CapsuleArtifacts;
 pub use error::LoadError;
-pub(crate) use load::load_capsule_from_vfs;
+pub(crate) use load::{beyond_parent, child_caps, load_capsule_from_vfs};
 pub(crate) use validity_clock::validity_now_ms;

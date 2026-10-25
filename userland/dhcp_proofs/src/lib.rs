@@ -26,5 +26,11 @@ pub mod protocol;
 // The header decode and the reply; not the handlers or the receive loop.
 pub mod server;
 
+// The bound lease's console line, pure; a boot reads receive off it.
+#[path = "../../capsule_net_dhcp/src/dora/lease_line.rs"]
+pub mod lease_line;
+
+#[cfg(test)]
+mod lease_line_tests;
 #[cfg(test)]
 mod refusal_tests;

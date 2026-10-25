@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The MSI message a device sends once its interrupt is remapped (VT-d 3.4,
-//! 5.1.5.2): the address names an entry instead of a CPU, as Linux builds it
-//! in intel/irq_remapping.c, fill_msi_msg.
+//! 5.1.5.2): the address names an entry instead of a CPU, its handle split
+//! across address bits 19:5 and bit 2 as that section's format has it.
 
 /// Address and data to program into an MSI capability or an MSI-X table
 /// entry. The upper address dword is zero.

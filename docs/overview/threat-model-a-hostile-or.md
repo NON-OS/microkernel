@@ -4,20 +4,21 @@ Part of [Threat model](threat-model.md).
 
 ### A hostile or faulty device
 
-On Intel VT-d machines the [IOMMU](glossary-hardware-broker.md#iommu) confines device DMA. Every
-image turns translation on at boot, and a device the boot PCI scan did not find,
-such as a card added later, is denied (`bring_up` in
+On Intel VT-d machines the [IOMMU](glossary-hardware-broker.md#iommu) confines
+device DMA. Every image turns translation on at boot, and a device the boot PCI
+scan did not find, such as a card added later, is denied (`bring_up` in
 `src/arch/x86_64/iommu/unit/bringup/run.rs:26-36`). When a driver claims a
 device that a unit in service covers, the broker puts it in the [IOMMU
-domain](glossary-hardware-broker.md#iommu-domain) of that driver capsule, so it reaches only
-what that capsule was granted, and refuses a claim the unit cannot confine or
-whose interrupts it cannot remap (`attach` in
+domain](glossary-hardware-broker.md#iommu-domain) of that driver capsule, so it
+reaches only what that capsule was granted, and refuses a claim the unit cannot
+confine or whose interrupts it cannot remap (`attach` in
 `src/hardware/broker/confine/attach.rs`, `verdict` in
-`src/hardware/broker/confine/decide.rs`). A
-released device has its bus mastering turned off before it leaves the domain
-(`release` in `src/hardware/broker/claim/release.rs:24-36`). At shutdown and
-restart every claimed device is stopped and its DMA buffers wiped before the
-rest of memory is (`quiesce_all_devices` in
+`src/hardware/broker/confine/decide.rs`). A claimed device starts with bus
+mastering off until its driver turns it on, the boot PCI pass never turns it on
+for a device, and a released device has its bus mastering turned off before it
+leaves the domain (`release` in `src/hardware/broker/claim/release.rs:24-36`).
+At shutdown and restart every claimed device is stopped and its DMA buffers
+wiped before the rest of memory is (`quiesce_all_devices` in
 `src/security/hardening/memory_sanitization/api.rs:65-69`).
 
 ### An observer on the network

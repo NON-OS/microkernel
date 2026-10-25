@@ -1,0 +1,60 @@
+{
+  "schema_version": 3,
+  "operator_id": "nonos.marketplace.v1",
+  "published_at_ms": 1792844669000,
+  "serial": 1792844669,
+  "entries": [
+    {
+      "listing_id": "linux.kakoune",
+      "capsule_id": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993",
+      "name": "Kakoune",
+      "publisher_name": "Linux",
+      "publisher_pubkey": "bbeaa6c15c496575134e0c72d8d75d7d6128c9fdf3723761f44026a0adf522f2",
+      "publisher_eth_address": "0000000000000000000000000000000000000000",
+      "description": "A modal editor where you select first and act second. Runs shell snippets, so it may run other programs.",
+      "price": {
+        "kind": "free",
+        "amount_atomic": "0",
+        "period_seconds": 0
+      },
+      "token": {
+        "symbol": "NOX",
+        "decimals": 18,
+        "chain_id": 1,
+        "contract_address": ""
+      },
+      "commerce": {
+        "payee": "0x0000000000000000000000000000000000000000",
+        "unit": "install",
+        "unit_price": "0",
+        "settle_mode": "free"
+      },
+      "releases": [
+        {
+          "release_id": "kakoune@2024.05.18-r0",
+          "manifest_hash": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993",
+          "package_hash": "6534b2b253d04eb2ff357c75a40975b511e64bbddb96779d20497e506f309993",
+          "package_url": "https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/kakoune-2024.05.18-r0.apk",
+          "publisher_signature": "",
+          "supported_arches": [
+            "x86_64-linux"
+          ],
+          "kernel_abi_min": 1,
+          "required_capabilities": [
+            "ForeignExec"
+          ],
+          "zk_trailer_hash": "",
+          "ext": {
+            "guest_policy": "4e4c58504f4c30310100000000000000eb5486390a70e8726687a7ac8932e0c525ba6f56464ea5055854fb9a738f370f4801000000000000e718531d2592148006580d5282717783fa9a23f5fce2d9f9e96a9ee95cdc91bd07193c6699ca37b0f08f545411e9999d0052f7f4067d9491843597500bc7cd650000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "validation": {
+            "status": "validated",
+            "note": "fetched and hashed at 1023474 bytes; licence Unlicense; installs only in this release's box",
+            "validator_id": "nonos.operator.linux",
+            "validated_at_ms": 1792844669000
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,17 +1,17 @@
 // NONOS std thread-local keys. Each thread owns one page-sized table of
-// pointers; the kernel carries the table's address in the thread's fs base
+// pointers; the kernel carries the table's address in the thread pointer
 // (set with the MSTB syscall, restored by the scheduler on every switch),
 // and slot 0 holds the table's own address so userspace can find it with a
-// single fs-relative load. Keys are process-global indices into that table,
-// handed out from an atomic counter, exactly like the xous port.
+// single load through it (pal thread_regs). Keys are process-global indices
+// into that table, handed out from an atomic counter.
 //
 // Invariant: `init_tls` runs before any `get`/`set` on a thread. The PAL
 // runtime init covers the main thread and the thread trampoline covers
-// spawned threads; a violation dereferences fs:0 with a zero base, which
+// spawned threads; a violation loads through a zero thread pointer, which
 // the unmapped null page turns into a loud capsule kill rather than
 // silent corruption.
 //
-// Destructors mirror the Windows/xous scheme: a global registration list,
+// Destructors use a global registration list,
 // walked by `destroy_tls` when a thread exits.
 
 use crate::alloc::{GlobalAlloc, Layout, System};
@@ -40,22 +40,21 @@ const N_MK_SET_TLS: i64 = tag4(b"MSTB");
 const N_MK_DEBUG: i64 = tag4(b"MDBG");
 
 fn set_tls_base(base: u64) -> i64 {
-    let r: i64;
-    // SAFETY: MSTB takes the new fs base in rdi and returns a status in
-    // rax; the kernel validates the address before installing it.
+    #[cfg(target_arch = "riscv64")]
+    return crate::sys::pal::thread_regs::set_thread_pointer(base);
+    // SAFETY: MSTB takes the new thread pointer and answers a status;
+    // the kernel validates the address before installing it.
+    #[cfg(not(target_arch = "riscv64"))]
     unsafe {
-        core::arch::asm!("syscall", inout("rax") N_MK_SET_TLS => r, in("rdi") base,
-            out("rcx") _, out("r11") _);
+        crate::sys::pal::trap::trap(N_MK_SET_TLS, base, 0, 0, 0, 0, 0)
     }
-    r
 }
 
 fn debug_line(msg: &[u8]) {
-    // SAFETY: MDBG copies (rdi, rsi) bytes to the kernel serial sink and
+    // SAFETY: MDBG copies the (pointer, length) bytes to the kernel serial sink and
     // never writes back into the buffer.
     unsafe {
-        core::arch::asm!("syscall", in("rax") N_MK_DEBUG, in("rdi") msg.as_ptr() as u64,
-            in("rsi") msg.len() as u64, out("rcx") _, out("r11") _);
+        crate::sys::pal::trap::trap(N_MK_DEBUG, msg.as_ptr() as u64, msg.len() as u64, 0, 0, 0, 0);
     }
 }
 
@@ -69,14 +68,7 @@ fn table_layout() -> Layout {
 }
 
 fn tls_table_ptr() -> *mut *mut u8 {
-    let tp: *mut *mut u8;
-    // SAFETY: fs base points at this thread's live TLS table (the init
-    // invariant above), whose slot 0 is the table's own address.
-    unsafe {
-        core::arch::asm!("mov {}, qword ptr fs:[0]", out(reg) tp,
-            options(nostack, preserves_flags, readonly));
-    }
-    tp
+    crate::sys::pal::thread_regs::tls_table()
 }
 
 // The main thread's table is installed lazily by the first get/set: the
@@ -150,8 +142,8 @@ pub unsafe fn get(key: Key) -> *mut u8 {
 
 #[inline]
 pub unsafe fn destroy(_key: Key) {
-    // Keys index a fixed table and are never reused; leaking the slot is
-    // the same trade the xous and Windows ports make.
+    // Keys index a fixed table and are never reused, so the slot is
+    // leaked: a bounded cost against a reused key's stale value.
 }
 
 struct Node {
@@ -193,10 +185,10 @@ pub(crate) unsafe fn destroy_tls() {
 }
 
 // inline(never) keeps dealloc calls from being reordered past the TLS
-// teardown, mirroring the upstream xous fix.
+// teardown.
 #[inline(never)]
 unsafe fn run_dtors() {
-    // Five passes, like Windows and xous: destructors may themselves
+    // Five passes: destructors may themselves
     // create fresh thread locals that also need destroying.
     for _ in 0..5 {
         let mut any_run = false;
