@@ -22,5 +22,9 @@ mod flight_wipe;
 mod key_move;
 #[path = "key_wipe.rs"]
 mod key_wipe;
+#[path = "no_other_store.rs"]
+mod no_other_store;
+#[path = "no_other_store_rule.rs"]
+mod no_other_store_rule;
 #[path = "wipe_glue.rs"]
 mod wipe_glue;
