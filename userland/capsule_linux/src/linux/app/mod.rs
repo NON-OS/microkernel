@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bind;
+mod bound_line;
 mod calls;
 mod choose;
 mod family;
