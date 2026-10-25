@@ -23,8 +23,8 @@
 //! soft-off (OP_PREPARE_SLEEP) before its own AdminShutdown (P-08).
 
 mod button;
-mod serve;
 pub mod rule;
+mod serve;
 
 pub use button::{policy, press, take_button, Presses};
 
