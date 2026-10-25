@@ -37,6 +37,8 @@ pub enum Step {
     Probe,
     /// The app is up: hand it its focus frame.
     Started(u32),
+    /// The installer refused it, with this status (its OP_LOAD_OUTCOME).
+    Refused(i32),
     /// The installer finished without the app, or the deadline passed.
     Failed,
 }

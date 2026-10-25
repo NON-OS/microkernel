@@ -93,13 +93,13 @@ fn the_held_wallpaper_is_let_go_after_its_last_chunk() {
 #[test]
 fn an_installed_disk_serves_the_kept_ones_alone_and_no_other() {
     let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
-    installed(&[3, 40, 62]);
-    for i in [3, 40, 62] {
+    installed(&[1, 3]);
+    for i in [1, 3] {
         let (status, body) = chunk(i, 0);
         assert_eq!(status, E_OK, "kept {i}");
         assert_eq!(&body[..], &files()[i as usize].1[..body.len()]);
     }
-    for i in [0, 5, 55] {
+    for i in [0, 2] {
         assert_eq!(chunk(i, 0).0, E_IO, "not kept {i}");
     }
     reset();

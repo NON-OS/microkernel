@@ -30,7 +30,7 @@ use super::state::VOLUME;
 /// Create a passphrase-keyed volume over a blank header ring (`create`),
 /// or open the one the key header names. The caller wipes `passphrase`.
 pub fn passphrase_volume(create: bool, passphrase: &[u8]) -> Result<(), VolumeError> {
-    if VOLUME.read().is_some() {
+    if crate::smp::read_responsive(&VOLUME).is_some() {
         return Err(VolumeError::AlreadyOpen);
     }
     let plan = read_plan()?;
