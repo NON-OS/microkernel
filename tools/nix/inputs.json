@@ -9079,6 +9079,7 @@
    "userland/capsule_terminal/src/jobs/box_draw.rs",
    "userland/capsule_terminal/src/jobs/box_hold.rs",
    "userland/capsule_terminal/src/jobs/box_log.rs",
+   "userland/capsule_terminal/src/jobs/box_missing.rs",
    "userland/capsule_terminal/src/jobs/box_screen.rs",
    "userland/capsule_terminal/src/jobs/box_wait.rs",
    "userland/capsule_terminal/src/jobs/external.rs",
