@@ -24,9 +24,9 @@ const COMPOSITOR: u32 = 70;
 #[test]
 fn an_unshared_surface_is_the_owners_alone() {
     let s = Shares::new(OWNER);
-    assert!(s.may_attach(OWNER, Some(COMPOSITOR)));
-    assert!(!s.may_attach(CODEC, Some(COMPOSITOR)));
-    assert!(!s.may_attach(COMPOSITOR, Some(COMPOSITOR)), "not shared yet");
+    assert!(s.may_attach(OWNER));
+    assert!(!s.may_attach(CODEC));
+    assert!(!s.may_attach(COMPOSITOR), "not shared yet");
 }
 
 #[test]
@@ -35,21 +35,19 @@ fn a_guessed_handle_maps_nothing_for_anyone_else() {
     // live handle. Shared with the codec, it stays the codec's.
     let mut s = Shares::new(VIEWER);
     assert_eq!(s.name(CODEC), Named::Added);
-    assert!(s.may_attach(CODEC, Some(COMPOSITOR)));
-    assert!(!s.may_attach(OWNER, Some(COMPOSITOR)));
-    assert!(!s.may_attach(COMPOSITOR, Some(COMPOSITOR)), "named, not the compositor's");
+    assert!(s.may_attach(CODEC));
+    assert!(!s.may_attach(OWNER));
+    assert!(!s.may_attach(COMPOSITOR), "named, not the compositor's");
 }
 
 #[test]
-fn the_older_share_is_for_whoever_serves_the_compositor() {
+fn the_compositor_attaches_only_when_named() {
+    // No share stands for whoever serves the compositor (K20): it is named
+    // as any receiver is, and a restart in a new group is not that group.
     let mut s = Shares::new(OWNER);
-    s.allow_compositor();
-    assert!(s.may_attach(COMPOSITOR, Some(COMPOSITOR)));
-    // A restarted compositor in a new group attaches; the old one does not.
-    assert!(s.may_attach(71, Some(71)));
-    assert!(!s.may_attach(COMPOSITOR, Some(71)));
-    assert!(!s.may_attach(COMPOSITOR, None), "no compositor, no attach");
-    assert!(!s.may_attach(CODEC, Some(COMPOSITOR)));
+    assert_eq!(s.name(COMPOSITOR), Named::Added);
+    assert!(s.may_attach(COMPOSITOR));
+    assert!(!s.may_attach(71), "a restarted compositor in a new group");
 }
 
 #[test]
@@ -62,15 +60,14 @@ fn naming_is_idempotent_and_bounded() {
         assert_eq!(s.name(100 + g), Named::Added);
     }
     assert_eq!(s.name(200), Named::Full);
-    assert!(!s.may_attach(200, None));
-    assert!(s.may_attach(CODEC, None));
+    assert!(!s.may_attach(200));
+    assert!(s.may_attach(CODEC));
 }
 
 #[test]
 fn group_zero_is_no_process() {
     let mut s = Shares::new(OWNER);
     assert_eq!(s.name(0), Named::Refused);
-    s.allow_compositor();
-    assert!(!s.may_attach(0, Some(0)), "an empty entry never matches");
-    assert!(!Shares::new(0).may_attach(0, None));
+    assert!(!s.may_attach(0), "an empty entry never matches");
+    assert!(!Shares::new(0).may_attach(0));
 }

@@ -62,6 +62,7 @@ mod quote_v3_order;
 mod registry;
 mod release;
 mod robust;
+mod tool;
 
 /// The refusal a spec's host meets.
 pub fn refused(s: Spec) -> Refusal {
