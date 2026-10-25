@@ -24,3 +24,4 @@ mod calls;
 mod install;
 mod wayland;
 mod whole;
+mod heap_choice_tests;

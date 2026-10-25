@@ -134,6 +134,8 @@ pub mod anon_server_end;
 pub mod applets;
 #[path = "../../capsule_linux/src/linux/file/private/rule.rs"]
 pub mod private_rule;
+#[path = "../../capsule_linux/src/linux/heap_choice.rs"]
+pub mod heap_choice;
 
 /* The box a guest runs in: its policy, its identity, what it allows. */
 pub mod app;
