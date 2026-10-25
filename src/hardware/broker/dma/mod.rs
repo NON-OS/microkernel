@@ -42,7 +42,7 @@ mod types;
 mod va;
 mod wipe;
 
-pub use covers::{covers, covers_any};
+pub use covers::covers;
 pub use held_run::{free_held_run, grant_run_covering};
 pub(in crate::hardware::broker) use kept::kept_bytes;
 pub(in crate::hardware::broker) use kept_settle::{settle_kept, settle_kept_all};

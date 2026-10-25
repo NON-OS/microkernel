@@ -15,13 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The VMBus channels as the kernel knows them: learnt from the host's own
- * offers as they pass to the core, never from the core. A channel's
- * connection id and interface come from its offer. The core may give a
- * channel to a driver only by naming a relid the host offered and has not
- * withdrawn. A GPADL is tied to the channel its header named, so its body
- * frames, which name no channel, are held to the same one. Pure: kernel
- * proofs run it.
+ * The VMBus channels as the kernel knows them, learnt from the host's own
+ * offers as they pass, never from the core. A channel's connection id and
+ * interface come from its offer.
+ *
+ * The core gives a channel to a driver by naming a relid the host offered
+ * and has not withdrawn (`bind`). From then on the channel is its driver's:
+ * - the driver posts that channel's messages, and only that channel's
+ *   (`target`): GPADLs over pages held on its record, the open, the close,
+ *   the teardowns;
+ * - the host's answers for it come to the driver's own queue
+ *   (`from_host`'s route), not to the core;
+ * - the core can no longer reach the channel at all.
+ *
+ * A GPADL is tied to its channel from its header until the host says it is
+ * gone (GPADL_TORNDOWN, or a failed GPADL_CREATED). While one is tied, the
+ * host may write the channel's pages. So when the driver lets go, its pages
+ * are kept and the kernel itself closes the channel and tears its GPADLs
+ * down (`release`). Pure: kernel proofs run it.
  */
 
 /// Channels kept at once; the core keeps as many.
@@ -30,12 +41,21 @@ pub(super) const MAX_CHANNELS: usize = 64;
 pub(super) const MAX_GPADLS: usize = 64;
 /// The relids an event flag page can signal: 2048 bits.
 pub(super) const MAX_RELID: u32 = 2047;
+/// Host answers a channel's queue holds, and the bytes kept of each: the
+/// longest, OPENCHANNEL_RESULT and GPADL_CREATED, are 20.
+pub(super) const QUEUE: usize = 8;
+pub(super) const REPLY_BYTES: usize = 32;
 
 const OFFERCHANNEL: u32 = 1;
 const RESCIND_CHANNELOFFER: u32 = 2;
+const REQUESTOFFERS: u32 = 3;
 const OPENCHANNEL: u32 = 5;
+const OPENCHANNEL_RESULT: u32 = 6;
+const CLOSECHANNEL: u32 = 7;
 const GPADL_HEADER: u32 = 8;
 const GPADL_BODY: u32 = 9;
+const GPADL_CREATED: u32 = 10;
+const GPADL_TEARDOWN: u32 = 11;
 const GPADL_TORNDOWN: u32 = 12;
 const UNLOAD_RESPONSE: u32 = 17;
 
@@ -116,8 +136,58 @@ pub struct Channel {
     pub sub_index: u16,
     /// The broker record the core gave it, once given.
     pub record: Option<u64>,
-    /// Its driver let go with GPADLs still up, and the core was told.
-    pub noted: bool,
+    /// An OPENCHANNEL went and no CLOSECHANNEL after it.
+    pub open: bool,
+    /// Its driver let go with GPADLs up; the kernel's close and teardowns
+    /// are owed, or out and awaited.
+    pub releasing: bool,
+    /// The kernel's close and teardowns have gone to the host.
+    pub cleaned: bool,
+    queue: [(u8, [u8; REPLY_BYTES]); QUEUE],
+    head: u8,
+    len: u8,
+}
+
+impl Channel {
+    fn new(relid: u32, connection: u32, interface: [u8; 16], sub_index: u16) -> Self {
+        Self {
+            relid,
+            connection,
+            interface,
+            sub_index,
+            record: None,
+            open: false,
+            releasing: false,
+            cleaned: false,
+            queue: [(0, [0; REPLY_BYTES]); QUEUE],
+            head: 0,
+            len: 0,
+        }
+    }
+
+    /// False when full: the answer is dropped, and the driver's wait for it
+    /// times out.
+    fn push(&mut self, p: &[u8]) -> bool {
+        if self.len as usize == QUEUE || p.len() > REPLY_BYTES {
+            return false;
+        }
+        let at = (self.head as usize + self.len as usize) % QUEUE;
+        let mut b = [0u8; REPLY_BYTES];
+        b[..p.len()].copy_from_slice(p);
+        self.queue[at] = (p.len() as u8, b);
+        self.len += 1;
+        true
+    }
+
+    fn pop(&mut self) -> Option<(usize, [u8; REPLY_BYTES])> {
+        if self.len == 0 {
+            return None;
+        }
+        let (n, b) = self.queue[self.head as usize];
+        self.head = ((self.head as usize + 1) % QUEUE) as u8;
+        self.len -= 1;
+        Some((n as usize, b))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -126,18 +196,27 @@ struct Gpadl {
     relid: u32,
 }
 
-/// What a host message changed for the broker: a record that no longer
-/// names a live channel and must leave the table, or a record whose
-/// channel the host holds no GPADL of any more, so pages kept for it
-/// may go.
+/// What a host message changed for the broker.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Retire {
     None,
+    /// A record that no longer names a live channel leaves the table.
     Record(u64),
     /// The host unloaded the bus: every record goes.
     All,
-    /// The host tore down the channel's last GPADL.
+    /// The host holds no GPADL of the record's channel any more, so pages
+    /// kept for it may go.
     Settle(u64),
+}
+
+/// Where a host message goes: the core's ring, or a channel's own queue
+/// (already put there).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Route {
+    Core,
+    Channel(u32),
+    /// A channel's answer its full queue could not take.
+    Dropped(u32),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -150,9 +229,31 @@ pub enum BindError {
     Interface,
 }
 
+/// Why a driver's post for its channel is refused.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TargetError {
+    /// Not one of a channel's messages, or too short to read.
+    Kind,
+    /// For another channel, or a GPADL not this channel's.
+    Channel,
+    /// A GPADL id already live.
+    Reused,
+    /// No room to remember another GPADL.
+    Full,
+    /// The record names no channel now.
+    Gone,
+    /// The bus is not up: no connection to post on.
+    NoBus,
+    /// The last driver's GPADLs are still being torn down.
+    Releasing,
+}
+
 pub(super) struct Channels {
     channels: [Option<Channel>; MAX_CHANNELS],
     gpadls: [Option<Gpadl>; MAX_GPADLS],
+    /// The connection the host takes channel messages on, as the core's
+    /// request for offers went.
+    bus: Option<u32>,
 }
 
 fn u32_at(p: &[u8], at: usize) -> Option<u32> {
@@ -163,34 +264,73 @@ fn u16_at(p: &[u8], at: usize) -> Option<u16> {
     Some(u16::from_le_bytes(p.get(at..at + 2)?.try_into().ok()?))
 }
 
+/// One of the kernel's own messages for a channel, and its length.
+pub(super) type Owed = ([u8; 16], usize);
+
 impl Channels {
     pub(super) const fn new() -> Self {
-        Self { channels: [None; MAX_CHANNELS], gpadls: [None; MAX_GPADLS] }
+        Self { channels: [None; MAX_CHANNELS], gpadls: [None; MAX_GPADLS], bus: None }
+    }
+
+    pub(super) fn bus(&self) -> Option<u32> {
+        self.bus
     }
 
     pub(super) fn get(&self, relid: u32) -> Option<&Channel> {
         self.channels.iter().flatten().find(|c| c.relid == relid)
     }
 
+    fn get_mut(&mut self, relid: u32) -> Option<&mut Channel> {
+        self.channels.iter_mut().flatten().find(|c| c.relid == relid)
+    }
+
     pub(super) fn by_record(&self, record: u64) -> Option<&Channel> {
         self.channels.iter().flatten().find(|c| c.record == Some(record))
     }
 
-    /// The relid a GPADL id was created for.
+    /// The relid a GPADL id was made for.
     pub(super) fn gpadl_relid(&self, id: u32) -> Option<u32> {
         self.gpadls.iter().flatten().find(|g| g.id == id).map(|g| g.relid)
     }
 
-    fn drop_gpadls_of(&mut self, relid: u32) {
+    /// Whether the host may hold a GPADL of this channel: one was made and
+    /// not yet reported gone.
+    pub(super) fn has_gpadls(&self, relid: u32) -> bool {
+        self.gpadls.iter().flatten().any(|g| g.relid == relid)
+    }
+
+    fn bound(&self, relid: u32) -> bool {
+        self.get(relid).is_some_and(|c| c.record.is_some())
+    }
+
+    fn untie(&mut self, id: u32) -> Retire {
+        let Some(relid) = self.gpadl_relid(id) else { return Retire::None };
+        for g in self.gpadls.iter_mut() {
+            if g.is_some_and(|g| g.id == id) {
+                *g = None;
+            }
+        }
+        if self.has_gpadls(relid) {
+            return Retire::None;
+        }
+        match self.get_mut(relid) {
+            Some(c) => {
+                if c.releasing {
+                    c.releasing = false;
+                    c.cleaned = false;
+                }
+                c.record.map_or(Retire::None, Retire::Settle)
+            }
+            None => Retire::None,
+        }
+    }
+
+    fn forget(&mut self, relid: u32) -> Retire {
         for g in self.gpadls.iter_mut() {
             if g.is_some_and(|g| g.relid == relid) {
                 *g = None;
             }
         }
-    }
-
-    fn forget(&mut self, relid: u32) -> Retire {
-        self.drop_gpadls_of(relid);
         let Some(at) = self.channels.iter().position(|c| c.is_some_and(|c| c.relid == relid))
         else {
             return Retire::None;
@@ -200,129 +340,171 @@ impl Channels {
         record.map_or(Retire::None, Retire::Record)
     }
 
-    /// A channel message from the host (the SynIC payload, its header
-    /// already off). An offer is kept, or replaces one with its relid; a
-    /// withdrawal forgets the channel and its GPADLs; a torn-down GPADL is
-    /// forgotten; an unload forgets everything.
-    pub(super) fn from_host(&mut self, p: &[u8]) -> Retire {
-        let Some(kind) = u32_at(p, 0) else { return Retire::None };
+    /// A channel message from the host (the SynIC payload). An offer is
+    /// kept, or replaces one with its relid; a withdrawal forgets the
+    /// channel and its GPADLs; an unload forgets everything. A bound
+    /// channel's answers (its open's result, its GPADLs made or gone) go
+    /// to its queue; a GPADL the host reports gone, or failed to make, is
+    /// untied.
+    pub(super) fn from_host(&mut self, p: &[u8]) -> (Route, Retire) {
+        let Some(kind) = u32_at(p, 0) else { return (Route::Core, Retire::None) };
+        let to = |relid: Option<u32>, me: &Self| relid.filter(|r| me.bound(*r));
         match kind {
             OFFERCHANNEL if p.len() >= OFFER_BYTES => {
                 let (Some(relid), Some(connection), Some(sub)) =
                     (u32_at(p, 184), u32_at(p, 192), u16_at(p, 180))
                 else {
-                    return Retire::None;
+                    return (Route::Core, Retire::None);
                 };
                 if relid > MAX_RELID {
-                    return Retire::None;
+                    return (Route::Core, Retire::None);
                 }
                 let mut interface = [0u8; 16];
                 interface.copy_from_slice(&p[8..24]);
                 let retire = self.forget(relid);
-                let fresh = Channel {
-                    relid,
-                    connection,
-                    interface,
-                    sub_index: sub,
-                    record: None,
-                    noted: false,
-                };
                 if let Some(free) = self.channels.iter_mut().find(|c| c.is_none()) {
-                    *free = Some(fresh);
+                    *free = Some(Channel::new(relid, connection, interface, sub));
                 }
-                retire
+                (Route::Core, retire)
             }
-            RESCIND_CHANNELOFFER => u32_at(p, 8).map_or(Retire::None, |r| self.forget(r)),
+            RESCIND_CHANNELOFFER => {
+                (Route::Core, u32_at(p, 8).map_or(Retire::None, |r| self.forget(r)))
+            }
+            OPENCHANNEL_RESULT => match to(u32_at(p, 8), self) {
+                Some(relid) => (self.queue(relid, p), Retire::None),
+                None => (Route::Core, Retire::None),
+            },
+            GPADL_CREATED => {
+                let target = to(u32_at(p, 8), self);
+                let failed = u32_at(p, 16).is_some_and(|s| s != 0);
+                let id = u32_at(p, 12);
+                let retire = match (failed, id) {
+                    (true, Some(id)) if self.gpadl_relid(id) == u32_at(p, 8) => self.untie(id),
+                    _ => Retire::None,
+                };
+                match target {
+                    Some(relid) => (self.queue(relid, p), retire),
+                    None => (Route::Core, retire),
+                }
+            }
             GPADL_TORNDOWN => {
-                let Some(id) = u32_at(p, 8) else { return Retire::None };
-                let Some(relid) = self.gpadl_relid(id) else { return Retire::None };
-                for g in self.gpadls.iter_mut() {
-                    if g.is_some_and(|g| g.id == id) {
-                        *g = None;
-                    }
-                }
-                if self.has_gpadls(relid) {
-                    return Retire::None;
-                }
-                match self.channels.iter_mut().flatten().find(|c| c.relid == relid) {
-                    Some(c) => {
-                        c.noted = false;
-                        c.record.map_or(Retire::None, Retire::Settle)
-                    }
-                    None => Retire::None,
+                let Some(id) = u32_at(p, 8) else { return (Route::Core, Retire::None) };
+                let target = to(self.gpadl_relid(id), self);
+                let quiet = target.and_then(|r| self.get(r)).is_some_and(|c| c.releasing);
+                let retire = self.untie(id);
+                match target {
+                    // The kernel's own teardown: its driver is gone.
+                    Some(_) if quiet => (Route::Core, retire),
+                    Some(relid) => (self.queue(relid, p), retire),
+                    None => (Route::Core, retire),
                 }
             }
             UNLOAD_RESPONSE => {
                 *self = Self::new();
-                Retire::All
+                (Route::Core, Retire::All)
             }
-            _ => Retire::None,
+            _ => (Route::Core, Retire::None),
         }
     }
 
-    /// A channel message the core posted and the host took. A GPADL
-    /// header ties its id to the channel it names. A teardown unties
+    fn queue(&mut self, relid: u32, p: &[u8]) -> Route {
+        if self.get_mut(relid).is_some_and(|c| c.push(p)) {
+            Route::Channel(relid)
+        } else {
+            Route::Dropped(relid)
+        }
+    }
+
+    /// The oldest answer waiting in a record's channel's queue.
+    pub(super) fn take(&mut self, record: u64) -> Option<(usize, [u8; REPLY_BYTES])> {
+        self.channels.iter_mut().flatten().find(|c| c.record == Some(record))?.pop()
+    }
+
+    /// A message the core posted and the host took: its request for offers
+    /// names the bus's connection.
+    pub(super) fn from_core(&mut self, connection: u32, p: &[u8]) {
+        if u32_at(p, 0) == Some(REQUESTOFFERS) {
+            self.bus = Some(connection);
+        }
+    }
+
+    /// The channel a driver's message is for, which must be its record's:
+    /// an open (with one of the channel's own GPADLs), a close, a GPADL's
+    /// header, body or teardown. A header must make a new id, with room
+    /// to remember it.
+    pub(super) fn target(&self, record: u64, p: &[u8]) -> Result<u32, TargetError> {
+        let c = self.by_record(record).ok_or(TargetError::Gone)?;
+        if c.releasing {
+            return Err(TargetError::Releasing);
+        }
+        let mine = c.relid;
+        if self.bus.is_none() {
+            return Err(TargetError::NoBus);
+        }
+        let kind = u32_at(p, 0).ok_or(TargetError::Kind)?;
+        let named = || u32_at(p, 8).ok_or(TargetError::Kind);
+        let ours = |r: u32| if r == mine { Ok(r) } else { Err(TargetError::Channel) };
+        let tied = |id: Option<u32>| match id.and_then(|i| self.gpadl_relid(i)) {
+            Some(r) if r == mine => Ok(mine),
+            _ => Err(TargetError::Channel),
+        };
+        match kind {
+            CLOSECHANNEL => ours(named()?),
+            OPENCHANNEL => {
+                ours(named()?)?;
+                tied(u32_at(p, 16))
+            }
+            GPADL_HEADER => {
+                ours(named()?)?;
+                let id = u32_at(p, 12).ok_or(TargetError::Kind)?;
+                if self.gpadl_relid(id).is_some() {
+                    return Err(TargetError::Reused);
+                }
+                if !self.gpadls.iter().any(Option::is_none) {
+                    return Err(TargetError::Full);
+                }
+                Ok(mine)
+            }
+            GPADL_BODY => tied(u32_at(p, 12)),
+            GPADL_TEARDOWN => {
+                ours(named()?)?;
+                tied(u32_at(p, 12))
+            }
+            _ => Err(TargetError::Kind),
+        }
+    }
+
+    /// A driver's message for its channel that the host took: a header ties
+    /// its GPADL, an open opens and a close closes. A teardown unties
     /// nothing: the GPADL is the host's until it says GPADL_TORNDOWN.
-    pub(super) fn from_guest(&mut self, p: &[u8]) {
-        let (Some(kind), Some(relid), Some(id)) = (u32_at(p, 0), u32_at(p, 8), u32_at(p, 12))
-        else {
-            return;
-        };
-        if kind == GPADL_HEADER && self.gpadl_relid(id).is_none() {
-            if let Some(free) = self.gpadls.iter_mut().find(|g| g.is_none()) {
-                *free = Some(Gpadl { id, relid });
+    pub(super) fn from_driver(&mut self, p: &[u8]) {
+        let (Some(kind), Some(relid)) = (u32_at(p, 0), u32_at(p, 8)) else { return };
+        match kind {
+            GPADL_HEADER => {
+                let Some(id) = u32_at(p, 12) else { return };
+                if self.gpadl_relid(id).is_none() {
+                    if let Some(free) = self.gpadls.iter_mut().find(|g| g.is_none()) {
+                        *free = Some(Gpadl { id, relid });
+                    }
+                }
             }
+            OPENCHANNEL => {
+                if let Some(c) = self.get_mut(relid) {
+                    c.open = true;
+                }
+            }
+            CLOSECHANNEL => {
+                if let Some(c) = self.get_mut(relid) {
+                    c.open = false;
+                }
+            }
+            _ => {}
         }
-    }
-
-    /// Whether the host may hold a GPADL of this channel: one was made and
-    /// not yet reported torn down.
-    pub(super) fn has_gpadls(&self, relid: u32) -> bool {
-        self.gpadls.iter().flatten().any(|g| g.relid == relid)
-    }
-
-    /// A bound channel's driver let go: whether the host may still reach
-    /// its pages, and whether this is the first word of it, for the core
-    /// to be told once.
-    pub(super) fn released(&mut self, record: u64) -> (bool, Option<u32>) {
-        let Some(c) = self.channels.iter().flatten().find(|c| c.record == Some(record)).copied()
-        else {
-            return (false, None);
-        };
-        if !self.has_gpadls(c.relid) {
-            return (false, None);
-        }
-        let first = self
-            .channels
-            .iter_mut()
-            .flatten()
-            .find(|x| x.relid == c.relid)
-            .is_some_and(|x| !core::mem::replace(&mut x.noted, true));
-        (true, first.then_some(c.relid))
-    }
-
-    /// The note to the core did not go: the next drain says it again.
-    pub(super) fn unnote(&mut self, relid: u32) {
-        if let Some(c) = self.channels.iter_mut().flatten().find(|c| c.relid == relid) {
-            c.noted = false;
-        }
-    }
-
-    /// Whether a header may make GPADL `id`: no live GPADL has that id (a
-    /// reuse would untie the old one while the host still holds it), and
-    /// there is room, so a header the host accepts is always remembered.
-    pub(super) fn gpadl_free(&self, id: u32) -> bool {
-        self.gpadl_relid(id).is_none() && self.gpadls.iter().any(Option::is_none)
     }
 
     /// Give a live, offered channel to a broker record.
     pub(super) fn bind(&mut self, relid: u32, record: u64) -> Result<Channel, BindError> {
-        let c = self
-            .channels
-            .iter_mut()
-            .flatten()
-            .find(|c| c.relid == relid)
-            .ok_or(BindError::Unknown)?;
+        let c = self.get_mut(relid).ok_or(BindError::Unknown)?;
         if c.record.is_some() {
             return Err(BindError::Bound);
         }
@@ -333,26 +515,57 @@ impl Channels {
         Ok(*c)
     }
 
-    /// The record of the channel a GPADL or open message is for, which must
-    /// be bound: a header names its channel; a body names only its GPADL
-    /// id, tied to a channel by the header before it; an OPENCHANNEL names
-    /// both, and the GPADL must be that channel's. So only a channel given
-    /// to a driver is ever built or opened, and never a host service.
-    pub(super) fn target(&self, p: &[u8]) -> Option<u64> {
-        let kind = u32_at(p, 0)?;
-        let relid = match kind {
-            GPADL_HEADER => u32_at(p, 8)?,
-            GPADL_BODY => self.gpadl_relid(u32_at(p, 12)?)?,
-            OPENCHANNEL => {
-                let relid = u32_at(p, 8)?;
-                if self.gpadl_relid(u32_at(p, 16)?) != Some(relid) {
-                    return None;
-                }
-                relid
+    /// A bound channel's driver let go: whether the host may still reach
+    /// its pages, so they are kept. If so, the channel is releasing until
+    /// the host says its last GPADL is gone.
+    pub(super) fn release(&mut self, record: u64) -> bool {
+        let Some(relid) = self.by_record(record).map(|c| c.relid) else { return false };
+        if !self.has_gpadls(relid) {
+            return false;
+        }
+        if let Some(c) = self.get_mut(relid) {
+            c.releasing = true;
+            c.queue = [(0, [0; REPLY_BYTES]); QUEUE];
+            c.head = 0;
+            c.len = 0;
+        }
+        true
+    }
+
+    /// The kernel's own messages for a releasing channel whose driver is
+    /// gone: its close if open, then a teardown of each GPADL still tied to
+    /// it. Owed once; `cleaned` marks them sent, and a failed post clears
+    /// it for the next look.
+    pub(super) fn owed(&self, out: &mut [Owed; MAX_GPADLS + 1]) -> Option<(u32, usize)> {
+        let c = self.channels.iter().flatten().find(|c| c.releasing && !c.cleaned)?;
+        let mut n = 0;
+        if c.open {
+            let mut m = [0u8; 16];
+            m[..4].copy_from_slice(&CLOSECHANNEL.to_le_bytes());
+            m[8..12].copy_from_slice(&c.relid.to_le_bytes());
+            out[n] = (m, 12);
+            n += 1;
+        }
+        for g in self.gpadls.iter().flatten().filter(|g| g.relid == c.relid) {
+            let mut m = [0u8; 16];
+            m[..4].copy_from_slice(&GPADL_TEARDOWN.to_le_bytes());
+            m[8..12].copy_from_slice(&c.relid.to_le_bytes());
+            m[12..16].copy_from_slice(&g.id.to_le_bytes());
+            out[n] = (m, 16);
+            n += 1;
+        }
+        Some((c.relid, n))
+    }
+
+    /// The kernel's messages for a channel went (`ok`), or did not and are
+    /// owed again.
+    pub(super) fn cleaned(&mut self, relid: u32, ok: bool) {
+        if let Some(c) = self.get_mut(relid) {
+            c.cleaned = ok;
+            if ok {
+                c.open = false;
             }
-            _ => return None,
-        };
-        self.get(relid)?.record
+        }
     }
 
     /// Every bound relid's bit, word `w` of the event flags.
