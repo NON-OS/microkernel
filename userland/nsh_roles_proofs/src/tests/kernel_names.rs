@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The crate's capability names are the kernel's, each at its own bit, read
-//! from the kernel source itself; and the six forbidden ones are among them.
+//! from the kernel source itself; and the nine forbidden ones are among them.
 
 use nsh_roles::caps::{bit, forbidden_mask, FORBIDDEN, KERNEL_CAPS};
 use nsh_roles::CapSet;
@@ -26,6 +26,8 @@ fn kernel_table() -> Vec<(String, u32)> {
     let src = std::fs::read_to_string(path).expect("the kernel's capability table");
     let parse = |l: &str| {
         let (name, rest) = l.trim().split_once(" = 1 << ")?;
+        // A one-line entry carries its doc as an attribute in front.
+        let name = name.rsplit_once(' ').map_or(name, |(_, n)| n);
         Some((name.to_string(), rest.trim_end_matches(',').parse().ok()?))
     };
     src.lines().filter_map(parse).collect()
@@ -43,9 +45,9 @@ fn every_name_is_the_kernels_at_its_bit() {
 }
 
 #[test]
-fn the_forbidden_six_are_kernel_names() {
+fn the_forbidden_nine_are_kernel_names() {
     assert!(FORBIDDEN.iter().all(|n| bit(n.as_bytes()).is_some()));
-    assert_eq!(forbidden_mask().count_ones(), 6);
+    assert_eq!(forbidden_mask().count_ones(), 9);
 }
 
 #[test]

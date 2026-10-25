@@ -68,6 +68,6 @@ impl Policy {
         if revoked.len() > MAX_REVOKED {
             return Err(PolicyError::Revoked);
         }
-        Ok(Policy { fleet_id, authorities, releases, revoked, boot_apps: Vec::new() })
+        Ok(Policy { fleet_id, authorities, releases, revoked })
     }
 }

@@ -1,0 +1,28 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The VMBus channel layer the Hyper-V synthetic drivers share: the two ring
+# buffers a channel runs on, their packets, the GPADL that hands the host
+# the rings' pages, and a channel's open and close. Pure, no dependencies:
+# each driver (storvsc, netvsc) gives it the shared pages and a `Host` over
+# its own kernel calls, and `cargo test` here runs every decision on the
+# host. The layouts and rules are QEMU's (include/hw/hyperv/vmbus-proto.h,
+# hw/hyperv/vmbus.c) and Linux's (include/linux/hyperv.h).
+[package]
+name = "nonos_vmbus"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[features]
+# The host model (`model`), for the drivers' proof crates.
+model = []
+
+[package.metadata.nonos]
+test-lane = true

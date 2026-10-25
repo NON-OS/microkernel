@@ -26,6 +26,8 @@ pub const OP_POLL: u16 = 13;
 
 /// The socket kinds the server offers: 1 stream, 2 datagram, 3 mixnet.
 pub const KIND_MIXNET: u16 = 3;
+/* A plain stream, which only a development build's local mirror opens (raw.rs). */
+#[cfg(feature = "dev-mirror")]
 pub const KIND_STREAM: u16 = 1;
 
 /// net.sockets' status for "connect had no transport to give the socket": the
