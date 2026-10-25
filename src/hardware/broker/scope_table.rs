@@ -64,6 +64,7 @@ pub(super) const SCOPE: &[(&str, &[Match])] = &[
     ("driver.pcnet0", &[Ids(0x1022, &[0x2000, 0x2000])]),
     ("driver.piix_ide0", &[Ids(INTEL, &[0x7010, 0x7010, 0x7111, 0x7111])]),
     ("driver.pvscsi0", &[Ids(VMWARE, &[0x07C0, 0x07C0])]),
+    ("driver.storvsc0", &[Virt { vendor: 0x1414, device: 0x5343 }]),
     ("driver.tulip0", &[Ids(0x1011, &[0x0009, 0x0009, 0x0019, 0x0019])]),
     ("driver.virtio_input0", &[Ids(VIRTIO, &[0x1052, 0x1052])]),
     ("driver.virtio_scsi0", &[Ids(VIRTIO, &[0x1004, 0x1004, 0x1048, 0x1048])]),
