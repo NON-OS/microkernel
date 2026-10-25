@@ -16,15 +16,22 @@
 
 //! Where the splash's text sits, shared by the painter, the damage it sends
 //! and the logo's check: the attestation panel centred a little above the
-//! middle, the status line under it. The firmware's logo is drawn only where
-//! it touches neither; centred on its own screen (as firmware commonly draws
-//! it) it would sit on the panel, so the title stands in its place.
+//! middle, the status line under it. The firmware's logo stays where the
+//! firmware drew it. Centred on its own screen, as firmware commonly draws
+//! it, it would sit on the panel, so the panel and the status line move
+//! below it while they still fit; where they do not, the logo is left out
+//! and the title stands in its place.
 
 use crate::logo::place::Spot;
 
 pub const PANEL_W: u32 = 380;
 pub const PANEL_H: u32 = 112;
 pub const STATUS_ROWS: u32 = 16;
+/// Below the logo's bottom edge to the panel; the panel's bottom to the
+/// status line, as in the plain layout; the status line to the screen's foot.
+pub const GAP: u32 = 24;
+pub const STATUS_GAP: u32 = 44;
+pub const FOOT: u32 = 8;
 
 /// (x, y, width, height) on a `w` x `h` surface.
 pub type Area = (u32, u32, u32, u32);
