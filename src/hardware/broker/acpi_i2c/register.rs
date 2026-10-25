@@ -16,8 +16,8 @@
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::acpi::aml::{enumerate_gpio_controllers, enumerate_i2c_controllers};
-use crate::arch::x86_64::acpi::devices::i2c::{
+use crate::arch::firmware_table::devices::{enumerate_gpio_controllers, enumerate_i2c_controllers};
+use crate::arch::firmware_table::devices::{
     enumerate_i2c_hid_devices, enumerate_platform_i2c_hosts, I2cHidDeviceType,
 };
 

@@ -19,11 +19,12 @@
 use super::replay_gate::fresh;
 use super::route_reply::route_reply;
 use crate::gateway_client::{is_pushed_message, parse_blob};
+use crate::state::with_gateway_key;
 use crate::trace;
 
-pub(super) fn accept(tcp_port: u32, frame: &[u8], key: &[u8; 32]) {
+pub(super) fn accept(tcp_port: u32, frame: &[u8]) {
     trace::say_num(b"gateway frame bytes", frame.len() as u64);
-    let Some(incoming) = parse_blob(frame, key) else {
+    let Some(incoming) = with_gateway_key(|key| parse_blob(frame, key)).flatten() else {
         trace::say(b"frame dropped: failed to authenticate under the session key");
         return;
     };

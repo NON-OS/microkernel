@@ -119,7 +119,7 @@ impl CryptoFileSystem {
     pub(crate) fn next_nonce(&self) -> CryptoResult<[u8; NONCE_SIZE]> {
         let inner = self.inner.read();
         inner.nonce_counter.fetch_add(1, Ordering::SeqCst);
-        Ok(generate_nonce())
+        generate_nonce()
     }
 }
 

@@ -17,8 +17,8 @@
 extern crate alloc;
 
 use super::helpers::{constant_time_compare, derive_password_hash};
+use super::salt::fresh_salt;
 use super::types::{PrivilegeLevel, SALT_SIZE, UID_ANONYMOUS, UID_ROOT};
-use crate::crypto::rng::fill_random_bytes;
 use alloc::{collections::BTreeMap, format, string::String, vec::Vec};
 
 #[derive(Debug, Clone)]
@@ -40,10 +40,9 @@ pub struct UserAccount {
 }
 
 impl UserAccount {
-    pub fn new(uid: u32, gid: u32, username: &str, password: &str) -> Self {
+    pub fn new(uid: u32, gid: u32, username: &str, password: &str) -> Result<Self, &'static str> {
         let mut salt = [0u8; SALT_SIZE];
-        fill_random_bytes(&mut salt);
-
+        fresh_salt(password, &mut salt)?;
         let hash = derive_password_hash(password.as_bytes(), &salt);
 
         let privilege = match uid {
@@ -52,7 +51,7 @@ impl UserAccount {
             _ => PrivilegeLevel::User,
         };
 
-        Self {
+        Ok(Self {
             uid,
             gid,
             groups: Vec::new(),
@@ -67,7 +66,7 @@ impl UserAccount {
             last_login: 0,
             failed_attempts: 0,
             env: BTreeMap::new(),
-        }
+        })
     }
 
     pub fn verify_password(&self, password: &str) -> bool {
@@ -78,9 +77,10 @@ impl UserAccount {
         constant_time_compare(&hash, &self.password_hash)
     }
 
-    pub fn change_password(&mut self, new_password: &str) {
-        fill_random_bytes(&mut self.password_salt);
+    pub fn change_password(&mut self, new_password: &str) -> Result<(), &'static str> {
+        fresh_salt(new_password, &mut self.password_salt)?;
         self.password_hash = derive_password_hash(new_password.as_bytes(), &self.password_salt);
+        Ok(())
     }
 
     pub fn has_privilege(&self, required: PrivilegeLevel) -> bool {

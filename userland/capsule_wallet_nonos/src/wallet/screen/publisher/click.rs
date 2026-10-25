@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
-
 use nonos_app_skeleton::EventOutcome;
 
-use super::rows::{ROW_ATTEST, ROW_BINDING, ROW_CONFIRM, ROW_INTENT};
-use crate::wallet::chain;
-use crate::wallet::publish::{load, sign_attest, sign_binding};
+use super::rows::{ROW_BINDING, ROW_CONFIRM, ROW_INTENT};
+use super::sign_row::sign;
+use crate::wallet::publish::load;
 use crate::wallet::screen::hits::Press;
 use crate::wallet::state::{State, VIEW_PUBLISHER, VIEW_SETTINGS};
 
@@ -33,7 +31,8 @@ pub fn open(state: &mut State) -> EventOutcome {
 /// Open: read the entry document the path names; a new one starts unconfirmed.
 pub(super) fn read(state: &mut State) -> EventOutcome {
     let p = &mut state.publisher;
-    (p.entry, p.confirmed, p.news, p.views) = (None, false, None, Default::default());
+    (p.entry, p.confirmed, p.news) = (None, false, None);
+    (p.views, p.attest_ask, p.attest_digest) = (Default::default(), None, None);
     match load(state, &state.publisher.path.clone()) {
         Ok(e) => state.publisher.entry = Some(e),
         Err(why) => state.failure = Some(why),
@@ -41,23 +40,12 @@ pub(super) fn read(state: &mut State) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-fn sign(state: &mut State, row: u8) {
-    let Some(e) = state.publisher.entry.clone() else { return };
-    let path = state.publisher.path.clone();
-    let chain = chain::current().id;
-    let done = match row {
-        ROW_BINDING => sign_binding(state, &path, &e, chain),
-        r => sign_attest(state, &path, &e, (r - ROW_ATTEST) as usize, chain),
-    };
-    match done {
-        Ok(at) => state.publisher.news = Some(format!("written to {at}")),
-        Err(why) => state.failure = Some(why),
-    }
-}
-
 pub fn click(state: &mut State, press: Press) -> EventOutcome {
     if state.publisher.sending.is_some() {
         return super::click_send::click(state, press);
+    }
+    if let Some(done) = super::click_attest::attest(state, press, sign) {
+        return done;
     }
     match press {
         Press::Back => state.view = VIEW_SETTINGS,
@@ -66,7 +54,6 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
         Press::Field(n) => state.publisher.focus = n,
         Press::Row(ROW_CONFIRM) => state.publisher.confirmed = !state.publisher.confirmed,
         Press::Row(ROW_BINDING) if state.publisher.confirmed => sign(state, ROW_BINDING),
-        Press::Row(r) if (ROW_ATTEST..ROW_INTENT).contains(&r) => sign(state, r),
         Press::Row(r) if r >= ROW_INTENT => super::click_acts::press(state, r),
         _ => return EventOutcome::Idle,
     }
