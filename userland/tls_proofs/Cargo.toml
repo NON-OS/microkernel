@@ -35,6 +35,14 @@ p256 = { version = "0.13", default-features = false, features = ["arithmetic", "
 live-relays = []
 # Rewrites fixtures/openssl_tls12_alert.tls from a local openssl s_server.
 record-fixtures = []
+# The roots as a development build of nonos_tls holds them, the local test
+# chain's throwaway root among them (src/tests/dev_root_trust.rs).
+devnet = []
+
+# The proofs again with devnet on, so a development build's roots are proved
+# too (src/tests/dev_root_trust.rs). cargo test only; it ships nothing.
+[package.metadata.nonos]
+feature-lanes = ["devnet"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

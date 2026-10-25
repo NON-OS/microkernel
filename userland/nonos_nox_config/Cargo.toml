@@ -7,6 +7,9 @@ license = "AGPL-3.0"
 
 [package.metadata.nonos]
 test-lane = true
+# tests/devnet.rs again with the local test chain on: cargo test only, which
+# ships nothing (scripts/check_devnet_feature.py, the lane rule).
+feature-lanes = ["devnet"]
 
 [lib]
 crate-type = ["rlib"]

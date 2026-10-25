@@ -16,10 +16,11 @@ release. A capsule is built once per slug, so the feature reaches only the
 flake's development set, capsules-dev, which no release takes. Fails when a
 Cargo.toml dependency or a feature not named devnet turns it on; when a
 Capsule.mk names it outside CAPSULE_DEV_CARGO_FEATURES, or a catalogue
-outside capsules-dev.json's dev_cargo_features; or when nonos.toml, the
+outside capsules-dev.json's dev_cargo_features; when nonos.toml, the
 Makefile, mk, nonos-mk, nonos-ci, .github or tools/nix name it, but for the
-strings the release ELF check looks for. That a release never takes
-capsules-dev is scripts/check_dev_capsule_set.py's.
+strings the release ELF check looks for and a library's devnet test lane
+(test-lanes.json, never a capsule's: cargo test ships nothing). That a
+release never takes capsules-dev is scripts/check_dev_capsule_set.py's.
     scripts/check_devnet_feature.py [--self-test] [--root DIR]
 """
 
