@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Step 1, the version: only 4 is read. Version 3 is refused even when
-//! everything else about it is genuine, because it quotes too little.
+//! Step 1, the version: only 5 is read. Versions 3 and 4, the kernel's
+//! today, are refused even when everything else about them is genuine,
+//! because they quote too little.
 
 use nsh_attest::consts::MAX_DOC;
 use nsh_attest::{Doc, FormatFault, Refusal};
@@ -24,11 +25,12 @@ use super::{passes, refused};
 use crate::build::Spec;
 
 #[test]
-fn version_4_parses_and_places_every_field() {
+fn version_5_parses_and_places_every_field() {
     let b = Spec::default().build();
     let d = Doc::parse(&b.doc).expect("parses");
     assert_eq!((d.capsule_count, d.registry_complete), (3, true));
     assert_eq!((d.iommu_vendor, d.iommu_enforcing, d.unconfined_grants), (1, true, 0));
+    assert_eq!(d.identity_devices, 0);
     assert_eq!(d.pcr(9), Some(&[0x09; 32]));
     assert_eq!(d.pcr(14), Some(&[0x14; 32]));
     assert_eq!(d.pcr(3), None);
@@ -37,19 +39,21 @@ fn version_4_parses_and_places_every_field() {
 }
 
 #[test]
-fn a_genuine_version_3_document_is_refused() {
-    assert_eq!(refused(Spec { version: 3, ..Spec::default() }), Refusal::Version(3));
+fn a_genuine_version_3_or_4_document_is_refused() {
+    for v in [3, 4] {
+        assert_eq!(refused(Spec { version: v, ..Spec::default() }), Refusal::Version(v));
+    }
 }
 
 #[test]
-fn a_version_3_number_on_a_version_4_body_is_refused() {
-    let s = Spec { doc: |p| p.version = 3, ..Spec::default() };
-    assert_eq!(refused(s), Refusal::Version(3));
+fn an_older_number_on_a_version_5_body_is_refused() {
+    assert_eq!(refused(Spec { doc: |p| p.version = 3, ..Spec::default() }), Refusal::Version(3));
+    assert_eq!(refused(Spec { doc: |p| p.version = 4, ..Spec::default() }), Refusal::Version(4));
 }
 
 #[test]
 fn unknown_versions_are_refused() {
-    for v in [0, 1, 2, 5, 0x0400_0000, u32::MAX] {
+    for v in [0, 1, 2, 6, 0x0500_0000, u32::MAX] {
         let s = Spec { version: v, ..Spec::default() };
         assert_eq!(refused(s), Refusal::Version(v), "version {v}");
     }
