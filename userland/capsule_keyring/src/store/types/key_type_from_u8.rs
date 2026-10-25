@@ -28,6 +28,8 @@ impl KeyType {
             7 => Some(Self::SigningKey),
             8 => Some(Self::Secp256k1Eth),
             9 => Some(Self::ShieldSeed),
+            10 => Some(Self::BtBond),
+            11 => Some(Self::BtLocalIrk),
             _ => None,
         }
     }

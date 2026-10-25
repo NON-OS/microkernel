@@ -16,12 +16,13 @@
 
 //! The things the included BGA driver takes from `nonos_libc`: the device
 //! list discovery reads, the claim, the PCI command register, the two BAR
-//! mappings, the surface's memory, its registration and each share of it,
-//! the service and its inbox. A test says what each BAR maps to and how long the broker says the
-//! mapping is, so a mapping shorter than the memory behind it shows any
-//! write past its end, and a register mapping given back holds poison until
-//! the release (`seal`). A test's adapter model answers each register write
-//! as it is made (`hook`). The receive policy is the libc's own (`bringup`).
+//! mappings, the surface's memory, its registration, each share of it and its
+//! release, the service and its inbox, and the driver's pid. A test says what
+//! each BAR maps to and how long the broker says the mapping is, so a mapping
+//! shorter than the memory behind it shows any write past its end, and a
+//! register mapping given back holds poison until the release (`seal`). A
+//! test's adapter model answers each register write as it is made (`hook`).
+//! The receive policy is the libc's own (`bringup`).
 
 pub mod bringup;
 mod claim;
@@ -44,7 +45,7 @@ pub use hook::{on_w16, wrote16};
 pub use idle::{idles, mk_debug, mk_idle_ms, mk_uptime_ms};
 pub use ipc::{mk_ipc_recv_from, mk_ipc_reply, replies, send, waits, ERRNO_TIMEDOUT};
 pub use mem::{lend, mk_mmap, mk_munmap};
-pub use mmio::{map_bar, mk_mmio_map, mk_mmio_unmap, MmioMapOut};
+pub use mmio::{map_bar, mk_mmio_map, mk_mmio_unmap, MmioMapOut, MK_MMIO_MAP_WC};
 pub use pci::{
     command, mk_pci_config_read, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
     MK_PCI_CMD_MEMORY_SPACE, PCI_CMD_IO_SPACE,

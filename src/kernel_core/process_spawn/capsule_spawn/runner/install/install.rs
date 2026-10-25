@@ -109,6 +109,7 @@ fn finish(params: &InstallParams<'_>, pid: u32) -> Result<(), SpawnError> {
      * Nothing below can fail. A terminal's run of the Linux personality gets
      * its request and is marked private here, before it can first run.
      */
+    params.gate.record(pid);
     crate::userspace::capsule_linux::admit_terminal_run(params.name, pid);
     crate::sched::add_to_run_queue(pid);
     crate::sys::bench::mark_named(b"capsule_runqueue_ok", params.name.as_bytes());

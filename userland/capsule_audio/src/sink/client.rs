@@ -16,18 +16,21 @@
 
 use core::cell::Cell;
 
+use nonos_audio_proto::OUTPUT_READY;
+
 use super::call::call;
+use super::choose::SINK_LINES;
 use super::lookup::{fixed, once};
 use super::wire;
 
 const USB: &[u8] = b"driver.usb_audio0";
 
-/// The driver played through, the fixed sink chosen at start with its name,
-/// and the USB driver. A cell: the run loop moves it while the handlers hold
-/// the sink shared.
+/// The driver played through, the fixed sink chosen at start (its port and
+/// its place in `SINKS`), and the USB driver. A cell: the run loop moves it
+/// while the handlers hold the sink shared.
 pub struct Sink {
     pub(super) port: Cell<u32>,
-    pub(super) fixed: Option<(u32, &'static str)>,
+    pub(super) fixed: Option<(u32, usize)>,
     pub(super) usb: Option<u32>,
 }
 
@@ -43,11 +46,11 @@ impl Sink {
         Some(Sink { port: Cell::new(port), fixed, usb })
     }
 
-    /// The service name of the driver played through, for the log.
-    pub fn name(&self) -> &'static str {
+    /// The start's and each move's log line, naming the driver played through.
+    pub fn output_line(&self) -> &'static str {
         match self.fixed {
-            Some((port, name)) if port == self.port.get() => name,
-            _ => "driver.usb_audio0",
+            Some((port, i)) if port == self.port.get() => SINK_LINES[i],
+            _ => "[AUDIO] output driver.usb_audio0\n",
         }
     }
 
@@ -60,7 +63,7 @@ impl Sink {
 
 /// Whether the driver on `port` says this machine plays through it.
 pub(super) fn ready_at(port: u32) -> bool {
-    status_at(port, 0).is_some_and(|(verdict, _)| verdict == wire::OUTPUT_READY)
+    status_at(port, 0).is_some_and(|(verdict, _)| verdict == OUTPUT_READY)
 }
 
 fn status_at(port: u32, request_id: u32) -> Option<(u32, u32)> {

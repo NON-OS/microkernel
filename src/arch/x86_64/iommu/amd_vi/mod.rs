@@ -23,21 +23,21 @@ mod coverage;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod devtab;
 #[cfg(feature = "nonos-iommu-amdvi")]
-mod devtab_entry;
-#[cfg(feature = "nonos-iommu-amdvi")]
 pub mod domain;
 pub mod dte;
+pub mod efr;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod enable;
-pub mod efr;
 pub mod error;
 pub mod event;
 #[cfg(feature = "nonos-iommu-amdvi")]
-pub mod intr;
-pub mod intr_rule;
-#[cfg(feature = "nonos-iommu-amdvi")]
 mod flush;
+pub mod identity_change;
 mod init;
+#[cfg(feature = "nonos-iommu-amdvi")]
+pub mod intr;
+pub mod intr_format;
+pub mod intr_rule;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod log_line;
 #[cfg(feature = "nonos-iommu-amdvi")]
@@ -47,9 +47,8 @@ mod mmio;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod poll;
 pub mod pte;
+pub mod pte_child;
 pub mod regs;
-#[cfg(feature = "nonos-iommu-amdvi")]
-mod unnamed;
 mod release;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod reserved;
@@ -60,16 +59,17 @@ mod submit;
 #[cfg(feature = "nonos-iommu-amdvi")]
 mod units;
 #[cfg(feature = "nonos-iommu-amdvi")]
+mod unnamed;
+#[cfg(feature = "nonos-iommu-amdvi")]
 mod visible;
 
-#[cfg(feature = "nonos-iommu-amdvi")]
-pub use coverage::unit_covers;
 pub use error::AmdViError;
-#[cfg(feature = "nonos-iommu-amdvi")]
-pub use flush::{flush_device, flush_domain};
 pub use init::init;
-#[cfg(feature = "nonos-iommu-amdvi")]
-pub use poll::drain_events;
 pub use release::release_from_firmware;
 #[cfg(feature = "nonos-iommu-amdvi")]
-pub use units::{is_enforcing, units};
+pub use {
+    coverage::unit_covers,
+    flush::{flush_device, flush_domain},
+    poll::drain_events,
+    units::{is_enforcing, units},
+};
