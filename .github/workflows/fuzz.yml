@@ -3,7 +3,7 @@ name: fuzz
 # Nightly fuzz runs over the parsers of untrusted input. A crash fails the run
 # and its input is kept as an artifact, to become a regression test. The
 # corpus is cached between nights, so each run resumes where the last one
-# stopped. A night gives each target 30 minutes: thirteen targets at hosted
+# stopped. A night gives each target 30 minutes: twelve targets at hosted
 # runner prices. The 12 h release campaigns run on the build machine with the
 # same targets; a longer hosted run is a manual dispatch, at most 5.5 h.
 
@@ -63,6 +63,9 @@ jobs:
             target: linux_inputs
           - crate: userland/driver_proofs
             target: ipc_decoders
+          - crate: userland/market_proto
+            target: linux_policy
+            seed: true
     env:
       SECONDS_PER_TARGET: ${{ inputs.seconds || '1800' }}
     steps:
