@@ -54,6 +54,10 @@ pub mod store_room;
 pub mod store_rules;
 #[path = "../../../capsule_vfs/src/blk/store_toc.rs"]
 pub mod store_toc;
+#[path = "../../../capsule_vfs/src/blk/store_table.rs"]
+pub mod store_table;
+#[path = "../../../capsule_vfs/src/blk/store_withdraw.rs"]
+pub mod store_withdraw;
 #[path = "../../../capsule_vfs/src/blk/store_write.rs"]
 pub mod store_write;
 #[path = "../../../capsule_vfs/src/blk/wire.rs"]
