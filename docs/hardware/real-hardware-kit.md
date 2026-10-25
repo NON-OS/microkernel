@@ -32,10 +32,11 @@ lands, the splash says in red that devices are unconfined.
    commit (`git rev-parse --short HEAD`); a report without it cannot be placed.
 3. A second stick, or the same one rewritten, with `make dev-image PROFILE=hardened` for one
    boot per machine with the IOMMU off: it must refuse device claims and say so.
-4. For machines 4, 5 and 7, the drivers not yet sealed for Standard can ride a development
-   image: before step 1, set `features = ["nonos-capsule-driver-e1000e",
-   "nonos-capsule-driver-igb", "nonos-capsule-driver-usb-hub"]` in `nonos.toml`, and put it
-   back afterwards. Never seal such an image for use.
+4. The development image seals every capsule with throwaway keys, so it carries e1000e,
+   igb and the hub driver, which a sealed Standard image cannot until the owner seals them.
+   For an I225/I226 board (machine 4), igc is wired but not listed: before step 1 set
+   `features = ["nonos-capsule-driver-igc"]` in `nonos.toml`, and put it back afterwards.
+   Never seal such an image for use.
 
 ## On each machine
 
