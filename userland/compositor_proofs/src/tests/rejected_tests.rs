@@ -22,10 +22,22 @@ use core::sync::atomic::AtomicBool;
 use crate::rejected::{line, say_once, SURFACE_CEILING};
 
 #[test]
-fn the_line_names_the_bytes_and_the_ceiling() {
-    let l = line(141_557_760);
-    assert!(l.starts_with("gop: surface register rejected: 141557760 bytes asked;"), "{l}");
-    assert!(l.contains(&format!("at most {SURFACE_CEILING} (128 MiB)")), "{l}");
+fn past_the_ceiling_the_ceiling_is_named() {
+    let l = line(141_557_760, -22);
+    assert_eq!(l, "gop: surface register rejected: 141557760 bytes asked; past the kernel's ceiling of 128 MiB");
+}
+
+#[test]
+fn under_it_the_errno_is_named_not_the_ceiling() {
+    for (rc, n) in [(-14i64, 14), (-12, 12), (-22, 22)] {
+        let l = line(33_177_600, rc);
+        assert_eq!(
+            l,
+            format!("gop: surface register rejected: 33177600 bytes asked; refused, errno {n}")
+        );
+        assert!(!l.contains("ceiling"), "{l}");
+    }
+    assert!(line(SURFACE_CEILING, -12).ends_with("errno 12"), "at the ceiling is not past it");
 }
 
 #[test]
@@ -33,8 +45,7 @@ fn it_is_said_once_however_often_setup_asks() {
     let said = AtomicBool::new(false);
     let mut lines = Vec::new();
     for _ in 0..50 {
-        say_once(141_557_760, &said, |l| lines.push(l.to_string()));
+        say_once(33_177_600, -12, &said, |l| lines.push(l.to_string()));
     }
-    assert_eq!(lines.len(), 1);
-    assert_eq!(lines[0], line(141_557_760));
+    assert_eq!(lines, vec![line(33_177_600, -12)]);
 }
