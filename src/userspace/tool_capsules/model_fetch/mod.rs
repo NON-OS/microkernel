@@ -26,4 +26,5 @@ mod embed;
 mod refusal;
 mod spawn;
 
-pub(super) use spawn::{run_for_caller, TOOL};
+pub(super) use embed::MANIFEST;
+pub(super) use spawn::{run_for_caller, CAPS, TOOL};
