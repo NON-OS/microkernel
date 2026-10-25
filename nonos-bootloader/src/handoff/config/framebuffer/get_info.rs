@@ -55,13 +55,14 @@ pub fn get_framebuffer_info(bs: &BootServices) -> FramebufferInfo {
             return fb;
         }
     }
+    // No framebuffer: pixel_format carries why, as flags::FB_REFUSED says.
     FramebufferInfo {
         ptr: 0,
         size: 0,
         width: 0,
         height: 0,
         stride: 0,
-        pixel_format: 0,
+        pixel_format: crate::display::gop::refusal(),
         cursor_y: 0,
         phys_mm: 0,
     }
