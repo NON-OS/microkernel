@@ -375,8 +375,20 @@ let
       cmp ${cargo.rustSrcLock} $(readlink -f ${pins.rust}/lib/rustlib/src)/rust/library/Cargo.lock
       touch $out
     '';
-    # nonos.toml resolves, for every profile, against Cargo.toml's features.
-    config = pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
+    # nonos.toml resolves, for every profile, against Cargo.toml's features;
+    # and a release image that asks for the meter fails to evaluate, while its
+    # development twin, the same request with dev = true, resolves.
+    config =
+      let
+        meter = p: dev: { profile = p; inherit dev; features = [ "nonos-capsule-payment" ]; };
+        resolves = raw: (builtins.tryEval (builtins.deepSeq (config.resolve raw).features true)).success;
+        release = [ "standard" "hardened" "qemu" "core" ];
+      in
+      assert lib.assertMsg (!(lib.any (p: resolves (meter p false)) release))
+        "config: a release profile resolved with nonos-capsule-payment, the meter";
+      assert lib.assertMsg (lib.all (p: resolves (meter p true)) release)
+        "config: a development twin refused nonos-capsule-payment, the meter";
+      pkgs.writeText "config" (builtins.toJSON (map (p: (config.resolve (config.file // { profile = p; })).features) (builtins.attrNames config.profiles)));
   };
 
   # The determinism property, proved on Linux alone. A capsule is built twice in
