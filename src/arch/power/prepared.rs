@@ -26,12 +26,15 @@ pub(crate) struct Prepared {
     off: Option<crate::arch::x86_64::acpi::power::PreparedOff>,
 }
 
-/// Read what soft-off needs. May take the ACPI tables' read lock, which only
-/// init writes.
+/// Read what soft-off needs without waiting: the ACPI tables' lock is tried,
+/// not taken, so a panic raised while it is held gets no soft-off and the
+/// machine is wiped and halted instead.
 pub(crate) fn prepare() -> Prepared {
+    #[cfg(target_arch = "x86_64")]
+    use crate::arch::x86_64::acpi::{parser::try_with_data, power::prepare_shutdown};
     Prepared {
         #[cfg(target_arch = "x86_64")]
-        off: crate::arch::x86_64::acpi::power::prepare_shutdown().ok(),
+        off: prepare_shutdown(try_with_data).ok(),
     }
 }
 

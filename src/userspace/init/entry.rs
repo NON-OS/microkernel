@@ -21,8 +21,7 @@ pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
     super::app_choice::apply_profile();
     run_user_entry_proof();
-    #[cfg(feature = "nonos-attest-refusal-smoketest")]
-    crate::userspace::attest_refusal::run();
+    super::injected::attest_refusal();
     run_std_proof();
     run_ripgrep();
     run_sd();
@@ -39,6 +38,7 @@ pub fn run_init() -> ! {
     run_shield_vectors();
     run_tokio_smoke();
     boot_log::ok("INIT", "Capsules spawned");
+    super::injected::panic();
     run_tool_selftest();
     lower_init_priority();
     yield_after_spawns();
