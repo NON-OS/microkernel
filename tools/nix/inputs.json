@@ -1326,6 +1326,7 @@
    "src/hardware/broker/acpi/dgon_wire.rs",
    "userland/assets/icons",
    "userland/boot_splash_proofs",
+   "userland/capsule_boot_splash/src/follow.rs",
    "userland/capsule_boot_splash/src/layout.rs",
    "userland/capsule_boot_splash/src/layout_fit.rs",
    "userland/capsule_boot_splash/src/logo/bmp.rs",
@@ -1337,6 +1338,7 @@
    "userland/capsule_boot_splash/src/logo/turn.rs",
    "userland/capsule_boot_splash/src/status.rs",
    "userland/capsule_boot_splash/src/vignette.rs",
+   "userland/capsule_boot_splash/src/warning.rs",
    "userland/libc",
    "userland/toolkit"
   ],
@@ -4277,6 +4279,7 @@
    "userland/compositor/src/display/scale_rule.rs",
    "userland/compositor/src/display/screenshot_rule.rs",
    "userland/compositor/src/display/srgb_rule.rs",
+   "userland/compositor/src/frame_pacer/band_meet.rs",
    "userland/compositor/src/frame_pacer/band_rule.rs",
    "userland/compositor/src/frame_pacer/canvas_copy.rs",
    "userland/compositor/src/frame_pacer/compose.rs",
