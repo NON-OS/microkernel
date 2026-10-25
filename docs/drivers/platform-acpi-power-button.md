@@ -22,7 +22,7 @@ flowchart LR
     R --> I[is_shell_key]
     I --> S[desktop shell]
     S --> V[audio.server]
-    S --> T[POWER_OFF_UNAVAILABLE]
+    S --> O[power.off: capsule_power, terminate]
 ```
 
 ### The power button
@@ -42,14 +42,16 @@ in the input ring (`src/arch/x86_64/acpi/hw/power_button.rs:39-41`,
 
 A `ControlMethod` button (PNP0C0C), a hardware-reduced platform or a status
 register outside port I/O gets one log line and stays with the firmware
-(`src/arch/x86_64/acpi/power_button.rs:87-89`). Those lines point to a Shut Down
-menu, which the desktop does not have in this release.
+(`src/arch/x86_64/acpi/power_button.rs:87-89`), pointing to the desktop's own
+Power Off (`userland/capsule_desktop_shell/src/server/handlers/menubar_action.rs:31`).
 
-The desktop shell answers the Power key with `POWER_OFF_UNAVAILABLE`, the notice
-`Power off is not available from the desktop`, because `capsule_power` is built
-but not spawned and the desktop cannot shut the machine down in this release
-(`userland/capsule_desktop_shell/src/state/system_key.rs:42-47`,
-`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:39`).
+The shell answers the Power key with "Power off and wipe memory?"
+(`userland/capsule_desktop_shell/src/server/handlers/system_keys.rs:40`). Power
+Off goes to `power.off`, which the kernel registers for `capsule_power` at spawn
+(`src/userspace/capsule_power/power_off.rs:30`). It checks the sender is the
+shell, then calls `AdminShutdown`, zerostate's `terminate`
+(`userland/capsule_power/src/off/mod.rs:38`). It was walked booted on standard-dev
+([the walk](../security/privacy-evidence/2026-10-25/merge-fd40dd41f/walk/README.md)).
 
 ### The volume keys
 
