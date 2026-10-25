@@ -69,6 +69,22 @@ outside the copy, or a signing key outside it (exit 2). No row needs the release
 | attest | the probe kernel's spawn gate, against four tampered trailers (`src/userspace/attest_refusal`) | `trailer-flip`, `trailer-extra-cap`, `trailer-kernel-kind`, `trailer-stale-epoch` | make's lane ends; it stops QEMU at 240 s |
 | linux | `/bin/suite` under the Linux personality (`userland/linux_guests`) | `linux-fs-escape`, `linux-foreign-memory`, `linux-raw-syscall` | all three attacks are in the log, plus 10 s |
 
+### A panic inside a box
+
+The selftest image's `capsule_linux` is built with the `selftest-panic` feature, and no other
+image's is. In that image, `linux --box strict --selftest-panic` makes the personality panic on
+purpose, right after the box is armed and before any program runs. The Terminal then has no
+report, and the run ends with 134. On screen it says `linux: the box sent no report:
+capsule_linux stopped on an internal error (exit 134), so what the program tried is not known`.
+On serial it writes `[BOX-MISSING] v=1 report=none capsule_failed=yes exit=134 source=terminal`.
+This is typed in the selftest image's Terminal: no attacker in the three boots above types it.
+
+`tools/nonos-dev-image --profile selftest` turns the feature on, in its own copy of the tree
+only. `scripts/check_selftest_panic.py`, in the static checks and the flake's `static-abi`
+check, fails any committed build that names it: `tools/nix/capsules.json`, a `Capsule.mk`, or
+`capsule_linux`'s default features. It also fails if the tool turns it on outside that profile.
+Its `--self-test` makes each of those four mistakes and must catch every one.
+
 ## The lines
 
 Every attempt prints one line, written by the attacker after the kernel has answered:
