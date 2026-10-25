@@ -28,6 +28,8 @@ pub mod constants;
 pub mod discover;
 #[path = "../../capsule_driver_pvscsi/src/hba.rs"]
 pub mod hba;
+#[path = "../../capsule_driver_pvscsi/src/moved.rs"]
+pub mod moved;
 #[path = "../../capsule_driver_pvscsi/src/regs.rs"]
 pub mod regs;
 #[path = "../../capsule_driver_pvscsi/src/wait.rs"]
