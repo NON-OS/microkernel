@@ -32,5 +32,7 @@
   {"package": "lame", "licence": "LGPL-2.0-or-later", "mask": "TTY FILES_HOME", "name": "LAME",
    "text": "Encode audio files to MP3."},
   {"package": "geth", "licence": "LGPL-3.0-or-later", "mask": "TTY FILES_HOME NET_LISTEN_LO", "name": "Geth (dev chain)",
-   "text": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here."}
+   "text": "go-ethereum for local development: geth --dev runs a private chain on this machine with its console. It cannot sync a public network here."},
+  {"package": "profanity", "licence": "GPL-3.0-or-later", "mask": "TTY FILES_HOME NET_ANON", "name": "Profanity (XMPP, OMEMO)",
+   "text": "A terminal XMPP chat client with OMEMO end-to-end encryption. Every connection leaves over Nym or Anyone, never direct, so your server never learns your address, but it still sees your account, your contacts and when you talk. Its box allows any server: a market release cannot carry a list of servers yet."}
 ]}
