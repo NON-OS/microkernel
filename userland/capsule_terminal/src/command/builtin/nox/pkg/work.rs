@@ -20,10 +20,17 @@
 
 use alloc::vec::Vec;
 
-use super::summary::{slug, PkgSummary};
-use super::{args, call, emit};
-use crate::command::output::Output;
+use super::args;
+use super::summary::PkgSummary;
 use crate::term::cwd::resolve;
+
+#[path = "work_perform.rs"]
+mod work_perform;
+#[path = "work_report.rs"]
+mod work_report;
+
+pub(super) use work_perform::perform;
+pub(super) use work_report::report;
 
 pub(super) const USAGE: &[u8] = b"usage: nox pkg install <path> [--yes] | remove <name> | status";
 
@@ -57,65 +64,4 @@ pub(super) fn parse(cwd: &[u8], args: &[&[u8]]) -> Option<PkgOp> {
         Some((&b"remove", [name, ..])) => Some(PkgOp::Remove { name: name.to_vec() }),
         _ => None,
     }
-}
-
-/// Ask the installer. Two-step consent: the bare install only verifies the
-/// package, and nothing is written until the person repeats it with --yes.
-/// The commit carries the digest from the query, so a package swapped in
-/// between the two steps is refused rather than installed.
-pub(super) fn perform(op: &PkgOp) -> PkgDone {
-    match op {
-        PkgOp::Install { path, yes } => match call::pkg_query(path) {
-            Err(status) => PkgDone::QueryFailed(status),
-            Ok(s) if !yes => PkgDone::Queried(s),
-            Ok(s) => {
-                let commit = call::pkg_commit(path, &s.digest);
-                PkgDone::Committed(s, commit)
-            }
-        },
-        PkgOp::Remove { name } => PkgDone::Removed(name.clone(), call::pkg_remove(name)),
-    }
-}
-
-/// Say what the installer answered. True when it went through.
-pub(super) fn report(out: &mut Output<'_>, done: &PkgDone) -> bool {
-    match done {
-        PkgDone::QueryFailed(status) => {
-            emit::error(out, *status);
-            false
-        }
-        PkgDone::Queried(s) => {
-            emit::summary(out, s);
-            out.writeln(b"run again with --yes to install");
-            true
-        }
-        PkgDone::Committed(s, commit) => {
-            emit::summary(out, s);
-            match commit {
-                Ok(()) => {
-                    out.writeln(&said(b"installed ", slug(&s.namespace)));
-                    true
-                }
-                Err(status) => {
-                    emit::error(out, *status);
-                    false
-                }
-            }
-        }
-        PkgDone::Removed(name, Ok(())) => {
-            out.writeln(&said(b"removed ", name));
-            true
-        }
-        PkgDone::Removed(_, Err(status)) => {
-            emit::error(out, *status);
-            false
-        }
-    }
-}
-
-fn said(what: &[u8], name: &[u8]) -> Vec<u8> {
-    let mut line = Vec::with_capacity(what.len() + name.len());
-    line.extend_from_slice(what);
-    line.extend_from_slice(name);
-    line
 }

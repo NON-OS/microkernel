@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::line_text::text;
+use super::metrics::Metrics;
 use super::user_host::draw_id;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
@@ -34,11 +35,11 @@ pub fn draw_prompt(
     fb: &mut PaintBuffer,
     ox: u32,
     y: u32,
-    adv: u32,
-    px: f32,
+    m: Metrics,
     room: usize,
     t: &Theme,
 ) -> usize {
+    let (adv, px) = (m.adv, m.px);
     let mut home_buf = [0u8; 160];
     let cwd = crate::term::cwd::shorten(
         state.cwd.as_bytes(),

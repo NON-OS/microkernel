@@ -18,6 +18,8 @@
 //! parses, against a modeled link.
 
 mod envelope_tests;
+mod gate_tests;
+mod history_tests;
 mod link;
 mod mac_tests;
 mod packet_tests;

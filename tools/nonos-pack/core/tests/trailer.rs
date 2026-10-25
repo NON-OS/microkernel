@@ -15,8 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod common;
+mod sigs;
 
-use common::{canonical, trailer};
+use common::canonical;
 use nonos_pack_core::{check_trailer, PkgErr};
 
 fn sealed(t: &[u8]) -> Vec<u8> {
@@ -28,7 +29,7 @@ fn sealed(t: &[u8]) -> Vec<u8> {
 #[test]
 fn canonical_two_sig_trailer_passes() {
     let off = canonical().len();
-    let b = sealed(&trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
+    let b = sealed(&sigs::trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
     assert_eq!(check_trailer(&b, off), Ok(()));
 }
 
@@ -41,21 +42,21 @@ fn missing_trailer_is_bad_trailer() {
 #[test]
 fn single_signature_is_bad_trailer() {
     let off = canonical().len();
-    let b = sealed(&trailer(&[(1, &[0xAA; 64])]));
+    let b = sealed(&sigs::trailer(&[(1, &[0xAA; 64])]));
     assert_eq!(check_trailer(&b, off), Err(PkgErr::BadTrailer));
 }
 
 #[test]
 fn swapped_tags_are_bad_trailer() {
     let off = canonical().len();
-    let b = sealed(&trailer(&[(2, &[0xBB; 3309]), (1, &[0xAA; 64])]));
+    let b = sealed(&sigs::trailer(&[(2, &[0xBB; 3309]), (1, &[0xAA; 64])]));
     assert_eq!(check_trailer(&b, off), Err(PkgErr::BadTrailer));
 }
 
 #[test]
 fn trailing_garbage_is_bad_trailer() {
     let off = canonical().len();
-    let mut b = sealed(&trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
+    let mut b = sealed(&sigs::trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
     b.push(0x00);
     assert_eq!(check_trailer(&b, off), Err(PkgErr::BadTrailer));
 }
@@ -63,7 +64,7 @@ fn trailing_garbage_is_bad_trailer() {
 #[test]
 fn truncated_signature_is_bad_trailer() {
     let off = canonical().len();
-    let full = sealed(&trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
+    let full = sealed(&sigs::trailer(&[(1, &[0xAA; 64]), (2, &[0xBB; 3309])]));
     assert_eq!(check_trailer(&full[..full.len() - 1], off), Err(PkgErr::BadTrailer));
 }
 

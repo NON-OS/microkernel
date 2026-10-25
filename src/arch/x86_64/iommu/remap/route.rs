@@ -39,12 +39,21 @@ pub fn route_msi(
         return Err(VtdError::InterruptRemappingOff);
     }
     // Its messages may carry a bridge's id, which an entry checked against
-    // its own would block: it stays on the compatibility format (L54).
+    // its own would block: it gets no entry (L54).
     if !super::super::own_id_read::own_id(bus, device, function) {
         return Err(VtdError::SharedRequesterId);
     }
     let source = bdf_to_source_id(bus, device, function).as_u16();
-    let route = Route { vector, destination, source, level: false };
+    let index = route_entry(Route { vector, destination, source, level: false })?;
+    Ok((index, remapped(index)))
+}
+
+/// An entry for `route`, taken only by interrupts from its source; its index
+/// is the handle an MSI message or an IO-APIC entry names.
+pub fn route_entry(route: Route) -> Result<u16, VtdError> {
+    if !is_remapping() {
+        return Err(VtdError::InterruptRemappingOff);
+    }
     let entry = encode(route, false).ok_or(VtdError::DestinationTooWide)?;
     let mut table = TABLE.lock();
     let index = take(&mut table.slots).ok_or(VtdError::RemapTableFull)?;
@@ -52,11 +61,10 @@ pub fn route_msi(
         give(&mut table.slots, index);
         return Err(e);
     }
-    Ok((index, remapped(index)))
+    Ok(index)
 }
 
-/// Withdraw an entry. The device must already be stopped from raising it;
-/// an interrupt arriving after this faults with reason 0x22 and is dropped.
+/// Gives back any entry `route_entry` or `route_msi` took.
 pub fn release_msi(index: u16) -> Result<(), VtdError> {
     let mut table = TABLE.lock();
     if !give(&mut table.slots, index) {

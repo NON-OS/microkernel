@@ -22,7 +22,8 @@ use crate::bench::Bench;
 use crate::discover::find_svga;
 use crate::protocol::Request;
 use crate::server::dispatch::dispatch;
-use nonos_libc::{replies, set_devices, Bar, DeviceRecord};
+use nonos_libc::surface_registry::SURFACE_SHARE_WRITE;
+use nonos_libc::{replies, set_devices, shares, Bar, DeviceRecord};
 
 fn req(op: u16) -> Request {
     Request { op, flags: 0, request_id: 9 }
@@ -40,6 +41,8 @@ fn only_the_first_to_take_the_surface_may_draw() {
     assert_eq!(&reply[24..32], &0x5003u64.to_le_bytes());
     assert_eq!(&reply[36..40], &1024u32.to_le_bytes());
     assert_eq!(dispatch(&mut d, 41, &req(0x0C), &[], &mut tx), Some(-16), "taken");
+    assert_eq!(dispatch(&mut d, 40, &req(0x0C), &[], &mut tx), None, "asked again");
+    assert_eq!(shares(), [(3, 40, SURFACE_SHARE_WRITE)], "the owner alone, writable, once");
     assert_eq!(dispatch(&mut d, 41, &req(0x01), &[], &mut tx), Some(0));
     assert_eq!(dispatch(&mut d, 40, &req(0x7F), &[], &mut tx), Some(-38));
 }

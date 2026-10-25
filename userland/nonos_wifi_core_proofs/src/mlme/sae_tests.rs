@@ -17,7 +17,7 @@
 //! A WPA3-SAE join, by hash to element and by hunting and pecking, runs SAE
 //! then the four-way handshake to Connected under the SAE PMK.
 
-use crate::ap_sim::{gtk_kde, message1, message3, AP_RSNE_MIXED, GTK};
+use crate::ap_sim::{gtk_kde, igtk_kde, message1, message3, AP_RSNE_MIXED, GTK};
 use crate::mlme::sae::sae_join;
 use crate::mlme::sim::{AP, SNONCE, STA};
 use nonos_wifi_core::eapol::mic::verify_mic_kind;
@@ -38,6 +38,8 @@ fn a_wpa3_join_runs_sae_then_the_four_way_to_connected() {
             kd.extend_from_slice(&[244, 1, 0x20]);
         }
         kd.extend_from_slice(&gtk_kde(1, &GTK));
+        // SAE runs with management frame protection, so the IGTK comes too.
+        kd.extend_from_slice(&igtk_kde(&[0x77; 16]));
         assert!(m.on_eapol(&message3(Akm::Sae, 2, &anonce, &ptk, &kd)).tx.is_some());
         assert_eq!(m.state(), MlmeState::Connected, "h2e={h2e}");
         assert_eq!(m.akm(), Some(Akm::Sae));

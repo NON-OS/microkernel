@@ -24,6 +24,7 @@
 //! mouse or pad and is routed as it always was.
 
 use super::preempt::Route;
+use crate::state::key_targets::Key;
 
 pub const SOURCE_BT: u16 = 1 << 15;
 pub const BOND_AUTHENTICATED: u16 = 1 << 14;
@@ -34,11 +35,12 @@ pub const BOND_BITS: u16 = SOURCE_BT | BOND_AUTHENTICATED;
 pub const NOTICE_QUIET_MS: i64 = 60_000;
 
 /// What the router keeps for it: when the shell was last told, and the
-/// secure attention press it refused, whose release goes nowhere either.
+/// secure attention press it refused (by source and code), whose release
+/// goes nowhere either.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Bond {
     pub told_ms: Option<i64>,
-    pub refused: Option<u32>,
+    pub refused: Option<Key>,
 }
 
 /// Whether an event comes from a Bluetooth device whose bond is not

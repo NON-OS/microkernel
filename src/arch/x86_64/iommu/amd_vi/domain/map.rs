@@ -21,9 +21,11 @@
 use super::super::error::AmdViError;
 use super::super::flush::flush_domain;
 use super::super::pte::{is_present, leaf};
+use super::super::visible::store;
 use super::lifetime::{root_of, ROOTS};
 use super::range::{leaves, pages, PAGE};
-use super::walk::walk_create;
+use super::walk::{walk_create, walk_lookup};
+use crate::arch::x86_64::iommu::place::{place, Unplaced};
 
 pub fn map_range(
     domain: u16,
@@ -44,11 +46,19 @@ pub fn map_range(
             return Err(AmdViError::RangeAlreadyMapped);
         }
     }
-    for page in 0..count {
+    // From the first leaf on, a failure is taken back first (iommu::place).
+    let put = |page: u64| -> Result<(), AmdViError> {
         let (table, slot) = walk_create(root, iova + page * PAGE)?;
-        leaves(table)?.write(slot, leaf(phys + page * PAGE, read, write))?;
-    }
-    // The entries are in place whatever the flush says; the caller must not
-    // free their frames on this error as if nothing were mapped.
-    flush_domain(domain).map_err(|_| AmdViError::Uncommitted)
+        store(table, slot, leaf(phys + page * PAGE, read, write))
+    };
+    let clear = |page: u64| match walk_lookup(root, iova + page * PAGE) {
+        Ok(Some((table, slot))) => store(table, slot, 0).is_ok(),
+        _ => false,
+    };
+    // A failed flush takes the leaves back and flushes again, so the frames
+    // may be freed; unconfirmed even then, the map is Stranded, never reused.
+    place(count, put, clear, || flush_domain(domain)).map_err(|u| match u {
+        Unplaced::Failed(e) => e,
+        Unplaced::Stranded => AmdViError::Stranded,
+    })
 }

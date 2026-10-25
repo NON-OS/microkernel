@@ -24,10 +24,14 @@ use alloc::vec::Vec;
 
 use super::mmie::{Mmie, MMIE_LEN};
 use crate::ccmp::cmac::aes_cmac_parts;
-use crate::dot11::header::MAC_HEADER_LEN;
+use crate::dot11::header::{FC_PROTECTED, MAC_HEADER_LEN};
 
 // Retry, Power Management and More Data change in flight.
 const FC_MASK: u16 = !0x3800;
+
+/// The Order bit: a management frame with it set carries an HT Control field
+/// after Address 3, which this check does not take.
+const FC_ORDER: u16 = 0x8000;
 
 fn mic(igtk: &[u8; 16], frame: &[u8]) -> [u8; 8] {
     let fc = u16::from_le_bytes([frame[0], frame[1]]) & FC_MASK;
@@ -55,8 +59,14 @@ pub fn bip_protect(frame: &[u8], key_id: u16, ipn: u64, igtk: &[u8; 16]) -> Opti
 }
 
 /// The frame's MMIE if its MIC verifies under `igtk`. The caller checks the
-/// key ID against the IGTK it holds and the IPN against its replay floor.
+/// key ID against the IGTK it holds and the IPN against its replay floor. A
+/// frame under BIP is not encrypted, so one marked Protected is no BIP
+/// frame, and nor is one with the Order bit.
 pub fn bip_verify(frame: &[u8], igtk: &[u8; 16]) -> Option<Mmie> {
+    let fc = u16::from_le_bytes([*frame.first()?, *frame.get(1)?]);
+    if fc & (FC_PROTECTED | FC_ORDER) != 0 {
+        return None;
+    }
     let mmie = Mmie::from_tail(frame.get(MAC_HEADER_LEN..)?)?;
     let want = mic(igtk, frame);
     // Constant-time compare: the MIC is the secret-dependent value.

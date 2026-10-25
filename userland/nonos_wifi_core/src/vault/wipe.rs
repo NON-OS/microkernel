@@ -18,7 +18,7 @@
 //! can neither drop the stores as dead nor move them past the memory's
 //! next use.
 
-pub(crate) fn wipe(buf: &mut [u8]) {
+pub fn wipe(buf: &mut [u8]) {
     for b in buf.iter_mut() {
         // SAFETY: `b` is a valid, aligned, exclusive reference into `buf`.
         unsafe { core::ptr::write_volatile(b, 0) };

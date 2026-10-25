@@ -51,4 +51,6 @@ pub mod discover_order;
 pub mod displays;
 
 #[cfg(test)]
+mod k20_tests;
+#[cfg(test)]
 mod tests;

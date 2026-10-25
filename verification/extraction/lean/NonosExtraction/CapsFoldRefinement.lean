@@ -81,6 +81,7 @@ def ofIdx : Nat → Option Cap
   | 33 => some .LocalSign
   | 34 => some .StreamImport
   | 35 => some .DeviceSecret
+  | 36 => some .InputConsumer
   | _ => none
 
 theorem ofIdx_idx (c : Cap) : ofIdx (idx c) = some c := by

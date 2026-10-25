@@ -37,6 +37,8 @@ pub(super) fn teardown(g: &IrqGrant) {
 
 fn teardown_intx(g: &IrqGrant) {
     let _ = ioapic::mask(g.irq_source, true);
+    // Masked first, so the entry it names is never reached after it goes.
+    bind_internal::release_irte(g.irte);
     // Flip the GSI owner CAS Capsule -> Free so the next bind can
     // route the same line. The release is owner-checked; if the
     // bind path failed mid-claim and the bit was never set, the

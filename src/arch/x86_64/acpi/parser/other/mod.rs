@@ -14,26 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod acpi_path;
 pub mod bgrt_copy;
 pub mod bgrt_entry;
 mod bgrt_load;
 mod bgrt_mode;
 pub mod bmp_check;
-mod dmar;
-pub mod dmar_andd;
-mod dmar_namespace_lookup;
-pub mod dmar_namespace_scope;
-mod dmar_namespace_store;
-pub mod dmar_namespace_walk;
-pub mod dmar_rmrr;
-pub mod dmar_rmrr_names;
-mod dmar_rmrr_store;
-pub mod dmar_scope;
-pub mod dmar_scope_walk;
-mod dmar_source_store;
-mod dmar_units;
-pub mod dmar_walk;
+pub mod dmar_tables;
 mod exports;
 mod hmat_decode;
 pub mod hmat_entry;
@@ -46,7 +32,12 @@ mod ivhd_entry;
 mod ivhd_kind;
 pub mod ivhd_scope;
 pub mod ivhd_special;
+mod ivhd_special_table;
+pub mod ivmd;
+mod ivmd_block;
+mod ivmd_table;
 mod ivrs;
+mod ivrs_left;
 pub mod ivrs_walk;
 mod lpit_counter;
 mod lpit_decode;
@@ -65,10 +56,13 @@ pub mod slit_matrix;
 mod srat;
 mod srat_decode;
 pub mod srat_entry;
+pub mod unit_base;
+mod unit_base_env;
 pub mod wdat_action;
 pub mod wdat_decode;
 pub mod wdat_entry;
 mod wdat_load;
 pub mod wdat_run;
 
+pub use dmar_tables::dmar_rmrr;
 pub use exports::*;

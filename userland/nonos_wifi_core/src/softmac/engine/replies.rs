@@ -17,8 +17,9 @@
 //! The answers that need no air time. Status: the bring-up stage, then the
 //! data-path counters, the chip's diagnostic words, the refusals and rekeys,
 //! the code of the last roam that failed, and the beacons refused.
-//! Link: `[associated u8][bssid 6][ssid_len u8][ssid][akm u8]`, the AKM
-//! telling the client to remember a WPA3 network as WPA3. Scan: the
+//! Link: `[associated u8][zero 6][ssid_len u8][ssid][akm u8]`, the AKM
+//! telling the client to remember a WPA3 network as WPA3; the six zero
+//! bytes once carried the BSSID, which no reader takes. Scan: the
 //! scanner's three counters, then the networks it has heard.
 
 use super::station::SoftStation;
@@ -46,7 +47,6 @@ impl<R: Radio, E: Env> SoftStation<R, E> {
         };
         let name = s.ssid();
         out[0] = 1;
-        out[1..7].copy_from_slice(&s.bssid);
         out[7] = name.len() as u8;
         out[8..8 + name.len()].copy_from_slice(name);
         out[8 + name.len()] = s.akm;

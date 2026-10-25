@@ -45,6 +45,18 @@ pub(super) fn set_media_connected(regs: &Regs, bssid: &[u8; 6]) {
     regs.write32(REG_CR, (cr & !NETTYPE_MASK) | (NET_TYPE_LINKED << NETTYPE_SHIFT));
 }
 
+/// Link the MAC to this BSS before the handshake. The beacon's third address
+/// is the BSSID. Until the hardware is told the BSSID and put into managed
+/// mode it stays no-link: it hears beacons and the association response
+/// (management), but drops the access point's unicast EAPOL data frames, so
+/// the four-way handshake never starts. This is why association reached st=3
+/// yet no EAPOL was ever counted.
+pub(super) fn link_to_bss(regs: &Regs, beacon: &[u8]) {
+    let mut bssid = [0u8; 6];
+    bssid.copy_from_slice(&beacon[16..22]);
+    set_media_connected(regs, &bssid);
+}
+
 /*
  * Undo `set_media_connected`: clear the BSSID and put the MAC back to no-link,
  * as rtw88 does on every disconnect. A join that failed, or a link that ended,

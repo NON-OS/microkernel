@@ -18,15 +18,10 @@ use super::super::types::{DmaMapError, DmaMapResult};
 
 pub(super) fn fail(stage: &str, error: DmaMapError) -> Result<DmaMapResult, DmaMapError> {
     if stage == "alloc" && error == DmaMapError::NoMemory {
-        let (start, end) = crate::memory::phys::managed_range();
         crate::sys::serial::print(b"[DMA] free-frames=");
         crate::sys::serial::print_dec(crate::memory::phys::total_free_frames() as u64);
         crate::sys::serial::print(b" max-run=");
         crate::sys::serial::print_dec(crate::memory::phys::largest_free_run() as u64);
-        crate::sys::serial::print(b" range=");
-        crate::sys::serial::print_hex(start);
-        crate::sys::serial::print(b"..");
-        crate::sys::serial::print_hex(end);
         crate::sys::serial::println(b"");
         super::super::pool::say_low32();
     }

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(in crate::services::registry) fn caller_has_register_right() -> bool {
+/// True if the current process is allowed to register a service name it does
+/// not already own.
+pub(crate) fn caller_has_register_right() -> bool {
     let token = crate::syscall::capabilities::current_caps_or_default();
     token.can_register_service() || token.is_admin()
 }

@@ -1,0 +1,28 @@
+# NONOS userland: nonos_proof_abi
+# eK@nonos.systems
+#
+# The bytes a proof travels in, and the order a verifier checks them: the
+# kernel's sealed family record, the NPRF container, the device proof's
+# scope, the on-chain anchor, and the two Poseidon chains the isolation
+# statement commits to. Pure and no_std, so the prover capsule, the market
+# and a host tool read one definition. Tested on the host by proof_abi_proofs.
+
+[package]
+name = "nonos_proof_abi"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS proof ABI: sealed record, NPRF container, scope, anchor and the verify order"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# STARKs from main, at the commit the flake's starks input names, which
+# tools/nonos-starks-sync writes into the lock.
+nonos-stark = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["fri8"] }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+nonos-device-attest = { path = "../../nonos-device-attest", default-features = false }
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }

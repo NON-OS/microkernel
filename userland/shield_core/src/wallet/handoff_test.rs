@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::expect_used, clippy::unwrap_used, clippy::panic, clippy::indexing_slicing)]
-
 use super::{seal_outputs, write_handoff};
 use crate::custody::{generate_phrase, phrase_to_seed};
 use crate::keys::Account;

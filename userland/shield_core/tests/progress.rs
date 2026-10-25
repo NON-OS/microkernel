@@ -1,6 +1,3 @@
-// Tests assert by panicking and print measurements, so those lints are off here only.
-#![allow(clippy::expect_used, clippy::panic)]
-
 //! A spend proved from the periodic cache reports the prover's phases on its cancel token, in
 //! order, ending at Verified with the whole proof done. `PERIODIC_CACHE` names the cache file,
 //! the one `nix build .#periodic-cache` makes.

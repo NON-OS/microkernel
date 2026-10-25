@@ -19,7 +19,7 @@
 //! capsule's serve loop alone touches, so the proofs use the pure parts.
 
 #[allow(dead_code)]
-#[path = "../../../../../capsule_linux/src/linux/file/locks/lock/apply.rs"]
+#[path = "../../../../../capsule_linux/src/linux/file/locks/lock/apply/mod.rs"]
 pub mod apply;
 #[path = "../../../../../capsule_linux/src/linux/file/locks/lock/room.rs"]
 pub mod room;

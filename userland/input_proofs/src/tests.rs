@@ -41,10 +41,14 @@ mod router_hover_tests;
 mod router_key_tests;
 #[path = "router_parse_tests.rs"]
 mod router_parse_tests;
+#[path = "router_per_source_tests.rs"]
+mod router_per_source_tests;
 #[path = "router_press_tests.rs"]
 mod router_press_tests;
 #[path = "router_route_tests.rs"]
 mod router_route_tests;
+#[path = "router_source_tests.rs"]
+mod router_source_tests;
 #[path = "router_system_key_tests.rs"]
 mod router_system_key_tests;
 #[path = "usb_keycode_tests.rs"]

@@ -17,14 +17,19 @@
 /*
  * An address pasted into Send is taken whole or not at all, and the
  * capitals of a mixed-case one must be its EIP-55 checksum: the EIP's own
- * examples, keccak computed here as the crypto service computes it.
+ * examples, keccak computed here as the crypto service computes it. The
+ * spelling itself is marketplace_abi's, tested letter by letter there.
  */
 
-use crate::address_text::{case_ok, checksummed, lower, mixed_case, pasted, NOT_AN_ADDRESS};
+use crate::address_text::{case_ok, mixed_case, pasted};
+use nonos_marketplace_abi::Keccak;
 use sha3::{Digest, Keccak256};
 
-fn hash(hex: &[u8; 40]) -> [u8; 32] {
-    Keccak256::digest(lower(hex)).into()
+struct K;
+impl Keccak for K {
+    fn keccak256(&self, d: &[u8]) -> [u8; 32] {
+        Keccak256::digest(d).into()
+    }
 }
 
 fn digits(text: &str) -> [u8; 40] {
@@ -44,45 +49,26 @@ const EXAMPLES: [&str; 6] = [
 #[test]
 fn the_eips_examples_are_their_own_checksum() {
     for text in EXAMPLES {
-        let hex = digits(text);
-        let lowered = lower(&hex);
-        let spelled = checksummed(&lowered, &hash(&hex));
-        assert_eq!(&spelled[..], &text.as_bytes()[2..], "{text}");
-        assert!(case_ok(&hex, &hash(&hex)));
+        assert!(case_ok(&K, &digits(text)), "{text}");
     }
 }
 
 #[test]
 fn one_wrong_capital_is_caught() {
-    let mut hex = digits(EXAMPLES[0]);
-    /* 'a' at index 1 is a capital A in the checksum: lower it back. */
-    let at = hex.iter().position(u8::is_ascii_uppercase).expect("a capital");
-    hex[at] = hex[at].to_ascii_lowercase();
-    assert!(mixed_case(&hex));
-    assert!(!case_ok(&hex, &hash(&hex)));
+    for text in &EXAMPLES[..4] {
+        let hex = digits(text);
+        for at in (0..40).filter(|&i| hex[i].is_ascii_alphabetic()) {
+            let mut one = hex;
+            one[at] ^= 0x20;
+            assert!(mixed_case(&one) && !case_ok(&K, &one), "{text} at {at}");
+        }
+    }
 }
 
 #[test]
 fn all_lower_or_all_upper_carries_no_checksum() {
-    let low = lower(&digits(EXAMPLES[0]));
-    assert!(!mixed_case(&low) && case_ok(&low, &hash(&low)));
-    let mut up = low;
-    up.iter_mut().for_each(|c| *c = c.to_ascii_uppercase());
-    assert!(!mixed_case(&up) && case_ok(&up, &hash(&up)));
-}
-
-#[test]
-fn a_paste_is_one_whole_address_or_nothing() {
-    assert!(pasted("  0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed\n").is_ok());
-    assert!(pasted("5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed").is_ok());
-    let hash64 = "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b";
-    for bad in [
-        hash64,
-        "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAe",
-        "Send 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
-        "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAeg",
-        "",
-    ] {
-        assert_eq!(pasted(bad), Err(NOT_AN_ADDRESS), "{bad:?} was taken");
-    }
+    let low = digits(EXAMPLES[0]).map(|c| c.to_ascii_lowercase());
+    assert!(!mixed_case(&low) && case_ok(&K, &low));
+    let up = low.map(|c| c.to_ascii_uppercase());
+    assert!(!mixed_case(&up) && case_ok(&K, &up));
 }

@@ -32,14 +32,18 @@ use crate::memory::phys::{alloc_contiguous, AllocFlags};
 pub(super) struct Table {
     pub(super) phys: u64,
     pub(super) slots: Slots,
+    /// Indexed by vector (by_vector.rs), never by handle (route.rs).
+    pub(super) by_vector: bool,
 }
 
 pub(super) static TABLES: Mutex<BTreeMap<u16, Table>> = Mutex::new(BTreeMap::new());
 
-/// `device`'s table, made, named in its entry and flushed on first use.
+/// `device`'s table, made, named in its entry and flushed on first use;
+/// refused when it is indexed the other way.
 pub(super) fn table_of(
     tables: &mut BTreeMap<u16, Table>,
     device: u16,
+    by_vector: bool,
 ) -> Result<&mut Table, AmdViError> {
     if !tables.contains_key(&device) {
         let phys = alloc_contiguous(1, AllocFlags::ZERO).ok_or(AmdViError::NoFrames)?;
@@ -48,8 +52,8 @@ pub(super) fn table_of(
             entry[2] = quadword;
             entry
         })?;
-        tables.insert(device, Table { phys, slots: FRESH });
+        tables.insert(device, Table { phys, slots: FRESH, by_vector });
         flush_interrupts(device)?;
     }
-    tables.get_mut(&device).ok_or(AmdViError::NotPresent)
+    tables.get_mut(&device).filter(|t| t.by_vector == by_vector).ok_or(AmdViError::Aliased)
 }

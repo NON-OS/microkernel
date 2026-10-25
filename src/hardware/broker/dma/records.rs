@@ -25,22 +25,16 @@ use spin::Mutex;
 
 use super::types::{DmaError, DmaGrant};
 
+// Entered under the claim and the quota, beside the table it fills.
+#[path = "records_insert.rs"]
+mod insert;
+pub(super) use insert::insert_if;
+
 pub(super) static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn allocate_id() -> u64 {
     NEXT_GRANT_ID.fetch_add(1, Ordering::SeqCst)
-}
-
-/// Entered only when `stands` holds of it, asked under the table's lock so a
-/// drain that follows finds it (L69): its claim, for the map path.
-pub(super) fn insert_if(record: DmaGrant, stands: impl FnOnce(&DmaGrant) -> bool) -> bool {
-    let mut all = RECORDS.lock();
-    let entered = stands(&record);
-    if entered {
-        all.push(record);
-    }
-    entered
 }
 
 pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
@@ -69,4 +63,10 @@ pub(super) fn try_each(mut f: impl FnMut(&DmaGrant), mut again: impl FnMut() -> 
         f(g);
     }
     true
+}
+
+/// Every live grant as `(pid, start, len)`: frames the surface registry
+/// must never free page by page (surface_registry pin, K15).
+pub(crate) fn grant_ranges() -> Vec<(u32, u64, u64)> {
+    RECORDS.lock().iter().map(|g| (g.pid, g.physical_start, g.length)).collect()
 }

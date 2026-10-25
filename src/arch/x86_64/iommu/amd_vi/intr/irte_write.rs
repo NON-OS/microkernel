@@ -28,5 +28,6 @@ pub(super) fn write_irte(table_phys: u64, index: u16, entry: u32) -> Result<(), 
     let word = words.read(at)?;
     let kept = word & !(0xFFFF_FFFFu64 << shift);
     words.write(at, kept | ((entry as u64) << shift))?;
-    Ok(())
+    // Out to memory before the invalidation that follows.
+    super::super::visible::flush(table_phys, at)
 }

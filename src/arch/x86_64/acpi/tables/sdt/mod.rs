@@ -18,11 +18,10 @@ mod address_space;
 mod entry_count;
 mod generic_address;
 mod header;
+mod span;
 
 pub use address_space::AddressSpace;
 pub use entry_count::{sdt_entry_count, MAX_TABLE_BYTES};
 pub use generic_address::GenericAddress;
 pub use header::SdtHeader;
-
-// The checksum's ceiling and the walks' are one (L70).
-const _: () = assert!(header::LONGEST_TABLE as u64 == MAX_TABLE_BYTES);
+pub use span::table_span;

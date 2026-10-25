@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Which of the machine's I/O APICs DMAR scopes, said once when remapping
-//! comes on. Remapping an I/O APIC's lines (L44) needs the requester id its
-//! messages carry: one with no scope stays in compatibility format, and CFI
-//! can be cleared only when every one is listed.
+//! comes on. Remapping an I/O APIC's lines (L44, K3) needs the requester id
+//! its messages carry: with compatibility format blocked, the lines of one
+//! with no scope are refused (unnamed.rs names each).
 
 use crate::arch::x86_64::acpi::parser::ioapics;
-use crate::arch::x86_64::acpi::parser::other::{ioapic_source, source_scopes_dropped};
+use crate::arch::x86_64::acpi::parser::other::{ioapic_named, source_scopes_dropped};
 use crate::sys::serial::Line;
 
 pub(super) fn say_sources() {
     let all = ioapics();
-    let scoped = all.iter().filter(|a| ioapic_source(a.id).is_some()).count();
+    let scoped = all.iter().filter(|a| ioapic_named(a.id)).count();
     let mut line = Line::new();
     line.str(b"[VT-D] I/O APICs DMAR scopes for remapping: ").dec(scoped as u64);
     line.str(b" of ").dec(all.len() as u64);

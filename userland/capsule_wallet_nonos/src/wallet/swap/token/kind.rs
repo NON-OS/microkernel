@@ -23,11 +23,6 @@ pub struct Token {
     /// Contract address, or all zero for the chain's own coin.
     pub address: [u8; 20],
     pub decimals: u8,
-    /// Colour the mark is drawn in, so a pair reads at a glance with no
-    /// image to fetch.
-    pub tint: u32,
-    /// One or two letters drawn inside the mark.
-    pub mark: &'static str,
 }
 
 impl Token {

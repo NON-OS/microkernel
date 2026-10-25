@@ -20,11 +20,24 @@
 //! that surface to the UEFI linear framebuffer the bootloader handed off,
 //! so the desktop renders on any UEFI machine with no display driver.
 
+use nonos_libc::{mk_service_lookup, mk_surface_share};
+
 use super::gop_backing::{display_dimensions, register_backing};
+use super::prime_gop_handle::own_handle;
 use crate::state::Context;
 
 pub fn run_gop_once() -> Result<Context, &'static str> {
     let (width, height) = display_dimensions()?;
-    let primary = register_backing(width, height)?;
+    // Shared with its own process, found by its own name (prime_gop_handle).
+    let share = |sid, pid, flags| mk_surface_share(sid, pid, flags);
+    let handle = |sid: i64| Ok(own_handle(sid as u64, registered_pid, share)?);
+    let primary = register_backing(width, height, handle)?;
     Ok(Context::new(primary, 0, true))
+}
+
+/// The pid the kernel's registry holds `name` for, or None.
+fn registered_pid(name: &[u8]) -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+    (rc >= 0 && pid != 0).then_some(pid)
 }

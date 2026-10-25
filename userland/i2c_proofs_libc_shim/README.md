@@ -26,6 +26,11 @@ Every function keeps its state in thread-locals on the calling thread.
 - PCI: `mk_pci_config_write` records each (offset, value) for
   `take_pci_writes`, and exports the command register constants of
   `userland/libc/src/broker/pci.rs`.
+- Device list: `DeviceRecord`, `Bar` and the bus and bar kind constants are
+  `userland/libc/src/broker/types/{bar,bus,device}.rs` themselves, by
+  `#[path]`. `mk_device_list` answers what `list_devices` last set, as the
+  kernel's `sys_device_list` does: class 0 for every record, a count of 0 for
+  how many, else the first `count`; or the errno it set.
 - Timing and output: `mk_idle_ms` and `mk_yield` add to counters
   (`slept_ms`, `yields`) without sleeping or yielding. `busy_scheduler(ms)`
   makes every yield, until its guard drops, give a slice of `ms` away, which

@@ -13,30 +13,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! Taking and giving back an AMD-Vi remapped entry for a broker vector, when
-//! the kernel is built with nonos-iommu-amdvi (L42).
+//! the kernel is built with nonos-iommu-amdvi (L42): an entry in the
+//! device's own table, kept by a handle. Asked only while AMD's units remap
+//! (remap_vendor.rs); a device they cannot give an entry is refused its bind
+//! rather than sent a compatibility format message.
 
 use super::message::Routed;
+use super::remap_rule::Attempt;
 use crate::arch::x86_64::iommu::amd_vi::{intr, AmdViError};
 use crate::drivers::pci::types::{MsiMessage, PciAddress};
 
-/// `None` sends the compatibility format message: on a machine with no
-/// AMD unit enforcing, and for a function behind a VMD, whose interrupts
-/// carry the VMD's requester id. Any other refusal is logged: a device
-/// already remapped then raises nothing for that vector, which is safer
-/// than raising anything it likes.
-pub(super) fn remapped(address: &PciAddress, vector: u8, dest: u8) -> Option<Routed> {
+pub(super) fn attempt(address: &PciAddress, vector: u8, dest: u8) -> (Attempt, Option<Routed>) {
     if address.segment != 0 {
-        return None;
+        // Behind VMD the requester id is VMD's own: not this device's.
+        return (Attempt::Failed, None);
     }
     let bdf = (address.bus, address.device, address.function);
     match intr::route_msi(bdf, vector, dest) {
-        Ok((irte, address, data)) => Some(Routed { msg: MsiMessage { address, data }, irte }),
-        Err(AmdViError::NotEnforcing | AmdViError::NotPresent) => None,
+        Ok((irte, address, data)) => {
+            (Attempt::Routed, Some(Routed { msg: MsiMessage { address, data }, irte }))
+        }
+        Err(AmdViError::InterruptTableFull) => (Attempt::Full, None),
         Err(e) => {
-            crate::log::info!("[IRQ] {} vector {:#x} not remapped: {:?}", address, vector, e);
-            None
+            crate::log::info!("[IRQ] vector {:#x} not remapped: {:?}", vector, e);
+            (Attempt::Failed, None)
         }
     }
 }

@@ -24,7 +24,7 @@ use crate::types::block_of;
 pub(crate) fn tensor_bytes(shape: &[u64], ty: u32, t: u64, lim: &Limits) -> Result<u64, GgufError> {
     let (block, block_bytes) =
         block_of(ty).ok_or(GgufError::Tensor { tensor: t, why: TensorError::UnknownType(ty) })?;
-    if shape[0] % block != 0 {
+    if !shape[0].is_multiple_of(block) {
         return Err(GgufError::Tensor {
             tensor: t,
             why: TensorError::RowNotWholeBlocks { ne0: shape[0], block },

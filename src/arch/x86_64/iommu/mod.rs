@@ -26,6 +26,8 @@ pub mod amd_vi;
 pub mod device;
 pub mod domain;
 pub mod globals;
+pub mod handover;
+pub mod place;
 pub mod mapping;
 mod own_id;
 pub(crate) mod own_id_read;

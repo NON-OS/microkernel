@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The join's secrets, wiped when the state machine is dropped: the
-//! passphrase, the randomness, the PMK and any cached PMKSA offered. The
-//! SAE station and the supplicant inside wipe themselves.
+//! passphrase, the randomness, the rekey seed, the PMK and any cached PMKSA
+//! offered. The SAE station and the supplicant inside wipe themselves.
 
 use super::*;
 use crate::vault::{assert_not_copy, wipe};
@@ -29,6 +29,7 @@ impl Drop for Mlme {
         wipe(&mut self.secret);
         wipe(&mut self.snonce);
         wipe(&mut self.pmk);
+        wipe(&mut self.rekey_seed);
         if let Some(pt) = self.pt.as_mut() {
             wipe(pt);
         }
@@ -46,5 +47,6 @@ impl Drop for Entropy {
     fn drop(&mut self) {
         wipe(&mut self.snonce);
         wipe(&mut self.sae);
+        wipe(&mut self.rekey);
     }
 }

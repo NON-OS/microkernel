@@ -19,12 +19,7 @@ use alloc::{vec, vec::Vec};
 use nonos_libc::mk_ipc_call_timeout;
 
 use super::constants::HDR_LEN;
-
-// The keyring answers most ops in microseconds; HD generation and recovery
-// run PBKDF2 with 2048 rounds plus derivation, still well under a second.
-// The bound exists so a wedged keyring surfaces as an error on the UI
-// thread instead of freezing the wallet.
-const KEYRING_TIMEOUT_MS: u64 = 4000;
+use super::keyring_wait::KEYRING_TIMEOUT_MS;
 
 pub fn keyring_call(port: u32, op: u16, payload: &[u8], rx_len: usize) -> Result<Vec<u8>, i32> {
     let mut tx = Vec::with_capacity(HDR_LEN + payload.len());
@@ -58,11 +53,8 @@ pub fn keyring_call(port: u32, op: u16, payload: &[u8], rx_len: usize) -> Result
     Ok(rx)
 }
 
-/// Zero a buffer so the write is not optimised away.
+/// Zero a buffer so the write is not optimised away: zeroize's volatile
+/// writes and fence, with no unsafe in the wallet.
 pub fn wipe(buf: &mut [u8]) {
-    for b in buf.iter_mut() {
-        // SAFETY: volatile write to a byte this function holds a borrow of.
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    zeroize::Zeroize::zeroize(buf);
 }

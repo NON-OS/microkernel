@@ -1,0 +1,47 @@
+## Where this comes from
+
+The code behind each section, at the commit in the footer.
+
+- Before you start
+  - RTL8821CE PCI id: `PCI_VENDOR_REALTEK` and `PCI_DEVICE_RTL8821CE` in `userland/capsule_driver_rtl8821ce/src/constants/mod.rs:25-26`.
+  - The two Wi-Fi drivers the panels know: `SERVICES` in `userland/nonos_wifi_client/src/driver/services.rs:32-35`.
+  - Standard and hardened kernels use the `microkernel-full-gui` list in `Cargo.toml`: `standard` and `hardened` in `tools/nix/config.nix:70-82`.
+  - No network code in an airgapped image: `airgapped` in `tools/nix/config.nix:86-92`.
+  - No network on Air-Gapped, Safe Mode and Recovery boots: `network` in `src/boot/handoff/api/profile.rs:44-46`.
+  - Host tests that pass: `rtl8821ce_proofs` (171 tests), `nonos_wifi_core_proofs` (70), `wifi_panel_proofs` (23), `iwlwifi_proofs` (205) and `net_core_proofs` (31).
+- Join a Wi-Fi network
+  - The four cards: `WIFI` in `userland/capsule_settings/src/settings/schema/blocks/wifi.rs:21-46`.
+  - The page's keys: `wifi_key` in `userland/capsule_settings/src/settings/event/wifi_key.rs:42-63`.
+  - The Terminal's network commands: `GROUPS` in `userland/capsule_terminal/src/command/builtin/help_layout.rs:33-41`.
+  - Setup starts on no network: `NO_NETWORK` in `userland/capsule_setup_wizard/src/render/screens/network.rs:10`, and the wired-card line is in `userland/capsule_setup_wizard/src/render/screens/network_lines.rs`.
+- Which networks can be joined
+  - The join engine `nonos_wifi_core` and its WPA2, WPA3 and CCMP-128 choice: `select` in `userland/nonos_wifi_core/src/rsn/select.rs:87-104`.
+  - Open networks refused: `OpenNetwork` in `userland/nonos_wifi_core/src/mlme/beacon.rs:50-52`.
+  - Access points for 802.11n stations only refused: `NeedsHt` in `userland/nonos_wifi_core/src/mlme/beacon.rs:58-60`.
+  - WPA2 retry after a WPA3 join that did not finish: `retry_with_psk` in `userland/capsule_driver_rtl8821ce/src/serve/connect.rs:156-165`.
+- Remember networks
+  - Four saved networks: `SLOTS` in `userland/nonos_wifi_client/src/saved/list.rs:18-19`.
+  - Saved only on a boot that keeps data: `commit` in `userland/capsule_setup_wizard/src/render/screens/commit.rs:17-48` and `apply` in `userland/capsule_policy/src/restore/apply.rs:30-32`.
+  - The sealing key's label: `LABEL` in `userland/nonos_wifi_client/src/saved/key.rs:18`.
+  - PCRs 0, 4, 7 and 9: `BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs:24`.
+  - The sealed record's path: `PATH` in `userland/nonos_wifi_client/src/saved/file.rs:20-23`.
+  - Eight empty scans at boot: `EMPTY_PASSES_MAX` in `userland/capsule_net_core/src/autojoin/machine.rs:41`.
+- What the status shows
+  - The `Status` lines: `link` in `userland/capsule_settings/src/settings/ui/live_wifi.rs:21-53` and `no_driver` in `userland/capsule_settings/src/settings/ui/live_wifi.rs:115-130`.
+  - Driver stages: `DriverStage` in `userland/nonos_wifi_client/src/driver/stage.rs:19-63`.
+  - The `ifconfig` line: `run` in `userland/capsule_terminal/src/command/builtin/nox/ifconfig.rs:30-71`.
+- Join errors
+  - The `Last join` texts: `join_text` in `userland/nonos_wifi_client/src/driver/join_text.rs:15-36`.
+- Ethernet
+  - The check about once a second: `REEVAL_INTERVAL_MS` in `userland/capsule_net_core/src/server/runner/run.rs:29`.
+  - Wi-Fi drivers first, then wired: `WIFI_NICS` and `WIRED_NICS` in `userland/capsule_net_core/src/setup/candidates.rs:24-38`.
+  - No kernel profile embeds `e1000e` or `igc`: `src/hardware/` and `Cargo.toml`.
+- USB tethering and USB Ethernet
+  - The USB drivers among the candidates: `WIRED_NICS` in `userland/capsule_net_core/src/setup/candidates.rs:28-38`, with their sources in `userland/`.
+- DHCP and DNS
+  - The services `net.core` registers: `all` in `userland/capsule_net_core/src/register.rs:41-46`.
+  - What a lease sets: `handle_configured` in `userland/capsule_net_core/src/iface/dhcp/handle_configured.rs:26-57`.
+  - The three-second lookup: `TIMEOUT_MS` in `userland/capsule_net_core/src/server/handlers/dns/lookups.rs:26`.
+  - IPv4 only: the `smoltcp` features in `userland/capsule_net_core/Cargo.toml:18-21`.
+  - Desktop images carry `net.core` and `net.sockets` through `microkernel-desktop-base` in `Cargo.toml:591-606`.
+  - The no-address line: `offline_line` in `userland/capsule_terminal/src/command/builtin/offline_gate.rs:43-57`.

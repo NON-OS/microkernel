@@ -32,4 +32,5 @@ pub mod flush_rule;
 #[path = "../../../../src/arch/x86_64/iommu/regs/offsets/queue.rs"]
 pub mod queue;
 mod ring_tests;
+mod slot_tests;
 mod tests;

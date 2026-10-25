@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! grant.rs's find read whole (L79). An unmap counts itself inside the
-//! claim named by its own grant's device and epoch as recorded; with any
-//! other key `claim::inside` finds no claim, the unmap runs outside it, and
-//! a takeover's release no longer waits for its pages to go: the race the
-//! unmap's count closes is open again, with every other check still passing.
+//! The grant table's find (grant/one.rs) read whole (L79). An unmap counts
+//! itself inside the claim named by its own grant's device and epoch as
+//! recorded; with any other key `claim::inside` finds no claim, the unmap
+//! runs outside it, and a takeover's release no longer waits for its pages
+//! to go: the race the unmap's count closes is open again, with every other
+//! check still passing.
 
 use super::super::glue_text::{body, count, source};
 
-const GRANT: &str = "hardware/broker/grant.rs";
+const GRANT: &str = "hardware/broker/grant/one.rs";
 
 #[test]
 fn an_unmap_is_handed_its_own_grants_device_and_epoch() {

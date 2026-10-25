@@ -27,13 +27,14 @@ use crate::arch::x86_64::iommu::tables::view::Frame;
 /// root) last, so a unit never reads a new root beside an old domain. The
 /// caller flushes the unit's cached copy afterwards.
 fn write_dte(device_id: u16, entry: Dte) -> Result<(), AmdViError> {
-    let (words, at) = slot_of(device_id)?;
+    let (words, at, page) = slot_of(device_id)?;
     words.write(at + 3, entry[3])?;
     words.write(at + 2, entry[2])?;
     words.write(at + 1, entry[1])?;
     compiler_fence(Ordering::SeqCst);
     words.write(at, entry[0])?;
-    Ok(())
+    // The entry is 32 bytes, 32-aligned: one line, pushed out to memory.
+    super::super::visible::flush(page, at)
 }
 
 /* Held across each read and rewrite, so a domain move and an interrupt
@@ -54,13 +55,14 @@ pub(in super::super) fn update_dte(
 }
 
 pub(in super::super) fn read_dte(device_id: u16) -> Result<Dte, AmdViError> {
-    let (words, at) = slot_of(device_id)?;
+    let (words, at, _) = slot_of(device_id)?;
     Ok([words.read(at)?, words.read(at + 1)?, words.read(at + 2)?, words.read(at + 3)?])
 }
 
-/// The page holding `device_id`'s entry, and the entry's first quadword in it.
-fn slot_of(device_id: u16) -> Result<(Frame, usize), AmdViError> {
+/// The page holding `device_id`'s entry, the entry's first quadword in it,
+/// and the page's physical address.
+fn slot_of(device_id: u16) -> Result<(Frame, usize, u64), AmdViError> {
     let page = device_table()? + (device_id as usize / PER_PAGE) as u64 * 4096;
     let words = Frame::at(page).map_err(|_| AmdViError::TableUnreachable)?;
-    Ok((words, (device_id as usize % PER_PAGE) * 4))
+    Ok((words, (device_id as usize % PER_PAGE) * 4, page))
 }

@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Route a shell name to its group and run it; unknown names go to nox.
 
 use super::outcome::Outcome;
+use super::route::find::{route, Shell};
+use super::{exec_files, exec_info, exec_net, exec_session};
 use crate::command::builtin;
-use crate::command::output::Output;
 use crate::term::state::State;
 
 /// Run one resolved command; the caller strips redirects and detects exit.
@@ -24,73 +26,13 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
     if args.is_empty() {
         return Outcome::Repaint;
     }
-    match args[0] {
-        b"nox" => return builtin::nox::dispatch(state, &args[1..]),
-        b"about" => builtin::about::run(&mut Output::new(&mut state.scrollback), args),
-        b"bench" => builtin::bench::run(&mut Output::new(&mut state.scrollback), args),
-        b"version" => builtin::version::run(&mut Output::new(&mut state.scrollback), args),
-        b"whoami" => builtin::whoami::run(&mut Output::new(&mut state.scrollback), args),
-        b"receipt" => builtin::receipt::run(&mut Output::new(&mut state.scrollback), args),
-        b"log" => builtin::log::run(&mut Output::new(&mut state.scrollback), args),
-        b"capsules" | b"caps" => {
-            builtin::capsules::run(&mut Output::new(&mut state.scrollback), args)
-        }
-        b"clear" => builtin::clear::run(&mut state.scrollback, args),
-        b"display" => builtin::display::run(&mut Output::new(&mut state.scrollback), args),
-        b"echo" => builtin::echo::run(&mut Output::new(&mut state.scrollback), args),
-        b"history" => {
-            builtin::history_cmd::run(&mut Output::new(&mut state.scrollback), &state.history, args)
-        }
-        b"jobs" => {
-            builtin::jobs::run_jobs(&mut Output::new(&mut state.scrollback), &state.jobs, args)
-        }
-        b"fg" => builtin::jobs::run_fg(state, args),
-        b"bg" => builtin::jobs::run_bg(&mut Output::new(&mut state.scrollback), &state.jobs, args),
-        b"market" => builtin::market::run(&mut Output::new(&mut state.scrollback), args),
-        b"motd" => builtin::motd::run(&mut state.scrollback, args),
-        b"neofetch" => builtin::neofetch::run(state),
-        b"ping" => builtin::ping::run(&mut Output::new(&mut state.scrollback), args),
-        b"service" | b"svc" => builtin::service::run(&mut Output::new(&mut state.scrollback), args),
-        b"pwd" => builtin::fs::pwd(state),
-        b"cd" => builtin::fs::cd(state, args),
-        b"ls" | b"dir" => builtin::fs::ls(state, args),
-        b"cat" => builtin::fs::cat(state, args),
-        b"mkdir" => builtin::fs::mkdir(state, args),
-        b"touch" => builtin::fs::touch(state, args),
-        b"rm" | b"del" => builtin::fs::rm(state, args),
-        b"mv" => builtin::fs::mv(state, args),
-        b"cp" => builtin::fs::cp(state, args),
-        b"stat" => builtin::fs::stat(state, args),
-        b"rmdir" => builtin::fs::rmdir(state, args),
-        b"find" => builtin::fs::find(state, args),
-        b"tree" => builtin::fs::tree(state, args),
-        b"head" => builtin::fs::head(state, args),
-        b"tail" => builtin::fs::tail(state, args),
-        b"grep" => builtin::fs::grep(state, args),
-        b"wc" => builtin::fs::wc(state, args),
-        // The line filters that read files named after them; in a pipe the
-        // same names filter the piped lines instead.
-        b"sort" | b"uniq" | b"cut" | b"nl" | b"tac" | b"rev" => {
-            builtin::fs::filter_file(state, args)
-        }
-        b"type" | b"which" => {
-            let ok = builtin::which::run(&mut Output::new(&mut state.scrollback), args);
-            state.last_status = i32::from(!ok);
-        }
-        b"help" | b"commands" => {
-            let mut out = Output::new(&mut state.scrollback);
-            match args.get(1) {
-                Some(name) => {
-                    let ok = builtin::help::topic(&mut out, name)
-                        || builtin::help_one::run(&mut out, name);
-                    state.last_status = i32::from(!ok);
-                }
-                None => builtin::help::run(&mut out),
-            }
-        }
-        b"theme" | b"profile" => builtin::theme::run(state, args),
-        b"qwen" => builtin::qwen::misplaced(state),
-        _ => return builtin::nox::dispatch(state, args),
+    match route(args[0]) {
+        Some(Shell::Nox) => return builtin::nox::dispatch(state, &args[1..]),
+        Some(Shell::Info(cmd)) => exec_info::run(state, cmd, args),
+        Some(Shell::Session(cmd)) => exec_session::run(state, cmd, args),
+        Some(Shell::Files(cmd)) => exec_files::run(state, cmd, args),
+        Some(Shell::Net(cmd)) => exec_net::run(state, cmd, args),
+        None => return builtin::nox::dispatch(state, args),
     }
     Outcome::Repaint
 }

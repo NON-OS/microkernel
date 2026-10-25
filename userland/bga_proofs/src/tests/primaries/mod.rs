@@ -21,7 +21,8 @@
 mod anon;
 #[path = "../../../../nonos_gfx_pool/src/pool.rs"]
 mod pool;
+/// Mounted once here; the pool's share tests reach it from beside.
 #[path = "../../../../nonos_gfx_pool/src/surface.rs"]
-mod surface;
+pub(super) mod surface;
 
 mod release_tests;

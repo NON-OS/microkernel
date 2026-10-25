@@ -40,4 +40,5 @@ pub mod status;
 pub mod step;
 pub mod worker;
 mod worker_msg;
+pub(crate) use worker_msg::REMEMBERED;
 mod worker_run;

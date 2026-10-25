@@ -15,13 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod accessors;
+mod entropy;
 mod internal;
 mod join;
 mod joinrequest;
+mod keys;
 mod mlmestate;
 mod psk_new;
 mod status;
 mod wipe;
+#[cfg(test)]
+mod wipe_tests;
 use super::failure::MlmeFailure;
 use crate::dot11::ies::Rates;
 use crate::pmksa::Pmksa;
@@ -32,5 +36,6 @@ use crate::wpa::akm::Akm;
 use crate::wpa::supplicant::ie::Ie;
 use crate::wpa::supplicant::Supplicant;
 use alloc::vec::Vec;
+pub use entropy::*;
 pub use joinrequest::*;
 pub use mlmestate::*;

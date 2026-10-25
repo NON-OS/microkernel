@@ -1,11 +1,3 @@
-// Tests assert by panicking and print measurements, so those lints are off here only.
-#![allow(
-    clippy::expect_used,
-    clippy::panic,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects
-)]
-
 //! The four pinned 37-limb wallet vectors, proved again by the prover this core carries.
 //! `PROD_VECTORS` is their folder. Each proof and its shared form must come out byte for byte,
 //! and the shared form must cut to the single-call layout. That layout and the 13 words are
@@ -45,7 +37,7 @@ fn the_four_pinned_production_vectors_prove_byte_for_byte() {
         let limbs: [u64; LIMBS] = proof.publics.clone().try_into().expect("37 limbs");
         let whole = one_call(&shared).expect("it cuts");
         let words: Vec<String> =
-            pool_words(&limbs).iter().map(|w| format!("0x{}", hex(w))).collect();
+            pool_words(&limbs).expect("in range").iter().map(|w| format!("0x{}", hex(w))).collect();
         std::fs::write(format!("{out}/{name}.whole"), format!("0x{}", hex(&whole))).expect("out");
         std::fs::write(format!("{out}/{name}.words"), format!("[{}]", words.join(",")))
             .expect("out");

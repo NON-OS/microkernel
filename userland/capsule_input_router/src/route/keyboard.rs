@@ -16,12 +16,14 @@
 
 use nonos_libc::{InputEvent, INPUT_KIND_KEY_UP};
 
+use crate::state::key_targets::key_of;
 use crate::state::Context;
 
 use super::pointer::shell_pid;
 
 pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     let is_up = event.kind == INPUT_KIND_KEY_UP;
+    let key = key_of(event.flags, event.code);
     // A release goes to whoever received the matching press, so a focus change
     // while a key is held cannot strand the key-down in the old window. A press
     // routes to current focus. Resolving the release from the press target also
@@ -35,7 +37,7 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     // the shell was up) still goes to the shell, never to a window that did
     // not see the key go down.
     let pid = if is_up {
-        let pressed_in = ctx.key_targets.take(event.code).filter(|&p| p != 0);
+        let pressed_in = ctx.key_targets.take(key).filter(|&p| p != 0);
         match pressed_in {
             Some(pid) => pid,
             None if system => shell_pid(ctx),

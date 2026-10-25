@@ -19,10 +19,10 @@
 //! refused. Never left unconfined while the description puts it behind a
 //! unit; without `iommus` it is unconfined as before, and said.
 
-use super::attach::Refused;
 use super::detach::detach;
 use super::one::attach_one;
-use super::say::say_device;
+use super::refuse::Refused;
+use super::say::say;
 use super::verdict::{verdict, Verdict};
 use crate::hardware::broker::described::DescribedIommus;
 use crate::memory::iommu::{translates, DeviceAddress};
@@ -35,16 +35,17 @@ pub(super) fn attach_streams(
     let in_service = crate::arch::iommu_unit_in_service;
     match verdict(&iommus, in_service, |sid| translates(DeviceAddress::stream(sid))) {
         Verdict::Unconfined => {
-            say_device(b"unconfined: no iommus, reaches all memory", pid, device_id);
+            say(b"unconfined: no iommus, so no DMA grant but under the opt-in");
             Ok(())
         }
         Verdict::Refuse(why) => {
-            say_device(why, pid, device_id);
+            say(why);
             Err(Refused)
         }
         Verdict::Attach => {
             for sid in iommus.sids() {
-                if attach_one(pid, device_id, DeviceAddress::stream(*sid), true).is_err() {
+                let stream = DeviceAddress::stream(*sid);
+                if attach_one(pid, device_id, stream, true, (&[], &[])).is_err() {
                     // The streams already in go back out: all of them or none.
                     detach(pid, device_id);
                     return Err(Refused);

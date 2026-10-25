@@ -14,48 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Request and event opcodes, transcribed from the protocol definitions.
 
-pub mod req {
-    pub const DISPLAY_SYNC: u16 = 0;
-    pub const DISPLAY_GET_REGISTRY: u16 = 1;
-    pub const REGISTRY_BIND: u16 = 0;
-
-    pub const COMPOSITOR_CREATE_SURFACE: u16 = 0;
-
-    pub const SHM_CREATE_POOL: u16 = 0;
-    pub const POOL_CREATE_BUFFER: u16 = 0;
-    pub const POOL_DESTROY: u16 = 1;
-    pub const BUFFER_DESTROY: u16 = 0;
-
-    pub const SURFACE_DESTROY: u16 = 0;
-    pub const SURFACE_ATTACH: u16 = 1;
-    pub const SURFACE_DAMAGE: u16 = 2;
-    pub const SURFACE_FRAME: u16 = 3;
-    pub const SURFACE_COMMIT: u16 = 6;
-    pub const SURFACE_DAMAGE_BUFFER: u16 = 9;
-
-    pub const XDG_BASE_GET_SURFACE: u16 = 2;
-    pub const XDG_BASE_PONG: u16 = 3;
-    pub const XDG_SURFACE_DESTROY: u16 = 0;
-    pub const XDG_SURFACE_GET_TOPLEVEL: u16 = 1;
-    pub const XDG_SURFACE_SET_GEOMETRY: u16 = 3;
-    pub const XDG_SURFACE_ACK_CONFIGURE: u16 = 4;
-    pub const TOPLEVEL_DESTROY: u16 = 0;
-    pub const TOPLEVEL_SET_TITLE: u16 = 2;
-    pub const TOPLEVEL_SET_APP_ID: u16 = 3;
-    pub const TOPLEVEL_SET_MAXIMIZED: u16 = 9;
-    pub const TOPLEVEL_UNSET_MAXIMIZED: u16 = 10;
-    pub const TOPLEVEL_SET_FULLSCREEN: u16 = 11;
-    pub const TOPLEVEL_UNSET_FULLSCREEN: u16 = 12;
-
-    pub const SEAT_GET_POINTER: u16 = 0;
-    pub const SEAT_GET_KEYBOARD: u16 = 1;
-}
+#[path = "ops_data.rs"]
+pub mod data;
+#[path = "ops_decoration.rs"]
+pub mod decoration;
+#[path = "ops_misc.rs"]
+pub mod misc;
+#[path = "ops_output.rs"]
+pub mod output;
+#[path = "ops_req.rs"]
+pub mod req;
+#[path = "ops_seat.rs"]
+pub mod seat;
+#[path = "ops_select.rs"]
+pub mod select;
+#[path = "ops_shell.rs"]
+pub mod shell;
 
 pub mod ev {
     pub const CALLBACK_DONE: u16 = 0;
+    pub const DISPLAY_ERROR: u16 = 0;
     pub const DISPLAY_DELETE_ID: u16 = 1;
     pub const SHM_FORMAT: u16 = 0;
     pub const BUFFER_RELEASE: u16 = 0;
@@ -66,3 +46,6 @@ pub mod ev {
 /// wl_shm formats. Zero and one are the two every client understands.
 pub const FORMAT_ARGB8888: u32 = 0;
 pub const FORMAT_XRGB8888: u32 = 1;
+
+/// wl_display.error's code for a request to an object that does not exist.
+pub const ERROR_INVALID_OBJECT: u32 = 0;

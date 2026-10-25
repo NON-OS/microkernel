@@ -21,7 +21,11 @@ use crate::memory::addr::VirtAddr;
 
 /// `released`: drained by a release or an exit, not unmapped by its holder.
 pub(super) fn teardown(g: &DmaGrant, unmap_pages: bool, released: bool) {
-    if unmap_pages {
+    // From the holder's tables, from any context: tables that outlive
+    // it, a thread's or an heir's, keep no page onto the frames given back.
+    if super::super::holder_space::unmap_from_holder(g.pid, g.user_va, g.length) {
+        super::va::release(g.pid, g.user_va, g.length);
+    } else if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
     // The device loses the grant before anyone else can gain the frames. If

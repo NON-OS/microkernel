@@ -6,7 +6,7 @@
 //! whole.
 
 use super::guard::{overlaps_flash, FLASH_WINDOW};
-use crate::mmio_window::window::{window, WindowError};
+use crate::proofs_2::mmio_window::window::{window, WindowError};
 
 const LINE: u64 = FLASH_WINDOW.0;
 

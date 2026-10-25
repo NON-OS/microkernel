@@ -20,16 +20,17 @@ use crate::kernel_core::surface_registry::attach_map::record;
 use crate::kernel_core::surface_registry::types::{
     RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
-use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::paging::manager::api::{map_page_in_asid, unmap_page_in_asid};
+use crate::memory::addr::PhysAddr;
 use crate::memory::paging::types::PagePermissions;
 use crate::process::current_process;
 
+/// `write`: the receiver was named to write; else its view is read-only.
 pub(super) fn map_view(
     receiver_pid: u32,
     handle: SurfaceHandle,
     frames: &[PhysAddr],
     out_desc: &mut SurfaceDescriptor,
+    write: bool,
 ) -> Result<u64, RegistryError> {
     let mut desc = super::descriptor::descriptor(handle)?;
     let asid = super::super::space::space_of(receiver_pid).ok_or(RegistryError::MapFailed)?;
@@ -41,7 +42,8 @@ pub(super) fn map_view(
         proc.unreserve_vma(base, len);
         return Err(RegistryError::MapFailed);
     }
-    if let Err(stuck) = map_frames(asid, base, frames) {
+    let perms = if write { PagePermissions::user_rw() } else { PagePermissions::user_ro() };
+    if let Err(stuck) = super::map_pages::map_pages(asid, base, frames, perms) {
         // A page that would not come down still maps the frames: recorded,
         // it holds them until the receiver detaches or exits.
         if stuck {
@@ -55,21 +57,4 @@ pub(super) fn map_view(
     *out_desc = desc;
     record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);
     Ok(base.as_u64())
-}
-
-/*
- * Map `frames` user read-write at consecutive pages from `base` in `asid`.
- * When one fails, the pages already mapped come down again: left with no
- * attach record, they outlived the frames (L49). Err(true) if one would not.
- */
-fn map_frames(asid: u32, base: VirtAddr, frames: &[PhysAddr]) -> Result<(), bool> {
-    let perms = PagePermissions::user_rw();
-    let page = |i: usize| VirtAddr::new(base.as_u64() + (i as u64) * 4096);
-    for (i, frame) in frames.iter().enumerate() {
-        if map_page_in_asid(asid, page(i), *frame, perms).is_err() {
-            let stuck = (0..i).filter(|&j| unmap_page_in_asid(asid, page(j), perms).is_err());
-            return Err(stuck.count() > 0);
-        }
-    }
-    Ok(())
 }

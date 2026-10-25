@@ -28,6 +28,7 @@ mod map_file;
 mod map_fill;
 mod map_free;
 mod map_kind;
+mod map_memfd;
 mod map_place;
 mod map_refused;
 mod map_req;

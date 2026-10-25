@@ -26,13 +26,13 @@ use crate::wallet::state::State;
 /// a mid price is not what the reader will receive and showing it would
 /// flatter every trade.
 pub fn rate_text(state: &State, out: &mut [u8]) -> usize {
-    let from = crate::wallet::swap::token(state.swap_from);
-    let to = crate::wallet::swap::token(state.swap_to);
-    if state.swap_in == 0 || !state.swap_quote.ready {
+    let from = crate::wallet::swap::token(state.swap.from);
+    let to = crate::wallet::swap::token(state.swap.to);
+    if state.swap.amount_in == 0 || !state.swap.quote.ready {
         return copy(b"-", out);
     }
     let one = pow10(from.decimals);
-    let rate = state.swap_quote.out_amount.saturating_mul(one) / state.swap_in.max(1);
+    let rate = state.swap.quote.out_amount.saturating_mul(one) / state.swap.amount_in.max(1);
     let mut n = copy(b"1 ", out);
     n += copy(from.symbol.as_bytes(), &mut out[n..]);
     n += copy(b" = ", &mut out[n..]);

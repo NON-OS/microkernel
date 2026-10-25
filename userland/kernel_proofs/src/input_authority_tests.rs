@@ -18,6 +18,8 @@
 //! to it; the input router alone drains it. When draining took `InputSource`,
 //! the bit every input driver holds to post, a keyboard or touchpad driver
 //! could read every key; these pin the split on the real token and cap table.
+//! Posting takes `InputSource` alone and draining `InputConsumer` alone: Irq,
+//! which every driver holds, and Admin stand in for neither.
 
 use crate::authorization_tests::token;
 use crate::capabilities::Capability;
@@ -31,11 +33,15 @@ use alloc::vec;
 
 #[test]
 fn an_input_driver_posts_but_cannot_drain_or_wait() {
-    for driver in [token(vec![Capability::InputSource]), token(vec![Capability::Irq])] {
-        assert!(is_allowed(&driver, MkInputEventPost));
-        assert!(!is_allowed(&driver, MkInputEventDrain));
-        assert!(!is_allowed(&driver, MkInputEventWait));
-    }
+    let driver = token(vec![Capability::InputSource]);
+    assert!(is_allowed(&driver, MkInputEventPost));
+    assert!(!is_allowed(&driver, MkInputEventDrain));
+    assert!(!is_allowed(&driver, MkInputEventWait));
+    // Irq alone neither posts nor drains: a driver could forge keys or read them.
+    let irq = token(vec![Capability::Irq]);
+    assert!(![MkInputEventPost, MkInputEventDrain, MkInputEventWait]
+        .into_iter()
+        .any(|n| is_allowed(&irq, n)));
 }
 
 #[test]
@@ -48,15 +54,16 @@ fn the_ps2_driver_holding_both_post_bits_still_cannot_drain() {
 
 #[test]
 fn the_router_drains_and_waits_but_does_not_post() {
-    let router = token(vec![Capability::IPC, Capability::Memory, Capability::InputDrain]);
+    let router = token(vec![Capability::IPC, Capability::Memory, Capability::InputConsumer]);
     assert!(is_allowed(&router, MkInputEventDrain));
     assert!(is_allowed(&router, MkInputEventWait));
     assert!(!is_allowed(&router, MkInputEventPost));
 }
 
 #[test]
-fn admin_still_stands_in_for_both() {
+fn admin_stands_in_for_neither() {
     let admin = token(vec![Capability::Admin]);
-    assert!(is_allowed(&admin, MkInputEventPost));
-    assert!(is_allowed(&admin, MkInputEventDrain));
+    assert!(!is_allowed(&admin, MkInputEventPost));
+    assert!(!is_allowed(&admin, MkInputEventDrain));
+    assert!(!is_allowed(&admin, MkInputEventWait));
 }

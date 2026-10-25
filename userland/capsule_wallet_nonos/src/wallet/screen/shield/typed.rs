@@ -21,6 +21,10 @@
  * the same functions on the host.
  */
 
+#[path = "typed_tail.rs"]
+mod tail;
+pub use tail::tail_start;
+
 /* nox1 then base32 (a to z, 2 to 7) of the 1,253 address bytes: 2,009
  * letters. The checksum inside is checked by the service. */
 const ADDR_LEN: usize = 2009;
@@ -59,26 +63,4 @@ pub fn pasted_address(text: &str) -> Option<&str> {
     };
     let bare = bare.trim_start_matches('/');
     bare.get(..4).filter(|h| h.eq_ignore_ascii_case("nox1")).map(|_| bare)
-}
-
-/* Where the shown tail of a field's text starts: the first character from
- * which the rest fits in `room`. `width` is the measure of a tail and
- * shrinks as the tail does, so a halving search asks it about a dozen
- * times for a 2,009-letter address, not once per letter dropped. */
-pub fn tail_start(text: &str, room: i32, width: impl Fn(&str) -> i32) -> usize {
-    if width(text) <= room {
-        return 0;
-    }
-    let starts: alloc::vec::Vec<usize> = text.char_indices().map(|(i, _)| i).collect();
-    let (mut lo, mut hi) = (0usize, starts.len());
-    while lo < hi {
-        let mid = lo + (hi - lo) / 2;
-        let at = starts.get(mid).copied().unwrap_or(text.len());
-        if width(text.get(at..).unwrap_or("")) <= room {
-            hi = mid;
-        } else {
-            lo = mid + 1;
-        }
-    }
-    starts.get(lo).copied().unwrap_or(text.len())
 }

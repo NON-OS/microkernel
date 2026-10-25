@@ -27,7 +27,7 @@ fn a_p384_signature_over_a_long_body_verifies() {
     assert!(tbs.len() > 1516, "longer than the old 1,536 byte request allowed");
     let spki = cert_spki(P384_AUTHORITY).expect("authority key");
     nonos_libc::reset();
-    assert!(verify_link(P384_MANY_NAMES, spki));
+    assert_eq!(verify_link(P384_MANY_NAMES, spki), Ok(true));
     let c = nonos_libc::counts();
     assert_eq!((c.p384, c.sha384), (1, 0), "hashed here, signature checked by the pool");
 }
@@ -40,5 +40,5 @@ fn the_same_body_changed_by_one_name_does_not() {
     let mut forged = P384_MANY_NAMES.to_vec();
     forged[start + name] ^= 0x20;
     let spki = cert_spki(P384_AUTHORITY).expect("authority key");
-    assert!(!verify_link(&forged, spki));
+    assert_eq!(verify_link(&forged, spki), Ok(false));
 }

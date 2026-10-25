@@ -39,7 +39,7 @@ pub fn recvfrom(
         Ok(id) => id,
         Err(e) => return e,
     };
-    match super::xfer_in::recv(guest, id, &vec![(buf, len)], 0, flags) {
+    match super::xfer::inbound::recv(guest, id, &vec![(buf, len)], 0, flags) {
         Ok(got) => super::peer_addr::finish(guest, got, flags, at, alen),
         Err(e) => e,
     }

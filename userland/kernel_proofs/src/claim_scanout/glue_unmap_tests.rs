@@ -16,9 +16,10 @@
 
 //! The page steps the model's unmap and repoint stand for, read (L79): an
 //! unmap holds its claim, bound to a name, from before the grant is removed
-//! until its pages are gone; a take-back drains before it asks for the
-//! holder's tables; the repoint moves a page only while it still shows its
-//! grant's frame, in one hold of the paging lock, with one round after it.
+//! until its pages are gone and its VA is given back; a take-back
+//! drains before it asks for the holder's tables; the repoint moves a page
+//! only while it still shows its grant's frame, in one hold of the paging
+//! lock, with one round after it.
 
 use super::glue_text::{body, count, in_order};
 
@@ -31,7 +32,8 @@ fn an_unmap_holds_its_claim_across_the_removal_and_the_unmap() {
     assert_eq!(
         body(RELEASE, "unmap_grant"),
         "{ let _inside = grant::find(pid, grant_id).and_then(|(d, e)| claim::inside(pid, d, e)); \
-         let g = grant::remove(pid, grant_id)?; unmap_one(&g); Ok(()) }"
+         let g = grant::remove(pid, grant_id)?; unmap_one(&g); \
+         grant::release_user_va(pid, g.user_va, g.length); Ok(()) }"
     );
 }
 

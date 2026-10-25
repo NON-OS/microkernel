@@ -25,6 +25,5 @@ mod microkernel_handle;
 mod microkernel_ops;
 mod surface_handlers;
 mod surface_ops;
-mod surface_share;
 
 pub(crate) use entry::handle_syscall_dispatch;

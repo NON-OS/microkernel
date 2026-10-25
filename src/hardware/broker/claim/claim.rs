@@ -17,9 +17,8 @@
 use super::hold;
 use super::types::ClaimError;
 
-// Register a claim. Returns the granted epoch on success. The caller
-// must have already verified that `device_id` exists in the broker
-// table.
+// Register a claim; the granted epoch on success. The caller has already
+// verified that `device_id` exists in the broker table.
 pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     if super::firmware::is_firmware(device_id) {
         return Err(ClaimError::Firmware);
@@ -28,39 +27,37 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     let fresh = super::wipe::fresh(pid, device_id);
     let covers = crate::hardware::broker::bootfb::covers(device_id);
     let epoch = super::enter::enter(pid, device_id, fresh.as_ref())?;
-    // The kernel reads a virtio-rng for boot entropy until its capsule
-    // claims it: reset and let go before the device changes domain (L8).
-    if let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) {
-        crate::drivers::virtio_rng::hand_over(handle.address);
-    }
-    // Confined before it is powered, so the device never runs unconfined.
-    // VMMDev is the exception: it reads guest-physical addresses past any
-    // IOMMU, so it keeps them, and its grants are counted unconfined.
-    if hold::untranslated(device_id) {
-        crate::log::info!("[BROKER] pid={} VMMDev: untranslated, its grants unconfined", pid);
-    } else if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
+    // Confined before it is powered, so it never runs unconfined. VMMDev reads
+    // guest memory past any IOMMU: only where an unconfined device may (decide.rs).
+    let untranslated = hold::untranslated(device_id);
+    let confined = match untranslated {
+        true => crate::hardware::broker::confine::untranslated(device_id),
+        false => crate::hardware::broker::confine::attach(pid, device_id),
+    };
+    if let Err(refusal) = confined {
         super::pending::withdraw(pid, device_id, epoch);
-        return Err(ClaimError::Unconfined);
+        return Err(refusal.into());
     }
-    // Bring the device to power state D0 before its driver maps MMIO. Done
-    // outside the claims lock: it touches config space and settles for a moment.
+    // Not mastering while the reset below waits out what is in flight.
+    if !untranslated {
+        super::master_off::bus_master_off(device_id);
+    }
+    // In D0 before its driver maps MMIO; outside the claims lock, as it settles.
     crate::hardware::broker::power::power_on_device(device_id);
-    // Its BARs read back against enumeration's, and put back where the move
-    // to D0 lost them; one that will not stick refuses the claim (L62).
+    // Powered, so its reset takes: what firmware left armed stops.
+    super::reset::at_claim(device_id);
+    // Its BARs put back where the move to D0 lost them; one that won't stick refuses (L62).
     if !super::restore::restore(device_id) {
         super::pending::withdraw(pid, device_id, epoch);
         return Err(ClaimError::Refused);
     }
-    // Before the driver can turn bus mastering on, so no request it ever
-    // makes is no-snoop.
+    // Before Bus Master can go on, so no request it ever makes is no-snoop.
     super::no_snoop::snoop_every_request(device_id);
-    // VMMDev reads guest memory past the IOMMU and any Bus Master gate, so
-    // only a translated device starts its claim unable to master (L34).
+    // It starts its claim unable to master (L34; VMMDev reads past any gate), past
+    // every refusal; the scanout taken then, and a refusal at the admit gives it back (L79).
     if !hold::untranslated(device_id) {
         super::master_off::bus_master_off(device_id);
     }
-    // The last refusal before the boot framebuffer's scanout is taken is
-    // above; one at the admit gives the console back (L79).
     if covers {
         super::scanout::take(device_id);
     }

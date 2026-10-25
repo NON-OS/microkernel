@@ -41,6 +41,7 @@ mod on_tab;
 mod on_up;
 mod paste_clipboard;
 mod paste_program;
+mod print_started;
 mod readline;
 mod run_line;
 pub(crate) mod search;

@@ -31,137 +31,12 @@ the file gives it.
 """
 
 import argparse
-import json
-import re
 import sys
 from pathlib import Path
 
-# Raise these when the numbers improve. They may never be lowered, except when
-# the code a proof covered is deleted: 1756a547 removed the zk_kernel field and
-# range code with the curve proof, and its five extracted functions with it
-# (987 to 982 proven, 494 to 492 substantive). 074a3a9d deleted the three
-# paging statistics getters memory_paging_stats_query extracted (982 to 979).
-FLOOR = 979
-GAP_CEILING = 0
-# Functions carrying a property beyond "this wrapper is its method". That
-# wrapper theorem is real, and it is what ties a manifest entry to the method a
-# theorem talks about, but on its own it says nothing about behaviour. Counting
-# the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 492
-
-PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
-PROOF_DIRS = (
-    'verification/extraction/lean/NonosExtraction',
-    'verification/extraction/lean/Policy',
-)
-
-
-def strip_comments(src):
-    """Lean block and line comments, so a header mention is not a proof."""
-    src = re.sub(r'/-.*?-/', ' ', src, flags=re.S)
-    src = re.sub(r'--[^\n]*', ' ', src)
-    return src
-
-
-def proof_files(root):
-    """Each refinement module's text with comments stripped."""
-    out = []
-    for d in PROOF_DIRS:
-        for path in sorted((root / d).glob('*.lean')):
-            if 'Refinement' in path.name or path.name in PROOF_MODULES:
-                out.append(strip_comments(path.read_text(errors='replace')))
-    return out
-
-
-def imports_module(text, lean):
-    """Whether a proof file imports the generated module of this crate."""
-    if lean == 'Policy':
-        return re.search(r'^import Policy(\.\w+)*$', text, re.M) is not None
-    return re.search(r'^import NonosExtraction\.%s$' % re.escape(lean), text, re.M) is not None
-
-
-def mirrored_sources(root):
-    """Kernel file each crate mirrors, so two crates cannot cover one file.
-
-    The sweep re-extracted two files that already had hand-built crates, which
-    counted twenty-eight functions twice. Nothing caught it because both crates
-    were real and both extracted cleanly; the manifest simply listed the same
-    kernel code under two names.
-    """
-    out = {}
-    manifest = json.loads(
-        (root / 'verification/extraction/crates.json').read_text())
-    for c in manifest['crates']:
-        lib = root / c['dir'] / 'src/lib.rs'
-        if not lib.is_file():
-            continue
-        text = lib.read_text()
-        m = (re.search(r'#\[path = "([^"]+)"\]', text)
-             or re.search(r'mirroring `([^`]+)`', text))
-        if m:
-            out.setdefault(m.group(1).split('../')[-1], []).append(c['name'])
-    return {k: v for k, v in out.items() if len(v) > 1}
-
-
-THEOREM = re.compile(r'^(?:private\s+)?theorem\s+(\S+)(.*?):=', re.S | re.M)
-RENAMING = re.compile(r'\b(\w+)\s*→\s*(\w+)')
-ALIAS = re.compile(
-    r'^(?:private\s+|noncomputable\s+)*(?:abbrev|def)\s+(\w+)([^\n]*(?:\n[ \t]+[^\n]*)*)',
-    re.M)
-
-
-def statements(text):
-    """The statements of a file's theorems, wrappers left out.
-
-    A name in a proof, an `open ... renaming` line, an `attribute` list or a
-    `#print axioms` line is not a property of the function. Six functions once
-    counted as substantive from those lines alone.
-    """
-    return [sig for name, sig in THEOREM.findall(text)
-            if not re.match(r'the_\w+_wrapper_is_its_method$', name)]
-
-
-def aliases(texts, leaf):
-    """Names a file gives the function: `open ... renaming` and `abbrev`."""
-    names = {leaf}
-    word = re.compile(r'\b%s\b' % re.escape(leaf))
-    for t in texts:
-        names.update(b for a, b in RENAMING.findall(t) if a == leaf)
-        names.update(m.group(1) for m in ALIAS.finditer(t) if word.search(m.group(2)))
-    return names
-
-
-def classify(root):
-    # Read the crate manifest, not EVIDENCE.json. The evidence script calls this
-    # to fill its own counts field, so reading its output here would make the
-    # numbers a function of the last run rather than of the tree.
-    manifest = json.loads(
-        (root / 'verification/extraction/crates.json').read_text())
-    names = sorted({s for c in manifest['crates'] for s in c['starts']})
-    files = proof_files(root)
-    # A name counts only in files that import its own crate's module. Leaf
-    # names repeat across crates (`new`, `is_present`, `leaf`), and matching
-    # them anywhere once counted functions no theorem mentions.
-    own = {}
-    for c in manifest['crates']:
-        mine = [t for t in files if imports_module(t, c['lean'])]
-        for st in c['starts']:
-            prev = own.setdefault(st, [])
-            prev.extend(mine)
-
-    proven, bare, substantive = [], [], []
-    for name in names:
-        leaf = name.split('::')[-1]
-        mine = own.get(name, [])
-        if re.search(r'\b%s\b' % re.escape(leaf), '\n'.join(mine)):
-            proven.append(name)
-            pat = re.compile(r'\b(%s)\b' % '|'.join(
-                map(re.escape, sorted(aliases(mine, leaf)))))
-            if any(pat.search(sig) for t in mine for sig in statements(t)):
-                substantive.append(name)
-        else:
-            bare.append(name)
-    return names, proven, bare, substantive
+from proven_classify import classify
+from proven_mirrors import mirrored_sources
+from proven_report import report
 
 
 def main():
@@ -184,38 +59,7 @@ def main():
             'unproven': len(bare),
         }))
         return 0
-    print('extracted and CI-diffed  %4d' % len(names))
-    print('carrying a proof         %4d   (floor %d)' % (len(proven), FLOOR))
-    print('extracted, no proof      %4d   (ceiling %d)' % (len(bare), GAP_CEILING))
-    print('of those, with a property beyond the wrapper  %4d   (floor %d)'
-          % (len(substantive), SUBSTANTIVE_FLOOR))
-    for name in bare:
-        print('   no proof:', name)
-
-    failed = False
-    if dups:
-        print('\nkernel files mirrored by more than one crate, so their functions '
-              'are counted twice:', file=sys.stderr)
-        for path, crates in dups.items():
-            print('  %s  <- %s' % (path, ', '.join(crates)), file=sys.stderr)
-        failed = True
-    if len(proven) < FLOOR:
-        print('\nproven count fell to %d, floor is %d' % (len(proven), FLOOR),
-              file=sys.stderr)
-        failed = True
-    if len(bare) > GAP_CEILING:
-        print('\n%d extracted functions carry no proof, ceiling is %d'
-              % (len(bare), GAP_CEILING), file=sys.stderr)
-        failed = True
-    if len(substantive) < SUBSTANTIVE_FLOOR:
-        print('\nsubstantive count fell to %d, floor is %d'
-              % (len(substantive), SUBSTANTIVE_FLOOR), file=sys.stderr)
-        failed = True
-    if len(proven) > FLOOR:
-        print('\nproven count is %d; raise FLOOR in this file' % len(proven))
-    if len(substantive) > SUBSTANTIVE_FLOOR:
-        print('substantive count is %d; raise SUBSTANTIVE_FLOOR' % len(substantive))
-    return 1 if failed else 0
+    return report(names, proven, bare, substantive, dups)
 
 
 if __name__ == '__main__':

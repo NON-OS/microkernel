@@ -58,7 +58,7 @@ pub(crate) const CAP_NAMES: [&[u8]; 40] = [
     b"LocalSign",
     b"StreamImport",
     b"DeviceSecret",
-    b"InputDrain",
+    b"InputConsumer",
     b"CameraCapture",
     b"MicrophoneCapture",
     b"ScreenCapture",

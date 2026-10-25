@@ -19,6 +19,7 @@ path = "src/lib.rs"
 
 [dependencies]
 nonos_libc = { package = "tls_proofs_shim", path = "shim" }
+nonos_route_link = { package = "tls_proofs_route_shim", path = "route_shim" }
 sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
 hmac = { version = "0.12", default-features = false }
 chacha20poly1305 = { version = "0.10", default-features = false }
@@ -27,6 +28,13 @@ p256 = { version = "0.13", default-features = false, features = ["arithmetic", "
 # The played TLS server in tests/fake_server.rs signs its CertificateVerify.
 [dev-dependencies]
 p256 = { version = "0.13", default-features = false, features = ["arithmetic", "ecdsa"] }
+
+# Runs that leave the host, on demand only, never part of the proof run.
+[features]
+# Dials live Anyone relays over the internet (tests/live_relay.rs).
+live-relays = []
+# Rewrites fixtures/openssl_tls12_alert.tls from a local openssl s_server.
+record-fixtures = []
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

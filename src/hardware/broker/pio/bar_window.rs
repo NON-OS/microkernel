@@ -13,12 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 //! The port window a BAR names: an I/O BAR with a size, wholly inside the
-//! 16-bit port space. A window past 0xFFFF would wrap onto port 0 on the
-//! wire, so it is refused rather than truncated.
+//! 16-bit port space, its count converted and never masked, and clear of the
+//! machine's own ports (`window`, K6). A window past 0xFFFF would wrap onto
+//! port 0 on the wire, so it is refused rather than truncated.
 
 use super::types::PioError;
+use super::window::{window, Refused};
 use crate::hardware::broker::device::BAR_KIND_PIO;
 use crate::hardware::broker::Bar;
 
@@ -29,14 +30,8 @@ pub(super) fn port_window(bar: Bar) -> Result<(u16, u16), PioError> {
     if bar.size == 0 {
         return Err(PioError::ZeroSize);
     }
-    if bar.base > u16::MAX as u64 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_base = bar.base as u16;
-    let last_port = bar.base.checked_add(bar.size).ok_or(PioError::PortOverflow)?;
-    if last_port > u16::MAX as u64 + 1 {
-        return Err(PioError::PortOverflow);
-    }
-    let port_count = (bar.size & u16::MAX as u64) as u16;
-    Ok((port_base, port_count))
+    window(bar.base, bar.size).map_err(|r| match r {
+        Refused::Overflow => PioError::PortOverflow,
+        Refused::Reserved => PioError::ReservedPort,
+    })
 }

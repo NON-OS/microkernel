@@ -18,5 +18,5 @@
 mod registers;
 
 // Mounted once already, for the requester-id proofs.
-pub use crate::pci_address::address_packing::pci_config_address;
+pub use crate::proofs_2::pci_address::address_packing::pci_config_address;
 pub use registers::*;

@@ -18,7 +18,7 @@
 //! management-frame builders. A scan turns received beacons into a list of
 //! visible networks: BSSID, SSID, operating channel, and whether the network
 //! advertises RSN (WPA2). Pure parsing over untrusted input with a bounded
-//! walk and no panics, checked by `iwlwifi_proofs`.
+//! walk and no panics, checked by `nonos_wifi_core_proofs`.
 
 /// Beacon and probe-response fixed fields after the MAC header: timestamp (8),
 /// beacon interval (2), capability info (2).
@@ -30,6 +30,9 @@ pub const IE_SSID: u8 = 0;
 pub const IE_DS_PARAMS: u8 = 3;
 
 pub const IE_RSN: u8 = 48;
+
+/// The longest SSID (IEEE Std 802.11-2020, 9.4.2.2).
+pub const SSID_LEN_MAX: usize = 32;
 
 /// A parsed view of a beacon or probe response. `ssid` borrows the frame.
 pub struct BeaconInfo<'a> {

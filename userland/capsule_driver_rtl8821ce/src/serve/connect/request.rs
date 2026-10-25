@@ -20,10 +20,14 @@
 //! body before it is used, an SSID longer than 32 octets is refused, and
 //! bytes past the flags are ignored.
 
+use nonos_wifi_core::rsn::JoinPolicy;
+
 /// The network was saved as WPA3: join it with SAE or not at all.
 pub const FLAG_WPA3_ONLY: u8 = 1 << 0;
 /// The network does not broadcast its name: a directed probe may carry it.
 pub const FLAG_HIDDEN: u8 = 1 << 1;
+/// net.core's rejoin of a lost link, refused once the person left it.
+pub const FLAG_REJOIN: u8 = 1 << 2;
 
 /// A parsed connect request.
 pub struct ConnectRequest<'a> {
@@ -31,6 +35,18 @@ pub struct ConnectRequest<'a> {
     pub pass: &'a [u8],
     pub wpa3_only: bool,
     pub hidden: bool,
+    pub rejoin: bool,
+}
+
+impl ConnectRequest<'_> {
+    /// The join's policy: a network saved as WPA3 is joined with SAE only.
+    pub fn policy(&self) -> JoinPolicy {
+        if self.wpa3_only {
+            JoinPolicy::WPA3_ONLY
+        } else {
+            JoinPolicy::ANY
+        }
+    }
 }
 
 /// Parse a connect request body, or `None` if a length runs past it or the
@@ -51,5 +67,6 @@ pub fn parse_connect(body: &[u8]) -> Option<ConnectRequest<'_>> {
         pass,
         wpa3_only: flags & FLAG_WPA3_ONLY != 0,
         hidden: flags & FLAG_HIDDEN != 0,
+        rejoin: flags & FLAG_REJOIN != 0,
     })
 }

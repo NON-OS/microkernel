@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An I/O APIC redirection entry in remappable format (VT-d 3.4, 5.1.5.1;
-//! bit positions recalled, unverified): the entry names a remapping table
-//! index instead of a CPU, so the unit checks the I/O APIC's source id and
-//! delivers what the table says. With CFI cleared, a compatibility format
-//! entry is blocked, so every line must be in this form first (L44). Pure.
+//! An I/O APIC redirection entry in remappable format (VT-d 3.4, 5.1.5.1):
+//! the entry names a remapping table index instead of a CPU, so the unit
+//! checks the I/O APIC's source id and delivers what the table says. With
+//! CFI clear a compatibility format entry is blocked, so a line under
+//! remapping is written in this form (L44, K3). Pure; the proofs hold it.
 
 /// Interrupt Format, bit 48: the entry is remappable.
 const REMAPPABLE: u64 = 1 << 48;
@@ -53,4 +53,17 @@ pub const fn rte_index(entry: u64) -> Option<u16> {
         return None;
     }
     Some((((entry >> 49) & 0x7FFF) | (((entry >> 11) & 1) << 15)) as u16)
+}
+
+/// The same entry as the low and high dwords the I/O APIC is written in,
+/// masked: the line is unmasked only once both halves are in place.
+pub const fn remappable(handle: u16, vector: u8, level: bool, active_low: bool) -> (u32, u32) {
+    let entry = remappable_rte(handle, vector, Line { level, active_low, masked: true });
+    (entry as u32, (entry >> 32) as u32)
+}
+
+/// The entry an I/O APIC entry read back as two dwords names, or `None` in
+/// compatibility format.
+pub const fn handle_of(low: u32, high: u32) -> Option<u16> {
+    rte_index((high as u64) << 32 | low as u64)
 }

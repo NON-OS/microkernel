@@ -38,16 +38,15 @@ pub(super) fn admits(pid: u32, device_id: u64) -> Result<(), ClaimError> {
     if pci.is_some_and(|h| !h.standard) {
         return Err(ClaimError::Refused);
     }
-    let Some(hold) = rule_for(device_id) else {
-        return Ok(());
-    };
-    match hold {
-        Hold::Open => Ok(()),
-        Hold::ForService(name) if serves(pid, name) => Ok(()),
-        Hold::ForEither(a, b) if serves(pid, a) || serves(pid, b) => Ok(()),
-        Hold::ForService(_) | Hold::ForEither(..) => Err(ClaimError::Held),
-        Hold::Refused => Err(ClaimError::Refused),
+    match rule_for(device_id) {
+        None | Some(Hold::Open) => {}
+        Some(Hold::ForService(name)) if serves(pid, name) => {}
+        Some(Hold::ForEither(a, b)) if serves(pid, a) || serves(pid, b) => {}
+        Some(Hold::ForService(_) | Hold::ForEither(..)) => return Err(ClaimError::Held),
+        Some(Hold::Refused) => return Err(ClaimError::Refused),
     }
+    // Only what the driver's scope row names, before any entry or write.
+    super::scope_check::admit(pid, device_id)
 }
 
 pub(super) fn untranslated(device_id: u64) -> bool {

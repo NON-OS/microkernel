@@ -29,6 +29,8 @@ pub enum IoApicError {
     TooManyIoApics,
     /// No CPU has an APIC id the 8-bit destination field can hold.
     NoReachableCpu,
+    /// Remapping is on and the line cannot have an entry of its own.
+    NotRemapped,
 }
 
 impl IoApicError {
@@ -46,6 +48,7 @@ impl IoApicError {
             Self::InvalidGsi => "Invalid GSI",
             Self::TooManyIoApics => "Too many I/O APICs",
             Self::NoReachableCpu => "No CPU addressable by an 8-bit destination",
+            Self::NotRemapped => "No interrupt remapping entry for the line",
         }
     }
 }

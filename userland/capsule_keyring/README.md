@@ -40,7 +40,7 @@ client capsule (wallet, login, ...)
 
 ## Interface contract
 
-29 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
+31 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
 (`all_distinct`) fails the build if two share a code. They are served by
 `src/server/dispatch.rs`:
 
@@ -48,12 +48,13 @@ client capsule (wallet, login, ...)
 |---|---|
 | `OP_STORE`, `OP_RETRIEVE`, `OP_DELETE`, `OP_METADATA`, `OP_COUNT` | caller-owned key records |
 | `OP_LOCK`, `OP_UNLOCK` | lock or release one entry the caller owns |
-| `OP_LIST` (30) | `[pid u32][key type u8]` -> `[count u32][id u32 each]`: the caller's own ids of one kind |
+| `OP_LIST` (31) | `[pid u32][key type u8]` -> `[count u32][id u32 each]`: the caller's own ids of one kind |
 | `OP_WALLET_IMPORT`, `OP_WALLET_GENERATE`, `OP_WALLET_GENERATE_HD`, `OP_WALLET_RECOVER`, `OP_WALLET_DERIVE` | create or derive a wallet key: from a 32-byte secret, at random, or from a BIP39 mnemonic (m/44'/60'/0'/0/0) |
-| `OP_SIGN_NOX_RECEIPT` | a recoverable EIP-712 signature |
-| `OP_SIGN_NOX_APPROVE`, `OP_SIGN_NOX_TRANSFER`, `OP_SIGN_NOX_STAKE_APPROVE`, `OP_SIGN_NOX_STAKE`, `OP_SIGN_NOX_UNSTAKE`, `OP_SIGN_NOX_STAKE_LOCKED`, `OP_SIGN_ETH_TRANSFER`, `OP_SIGN_TX` | raw signed EIP-1559 transactions |
+| `OP_SIGN_TYPED_DATA` | a recoverable EIP-712 signature over an entry of the keyring's own table (`src/server/typed/`); see below |
+| `OP_SIGN_NOX_TRANSFER`, `OP_SIGN_NOX_STAKE_APPROVE`, `OP_SIGN_NOX_STAKE`, `OP_SIGN_NOX_UNSTAKE`, `OP_SIGN_NOX_STAKE_LOCKED`, `OP_SIGN_ETH_TRANSFER`, `OP_SIGN_TX` | raw signed EIP-1559 transactions |
 | `OP_LIST_WALLET_RAILS` | the wallet rails and their status |
 | `OP_VAULT_SEAL`, `OP_VAULT_OPEN`, `OP_SHIELD_MATERIAL`, `OP_SHIELD_SEAL`, `OP_SHIELD_OPEN` | seal, open and shield the wallet's account record; the wallet only |
+| `OP_SIGN_NOX_RECEIPT` (11), `OP_SIGN_NOX_APPROVE` (12) | retired: EINVAL. Both signed for the retired, upgradeable ReceiptSettlement proxy; the numbers stay reserved (`src/protocol/retired.rs`) |
 
 the pid in the request is accepted only when it equals the pid the kernel stamped
 on the message, and sender 0 is refused. A frame too short to carry a sequence
@@ -66,6 +67,35 @@ store them. The reaper leaves them when that pid ends. Before any request is
 answered, the records go to whichever pid owns the name now, so a restarted
 driver finds its bonds with `OP_LIST`. They last the boot only until
 Decision 27.
+
+### `OP_SIGN_TYPED_DATA` (30)
+
+Request: `pid u32 | key u32 | entry u16 | reserved u16 = 0 | chain_id u64 | n u8 | n x 32-byte words`,
+little-endian, the words the EIP-712 encoding of the entry's fields in order.
+
+Reply, 181 bytes: `signer[20] | domainSeparator[32] | structHash[32] | digest[32] | sig[65]`.
+
+The caller never supplies a type, a domain or a verifying contract: those come
+from the table in `src/server/typed/`. It has three entries:
+
+- 1, `Voucher` under "NONOS Settlement", callable by the `payment` service. Its
+  `payer` field must be the signing key's address.
+- 2, `PublisherBinding`, under "NONOS Bond", callable by the wallet.
+- 3, `ReleaseAttest`, under "NONOS Bond", callable by the wallet.
+
+A request is signed only when every one of these holds:
+
+- the caller owns one of the entry's services;
+- `resolve_caller` passes;
+- the chain is mainnet or Sepolia;
+- the entry's contract is deployed on that chain;
+- every word is a canonical encoding of its field's type;
+- the key is the caller's own, unlocked and unexpired.
+
+Failures answer `EACCES` for the caller, `ENOENT` for a contract not deployed,
+and `EINVAL` for anything else. No contract is deployed yet, so every entry
+refuses with `ENOENT`. `wallet_proofs` holds the table's pure code and pins its
+hashes.
 
 `OP_LIST_WALLET_RAILS` returns:
 
@@ -124,7 +154,7 @@ reported to clients with an errno of its own by the kernel path.
 
 ## Current implemented surface
 
-The 29 ops above, served by the handlers under `src/server/handlers/`, over the
+The 31 ops above, served by the handlers under `src/server/handlers/`, over the
 and EIP-1559 encoding live under `src/server/eip712/` and `src/server/eip1559/`;
 RLP under `src/server/rlp/`; the vault under `src/vault/`. Nothing else.
 

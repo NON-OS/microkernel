@@ -21,6 +21,7 @@ use crate::memory::addr::PhysAddr;
 use crate::smp::lock_responsive;
 
 use super::super::attach_map::snapshot::has_foreign_holder;
+use super::super::release::release_unmapped;
 use super::super::types::SurfaceHandle;
 use super::gate::GATE;
 use super::kept::pending;
@@ -63,7 +64,7 @@ pub fn reclaim() {
     for orphan in done {
         // The owner gave the surface up when it unmapped all of it; now that
         // nobody maps it, its slot goes too.
-        crate::kernel_core::surface_registry::release::release_unmapped(orphan.owner, orphan.handle);
+        release_unmapped(orphan.owner, orphan.handle);
         for frame in orphan.free {
             if crate::memory::frame_alloc::deallocate_frame(frame).is_err() {
                 crate::sys::serial::println(b"[SURFACE] orphan_frame_release_failed");

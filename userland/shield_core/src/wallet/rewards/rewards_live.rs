@@ -1,6 +1,3 @@
-// A test asserts by panicking, so the lints that forbid it are off here.
-#![allow(clippy::expect_used, clippy::arithmetic_side_effects, clippy::integer_division)]
-
 use super::rewards_vectors::{address, M};
 use super::{read_link, EPOCH, GENESIS};
 use crate::net::tor::Tor;

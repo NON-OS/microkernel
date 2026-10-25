@@ -27,7 +27,8 @@ impl Wallet {
                 .zip(batch)
                 .map(|(k, address)| {
                     scope.spawn(move || {
-                        let index = u32::try_from(k).unwrap_or(u32::MAX).saturating_add(1);
+                        let index = u32::try_from(k).ok().and_then(|k| k.checked_add(1));
+                        let index = index.ok_or(WalletError::NoSuchAccount)?;
                         let seen = as_account(index, || {
                             Ok::<bool, WalletError>(
                                 used(tor, Network::Mainnet, address)?

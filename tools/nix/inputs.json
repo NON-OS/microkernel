@@ -141,6 +141,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -153,6 +159,19 @@
   "include": [
    ".cargo",
    "nonos-attest-path"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-boot-measure": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure"
   ],
   "md": [],
   "signed": []
@@ -249,7 +268,13 @@
   "include": [
    ".cargo",
    "nonos-mk",
-   "userland/marketplace_abi"
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_seal",
+   "userland/settle_proto"
   ],
   "md": [],
   "signed": []
@@ -423,6 +448,7 @@
    "src/arch/x86_64/acpi/devices/i2c/hids.rs",
    "src/arch/x86_64/acpi/devices/i2c/names.rs",
    "src/arch/x86_64/acpi/devices/i2c/parse.rs",
+   "src/arch/x86_64/acpi/devices/i2c/pci_hosts.rs",
    "src/arch/x86_64/acpi/devices/i2c/resources.rs",
    "src/arch/x86_64/acpi/devices/i2c/types.rs",
    "src/arch/x86_64/acpi/devices/i2c/walk.rs",
@@ -704,7 +730,8 @@
    "userland/nonos_ed25519",
    "userland/nonos_equix",
    "userland/nonos_hash",
-   "userland/shield_core/src/net/pools.rs"
+   "userland/shield_core/src/net/pools.rs",
+   "userland/shield_core/src/net/pools_retired.rs"
   ],
   "md": [],
   "signed": []
@@ -1038,8 +1065,12 @@
    "userland/gfx_serve_proofs/src/sweep/read.rs",
    "userland/gfx_serve_proofs/src/sweep/rng.rs",
    "userland/gfx_serve_proofs/src/sweep/server_sweep.rs",
+   "userland/libc/src/bringup/deadline.rs",
    "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/bringup/recv_turn.rs",
    "userland/libc/src/bringup/run.rs",
+   "userland/libc/src/bringup/say.rs",
+   "userland/libc/src/bringup/schedule.rs",
    "userland/nonos_devmodel",
    "userland/nonos_edid",
    "userland/nonos_gfx_pool/src/anon.rs",
@@ -1352,8 +1383,11 @@
    "userland/capsule_model_fetch/src/tiers/memory.rs",
    "userland/libc",
    "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_nox_config",
    "userland/nonos_route_link",
    "userland/nonos_socket",
+   "userland/payment_proto",
    "userland/policy_client",
    "userland/policy_proto",
    "userland/toolkit"
@@ -1480,6 +1514,7 @@
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/base64/src/decode.rs",
+   "userland/capsule_audio_player/src/fetch/io.rs",
    "userland/capsule_browser/src/browser/cookie",
    "userland/capsule_browser/src/browser/css",
    "userland/capsule_browser/src/browser/dom",
@@ -1573,6 +1608,7 @@
    "userland/capsule_crypto/src/server/handlers",
    "userland/capsule_crypto/src/server/wipe.rs",
    "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_prove_fetch/src/io.rs",
    "userland/inflate",
    "userland/libc",
    "userland/nonos_brotli",
@@ -1604,6 +1640,7 @@
    "userland/nonos_tls/src/cert_verify_msg",
    "userland/nonos_tls/src/cert_window.rs",
    "userland/nonos_tls/src/chacha_record.rs",
+   "userland/nonos_tls/src/chain_anchor.rs",
    "userland/nonos_tls/src/chain_walk.rs",
    "userland/nonos_tls/src/client_finished.rs",
    "userland/nonos_tls/src/client_flight.rs",
@@ -1645,7 +1682,9 @@
    "userland/nonos_tls/src/roots",
    "userland/nonos_tls/src/rtc_now.rs",
    "userland/nonos_tls/src/scan_messages.rs",
+   "userland/nonos_tls/src/scan_request.rs",
    "userland/nonos_tls/src/scan_server_finished.rs",
+   "userland/nonos_tls/src/scan_state.rs",
    "userland/nonos_tls/src/schedule.rs",
    "userland/nonos_tls/src/server_complete",
    "userland/nonos_tls/src/server_context.rs",
@@ -1661,6 +1700,7 @@
    "userland/nonos_tls/src/verify_p256.rs",
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/nonos_tls/src/verify_rsa_checked.rs",
    "userland/policy_client",
    "userland/policy_proto",
    "userland/tls_proofs",
@@ -1976,10 +2016,6 @@
   "exclude": [],
   "include": [
    ".cargo",
-   "nonos-bootloader/firmware/intel/iwlwifi-7265D-29.ucode",
-   "nonos-bootloader/firmware/intel/iwlwifi-8265-36.ucode",
-   "nonos-bootloader/firmware/intel/iwlwifi-9260-th-b0-jf-b0-46.ucode",
-   "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
    "src/hardware/broker/acpi/dgon_wire.rs",
@@ -2763,6 +2799,10 @@
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_installer",
    "userland/libc",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_config",
+   "userland/payment_proto",
+   "userland/settle_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2792,6 +2832,7 @@
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
    "src/userspace/init/app_choice/bits.rs",
+   "tools/nix/store.json",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2802,6 +2843,7 @@
    "userland/libc",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
+   "userland/nonos_linux_policy",
    "userland/nonos_route_link",
    "userland/nonos_socket",
    "userland/nonos_tls",
@@ -2824,24 +2866,32 @@
    "src/userspace/capsule_linux/family.rs",
    "src/userspace/capsule_linux/terminal/tier.rs",
    "src/userspace/init/app_choice/bits.rs",
+   "tools/nix/store.json",
+   "userland/capsule_linux/build",
    "userland/capsule_linux/guests/busybox.elf",
    "userland/capsule_linux/keys",
+   "userland/capsule_linux/policies.txt",
    "userland/capsule_linux/src/linux/abi/errno.rs",
    "userland/capsule_linux/src/linux/abi/errno_io.rs",
    "userland/capsule_linux/src/linux/abi/errno_sock.rs",
+   "userland/capsule_linux/src/linux/app/choose.rs",
+   "userland/capsule_linux/src/linux/app/identity.rs",
+   "userland/capsule_linux/src/linux/app/identity_exec.rs",
+   "userland/capsule_linux/src/linux/app/reach.rs",
+   "userland/capsule_linux/src/linux/app/rules.rs",
    "userland/capsule_linux/src/linux/applets.rs",
-   "userland/capsule_linux/src/linux/call/futex_op.rs",
-   "userland/capsule_linux/src/linux/call/ioctl_req.rs",
+   "userland/capsule_linux/src/linux/call/futex_op",
+   "userland/capsule_linux/src/linux/call/ioctl_req",
    "userland/capsule_linux/src/linux/call/iovec.rs",
-   "userland/capsule_linux/src/linux/call/mem/map_args.rs",
+   "userland/capsule_linux/src/linux/call/mem/map_args",
    "userland/capsule_linux/src/linux/call/mem/prot_args.rs",
    "userland/capsule_linux/src/linux/call/mem/remap_args.rs",
    "userland/capsule_linux/src/linux/call/random_flags.rs",
    "userland/capsule_linux/src/linux/call/sigframe.rs",
    "userland/capsule_linux/src/linux/call/sigframe_build.rs",
    "userland/capsule_linux/src/linux/call/sigframe_read.rs",
-   "userland/capsule_linux/src/linux/call/signal_act.rs",
-   "userland/capsule_linux/src/linux/call/spawn/clone_flags.rs",
+   "userland/capsule_linux/src/linux/call/signal_act",
+   "userland/capsule_linux/src/linux/call/spawn/clone_flags",
    "userland/capsule_linux/src/linux/call/spawn/exec_args.rs",
    "userland/capsule_linux/src/linux/call/spawn/exec_shebang.rs",
    "userland/capsule_linux/src/linux/call/spawn/tasks.rs",
@@ -2853,27 +2903,14 @@
    "userland/capsule_linux/src/linux/console/winsize.rs",
    "userland/capsule_linux/src/linux/console/wipe.rs",
    "userland/capsule_linux/src/linux/file",
-   "userland/capsule_linux/src/linux/guest/fd_kind.rs",
-   "userland/capsule_linux/src/linux/guest/futex_pick.rs",
-   "userland/capsule_linux/src/linux/guest/layout.rs",
-   "userland/capsule_linux/src/linux/guest/links_room.rs",
-   "userland/capsule_linux/src/linux/guest/mem.rs",
-   "userland/capsule_linux/src/linux/guest/memory.rs",
-   "userland/capsule_linux/src/linux/guest/sigalt.rs",
-   "userland/capsule_linux/src/linux/guest/sigrestart.rs",
-   "userland/capsule_linux/src/linux/guest/sigstate.rs",
-   "userland/capsule_linux/src/linux/guest/sigtimer.rs",
-   "userland/capsule_linux/src/linux/guest/sigtimer_rearm.rs",
-   "userland/capsule_linux/src/linux/guest/slots.rs",
-   "userland/capsule_linux/src/linux/guest/timer.rs",
-   "userland/capsule_linux/src/linux/guest/watch.rs",
+   "userland/capsule_linux/src/linux/guest",
    "userland/capsule_linux/src/linux/image/elf.rs",
    "userland/capsule_linux/src/linux/image/elf_phdr.rs",
    "userland/capsule_linux/src/linux/image/phdr.rs",
    "userland/capsule_linux/src/linux/image/read.rs",
    "userland/capsule_linux/src/linux/image/stack_words.rs",
    "userland/capsule_linux/src/linux/install",
-   "userland/capsule_linux/src/linux/net/anon_answer.rs",
+   "userland/capsule_linux/src/linux/net/anon_answer",
    "userland/capsule_linux/src/linux/net/anon_ops.rs",
    "userland/capsule_linux/src/linux/net/anon_wire.rs",
    "userland/capsule_linux/src/linux/net/dns/limits.rs",
@@ -2885,8 +2922,8 @@
    "userland/capsule_linux/src/linux/net/ready_sets.rs",
    "userland/capsule_linux/src/linux/net/route.rs",
    "userland/capsule_linux/src/linux/net/sock/adopt.rs",
-   "userland/capsule_linux/src/linux/net/sock/anon_rx.rs",
-   "userland/capsule_linux/src/linux/net/sock/backend.rs",
+   "userland/capsule_linux/src/linux/net/sock/anon_rx",
+   "userland/capsule_linux/src/linux/net/sock/backend",
    "userland/capsule_linux/src/linux/net/sock/free.rs",
    "userland/capsule_linux/src/linux/net/sock/gram_room.rs",
    "userland/capsule_linux/src/linux/net/sock/kinds.rs",
@@ -2899,21 +2936,56 @@
    "userland/capsule_linux/src/linux/net/sock/types.rs",
    "userland/capsule_linux/src/linux/net/sock/unlisten.rs",
    "userland/capsule_linux/src/linux/run_mode.rs",
+   "userland/capsule_linux/src/linux/serve/trace_link.rs",
    "userland/capsule_linux/src/linux/store_why.rs",
    "userland/capsule_linux/src/linux/unix/cmsg.rs",
    "userland/capsule_linux/src/linux/unix/conn.rs",
    "userland/capsule_linux/src/linux/wayland/args.rs",
    "userland/capsule_linux/src/linux/wayland/configure.rs",
-   "userland/capsule_linux/src/linux/wayland/fit.rs",
+   "userland/capsule_linux/src/linux/wayland/decoration.rs",
+   "userland/capsule_linux/src/linux/wayland/evdev.rs",
+   "userland/capsule_linux/src/linux/wayland/evdev_keys.rs",
+   "userland/capsule_linux/src/linux/wayland/fit",
+   "userland/capsule_linux/src/linux/wayland/focus_step.rs",
    "userland/capsule_linux/src/linux/wayland/frame_len.rs",
+   "userland/capsule_linux/src/linux/wayland/held_keys.rs",
    "userland/capsule_linux/src/linux/wayland/object.rs",
+   "userland/capsule_linux/src/linux/wayland/object_kind.rs",
+   "userland/capsule_linux/src/linux/wayland/object_life.rs",
+   "userland/capsule_linux/src/linux/wayland/object_table.rs",
+   "userland/capsule_linux/src/linux/wayland/object_version.rs",
+   "userland/capsule_linux/src/linux/wayland/opaque.rs",
    "userland/capsule_linux/src/linux/wayland/ops.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_data.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_decoration.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_misc.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_output.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_req.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_seat.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_select.rs",
+   "userland/capsule_linux/src/linux/wayland/ops_shell.rs",
    "userland/capsule_linux/src/linux/wayland/out.rs",
+   "userland/capsule_linux/src/linux/wayland/output.rs",
+   "userland/capsule_linux/src/linux/wayland/pointer_codes.rs",
+   "userland/capsule_linux/src/linux/wayland/popup/axis.rs",
+   "userland/capsule_linux/src/linux/wayland/popup/place.rs",
+   "userland/capsule_linux/src/linux/wayland/popup/positioner.rs",
+   "userland/capsule_linux/src/linux/wayland/popup/rules.rs",
+   "userland/capsule_linux/src/linux/wayland/popup/side.rs",
+   "userland/capsule_linux/src/linux/wayland/popup/stack.rs",
    "userland/capsule_linux/src/linux/wayland/reshape.rs",
    "userland/capsule_linux/src/linux/wayland/scene_pixels.rs",
+   "userland/capsule_linux/src/linux/wayland/seat.rs",
+   "userland/capsule_linux/src/linux/wayland/subsurface/blend.rs",
+   "userland/capsule_linux/src/linux/wayland/subsurface/may.rs",
+   "userland/capsule_linux/src/linux/wayland/subsurface/order.rs",
+   "userland/capsule_linux/src/linux/wayland/subsurface/restack.rs",
+   "userland/capsule_linux/src/linux/wayland/subsurface/state.rs",
    "userland/capsule_linux/src/linux/wayland/window_damage.rs",
-   "userland/capsule_linux/src/linux/wayland/window_life.rs",
+   "userland/capsule_linux/src/linux/wayland/window_life",
    "userland/capsule_linux/src/linux/wayland/wire.rs",
+   "userland/capsule_linux/src/linux/wayland/xkb_mods.rs",
+   "userland/capsule_linux/src/linux/whole.rs",
    "userland/capsule_linux_proofs",
    "userland/capsule_model_fetch/src/exit.rs",
    "userland/capsule_model_fetch/src/get/anyone_wait.rs",
@@ -2931,8 +3003,10 @@
    "userland/capsule_net_sockets/src/server/handlers/connect/parse_ipv4.rs",
    "userland/capsule_net_sockets/src/server/handlers/io.rs",
    "userland/inflate",
+   "userland/linux_userland/keymap-us.xkb",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
+   "userland/nonos_linux_policy",
    "userland/nonos_route_link/src/pick.rs",
    "userland/openpgp",
    "userland/policy_proto",
@@ -2979,7 +3053,11 @@
    "userland/market_proto",
    "userland/marketplace_abi",
    "userland/nonos_ed25519",
+   "userland/nonos_eth_rpc",
    "userland/nonos_hash",
+   "userland/nonos_nox_config",
+   "userland/nonos_secp256k1",
+   "userland/settle_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -3073,6 +3151,19 @@
    "userland/policy_client",
    "userland/policy_proto",
    "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_core/tests/ipc_framing": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_core/src/device/batch_frames.rs",
+   "userland/capsule_net_core/src/protocol/errno.rs",
+   "userland/capsule_net_core/src/server/handlers/tcp/recv_cap.rs",
+   "userland/capsule_net_core/src/server/parse_req.rs",
+   "userland/capsule_net_core/tests/ipc_framing"
   ],
   "md": [],
   "signed": []
@@ -3171,6 +3262,28 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_net_sockets/tests/connect_pending": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_sockets/src/server/handlers/connect/pending/verdict.rs",
+   "userland/capsule_net_sockets/tests/connect_pending"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_sockets/tests/mixnet_framing": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_sockets/src/server/handlers/mixnet_frame",
+   "userland/capsule_net_sockets/src/server/handlers/mixnet_residual",
+   "userland/capsule_net_sockets/src/sockets/types.rs",
+   "userland/capsule_net_sockets/tests/mixnet_framing"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_net_tcp": {
   "exclude": [],
   "include": [
@@ -3202,13 +3315,55 @@
   "md": [],
   "signed": []
  },
+ "userland/capsule_nox_settle": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_nox_settle",
+   "userland/libc",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_meter",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/payment_proto",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/settle_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/capsule_payment": {
   "exclude": [],
   "include": [
    ".cargo",
    "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/capsule_payment",
-   "userland/libc"
+   "userland/libc",
+   "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_meter",
+   "userland/nonos_seal",
+   "userland/nonos_vault",
+   "userland/payment_proto",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/settle_proto"
   ],
   "md": [],
   "signed": []
@@ -3285,8 +3440,33 @@
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_prove",
+   "userland/isolation_stark",
    "userland/libc",
+   "userland/nonos_proof_abi",
    "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_prove_fetch": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_prove_fetch",
+   "userland/libc",
+   "userland/nonos_cap",
+   "userland/nonos_proof_abi",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto"
   ],
   "md": [],
   "signed": []
@@ -3401,12 +3581,15 @@
    "userland/compositor/src/display/arrange_wire.rs",
    "userland/libc",
    "userland/nonos_seal",
-   "userland/nonos_wifi_client/src/join_wire.rs",
+   "userland/nonos_wifi_client/src/join_wire",
    "userland/nonos_wifi_client/src/network.rs",
+   "userland/nonos_wifi_client/src/saved/dropped.rs",
    "userland/nonos_wifi_client/src/saved/error.rs",
    "userland/nonos_wifi_client/src/saved/file.rs",
    "userland/nonos_wifi_client/src/saved/list.rs",
    "userland/nonos_wifi_client/src/saved/list_codec.rs",
+   "userland/nonos_wifi_client/src/saved/list_put.rs",
+   "userland/nonos_wifi_client/src/saved/pass.rs",
    "userland/nonos_wifi_client/src/wipe.rs",
    "userland/nonos_wifi_client/src/wire.rs",
    "userland/policy_proto",
@@ -3454,6 +3637,7 @@
    "userland/libc",
    "userland/nonos_hash",
    "userland/nonos_hd",
+   "userland/nonos_nox_config",
    "userland/nonos_route_link",
    "userland/nonos_seal",
    "userland/nonos_socket",
@@ -3572,6 +3756,7 @@
    "userland/market_proto",
    "userland/nonos_git",
    "userland/nonos_http",
+   "userland/nonos_nox_config",
    "userland/nonos_route_link",
    "userland/nonos_socket",
    "userland/nonos_tls",
@@ -3597,6 +3782,17 @@
    "userland/capsule_text_editor",
    "userland/libc",
    "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_text_editor/layout_tests": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_text_editor/layout_tests",
+   "userland/capsule_text_editor/src/doc",
+   "userland/toolkit/assets"
   ],
   "md": [],
   "signed": []
@@ -3670,21 +3866,28 @@
    "userland/assets/etna/etna-fcb6fdda9325.png",
    "userland/assets/fonts/Geist-Medium.ttf",
    "userland/assets/fonts/Geist-Regular.ttf",
-   "userland/assets/fonts/Geist-SemiBold.ttf",
    "userland/assets/fonts/JetBrainsMono-Regular.ttf",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_wallet_nonos",
    "userland/libc",
+   "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
    "userland/nonos_hash",
    "userland/nonos_hd",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
    "userland/nonos_qr",
    "userland/nonos_route_link",
    "userland/nonos_seal",
    "userland/nonos_socket",
    "userland/nonos_tls",
+   "userland/payment_proto",
    "userland/policy_client",
    "userland/policy_proto",
+   "userland/settle_proto",
    "userland/shield_wire",
    "userland/toolkit",
    "userland/wallet_proofs/fixtures/nox1-phone.txt",
@@ -3925,6 +4128,7 @@
   "include": [
    ".cargo",
    "src/services/registry/displays.rs",
+   "userland/compositor/Capsule.mk",
    "userland/compositor/src/display/access_rule.rs",
    "userland/compositor/src/display/access_wire.rs",
    "userland/compositor/src/display/arrange_wire.rs",
@@ -3972,6 +4176,8 @@
    "userland/compositor/src/setup/canvas_floor.rs",
    "userland/compositor/src/setup/canvas_scale.rs",
    "userland/compositor/src/setup/discover",
+   "userland/compositor/src/setup/prime_gop.rs",
+   "userland/compositor/src/setup/prime_gop_handle.rs",
    "userland/compositor/src/state/attach.rs",
    "userland/compositor/src/state/cursor.rs",
    "userland/compositor/src/state/damage",
@@ -4121,6 +4327,12 @@
    "nonos-data/trust/capsules/acpi.manifest.bin",
    "nonos-data/trust/capsules/acpi.nonos_id_cert.bin",
    "nonos-data/trust/capsules/acpi.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -4193,7 +4405,10 @@
    "userland/capsule_driver_ahci/src/protocol",
    "userland/capsule_driver_ahci/src/server/handlers/rw_parse.rs",
    "userland/driver_proofs",
-   "userland/libc/src/bringup/policy.rs"
+   "userland/libc/src/bringup/deadline.rs",
+   "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/bringup/recv_turn.rs",
+   "userland/libc/src/bringup/schedule.rs"
   ],
   "md": [],
   "signed": []
@@ -4444,6 +4659,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -4906,8 +5127,7 @@
    "userland/capsule_driver_i2c_hid/src/setup",
    "userland/capsule_driver_i2c_hid/src/state",
    "userland/capsule_driver_i2c_pci/src/constants",
-   "userland/capsule_driver_i2c_pci/src/discover/acpi_touchpad.rs",
-   "userland/capsule_driver_i2c_pci/src/discover/found.rs",
+   "userland/capsule_driver_i2c_pci/src/discover",
    "userland/capsule_driver_i2c_pci/src/driver.rs",
    "userland/capsule_driver_i2c_pci/src/gpio0/wire.rs",
    "userland/capsule_driver_i2c_pci/src/init",
@@ -4918,8 +5138,11 @@
    "userland/capsule_driver_i2c_pci/src/server/handlers/probe.rs",
    "userland/capsule_driver_i2c_pci/src/server/handlers/transfer.rs",
    "userland/capsule_driver_i2c_pci/src/server/respond.rs",
+   "userland/capsule_driver_i2c_pci/src/setup/sequence/brought_up.rs",
+   "userland/capsule_driver_i2c_pci/src/setup/sequence/order.rs",
    "userland/capsule_driver_i2c_pci/src/setup/sequence/settle.rs",
    "userland/capsule_driver_i2c_pci/src/setup/sequence/sweep.rs",
+   "userland/capsule_driver_i2c_pci/src/setup/sequence/unlisted_gate.rs",
    "userland/capsule_driver_i2c_pci/src/transaction",
    "userland/capsule_driver_usb_hid/src/descriptors/report/cursors.rs",
    "userland/capsule_driver_usb_hid/src/descriptors/report/global_state.rs",
@@ -4930,6 +5153,9 @@
    "userland/i2c_transfer_proofs",
    "userland/libc/src/broker/dma_order.rs",
    "userland/libc/src/broker/mmio_access.rs",
+   "userland/libc/src/broker/types/bar.rs",
+   "userland/libc/src/broker/types/bus.rs",
+   "userland/libc/src/broker/types/device.rs",
    "userland/nonos_i2cmodel"
   ],
   "md": [],
@@ -4953,6 +5179,9 @@
    "userland/i2c_proofs_libc_shim",
    "userland/libc/src/broker/dma_order.rs",
    "userland/libc/src/broker/mmio_access.rs",
+   "userland/libc/src/broker/types/bar.rs",
+   "userland/libc/src/broker/types/bus.rs",
+   "userland/libc/src/broker/types/device.rs",
    "userland/nonos_devmodel"
   ],
   "md": [],
@@ -4963,8 +5192,7 @@
   "include": [
    ".cargo",
    "userland/capsule_driver_i2c_pci/src/constants",
-   "userland/capsule_driver_i2c_pci/src/discover/acpi_touchpad.rs",
-   "userland/capsule_driver_i2c_pci/src/discover/found.rs",
+   "userland/capsule_driver_i2c_pci/src/discover",
    "userland/capsule_driver_i2c_pci/src/driver.rs",
    "userland/capsule_driver_i2c_pci/src/gpio0/wire.rs",
    "userland/capsule_driver_i2c_pci/src/init",
@@ -4975,13 +5203,19 @@
    "userland/capsule_driver_i2c_pci/src/server/handlers/probe.rs",
    "userland/capsule_driver_i2c_pci/src/server/handlers/transfer.rs",
    "userland/capsule_driver_i2c_pci/src/server/respond.rs",
+   "userland/capsule_driver_i2c_pci/src/setup/sequence/brought_up.rs",
+   "userland/capsule_driver_i2c_pci/src/setup/sequence/order.rs",
    "userland/capsule_driver_i2c_pci/src/setup/sequence/settle.rs",
    "userland/capsule_driver_i2c_pci/src/setup/sequence/sweep.rs",
+   "userland/capsule_driver_i2c_pci/src/setup/sequence/unlisted_gate.rs",
    "userland/capsule_driver_i2c_pci/src/transaction",
    "userland/i2c_proofs_libc_shim",
    "userland/i2c_transfer_proofs",
    "userland/libc/src/broker/dma_order.rs",
    "userland/libc/src/broker/mmio_access.rs",
+   "userland/libc/src/broker/types/bar.rs",
+   "userland/libc/src/broker/types/bus.rs",
+   "userland/libc/src/broker/types/device.rs",
    "userland/nonos_i2cmodel"
   ],
   "md": [],
@@ -5162,6 +5396,23 @@
   "md": [],
   "signed": []
  },
+ "userland/installer_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "tools/nonos-pack/core",
+   "userland/capsule_installer/src/protocol",
+   "userland/capsule_installer/src/server/discover.rs",
+   "userland/capsule_installer/src/server/handlers",
+   "userland/installer_proofs",
+   "userland/libc/src/capsule_load.rs",
+   "userland/libc/src/capsule_verify.rs",
+   "userland/libc/src/ipc/lookup.rs",
+   "userland/libc/src/syscall/numbers/tag.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/intel_display_proofs": {
   "exclude": [],
   "include": [
@@ -5232,60 +5483,54 @@
   "md": [],
   "signed": []
  },
+ "userland/isolation_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/isolation_proofs",
+   "userland/isolation_stark",
+   "userland/nonos_proof_abi"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/iwlwifi_proofs": {
   "exclude": [],
   "include": [
    ".cargo",
-   "nonos-bootloader/firmware/intel/iwlwifi-7265D-29.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
    "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
-   "userland/capsule_driver_iwlwifi/src/ccmp/aes.rs",
-   "userland/capsule_driver_iwlwifi/src/ccmp/ccm.rs",
-   "userland/capsule_driver_iwlwifi/src/ccmp/keywrap.rs",
    "userland/capsule_driver_iwlwifi/src/constants",
-   "userland/capsule_driver_iwlwifi/src/dot11/data.rs",
-   "userland/capsule_driver_iwlwifi/src/dot11/header.rs",
-   "userland/capsule_driver_iwlwifi/src/dot11/mgmt.rs",
-   "userland/capsule_driver_iwlwifi/src/dot11/parse.rs",
-   "userland/capsule_driver_iwlwifi/src/eapol/build.rs",
-   "userland/capsule_driver_iwlwifi/src/eapol/mic.rs",
-   "userland/capsule_driver_iwlwifi/src/eapol/parse.rs",
+   "userland/capsule_driver_iwlwifi/src/driver",
+   "userland/capsule_driver_iwlwifi/src/firmware/blob.rs",
+   "userland/capsule_driver_iwlwifi/src/firmware/carried.rs",
    "userland/capsule_driver_iwlwifi/src/firmware/family.rs",
    "userland/capsule_driver_iwlwifi/src/firmware/gen3",
    "userland/capsule_driver_iwlwifi/src/firmware/generation.rs",
-   "userland/capsule_driver_iwlwifi/src/firmware/load.rs",
-   "userland/capsule_driver_iwlwifi/src/firmware/tlv.rs",
-   "userland/capsule_driver_iwlwifi/src/hcmd/doorbell.rs",
-   "userland/capsule_driver_iwlwifi/src/hcmd/header.rs",
-   "userland/capsule_driver_iwlwifi/src/hcmd/ring.rs",
-   "userland/capsule_driver_iwlwifi/src/hcmd/send.rs",
-   "userland/capsule_driver_iwlwifi/src/hcmd/tfd.rs",
    "userland/capsule_driver_iwlwifi/src/init.rs",
-   "userland/capsule_driver_iwlwifi/src/mlme",
+   "userland/capsule_driver_iwlwifi/src/mmio.rs",
    "userland/capsule_driver_iwlwifi/src/pci_match.rs",
-   "userland/capsule_driver_iwlwifi/src/protocol",
    "userland/capsule_driver_iwlwifi/src/regs.rs",
-   "userland/capsule_driver_iwlwifi/src/rx/packet.rs",
-   "userland/capsule_driver_iwlwifi/src/rx/recv.rs",
-   "userland/capsule_driver_iwlwifi/src/rx/ring.rs",
-   "userland/capsule_driver_iwlwifi/src/server/control.rs",
-   "userland/capsule_driver_iwlwifi/src/server/guard.rs",
-   "userland/capsule_driver_iwlwifi/src/server/join_wire.rs",
+   "userland/capsule_driver_iwlwifi/src/server/control",
+   "userland/capsule_driver_iwlwifi/src/server/join_wire",
+   "userland/capsule_driver_iwlwifi/src/server/radio/restarts.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/claim.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/command.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/give_back.rs",
    "userland/capsule_driver_iwlwifi/src/setup/grants.rs",
    "userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs",
-   "userland/capsule_driver_iwlwifi/src/wpa/hmac.rs",
-   "userland/capsule_driver_iwlwifi/src/wpa/pbkdf2.rs",
-   "userland/capsule_driver_iwlwifi/src/wpa/prf.rs",
-   "userland/capsule_driver_iwlwifi/src/wpa/ptk.rs",
-   "userland/capsule_driver_iwlwifi/src/wpa/sha1.rs",
-   "userland/capsule_driver_iwlwifi/src/wpa/supplicant",
    "userland/iwlwifi_proofs",
    "userland/libc/src/broker/dma_order.rs",
    "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_aes",
+   "userland/nonos_mac",
    "userland/nonos_p256",
    "userland/nonos_wifi_client/src/driver/services.rs",
-   "userland/nonos_wifi_client/src/join_wire.rs",
+   "userland/nonos_wifi_client/src/join_wire",
    "userland/nonos_wifi_client/src/network.rs",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim",
@@ -5453,6 +5698,7 @@
    "userland/capsule_net_tcp/Capsule.mk",
    "userland/capsule_net_udp/Capsule.mk",
    "userland/capsule_nonos_install/Capsule.mk",
+   "userland/capsule_nox_settle/Capsule.mk",
    "userland/capsule_pastel/Capsule.mk",
    "userland/capsule_payment/Capsule.mk",
    "userland/capsule_policy/Capsule.mk",
@@ -5460,6 +5706,7 @@
    "userland/capsule_process_manager/Capsule.mk",
    "userland/capsule_proof_io/Capsule.mk",
    "userland/capsule_prove/Capsule.mk",
+   "userland/capsule_prove_fetch/Capsule.mk",
    "userland/capsule_qrgen/Capsule.mk",
    "userland/capsule_ramfs/Capsule.mk",
    "userland/capsule_ripgrep/Capsule.mk",
@@ -5489,6 +5736,7 @@
    "userland/libc/src/broker/device.rs",
    "userland/libc/src/broker/dma.rs",
    "userland/libc/src/broker/dma_lines.rs",
+   "userland/nonos_blk_client/src/disks/in_use.rs",
    "userland/tool_install/Capsule.mk",
    "userland/toolkit/Capsule.mk"
   ],
@@ -5608,6 +5856,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -5640,28 +5894,96 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "nonos-data/market/index.bin",
+   "userland/capsule_app_store/src/store/asked.rs",
+   "userland/capsule_app_store/src/store/asked_label.rs",
+   "userland/capsule_app_store/src/store/channel_held.rs",
    "userland/capsule_app_store/src/store/fill_order.rs",
    "userland/capsule_app_store/src/store/listing.rs",
    "userland/capsule_app_store/src/store/market/failure.rs",
+   "userland/capsule_app_store/src/store/market/failure_text.rs",
+   "userland/capsule_app_store/src/store/next_remove.rs",
    "userland/capsule_app_store/src/store/next_step.rs",
+   "userland/capsule_app_store/src/store/order_line.rs",
+   "userland/capsule_app_store/src/store/payee.rs",
+   "userland/capsule_app_store/src/store/price.rs",
    "userland/capsule_app_store/src/store/progress.rs",
+   "userland/capsule_app_store/src/store/progress_ask.rs",
+   "userland/capsule_app_store/src/store/progress_button.rs",
+   "userland/capsule_app_store/src/store/purchase_said.rs",
+   "userland/capsule_app_store/src/store/reasons.rs",
    "userland/capsule_app_store/src/store/refused.rs",
    "userland/capsule_app_store/src/store/search.rs",
+   "userland/capsule_app_store/src/store/search_match.rs",
+   "userland/capsule_app_store/src/store/source.rs",
    "userland/capsule_app_store/src/store/tab.rs",
+   "userland/capsule_app_store/src/store/verdict.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_market/src/bonds/cache.rs",
+   "userland/capsule_market/src/bonds/late.rs",
+   "userland/capsule_market/src/bonds/refresh.rs",
+   "userland/capsule_market/src/bonds/rows.rs",
+   "userland/capsule_market/src/boot_index.rs",
+   "userland/capsule_market/src/chain_hosts",
+   "userland/capsule_market/src/ingest/error.rs",
    "userland/capsule_market/src/install_ready/arch.rs",
+   "userland/capsule_market/src/install_ready/bond.rs",
    "userland/capsule_market/src/install_ready/checks.rs",
-   "userland/capsule_market/src/protocol",
-   "userland/capsule_market/src/server/handlers/get_app/read_lp_string.rs",
+   "userland/capsule_market/src/install_ready/market.rs",
+   "userland/capsule_market/src/install_ready/pin.rs",
+   "userland/capsule_market/src/protocol/decode.rs",
+   "userland/capsule_market/src/protocol/header.rs",
+   "userland/capsule_market/src/server/handlers/get_commerce/encode.rs",
    "userland/capsule_market/src/server/handlers/get_release/encode_release.rs",
-   "userland/capsule_market/src/server/handlers/get_release/parse_pair.rs",
-   "userland/capsule_market/src/server/handlers/get_release/take_lp.rs",
-   "userland/capsule_market/src/server/handlers/get_release/write_lp_string.rs",
    "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
+   "userland/capsule_market/src/server/lp/pair.rs",
+   "userland/capsule_market/src/server/lp/take.rs",
+   "userland/capsule_market/src/server/lp/write.rs",
    "userland/capsule_terminal/src/command/builtin/market/wrap.rs",
+   "userland/libc/src/debug.rs",
+   "userland/libc/src/syscall/numbers/tag.rs",
    "userland/market_proofs",
    "userland/market_proto",
-   "userland/marketplace_abi"
+   "userland/marketplace_abi",
+   "userland/nonos_hash",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_meter/src/budget/add.rs",
+   "userland/nonos_nox_meter/src/budget/caps.rs",
+   "userland/nonos_nox_meter/src/budget/listing.rs",
+   "userland/nonos_nox_meter/src/caller",
+   "userland/nonos_nox_meter/src/channel/charge.rs",
+   "userland/nonos_nox_meter/src/channel/margin.rs",
+   "userland/nonos_nox_meter/src/channel/state.rs",
+   "userland/nonos_nox_meter/src/error.rs",
+   "userland/nonos_nox_meter/src/pay/funded.rs",
+   "userland/nonos_nox_meter/src/pay/landing.rs",
+   "userland/nonos_nox_meter/src/pay/offer.rs",
+   "userland/nonos_nox_meter/src/pay/record.rs",
+   "userland/nonos_nox_meter/src/state/charge.rs",
+   "userland/nonos_nox_meter/src/state/meter.rs",
+   "userland/nonos_secp256k1",
+   "userland/payment_proto"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/market/index.bin"
+  ]
+ },
+ "userland/market_proto": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/market_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/marketplace_abi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/marketplace_abi",
+   "userland/nonos_nox_config"
   ],
   "md": [],
   "signed": []
@@ -5713,8 +6035,12 @@
    "tools/nonos_qwen_tier",
    "userland/capsule_app_store/src/store/model_card.rs",
    "userland/capsule_app_store/src/store/progress.rs",
+   "userland/capsule_app_store/src/store/progress_ask.rs",
+   "userland/capsule_app_store/src/store/progress_button.rs",
    "userland/capsule_app_store/src/store/progress_text.rs",
+   "userland/capsule_app_store/src/store/route_direct.rs",
    "userland/capsule_app_store/src/store/route_offer.rs",
+   "userland/capsule_app_store/src/store/route_progress.rs",
    "userland/capsule_app_store/src/store/theme.rs",
    "userland/capsule_app_store/src/store/tier_fit.rs",
    "userland/capsule_linux/src/linux/file/family.rs",
@@ -5822,6 +6148,7 @@
   "exclude": [],
   "include": [
    ".cargo",
+   "userland/capsule_net_core/src/autojoin/machine",
    "userland/capsule_net_core/src/autojoin/machine.rs",
    "userland/capsule_net_core/src/device/batch_call.rs",
    "userland/capsule_net_core/src/device/batch_frames.rs",
@@ -5937,6 +6264,25 @@
    "userland/nonos_aml/src/video",
    "userland/nonos_aml/src/wmi",
    "userland/nonos_aml_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_avi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_video_player/assets",
+   "userland/nonos_avi"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_brotli": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_brotli"
   ],
   "md": [],
   "signed": []
@@ -6094,6 +6440,53 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_eth_rpc": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_eth_rpc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_gguf": {
+  "exclude": [
+   "userland/nonos_gguf/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/nonos_gguf"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_git": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_git"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_hash": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_http": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_http"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_i2cmodel": {
   "exclude": [],
   "include": [
@@ -6112,11 +6505,94 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_linux_policy": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_linux/policies.txt",
+   "userland/capsule_linux/src/linux/install/chat_pick.rs",
+   "userland/nonos_linux_policy"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_mac": {
   "exclude": [],
   "include": [
    ".cargo",
    "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_nox_broker": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_nox_broker",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_license",
+   "userland/nonos_nox_receipt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_nox_chunks": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_seal",
+   "userland/settle_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_nox_config": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_nox_config"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_nox_license": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_nox_license"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_nox_meter": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_meter",
+   "userland/nonos_seal",
+   "userland/payment_proto",
+   "userland/settle_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_nox_receipt": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_nox_config",
+   "userland/nonos_nox_receipt"
   ],
   "md": [],
   "signed": []
@@ -6131,11 +6607,40 @@
   "md": [],
   "signed": []
  },
+ "userland/nonos_qr": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_qr",
+   "userland/wallet_proofs/fixtures/nox1-phone.txt",
+   "userland/wallet_proofs/fixtures/nox1-pinned.txt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_recon": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_recon"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/nonos_scsi": {
   "exclude": [],
   "include": [
    ".cargo",
    "userland/nonos_scsi"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_seal": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_seal"
   ],
   "md": [],
   "signed": []
@@ -6188,6 +6693,39 @@
    "userland/nonos_ucsi/src/status.rs",
    "userland/nonos_ucsi/src/storm.rs",
    "userland/nonos_ucsi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_vault": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_seal",
+   "userland/nonos_vault"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_vt": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_vt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_wifi_core": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_aes",
+   "userland/nonos_mac",
+   "userland/nonos_p256",
+   "userland/nonos_wifi_core"
   ],
   "md": [],
   "signed": []
@@ -6389,6 +6927,26 @@
   "md": [],
   "signed": []
  },
+ "userland/openpgp": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/openpgp"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/payment_proto": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/payment_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/pcnet_proofs": {
   "exclude": [],
   "include": [
@@ -6492,6 +7050,32 @@
   "md": [],
   "signed": []
  },
+ "userland/policy_proto": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/proof_abi_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/capsule_prove_fetch/src/desk",
+   "userland/isolation_stark",
+   "userland/nonos_proof_abi",
+   "userland/proof_abi_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/prove_proofs": {
   "exclude": [
    "nonos-attest-path/fuzz",
@@ -6515,9 +7099,20 @@
    "userland/capsule_prove/src/assemble/transcript_line.rs",
    "userland/capsule_prove/src/assemble/wipe.rs",
    "userland/capsule_prove/src/assemble/words.rs",
+   "userland/capsule_prove/src/job/bound.rs",
+   "userland/capsule_prove/src/job/status.rs",
+   "userland/capsule_prove/src/market/buckets.rs",
+   "userland/capsule_prove/src/market/check.rs",
+   "userland/capsule_prove/src/market/container.rs",
+   "userland/capsule_prove/src/market/delivery.rs",
+   "userland/capsule_prove/src/market/device.rs",
+   "userland/capsule_prove/src/market/isolation.rs",
+   "userland/capsule_prove/src/market/sealed.rs",
+   "userland/isolation_stark",
    "userland/libc/src/boot_slots/record.rs",
    "userland/libc/src/enroll/frame.rs",
    "userland/libc/src/heap/span.rs",
+   "userland/nonos_proof_abi",
    "userland/prove_proofs"
   ],
   "md": [],
@@ -6715,6 +7310,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -6883,6 +7484,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -6901,6 +7508,7 @@
    "userland/nonos_route_link/src/direct_only.rs",
    "userland/nonos_route_link/src/frame.rs",
    "userland/nonos_route_link/src/opening.rs",
+   "userland/nonos_route_link/src/patience.rs",
    "userland/nonos_route_link/src/pick.rs",
    "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_route_link/src/slice.rs",
@@ -6966,29 +7574,37 @@
   "include": [
    ".cargo",
    "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
-   "userland/capsule_driver_rtl8821ce/src/assoc.rs",
+   "userland/capsule_driver_rtl8821ce/src/assoc",
    "userland/capsule_driver_rtl8821ce/src/coex",
    "userland/capsule_driver_rtl8821ce/src/constants",
-   "userland/capsule_driver_rtl8821ce/src/efuse.rs",
+   "userland/capsule_driver_rtl8821ce/src/efuse",
    "userland/capsule_driver_rtl8821ce/src/fw",
    "userland/capsule_driver_rtl8821ce/src/h2c",
+   "userland/capsule_driver_rtl8821ce/src/link",
    "userland/capsule_driver_rtl8821ce/src/link.rs",
    "userland/capsule_driver_rtl8821ce/src/mac",
+   "userland/capsule_driver_rtl8821ce/src/pcie",
    "userland/capsule_driver_rtl8821ce/src/phy",
    "userland/capsule_driver_rtl8821ce/src/pwr",
-   "userland/capsule_driver_rtl8821ce/src/regs.rs",
+   "userland/capsule_driver_rtl8821ce/src/regs",
    "userland/capsule_driver_rtl8821ce/src/ring",
    "userland/capsule_driver_rtl8821ce/src/rx",
    "userland/capsule_driver_rtl8821ce/src/scan.rs",
    "userland/capsule_driver_rtl8821ce/src/sec.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/connect/request.rs",
-   "userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/result",
+   "userland/capsule_driver_rtl8821ce/src/serve/control/status_body.rs",
    "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/scanner/channels.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/scanner/drain.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/scanner/state.rs",
    "userland/capsule_driver_rtl8821ce/src/tx",
+   "userland/capsule_driver_rtl8821ce/src/wait.rs",
    "userland/libc/src/broker/dma_order.rs",
    "userland/libc/src/broker/mmio_access.rs",
    "userland/nonos_aes",
+   "userland/nonos_mac",
    "userland/nonos_p256",
    "userland/nonos_wifi_core",
    "userland/nonos_wifi_core_proofs/src/ap_sim",
@@ -7016,13 +7632,47 @@
   "md": [],
   "signed": []
  },
+ "userland/seal_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "src/arch/x86_64/syscall/manager/entry.rs",
+   "src/process/foreign/frame.rs",
+   "src/process/foreign/registry.rs",
+   "src/process/foreign/seal/absorb.rs",
+   "src/process/foreign/seal/family.rs",
+   "src/process/foreign/seal/family_calls.rs",
+   "src/process/foreign/seal/family_new.rs",
+   "src/process/foreign/seal/family_rows.rs",
+   "src/process/foreign/seal/finish.rs",
+   "src/process/foreign/seal/hist.rs",
+   "src/process/foreign/seal/live.rs",
+   "src/process/foreign/seal/meas.rs",
+   "src/process/foreign/seal/record.rs",
+   "src/process/foreign/seal/sealed.rs",
+   "src/process/foreign/seal/snapshot.rs",
+   "src/process/foreign/seal/table.rs",
+   "src/process/foreign/seal/trace.rs",
+   "src/process/foreign/seal/wipe.rs",
+   "src/process/foreign/trap_table.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "userland/libc/src/foreign_frame.rs",
+   "userland/nonos_proof_abi",
+   "userland/seal_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/seq_wire_proofs": {
   "exclude": [],
   "include": [
    ".cargo",
    "userland/capsule_installer/src/protocol",
    "userland/capsule_keyring/src/protocol",
-   "userland/capsule_payment/src/protocol",
    "userland/capsule_ramfs/src/protocol",
    "userland/seq_wire_proofs"
   ],
@@ -7042,6 +7692,17 @@
    "userland/capsule_power/src/protocol",
    "userland/capsule_wallpaper/src/protocol",
    "userland/service_header_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/settle_proto": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_eth_rpc",
+   "userland/nonos_nox_config",
+   "userland/settle_proto"
   ],
   "md": [],
   "signed": []
@@ -7120,13 +7781,84 @@
   "md": [],
   "signed": []
  },
+ "userland/shield_core": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_nox_config",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/shield_core",
+   "userland/wallet_proofs/fixtures/nox1-phone.txt",
+   "userland/wallet_proofs/fixtures/nox1-pinned.txt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/shield_fuzz_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_nox_config",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/shield_core",
+   "userland/shield_fuzz_proofs",
+   "userland/wallet_proofs/fixtures/nox1-phone.txt",
+   "userland/wallet_proofs/fixtures/nox1-pinned.txt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/shield_vectors_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_shield_vectors/src",
+   "userland/capsule_shield_vectors/vectors",
+   "userland/shield_vectors_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/shield_wire": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/shield_wire"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/shield_wire_proofs": {
   "exclude": [],
   "include": [
    ".cargo",
    "userland/capsule_shield/src/reply.rs",
+   "userland/capsule_shield/src/reply_done.rs",
    "userland/capsule_wallet_nonos/src/wallet/shield/kept_names.rs",
    "userland/capsule_wallet_nonos/src/wallet/shield/reply.rs",
+   "userland/capsule_wallet_nonos/src/wallet/shield/reply_entries.rs",
+   "userland/capsule_wallet_nonos/src/wallet/shield/reply_kept.rs",
+   "userland/capsule_wallet_nonos/src/wallet/shield/reply_said.rs",
    "userland/capsule_wallet_nonos/src/wallet/state/shield_log.rs",
    "userland/shield_wire",
    "userland/shield_wire_proofs"
@@ -7371,6 +8103,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -7430,6 +8168,34 @@
   "md": [],
   "signed": []
  },
+ "userland/terminal_host_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/base64",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/tiers/memory.rs",
+   "userland/capsule_terminal/src/command/builtin",
+   "userland/capsule_terminal/src/command/dispatch/run_source.rs",
+   "userland/capsule_terminal/src/command/flags",
+   "userland/capsule_terminal/src/command/output",
+   "userland/capsule_terminal/src/git/storage",
+   "userland/capsule_terminal/src/layout",
+   "userland/capsule_terminal/src/paint",
+   "userland/capsule_terminal/src/palette",
+   "userland/capsule_terminal/src/rail",
+   "userland/capsule_terminal/src/term",
+   "userland/inflate",
+   "userland/nonos_git",
+   "userland/policy_proto",
+   "userland/terminal_host_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/terminal_line_proofs": {
   "exclude": [
    "userland/toolkit/image_tests"
@@ -7449,45 +8215,68 @@
    "userland/capsule_model_fetch/src/need.rs",
    "userland/capsule_net_core/src/server/runner/cadence.rs",
    "userland/capsule_terminal/src/command/builtin/direct_gate.rs",
+   "userland/capsule_terminal/src/command/builtin/exit_check.rs",
    "userland/capsule_terminal/src/command/builtin/fs/grep_paint.rs",
+   "userland/capsule_terminal/src/command/builtin/fs/grep_paint_matches.rs",
    "userland/capsule_terminal/src/command/builtin/fs/tree_render.rs",
+   "userland/capsule_terminal/src/command/builtin/fs/tree_render_draw.rs",
    "userland/capsule_terminal/src/command/builtin/help_layout.rs",
-   "userland/capsule_terminal/src/command/builtin/help_one.rs",
    "userland/capsule_terminal/src/command/builtin/help_pages.rs",
-   "userland/capsule_terminal/src/command/builtin/nox/dispatch.rs",
+   "userland/capsule_terminal/src/command/builtin/help_usage",
    "userland/capsule_terminal/src/command/builtin/nox/help.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/help_ops.rs",
    "userland/capsule_terminal/src/command/builtin/nox/install/follow.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/install/follow_pace.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/install/follow_step.rs",
    "userland/capsule_terminal/src/command/builtin/nox/kill_target.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/kill_target_refused.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/kill_target_resolve.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/route",
    "userland/capsule_terminal/src/command/builtin/offline_gate.rs",
    "userland/capsule_terminal/src/command/builtin/qwen/ask.rs",
    "userland/capsule_terminal/src/command/builtin/qwen/complete.rs",
    "userland/capsule_terminal/src/command/builtin/qwen/fetch_check.rs",
    "userland/capsule_terminal/src/command/builtin/qwen/fetch_words.rs",
    "userland/capsule_terminal/src/command/builtin/qwen/tiers.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/tiers_default.rs",
    "userland/capsule_terminal/src/command/builtin/qwen/window.rs",
    "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
    "userland/capsule_terminal/src/command/builtin/tool.rs",
    "userland/capsule_terminal/src/command/builtin/tool_busy.rs",
    "userland/capsule_terminal/src/command/builtin/tool_list.rs",
+   "userland/capsule_terminal/src/command/builtin/tool_spawn.rs",
    "userland/capsule_terminal/src/command/builtin/version.rs",
    "userland/capsule_terminal/src/command/builtin/whoami.rs",
-   "userland/capsule_terminal/src/command/dispatch/exec.rs",
    "userland/capsule_terminal/src/command/dispatch/filter/count.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/count_wc.rs",
    "userland/capsule_terminal/src/command/dispatch/filter/input.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/input_lines.rs",
    "userland/capsule_terminal/src/command/dispatch/filter/text.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/text_cut.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/text_grep.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/text_reverse.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/text_sort.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/text_uniq.rs",
    "userland/capsule_terminal/src/command/dispatch/redirect.rs",
+   "userland/capsule_terminal/src/command/dispatch/redirect_plan.rs",
+   "userland/capsule_terminal/src/command/dispatch/route",
    "userland/capsule_terminal/src/command/dispatch/statements.rs",
+   "userland/capsule_terminal/src/command/dispatch/statements_split.rs",
    "userland/capsule_terminal/src/command/dispatch/tool_admit.rs",
    "userland/capsule_terminal/src/command/flags",
    "userland/capsule_terminal/src/command/parse",
    "userland/capsule_terminal/src/command/suggest.rs",
-   "userland/capsule_terminal/src/event/complete.rs",
-   "userland/capsule_terminal/src/event/cooked.rs",
-   "userland/capsule_terminal/src/event/cooked_kill.rs",
+   "userland/capsule_terminal/src/command/suggest_distance.rs",
+   "userland/capsule_terminal/src/command/suggest_nearest.rs",
+   "userland/capsule_terminal/src/event",
    "userland/capsule_terminal/src/git/transport/ask.rs",
    "userland/capsule_terminal/src/mixnet/exchange/wait.rs",
+   "userland/capsule_terminal/src/mixnet/exchange/wait_clock.rs",
+   "userland/capsule_terminal/src/mixnet/exchange/wait_settle.rs",
    "userland/capsule_terminal/src/paint/fetch.rs",
    "userland/capsule_terminal/src/paint/fetch_arch.rs",
+   "userland/capsule_terminal/src/paint/fetch_palette.rs",
+   "userland/capsule_terminal/src/paint/fetch_row.rs",
    "userland/capsule_terminal/src/paint/line_chars.rs",
    "userland/capsule_terminal/src/paint/line_window.rs",
    "userland/capsule_terminal/src/paint/vt/box_arms.rs",
@@ -7495,6 +8284,7 @@
    "userland/capsule_terminal/src/term/handed/parse.rs",
    "userland/capsule_terminal/src/term/handed/pick.rs",
    "userland/capsule_terminal/src/term/history/expand.rs",
+   "userland/capsule_terminal/src/term/history/expand_designator.rs",
    "userland/capsule_terminal/src/term/line",
    "userland/capsule_terminal/src/term/select.rs",
    "userland/capsule_terminal/src/term/theme/ansi.rs",
@@ -7671,6 +8461,12 @@
    "nonos-data/trust/capsules/driver_vmxnet3.manifest.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.nonos_id_cert.bin",
    "nonos-data/trust/capsules/driver_vmxnet3.zk_trailer.bin",
+   "nonos-data/trust/capsules/nox_settle.manifest.bin",
+   "nonos-data/trust/capsules/nox_settle.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/nox_settle.zk_trailer.bin",
+   "nonos-data/trust/capsules/prove-fetch.manifest.bin",
+   "nonos-data/trust/capsules/prove-fetch.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/prove-fetch.zk_trailer.bin",
    "nonos-data/trust/capsules/shield_vectors.manifest.bin",
    "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
    "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
@@ -7682,10 +8478,14 @@
   ],
   "include": [
    ".cargo",
+   "userland/capsule_audio_player/src/fetch/io.rs",
    "userland/capsule_crypto/src/protocol",
    "userland/capsule_crypto/src/server/dispatch.rs",
    "userland/capsule_crypto/src/server/handlers",
    "userland/capsule_crypto/src/server/wipe.rs",
+   "userland/capsule_prove_fetch/src/io.rs",
+   "userland/nonos_route_link/src/patience.rs",
+   "userland/nonos_route_link/src/refusal.rs",
    "userland/nonos_tls/src/aes_gcm",
    "userland/nonos_tls/src/alert.rs",
    "userland/nonos_tls/src/app_keys.rs",
@@ -7711,6 +8511,7 @@
    "userland/nonos_tls/src/cert_verify_msg",
    "userland/nonos_tls/src/cert_window.rs",
    "userland/nonos_tls/src/chacha_record.rs",
+   "userland/nonos_tls/src/chain_anchor.rs",
    "userland/nonos_tls/src/chain_walk.rs",
    "userland/nonos_tls/src/client_finished.rs",
    "userland/nonos_tls/src/client_flight.rs",
@@ -7752,7 +8553,9 @@
    "userland/nonos_tls/src/roots",
    "userland/nonos_tls/src/rtc_now.rs",
    "userland/nonos_tls/src/scan_messages.rs",
+   "userland/nonos_tls/src/scan_request.rs",
    "userland/nonos_tls/src/scan_server_finished.rs",
+   "userland/nonos_tls/src/scan_state.rs",
    "userland/nonos_tls/src/schedule.rs",
    "userland/nonos_tls/src/server_complete",
    "userland/nonos_tls/src/server_context.rs",
@@ -7768,6 +8571,7 @@
    "userland/nonos_tls/src/verify_p256.rs",
    "userland/nonos_tls/src/verify_p384.rs",
    "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/nonos_tls/src/verify_rsa_checked.rs",
    "userland/tls_proofs"
   ],
   "md": [],
@@ -7840,6 +8644,18 @@
   "md": [],
   "signed": []
  },
+ "userland/toolkit/image_tests": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/broker/acpi/dgon_wire.rs",
+   "userland/assets/icons",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
  "userland/tpm_enroll_proofs": {
   "exclude": [],
   "include": [
@@ -7895,6 +8711,7 @@
    "src/security/tpm/fifo/regs.rs",
    "src/security/tpm/fifo/send.rs",
    "src/security/tpm/fifo/session.rs",
+   "src/security/tpm/machine_key/bound_label.rs",
    "src/security/tpm/machine_key/consts.rs",
    "src/security/tpm/machine_key/create.rs",
    "src/security/tpm/machine_key/error.rs",
@@ -8615,11 +9432,16 @@
    "userland/assets/etna/etna-fcb6fdda9325.png",
    "userland/assets/fonts/Geist-Medium.ttf",
    "userland/assets/fonts/Geist-Regular.ttf",
-   "userland/assets/fonts/Geist-SemiBold.ttf",
    "userland/assets/fonts/JetBrainsMono-Regular.ttf",
    "userland/assets/icons/nonos_logo.rgba",
+   "userland/capsule_keyring/src/protocol/encode.rs",
+   "userland/capsule_keyring/src/protocol/errno.rs",
+   "userland/capsule_keyring/src/protocol/retired.rs",
+   "userland/capsule_keyring/src/protocol/types.rs",
    "userland/capsule_keyring/src/server/bond_gate",
+   "userland/capsule_keyring/src/server/dispatch.rs",
    "userland/capsule_keyring/src/server/secp.rs",
+   "userland/capsule_keyring/src/server/typed",
    "userland/capsule_keyring/src/server/vault_gate/rule.rs",
    "userland/capsule_keyring/src/server/words_own.rs",
    "userland/capsule_keyring/src/store/count.rs",
@@ -8637,13 +9459,25 @@
    "userland/capsule_keyring/src/store/types",
    "userland/capsule_keyring/src/store/unlock.rs",
    "userland/capsule_keyring/src/store/wipe.rs",
-   "userland/capsule_wallet_nonos/src/wallet",
+   "userland/capsule_wallet_nonos/src",
+   "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_equix",
+   "userland/nonos_eth_rpc",
    "userland/nonos_hash",
    "userland/nonos_hd",
+   "userland/nonos_nox_chunks",
+   "userland/nonos_nox_config",
+   "userland/nonos_route_link/src/bounds.rs",
    "userland/nonos_route_link/src/describe.rs",
    "userland/nonos_route_link/src/pick.rs",
+   "userland/nonos_seal",
    "userland/nonos_secp256k1",
+   "userland/payment_proto",
    "userland/policy_proto",
+   "userland/settle_proto",
+   "userland/shield_core/src/net/tor/shield_route.rs",
+   "userland/shield_wire",
    "userland/wallet_proofs"
   ],
   "md": [],
@@ -8685,12 +9519,18 @@
    ".cargo",
    "userland/nonos_seal",
    "userland/nonos_wifi_client/src/driver/fw_step.rs",
-   "userland/nonos_wifi_client/src/join_wire.rs",
+   "userland/nonos_wifi_client/src/driver/reply.rs",
+   "userland/nonos_wifi_client/src/driver/stage_kind.rs",
+   "userland/nonos_wifi_client/src/join_wire",
    "userland/nonos_wifi_client/src/network.rs",
+   "userland/nonos_wifi_client/src/saved/dropped.rs",
    "userland/nonos_wifi_client/src/saved/error.rs",
    "userland/nonos_wifi_client/src/saved/file.rs",
    "userland/nonos_wifi_client/src/saved/list.rs",
    "userland/nonos_wifi_client/src/saved/list_codec.rs",
+   "userland/nonos_wifi_client/src/saved/list_put.rs",
+   "userland/nonos_wifi_client/src/saved/pass.rs",
+   "userland/nonos_wifi_client/src/saved/pin.rs",
    "userland/nonos_wifi_client/src/wipe.rs",
    "userland/nonos_wifi_client/src/wire.rs",
    "userland/wifi_panel_proofs"
@@ -8756,6 +9596,37 @@
    "userland/nonos_usb_virt",
    "userland/nonos_usbnet/src/xhci/wire.rs",
    "userland/xhci_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/xz": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash",
+   "userland/xz",
+   "userland/zstd/tests/support/damage.rs",
+   "userland/zstd/tests/support/kinds.rs",
+   "userland/zstd/tests/support/rng.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/zstd": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/zstd"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "verification/trusted_path_poc": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "verification/trusted_path_poc"
   ],
   "md": [],
   "signed": []

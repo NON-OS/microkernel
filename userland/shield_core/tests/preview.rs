@@ -2,7 +2,13 @@
 //! for account 0 of the standard test phrase, for a further account, and for a wallet from
 //! the phrase's index 0 key. The preview opens no store and reads nothing from the network.
 
-mod keystore;
+/// The stand ins this test runs against (tests/keystore/).
+mod keystore {
+    mod guard;
+    mod scratch;
+    pub use guard::TestGuard;
+    pub use scratch::scratch;
+}
 mod restored;
 
 use keystore::{scratch, TestGuard};

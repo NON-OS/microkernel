@@ -20,3 +20,5 @@ mod handshake_tests;
 mod kde_tests;
 mod report_tests;
 pub mod sim;
+mod td_kde_tests;
+mod td_sup_tests;

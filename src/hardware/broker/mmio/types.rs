@@ -55,6 +55,8 @@ pub enum MmioMapError {
     /// The kernel maps the range itself with two memory types.
     MixedMemoryType,
     WouldExposePba,
+    /// The pages touch RAM, the kernel image or an IOMMU (forbidden.rs).
+    Forbidden,
     /// The BAR runs into a range firmware keeps for itself.
     FirmwareReserved,
 }

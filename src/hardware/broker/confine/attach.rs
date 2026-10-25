@@ -13,35 +13,43 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-use super::one::attach_one;
+use super::decide::{verdict, Verdict};
+use super::refuse::{Refusal, Refused};
 use super::streams::attach_streams;
 use super::table::pci_address;
 use super::unconfined::unconfined;
+use crate::memory::iommu::dev_unconfined::{OPT_IN, PRODUCTION};
 
-/// The unit is in service and would not take the device, so the claim is
-/// refused rather than granted with a device that reaches all of memory.
-pub(in crate::hardware::broker) struct Refused;
-
-pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refused> {
+pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<(), Refusal> {
     let Some(address) = pci_address(device_id) else {
         // A device the firmware description names: confined through its
         // `iommus`, or refused (streams.rs).
-        return match crate::hardware::broker::described::iommus(device_id) {
-            Some(iommus) => attach_streams(pid, device_id, iommus),
-            None => Ok(()),
+        if let Some(iommus) = crate::hardware::broker::described::iommus(device_id) {
+            return Ok(attach_streams(pid, device_id, iommus)?);
+        }
+        // No requester id, no bus master: map.rs refuses its DMA grants.
+        return match verdict(false, false, Ok(()), OPT_IN, PRODUCTION) {
+            Verdict::Refuse => Err(Refused.into()),
+            _ => Ok(()),
         };
     };
     /*
      * A device no unit in service covers is not translated, and an IOVA
      * handed to it would be used as a physical address: with only the first
      * unit programmed, the RTL8821CE behind a laptop's second unit staged its
-     * firmware from whatever lived at 0x100000. Such a device stays on
-     * physical addresses, said and counted.
+     * firmware from whatever lived at 0x100000. Such a device is refused,
+     * but under the development opt-in (unconfined.rs).
      */
     if !crate::memory::iommu::translates(address) {
-        let why = b"unconfined: no remapping unit in service covers it, reaches all memory";
-        return unconfined(pid, device_id, address, why);
+        return Ok(unconfined(device_id, verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?);
     }
-    attach_one(pid, device_id, address, false)
+    let (group, aliases) = super::gates::admit(device_id)?;
+    super::one::attach_one(pid, device_id, address, false, (&group, &aliases))
+}
+
+/// A device that reaches memory past any IOMMU whatever its domain says
+/// (VMMDev reads guest-physical addresses): it gets no domain, and goes
+/// ahead only where an unconfined device may.
+pub(in crate::hardware::broker) fn untranslated(device_id: u64) -> Result<(), Refusal> {
+    Ok(unconfined(device_id, verdict(true, false, Ok(()), OPT_IN, PRODUCTION))?)
 }

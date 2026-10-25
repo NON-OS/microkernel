@@ -4,7 +4,7 @@ Check a NONOS build yourself: what is pinned, where the reproducible boundary ru
 
 ## The boundary
 
-The artifacts in `result/` are built to be reproducible: the same commit and the same `nonos.toml` should give the same bytes on any machine. [Enrollment](../overview/glossary.md#enrollment) and signing are not, because the [seal](../overview/glossary.md#seal) draws fresh randomness for every [STARK proof](../overview/glossary.md#stark-proof) and signs with keys the build never sees (`BOUNDARY`, `tools/nix/manifest.py:25-29`). The boundary is the tree the flake's `artifacts` function writes: the kernel ELF, every [capsule](../overview/glossary.md#capsule) ELF, the Linux userland, the loader EFI binary and the bill of materials (`artifacts`, `tools/nix/artifacts.nix:1-15`).
+The artifacts in `result/` are built to be reproducible: the same commit and the same `nonos.toml` should give the same bytes on any machine. [Enrollment](../overview/glossary-dma-pool.md#enrollment) and signing are not, because the [seal](../overview/glossary-rollback-index.md#seal) draws fresh randomness for every [STARK proof](../overview/glossary-stark-proof.md#stark-proof) and signs with keys the build never sees (`BOUNDARY`, `tools/nix/manifest.py:25-29`). The boundary is the tree the flake's `artifacts` function writes: the kernel ELF, every [capsule](../overview/glossary-boot-root-record.md#capsule) ELF, the Linux userland, the loader EFI binary and the bill of materials (`artifacts`, `tools/nix/artifacts.nix:1-15`).
 
 The sealed image still traces back to the source. The seal's last check rebuilds the kernel and the loader from the tree with `nix build` and stops unless they are the bytes it sealed (`reproduced`, `tools/nonos_seal/verify.py:70-86`).
 
@@ -33,7 +33,7 @@ Every `Cargo.lock` that uses STARKs must name the commit `flake.lock` pins, or t
 - The kernel's build script asks git for the commit; in the sandbox a small shim answers with the commit the flake was evaluated at (`gitShim`, `tools/nix/image.nix:23-32`).
 - Nix's fixup phase is turned off, so nothing strips or patches a NONOS binary after it is built (`dontFixup`, `tools/nix/rustbuild.nix:1-4`).
 - Every C file built into the kernel or a capsule goes through the one pinned clang, and the Linux userland through the pinned Zig, so no host compiler reaches an artifact (`llvm`, `tools/nix/pins.nix:20-27`).
-- The FAT volume serial and every timestamp on the [ESP](../overview/glossary.md#esp), the USB image and the ISO are fixed values (`IMAGE_DATE`, `tools/nonos_seal/media.py:45-47`).
+- The FAT volume serial and every timestamp on the [ESP](../overview/glossary-dma-pool.md#esp), the USB image and the ISO are fixed values (`IMAGE_DATE`, `tools/nonos_seal/media.py:45-47`).
 
 ## Compare two builds
 
@@ -86,7 +86,7 @@ Not tested in this release.
 
 ## What is not reproducible yet
 
-- The sealed image, by design: its signatures, [trailers](../overview/glossary.md#trailer) and roots differ from one seal to the next.
+- The sealed image, by design: its signatures, [trailers](../overview/glossary-amnesic-boot.md#trailer) and roots differ from one seal to the next.
 - A commit that adds a capsule before its seal is committed: the kernel embeds every shipped capsule's certificate, manifest and trailer, so `result/` holds `kernel/README` instead of a kernel (`kernelNote`, `tools/nix/artifacts.nix:24-26`). The loader likewise needs the kernel's public keys committed (`loaderNote`, `tools/nix/artifacts.nix:21-22`).
 - The cross-system comparison in CI as written: `nonos-verify reproducible` also requires the `config` sections to match (`same_config`, `nonos-verify/src/reproducible/manifests.rs:42-43`), and they carry each host's own toolchain store paths, so builds on two host systems are not expected to pass it. No run of it is checked in this release.
 - On the check run recorded for this commit, the `inputs` check failed for three crates and one proof check did not evaluate. [ci.md](ci.md) lists the state of every check and what the two results have in common.

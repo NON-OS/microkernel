@@ -39,7 +39,7 @@ const LEAD: &str = "A swap is a public trade on Ethereum mainnet. Type an amount
 pub fn show(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let status = super::super::status::parts(state);
-    let ready = state.swap_quote.ready;
+    let ready = state.swap.quote.ready;
     let footer = [(super::click::action(state), Weight::Primary, ready)];
     let spec = FrameSpec {
         number: "12",

@@ -36,9 +36,11 @@ pub const VERSION_RESPONSE: u32 = 15;
 pub const UNLOAD: u32 = 16;
 pub const UNLOAD_RESPONSE: u32 = 17;
 
-/// The versions asked for, newest first: 5.3 down to 2.4 (Windows 8), as
-/// Linux asks. 5.0 changed the contact; below 2.4 the host signals through
-/// the interrupt page alone, which this core does not serve.
+/// The versions asked for, newest first: 5.3 down to 2.4 (Windows 8).
+/// These are the VMBus protocol versions the emulated host accepts
+/// (observed in QEMU's hw/hyperv/vmbus.c); 5.0 changed the contact, and
+/// below 2.4 the host signals through the interrupt page alone, which this
+/// core does not serve.
 pub const VERSIONS: [u32; 8] =
     [0x5_0003, 0x5_0002, 0x5_0001, 0x5_0000, 0x4_0001, 0x4_0000, 0x3_0000, 0x2_0004];
 pub const VERSION_V5: u32 = 0x5_0000;

@@ -33,5 +33,6 @@ mod paste;
 mod replace;
 mod types;
 mod word_nav;
+mod yank;
 
 pub use types::Line;

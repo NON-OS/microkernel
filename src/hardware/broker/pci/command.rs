@@ -17,6 +17,7 @@
 //! The PCI Command register half of the `MkPciConfigWrite` allowlist.
 
 use super::command_bits::{exact, plain};
+use super::command_rule::{command_value, Refused};
 use super::types::{PciWriteError, WriteAction};
 
 /*
@@ -32,11 +33,20 @@ use super::types::{PciWriteError, WriteAction};
  * The bits themselves are in `command_bits.rs`, pure for the proofs.
  */
 /// `masked` is the form of `change.rs`: `new` is then the whole register.
+/// The register the form leaves is then held to `command_rule.rs`: no
+/// bit outside the writable three moves, and Bus Master is set or kept on
+/// only for a caller holding Dma (`may_master`).
 pub(super) fn validate_command(
     new: u16,
     current: u16,
     masked: bool,
+    may_master: bool,
 ) -> Result<WriteAction, PciWriteError> {
     let desired = if masked { exact(new, current) } else { plain(new, current) };
-    desired.map(WriteAction::Command).ok_or(PciWriteError::BitsNotAllowed)
+    let desired = desired.ok_or(PciWriteError::BitsNotAllowed)?;
+    match command_value(desired, current, may_master) {
+        Ok(value) => Ok(WriteAction::Command(value)),
+        Err(Refused::Bits) => Err(PciWriteError::BitsNotAllowed),
+        Err(Refused::BusMaster) => Err(PciWriteError::BusMasterWithoutDma),
+    }
 }

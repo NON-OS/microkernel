@@ -27,5 +27,6 @@ mod nonos_sbox;
 mod nym_ack_tests;
 mod nym_aes;
 mod nym_aes_tests;
+mod sbox_inverse_tests;
 mod sbox_table;
 mod sbox_tests;

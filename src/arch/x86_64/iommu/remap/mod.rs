@@ -14,11 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Interrupt remapping (VT-d 3.4, chapter 5). Built only with the
-//! `nonos-iommu-intremap` feature; every unit then passes compatibility
-//! format interrupts (CFI), and a driver that wants its interrupt confined to
-//! its own device asks `route_msi` for a remapped entry.
-
 mod enable;
 mod init;
 mod ioapic_rte;
@@ -28,12 +23,13 @@ mod route;
 mod slots;
 mod sources;
 mod table;
+mod unnamed;
 mod write;
 
 pub use init::init;
-pub use ioapic_rte::{remappable_rte, rte_index, Line as RteLine};
+pub use ioapic_rte::{handle_of, remappable, remappable_rte, rte_index, Line as RteLine};
 pub use irte::{destination, encode, is_present, source, vector, Irte, Route};
 pub use msi::{handle, remapped, MsiMessage};
-pub use route::{release_msi, route_msi};
+pub use route::{release_msi, route_entry, route_msi};
 pub use slots::{give, take, Slots, SLOT_WORDS};
 pub use table::is_remapping;

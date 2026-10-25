@@ -16,11 +16,24 @@
 
 use core::sync::atomic::Ordering;
 
-use super::super::ring_math;
-use super::super::types::{InputEvent, RegistryError, INPUT_RING_CAP};
-use super::ring::{Ring, DIAG, DROPPED, FIRST_INPUT_POST, KIND_DIAG_BASE, RING, SEQ, WAITER};
+use super::super::types::{InputEvent, RegistryError};
+use super::ring::{DIAG, KIND_DIAG_BASE, RING};
+use super::ring_push::{published, push};
+use super::source::{stamp, KERNEL};
 
+/// The kernel's own post: source 0 (source.rs).
 pub fn post_input(ev: InputEvent) -> Result<(), RegistryError> {
+    post_stamped(ev, KERNEL)
+}
+
+/// MkInputEventPost by `pid`: stamped with its process's source, whatever
+/// the poster wrote in bits 8 to 13 of `flags`.
+pub fn post_input_from(pid: u32, ev: InputEvent) -> Result<(), RegistryError> {
+    post_stamped(ev, super::sources::source_of(pid))
+}
+
+fn post_stamped(mut ev: InputEvent, source: u8) -> Result<(), RegistryError> {
+    ev.flags = stamp(ev.flags, source);
     if ev.kind >= KIND_DIAG_BASE {
         let slot = (ev.kind - KIND_DIAG_BASE) as usize;
         if let Some(c) = DIAG.get(slot) {
@@ -37,7 +50,8 @@ pub fn post_input(ev: InputEvent) -> Result<(), RegistryError> {
 /// ring's lock is held. The lock is a spin lock that syscall paths take, so
 /// a timer tick that waited on it could spin on the CPU whose interrupted
 /// code holds it. The caller keeps the event and tries again next tick.
-pub fn try_post_input(ev: InputEvent) -> Option<Result<(), RegistryError>> {
+pub fn try_post_input(mut ev: InputEvent) -> Option<Result<(), RegistryError>> {
+    ev.flags = stamp(ev.flags, KERNEL);
     let mut ring = RING.try_lock()?;
     let r = push(&mut ring, ev);
     drop(ring);
@@ -45,24 +59,4 @@ pub fn try_post_input(ev: InputEvent) -> Option<Result<(), RegistryError>> {
         published();
     }
     Some(r)
-}
-
-fn push(ring: &mut Ring, ev: InputEvent) -> Result<(), RegistryError> {
-    if ring_math::is_full(ring.head, ring.tail, INPUT_RING_CAP) {
-        DROPPED.fetch_add(1, Ordering::Relaxed);
-        return Err(RegistryError::OutOfSlots);
-    }
-    let head = ring.head;
-    ring.buf[head] = ev;
-    ring.head = ring_math::wrap(head, INPUT_RING_CAP);
-    Ok(())
-}
-
-fn published() {
-    SEQ.fetch_add(1, Ordering::Release);
-    crate::sys::bench::mark_once(&FIRST_INPUT_POST, b"input_post_first");
-    let waiter = WAITER.swap(0, Ordering::AcqRel);
-    if waiter != 0 {
-        crate::sched::wake_process(waiter as u32);
-    }
 }

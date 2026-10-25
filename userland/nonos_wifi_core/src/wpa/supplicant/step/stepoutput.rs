@@ -41,14 +41,17 @@ pub struct StepOutput {
     /// A group key handshake delivered a new group key: the caller installs
     /// `Supplicant::gtk` at `Supplicant::gtk_id`.
     pub new_group_key: bool,
+    /// A rekey finished: the caller sends `reply` (message 4) under the
+    /// pairwise key in use, then installs `Supplicant::tk` in its place.
+    pub new_pairwise_key: bool,
 }
 
 impl StepOutput {
     pub(in crate::wpa::supplicant) fn none() -> Self {
-        Self { reply: None, new_group_key: false }
+        Self { reply: None, new_group_key: false, new_pairwise_key: false }
     }
 
     pub(in crate::wpa::supplicant) fn reply(frame: Option<Vec<u8>>) -> Self {
-        Self { reply: frame, new_group_key: false }
+        Self { reply: frame, new_group_key: false, new_pairwise_key: false }
     }
 }

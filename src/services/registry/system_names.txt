@@ -28,6 +28,7 @@ app.install
 app.linux
 app.linux.install
 app.linux.run
+app.linux.run.net
 app.linux.term
 app.linux.term.1
 app.linux.term.2
@@ -40,6 +41,7 @@ app.process_manager.1
 app.process_manager.2
 app.prove
 app.prove.1
+app.prove.job
 app.settings
 app.settings.1
 app.settings.2
@@ -218,6 +220,7 @@ endpoint.app.input_proof.reply
 endpoint.app.install.reply
 endpoint.app.linux.install.reply
 endpoint.app.linux.reply
+endpoint.app.linux.run.net.reply
 endpoint.app.linux.run.reply
 endpoint.app.linux.term.1.reply
 endpoint.app.linux.term.2.reply
@@ -230,6 +233,7 @@ endpoint.app.process_manager.1.reply
 endpoint.app.process_manager.2.reply
 endpoint.app.process_manager.reply
 endpoint.app.prove.1.reply
+endpoint.app.prove.job.reply
 endpoint.app.prove.reply
 endpoint.app.settings.1.reply
 endpoint.app.settings.2.reply
@@ -268,6 +272,7 @@ endpoint.net.sockets.reply
 endpoint.net.socks5.reply
 endpoint.net.tcp.reply
 endpoint.net.udp.reply
+endpoint.nonos.prove.fetch.reply
 endpoint.nonos.shield.reply
 endpoint.policy.reply
 endpoint.power.reply
@@ -311,7 +316,9 @@ net.sockets
 net.socks5
 net.tcp
 net.udp
+nonos.prove.fetch
 nonos.shield
+nox_settle
 payment
 policy
 power

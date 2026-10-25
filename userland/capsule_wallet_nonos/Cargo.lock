@@ -272,6 +272,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_equix"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_eth_rpc"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_hash"
 version = "0.1.0"
 
@@ -281,6 +289,35 @@ version = "0.3.0"
 dependencies = [
  "nonos_hash",
 ]
+
+[[package]]
+name = "nonos_market_proto"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_marketplace_abi"
+version = "0.3.0"
+dependencies = [
+ "nonos_nox_config",
+]
+
+[[package]]
+name = "nonos_nox_chunks"
+version = "0.1.0"
+dependencies = [
+ "nonos_equix",
+ "nonos_marketplace_abi",
+ "nonos_nox_config",
+ "nonos_seal",
+]
+
+[[package]]
+name = "nonos_nox_config"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_payment_proto"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_client"
@@ -311,6 +348,14 @@ dependencies = [
 [[package]]
 name = "nonos_seal"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_settle_proto"
+version = "0.1.0"
+dependencies = [
+ "nonos_eth_rpc",
+ "nonos_nox_config",
+]
 
 [[package]]
 name = "nonos_socket"
@@ -351,17 +396,25 @@ name = "nonos_wallet"
 version = "0.3.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_eth_rpc",
  "nonos_hd",
+ "nonos_market_proto",
+ "nonos_marketplace_abi",
+ "nonos_nox_chunks",
+ "nonos_nox_config",
+ "nonos_payment_proto",
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_qr",
  "nonos_route_link",
  "nonos_seal",
+ "nonos_settle_proto",
  "nonos_tls",
  "nonos_toolkit",
  "nonos_userland_libc",
  "shield_wire",
  "spin",
+ "zeroize",
 ]
 
 [[package]]

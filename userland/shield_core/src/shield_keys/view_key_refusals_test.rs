@@ -1,8 +1,3 @@
-/*
- * A test asserts by panicking, so the lints that forbid it are off here.
- */
-#![allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::arithmetic_side_effects)]
-
 //! A vector for every refusal of a view key, each built from account 0 of the test phrase with
 //! one thing wrong and the checksum made right again where the fault is not the checksum.
 

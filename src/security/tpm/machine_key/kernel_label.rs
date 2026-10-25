@@ -30,6 +30,8 @@ use super::derive::derive;
 use super::error::KeyError;
 
 const KERNEL_PREFIX: u8 = 0;
+// The next byte up is reserved for labels bound to their caller.
+const _: () = assert!(KERNEL_PREFIX != super::bound_label::BOUND_PREFIX);
 
 /// The machine key for a name only the kernel uses.
 pub fn derive_for_kernel(name: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {

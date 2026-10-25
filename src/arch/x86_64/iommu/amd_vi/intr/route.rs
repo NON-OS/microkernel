@@ -49,7 +49,7 @@ pub fn route_msi(
         return Err(AmdViError::Aliased);
     }
     let mut tables = TABLES.lock();
-    let table = table_of(&mut tables, id)?;
+    let table = table_of(&mut tables, id, false)?;
     let index = slots::take(&mut table.slots).ok_or(AmdViError::InterruptTableFull)?;
     let written =
         write_irte(table.phys, index, irte(vector, dest)).and_then(|_| flush_interrupts(id));

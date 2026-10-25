@@ -25,13 +25,15 @@
 use super::rf;
 use crate::h2c::build_iqk;
 use crate::regs::Mmio;
+use crate::wait::until_ms;
 
 /// `RF_DTXLOK`: the RF register the firmware writes the completion marker into.
 const RF_DTXLOK: u8 = 0x08;
 /// The value the firmware writes once IQK has finished.
 const IQK_DONE: u32 = 0x0A_BCDE;
-/// Reads allowed before calibration is declared not to have completed.
-const IQK_POLL_LIMIT: u32 = 300_000;
+/// How long calibration may take: rtw88 `rtw8821c_do_iqk` reads 300 times,
+/// 20 ms apart.
+const IQK_MS: u64 = 6000;
 
 /// Trigger IQK and wait for it to complete. `send` transmits the H2C packet down
 /// the H2C queue and reports whether it was accepted; `seq` is the H2C sequence
@@ -54,11 +56,5 @@ where
 
 // The firmware writes IQK_DONE into RF_DTXLOK when the 8051 finishes calibrating.
 fn wait_done<M: Mmio>(mmio: &M) -> bool {
-    for _ in 0..IQK_POLL_LIMIT {
-        if rf::read_a(mmio, RF_DTXLOK) == IQK_DONE {
-            return true;
-        }
-        core::hint::spin_loop();
-    }
-    false
+    until_ms(IQK_MS, || rf::read_a(mmio, RF_DTXLOK) == IQK_DONE)
 }

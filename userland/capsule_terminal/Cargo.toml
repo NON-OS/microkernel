@@ -36,6 +36,8 @@ nonos_policy_proto = { path = "../policy_proto" }
 # Whether this boot is live, for which Qwen tier runs by default.
 nonos_policy_client = { path = "../policy_client" }
 nonos_market_proto = { path = "../market_proto" }
+# The chain INSTALL_READY reads a sold listing's bond on (v1.4.23).
+nonos_nox_config = { path = "../nonos_nox_config" }
 nonos_socket = { path = "../nonos_socket" }
 nonos_tls = { path = "../nonos_tls" }
 nonos_toolkit = { path = "../toolkit", default-features = false }

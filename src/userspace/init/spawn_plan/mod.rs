@@ -51,7 +51,10 @@ mod input_probe_fleet;
 #[cfg(feature = "microkernel-setup-wizard")]
 mod install_first;
 mod network;
+#[cfg(not(feature = "microkernel-input-probe"))]
+mod nox_settle;
 mod orchestrator;
+mod payment;
 mod platform_acpi;
 mod services_audio;
 mod usb_host;

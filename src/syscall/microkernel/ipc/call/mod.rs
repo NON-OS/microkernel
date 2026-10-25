@@ -18,6 +18,5 @@ mod marks;
 mod settle;
 mod sys_ipc_call;
 mod token;
-mod trace;
 
 pub use sys_ipc_call::sys_ipc_call;

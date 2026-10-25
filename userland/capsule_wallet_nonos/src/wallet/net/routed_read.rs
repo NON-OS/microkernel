@@ -16,8 +16,7 @@
 
 //! Reading a TLS flight off a stream through an anonymity network.
 //!
-//! The direct reader counts empty socket reads, which is a direct socket's
-//! sense of time. Through the Nym mixnet or the Anyone network the first
+//! Through the Nym mixnet or the Anyone network the first
 //! byte of an answer is many seconds out and a reply can arrive in pieces
 //! seconds apart, so this reader measures time instead: it waits up to
 //! `first_ms` for anything, then up to `quiet_ms` after each piece, and

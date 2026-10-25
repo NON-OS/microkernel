@@ -18,6 +18,7 @@
 
 use super::super::error::AmdViError;
 use super::super::pte::{address, directory, index, is_present, next_level, LEVELS};
+use super::super::visible::store;
 use crate::arch::x86_64::iommu::tables::frame::allocate_table;
 use crate::arch::x86_64::iommu::tables::view::Frame;
 
@@ -30,7 +31,7 @@ pub(super) fn walk_create(root: u64, iova: u64) -> Result<(u64, usize), AmdViErr
         let slot = index(iova, level);
         if !is_present(entries.read(slot)?) {
             let next = allocate_table().map_err(|_| AmdViError::NoFrames)?;
-            entries.write(slot, directory(next, level))?;
+            store(table, slot, directory(next, level))?;
         }
         table = address(entries.read(slot)?);
     }

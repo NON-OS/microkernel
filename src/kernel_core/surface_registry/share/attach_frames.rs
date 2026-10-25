@@ -27,6 +27,7 @@ pub(super) fn attach_frames(
     receiver_pid: u32,
     handle: SurfaceHandle,
     out_desc: &mut SurfaceDescriptor,
+    write: bool,
 ) -> Result<u64, RegistryError> {
     let (idx, epoch) = decode_handle(handle);
     let frames = {
@@ -45,7 +46,7 @@ pub(super) fn attach_frames(
         slot.refcount = slot.refcount.checked_add(1).ok_or(RegistryError::InvalidArg)?;
         slot.frames.clone()
     };
-    let mapped = super::map_frames::map_view(receiver_pid, handle, &frames, out_desc);
+    let mapped = super::map_frames::map_view(receiver_pid, handle, &frames, out_desc, write);
     // A view left mapped is recorded as an attach and keeps its reference.
     // At none left, the slot goes as `release_surface` frees it (L49).
     if mapped.is_err() && lookup(receiver_pid, handle).is_none() {

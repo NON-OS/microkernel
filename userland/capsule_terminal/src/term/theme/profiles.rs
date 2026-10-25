@@ -20,6 +20,10 @@
 
 use super::types::Theme;
 
+#[path = "profiles_pick.rs"]
+mod profiles_pick;
+pub use profiles_pick::{by_index, by_name};
+
 pub const DARK: Theme = Theme {
     bg: 0xFF07_090B,
     fg: 0xFFD6_DCE3,
@@ -69,22 +73,3 @@ pub const ABYSS: Theme = Theme {
 };
 
 pub const COUNT: u16 = 4;
-
-pub fn by_index(i: u16) -> &'static Theme {
-    match i {
-        1 => &DIM,
-        2 => &LIGHT,
-        3 => &ABYSS,
-        _ => &DARK,
-    }
-}
-
-pub fn by_name(n: &[u8]) -> Option<u16> {
-    match n {
-        b"dark" | b"blackarch" | b"black" | b"blue" | b"matrix" => Some(0),
-        b"dim" | b"glass" | b"smoke" | b"clear" => Some(1),
-        b"light" => Some(2),
-        b"abyss" => Some(3),
-        _ => None,
-    }
-}

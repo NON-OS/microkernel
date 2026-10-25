@@ -1,11 +1,3 @@
-// Tests assert by panicking and read memory through a pointer, so those lints are off here.
-#![allow(
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 use core::mem::MaybeUninit;
 use core::ptr;
 use nox_shield_core::custody::Seed;
@@ -15,7 +7,8 @@ use nox_shield_core::notes::NotePlaintext;
 // Secrets are gone from memory after drop, observed and not merely declared, since a derived
 // wipe can survive a refactor that moved the fields. Each value sits in storage the test
 // owns, is dropped in place, and is read back, so no freed memory is read. The pattern is 0xA5
-// because all zeros would pass against a wipe that never happened.
+// because all zeros would pass against a wipe that never happened. The control that shows the
+// technique would notice a missing wipe is in zeroize_control.rs.
 const PATTERN: u8 = 0xA5;
 
 #[test]
@@ -61,24 +54,4 @@ fn the_viewing_secret_is_zero_after_it_drops() {
     // SAFETY: still this test's storage, and a viewing key is one 32 byte secret.
     let seen = unsafe { ptr::read(view.cast::<[u8; 32]>()) };
     assert_eq!(seen, [0u8; 32], "the viewing secret survived its drop");
-}
-
-// The control: a seed shaped type with no wipe, put through the same steps, must still hold
-// the pattern. If it reads zeros, the three tests above prove nothing.
-struct Unwiped(#[allow(dead_code)] [u8; 64]);
-
-#[test]
-fn the_technique_would_notice_a_missing_wipe() {
-    let mut slot = MaybeUninit::new(Unwiped([PATTERN; 64]));
-    let plain = slot.as_mut_ptr();
-
-    // SAFETY: the storage is this test's, and it holds an initialised value.
-    unsafe { ptr::drop_in_place(plain) };
-
-    // SAFETY: still this test's storage, holding 64 plain bytes.
-    let seen = unsafe { ptr::read(plain.cast::<[u8; 64]>()) };
-    assert_eq!(
-        seen, [PATTERN; 64],
-        "reading storage after a drop returns zeros by itself, so the wipe tests prove nothing"
-    );
 }

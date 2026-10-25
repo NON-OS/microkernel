@@ -18,8 +18,6 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_service_lookup;
 
-use super::consts::PAYMENT_SERVICE;
-
 // A package whose verified namespace ends in a builtin's slug would answer in
 // that builtin's place. The live registry is the only name list that cannot
 // drift from what is actually running, so it is what the slug is tested
@@ -40,15 +38,4 @@ fn resolves(name: &[u8]) -> bool {
     let mut port: u32 = 0;
     let mut pid: u32 = 0;
     mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid) == 0
-}
-
-pub fn payment_port() -> Option<u32> {
-    let mut port: u32 = 0;
-    let mut pid: u32 = 0;
-    let rc =
-        mk_service_lookup(PAYMENT_SERVICE.as_ptr(), PAYMENT_SERVICE.len(), &mut port, &mut pid);
-    if rc != 0 {
-        return None;
-    }
-    Some(port)
 }

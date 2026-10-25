@@ -5,10 +5,17 @@ edition = "2021"
 description = "Verify a NOX ERC20 payment from its transaction receipt, no_std"
 license = "AGPL-3.0"
 
+[package.metadata.nonos]
+test-lane = true
+
 [lib]
 crate-type = ["rlib"]
 
 [dependencies]
+
+# The tests pay the live token by the address the config names.
+[dev-dependencies]
+nonos_nox_config = { path = "../nonos_nox_config" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

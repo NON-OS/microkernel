@@ -15,12 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The kernel's surface registry, per thread: each surface registered, as
-//! its descriptor, a switch that refuses the next ones, and each share
-//! released, given back in order with the unmaps and the release.
+//! its descriptor, and a switch that refuses the next ones.
 
 use std::cell::{Cell, RefCell};
-
-use crate::claim::give_back;
 
 pub const SURFACE_FORMAT_ARGB8888: u32 = 1;
 /// What the share answers for the surface registered as `sid`.
@@ -36,6 +33,10 @@ pub struct SurfaceDescriptor {
     pub byte_len: u64,
     pub base_va: u64,
     pub flags: u64,
+    /// Written by an attach: the process that registered the surface.
+    pub owner_pid: u32,
+    /// Written by an attach: 1 when the view is writable.
+    pub writable: u32,
 }
 
 thread_local! {
@@ -64,12 +65,4 @@ pub fn mk_surface_register(desc: *const SurfaceDescriptor) -> i64 {
         r.borrow_mut().push(desc);
         r.borrow().len() as i64 - 1
     })
-}
-
-pub fn mk_surface_share(sid: u64) -> i64 {
-    SHARED_HANDLE_BASE + sid as i64
-}
-
-pub fn mk_surface_release(handle: u64) -> i64 {
-    give_back("surface_release", handle)
 }

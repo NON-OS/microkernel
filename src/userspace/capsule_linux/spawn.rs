@@ -50,8 +50,8 @@ pub const LINUX_CAPS: u64 = Capability::CoreExec.bit()
      * model the personality pins onto it, kept only if it hashes to its pin.
      */
     | Capability::FileSystem.bit()
-    | Capability::StoreWrite.bit()
-    | Capability::LocalSign.bit();
+    | Capability::StoreWrite.bit();
+// No LocalSign: only the install role vouches, so only it holds it (roles.rs).
 
 pub fn spawn_linux_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use super::rfc8448_flight::{keyed, sealed};
 use crate::fixtures::certs::GATEWAY;
 use crate::fixtures::rfc8448::SERVER_HELLO_RECORD;
-use crate::handshake_state::{Progress, Refusal};
+use crate::handshake_state::{Progress, Refusal, Unverified};
 
 /* 2026-10-01, inside the leaf's month of validity. */
 const NOW: u64 = 20261001000000;
@@ -71,5 +71,5 @@ fn with_the_chain_set_aside_the_forged_signature_still_fails() {
     let flight = gateway_flight();
     let mut state = keyed(&flight);
     assert_eq!(state.advance(&flight), Progress::Complete(flight.len()));
-    assert!(state.verify(b"nonos.software", NOW, false).is_none());
+    assert_eq!(state.verify(b"nonos.software", NOW, false).err(), Some(Unverified::Failed));
 }

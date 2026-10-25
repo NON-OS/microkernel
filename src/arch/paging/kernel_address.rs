@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Addresses shared kernel code hands to devices or uses to reach them.
+//! Where shared kernel code reaches device registers.
 //!
-//! On aarch64 the kernel image and device registers move to the high half
-//! once the kernel runs from TTBR1_EL1, so neither the address of a static
-//! nor a register's physical address can be used as it is. Elsewhere both
-//! are what they were, and these return their argument.
-
-/// The bus address of a buffer that lives in the kernel image, such as a
-/// static DMA ring: what a device must be given instead of the pointer.
-#[inline]
-pub fn kernel_dma(va: u64) -> u64 {
-    #[cfg(target_arch = "aarch64")]
-    return crate::arch::aarch64::mmu::image_pa(va);
-    #[cfg(not(target_arch = "aarch64"))]
-    va
-}
+//! On aarch64 device registers move to the high half once the kernel runs
+//! from TTBR1_EL1, so a register's physical address cannot be used as it
+//! is. Elsewhere it is what it was, and this returns its argument. (The
+//! kernel's one static DMA ring, virtio-rng's, went with that driver: K9.)
 
 /// Where the kernel reaches device registers at physical `pa` it was handed
 /// raw, a BAR read from config space or a window from the device tree.

@@ -20,13 +20,25 @@
 
 use std::cell::RefCell;
 
+mod pci;
+mod shipped;
+
+pub use pci::*;
+pub use shipped::*;
+
 thread_local! {
     static GIVEN_BACK: RefCell<Vec<(&'static str, u64)>> = const { RefCell::new(Vec::new()) };
 }
 
-fn give_back(call: &'static str, id: u64) -> i64 {
+pub(crate) fn give_back(call: &'static str, id: u64) -> i64 {
     GIVEN_BACK.with(|g| g.borrow_mut().push((call, id)));
     0
+}
+
+/// Log `call` among the broker calls, so a modeled device's own events show
+/// in the same order as the calls around them.
+pub fn note(call: &'static str, id: u64) {
+    give_back(call, id);
 }
 
 /// Every release made on this thread, as (call, id), in order.
@@ -58,15 +70,3 @@ impl Deadline {
         std::time::Instant::now() >= self.0
     }
 }
-
-// The real libc's register accessors and DMA barriers, mounted so the driver
-// files under test reach a device through the code they ship with.
-#[path = "../../../libc/src/broker/dma_order.rs"]
-mod dma_order;
-#[path = "../../../libc/src/broker/mmio_access.rs"]
-mod mmio_access;
-pub use dma_order::{dma_mb, dma_rmb, dma_wmb};
-pub use mmio_access::{
-    mmio_read16, mmio_read32, mmio_read64, mmio_read8, mmio_write16, mmio_write32, mmio_write64,
-    mmio_write8,
-};

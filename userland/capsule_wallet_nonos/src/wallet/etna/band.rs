@@ -28,18 +28,13 @@ use super::backdrop::Backdrop;
 use super::layout::PHOTO_W;
 use super::tokens::{BANNER_H, INK};
 
+#[path = "band_credit.rs"]
+mod credit;
+#[path = "band_fade.rs"]
+mod fade;
+
 /// One decoded photograph at a time: the section on screen.
 static DECODED: Mutex<Option<(Backdrop, Vec<u32>)>> = Mutex::new(None);
-
-fn fade(row: u32, h: u32) -> u32 {
-    let t = row * 1000 / h.max(1);
-    let alpha = match t {
-        0..=299 => 350 * (300 - t) / 300,
-        300..=549 => 0,
-        _ => 1000 * (t - 550) / 450,
-    };
-    alpha.min(1000) * 255 / 1000
-}
 
 /// Draw `which` `h` rows tall with its top-left at `x, top`, rows above the
 /// screen left out, at the column's width: the photograph is scaled to it,
@@ -71,7 +66,10 @@ pub fn band(fb: &mut PaintBuffer, x: u32, top: i64, which: Backdrop, h: u32) -> 
         } else {
             fb.fill_rect(x, y, column, 1, INK);
         }
-        fb.blend_rect(x, y, column, 1, (fade(row, h) << 24) | (INK & 0x00FF_FFFF));
+        fb.blend_rect(x, y, column, 1, (fade::fade(row, h) << 24) | (INK & 0x00FF_FFFF));
+    }
+    if slot.is_some() {
+        credit::credit(fb, x, top, column, h);
     }
     h
 }

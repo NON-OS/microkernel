@@ -29,7 +29,7 @@ impl Mlme {
             ssid,
             passphrase,
             policy: JoinPolicy::PSK_ONLY,
-            entropy: Entropy { snonce, sae: [0u8; SAE_ENTROPY] },
+            entropy: Entropy { snonce, sae: [0u8; SAE_ENTROPY], rekey: [0u8; 32] },
         });
         m.sae_entropy = None;
         m

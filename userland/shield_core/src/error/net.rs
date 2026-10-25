@@ -20,6 +20,8 @@ pub enum NetError {
     WrongRelayer,
     /// The wallet locked while the pool was read: the read stopped between two requests.
     Stopped,
+    /// The reply did not come whole within its time, however steadily it trickled.
+    TooSlow,
 }
 
 impl core::fmt::Display for NetError {
@@ -36,6 +38,7 @@ impl core::fmt::Display for NetError {
             NetError::WrongChain => f.write_str("the server answered for a different network"),
             NetError::WrongRelayer => f.write_str("the relayer answered as someone else"),
             NetError::Stopped => f.write_str("the wallet locked, so the read was stopped"),
+            NetError::TooSlow => f.write_str("the server took too long to answer"),
         }
     }
 }

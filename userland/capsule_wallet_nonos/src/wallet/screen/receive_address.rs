@@ -27,7 +27,7 @@ use crate::wallet::state::State;
 /// The address in lower case, as the services it is handed to compare it.
 pub fn address_hex(state: &State) -> String {
     let mut hex = String::from("0x");
-    for b in state.address {
+    for b in state.acct.address {
         hex.push_str(&alloc::format!("{b:02x}"));
     }
     hex
@@ -36,37 +36,20 @@ pub fn address_hex(state: &State) -> String {
 /// The address as a person reads and copies it: 0x and its EIP-55
 /// spelling, whose capitals let another wallet catch a mistyped digit.
 pub fn address_text(state: &State) -> String {
-    checksummed_text(&state.address)
+    checksummed_text(&state.acct.address)
 }
 
-/// Any 20-byte address in its EIP-55 spelling. Lower case, which is the
-/// same address with no checksum, only if keccak cannot be had.
+/// Any 20-byte address in its EIP-55 spelling, marketplace_abi's
+/// address_text. Lower case, which is the same address with no checksum,
+/// only if keccak cannot be had: Kec's all-zero word capitalises nothing.
 pub fn checksummed_text(address: &[u8; 20]) -> String {
-    let mut hex = [0u8; 40];
-    for (i, b) in address.iter().enumerate() {
-        hex[i * 2] = HEX[(b >> 4) as usize];
-        hex[i * 2 + 1] = HEX[(b & 15) as usize];
-    }
-    let shown =
-        keccak(&hex).map_or(hex, |h| crate::wallet::event::address_text::checksummed(&hex, &h));
-    let mut out = String::with_capacity(42);
-    out.push_str("0x");
-    out.extend(shown.iter().map(|c| char::from(*c)));
-    out
+    let spelt = nonos_marketplace_abi::address_text(&crate::wallet::publish::Kec, address);
+    spelt.iter().map(|c| char::from(*c)).collect()
 }
-
-/// keccak-256 of an address's lower-case digits, from the crypto service.
-pub fn keccak(hex: &[u8; 40]) -> Option<[u8; 32]> {
-    let lower = crate::wallet::event::address_text::lower(hex);
-    let mut out = [0u8; 32];
-    crate::wallet::tx_hash::tx_hash(&lower, &mut out).then_some(out)
-}
-
-const HEX: &[u8; 16] = b"0123456789abcdef";
 
 /// What is known about the address, as facts; returns their height.
 pub fn facts(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
-    let key = if state.vault_saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
+    let key = if state.vault.saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
     let h = fact(fb, c.x, y, c.w, "network", crate::wallet::chain::current().name);
     h + fact(fb, c.x, y + h, c.w, "key", key)
 }

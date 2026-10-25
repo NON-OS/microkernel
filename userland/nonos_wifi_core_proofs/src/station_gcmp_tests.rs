@@ -38,7 +38,7 @@ fn linked() -> LinkStation {
 fn eth_of(rx: Rx) -> Vec<u8> {
     match rx {
         Rx::Ethernet(e) => e,
-        Rx::Handshake { .. } => panic!("a handshake"),
+        Rx::Handshake { .. } | Rx::Send(_) | Rx::Lost(_) => panic!("a handshake"),
         Rx::Dropped(why) => panic!("dropped: {why:?}"),
     }
 }

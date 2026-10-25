@@ -32,10 +32,18 @@ impl LinkStation {
     /// Check and convert one received MPDU (FCS already removed).
     /// `hw_decrypted` says the chip decrypted a protected frame, leaving the
     /// CCMP header and MIC as received; the station checks that MIC itself
-    /// whenever it holds the key (`chip_rx`).
+    /// whenever it holds the key (`chip_rx`). A management frame goes its
+    /// own way (`mgmt_route`); a data frame that passes counts as hearing
+    /// the AP.
     pub fn receive(&mut self, mpdu: &[u8], hw_decrypted: bool) -> Rx {
+        if mpdu.first().is_some_and(|b| (b >> 2) & 0x03 == TYPE_MGMT) {
+            return self.on_mgmt(mpdu, hw_decrypted);
+        }
         match self.check(mpdu, hw_decrypted) {
-            Ok(c) => self.deliver(&c),
+            Ok(c) => {
+                self.watch.heard();
+                self.deliver(&c)
+            }
             Err(why) => Rx::Dropped(why),
         }
     }

@@ -16,13 +16,15 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs::{list_paths, read_file};
+use nonos_app_skeleton::clients::vfs::list_paths;
 
 use super::super::pull::target::Target;
-use super::request;
 use crate::term::state::State;
 
-const MAX: u32 = 64 * 1024 * 1024;
+#[path = "walk_one.rs"]
+mod walk_one;
+
+use walk_one::one;
 
 pub(super) fn walk(
     state: &mut State,
@@ -52,32 +54,6 @@ pub(super) fn walk(
         }
     }
     ok
-}
-
-fn one(
-    state: &mut State,
-    pid: u32,
-    ip: [u8; 4],
-    target: &Target,
-    local: &[u8],
-    remote: &[u8],
-    extra: &[u8],
-) -> bool {
-    let body = match read_file(pid, local, MAX) {
-        Ok(b) => b,
-        Err(e) => {
-            state.scrollback.push_error(e.as_bytes());
-            return false;
-        }
-    };
-    if let Err(e) = request::put(ip, target.port, &target.host, remote, &body, extra) {
-        state.scrollback.push_error(e.as_bytes());
-        return false;
-    }
-    let mut m = Vec::from(&b"pushed "[..]);
-    m.extend_from_slice(remote);
-    state.scrollback.push_line(&m);
-    true
 }
 
 fn join(base: &[u8], name: &[u8]) -> Vec<u8> {

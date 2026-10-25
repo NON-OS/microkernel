@@ -16,6 +16,8 @@
 
 pub mod context;
 pub mod frame;
+pub mod frames_of;
+pub mod free;
 pub mod out_of_frame;
 pub mod pair;
 pub mod publish;

@@ -6,7 +6,7 @@ device is in [Input drivers](README.md).
 
 ## How this is checked
 
-The [proof crates](../../overview/glossary.md#proof-crate) compile the shipping
+The [proof crates](../../overview/glossary-peer-list.md#proof-crate) compile the shipping
 driver source on the host and run it against models of the hardware. Their flake
 checks pass at commit bff12b97:
 

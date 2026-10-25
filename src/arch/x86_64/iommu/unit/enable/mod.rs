@@ -21,7 +21,7 @@ mod root_table;
 mod service;
 mod translation;
 
-pub use release::{release_from_firmware, Released};
+pub use release::{release_from_firmware, release_protected_regions, Released};
 pub use root_table::install_root_table;
 pub use service::bring_into_service;
 pub use translation::enable_translation;

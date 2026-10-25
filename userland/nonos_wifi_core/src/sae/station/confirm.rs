@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The peer's confirm ends the exchange; any mismatch fails it for good.
+//! The peer's confirm ends the exchange once it verifies; one that does not
+//! is discarded, and the exchange runs on.
 
 use super::*;
 
 impl SaeStation {
     pub(super) fn on_confirm(&mut self, status: u16, body: &[u8]) -> SaeStep {
         if status != STATUS_SUCCESS {
-            return self.fail(SaeFailure::Rejected(status));
+            return self.discard(SaeFailure::Rejected(status));
         }
         if self.state != SaeState::Confirmed {
             return SaeStep::Ignore;
         }
         let Some((peer_sc, got)) = parse_confirm(body) else {
-            return self.fail(SaeFailure::BadConfirm);
+            return self.discard(SaeFailure::BadConfirm);
         };
         let want = confirm(
             &self.keys.kck,
@@ -42,15 +43,18 @@ impl SaeStation {
             diff |= a ^ b;
         }
         if diff != 0 {
-            return self.fail(SaeFailure::BadConfirm);
+            return self.discard(SaeFailure::BadConfirm);
         }
         self.state = SaeState::Accepted;
-        SaeStep::Accepted
+        self.failure = None;
+        SaeStep::Accepted { pmk: self.keys.pmk }
     }
 
-    pub(super) fn fail(&mut self, why: SaeFailure) -> SaeStep {
-        self.state = SaeState::Failed;
+    /// Drop a frame that does not authenticate, as 12.4.8.6 says, and keep
+    /// why: the exchange runs on until the AP's own confirm or the driver's
+    /// deadline.
+    pub(super) fn discard(&mut self, why: SaeFailure) -> SaeStep {
         self.failure = Some(why);
-        SaeStep::Failed
+        SaeStep::Ignore
     }
 }
