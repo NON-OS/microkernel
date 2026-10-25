@@ -20,6 +20,8 @@
 //! first that was not is named: a development image's path alone, a root a
 //! person enrolled, or a local build.
 
+use alloc::vec::Vec;
+
 use crate::log::{Admitted, Replayed};
 use crate::{CapsuleFault, Refusal};
 
@@ -27,14 +29,16 @@ pub fn capsules(r: &Replayed) -> Result<(), Refusal> {
     if r.capsules.is_empty() {
         return Err(Refusal::Pcr14(CapsuleFault::None));
     }
-    let fault = |a: Admitted| match a {
-        Admitted::Vendor => None,
-        Admitted::PathOnly => Some(CapsuleFault::PathOnly),
-        Admitted::Developer => Some(CapsuleFault::Developer),
-        Admitted::LocalBuild => Some(CapsuleFault::LocalBuild),
-    };
-    match r.capsules.iter().find_map(|c| fault(c.admitted)) {
-        None => Ok(()),
-        Some(f) => Err(Refusal::Pcr14(f)),
+    match r.capsules.iter().map(|c| c.admitted).find(|a| *a != Admitted::Vendor) {
+        None | Some(Admitted::Vendor) => Ok(()),
+        Some(Admitted::PathOnly) => Err(Refusal::Pcr14(CapsuleFault::PathOnly)),
+        Some(Admitted::Developer) => Err(Refusal::Pcr14(CapsuleFault::Developer)),
+        Some(Admitted::LocalBuild) => Err(Refusal::Pcr14(CapsuleFault::LocalBuild)),
     }
+}
+
+/// Every capsule a release refuses: its place in PCR 14, and its kind.
+pub fn not_vendor(r: &Replayed) -> Vec<(usize, Admitted)> {
+    let capsules = r.capsules.iter().map(|c| c.admitted).enumerate();
+    capsules.filter(|(_, a)| *a != Admitted::Vendor).collect()
 }
