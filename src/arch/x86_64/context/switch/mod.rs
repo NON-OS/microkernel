@@ -19,6 +19,7 @@ mod first_entry;
 mod kernel_thread;
 mod resume;
 mod retry_unsaved;
+mod user_rsp;
 mod validate_resume;
 
 pub(crate) use dispatch::switch_to_user_pcb_x86_64;

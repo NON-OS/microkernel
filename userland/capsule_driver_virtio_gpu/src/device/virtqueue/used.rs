@@ -37,7 +37,8 @@ pub struct UsedEntry {
 /// Used entry `n`, once an index that covers it has been seen.
 pub fn read_entry(layout: QueueLayout, n: u16) -> UsedEntry {
     let at = USED_RING + USED_ELEM_SIZE * usize::from(n % layout.queue_size);
-    // Order these reads after the used index that proved them written.
+    // Order these reads after the used index that proved them written, as
+    // the device wrote them (libc's barrier, not a fence, on aarch64).
     nonos_libc::dma_rmb();
     UsedEntry { id: layout.ring.r32(at), len: layout.ring.r32(at + 4) }
 }
