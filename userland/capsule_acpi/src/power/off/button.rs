@@ -18,11 +18,11 @@
 //! hand-over of the fixed button from the kernel's poll to this capsule's
 //! SCI, so that one reader alone clears its status bit.
 
-use super::{power_off, Why};
 use super::rule::{fixed_button, on_restart, press as verdict, Press};
-use core::sync::atomic::{AtomicBool, Ordering};
+use super::{power_off, Why};
 use crate::sys::acpi_event::button_taken;
 use crate::sys::log::Line;
+use core::sync::atomic::{AtomicBool, Ordering};
 use nonos_aml::events::Policy;
 
 /// The kernel said a capsule served the button before this one.
