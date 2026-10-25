@@ -26,6 +26,7 @@ mod identity;
 mod replay;
 mod rx_queue;
 mod session;
+mod key_slot;
 mod shared_key;
 mod surb;
 mod surb_id;

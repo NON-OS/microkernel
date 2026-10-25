@@ -20,8 +20,9 @@
 
 use std::sync::Mutex;
 
+use crate::state::key_slot::Link;
 use crate::state::shared_key::{
-    clear_gateway_shared_key, gateway_key_held, set_gateway_shared_key, with_gateway_key, Link,
+    clear_gateway_shared_key, gateway_key_held, set_gateway_shared_key, with_gateway_key,
 };
 use crate::state::table::Table;
 use crate::state::{Gateway, Transport};

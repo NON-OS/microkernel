@@ -33,7 +33,6 @@ fn table() -> Table {
         transport: Transport::RawTcp,
         identity: [0; 32],
     };
-    // set_gateway reaches the one gateway key slot; the key tests hold it.
     let _slot = crate::wipes::key_slot_tests::SLOT.lock().unwrap_or_else(|e| e.into_inner());
     t.set_gateway(gateway);
     t
