@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Tab's candidates, drawn as a panel beside the prompt (`complete_list`).
+//! Tab's candidates, drawn as a panel beside the prompt (`complete_list`), or
+//! the theme picker's in their place while it is open.
 
 use alloc::vec::Vec;
 
@@ -31,6 +32,9 @@ use crate::term::theme::types::Theme;
 use crate::term::util::format_u64;
 
 pub fn draw_completions(state: &State, fb: &mut PaintBuffer, l: &Layout, m: Metrics, t: &Theme) {
+    if let Some(pick) = &state.theme_pick {
+        return super::theme_panel::draw(pick, fb, l, m, t);
+    }
     if state.completions.is_empty() {
         return;
     }
