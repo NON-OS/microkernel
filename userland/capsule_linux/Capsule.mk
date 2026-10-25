@@ -58,5 +58,8 @@ CAPSULE_REQUIRED_CAPS    := 0x104001979
 CAPSULE_OPTIONAL_CAPS    := 0x600000004
 CAPSULE_CAPS_CEILING     := 0x70400197D
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux
+# Development images only (tools/nix/capsules-dev.json): Alpine's mirror is
+# the host's relay at 10.0.2.2:8080, dialled directly (docs/build/dev-mirror.md).
+CAPSULE_DEV_CARGO_FEATURES := dev-mirror
 
 include nonos-mk/capsule.mk

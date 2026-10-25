@@ -16,7 +16,7 @@
 
 pub mod firmware;
 pub mod loader_check;
-mod modules;
+pub(in crate::security) mod modules;
 pub mod secure_boot;
 pub mod slots;
 

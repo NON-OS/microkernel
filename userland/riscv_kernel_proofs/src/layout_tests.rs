@@ -1,6 +1,6 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 //! The Context's save and restore agree with its fields, and the riscv64
-//! entry reaches the shared kernel, which stops at the missing boot memory.
+//! entry reaches the shared kernel, which hands riscv64 its boot memory.
 
 use crate::source::{code, order};
 
@@ -45,14 +45,13 @@ fn the_entry_takes_the_shared_path() {
 }
 
 #[test]
-fn no_boot_memory_path_stops_the_kernel_loudly() {
+fn the_shared_kernel_hands_riscv64_its_boot_memory() {
     let m = code("kernel_core/init/entry/init_arch_memory_and_framebuffer.rs");
     order(
         &m,
         &[
-            "ArchSpecificHandoff::Riscv64 { .. } => {",
-            "no boot memory path yet; stopping",
-            "crate::arch::halt_loop()",
+            "ArchSpecificHandoff::Riscv64 { info } => {",
+            "crate::arch::riscv64::boot::init_boot_memory(info);",
         ],
     );
 }

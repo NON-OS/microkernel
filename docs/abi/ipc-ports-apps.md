@@ -36,11 +36,11 @@ Ports 4610 to 5191 of the [well-known service ports](ipc-ports.md#well-known-ser
 | 4910 | `tool.tokei` | 4911 | `capsule_tokei` |
 | 4912 | `tool.huniq` | 4913 | `capsule_huniq` |
 | 4914 | `tool.csview` | 4915 | `capsule_csview` |
-| 4916 | `app.gui_demo` | 4917 | `capsule_gui_demo` |
+| 4916 | `com.example.gui_demo` | 4917 | `capsule_gui_demo` |
 | 4918 | `app.egui_proof` | 4919 | `capsule_egui_proof` |
-| 4920 | `app.game_2048` | 4921 | `capsule_game_2048` |
-| 4922 | `app.mdview` | 4923 | `capsule_mdview` |
-| 4924 | `app.qrgen` | 4925 | `capsule_qrgen` |
+| 4920 | `com.example.game_2048` | 4921 | `capsule_game_2048` |
+| 4922 | `com.example.mdview` | 4923 | `capsule_mdview` |
+| 4924 | `com.example.qrgen` | 4925 | `capsule_qrgen` |
 | 4926 | `app.video_player` | 4927 | `capsule_video_player` |
 | 4932 | `app.install` | 4933 | `capsule_install` |
 | 4934 | `tool.install` | 4935 | `tool_install` |
