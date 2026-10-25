@@ -1,0 +1,5 @@
+a9f192a780 capsule_acpi: open the SCI line once it is bound
+ mk/20-build.mk       | 1 +
+ tools/nix/config.nix | 8 ++++++++
+ 2 files changed, 9 insertions(+)
+6dc7cf75ebef2e65f524c83e378997dc91f3b76744fbc15faa86fb9282d57bdb  /home/user/pk-build/target/dev/tree/target/release/p08acpi-dev/nonos.img
