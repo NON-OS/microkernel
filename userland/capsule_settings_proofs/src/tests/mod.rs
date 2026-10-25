@@ -18,6 +18,8 @@
 //! the crate root.
 
 mod access_page_tests;
+mod card_text_break_tests;
+mod card_text_tests;
 mod connect_request_tests;
 mod fit_tests;
 mod handoff_race_tests;
