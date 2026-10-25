@@ -17,7 +17,8 @@
 /// Hand the exit status to the kernel and never come back.
 ///
 /// The kernel's ecall handler reads the call number from a7 and the first
-/// argument from a0, as the RISC-V calling convention lays them out.
+/// argument from a0: its own contract, the registers the riscv64 trap frame
+/// hands the system call dispatch.
 pub unsafe fn exit(num: i64, code: i64) -> ! {
     core::arch::asm!(
         "ecall",
