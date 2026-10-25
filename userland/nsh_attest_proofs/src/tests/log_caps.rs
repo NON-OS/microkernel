@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The caps: a log over 131072 bytes or 1024 events is refused whole,
+//! The caps, the loader's: a log over 1 MiB or 4096 events is refused whole,
 //! never cut short.
 
 use nsh_attest::consts::MAX_LOG;
@@ -35,7 +35,7 @@ fn events(n: usize) -> (Vec<u8>, [u8; 32]) {
 }
 
 #[test]
-fn a_log_of_exactly_1024_events_replays() {
+fn a_log_of_exactly_max_events_replays() {
     let (log, pcr3) = events(MAX_EVENTS);
     let r = replay(&log).expect("at the cap");
     assert_eq!((r.events, r.pcrs[3]), (MAX_EVENTS, pcr3));

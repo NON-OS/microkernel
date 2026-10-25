@@ -172,8 +172,11 @@ the compositor's own code makes no debug call. No `CoreExec`, `Driver`,
   not registered until one answers.
 - `mk_surface_attach` on a layer's handle fails for 60 frames in a row:
   the layer is dropped and its rectangle repainted.
-- Wire calls and FLUSH use a 100 ms reply timeout, so a lost
-  reply costs a late frame; `scanout_error_reported` notes a failed
+- A FLUSH waits up to 400 ms (`display/call.rs`'s FLUSH_MS): a whole
+  1920x1080 frame costs virtio-gpu 18 ms (median, TCG), but up to 327 ms
+  while capsules spawn and the driver waits for a processor. CURSOR keeps
+  100 ms, setup and polls 250 ms, and the first CAPS 3 s. A lost reply costs
+  a late frame; `scanout_error_reported` notes a failed
   present once and the loop continues. A refused FLUSH leaves its
   rectangle damaged for the next frame; ESTALE also has the next pass ask
   SURFACE again.
